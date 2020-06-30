@@ -14,19 +14,20 @@
 
 import * as axon from 'pm2-axon';
 import {
-	PubEmitterSocket,
-	RepSocket,
+	PubSocket,
+	PullSocket,
+	PushSocket,
 	ReqSocket,
-	SubEmitterSocket,
+	SubSocket,
 } from 'pm2-axon';
 import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
 import { Action, ActionInfoObject, ActionsObject } from './action';
 import { Logger } from '../application/logger';
-import { BaseChannel } from './channels/base_channel';
-import { EventsArray } from './event';
+import { BaseChannel } from './channels';
+import { EventInfoObject, EventsArray } from './event';
 import { SocketPaths } from './types';
-import { SOCKET_TIMEOUT_TIME } from './constants';
+import { IPCServer } from './ipc/ipc_server';
 
 interface BusConfiguration {
 	ipc: {
@@ -50,14 +51,7 @@ interface ChannelInfo {
 	readonly type: string;
 }
 
-const rejectWhenTimeout = async (timeInMillis: number): Promise<void> =>
-	new Promise((_, reject) => {
-		setTimeout(() => {
-			reject(new Error('Bus sockets setup timeout'));
-		}, timeInMillis);
-	});
-
-export class Bus extends EventEmitter2 {
+export class Bus {
 	public logger: Logger;
 
 	private readonly config: BusConfiguration;
@@ -67,25 +61,29 @@ export class Bus extends EventEmitter2 {
 		[key: string]: ChannelInfo;
 	};
 	private readonly rpcClients: { [key: string]: ReqSocket };
-	private pubSocket?: PubEmitterSocket;
-	private subSocket?: SubEmitterSocket;
-	private rpcSocket?: RepSocket;
-	private rpcServer?: RPCServer;
+	private readonly _ipcServer: IPCServer;
+	private readonly _emitter: EventEmitter2;
 
-	public constructor(
-		options: object,
-		logger: Logger,
-		config: BusConfiguration,
-	) {
-		super(options);
+	public constructor(logger: Logger, config: BusConfiguration) {
 		this.logger = logger;
 		this.config = config;
+
+		this._emitter = new EventEmitter2({
+			wildcard: true,
+			delimiter: ':',
+			maxListeners: 1000,
+		});
 
 		// Hash map used instead of arrays for performance.
 		this.actions = {};
 		this.events = {};
 		this.channels = {};
 		this.rpcClients = {};
+
+		this._ipcServer = new IPCServer({
+			socketsDir: this.config.socketsPath.root,
+			name: 'bus',
+		});
 	}
 
 	public async setup(): Promise<boolean> {
@@ -93,17 +91,9 @@ export class Bus extends EventEmitter2 {
 			return true;
 		}
 
-		this.pubSocket = axon.socket('pub-emitter') as PubEmitterSocket;
-		this.pubSocket.bind(this.config.socketsPath.pub);
+		await this._ipcServer.start();
 
-		this.subSocket = axon.socket('sub-emitter') as SubEmitterSocket;
-		this.subSocket.bind(this.config.socketsPath.sub);
-
-		this.rpcSocket = axon.socket('rep') as RepSocket;
-		this.rpcServer = new RPCServer(this.rpcSocket);
-		this.rpcSocket.bind(this.config.socketsPath.rpc);
-
-		this.rpcServer.expose(
+		this._rpcServer.expose(
 			'registerChannel',
 			(moduleAlias, events, actions, options, cb: NodeCallback) => {
 				this.registerChannel(moduleAlias, events, actions, options)
@@ -112,24 +102,24 @@ export class Bus extends EventEmitter2 {
 			},
 		);
 
-		this.rpcServer.expose('invoke', (action, cb: NodeCallback) => {
+		this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
 			this.invoke(action)
 				.then(data => cb(null, data))
 				.catch(error => cb(error));
 		});
 
-		this.rpcServer.expose('invokePublic', (action, cb: NodeCallback) => {
+		this._rpcServer.expose('invokePublic', (action, cb: NodeCallback) => {
 			this.invokePublic(action)
 				.then(data => cb(null, data))
 				.catch(error => cb(error));
 		});
 
-		await Promise.race([
-			this._resolveWhenAllSocketsBound(),
-			this._rejectWhenAnySocketFailsToBind(),
-			rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
-		]);
-		await this._removeAllListeners();
+		this._subSocket.on(
+			'message',
+			(eventName: string, eventValue: EventInfoObject) => {
+				this.publish(eventName, eventValue);
+			},
+		);
 
 		return true;
 	}
@@ -215,11 +205,11 @@ export class Bus extends EventEmitter2 {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
 		// Communicate through event emitter
-		this.emit(eventName, eventValue);
+		this._emitter.emit(eventName, eventValue);
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
-			this.pubSocket?.emit(eventName, eventValue);
+			this._pubSocket.send(eventName, eventValue);
 		}
 	}
 
@@ -231,16 +221,15 @@ export class Bus extends EventEmitter2 {
 		}
 
 		// Communicate through event emitter
-		this.on(eventName, cb);
+		this._emitter.on(eventName, cb);
 
-		// Communicate through unix socket
-		if (this.config.ipc.enabled) {
-			this.subSocket?.on(eventName, cb);
-		}
+		// // Communicate through unix socket
+		// if (this.config.ipc.enabled) {
+		// 	this._ipcServer.on(eventName, cb);
+		// }
 	}
 
-	public once(event: string | string[], cb: Listener): this {
-		const eventName = event as string;
+	public once(eventName: string, cb: Listener): this {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(
 				`Event ${eventName} was subscribed but not registered to the bus yet.`,
@@ -248,13 +237,8 @@ export class Bus extends EventEmitter2 {
 		}
 
 		// Communicate through event emitter
-		super.once(eventName, cb);
+		this._emitter.once(eventName, cb);
 
-		// TODO: make it `once` instead of `on`
-		// Communicate through unix socket
-		if (this.config.ipc.enabled) {
-			this.subSocket?.on(eventName, cb);
-		}
 		return this;
 	}
 
@@ -268,70 +252,18 @@ export class Bus extends EventEmitter2 {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async cleanup(): Promise<void> {
-		if (this.pubSocket) {
-			this.pubSocket.close();
-		}
-		if (this.subSocket) {
-			this.subSocket.close();
-		}
-		if (this.rpcSocket) {
-			this.rpcSocket.close();
-		}
+		this._ipcServer.stop();
 	}
 
-	private async _resolveWhenAllSocketsBound(): Promise<void> {
-		await Promise.all([
-			new Promise(resolve => {
-				/*
-				Here, the reason of calling .sock.once instead of pubSocket.once
-				is that pubSocket interface by Axon doesn't expose the once method.
-				However the actual socket does, by inheriting it from EventEmitter
-				prototype
-				 */
-				this.subSocket?.sock.once('bind', () => {
-					resolve();
-				});
-			}),
-			new Promise(resolve => {
-				this.pubSocket?.sock.once('bind', () => {
-					resolve();
-				});
-			}),
-			new Promise(resolve => {
-				this.rpcSocket?.once('bind', () => {
-					resolve();
-				});
-			}),
-		]);
+	private get _rpcServer(): RPCServer {
+		return this._ipcServer.rpcServer;
 	}
 
-	private async _rejectWhenAnySocketFailsToBind(): Promise<void> {
-		await Promise.race([
-			new Promise((_, reject) => {
-				this.subSocket?.sock.once('error', () => {
-					reject();
-				});
-			}),
-			new Promise((_, reject) => {
-				this.pubSocket?.sock.once('error', () => {
-					reject();
-				});
-			}),
-			new Promise((_, reject) => {
-				this.rpcSocket?.once('error', () => {
-					reject();
-				});
-			}),
-		]);
+	private get _pubSocket(): PubSocket | PushSocket {
+		return this._ipcServer.pubSocket;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	private async _removeAllListeners(): Promise<void> {
-		this.subSocket?.sock.removeAllListeners('bind');
-		this.subSocket?.sock.removeAllListeners('error');
-		this.pubSocket?.sock.removeAllListeners('bind');
-		this.pubSocket?.sock.removeAllListeners('error');
-		this.rpcSocket?.removeAllListeners('bind');
-		this.rpcSocket?.removeAllListeners('error');
+	private get _subSocket(): PullSocket | SubSocket {
+		return this._ipcServer.subSocket;
 	}
 }

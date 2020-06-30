@@ -19,7 +19,7 @@ import { IPCClient } from '../../../../../src/controller/ipc/ipc_client';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
-describe('IPCSocketClient', () => {
+describe('IPCClient', () => {
 	let server: IPCServer;
 	let client: IPCClient;
 
@@ -36,6 +36,10 @@ describe('IPCSocketClient', () => {
 
 		await server.start();
 		await client.start();
+
+		server.subSocket.on('message', (eventName: string, eventValue: object) => {
+			server.pubSocket.send(eventName, eventValue);
+		});
 	});
 
 	afterEach(() => {

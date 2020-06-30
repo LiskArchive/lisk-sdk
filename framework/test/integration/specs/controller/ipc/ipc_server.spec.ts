@@ -18,7 +18,7 @@ import { IPCServer } from '../../../../../src/controller/ipc/ipc_server';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
-describe('IPCSocketServer', () => {
+describe('IPCServer', () => {
 	let server: IPCServer;
 
 	beforeEach(() => {

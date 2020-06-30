@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { resolve as pathResolve } from 'path';
+import { homedir } from 'os';
 import { InMemoryChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
+
+const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
 const logger: any = {
 	info: jest.fn(),
@@ -23,6 +27,9 @@ const logger: any = {
 const config: any = {
 	ipc: {
 		enabled: false,
+	},
+	socketsPath: {
+		root: socketsDir,
 	},
 };
 
@@ -64,15 +71,7 @@ describe('InMemoryChannel', () => {
 
 		beforeEach(async () => {
 			// Arrange
-			bus = new Bus(
-				{
-					wildcard: true,
-					delimiter: ':',
-					maxListeners: 1000,
-				},
-				logger,
-				config,
-			);
+			bus = new Bus(logger, config);
 
 			inMemoryChannelAlpha = new InMemoryChannel(
 				alpha.moduleAlias,

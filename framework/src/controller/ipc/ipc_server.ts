@@ -53,9 +53,5 @@ export class IPCServer extends IPCSocket {
 			this.subSocket.removeAllListeners('bind');
 			this.subSocket.removeAllListeners('error');
 		});
-
-		this.subSocket.on('message', (eventName: string, eventValue: object) => {
-			this.pubSocket.send(eventName, eventValue);
-		});
 	}
 }
