@@ -18,6 +18,7 @@ import {
 	validator,
 	liskSchemaIdentifier,
 } from '@liskhq/lisk-validator';
+import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { generateKey } from './utils';
 import { readObject, writeObject } from './collection';
 
@@ -27,9 +28,12 @@ import {
 	CompiledSchemas,
 	CompiledSchemasArray,
 	GenericObject,
+	IteratableGenericObject,
 	ValidatedSchema,
 	SchemaProps,
 } from './types';
+
+import { iterator, recursiveTypeCast } from './json_wrapper';
 
 export const validateSchema = (schema: {
 	// eslint-disable-next-line
@@ -111,6 +115,51 @@ export class Codec {
 		const [res] = readObject(message, 0, compiledSchema, message.length);
 
 		return (res as unknown) as T;
+	}
+
+	// For performance applications use decode() instead!
+	public decodeJSON<T>(schema: Schema, message: Buffer): T {
+		const decodedMessage: IteratableGenericObject = this.decode(
+			schema,
+			message,
+		);
+
+		const jsonMessageAsObject = this.toJSON(schema, decodedMessage);
+		return (jsonMessageAsObject as unknown) as T;
+	}
+
+	// For performance applications use encode() instead!
+	public encodeJSON(schema: Schema, message: object): Buffer {
+		const objectFromJson = this.fromJSON(schema, message);
+		return this.encode(schema, objectFromJson);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public toJSON<T = object>(schema: Schema, message: object): T {
+		const messageCopy = objectUtils.cloneDeep(message);
+		(messageCopy as IteratableGenericObject)[Symbol.iterator] = iterator;
+
+		recursiveTypeCast(
+			'toJSON',
+			messageCopy as IteratableGenericObject,
+			(schema as unknown) as SchemaProps,
+			[],
+		);
+		return (messageCopy as unknown) as T;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public fromJSON<T = object>(schema: Schema, message: object): T {
+		const messageCopy = objectUtils.cloneDeep(message);
+		(messageCopy as IteratableGenericObject)[Symbol.iterator] = iterator;
+
+		recursiveTypeCast(
+			'fromJSON',
+			messageCopy as IteratableGenericObject,
+			(schema as unknown) as SchemaProps,
+			[],
+		);
+		return (messageCopy as unknown) as T;
 	}
 
 	private _compileSchema(

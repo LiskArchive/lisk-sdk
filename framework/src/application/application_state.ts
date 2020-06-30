@@ -32,7 +32,7 @@ interface ApplicationStateConstructor {
 	readonly logger: Logger;
 }
 
-interface ApplicationStateUpdate {
+export interface ApplicationStateUpdate {
 	readonly height: number;
 	readonly maxHeightPrevoted?: number;
 	readonly lastBlockId?: string;
@@ -54,7 +54,7 @@ export class ApplicationState {
 			version,
 			wsPort,
 			protocolVersion,
-			height: 1,
+			height: 0,
 			blockVersion: 0,
 			maxHeightPrevoted: 0,
 			networkId,

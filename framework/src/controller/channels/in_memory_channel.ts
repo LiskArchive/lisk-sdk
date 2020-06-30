@@ -75,22 +75,6 @@ export class InMemoryChannel extends BaseChannel {
 		return (this.bus as Bus).invoke(action.serialize());
 	}
 
-	public async invokeFromNetwork<T>(
-		remoteMethod: string,
-		params?: object,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	): Promise<T> {
-		return this.invoke(`app:${remoteMethod}`, params);
-	}
-
-	public async publishToNetwork(
-		actionName: string,
-		data: object,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	): Promise<any> {
-		return this.invoke(`app:${actionName}`, data);
-	}
-
 	public async invokePublic<T>(
 		actionName: string,
 		params?: object,

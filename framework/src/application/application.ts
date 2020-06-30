@@ -55,6 +55,7 @@ import {
 	ApplicationConfig,
 	ApplicationConstants,
 	GenesisConfig,
+	EventPostTransactionData,
 } from '../types';
 import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
 import { AccountAsset } from './node/account';
@@ -336,9 +337,7 @@ export class Application {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
 			this._genesisBlock.header.transactionRoot,
-			// TODO: Replace this attribute with configuration
-			// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
-			'Lisk',
+			this.config.genesisConfig.communityIdentifier,
 		).toString('base64');
 
 		const appConfigToShareWithModules = {
@@ -404,29 +403,6 @@ export class Application {
 				'block:delete',
 			],
 			{
-				getApplicationState: {
-					handler: (_action: ActionInfoObject) => this._applicationState.state,
-				},
-				updateApplicationState: {
-					handler: (action: ActionInfoObject) =>
-						this._applicationState.update(action.params),
-				},
-				sendToNetwork: {
-					handler: (action: ActionInfoObject) =>
-						this._network.send(action.params),
-				},
-				broadcastToNetwork: {
-					handler: (action: ActionInfoObject) =>
-						this._network.broadcast(action.params),
-				},
-				requestFromNetwork: {
-					handler: async (action: ActionInfoObject) =>
-						this._network.request(action.params),
-				},
-				requestFromPeer: {
-					handler: async (action: ActionInfoObject) =>
-						this._network.requestFromPeer(action.params),
-				},
 				getConnectedPeers: {
 					handler: (_action: ActionInfoObject) =>
 						this._network.getConnectedPeers(),
@@ -435,29 +411,21 @@ export class Application {
 					handler: (_action: ActionInfoObject) =>
 						this._network.getDisconnectedPeers(),
 				},
-				applyPenaltyOnPeer: {
-					handler: (action: ActionInfoObject) =>
-						this._network.applyPenalty(action.params),
-				},
-				calculateSupply: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateSupply(action),
-				},
-				calculateMilestone: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateMilestone(action),
-				},
-				calculateReward: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateReward(action),
-				},
 				getForgerAddressesForRound: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getForgerAddressesForRound(action),
+						this._node.actions.getForgerAddressesForRound(
+							action.params as { round: number },
+						),
 				},
 				updateForgingStatus: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.updateForgingStatus(action),
+						this._node.actions.updateForgingStatus(
+							action.params as {
+								publicKey: string;
+								password: string;
+								forging: boolean;
+							},
+						),
 				},
 				getForgingStatusOfAllDelegates: {
 					handler: (_action: ActionInfoObject) =>
@@ -469,20 +437,16 @@ export class Application {
 				},
 				getTransactions: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactions(action),
+						this._node.actions.getTransactions(
+							action.params as { data: unknown; peerId: string },
+						),
 					isPublic: true,
 				},
 				postTransaction: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.postTransaction(action),
-				},
-				getSlotNumber: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.getSlotNumber(action),
-				},
-				calcSlotRound: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calcSlotRound(action),
+						this._node.actions.postTransaction(
+							action.params as EventPostTransactionData,
+						),
 				},
 				getNodeStatus: {
 					handler: (_action: ActionInfoObject) =>
@@ -495,45 +459,61 @@ export class Application {
 				},
 				getBlocksFromId: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksFromId(action),
+						this._node.actions.getBlocksFromId(
+							action.params as { data: unknown; peerId: string },
+						),
 					isPublic: true,
 				},
 				getHighestCommonBlock: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getHighestCommonBlock(action),
+						this._node.actions.getHighestCommonBlock(
+							action.params as { data: unknown; peerId: string },
+						),
 					isPublic: true,
 				},
 				getAccount: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccount(action),
+						this._node.actions.getAccount(action.params as { address: string }),
 				},
 				getAccounts: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccounts(action),
+						this._node.actions.getAccounts(
+							action.params as { address: readonly string[] },
+						),
 				},
 				getBlockByID: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByID(action),
+						this._node.actions.getBlockByID(action.params as { id: string }),
 				},
 				getBlocksByIDs: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByIDs(action),
+						this._node.actions.getBlocksByIDs(
+							action.params as { ids: readonly string[] },
+						),
 				},
 				getBlockByHeight: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByHeight(action),
+						this._node.actions.getBlockByHeight(
+							action.params as { height: number },
+						),
 				},
 				getBlocksByHeightBetween: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByHeightBetween(action),
+						this._node.actions.getBlocksByHeightBetween(
+							action.params as { from: number; to: number },
+						),
 				},
 				getTransactionByID: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionByID(action),
+						this._node.actions.getTransactionByID(
+							action.params as { id: string },
+						),
 				},
 				getTransactionsByIDs: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionsByIDs(action),
+						this._node.actions.getTransactionsByIDs(
+							action.params as { ids: readonly string[] },
+						),
 				},
 			},
 			{ skipInternalEvents: true },
@@ -560,6 +540,7 @@ export class Application {
 			logger: this.logger,
 			channel: this._channel,
 			nodeDB: this._nodeDB,
+			applicationState: this._applicationState,
 		});
 
 		return network;
@@ -581,9 +562,7 @@ export class Application {
 			channel: this._channel,
 			options: {
 				...nodeConfigs,
-				// TODO: Replace this attribute with configuration
-				// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
-				communityIdentifier: 'Lisk',
+				communityIdentifier: nodeConfigs.genesisConfig.communityIdentifier,
 				forging: {
 					...nodeConfigs.forging,
 					delegates: convertedDelegates,
@@ -599,6 +578,7 @@ export class Application {
 			forgerDB: this._forgerDB,
 			blockchainDB: this._blockchainDB,
 			applicationState: this._applicationState,
+			networkModule: this._network,
 		});
 
 		return node;

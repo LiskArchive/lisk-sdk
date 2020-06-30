@@ -91,6 +91,7 @@ export class BlockProcessorV0 extends BaseBlockProcessor {
 		]);
 
 		this.apply.pipe([
+			// eslint-disable-next-line @typescript-eslint/require-await
 			async ({ block, stateStore }) =>
 				this._apply(block as GenesisBlock<AccountAsset>, stateStore),
 			async ({ block, stateStore }) =>
@@ -98,10 +99,10 @@ export class BlockProcessorV0 extends BaseBlockProcessor {
 		]);
 	}
 
-	private async _apply(
+	private _apply(
 		genesis: GenesisBlock<AccountAsset>,
 		stateStore: StateStore,
-	): Promise<void> {
+	): void {
 		this.logger.info(
 			`Applying genesis block: ${genesis.header.id.toString('base64')}`,
 		);
@@ -110,25 +111,11 @@ export class BlockProcessorV0 extends BaseBlockProcessor {
 			`Applying genesis accounts: ${genesis.header.asset.accounts.length}`,
 		);
 
-		const delegateUsernames: { address: Buffer; username: string }[] = [];
-
 		for (const account of genesis.header.asset.accounts) {
 			stateStore.account.set(
 				account.address,
 				new Account<AccountAsset>(account),
 			);
-
-			if (account.asset.delegate.username !== '') {
-				delegateUsernames.push({
-					address: account.address,
-					username: account.asset.delegate.username,
-				});
-			}
 		}
-
-		this.logger.debug(
-			`Applying delegate usernames from genesis accounts : ${delegateUsernames.length}`,
-		);
-		await this.dposModule.setRegisteredDelegates(stateStore, delegateUsernames);
 	}
 }

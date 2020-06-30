@@ -22,6 +22,11 @@ export interface SeedPeerInfo {
 	readonly ip: string;
 	readonly wsPort: number;
 }
+
+export interface P2PRequestPeerPacket extends p2pTypes.P2PRequestPacket {
+	readonly peerId: string;
+}
+
 export interface RPCBlocksByIdData {
 	readonly blockId: string;
 }
@@ -89,6 +94,7 @@ export interface NetworkConfig {
 
 export interface GenesisConfig {
 	epochTime: string;
+	communityIdentifier: string;
 	blockTime: number;
 	maxPayloadLength: number;
 	rewards: {

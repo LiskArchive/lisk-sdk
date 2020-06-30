@@ -83,7 +83,9 @@ describe('Node', () => {
 			once: jest.fn(),
 		};
 
-		stubs.applicationState = {};
+		stubs.applicationState = {
+			update: jest.fn(),
+		};
 
 		when(stubs.channel.invoke)
 			.calledWith('app:getComponentConfig', 'cache')
@@ -246,15 +248,12 @@ describe('Node', () => {
 
 		it('should invoke "app:updateApplicationState" with correct params', () => {
 			// Assert
-			return expect(node['_channel'].invoke).toHaveBeenCalledWith(
-				'app:updateApplicationState',
-				{
-					height: lastBlock.header.height,
-					blockVersion: lastBlock.header.version,
-					maxHeightPrevoted: 0,
-					lastBlockId: lastBlock.header.id,
-				},
-			);
+			return expect(node['_applicationState'].update).toHaveBeenCalledWith({
+				height: lastBlock.header.height,
+				blockVersion: lastBlock.header.version,
+				maxHeightPrevoted: 0,
+				lastBlockId: lastBlock.header.id.toString('base64'),
+			});
 		});
 
 		it('should subscribe to "app:state:updated" event', () => {

@@ -24,6 +24,7 @@ import {
 } from '../utils/state_store_mock';
 import { BlockHeader } from '../../src/types';
 import { blockHeaders } from '../utils/block_headers';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
 const GENESIS_BLOCK_TIMESTAMP =
@@ -52,11 +53,17 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 		const chain = {
 			slots,
 		};
+		const initDelegates = delegateAddresses.map(addr =>
+			Buffer.from(addr, 'base64'),
+		);
 
 		dpos = new Dpos({
 			chain: chain as any,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset,
+			initDelegates,
+			genesisBlockHeight: 0,
+			initRound: 3,
 		});
 	});
 

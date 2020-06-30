@@ -34,6 +34,8 @@ import {
 import { Event } from '../../../../../src/controller/event';
 // eslint-disable-next-line import/first
 import { Action } from '../../../../../src/controller/action';
+// eslint-disable-next-line import/first
+import { rejectWhenTimeout } from '../../../../../src/controller/channels/child_process_channel';
 
 describe('ChildProcessChannel Channel', () => {
 	// Arrange
@@ -420,16 +422,12 @@ describe('ChildProcessChannel Channel', () => {
 		});
 	});
 
-	describe('#_rejectWhenTimeout', () => {
-		beforeEach(async () => {
-			await childProcessChannel.registerToBus(socketsPath);
-		});
-
+	describe('#rejectWhenTimeout', () => {
 		it('should reject with an Error object with proper message', async () => {
 			// Assert
-			await expect(
-				(childProcessChannel as any)._rejectWhenTimeout(1),
-			).rejects.toThrow('ChildProcessChannel sockets setup timeout');
+			await expect(rejectWhenTimeout(1)).rejects.toThrow(
+				'ChildProcessChannel sockets setup timeout',
+			);
 		});
 	});
 

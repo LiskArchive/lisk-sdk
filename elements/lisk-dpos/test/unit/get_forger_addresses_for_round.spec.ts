@@ -13,12 +13,11 @@
  */
 
 import { when } from 'jest-when';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
-import { delegatePublicKeys } from '../utils/round_delegates';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 /**
  * shuffledDelegatePublicKeys is created for the round: 5
@@ -40,6 +39,9 @@ describe('dpos.getForgerAddressesForRound()', () => {
 
 		dpos = new Dpos({
 			chain: chainStub,
+			initDelegates: [],
+			genesisBlockHeight: 0,
+			initRound: 3,
 		});
 	});
 
@@ -51,9 +53,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 			forgersList: [
 				{
 					round,
-					delegates: delegatePublicKeys.map(pk =>
-						getAddressFromPublicKey(Buffer.from(pk, 'hex')),
-					),
+					delegates: delegateAddresses.map(addr => Buffer.from(addr, 'base64')),
 					standby: [],
 				},
 			],
@@ -91,9 +91,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 			forgersList: [
 				{
 					round: 7,
-					delegates: delegatePublicKeys.map(pk =>
-						getAddressFromPublicKey(Buffer.from(pk, 'hex')),
-					),
+					delegates: delegateAddresses.map(addr => Buffer.from(addr, 'base64')),
 					standby: [],
 				},
 			],

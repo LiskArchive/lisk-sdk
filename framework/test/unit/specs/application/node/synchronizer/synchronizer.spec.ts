@@ -61,6 +61,7 @@ describe('Synchronizer', () => {
 	let loggerMock: any;
 	let syncParameters;
 	let dataAccessMock;
+	let networkMock: any;
 
 	beforeEach(() => {
 		jest.spyOn(synchronizerUtils, 'restoreBlocksUponStartup');
@@ -76,7 +77,11 @@ describe('Synchronizer', () => {
 		};
 		channelMock = new ChannelMock();
 
-		rounds = new Rounds({ blocksPerRound: constants.activeDelegates });
+		rounds = new Rounds({
+			blocksPerRound: constants.activeDelegates,
+			initRound: genesisBlock.header.asset.initRounds,
+			genesisBlockHeight: genesisBlock.header.height,
+		});
 
 		const blockchainDB = new KVStore('blockchain.db');
 		const forgerDB = new KVStore('forger.db');
@@ -129,7 +134,7 @@ describe('Synchronizer', () => {
 			chain: chainModule,
 			dpos: { rounds } as any,
 			activeDelegates: constants.activeDelegates,
-			startingHeight: 1,
+			genesisHeight: genesisBlock.header.height,
 		});
 
 		blockProcessorV0 = new BlockProcessorV0({
@@ -170,6 +175,11 @@ describe('Synchronizer', () => {
 			isValidFor: jest.fn().mockResolvedValue(false),
 		};
 
+		networkMock = {
+			requestFromPeer: jest.fn(),
+			request: jest.fn(),
+		};
+
 		syncParameters = {
 			channel: channelMock,
 			logger: loggerMock,
@@ -177,6 +187,7 @@ describe('Synchronizer', () => {
 			chainModule,
 			transactionPoolModule: transactionPoolModuleStub,
 			mechanisms: [syncMechanism1, syncMechanism2],
+			networkModule: networkMock,
 		};
 
 		synchronizer = new Synchronizer(syncParameters);
@@ -447,6 +458,7 @@ describe('Synchronizer', () => {
 				chainModule,
 				transactionPoolModule: transactionPoolModuleStub,
 				mechanisms: [aSyncingMechanism, anotherSyncingMechanism] as any,
+				networkModule: networkMock,
 			});
 
 			expect(aSynchronizer['mechanisms']).toInclude(aSyncingMechanism as any);
@@ -469,6 +481,7 @@ describe('Synchronizer', () => {
 						chainModule,
 						transactionPoolModule: transactionPoolModuleStub,
 						mechanisms: [aSyncingMechanism] as any,
+						networkModule: networkMock,
 					}),
 			).toThrow('Mechanism Object should implement "isValidFor" method');
 		});
@@ -487,6 +500,7 @@ describe('Synchronizer', () => {
 						chainModule,
 						transactionPoolModule: transactionPoolModuleStub,
 						mechanisms: [aSyncingMechanism] as any,
+						networkModule: networkMock,
 					}),
 			).toThrow('Mechanism Object should implement "run" method');
 		});
@@ -602,6 +616,7 @@ describe('Synchronizer', () => {
 				chainModule,
 				transactionPoolModule: transactionPoolModuleStub,
 				mechanisms: [syncMechanism1, syncMechanism2],
+				networkModule: networkMock,
 			};
 			synchronizer = new Synchronizer(syncParameters);
 		});
@@ -628,7 +643,7 @@ describe('Synchronizer', () => {
 			};
 
 			beforeEach(() => {
-				channelMock.invokeFromNetwork.mockReturnValue({
+				networkMock.request.mockReturnValue({
 					data: validtransactions,
 				});
 				transactionPoolModuleStub.add.mockReturnValue({
@@ -656,7 +671,7 @@ describe('Synchronizer', () => {
 		describe('when peer returns invalid transaction response', () => {
 			const invalidTransactions = { signatures: [] };
 			beforeEach(() => {
-				channelMock.invokeFromNetwork.mockReturnValue({
+				networkMock.request.mockReturnValue({
 					data: invalidTransactions,
 				});
 			});

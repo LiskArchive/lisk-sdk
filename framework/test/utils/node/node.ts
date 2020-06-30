@@ -56,6 +56,12 @@ export const createNode = ({
 			hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
 		},
 	}));
+	const networkMock = {
+		request: jest.fn(),
+		requestFromPeer: jest.fn(),
+		send: jest.fn(),
+		broadcast: jest.fn(),
+	};
 	const nodeOptions = {
 		...mergedConfig,
 		forging: {
@@ -63,8 +69,6 @@ export const createNode = ({
 			delegates: convertedDelegates,
 		},
 		...options,
-		// TODO: Replace this attribute with configuration
-		// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
 		communityIdentifier: 'Lisk',
 		constants: constantsConfig(),
 		genesisBlock: genesisBlock(),
@@ -76,7 +80,10 @@ export const createNode = ({
 		logger,
 		blockchainDB,
 		forgerDB,
-		applicationState: null as any,
+		applicationState: {
+			update: jest.fn(),
+		} as any,
+		networkModule: networkMock as any,
 	});
 };
 

@@ -2174,6 +2174,7 @@ Object {
   },
   "genesisConfig": Object {
     "blockTime": 10,
+    "communityIdentifier": "Lisk",
     "maxPayloadLength": 15360,
     "rewards": Object {
       "distance": 3000000,
