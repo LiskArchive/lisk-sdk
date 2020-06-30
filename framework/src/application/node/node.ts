@@ -306,7 +306,7 @@ export class Node {
 				publicKey: string;
 				password: string;
 				forging: boolean;
-			}): Promise<{ publicKey: string; forging: boolean }> => {
+			}): Promise<{ address: string; forging: boolean }> => {
 				const result = await this._forger.updateForgingStatus(
 					Buffer.from(params.publicKey, 'base64'),
 					params.password,
@@ -314,7 +314,7 @@ export class Node {
 				);
 
 				return {
-					publicKey: result.publicKey.toString('base64'),
+					address: result.address.toString('base64'),
 					forging: result.forging,
 				};
 			},
@@ -429,12 +429,12 @@ export class Node {
 			}): Promise<HandleRPCGetTransactionsReturn> =>
 				this._transport.handleRPCGetTransactions(params.data, params.peerId),
 			getForgingStatusOfAllDelegates: ():
-				| { publicKey: string; forging: boolean }[]
+				| { address: string; forging: boolean }[]
 				| undefined =>
 				this._forger
 					.getForgingStatusOfAllDelegates()
-					?.map(({ publicKey, forging }) => ({
-						publicKey: publicKey.toString('base64'),
+					?.map(({ address, forging }) => ({
+						address: address.toString('base64'),
 						forging,
 					})),
 			getTransactionsFromPool: (): string[] =>
