@@ -27,6 +27,7 @@ import { Logger } from '../../logger';
 import { Processor } from '../processor';
 import { BaseSynchronizer } from './base_synchronizer';
 import { InMemoryChannel } from '../../../controller/channels';
+import { Network } from '../../network';
 
 interface SynchronizerInput {
 	readonly logger: Logger;
@@ -35,6 +36,7 @@ interface SynchronizerInput {
 	readonly processorModule: Processor;
 	readonly transactionPoolModule: TransactionPool;
 	readonly mechanisms: BaseSynchronizer[];
+	readonly networkModule: Network;
 }
 
 interface TransactionPoolTransaction extends BaseTransaction {
@@ -48,6 +50,7 @@ export class Synchronizer {
 	private readonly chainModule: Chain;
 	private readonly processorModule: Processor;
 	private readonly transactionPoolModule: TransactionPool;
+	private readonly _networkModule: Network;
 	private readonly mechanisms: BaseSynchronizer[];
 	private readonly loadTransactionsRetries: number;
 
@@ -58,6 +61,7 @@ export class Synchronizer {
 		processorModule,
 		transactionPoolModule,
 		mechanisms = [],
+		networkModule,
 	}: SynchronizerInput) {
 		assert(
 			Array.isArray(mechanisms),
@@ -69,6 +73,7 @@ export class Synchronizer {
 		this.chainModule = chainModule;
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
+		this._networkModule = networkModule;
 		this.active = false;
 		this.loadTransactionsRetries = 5;
 
@@ -188,11 +193,11 @@ export class Synchronizer {
 		this.logger.info('Loading transactions from the network');
 
 		// TODO: Add target module to procedure name. E.g. chain:getTransactions
-		const { data: result } = await this.channel.invokeFromNetwork<{
-			data: { transactions: string[] };
-		}>('requestFromNetwork', {
+		const { data: result } = (await this._networkModule.request({
 			procedure: 'getTransactions',
-		});
+		})) as {
+			data: { transactions: string[] };
+		};
 
 		const validatorErrors = validator.validate(
 			definitions.WSTransactionsResponse,

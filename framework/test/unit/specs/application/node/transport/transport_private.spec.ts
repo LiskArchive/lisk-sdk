@@ -37,6 +37,7 @@ describe('transport', () => {
 	const encodedBlock = Buffer.from('encoded block');
 	let loggerStub: Logger;
 	let synchronizerStub: any;
+	let networkStub: any;
 	let channelStub: Partial<InMemoryChannel>;
 	let transportModule: any;
 	let transaction: TransferTransaction;
@@ -127,12 +128,15 @@ describe('transport', () => {
 		channelStub = {
 			publish: jest.fn(),
 			invoke: jest.fn(),
-			publishToNetwork: jest.fn(),
-			invokeFromNetwork: jest.fn(),
 		};
 
 		jest.spyOn(validator, 'validate');
 
+		networkStub = {
+			applyPenaltyOnPeer: jest.fn(),
+			broadcast: jest.fn(),
+			send: jest.fn(),
+		};
 		transportModule = new Transport({
 			channel: channelStub as InMemoryChannel,
 			logger: loggerStub,
@@ -176,6 +180,7 @@ describe('transport', () => {
 				process: jest.fn(),
 				deserialize: jest.fn(),
 			} as any,
+			networkModule: networkStub,
 		});
 	});
 
@@ -538,17 +543,14 @@ describe('transport', () => {
 						return transportModule.handleBroadcastBlock(block);
 					});
 
-					it('should call channel.invoke to send', () => {
-						expect(channelStub.publishToNetwork).toHaveBeenCalledTimes(1);
-						return expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
-							'sendToNetwork',
-							{
-								event: 'postBlock',
-								data: {
-									block: encodedBlock.toString('base64'),
-								},
+					it('should call network module to send', () => {
+						expect(networkStub.send).toHaveBeenCalledTimes(1);
+						return expect(networkStub.send).toHaveBeenCalledWith({
+							event: 'postBlock',
+							data: {
+								block: encodedBlock.toString('base64'),
 							},
-						);
+						});
 					});
 
 					describe('when modules.synchronizer.isActive = true', () => {
@@ -579,14 +581,11 @@ describe('transport', () => {
 								transportModule.handleRPCGetBlocksFromId(query, defaultPeerId),
 							).rejects.toThrow("should have required property 'blockId'");
 
-							expect(channelStub.invoke).toHaveBeenCalledTimes(1);
-							expect(channelStub.invoke).toHaveBeenCalledWith(
-								'app:applyPenaltyOnPeer',
-								{
-									peerId: defaultPeerId,
-									penalty: 100,
-								},
-							);
+							expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
+							expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+								peerId: defaultPeerId,
+								penalty: 100,
+							});
 						});
 					});
 
@@ -656,14 +655,11 @@ describe('transport', () => {
 									}),
 								]);
 
-								expect(channelStub.invoke).toHaveBeenCalledTimes(1);
-								expect(channelStub.invoke).toHaveBeenCalledWith(
-									'app:applyPenaltyOnPeer',
-									{
-										peerId: defaultPeerId,
-										penalty: 100,
-									},
-								);
+								expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
+								expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+									peerId: defaultPeerId,
+									penalty: 100,
+								});
 							});
 						});
 

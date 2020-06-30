@@ -36,6 +36,7 @@ import {
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../../controller/channels';
+import { Network } from '../../network';
 
 interface Peer {
 	readonly peerId: string;
@@ -52,6 +53,7 @@ interface BlockSynchronizationMechanismInput {
 	readonly dpos: Dpos;
 	readonly chain: Chain;
 	readonly processorModule: Processor;
+	readonly networkModule: Network;
 }
 
 export class BlockSynchronizationMechanism extends BaseSynchronizer {
@@ -67,8 +69,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		dpos,
 		chain,
 		processorModule,
+		networkModule,
 	}: BlockSynchronizationMechanismInput) {
-		super(logger, channel, chain);
+		super(logger, channel, chain, networkModule);
 		this.bft = bft;
 		this._chain = chain;
 		this.dpos = dpos;
@@ -92,7 +95,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndRestartError) {
-				await this._applyPenaltyAndRestartSync(
+				this._applyPenaltyAndRestartSync(
 					error.peerId,
 					receivedBlock,
 					error.reason,
@@ -499,9 +502,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
 	private async _computeBestPeer(): Promise<Peer> {
-		const peers = await this._channel.invoke<ReadonlyArray<Peer> | undefined>(
-			'app:getConnectedPeers',
-		);
+		const peers = (this._networkModule.getConnectedPeers() as unknown) as Peer[];
 
 		if (!peers || peers.length === 0) {
 			throw new Error('List of connected peers is empty');
