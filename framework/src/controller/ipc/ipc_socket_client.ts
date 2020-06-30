@@ -17,59 +17,25 @@
 // eslint-disable-next-line
 /// <reference path="../../external_types/pm2-axon-rpc/index.d.ts" />
 
-import { join } from 'path';
+import { Listener } from 'eventemitter2';
 import * as axon from 'pm2-axon';
-import { PushSocket, PullSocket } from 'pm2-axon';
-import { EventEmitter2, Listener } from 'eventemitter2';
+import { PushSocket, SubSocket } from 'pm2-axon';
+import { IPCSocket } from './ipc_socket';
 
 const CONNECTION_TIME_OUT = 2000;
 
-export class IPCSocketClient {
-	public name?: string;
+export class IPCSocketClient extends IPCSocket {
+	public constructor(options: { socketsDir: string }) {
+		super(options);
 
-	protected _eventPushSocketPath: string;
-	protected _eventPullSocketPath: string;
-	protected _pushSocket: PushSocket;
-	protected _pullSocket: PullSocket;
-	protected _emitter: EventEmitter2;
-
-	public constructor(options: {
-		socketDir: string;
-		initForBus?: boolean;
-		name?: string;
-	}) {
-		this.name = options.name;
-		this._eventPushSocketPath = `unix://${join(
-			options.socketDir,
-			'push_socket.sock',
-		)}`;
-		this._eventPullSocketPath = `unix://${join(
-			options.socketDir,
-			'pull_socket.sock',
-		)}`;
-
-		this._pushSocket = axon.socket('push', {}) as PushSocket;
-		this._pullSocket = axon.socket('pull', {}) as PullSocket;
-
-		this._emitter = new EventEmitter2({
-			// set this to `true` to use wildcards
-			wildcard: true,
-
-			// the delimiter used to segment namespaces
-			delimiter: ':',
-
-			// the maximum amount of listeners that can be assigned to an event
-			maxListeners: 10,
-
-			// show event name in memory leak message when more than maximum amount of listeners is assigned
-			verboseMemoryLeak: true,
-		});
+		this._pubSocket = axon.socket('push', {}) as PushSocket;
+		this._subSocket = axon.socket('sub', {}) as SubSocket;
 	}
 
 	public async start(): Promise<void> {
 		await new Promise((resolve, reject) => {
-			this._pushSocket.on('connect', resolve);
-			this._pushSocket.on('error', reject);
+			this._pubSocket.on('connect', resolve);
+			this._pubSocket.on('error', reject);
 			setTimeout(() => {
 				reject(
 					new Error(
@@ -80,15 +46,15 @@ export class IPCSocketClient {
 
 			// We switched the path here to establish communication
 			// The socket on which server is observing clients will publish
-			this._pushSocket.connect(this._eventPullSocketPath);
+			this._pubSocket.connect(this._eventSubSocketPath);
 		}).finally(() => {
-			this._pushSocket.removeAllListeners('connect');
-			this._pushSocket.removeAllListeners('error');
+			this._pubSocket.removeAllListeners('connect');
+			this._pubSocket.removeAllListeners('error');
 		});
 
 		await new Promise((resolve, reject) => {
-			this._pullSocket.on('connect', resolve);
-			this._pullSocket.on('error', reject);
+			this._subSocket.on('connect', resolve);
+			this._subSocket.on('error', reject);
 			setTimeout(() => {
 				reject(
 					new Error(
@@ -99,23 +65,15 @@ export class IPCSocketClient {
 
 			// We switched the path here to establish communication
 			// The socket on which server is publishing clients will observer
-			this._pullSocket.connect(this._eventPushSocketPath);
+			this._subSocket.connect(this._eventPubSocketPath);
 		}).finally(() => {
-			this._pullSocket.removeAllListeners('connect');
-			this._pullSocket.removeAllListeners('error');
+			this._subSocket.removeAllListeners('connect');
+			this._subSocket.removeAllListeners('error');
 		});
 
-		this._listenToMessages();
-	}
-
-	public close(): void {
-		this._pullSocket.removeAllListeners('message');
-		this._pushSocket.close();
-		this._pullSocket.close();
-	}
-
-	public emit(eventName: string, eventValue: object): void {
-		this._pushSocket.send(eventName, eventValue);
+		this._subSocket.on('message', (eventName: string, eventValue: object) => {
+			this._emitter.emit(eventName, eventValue);
+		});
 	}
 
 	public on(eventName: string, cb: Listener): void {
@@ -124,11 +82,5 @@ export class IPCSocketClient {
 
 	public once(eventName: string, cb: Listener): void {
 		this._emitter.once(eventName, cb);
-	}
-
-	protected _listenToMessages(): void {
-		this._pullSocket.on('message', (eventName: string, eventValue: object) => {
-			this._emitter.emit(eventName, eventValue);
-		});
 	}
 }

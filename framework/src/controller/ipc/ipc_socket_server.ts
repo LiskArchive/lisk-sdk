@@ -12,40 +12,48 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// import { unlinkSync } from 'fs';
-import { IPCSocketClient } from './ipc_socket_client';
+// eslint-disable-next-line
+/// <reference path="../../external_types/pm2-axon/index.d.ts" />
+// eslint-disable-next-line
+/// <reference path="../../external_types/pm2-axon-rpc/index.d.ts" />
 
-export class IPCSocketServer extends IPCSocketClient {
+import * as axon from 'pm2-axon';
+import { PubSocket, PullSocket } from 'pm2-axon';
+import { IPCSocket } from './ipc_socket';
+
+export class IPCSocketServer extends IPCSocket {
+	public constructor(options: { socketsDir: string }) {
+		super(options);
+
+		this._pubSocket = axon.socket('pub', {}) as PubSocket;
+		this._subSocket = axon.socket('pull', {}) as PullSocket;
+	}
+
 	public async start(): Promise<void> {
 		await new Promise((resolve, reject) => {
-			this._pushSocket.on('bind', resolve);
-			this._pushSocket.on('error', reject);
+			this._pubSocket.on('bind', resolve);
+			this._pubSocket.on('error', reject);
 
-			this._pushSocket.bind(this._eventPushSocketPath);
+			this._pubSocket.bind(this._eventPubSocketPath);
 		}).finally(() => {
-			this._pushSocket.removeAllListeners('bind');
-			this._pushSocket.removeAllListeners('error');
+			this._pubSocket.removeAllListeners('bind');
+			this._pubSocket.removeAllListeners('error');
 		});
 
 		await new Promise((resolve, reject) => {
-			this._pullSocket.on('bind', resolve);
-			this._pullSocket.on('error', reject);
+			this._subSocket.on('bind', resolve);
+			this._subSocket.on('error', reject);
 
 			// We switched the path here to establish communication
 			// The socket on which server is publishing clients will observer
-			this._pullSocket.bind(this._eventPullSocketPath);
+			this._subSocket.bind(this._eventSubSocketPath);
 		}).finally(() => {
-			this._pullSocket.removeAllListeners('bind');
-			this._pullSocket.removeAllListeners('error');
+			this._subSocket.removeAllListeners('bind');
+			this._subSocket.removeAllListeners('error');
 		});
 
-		this._listenToMessages();
-	}
-
-	protected _listenToMessages(): void {
-		this._pullSocket.on('message', (eventName: string, eventValue: object) => {
-			this._pushSocket.send(eventName, eventValue);
-			this._emitter.emit(eventName, eventValue);
+		this._subSocket.on('message', (eventName: string, eventValue: object) => {
+			this._pubSocket.send(eventName, eventValue);
 		});
 	}
 }
