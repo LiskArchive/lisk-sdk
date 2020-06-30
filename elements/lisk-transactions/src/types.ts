@@ -18,7 +18,6 @@ import { TransactionError } from './errors';
 export interface Account<T = any> {
 	readonly address: Buffer;
 	balance: bigint;
-	publicKey: Buffer;
 	nonce: bigint;
 	keys: {
 		mandatoryKeys: Buffer[];

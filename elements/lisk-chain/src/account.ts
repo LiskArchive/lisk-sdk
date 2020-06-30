@@ -15,7 +15,6 @@
 import cloneDeep = require('lodash.clonedeep');
 
 export const accountDefaultValues = {
-	publicKey: Buffer.alloc(0),
 	balance: BigInt(0),
 	nonce: BigInt(0),
 	keys: {
@@ -43,7 +42,6 @@ export interface DefaultAsset {
 export class Account<T = DefaultAsset> {
 	public address: Buffer;
 	public balance: bigint;
-	public publicKey: Buffer;
 	public nonce: bigint;
 	public keys: {
 		mandatoryKeys: Buffer[];
@@ -60,7 +58,6 @@ export class Account<T = DefaultAsset> {
 		}
 		this.address = account.address;
 		this.balance = account.balance ?? BigInt(0);
-		this.publicKey = account.publicKey ?? Buffer.alloc(0);
 		this.nonce = account.nonce ?? BigInt(0);
 		this.keys = account.keys
 			? {

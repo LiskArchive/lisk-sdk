@@ -171,13 +171,13 @@ export const applicationConfigSchema = {
 				delegates: {
 					type: 'array',
 					items: {
-						required: ['encryptedPassphrase', 'publicKey', 'hashOnion'],
+						required: ['encryptedPassphrase', 'address', 'hashOnion'],
 						properties: {
 							encryptedPassphrase: {
 								type: 'string',
 								format: 'encryptedPassphrase',
 							},
-							publicKey: {
+							address: {
 								type: 'string',
 								format: 'base64',
 							},

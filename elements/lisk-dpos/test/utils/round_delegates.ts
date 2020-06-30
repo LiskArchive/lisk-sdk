@@ -11,21 +11,28 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { dataStructures } from '@liskhq/lisk-utils';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { randomInt, randomBigIntWithPowerof8 } from './random_int';
 import { Account } from '../../src/types';
 
-export const getDelegateAccounts = (num = 1): Account[] => {
+interface DelegateAccounts {
+	readonly accounts: Account[];
+	readonly publicKeyMap: dataStructures.BufferMap<Buffer>;
+}
+
+export const getDelegateAccounts = (num = 1): DelegateAccounts => {
 	const accounts = [];
+	const publicKeyMap = new dataStructures.BufferMap<Buffer>();
 	for (let index = 0; index < num; index += 1) {
-		const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(
+		const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(
 			Mnemonic.generateMnemonic(),
 		);
+		publicKeyMap.set(address, publicKey);
 		const balance = String(randomInt(100, 1000));
 		accounts.push({
 			address,
-			publicKey,
 			balance: BigInt(balance),
 			asset: {
 				delegate: {
@@ -42,16 +49,18 @@ export const getDelegateAccounts = (num = 1): Account[] => {
 		});
 	}
 
-	return accounts;
+	return { accounts, publicKeyMap };
 };
 
-export const getDelegateAccountsWithVotesReceived = (num = 1): Account[] => {
-	const accounts = getDelegateAccounts(num);
+export const getDelegateAccountsWithVotesReceived = (
+	num = 1,
+): DelegateAccounts => {
+	const { accounts, publicKeyMap } = getDelegateAccounts(num);
 	for (const account of accounts) {
 		account.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 			1000,
 			100000,
 		);
 	}
-	return accounts;
+	return { accounts, publicKeyMap };
 };
