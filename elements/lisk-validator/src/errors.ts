@@ -42,41 +42,41 @@ interface ErrorParams {
 	fieldNumbers?: number[];
 }
 
+interface KeywordDataFormatters {
+	[key: string]: (error: ErrorObject) => string;
+}
+
+const keywordDataFormatters: KeywordDataFormatters = {
+	// The casting to string in the last parameter of this fuction is valid as it's always present. It seems this casting is required
+	// to keep this structure instead of using type guardings
+	type: (error): string =>
+		`Property '${error.dataPath ?? ''}' should be of type '${
+			error.params.type as string
+		}'`,
+	additionalProperties: (error): string =>
+		`Property '${error.dataPath ?? ''}' has extraneous property '${
+			error.params.additionalProperty as string
+		}'`,
+	minLength: (error): string =>
+		`Property '${error.dataPath ?? ''}' ${error.message as string}`,
+	maxLength: (error): string =>
+		`Property '${error.dataPath ?? ''}' ${error.message as string}`,
+	format: (error): string =>
+		`Property '${error.dataPath ?? ''}' ${error.message as string}`,
+	required: (error): string => `Missing property, ${error.message as string}`,
+	const: (error): string =>
+		`Property '${error.dataPath ?? ''}' should be '${
+			error.params.allowedValue as string
+		}'`,
+	dataType: (error): string =>
+		`Property '${error.dataPath ?? ''}' ${error.message as string}`,
+};
+
 export class LiskValidationError extends Error {
 	public readonly errors: ErrorObject[];
-	private readonly keywordDataFormatters: {
-		[key: string]: (error: ErrorObject) => string;
-	};
 
 	public constructor(errors: ErrorObject[]) {
 		super();
-
-		this.keywordDataFormatters = {
-			// The casting to string in the last parameter of this fuction is valid as it's always present. It seems this casting is required
-			// to keep this structure instead of using type guardings
-			type: (error): string =>
-				`Property '${error.dataPath ?? ''}' should be of type '${
-					error.params.type as string
-				}'`,
-			additionalProperties: (error): string =>
-				`Property '${error.dataPath ?? ''}' has extraneous property '${
-					error.params.additionalProperty as string
-				}'`,
-			minLength: (error): string =>
-				`Property '${error.dataPath ?? ''}' ${error.message as string}`,
-			maxLength: (error): string =>
-				`Property '${error.dataPath ?? ''}' ${error.message as string}`,
-			format: (error): string =>
-				`Property '${error.dataPath ?? ''}' ${error.message as string}`,
-			required: (error): string =>
-				`Missing property, ${error.message as string}`,
-			const: (error): string =>
-				`Property '${error.dataPath ?? ''}' should be '${
-					error.params.allowedValue as string
-				}'`,
-			dataType: (error): string =>
-				`Property '${error.dataPath ?? ''}' ${error.message as string}`,
-		};
 
 		this.errors = errors;
 		this.message = `Lisk validator found ${
@@ -86,7 +86,7 @@ export class LiskValidationError extends Error {
 
 	private compileErrors(): string[] {
 		const errorMsgs = this.errors.map(anError =>
-			this.keywordDataFormatters[anError.keyword](anError),
+			keywordDataFormatters[anError.keyword](anError),
 		);
 		return errorMsgs;
 	}
