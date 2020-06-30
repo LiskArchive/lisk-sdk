@@ -83,11 +83,6 @@ const errorFormatter = (error: ErrorObject): string => {
 		case 'required':
 			errorMessage = `Missing property, ${errorParamToString(error.message)}`;
 			break;
-		case 'const':
-			errorMessage = `Property '${
-				error.dataPath ?? ''
-			}' should be '${errorParamToString(error.params.allowedValue)}'`;
-			break;
 		case 'dataType':
 			errorMessage = `Property '${error.dataPath ?? ''}' ${errorParamToString(
 				error.message,
