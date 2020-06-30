@@ -504,7 +504,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	private async _computeBestPeer(): Promise<Peer> {
 		const peers = (this._networkModule.getConnectedPeers() as unknown) as Peer[];
 
-		if (!peers || peers.length === 0) {
+		if (!peers.length) {
 			throw new Error('List of connected peers is empty');
 		}
 
