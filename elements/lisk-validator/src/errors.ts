@@ -81,10 +81,10 @@ export class LiskValidationError extends Error {
 		this.errors = errors;
 		this.message = `Lisk validator found ${
 			this.errors.length
-		} error[s]:\n${this.compileErrors().join('\n')}`;
+		} error[s]:\n${this._compileErrors().join('\n')}`;
 	}
 
-	private compileErrors(): string[] {
+	private _compileErrors(): string[] {
 		const errorMsgs = this.errors.map(anError =>
 			keywordDataFormatters[anError.keyword](anError),
 		);
