@@ -90,21 +90,9 @@ export abstract class BaseChannel {
 	// If its related to your own moduleAlias specify as :eventName
 	abstract publish(eventName: string, data?: object): void;
 
-	// Publish to the network by invoking send/broadcast actions in the network
-	// Specified as actionName for send or broadcast available on the network
-	// If its related to your own moduleAlias specify as :eventName
-	abstract publishToNetwork(actionName: string, data: object): void;
-
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
 	abstract async invoke<T>(actionName: string, params?: object): Promise<T>;
-
-	// Call action network module when requesting from the network or a specific peer
-	// Specified as actionName for request available on the network
-	abstract async invokeFromNetwork<T>(
-		actionName: string,
-		params?: object,
-	): Promise<T>;
 
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName

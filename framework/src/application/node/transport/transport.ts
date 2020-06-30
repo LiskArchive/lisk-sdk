@@ -33,6 +33,7 @@ import {
 } from '../../../types';
 import { Broadcaster } from './broadcaster';
 import { InMemoryChannel } from '../../../controller/channels';
+import { Network } from '../../network';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
@@ -50,6 +51,7 @@ export interface TransportConstructor {
 	readonly transactionPoolModule: TransactionPool;
 	readonly chainModule: Chain;
 	readonly processorModule: Processor;
+	readonly networkModule: Network;
 }
 
 export interface handlePostTransactionReturn {
@@ -78,6 +80,7 @@ export class Transport {
 	private readonly _chainModule: Chain;
 	private readonly _processorModule: Processor;
 	private readonly _broadcaster: Broadcaster;
+	private readonly _networkModule: Network;
 
 	public constructor({
 		channel,
@@ -88,6 +91,7 @@ export class Transport {
 		transactionPoolModule,
 		chainModule,
 		processorModule,
+		networkModule,
 	}: TransportConstructor) {
 		this._channel = channel;
 		this._logger = logger;
@@ -96,13 +100,14 @@ export class Transport {
 		this._transactionPoolModule = transactionPoolModule;
 		this._chainModule = chainModule;
 		this._processorModule = processorModule;
+		this._networkModule = networkModule;
 
 		this._broadcaster = new Broadcaster({
 			transactionPool: this._transactionPoolModule,
 			logger: this._logger,
-			channel: this._channel,
 			releaseLimit: DEFAULT_RELEASE_LIMIT,
 			interval: DEFAULT_RELEASE_INTERVAL,
+			networkModule: this._networkModule,
 		});
 
 		// Rate limit for certain endpoints
@@ -128,7 +133,7 @@ export class Transport {
 			return null;
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this._channel.publishToNetwork('sendToNetwork', {
+		return this._networkModule.send({
 			event: 'postBlock',
 			data: {
 				block: this._chainModule.dataAccess.encode(block).toString('base64'),
@@ -156,7 +161,7 @@ export class Transport {
 				},
 				'getBlocksFromID request validation failed',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -206,7 +211,7 @@ export class Transport {
 				},
 				'getHighestCommonBlock request validation failed',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -250,7 +255,7 @@ export class Transport {
 				},
 				'Received post block broadcast request in unexpected format',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -274,11 +279,7 @@ export class Transport {
 		data: unknown = { transactionIds: [] },
 		peerId: string,
 	): Promise<HandleRPCGetTransactionsReturn> {
-		await this._addRateLimit(
-			'getTransactions',
-			peerId,
-			DEFAULT_RATE_LIMIT_FREQUENCY,
-		);
+		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		const errors = validator.validate(
 			schemas.getTransactionsRequest,
 			data as object,
@@ -288,7 +289,7 @@ export class Transport {
 				{ err: errors, peerId },
 				'Received invalid transactions body',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -315,7 +316,7 @@ export class Transport {
 		if (transactionIds.length > DEFAULT_RELEASE_LIMIT) {
 			const error = new Error('Received invalid request.');
 			this._logger.warn({ err: error, peerId }, 'Received invalid request.');
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -386,7 +387,7 @@ export class Transport {
 		data: unknown,
 		peerId: string,
 	): Promise<null> {
-		await this._addRateLimit(
+		this._addRateLimit(
 			'postTransactionsAnnouncement',
 			peerId,
 			DEFAULT_RATE_LIMIT_FREQUENCY,
@@ -401,7 +402,7 @@ export class Transport {
 				{ err: errors, peerId },
 				'Received invalid transactions body',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -414,10 +415,7 @@ export class Transport {
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
 		if (unknownTransactionIDs.length > 0) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const { data: result } = await this._channel.invokeFromNetwork<{
-				data: { transactions: string[] };
-			}>('requestFromPeer', {
+			const { data: result } = (await this._networkModule.requestFromPeer({
 				procedure: 'getTransactions',
 				data: {
 					transactionIds: unknownTransactionIDs.map(id =>
@@ -425,7 +423,10 @@ export class Transport {
 					),
 				},
 				peerId,
-			});
+			})) as {
+				data: { transactions: string[] };
+			};
+
 			try {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				for (const transaction of result.transactions) {
@@ -439,7 +440,7 @@ export class Transport {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				this._logger.warn({ err, peerId }, 'Received invalid transactions.');
 				if (err instanceof InvalidTransactionError) {
-					await this._channel.invoke('app:applyPenaltyOnPeer', {
+					this._networkModule.applyPenaltyOnPeer({
 						peerId,
 						penalty: 100,
 					});
@@ -530,11 +531,11 @@ export class Transport {
 		throw errors;
 	}
 
-	private async _addRateLimit(
+	private _addRateLimit(
 		procedure: string,
 		peerId: string,
 		limit: number,
-	): Promise<void> {
+	): void {
 		if (this._rateTracker[procedure] === undefined) {
 			this._rateTracker[procedure] = { [peerId]: 0 };
 		}
@@ -542,7 +543,7 @@ export class Transport {
 			? this._rateTracker[procedure][peerId] + 1
 			: 1;
 		if (this._rateTracker[procedure][peerId] > limit) {
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 10,
 			});
