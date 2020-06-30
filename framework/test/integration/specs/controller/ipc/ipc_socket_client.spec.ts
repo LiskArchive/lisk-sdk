@@ -26,12 +26,16 @@ describe('IPCSocketClient', () => {
 	beforeEach(async () => {
 		server = new IPCSocketServer({
 			socketsDir,
+			name: 'bus',
 		});
 		client = new IPCSocketClient({
 			socketsDir,
+			name: 'client',
+			rpcServerSocketPath: server.rpcServerSocketPath,
 		});
 
 		await server.start();
+		await client.start();
 	});
 
 	afterEach(() => {
@@ -41,12 +45,16 @@ describe('IPCSocketClient', () => {
 
 	describe('start', () => {
 		it('should init socket objects and resolve if server is running', async () => {
+			// Arrange
+			client.stop();
+
 			// Act & Assert
 			await expect(client.start()).resolves.toBeUndefined();
 		});
 
 		it('should timeout if server is not running', async () => {
 			// Arrange
+			client.stop();
 			server.stop();
 
 			// Act & Assert
@@ -56,18 +64,15 @@ describe('IPCSocketClient', () => {
 		});
 	});
 
-	describe('on', () => {
+	describe('events', () => {
 		it('should be able to subscribe and receive event', async () => {
-			// Arrange
-			await client.start();
-
 			// Act & Assert
 			await new Promise(resolve => {
-				client.on('myEvent', data => {
-					expect(data).toEqual({ data: 'myData' });
+				client.subSocket.on('message', data => {
+					expect(data).toEqual('myData');
 					resolve();
 				});
-				server.emit('myEvent', { data: 'myData' });
+				server.pubSocket.send('myData');
 			});
 		});
 
@@ -75,23 +80,24 @@ describe('IPCSocketClient', () => {
 			// Arrange
 			const client2 = new IPCSocketClient({
 				socketsDir,
+				name: 'client2',
+				rpcServerSocketPath: server.rpcServerSocketPath,
 			});
-			await client.start();
 			await client2.start();
 
 			// Act & Assert
-			server.emit('myEvent', { data: 'myData' });
+			server.pubSocket.send('myData');
 			await Promise.all([
 				new Promise(resolve => {
-					client.on('myEvent', data => {
-						expect(data).toEqual({ data: 'myData' });
+					client.subSocket.on('message', data => {
+						expect(data).toEqual('myData');
 						resolve();
 					});
 				}),
 
 				await new Promise(resolve => {
-					client2.on('myEvent', data => {
-						expect(data).toEqual({ data: 'myData' });
+					client2.subSocket.on('message', data => {
+						expect(data).toEqual('myData');
 						resolve();
 					});
 				}),
@@ -105,27 +111,30 @@ describe('IPCSocketClient', () => {
 			// Arrange
 			const client2 = new IPCSocketClient({
 				socketsDir,
+				name: 'client2',
+				rpcServerSocketPath: server.rpcServerSocketPath,
 			});
 			const client3 = new IPCSocketClient({
 				socketsDir,
+				name: 'client3',
+				rpcServerSocketPath: server.rpcServerSocketPath,
 			});
-			await client.start();
 			await client2.start();
 			await client3.start();
 
 			// Act & Assert
-			client.emit('myEvent', { data: 'myData' });
+			client.pubSocket.send('myData');
 			await Promise.all([
 				new Promise(resolve => {
-					client2.on('myEvent', data => {
-						expect(data).toEqual({ data: 'myData' });
+					client2.subSocket.on('message', data => {
+						expect(data).toEqual('myData');
 						resolve();
 					});
 				}),
 
 				await new Promise(resolve => {
-					client3.on('myEvent', data => {
-						expect(data).toEqual({ data: 'myData' });
+					client3.subSocket.on('message', data => {
+						expect(data).toEqual('myData');
 						resolve();
 					});
 				}),
@@ -137,14 +146,30 @@ describe('IPCSocketClient', () => {
 		});
 
 		it('should be able to subscribe and receive events from same client', async () => {
-			// Arrange
-			await client.start();
-
 			// Act & Assert
-			client.emit('myEvent', { data: 'myData' });
+			client.pubSocket.send('myData');
 			await new Promise(resolve => {
-				client.on('myEvent', data => {
-					expect(data).toEqual({ data: 'myData' });
+				client.subSocket.on('message', data => {
+					expect(data).toEqual('myData');
+					resolve();
+				});
+			});
+		});
+	});
+
+	describe('actions', () => {
+		it('client should be able to call server exposed actions', async () => {
+			// Arrange
+			server.rpcServer.expose('myAction', cb => {
+				cb(null, 'myData');
+			});
+
+			// Act
+			await new Promise(resolve => {
+				client.rpcClient.call('myAction', (_error: Error, data: string) => {
+					// Assert
+					expect(data).toEqual('myData');
+
 					resolve();
 				});
 			});

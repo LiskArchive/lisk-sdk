@@ -24,6 +24,7 @@ describe('IPCSocketServer', () => {
 	beforeEach(() => {
 		server = new IPCSocketServer({
 			socketsDir,
+			name: 'bus',
 		});
 	});
 
