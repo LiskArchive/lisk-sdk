@@ -25,7 +25,7 @@ const GENESIS_BLOCK_TIMESTAMP =
 
 describe('dpos.isActiveDelegate', () => {
 	const defaultAddress = Buffer.from(delegateAddresses[0], 'base64');
-	const delegatesAddresses = getDelegateAccounts(101).map(d => ({
+	const delegatesAddresses = getDelegateAccounts(101).accounts.map(d => ({
 		address: d.address,
 		voteWeight: BigInt(100000000000),
 	}));

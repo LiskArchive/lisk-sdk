@@ -71,10 +71,9 @@ export const genesisBlockAssetSchema = {
 				properties: {
 					address: { dataType: 'bytes', fieldNumber: 1 },
 					balance: { dataType: 'uint64', fieldNumber: 2 },
-					publicKey: { dataType: 'bytes', fieldNumber: 3 },
-					nonce: { dataType: 'uint64', fieldNumber: 4 },
+					nonce: { dataType: 'uint64', fieldNumber: 3 },
 					keys: {
-						fieldNumber: 5,
+						fieldNumber: 4,
 						type: 'object',
 						properties: {
 							numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
@@ -92,7 +91,7 @@ export const genesisBlockAssetSchema = {
 						required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 					},
 					asset: {
-						fieldNumber: 6,
+						fieldNumber: 5,
 						type: 'object',
 						properties: {
 							delegate: {
@@ -150,7 +149,7 @@ export const genesisBlockAssetSchema = {
 						},
 					},
 				},
-				required: ['address', 'balance', 'publicKey', 'nonce', 'keys', 'asset'],
+				required: ['address', 'balance', 'nonce', 'keys', 'asset'],
 			},
 			fieldNumber: 1,
 		},
@@ -183,7 +182,6 @@ export const genesisBlock: Block = {
 			accounts: genesis.header.asset.accounts.map(account => ({
 				address: Buffer.from(account.address, 'base64'),
 				balance: BigInt(account.balance),
-				publicKey: Buffer.from(account.publicKey, 'base64'),
 				nonce: BigInt(account.nonce),
 				keys: {
 					mandatoryKeys: account.keys.mandatoryKeys.map(key =>

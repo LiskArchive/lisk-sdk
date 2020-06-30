@@ -39,7 +39,6 @@ export const genesis = {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createFakeDefaultAccount = (account?: any) => ({
 	address: account?.address ?? getRandomBytes(20),
-	publicKey: account?.publicKey ?? Buffer.alloc(0),
 	balance: account?.balance ?? BigInt(0),
 	nonce: account?.nonce ?? BigInt(0),
 	keys: {

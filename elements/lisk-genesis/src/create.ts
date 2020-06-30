@@ -68,7 +68,6 @@ const createAccount = <T>(
 	account: PartialReq<GenesisAccountState<T>, 'address'>,
 ): GenesisAccountState<T> => ({
 	address: account.address,
-	publicKey: account.publicKey ?? Buffer.alloc(0),
 	balance: account.balance ?? BigInt(0),
 	nonce: account.nonce ?? BigInt(0),
 	keys: account.keys

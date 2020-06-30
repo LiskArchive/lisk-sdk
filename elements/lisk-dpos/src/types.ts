@@ -69,7 +69,6 @@ export interface UnlockingAccountAsset {
 
 export interface Account {
 	readonly address: Buffer;
-	readonly publicKey: Buffer;
 	balance: bigint;
 	asset: {
 		delegate: DelegateAccountAsset;

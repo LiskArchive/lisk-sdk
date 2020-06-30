@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
 	FinalityManager,
 	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
@@ -24,7 +25,6 @@ import {
 	BFTLowerChainBranchError,
 	BlockHeader,
 } from '../../src/types';
-import { createFakeDefaultAccount } from '../fixtures/accounts';
 import { createFakeBlockHeader } from '../fixtures/blocks';
 import { StateStoreMock } from '../utils/state_store_mock';
 import {
@@ -142,9 +142,9 @@ describe('finality_manager', () => {
 
 			it('should throw error if same delegate forged block on different height', () => {
 				const maxHeightPrevoted = 10;
-				const delegateAccount = createFakeDefaultAccount();
+				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
-					generatorPublicKey: delegateAccount.publicKey,
+					generatorPublicKey,
 					asset: {
 						maxHeightPreviouslyForged: 5,
 						maxHeightPrevoted,
@@ -152,7 +152,7 @@ describe('finality_manager', () => {
 					height: 10,
 				});
 				const currentBlock = createFakeBlockHeader({
-					generatorPublicKey: delegateAccount.publicKey,
+					generatorPublicKey,
 					asset: {
 						maxHeightPrevoted,
 						maxHeightPreviouslyForged: 6,
@@ -167,16 +167,16 @@ describe('finality_manager', () => {
 
 			it('should throw error if delegate forged block on same height', () => {
 				const maxHeightPreviouslyForged = 10;
-				const delegateAccount = createFakeDefaultAccount();
+				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
-					generatorPublicKey: delegateAccount.publicKey,
+					generatorPublicKey,
 					asset: {
 						maxHeightPreviouslyForged,
 					},
 					height: 10,
 				});
 				const currentBlock = createFakeBlockHeader({
-					generatorPublicKey: delegateAccount.publicKey,
+					generatorPublicKey,
 					asset: {
 						maxHeightPreviouslyForged,
 					},
@@ -189,13 +189,13 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if maxHeightPreviouslyForged has wrong value', () => {
-				const delegateAccount = createFakeDefaultAccount();
+				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
-					generatorPublicKey: delegateAccount.publicKey,
+					generatorPublicKey,
 					height: 10,
 				});
 				const currentBlock = createFakeBlockHeader({
-					generatorPublicKey: delegateAccount.publicKey,
+					generatorPublicKey,
 					asset: {
 						maxHeightPreviouslyForged: 9,
 					},
@@ -207,16 +207,16 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if maxHeightPrevoted has wrong value', () => {
-				const delegateAccount = createFakeDefaultAccount();
+				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
-					generatorPublicKey: delegateAccount.publicKey,
+					generatorPublicKey,
 					height: 9,
 					asset: {
 						maxHeightPrevoted: 10,
 					},
 				});
 				const currentBlock = createFakeBlockHeader({
-					generatorPublicKey: delegateAccount.publicKey,
+					generatorPublicKey,
 					height: 10,
 					asset: {
 						maxHeightPreviouslyForged: 9,

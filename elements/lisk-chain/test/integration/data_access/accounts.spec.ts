@@ -54,18 +54,10 @@ describe('dataAccess.transactions', () => {
 		accounts = [
 			createFakeDefaultAccount({
 				address: Buffer.from('cc96c0a5db38b968f563e7af6fb435585c889111', 'hex'),
-				publicKey: Buffer.from(
-					'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
-					'hex',
-				),
 				balance: BigInt(99),
 			}),
 			createFakeDefaultAccount({
 				address: Buffer.from('584dd8a902822a9469fb2911fcc14ed5fd98220d', 'hex'),
-				publicKey: Buffer.from(
-					'd468707933e4f24888dc1f00c8f84b2642c0edf3d694e2bb5daa7a0d87d18708',
-					'hex',
-				),
 				balance: BigInt('10000'),
 				keys: {
 					mandatoryKeys: [
@@ -107,36 +99,6 @@ describe('dataAccess.transactions', () => {
 		it('should return account by address', async () => {
 			const account = await storage.getAccountByAddress(accounts[1].address);
 			expect(account).toEqual(encodeDefaultAccount(accounts[1]));
-		});
-	});
-
-	describe('getAccountsByPublicKey', () => {
-		it('should not throw "not found" error if non existent public key is specified', async () => {
-			await expect(
-				dataAccess.getAccountsByPublicKey([
-					getRandomBytes(32),
-					accounts[0].publicKey,
-				]),
-			).resolves.toEqual([accounts[0]]);
-		});
-
-		it('should return existing accounts by public keys if one invalid public specified', async () => {
-			await expect(
-				dataAccess.getAccountsByPublicKey([
-					accounts[1].publicKey,
-					getRandomBytes(32),
-					accounts[0].publicKey,
-				]),
-			).resolves.toEqual([accounts[1], accounts[0]]);
-		});
-
-		it('should return account by public keys', async () => {
-			const result = await dataAccess.getAccountsByPublicKey([
-				accounts[1].publicKey,
-				accounts[0].publicKey,
-			]);
-			expect(result[0]).toEqual(accounts[1]);
-			expect(result[1]).toEqual(accounts[0]);
 		});
 	});
 

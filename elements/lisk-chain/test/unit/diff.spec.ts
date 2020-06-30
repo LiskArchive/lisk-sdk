@@ -110,8 +110,6 @@ describe('diff', () => {
 
 			const senderAccount = {
 				address: '5059876081639179984L',
-				publicKey:
-					'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 				username: null,
 				isDelegate: false,
 				nonce: '103',
@@ -122,8 +120,6 @@ describe('diff', () => {
 
 			const receiverAccount = {
 				address: '8531579280410192796L',
-				publicKey:
-					'508a965871253595b36e2f8dc27bff6e67b39bdd466531be9c6f8c401253979c',
 				username: 'genesis_1',
 				isDelegate: true,
 				nonce: '2',

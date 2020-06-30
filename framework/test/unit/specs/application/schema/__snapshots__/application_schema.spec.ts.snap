@@ -58,6 +58,10 @@ Object {
           "delegates": Object {
             "items": Object {
               "properties": Object {
+                "address": Object {
+                  "format": "base64",
+                  "type": "string",
+                },
                 "encryptedPassphrase": Object {
                   "format": "encryptedPassphrase",
                   "type": "string",
@@ -85,14 +89,10 @@ Object {
                   ],
                   "type": "object",
                 },
-                "publicKey": Object {
-                  "format": "base64",
-                  "type": "string",
-                },
               },
               "required": Array [
                 "encryptedPassphrase",
-                "publicKey",
+                "address",
                 "hashOnion",
               ],
             },

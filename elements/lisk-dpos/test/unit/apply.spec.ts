@@ -49,7 +49,10 @@ const GENESIS_BLOCK_TIMESTAMP =
 	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 describe('dpos.apply()', () => {
-	const delegateAccounts = getDelegateAccountsWithVotesReceived(
+	const {
+		accounts: delegateAccounts,
+		publicKeyMap,
+	} = getDelegateAccountsWithVotesReceived(
 		ACTIVE_DELEGATES + STANDBY_DELEGATES,
 	);
 	const defaultLastBlockHeader = { timestamp: 12300 } as BlockHeader;
@@ -108,7 +111,7 @@ describe('dpos.apply()', () => {
 				timestamp: 10,
 				height: 0,
 				version: 0,
-				generatorPublicKey: generator.publicKey,
+				generatorPublicKey: publicKeyMap.get(generator.address),
 				reward: BigInt(500000000),
 				asset: {
 					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
@@ -171,9 +174,13 @@ describe('dpos.apply()', () => {
 		let forgedDelegates: Account[];
 
 		beforeEach(() => {
-			forgedDelegates = getDelegateAccountsWithVotesReceived(
+			const {
+				accounts,
+				publicKeyMap: publicKeyMap1,
+			} = getDelegateAccountsWithVotesReceived(
 				ACTIVE_DELEGATES + STANDBY_DELEGATES,
 			);
+			forgedDelegates = accounts;
 
 			const delegateVoteWeights = [
 				{
@@ -222,15 +229,16 @@ describe('dpos.apply()', () => {
 			);
 
 			const forgedBlocks = forgedDelegates.map((delegate, i) => ({
-				generatorPublicKey: delegate.publicKey,
+				generatorPublicKey: publicKeyMap1.get(delegate.address),
 				height: i,
 			}));
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
 			lastBlockOfRound = {
 				height: 309,
-				generatorPublicKey:
-					forgedDelegates[forgedDelegates.length - 1].publicKey,
+				generatorPublicKey: publicKeyMap1.get(
+					forgedDelegates[forgedDelegates.length - 1].address,
+				),
 			} as BlockHeader;
 
 			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
@@ -277,7 +285,7 @@ describe('dpos.apply()', () => {
 			// Arrange
 			block = {
 				height: 2,
-				generatorPublicKey: generator.publicKey,
+				generatorPublicKey: publicKeyMap.get(generator.address),
 			} as BlockHeader;
 
 			const forgerListObject = {
@@ -294,12 +302,12 @@ describe('dpos.apply()', () => {
 					},
 				],
 			};
-			const delegates = getDelegateAccountsWithVotesReceived(103);
+			const { accounts } = getDelegateAccountsWithVotesReceived(103);
 
 			forgersListBinary = codec.encode(forgerListSchema, forgerListObject);
 
 			stateStore = new StateStoreMock(
-				[generator, ...delegates],
+				[generator, ...accounts],
 				{
 					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
 				},
@@ -322,12 +330,14 @@ describe('dpos.apply()', () => {
 		});
 
 		describe('productivity of forgers', () => {
+			let accountsPublicKeys: { accounts: any; publicKeyMap: any };
 			let forgedDelegates: Account[];
 			let forgersList: DecodedForgersList;
 			let delegateVoteWeights: DecodedVoteWeights;
 
 			beforeEach(() => {
-				forgedDelegates = getDelegateAccounts(103);
+				accountsPublicKeys = getDelegateAccounts(103);
+				forgedDelegates = accountsPublicKeys.accounts;
 				forgersList = {
 					forgersList: [
 						{
@@ -356,14 +366,18 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 						height: 926,
 						timestamp: 9260,
 					} as BlockHeader;
 					block = {
 						height: 927,
 						timestamp: 10290,
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 					} as BlockHeader;
 					stateStore = new StateStoreMock(
 						[...forgedDelegates],
@@ -407,14 +421,18 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 						height: 926,
 						timestamp: 10260,
 					} as BlockHeader;
 					block = {
 						height: 927,
 						timestamp: 10290,
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 					} as BlockHeader;
 					stateStore = new StateStoreMock(
 						[...forgedDelegates],
@@ -468,15 +486,18 @@ describe('dpos.apply()', () => {
 					// Arrange
 					const lastBlock = {
 						// 6 slots are missed twice
-						generatorPublicKey:
-							forgedDelegates[forgedDelegates.length - 1 - 6].publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegates[forgedDelegates.length - 1 - 6].address,
+						),
 						height: 926,
 						timestamp: 9200,
 					} as BlockHeader;
 					block = {
 						height: 927,
 						timestamp: 10290,
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 					} as BlockHeader;
 					stateStore = new StateStoreMock(
 						[...forgedDelegates],
@@ -532,16 +553,18 @@ describe('dpos.apply()', () => {
 				it('should NOT update "consecutiveMissedBlocks" for anyone', async () => {
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey:
-							forgedDelegates[forgedDelegates.length - 2].publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegates[forgedDelegates.length - 2].address,
+						),
 						height: 926,
 						timestamp: 10283,
 					} as BlockHeader;
 					block = {
 						height: 927,
 						timestamp: 10290,
-						generatorPublicKey:
-							forgedDelegates[forgedDelegates.length - 1].publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegates[forgedDelegates.length - 1].address,
+						),
 					} as BlockHeader;
 					stateStore = new StateStoreMock(
 						[...forgedDelegates],
@@ -581,14 +604,18 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 						height: 920006,
 						timestamp: 10000270,
 					} as BlockHeader;
 					block = {
 						height: 920007,
 						timestamp: 10000290,
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 					} as BlockHeader;
 					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
 						forger => forger.equals(forgedDelegate.address),
@@ -657,14 +684,18 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 						height: 920006,
 						timestamp: 10000270,
 					} as BlockHeader;
 					block = {
 						height: 920007,
 						timestamp: 10000290,
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 					} as BlockHeader;
 					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
 						forger => forger.equals(forgedDelegate.address),
@@ -733,14 +764,18 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 						height: 920006,
 						timestamp: 10000270,
 					} as BlockHeader;
 					block = {
 						height: 920007,
 						timestamp: 10000290,
-						generatorPublicKey: forgedDelegate.publicKey,
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
+							forgedDelegate.address,
+						),
 					} as BlockHeader;
 					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
 						forger => forger.equals(forgedDelegate.address),
@@ -809,12 +844,15 @@ describe('dpos.apply()', () => {
 	describe('Given block is the last block of the round', () => {
 		let lastBlockOfTheRoundNine: BlockHeader;
 		let forgedDelegates: Account[];
-		let missedDelegate: Account;
 
 		beforeEach(() => {
-			forgedDelegates = getDelegateAccountsWithVotesReceived(
+			const {
+				accounts,
+				publicKeyMap: publicKeyMap2,
+			} = getDelegateAccountsWithVotesReceived(
 				ACTIVE_DELEGATES + STANDBY_DELEGATES - 1,
 			);
+			forgedDelegates = accounts;
 
 			const delegateVoteWeights = [
 				{
@@ -832,7 +870,9 @@ describe('dpos.apply()', () => {
 
 			// Make 1 delegate forge twice
 			forgedDelegates.push({ ...forgedDelegates[10] });
-			[missedDelegate] = getDelegateAccountsWithVotesReceived(1);
+			const {
+				accounts: [missedDelegate],
+			} = getDelegateAccountsWithVotesReceived(1);
 
 			const forgersList = {
 				forgersList: [
@@ -884,15 +924,16 @@ describe('dpos.apply()', () => {
 			);
 
 			const forgedBlocks = forgedDelegates.map((delegate, i) => ({
-				generatorPublicKey: delegate.publicKey,
+				generatorPublicKey: publicKeyMap2.get(delegate.address),
 				height: 825 + i,
 			}));
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
 			lastBlockOfTheRoundNine = {
 				height: 927,
-				generatorPublicKey:
-					forgedDelegates[forgedDelegates.length - 1].publicKey,
+				generatorPublicKey: publicKeyMap2.get(
+					forgedDelegates[forgedDelegates.length - 1].address,
+				),
 			} as BlockHeader;
 
 			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
