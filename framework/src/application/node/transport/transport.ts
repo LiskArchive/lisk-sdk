@@ -297,8 +297,7 @@ export class Transport {
 		}
 
 		const { transactionIds } = data as RPCTransactionsByIdData;
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (!transactionIds) {
+		if (!transactionIds?.length) {
 			// Get processable transactions from pool and collect transactions across accounts
 			// Limit the transactions to send based on releaseLimit
 			const transactionsBySender = this._transactionPoolModule.getProcessableTransactions();

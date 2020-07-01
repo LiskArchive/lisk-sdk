@@ -432,7 +432,7 @@ describe('Transport', () => {
 		});
 
 		describe('when it is called with undefined', () => {
-			let tx: any;
+			let tx: TransferTransaction;
 			beforeEach(() => {
 				tx = new TransferTransaction({
 					nonce: BigInt('0'),
@@ -450,16 +450,20 @@ describe('Transport', () => {
 					},
 				});
 				const processableTransactions = new BufferMap();
-				(processableTransactions as any)[tx.id] = [tx];
+				processableTransactions.set(tx.id, tx);
 				transactionPoolStub.getProcessableTransactions.mockReturnValue(
 					processableTransactions,
 				);
 			});
 
-			it('should throw an error when no transaction ids are provided', async () => {
-				await expect(
-					transport.handleRPCGetTransactions(undefined, defaultPeerId),
-				).toReject();
+			it('should resolve to the transactions which are in the transaction pool', async () => {
+				const result = await transport.handleRPCGetTransactions(
+					undefined,
+					defaultPeerId,
+				);
+				expect(result).toEqual({
+					transactions: [tx.getBytes().toString('base64')],
+				});
 			});
 		});
 
