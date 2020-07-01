@@ -15,6 +15,8 @@
 export * as cryptography from '@liskhq/lisk-cryptography';
 export * as transactions from '@liskhq/lisk-transactions';
 export * as validator from '@liskhq/lisk-validator';
+export * as utils from '@liskhq/lisk-utils';
+export { codec } from '@liskhq/lisk-codec';
 export * from '@liskhq/lisk-framework-http-api-plugin';
 export * from 'lisk-framework';
 
