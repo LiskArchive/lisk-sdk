@@ -20,7 +20,6 @@
 import { codec } from '@liskhq/lisk-codec';
 import { EventEmitter } from 'events';
 import { SCServerSocket } from 'socketcluster-server';
-
 import {
 	ConnectionKind,
 	DEFAULT_LOCALHOST_IP,
@@ -78,9 +77,10 @@ import {
 	P2PResponsePacket,
 	RPCSchemas,
 } from './types';
+// eslint-disable-next-line import/order
+import shuffle = require('lodash.shuffle');
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-import shuffle = require('lodash.shuffle');
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;

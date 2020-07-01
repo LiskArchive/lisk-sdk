@@ -386,7 +386,7 @@ export class DelegatesList {
 		stateStore: StateStore,
 	): Promise<void> {
 		if (!randomSeed.length) {
-			throw new Error(`Random seed must be provided`);
+			throw new Error('Random seed must be provided');
 		}
 		const voteWeights = await getVoteWeights(stateStore);
 		const voteWeight = voteWeights.find(vw => vw.round === round);

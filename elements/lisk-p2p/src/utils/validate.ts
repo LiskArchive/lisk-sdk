@@ -127,7 +127,7 @@ export const validatePeerInfo = (
 	maxByteSize: number,
 ): P2PPeerInfo => {
 	if (!peerInfo) {
-		throw new InvalidPeerInfoError(`Invalid peer object`);
+		throw new InvalidPeerInfoError('Invalid peer object');
 	}
 
 	if (

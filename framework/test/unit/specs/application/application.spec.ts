@@ -22,7 +22,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
-import { Application } from '../../../../src/application/application';
+import { Application } from '../../../../src/application';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
@@ -211,7 +211,7 @@ describe('Application', () => {
 				// eslint-disable-next-line no-new
 				new Application(genesisBlock as GenesisBlockJSON, customConfig);
 			}).toThrow(
-				`Lisk validator found 2 error[s]:\nProperty '.genesisConfig' has extraneous property 'CONSTANT'\nMissing property, should have required property 'communityIdentifier'`,
+				"Lisk validator found 2 error[s]:\nProperty '.genesisConfig' has extraneous property 'CONSTANT'\nMissing property, should have required property 'communityIdentifier'",
 			);
 		});
 	});

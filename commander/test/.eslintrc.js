@@ -11,6 +11,7 @@ module.exports = {
 		'arrow-body-style': 'off',
 		'dot-notation': 'off',
 		'mocha/no-synchronous-tests': 'off',
+		'no-unused-expressions': 'off',
 		'@typescript-eslint/no-unused-expressions': 'off',
 		'@typescript-eslint/no-magic-numbers': 'off',
 		'@typescript-eslint/unbound-method': 'off',

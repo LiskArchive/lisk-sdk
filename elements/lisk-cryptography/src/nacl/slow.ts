@@ -24,10 +24,10 @@ export const box: NaclInterface['box'] = (
 ) =>
 	Buffer.from(
 		tweetnacl.box(
-			messageInBytes,
-			nonceInBytes,
-			convertedPublicKey,
-			convertedPrivateKey,
+			Uint8Array.from(messageInBytes),
+			Uint8Array.from(nonceInBytes),
+			Uint8Array.from(convertedPublicKey),
+			Uint8Array.from(convertedPrivateKey),
 		),
 	);
 
@@ -38,10 +38,10 @@ export const openBox: NaclInterface['openBox'] = (
 	convertedPrivateKey,
 ) => {
 	const originalMessage = tweetnacl.box.open(
-		cipherBytes,
-		nonceBytes,
-		convertedPublicKey,
-		convertedPrivateKey,
+		Uint8Array.from(cipherBytes),
+		Uint8Array.from(nonceBytes),
+		Uint8Array.from(convertedPublicKey),
+		Uint8Array.from(convertedPrivateKey),
 	);
 	// Returns null if decryption fails
 	if (originalMessage === null) {
@@ -54,17 +54,32 @@ export const openBox: NaclInterface['openBox'] = (
 export const signDetached: NaclInterface['signDetached'] = (
 	messageBytes,
 	privateKeyBytes,
-) => Buffer.from(tweetnacl.sign.detached(messageBytes, privateKeyBytes));
+) =>
+	Buffer.from(
+		tweetnacl.sign.detached(
+			Uint8Array.from(messageBytes),
+			Uint8Array.from(privateKeyBytes),
+		),
+	);
 
-export const verifyDetached: NaclInterface['verifyDetached'] =
-	// eslint-disable-next-line @typescript-eslint/unbound-method
-	tweetnacl.sign.detached.verify;
+export const verifyDetached: NaclInterface['verifyDetached'] = (
+	messageBytes,
+	signatureBytes,
+	publicKeyBytes,
+) =>
+	tweetnacl.sign.detached.verify(
+		Uint8Array.from(messageBytes),
+		Uint8Array.from(signatureBytes),
+		Uint8Array.from(publicKeyBytes),
+	);
 
 export const getRandomBytes: NaclInterface['getRandomBytes'] = length =>
 	Buffer.from(tweetnacl.randomBytes(length));
 
 export const getKeyPair: NaclInterface['getKeyPair'] = hashedSeed => {
-	const { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(hashedSeed);
+	const { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(
+		Uint8Array.from(hashedSeed),
+	);
 
 	return {
 		privateKey: Buffer.from(secretKey),
@@ -76,7 +91,7 @@ const PRIVATE_KEY_LENGTH = 32;
 
 export const getPublicKey: NaclInterface['getPublicKey'] = privateKey => {
 	const { publicKey } = tweetnacl.sign.keyPair.fromSeed(
-		privateKey.slice(0, PRIVATE_KEY_LENGTH),
+		Uint8Array.from(privateKey.slice(0, PRIVATE_KEY_LENGTH)),
 	);
 
 	return Buffer.from(publicKey);

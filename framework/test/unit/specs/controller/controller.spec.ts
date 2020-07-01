@@ -17,7 +17,7 @@ jest.mock('../../../../src/controller/channels/in_memory_channel');
 
 /* eslint-disable import/first  */
 
-import { Controller } from '../../../../src/controller/controller';
+import { Controller } from '../../../../src/controller';
 import { Bus } from '../../../../src/controller/bus';
 
 const createMockPlugin = (alias?: string, loadStub?: any, unloadStub?: any) => {

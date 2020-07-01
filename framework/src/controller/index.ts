@@ -11,15 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { writeUInt32, readUInt32 } from './varint';
 
-export const writeBytes = (bytes: Buffer): Buffer =>
-	Buffer.concat([writeUInt32(bytes.length), bytes]);
-
-export const readBytes = (buffer: Buffer, offset: number): [Buffer, number] => {
-	const [byteLength, keySize] = readUInt32(buffer, offset);
-	return [
-		buffer.subarray(offset + keySize, offset + keySize + byteLength),
-		byteLength + keySize,
-	];
-};
+export { Controller } from './controller';
+export { InMemoryChannel, ChildProcessChannel } from './channels';
+export { ActionInfoObject } from './action';

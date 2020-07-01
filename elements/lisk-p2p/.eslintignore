@@ -2,3 +2,4 @@ dist-node
 jest.config.js
 examples
 coverage
+.eslintrc.js

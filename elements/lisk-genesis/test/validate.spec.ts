@@ -23,7 +23,7 @@ import {
 import { mergeDeep } from '../src/utils';
 import { validGenesisBlockParams } from './fixtures';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line import/order
 import cloneDeep = require('lodash.clonedeep');
 
 const genesisBlock = createGenesisBlock(validGenesisBlockParams);

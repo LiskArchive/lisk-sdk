@@ -73,16 +73,14 @@ const buildProcessableTxMock = (input: any, chainMock: jest.Mock) => {
 				txs = [];
 			}
 			txs.push(tx);
-			res.set(senderId, txs)
+			res.set(senderId, txs);
 
 			return res;
 		}, new BufferMap());
 
 	for (const txs of result.values()) {
 		// Ascending sort by nonce
-		txs.sort(
-			(a: any, b: any) => a.nonce > b.nonce,
-		);
+		txs.sort((a: any, b: any) => a.nonce > b.nonce);
 	}
 
 	return result;
