@@ -14,7 +14,7 @@
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BRANCH_PREFIX } from './constants';
 import { NodeSide, Proof, VerifyResult } from './types';
-import { generateHash, getPairLocation } from './utils';
+import { generateHash, getBinaryString, getPairLocation } from './utils';
 
 export const verifyProof = (options: {
 	queryData: ReadonlyArray<Buffer>;
@@ -34,7 +34,9 @@ export const verifyProof = (options: {
 	const locationToPathMap: { [key: string]: Buffer } = {};
 	for (const p of path) {
 		if (p.layerIndex !== undefined && p.nodeIndex !== undefined) {
-			locationToPathMap[`${p.layerIndex}${p.nodeIndex}`] = p.hash;
+			locationToPathMap[
+				`${getBinaryString(p.nodeIndex, treeHeight - p.layerIndex)}`
+			] = p.hash;
 		}
 	}
 
@@ -67,7 +69,7 @@ export const verifyProof = (options: {
 			} = getPairLocation({ layerIndex, nodeIndex, dataLength });
 			const nextPath =
 				locationToPathMap[
-					`${pairLayerIndex.toString()}${pairNodeIndex.toString()}`
+					`${getBinaryString(pairNodeIndex, treeHeight - pairLayerIndex)}`
 				];
 			if (nextPath === undefined) {
 				break;
