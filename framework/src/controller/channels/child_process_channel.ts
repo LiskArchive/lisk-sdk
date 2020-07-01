@@ -25,6 +25,7 @@ import { Event, EventInfoObject } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
 import { SocketPaths } from '../types';
 import { IPCClient } from '../ipc/ipc_client';
+import { ActionInfoForBus } from '../bus';
 
 export const setupProcessHandlers = (channel: ChildProcessChannel): void => {
 	process.once('SIGTERM', () => channel.cleanup(1));
@@ -77,11 +78,24 @@ export class ChildProcessChannel extends BaseChannel {
 
 		// Register channel details
 		await new Promise((resolve, reject) => {
+			let actionsInfo: { [key: string]: ActionInfoForBus } = {};
+			actionsInfo = Object.keys(this.actions).reduce(
+				(accumulator, value: string) => {
+					accumulator[value] = {
+						name: value,
+						module: this.moduleAlias,
+						isPublic: this.actions[value].isPublic,
+					};
+					return accumulator;
+				},
+				actionsInfo,
+			);
+
 			this._rpcClient.call(
 				'registerChannel',
 				this.moduleAlias,
 				this.eventsList.map((event: string) => event),
-				this.actionsList.map((action: string) => action),
+				actionsInfo,
 				{
 					type: 'ipcSocket',
 					rpcSocketPath: this._ipcClient.rpcServerSocketPath,
@@ -97,8 +111,12 @@ export class ChildProcessChannel extends BaseChannel {
 
 		// Channel RPC Server is only required if the module has actions
 		if (this.actionsList.length > 0) {
-			this._rpcServer.expose('invoke', (action: string, cb: NodeCallback) => {
-				this.invoke(action)
+			this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
+				const actionObject = Action.deserialize(action);
+				this.invoke(
+					`${actionObject.module}:${actionObject.name}`,
+					actionObject.params,
+				)
 					.then(data => cb(null, data))
 					.catch(error => cb(error));
 			});
@@ -117,24 +135,21 @@ export class ChildProcessChannel extends BaseChannel {
 		this._subSocket.on(
 			'message',
 			(eventName: string, eventData: EventInfoObject) => {
-				this._emitter.emit(eventName, eventData);
+				if (eventData.module !== this.moduleAlias) {
+					this._emitter.emit(eventName, eventData);
+				}
 			},
 		);
 	}
 
 	public subscribe(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		if (event.module === this.moduleAlias) {
-			this._emitter.on(eventName, cb);
-		}
+		this._emitter.on(event.key(), cb);
 	}
 
 	public once(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-
-		if (event.module === this.moduleAlias) {
-			this._emitter.once(eventName, cb);
-		}
+		this._emitter.once(event.key(), cb);
 	}
 
 	public publish(eventName: string, data?: object): void {
@@ -164,8 +179,8 @@ export class ChildProcessChannel extends BaseChannel {
 			this._rpcClient.call(
 				'invoke',
 				action.serialize(),
-				(err: Error, data: T | PromiseLike<T>) => {
-					if (err !== undefined) {
+				(err: Error | undefined, data: T | PromiseLike<T>) => {
+					if (err) {
 						return reject(err);
 					}
 

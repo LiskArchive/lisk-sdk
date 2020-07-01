@@ -44,18 +44,37 @@ interface RegisterChannelOptions {
 
 type NodeCallback = (error: Error | null, result?: unknown) => void;
 
+enum ChannelType {
+	InMemory,
+	ChildProcess,
+}
+
 interface ChannelInfo {
-	readonly channel: BaseChannel;
-	readonly actions: ActionsObject;
+	// TODO: Consolidate both channel and rpcClient
+	//  For now in-memory channel will contain channel reference
+	//  Child process channel will contain rpcClient
+	readonly channel?: BaseChannel;
+	readonly rpcClient?: RPCClient;
+	readonly actions: {
+		[key: string]: ActionInfoForBus;
+	};
 	readonly events: EventsArray;
-	readonly type: string;
+	readonly type: ChannelType;
+}
+
+export interface ActionInfoForBus {
+	readonly isPublic: boolean;
+	readonly module: string;
+	readonly name: string;
 }
 
 export class Bus {
 	public logger: Logger;
 
 	private readonly config: BusConfiguration;
-	private readonly actions: { [key: string]: Action };
+	private readonly actions: {
+		[key: string]: ActionInfoForBus;
+	};
 	private readonly events: { [key: string]: boolean };
 	private readonly channels: {
 		[key: string]: ChannelInfo;
@@ -104,8 +123,12 @@ export class Bus {
 
 		this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
 			this.invoke(action)
-				.then(data => cb(null, data))
-				.catch(error => cb(error));
+				.then(data => {
+					cb(null, data);
+				})
+				.catch(error => {
+					cb(error);
+				});
 		});
 
 		this._rpcServer.expose('invokePublic', (action, cb: NodeCallback) => {
@@ -147,23 +170,27 @@ export class Bus {
 			this.actions[`${moduleAlias}:${actionName}`] = actions[actionName];
 		});
 
-		let { channel } = options;
-
 		if (options.rpcSocketPath) {
 			const rpcSocket = axon.socket('req') as ReqSocket;
 			rpcSocket.connect(options.rpcSocketPath);
 
-			// TODO: Fix this override
-			channel = (new RPCClient(rpcSocket) as unknown) as BaseChannel;
+			const rpcClient = new RPCClient(rpcSocket);
 			this.rpcClients[moduleAlias] = rpcSocket;
-		}
 
-		this.channels[moduleAlias] = {
-			channel,
-			actions,
-			events,
-			type: options.type,
-		};
+			this.channels[moduleAlias] = {
+				rpcClient,
+				events,
+				actions,
+				type: ChannelType.ChildProcess,
+			};
+		} else {
+			this.channels[moduleAlias] = {
+				channel: options.channel,
+				events,
+				actions,
+				type: ChannelType.InMemory,
+			};
+		}
 	}
 
 	public async invoke<T>(actionData: string | ActionInfoObject): Promise<T> {
@@ -176,8 +203,27 @@ export class Bus {
 		}
 
 		const channelInfo = this.channels[action.module];
+		if (channelInfo.type === ChannelType.InMemory) {
+			return (channelInfo.channel as BaseChannel).invoke<T>(
+				actionFullName,
+				actionParams,
+			);
+		}
 
-		return channelInfo.channel.invoke<T>(actionFullName, actionParams);
+		// For child process channel
+		return new Promise((resolve, reject) => {
+			(channelInfo.rpcClient as RPCClient).call(
+				'invoke',
+				action.serialize(),
+				(err: Error | undefined, data: T) => {
+					if (err) {
+						return reject(err);
+					}
+
+					return resolve(data);
+				},
+			);
+		});
 	}
 
 	public async invokePublic<T>(
