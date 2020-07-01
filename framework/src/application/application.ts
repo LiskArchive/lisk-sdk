@@ -38,7 +38,7 @@ import {
 } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { systemDirs } from './system_dirs';
-import { Controller } from '../controller/controller';
+import { Controller } from '../controller';
 import { version } from '../version';
 import { constantsSchema, applicationConfigSchema } from './schema';
 import { ApplicationState } from './application_state';
