@@ -211,7 +211,7 @@ describe('Application', () => {
 				// eslint-disable-next-line no-new
 				new Application(genesisBlock as GenesisBlockJSON, customConfig);
 			}).toThrow(
-				`Lisk validator found 2 error[s]:\nProperty '.genesisConfig' has extraneous property 'CONSTANT'\nMissing property, should have required property 'communityIdentifier'`,
+				"Lisk validator found 2 error[s]:\nProperty '.genesisConfig' has extraneous property 'CONSTANT'\nMissing property, should have required property 'communityIdentifier'",
 			);
 		});
 	});
