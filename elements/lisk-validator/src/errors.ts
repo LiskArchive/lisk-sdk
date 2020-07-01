@@ -12,15 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ErrorParameters } from 'ajv';
-
 // Ajv.ErrorObject makes `schemaPath` and `dataPath` required
 // While these are not if we want to infer default values from validation
+
 export interface ErrorObject {
 	keyword: string;
 	dataPath?: string;
 	schemaPath?: string;
-	params: ErrorParameters;
+	params: ErrorParams;
 	// Added to validation errors of propertyNames keyword schema
 	propertyName?: string;
 	// Excluded if messages set to false.
@@ -31,11 +30,74 @@ export interface ErrorObject {
 	data?: never;
 }
 
+interface ErrorParams {
+	[key: string]: unknown;
+}
+
+const errorParamToString = (
+	param: string | Buffer | BigInt | undefined | unknown,
+): string => {
+	let paramAsString = '';
+	if (typeof param === 'bigint') {
+		paramAsString = param.toString();
+	} else if (Buffer.isBuffer(param)) {
+		paramAsString = param.toString('base64');
+	} else if (param === undefined) {
+		paramAsString = '';
+	} else {
+		paramAsString = param as string;
+	}
+	return paramAsString;
+};
+
+type KeywordFormatterFunction = (error: ErrorObject) => string;
+
+interface KeywordDataFormatters {
+	[key: string]: KeywordFormatterFunction | undefined;
+}
+
+const errorFormatterMap: KeywordDataFormatters = {
+	type: error =>
+		`Property '${error.dataPath ?? ''}' should be of type '${errorParamToString(
+			error.params.type,
+		)}'`,
+	additionalProperties: error =>
+		`Property '${
+			error.dataPath ?? ''
+		}' has extraneous property '${errorParamToString(
+			error.params.additionalProperty,
+		)}'`,
+	minLength: error =>
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	maxLength: error =>
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	format: error =>
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	required: error => `Missing property, ${errorParamToString(error.message)}`,
+	dataType: error =>
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+};
+
+const defaultErrorFormater: KeywordFormatterFunction = error =>
+	error.message ?? 'Unspecified validator error';
+
+const errorFormatter = (error: ErrorObject): string =>
+	(errorFormatterMap[error.keyword] ?? defaultErrorFormater)(error);
+
 export class LiskValidationError extends Error {
 	public readonly errors: ErrorObject[];
 
 	public constructor(errors: ErrorObject[]) {
-		super(`Lisk validator found ${errors.length} error[s]`);
+		super();
+
 		this.errors = errors;
+		this.message = `Lisk validator found ${
+			this.errors.length
+		} error[s]:\n${this._compileErrors().join('\n')}`;
+	}
+
+	private _compileErrors(): string[] {
+		const errorMsgs = this.errors.map(errorFormatter);
+		return errorMsgs;
 	}
 }
