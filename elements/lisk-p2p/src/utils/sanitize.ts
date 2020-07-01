@@ -63,7 +63,6 @@ export const sanitizeIncomingPeerInfo = (
 	const {
 		ipAddress,
 		wsPort,
-		height,
 		...restOfPeerInfo
 	} = rawPeerInfo as ProtocolPeerInfo;
 
@@ -72,7 +71,6 @@ export const sanitizeIncomingPeerInfo = (
 		ipAddress,
 		wsPort,
 		sharedState: {
-			height: typeof height === 'number' ? height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 			...restOfPeerInfo,
 		},
 	};
