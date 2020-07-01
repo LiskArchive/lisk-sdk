@@ -24,15 +24,13 @@ import {
 	LEAF_PREFIX,
 	BRANCH_PREFIX,
 } from './constants';
+import { NodeData, NodeInfo, NodeType, NodeSide, Proof } from './types';
 import {
-	NodeData,
-	NodeInfo,
-	NodeType,
-	NodeSide,
-	Proof,
-	TreeStructure,
-} from './types';
-import { generateHash, isLeaf, getPairLocation } from './utils';
+	generateHash,
+	getBinaryString,
+	isLeaf,
+	getPairLocation,
+} from './utils';
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -40,6 +38,7 @@ export class MerkleTree {
 
 	// Object holds data in format { [hash]: value }
 	private _hashToValueMap: { [key: string]: Buffer | undefined } = {};
+	private _locationToHashMap: { [key: string]: Buffer | undefined } = {};
 
 	public constructor(initValues: Buffer[] = []) {
 		if (initValues.length <= 1) {
@@ -48,6 +47,9 @@ export class MerkleTree {
 				: { hash: EMPTY_HASH, value: Buffer.alloc(0) };
 			this._root = rootNode.hash;
 			this._hashToValueMap[this._root.toString('binary')] = rootNode.value;
+			this._locationToHashMap[
+				`${getBinaryString(0, this._getHeight())}`
+			] = this._root;
 			this._width = initValues.length ? 1 : 0;
 			return;
 		}
@@ -165,7 +167,6 @@ export class MerkleTree {
 				dataLength: 0,
 			};
 		}
-		const treeStructure = this._getPopulatedStructure();
 		const path = [];
 		const addedPath = new dataStructures.BufferSet();
 		const indexes = [];
@@ -222,9 +223,12 @@ export class MerkleTree {
 					dataLength: this._width,
 				});
 
-				const { hash: pairNodeHash } = treeStructure[pairLayerIndex][
-					pairNodeIndex
-				];
+				const pairNodeHash = this._locationToHashMap[
+					`${getBinaryString(
+						pairNodeIndex,
+						this._getHeight() - pairLayerIndex,
+					)}`
+				] as Buffer;
 				if (!addedPath.has(pairNodeHash)) {
 					addedPath.add(pairNodeHash);
 					path.push({
@@ -266,7 +270,7 @@ export class MerkleTree {
 		return this._printNode(this.root);
 	}
 
-	private _getData(): NodeInfo[] {
+	public getData(): NodeInfo[] {
 		return this._width === 0
 			? []
 			: Object.keys(this._hashToValueMap).map(key =>
@@ -293,7 +297,9 @@ export class MerkleTree {
 			LEAF_PREFIX.length + nodeIndexBuffer.length + value.length,
 		);
 		this._hashToValueMap[leafHash.toString('binary')] = leafValueWithNodeIndex;
-		this._width += 1;
+		this._locationToHashMap[
+			`${getBinaryString(nodeIndex, this._getHeight())}`
+		] = leafHash;
 
 		return {
 			value: leafValueWithNodeIndex,
@@ -332,35 +338,19 @@ export class MerkleTree {
 			rightHashBuffer,
 		);
 		this._hashToValueMap[branchHash.toString('binary')] = branchValue;
-
+		this._locationToHashMap[
+			`${getBinaryString(nodeIndex, this._getHeight() - layerIndex)}`
+		] = branchHash;
 		return {
 			hash: branchHash,
 			value: branchValue,
 		};
 	}
 
-	private _getPopulatedStructure(): TreeStructure {
-		const structure: { [key: number]: NodeInfo[] } = {};
-		const allNodes = this._getData();
-		for (let i = 0; i < allNodes.length; i += 1) {
-			const currentNode = allNodes[i];
-			if (!(currentNode.layerIndex in structure)) {
-				structure[currentNode.layerIndex] = [currentNode];
-			} else {
-				structure[currentNode.layerIndex].splice(
-					currentNode.nodeIndex,
-					0,
-					currentNode,
-				);
-			}
-		}
-
-		return structure;
-	}
-
 	private _build(initValues: Buffer[]): Buffer {
 		// Generate hash and buffer of leaves and store in memory
 		const leafHashes = [];
+		this._width = initValues.length;
 		for (let i = 0; i < initValues.length; i += 1) {
 			const leaf = this._generateLeaf(initValues[i], i);
 			leafHashes.push(leaf.hash);
@@ -424,7 +414,6 @@ export class MerkleTree {
 
 	private _printNode(hashValue: Buffer, level = 1): string {
 		const nodeValue = this._hashToValueMap[hashValue.toString('binary')];
-
 		if (nodeValue && isLeaf(nodeValue)) {
 			return hashValue.toString('hex');
 		}
