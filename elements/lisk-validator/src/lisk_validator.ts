@@ -59,7 +59,7 @@ class LiskValidator {
 
 	public validate(schema: object, data: object): ReadonlyArray<ErrorObject> {
 		if (!this._validator.validate(schema, data)) {
-			return this._validator.errors as ReadonlyArray<ErrorObject>;
+			return (this._validator.errors as unknown) as ReadonlyArray<ErrorObject>;
 		}
 
 		return [];
@@ -67,7 +67,7 @@ class LiskValidator {
 
 	public validateSchema(schema: object | boolean): ReadonlyArray<ErrorObject> {
 		if (!this._validator.validateSchema(schema)) {
-			return this._validator.errors as ReadonlyArray<ErrorObject>;
+			return (this._validator.errors as unknown) as ReadonlyArray<ErrorObject>;
 		}
 
 		return [];
