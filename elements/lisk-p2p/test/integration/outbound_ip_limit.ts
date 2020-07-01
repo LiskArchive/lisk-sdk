@@ -17,7 +17,7 @@ import * as url from 'url';
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 import { OutboundPeer } from '../../src/peer';
-
+// eslint-disable-next-line import/order
 import cloneDeep = require('lodash.clonedeep');
 
 describe('Outbound IP limit', () => {
@@ -29,7 +29,7 @@ describe('Outbound IP limit', () => {
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
 		// eslint-disable-next-line func-names
-		serverSocketPrototype._resetPongTimeout = function() {
+		serverSocketPrototype._resetPongTimeout = function () {
 			const queryObject = url.parse(this.request.url, true).query as any;
 			const ipSuffix = queryObject.wsPort - 5000;
 			// eslint-disable-next-line no-bitwise

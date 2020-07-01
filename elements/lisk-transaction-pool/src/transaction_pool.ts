@@ -157,7 +157,7 @@ export class TransactionPool {
 		incomingTx.feePriority = this._calculateFeePriority(incomingTx);
 		if (incomingTx.feePriority < this._minEntranceFeePriority) {
 			const error = new TransactionPoolError(
-				`Rejecting transaction due to failed minimum entrance fee priority requirement`,
+				'Rejecting transaction due to failed minimum entrance fee priority requirement',
 				incomingTx.id,
 				'.fee',
 				incomingTx.feePriority.toString(),
@@ -175,7 +175,7 @@ export class TransactionPool {
 			incomingTx.feePriority <= lowestFeePriorityTrx.key
 		) {
 			const error = new TransactionPoolError(
-				`Rejecting transaction due to fee priority when the pool is full`,
+				'Rejecting transaction due to fee priority when the pool is full',
 				incomingTx.id,
 				'.fee',
 				incomingTx.feePriority.toString(),

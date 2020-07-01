@@ -64,6 +64,7 @@ export const writeObject = (
 		if (Array.isArray(property)) {
 			const headerProp = property[0];
 			if (headerProp.schemaProp.type === 'array') {
+				// eslint-disable-next-line no-use-before-define
 				const [, size] = writeArray(
 					property,
 					message[headerProp.propertyName] as Array<unknown>,
@@ -135,6 +136,7 @@ export const readObject = (
 					result[typeSchema[0].propertyName] = [];
 					continue;
 				}
+				// eslint-disable-next-line no-use-before-define
 				const [arr, nextOffset] = readArray(
 					message,
 					index,

@@ -18,5 +18,8 @@ export const writeBytes = (bytes: Buffer): Buffer =>
 
 export const readBytes = (buffer: Buffer, offset: number): [Buffer, number] => {
 	const [byteLength, keySize] = readUInt32(buffer, offset);
-	return [buffer.subarray(offset + keySize, offset + keySize + byteLength), byteLength + keySize];
-}
+	return [
+		buffer.subarray(offset + keySize, offset + keySize + byteLength),
+		byteLength + keySize,
+	];
+};

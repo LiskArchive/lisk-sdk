@@ -190,7 +190,7 @@ describe('keys', () => {
 			const address = 'lsk1aknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g';
 			it('should throw an error', () => {
 				return expect(validateBase32Address.bind(null, address)).toThrow(
-					`Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.`,
+					"Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.",
 				);
 			});
 		});
@@ -199,7 +199,7 @@ describe('keys', () => {
 			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmuxgg';
 			it('should throw an error', () => {
 				return expect(validateBase32Address.bind(null, address)).toThrow(
-					`Invalid checksum for address.`,
+					'Invalid checksum for address.',
 				);
 			});
 		});
