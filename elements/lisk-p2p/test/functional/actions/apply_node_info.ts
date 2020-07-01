@@ -120,7 +120,6 @@ describe('P2P.applyNodeInfo', () => {
 				.getConnectedPeers()
 				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
 			expect(firstP2PNodePeerInfo).toMatchObject({
-				advertiseAddress: true,
 				height: 10,
 				ipAddress: '127.0.0.1',
 				networkId:
@@ -154,7 +153,6 @@ describe('P2P.applyNodeInfo', () => {
 						networkId:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						nonce: expect.any(String),
-						advertiseAddress: true,
 					},
 					ipAddress: '127.0.0.1',
 					wsPort: 5000,

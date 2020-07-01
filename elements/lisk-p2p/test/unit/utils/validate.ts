@@ -42,21 +42,11 @@ describe('utils/validate', () => {
 			const peer: ProtocolPeerInfo = {
 				ipAddress: '12.23.54.3',
 				wsPort: 5393,
-				os: 'darwin',
-				height: 23232,
-				version: '1.1.2',
-				protocolVersion: '1.1',
-				httpPort: 2000,
 			};
 
 			const peerWithInvalidHeightValue: unknown = {
 				ipAddress: '12.23.54.3',
 				wsPort: 5393,
-				os: '778',
-				height: '2323wqdqd2',
-				version: '3.4.5-alpha.9',
-				protocolVersion: '1.1',
-				httpPort: 2000,
 			};
 
 			it('should return P2PPeerInfo object', () => {
@@ -65,13 +55,7 @@ describe('utils/validate', () => {
 						peerId: '12.23.54.3:5393',
 						ipAddress: '12.23.54.3',
 						wsPort: 5393,
-						sharedState: {
-							height: 23232,
-							os: 'darwin',
-							version: '1.1.2',
-							protocolVersion: '1.1',
-							httpPort: 2000,
-						},
+						sharedState: {},
 					},
 				);
 			});
@@ -86,13 +70,7 @@ describe('utils/validate', () => {
 					peerId: '12.23.54.3:5393',
 					ipAddress: '12.23.54.3',
 					wsPort: 5393,
-					sharedState: {
-						height: 0,
-						os: '778',
-						version: '3.4.5-alpha.9',
-						protocolVersion: '1.1',
-						httpPort: 2000,
-					},
+					sharedState: {},
 				});
 			});
 		});
@@ -115,11 +93,6 @@ describe('utils/validate', () => {
 				const peer: ProtocolPeerInfo = {
 					ipAddress: '12.23.54.3',
 					wsPort: 5393,
-					os: 'darwin',
-					height: 23232,
-					version: '1.1.2',
-					protocolVersion: '1.1',
-					httpPort: 2000,
 				};
 
 				expect(
