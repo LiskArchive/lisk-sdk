@@ -13,7 +13,6 @@
  */
 
 import { Schema } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator, ErrorObject } from '@liskhq/lisk-validator';
 import { DefaultAccountAsset, GenesisBlock } from './types';
 import {
@@ -132,24 +131,6 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 			(account.asset as any).delegate.username !== ''
 		) {
 			delegateAddresses.push(account.address);
-		}
-
-		if (!account.publicKey.equals(EMPTY_BUFFER)) {
-			const expectedAddress = getAddressFromPublicKey(account.publicKey);
-
-			if (!expectedAddress.equals(account.address)) {
-				assetErrors.push({
-					message: 'account addresses not match with publicKey',
-					keyword: 'accounts',
-					dataPath: 'header.asset.accounts',
-					schemaPath: 'properties.accounts',
-					params: {
-						publicKey: account.publicKey,
-						givenAddress: account.address,
-						expectedAddress,
-					},
-				});
-			}
 		}
 
 		if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {

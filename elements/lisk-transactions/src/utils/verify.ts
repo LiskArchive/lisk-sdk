@@ -18,21 +18,6 @@ import { Account } from '../types';
 import { convertBeddowsToLSK } from './format';
 import { validateSignature } from './sign_and_validate';
 
-export const verifySenderPublicKey = (
-	id: Buffer,
-	sender: Account,
-	publicKey: Buffer,
-): TransactionError | undefined =>
-	sender.publicKey.length !== 0 && !sender.publicKey.equals(publicKey)
-		? new TransactionError(
-				'Invalid sender publicKey',
-				id,
-				'.senderPublicKey',
-				publicKey.toString('base64'),
-				sender.publicKey.toString('base64'),
-		  )
-		: undefined;
-
 export const verifyMinRemainingBalance = (
 	id: Buffer,
 	account: Account,

@@ -114,7 +114,7 @@ describe('Process block', () => {
 		});
 	});
 
-	describe('given a block with exsiting transactions', () => {
+	describe('given a block with existing transactions', () => {
 		describe('when processing the block', () => {
 			let newBlock: Block;
 			let transaction: TransferTransaction;

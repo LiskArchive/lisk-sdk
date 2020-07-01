@@ -32,7 +32,6 @@ describe('account', () => {
 		it('should create an Account object with default values', () => {
 			expect(defaultAccount).toBeInstanceOf(Account);
 			expect(defaultAccount).toHaveProperty('balance');
-			expect(defaultAccount).toHaveProperty('publicKey');
 			expect(defaultAccount).toHaveProperty('nonce');
 			expect(defaultAccount.balance).toEqual(
 				BigInt(accountDefaultValues.balance),
@@ -55,7 +54,6 @@ describe('account', () => {
 			const optionalKeys = [Buffer.from('z')];
 			const accountJSON = {
 				address: accountAddress1,
-				publicKey: undefined,
 				balance: BigInt('0'),
 				nonce: BigInt('0'),
 				keys: {
@@ -137,7 +135,6 @@ describe('account', () => {
 			expect(accountObj).toHaveProperty('address');
 			expect(accountObj.address).toEqual(account.address);
 			expect(accountObj.balance).toEqual(BigInt('0'));
-			expect(accountObj.publicKey).toEqual(Buffer.alloc(0));
 			expect(accountObj.keys).toEqual({
 				mandatoryKeys: [],
 				optionalKeys: [],

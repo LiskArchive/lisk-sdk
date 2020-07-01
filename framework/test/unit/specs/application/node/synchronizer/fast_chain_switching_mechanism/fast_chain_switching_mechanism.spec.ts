@@ -61,6 +61,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 	let channelMock: any;
 	let loggerMock: any;
+	let networkMock: any;
 	let dataAccessMock;
 
 	beforeEach(() => {
@@ -69,6 +70,11 @@ describe('fast_chain_switching_mechanism', () => {
 			debug: jest.fn(),
 			error: jest.fn(),
 			trace: jest.fn(),
+		};
+
+		networkMock = {
+			requestFromPeer: jest.fn(),
+			applyPenaltyOnPeer: jest.fn(),
 		};
 
 		channelMock = new ChannelMock();
@@ -177,6 +183,7 @@ describe('fast_chain_switching_mechanism', () => {
 			bft: bftModule,
 			processor: processorModule,
 			dpos: dposModule,
+			networkModule: networkMock,
 		});
 	});
 
@@ -250,13 +257,10 @@ describe('fast_chain_switching_mechanism', () => {
 				{ err, peerId, reason: err.reason },
 				'Applying penalty to peer and aborting synchronization mechanism',
 			);
-			expect(channelMock.invoke).toHaveBeenCalledWith(
-				'app:applyPenaltyOnPeer',
-				{
-					peerId,
-					penalty: 100,
-				},
-			);
+			expect(networkMock.applyPenaltyOnPeer).toHaveBeenCalledWith({
+				peerId,
+				penalty: 100,
+			});
 		};
 
 		const checkIfAbortIsCalled = (error: any) => {
@@ -340,8 +344,8 @@ describe('fast_chain_switching_mechanism', () => {
 					},
 				];
 				// Simulate peer not sending back a common block
-				when(channelMock.invokeFromNetwork)
-					.calledWith('requestFromPeer', {
+				when(networkMock.requestFromPeer)
+					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -360,8 +364,8 @@ describe('fast_chain_switching_mechanism', () => {
 				}
 
 				// Assert
-				expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(9);
-				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(9);
+				expect(networkMock.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 				checkApplyPenaltyAndAbortIsCalled(
 					aPeerId,
 					new Errors.ApplyPenaltyAndAbortError(
@@ -388,8 +392,8 @@ describe('fast_chain_switching_mechanism', () => {
 					height: bftModule.finalizedHeight - 1,
 				});
 
-				when(channelMock.invokeFromNetwork)
-					.calledWith('requestFromPeer', {
+				when(networkMock.requestFromPeer)
+					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -436,8 +440,8 @@ describe('fast_chain_switching_mechanism', () => {
 				const highestCommonBlock = createFakeBlockHeader({
 					height: chainModule.lastBlock.header.height,
 				});
-				when(channelMock.invokeFromNetwork)
-					.calledWith('requestFromPeer', {
+				when(networkMock.requestFromPeer)
+					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -532,8 +536,8 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith(heightList)
 					.mockResolvedValue(storageReturnValue as never);
 
-				when(channelMock.invokeFromNetwork)
-					.calledWith('requestFromPeer', {
+				when(networkMock.requestFromPeer)
+					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -606,8 +610,8 @@ describe('fast_chain_switching_mechanism', () => {
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
 					.mockResolvedValue(storageReturnValue as never);
-				when(channelMock.invokeFromNetwork)
-					.calledWith('requestFromPeer', {
+				when(networkMock.requestFromPeer)
+					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -682,8 +686,8 @@ describe('fast_chain_switching_mechanism', () => {
 					'_requestBlocksWithinIDs'
 				] = jest.fn().mockResolvedValue(requestedBlocks);
 
-				when(channelMock.invokeFromNetwork)
-					.calledWith('requestFromPeer', {
+				when(networkMock.requestFromPeer)
+					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -750,8 +754,8 @@ describe('fast_chain_switching_mechanism', () => {
 					'_requestBlocksWithinIDs'
 				] = jest.fn().mockResolvedValue(requestedBlocks);
 
-				when(channelMock.invokeFromNetwork)
-					.calledWith('requestFromPeer', {
+				when(networkMock.requestFromPeer)
+					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
@@ -868,8 +872,8 @@ describe('fast_chain_switching_mechanism', () => {
 					'_requestBlocksWithinIDs'
 				] = jest.fn().mockResolvedValue(requestedBlocks);
 
-				when(channelMock.invokeFromNetwork)
-					.calledWith('requestFromPeer', {
+				when(networkMock.requestFromPeer)
+					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {

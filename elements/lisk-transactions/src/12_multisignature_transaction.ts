@@ -76,8 +76,6 @@ const setMemberAccounts = async (
 		const address = getAddressFromPublicKey(memberPublicKey as Buffer);
 		// Key might not exists in the blockchain yet so we fetch or default
 		const memberAccount = await store.account.getOrDefault(address);
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		memberAccount.publicKey = memberAccount.publicKey ?? memberPublicKey;
 		store.account.set(memberAccount.address, memberAccount);
 	}
 };

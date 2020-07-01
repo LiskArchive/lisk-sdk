@@ -25,6 +25,7 @@ export const createDB = (name: string) => {
 	const forgerDBPath = getPath(name);
 	return {
 		path,
+		nodeDB: new KVStore(`${path}/node.db`),
 		blockchainDB: new KVStore(`${path}/blockchain.db`),
 		forgerDBPath,
 		forgerDB: new KVStore(`${path}/forger.db`),

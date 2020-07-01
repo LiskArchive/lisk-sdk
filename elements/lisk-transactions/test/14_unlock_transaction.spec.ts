@@ -81,7 +81,10 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects,
 					{
-						delegateAddress: Buffer.from('peEQGWxQQ0i//keDjaA2KQ6DnNA=', 'base64'),
+						delegateAddress: Buffer.from(
+							'peEQGWxQQ0i//keDjaA2KQ6DnNA=',
+							'base64',
+						),
 						amount: BigInt(10000000000),
 						unvoteHeight: 2,
 					},
@@ -122,7 +125,10 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from('peEQGWxQQ0i//keDjaA2KQ6DnNA=', 'base64'),
+						delegateAddress: Buffer.from(
+							'peEQGWxQQ0i//keDjaA2KQ6DnNA=',
+							'base64',
+						),
 						amount: BigInt(0),
 						unvoteHeight: 2,
 					},
@@ -141,7 +147,10 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
+						delegateAddress: Buffer.from(
+							'rMn8F+DShl+EvPoL28ti9YpdMG8=',
+							'base64',
+						),
 						amount: BigInt(999999999),
 						unvoteHeight: 2,
 					},
@@ -212,7 +221,6 @@ describe('Unlock transaction', () => {
 				...validUnlockTransactionScenario.input.delegates.map((delegate, i) =>
 					defaultAccount({
 						address: Buffer.from(delegate.address, 'base64'),
-						publicKey: Buffer.from(delegate.publicKey, 'base64'),
 						asset: {
 							delegate: {
 								// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -385,7 +393,6 @@ describe('Unlock transaction', () => {
 							(delegate, i) =>
 								defaultAccount({
 									address: Buffer.from(delegate.address, 'base64'),
-									publicKey: Buffer.from(delegate.publicKey, 'base64'),
 									asset: {
 										delegate: {
 											// eslint-disable-next-line @typescript-eslint/restrict-template-expressions

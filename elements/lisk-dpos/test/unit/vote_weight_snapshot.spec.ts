@@ -59,7 +59,7 @@ const convertVoteWeight = (buffer: Buffer): VoteWeights => {
 };
 
 describe('Vote weight snapshot', () => {
-	const forgers = getDelegateAccounts(103);
+	const { accounts: forgers, publicKeyMap } = getDelegateAccounts(103);
 	const defaultLastBlockHeader = { timestamp: 12300 } as BlockHeader;
 
 	let dpos: Dpos;
@@ -119,7 +119,8 @@ describe('Vote weight snapshot', () => {
 
 		beforeEach(() => {
 			// Arrange
-			delegates = getDelegateAccounts(103);
+			const delegateAccounts1 = getDelegateAccounts(103);
+			delegates = delegateAccounts1.accounts;
 			for (const delegate of delegates) {
 				delegate.asset.delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
 			}
@@ -129,7 +130,9 @@ describe('Vote weight snapshot', () => {
 				timestamp: 10,
 				height: 0,
 				version: 0,
-				generatorPublicKey: forgers[0].publicKey,
+				generatorPublicKey: delegateAccounts1.publicKeyMap.get(
+					forgers[0].address,
+				),
 				reward: BigInt(500000000),
 				asset: {
 					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
@@ -164,7 +167,8 @@ describe('Vote weight snapshot', () => {
 
 			beforeEach(() => {
 				// Arrange
-				delegates = getDelegateAccounts(103);
+				const delegateAccounts2 = getDelegateAccounts(103);
+				delegates = delegateAccounts2.accounts;
 				for (const delegate of delegates) {
 					delegate.asset.delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
 				}
@@ -173,7 +177,9 @@ describe('Vote weight snapshot', () => {
 					timestamp: 500,
 					height: 50,
 					version: 2,
-					generatorPublicKey: forgers[0].publicKey,
+					generatorPublicKey: delegateAccounts2.publicKeyMap.get(
+						forgers[0].address,
+					),
 					reward: BigInt(500000000),
 					asset: {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
@@ -220,7 +226,8 @@ describe('Vote weight snapshot', () => {
 			let updatedDelegate: Account;
 
 			beforeEach(() => {
-				delegates = getDelegateAccounts(200);
+				const delegateAccounts3 = getDelegateAccounts(200);
+				delegates = delegateAccounts3.accounts;
 				for (const delegate of delegates) {
 					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 						900,
@@ -232,7 +239,8 @@ describe('Vote weight snapshot', () => {
 					});
 				}
 
-				[updatedDelegate] = getDelegateAccounts(1);
+				const { accounts } = getDelegateAccounts(1);
+				[updatedDelegate] = accounts;
 
 				updatedDelegate.asset.delegate.totalVotesReceived =
 					BigInt(6000) * BigInt(10) ** BigInt(9);
@@ -246,7 +254,9 @@ describe('Vote weight snapshot', () => {
 					timestamp: 1030,
 					height: 103,
 					version: 2,
-					generatorPublicKey: forgers[0].publicKey,
+					generatorPublicKey: delegateAccounts3.publicKeyMap.get(
+						forgers[0].address,
+					),
 					reward: BigInt(500000000),
 					asset: {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
@@ -342,10 +352,10 @@ describe('Vote weight snapshot', () => {
 
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(4);
-				const updateddelegateInList = voteWeights[1].delegates.find(
+				const updatedDelegateInList = voteWeights[1].delegates.find(
 					(d: Account) => d.address.equals(updatedDelegate.address),
 				);
-				expect(updateddelegateInList).toBeUndefined();
+				expect(updatedDelegateInList).toBeUndefined();
 			});
 		});
 	});
@@ -357,7 +367,9 @@ describe('Vote weight snapshot', () => {
 
 			beforeEach(() => {
 				// Arrange
-				delegates = getDelegateAccounts(103);
+				const delegateAccounts4 = getDelegateAccounts(103);
+				delegates = delegateAccounts4.accounts;
+
 				for (const delegate of delegates) {
 					delegate.asset.delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
 				}
@@ -366,7 +378,7 @@ describe('Vote weight snapshot', () => {
 					timestamp: 5600,
 					height: 560,
 					version: 2,
-					generatorPublicKey: forgers[0].publicKey,
+					generatorPublicKey: publicKeyMap.get(forgers[0].address),
 					reward: BigInt(500000000),
 					asset: {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
@@ -417,7 +429,9 @@ describe('Vote weight snapshot', () => {
 				let updatedDelegate: Account;
 
 				beforeEach(() => {
-					delegates = getDelegateAccounts(200);
+					const delegateAccounts5 = getDelegateAccounts(200);
+					delegates = delegateAccounts5.accounts;
+
 					for (const delegate of delegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							900,
@@ -429,7 +443,8 @@ describe('Vote weight snapshot', () => {
 						});
 					}
 
-					[updatedDelegate] = getDelegateAccounts(1);
+					const { accounts } = getDelegateAccounts(1);
+					[updatedDelegate] = accounts;
 
 					updatedDelegate.asset.delegate.totalVotesReceived =
 						BigInt(6000) * BigInt(10) ** BigInt(9);
@@ -443,7 +458,7 @@ describe('Vote weight snapshot', () => {
 						timestamp: 10100,
 						height: 1030,
 						version: 2,
-						generatorPublicKey: forgers[0].publicKey,
+						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
 							seedReveal: Buffer.from(
@@ -461,7 +476,7 @@ describe('Vote weight snapshot', () => {
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
 						.map((f, i) => ({
-							generatorPublicKey: f.publicKey,
+							generatorPublicKey: publicKeyMap.get(f.address),
 							height: 928 + i,
 						}))
 						.slice(0, 102);
@@ -559,16 +574,18 @@ describe('Vote weight snapshot', () => {
 
 					expect(voteWeights).toHaveLength(2);
 					expect(voteWeights[1].round).toEqual(13);
-					const updateddelegateInList = voteWeights[1].delegates.find(
+					const updatedDelegateInList = voteWeights[1].delegates.find(
 						(d: Account) => d.address.equals(updatedDelegate.address),
 					);
-					expect(updateddelegateInList).toBeUndefined();
+					expect(updatedDelegateInList).toBeUndefined();
 				});
 			});
 
 			describe('when number of registered delegates is less than 103', () => {
 				beforeEach(() => {
-					delegates = getDelegateAccounts(50);
+					const delegateAccounts6 = getDelegateAccounts(50);
+					delegates = delegateAccounts6.accounts;
+
 					for (const delegate of delegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							500,
@@ -585,7 +602,7 @@ describe('Vote weight snapshot', () => {
 						timestamp: 10100,
 						height: 1030,
 						version: 2,
-						generatorPublicKey: forgers[0].publicKey,
+						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
 							seedReveal: Buffer.from(
@@ -598,7 +615,7 @@ describe('Vote weight snapshot', () => {
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
 						.map((forger, i) => ({
-							generatorPublicKey: forger.publicKey,
+							generatorPublicKey: publicKeyMap.get(forger.address),
 							height: 928 + i,
 						}))
 						.slice(0, 102);
@@ -710,7 +727,9 @@ describe('Vote weight snapshot', () => {
 			describe('when there are less than 2 delegates who have received votes more than the threshold (1000 * 10^8)', () => {
 				let additionalDelegates: Account[];
 				beforeEach(() => {
-					delegates = getDelegateAccounts(101);
+					const delegateAccounts7 = getDelegateAccounts(101);
+					delegates = delegateAccounts7.accounts;
+
 					for (const delegate of delegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							1000,
@@ -721,7 +740,9 @@ describe('Vote weight snapshot', () => {
 							amount: delegate.asset.delegate.totalVotesReceived,
 						});
 					}
-					additionalDelegates = getDelegateAccounts(2);
+					const { accounts } = getDelegateAccounts(2);
+					additionalDelegates = accounts;
+
 					for (const delegate of additionalDelegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							10,
@@ -737,7 +758,7 @@ describe('Vote weight snapshot', () => {
 						timestamp: 10100,
 						height: 1030,
 						version: 2,
-						generatorPublicKey: forgers[0].publicKey,
+						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						totalFee: BigInt(100000000),
 						asset: {
@@ -769,7 +790,7 @@ describe('Vote weight snapshot', () => {
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
 						.map((forger, i) => ({
-							generatorPublicKey: forger.publicKey,
+							generatorPublicKey: publicKeyMap.get(forger.address),
 							height: 928 + i,
 						}))
 						.slice(0, 102);
@@ -857,7 +878,9 @@ describe('Vote weight snapshot', () => {
 			describe('when there are more than 2 delegates who have received votes more than the threshold (1000 * 10^8)', () => {
 				let additionalDelegates: Account[];
 				beforeEach(() => {
-					delegates = getDelegateAccounts(101);
+					const delegateAccounts8 = getDelegateAccounts(101);
+					delegates = delegateAccounts8.accounts;
+
 					for (const delegate of delegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							3000,
@@ -868,7 +891,8 @@ describe('Vote weight snapshot', () => {
 							amount: delegate.asset.delegate.totalVotesReceived,
 						});
 					}
-					additionalDelegates = getDelegateAccounts(300);
+					const { accounts } = getDelegateAccounts(300);
+					additionalDelegates = accounts;
 					for (const delegate of additionalDelegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							1000,
@@ -884,7 +908,7 @@ describe('Vote weight snapshot', () => {
 						timestamp: 10100,
 						height: 1030,
 						version: 2,
-						generatorPublicKey: forgers[0].publicKey,
+						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
 							seedReveal: Buffer.from(
@@ -915,7 +939,7 @@ describe('Vote weight snapshot', () => {
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
 						.map((forger, i) => ({
-							generatorPublicKey: forger.publicKey,
+							generatorPublicKey: publicKeyMap.get(forger.address),
 							height: 928 + i,
 						}))
 						.slice(0, 102);
@@ -1007,7 +1031,9 @@ describe('Vote weight snapshot', () => {
 				let nonSelfVotedDelegate: Account;
 
 				beforeEach(() => {
-					delegates = getDelegateAccounts(101);
+					const delegateAccounts9 = getDelegateAccounts(101);
+					delegates = delegateAccounts9.accounts;
+
 					for (const delegate of delegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							3000,
@@ -1022,7 +1048,8 @@ describe('Vote weight snapshot', () => {
 					// Update not to self vote
 					(nonSelfVotedDelegate.asset
 						.sentVotes[0] as any).delegateAddress = Buffer.from('123L');
-					additionalDelegates = getDelegateAccounts(300);
+					const { accounts } = getDelegateAccounts(300);
+					additionalDelegates = accounts;
 					for (const delegate of additionalDelegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							1000,
@@ -1038,7 +1065,7 @@ describe('Vote weight snapshot', () => {
 						timestamp: 10100,
 						height: 1030,
 						version: 2,
-						generatorPublicKey: forgers[0].publicKey,
+						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
 							seedReveal: Buffer.from(
@@ -1069,7 +1096,7 @@ describe('Vote weight snapshot', () => {
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
 						.map((forger, i) => ({
-							generatorPublicKey: forger.publicKey,
+							generatorPublicKey: publicKeyMap.get(forger.address),
 							height: 928 + i,
 						}))
 						.slice(0, 102);
@@ -1159,7 +1186,8 @@ describe('Vote weight snapshot', () => {
 				let bannedDelegate: Account;
 
 				beforeEach(() => {
-					delegates = getDelegateAccounts(101);
+					const delegateAccounts10 = getDelegateAccounts(101);
+					delegates = delegateAccounts10.accounts;
 					for (const delegate of delegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							3000,
@@ -1172,7 +1200,8 @@ describe('Vote weight snapshot', () => {
 					}
 					[bannedDelegate] = delegates;
 					delegates[0].asset.delegate.isBanned = true;
-					additionalDelegates = getDelegateAccounts(300);
+					const { accounts } = getDelegateAccounts(300);
+					additionalDelegates = accounts;
 					for (const delegate of additionalDelegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							1000,
@@ -1188,7 +1217,7 @@ describe('Vote weight snapshot', () => {
 						timestamp: 10100,
 						height: 1030,
 						version: 2,
-						generatorPublicKey: forgers[0].publicKey,
+						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
 							seedReveal: Buffer.from(
@@ -1219,7 +1248,7 @@ describe('Vote weight snapshot', () => {
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
 						.map((forger, i) => ({
-							generatorPublicKey: forger.publicKey,
+							generatorPublicKey: publicKeyMap.get(forger.address),
 							height: 928 + i,
 						}))
 						.slice(0, 102);
@@ -1304,12 +1333,14 @@ describe('Vote weight snapshot', () => {
 				});
 			});
 
-			describe('when there are delegates who are being punished within the top 101 delegates, and the list is not sufficent', () => {
+			describe('when there are delegates who are being punished within the top 101 delegates, and the list is not sufficient', () => {
 				let punishedDelegate: Account;
 
 				beforeEach(() => {
 					// 102 because forger is included as zero vote weight delegate
-					delegates = getDelegateAccounts(102);
+					const delegateAccounts11 = getDelegateAccounts(102);
+					delegates = delegateAccounts11.accounts;
+
 					for (const delegate of delegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							10,
@@ -1327,7 +1358,7 @@ describe('Vote weight snapshot', () => {
 						timestamp: 10100,
 						height: 1030,
 						version: 2,
-						generatorPublicKey: forgers[0].publicKey,
+						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
 							seedReveal: Buffer.from(
@@ -1358,7 +1389,7 @@ describe('Vote weight snapshot', () => {
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
 						.map((forger, i) => ({
-							generatorPublicKey: forger.publicKey,
+							generatorPublicKey: publicKeyMap.get(forger.address),
 							height: 928 + i,
 						}))
 						.slice(0, 102);
@@ -1445,7 +1476,8 @@ describe('Vote weight snapshot', () => {
 				let punishedDelegate: Account;
 
 				beforeEach(() => {
-					delegates = getDelegateAccounts(101);
+					const delegateAccounts12 = getDelegateAccounts(101);
+					delegates = delegateAccounts12.accounts;
 					for (const delegate of delegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							3000,
@@ -1458,7 +1490,8 @@ describe('Vote weight snapshot', () => {
 					}
 					[punishedDelegate] = delegates;
 					delegates[0].asset.delegate.pomHeights.push(10);
-					additionalDelegates = getDelegateAccounts(300);
+					const { accounts } = getDelegateAccounts(300);
+					additionalDelegates = accounts;
 					for (const delegate of additionalDelegates) {
 						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
 							1000,
@@ -1474,7 +1507,7 @@ describe('Vote weight snapshot', () => {
 						timestamp: 10100,
 						height: 1030,
 						version: 2,
-						generatorPublicKey: forgers[0].publicKey,
+						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
 							seedReveal: Buffer.from(
@@ -1505,7 +1538,7 @@ describe('Vote weight snapshot', () => {
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
 						.map((forger, i) => ({
-							generatorPublicKey: forger.publicKey,
+							generatorPublicKey: publicKeyMap.get(forger.address),
 							height: 928 + i,
 						}))
 						.slice(0, 102);

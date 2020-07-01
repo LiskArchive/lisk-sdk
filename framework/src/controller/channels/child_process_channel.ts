@@ -190,20 +190,6 @@ export class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
-	public async invokeFromNetwork<T>(
-		remoteMethod: string,
-		params: object,
-	): Promise<T> {
-		return this.invoke(`app:${remoteMethod}`, params);
-	}
-
-	public async publishToNetwork(
-		actionName: string,
-		data: object,
-	): Promise<void> {
-		return this.invoke(`app:${actionName}`, data);
-	}
-
 	public async invokePublic<T>(
 		actionName: string,
 		params?: object,

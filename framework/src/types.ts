@@ -63,7 +63,7 @@ export interface PluginsOptions {
 }
 
 export interface DelegateConfig {
-	readonly publicKey: string;
+	readonly address: string;
 	readonly encryptedPassphrase: string;
 	readonly hashOnion: {
 		readonly count: number;

@@ -50,12 +50,18 @@ export const createNode = ({
 	) as ApplicationConfig;
 	const convertedDelegates = mergedConfig.forging.delegates.map(delegate => ({
 		...delegate,
-		publicKey: Buffer.from(delegate.publicKey, 'base64'),
+		address: Buffer.from(delegate.address, 'base64'),
 		hashOnion: {
 			...delegate.hashOnion,
 			hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
 		},
 	}));
+	const networkMock = {
+		request: jest.fn(),
+		requestFromPeer: jest.fn(),
+		send: jest.fn(),
+		broadcast: jest.fn(),
+	};
 	const nodeOptions = {
 		...mergedConfig,
 		forging: {
@@ -74,7 +80,10 @@ export const createNode = ({
 		logger,
 		blockchainDB,
 		forgerDB,
-		applicationState: null as any,
+		applicationState: {
+			update: jest.fn(),
+		} as any,
+		networkModule: networkMock as any,
 	});
 };
 

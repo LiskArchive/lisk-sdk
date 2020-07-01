@@ -169,11 +169,6 @@ describe('Proof-of-misbehavior transaction', () => {
 						.address,
 					'base64',
 				),
-				publicKey: Buffer.from(
-					validProofOfMisbehaviorTransactionScenario1.input.targetAccount
-						.publicKey,
-					'base64',
-				),
 				balance: BigInt(
 					validProofOfMisbehaviorTransactionScenario1.input.targetAccount
 						.balance,
@@ -398,13 +393,12 @@ describe('Proof-of-misbehavior transaction', () => {
 		it('should not return balance related errors with valid transactions from same sender and delegate account', async () => {
 			const sameAccountTransaction = new ProofOfMisbehaviorTransaction({
 				...decodedScenario1Transaction,
-				senderPublicKey: delegate.publicKey,
 			});
 
 			const { errors } = await sameAccountTransaction.apply(store);
 
-			// returned errors here are unrelated to the tested issue: nonce and signature
-			expect(errors).toHaveLength(2);
+			// returned errors here are unrelated to the tested issue: nonce
+			expect(errors).toHaveLength(1);
 		});
 	});
 });
