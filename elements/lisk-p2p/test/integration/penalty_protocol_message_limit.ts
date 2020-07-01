@@ -57,7 +57,7 @@ describe('P2P protocol message limit', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it(`should apply penalty for limit exceed`, async () => {
+	it('should apply penalty for limit exceed', async () => {
 		// Arrange & Act
 		await wait(100);
 

@@ -1,3 +1,4 @@
 dist-node
 dist-browser
 jest.config.js
+.eslintrc.js

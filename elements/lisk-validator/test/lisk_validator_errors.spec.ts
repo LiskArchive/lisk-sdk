@@ -41,7 +41,8 @@ describe('LiskValidationError formatter', () => {
 			myProp: 10,
 		};
 
-		const expectedError = `Lisk validator found 1 error[s]:\nProperty '.myProp' should be of type 'string'`;
+		const expectedError =
+			"Lisk validator found 1 error[s]:\nProperty '.myProp' should be of type 'string'";
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
@@ -54,7 +55,8 @@ describe('LiskValidationError formatter', () => {
 			myProp: 'n',
 		};
 
-		const expectedError = `Lisk validator found 1 error[s]:\nProperty '.myProp' should NOT be shorter than 2 characters`;
+		const expectedError =
+			"Lisk validator found 1 error[s]:\nProperty '.myProp' should NOT be shorter than 2 characters";
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
@@ -67,7 +69,8 @@ describe('LiskValidationError formatter', () => {
 			myProp: 'too much foo bar',
 		};
 
-		const expectedError = `Lisk validator found 1 error[s]:\nProperty '.myProp' should NOT be longer than 5 characters`;
+		const expectedError =
+			"Lisk validator found 1 error[s]:\nProperty '.myProp' should NOT be longer than 5 characters";
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
@@ -80,7 +83,8 @@ describe('LiskValidationError formatter', () => {
 			myProp: 'this is not base 64',
 		};
 
-		const expectedError = `Lisk validator found 1 error[s]:\nProperty '.myProp' should match format "base64"`;
+		const expectedError =
+			'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should match format "base64"';
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
@@ -90,7 +94,8 @@ describe('LiskValidationError formatter', () => {
 		const schema = cloneDeep(validSchema);
 		const obj = {};
 
-		const expectedError = `Lisk validator found 1 error[s]:\nMissing property, should have required property 'myProp'`;
+		const expectedError =
+			"Lisk validator found 1 error[s]:\nMissing property, should have required property 'myProp'";
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
@@ -122,7 +127,8 @@ describe('LiskValidationError formatter', () => {
 			},
 		};
 
-		const expectedError = `Lisk validator found 1 error[s]:\nProperty '.myProp' has extraneous property 'bar'`;
+		const expectedError =
+			"Lisk validator found 1 error[s]:\nProperty '.myProp' has extraneous property 'bar'";
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);

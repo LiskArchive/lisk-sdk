@@ -19,7 +19,7 @@ import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 
 export default class GetCommand extends BaseCommand {
-	static description = `Get the network status from a Lisk Core instance.`;
+	static description = 'Get the network status from a Lisk Core instance.';
 
 	static examples = ['node:get', 'node:get --forging-status'];
 

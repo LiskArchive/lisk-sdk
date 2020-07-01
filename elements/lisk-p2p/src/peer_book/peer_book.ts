@@ -29,8 +29,9 @@ import { assignInternalInfo, PEER_TYPE } from '../utils';
 import { NewList } from './new_list';
 // eslint-disable-next-line import/no-cycle
 import { TriedList } from './tried_list';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line import/order
 import shuffle = require('lodash.shuffle');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 
 export interface PeerBookConfig {
 	readonly sanitizedPeerLists: PeerLists;

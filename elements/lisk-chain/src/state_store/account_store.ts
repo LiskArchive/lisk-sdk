@@ -20,7 +20,7 @@ import { BufferMap } from '../utils/buffer_map';
 import { BufferSet } from '../utils/buffer_set';
 import { DB_KEY_ACCOUNTS_ADDRESS } from '../data_access/constants';
 import { keyString } from '../utils';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line import/order
 import cloneDeep = require('lodash.clonedeep');
 
 interface AdditionalInformation {

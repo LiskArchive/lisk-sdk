@@ -206,14 +206,14 @@ describe.skip('transaction:create:multisignature', () => {
 			});
 	});
 
-	describe(`transaction:create:multisignature nonce fee --member-passphrase=yyy --member-passphrase=zzz`, () => {
+	describe('transaction:create:multisignature nonce fee --member-passphrase=yyy --member-passphrase=zzz', () => {
 		setupTest()
 			.command([
 				'transaction:create:multisignature',
 				nonce,
 				fee,
-				`--member-passphrase=yyy`,
-				`--member-passphrase=zzz`,
+				'--member-passphrase=yyy',
+				'--member-passphrase=zzz',
 			])
 			.it('should create a multisignature transaction', () => {
 				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(

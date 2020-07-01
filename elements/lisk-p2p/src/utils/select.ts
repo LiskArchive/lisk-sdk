@@ -20,8 +20,9 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForSendInput,
 } from '../types';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line import/order
 import shuffle = require('lodash.shuffle');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 
 const _removeCommonIPsFromLists = (
 	peerList: ReadonlyArray<P2PPeerInfo>,

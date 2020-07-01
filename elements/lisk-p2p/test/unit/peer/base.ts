@@ -507,7 +507,7 @@ describe('peer/base', () => {
 			it.skip('should throw apply penalty on malformed Peer', async () => {
 				const malformedPeerList = [
 					{
-						peerId: `'1.1.1.1:5000`,
+						peerId: "'1.1.1.1:5000",
 						ipAddress: '1.1.1.1',
 						wsPort: 1111,
 						sharedState: {
@@ -596,7 +596,7 @@ describe('peer/base', () => {
 			});
 		});
 
-		it(`should return discoveredPeerInfoList`, async () => {
+		it('should return discoveredPeerInfoList', async () => {
 			const discoveredPeerInfoList = await defaultPeer.discoverPeers();
 			expect(discoveredPeerInfoList).toEqual(discoveredPeers);
 		});
@@ -695,7 +695,7 @@ describe('peer/base', () => {
 					jest.spyOn(defaultPeer, 'emit');
 				});
 
-				it(`should call updatePeerInfo()`, async () => {
+				it('should call updatePeerInfo()', async () => {
 					// Arrange
 					const defaultProtocolPeerInfo = {
 						peerId: constructPeerId(

@@ -191,7 +191,7 @@ describe.skip('transaction:sign', () => {
 				`--passphrase=${anotherUserPassphrase}`,
 				`--mandatory-key=${KeyOne}`,
 				`--mandatory-key=${KeyTwo}`,
-				`--number-of-passphrases=2`,
+				'--number-of-passphrases=2',
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
@@ -258,7 +258,7 @@ describe.skip('transaction:sign', () => {
 				JSON.stringify(signedTransaction),
 				`--mandatory-key=${mandatoryKey}`,
 				`--optional-key=${optionalKey}`,
-				`--number-of-passphrases=2`,
+				'--number-of-passphrases=2',
 			])
 			.it(
 				'should take transaction from arg, passphrase from prompt and rest of of the flags mandatoryKey, optionalKey and numberOfSignature to sign',

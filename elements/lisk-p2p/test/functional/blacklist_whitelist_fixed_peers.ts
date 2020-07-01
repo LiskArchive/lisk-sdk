@@ -17,7 +17,7 @@ import * as url from 'url';
 import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
-
+// eslint-disable-next-line import/order
 import cloneDeep = require('lodash.clonedeep');
 
 const { EVENT_CLOSE_OUTBOUND } = events;
@@ -47,7 +47,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		const realResetPongTimeoutFunction =
 			serverSocketPrototype._resetPongTimeout;
 		// eslint-disable-next-line func-names
-		serverSocketPrototype._resetPongTimeout = function() {
+		serverSocketPrototype._resetPongTimeout = function () {
 			const queryObject = url.parse(this.request.url, true).query as any;
 			const ipSuffix = queryObject.wsPort - 5000 + 10;
 			this.remoteAddress = `127.0.0.${ipSuffix}`;
