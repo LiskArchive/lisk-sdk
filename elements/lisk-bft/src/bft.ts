@@ -234,10 +234,14 @@ export class BFT extends EventEmitter {
 				  ).finalizedHeight;
 
 		// Initialize consensus manager
-		return new FinalityManager({
+		const finalityManager = new FinalityManager({
 			dpos: this._dpos,
 			finalizedHeight,
 			activeDelegates: this.constants.activeDelegates,
 		});
+		// Initialize maxHeightPrevoted with the current state
+		await finalityManager.updatePreVotedAndFinalizedHeight(stateStore);
+
+		return finalityManager;
 	}
 }
