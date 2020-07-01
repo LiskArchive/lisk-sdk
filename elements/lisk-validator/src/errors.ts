@@ -50,50 +50,39 @@ const errorParamToString = (
 	return paramAsString;
 };
 
-const errorFormatter = (error: ErrorObject): string => {
-	let errorMessage = '';
-	switch (error.keyword) {
-		case 'type':
-			errorMessage = `Property '${
-				error.dataPath ?? ''
-			}' should be of type '${errorParamToString(error.params.type)}'`;
-			break;
-		case 'additionalProperties':
-			errorMessage = `Property '${
-				error.dataPath ?? ''
-			}' has extraneous property '${errorParamToString(
-				error.params.additionalProperty,
-			)}'`;
-			break;
-		case 'minLength':
-			errorMessage = `Property '${error.dataPath ?? ''}' ${errorParamToString(
-				error.message,
-			)}`;
-			break;
-		case 'maxLength':
-			errorMessage = `Property '${error.dataPath ?? ''}' ${errorParamToString(
-				error.message,
-			)}`;
-			break;
-		case 'format':
-			errorMessage = `Property '${error.dataPath ?? ''}' ${errorParamToString(
-				error.message,
-			)}`;
-			break;
-		case 'required':
-			errorMessage = `Missing property, ${errorParamToString(error.message)}`;
-			break;
-		case 'dataType':
-			errorMessage = `Property '${error.dataPath ?? ''}' ${errorParamToString(
-				error.message,
-			)}`;
-			break;
-		default:
-			errorMessage = error.message ?? 'unspecified validator error';
-			break;
-	}
-	return errorMessage;
+type KeywordFormatterFunction = (error: ErrorObject) => string;
+
+interface KeywordDataFormatters {
+	[key: string]: KeywordFormatterFunction | undefined;
+}
+
+const errorFormatterMap: KeywordDataFormatters = {
+	type: error =>
+		`Property '${error.dataPath ?? ''}' should be of type '${errorParamToString(
+			error.params.type,
+		)}'`,
+	additionalProperties: error =>
+		`Property '${
+			error.dataPath ?? ''
+		}' has extraneous property '${errorParamToString(
+			error.params.additionalProperty,
+		)}'`,
+	minLength: error =>
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	maxLength: error =>
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	format: error =>
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	required: error => `Missing property, ${errorParamToString(error.message)}`,
+	dataType: error =>
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
 };
+
+const defaultErrorFormater: KeywordFormatterFunction = error =>
+	error.message ?? 'Unspecified validator error';
+
+const errorFormatter = (error: ErrorObject): string =>
+	(errorFormatterMap[error.keyword] ?? defaultErrorFormater)(error);
 
 export class LiskValidationError extends Error {
 	public readonly errors: ErrorObject[];
@@ -108,7 +97,7 @@ export class LiskValidationError extends Error {
 	}
 
 	private _compileErrors(): string[] {
-		const errorMsgs = this.errors.map(anError => errorFormatter(anError));
+		const errorMsgs = this.errors.map(errorFormatter);
 		return errorMsgs;
 	}
 }
