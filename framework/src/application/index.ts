@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,11 +13,3 @@
  */
 
 export { Application } from './application';
-export { version } from './version';
-export { systemDirs } from './application/system_dirs';
-export { BasePlugin, PluginInfo } from './plugins/base_plugin';
-export type { BaseChannel } from './controller/channels';
-export type { EventsArray } from './controller/event';
-export type { ActionsDefinition } from './controller/action';
-export { GenesisBlockJSON } from './application/genesis_block';
-export * from './types';

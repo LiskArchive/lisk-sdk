@@ -38,19 +38,17 @@ import {
 } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { systemDirs } from './system_dirs';
-import { Controller } from '../controller/controller';
+import { Controller, InMemoryChannel, ActionInfoObject } from '../controller';
 import { version } from '../version';
 import { constantsSchema, applicationConfigSchema } from './schema';
 import { ApplicationState } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
-import { InMemoryChannel } from '../controller/channels';
 import { Logger, createLogger } from './logger';
 import { mergeDeep } from './utils/merge_deep';
 
 import { DuplicateAppInstanceError } from '../errors';
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
-import { ActionInfoObject } from '../controller/action';
 import {
 	ApplicationConfig,
 	ApplicationConstants,
