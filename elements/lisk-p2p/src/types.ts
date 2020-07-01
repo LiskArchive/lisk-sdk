@@ -108,8 +108,6 @@ export interface P2PNodeInfo extends P2PSharedState {
 // TODO later: Switch to LIP protocol format.
 // TODO: Include peerId as field
 export interface ProtocolPeerInfo {
-	readonly [key: string]: unknown;
-	// To support the existing protocol
 	readonly ipAddress: string;
 	readonly wsPort: number;
 }
