@@ -308,12 +308,7 @@ export class PeerServer extends EventEmitter {
 		const peerId = constructPeerId(socket.remoteAddress, remoteport);
 
 		// Remove these port and ip from the query object
-		const {
-			port,
-			ipAddress,
-			advertiseAddress,
-			...restOfQueryObject
-		} = queryObject;
+		const { advertiseAddress, nonce, networkId, networkVersion } = queryObject;
 
 		const peerInPeerBook = this._peerBook.getPeer({
 			peerId,
@@ -326,10 +321,10 @@ export class PeerServer extends EventEmitter {
 					...peerInPeerBook,
 					sharedState: {
 						...peerInPeerBook.sharedState,
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						networkVersion: queryObject.networkVersion,
+						nonce,
+						networkVersion,
+						networkId,
+						options: queryOptions,
 					},
 					internalState: {
 						...(peerInPeerBook.internalState
@@ -341,10 +336,10 @@ export class PeerServer extends EventEmitter {
 			  }
 			: {
 					sharedState: {
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+						networkId,
+						nonce,
 						networkVersion: queryObject.networkVersion,
+						options: queryOptions,
 					},
 					internalState: {
 						...assignInternalInfo(
