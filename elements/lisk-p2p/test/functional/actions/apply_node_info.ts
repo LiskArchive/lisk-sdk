@@ -49,7 +49,7 @@ describe('P2P.applyNodeInfo', () => {
 			os: platform(),
 			networkId:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			protocolVersion: '1.1',
+			networkVersion: '1.1',
 			port: firstP2PNode.nodeInfo.port,
 			height: 10,
 			nonce: 'nonce',
@@ -72,7 +72,7 @@ describe('P2P.applyNodeInfo', () => {
 				networkId:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				version: firstP2PNode.nodeInfo.version,
-				protocolVersion: '1.1',
+				networkVersion: '1.1',
 				port: firstP2PNode.nodeInfo.port,
 				options: firstP2PNode.nodeInfo.options,
 				junk: '1.'.repeat(13000),

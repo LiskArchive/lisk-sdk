@@ -64,7 +64,7 @@ describe('peer/base', () => {
 				height: 545776,
 				isDiscoveredPeer: true,
 				version: '1.1.1',
-				protocolVersion: '1.1',
+				networkVersion: '1.1',
 			},
 		};
 		peerConfig = {
@@ -78,7 +78,7 @@ describe('peer/base', () => {
 				os: 'os',
 				networkId: 'networkId',
 				version: '1.2.0',
-				protocolVersion: '1.2',
+				networkVersion: '1.2',
 				port: 6001,
 				nonce: 'nonce',
 				advertiseAddress: true,
@@ -97,7 +97,7 @@ describe('peer/base', () => {
 				updatedAt: new Date(),
 				os: 'MYOS',
 				version: '1.3.0',
-				protocolVersion: '1.3',
+				networkVersion: '1.3',
 			},
 			internalState: undefined,
 		};
@@ -419,7 +419,7 @@ describe('peer/base', () => {
 							networkId: '',
 							os: '',
 							nonce: '',
-							protocolVersion: '',
+							networkVersion: '',
 						},
 					},
 					{
@@ -432,7 +432,7 @@ describe('peer/base', () => {
 							networkId: '',
 							os: '',
 							nonce: '',
-							protocolVersion: '',
+							networkVersion: '',
 						},
 					},
 				];
@@ -550,7 +550,7 @@ describe('peer/base', () => {
 					sharedState: {
 						version: '1.1.1',
 						height: 0,
-						protocolVersion: '',
+						networkVersion: '',
 						os: '',
 					},
 				},
@@ -561,7 +561,7 @@ describe('peer/base', () => {
 					sharedState: {
 						version: '2.2.2',
 						height: 0,
-						protocolVersion: '',
+						networkVersion: '',
 						os: '',
 					},
 				},
@@ -635,7 +635,7 @@ describe('peer/base', () => {
 				const peer = {
 					ipAddress: '1.1.1.1',
 					port: 1111,
-					protocolVersion: '9.2',
+					networkVersion: '9.2',
 					networkId: 'networkId',
 				};
 				beforeEach(() => {
@@ -675,7 +675,7 @@ describe('peer/base', () => {
 				const peerSharedState = {
 					ipAddress: '1.1.1.1',
 					port: 1111,
-					protocolVersion: '1.2',
+					networkVersion: '1.2',
 					networkId: 'networkId',
 				};
 
@@ -703,7 +703,7 @@ describe('peer/base', () => {
 						port: defaultPeerInfo.port,
 						sharedState: {
 							height: 0,
-							protocolVersion: '1.2',
+							networkVersion: '1.2',
 							networkId: 'networkId',
 							advertiseAddress: false,
 							nonce: '',
@@ -733,7 +733,7 @@ describe('peer/base', () => {
 					expect(peerInfo.sharedState).toMatchObject({
 						height: 0,
 						networkId: 'networkId',
-						protocolVersion: '1.2',
+						networkVersion: '1.2',
 					});
 				});
 			});

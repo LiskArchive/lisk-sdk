@@ -24,7 +24,7 @@ export const customNodeInfoSchema = {
 			fieldNumber: 9,
 		},
 	},
-	required: ['networkId', 'protocolVersion', 'port', 'nonce'],
+	required: ['networkId', 'networkVersion', 'port', 'nonce'],
 };
 
 export const customPeerInfoSchema = {

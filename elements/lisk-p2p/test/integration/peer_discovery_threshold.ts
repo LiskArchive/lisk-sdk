@@ -51,7 +51,7 @@ describe('Peer discovery threshold', () => {
 				port: 1000,
 				sharedState: {
 					height: 0,
-					protocolVersion: '1.1',
+					networkVersion: '1.1',
 					version: '1.1',
 				},
 			});

@@ -219,7 +219,7 @@ describe('Network discovery', () => {
 					port: 5020,
 					networkId: 'aaa',
 					version: '9.9.9',
-					protocolVersion: '9.9',
+					networkVersion: '9.9',
 					minVersion: '9.9.9',
 					os: platform(),
 					height: 10000,

@@ -221,7 +221,7 @@ describe('utils/validate', () => {
 				networkId: '12.23.54.3',
 				port: 5393,
 				version: '1.1.2',
-				protocolVersion: '1.1',
+				networkVersion: '1.1',
 				options: {
 					foo: 'bar',
 					fizz: 'buzz',

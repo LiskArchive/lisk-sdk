@@ -52,7 +52,7 @@ describe('penalty sending malformed Peer List', () => {
 					port: 1000,
 					sharedState: {
 						height: 0,
-						protocolVersion: '1.1',
+						networkVersion: '1.1',
 						version: '1.1',
 					},
 				});
@@ -92,7 +92,7 @@ describe('penalty sending malformed Peer List', () => {
 				port: 1000,
 				sharedState: {
 					version: '1.1',
-					protocolVersion: '1.'.repeat(13000),
+					networkVersion: '1.'.repeat(13000),
 				},
 			});
 

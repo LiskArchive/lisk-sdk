@@ -329,7 +329,7 @@ export class PeerServer extends EventEmitter {
 						...restOfQueryObject,
 						...queryOptions,
 						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
+						networkVersion: queryObject.networkVersion,
 					},
 					internalState: {
 						...(peerInPeerBook.internalState
@@ -344,7 +344,7 @@ export class PeerServer extends EventEmitter {
 						...restOfQueryObject,
 						...queryOptions,
 						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
+						networkVersion: queryObject.networkVersion,
 					},
 					internalState: {
 						...assignInternalInfo(

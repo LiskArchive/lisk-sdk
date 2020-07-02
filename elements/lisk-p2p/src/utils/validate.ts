@@ -63,7 +63,7 @@ const validateNetworkCompatibility = (
 	return (peerInfo.sharedState.networkId as string) === nodeInfo.networkId;
 };
 
-const validateProtocolVersionCompatibility = (
+const validatenetworkVersionCompatibility = (
 	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
@@ -71,15 +71,15 @@ const validateProtocolVersionCompatibility = (
 		return false;
 	}
 
-	if (typeof peerInfo.sharedState.protocolVersion !== 'string') {
+	if (typeof peerInfo.sharedState.networkVersion !== 'string') {
 		return false;
 	}
 
 	const peerHardForks = parseInt(
-		peerInfo.sharedState.protocolVersion.split('.')[0],
+		peerInfo.sharedState.networkVersion.split('.')[0],
 		10,
 	);
-	const systemHardForks = parseInt(nodeInfo.protocolVersion.split('.')[0], 10);
+	const systemHardForks = parseInt(nodeInfo.networkVersion.split('.')[0], 10);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };
@@ -95,7 +95,7 @@ export const validatePeerCompatibility = (
 		};
 	}
 
-	if (!validateProtocolVersionCompatibility(peerInfo, nodeInfo)) {
+	if (!validatenetworkVersionCompatibility(peerInfo, nodeInfo)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_PROTOCOL_VERSION_REASON,

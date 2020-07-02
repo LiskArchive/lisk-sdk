@@ -132,7 +132,7 @@ describe('Connection Create', () => {
 						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
 						: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				version: '1.0.1',
-				protocolVersion: index === 2 ? '1.1' : 'BAD',
+				networkVersion: index === 2 ? '1.1' : 'BAD',
 				minVersion: '1.0.0',
 				os: 'darwin',
 				height: 0,

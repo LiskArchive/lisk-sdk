@@ -63,7 +63,7 @@ describe('penalty sending malformed peerInfo', () => {
 			networkId:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			version: p2pNodeList[0].nodeInfo.version,
-			protocolVersion: '1.1',
+			networkVersion: '1.1',
 			port: p2pNodeList[0].nodeInfo.port,
 			height: 10,
 			nonce: 'nonce',

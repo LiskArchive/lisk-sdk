@@ -119,13 +119,13 @@ describe('peerPool', () => {
 				height: 1,
 				updatedAt: new Date(),
 				version: '1.0.1',
-				protocolVersion: '1.0.1',
+				networkVersion: '1.0.1',
 			},
 		};
 		nodeInfo = {
 			os: 'darwin',
 			version: '1.1',
-			protocolVersion: '1.0.1',
+			networkVersion: '1.0.1',
 			networkId: 'abc',
 			port: 5000,
 			height: 1000,
@@ -449,7 +449,7 @@ describe('peerPool', () => {
 		it('should call _applyNodeInfoOnPeer if _nodeInfo exists', () => {
 			(peerPool as any)._nodeInfo = {
 				os: 'darwin',
-				protocolVersion: '1.0.1',
+				networkVersion: '1.0.1',
 				version: '1.1',
 			};
 			const _applyNodeInfoOnPeerStub = jest.spyOn(
@@ -518,7 +518,7 @@ describe('peerPool', () => {
 			getPeersStub.mockReturnValue([]);
 			(peerPool as any)._nodeInfo = {
 				os: 'darwin',
-				protocolVersion: '1.0.1',
+				networkVersion: '1.0.1',
 				version: '1.1',
 			};
 			const _applyNodeInfoOnPeerStub = jest.spyOn(

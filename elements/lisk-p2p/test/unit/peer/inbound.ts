@@ -44,7 +44,7 @@ describe('peer/inbound', () => {
 				height: 545776,
 				isDiscoveredPeer: true,
 				version: '1.1.1',
-				protocolVersion: '1.1',
+				networkVersion: '1.1',
 			},
 		};
 		defaultPeerConfig = {

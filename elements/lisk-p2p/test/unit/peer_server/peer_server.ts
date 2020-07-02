@@ -29,7 +29,7 @@ describe('peerServer', () => {
 		networkId: '73458irc3yb7rg37r7326dbt7236',
 		os: 'linux',
 		version: '1.1.1',
-		protocolVersion: '1.1',
+		networkVersion: '1.1',
 		port: 5000,
 		nonce: 'nonce',
 		advertiseAddress: true,

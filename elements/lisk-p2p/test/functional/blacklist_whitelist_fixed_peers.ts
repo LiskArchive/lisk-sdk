@@ -36,7 +36,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			port: NETWORK_START_PORT + 5,
 			height: 10,
 			version: '1.0',
-			protocolVersion: '1.0',
+			networkVersion: '1.0',
 			number: undefined,
 		},
 	];
@@ -74,7 +74,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				port: NETWORK_START_PORT + 5,
 				height: 10,
 				version: '1.0',
-				protocolVersion: '1.0',
+				networkVersion: '1.0',
 				number: undefined,
 			},
 		];

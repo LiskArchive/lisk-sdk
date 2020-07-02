@@ -96,7 +96,7 @@ export interface P2PPeersCount {
 // P2PPeerInfo and P2PNodeInfo are related.
 // P2PNodeInfo is the outbound info from our node.
 export interface P2PNodeInfo extends P2PSharedState {
-	readonly protocolVersion: string;
+	readonly networkVersion: string;
 	readonly os: string;
 	readonly networkId: string;
 	readonly port: number;

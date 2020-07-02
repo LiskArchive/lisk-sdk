@@ -31,7 +31,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			height: 545776,
 			isDiscoveredPeer: false,
 			version: '1.1.1',
-			protocolVersion: '1.1',
+			networkVersion: '1.1',
 		},
 	};
 
@@ -43,7 +43,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			height: 545981,
 			isDiscoveredPeer: false,
 			version: '1.1.1',
-			protocolVersion: '1.1',
+			networkVersion: '1.1',
 		},
 	};
 
@@ -55,7 +55,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			height: 645980,
 			isDiscoveredPeer: false,
 			version: '1.3.1',
-			protocolVersion: '1.1',
+			networkVersion: '1.1',
 		},
 	};
 
@@ -67,7 +67,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			height: 645982,
 			isDiscoveredPeer: false,
 			version: '1.2.1',
-			protocolVersion: '1.1',
+			networkVersion: '1.1',
 		},
 	};
 
@@ -79,7 +79,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			height: 645980,
 			isDiscoveredPeer: false,
 			version: '1.1.1',
-			protocolVersion: '1.1',
+			networkVersion: '1.1',
 		},
 	};
 
@@ -100,7 +100,7 @@ export const initPeerInfoListWithSuffix = (
 				height: 645980,
 				isDiscoveredPeer: false,
 				version: '1.1.1',
-				protocolVersion: '1.1',
+				networkVersion: '1.1',
 			},
 			internalState: {
 				...assignInternalInfo(

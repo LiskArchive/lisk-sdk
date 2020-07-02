@@ -35,7 +35,7 @@ export const FALLBACK_PEER_DISCOVER_INTERVAL = 800;
 export const nodeInfoConstants = {
 	networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	version: '1.0.1',
-	protocolVersion: '1.1',
+	networkVersion: '1.1',
 	minVersion: '1.0.0',
 	os: platform(),
 	height: 0,
@@ -95,7 +95,7 @@ export const createNetwork = async ({
 				port: nodePort,
 				networkId: nodeInfoConstants.networkId,
 				version: nodeInfoConstants.version,
-				protocolVersion: nodeInfoConstants.protocolVersion,
+				networkVersion: nodeInfoConstants.networkVersion,
 				minVersion: nodeInfoConstants.minVersion,
 				os: nodeInfoConstants.os,
 				height: nodeInfoConstants.height,

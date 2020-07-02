@@ -22,7 +22,7 @@ export const nodeInfoSchema = {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
-		protocolVersion: {
+		networkVersion: {
 			dataType: 'string',
 			fieldNumber: 2,
 		},
@@ -47,7 +47,7 @@ export const nodeInfoSchema = {
 			fieldNumber: 7,
 		},
 	},
-	required: ['networkId', 'protocolVersion', 'port', 'nonce'],
+	required: ['networkId', 'networkVersion', 'port', 'nonce'],
 };
 
 export const peerInfoSchema = {
@@ -66,7 +66,7 @@ export const peerInfoSchema = {
 			dataType: 'string',
 			fieldNumber: 3,
 		},
-		protocolVersion: {
+		networkVersion: {
 			dataType: 'string',
 			fieldNumber: 4,
 		},
