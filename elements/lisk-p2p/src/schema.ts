@@ -26,10 +26,6 @@ export const nodeInfoSchema = {
 			dataType: 'string',
 			fieldNumber: 2,
 		},
-		port: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
 		nonce: {
 			dataType: 'string',
 			fieldNumber: 4,
@@ -38,16 +34,24 @@ export const nodeInfoSchema = {
 			dataType: 'boolean',
 			fieldNumber: 5,
 		},
-		os: {
+	},
+	required: ['networkId', 'networkVersion', 'nonce'],
+};
+
+export const protocolPeerInfoSchema = {
+	$id: '/protocolPeerInfo',
+	type: 'object',
+	properties: {
+		ipAddress: {
 			dataType: 'string',
-			fieldNumber: 6,
+			fieldNumber: 1,
 		},
-		height: {
+		port: {
 			dataType: 'uint32',
-			fieldNumber: 7,
+			fieldNumber: 2,
 		},
 	},
-	required: ['networkId', 'networkVersion', 'port', 'nonce'],
+	required: ['ipAddress', 'port'],
 };
 
 export const peerInfoSchema = {
@@ -74,14 +78,6 @@ export const peerInfoSchema = {
 			dataType: 'string',
 			fieldNumber: 5,
 		},
-		os: {
-			dataType: 'string',
-			fieldNumber: 6,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
 	},
 	required: ['ipAddress', 'port'],
 };
@@ -89,6 +85,7 @@ export const peerInfoSchema = {
 export const defaultRPCSchemas = {
 	peerInfo: peerInfoSchema,
 	nodeInfo: nodeInfoSchema,
+	protocolPeerInfo: protocolPeerInfoSchema,
 };
 
 export const mergeCustomSchema = (
@@ -99,6 +96,9 @@ export const mergeCustomSchema = (
 	type: 'object',
 	properties: {
 		...baseSchema.properties,
-		...customSchema.properties,
+		options: {
+			type: 'object',
+			...customSchema.properties,
+		},
 	},
 });
