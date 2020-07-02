@@ -135,15 +135,7 @@ describe('Controller Class', () => {
 		describe('_setupBus', () => {
 			it('should set created `Bus` instance to `controller.bus` property.', () => {
 				// Assert
-				expect(Bus).toHaveBeenCalledWith(
-					{
-						wildcard: true,
-						delimiter: ':',
-						maxListeners: 1000,
-					},
-					logger,
-					configController,
-				);
+				expect(Bus).toHaveBeenCalledWith(logger, configController);
 				expect(controller.bus).toBeInstanceOf(Bus);
 			});
 

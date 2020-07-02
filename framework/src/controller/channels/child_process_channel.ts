@@ -33,13 +33,6 @@ export const setupProcessHandlers = (channel: ChildProcessChannel): void => {
 	process.once('exit', code => channel.cleanup(code));
 };
 
-export const rejectWhenTimeout = async (timeInMillis: number): Promise<void> =>
-	new Promise((_, reject) => {
-		setTimeout(() => {
-			reject(new Error('ChildProcessChannel sockets setup timeout'));
-		}, timeInMillis);
-	});
-
 type NodeCallback = (error: Error | null, result?: unknown) => void;
 
 interface ChildProcessOptions extends BaseChannelOptions {
@@ -155,7 +148,10 @@ export class ChildProcessChannel extends BaseChannel {
 	public publish(eventName: string, data?: object): void {
 		const event = new Event(eventName, data);
 
-		if (event.module !== this.moduleAlias) {
+		if (
+			event.module !== this.moduleAlias ||
+			!this.eventsList.includes(event.name)
+		) {
 			throw new Error(
 				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`,
 			);
@@ -227,6 +223,9 @@ export class ChildProcessChannel extends BaseChannel {
 
 	public cleanup(_status?: number, _message?: string): void {
 		this._ipcClient.stop();
+		process.removeAllListeners('SIGTERM');
+		process.removeAllListeners('SIGINT');
+		process.removeAllListeners('exit');
 	}
 
 	private get _rpcServer(): RPCServer {
