@@ -118,6 +118,7 @@ const createPeerPoolConfig = (
 	config: P2PConfig,
 	peerBook: PeerBook,
 ): PeerPoolConfig => ({
+	hostPort: config.port,
 	connectTimeout: config.connectTimeout,
 	ackTimeout: config.ackTimeout,
 	wsMaxPayload: config.wsMaxPayload

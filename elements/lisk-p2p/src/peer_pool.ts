@@ -127,6 +127,7 @@ export enum PROTECTION_CATEGORY {
 }
 
 export interface PeerPoolConfig {
+	readonly hostPort: number;
 	readonly ackTimeout?: number;
 	readonly connectTimeout?: number;
 	readonly wsMaxPayload?: number;
@@ -196,6 +197,7 @@ export class PeerPool extends EventEmitter {
 		codec.addSchema(this._rpcSchema.nodeInfo);
 
 		this._peerConfig = {
+			hostPort: this._peerPoolConfig.hostPort,
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,

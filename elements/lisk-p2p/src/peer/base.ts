@@ -99,6 +99,7 @@ export interface ConnectedPeerInfo extends P2PPeerInfo {
 	internalState: P2PInternalState;
 }
 export interface PeerConfig {
+	readonly hostPort: number;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly rateCalculationInterval: number;
