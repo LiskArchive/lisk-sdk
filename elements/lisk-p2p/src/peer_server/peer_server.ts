@@ -55,6 +55,7 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	PeerServerConfig,
+	UnknownKVPair,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -321,10 +322,10 @@ export class PeerServer extends EventEmitter {
 					...peerInPeerBook,
 					sharedState: {
 						...peerInPeerBook.sharedState,
-						nonce,
-						networkVersion,
-						networkId,
-						options: queryOptions,
+						nonce: nonce as string,
+						networkVersion: networkVersion as string,
+						networkId: networkId as string,
+						options: queryOptions as UnknownKVPair,
 					},
 					internalState: {
 						...(peerInPeerBook.internalState
@@ -336,10 +337,10 @@ export class PeerServer extends EventEmitter {
 			  }
 			: {
 					sharedState: {
-						networkId,
-						nonce,
-						networkVersion: queryObject.networkVersion,
-						options: queryOptions,
+						networkId: networkId as string,
+						nonce: nonce as string,
+						networkVersion: networkVersion as string,
+						options: queryOptions as UnknownKVPair,
 					},
 					internalState: {
 						...assignInternalInfo(

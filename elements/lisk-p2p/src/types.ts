@@ -46,8 +46,16 @@ export interface P2PPenalty {
 	readonly penalty: number;
 }
 
+export interface UnknownKVPair {
+	[key: string]: unknown;
+}
+
 export interface P2PSharedState {
-	readonly [key: string]: unknown;
+	readonly networkId: string;
+	readonly networkVersion: string;
+	readonly nonce: string;
+	// These values can be modified when the node is running
+	options?: UnknownKVPair;
 }
 // Disable readonly properties as its going to change
 export interface P2PInternalState {
@@ -96,15 +104,7 @@ export interface P2PPeersCount {
 // P2PPeerInfo and P2PNodeInfo are related.
 // P2PNodeInfo is the outbound info from our node.
 export interface P2PNodeInfo extends P2PSharedState {
-	readonly networkVersion: string;
-	readonly os: string;
-	readonly networkId: string;
 	readonly advertiseAddress: boolean;
-	readonly nonce: string;
-	// These values can be modified when the node is running
-	options?: {
-		[key: string]: unknown;
-	};
 }
 
 // This is a representation of the inbound peer object according to the current protocol.

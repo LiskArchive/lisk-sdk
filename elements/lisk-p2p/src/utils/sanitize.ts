@@ -25,6 +25,7 @@ import {
 	P2PPeerInfo,
 	PeerLists,
 	ProtocolPeerInfo,
+	P2PSharedState,
 } from '../types';
 
 // eslint-disable-next-line import/no-cycle
@@ -71,7 +72,7 @@ export const sanitizeIncomingPeerInfo = (
 		ipAddress,
 		port,
 		sharedState: {
-			...restOfPeerInfo,
+			...(restOfPeerInfo as P2PSharedState),
 		},
 	};
 };
