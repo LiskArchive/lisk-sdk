@@ -73,18 +73,28 @@ describe('IPCClient', () => {
 		let client2: IPCClient;
 		let client3: IPCClient;
 
+		beforeEach(() => {
+			client1 = new IPCClient({
+				socketsDir,
+				name: 'client1',
+				rpcServerSocketPath: server.rpcServerSocketPath,
+			});
+			client2 = new IPCClient({
+				socketsDir,
+				name: 'client2',
+				rpcServerSocketPath: server.rpcServerSocketPath,
+			});
+			client3 = new IPCClient({
+				socketsDir,
+				name: 'client3',
+				rpcServerSocketPath: server.rpcServerSocketPath,
+			});
+		});
+
 		afterEach(() => {
-			if (client1 !== undefined) {
-				client1.stop();
-			}
-
-			if (client2 !== undefined) {
-				client2.stop();
-			}
-
-			if (client3 !== undefined) {
-				client3.stop();
-			}
+			client1.stop();
+			client2.stop();
+			client3.stop();
 		});
 
 		it('should be able to subscribe and receive event', async () => {
@@ -100,11 +110,6 @@ describe('IPCClient', () => {
 
 		it('should be able to subscribe and receive events on multiple clients', async () => {
 			// Arrange
-			client2 = new IPCClient({
-				socketsDir,
-				name: 'client2',
-				rpcServerSocketPath: server.rpcServerSocketPath,
-			});
 			await client2.start();
 
 			// Act & Assert
@@ -128,16 +133,6 @@ describe('IPCClient', () => {
 
 		it('should be able to subscribe and receive events from different client', async () => {
 			// Arrange
-			client2 = new IPCClient({
-				socketsDir,
-				name: 'client2',
-				rpcServerSocketPath: server.rpcServerSocketPath,
-			});
-			client3 = new IPCClient({
-				socketsDir,
-				name: 'client3',
-				rpcServerSocketPath: server.rpcServerSocketPath,
-			});
 			await client2.start();
 			await client3.start();
 
