@@ -92,13 +92,12 @@ export const mergeCustomSchema = (
 	baseSchema: Schema,
 	customSchema: Schema,
 ): Schema => ({
-	$id: `${baseSchema.$id}/custom`,
-	type: 'object',
+	...baseSchema,
 	properties: {
 		...baseSchema.properties,
 		options: {
 			type: 'object',
-			...customSchema.properties,
+			properties: { ...customSchema.properties },
 		},
 	},
 });

@@ -121,9 +121,10 @@ export class OutboundPeer extends Peer {
 		const queryObject = options
 			? {
 					...nodeInfo,
+					port: this._peerConfig.hostPort,
 					options: JSON.stringify(options),
 			  }
-			: nodeInfo;
+			: { ...nodeInfo, port: this._peerConfig.hostPort };
 
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
