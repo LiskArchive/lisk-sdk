@@ -27,7 +27,7 @@ describe('p2p', () => {
 
 	const generatedPeers = [...Array(10).keys()].map(i => ({
 		ipAddress: `120.0.0.${i}`,
-		wsPort: 5000 + i,
+		port: 5000 + i,
 	}));
 
 	beforeEach(async () => {
@@ -41,7 +41,7 @@ describe('p2p', () => {
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
-				wsPort: 5000,
+				port: 5000,
 				networkId:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				version: '1.1.1',
@@ -76,7 +76,7 @@ describe('p2p', () => {
 		it('should load PeerBook with correct fixedPeer hierarchy', () => {
 			const expectedFixedPeers = generatedPeers
 				.slice(0, 6)
-				.map(peer => constructPeerId(peer.ipAddress, peer.wsPort));
+				.map(peer => constructPeerId(peer.ipAddress, peer.port));
 
 			expect(expectedFixedPeers).toIncludeSameMembers(
 				p2pNode['_peerBook'].allPeers
@@ -112,12 +112,12 @@ describe('p2p', () => {
 				fixedPeers: [
 					{
 						ipAddress: '127.0.0.2',
-						wsPort: 5001,
+						port: 5001,
 					},
 				],
 				customRPCSchemas,
 				nodeInfo: {
-					wsPort: 5001,
+					port: 5001,
 					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					version: '1.1.1',
@@ -157,14 +157,14 @@ describe('p2p', () => {
 				fixedPeers: [
 					{
 						ipAddress: '127.0.0.1',
-						wsPort: 5001,
+						port: 5001,
 					},
 				],
 				maxOutboundConnections: 20,
 				maxInboundConnections: 100,
 				customRPCSchemas,
 				nodeInfo: {
-					wsPort: 5002,
+					port: 5002,
 					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					version: '1.1.1',

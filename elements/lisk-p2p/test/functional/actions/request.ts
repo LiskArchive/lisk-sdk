@@ -30,7 +30,7 @@ describe('P2P.request', () => {
 			p2p.on(events.EVENT_REQUEST_RECEIVED, request => {
 				if (!request.wasResponseSent) {
 					request.end({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.nodeInfo.port,
 						requestProcedure: request.procedure,
 						requestData: request.data,
 						requestPeerId: request.peerId,

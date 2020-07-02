@@ -243,8 +243,8 @@ export class Peer extends EventEmitter {
 		return this._peerInfo.ipAddress;
 	}
 
-	public get wsPort(): number {
-		return this._peerInfo.wsPort;
+	public get port(): number {
+		return this._peerInfo.port;
 	}
 
 	public get internalState(): P2PInternalState {
@@ -274,12 +274,12 @@ export class Peer extends EventEmitter {
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
-		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
+		// The ipAddress and port properties cannot be updated after the initial discovery.
 		this._peerInfo = {
 			sharedState: newPeerInfo.sharedState,
 			internalState: this._peerInfo.internalState,
 			ipAddress: this.ipAddress,
-			wsPort: this.wsPort,
+			port: this.port,
 			peerId: this.id,
 		};
 	}
@@ -344,7 +344,7 @@ export class Peer extends EventEmitter {
 						reject(
 							new RPCResponseError(
 								`Failed to handle response for procedure ${packet.procedure}`,
-								`${this.ipAddress}:${this.wsPort}`,
+								`${this.ipAddress}:${this.port}`,
 							),
 						);
 					},
@@ -411,7 +411,7 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
-				`${this.ipAddress}:${this.wsPort}`,
+				`${this.ipAddress}:${this.port}`,
 			);
 		}
 		try {
@@ -430,7 +430,7 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to update peer info of peer due to validation of peer compatibility',
-				`${this.ipAddress}:${this.wsPort}`,
+				`${this.ipAddress}:${this.port}`,
 			);
 		}
 
@@ -519,7 +519,7 @@ export class Peer extends EventEmitter {
 			sanitizeIncomingPeerInfo({
 				...(rawPeerInfo as object),
 				ipAddress: this.ipAddress,
-				wsPort: this.wsPort,
+				port: this.port,
 			}),
 			this._peerConfig.maxPeerInfoSize,
 		);
@@ -528,7 +528,7 @@ export class Peer extends EventEmitter {
 
 		if (!result.success && result.error) {
 			throw new Error(
-				`${result.error} : ${peerInfo.ipAddress}:${peerInfo.wsPort}`,
+				`${result.error} : ${peerInfo.ipAddress}:${peerInfo.port}`,
 			);
 		}
 

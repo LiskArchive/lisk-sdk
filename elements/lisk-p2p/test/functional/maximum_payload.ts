@@ -43,7 +43,7 @@ describe('Maximum payload', () => {
 			p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 				if (message.event === 'maxPayload') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.nodeInfo.port,
 						message,
 					});
 				}
@@ -51,7 +51,7 @@ describe('Maximum payload', () => {
 
 			p2p.on('EVENT_CLOSE_INBOUND', packet => {
 				disconnectReasons.push({
-					peerPort: packet.peerInfo.wsPort,
+					peerPort: packet.peerInfo.port,
 					code: packet.code,
 					reason: packet.reason,
 				});
@@ -59,7 +59,7 @@ describe('Maximum payload', () => {
 
 			p2p.on('EVENT_CLOSE_OUTBOUND', packet => {
 				disconnectReasons.push({
-					peerPort: packet.peerInfo.wsPort,
+					peerPort: packet.peerInfo.port,
 					code: packet.code,
 					reason: packet.reason,
 				});

@@ -109,12 +109,12 @@ export const validatePeerCompatibility = (
 
 export const validatePeerAddress = (
 	ipAddress: string,
-	wsPort: number,
+	port: number,
 ): boolean => {
 	if (
 		(!validator.isIP(ipAddress, IPV4_NUMBER) &&
 			!validator.isIP(ipAddress, IPV6_NUMBER)) ||
-		!validator.isPort(wsPort.toString())
+		!validator.isPort(port.toString())
 	) {
 		return false;
 	}
@@ -132,11 +132,11 @@ export const validatePeerInfo = (
 
 	if (
 		!peerInfo.ipAddress ||
-		!peerInfo.wsPort ||
-		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
+		!peerInfo.port ||
+		!validatePeerAddress(peerInfo.ipAddress, peerInfo.port)
 	) {
 		throw new InvalidPeerInfoError(
-			`Invalid peer ipAddress or port for peer with ip: ${peerInfo.ipAddress} and wsPort ${peerInfo.wsPort}`,
+			`Invalid peer ipAddress or port for peer with ip: ${peerInfo.ipAddress} and port ${peerInfo.port}`,
 		);
 	}
 

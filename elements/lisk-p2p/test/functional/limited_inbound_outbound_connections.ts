@@ -65,7 +65,7 @@ describe('Limited number of outbound/inbound connections', () => {
 	it('should discover peers and add them to the peer lists within each node', () => {
 		for (const p2p of p2pNodeList) {
 			const { allPeers } = p2p['_peerBook'];
-			const peerPorts = allPeers.map(peerInfo => peerInfo.wsPort);
+			const peerPorts = allPeers.map(peerInfo => peerInfo.port);
 
 			expect(ALL_NODE_PORTS_WITH_LIMIT).toIncludeAllMembers(peerPorts);
 		}

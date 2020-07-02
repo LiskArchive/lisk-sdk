@@ -257,10 +257,10 @@ export class P2P extends EventEmitter {
 			{
 				peerId: constructPeerId(
 					config.hostIp ?? DEFAULT_NODE_HOST_IP,
-					config.nodeInfo.wsPort,
+					config.nodeInfo.port,
 				),
 				ipAddress: config.hostIp ?? DEFAULT_NODE_HOST_IP,
-				wsPort: config.nodeInfo.wsPort,
+				port: config.nodeInfo.port,
 			},
 			this._secret,
 		);
@@ -562,7 +562,7 @@ export class P2P extends EventEmitter {
 		return this._peerBook.triedPeers.map(peer => ({
 			...peer.sharedState,
 			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
+			port: peer.port,
 		}));
 	}
 
@@ -577,7 +577,7 @@ export class P2P extends EventEmitter {
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
+				port: peer.port,
 				peerId: peer.peerId,
 			}));
 	}
@@ -591,7 +591,7 @@ export class P2P extends EventEmitter {
 				connectedPeers.find(
 					connectedPeer =>
 						peer.ipAddress === connectedPeer.ipAddress &&
-						peer.wsPort === connectedPeer.wsPort,
+						peer.port === connectedPeer.port,
 				)
 			) {
 				return false;
@@ -608,7 +608,7 @@ export class P2P extends EventEmitter {
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
+				port: peer.port,
 				peerId: peer.peerId,
 			}));
 	}
@@ -833,7 +833,7 @@ export class P2P extends EventEmitter {
 			)
 			.map(peer => ({
 				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
+				port: peer.port,
 				...peer.sharedState,
 			}));
 

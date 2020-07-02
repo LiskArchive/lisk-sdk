@@ -62,14 +62,14 @@ export const sanitizeIncomingPeerInfo = (
 
 	const {
 		ipAddress,
-		wsPort,
+		port,
 		...restOfPeerInfo
 	} = rawPeerInfo as ProtocolPeerInfo;
 
 	return {
-		peerId: constructPeerId(ipAddress, wsPort),
+		peerId: constructPeerId(ipAddress, port),
 		ipAddress,
-		wsPort,
+		port,
 		sharedState: {
 			...restOfPeerInfo,
 		},
@@ -78,16 +78,16 @@ export const sanitizeIncomingPeerInfo = (
 
 interface SanitizedPeer {
 	peerId: string;
-	wsPort: number;
+	port: number;
 	ipAddress: string;
 }
 
 export const sanitizeInitialPeerInfo = (
 	peerInfo: ProtocolPeerInfo,
 ): SanitizedPeer => ({
-	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
+	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.port),
 	ipAddress: peerInfo.ipAddress,
-	wsPort: peerInfo.wsPort,
+	port: peerInfo.port,
 });
 
 export const sanitizeEnhancedPeerInfo = (

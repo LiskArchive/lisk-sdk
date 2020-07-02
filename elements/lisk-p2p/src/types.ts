@@ -76,7 +76,7 @@ export interface P2PPeerInfo {
 	// String to uniquely identify each peer
 	readonly peerId: string;
 	readonly ipAddress: string;
-	readonly wsPort: number;
+	readonly port: number;
 	readonly sharedState?: P2PSharedState;
 	readonly internalState?: P2PInternalState;
 }
@@ -99,7 +99,7 @@ export interface P2PNodeInfo extends P2PSharedState {
 	readonly protocolVersion: string;
 	readonly os: string;
 	readonly networkId: string;
-	readonly wsPort: number;
+	readonly port: number;
 	readonly advertiseAddress: boolean;
 	readonly nonce: string;
 }
@@ -109,7 +109,7 @@ export interface P2PNodeInfo extends P2PSharedState {
 // TODO: Include peerId as field
 export interface ProtocolPeerInfo {
 	readonly ipAddress: string;
-	readonly wsPort: number;
+	readonly port: number;
 }
 
 export interface IncomingPeerConnection {

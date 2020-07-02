@@ -26,7 +26,7 @@ export const nodeInfoSchema = {
 			dataType: 'string',
 			fieldNumber: 2,
 		},
-		wsPort: {
+		port: {
 			dataType: 'uint32',
 			fieldNumber: 3,
 		},
@@ -47,7 +47,7 @@ export const nodeInfoSchema = {
 			fieldNumber: 7,
 		},
 	},
-	required: ['networkId', 'protocolVersion', 'wsPort', 'nonce'],
+	required: ['networkId', 'protocolVersion', 'port', 'nonce'],
 };
 
 export const peerInfoSchema = {
@@ -58,7 +58,7 @@ export const peerInfoSchema = {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
-		wsPort: {
+		port: {
 			dataType: 'uint32',
 			fieldNumber: 2,
 		},
@@ -83,7 +83,7 @@ export const peerInfoSchema = {
 			fieldNumber: 7,
 		},
 	},
-	required: ['ipAddress', 'wsPort'],
+	required: ['ipAddress', 'port'],
 };
 
 export const defaultRPCSchemas = {

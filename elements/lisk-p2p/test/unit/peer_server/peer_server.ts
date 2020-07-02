@@ -30,7 +30,7 @@ describe('peerServer', () => {
 		os: 'linux',
 		version: '1.1.1',
 		protocolVersion: '1.1',
-		wsPort: 5000,
+		port: 5000,
 		nonce: 'nonce',
 		advertiseAddress: true,
 	};

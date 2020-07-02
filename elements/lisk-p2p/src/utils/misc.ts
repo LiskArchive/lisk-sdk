@@ -120,8 +120,8 @@ export const getNetgroup = (address: string, secret: number): number => {
 	return hash(netgroupBytes).readUInt32BE(0);
 };
 
-export const constructPeerId = (ipAddress: string, wsPort: number): string =>
-	`${ipAddress}:${wsPort}`;
+export const constructPeerId = (ipAddress: string, port: number): string =>
+	`${ipAddress}:${port}`;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
 export const getByteSize = (data: Buffer | object): number => {

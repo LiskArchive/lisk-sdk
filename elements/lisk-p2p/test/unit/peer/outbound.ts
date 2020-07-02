@@ -40,7 +40,7 @@ describe('peer/outbound', () => {
 		defaultPeerInfo = {
 			peerId: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
-			wsPort: 5001,
+			port: 5001,
 			sharedState: {
 				height: 545776,
 				isDiscoveredPeer: true,
@@ -197,7 +197,7 @@ describe('peer/outbound', () => {
 			it('should call socketClusterClient create method', () => {
 				const clientOptions = {
 					hostname: defaultOutboundPeer.ipAddress,
-					port: defaultOutboundPeer.wsPort,
+					port: defaultOutboundPeer.port,
 					query: 'options=',
 					path: DEFAULT_HTTP_PATH,
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,

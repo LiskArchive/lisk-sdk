@@ -59,7 +59,7 @@ describe('peer/base', () => {
 		defaultPeerInfo = {
 			peerId: constructPeerId('12.12.12.12', 5001),
 			ipAddress: '12.12.12.12',
-			wsPort: 5001,
+			port: 5001,
 			sharedState: {
 				height: 545776,
 				isDiscoveredPeer: true,
@@ -79,7 +79,7 @@ describe('peer/base', () => {
 				networkId: 'networkId',
 				version: '1.2.0',
 				protocolVersion: '1.2',
-				wsPort: 6001,
+				port: 6001,
 				nonce: 'nonce',
 				advertiseAddress: true,
 			},
@@ -89,12 +89,9 @@ describe('peer/base', () => {
 			},
 		};
 		p2pDiscoveredPeerInfo = {
-			peerId: constructPeerId(
-				defaultPeerInfo.ipAddress,
-				defaultPeerInfo.wsPort,
-			),
+			peerId: constructPeerId(defaultPeerInfo.ipAddress, defaultPeerInfo.port),
 			ipAddress: defaultPeerInfo.ipAddress,
-			wsPort: defaultPeerInfo.wsPort,
+			port: defaultPeerInfo.port,
 			sharedState: {
 				height: 1000,
 				updatedAt: new Date(),
@@ -145,9 +142,9 @@ describe('peer/base', () => {
 			expect(defaultPeer.ipAddress).toEqual(defaultPeerInfo.ipAddress));
 	});
 
-	describe('#wsPort', () => {
-		it('should get wsPort property', () =>
-			expect(defaultPeer.wsPort).toEqual(defaultPeerInfo.wsPort));
+	describe('#port', () => {
+		it('should get port property', () =>
+			expect(defaultPeer.port).toEqual(defaultPeerInfo.port));
 	});
 
 	describe('#netgroup', () => {
@@ -400,14 +397,14 @@ describe('peer/base', () => {
 						peerId: constructPeerId('1.1.1.1', 1111),
 						ipAddress: '1.1.1.1',
 						sourceAddress: '12.12.12.12',
-						wsPort: 1111,
+						port: 1111,
 						sharedState: {},
 					},
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
 						sourceAddress: '12.12.12.12',
-						wsPort: 2222,
+						port: 2222,
 						sharedState: {},
 					},
 				];
@@ -416,7 +413,7 @@ describe('peer/base', () => {
 						peerId: constructPeerId('1.1.1.1', 1111),
 						ipAddress: '1.1.1.1',
 						sourceAddress: '12.12.12.12',
-						wsPort: 1111,
+						port: 1111,
 						sharedState: {
 							height: 0,
 							networkId: '',
@@ -429,7 +426,7 @@ describe('peer/base', () => {
 						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
 						sourceAddress: '12.12.12.12',
-						wsPort: 2222,
+						port: 2222,
 						sharedState: {
 							height: 0,
 							networkId: '',
@@ -446,7 +443,7 @@ describe('peer/base', () => {
 						.encode(peerInfoSchema, {
 							...peer.sharedState,
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							port: peer.port,
 						})
 						.toString('base64'),
 				);
@@ -467,7 +464,7 @@ describe('peer/base', () => {
 				const malformedPeerList = [...new Array(1001).keys()].map(index => ({
 					peerId: `'1.1.1.1:${1 + index}`,
 					ipAddress: '1.1.1.1',
-					wsPort: 1 + index,
+					port: 1 + index,
 					sharedState: {},
 				}));
 
@@ -476,7 +473,7 @@ describe('peer/base', () => {
 						.encode(peerInfoSchema, {
 							...peer.sharedState,
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							port: peer.port,
 						})
 						.toString('base64'),
 				);
@@ -509,7 +506,7 @@ describe('peer/base', () => {
 					{
 						peerId: "'1.1.1.1:5000",
 						ipAddress: '1.1.1.1',
-						wsPort: 1111,
+						port: 1111,
 						sharedState: {
 							version: '1.1.1',
 							junkData: [...new Array(10000).keys()].map(() => 'a'),
@@ -522,7 +519,7 @@ describe('peer/base', () => {
 						peers: malformedPeerList.map(peer => ({
 							...peer.sharedState,
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							port: peer.port,
 						})),
 						success: true,
 					},
@@ -549,7 +546,7 @@ describe('peer/base', () => {
 				{
 					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',
-					wsPort: 1111,
+					port: 1111,
 					sharedState: {
 						version: '1.1.1',
 						height: 0,
@@ -560,7 +557,7 @@ describe('peer/base', () => {
 				{
 					peerId: constructPeerId('2.2.2.2', 2222),
 					ipAddress: '2.2.2.2',
-					wsPort: 2222,
+					port: 2222,
 					sharedState: {
 						version: '2.2.2',
 						height: 0,
@@ -637,7 +634,7 @@ describe('peer/base', () => {
 			describe('when _updateFromProtocolPeerInfo() fails', () => {
 				const peer = {
 					ipAddress: '1.1.1.1',
-					wsPort: 1111,
+					port: 1111,
 					protocolVersion: '9.2',
 					networkId: 'networkId',
 				};
@@ -677,7 +674,7 @@ describe('peer/base', () => {
 			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
 				const peerSharedState = {
 					ipAddress: '1.1.1.1',
-					wsPort: 1111,
+					port: 1111,
 					protocolVersion: '1.2',
 					networkId: 'networkId',
 				};
@@ -700,10 +697,10 @@ describe('peer/base', () => {
 					const defaultProtocolPeerInfo = {
 						peerId: constructPeerId(
 							defaultPeerInfo.ipAddress,
-							defaultPeerInfo.wsPort,
+							defaultPeerInfo.port,
 						),
 						ipAddress: defaultPeerInfo.ipAddress,
-						wsPort: defaultPeerInfo.wsPort,
+						port: defaultPeerInfo.port,
 						sharedState: {
 							height: 0,
 							protocolVersion: '1.2',

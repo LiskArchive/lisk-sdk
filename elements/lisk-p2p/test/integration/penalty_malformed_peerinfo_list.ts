@@ -49,7 +49,7 @@ describe('penalty sending malformed Peer List', () => {
 				p2pNodeList[0]['_peerBook'].addPeer({
 					peerId: `${generatedIP}:5000`,
 					ipAddress: generatedIP,
-					wsPort: 1000,
+					port: 1000,
 					sharedState: {
 						height: 0,
 						protocolVersion: '1.1',
@@ -71,7 +71,7 @@ describe('penalty sending malformed Peer List', () => {
 
 		it('should ban the emitter', () => {
 			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
-				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
+				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.port),
 			);
 		});
 	});
@@ -89,7 +89,7 @@ describe('penalty sending malformed Peer List', () => {
 			p2pNodeList[0]['_peerBook'].addPeer({
 				peerId: "'1.1.1.1:1000",
 				ipAddress: '1.1.1.1',
-				wsPort: 1000,
+				port: 1000,
 				sharedState: {
 					version: '1.1',
 					protocolVersion: '1.'.repeat(13000),
@@ -109,7 +109,7 @@ describe('penalty sending malformed Peer List', () => {
 
 		it('should ban the emitter', () => {
 			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
-				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
+				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.port),
 			);
 		});
 	});

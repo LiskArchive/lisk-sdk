@@ -27,7 +27,7 @@ describe('Peer inbound eviction for connection time', () => {
 		) => [
 			{
 				ipAddress: '127.0.0.1',
-				wsPort: networkStartPort + ((index - 1 + networkSize) % networkSize),
+				port: networkStartPort + ((index - 1 + networkSize) % networkSize),
 			},
 		];
 
@@ -56,7 +56,7 @@ describe('Peer inbound eviction for connection time', () => {
 		const firstNode = p2pNodeList[0];
 		const inboundPeers = firstNode['_peerPool']
 			.getPeers(InboundPeer)
-			.map(peer => peer.wsPort);
+			.map(peer => peer.port);
 		expect(inboundPeers).toSatisfy(
 			(n: number[]) => n.includes(5001) || n.includes(5002),
 		);

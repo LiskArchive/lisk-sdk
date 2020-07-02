@@ -105,7 +105,7 @@ describe('errors', () => {
 		const existingPeerErrorMessagge = 'Peer already exists';
 		const peerInfo: p2pTypes.P2PPeerInfo = {
 			ipAddress: '0.0.0.0',
-			wsPort: 5000,
+			port: 5000,
 			peerId: constructPeerId('0.0.0.0', 5000),
 		};
 		let existingPeer: ExistingPeerError;

@@ -26,7 +26,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption1: P2PPeerInfo = {
 		peerId: '204.120.0.15:5001',
 		ipAddress: '204.120.0.15',
-		wsPort: 5001,
+		port: 5001,
 		sharedState: {
 			height: 545776,
 			isDiscoveredPeer: false,
@@ -38,7 +38,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption2: P2PPeerInfo = {
 		peerId: '204.120.0.16:5002',
 		ipAddress: '204.120.0.16',
-		wsPort: 5002,
+		port: 5002,
 		sharedState: {
 			height: 545981,
 			isDiscoveredPeer: false,
@@ -50,7 +50,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption3: P2PPeerInfo = {
 		peerId: '204.120.0.17:5008',
 		ipAddress: '204.120.0.17',
-		wsPort: 5008,
+		port: 5008,
 		sharedState: {
 			height: 645980,
 			isDiscoveredPeer: false,
@@ -62,7 +62,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption4: P2PPeerInfo = {
 		peerId: '204.120.0.18:5006',
 		ipAddress: '204.120.0.18',
-		wsPort: 5006,
+		port: 5006,
 		sharedState: {
 			height: 645982,
 			isDiscoveredPeer: false,
@@ -74,7 +74,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption5: P2PPeerInfo = {
 		peerId: '204.120.0.19:5001',
 		ipAddress: '204.120.0.19',
-		wsPort: 5001,
+		port: 5001,
 		sharedState: {
 			height: 645980,
 			isDiscoveredPeer: false,
@@ -95,7 +95,7 @@ export const initPeerInfoListWithSuffix = (
 		peerInfos.push({
 			peerId: `${i % 255}.${ipSuffix}:${5000 + (i % 40000)}`,
 			ipAddress: `${i % 255}.${ipSuffix}`,
-			wsPort: 5000 + (i % 40000),
+			port: 5000 + (i % 40000),
 			sharedState: {
 				height: 645980,
 				isDiscoveredPeer: false,
@@ -107,7 +107,7 @@ export const initPeerInfoListWithSuffix = (
 					{
 						peerId: `${i % 255}.${ipSuffix}:${5000 + (i % 40000)}`,
 						ipAddress: `${i % 255}.${ipSuffix}`,
-						wsPort: 5000 + (i % 40000),
+						port: 5000 + (i % 40000),
 					},
 					123456,
 				),

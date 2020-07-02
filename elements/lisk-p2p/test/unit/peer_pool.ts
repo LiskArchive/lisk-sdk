@@ -113,7 +113,7 @@ describe('peerPool', () => {
 		peerId = '127.0.0.1:5000';
 		peerInfo = {
 			ipAddress: '127.0.0.1',
-			wsPort: 5000,
+			port: 5000,
 			peerId: constructPeerId('127.0.0.1', 5000),
 			sharedState: {
 				height: 1,
@@ -127,7 +127,7 @@ describe('peerPool', () => {
 			version: '1.1',
 			protocolVersion: '1.0.1',
 			networkId: 'abc',
-			wsPort: 5000,
+			port: 5000,
 			height: 1000,
 			nonce: 'nonce',
 			advertiseAddress: true,
@@ -311,7 +311,7 @@ describe('peerPool', () => {
 
 			expect(sendToPeer).toHaveBeenCalledWith(
 				messagePacket,
-				constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
+				constructPeerId(peerInfo.ipAddress, peerInfo.port),
 			);
 		});
 
@@ -721,7 +721,7 @@ describe('peerPool', () => {
 			beforeEach(() => {
 				peerList.forEach((peer, i) => {
 					(peerPool as any)._peerMap.set(
-						`${peer.peerInfo.ipAddress}:${peer.peerInfo.wsPort}`,
+						`${peer.peerInfo.ipAddress}:${peer.peerInfo.port}`,
 						{
 							peerInfo: { ...peer.peerInfo },
 							state: i % 2 ? ConnectionState.OPEN : ConnectionState.CLOSED,
@@ -746,7 +746,7 @@ describe('peerPool', () => {
 			beforeEach(() => {
 				peerList.forEach(peer => {
 					(peerPool as any)._peerMap.set(
-						`${peer.peerInfo.ipAddress}:${peer.peerInfo.wsPort}`,
+						`${peer.peerInfo.ipAddress}:${peer.peerInfo.port}`,
 						{ peerInfo: { ...peer.peerInfo }, state: ConnectionState.CLOSED },
 					);
 				});
@@ -1091,17 +1091,17 @@ describe('peerPool', () => {
 
 	describe('#_evictPeer', () => {
 		const whitelistedPeers = [
-			{ peerId: '1.2.3.4:5000', ipAddress: '1.2.3.4', wsPort: 5000 },
+			{ peerId: '1.2.3.4:5000', ipAddress: '1.2.3.4', port: 5000 },
 		];
 		const fixedPeers = [
-			{ peerId: '5.6.7.8:5000', ipAddress: '5.6.7.8', wsPort: 5000 },
+			{ peerId: '5.6.7.8:5000', ipAddress: '5.6.7.8', port: 5000 },
 		];
 		const defaultPeers = [
 			{
 				id: '69.123.456.78:5000',
 				peerId: '69.123.456.78:5000',
 				ipAddress: '69.123.456.78',
-				wsPort: 5000,
+				port: 5000,
 				internalState: {
 					peerKind: PeerKind.NONE,
 				},

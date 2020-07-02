@@ -36,7 +36,7 @@ describe('P2P.applyNodeInfo', () => {
 					request.peerId === '127.0.0.1:5000'
 				) {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.nodeInfo.port,
 						request,
 					});
 				}
@@ -50,7 +50,7 @@ describe('P2P.applyNodeInfo', () => {
 			networkId:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			protocolVersion: '1.1',
-			wsPort: firstP2PNode.nodeInfo.wsPort,
+			port: firstP2PNode.nodeInfo.port,
 			height: 10,
 			nonce: 'nonce',
 			advertiseAddress: true,
@@ -73,7 +73,7 @@ describe('P2P.applyNodeInfo', () => {
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				version: firstP2PNode.nodeInfo.version,
 				protocolVersion: '1.1',
-				wsPort: firstP2PNode.nodeInfo.wsPort,
+				port: firstP2PNode.nodeInfo.port,
 				options: firstP2PNode.nodeInfo.options,
 				junk: '1.'.repeat(13000),
 				nonce: 'nonce',
@@ -104,7 +104,7 @@ describe('P2P.applyNodeInfo', () => {
 			.filter(
 				(receivedMessages: any) =>
 					receivedMessages?.[0] &&
-					receivedMessages[0].nodePort !== firstP2PNode.nodeInfo.wsPort,
+					receivedMessages[0].nodePort !== firstP2PNode.nodeInfo.port,
 			)
 			.forEach((receivedMessages: any) => {
 				expect(receivedMessages).toHaveLength(1);
@@ -118,14 +118,14 @@ describe('P2P.applyNodeInfo', () => {
 		for (const p2pNode of p2pNodeList.slice(1)) {
 			const firstP2PNodePeerInfo = p2pNode
 				.getConnectedPeers()
-				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
+				.find(peerInfo => peerInfo.port === firstP2PNode.nodeInfo.port);
 			expect(firstP2PNodePeerInfo).toMatchObject({
 				height: 10,
 				ipAddress: '127.0.0.1',
 				networkId:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				peerId: '127.0.0.1:5000',
-				wsPort: 5000,
+				port: 5000,
 			});
 		}
 	});
@@ -137,12 +137,12 @@ describe('P2P.applyNodeInfo', () => {
 		for (const p2pNode of p2pNodeList.slice(1)) {
 			const firstNodeInConnectedPeer = p2pNode
 				.getConnectedPeers()
-				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
+				.find(peerInfo => peerInfo.port === firstP2PNode.nodeInfo.port);
 
 			const allPeersList = p2pNode['_peerBook'].allPeers;
 
 			const firstNodeInAllPeersList = allPeersList.find(
-				peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+				peerInfo => peerInfo.port === firstP2PNode.nodeInfo.port,
 			);
 
 			// Check if the peerinfo is updated in new peer list
@@ -155,7 +155,7 @@ describe('P2P.applyNodeInfo', () => {
 						nonce: expect.any(String),
 					},
 					ipAddress: '127.0.0.1',
-					wsPort: 5000,
+					port: 5000,
 					peerId: '127.0.0.1:5000',
 				});
 			}
@@ -169,7 +169,7 @@ describe('P2P.applyNodeInfo', () => {
 					nonce: expect.any(String),
 					advertiseAddress: true,
 					ipAddress: '127.0.0.1',
-					wsPort: 5000,
+					port: 5000,
 					peerId: '127.0.0.1:5000',
 				});
 			}

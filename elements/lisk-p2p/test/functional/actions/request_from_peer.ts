@@ -29,14 +29,14 @@ describe('P2P.requestFromPeer', () => {
 			p2p.on('EVENT_REQUEST_RECEIVED', request => {
 				if (request.procedure === 'foo') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.nodeInfo.port,
 						request,
 					});
 				}
 
 				if (request.procedure === 'getGreeting') {
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`);
+					request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.port}`);
 				} else if (!request.wasResponseSent) {
 					request.end(456);
 				}
@@ -58,7 +58,7 @@ describe('P2P.requestFromPeer', () => {
 				procedure: 'foo',
 				data: 123456,
 			},
-			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
+			`${targetPeer.ipAddress}:${targetPeer.port}`,
 		);
 
 		expect(collectedMessages).toHaveLength(1);
@@ -77,10 +77,10 @@ describe('P2P.requestFromPeer', () => {
 				procedure: 'getGreeting',
 				data: 'world',
 			},
-			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
+			`${targetPeer.ipAddress}:${targetPeer.port}`,
 		);
 
 		expect(response).toHaveProperty('data');
-		expect(response.data).toBe(`Hello world from peer ${targetPeer.wsPort}`);
+		expect(response.data).toBe(`Hello world from peer ${targetPeer.port}`);
 	});
 });

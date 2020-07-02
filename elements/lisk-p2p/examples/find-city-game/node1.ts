@@ -74,7 +74,7 @@ const cityRandom = () => {
 const nodeInfo: P2PNodeInfo = {
 	os: platform(),
 	nonce: randomBytes(8).toString('hex'),
-	wsPort: 5001,
+	port: 5001,
 	networkId: '123456',
 	version: '2.0.0',
 	protocolVersion: '1.1',
@@ -86,7 +86,7 @@ const nodeInfo: P2PNodeInfo = {
 const testnetConfig: P2PConfig = {
 	maxOutboundConnections: 5,
 	maxInboundConnections: 10,
-	whitelistedPeers: [{ ipAddress: '127.0.0.1', wsPort: 4001 }],
+	whitelistedPeers: [{ ipAddress: '127.0.0.1', port: 4001 }],
 	nodeInfo,
 };
 
@@ -118,7 +118,7 @@ const cityModule = (p2pNode: P2P) => {
 			// The moment you receive this event try to change your city to find the same city
 			if (message.data.city === p2pNode.nodeInfo.city) {
 				console.log('%%%%% Found a common city %%%%%');
-				console.log(message, p2pNode.nodeInfo.wsPort);
+				console.log(message, p2pNode.nodeInfo.port);
 				found = true;
 			} else {
 				p2pNode.applyNodeInfo({ ...p2pNode.nodeInfo, city: cityRandom() });

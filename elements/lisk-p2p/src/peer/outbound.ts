@@ -120,7 +120,7 @@ export class OutboundPeer extends Peer {
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this.ipAddress,
 			path: DEFAULT_HTTP_PATH,
-			port: this.wsPort,
+			port: this.port,
 			query: querystring.stringify({
 				...this._serverNodeInfo,
 				options: JSON.stringify(this._serverNodeInfo),

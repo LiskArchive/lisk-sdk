@@ -70,7 +70,7 @@ export const createNetwork = async ({
 				: [
 						{
 							ipAddress: SEED_PEER_IP,
-							wsPort: NETWORK_START_PORT + index - 1,
+							port: NETWORK_START_PORT + index - 1,
 						},
 				  ];
 
@@ -92,7 +92,7 @@ export const createNetwork = async ({
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
 			nodeInfo: {
-				wsPort: nodePort,
+				port: nodePort,
 				networkId: nodeInfoConstants.networkId,
 				version: nodeInfoConstants.version,
 				protocolVersion: nodeInfoConstants.protocolVersion,

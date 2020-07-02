@@ -31,7 +31,7 @@ describe('peer selector', () => {
 		os: 'linux',
 		version: '1.1.1',
 		protocolVersion: '1.1',
-		wsPort: 5000,
+		port: 5000,
 		nonce: 'nonce',
 		advertiseAddress: true,
 	};
@@ -394,7 +394,7 @@ describe('peer selector', () => {
 				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
 					peerId: `205.120.0.20:${10001 + i}`,
 					ipAddress: '205.120.0.20',
-					wsPort: 10001 + i,
+					port: 10001 + i,
 					sharedState: {
 						height: 10001 + i,
 						isDiscoveredPeer: false,
@@ -406,7 +406,7 @@ describe('peer selector', () => {
 				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
 					peerId: `205.120.0.20:${5000 + i}`,
 					ipAddress: '205.120.0.20',
-					wsPort: 5000 + i,
+					port: 5000 + i,
 					sharedState: {
 						height: 5000 + i,
 						isDiscoveredPeer: false,

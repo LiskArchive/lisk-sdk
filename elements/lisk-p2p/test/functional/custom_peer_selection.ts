@@ -145,7 +145,7 @@ describe('Custom peer selection', () => {
 				p2p.on('EVENT_REQUEST_RECEIVED', request => {
 					if (!request.wasResponseSent) {
 						request.end({
-							nodePort: p2p.nodeInfo.wsPort,
+							nodePort: p2p.nodeInfo.port,
 							requestProcedure: request.procedure,
 							requestData: request.data,
 						});
@@ -182,7 +182,7 @@ describe('Custom peer selection', () => {
 				// eslint-disable-next-line no-loop-func
 				p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.nodeInfo.port,
 						message,
 					});
 				});
