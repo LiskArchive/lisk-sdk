@@ -217,7 +217,7 @@ describe('commons core utils', () => {
 		});
 
 		it('should not throw error if url is valid', () => {
-			return expect(validURL(`https://downloads.lisk.io/lisk/`)).not.to.throw;
+			return expect(validURL('https://downloads.lisk.io/lisk/')).not.to.throw;
 		});
 	});
 

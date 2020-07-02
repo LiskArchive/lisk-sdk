@@ -1,3 +1,4 @@
 dist
 tmp
 coverage
+.eslintrc.js

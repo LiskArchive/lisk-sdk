@@ -452,7 +452,7 @@ describe('blocks/header', () => {
 							}),
 						) as never,
 					)
-					.calledWith(`chain:burntFee`)
+					.calledWith('chain:burntFee')
 					.mockResolvedValue(Buffer.from(JSON.stringify('100')) as never);
 				jest.spyOn(stateStore.chain, 'set');
 
@@ -699,7 +699,7 @@ describe('blocks/header', () => {
 							}),
 						) as never,
 					)
-					.calledWith(`chain:burntFee`)
+					.calledWith('chain:burntFee')
 					.mockResolvedValue(burntFeeBuffer as never);
 				await chainInstance.apply(block, stateStore);
 			});

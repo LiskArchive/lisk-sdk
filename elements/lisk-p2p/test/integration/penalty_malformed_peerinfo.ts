@@ -78,7 +78,7 @@ describe('penalty sending malformed peerInfo', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it(`should fire EVENT_BAN_PEER event`, () => {
+	it('should fire EVENT_BAN_PEER event', () => {
 		expect(collectedEvents.get(EVENT_BAN_PEER)).toBe('127.0.0.1:5000');
 	});
 });

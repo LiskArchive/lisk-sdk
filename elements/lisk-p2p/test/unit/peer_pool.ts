@@ -315,7 +315,7 @@ describe('peerPool', () => {
 			);
 		});
 
-		it(`should emit event if sendToPeer fails`, () => {
+		it('should emit event if sendToPeer fails', () => {
 			sendToPeer = jest.spyOn(peerPool, 'sendToPeer').mockImplementation(() => {
 				throw new Error();
 			});

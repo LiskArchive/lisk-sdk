@@ -19,7 +19,7 @@ import * as querystring from 'querystring';
 // eslint-disable-next-line import/no-cycle
 import { EncryptedPassphraseObject } from './encrypt';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line import/order
 import reverse = require('buffer-reverse');
 
 const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';

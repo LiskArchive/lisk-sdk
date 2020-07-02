@@ -44,7 +44,7 @@ export interface EventPostTransactionsAnnouncementData {
 }
 
 export interface RPCTransactionsByIdData {
-	readonly transactionIds: string[];
+	readonly transactionIds?: string[];
 }
 
 export interface RPCHighestCommonBlockData {

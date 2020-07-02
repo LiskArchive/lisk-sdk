@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { keyString } from './buffer_string';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
+// eslint-disable-next-line import/order
 import cloneDeep = require('lodash.clonedeep');
 
 export class BufferMap<V> {

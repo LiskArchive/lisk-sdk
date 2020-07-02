@@ -9,7 +9,6 @@ module.exports = {
 		camelcase: ['warn'],
 		'@typescript-eslint/restrict-template-expressions': ['warn'],
 		'@typescript-eslint/no-var-requires': ['warn'],
-		'@typescript-eslint/camelcase': ['warn'],
 		'@typescript-eslint/no-this-alias': ['warn'],
 		'@typescript-eslint/default-param-last': ['warn'],
 		'@typescript-eslint/require-array-sort-compare': ['warn'],

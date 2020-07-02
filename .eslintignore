@@ -7,3 +7,4 @@ examples/
 jest.config.js
 coverage
 benchmark
+.eslintrc.js

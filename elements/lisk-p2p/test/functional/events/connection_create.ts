@@ -35,8 +35,8 @@ const {
 	INVALID_CONNECTION_SELF_REASON,
 } = constants;
 
-describe(`Connection Create`, () => {
-	describe(`Events`, () => {
+describe('Connection Create', () => {
+	describe('Events', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
 
@@ -113,7 +113,7 @@ describe(`Connection Create`, () => {
 			});
 		});
 
-		it(`should update peerBook with connected peer`, () => {
+		it('should update peerBook with connected peer', () => {
 			const firstNode = p2pNodeList[0];
 			const disconnectedPeers = firstNode.getDisconnectedPeers();
 
@@ -121,7 +121,7 @@ describe(`Connection Create`, () => {
 		});
 	});
 
-	describe(`Errors`, () => {
+	describe('Errors', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedErrors: Array<any> = [];
 

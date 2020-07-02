@@ -39,7 +39,7 @@ export const nodeInfoConstants = {
 	minVersion: '1.0.0',
 	os: platform(),
 	height: 0,
-	nonce: `O2wTkjqplHII`,
+	nonce: 'O2wTkjqplHII',
 };
 
 interface TestNetworkConfig {

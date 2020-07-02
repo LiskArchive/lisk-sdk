@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
- import { BaseTypes } from '../types';
+import { BaseTypes } from '../types';
 
 export const getDefaultValue = (dataType: string): BaseTypes => {
 	switch (dataType) {
@@ -31,4 +31,4 @@ export const getDefaultValue = (dataType: string): BaseTypes => {
 		default:
 			throw new Error('Invalid data type');
 	}
-}
+};
