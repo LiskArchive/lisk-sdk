@@ -263,11 +263,6 @@ export class Bus {
 
 		// Communicate through event emitter
 		this._emitter.on(eventName, cb);
-
-		// // Communicate through unix socket
-		// if (this.config.ipc.enabled) {
-		// 	this._ipcServer.on(eventName, cb);
-		// }
 	}
 
 	public once(eventName: string, cb: Listener): this {
