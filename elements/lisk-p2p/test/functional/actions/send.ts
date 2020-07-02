@@ -37,7 +37,7 @@ describe('P2P.send', () => {
 			p2p.on(events.EVENT_MESSAGE_RECEIVED, message => {
 				if (message.event === messageEvent) {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.port,
+						nodePort: p2p.config.port,
 						message,
 					});
 				}

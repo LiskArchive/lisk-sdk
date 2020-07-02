@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { platform } from 'os';
 import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
@@ -59,15 +58,11 @@ describe('penalty sending malformed peerInfo', () => {
 		});
 
 		p2pNodeList[0].applyNodeInfo({
-			os: platform(),
 			networkId:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			version: p2pNodeList[0].nodeInfo.version,
 			networkVersion: '1.1',
-			port: p2pNodeList[0].nodeInfo.port,
-			height: 10,
 			nonce: 'nonce',
-			invalid: '1.'.repeat(13000),
+			options: { invalid: '1.'.repeat(13000) },
 			advertiseAddress: true,
 		});
 

@@ -26,12 +26,8 @@ import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
-		height: 545777,
 		networkId: '73458irc3yb7rg37r7326dbt7236',
-		os: 'linux',
-		version: '1.1.1',
 		networkVersion: '1.1',
-		port: 5000,
 		nonce: 'nonce',
 		advertiseAddress: true,
 	};
@@ -131,7 +127,8 @@ describe('peer selector', () => {
 			const lowHeightPeers = peerList.filter(
 				peer =>
 					peer.sharedState &&
-					(peer.sharedState.height as number) < (nodeInfo.height as number),
+					(peer.sharedState.options?.height as number) <
+						(nodeInfo.options?.height as number),
 			);
 
 			it('should return an array with 1 good peer', () => {
@@ -396,9 +393,9 @@ describe('peer selector', () => {
 					ipAddress: '205.120.0.20',
 					port: 10001 + i,
 					sharedState: {
-						height: 10001 + i,
-						isDiscoveredPeer: false,
-						version: '1.1.1',
+						options: { height: 10001 + i },
+						nonce: 'nonce',
+						networkId: 'networkId',
 						networkVersion: '1.1',
 					},
 				}));
@@ -408,9 +405,9 @@ describe('peer selector', () => {
 					ipAddress: '205.120.0.20',
 					port: 5000 + i,
 					sharedState: {
-						height: 5000 + i,
-						isDiscoveredPeer: false,
-						version: '1.1.1',
+						options: { height: 5000 + i },
+						nonce: 'nonce',
+						networkId: 'networkId',
 						networkVersion: '1.1',
 					},
 				}));

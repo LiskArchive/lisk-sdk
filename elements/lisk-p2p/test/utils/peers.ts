@@ -28,10 +28,9 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		ipAddress: '204.120.0.15',
 		port: 5001,
 		sharedState: {
-			height: 545776,
-			isDiscoveredPeer: false,
-			version: '1.1.1',
 			networkVersion: '1.1',
+			nonce: 'nonce',
+			networkId: 'networkId',
 		},
 	};
 
@@ -40,9 +39,8 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		ipAddress: '204.120.0.16',
 		port: 5002,
 		sharedState: {
-			height: 545981,
-			isDiscoveredPeer: false,
-			version: '1.1.1',
+			nonce: 'nonce',
+			networkId: 'networkId',
 			networkVersion: '1.1',
 		},
 	};
@@ -52,9 +50,8 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		ipAddress: '204.120.0.17',
 		port: 5008,
 		sharedState: {
-			height: 645980,
-			isDiscoveredPeer: false,
-			version: '1.3.1',
+			nonce: 'nonce',
+			networkId: 'networkId',
 			networkVersion: '1.1',
 		},
 	};
@@ -64,9 +61,8 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		ipAddress: '204.120.0.18',
 		port: 5006,
 		sharedState: {
-			height: 645982,
-			isDiscoveredPeer: false,
-			version: '1.2.1',
+			nonce: 'nonce',
+			networkId: 'networkId',
 			networkVersion: '1.1',
 		},
 	};
@@ -76,9 +72,8 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		ipAddress: '204.120.0.19',
 		port: 5001,
 		sharedState: {
-			height: 645980,
-			isDiscoveredPeer: false,
-			version: '1.1.1',
+			nonce: 'nonce',
+			networkId: 'networkId',
 			networkVersion: '1.1',
 		},
 	};
@@ -97,9 +92,8 @@ export const initPeerInfoListWithSuffix = (
 			ipAddress: `${i % 255}.${ipSuffix}`,
 			port: 5000 + (i % 40000),
 			sharedState: {
-				height: 645980,
-				isDiscoveredPeer: false,
-				version: '1.1.1',
+				nonce: 'nonce',
+				networkId: 'networkId',
 				networkVersion: '1.1',
 			},
 			internalState: {
@@ -111,6 +105,7 @@ export const initPeerInfoListWithSuffix = (
 					},
 					123456,
 				),
+				reputation: 10 + i,
 				connectionKind:
 					i % 4 === 0 ? ConnectionKind.OUTBOUND : ConnectionKind.INBOUND,
 			},
@@ -124,6 +119,7 @@ export const initPeerList = (): ReadonlyArray<Peer> =>
 	initPeerInfoList().map(
 		(peerInfo: P2PPeerInfo) =>
 			new Peer(peerInfo, {
+				hostPort: 5000,
 				rateCalculationInterval: 1000,
 				wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 				wsMaxMessageRatePenalty: 10,

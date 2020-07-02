@@ -42,13 +42,13 @@ describe('peer/outbound', () => {
 			ipAddress: '12.12.12.12',
 			port: 5001,
 			sharedState: {
-				height: 545776,
-				isDiscoveredPeer: true,
-				version: '1.1.1',
+				nonce: 'nonce',
+				networkId: 'networkId',
 				networkVersion: '1.1',
 			},
 		};
 		defaultOutboundPeerConfig = {
+			hostPort: 5000,
 			rateCalculationInterval: 1000,
 			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 			wsMaxMessageRatePenalty: 10,

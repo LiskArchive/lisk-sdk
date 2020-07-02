@@ -78,7 +78,7 @@ describe('Connection Create', () => {
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
 			expect(payload).toMatchObject({
-				port: secondNode.nodeInfo.port,
+				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
@@ -88,7 +88,7 @@ describe('Connection Create', () => {
 			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
 			expect(payload).toMatchObject({
-				port: firstNode.nodeInfo.port,
+				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
@@ -98,7 +98,7 @@ describe('Connection Create', () => {
 			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
 			expect(payload).toMatchObject({
-				port: firstNode.nodeInfo.port,
+				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
@@ -108,7 +108,7 @@ describe('Connection Create', () => {
 			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
 			expect(payload).toMatchObject({
-				port: secondNode.nodeInfo.port,
+				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});

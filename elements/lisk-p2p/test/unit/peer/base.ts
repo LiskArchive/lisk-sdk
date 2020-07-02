@@ -61,13 +61,13 @@ describe('peer/base', () => {
 			ipAddress: '12.12.12.12',
 			port: 5001,
 			sharedState: {
-				height: 545776,
-				isDiscoveredPeer: true,
-				version: '1.1.1',
 				networkVersion: '1.1',
+				networkId: 'networkId',
+				nonce: 'nonce',
 			},
 		};
 		peerConfig = {
+			hostPort: 6001,
 			rateCalculationInterval: DEFAULT_RATE_CALCULATION_INTERVAL,
 			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 			wsMaxMessageRatePenalty: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
@@ -75,11 +75,8 @@ describe('peer/base', () => {
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
 			serverNodeInfo: {
-				os: 'os',
 				networkId: 'networkId',
-				version: '1.2.0',
 				networkVersion: '1.2',
-				port: 6001,
 				nonce: 'nonce',
 				advertiseAddress: true,
 			},
@@ -93,11 +90,9 @@ describe('peer/base', () => {
 			ipAddress: defaultPeerInfo.ipAddress,
 			port: defaultPeerInfo.port,
 			sharedState: {
-				height: 1000,
-				updatedAt: new Date(),
-				os: 'MYOS',
-				version: '1.3.0',
 				networkVersion: '1.3',
+				networkId: 'networkId',
+				nonce: 'nonce',
 			},
 			internalState: undefined,
 		};
@@ -548,10 +543,9 @@ describe('peer/base', () => {
 					ipAddress: '1.1.1.1',
 					port: 1111,
 					sharedState: {
-						version: '1.1.1',
-						height: 0,
+						networkId: 'networkId',
+						nonce: 'nonce',
 						networkVersion: '',
-						os: '',
 					},
 				},
 				{
@@ -559,10 +553,9 @@ describe('peer/base', () => {
 					ipAddress: '2.2.2.2',
 					port: 2222,
 					sharedState: {
-						version: '2.2.2',
-						height: 0,
+						networkId: 'networkId',
+						nonce: 'nonce',
 						networkVersion: '',
-						os: '',
 					},
 				},
 			];

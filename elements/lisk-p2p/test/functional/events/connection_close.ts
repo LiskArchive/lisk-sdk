@@ -60,7 +60,7 @@ describe('Events on Connection Close', () => {
 		expect(payload).toMatchObject({
 			code: INTENTIONAL_DISCONNECT_CODE,
 			peerInfo: {
-				port: secondNode.nodeInfo.port,
+				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			},
 		});
@@ -77,7 +77,7 @@ describe('Events on Connection Close', () => {
 		expect(payload).toMatchObject({
 			code: SOCKET_HUNG_UP_CODE,
 			peerInfo: {
-				port: firstNode.nodeInfo.port,
+				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			},
 		});

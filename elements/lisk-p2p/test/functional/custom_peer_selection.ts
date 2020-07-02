@@ -56,17 +56,19 @@ describe('Custom peer selection', () => {
 
 		const filteredPeers = peersList.filter(peer => {
 			const { sharedState } = peer;
-			const peerHeight = sharedState ? (sharedState.height as number) : 0;
+			const peerHeight = sharedState
+				? (sharedState.options?.height as number)
+				: 0;
 			if (
 				nodeInfo &&
 				peer.sharedState &&
-				(nodeInfo.height as number) <= peerHeight
+				(nodeInfo.options?.height as number) <= peerHeight
 			) {
-				const nodesModules = nodeInfo.modules
-					? (nodeInfo.modules as ReadonlyArray<string>)
+				const nodesModules = nodeInfo.options?.modules
+					? (nodeInfo.options?.modules as ReadonlyArray<string>)
 					: undefined;
-				const peerModules = peer.sharedState.modules
-					? (peer.sharedState.modules as ReadonlyArray<string>)
+				const peerModules = peer.sharedState.options?.modules
+					? (peer.sharedState.options?.modules as ReadonlyArray<string>)
 					: undefined;
 
 				if (
@@ -89,8 +91,8 @@ describe('Custom peer selection', () => {
 			return peersList.filter(
 				peer =>
 					peer.sharedState &&
-					(peer.sharedState.height as number) >=
-						(nodeInfo ? (nodeInfo.height as number) : 0),
+					(peer.sharedState.options?.height as number) >=
+						(nodeInfo ? (nodeInfo.options?.height as number) : 0),
 			);
 		}
 
@@ -145,7 +147,7 @@ describe('Custom peer selection', () => {
 				p2p.on('EVENT_REQUEST_RECEIVED', request => {
 					if (!request.wasResponseSent) {
 						request.end({
-							nodePort: p2p.nodeInfo.port,
+							nodePort: p2p.config.port,
 							requestProcedure: request.procedure,
 							requestData: request.data,
 						});
@@ -182,7 +184,7 @@ describe('Custom peer selection', () => {
 				// eslint-disable-next-line no-loop-func
 				p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.port,
+						nodePort: p2p.config.port,
 						message,
 					});
 				});

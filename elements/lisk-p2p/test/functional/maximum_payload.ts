@@ -43,7 +43,7 @@ describe('Maximum payload', () => {
 			p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 				if (message.event === 'maxPayload') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.port,
+						nodePort: p2p.config.port,
 						message,
 					});
 				}

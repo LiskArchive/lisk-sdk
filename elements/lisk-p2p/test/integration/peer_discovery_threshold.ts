@@ -50,9 +50,9 @@ describe('Peer discovery threshold', () => {
 				ipAddress: generatedIP,
 				port: 1000,
 				sharedState: {
-					height: 0,
 					networkVersion: '1.1',
-					version: '1.1',
+					networkId: 'networkId',
+					nonce: 'nonce',
 				},
 			});
 		}

@@ -16,11 +16,6 @@ import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
 import { wait } from '../utils/helpers';
 import { customPeerInfoSchema, customNodeInfoSchema } from '../utils/schema';
-import {
-	peerInfoSchema,
-	nodeInfoSchema,
-	mergeCustomSchema,
-} from '../../src/schema';
 
 describe('p2p', () => {
 	let p2pNode: P2P;
@@ -44,10 +39,7 @@ describe('p2p', () => {
 			nodeInfo: {
 				networkId:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				version: '1.1.1',
 				networkVersion: '1.1',
-				os: 'darwin',
-				height: 0,
 				options: {},
 				nonce: 'nonce',
 				advertiseAddress: true,
@@ -97,9 +89,10 @@ describe('p2p', () => {
 
 	describe('when custom schema is passed', () => {
 		let firstNode: P2P;
+		// console.log((mergeCustomSchema(peerInfoSchema, customPeerInfoSchema).properties as any).options)
 		const customRPCSchemas = {
-			peerInfo: mergeCustomSchema(peerInfoSchema, customPeerInfoSchema),
-			nodeInfo: mergeCustomSchema(nodeInfoSchema, customNodeInfoSchema),
+			peerInfo: customPeerInfoSchema,
+			nodeInfo: customNodeInfoSchema,
 		};
 
 		beforeEach(async () => {
@@ -120,15 +113,13 @@ describe('p2p', () => {
 				nodeInfo: {
 					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					version: '1.1.1',
 					networkVersion: '1.1',
-					os: 'darwin',
-					height: 0,
-					options: {},
 					nonce: 'nonce',
 					advertiseAddress: true,
-					maxHeightPrevoted: '11',
-					maxHeightPreviouslyForged: '1',
+					options: {
+						maxHeightPrevoted: '11',
+						maxHeightPreviouslyForged: '1',
+					},
 				},
 			});
 
@@ -143,10 +134,9 @@ describe('p2p', () => {
 		});
 
 		it('should also include custom properties coming from the schema', () => {
-			expect(Object.keys(firstNode.nodeInfo)).toIncludeAllMembers([
-				'maxHeightPrevoted',
-				'maxHeightPreviouslyForged',
-			]);
+			expect(
+				Object.keys(firstNode.nodeInfo.options as any),
+			).toIncludeAllMembers(['maxHeightPrevoted', 'maxHeightPreviouslyForged']);
 		});
 
 		it('should get node status and peerInfo from another node including custom properties', async () => {
@@ -167,35 +157,32 @@ describe('p2p', () => {
 				nodeInfo: {
 					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					version: '1.1.1',
 					networkVersion: '1.1',
-					os: 'darwin',
 					nonce: 'nonce1',
 					advertiseAddress: true,
-					maxHeightPrevoted: '11',
-					maxHeightPreviouslyForged: '1',
+					options: {
+						maxHeightPrevoted: '11',
+						maxHeightPreviouslyForged: '1',
+					},
 				},
 			});
 
 			await testNode.start();
 			await wait(300);
 
-			expect(Object.keys(firstNode.nodeInfo)).toIncludeAllMembers([
-				'maxHeightPrevoted',
-				'maxHeightPreviouslyForged',
-			]);
-			expect(Object.keys(testNode.nodeInfo)).toIncludeAllMembers([
-				'maxHeightPrevoted',
-				'maxHeightPreviouslyForged',
-			]);
+			expect(
+				Object.keys(firstNode.nodeInfo.options as any),
+			).toIncludeAllMembers(['maxHeightPrevoted', 'maxHeightPreviouslyForged']);
+			expect(
+				Object.keys(testNode.nodeInfo.options as any),
+			).toIncludeAllMembers(['maxHeightPrevoted', 'maxHeightPreviouslyForged']);
 			// Test to check if nodeInfo received from the first node includes custom properties
-			expect(Object.keys(testNode.getConnectedPeers()[0])).toIncludeAllMembers([
-				'maxHeightPrevoted',
-				'maxHeightPreviouslyForged',
-			]);
+			expect(
+				Object.keys((testNode.getConnectedPeers()[0] as any).options),
+			).toIncludeAllMembers(['maxHeightPrevoted', 'maxHeightPreviouslyForged']);
 			// Test to check if peerInfo received from the first node includes custom properties
 			expect(
-				Object.keys(testNode.getDisconnectedPeers()[0]),
+				Object.keys((testNode.getConnectedPeers()[0] as any).options),
 			).toIncludeAllMembers(['maxHeightPrevoted', 'maxHeightPreviouslyForged']);
 			await testNode.stop();
 		});

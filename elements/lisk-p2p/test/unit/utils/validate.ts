@@ -217,10 +217,7 @@ describe('utils/validate', () => {
 			const maximumSize = 10;
 
 			const NodeInfo: P2PNodeInfo = {
-				os: '12.23.54.3',
 				networkId: '12.23.54.3',
-				port: 5393,
-				version: '1.1.2',
 				networkVersion: '1.1',
 				options: {
 					foo: 'bar',

@@ -54,8 +54,8 @@ describe('Cleanup unresponsive peers', () => {
 		const expectedPeerPortsAfterPeerCrash = peerPortsbeforePeerCrash.filter(
 			port => {
 				return (
-					port !== p2pNodeList[0].nodeInfo.port &&
-					port !== p2pNodeList[1].nodeInfo.port
+					port !== p2pNodeList[0].config.port &&
+					port !== p2pNodeList[1].config.port
 				);
 			},
 		);

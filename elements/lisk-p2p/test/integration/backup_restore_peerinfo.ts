@@ -61,7 +61,7 @@ describe('Backup and Restore', () => {
 	});
 
 	it('send messages to second peer', async () => {
-		const targetPeerId = `127.0.0.1:${secondNode.nodeInfo.port}`;
+		const targetPeerId = `127.0.0.1:${secondNode.config.port}`;
 		const TOTAL_SENDS = 5;
 		const CUSTOM_DISCONNECT_MESSAGE = 'Intentional disconnect **';
 
@@ -82,7 +82,7 @@ describe('Backup and Restore', () => {
 
 		const getFirstConnectedPeer = secondNode['_peerPool']
 			.getConnectedPeers()
-			.find(peerInfo => peerInfo.id === `127.0.0.1:${firstNode.nodeInfo.port}`);
+			.find(peerInfo => peerInfo.id === `127.0.0.1:${firstNode.config.port}`);
 
 		if (getFirstConnectedPeer) {
 			// Disconnect after sending few messages
@@ -109,7 +109,7 @@ describe('Backup and Restore', () => {
 			);
 
 			const getFirstNodeSecondTime = secondNode['_peerPool']['_peerMap'].get(
-				`127.0.0.1:${firstNode.nodeInfo.port}`,
+				`127.0.0.1:${firstNode.config.port}`,
 			);
 
 			if (getFirstNodeSecondTime) {
