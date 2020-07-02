@@ -99,9 +99,12 @@ export interface P2PNodeInfo extends P2PSharedState {
 	readonly networkVersion: string;
 	readonly os: string;
 	readonly networkId: string;
-	readonly port: number;
 	readonly advertiseAddress: boolean;
 	readonly nonce: string;
+	// These values can be modified when the node is running
+	options?: {
+		[key: string]: unknown;
+	};
 }
 
 // This is a representation of the inbound peer object according to the current protocol.
@@ -148,6 +151,7 @@ export interface P2PConfig {
 	readonly longevityProtectionRatio?: number;
 	readonly netgroupProtectionRatio?: number;
 	readonly hostIp?: string;
+	readonly port: number;
 	readonly wsMaxMessageRate?: number;
 	readonly wsMaxMessageRatePenalty?: number;
 	readonly rateCalculationInterval?: number;
@@ -159,6 +163,7 @@ export interface P2PConfig {
 }
 
 export interface PeerServerConfig {
+	readonly port: number;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly hostIp: string;
 	readonly secret: number;
