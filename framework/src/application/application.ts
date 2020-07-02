@@ -17,6 +17,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
+import { promisify } from 'util';
 import {
 	TransferTransaction,
 	DelegateTransaction,
@@ -57,6 +58,9 @@ import {
 } from '../types';
 import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
 import { AccountAsset } from './node/account';
+
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+const rm = promisify(fs.unlink);
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -321,6 +325,7 @@ export class Application {
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
 			await this._nodeDB.close();
+			await this._emptySocketsDirectory();
 		} catch (error) {
 			this.logger.fatal({ err: error as Error }, 'failed to shutdown');
 		}
@@ -589,6 +594,15 @@ export class Application {
 			Array.from(Object.values(dirs)).map(async dirPath =>
 				fs.ensureDir(dirPath),
 			),
+		);
+	}
+
+	private async _emptySocketsDirectory(): Promise<void> {
+		const { sockets } = systemDirs(this.config.label, this.config.rootPath);
+		const socketFiles = fs.readdirSync(sockets);
+
+		await Promise.all(
+			socketFiles.map(async aSocketFile => rm(path.join(sockets, aSocketFile))),
 		);
 	}
 
