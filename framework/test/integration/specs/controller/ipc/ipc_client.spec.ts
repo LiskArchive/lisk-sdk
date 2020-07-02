@@ -74,15 +74,15 @@ describe('IPCClient', () => {
 		let client3: IPCClient;
 
 		afterEach(() => {
-			if (client1) {
+			if (client1 !== undefined) {
 				client1.stop();
 			}
 
-			if (client2) {
+			if (client2 !== undefined) {
 				client2.stop();
 			}
 
-			if (client3) {
+			if (client3 !== undefined) {
 				client3.stop();
 			}
 		});
