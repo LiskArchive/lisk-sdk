@@ -74,6 +74,7 @@ export class PeerServer extends EventEmitter {
 
 	private readonly _nodeInfo: P2PNodeInfo;
 	private readonly _hostIp: string;
+	private readonly _port: number;
 	private readonly _secret: number;
 	private readonly _maxPeerInfoSize: number;
 	private readonly _peerBook: PeerBook;
@@ -85,6 +86,7 @@ export class PeerServer extends EventEmitter {
 		super();
 		this._nodeInfo = config.nodeInfo;
 		this._hostIp = config.hostIp;
+		this._port = config.port;
 		this._secret = config.secret;
 		this._peerBook = config.peerBook;
 		this._httpServer = http.createServer();
@@ -159,7 +161,7 @@ export class PeerServer extends EventEmitter {
 		});
 
 		this._httpServer.listen(
-			this._nodeInfo.port,
+			this._port,
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this._hostIp || DEFAULT_NODE_HOST_IP,
 		);
@@ -241,9 +243,7 @@ export class PeerServer extends EventEmitter {
 				INVALID_CONNECTION_SELF_REASON,
 			);
 
-			const selfport = queryObject.port
-				? +queryObject.port
-				: this._nodeInfo.port;
+			const selfport = queryObject.port ? +queryObject.port : this._port;
 
 			// Delete you peerInfo from both the lists
 			this._peerBook.removePeer({

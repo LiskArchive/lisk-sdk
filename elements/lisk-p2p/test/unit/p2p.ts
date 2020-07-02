@@ -32,6 +32,7 @@ describe('p2p', () => {
 
 	beforeEach(async () => {
 		p2pNode = new P2P({
+			port: 5000,
 			seedPeers: [],
 			blacklistedIPs: generatedPeers.slice(6).map(peer => peer.ipAddress),
 			fixedPeers: generatedPeers.slice(0, 6),
@@ -41,7 +42,6 @@ describe('p2p', () => {
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
-				port: 5000,
 				networkId:
 					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				version: '1.1.1',
@@ -104,6 +104,7 @@ describe('p2p', () => {
 
 		beforeEach(async () => {
 			firstNode = new P2P({
+				port: 5001,
 				seedPeers: [],
 				connectTimeout: 500,
 				ackTimeout: 500,
@@ -117,7 +118,6 @@ describe('p2p', () => {
 				],
 				customRPCSchemas,
 				nodeInfo: {
-					port: 5001,
 					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					version: '1.1.1',
@@ -151,6 +151,7 @@ describe('p2p', () => {
 
 		it('should get node status and peerInfo from another node including custom properties', async () => {
 			const testNode = new P2P({
+				port: 5002,
 				seedPeers: [],
 				connectTimeout: 500,
 				ackTimeout: 500,
@@ -164,7 +165,6 @@ describe('p2p', () => {
 				maxInboundConnections: 100,
 				customRPCSchemas,
 				nodeInfo: {
-					port: 5002,
 					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					version: '1.1.1',

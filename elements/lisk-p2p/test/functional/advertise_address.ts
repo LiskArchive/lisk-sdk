@@ -36,9 +36,9 @@ describe('Advertise Address', () => {
 		populatorInterval: POPULATOR_INTERVAL + 15,
 		maxOutboundConnections: 20,
 		maxInboundConnections: 100,
+		port,
 		nodeInfo: {
 			...nodeInfoConstants,
-			port,
 			advertiseAddress,
 		},
 	});

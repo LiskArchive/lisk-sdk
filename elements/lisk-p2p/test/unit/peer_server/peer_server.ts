@@ -30,7 +30,6 @@ describe('peerServer', () => {
 		os: 'linux',
 		version: '1.1.1',
 		networkVersion: '1.1',
-		port: 5000,
 		nonce: 'nonce',
 		advertiseAddress: true,
 	};
@@ -47,6 +46,7 @@ describe('peerServer', () => {
 	};
 
 	const peerServerConfig = {
+		port: 5000,
 		nodeInfo,
 		hostIp: '0.0.0.0',
 		secret: DEFAULT_RANDOM_SECRET,

@@ -257,10 +257,10 @@ export class P2P extends EventEmitter {
 			{
 				peerId: constructPeerId(
 					config.hostIp ?? DEFAULT_NODE_HOST_IP,
-					config.nodeInfo.port,
+					config.port,
 				),
 				ipAddress: config.hostIp ?? DEFAULT_NODE_HOST_IP,
-				port: config.nodeInfo.port,
+				port: config.port,
 			},
 			this._secret,
 		);
@@ -645,6 +645,7 @@ export class P2P extends EventEmitter {
 
 		if (this._config.maxInboundConnections !== 0) {
 			this._peerServer = new PeerServer({
+				port: this.config.port,
 				nodeInfo: this._nodeInfo,
 				hostIp: this._config.hostIp ?? DEFAULT_NODE_HOST_IP,
 				secret: this._secret,

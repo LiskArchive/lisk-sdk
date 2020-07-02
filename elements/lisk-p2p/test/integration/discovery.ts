@@ -215,8 +215,8 @@ describe('Network discovery', () => {
 				],
 				maxOutboundConnections: 1,
 				maxInboundConnections: 0,
+				port: 5020,
 				nodeInfo: {
-					port: 5020,
 					networkId: 'aaa',
 					version: '9.9.9',
 					networkVersion: '9.9',

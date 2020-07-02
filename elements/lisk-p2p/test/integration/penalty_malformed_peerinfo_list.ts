@@ -71,7 +71,7 @@ describe('penalty sending malformed Peer List', () => {
 
 		it('should ban the emitter', () => {
 			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
-				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.port),
+				constructPeerId(SEED_PEER_IP, p2pNodeList[0].config.port),
 			);
 		});
 	});
@@ -109,7 +109,7 @@ describe('penalty sending malformed Peer List', () => {
 
 		it('should ban the emitter', () => {
 			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
-				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.port),
+				constructPeerId(SEED_PEER_IP, p2pNodeList[0].config.port),
 			);
 		});
 	});
