@@ -117,7 +117,7 @@ export const computeBlockHeightsList = (
 	listSizeLimit: number,
 	currentRound: number,
 ): number[] => {
-	const startingHeight = (currentRound - 1) * activeDelegates;
+	const startingHeight = Math.max((currentRound - 1) * activeDelegates, 0);
 	const heightList = new Array(listSizeLimit)
 		.fill(0)
 		.map((_, i) => startingHeight - i * activeDelegates)
