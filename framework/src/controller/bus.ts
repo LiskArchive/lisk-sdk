@@ -24,10 +24,11 @@ import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
 import { Action, ActionInfoObject, ActionsObject } from './action';
 import { Logger } from '../application/logger';
-import { BaseChannel } from './channels';
+import { BaseChannel } from './channels/base_channel';
 import { EventInfoObject, EventsArray } from './event';
 import { SocketPaths } from './types';
 import { IPCServer } from './ipc/ipc_server';
+import { ActionInfoForBus } from '../types';
 
 interface BusConfiguration {
 	ipc: {
@@ -60,12 +61,6 @@ interface ChannelInfo {
 	};
 	readonly events: EventsArray;
 	readonly type: ChannelType;
-}
-
-export interface ActionInfoForBus {
-	readonly isPublic: boolean;
-	readonly module: string;
-	readonly name: string;
 }
 
 export class Bus {

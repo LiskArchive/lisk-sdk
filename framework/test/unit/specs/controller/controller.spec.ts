@@ -149,12 +149,12 @@ describe('Controller Class', () => {
 
 			it('should call `controller.bus.setup()` method.', () => {
 				// Assert
-				expect(controller.bus?.setup).toHaveBeenCalled();
+				expect(controller.bus.setup).toHaveBeenCalled();
 			});
 
 			it('should call `controller.channel.registerToBus()` method.', () => {
 				// Assert
-				expect(controller.bus?.setup).toHaveBeenCalled();
+				expect(controller.bus.setup).toHaveBeenCalled();
 			});
 
 			it.todo('should log events if level is greater than info.');

@@ -25,7 +25,7 @@ import { Event, EventInfoObject } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
 import { SocketPaths } from '../types';
 import { IPCClient } from '../ipc/ipc_client';
-import { ActionInfoForBus } from '../bus';
+import { ActionInfoForBus } from '../../types';
 
 export const setupProcessHandlers = (channel: ChildProcessChannel): void => {
 	process.once('SIGTERM', () => channel.cleanup(1));
