@@ -327,7 +327,7 @@ export class Application {
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
 			await this._nodeDB.close();
-			await this.emptyDirectory();
+			await this._emptySocketsDirectory();
 		} catch (error) {
 			this.logger.fatal({ err: error as Error }, 'failed to shutdown');
 		}
@@ -599,7 +599,7 @@ export class Application {
 		);
 	}
 
-	private async emptyDirectory(): Promise<void> {
+	private async _emptySocketsDirectory(): Promise<void> {
 		const { sockets } = systemDirs(this.config.label, this.config.rootPath);
 		const socketFiles = fs.readdirSync(sockets);
 
