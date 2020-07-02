@@ -16,10 +16,6 @@ import { BlockHeader } from '../../types';
 import { Base } from './base';
 
 export class BlockCache extends Base<BlockHeader> {
-	public constructor(minCachedItems: number, maxCachedItems: number) {
-		super(minCachedItems, maxCachedItems);
-	}
-
 	public add(blockHeader: BlockHeader): BlockHeader[] {
 		if (this.items.length) {
 			assert(

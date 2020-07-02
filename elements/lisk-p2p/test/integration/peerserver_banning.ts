@@ -49,7 +49,7 @@ describe('Peer banning mechanism', () => {
 				expect(bannedPeerId[0]).toBe(peerId);
 			});
 
-			it(`should call removePeer from PeerPool`, () => {
+			it('should call removePeer from PeerPool', () => {
 				// Arrange
 				const bannedPeerId: string[] = [];
 				P2PNode.on(EVENT_BAN_PEER, id => {
@@ -67,7 +67,7 @@ describe('Peer banning mechanism', () => {
 				expect((P2PNode as any)._peerPool.removePeer).toHaveBeenCalled();
 			});
 
-			it(`should add unbanTimer into PeerBook`, () => {
+			it('should add unbanTimer into PeerBook', () => {
 				// Act
 				(P2PNode as any)._peerServer.emit(EVENT_BAN_PEER, peerId);
 

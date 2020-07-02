@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { Application } from './application/application';
+export { Application } from './application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
 export { BasePlugin, PluginInfo } from './plugins/base_plugin';

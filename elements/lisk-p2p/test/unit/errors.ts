@@ -126,7 +126,7 @@ describe('errors', () => {
 			expect(existingPeer.message).toEqual(existingPeerErrorMessagge);
 		});
 
-		it(`should set peerInfo parameter when passing an argument`, () => {
+		it('should set peerInfo parameter when passing an argument', () => {
 			expect(existingPeer.peerInfo).toEqual(peerInfo);
 		});
 	});

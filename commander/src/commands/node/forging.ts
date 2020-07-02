@@ -65,7 +65,7 @@ export default class ForgingCommand extends BaseCommand {
 		},
 	];
 
-	static description = `Update the forging status of a Lisk Core instance.`;
+	static description = 'Update the forging status of a Lisk Core instance.';
 
 	static examples = [
 		'node:forging enable 647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6',

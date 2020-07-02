@@ -102,6 +102,7 @@ const outputBase64Account = account => ({
 });
 
 const multisigRegAsset = {
+	$id: '/multisignature/registrationAsset',
 	type: 'object',
 	properties: {
 		numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },

@@ -34,7 +34,6 @@ export const schemas = {
 					type: 'string',
 					format: 'base64',
 				},
-				minItems: 1,
 			},
 		},
 	},

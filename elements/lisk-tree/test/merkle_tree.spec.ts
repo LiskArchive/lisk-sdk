@@ -36,7 +36,7 @@ describe('MerkleTree', () => {
 	describe('append', () => {
 		for (const test of fixture.testCases.slice(1)) {
 			describe(test.description, () => {
-				it(`should append and have correct root`, () => {
+				it('should append and have correct root', () => {
 					const inputs = test.input.transactionIds.map(hexString =>
 						Buffer.from(hexString, 'hex'),
 					);
@@ -54,7 +54,7 @@ describe('MerkleTree', () => {
 	describe('generateProof and verifyProof', () => {
 		for (const test of fixture.testCases) {
 			describe(test.description, () => {
-				it(`should generate and verify correct proof`, () => {
+				it('should generate and verify correct proof', () => {
 					const inputs = test.input.transactionIds.map(hexString =>
 						Buffer.from(hexString, 'hex'),
 					);
@@ -74,7 +74,7 @@ describe('MerkleTree', () => {
 					expect(results.every(result => result.verified)).toBeTrue();
 				});
 
-				it(`should generate and verify invalid proof`, () => {
+				it('should generate and verify invalid proof', () => {
 					const inputs = test.input.transactionIds.map(hexString =>
 						Buffer.from(hexString, 'hex'),
 					);

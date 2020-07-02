@@ -28,24 +28,26 @@
 		"build": "tsc"
 	},
 	"dependencies": {
+		"@liskhq/lisk-codec": "0.1.0",
 		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
-		"@liskhq/lisk-transactions": "4.0.0-alpha.0",
-		"@liskhq/lisk-validator": "0.4.0-alpha.0",
 		"@liskhq/lisk-framework-http-api-plugin": "0.1.0",
+		"@liskhq/lisk-transactions": "4.0.0-alpha.0",
+		"@liskhq/lisk-utils": "0.1.0",
+		"@liskhq/lisk-validator": "0.4.0-alpha.0",
 		"lisk-framework": "0.6.0-alpha.0"
 	},
 	"devDependencies": {
-		"eslint": "6.8.0",
-		"eslint-config-airbnb-base": "14.0.0",
+		"eslint": "7.3.1",
+		"eslint-config-airbnb-base": "14.2.0",
 		"eslint-config-lisk-base": "1.2.2",
-		"eslint-config-prettier": "6.10.0",
-		"eslint-plugin-import": "2.20.1",
-		"eslint-plugin-jest": "23.8.2",
-		"jest": "25.1.0",
+		"eslint-config-prettier": "6.11.0",
+		"eslint-plugin-import": "2.22.0",
+		"eslint-plugin-jest": "23.17.1",
+		"jest": "26.1.0",
 		"jest-extended": "0.11.5",
-		"jest-when": "2.7.0",
+		"jest-when": "2.7.2",
 		"prettier": "2.0.5",
-		"ts-jest": "25.2.1",
+		"ts-jest": "26.1.1",
 		"ts-node": "8.6.2",
 		"typescript": "3.8.3"
 	}

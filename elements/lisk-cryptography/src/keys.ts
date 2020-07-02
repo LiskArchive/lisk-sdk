@@ -138,7 +138,7 @@ export const validateBase32Address = (
 
 	if (!addressSubstringArray.every(char => BASE32_CHARSET.includes(char))) {
 		throw new Error(
-			`Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.`,
+			"Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.",
 		);
 	}
 
@@ -147,7 +147,7 @@ export const validateBase32Address = (
 	);
 
 	if (!verifyChecksum(integerSequence)) {
-		throw new Error(`Invalid checksum for address.`);
+		throw new Error('Invalid checksum for address.');
 	}
 
 	return true;
