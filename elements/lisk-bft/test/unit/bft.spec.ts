@@ -147,6 +147,49 @@ describe('bft', () => {
 
 				expect(bft.finalizedHeight).toEqual(finalizedHeight);
 			});
+
+			it('should set the maxHeightPrevoted to the current value', async () => {
+				const finalizedHeight = 5;
+				const block1 = createFakeBlockHeader({ height: 100, version: 2 });
+				const delegateAddress = getAddressFromPublicKey(
+					block1.generatorPublicKey,
+				);
+				const delegateLedger = {
+					delegates: [
+						{
+							address: delegateAddress,
+							maxPreVoteHeight: 100,
+							maxPreCommitHeight: 0,
+						},
+					],
+					ledger: [
+						{
+							height: block1.height,
+							preVotes: 68,
+							preCommits: 0,
+						},
+					],
+				};
+				const stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+							BFTFinalizedHeightCodecSchema,
+							{ finalizedHeight },
+						),
+						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
+							BFTVotingLedgerSchema,
+							delegateLedger,
+						),
+					},
+					{ lastBlockHeaders: [lastBlock] },
+				);
+				const bft = new BFT(bftParams);
+
+				await bft.init(stateStore);
+
+				expect(bft.maxHeightPrevoted).toEqual(100);
+			});
 		});
 
 		describe('#addNewBlock', () => {
