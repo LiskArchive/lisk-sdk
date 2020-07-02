@@ -1263,6 +1263,22 @@ describe('block_synchronization_mechanism', () => {
 				});
 			});
 		});
+
+		describe('computeBlockHeightsList', () => {
+			it('should return height list for round 0', () => {
+				expect(computeBlockHeightsList(0, 103, 10, 0)).not.toBeEmpty();
+			});
+
+			it('should return height list for given round', () => {
+				const heightList = computeBlockHeightsList(
+					bftModule.finalizedHeight,
+					dposModule.delegatesPerRound,
+					10,
+					dposModule.rounds.calcRound(chainModule.lastBlock.header.height),
+				);
+				expect(heightList).not.toBeEmpty();
+			});
+		});
 	});
 
 	describe('isValidFor', () => {

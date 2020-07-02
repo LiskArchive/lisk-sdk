@@ -403,7 +403,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		while (
 			!highestCommonBlock &&
 			numberOfRequests < requestLimit &&
-			currentHeight > this.bft.finalizedHeight
+			currentHeight >= this.bft.finalizedHeight
 		) {
 			const heightList = computeBlockHeightsList(
 				this.bft.finalizedHeight,
