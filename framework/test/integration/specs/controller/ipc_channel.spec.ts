@@ -67,7 +67,7 @@ const beta = {
 	},
 };
 /* eslint-disable jest/no-disabled-tests */
-describe.skip('ChildProcessChannel', () => {
+describe.skip('IPCChannel', () => {
 	describe('after registering itself to the bus', () => {
 		let alphaChannel: IPCChannel;
 		let betaChannel: IPCChannel;

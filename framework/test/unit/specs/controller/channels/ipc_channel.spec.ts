@@ -124,10 +124,10 @@ describe('IPCChannel Channel', () => {
 		},
 	};
 
-	let childProcessChannel: IPCChannel;
+	let ipcChannel: IPCChannel;
 
 	beforeEach(() => {
-		childProcessChannel = new IPCChannel(
+		ipcChannel = new IPCChannel(
 			params.moduleAlias,
 			params.events,
 			params.actions,
@@ -136,7 +136,7 @@ describe('IPCChannel Channel', () => {
 	});
 
 	afterEach(() => {
-		childProcessChannel.cleanup();
+		ipcChannel.cleanup();
 	});
 
 	describe('inheritance', () => {
@@ -155,7 +155,7 @@ describe('IPCChannel Channel', () => {
 	});
 
 	describe('#registerToBus', () => {
-		beforeEach(async () => childProcessChannel.registerToBus());
+		beforeEach(async () => ipcChannel.registerToBus());
 
 		it('should start ipc client', () => {
 			// Assert
@@ -210,13 +210,13 @@ describe('IPCChannel Channel', () => {
 	describe('#subscribe', () => {
 		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 		beforeEach(async () => {
-			await childProcessChannel.registerToBus();
+			await ipcChannel.registerToBus();
 		});
 
 		it('should call _emitter.on', () => {
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
-			childProcessChannel.subscribe(validEventName, () => {});
+			ipcChannel.subscribe(validEventName, () => {});
 			// Assert
 			expect(emitterMock.on).toHaveBeenCalledWith(
 				validEventName,
@@ -228,12 +228,12 @@ describe('IPCChannel Channel', () => {
 	describe('#once', () => {
 		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 
-		beforeEach(async () => childProcessChannel.registerToBus());
+		beforeEach(async () => ipcChannel.registerToBus());
 
 		it('should call _emitter.once', () => {
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
-			childProcessChannel.once(validEventName, () => {});
+			ipcChannel.once(validEventName, () => {});
 
 			// Assert
 			expect(emitterMock.once).toHaveBeenCalledWith(
@@ -248,15 +248,13 @@ describe('IPCChannel Channel', () => {
 
 		beforeEach(async () => {
 			// Arrange
-			await childProcessChannel.registerToBus();
+			await ipcChannel.registerToBus();
 		});
 
 		it('should throw new Error when the module is not the same', () => {
 			const invalidEventName = `invalidModule:${params.events[0]}`;
 
-			expect(() =>
-				childProcessChannel.publish(invalidEventName, () => {}),
-			).toThrow(
+			expect(() => ipcChannel.publish(invalidEventName, () => {})).toThrow(
 				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
 			);
 		});
@@ -264,9 +262,7 @@ describe('IPCChannel Channel', () => {
 		it('should throw new Error when the event name not registered', () => {
 			const invalidEventName = `${params.moduleAlias}:invalidEvent`;
 
-			expect(() =>
-				childProcessChannel.publish(invalidEventName, () => {}),
-			).toThrow(
+			expect(() => ipcChannel.publish(invalidEventName, () => {})).toThrow(
 				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
 			);
 		});
@@ -277,7 +273,7 @@ describe('IPCChannel Channel', () => {
 			const event = new Event(validEventName, data);
 
 			// Act
-			childProcessChannel.publish(validEventName, data);
+			ipcChannel.publish(validEventName, data);
 
 			// Assert
 			expect(ipcClientMock.pubSocket.send).toHaveBeenCalledWith(
@@ -293,8 +289,8 @@ describe('IPCChannel Channel', () => {
 
 		it('should execute the action straight away if the plugins are the same and action is a string', async () => {
 			// Act
-			await childProcessChannel.registerToBus();
-			await childProcessChannel.invoke(actionName, actionParams);
+			await ipcChannel.registerToBus();
+			await ipcChannel.invoke(actionName, actionParams);
 
 			// Assert
 			expect(params.actions.action1.handler).toHaveBeenCalled();
@@ -302,14 +298,14 @@ describe('IPCChannel Channel', () => {
 
 		it('should execute the action straight away if the plugins are the same and action is an Action object', async () => {
 			// Act
-			await childProcessChannel.registerToBus();
+			await ipcChannel.registerToBus();
 			const action = new Action(actionName, actionParams);
-			await childProcessChannel.invoke(action.key(), actionParams);
+			await ipcChannel.invoke(action.key(), actionParams);
 
 			// Assert
 			expect(params.actions.action1.handler).toHaveBeenCalledWith({
 				...action.serialize(),
-				source: childProcessChannel.moduleAlias,
+				source: ipcChannel.moduleAlias,
 			});
 		});
 	});
@@ -317,10 +313,10 @@ describe('IPCChannel Channel', () => {
 	describe('#cleanup', () => {
 		it('should stop the ipc client', async () => {
 			// Arrange
-			await childProcessChannel.registerToBus();
+			await ipcChannel.registerToBus();
 
 			// Act
-			childProcessChannel.cleanup();
+			ipcChannel.cleanup();
 
 			// Assert
 			expect(ipcClientMock.stop).toHaveBeenCalled();
@@ -329,10 +325,10 @@ describe('IPCChannel Channel', () => {
 		it('should clear process events', async () => {
 			// Arrange
 			jest.spyOn(process, 'removeAllListeners');
-			await childProcessChannel.registerToBus();
+			await ipcChannel.registerToBus();
 
 			// Act
-			childProcessChannel.cleanup();
+			ipcChannel.cleanup();
 
 			// Assert
 			expect(ipcClientMock.stop).toHaveBeenCalled();
