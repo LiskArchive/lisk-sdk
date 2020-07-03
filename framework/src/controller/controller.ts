@@ -293,11 +293,9 @@ export class Controller {
 
 		child.on('exit', (code, signal) => {
 			this.logger.error(
-				{ name, version, pluginAlias, code, signal },
+				{ name, version, pluginAlias, code, signal: signal ?? '' },
 				'Child process plugin exited',
 			);
-			// Exits the main process with a failure code
-			process.exit(1);
 		});
 
 		await Promise.race([
