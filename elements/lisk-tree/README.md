@@ -10,6 +10,8 @@ $ npm install --save @liskhq/lisk-tree
 
 ## Benchmarking
 
+Node version used: v12.14.1. Computer Spec: SSD, 6 Core, 16 GB RAM. No special configuration for Node.
+
 Benchmark results for main lisk-tree functions:
 
 |           Function            | 1000 leaves | 10,000 leaves | 100,000 leaves |
