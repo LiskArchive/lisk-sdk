@@ -17,42 +17,46 @@
 import { ChildProcessChannel } from './channels';
 import { InstantiablePlugin, BasePlugin } from '../plugins/base_plugin';
 import { SocketPaths } from './types';
+import { PluginOptions } from '../types';
 
 const modulePath: string = process.argv[2];
-// eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
-const Klass: InstantiablePlugin<BasePlugin> = require(modulePath);
+const moduleExportName: string = process.argv[3];
+// eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
+const Klass: InstantiablePlugin<BasePlugin> = require(modulePath)[
+	moduleExportName
+];
 
-const _loadModule = async (
+const _loadPlugin = async (
 	config: {
 		[key: string]: unknown;
 		socketsPath: SocketPaths;
 	},
-	moduleOptions: object,
+	pluginOptions: PluginOptions,
 ): Promise<void> => {
-	const moduleAlias = Klass.alias;
-	const module: BasePlugin = new Klass(moduleOptions);
+	const pluginAlias = Klass.alias;
+	const plugin: BasePlugin = new Klass(pluginOptions);
 
 	const channel = new ChildProcessChannel(
-		moduleAlias,
-		module.events,
-		module.actions,
+		pluginAlias,
+		plugin.events,
+		plugin.actions,
 		{ socketsPath: config.socketsPath },
 	);
 
 	await channel.registerToBus();
 
-	channel.publish(`${moduleAlias}:registeredToBus`);
-	channel.publish(`${moduleAlias}:loading:started`);
+	channel.publish(`${pluginAlias}:registeredToBus`);
+	channel.publish(`${pluginAlias}:loading:started`);
 
-	await module.load(channel);
+	await plugin.load(channel);
 
-	channel.publish(`${moduleAlias}:loading:finished`);
+	channel.publish(`${pluginAlias}:loading:finished`);
 };
 
-process.on('message', ({ loadModule, config, moduleOptions }) => {
+process.on('message', ({ loadPlugin, config, moduleOptions }) => {
 	const internalWorker = async (): Promise<void> => {
-		if (loadModule) {
-			await _loadModule(config, moduleOptions);
+		if (loadPlugin) {
+			await _loadPlugin(config, moduleOptions);
 		}
 	};
 	internalWorker().catch((err: Error) => err);

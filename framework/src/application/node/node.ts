@@ -215,7 +215,7 @@ export class Node {
 				Object.assign(this._applicationState, event.data);
 			});
 
-			this._logger.info('Modules ready and launched');
+			this._logger.info('Node ready and launched');
 			// After binding, it should immediately load blockchain
 			await this._processor.init();
 			// Check if blocks are left in temp_blocks table
