@@ -51,9 +51,9 @@ describe('penalty sending malformed Peer List', () => {
 					ipAddress: generatedIP,
 					port: 1000,
 					sharedState: {
-						height: 0,
 						networkVersion: '1.1',
-						version: '1.1',
+						networkId: '',
+						nonce: '',
 					},
 				});
 			}
@@ -91,8 +91,9 @@ describe('penalty sending malformed Peer List', () => {
 				ipAddress: '1.1.1.1',
 				port: 1000,
 				sharedState: {
-					version: '1.1',
 					networkVersion: '1.'.repeat(13000),
+					networkId: '',
+					nonce: '',
 				},
 			});
 

@@ -31,6 +31,42 @@ import {
 
 const { ConnectionKind } = constants;
 
+const customNodeInfoSchema = {
+	$id: '/custom',
+	type: 'object',
+	properties: {
+		modules: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'string',
+			},
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+};
+
+const customPeerInfoSchema = {
+	$id: '/custom',
+	type: 'object',
+	properties: {
+		modules: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'string',
+			},
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+};
+
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
@@ -105,15 +141,22 @@ describe('Custom peer selection', () => {
 
 	beforeEach(async () => {
 		const customNodeInfo = (index: number) => ({
-			modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
-			height: 1000 + (index % 2),
+			options: {
+				modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
+				height: 1000 + (index % 2),
+			},
 		});
 
+		const customRPCSchemas = {
+			nodeInfo: customNodeInfoSchema,
+			peerInfo: customPeerInfoSchema,
+		};
 		const customConfig = (index: number) => ({
 			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
 			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
 			peerSelectionForConnection,
 			nodeInfo: customNodeInfo(index),
+			customRPCSchemas,
 		});
 
 		p2pNodeList = await createNetwork({

@@ -26,8 +26,10 @@ describe('Custom nodeInfo', () => {
 	beforeEach(async () => {
 		const customConfig = () => ({
 			nodeInfo: {
-				maxHeightPreviouslyForged: 11,
-				maxHeightPrevoted: 2,
+				options: {
+					maxHeightPreviouslyForged: 11,
+					maxHeightPrevoted: 2,
+				},
 			},
 			customRPCSchemas,
 		});
@@ -46,8 +48,10 @@ describe('Custom nodeInfo', () => {
 			for (const peer of triedPeers) {
 				expect(peer).toMatchObject({
 					sharedState: {
-						maxHeightPrevoted: 2,
-						maxHeightPreviouslyForged: 11,
+						options: {
+							maxHeightPrevoted: 2,
+							maxHeightPreviouslyForged: 11,
+						},
 					},
 				});
 			}
@@ -55,16 +59,20 @@ describe('Custom nodeInfo', () => {
 				if (peer.modules) {
 					expect(peer).toMatchObject({
 						sharedState: {
-							maxHeightPrevoted: 2,
-							maxHeightPreviouslyForged: 11,
+							options: {
+								maxHeightPrevoted: 2,
+								maxHeightPreviouslyForged: 11,
+							},
 						},
 					});
 				}
 			}
 			for (const peer of p2p.getConnectedPeers()) {
 				expect(peer).toMatchObject({
-					maxHeightPrevoted: 2,
-					maxHeightPreviouslyForged: 11,
+					options: {
+						maxHeightPrevoted: 2,
+						maxHeightPreviouslyForged: 11,
+					},
 				});
 			}
 		}

@@ -19,19 +19,23 @@ import { createNetwork, destroyNetwork } from '../utils/network_setup';
 const { EVENT_BAN_PEER } = events;
 
 const customNodeInfoSchema = {
+	$id: '/malformed',
+	type: 'object',
 	properties: {
 		invalid: {
 			dataType: 'string',
-			fieldNumber: 8,
+			fieldNumber: 1,
 		},
 	},
 };
 
 const customPeerInfoSchema = {
+	$id: '/malformed',
+	type: 'object',
 	properties: {
 		invalid: {
 			dataType: 'string',
-			fieldNumber: 8,
+			fieldNumber: 1,
 		},
 	},
 };
