@@ -14,23 +14,32 @@
 
 import { P2P, events } from '@liskhq/lisk-p2p';
 import { ApplicationConfig } from '../../../src';
+import {
+	customNodeInfoSchema,
+	customPeerInfoSchema,
+} from '../../../src/application/network/schema';
 
 export const createProbe = async (config: ApplicationConfig): Promise<P2P> => {
+	const customRPCSchemas = {
+		nodeInfo: customNodeInfoSchema,
+		peerInfo: customPeerInfoSchema,
+	};
 	const p2p = new P2P({
+		port: 1111,
+		customRPCSchemas,
 		nodeInfo: {
-			protocolVersion: config.protocolVersion,
+			networkVersion: config.protocolVersion,
 			advertiseAddress: true,
-			wsPort: 1111,
 			networkId: config.networkId,
-			height: 3,
 			nonce: 'O2wTkjqplHII',
-			os: 'test-os',
-			version: config.version,
+			options: {
+				height: 3,
+			},
 		},
 		seedPeers: [
 			{
 				ipAddress: '127.0.0.1',
-				wsPort: config.network.wsPort,
+				port: config.network.wsPort,
 			},
 		],
 		populatorInterval: 50,
