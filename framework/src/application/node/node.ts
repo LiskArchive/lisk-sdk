@@ -140,7 +140,6 @@ export class Node {
 	private _transport!: Transport;
 	private _forger!: Forger;
 	private _forgingJob!: Job<void>;
-	private _registeredTransactionSchemas!: RegisteredSchemas;
 
 	public constructor({
 		channel,
@@ -280,8 +279,6 @@ export class Node {
 					}
 				},
 			);
-
-			this._setSchemas();
 		} catch (error) {
 			this._logger.fatal(
 				{
@@ -491,7 +488,7 @@ export class Node {
 					2: BlockProcessorV2.schema,
 				},
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
-				transactions: this._registeredTransactionSchemas,
+				transactions: this._getRegisteredTransactionSchemas(),
 			}),
 		};
 	}
@@ -787,7 +784,7 @@ export class Node {
 	private _unsubscribeToEvents(): void {
 		this._bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 	}
-	private _setSchemas(): void {
+	private _getRegisteredTransactionSchemas(): RegisteredSchemas {
 		const registredTransactions: RegisteredSchemas = {};
 
 		for (const aTransactionSchema of Object.entries(
@@ -796,6 +793,6 @@ export class Node {
 			registredTransactions[aTransactionSchema[0]] = aTransactionSchema[1]
 				.ASSET_SCHEMA as Schema;
 		}
-		this._registeredTransactionSchemas = registredTransactions;
+		return registredTransactions;
 	}
 }
