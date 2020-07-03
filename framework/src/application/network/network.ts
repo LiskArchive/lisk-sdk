@@ -146,10 +146,11 @@ export class Network {
 			...nodeInfo,
 			advertiseAddress: this._options.advertiseAddress ?? true,
 		});
+		const { wsPort, ...state } = this._applicationState.state;
 
-		const initialNodeInfo = sanitizeNodeInfo(
-			this._applicationState.state as liskP2P.p2pTypes.P2PNodeInfo,
-		);
+		const initialNodeInfo = sanitizeNodeInfo({
+			...((state as unknown) as liskP2P.p2pTypes.P2PNodeInfo),
+		});
 		const seedPeers = await lookupPeersIPs(this._options.seedPeers, true);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const blacklistedIPs = this._options.blacklistedIPs ?? [];
@@ -158,7 +159,7 @@ export class Network {
 		const fixedPeers = this._options.fixedPeers
 			? this._options.fixedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					wsPort: peer.wsPort,
+					port: peer.wsPort,
 			  }))
 			: [];
 
@@ -166,11 +167,12 @@ export class Network {
 		const whitelistedPeers = this._options.whitelistedPeers
 			? this._options.whitelistedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					wsPort: peer.wsPort,
+					port: peer.wsPort,
 			  }))
 			: [];
 
 		const p2pConfig: liskP2P.p2pTypes.P2PConfig = {
+			port: this._options.wsPort,
 			nodeInfo: initialNodeInfo,
 			hostIp: this._options.hostIp,
 			blacklistedIPs,
@@ -178,7 +180,7 @@ export class Network {
 			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
-				wsPort: peer.wsPort,
+				port: peer.wsPort,
 			})),
 			previousPeers,
 			maxOutboundConnections: this._options.maxOutboundConnections,
