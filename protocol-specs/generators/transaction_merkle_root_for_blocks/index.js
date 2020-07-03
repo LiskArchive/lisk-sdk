@@ -51,7 +51,7 @@ const merkleRoot = transactionIds => {
 };
 
 const generateTransactionMerkleRoot = () =>
-	[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 150, 300].map(count => {
+	[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 150, 300, 1000].map(count => {
 		const transactionIds = getRandomTransactionIds(count);
 		const ids = transactionIds.map(t => bufferToHex(t));
 		const transactionMerkleRoot = merkleRoot(transactionIds);
