@@ -29,6 +29,7 @@ describe('peerServer', () => {
 		networkVersion: '1.1',
 		nonce: 'nonce',
 		advertiseAddress: true,
+		options: {},
 	};
 
 	const peerBookConfig: PeerBookConfig = {

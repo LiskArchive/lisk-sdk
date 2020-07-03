@@ -220,6 +220,7 @@ describe('Network discovery', () => {
 					networkVersion: '9.9',
 					nonce: '404',
 					advertiseAddress: true,
+					options: {},
 				},
 			});
 			await disconnectedNode.start();

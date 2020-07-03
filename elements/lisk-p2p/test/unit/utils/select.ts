@@ -30,6 +30,7 @@ describe('peer selector', () => {
 		networkVersion: '1.1',
 		nonce: 'nonce',
 		advertiseAddress: true,
+		options: {},
 	};
 
 	describe('#selectPeersForRequest', () => {
@@ -390,6 +391,7 @@ describe('peer selector', () => {
 						nonce: 'nonce',
 						networkId: 'networkId',
 						networkVersion: '1.1',
+						options: {},
 					},
 					internalState: {
 						reputation: 10 + i,
@@ -404,6 +406,7 @@ describe('peer selector', () => {
 						nonce: 'nonce',
 						networkId: 'networkId',
 						networkVersion: '1.1',
+						options: {},
 					},
 					internalState: {
 						reputation: 10 + i,

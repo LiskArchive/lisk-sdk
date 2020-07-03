@@ -55,7 +55,7 @@ export interface P2PSharedState {
 	readonly networkVersion: string;
 	readonly nonce: string;
 	// These values can be modified when the node is running
-	options?: UnknownKVPair;
+	options: UnknownKVPair;
 }
 // Disable readonly properties as its going to change
 export interface P2PInternalState {

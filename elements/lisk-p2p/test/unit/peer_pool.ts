@@ -120,6 +120,7 @@ describe('peerPool', () => {
 				networkVersion: '1.0.1',
 				networkId: 'abc',
 				nonce: 'nonce',
+				options: {},
 			},
 		};
 		nodeInfo = {
@@ -127,6 +128,7 @@ describe('peerPool', () => {
 			networkId: 'abc',
 			nonce: 'nonce',
 			advertiseAddress: true,
+			options: {},
 		};
 		requestPacket = { procedure: 'abc', data: 'abc' };
 		messagePacket = { ...requestPacket, event: 'abc' };
