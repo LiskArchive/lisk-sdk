@@ -59,7 +59,7 @@ describe('MerkleTree', () => {
 						Buffer.from(hexString, 'hex'),
 					);
 					const merkleTree = new MerkleTree(inputs);
-					const nodes = (merkleTree as any)._getData();
+					const nodes = merkleTree.getData();
 					const queryData = nodes
 						.sort(() => 0.5 - Math.random())
 						.slice(0, Math.floor(Math.random() * nodes.length + 1))
@@ -79,7 +79,7 @@ describe('MerkleTree', () => {
 						Buffer.from(hexString, 'hex'),
 					);
 					const merkleTree = new MerkleTree(inputs);
-					const nodes = (merkleTree as any)._getData();
+					const nodes = merkleTree.getData();
 					const randomizedQueryCount = Math.floor(
 						Math.random() * nodes.length + 1,
 					);
