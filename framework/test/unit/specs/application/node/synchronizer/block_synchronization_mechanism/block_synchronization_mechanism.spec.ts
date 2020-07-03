@@ -458,7 +458,7 @@ describe('block_synchronization_mechanism', () => {
 						.mockReturnValue(
 							peersList.connectedPeers.map(peer => {
 								const incompatiblePeer: any = cloneDeep(peer);
-								delete incompatiblePeer[requiredProp];
+								delete incompatiblePeer.options[requiredProp];
 								return incompatiblePeer;
 							}) as never,
 						);
@@ -508,8 +508,11 @@ describe('block_synchronization_mechanism', () => {
 					.mockReturnValue([
 						...peersList.expectedSelection.map(peer => ({
 							...peer,
-							height: 0,
-							maxHeightPrevoted: 0,
+							options: {
+								...peer.options,
+								height: 0,
+								maxHeightPrevoted: 0,
+							},
 						})),
 					] as never);
 
