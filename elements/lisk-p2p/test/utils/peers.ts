@@ -31,6 +31,15 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			networkVersion: '1.1',
 			nonce: 'nonce',
 			networkId: 'networkId',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				11,
+			),
 		},
 	};
 
@@ -42,6 +51,15 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			nonce: 'nonce',
 			networkId: 'networkId',
 			networkVersion: '1.1',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				22,
+			),
 		},
 	};
 
@@ -53,6 +71,15 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			nonce: 'nonce',
 			networkId: 'networkId',
 			networkVersion: '1.1',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				33,
+			),
 		},
 	};
 
@@ -64,6 +91,15 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			nonce: 'nonce',
 			networkId: 'networkId',
 			networkVersion: '1.1',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				44,
+			),
 		},
 	};
 
@@ -75,6 +111,15 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 			nonce: 'nonce',
 			networkId: 'networkId',
 			networkVersion: '1.1',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				55,
+			),
 		},
 	};
 

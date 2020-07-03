@@ -23,7 +23,13 @@ describe('utils/sanitize', () => {
 		describe('when rawPeerInfo is valid', () => {
 			it('should return the peerInfo with peerId', () => {
 				const samplePeers = initPeerInfoList();
-				const { ipAddress, port, sharedState } = samplePeers[0];
+				const { ipAddress, port, sharedState, peerId } = samplePeers[0];
+				const samplePeerWithoutInternalState = {
+					ipAddress,
+					port,
+					sharedState,
+					peerId,
+				};
 				const protocolPeerInfo = {
 					ipAddress,
 					port,
@@ -31,7 +37,7 @@ describe('utils/sanitize', () => {
 				};
 
 				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
-					samplePeers[0],
+					samplePeerWithoutInternalState,
 				);
 			});
 		});
@@ -64,7 +70,13 @@ describe('utils/sanitize', () => {
 
 		it('should remove ', () => {
 			const samplePeers = initPeerInfoList();
-			const { ipAddress, port, sharedState } = samplePeers[0];
+			const { ipAddress, port, sharedState, peerId } = samplePeers[0];
+			const samplePeerWithoutInternalState = {
+				ipAddress,
+				port,
+				sharedState,
+				peerId,
+			};
 			const protocolPeerInfo = {
 				ipAddress,
 				port,
@@ -72,7 +84,7 @@ describe('utils/sanitize', () => {
 			};
 
 			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
-				samplePeers[0],
+				samplePeerWithoutInternalState,
 			);
 		});
 	});

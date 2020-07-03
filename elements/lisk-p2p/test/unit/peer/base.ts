@@ -410,9 +410,7 @@ describe('peer/base', () => {
 						sourceAddress: '12.12.12.12',
 						port: 1111,
 						sharedState: {
-							height: 0,
 							networkId: '',
-							os: '',
 							nonce: '',
 							networkVersion: '',
 						},
@@ -423,9 +421,7 @@ describe('peer/base', () => {
 						sourceAddress: '12.12.12.12',
 						port: 2222,
 						sharedState: {
-							height: 0,
 							networkId: '',
-							os: '',
 							nonce: '',
 							networkVersion: '',
 						},
@@ -695,12 +691,10 @@ describe('peer/base', () => {
 						ipAddress: defaultPeerInfo.ipAddress,
 						port: defaultPeerInfo.port,
 						sharedState: {
-							height: 0,
+							advertiseAddress: false,
 							networkVersion: '1.2',
 							networkId: 'networkId',
-							advertiseAddress: false,
 							nonce: '',
-							os: '',
 						},
 					};
 
@@ -724,7 +718,6 @@ describe('peer/base', () => {
 				it('should return fetched peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(peerInfo.sharedState).toMatchObject({
-						height: 0,
 						networkId: 'networkId',
 						networkVersion: '1.2',
 					});

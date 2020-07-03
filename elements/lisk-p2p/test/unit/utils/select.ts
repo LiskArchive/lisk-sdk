@@ -120,23 +120,17 @@ describe('peer selector', () => {
 				).toHaveLength(3));
 		});
 
-		describe('peers with lower blockheight', () => {
+		describe('peers with lower reputation', () => {
 			beforeEach(() => {
 				peerList = initPeerInfoList();
 			});
-			const lowHeightPeers = peerList.filter(
-				peer =>
-					peer.sharedState &&
-					(peer.sharedState.options?.height as number) <
-						(nodeInfo.options?.height as number),
-			);
 
 			it('should return an array with 1 good peer', () => {
 				return expect(
 					selectPeersForRequest({
-						peers: lowHeightPeers,
+						peers: peerList,
 						nodeInfo,
-						peerLimit: 2,
+						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
 				).toHaveLength(1);
@@ -384,7 +378,7 @@ describe('peer selector', () => {
 			});
 		});
 
-		describe('when there are multiple peer from same IP with different height', () => {
+		describe('when there are multiple peer from same IP with different reputation', () => {
 			it('should return only unique IPs', () => {
 				const uniqIpAddresses: Array<string> = [];
 
@@ -393,11 +387,13 @@ describe('peer selector', () => {
 					ipAddress: '205.120.0.20',
 					port: 10001 + i,
 					sharedState: {
-						options: { height: 10001 + i },
 						nonce: 'nonce',
 						networkId: 'networkId',
 						networkVersion: '1.1',
 					},
+					internalState: {
+						reputation: 10 + i,
+					} as any,
 				}));
 
 				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
@@ -405,11 +401,13 @@ describe('peer selector', () => {
 					ipAddress: '205.120.0.20',
 					port: 5000 + i,
 					sharedState: {
-						options: { height: 5000 + i },
 						nonce: 'nonce',
 						networkId: 'networkId',
 						networkVersion: '1.1',
 					},
+					internalState: {
+						reputation: 10 + i,
+					} as any,
 				}));
 
 				triedPeers.push(peerList[0]);

@@ -60,6 +60,15 @@ describe('peer/outbound', () => {
 				nodeInfo: nodeInfoSchema,
 				peerInfo: peerInfoSchema,
 			},
+			serverNodeInfo: {
+				advertiseAddress: true,
+				networkId: 'networkId',
+				networkVersion: '1.1',
+				nonce: 'nonce',
+				options: {
+					height: 1,
+				},
+			},
 		};
 		// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 		outboundSocket = <SCClientSocket>({
@@ -198,7 +207,8 @@ describe('peer/outbound', () => {
 				const clientOptions = {
 					hostname: defaultOutboundPeer.ipAddress,
 					port: defaultOutboundPeer.port,
-					query: 'options=',
+					query:
+						'advertiseAddress=true&networkId=networkId&networkVersion=1.1&nonce=nonce&port=5000&options=%7B%22height%22%3A1%7D',
 					path: DEFAULT_HTTP_PATH,
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,
