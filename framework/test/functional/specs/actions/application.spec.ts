@@ -59,13 +59,13 @@ describe('Application related actions', () => {
 
 			const expectedFrameworkSchemas = {
 				account: accountSchema,
-				baseBlockHeader: blockSchema,
-				blockHeaders: {
+				blockHeader: blockSchema,
+				blockHeadersAssets: {
 					0: BlockProcessorV0.schema,
 					2: BlockProcessorV2.schema,
 				},
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
-				transactions: {
+				transactionsAssets: {
 					[TransferTransaction.TYPE]: TransferTransaction.ASSET_SCHEMA,
 					[DelegateTransaction.TYPE]: DelegateTransaction.ASSET_SCHEMA,
 					[VoteTransaction.TYPE]: VoteTransaction.ASSET_SCHEMA,

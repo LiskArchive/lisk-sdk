@@ -482,13 +482,13 @@ export class Node {
 				),
 			getSchema: () => ({
 				account: this._chain.accountSchema,
-				baseBlockHeader: blockSchema,
-				blockHeaders: {
+				blockHeader: blockSchema,
+				blockHeadersAssets: {
 					0: BlockProcessorV0.schema,
 					2: BlockProcessorV2.schema,
 				},
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
-				transactions: this._getRegisteredTransactionSchemas(),
+				transactionsAssets: this._getRegisteredTransactionSchemas(),
 			}),
 		};
 	}
