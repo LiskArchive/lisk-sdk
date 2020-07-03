@@ -36,9 +36,10 @@ const _loadModule = async (
 		moduleAlias,
 		module.events,
 		module.actions,
+		{ socketsPath: config.socketsPath },
 	);
 
-	await channel.registerToBus(config.socketsPath);
+	await channel.registerToBus();
 
 	channel.publish(`${moduleAlias}:registeredToBus`);
 	channel.publish(`${moduleAlias}:loading:started`);

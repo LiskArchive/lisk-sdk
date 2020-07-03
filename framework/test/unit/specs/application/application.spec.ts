@@ -15,6 +15,8 @@
 
 import * as fs from 'fs-extra';
 import * as os from 'os';
+import { join } from 'path';
+
 import {
 	BaseTransaction as Base,
 	TransferTransaction,
@@ -414,6 +416,40 @@ describe('Application', () => {
 				`${dirs.pids}/controller.pid`,
 				expect.toBeNumber(),
 			);
+		});
+	});
+
+	describe('#_emptySocketsDirectory', () => {
+		let app: Application;
+		const fakeSocketFiles = ['1.sock' as any, '2.sock' as any];
+
+		beforeEach(async () => {
+			app = new Application(genesisBlock as GenesisBlockJSON, config);
+			try {
+				await app.run();
+			} catch (error) {
+				// Expected error
+			}
+			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
+		});
+
+		it('should delete all files in ~/.lisk/tmp/sockets', () => {
+			const { sockets: socketsPath } = systemDirs(
+				app.config.label,
+				app.config.rootPath,
+			);
+
+			// Arrange
+			const spy = jest.spyOn(fs, 'unlink').mockReturnValue(Promise.resolve());
+			(app as any)._emptySocketsDirectory();
+
+			// Assert
+			for (const aSocketFile of fakeSocketFiles) {
+				expect(spy).toHaveBeenCalledWith(
+					join(socketsPath, aSocketFile),
+					expect.anything(),
+				);
+			}
 		});
 	});
 });

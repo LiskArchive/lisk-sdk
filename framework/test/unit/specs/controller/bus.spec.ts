@@ -24,10 +24,12 @@ import { Bus } from '../../../../src/controller/bus';
 import { Action, ActionInfoObject } from '../../../../src/controller/action';
 
 describe('Bus', () => {
-	const options = {};
 	const config: any = {
 		ipc: {
 			enabled: false,
+		},
+		socketsPath: {
+			root: '',
 		},
 	};
 
@@ -44,7 +46,7 @@ describe('Bus', () => {
 	let bus: Bus;
 
 	beforeEach(() => {
-		bus = new Bus(options, logger, config);
+		bus = new Bus(logger, config);
 	});
 
 	describe('#constructor', () => {

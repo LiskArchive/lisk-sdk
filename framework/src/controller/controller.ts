@@ -17,12 +17,13 @@ import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import { systemDirs } from '../application/system_dirs';
-import { InMemoryChannel } from './channels';
+import { InMemoryChannel } from './channels/in_memory_channel';
 import { Bus } from './bus';
 import { Logger } from '../application/logger';
 import { SocketPaths } from './types';
 import { PluginsOptions, PluginOptions } from '../types';
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
+import { EventInfoObject } from './event';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -89,7 +90,7 @@ export class Controller {
 		[key: string]: BasePlugin;
 	};
 	public childrenList: Array<ChildProcess>;
-	public bus: Bus | undefined;
+	public bus!: Bus;
 
 	public constructor(options: ControllerOptions) {
 		this.logger = options.logger;
@@ -126,8 +127,8 @@ export class Controller {
 		await this._setupBus();
 		await this._loadPlugins(plugins, pluginOptions);
 
-		this.logger.debug(this.bus?.getEvents(), 'Bus listening to events');
-		this.logger.debug(this.bus?.getActions(), 'Bus ready for actions');
+		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
+		this.logger.debug(this.bus.getActions(), 'Bus ready for actions');
 	}
 
 	public async unloadPlugins(
@@ -151,7 +152,7 @@ export class Controller {
 		this.childrenList.forEach(child => child.kill());
 
 		try {
-			await this.bus?.cleanup();
+			await this.bus.cleanup();
 			await this.unloadPlugins();
 			this.logger.info('Unload completed');
 		} catch (err) {
@@ -160,15 +161,7 @@ export class Controller {
 	}
 
 	private async _setupBus(): Promise<void> {
-		this.bus = new Bus(
-			{
-				wildcard: true,
-				delimiter: ':',
-				maxListeners: 1000,
-			},
-			this.logger,
-			this.config,
-		);
+		this.bus = new Bus(this.logger, this.config);
 
 		await this.bus.setup();
 
@@ -176,11 +169,8 @@ export class Controller {
 
 		// If log level is greater than info
 		if (this.logger.level !== undefined && this.logger.level() < 30) {
-			this.bus.onAny(event => {
-				this.logger.trace(
-					`eventName: ${event as string},`,
-					'Monitor Bus Channel',
-				);
+			this.bus.subscribe('*', (event: EventInfoObject) => {
+				this.logger.trace(`eventName: ${event.name},`, 'Monitor Bus Channel');
 			});
 		}
 	}
@@ -231,7 +221,7 @@ export class Controller {
 			plugin.actions,
 		);
 
-		await channel.registerToBus(this.bus as Bus);
+		await channel.registerToBus(this.bus);
 
 		channel.publish(`${pluginAlias}:registeredToBus`);
 		channel.publish(`${pluginAlias}:loading:started`);

@@ -12,21 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
-import { InMemoryChannel } from '../../../../src/controller/channels';
+
+import { resolve as pathResolve } from 'path';
+import {
+	ChildProcessChannel,
+	InMemoryChannel,
+} from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
-
-const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
 const logger: any = {
 	info: jest.fn(),
 };
 
+const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
+
 const config: any = {
 	ipc: {
-		enabled: false,
+		enabled: true,
 	},
 	socketsPath: {
 		root: socketsDir,
@@ -62,30 +66,40 @@ const beta = {
 		},
 	},
 };
-
-describe('InMemoryChannel', () => {
+/* eslint-disable jest/no-disabled-tests */
+describe.skip('ChildProcessChannel', () => {
 	describe('after registering itself to the bus', () => {
-		let inMemoryChannelAlpha: InMemoryChannel;
-		let inMemoryChannelBeta: InMemoryChannel;
+		let alphaChannel: ChildProcessChannel;
+		let betaChannel: ChildProcessChannel;
 		let bus: Bus;
 
-		beforeEach(async () => {
+		beforeAll(async () => {
 			// Arrange
 			bus = new Bus(logger, config);
 
-			inMemoryChannelAlpha = new InMemoryChannel(
+			alphaChannel = new ChildProcessChannel(
 				alpha.moduleAlias,
 				alpha.events,
 				alpha.actions,
+				config,
 			);
-			await inMemoryChannelAlpha.registerToBus(bus);
 
-			inMemoryChannelBeta = new InMemoryChannel(
+			betaChannel = new ChildProcessChannel(
 				beta.moduleAlias,
 				beta.events,
 				beta.actions,
+				config,
 			);
-			await inMemoryChannelBeta.registerToBus(bus);
+
+			await bus.setup();
+			await alphaChannel.registerToBus();
+			await betaChannel.registerToBus();
+		});
+
+		afterAll(async () => {
+			alphaChannel.cleanup();
+			betaChannel.cleanup();
+			await bus.cleanup();
 		});
 
 		describe('#subscribe', () => {
@@ -96,20 +110,14 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.subscribe(
-						`${beta.moduleAlias}:${eventName}`,
-						data => {
-							// Assert
-							expect(Event.deserialize(data).data).toBe(betaEventData);
-							resolve();
-						},
-					);
+					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
+						// Assert
+						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						resolve();
+					});
 				});
 
-				inMemoryChannelBeta.publish(
-					`${beta.moduleAlias}:${eventName}`,
-					betaEventData,
-				);
+				betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -120,20 +128,14 @@ describe('InMemoryChannel', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.once(
-						`${beta.moduleAlias}:${eventName}`,
-						data => {
-							// Assert
-							expect(Event.deserialize(data).data).toBe(betaEventData);
-							resolve();
-						},
-					);
+					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
+						// Assert
+						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						resolve();
+					});
 				});
 
-				inMemoryChannelBeta.publish(
-					`${beta.moduleAlias}:${eventName}`,
-					betaEventData,
-				);
+				betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -151,14 +153,11 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.subscribe(
-						`${omegaAlias}:${omegaEventName}`,
-						data => {
-							// Assert
-							expect(Event.deserialize(data).data).toBe(dummyData);
-							resolve();
-						},
-					);
+					alphaChannel.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
+						// Assert
+						expect(Event.deserialize(data).data).toEqual(dummyData);
+						resolve();
+					});
 				});
 
 				await inMemoryChannelOmega.registerToBus(bus);
@@ -180,17 +179,14 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(done => {
 					// Act
-					inMemoryChannelBeta.once(
-						`${alpha.moduleAlias}:${eventName}`,
-						data => {
-							// Assert
-							expect(Event.deserialize(data).data).toBe(alphaEventData);
-							done();
-						},
-					);
+					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
+						// Assert
+						expect(Event.deserialize(data).data).toEqual(alphaEventData);
+						done();
+					});
 				});
 
-				inMemoryChannelAlpha.publish(
+				alphaChannel.publish(
 					`${alpha.moduleAlias}:${eventName}`,
 					alphaEventData,
 				);
@@ -203,37 +199,31 @@ describe('InMemoryChannel', () => {
 			it('should be able to invoke its own actions.', async () => {
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(
-						`${alpha.moduleAlias}:multiplyByTwo`,
-						{ val: 2 },
-					),
+					alphaChannel.invoke<number>(`${alpha.moduleAlias}:multiplyByTwo`, {
+						val: 2,
+					}),
 				).resolves.toBe(4);
 
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(
-						`${alpha.moduleAlias}:multiplyByThree`,
-						{
-							val: 4,
-						},
-					),
+					alphaChannel.invoke<number>(`${alpha.moduleAlias}:multiplyByThree`, {
+						val: 4,
+					}),
 				).resolves.toBe(12);
 			});
 
 			it("should be able to invoke other channels' actions.", async () => {
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(
-						`${beta.moduleAlias}:divideByTwo`,
-						{ val: 4 },
-					),
-				).resolves.toBe(2);
+					alphaChannel.invoke<number>(`${beta.moduleAlias}:divideByTwo`, {
+						val: 4,
+					}),
+				).resolves.toEqual(2);
 
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(
-						`${beta.moduleAlias}:divideByThree`,
-						{ val: 9 },
-					),
-				).resolves.toBe(3);
+					alphaChannel.invoke<number>(`${beta.moduleAlias}:divideByThree`, {
+						val: 9,
+					}),
+				).resolves.toEqual(3);
 			});
 
 			it('should throw error when trying to invoke an invalid action.', async () => {
@@ -242,9 +232,7 @@ describe('InMemoryChannel', () => {
 
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke(
-						`${beta.moduleAlias}:${invalidActionName}`,
-					),
+					alphaChannel.invoke(`${beta.moduleAlias}:${invalidActionName}`),
 				).rejects.toThrow(
 					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name.`,
 				);
