@@ -58,6 +58,7 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	RPCSchemas,
+	P2PSharedState,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -543,7 +544,11 @@ export class Peer extends EventEmitter {
 				this._rpcSchemas.nodeInfo,
 				Buffer.from(message.data as string, 'base64'),
 			);
-			this._updateFromProtocolPeerInfo(decodedNodeInfo);
+			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
+				this._handlePostNodeInfoEvent(decodedNodeInfo);
+			} else {
+				this._updateFromProtocolPeerInfo(decodedNodeInfo);
+			}
 		} catch (error) {
 			// Apply penalty for malformed PeerInfo update
 			if (error instanceof InvalidPeerInfoError) {
@@ -555,6 +560,28 @@ export class Peer extends EventEmitter {
 			return;
 		}
 		this.emit(EVENT_UPDATED_PEER_INFO, this.peerInfo);
+	}
+
+	private _handlePostNodeInfoEvent(receivedNodeInfo: unknown): void {
+		// Sanitize and validate PeerInfo
+		const peerInfo = validatePeerInfo(
+			sanitizeIncomingPeerInfo({
+				...(receivedNodeInfo as object),
+				ipAddress: this.ipAddress,
+				port: this.port,
+			}),
+			this._peerConfig.maxPeerInfoSize,
+		);
+
+		const { sharedState } = peerInfo;
+		// Only update options property
+		this._peerInfo = {
+			...this._peerInfo,
+			sharedState: {
+				...this._peerInfo.sharedState,
+				options: { ...sharedState?.options },
+			} as P2PSharedState,
+		};
 	}
 
 	private _banPeer(): void {
