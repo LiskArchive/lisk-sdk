@@ -73,6 +73,7 @@ describe('peerPool', () => {
 	};
 
 	const peerPoolConfig = {
+		hostPort: 5000,
 		connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 		ackTimeout: DEFAULT_ACK_TIMEOUT,
 		peerSelectionForConnection: selectPeersForConnection,
@@ -116,19 +117,14 @@ describe('peerPool', () => {
 			port: 5000,
 			peerId: constructPeerId('127.0.0.1', 5000),
 			sharedState: {
-				height: 1,
-				updatedAt: new Date(),
-				version: '1.0.1',
 				networkVersion: '1.0.1',
+				networkId: 'abc',
+				nonce: 'nonce',
 			},
 		};
 		nodeInfo = {
-			os: 'darwin',
-			version: '1.1',
 			networkVersion: '1.0.1',
 			networkId: 'abc',
-			port: 5000,
-			height: 1000,
 			nonce: 'nonce',
 			advertiseAddress: true,
 		};
@@ -175,6 +171,7 @@ describe('peerPool', () => {
 		it('should have a _peerConfig property which is set to the value specified in the constructor', () => {
 			const actualConfig = { ...(peerPool as any)._peerConfig };
 			const expectedConfig = {
+				hostPort: 5000,
 				connectTimeout: peerPoolConfig.connectTimeout,
 				ackTimeout: peerPoolConfig.ackTimeout,
 				wsMaxMessageRate: peerPoolConfig.wsMaxMessageRate,
