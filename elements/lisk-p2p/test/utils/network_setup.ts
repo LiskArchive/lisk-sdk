@@ -81,6 +81,7 @@ export const createNetwork = async ({
 			: { nodeInfo: {} };
 
 		const p2pConfig = {
+			port: nodePort,
 			connectTimeout: DEFAULT_CONNECTION_TIMEOUT,
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
@@ -92,14 +93,10 @@ export const createNetwork = async ({
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
 			nodeInfo: {
-				port: nodePort,
 				networkId: nodeInfoConstants.networkId,
-				version: nodeInfoConstants.version,
 				networkVersion: nodeInfoConstants.networkVersion,
-				minVersion: nodeInfoConstants.minVersion,
-				os: nodeInfoConstants.os,
-				height: nodeInfoConstants.height,
 				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
+				options: {},
 				...customNodeInfo,
 			},
 			...customConfigObject,
