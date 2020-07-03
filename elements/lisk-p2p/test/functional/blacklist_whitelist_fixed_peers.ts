@@ -102,7 +102,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				previousPeers: previousPeersBlacklisted,
 			});
 
-			p2pNodeList = await createNetwork({ customConfig });
+			p2pNodeList = await createNetwork({ customConfig, networkSize: 4 });
 		});
 
 		afterEach(async () => {

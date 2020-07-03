@@ -38,6 +38,7 @@ describe('Advertise Address', () => {
 		maxInboundConnections: 100,
 		port,
 		nodeInfo: {
+			options: {},
 			...nodeInfoConstants,
 			advertiseAddress,
 		},

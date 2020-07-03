@@ -161,6 +161,7 @@ describe('Custom peer selection', () => {
 
 		p2pNodeList = await createNetwork({
 			customConfig,
+			networkSize: 4,
 		});
 	});
 

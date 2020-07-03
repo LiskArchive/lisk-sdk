@@ -24,7 +24,7 @@ describe('Cleanup unresponsive peers', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork();
+		p2pNodeList = await createNetwork({ networkSize: 4 });
 	});
 
 	afterEach(async () => {

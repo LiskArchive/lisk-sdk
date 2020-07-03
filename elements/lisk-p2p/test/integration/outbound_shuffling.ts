@@ -38,6 +38,7 @@ describe('Outbound peer shuffling', () => {
 		p2pNodeList = await createNetwork({
 			customConfig,
 			networkDiscoveryWaitTime: 1,
+			networkSize: 4,
 		});
 
 		p2pNodeList.forEach(p2p => {
