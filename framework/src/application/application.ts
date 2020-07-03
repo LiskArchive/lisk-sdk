@@ -176,7 +176,9 @@ export class Application {
 
 	public registerPlugin(
 		pluginKlass: typeof BasePlugin,
-		options = {},
+		options: { [key: string]: any; loadAsChildProcess: boolean } = {
+			loadAsChildProcess: false,
+		},
 		alias?: string,
 	): void {
 		assert(pluginKlass, 'ModuleSpec is required');
@@ -199,7 +201,7 @@ export class Application {
 		this._plugins[pluginAlias] = pluginKlass as InstantiablePlugin<BasePlugin>;
 	}
 
-	public overrideModuleOptions(alias: string, options?: object): void {
+	public overridePluginOptions(alias: string, options?: object): void {
 		const plugins = this.getPlugins();
 		assert(
 			Object.keys(plugins).includes(alias),
@@ -343,26 +345,21 @@ export class Application {
 			this.config.genesisConfig.communityIdentifier,
 		).toString('base64');
 
+		// TODO: Check which config and options are actually required to avoid sending large data
 		const appConfigToShareWithModules = {
 			version: this.config.version,
 			protocolVersion: this.config.protocolVersion,
 			networkId: this.config.networkId,
-			genesisBlock: this._genesisBlock,
+			// TODO: Analyze if we need to provide genesis block as options to plugins
+			//  If yes then we should encode it to json with the issue https://github.com/LiskHQ/lisk-sdk/issues/5513
+			// genesisBlock: this._genesisBlock,
 			constants: this.constants,
 			lastCommitId: this.config.lastCommitId,
 			buildVersion: this.config.buildVersion,
 		};
 
-		// TODO: move this configuration to plugin specific config file
-		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
-			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: [];
-
 		Object.keys(plugins).forEach(alias => {
-			this.overrideModuleOptions(alias, {
-				loadAsChildProcess: childProcessModules.includes(alias),
-			});
-			this.overrideModuleOptions(alias, appConfigToShareWithModules);
+			this.overridePluginOptions(alias, appConfigToShareWithModules);
 		});
 	}
 
