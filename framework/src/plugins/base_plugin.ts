@@ -34,6 +34,7 @@ export interface InstantiablePlugin<T, U = object> {
 
 export abstract class BasePlugin {
 	public readonly options: object;
+	public schemas!: object;
 
 	protected constructor(options: object) {
 		this.options = options;
@@ -54,6 +55,9 @@ export abstract class BasePlugin {
 	}
 	public abstract get events(): EventsArray;
 	public abstract get actions(): ActionsDefinition;
-	public abstract async load(channel: BaseChannel): Promise<void>;
+
+	public async load(channel: BaseChannel): Promise<void> {
+		this.schemas = await channel.invoke('app:getSchema');
+	}
 	public abstract async unload(): Promise<void>;
 }
