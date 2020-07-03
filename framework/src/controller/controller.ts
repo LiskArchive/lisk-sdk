@@ -16,6 +16,7 @@ import * as path from 'path';
 import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
+import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { systemDirs } from '../application/system_dirs';
 import { InMemoryChannel } from './channels/in_memory_channel';
 import { Bus } from './bus';
@@ -251,15 +252,9 @@ export class Controller {
 			'Loading plugin as child process',
 		);
 
-		const pluginPath = path.resolve(
-			__dirname,
-			'../plugins',
-			alias.replace(/([A-Z])/g, $1 => `_${$1.toLowerCase()}`),
-		);
-
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [pluginPath];
+		const parameters = [Klass.info.name, Klass.name];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions: { execArgv: string[] | undefined } = {
@@ -275,13 +270,23 @@ export class Controller {
 			];
 		}
 
+		// TODO: Analyze if we need to provide genesis block as options to plugins
+		//  If yes then we should encode it to json with the issue https://github.com/LiskHQ/lisk-sdk/issues/5513
+		const pluginOptions: Partial<PluginOptions> = objectsUtils.cloneDeep(
+			options,
+		);
+		delete pluginOptions.genesisBlock;
+
+		// TODO: Check which config and options are actually required to avoid sending large data
+		const { config } = this;
+
 		const child = childProcess.fork(program, parameters, forkedProcessOptions);
 
 		// TODO: Check which config and options are actually required to avoid sending large data
 		child.send({
 			loadPlugin: true,
-			config: this.config,
-			pluginOptions: options,
+			config,
+			pluginOptions,
 		});
 
 		this.childrenList.push(child);
