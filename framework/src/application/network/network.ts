@@ -50,6 +50,9 @@ const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
+interface State {
+	[key: string]: number | string | object | boolean;
+}
 interface NetworkConstructor {
 	readonly options: NetworkConfig;
 	readonly channel: InMemoryChannel;
@@ -139,29 +142,38 @@ export class Network {
 		} else {
 			this._secret = Number(secret);
 		}
+		const extractNodeInfoParams = (
+			state: State,
+		): liskP2P.p2pTypes.P2PNodeInfo => {
+			const {
+				networkId,
+				protocolVersion,
+				advertiseAddress,
+				os,
+				version,
+				wsPort,
+				...options
+			} = state;
 
+			const nodeInfo = {
+				networkId,
+				networkVersion: protocolVersion,
+				advertiseAddress,
+				options: { ...options },
+			};
+
+			return nodeInfo as liskP2P.p2pTypes.P2PNodeInfo;
+		};
 		const sanitizeNodeInfo = (
 			nodeInfo: liskP2P.p2pTypes.P2PNodeInfo,
 		): liskP2P.p2pTypes.P2PNodeInfo => ({
 			...nodeInfo,
 			advertiseAddress: this._options.advertiseAddress ?? true,
 		});
-		const {
-			networkId,
-			protocolVersion,
-			advertiseAddress,
-			os,
-			version,
-			wsPort,
-			...options
-		} = this._applicationState.state;
 
-		const initialNodeInfo = sanitizeNodeInfo({
-			networkId: networkId as string,
-			networkVersion: protocolVersion as string,
-			advertiseAddress: (advertiseAddress as unknown) as boolean,
-			options: { ...options },
-		} as liskP2P.p2pTypes.P2PNodeInfo);
+		const initialNodeInfo = sanitizeNodeInfo(
+			extractNodeInfoParams(this._applicationState.state),
+		);
 
 		const seedPeers = await lookupPeersIPs(this._options.seedPeers, true);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -214,8 +226,9 @@ export class Network {
 
 		this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
 			const newNodeInfo = sanitizeNodeInfo(
-				event.data as liskP2P.p2pTypes.P2PNodeInfo,
+				extractNodeInfoParams(event.data as State),
 			);
+
 			try {
 				this._p2p.applyNodeInfo(newNodeInfo);
 			} catch (error) {
