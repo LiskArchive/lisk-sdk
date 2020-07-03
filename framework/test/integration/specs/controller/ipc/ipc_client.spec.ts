@@ -18,8 +18,8 @@ import { IPCServer } from '../../../../../src/controller/ipc/ipc_server';
 import { IPCClient } from '../../../../../src/controller/ipc/ipc_client';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
-
-describe('IPCClient', () => {
+/* eslint-disable jest/no-disabled-tests */
+describe.skip('IPCClient', () => {
 	let server: IPCServer;
 	let client: IPCClient;
 
