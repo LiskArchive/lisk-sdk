@@ -28,6 +28,10 @@ export const customNodeInfoSchema = {
 			dataType: 'uint32',
 			fieldNumber: 3,
 		},
+		lastBlockId: {
+			dataType: 'uint32',
+			fieldNumber: 4,
+		},
 	},
 };
 
@@ -46,6 +50,10 @@ export const customPeerInfoSchema = {
 		blockVersion: {
 			dataType: 'uint32',
 			fieldNumber: 3,
+		},
+		lastBlockId: {
+			dataType: 'uint32',
+			fieldNumber: 4,
 		},
 	},
 };
