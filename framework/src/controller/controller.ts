@@ -251,15 +251,9 @@ export class Controller {
 			'Loading plugin as child process',
 		);
 
-		const pluginPath = path.resolve(
-			__dirname,
-			'../plugins',
-			alias.replace(/([A-Z])/g, $1 => `_${$1.toLowerCase()}`),
-		);
-
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [pluginPath];
+		const parameters = [Klass.info.name, Klass.name];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions: { execArgv: string[] | undefined } = {
@@ -277,22 +271,19 @@ export class Controller {
 
 		const child = childProcess.fork(program, parameters, forkedProcessOptions);
 
-		// TODO: Check which config and options are actually required to avoid sending large data
 		child.send({
 			loadPlugin: true,
 			config: this.config,
-			pluginOptions: options,
+			options,
 		});
 
 		this.childrenList.push(child);
 
 		child.on('exit', (code, signal) => {
 			this.logger.error(
-				{ name, version, pluginAlias, code, signal },
+				{ name, version, pluginAlias, code, signal: signal ?? '' },
 				'Child process plugin exited',
 			);
-			// Exits the main process with a failure code
-			process.exit(1);
 		});
 
 		await Promise.race([
