@@ -6,11 +6,13 @@ declare module 'pm2-axon-rpc' {
 	type ServerExposeCallBack = (...args: any[]) => void;
 
 	export class Server {
+		public sock: RepSocket;
 		public constructor(socket: RepSocket);
 		public expose(name: string, cb: ServerExposeCallBack): void;
 	}
 
 	export class Client {
+		public sock: ReqSocket;
 		public constructor(socket: ReqSocket);
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

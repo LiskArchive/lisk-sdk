@@ -135,26 +135,18 @@ describe('Controller Class', () => {
 		describe('_setupBus', () => {
 			it('should set created `Bus` instance to `controller.bus` property.', () => {
 				// Assert
-				expect(Bus).toHaveBeenCalledWith(
-					{
-						wildcard: true,
-						delimiter: ':',
-						maxListeners: 1000,
-					},
-					logger,
-					configController,
-				);
+				expect(Bus).toHaveBeenCalledWith(logger, configController);
 				expect(controller.bus).toBeInstanceOf(Bus);
 			});
 
 			it('should call `controller.bus.setup()` method.', () => {
 				// Assert
-				expect(controller.bus?.setup).toHaveBeenCalled();
+				expect(controller.bus.setup).toHaveBeenCalled();
 			});
 
 			it('should call `controller.channel.registerToBus()` method.', () => {
 				// Assert
-				expect(controller.bus?.setup).toHaveBeenCalled();
+				expect(controller.bus.setup).toHaveBeenCalled();
 			});
 
 			it.todo('should log events if level is greater than info.');

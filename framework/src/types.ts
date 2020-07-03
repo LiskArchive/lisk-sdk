@@ -139,3 +139,9 @@ export interface ApplicationConfig {
 	constants: ApplicationConstants;
 	plugins: PluginsOptions;
 }
+
+export interface ActionInfoForBus {
+	readonly isPublic: boolean;
+	readonly module: string;
+	readonly name: string;
+}

@@ -47,7 +47,7 @@ describe('InMemoryChannel Channel', () => {
 	const logger: any = {};
 	const config: any = {};
 	let inMemoryChannel: InMemoryChannel;
-	const bus: Bus = new Bus({}, logger, config);
+	const bus: Bus = new Bus(logger, config);
 
 	beforeEach(() => {
 		// Act
@@ -82,7 +82,7 @@ describe('InMemoryChannel Channel', () => {
 			// Assert
 			expect(inMemoryChannel['bus']).toBe(bus);
 			expect(
-				inMemoryChannel['bus']?.registerChannel,
+				inMemoryChannel['bus'].registerChannel,
 			).toHaveBeenCalledWith(
 				inMemoryChannel['moduleAlias'],
 				inMemoryChannel.eventsList,
@@ -108,7 +108,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.once(eventName, () => {});
 
 			// Assert
-			expect(inMemoryChannel['bus']?.once).toHaveBeenCalledWith(
+			expect(inMemoryChannel['bus'].once).toHaveBeenCalledWith(
 				event.key(),
 				expect.any(Function),
 			);
@@ -132,7 +132,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.once(eventName, () => {});
 
 			// Assert
-			expect(inMemoryChannel['bus']?.once).toHaveBeenCalledWith(
+			expect(inMemoryChannel['bus'].once).toHaveBeenCalledWith(
 				event.key(),
 				expect.any(Function),
 			);
@@ -168,7 +168,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.publish(eventFullName);
 
 			// Assert
-			expect(inMemoryChannel['bus']?.publish).toHaveBeenCalledWith(
+			expect(inMemoryChannel['bus'].publish).toHaveBeenCalledWith(
 				event.key(),
 				event.serialize(),
 			);
@@ -200,7 +200,7 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.invoke(actionFullName);
 
 			// Assert
-			expect(inMemoryChannel['bus']?.invoke).toHaveBeenCalled();
+			expect(inMemoryChannel['bus'].invoke).toHaveBeenCalled();
 		});
 	});
 });
