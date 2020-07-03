@@ -12,33 +12,78 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-jest.mock('eventemitter2');
-jest.mock('pm2-axon-rpc', () => ({
-	Client: jest.fn(() => ({
-		call: jest.fn(),
-	})),
-	Server: jest.fn(() => ({
-		expose: jest.fn(),
-	})),
-}));
-jest.mock('pm2-axon');
-
-// eslint-disable-next-line import/first
 import { EventEmitter2 } from 'eventemitter2';
-// eslint-disable-next-line import/first
+import { IPCClient } from '../../../../../src/controller/ipc/ipc_client';
 import {
 	ChildProcessChannel,
 	BaseChannel,
 } from '../../../../../src/controller/channels';
-// eslint-disable-next-line import/first
 import { Event } from '../../../../../src/controller/event';
-// eslint-disable-next-line import/first
 import { Action } from '../../../../../src/controller/action';
-// eslint-disable-next-line import/first
-import { rejectWhenTimeout } from '../../../../../src/controller/channels/child_process_channel';
+
+const getMockedCallback = (error: unknown, result: unknown) =>
+	jest.fn().mockImplementation((...args) => {
+		args[args.length - 1](error, result);
+	});
+
+const ipcClientMock = {
+	stop: jest.fn(),
+	start: jest.fn(),
+	rpcClient: {
+		call: getMockedCallback(undefined, true),
+	},
+	rpcServer: {
+		expose: jest.fn().mockImplementation((_name, cb) => {
+			cb(
+				{
+					handler: jest.fn(),
+					isPublic: true,
+					module: 'moduleAlias',
+					name: 'action1',
+				},
+				jest.fn(),
+			);
+		}),
+	},
+	subSocket: {
+		on: getMockedCallback('message', getMockedCallback(undefined, true)),
+	},
+	pubSocket: {
+		send: jest.fn(),
+	},
+};
+
+jest.mock('../../../../../src/controller/ipc/ipc_client', () => {
+	return {
+		IPCClient: jest.fn().mockImplementation(() => {
+			return ipcClientMock;
+		}),
+	};
+});
+
+const emitterMock = {
+	on: jest.fn(),
+	once: jest.fn(),
+	emit: jest.fn(),
+};
+
+jest.mock('eventemitter2', () => {
+	return {
+		EventEmitter2: jest.fn().mockImplementation(() => {
+			return emitterMock;
+		}),
+	};
+});
 
 describe('ChildProcessChannel Channel', () => {
 	// Arrange
+	const socketsPath = {
+		root: 'root',
+		sub: 'sub',
+		pub: 'pub',
+		rpc: 'rpc',
+	};
+
 	const params = {
 		moduleAlias: 'moduleAlias',
 		events: ['event1', 'event2'],
@@ -56,17 +101,30 @@ describe('ChildProcessChannel Channel', () => {
 				isPublic: true,
 			},
 		},
-		options: {},
+		options: {
+			socketsPath,
+		},
 	};
-	const socketsPath = {
-		root: 'root',
-		sub: 'sub',
-		pub: 'pub',
-		rpc: 'rpc',
+
+	const actionsInfo = {
+		action1: {
+			name: 'action1',
+			module: 'moduleAlias',
+			isPublic: true,
+		},
+		action2: {
+			name: 'action2',
+			module: 'moduleAlias',
+			isPublic: true,
+		},
+		action3: {
+			name: 'action3',
+			module: 'moduleAlias',
+			isPublic: true,
+		},
 	};
 
 	let childProcessChannel: ChildProcessChannel;
-	let spies: any;
 
 	beforeEach(() => {
 		childProcessChannel = new ChildProcessChannel(
@@ -75,12 +133,6 @@ describe('ChildProcessChannel Channel', () => {
 			params.actions,
 			params.options,
 		);
-
-		spies = {
-			setupSockets: jest
-				.spyOn(childProcessChannel, 'setupSockets')
-				.mockResolvedValue(),
-		};
 	});
 
 	afterEach(() => {
@@ -97,83 +149,77 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#constructor', () => {
 		it('should create a local bus based on EventEmitter2', () => {
 			// Assert
-			expect(childProcessChannel.localBus).toBeInstanceOf(EventEmitter2);
+			expect(EventEmitter2).toHaveBeenCalledTimes(1);
+			expect(IPCClient).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('#registerToBus', () => {
-		beforeEach(async () => childProcessChannel.registerToBus(socketsPath));
+		beforeEach(async () => childProcessChannel.registerToBus());
 
-		it('should connect pubSocket', () => {
+		it('should start ipc client', () => {
 			// Assert
-			expect(childProcessChannel.pubSocket?.connect).toHaveBeenCalledWith(
-				socketsPath.sub,
+			expect(ipcClientMock.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should invoke "registerChannel" on rpc client', () => {
+			// Assert
+			expect(ipcClientMock.rpcClient.call).toHaveBeenCalledWith(
+				'registerChannel',
+				params.moduleAlias,
+				[
+					...params.events,
+					'registeredToBus',
+					'loading:started',
+					'loading:finished',
+				],
+				actionsInfo,
+				{
+					rpcSocketPath: undefined,
+					type: 'ipcSocket',
+				},
+				expect.any(Function),
 			);
 		});
 
-		it('should connect subSocket', () => {
+		it('should expose "invoke" event on rpcServer', () => {
 			// Assert
-			expect(childProcessChannel.subSocket?.connect).toHaveBeenCalledWith(
-				socketsPath.pub,
-			);
-		});
-
-		it('should connect busRpcSocket', () => {
-			// Assert
-			expect(childProcessChannel.busRpcSocket?.connect).toHaveBeenCalledWith(
-				socketsPath.rpc,
-			);
-		});
-
-		it('should expose "invoke" event on rpcServer and call this.invoke with action', () => {
-			// Assert
-			expect(childProcessChannel.rpcServer?.expose).toHaveBeenCalledWith(
+			expect(ipcClientMock.rpcServer.expose).toHaveBeenCalledWith(
 				'invoke',
 				expect.any(Function),
 			);
 		});
 
-		it('should bind the rpcSocket to rpcSocketPath', () => {
+		it('should expose "invokePublic" event on rpcServer', () => {
 			// Assert
-			expect(childProcessChannel.rpcSocket?.bind).toHaveBeenCalledWith(
-				childProcessChannel.rpcSocketPath,
+			expect(ipcClientMock.rpcServer.expose).toHaveBeenCalledWith(
+				'invokePublic',
+				expect.any(Function),
 			);
 		});
 
-		it('should call setupSockets', () => {
+		it('should register "message" event on subSocket', () => {
 			// Assert
-			expect(spies.setupSockets).toHaveBeenCalledTimes(1);
+			expect(ipcClientMock.subSocket.on).toHaveBeenCalledWith(
+				'message',
+				expect.any(Function),
+			);
 		});
 	});
 
 	describe('#subscribe', () => {
 		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 		beforeEach(async () => {
-			await childProcessChannel.registerToBus(socketsPath);
+			await childProcessChannel.registerToBus();
 		});
 
-		it('should call localBus.on when the module is the same', () => {
+		it('should call _emitter.on', () => {
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			childProcessChannel.subscribe(validEventName, () => {});
 			// Assert
-			expect(childProcessChannel.localBus.on).toHaveBeenCalledWith(
+			expect(emitterMock.on).toHaveBeenCalledWith(
 				validEventName,
-				expect.any(Function),
-			);
-		});
-
-		it('should call subSocket.on when the module is not the same', () => {
-			// Arrange
-			const invalidEventName = 'invalidModule:anEventName';
-
-			// Act
-			// eslint-disable-next-line @typescript-eslint/no-empty-function
-			childProcessChannel.subscribe(invalidEventName, () => {});
-
-			// Assert
-			expect(childProcessChannel.subSocket?.on).toHaveBeenCalledWith(
-				invalidEventName,
 				expect.any(Function),
 			);
 		});
@@ -182,30 +228,16 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#once', () => {
 		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 
-		beforeEach(async () => childProcessChannel.registerToBus(socketsPath));
+		beforeEach(async () => childProcessChannel.registerToBus());
 
-		it('should call localBus.once when the module is the same', () => {
+		it('should call _emitter.once', () => {
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			childProcessChannel.once(validEventName, () => {});
+
 			// Assert
-			expect(childProcessChannel.localBus.once).toHaveBeenCalledWith(
+			expect(emitterMock.once).toHaveBeenCalledWith(
 				validEventName,
-				expect.any(Function),
-			);
-		});
-
-		it('should call subSocket.on when the module is not the same', () => {
-			// Arrange
-			const invalidEventName = 'invalidModule:anEventName';
-
-			// Act
-			// eslint-disable-next-line @typescript-eslint/no-empty-function
-			childProcessChannel.once(invalidEventName, () => {});
-
-			// Assert
-			expect(childProcessChannel.subSocket?.on).toHaveBeenCalledWith(
-				invalidEventName,
 				expect.any(Function),
 			);
 		});
@@ -213,23 +245,33 @@ describe('ChildProcessChannel Channel', () => {
 
 	describe('#publish', () => {
 		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
-		const invalidEventName = 'invalidModule:anEventName';
 
 		beforeEach(async () => {
 			// Arrange
-			await childProcessChannel.registerToBus(socketsPath);
+			await childProcessChannel.registerToBus();
 		});
 
 		it('should throw new Error when the module is not the same', () => {
+			const invalidEventName = `invalidModule:${params.events[0]}`;
+
 			expect(() =>
-				// eslint-disable-next-line @typescript-eslint/no-empty-function
 				childProcessChannel.publish(invalidEventName, () => {}),
 			).toThrow(
 				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
 			);
 		});
 
-		it('should call localBus.emit with proper arguments', () => {
+		it('should throw new Error when the event name not registered', () => {
+			const invalidEventName = `${params.moduleAlias}:invalidEvent`;
+
+			expect(() =>
+				childProcessChannel.publish(invalidEventName, () => {}),
+			).toThrow(
+				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
+			);
+		});
+
+		it('should call pubSocket.send with proper arguments', () => {
 			// Arrange
 			const data = { data: '#DATA' };
 			const event = new Event(validEventName, data);
@@ -238,47 +280,10 @@ describe('ChildProcessChannel Channel', () => {
 			childProcessChannel.publish(validEventName, data);
 
 			// Assert
-			expect(childProcessChannel.localBus.emit).toHaveBeenCalledWith(
+			expect(ipcClientMock.pubSocket.send).toHaveBeenCalledWith(
 				event.key(),
 				event.serialize(),
 			);
-		});
-
-		it('should call pubSocket.emit with proper arguments', () => {
-			// Arrange
-			const data = { data: '#DATA' };
-			const event = new Event(validEventName, data);
-
-			// Act
-			childProcessChannel.publish(validEventName, data);
-
-			// Assert
-			expect(childProcessChannel.pubSocket?.emit).toHaveBeenCalledWith(
-				event.key(),
-				event.serialize(),
-			);
-		});
-
-		it('should not call pubSocket.emit when eventList is empty', async () => {
-			// Arrange
-			const data = { data: '#DATA' };
-			const anotherChildProcessChannel = new ChildProcessChannel(
-				params.moduleAlias,
-				[],
-				params.actions,
-				{ skipInternalEvents: true },
-			);
-
-			jest
-				.spyOn(anotherChildProcessChannel, 'setupSockets')
-				.mockResolvedValue();
-
-			// Act
-			await anotherChildProcessChannel.registerToBus(socketsPath);
-			anotherChildProcessChannel.publish(validEventName, data);
-
-			// Assert
-			expect(anotherChildProcessChannel.pubSocket).toBeUndefined();
 		});
 	});
 
@@ -288,7 +293,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should execute the action straight away if the plugins are the same and action is a string', async () => {
 			// Act
-			await childProcessChannel.registerToBus(socketsPath);
+			await childProcessChannel.registerToBus();
 			await childProcessChannel.invoke(actionName, actionParams);
 
 			// Assert
@@ -297,7 +302,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should execute the action straight away if the plugins are the same and action is an Action object', async () => {
 			// Act
-			await childProcessChannel.registerToBus(socketsPath);
+			await childProcessChannel.registerToBus();
 			const action = new Action(actionName, actionParams);
 			await childProcessChannel.invoke(action.key(), actionParams);
 
@@ -310,174 +315,30 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#cleanup', () => {
-		it('should close the rpcSocket if rpcSocket is not undefined and it has been correctly initialized', async () => {
+		it('should stop the ipc client', async () => {
 			// Arrange
-			await childProcessChannel.registerToBus(socketsPath);
+			await childProcessChannel.registerToBus();
 
 			// Act
 			childProcessChannel.cleanup();
 
 			// Assert
-			expect(childProcessChannel.rpcSocket?.close).toHaveBeenCalled();
-		});
-	});
-
-	describe('#_resolveWhenAllSocketsBound', () => {
-		beforeEach(async () => {
-			await childProcessChannel.registerToBus(socketsPath);
-			(childProcessChannel as any)._resolveWhenAllSocketsBound();
+			expect(ipcClientMock.stop).toHaveBeenCalled();
 		});
 
-		it('should call pubSocket.sock.once with proper arguments', () => {
-			// Assert
-			expect(childProcessChannel.pubSocket?.sock.once).toHaveBeenCalledWith(
-				'connect',
-				expect.any(Function),
-			);
-		});
-
-		it('should call subSocket.sock.once with proper arguments', () => {
-			// Assert
-			expect(childProcessChannel.subSocket?.sock.once).toHaveBeenCalledWith(
-				'connect',
-				expect.any(Function),
-			);
-		});
-
-		it('should call rpcSocket.once with proper arguments', () => {
-			// Assert
-			expect(childProcessChannel.rpcSocket?.once).toHaveBeenCalledWith(
-				'bind',
-				expect.any(Function),
-			);
-		});
-
-		it('should call busRpcSocket.once with proper arguments', () => {
-			// Assert
-			expect(childProcessChannel.busRpcSocket?.once).toHaveBeenCalledWith(
-				'connect',
-				expect.any(Function),
-			);
-		});
-
-		it('should call busRpcClient.call with proper arguments when busRpcSocket receives a "connect" event', () => {
-			// Assert
-			expect(childProcessChannel.busRpcClient?.call).toHaveBeenCalledWith(
-				'registerChannel',
-				childProcessChannel.moduleAlias,
-				childProcessChannel.eventsList,
-				childProcessChannel.actionsList,
-				{ type: 'ipcSocket', rpcSocketPath: childProcessChannel.rpcSocketPath },
-				expect.any(Function),
-			);
-		});
-	});
-
-	describe('#_rejectWhenAnySocketFailsToBind', () => {
-		beforeEach(async () => {
-			await childProcessChannel.registerToBus(socketsPath);
-		});
-
-		it('should reject if any of the sockets receive an "error" event', async () => {
-			// Assert
-			await expect(
-				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
-			).rejects.toBe('#MOCKED_ONCE');
-		});
-
-		it('should call pubSocket.sock.once with proper arguments', async () => {
-			// Act && Assert
-			await expect(
-				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
-			).toReject();
-
-			expect(childProcessChannel.pubSocket?.sock.once).toHaveBeenCalledWith(
-				'error',
-				expect.any(Function),
-			);
-		});
-
-		it('should call subSocket.sock.once with proper arguments', async () => {
-			// Act && Assert
-			await expect(
-				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
-			).toReject();
-
-			expect(childProcessChannel.subSocket?.sock.once).toHaveBeenCalledWith(
-				'error',
-				expect.any(Function),
-			);
-		});
-
-		it('should call rpcSocket.once with proper arguments', async () => {
-			// Act && Assert
-			await expect(
-				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
-			).toReject();
-
-			expect(childProcessChannel.rpcSocket?.sock.once).toHaveBeenCalledWith(
-				'error',
-				expect.any(Function),
-			);
-		});
-	});
-
-	describe('#rejectWhenTimeout', () => {
-		it('should reject with an Error object with proper message', async () => {
-			// Assert
-			await expect(rejectWhenTimeout(1)).rejects.toThrow(
-				'ChildProcessChannel sockets setup timeout',
-			);
-		});
-	});
-
-	describe('#_removeAllListeners', () => {
-		beforeEach(async () => {
+		it('should clear process events', async () => {
 			// Arrange
-			await childProcessChannel.registerToBus(socketsPath);
+			jest.spyOn(process, 'removeAllListeners');
+			await childProcessChannel.registerToBus();
 
 			// Act
-			(childProcessChannel as any)._removeAllListeners();
-		});
+			childProcessChannel.cleanup();
 
-		it('should remove all listeners on subSocket ', () => {
 			// Assert
-			expect(
-				childProcessChannel.subSocket?.sock.removeAllListeners,
-			).toHaveBeenCalledWith('connect');
-			expect(
-				childProcessChannel.subSocket?.sock.removeAllListeners,
-			).toHaveBeenCalledWith('error');
-		});
-
-		it('should remove all listeners on pubSocket', () => {
-			// Assert
-			expect(
-				childProcessChannel.pubSocket?.sock.removeAllListeners,
-			).toHaveBeenCalledWith('connect');
-			expect(
-				childProcessChannel.pubSocket?.sock.removeAllListeners,
-			).toHaveBeenCalledWith('error');
-		});
-
-		it('should remove all listeners on busRpcSocket', () => {
-			// Assert
-			expect(
-				childProcessChannel.busRpcSocket?.removeAllListeners,
-			).toHaveBeenCalledWith('connect');
-			expect(
-				childProcessChannel.busRpcSocket?.removeAllListeners,
-			).toHaveBeenCalledWith('error');
-		});
-
-		it('should remove all listeners on rpcSocket', () => {
-			// Assert
-			expect(
-				childProcessChannel.rpcSocket?.removeAllListeners,
-			).toHaveBeenCalledWith('bind');
-			expect(
-				childProcessChannel.rpcSocket?.removeAllListeners,
-			).toHaveBeenCalledWith('error');
+			expect(ipcClientMock.stop).toHaveBeenCalled();
+			expect(process.removeAllListeners).toHaveBeenCalledWith('SIGTERM');
+			expect(process.removeAllListeners).toHaveBeenCalledWith('SIGINT');
+			expect(process.removeAllListeners).toHaveBeenCalledWith('exit');
 		});
 	});
 });

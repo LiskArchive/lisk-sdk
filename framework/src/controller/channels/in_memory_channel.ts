@@ -18,7 +18,7 @@ import { BaseChannel } from './base_channel';
 import { Bus } from '../bus';
 
 export class InMemoryChannel extends BaseChannel {
-	private bus: Bus | undefined;
+	private bus!: Bus;
 
 	public async registerToBus(bus: Bus): Promise<void> {
 		this.bus = bus;
@@ -32,15 +32,13 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	public subscribe(eventName: string, cb: EventCallback): void {
-		(this.bus as Bus).subscribe(eventName, data =>
+		this.bus.subscribe(eventName, data =>
 			setImmediate(cb, Event.deserialize(data)),
 		);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
-		(this.bus as Bus).once(eventName, data =>
-			setImmediate(cb, Event.deserialize(data)),
-		);
+		this.bus.once(eventName, data => setImmediate(cb, Event.deserialize(data)));
 	}
 
 	public publish(eventName: string, data?: object): void {
@@ -51,7 +49,7 @@ export class InMemoryChannel extends BaseChannel {
 				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`,
 			);
 		}
-		(this.bus as Bus).publish(event.key(), event.serialize());
+		this.bus.publish(event.key(), event.serialize());
 	}
 
 	public async invoke<T>(actionName: string, params?: object): Promise<T> {
@@ -72,7 +70,7 @@ export class InMemoryChannel extends BaseChannel {
 			return handler(action.serialize()) as T;
 		}
 
-		return (this.bus as Bus).invoke(action.serialize());
+		return this.bus.invoke(action.serialize());
 	}
 
 	public async invokePublic<T>(
@@ -96,6 +94,6 @@ export class InMemoryChannel extends BaseChannel {
 			return handler(action.serialize()) as T;
 		}
 
-		return (this.bus as Bus).invokePublic(action.serialize());
+		return this.bus.invokePublic(action.serialize());
 	}
 }
