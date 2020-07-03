@@ -516,6 +516,9 @@ export class Application {
 							action.params as { ids: readonly string[] },
 						),
 				},
+				getSchema: {
+					handler: () => this._node.actions.getSchema(),
+				},
 			},
 			{ skipInternalEvents: true },
 		);
