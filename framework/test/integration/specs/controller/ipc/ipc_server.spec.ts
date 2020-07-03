@@ -17,8 +17,8 @@ import { homedir } from 'os';
 import { IPCServer } from '../../../../../src/controller/ipc/ipc_server';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
-
-describe('IPCServer', () => {
+/* eslint-disable jest/no-disabled-tests */
+describe.skip('IPCServer', () => {
 	let server: IPCServer;
 
 	beforeEach(() => {
