@@ -76,12 +76,14 @@ export class HTTPAPIPlugin extends BasePlugin {
 			config.defaultConfig.default,
 			this.options,
 		) as Options;
-		this._registerMiddlewares(options);
-		this._registerControllers();
-		this._registerAfterMiddlewares(options);
-
 		this._channel = channel;
-		this._server = this._app.listen(options.port, '0.0.0.0');
+
+		this._channel.once('app:ready', () => {
+			this._registerMiddlewares(options);
+			this._registerControllers();
+			this._registerAfterMiddlewares(options);
+			this._server = this._app.listen(options.port, '0.0.0.0');
+		});
 	}
 
 	public async unload(): Promise<void> {

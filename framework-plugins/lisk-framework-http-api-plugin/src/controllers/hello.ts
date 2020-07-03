@@ -14,9 +14,9 @@
 import { Request, Response } from 'express';
 import { BaseChannel } from 'lisk-framework';
 
-export const helloController = (_channel: BaseChannel) => (
+export const helloController = (_channel: BaseChannel) => async (
 	_req: Request,
 	res: Response,
-): void => {
-	res.status(200).send({ hello: 'world' });
+): Promise<void> => {
+	res.status(200).send(await _channel.invoke('app:getNodeStatus'));
 };
