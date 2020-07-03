@@ -16,6 +16,7 @@ import {
 	Chain,
 	events as chainEvents,
 	Block,
+	blockSchema,
 	Account,
 } from '@liskhq/lisk-chain';
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
@@ -29,6 +30,7 @@ import {
 } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Schema } from '@liskhq/lisk-codec';
 import { Sequence } from './utils/sequence';
 import { Forger, RegisteredDelegate } from './forger';
 import {
@@ -115,6 +117,10 @@ interface NodeStatus {
 	readonly chainMaxHeightFinalized: number;
 }
 
+interface RegisteredSchemas {
+	[key: string]: Schema;
+}
+
 export class Node {
 	private readonly _channel: InMemoryChannel;
 	private readonly _options: Options;
@@ -134,6 +140,7 @@ export class Node {
 	private _transport!: Transport;
 	private _forger!: Forger;
 	private _forgingJob!: Job<void>;
+	private _registeredTransactionSchemas!: RegisteredSchemas;
 
 	public constructor({
 		channel,
@@ -273,6 +280,8 @@ export class Node {
 					}
 				},
 			);
+
+			this._setSchemas();
 		} catch (error) {
 			this._logger.fatal(
 				{
@@ -474,6 +483,16 @@ export class Node {
 					params.data,
 					params.peerId,
 				),
+			getSchema: () => ({
+				account: this._chain.accountSchema,
+				baseBlockHeader: blockSchema,
+				blockHeaders: {
+					0: BlockProcessorV0.schema,
+					2: BlockProcessorV2.schema,
+				},
+				baseTransaction: BaseTransaction.BASE_SCHEMA,
+				transactions: this._registeredTransactionSchemas,
+			}),
 		};
 	}
 
@@ -767,5 +786,16 @@ export class Node {
 
 	private _unsubscribeToEvents(): void {
 		this._bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
+	}
+	private _setSchemas(): void {
+		const registredTransactions: RegisteredSchemas = {};
+
+		for (const aTransactionSchema of Object.entries(
+			this._options.registeredTransactions,
+		)) {
+			registredTransactions[aTransactionSchema[0]] = aTransactionSchema[1]
+				.ASSET_SCHEMA as Schema;
+		}
+		this._registeredTransactionSchemas = registredTransactions;
 	}
 }
