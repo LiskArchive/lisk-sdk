@@ -27,7 +27,7 @@ import { SocketPaths } from '../types';
 import { IPCClient } from '../ipc/ipc_client';
 import { ActionInfoForBus } from '../../types';
 
-export const setupProcessHandlers = (channel: ChildProcessChannel): void => {
+export const setupProcessHandlers = (channel: IPCChannel): void => {
 	process.once('SIGTERM', () => channel.cleanup(1));
 	process.once('SIGINT', () => channel.cleanup(1));
 	process.once('exit', code => channel.cleanup(code));
@@ -39,7 +39,7 @@ interface ChildProcessOptions extends BaseChannelOptions {
 	socketsPath: SocketPaths;
 }
 
-export class ChildProcessChannel extends BaseChannel {
+export class IPCChannel extends BaseChannel {
 	private readonly _emitter: EventEmitter2;
 	private readonly _ipcClient: IPCClient;
 

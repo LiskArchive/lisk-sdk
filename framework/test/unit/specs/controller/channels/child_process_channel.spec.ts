@@ -15,7 +15,7 @@
 import { EventEmitter2 } from 'eventemitter2';
 import { IPCClient } from '../../../../../src/controller/ipc/ipc_client';
 import {
-	ChildProcessChannel,
+	IPCChannel,
 	BaseChannel,
 } from '../../../../../src/controller/channels';
 import { Event } from '../../../../../src/controller/event';
@@ -75,7 +75,7 @@ jest.mock('eventemitter2', () => {
 	};
 });
 
-describe('ChildProcessChannel Channel', () => {
+describe('IPCChannel Channel', () => {
 	// Arrange
 	const socketsPath = {
 		root: 'root',
@@ -124,10 +124,10 @@ describe('ChildProcessChannel Channel', () => {
 		},
 	};
 
-	let childProcessChannel: ChildProcessChannel;
+	let childProcessChannel: IPCChannel;
 
 	beforeEach(() => {
-		childProcessChannel = new ChildProcessChannel(
+		childProcessChannel = new IPCChannel(
 			params.moduleAlias,
 			params.events,
 			params.actions,
@@ -142,7 +142,7 @@ describe('ChildProcessChannel Channel', () => {
 	describe('inheritance', () => {
 		it('should be extended from BaseChannel class', () => {
 			// Assert
-			expect(ChildProcessChannel.prototype).toBeInstanceOf(BaseChannel);
+			expect(IPCChannel.prototype).toBeInstanceOf(BaseChannel);
 		});
 	});
 
