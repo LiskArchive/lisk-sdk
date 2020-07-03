@@ -13,5 +13,5 @@
  */
 
 export { Controller } from './controller';
-export { InMemoryChannel, ChildProcessChannel } from './channels';
+export { InMemoryChannel, IPCChannel } from './channels';
 export { ActionInfoObject } from './action';

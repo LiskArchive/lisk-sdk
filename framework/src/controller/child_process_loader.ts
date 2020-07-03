@@ -14,7 +14,7 @@
 
 // Parameters passed by `child_process.fork(_, parameters)`
 
-import { ChildProcessChannel } from './channels';
+import { IPCChannel } from './channels';
 import { InstantiablePlugin, BasePlugin } from '../plugins/base_plugin';
 import { SocketPaths } from './types';
 import { PluginOptions } from '../types';
@@ -36,12 +36,9 @@ const _loadPlugin = async (
 	const pluginAlias = Klass.alias;
 	const plugin: BasePlugin = new Klass(pluginOptions);
 
-	const channel = new ChildProcessChannel(
-		pluginAlias,
-		plugin.events,
-		plugin.actions,
-		{ socketsPath: config.socketsPath },
-	);
+	const channel = new IPCChannel(pluginAlias, plugin.events, plugin.actions, {
+		socketsPath: config.socketsPath,
+	});
 
 	await channel.registerToBus();
 
