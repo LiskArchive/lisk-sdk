@@ -63,7 +63,7 @@ describe('P2P protocol message limit', () => {
 
 		// Assert
 		expect(bannedPeer).toBe(
-			constructPeerId(SEED_PEER_IP, p2pNodeList[2].config.nodeInfo.port),
+			constructPeerId(SEED_PEER_IP, p2pNodeList[2].config.port),
 		);
 	});
 });

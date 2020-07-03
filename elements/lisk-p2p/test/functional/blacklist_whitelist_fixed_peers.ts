@@ -34,8 +34,6 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		{
 			ipAddress: '127.0.0.15',
 			port: NETWORK_START_PORT + 5,
-			height: 10,
-			version: '1.0',
 			networkVersion: '1.0',
 			number: undefined,
 		},

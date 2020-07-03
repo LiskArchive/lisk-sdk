@@ -29,14 +29,14 @@ describe('P2P.requestFromPeer', () => {
 			p2p.on('EVENT_REQUEST_RECEIVED', request => {
 				if (request.procedure === 'foo') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.port,
+						nodePort: p2p.config.port,
 						request,
 					});
 				}
 
 				if (request.procedure === 'getGreeting') {
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.port}`);
+					request.end(`Hello ${request.data} from peer ${p2p.config.port}`);
 				} else if (!request.wasResponseSent) {
 					request.end(456);
 				}

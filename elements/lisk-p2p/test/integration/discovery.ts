@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { platform } from 'os';
 import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
@@ -116,7 +115,7 @@ describe('Network discovery', () => {
 
 				// The current node should not be in its own peer list.
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-					return port !== p2p.nodeInfo.port;
+					return port !== p2p.config.port;
 				});
 
 				expect(peerPorts).toEqual(expectedPeerPorts);
@@ -141,12 +140,12 @@ describe('Network discovery', () => {
 				const peerPorts = triedPeers
 					.map(peerInfo => peerInfo.port)
 					.filter(port => {
-						return port !== p2p.nodeInfo.port;
+						return port !== p2p.config.port;
 					})
 					.sort();
 				// The current node should not be in its own peer list.
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-					return port !== p2p.nodeInfo.port;
+					return port !== p2p.config.port;
 				});
 				expect(expectedPeerPorts).toEqual(peerPorts);
 			}
@@ -165,7 +164,7 @@ describe('Network discovery', () => {
 					.sort();
 
 				expect([...allPeersPorts, ...connectedPeerPorts]).not.toEqual(
-					expect.arrayContaining([p2p.nodeInfo.peerId]),
+					expect.arrayContaining([p2p.config.port]),
 				);
 			}
 		});
@@ -218,12 +217,8 @@ describe('Network discovery', () => {
 				port: 5020,
 				nodeInfo: {
 					networkId: 'aaa',
-					version: '9.9.9',
 					networkVersion: '9.9',
-					minVersion: '9.9.9',
-					os: platform(),
-					height: 10000,
-					nonce: '404',
+					nonce: `404`,
 					advertiseAddress: true,
 				},
 			});
