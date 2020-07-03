@@ -146,11 +146,23 @@ export class Network {
 			...nodeInfo,
 			advertiseAddress: this._options.advertiseAddress ?? true,
 		});
-		const { wsPort, ...state } = this._applicationState.state;
+		const {
+			networkId,
+			protocolVersion,
+			advertiseAddress,
+			os,
+			version,
+			wsPort,
+			...options
+		} = this._applicationState.state;
 
 		const initialNodeInfo = sanitizeNodeInfo({
-			...((state as unknown) as liskP2P.p2pTypes.P2PNodeInfo),
-		});
+			networkId: networkId as string,
+			networkVersion: protocolVersion as string,
+			advertiseAddress: (advertiseAddress as unknown) as boolean,
+			options: { ...options },
+		} as liskP2P.p2pTypes.P2PNodeInfo);
+
 		const seedPeers = await lookupPeersIPs(this._options.seedPeers, true);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const blacklistedIPs = this._options.blacklistedIPs ?? [];
