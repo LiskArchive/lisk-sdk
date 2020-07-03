@@ -218,7 +218,7 @@ describe('Network discovery', () => {
 				nodeInfo: {
 					networkId: 'aaa',
 					networkVersion: '9.9',
-					nonce: `404`,
+					nonce: '404',
 					advertiseAddress: true,
 				},
 			});

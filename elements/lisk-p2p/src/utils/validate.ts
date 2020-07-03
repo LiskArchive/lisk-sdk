@@ -60,7 +60,7 @@ const validateNetworkCompatibility = (
 		return false;
 	}
 
-	return (peerInfo.sharedState.networkId as string) === nodeInfo.networkId;
+	return peerInfo.sharedState.networkId === nodeInfo.networkId;
 };
 
 const validatenetworkVersionCompatibility = (
