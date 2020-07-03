@@ -55,6 +55,7 @@ import {
 	ApplicationConstants,
 	GenesisConfig,
 	EventPostTransactionData,
+	PluginOptions,
 } from '../types';
 import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
 import { AccountAsset } from './node/account';
@@ -176,7 +177,7 @@ export class Application {
 
 	public registerPlugin(
 		pluginKlass: typeof BasePlugin,
-		options: { [key: string]: any; loadAsChildProcess: boolean } = {
+		options: PluginOptions = {
 			loadAsChildProcess: false,
 		},
 		alias?: string,
@@ -201,7 +202,7 @@ export class Application {
 		this._plugins[pluginAlias] = pluginKlass as InstantiablePlugin<BasePlugin>;
 	}
 
-	public overridePluginOptions(alias: string, options?: object): void {
+	public overridePluginOptions(alias: string, options?: PluginOptions): void {
 		const plugins = this.getPlugins();
 		assert(
 			Object.keys(plugins).includes(alias),

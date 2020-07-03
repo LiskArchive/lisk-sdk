@@ -17,6 +17,7 @@
 import { ChildProcessChannel } from './channels';
 import { InstantiablePlugin, BasePlugin } from '../plugins/base_plugin';
 import { SocketPaths } from './types';
+import { PluginOptions } from '../types';
 
 const modulePath: string = process.argv[2];
 const moduleExportName: string = process.argv[3];
@@ -30,7 +31,7 @@ const _loadPlugin = async (
 		[key: string]: unknown;
 		socketsPath: SocketPaths;
 	},
-	pluginOptions: object,
+	pluginOptions: PluginOptions,
 ): Promise<void> => {
 	const pluginAlias = Klass.alias;
 	const plugin: BasePlugin = new Klass(pluginOptions);
