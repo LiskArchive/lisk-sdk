@@ -16,6 +16,10 @@ const {
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
 } = require('../../dist-node');
 
+const {
+	HTTPAPIPlugin,
+} = require('../../../framework-plugins/lisk-framework-http-api-plugin/dist-node');
+
 process.env.NODE_ENV = 'test';
 
 let app;
@@ -44,9 +48,14 @@ try {
 	const mergedConfig = {
 		...appConfig,
 		...config,
+		ipc: {
+			enabled: true,
+		},
 	};
 	// To run multiple applications for same network for integration tests
 	app = new Application(genesisBlock, mergedConfig);
+
+	app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
 } catch (e) {
 	console.error('Application start error.', e);
 	process.exit();

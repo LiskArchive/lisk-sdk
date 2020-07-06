@@ -55,7 +55,7 @@ export interface RPCHighestCommonBlockData {
 export interface PluginOptions {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly [key: string]: any;
-	readonly loadAsChildProcess: boolean;
+	readonly loadAsChildProcess?: boolean;
 }
 
 export interface PluginsOptions {

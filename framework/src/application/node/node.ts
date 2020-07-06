@@ -16,6 +16,7 @@ import {
 	Chain,
 	events as chainEvents,
 	Block,
+	blockSchema,
 	Account,
 } from '@liskhq/lisk-chain';
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
@@ -29,6 +30,7 @@ import {
 } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Schema } from '@liskhq/lisk-codec';
 import { Sequence } from './utils/sequence';
 import { Forger, RegisteredDelegate } from './forger';
 import {
@@ -113,6 +115,10 @@ interface NodeStatus {
 	readonly secondsSinceEpoch: number;
 	readonly lastBlock: string;
 	readonly chainMaxHeightFinalized: number;
+}
+
+interface RegisteredSchemas {
+	[key: string]: Schema;
 }
 
 export class Node {
@@ -209,7 +215,7 @@ export class Node {
 				Object.assign(this._applicationState, event.data);
 			});
 
-			this._logger.info('Modules ready and launched');
+			this._logger.info('Node ready and launched');
 			// After binding, it should immediately load blockchain
 			await this._processor.init();
 			// Check if blocks are left in temp_blocks table
@@ -474,6 +480,16 @@ export class Node {
 					params.data,
 					params.peerId,
 				),
+			getSchema: () => ({
+				account: this._chain.accountSchema,
+				blockHeader: blockSchema,
+				blockHeadersAssets: {
+					0: BlockProcessorV0.schema,
+					2: BlockProcessorV2.schema,
+				},
+				baseTransaction: BaseTransaction.BASE_SCHEMA,
+				transactionsAssets: this._getRegisteredTransactionSchemas(),
+			}),
 		};
 	}
 
@@ -767,5 +783,16 @@ export class Node {
 
 	private _unsubscribeToEvents(): void {
 		this._bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
+	}
+	private _getRegisteredTransactionSchemas(): RegisteredSchemas {
+		const registredTransactions: RegisteredSchemas = {};
+
+		for (const aTransactionSchema of Object.entries(
+			this._options.registeredTransactions,
+		)) {
+			registredTransactions[aTransactionSchema[0]] = aTransactionSchema[1]
+				.ASSET_SCHEMA as Schema;
+		}
+		return registredTransactions;
 	}
 }

@@ -16,6 +16,7 @@ export { Application } from './application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
 export { BasePlugin, PluginInfo } from './plugins/base_plugin';
+export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';
 export type { EventsArray } from './controller/event';
 export type { ActionsDefinition } from './controller/action';

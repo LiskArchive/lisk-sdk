@@ -16,7 +16,7 @@ import { homedir } from 'os';
 
 import { resolve as pathResolve } from 'path';
 import {
-	ChildProcessChannel,
+	IPCChannel,
 	InMemoryChannel,
 } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
@@ -67,24 +67,24 @@ const beta = {
 	},
 };
 /* eslint-disable jest/no-disabled-tests */
-describe.skip('ChildProcessChannel', () => {
+describe.skip('IPCChannel', () => {
 	describe('after registering itself to the bus', () => {
-		let alphaChannel: ChildProcessChannel;
-		let betaChannel: ChildProcessChannel;
+		let alphaChannel: IPCChannel;
+		let betaChannel: IPCChannel;
 		let bus: Bus;
 
 		beforeAll(async () => {
 			// Arrange
 			bus = new Bus(logger, config);
 
-			alphaChannel = new ChildProcessChannel(
+			alphaChannel = new IPCChannel(
 				alpha.moduleAlias,
 				alpha.events,
 				alpha.actions,
 				config,
 			);
 
-			betaChannel = new ChildProcessChannel(
+			betaChannel = new IPCChannel(
 				beta.moduleAlias,
 				beta.events,
 				beta.actions,

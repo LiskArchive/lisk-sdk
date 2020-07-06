@@ -107,6 +107,7 @@ export class Chain {
 		readonly calculateReward: (height: number) => bigint;
 		readonly calculateSupply: (height: number) => bigint;
 	};
+	public readonly accountSchema: object;
 
 	private _lastBlock: Block;
 	private readonly blocksVerify: BlocksVerify;
@@ -161,6 +162,9 @@ export class Chain {
 				},
 			},
 		};
+
+		this.accountSchema = accountSchema;
+
 		codec.addSchema(accountSchema);
 		codec.addSchema(stateDiffSchema);
 		this._defaultAccountAsset = accountAsset.default;
