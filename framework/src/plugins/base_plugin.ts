@@ -96,7 +96,9 @@ export abstract class BasePlugin {
 			[key: number]: Schema;
 		};
 	};
-	public codec: object;
+	public codec: {
+		decodeTransaction: (data: Buffer | string) => TransactionJSON;
+	};
 
 	protected constructor(options: object) {
 		this.options = options;
