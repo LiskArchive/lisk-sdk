@@ -100,13 +100,13 @@ describe('BasePlugin', () => {
 			await plugin.init((channelMock as unknown) as BaseChannel);
 
 			// Assert
-			expect(channelMock.once).toBeCalledTimes(1);
-			expect(channelMock.once).toBeCalledWith(
+			expect(channelMock.once).toHaveBeenCalledTimes(1);
+			expect(channelMock.once).toHaveBeenCalledWith(
 				'app:ready',
 				expect.any(Function),
 			);
-			expect(channelMock.invoke).toBeCalledTimes(1);
-			expect(channelMock.invoke).toBeCalledWith('app:getSchema');
+			expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+			expect(channelMock.invoke).toHaveBeenCalledWith('app:getSchema');
 			expect(plugin.schemas).toBe(schemas);
 		});
 	});
