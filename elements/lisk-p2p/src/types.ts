@@ -121,8 +121,8 @@ export interface IncomingPeerConnection {
 }
 
 export interface RPCSchemas {
-	peerInfo: Schema;
-	nodeInfo: Schema;
+	readonly peerInfo: Schema;
+	readonly nodeInfo: Schema;
 }
 
 export interface P2PConfig {

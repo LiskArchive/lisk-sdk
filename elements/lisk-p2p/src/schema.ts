@@ -38,7 +38,7 @@ export const nodeInfoSchema = {
 	required: ['networkId', 'networkVersion', 'nonce'],
 };
 
-export const protocolPeerInfoSchema = {
+export const peerInfoSchema = {
 	$id: '/protocolPeerInfo',
 	type: 'object',
 	properties: {
@@ -54,38 +54,9 @@ export const protocolPeerInfoSchema = {
 	required: ['ipAddress', 'port'],
 };
 
-export const peerInfoSchema = {
-	$id: '/peerInfo',
-	type: 'object',
-	properties: {
-		ipAddress: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-		port: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		networkId: {
-			dataType: 'string',
-			fieldNumber: 3,
-		},
-		networkVersion: {
-			dataType: 'string',
-			fieldNumber: 4,
-		},
-		nonce: {
-			dataType: 'string',
-			fieldNumber: 5,
-		},
-	},
-	required: ['ipAddress', 'port'],
-};
-
 export const defaultRPCSchemas = {
 	peerInfo: peerInfoSchema,
 	nodeInfo: nodeInfoSchema,
-	protocolPeerInfo: protocolPeerInfoSchema,
 };
 
 export const mergeCustomSchema = (

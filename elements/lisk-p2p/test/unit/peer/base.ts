@@ -412,22 +412,14 @@ describe('peer/base', () => {
 						ipAddress: '1.1.1.1',
 						sourceAddress: '12.12.12.12',
 						port: 1111,
-						sharedState: {
-							networkId: '',
-							nonce: '',
-							networkVersion: '',
-						},
+						sharedState: {},
 					},
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
 						sourceAddress: '12.12.12.12',
 						port: 2222,
-						sharedState: {
-							networkId: '',
-							nonce: '',
-							networkVersion: '',
-						},
+						sharedState: {},
 					},
 				];
 				codec.addSchema(peerInfoSchema);
@@ -435,7 +427,6 @@ describe('peer/base', () => {
 				const encodedPeers = peers.map(peer =>
 					codec
 						.encode(peerInfoSchema, {
-							...peer.sharedState,
 							ipAddress: peer.ipAddress,
 							port: peer.port,
 						})
@@ -465,7 +456,6 @@ describe('peer/base', () => {
 				const encodedMalformedPeersList = malformedPeerList.map(peer =>
 					codec
 						.encode(peerInfoSchema, {
-							...peer.sharedState,
 							ipAddress: peer.ipAddress,
 							port: peer.port,
 						})

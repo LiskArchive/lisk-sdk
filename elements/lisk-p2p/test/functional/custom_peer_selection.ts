@@ -23,11 +23,7 @@ import {
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/types';
 
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_PEER_COUNT,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 const { ConnectionKind } = constants;
 
@@ -68,6 +64,7 @@ const customPeerInfoSchema = {
 };
 
 describe('Custom peer selection', () => {
+	const networkSize = 4;
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	// Custom selection function that finds peers having common values for modules field for example.
@@ -161,7 +158,7 @@ describe('Custom peer selection', () => {
 
 		p2pNodeList = await createNetwork({
 			customConfig,
-			networkSize: 4,
+			networkSize,
 		});
 	});
 
@@ -201,7 +198,7 @@ describe('Custom peer selection', () => {
 		});
 
 		it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
-			const middleP2PNode = p2pNodeList[NETWORK_PEER_COUNT / 2];
+			const middleP2PNode = p2pNodeList[networkSize / 2];
 			const response = await middleP2PNode.request({
 				procedure: 'foo',
 				data: 'bar',
@@ -238,7 +235,7 @@ describe('Custom peer selection', () => {
 		// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 		it('should send a message to peers; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
-			const middleP2PNode = p2pNodeList[NETWORK_PEER_COUNT / 2];
+			const middleP2PNode = p2pNodeList[networkSize / 2];
 			const nodePortToMessagesMap: any = {};
 
 			const expectedAverageMessagesPerNode = TOTAL_SENDS;
@@ -262,7 +259,7 @@ describe('Custom peer selection', () => {
 			}
 
 			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
-				NETWORK_PEER_COUNT / 2 - 1,
+				networkSize / 2 - 1,
 			);
 			for (const receivedMessages of Object.values(
 				nodePortToMessagesMap,

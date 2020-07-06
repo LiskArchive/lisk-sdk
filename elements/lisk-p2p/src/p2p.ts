@@ -110,8 +110,14 @@ import {
 } from './schema';
 
 const createRPCSchemas = (customRPCSchemas: RPCSchemas): RPCSchemas => ({
-	peerInfo: mergeCustomSchema(peerInfoSchema, customRPCSchemas.peerInfo),
-	nodeInfo: mergeCustomSchema(nodeInfoSchema, customRPCSchemas.nodeInfo),
+	peerInfo: mergeCustomSchema(
+		peerInfoSchema,
+		customRPCSchemas.peerInfo ?? peerInfoSchema,
+	),
+	nodeInfo: mergeCustomSchema(
+		nodeInfoSchema,
+		customRPCSchemas.nodeInfo ?? nodeInfoSchema,
+	),
 });
 
 const createPeerPoolConfig = (
@@ -833,11 +839,21 @@ export class P2P extends EventEmitter {
 			.filter(
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
-			.map(peer => ({
-				ipAddress: peer.ipAddress,
-				port: peer.port,
-				...peer.sharedState,
-			}));
+			.map(peer => {
+				// If custom fields are available then share them
+				if (peer.sharedState?.options) {
+					return {
+						options: peer.sharedState.options,
+						ipAddress: peer.ipAddress,
+						port: peer.port,
+					};
+				}
+
+				return {
+					ipAddress: peer.ipAddress,
+					port: peer.port,
+				};
+			});
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
 			codec.encode(this._rpcSchemas.peerInfo, peer).toString('base64'),

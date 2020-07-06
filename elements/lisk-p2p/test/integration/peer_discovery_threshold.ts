@@ -53,6 +53,7 @@ describe('Peer discovery threshold', () => {
 					networkVersion: '1.1',
 					networkId: 'networkId',
 					nonce: 'nonce',
+					options: {},
 				},
 			});
 		}
