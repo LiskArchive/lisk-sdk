@@ -60,7 +60,7 @@ const decodeTransactionToJSON = (
 	baseSchema: Schema,
 	assetsSchemas: { [key: number]: Schema },
 ): TransactionJSON => {
-	const baseTransaction = codec.toJSON<BaseTransactionJSON>(
+	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(
 		baseSchema,
 		transactionBuffer,
 	);
@@ -71,7 +71,7 @@ const decodeTransactionToJSON = (
 		throw new Error('Transaction type not found.');
 	}
 
-	const transactionAsset = codec.toJSON(
+	const transactionAsset = codec.decodeJSON<object>(
 		transactionTypeAssetSchema,
 		Buffer.from(baseTransaction.asset, 'base64'),
 	);
@@ -116,6 +116,10 @@ export abstract class BasePlugin {
 		};
 	}
 
+	public async init(channel: BaseChannel): Promise<void> {
+		this.schemas = await channel.invoke('app:getSchema');
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public static get alias(): string {
 		throw new ImplementationMissingError();
@@ -132,8 +136,6 @@ export abstract class BasePlugin {
 	public abstract get events(): EventsArray;
 	public abstract get actions(): ActionsDefinition;
 
-	public async load(channel: BaseChannel): Promise<void> {
-		this.schemas = await channel.invoke('app:getSchema');
-	}
+	public abstract async load(channel: BaseChannel): Promise<void>;
 	public abstract async unload(): Promise<void>;
 }
