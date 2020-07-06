@@ -1,0 +1,47 @@
+/*
+ * Copyright © 2020 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+import { Request, Response, NextFunction } from 'express';
+import { isBase64String } from '@liskhq/lisk-validator';
+import { BaseChannel } from 'lisk-framework';
+
+export const accountController = (channel: BaseChannel) => async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	if (!isBase64String(req.params.address)) {
+		res.status(400).send({
+			errors: [{ message: 'The Address parameter should be a base64 string.' }],
+		});
+	}
+
+	try {
+		const account = await channel.invoke('app:getAccount', {
+			address: req.params.address,
+		});
+		res.status(200).send(account);
+	} catch (err) {
+		if (
+			/^Specified key accounts:address:(.*)does not exist/.test(
+				(err as Error).message,
+			)
+		) {
+			res
+				.status(404)
+				.send(`Account with address '${req.params.address}' was not found`);
+		} else {
+			next(err);
+		}
+	}
+};
