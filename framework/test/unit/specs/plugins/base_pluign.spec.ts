@@ -60,6 +60,7 @@ class MyPlugin extends BasePlugin {
 
 const channelMock = {
 	invoke: jest.fn(),
+	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
 };
 
 const schemas = {
@@ -99,6 +100,11 @@ describe('BasePlugin', () => {
 			await plugin.init((channelMock as unknown) as BaseChannel);
 
 			// Assert
+			expect(channelMock.once).toBeCalledTimes(1);
+			expect(channelMock.once).toBeCalledWith(
+				'app:ready',
+				expect.any(Function),
+			);
 			expect(channelMock.invoke).toBeCalledTimes(1);
 			expect(channelMock.invoke).toBeCalledWith('app:getSchema');
 			expect(plugin.schemas).toBe(schemas);

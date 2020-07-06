@@ -116,8 +116,11 @@ export abstract class BasePlugin {
 		};
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(channel: BaseChannel): Promise<void> {
-		this.schemas = await channel.invoke('app:getSchema');
+		channel.once('app:ready', async () => {
+			this.schemas = await channel.invoke('app:getSchema');
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
