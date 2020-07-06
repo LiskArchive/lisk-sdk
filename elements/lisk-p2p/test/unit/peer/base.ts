@@ -64,6 +64,7 @@ describe('peer/base', () => {
 				networkVersion: '1.1',
 				networkId: 'networkId',
 				nonce: 'nonce',
+				options: {},
 			},
 		};
 		peerConfig = {
@@ -79,6 +80,7 @@ describe('peer/base', () => {
 				networkVersion: '1.2',
 				nonce: 'nonce',
 				advertiseAddress: true,
+				options: {},
 			},
 			rpcSchemas: {
 				nodeInfo: nodeInfoSchema,
@@ -93,6 +95,7 @@ describe('peer/base', () => {
 				networkVersion: '1.3',
 				networkId: 'networkId',
 				nonce: 'nonce',
+				options: {},
 			},
 			internalState: undefined,
 		};
@@ -542,6 +545,7 @@ describe('peer/base', () => {
 						networkId: 'networkId',
 						nonce: 'nonce',
 						networkVersion: '',
+						options: {},
 					},
 				},
 				{
@@ -552,6 +556,7 @@ describe('peer/base', () => {
 						networkId: 'networkId',
 						nonce: 'nonce',
 						networkVersion: '',
+						options: {},
 					},
 				},
 			];

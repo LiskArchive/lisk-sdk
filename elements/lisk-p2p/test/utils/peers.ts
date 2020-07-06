@@ -140,6 +140,7 @@ export const initPeerInfoListWithSuffix = (
 				nonce: 'nonce',
 				networkId: 'networkId',
 				networkVersion: '1.1',
+				options: {},
 			},
 			internalState: {
 				...assignInternalInfo(

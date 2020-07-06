@@ -44,6 +44,7 @@ describe('peer/inbound', () => {
 				networkVersion: '1.1',
 				nonce: 'nonce',
 				networkId: 'networkId',
+				options: {},
 			},
 		};
 		defaultPeerConfig = {
