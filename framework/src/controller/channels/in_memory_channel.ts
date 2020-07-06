@@ -33,11 +33,13 @@ export class InMemoryChannel extends BaseChannel {
 
 	public subscribe(eventName: string, cb: EventCallback): void {
 		this.bus.subscribe(eventName, data =>
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			setImmediate(cb, Event.deserialize(data)),
 		);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.bus.once(eventName, data => setImmediate(cb, Event.deserialize(data)));
 	}
 

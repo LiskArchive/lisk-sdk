@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { hash } from '@liskhq/lisk-cryptography';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import { ImplementationMissingError } from '../errors';
 import { EventsArray } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
@@ -32,12 +34,95 @@ export interface InstantiablePlugin<T, U = object> {
 	new (...args: U[]): T;
 }
 
+interface BaseTransactionJSON {
+	readonly type: number;
+	readonly nonce: string;
+	readonly fee: string;
+	readonly senderPublicKey: string;
+	readonly signatures: Array<Readonly<string>>;
+
+	readonly asset: string;
+}
+
+interface TransactionJSON {
+	readonly type: number;
+	readonly nonce: string;
+	readonly fee: string;
+	readonly senderPublicKey: string;
+	readonly signatures: Array<Readonly<string>>;
+
+	readonly id: string;
+	readonly asset: object;
+}
+
+const decodeTransactionToJSON = (
+	transactionBuffer: Buffer,
+	baseSchema: Schema,
+	assetsSchemas: { [key: number]: Schema },
+): TransactionJSON => {
+	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(
+		baseSchema,
+		transactionBuffer,
+	);
+
+	const transactionTypeAssetSchema = assetsSchemas[baseTransaction.type];
+
+	if (!transactionTypeAssetSchema) {
+		throw new Error('Transaction type not found.');
+	}
+
+	const transactionAsset = codec.decodeJSON<object>(
+		transactionTypeAssetSchema,
+		Buffer.from(baseTransaction.asset, 'base64'),
+	);
+
+	return {
+		...baseTransaction,
+		id: hash(transactionBuffer).toString('base64'),
+		asset: transactionAsset,
+	};
+};
+
 export abstract class BasePlugin {
 	public readonly options: object;
-	public schemas!: object;
+	public schemas!: {
+		account: Schema;
+		blockHeader: Schema;
+		blockHeadersAssets: {
+			[key: number]: Schema;
+		};
+		baseTransaction: Schema;
+		transactionsAssets: {
+			[key: number]: Schema;
+		};
+	};
+	public codec: {
+		decodeTransaction: (data: Buffer | string) => TransactionJSON;
+	};
 
 	protected constructor(options: object) {
 		this.options = options;
+
+		this.codec = {
+			decodeTransaction: (data: Buffer | string) => {
+				const transactionBuffer: Buffer = Buffer.isBuffer(data)
+					? data
+					: Buffer.from(data, 'base64');
+
+				return decodeTransactionToJSON(
+					transactionBuffer,
+					this.schemas.baseTransaction,
+					this.schemas.transactionsAssets,
+				);
+			},
+		};
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(channel: BaseChannel): Promise<void> {
+		channel.once('app:ready', async () => {
+			this.schemas = await channel.invoke('app:getSchema');
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -56,8 +141,6 @@ export abstract class BasePlugin {
 	public abstract get events(): EventsArray;
 	public abstract get actions(): ActionsDefinition;
 
-	public async load(channel: BaseChannel): Promise<void> {
-		this.schemas = await channel.invoke('app:getSchema');
-	}
+	public abstract async load(channel: BaseChannel): Promise<void>;
 	public abstract async unload(): Promise<void>;
 }

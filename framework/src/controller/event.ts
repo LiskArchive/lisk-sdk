@@ -22,7 +22,7 @@ export interface EventInfoObject {
 	readonly data: object;
 }
 
-export type EventCallback = (action: EventInfoObject) => void;
+export type EventCallback = (action: EventInfoObject) => void | Promise<void>;
 
 export type EventsArray = ReadonlyArray<string>;
 
