@@ -28,7 +28,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.2:5000',
 			ipAddress: '127.0.0.2',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -39,7 +39,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.3:5000',
 			ipAddress: '127.0.0.3',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -50,7 +50,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.3:5000',
 			ipAddress: '127.0.0.3',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -61,7 +61,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.4:5000',
 			ipAddress: '127.0.0.4',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -72,7 +72,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.5:5000',
 			ipAddress: '127.0.0.5',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -83,7 +83,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.6:5000',
 			ipAddress: '127.0.0.6',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -94,7 +94,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.7:5000',
 			ipAddress: '127.0.0.7',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -105,7 +105,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.8:5000',
 			ipAddress: '127.0.0.8',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -116,7 +116,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.9:5000',
 			ipAddress: '127.0.0.9',
-			wsPort: '5000',
+			port: '5000',
 		}, // Next three are incompatible peers (No height or blockVersion or maxHeightPrevoted properties are present
 		{
 			options: {
@@ -126,7 +126,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.10:5000',
 			ipAddress: '127.0.0.10',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -136,7 +136,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.11:5000',
 			ipAddress: '127.0.0.11',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -146,7 +146,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.12:5000',
 			ipAddress: '127.0.0.12',
-			wsPort: '5000',
+			port: '5000',
 		},
 	],
 	expectedSelection: [
@@ -159,7 +159,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.4:5000',
 			ipAddress: '127.0.0.4',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -170,7 +170,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.5:5000',
 			ipAddress: '127.0.0.5',
-			wsPort: '5000',
+			port: '5000',
 		},
 		{
 			options: {
@@ -181,7 +181,7 @@ export const peersList = {
 			},
 			peerId: '127.0.0.6:5000',
 			ipAddress: '127.0.0.6',
-			wsPort: '5000',
+			port: '5000',
 		},
 	],
 };

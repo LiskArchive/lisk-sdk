@@ -90,7 +90,6 @@ describe('p2p', () => {
 
 	describe('when custom schema is passed', () => {
 		let firstNode: P2P;
-		// console.log((mergeCustomSchema(peerInfoSchema, customPeerInfoSchema).properties as any).options)
 		const customRPCSchemas = {
 			nodeInfo: customNodeInfoSchema,
 			peerInfo: peerInfoSchema,
