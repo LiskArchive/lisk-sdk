@@ -23,6 +23,7 @@ import { Bus } from '../../../../src/controller/bus';
 const createMockPlugin = (alias?: string, loadStub?: any, unloadStub?: any) => {
 	function Plugin(this: any) {
 		this.load = loadStub ?? jest.fn();
+		this.init = loadStub ?? jest.fn();
 		this.unload = unloadStub ?? jest.fn();
 		this.defaults = {};
 		this.events = [];
