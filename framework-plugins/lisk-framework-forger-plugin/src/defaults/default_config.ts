@@ -26,6 +26,30 @@ export const defaultConfig = {
 				type: 'string',
 			},
 		},
+		dataPath: {
+			type: 'string',
+			format: 'path',
+			minLength: 1,
+			maxLength: 50,
+			example: '~/.lisk/plugins/data',
+			description:
+				'The data path for storing forging related information captured from application.',
+		},
+		webhook: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					url: {
+						type: 'string',
+					},
+					events: {
+						type: 'array',
+					},
+				},
+				required: ['url', 'events'],
+			},
+		},
 		cors: {
 			type: 'object',
 			properties: {
