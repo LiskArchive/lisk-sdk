@@ -26,6 +26,7 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 		res.status(400).send({
 			errors: [{ message: 'The Address parameter should be a base64 string.' }],
 		});
+		return;
 	}
 
 	try {
