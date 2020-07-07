@@ -39,7 +39,9 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 		) {
 			res
 				.status(404)
-				.send(`Account with address '${req.params.address}' was not found`);
+				.send({
+					message: `Account with address '${req.params.address}' was not found`,
+				});
 		} else {
 			next(err);
 		}
