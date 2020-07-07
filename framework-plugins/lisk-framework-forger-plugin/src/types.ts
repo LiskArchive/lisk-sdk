@@ -13,8 +13,8 @@
  */
 
 export interface Options {
-	readonly rootPath: string;
-	readonly label: string;
+	readonly dataPath: string;
+	readonly webhook: ReadonlyArray<Webhook>;
 	readonly port: number;
 	readonly whiteList: ReadonlyArray<string>;
 	readonly cors: {
@@ -29,4 +29,9 @@ export interface Options {
 		readonly headersTimeout: number;
 		readonly serverSetTimeout: number;
 	};
+}
+
+interface Webhook {
+	readonly url: string;
+	readonly eventFilter: ReadonlyArray<string>;
 }

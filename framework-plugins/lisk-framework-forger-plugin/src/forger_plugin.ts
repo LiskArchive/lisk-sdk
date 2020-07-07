@@ -13,6 +13,7 @@
  */
 
 import { Server } from 'http';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { KVStore } from '@liskhq/lisk-db';
 import {
@@ -83,7 +84,7 @@ export class ForgerPlugin extends BasePlugin {
 		) as Options;
 		this._channel = channel;
 
-		this.forgerPluginDB = this._getDBInstance(options);
+		this.forgerPluginDB = await this._getDBInstance(options);
 
 		this._channel.once('app:ready', () => {
 			this._registerMiddlewares(options);
@@ -122,13 +123,13 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _getDBInstance(
+	private async _getDBInstance(
 		options: Options,
 		dbName = 'forger_plugin.db',
-	): KVStore {
-		const dataPath = path.join(options.rootPath, options.label, 'data');
-		const dbPath = `${dataPath}/${dbName}`;
+	): Promise<KVStore> {
+		const dirPath = path.join(options.dataPath, dbName);
+		await fs.ensureDir(dirPath);
 
-		return new KVStore(dbPath);
+		return new KVStore(dirPath);
 	}
 }

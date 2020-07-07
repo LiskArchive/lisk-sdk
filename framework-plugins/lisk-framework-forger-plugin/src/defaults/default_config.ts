@@ -74,10 +74,12 @@ export const defaultConfig = {
 			],
 		},
 	},
-	required: ['port', 'whiteList', 'cors', 'limits'],
+	required: ['port', 'whiteList', 'dataPath', 'cors', 'limits'],
 	default: {
 		port: 4001,
 		whiteList: ['127.0.0.1'],
+		webhook: [],
+		dataPath: '~/.lisk/forger-plugin/data',
 		cors: {
 			origin: '*',
 			methods: ['GET', 'POST', 'PUT'],
