@@ -29,22 +29,3 @@ export const customNodeInfoSchema = {
 		},
 	},
 };
-
-export const customPeerInfoSchema = {
-	$id: '/bftProps',
-	type: 'object',
-	properties: {
-		maxHeightPrevoted: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		maxHeightPreviouslyForged: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-	},
-};

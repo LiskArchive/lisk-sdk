@@ -209,7 +209,7 @@ describe('peer/outbound', () => {
 					hostname: defaultOutboundPeer.ipAddress,
 					port: defaultOutboundPeer.port,
 					query:
-						'advertiseAddress=true&networkId=networkId&networkVersion=1.1&nonce=nonce&port=5000&options=%7B%22height%22%3A1%7D',
+						'networkVersion=1.1&networkId=networkId&nonce=nonce&advertiseAddress=true&port=5000',
 					path: DEFAULT_HTTP_PATH,
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,

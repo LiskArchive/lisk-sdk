@@ -16,7 +16,8 @@ import { P2P, events } from '../../../src/index';
 import { InvalidNodeInfoError } from '../../../src/errors';
 import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
-import { customNodeInfoSchema, customPeerInfoSchema } from '../../utils/schema';
+import { customNodeInfoSchema } from '../../utils/schema';
+import { P2PConfig } from '../../../src/types';
 
 const { EVENT_MESSAGE_RECEIVED, REMOTE_EVENT_POST_NODE_INFO } = events;
 
@@ -25,18 +26,13 @@ describe('P2P.applyNodeInfo', () => {
 	let collectedMessages: Array<any> = [];
 
 	beforeAll(async () => {
-		const customRPCSchemas = {
-			nodeInfo: customNodeInfoSchema,
-			peerInfo: customPeerInfoSchema,
-		};
-
-		const customConfig = () => ({
-			customRPCSchemas,
+		const customConfig = (): Partial<P2PConfig> => ({
+			customNodeInfoSchema,
 			nodeInfo: {
 				options: {
 					height: 1,
 				},
-			},
+			} as any,
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });

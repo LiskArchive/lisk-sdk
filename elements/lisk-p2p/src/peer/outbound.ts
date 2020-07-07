@@ -117,14 +117,15 @@ export class OutboundPeer extends Peer {
 		const ackTimeout = this._peerConfig.ackTimeout
 			? this._peerConfig.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
+		// Isolating options that has custom property part
 		const { options, ...nodeInfo } = this._serverNodeInfo as P2PNodeInfo;
-		const queryObject = options
-			? {
-					...nodeInfo,
-					port: this._peerConfig.hostPort,
-					options: JSON.stringify(options),
-			  }
-			: { ...nodeInfo, port: this._peerConfig.hostPort };
+		const queryObject = {
+			networkVersion: nodeInfo.networkVersion,
+			networkId: nodeInfo.networkId,
+			nonce: nodeInfo.nonce,
+			advertiseAddress: nodeInfo.advertiseAddress,
+			port: this._peerConfig.hostPort,
+		};
 
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {

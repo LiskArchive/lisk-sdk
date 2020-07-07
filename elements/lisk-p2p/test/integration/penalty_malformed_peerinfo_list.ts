@@ -20,20 +20,9 @@ import {
 } from '../utils/network_setup';
 import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
-import { nodeInfoSchema } from '../../src/schema';
 
 const { EVENT_BAN_PEER } = events;
 
-const customPeerInfoSchema = {
-	$id: '/malformed',
-	type: 'object',
-	properties: {
-		networkVersion: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-	},
-};
 describe('penalty sending malformed Peer List', () => {
 	describe('When Peer List is too long', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -88,7 +77,8 @@ describe('penalty sending malformed Peer List', () => {
 		});
 	});
 
-	describe('When PeerBook contain malformed peerInfo', () => {
+	// No longer valid as no custom fields are allowed
+	describe.skip('When PeerBook contain malformed peerInfo', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
 
@@ -96,12 +86,7 @@ describe('penalty sending malformed Peer List', () => {
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
 				networkDiscoveryWaitTime: 1,
-				customConfig: () => ({
-					customRPCSchemas: {
-						peerInfo: customPeerInfoSchema,
-						nodeInfo: nodeInfoSchema,
-					},
-				}),
+				customConfig: () => ({}),
 			});
 
 			p2pNodeList[0]['_peerBook'].addPeer({

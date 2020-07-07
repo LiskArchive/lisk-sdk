@@ -131,12 +131,7 @@ describe('Connection Create', () => {
 					index === 1
 						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
 						: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				version: '1.0.1',
 				networkVersion: index === 2 ? '1.1' : 'BAD',
-				minVersion: '1.0.0',
-				os: 'darwin',
-				height: 0,
-				httpPort: 0,
 				nonce: `O2wTkjqplHII500${index}`,
 			});
 

@@ -15,6 +15,7 @@
 import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import { P2PConfig } from '../../src/types';
 
 const { EVENT_BAN_PEER } = events;
 
@@ -29,32 +30,17 @@ const customNodeInfoSchema = {
 	},
 };
 
-const customPeerInfoSchema = {
-	$id: '/malformed',
-	type: 'object',
-	properties: {
-		invalid: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-	},
-};
-
 describe('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	const collectedEvents = new Map();
-	const customRPCSchemas = {
-		peerInfo: customPeerInfoSchema,
-		nodeInfo: customNodeInfoSchema,
-	};
 
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork({
 			networkSize: 2,
-			customConfig: (index: number) =>
+			customConfig: (index: number): Partial<P2PConfig> =>
 				index === 0
-					? { maxPeerInfoSize: 30248, customRPCSchemas }
-					: { customRPCSchemas },
+					? { maxPeerInfoSize: 30248, customNodeInfoSchema }
+					: { customNodeInfoSchema },
 		});
 
 		p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {

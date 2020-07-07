@@ -14,24 +14,21 @@
  */
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
-import { customPeerInfoSchema, customNodeInfoSchema } from '../utils/schema';
+import { customNodeInfoSchema } from '../utils/schema';
+import { P2PConfig } from '../../src/types';
 
 describe('Custom nodeInfo', () => {
-	const customRPCSchemas = {
-		peerInfo: customPeerInfoSchema,
-		nodeInfo: customNodeInfoSchema,
-	};
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
-		const customConfig = () => ({
+		const customConfig = (): Partial<P2PConfig> => ({
 			nodeInfo: {
 				options: {
 					maxHeightPreviouslyForged: 11,
 					maxHeightPrevoted: 2,
 				},
-			},
-			customRPCSchemas,
+			} as any,
+			customNodeInfoSchema,
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });

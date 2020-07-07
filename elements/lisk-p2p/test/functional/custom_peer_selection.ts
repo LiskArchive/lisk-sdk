@@ -21,6 +21,7 @@ import {
 	P2PPeerSelectionForSendInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
+	P2PConfig,
 } from '../../src/types';
 
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
@@ -28,24 +29,6 @@ import { createNetwork, destroyNetwork } from '../utils/network_setup';
 const { ConnectionKind } = constants;
 
 const customNodeInfoSchema = {
-	$id: '/custom',
-	type: 'object',
-	properties: {
-		modules: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				dataType: 'string',
-			},
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-	},
-};
-
-const customPeerInfoSchema = {
 	$id: '/custom',
 	type: 'object',
 	properties: {
@@ -144,16 +127,12 @@ describe('Custom peer selection', () => {
 			},
 		});
 
-		const customRPCSchemas = {
-			nodeInfo: customNodeInfoSchema,
-			peerInfo: customPeerInfoSchema,
-		};
-		const customConfig = (index: number) => ({
+		const customConfig = (index: number): Partial<P2PConfig> => ({
 			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
 			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
 			peerSelectionForConnection,
-			nodeInfo: customNodeInfo(index),
-			customRPCSchemas,
+			nodeInfo: customNodeInfo(index) as any,
+			customNodeInfoSchema,
 		});
 
 		p2pNodeList = await createNetwork({

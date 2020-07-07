@@ -16,7 +16,6 @@ import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
 import { wait } from '../utils/helpers';
 import { customNodeInfoSchema } from '../utils/schema';
-import { peerInfoSchema } from '../../src/schema';
 
 describe('p2p', () => {
 	let p2pNode: P2P;
@@ -90,10 +89,6 @@ describe('p2p', () => {
 
 	describe('when custom schema is passed', () => {
 		let firstNode: P2P;
-		const customRPCSchemas = {
-			nodeInfo: customNodeInfoSchema,
-			peerInfo: peerInfoSchema,
-		};
 
 		beforeEach(async () => {
 			firstNode = new P2P({
@@ -109,7 +104,7 @@ describe('p2p', () => {
 						port: 5001,
 					},
 				],
-				customRPCSchemas,
+				customNodeInfoSchema,
 				nodeInfo: {
 					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -153,7 +148,7 @@ describe('p2p', () => {
 				],
 				maxOutboundConnections: 20,
 				maxInboundConnections: 100,
-				customRPCSchemas,
+				customNodeInfoSchema,
 				nodeInfo: {
 					networkId:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',

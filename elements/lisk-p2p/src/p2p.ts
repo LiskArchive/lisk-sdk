@@ -103,22 +103,11 @@ import {
 	validatePeerCompatibility,
 } from './utils';
 import {
-	peerInfoSchema,
 	nodeInfoSchema,
 	mergeCustomSchema,
 	defaultRPCSchemas,
+	peerInfoSchema,
 } from './schema';
-
-const createRPCSchemas = (customRPCSchemas: RPCSchemas): RPCSchemas => ({
-	peerInfo: mergeCustomSchema(
-		peerInfoSchema,
-		customRPCSchemas.peerInfo ?? peerInfoSchema,
-	),
-	nodeInfo: mergeCustomSchema(
-		nodeInfoSchema,
-		customRPCSchemas.nodeInfo ?? nodeInfoSchema,
-	),
-});
 
 const createPeerPoolConfig = (
 	config: P2PConfig,
@@ -192,8 +181,14 @@ const createPeerPoolConfig = (
 			: DEFAULT_RATE_CALCULATION_INTERVAL,
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 	peerBook,
-	rpcSchemas: config.customRPCSchemas
-		? createRPCSchemas(config.customRPCSchemas)
+	rpcSchemas: config.customNodeInfoSchema
+		? {
+				nodeInfo: mergeCustomSchema(
+					nodeInfoSchema,
+					config.customNodeInfoSchema,
+				),
+				peerInfo: peerInfoSchema,
+		  }
 		: defaultRPCSchemas,
 });
 
@@ -279,8 +274,14 @@ export class P2P extends EventEmitter {
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
-		this._rpcSchemas = config.customRPCSchemas
-			? createRPCSchemas(config.customRPCSchemas)
+		this._rpcSchemas = config.customNodeInfoSchema
+			? {
+					nodeInfo: mergeCustomSchema(
+						nodeInfoSchema,
+						config.customNodeInfoSchema,
+					),
+					peerInfo: peerInfoSchema,
+			  }
 			: defaultRPCSchemas;
 		codec.addSchema(this._rpcSchemas.peerInfo);
 		codec.addSchema(this._rpcSchemas.nodeInfo);
@@ -839,21 +840,10 @@ export class P2P extends EventEmitter {
 			.filter(
 				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
 			)
-			.map(peer => {
-				// If custom fields are available then share them
-				if (peer.sharedState?.options) {
-					return {
-						options: peer.sharedState.options,
-						ipAddress: peer.ipAddress,
-						port: peer.port,
-					};
-				}
-
-				return {
-					ipAddress: peer.ipAddress,
-					port: peer.port,
-				};
-			});
+			.map(peer => ({
+				ipAddress: peer.ipAddress,
+				port: peer.port,
+			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
 			codec.encode(this._rpcSchemas.peerInfo, peer).toString('base64'),
