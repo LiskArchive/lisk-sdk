@@ -18,7 +18,12 @@ const {
 
 const {
 	HTTPAPIPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 } = require('../../../framework-plugins/lisk-framework-http-api-plugin/dist-node');
+const {
+	ForgerPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-forger-plugin/dist-node');
 
 process.env.NODE_ENV = 'test';
 
@@ -40,9 +45,9 @@ const appConfig = {
 const network = process.env.LISK_NETWORK || 'devnet';
 
 try {
-	// eslint-disable-next-line import/no-dynamic-require,global-require
+	// eslint-disable-next-line import/no-dynamic-require,global-require, @typescript-eslint/no-var-requires
 	const config = require(`../fixtures/config/${network}/config`);
-	// eslint-disable-next-line import/no-dynamic-require,global-require
+	// eslint-disable-next-line import/no-dynamic-require,global-require, @typescript-eslint/no-var-requires
 	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
 
 	const mergedConfig = {
@@ -56,6 +61,7 @@ try {
 	app = new Application(genesisBlock, mergedConfig);
 
 	app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: true });
 } catch (e) {
 	console.error('Application start error.', e);
 	process.exit();

@@ -18,6 +18,7 @@ export * as validator from '@liskhq/lisk-validator';
 export * as utils from '@liskhq/lisk-utils';
 export { codec } from '@liskhq/lisk-codec';
 export * from '@liskhq/lisk-framework-http-api-plugin';
+export * from '@liskhq/lisk-framework-forger-plugin';
 export * from 'lisk-framework';
 
 export { genesisBlockDevnet, configDevnet } from './samples';

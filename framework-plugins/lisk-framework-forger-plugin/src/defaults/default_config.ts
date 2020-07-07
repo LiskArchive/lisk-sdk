@@ -47,7 +47,7 @@ export const defaultConfig = {
 						type: 'array',
 					},
 				},
-				required: ['url', 'events'],
+				required: ['url'],
 			},
 		},
 		cors: {
