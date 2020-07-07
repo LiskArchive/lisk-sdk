@@ -16,7 +16,7 @@
 import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
-import { RawBlock, StateDiff, DiffHistory } from '../types';
+import { RawBlock, StateDiff } from '../types';
 import { StateStore } from '../state_store';
 
 import {
@@ -32,7 +32,6 @@ import {
 } from './constants';
 import { keyString } from '../utils';
 import { stateDiffSchema } from '../schema';
-import { undo } from '../diff';
 
 export class Storage {
 	private readonly _db: KVStore;
@@ -418,9 +417,7 @@ export class Storage {
 		for (const key of createdStates) {
 			batch.del(key);
 		}
-		for (const { key, value: diff } of updatedStates) {
-			const currentValue = await this._db.get(key);
-			const previousValue = undo(currentValue, diff as DiffHistory[]);
+		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
 		}
 		// Delete stored diff at particular height

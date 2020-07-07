@@ -14,7 +14,6 @@
 import { NotFoundError, BatchChain } from '@liskhq/lisk-db';
 import { Account, DefaultAsset } from '../account';
 import { DataAccess } from '../data_access';
-import { calculateDiff } from '../diff';
 import { StateDiff } from '../types';
 import { BufferMap } from '../utils/buffer_map';
 import { BufferSet } from '../utils/buffer_set';
@@ -126,15 +125,13 @@ export class AccountStore {
 				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(updatedAccount.address)}`;
 				batch.put(dbKey, encodedAccount);
 
-				if (this._initialAccountValue.has(updatedAccount.address)) {
-					const initialAccount = this._initialAccountValue.get(updatedAccount.address);
-
-					const diff = calculateDiff(initialAccount as Buffer, encodedAccount);
+				const initialAccount = this._initialAccountValue.get(updatedAccount.address);
+				if (initialAccount !== undefined && !initialAccount.equals(encodedAccount)) {
 					stateDiff.updated.push({
 						key: dbKey,
-						value: diff,
+						value: initialAccount,
 					});
-				} else {
+				} else if (initialAccount === undefined) {
 					stateDiff.created.push(dbKey);
 				}
 			}

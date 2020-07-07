@@ -75,5 +75,5 @@ export interface StateDiff {
 
 interface UpdatedDiff {
 	readonly key: string;
-	readonly value: ReadonlyArray<DiffHistory>;
+	readonly value: Buffer;
 }

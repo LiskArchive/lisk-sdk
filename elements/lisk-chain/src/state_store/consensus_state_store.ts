@@ -16,7 +16,6 @@ import { BatchChain } from '@liskhq/lisk-db';
 import { BlockHeader, StateDiff } from '../types';
 import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
 import { DataAccess } from '../data_access';
-import { calculateDiff } from '../diff';
 import { CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '../constants';
 
 interface KeyValuePair {
@@ -107,13 +106,17 @@ export class ConsensusStateStore {
 			const updatedValue = this._data[key] as Buffer;
 			batch.put(dbKey, updatedValue);
 
-			if (this._initialValue[key] !== undefined) {
-				const diff = calculateDiff(this._initialValue[key] as Buffer, updatedValue);
+			const initialValue = this._initialValue[key];
+			if (
+				initialValue !== undefined &&
+				!initialValue.equals(updatedValue) &&
+				key !== CONSENSUS_STATE_FINALIZED_HEIGHT_KEY
+			) {
 				stateDiff.updated.push({
 					key: dbKey,
-					value: diff,
+					value: initialValue,
 				});
-			} else {
+			} else if (initialValue === undefined) {
 				stateDiff.created.push(dbKey);
 			}
 		}
