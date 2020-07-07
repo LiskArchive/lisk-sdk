@@ -347,7 +347,7 @@ export class Application {
 		).toString('base64');
 
 		// TODO: Check which config and options are actually required to avoid sending large data
-		const appConfigToShareWithModules = {
+		const appConfigToShareWithPlugin = {
 			version: this.config.version,
 			protocolVersion: this.config.protocolVersion,
 			networkId: this.config.networkId,
@@ -360,7 +360,7 @@ export class Application {
 		};
 
 		Object.keys(plugins).forEach(alias => {
-			this.overridePluginOptions(alias, appConfigToShareWithModules);
+			this.overridePluginOptions(alias, appConfigToShareWithPlugin);
 		});
 	}
 

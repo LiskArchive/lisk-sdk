@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,18 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const app = require('./app');
+const base = require('../../jest.config');
 
-app
-	.run()
-	.then(() => app.logger.info('App started...'))
-	.catch(error => {
-		if (error instanceof Error) {
-			app.logger.error('App stopped with error', error);
-			app.logger.debug(error.stack);
-		} else {
-			app.logger.error('App stopped with error', error);
-		}
-		process.exit();
-	});
+module.exports = {
+	...base,
+	rootDir: '../../',
+	testMatch: ['<rootDir>/test/unit/**/*.(spec|test).(js|ts)'],
+};
