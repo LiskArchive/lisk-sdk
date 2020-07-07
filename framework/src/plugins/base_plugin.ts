@@ -83,6 +83,10 @@ const decodeTransactionToJSON = (
 	};
 };
 
+export interface PluginCodec {
+	decodeTransaction: (data: Buffer | string) => TransactionJSON;
+}
+
 export abstract class BasePlugin {
 	public readonly options: object;
 	public schemas!: {
@@ -96,9 +100,7 @@ export abstract class BasePlugin {
 			[key: number]: Schema;
 		};
 	};
-	public codec: {
-		decodeTransaction: (data: Buffer | string) => TransactionJSON;
-	};
+	public codec: PluginCodec;
 
 	protected constructor(options: object) {
 		this.options = options;
