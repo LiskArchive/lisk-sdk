@@ -20,7 +20,7 @@ import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { NetworkConfig } from '../../types';
-import { customPeerInfoSchema, customNodeInfoSchema } from './schema';
+import { customNodeInfoSchema } from './schema';
 import { ApplicationState } from '../application_state';
 
 const {
@@ -216,10 +216,7 @@ export class Network {
 			maxPeerInfoSize: this._options.maxPeerInfoSize,
 			wsMaxPayload: this._options.wsMaxPayload,
 			secret: this._secret,
-			customRPCSchemas: {
-				peerInfo: customPeerInfoSchema,
-				nodeInfo: customNodeInfoSchema,
-			},
+			customNodeInfoSchema,
 		};
 
 		this._p2p = new P2P(p2pConfig);
