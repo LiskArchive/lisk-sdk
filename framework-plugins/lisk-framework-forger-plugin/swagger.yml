@@ -1,0 +1,184 @@
+####################################################################################
+# Copyright © 2020 Lisk Foundation
+#
+# See the LICENSE file at the top-level directory of this distribution
+# for licensing information.
+#
+# Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+# no part of this software, including this file, may be copied, modified,
+# propagated, or distributed except according to the terms contained in the
+# LICENSE file.
+#
+# Removal or modification of this copyright notice is prohibited.
+####################################################################################
+swagger: '2.0'
+
+info:
+  title: Lisk Forger API documentation
+  description: |
+    # Welcome!
+
+    ## Access restrictions
+    The API endpoints are by default restricted to a whitelist of IPs that can be found under `plugins.forger.whiteList` in the config.
+    If it is required for your API to be accessible by the public, this can be achieved by changing `plugins.forger.whiteList` to `[]`.
+    This will allow anyone to make requests to your application.
+
+    ## Requests
+    Chained filter parameters are logically connected with `AND`.
+    `HTTP` is the supported URL schema by default.
+
+    ## Responses
+    The general response format is JSON (`application/json`).
+    The responses for each API request have a common basic structure as shown below:
+    ```javascript
+    {
+        "data": {}, //Contains the requested data.
+        "meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`.
+    }
+    ```
+    ## List of endpoints
+    All possible Forger API endpoints are listed below.
+    Click on an endpoint to show the descriptions, details and examples.
+  version: '1.0.32'
+  contact:
+    email: admin@lisk.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+
+# All paths relative to specified basePath
+basePath: /api
+
+# Tags for organizing operations
+tags:
+  - name: Forgers
+    description: Forgers related API endpoints.
+
+schemes:
+  - forger
+
+paths:
+  /forgers:
+    get:
+      tags:
+        - Forgers
+      summary: Requests forgers data corresponding to local node.
+      description: |
+        Returns a list of forgers information enabled in the local node.
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A list of forgers.
+          schema:
+            $ref: '#/definitions/ForgersResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+parameters:
+  limit:
+    in: query
+    name: limit
+    description: Limit applied to results.
+    type: integer
+    format: int32
+    minimum: 1
+    default: 10
+  offset:
+    name: offset
+    in: query
+    description: Offset value for results.
+    type: integer
+    format: int32
+    minimum: 0
+    default: 0
+
+definitions:
+  ErrorResponse:
+    type: object
+    required:
+      - errors
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+          properties:
+            message:
+              description: Error message containing details of the error.
+              example: Reason of the error
+              type: string
+              minLength: 1
+
+  ForgersResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        description: List of forgers.
+        type: array
+        items:
+          $ref: '#/definitions/Forger'
+      meta:
+        type: object
+
+  Meta:
+    type: object
+    required:
+      - limit
+      - offset
+    properties:
+      limit:
+        description: Limit applied to results.
+        type: integer
+        minimum: 1
+        default: 10
+      offset:
+        description: Offset value for results.
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+
+  Forger:
+    type: object
+    required:
+      - address
+      - username
+      - nextForgingTime
+    properties:
+      address:
+        type: string
+        example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+        description: |
+          The binary address in base64 format as defined in LIP-0018.
+      totalVotesReceived:
+        type: string
+        example: 1081560729258
+        description: |
+          The total votes received by the delegate.
+          Represents the total amount of token that the delegates voters voted this delegate.
+      username:
+        type: string
+        example: genesis_01
+        description: |
+          The delegates username.
+          A delegate chooses the username by registering a delegate on the network.
+          It is unique and cannot be changed later.
+      nextForgingTime:
+        type: number
+        example: 4368793
+        description: |
+          Returns the unix timestamp in second in which the forger will be able to forge the next block.
+          Each slot has a time span of 10 seconds.
