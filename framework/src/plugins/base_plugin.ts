@@ -55,6 +55,33 @@ interface TransactionJSON {
 	readonly asset: object;
 }
 
+interface AccountJSON {
+	address: string;
+	balance: string;
+	nonce: string;
+	keys: {
+		numberOfSignatures: number;
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+	};
+	asset: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: string;
+		};
+		sentVotes: { delegateAddress: string; amount: string }[];
+		unlocking: {
+			delegateAddress: string;
+			amount: string;
+			unvoteHeight: number;
+		}[];
+	};
+}
+
 const decodeTransactionToJSON = (
 	transactionBuffer: Buffer,
 	baseSchema: Schema,
@@ -83,6 +110,20 @@ const decodeTransactionToJSON = (
 	};
 };
 
+const decodeAccountToJSON = (
+	encodedAccount: Buffer,
+	accountSchema: Schema,
+): AccountJSON => {
+	const decodedAcccount = codec.decodeJSON<AccountJSON>(
+		accountSchema,
+		encodedAccount,
+	);
+
+	return {
+		...decodedAcccount,
+	};
+};
+
 export abstract class BasePlugin {
 	public readonly options: object;
 	public schemas!: {
@@ -96,8 +137,10 @@ export abstract class BasePlugin {
 			[key: number]: Schema;
 		};
 	};
+
 	public codec: {
 		decodeTransaction: (data: Buffer | string) => TransactionJSON;
+		decodeAccount: (data: Buffer | string) => AccountJSON;
 	};
 
 	protected constructor(options: object) {
@@ -114,6 +157,13 @@ export abstract class BasePlugin {
 					this.schemas.baseTransaction,
 					this.schemas.transactionsAssets,
 				);
+			},
+			decodeAccount: (data: Buffer | string) => {
+				const accountBuffer: Buffer = Buffer.isBuffer(data)
+					? data
+					: Buffer.from(data, 'base64');
+
+				return decodeAccountToJSON(accountBuffer, this.schemas.account);
 			},
 		};
 	}
