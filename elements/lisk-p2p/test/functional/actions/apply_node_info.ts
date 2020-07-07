@@ -16,10 +16,24 @@ import { P2P, events } from '../../../src/index';
 import { InvalidNodeInfoError } from '../../../src/errors';
 import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
-import { customNodeInfoSchema } from '../../utils/schema';
 import { P2PConfig } from '../../../src/types';
 
 const { EVENT_MESSAGE_RECEIVED, REMOTE_EVENT_POST_NODE_INFO } = events;
+
+const customNodeInfoSchema = {
+	$id: '/junk',
+	type: 'object',
+	properties: {
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		junk: {
+			dataType: 'string',
+			fieldNumber: 2,
+		},
+	},
+};
 
 describe('P2P.applyNodeInfo', () => {
 	let p2pNodeList: P2P[] = [];
@@ -35,7 +49,7 @@ describe('P2P.applyNodeInfo', () => {
 			} as any,
 		});
 
-		p2pNodeList = await createNetwork({ customConfig });
+		p2pNodeList = await createNetwork({ customConfig, networkSize: 4 });
 
 		collectedMessages = [];
 		for (const p2p of p2pNodeList) {
@@ -84,7 +98,7 @@ describe('P2P.applyNodeInfo', () => {
 				nonce: 'nonce',
 				advertiseAddress: true,
 				options: {
-					junk: '1.'.repeat(13000),
+					junk: '1.'.repeat(130000),
 				},
 			}),
 		).toThrow(InvalidNodeInfoError);

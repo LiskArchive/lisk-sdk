@@ -151,7 +151,7 @@ export const validatePeerInfo = (
 };
 
 export const validateNodeInfo = (
-	nodeInfo: P2PNodeInfo,
+	nodeInfo: Buffer,
 	maxByteSize: number,
 ): void => {
 	const byteSize = getByteSize(nodeInfo);

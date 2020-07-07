@@ -99,7 +99,6 @@ import {
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-	validateNodeInfo,
 	validatePeerCompatibility,
 } from './utils';
 import {
@@ -543,13 +542,6 @@ export class P2P extends EventEmitter {
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
-		validateNodeInfo(
-			nodeInfo,
-			this._config.maxPeerInfoSize
-				? this._config.maxPeerInfoSize
-				: DEFAULT_MAX_PEER_INFO_SIZE,
-		);
-
 		this._nodeInfo = {
 			...nodeInfo,
 			nonce: this.nodeInfo.nonce,

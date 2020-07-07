@@ -30,6 +30,7 @@ import {
 	InvalidPeerInfoError,
 	InvalidPeerInfoListError,
 	RPCResponseError,
+	InvalidNodeInfoError,
 } from '../errors';
 import {
 	EVENT_BAN_PEER,
@@ -68,6 +69,7 @@ import {
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
+	validateNodeInfo,
 } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -540,32 +542,27 @@ export class Peer extends EventEmitter {
 	private _handleUpdateNodeInfo(message: P2PMessagePacket): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
+			const nodeInfoBuffer = Buffer.from(message.data as string, 'base64');
+			// Check incoming nodeInfo size before deocoding
+			validateNodeInfo(nodeInfoBuffer, this._peerConfig.maxPeerInfoSize);
+
 			const decodedNodeInfo = codec.decode(
 				this._rpcSchemas.nodeInfo,
 				Buffer.from(message.data as string, 'base64'),
 			);
-			// Sanitize and validate PeerInfo
-			const peerInfo = validatePeerInfo(
-				sanitizeIncomingPeerInfo({
-					...(decodedNodeInfo as object),
-					ipAddress: this.ipAddress,
-					port: this.port,
-				}),
-				this._peerConfig.maxPeerInfoSize,
-			);
-
-			const { sharedState } = peerInfo;
+			// Only update options object
+			const { options } = decodedNodeInfo as P2PNodeInfo;
 			// Only update options property
 			this._peerInfo = {
 				...this._peerInfo,
 				sharedState: {
 					...this._peerInfo.sharedState,
-					options: { ...sharedState?.options },
+					options: { ...this._peerInfo.sharedState?.options, ...options },
 				} as P2PSharedState,
 			};
 		} catch (error) {
-			// Apply penalty for malformed PeerInfo update
-			if (error instanceof InvalidPeerInfoError) {
+			// Apply penalty for malformed nodeInfo update
+			if (error instanceof InvalidNodeInfoError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
