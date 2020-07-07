@@ -19,12 +19,15 @@ export const defaultConfig = {
 			type: 'integer',
 			minimum: 1,
 			maximum: 65535,
+			description: 'The http server port for forger plugin.',
 		},
 		whiteList: {
 			type: 'array',
 			items: {
 				type: 'string',
 			},
+			description:
+				'Explicitly allowing some identified entities access to forger plugin endpoints.',
 		},
 		dataPath: {
 			type: 'string',
@@ -37,14 +40,21 @@ export const defaultConfig = {
 		},
 		webhook: {
 			type: 'array',
+			description:
+				'Third party API endpoints with configurable events to emit.',
 			items: {
 				type: 'object',
 				properties: {
 					url: {
 						type: 'string',
+						description: 'Third party API endpoints.',
 					},
 					events: {
 						type: 'array',
+						items: {
+							type: 'string',
+						},
+						description: 'List of specific events to be emitted.',
 					},
 				},
 				required: ['url'],

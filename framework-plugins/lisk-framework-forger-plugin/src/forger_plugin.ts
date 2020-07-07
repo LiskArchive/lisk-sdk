@@ -35,7 +35,7 @@ import * as config from './defaults';
 import { Options } from './types';
 
 // eslint-disable-next-line
-const pJSON = require('../package.json');
+const packageJSON = require('../package.json');
 
 export class ForgerPlugin extends BasePlugin {
 	public forgerPluginDB!: KVStore;
@@ -52,11 +52,11 @@ export class ForgerPlugin extends BasePlugin {
 	public static get info(): PluginInfo {
 		return {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: pJSON.author,
+			author: packageJSON.author,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: pJSON.version,
+			version: packageJSON.version,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: pJSON.name,
+			name: packageJSON.name,
 		};
 	}
 
