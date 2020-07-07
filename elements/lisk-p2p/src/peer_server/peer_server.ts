@@ -55,7 +55,6 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	PeerServerConfig,
-	UnknownKVPair,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -272,33 +271,8 @@ export class PeerServer extends EventEmitter {
 		return queryObject;
 	}
 
-	private _checkQueryParameters(
-		queryObject: ParsedUrlQuery,
-		socket: SCServerSocket,
-	): object | undefined {
-		try {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const queryParam =
-				typeof queryObject.options === 'string'
-					? JSON.parse(queryObject.options)
-					: {};
-
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return queryParam;
-		} catch (error) {
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				INVALID_CONNECTION_QUERY_CODE,
-				INVALID_CONNECTION_QUERY_REASON,
-			);
-
-			return undefined;
-		}
-	}
-
 	private _constructPeerInfoForInboundConnection(
 		queryObject: ParsedUrlQuery,
-		queryOptions: object,
 		socket: SCServerSocket,
 	): P2PPeerInfo | undefined {
 		const remoteport: number = parseInt(
@@ -324,7 +298,7 @@ export class PeerServer extends EventEmitter {
 						nonce: nonce as string,
 						networkVersion: networkVersion as string,
 						networkId: networkId as string,
-						options: queryOptions as UnknownKVPair,
+						options: { ...peerInPeerBook.sharedState?.options },
 					},
 					internalState: {
 						...(peerInPeerBook.internalState
@@ -339,7 +313,7 @@ export class PeerServer extends EventEmitter {
 						networkId: networkId as string,
 						nonce: nonce as string,
 						networkVersion: networkVersion as string,
-						options: queryOptions as UnknownKVPair,
+						options: {},
 					},
 					internalState: {
 						...assignInternalInfo(
@@ -406,16 +380,9 @@ export class PeerServer extends EventEmitter {
 		if (!queryObject) {
 			return;
 		}
-		// Check if the query object has valid query parameters
-		const queryOptions = this._checkQueryParameters(queryObject, socket);
-
-		if (!queryOptions) {
-			return;
-		}
 		// Validate and construct peerInfo object for the incoming connection
 		const incomingPeerInfo = this._constructPeerInfoForInboundConnection(
 			queryObject,
-			queryOptions,
 			socket,
 		);
 
