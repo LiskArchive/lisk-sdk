@@ -124,6 +124,11 @@ const decodeAccountToJSON = (
 	};
 };
 
+export interface PluginCodec {
+	decodeTransaction: (data: Buffer | string) => TransactionJSON;
+	decodeAccount: (data: Buffer | string) => AccountJSON;
+}
+
 export abstract class BasePlugin {
 	public readonly options: object;
 	public schemas!: {
@@ -138,10 +143,7 @@ export abstract class BasePlugin {
 		};
 	};
 
-	public codec: {
-		decodeTransaction: (data: Buffer | string) => TransactionJSON;
-		decodeAccount: (data: Buffer | string) => AccountJSON;
-	};
+	public codec: PluginCodec;
 
 	protected constructor(options: object) {
 		this.options = options;
