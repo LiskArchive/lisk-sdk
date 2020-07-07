@@ -20,7 +20,9 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
-	if (!isBase64String(req.params.address)) {
+	const accountAddres = req.params.address;
+
+	if (!isBase64String(accountAddres)) {
 		res.status(400).send({
 			errors: [{ message: 'The Address parameter should be a base64 string.' }],
 		});
@@ -28,7 +30,7 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 
 	try {
 		const account: Buffer = await channel.invoke('app:getAccount', {
-			address: req.params.address,
+			address: accountAddres,
 		});
 		res.status(200).send(codec.decodeAccount(account));
 	} catch (err) {
@@ -37,11 +39,9 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 				(err as Error).message,
 			)
 		) {
-			res
-				.status(404)
-				.send({
-					message: `Account with address '${req.params.address}' was not found`,
-				});
+			res.status(404).send({
+				message: `Account with address '${accountAddres}' was not found`,
+			});
 		} else {
 			next(err);
 		}
