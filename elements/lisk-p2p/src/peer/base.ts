@@ -230,7 +230,7 @@ export class Peer extends EventEmitter {
 			};
 
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
-				this._handleUpdatePeerInfo(message);
+				this._handleUpdateNodeInfo(message);
 			}
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
@@ -537,18 +537,32 @@ export class Peer extends EventEmitter {
 		this.updatePeerInfo(peerInfo);
 	}
 
-	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {
+	private _handleUpdateNodeInfo(message: P2PMessagePacket): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
 			const decodedNodeInfo = codec.decode(
 				this._rpcSchemas.nodeInfo,
 				Buffer.from(message.data as string, 'base64'),
 			);
-			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
-				this._handlePostNodeInfoEvent(decodedNodeInfo);
-			} else {
-				this._updateFromProtocolPeerInfo(decodedNodeInfo);
-			}
+			// Sanitize and validate PeerInfo
+			const peerInfo = validatePeerInfo(
+				sanitizeIncomingPeerInfo({
+					...(decodedNodeInfo as object),
+					ipAddress: this.ipAddress,
+					port: this.port,
+				}),
+				this._peerConfig.maxPeerInfoSize,
+			);
+
+			const { sharedState } = peerInfo;
+			// Only update options property
+			this._peerInfo = {
+				...this._peerInfo,
+				sharedState: {
+					...this._peerInfo.sharedState,
+					options: { ...sharedState?.options },
+				} as P2PSharedState,
+			};
 		} catch (error) {
 			// Apply penalty for malformed PeerInfo update
 			if (error instanceof InvalidPeerInfoError) {
@@ -560,28 +574,6 @@ export class Peer extends EventEmitter {
 			return;
 		}
 		this.emit(EVENT_UPDATED_PEER_INFO, this.peerInfo);
-	}
-
-	private _handlePostNodeInfoEvent(receivedNodeInfo: unknown): void {
-		// Sanitize and validate PeerInfo
-		const peerInfo = validatePeerInfo(
-			sanitizeIncomingPeerInfo({
-				...(receivedNodeInfo as object),
-				ipAddress: this.ipAddress,
-				port: this.port,
-			}),
-			this._peerConfig.maxPeerInfoSize,
-		);
-
-		const { sharedState } = peerInfo;
-		// Only update options property
-		this._peerInfo = {
-			...this._peerInfo,
-			sharedState: {
-				...this._peerInfo.sharedState,
-				options: { ...sharedState?.options },
-			} as P2PSharedState,
-		};
 	}
 
 	private _banPeer(): void {

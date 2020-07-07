@@ -63,7 +63,7 @@ const validateNetworkCompatibility = (
 	return peerInfo.sharedState.networkId === nodeInfo.networkId;
 };
 
-const validatenetworkVersionCompatibility = (
+const validateNetworkVersionCompatibility = (
 	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
@@ -95,7 +95,7 @@ export const validatePeerCompatibility = (
 		};
 	}
 
-	if (!validatenetworkVersionCompatibility(peerInfo, nodeInfo)) {
+	if (!validateNetworkVersionCompatibility(peerInfo, nodeInfo)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_PROTOCOL_VERSION_REASON,
