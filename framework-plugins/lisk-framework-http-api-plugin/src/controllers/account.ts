@@ -13,9 +13,9 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { isBase64String } from '@liskhq/lisk-validator';
-import { BaseChannel } from 'lisk-framework';
+import { BaseChannel, PluginCodec } from 'lisk-framework';
 
-export const accountController = (channel: BaseChannel) => async (
+export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 	req: Request,
 	res: Response,
 	next: NextFunction,
@@ -27,10 +27,10 @@ export const accountController = (channel: BaseChannel) => async (
 	}
 
 	try {
-		const account = await channel.invoke('app:getAccount', {
+		const account: Buffer = await channel.invoke('app:getAccount', {
 			address: req.params.address,
 		});
-		res.status(200).send(account);
+		res.status(200).send(codec.decodeAccount(account));
 	} catch (err) {
 		if (
 			/^Specified key accounts:address:(.*)does not exist/.test(
