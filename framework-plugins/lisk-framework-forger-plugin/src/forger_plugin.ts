@@ -15,6 +15,7 @@
 import { Server } from 'http';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as os from 'os';
 import { KVStore } from '@liskhq/lisk-db';
 import {
 	ActionsDefinition,
@@ -104,6 +105,8 @@ export class ForgerPlugin extends BasePlugin {
 				resolve();
 			});
 		});
+
+		await this.forgerPluginDB.close();
 	}
 
 	private _registerMiddlewares(options: Options): void {
@@ -127,7 +130,8 @@ export class ForgerPlugin extends BasePlugin {
 		options: Options,
 		dbName = 'forger_plugin.db',
 	): Promise<KVStore> {
-		const dirPath = path.join(options.dataPath, dbName);
+		const resolvedPath = options.dataPath.replace('~', os.homedir());
+		const dirPath = path.join(resolvedPath, dbName);
 		await fs.ensureDir(dirPath);
 
 		return new KVStore(dirPath);

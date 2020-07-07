@@ -79,7 +79,7 @@ export const defaultConfig = {
 		port: 4001,
 		whiteList: ['127.0.0.1'],
 		webhook: [],
-		dataPath: '~/.lisk/forger-plugin/data',
+		dataPath: '~/.lisk/plugins/data',
 		cors: {
 			origin: '*',
 			methods: ['GET', 'POST', 'PUT'],
