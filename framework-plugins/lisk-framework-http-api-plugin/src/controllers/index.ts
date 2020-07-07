@@ -12,4 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as transactions from './transactions';
+
 export * from './hello';
+export { transactions };
