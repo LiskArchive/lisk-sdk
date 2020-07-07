@@ -14,19 +14,12 @@
 
 import { P2P, events } from '@liskhq/lisk-p2p';
 import { ApplicationConfig } from '../../../src';
-import {
-	customNodeInfoSchema,
-	customPeerInfoSchema,
-} from '../../../src/application/network/schema';
+import { customNodeInfoSchema } from '../../../src/application/network/schema';
 
 export const createProbe = async (config: ApplicationConfig): Promise<P2P> => {
-	const customRPCSchemas = {
-		nodeInfo: customNodeInfoSchema,
-		peerInfo: customPeerInfoSchema,
-	};
 	const p2p = new P2P({
 		port: 1111,
-		customRPCSchemas,
+		customNodeInfoSchema,
 		nodeInfo: {
 			networkVersion: config.protocolVersion,
 			advertiseAddress: true,
