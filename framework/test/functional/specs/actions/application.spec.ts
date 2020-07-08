@@ -78,4 +78,29 @@ describe('Application related actions', () => {
 			expect(frameworkSchemas).toEqual(expectedFrameworkSchemas);
 		});
 	});
+
+	describe('getNodeInfo', () => {
+		it('should return node status and constants', async () => {
+			const appInstance = app as any;
+
+			const expectedStatusAndConstants = {
+				version: appInstance._node._options.version,
+				protocolVersion: appInstance._node._options.protocolVersion,
+				networkID: appInstance._node._options.networkId,
+				lastBlockID: appInstance._node._chain.lastBlock.header.id.toString('base64'),
+				height: appInstance._node._chain.lastBlock.header.height,
+				finalizedHeight: appInstance._node._bft.finalityManager.finalizedHeight,
+				syncing: appInstance._node._synchronizer.isActive,
+				unconfirmedTransactions: appInstance._node._transactionPool.getAll().length,
+				genesisConfig: {
+					...appInstance._node._options.genesisConfig,
+					...appInstance._node._options.constants,
+					totalAmount: appInstance._node._options.constants.totalAmount.toString(),
+				},
+			};
+
+			const nodeStatusAndConstants = await app['_channel'].invoke('app:getNodeInfo');
+			expect(nodeStatusAndConstants).toEqual(expectedStatusAndConstants);
+		});
+	});
 });
