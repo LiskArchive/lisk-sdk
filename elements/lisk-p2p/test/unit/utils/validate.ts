@@ -199,7 +199,7 @@ describe('utils/validate', () => {
 		describe('when NodeInfo is larger than maximum allowed size', () => {
 			const maximumSize = 10;
 
-			const NodeInfo: P2PNodeInfo = {
+			const nodeInfo: P2PNodeInfo = {
 				networkId: '12.23.54.3',
 				networkVersion: '1.1',
 				options: {
@@ -211,9 +211,9 @@ describe('utils/validate', () => {
 			};
 
 			it('should throw Invalid NodeInfo maximum allowed size error', () => {
-				expect(validateNodeInfo.bind(null, NodeInfo, maximumSize)).toThrow(
-					`Invalid NodeInfo was larger than the maximum allowed ${maximumSize} bytes`,
-				);
+				expect(
+					validateNodeInfo.bind(null, Buffer.from(JSON.stringify(nodeInfo)), maximumSize),
+				).toThrow(`Invalid NodeInfo was larger than the maximum allowed ${maximumSize} bytes`);
 			});
 		});
 	});
