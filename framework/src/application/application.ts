@@ -470,6 +470,9 @@ export class Application {
 				getSchema: {
 					handler: () => this._node.actions.getSchema(),
 				},
+				getNodeStatusAndConstants: {
+					handler: () => this._node.actions.getNodeStatusAndConstants(),
+				},
 			},
 			{ skipInternalEvents: true },
 		);

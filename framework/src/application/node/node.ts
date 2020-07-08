@@ -69,6 +69,9 @@ export interface NodeConstants {
 }
 
 export interface Options {
+	readonly version: string;
+	readonly protocolVersion: string;
+	readonly networkId: string;
 	readonly label: string;
 	readonly rootPath: string;
 	readonly communityIdentifier: string;
@@ -83,6 +86,7 @@ export interface Options {
 		readonly [key: number]: typeof BaseTransaction;
 	};
 	genesisBlock: GenesisBlock<AccountAsset>;
+	readonly genesisConfig: object;
 }
 
 interface NodeConstructor {
@@ -429,6 +433,20 @@ export class Node {
 				},
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
 				transactionsAssets: this._getRegisteredTransactionSchemas(),
+			}),
+			getNodeStatusAndConstants: () => ({
+				version: this._options.version,
+				protocolVersion: this._options.protocolVersion,
+				networkID: this._options.networkId,
+				lastBlockID: this._chain.lastBlock.header.id.toString('base64'),
+				height: this._chain.lastBlock.header.height,
+				finalizedHeight: this._bft.finalityManager.finalizedHeight,
+				syncing: this._synchronizer.isActive,
+				unconfirmedTransactions: this._transactionPool.getAll().length,
+				genesisConfig: {
+					...this._options.genesisConfig,
+					...this._options.constants,
+				},
 			}),
 		};
 	}
