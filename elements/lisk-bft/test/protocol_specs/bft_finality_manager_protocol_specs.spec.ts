@@ -67,6 +67,16 @@ describe('FinalityManager', () => {
 		isStandbyDelegate: jest.Mock;
 		isBootstrapPeriod: jest.Mock;
 	};
+	let chainStub: {
+		slots: {
+			getSlotNumber: jest.Mock;
+			isWithinTimeslot: jest.Mock;
+			timeSinceGenesis: jest.Mock;
+		};
+		dataAccess: {
+			getConsensusState: jest.Mock;
+		};
+	};
 	let stateStore: StateStoreMock;
 
 	describe('addBlockHeader', () => {
@@ -81,8 +91,19 @@ describe('FinalityManager', () => {
 						isStandbyDelegate: jest.fn(),
 						isBootstrapPeriod: jest.fn().mockReturnValue(false),
 					};
+					chainStub = {
+						slots: {
+							getSlotNumber: jest.fn(),
+							isWithinTimeslot: jest.fn(),
+							timeSinceGenesis: jest.fn(),
+						},
+						dataAccess: {
+							getConsensusState: jest.fn(),
+						},
+					};
 
 					finalityManager = new FinalityManager({
+						chain: chainStub,
 						dpos: dposStub,
 						finalizedHeight: scenario.config.finalizedHeight,
 						activeDelegates: scenario.config.activeDelegates,
@@ -149,9 +170,9 @@ describe('FinalityManager', () => {
 						const updatedBftLedgers = await stateStore.consensus.get(
 							CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
 						);
-						expect(finalityManager.getMaxHeightPrevoted(updatedBftLedgers)).toEqual(
-							testCase.output.preVotedConfirmedHeight,
-						);
+						const { ledger } = finalityManager['_decodeVotingLedger'](updatedBftLedgers);
+						const { preVoted } = finalityManager['_getChainMaxHeightStatus'](ledger);
+						expect(preVoted).toEqual(testCase.output.preVotedConfirmedHeight);
 					});
 				}
 			});

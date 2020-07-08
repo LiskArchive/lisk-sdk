@@ -16,11 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
-import {
-	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
-	FinalityManager,
-	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
-} from './finality_manager';
+import { EVENT_BFT_FINALIZED_HEIGHT_CHANGED, FinalityManager } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
 import { BFTPersistedValues, BlockHeader, Chain, DPoS, ForkStatus, StateStore } from './types';
 
@@ -178,10 +174,7 @@ export class BFT extends EventEmitter {
 	}
 
 	public async getMaxHeightPrevoted(): Promise<number> {
-		const bftState = await this._chain.dataAccess.getConsensusState(
-			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
-		);
-		return this.finalityManager.getMaxHeightPrevoted(bftState);
+		return this.finalityManager.getMaxHeightPrevoted();
 	}
 
 	public get finalizedHeight(): number {
@@ -205,6 +198,7 @@ export class BFT extends EventEmitter {
 
 		// Initialize consensus manager
 		const finalityManager = new FinalityManager({
+			chain: this._chain,
 			dpos: this._dpos,
 			finalizedHeight,
 			activeDelegates: this.constants.activeDelegates,

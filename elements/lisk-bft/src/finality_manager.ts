@@ -27,6 +27,7 @@ import {
 	BlockHeader,
 	DPoS,
 	StateStore,
+	Chain,
 } from './types';
 
 // eslint-disable-next-line new-cap
@@ -130,12 +131,15 @@ export class FinalityManager extends EventEmitter {
 
 	public finalizedHeight: number;
 	private readonly _dpos: DPoS;
+	private readonly _chain: Chain;
 
 	public constructor({
+		chain,
 		dpos,
 		finalizedHeight,
 		activeDelegates,
 	}: {
+		readonly chain: Chain;
 		readonly dpos: DPoS;
 		readonly finalizedHeight: number;
 		readonly activeDelegates: number;
@@ -143,6 +147,7 @@ export class FinalityManager extends EventEmitter {
 		super();
 		assert(activeDelegates > 0, 'Must provide a positive activeDelegates');
 
+		this._chain = chain;
 		this._dpos = dpos;
 
 		// Set constants
@@ -415,8 +420,11 @@ export class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	public getMaxHeightPrevoted(bftVotingLedgerBuffer: Buffer | undefined): number {
-		const { ledger } = this._decodeVotingLedger(bftVotingLedgerBuffer);
+	public async getMaxHeightPrevoted(): Promise<number> {
+		const bftState = await this._chain.dataAccess.getConsensusState(
+			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+		);
+		const { ledger } = this._decodeVotingLedger(bftState);
 		const { preVoted } = this._getChainMaxHeightStatus(ledger);
 
 		return preVoted;

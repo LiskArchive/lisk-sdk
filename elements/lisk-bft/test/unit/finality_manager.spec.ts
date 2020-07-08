@@ -55,6 +55,16 @@ describe('finality_manager', () => {
 			isStandbyDelegate: jest.Mock;
 			isBootstrapPeriod: jest.Mock;
 		};
+		let chainStub: {
+			slots: {
+				getSlotNumber: jest.Mock;
+				isWithinTimeslot: jest.Mock;
+				timeSinceGenesis: jest.Mock;
+			};
+			dataAccess: {
+				getConsensusState: jest.Mock;
+			};
+		};
 
 		beforeEach(() => {
 			dposStub = {
@@ -62,8 +72,19 @@ describe('finality_manager', () => {
 				isStandbyDelegate: jest.fn(),
 				isBootstrapPeriod: jest.fn().mockReturnValue(false),
 			};
+			chainStub = {
+				slots: {
+					getSlotNumber: jest.fn(),
+					isWithinTimeslot: jest.fn(),
+					timeSinceGenesis: jest.fn(),
+				},
+				dataAccess: {
+					getConsensusState: jest.fn(),
+				},
+			};
 
 			finalityManager = new FinalityManager({
+				chain: chainStub,
 				dpos: dposStub,
 				finalizedHeight,
 				activeDelegates,
@@ -84,6 +105,7 @@ describe('finality_manager', () => {
 				expect(
 					() =>
 						new FinalityManager({
+							chain: chainStub,
 							dpos: dposStub,
 							finalizedHeight,
 							activeDelegates: 0,
