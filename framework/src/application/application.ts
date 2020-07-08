@@ -414,9 +414,6 @@ export class Application {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.postTransaction(action.params as EventPostTransactionData),
 				},
-				getNodeStatus: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getNodeStatus(),
-				},
 				getLastBlock: {
 					handler: async (_action: ActionInfoObject) => this._node.actions.getLastBlock(),
 					isPublic: true,
@@ -470,8 +467,8 @@ export class Application {
 				getSchema: {
 					handler: () => this._node.actions.getSchema(),
 				},
-				getNodeStatusAndConstants: {
-					handler: () => this._node.actions.getNodeStatusAndConstants(),
+				getNodeInfo: {
+					handler: () => this._node.actions.getNodeInfo(),
 				},
 			},
 			{ skipInternalEvents: true },

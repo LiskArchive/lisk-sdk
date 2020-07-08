@@ -14,13 +14,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { BaseChannel } from 'lisk-framework';
 
-export const getNodeStatusAndConstants = (channel: BaseChannel) => async (
+export const getNodeInfo = (channel: BaseChannel) => async (
 	_req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const nodeStatusAndInfo: Buffer = await channel.invoke('app:getNodeStatusAndConstants');
+		const nodeStatusAndInfo = await channel.invoke('app:getNodeInfo');
 		res.status(200).send(nodeStatusAndInfo);
 	} catch (err) {
 		next(err);

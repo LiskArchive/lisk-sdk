@@ -99,14 +99,6 @@ interface NodeConstructor {
 	readonly networkModule: Network;
 }
 
-interface NodeStatus {
-	readonly syncing: boolean;
-	readonly unconfirmedTransactions: number;
-	readonly secondsSinceEpoch: number;
-	readonly lastBlock: string;
-	readonly chainMaxHeightFinalized: number;
-}
-
 interface RegisteredSchemas {
 	[key: string]: Schema;
 }
@@ -407,13 +399,6 @@ export class Node {
 				this._chain.slots.getSlotNumber(params.timeStamp),
 			calcSlotRound: (params: { height: number }): number =>
 				this._dpos.rounds.calcRound(params.height),
-			getNodeStatus: (): NodeStatus => ({
-				syncing: this._synchronizer.isActive,
-				unconfirmedTransactions: this._transactionPool.getAll().length,
-				secondsSinceEpoch: this._chain.slots.timeSinceGenesis(),
-				lastBlock: this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
-				chainMaxHeightFinalized: this._bft.finalityManager.finalizedHeight,
-			}),
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getLastBlock: async (): Promise<string> =>
 				this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
@@ -434,7 +419,7 @@ export class Node {
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
 				transactionsAssets: this._getRegisteredTransactionSchemas(),
 			}),
-			getNodeStatusAndConstants: () => ({
+			getNodeInfo: () => ({
 				version: this._options.version,
 				protocolVersion: this._options.protocolVersion,
 				networkID: this._options.networkId,

@@ -79,7 +79,7 @@ describe('Application related actions', () => {
 		});
 	});
 
-	describe('getNodeStatusAndConstants', () => {
+	describe('getNodeInfo', () => {
 		it('should return node status and constants', async () => {
 			const appInstance = app as any;
 
@@ -99,7 +99,7 @@ describe('Application related actions', () => {
 				},
 			};
 
-			const nodeStatusAndConstants = await app['_channel'].invoke('app:getNodeStatusAndConstants');
+			const nodeStatusAndConstants = await app['_channel'].invoke('app:getNodeInfo');
 			expect(nodeStatusAndConstants).toEqual(expectedStatusAndConstants);
 		});
 	});
