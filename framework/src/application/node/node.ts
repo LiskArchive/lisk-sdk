@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, events as chainEvents, Block, blockSchema, Account } from '@liskhq/lisk-chain';
+import { Chain, events as chainEvents, Block, blockSchema, blockHeaderSchema, Account } from '@liskhq/lisk-chain';
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
@@ -37,7 +37,7 @@ import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
 import { BlockProcessorV0 } from './block_processor_v0';
 import { Logger } from '../logger';
-import { EventPostTransactionData } from '../../types';
+import { CodecSchema, EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
@@ -409,9 +409,10 @@ export class Node {
 				peerId: string;
 			}): Promise<string | undefined> =>
 				this._transport.handleRPCGetGetHighestCommonBlock(params.data, params.peerId),
-			getSchema: () => ({
-				account: this._chain.accountSchema,
-				blockHeader: blockSchema,
+			getSchema: (): CodecSchema => ({
+				account: (this._chain.accountSchema as unknown) as Schema,
+				blockSchema,
+				blockHeaderSchema,
 				blockHeadersAssets: {
 					0: BlockProcessorV0.schema,
 					2: BlockProcessorV2.schema,
