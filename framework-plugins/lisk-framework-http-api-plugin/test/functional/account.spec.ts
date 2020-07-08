@@ -19,7 +19,7 @@ import {
 	getURL,
 } from './utils/application';
 
-describe('Hello endpoint', () => {
+describe('Account endpoint', () => {
 	let app: Application;
 	const accountFixture = {
 		address: 'nQFJsJYtRL/Aip9k1a/Otigdf7U=',
