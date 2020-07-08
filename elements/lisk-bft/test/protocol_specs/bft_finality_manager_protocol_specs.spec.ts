@@ -146,7 +146,10 @@ describe('FinalityManager', () => {
 
 						expect(finalityManager.finalizedHeight).toEqual(testCase.output.finalizedHeight);
 
-						expect(finalityManager.chainMaxHeightPrevoted).toEqual(
+						const updatedBftLedgers = await stateStore.consensus.get(
+							CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+						);
+						expect(finalityManager.getMaxHeightPrevoted(updatedBftLedgers)).toEqual(
 							testCase.output.preVotedConfirmedHeight,
 						);
 					});

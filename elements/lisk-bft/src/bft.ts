@@ -16,7 +16,11 @@ import { codec } from '@liskhq/lisk-codec';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
-import { EVENT_BFT_FINALIZED_HEIGHT_CHANGED, FinalityManager } from './finality_manager';
+import {
+	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
+	FinalityManager,
+	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+} from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
 import { BFTPersistedValues, BlockHeader, Chain, DPoS, ForkStatus, StateStore } from './types';
 
@@ -93,11 +97,8 @@ export class BFT extends EventEmitter {
 		);
 	}
 
-	public verifyNewBlock(blockHeader: BlockHeader, stateStore: StateStore): boolean {
-		return this.finalityManager.verifyBlockHeaders(
-			blockHeader,
-			stateStore.consensus.lastBlockHeaders,
-		);
+	public async verifyNewBlock(blockHeader: BlockHeader, stateStore: StateStore): Promise<boolean> {
+		return this.finalityManager.verifyBlockHeaders(blockHeader, stateStore);
 	}
 
 	public forkChoice(blockHeader: BlockHeader, lastBlockHeader: BlockHeader): ForkStatus {
@@ -168,7 +169,7 @@ export class BFT extends EventEmitter {
 			!maxHeightPreviouslyForgedBlock ||
 			blockHeader.asset.maxHeightPreviouslyForged >= blockHeader.height ||
 			(blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <= heightThreshold &&
-				blockHeader.generatorPublicKey !== maxHeightPreviouslyForgedBlock.generatorPublicKey)
+				!blockHeader.generatorPublicKey.equals(maxHeightPreviouslyForgedBlock.generatorPublicKey))
 		) {
 			return false;
 		}
@@ -176,16 +177,15 @@ export class BFT extends EventEmitter {
 		return true;
 	}
 
+	public async getMaxHeightPrevoted(): Promise<number> {
+		const bftState = await this._chain.dataAccess.getConsensusState(
+			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+		);
+		return this.finalityManager.getMaxHeightPrevoted(bftState);
+	}
+
 	public get finalizedHeight(): number {
 		return this.finalityManager.finalizedHeight;
-	}
-
-	public get maxHeightPrevoted(): number {
-		return this.finalityManager.chainMaxHeightPrevoted;
-	}
-
-	public reset(): void {
-		this.finalityManager.reset();
 	}
 
 	private async _initFinalityManager(stateStore: StateStore): Promise<FinalityManager> {
@@ -209,8 +209,6 @@ export class BFT extends EventEmitter {
 			finalizedHeight,
 			activeDelegates: this.constants.activeDelegates,
 		});
-		// Initialize maxHeightPrevoted with the current state
-		await finalityManager.updatePreVotedAndFinalizedHeight(stateStore);
 
 		return finalityManager;
 	}

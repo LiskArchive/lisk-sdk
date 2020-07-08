@@ -32,6 +32,9 @@ describe('bft', () => {
 
 		let chainStub: {
 			slots: Slots;
+			dataAccess: {
+				getConsensusState: jest.Mock;
+			};
 		};
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
@@ -46,6 +49,9 @@ describe('bft', () => {
 			});
 			chainStub = {
 				slots,
+				dataAccess: {
+					getConsensusState: jest.fn(),
+				},
 			};
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
