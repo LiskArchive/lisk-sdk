@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as accounts from './account';
-
 export * from './hello';
-export { accounts };
+
+export * as accounts from './account';

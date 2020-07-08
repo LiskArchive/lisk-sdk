@@ -77,8 +77,12 @@ describe('Account endpoint', () => {
 				expect(err.response.status).toBe(404);
 				// eslint-disable-next-line jest/no-try-expect
 				expect(err.response.data).toEqual({
-					message:
-						"Account with address 'nQFJsJYtRL/Aip0k1a/Otigdf7U=' was not found",
+					errors: [
+						{
+							message:
+								"Account with address 'nQFJsJYtRL/Aip0k1a/Otigdf7U=' was not found",
+						},
+					],
 				});
 			}
 		});
