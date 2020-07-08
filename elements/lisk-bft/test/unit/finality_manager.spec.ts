@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	FinalityManager,
 	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
@@ -55,6 +55,16 @@ describe('finality_manager', () => {
 			isStandbyDelegate: jest.Mock;
 			isBootstrapPeriod: jest.Mock;
 		};
+		let chainStub: {
+			slots: {
+				getSlotNumber: jest.Mock;
+				isWithinTimeslot: jest.Mock;
+				timeSinceGenesis: jest.Mock;
+			};
+			dataAccess: {
+				getConsensusState: jest.Mock;
+			};
+		};
 
 		beforeEach(() => {
 			dposStub = {
@@ -62,8 +72,19 @@ describe('finality_manager', () => {
 				isStandbyDelegate: jest.fn(),
 				isBootstrapPeriod: jest.fn().mockReturnValue(false),
 			};
+			chainStub = {
+				slots: {
+					getSlotNumber: jest.fn(),
+					isWithinTimeslot: jest.fn(),
+					timeSinceGenesis: jest.fn(),
+				},
+				dataAccess: {
+					getConsensusState: jest.fn(),
+				},
+			};
 
 			finalityManager = new FinalityManager({
+				chain: chainStub,
 				dpos: dposStub,
 				finalizedHeight,
 				activeDelegates,
@@ -84,6 +105,7 @@ describe('finality_manager', () => {
 				expect(
 					() =>
 						new FinalityManager({
+							chain: chainStub,
 							dpos: dposStub,
 							finalizedHeight,
 							activeDelegates: 0,
@@ -93,9 +115,13 @@ describe('finality_manager', () => {
 		});
 
 		describe('verifyBlockHeaders', () => {
-			it('should throw error if maxHeightPrevoted is not accurate', () => {
+			let stateStore: StateStoreMock;
+
+			it('should throw error if maxHeightPrevoted is not accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
 				const bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
+
+				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: bftHeaders });
 
 				const header = createFakeBlockHeader({
 					asset: { maxHeightPrevoted: 10 },
@@ -103,31 +129,57 @@ describe('finality_manager', () => {
 
 				expect.assertions(1);
 				try {
-					finalityManager.verifyBlockHeaders(header, bftHeaders);
+					await finalityManager.verifyBlockHeaders(header, stateStore);
 				} catch (error) {
 					// eslint-disable-next-line jest/no-try-expect
 					expect(error.message).toContain('Wrong maxHeightPrevoted in blockHeader.');
 				}
 			});
 
-			it('should not throw error if maxHeightPrevoted is accurate', () => {
+			it('should not throw error if maxHeightPrevoted is accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
 				const bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
 				const header = createFakeBlockHeader({
 					asset: { maxHeightPrevoted: 10 },
 				});
-				finalityManager.chainMaxHeightPrevoted = 10;
+				const delegateLedger = {
+					delegates: [
+						{
+							address: getAddressFromPublicKey(header.generatorPublicKey),
+							maxPreVoteHeight: 1,
+							maxPreCommitHeight: 0,
+						},
+					],
+					ledger: [
+						{
+							height: 10,
+							preVotes: 69,
+							preCommits: 0,
+						},
+					],
+				};
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
+							BFTVotingLedgerSchema,
+							delegateLedger,
+						),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				);
 
-				expect(() => finalityManager.verifyBlockHeaders(header, bftHeaders)).not.toThrow();
+				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTrue();
 			});
 
-			it("should return true if delegate didn't forge any block previously", () => {
+			it("should return true if delegate didn't forge any block previously", async () => {
 				const header = createFakeBlockHeader();
+				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [] });
 
-				expect(finalityManager.verifyBlockHeaders(header, [])).toBeTruthy();
+				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTruthy();
 			});
 
-			it('should throw error if same delegate forged block on different height', () => {
+			it('should throw error if same delegate forged block on different height', async () => {
 				const maxHeightPrevoted = 10;
 				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
@@ -147,12 +199,14 @@ describe('finality_manager', () => {
 					height: 9,
 				});
 
-				expect(() => finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toThrow(
+				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
+
+				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTForkChoiceRuleError,
 				);
 			});
 
-			it('should throw error if delegate forged block on same height', () => {
+			it('should throw error if delegate forged block on same height', async () => {
 				const maxHeightPreviouslyForged = 10;
 				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
@@ -169,13 +223,14 @@ describe('finality_manager', () => {
 					},
 					height: 10,
 				});
+				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
 
-				expect(() => finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toThrow(
+				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTForkChoiceRuleError,
 				);
 			});
 
-			it('should throw error if maxHeightPreviouslyForged has wrong value', () => {
+			it('should throw error if maxHeightPreviouslyForged has wrong value', async () => {
 				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
 					generatorPublicKey,
@@ -188,12 +243,14 @@ describe('finality_manager', () => {
 					},
 				});
 
-				expect(() => finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toThrow(
+				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
+
+				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTChainDisjointError,
 				);
 			});
 
-			it('should throw error if maxHeightPrevoted has wrong value', () => {
+			it('should throw error if maxHeightPrevoted has wrong value', async () => {
 				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
 					generatorPublicKey,
@@ -211,15 +268,20 @@ describe('finality_manager', () => {
 					},
 				});
 
-				expect(() => finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toThrow(
+				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
+
+				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTLowerChainBranchError,
 				);
 			});
 
-			it('should return true if headers are valid', () => {
+			it('should return true if headers are valid', async () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
+				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
 
-				expect(finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toBeTruthy();
+				await expect(
+					finalityManager.verifyBlockHeaders(currentBlock, stateStore),
+				).resolves.toBeTruthy();
 			});
 		});
 
@@ -259,7 +321,7 @@ describe('finality_manager', () => {
 				await finalityManager.addBlockHeader(header1, stateStore);
 
 				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledTimes(1);
-				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledWith(header1, bftHeaders);
+				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledWith(header1, stateStore);
 			});
 
 			it('should call updatePreVotesPreCommits with the provided header', async () => {

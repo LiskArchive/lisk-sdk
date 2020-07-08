@@ -100,6 +100,9 @@ export interface Chain {
 		readonly isWithinTimeslot: (slotNumber: number, receivedAt: number | undefined) => boolean;
 		readonly timeSinceGenesis: (time?: number) => number;
 	};
+	readonly dataAccess: {
+		getConsensusState(key: string): Promise<Buffer | undefined>;
+	};
 }
 
 export enum ForkStatus {

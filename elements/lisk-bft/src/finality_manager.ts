@@ -27,6 +27,7 @@ import {
 	BlockHeader,
 	DPoS,
 	StateStore,
+	Chain,
 } from './types';
 
 // eslint-disable-next-line new-cap
@@ -129,15 +130,16 @@ export class FinalityManager extends EventEmitter {
 	public readonly maxHeaders: number;
 
 	public finalizedHeight: number;
-	public chainMaxHeightPrevoted: number;
-
 	private readonly _dpos: DPoS;
+	private readonly _chain: Chain;
 
 	public constructor({
+		chain,
 		dpos,
 		finalizedHeight,
 		activeDelegates,
 	}: {
+		readonly chain: Chain;
 		readonly dpos: DPoS;
 		readonly finalizedHeight: number;
 		readonly activeDelegates: number;
@@ -145,6 +147,7 @@ export class FinalityManager extends EventEmitter {
 		super();
 		assert(activeDelegates > 0, 'Must provide a positive activeDelegates');
 
+		this._chain = chain;
 		this._dpos = dpos;
 
 		// Set constants
@@ -164,9 +167,6 @@ export class FinalityManager extends EventEmitter {
 
 		// Height up to which blocks are finalized
 		this.finalizedHeight = finalizedHeight;
-
-		// Height up to which blocks have pre-voted
-		this.chainMaxHeightPrevoted = 0;
 	}
 
 	public async addBlockHeader(
@@ -178,17 +178,16 @@ export class FinalityManager extends EventEmitter {
 		const { lastBlockHeaders } = stateStore.consensus;
 
 		// Verify the integrity of the header with chain
-		this.verifyBlockHeaders(blockHeader, lastBlockHeaders);
+		await this.verifyBlockHeaders(blockHeader, stateStore);
 
 		// Update the pre-votes and pre-commits
 		await this.updatePreVotesPreCommits(blockHeader, stateStore, lastBlockHeaders);
 
 		// Update the pre-voted confirmed and finalized height
-		await this.updatePreVotedAndFinalizedHeight(stateStore);
+		await this.updateFinalizedHeight(stateStore);
 
 		debug('after adding block header', {
 			finalizedHeight: this.finalizedHeight,
-			chainMaxHeightPrevoted: this.chainMaxHeightPrevoted,
 		});
 
 		return this;
@@ -327,18 +326,10 @@ export class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	public async updatePreVotedAndFinalizedHeight(stateStore: StateStore): Promise<boolean> {
+	public async updateFinalizedHeight(stateStore: StateStore): Promise<boolean> {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
 		const { ledger } = await this._getVotingLedger(stateStore);
-
-		const highestHeightPreVoted = Object.keys(ledger)
-			.reverse()
-			.find(key => ledger[key].preVotes >= this.preVoteThreshold);
-
-		this.chainMaxHeightPrevoted = highestHeightPreVoted
-			? parseInt(highestHeightPreVoted, 10)
-			: this.chainMaxHeightPrevoted;
 
 		const highestHeightPreCommitted = Object.keys(ledger)
 			.reverse()
@@ -358,25 +349,24 @@ export class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	public reset(): void {
-		this.chainMaxHeightPrevoted = 0;
-	}
-
-	public verifyBlockHeaders(
+	public async verifyBlockHeaders(
 		blockHeader: BlockHeader,
-		bftBlockHeaders: ReadonlyArray<BlockHeader>,
-	): boolean {
+		stateStore: StateStore,
+	): Promise<boolean> {
 		debug('verifyBlockHeaders invoked');
 		debug(blockHeader);
 
+		const bftBlockHeaders = stateStore.consensus.lastBlockHeaders;
+		const { ledger } = await this._getVotingLedger(stateStore);
+		const { preVoted: chainMaxHeightPrevoted } = this._getChainMaxHeightStatus(ledger);
 		// We need minimum processingThreshold to decide
 		// If maxHeightPrevoted is correct
 		if (
 			bftBlockHeaders.length >= this.processingThreshold &&
-			blockHeader.asset.maxHeightPrevoted !== this.chainMaxHeightPrevoted
+			blockHeader.asset.maxHeightPrevoted !== chainMaxHeightPrevoted
 		) {
 			throw new BFTInvalidAttributeError(
-				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.asset.maxHeightPrevoted}, : ${this.chainMaxHeightPrevoted}`,
+				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.asset.maxHeightPrevoted}, : ${chainMaxHeightPrevoted}`,
 			);
 		}
 
@@ -428,6 +418,34 @@ export class FinalityManager extends EventEmitter {
 		}
 
 		return true;
+	}
+
+	public async getMaxHeightPrevoted(): Promise<number> {
+		const bftState = await this._chain.dataAccess.getConsensusState(
+			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+		);
+		const { ledger } = this._decodeVotingLedger(bftState);
+		const { preVoted } = this._getChainMaxHeightStatus(ledger);
+
+		return preVoted;
+	}
+
+	private _getChainMaxHeightStatus(ledger: LedgerMap): { preVoted: number; preComitted: number } {
+		debug('updatePreVotedAndFinalizedHeight invoked');
+
+		const highestHeightPreVoted = Object.keys(ledger)
+			.reverse()
+			.find(key => ledger[key].preVotes >= this.preVoteThreshold);
+
+		const preVoted = highestHeightPreVoted ? parseInt(highestHeightPreVoted, 10) : 0;
+
+		const highestHeightPreComitted = Object.keys(ledger)
+			.reverse()
+			.find(key => ledger[key].preCommits >= this.preCommitThreshold);
+
+		const preComitted = highestHeightPreComitted ? parseInt(highestHeightPreComitted, 10) : 0;
+
+		return { preVoted, preComitted };
 	}
 
 	/**
@@ -486,17 +504,18 @@ export class FinalityManager extends EventEmitter {
 	// eslint-disable-next-line class-methods-use-this
 	private async _getVotingLedger(stateStore: StateStore): Promise<VotingLedgerMap> {
 		const votingLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_DELEGATE_LEDGER_KEY);
+		return this._decodeVotingLedger(votingLedgerBuffer);
+	}
 
+	// eslint-disable-next-line class-methods-use-this
+	private _decodeVotingLedger(bftVotingLedgerBuffer: Buffer | undefined): VotingLedgerMap {
 		const votingLedger =
-			votingLedgerBuffer === undefined
+			bftVotingLedgerBuffer === undefined
 				? {
 						ledger: [],
 						delegates: [],
 				  }
-				: codec.decode<VotingLedger>(
-						BFTVotingLedgerSchema,
-						(votingLedgerBuffer as unknown) as Buffer,
-				  );
+				: codec.decode<VotingLedger>(BFTVotingLedgerSchema, bftVotingLedgerBuffer);
 
 		const ledger = votingLedger.ledger.reduce((prev: LedgerMap, curr) => {
 			// eslint-disable-next-line no-param-reassign

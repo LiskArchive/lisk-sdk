@@ -32,15 +32,6 @@ import {
 } from '../../src';
 import { StateStoreMock } from '../utils/state_store_mock';
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const extractBFTInfo = (bft: BFT) => ({
-	finalizedHeight: bft.finalizedHeight,
-	maxHeightPrevoted: bft.maxHeightPrevoted,
-	preVotes: { ...(bft.finalityManager as any).preVotes },
-	preCommits: { ...(bft.finalityManager as any).preCommits },
-	state: { ...(bft.finalityManager as any).state },
-});
-
 const generateBlocks = ({
 	startHeight,
 	numberOfBlocks,
@@ -71,6 +62,9 @@ describe('bft', () => {
 				isWithinTimeslot: jest.Mock;
 				timeSinceGenesis: jest.Mock;
 			};
+			dataAccess: {
+				getConsensusState: jest.Mock;
+			};
 		};
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
@@ -86,6 +80,9 @@ describe('bft', () => {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
 					timeSinceGenesis: jest.fn(),
+				},
+				dataAccess: {
+					getConsensusState: jest.fn(),
 				},
 			};
 
@@ -146,46 +143,6 @@ describe('bft', () => {
 
 				expect(bft.finalizedHeight).toEqual(finalizedHeight);
 			});
-
-			it('should set the maxHeightPrevoted to the current value', async () => {
-				const finalizedHeight = 5;
-				const block1 = createFakeBlockHeader({ height: 100, version: 2 });
-				const delegateAddress = getAddressFromPublicKey(block1.generatorPublicKey);
-				const delegateLedger = {
-					delegates: [
-						{
-							address: delegateAddress,
-							maxPreVoteHeight: 100,
-							maxPreCommitHeight: 0,
-						},
-					],
-					ledger: [
-						{
-							height: block1.height,
-							preVotes: 68,
-							preCommits: 0,
-						},
-					],
-				};
-				const stateStore = new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
-							finalizedHeight,
-						}),
-						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
-							BFTVotingLedgerSchema,
-							delegateLedger,
-						),
-					},
-					{ lastBlockHeaders: [lastBlock] },
-				);
-				const bft = new BFT(bftParams);
-
-				await bft.init(stateStore);
-
-				expect(bft.maxHeightPrevoted).toEqual(100);
-			});
 		});
 
 		describe('#addNewBlock', () => {
@@ -244,55 +201,6 @@ describe('bft', () => {
 					);
 
 					expect(finalizedHeight).toEqual(lastFinalizedHeight);
-				});
-			});
-		});
-
-		describe('#reset', () => {
-			it('should reset headers and related stats to initial state except finality', async () => {
-				// Arrange
-				const stateStore = new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
-							finalizedHeight: 5,
-						}),
-					},
-					{ lastBlockHeaders: [lastBlock] },
-				);
-				const bft = new BFT(bftParams);
-				await bft.init(stateStore);
-				const numberOfBlocks = 500;
-				const blocks = generateBlocks({
-					startHeight: 1,
-					numberOfBlocks,
-				});
-				for (const block of blocks) {
-					await bft.addNewBlock(
-						{
-							...block,
-							asset: {
-								...block.asset,
-								maxHeightPrevoted: bft.finalityManager.chainMaxHeightPrevoted,
-							},
-						},
-						stateStore,
-					);
-				}
-				// const beforeResetInfo = extractBFTInfo(bft);
-
-				// Act
-				bft.reset();
-				const afterResetInfo = extractBFTInfo(bft);
-
-				// Assert
-				// Finalized height should not change
-				expect(afterResetInfo).toEqual({
-					finalizedHeight: 5,
-					maxHeightPrevoted: 0,
-					preVotes: {},
-					preCommits: {},
-					state: {},
 				});
 			});
 		});
