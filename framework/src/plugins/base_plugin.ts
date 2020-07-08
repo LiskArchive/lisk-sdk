@@ -83,8 +83,36 @@ const decodeTransactionToJSON = (
 	};
 };
 
+const encodeTransactionFromJSON = (
+	transaction: TransactionJSON,
+	baseSchema: Schema,
+	assetsSchemas: { [key: number]: Schema },
+): string => {
+	const transactionTypeAssetSchema = assetsSchemas[transaction.type];
+
+	if (!transactionTypeAssetSchema) {
+		throw new Error('Transaction type not found.');
+	}
+
+	const transactionAssetBuffer = codec.encode(
+		transactionTypeAssetSchema,
+		codec.fromJSON(transactionTypeAssetSchema, transaction.asset),
+	);
+
+	const transactionBuffer = codec.encode(
+		baseSchema,
+		codec.fromJSON(baseSchema, {
+			...transaction,
+			asset: transactionAssetBuffer,
+		}),
+	);
+
+	return transactionBuffer.toString('base64');
+};
+
 export interface PluginCodec {
 	decodeTransaction: (data: Buffer | string) => TransactionJSON;
+	encodeTransaction: (transaction: TransactionJSON) => string;
 }
 
 export abstract class BasePlugin {
@@ -117,6 +145,12 @@ export abstract class BasePlugin {
 					this.schemas.transactionsAssets,
 				);
 			},
+			encodeTransaction: (transaction: TransactionJSON): string =>
+				encodeTransactionFromJSON(
+					transaction,
+					this.schemas.baseTransaction,
+					this.schemas.transactionsAssets,
+				),
 		};
 	}
 
