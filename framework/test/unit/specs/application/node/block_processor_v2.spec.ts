@@ -66,7 +66,7 @@ describe('block processor v2', () => {
 			init: jest.fn(),
 			deleteBlocks: jest.fn(),
 			validateBlock: jest.fn(),
-			maxHeightPrevoted: 0,
+			getMaxHeightPrevoted: jest.fn().mockResolvedValue(0),
 			isBFTProtocolCompliant: jest.fn().mockReturnValue(true),
 		};
 
