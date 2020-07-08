@@ -13,3 +13,5 @@
  */
 
 export * from './hello';
+
+export * as accounts from './account';
