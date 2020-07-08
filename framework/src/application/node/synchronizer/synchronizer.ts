@@ -63,10 +63,7 @@ export class Synchronizer {
 		mechanisms = [],
 		networkModule,
 	}: SynchronizerInput) {
-		assert(
-			Array.isArray(mechanisms),
-			'mechanisms should be an array of mechanisms',
-		);
+		assert(Array.isArray(mechanisms), 'mechanisms should be an array of mechanisms');
 		this.mechanisms = mechanisms;
 		this.channel = channel;
 		this.logger = logger;
@@ -84,11 +81,7 @@ export class Synchronizer {
 		const isEmpty = await this.chainModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
-				await utils.restoreBlocksUponStartup(
-					this.logger,
-					this.chainModule,
-					this.processorModule,
-				);
+				await utils.restoreBlocksUponStartup(this.logger, this.chainModule, this.processorModule);
 			} catch (err) {
 				this.logger.error(
 					{ err: err as Error },
@@ -104,10 +97,7 @@ export class Synchronizer {
 		}
 		try {
 			this.active = true;
-			assert(
-				receivedBlock,
-				'A block must be provided to the Synchronizer in order to run',
-			);
+			assert(receivedBlock, 'A block must be provided to the Synchronizer in order to run');
 			this.logger.info(
 				{
 					blockId: receivedBlock.header.id,
@@ -121,10 +111,7 @@ export class Synchronizer {
 			await this.processorModule.validate(receivedBlock);
 
 			// Choose the right mechanism to sync
-			const validMechanism = await this._determineSyncMechanism(
-				receivedBlock,
-				peerId,
-			);
+			const validMechanism = await this._determineSyncMechanism(receivedBlock, peerId);
 
 			if (!validMechanism) {
 				return this.logger.info(
@@ -199,27 +186,19 @@ export class Synchronizer {
 			data: { transactions: string[] };
 		};
 
-		const validatorErrors = validator.validate(
-			definitions.WSTransactionsResponse,
-			result,
-		);
+		const validatorErrors = validator.validate(definitions.WSTransactionsResponse, result);
 		if (validatorErrors.length) {
 			throw validatorErrors;
 		}
 
 		const transactions = result.transactions.map(txStr =>
-			this.chainModule.dataAccess.decodeTransaction(
-				Buffer.from(txStr, 'base64'),
-			),
+			this.chainModule.dataAccess.decodeTransaction(Buffer.from(txStr, 'base64')),
 		);
 
 		try {
-			const transactionsResponses = this.chainModule.validateTransactions(
-				transactions,
-			);
+			const transactionsResponses = this.chainModule.validateTransactions(transactions);
 			const invalidTransactionResponse = transactionsResponses.find(
-				transactionResponse =>
-					transactionResponse.status !== TransactionStatus.OK,
+				transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 			);
 			if (invalidTransactionResponse) {
 				throw invalidTransactionResponse.errors;

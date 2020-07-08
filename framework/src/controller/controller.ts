@@ -58,22 +58,10 @@ interface PluginsObject {
 }
 
 const validatePluginSpec = (pluginSpec: Partial<BasePlugin>): void => {
-	assert(
-		(pluginSpec.constructor as typeof BasePlugin).alias,
-		'Plugin alias is required.',
-	);
-	assert(
-		(pluginSpec.constructor as typeof BasePlugin).info.name,
-		'Plugin name is required.',
-	);
-	assert(
-		(pluginSpec.constructor as typeof BasePlugin).info.author,
-		'Plugin author is required.',
-	);
-	assert(
-		(pluginSpec.constructor as typeof BasePlugin).info.version,
-		'Plugin version is required.',
-	);
+	assert((pluginSpec.constructor as typeof BasePlugin).alias, 'Plugin alias is required.');
+	assert((pluginSpec.constructor as typeof BasePlugin).info.name, 'Plugin name is required.');
+	assert((pluginSpec.constructor as typeof BasePlugin).info.author, 'Plugin author is required.');
+	assert((pluginSpec.constructor as typeof BasePlugin).info.version, 'Plugin version is required.');
 	assert(pluginSpec.defaults, 'Plugin default options are required.');
 	assert(pluginSpec.events, 'Plugin events are required.');
 	assert(pluginSpec.actions, 'Plugin actions are required.');
@@ -119,10 +107,7 @@ export class Controller {
 		this.childrenList = [];
 	}
 
-	public async load(
-		plugins: PluginsObject,
-		pluginOptions: PluginsOptions,
-	): Promise<void> {
+	public async load(plugins: PluginsObject, pluginOptions: PluginsOptions): Promise<void> {
 		this.logger.info('Loading controller');
 		await this._setupBus();
 		await this._loadPlugins(plugins, pluginOptions);
@@ -131,9 +116,7 @@ export class Controller {
 		this.logger.debug(this.bus.getActions(), 'Bus ready for actions');
 	}
 
-	public async unloadPlugins(
-		plugins = Object.keys(this.plugins),
-	): Promise<void> {
+	public async unloadPlugins(plugins = Object.keys(this.plugins)): Promise<void> {
 		// To perform operations in sequence and not using bluebird
 
 		for (const alias of plugins) {
@@ -175,10 +158,7 @@ export class Controller {
 		}
 	}
 
-	private async _loadPlugins(
-		plugins: PluginsObject,
-		pluginOptions: PluginsOptions,
-	): Promise<void> {
+	private async _loadPlugins(plugins: PluginsObject, pluginOptions: PluginsOptions): Promise<void> {
 		// To perform operations in sequence and not using bluebird
 		for (const alias of Object.keys(plugins)) {
 			const klass = plugins[alias];
@@ -188,9 +168,7 @@ export class Controller {
 				if (this.config.ipc.enabled) {
 					await this._loadChildProcessPlugin(alias, klass, options);
 				} else {
-					this.logger.warn(
-						`IPC is disabled. ${alias} will be loaded in-memory.`,
-					);
+					this.logger.warn(`IPC is disabled. ${alias} will be loaded in-memory.`);
 					await this._loadInMemoryPlugin(alias, klass, options);
 				}
 			} else {
@@ -210,16 +188,9 @@ export class Controller {
 		const plugin: BasePlugin = new Klass(options);
 		validatePluginSpec(plugin);
 
-		this.logger.info(
-			{ name, version, pluginAlias },
-			'Loading in-memory plugin',
-		);
+		this.logger.info({ name, version, pluginAlias }, 'Loading in-memory plugin');
 
-		const channel = new InMemoryChannel(
-			pluginAlias,
-			plugin.events,
-			plugin.actions,
-		);
+		const channel = new InMemoryChannel(pluginAlias, plugin.events, plugin.actions);
 
 		await channel.registerToBus(this.bus);
 
@@ -247,10 +218,7 @@ export class Controller {
 		const plugin: BasePlugin = new Klass(options);
 		validatePluginSpec(plugin);
 
-		this.logger.info(
-			{ name, version, pluginAlias },
-			'Loading plugin as child process',
-		);
+		this.logger.info({ name, version, pluginAlias }, 'Loading plugin as child process');
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
@@ -264,9 +232,7 @@ export class Controller {
 		const minPort = 10000;
 		if (process.env.NODE_DEBUG) {
 			forkedProcessOptions.execArgv = [
-				`--inspect=${Math.floor(
-					Math.random() * (maxPort - minPort) + minPort,
-				)}`,
+				`--inspect=${Math.floor(Math.random() * (maxPort - minPort) + minPort)}`,
 			];
 		}
 
@@ -290,10 +256,7 @@ export class Controller {
 		await Promise.race([
 			new Promise(resolve => {
 				this.channel.once(`${pluginAlias}:loading:finished`, () => {
-					this.logger.info(
-						{ name, version, pluginAlias },
-						'Child process plugin ready',
-					);
+					this.logger.info({ name, version, pluginAlias }, 'Child process plugin ready');
 					resolve();
 				});
 			}),

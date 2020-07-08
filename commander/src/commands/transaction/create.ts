@@ -39,11 +39,7 @@ const typeNumberMap: TypeNumberMap = {
 };
 
 const options = Object.entries(typeNumberMap).reduce(
-	(accumulated: string[], [key, value]: [string, string]) => [
-		...accumulated,
-		key,
-		value,
-	],
+	(accumulated: string[], [key, value]: [string, string]) => [...accumulated, key, value],
 	[],
 );
 
@@ -84,9 +80,7 @@ export default class CreateCommand extends BaseCommand {
 	Creates a transaction object.
 	`;
 
-	static examples = [
-		'transaction:create --type=8 1 100 100 13356260975429434553L',
-	];
+	static examples = ['transaction:create --type=8 1 100 100 13356260975429434553L'];
 
 	static flags = {
 		...BaseCommand.flags,
@@ -104,9 +98,7 @@ export default class CreateCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { argv, flags } = this.parse(CreateCommand);
 		const { type } = flags;
-		const commandType = Object.keys(typeNumberMap).includes(type)
-			? typeNumberMap[type]
-			: type;
+		const commandType = Object.keys(typeNumberMap).includes(type) ? typeNumberMap[type] : type;
 		const resolvedFlags = Object.entries(flags).reduce(resolveFlags, []);
 		await typeClassMap[commandType].run([...argv, ...resolvedFlags]);
 	}

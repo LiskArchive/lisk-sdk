@@ -53,18 +53,11 @@ export class DataAccess {
 		maxBlockHeaderCache,
 	}: DAConstructor) {
 		this._storage = new StorageAccess(db);
-		this._blocksCache = new BlockCache(
-			minBlockHeaderCache,
-			maxBlockHeaderCache,
-		);
-		this._transactionAdapter = new TransactionInterfaceAdapter(
-			registeredTransactions,
-		);
+		this._blocksCache = new BlockCache(minBlockHeaderCache, maxBlockHeaderCache);
+		this._transactionAdapter = new TransactionInterfaceAdapter(registeredTransactions);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._accountSchema = accountSchema;
-		this._blockHeaderAdapter = new BlockHeaderInterfaceAdapter(
-			registeredBlockHeaders,
-		);
+		this._blockHeaderAdapter = new BlockHeaderInterfaceAdapter(registeredBlockHeaders);
 	}
 
 	// BlockHeaders are all the block properties included for block signature + signature of block
@@ -86,8 +79,7 @@ export class DataAccess {
 		const upperHeightToFetch = this._blocksCache.items[0]?.height - 1 || 0;
 
 		const lowerHeightToFetch = Math.max(
-			upperHeightToFetch -
-				(this._blocksCache.maxCachedItems - this._blocksCache.minCachedItems),
+			upperHeightToFetch - (this._blocksCache.maxCachedItems - this._blocksCache.minCachedItems),
 			1,
 		);
 
@@ -150,19 +142,13 @@ export class DataAccess {
 		fromHeight: number,
 		toHeight: number,
 	): Promise<BlockHeader[]> {
-		const cachedBlocks = this._blocksCache.getByHeightBetween(
-			fromHeight,
-			toHeight,
-		);
+		const cachedBlocks = this._blocksCache.getByHeightBetween(fromHeight, toHeight);
 
 		if (cachedBlocks.length) {
 			return cachedBlocks;
 		}
 
-		const blocks = await this._storage.getBlockHeadersByHeightBetween(
-			fromHeight,
-			toHeight,
-		);
+		const blocks = await this._storage.getBlockHeadersByHeightBetween(fromHeight, toHeight);
 
 		return blocks.map(block => this._blockHeaderAdapter.decode(block));
 	}
@@ -231,9 +217,7 @@ export class DataAccess {
 		return this._decodeRawBlock(block);
 	}
 
-	public async getBlocksByIDs(
-		arrayOfBlockIds: ReadonlyArray<Buffer>,
-	): Promise<Block[]> {
+	public async getBlocksByIDs(arrayOfBlockIds: ReadonlyArray<Buffer>): Promise<Block[]> {
 		const blocks = await this._storage.getBlocksByIDs(arrayOfBlockIds);
 
 		return blocks.map(block => this._decodeRawBlock(block));
@@ -245,14 +229,8 @@ export class DataAccess {
 		return this._decodeRawBlock(block);
 	}
 
-	public async getBlocksByHeightBetween(
-		fromHeight: number,
-		toHeight: number,
-	): Promise<Block[]> {
-		const blocks = await this._storage.getBlocksByHeightBetween(
-			fromHeight,
-			toHeight,
-		);
+	public async getBlocksByHeightBetween(fromHeight: number, toHeight: number): Promise<Block[]> {
+		const blocks = await this._storage.getBlocksByHeightBetween(fromHeight, toHeight);
 
 		return blocks.map(block => this._decodeRawBlock(block));
 	}
@@ -302,9 +280,7 @@ export class DataAccess {
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<Buffer>,
 	): Promise<Account[]> {
-		const accounts = await this._storage.getAccountsByPublicKey(
-			arrayOfPublicKeys,
-		);
+		const accounts = await this._storage.getAccountsByPublicKey(arrayOfPublicKeys);
 
 		return accounts.map(account => new Account(this.decodeAccount(account)));
 	}
@@ -326,9 +302,7 @@ export class DataAccess {
 	): Promise<Account<T>[]> {
 		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
 
-		return accounts.map(
-			account => new Account<T>(this.decodeAccount<T>(account)),
-		);
+		return accounts.map(account => new Account<T>(this.decodeAccount<T>(account)));
 	}
 	/** End: Accounts */
 
@@ -341,19 +315,13 @@ export class DataAccess {
 	public async getTransactionsByIDs(
 		arrayOfTransactionIds: ReadonlyArray<Buffer>,
 	): Promise<BaseTransaction[]> {
-		const transactions = await this._storage.getTransactionsByIDs(
-			arrayOfTransactionIds,
-		);
+		const transactions = await this._storage.getTransactionsByIDs(arrayOfTransactionIds);
 
-		return transactions.map(transaction =>
-			this._transactionAdapter.decode(transaction),
-		);
+		return transactions.map(transaction => this._transactionAdapter.decode(transaction));
 	}
 
 	public async isTransactionPersisted(transactionId: Buffer): Promise<boolean> {
-		const isPersisted = await this._storage.isTransactionPersisted(
-			transactionId,
-		);
+		const isPersisted = await this._storage.isTransactionPersisted(transactionId);
 
 		return isPersisted;
 	}
@@ -388,10 +356,7 @@ export class DataAccess {
 		return this._blockHeaderAdapter.decode(buffer);
 	}
 
-	public encodeBlockHeader<T>(
-		blockHeader: BlockHeader<T>,
-		skipSignature = false,
-	): Buffer {
+	public encodeBlockHeader<T>(blockHeader: BlockHeader<T>, skipSignature = false): Buffer {
 		return this._blockHeaderAdapter.encode(blockHeader, skipSignature);
 	}
 
@@ -446,14 +411,7 @@ export class DataAccess {
 		const { id: blockID, height } = block.header;
 		const txIDs = block.payload.map(tx => tx.id);
 		const encodedBlock = this.encode(block);
-		await this._storage.deleteBlock(
-			blockID,
-			height,
-			txIDs,
-			encodedBlock,
-			stateStore,
-			saveToTemp,
-		);
+		await this._storage.deleteBlock(blockID, height, txIDs, encodedBlock, stateStore, saveToTemp);
 	}
 
 	private _decodeRawBlock<T>(block: RawBlock): Block<T> {

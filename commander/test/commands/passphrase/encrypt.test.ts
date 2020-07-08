@@ -34,8 +34,7 @@ describe('passphrase:encrypt', () => {
 		version: 1,
 	};
 	const defaultInputs = {
-		passphrase:
-			'enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+		passphrase: 'enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
 		password: 'LbYpLpV9Wpec6ux8',
 	};
 
@@ -74,23 +73,15 @@ describe('passphrase:encrypt', () => {
 		setupTest()
 			.command(['passphrase:encrypt'])
 			.it('should encrypt passphrase', () => {
-				expect(
-					cryptography.encryptPassphraseWithPassword,
-				).to.be.calledWithExactly(
+				expect(cryptography.encryptPassphraseWithPassword).to.be.calledWithExactly(
 					defaultInputs.passphrase,
 					defaultInputs.password,
 				);
-				expect(
-					cryptography.stringifyEncryptedPassphrase,
-				).to.be.calledWithExactly(encryptedPassphraseObject);
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
+				expect(cryptography.stringifyEncryptedPassphrase).to.be.calledWithExactly(
+					encryptedPassphraseObject,
 				);
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'password',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('password', true);
 
 				return expect(printMethodStub).to.be.calledWithExactly({
 					encryptedPassphrase: encryptedPassphraseString,
@@ -102,23 +93,15 @@ describe('passphrase:encrypt', () => {
 		setupTest()
 			.command(['passphrase:encrypt', '--outputPublicKey'])
 			.it('should encrypt passphrase and output public key', () => {
-				expect(
-					cryptography.encryptPassphraseWithPassword,
-				).to.be.calledWithExactly(
+				expect(cryptography.encryptPassphraseWithPassword).to.be.calledWithExactly(
 					defaultInputs.passphrase,
 					defaultInputs.password,
 				);
-				expect(
-					cryptography.stringifyEncryptedPassphrase,
-				).to.be.calledWithExactly(encryptedPassphraseObject);
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
+				expect(cryptography.stringifyEncryptedPassphrase).to.be.calledWithExactly(
+					encryptedPassphraseObject,
 				);
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'password',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('password', true);
 				return expect(printMethodStub).to.be.calledWithExactly({
 					encryptedPassphrase: encryptedPassphraseString,
 					...defaultKeys,
@@ -132,31 +115,20 @@ describe('passphrase:encrypt', () => {
 				'passphrase:encrypt',
 				'--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
 			])
-			.it(
-				'should encrypt passphrase from passphrase flag and stdout password',
-				() => {
-					expect(
-						cryptography.encryptPassphraseWithPassword,
-					).to.be.calledWithExactly(
-						defaultInputs.passphrase,
-						defaultInputs.password,
-					);
-					expect(
-						cryptography.stringifyEncryptedPassphrase,
-					).to.be.calledWithExactly(encryptedPassphraseObject);
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith(
-						'passphrase',
-						true,
-					);
-					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-						'password',
-						true,
-					);
-					return expect(printMethodStub).to.be.calledWithExactly({
-						encryptedPassphrase: encryptedPassphraseString,
-					});
-				},
-			);
+			.it('should encrypt passphrase from passphrase flag and stdout password', () => {
+				expect(cryptography.encryptPassphraseWithPassword).to.be.calledWithExactly(
+					defaultInputs.passphrase,
+					defaultInputs.password,
+				);
+				expect(cryptography.stringifyEncryptedPassphrase).to.be.calledWithExactly(
+					encryptedPassphraseObject,
+				);
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith('passphrase', true);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('password', true);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					encryptedPassphrase: encryptedPassphraseString,
+				});
+			});
 	});
 
 	describe('passphrase:encrypt --passphrase="enemy pill squeeze gold spoil aisle awake thumb congress false box wagon" --password=LbYpLpV9Wpec6ux8', () => {
@@ -166,30 +138,19 @@ describe('passphrase:encrypt', () => {
 				'--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
 				'--password=LbYpLpV9Wpec6ux8',
 			])
-			.it(
-				'should encrypt passphrase from passphrase and password flags',
-				() => {
-					expect(
-						cryptography.encryptPassphraseWithPassword,
-					).to.be.calledWithExactly(
-						defaultInputs.passphrase,
-						defaultInputs.password,
-					);
-					expect(
-						cryptography.stringifyEncryptedPassphrase,
-					).to.be.calledWithExactly(encryptedPassphraseObject);
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith(
-						'passphrase',
-						true,
-					);
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith(
-						'password',
-						true,
-					);
-					return expect(printMethodStub).to.be.calledWithExactly({
-						encryptedPassphrase: encryptedPassphraseString,
-					});
-				},
-			);
+			.it('should encrypt passphrase from passphrase and password flags', () => {
+				expect(cryptography.encryptPassphraseWithPassword).to.be.calledWithExactly(
+					defaultInputs.passphrase,
+					defaultInputs.password,
+				);
+				expect(cryptography.stringifyEncryptedPassphrase).to.be.calledWithExactly(
+					encryptedPassphraseObject,
+				);
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith('passphrase', true);
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith('password', true);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					encryptedPassphrase: encryptedPassphraseString,
+				});
+			});
 	});
 });

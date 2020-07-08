@@ -19,10 +19,7 @@ import Listr from 'listr';
 
 import BaseCommand from '../../base';
 import { defaultBackupPath } from '../../utils/core/config';
-import {
-	describeApplication,
-	unRegisterApplication,
-} from '../../utils/core/pm2';
+import { describeApplication, unRegisterApplication } from '../../utils/core/pm2';
 
 import StopCommand from './stop';
 

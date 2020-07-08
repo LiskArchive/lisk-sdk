@@ -17,10 +17,7 @@ import { transfer, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	hexToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { getAddressAndPublicKeyFromPassphrase, hexToBuffer } from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
@@ -56,9 +53,7 @@ const processInputs = (
 		fee,
 		networkIdentifier,
 		senderPublicKey: passphrase
-			? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey.toString(
-					'hex',
-			  )
+			? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey.toString('hex')
 			: '',
 		recipientAddress: address,
 		amount,
@@ -94,9 +89,7 @@ export default class TransferCommand extends BaseCommand {
 	Creates a transaction which will transfer the specified amount to an address if broadcast to the network.
 		`;
 
-	static examples = [
-		'transaction:create:transfer 1 100 100 13356260975429434553L',
-	];
+	static examples = ['transaction:create:transfer 1 100 100 13356260975429434553L'];
 
 	static flags = {
 		...BaseCommand.flags,
@@ -155,8 +148,7 @@ export default class TransferCommand extends BaseCommand {
 
 			return;
 		}
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
 		const result = processInputs(
 			nonce,

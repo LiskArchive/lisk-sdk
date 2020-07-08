@@ -41,9 +41,7 @@ const copyAndSort = list => {
 
 const generateForgerSelectionWithMoreThan2EligibleStandBy = () => {
 	const randomSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
-	const sortedList = copyAndSort(
-		delegateWeightsWithMoreThan2EligibleStandBy.list,
-	);
+	const sortedList = copyAndSort(delegateWeightsWithMoreThan2EligibleStandBy.list);
 	// Select active delegate first
 	const result = sortedList.slice(0, 101);
 	const candidates = sortedList.slice(101);
@@ -111,9 +109,7 @@ const generateForgerSelectionWithExactly1EligibleStandBy = () => {
 			voteWeights: delegateWeightsWithExactly1EligibleStandBy.list,
 		},
 		output: {
-			selectedForgers: copyAndSort(
-				delegateWeightsWithExactly1EligibleStandBy.list,
-			)
+			selectedForgers: copyAndSort(delegateWeightsWithExactly1EligibleStandBy.list)
 				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
@@ -130,9 +126,7 @@ const generateForgerSelectionWithExactly2EligibleStandBy = () => {
 			voteWeights: delegateWeightsWithExactly2EligibleStandBy.list,
 		},
 		output: {
-			selectedForgers: copyAndSort(
-				delegateWeightsWithExactly2EligibleStandBy.list,
-			)
+			selectedForgers: copyAndSort(delegateWeightsWithExactly2EligibleStandBy.list)
 				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
@@ -175,8 +169,7 @@ const generateForgerSelectionWithExactly0EligibleStandBy = () => {
 
 const forgerSelectionWithMoreThan2EligibleStandBy = () => ({
 	title: 'Forger selection with more than 2 standby delegates',
-	summary:
-		'A set of voteWeights which include more than 2 eligible standby delegates',
+	summary: 'A set of voteWeights which include more than 2 eligible standby delegates',
 	config: 'devnet',
 	runner: 'dpos_forger_selection',
 	handler: 'dpos_forger_selection_more_than_2_standby',

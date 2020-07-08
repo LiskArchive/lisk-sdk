@@ -16,8 +16,7 @@ import * as os from 'os';
 import { APIClient } from '../src/api_client';
 
 describe('APIClient module', () => {
-	const mainnetHash =
-		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+	const mainnetHash = 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 	const mainnetNodes: ReadonlyArray<string> = [
 		'https://node01.lisk.io:443',
 		'https://node02.lisk.io:443',
@@ -28,14 +27,10 @@ describe('APIClient module', () => {
 		'https://node07.lisk.io:443',
 		'https://node08.lisk.io:443',
 	];
-	const testnetHash =
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+	const testnetHash = 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 	const testnetNodes: ReadonlyArray<string> = ['https://testnet.lisk.io:443'];
 	const locale =
-		process.env.LC_ALL ??
-		process.env.LC_MESSAGES ??
-		process.env.LANG ??
-		process.env.LANGUAGE;
+		process.env.LC_ALL ?? process.env.LC_MESSAGES ?? process.env.LANG ?? process.env.LANGUAGE;
 	const platformInfo = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
@@ -57,11 +52,7 @@ describe('APIClient module', () => {
 	const externalNode = 'https://googIe.com:8080';
 	const sslNode = 'https://external.lisk.io:443';
 	const externalTestnetNode = 'http://testnet.lisk.io';
-	const defaultNodes: ReadonlyArray<string> = [
-		localNode,
-		externalNode,
-		sslNode,
-	];
+	const defaultNodes: ReadonlyArray<string> = [localNode, externalNode, sslNode];
 	const defaultSelectedNode = 'selected_node';
 
 	let apiClient: APIClient;
@@ -94,10 +85,7 @@ describe('APIClient module', () => {
 					'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 			};
 			apiClient = new APIClient(defaultNodes, providedOptions);
-			return expect(initializeStub).toHaveBeenCalledWith(
-				defaultNodes,
-				providedOptions,
-			);
+			return expect(initializeStub).toHaveBeenCalledWith(defaultNodes, providedOptions);
 		});
 	});
 
@@ -153,9 +141,7 @@ describe('APIClient module', () => {
 		});
 
 		it('should throw an error if first argument passed to constructor is not array', () => {
-			return expect(
-				apiClient.initialize.bind(apiClient, 'non-array' as any),
-			).toThrow(Error);
+			return expect(apiClient.initialize.bind(apiClient, 'non-array' as any)).toThrow(Error);
 		});
 
 		it('should throw an error if first argument passed to constructor is empty array', () => {
@@ -164,18 +150,12 @@ describe('APIClient module', () => {
 
 		it('should throw an error if second argument passed to constructor is a string', () => {
 			return expect(
-				apiClient.initialize.bind(
-					apiClient,
-					defaultNodes,
-					'option string' as any,
-				),
+				apiClient.initialize.bind(apiClient, defaultNodes, 'option string' as any),
 			).toThrow(Error);
 		});
 
 		it('should throw an error if second argument passed to constructor is an array', () => {
-			return expect(
-				apiClient.initialize.bind(apiClient, defaultNodes, [] as any),
-			).toThrow(Error);
+			return expect(apiClient.initialize.bind(apiClient, defaultNodes, [] as any)).toThrow(Error);
 		});
 
 		describe('headers', () => {
@@ -330,9 +310,7 @@ describe('APIClient module', () => {
 
 		beforeEach(() => {
 			({ currentNode } = apiClient);
-			getNewNodeStub = jest
-				.spyOn(apiClient, 'getNewNode')
-				.mockReturnValue(defaultSelectedNode);
+			getNewNodeStub = jest.spyOn(apiClient, 'getNewNode').mockReturnValue(defaultSelectedNode);
 		});
 
 		it('should call ban current node', () => {

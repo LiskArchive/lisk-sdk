@@ -75,10 +75,7 @@ const generateSeedReveals = ({ delegateList, numberOfBlocks }) => {
 	const seeds = {};
 
 	for (const delegate of delegateList) {
-		const seedsForDelegate = generateSeedOnion(
-			delegate.publicKey,
-			numberOfBlocks,
-		);
+		const seedsForDelegate = generateSeedOnion(delegate.publicKey, numberOfBlocks);
 		const counter = 0;
 
 		seeds[delegate.publicKey] = {
@@ -97,8 +94,7 @@ const generateBlocks = ({ startHeight, numberOfBlocks, delegateList }) => {
 	return new Array(numberOfBlocks).fill(0).map((_v, index) => {
 		const height = startHeight + index;
 		const { publicKey } = delegateList[index % numberOfDelegates];
-		const seedReveal =
-			seedReveals[publicKey].seeds[seedReveals[publicKey].counter];
+		const seedReveal = seedReveals[publicKey].seeds[seedReveals[publicKey].counter];
 
 		seedReveals[publicKey].counter += 1;
 
@@ -112,16 +108,11 @@ const generateBlocks = ({ startHeight, numberOfBlocks, delegateList }) => {
 	});
 };
 
-const calcRound = (height, blocksPerRound) =>
-	Math.ceil(height / blocksPerRound);
-const startOfRound = (round, blocksPerRound) =>
-	round * blocksPerRound - blocksPerRound + 1;
+const calcRound = (height, blocksPerRound) => Math.ceil(height / blocksPerRound);
+const startOfRound = (round, blocksPerRound) => round * blocksPerRound - blocksPerRound + 1;
 const endOfRound = (round, blocksPerRound) => round * blocksPerRound;
 const middleOfRound = (round, blocksPerRound) =>
-	Math.floor(
-		(startOfRound(round, blocksPerRound) + endOfRound(round, blocksPerRound)) /
-			2,
-	);
+	Math.floor((startOfRound(round, blocksPerRound) + endOfRound(round, blocksPerRound)) / 2);
 
 const findPreviousBlockOfDelegate = (block, searchTillHeight, blocksMap) => {
 	const { height, generatorPublicKey } = block;
@@ -137,15 +128,9 @@ const findPreviousBlockOfDelegate = (block, searchTillHeight, blocksMap) => {
 };
 
 const isValidSeedReveal = (seedReveal, previousSeedReveal) =>
-	strippedHash(hexStrToBuffer(seedReveal)).toString('hex') ===
-	previousSeedReveal;
+	strippedHash(hexStrToBuffer(seedReveal)).toString('hex') === previousSeedReveal;
 
-const selectSeedReveal = ({
-	fromHeight,
-	toHeight,
-	blocksMap,
-	blocksPerRound,
-}) => {
+const selectSeedReveal = ({ fromHeight, toHeight, blocksMap, blocksPerRound }) => {
 	const selected = [];
 
 	for (let i = fromHeight; i >= toHeight; i -= 1) {
@@ -165,12 +150,7 @@ const selectSeedReveal = ({
 
 		// to validate seed reveal of any block in the last round
 		// we have to check till second last round
-		if (
-			!isValidSeedReveal(
-				block.asset.seedReveal,
-				lastForgedBlock.asset.seedReveal,
-			)
-		) {
+		if (!isValidSeedReveal(block.asset.seedReveal, lastForgedBlock.asset.seedReveal)) {
 			continue;
 		}
 
@@ -209,9 +189,7 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 	}
 
 	if (currentRound === 1) {
-		const randomSeed1 = strippedHash(
-			numberToBuffer(middleThreshold + 1),
-		).toString('hex');
+		const randomSeed1 = strippedHash(numberToBuffer(middleThreshold + 1)).toString('hex');
 		const randomSeed2 = strippedHash(numberToBuffer(0)).toString('hex');
 
 		return { randomSeed1, randomSeed2 };
@@ -261,10 +239,7 @@ const randomSeedFirstRound = () => ({
 			numberOfBlocks: blocksPerRound,
 			delegateList: sampleDelegateList.slice(0, blocksPerRound),
 		});
-		const { randomSeed1, randomSeed2 } = generateRandomSeed(
-			blocks,
-			blocksPerRound,
-		);
+		const { randomSeed1, randomSeed2 } = generateRandomSeed(blocks, blocksPerRound);
 
 		return [
 			{
@@ -393,16 +368,11 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 				block.generatorPublicKey === suspiciousDelegate.publicKey &&
 				block.height <= blocksPerRound
 			) {
-				block.asset.seedReveal = strippedHash(
-					numberToBuffer(block.height),
-				).toString('hex');
+				block.asset.seedReveal = strippedHash(numberToBuffer(block.height)).toString('hex');
 			}
 		}
 
-		const { randomSeed1, randomSeed2 } = generateRandomSeed(
-			blocks,
-			blocksPerRound,
-		);
+		const { randomSeed1, randomSeed2 } = generateRandomSeed(blocks, blocksPerRound);
 
 		return [
 			{
@@ -423,8 +393,7 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 
 const randomSeedIfForgerNotForgedEarlier = () => ({
 	title: 'Random seed for not forged earlier',
-	summary:
-		'Random seeds generation for the case when delegate did not forged earlier',
+	summary: 'Random seeds generation for the case when delegate did not forged earlier',
 	config: { network: 'devnet' },
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_not_forged_earlier',
@@ -441,23 +410,16 @@ const randomSeedIfForgerNotForgedEarlier = () => ({
 		const oldDelegate = delegateList[0];
 		const newDelegate = sampleDelegateList[blocksPerRound];
 		for (const block of blocks) {
-			if (
-				block.generatorPublicKey === oldDelegate.publicKey &&
-				block.height <= blocksPerRound
-			) {
+			if (block.generatorPublicKey === oldDelegate.publicKey && block.height <= blocksPerRound) {
 				block.generatorPublicKey = newDelegate.publicKey;
 			}
 		}
 
-		const { randomSeed1, randomSeed2 } = generateRandomSeed(
-			blocks,
-			blocksPerRound,
-		);
+		const { randomSeed1, randomSeed2 } = generateRandomSeed(blocks, blocksPerRound);
 
 		return [
 			{
-				description:
-					'Random seeds generation for the case when delegate did not forged earlier',
+				description: 'Random seeds generation for the case when delegate did not forged earlier',
 				config: {
 					blocksPerRound,
 				},

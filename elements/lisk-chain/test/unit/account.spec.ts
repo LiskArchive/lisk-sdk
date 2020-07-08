@@ -22,10 +22,7 @@ describe('account', () => {
 
 	beforeEach(() => {
 		const randomAccount = createFakeDefaultAccount();
-		defaultAccount = Account.getDefaultAccount(
-			randomAccount.address,
-			randomAccount.asset,
-		);
+		defaultAccount = Account.getDefaultAccount(randomAccount.address, randomAccount.asset);
 	});
 
 	describe('constructor', () => {
@@ -33,9 +30,7 @@ describe('account', () => {
 			expect(defaultAccount).toBeInstanceOf(Account);
 			expect(defaultAccount).toHaveProperty('balance');
 			expect(defaultAccount).toHaveProperty('nonce');
-			expect(defaultAccount.balance).toEqual(
-				BigInt(accountDefaultValues.balance),
-			);
+			expect(defaultAccount.balance).toEqual(BigInt(accountDefaultValues.balance));
 			expect(defaultAccount.asset.sentVotes).toEqual([]);
 			expect(defaultAccount.asset.unlocking).toEqual([]);
 			expect(defaultAccount.asset.delegate).toEqual({
@@ -79,29 +74,19 @@ describe('account', () => {
 			accountObj.asset.delegate.pomHeights.push(900);
 			expect(accountObj.asset.delegate.pomHeights).toIncludeAnyMembers([900]);
 			// Make sure the original object's value is not modified
-			expect(accountJSON.asset.delegate.pomHeights).not.toIncludeAnyMembers([
-				900,
-			]);
+			expect(accountJSON.asset.delegate.pomHeights).not.toIncludeAnyMembers([900]);
 
 			// Check for keys.mandatoryKeys array
 			accountObj.keys.mandatoryKeys.push(Buffer.from('xx'));
-			expect(accountObj.keys.mandatoryKeys).toIncludeAnyMembers([
-				Buffer.from('xx'),
-			]);
+			expect(accountObj.keys.mandatoryKeys).toIncludeAnyMembers([Buffer.from('xx')]);
 			// Make sure the original object's value is not modified
-			expect(accountJSON.keys.mandatoryKeys).not.toIncludeAnyMembers([
-				Buffer.from('xx'),
-			]);
+			expect(accountJSON.keys.mandatoryKeys).not.toIncludeAnyMembers([Buffer.from('xx')]);
 
 			// Check for keys.optionalKeys array
 			accountObj.keys.optionalKeys.push(Buffer.from('zz'));
-			expect(accountObj.keys.optionalKeys).toIncludeAnyMembers([
-				Buffer.from('zz'),
-			]);
+			expect(accountObj.keys.optionalKeys).toIncludeAnyMembers([Buffer.from('zz')]);
 			// Make sure the original object's value is not modified
-			expect(accountJSON.keys.optionalKeys).not.toIncludeAnyMembers([
-				Buffer.from('zz'),
-			]);
+			expect(accountJSON.keys.optionalKeys).not.toIncludeAnyMembers([Buffer.from('zz')]);
 
 			// Check for votes array
 			const voteObject = {

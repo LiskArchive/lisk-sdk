@@ -16,19 +16,9 @@ import { codec } from '@liskhq/lisk-codec';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
-import {
-	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
-	FinalityManager,
-} from './finality_manager';
+import { EVENT_BFT_FINALIZED_HEIGHT_CHANGED, FinalityManager } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
-import {
-	BFTPersistedValues,
-	BlockHeader,
-	Chain,
-	DPoS,
-	ForkStatus,
-	StateStore,
-} from './types';
+import { BFTPersistedValues, BlockHeader, Chain, DPoS, ForkStatus, StateStore } from './types';
 
 export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
@@ -84,22 +74,16 @@ export class BFT extends EventEmitter {
 	public async init(stateStore: StateStore): Promise<void> {
 		this._finalityManager = await this._initFinalityManager(stateStore);
 
-		this.finalityManager.on(
-			EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
-			updatedFinalizedHeight => {
-				this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, updatedFinalizedHeight);
-			},
-		);
+		this.finalityManager.on(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, updatedFinalizedHeight => {
+			this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, updatedFinalizedHeight);
+		});
 	}
 
 	public get finalityManager(): FinalityManager {
 		return this._finalityManager as FinalityManager;
 	}
 
-	public async addNewBlock(
-		block: BlockHeader,
-		stateStore: StateStore,
-	): Promise<void> {
+	public async addNewBlock(block: BlockHeader, stateStore: StateStore): Promise<void> {
 		await this.finalityManager.addBlockHeader(block, stateStore);
 		const { finalizedHeight } = this.finalityManager;
 
@@ -109,20 +93,14 @@ export class BFT extends EventEmitter {
 		);
 	}
 
-	public verifyNewBlock(
-		blockHeader: BlockHeader,
-		stateStore: StateStore,
-	): boolean {
+	public verifyNewBlock(blockHeader: BlockHeader, stateStore: StateStore): boolean {
 		return this.finalityManager.verifyBlockHeaders(
 			blockHeader,
 			stateStore.consensus.lastBlockHeaders,
 		);
 	}
 
-	public forkChoice(
-		blockHeader: BlockHeader,
-		lastBlockHeader: BlockHeader,
-	): ForkStatus {
+	public forkChoice(blockHeader: BlockHeader, lastBlockHeader: BlockHeader): ForkStatus {
 		// Current time since Lisk Epoch
 		const receivedBlock = {
 			...blockHeader,
@@ -171,10 +149,7 @@ export class BFT extends EventEmitter {
 		return ForkStatus.DISCARD;
 	}
 
-	public isBFTProtocolCompliant(
-		blockHeader: BlockHeader,
-		stateStore: StateStore,
-	): boolean {
+	public isBFTProtocolCompliant(blockHeader: BlockHeader, stateStore: StateStore): boolean {
 		assert(blockHeader, 'No block was provided to be verified');
 
 		const roundsThreshold = 3;
@@ -186,17 +161,14 @@ export class BFT extends EventEmitter {
 		}
 
 		const maxHeightPreviouslyForgedBlock = stateStore.consensus.lastBlockHeaders.find(
-			bftHeader =>
-				bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
+			bftHeader => bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
 
 		if (
 			!maxHeightPreviouslyForgedBlock ||
 			blockHeader.asset.maxHeightPreviouslyForged >= blockHeader.height ||
-			(blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <=
-				heightThreshold &&
-				blockHeader.generatorPublicKey !==
-					maxHeightPreviouslyForgedBlock.generatorPublicKey)
+			(blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <= heightThreshold &&
+				blockHeader.generatorPublicKey !== maxHeightPreviouslyForgedBlock.generatorPublicKey)
 		) {
 			return false;
 		}
@@ -216,9 +188,7 @@ export class BFT extends EventEmitter {
 		this.finalityManager.reset();
 	}
 
-	private async _initFinalityManager(
-		stateStore: StateStore,
-	): Promise<FinalityManager> {
+	private async _initFinalityManager(stateStore: StateStore): Promise<FinalityManager> {
 		// Check what finalized height was stored last time
 		const storedFinalizedHeightBuffer = await stateStore.consensus.get(
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,

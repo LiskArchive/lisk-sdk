@@ -18,17 +18,14 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../src/utils/config';
 
 describe('copyright command', () => {
-	const setupStub = () =>
-		test.stub(config, 'getConfig', sandbox.stub().returns({}));
+	const setupStub = () => test.stub(config, 'getConfig', sandbox.stub().returns({}));
 
 	describe('copyright', () => {
 		setupStub()
 			.stdout()
 			.command(['copyright'])
 			.it('should show copyright', ctx => {
-				return expect(ctx.stdout).to.contain(
-					'Lisk Commander  Copyright (C) 2019 Lisk Foundation',
-				);
+				return expect(ctx.stdout).to.contain('Lisk Commander  Copyright (C) 2019 Lisk Foundation');
 			});
 	});
 });

@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	utils,
-	TransferTransaction,
-	DelegateTransaction,
-} from '@liskhq/lisk-transactions';
+import { utils, TransferTransaction, DelegateTransaction } from '@liskhq/lisk-transactions';
 import { Block, Account } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { nodeUtils } from '../../../../../utils';
@@ -53,9 +49,7 @@ describe('Process block', () => {
 			let transaction: TransferTransaction;
 
 			beforeAll(async () => {
-				const genesisAccount = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				transaction = new TransferTransaction({
 					nonce: genesisAccount.nonce,
 					senderPublicKey: genesis.publicKey,
@@ -72,25 +66,19 @@ describe('Process block', () => {
 			});
 
 			it('should save account state changes from the transaction', async () => {
-				const recipient = await node['_chain'].dataAccess.getAccountByAddress(
-					account.address,
-				);
-				expect(recipient.balance.toString()).toEqual(
-					convertLSKToBeddows('1000'),
-				);
+				const recipient = await node['_chain'].dataAccess.getAccountByAddress(account.address);
+				expect(recipient.balance.toString()).toEqual(convertLSKToBeddows('1000'));
 			});
 
 			it('should save the block to the database', async () => {
-				const processedBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.header.id,
-				);
+				const processedBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
 				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
 
 			it('should save the transactions to the database', async () => {
-				const [processedTx] = await node[
-					'_chain'
-				].dataAccess.getTransactionsByIDs([transaction.id]);
+				const [processedTx] = await node['_chain'].dataAccess.getTransactionsByIDs([
+					transaction.id,
+				]);
 				expect(processedTx.id).toEqual(transaction.id);
 			});
 		});
@@ -106,9 +94,7 @@ describe('Process block', () => {
 			});
 
 			it('should add the block to the chain', async () => {
-				const processedBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.header.id,
-				);
+				const processedBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
 				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
 		});
@@ -120,9 +106,7 @@ describe('Process block', () => {
 			let transaction: TransferTransaction;
 
 			beforeAll(async () => {
-				const genesisAccount = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				transaction = new TransferTransaction({
 					nonce: genesisAccount.nonce,
 					senderPublicKey: genesis.publicKey,
@@ -142,9 +126,7 @@ describe('Process block', () => {
 				const invalidBlock = await nodeUtils.createBlock(node, [transaction]);
 				await expect(node['_processor'].process(invalidBlock)).rejects.toEqual([
 					expect.objectContaining({
-						message: expect.stringContaining(
-							'Incompatible transaction nonce for account',
-						),
+						message: expect.stringContaining('Incompatible transaction nonce for account'),
 					}),
 				]);
 			});
@@ -185,9 +167,7 @@ describe('Process block', () => {
 			});
 
 			it('should discard the block', async () => {
-				await expect(
-					node['_processor'].process(newBlock),
-				).resolves.toBeUndefined();
+				await expect(node['_processor'].process(newBlock)).resolves.toBeUndefined();
 			});
 		});
 	});
@@ -208,9 +188,7 @@ describe('Process block', () => {
 			});
 
 			it('should discard the block', async () => {
-				await expect(
-					node['_processor'].process(newBlock),
-				).resolves.toBeUndefined();
+				await expect(node['_processor'].process(newBlock)).resolves.toBeUndefined();
 				await expect(
 					node['_chain'].dataAccess.isBlockPersisted(newBlock.header.id),
 				).resolves.toBeFalse();
@@ -223,9 +201,7 @@ describe('Process block', () => {
 		let transaction: DelegateTransaction;
 
 		beforeAll(async () => {
-			const targetAccount = await node['_chain'].dataAccess.getAccountByAddress(
-				account.address,
-			);
+			const targetAccount = await node['_chain'].dataAccess.getAccountByAddress(account.address);
 			transaction = new DelegateTransaction({
 				nonce: targetAccount.nonce,
 				fee: BigInt('3000000000'),
@@ -245,9 +221,7 @@ describe('Process block', () => {
 			let originalAccount: Account;
 
 			beforeAll(async () => {
-				originalAccount = await node['_chain'].dataAccess.getAccountByAddress(
-					account.address,
-				);
+				originalAccount = await node['_chain'].dataAccess.getAccountByAddress(account.address);
 				invalidTx = new DelegateTransaction({
 					nonce: originalAccount.nonce,
 					fee: BigInt('5000000000'),

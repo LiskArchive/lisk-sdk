@@ -16,10 +16,7 @@ import { HashMap } from './api_types';
 
 export const toQueryString = (obj: HashMap): string => {
 	const parts = Object.keys(obj).reduce(
-		(
-			accumulator: ReadonlyArray<string>,
-			key: string,
-		): ReadonlyArray<string> => [
+		(accumulator: ReadonlyArray<string>, key: string): ReadonlyArray<string> => [
 			...accumulator,
 			`${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`,
 		],
@@ -40,8 +37,7 @@ export const solveURLParams = (url: string, params: HashMap = {}): string => {
 		return url;
 	}
 	const solvedURL = Object.keys(params).reduce(
-		(accumulator: string, key: string): string =>
-			accumulator.replace(`{${key}}`, params[key]),
+		(accumulator: string, key: string): string => accumulator.replace(`{${key}}`, params[key]),
 		url,
 	);
 

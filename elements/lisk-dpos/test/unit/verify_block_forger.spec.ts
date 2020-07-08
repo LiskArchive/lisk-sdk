@@ -49,9 +49,7 @@ describe('dpos.verifyBlockForger()', () => {
 			},
 		};
 
-		const initDelegates = delegateAddresses.map(addr =>
-			Buffer.from(addr, 'base64'),
-		);
+		const initDelegates = delegateAddresses.map(addr => Buffer.from(addr, 'base64'));
 		dpos = new Dpos({
 			chain: chainStub,
 			initDelegates,
@@ -122,9 +120,7 @@ describe('dpos.verifyBlockForger()', () => {
 			),
 		} as BlockHeader;
 
-		const expectedSlot = (dpos as any).chain.slots.getSlotNumber(
-			block.timestamp,
-		);
+		const expectedSlot = (dpos as any).chain.slots.getSlotNumber(block.timestamp);
 
 		// Act && Assert
 		const error = new Error(

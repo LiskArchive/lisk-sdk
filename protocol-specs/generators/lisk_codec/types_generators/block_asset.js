@@ -50,12 +50,8 @@ const generateValidBlockAssetEncodings = () => {
 		},
 	};
 
-	const validBlockAsset1Encoded = BlockAsset.encode(
-		input.validBlockAsset1.object,
-	).finish();
-	const validBlockAsset2Encoded = BlockAsset.encode(
-		input.validBlockAsset2.object,
-	).finish();
+	const validBlockAsset1Encoded = BlockAsset.encode(input.validBlockAsset1.object).finish();
+	const validBlockAsset2Encoded = BlockAsset.encode(input.validBlockAsset2.object).finish();
 
 	return [
 		{

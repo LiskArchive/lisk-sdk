@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	EVENT_MESSAGE_RECEIVED,
-	P2P,
-	P2PConfig,
-	P2PNodeInfo,
-} from '../../dist-node';
+import { EVENT_MESSAGE_RECEIVED, P2P, P2PConfig, P2PNodeInfo } from '../../dist-node';
 import { randomBytes } from 'crypto';
 import { platform } from 'os';
 
@@ -63,10 +58,7 @@ const greetModule = (p2pNode: P2P) => {
 		if (message.event === 'greet') {
 			console.log(`Received "${message.data.greet}" from ${message.peerId}`);
 			// Reply to hi message
-			p2pNode.sendToPeer(
-				{ event: 'greet', data: { greet: 'Hi back' } },
-				message.peerId,
-			);
+			p2pNode.sendToPeer({ event: 'greet', data: { greet: 'Hi back' } }, message.peerId);
 		}
 	});
 };

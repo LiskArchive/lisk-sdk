@@ -48,10 +48,7 @@ interface RPCPeerListResponse {
 const IPV4_NUMBER = '4';
 const IPV6_NUMBER = '6';
 
-const validateNetworkCompatibility = (
-	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PNodeInfo,
-): boolean => {
+const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeInfo): boolean => {
 	if (!peerInfo.sharedState) {
 		return false;
 	}
@@ -75,10 +72,7 @@ const validateNetworkVersionCompatibility = (
 		return false;
 	}
 
-	const peerHardForks = parseInt(
-		peerInfo.sharedState.networkVersion.split('.')[0],
-		10,
-	);
+	const peerHardForks = parseInt(peerInfo.sharedState.networkVersion.split('.')[0], 10);
 	const systemHardForks = parseInt(nodeInfo.networkVersion.split('.')[0], 10);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
@@ -107,13 +101,9 @@ export const validatePeerCompatibility = (
 	};
 };
 
-export const validatePeerAddress = (
-	ipAddress: string,
-	port: number,
-): boolean => {
+export const validatePeerAddress = (ipAddress: string, port: number): boolean => {
 	if (
-		(!validator.isIP(ipAddress, IPV4_NUMBER) &&
-			!validator.isIP(ipAddress, IPV6_NUMBER)) ||
+		(!validator.isIP(ipAddress, IPV4_NUMBER) && !validator.isIP(ipAddress, IPV6_NUMBER)) ||
 		!validator.isPort(port.toString())
 	) {
 		return false;
@@ -150,10 +140,7 @@ export const validatePeerInfo = (
 	return peerInfo;
 };
 
-export const validateNodeInfo = (
-	nodeInfo: Buffer,
-	maxByteSize: number,
-): void => {
+export const validateNodeInfo = (nodeInfo: Buffer, maxByteSize: number): void => {
 	const byteSize = getByteSize(nodeInfo);
 
 	if (byteSize > maxByteSize) {

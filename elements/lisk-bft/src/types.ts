@@ -90,21 +90,14 @@ export interface DPoS {
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
 	): Promise<number>;
-	isStandbyDelegate(
-		address: Buffer,
-		height: number,
-		stateStore: StateStore,
-	): Promise<boolean>;
+	isStandbyDelegate(address: Buffer, height: number, stateStore: StateStore): Promise<boolean>;
 	isBootstrapPeriod(height: number): boolean;
 }
 
 export interface Chain {
 	readonly slots: {
 		readonly getSlotNumber: (timestamp: number) => number;
-		readonly isWithinTimeslot: (
-			slotNumber: number,
-			receivedAt: number | undefined,
-		) => boolean;
+		readonly isWithinTimeslot: (slotNumber: number, receivedAt: number | undefined) => boolean;
 		readonly timeSinceGenesis: (time?: number) => number;
 	};
 }

@@ -14,10 +14,7 @@
  */
 import { NewList, NewListConfig } from '../../../src/peer_book/new_list';
 import { P2PEnhancedPeerInfo } from '../../../src/types';
-import {
-	initPeerInfoListWithSuffix,
-	initPeerInfoList,
-} from '../../utils/peers';
+import { initPeerInfoListWithSuffix, initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
 import {
 	DEFAULT_NEW_BUCKET_COUNT,
@@ -44,12 +41,8 @@ describe('New Peers List', () => {
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect(newPeersList.newPeerConfig).toEqual(newPeerConfig);
-			expect(newPeersList.newPeerConfig.bucketSize).toBe(
-				DEFAULT_NEW_BUCKET_SIZE,
-			);
-			expect(newPeersList.newPeerConfig.numOfBuckets).toBe(
-				DEFAULT_NEW_BUCKET_COUNT,
-			);
+			expect(newPeersList.newPeerConfig.bucketSize).toBe(DEFAULT_NEW_BUCKET_SIZE);
+			expect(newPeersList.newPeerConfig.numOfBuckets).toBe(DEFAULT_NEW_BUCKET_COUNT);
 		});
 	});
 
@@ -97,9 +90,7 @@ describe('New Peers List', () => {
 				it('should evict just one of them', () => {
 					jest.advanceTimersByTime(DEFAULT_EVICTION_THRESHOLD_TIME + 1);
 
-					jest
-						.spyOn(newPeersList, 'calculateBucket')
-						.mockReturnValue({ bucketId: 0, bucket });
+					jest.spyOn(newPeersList, 'calculateBucket').mockReturnValue({ bucketId: 0, bucket });
 
 					const evictedPeer = newPeersList.makeSpace(bucket);
 
@@ -111,9 +102,7 @@ describe('New Peers List', () => {
 				it('should evict one peer randomly', () => {
 					const evictedPeer = newPeersList.makeSpace(bucket);
 
-					expect(samplePeers).toEqual(
-						expect.arrayContaining([evictedPeer as any]),
-					);
+					expect(samplePeers).toEqual(expect.arrayContaining([evictedPeer as any]));
 				});
 			});
 		});
@@ -163,8 +152,9 @@ describe('New Peers List', () => {
 			});
 		});
 
-		it(`should not allow newPeer list to grow beyond ${DEFAULT_NEW_BUCKET_SIZE *
-			DEFAULT_NEW_BUCKET_COUNT} peers`, () => {
+		it(`should not allow newPeer list to grow beyond ${
+			DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT
+		} peers`, () => {
 			expect(newPeersList.peerList.length).toBeLessThanOrEqual(
 				DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT,
 			);

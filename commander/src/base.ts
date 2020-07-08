@@ -79,8 +79,7 @@ export default abstract class BaseCommand extends Command {
 		process.stdout.on('error', handleEPIPE);
 
 		process.env.XDG_CONFIG_HOME =
-			process.env.LISK_COMMANDER_CONFIG_DIR ??
-			`${os.homedir()}/${defaultConfigFolder}`;
+			process.env.LISK_COMMANDER_CONFIG_DIR ?? `${os.homedir()}/${defaultConfigFolder}`;
 		this.userConfig = getConfig(process.env.XDG_CONFIG_HOME);
 	}
 

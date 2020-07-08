@@ -14,10 +14,7 @@
  *
  */
 
-import {
-	registerMultisignature,
-	utils as transactionUtils,
-} from '@liskhq/lisk-transactions';
+import { registerMultisignature, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
@@ -46,8 +43,7 @@ export default class MultisignatureCommand extends BaseCommand {
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'number-of-signatures': flagParser.integer({
-			description:
-				'Number of signatures required to validate transactions from that account',
+			description: 'Number of signatures required to validate transactions from that account',
 		}),
 		'mandatory-key': flagParser.string({
 			multiple: true,

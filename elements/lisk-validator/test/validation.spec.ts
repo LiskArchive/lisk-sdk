@@ -79,9 +79,7 @@ describe('validation', () => {
 	describe('#isHexString', () => {
 		it('should return true when valid hex was provided', () => {
 			return expect(
-				isHexString(
-					'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
-				),
+				isHexString('215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc'),
 			).toBeTrue();
 		});
 
@@ -91,9 +89,7 @@ describe('validation', () => {
 
 		it('should return false when non hex string was provided', () => {
 			return expect(
-				isHexString(
-					'zzzzzzza32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
-				),
+				isHexString('zzzzzzza32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc'),
 			).toBeFalse();
 		});
 	});
@@ -109,9 +105,7 @@ describe('validation', () => {
 
 		it('should return false when value includes invalud query', () => {
 			return expect(
-				isEncryptedPassphrase(
-					'cipherText=abcd1234&&iterations=10000&iv=ef012345',
-				),
+				isEncryptedPassphrase('cipherText=abcd1234&&iterations=10000&iv=ef012345'),
 			).toBeFalse();
 		});
 
@@ -146,17 +140,13 @@ describe('validation', () => {
 		});
 
 		it('should return false when the value is not IPV4', () => {
-			return expect(
-				isIPV4('FE80:0000:0000:0000:0202:B3FF:FE1E:8329'),
-			).toBeFalse();
+			return expect(isIPV4('FE80:0000:0000:0000:0202:B3FF:FE1E:8329')).toBeFalse();
 		});
 	});
 
 	describe('#isIPV6', () => {
 		it('should return true when the value is IPV6', () => {
-			return expect(
-				isIPV6('FE80:0000:0000:0000:0202:B3FF:FE1E:8329'),
-			).toBeTrue();
+			return expect(isIPV6('FE80:0000:0000:0000:0202:B3FF:FE1E:8329')).toBeTrue();
 		});
 
 		it('should return false when the value is not IPV6', () => {

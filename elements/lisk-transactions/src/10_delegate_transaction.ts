@@ -124,9 +124,7 @@ export class DelegateTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected async applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
+	protected async applyAsset(store: StateStore): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get<AccountAsset>(this.senderId);
 
@@ -144,9 +142,7 @@ export class DelegateTransaction extends BaseTransaction {
 				address: this.senderId,
 			});
 
-			usernames.registeredDelegates.sort((a, b) =>
-				a.address.compare(b.address),
-			);
+			usernames.registeredDelegates.sort((a, b) => a.address.compare(b.address));
 
 			store.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
@@ -155,21 +151,11 @@ export class DelegateTransaction extends BaseTransaction {
 		}
 
 		if (usernameExists) {
-			errors.push(
-				new TransactionError(
-					'Username is not unique.',
-					this.id,
-					'.asset.username',
-				),
-			);
+			errors.push(new TransactionError('Username is not unique.', this.id, '.asset.username'));
 		}
 		if (sender.asset.delegate.username) {
 			errors.push(
-				new TransactionError(
-					'Account is already a delegate',
-					this.id,
-					'.asset.username',
-				),
+				new TransactionError('Account is already a delegate', this.id, '.asset.username'),
 			);
 		}
 		sender.asset.delegate.username = this.asset.username;
@@ -184,12 +170,8 @@ export class DelegateTransaction extends BaseTransaction {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private async _getRegisteredDelegates(
-		store: StateStore,
-	): Promise<ChainUsernames> {
-		const usernamesBuffer = await store.chain.get(
-			CHAIN_STATE_DELEGATE_USERNAMES,
-		);
+	private async _getRegisteredDelegates(store: StateStore): Promise<ChainUsernames> {
+		const usernamesBuffer = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
 		if (!usernamesBuffer) {
 			return { registeredDelegates: [] };
 		}

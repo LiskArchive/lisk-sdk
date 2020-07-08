@@ -43,22 +43,12 @@ describe('Peers base list', () => {
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect((peerListObj as any).peerListConfig).toEqual(peerListConfig);
-			expect((peerListObj as any).peerListConfig.bucketSize).toBe(
-				DEFAULT_NEW_BUCKET_SIZE,
-			);
-			expect((peerListObj as any).peerListConfig.numOfBuckets).toBe(
-				DEFAULT_NEW_BUCKET_COUNT,
-			);
-			expect((peerListObj as any).peerListConfig.secret).toBe(
-				DEFAULT_RANDOM_SECRET,
-			);
-			expect((peerListObj as any).peerListConfig.peerType).toBe(
-				PEER_TYPE.TRIED_PEER,
-			);
+			expect((peerListObj as any).peerListConfig.bucketSize).toBe(DEFAULT_NEW_BUCKET_SIZE);
+			expect((peerListObj as any).peerListConfig.numOfBuckets).toBe(DEFAULT_NEW_BUCKET_COUNT);
+			expect((peerListObj as any).peerListConfig.secret).toBe(DEFAULT_RANDOM_SECRET);
+			expect((peerListObj as any).peerListConfig.peerType).toBe(PEER_TYPE.TRIED_PEER);
 			expect((peerListObj as any).bucketIdToBucket).toEqual(expect.any(Map));
-			expect((peerListObj as any).bucketIdToBucket.size).toBe(
-				DEFAULT_NEW_BUCKET_COUNT,
-			);
+			expect((peerListObj as any).bucketIdToBucket.size).toBe(DEFAULT_NEW_BUCKET_COUNT);
 
 			for (const peer of (peerListObj as any).bucketIdToBucket) {
 				expect(peer).toHaveLength(2);
@@ -106,9 +96,7 @@ describe('Peers base list', () => {
 
 		describe('when peer exists in the bucketIdToBucket map', () => {
 			it('should get the peer from the incoming peerId', () => {
-				expect(peerListObj.getPeer(samplePeers[0].peerId)).toEqual(
-					samplePeers[0],
-				);
+				expect(peerListObj.getPeer(samplePeers[0].peerId)).toEqual(samplePeers[0]);
 			});
 		});
 
@@ -143,26 +131,20 @@ describe('Peers base list', () => {
 			const bucket = new Map<string, P2PEnhancedPeerInfo>();
 			bucket.set(samplePeers[0].peerId, samplePeers[0]);
 
-			jest
-				.spyOn(peerListObj, 'calculateBucket')
-				.mockReturnValue({ bucketId: 0, bucket });
+			jest.spyOn(peerListObj, 'calculateBucket').mockReturnValue({ bucketId: 0, bucket });
 
 			jest.spyOn(peerListObj, 'makeSpace');
 		});
 
 		it('should add the incoming peer if it does not exist already', () => {
 			peerListObj.addPeer(samplePeers[0]);
-			expect(peerListObj.getPeer(samplePeers[0].peerId)).toEqual(
-				samplePeers[0],
-			);
+			expect(peerListObj.getPeer(samplePeers[0].peerId)).toEqual(samplePeers[0]);
 		});
 
 		it('should throw error if peer already exists', () => {
 			peerListObj.addPeer(samplePeers[0]);
 			// 'Peer already exists'
-			expect(() => peerListObj.addPeer(samplePeers[0])).toThrow(
-				errors.ExistingPeerError,
-			);
+			expect(() => peerListObj.addPeer(samplePeers[0])).toThrow(errors.ExistingPeerError);
 		});
 
 		it('should call makeSpace method when bucket is full', () => {
@@ -281,9 +263,7 @@ describe('Peers base list', () => {
 				calculateBucketStub({ bucketId: 0, bucket });
 				const evictedPeer = peerListObj.makeSpace(bucket);
 
-				expect(samplePeers).toEqual(
-					expect.arrayContaining([evictedPeer as any]),
-				);
+				expect(samplePeers).toEqual(expect.arrayContaining([evictedPeer as any]));
 			});
 		});
 
@@ -332,18 +312,13 @@ describe('Peers base list', () => {
 				sourceAddress: samplePeers[1].ipAddress,
 			});
 
-			const {
-				bucket,
-				bucketId: calculatedBucketId,
-			} = peerListObj.calculateBucket(
+			const { bucket, bucketId: calculatedBucketId } = peerListObj.calculateBucket(
 				samplePeers[0].ipAddress,
 				samplePeers[1].ipAddress,
 			);
 
 			expect(calculatedBucketId).toEqual(bucketId);
-			expect(bucket).toEqual(
-				(peerListObj as any).bucketIdToBucket.get(bucketId),
-			);
+			expect(bucket).toEqual((peerListObj as any).bucketIdToBucket.get(bucketId));
 		});
 	});
 
@@ -357,15 +332,11 @@ describe('Peers base list', () => {
 		it('should get bucket based on peerId', () => {
 			const bucket = (peerListObj as any).getBucket(samplePeers[0].peerId);
 
-			expect(bucket.get(samplePeers[0].peerId).peerId).toEqual(
-				samplePeers[0].peerId,
-			);
+			expect(bucket.get(samplePeers[0].peerId).peerId).toEqual(samplePeers[0].peerId);
 		});
 
 		it('should return undefined if peer not in bucket', () => {
-			expect(
-				(peerListObj as any).getBucket(samplePeers[1].peerId),
-			).toBeUndefined();
+			expect((peerListObj as any).getBucket(samplePeers[1].peerId)).toBeUndefined();
 		});
 	});
 });

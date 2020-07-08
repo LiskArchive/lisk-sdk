@@ -22,8 +22,7 @@ import * as readerUtils from '../../../src/utils/reader';
 
 describe('node:forging', () => {
 	const defaultInputs = '123';
-	const defaultPublicKey =
-		'479b0fdb56199a211062203fa5c431bafe6a0a628661fc58f30f3105f2b17332';
+	const defaultPublicKey = '479b0fdb56199a211062203fa5c431bafe6a0a628661fc58f30f3105f2b17332';
 
 	const defaultAPIResponse = {
 		data: {
@@ -43,11 +42,7 @@ describe('node:forging', () => {
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stdout();
 
 	describe('node:forging', () => {
@@ -62,17 +57,13 @@ describe('node:forging', () => {
 	describe('node:forging status', () => {
 		setupTest()
 			.command(['node:forging', 'disable'])
-			.catch((error: Error) =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch((error: Error) => expect(error.message).to.contain('Missing 1 required arg'))
 			.it('should throw an error without public key');
 
 		setupTest()
 			.command(['node:forging', 'wrong'])
 			.catch((error: Error) => {
-				return expect(error.message).to.contain(
-					'Expected wrong to be one of: enable, disable',
-				);
+				return expect(error.message).to.contain('Expected wrong to be one of: enable, disable');
 			})
 			.it('should throw an error when status is not enable or disable');
 	});
@@ -85,32 +76,21 @@ describe('node:forging', () => {
 				'479b0fdb56199a211062203fa5c431bafe6a0a628661fc58f30fxxxxxxxxxxxx',
 			])
 			.catch((error: Error) => {
-				return expect(error.message).to.contain(
-					'Argument must be a valid hex string.',
-				);
+				return expect(error.message).to.contain('Argument must be a valid hex string.');
 			})
 			.it('should throw an error with invalid public key');
 
 		setupTest()
 			.command(['node:forging', 'enable', defaultPublicKey])
-			.it(
-				'should update the forging status of the node with the public key',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-						'password',
-					);
-					expect(
-						apiClientStub.node.updateForgingStatus,
-					).to.be.calledWithExactly({
-						password: defaultInputs,
-						publicKey: defaultPublicKey,
-						forging: true,
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultAPIResponse.data,
-					);
-				},
-			);
+			.it('should update the forging status of the node with the public key', () => {
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('password');
+				expect(apiClientStub.node.updateForgingStatus).to.be.calledWithExactly({
+					password: defaultInputs,
+					publicKey: defaultPublicKey,
+					forging: true,
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(defaultAPIResponse.data);
+			});
 	});
 
 	describe('node:forging status publicKey --password=123', () => {
@@ -120,16 +100,12 @@ describe('node:forging', () => {
 				'should disable the forging status of the node with the public key and the password from the flag',
 				() => {
 					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					expect(
-						apiClientStub.node.updateForgingStatus,
-					).to.be.calledWithExactly({
+					expect(apiClientStub.node.updateForgingStatus).to.be.calledWithExactly({
 						password: defaultInputs,
 						publicKey: defaultPublicKey,
 						forging: false,
 					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultAPIResponse.data,
-					);
+					return expect(printMethodStub).to.be.calledWithExactly(defaultAPIResponse.data);
 				},
 			);
 	});

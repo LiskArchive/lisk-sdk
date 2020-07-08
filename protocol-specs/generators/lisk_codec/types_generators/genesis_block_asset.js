@@ -136,10 +136,7 @@ const generateValidGenesisBlockAssetEncodings = () => {
 				accounts: [
 					{
 						address: Buffer.from('A/bZC329BJfcOlLRwn4ju4x1iX8=', 'base64'),
-						publicKey: Buffer.from(
-							'/GV3fB1MAPGvWIDCO6f2DNO/hNG/XGl6vE/+F896ysA=',
-							'base64',
-						),
+						publicKey: Buffer.from('/GV3fB1MAPGvWIDCO6f2DNO/hNG/XGl6vE/+F896ysA=', 'base64'),
 						balance: '0',
 						nonce: '0',
 						keys: {
@@ -158,10 +155,7 @@ const generateValidGenesisBlockAssetEncodings = () => {
 							},
 							sentVotes: [
 								{
-									delegateAddress: Buffer.from(
-										'A/bZC329BJfcOlLRwn4ju4x1iX8=',
-										'base64',
-									),
+									delegateAddress: Buffer.from('A/bZC329BJfcOlLRwn4ju4x1iX8=', 'base64'),
 									amount: '1000000000000',
 								},
 							],
@@ -170,10 +164,7 @@ const generateValidGenesisBlockAssetEncodings = () => {
 					},
 					{
 						address: Buffer.from('CQP0xctZmnkorvJ+MU6YKR0eOIg=', 'base64'),
-						publicKey: Buffer.from(
-							'P1cTJOnceySBtxp9xWY38SNFBBWJhqJC6Qwz2NIP3ZI=',
-							'base64',
-						),
+						publicKey: Buffer.from('P1cTJOnceySBtxp9xWY38SNFBBWJhqJC6Qwz2NIP3ZI=', 'base64'),
 						balance: '0',
 						nonce: '0',
 						keys: {
@@ -196,10 +187,7 @@ const generateValidGenesisBlockAssetEncodings = () => {
 					},
 					{
 						address: Buffer.from('CtpqL2yPiRdpNm/Jqm/Z8frLNs8=', 'base64'),
-						publicKey: Buffer.from(
-							'xpaY7zABKWSq+s++Y3u2OFS2EJzFxfIqpLPcPo3Kghc=',
-							'base64',
-						),
+						publicKey: Buffer.from('xpaY7zABKWSq+s++Y3u2OFS2EJzFxfIqpLPcPo3Kghc=', 'base64'),
 						balance: '0',
 						nonce: '0',
 						keys: {
@@ -218,10 +206,7 @@ const generateValidGenesisBlockAssetEncodings = () => {
 							},
 							sentVotes: [
 								{
-									delegateAddress: Buffer.from(
-										'CtpqL2yPiRdpNm/Jqm/Z8frLNs8=',
-										'base64',
-									),
+									delegateAddress: Buffer.from('CtpqL2yPiRdpNm/Jqm/Z8frLNs8=', 'base64'),
 									amount: '1000000000000',
 								},
 							],

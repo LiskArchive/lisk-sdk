@@ -18,14 +18,11 @@ import { shuffleDelegateList } from '../../src/delegates_list';
 
 describe('dpos.shuffleDelegateList', () => {
 	const { previousRoundSeed1 } = delegateShufflingScenario.testCases.input;
-	const addressList = [
-		...delegateShufflingScenario.testCases.input.delegateList,
-	].map(address => Buffer.from(address, 'hex'));
+	const addressList = [...delegateShufflingScenario.testCases.input.delegateList].map(address =>
+		Buffer.from(address, 'hex'),
+	);
 	it('should return a list of uniformly shuffled list of delegates', () => {
-		const shuffledDelegateList = shuffleDelegateList(
-			hexToBuffer(previousRoundSeed1),
-			addressList,
-		);
+		const shuffledDelegateList = shuffleDelegateList(hexToBuffer(previousRoundSeed1), addressList);
 
 		expect(shuffledDelegateList).toHaveLength(addressList.length);
 		shuffledDelegateList.forEach(address =>

@@ -24,9 +24,7 @@ export const intToBuffer = (
 	signed = false,
 ): Buffer => {
 	if (![BIG_ENDIAN, LITTLE_ENDIAN].includes(endianness)) {
-		throw new Error(
-			`Endianness must be either ${BIG_ENDIAN} or ${LITTLE_ENDIAN}`,
-		);
+		throw new Error(`Endianness must be either ${BIG_ENDIAN} or ${LITTLE_ENDIAN}`);
 	}
 	const buffer = Buffer.alloc(byteLength);
 	if (endianness === 'big') {
@@ -65,8 +63,7 @@ export const intToBuffer = (
 	return buffer;
 };
 
-export const bufferToHex = (buffer: Buffer): string =>
-	Buffer.from(buffer).toString('hex');
+export const bufferToHex = (buffer: Buffer): string => Buffer.from(buffer).toString('hex');
 
 const hexRegex = /^[0-9a-f]+/i;
 export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
@@ -79,9 +76,7 @@ export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
 		throw new TypeError(`${argumentName} must be a valid hex string.`);
 	}
 	if (matchedHex.length % 2 !== 0) {
-		throw new TypeError(
-			`${argumentName} must have a valid length of hex string.`,
-		);
+		throw new TypeError(`${argumentName} must have a valid length of hex string.`);
 	}
 
 	return Buffer.from(matchedHex, 'hex');

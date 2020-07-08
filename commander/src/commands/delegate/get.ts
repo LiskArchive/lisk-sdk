@@ -34,10 +34,7 @@ export default class GetCommand extends BaseCommand {
 	Gets delegate information from the blockchain.
 	`;
 
-	static examples = [
-		'delegate:get lightcurve',
-		'delegate:get lightcurve,4miners.net',
-	];
+	static examples = ['delegate:get lightcurve', 'delegate:get lightcurve,4miners.net'];
 
 	static flags = {
 		...BaseCommand.flags,
@@ -46,9 +43,7 @@ export default class GetCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(GetCommand);
 		const { usernames: usernamesStr } = args as Args;
-		const usernames: ReadonlyArray<string> = usernamesStr
-			.split(',')
-			.filter(Boolean);
+		const usernames: ReadonlyArray<string> = usernamesStr.split(',').filter(Boolean);
 		const req = usernames.map(username => ({
 			query: {
 				limit: 1,

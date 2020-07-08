@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	TransactionError,
-	TransferTransaction,
-	BaseTransaction,
-} from '@liskhq/lisk-transactions';
+import { TransactionError, TransferTransaction, BaseTransaction } from '@liskhq/lisk-transactions';
 import { validator } from '@liskhq/lisk-validator';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../../../../../src/application/logger';
@@ -56,14 +52,10 @@ describe('transport', () => {
 		transaction = new TransferTransaction({
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
-			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase)
-				.publicKey,
+			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 			asset: {
 				amount: BigInt('100'),
-				recipientAddress: Buffer.from(
-					'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
-					'hex',
-				),
+				recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
 				data: '',
 			},
 		});
@@ -72,39 +64,25 @@ describe('transport', () => {
 		const transactionOne = new TransferTransaction({
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
-			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase)
-				.publicKey,
+			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 			asset: {
 				amount: BigInt('100'),
-				recipientAddress: Buffer.from(
-					'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
-					'hex',
-				),
+				recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
 				data: '',
 			},
 		});
-		transactionOne.sign(
-			Buffer.from(networkIdentifier, 'hex'),
-			genesis.passphrase,
-		);
+		transactionOne.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 		const transactionTwo = new TransferTransaction({
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
-			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase)
-				.publicKey,
+			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 			asset: {
 				amount: BigInt('100'),
-				recipientAddress: Buffer.from(
-					'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
-					'hex',
-				),
+				recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
 				data: '',
 			},
 		});
-		transactionTwo.sign(
-			Buffer.from(networkIdentifier, 'hex'),
-			genesis.passphrase,
-		);
+		transactionTwo.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 
 		transactionsList = [transactionOne, transactionTwo];
 
@@ -148,22 +126,14 @@ describe('transport', () => {
 				contains: jest.fn().mockReturnValue(false),
 			} as any,
 			chainModule: {
-				lastBlock: jest
-					.fn()
-					.mockReturnValue({ height: 1, version: 1, timestamp: 1 }) as any,
+				lastBlock: jest.fn().mockReturnValue({ height: 1, version: 1, timestamp: 1 }) as any,
 				receiveBlockFromNetwork: jest.fn(),
 				loadBlocksFromLastBlockId: jest.fn(),
-				validateTransactions: jest
-					.fn()
-					.mockReturnValue([{ status: 1, errors: [] }]),
-				applyTransactions: jest
-					.fn()
-					.mockResolvedValue([{ status: 1, errors: [] }]),
+				validateTransactions: jest.fn().mockReturnValue([{ status: 1, errors: [] }]),
+				applyTransactions: jest.fn().mockResolvedValue([{ status: 1, errors: [] }]),
 				deserializeTransaction: jest.fn().mockImplementation(val => val),
 				dataAccess: {
-					getBlockHeaderByID: jest
-						.fn()
-						.mockReturnValue({ height: 2, version: 1, timestamp: 1 }),
+					getBlockHeaderByID: jest.fn().mockReturnValue({ height: 2, version: 1, timestamp: 1 }),
 					getBlocksByHeightBetween: jest.fn().mockReturnValue([
 						{ height: 3, version: 1, timestamp: 1 },
 						{ height: 37, version: 1, timestamp: 1 },
@@ -208,9 +178,7 @@ describe('transport', () => {
 
 			describe('when transaction is neither in the queues, nor in the database', () => {
 				beforeEach(async () => {
-					transportModule[
-						'_transactionPoolModule'
-					].contains = jest.fn().mockReturnValue(false);
+					transportModule['_transactionPoolModule'].contains = jest.fn().mockReturnValue(false);
 					transportModule[
 						'_chainModule'
 					].dataAccess.getTransactionsByIDs = jest.fn().mockReturnValue([]);
@@ -221,9 +189,9 @@ describe('transport', () => {
 
 				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', () => {
 					for (const transactionToCheck of transactionsList) {
-						expect(
-							transportModule['_transactionPoolModule'].contains,
-						).toHaveBeenCalledWith(transactionToCheck.id);
+						expect(transportModule['_transactionPoolModule'].contains).toHaveBeenCalledWith(
+							transactionToCheck.id,
+						);
 					}
 				});
 
@@ -235,21 +203,14 @@ describe('transport', () => {
 
 				it('should return array of transactions ids', () =>
 					expect(resultTransactionsIDsCheck).toEqual(
-						expect.arrayContaining([
-							transactionsList[0].id,
-							transactionsList[1].id,
-						]),
+						expect.arrayContaining([transactionsList[0].id, transactionsList[1].id]),
 					));
 			});
 
 			describe('when transaction is in the queues', () => {
 				beforeEach(async () => {
-					transportModule[
-						'_transactionPoolModule'
-					].contains = jest.fn().mockReturnValue(true);
-					transportModule[
-						'_chainModule'
-					].dataAccess.getTransactionByID = jest.fn();
+					transportModule['_transactionPoolModule'].contains = jest.fn().mockReturnValue(true);
+					transportModule['_chainModule'].dataAccess.getTransactionByID = jest.fn();
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.ids,
 					);
@@ -257,9 +218,9 @@ describe('transport', () => {
 
 				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', () => {
 					for (const transactionToCheck of transactionsList) {
-						expect(
-							transportModule['_transactionPoolModule'].contains,
-						).toHaveBeenCalledWith(transactionToCheck.id);
+						expect(transportModule['_transactionPoolModule'].contains).toHaveBeenCalledWith(
+							transactionToCheck.id,
+						);
 					}
 				});
 
@@ -277,14 +238,10 @@ describe('transport', () => {
 
 			describe('when transaction exists in the database', () => {
 				beforeEach(async () => {
-					transportModule[
-						'_transactionPoolModule'
-					].contains = jest.fn().mockReturnValue(false);
+					transportModule['_transactionPoolModule'].contains = jest.fn().mockReturnValue(false);
 					transportModule[
 						'_chainModule'
-					].dataAccess.getTransactionsByIDs = jest
-						.fn()
-						.mockResolvedValue(transactionsList);
+					].dataAccess.getTransactionsByIDs = jest.fn().mockResolvedValue(transactionsList);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.ids,
 					);
@@ -292,17 +249,17 @@ describe('transport', () => {
 
 				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', () => {
 					for (const transactionToCheck of transactionsList) {
-						expect(
-							transportModule['_transactionPoolModule'].contains,
-						).toHaveBeenCalledWith(transactionToCheck.id);
+						expect(transportModule['_transactionPoolModule'].contains).toHaveBeenCalledWith(
+							transactionToCheck.id,
+						);
 					}
 				});
 
 				it('should call transportModule._chainModule.dataAccess.getTransactionByID with query.transaction.ids as arguments', () => {
 					for (const transactionToCheck of transactionsList) {
-						expect(
-							transportModule['_transactionPoolModule'].contains,
-						).toHaveBeenCalledWith(transactionToCheck.id);
+						expect(transportModule['_transactionPoolModule'].contains).toHaveBeenCalledWith(
+							transactionToCheck.id,
+						);
 					}
 				});
 
@@ -333,16 +290,16 @@ describe('transport', () => {
 
 			it('should call validateTransactions', async () => {
 				await transportModule['_receiveTransaction'](transaction);
-				return expect(
-					transportModule['_chainModule'].validateTransactions,
-				).toHaveBeenCalledTimes(1);
+				return expect(transportModule['_chainModule'].validateTransactions).toHaveBeenCalledTimes(
+					1,
+				);
 			});
 
 			it('should call validateTransactions with an array of transactions', async () => {
 				await transportModule['_receiveTransaction'](transaction);
-				return expect(
-					transportModule['_chainModule'].validateTransactions,
-				).toHaveBeenCalledTimes(1);
+				return expect(transportModule['_chainModule'].validateTransactions).toHaveBeenCalledTimes(
+					1,
+				);
 			});
 
 			it('should reject with error if transaction is not allowed', async () => {
@@ -358,9 +315,9 @@ describe('transport', () => {
 					},
 				]);
 
-				await expect(
-					transportModule['_receiveTransaction'](transaction),
-				).rejects.toThrow(invalidTrsError.message);
+				await expect(transportModule['_receiveTransaction'](transaction)).rejects.toThrow(
+					invalidTrsError.message,
+				);
 			});
 
 			describe('when transaction and peer are defined', () => {
@@ -369,9 +326,7 @@ describe('transport', () => {
 				});
 
 				it('should call modules.transactionPool.add with transaction argument', () => {
-					expect(
-						transportModule['_transactionPoolModule'].add,
-					).toHaveBeenCalledTimes(1);
+					expect(transportModule['_transactionPoolModule'].add).toHaveBeenCalledTimes(1);
 				});
 			});
 
@@ -462,10 +417,7 @@ describe('transport', () => {
 						),
 						asset: {
 							amount: BigInt('100'),
-							recipientAddress: Buffer.from(
-								'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
-								'hex',
-							),
+							recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
 							data: '',
 						},
 						signatures: [
@@ -498,9 +450,7 @@ describe('transport', () => {
 					});
 
 					it('should call transportModule.broadcaster.enqueueTransactionId transactionId', () => {
-						expect(
-							transportModule['_broadcaster'].enqueueTransactionId,
-						).toHaveBeenCalledTimes(1);
+						expect(transportModule['_broadcaster'].enqueueTransactionId).toHaveBeenCalledTimes(1);
 
 						return expect(
 							transportModule['_broadcaster'].enqueueTransactionId,
@@ -508,9 +458,7 @@ describe('transport', () => {
 					});
 
 					it('should call transportModule.channel.publish with "app:transaction:new" and transaction as arguments', () => {
-						expect(transportModule['_channel'].publish).toHaveBeenCalledTimes(
-							1,
-						);
+						expect(transportModule['_channel'].publish).toHaveBeenCalledTimes(1);
 						expect(transportModule['_channel'].publish).toHaveBeenCalledWith(
 							'app:transaction:new',
 							{
@@ -560,9 +508,7 @@ describe('transport', () => {
 						});
 
 						it('should call transportModule.logger.debug with proper error message', () => {
-							return expect(
-								transportModule['_logger'].debug,
-							).toHaveBeenCalledWith(
+							return expect(transportModule['_logger'].debug).toHaveBeenCalledWith(
 								'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 							);
 						});
@@ -600,8 +546,7 @@ describe('transport', () => {
 								transportModule['_chainModule'].dataAccess.getBlockHeaderByID,
 							).toHaveBeenCalledWith(Buffer.from(query.blockId, 'base64'));
 							return expect(
-								transportModule['_chainModule'].dataAccess
-									.getBlocksByHeightBetween,
+								transportModule['_chainModule'].dataAccess.getBlocksByHeightBetween,
 							).toHaveBeenCalledWith(3, 105);
 						});
 					});
@@ -615,15 +560,13 @@ describe('transport', () => {
 							const errorMessage = 'Failed to load blocks...';
 							const loadBlockFailed = new Error(errorMessage);
 
-							transportModule[
-								'_chainModule'
-							].dataAccess.getBlockHeaderByID.mockResolvedValue(
+							transportModule['_chainModule'].dataAccess.getBlockHeaderByID.mockResolvedValue(
 								Promise.reject(loadBlockFailed),
 							);
 
-							await expect(
-								transportModule.handleRPCGetBlocksFromId(query),
-							).rejects.toThrow(loadBlockFailed);
+							await expect(transportModule.handleRPCGetBlocksFromId(query)).rejects.toThrow(
+								loadBlockFailed,
+							);
 						});
 					});
 				});
@@ -644,10 +587,7 @@ describe('transport', () => {
 
 							it('should throw an error', async () => {
 								await expect(
-									transportModule.handleEventPostBlock(
-										postBlockQuery,
-										defaultPeerId,
-									),
+									transportModule.handleEventPostBlock(postBlockQuery, defaultPeerId),
 								).rejects.toEqual([
 									expect.objectContaining({
 										message: blockValidationError,
@@ -671,9 +611,9 @@ describe('transport', () => {
 									await transportModule.handleEventPostBlock({
 										block: encodedGenesisBlock.toString('base64'),
 									});
-									expect(
-										transportModule['_chainModule'].dataAccess.decode,
-									).toHaveBeenCalledWith(encodedGenesisBlock);
+									expect(transportModule['_chainModule'].dataAccess.decode).toHaveBeenCalledWith(
+										encodedGenesisBlock,
+									);
 								});
 							});
 
@@ -684,11 +624,12 @@ describe('transport', () => {
 									},
 									'127.0.0.1:5000',
 								);
-								expect(
-									transportModule['_processorModule'].process,
-								).toHaveBeenCalledWith(genesisBlock(), {
-									peerId: '127.0.0.1:5000',
-								});
+								expect(transportModule['_processorModule'].process).toHaveBeenCalledWith(
+									genesisBlock(),
+									{
+										peerId: '127.0.0.1:5000',
+									},
+								);
 							});
 						});
 					});
@@ -700,17 +641,13 @@ describe('transport', () => {
 							transaction: transaction.getBytes().toString('base64'),
 						};
 
-						transportModule[
-							'_receiveTransaction'
-						] = jest.fn().mockResolvedValue(transaction.id);
+						transportModule['_receiveTransaction'] = jest.fn().mockResolvedValue(transaction.id);
 
 						result = await transportModule.handleEventPostTransaction(query);
 					});
 
 					it('should call transportModule _receiveTransaction with query.transaction as argument', () =>
-						expect(transportModule['_receiveTransaction']).toHaveBeenCalledWith(
-							transaction,
-						));
+						expect(transportModule['_receiveTransaction']).toHaveBeenCalledWith(transaction));
 
 					describe('when transportModule _receiveTransaction succeeds', () => {
 						it('should resolve with object { transactionId: id }', () => {
@@ -720,9 +657,7 @@ describe('transport', () => {
 					});
 
 					describe('when transportModule._receiveTransaction fails', () => {
-						const receiveTransactionError = new Error(
-							'Invalid transaction body ...',
-						);
+						const receiveTransactionError = new Error('Invalid transaction body ...');
 
 						beforeEach(async () => {
 							transportModule._receiveTransaction = jest
@@ -739,9 +674,7 @@ describe('transport', () => {
 					});
 
 					describe('when transportModule._receiveTransaction fails with "Transaction pool is full"', () => {
-						const receiveTransactionError = new Error(
-							'Transaction pool is full',
-						);
+						const receiveTransactionError = new Error('Transaction pool is full');
 
 						beforeEach(async () => {
 							transportModule._receiveTransaction = jest

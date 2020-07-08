@@ -22,10 +22,7 @@ import { flags as commonFlags } from '../../utils/flags';
 import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
 import { removeUndefinedValues } from '../../utils/object';
 import { getPassphraseFromPrompt, readStdIn } from '../../utils/reader';
-import {
-	instantiateTransaction,
-	parseTransactionString,
-} from '../../utils/transactions';
+import { instantiateTransaction, parseTransactionString } from '../../utils/transactions';
 
 interface Args {
 	readonly transaction?: string;

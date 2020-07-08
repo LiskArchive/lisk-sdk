@@ -26,11 +26,7 @@ export const encryptMessage = ({
 	passphrase,
 	recipient,
 }: EncryptMessageInputs): cryptography.EncryptedMessageWithNonce =>
-	cryptography.encryptMessageWithPassphrase(
-		message,
-		passphrase,
-		Buffer.from(recipient, 'hex'),
-	);
+	cryptography.encryptMessageWithPassphrase(message, passphrase, Buffer.from(recipient, 'hex'));
 
 interface DecryptMessageInputs {
 	readonly cipher: string;
@@ -66,9 +62,7 @@ export const encryptPassphrase = ({
 		passphrase,
 		password,
 	);
-	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(
-		encryptedPassphraseObject,
-	);
+	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(encryptedPassphraseObject);
 
 	return { encryptedPassphrase };
 };
@@ -82,9 +76,7 @@ export const decryptPassphrase = ({
 	encryptedPassphrase,
 	password,
 }: DecryptPassphraseInput): { passphrase: string } => {
-	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(
-		encryptedPassphrase,
-	);
+	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(encryptedPassphrase);
 	const passphrase = cryptography.decryptPassphraseWithPassword(
 		encryptedPassphraseObject,
 		password,
@@ -95,12 +87,8 @@ export const decryptPassphrase = ({
 
 export const { getKeys } = cryptography;
 
-export const getAddressFromPublicKey = (
-	publicKey: string,
-): { readonly address: string } => ({
-	address: cryptography
-		.getAddressFromPublicKey(Buffer.from(publicKey, 'hex'))
-		.toString('hex'),
+export const getAddressFromPublicKey = (publicKey: string): { readonly address: string } => ({
+	address: cryptography.getAddressFromPublicKey(Buffer.from(publicKey, 'hex')).toString('hex'),
 });
 
 interface SignMessageInputs {

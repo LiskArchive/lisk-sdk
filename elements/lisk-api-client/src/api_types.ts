@@ -15,9 +15,7 @@ import { Method } from 'axios';
  *
  */
 // eslint-disable-next-line @typescript-eslint/no-type-alias
-export type APIHandler = (
-	...args: Array<number | string | object>
-) => Promise<APIResponse>;
+export type APIHandler = (...args: Array<number | string | object>) => Promise<APIResponse>;
 
 export interface APIResponse {
 	readonly data: unknown;

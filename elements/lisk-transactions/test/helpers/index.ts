@@ -13,9 +13,6 @@
  *
  */
 import { addTransactionFields } from './add_transaction_fields';
-import {
-	TestTransaction,
-	TestTransactionBasicImpl,
-} from './test_transaction_class';
+import { TestTransaction, TestTransactionBasicImpl } from './test_transaction_class';
 
 export { addTransactionFields, TestTransaction, TestTransactionBasicImpl };

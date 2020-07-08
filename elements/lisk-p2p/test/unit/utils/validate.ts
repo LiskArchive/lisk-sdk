@@ -50,22 +50,17 @@ describe('utils/validate', () => {
 			};
 
 			it('should return P2PPeerInfo object', () => {
-				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000)).toEqual(
-					{
-						peerId: '12.23.54.3:5393',
-						ipAddress: '12.23.54.3',
-						port: 5393,
-						sharedState: {},
-					},
-				);
+				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000)).toEqual({
+					peerId: '12.23.54.3:5393',
+					ipAddress: '12.23.54.3',
+					port: 5393,
+					sharedState: {},
+				});
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', () => {
 				expect(
-					validatePeerInfo(
-						sanitizeIncomingPeerInfo(peerWithInvalidHeightValue),
-						10000,
-					),
+					validatePeerInfo(sanitizeIncomingPeerInfo(peerWithInvalidHeightValue), 10000),
 				).toEqual({
 					peerId: '12.23.54.3:5393',
 					ipAddress: '12.23.54.3',
@@ -79,13 +74,9 @@ describe('utils/validate', () => {
 			it('should throw an InvalidPeer error for invalid peer', () => {
 				const peerInvalid: unknown = null;
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peerInvalid),
-						10000,
-					),
-				).toThrow('Invalid peer object');
+				expect(validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peerInvalid), 10000)).toThrow(
+					'Invalid peer object',
+				);
 			});
 
 			it('should throw if PeerInfo is too big', () => {
@@ -96,11 +87,7 @@ describe('utils/validate', () => {
 				};
 
 				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peer),
-						maximumPeerInfoSizeInBytes,
-					),
+					validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peer), maximumPeerInfoSizeInBytes),
 				).toThrow(
 					`PeerInfo is larger than the maximum allowed size ${maximumPeerInfoSizeInBytes} bytes`,
 				);
@@ -115,13 +102,9 @@ describe('utils/validate', () => {
 					},
 				};
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peerInvalid),
-						10000,
-					),
-				).toThrow('Invalid peer ipAddress or port');
+				expect(validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peerInvalid), 10000)).toThrow(
+					'Invalid peer ipAddress or port',
+				);
 			});
 		});
 	});
@@ -260,12 +243,9 @@ describe('utils/validate', () => {
 				port: 4001,
 			};
 
-			expect(
-				validatePeerAddress(
-					peerWithIncorrectIp.ipAddress,
-					peerWithIncorrectIp.port,
-				),
-			).toBe(false);
+			expect(validatePeerAddress(peerWithIncorrectIp.ipAddress, peerWithIncorrectIp.port)).toBe(
+				false,
+			);
 		});
 
 		it('should return false for incorrect port', () => {
@@ -274,12 +254,9 @@ describe('utils/validate', () => {
 				port: NaN,
 			};
 
-			expect(
-				validatePeerAddress(
-					peerWithIncorrectPort.ipAddress,
-					peerWithIncorrectPort.port,
-				),
-			).toBe(false);
+			expect(validatePeerAddress(peerWithIncorrectPort.ipAddress, peerWithIncorrectPort.port)).toBe(
+				false,
+			);
 		});
 	});
 
@@ -295,9 +272,7 @@ describe('utils/validate', () => {
 		});
 
 		it('should throw an error for an invalid procedure value', () => {
-			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).toThrow(
-				'Invalid request',
-			);
+			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).toThrow('Invalid request');
 		});
 
 		it('should throw an error for an invalid procedure value with object', () => {
@@ -306,9 +281,9 @@ describe('utils/validate', () => {
 				procedure: {},
 			};
 
-			expect(
-				validateRPCRequest.bind(validateRPCRequest, inValidRequest),
-			).toThrow('Request procedure name is not a string');
+			expect(validateRPCRequest.bind(validateRPCRequest, inValidRequest)).toThrow(
+				'Request procedure name is not a string',
+			);
 		});
 
 		it('should pass and return an object', () => {
@@ -335,9 +310,9 @@ describe('utils/validate', () => {
 		});
 
 		it('should throw an error for an invalid event value type', () => {
-			expect(
-				validateProtocolMessage.bind(validateProtocolMessage, undefined),
-			).toThrow('Invalid message');
+			expect(validateProtocolMessage.bind(validateProtocolMessage, undefined)).toThrow(
+				'Invalid message',
+			);
 		});
 
 		it('should throw an error for an invalid event value type with number', () => {
@@ -345,9 +320,9 @@ describe('utils/validate', () => {
 				data: {},
 				event: 6788,
 			};
-			expect(
-				validateProtocolMessage.bind(validateProtocolMessage, inValidMessage),
-			).toThrow('Protocol message is not a string');
+			expect(validateProtocolMessage.bind(validateProtocolMessage, inValidMessage)).toThrow(
+				'Protocol message is not a string',
+			);
 		});
 
 		it('should return an object', () => {

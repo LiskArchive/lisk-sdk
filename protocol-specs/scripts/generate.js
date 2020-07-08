@@ -33,6 +33,4 @@ for (const aGenerator of generators) {
 	}
 }
 console.log();
-console.log(
-	`All specs available in '${pathJoin(__dirname, '../generator_outputs/')}'`,
-);
+console.log(`All specs available in '${pathJoin(__dirname, '../generator_outputs/')}'`);

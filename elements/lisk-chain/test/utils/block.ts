@@ -24,11 +24,7 @@ import { MerkleTree } from '@liskhq/lisk-tree';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import * as genesis from '../fixtures/genesis_block.json';
 import { Block, BlockHeader } from '../../src/types';
-import {
-	signingBlockHeaderSchema,
-	blockHeaderSchema,
-	blockSchema,
-} from '../../src/schema';
+import { signingBlockHeaderSchema, blockHeaderSchema, blockSchema } from '../../src/schema';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
@@ -168,10 +164,7 @@ export const genesisBlock: Block = {
 		id: Buffer.from(genesis.header.id, 'base64'),
 		previousBlockID: Buffer.from(genesis.header.previousBlockID, 'base64'),
 		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'base64'),
-		generatorPublicKey: Buffer.from(
-			genesis.header.generatorPublicKey,
-			'base64',
-		),
+		generatorPublicKey: Buffer.from(genesis.header.generatorPublicKey, 'base64'),
 		reward: BigInt(genesis.header.reward),
 		signature: Buffer.from(genesis.header.signature, 'base64'),
 		asset: {
@@ -184,31 +177,21 @@ export const genesisBlock: Block = {
 				balance: BigInt(account.balance),
 				nonce: BigInt(account.nonce),
 				keys: {
-					mandatoryKeys: account.keys.mandatoryKeys.map(key =>
-						Buffer.from(key, 'base64'),
-					),
-					optionalKeys: account.keys.optionalKeys.map(key =>
-						Buffer.from(key, 'base64'),
-					),
+					mandatoryKeys: account.keys.mandatoryKeys.map(key => Buffer.from(key, 'base64')),
+					optionalKeys: account.keys.optionalKeys.map(key => Buffer.from(key, 'base64')),
 					numberOfSignatures: account.keys.numberOfSignatures,
 				},
 				asset: {
 					delegate: {
 						...account.asset.delegate,
-						totalVotesReceived: BigInt(
-							account.asset.delegate.totalVotesReceived,
-						),
+						totalVotesReceived: BigInt(account.asset.delegate.totalVotesReceived),
 					},
 					sentVotes: account.asset.sentVotes.map(vote => ({
 						delegateAddress: Buffer.from(vote.delegateAddress, 'base64'),
 						amount: BigInt(vote.amount),
 					})),
 					unlocking: account.asset.unlocking.map(
-						(unlock: {
-							delegateAddress: string;
-							amount: string;
-							unvoteHeight: string;
-						}) => ({
+						(unlock: { delegateAddress: string; amount: string; unvoteHeight: string }) => ({
 							delegateAddress: Buffer.from(unlock.delegateAddress, 'base64'),
 							amount: BigInt(unlock.amount),
 							unvoteHeight: unlock.unvoteHeight,
@@ -284,10 +267,7 @@ export const createValidDefaultBlock = (
 		asset,
 	});
 
-	const encodedAsset = codec.encode(
-		defaultBlockHeaderAssetSchema,
-		blockHeader.asset,
-	);
+	const encodedAsset = codec.encode(defaultBlockHeaderAssetSchema, blockHeader.asset);
 	const encodedHeaderWithoutSignature = codec.encode(signingBlockHeaderSchema, {
 		...blockHeader,
 		asset: encodedAsset,

@@ -20,14 +20,10 @@ describe('MerkleTree', () => {
 		for (const test of fixture.testCases) {
 			describe(test.description, () => {
 				it('should result in correct merkle root', () => {
-					const inputs = test.input.transactionIds.map(hexString =>
-						Buffer.from(hexString, 'hex'),
-					);
+					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
 					const merkleTree = new MerkleTree(inputs);
 
-					expect(merkleTree.root).toEqual(
-						Buffer.from(test.output.transactionMerkleRoot, 'hex'),
-					);
+					expect(merkleTree.root).toEqual(Buffer.from(test.output.transactionMerkleRoot, 'hex'));
 				});
 			});
 		}
@@ -37,15 +33,11 @@ describe('MerkleTree', () => {
 		for (const test of fixture.testCases.slice(1)) {
 			describe(test.description, () => {
 				it('should append and have correct root', () => {
-					const inputs = test.input.transactionIds.map(hexString =>
-						Buffer.from(hexString, 'hex'),
-					);
+					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
 					const toAppend = inputs.pop();
 					const merkleTree = new MerkleTree(inputs);
 					merkleTree.append(toAppend as Buffer);
-					expect(merkleTree.root).toEqual(
-						Buffer.from(test.output.transactionMerkleRoot, 'hex'),
-					);
+					expect(merkleTree.root).toEqual(Buffer.from(test.output.transactionMerkleRoot, 'hex'));
 				});
 			});
 		}
@@ -55,9 +47,7 @@ describe('MerkleTree', () => {
 		for (const test of fixture.testCases) {
 			describe(test.description, () => {
 				it('should generate and verify correct proof', () => {
-					const inputs = test.input.transactionIds.map(hexString =>
-						Buffer.from(hexString, 'hex'),
-					);
+					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
 					const merkleTree = new MerkleTree(inputs);
 					const nodes = merkleTree.getData();
 					const queryData = nodes
@@ -75,18 +65,12 @@ describe('MerkleTree', () => {
 				});
 
 				it('should generate and verify invalid proof', () => {
-					const inputs = test.input.transactionIds.map(hexString =>
-						Buffer.from(hexString, 'hex'),
-					);
+					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
 					const merkleTree = new MerkleTree(inputs);
 					const nodes = merkleTree.getData();
-					const randomizedQueryCount = Math.floor(
-						Math.random() * nodes.length + 1,
-					);
+					const randomizedQueryCount = Math.floor(Math.random() * nodes.length + 1);
 					const invalidNodeIndex =
-						inputs.length > 0
-							? Math.floor(Math.random() * randomizedQueryCount + 1)
-							: 0;
+						inputs.length > 0 ? Math.floor(Math.random() * randomizedQueryCount + 1) : 0;
 					const queryData =
 						inputs.length > 0
 							? nodes
@@ -108,9 +92,7 @@ describe('MerkleTree', () => {
 					}
 
 					expect(
-						results
-							.filter((_, i) => i !== invalidNodeIndex)
-							.every(result => result.verified),
+						results.filter((_, i) => i !== invalidNodeIndex).every(result => result.verified),
 					).toBeTrue();
 					return expect(results[invalidNodeIndex].verified).toBeFalse();
 				});

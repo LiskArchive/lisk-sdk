@@ -36,10 +36,8 @@ describe.skip('transaction:create:pom', () => {
 		totalFee: '10000000000',
 		reward: '10000000000',
 		payloadLength: 0,
-		transactionRoot:
-			'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		generatorPublicKey:
-			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		transactionRoot: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+		generatorPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		blockSignature:
 			'd87f2eafb2f8022d4a1171fa5735466f5fa5749dfc6d2a3978d69d266aadfe4929a65925daaf380c1323d34049bc0aef5d5ad12916ab137c8829ef42f12d400b',
 	};
@@ -56,10 +54,8 @@ describe.skip('transaction:create:pom', () => {
 		totalFee: '10000000000',
 		reward: '10000000000',
 		payloadLength: 0,
-		transactionRoot:
-			'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-		generatorPublicKey:
-			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		transactionRoot: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+		generatorPublicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		blockSignature:
 			'c86e638c27d39c033cc8bb107c5a5a19f6e95361314d2d74b715d96ddfac6d156ea77d798dbd34203920e33525c5645ac01931043e3c0021a6da068048fa770a',
 	};
@@ -82,21 +78,9 @@ describe.skip('transaction:create:pom', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(
-				config,
-				'getConfig',
-				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
-			.stub(
-				transactions,
-				'reportMisbehavior',
-				sandbox.stub().returns(defaultTransaction),
-			)
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: { network: 'test' } }))
+			.stub(transactions, 'reportMisbehavior', sandbox.stub().returns(defaultTransaction))
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stdout();
 
 	describe('transaction:create:pom', () => {
@@ -118,10 +102,7 @@ describe.skip('transaction:create:pom', () => {
 				JSON.stringify(defaultHeader2),
 			])
 			.it('create a transaction with the header 1 and header 2', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				expect(transactions.reportMisbehavior).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
@@ -130,9 +111,7 @@ describe.skip('transaction:create:pom', () => {
 					header1: defaultHeader1,
 					header2: defaultHeader2,
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -146,23 +125,18 @@ describe.skip('transaction:create:pom', () => {
 				JSON.stringify(defaultHeader2),
 				'--passphrase=123',
 			])
-			.it(
-				'create a transaction with the headers with the passphrase from flag',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					expect(transactions.reportMisbehavior).to.be.calledWithExactly({
-						nonce: '1',
-						fee: '10000000000',
-						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: defaultInputs,
-						header1: defaultHeader1,
-						header2: defaultHeader2,
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultTransaction,
-					);
-				},
-			);
+			.it('create a transaction with the headers with the passphrase from flag', () => {
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
+				expect(transactions.reportMisbehavior).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
+					networkIdentifier: testnetNetworkIdentifier,
+					passphrase: defaultInputs,
+					header1: defaultHeader1,
+					header2: defaultHeader2,
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
+			});
 	});
 
 	describe('transaction:create:pom nonce fee header1 header2 --no-signature', () => {
@@ -185,9 +159,7 @@ describe.skip('transaction:create:pom', () => {
 					header2: defaultHeader2,
 				});
 				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 });

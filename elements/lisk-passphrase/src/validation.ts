@@ -32,9 +32,7 @@ const passphraseRegularExpression: PassphraseRegularExpression = {
 };
 
 export const countPassphraseWhitespaces = (passphrase: string): number => {
-	const whitespaceMatches = passphrase.match(
-		passphraseRegularExpression.whitespaceRegExp,
-	);
+	const whitespaceMatches = passphrase.match(passphraseRegularExpression.whitespaceRegExp);
 
 	return whitespaceMatches !== null ? whitespaceMatches.length : 0;
 };
@@ -43,76 +41,48 @@ export const countPassphraseWords = (passphrase: string): number =>
 	passphrase.split(' ').filter(Boolean).length;
 
 export const countUppercaseCharacters = (passphrase: string): number => {
-	const uppercaseCharacterMatches = passphrase.match(
-		passphraseRegularExpression.uppercaseRegExp,
-	);
+	const uppercaseCharacterMatches = passphrase.match(passphraseRegularExpression.uppercaseRegExp);
 
-	return uppercaseCharacterMatches !== null
-		? uppercaseCharacterMatches.length
-		: 0;
+	return uppercaseCharacterMatches !== null ? uppercaseCharacterMatches.length : 0;
 };
 
-export const locateUppercaseCharacters = (
-	passphrase: string,
-): ReadonlyArray<number> =>
+export const locateUppercaseCharacters = (passphrase: string): ReadonlyArray<number> =>
 	passphrase
 		.split('')
-		.reduce(
-			(
-				upperCaseIndexes: ReadonlyArray<number>,
-				character: string,
-				index: number,
-			) => {
-				if (
-					character.match(passphraseRegularExpression.uppercaseRegExp) !== null
-				) {
-					return [...upperCaseIndexes, index];
-				}
+		.reduce((upperCaseIndexes: ReadonlyArray<number>, character: string, index: number) => {
+			if (character.match(passphraseRegularExpression.uppercaseRegExp) !== null) {
+				return [...upperCaseIndexes, index];
+			}
 
-				return upperCaseIndexes;
-			},
-			[],
-		);
+			return upperCaseIndexes;
+		}, []);
 
-export const locateConsecutiveWhitespaces = (
-	passphrase: string,
-): ReadonlyArray<number> =>
+export const locateConsecutiveWhitespaces = (passphrase: string): ReadonlyArray<number> =>
 	passphrase
 		.split('')
-		.reduce(
-			(
-				whitespaceIndexes: ReadonlyArray<number>,
-				character: string,
-				index: number,
-			) => {
-				if (
-					index === 0 &&
-					character.match(passphraseRegularExpression.whitespaceRegExp) !== null
-				) {
-					return [...whitespaceIndexes, index];
-				}
-				if (
-					index !== passphrase.length - 1 &&
-					character.match(passphraseRegularExpression.whitespaceRegExp) !==
-						null &&
-					passphrase.split('')[
-						// eslint-disable-next-line no-unexpected-multiline
-						index - 1
-					].match(passphraseRegularExpression.whitespaceRegExp) !== null
-				) {
-					return [...whitespaceIndexes, index];
-				}
-				if (
-					index === passphrase.length - 1 &&
-					character.match(passphraseRegularExpression.whitespaceRegExp) !== null
-				) {
-					return [...whitespaceIndexes, index];
-				}
+		.reduce((whitespaceIndexes: ReadonlyArray<number>, character: string, index: number) => {
+			if (index === 0 && character.match(passphraseRegularExpression.whitespaceRegExp) !== null) {
+				return [...whitespaceIndexes, index];
+			}
+			if (
+				index !== passphrase.length - 1 &&
+				character.match(passphraseRegularExpression.whitespaceRegExp) !== null &&
+				passphrase.split('')[
+					// eslint-disable-next-line no-unexpected-multiline
+					index - 1
+				].match(passphraseRegularExpression.whitespaceRegExp) !== null
+			) {
+				return [...whitespaceIndexes, index];
+			}
+			if (
+				index === passphrase.length - 1 &&
+				character.match(passphraseRegularExpression.whitespaceRegExp) !== null
+			) {
+				return [...whitespaceIndexes, index];
+			}
 
-				return whitespaceIndexes;
-			},
-			[],
-		);
+			return whitespaceIndexes;
+		}, []);
 
 export const getPassphraseValidationErrors = (
 	passphrase: string,
@@ -148,30 +118,17 @@ export const getPassphraseValidationErrors = (
 		actual: false,
 		code: 'INVALID_MNEMONIC',
 		expected: true,
-		message:
-			'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+		message: 'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 	};
 
-	const finalWordList =
-		wordlists !== undefined ? [...wordlists] : Mnemonic.wordlists.english;
+	const finalWordList = wordlists !== undefined ? [...wordlists] : Mnemonic.wordlists.english;
 
-	return [
-		passphraseWordError,
-		whiteSpaceError,
-		uppercaseCharacterError,
-		validationError,
-	].reduce(
+	return [passphraseWordError, whiteSpaceError, uppercaseCharacterError, validationError].reduce(
 		(errorArray: ReadonlyArray<PassphraseError>, error: PassphraseError) => {
-			if (
-				error.code === passphraseWordError.code &&
-				wordsInPassphrase !== expectedWords
-			) {
+			if (error.code === passphraseWordError.code && wordsInPassphrase !== expectedWords) {
 				return [...errorArray, error];
 			}
-			if (
-				error.code === whiteSpaceError.code &&
-				whiteSpacesInPassphrase !== expectedWhitespaces
-			) {
+			if (error.code === whiteSpaceError.code && whiteSpacesInPassphrase !== expectedWhitespaces) {
 				return [...errorArray, error];
 			}
 			if (

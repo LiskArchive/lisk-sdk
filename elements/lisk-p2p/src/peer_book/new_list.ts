@@ -16,11 +16,7 @@ import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
 // eslint-disable-next-line import/no-cycle
 import { P2PEnhancedPeerInfo } from '../types';
 // eslint-disable-next-line import/no-cycle
-import {
-	evictPeerRandomlyFromBucket,
-	expirePeerFromBucket,
-	PEER_TYPE,
-} from '../utils';
+import { evictPeerRandomlyFromBucket, expirePeerFromBucket, PEER_TYPE } from '../utils';
 // eslint-disable-next-line import/no-cycle
 import { BaseList, Bucket, PeerListConfig } from './base_list';
 
@@ -45,8 +41,7 @@ export class NewList extends BaseList {
 			peerType,
 		});
 		this.type = PEER_TYPE.NEW_PEER;
-		this._evictionThresholdTime =
-			evictionThresholdTime ?? DEFAULT_EVICTION_THRESHOLD_TIME;
+		this._evictionThresholdTime = evictionThresholdTime ?? DEFAULT_EVICTION_THRESHOLD_TIME;
 	}
 
 	public get newPeerConfig(): NewListConfig {
@@ -58,10 +53,7 @@ export class NewList extends BaseList {
 
 	public makeSpace(bucket: Bucket): P2PEnhancedPeerInfo | undefined {
 		// First eviction strategy: expire older peers
-		const evictedPeer = expirePeerFromBucket(
-			bucket,
-			this._evictionThresholdTime,
-		);
+		const evictedPeer = expirePeerFromBucket(bucket, this._evictionThresholdTime);
 		if (evictedPeer) {
 			return evictedPeer;
 		}

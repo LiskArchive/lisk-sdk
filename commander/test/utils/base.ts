@@ -51,9 +51,7 @@ describe('base command', () => {
 			.env({ LISK_COMMANDER_CONFIG_DIR: undefined })
 			.do(async ctx => ctx.command.init())
 			.it('should set XDG_CONFIG_HOME to default value', () =>
-				expect(process.env.XDG_CONFIG_HOME).to.equal(
-					`${os.homedir()}/${defaultConfigFolder}`,
-				),
+				expect(process.env.XDG_CONFIG_HOME).to.equal(`${os.homedir()}/${defaultConfigFolder}`),
 			);
 
 		setupTest()
@@ -66,24 +64,20 @@ describe('base command', () => {
 		setupTest()
 			.env({ LISK_COMMANDER_CONFIG_DIR: configFolder })
 			.do(async ctx => ctx.command.init())
-			.it(
-				'should call getConfig with the config folder set by the environment variable',
-				() =>
-					expect(configUtils.getConfig).to.be.calledWithExactly(configFolder),
+			.it('should call getConfig with the config folder set by the environment variable', () =>
+				expect(configUtils.getConfig).to.be.calledWithExactly(configFolder),
 			);
 
 		setupTest()
 			.do(async ctx => ctx.command.init())
-			.it(
-				'should set the flags to the return value of the parse function',
-				ctx => expect(ctx.command.printFlags).to.equal(defaultFlags),
+			.it('should set the flags to the return value of the parse function', ctx =>
+				expect(ctx.command.printFlags).to.equal(defaultFlags),
 			);
 
 		setupTest()
 			.do(async ctx => ctx.command.init())
-			.it(
-				'should set the userConfig to the return value of the getConfig',
-				ctx => expect(ctx.command.userConfig).to.equal(defaultConfig),
+			.it('should set the userConfig to the return value of the getConfig', ctx =>
+				expect(ctx.command.userConfig).to.equal(defaultConfig),
 			);
 	});
 
@@ -121,12 +115,8 @@ describe('base command', () => {
 		setupTest()
 			.env({ XDG_CONFIG_HOME: 'home' })
 			.do(ctx => ctx.command.print(result, true))
-			.it(
-				'should call getConfig with the process.env.XDG_CONFIG_HOME when readAgain is true',
-				() =>
-					expect(configUtils.getConfig).to.be.calledWithExactly(
-						process.env.XDG_CONFIG_HOME,
-					),
+			.it('should call getConfig with the process.env.XDG_CONFIG_HOME when readAgain is true', () =>
+				expect(configUtils.getConfig).to.be.calledWithExactly(process.env.XDG_CONFIG_HOME),
 			);
 
 		setupTest()

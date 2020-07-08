@@ -23,8 +23,7 @@ import {
 } from '../../src/fork_choice_rule';
 import { BlockHeader } from '../../src/types';
 
-const GENESIS_BLOCK_TIME_STAMP =
-	new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).getTime() / 1000;
+const GENESIS_BLOCK_TIME_STAMP = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).getTime() / 1000;
 const BLOCK_TIME = 10;
 
 const createBlock = (data?: Partial<BlockHeader>): BlockHeader => ({

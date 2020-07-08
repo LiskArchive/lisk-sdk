@@ -109,9 +109,7 @@ export class KVStore {
 		logger('readStream', { options });
 
 		// Treat key as string
-		const updatedOption = options
-			? { ...options, keyAsBuffer: false }
-			: { keyAsBuffer: false };
+		const updatedOption = options ? { ...options, keyAsBuffer: false } : { keyAsBuffer: false };
 
 		return this._db.createReadStream(updatedOption);
 	}

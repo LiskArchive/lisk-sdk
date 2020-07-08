@@ -15,23 +15,14 @@
 export const applicationConfigSchema = {
 	id: '#/config',
 	type: 'object',
-	required: [
-		'version',
-		'protocolVersion',
-		'ipc',
-		'genesisConfig',
-		'forging',
-		'network',
-		'plugins',
-	],
+	required: ['version', 'protocolVersion', 'ipc', 'genesisConfig', 'forging', 'network', 'plugins'],
 	properties: {
 		label: {
 			type: 'string',
 			pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$',
 			minLength: 1,
 			maxLength: 30,
-			description:
-				'Restricted length due to unix domain socket path length limitations.',
+			description: 'Restricted length due to unix domain socket path length limitations.',
 		},
 		version: {
 			type: 'string',
@@ -92,12 +83,7 @@ export const applicationConfigSchema = {
 		genesisConfig: {
 			id: '#/config/genesisConfig',
 			type: 'object',
-			required: [
-				'blockTime',
-				'communityIdentifier',
-				'maxPayloadLength',
-				'rewards',
-			],
+			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards'],
 			properties: {
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
 				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
@@ -161,8 +147,7 @@ export const applicationConfigSchema = {
 					type: 'boolean',
 				},
 				waitThreshold: {
-					description:
-						'Number of seconds to wait for previous block before forging',
+					description: 'Number of seconds to wait for previous block before forging',
 					type: 'integer',
 				},
 				defaultPassword: {

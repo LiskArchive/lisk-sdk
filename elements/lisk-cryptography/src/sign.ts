@@ -56,9 +56,7 @@ export const signMessageWithPassphrase = (
 	passphrase: string,
 ): SignedMessageWithOnePassphrase => {
 	const msgBytes = digestMessage(message);
-	const { privateKey, publicKey } = getPrivateAndPublicKeyFromPassphrase(
-		passphrase,
-	);
+	const { privateKey, publicKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const signature = signDetached(msgBytes, privateKey);
 
 	return {
@@ -96,11 +94,7 @@ export interface SignedMessage {
 	readonly signature: Buffer;
 }
 
-export const printSignedMessage = ({
-	message,
-	signature,
-	publicKey,
-}: SignedMessage): string =>
+export const printSignedMessage = ({ message, signature, publicKey }: SignedMessage): string =>
 	[
 		signedMessageHeader,
 		messageHeader,
@@ -114,24 +108,16 @@ export const printSignedMessage = ({
 		.filter(Boolean)
 		.join('\n');
 
-export const signAndPrintMessage = (
-	message: string,
-	passphrase: string,
-): string => {
+export const signAndPrintMessage = (message: string, passphrase: string): string => {
 	const signedMessage = signMessageWithPassphrase(message, passphrase);
 
 	return printSignedMessage(signedMessage);
 };
 
-export const signDataWithPrivateKey = (
-	data: Buffer,
-	privateKey: Buffer,
-): Buffer => signDetached(data, privateKey);
+export const signDataWithPrivateKey = (data: Buffer, privateKey: Buffer): Buffer =>
+	signDetached(data, privateKey);
 
-export const signDataWithPassphrase = (
-	data: Buffer,
-	passphrase: string,
-): Buffer => {
+export const signDataWithPassphrase = (data: Buffer, passphrase: string): Buffer => {
 	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 	return signDataWithPrivateKey(data, privateKey);
@@ -139,8 +125,5 @@ export const signDataWithPassphrase = (
 
 export const signData = signDataWithPassphrase;
 
-export const verifyData = (
-	data: Buffer,
-	signature: Buffer,
-	publicKey: Buffer,
-): boolean => verifyDetached(data, signature, publicKey);
+export const verifyData = (data: Buffer, signature: Buffer, publicKey: Buffer): boolean =>
+	verifyDetached(data, signature, publicKey);

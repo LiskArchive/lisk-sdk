@@ -23,12 +23,7 @@ import { CONFIG_VARIABLES } from './constants';
 import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
 
-export type WritableValue =
-	| string
-	| ReadonlyArray<string>
-	| boolean
-	| number
-	| object;
+export type WritableValue = string | ReadonlyArray<string> | boolean | number | object;
 
 interface ConfigOptionsIndex {
 	[key: string]: WritableValue;
@@ -98,10 +93,7 @@ const attemptToValidateConfig = (config: object, filePath: string): void => {
 	attemptCallWithError<void>(fn, errorMessage);
 };
 
-export const setConfig = (
-	configDirPath: string,
-	newConfig: object,
-): boolean => {
+export const setConfig = (configDirPath: string, newConfig: object): boolean => {
 	const lockFilePath = path.join(configDirPath, lockfileName);
 	const configFilePath = path.join(configDirPath, configFileName);
 

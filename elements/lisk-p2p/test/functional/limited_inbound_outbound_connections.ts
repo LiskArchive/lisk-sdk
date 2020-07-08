@@ -85,9 +85,7 @@ describe('Limited number of outbound/inbound connections', () => {
 			const disconnectedPeers = p2p.getDisconnectedPeers();
 
 			for (const connectedPeer of connectedPeers) {
-				expect(disconnectedPeers).toEqual(
-					expect.not.arrayContaining([connectedPeer]),
-				);
+				expect(disconnectedPeers).toEqual(expect.not.arrayContaining([connectedPeer]));
 			}
 		}
 	});

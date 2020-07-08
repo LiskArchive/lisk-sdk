@@ -30,10 +30,7 @@ import {
 } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Block } from '../../src/types';
-import {
-	defaultAccountAssetSchema,
-	createFakeDefaultAccount,
-} from '../utils/account';
+import { defaultAccountAssetSchema, createFakeDefaultAccount } from '../utils/account';
 import { getTransferTransaction } from '../utils/transaction';
 import { stateDiffSchema } from '../../src';
 
@@ -93,9 +90,7 @@ describe('chain', () => {
 			// Assert stubbed values are assigned
 
 			// Assert constants
-			Object.entries(
-				(chainInstance as any).constants,
-			).forEach(([constantName, constantValue]) =>
+			Object.entries((chainInstance as any).constants).forEach(([constantName, constantValue]) =>
 				expect((constants as any)[constantName]).toEqual(constantValue),
 			);
 			// Assert miscellaneous
@@ -114,13 +109,9 @@ describe('chain', () => {
 		describe('matchGenesisBlock', () => {
 			it('should throw an error when failed to load genesis block', async () => {
 				// Arrange
-				(db.get as jest.Mock).mockRejectedValue(
-					new NotFoundError('Data not found') as never,
-				);
+				(db.get as jest.Mock).mockRejectedValue(new NotFoundError('Data not found') as never);
 				// Act & Assert
-				await expect(chainInstance.init()).rejects.toThrow(
-					'Failed to load genesis block',
-				);
+				await expect(chainInstance.init()).rejects.toThrow('Failed to load genesis block');
 			});
 
 			it('should throw an error if the genesis block id is different', async () => {
@@ -136,9 +127,7 @@ describe('chain', () => {
 				};
 				when(db.get)
 					.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
-					.mockResolvedValue(
-						encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never,
-					);
+					.mockResolvedValue(encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never);
 
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
@@ -157,12 +146,8 @@ describe('chain', () => {
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
 					.mockResolvedValue(mutatedGenesisBlock.header.id as never)
-					.calledWith(
-						`blocks:id:${mutatedGenesisBlock.header.id.toString('binary')}`,
-					)
-					.mockResolvedValue(
-						encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never,
-					);
+					.calledWith(`blocks:id:${mutatedGenesisBlock.header.id.toString('binary')}`)
+					.mockResolvedValue(encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never);
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
@@ -180,12 +165,8 @@ describe('chain', () => {
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
 					.mockResolvedValue(mutatedGenesisBlock.header.id as never)
-					.calledWith(
-						`blocks:id:${mutatedGenesisBlock.header.id.toString('binary')}`,
-					)
-					.mockResolvedValue(
-						encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never,
-					);
+					.calledWith(`blocks:id:${mutatedGenesisBlock.header.id.toString('binary')}`)
+					.mockResolvedValue(encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never);
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
@@ -196,9 +177,7 @@ describe('chain', () => {
 					.calledWith(`blocks:height:${formatInt(1)}`)
 					.mockResolvedValue(genesisBlock.header.id as never)
 					.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
-					.mockResolvedValue(
-						encodeGenesisBlockHeader(genesisBlock.header) as never,
-					);
+					.mockResolvedValue(encodeGenesisBlockHeader(genesisBlock.header) as never);
 				// Act & Assert
 				await expect(chainInstance.init()).resolves.toBeUndefined();
 			});
@@ -217,13 +196,9 @@ describe('chain', () => {
 					.calledWith(`blocks:height:${formatInt(1)}`)
 					.mockResolvedValue(genesisBlock.header.id as never)
 					.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
-					.mockResolvedValue(
-						encodeGenesisBlockHeader(genesisBlock.header) as never,
-					)
+					.mockResolvedValue(encodeGenesisBlockHeader(genesisBlock.header) as never)
 					.calledWith(`blocks:id:${lastBlock.header.id.toString('binary')}`)
-					.mockResolvedValue(
-						encodeDefaultBlockHeader(lastBlock.header) as never,
-					);
+					.mockResolvedValue(encodeDefaultBlockHeader(lastBlock.header) as never);
 				jest
 					.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween')
 					.mockResolvedValue([]);
@@ -233,9 +208,7 @@ describe('chain', () => {
 				(db.createReadStream as jest.Mock).mockReturnValue(
 					Readable.from([{ value: Buffer.from('randomID') }]),
 				);
-				await expect(chainInstance.init()).rejects.toThrow(
-					'Failed to load last block',
-				);
+				await expect(chainInstance.init()).rejects.toThrow('Failed to load last block');
 			});
 
 			it('should return the the stored last block', async () => {
@@ -244,9 +217,10 @@ describe('chain', () => {
 
 				// Assert
 				expect(chainInstance.lastBlock.header.id).toEqual(lastBlock.header.id);
-				expect(
-					chainInstance.dataAccess.getBlockHeadersByHeightBetween,
-				).toHaveBeenCalledWith(0, 103);
+				expect(chainInstance.dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(
+					0,
+					103,
+				);
 			});
 		});
 	});
@@ -259,10 +233,7 @@ describe('chain', () => {
 			});
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween')
-				.mockResolvedValue([
-					createValidDefaultBlock().header,
-					genesisBlock.header,
-				] as never);
+				.mockResolvedValue([createValidDefaultBlock().header, genesisBlock.header] as never);
 		});
 
 		it('should populate the chain state with genesis block', async () => {
@@ -270,16 +241,12 @@ describe('chain', () => {
 				header: { height: 1 },
 			});
 			await chainInstance.newStateStore();
-			expect(
-				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
-			).toHaveBeenCalledWith(0, 1);
+			expect(chainInstance.dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(0, 1);
 		});
 
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 309', async () => {
 			await chainInstance.newStateStore();
-			expect(
-				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
-			).toHaveBeenCalledWith(
+			expect(chainInstance.dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(
 				chainInstance.lastBlock.header.height - 309,
 				chainInstance.lastBlock.header.height,
 			);
@@ -295,9 +262,7 @@ describe('chain', () => {
 
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 310', async () => {
 			await chainInstance.newStateStore(1);
-			expect(
-				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
-			).toHaveBeenCalledWith(
+			expect(chainInstance.dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(
 				chainInstance.lastBlock.header.height - 310,
 				chainInstance.lastBlock.header.height - 1,
 			);
@@ -309,10 +274,7 @@ describe('chain', () => {
 		let batchMock: any;
 		let savingBlock: Block;
 
-		const fakeAccounts = [
-			createFakeDefaultAccount(),
-			createFakeDefaultAccount(),
-		];
+		const fakeAccounts = [createFakeDefaultAccount(), createFakeDefaultAccount()];
 
 		beforeEach(() => {
 			savingBlock = createValidDefaultBlock({ header: { height: 300 } });
@@ -362,21 +324,15 @@ describe('chain', () => {
 			await chainInstance.save(block, stateStoreStub);
 
 			// Assert
-			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
-				'EVENT_NEW_BLOCK',
-				{
-					accounts: fakeAccounts,
-					block,
-				},
-			);
+			expect((chainInstance as any).events.emit).toHaveBeenCalledWith('EVENT_NEW_BLOCK', {
+				accounts: fakeAccounts,
+				block,
+			});
 		});
 	});
 
 	describe('remove', () => {
-		const fakeAccounts = [
-			createFakeDefaultAccount(),
-			createFakeDefaultAccount(),
-		];
+		const fakeAccounts = [createFakeDefaultAccount(), createFakeDefaultAccount()];
 
 		let stateStoreStub: StateStore;
 		let batchMock: any;
@@ -398,16 +354,14 @@ describe('chain', () => {
 
 		it('should throw an error when removing genesis block', async () => {
 			// Act & Assert
-			await expect(
-				chainInstance.remove(genesisBlock, stateStoreStub),
-			).rejects.toThrow('Cannot delete genesis block');
+			await expect(chainInstance.remove(genesisBlock, stateStoreStub)).rejects.toThrow(
+				'Cannot delete genesis block',
+			);
 		});
 
 		it('should throw an error when previous block does not exist in the database', async () => {
 			// Arrange
-			(db.get as jest.Mock).mockRejectedValue(
-				new NotFoundError('Data not found') as never,
-			);
+			(db.get as jest.Mock).mockRejectedValue(new NotFoundError('Data not found') as never);
 			const block = createValidDefaultBlock();
 			// Act & Assert
 			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toThrow(
@@ -417,9 +371,7 @@ describe('chain', () => {
 
 		it('should throw an error when deleting block fails', async () => {
 			// Arrange
-			jest
-				.spyOn(chainInstance.dataAccess, 'getBlockByID')
-				.mockResolvedValue(genesisBlock as never);
+			jest.spyOn(chainInstance.dataAccess, 'getBlockByID').mockResolvedValue(genesisBlock as never);
 
 			const block = createValidDefaultBlock();
 			when(db.get)
@@ -430,16 +382,12 @@ describe('chain', () => {
 			batchMock.write.mockRejectedValue(deleteBlockError);
 
 			// Act & Assert
-			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toEqual(
-				deleteBlockError,
-			);
+			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toEqual(deleteBlockError);
 		});
 
 		it('should not create entry in temp block table when saveToTemp flag is false', async () => {
 			// Arrange
-			jest
-				.spyOn(chainInstance.dataAccess, 'getBlockByID')
-				.mockResolvedValue(genesisBlock as never);
+			jest.spyOn(chainInstance.dataAccess, 'getBlockByID').mockResolvedValue(genesisBlock as never);
 			const block = createValidDefaultBlock();
 			when(db.get)
 				.calledWith(`diff:${formatInt(block.header.height)}`)
@@ -455,9 +403,7 @@ describe('chain', () => {
 
 		it('should create entry in temp block with full block when saveTempBlock is true', async () => {
 			// Arrange
-			jest
-				.spyOn(chainInstance.dataAccess, 'getBlockByID')
-				.mockResolvedValue(genesisBlock as never);
+			jest.spyOn(chainInstance.dataAccess, 'getBlockByID').mockResolvedValue(genesisBlock as never);
 			const tx = getTransferTransaction();
 			const block = createValidDefaultBlock({ payload: [tx] });
 			when(db.get)
@@ -483,13 +429,10 @@ describe('chain', () => {
 			await chainInstance.save(block, stateStoreStub);
 
 			// Assert
-			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
-				'EVENT_NEW_BLOCK',
-				{
-					accounts: fakeAccounts,
-					block,
-				},
-			);
+			expect((chainInstance as any).events.emit).toHaveBeenCalledWith('EVENT_NEW_BLOCK', {
+				accounts: fakeAccounts,
+				block,
+			});
 		});
 	});
 
@@ -502,9 +445,7 @@ describe('chain', () => {
 				.mockResolvedValue(true as never);
 			// Act & Assert
 			expect(await chainInstance.exists(block)).toEqual(true);
-			expect(db.exists).toHaveBeenCalledWith(
-				`blocks:id:${block.header.id.toString('binary')}`,
-			);
+			expect(db.exists).toHaveBeenCalledWith(`blocks:id:${block.header.id.toString('binary')}`);
 		});
 
 		it('should return false if the block does exist', async () => {
@@ -515,9 +456,7 @@ describe('chain', () => {
 				.mockResolvedValue(false as never);
 			// Act & Assert
 			expect(await chainInstance.exists(block)).toEqual(false);
-			expect(db.exists).toHaveBeenCalledWith(
-				`blocks:id:${block.header.id.toString('binary')}`,
-			);
+			expect(db.exists).toHaveBeenCalledWith(`blocks:id:${block.header.id.toString('binary')}`);
 		});
 	});
 });

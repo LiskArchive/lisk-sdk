@@ -39,18 +39,8 @@ import {
 import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
-import {
-	applyTransactions,
-	checkAllowedTransactions,
-	validateTransactions,
-} from './transactions';
-import {
-	Block,
-	BlockHeader,
-	BlockRewardOptions,
-	Contexter,
-	MatcherTransaction,
-} from './types';
+import { applyTransactions, checkAllowedTransactions, validateTransactions } from './transactions';
+import { Block, BlockHeader, BlockRewardOptions, Contexter, MatcherTransaction } from './types';
 import {
 	validateBlockSlot,
 	validateBlockProperties,
@@ -194,10 +184,8 @@ export class Chain {
 		this.blockReward = {
 			calculateMilestone: (height: number): number =>
 				calculateMilestone(height, this.blockRewardArgs),
-			calculateReward: (height: number): bigint =>
-				calculateReward(height, this.blockRewardArgs),
-			calculateSupply: (height: number): bigint =>
-				calculateSupply(height, this.blockRewardArgs),
+			calculateReward: (height: number): bigint => calculateReward(height, this.blockRewardArgs),
+			calculateSupply: (height: number): bigint => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
 			stateBlockSize,
@@ -223,9 +211,7 @@ export class Chain {
 		// Check mem tables
 		let genesisBlock: BlockHeader;
 		try {
-			genesisBlock = await this.dataAccess.getBlockHeaderByID(
-				this.genesisBlock.header.id,
-			);
+			genesisBlock = await this.dataAccess.getBlockHeaderByID(this.genesisBlock.header.id);
 		} catch (error) {
 			throw new Error('Failed to load genesis block');
 		}
@@ -257,14 +243,9 @@ export class Chain {
 	public async newStateStore(skipLastHeights = 0): Promise<StateStore> {
 		const fromHeight = Math.max(
 			0,
-			this._lastBlock.header.height -
-				this.constants.stateBlockSize -
-				skipLastHeights,
+			this._lastBlock.header.height - this.constants.stateBlockSize - skipLastHeights,
 		);
-		const toHeight = Math.max(
-			this._lastBlock.header.height - skipLastHeights,
-			1,
-		);
+		const toHeight = Math.max(this._lastBlock.header.height - skipLastHeights, 1);
 		const lastBlockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
 			fromHeight,
 			toHeight,
@@ -294,9 +275,7 @@ export class Chain {
 			throw new Error(errors[0].message);
 		}
 		// Validate block header asset
-		const assetSchema = this.dataAccess.getBlockHeaderAssetSchema(
-			block.header.version,
-		);
+		const assetSchema = this.dataAccess.getBlockHeaderAssetSchema(block.header.version);
 		const assetErrors = validator.validate(assetSchema, block.header.asset);
 		if (assetErrors.length) {
 			throw new Error(assetErrors[0].message);
@@ -314,16 +293,12 @@ export class Chain {
 			block.header.signature,
 			this._networkIdentifier,
 		);
-		validateReward(
-			block,
-			this.blockReward.calculateReward(block.header.height),
-		);
+		validateReward(block, this.blockReward.calculateReward(block.header.height));
 
 		// Validate transactions
 		const transactionsResponses = validateTransactions(block.payload);
 		const invalidTransactionResponse = transactionsResponses.find(
-			transactionResponse =>
-				transactionResponse.status !== TransactionStatus.OK,
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 		);
 
 		if (invalidTransactionResponse) {
@@ -333,11 +308,7 @@ export class Chain {
 		const encodedPayload = Buffer.concat(
 			block.payload.map(tx => this.dataAccess.encodeTransaction(tx)),
 		);
-		validateBlockProperties(
-			block,
-			encodedPayload,
-			this.constants.maxPayloadLength,
-		);
+		validateBlockProperties(block, encodedPayload, this.constants.maxPayloadLength);
 	}
 
 	public async verify(block: Block, _: StateStore): Promise<void> {
@@ -349,14 +320,10 @@ export class Chain {
 	// eslint-disable-next-line class-methods-use-this
 	public async apply(block: Block, stateStore: StateStore): Promise<void> {
 		if (block.payload.length > 0) {
-			const transactionsResponses = await applyTransactions(
-				block.payload,
-				stateStore,
-			);
+			const transactionsResponses = await applyTransactions(block.payload, stateStore);
 
 			const invalidTransactionsResponse = transactionsResponses.filter(
-				transactionResponse =>
-					transactionResponse.status !== TransactionStatus.OK,
+				transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 			);
 
 			if (invalidTransactionsResponse.length > 0) {
@@ -393,9 +360,7 @@ export class Chain {
 		}
 		let secondLastBlock: Block;
 		try {
-			secondLastBlock = await this.dataAccess.getBlockByID(
-				block.header.previousBlockID,
-			);
+			secondLastBlock = await this.dataAccess.getBlockByID(block.header.previousBlockID);
 		} catch (error) {
 			throw new Error('PreviousBlock is null');
 		}
@@ -423,19 +388,13 @@ export class Chain {
 			transactions as MatcherTransaction[],
 			context,
 		)
-			.filter(
-				transactionResponse =>
-					transactionResponse.status === TransactionStatus.OK,
-			)
+			.filter(transactionResponse => transactionResponse.status === TransactionStatus.OK)
 			.map(transactionResponse => transactionResponse.id);
 
 		const allowedTransactions = transactions.filter(transaction =>
 			allowedTransactionsIds.includes(transaction.id),
 		);
-		const transactionsResponses = await applyTransactions(
-			allowedTransactions,
-			stateStore,
-		);
+		const transactionsResponses = await applyTransactions(allowedTransactions, stateStore);
 		const readyTransactions = allowedTransactions.filter(transaction =>
 			transactionsResponses
 				.filter(response => response.status === TransactionStatus.OK)
@@ -446,9 +405,7 @@ export class Chain {
 		return readyTransactions;
 	}
 
-	public validateTransactions(
-		transactions: BaseTransaction[],
-	): ReadonlyArray<TransactionResponse> {
+	public validateTransactions(transactions: BaseTransaction[]): ReadonlyArray<TransactionResponse> {
 		const allowedResponses = checkAllowedTransactions(transactions, {
 			blockVersion: this.lastBlock.header.version,
 			blockHeight: this.lastBlock.header.height,
@@ -458,17 +415,13 @@ export class Chain {
 			res => res.status === TransactionStatus.FAIL,
 		);
 		const validTransactions = transactions.filter(tx =>
-			allowedResponses.find(
-				res => res.status === TransactionStatus.OK && res.id.equals(tx.id),
-			),
+			allowedResponses.find(res => res.status === TransactionStatus.OK && res.id.equals(tx.id)),
 		);
 		const validationResponses = validateTransactions(validTransactions);
 		return [...failedAllowedResponses, ...validationResponses];
 	}
 
-	public async applyTransactions(
-		transactions: BaseTransaction[],
-	): Promise<TransactionResponse[]> {
+	public async applyTransactions(transactions: BaseTransaction[]): Promise<TransactionResponse[]> {
 		const stateStore = await this.newStateStore();
 		const allowedResponses = checkAllowedTransactions(transactions, () => {
 			const { version, height, timestamp } = this._lastBlock.header;
@@ -482,14 +435,9 @@ export class Chain {
 			res => res.status === TransactionStatus.FAIL,
 		);
 		const validTransactions = transactions.filter(tx =>
-			allowedResponses.find(
-				res => res.status === TransactionStatus.OK && res.id.equals(tx.id),
-			),
+			allowedResponses.find(res => res.status === TransactionStatus.OK && res.id.equals(tx.id)),
 		);
-		const applyResponses = await applyTransactions(
-			validTransactions,
-			stateStore,
-		);
+		const applyResponses = await applyTransactions(validTransactions, stateStore);
 		return [...failedAllowedResponses, ...applyResponses];
 	}
 
@@ -503,20 +451,14 @@ export class Chain {
 
 	private async _cacheBlockHeaders(storageLastBlock: Block): Promise<void> {
 		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)
-		const fromHeight = Math.max(
-			storageLastBlock.header.height - DEFAULT_MAX_BLOCK_HEADER_CACHE,
-			0,
-		);
+		const fromHeight = Math.max(storageLastBlock.header.height - DEFAULT_MAX_BLOCK_HEADER_CACHE, 0);
 		const toHeight = storageLastBlock.header.height;
 
 		debug(
 			{ h: storageLastBlock.header.height, fromHeight, toHeight },
 			'Cache block headers during chain init',
 		);
-		const blockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
-			fromHeight,
-			toHeight,
-		);
+		const blockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(fromHeight, toHeight);
 		const sortedBlockHeaders = [...blockHeaders].sort(
 			(a: BlockHeader, b: BlockHeader) => a.height - b.height,
 		);

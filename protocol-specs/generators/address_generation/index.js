@@ -78,16 +78,13 @@ const convertUIntArray = (uintArray, fromBits, toBits) => {
 	return result;
 };
 
-const convertUInt5ToBase32 = uint5Array =>
-	uint5Array.map(val => CHARSET[val]).join('');
+const convertUInt5ToBase32 = uint5Array => uint5Array.map(val => CHARSET[val]).join('');
 
 const getBase32Address = publicKey => {
 	const binaryAddress = getBinaryAddress(publicKey);
 	const uint5Address = convertUIntArray(Uint8Array.from(binaryAddress), 8, 5);
 	const uint5Checksum = createChecksum(uint5Address);
-	return `${PREFIX_LISK}${convertUInt5ToBase32(
-		uint5Address.concat(uint5Checksum),
-	)}`;
+	return `${PREFIX_LISK}${convertUInt5ToBase32(uint5Address.concat(uint5Checksum))}`;
 };
 
 const generateTestCasesForAddressFromPubKey = publicKey => ({

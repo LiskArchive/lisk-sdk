@@ -128,12 +128,8 @@ export class PeerBook {
 	): ReadonlyArray<P2PPeerInfo> {
 		const allPeers = [...this.newPeers, ...this.triedPeers];
 
-		const min = Math.ceil(
-			Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.25),
-		);
-		const max = Math.floor(
-			Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.5),
-		);
+		const min = Math.ceil(Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.25));
+		const max = Math.floor(Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.5));
 
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
 		const randomPeerCount = Math.max(
@@ -154,10 +150,7 @@ export class PeerBook {
 	}
 
 	public hasPeer(peerInfo: P2PPeerInfo): boolean {
-		return (
-			this._triedPeers.hasPeer(peerInfo.peerId) ||
-			this._newPeers.hasPeer(peerInfo.peerId)
-		);
+		return this._triedPeers.hasPeer(peerInfo.peerId) || this._newPeers.hasPeer(peerInfo.peerId);
 	}
 
 	public addPeer(peerInfo: P2PEnhancedPeerInfo): boolean {
@@ -233,9 +226,7 @@ export class PeerBook {
 	public isTrustedPeer(peerId: string): boolean {
 		const isSeedPeer = this.seedPeers.find(peer => peer.peerId === peerId);
 
-		const isWhitelistedPeer = this.whitelistedPeers.find(
-			peer => peer.peerId === peerId,
-		);
+		const isWhitelistedPeer = this.whitelistedPeers.find(peer => peer.peerId === peerId);
 
 		const isFixedPeer = this.fixedPeers.find(peer => peer.peerId === peerId);
 
@@ -290,9 +281,7 @@ export class PeerBook {
 			};
 		}
 
-		if (
-			this.whitelistedPeers.find(peer => peer.ipAddress === peerInfo.ipAddress)
-		) {
+		if (this.whitelistedPeers.find(peer => peer.ipAddress === peerInfo.ipAddress)) {
 			return {
 				...peerInfo,
 				internalState: {

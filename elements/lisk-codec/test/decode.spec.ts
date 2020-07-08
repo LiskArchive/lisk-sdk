@@ -197,16 +197,10 @@ describe('decode', () => {
 					...testCase.input.object,
 					reward: BigInt(testCase.input.object.reward),
 					asset: Buffer.from(testCase.input.object.asset.data),
-					transactionRoot: Buffer.from(
-						testCase.input.object.transactionRoot.data,
-					),
+					transactionRoot: Buffer.from(testCase.input.object.transactionRoot.data),
 					signature: Buffer.from(testCase.input.object.signature.data),
-					previousBlockID: Buffer.from(
-						testCase.input.object.previousBlockID.data,
-					),
-					generatorPublicKey: Buffer.from(
-						testCase.input.object.generatorPublicKey.data,
-					),
+					previousBlockID: Buffer.from(testCase.input.object.previousBlockID.data),
+					generatorPublicKey: Buffer.from(testCase.input.object.generatorPublicKey.data),
 				});
 			});
 		}
@@ -238,9 +232,7 @@ describe('decode', () => {
 				);
 				expect(result).toEqual({
 					...testCase.input.object,
-					initDelegates: testCase.input.object.initDelegates.map(d =>
-						Buffer.from(d.data),
-					),
+					initDelegates: testCase.input.object.initDelegates.map(d => Buffer.from(d.data)),
 					accounts: testCase.input.object.accounts.map(acc => ({
 						...acc,
 						address: Buffer.from(acc.address.data),
@@ -249,20 +241,14 @@ describe('decode', () => {
 						nonce: BigInt(acc.nonce),
 						keys: {
 							...acc.keys,
-							mandatoryKeys: acc.keys.mandatoryKeys.map((b: any) =>
-								Buffer.from(b.data),
-							),
-							optionalKeys: acc.keys.optionalKeys.map((b: any) =>
-								Buffer.from(b.data),
-							),
+							mandatoryKeys: acc.keys.mandatoryKeys.map((b: any) => Buffer.from(b.data)),
+							optionalKeys: acc.keys.optionalKeys.map((b: any) => Buffer.from(b.data)),
 						},
 						asset: {
 							...acc.asset,
 							delegate: {
 								...acc.asset.delegate,
-								totalVotesReceived: BigInt(
-									acc.asset.delegate.totalVotesReceived,
-								),
+								totalVotesReceived: BigInt(acc.asset.delegate.totalVotesReceived),
 							},
 							sentVotes: acc.asset.sentVotes.map(v => ({
 								...v,
@@ -297,20 +283,16 @@ describe('decode', () => {
 					nonce: BigInt(testCase.input.object.nonce),
 					keys: {
 						...testCase.input.object.keys,
-						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b =>
+						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b => Buffer.from(b.data)),
+						optionalKeys: testCase.input.object.keys.optionalKeys.map((b: any) =>
 							Buffer.from(b.data),
-						),
-						optionalKeys: testCase.input.object.keys.optionalKeys.map(
-							(b: any) => Buffer.from(b.data),
 						),
 					},
 					asset: {
 						...testCase.input.object.asset,
 						delegate: {
 							...testCase.input.object.asset.delegate,
-							totalVotesReceived: BigInt(
-								testCase.input.object.asset.delegate.totalVotesReceived,
-							),
+							totalVotesReceived: BigInt(testCase.input.object.asset.delegate.totalVotesReceived),
 						},
 						sentVotes: testCase.input.object.asset.sentVotes.map(v => ({
 							...v,
@@ -340,12 +322,8 @@ describe('decode', () => {
 				...testCase.input.object,
 				nonce: BigInt(testCase.input.object.nonce),
 				fee: BigInt(testCase.input.object.fee),
-				senderPublicKey: Buffer.from(
-					(testCase.input.object.senderPublicKey as any).data,
-				),
-				signatures: testCase.input.object.signatures?.map(v =>
-					Buffer.from(v.data),
-				),
+				senderPublicKey: Buffer.from((testCase.input.object.senderPublicKey as any).data),
+				signatures: testCase.input.object.signatures?.map(v => Buffer.from(v.data)),
 				asset: Buffer.from((testCase.input.object.asset as any).data),
 			});
 		});
@@ -376,12 +354,8 @@ describe('decode', () => {
 					);
 					expect(result).toEqual({
 						...testCase.input.object,
-						mandatoryKeys: testCase.input.object.mandatoryKeys?.map(k =>
-							Buffer.from(k.data),
-						),
-						optionalKeys: testCase.input.object.optionalKeys?.map(k =>
-							Buffer.from(k.data),
-						),
+						mandatoryKeys: testCase.input.object.mandatoryKeys?.map(k => Buffer.from(k.data)),
+						optionalKeys: testCase.input.object.optionalKeys?.map(k => Buffer.from(k.data)),
 					});
 				});
 			}
@@ -392,20 +366,14 @@ describe('decode', () => {
 		it('should decode object without options', () => {
 			const testCase = peerInfoDecoding.testCases[0];
 			const codec = new Codec();
-			const result = codec.decode(
-				testCase.input.schema,
-				Buffer.from(testCase.output.value, 'hex'),
-			);
+			const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
 			expect(result).toEqual(testCase.input.object);
 		});
 
 		it('should decode object without optional fields', () => {
 			const testCase = peerInfoDecoding.testCases[1];
 			const codec = new Codec();
-			const result = codec.decode(
-				testCase.input.schema,
-				Buffer.from(testCase.output.value, 'hex'),
-			);
+			const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
 			expect(result).toEqual({
 				...testCase.input.object,
 				height: 0,

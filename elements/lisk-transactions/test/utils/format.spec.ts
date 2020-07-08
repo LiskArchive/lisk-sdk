@@ -32,9 +32,9 @@ describe('format', () => {
 			);
 		});
 		it('should error on 18446744073709551616', () => {
-			return expect(
-				convertBeddowsToLSK.bind(null, '18446744073709551616'),
-			).toThrow('Beddows amount out of range');
+			return expect(convertBeddowsToLSK.bind(null, '18446744073709551616')).toThrow(
+				'Beddows amount out of range',
+			);
 		});
 		it('should convert 100000000 to 1', () => {
 			return expect(convertBeddowsToLSK('100000000')).toBe('1');
@@ -49,9 +49,7 @@ describe('format', () => {
 			return expect(convertBeddowsToLSK('10000000000000000')).toBe('100000000');
 		});
 		it('should convert 18446744073709551615 to 184467440737.09551615', () => {
-			return expect(convertBeddowsToLSK('18446744073709551615')).toBe(
-				'184467440737.09551615',
-			);
+			return expect(convertBeddowsToLSK('18446744073709551615')).toBe('184467440737.09551615');
 		});
 	});
 	describe('#convertLSKToBeddows', () => {
@@ -66,9 +64,9 @@ describe('format', () => {
 			);
 		});
 		it('should error on 184467440737.09551616', () => {
-			return expect(
-				convertLSKToBeddows.bind(null, '184467440737.09551616'),
-			).toThrow('LSK amount out of range');
+			return expect(convertLSKToBeddows.bind(null, '184467440737.09551616')).toThrow(
+				'LSK amount out of range',
+			);
 		});
 		it('should convert 1 to 100000000', () => {
 			return expect(convertLSKToBeddows('1')).toBe('100000000');
@@ -83,9 +81,7 @@ describe('format', () => {
 			return expect(convertLSKToBeddows('100000000')).toBe('10000000000000000');
 		});
 		it('should convert 92233720368.54775807 to 9223372036854775807', () => {
-			return expect(convertLSKToBeddows('92233720368.54775807')).toBe(
-				'9223372036854775807',
-			);
+			return expect(convertLSKToBeddows('92233720368.54775807')).toBe('9223372036854775807');
 		});
 	});
 	describe('#prependPlusToPublicKeys', () => {
@@ -101,9 +97,7 @@ describe('format', () => {
 					'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				];
-				return expect(prependPlusToPublicKeys(publicKeys)).toEqual(
-					expectedOutput,
-				);
+				return expect(prependPlusToPublicKeys(publicKeys)).toEqual(expectedOutput);
 			});
 		});
 	});
@@ -121,9 +115,7 @@ describe('format', () => {
 					'-922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					'-5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 				];
-				return expect(prependMinusToPublicKeys(publicKeys)).toEqual(
-					expectedOutput,
-				);
+				return expect(prependMinusToPublicKeys(publicKeys)).toEqual(expectedOutput);
 			});
 		});
 	});

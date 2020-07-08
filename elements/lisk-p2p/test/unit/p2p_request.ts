@@ -147,10 +147,7 @@ describe('p2pRequest', () => {
 		describe('when there was a previous success', () => {
 			it('should have a productivity.responseRate of 0.5; this indicates a success rate of 50%', () => {
 				request.end('hello');
-				const secondP2PRequest = new P2PRequest(
-					requestOptions,
-					respondCallback,
-				);
+				const secondP2PRequest = new P2PRequest(requestOptions, respondCallback);
 				secondP2PRequest.error(err);
 
 				expect(requestOptions.productivity.responseRate).toBe(0.5);

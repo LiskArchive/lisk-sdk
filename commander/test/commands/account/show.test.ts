@@ -31,11 +31,7 @@ describe('account:show', () => {
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(passphraseInput),
-			);
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(passphraseInput));
 
 	describe('account:show', () => {
 		setupTest()
@@ -43,24 +39,15 @@ describe('account:show', () => {
 			.command(['account:show'])
 			.it('should show account with prompt', () => {
 				expect(printUtils.print).to.be.called;
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				return expect(printMethodStub).to.be.calledWith({
-					privateKey: cryptography
-						.getKeys(passphraseInput)
-						.privateKey.toString('base64'),
-					publicKey: cryptography
-						.getKeys(passphraseInput)
-						.publicKey.toString('base64'),
+					privateKey: cryptography.getKeys(passphraseInput).privateKey.toString('base64'),
+					publicKey: cryptography.getKeys(passphraseInput).publicKey.toString('base64'),
 					address: cryptography.getBase32AddressFromPublicKey(
 						cryptography.getKeys(passphraseInput).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography
-						.getAddressFromPassphrase(passphraseInput)
-						.toString('base64'),
+					binaryAddress: cryptography.getAddressFromPassphrase(passphraseInput).toString('base64'),
 				});
 			});
 
@@ -71,12 +58,8 @@ describe('account:show', () => {
 				expect(printUtils.print).to.be.called;
 				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 				return expect(printMethodStub).to.be.calledWith({
-					privateKey: cryptography
-						.getKeys(secondDefaultMnemonic)
-						.privateKey.toString('base64'),
-					publicKey: cryptography
-						.getKeys(secondDefaultMnemonic)
-						.publicKey.toString('base64'),
+					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('base64'),
+					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('base64'),
 					address: cryptography.getBase32AddressFromPublicKey(
 						cryptography.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',

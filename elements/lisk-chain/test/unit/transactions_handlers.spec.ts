@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Status as TransactionStatus,
-	TransactionResponse,
-} from '@liskhq/lisk-transactions';
+import { Status as TransactionStatus, TransactionResponse } from '@liskhq/lisk-transactions';
 import * as transactionHandlers from '../../src/transactions/transactions_handlers';
 import { getTransferTransaction } from '../utils/transaction';
 import { Context } from '../../src/types';
@@ -59,10 +56,7 @@ describe('transactions', () => {
 	describe('#checkAllowedTransactions', () => {
 		it('should return a proper response format', () => {
 			// Act
-			const response = transactionHandlers.checkAllowedTransactions(
-				[trs1],
-				dummyState,
-			);
+			const response = transactionHandlers.checkAllowedTransactions([trs1], dummyState);
 
 			// Assert
 			expect(response).toStrictEqual([
@@ -111,10 +105,7 @@ describe('transactions', () => {
 
 			// Assert
 			expect(response).toHaveLength(1);
-			expect(response[0]).toHaveProperty(
-				'id',
-				transactionWithoutMatcherImpl.id,
-			);
+			expect(response[0]).toHaveProperty('id', transactionWithoutMatcherImpl.id);
 			expect(response[0]).toHaveProperty('status', TransactionStatus.OK);
 			expect(response[0].errors).toHaveLength(0);
 		});
@@ -150,10 +141,7 @@ describe('transactions', () => {
 			];
 
 			// Act
-			const response = transactionHandlers.checkAllowedTransactions(
-				testTransactions,
-				dummyState,
-			);
+			const response = transactionHandlers.checkAllowedTransactions(testTransactions, dummyState);
 
 			// Assert
 			expect(response).toHaveLength(2);

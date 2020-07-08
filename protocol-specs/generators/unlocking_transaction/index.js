@@ -27,12 +27,8 @@ const networkIdentifier = Buffer.from(
 );
 
 const senderAccount = {
-	passphrase:
-		'lava toe nuclear candy erode present guilt develop include type pluck current',
-	publicKey: Buffer.from(
-		'8c3d81b1555fbe4692adfa1026ee21c043633b9369924cf2790e2e0fc6b47a66',
-		'hex',
-	),
+	passphrase: 'lava toe nuclear candy erode present guilt develop include type pluck current',
+	publicKey: Buffer.from('8c3d81b1555fbe4692adfa1026ee21c043633b9369924cf2790e2e0fc6b47a66', 'hex'),
 	address: Buffer.from('67aeac2f0dcaae0b7790777a3b4ba296c427dbeb', 'hex'),
 };
 const delegateAccounts = [
@@ -333,10 +329,7 @@ const generateValidUpvoteTransaction = () => {
 	};
 	const signBytes = getSignBytes(unsignedTransaction);
 	const signature = Buffer.from(
-		signData(
-			Buffer.concat([networkIdentifier, signBytes]),
-			senderAccount.passphrase,
-		),
+		signData(Buffer.concat([networkIdentifier, signBytes]), senderAccount.passphrase),
 		'hex',
 	);
 	const encodedTx = encode({
@@ -367,8 +360,7 @@ const generateValidUpvoteTransaction = () => {
 
 const validUnlockingSuite = () => ({
 	title: 'Valid unlock transaction',
-	summary:
-		'Valid unlock transaction which includes the unlock for the same account',
+	summary: 'Valid unlock transaction which includes the unlock for the same account',
 	config: {
 		network: 'devnet',
 	},
@@ -377,6 +369,4 @@ const validUnlockingSuite = () => ({
 	testCases: [generateValidUpvoteTransaction()],
 });
 
-module.exports = BaseGenerator.runGenerator('unlock_transaction', [
-	validUnlockingSuite,
-]);
+module.exports = BaseGenerator.runGenerator('unlock_transaction', [validUnlockingSuite]);

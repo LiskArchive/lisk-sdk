@@ -33,8 +33,7 @@ export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 		throw new Error('Beddows amount out of range');
 	}
 	const int = (beddowsAmountBigInt / BigInt(FIXED_POINT)).toString();
-	const floating =
-		Number(beddowsAmountBigInt % BigInt(FIXED_POINT)) / FIXED_POINT;
+	const floating = Number(beddowsAmountBigInt % BigInt(FIXED_POINT)) / FIXED_POINT;
 	const floatingPointsSplit = floating
 		.toLocaleString('en-US', {
 			maximumFractionDigits: LISK_MAX_DECIMAL_POINTS,
@@ -57,8 +56,7 @@ export const convertLSKToBeddows = (lskAmount?: string): string => {
 	const liskAmountFloatBigInt = BigInt(
 		(splitAmount[1] ?? '0').padEnd(LISK_MAX_DECIMAL_POINTS, '0'),
 	);
-	const beddowsAmountBigInt =
-		liskAmountInt * BigInt(FIXED_POINT) + liskAmountFloatBigInt;
+	const beddowsAmountBigInt = liskAmountInt * BigInt(FIXED_POINT) + liskAmountFloatBigInt;
 	if (beddowsAmountBigInt > MAX_UINT64) {
 		throw new Error('LSK amount out of range');
 	}
@@ -66,9 +64,8 @@ export const convertLSKToBeddows = (lskAmount?: string): string => {
 	return beddowsAmountBigInt.toString();
 };
 
-export const prependPlusToPublicKeys = (
-	publicKeys: ReadonlyArray<string>,
-): ReadonlyArray<string> => publicKeys.map(publicKey => `+${publicKey}`);
+export const prependPlusToPublicKeys = (publicKeys: ReadonlyArray<string>): ReadonlyArray<string> =>
+	publicKeys.map(publicKey => `+${publicKey}`);
 
 export const prependMinusToPublicKeys = (
 	publicKeys: ReadonlyArray<string>,

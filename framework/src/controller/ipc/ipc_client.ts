@@ -28,11 +28,7 @@ export class IPCClient extends IPCSocket {
 	public rpcClient!: RPCClient;
 	protected readonly _actionRPCConnectingServerSocketPath: string;
 
-	public constructor(options: {
-		socketsDir: string;
-		name: string;
-		rpcServerSocketPath: string;
-	}) {
+	public constructor(options: { socketsDir: string; name: string; rpcServerSocketPath: string }) {
 		super(options);
 
 		this._actionRPCConnectingServerSocketPath = options.rpcServerSocketPath;
@@ -50,9 +46,7 @@ export class IPCClient extends IPCSocket {
 			this.pubSocket.on('error', reject);
 			setTimeout(() => {
 				reject(
-					new Error(
-						'IPC Socket client connection timeout. Please check if IPC server is running.',
-					),
+					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
 				);
 			}, CONNECTION_TIME_OUT);
 
@@ -69,9 +63,7 @@ export class IPCClient extends IPCSocket {
 			this.subSocket.on('error', reject);
 			setTimeout(() => {
 				reject(
-					new Error(
-						'IPC Socket client connection timeout. Please check if IPC server is running.',
-					),
+					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
 				);
 			}, CONNECTION_TIME_OUT);
 
@@ -88,9 +80,7 @@ export class IPCClient extends IPCSocket {
 			this.rpcClient.sock.on('error', reject);
 			setTimeout(() => {
 				reject(
-					new Error(
-						'IPC Socket client connection timeout. Please check if IPC server is running.',
-					),
+					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
 				);
 			}, CONNECTION_TIME_OUT);
 

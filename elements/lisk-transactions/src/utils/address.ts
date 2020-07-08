@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getAddressFromPublicKey,
-	bufferToHex,
-} from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, bufferToHex } from '@liskhq/lisk-cryptography';
 
 import { TransactionError } from '../errors';
 

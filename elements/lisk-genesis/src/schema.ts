@@ -14,11 +14,7 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 
-import {
-	blockSchema,
-	baseAccountSchema,
-	blockHeaderSchema,
-} from '@liskhq/lisk-chain';
+import { blockSchema, baseAccountSchema, blockHeaderSchema } from '@liskhq/lisk-chain';
 import { mergeDeep } from './utils';
 
 export const genesisAccountSchema = mergeDeep({}, baseAccountSchema) as Schema;

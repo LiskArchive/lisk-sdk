@@ -63,16 +63,12 @@ Access functionality via the relevant namespace. For example, the following will
 const transaction = lisk.transaction.transfer({
 	amount: '123000000',
 	recipientId: '12668885769632475474L',
-	passphrase:
-		'robust swift grocery peasant forget share enable convince deputy road keep cheap',
+	passphrase: 'robust swift grocery peasant forget share enable convince deputy road keep cheap',
 });
 
 const client = lisk.APIClient.createTestnetAPIClient();
 
-client.transactions
-	.broadcast(transaction)
-	.then(console.info)
-	.catch(console.error);
+client.transactions.broadcast(transaction).then(console.info).catch(console.error);
 ```
 
 Full documentation can be found on the [Lisk documentation site][].

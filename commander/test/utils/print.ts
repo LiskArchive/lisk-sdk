@@ -30,14 +30,10 @@ describe('print utils', () => {
 		{ lisk: 'Some prefix: \u001B[4mJS\u001B[0m' },
 		{ lisk: 'Some suffix: \u001B[4mawsome\u001B[0m' },
 	];
-	const arrayToPrintWithoutANSI = [
-		{ lisk: 'Some prefix: JS' },
-		{ lisk: 'Some suffix: awsome' },
-	];
+	const arrayToPrintWithoutANSI = [{ lisk: 'Some prefix: JS' }, { lisk: 'Some suffix: awsome' }];
 
 	const tablifyResult = 'tablify-result';
-	const stringifyResult =
-		'[{"lisk":"Some prefix: JS"},{"lisk":"Some suffix: awsome"}]';
+	const stringifyResult = '[{"lisk":"Some prefix: JS"},{"lisk":"Some suffix: awsome"}]';
 
 	type Printer = (result: ReadonlyArray<StringMap> | StringMap) => void;
 
@@ -55,9 +51,7 @@ describe('print utils', () => {
 		describe('when result is array', () => {
 			it('should call tablify with the ANSI', () => {
 				printer(arrayToPrint);
-				return expect(tablifyUtil.tablify).to.be.calledWithExactly(
-					arrayToPrint,
-				);
+				return expect(tablifyUtil.tablify).to.be.calledWithExactly(arrayToPrint);
 			});
 		});
 

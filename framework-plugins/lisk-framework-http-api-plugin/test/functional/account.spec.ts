@@ -13,11 +13,7 @@
  */
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import {
-	createApplication,
-	closeApplication,
-	getURL,
-} from './utils/application';
+import { createApplication, closeApplication, getURL } from './utils/application';
 
 describe('Account endpoint', () => {
 	let app: Application;
@@ -59,9 +55,7 @@ describe('Account endpoint', () => {
 
 	describe('/api/accounts', () => {
 		it('should respond with account when account found in db', async () => {
-			const result = await axios.get(
-				getURL('/api/accounts/nQFJsJYtRL%2FAip9k1a%2FOtigdf7U%3D'),
-			);
+			const result = await axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip9k1a%2FOtigdf7U%3D'));
 			expect(result.data).toEqual(accountFixture);
 			expect(result.status).toBe(200);
 		});
@@ -69,9 +63,7 @@ describe('Account endpoint', () => {
 		it('should respond with 404 and error message when account not found in db', async () => {
 			expect.assertions(2);
 			try {
-				await axios.get(
-					getURL('/api/accounts/nQFJsJYtRL%2FAip0k1a%2FOtigdf7U%3D'),
-				);
+				await axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip0k1a%2FOtigdf7U%3D'));
 			} catch (err) {
 				// eslint-disable-next-line jest/no-try-expect
 				expect(err.response.status).toBe(404);
@@ -79,8 +71,7 @@ describe('Account endpoint', () => {
 				expect(err.response.data).toEqual({
 					errors: [
 						{
-							message:
-								"Account with address 'nQFJsJYtRL/Aip0k1a/Otigdf7U=' was not found",
+							message: "Account with address 'nQFJsJYtRL/Aip0k1a/Otigdf7U=' was not found",
 						},
 					],
 				});
@@ -96,9 +87,7 @@ describe('Account endpoint', () => {
 				expect(err.response.status).toBe(400);
 				// eslint-disable-next-line jest/no-try-expect
 				expect(err.response.data).toEqual({
-					errors: [
-						{ message: 'The Address parameter should be a base64 string.' },
-					],
+					errors: [{ message: 'The Address parameter should be a base64 string.' }],
 				});
 			}
 		});

@@ -121,16 +121,12 @@ export class UnlockTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected async applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
+	protected async applyAsset(store: StateStore): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
 
 		for (const unlock of this.asset.unlockObjects) {
 			const sender = await store.account.get<AccountAsset>(this.senderId);
-			const delegate = await store.account.getOrDefault<AccountAsset>(
-				unlock.delegateAddress,
-			);
+			const delegate = await store.account.getOrDefault<AccountAsset>(unlock.delegateAddress);
 			if (!delegate.asset.delegate.username) {
 				errors.push(
 					new TransactionError(

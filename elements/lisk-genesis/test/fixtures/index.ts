@@ -113,11 +113,7 @@ const prepareAccounts = (
 	return data.map(acc => ({
 		address: Buffer.from(acc.address, 'base64'),
 		balance: BigInt(acc.balance),
-		asset: mergeDeep(
-			{},
-			defaultAccountAsset,
-			acc.asset ?? {},
-		) as DefaultAccountAsset,
+		asset: mergeDeep({}, defaultAccountAsset, acc.asset ?? {}) as DefaultAccountAsset,
 	}));
 };
 
@@ -129,10 +125,7 @@ export const validGenesisBlockParams = {
 	initRounds: 5,
 	height: 5,
 	timestamp: 1591873718,
-	previousBlockID: Buffer.from(
-		'RUaQocN4ODJgB1GafOHIpqSV31CJjx69adIvvO35aJo=',
-		'base64',
-	),
+	previousBlockID: Buffer.from('RUaQocN4ODJgB1GafOHIpqSV31CJjx69adIvvO35aJo=', 'base64'),
 	roundLength: 103,
 	initDelegates: validDelegateAccounts.map(a => a.address) as Buffer[],
 	accounts: [...validAccounts, ...validDelegateAccounts] as GenesisAccountState<

@@ -22,10 +22,7 @@ import {
 	encodeDefaultAccount,
 	defaultAccountAssetSchema,
 } from '../../utils/account';
-import {
-	defaultBlockHeaderAssetSchema,
-	defaultNetworkIdentifier,
-} from '../../utils/block';
+import { defaultBlockHeaderAssetSchema, defaultNetworkIdentifier } from '../../utils/block';
 import { baseAccountSchema } from '../../../src/schema';
 
 jest.mock('@liskhq/lisk-db');
@@ -149,13 +146,9 @@ describe('state store / account', () => {
 		it('should get the default account', async () => {
 			// Arrange
 			// Act
-			const account = await stateStore.account.getOrDefault(
-				Buffer.from('123L'),
-			);
+			const account = await stateStore.account.getOrDefault(Buffer.from('123L'));
 			// Assert
-			expect(account).toEqual(
-				createFakeDefaultAccount({ address: Buffer.from('123L') }),
-			);
+			expect(account).toEqual(createFakeDefaultAccount({ address: Buffer.from('123L') }));
 			expect(account.balance).toBe(BigInt(0));
 		});
 	});
@@ -169,9 +162,7 @@ describe('state store / account', () => {
 			updatedAccount.nonce = BigInt(99);
 
 			stateStore.account.set(accountInDB[0].key, updatedAccount);
-			const updatedAccountAfterSet = await stateStore.account.get(
-				accountInDB[0].key,
-			);
+			const updatedAccountAfterSet = await stateStore.account.get(accountInDB[0].key);
 			// Assert
 			expect(updatedAccountAfterSet).toStrictEqual(updatedAccount);
 		});
@@ -183,9 +174,7 @@ describe('state store / account', () => {
 
 			stateStore.account.set(accountInDB[0].key, updatedAccount);
 
-			expect(
-				stateStore.account['_updatedKeys'].has(accountInDB[0].key),
-			).toBeTrue();
+			expect(stateStore.account['_updatedKeys'].has(accountInDB[0].key)).toBeTrue();
 		});
 	});
 

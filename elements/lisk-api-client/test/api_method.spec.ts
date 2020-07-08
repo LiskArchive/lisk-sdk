@@ -107,41 +107,35 @@ describe('API method module', () => {
 			});
 
 			it('should be rejected with error without enough param', async () => {
-				return expect(handler(firstURLParam)).rejects.toThrow(
-					errorArgumentNumber,
-				);
+				return expect(handler(firstURLParam)).rejects.toThrow(errorArgumentNumber);
 			});
 
 			it('should throw an error if input is not a string or a number', async () => {
-				return expect(
-					handler({ num: 3 }, secondURLParam, { needed: true }),
-				).rejects.toEqual(new Error(parameterStringError));
+				return expect(handler({ num: 3 }, secondURLParam, { needed: true })).rejects.toEqual(
+					new Error(parameterStringError),
+				);
 			});
 
 			it('should be rejected with no data', async () => {
-				return expect(handler(firstURLParam, secondURLParam)).rejects.toEqual(
-					validationError,
-				);
+				return expect(handler(firstURLParam, secondURLParam)).rejects.toEqual(validationError);
 			});
 
 			it('should call request with the given data', async () => {
-				return handler(firstURLParam, secondURLParam, { needed: true }).then(
-					() => {
-						expect(resource.request).toHaveBeenCalledTimes(1);
-						return expect(resource.request).toHaveBeenCalledWith(
-							{
-								method: POST,
-								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam.toString()}`,
-								headers: defaultHeaders,
-								data: {
-									needed: true,
-									sort: 'id',
-								},
+				return handler(firstURLParam, secondURLParam, { needed: true }).then(() => {
+					expect(resource.request).toHaveBeenCalledTimes(1);
+					return expect(resource.request).toHaveBeenCalledWith(
+						{
+							method: POST,
+							url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam.toString()}`,
+							headers: defaultHeaders,
+							data: {
+								needed: true,
+								sort: 'id',
 							},
-							true,
-						);
-					},
-				);
+						},
+						true,
+					);
+				});
 			});
 		});
 
@@ -168,37 +162,29 @@ describe('API method module', () => {
 			});
 
 			it('should be rejected with error without parameters', async () => {
-				return expect(handler()).rejects.toEqual(
-					new Error(errorArgumentNumber),
-				);
+				return expect(handler()).rejects.toEqual(new Error(errorArgumentNumber));
 			});
 
 			it('should be rejected with error without enough parameters', async () => {
-				return expect(handler(firstURLParam)).rejects.toEqual(
-					new Error(errorArgumentNumber),
-				);
+				return expect(handler(firstURLParam)).rejects.toEqual(new Error(errorArgumentNumber));
 			});
 
 			it('should be rejected with no data', async () => {
-				return expect(handler(firstURLParam, secondURLParam)).rejects.toEqual(
-					validationError,
-				);
+				return expect(handler(firstURLParam, secondURLParam)).rejects.toEqual(validationError);
 			});
 
 			it('should be request with the given data', async () => {
-				return handler(firstURLParam, secondURLParam, { needed: true }).then(
-					() => {
-						expect(resource.request).toHaveBeenCalledTimes(1);
-						return expect(resource.request).toHaveBeenCalledWith(
-							{
-								method: GET,
-								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam.toString()}?sort=id&needed=true`,
-								headers: defaultHeaders,
-							},
-							false,
-						);
-					},
-				);
+				return handler(firstURLParam, secondURLParam, { needed: true }).then(() => {
+					expect(resource.request).toHaveBeenCalledTimes(1);
+					return expect(resource.request).toHaveBeenCalledWith(
+						{
+							method: GET,
+							url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam.toString()}?sort=id&needed=true`,
+							headers: defaultHeaders,
+						},
+						false,
+					);
+				});
 			});
 		});
 	});

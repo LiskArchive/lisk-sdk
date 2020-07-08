@@ -141,10 +141,7 @@
 							"fieldNumber": 2
 						}
 					},
-					"required": [
-						"header",
-						"payload"
-					]
+					"required": ["header", "payload"]
 				}
 			},
 			"output": {
@@ -210,10 +207,7 @@
 							"fieldNumber": 2
 						}
 					},
-					"required": [
-						"header",
-						"payload"
-					]
+					"required": ["header", "payload"]
 				}
 			},
 			"output": {

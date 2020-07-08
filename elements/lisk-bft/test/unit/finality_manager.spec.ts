@@ -27,10 +27,7 @@ import {
 } from '../../src/types';
 import { createFakeBlockHeader } from '../fixtures/blocks';
 import { StateStoreMock } from '../utils/state_store_mock';
-import {
-	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
-	BFTFinalizedHeightCodecSchema,
-} from '../../src';
+import { CONSENSUS_STATE_FINALIZED_HEIGHT_KEY, BFTFinalizedHeightCodecSchema } from '../../src';
 
 const generateValidHeaders = (count: number): any[] => {
 	return [...Array(count)].map((_, index) => {
@@ -79,9 +76,7 @@ describe('finality_manager', () => {
 				expect(finalityManager.activeDelegates).toEqual(activeDelegates);
 				expect(finalityManager.preVoteThreshold).toEqual(preVoteThreshold);
 				expect(finalityManager.preCommitThreshold).toEqual(preCommitThreshold);
-				expect(finalityManager.processingThreshold).toEqual(
-					processingThreshold,
-				);
+				expect(finalityManager.processingThreshold).toEqual(processingThreshold);
 				expect(finalityManager.maxHeaders).toEqual(maxHeaders);
 			});
 
@@ -100,9 +95,7 @@ describe('finality_manager', () => {
 		describe('verifyBlockHeaders', () => {
 			it('should throw error if maxHeightPrevoted is not accurate', () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
-				const bftHeaders = generateValidHeaders(
-					finalityManager.processingThreshold + 1,
-				);
+				const bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
 
 				const header = createFakeBlockHeader({
 					asset: { maxHeightPrevoted: 10 },
@@ -113,25 +106,19 @@ describe('finality_manager', () => {
 					finalityManager.verifyBlockHeaders(header, bftHeaders);
 				} catch (error) {
 					// eslint-disable-next-line jest/no-try-expect
-					expect(error.message).toContain(
-						'Wrong maxHeightPrevoted in blockHeader.',
-					);
+					expect(error.message).toContain('Wrong maxHeightPrevoted in blockHeader.');
 				}
 			});
 
 			it('should not throw error if maxHeightPrevoted is accurate', () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
-				const bftHeaders = generateValidHeaders(
-					finalityManager.processingThreshold + 1,
-				);
+				const bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
 				const header = createFakeBlockHeader({
 					asset: { maxHeightPrevoted: 10 },
 				});
 				finalityManager.chainMaxHeightPrevoted = 10;
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(header, bftHeaders),
-				).not.toThrow();
+				expect(() => finalityManager.verifyBlockHeaders(header, bftHeaders)).not.toThrow();
 			});
 
 			it("should return true if delegate didn't forge any block previously", () => {
@@ -160,9 +147,9 @@ describe('finality_manager', () => {
 					height: 9,
 				});
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toThrow(BFTForkChoiceRuleError);
+				expect(() => finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toThrow(
+					BFTForkChoiceRuleError,
+				);
 			});
 
 			it('should throw error if delegate forged block on same height', () => {
@@ -183,9 +170,9 @@ describe('finality_manager', () => {
 					height: 10,
 				});
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toThrow(BFTForkChoiceRuleError);
+				expect(() => finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toThrow(
+					BFTForkChoiceRuleError,
+				);
 			});
 
 			it('should throw error if maxHeightPreviouslyForged has wrong value', () => {
@@ -201,9 +188,9 @@ describe('finality_manager', () => {
 					},
 				});
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toThrow(BFTChainDisjointError);
+				expect(() => finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toThrow(
+					BFTChainDisjointError,
+				);
 			});
 
 			it('should throw error if maxHeightPrevoted has wrong value', () => {
@@ -224,17 +211,15 @@ describe('finality_manager', () => {
 					},
 				});
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toThrow(BFTLowerChainBranchError);
+				expect(() => finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toThrow(
+					BFTLowerChainBranchError,
+				);
 			});
 
 			it('should return true if headers are valid', () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
 
-				expect(
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toBeTruthy();
+				expect(finalityManager.verifyBlockHeaders(currentBlock, [lastBlock])).toBeTruthy();
 			});
 		});
 
@@ -247,16 +232,13 @@ describe('finality_manager', () => {
 			let bftHeaders: ReadonlyArray<BlockHeader>;
 
 			beforeEach(() => {
-				bftHeaders = generateValidHeaders(
-					finalityManager.processingThreshold + 1,
-				);
+				bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
 				stateStore = new StateStoreMock(
 					[],
 					{
-						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-							BFTFinalizedHeightCodecSchema,
-							{ finalizedHeight: 5 },
-						),
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
+							finalizedHeight: 5,
+						}),
 						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
 							BFTVotingLedgerSchema,
 							delegateLedger,
@@ -277,10 +259,7 @@ describe('finality_manager', () => {
 				await finalityManager.addBlockHeader(header1, stateStore);
 
 				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledTimes(1);
-				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledWith(
-					header1,
-					bftHeaders,
-				);
+				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledWith(header1, bftHeaders);
 			});
 
 			it('should call updatePreVotesPreCommits with the provided header', async () => {
@@ -293,9 +272,7 @@ describe('finality_manager', () => {
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(
-					1,
-				);
+				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(1);
 				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
 					header1,
 					stateStore,
@@ -315,9 +292,7 @@ describe('finality_manager', () => {
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(
-					1,
-				);
+				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(1);
 				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
 					header1,
 					stateStore,
@@ -326,11 +301,7 @@ describe('finality_manager', () => {
 
 				// Ignores a standby delegate from prevotes and precommit calculations
 				await expect(
-					finalityManager.updatePreVotesPreCommits(
-						header1,
-						stateStore,
-						bftHeaders,
-					),
+					finalityManager.updatePreVotesPreCommits(header1, stateStore, bftHeaders),
 				).resolves.toEqual(false);
 			});
 
@@ -346,9 +317,7 @@ describe('finality_manager', () => {
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(
-					1,
-				);
+				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(1);
 				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
 					header1,
 					stateStore,
@@ -357,11 +326,7 @@ describe('finality_manager', () => {
 
 				// Ignores a standby delegate from prevotes and precommit calculations
 				await expect(
-					finalityManager.updatePreVotesPreCommits(
-						header1,
-						stateStore,
-						bftHeaders,
-					),
+					finalityManager.updatePreVotesPreCommits(header1, stateStore, bftHeaders),
 				).resolves.toEqual(false);
 			});
 
@@ -402,9 +367,7 @@ describe('finality_manager', () => {
 					}
 				} catch (error) {
 					// eslint-disable-next-line jest/no-try-expect
-					expect(error.message).toContain(
-						'Violation of disjointedness condition.',
-					);
+					expect(error.message).toContain('Violation of disjointedness condition.');
 				}
 			});
 		});

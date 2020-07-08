@@ -29,16 +29,13 @@ import {
 // eslint-disable-next-line
 const keys = require('../src/keys');
 
-const changeLength = (buffer: Buffer): Buffer =>
-	Buffer.concat([Buffer.from('00', 'hex'), buffer]);
+const changeLength = (buffer: Buffer): Buffer => Buffer.concat([Buffer.from('00', 'hex'), buffer]);
 
 describe('sign', () => {
-	const defaultPassphrase =
-		'minute omit local rare sword knee banner pair rib museum shadow juice';
+	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPrivateKey =
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
-	const defaultPublicKey =
-		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
+	const defaultPublicKey = '7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultMessage = 'Some default text.';
 	const defaultSignature =
 		'68937004b6720d7e1902ef05a577e6d9f9ab2756286b1f2ae918f8a0e5153c15e4f410916076f750b708f8979be2430e4cfc7ebb523ae1905d2ea1f5d24ce700';
@@ -66,14 +63,12 @@ ${defaultSignature}
 			signature: Buffer.from(defaultSignature, 'hex'),
 		};
 
-		jest
-			.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase')
-			.mockImplementation(() => {
-				return {
-					privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-					publicKey: Buffer.from(defaultPublicKey, 'hex'),
-				};
-			});
+		jest.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
+			return {
+				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
+				publicKey: Buffer.from(defaultPublicKey, 'hex'),
+			};
+		});
 	});
 
 	describe('#digestMessage', () => {
@@ -117,10 +112,7 @@ ${defaultSignature}
 
 	describe('#signMessageWithPassphrase', () => {
 		it('should create a signed message using a secret passphrase', () => {
-			const signedMessage = signMessageWithPassphrase(
-				defaultMessage,
-				defaultPassphrase,
-			);
+			const signedMessage = signMessageWithPassphrase(defaultMessage, defaultPassphrase);
 			expect(signedMessage).toEqual(defaultSignedMessage);
 		});
 	});
@@ -174,10 +166,7 @@ ${defaultSignature}
 
 	describe('#signAndPrintMessage', () => {
 		it('should sign the message once and wrap it into a printed Lisk template', () => {
-			const signedAndPrintedMessage = signAndPrintMessage(
-				defaultMessage,
-				defaultPassphrase,
-			);
+			const signedAndPrintedMessage = signAndPrintMessage(defaultMessage, defaultPassphrase);
 			expect(signedAndPrintedMessage).toBe(defaultPrintedMessage);
 		});
 	});
@@ -212,10 +201,7 @@ ${defaultSignature}
 		let signature: Buffer;
 
 		beforeEach(async () => {
-			signature = signDataWithPrivateKey(
-				defaultData,
-				Buffer.from(defaultPrivateKey, 'hex'),
-			);
+			signature = signDataWithPrivateKey(defaultData, Buffer.from(defaultPrivateKey, 'hex'));
 			return Promise.resolve();
 		});
 

@@ -56,9 +56,7 @@ describe('Public block related P2P endpoints', () => {
 				{
 					procedure: 'getBlocksFromId',
 					data: {
-						blockId: app['_node']['_chain'].genesisBlock.header.id.toString(
-							'base64',
-						),
+						blockId: app['_node']['_chain'].genesisBlock.header.id.toString('base64'),
 					},
 				},
 				getPeerID(app),
@@ -66,9 +64,7 @@ describe('Public block related P2P endpoints', () => {
 			expect.assertions(data.length + 1);
 			expect(data.length).toBeGreaterThan(0);
 			for (const id of data) {
-				const decodedBlock = app['_node']['_chain'].dataAccess.decode(
-					Buffer.from(id, 'base64'),
-				);
+				const decodedBlock = app['_node']['_chain'].dataAccess.decode(Buffer.from(id, 'base64'));
 				expect(decodedBlock.header.height).toBeGreaterThan(0);
 			}
 		});
@@ -137,9 +133,7 @@ describe('Public block related P2P endpoints', () => {
 
 			await waitNBlocks(app, 1);
 			// Expect next block to be forged properly
-			expect(app['_node']['_chain'].lastBlock.header.id).not.toEqual(
-				lastBlock.header.id,
-			);
+			expect(app['_node']['_chain'].lastBlock.header.id).not.toEqual(lastBlock.header.id);
 		});
 	});
 });

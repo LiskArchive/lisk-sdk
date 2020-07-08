@@ -45,13 +45,7 @@ describe('transactions', () => {
 			});
 
 			it('should have transactionClassMap property with Lisk transaction types', () => {
-				expect([...(transactions as any)._transactionClassMap.keys()]).toEqual([
-					8,
-					10,
-					12,
-					13,
-					14,
-				]);
+				expect([...(transactions as any)._transactionClassMap.keys()]).toEqual([8, 10, 12, 13, 14]);
 			});
 		});
 
@@ -78,9 +72,7 @@ describe('transactions', () => {
 						data: '',
 					},
 				}).getBytes();
-				expect(transactions.decode(encodedTx)).toBeInstanceOf(
-					TransferTransaction,
-				);
+				expect(transactions.decode(encodedTx)).toBeInstanceOf(TransferTransaction);
 			});
 
 			it('should initialize a delegate transaction', () => {
@@ -104,9 +96,7 @@ describe('transactions', () => {
 					},
 				}).getBytes();
 
-				expect(transactions.decode(encodedTx)).toBeInstanceOf(
-					DelegateTransaction,
-				);
+				expect(transactions.decode(encodedTx)).toBeInstanceOf(DelegateTransaction);
 			});
 
 			it('should initialize a vote transaction', () => {
@@ -172,9 +162,7 @@ describe('transactions', () => {
 						numberOfSignatures: 2,
 					},
 				}).getBytes();
-				expect(transactions.decode(encodedTx)).toBeInstanceOf(
-					MultisignatureTransaction,
-				);
+				expect(transactions.decode(encodedTx)).toBeInstanceOf(MultisignatureTransaction);
 			});
 		});
 

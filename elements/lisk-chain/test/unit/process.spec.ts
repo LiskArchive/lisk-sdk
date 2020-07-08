@@ -14,15 +14,8 @@
 
 import { when } from 'jest-when';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
-import {
-	getRandomBytes,
-	getAddressFromPublicKey,
-} from '@liskhq/lisk-cryptography';
-import {
-	TransferTransaction,
-	BaseTransaction,
-	VoteTransaction,
-} from '@liskhq/lisk-transactions';
+import { getRandomBytes, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { TransferTransaction, BaseTransaction, VoteTransaction } from '@liskhq/lisk-transactions';
 import {
 	createValidDefaultBlock,
 	defaultNetworkIdentifier,
@@ -99,9 +92,7 @@ describe('blocks/header', () => {
 					header: { previousBlockID: Buffer.alloc(0), height: 3 },
 				} as any);
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
-					'Invalid previous block',
-				);
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow('Invalid previous block');
 			});
 		});
 
@@ -111,9 +102,7 @@ describe('blocks/header', () => {
 				block = createValidDefaultBlock();
 				(block.header as any).signature = getRandomBytes(64);
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
-					'Invalid block signature',
-				);
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow('Invalid block signature');
 			});
 		});
 
@@ -124,9 +113,7 @@ describe('blocks/header', () => {
 					header: { reward: BigInt(1000000000) },
 				});
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
-					'Invalid block reward',
-				);
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow('Invalid block reward');
 			});
 		});
 
@@ -163,9 +150,7 @@ describe('blocks/header', () => {
 					header: { transactionRoot: Buffer.from('1234567890') },
 				});
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
-					'Invalid transaction root',
-				);
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow('Invalid transaction root');
 			});
 		});
 
@@ -220,9 +205,7 @@ describe('blocks/header', () => {
 		describe('when block slot is invalid', () => {
 			it('should throw when block timestamp is in the future', async () => {
 				// Arrange
-				const futureTimestamp = chainInstance.slots.getSlotTime(
-					chainInstance.slots.getNextSlot(),
-				);
+				const futureTimestamp = chainInstance.slots.getSlotTime(chainInstance.slots.getNextSlot());
 				block = createValidDefaultBlock({
 					header: {
 						timestamp: futureTimestamp,
@@ -336,9 +319,7 @@ describe('blocks/header', () => {
 				});
 
 				// Act && Assert
-				await expect(
-					chainInstance.verify(block, stateStore),
-				).rejects.toMatchObject([
+				await expect(chainInstance.verify(block, stateStore)).rejects.toMatchObject([
 					expect.objectContaining({
 						message: expect.stringContaining('is currently not allowed'),
 					}),
@@ -353,9 +334,7 @@ describe('blocks/header', () => {
 			beforeEach(() => {
 				// Arrage
 				when(db.get)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -426,9 +405,7 @@ describe('blocks/header', () => {
 					defaultAsset: createFakeDefaultAccount().asset,
 				});
 				when(db.get)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -438,16 +415,14 @@ describe('blocks/header', () => {
 						) as never,
 					)
 					.calledWith(
-						`accounts:address:${getAddressFromPublicKey(
-							block.header.generatorPublicKey,
-						).toString('binary')}`,
+						`accounts:address:${getAddressFromPublicKey(block.header.generatorPublicKey).toString(
+							'binary',
+						)}`,
 					)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
-								address: getAddressFromPublicKey(
-									block.header.generatorPublicKey,
-								),
+								address: getAddressFromPublicKey(block.header.generatorPublicKey),
 								balance: BigInt('0'),
 							}),
 						) as never,
@@ -500,20 +475,12 @@ describe('blocks/header', () => {
 					defaultAsset: createFakeDefaultAccount().asset,
 				});
 
-				const generatorAddress = getAddressFromPublicKey(
-					block.header.generatorPublicKey,
-				);
+				const generatorAddress = getAddressFromPublicKey(block.header.generatorPublicKey);
 
 				when(db.get)
-					.calledWith(
-						`accounts:address:${validTx.asset.recipientAddress.toString(
-							'binary',
-						)}`,
-					)
+					.calledWith(`accounts:address:${validTx.asset.recipientAddress.toString('binary')}`)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -534,13 +501,9 @@ describe('blocks/header', () => {
 			});
 
 			it('should throw error', async () => {
-				await expect(
-					chainInstance.apply(block, stateStore),
-				).rejects.toMatchObject([
+				await expect(chainInstance.apply(block, stateStore)).rejects.toMatchObject([
 					expect.objectContaining({
-						message: expect.stringContaining(
-							'Account does not have enough minimum remaining LSK',
-						),
+						message: expect.stringContaining('Account does not have enough minimum remaining LSK'),
 					}),
 				]);
 			});
@@ -562,10 +525,7 @@ describe('blocks/header', () => {
 			beforeEach(async () => {
 				// Arrage
 				delegate1 = {
-					address: Buffer.from(
-						'32e4d3f46ae3bc74e7771780eee290ae5826006d',
-						'hex',
-					),
+					address: Buffer.from('32e4d3f46ae3bc74e7771780eee290ae5826006d', 'hex'),
 					passphrase:
 						'weapon visual tag seed deal solar country toy boring concert decline require',
 					publicKey: Buffer.from(
@@ -576,10 +536,7 @@ describe('blocks/header', () => {
 					balance: BigInt('10000000000'),
 				};
 				delegate2 = {
-					address: Buffer.from(
-						'23d5abdb69c0dbbc21c7c732965589792cc5922a',
-						'hex',
-					),
+					address: Buffer.from('23d5abdb69c0dbbc21c7c732965589792cc5922a', 'hex'),
 					passphrase:
 						'shoot long boost electric upon mule enough swing ritual example custom party',
 					publicKey: Buffer.from(
@@ -650,9 +607,7 @@ describe('blocks/header', () => {
 
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('Data not found') as never)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -662,9 +617,9 @@ describe('blocks/header', () => {
 						) as never,
 					)
 					.calledWith(
-						`accounts:address:${getAddressFromPublicKey(
-							block.header.generatorPublicKey,
-						).toString('binary')}`,
+						`accounts:address:${getAddressFromPublicKey(block.header.generatorPublicKey).toString(
+							'binary',
+						)}`,
 					)
 					.mockResolvedValue(
 						encodeDefaultAccount(

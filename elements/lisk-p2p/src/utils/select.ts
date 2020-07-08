@@ -37,9 +37,7 @@ const _removeCommonIPsFromLists = (
 		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
 			const { internalState: tempInternalState } = tempPeer;
-			const tempPeerReputation = tempInternalState
-				? tempInternalState.reputation
-				: 0;
+			const tempPeerReputation = tempInternalState ? tempInternalState.reputation : 0;
 
 			if (peerReputation > tempPeerReputation) {
 				peerMap.set(peer.ipAddress, peer);
@@ -128,8 +126,7 @@ export const selectPeersForConnection = (
 	const x =
 		input.triedPeers.length < 100
 			? minimumProbability
-			: input.triedPeers.length /
-			  (input.triedPeers.length + input.newPeers.length);
+			: input.triedPeers.length / (input.triedPeers.length + input.newPeers.length);
 	const r = Math.max(x, minimumProbability);
 
 	const shuffledTriedPeers = shuffle(input.triedPeers);

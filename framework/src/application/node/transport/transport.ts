@@ -141,14 +141,8 @@ export class Transport {
 		});
 	}
 
-	public async handleRPCGetBlocksFromId(
-		data: unknown,
-		peerId: string,
-	): Promise<string[]> {
-		const errors = validator.validate(
-			schemas.getBlocksFromIdRequest,
-			data as object,
-		);
+	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<string[]> {
+		const errors = validator.validate(schemas.getBlocksFromIdRequest, data as object);
 
 		if (errors.length) {
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -171,9 +165,7 @@ export class Transport {
 		const blockID = Buffer.from((data as RPCBlocksByIdData).blockId, 'base64');
 
 		// Get height of block with supplied ID
-		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(
-			blockID,
-		);
+		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(blockID);
 
 		const lastBlockHeight = lastBlock.height;
 
@@ -186,19 +178,14 @@ export class Transport {
 			fetchUntilHeight,
 		);
 
-		return blocks.map(block =>
-			this._chainModule.dataAccess.encode(block).toString('base64'),
-		);
+		return blocks.map(block => this._chainModule.dataAccess.encode(block).toString('base64'));
 	}
 
 	public async handleRPCGetGetHighestCommonBlock(
 		data: unknown,
 		peerId: string,
 	): Promise<string | undefined> {
-		const valid = validator.validate(
-			schemas.getHighestCommonBlockRequest,
-			data as object,
-		);
+		const valid = validator.validate(schemas.getHighestCommonBlockRequest, data as object);
 
 		if (valid.length) {
 			const err = valid;
@@ -218,30 +205,21 @@ export class Transport {
 			throw new Error(error);
 		}
 
-		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id =>
-			Buffer.from(id, 'base64'),
-		);
+		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id => Buffer.from(id, 'base64'));
 
 		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(
 			blockIDs,
 		);
 
 		return commonBlockHeader
-			? this._chainModule.dataAccess
-					.encodeBlockHeader(commonBlockHeader)
-					.toString('base64')
+			? this._chainModule.dataAccess.encodeBlockHeader(commonBlockHeader).toString('base64')
 			: undefined;
 	}
 
-	public async handleEventPostBlock(
-		data: unknown,
-		peerId: string,
-	): Promise<void> {
+	public async handleEventPostBlock(data: unknown, peerId: string): Promise<void> {
 		// Should ignore received block if syncing
 		if (this._synchronizerModule.isActive) {
-			return this._logger.debug(
-				"Client is syncing. Can't process new block at the moment.",
-			);
+			return this._logger.debug("Client is syncing. Can't process new block at the moment.");
 		}
 
 		const errors = validator.validate(schemas.postBlockEvent, data as object);
@@ -262,10 +240,7 @@ export class Transport {
 			throw errors;
 		}
 
-		const blockBytes = Buffer.from(
-			(data as EventPostBlockData).block,
-			'base64',
-		);
+		const blockBytes = Buffer.from((data as EventPostBlockData).block, 'base64');
 
 		const block = this._chainModule.dataAccess.decode(blockBytes);
 
@@ -280,15 +255,9 @@ export class Transport {
 		peerId: string,
 	): Promise<HandleRPCGetTransactionsReturn> {
 		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
-		const errors = validator.validate(
-			schemas.getTransactionsRequest,
-			data as object,
-		);
+		const errors = validator.validate(schemas.getTransactionsRequest, data as object);
 		if (errors.length) {
-			this._logger.warn(
-				{ err: errors, peerId },
-				'Received invalid transactions body',
-			);
+			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
 			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
@@ -328,9 +297,7 @@ export class Transport {
 		for (const idStr of transactionIds) {
 			// Check if any transaction is in the queues.
 			const id = Buffer.from(idStr, 'base64');
-			const transaction = this._transactionPoolModule.get(
-				id,
-			) as BaseTransaction;
+			const transaction = this._transactionPoolModule.get(id) as BaseTransaction;
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
@@ -386,21 +353,11 @@ export class Transport {
 		data: unknown,
 		peerId: string,
 	): Promise<null> {
-		this._addRateLimit(
-			'postTransactionsAnnouncement',
-			peerId,
-			DEFAULT_RATE_LIMIT_FREQUENCY,
-		);
-		const errors = validator.validate(
-			schemas.postTransactionsAnnouncementEvent,
-			data as object,
-		);
+		this._addRateLimit('postTransactionsAnnouncement', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
+		const errors = validator.validate(schemas.postTransactionsAnnouncementEvent, data as object);
 
 		if (errors.length) {
-			this._logger.warn(
-				{ err: errors, peerId },
-				'Received invalid transactions body',
-			);
+			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
 			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
@@ -408,8 +365,8 @@ export class Transport {
 			throw errors;
 		}
 
-		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds.map(
-			idStr => Buffer.from(idStr, 'base64'),
+		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds.map(idStr =>
+			Buffer.from(idStr, 'base64'),
 		);
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
@@ -417,9 +374,7 @@ export class Transport {
 			const { data: result } = (await this._networkModule.requestFromPeer({
 				procedure: 'getTransactions',
 				data: {
-					transactionIds: unknownTransactionIDs.map(id =>
-						id.toString('base64'),
-					),
+					transactionIds: unknownTransactionIDs.map(id => id.toString('base64')),
 				},
 				peerId,
 			})) as {
@@ -452,9 +407,7 @@ export class Transport {
 
 	private async _obtainUnknownTransactionIDs(ids: Buffer[]): Promise<Buffer[]> {
 		// Check if any transaction is in the queues.
-		const unknownTransactionsIDs = ids.filter(
-			id => !this._transactionPoolModule.contains(id),
-		);
+		const unknownTransactionsIDs = ids.filter(id => !this._transactionPoolModule.contains(id));
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.
@@ -464,34 +417,25 @@ export class Transport {
 
 			return unknownTransactionsIDs.filter(
 				id =>
-					existingTransactions.find(existingTransaction =>
-						existingTransaction.id.equals(id),
-					) === undefined,
+					existingTransactions.find(existingTransaction => existingTransaction.id.equals(id)) ===
+					undefined,
 			);
 		}
 
 		return unknownTransactionsIDs;
 	}
 
-	private async _receiveTransaction(
-		transaction: BaseTransaction,
-	): Promise<Buffer> {
+	private async _receiveTransaction(transaction: BaseTransaction): Promise<Buffer> {
 		try {
 			// Composed transaction checks are all static, so it does not need state store
-			const transactionsResponses = this._chainModule.validateTransactions([
-				transaction,
-			]);
+			const transactionsResponses = this._chainModule.validateTransactions([transaction]);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
-			const err = new InvalidTransactionError(
-				errString,
-				transaction.id,
-				errors,
-			);
+			const err = new InvalidTransactionError(errString, transaction.id, errors);
 			this._logger.error(
 				{
 					err,
@@ -530,11 +474,7 @@ export class Transport {
 		throw errors;
 	}
 
-	private _addRateLimit(
-		procedure: string,
-		peerId: string,
-		limit: number,
-	): void {
+	private _addRateLimit(procedure: string, peerId: string, limit: number): void {
 		if (this._rateTracker[procedure] === undefined) {
 			this._rateTracker[procedure] = { [peerId]: 0 };
 		}

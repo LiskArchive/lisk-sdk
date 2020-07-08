@@ -145,9 +145,7 @@ describe('Matcher', () => {
 		describe('when the block is processed', () => {
 			let newBlock: Block;
 			beforeAll(async () => {
-				const genesisAccount = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				const aCustomTransation = new CustomTransationClass({
 					senderPublicKey: genesis.publicKey,
 					nonce: genesisAccount.nonce,
@@ -162,9 +160,7 @@ describe('Matcher', () => {
 			});
 
 			it('should be rejected', async () => {
-				await expect(
-					node['_processor'].process(newBlock),
-				).rejects.toMatchObject([
+				await expect(node['_processor'].process(newBlock)).rejects.toMatchObject([
 					expect.objectContaining({
 						message: expect.stringContaining('is currently not allowed'),
 					}),

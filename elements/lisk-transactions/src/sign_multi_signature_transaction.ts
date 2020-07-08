@@ -31,10 +31,7 @@ const transactionMap: { readonly [key: number]: any } = {
 	14: UnlockTransaction,
 };
 
-const sanitizeSignaturesArray = (
-	tx: BaseTransaction,
-	keys: MultisigKeys,
-): void => {
+const sanitizeSignaturesArray = (tx: BaseTransaction, keys: MultisigKeys): void => {
 	let numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
 	// Add one extra for multisig account registration
 	if (tx.type === MultisignatureTransaction.TYPE) {
@@ -74,9 +71,7 @@ export const signMultiSignatureTransaction = (options: {
 	sortKeysAscending(keys.mandatoryKeys);
 	sortKeysAscending(keys.optionalKeys);
 
-	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(
-		passphrase,
-	);
+	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 	const networkIdentifierBytes = Buffer.from(networkIdentifier, 'base64');
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
@@ -84,16 +79,9 @@ export const signMultiSignatureTransaction = (options: {
 		transaction.getSigningBytes(),
 	]);
 
-	const signature = cryptography.signData(
-		transactionWithNetworkIdentifierBytes,
-		passphrase,
-	);
+	const signature = cryptography.signData(transactionWithNetworkIdentifierBytes, passphrase);
 
-	if (
-		transaction.signatures.find(
-			s => s instanceof Buffer && s.equals(signature),
-		) !== undefined
-	) {
+	if (transaction.signatures.find(s => s instanceof Buffer && s.equals(signature)) !== undefined) {
 		sanitizeSignaturesArray(transaction, options.keys);
 
 		return transaction;
@@ -103,9 +91,7 @@ export const signMultiSignatureTransaction = (options: {
 	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(aPublicKey =>
 		aPublicKey.equals(publicKey),
 	);
-	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey =>
-		aPublicKey.equals(publicKey),
-	);
+	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey => aPublicKey.equals(publicKey));
 
 	// If it's a mandatory Public Key find where to add the signature
 	if (mandatoryKeyIndex !== -1) {

@@ -13,10 +13,7 @@
  *
  */
 
-import {
-	getPrivateAndPublicKeyFromPassphrase,
-	bufferToHex,
-} from '@liskhq/lisk-cryptography';
+import { getPrivateAndPublicKeyFromPassphrase, bufferToHex } from '@liskhq/lisk-cryptography';
 
 interface PublicKeyPassphraseDict {
 	[key: string]: {

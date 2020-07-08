@@ -24,8 +24,7 @@ describe('message:sign', () => {
 	const message = 'Hello World';
 	const defaultSignedMessage = {
 		message,
-		publicKey:
-			'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+		publicKey: 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
 		signature:
 			'0c70c0ed6ca16312c6acab46dd8b801fd3f3a2bd68018651c2792b40a7d1d3ee276a6bafb6b4185637edfa4d282e18362e135c5e2cf0c68002bfd58307ddb30b',
 	};
@@ -38,16 +37,8 @@ describe('message:sign', () => {
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(
-				cryptography,
-				'signMessageWithPassphrase',
-				sandbox.stub().returns(defaultSignedMessage),
-			)
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(cryptography, 'signMessageWithPassphrase', sandbox.stub().returns(defaultSignedMessage))
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stub(readerUtils, 'readFileSource', sandbox.stub().resolves(defaultData))
 			.stdout();
 
@@ -64,20 +55,13 @@ describe('message:sign', () => {
 		setupTest()
 			.command(['message:sign', message])
 			.it('should sign the message with the arg', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				expect(readerUtils.readFileSource).not.to.be.calledWithExactly(
-					'file:./message.txt',
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				expect(readerUtils.readFileSource).not.to.be.calledWithExactly('file:./message.txt');
 				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
 					message,
 					defaultInputs,
 				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultSignedMessage,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultSignedMessage);
 			});
 	});
 
@@ -86,20 +70,13 @@ describe('message:sign', () => {
 		setupTest()
 			.command(['message:sign', `--message=${messageSource}`])
 			.it('should sign the message from flag', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				expect(readerUtils.readFileSource).not.to.be.calledWithExactly(
-					'file:./message.txt',
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				expect(readerUtils.readFileSource).not.to.be.calledWithExactly('file:./message.txt');
 				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
 					defaultData,
 					defaultInputs,
 				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultSignedMessage,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultSignedMessage);
 			});
 	});
 
@@ -108,25 +85,15 @@ describe('message:sign', () => {
 		const passphraseSource =
 			'card earn shift valley learn scorpion cage select help title control satoshi';
 		setupTest()
-			.command([
-				'message:sign',
-				`--message=${messageSource}`,
-				`--passphrase=${passphraseSource}`,
-			])
+			.command(['message:sign', `--message=${messageSource}`, `--passphrase=${passphraseSource}`])
 			.it('should sign the message from the flag and passphrase', () => {
-				expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWithExactly(
-					'passphrase',
-				);
-				expect(readerUtils.readFileSource).not.to.be.calledWithExactly(
-					'file:./message.txt',
-				);
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWithExactly('passphrase');
+				expect(readerUtils.readFileSource).not.to.be.calledWithExactly('file:./message.txt');
 				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
 					defaultData,
 					defaultInputs,
 				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultSignedMessage,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultSignedMessage);
 			});
 	});
 });

@@ -164,12 +164,8 @@ describe('Connection Create', () => {
 		});
 
 		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, () => {
-			expect(collectedErrors).toEqual(
-				expect.arrayContaining([INVALID_CONNECTION_SELF_REASON]),
-			);
-			expect(collectedErrors).toEqual(
-				expect.arrayContaining([INCOMPATIBLE_NETWORK_REASON]),
-			);
+			expect(collectedErrors).toEqual(expect.arrayContaining([INVALID_CONNECTION_SELF_REASON]));
+			expect(collectedErrors).toEqual(expect.arrayContaining([INCOMPATIBLE_NETWORK_REASON]));
 			expect(collectedErrors).toEqual(
 				expect.arrayContaining([INCOMPATIBLE_PROTOCOL_VERSION_REASON]),
 			);

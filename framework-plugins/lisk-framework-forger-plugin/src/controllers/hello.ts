@@ -14,9 +14,6 @@
 import { Request, Response } from 'express';
 import { BaseChannel } from 'lisk-framework';
 
-export const helloController = (_channel: BaseChannel) => (
-	_req: Request,
-	res: Response,
-): void => {
+export const helloController = (_channel: BaseChannel) => (_req: Request, res: Response): void => {
 	res.status(200).send({ hello: 'world' });
 };

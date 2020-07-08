@@ -65,19 +65,13 @@ export interface GenesisAccountStateJSON {
 	};
 }
 
-const accountFromJSON = (
-	account: GenesisAccountStateJSON,
-): GenesisAccountState<AccountAsset> => ({
+const accountFromJSON = (account: GenesisAccountStateJSON): GenesisAccountState<AccountAsset> => ({
 	address: Buffer.from(account.address, 'base64'),
 	balance: BigInt(account.balance),
 	nonce: BigInt(account.nonce),
 	keys: {
-		mandatoryKeys: account.keys.mandatoryKeys.map(key =>
-			Buffer.from(key, 'base64'),
-		),
-		optionalKeys: account.keys.optionalKeys.map(key =>
-			Buffer.from(key, 'base64'),
-		),
+		mandatoryKeys: account.keys.mandatoryKeys.map(key => Buffer.from(key, 'base64')),
+		optionalKeys: account.keys.optionalKeys.map(key => Buffer.from(key, 'base64')),
 		numberOfSignatures: account.keys.numberOfSignatures,
 	},
 	asset: {
@@ -97,18 +91,13 @@ const accountFromJSON = (
 	},
 });
 
-export const genesisBlockFromJSON = (
-	genesis: GenesisBlockJSON,
-): GenesisBlock<AccountAsset> => {
+export const genesisBlockFromJSON = (genesis: GenesisBlockJSON): GenesisBlock<AccountAsset> => {
 	const header = {
 		...genesis.header,
 		id: Buffer.from(genesis.header.id, 'base64'),
 		previousBlockID: Buffer.from(genesis.header.previousBlockID, 'base64'),
 		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'base64'),
-		generatorPublicKey: Buffer.from(
-			genesis.header.generatorPublicKey,
-			'base64',
-		),
+		generatorPublicKey: Buffer.from(genesis.header.generatorPublicKey, 'base64'),
 		reward: BigInt(genesis.header.reward),
 		signature: Buffer.from(genesis.header.signature, 'base64'),
 		asset: {

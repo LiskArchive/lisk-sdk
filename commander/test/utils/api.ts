@@ -116,8 +116,7 @@ describe('api utils', () => {
 	describe('when the network is set to nethash and nodes are provided', () => {
 		beforeEach(() => {
 			apiConfig = {
-				network:
-					'ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c',
+				network: 'ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c',
 				nodes: ['http://localhost:4000'],
 			};
 			apiClient = getAPIClient(apiConfig);
@@ -135,8 +134,7 @@ describe('api utils', () => {
 	describe('when the network is set to custom nethash and nodes are empty', () => {
 		beforeEach(() => {
 			apiConfig = {
-				network:
-					'ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c',
+				network: 'ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c',
 				nodes: [],
 			};
 		});

@@ -28,12 +28,7 @@ export interface CastVoteInputs {
 	readonly votes: ReadonlyArray<RawAssetVote>;
 }
 
-const validateInputs = ({
-	fee,
-	nonce,
-	networkIdentifier,
-	votes,
-}: CastVoteInputs): void => {
+const validateInputs = ({ fee, nonce, networkIdentifier, votes }: CastVoteInputs): void => {
 	if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
@@ -51,9 +46,7 @@ const validateInputs = ({
 	}
 };
 
-const convertVotes = (
-	votes: ReadonlyArray<RawAssetVote>,
-): ReadonlyArray<Vote> =>
+const convertVotes = (votes: ReadonlyArray<RawAssetVote>): ReadonlyArray<Vote> =>
 	votes.map(vote => ({
 		delegateAddress: hexToBuffer(vote.delegateAddress),
 		amount: BigInt(vote.amount),

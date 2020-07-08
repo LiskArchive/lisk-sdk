@@ -30,19 +30,17 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 
 	if (typeof data === 'string' && typeof format === 'string') {
 		if (!['utf8', 'hex'].includes(format)) {
-			throw new Error(
-				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
-			);
+			throw new Error('Unsupported string format. Currently only `hex` and `utf8` are supported.');
 		}
-		const encoded =
-			format === 'utf8' ? Buffer.from(data, 'utf8') : hexToBuffer(data);
+		const encoded = format === 'utf8' ? Buffer.from(data, 'utf8') : hexToBuffer(data);
 
 		return cryptoHashSha256(encoded);
 	}
 
 	throw new Error(
-		`Unsupported data:${data} and format:${format ??
-			'undefined'}. Currently only Buffers or hex and utf8 strings are supported.`,
+		`Unsupported data:${data} and format:${
+			format ?? 'undefined'
+		}. Currently only Buffers or hex and utf8 strings are supported.`,
 	);
 };
 
@@ -50,9 +48,4 @@ export const getNetworkIdentifier = (
 	genesisBlockTransactionRoot: Buffer,
 	communityIdentifier: string,
 ): Buffer =>
-	hash(
-		Buffer.concat([
-			genesisBlockTransactionRoot,
-			Buffer.from(communityIdentifier, 'utf8'),
-		]),
-	);
+	hash(Buffer.concat([genesisBlockTransactionRoot, Buffer.from(communityIdentifier, 'utf8')]));

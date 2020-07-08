@@ -50,9 +50,7 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = new TransferTransaction({
 					nonce: genesisAccount.nonce,
@@ -75,18 +73,13 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				returningTx.sign(
-					node['_networkIdentifier'],
-					accountWithoutBalance.passphrase,
-				);
+				returningTx.sign(node['_networkIdentifier'], accountWithoutBalance.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [fundingTx, returningTx]);
 				await node['_processor'].process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.header.id,
-				);
+				const createdBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
@@ -95,9 +88,7 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const fundingTx = new TransferTransaction({
 					nonce: genesisAccount.nonce,
@@ -118,10 +109,7 @@ describe('Transaction order', () => {
 						username: 'newdelegate',
 					},
 				});
-				registerDelegateTx.sign(
-					node['_networkIdentifier'],
-					newAccount.passphrase,
-				);
+				registerDelegateTx.sign(node['_networkIdentifier'], newAccount.passphrase);
 				const selfVoteTx = new VoteTransaction({
 					nonce: BigInt('1'),
 					fee: BigInt('100000000'),
@@ -136,18 +124,12 @@ describe('Transaction order', () => {
 					},
 				});
 				selfVoteTx.sign(node['_networkIdentifier'], newAccount.passphrase);
-				newBlock = await nodeUtils.createBlock(node, [
-					fundingTx,
-					registerDelegateTx,
-					selfVoteTx,
-				]);
+				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerDelegateTx, selfVoteTx]);
 				await node['_processor'].process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.header.id,
-				);
+				const createdBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
@@ -156,9 +138,7 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
 				const fundingTx = new TransferTransaction({
@@ -172,9 +152,7 @@ describe('Transaction order', () => {
 					},
 				});
 				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
-				const optionalKeys = [
-					...multiSignatureMembers.map(acc => acc.publicKey),
-				];
+				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
 				optionalKeys.sort((a, b) => a.compare(b));
 				const registerMultisigTx = new MultisignatureTransaction({
 					nonce: BigInt(0),
@@ -189,10 +167,7 @@ describe('Transaction order', () => {
 				registerMultisigTx.sign(
 					node['_networkIdentifier'],
 					newAccount.passphrase,
-					[
-						newAccount.passphrase,
-						...multiSignatureMembers.map(acc => acc.passphrase),
-					],
+					[newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
 					{
 						mandatoryKeys: [newAccount.publicKey],
 						optionalKeys,
@@ -218,18 +193,12 @@ describe('Transaction order', () => {
 						optionalKeys,
 					},
 				);
-				newBlock = await nodeUtils.createBlock(node, [
-					fundingTx,
-					registerMultisigTx,
-					transferTx,
-				]);
+				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerMultisigTx, transferTx]);
 				await node['_processor'].process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.header.id,
-				);
+				const createdBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
@@ -238,9 +207,7 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
 				const fundingTx = new TransferTransaction({
@@ -254,9 +221,7 @@ describe('Transaction order', () => {
 					},
 				});
 				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
-				const optionalKeys = [
-					...multiSignatureMembers.map(acc => acc.publicKey),
-				];
+				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
 				optionalKeys.sort((a, b) => a.compare(b));
 				const registerMultisigTx = new MultisignatureTransaction({
 					nonce: BigInt(0),
@@ -271,10 +236,7 @@ describe('Transaction order', () => {
 				registerMultisigTx.sign(
 					node['_networkIdentifier'],
 					newAccount.passphrase,
-					[
-						newAccount.passphrase,
-						...multiSignatureMembers.map(acc => acc.passphrase),
-					],
+					[newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
 					{
 						mandatoryKeys: [newAccount.publicKey],
 						optionalKeys,
@@ -292,11 +254,7 @@ describe('Transaction order', () => {
 					},
 				});
 				transferTx.sign(node['_networkIdentifier'], newAccount.passphrase);
-				newBlock = await nodeUtils.createBlock(node, [
-					fundingTx,
-					registerMultisigTx,
-					transferTx,
-				]);
+				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerMultisigTx, transferTx]);
 			});
 
 			it('should not accept the block', async () => {
@@ -318,9 +276,7 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = new TransferTransaction({
 					nonce: genesisAccount.nonce,
@@ -343,10 +299,7 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				spendingTx.sign(
-					node['_networkIdentifier'],
-					accountWithoutBalance.passphrase,
-				);
+				spendingTx.sign(node['_networkIdentifier'], accountWithoutBalance.passphrase);
 				const refundingTx = new TransferTransaction({
 					nonce: genesisAccount.nonce + BigInt(1),
 					senderPublicKey: genesis.publicKey,
@@ -358,11 +311,7 @@ describe('Transaction order', () => {
 					},
 				});
 				refundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
-				newBlock = await nodeUtils.createBlock(node, [
-					fundingTx,
-					spendingTx,
-					refundingTx,
-				]);
+				newBlock = await nodeUtils.createBlock(node, [fundingTx, spendingTx, refundingTx]);
 			});
 
 			it('should not accept the block', async () => {
@@ -373,9 +322,7 @@ describe('Transaction order', () => {
 					// eslint-disable-next-line jest/no-try-expect
 					expect(errors).toHaveLength(1);
 					// eslint-disable-next-line jest/no-try-expect
-					expect(errors[0].message).toContain(
-						'Account does not have enough minimum remaining',
-					);
+					expect(errors[0].message).toContain('Account does not have enough minimum remaining');
 				}
 			});
 		});

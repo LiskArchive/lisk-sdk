@@ -17,11 +17,7 @@ declare module 'sodium-native' {
 		publicKey: Buffer,
 		secretKey: Buffer,
 	): boolean;
-	export function crypto_sign_detached(
-		signature: Buffer,
-		message: Buffer,
-		secretKey: Buffer,
-	): void;
+	export function crypto_sign_detached(signature: Buffer, message: Buffer, secretKey: Buffer): void;
 	export function crypto_sign_verify_detached(
 		signature: Buffer,
 		message: Buffer,

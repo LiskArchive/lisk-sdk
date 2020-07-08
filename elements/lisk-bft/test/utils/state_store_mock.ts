@@ -55,9 +55,7 @@ export class StateStoreMock {
 		additionalInformation?: AdditionalInformation,
 	) {
 		// Make sure to be deep copy
-		this.accountData = initialAccount
-			? initialAccount.map(a => ({ ...a }))
-			: [];
+		this.accountData = initialAccount ? initialAccount.map(a => ({ ...a })) : [];
 
 		this.consensusStateData = initialState ? { ...initialState } : {};
 		this.chainData = additionalInformation?.chainData ?? {};
@@ -65,18 +63,14 @@ export class StateStoreMock {
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (address: Buffer): Promise<Account> => {
-				const account = this.accountData.find(acc =>
-					acc.address.equals(address),
-				);
+				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
 					throw new Error('Account not defined');
 				}
 				return { ...account };
 			},
 			set: (address: Buffer, account: Account): void => {
-				const index = this.accountData.findIndex(acc =>
-					acc.address.equals(address),
-				);
+				const index = this.accountData.findIndex(acc => acc.address.equals(address));
 				if (index > -1) {
 					this.accountData[index] = account;
 					return;
@@ -97,8 +91,7 @@ export class StateStoreMock {
 			lastBlockHeaders: additionalInformation?.lastBlockHeaders ?? [],
 		};
 		this.chain = {
-			get: async (key: string): Promise<Buffer | undefined> =>
-				Promise.resolve(this.chainData[key]),
+			get: async (key: string): Promise<Buffer | undefined> => Promise.resolve(this.chainData[key]),
 			set: (key: string, value: Buffer): void => {
 				this.chainData[key] = value;
 			},

@@ -22,9 +22,7 @@ import { PluginOptions } from '../types';
 const modulePath: string = process.argv[2];
 const moduleExportName: string = process.argv[3];
 // eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
-const Klass: InstantiablePlugin<BasePlugin> = require(modulePath)[
-	moduleExportName
-];
+const Klass: InstantiablePlugin<BasePlugin> = require(modulePath)[moduleExportName];
 
 const _loadPlugin = async (
 	config: {

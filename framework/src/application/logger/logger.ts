@@ -57,19 +57,7 @@ class ConsoleLog {
 	// eslint-disable-next-line
 	write(rec: LogObject) {
 		try {
-			const {
-				time,
-				level,
-				name,
-				msg,
-				module,
-				err,
-				hostname,
-				pid,
-				src,
-				v,
-				...others
-			} = rec;
+			const { time, level, name, msg, module, err, hostname, pid, src, v, ...others } = rec;
 			let log = util.format(
 				'%s %s %s: %s (module=%s)\n',
 				new Date(time as string).toLocaleTimeString('en-US', { hour12: false }),

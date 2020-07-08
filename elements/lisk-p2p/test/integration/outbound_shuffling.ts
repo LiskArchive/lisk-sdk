@@ -24,11 +24,7 @@ describe('Outbound peer shuffling', () => {
 	const OUTBOUND_SHUFFLE_INTERVAL = 1000;
 
 	beforeEach(async () => {
-		const customConfig = (
-			_index: number,
-			_startPort: number,
-			networkSize: number,
-		) => ({
+		const customConfig = (_index: number, _startPort: number, networkSize: number) => ({
 			maxOutboundConnections: Math.round(networkSize / 2),
 			maxInboundConnections: Math.round(networkSize / 2),
 			outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
@@ -47,10 +43,7 @@ describe('Outbound peer shuffling', () => {
 					let evictedConnections = collectedEventsCount.get(p2p.config.port);
 
 					if (evictedConnections) {
-						collectedEventsCount.set(
-							p2p.config.port,
-							(evictedConnections += 1),
-						);
+						collectedEventsCount.set(p2p.config.port, (evictedConnections += 1));
 					} else {
 						collectedEventsCount.set(p2p.config.port, 1);
 					}

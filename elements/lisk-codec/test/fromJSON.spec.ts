@@ -26,12 +26,8 @@ describe('toJSON', () => {
 			nonce: BigInt(object.nonce),
 			keys: {
 				...object.keys,
-				mandatoryKeys: object.keys.mandatoryKeys.map(mKey =>
-					Buffer.from(mKey.data),
-				),
-				optionalKeys: object.keys.optionalKeys.map((oKey: any) =>
-					Buffer.from(oKey.data),
-				),
+				mandatoryKeys: object.keys.mandatoryKeys.map(mKey => Buffer.from(mKey.data)),
+				optionalKeys: object.keys.optionalKeys.map((oKey: any) => Buffer.from(oKey.data)),
 			},
 			asset: {
 				...object.asset,
@@ -71,22 +67,16 @@ describe('toJSON', () => {
 				...object.asset,
 				delegate: {
 					...object.asset.delegate,
-					totalVotesReceived: BigInt(
-						object.asset.delegate.totalVotesReceived,
-					).toString(),
+					totalVotesReceived: BigInt(object.asset.delegate.totalVotesReceived).toString(),
 				},
 				sentVotes: object.asset.sentVotes.map(v => ({
 					...v,
-					delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-						'base64',
-					),
+					delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 					amount: BigInt(v.amount).toString(),
 				})),
 				unlocking: object.asset.unlocking.map(v => ({
 					...v,
-					delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-						'base64',
-					),
+					delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 					amount: BigInt(v.amount.toString()).toString(),
 				})),
 			},

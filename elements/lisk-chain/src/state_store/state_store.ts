@@ -54,10 +54,7 @@ export class StateStore {
 	public readonly chain: ChainStateStore;
 	public readonly consensus: ConsensusStateStore;
 
-	public constructor(
-		dataAccess: DataAccess,
-		additionalInformation: AdditionalInformation,
-	) {
+	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
 		this.account = new AccountStore(dataAccess, {
 			defaultAsset: additionalInformation.defaultAsset,
 		});
@@ -87,10 +84,6 @@ export class StateStore {
 		const accountStateDiff = this.account.finalize(batch);
 		const chainStateDiff = this.chain.finalize(batch);
 		const consensusStateDiff = this.consensus.finalize(batch);
-		saveDiff(
-			height,
-			[accountStateDiff, chainStateDiff, consensusStateDiff],
-			batch,
-		);
+		saveDiff(height, [accountStateDiff, chainStateDiff, consensusStateDiff], batch);
 	}
 }

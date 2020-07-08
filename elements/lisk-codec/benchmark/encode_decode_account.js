@@ -20,22 +20,13 @@ const suite = new Suite();
 const account = {
 	address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
 	balance: BigInt(10),
-	publicKey: Buffer.from(
-		'0fd3c50a6d3bd17ea806c0566cf6cf10f6e3697d9bda1820b00cb14746bcccef',
-		'hex',
-	),
+	publicKey: Buffer.from('0fd3c50a6d3bd17ea806c0566cf6cf10f6e3697d9bda1820b00cb14746bcccef', 'hex'),
 	nonce: 5,
 	keys: {
 		numberOfSignatures: 2,
 		mandatoryKeys: [
-			Buffer.from(
-				'c8b8fbe474a2b63ccb9744a409569b0a465ee1803f80435aec1c5e7fc2d4ee18',
-				'hex',
-			),
-			Buffer.from(
-				'6115424fec0ce9c3bac5a81b5c782827d1f956fb95f1ccfa36c566d04e4d7267',
-				'hex',
-			),
+			Buffer.from('c8b8fbe474a2b63ccb9744a409569b0a465ee1803f80435aec1c5e7fc2d4ee18', 'hex'),
+			Buffer.from('6115424fec0ce9c3bac5a81b5c782827d1f956fb95f1ccfa36c566d04e4d7267', 'hex'),
 		],
 		optionalKeys: [],
 	},
@@ -171,7 +162,7 @@ suite
 	.add('Decode Lisk account', () => {
 		codec.decode(testSchema, accountEncoded);
 	})
-	.on('cycle', function(event) {
+	.on('cycle', function (event) {
 		console.log(String(event.target));
 	})
 	.run({ async: false });

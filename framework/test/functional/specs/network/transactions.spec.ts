@@ -71,9 +71,9 @@ describe('Public transaction related P2P endpoints', () => {
 
 	describe('postTransactionsAnnouncement', () => {
 		it('should request announced transaction', async () => {
-			const genesisAccount = await app['_node'][
-				'_chain'
-			].dataAccess.getAccountByAddress(genesis.address);
+			const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress(
+				genesis.address,
+			);
 			const accountWithoutBalance = nodeUtils.createAccount();
 			const tx = new TransferTransaction({
 				nonce: genesisAccount.nonce,
@@ -101,9 +101,7 @@ describe('Public transaction related P2P endpoints', () => {
 				});
 			});
 			expect(request.procedure).toEqual('getTransactions');
-			expect((request as any).data.transactionIds[0]).toEqual(
-				tx.id.toString('base64'),
-			);
+			expect((request as any).data.transactionIds[0]).toEqual(tx.id.toString('base64'));
 		});
 	});
 });

@@ -57,9 +57,7 @@ describe('random_seed', () => {
 				genesisBlockHeight: 0,
 				initRound: 3,
 			});
-			const round = rounds.calcRound(
-				input.blocks[input.blocks.length - 1].height,
-			);
+			const round = rounds.calcRound(input.blocks[input.blocks.length - 1].height);
 			const headers = generateHeadersFromTest(input.blocks);
 
 			// Act & Assert
@@ -81,9 +79,7 @@ describe('random_seed', () => {
 						initRound: 3,
 					});
 
-					const round = rounds.calcRound(
-						input.blocks[input.blocks.length - 1].height,
-					);
+					const round = rounds.calcRound(input.blocks[input.blocks.length - 1].height);
 					const headers = generateHeadersFromTest(input.blocks);
 
 					// Act

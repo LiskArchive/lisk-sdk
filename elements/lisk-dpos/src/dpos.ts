@@ -115,21 +115,14 @@ export class Dpos {
 		return this._delegatesPerRound;
 	}
 
-	public async getForgerAddressesForRound(
-		round: number,
-	): Promise<ReadonlyArray<Buffer>> {
+	public async getForgerAddressesForRound(round: number): Promise<ReadonlyArray<Buffer>> {
 		return this.delegatesList.getDelegateList(round);
 	}
 
-	public async onBlockFinalized(
-		stateStore: StateStore,
-		finalizedHeight: number,
-	): Promise<void> {
+	public async onBlockFinalized(stateStore: StateStore, finalizedHeight: number): Promise<void> {
 		const finalizedBlockRound = this.rounds.calcRound(finalizedHeight);
 		const disposableDelegateList =
-			finalizedBlockRound -
-			this.delegateListRoundOffset -
-			this.delegateActiveRoundLimit;
+			finalizedBlockRound - this.delegateListRoundOffset - this.delegateActiveRoundLimit;
 		await deleteForgersListUntilRound(disposableDelegateList, stateStore);
 		await deleteVoteWeightsUntilRound(disposableDelegateList, stateStore);
 	}
@@ -151,9 +144,7 @@ export class Dpos {
 		// Remove the future rounds
 		const currentRound = this.rounds.calcRound(height);
 		// It should not consider current round
-		const previousForgersList = forgersList.filter(
-			fl => fl.round < currentRound,
-		);
+		const previousForgersList = forgersList.filter(fl => fl.round < currentRound);
 
 		const activeRounds = this._findEarliestActiveListRound(
 			address,
@@ -167,42 +158,27 @@ export class Dpos {
 		return Math.max(firstNonBootstrapHeight, minActiveHeight);
 	}
 
-	public async isActiveDelegate(
-		address: Buffer,
-		height: number,
-	): Promise<boolean> {
+	public async isActiveDelegate(address: Buffer, height: number): Promise<boolean> {
 		const relevantRound = this.rounds.calcRound(height);
 		const voteWeightsBuffer = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		);
 		if (!voteWeightsBuffer) {
-			throw new Error(
-				'Invalid consensus state. Delegate vote weights should always exist',
-			);
+			throw new Error('Invalid consensus state. Delegate vote weights should always exist');
 		}
 
-		const { voteWeights } = codec.decode<DecodedVoteWeights>(
-			voteWeightsSchema,
-			voteWeightsBuffer,
-		);
+		const { voteWeights } = codec.decode<DecodedVoteWeights>(voteWeightsSchema, voteWeightsBuffer);
 
-		const voteWeight = voteWeights.find(
-			roundRecord => roundRecord.round === relevantRound,
-		);
+		const voteWeight = voteWeights.find(roundRecord => roundRecord.round === relevantRound);
 
 		if (!voteWeight) {
 			throw new Error(
 				`Vote weight not found for round ${relevantRound.toString()} for the given height ${height.toString()}`,
 			);
 		}
-		const activeDelegateVoteWeights = voteWeight.delegates.slice(
-			0,
-			this._activeDelegates,
-		);
+		const activeDelegateVoteWeights = voteWeight.delegates.slice(0, this._activeDelegates);
 
-		return (
-			activeDelegateVoteWeights.findIndex(vw => vw.address.equals(address)) > -1
-		);
+		return activeDelegateVoteWeights.findIndex(vw => vw.address.equals(address)) > -1;
 	}
 
 	public isBootstrapPeriod(height: number): boolean {
@@ -216,9 +192,7 @@ export class Dpos {
 	): Promise<boolean> {
 		const forgersList = await getForgersList(stateStore);
 		const relevantRound = this.rounds.calcRound(height);
-		const foundForgerList = forgersList.find(
-			roundRecord => roundRecord.round === relevantRound,
-		);
+		const foundForgerList = forgersList.find(roundRecord => roundRecord.round === relevantRound);
 
 		if (!foundForgerList) {
 			throw new Error(
@@ -282,10 +256,7 @@ export class Dpos {
 			asset: { seedReveal: newBlockSeedReveal },
 		} = blockHeader;
 		const SEED_REVEAL_BYTE_SIZE = 16;
-		const newBlockSeedRevealBuffer = hash(newBlockSeedReveal).slice(
-			0,
-			SEED_REVEAL_BYTE_SIZE,
-		);
+		const newBlockSeedRevealBuffer = hash(newBlockSeedReveal).slice(0, SEED_REVEAL_BYTE_SIZE);
 
 		// New block seed reveal should be a preimage of the last block seed reveal
 		if (previousBlockSeedReveal.equals(newBlockSeedRevealBuffer)) {

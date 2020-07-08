@@ -32,9 +32,7 @@ import { TransferAsset } from '../../src/8_transfer_transaction';
 import { defaultAccount } from './state_store_mock';
 
 const getMemberPublicKeys = (members: any): Buffer[] =>
-	Object.values(members).map((member: any) =>
-		Buffer.from(member.publicKey, 'base64'),
-	);
+	Object.values(members).map((member: any) => Buffer.from(member.publicKey, 'base64'));
 
 describe('#verify', () => {
 	const defualtTestCase = multisigFixture.testCases[0];
@@ -51,10 +49,7 @@ describe('#verify', () => {
 
 	beforeEach(() => {
 		{
-			const buffer = Buffer.from(
-				fixture.testCases[0].output.transaction,
-				'base64',
-			);
+			const buffer = Buffer.from(fixture.testCases[0].output.transaction, 'base64');
 			const id = hash(buffer);
 			const decodedBaseTransaction = codec.decode<BaseTransaction>(
 				BaseTransaction.BASE_SCHEMA,
@@ -90,9 +85,7 @@ describe('#verify', () => {
 				asset: decodedAsset,
 				id,
 			};
-			validMultisignatureTestTransaction = new MultisignatureTransaction(
-				decodedMultiSignature,
-			);
+			validMultisignatureTestTransaction = new MultisignatureTransaction(decodedMultiSignature);
 		}
 	});
 
@@ -140,10 +133,7 @@ describe('#verify', () => {
 
 	describe('#validateKeysSignatures', () => {
 		it('should return errors when signatures has invalid signature', () => {
-			const {
-				senderPublicKey,
-				signatures,
-			} = validMultisignatureTestTransaction;
+			const { senderPublicKey, signatures } = validMultisignatureTestTransaction;
 			const invalidSignature = signatures[0];
 			(invalidSignature as any)[0] = 20;
 			const [result] = validateKeysSignatures(
@@ -182,19 +172,13 @@ describe('#verify', () => {
 				),
 				asset: {
 					amount: BigInt('500000000'),
-					recipientAddress: Buffer.from(
-						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						'hex',
-					),
+					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 					data: '',
 				},
 			});
 
 			validTransfer.sign(
-				Buffer.from(
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-					'hex',
-				),
+				Buffer.from('e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255', 'hex'),
 				undefined,
 				[
 					'trim elegant oven term access apple obtain error grain excite lawn neck',
@@ -204,24 +188,12 @@ describe('#verify', () => {
 				],
 				{
 					mandatoryKeys: [
-						Buffer.from(
-							'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-							'hex',
-						),
-						Buffer.from(
-							'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-							'hex',
-						),
+						Buffer.from('f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3', 'hex'),
+						Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
 					],
 					optionalKeys: [
-						Buffer.from(
-							'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-							'hex',
-						),
-						Buffer.from(
-							'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-							'hex',
-						),
+						Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
+						Buffer.from('57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4', 'hex'),
 					],
 				},
 			);
@@ -229,24 +201,12 @@ describe('#verify', () => {
 			const senderAccount = defaultAccount({
 				keys: {
 					mandatoryKeys: [
-						Buffer.from(
-							'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-							'hex',
-						),
-						Buffer.from(
-							'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-							'hex',
-						),
+						Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
+						Buffer.from('f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3', 'hex'),
 					],
 					optionalKeys: [
-						Buffer.from(
-							'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-							'hex',
-						),
-						Buffer.from(
-							'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-							'hex',
-						),
+						Buffer.from('57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4', 'hex'),
+						Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
 					],
 					numberOfSignatures: 4,
 				},
@@ -321,9 +281,7 @@ describe('#verify', () => {
 			const senderAccount = defaultAccount({
 				keys: validMultisignatureTestTransaction.asset as any,
 			});
-			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(
-				1,
-			) as Buffer[];
+			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(1) as Buffer[];
 			const firstSignature = invalidSignature.shift();
 			invalidSignature.push(firstSignature as Buffer);
 
@@ -349,9 +307,7 @@ describe('#verify', () => {
 			const lastSignature = signatures.pop();
 			signatures.unshift(lastSignature as Buffer);
 
-			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(
-				1,
-			) as Buffer[];
+			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(1) as Buffer[];
 			invalidSignature[0][0] = 10;
 
 			const [result] = verifyMultiSignatureTransaction(
@@ -373,9 +329,7 @@ describe('#verify', () => {
 				keys: validMultisignatureTestTransaction.asset as any,
 			});
 
-			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(
-				1,
-			) as Buffer[];
+			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(1) as Buffer[];
 			invalidSignature[0][0] = 10;
 
 			const [result] = verifyMultiSignatureTransaction(

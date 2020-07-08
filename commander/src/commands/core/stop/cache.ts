@@ -17,11 +17,7 @@ import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 
 import BaseCommand from '../../../base';
-import {
-	isCacheEnabled,
-	isCacheRunning,
-	stopCache,
-} from '../../../utils/core/cache';
+import { isCacheEnabled, isCacheRunning, stopCache } from '../../../utils/core/cache';
 import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {

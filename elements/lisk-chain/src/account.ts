@@ -81,10 +81,7 @@ export class Account<T = DefaultAsset> {
 		return this._stringAddress;
 	}
 
-	public static getDefaultAccount<T>(
-		address: Buffer,
-		defaultAsset?: T,
-	): Account<T> {
+	public static getDefaultAccount<T>(address: Buffer, defaultAsset?: T): Account<T> {
 		return new Account<T>({
 			address,
 			...accountDefaultValues,

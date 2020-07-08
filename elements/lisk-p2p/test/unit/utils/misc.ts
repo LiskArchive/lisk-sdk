@@ -94,15 +94,13 @@ describe('utils/misc', () => {
 
 	describe('#getNetgroup', () => {
 		it(`should throw an error if network is equal to ${NETWORK.NET_OTHER}`, () => {
-			expect(() =>
-				getNetgroup('wrong ipAddress', DEFAULT_RANDOM_SECRET),
-			).toThrow('IP address is unsupported.');
+			expect(() => getNetgroup('wrong ipAddress', DEFAULT_RANDOM_SECRET)).toThrow(
+				'IP address is unsupported.',
+			);
 		});
 
 		it('should return a number netgroup', () => {
-			return expect(getNetgroup(IPv4Address, secret)).toEqual(
-				expect.any(Number),
-			);
+			return expect(getNetgroup(IPv4Address, secret)).toEqual(expect.any(Number));
 		});
 
 		it('should return different netgroup for different addresses', () => {
@@ -278,9 +276,7 @@ describe('utils/misc', () => {
 					}),
 				);
 			const firstBucket = collectedBuckets[0];
-			expect(collectedBuckets.every(bucket => bucket === firstBucket)).toBe(
-				true,
-			);
+			expect(collectedBuckets.every(bucket => bucket === firstBucket)).toBe(true);
 		});
 
 		it('should return NaN if bucketCount is 0', () => {
@@ -355,73 +351,61 @@ describe('utils/misc', () => {
 		});
 
 		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', () => {
-			const expectedPeerCountPerBucketLowerBound =
-				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.4;
-			const expectedPeerCountPerBucketUpperBound =
-				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.7;
-			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
-				.fill(0)
-				.reduce((prev: any) => {
-					const targetAddress = `${Math.floor(
-						Math.random() * 256,
-					)}.${Math.floor(Math.random() * 256)}.254.1`;
-					const bucket = getBucketId({
-						secret,
-						targetAddress,
-						sourceAddress: targetAddress,
-						peerType: PEER_TYPE.TRIED_PEER,
-						bucketCount: MAX_TRIED_BUCKETS,
-					});
-					if (!prev[bucket]) {
-						// eslint-disable-next-line no-param-reassign
-						prev[bucket] = 0;
-					}
+			const expectedPeerCountPerBucketLowerBound = (MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.4;
+			const expectedPeerCountPerBucketUpperBound = (MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.7;
+			const collectedBuckets = new Array(MAX_PEER_ADDRESSES).fill(0).reduce((prev: any) => {
+				const targetAddress = `${Math.floor(Math.random() * 256)}.${Math.floor(
+					Math.random() * 256,
+				)}.254.1`;
+				const bucket = getBucketId({
+					secret,
+					targetAddress,
+					sourceAddress: targetAddress,
+					peerType: PEER_TYPE.TRIED_PEER,
+					bucketCount: MAX_TRIED_BUCKETS,
+				});
+				if (!prev[bucket]) {
 					// eslint-disable-next-line no-param-reassign
-					prev[bucket] += 1;
+					prev[bucket] = 0;
+				}
+				// eslint-disable-next-line no-param-reassign
+				prev[bucket] += 1;
 
-					return prev;
-				}, {});
+				return prev;
+			}, {});
 
 			Object.values(collectedBuckets).forEach((bucketCount: any) => {
-				expect(bucketCount).toBeGreaterThan(
-					expectedPeerCountPerBucketLowerBound,
-				);
+				expect(bucketCount).toBeGreaterThan(expectedPeerCountPerBucketLowerBound);
 				expect(bucketCount).toBeLessThan(expectedPeerCountPerBucketUpperBound);
 			});
 		});
 
 		// The bounds are more tolerant here due to our temporary solution to not include source IP changing the outcome of distribution
 		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for new peers', () => {
-			const expectedPeerCountPerBucketLowerBound =
-				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 0.2;
-			const expectedPeerCountPerBucketUpperBound =
-				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 2.7;
-			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
-				.fill(0)
-				.reduce((prev: any) => {
-					const targetAddress = `${Math.floor(
-						Math.random() * 256,
-					)}.${Math.floor(Math.random() * 256)}.254.1`;
-					const bucket = getBucketId({
-						secret,
-						targetAddress,
-						sourceAddress: targetAddress,
-						peerType: PEER_TYPE.NEW_PEER,
-						bucketCount: MAX_NEW_BUCKETS,
-					});
-					if (!prev[bucket]) {
-						// eslint-disable-next-line no-param-reassign
-						prev[bucket] = 0;
-					}
+			const expectedPeerCountPerBucketLowerBound = (MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 0.2;
+			const expectedPeerCountPerBucketUpperBound = (MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 2.7;
+			const collectedBuckets = new Array(MAX_PEER_ADDRESSES).fill(0).reduce((prev: any) => {
+				const targetAddress = `${Math.floor(Math.random() * 256)}.${Math.floor(
+					Math.random() * 256,
+				)}.254.1`;
+				const bucket = getBucketId({
+					secret,
+					targetAddress,
+					sourceAddress: targetAddress,
+					peerType: PEER_TYPE.NEW_PEER,
+					bucketCount: MAX_NEW_BUCKETS,
+				});
+				if (!prev[bucket]) {
 					// eslint-disable-next-line no-param-reassign
-					prev[bucket] += 1;
+					prev[bucket] = 0;
+				}
+				// eslint-disable-next-line no-param-reassign
+				prev[bucket] += 1;
 
-					return prev;
-				}, {});
+				return prev;
+			}, {});
 			Object.values(collectedBuckets).forEach((bucketCount: any) => {
-				expect(bucketCount).toBeGreaterThan(
-					expectedPeerCountPerBucketLowerBound,
-				);
+				expect(bucketCount).toBeGreaterThan(expectedPeerCountPerBucketLowerBound);
 				expect(bucketCount).toBeLessThan(expectedPeerCountPerBucketUpperBound);
 			});
 		});

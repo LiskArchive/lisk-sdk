@@ -103,8 +103,7 @@ export class MinHeap<T, K = bigint | number> {
 			const rightChild = this._rightChildIndex(index);
 			// Choose smaller path
 			const nextPath =
-				rightChild < this.count &&
-				this._nodes[rightChild].key < this._nodes[leftChild].key
+				rightChild < this.count && this._nodes[rightChild].key < this._nodes[leftChild].key
 					? rightChild
 					: leftChild;
 

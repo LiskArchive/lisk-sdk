@@ -36,8 +36,7 @@ import { StateStoreMock } from '../utils/state_store_mock';
 import { searchBufferArray } from '../utils/search_buffer_array';
 
 const MS_IN_A_SEC = 1000;
-const GENESIS_BLOCK_TIMESTAMP =
-	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
+const GENESIS_BLOCK_TIMESTAMP = new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 describe('Forger selection', () => {
 	let delegateList: DelegatesList;
@@ -131,10 +130,7 @@ describe('Forger selection', () => {
 						CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 					);
 
-					const { forgersList } = codec.decode(
-						forgerListSchema,
-						forgersListBuffer as Buffer,
-					);
+					const { forgersList } = codec.decode(forgerListSchema, forgersListBuffer as Buffer);
 
 					expect(forgersList).toHaveLength(1);
 					expect(forgersList[0].round).toEqual(defaultRound);
@@ -147,9 +143,7 @@ describe('Forger selection', () => {
 
 					expect(
 						Buffer.concat(
-							forgersList[0].delegates.sort((a: Buffer, b: Buffer) =>
-								a.compare(b),
-							),
+							forgersList[0].delegates.sort((a: Buffer, b: Buffer) => a.compare(b)),
 						).compare(sortedFixturesForgersBuffer),
 					).toEqual(0);
 				});
@@ -212,10 +206,7 @@ describe('Forger selection', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 
-			const { forgersList } = codec.decode(
-				forgerListSchema,
-				forgersListBuffer as Buffer,
-			);
+			const { forgersList } = codec.decode(forgerListSchema, forgersListBuffer as Buffer);
 			expect(forgersList[0].delegates).toHaveLength(103);
 		});
 
@@ -224,23 +215,14 @@ describe('Forger selection', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 
-			const { forgersList } = codec.decode(
-				forgerListSchema,
-				forgersListBuffer as Buffer,
-			);
+			const { forgersList } = codec.decode(forgerListSchema, forgersListBuffer as Buffer);
 
 			const standByCandidates = delegates.slice(101).map(d => d.address);
 			expect(forgersList[0].standby).toHaveLength(2);
 			for (const standby of forgersList[0].standby) {
-				const standByInDelegateFound = searchBufferArray(
-					standby,
-					forgersList[0].delegates,
-				);
+				const standByInDelegateFound = searchBufferArray(standby, forgersList[0].delegates);
 				expect(standByInDelegateFound).toBe(true);
-				const standByCandidatesFound = searchBufferArray(
-					standby,
-					standByCandidates,
-				);
+				const standByCandidatesFound = searchBufferArray(standby, standByCandidates);
 				expect(standByCandidatesFound).toBe(true);
 			}
 		});

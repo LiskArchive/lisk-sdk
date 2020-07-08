@@ -61,10 +61,7 @@ describe('dataAccess.transactions', () => {
 				balance: BigInt('10000'),
 				keys: {
 					mandatoryKeys: [
-						Buffer.from(
-							'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
-							'hex',
-						),
+						Buffer.from('456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e', 'hex'),
 					],
 					optionalKeys: [],
 					numberOfSignatures: 3,
@@ -105,10 +102,7 @@ describe('dataAccess.transactions', () => {
 	describe('getAccountsByAddress', () => {
 		it('should not throw "not found" error if non existent address is specified', async () => {
 			await expect(
-				dataAccess.getAccountsByAddress([
-					getRandomBytes(20),
-					accounts[0].address,
-				]),
+				dataAccess.getAccountsByAddress([getRandomBytes(20), accounts[0].address]),
 			).resolves.toEqual([accounts[0]]);
 		});
 

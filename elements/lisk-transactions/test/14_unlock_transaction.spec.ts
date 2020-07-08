@@ -16,11 +16,7 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as fixtures from '../fixtures/unlock_transaction/unlock_transaction.json';
-import {
-	UnlockTransaction,
-	UnlockAsset,
-	Unlock,
-} from '../src/14_unlock_transaction';
+import { UnlockTransaction, UnlockAsset, Unlock } from '../src/14_unlock_transaction';
 import { Status, Account, BaseTransaction } from '../src';
 import { StateStoreMock, defaultAccount } from './utils/state_store_mock';
 import { BaseTransactionInput, AccountAsset } from '../src/types';
@@ -32,10 +28,7 @@ describe('Unlock transaction', () => {
 	let tx: UnlockTransaction;
 
 	beforeEach(() => {
-		const buffer = Buffer.from(
-			validUnlockTransactionScenario.output.transaction,
-			'base64',
-		);
+		const buffer = Buffer.from(validUnlockTransactionScenario.output.transaction, 'base64');
 		const id = hash(buffer);
 		const decodedBaseTransaction = codec.decode<BaseTransaction>(
 			BaseTransaction.BASE_SCHEMA,
@@ -70,9 +63,7 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude(
-					'should NOT have fewer than 1 items',
-				);
+				expect(errors[0].message).toInclude('should NOT have fewer than 1 items');
 			});
 		});
 
@@ -81,10 +72,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects,
 					{
-						delegateAddress: Buffer.from(
-							'peEQGWxQQ0i//keDjaA2KQ6DnNA=',
-							'base64',
-						),
+						delegateAddress: Buffer.from('peEQGWxQQ0i//keDjaA2KQ6DnNA=', 'base64'),
 						amount: BigInt(10000000000),
 						unvoteHeight: 2,
 					},
@@ -92,9 +80,7 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude(
-					'should NOT have more than 20 items',
-				);
+				expect(errors[0].message).toInclude('should NOT have more than 20 items');
 			});
 		});
 
@@ -103,10 +89,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from(
-							'rMn8F+DShl+EvPoL28ti9YpdMG8=',
-							'base64',
-						),
+						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
 						amount: BigInt(-10000000000),
 						unvoteHeight: 2,
 					},
@@ -114,9 +97,7 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude(
-					'should pass "dataType" keyword validation',
-				);
+				expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
 			});
 		});
 
@@ -125,10 +106,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from(
-							'peEQGWxQQ0i//keDjaA2KQ6DnNA=',
-							'base64',
-						),
+						delegateAddress: Buffer.from('peEQGWxQQ0i//keDjaA2KQ6DnNA=', 'base64'),
 						amount: BigInt(0),
 						unvoteHeight: 2,
 					},
@@ -136,9 +114,7 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude(
-					'Amount cannot be less than or equal to zero',
-				);
+				expect(errors[0].message).toInclude('Amount cannot be less than or equal to zero');
 			});
 		});
 
@@ -147,10 +123,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from(
-							'rMn8F+DShl+EvPoL28ti9YpdMG8=',
-							'base64',
-						),
+						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
 						amount: BigInt(999999999),
 						unvoteHeight: 2,
 					},
@@ -158,9 +131,7 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude(
-					'Amount should be multiple of 10 * 10^8',
-				);
+				expect(errors[0].message).toInclude('Amount should be multiple of 10 * 10^8');
 			});
 		});
 
@@ -169,10 +140,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from(
-							'rMn8F+DShl+EvPoL28ti9YpdMG8=',
-							'base64',
-						),
+						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
 						amount: BigInt(1000000000),
 						unvoteHeight: -4,
 					},
@@ -180,9 +148,7 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude(
-					'should pass "dataType" keyword validation',
-				);
+				expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
 			});
 		});
 	});
@@ -196,10 +162,7 @@ describe('Unlock transaction', () => {
 		beforeEach(() => {
 			sender = defaultAccount({
 				nonce: decodedTransaction.nonce,
-				address: Buffer.from(
-					validUnlockTransactionScenario.input.account.address,
-					'base64',
-				),
+				address: Buffer.from(validUnlockTransactionScenario.input.account.address, 'base64'),
 				balance: BigInt(decodedTransaction.fee) + minBalance,
 				asset: {
 					delegate: {
@@ -242,28 +205,18 @@ describe('Unlock transaction', () => {
 					// Mutate not to be selfvote and resign
 					const senderIndex = tx.asset.unlockObjects.findIndex(u =>
 						u.delegateAddress.equals(
-							Buffer.from(
-								validUnlockTransactionScenario.input.account.address,
-								'base64',
-							),
+							Buffer.from(validUnlockTransactionScenario.input.account.address, 'base64'),
 						),
 					);
-					(tx.asset.unlockObjects[
-						senderIndex
-					] as any).delegateAddress = Buffer.from(
+					(tx.asset.unlockObjects[senderIndex] as any).delegateAddress = Buffer.from(
 						validUnlockTransactionScenario.input.delegates[0].address,
 						'base64',
 					);
 					tx.sign(
-						Buffer.from(
-							validUnlockTransactionScenario.input.networkIdentifier,
-							'base64',
-						),
+						Buffer.from(validUnlockTransactionScenario.input.networkIdentifier, 'base64'),
 						validUnlockTransactionScenario.input.account.passphrase,
 					);
-					maxHeight = Math.max(
-						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-					);
+					maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 					sender = defaultAccount({
 						...sender,
 						asset: {
@@ -291,24 +244,18 @@ describe('Unlock transaction', () => {
 
 				it('should make account to have correct balance', async () => {
 					await tx.apply(store);
-					const updatedSender = await store.account.get<AccountAsset>(
-						sender.address,
-					);
+					const updatedSender = await store.account.get<AccountAsset>(sender.address);
 					const totalAmount =
 						decodedTransaction.asset.unlockObjects.reduce(
 							(prev, current) => prev + BigInt(current.amount),
 							BigInt(0),
 						) + minBalance;
-					expect(updatedSender.balance.toString()).toEqual(
-						totalAmount.toString(),
-					);
+					expect(updatedSender.balance.toString()).toEqual(totalAmount.toString());
 				});
 
 				it('should remove unlocking from the sender', async () => {
 					await tx.apply(store);
-					const updatedSender = await store.account.get<AccountAsset>(
-						sender.address,
-					);
+					const updatedSender = await store.account.get<AccountAsset>(sender.address);
 					expect(updatedSender.asset.unlocking).toHaveLength(0);
 				});
 
@@ -342,24 +289,18 @@ describe('Unlock transaction', () => {
 
 				it('should make account to have correct balance', async () => {
 					await tx.apply(store);
-					const updatedSender = await store.account.get<AccountAsset>(
-						sender.address,
-					);
+					const updatedSender = await store.account.get<AccountAsset>(sender.address);
 					const totalAmount =
 						decodedTransaction.asset.unlockObjects.reduce(
 							(prev, current) => prev + BigInt(current.amount),
 							BigInt(0),
 						) + minBalance;
-					expect(updatedSender.balance.toString()).toEqual(
-						totalAmount.toString(),
-					);
+					expect(updatedSender.balance.toString()).toEqual(totalAmount.toString());
 				});
 
 				it('should remove unlocking from the sender', async () => {
 					await tx.apply(store);
-					const updatedSender = await store.account.get<AccountAsset>(
-						sender.address,
-					);
+					const updatedSender = await store.account.get<AccountAsset>(sender.address);
 					expect(updatedSender.asset.unlocking).toHaveLength(0);
 				});
 
@@ -389,17 +330,16 @@ describe('Unlock transaction', () => {
 				store = new StateStoreMock(
 					[
 						sender,
-						...validUnlockTransactionScenario.input.delegates.map(
-							(delegate, i) =>
-								defaultAccount({
-									address: Buffer.from(delegate.address, 'base64'),
-									asset: {
-										delegate: {
-											// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-											username: `delegate_${i.toString()}`,
-										},
+						...validUnlockTransactionScenario.input.delegates.map((delegate, i) =>
+							defaultAccount({
+								address: Buffer.from(delegate.address, 'base64'),
+								asset: {
+									delegate: {
+										// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+										username: `delegate_${i.toString()}`,
 									},
-								}),
+								},
+							}),
 						),
 					],
 					{
@@ -413,28 +353,18 @@ describe('Unlock transaction', () => {
 					// Mutate not to be selfvote and resign
 					const senderIndex = tx.asset.unlockObjects.findIndex(u =>
 						u.delegateAddress.equals(
-							Buffer.from(
-								validUnlockTransactionScenario.input.account.address,
-								'base64',
-							),
+							Buffer.from(validUnlockTransactionScenario.input.account.address, 'base64'),
 						),
 					);
-					(tx.asset.unlockObjects[
-						senderIndex
-					] as any).delegateAddress = Buffer.from(
+					(tx.asset.unlockObjects[senderIndex] as any).delegateAddress = Buffer.from(
 						validUnlockTransactionScenario.input.delegates[0].address,
 						'base64',
 					);
 					tx.sign(
-						Buffer.from(
-							validUnlockTransactionScenario.input.networkIdentifier,
-							'base64',
-						),
+						Buffer.from(validUnlockTransactionScenario.input.networkIdentifier, 'base64'),
 						validUnlockTransactionScenario.input.account.passphrase,
 					);
-					maxHeight = Math.max(
-						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-					);
+					maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 					sender = defaultAccount({
 						...sender,
 						asset: {
@@ -462,24 +392,18 @@ describe('Unlock transaction', () => {
 
 				it('should make account to have correct balance', async () => {
 					await tx.apply(store);
-					const updatedSender = await store.account.get<AccountAsset>(
-						sender.address,
-					);
+					const updatedSender = await store.account.get<AccountAsset>(sender.address);
 					const totalAmount =
 						decodedTransaction.asset.unlockObjects.reduce(
 							(prev, current) => prev + BigInt(current.amount),
 							BigInt(0),
 						) + minBalance;
-					expect(updatedSender.balance.toString()).toEqual(
-						totalAmount.toString(),
-					);
+					expect(updatedSender.balance.toString()).toEqual(totalAmount.toString());
 				});
 
 				it('should remove unlocking from the sender', async () => {
 					await tx.apply(store);
-					const updatedSender = await store.account.get<AccountAsset>(
-						sender.address,
-					);
+					const updatedSender = await store.account.get<AccountAsset>(sender.address);
 					expect(updatedSender.asset.unlocking).toHaveLength(0);
 				});
 			});
@@ -500,24 +424,18 @@ describe('Unlock transaction', () => {
 
 				it('should make account to have correct balance', async () => {
 					await tx.apply(store);
-					const updatedSender = await store.account.get<AccountAsset>(
-						sender.address,
-					);
+					const updatedSender = await store.account.get<AccountAsset>(sender.address);
 					const totalAmount =
 						decodedTransaction.asset.unlockObjects.reduce(
 							(prev, current) => prev + BigInt(current.amount),
 							BigInt(0),
 						) + minBalance;
-					expect(updatedSender.balance.toString()).toEqual(
-						totalAmount.toString(),
-					);
+					expect(updatedSender.balance.toString()).toEqual(totalAmount.toString());
 				});
 
 				it('should remove unlocking from the sender', async () => {
 					await tx.apply(store);
-					const updatedSender = await store.account.get<AccountAsset>(
-						sender.address,
-					);
+					const updatedSender = await store.account.get<AccountAsset>(sender.address);
 					expect(updatedSender.asset.unlocking).toHaveLength(0);
 				});
 			});
@@ -529,10 +447,7 @@ describe('Unlock transaction', () => {
 					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress.equals(
-								Buffer.from(
-									validUnlockTransactionScenario.input.account.address,
-									'base64',
-								),
+								Buffer.from(validUnlockTransactionScenario.input.account.address, 'base64'),
 							)
 						) {
 							(unlock as any).delegateAddress = Buffer.from(
@@ -545,15 +460,10 @@ describe('Unlock transaction', () => {
 						}
 					}
 					tx.sign(
-						Buffer.from(
-							validUnlockTransactionScenario.input.networkIdentifier,
-							'base64',
-						),
+						Buffer.from(validUnlockTransactionScenario.input.networkIdentifier, 'base64'),
 						validUnlockTransactionScenario.input.account.passphrase,
 					);
-					maxHeight = Math.max(
-						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-					);
+					maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 					sender = defaultAccount({
 						...sender,
 						asset: {
@@ -585,25 +495,17 @@ describe('Unlock transaction', () => {
 					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress.equals(
-								Buffer.from(
-									validUnlockTransactionScenario.input.account.address,
-									'base64',
-								),
+								Buffer.from(validUnlockTransactionScenario.input.account.address, 'base64'),
 							)
 						) {
 							(unlock as any).unvoteHeight = 780000 + 1000;
 						}
 					}
 					tx.sign(
-						Buffer.from(
-							validUnlockTransactionScenario.input.networkIdentifier,
-							'base64',
-						),
+						Buffer.from(validUnlockTransactionScenario.input.networkIdentifier, 'base64'),
 						validUnlockTransactionScenario.input.account.passphrase,
 					);
-					maxHeight = Math.max(
-						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-					);
+					maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 					sender = defaultAccount({
 						...sender,
 						asset: {
@@ -638,10 +540,7 @@ describe('Unlock transaction', () => {
 					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress.equals(
-								Buffer.from(
-									validUnlockTransactionScenario.input.account.address,
-									'base64',
-								),
+								Buffer.from(validUnlockTransactionScenario.input.account.address, 'base64'),
 							)
 						) {
 							(unlock as any).delegateAddress = Buffer.from(
@@ -651,15 +550,10 @@ describe('Unlock transaction', () => {
 						}
 					}
 					tx.sign(
-						Buffer.from(
-							validUnlockTransactionScenario.input.networkIdentifier,
-							'base64',
-						),
+						Buffer.from(validUnlockTransactionScenario.input.networkIdentifier, 'base64'),
 						validUnlockTransactionScenario.input.account.passphrase,
 					);
-					maxHeight = Math.max(
-						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-					);
+					maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 					sender = defaultAccount({
 						...sender,
 						asset: {
@@ -689,15 +583,10 @@ describe('Unlock transaction', () => {
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited 780,000 blocks but waited 260,000 blocks', () => {
 				it('should return errors', async () => {
 					tx.sign(
-						Buffer.from(
-							validUnlockTransactionScenario.input.networkIdentifier,
-							'base64',
-						),
+						Buffer.from(validUnlockTransactionScenario.input.networkIdentifier, 'base64'),
 						validUnlockTransactionScenario.input.account.passphrase,
 					);
-					maxHeight = Math.max(
-						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-					);
+					maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 					sender = defaultAccount({
 						...sender,
 						asset: {
@@ -728,9 +617,7 @@ describe('Unlock transaction', () => {
 
 		describe('when asset.unlockObjects contain duplicate entries', () => {
 			beforeEach(() => {
-				maxHeight = Math.max(
-					...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-				);
+				maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 				store = new StateStoreMock([sender, ...delegates], {
 					lastBlockHeader: { height: maxHeight + 259999 } as any,
 				});
@@ -744,24 +631,18 @@ describe('Unlock transaction', () => {
 
 			it('should make account to have correct balance', async () => {
 				await tx.apply(store);
-				const updatedSender = await store.account.get<AccountAsset>(
-					sender.address,
-				);
+				const updatedSender = await store.account.get<AccountAsset>(sender.address);
 				const totalAmount =
 					decodedTransaction.asset.unlockObjects.reduce(
 						(prev, current) => prev + BigInt(current.amount),
 						BigInt(0),
 					) + minBalance;
-				expect(updatedSender.balance.toString()).toEqual(
-					totalAmount.toString(),
-				);
+				expect(updatedSender.balance.toString()).toEqual(totalAmount.toString());
 			});
 
 			it('should remove unlocking from the sender', async () => {
 				await tx.apply(store);
-				const updatedSender = await store.account.get<AccountAsset>(
-					sender.address,
-				);
+				const updatedSender = await store.account.get<AccountAsset>(sender.address);
 				expect(updatedSender.asset.unlocking).toHaveLength(0);
 			});
 		});
@@ -781,9 +662,7 @@ describe('Unlock transaction', () => {
 						],
 					},
 				});
-				maxHeight = Math.max(
-					...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-				);
+				maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 				store = new StateStoreMock([sender, ...delegates], {
 					lastBlockHeader: { height: maxHeight + 259999 } as any,
 				});
@@ -797,24 +676,18 @@ describe('Unlock transaction', () => {
 
 			it('should make account to have correct balance', async () => {
 				await tx.apply(store);
-				const updatedSender = await store.account.get<AccountAsset>(
-					sender.address,
-				);
+				const updatedSender = await store.account.get<AccountAsset>(sender.address);
 				const totalAmount =
 					decodedTransaction.asset.unlockObjects.reduce(
 						(prev, current) => prev + BigInt(current.amount),
 						BigInt(0),
 					) + minBalance;
-				expect(updatedSender.balance.toString()).toEqual(
-					totalAmount.toString(),
-				);
+				expect(updatedSender.balance.toString()).toEqual(totalAmount.toString());
 			});
 
 			it('should keep the duplicated unlocking from the sender', async () => {
 				await tx.apply(store);
-				const updatedSender = await store.account.get<AccountAsset>(
-					sender.address,
-				);
+				const updatedSender = await store.account.get<AccountAsset>(sender.address);
 				expect(updatedSender.asset.unlocking).toHaveLength(1);
 			});
 		});
@@ -827,9 +700,7 @@ describe('Unlock transaction', () => {
 						unlocking: [],
 					},
 				});
-				maxHeight = Math.max(
-					...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-				);
+				maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 				store = new StateStoreMock([sender, ...delegates], {
 					lastBlockHeader: { height: maxHeight + 259999 } as any,
 				});
@@ -837,9 +708,7 @@ describe('Unlock transaction', () => {
 				const { errors, status } = await tx.apply(store);
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(20);
-				expect(errors[0].message).toContain(
-					'Corresponding unlocking object not found',
-				);
+				expect(errors[0].message).toContain('Corresponding unlocking object not found');
 			});
 		});
 
@@ -853,9 +722,7 @@ describe('Unlock transaction', () => {
 					(u: any) => !u.delegateAddress.equals(delegates[0].address),
 				);
 				sender.asset.unlocking.push(unlockObject);
-				maxHeight = Math.max(
-					...tx.asset.unlockObjects.map(u => u.unvoteHeight),
-				);
+				maxHeight = Math.max(...tx.asset.unlockObjects.map(u => u.unvoteHeight));
 				store = new StateStoreMock([sender, ...delegates], {
 					lastBlockHeader: { height: maxHeight + 259999 } as any,
 				});
@@ -863,9 +730,7 @@ describe('Unlock transaction', () => {
 				const { errors, status } = await tx.apply(store);
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(2);
-				expect(errors[0].message).toContain(
-					'Corresponding unlocking object not found',
-				);
+				expect(errors[0].message).toContain('Corresponding unlocking object not found');
 			});
 		});
 	});

@@ -40,9 +40,7 @@ describe('buffer', () => {
 		});
 
 		it('should throw an error for a non-string input with custom argument name', () => {
-			expect(hexToBuffer.bind(null, {} as any, 'Custom')).toThrow(
-				'Custom must be a string.',
-			);
+			expect(hexToBuffer.bind(null, {} as any, 'Custom')).toThrow('Custom must be a string.');
 		});
 
 		it('should throw TypeError with non hex string', () => {

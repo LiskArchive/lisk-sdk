@@ -37,18 +37,14 @@ export abstract class BaseChannel {
 		this.moduleAlias = moduleAlias;
 		this.options = options;
 
-		this.eventsList = options.skipInternalEvents
-			? events
-			: [...events, ...INTERNAL_EVENTS];
+		this.eventsList = options.skipInternalEvents ? events : [...events, ...INTERNAL_EVENTS];
 
 		this.actions = {};
 		for (const actionName of Object.keys(actions)) {
 			const actionData = actions[actionName];
 
-			const handler =
-				typeof actionData === 'object' ? actionData.handler : actionData;
-			const isPublic =
-				typeof actionData === 'object' ? actionData.isPublic ?? true : true;
+			const handler = typeof actionData === 'object' ? actionData.handler : actionData;
+			const isPublic = typeof actionData === 'object' ? actionData.isPublic ?? true : true;
 
 			this.actions[actionName] = new Action(
 				`${this.moduleAlias}:${actionName}`,
@@ -97,10 +93,7 @@ export abstract class BaseChannel {
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
 	// Specified action must be defined as publicly callable
-	abstract async invokePublic<T>(
-		actionName: string,
-		params?: object,
-	): Promise<T>;
+	abstract async invokePublic<T>(actionName: string, params?: object): Promise<T>;
 
 	abstract async registerToBus(arg: unknown): Promise<void>;
 	abstract once(eventName: string, cb: EventCallback): void;

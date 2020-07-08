@@ -27,12 +27,7 @@ import {
 // For stubbing
 import { P2PPeerInfo, P2PNodeInfo } from '../../src/types';
 import { initPeerList } from '../utils/peers';
-import {
-	Peer,
-	ConnectionState,
-	InboundPeer,
-	OutboundPeer,
-} from '../../src/peer';
+import { Peer, ConnectionState, InboundPeer, OutboundPeer } from '../../src/peer';
 import {
 	DEFAULT_CONNECT_TIMEOUT,
 	DEFAULT_ACK_TIMEOUT,
@@ -178,8 +173,7 @@ describe('peerPool', () => {
 				ackTimeout: peerPoolConfig.ackTimeout,
 				wsMaxMessageRate: peerPoolConfig.wsMaxMessageRate,
 				wsMaxMessageRatePenalty: peerPoolConfig.wsMaxMessageRatePenalty,
-				maxPeerDiscoveryResponseLength:
-					peerPoolConfig.maxPeerDiscoveryResponseLength,
+				maxPeerDiscoveryResponseLength: peerPoolConfig.maxPeerDiscoveryResponseLength,
 				rateCalculationInterval: peerPoolConfig.rateCalculationInterval,
 				wsMaxPayload: peerPoolConfig.wsMaxPayload,
 				maxPeerInfoSize: peerPoolConfig.maxPeerInfoSize,
@@ -233,9 +227,7 @@ describe('peerPool', () => {
 		it('should call getAllConnectedPeerInfos(OutboundPeer)', async () => {
 			jest.spyOn(peerPool, 'requestFromPeer');
 
-			jest
-				.spyOn(peerPool, 'getAllConnectedPeerInfos')
-				.mockReturnValue([peerInfo]);
+			jest.spyOn(peerPool, 'getAllConnectedPeerInfos').mockReturnValue([peerInfo]);
 
 			try {
 				await peerPool.request(requestPacket);
@@ -268,9 +260,7 @@ describe('peerPool', () => {
 		it('should throw error if no peers selected', async () => {
 			jest.spyOn(peerPool as any, '_peerSelectForRequest').mockReturnValue([]);
 
-			return expect(peerPool.request(requestPacket)).rejects.toThrow(
-				RequestFailError,
-			);
+			return expect(peerPool.request(requestPacket)).rejects.toThrow(RequestFailError);
 		});
 
 		it('should call requestFromPeer', async () => {
@@ -278,9 +268,7 @@ describe('peerPool', () => {
 
 			const requestFromPeerStub = jest.spyOn(peerPool, 'requestFromPeer');
 
-			jest
-				.spyOn(peerPool as any, '_peerSelectForRequest')
-				.mockReturnValue([peerInfo]);
+			jest.spyOn(peerPool as any, '_peerSelectForRequest').mockReturnValue([peerInfo]);
 
 			await peerPool.request(requestPacket);
 
@@ -332,9 +320,9 @@ describe('peerPool', () => {
 		it('should throw error if no peers in peerPool', async () => {
 			(peerPool as any)._peerMap = new Map();
 
-			return expect(
-				peerPool.requestFromPeer(requestPacket, peerId),
-			).rejects.toThrow(RequestFailError);
+			return expect(peerPool.requestFromPeer(requestPacket, peerId)).rejects.toThrow(
+				RequestFailError,
+			);
 		});
 
 		it('should call peer request with packet', async () => {
@@ -349,9 +337,7 @@ describe('peerPool', () => {
 		it('should throw error if no peers in peerPool', () => {
 			(peerPool as any)._peerMap = new Map();
 
-			expect(() => peerPool.sendToPeer(messagePacket, peerId)).toThrow(
-				SendFailError,
-			);
+			expect(() => peerPool.sendToPeer(messagePacket, peerId)).toThrow(SendFailError);
 		});
 
 		it('should call peer send with message packet', () => {
@@ -408,9 +394,7 @@ describe('peerPool', () => {
 		let getPeersStub: any;
 
 		beforeEach(() => {
-			getPeersStub = jest
-				.spyOn(peerPool, 'getPeers')
-				.mockReturnValue([peerObject]);
+			getPeersStub = jest.spyOn(peerPool, 'getPeers').mockReturnValue([peerObject]);
 		});
 
 		it('should call getPeers with InboundPeer class', () => {
@@ -436,10 +420,7 @@ describe('peerPool', () => {
 		});
 
 		it('should call _bindHandlersToPeer', () => {
-			const _bindHandlersToPeerStub = jest.spyOn(
-				peerPool as any,
-				'_bindHandlersToPeer',
-			);
+			const _bindHandlersToPeerStub = jest.spyOn(peerPool as any, '_bindHandlersToPeer');
 			peerPool.addInboundPeer(peerInfo, peerObject);
 
 			expect(_bindHandlersToPeerStub).toHaveBeenCalled();
@@ -451,10 +432,7 @@ describe('peerPool', () => {
 				networkVersion: '1.0.1',
 				version: '1.1',
 			};
-			const _applyNodeInfoOnPeerStub = jest.spyOn(
-				peerPool as any,
-				'_applyNodeInfoOnPeer',
-			);
+			const _applyNodeInfoOnPeerStub = jest.spyOn(peerPool as any, '_applyNodeInfoOnPeer');
 			peerPool.addInboundPeer(peerInfo, peerObject);
 
 			expect(_applyNodeInfoOnPeerStub).toHaveBeenCalled();
@@ -475,9 +453,7 @@ describe('peerPool', () => {
 		beforeEach(() => {
 			hasPeerStub = jest.spyOn(peerPool, 'hasPeer').mockReturnValue(true);
 
-			getPeersStub = jest
-				.spyOn(peerPool, 'getPeers')
-				.mockReturnValue([] as Peer[]);
+			getPeersStub = jest.spyOn(peerPool, 'getPeers').mockReturnValue([] as Peer[]);
 		});
 
 		it('should call hasPeer with peerId', () => {
@@ -503,10 +479,7 @@ describe('peerPool', () => {
 		it('should call _bindHandlersToPeer', () => {
 			hasPeerStub.mockReturnValue(false);
 			getPeersStub.mockReturnValue([]);
-			_bindHandlersToPeerStub = jest.spyOn(
-				peerPool as any,
-				'_bindHandlersToPeer',
-			);
+			_bindHandlersToPeerStub = jest.spyOn(peerPool as any, '_bindHandlersToPeer');
 			(peerPool as any)._addOutboundPeer(peerObject);
 
 			expect(_bindHandlersToPeerStub).toHaveBeenCalled();
@@ -520,10 +493,7 @@ describe('peerPool', () => {
 				networkVersion: '1.0.1',
 				version: '1.1',
 			};
-			const _applyNodeInfoOnPeerStub = jest.spyOn(
-				peerPool as any,
-				'_applyNodeInfoOnPeer',
-			);
+			const _applyNodeInfoOnPeerStub = jest.spyOn(peerPool as any, '_applyNodeInfoOnPeer');
 			(peerPool as any)._addOutboundPeer(peerObject);
 
 			expect(_applyNodeInfoOnPeerStub).toHaveBeenCalled();
@@ -600,19 +570,13 @@ describe('peerPool', () => {
 
 				jest
 					.spyOn(peerPool, 'getConnectedPeers')
-					.mockReturnValue(
-						peerList.filter(peer => peer.state === ConnectionState.OPEN),
-					);
+					.mockReturnValue(peerList.filter(peer => peer.state === ConnectionState.OPEN));
 
-				activePeersInfoList = [peerList[0], peerList[1]].map(
-					peer => peer.peerInfo,
-				);
+				activePeersInfoList = [peerList[0], peerList[1]].map(peer => peer.peerInfo);
 			});
 
 			it('should returns list of peerInfos of active peers', () => {
-				expect(peerPool.getAllConnectedPeerInfos()).toEqual(
-					activePeersInfoList,
-				);
+				expect(peerPool.getAllConnectedPeerInfos()).toEqual(activePeersInfoList);
 			});
 		});
 
@@ -636,19 +600,13 @@ describe('peerPool', () => {
 
 				jest
 					.spyOn(peerPool, 'getConnectedPeers')
-					.mockReturnValue(
-						peerList.filter(peer => peer.state === ConnectionState.OPEN),
-					);
+					.mockReturnValue(peerList.filter(peer => peer.state === ConnectionState.OPEN));
 
-				activePeersInfoList = [peerList[0], peerList[1]].map(
-					peer => peer.peerInfo,
-				);
+				activePeersInfoList = [peerList[0], peerList[1]].map(peer => peer.peerInfo);
 			});
 
 			it('should returns list of peerInfos of active peers only in inbound', () => {
-				expect(peerPool.getAllConnectedPeerInfos()).toEqual(
-					activePeersInfoList,
-				);
+				expect(peerPool.getAllConnectedPeerInfos()).toEqual(activePeersInfoList);
 			});
 		});
 
@@ -672,19 +630,13 @@ describe('peerPool', () => {
 
 				jest
 					.spyOn(peerPool, 'getConnectedPeers')
-					.mockReturnValue(
-						peerList.filter(peer => peer.state === ConnectionState.OPEN),
-					);
+					.mockReturnValue(peerList.filter(peer => peer.state === ConnectionState.OPEN));
 
-				activePeersInfoList = [peerList[0], peerList[1]].map(
-					peer => peer.peerInfo,
-				);
+				activePeersInfoList = [peerList[0], peerList[1]].map(peer => peer.peerInfo);
 			});
 
 			it('should returns list of peerInfos of active peers only in outbound', () => {
-				expect(peerPool.getAllConnectedPeerInfos()).toEqual(
-					activePeersInfoList,
-				);
+				expect(peerPool.getAllConnectedPeerInfos()).toEqual(activePeersInfoList);
 			});
 		});
 
@@ -701,9 +653,7 @@ describe('peerPool', () => {
 
 				jest
 					.spyOn(peerPool, 'getConnectedPeers')
-					.mockReturnValue(
-						peerList.filter(peer => peer.state === ConnectionState.OPEN),
-					);
+					.mockReturnValue(peerList.filter(peer => peer.state === ConnectionState.OPEN));
 			});
 
 			it('should return an empty array', () => {
@@ -719,17 +669,12 @@ describe('peerPool', () => {
 
 			beforeEach(() => {
 				peerList.forEach((peer, i) => {
-					(peerPool as any)._peerMap.set(
-						`${peer.peerInfo.ipAddress}:${peer.peerInfo.port}`,
-						{
-							peerInfo: { ...peer.peerInfo },
-							state: i % 2 ? ConnectionState.OPEN : ConnectionState.CLOSED,
-						},
-					);
+					(peerPool as any)._peerMap.set(`${peer.peerInfo.ipAddress}:${peer.peerInfo.port}`, {
+						peerInfo: { ...peer.peerInfo },
+						state: i % 2 ? ConnectionState.OPEN : ConnectionState.CLOSED,
+					});
 				});
-				activePeersInfoList = [peerList[1], peerList[3]].map(
-					peer => peer.peerInfo,
-				);
+				activePeersInfoList = [peerList[1], peerList[3]].map(peer => peer.peerInfo);
 			});
 
 			it('should return active peers', () => {
@@ -744,17 +689,15 @@ describe('peerPool', () => {
 
 			beforeEach(() => {
 				peerList.forEach(peer => {
-					(peerPool as any)._peerMap.set(
-						`${peer.peerInfo.ipAddress}:${peer.peerInfo.port}`,
-						{ peerInfo: { ...peer.peerInfo }, state: ConnectionState.CLOSED },
-					);
+					(peerPool as any)._peerMap.set(`${peer.peerInfo.ipAddress}:${peer.peerInfo.port}`, {
+						peerInfo: { ...peer.peerInfo },
+						state: ConnectionState.CLOSED,
+					});
 				});
 			});
 
 			it('should return an empty array', () => {
-				expect(peerPool.getConnectedPeers().map(peer => peer.peerInfo)).toEqual(
-					[],
-				);
+				expect(peerPool.getConnectedPeers().map(peer => peer.peerInfo)).toEqual([]);
 			});
 		});
 	});
@@ -791,21 +734,13 @@ describe('peerPool', () => {
 		});
 
 		it('should disconnect peer', () => {
-			peerPool.removePeer(
-				peerId,
-				INTENTIONAL_DISCONNECT_CODE,
-				'Disconnect peer',
-			);
+			peerPool.removePeer(peerId, INTENTIONAL_DISCONNECT_CODE, 'Disconnect peer');
 
 			expect(peerObject.disconnect).toHaveBeenCalled();
 		});
 
 		it('should remove peer from peerMap', () => {
-			peerPool.removePeer(
-				peerId,
-				INTENTIONAL_DISCONNECT_CODE,
-				'Disconnect peer',
-			);
+			peerPool.removePeer(peerId, INTENTIONAL_DISCONNECT_CODE, 'Disconnect peer');
 
 			expect((peerPool as any)._peerMap.has(peerId)).toBe(false);
 		});
@@ -902,9 +837,7 @@ describe('peerPool', () => {
 				protectBy: PROTECT_BY.HIGHEST,
 			});
 
-			expect(
-				filteredPeers.filter((p: any) => p.internalState.responseRate === 1),
-			).toHaveLength(2);
+			expect(filteredPeers.filter((p: any) => p.internalState.responseRate === 1)).toHaveLength(2);
 		});
 
 		it('should protect peers with lowest connectTime value when sorted by descending', () => {
@@ -943,9 +876,7 @@ describe('peerPool', () => {
 			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
 			(peerPool as any)._peerPoolConfig.longevityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LONGEVITY;
 
-			getPeersStub = jest
-				.spyOn(peerPool, 'getPeers')
-				.mockReturnValue(originalPeers as Peer[]);
+			getPeersStub = jest.spyOn(peerPool, 'getPeers').mockReturnValue(originalPeers as Peer[]);
 		});
 
 		describe('when node using default protection ratio values has 100 inbound peers', () => {
@@ -1089,12 +1020,8 @@ describe('peerPool', () => {
 	});
 
 	describe('#_evictPeer', () => {
-		const whitelistedPeers = [
-			{ peerId: '1.2.3.4:5000', ipAddress: '1.2.3.4', port: 5000 },
-		];
-		const fixedPeers = [
-			{ peerId: '5.6.7.8:5000', ipAddress: '5.6.7.8', port: 5000 },
-		];
+		const whitelistedPeers = [{ peerId: '1.2.3.4:5000', ipAddress: '1.2.3.4', port: 5000 }];
+		const fixedPeers = [{ peerId: '5.6.7.8:5000', ipAddress: '5.6.7.8', port: 5000 }];
 		const defaultPeers = [
 			{
 				id: '69.123.456.78:5000',

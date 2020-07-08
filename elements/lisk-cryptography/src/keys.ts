@@ -19,9 +19,7 @@ import { hash } from './hash';
 import { getKeyPair, getPublicKey } from './nacl';
 import { Keypair } from './types';
 
-export const getPrivateAndPublicKeyFromPassphrase = (
-	passphrase: string,
-): Keypair => {
+export const getPrivateAndPublicKeyFromPassphrase = (passphrase: string): Keypair => {
 	const hashed = hash(passphrase, 'utf8');
 	return getKeyPair(hashed);
 };
@@ -100,10 +98,7 @@ export const createChecksum = (uint5Array: number[]): number[] => {
 export const verifyChecksum = (integerSequence: number[]): boolean =>
 	polymod(integerSequence) === 1;
 
-export const getBase32AddressFromPublicKey = (
-	publicKey: Buffer,
-	prefix: string,
-): string => {
+export const getBase32AddressFromPublicKey = (publicKey: Buffer, prefix: string): string => {
 	const binaryAddress = getAddressFromPublicKey(publicKey);
 	const byteSequence = [];
 	for (const b of binaryAddress) {
@@ -118,14 +113,9 @@ export const getBase32AddressFromPublicKey = (
 const BASE32_ADDRESS_LENGTH = 41;
 const BASE32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 
-export const validateBase32Address = (
-	address: string,
-	prefix = 'lsk',
-): boolean => {
+export const validateBase32Address = (address: string, prefix = 'lsk'): boolean => {
 	if (address.length !== BASE32_ADDRESS_LENGTH) {
-		throw new Error(
-			'Address length does not match requirements. Expected 41 characters.',
-		);
+		throw new Error('Address length does not match requirements. Expected 41 characters.');
 	}
 
 	const addressPrefix = address.substring(0, 3);
@@ -142,9 +132,7 @@ export const validateBase32Address = (
 		);
 	}
 
-	const integerSequence = addressSubstringArray.map(char =>
-		BASE32_CHARSET.indexOf(char),
-	);
+	const integerSequence = addressSubstringArray.map(char => BASE32_CHARSET.indexOf(char));
 
 	if (!verifyChecksum(integerSequence)) {
 		throw new Error('Invalid checksum for address.');

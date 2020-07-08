@@ -53,9 +53,7 @@ const generateValidBooleanEncodings = () => {
 	};
 
 	const booleanTrueEncoded = Boolean.encode(input.booleanTrue.object).finish();
-	const booleanFalseEncoded = Boolean.encode(
-		input.booleanFalse.object,
-	).finish();
+	const booleanFalseEncoded = Boolean.encode(input.booleanFalse.object).finish();
 
 	return [
 		{

@@ -19,12 +19,7 @@ import { objectToKeyValueString } from '../helpers/utils';
 
 describe('tablify utils', () => {
 	interface TestPrintValue {
-		readonly [key: string]:
-			| string
-			| number
-			| boolean
-			| object
-			| ReadonlyArray<string>;
+		readonly [key: string]: string | number | boolean | object | ReadonlyArray<string>;
 	}
 	describe('when an empty object is used', () => {
 		it('should have 0 length', () => {
@@ -63,9 +58,7 @@ describe('tablify utils', () => {
 			const returnValue = tablify(printValue);
 			return Object.entries(printValue).forEach(([key, value], arrayKey) => {
 				const strValue =
-					typeof value === 'object' && value !== null
-						? objectToKeyValueString(value)
-						: value;
+					typeof value === 'object' && value !== null ? objectToKeyValueString(value) : value;
 				expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
 			});
 		});
@@ -93,10 +86,7 @@ describe('tablify utils', () => {
 				const strValue =
 					typeof value === 'object' && value !== null
 						? Object.entries(value)
-								.map(
-									([vKey, vValue]) =>
-										`${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
-								)
+								.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`)
 								.join('\n')
 						: value;
 				expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
@@ -235,15 +225,10 @@ describe('tablify utils', () => {
 						strValue = (values[key] as ReadonlyArray<string>).join('\n');
 					} else if (typeof values[key] === 'object') {
 						strValue = Object.entries(values[key])
-							.map(
-								([vKey, vValue]) =>
-									`${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
-							)
+							.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`)
 							.join('\n');
 					}
-					expect(
-						returnValue[i * (innerObjectKeys.length + 1) + keyIndex + 1],
-					).eql({
+					expect(returnValue[i * (innerObjectKeys.length + 1) + keyIndex + 1]).eql({
 						[key]: strValue,
 					});
 				});

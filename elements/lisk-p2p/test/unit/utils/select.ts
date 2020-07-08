@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	initPeerInfoList,
-	initPeerInfoListWithSuffix,
-} from '../../utils/peers';
+import { initPeerInfoList, initPeerInfoListWithSuffix } from '../../utils/peers';
 import {
 	selectPeersForConnection,
 	selectPeersForRequest,
@@ -150,21 +147,18 @@ describe('peer selector', () => {
 				messagePacket: { event: 'foo', data: {} },
 			});
 
-			const peerKindCounts = selectedPeers.reduce(
-				(peerKindTracker: any, peerInfo: P2PPeerInfo) => {
-					const kind = peerInfo.internalState
-						? (peerInfo.internalState.connectionKind as string)
-						: '';
-					if (!peerKindTracker[kind]) {
-						// eslint-disable-next-line no-param-reassign
-						peerKindTracker[kind] = 0;
-					}
+			const peerKindCounts = selectedPeers.reduce((peerKindTracker: any, peerInfo: P2PPeerInfo) => {
+				const kind = peerInfo.internalState
+					? (peerInfo.internalState.connectionKind as string)
+					: '';
+				if (!peerKindTracker[kind]) {
 					// eslint-disable-next-line no-param-reassign
-					peerKindTracker[kind] += 1;
-					return peerKindTracker;
-				},
-				{},
-			);
+					peerKindTracker[kind] = 0;
+				}
+				// eslint-disable-next-line no-param-reassign
+				peerKindTracker[kind] += 1;
+				return peerKindTracker;
+			}, {});
 
 			// Assert
 			expect(peerKindCounts.inbound).toEqual(peerKindCounts.outbound);
@@ -327,9 +321,7 @@ describe('peer selector', () => {
 
 				expect(selectedPeers).toHaveLength(50);
 
-				expect([...triedPeers, ...newPeers]).toIncludeAllMembers(
-					selectedPeers as any,
-				);
+				expect([...triedPeers, ...newPeers]).toIncludeAllMembers(selectedPeers as any);
 
 				let triedCount = 0;
 				let newCount = 0;
@@ -359,9 +351,7 @@ describe('peer selector', () => {
 
 				expect(selectedPeers).toHaveLength(50);
 
-				expect([...triedPeers, ...newPeers]).toIncludeAllMembers(
-					selectedPeers as any,
-				);
+				expect([...triedPeers, ...newPeers]).toIncludeAllMembers(selectedPeers as any);
 
 				let triedCount = 0;
 				let newCount = 0;
@@ -425,9 +415,7 @@ describe('peer selector', () => {
 				selectedPeers.map(peer => uniqIpAddresses.push(peer.ipAddress));
 
 				expect(Object.keys(selectedPeers)).not.toHaveLength(0);
-				expect(selectedPeers).toHaveLength(
-					[...new Set(uniqIpAddresses)].length,
-				);
+				expect(selectedPeers).toHaveLength([...new Set(uniqIpAddresses)].length);
 			});
 		});
 	});

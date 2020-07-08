@@ -28,9 +28,7 @@ declare module 'pm2-axon' {
 
 		public closeServer(fn: () => any): void;
 
-		public address():
-			| { port: number; family: string; address: string; string: string }
-			| undefined;
+		public address(): { port: number; family: string; address: string; string: string } | undefined;
 
 		public removeSocket(sock: Socket): void;
 
@@ -40,19 +38,11 @@ declare module 'pm2-axon' {
 
 		public onmessage(sock: NetSocket): (args: Buffer | Buffer[]) => void;
 
-		public connect(
-			port: ConnectionPort,
-			host?: string | (() => void),
-			fn?: () => void,
-		): Socket;
+		public connect(port: ConnectionPort, host?: string | (() => void), fn?: () => void): Socket;
 
 		public onconnect(sock: Socket): void;
 
-		bind(
-			port: ConnectionPort,
-			host?: string | (() => void),
-			fn?: () => void,
-		): Socket;
+		bind(port: ConnectionPort, host?: string | (() => void), fn?: () => void): Socket;
 	}
 
 	export class SubSocket extends Socket {
@@ -81,17 +71,9 @@ declare module 'pm2-axon' {
 
 		public off(event: string): SubEmitterSocket;
 
-		public bind(
-			port: ConnectionPort,
-			host?: string | (() => void),
-			fn?: () => void,
-		): Socket;
+		public bind(port: ConnectionPort, host?: string | (() => void), fn?: () => void): Socket;
 
-		public connect(
-			port: ConnectionPort,
-			host?: string | (() => void),
-			fn?: () => void,
-		): Socket;
+		public connect(port: ConnectionPort, host?: string | (() => void), fn?: () => void): Socket;
 
 		public close(): void;
 	}
@@ -105,17 +87,9 @@ declare module 'pm2-axon' {
 
 		public send(...args: any[]): PubSocket;
 
-		public bind(
-			port: ConnectionPort,
-			host?: string | (() => void),
-			fn?: () => void,
-		): Socket;
+		public bind(port: ConnectionPort, host?: string | (() => void), fn?: () => void): Socket;
 
-		public connect(
-			port: ConnectionPort,
-			host?: string | (() => void),
-			fn?: () => void,
-		): Socket;
+		public connect(port: ConnectionPort, host?: string | (() => void), fn?: () => void): Socket;
 
 		public close(): void;
 

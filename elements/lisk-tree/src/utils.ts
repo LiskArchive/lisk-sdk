@@ -18,11 +18,7 @@ import { NodeLocation, NodeSide } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
 
-export const generateHash = (
-	prefix: Buffer,
-	leftHash: Buffer,
-	rightHash: Buffer,
-): Buffer =>
+export const generateHash = (prefix: Buffer, leftHash: Buffer, rightHash: Buffer): Buffer =>
 	hash(
 		Buffer.concat(
 			[prefix, leftHash, rightHash],
@@ -88,10 +84,8 @@ export const getPairLocation = (nodeInfo: {
 	// If node is right node AND (not last element in layer OR last element in the layer with even # of nodes)
 	if (
 		side === NodeSide.RIGHT &&
-		((numberOfNodesinLayer % 2 === 0 &&
-			nodeIndex === numberOfNodesinLayer - 1) ||
-			(nodeIndex < numberOfNodesinLayer - 1 &&
-				nodeIndex < numberOfNodesinLayer - 1))
+		((numberOfNodesinLayer % 2 === 0 && nodeIndex === numberOfNodesinLayer - 1) ||
+			(nodeIndex < numberOfNodesinLayer - 1 && nodeIndex < numberOfNodesinLayer - 1))
 	) {
 		const pairNodeIndex = nodeIndex - 1;
 		return { layerIndex, nodeIndex: pairNodeIndex, side: pairSide };

@@ -112,9 +112,7 @@ const generateValidPeerInfoEncodings = () => {
 	};
 
 	const objectEncoded = PeerInfo.encode(input.object.object).finish();
-	const objectOptionalPropEncoded = PeerInfo.encode(
-		input.objectOptionalProp.object,
-	).finish();
+	const objectOptionalPropEncoded = PeerInfo.encode(input.objectOptionalProp.object).finish();
 
 	return [
 		{

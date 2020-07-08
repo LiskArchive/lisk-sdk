@@ -63,9 +63,7 @@ describe('Advertise Address', () => {
 		await wait(400);
 
 		for (const p2p of p2pNodeList) {
-			const connectedPeers = p2p
-				.getConnectedPeers()
-				.filter(p => p.port === advertisePeerPort);
+			const connectedPeers = p2p.getConnectedPeers().filter(p => p.port === advertisePeerPort);
 
 			expect(connectedPeers[0].port).toEqual(advertisePeerPort);
 		}
@@ -79,9 +77,7 @@ describe('Advertise Address', () => {
 		await wait(400);
 
 		for (const p2p of p2pNodeList) {
-			const connectedPeers = p2p
-				.getConnectedPeers()
-				.filter(p => p.port === advertisePeerPort);
+			const connectedPeers = p2p.getConnectedPeers().filter(p => p.port === advertisePeerPort);
 			const disConnectedPeers = p2p
 				.getDisconnectedPeers()
 				.filter(p => p.port === advertisePeerPort);

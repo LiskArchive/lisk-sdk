@@ -27,11 +27,7 @@ interface Args {
 	readonly signature: string;
 }
 
-const processInputs = (
-	publicKey: string,
-	signature: string,
-	message?: string,
-) => {
+const processInputs = (publicKey: string, signature: string, message?: string) => {
 	if (!message) {
 		throw new ValidationError('No message was provided.');
 	}
@@ -93,11 +89,7 @@ export default class VerifyCommand extends BaseCommand {
 				? await readFileSource(messageSource)
 				: messageSource;
 
-		const result = processInputs(
-			publicKey,
-			signature,
-			message ?? dataFromSource,
-		);
+		const result = processInputs(publicKey, signature, message ?? dataFromSource);
 		this.print(result);
 	}
 }

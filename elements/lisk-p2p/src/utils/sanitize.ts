@@ -31,10 +31,7 @@ import {
 // eslint-disable-next-line import/no-cycle
 import { constructPeerId, getNetgroup } from './misc';
 
-export const assignInternalInfo = (
-	peerInfo: P2PPeerInfo,
-	secret: number,
-): P2PInternalState =>
+export const assignInternalInfo = (peerInfo: P2PPeerInfo, secret: number): P2PInternalState =>
 	peerInfo.internalState
 		? peerInfo.internalState
 		: {
@@ -54,18 +51,12 @@ export const assignInternalInfo = (
 				peerKind: PeerKind.NONE,
 		  };
 
-export const sanitizeIncomingPeerInfo = (
-	rawPeerInfo: unknown,
-): P2PPeerInfo | undefined => {
+export const sanitizeIncomingPeerInfo = (rawPeerInfo: unknown): P2PPeerInfo | undefined => {
 	if (!rawPeerInfo) {
 		return undefined;
 	}
 
-	const {
-		ipAddress,
-		port,
-		...restOfPeerInfo
-	} = rawPeerInfo as ProtocolPeerInfo;
+	const { ipAddress, port, ...restOfPeerInfo } = rawPeerInfo as ProtocolPeerInfo;
 
 	return {
 		peerId: constructPeerId(ipAddress, port),
@@ -83,17 +74,13 @@ interface SanitizedPeer {
 	ipAddress: string;
 }
 
-export const sanitizeInitialPeerInfo = (
-	peerInfo: ProtocolPeerInfo,
-): SanitizedPeer => ({
+export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo): SanitizedPeer => ({
 	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.port),
 	ipAddress: peerInfo.ipAddress,
 	port: peerInfo.port,
 });
 
-export const sanitizeEnhancedPeerInfo = (
-	peerInfo: P2PEnhancedPeerInfo,
-): P2PPeerInfo => {
+export const sanitizeEnhancedPeerInfo = (peerInfo: P2PEnhancedPeerInfo): P2PPeerInfo => {
 	const {
 		dateAdded,
 		numOfConnectionFailures,

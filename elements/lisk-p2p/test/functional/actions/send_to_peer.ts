@@ -13,11 +13,7 @@
  *
  */
 import { P2P } from '../../../src/index';
-import {
-	createNetwork,
-	destroyNetwork,
-	SEED_PEER_IP,
-} from '../../utils/network_setup';
+import { createNetwork, destroyNetwork, SEED_PEER_IP } from '../../utils/network_setup';
 import { constructPeerId } from '../../../src/utils';
 
 describe('P2P.sendToPeer', () => {

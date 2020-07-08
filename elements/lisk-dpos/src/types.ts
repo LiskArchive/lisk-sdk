@@ -88,10 +88,7 @@ export interface Chain {
 	};
 	readonly dataAccess: {
 		getConsensusState(key: string): Promise<Buffer | undefined>;
-		getBlockHeadersByHeightBetween(
-			fromHeight: number,
-			toHeight: number,
-		): Promise<BlockHeader[]>;
+		getBlockHeadersByHeightBetween(fromHeight: number, toHeight: number): Promise<BlockHeader[]>;
 	};
 }
 
@@ -114,9 +111,7 @@ export interface ForgerList {
 export type ForgersList = ForgerList[];
 export type VoteWeights = VoteWeight[];
 
-type Grow<T, A extends T[]> = ((x: T, ...xs: A) => void) extends (
-	...a: infer X
-) => void
+type Grow<T, A extends T[]> = ((x: T, ...xs: A) => void) extends (...a: infer X) => void
 	? X
 	: never;
 type GrowToSize<T, A extends T[], N extends number> = {

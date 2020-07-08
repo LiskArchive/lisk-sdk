@@ -48,18 +48,14 @@ const networkDescription = 'Lisk Core network name.';
 const installationPathDescription = 'Lisk Core installation path.';
 const releaseUrlDescription = 'Lisk Core download URL.';
 const snapshotUrlDescription = 'Lisk Core blockchain snapshot URL.';
-const noSnapshotDescription =
-	'Install Lisk Core without a blockchain snapshot.';
+const noSnapshotDescription = 'Install Lisk Core without a blockchain snapshot.';
 const liskVersionDescription = 'Lisk Core version.';
 const noStartDescription = 'Install Lisk Core without starting.';
 const networkIdentifierDescription =
 	'Network identifier defined for the network or main | test for the Lisk Network.';
-const communityIdentifierDescription =
-	'Unique community identifier for network.';
-const mandatoryKeyDescription =
-	'Mandatory publicKey required for multi signature transaction.';
-const optionalKeyDescription =
-	'Optional publicKey for multi signature transaction.';
+const communityIdentifierDescription = 'Unique community identifier for network.';
+const mandatoryKeyDescription = 'Mandatory publicKey required for multi signature transaction.';
+const optionalKeyDescription = 'Optional publicKey for multi signature transaction.';
 const numberOfSignaturesDescription =
 	'Number of signatures required to approve the transaction from multi signature account';
 const numberOfPassphrasesDescription =

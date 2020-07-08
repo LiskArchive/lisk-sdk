@@ -14,11 +14,7 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {
-	Application,
-	ApplicationConfig,
-	GenesisBlockJSON,
-} from 'lisk-framework';
+import { Application, ApplicationConfig, GenesisBlockJSON } from 'lisk-framework';
 import * as genesisBlockJSON from '../fixtures/genesis_block.json';
 import * as configJSON from '../fixtures/config.json';
 import { HTTPAPIPlugin } from '../../../src';
@@ -45,10 +41,7 @@ export const createApplication = async (
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
 
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
-	await Promise.race([
-		app.run(),
-		new Promise(resolve => setTimeout(resolve, 3000)),
-	]);
+	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
 	await new Promise(resolve => {
 		app['_channel'].subscribe('app:block:new', () => {
 			if (app['_node']['_chain'].lastBlock.header.height === 2) {
@@ -67,8 +60,7 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	await app.shutdown();
 };
 
-export const getURL = (url: string, port = 4000): string =>
-	`http://localhost:${port}${url}`;
+export const getURL = (url: string, port = 4000): string => `http://localhost:${port}${url}`;
 
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands

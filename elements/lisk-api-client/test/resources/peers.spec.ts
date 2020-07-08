@@ -35,9 +35,7 @@ describe('PeersResource', () => {
 		});
 
 		it('should have correct full path', () => {
-			return expect(resource.resourcePath).toEqual(
-				`${defaultBasePath}/api${path}`,
-			);
+			return expect(resource.resourcePath).toEqual(`${defaultBasePath}/api${path}`);
 		});
 
 		it('should set resource path', () => {

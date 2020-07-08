@@ -59,10 +59,7 @@ export const writeSInt64 = (value: bigint): Buffer => {
 	return writeUInt64(BigInt(-2) * value - BigInt(1));
 };
 
-export const readUInt32 = (
-	buffer: Buffer,
-	offset: number,
-): [number, number] => {
+export const readUInt32 = (buffer: Buffer, offset: number): [number, number] => {
 	let result = 0;
 	let index = offset;
 	for (let shift = 0; shift < 32; shift += 7) {
@@ -82,10 +79,7 @@ export const readUInt32 = (
 	throw new Error('Terminating bit not found');
 };
 
-export const readUInt64 = (
-	buffer: Buffer,
-	offset: number,
-): [bigint, number] => {
+export const readUInt64 = (buffer: Buffer, offset: number): [bigint, number] => {
 	let result = BigInt(0);
 	let index = offset;
 	for (let shift = BigInt(0); shift < BigInt(64); shift += BigInt(7)) {
@@ -105,10 +99,7 @@ export const readUInt64 = (
 	throw new Error('Terminating bit not found');
 };
 
-export const readSInt32 = (
-	buffer: Buffer,
-	offset: number,
-): [number, number] => {
+export const readSInt32 = (buffer: Buffer, offset: number): [number, number] => {
 	const [varInt, size] = readUInt32(buffer, offset);
 	if (varInt % 2 === 0) {
 		return [varInt / 2, size];
@@ -116,10 +107,7 @@ export const readSInt32 = (
 	return [-(varInt + 1) / 2, size];
 };
 
-export const readSInt64 = (
-	buffer: Buffer,
-	offset: number,
-): [bigint, number] => {
+export const readSInt64 = (buffer: Buffer, offset: number): [bigint, number] => {
 	const [varInt, size] = readUInt64(buffer, offset);
 	if (varInt % BigInt(2) === BigInt(0)) {
 		return [varInt / BigInt(2), size];

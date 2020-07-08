@@ -35,11 +35,7 @@ describe('errors', () => {
 		let peerTransportError: PeerInboundHandshakeError;
 
 		beforeEach(() => {
-			peerTransportError = new PeerInboundHandshakeError(
-				defaultMessage,
-				statusCode,
-				remoteAddress,
-			);
+			peerTransportError = new PeerInboundHandshakeError(defaultMessage, statusCode, remoteAddress);
 		});
 
 		it('should create a new instance of PeerInboundHandshakeError', () => {
@@ -179,21 +175,15 @@ describe('errors', () => {
 		let invalidProtocolMessageError: InvalidProtocolMessageError;
 
 		beforeEach(() => {
-			invalidProtocolMessageError = new InvalidProtocolMessageError(
-				defaultMessage,
-			);
+			invalidProtocolMessageError = new InvalidProtocolMessageError(defaultMessage);
 		});
 
 		it('should create a new instance of InvalidProtocolMessageError', () => {
-			expect(invalidProtocolMessageError).toBeInstanceOf(
-				InvalidProtocolMessageError,
-			);
+			expect(invalidProtocolMessageError).toBeInstanceOf(InvalidProtocolMessageError);
 		});
 
 		it('should set error name to `InvalidProtocolMessageError`', () => {
-			expect(invalidProtocolMessageError.name).toEqual(
-				'InvalidProtocolMessageError',
-			);
+			expect(invalidProtocolMessageError.name).toEqual('InvalidProtocolMessageError');
 		});
 
 		it('should set error message when passed an argument', () => {
@@ -227,21 +217,15 @@ describe('errors', () => {
 		let rpcResponseAlreadySentError: RPCResponseAlreadySentError;
 
 		beforeEach(() => {
-			rpcResponseAlreadySentError = new RPCResponseAlreadySentError(
-				defaultMessage,
-			);
+			rpcResponseAlreadySentError = new RPCResponseAlreadySentError(defaultMessage);
 		});
 
 		it('should create a new instance of RPCResponseAlreadySentError', () => {
-			expect(rpcResponseAlreadySentError).toBeInstanceOf(
-				RPCResponseAlreadySentError,
-			);
+			expect(rpcResponseAlreadySentError).toBeInstanceOf(RPCResponseAlreadySentError);
 		});
 
 		it('should set error name to `RPCResponseAlreadySentError`', () => {
-			expect(rpcResponseAlreadySentError.name).toEqual(
-				'ResponseAlreadySentError',
-			);
+			expect(rpcResponseAlreadySentError.name).toEqual('ResponseAlreadySentError');
 		});
 
 		it('should set error message when passed an argument', () => {
@@ -250,8 +234,7 @@ describe('errors', () => {
 	});
 
 	describe('#RequestFailError', () => {
-		const defaultMessage =
-			'Request failed due to no peers found in peer selection';
+		const defaultMessage = 'Request failed due to no peers found in peer selection';
 		const errorResponseMessage = 'Invalid block id';
 		const response = new Error(errorResponseMessage);
 		const peerId = '127.0.0.1:4000';
@@ -260,12 +243,7 @@ describe('errors', () => {
 		let requestFailError: RequestFailError;
 
 		beforeEach(() => {
-			requestFailError = new RequestFailError(
-				defaultMessage,
-				response,
-				peerId,
-				peerVersion,
-			);
+			requestFailError = new RequestFailError(defaultMessage, response, peerId, peerVersion);
 		});
 
 		it('should create a new instance of RequestFailError', () => {

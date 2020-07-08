@@ -40,8 +40,7 @@ export const defaultConfig = {
 		},
 		webhook: {
 			type: 'array',
-			description:
-				'Third party API endpoints with configurable events to emit.',
+			description: 'Third party API endpoints with configurable events to emit.',
 			items: {
 				type: 'object',
 				properties: {
@@ -98,14 +97,7 @@ export const defaultConfig = {
 					maximum: 120000,
 				},
 			},
-			required: [
-				'max',
-				'delayMs',
-				'delayAfter',
-				'windowMs',
-				'headersTimeout',
-				'serverSetTimeout',
-			],
+			required: ['max', 'delayMs', 'delayAfter', 'windowMs', 'headersTimeout', 'serverSetTimeout'],
 		},
 	},
 	required: ['port', 'whiteList', 'dataPath', 'cors', 'limits'],

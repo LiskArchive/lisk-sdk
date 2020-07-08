@@ -102,5 +102,4 @@ export enum OS {
 }
 
 export const RELEASE_URL = 'https://downloads.lisk.io/lisk';
-export const SNAPSHOT_URL =
-	'https://downloads.lisk.io/lisk/mainnet/blockchain.db.gz';
+export const SNAPSHOT_URL = 'https://downloads.lisk.io/lisk/mainnet/blockchain.db.gz';

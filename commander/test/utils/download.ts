@@ -7,8 +7,7 @@ import * as commons from '../../src/utils/core/commons';
 import * as downloadUtil from '../../src/utils/download';
 
 describe('download utils', () => {
-	const url =
-		'https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Darwin-x86_64.tar.gz.SHA256';
+	const url = 'https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Darwin-x86_64.tar.gz.SHA256';
 	const outDir = '~/.cache/lisk-commander';
 
 	describe('#download', () => {
@@ -63,9 +62,9 @@ describe('download utils', () => {
 				);
 			verifyChecksumStub.rejects(new Error('Checksum did not match'));
 
-			return expect(
-				downloadUtil.downloadAndValidate(url, outDir),
-			).to.rejectedWith('Checksum did not match');
+			return expect(downloadUtil.downloadAndValidate(url, outDir)).to.rejectedWith(
+				'Checksum did not match',
+			);
 		});
 	});
 });

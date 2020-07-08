@@ -80,9 +80,7 @@ const validatePrerequisite = (installPath: string): void => {
 		throw new Error(`Lisk Core installation is not supported on ${os.type()}.`);
 	}
 	if (fsExtra.pathExistsSync(installPath)) {
-		throw new Error(
-			`Lisk Core installation already exists in path ${installPath}.`,
-		);
+		throw new Error(`Lisk Core installation already exists in path ${installPath}.`);
 	}
 };
 
@@ -113,11 +111,7 @@ const installOptions = async (
 	const installDir = `${installPath}/${name}/`;
 	const latestUrl = releaseUrl || liskLatestUrl(RELEASE_URL, network);
 
-	const installVersion: string = await getVersionToInstall(
-		network,
-		liskVersion,
-		releaseUrl,
-	);
+	const installVersion: string = await getVersionToInstall(network, liskVersion, releaseUrl);
 
 	const { version, liskTarUrl, liskTarSHA256Url } = await getReleaseInfo(
 		latestUrl,
@@ -226,10 +220,7 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Prepare Install Options',
 							task: async ctx => {
-								const options: Options = await installOptions(
-									flags as Flags,
-									name,
-								);
+								const options: Options = await installOptions(flags as Flags, name);
 								// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 								ctx.options = options;
 							},
@@ -266,10 +257,7 @@ export default class InstallCommand extends BaseCommand {
 							task: async ctx => {
 								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 								const { installDir, liskTarUrl }: Options = ctx.options;
-								const { fileName, fileDir } = getDownloadedFileInfo(
-									liskTarUrl,
-									cacheDir,
-								);
+								const { fileName, fileDir } = getDownloadedFileInfo(liskTarUrl, cacheDir);
 
 								createDirectory(installDir);
 								await extract(fileDir, fileName, installDir);
@@ -296,10 +284,7 @@ export default class InstallCommand extends BaseCommand {
 								await createUser(installDir, network, name);
 								await createDatabase(installDir, network, name);
 								if (!noSnapshot) {
-									const { filePath } = getDownloadedFileInfo(
-										snapshotURL,
-										cacheDir,
-									);
+									const { filePath } = getDownloadedFileInfo(snapshotURL, cacheDir);
 
 									await restoreSnapshot(installDir, network, filePath, name);
 								}

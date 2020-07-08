@@ -44,9 +44,7 @@ describe('validator formats', () => {
 		});
 
 		it('should validate to true when valid base64 string is provided', () => {
-			expect(
-				validator.validate(schema, { target: 'I7ntgYUmqSi86RuW+0UIursSHuI=' }),
-			).toEqual([]);
+			expect(validator.validate(schema, { target: 'I7ntgYUmqSi86RuW+0UIursSHuI=' })).toEqual([]);
 		});
 
 		it('should validate to false when not base64 is provided', () => {
@@ -89,21 +87,15 @@ describe('validator formats', () => {
 				},
 			];
 
-			expect(validator.validate(pathSchema, { rootPath: 'lisk' })).toEqual(
-				expectedError,
-			);
+			expect(validator.validate(pathSchema, { rootPath: 'lisk' })).toEqual(expectedError);
 		});
 
 		it('should validate to true for valid path with tilde', () => {
-			expect(
-				validator.validate(pathSchema, { rootPath: '~/.lisk' }),
-			).toBeEmpty();
+			expect(validator.validate(pathSchema, { rootPath: '~/.lisk' })).toBeEmpty();
 		});
 
 		it('should validate to true for valid path', () => {
-			expect(
-				validator.validate(pathSchema, { rootPath: '/tmp/lisk/test/' }),
-			).toBeEmpty();
+			expect(validator.validate(pathSchema, { rootPath: '/tmp/lisk/test/' })).toBeEmpty();
 		});
 	});
 
@@ -142,10 +134,7 @@ describe('validator formats', () => {
 		});
 
 		it('should validate to true for valid encrypted passphrase', () => {
-			[
-				'cipherText=abcd1234',
-				'cipherText=abcd1234&iterations=10000&iv=ef012345',
-			].forEach(text => {
+			['cipherText=abcd1234', 'cipherText=abcd1234&iterations=10000&iv=ef012345'].forEach(text => {
 				expect(
 					validator.validate(encryptedPassphraseSchema, {
 						encryptedPassphrase: text,
@@ -177,17 +166,15 @@ describe('validator formats', () => {
 			];
 
 			['NotCamelCase', '123Case', '_camelCase'].forEach(text => {
-				expect(
-					validator.validate(camelCaseRegexSchema, { camelCaseRegex: text }),
-				).toEqual(expectedError);
+				expect(validator.validate(camelCaseRegexSchema, { camelCaseRegex: text })).toEqual(
+					expectedError,
+				);
 			});
 		});
 
 		it('should validate to true for valid camel case text', () => {
 			['camelCase'].forEach(text => {
-				expect(
-					validator.validate(camelCaseRegexSchema, { camelCaseRegex: text }),
-				).toBeEmpty();
+				expect(validator.validate(camelCaseRegexSchema, { camelCaseRegex: text })).toBeEmpty();
 			});
 		});
 	});
@@ -213,28 +200,14 @@ describe('validator formats', () => {
 				},
 			];
 
-			[
-				'9999999999999999.4.7.4',
-				'alpha one',
-				'1.2.12.102',
-				'4.6.3.9.2-alpha2',
-			].forEach(text => {
-				expect(validator.validate(versionSchema, { version: text })).toEqual(
-					expectedError,
-				);
+			['9999999999999999.4.7.4', 'alpha one', '1.2.12.102', '4.6.3.9.2-alpha2'].forEach(text => {
+				expect(validator.validate(versionSchema, { version: text })).toEqual(expectedError);
 			});
 		});
 
 		it('should validate to true for valid semantic versions', () => {
-			[
-				'1.2.0',
-				'1.0.0-alpha.0',
-				'v1.2.3',
-				'1.0.0-beta+exp.sha.5114f85',
-			].forEach(text => {
-				expect(
-					validator.validate(versionSchema, { version: text }),
-				).toBeEmpty();
+			['1.2.0', '1.0.0-alpha.0', 'v1.2.3', '1.0.0-beta+exp.sha.5114f85'].forEach(text => {
+				expect(validator.validate(versionSchema, { version: text })).toBeEmpty();
 			});
 		});
 	});

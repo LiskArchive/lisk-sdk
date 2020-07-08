@@ -57,9 +57,7 @@ describe('Proof-of-misbehavior transaction', () => {
 				asset: decodedAsset,
 				id,
 			};
-			transactionWithScenario1 = new ProofOfMisbehaviorTransaction(
-				decodedScenario1Transaction,
-			);
+			transactionWithScenario1 = new ProofOfMisbehaviorTransaction(decodedScenario1Transaction);
 		}
 		{
 			const buffer = Buffer.from(
@@ -80,9 +78,7 @@ describe('Proof-of-misbehavior transaction', () => {
 				asset: decodedAsset,
 				id,
 			};
-			transactionWithScenario2 = new ProofOfMisbehaviorTransaction(
-				decodedScenario2Transaction,
-			);
+			transactionWithScenario2 = new ProofOfMisbehaviorTransaction(decodedScenario2Transaction);
 		}
 		{
 			const buffer = Buffer.from(
@@ -103,9 +99,7 @@ describe('Proof-of-misbehavior transaction', () => {
 				asset: decodedAsset,
 				id,
 			};
-			transactionWithScenario3 = new ProofOfMisbehaviorTransaction(
-				decodedScenario3Transaction,
-			);
+			transactionWithScenario3 = new ProofOfMisbehaviorTransaction(decodedScenario3Transaction);
 		}
 	});
 
@@ -140,9 +134,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			const { errors, status } = nonContradictingTransaction.validate();
 			expect(status).toBe(Status.FAIL);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude(
-				'BlockHeaders are identical. No contradiction detected.',
-			);
+			expect(errors[0].message).toInclude('BlockHeaders are identical. No contradiction detected.');
 		});
 	});
 
@@ -154,25 +146,17 @@ describe('Proof-of-misbehavior transaction', () => {
 		beforeEach(() => {
 			sender = defaultAccount({
 				address: Buffer.from(
-					validProofOfMisbehaviorTransactionScenario1.input.reportingAccount
-						.address,
+					validProofOfMisbehaviorTransactionScenario1.input.reportingAccount.address,
 					'base64',
 				),
-				balance: BigInt(
-					validProofOfMisbehaviorTransactionScenario1.input.reportingAccount
-						.balance,
-				),
+				balance: BigInt(validProofOfMisbehaviorTransactionScenario1.input.reportingAccount.balance),
 			});
 			delegate = defaultAccount({
 				address: Buffer.from(
-					validProofOfMisbehaviorTransactionScenario1.input.targetAccount
-						.address,
+					validProofOfMisbehaviorTransactionScenario1.input.targetAccount.address,
 					'base64',
 				),
-				balance: BigInt(
-					validProofOfMisbehaviorTransactionScenario1.input.targetAccount
-						.balance,
-				),
+				balance: BigInt(validProofOfMisbehaviorTransactionScenario1.input.targetAccount.balance),
 				asset: {
 					delegate: {
 						username: 'genesis_100',
@@ -240,9 +224,7 @@ describe('Proof-of-misbehavior transaction', () => {
 		});
 
 		it('should return errors when headers are not properly signed', async () => {
-			const invalidSignature = decodedScenario1Transaction.asset.header2.signature.slice(
-				0,
-			);
+			const invalidSignature = decodedScenario1Transaction.asset.header2.signature.slice(0);
 			invalidSignature[10] = 20;
 			const invalidTransaction = new ProofOfMisbehaviorTransaction({
 				...decodedScenario1Transaction,
@@ -258,9 +240,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			const { errors, status } = await invalidTransaction.apply(store);
 			expect(status).toBe(Status.FAIL);
 			expect(errors).toHaveLength(3);
-			expect(errors[2].message).toInclude(
-				'Invalid block signature for header 2',
-			);
+			expect(errors[2].message).toInclude('Invalid block signature for header 2');
 		});
 
 		it('should return errors if misbehaving account is not a delegate', async () => {
@@ -308,9 +288,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			const { errors, status } = await transactionWithScenario1.apply(store);
 			expect(status).toBe(Status.FAIL);
 			expect(errors).toHaveLength(2);
-			expect(errors[1].message).toInclude(
-				'Cannot apply proof-of-misbehavior. Delegate is banned.',
-			);
+			expect(errors[1].message).toInclude('Cannot apply proof-of-misbehavior. Delegate is banned.');
 		});
 
 		it('should return errors if misbehaving account is already punished at height h', async () => {
@@ -348,19 +326,14 @@ describe('Proof-of-misbehavior transaction', () => {
 			});
 			await transactionWithScenario1.apply(store);
 			const updatedSender = await store.account.get(sender.address);
-			const expectedBalance =
-				sender.balance + delegate.balance - transactionWithScenario1.fee;
+			const expectedBalance = sender.balance + delegate.balance - transactionWithScenario1.fee;
 
-			expect(updatedSender.balance.toString()).toEqual(
-				expectedBalance.toString(),
-			);
+			expect(updatedSender.balance.toString()).toEqual(expectedBalance.toString());
 		});
 
 		it('should append height h to pomHeights property of misbehaving account', async () => {
 			await transactionWithScenario1.apply(store);
-			const updatedDelegate = await store.account.get<AccountAsset>(
-				delegate.address,
-			);
+			const updatedDelegate = await store.account.get<AccountAsset>(delegate.address);
 
 			expect(updatedDelegate.asset.delegate.pomHeights[0]).toEqual(900011);
 		});
@@ -383,9 +356,7 @@ describe('Proof-of-misbehavior transaction', () => {
 				lastBlockReward: BigInt(1),
 			});
 			await transactionWithScenario1.apply(store);
-			const updatedDelegate = await store.account.get<AccountAsset>(
-				delegate.address,
-			);
+			const updatedDelegate = await store.account.get<AccountAsset>(delegate.address);
 
 			expect(updatedDelegate.asset.delegate.isBanned).toBeTrue();
 		});

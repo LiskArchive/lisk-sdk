@@ -1,10 +1,7 @@
 import * as axios from 'axios';
 import * as sandbox from 'sinon';
 import { expect } from 'chai';
-import {
-	getLatestVersion,
-	getReleaseInfo,
-} from '../../../src/utils/core/release';
+import { getLatestVersion, getReleaseInfo } from '../../../src/utils/core/release';
 import { NETWORK } from '../../../src/utils/constants';
 
 describe('release core utils', () => {
@@ -27,11 +24,7 @@ describe('release core utils', () => {
 				NETWORK.MAINNET,
 				'2.0.0',
 			);
-			expect(releaseInfo).to.have.keys([
-				'version',
-				'liskTarUrl',
-				'liskTarSHA256Url',
-			]);
+			expect(releaseInfo).to.have.keys(['version', 'liskTarUrl', 'liskTarSHA256Url']);
 			return expect(releaseInfo.version).to.equal(data);
 		});
 
@@ -39,11 +32,7 @@ describe('release core utils', () => {
 			const releaseInfo = await getReleaseInfo(
 				'https://downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz',
 			);
-			expect(releaseInfo).to.have.keys([
-				'version',
-				'liskTarUrl',
-				'liskTarSHA256Url',
-			]);
+			expect(releaseInfo).to.have.keys(['version', 'liskTarUrl', 'liskTarSHA256Url']);
 			return expect(releaseInfo.version).to.equal('1.6.0-rc.4');
 		});
 	});

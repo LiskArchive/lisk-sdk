@@ -38,10 +38,7 @@ export class AccountStore {
 	private readonly _defaultAsset: object;
 	private readonly _initialAccountValue: BufferMap<Buffer>;
 
-	public constructor(
-		dataAccess: DataAccess,
-		additionalInformation: AdditionalInformation,
-	) {
+	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
 		this._dataAccess = dataAccess;
 		this._data = new BufferMap<Account>();
 		this._updatedKeys = new BufferSet();
@@ -72,9 +69,7 @@ export class AccountStore {
 		}
 
 		// Account was not cached previously so we try to fetch it from db
-		const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(
-			address,
-		);
+		const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(address);
 		const account = this._getAccountInstance(encodedAccount);
 
 		this._data.set(address, account);
@@ -82,9 +77,7 @@ export class AccountStore {
 		return (account as unknown) as Account<T>;
 	}
 
-	public async getOrDefault<T = DefaultAsset>(
-		address: Buffer,
-	): Promise<Account<T>> {
+	public async getOrDefault<T = DefaultAsset>(address: Buffer): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
 		const cachedAccount = this._data.get(address);
 		if (cachedAccount) {
@@ -93,9 +86,7 @@ export class AccountStore {
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
 		try {
-			const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(
-				address,
-			);
+			const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(address);
 			const account = this._getAccountInstance(encodedAccount);
 
 			this._data.set(address, account);
@@ -121,10 +112,7 @@ export class AccountStore {
 		return ([...this._data.values()] as unknown) as ReadonlyArray<Account<T>>;
 	}
 
-	public set<T = DefaultAsset>(
-		primaryValue: Buffer,
-		updatedElement: Account<T>,
-	): void {
+	public set<T = DefaultAsset>(primaryValue: Buffer, updatedElement: Account<T>): void {
 		this._data.set(primaryValue, (updatedElement as unknown) as Account);
 		this._updatedKeys.add(primaryValue);
 	}
@@ -135,15 +123,11 @@ export class AccountStore {
 		for (const updatedAccount of this._data.values()) {
 			if (this._updatedKeys.has(updatedAccount.address)) {
 				const encodedAccount = this._dataAccess.encodeAccount(updatedAccount);
-				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(
-					updatedAccount.address,
-				)}`;
+				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(updatedAccount.address)}`;
 				batch.put(dbKey, encodedAccount);
 
 				if (this._initialAccountValue.has(updatedAccount.address)) {
-					const initialAccount = this._initialAccountValue.get(
-						updatedAccount.address,
-					);
+					const initialAccount = this._initialAccountValue.get(updatedAccount.address);
 
 					const diff = calculateDiff(initialAccount as Buffer, encodedAccount);
 					stateDiff.updated.push({

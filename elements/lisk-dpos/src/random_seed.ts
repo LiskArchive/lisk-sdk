@@ -73,10 +73,8 @@ const findPreviousHeaderOfDelegate = (
 	return undefined;
 };
 
-const isValidSeedReveal = (
-	seedReveal: Buffer,
-	previousSeedReveal: Buffer,
-): boolean => strippedHash(seedReveal).equals(previousSeedReveal);
+const isValidSeedReveal = (seedReveal: Buffer, previousSeedReveal: Buffer): boolean =>
+	strippedHash(seedReveal).equals(previousSeedReveal);
 
 const selectSeedReveals = ({
 	fromHeight,
@@ -109,12 +107,7 @@ const selectSeedReveals = ({
 
 		// To validate seed reveal of any block in the last round
 		// We have to check till second last round
-		if (
-			!isValidSeedReveal(
-				header.asset.seedReveal,
-				lastForgedBlock.asset.seedReveal,
-			)
-		) {
+		if (!isValidSeedReveal(header.asset.seedReveal, lastForgedBlock.asset.seedReveal)) {
 			// eslint-disable-next-line no-continue
 			continue;
 		}
@@ -150,9 +143,7 @@ export const generateRandomSeeds = (
 		const randomSeed1ForFirstRound = strippedHash(
 			intToBuffer(middleThreshold + 1, NUMBER_BYTE_SIZE),
 		);
-		const randomSeed2ForFirstRound = strippedHash(
-			intToBuffer(0, NUMBER_BYTE_SIZE),
-		);
+		const randomSeed2ForFirstRound = strippedHash(intToBuffer(0, NUMBER_BYTE_SIZE));
 
 		return [randomSeed1ForFirstRound, randomSeed2ForFirstRound];
 	}
@@ -162,19 +153,13 @@ export const generateRandomSeeds = (
 	 * blocks we will use only current and last round. To validate seed reveal of
 	 * any block from last round we have to load second last round as well.
 	 */
-	const headersMap = headers.reduce(
-		(acc: HeadersMap, header: BlockHeader): HeadersMap => {
-			if (
-				header.height >= startOfSecondLastRound &&
-				header.height <= middleOfRound
-			) {
-				acc[header.height] = header;
-			}
+	const headersMap = headers.reduce((acc: HeadersMap, header: BlockHeader): HeadersMap => {
+		if (header.height >= startOfSecondLastRound && header.height <= middleOfRound) {
+			acc[header.height] = header;
+		}
 
-			return acc;
-		},
-		{},
-	);
+		return acc;
+	}, {});
 
 	// From middle of current round to middle of last round
 	debug('Fetching seed reveals for random seed 1', {

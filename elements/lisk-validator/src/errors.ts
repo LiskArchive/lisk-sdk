@@ -34,9 +34,7 @@ interface ErrorParams {
 	[key: string]: unknown;
 }
 
-const errorParamToString = (
-	param: string | Buffer | BigInt | undefined | unknown,
-): string => {
+const errorParamToString = (param: string | Buffer | BigInt | undefined | unknown): string => {
 	let paramAsString = '';
 	if (typeof param === 'bigint') {
 		paramAsString = param.toString();
@@ -62,20 +60,14 @@ const errorFormatterMap: KeywordDataFormatters = {
 			error.params.type,
 		)}'`,
 	additionalProperties: error =>
-		`Property '${
-			error.dataPath ?? ''
-		}' has extraneous property '${errorParamToString(
+		`Property '${error.dataPath ?? ''}' has extraneous property '${errorParamToString(
 			error.params.additionalProperty,
 		)}'`,
-	minLength: error =>
-		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
-	maxLength: error =>
-		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
-	format: error =>
-		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	minLength: error => `Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	maxLength: error => `Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	format: error => `Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
 	required: error => `Missing property, ${errorParamToString(error.message)}`,
-	dataType: error =>
-		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	dataType: error => `Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
 };
 
 const defaultErrorFormater: KeywordFormatterFunction = error =>

@@ -81,10 +81,7 @@ const testSchema = {
 	},
 };
 
-const transferLikeLiskTransactionEncoded = codec.encode(
-	testSchema,
-	transferLikeLiskTransaction,
-);
+const transferLikeLiskTransactionEncoded = codec.encode(testSchema, transferLikeLiskTransaction);
 
 suite
 	.add('Encode transfer like Lisk transaction', () => {
@@ -93,7 +90,7 @@ suite
 	.add('Decode transfer like Lisk transaction', () => {
 		codec.decode(testSchema, transferLikeLiskTransactionEncoded);
 	})
-	.on('cycle', function(event) {
+	.on('cycle', function (event) {
 		console.log(String(event.target));
 	})
 	.run({ async: false });

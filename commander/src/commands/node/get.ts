@@ -35,13 +35,12 @@ export default class GetCommand extends BaseCommand {
 			flags: { 'forging-status': showForgingStatus },
 		} = this.parse(GetCommand);
 		const client = getAPIClient(this.userConfig.api);
-		const baseInfo = await Promise.all([
-			client.node.getConstants(),
-			client.node.getStatus(),
-		]).then(([constantsResponse, statusResponse]) => ({
-			...(constantsResponse.data as object),
-			...(statusResponse.data as object),
-		}));
+		const baseInfo = await Promise.all([client.node.getConstants(), client.node.getStatus()]).then(
+			([constantsResponse, statusResponse]) => ({
+				...(constantsResponse.data as object),
+				...(statusResponse.data as object),
+			}),
+		);
 		if (!showForgingStatus) {
 			this.print(baseInfo);
 

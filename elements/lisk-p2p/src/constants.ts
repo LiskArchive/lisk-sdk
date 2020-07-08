@@ -29,9 +29,7 @@ export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
 export const DEFAULT_WS_MAX_PAYLOAD = 3048576; // Size in bytes
 export const DEFAULT_NONCE_LENGTH_BYTES = 8;
 const SECRET_BYTE_LENGTH = 4;
-export const DEFAULT_RANDOM_SECRET = getRandomBytes(
-	SECRET_BYTE_LENGTH,
-).readUInt32BE(0);
+export const DEFAULT_RANDOM_SECRET = getRandomBytes(SECRET_BYTE_LENGTH).readUInt32BE(0);
 
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
@@ -77,8 +75,7 @@ export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
 export const INTENTIONAL_DISCONNECT_CODE = 1000;
-export const SEED_PEER_DISCONNECTION_REASON =
-	'Disconnect from SeedPeer after discovery';
+export const SEED_PEER_DISCONNECTION_REASON = 'Disconnect from SeedPeer after discovery';
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';
@@ -88,11 +85,9 @@ export const INVALID_CONNECTION_QUERY_REASON =
 export const INVALID_CONNECTION_SELF_CODE = 4101;
 export const INVALID_CONNECTION_SELF_REASON = 'Peer cannot connect to itself';
 export const INCOMPATIBLE_NETWORK_CODE = 4102;
-export const INCOMPATIBLE_NETWORK_REASON =
-	'Peer networkId did not match our own';
+export const INCOMPATIBLE_NETWORK_REASON = 'Peer networkId did not match our own';
 export const INCOMPATIBLE_PROTOCOL_VERSION_CODE = 4103;
-export const INCOMPATIBLE_PROTOCOL_VERSION_REASON =
-	'Peer has incompatible protocol version';
+export const INCOMPATIBLE_PROTOCOL_VERSION_REASON = 'Peer has incompatible protocol version';
 export const INCOMPATIBLE_PEER_CODE = 4104;
 export const INCOMPATIBLE_PEER_UNKNOWN_REASON =
 	'Peer is incompatible with the node for unknown reasons';

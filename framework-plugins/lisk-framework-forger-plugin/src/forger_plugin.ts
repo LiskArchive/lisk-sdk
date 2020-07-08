@@ -78,11 +78,7 @@ export class ForgerPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._app = express();
-		const options = objects.mergeDeep(
-			{},
-			config.defaultConfig.default,
-			this.options,
-		) as Options;
+		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
 		this.forgerPluginDB = await this._getDBInstance(options);
@@ -126,10 +122,7 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private async _getDBInstance(
-		options: Options,
-		dbName = 'forger_plugin.db',
-	): Promise<KVStore> {
+	private async _getDBInstance(options: Options, dbName = 'forger_plugin.db'): Promise<KVStore> {
 		const resolvedPath = options.dataPath.replace('~', os.homedir());
 		const dirPath = path.join(resolvedPath, dbName);
 		await fs.ensureDir(dirPath);

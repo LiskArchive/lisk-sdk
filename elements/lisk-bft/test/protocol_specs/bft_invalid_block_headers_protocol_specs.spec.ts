@@ -40,8 +40,8 @@ describe('FinalityManager', () => {
 		invalidBlockHeaderSpec.testCases.forEach(testCase => {
 			it('should fail adding invalid block header', async () => {
 				// Arrange
-				stateStore.consensus.lastBlockHeaders = testCase.config.blockHeaders.map(
-					bh => convertHeader(bh),
+				stateStore.consensus.lastBlockHeaders = testCase.config.blockHeaders.map(bh =>
+					convertHeader(bh),
 				);
 
 				const finalityManager = new FinalityManager({
@@ -53,9 +53,7 @@ describe('FinalityManager', () => {
 					when(dposStub.getMinActiveHeight)
 						.calledWith(
 							blockHeader.height,
-							getAddressFromPublicKey(
-								Buffer.from(blockHeader.generatorPublicKey, 'hex'),
-							),
+							getAddressFromPublicKey(Buffer.from(blockHeader.generatorPublicKey, 'hex')),
 						)
 						.mockResolvedValue(blockHeader.delegateMinHeightActive);
 				}

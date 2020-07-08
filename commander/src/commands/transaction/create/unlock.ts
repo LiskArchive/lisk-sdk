@@ -13,10 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	unlockToken,
-	utils as transactionUtils,
-} from '@liskhq/lisk-transactions';
+import { unlockToken, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
@@ -59,9 +56,7 @@ const splitInputs = (unlock: string) =>
 		.filter(Boolean)
 		.map(u => u.trim());
 
-const validateUnlocks = (
-	unlocks: ReadonlyArray<string>,
-): ReadonlyArray<RawAssetUnlock> => {
+const validateUnlocks = (unlocks: ReadonlyArray<string>): ReadonlyArray<RawAssetUnlock> => {
 	const rawAssetUnlock = [];
 	for (const unlock of unlocks) {
 		const [delegateAddress, amount, unvoteHeight] = splitInputs(unlock);
@@ -70,19 +65,12 @@ const validateUnlocks = (
 		}
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
-		if (
-			!isNumberString(normalizedAmount) ||
-			!isUInt64(BigInt(normalizedAmount))
-		) {
-			throw new ValidationError(
-				'Enter a valid amount in number string format.',
-			);
+		if (!isNumberString(normalizedAmount) || !isUInt64(BigInt(normalizedAmount))) {
+			throw new ValidationError('Enter a valid amount in number string format.');
 		}
 
 		if (!isNumberString(unvoteHeight)) {
-			throw new ValidationError(
-				'Enter the unvoteHeight in valid number format.',
-			);
+			throw new ValidationError('Enter the unvoteHeight in valid number format.');
 		}
 
 		rawAssetUnlock.push({
@@ -154,9 +142,7 @@ export default class UnlockCommand extends BaseCommand {
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!unlocks?.length) {
-			throw new ValidationError(
-				'At least one unlock object options must be provided.',
-			);
+			throw new ValidationError('At least one unlock object options must be provided.');
 		}
 
 		const unlockObjects = validateUnlocks(unlocks);
@@ -178,8 +164,7 @@ export default class UnlockCommand extends BaseCommand {
 			return;
 		}
 
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
 		const result = createUnlockTransaction(
 			nonce,
