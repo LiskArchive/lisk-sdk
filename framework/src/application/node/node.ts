@@ -446,6 +446,7 @@ export class Node {
 				genesisConfig: {
 					...this._options.genesisConfig,
 					...this._options.constants,
+					totalAmount: this._options.constants.totalAmount.toString(),
 				},
 			}),
 		};
