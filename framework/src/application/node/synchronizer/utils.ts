@@ -28,7 +28,7 @@ export const restoreBlocks = async (
 		return false;
 	}
 
-	for (const tempBlock of tempBlocks) {
+	for (const tempBlock of tempBlocks.reverse()) {
 		await processorModule.processValidated(tempBlock, {
 			removeFromTempTable: true,
 		});

@@ -56,7 +56,6 @@ interface BlockSynchronizationMechanismInput {
 }
 
 export class BlockSynchronizationMechanism extends BaseSynchronizer {
-	public active: boolean;
 	private readonly bft: BFT;
 	private readonly dpos: Dpos;
 	private readonly processorModule: Processor;
@@ -75,7 +74,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		this._chain = chain;
 		this.dpos = dpos;
 		this.processorModule = processorModule;
-		this.active = false;
 	}
 
 	// eslint-disable-next-line consistent-return
@@ -90,7 +88,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				lastCommonBlock,
 				bestPeer.peerId,
 			);
+			this.active = false;
 		} catch (error) {
+			this.active = false;
 			if (error instanceof ApplyPenaltyAndRestartError) {
 				this._applyPenaltyAndRestartSync(error.peerId, receivedBlock, error.reason);
 			}
@@ -106,8 +106,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			}
 
 			throw error; // If the error is none of the mentioned above, throw.
-		} finally {
-			this.active = false;
 		}
 	}
 
