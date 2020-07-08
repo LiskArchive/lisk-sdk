@@ -99,25 +99,20 @@ import {
 	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
-	validateNodeInfo,
 	validatePeerCompatibility,
 } from './utils';
 import {
-	peerInfoSchema,
 	nodeInfoSchema,
 	mergeCustomSchema,
 	defaultRPCSchemas,
+	peerInfoSchema,
 } from './schema';
-
-const createRPCSchemas = (customRPCSchemas: RPCSchemas): RPCSchemas => ({
-	peerInfo: mergeCustomSchema(peerInfoSchema, customRPCSchemas.peerInfo),
-	nodeInfo: mergeCustomSchema(nodeInfoSchema, customRPCSchemas.nodeInfo),
-});
 
 const createPeerPoolConfig = (
 	config: P2PConfig,
 	peerBook: PeerBook,
 ): PeerPoolConfig => ({
+	hostPort: config.port,
 	connectTimeout: config.connectTimeout,
 	ackTimeout: config.ackTimeout,
 	wsMaxPayload: config.wsMaxPayload
@@ -185,8 +180,14 @@ const createPeerPoolConfig = (
 			: DEFAULT_RATE_CALCULATION_INTERVAL,
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 	peerBook,
-	rpcSchemas: config.customRPCSchemas
-		? createRPCSchemas(config.customRPCSchemas)
+	rpcSchemas: config.customNodeInfoSchema
+		? {
+				nodeInfo: mergeCustomSchema(
+					nodeInfoSchema,
+					config.customNodeInfoSchema,
+				),
+				peerInfo: peerInfoSchema,
+		  }
 		: defaultRPCSchemas,
 });
 
@@ -257,10 +258,10 @@ export class P2P extends EventEmitter {
 			{
 				peerId: constructPeerId(
 					config.hostIp ?? DEFAULT_NODE_HOST_IP,
-					config.nodeInfo.wsPort,
+					config.port,
 				),
 				ipAddress: config.hostIp ?? DEFAULT_NODE_HOST_IP,
-				wsPort: config.nodeInfo.wsPort,
+				port: config.port,
 			},
 			this._secret,
 		);
@@ -272,8 +273,14 @@ export class P2P extends EventEmitter {
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
-		this._rpcSchemas = config.customRPCSchemas
-			? createRPCSchemas(config.customRPCSchemas)
+		this._rpcSchemas = config.customNodeInfoSchema
+			? {
+					nodeInfo: mergeCustomSchema(
+						nodeInfoSchema,
+						config.customNodeInfoSchema,
+					),
+					peerInfo: peerInfoSchema,
+			  }
 			: defaultRPCSchemas;
 		codec.addSchema(this._rpcSchemas.peerInfo);
 		codec.addSchema(this._rpcSchemas.nodeInfo);
@@ -535,13 +542,6 @@ export class P2P extends EventEmitter {
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
-		validateNodeInfo(
-			nodeInfo,
-			this._config.maxPeerInfoSize
-				? this._config.maxPeerInfoSize
-				: DEFAULT_MAX_PEER_INFO_SIZE,
-		);
-
 		this._nodeInfo = {
 			...nodeInfo,
 			nonce: this.nodeInfo.nonce,
@@ -562,7 +562,7 @@ export class P2P extends EventEmitter {
 		return this._peerBook.triedPeers.map(peer => ({
 			...peer.sharedState,
 			ipAddress: peer.ipAddress,
-			wsPort: peer.wsPort,
+			port: peer.port,
 		}));
 	}
 
@@ -577,7 +577,7 @@ export class P2P extends EventEmitter {
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
+				port: peer.port,
 				peerId: peer.peerId,
 			}));
 	}
@@ -589,7 +589,9 @@ export class P2P extends EventEmitter {
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
 				connectedPeers.find(
-					connectedPeer => peer.peerId === (connectedPeer.peerId as string),
+					connectedPeer =>
+						peer.ipAddress === connectedPeer.ipAddress &&
+						peer.port === connectedPeer.port,
 				)
 			) {
 				return false;
@@ -606,7 +608,7 @@ export class P2P extends EventEmitter {
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
+				port: peer.port,
 				peerId: peer.peerId,
 			}));
 	}
@@ -643,6 +645,7 @@ export class P2P extends EventEmitter {
 
 		if (this._config.maxInboundConnections !== 0) {
 			this._peerServer = new PeerServer({
+				port: this.config.port,
 				nodeInfo: this._nodeInfo,
 				hostIp: this._config.hostIp ?? DEFAULT_NODE_HOST_IP,
 				secret: this._secret,
@@ -831,8 +834,7 @@ export class P2P extends EventEmitter {
 			)
 			.map(peer => ({
 				ipAddress: peer.ipAddress,
-				wsPort: peer.wsPort,
-				...peer.sharedState,
+				port: peer.port,
 			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>

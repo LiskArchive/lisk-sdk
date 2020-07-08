@@ -22,13 +22,9 @@ export const nodeInfoSchema = {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
-		protocolVersion: {
+		networkVersion: {
 			dataType: 'string',
 			fieldNumber: 2,
-		},
-		wsPort: {
-			dataType: 'uint32',
-			fieldNumber: 3,
 		},
 		nonce: {
 			dataType: 'string',
@@ -38,52 +34,24 @@ export const nodeInfoSchema = {
 			dataType: 'boolean',
 			fieldNumber: 5,
 		},
-		os: {
-			dataType: 'string',
-			fieldNumber: 6,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
 	},
-	required: ['networkId', 'protocolVersion', 'wsPort', 'nonce'],
+	required: ['networkId', 'networkVersion', 'nonce'],
 };
 
 export const peerInfoSchema = {
-	$id: '/peerInfo',
+	$id: '/protocolPeerInfo',
 	type: 'object',
 	properties: {
 		ipAddress: {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
-		wsPort: {
+		port: {
 			dataType: 'uint32',
 			fieldNumber: 2,
 		},
-		networkId: {
-			dataType: 'string',
-			fieldNumber: 3,
-		},
-		protocolVersion: {
-			dataType: 'string',
-			fieldNumber: 4,
-		},
-		nonce: {
-			dataType: 'string',
-			fieldNumber: 5,
-		},
-		os: {
-			dataType: 'string',
-			fieldNumber: 6,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
 	},
-	required: ['ipAddress', 'wsPort'],
+	required: ['ipAddress', 'port'],
 };
 
 export const defaultRPCSchemas = {
@@ -95,10 +63,12 @@ export const mergeCustomSchema = (
 	baseSchema: Schema,
 	customSchema: Schema,
 ): Schema => ({
-	$id: `${baseSchema.$id}/custom`,
-	type: 'object',
+	...baseSchema,
 	properties: {
 		...baseSchema.properties,
-		...customSchema.properties,
+		options: {
+			type: 'object',
+			properties: { ...customSchema.properties },
+		},
 	},
 });

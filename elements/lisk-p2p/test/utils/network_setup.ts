@@ -35,7 +35,7 @@ export const FALLBACK_PEER_DISCOVER_INTERVAL = 800;
 export const nodeInfoConstants = {
 	networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	version: '1.0.1',
-	protocolVersion: '1.1',
+	networkVersion: '1.1',
 	minVersion: '1.0.0',
 	os: platform(),
 	height: 0,
@@ -70,7 +70,7 @@ export const createNetwork = async ({
 				: [
 						{
 							ipAddress: SEED_PEER_IP,
-							wsPort: NETWORK_START_PORT + index - 1,
+							port: NETWORK_START_PORT + index - 1,
 						},
 				  ];
 
@@ -81,6 +81,7 @@ export const createNetwork = async ({
 			: { nodeInfo: {} };
 
 		const p2pConfig = {
+			port: nodePort,
 			connectTimeout: DEFAULT_CONNECTION_TIMEOUT,
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
@@ -92,14 +93,10 @@ export const createNetwork = async ({
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
 			nodeInfo: {
-				wsPort: nodePort,
 				networkId: nodeInfoConstants.networkId,
-				version: nodeInfoConstants.version,
-				protocolVersion: nodeInfoConstants.protocolVersion,
-				minVersion: nodeInfoConstants.minVersion,
-				os: nodeInfoConstants.os,
-				height: nodeInfoConstants.height,
+				networkVersion: nodeInfoConstants.networkVersion,
 				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
+				options: {},
 				...customNodeInfo,
 			},
 			...customConfigObject,

@@ -38,6 +38,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	P2PNodeInfo,
 } from '../types';
 
 import {
@@ -116,15 +117,24 @@ export class OutboundPeer extends Peer {
 		const ackTimeout = this._peerConfig.ackTimeout
 			? this._peerConfig.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
+		// Isolating options that has custom property part
+		const { options, ...nodeInfo } = this._serverNodeInfo as P2PNodeInfo;
+		const queryObject = {
+			networkVersion: nodeInfo.networkVersion,
+			networkId: nodeInfo.networkId,
+			nonce: nodeInfo.nonce,
+			advertiseAddress: nodeInfo.advertiseAddress,
+			port: this._peerConfig.hostPort,
+		};
+
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this.ipAddress,
 			path: DEFAULT_HTTP_PATH,
-			port: this.wsPort,
-			query: querystring.stringify({
-				...this._serverNodeInfo,
-				options: JSON.stringify(this._serverNodeInfo),
-			}),
+			port: this.port,
+			query: querystring.stringify(
+				queryObject as querystring.ParsedUrlQueryInput,
+			),
 			connectTimeout,
 			ackTimeout,
 			multiplex: false,

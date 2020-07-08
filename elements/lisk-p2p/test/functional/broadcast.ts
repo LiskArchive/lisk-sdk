@@ -32,7 +32,7 @@ describe('P2P.broadcast', () => {
 			p2p.on(events.EVENT_MESSAGE_RECEIVED, message => {
 				if (message.event === BROADCAST_EVENT) {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						message,
 					});
 				}
@@ -98,7 +98,7 @@ describe('P2P.broadcast', () => {
 			message: {
 				event: BROADCAST_EVENT,
 				data: BROADCAST_DATA,
-				peerId: `127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`,
+				peerId: `127.0.0.1:${firstP2PNode.config.port}`,
 			},
 		});
 	});

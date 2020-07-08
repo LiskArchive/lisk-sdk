@@ -26,14 +26,11 @@ import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
-		height: 545777,
 		networkId: '73458irc3yb7rg37r7326dbt7236',
-		os: 'linux',
-		version: '1.1.1',
-		protocolVersion: '1.1',
-		wsPort: 5000,
+		networkVersion: '1.1',
 		nonce: 'nonce',
 		advertiseAddress: true,
+		options: {},
 	};
 
 	describe('#selectPeersForRequest', () => {
@@ -124,22 +121,17 @@ describe('peer selector', () => {
 				).toHaveLength(3));
 		});
 
-		describe('peers with lower blockheight', () => {
+		describe('peers with lower reputation', () => {
 			beforeEach(() => {
 				peerList = initPeerInfoList();
 			});
-			const lowHeightPeers = peerList.filter(
-				peer =>
-					peer.sharedState &&
-					(peer.sharedState.height as number) < (nodeInfo.height as number),
-			);
 
 			it('should return an array with 1 good peer', () => {
 				return expect(
 					selectPeersForRequest({
-						peers: lowHeightPeers,
+						peers: peerList,
 						nodeInfo,
-						peerLimit: 2,
+						peerLimit: 1,
 						requestPacket: { procedure: 'foo', data: {} },
 					}),
 				).toHaveLength(1);
@@ -387,32 +379,38 @@ describe('peer selector', () => {
 			});
 		});
 
-		describe('when there are multiple peer from same IP with different height', () => {
+		describe('when there are multiple peer from same IP with different reputation', () => {
 			it('should return only unique IPs', () => {
 				const uniqIpAddresses: Array<string> = [];
 
 				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
 					peerId: `205.120.0.20:${10001 + i}`,
 					ipAddress: '205.120.0.20',
-					wsPort: 10001 + i,
+					port: 10001 + i,
 					sharedState: {
-						height: 10001 + i,
-						isDiscoveredPeer: false,
-						version: '1.1.1',
-						protocolVersion: '1.1',
+						nonce: 'nonce',
+						networkId: 'networkId',
+						networkVersion: '1.1',
+						options: {},
 					},
+					internalState: {
+						reputation: 10 + i,
+					} as any,
 				}));
 
 				const newPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
 					peerId: `205.120.0.20:${5000 + i}`,
 					ipAddress: '205.120.0.20',
-					wsPort: 5000 + i,
+					port: 5000 + i,
 					sharedState: {
-						height: 5000 + i,
-						isDiscoveredPeer: false,
-						version: '1.1.1',
-						protocolVersion: '1.1',
+						nonce: 'nonce',
+						networkId: 'networkId',
+						networkVersion: '1.1',
+						options: {},
 					},
+					internalState: {
+						reputation: 10 + i,
+					} as any,
 				}));
 
 				triedPeers.push(peerList[0]);

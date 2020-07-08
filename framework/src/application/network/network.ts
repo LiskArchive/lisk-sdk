@@ -20,7 +20,7 @@ import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { NetworkConfig } from '../../types';
-import { customPeerInfoSchema, customNodeInfoSchema } from './schema';
+import { customNodeInfoSchema } from './schema';
 import { ApplicationState } from '../application_state';
 
 const {
@@ -50,6 +50,9 @@ const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
+interface State {
+	[key: string]: number | string | object | boolean;
+}
 interface NetworkConstructor {
 	readonly options: NetworkConfig;
 	readonly channel: InMemoryChannel;
@@ -139,7 +142,28 @@ export class Network {
 		} else {
 			this._secret = Number(secret);
 		}
+		const extractNodeInfoParams = (
+			state: State,
+		): liskP2P.p2pTypes.P2PNodeInfo => {
+			const {
+				networkId,
+				protocolVersion,
+				advertiseAddress,
+				os,
+				version,
+				wsPort,
+				...options
+			} = state;
 
+			const nodeInfo = {
+				networkId,
+				networkVersion: protocolVersion,
+				advertiseAddress,
+				options: { ...options },
+			};
+
+			return nodeInfo as liskP2P.p2pTypes.P2PNodeInfo;
+		};
 		const sanitizeNodeInfo = (
 			nodeInfo: liskP2P.p2pTypes.P2PNodeInfo,
 		): liskP2P.p2pTypes.P2PNodeInfo => ({
@@ -148,8 +172,9 @@ export class Network {
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
-			this._applicationState.state as liskP2P.p2pTypes.P2PNodeInfo,
+			extractNodeInfoParams(this._applicationState.state),
 		);
+
 		const seedPeers = await lookupPeersIPs(this._options.seedPeers, true);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const blacklistedIPs = this._options.blacklistedIPs ?? [];
@@ -158,7 +183,7 @@ export class Network {
 		const fixedPeers = this._options.fixedPeers
 			? this._options.fixedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					wsPort: peer.wsPort,
+					port: peer.wsPort,
 			  }))
 			: [];
 
@@ -166,11 +191,12 @@ export class Network {
 		const whitelistedPeers = this._options.whitelistedPeers
 			? this._options.whitelistedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					wsPort: peer.wsPort,
+					port: peer.wsPort,
 			  }))
 			: [];
 
 		const p2pConfig: liskP2P.p2pTypes.P2PConfig = {
+			port: this._options.wsPort,
 			nodeInfo: initialNodeInfo,
 			hostIp: this._options.hostIp,
 			blacklistedIPs,
@@ -178,7 +204,7 @@ export class Network {
 			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
-				wsPort: peer.wsPort,
+				port: peer.wsPort,
 			})),
 			previousPeers,
 			maxOutboundConnections: this._options.maxOutboundConnections,
@@ -190,18 +216,16 @@ export class Network {
 			maxPeerInfoSize: this._options.maxPeerInfoSize,
 			wsMaxPayload: this._options.wsMaxPayload,
 			secret: this._secret,
-			customRPCSchemas: {
-				peerInfo: customPeerInfoSchema,
-				nodeInfo: customNodeInfoSchema,
-			},
+			customNodeInfoSchema,
 		};
 
 		this._p2p = new P2P(p2pConfig);
 
 		this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
 			const newNodeInfo = sanitizeNodeInfo(
-				event.data as liskP2P.p2pTypes.P2PNodeInfo,
+				extractNodeInfoParams(event.data as State),
 			);
+
 			try {
 				this._p2p.applyNodeInfo(newNodeInfo);
 			} catch (error) {

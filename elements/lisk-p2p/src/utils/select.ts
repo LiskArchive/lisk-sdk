@@ -24,23 +24,24 @@ import {
 import shuffle = require('lodash.shuffle');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 
+// TODO: Revisit this function to choose better parameters to select the best peer in common IPs
 const _removeCommonIPsFromLists = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
 ): ReadonlyArray<P2PPeerInfo> => {
 	const peerMap = new Map<string, P2PPeerInfo>();
 
 	for (const peer of peerList) {
-		const { sharedState } = peer;
-		const peerHeight = sharedState?.height ? (sharedState.height as number) : 0;
+		const { internalState } = peer;
+		const peerReputation = internalState ? internalState.reputation : 0;
 
 		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
-			const { sharedState: tempSharedState } = tempPeer;
-			const tempPeerHeight = tempSharedState?.height
-				? (tempSharedState.height as number)
+			const { internalState: tempInternalState } = tempPeer;
+			const tempPeerReputation = tempInternalState
+				? tempInternalState.reputation
 				: 0;
 
-			if (peerHeight > tempPeerHeight) {
+			if (peerReputation > tempPeerReputation) {
 				peerMap.set(peer.ipAddress, peer);
 			}
 		} else {

@@ -12,33 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export const customNodeInfoSchema = {
-	$id: '/nodeInfo',
+	$id: '/bftProps',
 	type: 'object',
 	properties: {
 		maxHeightPrevoted: {
 			dataType: 'uint32',
-			fieldNumber: 8,
+			fieldNumber: 1,
 		},
 		maxHeightPreviouslyForged: {
 			dataType: 'uint32',
-			fieldNumber: 9,
+			fieldNumber: 2,
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 3,
 		},
 	},
-	required: ['networkId', 'protocolVersion', 'wsPort', 'nonce'],
-};
-
-export const customPeerInfoSchema = {
-	$id: '/peerInfo',
-	type: 'object',
-	properties: {
-		maxHeightPrevoted: {
-			dataType: 'uint32',
-			fieldNumber: 8,
-		},
-		maxHeightPreviouslyForged: {
-			dataType: 'uint32',
-			fieldNumber: 9,
-		},
-	},
-	required: ['ipAddress', 'wsPort'],
 };

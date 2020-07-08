@@ -15,7 +15,7 @@ const { P2P } = require('@liskhq/lisk-p2p');
 
 const p2p = new P2P({
 	nodeInfo: {
-		wsPort: 5001,
+		port: 5001,
 		networkId: '123xyz',
 		protocolVersion: '1.1',
 	},

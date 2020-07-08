@@ -44,13 +44,13 @@ describe('Peer banning mechanism', () => {
 			const firstP2PNode = p2pNodeList[0];
 			const badPeer = firstP2PNode.getConnectedPeers()[1];
 			const peerPenalty = {
-				peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+				peerId: `${badPeer.ipAddress}:${badPeer.port}`,
 				penalty: 10,
 			};
 			firstP2PNode.applyPenalty(peerPenalty);
 			const updatedConnectedPeers = firstP2PNode.getConnectedPeers();
-			expect(updatedConnectedPeers.map(peer => peer.wsPort)).toEqual(
-				expect.arrayContaining([badPeer.wsPort]),
+			expect(updatedConnectedPeers.map(peer => peer.port)).toEqual(
+				expect.arrayContaining([badPeer.port]),
 			);
 		});
 	});
@@ -66,9 +66,9 @@ describe('Peer banning mechanism', () => {
 			firstNode.on(EVENT_CLOSE_INBOUND, packet => {
 				collectedEvents.set('EVENT_CLOSE_INBOUND', packet);
 			});
-			badPeer = { ipAddress: SEED_PEER_IP, wsPort: 5001 };
+			badPeer = { ipAddress: SEED_PEER_IP, port: 5001 };
 			const peerPenalty = {
-				peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+				peerId: `${badPeer.ipAddress}:${badPeer.port}`,
 				penalty: 100,
 			};
 			firstNode.applyPenalty(peerPenalty);
@@ -76,8 +76,8 @@ describe('Peer banning mechanism', () => {
 
 		it('should ban the peer', () => {
 			const updatedConnectedPeers = p2pNodeList[0].getConnectedPeers();
-			expect(updatedConnectedPeers.map(peer => peer.wsPort)).toEqual(
-				expect.not.arrayContaining([badPeer.wsPort]),
+			expect(updatedConnectedPeers.map(peer => peer.port)).toEqual(
+				expect.not.arrayContaining([badPeer.port]),
 			);
 		});
 
@@ -87,7 +87,7 @@ describe('Peer banning mechanism', () => {
 
 		it(`should fire ${EVENT_BAN_PEER} event with peerId`, () => {
 			expect(collectedEvents.get('EVENT_BAN_PEER')).toEqual(
-				`${badPeer.ipAddress}:${badPeer.wsPort}`,
+				`${badPeer.ipAddress}:${badPeer.port}`,
 			);
 		});
 
@@ -111,8 +111,8 @@ describe('Peer banning mechanism', () => {
 
 			const updatedConnectedPeers = p2pNodeList[0].getConnectedPeers();
 
-			expect(updatedConnectedPeers.map(peer => peer.wsPort)).toEqual(
-				expect.arrayContaining([badPeer.wsPort]),
+			expect(updatedConnectedPeers.map(peer => peer.port)).toEqual(
+				expect.arrayContaining([badPeer.port]),
 			);
 		});
 	});

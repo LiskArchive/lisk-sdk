@@ -25,7 +25,7 @@ import { platform } from 'os';
 const nodeInfo: P2PNodeInfo = {
 	os: platform(),
 	nonce: randomBytes(8).toString('hex'),
-	wsPort: 4001,
+	port: 4001,
 	networkId: '123456',
 	version: '2.0.0',
 	protocolVersion: '1.1',
@@ -36,7 +36,7 @@ const nodeInfo: P2PNodeInfo = {
 const testnetConfig: P2PConfig = {
 	maxOutboundConnections: 5,
 	maxInboundConnections: 10,
-	whitelistedPeers: [{ ipAddress: '127.0.0.1', wsPort: 6001 }],
+	whitelistedPeers: [{ ipAddress: '127.0.0.1', port: 6001 }],
 	nodeInfo,
 };
 

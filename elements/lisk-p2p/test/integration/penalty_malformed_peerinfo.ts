@@ -12,27 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { platform } from 'os';
 import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import { P2PConfig } from '../../src/types';
 
 const { EVENT_BAN_PEER } = events;
 
 const customNodeInfoSchema = {
+	$id: '/malformed',
+	type: 'object',
 	properties: {
 		invalid: {
 			dataType: 'string',
-			fieldNumber: 8,
-		},
-	},
-};
-
-const customPeerInfoSchema = {
-	properties: {
-		invalid: {
-			dataType: 'string',
-			fieldNumber: 8,
+			fieldNumber: 1,
 		},
 	},
 };
@@ -40,18 +33,14 @@ const customPeerInfoSchema = {
 describe('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	const collectedEvents = new Map();
-	const customRPCSchemas = {
-		peerInfo: customPeerInfoSchema,
-		nodeInfo: customNodeInfoSchema,
-	};
 
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork({
 			networkSize: 2,
-			customConfig: (index: number) =>
+			customConfig: (index: number): Partial<P2PConfig> =>
 				index === 0
-					? { maxPeerInfoSize: 30248, customRPCSchemas }
-					: { customRPCSchemas },
+					? { maxPeerInfoSize: 30248, customNodeInfoSchema }
+					: { customNodeInfoSchema },
 		});
 
 		p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
@@ -59,15 +48,11 @@ describe('penalty sending malformed peerInfo', () => {
 		});
 
 		p2pNodeList[0].applyNodeInfo({
-			os: platform(),
 			networkId:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			version: p2pNodeList[0].nodeInfo.version,
-			protocolVersion: '1.1',
-			wsPort: p2pNodeList[0].nodeInfo.wsPort,
-			height: 10,
+			networkVersion: '1.1',
 			nonce: 'nonce',
-			invalid: '1.'.repeat(13000),
+			options: { invalid: '1.'.repeat(13000) },
 			advertiseAddress: true,
 		});
 

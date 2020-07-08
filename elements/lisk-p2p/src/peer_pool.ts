@@ -63,6 +63,7 @@ import {
 	PeerConfig,
 } from './peer';
 import { PeerBook } from './peer_book/peer_book';
+import { validateNodeInfo } from './utils';
 import {
 	P2PClosePacket,
 	P2PMessagePacket,
@@ -127,6 +128,7 @@ export enum PROTECTION_CATEGORY {
 }
 
 export interface PeerPoolConfig {
+	readonly hostPort: number;
 	readonly ackTimeout?: number;
 	readonly connectTimeout?: number;
 	readonly wsMaxPayload?: number;
@@ -196,6 +198,7 @@ export class PeerPool extends EventEmitter {
 		codec.addSchema(this._rpcSchema.nodeInfo);
 
 		this._peerConfig = {
+			hostPort: this._peerPoolConfig.hostPort,
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
@@ -634,13 +637,16 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer): void {
-		const encodedNodeInfo = codec
-			.encode(this._rpcSchema.nodeInfo, this._nodeInfo as object)
-			.toString('base64');
+		const encodedNodeInfo = codec.encode(
+			this._rpcSchema.nodeInfo,
+			this._nodeInfo as object,
+		);
+		// Validate nodeInfo before sending to peers
+		validateNodeInfo(encodedNodeInfo, this._peerPoolConfig.maxPeerInfoSize);
 		try {
 			peer.send({
 				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: encodedNodeInfo,
+				data: encodedNodeInfo.toString('base64'),
 			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);

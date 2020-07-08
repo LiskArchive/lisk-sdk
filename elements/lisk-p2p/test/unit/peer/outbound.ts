@@ -40,15 +40,16 @@ describe('peer/outbound', () => {
 		defaultPeerInfo = {
 			peerId: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
-			wsPort: 5001,
+			port: 5001,
 			sharedState: {
-				height: 545776,
-				isDiscoveredPeer: true,
-				version: '1.1.1',
-				protocolVersion: '1.1',
+				nonce: 'nonce',
+				networkId: 'networkId',
+				networkVersion: '1.1',
+				options: {},
 			},
 		};
 		defaultOutboundPeerConfig = {
+			hostPort: 5000,
 			rateCalculationInterval: 1000,
 			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 			wsMaxMessageRatePenalty: 10,
@@ -59,6 +60,15 @@ describe('peer/outbound', () => {
 			rpcSchemas: {
 				nodeInfo: nodeInfoSchema,
 				peerInfo: peerInfoSchema,
+			},
+			serverNodeInfo: {
+				advertiseAddress: true,
+				networkId: 'networkId',
+				networkVersion: '1.1',
+				nonce: 'nonce',
+				options: {
+					height: 1,
+				},
 			},
 		};
 		// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -197,8 +207,9 @@ describe('peer/outbound', () => {
 			it('should call socketClusterClient create method', () => {
 				const clientOptions = {
 					hostname: defaultOutboundPeer.ipAddress,
-					port: defaultOutboundPeer.wsPort,
-					query: 'options=',
+					port: defaultOutboundPeer.port,
+					query:
+						'networkVersion=1.1&networkId=networkId&nonce=nonce&advertiseAddress=true&port=5000',
 					path: DEFAULT_HTTP_PATH,
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,

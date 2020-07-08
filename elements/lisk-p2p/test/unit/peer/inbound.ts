@@ -39,15 +39,16 @@ describe('peer/inbound', () => {
 		defaultPeerInfo = {
 			peerId: '12.12.12.12:5001',
 			ipAddress: '12.12.12.12',
-			wsPort: 5001,
+			port: 5001,
 			sharedState: {
-				height: 545776,
-				isDiscoveredPeer: true,
-				version: '1.1.1',
-				protocolVersion: '1.1',
+				networkVersion: '1.1',
+				nonce: 'nonce',
+				networkId: 'networkId',
+				options: {},
 			},
 		};
 		defaultPeerConfig = {
+			hostPort: 5000,
 			rateCalculationInterval: 1000,
 			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 			wsMaxMessageRatePenalty: 10,

@@ -39,20 +39,21 @@ describe('Peer discovery threshold', () => {
 		});
 
 		for (let i = 0; i < 1000; i += 1) {
-			const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${Math.floor(
-				Math.random() * 254,
-			) + 1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
-				Math.random() * 254,
-			) + 1}`;
+			const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${
+				Math.floor(Math.random() * 254) + 1
+			}.${Math.floor(Math.random() * 254) + 1}.${
+				Math.floor(Math.random() * 254) + 1
+			}`;
 
 			p2pNodeList[0]['_peerBook'].addPeer({
 				peerId: `${generatedIP}:5000`,
 				ipAddress: generatedIP,
-				wsPort: 1000,
+				port: 1000,
 				sharedState: {
-					height: 0,
-					protocolVersion: '1.1',
-					version: '1.1',
+					networkVersion: '1.1',
+					networkId: 'networkId',
+					nonce: 'nonce',
+					options: {},
 				},
 			});
 		}

@@ -41,38 +41,34 @@ describe('Message rate limit', () => {
 			// eslint-disable-next-line no-loop-func
 			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
-					nodePort: p2p.nodeInfo.wsPort,
+					nodePort: p2p.config.port,
 					message,
 				});
-				const peerRates = messageRates.get(p2p.nodeInfo.wsPort) ?? [];
+				const peerRates = messageRates.get(p2p.config.port) ?? [];
 				peerRates.push(message.rate);
-				messageRates.set(p2p.nodeInfo.wsPort, peerRates);
+				messageRates.set(p2p.config.port, peerRates);
 			});
 		}
 
 		const secondP2PNode = p2pNodeList[1];
 		secondP2PNode.on(EVENT_REMOVE_PEER, peerId => {
-			const peerWsPort = peerId.split(':')[1];
+			const peerport = peerId.split(':')[1];
 			const localRemovedNodes = [];
-			if (removedPeers.get(secondP2PNode.nodeInfo.wsPort)) {
-				localRemovedNodes.push(
-					...removedPeers.get(secondP2PNode.nodeInfo.wsPort),
-				);
+			if (removedPeers.get(secondP2PNode.config.port)) {
+				localRemovedNodes.push(...removedPeers.get(secondP2PNode.config.port));
 			}
-			localRemovedNodes.push(peerWsPort);
-			removedPeers.set(secondP2PNode.nodeInfo.wsPort, localRemovedNodes);
+			localRemovedNodes.push(peerport);
+			removedPeers.set(secondP2PNode.config.port, localRemovedNodes);
 		});
 		const thirdP2PNode = p2pNodeList[2];
 		thirdP2PNode.on(EVENT_REMOVE_PEER, peerId => {
-			const peerWsPort = peerId.split(':')[1];
+			const peerport = peerId.split(':')[1];
 			const localRemovedNodes = [];
-			if (removedPeers.get(thirdP2PNode.nodeInfo.wsPort)) {
-				localRemovedNodes.push(
-					...removedPeers.get(thirdP2PNode.nodeInfo.wsPort),
-				);
+			if (removedPeers.get(thirdP2PNode.config.port)) {
+				localRemovedNodes.push(...removedPeers.get(thirdP2PNode.config.port));
 			}
-			localRemovedNodes.push(peerWsPort);
-			removedPeers.set(thirdP2PNode.nodeInfo.wsPort, localRemovedNodes);
+			localRemovedNodes.push(peerport);
+			removedPeers.set(thirdP2PNode.config.port, localRemovedNodes);
 		});
 	});
 
@@ -121,7 +117,7 @@ describe('Message rate limit', () => {
 			const TOTAL_SENDS = 300;
 			const firstP2PNode = p2pNodeList[0];
 			const secondP2PNode = p2pNodeList[1];
-			const targetPeerId = `127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`;
+			const targetPeerId = `127.0.0.1:${secondP2PNode.config.port}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i += 1) {
 				await wait(1);
@@ -139,8 +135,8 @@ describe('Message rate limit', () => {
 
 			await wait(10);
 
-			expect(removedPeers.get(secondP2PNode.nodeInfo.wsPort)).toEqual(
-				expect.arrayContaining([firstP2PNode.nodeInfo.wsPort.toString()]),
+			expect(removedPeers.get(secondP2PNode.config.port)).toEqual(
+				expect.arrayContaining([firstP2PNode.config.port.toString()]),
 			);
 		});
 	});
@@ -155,20 +151,20 @@ describe('Message rate limit', () => {
 				// eslint-disable-next-line no-loop-func
 				p2p.on('EVENT_REQUEST_RECEIVED', request => {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						request,
 					});
 					if (request.procedure === 'getGreeting') {
 						request.end(
 							// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-							`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`,
+							`Hello ${request.data} from peer ${p2p.config.port}`,
 						);
 					} else if (!request.wasResponseSent) {
 						request.end(456);
 					}
-					const peerRates = requestRates.get(p2p.nodeInfo.wsPort) ?? [];
+					const peerRates = requestRates.get(p2p.config.port) ?? [];
 					peerRates.push(request.rate);
-					requestRates.set(p2p.nodeInfo.wsPort, peerRates);
+					requestRates.set(p2p.config.port, peerRates);
 				});
 			}
 		});
@@ -206,7 +202,7 @@ describe('Message rate limit', () => {
 			const requesterP2PNode = p2pNodeList[0];
 			const targetP2PNode = p2pNodeList[1];
 
-			const targetPeerId = `127.0.0.1:${targetP2PNode.nodeInfo.wsPort}`;
+			const targetPeerId = `127.0.0.1:${targetP2PNode.config.port}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i += 1) {
 				await wait(1);
@@ -227,8 +223,8 @@ describe('Message rate limit', () => {
 
 			await wait(10);
 
-			expect(removedPeers.get(targetP2PNode.nodeInfo.wsPort)).toEqual(
-				expect.arrayContaining([requesterP2PNode.nodeInfo.wsPort.toString()]),
+			expect(removedPeers.get(targetP2PNode.config.port)).toEqual(
+				expect.arrayContaining([requesterP2PNode.config.port.toString()]),
 			);
 		});
 	});

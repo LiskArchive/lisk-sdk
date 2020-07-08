@@ -40,10 +40,12 @@ import { Network } from '../../network';
 
 interface Peer {
 	readonly peerId: string;
-	readonly maxHeightPrevoted: number;
-	readonly lastBlockId: number;
-	readonly height: number;
-	readonly blockVersion: number;
+	readonly options: {
+		readonly maxHeightPrevoted: number;
+		readonly lastBlockId: number;
+		readonly height: number;
+		readonly blockVersion: number;
+	};
 }
 
 interface BlockSynchronizationMechanismInput {
@@ -516,7 +518,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		// TODO: Move this to validator
 		const requiredProps = ['blockVersion', 'maxHeightPrevoted', 'height'];
 		const compatiblePeers = peers.filter(p =>
-			requiredProps.every(prop => Object.keys(p).includes(prop)),
+			requiredProps.every(prop => Object.keys(p.options).includes(prop)),
 		);
 
 		if (!compatiblePeers.length) {
@@ -531,18 +533,18 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		// Largest subset of peers with largest maxHeightPrevoted
 		const largestSubsetBymaxHeightPrevoted = computeLargestSubsetMaxBy(
 			compatiblePeers,
-			peer => peer.maxHeightPrevoted,
+			peer => peer.options.maxHeightPrevoted,
 		);
 		// Largest subset of peers with largest height
 		const largestSubsetByHeight = computeLargestSubsetMaxBy(
 			largestSubsetBymaxHeightPrevoted,
-			peer => peer.height,
+			peer => peer.options.height,
 		);
 		// Group peers by their block Id
 		// Output: {{'lastBlockId':[peers], 'anotherBlockId': [peers]}
 		const peersGroupedByBlockId = groupBy(
 			largestSubsetByHeight,
-			peer => peer.lastBlockId,
+			peer => peer.options.lastBlockId,
 		);
 
 		const blockIds = Object.keys(peersGroupedByBlockId);
@@ -569,11 +571,12 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const randomPeerIndex = Math.floor(Math.random() * selectedPeers.length);
 		const peersTip = {
 			id: Buffer.alloc(0),
-			height: selectedPeers[randomPeerIndex].height,
-			version: selectedPeers[randomPeerIndex].blockVersion,
+			height: selectedPeers[randomPeerIndex].options.height,
+			version: selectedPeers[randomPeerIndex].options.blockVersion,
 			previousBlockID: Buffer.alloc(0),
 			asset: {
-				maxHeightPrevoted: selectedPeers[randomPeerIndex].maxHeightPrevoted,
+				maxHeightPrevoted:
+					selectedPeers[randomPeerIndex].options.maxHeightPrevoted,
 			},
 		};
 

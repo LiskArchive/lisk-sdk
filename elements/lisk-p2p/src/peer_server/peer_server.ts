@@ -74,6 +74,7 @@ export class PeerServer extends EventEmitter {
 
 	private readonly _nodeInfo: P2PNodeInfo;
 	private readonly _hostIp: string;
+	private readonly _port: number;
 	private readonly _secret: number;
 	private readonly _maxPeerInfoSize: number;
 	private readonly _peerBook: PeerBook;
@@ -85,6 +86,7 @@ export class PeerServer extends EventEmitter {
 		super();
 		this._nodeInfo = config.nodeInfo;
 		this._hostIp = config.hostIp;
+		this._port = config.port;
 		this._secret = config.secret;
 		this._peerBook = config.peerBook;
 		this._httpServer = http.createServer();
@@ -159,7 +161,7 @@ export class PeerServer extends EventEmitter {
 		});
 
 		this._httpServer.listen(
-			this._nodeInfo.wsPort,
+			this._port,
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this._hostIp || DEFAULT_NODE_HOST_IP,
 		);
@@ -241,23 +243,20 @@ export class PeerServer extends EventEmitter {
 				INVALID_CONNECTION_SELF_REASON,
 			);
 
-			const selfWSPort = queryObject.wsPort
-				? +queryObject.wsPort
-				: this._nodeInfo.wsPort;
+			const selfport = queryObject.port ? +queryObject.port : this._port;
 
 			// Delete you peerInfo from both the lists
 			this._peerBook.removePeer({
-				peerId: constructPeerId(socket.remoteAddress, selfWSPort),
+				peerId: constructPeerId(socket.remoteAddress, selfport),
 				ipAddress: socket.remoteAddress,
-				wsPort: selfWSPort,
+				port: selfport,
 			});
 
 			return undefined;
 		}
 
 		if (
-			typeof queryObject.wsPort !== 'string' ||
-			typeof queryObject.version !== 'string' ||
+			typeof queryObject.networkVersion !== 'string' ||
 			typeof queryObject.networkId !== 'string'
 		) {
 			this._disconnectSocketDueToFailedHandshake(
@@ -272,53 +271,23 @@ export class PeerServer extends EventEmitter {
 		return queryObject;
 	}
 
-	private _checkQueryParameters(
-		queryObject: ParsedUrlQuery,
-		socket: SCServerSocket,
-	): object | undefined {
-		try {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const queryParam =
-				typeof queryObject.options === 'string'
-					? JSON.parse(queryObject.options)
-					: {};
-
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return queryParam;
-		} catch (error) {
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				INVALID_CONNECTION_QUERY_CODE,
-				INVALID_CONNECTION_QUERY_REASON,
-			);
-
-			return undefined;
-		}
-	}
-
 	private _constructPeerInfoForInboundConnection(
 		queryObject: ParsedUrlQuery,
-		queryOptions: object,
 		socket: SCServerSocket,
 	): P2PPeerInfo | undefined {
-		const remoteWSPort: number = parseInt(
-			queryObject.wsPort as string,
+		const remoteport: number = parseInt(
+			queryObject.port as string,
 			BASE_10_RADIX,
 		);
-		const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
+		const peerId = constructPeerId(socket.remoteAddress, remoteport);
 
-		// Remove these wsPort and ip from the query object
-		const {
-			wsPort,
-			ipAddress,
-			advertiseAddress,
-			...restOfQueryObject
-		} = queryObject;
+		// Remove these port and ip from the query object
+		const { advertiseAddress, nonce, networkId, networkVersion } = queryObject;
 
 		const peerInPeerBook = this._peerBook.getPeer({
 			peerId,
 			ipAddress: socket.remoteAddress,
-			wsPort: remoteWSPort,
+			port: remoteport,
 		});
 
 		const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
@@ -326,10 +295,10 @@ export class PeerServer extends EventEmitter {
 					...peerInPeerBook,
 					sharedState: {
 						...peerInPeerBook.sharedState,
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
+						nonce: nonce as string,
+						networkVersion: networkVersion as string,
+						networkId: networkId as string,
+						options: { ...peerInPeerBook.sharedState?.options },
 					},
 					internalState: {
 						...(peerInPeerBook.internalState
@@ -341,17 +310,17 @@ export class PeerServer extends EventEmitter {
 			  }
 			: {
 					sharedState: {
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
+						networkId: networkId as string,
+						nonce: nonce as string,
+						networkVersion: networkVersion as string,
+						options: {},
 					},
 					internalState: {
 						...assignInternalInfo(
 							{
 								peerId,
 								ipAddress: socket.remoteAddress,
-								wsPort: remoteWSPort,
+								port: remoteport,
 							},
 							this._secret,
 						),
@@ -360,7 +329,7 @@ export class PeerServer extends EventEmitter {
 					},
 					peerId,
 					ipAddress: socket.remoteAddress,
-					wsPort: remoteWSPort,
+					port: remoteport,
 			  };
 
 		try {
@@ -411,16 +380,9 @@ export class PeerServer extends EventEmitter {
 		if (!queryObject) {
 			return;
 		}
-		// Check if the query object has valid query parameters
-		const queryOptions = this._checkQueryParameters(queryObject, socket);
-
-		if (!queryOptions) {
-			return;
-		}
 		// Validate and construct peerInfo object for the incoming connection
 		const incomingPeerInfo = this._constructPeerInfoForInboundConnection(
 			queryObject,
-			queryOptions,
 			socket,
 		);
 
@@ -475,11 +437,11 @@ export class PeerServer extends EventEmitter {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const {
 				address: peerIpAddress,
-				port: wsPort,
+				port,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			} = ws._socket._peername;
 
-			const peerId = constructPeerId(peerIpAddress, wsPort);
+			const peerId = constructPeerId(peerIpAddress, port);
 
 			try {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

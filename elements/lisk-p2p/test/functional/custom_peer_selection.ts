@@ -21,17 +21,33 @@ import {
 	P2PPeerSelectionForSendInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
+	P2PConfig,
 } from '../../src/types';
 
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_PEER_COUNT,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 const { ConnectionKind } = constants;
 
+const customNodeInfoSchema = {
+	$id: '/custom',
+	type: 'object',
+	properties: {
+		modules: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'string',
+			},
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+};
+
 describe('Custom peer selection', () => {
+	const networkSize = 4;
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	// Custom selection function that finds peers having common values for modules field for example.
@@ -56,17 +72,19 @@ describe('Custom peer selection', () => {
 
 		const filteredPeers = peersList.filter(peer => {
 			const { sharedState } = peer;
-			const peerHeight = sharedState ? (sharedState.height as number) : 0;
+			const peerHeight = sharedState
+				? (sharedState.options?.height as number)
+				: 0;
 			if (
 				nodeInfo &&
 				peer.sharedState &&
-				(nodeInfo.height as number) <= peerHeight
+				(nodeInfo.options?.height as number) <= peerHeight
 			) {
-				const nodesModules = nodeInfo.modules
-					? (nodeInfo.modules as ReadonlyArray<string>)
+				const nodesModules = nodeInfo.options?.modules
+					? (nodeInfo.options?.modules as ReadonlyArray<string>)
 					: undefined;
-				const peerModules = peer.sharedState.modules
-					? (peer.sharedState.modules as ReadonlyArray<string>)
+				const peerModules = peer.sharedState.options?.modules
+					? (peer.sharedState.options?.modules as ReadonlyArray<string>)
 					: undefined;
 
 				if (
@@ -89,8 +107,8 @@ describe('Custom peer selection', () => {
 			return peersList.filter(
 				peer =>
 					peer.sharedState &&
-					(peer.sharedState.height as number) >=
-						(nodeInfo ? (nodeInfo.height as number) : 0),
+					(peer.sharedState.options?.height as number) >=
+						(nodeInfo ? (nodeInfo.options?.height as number) : 0),
 			);
 		}
 
@@ -103,19 +121,23 @@ describe('Custom peer selection', () => {
 
 	beforeEach(async () => {
 		const customNodeInfo = (index: number) => ({
-			modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
-			height: 1000 + (index % 2),
+			options: {
+				modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
+				height: 1000 + (index % 2),
+			},
 		});
 
-		const customConfig = (index: number) => ({
+		const customConfig = (index: number): Partial<P2PConfig> => ({
 			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
 			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
 			peerSelectionForConnection,
-			nodeInfo: customNodeInfo(index),
+			nodeInfo: customNodeInfo(index) as any,
+			customNodeInfoSchema,
 		});
 
 		p2pNodeList = await createNetwork({
 			customConfig,
+			networkSize,
 		});
 	});
 
@@ -145,7 +167,7 @@ describe('Custom peer selection', () => {
 				p2p.on('EVENT_REQUEST_RECEIVED', request => {
 					if (!request.wasResponseSent) {
 						request.end({
-							nodePort: p2p.nodeInfo.wsPort,
+							nodePort: p2p.config.port,
 							requestProcedure: request.procedure,
 							requestData: request.data,
 						});
@@ -155,7 +177,7 @@ describe('Custom peer selection', () => {
 		});
 
 		it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
-			const middleP2PNode = p2pNodeList[NETWORK_PEER_COUNT / 2];
+			const middleP2PNode = p2pNodeList[networkSize / 2];
 			const response = await middleP2PNode.request({
 				procedure: 'foo',
 				data: 'bar',
@@ -182,7 +204,7 @@ describe('Custom peer selection', () => {
 				// eslint-disable-next-line no-loop-func
 				p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						message,
 					});
 				});
@@ -192,7 +214,7 @@ describe('Custom peer selection', () => {
 		// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 		it('should send a message to peers; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
-			const middleP2PNode = p2pNodeList[NETWORK_PEER_COUNT / 2];
+			const middleP2PNode = p2pNodeList[networkSize / 2];
 			const nodePortToMessagesMap: any = {};
 
 			const expectedAverageMessagesPerNode = TOTAL_SENDS;
@@ -216,7 +238,7 @@ describe('Custom peer selection', () => {
 			}
 
 			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
-				NETWORK_PEER_COUNT / 2 - 1,
+				networkSize / 2 - 1,
 			);
 			for (const receivedMessages of Object.values(
 				nodePortToMessagesMap,

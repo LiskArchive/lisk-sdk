@@ -31,7 +31,7 @@ describe('Outbound IP limit', () => {
 		// eslint-disable-next-line func-names
 		serverSocketPrototype._resetPongTimeout = function () {
 			const queryObject = url.parse(this.request.url, true).query as any;
-			const ipSuffix = queryObject.wsPort - 5000;
+			const ipSuffix = queryObject.port - 5000;
 			// eslint-disable-next-line no-bitwise
 			this.remoteAddress = `127.0.0.${~~(ipSuffix / 2) + 1}`;
 			// eslint-disable-next-line prefer-rest-params
@@ -45,7 +45,7 @@ describe('Outbound IP limit', () => {
 				? [
 						{
 							ipAddress: '127.0.0.1',
-							wsPort: startPort,
+							port: startPort,
 						},
 				  ]
 				: [];

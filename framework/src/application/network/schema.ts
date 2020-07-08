@@ -16,28 +16,21 @@ export const customNodeInfoSchema = {
 	$id: '/nodeInfo/custom',
 	type: 'object',
 	properties: {
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
 		maxHeightPrevoted: {
 			dataType: 'uint32',
-			fieldNumber: 8,
+			fieldNumber: 2,
 		},
 		blockVersion: {
 			dataType: 'uint32',
-			fieldNumber: 9,
+			fieldNumber: 3,
 		},
-	},
-};
-
-export const customPeerInfoSchema = {
-	$id: '/peerInfo/custom',
-	type: 'object',
-	properties: {
-		maxHeightPrevoted: {
+		lastBlockId: {
 			dataType: 'uint32',
-			fieldNumber: 8,
-		},
-		blockVersion: {
-			dataType: 'uint32',
-			fieldNumber: 9,
+			fieldNumber: 4,
 		},
 	},
 };
