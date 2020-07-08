@@ -91,14 +91,13 @@ export class Processor {
 			'Initializing processor',
 		);
 		// do init check for block state. We need to load the blockchain
-		if (!(await this.chainModule.exists(genesisBlock))) {
+		const stateStore = await this.chainModule.newStateStore();
+		await this.bftModule.init(stateStore);
+		const genesisBlockExists = await this.chainModule.exists(genesisBlock);
+		if (!genesisBlockExists) {
 			await this.processValidated(genesisBlock, { removeFromTempTable: true });
 		}
 		await this.chainModule.init();
-		const stateStore = await this.chainModule.newStateStore();
-		for (const processor of Object.values(this.processors)) {
-			await processor.init.run({ stateStore });
-		}
 		this.logger.info('Blockchain ready');
 	}
 
