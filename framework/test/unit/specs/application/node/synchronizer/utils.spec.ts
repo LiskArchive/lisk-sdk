@@ -99,17 +99,17 @@ describe('#synchronizer/utils', () => {
 			tempBlocks = [
 				createValidDefaultBlock({
 					header: {
-						height: 10,
+						height: 11,
 						asset: {
-							maxHeightPrevoted: 6,
+							maxHeightPrevoted: 5,
 						},
 					},
 				}),
 				createValidDefaultBlock({
 					header: {
-						height: 11,
+						height: 10,
 						asset: {
-							maxHeightPrevoted: 5,
+							maxHeightPrevoted: 6,
 						},
 					},
 				}),
@@ -166,7 +166,7 @@ describe('#synchronizer/utils', () => {
 			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
 
 			// Assert
-			expect(processorMock.forkStatus).toHaveBeenCalledWith(tempBlocks[0]);
+			expect(processorMock.forkStatus).toHaveBeenCalledWith(tempBlocks[1]);
 		});
 	});
 });

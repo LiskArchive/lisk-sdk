@@ -476,12 +476,14 @@ describe('Synchronizer', () => {
 
 	describe('get isActive()', () => {
 		it('should return false if the synchronizer is not running', () => {
-			synchronizer.active = false;
+			synchronizer['mechanisms'][0].active = false;
+			synchronizer['mechanisms'][1].active = false;
 			expect(synchronizer.isActive).toBeFalsy();
 		});
 
 		it('should return true if the synchronizer is running', () => {
-			synchronizer.active = true;
+			synchronizer['mechanisms'][0].active = false;
+			synchronizer['mechanisms'][1].active = true;
 			expect(synchronizer.isActive).toBeTruthy();
 		});
 	});
@@ -495,7 +497,7 @@ describe('Synchronizer', () => {
 		});
 
 		it('should reject with error if there is already an active mechanism', async () => {
-			synchronizer.active = true;
+			synchronizer['mechanisms'][0].active = true;
 			await expect(synchronizer.run(aReceivedBlock, aPeerId)).rejects.toThrow(
 				'Synchronizer is already running',
 			);
@@ -505,7 +507,7 @@ describe('Synchronizer', () => {
 			await expect((synchronizer as any).run()).rejects.toThrow(
 				'A block must be provided to the Synchronizer in order to run',
 			);
-			expect(synchronizer.active).toBeFalsy();
+			expect(synchronizer.isActive).toBeFalsy();
 		});
 
 		it('should validate the block before sync', async () => {
@@ -533,7 +535,7 @@ describe('Synchronizer', () => {
 				),
 			).rejects.toThrow('Invalid block signature');
 
-			expect(synchronizer.active).toBeFalsy();
+			expect(synchronizer.isActive).toBeFalsy();
 		});
 
 		it('should determine the sync mechanism for received block and run it', async () => {
@@ -555,7 +557,7 @@ describe('Synchronizer', () => {
 				},
 				'Synchronization finished',
 			);
-			expect(synchronizer.active).toBeFalsy();
+			expect(synchronizer.isActive).toBeFalsy();
 		});
 
 		it('should log message if unable to determine syncing mechanism', async () => {
@@ -569,7 +571,7 @@ describe('Synchronizer', () => {
 				{ blockId: aReceivedBlock.header.id },
 				'Syncing mechanism could not be determined for the given block',
 			);
-			expect(synchronizer.active).toBeFalsy();
+			expect(synchronizer.isActive).toBeFalsy();
 			expect(syncMechanism1.run).not.toHaveBeenCalled();
 			expect(syncMechanism2.run).not.toHaveBeenCalled();
 		});

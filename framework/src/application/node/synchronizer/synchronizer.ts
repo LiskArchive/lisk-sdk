@@ -44,7 +44,6 @@ interface TransactionPoolTransaction extends BaseTransaction {
 }
 
 export class Synchronizer {
-	public active: boolean;
 	protected logger: Logger;
 	protected channel: InMemoryChannel;
 	private readonly chainModule: Chain;
@@ -71,7 +70,6 @@ export class Synchronizer {
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this._networkModule = networkModule;
-		this.active = false;
 		this.loadTransactionsRetries = 5;
 
 		this._checkMechanismsInterfaces();
@@ -95,50 +93,45 @@ export class Synchronizer {
 		if (this.isActive) {
 			throw new Error('Synchronizer is already running');
 		}
-		try {
-			this.active = true;
-			assert(receivedBlock, 'A block must be provided to the Synchronizer in order to run');
-			this.logger.info(
-				{
-					blockId: receivedBlock.header.id,
-					height: receivedBlock.header.height,
-				},
-				'Starting synchronizer',
-			);
+		assert(receivedBlock, 'A block must be provided to the Synchronizer in order to run');
+		this.logger.info(
+			{
+				blockId: receivedBlock.header.id,
+				height: receivedBlock.header.height,
+			},
+			'Starting synchronizer',
+		);
 
-			// Moving to a Different Chain
-			// 1. Step: Validate new tip of chain
-			await this.processorModule.validate(receivedBlock);
+		// Moving to a Different Chain
+		// 1. Step: Validate new tip of chain
+		await this.processorModule.validate(receivedBlock);
 
-			// Choose the right mechanism to sync
-			const validMechanism = await this._determineSyncMechanism(receivedBlock, peerId);
+		// Choose the right mechanism to sync
+		const validMechanism = await this._determineSyncMechanism(receivedBlock, peerId);
 
-			if (!validMechanism) {
-				return this.logger.info(
-					{ blockId: receivedBlock.header.id },
-					'Syncing mechanism could not be determined for the given block',
-				);
-			}
-
-			this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
-
-			await validMechanism.run(receivedBlock, peerId);
-
+		if (!validMechanism) {
 			return this.logger.info(
-				{
-					lastBlockHeight: this.chainModule.lastBlock.header.height,
-					lastBlockId: this.chainModule.lastBlock.header.id,
-					mechanism: validMechanism.constructor.name,
-				},
-				'Synchronization finished',
+				{ blockId: receivedBlock.header.id },
+				'Syncing mechanism could not be determined for the given block',
 			);
-		} finally {
-			this.active = false;
 		}
+
+		this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
+
+		await validMechanism.run(receivedBlock, peerId);
+
+		return this.logger.info(
+			{
+				lastBlockHeight: this.chainModule.lastBlock.header.height,
+				lastBlockId: this.chainModule.lastBlock.header.id,
+				mechanism: validMechanism.constructor.name,
+			},
+			'Synchronization finished',
+		);
 	}
 
 	public get isActive(): boolean {
-		return this.active;
+		return this.mechanisms.some(m => m.active);
 	}
 
 	public async loadUnconfirmedTransactions(): Promise<void> {
