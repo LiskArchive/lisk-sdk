@@ -29,30 +29,24 @@ import {
 export const hex = isHexString;
 export const base64 = isBase64String;
 
-export const int64 = (data: string): boolean =>
-	isNumberString(data) && isSInt64(BigInt(data));
+export const int64 = (data: string): boolean => isNumberString(data) && isSInt64(BigInt(data));
 
-export const uint64 = (data: string): boolean =>
-	isNumberString(data) && isUInt64(BigInt(data));
+export const uint64 = (data: string): boolean => isNumberString(data) && isUInt64(BigInt(data));
 
-export const uint32 = (data: string): boolean =>
-	isNumberString(data) && isUInt32(BigInt(data));
+export const uint32 = (data: string): boolean => isNumberString(data) && isUInt32(BigInt(data));
 
-export const int32 = (data: string): boolean =>
-	isNumberString(data) && isSInt32(BigInt(data));
+export const int32 = (data: string): boolean => isNumberString(data) && isSInt32(BigInt(data));
 
 const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
 
-export const camelCase = (data: string): boolean =>
-	camelCaseRegex.exec(data) !== null;
+export const camelCase = (data: string): boolean => camelCaseRegex.exec(data) !== null;
 
 export const version = isSemVer;
 
 export const protocolVersion = (data: string): boolean =>
 	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
 
-export const path = (data: string): boolean =>
-	/^(.?)(\/[^/]+)+(\/?)$/.test(data);
+export const path = (data: string): boolean => /^(.?)(\/[^/]+)+(\/?)$/.test(data);
 
 export const encryptedPassphrase = isEncryptedPassphrase;
 

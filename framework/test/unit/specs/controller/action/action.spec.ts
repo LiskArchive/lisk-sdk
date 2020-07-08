@@ -34,20 +34,14 @@ describe('Action class', () => {
 
 		it('should throw an error when invalid source was provided.', () => {
 			// Act & Assert
-			expect(
-				() => new Action(VALID_ACTION_NAME_ARG, {}, INVALID_ACTION_SOURCE_ARG),
-			).toThrow(
+			expect(() => new Action(VALID_ACTION_NAME_ARG, {}, INVALID_ACTION_SOURCE_ARG)).toThrow(
 				`Source name "${INVALID_ACTION_SOURCE_ARG}" must be a valid module name.`,
 			);
 		});
 
 		it('should initialize the instance correctly when valid arguments were provided.', () => {
 			// Act
-			const action = new Action(
-				VALID_ACTION_NAME_ARG,
-				PARAMS,
-				VALID_ACTION_SOURCE_ARG,
-			);
+			const action = new Action(VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
 
 			// Assert
 			expect(action.module).toBe(MODULE_NAME);
@@ -69,11 +63,7 @@ describe('Action class', () => {
 		let action: Action;
 		beforeEach(() => {
 			// Arrange
-			action = new Action(
-				VALID_ACTION_NAME_ARG,
-				PARAMS,
-				VALID_ACTION_SOURCE_ARG,
-			);
+			action = new Action(VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
 		});
 
 		describe('#serialize', () => {

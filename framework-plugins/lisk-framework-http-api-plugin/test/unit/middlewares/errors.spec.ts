@@ -42,10 +42,7 @@ describe('Errors middleware', () => {
 
 	describe('when array of error is provided', () => {
 		it('should send 500 and with error messasges', () => {
-			const errors = [
-				new Error('array of errors'),
-				new Error('array of errors 2'),
-			];
+			const errors = [new Error('array of errors'), new Error('array of errors 2')];
 			errorMiddleware()(
 				errors,
 				{} as Request,

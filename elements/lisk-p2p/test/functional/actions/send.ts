@@ -37,7 +37,7 @@ describe('P2P.send', () => {
 			p2p.on(events.EVENT_MESSAGE_RECEIVED, message => {
 				if (message.event === messageEvent) {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						message,
 					});
 				}
@@ -77,23 +77,15 @@ describe('P2P.send', () => {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
-			nodePortToMessagesMap[receivedMessageData.nodePort].push(
-				receivedMessageData,
-			);
+			nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 		}
 
-		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
-			numOfConnectedPeers,
-		);
+		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(numOfConnectedPeers);
 
-		for (const receivedMessages of Object.values(
-			nodePortToMessagesMap,
-		) as any) {
+		for (const receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 			expect(receivedMessages).toEqual(expect.any(Array));
 
-			expect(receivedMessages.length).toBeGreaterThan(
-				expectedMessagesLowerBound,
-			);
+			expect(receivedMessages.length).toBeGreaterThan(expectedMessagesLowerBound);
 			expect(receivedMessages.length).toBeLessThan(expectedMessagesUpperBound);
 		}
 	});
@@ -140,21 +132,15 @@ describe('P2P.send', () => {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
-			nodePortToMessagesMap[receivedMessageData.nodePort].push(
-				receivedMessageData,
-			);
+			nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 		}
 
 		expect(Object.keys(nodePortToMessagesMap)).not.toBeEmpty();
 
-		for (const receivedMessages of Object.values(
-			nodePortToMessagesMap,
-		) as any) {
+		for (const receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 			expect(receivedMessages).toEqual(expect.any(Array));
 
-			expect(receivedMessages.length).toBeGreaterThan(
-				expectedMessagesLowerBound,
-			);
+			expect(receivedMessages.length).toBeGreaterThan(expectedMessagesLowerBound);
 			expect(receivedMessages.length).toBeLessThan(expectedMessagesUpperBound);
 		}
 	});

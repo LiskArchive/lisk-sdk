@@ -20,7 +20,7 @@ import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { NetworkConfig } from '../../types';
-import { customPeerInfoSchema, customNodeInfoSchema } from './schema';
+import { customNodeInfoSchema } from './schema';
 import { ApplicationState } from '../application_state';
 
 const {
@@ -50,6 +50,9 @@ const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
+interface State {
+	[key: string]: number | string | object | boolean;
+}
 interface NetworkConstructor {
 	readonly options: NetworkConfig;
 	readonly channel: InMemoryChannel;
@@ -84,13 +87,7 @@ export class Network {
 	private _secret: number | null;
 	private _p2p!: liskP2P.P2P;
 
-	public constructor({
-		options,
-		channel,
-		logger,
-		nodeDB,
-		applicationState,
-	}: NetworkConstructor) {
+	public constructor({ options, channel, logger, nodeDB, applicationState }: NetworkConstructor) {
 		this._options = options;
 		this._channel = channel;
 		this._logger = logger;
@@ -103,17 +100,12 @@ export class Network {
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running
-			const previousPeersBuffer = await this._nodeDB.get(
-				DB_KEY_NETWORK_TRIED_PEERS_LIST,
-			);
+			const previousPeersBuffer = await this._nodeDB.get(DB_KEY_NETWORK_TRIED_PEERS_LIST);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			previousPeers = JSON.parse(previousPeersBuffer.toString('utf8'));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
-				this._logger.error(
-					{ err: error as Error },
-					'Error while querying nodeDB',
-				);
+				this._logger.error({ err: error as Error }, 'Error while querying nodeDB');
 			}
 		}
 
@@ -124,10 +116,7 @@ export class Network {
 			secret = JSON.parse(secretBuffer.toString('utf8')) as string;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
-				this._logger.error(
-					{ err: error as Error },
-					'Error while querying nodeDB',
-				);
+				this._logger.error({ err: error as Error }, 'Error while querying nodeDB');
 			}
 		}
 		if (!secret) {
@@ -139,7 +128,26 @@ export class Network {
 		} else {
 			this._secret = Number(secret);
 		}
+		const extractNodeInfoParams = (state: State): liskP2P.p2pTypes.P2PNodeInfo => {
+			const {
+				networkId,
+				protocolVersion,
+				advertiseAddress,
+				os,
+				version,
+				wsPort,
+				...options
+			} = state;
 
+			const nodeInfo = {
+				networkId,
+				networkVersion: protocolVersion,
+				advertiseAddress,
+				options: { ...options },
+			};
+
+			return nodeInfo as liskP2P.p2pTypes.P2PNodeInfo;
+		};
 		const sanitizeNodeInfo = (
 			nodeInfo: liskP2P.p2pTypes.P2PNodeInfo,
 		): liskP2P.p2pTypes.P2PNodeInfo => ({
@@ -147,9 +155,8 @@ export class Network {
 			advertiseAddress: this._options.advertiseAddress ?? true,
 		});
 
-		const initialNodeInfo = sanitizeNodeInfo(
-			this._applicationState.state as liskP2P.p2pTypes.P2PNodeInfo,
-		);
+		const initialNodeInfo = sanitizeNodeInfo(extractNodeInfoParams(this._applicationState.state));
+
 		const seedPeers = await lookupPeersIPs(this._options.seedPeers, true);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const blacklistedIPs = this._options.blacklistedIPs ?? [];
@@ -158,7 +165,7 @@ export class Network {
 		const fixedPeers = this._options.fixedPeers
 			? this._options.fixedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					wsPort: peer.wsPort,
+					port: peer.wsPort,
 			  }))
 			: [];
 
@@ -166,11 +173,12 @@ export class Network {
 		const whitelistedPeers = this._options.whitelistedPeers
 			? this._options.whitelistedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					wsPort: peer.wsPort,
+					port: peer.wsPort,
 			  }))
 			: [];
 
 		const p2pConfig: liskP2P.p2pTypes.P2PConfig = {
+			port: this._options.wsPort,
 			nodeInfo: initialNodeInfo,
 			hostIp: this._options.hostIp,
 			blacklistedIPs,
@@ -178,37 +186,29 @@ export class Network {
 			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
-				wsPort: peer.wsPort,
+				port: peer.wsPort,
 			})),
 			previousPeers,
 			maxOutboundConnections: this._options.maxOutboundConnections,
 			maxInboundConnections: this._options.maxInboundConnections,
 			peerBanTime: this._options.peerBanTime,
 			sendPeerLimit: this._options.sendPeerLimit,
-			maxPeerDiscoveryResponseLength: this._options
-				.maxPeerDiscoveryResponseLength,
+			maxPeerDiscoveryResponseLength: this._options.maxPeerDiscoveryResponseLength,
 			maxPeerInfoSize: this._options.maxPeerInfoSize,
 			wsMaxPayload: this._options.wsMaxPayload,
 			secret: this._secret,
-			customRPCSchemas: {
-				peerInfo: customPeerInfoSchema,
-				nodeInfo: customNodeInfoSchema,
-			},
+			customNodeInfoSchema,
 		};
 
 		this._p2p = new P2P(p2pConfig);
 
 		this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
-			const newNodeInfo = sanitizeNodeInfo(
-				event.data as liskP2P.p2pTypes.P2PNodeInfo,
-			);
+			const newNodeInfo = sanitizeNodeInfo(extractNodeInfoParams(event.data as State));
+
 			try {
 				this._p2p.applyNodeInfo(newNodeInfo);
 			} catch (error) {
-				this._logger.error(
-					{ err: error as Error },
-					'Applying NodeInfo failed because of error',
-				);
+				this._logger.error({ err: error as Error }, 'Applying NodeInfo failed because of error');
 			}
 		});
 
@@ -288,17 +288,11 @@ export class Network {
 		});
 
 		this._p2p.on(EVENT_OUTBOUND_SOCKET_ERROR, (error: Error) => {
-			this._logger.debug(
-				{ err: error },
-				'EVENT_OUTBOUND_SOCKET_ERROR: Outbound socket error',
-			);
+			this._logger.debug({ err: error }, 'EVENT_OUTBOUND_SOCKET_ERROR: Outbound socket error');
 		});
 
 		this._p2p.on(EVENT_INBOUND_SOCKET_ERROR, (error: Error) => {
-			this._logger.debug(
-				{ err: error },
-				'EVENT_INBOUND_SOCKET_ERROR: Inbound socket error',
-			);
+			this._logger.debug({ err: error }, 'EVENT_INBOUND_SOCKET_ERROR: Inbound socket error');
 		});
 
 		this._p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
@@ -311,10 +305,7 @@ export class Network {
 		});
 
 		this._p2p.on(EVENT_FAILED_PEER_INFO_UPDATE, (error: Error) => {
-			this._logger.error(
-				{ err: error },
-				'EVENT_FAILED_PEER_INFO_UPDATE: Failed peer update',
-			);
+			this._logger.error({ err: error }, 'EVENT_FAILED_PEER_INFO_UPDATE: Failed peer update');
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -331,16 +322,15 @@ export class Network {
 			// eslint-disable-next-line @typescript-eslint/prefer-includes
 			const hasTargetModule = hasNamespaceReg.test(request.procedure);
 			// If the request has no target module, default to app (to support legacy protocol).
-			const sanitizedProcedure = hasTargetModule
-				? request.procedure
-				: `app:${request.procedure}`;
+			const sanitizedProcedure = hasTargetModule ? request.procedure : `app:${request.procedure}`;
 			try {
-				const result = await this._channel.invokePublic<
-					liskP2P.p2pTypes.P2PNodeInfo
-				>(sanitizedProcedure, {
-					data: request.data,
-					peerId: request.peerId,
-				});
+				const result = await this._channel.invokePublic<liskP2P.p2pTypes.P2PNodeInfo>(
+					sanitizedProcedure,
+					{
+						data: request.data,
+						peerId: request.peerId,
+					},
+				);
 				this._logger.trace(
 					{ procedure: request.procedure },
 					'Peer request fulfilled event: Responded to peer request',
@@ -370,10 +360,7 @@ export class Network {
 		);
 
 		this._p2p.on(EVENT_BAN_PEER, (peerId: string) => {
-			this._logger.error(
-				{ peerId },
-				'EVENT_MESSAGE_RECEIVED: Peer has been banned temporarily',
-			);
+			this._logger.error({ peerId }, 'EVENT_MESSAGE_RECEIVED: Peer has been banned temporarily');
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -452,9 +439,7 @@ export class Network {
 		return this._p2p.getConnectedPeers();
 	}
 
-	public getDisconnectedPeers(): ReadonlyArray<
-		liskP2P.p2pTypes.ProtocolPeerInfo
-	> {
+	public getDisconnectedPeers(): ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> {
 		return this._p2p.getDisconnectedPeers();
 	}
 

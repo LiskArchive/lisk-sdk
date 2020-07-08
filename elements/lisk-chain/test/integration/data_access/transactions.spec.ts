@@ -79,10 +79,7 @@ describe('dataAccess.transactions', () => {
 	describe('getTransactionsByIDs', () => {
 		it('should not throw "not found" error if one of ID specified does not exist', async () => {
 			await expect(
-				dataAccess.getTransactionsByIDs([
-					Buffer.from('randomId'),
-					transactions[0].id,
-				]),
+				dataAccess.getTransactionsByIDs([Buffer.from('randomId'), transactions[0].id]),
 			).resolves.toEqual([transactions[0]]);
 		});
 
@@ -114,9 +111,7 @@ describe('dataAccess.transactions', () => {
 		});
 
 		it('should return true if transaction exist', async () => {
-			await expect(
-				dataAccess.isTransactionPersisted(transactions[1].id),
-			).resolves.toBeTrue();
+			await expect(dataAccess.isTransactionPersisted(transactions[1].id)).resolves.toBeTrue();
 		});
 	});
 });

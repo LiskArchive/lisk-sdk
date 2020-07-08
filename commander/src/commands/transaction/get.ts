@@ -57,8 +57,7 @@ export default class GetCommand extends BaseCommand {
 		{
 			name: 'ids',
 			required: false,
-			description:
-				'Comma-separated transaction ID(s) to get information about.',
+			description: 'Comma-separated transaction ID(s) to get information about.',
 		},
 	];
 
@@ -87,8 +86,7 @@ export default class GetCommand extends BaseCommand {
 			default: '10',
 		}),
 		offset: flagParser.string({
-			description:
-				'Offsets the returned transactions array by specified integer amount.',
+			description: 'Offsets the returned transactions array by specified integer amount.',
 			default: '0',
 		}),
 		sort: flagParser.string({
@@ -101,13 +99,7 @@ export default class GetCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const {
 			args,
-			flags: {
-				limit,
-				offset,
-				sort,
-				'sender-id': senderAddress,
-				state: txnState,
-			},
+			flags: { limit, offset, sort, 'sender-id': senderAddress, state: txnState },
 		} = this.parse(GetCommand);
 		const { ids: idsStr }: Args = args;
 		const ids = idsStr ? idsStr.split(',').filter(Boolean) : undefined;
@@ -199,11 +191,7 @@ export default class GetCommand extends BaseCommand {
 				},
 			];
 
-			const txnStateResult = await queryNodeTransaction(
-				client.node,
-				txnState,
-				reqByLimitOffset,
-			);
+			const txnStateResult = await queryNodeTransaction(client.node, txnState, reqByLimitOffset);
 			this.print(txnStateResult);
 
 			return;
@@ -238,11 +226,7 @@ export default class GetCommand extends BaseCommand {
 					message: 'No transactions found.',
 				},
 			};
-			const senderAddressResult = await query(
-				client,
-				'transactions',
-				reqSenderId,
-			);
+			const senderAddressResult = await query(client, 'transactions', reqSenderId);
 			this.print(senderAddressResult);
 
 			return;

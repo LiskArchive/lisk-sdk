@@ -13,25 +13,22 @@
  */
 
 const { Suite } = require('benchmark');
-const {
-    readString,
-    writeString,
-} = require('../dist-node/string');
+const { readString, writeString } = require('../dist-node/string');
 
 const suite = new Suite();
 const stringBuffer = Buffer.from('>!test@123test#', 'utf8');
 
 suite
-    .add('readString', () => {
-        readString(stringBuffer, 0);
-    })
-    .add('writeString', () => {
-        writeString('>!test@123test#');
-    })
-    .on('cycle', function (event) {
-        console.log(String(event.target));
-    })
-    .run({ async: true });
+	.add('readString', () => {
+		readString(stringBuffer, 0);
+	})
+	.add('writeString', () => {
+		writeString('>!test@123test#');
+	})
+	.on('cycle', function (event) {
+		console.log(String(event.target));
+	})
+	.run({ async: true });
 
 /**
  * String write benchmark results

@@ -110,9 +110,7 @@ export interface ForgedInfo {
 	maxHeightPreviouslyForged: number;
 }
 
-export const getRegisteredHashOnionSeeds = async (
-	db: KVStore,
-): Promise<BufferMap<Buffer>> => {
+export const getRegisteredHashOnionSeeds = async (db: KVStore): Promise<BufferMap<Buffer>> => {
 	try {
 		const registeredHashes = codec.decode<RegisteredHashOnionStoreObject>(
 			registeredHashOnionsStoreSchema,
@@ -144,20 +142,12 @@ export const setRegisteredHashOnionSeeds = async (
 			seedHash,
 		});
 	}
-	const registeredHashOnionSeedsBuffer = codec.encode(
-		registeredHashOnionsStoreSchema,
-		savingData,
-	);
+	const registeredHashOnionSeedsBuffer = codec.encode(registeredHashOnionsStoreSchema, savingData);
 
-	await db.put(
-		DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-		registeredHashOnionSeedsBuffer,
-	);
+	await db.put(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS, registeredHashOnionSeedsBuffer);
 };
 
-export const getUsedHashOnions = async (
-	db: KVStore,
-): Promise<UsedHashOnion[]> => {
+export const getUsedHashOnions = async (db: KVStore): Promise<UsedHashOnion[]> => {
 	try {
 		return codec.decode<UsedHashOnionStoreObject>(
 			usedHashOnionsStoreSchema,

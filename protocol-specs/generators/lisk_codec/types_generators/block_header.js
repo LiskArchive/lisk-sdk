@@ -107,12 +107,8 @@ const generateValidBlockHeaderEncodings = () => {
 		},
 	};
 
-	const validBlockHeader1Encoded = BlockHeader.encode(
-		input.validBlockHeader1.object,
-	).finish();
-	const validBlockHeader2Encoded = BlockHeader.encode(
-		input.validBlockHeader2.object,
-	).finish();
+	const validBlockHeader1Encoded = BlockHeader.encode(input.validBlockHeader1.object).finish();
+	const validBlockHeader2Encoded = BlockHeader.encode(input.validBlockHeader2.object).finish();
 
 	return [
 		{

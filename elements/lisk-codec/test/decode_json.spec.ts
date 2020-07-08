@@ -82,9 +82,7 @@ describe('decodeJSON', () => {
 				);
 				expect(result).toEqual({
 					...testCase.input.object,
-					address: Buffer.from(testCase.input.object.address.data).toString(
-						'base64',
-					),
+					address: Buffer.from(testCase.input.object.address.data).toString('base64'),
 				});
 			});
 		}
@@ -114,9 +112,7 @@ describe('decodeJSON', () => {
 			expect(result).toEqual({
 				...testCase.input.object,
 				balance: BigInt(testCase.input.object.balance).toString(),
-				address: Buffer.from(
-					testCase.input.object.address?.data as number[],
-				).toString('base64'),
+				address: Buffer.from(testCase.input.object.address?.data as number[]).toString('base64'),
 			});
 		});
 
@@ -183,12 +179,8 @@ describe('decodeJSON', () => {
 
 				expect(result).toEqual({
 					...testCase.input.object,
-					header: Buffer.from(testCase.input.object.header.data).toString(
-						'base64',
-					),
-					payload: testCase.input.object.payload.map(p =>
-						Buffer.from(p.data).toString('base64'),
-					),
+					header: Buffer.from(testCase.input.object.header.data).toString('base64'),
+					payload: testCase.input.object.payload.map(p => Buffer.from(p.data).toString('base64')),
 				});
 			});
 		}
@@ -205,21 +197,17 @@ describe('decodeJSON', () => {
 				expect(result).toEqual({
 					...testCase.input.object,
 					reward: BigInt(testCase.input.object.reward).toString(),
-					asset: Buffer.from(testCase.input.object.asset.data).toString(
+					asset: Buffer.from(testCase.input.object.asset.data).toString('base64'),
+					transactionRoot: Buffer.from(testCase.input.object.transactionRoot.data).toString(
 						'base64',
 					),
-					transactionRoot: Buffer.from(
-						testCase.input.object.transactionRoot.data,
-					).toString('base64'),
-					signature: Buffer.from(testCase.input.object.signature.data).toString(
+					signature: Buffer.from(testCase.input.object.signature.data).toString('base64'),
+					previousBlockID: Buffer.from(testCase.input.object.previousBlockID.data).toString(
 						'base64',
 					),
-					previousBlockID: Buffer.from(
-						testCase.input.object.previousBlockID.data,
-					).toString('base64'),
-					generatorPublicKey: Buffer.from(
-						testCase.input.object.generatorPublicKey.data,
-					).toString('base64'),
+					generatorPublicKey: Buffer.from(testCase.input.object.generatorPublicKey.data).toString(
+						'base64',
+					),
 				});
 			});
 		}
@@ -235,9 +223,7 @@ describe('decodeJSON', () => {
 				);
 				expect(result).toEqual({
 					...testCase.input.object,
-					seedReveal: Buffer.from(
-						testCase.input.object.seedReveal.data,
-					).toString('base64'),
+					seedReveal: Buffer.from(testCase.input.object.seedReveal.data).toString('base64'),
 				});
 			});
 		}
@@ -275,22 +261,16 @@ describe('decodeJSON', () => {
 							...acc.asset,
 							delegate: {
 								...acc.asset.delegate,
-								totalVotesReceived: BigInt(
-									acc.asset.delegate.totalVotesReceived,
-								).toString(),
+								totalVotesReceived: BigInt(acc.asset.delegate.totalVotesReceived).toString(),
 							},
 							sentVotes: acc.asset.sentVotes.map(v => ({
 								...v,
-								delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-									'base64',
-								),
+								delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 								amount: BigInt(v.amount).toString(),
 							})),
 							unlocking: acc.asset.unlocking.map((v: any) => ({
 								...v,
-								delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-									'base64',
-								),
+								delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 								amount: BigInt(v.amount).toString(),
 							})),
 						},
@@ -310,21 +290,17 @@ describe('decodeJSON', () => {
 				);
 				expect(result).toEqual({
 					...testCase.input.object,
-					address: Buffer.from(testCase.input.object.address.data).toString(
-						'base64',
-					),
+					address: Buffer.from(testCase.input.object.address.data).toString('base64'),
 					balance: BigInt(testCase.input.object.balance).toString(),
-					publicKey: Buffer.from(testCase.input.object.publicKey.data).toString(
-						'base64',
-					),
+					publicKey: Buffer.from(testCase.input.object.publicKey.data).toString('base64'),
 					nonce: BigInt(testCase.input.object.nonce).toString(),
 					keys: {
 						...testCase.input.object.keys,
 						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b =>
 							Buffer.from(b.data).toString('base64'),
 						),
-						optionalKeys: testCase.input.object.keys.optionalKeys.map(
-							(b: any) => Buffer.from(b.data).toString('base64'),
+						optionalKeys: testCase.input.object.keys.optionalKeys.map((b: any) =>
+							Buffer.from(b.data).toString('base64'),
 						),
 					},
 					asset: {
@@ -337,16 +313,12 @@ describe('decodeJSON', () => {
 						},
 						sentVotes: testCase.input.object.asset.sentVotes.map(v => ({
 							...v,
-							delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-								'base64',
-							),
+							delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 							amount: BigInt(v.amount).toString(),
 						})),
 						unlocking: testCase.input.object.asset.unlocking.map(v => ({
 							...v,
-							delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-								'base64',
-							),
+							delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 							amount: BigInt(v.amount).toString(),
 						})),
 					},
@@ -367,15 +339,13 @@ describe('decodeJSON', () => {
 				...testCase.input.object,
 				nonce: BigInt(testCase.input.object.nonce).toString(),
 				fee: BigInt(testCase.input.object.fee).toString(),
-				senderPublicKey: Buffer.from(
-					(testCase.input.object.senderPublicKey as any).data,
-				).toString('base64'),
+				senderPublicKey: Buffer.from((testCase.input.object.senderPublicKey as any).data).toString(
+					'base64',
+				),
 				signatures: testCase.input.object.signatures?.map(v =>
 					Buffer.from(v.data).toString('base64'),
 				),
-				asset: Buffer.from((testCase.input.object.asset as any).data).toString(
-					'base64',
-				),
+				asset: Buffer.from((testCase.input.object.asset as any).data).toString('base64'),
 			});
 		});
 
@@ -388,9 +358,7 @@ describe('decodeJSON', () => {
 			);
 			expect(result).toEqual({
 				votes: testCase.input.object.votes?.map(v => ({
-					delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-						'base64',
-					),
+					delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 					amount: BigInt(v.amount).toString(),
 				})),
 			});

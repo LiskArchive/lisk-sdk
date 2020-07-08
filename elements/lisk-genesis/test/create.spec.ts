@@ -13,11 +13,7 @@
  */
 
 import { hash, getRandomBytes } from '@liskhq/lisk-cryptography';
-import {
-	createGenesisBlock,
-	DefaultAccountAsset,
-	GenesisAccountState,
-} from '../src';
+import { createGenesisBlock, DefaultAccountAsset, GenesisAccountState } from '../src';
 import { mergeDeep } from '../src/utils';
 import { validGenesisBlockParams } from './fixtures';
 
@@ -138,9 +134,7 @@ describe('create', () => {
 		});
 
 		// Assert
-		expect(genesisBlock.header.asset.initDelegates).toEqual(
-			initDelegatesSorted,
-		);
+		expect(genesisBlock.header.asset.initDelegates).toEqual(initDelegatesSorted);
 	});
 
 	it('should set "accounts" ordering lexicographically by "address"', () => {
@@ -148,9 +142,7 @@ describe('create', () => {
 		const accounts = cloneDeep(validGenesisBlockParams.accounts);
 		accounts.sort((a, b) => b.address.compare(a.address));
 
-		const accountsSortedAddresses = accounts
-			.map(a => a.address)
-			.sort((a, b) => a.compare(b));
+		const accountsSortedAddresses = accounts.map(a => a.address).sort((a, b) => a.compare(b));
 
 		// Act
 		const genesisBlock = createGenesisBlock({
@@ -159,17 +151,13 @@ describe('create', () => {
 		});
 
 		// Assert
-		expect(genesisBlock.header.asset.accounts.map(a => a.address)).toEqual(
-			accountsSortedAddresses,
-		);
+		expect(genesisBlock.header.asset.accounts.map(a => a.address)).toEqual(accountsSortedAddresses);
 	});
 
 	it('should set "accounts[].keys.mandatoryKeys" ordering lexicographically', () => {
 		// Arrange
 		const [account, ...accounts] = cloneDeep(
-			validGenesisBlockParams.accounts.sort((a, b) =>
-				a.address.compare(b.address),
-			),
+			validGenesisBlockParams.accounts.sort((a, b) => a.address.compare(b.address)),
 		);
 		accounts.sort((a, b) => a.address.compare(b.address));
 		const mandatoryKeysUnsorted = [
@@ -177,9 +165,7 @@ describe('create', () => {
 			getRandomBytes(32),
 			getRandomBytes(32),
 		].sort((a, b) => b.compare(a));
-		const mandatoryKeysSorted = cloneDeep(mandatoryKeysUnsorted).sort((a, b) =>
-			a.compare(b),
-		);
+		const mandatoryKeysSorted = cloneDeep(mandatoryKeysUnsorted).sort((a, b) => a.compare(b));
 		const newAccount = mergeDeep(account, {
 			keys: {
 				optionalKeys: [],
@@ -195,26 +181,20 @@ describe('create', () => {
 		});
 
 		// Assert
-		expect(genesisBlock.header.asset.accounts[0].keys.mandatoryKeys).toEqual(
-			mandatoryKeysSorted,
-		);
+		expect(genesisBlock.header.asset.accounts[0].keys.mandatoryKeys).toEqual(mandatoryKeysSorted);
 	});
 
 	it('should set "accounts[].keys.optionalKeys" ordering lexicographically', () => {
 		// Arrange
 		const [account, ...accounts] = cloneDeep(
-			validGenesisBlockParams.accounts.sort((a, b) =>
-				a.address.compare(b.address),
-			),
+			validGenesisBlockParams.accounts.sort((a, b) => a.address.compare(b.address)),
 		);
 		const optionalKeysUnsorted = [
 			getRandomBytes(32),
 			getRandomBytes(32),
 			getRandomBytes(32),
 		].sort((a, b) => b.compare(a));
-		const optionalKeysSorted = cloneDeep(optionalKeysUnsorted).sort((a, b) =>
-			a.compare(b),
-		);
+		const optionalKeysSorted = cloneDeep(optionalKeysUnsorted).sort((a, b) => a.compare(b));
 		const newAccount = mergeDeep(account, {
 			keys: {
 				optionalKeys: optionalKeysUnsorted,
@@ -230,8 +210,6 @@ describe('create', () => {
 		});
 
 		// Assert
-		expect(genesisBlock.header.asset.accounts[0].keys.optionalKeys).toEqual(
-			optionalKeysSorted,
-		);
+		expect(genesisBlock.header.asset.accounts[0].keys.optionalKeys).toEqual(optionalKeysSorted);
 	});
 });

@@ -51,15 +51,9 @@ export const openBox: NaclInterface['openBox'] = (
 	return Buffer.from(originalMessage);
 };
 
-export const signDetached: NaclInterface['signDetached'] = (
-	messageBytes,
-	privateKeyBytes,
-) =>
+export const signDetached: NaclInterface['signDetached'] = (messageBytes, privateKeyBytes) =>
 	Buffer.from(
-		tweetnacl.sign.detached(
-			Uint8Array.from(messageBytes),
-			Uint8Array.from(privateKeyBytes),
-		),
+		tweetnacl.sign.detached(Uint8Array.from(messageBytes), Uint8Array.from(privateKeyBytes)),
 	);
 
 export const verifyDetached: NaclInterface['verifyDetached'] = (
@@ -77,9 +71,7 @@ export const getRandomBytes: NaclInterface['getRandomBytes'] = length =>
 	Buffer.from(tweetnacl.randomBytes(length));
 
 export const getKeyPair: NaclInterface['getKeyPair'] = hashedSeed => {
-	const { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(
-		Uint8Array.from(hashedSeed),
-	);
+	const { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(Uint8Array.from(hashedSeed));
 
 	return {
 		privateKey: Buffer.from(secretKey),

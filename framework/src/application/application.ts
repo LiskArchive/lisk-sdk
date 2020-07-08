@@ -32,11 +32,7 @@ import { Contexter } from '@liskhq/lisk-chain';
 import { validateGenesisBlock, GenesisBlock } from '@liskhq/lisk-genesis';
 import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import {
-	validator,
-	LiskValidationError,
-	ErrorObject,
-} from '@liskhq/lisk-validator';
+import { validator, LiskValidationError, ErrorObject } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from '../controller';
@@ -121,10 +117,7 @@ export class Application {
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
 
-	public constructor(
-		genesisBlock: GenesisBlockJSON,
-		config: Partial<ApplicationConfig> = {},
-	) {
+	public constructor(genesisBlock: GenesisBlockJSON, config: Partial<ApplicationConfig> = {}) {
 		const parsedGenesisBlock = genesisBlockFromJSON(genesisBlock);
 		// TODO: Read hard coded value from configuration or constant
 		const errors = validateGenesisBlock(parsedGenesisBlock, {
@@ -141,16 +134,11 @@ export class Application {
 
 		appConfig.label =
 			config.label ??
-			`lisk-${this._genesisBlock.header.transactionRoot
-				.toString('base64')
-				.slice(0, 7)}`;
+			`lisk-${this._genesisBlock.header.transactionRoot.toString('base64').slice(0, 7)}`;
 
 		const mergedConfig = mergeDeep({}, appConfig, config) as ApplicationConfig;
 		mergedConfig.rootPath = mergedConfig.rootPath.replace('~', os.homedir());
-		const applicationConfigErrors = validator.validate(
-			applicationConfigSchema,
-			mergedConfig,
-		);
+		const applicationConfigErrors = validator.validate(applicationConfigSchema, mergedConfig);
 		if (applicationConfigErrors.length) {
 			throw new LiskValidationError(applicationConfigErrors as ErrorObject[]);
 		}
@@ -183,10 +171,7 @@ export class Application {
 		alias?: string,
 	): void {
 		assert(pluginKlass, 'ModuleSpec is required');
-		assert(
-			typeof options === 'object',
-			'Module options must be provided or set to empty object.',
-		);
+		assert(typeof options === 'object', 'Module options must be provided or set to empty object.');
 		assert(alias ?? pluginKlass.alias, 'Module alias must be provided.');
 		const pluginAlias = alias ?? pluginKlass.alias;
 		assert(
@@ -204,10 +189,7 @@ export class Application {
 
 	public overridePluginOptions(alias: string, options?: PluginOptions): void {
 		const plugins = this.getPlugins();
-		assert(
-			Object.keys(plugins).includes(alias),
-			`No plugin ${alias} is registered`,
-		);
+		assert(Object.keys(plugins).includes(alias), `No plugin ${alias} is registered`);
 		this.config.plugins[alias] = {
 			...this.config.plugins[alias],
 			...options,
@@ -220,22 +202,14 @@ export class Application {
 	): void {
 		assert(Transaction, 'Transaction implementation is required');
 
-		assert(
-			Number.isInteger(Transaction.TYPE),
-			'Transaction type is required as an integer',
-		);
+		assert(Number.isInteger(Transaction.TYPE), 'Transaction type is required as an integer');
 
 		assert(
-			!Object.keys(this.getTransactions()).includes(
-				Transaction.TYPE.toString(),
-			),
+			!Object.keys(this.getTransactions()).includes(Transaction.TYPE.toString()),
 			`A transaction type "${Transaction.TYPE}" is already registered.`,
 		);
 
-		const transactionSchemaErrors = validator.validate(
-			transactionInterface,
-			Transaction.prototype,
-		);
+		const transactionSchemaErrors = validator.validate(transactionInterface, Transaction.prototype);
 		if (transactionSchemaErrors.length) {
 			throw new LiskValidationError(transactionSchemaErrors as ErrorObject[]);
 		}
@@ -347,7 +321,7 @@ export class Application {
 		).toString('base64');
 
 		// TODO: Check which config and options are actually required to avoid sending large data
-		const appConfigToShareWithModules = {
+		const appConfigToShareWithPlugin = {
 			version: this.config.version,
 			protocolVersion: this.config.protocolVersion,
 			networkId: this.config.networkId,
@@ -360,7 +334,7 @@ export class Application {
 		};
 
 		Object.keys(plugins).forEach(alias => {
-			this.overridePluginOptions(alias, appConfigToShareWithModules);
+			this.overridePluginOptions(alias, appConfigToShareWithPlugin);
 		});
 	}
 
@@ -405,18 +379,14 @@ export class Application {
 			],
 			{
 				getConnectedPeers: {
-					handler: (_action: ActionInfoObject) =>
-						this._network.getConnectedPeers(),
+					handler: (_action: ActionInfoObject) => this._network.getConnectedPeers(),
 				},
 				getDisconnectedPeers: {
-					handler: (_action: ActionInfoObject) =>
-						this._network.getDisconnectedPeers(),
+					handler: (_action: ActionInfoObject) => this._network.getDisconnectedPeers(),
 				},
 				getForgerAddressesForRound: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getForgerAddressesForRound(
-							action.params as { round: number },
-						),
+						this._node.actions.getForgerAddressesForRound(action.params as { round: number }),
 				},
 				updateForgingStatus: {
 					handler: async (action: ActionInfoObject) =>
@@ -433,36 +403,27 @@ export class Application {
 						this._node.actions.getForgingStatusOfAllDelegates(),
 				},
 				getTransactionsFromPool: {
-					handler: (_action: ActionInfoObject) =>
-						this._node.actions.getTransactionsFromPool(),
+					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFromPool(),
 				},
 				getTransactions: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactions(
-							action.params as { data: unknown; peerId: string },
-						),
+						this._node.actions.getTransactions(action.params as { data: unknown; peerId: string }),
 					isPublic: true,
 				},
 				postTransaction: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.postTransaction(
-							action.params as EventPostTransactionData,
-						),
+						this._node.actions.postTransaction(action.params as EventPostTransactionData),
 				},
 				getNodeStatus: {
-					handler: (_action: ActionInfoObject) =>
-						this._node.actions.getNodeStatus(),
+					handler: (_action: ActionInfoObject) => this._node.actions.getNodeStatus(),
 				},
 				getLastBlock: {
-					handler: async (_action: ActionInfoObject) =>
-						this._node.actions.getLastBlock(),
+					handler: async (_action: ActionInfoObject) => this._node.actions.getLastBlock(),
 					isPublic: true,
 				},
 				getBlocksFromId: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksFromId(
-							action.params as { data: unknown; peerId: string },
-						),
+						this._node.actions.getBlocksFromId(action.params as { data: unknown; peerId: string }),
 					isPublic: true,
 				},
 				getHighestCommonBlock: {
@@ -478,9 +439,7 @@ export class Application {
 				},
 				getAccounts: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccounts(
-							action.params as { address: readonly string[] },
-						),
+						this._node.actions.getAccounts(action.params as { address: readonly string[] }),
 				},
 				getBlockByID: {
 					handler: async (action: ActionInfoObject) =>
@@ -488,15 +447,11 @@ export class Application {
 				},
 				getBlocksByIDs: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByIDs(
-							action.params as { ids: readonly string[] },
-						),
+						this._node.actions.getBlocksByIDs(action.params as { ids: readonly string[] }),
 				},
 				getBlockByHeight: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByHeight(
-							action.params as { height: number },
-						),
+						this._node.actions.getBlockByHeight(action.params as { height: number }),
 				},
 				getBlocksByHeightBetween: {
 					handler: async (action: ActionInfoObject) =>
@@ -506,15 +461,11 @@ export class Application {
 				},
 				getTransactionByID: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionByID(
-							action.params as { id: string },
-						),
+						this._node.actions.getTransactionByID(action.params as { id: string }),
 				},
 				getTransactionsByIDs: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionsByIDs(
-							action.params as { ids: readonly string[] },
-						),
+						this._node.actions.getTransactionsByIDs(action.params as { ids: readonly string[] }),
 				},
 				getSchema: {
 					handler: () => this._node.actions.getSchema(),
@@ -591,20 +542,14 @@ export class Application {
 	// eslint-disable-next-line class-methods-use-this
 	private async _setupDirectories(): Promise<void> {
 		const dirs = systemDirs(this.config.label, this.config.rootPath);
-		await Promise.all(
-			Array.from(Object.values(dirs)).map(async dirPath =>
-				fs.ensureDir(dirPath),
-			),
-		);
+		await Promise.all(Array.from(Object.values(dirs)).map(async dirPath => fs.ensureDir(dirPath)));
 	}
 
 	private async _emptySocketsDirectory(): Promise<void> {
 		const { sockets } = systemDirs(this.config.label, this.config.rootPath);
 		const socketFiles = fs.readdirSync(sockets);
 
-		await Promise.all(
-			socketFiles.map(async aSocketFile => rm(path.join(sockets, aSocketFile))),
-		);
+		await Promise.all(socketFiles.map(async aSocketFile => rm(path.join(sockets, aSocketFile))));
 	}
 
 	private async _validatePidFile(): Promise<void> {

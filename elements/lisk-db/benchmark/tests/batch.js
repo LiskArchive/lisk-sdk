@@ -20,22 +20,16 @@ const batchSuite = async (ldb, rdb, payload_size) => {
 	const data = prepare(payload_size);
 
 	suite
-		.add(
-			`LevelDB: batch([key:string, val: Buffer]) x ${payload_size}(bytes)`,
-			async () => {
-				await ldb.batch(data);
-			},
-		)
-		.add(
-			`RocksDB: batch([key:string, val: Buffer]) x ${payload_size}(bytes)`,
-			async () => {
-				await rdb.batch(data);
-			},
-		)
+		.add(`LevelDB: batch([key:string, val: Buffer]) x ${payload_size}(bytes)`, async () => {
+			await ldb.batch(data);
+		})
+		.add(`RocksDB: batch([key:string, val: Buffer]) x ${payload_size}(bytes)`, async () => {
+			await rdb.batch(data);
+		})
 		.on('cycle', event => {
 			console.log(String(event.target));
 		})
-		.on('complete', async function() {
+		.on('complete', async function () {
 			console.log('Fastest is ' + this.filter('fastest').map('name'));
 			await ldb.clear();
 			await rdb.clear();

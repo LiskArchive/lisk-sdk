@@ -17,9 +17,7 @@
 		{
 			"description": "Given valid transaction ids: 1",
 			"input": {
-				"transactionIds": [
-					"2ac682a941545020f3fead209c0f3d9c16154d91b42eed7cc6b3b6e26bf6e17a"
-				]
+				"transactionIds": ["2ac682a941545020f3fead209c0f3d9c16154d91b42eed7cc6b3b6e26bf6e17a"]
 			},
 			"output": {
 				"transactionMerkleRoot": "7555da47c50f4269af629220d0d6a6835169d237ae018b6587913b66046cad84"

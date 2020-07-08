@@ -24,15 +24,9 @@ describe('utils', () => {
 				const stringArray = [str1, str2, str3];
 				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				stringArray.sort();
-				expect(Buffer.from(stringArray[0], 'binary').toString('hex')).toEqual(
-					'000000000000000a',
-				);
-				expect(Buffer.from(stringArray[1], 'binary').toString('hex')).toEqual(
-					'000000000000000b',
-				);
-				expect(Buffer.from(stringArray[2], 'binary').toString('hex')).toEqual(
-					'0000000000000064',
-				);
+				expect(Buffer.from(stringArray[0], 'binary').toString('hex')).toEqual('000000000000000a');
+				expect(Buffer.from(stringArray[1], 'binary').toString('hex')).toEqual('000000000000000b');
+				expect(Buffer.from(stringArray[2], 'binary').toString('hex')).toEqual('0000000000000064');
 			});
 		});
 
@@ -44,15 +38,9 @@ describe('utils', () => {
 				const stringArray = [str1, str2, str3];
 				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				stringArray.sort();
-				expect(Buffer.from(stringArray[0], 'binary').toString('hex')).toEqual(
-					'0000000a',
-				);
-				expect(Buffer.from(stringArray[1], 'binary').toString('hex')).toEqual(
-					'0000000b',
-				);
-				expect(Buffer.from(stringArray[2], 'binary').toString('hex')).toEqual(
-					'00000064',
-				);
+				expect(Buffer.from(stringArray[0], 'binary').toString('hex')).toEqual('0000000a');
+				expect(Buffer.from(stringArray[1], 'binary').toString('hex')).toEqual('0000000b');
+				expect(Buffer.from(stringArray[2], 'binary').toString('hex')).toEqual('00000064');
 			});
 		});
 	});
@@ -60,34 +48,24 @@ describe('utils', () => {
 	describe('getFirstPrefix', () => {
 		it('should return string which is the next ascii string by binary', () => {
 			const prefix = 'block:id';
-			const defaultKey =
-				'0000000000000000000000000000000000000000000000000000000000000000';
+			const defaultKey = '0000000000000000000000000000000000000000000000000000000000000000';
 			const startPrefix = getFirstPrefix(prefix);
 			// start prefix should come before the expected value
-			expect(
-				`${prefix}:${defaultKey}`.localeCompare(startPrefix, 'en'),
-			).toEqual(1);
+			expect(`${prefix}:${defaultKey}`.localeCompare(startPrefix, 'en')).toEqual(1);
 			// start prefix should come after the expected value
-			expect(`block:ic:${defaultKey}`.localeCompare(startPrefix, 'en')).toEqual(
-				-1,
-			);
+			expect(`block:ic:${defaultKey}`.localeCompare(startPrefix, 'en')).toEqual(-1);
 		});
 	});
 
 	describe('getLastPrefix', () => {
 		it('should return next ascii string by binary', () => {
 			const prefix = 'block:id';
-			const defaultKey =
-				'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz';
+			const defaultKey = 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz';
 			const endPrefix = getLastPrefix(prefix);
 			// end prefix should come after the expected value
-			expect(`${prefix}:${defaultKey}`.localeCompare(endPrefix, 'en')).toEqual(
-				-1,
-			);
+			expect(`${prefix}:${defaultKey}`.localeCompare(endPrefix, 'en')).toEqual(-1);
 			// end prefix should come before the expected value
-			expect(`block:iz:${defaultKey}`.localeCompare(endPrefix, 'en')).toEqual(
-				1,
-			);
+			expect(`block:iz:${defaultKey}`.localeCompare(endPrefix, 'en')).toEqual(1);
 		});
 	});
 });

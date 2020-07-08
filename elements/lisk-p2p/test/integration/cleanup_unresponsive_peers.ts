@@ -14,17 +14,13 @@
  */
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-	DEFAULT_CONNECTION_TIMEOUT,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork, DEFAULT_CONNECTION_TIMEOUT } from '../utils/network_setup';
 
 describe('Cleanup unresponsive peers', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
-		p2pNodeList = await createNetwork();
+		p2pNodeList = await createNetwork({ networkSize: 4 });
 	});
 
 	afterEach(async () => {
@@ -36,7 +32,7 @@ describe('Cleanup unresponsive peers', () => {
 		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 		const peerPortsbeforePeerCrash = p2pNodeList[2]
 			.getConnectedPeers()
-			.map(peerInfo => peerInfo.wsPort)
+			.map(peerInfo => peerInfo.port)
 			.sort();
 
 		// Act
@@ -48,17 +44,12 @@ describe('Cleanup unresponsive peers', () => {
 		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 		const peerPortsAfterPeerCrash = p2pNodeList[2]
 			.getConnectedPeers()
-			.map(peerInfo => peerInfo.wsPort)
+			.map(peerInfo => peerInfo.port)
 			.sort();
 
-		const expectedPeerPortsAfterPeerCrash = peerPortsbeforePeerCrash.filter(
-			port => {
-				return (
-					port !== p2pNodeList[0].nodeInfo.wsPort &&
-					port !== p2pNodeList[1].nodeInfo.wsPort
-				);
-			},
-		);
+		const expectedPeerPortsAfterPeerCrash = peerPortsbeforePeerCrash.filter(port => {
+			return port !== p2pNodeList[0].config.port && port !== p2pNodeList[1].config.port;
+		});
 
 		expect(peerPortsAfterPeerCrash).toEqual(expectedPeerPortsAfterPeerCrash);
 	});

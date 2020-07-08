@@ -70,10 +70,8 @@ describe('Application related actions', () => {
 					[DelegateTransaction.TYPE]: DelegateTransaction.ASSET_SCHEMA,
 					[VoteTransaction.TYPE]: VoteTransaction.ASSET_SCHEMA,
 					[UnlockTransaction.TYPE]: UnlockTransaction.ASSET_SCHEMA,
-					[MultisignatureTransaction.TYPE]:
-						MultisignatureTransaction.ASSET_SCHEMA,
-					[ProofOfMisbehaviorTransaction.TYPE]:
-						ProofOfMisbehaviorTransaction.ASSET_SCHEMA,
+					[MultisignatureTransaction.TYPE]: MultisignatureTransaction.ASSET_SCHEMA,
+					[ProofOfMisbehaviorTransaction.TYPE]: ProofOfMisbehaviorTransaction.ASSET_SCHEMA,
 				},
 			};
 

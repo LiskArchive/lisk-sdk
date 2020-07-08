@@ -104,12 +104,7 @@ export class RequestFailError extends Error {
 	public peerId: string;
 	public peerVersion: string;
 	public response: Error;
-	public constructor(
-		message: string,
-		response?: Error,
-		peerId?: string,
-		peerVersion?: string,
-	) {
+	public constructor(message: string, response?: Error, peerId?: string, peerVersion?: string) {
 		super(message);
 		this.name = 'RequestFailError';
 		// The request was made and the peer responded with error

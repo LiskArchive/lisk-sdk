@@ -109,9 +109,7 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 		genesisBlockHeaderAssetSchema,
 		options.accountAssetSchema ?? defaultAccountAssetSchema,
 	);
-	const assetErrors = [
-		...validator.validate(assetSchemaWithAccountAsset, header.asset),
-	];
+	const assetErrors = [...validator.validate(assetSchemaWithAccountAsset, header.asset)];
 
 	const initDelegates = [...header.asset.initDelegates];
 	const accountAddresses = [];
@@ -138,8 +136,7 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 				message: 'should be lexicographically ordered',
 				keyword: 'mandatoryKeys',
 				dataPath: '.accounts[0].keys.mandatoryKeys',
-				schemaPath:
-					'#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
 				params: { mandatoryKeys: account.keys.mandatoryKeys },
 			});
 		}
@@ -160,8 +157,7 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 				message: 'should be lexicographically ordered',
 				keyword: 'optionalKeys',
 				dataPath: '.accounts[0].keys.optionalKeys',
-				schemaPath:
-					'#/properties/accounts/items/properties/keys/properties/optionalKeys',
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/optionalKeys',
 				params: { optionalKeys: account.keys.optionalKeys },
 			});
 		}
@@ -177,30 +173,19 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 			});
 		}
 
-		if (
-			bufferArrayContainsSome(
-				account.keys.mandatoryKeys,
-				account.keys.optionalKeys,
-			)
-		) {
+		if (bufferArrayContainsSome(account.keys.mandatoryKeys, account.keys.optionalKeys)) {
 			assetErrors.push({
-				dataPath:
-					'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+				dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
 				keyword: 'uniqueItems',
-				message:
-					'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+				message: 'should NOT have duplicate items among mandatoryKeys and optionalKeys',
 				params: {},
 				schemaPath: '#/properties/accounts/items/properties/keys',
 			});
 		}
 
-		if (
-			account.keys.mandatoryKeys.length + account.keys.optionalKeys.length >
-			64
-		) {
+		if (account.keys.mandatoryKeys.length + account.keys.optionalKeys.length > 64) {
 			assetErrors.push({
-				dataPath:
-					'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+				dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
 				keyword: 'maxItems',
 				message: 'should not have more than 64 keys',
 				params: { maxItems: 64 },
@@ -214,8 +199,7 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 				keyword: 'min',
 				message: 'should be minimum of length of mandatoryKeys',
 				params: { min: account.keys.mandatoryKeys.length },
-				schemaPath:
-					'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 			});
 		}
 
@@ -226,15 +210,11 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 			assetErrors.push({
 				dataPath: '.accounts[0].keys.numberOfSignatures',
 				keyword: 'max',
-				message:
-					'should be maximum of length of mandatoryKeys and optionalKeys',
+				message: 'should be maximum of length of mandatoryKeys and optionalKeys',
 				params: {
-					max:
-						account.keys.mandatoryKeys.length +
-						account.keys.optionalKeys.length,
+					max: account.keys.mandatoryKeys.length + account.keys.optionalKeys.length,
 				},
-				schemaPath:
-					'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 			});
 		}
 	}

@@ -13,6 +13,7 @@
  */
 
 import * as transactions from './transactions';
+import * as accounts from './account';
 
 export * from './hello';
-export { transactions };
+export { transactions, accounts };

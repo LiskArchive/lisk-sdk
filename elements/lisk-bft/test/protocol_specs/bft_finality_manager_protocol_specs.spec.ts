@@ -37,9 +37,7 @@ const bftScenarios = [
 ];
 
 const preVotesAndCommits = async (stateStore: StateStoreMock) => {
-	const delegateLedgerBuffer = await stateStore.consensus.get(
-		CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
-	);
+	const delegateLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_DELEGATE_LEDGER_KEY);
 
 	const delegateLedger = codec.decode<VotingLedger>(
 		BFTVotingLedgerSchema,
@@ -102,9 +100,7 @@ describe('FinalityManager', () => {
 							const header = blockHeaders.find(
 								(bh: any) =>
 									bh.height === height &&
-									getAddressFromPublicKey(bh.generatorPublicKey).equals(
-										address,
-									),
+									getAddressFromPublicKey(bh.generatorPublicKey).equals(address),
 							);
 							return Promise.resolve(header.delegateMinHeightActive);
 						},
@@ -131,17 +127,14 @@ describe('FinalityManager', () => {
 						);
 
 						// Arrange &  Assert
-						const { preCommits, preVotes } = await preVotesAndCommits(
-							stateStore,
-						);
+						const { preCommits, preVotes } = await preVotesAndCommits(stateStore);
 						const expectedPreCommits: any = { ...testCase.output.preCommits };
 
 						Object.keys(expectedPreCommits)
 							.filter(
 								height =>
 									parseInt(height, 10) <=
-									testCase.input.blockHeader.height -
-										finalityManager.maxHeaders,
+									testCase.input.blockHeader.height - finalityManager.maxHeaders,
 							)
 							.forEach(key => {
 								delete expectedPreCommits[key];
@@ -151,9 +144,7 @@ describe('FinalityManager', () => {
 
 						expect(preVotes).toEqual(testCase.output.preVotes);
 
-						expect(finalityManager.finalizedHeight).toEqual(
-							testCase.output.finalizedHeight,
-						);
+						expect(finalityManager.finalizedHeight).toEqual(testCase.output.finalizedHeight);
 
 						expect(finalityManager.chainMaxHeightPrevoted).toEqual(
 							testCase.output.preVotedConfirmedHeight,

@@ -80,10 +80,7 @@ describe('dataAccess.blocks', () => {
 		const batch = db.batch();
 		for (const block of blocks) {
 			const { payload, header } = block;
-			batch.put(
-				`blocks:id:${header.id.toString('binary')}`,
-				encodeDefaultBlockHeader(header),
-			);
+			batch.put(`blocks:id:${header.id.toString('binary')}`, encodeDefaultBlockHeader(header));
 			batch.put(`blocks:height:${formatInt(header.height)}`, header.id);
 			if (payload.length) {
 				batch.put(
@@ -91,10 +88,7 @@ describe('dataAccess.blocks', () => {
 					Buffer.concat(payload.map(tx => tx.id)),
 				);
 				for (const tx of payload) {
-					batch.put(
-						`transactions:id:${tx.id.toString('binary')}`,
-						tx.getBytes(),
-					);
+					batch.put(`transactions:id:${tx.id.toString('binary')}`, tx.getBytes());
 				}
 			}
 			batch.put(
@@ -141,10 +135,7 @@ describe('dataAccess.blocks', () => {
 	describe('getBlockHeadersByIDs', () => {
 		it('should not throw "not found" error if non existent ID is specified', async () => {
 			await expect(
-				dataAccess.getBlockHeadersByIDs([
-					Buffer.from('random-id'),
-					blocks[1].header.id,
-				]),
+				dataAccess.getBlockHeadersByIDs([Buffer.from('random-id'), blocks[1].header.id]),
 			).resolves.toEqual([blocks[1].header]);
 		});
 
@@ -173,10 +164,7 @@ describe('dataAccess.blocks', () => {
 	describe('getBlocksByIDs', () => {
 		it('should not throw "not found" error if non existent ID is specified', async () => {
 			await expect(
-				dataAccess.getBlocksByIDs([
-					Buffer.from('random-id'),
-					blocks[1].header.id,
-				]),
+				dataAccess.getBlocksByIDs([Buffer.from('random-id'), blocks[1].header.id]),
 			).resolves.toEqual([blocks[1]]);
 		});
 
@@ -360,9 +348,7 @@ describe('dataAccess.blocks', () => {
 			await expect(
 				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
 			).resolves.toBeTrue();
-			await expect(
-				dataAccess.getBlockByID(block.header.id),
-			).resolves.toStrictEqual(block);
+			await expect(dataAccess.getBlockByID(block.header.id)).resolves.toStrictEqual(block);
 		});
 
 		it('should create block with all index required and remove the same height block from temp', async () => {
@@ -386,9 +372,7 @@ describe('dataAccess.blocks', () => {
 			await expect(
 				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
 			).resolves.toBeFalse();
-			await expect(
-				dataAccess.getBlockByID(block.header.id),
-			).resolves.toStrictEqual(block);
+			await expect(dataAccess.getBlockByID(block.header.id)).resolves.toStrictEqual(block);
 		});
 	});
 
@@ -408,19 +392,13 @@ describe('dataAccess.blocks', () => {
 				db.exists(`blocks:height:${formatInt(blocks[2].header.height)}`),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(
-					`transactions:blockID:${blocks[2].header.id.toString('binary')}`,
-				),
+				db.exists(`transactions:blockID:${blocks[2].header.id.toString('binary')}`),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(
-					`transactions:id:${blocks[2].payload[0].id.toString('binary')}`,
-				),
+				db.exists(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(
-					`transactions:id:${blocks[2].payload[1].id.toString('binary')}`,
-				),
+				db.exists(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`),
 			).resolves.toBeFalse();
 			await expect(
 				db.exists(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),
@@ -439,19 +417,13 @@ describe('dataAccess.blocks', () => {
 				db.exists(`blocks:height:${formatInt(blocks[2].header.height)}`),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(
-					`transactions:blockID:${blocks[2].header.id.toString('binary')}`,
-				),
+				db.exists(`transactions:blockID:${blocks[2].header.id.toString('binary')}`),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(
-					`transactions:id:${blocks[2].payload[0].id.toString('binary')}`,
-				),
+				db.exists(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(
-					`transactions:id:${blocks[2].payload[1].id.toString('binary')}`,
-				),
+				db.exists(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`),
 			).resolves.toBeFalse();
 			await expect(
 				db.exists(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),

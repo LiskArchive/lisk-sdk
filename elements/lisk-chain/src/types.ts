@@ -11,10 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	BaseTransaction,
-	TransactionResponse,
-} from '@liskhq/lisk-transactions';
+import { BaseTransaction, TransactionResponse } from '@liskhq/lisk-transactions';
 
 export interface Context {
 	readonly blockVersion: number;
@@ -78,5 +75,5 @@ export interface StateDiff {
 
 interface UpdatedDiff {
 	readonly key: string;
-	readonly value: ReadonlyArray<DiffHistory>;
+	readonly value: Buffer;
 }

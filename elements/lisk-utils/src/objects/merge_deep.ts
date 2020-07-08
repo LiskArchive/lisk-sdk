@@ -18,10 +18,7 @@ interface KVPair {
 }
 
 const isIterable = (item: unknown): item is KVPair =>
-	typeof item === 'object' &&
-	item !== null &&
-	!Array.isArray(item) &&
-	!Buffer.isBuffer(item);
+	typeof item === 'object' && item !== null && !Array.isArray(item) && !Buffer.isBuffer(item);
 
 export const mergeDeep = (dest: KVPair, ...srcs: KVPair[]): KVPair => {
 	const result = dest; // clone deep here

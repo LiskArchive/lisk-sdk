@@ -26,14 +26,12 @@ describe('account:create', () => {
 	const secondDefaultMnemonic =
 		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
 	const defaultKeys = {
-		publicKey:
-			'88b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
+		publicKey: '88b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
 		privateKey:
 			'1a8ea0ceed1b85c9cff5eb12ae8d9ccdac93b5d5c668775e12b86dd63a8cefa688b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
 	};
 	const secondDefaultKeys = {
-		publicKey:
-			'90215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
+		publicKey: '90215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
 		privateKey:
 			'bec5ac9d074d1684f9dd184fc44c4b37fb73ca9d013b6ddf5a92578a98f8848990215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
 	};
@@ -47,12 +45,8 @@ describe('account:create', () => {
 		getKeysStub.withArgs(secondDefaultMnemonic).returns(secondDefaultKeys);
 
 		const getAddressFromPublicKeyStub = sandbox.stub();
-		getAddressFromPublicKeyStub
-			.withArgs(defaultKeys.publicKey)
-			.returns(defaultAddress);
-		getAddressFromPublicKeyStub
-			.withArgs(secondDefaultKeys.publicKey)
-			.returns(secondDefaultAddress);
+		getAddressFromPublicKeyStub.withArgs(defaultKeys.publicKey).returns(defaultAddress);
+		getAddressFromPublicKeyStub.withArgs(secondDefaultKeys.publicKey).returns(secondDefaultAddress);
 
 		return test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
@@ -77,12 +71,8 @@ describe('account:create', () => {
 				expect(printUtils.print).to.be.called;
 				return expect(printMethodStub).to.be.calledWith([
 					{
-						publicKey: cryptography
-							.getKeys(defaultMnemonic)
-							.publicKey.toString('base64'),
-						privateKey: cryptography
-							.getKeys(defaultMnemonic)
-							.privateKey.toString('base64'),
+						publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('base64'),
+						privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('base64'),
 						address: cryptography.getBase32AddressFromPublicKey(
 							cryptography.getKeys(defaultMnemonic).publicKey,
 							'lsk',
@@ -104,12 +94,8 @@ describe('account:create', () => {
 				expect(printUtils.print).to.be.calledOnce;
 				const result = [
 					{
-						publicKey: cryptography
-							.getKeys(defaultMnemonic)
-							.publicKey.toString('base64'),
-						privateKey: cryptography
-							.getKeys(defaultMnemonic)
-							.privateKey.toString('base64'),
+						publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('base64'),
+						privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('base64'),
 						address: cryptography.getBase32AddressFromPublicKey(
 							cryptography.getKeys(defaultMnemonic).publicKey,
 							'lsk',
@@ -120,12 +106,8 @@ describe('account:create', () => {
 						passphrase: defaultMnemonic,
 					},
 					{
-						publicKey: cryptography
-							.getKeys(secondDefaultMnemonic)
-							.publicKey.toString('base64'),
-						privateKey: cryptography
-							.getKeys(secondDefaultMnemonic)
-							.privateKey.toString('base64'),
+						publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('base64'),
+						privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('base64'),
 						address: cryptography.getBase32AddressFromPublicKey(
 							cryptography.getKeys(secondDefaultMnemonic).publicKey,
 							'lsk',
@@ -164,8 +146,6 @@ describe('account:create', () => {
 					'Number flag must be an integer and greater than 0',
 				);
 			})
-			.it(
-				'should throw an error if the number flag contains non-number characters',
-			);
+			.it('should throw an error if the number flag contains non-number characters');
 	});
 });

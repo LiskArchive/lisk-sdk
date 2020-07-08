@@ -33,8 +33,7 @@ describe('node:get', () => {
 	const defaultForgingStatusResponse = {
 		data: [
 			{
-				publicKey:
-					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
+				publicKey: '2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
 				forging: true,
 			},
 		],
@@ -70,11 +69,7 @@ describe('node:get', () => {
 			.it('should throw error when getConstants fails');
 
 		setupTest()
-			.stub(
-				apiClientStub.node,
-				'getStatus',
-				sandbox.stub().rejects(new Error('getStatus failed')),
-			)
+			.stub(apiClientStub.node, 'getStatus', sandbox.stub().rejects(new Error('getStatus failed')))
 			.command(['node:get'])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('getStatus failed');
@@ -95,11 +90,7 @@ describe('node:get', () => {
 	describe('node:get --forging-status', () => {
 		const errorMessage = 'Error 403: Unauthorized';
 		setupTest()
-			.stub(
-				apiClientStub.node,
-				'getForgingStatus',
-				sandbox.stub().rejects(new Error(errorMessage)),
-			)
+			.stub(apiClientStub.node, 'getForgingStatus', sandbox.stub().rejects(new Error(errorMessage)))
 			.command(['node:get', '--forging-status'])
 			.it('should get the node status with forging status error', () => {
 				return expect(printMethodStub).to.be.calledWithExactly({

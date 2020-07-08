@@ -26,18 +26,12 @@
 							]
 						}
 					],
-					"created": [
-						"chain:delegates",
-						"consensus:bft"
-					]
+					"created": ["chain:delegates", "consensus:bft"]
 				},
 				"schema": {
 					"$id": "/state/diff",
 					"type": "object",
-					"required": [
-						"updated",
-						"created"
-					],
+					"required": ["updated", "created"],
 					"properties": {
 						"updated": {
 							"type": "array",
@@ -90,33 +84,19 @@
 					"updated": [
 						{
 							"key": "accounts:address:rUL46GfWGBcb9JguZCaUQhSPbhE=",
-							"value": [
-								"diff1",
-								"diff2"
-							]
+							"value": ["diff1", "diff2"]
 						},
 						{
 							"key": "accounts:address:aaa6GfWGBcb9JguZCaUQhSPbhE=",
-							"value": [
-								"diff5",
-								"diff6",
-								"diff7",
-								"diff5"
-							]
+							"value": ["diff5", "diff6", "diff7", "diff5"]
 						}
 					],
-					"created": [
-						"chain:delegates",
-						"consensus:bft"
-					]
+					"created": ["chain:delegates", "consensus:bft"]
 				},
 				"schema": {
 					"$id": "/state/diff-string",
 					"type": "object",
-					"required": [
-						"updated",
-						"created"
-					],
+					"required": ["updated", "created"],
 					"properties": {
 						"updated": {
 							"type": "array",

@@ -49,9 +49,7 @@ export const getReleaseInfo = async (
 	// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 	const urlPath = `${RELEASE_URL}/${network}/${(version as unknown) as string}`;
 	const liskTarUrl = `${urlPath}/${liskTar((version as unknown) as string)}`;
-	const liskTarSHA256Url = `${urlPath}/${liskTarSHA256(
-		(version as unknown) as string,
-	)}`;
+	const liskTarSHA256Url = `${urlPath}/${liskTarSHA256((version as unknown) as string)}`;
 
 	return { version, liskTarUrl, liskTarSHA256Url };
 };

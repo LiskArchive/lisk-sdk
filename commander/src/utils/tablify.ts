@@ -51,9 +51,7 @@ const getKeyValueArray = (array: ReadonlyArray<object>) =>
 
 const addValuesToTable = (table: object[], data: object) => {
 	Object.entries(data).forEach(([key, values]) => {
-		const strValue = Array.isArray(values)
-			? getKeyValueArray(values)
-			: getKeyValueObject(values);
+		const strValue = Array.isArray(values) ? getKeyValueArray(values) : getKeyValueObject(values);
 		table.push({ [key]: strValue });
 	});
 };

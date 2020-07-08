@@ -18,11 +18,7 @@ import url from 'url';
 
 import BaseCommand from '../../base';
 import { ConfigOptions, setConfig, WritableValue } from '../../utils/config';
-import {
-	API_PROTOCOLS,
-	CONFIG_VARIABLES,
-	NETHASHES,
-} from '../../utils/constants';
+import { API_PROTOCOLS, CONFIG_VARIABLES, NETHASHES } from '../../utils/constants';
 import { FileSystemError, ValidationError } from '../../utils/error';
 
 interface Args {
@@ -36,20 +32,16 @@ interface WriteResult {
 
 const availableVariables = CONFIG_VARIABLES.join(', ');
 
-const WRITE_FAIL_WARNING =
-	'Config file could not be written: your changes will not be persisted.';
+const WRITE_FAIL_WARNING = 'Config file could not be written: your changes will not be persisted.';
 
 const NETHASH_ERROR_MESSAGE =
 	'Value must be a hex string with 64 characters, or one of main or test.';
 
 const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PROTOCOLS.map(
 	protocol => protocol.replace(':', ''),
-).join(
-	', ',
-)}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
+).join(', ')}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
 
-const checkBoolean = (value: string): boolean =>
-	['true', 'false'].includes(value);
+const checkBoolean = (value: string): boolean => ['true', 'false'].includes(value);
 
 const setNestedConfigProperty = (
 	config: ConfigOptions,
@@ -84,10 +76,7 @@ const attemptWriteToFile = (
 	value: WritableValue,
 	dotNotation: string,
 ): WriteResult => {
-	const writeSuccess = setConfig(
-		process.env.XDG_CONFIG_HOME as string,
-		newConfig,
-	);
+	const writeSuccess = setConfig(process.env.XDG_CONFIG_HOME as string, newConfig);
 
 	if (!writeSuccess) {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
@@ -115,11 +104,7 @@ const setValue = (
 	return attemptWriteToFile(config, value, dotNotation);
 };
 
-const setBoolean = (
-	config: ConfigOptions,
-	dotNotation: string,
-	value: string,
-): WriteResult => {
+const setBoolean = (config: ConfigOptions, dotNotation: string, value: string): WriteResult => {
 	if (!checkBoolean(value)) {
 		throw new ValidationError('Value must be a boolean.');
 	}
@@ -136,11 +121,7 @@ const setArrayURL = (
 ): WriteResult => {
 	inputs.forEach(input => {
 		const { protocol, hostname } = url.parse(input);
-		if (
-			protocol === undefined ||
-			!API_PROTOCOLS.includes(protocol as string) ||
-			!hostname
-		) {
+		if (protocol === undefined || !API_PROTOCOLS.includes(protocol as string) || !hostname) {
 			throw new ValidationError(URL_ERROR_MESSAGE);
 		}
 	});
@@ -148,15 +129,8 @@ const setArrayURL = (
 	return setValue(config, dotNotation, inputs);
 };
 
-const setNethash = (
-	config: ConfigOptions,
-	dotNotation: string,
-	value: string,
-): WriteResult => {
-	if (
-		dotNotation === 'api.network' &&
-		!Object.keys(NETHASHES).includes(value)
-	) {
+const setNethash = (config: ConfigOptions, dotNotation: string, value: string): WriteResult => {
+	if (dotNotation === 'api.network' && !Object.keys(NETHASHES).includes(value)) {
 		const NETHASH_LENGTH = 64;
 		if (value.length !== NETHASH_LENGTH) {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
@@ -224,12 +198,7 @@ export default class SetCommand extends BaseCommand {
 		const safeValues = values || [];
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const safeValue = safeValues[0] || '';
-		const result = handlers[variable](
-			this.userConfig,
-			variable,
-			safeValue,
-			safeValues,
-		);
+		const result = handlers[variable](this.userConfig, variable, safeValue, safeValues);
 		this.print(result, true);
 	}
 }

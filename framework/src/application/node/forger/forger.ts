@@ -160,9 +160,7 @@ export class Forger {
 	): Promise<ForgingStatus> {
 		const encryptedList = this._config.forging.delegates;
 		const forgerAddress = getAddressFromPublicKey(publicKey);
-		const encryptedItem = encryptedList?.find(item =>
-			item.address.equals(forgerAddress),
-		);
+		const encryptedItem = encryptedList?.find(item => item.address.equals(forgerAddress));
 
 		let keypair: Keypair;
 		let passphrase: string;
@@ -179,9 +177,7 @@ export class Forger {
 
 			keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 		} else {
-			throw new Error(
-				`Delegate with publicKey: ${publicKey.toString('base64')} not found`,
-			);
+			throw new Error(`Delegate with publicKey: ${publicKey.toString('base64')} not found`);
 		}
 
 		if (!keypair.publicKey.equals(publicKey)) {
@@ -189,23 +185,17 @@ export class Forger {
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const [
-			account,
-		] = await this._chainModule.dataAccess.getAccountsByPublicKey([
+		const [account] = await this._chainModule.dataAccess.getAccountsByPublicKey([
 			keypair.publicKey,
 		]);
 
 		if (account.asset.delegate.username !== '') {
 			if (forging) {
 				this._keypairs.set(getAddressFromPublicKey(keypair.publicKey), keypair);
-				this._logger.info(
-					`Forging enabled on account: ${account.address.toString('base64')}`,
-				);
+				this._logger.info(`Forging enabled on account: ${account.address.toString('base64')}`);
 			} else {
 				this._keypairs.delete(getAddressFromPublicKey(keypair.publicKey));
-				this._logger.info(
-					`Forging disabled on account: ${account.address.toString('base64')}`,
-				);
+				this._logger.info(`Forging disabled on account: ${account.address.toString('base64')}`);
 			}
 
 			return {
@@ -232,9 +222,7 @@ export class Forger {
 		);
 
 		let usedHashOnions = await getUsedHashOnions(this._db);
-		const registeredHashOnionSeeds = await getRegisteredHashOnionSeeds(
-			this._db,
-		);
+		const registeredHashOnionSeeds = await getRegisteredHashOnionSeeds(this._db);
 
 		for (const encryptedItem of encryptedList) {
 			let passphrase;
@@ -262,71 +250,56 @@ export class Forger {
 				);
 			}
 
-			const [
-				account,
-			] = await this._chainModule.dataAccess.getAccountsByPublicKey([
+			const [account] = await this._chainModule.dataAccess.getAccountsByPublicKey([
 				keypair.publicKey,
 			]);
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!account) {
 				throw new Error(
-					`Account with public key: ${keypair.publicKey.toString(
-						'base64',
-					)} not found`,
+					`Account with public key: ${keypair.publicKey.toString('base64')} not found`,
 				);
 			}
 			if (account.asset.delegate.username !== '') {
 				this._keypairs.set(getAddressFromPublicKey(keypair.publicKey), keypair);
-				this._logger.info(
-					`Forging enabled on account: ${account.address.toString('base64')}`,
-				);
+				this._logger.info(`Forging enabled on account: ${account.address.toString('base64')}`);
 			} else {
 				this._logger.warn(
 					{},
-					`Account with public key: ${keypair.publicKey.toString(
-						'base64',
-					)} is not a delegate`,
+					`Account with public key: ${keypair.publicKey.toString('base64')} is not a delegate`,
 				);
 			}
 			// Prepare hash-onion
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const registeredHashOnionSeed = registeredHashOnionSeeds.get(
-				account.address,
-			);
+			const registeredHashOnionSeed = registeredHashOnionSeeds.get(account.address);
 			const hashOnionConfig = this._getHashOnionConfig(account.address);
 
 			// If hash onion in the config is different from what is registered, remove all the used information and register the new one
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const configHashOnionSeed =
-				hashOnionConfig.hashes[hashOnionConfig.hashes.length - 1];
-			if (
-				registeredHashOnionSeed &&
-				!registeredHashOnionSeed.equals(configHashOnionSeed)
-			) {
+			const configHashOnionSeed = hashOnionConfig.hashes[hashOnionConfig.hashes.length - 1];
+			if (registeredHashOnionSeed && !registeredHashOnionSeed.equals(configHashOnionSeed)) {
 				this._logger.warn(
 					`Hash onion for Account ${account.address.toString(
 						'base64',
 					)} is not the same as previous one. Overwriting with new hash onion`,
 				);
-				usedHashOnions = usedHashOnions.filter(
-					ho => !ho.address.equals(account.address),
-				);
+				usedHashOnions = usedHashOnions.filter(ho => !ho.address.equals(account.address));
 			}
 			// Update the registered hash onion (either same one, new one or overwritten one)
 			registeredHashOnionSeeds.set(account.address, configHashOnionSeed);
-			const highestUsedHashOnion = usedHashOnions.reduce<
-				UsedHashOnion | undefined
-			>((prev, current) => {
-				if (!current.address.equals(account.address)) {
+			const highestUsedHashOnion = usedHashOnions.reduce<UsedHashOnion | undefined>(
+				(prev, current) => {
+					if (!current.address.equals(account.address)) {
+						return prev;
+					}
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (!prev || prev.count < current.count) {
+						return current;
+					}
 					return prev;
-				}
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (!prev || prev.count < current.count) {
-					return current;
-				}
-				return prev;
-			}, undefined);
+				},
+				undefined,
+			);
 
 			// If there are no previous usage, no need to check further
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -346,11 +319,7 @@ export class Forger {
 			}
 			// If all hash onion is used, throw an error
 			if (highestCount >= hashOnionConfig.count) {
-				throw new Error(
-					`All of the hash onion is used for ${account.address.toString(
-						'base64',
-					)}`,
-				);
+				throw new Error(`All of the hash onion is used for ${account.address.toString('base64')}`);
 			}
 		}
 		await setRegisteredHashOnionSeeds(this._db, registeredHashOnionSeeds);
@@ -367,30 +336,20 @@ export class Forger {
 
 		const { waitThreshold } = this._config.forging;
 		const { lastBlock } = this._chainModule;
-		const lastBlockSlot = this._chainModule.slots.getSlotNumber(
-			lastBlock.header.timestamp,
-		);
+		const lastBlockSlot = this._chainModule.slots.getSlotNumber(lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
-			this._logger.trace(
-				{ slot: currentSlot },
-				'Block already forged for the current slot',
-			);
+			this._logger.trace({ slot: currentSlot }, 'Block already forged for the current slot');
 			return;
 		}
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
-		const round = this._dposModule.rounds.calcRound(
-			this._chainModule.lastBlock.header.height + 1,
-		);
+		const round = this._dposModule.rounds.calcRound(this._chainModule.lastBlock.header.height + 1);
 
 		let delegateKeypair: Keypair | undefined;
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-use-before-define
-			delegateKeypair = await this._getDelegateKeypairForCurrentSlot(
-				currentSlot,
-				round,
-			);
+			delegateKeypair = await this._getDelegateKeypairForCurrentSlot(currentSlot, round);
 		} catch (err) {
 			this._logger.error({ err: err as Error }, 'Skipping delegate slot');
 			throw err;
@@ -406,10 +365,7 @@ export class Forger {
 
 		// If last block slot is way back than one block
 		// and still time left as per threshold specified
-		if (
-			lastBlockSlot < currentSlot - 1 &&
-			currentTime <= currentSlotTime + waitThreshold
-		) {
+		if (lastBlockSlot < currentSlot - 1 && currentTime <= currentSlotTime + waitThreshold) {
 			this._logger.info('Skipping forging to wait for last block');
 			this._logger.debug(
 				{
@@ -431,14 +387,9 @@ export class Forger {
 		const nextHeight = previousBlock.header.height + 1;
 
 		const usedHashOnions = await getUsedHashOnions(this._db);
-		const nextHashOnion = this._getNextHashOnion(
-			usedHashOnions,
-			delegateAddress,
-			nextHeight,
-		);
+		const nextHashOnion = this._getNextHashOnion(usedHashOnions, delegateAddress, nextHeight);
 		const index = usedHashOnions.findIndex(
-			ho =>
-				ho.address.equals(delegateAddress) && ho.count === nextHashOnion.count,
+			ho => ho.address.equals(delegateAddress) && ho.count === nextHashOnion.count,
 		);
 		const nextUsedHashOnion = {
 			count: nextHashOnion.count,
@@ -477,9 +428,7 @@ export class Forger {
 				seedReveal: nextHashOnion.hash,
 				height: forgedBlock.header.height,
 				round: this._dposModule.rounds.calcRound(forgedBlock.header.height),
-				slot: this._chainModule.slots.getSlotNumber(
-					forgedBlock.header.timestamp,
-				),
+				slot: this._chainModule.slots.getSlotNumber(forgedBlock.header.timestamp),
 				reward: forgedBlock.header.reward.toString(),
 			},
 			'Forged new block',
@@ -516,22 +465,19 @@ export class Forger {
 		readonly hash: Buffer;
 	} {
 		// Get highest hashonion that is used by this address below height
-		const usedHashOnion = usedHashOnions.reduce<UsedHashOnion | undefined>(
-			(prev, current) => {
-				if (!current.address.equals(address)) {
-					return prev;
-				}
-				if (
-					current.height < height &&
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-					(!prev || prev.height < current.height)
-				) {
-					return current;
-				}
+		const usedHashOnion = usedHashOnions.reduce<UsedHashOnion | undefined>((prev, current) => {
+			if (!current.address.equals(address)) {
 				return prev;
-			},
-			undefined,
-		);
+			}
+			if (
+				current.height < height &&
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				(!prev || prev.height < current.height)
+			) {
+				return current;
+			}
+			return prev;
+		}, undefined);
 		const hashOnionConfig = this._getHashOnionConfig(address);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!usedHashOnion) {
@@ -562,14 +508,10 @@ export class Forger {
 	}
 
 	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
-		const delegateConfig = this._config.forging.delegates?.find(d =>
-			d.address.equals(address),
-		);
+		const delegateConfig = this._config.forging.delegates?.find(d => d.address.equals(address));
 		if (!delegateConfig?.hashOnion) {
 			throw new Error(
-				`Account ${address.toString(
-					'base64',
-				)} does not have hash onion in the config`,
+				`Account ${address.toString('base64')} does not have hash onion in the config`,
 			);
 		}
 
@@ -602,9 +544,7 @@ export class Forger {
 			},
 		);
 
-		const filtered = filteredObject.others.filter(
-			ho => ho.height > finalizedHeight,
-		);
+		const filtered = filteredObject.others.filter(ho => ho.height > finalizedHeight);
 		return filtered.concat(filteredObject.highest.values());
 	}
 
@@ -612,17 +552,12 @@ export class Forger {
 		currentSlot: number,
 		round: number,
 	): Promise<Keypair | undefined> {
-		const activeDelegates = await this._dposModule.getForgerAddressesForRound(
-			round,
-		);
+		const activeDelegates = await this._dposModule.getForgerAddressesForRound(round);
 
 		const currentSlotIndex = currentSlot % activeDelegates.length;
 		const currentSlotDelegate = activeDelegates[currentSlotIndex];
 
-		if (
-			currentSlotDelegate.length > 0 &&
-			this._keypairs.has(currentSlotDelegate)
-		) {
+		if (currentSlotDelegate.length > 0 && this._keypairs.has(currentSlotDelegate)) {
 			return this._keypairs.get(currentSlotDelegate);
 		}
 

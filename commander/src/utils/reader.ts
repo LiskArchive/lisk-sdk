@@ -25,8 +25,7 @@ interface MnemonicError {
 	readonly message: string;
 }
 
-const capitalise = (text: string): string =>
-	`${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+const capitalise = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
 const getPassphraseVerificationFailError = (displayName: string): string =>
 	`${capitalise(displayName)} was not successfully repeated.`;
@@ -86,9 +85,7 @@ export const getPassphraseFromPrompt = async (
 				.filter((error: MnemonicError) => error.code !== 'INVALID_MNEMONIC')
 				.reduce(
 					(accumulator: string, error: MnemonicError) =>
-						accumulator.concat(
-							`${error.message.replace(' Please check the passphrase.', '')} `,
-						),
+						accumulator.concat(`${error.message.replace(' Please check the passphrase.', '')} `),
 					'Warning: ',
 				);
 			console.warn(passphraseWarning);
@@ -99,10 +96,8 @@ export const getPassphraseFromPrompt = async (
 	return passphrase;
 };
 
-const getFileDoesNotExistError = (path: string): string =>
-	`File at ${path} does not exist.`;
-const getFileUnreadableError = (path: string): string =>
-	`File at ${path} could not be read.`;
+const getFileDoesNotExistError = (path: string): string => `File at ${path} does not exist.`;
+const getFileUnreadableError = (path: string): string => `File at ${path} could not be read.`;
 
 const getDataFromFile = (path: string) => fs.readFileSync(path, 'utf8');
 

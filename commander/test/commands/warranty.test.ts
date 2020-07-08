@@ -18,17 +18,14 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../src/utils/config';
 
 describe('warranty command', () => {
-	const setupStub = () =>
-		test.stub(config, 'getConfig', sandbox.stub().returns({}));
+	const setupStub = () => test.stub(config, 'getConfig', sandbox.stub().returns({}));
 
 	describe('warranty', () => {
 		setupStub()
 			.stdout()
 			.command(['warranty'])
 			.it('should show warranty', ctx => {
-				return expect(ctx.stdout).to.contain(
-					'THERE IS NO WARRANTY FOR THE PROGRAM',
-				);
+				return expect(ctx.stdout).to.contain('THERE IS NO WARRANTY FOR THE PROGRAM');
 			});
 	});
 });

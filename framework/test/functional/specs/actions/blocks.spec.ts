@@ -42,15 +42,12 @@ describe('Block related actions', () => {
 
 	describe('getBlocksByIDs', () => {
 		it('should return valid encoded blocks', async () => {
-			const encodedBlocks: string[] = await app['_channel'].invoke(
-				'app:getBlocksByIDs',
-				{
-					ids: [
-						app['_node']['_chain'].genesisBlock.header.id.toString('base64'),
-						app['_node']['_chain'].lastBlock.header.id.toString('base64'),
-					],
-				},
-			);
+			const encodedBlocks: string[] = await app['_channel'].invoke('app:getBlocksByIDs', {
+				ids: [
+					app['_node']['_chain'].genesisBlock.header.id.toString('base64'),
+					app['_node']['_chain'].lastBlock.header.id.toString('base64'),
+				],
+			});
 			expect(encodedBlocks).toHaveLength(2);
 			const block = app['_node']['_chain'].dataAccess.decode(
 				Buffer.from(encodedBlocks[0], 'base64'),
@@ -62,10 +59,7 @@ describe('Block related actions', () => {
 
 	describe('getBlockByHeight', () => {
 		it('should return valid encoded block', async () => {
-			const encodedBlock = await app['_channel'].invoke(
-				'app:getBlockByHeight',
-				{ height: 2 },
-			);
+			const encodedBlock = await app['_channel'].invoke('app:getBlockByHeight', { height: 2 });
 			expect(encodedBlock).toBeString();
 			const block = app['_node']['_chain'].dataAccess.decode(
 				Buffer.from(encodedBlock as string, 'base64'),
@@ -76,9 +70,10 @@ describe('Block related actions', () => {
 
 	describe('getBlocksByHeightBetween', () => {
 		it('should return valid encoded blocks', async () => {
-			const encodedBlocks: string[] = await app[
-				'_channel'
-			].invoke('app:getBlocksByHeightBetween', { from: 1, to: 2 });
+			const encodedBlocks: string[] = await app['_channel'].invoke('app:getBlocksByHeightBetween', {
+				from: 1,
+				to: 2,
+			});
 			expect(encodedBlocks).toHaveLength(2);
 			const block = app['_node']['_chain'].dataAccess.decode(
 				Buffer.from(encodedBlocks[0], 'base64'),

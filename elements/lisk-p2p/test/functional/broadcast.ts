@@ -32,7 +32,7 @@ describe('P2P.broadcast', () => {
 			p2p.on(events.EVENT_MESSAGE_RECEIVED, message => {
 				if (message.event === BROADCAST_EVENT) {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						message,
 					});
 				}
@@ -55,25 +55,19 @@ describe('P2P.broadcast', () => {
 		await wait(200);
 
 		// Assert
-		expect(Object.keys(collectedMessages).length).toBeGreaterThanOrEqual(
-			numOfConnectedPeers - 1,
-		);
+		expect(Object.keys(collectedMessages).length).toBeGreaterThanOrEqual(numOfConnectedPeers - 1);
 
 		for (const receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
-			nodePortToMessagesMap[receivedMessageData.nodePort].push(
-				receivedMessageData,
-			);
+			nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 		}
 
 		expect(Object.keys(nodePortToMessagesMap).length).toBeGreaterThanOrEqual(
 			numOfConnectedPeers - 1,
 		);
-		for (const receivedMessages of Object.values(
-			nodePortToMessagesMap,
-		) as any) {
+		for (const receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 			expect(receivedMessages).toEqual(expect.any(Array));
 			expect(receivedMessages).toHaveLength(1);
 		}
@@ -90,15 +84,13 @@ describe('P2P.broadcast', () => {
 
 		// Assert
 		expect(collectedMessages).toEqual(expect.any(Array));
-		expect(collectedMessages.length).toBeGreaterThanOrEqual(
-			numOfConnectedPeers,
-		);
+		expect(collectedMessages.length).toBeGreaterThanOrEqual(numOfConnectedPeers);
 
 		expect(collectedMessages[0]).toMatchObject({
 			message: {
 				event: BROADCAST_EVENT,
 				data: BROADCAST_DATA,
-				peerId: `127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`,
+				peerId: `127.0.0.1:${firstP2PNode.config.port}`,
 			},
 		});
 	});

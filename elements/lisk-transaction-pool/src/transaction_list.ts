@@ -45,8 +45,7 @@ export class TransactionList {
 		this._processable = [];
 		this._maxSize = options?.maxSize ?? DEFAULT_MAX_SIZE;
 		this._minReplacementFeeDifference =
-			options?.minReplacementFeeDifference ??
-			DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
+			options?.minReplacementFeeDifference ?? DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
 	}
 
 	public get(nonce: bigint): Transaction | undefined {
@@ -62,8 +61,7 @@ export class TransactionList {
 			if (incomingTx.fee < existingTx.fee + this._minReplacementFeeDifference) {
 				return {
 					added: false,
-					reason:
-						'Incoming transaction fee is not sufficient to replace existing transaction',
+					reason: 'Incoming transaction fee is not sufficient to replace existing transaction',
 				};
 			}
 			// Mark this and all subsequent nonce unprocessable
@@ -80,8 +78,7 @@ export class TransactionList {
 			if (incomingTx.nonce > highestNonce) {
 				return {
 					added: false,
-					reason:
-						'Incoming transaction exceeds maximum transaction limit per account',
+					reason: 'Incoming transaction exceeds maximum transaction limit per account',
 				};
 			}
 			// If incoming nonce is lower than the highest nonce, remove the largest nonce transaction instead
@@ -132,9 +129,7 @@ export class TransactionList {
 			}
 			promotingNonces.push(tx.nonce);
 		}
-		this._processable = Array.from(
-			new Set([...this._processable, ...promotingNonces]),
-		);
+		this._processable = Array.from(new Set([...this._processable, ...promotingNonces]));
 		this._sortProcessable();
 
 		return true;
@@ -192,21 +187,15 @@ export class TransactionList {
 			return [];
 		}
 		if (this._processable.length !== 0) {
-			const highestProcessableNonce = this._processable[
-				this._processable.length - 1
-			];
+			const highestProcessableNonce = this._processable[this._processable.length - 1];
 			if (firstUnprocessable.key !== highestProcessableNonce + BigInt(1)) {
 				return [];
 			}
 		}
-		const promotableTx = [
-			this._transactions[firstUnprocessable.key.toString()],
-		];
+		const promotableTx = [this._transactions[firstUnprocessable.key.toString()]];
 
 		const remainingNonces = clonedHeap.count;
-		let lastPromotedNonce = this._transactions[
-			firstUnprocessable.key.toString()
-		].nonce;
+		let lastPromotedNonce = this._transactions[firstUnprocessable.key.toString()].nonce;
 		for (let i = 0; i < remainingNonces; i += 1) {
 			const { key } = clonedHeap.pop() as { key: bigint };
 			if (lastPromotedNonce + BigInt(1) === key) {
@@ -219,9 +208,7 @@ export class TransactionList {
 	}
 
 	private _demoteAfter(nonce: bigint): void {
-		this._processable = this._processable.filter(
-			processableNonce => processableNonce < nonce,
-		);
+		this._processable = this._processable.filter(processableNonce => processableNonce < nonce);
 		this._sortProcessable();
 	}
 

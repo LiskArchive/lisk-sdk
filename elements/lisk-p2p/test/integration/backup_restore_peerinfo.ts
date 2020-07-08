@@ -16,12 +16,7 @@ import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
-const {
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_BAN_PEER,
-	EVENT_REMOVE_PEER,
-	EVENT_CLOSE_OUTBOUND,
-} = events;
+const { EVENT_MESSAGE_RECEIVED, EVENT_BAN_PEER, EVENT_REMOVE_PEER, EVENT_CLOSE_OUTBOUND } = events;
 
 describe('Backup and Restore', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -61,7 +56,7 @@ describe('Backup and Restore', () => {
 	});
 
 	it('send messages to second peer', async () => {
-		const targetPeerId = `127.0.0.1:${secondNode.nodeInfo.wsPort}`;
+		const targetPeerId = `127.0.0.1:${secondNode.config.port}`;
 		const TOTAL_SENDS = 5;
 		const CUSTOM_DISCONNECT_MESSAGE = 'Intentional disconnect **';
 
@@ -82,9 +77,7 @@ describe('Backup and Restore', () => {
 
 		const getFirstConnectedPeer = secondNode['_peerPool']
 			.getConnectedPeers()
-			.find(
-				peerInfo => peerInfo.id === `127.0.0.1:${firstNode.nodeInfo.wsPort}`,
-			);
+			.find(peerInfo => peerInfo.id === `127.0.0.1:${firstNode.config.port}`);
 
 		if (getFirstConnectedPeer) {
 			// Disconnect after sending few messages
@@ -94,24 +87,22 @@ describe('Backup and Restore', () => {
 
 			const disconnectFirstPeer = secondNode['_peerBook'].getPeer({
 				ipAddress: '127.0.0.1',
-				wsPort: 5000,
+				port: 5000,
 				peerId: '127.0.0.1:5000',
 			});
 			if (disconnectFirstPeer) {
 				// Should capture message counter if a peer disconnects
-				expect(
-					(disconnectFirstPeer.internalState as any).messageCounter.get('foo'),
-				).toBe(TOTAL_SENDS);
+				expect((disconnectFirstPeer.internalState as any).messageCounter.get('foo')).toBe(
+					TOTAL_SENDS,
+				);
 			}
 
 			await wait(10);
 
-			expect(disconnectMessages.map(msg => msg.reason)).toContain(
-				CUSTOM_DISCONNECT_MESSAGE,
-			);
+			expect(disconnectMessages.map(msg => msg.reason)).toContain(CUSTOM_DISCONNECT_MESSAGE);
 
 			const getFirstNodeSecondTime = secondNode['_peerPool']['_peerMap'].get(
-				`127.0.0.1:${firstNode.nodeInfo.wsPort}`,
+				`127.0.0.1:${firstNode.config.port}`,
 			);
 
 			if (getFirstNodeSecondTime) {
@@ -132,8 +123,7 @@ describe('Backup and Restore', () => {
 
 				// Should get more TOTAL_SENDS number of foo messages
 				expect(
-					(getFirstNodeSecondTime.peerInfo
-						.internalState as any).messageCounter.get('foo'),
+					(getFirstNodeSecondTime.peerInfo.internalState as any).messageCounter.get('foo'),
 				).toBe(TOTAL_SENDS * 2);
 			}
 

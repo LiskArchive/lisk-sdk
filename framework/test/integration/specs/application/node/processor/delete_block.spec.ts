@@ -68,9 +68,7 @@ describe('Delete block', () => {
 
 		describe('when deleteLastBlock is called', () => {
 			beforeEach(async () => {
-				genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(
-					genesis.address,
-				);
+				genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
 				transaction = new TransferTransaction({
 					nonce: genesisAccount.nonce,
 					senderPublicKey: genesis.publicKey,
@@ -83,10 +81,7 @@ describe('Delete block', () => {
 				});
 				transaction.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [transaction]);
-				await blockchainDB.put(
-					`diff:${formatInt(newBlock.header.height)}`,
-					emptyDiffState,
-				);
+				await blockchainDB.put(`diff:${formatInt(newBlock.header.height)}`, emptyDiffState);
 				await node['_processor'].process(newBlock);
 				await node['_processor'].deleteLastBlock();
 			});
@@ -104,19 +99,13 @@ describe('Delete block', () => {
 			});
 
 			it('should match the sender account to the original state', async () => {
-				const genesisAfter = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(genesis.address);
-				expect(genesisAfter.balance.toString()).toEqual(
-					genesisAccount.balance.toString(),
-				);
+				const genesisAfter = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
+				expect(genesisAfter.balance.toString()).toEqual(genesisAccount.balance.toString());
 			});
 
 			it('should not persist virgin recipient account', async () => {
 				await expect(
-					node['_chain'].dataAccess.getAccountByAddress(
-						recipientAccount.address,
-					),
+					node['_chain'].dataAccess.getAccountByAddress(recipientAccount.address),
 				).rejects.toBeInstanceOf(NotFoundError);
 				await expect(
 					blockchainDB.get(`diff:${formatInt(newBlock.header.height)}`),

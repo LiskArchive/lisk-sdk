@@ -14,19 +14,10 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	delegatesUserNamesSchema,
-	forgerListSchema,
-	voteWeightsSchema,
-} from '../../src/schemas';
+import { delegatesUserNamesSchema, forgerListSchema, voteWeightsSchema } from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos } from '../../src';
-import {
-	Account,
-	BlockHeader,
-	VoteWeights,
-	DelegateWeight,
-} from '../../src/types';
+import { Account, BlockHeader, VoteWeights, DelegateWeight } from '../../src/types';
 import { BLOCK_TIME } from '../fixtures/constants';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { StateStoreMock } from '../utils/state_store_mock';
@@ -39,14 +30,10 @@ import { randomBigIntWithPowerof8 } from '../utils/random_int';
 import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
-const GENESIS_BLOCK_TIMESTAMP =
-	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
+const GENESIS_BLOCK_TIMESTAMP = new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 const convertVoteWeight = (buffer: Buffer): VoteWeights => {
-	const { voteWeights: parsedVoteWeights } = codec.decode(
-		voteWeightsSchema,
-		buffer,
-	);
+	const { voteWeights: parsedVoteWeights } = codec.decode(voteWeightsSchema, buffer);
 
 	const voteWeights = parsedVoteWeights.map((vw: any) => ({
 		round: vw.round,
@@ -79,9 +66,7 @@ describe('Vote weight snapshot', () => {
 				getDelegates: jest.fn().mockResolvedValue([]),
 			},
 		};
-		const initDelegates = delegateAddresses.map(addr =>
-			Buffer.from(addr, 'base64'),
-		);
+		const initDelegates = delegateAddresses.map(addr => Buffer.from(addr, 'base64'));
 		dpos = new Dpos({
 			chain: chainStub,
 			initDelegates,
@@ -130,9 +115,7 @@ describe('Vote weight snapshot', () => {
 				timestamp: 10,
 				height: 0,
 				version: 0,
-				generatorPublicKey: delegateAccounts1.publicKeyMap.get(
-					forgers[0].address,
-				),
+				generatorPublicKey: delegateAccounts1.publicKeyMap.get(forgers[0].address),
 				reward: BigInt(500000000),
 				asset: {
 					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
@@ -177,9 +160,7 @@ describe('Vote weight snapshot', () => {
 					timestamp: 500,
 					height: 50,
 					version: 2,
-					generatorPublicKey: delegateAccounts2.publicKeyMap.get(
-						forgers[0].address,
-					),
+					generatorPublicKey: delegateAccounts2.publicKeyMap.get(forgers[0].address),
 					reward: BigInt(500000000),
 					asset: {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
@@ -194,10 +175,7 @@ describe('Vote weight snapshot', () => {
 						},
 					],
 				};
-				const mockedForgersList = codec.encode(
-					forgerListSchema,
-					forgerListObject,
-				);
+				const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 				stateStore = new StateStoreMock(
 					[forgers[0], ...delegates],
 					{
@@ -229,10 +207,7 @@ describe('Vote weight snapshot', () => {
 				const delegateAccounts3 = getDelegateAccounts(200);
 				delegates = delegateAccounts3.accounts;
 				for (const delegate of delegates) {
-					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-						900,
-						5000,
-					);
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(900, 5000);
 					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.asset.delegate.totalVotesReceived,
@@ -242,8 +217,7 @@ describe('Vote weight snapshot', () => {
 				const { accounts } = getDelegateAccounts(1);
 				[updatedDelegate] = accounts;
 
-				updatedDelegate.asset.delegate.totalVotesReceived =
-					BigInt(6000) * BigInt(10) ** BigInt(9);
+				updatedDelegate.asset.delegate.totalVotesReceived = BigInt(6000) * BigInt(10) ** BigInt(9);
 				updatedDelegate.asset.sentVotes.push({
 					delegateAddress: updatedDelegate.address,
 					amount: updatedDelegate.asset.delegate.totalVotesReceived,
@@ -254,19 +228,14 @@ describe('Vote weight snapshot', () => {
 					timestamp: 1030,
 					height: 103,
 					version: 2,
-					generatorPublicKey: delegateAccounts3.publicKeyMap.get(
-						forgers[0].address,
-					),
+					generatorPublicKey: delegateAccounts3.publicKeyMap.get(forgers[0].address),
 					reward: BigInt(500000000),
 					asset: {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
 
-				chainStub.dataAccess.getDelegates.mockResolvedValue([
-					...delegates,
-					updatedDelegate,
-				]);
+				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates, updatedDelegate]);
 
 				const forgerListObject = {
 					forgersList: [
@@ -278,10 +247,7 @@ describe('Vote weight snapshot', () => {
 					],
 				};
 
-				const mockedForgersList = codec.encode(
-					forgerListSchema,
-					forgerListObject,
-				);
+				const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 				const voteWeightsObject = {
 					voteWeights: [
@@ -297,10 +263,7 @@ describe('Vote weight snapshot', () => {
 					],
 				};
 
-				const mockedVoteWeights = codec.encode(
-					voteWeightsSchema,
-					voteWeightsObject,
-				);
+				const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 				const updatedVote = BigInt(100) * BigInt(10) ** BigInt(8);
 
@@ -325,12 +288,8 @@ describe('Vote weight snapshot', () => {
 						},
 					],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(mockedForgersList),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(mockedVoteWeights),
 					},
 					{ lastBlockHeaders: [defaultLastBlockHeader] },
 				);
@@ -345,15 +304,12 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 
-				const { voteWeights } = codec.decode(
-					voteWeightsSchema,
-					voteWeightsBuffer as Buffer,
-				);
+				const { voteWeights } = codec.decode(voteWeightsSchema, voteWeightsBuffer as Buffer);
 
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(4);
-				const updatedDelegateInList = voteWeights[1].delegates.find(
-					(d: Account) => d.address.equals(updatedDelegate.address),
+				const updatedDelegateInList = voteWeights[1].delegates.find((d: Account) =>
+					d.address.equals(updatedDelegate.address),
 				);
 				expect(updatedDelegateInList).toBeUndefined();
 			});
@@ -393,10 +349,7 @@ describe('Vote weight snapshot', () => {
 						},
 					],
 				};
-				const mockedForgersList = codec.encode(
-					forgerListSchema,
-					forgerListObject,
-				);
+				const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 				stateStore = new StateStoreMock(
 					[forgers[0], ...delegates],
 					{
@@ -433,10 +386,7 @@ describe('Vote weight snapshot', () => {
 					delegates = delegateAccounts5.accounts;
 
 					for (const delegate of delegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							900,
-							5000,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(900, 5000);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -461,17 +411,11 @@ describe('Vote weight snapshot', () => {
 						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
-							seedReveal: Buffer.from(
-								'00000000000000000000000000000000',
-								'hex',
-							),
+							seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 						},
 					} as BlockHeader;
 
-					chainStub.dataAccess.getDelegates.mockResolvedValue([
-						...delegates,
-						updatedDelegate,
-					]);
+					chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates, updatedDelegate]);
 
 					// Setup for missed block calculation
 					const forgedBlocks = forgers
@@ -480,9 +424,7 @@ describe('Vote weight snapshot', () => {
 							height: 928 + i,
 						}))
 						.slice(0, 102);
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-						forgedBlocks,
-					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(forgedBlocks);
 
 					const forgerListObject = {
 						forgersList: [
@@ -494,10 +436,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedForgersList = codec.encode(
-						forgerListSchema,
-						forgerListObject,
-					);
+					const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 					const voteWeightsObject = {
 						voteWeights: [
@@ -513,10 +452,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedVoteWeights = codec.encode(
-						voteWeightsSchema,
-						voteWeightsObject,
-					);
+					const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 					const updatedVote = BigInt(100) * BigInt(10) ** BigInt(8);
 
@@ -541,12 +477,8 @@ describe('Vote weight snapshot', () => {
 							},
 						],
 						{
-							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-								mockedForgersList,
-							),
-							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-								mockedVoteWeights,
-							),
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(mockedForgersList),
+							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(mockedVoteWeights),
 						},
 						{ lastBlockHeaders: [defaultLastBlockHeader] },
 					);
@@ -567,15 +499,12 @@ describe('Vote weight snapshot', () => {
 						CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 					);
 
-					const { voteWeights } = codec.decode(
-						voteWeightsSchema,
-						voteWeightsBuffer as Buffer,
-					);
+					const { voteWeights } = codec.decode(voteWeightsSchema, voteWeightsBuffer as Buffer);
 
 					expect(voteWeights).toHaveLength(2);
 					expect(voteWeights[1].round).toEqual(13);
-					const updatedDelegateInList = voteWeights[1].delegates.find(
-						(d: Account) => d.address.equals(updatedDelegate.address),
+					const updatedDelegateInList = voteWeights[1].delegates.find((d: Account) =>
+						d.address.equals(updatedDelegate.address),
 					);
 					expect(updatedDelegateInList).toBeUndefined();
 				});
@@ -587,10 +516,7 @@ describe('Vote weight snapshot', () => {
 					delegates = delegateAccounts6.accounts;
 
 					for (const delegate of delegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							500,
-							999,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(500, 999);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -605,10 +531,7 @@ describe('Vote weight snapshot', () => {
 						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
-							seedReveal: Buffer.from(
-								'00000000000000000000000000000000',
-								'hex',
-							),
+							seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 						},
 					} as BlockHeader;
 
@@ -620,9 +543,7 @@ describe('Vote weight snapshot', () => {
 						}))
 						.slice(0, 102);
 
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-						forgedBlocks,
-					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(forgedBlocks);
 
 					const forgerListObject = {
 						forgersList: [
@@ -634,10 +555,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedForgersList = codec.encode(
-						forgerListSchema,
-						forgerListObject,
-					);
+					const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 					const voteWeightsObject = {
 						voteWeights: [
@@ -653,10 +571,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedVoteWeights = codec.encode(
-						voteWeightsSchema,
-						voteWeightsObject,
-					);
+					const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 					const mockedDelegateUsernamesObject = {
 						registeredDelegates: [
@@ -712,9 +627,7 @@ describe('Vote weight snapshot', () => {
 					expect(voteWeights[1].delegates).toHaveLength(50 + 1);
 					const originalDelegatesCounts = voteWeights[0].delegates.reduce(
 						(prev: number, current: DelegateWeight) => {
-							const exist = delegates.find(d =>
-								d.address.equals(current.address),
-							);
+							const exist = delegates.find(d => d.address.equals(current.address));
 							return exist ? prev + 1 : prev;
 						},
 						0,
@@ -731,10 +644,7 @@ describe('Vote weight snapshot', () => {
 					delegates = delegateAccounts7.accounts;
 
 					for (const delegate of delegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							1000,
-							1100,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 1100);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -744,10 +654,7 @@ describe('Vote weight snapshot', () => {
 					additionalDelegates = accounts;
 
 					for (const delegate of additionalDelegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							10,
-							999,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(10, 999);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -762,10 +669,7 @@ describe('Vote weight snapshot', () => {
 						reward: BigInt(500000000),
 						totalFee: BigInt(100000000),
 						asset: {
-							seedReveal: Buffer.from(
-								'00000000000000000000000000000000',
-								'hex',
-							),
+							seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 						},
 					} as BlockHeader;
 
@@ -794,9 +698,7 @@ describe('Vote weight snapshot', () => {
 							height: 928 + i,
 						}))
 						.slice(0, 102);
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-						forgedBlocks,
-					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(forgedBlocks);
 
 					const forgerListObject = {
 						forgersList: [
@@ -808,10 +710,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedForgersList = codec.encode(
-						forgerListSchema,
-						forgerListObject,
-					);
+					const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 					const voteWeightsObject = {
 						voteWeights: [
@@ -827,10 +726,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedVoteWeights = codec.encode(
-						voteWeightsSchema,
-						voteWeightsObject,
-					);
+					const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 					stateStore = new StateStoreMock(
 						[...delegates, ...additionalDelegates, forgers[0]],
@@ -882,10 +778,7 @@ describe('Vote weight snapshot', () => {
 					delegates = delegateAccounts8.accounts;
 
 					for (const delegate of delegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							3000,
-							5000,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -894,10 +787,7 @@ describe('Vote weight snapshot', () => {
 					const { accounts } = getDelegateAccounts(300);
 					additionalDelegates = accounts;
 					for (const delegate of additionalDelegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							1000,
-							2999,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -911,10 +801,7 @@ describe('Vote weight snapshot', () => {
 						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
-							seedReveal: Buffer.from(
-								'00000000000000000000000000000000',
-								'hex',
-							),
+							seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 						},
 					} as BlockHeader;
 
@@ -943,9 +830,7 @@ describe('Vote weight snapshot', () => {
 							height: 928 + i,
 						}))
 						.slice(0, 102);
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-						forgedBlocks,
-					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(forgedBlocks);
 
 					const voteWeightsObject = {
 						voteWeights: [
@@ -961,10 +846,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedVoteWeights = codec.encode(
-						voteWeightsSchema,
-						voteWeightsObject,
-					);
+					const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 					const forgerListObject = {
 						forgersList: [
@@ -976,10 +858,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedForgersList = codec.encode(
-						forgerListSchema,
-						forgerListObject,
-					);
+					const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 					stateStore = new StateStoreMock(
 						[...delegates, ...additionalDelegates, forgers[0]],
@@ -1035,10 +914,7 @@ describe('Vote weight snapshot', () => {
 					delegates = delegateAccounts9.accounts;
 
 					for (const delegate of delegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							3000,
-							5000,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -1046,15 +922,11 @@ describe('Vote weight snapshot', () => {
 					}
 					[nonSelfVotedDelegate] = delegates;
 					// Update not to self vote
-					(nonSelfVotedDelegate.asset
-						.sentVotes[0] as any).delegateAddress = Buffer.from('123L');
+					(nonSelfVotedDelegate.asset.sentVotes[0] as any).delegateAddress = Buffer.from('123L');
 					const { accounts } = getDelegateAccounts(300);
 					additionalDelegates = accounts;
 					for (const delegate of additionalDelegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							1000,
-							2999,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -1068,10 +940,7 @@ describe('Vote weight snapshot', () => {
 						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
-							seedReveal: Buffer.from(
-								'00000000000000000000000000000000',
-								'hex',
-							),
+							seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 						},
 					} as BlockHeader;
 
@@ -1100,9 +969,7 @@ describe('Vote weight snapshot', () => {
 							height: 928 + i,
 						}))
 						.slice(0, 102);
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-						forgedBlocks,
-					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(forgedBlocks);
 
 					const voteWeightsObject = {
 						voteWeights: [
@@ -1118,10 +985,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedVoteWeights = codec.encode(
-						voteWeightsSchema,
-						voteWeightsObject,
-					);
+					const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 					const forgerListObject = {
 						forgersList: [
@@ -1133,10 +997,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedForgersList = codec.encode(
-						forgerListSchema,
-						forgerListObject,
-					);
+					const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 					stateStore = new StateStoreMock(
 						[...delegates, ...additionalDelegates, forgers[0]],
@@ -1189,10 +1050,7 @@ describe('Vote weight snapshot', () => {
 					const delegateAccounts10 = getDelegateAccounts(101);
 					delegates = delegateAccounts10.accounts;
 					for (const delegate of delegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							3000,
-							5000,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -1203,10 +1061,7 @@ describe('Vote weight snapshot', () => {
 					const { accounts } = getDelegateAccounts(300);
 					additionalDelegates = accounts;
 					for (const delegate of additionalDelegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							1000,
-							2999,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -1220,10 +1075,7 @@ describe('Vote weight snapshot', () => {
 						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
-							seedReveal: Buffer.from(
-								'00000000000000000000000000000000',
-								'hex',
-							),
+							seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 						},
 					} as BlockHeader;
 
@@ -1252,9 +1104,7 @@ describe('Vote weight snapshot', () => {
 							height: 928 + i,
 						}))
 						.slice(0, 102);
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-						forgedBlocks,
-					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(forgedBlocks);
 
 					const forgerListObject = {
 						forgersList: [
@@ -1266,10 +1116,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedForgersList = codec.encode(
-						forgerListSchema,
-						forgerListObject,
-					);
+					const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 					const voteWeightsObject = {
 						voteWeights: [
@@ -1285,10 +1132,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedVoteWeights = codec.encode(
-						voteWeightsSchema,
-						voteWeightsObject,
-					);
+					const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 					stateStore = new StateStoreMock(
 						[...delegates, ...additionalDelegates, forgers[0]],
@@ -1342,10 +1186,7 @@ describe('Vote weight snapshot', () => {
 					delegates = delegateAccounts11.accounts;
 
 					for (const delegate of delegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							10,
-							999,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(10, 999);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -1361,10 +1202,7 @@ describe('Vote weight snapshot', () => {
 						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
-							seedReveal: Buffer.from(
-								'00000000000000000000000000000000',
-								'hex',
-							),
+							seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 						},
 					} as BlockHeader;
 
@@ -1393,9 +1231,7 @@ describe('Vote weight snapshot', () => {
 							height: 928 + i,
 						}))
 						.slice(0, 102);
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-						forgedBlocks,
-					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(forgedBlocks);
 
 					const forgerListObject = {
 						forgersList: [
@@ -1407,10 +1243,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedForgersList = codec.encode(
-						forgerListSchema,
-						forgerListObject,
-					);
+					const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 					const voteWeightsObject = {
 						voteWeights: [
@@ -1426,10 +1259,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedVoteWeights = codec.encode(
-						voteWeightsSchema,
-						voteWeightsObject,
-					);
+					const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 					stateStore = new StateStoreMock(
 						[...delegates, forgers[0]],
@@ -1463,8 +1293,8 @@ describe('Vote weight snapshot', () => {
 					const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 					expect(voteWeights).toHaveLength(2);
 					expect(voteWeights[1].round).toEqual(13);
-					const snapshotedPunishedDelegate = voteWeights[1].delegates.find(
-						(d: DelegateWeight) => d.address.equals(punishedDelegate.address),
+					const snapshotedPunishedDelegate = voteWeights[1].delegates.find((d: DelegateWeight) =>
+						d.address.equals(punishedDelegate.address),
 					);
 					expect(snapshotedPunishedDelegate?.voteWeight).toEqual(BigInt(0));
 					expect(voteWeights[1].delegates).toHaveLength(103);
@@ -1479,10 +1309,7 @@ describe('Vote weight snapshot', () => {
 					const delegateAccounts12 = getDelegateAccounts(101);
 					delegates = delegateAccounts12.accounts;
 					for (const delegate of delegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							3000,
-							5000,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -1493,10 +1320,7 @@ describe('Vote weight snapshot', () => {
 					const { accounts } = getDelegateAccounts(300);
 					additionalDelegates = accounts;
 					for (const delegate of additionalDelegates) {
-						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-							1000,
-							2999,
-						);
+						delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
 						delegate.asset.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: delegate.asset.delegate.totalVotesReceived,
@@ -1510,10 +1334,7 @@ describe('Vote weight snapshot', () => {
 						generatorPublicKey: publicKeyMap.get(forgers[0].address),
 						reward: BigInt(500000000),
 						asset: {
-							seedReveal: Buffer.from(
-								'00000000000000000000000000000000',
-								'hex',
-							),
+							seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 						},
 					} as BlockHeader;
 
@@ -1542,9 +1363,7 @@ describe('Vote weight snapshot', () => {
 							height: 928 + i,
 						}))
 						.slice(0, 102);
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-						forgedBlocks,
-					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(forgedBlocks);
 
 					const forgerListObject = {
 						forgersList: [
@@ -1556,10 +1375,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedForgersList = codec.encode(
-						forgerListSchema,
-						forgerListObject,
-					);
+					const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
 
 					const voteWeightsObject = {
 						voteWeights: [
@@ -1575,10 +1391,7 @@ describe('Vote weight snapshot', () => {
 						],
 					};
 
-					const mockedVoteWeights = codec.encode(
-						voteWeightsSchema,
-						voteWeightsObject,
-					);
+					const mockedVoteWeights = codec.encode(voteWeightsSchema, voteWeightsObject);
 
 					stateStore = new StateStoreMock(
 						[...delegates, ...additionalDelegates, forgers[0]],

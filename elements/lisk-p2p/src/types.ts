@@ -46,8 +46,16 @@ export interface P2PPenalty {
 	readonly penalty: number;
 }
 
+export interface UnknownKVPair {
+	[key: string]: unknown;
+}
+
 export interface P2PSharedState {
-	readonly [key: string]: unknown;
+	readonly networkId: string;
+	readonly networkVersion: string;
+	readonly nonce: string;
+	// These values can be modified when the node is running
+	options: UnknownKVPair;
 }
 // Disable readonly properties as its going to change
 export interface P2PInternalState {
@@ -76,7 +84,7 @@ export interface P2PPeerInfo {
 	// String to uniquely identify each peer
 	readonly peerId: string;
 	readonly ipAddress: string;
-	readonly wsPort: number;
+	readonly port: number;
 	readonly sharedState?: P2PSharedState;
 	readonly internalState?: P2PInternalState;
 }
@@ -96,22 +104,15 @@ export interface P2PPeersCount {
 // P2PPeerInfo and P2PNodeInfo are related.
 // P2PNodeInfo is the outbound info from our node.
 export interface P2PNodeInfo extends P2PSharedState {
-	readonly protocolVersion: string;
-	readonly os: string;
-	readonly networkId: string;
-	readonly wsPort: number;
 	readonly advertiseAddress: boolean;
-	readonly nonce: string;
 }
 
 // This is a representation of the inbound peer object according to the current protocol.
 // TODO later: Switch to LIP protocol format.
 // TODO: Include peerId as field
 export interface ProtocolPeerInfo {
-	readonly [key: string]: unknown;
-	// To support the existing protocol
 	readonly ipAddress: string;
-	readonly wsPort: number;
+	readonly port: number;
 }
 
 export interface IncomingPeerConnection {
@@ -120,8 +121,8 @@ export interface IncomingPeerConnection {
 }
 
 export interface RPCSchemas {
-	peerInfo: Schema;
-	nodeInfo: Schema;
+	readonly peerInfo: Schema;
+	readonly nodeInfo: Schema;
 }
 
 export interface P2PConfig {
@@ -150,6 +151,7 @@ export interface P2PConfig {
 	readonly longevityProtectionRatio?: number;
 	readonly netgroupProtectionRatio?: number;
 	readonly hostIp?: string;
+	readonly port: number;
 	readonly wsMaxMessageRate?: number;
 	readonly wsMaxMessageRatePenalty?: number;
 	readonly rateCalculationInterval?: number;
@@ -157,10 +159,11 @@ export interface P2PConfig {
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
-	readonly customRPCSchemas?: RPCSchemas;
+	readonly customNodeInfoSchema?: Schema;
 }
 
 export interface PeerServerConfig {
+	readonly port: number;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly hostIp: string;
 	readonly secret: number;

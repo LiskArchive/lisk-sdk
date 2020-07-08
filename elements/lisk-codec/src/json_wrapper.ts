@@ -56,10 +56,7 @@ const mappers: mappersInterface = {
 };
 /* eslint-enable @typescript-eslint/explicit-function-return-type */
 
-const findObjectByPath = (
-	message: SchemaProps,
-	pathArr: string[],
-): SchemaProps | undefined => {
+const findObjectByPath = (message: SchemaProps, pathArr: string[]): SchemaProps | undefined => {
 	let result: SchemaProps = message;
 	for (let i = 0; i < pathArr.length; i += 1) {
 		if (!result.properties && !result.items) {
@@ -76,10 +73,7 @@ const findObjectByPath = (
 };
 
 const isObject = (item: unknown): boolean =>
-	typeof item === 'object' &&
-	item !== null &&
-	!Array.isArray(item) &&
-	!Buffer.isBuffer(item);
+	typeof item === 'object' && item !== null && !Array.isArray(item) && !Buffer.isBuffer(item);
 
 export const iterator = function iterator(
 	this: IteratableGenericObject,
@@ -120,9 +114,7 @@ export const recursiveTypeCast = (
 			recursiveTypeCast(mode, value, schema, dataPath);
 			dataPath.pop();
 
-			delete (value as IteratableGenericObject)[
-				(Symbol.iterator as unknown) as string
-			];
+			delete (value as IteratableGenericObject)[(Symbol.iterator as unknown) as string];
 		} else if (Array.isArray(value)) {
 			dataPath.push(key);
 			const schemaProp = findObjectByPath(schema, dataPath);
@@ -139,15 +131,13 @@ export const recursiveTypeCast = (
 			} else {
 				for (let i = 0; i < value.length; i += 1) {
 					if (schemaProp === undefined || schemaProp.items === undefined) {
-						throw new Error(
-							`Invalid schema property found. Path: ${dataPath.join(',')}`,
-						);
+						throw new Error(`Invalid schema property found. Path: ${dataPath.join(',')}`);
 					}
 
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-					(object[key] as any)[i] = mappers[mode][
-						(schemaProp.items as SchemaScalarItem).dataType
-					](value[i]);
+					(object[key] as any)[i] = mappers[mode][(schemaProp.items as SchemaScalarItem).dataType](
+						value[i],
+					);
 				}
 			}
 			dataPath.pop();
@@ -156,14 +146,10 @@ export const recursiveTypeCast = (
 			const schemaProp = findObjectByPath(schema, dataPath);
 
 			if (schemaProp === undefined) {
-				throw new Error(
-					`Invalid schema property found. Path: ${dataPath.join(',')}`,
-				);
+				throw new Error(`Invalid schema property found. Path: ${dataPath.join(',')}`);
 			}
 
-			object[key] = mappers[mode][(schemaProp.dataType as unknown) as string](
-				value,
-			);
+			object[key] = mappers[mode][(schemaProp.dataType as unknown) as string](value);
 
 			delete object[(Symbol.iterator as unknown) as string];
 			dataPath.pop();

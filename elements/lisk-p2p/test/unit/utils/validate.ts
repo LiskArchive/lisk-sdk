@@ -41,58 +41,31 @@ describe('utils/validate', () => {
 		describe('for valid peer response object', () => {
 			const peer: ProtocolPeerInfo = {
 				ipAddress: '12.23.54.3',
-				wsPort: 5393,
-				os: 'darwin',
-				height: 23232,
-				version: '1.1.2',
-				protocolVersion: '1.1',
-				httpPort: 2000,
+				port: 5393,
 			};
 
 			const peerWithInvalidHeightValue: unknown = {
 				ipAddress: '12.23.54.3',
-				wsPort: 5393,
-				os: '778',
-				height: '2323wqdqd2',
-				version: '3.4.5-alpha.9',
-				protocolVersion: '1.1',
-				httpPort: 2000,
+				port: 5393,
 			};
 
 			it('should return P2PPeerInfo object', () => {
-				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000)).toEqual(
-					{
-						peerId: '12.23.54.3:5393',
-						ipAddress: '12.23.54.3',
-						wsPort: 5393,
-						sharedState: {
-							height: 23232,
-							os: 'darwin',
-							version: '1.1.2',
-							protocolVersion: '1.1',
-							httpPort: 2000,
-						},
-					},
-				);
+				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000)).toEqual({
+					peerId: '12.23.54.3:5393',
+					ipAddress: '12.23.54.3',
+					port: 5393,
+					sharedState: {},
+				});
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', () => {
 				expect(
-					validatePeerInfo(
-						sanitizeIncomingPeerInfo(peerWithInvalidHeightValue),
-						10000,
-					),
+					validatePeerInfo(sanitizeIncomingPeerInfo(peerWithInvalidHeightValue), 10000),
 				).toEqual({
 					peerId: '12.23.54.3:5393',
 					ipAddress: '12.23.54.3',
-					wsPort: 5393,
-					sharedState: {
-						height: 0,
-						os: '778',
-						version: '3.4.5-alpha.9',
-						protocolVersion: '1.1',
-						httpPort: 2000,
-					},
+					port: 5393,
+					sharedState: {},
 				});
 			});
 		});
@@ -101,33 +74,20 @@ describe('utils/validate', () => {
 			it('should throw an InvalidPeer error for invalid peer', () => {
 				const peerInvalid: unknown = null;
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peerInvalid),
-						10000,
-					),
-				).toThrow('Invalid peer object');
+				expect(validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peerInvalid), 10000)).toThrow(
+					'Invalid peer object',
+				);
 			});
 
 			it('should throw if PeerInfo is too big', () => {
 				const maximumPeerInfoSizeInBytes = 10;
 				const peer: ProtocolPeerInfo = {
 					ipAddress: '12.23.54.3',
-					wsPort: 5393,
-					os: 'darwin',
-					height: 23232,
-					version: '1.1.2',
-					protocolVersion: '1.1',
-					httpPort: 2000,
+					port: 5393,
 				};
 
 				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peer),
-						maximumPeerInfoSizeInBytes,
-					),
+					validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peer), maximumPeerInfoSizeInBytes),
 				).toThrow(
 					`PeerInfo is larger than the maximum allowed size ${maximumPeerInfoSizeInBytes} bytes`,
 				);
@@ -135,20 +95,16 @@ describe('utils/validate', () => {
 
 			it('should throw InvalidPeer error for invalid peer ipAddress or port', () => {
 				const peerInvalid: unknown = {
-					wsPort: 53937888,
+					port: 53937888,
 					height: '23232',
 					discoveredInfo: {
 						os: 'darwin',
 					},
 				};
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peerInvalid),
-						10000,
-					),
-				).toThrow('Invalid peer ipAddress or port');
+				expect(validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peerInvalid), 10000)).toThrow(
+					'Invalid peer ipAddress or port',
+				);
 			});
 		});
 	});
@@ -164,7 +120,7 @@ describe('utils/validate', () => {
 
 			generatePeerInfoResponse.peers = [...Array(3)].map(() => ({
 				ipAddress: '128.127.126.125',
-				wsPort: 5000,
+				port: 5000,
 			}));
 		});
 
@@ -243,12 +199,9 @@ describe('utils/validate', () => {
 		describe('when NodeInfo is larger than maximum allowed size', () => {
 			const maximumSize = 10;
 
-			const NodeInfo: P2PNodeInfo = {
-				os: '12.23.54.3',
+			const nodeInfo: P2PNodeInfo = {
 				networkId: '12.23.54.3',
-				wsPort: 5393,
-				version: '1.1.2',
-				protocolVersion: '1.1',
+				networkVersion: '1.1',
 				options: {
 					foo: 'bar',
 					fizz: 'buzz',
@@ -258,9 +211,9 @@ describe('utils/validate', () => {
 			};
 
 			it('should throw Invalid NodeInfo maximum allowed size error', () => {
-				expect(validateNodeInfo.bind(null, NodeInfo, maximumSize)).toThrow(
-					`Invalid NodeInfo was larger than the maximum allowed ${maximumSize} bytes`,
-				);
+				expect(
+					validateNodeInfo.bind(null, Buffer.from(JSON.stringify(nodeInfo)), maximumSize),
+				).toThrow(`Invalid NodeInfo was larger than the maximum allowed ${maximumSize} bytes`);
 			});
 		});
 	});
@@ -269,47 +222,41 @@ describe('utils/validate', () => {
 		it('should return true for correct IPv4', () => {
 			const peer = {
 				ipAddress: '12.12.12.12',
-				wsPort: 4001,
+				port: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).toBe(true);
+			expect(validatePeerAddress(peer.ipAddress, peer.port)).toBe(true);
 		});
 
 		it('should return true for correct IPv6', () => {
 			const peer = {
 				ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
-				wsPort: 4001,
+				port: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).toBe(true);
+			expect(validatePeerAddress(peer.ipAddress, peer.port)).toBe(true);
 		});
 
 		it('should return false for incorrect ipAddress', () => {
 			const peerWithIncorrectIp = {
 				ipAddress: '12.12.hh12.12',
-				wsPort: 4001,
+				port: 4001,
 			};
 
-			expect(
-				validatePeerAddress(
-					peerWithIncorrectIp.ipAddress,
-					peerWithIncorrectIp.wsPort,
-				),
-			).toBe(false);
+			expect(validatePeerAddress(peerWithIncorrectIp.ipAddress, peerWithIncorrectIp.port)).toBe(
+				false,
+			);
 		});
 
 		it('should return false for incorrect port', () => {
 			const peerWithIncorrectPort = {
 				ipAddress: '12.12.12.12',
-				wsPort: NaN,
+				port: NaN,
 			};
 
-			expect(
-				validatePeerAddress(
-					peerWithIncorrectPort.ipAddress,
-					peerWithIncorrectPort.wsPort,
-				),
-			).toBe(false);
+			expect(validatePeerAddress(peerWithIncorrectPort.ipAddress, peerWithIncorrectPort.port)).toBe(
+				false,
+			);
 		});
 	});
 
@@ -325,9 +272,7 @@ describe('utils/validate', () => {
 		});
 
 		it('should throw an error for an invalid procedure value', () => {
-			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).toThrow(
-				'Invalid request',
-			);
+			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).toThrow('Invalid request');
 		});
 
 		it('should throw an error for an invalid procedure value with object', () => {
@@ -336,9 +281,9 @@ describe('utils/validate', () => {
 				procedure: {},
 			};
 
-			expect(
-				validateRPCRequest.bind(validateRPCRequest, inValidRequest),
-			).toThrow('Request procedure name is not a string');
+			expect(validateRPCRequest.bind(validateRPCRequest, inValidRequest)).toThrow(
+				'Request procedure name is not a string',
+			);
 		});
 
 		it('should pass and return an object', () => {
@@ -365,9 +310,9 @@ describe('utils/validate', () => {
 		});
 
 		it('should throw an error for an invalid event value type', () => {
-			expect(
-				validateProtocolMessage.bind(validateProtocolMessage, undefined),
-			).toThrow('Invalid message');
+			expect(validateProtocolMessage.bind(validateProtocolMessage, undefined)).toThrow(
+				'Invalid message',
+			);
 		});
 
 		it('should throw an error for an invalid event value type with number', () => {
@@ -375,9 +320,9 @@ describe('utils/validate', () => {
 				data: {},
 				event: 6788,
 			};
-			expect(
-				validateProtocolMessage.bind(validateProtocolMessage, inValidMessage),
-			).toThrow('Protocol message is not a string');
+			expect(validateProtocolMessage.bind(validateProtocolMessage, inValidMessage)).toThrow(
+				'Protocol message is not a string',
+			);
 		});
 
 		it('should return an object', () => {

@@ -32,8 +32,7 @@ import {
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:bft:consensus_manager');
 
-export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED =
-	'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
+export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED = 'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
 export const CONSENSUS_STATE_DELEGATE_LEDGER_KEY = 'bft:votingLedger';
 
 export const BFTVotingLedgerSchema = {
@@ -182,11 +181,7 @@ export class FinalityManager extends EventEmitter {
 		this.verifyBlockHeaders(blockHeader, lastBlockHeaders);
 
 		// Update the pre-votes and pre-commits
-		await this.updatePreVotesPreCommits(
-			blockHeader,
-			stateStore,
-			lastBlockHeaders,
-		);
+		await this.updatePreVotesPreCommits(blockHeader, stateStore, lastBlockHeaders);
 
 		// Update the pre-voted confirmed and finalized height
 		await this.updatePreVotedAndFinalizedHeight(stateStore);
@@ -242,10 +237,7 @@ export class FinalityManager extends EventEmitter {
 			maxPreCommitHeight: 0,
 		};
 
-		const minValidHeightToPreCommit = this._getMinValidHeightToPreCommit(
-			header,
-			bftBlockHeaders,
-		);
+		const minValidHeightToPreCommit = this._getMinValidHeightToPreCommit(header, bftBlockHeaders);
 
 		const delegateMinHeightActive = await this._dpos.getMinActiveHeight(
 			header.height,
@@ -335,9 +327,7 @@ export class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	public async updatePreVotedAndFinalizedHeight(
-		stateStore: StateStore,
-	): Promise<boolean> {
+	public async updatePreVotedAndFinalizedHeight(stateStore: StateStore): Promise<boolean> {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
 		const { ledger } = await this._getVotingLedger(stateStore);
@@ -403,16 +393,13 @@ export class FinalityManager extends EventEmitter {
 		let earlierBlock = delegateLastBlock;
 		let laterBlock = blockHeader;
 		const higherMaxHeightPreviouslyForged =
-			earlierBlock.asset.maxHeightPreviouslyForged >
-			laterBlock.asset.maxHeightPreviouslyForged;
+			earlierBlock.asset.maxHeightPreviouslyForged > laterBlock.asset.maxHeightPreviouslyForged;
 		const sameMaxHeightPreviouslyForged =
-			earlierBlock.asset.maxHeightPreviouslyForged ===
-			laterBlock.asset.maxHeightPreviouslyForged;
+			earlierBlock.asset.maxHeightPreviouslyForged === laterBlock.asset.maxHeightPreviouslyForged;
 		const higherMaxHeightPrevoted =
 			earlierBlock.asset.maxHeightPrevoted > laterBlock.asset.maxHeightPrevoted;
 		const sameMaxHeightPrevoted =
-			earlierBlock.asset.maxHeightPrevoted ===
-			laterBlock.asset.maxHeightPrevoted;
+			earlierBlock.asset.maxHeightPrevoted === laterBlock.asset.maxHeightPrevoted;
 		const higherHeight = earlierBlock.height > laterBlock.height;
 		if (
 			higherMaxHeightPreviouslyForged ||
@@ -423,8 +410,7 @@ export class FinalityManager extends EventEmitter {
 		}
 
 		if (
-			earlierBlock.asset.maxHeightPrevoted ===
-				laterBlock.asset.maxHeightPrevoted &&
+			earlierBlock.asset.maxHeightPrevoted === laterBlock.asset.maxHeightPrevoted &&
 			earlierBlock.height >= laterBlock.height
 		) {
 			/* Violation of the fork choice rule as delegate moved to different chain
@@ -437,9 +423,7 @@ export class FinalityManager extends EventEmitter {
 			throw new BFTChainDisjointError();
 		}
 
-		if (
-			earlierBlock.asset.maxHeightPrevoted > laterBlock.asset.maxHeightPrevoted
-		) {
+		if (earlierBlock.asset.maxHeightPrevoted > laterBlock.asset.maxHeightPrevoted) {
 			throw new BFTLowerChainBranchError();
 		}
 
@@ -464,10 +448,7 @@ export class FinalityManager extends EventEmitter {
 		);
 		/* We should search down to the height we have in our headers list
 			and within the processing threshold which is three rounds	*/
-		const searchTillHeight = Math.max(
-			1,
-			header.height - this.processingThreshold,
-		);
+		const searchTillHeight = Math.max(1, header.height - this.processingThreshold);
 		// Hold reference for the previously forged height
 		let previousBlockHeight = header.asset.maxHeightPreviouslyForged;
 
@@ -487,15 +468,12 @@ export class FinalityManager extends EventEmitter {
 					return 0;
 				}
 				if (
-					!previousBlockHeader.generatorPublicKey.equals(
-						header.generatorPublicKey,
-					) ||
+					!previousBlockHeader.generatorPublicKey.equals(header.generatorPublicKey) ||
 					previousBlockHeader.asset.maxHeightPreviouslyForged >= needleHeight
 				) {
 					return needleHeight + 1;
 				}
-				previousBlockHeight =
-					previousBlockHeader.asset.maxHeightPreviouslyForged;
+				previousBlockHeight = previousBlockHeader.asset.maxHeightPreviouslyForged;
 				needleHeight = previousBlockHeader.asset.maxHeightPreviouslyForged;
 			} else {
 				needleHeight -= 1;
@@ -506,12 +484,8 @@ export class FinalityManager extends EventEmitter {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private async _getVotingLedger(
-		stateStore: StateStore,
-	): Promise<VotingLedgerMap> {
-		const votingLedgerBuffer = await stateStore.consensus.get(
-			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
-		);
+	private async _getVotingLedger(stateStore: StateStore): Promise<VotingLedgerMap> {
+		const votingLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_DELEGATE_LEDGER_KEY);
 
 		const votingLedger =
 			votingLedgerBuffer === undefined
@@ -534,25 +508,19 @@ export class FinalityManager extends EventEmitter {
 			return prev;
 		}, {});
 
-		const delegates = votingLedger.delegates.reduce(
-			(prev: BufferMap<DelegateState>, curr) => {
-				prev.set(curr.address, {
-					maxPreVoteHeight: curr.maxPreVoteHeight,
-					maxPreCommitHeight: curr.maxPreCommitHeight,
-				});
-				return prev;
-			},
-			new BufferMap<DelegatesState>(),
-		);
+		const delegates = votingLedger.delegates.reduce((prev: BufferMap<DelegateState>, curr) => {
+			prev.set(curr.address, {
+				maxPreVoteHeight: curr.maxPreVoteHeight,
+				maxPreCommitHeight: curr.maxPreCommitHeight,
+			});
+			return prev;
+		}, new BufferMap<DelegatesState>());
 
 		return { ledger, delegates };
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _setVotingLedger(
-		stateStore: StateStore,
-		votingLedgerMap: VotingLedgerMap,
-	): void {
+	private _setVotingLedger(stateStore: StateStore, votingLedgerMap: VotingLedgerMap): void {
 		const ledgerState = [];
 		for (const height of Object.keys(votingLedgerMap.ledger)) {
 			const intHeight = parseInt(height, 10);

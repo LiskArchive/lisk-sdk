@@ -53,10 +53,7 @@ export const defaultLiskInstancePath = `${defaultLiskPath}/instances`;
 export const defaultBackupPath = `${defaultLiskPath}/backups`;
 const NODE_BIN = './bin/node';
 
-export const getLiskConfig = async (
-	installDir: string,
-	network: NETWORK,
-): Promise<LiskConfig> => {
+export const getLiskConfig = async (installDir: string, network: NETWORK): Promise<LiskConfig> => {
 	const cmd = `${NODE_BIN} scripts/generate_config.js -n ${network} | head -n 10000`;
 	const kb = 1024;
 	const size = 400;

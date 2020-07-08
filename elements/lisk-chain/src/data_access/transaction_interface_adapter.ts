@@ -31,9 +31,7 @@ export class TransactionInterfaceAdapter {
 			const transaction = registeredTransactions[transactionType];
 			this._transactionClassMap.set(Number(transactionType), transaction);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const { ASSET_SCHEMA } = this._transactionClassMap.get(
-				Number(transactionType),
-			);
+			const { ASSET_SCHEMA } = this._transactionClassMap.get(Number(transactionType));
 			codec.addSchema(ASSET_SCHEMA);
 		});
 	}
@@ -45,10 +43,7 @@ export class TransactionInterfaceAdapter {
 	}
 
 	public decode(binaryMessage: Buffer): BaseTransaction {
-		const baseMessage = codec.decode<BaseTransaction>(
-			BaseTransaction.BASE_SCHEMA,
-			binaryMessage,
-		);
+		const baseMessage = codec.decode<BaseTransaction>(BaseTransaction.BASE_SCHEMA, binaryMessage);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const TransactionClass = this._transactionClassMap.get(baseMessage.type);
 

@@ -25,15 +25,13 @@ import {
 	P2PPeerInfo,
 	PeerLists,
 	ProtocolPeerInfo,
+	P2PSharedState,
 } from '../types';
 
 // eslint-disable-next-line import/no-cycle
 import { constructPeerId, getNetgroup } from './misc';
 
-export const assignInternalInfo = (
-	peerInfo: P2PPeerInfo,
-	secret: number,
-): P2PInternalState =>
+export const assignInternalInfo = (peerInfo: P2PPeerInfo, secret: number): P2PInternalState =>
 	peerInfo.internalState
 		? peerInfo.internalState
 		: {
@@ -53,48 +51,36 @@ export const assignInternalInfo = (
 				peerKind: PeerKind.NONE,
 		  };
 
-export const sanitizeIncomingPeerInfo = (
-	rawPeerInfo: unknown,
-): P2PPeerInfo | undefined => {
+export const sanitizeIncomingPeerInfo = (rawPeerInfo: unknown): P2PPeerInfo | undefined => {
 	if (!rawPeerInfo) {
 		return undefined;
 	}
 
-	const {
-		ipAddress,
-		wsPort,
-		height,
-		...restOfPeerInfo
-	} = rawPeerInfo as ProtocolPeerInfo;
+	const { ipAddress, port, ...restOfPeerInfo } = rawPeerInfo as ProtocolPeerInfo;
 
 	return {
-		peerId: constructPeerId(ipAddress, wsPort),
+		peerId: constructPeerId(ipAddress, port),
 		ipAddress,
-		wsPort,
+		port,
 		sharedState: {
-			height: typeof height === 'number' ? height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-			...restOfPeerInfo,
+			...(restOfPeerInfo as P2PSharedState),
 		},
 	};
 };
 
 interface SanitizedPeer {
 	peerId: string;
-	wsPort: number;
+	port: number;
 	ipAddress: string;
 }
 
-export const sanitizeInitialPeerInfo = (
-	peerInfo: ProtocolPeerInfo,
-): SanitizedPeer => ({
-	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
+export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo): SanitizedPeer => ({
+	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.port),
 	ipAddress: peerInfo.ipAddress,
-	wsPort: peerInfo.wsPort,
+	port: peerInfo.port,
 });
 
-export const sanitizeEnhancedPeerInfo = (
-	peerInfo: P2PEnhancedPeerInfo,
-): P2PPeerInfo => {
+export const sanitizeEnhancedPeerInfo = (peerInfo: P2PEnhancedPeerInfo): P2PPeerInfo => {
 	const {
 		dateAdded,
 		numOfConnectionFailures,

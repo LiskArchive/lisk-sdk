@@ -15,9 +15,7 @@
 import { lookupPeersIPs } from '../../../../../src/application/network/utils';
 import { peers } from './peers.json';
 
-const ipv4Regex = new RegExp(
-	/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/,
-);
+const ipv4Regex = new RegExp(/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/);
 
 describe('init_steps/lookup_peers_ips', () => {
 	it('should return empty array if peers are not enabled', async () => {

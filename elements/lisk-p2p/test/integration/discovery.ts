@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { platform } from 'os';
 import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
@@ -37,10 +36,7 @@ const {
 	EVENT_REQUEST_RECEIVED,
 } = events;
 
-const {
-	INTENTIONAL_DISCONNECT_CODE,
-	SEED_PEER_DISCONNECTION_REASON,
-} = constants;
+const { INTENTIONAL_DISCONNECT_CODE, SEED_PEER_DISCONNECTION_REASON } = constants;
 
 describe('Network discovery', () => {
 	const CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL = 400;
@@ -73,12 +69,9 @@ describe('Network discovery', () => {
 				collectedEvents.set('EVENT_FAILED_TO_ADD_INBOUND_PEER', true);
 			});
 			// We monitor last node to ensure outbound connection
-			p2pNodeList[p2pNodeList.length - 1].on(
-				EVENT_FAILED_TO_FETCH_PEERS,
-				() => {
-					collectedEvents.set('EVENT_FAILED_TO_FETCH_PEERS', true);
-				},
-			);
+			p2pNodeList[p2pNodeList.length - 1].on(EVENT_FAILED_TO_FETCH_PEERS, () => {
+				collectedEvents.set('EVENT_FAILED_TO_FETCH_PEERS', true);
+			});
 			p2pNodeList[p2pNodeList.length - 1].on(EVENT_BAN_PEER, () => {
 				collectedEvents.set('EVENT_BAN_PEER', true);
 			});
@@ -111,12 +104,12 @@ describe('Network discovery', () => {
 				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				const peerPorts = p2p
 					.getConnectedPeers()
-					.map(peerInfo => peerInfo.wsPort)
+					.map(peerInfo => peerInfo.port)
 					.sort();
 
 				// The current node should not be in its own peer list.
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-					return port !== p2p.nodeInfo.wsPort;
+					return port !== p2p.config.port;
 				});
 
 				expect(peerPorts).toEqual(expectedPeerPorts);
@@ -128,7 +121,7 @@ describe('Network discovery', () => {
 				const { newPeers } = p2p['_peerBook'];
 
 				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-				const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
+				const peerPorts = newPeers.map(peerInfo => peerInfo.port).sort();
 
 				expect(ALL_NODE_PORTS).toIncludeAllMembers(peerPorts);
 			}
@@ -139,14 +132,14 @@ describe('Network discovery', () => {
 				const triedPeers = [...p2p['_peerBook'].triedPeers];
 				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				const peerPorts = triedPeers
-					.map(peerInfo => peerInfo.wsPort)
+					.map(peerInfo => peerInfo.port)
 					.filter(port => {
-						return port !== p2p.nodeInfo.wsPort;
+						return port !== p2p.config.port;
 					})
 					.sort();
 				// The current node should not be in its own peer list.
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-					return port !== p2p.nodeInfo.wsPort;
+					return port !== p2p.config.port;
 				});
 				expect(expectedPeerPorts).toEqual(peerPorts);
 			}
@@ -161,19 +154,17 @@ describe('Network discovery', () => {
 				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				const connectedPeerPorts = p2p
 					.getConnectedPeers()
-					.map(peerInfo => constructPeerId(peerInfo.ipAddress, peerInfo.wsPort))
+					.map(peerInfo => constructPeerId(peerInfo.ipAddress, peerInfo.port))
 					.sort();
 
 				expect([...allPeersPorts, ...connectedPeerPorts]).not.toEqual(
-					expect.arrayContaining([p2p.nodeInfo.peerId]),
+					expect.arrayContaining([p2p.config.port]),
 				);
 			}
 		});
 
 		it('should not apply penalty or throw error Peerlist at peer discovery', () => {
-			expect(
-				collectedEvents.get('EVENT_FAILED_TO_FETCH_PEERS'),
-			).toBeUndefined();
+			expect(collectedEvents.get('EVENT_FAILED_TO_FETCH_PEERS')).toBeUndefined();
 			expect(collectedEvents.get('EVENT_BAN_PEER')).toBeUndefined();
 		});
 
@@ -204,34 +195,29 @@ describe('Network discovery', () => {
 				seedPeers: [
 					{
 						ipAddress: '127.0.0.1',
-						wsPort: 5000,
+						port: 5000,
 					},
 				],
 				fixedPeers: [
 					{
 						ipAddress: '127.0.0.1',
-						wsPort: 5000,
+						port: 5000,
 					},
 				],
 				maxOutboundConnections: 1,
 				maxInboundConnections: 0,
+				port: 5020,
 				nodeInfo: {
-					wsPort: 5020,
 					networkId: 'aaa',
-					version: '9.9.9',
-					protocolVersion: '9.9',
-					minVersion: '9.9.9',
-					os: platform(),
-					height: 10000,
+					networkVersion: '9.9',
 					nonce: '404',
 					advertiseAddress: true,
+					options: {},
 				},
 			});
 			await disconnectedNode.start();
 			await wait(200);
-			expect(
-				collectedEvents.get('EVENT_FAILED_TO_ADD_INBOUND_PEER'),
-			).toBeDefined();
+			expect(collectedEvents.get('EVENT_FAILED_TO_ADD_INBOUND_PEER')).toBeDefined();
 		});
 	});
 
@@ -285,8 +271,7 @@ describe('Network discovery', () => {
 				maxOutboundConnections: index % 2 === 1 ? 3 : 20,
 				fallbackSeedPeerDiscoveryInterval: index === 2 ? 100 : 10000,
 				rateCalculationInterval: 100,
-				populatorInterval:
-					index === 2 ? CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL : 10000,
+				populatorInterval: index === 2 ? CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL : 10000,
 			});
 
 			p2pNodeList = await createNetwork({
@@ -319,9 +304,7 @@ describe('Network discovery', () => {
 			expect(collectedEvents).toHaveLength(
 				1 +
 					// eslint-disable-next-line no-bitwise
-					~~(
-						NETWORK_CREATION_WAIT_TIME / CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL
-					),
+					~~(NETWORK_CREATION_WAIT_TIME / CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL),
 			);
 		});
 	});

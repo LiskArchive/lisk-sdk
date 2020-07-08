@@ -16,10 +16,7 @@ import { platform } from 'os';
 import { P2P, constants } from '../../src/index';
 import { wait } from './helpers';
 
-const {
-	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
-	DEFAULT_MAX_INBOUND_CONNECTIONS,
-} = constants;
+const { DEFAULT_MAX_OUTBOUND_CONNECTIONS, DEFAULT_MAX_INBOUND_CONNECTIONS } = constants;
 
 export const NETWORK_START_PORT = 5000;
 export const NETWORK_PEER_COUNT = 10;
@@ -35,7 +32,7 @@ export const FALLBACK_PEER_DISCOVER_INTERVAL = 800;
 export const nodeInfoConstants = {
 	networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	version: '1.0.1',
-	protocolVersion: '1.1',
+	networkVersion: '1.1',
 	minVersion: '1.0.0',
 	os: platform(),
 	height: 0,
@@ -46,11 +43,7 @@ interface TestNetworkConfig {
 	networkSize?: number;
 	startNodePort?: number;
 	networkDiscoveryWaitTime?: number;
-	customConfig?: (
-		index: number,
-		startPort: number,
-		networkSize: number,
-	) => object;
+	customConfig?: (index: number, startPort: number, networkSize: number) => object;
 }
 
 export const createNetwork = async ({
@@ -70,7 +63,7 @@ export const createNetwork = async ({
 				: [
 						{
 							ipAddress: SEED_PEER_IP,
-							wsPort: NETWORK_START_PORT + index - 1,
+							port: NETWORK_START_PORT + index - 1,
 						},
 				  ];
 
@@ -81,25 +74,21 @@ export const createNetwork = async ({
 			: { nodeInfo: {} };
 
 		const p2pConfig = {
+			port: nodePort,
 			connectTimeout: DEFAULT_CONNECTION_TIMEOUT,
 			ackTimeout: DEFAULT_ACK_TIMEOUT,
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
 			seedPeers: defaultSeedPeers,
 			populatorInterval:
-				POPULATOR_INTERVAL +
-				Math.floor((POPULATOR_INTERVAL / NETWORK_PEER_COUNT) * index), // Should be different for each Peer to avoid connection debounce
+				POPULATOR_INTERVAL + Math.floor((POPULATOR_INTERVAL / NETWORK_PEER_COUNT) * index), // Should be different for each Peer to avoid connection debounce
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
 			nodeInfo: {
-				wsPort: nodePort,
 				networkId: nodeInfoConstants.networkId,
-				version: nodeInfoConstants.version,
-				protocolVersion: nodeInfoConstants.protocolVersion,
-				minVersion: nodeInfoConstants.minVersion,
-				os: nodeInfoConstants.os,
-				height: nodeInfoConstants.height,
+				networkVersion: nodeInfoConstants.networkVersion,
 				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
+				options: {},
 				...customNodeInfo,
 			},
 			...customConfigObject,
@@ -121,8 +110,6 @@ export const destroyNetwork = async (
 	p2pNodeList: ReadonlyArray<P2P>,
 	networkDestroyWaitTime?: number,
 ): Promise<void> => {
-	await Promise.all(
-		p2pNodeList.filter(p2p => p2p.isActive).map(async p2p => p2p.stop()),
-	);
+	await Promise.all(p2pNodeList.filter(p2p => p2p.isActive).map(async p2p => p2p.stop()));
 	await wait(networkDestroyWaitTime ?? NETWORK_DESTROY_WAIT_TIME);
 };

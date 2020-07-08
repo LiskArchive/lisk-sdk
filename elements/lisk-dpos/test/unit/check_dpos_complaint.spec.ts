@@ -13,26 +13,16 @@
  */
 import { Slots } from '@liskhq/lisk-chain';
 import { Dpos } from '../../src';
-import {
-	DELEGATE_LIST_ROUND_OFFSET,
-	ACTIVE_DELEGATES,
-	BLOCK_TIME,
-} from '../fixtures/constants';
-import {
-	StateStoreMock,
-	AdditionalInformation,
-} from '../utils/state_store_mock';
+import { DELEGATE_LIST_ROUND_OFFSET, ACTIVE_DELEGATES, BLOCK_TIME } from '../fixtures/constants';
+import { StateStoreMock, AdditionalInformation } from '../utils/state_store_mock';
 import { BlockHeader } from '../../src/types';
 import { blockHeaders } from '../utils/block_headers';
 import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
-const GENESIS_BLOCK_TIMESTAMP =
-	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
+const GENESIS_BLOCK_TIMESTAMP = new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
-const createStateStore = (
-	additionalInfo: AdditionalInformation,
-): StateStoreMock => {
+const createStateStore = (additionalInfo: AdditionalInformation): StateStoreMock => {
 	return new StateStoreMock([], undefined, additionalInfo);
 };
 
@@ -53,9 +43,7 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 		const chain = {
 			slots,
 		};
-		const initDelegates = delegateAddresses.map(addr =>
-			Buffer.from(addr, 'base64'),
-		);
+		const initDelegates = delegateAddresses.map(addr => Buffer.from(addr, 'base64'));
 
 		dpos = new Dpos({
 			chain: chain as any,

@@ -12,18 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Block,
-	Chain,
-	StateStore,
-	BufferMap,
-	BlockHeader,
-} from '@liskhq/lisk-chain';
-import {
-	signDataWithPrivateKey,
-	getAddressFromPublicKey,
-	hash,
-} from '@liskhq/lisk-cryptography';
+import { Block, Chain, StateStore, BufferMap, BlockHeader } from '@liskhq/lisk-chain';
+import { signDataWithPrivateKey, getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
@@ -136,15 +126,12 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.forkStatus.pipe([
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async ({ block, lastBlock }) =>
-				this.bftModule.forkChoice(block.header, lastBlock.header), // validate common block header
+			async ({ block, lastBlock }) => this.bftModule.forkChoice(block.header, lastBlock.header), // validate common block header
 		]);
 
 		this.verify.pipe([
 			async ({ block, stateStore }) => {
-				let expectedReward = this.chainModule.blockReward.calculateReward(
-					block.header.height,
-				);
+				let expectedReward = this.chainModule.blockReward.calculateReward(block.header.height);
 				const isBFTProtocolCompliant = this.bftModule.isBFTProtocolCompliant(
 					block.header,
 					stateStore,
@@ -152,10 +139,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 				if (!isBFTProtocolCompliant) {
 					expectedReward /= BigInt(4);
 				}
-				const reward = await this._punishDPoSViolation(
-					block.header,
-					stateStore,
-				);
+				const reward = await this._punishDPoSViolation(block.header, stateStore);
 				if (reward === BigInt(0)) {
 					expectedReward = reward;
 				}
@@ -168,24 +152,16 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			},
 			async ({ block }) => this.dposModule.verifyBlockForger(block.header),
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async ({ block, stateStore }) =>
-				this.bftModule.verifyNewBlock(block.header, stateStore),
-			async ({ block, stateStore }) =>
-				this.chainModule.verify(block, stateStore),
+			async ({ block, stateStore }) => this.bftModule.verifyNewBlock(block.header, stateStore),
+			async ({ block, stateStore }) => this.chainModule.verify(block, stateStore),
 		]);
 
 		this.apply.pipe([
-			async ({ block, stateStore }) =>
-				this.chainModule.apply(block, stateStore),
-			async ({ block, stateStore }) =>
-				this.bftModule.addNewBlock(block.header, stateStore),
-			async ({ block, stateStore }) =>
-				this.dposModule.apply(block.header, stateStore),
+			async ({ block, stateStore }) => this.chainModule.apply(block, stateStore),
+			async ({ block, stateStore }) => this.bftModule.addNewBlock(block.header, stateStore),
+			async ({ block, stateStore }) => this.dposModule.apply(block.header, stateStore),
 			async ({ stateStore }) => {
-				await this.dposModule.onBlockFinalized(
-					stateStore,
-					this.bftModule.finalizedHeight,
-				);
+				await this.dposModule.onBlockFinalized(stateStore, this.bftModule.finalizedHeight);
 			},
 		]);
 
@@ -208,10 +184,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 					stateStore,
 				});
 
-				await this._saveMaxHeightPreviouslyForged(
-					block.header,
-					previouslyForgedMap,
-				);
+				await this._saveMaxHeightPreviouslyForged(block.header, previouslyForgedMap);
 				return block;
 			},
 		]);
@@ -305,9 +278,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 
 	private async _getPreviouslyForgedMap(): Promise<BufferMap<ForgedInfo>> {
 		try {
-			const previouslyForgedBuffer = await this.forgerDB.get(
-				DB_KEY_FORGER_PREVIOUSLY_FORGED,
-			);
+			const previouslyForgedBuffer = await this.forgerDB.get(DB_KEY_FORGER_PREVIOUSLY_FORGED);
 			const parsedMap = JSON.parse(previouslyForgedBuffer.toString('utf8')) as {
 				[address: string]: ForgedInfo;
 			};
@@ -360,10 +331,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		);
 	}
 
-	private async _punishDPoSViolation(
-		header: BlockHeader,
-		stateStore: StateStore,
-	): Promise<bigint> {
+	private async _punishDPoSViolation(header: BlockHeader, stateStore: StateStore): Promise<bigint> {
 		const isDPoSProtocolCompliant = await this.dposModule.isDPoSProtocolCompliant(
 			header,
 			stateStore,

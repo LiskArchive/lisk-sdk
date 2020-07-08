@@ -16,24 +16,11 @@ import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import { codec } from '@liskhq/lisk-codec';
-import {
-	EVENT_ROUND_CHANGED,
-	CHAIN_STATE_DELEGATE_USERNAMES,
-} from './constants';
-import {
-	DelegatesList,
-	getForgerAddressesForRound,
-	setForgersList,
-} from './delegates_list';
+import { EVENT_ROUND_CHANGED, CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
+import { DelegatesList, getForgerAddressesForRound, setForgersList } from './delegates_list';
 import { generateRandomSeeds } from './random_seed';
 import { Rounds } from './rounds';
-import {
-	BlockHeader,
-	Chain,
-	DPoSProcessingOptions,
-	StateStore,
-	ForgersList,
-} from './types';
+import { BlockHeader, Chain, DPoSProcessingOptions, StateStore, ForgersList } from './types';
 import { delegatesUserNamesSchema } from './schemas';
 
 // eslint-disable-next-line new-cap
@@ -119,19 +106,13 @@ export class DelegatesInfo {
 		return false;
 	}
 
-	private async _applyBootstrap(
-		header: BlockHeader,
-		stateStore: StateStore,
-	): Promise<boolean> {
+	private async _applyBootstrap(header: BlockHeader, stateStore: StateStore): Promise<boolean> {
 		// Calculate the voteWeight regularly, but forger list already exist except the last one
 		if (!this._isLastBlockOfTheRound(header)) {
 			return false;
 		}
 		// Creating voteWeight snapshot for next round
-		await this.delegatesList.createVoteWeightsSnapshot(
-			header.height + 1,
-			stateStore,
-		);
+		await this.delegatesList.createVoteWeightsSnapshot(header.height + 1, stateStore);
 		// last block of the bootstap period should create the forgers list
 		if (this.rounds.lastHeightBootstrap() === header.height) {
 			const round = this.rounds.calcRound(header.height);
@@ -140,11 +121,7 @@ export class DelegatesInfo {
 				this.rounds,
 				stateStore.consensus.lastBlockHeaders,
 			);
-			await this.delegatesList.updateForgersList(
-				round + 1,
-				[randomSeed1, randomSeed2],
-				stateStore,
-			);
+			await this.delegatesList.updateForgersList(round + 1, [randomSeed1, randomSeed2], stateStore);
 		}
 		return false;
 	}
@@ -170,10 +147,7 @@ export class DelegatesInfo {
 		});
 		debug('Creating delegate list for', round + delegateListRoundOffset);
 		// Creating voteWeight snapshot for next round + offset
-		await this.delegatesList.createVoteWeightsSnapshot(
-			block.height + 1,
-			stateStore,
-		);
+		await this.delegatesList.createVoteWeightsSnapshot(block.height + 1, stateStore);
 
 		const [randomSeed1, randomSeed2] = generateRandomSeeds(
 			round,
@@ -181,11 +155,7 @@ export class DelegatesInfo {
 			stateStore.consensus.lastBlockHeaders,
 		);
 
-		await this.delegatesList.updateForgersList(
-			nextRound,
-			[randomSeed1, randomSeed2],
-			stateStore,
-		);
+		await this.delegatesList.updateForgersList(nextRound, [randomSeed1, randomSeed2], stateStore);
 
 		return true;
 	}
@@ -197,37 +167,26 @@ export class DelegatesInfo {
 		const round = this.rounds.calcRound(blockHeader.height);
 		debug('Calculating missed block', round);
 
-		const expectedForgingAddresses = await getForgerAddressesForRound(
-			round,
-			stateStore,
-		);
+		const expectedForgingAddresses = await getForgerAddressesForRound(round, stateStore);
 
 		const [lastBlock] = stateStore.consensus.lastBlockHeaders;
 		const missedBlocks =
-			Math.ceil(
-				(blockHeader.timestamp - lastBlock.timestamp) /
-					this.chain.slots.blockTime(),
-			) - 1;
-		const forgerAddress = getAddressFromPublicKey(
-			blockHeader.generatorPublicKey,
-		);
+			Math.ceil((blockHeader.timestamp - lastBlock.timestamp) / this.chain.slots.blockTime()) - 1;
+		const forgerAddress = getAddressFromPublicKey(blockHeader.generatorPublicKey);
 		const forgerIndex = expectedForgingAddresses.findIndex(address =>
 			address.equals(forgerAddress),
 		);
 		// Update consecutive missed block
 		for (let i = 0; i < missedBlocks; i += 1) {
 			const rawIndex = (forgerIndex - 1 - i) % expectedForgingAddresses.length;
-			const index =
-				rawIndex >= 0 ? rawIndex : rawIndex + expectedForgingAddresses.length;
+			const index = rawIndex >= 0 ? rawIndex : rawIndex + expectedForgingAddresses.length;
 			const missedForgerAddress = expectedForgingAddresses[index];
 			const missedForger = await stateStore.account.get(missedForgerAddress);
 			missedForger.asset.delegate.consecutiveMissedBlocks += 1;
 			// Ban the missed forger if both consecutive missed block and last forged blcok diff condition are met
 			if (
-				missedForger.asset.delegate.consecutiveMissedBlocks >
-					maxConsecutiveMissedBlocks &&
-				blockHeader.height - missedForger.asset.delegate.lastForgedHeight >
-					maxLastForgedHeightDiff
+				missedForger.asset.delegate.consecutiveMissedBlocks > maxConsecutiveMissedBlocks &&
+				blockHeader.height - missedForger.asset.delegate.lastForgedHeight > maxLastForgedHeightDiff
 			) {
 				missedForger.asset.delegate.isBanned = true;
 			}

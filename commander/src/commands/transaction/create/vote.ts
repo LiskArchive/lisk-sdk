@@ -13,10 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	castVotes,
-	utils as transactionUtils,
-} from '@liskhq/lisk-transactions';
+import { castVotes, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { isUInt64, isNumberString } from '@liskhq/lisk-validator';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
@@ -137,24 +134,15 @@ export default class VoteCommand extends BaseCommand {
 			const numberAmount = Number(amount);
 
 			if (Number.isNaN(numberAmount)) {
-				throw new ValidationError(
-					'Enter a valid amount in number string format.',
-				);
+				throw new ValidationError('Enter a valid amount in number string format.');
 			}
 
 			const sign = numberAmount < 0 ? -1 : 1;
 
-			const normalizedAmount = transactionUtils.convertLSKToBeddows(
-				String(Math.abs(numberAmount)),
-			);
+			const normalizedAmount = transactionUtils.convertLSKToBeddows(String(Math.abs(numberAmount)));
 
-			if (
-				!isNumberString(normalizedAmount) ||
-				!isUInt64(BigInt(normalizedAmount))
-			) {
-				throw new ValidationError(
-					'Enter a valid vote amount in number string format.',
-				);
+			if (!isNumberString(normalizedAmount) || !isUInt64(BigInt(normalizedAmount))) {
+				throw new ValidationError('Enter a valid vote amount in number string format.');
 			}
 
 			return {
@@ -183,8 +171,7 @@ export default class VoteCommand extends BaseCommand {
 			return;
 		}
 
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
 		const result = processInputs(
 			nonce,

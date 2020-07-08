@@ -16,8 +16,7 @@
 
 const { hash } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
-const previousDelegateList = require('./delegate_address_list.json')
-	.delegateList;
+const previousDelegateList = require('./delegate_address_list.json').delegateList;
 
 const generateShuffledDelegateList = () => {
 	const previousRoundSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
@@ -25,10 +24,7 @@ const generateShuffledDelegateList = () => {
 		address: Buffer.from(delegate.address, 'hex'),
 	}));
 	for (const delegate of delegateList) {
-		const seedSource = Buffer.concat([
-			Buffer.from(previousRoundSeed1, 'hex'),
-			delegate.address,
-		]);
+		const seedSource = Buffer.concat([Buffer.from(previousRoundSeed1, 'hex'), delegate.address]);
 		delegate.roundHash = hash(seedSource);
 	}
 
@@ -46,9 +42,7 @@ const generateShuffledDelegateList = () => {
 			delegateList: previousDelegateList.map(delegate => delegate.address),
 		},
 		output: {
-			delegateList: delegateList.map(delegate =>
-				delegate.address.toString('hex'),
-			),
+			delegateList: delegateList.map(delegate => delegate.address.toString('hex')),
 		},
 	};
 };

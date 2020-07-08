@@ -72,8 +72,7 @@ export const verifyAccountNonce = (
 
 export const isMultisignatureAccount = (account: Account): boolean =>
 	!!(
-		(account.keys.mandatoryKeys.length > 0 ||
-			account.keys.optionalKeys.length > 0) &&
+		(account.keys.mandatoryKeys.length > 0 || account.keys.optionalKeys.length > 0) &&
 		account.keys.numberOfSignatures
 	);
 
@@ -139,11 +138,7 @@ export const verifyMultiSignatureTransaction = (
 		return [error];
 	}
 
-	const mandatoryKeysError = validateKeysSignatures(
-		mandatoryKeys,
-		signatures,
-		transactionBytes,
-	);
+	const mandatoryKeysError = validateKeysSignatures(mandatoryKeys, signatures, transactionBytes);
 
 	errors.push(...mandatoryKeysError);
 
@@ -152,11 +147,7 @@ export const verifyMultiSignatureTransaction = (
 		// Get corresponding optional key signature starting from offset(end of mandatory keys)
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
-			const { error } = validateSignature(
-				optionalKeys[k],
-				signature as Buffer,
-				transactionBytes,
-			);
+			const { error } = validateSignature(optionalKeys[k], signature as Buffer, transactionBytes);
 			if (error) {
 				errors.push(error);
 			}

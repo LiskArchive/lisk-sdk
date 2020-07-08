@@ -26,9 +26,7 @@ describe('StateStoreMock', () => {
 
 		describe('get', () => {
 			it('should throw error if not prepared', async () => {
-				await expect(
-					mock.account.get(Buffer.from('accountB')),
-				).rejects.toThrow();
+				await expect(mock.account.get(Buffer.from('accountB'))).rejects.toThrow();
 			});
 
 			it('should return the prepared account if exists', async () => {
@@ -131,10 +129,7 @@ describe('StateStoreMock', () => {
 
 		describe('properties', () => {
 			it('should have set block reward', () => {
-				expect(mock.consensus.lastBlockHeaders).toEqual([
-					{ height: 2 },
-					{ height: 1 },
-				]);
+				expect(mock.consensus.lastBlockHeaders).toEqual([{ height: 2 }, { height: 1 }]);
 			});
 		});
 

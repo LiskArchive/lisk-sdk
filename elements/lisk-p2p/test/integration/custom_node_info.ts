@@ -14,22 +14,21 @@
  */
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
-import { customPeerInfoSchema, customNodeInfoSchema } from '../utils/schema';
+import { customNodeInfoSchema } from '../utils/schema';
+import { P2PConfig } from '../../src/types';
 
 describe('Custom nodeInfo', () => {
-	const customRPCSchemas = {
-		peerInfo: customPeerInfoSchema,
-		nodeInfo: customNodeInfoSchema,
-	};
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
-		const customConfig = () => ({
+		const customConfig = (): Partial<P2PConfig> => ({
 			nodeInfo: {
-				maxHeightPreviouslyForged: 11,
-				maxHeightPrevoted: 2,
-			},
-			customRPCSchemas,
+				options: {
+					maxHeightPreviouslyForged: 11,
+					maxHeightPrevoted: 2,
+				},
+			} as any,
+			customNodeInfoSchema,
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });
@@ -46,8 +45,10 @@ describe('Custom nodeInfo', () => {
 			for (const peer of triedPeers) {
 				expect(peer).toMatchObject({
 					sharedState: {
-						maxHeightPrevoted: 2,
-						maxHeightPreviouslyForged: 11,
+						options: {
+							maxHeightPrevoted: 2,
+							maxHeightPreviouslyForged: 11,
+						},
 					},
 				});
 			}
@@ -55,16 +56,20 @@ describe('Custom nodeInfo', () => {
 				if (peer.modules) {
 					expect(peer).toMatchObject({
 						sharedState: {
-							maxHeightPrevoted: 2,
-							maxHeightPreviouslyForged: 11,
+							options: {
+								maxHeightPrevoted: 2,
+								maxHeightPreviouslyForged: 11,
+							},
 						},
 					});
 				}
 			}
 			for (const peer of p2p.getConnectedPeers()) {
 				expect(peer).toMatchObject({
-					maxHeightPrevoted: 2,
-					maxHeightPreviouslyForged: 11,
+					options: {
+						maxHeightPrevoted: 2,
+						maxHeightPreviouslyForged: 11,
+					},
 				});
 			}
 		}

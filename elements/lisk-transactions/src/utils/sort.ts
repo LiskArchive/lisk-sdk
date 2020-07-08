@@ -15,12 +15,8 @@
 
 import { UnlockingAccountAsset } from '../types';
 
-export const sortKeysAscending = (
-	publicKeys: Array<Readonly<Buffer>>,
-): Array<Readonly<Buffer>> =>
-	publicKeys.sort((publicKeyA, publicKeyB) =>
-		(publicKeyA as Buffer).compare(publicKeyB as Buffer),
-	);
+export const sortKeysAscending = (publicKeys: Array<Readonly<Buffer>>): Array<Readonly<Buffer>> =>
+	publicKeys.sort((publicKeyA, publicKeyB) => (publicKeyA as Buffer).compare(publicKeyB as Buffer));
 
 export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
 	unlocks.sort((a, b) => {

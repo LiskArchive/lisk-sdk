@@ -18,10 +18,10 @@ const { readKey } = require('../dist-node/keys');
 const suite = new Suite();
 
 suite
-  .add('readKey', () => {
-    readKey(48);
-  })
-  .on('cycle', function (event) {
-    console.log(String(event.target));
-  })
-  .run({ async: true });
+	.add('readKey', () => {
+		readKey(48);
+	})
+	.on('cycle', function (event) {
+		console.log(String(event.target));
+	})
+	.run({ async: true });

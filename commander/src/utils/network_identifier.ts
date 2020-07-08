@@ -36,10 +36,7 @@ export const getNetworkIdentifierWithInput = (
 		return input;
 	}
 
-	if (
-		networkConfig !== undefined &&
-		Object.keys(NETHASHES).includes(networkConfig)
-	) {
+	if (networkConfig !== undefined && Object.keys(NETHASHES).includes(networkConfig)) {
 		return getNetworkIdentifier(
 			Buffer.from(NETHASHES[networkConfig], 'base64'),
 			COMMUNITY_IDENTIFIER,

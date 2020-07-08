@@ -115,6 +115,21 @@ pipeline {
 				}
 			}
 		}
+		stage('Format') {
+			steps {
+				nvm(getNodejsVersion()) {
+					sh '''
+					npm run format
+					if [ -z "$(git status --untracked-files=no --porcelain)" ]; then
+						echo "All files formatted"
+					else
+						echo "Running format is required"
+						exit 1
+					fi
+					'''
+				}
+			}
+		}
 		stage('Test') {
 			parallel {
 				stage('Lisk Elements') {

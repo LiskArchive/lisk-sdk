@@ -13,10 +13,7 @@
  */
 
 import { when } from 'jest-when';
-import {
-	BaseTransaction,
-	TransferTransaction,
-} from '@liskhq/lisk-transactions';
+import { BaseTransaction, TransferTransaction } from '@liskhq/lisk-transactions';
 
 import { BaseChannel, BasePlugin } from '../../../../src';
 
@@ -79,9 +76,7 @@ describe('BasePlugin', () => {
 	beforeEach(() => {
 		plugin = new MyPlugin();
 
-		when(channelMock.invoke)
-			.calledWith('app:getSchema')
-			.mockResolvedValue(schemas);
+		when(channelMock.invoke).calledWith('app:getSchema').mockResolvedValue(schemas);
 	});
 
 	describe('constructor', () => {
@@ -101,10 +96,7 @@ describe('BasePlugin', () => {
 
 			// Assert
 			expect(channelMock.once).toHaveBeenCalledTimes(1);
-			expect(channelMock.once).toHaveBeenCalledWith(
-				'app:ready',
-				expect.any(Function),
-			);
+			expect(channelMock.once).toHaveBeenCalledWith('app:ready', expect.any(Function));
 			expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 			expect(channelMock.invoke).toHaveBeenCalledWith('app:getSchema');
 			expect(plugin.schemas).toBe(schemas);

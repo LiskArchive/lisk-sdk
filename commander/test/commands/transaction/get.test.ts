@@ -47,33 +47,25 @@ describe('transaction:get', () => {
 			.command(['transaction:get', transactionId])
 			.it('should get a transaction’s info and display as an array', () => {
 				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-				expect(queryHandler.query).to.be.calledWithExactly(
-					apiClientStub,
-					endpoint,
-					[
-						{
-							query: {
-								limit: 1,
-								id: transactionId,
-							},
-							placeholder: {
-								id: transactionId,
-								message: 'Transaction not found.',
-							},
+				expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							id: transactionId,
 						},
-					],
-				);
+						placeholder: {
+							id: transactionId,
+							message: 'Transaction not found.',
+						},
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
 
 	describe('transaction:get transactions', () => {
 		const transactionIds = ['3520445367460290306', '2802325248134221536'];
-		const transactionIdsWithEmpty = [
-			'3520445367460290306',
-			'',
-			'2802325248134221536',
-		];
+		const transactionIdsWithEmpty = ['3520445367460290306', '', '2802325248134221536'];
 		const queryResult = [
 			{
 				id: transactionIds[0],
@@ -93,32 +85,28 @@ describe('transaction:get', () => {
 			.command(['transaction:get', transactionIds.join(',')])
 			.it('should get two transaction’s info and display as an array.', () => {
 				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-				expect(queryHandler.query).to.be.calledWithExactly(
-					apiClientStub,
-					endpoint,
-					[
-						{
-							query: {
-								limit: 1,
-								id: transactionIds[0],
-							},
-							placeholder: {
-								id: transactionIds[0],
-								message: 'Transaction not found.',
-							},
+				expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							id: transactionIds[0],
 						},
-						{
-							query: {
-								limit: 1,
-								id: transactionIds[1],
-							},
-							placeholder: {
-								id: transactionIds[1],
-								message: 'Transaction not found.',
-							},
+						placeholder: {
+							id: transactionIds[0],
+							message: 'Transaction not found.',
 						},
-					],
-				);
+					},
+					{
+						query: {
+							limit: 1,
+							id: transactionIds[1],
+						},
+						placeholder: {
+							id: transactionIds[1],
+							message: 'Transaction not found.',
+						},
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 
@@ -130,32 +118,28 @@ describe('transaction:get', () => {
 				'should get transaction’s info only using non-empty args and display as an array.',
 				() => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									limit: 1,
-									id: transactionIdsWithEmpty[0],
-								},
-								placeholder: {
-									id: transactionIdsWithEmpty[0],
-									message: 'Transaction not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								limit: 1,
+								id: transactionIdsWithEmpty[0],
 							},
-							{
-								query: {
-									limit: 1,
-									id: transactionIdsWithEmpty[2],
-								},
-								placeholder: {
-									id: transactionIdsWithEmpty[2],
-									message: 'Transaction not found.',
-								},
+							placeholder: {
+								id: transactionIdsWithEmpty[0],
+								message: 'Transaction not found.',
 							},
-						],
-					);
+						},
+						{
+							query: {
+								limit: 1,
+								id: transactionIdsWithEmpty[2],
+							},
+							placeholder: {
+								id: transactionIdsWithEmpty[2],
+								message: 'Transaction not found.',
+							},
+						},
+					]);
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				},
 			);
@@ -167,21 +151,17 @@ describe('transaction:get', () => {
 				.command(['transaction:get', '--sender-id=12668885769632475474L'])
 				.it('should get all transactions for a given sender-id.', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						{
-							query: {
-								limit: '10',
-								offset: '0',
-								senderId: '12668885769632475474L',
-								sort: 'timestamp:desc',
-							},
-							placeholder: {
-								message: 'No transactions found.',
-							},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, {
+						query: {
+							limit: '10',
+							offset: '0',
+							senderId: '12668885769632475474L',
+							sort: 'timestamp:desc',
 						},
-					);
+						placeholder: {
+							message: 'No transactions found.',
+						},
+					});
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
 		});
@@ -193,20 +173,16 @@ describe('transaction:get', () => {
 				.command(['transaction:get', '--limit=10'])
 				.it('should get all transactions info limited by limit value.', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						{
-							query: {
-								limit: '10',
-								offset: '0',
-								sort: 'timestamp:desc',
-							},
-							placeholder: {
-								message: 'No transactions found.',
-							},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, {
+						query: {
+							limit: '10',
+							offset: '0',
+							sort: 'timestamp:desc',
 						},
-					);
+						placeholder: {
+							message: 'No transactions found.',
+						},
+					});
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
 
@@ -218,50 +194,38 @@ describe('transaction:get', () => {
 					'should get all transactions based on default value of limit(10) and offset(0).',
 					() => {
 						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-						expect(queryHandler.query).to.be.calledWithExactly(
-							apiClientStub,
-							endpoint,
-							{
-								query: {
-									limit: '10',
-									offset: '0',
-									sort: 'timestamp:desc',
-								},
-								placeholder: {
-									message: 'No transactions found.',
-								},
+						expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, {
+							query: {
+								limit: '10',
+								offset: '0',
+								sort: 'timestamp:desc',
 							},
-						);
+							placeholder: {
+								message: 'No transactions found.',
+							},
+						});
 						return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 					},
 				);
 
 			setupTest()
 				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
-				.stub(
-					queryHandler,
-					'query',
-					sandbox.stub().resolves({ message: 'No transactions found.' }),
-				)
+				.stub(queryHandler, 'query', sandbox.stub().resolves({ message: 'No transactions found.' }))
 				.command(['transaction:get', '--offset=10'])
 				.it(
 					'should return a message that no transactions found when there are no transactions after a given offset value.',
 					() => {
 						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-						expect(queryHandler.query).to.be.calledWithExactly(
-							apiClientStub,
-							endpoint,
-							{
-								query: {
-									limit: '10',
-									offset: '10',
-									sort: 'timestamp:desc',
-								},
-								placeholder: {
-									message: 'No transactions found.',
-								},
+						expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, {
+							query: {
+								limit: '10',
+								offset: '10',
+								sort: 'timestamp:desc',
 							},
-						);
+							placeholder: {
+								message: 'No transactions found.',
+							},
+						});
 						return expect(printMethodStub).to.be.calledWithExactly({
 							message: 'No transactions found.',
 						});
@@ -273,11 +237,7 @@ describe('transaction:get', () => {
 	describe('transaction:get transactions --state', () => {
 		const transactionId = '3520445367460290306';
 		const transactionIds = ['3520445367460290306', '2802325248134221536'];
-		const transactionIdsWithEmpty = [
-			'3520445367460290306',
-			'',
-			'2802325248134221536',
-		];
+		const transactionIdsWithEmpty = ['3520445367460290306', '', '2802325248134221536'];
 
 		const defaultGetTransactionsResponse = {
 			data: [
@@ -293,9 +253,7 @@ describe('transaction:get', () => {
 		};
 		const apiClientStubNode = {
 			node: {
-				getTransactions: sandbox
-					.stub()
-					.resolves(defaultGetTransactionsResponse),
+				getTransactions: sandbox.stub().resolves(defaultGetTransactionsResponse),
 			},
 		};
 
@@ -303,9 +261,7 @@ describe('transaction:get', () => {
 			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStubNode))
 			.command(['transaction:get', '--state=unsign', '--offset=1'])
 			.catch(error => {
-				return expect(error.message).to.contain(
-					'to be one of: unsigned, unprocessed',
-				);
+				return expect(error.message).to.contain('to be one of: unsigned, unprocessed');
 			})
 			.it('should throw an error when incorrect value of state is provided');
 
@@ -332,85 +288,69 @@ describe('transaction:get', () => {
 					sandbox.stub().resolves(singleTransactionsResponse.data),
 				)
 				.command(['transaction:get', transactionId, '--state=unprocessed'])
-				.it(
-					'should get an unprocessed transaction’s info by Id and display as an array.',
-					() => {
-						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
-							localClientStub.node,
-							'unprocessed',
-							[
-								{
-									query: {
-										id: '3520445367460290306',
-										limit: 1,
-									},
-									placeholder: {
-										id: '3520445367460290306',
-										message: 'Transaction not found.',
-									},
+				.it('should get an unprocessed transaction’s info by Id and display as an array.', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
+					expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
+						localClientStub.node,
+						'unprocessed',
+						[
+							{
+								query: {
+									id: '3520445367460290306',
+									limit: 1,
 								},
-							],
-						);
-						return expect(printMethodStub).to.be.calledWithExactly(
-							singleTransactionsResponse.data,
-						);
-					},
-				);
+								placeholder: {
+									id: '3520445367460290306',
+									message: 'Transaction not found.',
+								},
+							},
+						],
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(singleTransactionsResponse.data);
+				});
 		});
 
 		describe('transaction:get transactions --state=unprocessed', () => {
 			setupTest()
-				.stub(
-					apiUtils,
-					'getAPIClient',
-					sandbox.stub().returns(apiClientStubNode),
-				)
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStubNode))
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
 					sandbox.stub().resolves(defaultGetTransactionsResponse.data),
 				)
-				.command([
-					'transaction:get',
-					transactionIdsWithEmpty.join(','),
-					'--state=unsigned',
-				])
-				.it(
-					'should get transaction’s info for given ids and unsigned state.',
-					() => {
-						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
-							apiClientStubNode.node,
-							'unsigned',
-							[
-								{
-									query: {
-										id: '3520445367460290306',
-										limit: 1,
-									},
-									placeholder: {
-										id: '3520445367460290306',
-										message: 'Transaction not found.',
-									},
+				.command(['transaction:get', transactionIdsWithEmpty.join(','), '--state=unsigned'])
+				.it('should get transaction’s info for given ids and unsigned state.', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
+					expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
+						apiClientStubNode.node,
+						'unsigned',
+						[
+							{
+								query: {
+									id: '3520445367460290306',
+									limit: 1,
 								},
-								{
-									query: {
-										id: '2802325248134221536',
-										limit: 1,
-									},
-									placeholder: {
-										id: '2802325248134221536',
-										message: 'Transaction not found.',
-									},
+								placeholder: {
+									id: '3520445367460290306',
+									message: 'Transaction not found.',
 								},
-							],
-						);
-						return expect(printMethodStub).to.be.calledWithExactly(
-							defaultGetTransactionsResponse.data,
-						);
-					},
-				);
+							},
+							{
+								query: {
+									id: '2802325248134221536',
+									limit: 1,
+								},
+								placeholder: {
+									id: '2802325248134221536',
+									message: 'Transaction not found.',
+								},
+							},
+						],
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(
+						defaultGetTransactionsResponse.data,
+					);
+				});
 		});
 
 		describe('transaction:get --state-unsigned --sender-id', () => {
@@ -437,11 +377,7 @@ describe('transaction:get', () => {
 					'queryNodeTransaction',
 					sandbox.stub().resolves(senderTransactionsResponse.data),
 				)
-				.command([
-					'transaction:get',
-					'--sender-id=12668885769632475474L',
-					'--state=unprocessed',
-				])
+				.command(['transaction:get', '--sender-id=12668885769632475474L', '--state=unprocessed'])
 				.it(
 					'should get a transaction’s info for a given sender’s address and state and display as an array.',
 					() => {
@@ -464,9 +400,7 @@ describe('transaction:get', () => {
 								},
 							],
 						);
-						return expect(printMethodStub).to.be.calledWithExactly(
-							senderTransactionsResponse.data,
-						);
+						return expect(printMethodStub).to.be.calledWithExactly(senderTransactionsResponse.data);
 					},
 				);
 
@@ -505,9 +439,7 @@ describe('transaction:get', () => {
 								},
 							],
 						);
-						return expect(printMethodStub).to.be.calledWithExactly(
-							senderTransactionsResponse.data,
-						);
+						return expect(printMethodStub).to.be.calledWithExactly(senderTransactionsResponse.data);
 					},
 				);
 
@@ -528,11 +460,7 @@ describe('transaction:get', () => {
 				};
 
 				setupTest()
-					.stub(
-						apiUtils,
-						'getAPIClient',
-						sandbox.stub().returns(localClientStub),
-					)
+					.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(localClientStub))
 					.stub(
 						queryHandler,
 						'queryNodeTransaction',

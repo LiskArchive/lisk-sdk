@@ -45,18 +45,12 @@ describe('convert', () => {
 		it('should get the first eight bytes reversed from a Buffer', () => {
 			const bufferEntry = Buffer.from(defaultStringWithMoreThanEightCharacters);
 			const reversedAndCut = getFirstEightBytesReversed(bufferEntry);
-			expect(reversedAndCut).toEqual(
-				Buffer.from(defaultFirstEightCharactersReversed),
-			);
+			expect(reversedAndCut).toEqual(Buffer.from(defaultFirstEightCharactersReversed));
 		});
 
 		it('should get the first eight bytes reversed from a string', () => {
-			const reversedAndCut = getFirstEightBytesReversed(
-				defaultStringWithMoreThanEightCharacters,
-			);
-			expect(reversedAndCut).toEqual(
-				Buffer.from(defaultFirstEightCharactersReversed),
-			);
+			const reversedAndCut = getFirstEightBytesReversed(defaultStringWithMoreThanEightCharacters);
+			expect(reversedAndCut).toEqual(Buffer.from(defaultFirstEightCharactersReversed));
 		});
 	});
 
@@ -65,20 +59,14 @@ describe('convert', () => {
 			const result = convertPublicKeyEd2Curve(defaultPublicKey);
 			expect(result).not.toBeNull();
 			const curveRepresentation = result as Buffer;
-			expect(
-				defaultPublicKeyCurve.equals(Buffer.from(curveRepresentation)),
-			).toBe(true);
+			expect(defaultPublicKeyCurve.equals(Buffer.from(curveRepresentation))).toBe(true);
 		});
 	});
 
 	describe('#convertPrivateKeyEd2Curve', () => {
 		it('should convert privateKey ED25519 to Curve25519 key', () => {
-			const curveRepresentation = convertPrivateKeyEd2Curve(
-				Buffer.from(defaultPrivateKey, 'hex'),
-			);
-			expect(
-				defaultPrivateKeyCurve.equals(Buffer.from(curveRepresentation)),
-			).toBe(true);
+			const curveRepresentation = convertPrivateKeyEd2Curve(Buffer.from(defaultPrivateKey, 'hex'));
+			expect(defaultPrivateKeyCurve.equals(Buffer.from(curveRepresentation))).toBe(true);
 		});
 	});
 
@@ -86,9 +74,9 @@ describe('convert', () => {
 		it('should throw an error if encrypted passphrase is not an object', () => {
 			const encryptedPassphrase =
 				'salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
-			expect(
-				stringifyEncryptedPassphrase.bind(null, encryptedPassphrase as any),
-			).toThrow('Encrypted passphrase to stringify must be an object.');
+			expect(stringifyEncryptedPassphrase.bind(null, encryptedPassphrase as any)).toThrow(
+				'Encrypted passphrase to stringify must be an object.',
+			);
 		});
 
 		it('should format an encrypted passphrase as a string', () => {
@@ -128,28 +116,23 @@ describe('convert', () => {
 	describe('#parseEncryptedPassphrase', () => {
 		it('should throw an error if encrypted passphrase is not a string', () => {
 			const stringifiedEncryptedPassphrase = { abc: 'def' };
-			expect(
-				parseEncryptedPassphrase.bind(
-					null,
-					stringifiedEncryptedPassphrase as any,
-				),
-			).toThrow('Encrypted passphrase to parse must be a string.');
+			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase as any)).toThrow(
+				'Encrypted passphrase to parse must be a string.',
+			);
 		});
 
 		it('should throw an error if iterations is present but not a valid number', () => {
 			const stringifiedEncryptedPassphrase =
 				'iterations=null&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
-			expect(
-				parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase),
-			).toThrow('Could not parse iterations.');
+			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase)).toThrow(
+				'Could not parse iterations.',
+			);
 		});
 
 		it('should throw an error if multiple values are in a key', () => {
 			const stringifiedEncryptedPassphrase =
 				'salt=xxx&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
-			expect(
-				parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase),
-			).toThrow(
+			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase)).toThrow(
 				'Encrypted passphrase to parse must have only one value per key.',
 			);
 		});
@@ -166,9 +149,7 @@ describe('convert', () => {
 				tag: '3a9d9f9f9a92c9a58296b8df64820c15',
 				version: '1',
 			};
-			expect(parseEncryptedPassphrase(stringifiedEncryptedPassphrase)).toEqual(
-				encryptedPassphrase,
-			);
+			expect(parseEncryptedPassphrase(stringifiedEncryptedPassphrase)).toEqual(encryptedPassphrase);
 		});
 
 		it('should parse an encrypted passphrase string with custom iterations', () => {
@@ -183,9 +164,7 @@ describe('convert', () => {
 				tag: '3a9d9f9f9a92c9a58296b8df64820c15',
 				version: '1',
 			};
-			expect(parseEncryptedPassphrase(stringifiedEncryptedPassphrase)).toEqual(
-				encryptedPassphrase,
-			);
+			expect(parseEncryptedPassphrase(stringifiedEncryptedPassphrase)).toEqual(encryptedPassphrase);
 		});
 	});
 });

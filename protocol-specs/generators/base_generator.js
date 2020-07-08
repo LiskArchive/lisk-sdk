@@ -22,10 +22,7 @@ const runGenerator = (generatorName, suiteCreators) => {
 	for (const suite of suiteCreators) {
 		const suiteResult = suite();
 
-		const dirPath = path.join(
-			__dirname,
-			`../generator_outputs/${suiteResult.runner}`,
-		); // TODO: remove hard path and maybe expose it to a CLI
+		const dirPath = path.join(__dirname, `../generator_outputs/${suiteResult.runner}`); // TODO: remove hard path and maybe expose it to a CLI
 
 		if (!fs.existsSync(dirPath)) {
 			fs.mkdirSync(dirPath);

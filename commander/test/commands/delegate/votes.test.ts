@@ -38,14 +38,12 @@ describe('delegate:votes', () => {
 		{
 			address: addresses[0],
 			balance: '0',
-			publicKey:
-				'0a47b151eafe8cfc278721ba14305071cae727395abf4c00bd298296c851dab9',
+			publicKey: '0a47b151eafe8cfc278721ba14305071cae727395abf4c00bd298296c851dab9',
 			votes: [
 				{
 					balance: '999999999999',
 					username: 'mitsujutsu',
-					publicKey:
-						'e7cz206a33d0f019d9d030c2e34870767d8994680e7b10ebdaf2af0e59332524',
+					publicKey: 'e7cz206a33d0f019d9d030c2e34870767d8994680e7b10ebdaf2af0e59332524',
 					address: '1721671824473341641L',
 				},
 			],
@@ -74,22 +72,18 @@ describe('delegate:votes', () => {
 				.command(['delegate:votes', addresses[0]])
 				.it('should get account votes and display as an array', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									address: addresses[0],
-									...defaultQuery,
-								},
-								placeholder: {
-									address: addresses[0],
-									message: 'Account not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								address: addresses[0],
+								...defaultQuery,
 							},
-						],
-					);
+							placeholder: {
+								address: addresses[0],
+								message: 'Account not found.',
+							},
+						},
+					]);
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
 		});
@@ -102,88 +96,71 @@ describe('delegate:votes', () => {
 				.command(['delegate:votes', addresses.join(',')])
 				.it('should get account votes and display as an array', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									address: addresses[0],
-									...defaultQuery,
-								},
-								placeholder: {
-									address: addresses[0],
-									message: 'Account not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								address: addresses[0],
+								...defaultQuery,
 							},
-							{
-								query: {
-									address: addresses[1],
-									...defaultQuery,
-								},
-								placeholder: {
-									address: addresses[1],
-									message: 'Account not found.',
-								},
+							placeholder: {
+								address: addresses[0],
+								message: 'Account not found.',
 							},
-						],
-					);
+						},
+						{
+							query: {
+								address: addresses[1],
+								...defaultQuery,
+							},
+							placeholder: {
+								address: addresses[1],
+								message: 'Account not found.',
+							},
+						},
+					]);
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
 
 			setupTest()
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', addressesWithEmpty.join(',')])
-				.it(
-					'should get account votes only using non-empty args and display as an array',
-					() => {
-						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-						expect(queryHandler.query).to.be.calledWithExactly(
-							apiClientStub,
-							endpoint,
-							[
-								{
-									query: {
-										address: addressesWithEmpty[0],
-										...defaultQuery,
-									},
-									placeholder: {
-										address: addressesWithEmpty[0],
-										message: 'Account not found.',
-									},
-								},
-							],
-						);
-						return expect(printMethodStub).to.be.calledWithExactly(queryResult);
-					},
-				);
+				.it('should get account votes only using non-empty args and display as an array', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								address: addressesWithEmpty[0],
+								...defaultQuery,
+							},
+							placeholder: {
+								address: addressesWithEmpty[0],
+								message: 'Account not found.',
+							},
+						},
+					]);
+					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+				});
 		});
 
 		describe('delegate:votes --limit=xxx', () => {
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--limit=wronglimit'])
 				.catch((error: Error) => {
-					return expect(error.message).to.contain(
-						'Limit must be an integer and greater than 0',
-					);
+					return expect(error.message).to.contain('Limit must be an integer and greater than 0');
 				})
 				.it('should throw an error when limit is not a valid integer');
 
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--limit=0'])
 				.catch((error: Error) => {
-					return expect(error.message).to.contain(
-						'Limit must be an integer and greater than 0',
-					);
+					return expect(error.message).to.contain('Limit must be an integer and greater than 0');
 				})
 				.it('should throw an error when limit is 0');
 
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--limit=101'])
 				.catch((error: Error) => {
-					return expect(error.message).to.contain(
-						'Maximum limit amount is 100',
-					);
+					return expect(error.message).to.contain('Maximum limit amount is 100');
 				})
 				.it('should throw an error when limit is greater than 100');
 
@@ -192,24 +169,20 @@ describe('delegate:votes', () => {
 				.command(['delegate:votes', addresses[0], '--limit=3'])
 				.it('should get votes for account with limit', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									address: addresses[0],
-									limit: 3,
-									offset: 0,
-									sort: 'balance:desc',
-								},
-								placeholder: {
-									address: addresses[0],
-									message: 'Account not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								address: addresses[0],
+								limit: 3,
+								offset: 0,
+								sort: 'balance:desc',
 							},
-						],
-					);
+							placeholder: {
+								address: addresses[0],
+								message: 'Account not found.',
+							},
+						},
+					]);
 
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
@@ -239,24 +212,20 @@ describe('delegate:votes', () => {
 				.command(['delegate:votes', addresses[0], '--offset=1'])
 				.it('should get votes for account with offset', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									address: addresses[0],
-									limit: 10,
-									offset: 1,
-									sort: 'balance:desc',
-								},
-								placeholder: {
-									address: addresses[0],
-									message: 'Account not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								address: addresses[0],
+								limit: 10,
+								offset: 1,
+								sort: 'balance:desc',
 							},
-						],
-					);
+							placeholder: {
+								address: addresses[0],
+								message: 'Account not found.',
+							},
+						},
+					]);
 
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
@@ -277,24 +246,20 @@ describe('delegate:votes', () => {
 				.command(['delegate:votes', addresses[0], '--sort=balance:asc'])
 				.it('should get sorted votes for account', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									address: addresses[0],
-									limit: 10,
-									offset: 0,
-									sort: 'balance:asc',
-								},
-								placeholder: {
-									address: addresses[0],
-									message: 'Account not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								address: addresses[0],
+								limit: 10,
+								offset: 0,
+								sort: 'balance:asc',
 							},
-						],
-					);
+							placeholder: {
+								address: addresses[0],
+								message: 'Account not found.',
+							},
+						},
+					]);
 
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});

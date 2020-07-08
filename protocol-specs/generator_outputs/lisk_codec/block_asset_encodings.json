@@ -15,24 +15,7 @@
 					"maxHeightPrevoted": 901049,
 					"seedReveal": {
 						"type": "Buffer",
-						"data": [
-							213,
-							147,
-							134,
-							224,
-							174,
-							67,
-							94,
-							41,
-							47,
-							190,
-							14,
-							188,
-							219,
-							149,
-							75,
-							117
-						]
+						"data": [213, 147, 134, 224, 174, 67, 94, 41, 47, 190, 14, 188, 219, 149, 75, 117]
 					}
 				},
 				"schema": {
@@ -52,11 +35,7 @@
 							"fieldNumber": 3
 						}
 					},
-					"required": [
-						"maxHeightPreviouslyForged",
-						"maxHeightPrevoted",
-						"seedReveal"
-					]
+					"required": ["maxHeightPreviouslyForged", "maxHeightPrevoted", "seedReveal"]
 				}
 			},
 			"output": {
@@ -71,24 +50,7 @@
 					"maxHeightPrevoted": 1049,
 					"seedReveal": {
 						"type": "Buffer",
-						"data": [
-							234,
-							175,
-							157,
-							76,
-							101,
-							203,
-							80,
-							28,
-							129,
-							30,
-							248,
-							18,
-							132,
-							122,
-							85,
-							81
-						]
+						"data": [234, 175, 157, 76, 101, 203, 80, 28, 129, 30, 248, 18, 132, 122, 85, 81]
 					}
 				},
 				"schema": {
@@ -108,11 +70,7 @@
 							"fieldNumber": 3
 						}
 					},
-					"required": [
-						"maxHeightPreviouslyForged",
-						"maxHeightPrevoted",
-						"seedReveal"
-					]
+					"required": ["maxHeightPreviouslyForged", "maxHeightPrevoted", "seedReveal"]
 				}
 			},
 			"output": {

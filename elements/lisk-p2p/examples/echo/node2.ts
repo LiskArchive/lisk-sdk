@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	EVENT_MESSAGE_RECEIVED,
-	P2P,
-	P2PConfig,
-	P2PNodeInfo,
-} from '../../dist-node';
+import { EVENT_MESSAGE_RECEIVED, P2P, P2PConfig, P2PNodeInfo } from '../../dist-node';
 import { randomBytes } from 'crypto';
 import { platform } from 'os';
 
@@ -25,7 +20,7 @@ import { platform } from 'os';
 const nodeInfo: P2PNodeInfo = {
 	os: platform(),
 	nonce: randomBytes(8).toString('hex'),
-	wsPort: 6001,
+	port: 6001,
 	networkId: '123456',
 	version: '2.0.0',
 	protocolVersion: '1.1',
@@ -36,7 +31,7 @@ const nodeInfo: P2PNodeInfo = {
 const testnetConfig: P2PConfig = {
 	maxOutboundConnections: 5,
 	maxInboundConnections: 10,
-	whitelistedPeers: [{ ipAddress: '127.0.0.1', wsPort: 5001 }],
+	whitelistedPeers: [{ ipAddress: '127.0.0.1', port: 5001 }],
 	nodeInfo,
 };
 
@@ -63,10 +58,7 @@ const greetModule = (p2pNode: P2P) => {
 		if (message.event === 'greet') {
 			console.log(`Received "${message.data.greet}" from ${message.peerId}`);
 			// Reply to hi message
-			p2pNode.sendToPeer(
-				{ event: 'greet', data: { greet: 'Hi back' } },
-				message.peerId,
-			);
+			p2pNode.sendToPeer({ event: 'greet', data: { greet: 'Hi back' } }, message.peerId);
 		}
 	});
 };

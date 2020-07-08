@@ -22,11 +22,7 @@ import { TransferTransaction } from './8_transfer_transaction';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { castVotes } from './cast_votes';
 import * as constants from './constants';
-import {
-	convertToAssetError,
-	convertToTransactionError,
-	TransactionError,
-} from './errors';
+import { convertToAssetError, convertToTransactionError, TransactionError } from './errors';
 import { registerDelegate } from './register_delegate';
 import { registerMultisignature } from './register_multisignature_account';
 import { reportMisbehavior } from './report_misbehavior';

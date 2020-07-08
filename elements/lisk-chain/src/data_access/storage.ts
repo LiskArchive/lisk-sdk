@@ -13,16 +13,10 @@
  */
 /* eslint-disable no-continue */
 
-import {
-	KVStore,
-	formatInt,
-	getFirstPrefix,
-	getLastPrefix,
-	NotFoundError,
-} from '@liskhq/lisk-db';
+import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
-import { RawBlock, StateDiff, DiffHistory } from '../types';
+import { RawBlock, StateDiff } from '../types';
 import { StateStore } from '../state_store';
 
 import {
@@ -38,7 +32,6 @@ import {
 } from './constants';
 import { keyString } from '../utils';
 import { stateDiffSchema } from '../schema';
-import { undo } from '../diff';
 
 export class Storage {
 	private readonly _db: KVStore;
@@ -55,15 +48,11 @@ export class Storage {
 		return block;
 	}
 
-	public async getBlockHeadersByIDs(
-		arrayOfBlockIds: ReadonlyArray<Buffer>,
-	): Promise<Buffer[]> {
+	public async getBlockHeadersByIDs(arrayOfBlockIds: ReadonlyArray<Buffer>): Promise<Buffer[]> {
 		const blocks = [];
 		for (const id of arrayOfBlockIds) {
 			try {
-				const block = await this._db.get(
-					`${DB_KEY_BLOCKS_ID}:${keyString(id)}`,
-				);
+				const block = await this._db.get(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
 				blocks.push(block);
 			} catch (dbError) {
 				if (dbError instanceof NotFoundError) {
@@ -107,9 +96,7 @@ export class Storage {
 		return this.getBlockHeadersByIDs(blockIDs);
 	}
 
-	public async getBlockHeadersWithHeights(
-		heightList: ReadonlyArray<number>,
-	): Promise<Buffer[]> {
+	public async getBlockHeadersWithHeights(heightList: ReadonlyArray<number>): Promise<Buffer[]> {
 		const blocks = [];
 		for (const height of heightList) {
 			try {
@@ -163,9 +150,7 @@ export class Storage {
 		};
 	}
 
-	public async getBlocksByIDs(
-		arrayOfBlockIds: ReadonlyArray<Buffer>,
-	): Promise<RawBlock[]> {
+	public async getBlocksByIDs(arrayOfBlockIds: ReadonlyArray<Buffer>): Promise<RawBlock[]> {
 		const blocks = [];
 
 		for (const id of arrayOfBlockIds) {
@@ -194,14 +179,8 @@ export class Storage {
 		};
 	}
 
-	public async getBlocksByHeightBetween(
-		fromHeight: number,
-		toHeight: number,
-	): Promise<RawBlock[]> {
-		const headers = await this.getBlockHeadersByHeightBetween(
-			fromHeight,
-			toHeight,
-		);
+	public async getBlocksByHeightBetween(fromHeight: number, toHeight: number): Promise<RawBlock[]> {
+		const headers = await this.getBlockHeadersByHeightBetween(fromHeight, toHeight);
 		const blocks = [];
 		for (const header of headers) {
 			const blockID = hash(header);
@@ -316,23 +295,17 @@ export class Storage {
 		Accounts
 	*/
 	public async getAccountByAddress(address: Buffer): Promise<Buffer> {
-		const account = await this._db.get(
-			`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(address)}`,
-		);
+		const account = await this._db.get(`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(address)}`);
 		return account;
 	}
 
-	public async getAccountsByPublicKey(
-		arrayOfPublicKeys: ReadonlyArray<Buffer>,
-	): Promise<Buffer[]> {
+	public async getAccountsByPublicKey(arrayOfPublicKeys: ReadonlyArray<Buffer>): Promise<Buffer[]> {
 		const addresses = arrayOfPublicKeys.map(getAddressFromPublicKey);
 
 		return this.getAccountsByAddress(addresses);
 	}
 
-	public async getAccountsByAddress(
-		arrayOfAddresses: ReadonlyArray<Buffer>,
-	): Promise<Buffer[]> {
+	public async getAccountsByAddress(arrayOfAddresses: ReadonlyArray<Buffer>): Promise<Buffer[]> {
 		const accounts = [];
 		for (const address of arrayOfAddresses) {
 			try {
@@ -353,9 +326,7 @@ export class Storage {
 		Transactions
 	*/
 	public async getTransactionByID(id: Buffer): Promise<Buffer> {
-		const transaction = await this._db.get(
-			`${DB_KEY_TRANSACTIONS_ID}:${keyString(id)}`,
-		);
+		const transaction = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${keyString(id)}`);
 
 		return transaction;
 	}
@@ -380,9 +351,7 @@ export class Storage {
 	}
 
 	public async isTransactionPersisted(transactionId: Buffer): Promise<boolean> {
-		return this._db.exists(
-			`${DB_KEY_TRANSACTIONS_ID}:${keyString(transactionId)}`,
-		);
+		return this._db.exists(`${DB_KEY_TRANSACTIONS_ID}:${keyString(transactionId)}`);
 	}
 
 	/*
@@ -406,10 +375,7 @@ export class Storage {
 				ids.push(txID);
 				batch.put(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`, value);
 			}
-			batch.put(
-				`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`,
-				Buffer.concat(ids),
-			);
+			batch.put(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`, Buffer.concat(ids));
 		}
 		if (removeFromTemp) {
 			batch.del(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`);
@@ -443,16 +409,15 @@ export class Storage {
 		const diffKey = `${DB_KEY_DIFF_STATE}:${heightStr}`;
 		const stateDiff = await this._db.get(diffKey);
 
-		const { created: createdStates, updated: updatedStates } = codec.decode<
-			StateDiff
-		>(stateDiffSchema, stateDiff);
+		const { created: createdStates, updated: updatedStates } = codec.decode<StateDiff>(
+			stateDiffSchema,
+			stateDiff,
+		);
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
 		}
-		for (const { key, value: diff } of updatedStates) {
-			const currentValue = await this._db.get(key);
-			const previousValue = undo(currentValue, diff as DiffHistory[]);
+		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
 		}
 		// Delete stored diff at particular height
@@ -465,9 +430,7 @@ export class Storage {
 	private async _getTransactions(blockID: Buffer): Promise<Buffer[]> {
 		const txIDs: Buffer[] = [];
 		try {
-			const ids = await this._db.get(
-				`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(blockID)}`,
-			);
+			const ids = await this._db.get(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(blockID)}`);
 			const idLength = 32;
 			for (let i = 0; i < ids.length; i += idLength) {
 				txIDs.push(ids.slice(i, i + idLength));
@@ -482,9 +445,7 @@ export class Storage {
 		}
 		const transactions = [];
 		for (const txID of txIDs) {
-			const tx = await this._db.get(
-				`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`,
-			);
+			const tx = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`);
 			transactions.push(tx);
 		}
 

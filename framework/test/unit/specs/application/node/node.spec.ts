@@ -18,10 +18,7 @@ import { BFT } from '@liskhq/lisk-bft';
 import { Node } from '../../../../../src/application/node/node';
 import { Synchronizer } from '../../../../../src/application/node/synchronizer/synchronizer';
 import { Processor } from '../../../../../src/application/node/processor';
-import {
-	Forger,
-	HighFeeForgingStrategy,
-} from '../../../../../src/application/node/forger';
+import { Forger, HighFeeForgingStrategy } from '../../../../../src/application/node/forger';
 import { cacheConfig, nodeOptions } from '../../../../fixtures/node';
 
 jest.mock('@liskhq/lisk-db');
@@ -236,9 +233,7 @@ describe('Node', () => {
 			});
 
 			it('should initialize forger module with high fee strategy', () => {
-				expect(node['_forger']['_forgingStrategy']).toBeInstanceOf(
-					HighFeeForgingStrategy,
-				);
+				expect(node['_forger']['_forgingStrategy']).toBeInstanceOf(HighFeeForgingStrategy);
 			});
 		});
 
@@ -332,9 +327,7 @@ describe('Node', () => {
 			jest.spyOn(node['_sequence'], 'add').mockImplementation(async fn => {
 				await fn();
 			});
-			jest
-				.spyOn(node['_synchronizer'], 'isActive', 'get')
-				.mockReturnValue(false);
+			jest.spyOn(node['_synchronizer'], 'isActive', 'get').mockReturnValue(false);
 		});
 
 		it('should halt if no delegates are enabled', async () => {
@@ -345,28 +338,20 @@ describe('Node', () => {
 			await node['_forgingTask']();
 
 			// Assert
-			expect(stubs.logger.trace).toHaveBeenNthCalledWith(
-				1,
-				'No delegates are enabled',
-			);
+			expect(stubs.logger.trace).toHaveBeenNthCalledWith(1, 'No delegates are enabled');
 			expect(node['_sequence'].add).toHaveBeenCalled();
 			expect(node['_forger'].forge).not.toHaveBeenCalled();
 		});
 
 		it('should halt if the client is not ready to forge (is syncing)', async () => {
 			// Arrange
-			jest
-				.spyOn(node['_synchronizer'], 'isActive', 'get')
-				.mockReturnValue(true);
+			jest.spyOn(node['_synchronizer'], 'isActive', 'get').mockReturnValue(true);
 
 			// Act
 			await node['_forgingTask']();
 
 			// Assert
-			expect(stubs.logger.debug).toHaveBeenNthCalledWith(
-				1,
-				'Client not ready to forge',
-			);
+			expect(stubs.logger.debug).toHaveBeenNthCalledWith(1, 'Client not ready to forge');
 			expect(node['_sequence'].add).toHaveBeenCalled();
 			expect(node['_forger'].forge).not.toHaveBeenCalled();
 		});

@@ -66,9 +66,7 @@ describe('database core utils', () => {
 			workerProcessStub.resolves({ stdout: '' });
 
 			const result = await initDB('dummy/path');
-			return expect(result).to.deep.equal(
-				'[+] Postgresql started successfully.',
-			);
+			return expect(result).to.deep.equal('[+] Postgresql started successfully.');
 		});
 	});
 
@@ -91,9 +89,7 @@ describe('database core utils', () => {
 				stderr: 'failed to start',
 			});
 
-			return expect(
-				startDatabase('dummy/path', NETWORK.MAINNET),
-			).to.rejectedWith(
+			return expect(startDatabase('dummy/path', NETWORK.MAINNET)).to.rejectedWith(
 				'[-] Failed to start Postgresql.: \n\n failed to start',
 			);
 		});
@@ -132,9 +128,9 @@ describe('database core utils', () => {
 			workerProcessStub.onCall(0).resolves({ stderr: null });
 			workerProcessStub.onCall(1).resolves({ stderr: 'pg_ctl failed to stop' });
 
-			return expect(
-				stopDatabase('dummy/path', NETWORK.MAINNET),
-			).to.rejectedWith('[-] Postgresql failed to stop.');
+			return expect(stopDatabase('dummy/path', NETWORK.MAINNET)).to.rejectedWith(
+				'[-] Postgresql failed to stop.',
+			);
 		});
 	});
 
@@ -151,9 +147,7 @@ describe('database core utils', () => {
 				stderr: 'failed to create user',
 			});
 
-			return expect(
-				createUser('dummy/path', NETWORK.MAINNET, 'test'),
-			).to.rejectedWith(
+			return expect(createUser('dummy/path', NETWORK.MAINNET, 'test')).to.rejectedWith(
 				'[-] Failed to create Postgresql user.: \n\n failed to create user',
 			);
 		});
@@ -162,9 +156,7 @@ describe('database core utils', () => {
 			workerProcessStub.resolves({ stdout: '' });
 
 			const result = await createUser('dummy/path', NETWORK.MAINNET, 'test');
-			return expect(result).to.equal(
-				'[+] Postgresql user created successfully.',
-			);
+			return expect(result).to.equal('[+] Postgresql user created successfully.');
 		});
 	});
 
@@ -181,9 +173,7 @@ describe('database core utils', () => {
 				stderr: 'failed to create database',
 			});
 
-			return expect(
-				createDatabase('dummy/path', NETWORK.MAINNET, 'test'),
-			).to.rejectedWith(
+			return expect(createDatabase('dummy/path', NETWORK.MAINNET, 'test')).to.rejectedWith(
 				'[-] Failed to create Postgresql database.: \n\n failed to create database',
 			);
 		});
@@ -191,14 +181,8 @@ describe('database core utils', () => {
 		it('should create user successfully ', async () => {
 			workerProcessStub.resolves({ stdout: '' });
 
-			const result = await createDatabase(
-				'dummy/path',
-				NETWORK.MAINNET,
-				'test',
-			);
-			return expect(result).to.equal(
-				'[+] Postgresql database created successfully.',
-			);
+			const result = await createDatabase('dummy/path', NETWORK.MAINNET, 'test');
+			return expect(result).to.equal('[+] Postgresql database created successfully.');
 		});
 	});
 
@@ -213,15 +197,8 @@ describe('database core utils', () => {
 			workerProcessStub.resolves({ stderr: 'failed to restore' });
 
 			return expect(
-				restoreSnapshot(
-					'/install/dir',
-					NETWORK.MAINNET,
-					'snapshot/path',
-					'test',
-				),
-			).to.be.rejectedWith(
-				'[-] Failed to restore blockchain.: \n\n failed to restore',
-			);
+				restoreSnapshot('/install/dir', NETWORK.MAINNET, 'snapshot/path', 'test'),
+			).to.be.rejectedWith('[-] Failed to restore blockchain.: \n\n failed to restore');
 		});
 
 		it('should create user successfully', async () => {

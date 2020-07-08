@@ -19,10 +19,7 @@ export const writeString = (value: string): Buffer => {
 	return writeBytes(stringBuffer);
 };
 
-export const readString = (
-	buffer: Buffer,
-	offset: number,
-): [string, number] => {
+export const readString = (buffer: Buffer, offset: number): [string, number] => {
 	const [value, size] = readBytes(buffer, offset);
 	return [value.toString('utf8'), size];
 };

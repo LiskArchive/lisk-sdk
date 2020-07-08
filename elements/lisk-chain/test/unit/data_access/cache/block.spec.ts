@@ -63,9 +63,7 @@ describe('data_access.cache.block', () => {
 			expect(blocksCache.getByHeight(minHeight)).toEqual(lowestHeightBlock);
 
 			blocksCache.add(newBlock);
-			const [newMinHeightBlock] = blocks.filter(
-				b => b.height === minHeight + 1,
-			);
+			const [newMinHeightBlock] = blocks.filter(b => b.height === minHeight + 1);
 
 			expect(blocksCache.getByHeight(minHeight)).toBeUndefined();
 			expect(blocksCache.getByHeight(minHeight + 1)).toEqual(newMinHeightBlock);
@@ -84,9 +82,7 @@ describe('data_access.cache.block', () => {
 
 			expect(() => {
 				blocksCache.add(newBlock);
-			}).toThrow(
-				'Block header with height 510 can only be added, instead received height 11',
-			);
+			}).toThrow('Block header with height 510 can only be added, instead received height 11');
 		});
 	});
 
@@ -136,9 +132,7 @@ describe('data_access.cache.block', () => {
 			const blockIds = blocks.map(b => b.id);
 
 			expect(blocksCache.items).toStrictEqual(blocks);
-			expect(
-				blocksCache.getByIDs([...blockIds, Buffer.from('111111')]),
-			).toBeEmpty();
+			expect(blocksCache.getByIDs([...blockIds, Buffer.from('111111')])).toBeEmpty();
 		});
 
 		it('should return all the blocks for given block ids', () => {
@@ -177,9 +171,7 @@ describe('data_access.cache.block', () => {
 			const toHeight = heights.length;
 
 			expect(blocksCache.items).toStrictEqual(blocks);
-			expect(
-				blocksCache.getByHeightBetween(fromHeight, toHeight),
-			).toStrictEqual(blocks.reverse());
+			expect(blocksCache.getByHeightBetween(fromHeight, toHeight)).toStrictEqual(blocks.reverse());
 		});
 	});
 });

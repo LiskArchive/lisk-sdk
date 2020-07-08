@@ -48,10 +48,7 @@ interface RPCPeerListResponse {
 const IPV4_NUMBER = '4';
 const IPV6_NUMBER = '6';
 
-const validateNetworkCompatibility = (
-	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PNodeInfo,
-): boolean => {
+const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeInfo): boolean => {
 	if (!peerInfo.sharedState) {
 		return false;
 	}
@@ -60,10 +57,10 @@ const validateNetworkCompatibility = (
 		return false;
 	}
 
-	return (peerInfo.sharedState.networkId as string) === nodeInfo.networkId;
+	return peerInfo.sharedState.networkId === nodeInfo.networkId;
 };
 
-const validateProtocolVersionCompatibility = (
+const validateNetworkVersionCompatibility = (
 	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
@@ -71,15 +68,12 @@ const validateProtocolVersionCompatibility = (
 		return false;
 	}
 
-	if (typeof peerInfo.sharedState.protocolVersion !== 'string') {
+	if (typeof peerInfo.sharedState.networkVersion !== 'string') {
 		return false;
 	}
 
-	const peerHardForks = parseInt(
-		peerInfo.sharedState.protocolVersion.split('.')[0],
-		10,
-	);
-	const systemHardForks = parseInt(nodeInfo.protocolVersion.split('.')[0], 10);
+	const peerHardForks = parseInt(peerInfo.sharedState.networkVersion.split('.')[0], 10);
+	const systemHardForks = parseInt(nodeInfo.networkVersion.split('.')[0], 10);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };
@@ -95,7 +89,7 @@ export const validatePeerCompatibility = (
 		};
 	}
 
-	if (!validateProtocolVersionCompatibility(peerInfo, nodeInfo)) {
+	if (!validateNetworkVersionCompatibility(peerInfo, nodeInfo)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -107,14 +101,10 @@ export const validatePeerCompatibility = (
 	};
 };
 
-export const validatePeerAddress = (
-	ipAddress: string,
-	wsPort: number,
-): boolean => {
+export const validatePeerAddress = (ipAddress: string, port: number): boolean => {
 	if (
-		(!validator.isIP(ipAddress, IPV4_NUMBER) &&
-			!validator.isIP(ipAddress, IPV6_NUMBER)) ||
-		!validator.isPort(wsPort.toString())
+		(!validator.isIP(ipAddress, IPV4_NUMBER) && !validator.isIP(ipAddress, IPV6_NUMBER)) ||
+		!validator.isPort(port.toString())
 	) {
 		return false;
 	}
@@ -132,11 +122,11 @@ export const validatePeerInfo = (
 
 	if (
 		!peerInfo.ipAddress ||
-		!peerInfo.wsPort ||
-		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
+		!peerInfo.port ||
+		!validatePeerAddress(peerInfo.ipAddress, peerInfo.port)
 	) {
 		throw new InvalidPeerInfoError(
-			`Invalid peer ipAddress or port for peer with ip: ${peerInfo.ipAddress} and wsPort ${peerInfo.wsPort}`,
+			`Invalid peer ipAddress or port for peer with ip: ${peerInfo.ipAddress} and port ${peerInfo.port}`,
 		);
 	}
 
@@ -150,10 +140,7 @@ export const validatePeerInfo = (
 	return peerInfo;
 };
 
-export const validateNodeInfo = (
-	nodeInfo: P2PNodeInfo,
-	maxByteSize: number,
-): void => {
+export const validateNodeInfo = (nodeInfo: Buffer, maxByteSize: number): void => {
 	const byteSize = getByteSize(nodeInfo);
 
 	if (byteSize > maxByteSize) {

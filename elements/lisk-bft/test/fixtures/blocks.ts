@@ -23,9 +23,7 @@ type DeepPartial<T> = T extends Buffer
 	? { [P in keyof T]?: DeepPartial<T[P]> }
 	: T;
 
-export const createFakeBlockHeader = (
-	header?: DeepPartial<BlockHeader>,
-): BlockHeader => ({
+export const createFakeBlockHeader = (header?: DeepPartial<BlockHeader>): BlockHeader => ({
 	id: header?.id ?? hash(getRandomBytes(8)),
 	version: 2,
 	timestamp: header?.timestamp ?? 32578370,

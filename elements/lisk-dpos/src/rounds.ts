@@ -23,11 +23,7 @@ export class Rounds {
 	public readonly initRound: number;
 	private readonly _genesisHeight: number;
 
-	public constructor({
-		blocksPerRound,
-		genesisBlockHeight,
-		initRound,
-	}: RoundConstructor) {
+	public constructor({ blocksPerRound, genesisBlockHeight, initRound }: RoundConstructor) {
 		this.blocksPerRound = blocksPerRound;
 		this._genesisHeight = genesisBlockHeight;
 		this.initRound = initRound;
@@ -54,8 +50,6 @@ export class Rounds {
 	}
 
 	public calcRoundMiddleHeight(round: number): number {
-		return Math.floor(
-			(this.calcRoundStartHeight(round) + this.calcRoundEndHeight(round)) / 2,
-		);
+		return Math.floor((this.calcRoundStartHeight(round) + this.calcRoundEndHeight(round)) / 2);
 	}
 }

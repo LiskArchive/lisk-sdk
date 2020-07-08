@@ -45,23 +45,11 @@ describe.skip('transaction:create:transfer', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(
-				config,
-				'getConfig',
-				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
-			.stub(
-				transactions,
-				'transfer',
-				sandbox.stub().returns(defaultTransaction),
-			)
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: { network: 'test' } }))
+			.stub(transactions, 'transfer', sandbox.stub().returns(defaultTransaction))
 			.stub(transactions, 'utils', transactionUtilStub)
 			.stub(validator, 'validateAddress', sandbox.stub().returns(true))
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stdout();
 
 	describe('transaction:create:transfer', () => {
@@ -84,27 +72,12 @@ describe.skip('transaction:create:transfer', () => {
 
 	describe('transaction:create:transfer amount address', () => {
 		setupTest()
-			.command([
-				'transaction:create:transfer',
-				'1',
-				'100',
-				defaultAmount,
-				defaultAddress,
-			])
+			.command(['transaction:create:transfer', '1', '100', defaultAmount, defaultAddress])
 			.it('should create a transfer transaction', () => {
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultAddress,
-				);
-				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
-					defaultAmount,
-				);
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				expect(validator.validateAddress).to.be.calledWithExactly(defaultAddress);
+				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(defaultAmount);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -119,20 +92,11 @@ describe.skip('transaction:create:transfer', () => {
 				'--data=Testing lisk transaction data.',
 			])
 			.it('should create a transfer transaction', () => {
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultAddress,
-				);
-				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
-					defaultAmount,
-				);
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(validator.validateAddress).to.be.calledWithExactly(defaultAddress);
+				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(defaultAmount);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -147,16 +111,10 @@ describe.skip('transaction:create:transfer', () => {
 				'--no-signature',
 			])
 			.it('should create a transfer transaction without signature', () => {
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultAddress,
-				);
-				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
-					defaultAmount,
-				);
+				expect(validator.validateAddress).to.be.calledWithExactly(defaultAddress);
+				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(defaultAmount);
 				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -171,16 +129,10 @@ describe.skip('transaction:create:transfer', () => {
 				'--passphrase=123',
 			])
 			.it('should create a transfer transaction', () => {
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultAddress,
-				);
-				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
-					defaultAmount,
-				);
+				expect(validator.validateAddress).to.be.calledWithExactly(defaultAddress);
+				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(defaultAmount);
 				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 });

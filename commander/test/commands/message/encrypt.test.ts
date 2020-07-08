@@ -45,11 +45,7 @@ describe('message:encrypt', () => {
 				'encryptMessageWithPassphrase',
 				sandbox.stub().returns(defaultEncryptedMessage),
 			)
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stub(readerUtils, 'readFileSource', sandbox.stub().resolves(defaultData))
 			.stdout();
 
@@ -73,20 +69,11 @@ describe('message:encrypt', () => {
 
 	describe('message:encrypt recipientPublicKey message', () => {
 		setupTest()
-			.command([
-				'message:encrypt',
-				defaultRecipientPublicKey.toString('hex'),
-				message,
-			])
+			.command(['message:encrypt', defaultRecipientPublicKey.toString('hex'), message])
 			.it('should encrypt the message with the arg', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				expect(readerUtils.readFileSource).not.to.be.called;
-				expect(
-					cryptography.encryptMessageWithPassphrase,
-				).to.be.calledWithExactly(
+				expect(cryptography.encryptMessageWithPassphrase).to.be.calledWithExactly(
 					message,
 					defaultInputs,
 					defaultRecipientPublicKey,
@@ -105,29 +92,19 @@ describe('message:encrypt', () => {
 				defaultRecipientPublicKey.toString('hex'),
 				'--message=file:./message.txt',
 			])
-			.it(
-				'should encrypt the message with the arg and the message flag',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-						'passphrase',
-						true,
-					);
-					expect(readerUtils.readFileSource).to.be.calledWithExactly(
-						'file:./message.txt',
-					);
-					expect(
-						cryptography.encryptMessageWithPassphrase,
-					).to.be.calledWithExactly(
-						defaultData,
-						defaultInputs,
-						defaultRecipientPublicKey,
-					);
-					return expect(printMethodStub).to.be.calledWithExactly({
-						...defaultEncryptedMessage,
-						recipientPublicKey: defaultRecipientPublicKey.toString('hex'),
-					});
-				},
-			);
+			.it('should encrypt the message with the arg and the message flag', () => {
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				expect(readerUtils.readFileSource).to.be.calledWithExactly('file:./message.txt');
+				expect(cryptography.encryptMessageWithPassphrase).to.be.calledWithExactly(
+					defaultData,
+					defaultInputs,
+					defaultRecipientPublicKey,
+				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					...defaultEncryptedMessage,
+					recipientPublicKey: defaultRecipientPublicKey.toString('hex'),
+				});
+			});
 	});
 
 	describe('message:encrypt recipientPublicKey --message=file:./message.txt --passphrase=card earn shift valley learn scorpion cage select help title control satoshi', () => {
@@ -138,27 +115,18 @@ describe('message:encrypt', () => {
 				'--message=file:./message.txt',
 				'--passphrase=card earn shift valley learn scorpion cage select help title control satoshi',
 			])
-			.it(
-				'should encrypt the message with the arg and the message flag',
-				() => {
-					expect(
-						readerUtils.getPassphraseFromPrompt,
-					).not.to.be.calledWithExactly('passphrase', true);
-					expect(readerUtils.readFileSource).to.be.calledWithExactly(
-						'file:./message.txt',
-					);
-					expect(
-						cryptography.encryptMessageWithPassphrase,
-					).to.be.calledWithExactly(
-						defaultData,
-						defaultInputs,
-						defaultRecipientPublicKey,
-					);
-					return expect(printMethodStub).to.be.calledWithExactly({
-						...defaultEncryptedMessage,
-						recipientPublicKey: defaultRecipientPublicKey.toString('hex'),
-					});
-				},
-			);
+			.it('should encrypt the message with the arg and the message flag', () => {
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWithExactly('passphrase', true);
+				expect(readerUtils.readFileSource).to.be.calledWithExactly('file:./message.txt');
+				expect(cryptography.encryptMessageWithPassphrase).to.be.calledWithExactly(
+					defaultData,
+					defaultInputs,
+					defaultRecipientPublicKey,
+				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					...defaultEncryptedMessage,
+					recipientPublicKey: defaultRecipientPublicKey.toString('hex'),
+				});
+			});
 	});
 });

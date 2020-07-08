@@ -90,13 +90,7 @@ export class VoteTransaction extends BaseTransaction {
 			} else if (vote.amount < BigInt(0)) {
 				downvoteCount += 1;
 			} else {
-				errors.push(
-					new TransactionError(
-						'Amount cannot be 0',
-						this.id,
-						'.asset.votes.amount',
-					),
-				);
+				errors.push(new TransactionError('Amount cannot be 0', this.id, '.asset.votes.amount'));
 			}
 			if (vote.amount % TEN_UNIT !== BigInt(0)) {
 				errors.push(
@@ -144,9 +138,7 @@ export class VoteTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected async applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
+	protected async applyAsset(store: StateStore): Promise<ReadonlyArray<TransactionError>> {
 		// Only order should be change, so no need to copy object itself
 		const assetCopy = [...this.asset.votes];
 		// Sort by ascending amount
@@ -165,9 +157,7 @@ export class VoteTransaction extends BaseTransaction {
 
 		for (const vote of assetCopy) {
 			const sender = await store.account.get<AccountAsset>(this.senderId);
-			const votedDelegate = await store.account.getOrDefault<AccountAsset>(
-				vote.delegateAddress,
-			);
+			const votedDelegate = await store.account.getOrDefault<AccountAsset>(vote.delegateAddress);
 
 			if (votedDelegate.asset.delegate.username === '') {
 				errors.push(
@@ -181,8 +171,8 @@ export class VoteTransaction extends BaseTransaction {
 				continue;
 			}
 			if (vote.amount < BigInt(0)) {
-				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
-					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
+				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(senderVote =>
+					senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				if (originalUpvoteIndex < 0) {
 					errors.push(
@@ -208,8 +198,7 @@ export class VoteTransaction extends BaseTransaction {
 				// Delete entry when amount becomes 0
 				if (sender.asset.sentVotes[originalUpvoteIndex].amount === BigInt(0)) {
 					sender.asset.sentVotes = sender.asset.sentVotes.filter(
-						senderVote =>
-							!senderVote.delegateAddress.equals(vote.delegateAddress),
+						senderVote => !senderVote.delegateAddress.equals(vote.delegateAddress),
 					);
 				}
 				// Create unlocking object
@@ -233,13 +222,11 @@ export class VoteTransaction extends BaseTransaction {
 				}
 			} else {
 				// Upvote amount case
-				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
-					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
+				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(senderVote =>
+					senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				const index =
-					originalUpvoteIndex > -1
-						? originalUpvoteIndex
-						: sender.asset.sentVotes.length;
+					originalUpvoteIndex > -1 ? originalUpvoteIndex : sender.asset.sentVotes.length;
 				const upvote =
 					originalUpvoteIndex > -1
 						? sender.asset.sentVotes[originalUpvoteIndex]
@@ -262,9 +249,7 @@ export class VoteTransaction extends BaseTransaction {
 				sender.balance -= vote.amount;
 				sender.asset.sentVotes[index] = upvote;
 				// Sort account.votes
-				sender.asset.sentVotes.sort((a, b) =>
-					a.delegateAddress.compare(b.delegateAddress),
-				);
+				sender.asset.sentVotes.sort((a, b) => a.delegateAddress.compare(b.delegateAddress));
 				if (sender.asset.sentVotes.length > MAX_VOTE) {
 					errors.push(
 						new TransactionError(
@@ -277,9 +262,7 @@ export class VoteTransaction extends BaseTransaction {
 			}
 			store.account.set(sender.address, sender);
 			// In case of self-vote, sender needs to be set and re-fetched to reflect both account change
-			const delegate = await store.account.get<AccountAsset>(
-				vote.delegateAddress,
-			);
+			const delegate = await store.account.get<AccountAsset>(vote.delegateAddress);
 			delegate.asset.delegate.totalVotesReceived += vote.amount;
 			store.account.set(delegate.address, delegate);
 		}

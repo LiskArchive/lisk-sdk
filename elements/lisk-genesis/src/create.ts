@@ -49,10 +49,7 @@ const getBlockId = <T>(
 ): Buffer => {
 	// eslint-disable-next-line
 	const genesisBlockAssetBuffer = codec.encode(
-		getHeaderAssetSchemaWithAccountAsset(
-			genesisBlockHeaderAssetSchema,
-			accountAssetSchema,
-		),
+		getHeaderAssetSchemaWithAccountAsset(genesisBlockHeaderAssetSchema, accountAssetSchema),
 		header.asset,
 	);
 
@@ -72,12 +69,8 @@ const createAccount = <T>(
 	nonce: account.nonce ?? BigInt(0),
 	keys: account.keys
 		? {
-				mandatoryKeys: [
-					...account.keys.mandatoryKeys.sort((a, b) => a.compare(b)),
-				],
-				optionalKeys: [
-					...account.keys.optionalKeys.sort((a, b) => a.compare(b)),
-				],
+				mandatoryKeys: [...account.keys.mandatoryKeys.sort((a, b) => a.compare(b))],
+				optionalKeys: [...account.keys.optionalKeys.sort((a, b) => a.compare(b))],
 				numberOfSignatures: account.keys.numberOfSignatures,
 		  }
 		: {
@@ -96,8 +89,7 @@ export const createGenesisBlock = <T = DefaultAccountAsset>(
 	const height = params.height ?? 0;
 	const timestamp = params.timestamp ?? Math.floor(Date.now() / 1000);
 	const previousBlockID = params.previousBlockID ?? Buffer.from(EMPTY_BUFFER);
-	const accountAssetSchema =
-		params.accountAssetSchema ?? defaultAccountAssetSchema;
+	const accountAssetSchema = params.accountAssetSchema ?? defaultAccountAssetSchema;
 
 	// Constant values
 	const version = GENESIS_BLOCK_VERSION;
@@ -111,9 +103,9 @@ export const createGenesisBlock = <T = DefaultAccountAsset>(
 		.map(createAccount)
 		.sort((a, b): number => a.address.compare(b.address));
 
-	const initDelegates: ReadonlyArray<Buffer> = [
-		...params.initDelegates,
-	].sort((a, b): number => a.compare(b));
+	const initDelegates: ReadonlyArray<Buffer> = [...params.initDelegates].sort((a, b): number =>
+		a.compare(b),
+	);
 
 	const header: GenesisBlockHeaderWithoutId<T> = {
 		generatorPublicKey,

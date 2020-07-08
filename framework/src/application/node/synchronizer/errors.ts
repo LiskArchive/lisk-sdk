@@ -40,9 +40,7 @@ export class ApplyPenaltyAndRestartError extends SynchronizerError {
 	public peerId: string;
 
 	public constructor(peerId: string, reason: string) {
-		super(
-			`Apply penalty and restart synchronization mechanism with reason: ${reason}`,
-		);
+		super(`Apply penalty and restart synchronization mechanism with reason: ${reason}`);
 		this.reason = reason;
 		this.peerId = peerId;
 	}
@@ -53,9 +51,7 @@ export class ApplyPenaltyAndAbortError extends SynchronizerError {
 	public peerId: string;
 
 	public constructor(peerId: string, reason: string) {
-		super(
-			`Apply penalty and abort synchronization mechanism with reason: ${reason}`,
-		);
+		super(`Apply penalty and abort synchronization mechanism with reason: ${reason}`);
 		this.reason = reason;
 		this.peerId = peerId;
 	}

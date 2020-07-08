@@ -45,11 +45,8 @@ class LiskValidator {
 			type: 'array',
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			compile: () => (data: ReadonlyArray<string>) =>
-				new Set(
-					data
-						.filter(datum => typeof datum === 'string')
-						.map((key: string) => key.slice(1)),
-				).size === data.length,
+				new Set(data.filter(datum => typeof datum === 'string').map((key: string) => key.slice(1)))
+					.size === data.length,
 		});
 
 		this._validator.addMetaSchema(liskMetaSchema);
@@ -93,9 +90,7 @@ class LiskValidator {
 		}
 	}
 
-	public removeSchema(
-		schemaKeyRef?: object | string | RegExp | boolean,
-	): Ajv.Ajv {
+	public removeSchema(schemaKeyRef?: object | string | RegExp | boolean): Ajv.Ajv {
 		return this._validator.removeSchema(schemaKeyRef);
 	}
 }

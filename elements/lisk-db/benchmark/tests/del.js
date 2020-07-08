@@ -29,7 +29,7 @@ const delSuite = async (ldb, rdb, { key, value }) => {
 		.on('cycle', event => {
 			console.log(String(event.target));
 		})
-		.on('complete', async function() {
+		.on('complete', async function () {
 			console.log('Fastest is ' + this.filter('fastest').map('name'));
 			await ldb.clear();
 			await rdb.clear();

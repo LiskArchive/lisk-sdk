@@ -21,9 +21,7 @@ export class CommonBlockError extends Error {
 	}
 }
 
-export const convertErrorsToString = (
-	errors?: string | Error | ReadonlyArray<Error>,
-): string => {
+export const convertErrorsToString = (errors?: string | Error | ReadonlyArray<Error>): string => {
 	if (Array.isArray(errors) && errors.length > 0) {
 		return errors
 			.filter((e: Error) => e instanceof Error)

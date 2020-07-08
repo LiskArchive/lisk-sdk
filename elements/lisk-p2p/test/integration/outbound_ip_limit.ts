@@ -26,12 +26,11 @@ describe('Outbound IP limit', () => {
 
 	beforeAll(() => {
 		const serverSocketPrototype = SCServerSocket.prototype as any;
-		const realResetPongTimeoutFunction =
-			serverSocketPrototype._resetPongTimeout;
+		const realResetPongTimeoutFunction = serverSocketPrototype._resetPongTimeout;
 		// eslint-disable-next-line func-names
 		serverSocketPrototype._resetPongTimeout = function () {
 			const queryObject = url.parse(this.request.url, true).query as any;
-			const ipSuffix = queryObject.wsPort - 5000;
+			const ipSuffix = queryObject.port - 5000;
 			// eslint-disable-next-line no-bitwise
 			this.remoteAddress = `127.0.0.${~~(ipSuffix / 2) + 1}`;
 			// eslint-disable-next-line prefer-rest-params
@@ -45,7 +44,7 @@ describe('Outbound IP limit', () => {
 				? [
 						{
 							ipAddress: '127.0.0.1',
-							wsPort: startPort,
+							port: startPort,
 						},
 				  ]
 				: [];
@@ -80,9 +79,7 @@ describe('Outbound IP limit', () => {
 	it('should not have multiple Outbound connection for same IP addresses', () => {
 		for (const p2p of p2pNodeList) {
 			const uniqIpAddresses: Array<string> = [];
-			p2p['_peerPool']
-				.getPeers(OutboundPeer)
-				.map(peer => uniqIpAddresses.push(peer.ipAddress));
+			p2p['_peerPool'].getPeers(OutboundPeer).map(peer => uniqIpAddresses.push(peer.ipAddress));
 
 			expect([...new Set(uniqIpAddresses)]).toHaveLength(
 				p2p['_peerPool'].getPeers(OutboundPeer).length,

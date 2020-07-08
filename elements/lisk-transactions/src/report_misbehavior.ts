@@ -64,9 +64,7 @@ const convertHeader = (header: BlockHeaderJSON): BlockHeader => ({
 	...header,
 	id: hexToBuffer(header.id),
 	reward: BigInt(header.reward),
-	previousBlockID: header.previousBlockID
-		? hexToBuffer(header.previousBlockID)
-		: Buffer.from(''),
+	previousBlockID: header.previousBlockID ? hexToBuffer(header.previousBlockID) : Buffer.from(''),
 	signature: hexToBuffer(header.signature),
 	generatorPublicKey: hexToBuffer(header.generatorPublicKey),
 	transactionRoot: hexToBuffer(header.transactionRoot),
@@ -76,9 +74,7 @@ const convertHeader = (header: BlockHeaderJSON): BlockHeader => ({
 	},
 });
 
-export const reportMisbehavior = (
-	inputs: ReportMisbehaviorInputs,
-): Partial<TransactionJSON> => {
+export const reportMisbehavior = (inputs: ReportMisbehaviorInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { passphrase, header1, header2 } = inputs;
 	const networkIdentifier = hexToBuffer(inputs.networkIdentifier);

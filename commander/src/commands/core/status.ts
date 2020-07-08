@@ -66,15 +66,7 @@ export default class StatusCommand extends BaseCommand {
 						'Lisk Core instances not available, Please install using lisk core:install --help',
 				});
 			} else {
-				const toDisplay = [
-					'name',
-					'status',
-					'network',
-					'version',
-					'started_at',
-					'cpu',
-					'memory',
-				];
+				const toDisplay = ['name', 'status', 'network', 'version', 'started_at', 'cpu', 'memory'];
 				const filtered = instances.map(instance =>
 					Object.keys(instance).reduce(
 						(newObj, key) =>

@@ -19,11 +19,7 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import {
-	getPassphraseFromPrompt,
-	isFileSource,
-	readFileSource,
-} from '../../utils/reader';
+import { getPassphraseFromPrompt, isFileSource, readFileSource } from '../../utils/reader';
 
 interface Args {
 	readonly message?: string;
@@ -69,8 +65,7 @@ export default class SignCommand extends BaseCommand {
 			throw new ValidationError('No message was provided.');
 		}
 
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const dataFromSource =
 			messageSource && isFileSource(messageSource)
 				? await readFileSource(messageSource)

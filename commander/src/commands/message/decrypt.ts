@@ -19,11 +19,7 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import {
-	getPassphraseFromPrompt,
-	isFileSource,
-	readFileSource,
-} from '../../utils/reader';
+import { getPassphraseFromPrompt, isFileSource, readFileSource } from '../../utils/reader';
 
 interface Args {
 	readonly message?: string;
@@ -92,19 +88,13 @@ export default class DecryptCommand extends BaseCommand {
 			throw new ValidationError('No message was provided.');
 		}
 
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase'));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase'));
 		const dataFromSource =
 			messageSource && isFileSource(messageSource)
 				? await readFileSource(messageSource)
 				: messageSource;
 
-		const result = processInputs(
-			nonce,
-			senderPublicKey,
-			passphrase,
-			message ?? dataFromSource,
-		);
+		const result = processInputs(nonce, senderPublicKey, passphrase, message ?? dataFromSource);
 		this.print({ message: result });
 	}
 }

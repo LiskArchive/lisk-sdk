@@ -13,11 +13,7 @@
  *
  */
 import { P2P, events } from '../../src/index';
-import {
-	createNetwork,
-	destroyNetwork,
-	SEED_PEER_IP,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork, SEED_PEER_IP } from '../utils/network_setup';
 import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
 
@@ -42,18 +38,17 @@ describe('penalty sending malformed Peer List', () => {
 			for (let i = 0; i < 1000; i += 1) {
 				const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${
 					Math.floor(Math.random() * 254) + 1
-				}.${Math.floor(Math.random() * 254) + 1}.${
-					Math.floor(Math.random() * 254) + 1
-				}`;
+				}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}`;
 
 				p2pNodeList[0]['_peerBook'].addPeer({
 					peerId: `${generatedIP}:5000`,
 					ipAddress: generatedIP,
-					wsPort: 1000,
+					port: 1000,
 					sharedState: {
-						height: 0,
-						protocolVersion: '1.1',
-						version: '1.1',
+						networkVersion: '1.1',
+						networkId: '',
+						nonce: '',
+						options: {},
 					},
 				});
 			}
@@ -71,12 +66,13 @@ describe('penalty sending malformed Peer List', () => {
 
 		it('should ban the emitter', () => {
 			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
-				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
+				constructPeerId(SEED_PEER_IP, p2pNodeList[0].config.port),
 			);
 		});
 	});
 
-	describe('When PeerBook contain malformed peerInfo', () => {
+	// No longer valid as no custom fields are allowed
+	describe.skip('When PeerBook contain malformed peerInfo', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
 
@@ -84,15 +80,18 @@ describe('penalty sending malformed Peer List', () => {
 			p2pNodeList = await createNetwork({
 				networkSize: 2,
 				networkDiscoveryWaitTime: 1,
+				customConfig: () => ({}),
 			});
 
 			p2pNodeList[0]['_peerBook'].addPeer({
 				peerId: "'1.1.1.1:1000",
 				ipAddress: '1.1.1.1',
-				wsPort: 1000,
+				port: 1000,
 				sharedState: {
-					version: '1.1',
-					protocolVersion: '1.'.repeat(13000),
+					networkVersion: '1.'.repeat(13000),
+					networkId: '',
+					nonce: '',
+					options: { networkVersion: '1.'.repeat(13000) },
 				},
 			});
 
@@ -109,7 +108,7 @@ describe('penalty sending malformed Peer List', () => {
 
 		it('should ban the emitter', () => {
 			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
-				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
+				constructPeerId(SEED_PEER_IP, p2pNodeList[0].config.port),
 			);
 		});
 	});

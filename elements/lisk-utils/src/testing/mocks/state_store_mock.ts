@@ -81,9 +81,7 @@ export class StateStoreMock {
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (address: Buffer): Promise<Account> => {
-				const account = this.accountData.find(acc =>
-					acc.address.equals(address),
-				);
+				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
 					throw new Error('Account not defined');
 				}
@@ -91,18 +89,14 @@ export class StateStoreMock {
 			},
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getOrDefault: async (address: Buffer): Promise<Account> => {
-				const account = this.accountData.find(acc =>
-					acc.address.equals(address),
-				);
+				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
 					return cloneDeep({ ...this._defaultAccount, address });
 				}
 				return cloneDeep(account);
 			},
 			set: (address: Buffer, account: Account): void => {
-				const index = this.accountData.findIndex(acc =>
-					acc.address.equals(address),
-				);
+				const index = this.accountData.findIndex(acc => acc.address.equals(address));
 				if (index > -1) {
 					this.accountData[index] = account;
 					return;
@@ -113,10 +107,7 @@ export class StateStoreMock {
 
 		this.chain = {
 			networkIdentifier: networkIdentifier ?? defaultNetworkIdentifier,
-			lastBlockHeader:
-				lastBlockHeaders && lastBlockHeaders.length > 0
-					? lastBlockHeaders[0]
-					: {},
+			lastBlockHeader: lastBlockHeaders && lastBlockHeaders.length > 0 ? lastBlockHeaders[0] : {},
 			lastBlockReward: lastBlockReward ?? BigInt(0),
 			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(cloneDeep(this.chainData[key])),

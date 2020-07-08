@@ -15,10 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
-import {
-	DelegateTransaction,
-	DelegateAsset,
-} from '../src/10_delegate_transaction';
+import { DelegateTransaction, DelegateAsset } from '../src/10_delegate_transaction';
 import { validDelegateAccount } from '../fixtures';
 import * as fixtures from '../fixtures/transaction_network_id_and_change_order/delegate_transaction_validate.json';
 import { Account, BlockHeader, AccountAsset } from '../src/types';
@@ -110,9 +107,7 @@ describe('Delegate registration transaction class', () => {
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
 			await (validTestTransaction as any).applyAsset(store);
-			expect(store.account.get).toHaveBeenCalledWith(
-				validTestTransaction.senderId,
-			);
+			expect(store.account.get).toHaveBeenCalledWith(validTestTransaction.senderId);
 			expect(store.account.set).toHaveBeenCalledWith(sender.address, {
 				...sender,
 				asset: {
@@ -126,10 +121,7 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should return no errors', async () => {
-			store.account.set(
-				sender.address,
-				defaultAccount({ address: sender.address }),
-			);
+			store.account.set(sender.address, defaultAccount({ address: sender.address }));
 			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(0);
 		});
@@ -206,17 +198,10 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should set lastForgedHeight to the lastBlock height + 1', async () => {
-			store.account.set(
-				sender.address,
-				defaultAccount({ address: sender.address }),
-			);
+			store.account.set(sender.address, defaultAccount({ address: sender.address }));
 			await (validTestTransaction as any).applyAsset(store);
-			const updatedSender = await store.account.get<AccountAsset>(
-				sender.address,
-			);
-			expect(updatedSender.asset.delegate.lastForgedHeight).toEqual(
-				lastBlockHeight + 1,
-			);
+			const updatedSender = await store.account.get<AccountAsset>(sender.address);
+			expect(updatedSender.asset.delegate.lastForgedHeight).toEqual(lastBlockHeight + 1);
 		});
 	});
 });

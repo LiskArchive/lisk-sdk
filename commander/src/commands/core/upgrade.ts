@@ -60,8 +60,7 @@ export default class UpgradeCommand extends BaseCommand {
 		},
 	];
 
-	static description =
-		'Upgrade an instance of Lisk Core to a specified or latest version.';
+	static description = 'Upgrade an instance of Lisk Core to a specified or latest version.';
 
 	static examples = [
 		'core:upgrade lisk-mainnet',
@@ -89,10 +88,7 @@ export default class UpgradeCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(UpgradeCommand);
 		const { name } = args as Args;
-		const {
-			'lisk-version': liskVersion,
-			'release-url': releaseUrl,
-		} = flags as Flags;
+		const { 'lisk-version': liskVersion, 'release-url': releaseUrl } = flags as Flags;
 		const instance = await describeApplication(name);
 
 		if (!instance) {
@@ -103,11 +99,7 @@ export default class UpgradeCommand extends BaseCommand {
 
 		const { installationPath, network, version: currentVersion } = instance;
 
-		const upgradeVersion: string = await getVersionToInstall(
-			network,
-			liskVersion,
-			releaseUrl,
-		);
+		const upgradeVersion: string = await getVersionToInstall(network, liskVersion, releaseUrl);
 		const { cacheDir } = this.config;
 		// TODO: Commander not creating cache directory
 		// This is a patch to handle the scenario
@@ -129,11 +121,7 @@ export default class UpgradeCommand extends BaseCommand {
 			{
 				title: `Download Lisk Core: ${upgradeVersion} for upgrade`,
 				task: async () => {
-					const { liskTarUrl } = await getReleaseInfo(
-						releaseUrl,
-						network,
-						upgradeVersion,
-					);
+					const { liskTarUrl } = await getReleaseInfo(releaseUrl, network, upgradeVersion);
 					await downloadAndValidate(liskTarUrl, cacheDir);
 				},
 			},
@@ -162,15 +150,8 @@ export default class UpgradeCommand extends BaseCommand {
 							title: `Install Lisk Core: ${upgradeVersion}`,
 							task: async () => {
 								fsExtra.ensureDirSync(installationPath);
-								const { liskTarUrl } = await getReleaseInfo(
-									releaseUrl,
-									network,
-									upgradeVersion,
-								);
-								const { fileDir, fileName } = getDownloadedFileInfo(
-									liskTarUrl,
-									cacheDir,
-								);
+								const { liskTarUrl } = await getReleaseInfo(releaseUrl, network, upgradeVersion);
+								const { fileDir, fileName } = getDownloadedFileInfo(liskTarUrl, cacheDir);
 
 								await extract(fileDir, fileName, installationPath);
 							},

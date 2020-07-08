@@ -78,7 +78,7 @@ describe('Connection Create', () => {
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
 			expect(payload).toMatchObject({
-				wsPort: secondNode.nodeInfo.wsPort,
+				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
@@ -88,7 +88,7 @@ describe('Connection Create', () => {
 			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
 			expect(payload).toMatchObject({
-				wsPort: firstNode.nodeInfo.wsPort,
+				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
@@ -98,7 +98,7 @@ describe('Connection Create', () => {
 			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
 			expect(payload).toMatchObject({
-				wsPort: firstNode.nodeInfo.wsPort,
+				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
@@ -108,7 +108,7 @@ describe('Connection Create', () => {
 			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
 			expect(payload).toMatchObject({
-				wsPort: secondNode.nodeInfo.wsPort,
+				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
@@ -131,12 +131,7 @@ describe('Connection Create', () => {
 					index === 1
 						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
 						: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				version: '1.0.1',
-				protocolVersion: index === 2 ? '1.1' : 'BAD',
-				minVersion: '1.0.0',
-				os: 'darwin',
-				height: 0,
-				httpPort: 0,
+				networkVersion: index === 2 ? '1.1' : 'BAD',
 				nonce: `O2wTkjqplHII500${index}`,
 			});
 
@@ -145,7 +140,7 @@ describe('Connection Create', () => {
 				seedPeers: [
 					{
 						ipAddress: SEED_PEER_IP,
-						wsPort: NETWORK_START_PORT,
+						port: NETWORK_START_PORT,
 					},
 				],
 			});
@@ -169,12 +164,8 @@ describe('Connection Create', () => {
 		});
 
 		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, () => {
-			expect(collectedErrors).toEqual(
-				expect.arrayContaining([INVALID_CONNECTION_SELF_REASON]),
-			);
-			expect(collectedErrors).toEqual(
-				expect.arrayContaining([INCOMPATIBLE_NETWORK_REASON]),
-			);
+			expect(collectedErrors).toEqual(expect.arrayContaining([INVALID_CONNECTION_SELF_REASON]));
+			expect(collectedErrors).toEqual(expect.arrayContaining([INCOMPATIBLE_NETWORK_REASON]));
 			expect(collectedErrors).toEqual(
 				expect.arrayContaining([INCOMPATIBLE_PROTOCOL_VERSION_REASON]),
 			);

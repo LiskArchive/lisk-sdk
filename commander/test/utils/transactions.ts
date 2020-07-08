@@ -23,17 +23,12 @@ describe('transactions utils', () => {
 			'{"amount":"10000000000","recipientId":"100L","senderPublicKey":"a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd","timestamp":73074942,"type":0,"fee":"10000000","recipientPublicKey":null,"asset":{},"signature":"304d375ea6230eaf222da6041d8553be5214ef6e399869e686e970eb5c3d9642217e68494c778c9c7f77c11cc1cb0b92df4bd4fa25e0149e2009a225369ffc01","id":"10769065659474020955"}';
 
 		it('should parse transaction string into a object', () => {
-			return expect(parseTransactionString(validTransactionString)).to.be.an(
-				'object',
-			);
+			return expect(parseTransactionString(validTransactionString)).to.be.an('object');
 		});
 
 		it('should throw a validation error when the input is not valid JSON format', () => {
 			return expect(
-				parseTransactionString.bind(
-					null,
-					'{"amount":"10000000000","recipientId":"100L"',
-				),
+				parseTransactionString.bind(null, '{"amount":"10000000000","recipientId":"100L"'),
 			).to.throw(ValidationError, 'Could not parse transaction JSON.');
 		});
 

@@ -43,10 +43,7 @@ export const createApplication = async (
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
 
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
-	await Promise.race([
-		app.run(),
-		new Promise(resolve => setTimeout(resolve, 3000)),
-	]);
+	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
 	await new Promise(resolve => {
 		app['_channel'].subscribe('app:block:new', () => {
 			if (app['_node']['_chain'].lastBlock.header.height === 2) {
@@ -65,8 +62,7 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	await app.shutdown();
 };
 
-export const getPeerID = (app: Application): string =>
-	`127.0.0.1:${app.config.network.wsPort}`;
+export const getPeerID = (app: Application): string => `127.0.0.1:${app.config.network.wsPort}`;
 
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	const height = app['_node']['_chain'].lastBlock.header.height + n;
@@ -79,12 +75,10 @@ export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	});
 };
 
-export const sendTransaction = async (
-	app: Application,
-): Promise<TransferTransaction> => {
-	const genesisAccount = await app['_node'][
-		'_chain'
-	].dataAccess.getAccountByAddress(genesis.address);
+export const sendTransaction = async (app: Application): Promise<TransferTransaction> => {
+	const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress(
+		genesis.address,
+	);
 	const accountWithoutBalance = nodeUtils.createAccount();
 	const fundingTx = new TransferTransaction({
 		nonce: genesisAccount.nonce,

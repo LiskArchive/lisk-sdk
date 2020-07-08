@@ -42,9 +42,7 @@ const defaultTransactions: { readonly [key: number]: any } = {
 	12: MultisignatureTransaction,
 };
 
-export const instantiateTransaction = (
-	data: TransactionJSON,
-): BaseTransaction => {
+export const instantiateTransaction = (data: TransactionJSON): BaseTransaction => {
 	if (data.type === undefined || data.type === null) {
 		throw new Error('Invalid transaction without type');
 	}

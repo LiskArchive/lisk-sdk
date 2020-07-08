@@ -114,21 +114,8 @@ export const stateDiffSchema = {
 						fieldNumber: 1,
 					},
 					value: {
-						type: 'array',
+						dataType: 'bytes',
 						fieldNumber: 2,
-						items: {
-							type: 'object',
-							properties: {
-								code: {
-									dataType: 'string',
-									fieldNumber: 1,
-								},
-								line: {
-									dataType: 'uint32',
-									fieldNumber: 2,
-								},
-							},
-						},
 					},
 				},
 			},

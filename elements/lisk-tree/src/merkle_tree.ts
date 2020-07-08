@@ -25,12 +25,7 @@ import {
 	BRANCH_PREFIX,
 } from './constants';
 import { NodeData, NodeInfo, NodeType, NodeSide, Proof } from './types';
-import {
-	generateHash,
-	getBinaryString,
-	isLeaf,
-	getPairLocation,
-} from './utils';
+import { generateHash, getBinaryString, isLeaf, getPairLocation } from './utils';
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -47,9 +42,7 @@ export class MerkleTree {
 				: { hash: EMPTY_HASH, value: Buffer.alloc(0) };
 			this._root = rootNode.hash;
 			this._hashToValueMap[this._root.toString('binary')] = rootNode.value;
-			this._locationToHashMap[
-				`${getBinaryString(0, this._getHeight())}`
-			] = this._root;
+			this._locationToHashMap[`${getBinaryString(0, this._getHeight())}`] = this._root;
 			this._width = initValues.length ? 1 : 0;
 			return;
 		}
@@ -65,22 +58,16 @@ export class MerkleTree {
 		const value = this._hashToValueMap[nodeHash.toString('binary')];
 
 		if (!value) {
-			throw new Error(
-				`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`,
-			);
+			throw new Error(`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`);
 		}
 
 		const type = isLeaf(value) ? NodeType.LEAF : NodeType.BRANCH;
-		const layerIndex =
-			type === NodeType.LEAF ? 0 : value.readInt8(BRANCH_PREFIX.length);
+		const layerIndex = type === NodeType.LEAF ? 0 : value.readInt8(BRANCH_PREFIX.length);
 		const nodeIndex =
 			type === NodeType.BRANCH
 				? value.readInt32BE(BRANCH_PREFIX.length + LAYER_INDEX_SIZE)
 				: value.readInt32BE(LEAF_PREFIX.length);
-		const rightHash =
-			type === NodeType.BRANCH
-				? value.slice(-1 * NODE_HASH_SIZE)
-				: Buffer.alloc(0);
+		const rightHash = type === NodeType.BRANCH ? value.slice(-1 * NODE_HASH_SIZE) : Buffer.alloc(0);
 		const leftHash =
 			type === NodeType.BRANCH
 				? value.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE)
@@ -224,10 +211,7 @@ export class MerkleTree {
 				});
 
 				const pairNodeHash = this._locationToHashMap[
-					`${getBinaryString(
-						pairNodeIndex,
-						this._getHeight() - pairLayerIndex,
-					)}`
+					`${getBinaryString(pairNodeIndex, this._getHeight() - pairLayerIndex)}`
 				] as Buffer;
 				if (!addedPath.has(pairNodeHash)) {
 					addedPath.add(pairNodeHash);
@@ -237,15 +221,9 @@ export class MerkleTree {
 						nodeIndex: pairNodeIndex,
 					});
 				}
-				const leftHashBuffer =
-					pairSide === NodeSide.LEFT ? pairNodeHash : currentNode.hash;
-				const rightHashBuffer =
-					pairSide === NodeSide.RIGHT ? pairNodeHash : currentNode.hash;
-				const parentNodeHash = generateHash(
-					BRANCH_PREFIX,
-					leftHashBuffer,
-					rightHashBuffer,
-				);
+				const leftHashBuffer = pairSide === NodeSide.LEFT ? pairNodeHash : currentNode.hash;
+				const rightHashBuffer = pairSide === NodeSide.RIGHT ? pairNodeHash : currentNode.hash;
+				const parentNodeHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);
 				currentNode = this.getNode(parentNodeHash);
 			}
 		}
@@ -273,9 +251,7 @@ export class MerkleTree {
 	public getData(): NodeInfo[] {
 		return this._width === 0
 			? []
-			: Object.keys(this._hashToValueMap).map(key =>
-					this.getNode(Buffer.from(key, 'binary')),
-			  );
+			: Object.keys(this._hashToValueMap).map(key => this.getNode(Buffer.from(key, 'binary')));
 	}
 
 	private _getHeight(): number {
@@ -297,9 +273,7 @@ export class MerkleTree {
 			LEAF_PREFIX.length + nodeIndexBuffer.length + value.length,
 		);
 		this._hashToValueMap[leafHash.toString('binary')] = leafValueWithNodeIndex;
-		this._locationToHashMap[
-			`${getBinaryString(nodeIndex, this._getHeight())}`
-		] = leafHash;
+		this._locationToHashMap[`${getBinaryString(nodeIndex, this._getHeight())}`] = leafHash;
 
 		return {
 			value: leafValueWithNodeIndex,
@@ -319,24 +293,14 @@ export class MerkleTree {
 		nodeIndexBuffer.writeInt32BE(nodeIndex, 0);
 
 		const branchValue = Buffer.concat(
-			[
-				BRANCH_PREFIX,
-				layerIndexBuffer,
-				nodeIndexBuffer,
-				leftHashBuffer,
-				rightHashBuffer,
-			],
+			[BRANCH_PREFIX, layerIndexBuffer, nodeIndexBuffer, leftHashBuffer, rightHashBuffer],
 			BRANCH_PREFIX.length +
 				layerIndexBuffer.length +
 				nodeIndexBuffer.length +
 				leftHashBuffer.length +
 				rightHashBuffer.length,
 		);
-		const branchHash = generateHash(
-			BRANCH_PREFIX,
-			leftHashBuffer,
-			rightHashBuffer,
-		);
+		const branchHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);
 		this._hashToValueMap[branchHash.toString('binary')] = branchValue;
 		this._locationToHashMap[
 			`${getBinaryString(nodeIndex, this._getHeight() - layerIndex)}`
@@ -361,10 +325,7 @@ export class MerkleTree {
 		let currentLayerHashes = leafHashes;
 		let orphanNodeHashInPreviousLayer: Buffer | undefined;
 		// Loop through each layer as long as there are nodes or an orphan node from previous layer
-		while (
-			currentLayerHashes.length > 1 ||
-			orphanNodeHashInPreviousLayer !== undefined
-		) {
+		while (currentLayerHashes.length > 1 || orphanNodeHashInPreviousLayer !== undefined) {
 			const pairsOfHashes: Array<[Buffer, Buffer]> = [];
 
 			// Make pairs from the current layer nodes
@@ -376,8 +337,7 @@ export class MerkleTree {
 			if (currentLayerHashes.length % 2 === 1) {
 				// If no orphan node left from previous layer, set the last node to new orphan node
 				if (orphanNodeHashInPreviousLayer === undefined) {
-					orphanNodeHashInPreviousLayer =
-						currentLayerHashes[currentLayerHashes.length - 1];
+					orphanNodeHashInPreviousLayer = currentLayerHashes[currentLayerHashes.length - 1];
 
 					// If one orphan node left from previous layer then pair with last node
 				} else {
@@ -394,12 +354,7 @@ export class MerkleTree {
 			for (let i = 0; i < pairsOfHashes.length; i += 1) {
 				const leftHash = pairsOfHashes[i][0];
 				const rightHash = pairsOfHashes[i][1];
-				const node = this._generateBranch(
-					leftHash,
-					rightHash,
-					currentLayerIndex + 1,
-					i,
-				);
+				const node = this._generateBranch(leftHash, rightHash, currentLayerIndex + 1, i);
 
 				parentLayerHashes.push(node.hash);
 			}

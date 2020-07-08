@@ -23,8 +23,7 @@ const codec = new Codec();
 
 const accounts = [
 	{
-		passphrase:
-			'wear protect skill sentence lift enter wild sting lottery power floor neglect',
+		passphrase: 'wear protect skill sentence lift enter wild sting lottery power floor neglect',
 		privateKey: Buffer.from(
 			'8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 			'hex',
@@ -37,8 +36,7 @@ const accounts = [
 		nonce: BigInt(2),
 	},
 	{
-		passphrase:
-			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
+		passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
 		privateKey: Buffer.from(
 			'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 			'hex',
@@ -51,8 +49,7 @@ const accounts = [
 		nonce: BigInt(2),
 	},
 	{
-		passphrase:
-			'better across runway mansion jar route valid crack panic favorite smooth sword',
+		passphrase: 'better across runway mansion jar route valid crack panic favorite smooth sword',
 		privateKey: Buffer.from(
 			'de1520f8589408e76a97643ba7d27f20009b06899816c8af20f9b03f4a4bd8a66766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
 			'hex',
@@ -65,8 +62,7 @@ const accounts = [
 		nonce: BigInt(2),
 	},
 	{
-		passphrase:
-			'mirror swap middle hunt angle furnace maid scheme amazing box bachelor debris',
+		passphrase: 'mirror swap middle hunt angle furnace maid scheme amazing box bachelor debris',
 		privateKey: Buffer.from(
 			'ad7462eb8f682b0c3424213ead044381ba0007bb65ce26287fc308027c871d951387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972',
 			'hex',
@@ -125,10 +121,7 @@ const generateValidTransferTransaction = () => {
 	const signingBytes = codec.encode(baseTransactionSchema, signingTx);
 
 	const signature = Buffer.from(
-		signData(
-			Buffer.concat([networkIdentifier, signingBytes]),
-			accounts[0].passphrase,
-		),
+		signData(Buffer.concat([networkIdentifier, signingBytes]), accounts[0].passphrase),
 		'hex',
 	);
 
@@ -176,10 +169,7 @@ const generateValidDelegateTransaction = () => {
 	const signingBytes = codec.encode(baseTransactionSchema, signingTx);
 
 	const signature = Buffer.from(
-		signData(
-			Buffer.concat([networkIdentifier, signingBytes]),
-			accounts[0].passphrase,
-		),
+		signData(Buffer.concat([networkIdentifier, signingBytes]), accounts[0].passphrase),
 		'hex',
 	);
 
@@ -225,7 +215,7 @@ const validDelegateSuite = () => ({
 	testCases: [generateValidDelegateTransaction()],
 });
 
-module.exports = BaseGenerator.runGenerator(
-	'transaction_network_id_and_change_order',
-	[validTransferSuite, validDelegateSuite],
-);
+module.exports = BaseGenerator.runGenerator('transaction_network_id_and_change_order', [
+	validTransferSuite,
+	validDelegateSuite,
+]);

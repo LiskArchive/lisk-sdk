@@ -34,9 +34,7 @@ describe('Legacy address', () => {
 
 	describe('#getLegacyAddressAndPublicKeyFromPassphrase', () => {
 		it('should return expected address', () => {
-			expect(
-				getLegacyAddressAndPublicKeyFromPassphrase(defaultPassphrase),
-			).toEqual({
+			expect(getLegacyAddressAndPublicKeyFromPassphrase(defaultPassphrase)).toEqual({
 				address: defaultAddress,
 				publicKey: defaultPublicKey,
 			});
@@ -45,25 +43,19 @@ describe('Legacy address', () => {
 
 	describe('#getLegacyAddressFromPassphrase', () => {
 		it('should return expected address', () => {
-			expect(getLegacyAddressFromPassphrase(defaultPassphrase)).toEqual(
-				defaultAddress,
-			);
+			expect(getLegacyAddressFromPassphrase(defaultPassphrase)).toEqual(defaultAddress);
 		});
 	});
 
 	describe('#getLegacyAddressFromPrivateKey', () => {
 		it('should return expected address', () => {
-			expect(getLegacyAddressFromPrivateKey(defaultPrivateKey)).toEqual(
-				defaultAddress,
-			);
+			expect(getLegacyAddressFromPrivateKey(defaultPrivateKey)).toEqual(defaultAddress);
 		});
 	});
 
 	describe('#getLegacyAddressFromPublicKey', () => {
 		it('should return expected address', () => {
-			expect(getLegacyAddressFromPublicKey(defaultPublicKey)).toEqual(
-				defaultAddress,
-			);
+			expect(getLegacyAddressFromPublicKey(defaultPublicKey)).toEqual(defaultAddress);
 		});
 	});
 });

@@ -60,8 +60,7 @@ export default class ShowCommand extends BaseCommand {
 		const {
 			flags: { passphrase: passphraseSource },
 		} = this.parse(ShowCommand);
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
 		this.print(processInput(passphrase));
 	}

@@ -14,9 +14,7 @@
 // writeBoolean x 3,543,238 ops/sec ±1.59% (89 runs sampled)
 
 const { Suite } = require('benchmark');
-const {
-    codec,
-} = require('../dist-node/codec');
+const { codec } = require('../dist-node/codec');
 
 const suite = new Suite();
 
@@ -76,12 +74,11 @@ const obj = {
 	},
 };
 
-
 suite
-    .add('encode', () => {
-			codec.encode(testSchema, obj);
-    })
-    .on('cycle', function (event) {
-        console.log(String(event.target));
-    })
-    .run({ async: true });
+	.add('encode', () => {
+		codec.encode(testSchema, obj);
+	})
+	.on('cycle', function (event) {
+		console.log(String(event.target));
+	})
+	.run({ async: true });

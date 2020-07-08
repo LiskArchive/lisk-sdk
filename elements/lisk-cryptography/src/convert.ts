@@ -94,8 +94,7 @@ export const stringifyEncryptedPassphrase = (
 };
 
 const parseIterations = (iterationsString?: string): number | undefined => {
-	const iterations =
-		iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
+	const iterations = iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
 
 	if (typeof iterations !== 'undefined' && Number.isNaN(iterations)) {
 		throw new Error('Could not parse iterations.');
@@ -123,9 +122,7 @@ export const parseEncryptedPassphrase = (
 		typeof tag !== 'string' ||
 		typeof version !== 'string'
 	) {
-		throw new Error(
-			'Encrypted passphrase to parse must have only one value per key.',
-		);
+		throw new Error('Encrypted passphrase to parse must have only one value per key.');
 	}
 
 	return {

@@ -26,8 +26,7 @@ describe.skip('transaction:create:multisignature', () => {
 	const nonce = '1';
 	const fee = '0.5';
 	const defaultInputs = '123';
-	const defaultSenderPublicKey =
-		'5674667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164451ca6';
+	const defaultSenderPublicKey = '5674667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164451ca6';
 	const mandatoryKeys = [
 		'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
 		'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
@@ -58,21 +57,9 @@ describe.skip('transaction:create:multisignature', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(
-				config,
-				'getConfig',
-				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
-			.stub(
-				transactions,
-				'registerMultisignature',
-				sandbox.stub().returns(defaultTransaction),
-			)
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: { network: 'test' } }))
+			.stub(transactions, 'registerMultisignature', sandbox.stub().returns(defaultTransaction))
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stdout();
 
 	describe('transaction:create:multisignature', () => {
@@ -97,10 +84,7 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command(['transaction:create:multisignature', nonce, fee])
 			.it('should create a multisignature transaction', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					nonce,
 					fee: '50000000',
@@ -111,9 +95,7 @@ describe.skip('transaction:create:multisignature', () => {
 					optionalKeys: [],
 					passphrases: [],
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -126,10 +108,7 @@ describe.skip('transaction:create:multisignature', () => {
 				`--number-of-signatures=${numberOfSignatures}`,
 			])
 			.it('should create a multisignature transaction', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					nonce,
 					fee: '50000000',
@@ -140,9 +119,7 @@ describe.skip('transaction:create:multisignature', () => {
 					optionalKeys: [],
 					passphrases: [],
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -156,10 +133,7 @@ describe.skip('transaction:create:multisignature', () => {
 				`--mandatory-key=${mandatoryKeys[1]}`,
 			])
 			.it('should create a multisignature transaction', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					nonce,
 					fee: '50000000',
@@ -170,9 +144,7 @@ describe.skip('transaction:create:multisignature', () => {
 					optionalKeys: [],
 					passphrases: [],
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -186,10 +158,7 @@ describe.skip('transaction:create:multisignature', () => {
 				`--optional-key=${optionalKeys[1]}`,
 			])
 			.it('should create a multisignature transaction', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					nonce,
 					fee: '50000000',
@@ -200,9 +169,7 @@ describe.skip('transaction:create:multisignature', () => {
 					optionalKeys,
 					passphrases: [],
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -216,10 +183,7 @@ describe.skip('transaction:create:multisignature', () => {
 				'--member-passphrase=zzz',
 			])
 			.it('should create a multisignature transaction', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					nonce,
 					fee: '50000000',
@@ -230,9 +194,7 @@ describe.skip('transaction:create:multisignature', () => {
 					optionalKeys: [],
 					passphrases: ['yyy', 'zzz'],
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 });

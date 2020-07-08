@@ -13,10 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	registerDelegate,
-	utils as transactionUtils,
-} from '@liskhq/lisk-transactions';
+import { registerDelegate, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
@@ -42,9 +39,7 @@ const processInputs = (
 ) =>
 	registerDelegate({
 		senderPublicKey: passphrase
-			? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey.toString(
-					'hex',
-			  )
+			? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey.toString('hex')
 			: '',
 		nonce,
 		fee,
@@ -116,26 +111,14 @@ export default class DelegateCommand extends BaseCommand {
 		}
 
 		if (noSignature) {
-			const noSignatureResult = processInputs(
-				nonce,
-				normalizedFee,
-				networkIdentifier,
-				username,
-			);
+			const noSignatureResult = processInputs(nonce, normalizedFee, networkIdentifier, username);
 			this.print(noSignatureResult);
 
 			return;
 		}
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
-		const result = processInputs(
-			nonce,
-			normalizedFee,
-			networkIdentifier,
-			username,
-			passphrase,
-		);
+		const result = processInputs(nonce, normalizedFee, networkIdentifier, username, passphrase);
 		this.print(result);
 	}
 }

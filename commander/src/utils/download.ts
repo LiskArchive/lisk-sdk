@@ -20,10 +20,7 @@ import * as tar from 'tar';
 
 import { dateDiff, getDownloadedFileInfo } from './core/commons';
 
-export const verifyChecksum = async (
-	filePath: string,
-	expectedChecksum: string,
-): Promise<void> => {
+export const verifyChecksum = async (filePath: string, expectedChecksum: string): Promise<void> => {
 	const fileStream = fs.createReadStream(filePath);
 
 	const fileBuffer = await new Promise<Buffer>((resolve, reject) => {
@@ -47,18 +44,12 @@ export const verifyChecksum = async (
 	}
 };
 
-export const download = async (
-	url: string,
-	cacheDir: string,
-): Promise<void> => {
+export const download = async (url: string, cacheDir: string): Promise<void> => {
 	const CACHE_EXPIRY_IN_DAYS = 2;
 	const { filePath, fileDir } = getDownloadedFileInfo(url, cacheDir);
 
 	if (fs.existsSync(filePath)) {
-		if (
-			dateDiff(new Date(), fs.statSync(filePath).birthtime) <=
-			CACHE_EXPIRY_IN_DAYS
-		) {
+		if (dateDiff(new Date(), fs.statSync(filePath).birthtime) <= CACHE_EXPIRY_IN_DAYS) {
 			return;
 		}
 		fs.unlinkSync(filePath);
@@ -82,21 +73,14 @@ export const download = async (
 	});
 };
 
-export const extract = async (
-	filePath: string,
-	fileName: string,
-	outDir: string,
-): Promise<void> =>
+export const extract = async (filePath: string, fileName: string, outDir: string): Promise<void> =>
 	tar.x({
 		file: `${filePath}/${fileName}`,
 		cwd: outDir,
 		strip: 1,
 	});
 
-export const downloadAndValidate = async (
-	url: string,
-	cacheDir: string,
-): Promise<void> => {
+export const downloadAndValidate = async (url: string, cacheDir: string): Promise<void> => {
 	await download(url, cacheDir);
 	await download(`${url}.SHA256`, cacheDir);
 

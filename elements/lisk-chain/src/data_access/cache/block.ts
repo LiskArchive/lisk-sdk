@@ -71,9 +71,7 @@ export class BlockCache extends Base<BlockHeader> {
 	}
 
 	public getByIDs(ids: ReadonlyArray<Buffer>): BlockHeader[] {
-		const blocks = this.items.filter(
-			block => ids.find(id => id.equals(block.id)) !== undefined,
-		);
+		const blocks = this.items.filter(block => ids.find(id => id.equals(block.id)) !== undefined);
 
 		if (blocks.length === ids.length) {
 			return blocks.reverse();
@@ -87,9 +85,7 @@ export class BlockCache extends Base<BlockHeader> {
 	}
 
 	public getByHeights(heightList: ReadonlyArray<number>): BlockHeader[] {
-		const blocks = this.items.filter(block =>
-			heightList.includes(block.height),
-		);
+		const blocks = this.items.filter(block => heightList.includes(block.height));
 
 		// Only return results if complete match to avoid inconsistencies
 		if (blocks.length === heightList.length) {
@@ -99,10 +95,7 @@ export class BlockCache extends Base<BlockHeader> {
 		return [];
 	}
 
-	public getByHeightBetween(
-		fromHeight: number,
-		toHeight: number,
-	): BlockHeader[] {
+	public getByHeightBetween(fromHeight: number, toHeight: number): BlockHeader[] {
 		if (
 			toHeight >= fromHeight &&
 			this.items.length &&

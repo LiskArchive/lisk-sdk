@@ -18,11 +18,9 @@ const { codec } = require('../dist-node/codec');
 
 const suite = new Suite();
 
-
 const mandatoryKeys = [...Array(44).keys()].map(() => crypto.randomBytes(32));
 const optionalKeys = [...Array(20).keys()].map(() => crypto.randomBytes(32));
 const signatures = [...Array(65).keys()].map(() => crypto.randomBytes(64));
-
 
 const biggestMultisigTransactionRegistration = {
 	senderPublicKey: Buffer.from(
@@ -94,7 +92,7 @@ suite
 	.add('Decode biggest possible Lisk transaction', () => {
 		codec.decode(testSchema, biggestMultisigTransactionRegistrationEncoded);
 	})
-	.on('cycle', function(event) {
+	.on('cycle', function (event) {
 		console.log(String(event.target));
 	})
 	.run({ async: false });

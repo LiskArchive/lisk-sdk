@@ -111,9 +111,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	// Verifies multisig signatures as per LIP-0017
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verifySignatures(
-		store: StateStore,
-	): Promise<TransactionResponse> {
+	public async verifySignatures(store: StateStore): Promise<TransactionResponse> {
 		const { networkIdentifier } = store.chain;
 		const transactionBytes = this.getSigningBytes();
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
@@ -124,21 +122,14 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const { mandatoryKeys, optionalKeys } = this.asset;
 
 		// For multisig registration we need all signatures to be present
-		if (
-			mandatoryKeys.length + optionalKeys.length + 1 !==
-			this.signatures.length
-		) {
-			return createResponse(this.id, [
-				new TransactionError('There are missing signatures'),
-			]);
+		if (mandatoryKeys.length + optionalKeys.length + 1 !== this.signatures.length) {
+			return createResponse(this.id, [new TransactionError('There are missing signatures')]);
 		}
 
 		// Check if empty signatures are present
 		if (!this.signatures.every(signature => signature.length > 0)) {
 			return createResponse(this.id, [
-				new TransactionError(
-					'A signature is required for each registered key.',
-				),
+				new TransactionError('A signature is required for each registered key.'),
 			]);
 		}
 
@@ -191,14 +182,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 		sortKeysAscending(this.asset.optionalKeys);
 
 		// Sign with sender
-		const { publicKey } = getAddressAndPublicKeyFromPassphrase(
-			senderPassphrase,
-		);
+		const { publicKey } = getAddressAndPublicKeyFromPassphrase(senderPassphrase);
 
 		if (!this.senderPublicKey.equals(publicKey)) {
-			throw new Error(
-				'Transaction senderPublicKey does not match public key from passphrase',
-			);
+			throw new Error('Transaction senderPublicKey does not match public key from passphrase');
 		}
 
 		this.senderPublicKey = publicKey;
@@ -208,9 +195,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			this.getSigningBytes(),
 		]);
 
-		this.signatures.push(
-			signData(transactionWithNetworkIdentifierBytes, senderPassphrase),
-		);
+		this.signatures.push(signData(transactionWithNetworkIdentifierBytes, senderPassphrase));
 
 		// Sign with members
 		if (keys && passphrases) {
@@ -224,9 +209,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (keysAndPassphrases[senderPublicKeyStr]) {
 					const { passphrase } = keysAndPassphrases[senderPublicKeyStr];
-					this.signatures.push(
-						signData(transactionWithNetworkIdentifierBytes, passphrase),
-					);
+					this.signatures.push(signData(transactionWithNetworkIdentifierBytes, passphrase));
 				} else {
 					// Push an empty signature if a passphrase is missing
 					this.signatures.push(Buffer.from(''));
@@ -306,9 +289,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		// Check if keys are repeated between mandatory and optional key sets
 		const repeatedKeys = mandatoryKeys.filter(
-			value =>
-				optionalKeys.find(optional => optional.equals(value as Buffer)) !==
-				undefined,
+			value => optionalKeys.find(optional => optional.equals(value as Buffer)) !== undefined,
 		);
 		if (repeatedKeys.length > 0) {
 			errors.push(
@@ -326,10 +307,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check if the length of mandatory, optional and sender keys matches the length of signatures
-		if (
-			mandatoryKeys.length + optionalKeys.length + 1 !==
-			this.signatures.length
-		) {
+		if (mandatoryKeys.length + optionalKeys.length + 1 !== this.signatures.length) {
 			return [
 				new TransactionError(
 					'The number of mandatory, optional and sender keys should match the number of signatures',
@@ -339,12 +317,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check keys are sorted lexicographically
-		const sortedMandatoryKeys = [...mandatoryKeys].sort((a, b) =>
-			a.compare(b as Buffer),
-		);
-		const sortedOptionalKeys = [...optionalKeys].sort((a, b) =>
-			a.compare(b as Buffer),
-		);
+		const sortedMandatoryKeys = [...mandatoryKeys].sort((a, b) => a.compare(b as Buffer));
+		const sortedOptionalKeys = [...optionalKeys].sort((a, b) => a.compare(b as Buffer));
 		for (let i = 0; i < sortedMandatoryKeys.length; i += 1) {
 			if (!mandatoryKeys[i].equals(sortedMandatoryKeys[i] as Buffer)) {
 				errors.push(
@@ -376,9 +350,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected async applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
+	protected async applyAsset(store: StateStore): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get<AccountAsset>(this.senderId);
 

@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	sanitizeIncomingPeerInfo,
-	sanitizeInitialPeerInfo,
-} from '../../../src/utils';
+import { sanitizeIncomingPeerInfo, sanitizeInitialPeerInfo } from '../../../src/utils';
 import { initPeerInfoList } from '../../utils/peers';
 
 describe('utils/sanitize', () => {
@@ -23,16 +20,20 @@ describe('utils/sanitize', () => {
 		describe('when rawPeerInfo is valid', () => {
 			it('should return the peerInfo with peerId', () => {
 				const samplePeers = initPeerInfoList();
-				const { ipAddress, wsPort, sharedState } = samplePeers[0];
+				const { ipAddress, port, sharedState, peerId } = samplePeers[0];
+				const samplePeerWithoutInternalState = {
+					ipAddress,
+					port,
+					sharedState,
+					peerId,
+				};
 				const protocolPeerInfo = {
 					ipAddress,
-					wsPort,
+					port,
 					...sharedState,
 				};
 
-				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
-					samplePeers[0],
-				);
+				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(samplePeerWithoutInternalState);
 			});
 		});
 		describe('when rawPeerInfo is falsy', () => {
@@ -49,7 +50,7 @@ describe('utils/sanitize', () => {
 	describe('#sanitizeInitialPeerInfo', () => {
 		it('should return only sanitized fields', () => {
 			const samplePeers = initPeerInfoList();
-			const { peerId, ipAddress, wsPort } = samplePeers[0];
+			const { peerId, ipAddress, port } = samplePeers[0];
 
 			const protocolPeerInfo = {
 				...samplePeers[0],
@@ -58,22 +59,26 @@ describe('utils/sanitize', () => {
 			expect(sanitizeInitialPeerInfo(protocolPeerInfo)).toEqual({
 				peerId,
 				ipAddress,
-				wsPort,
+				port,
 			});
 		});
 
 		it('should remove ', () => {
 			const samplePeers = initPeerInfoList();
-			const { ipAddress, wsPort, sharedState } = samplePeers[0];
+			const { ipAddress, port, sharedState, peerId } = samplePeers[0];
+			const samplePeerWithoutInternalState = {
+				ipAddress,
+				port,
+				sharedState,
+				peerId,
+			};
 			const protocolPeerInfo = {
 				ipAddress,
-				wsPort,
+				port,
 				...sharedState,
 			};
 
-			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
-				samplePeers[0],
-			);
+			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(samplePeerWithoutInternalState);
 		});
 	});
 

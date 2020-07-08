@@ -16,10 +16,7 @@ import { groupBy } from 'lodash';
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
-import {
-	BaseSynchronizer,
-	EVENT_SYNCHRONIZER_SYNC_REQUIRED,
-} from './base_synchronizer';
+import { BaseSynchronizer, EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './base_synchronizer';
 import {
 	computeLargestSubsetMaxBy,
 	computeBlockHeightsList,
@@ -40,10 +37,12 @@ import { Network } from '../../network';
 
 interface Peer {
 	readonly peerId: string;
-	readonly maxHeightPrevoted: number;
-	readonly lastBlockId: number;
-	readonly height: number;
-	readonly blockVersion: number;
+	readonly options: {
+		readonly maxHeightPrevoted: number;
+		readonly lastBlockId: number;
+		readonly height: number;
+		readonly blockVersion: number;
+	};
 }
 
 interface BlockSynchronizationMechanismInput {
@@ -85,9 +84,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		try {
 			const bestPeer = await this._computeBestPeer();
 			await this._requestAndValidateLastBlock(bestPeer.peerId);
-			const lastCommonBlock = await this._revertToLastCommonBlock(
-				bestPeer.peerId,
-			);
+			const lastCommonBlock = await this._revertToLastCommonBlock(bestPeer.peerId);
 			await this._requestAndApplyBlocksToCurrentChain(
 				receivedBlock,
 				lastCommonBlock,
@@ -95,11 +92,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndRestartError) {
-				this._applyPenaltyAndRestartSync(
-					error.peerId,
-					receivedBlock,
-					error.reason,
-				);
+				this._applyPenaltyAndRestartSync(error.peerId, receivedBlock, error.reason);
 			}
 
 			if (error instanceof RestartError) {
@@ -109,10 +102,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			}
 
 			if (error instanceof AbortError) {
-				this._logger.info(
-					{ error, reason: error.reason },
-					'Aborting synchronization mechanism',
-				);
+				this._logger.info({ error, reason: error.reason }, 'Aborting synchronization mechanism');
 			}
 
 			throw error; // If the error is none of the mentioned above, throw.
@@ -126,9 +116,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const finalizedBlock = await this._chain.dataAccess.getBlockHeaderByHeight(
 			this.bft.finalizedHeight,
 		);
-		const finalizedBlockSlot = this._chain.slots.getSlotNumber(
-			finalizedBlock.timestamp,
-		);
+		const finalizedBlockSlot = this._chain.slots.getSlotNumber(finalizedBlock.timestamp);
 		const currentBlockSlot = this._chain.slots.getSlotNumber();
 		const threeRounds = this.dpos.delegatesPerRound * 3;
 
@@ -208,9 +196,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		// If the list of blocks has not been fully applied
 		this._logger.debug('Failed to apply obtained blocks from peer');
 		const tempBlocks = await this._chain.dataAccess.getTempBlocks();
-		const [tipBeforeApplying] = [...tempBlocks].sort(
-			(a, b) => b.header.height - a.header.height,
-		);
+		const [tipBeforeApplying] = [...tempBlocks].sort((a, b) => b.header.height - a.header.height);
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!tipBeforeApplying) {
@@ -235,10 +221,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
 			);
 			try {
-				this._logger.debug(
-					{ height: lastCommonBlock.height },
-					'Deleting blocks after height',
-				);
+				this._logger.debug({ height: lastCommonBlock.height }, 'Deleting blocks after height');
 				await deleteBlocksAfterHeight(
 					this.processorModule,
 					this._chain,
@@ -275,9 +258,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		this._logger.info('Restarting block synchronization');
 
-		throw new RestartError(
-			'The list of blocks has not been fully applied. Trying again',
-		);
+		throw new RestartError('The list of blocks has not been fully applied. Trying again');
 	}
 
 	private async _requestAndApplyBlocksToCurrentChain(
@@ -316,24 +297,15 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		this._logger.debug('Cleaning up blocks temporary table');
 		await clearBlocksTempTable(this._chain);
 
-		this._logger.debug(
-			{ peerId },
-			'Successfully requested and applied blocks from peer',
-		);
+		this._logger.debug({ peerId }, 'Successfully requested and applied blocks from peer');
 
 		return true;
 	}
 
 	private async _revertToLastCommonBlock(peerId: string): Promise<BlockHeader> {
-		this._logger.debug(
-			{ peerId },
-			'Reverting chain to the last common block with peer',
-		);
+		this._logger.debug({ peerId }, 'Reverting chain to the last common block with peer');
 
-		this._logger.debug(
-			{ peerId },
-			'Requesting the last common block from peer',
-		);
+		this._logger.debug({ peerId }, 'Requesting the last common block from peer');
 		const lastCommonBlock = await this._requestLastCommonBlock(peerId);
 
 		if (!lastCommonBlock) {
@@ -387,17 +359,13 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
 	 */
-	private async _requestLastCommonBlock(
-		peerId: string,
-	): Promise<BlockHeader | undefined> {
+	private async _requestLastCommonBlock(peerId: string): Promise<BlockHeader | undefined> {
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
 		const requestLimit = 3; // Maximum number of requests to be made to the remote peer
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = this.dpos.rounds.calcRound(
-			this._chain.lastBlock.header.height,
-		); // Holds the current round number
+		let currentRound = this.dpos.rounds.calcRound(this._chain.lastBlock.header.height); // Holds the current round number
 		let currentHeight = currentRound * this.dpos.delegatesPerRound;
 
 		while (
@@ -412,9 +380,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				currentRound,
 			);
 
-			const blockHeaders = await this._chain.dataAccess.getBlockHeadersWithHeights(
-				heightList,
-			);
+			const blockHeaders = await this._chain.dataAccess.getBlockHeadersWithHeights(heightList);
 
 			let data: BlockHeader | undefined;
 
@@ -459,9 +425,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Received tip of the chain from peer',
 		);
 
-		const { valid: validBlock } = await this._blockDetachedStatus(
-			networkLastBlock,
-		);
+		const { valid: validBlock } = await this._blockDetachedStatus(networkLastBlock);
 
 		const forkStatus = await this.processorModule.forkStatus(networkLastBlock);
 
@@ -508,15 +472,12 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			throw new Error('List of connected peers is empty');
 		}
 
-		this._logger.trace(
-			{ peers: peers.map(peer => peer.peerId) },
-			'List of connected peers',
-		);
+		this._logger.trace({ peers: peers.map(peer => peer.peerId) }, 'List of connected peers');
 
 		// TODO: Move this to validator
 		const requiredProps = ['blockVersion', 'maxHeightPrevoted', 'height'];
 		const compatiblePeers = peers.filter(p =>
-			requiredProps.every(prop => Object.keys(p).includes(prop)),
+			requiredProps.every(prop => Object.keys(p.options).includes(prop)),
 		);
 
 		if (!compatiblePeers.length) {
@@ -531,19 +492,16 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		// Largest subset of peers with largest maxHeightPrevoted
 		const largestSubsetBymaxHeightPrevoted = computeLargestSubsetMaxBy(
 			compatiblePeers,
-			peer => peer.maxHeightPrevoted,
+			peer => peer.options.maxHeightPrevoted,
 		);
 		// Largest subset of peers with largest height
 		const largestSubsetByHeight = computeLargestSubsetMaxBy(
 			largestSubsetBymaxHeightPrevoted,
-			peer => peer.height,
+			peer => peer.options.height,
 		);
 		// Group peers by their block Id
 		// Output: {{'lastBlockId':[peers], 'anotherBlockId': [peers]}
-		const peersGroupedByBlockId = groupBy(
-			largestSubsetByHeight,
-			peer => peer.lastBlockId,
-		);
+		const peersGroupedByBlockId = groupBy(largestSubsetByHeight, peer => peer.options.lastBlockId);
 
 		const blockIds = Object.keys(peersGroupedByBlockId);
 		let maxNumberOfPeersInSet = 0;
@@ -556,8 +514,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			const numberOfPeersInSet = peersByBlockId.length;
 			if (
 				numberOfPeersInSet > maxNumberOfPeersInSet ||
-				(numberOfPeersInSet === maxNumberOfPeersInSet &&
-					blockId < selectedBlockId)
+				(numberOfPeersInSet === maxNumberOfPeersInSet && blockId < selectedBlockId)
 			) {
 				maxNumberOfPeersInSet = numberOfPeersInSet;
 				selectedPeers = peersByBlockId;
@@ -569,11 +526,11 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const randomPeerIndex = Math.floor(Math.random() * selectedPeers.length);
 		const peersTip = {
 			id: Buffer.alloc(0),
-			height: selectedPeers[randomPeerIndex].height,
-			version: selectedPeers[randomPeerIndex].blockVersion,
+			height: selectedPeers[randomPeerIndex].options.height,
+			version: selectedPeers[randomPeerIndex].options.blockVersion,
 			previousBlockID: Buffer.alloc(0),
 			asset: {
-				maxHeightPrevoted: selectedPeers[randomPeerIndex].maxHeightPrevoted,
+				maxHeightPrevoted: selectedPeers[randomPeerIndex].options.maxHeightPrevoted,
 			},
 		};
 
@@ -590,13 +547,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		}
 
-		const bestPeer =
-			selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
+		const bestPeer = selectedPeers[Math.floor(Math.random() * selectedPeers.length)];
 
-		this._logger.debug(
-			{ peer: bestPeer },
-			'Successfully computed the best peer',
-		);
+		this._logger.debug({ peer: bestPeer }, 'Successfully computed the best peer');
 
 		return bestPeer;
 	}

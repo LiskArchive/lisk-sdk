@@ -39,13 +39,9 @@ const commonHeaders: HashMap = {
 const getClientHeaders = (clientOptions: ClientOptions): HashMap => {
 	const { name = '????', version = '????', engine = '????' } = clientOptions;
 
-	const liskElementsInformation =
-		'LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements)';
+	const liskElementsInformation = 'LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements)';
 	const locale: string | undefined =
-		process.env.LC_ALL ??
-		process.env.LC_MESSAGES ??
-		process.env.LANG ??
-		process.env.LANGUAGE;
+		process.env.LC_ALL ?? process.env.LC_MESSAGES ?? process.env.LANG ?? process.env.LANGUAGE;
 	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
@@ -77,10 +73,7 @@ export class APIClient {
 	public voters: VotersResource;
 	public votes: VotesResource;
 
-	public constructor(
-		nodes: ReadonlyArray<string>,
-		providedOptions: InitOptions = {},
-	) {
+	public constructor(nodes: ReadonlyArray<string>, providedOptions: InitOptions = {}) {
 		this.initialize(nodes, providedOptions);
 		this.accounts = new AccountsResource(this);
 		this.blocks = new BlocksResource(this);
@@ -135,9 +128,7 @@ export class APIClient {
 	}
 
 	public getNewNode(): string {
-		const nodes = this.nodes.filter(
-			(node: string): boolean => !this.isBanned(node),
-		);
+		const nodes = this.nodes.filter((node: string): boolean => !this.isBanned(node));
 
 		if (nodes.length === 0) {
 			throw new Error('Cannot get new node: all nodes have been banned.');
@@ -152,18 +143,13 @@ export class APIClient {
 		return this.nodes.some((node: string): boolean => !this.isBanned(node));
 	}
 
-	public initialize(
-		nodes: ReadonlyArray<string>,
-		providedOptions: InitOptions = {},
-	): void {
+	public initialize(nodes: ReadonlyArray<string>, providedOptions: InitOptions = {}): void {
 		if (!Array.isArray(nodes) || nodes.length <= 0) {
 			throw new Error('APIClient requires nodes for initialization.');
 		}
 
 		if (typeof providedOptions !== 'object' || Array.isArray(providedOptions)) {
-			throw new Error(
-				'APIClient takes an optional object as the second parameter.',
-			);
+			throw new Error('APIClient takes an optional object as the second parameter.');
 		}
 
 		const options: InitOptions = { ...defaultOptions, ...providedOptions };

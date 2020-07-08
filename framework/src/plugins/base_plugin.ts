@@ -55,15 +55,39 @@ interface TransactionJSON {
 	readonly asset: object;
 }
 
+interface AccountJSON {
+	address: string;
+	balance: string;
+	nonce: string;
+	keys: {
+		numberOfSignatures: number;
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+	};
+	asset: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: string;
+		};
+		sentVotes: { delegateAddress: string; amount: string }[];
+		unlocking: {
+			delegateAddress: string;
+			amount: string;
+			unvoteHeight: number;
+		}[];
+	};
+}
+
 const decodeTransactionToJSON = (
 	transactionBuffer: Buffer,
 	baseSchema: Schema,
 	assetsSchemas: { [key: number]: Schema },
 ): TransactionJSON => {
-	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(
-		baseSchema,
-		transactionBuffer,
-	);
+	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(baseSchema, transactionBuffer);
 
 	const transactionTypeAssetSchema = assetsSchemas[baseTransaction.type];
 
@@ -110,9 +134,18 @@ const encodeTransactionFromJSON = (
 	return transactionBuffer.toString('base64');
 };
 
+const decodeAccountToJSON = (encodedAccount: Buffer, accountSchema: Schema): AccountJSON => {
+	const decodedAccount = codec.decodeJSON<AccountJSON>(accountSchema, encodedAccount);
+
+	return {
+		...decodedAccount,
+	};
+};
+
 export interface PluginCodec {
 	decodeTransaction: (data: Buffer | string) => TransactionJSON;
 	encodeTransaction: (transaction: TransactionJSON) => string;
+	decodeAccount: (data: Buffer | string) => AccountJSON;
 }
 
 export abstract class BasePlugin {
@@ -151,6 +184,11 @@ export abstract class BasePlugin {
 					this.schemas.baseTransaction,
 					this.schemas.transactionsAssets,
 				),
+			decodeAccount: (data: Buffer | string) => {
+				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
+
+				return decodeAccountToJSON(accountBuffer, this.schemas.account);
+			},
 		};
 	}
 

@@ -22,10 +22,7 @@ import cloneDeep = require('lodash.clonedeep');
 
 const { EVENT_CLOSE_OUTBOUND } = events;
 
-const {
-	INTENTIONAL_DISCONNECT_CODE,
-	SEED_PEER_DISCONNECTION_REASON,
-} = constants;
+const { INTENTIONAL_DISCONNECT_CODE, SEED_PEER_DISCONNECTION_REASON } = constants;
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
@@ -33,10 +30,8 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 	const previousPeers = [
 		{
 			ipAddress: '127.0.0.15',
-			wsPort: NETWORK_START_PORT + 5,
-			height: 10,
-			version: '1.0',
-			protocolVersion: '1.0',
+			port: NETWORK_START_PORT + 5,
+			networkVersion: '1.0',
 			number: undefined,
 		},
 	];
@@ -44,12 +39,11 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 	beforeAll(() => {
 		const serverSocketPrototype = SCServerSocket.prototype as any;
-		const realResetPongTimeoutFunction =
-			serverSocketPrototype._resetPongTimeout;
+		const realResetPongTimeoutFunction = serverSocketPrototype._resetPongTimeout;
 		// eslint-disable-next-line func-names
 		serverSocketPrototype._resetPongTimeout = function () {
 			const queryObject = url.parse(this.request.url, true).query as any;
-			const ipSuffix = queryObject.wsPort - 5000 + 10;
+			const ipSuffix = queryObject.port - 5000 + 10;
 			this.remoteAddress = `127.0.0.${ipSuffix}`;
 			// eslint-disable-next-line prefer-rest-params
 			return realResetPongTimeoutFunction.apply(this, arguments);
@@ -65,37 +59,29 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		const blacklistedPeers = [
 			{
 				ipAddress: '127.0.0.15',
-				wsPort: NETWORK_START_PORT + 5,
+				port: NETWORK_START_PORT + 5,
 			},
 		];
 		const previousPeersBlacklisted = [
 			{
 				ipAddress: '127.0.0.15',
-				wsPort: NETWORK_START_PORT + 5,
+				port: NETWORK_START_PORT + 5,
 				height: 10,
 				version: '1.0',
-				protocolVersion: '1.0',
+				networkVersion: '1.0',
 				number: undefined,
 			},
 		];
 
 		beforeEach(async () => {
-			const customSeedPeers = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => [
+			const customSeedPeers = (index: number, startPort: number, networkSize: number) => [
 				{
 					ipAddress: `127.0.0.${((index + 1) % networkSize) + 10}`,
-					wsPort: startPort + ((index + 1) % networkSize),
+					port: startPort + ((index + 1) % networkSize),
 				},
 			];
 
-			const customConfig = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => ({
+			const customConfig = (index: number, startPort: number, networkSize: number) => ({
 				hostIp: `127.0.0.${index + 10}`,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 				blacklistedIPs: blacklistedPeers.map(p => p.ipAddress),
@@ -104,7 +90,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				previousPeers: previousPeersBlacklisted,
 			});
 
-			p2pNodeList = await createNetwork({ customConfig });
+			p2pNodeList = await createNetwork({ customConfig, networkSize: 4 });
 		});
 
 		afterEach(async () => {
@@ -117,7 +103,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				const newPeersIPWS = newPeers.map(peer => {
 					return {
 						ipAddress: peer.ipAddress,
-						wsPort: peer.wsPort,
+						port: peer.port,
 					};
 				});
 				expect(newPeersIPWS).not.toEqual(blacklistedPeers);
@@ -130,7 +116,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				const triedPeersIPWS = triedPeers.map(peer => {
 					return {
 						ipAddress: peer.ipAddress,
-						wsPort: peer.wsPort,
+						port: peer.port,
 					};
 				});
 				expect(triedPeersIPWS).not.toEqual(blacklistedPeers);
@@ -142,7 +128,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 					return {
 						ipAddress: peer.ipAddress,
-						wsPort: peer.wsPort,
+						port: peer.port,
 					};
 				});
 				expect(connectedPeersIPWS).not.toEqual(blacklistedPeers);
@@ -152,7 +138,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		it('should isolate the blacklisted peer', () => {
 			for (const p2p of p2pNodeList) {
 				if (
-					(p2p as any)._nodeInfo.wsPort === blacklistedPeers[0].wsPort &&
+					(p2p as any)._nodeInfo.port === blacklistedPeers[0].port &&
 					(p2p as any)._config.hostIp === blacklistedPeers[0].ipAddress
 				) {
 					const connectedPeers = (p2p as any)._peerPool.getConnectedPeers();
@@ -169,34 +155,23 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		const fixedPeers = [
 			{
 				ipAddress: '127.0.0.10',
-				wsPort: NETWORK_START_PORT,
+				port: NETWORK_START_PORT,
 			},
 		];
 		beforeEach(async () => {
-			const customSeedPeers = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => [
+			const customSeedPeers = (index: number, startPort: number, networkSize: number) => [
 				{
 					ipAddress: `127.0.0.${((index + 1) % networkSize) + 10}`,
-					wsPort: startPort + ((index + 1) % networkSize),
+					port: startPort + ((index + 1) % networkSize),
 				},
 			];
 
-			const customConfig = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => ({
+			const customConfig = (index: number, startPort: number, networkSize: number) => ({
 				hostIp: `127.0.0.${index + 10}`,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
-				fixedPeers: [
-					...customSeedPeers(index, startPort, networkSize),
-					...fixedPeers,
-				],
+				fixedPeers: [...customSeedPeers(index, startPort, networkSize), ...fixedPeers],
 				previousPeers,
 			});
 
@@ -229,7 +204,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return {
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							port: peer.port,
 						};
 					});
 					expect(connectedPeersIPWS).toIncludeAllMembers(fixedPeers);
@@ -248,26 +223,18 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		const whitelistedPeers = [
 			{
 				ipAddress: '127.0.0.10',
-				wsPort: NETWORK_START_PORT,
+				port: NETWORK_START_PORT,
 			},
 		];
 		beforeEach(async () => {
-			const customSeedPeers = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => [
+			const customSeedPeers = (index: number, startPort: number, networkSize: number) => [
 				{
 					ipAddress: `127.0.0.${((index + 1) % networkSize) + 10}`,
-					wsPort: startPort + ((index + 1) % networkSize),
+					port: startPort + ((index + 1) % networkSize),
 				},
 			];
 
-			const customConfig = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => ({
+			const customConfig = (index: number, startPort: number, networkSize: number) => ({
 				hostIp: `127.0.0.${index + 10}`,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 				whitelistedPeers,
@@ -288,7 +255,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					const triedPeersIPWS = triedPeers.map(peer => {
 						return {
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							port: peer.port,
 						};
 					});
 					expect(triedPeersIPWS).toIncludeAllMembers(whitelistedPeers);
@@ -298,7 +265,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 		it('should not be possible to ban them', () => {
 			const peerPenalty = {
-				peerId: `${whitelistedPeers[0].ipAddress}:${whitelistedPeers[0].wsPort}`,
+				peerId: `${whitelistedPeers[0].ipAddress}:${whitelistedPeers[0].port}`,
 				penalty: 100,
 			};
 
@@ -308,7 +275,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					const connectedPeersIPWS = p2p.getConnectedPeers().map(peer => {
 						return {
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							port: peer.port,
 						};
 					});
 					expect(connectedPeersIPWS).toIncludeAllMembers(whitelistedPeers);

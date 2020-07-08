@@ -14,23 +14,18 @@
 // writeBoolean x 3,543,238 ops/sec ±1.59% (89 runs sampled)
 
 const { Suite } = require('benchmark');
-const {
-    readBoolean,
-    writeBoolean,
-} = require('../dist-node/boolean');
+const { readBoolean, writeBoolean } = require('../dist-node/boolean');
 
 const suite = new Suite();
 
 suite
-    .add('readBoolean', () => {
-        readBoolean(Buffer.from('01', 'hex'), 0);
-    })
-    .add('writeBoolean', () => {
-        writeBoolean(true);
-    })
-    .on('cycle', function (event) {
-        console.log(String(event.target));
-    })
-    .run({ async: true });
-
-
+	.add('readBoolean', () => {
+		readBoolean(Buffer.from('01', 'hex'), 0);
+	})
+	.add('writeBoolean', () => {
+		writeBoolean(true);
+	})
+	.on('cycle', function (event) {
+		console.log(String(event.target));
+	})
+	.run({ async: true });

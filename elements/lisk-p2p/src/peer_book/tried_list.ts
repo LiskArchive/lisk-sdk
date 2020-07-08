@@ -63,9 +63,7 @@ export class TriedList extends BaseList {
 
 		if ((numOfConnectionFailures as number) + 1 >= this._maxReconnectTries) {
 			const removedFromBucket = bucket.delete(incomingPeerId);
-			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(
-				incomingPeerId,
-			);
+			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(incomingPeerId);
 
 			return removedFromBucket && removedFromPeerLookup;
 		}

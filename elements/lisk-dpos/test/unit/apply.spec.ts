@@ -14,24 +14,11 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	voteWeightsSchema,
-	forgerListSchema,
-	delegatesUserNamesSchema,
-} from '../../src/schemas';
+import { voteWeightsSchema, forgerListSchema, delegatesUserNamesSchema } from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
-import {
-	Account,
-	BlockHeader,
-	DecodedVoteWeights,
-	DecodedForgersList,
-} from '../../src/types';
-import {
-	BLOCK_TIME,
-	ACTIVE_DELEGATES,
-	STANDBY_DELEGATES,
-} from '../fixtures/constants';
+import { Account, BlockHeader, DecodedVoteWeights, DecodedForgersList } from '../../src/types';
+import { BLOCK_TIME, ACTIVE_DELEGATES, STANDBY_DELEGATES } from '../fixtures/constants';
 import {
 	getDelegateAccounts,
 	getDelegateAccountsWithVotesReceived,
@@ -45,14 +32,10 @@ import { StateStoreMock } from '../utils/state_store_mock';
 import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
-const GENESIS_BLOCK_TIMESTAMP =
-	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
+const GENESIS_BLOCK_TIMESTAMP = new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 describe('dpos.apply()', () => {
-	const {
-		accounts: delegateAccounts,
-		publicKeyMap,
-	} = getDelegateAccountsWithVotesReceived(
+	const { accounts: delegateAccounts, publicKeyMap } = getDelegateAccountsWithVotesReceived(
 		ACTIVE_DELEGATES + STANDBY_DELEGATES,
 	);
 	const defaultLastBlockHeader = { timestamp: 12300 } as BlockHeader;
@@ -62,9 +45,7 @@ describe('dpos.apply()', () => {
 	let stateStore: StateStoreMock;
 	const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 	const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
-	const initDelegates = delegateAddresses.map(addr =>
-		Buffer.from(addr, 'base64'),
-	);
+	const initDelegates = delegateAddresses.map(addr => Buffer.from(addr, 'base64'));
 
 	beforeEach(() => {
 		// Arrange
@@ -94,9 +75,7 @@ describe('dpos.apply()', () => {
 			{ lastBlockHeaders: [defaultLastBlockHeader] },
 		);
 
-		jest
-			.spyOn(randomSeedModule, 'generateRandomSeeds')
-			.mockReturnValue([randomSeed1, randomSeed2]);
+		jest.spyOn(randomSeedModule, 'generateRandomSeeds').mockReturnValue([randomSeed1, randomSeed2]);
 	});
 
 	describe('Given block is the genesis block', () => {
@@ -130,9 +109,7 @@ describe('dpos.apply()', () => {
 			await dpos.apply(genesisBlock, stateStore);
 
 			// Assert
-			const usernameBuffer = await stateStore.chain.get(
-				CHAIN_STATE_DELEGATE_USERNAMES,
-			);
+			const usernameBuffer = await stateStore.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
 
 			const { registeredDelegates } = codec.decode<{
 				registeredDelegates: { username: string; address: Buffer }[];
@@ -174,10 +151,7 @@ describe('dpos.apply()', () => {
 		let forgedDelegates: Account[];
 
 		beforeEach(() => {
-			const {
-				accounts,
-				publicKeyMap: publicKeyMap1,
-			} = getDelegateAccountsWithVotesReceived(
+			const { accounts, publicKeyMap: publicKeyMap1 } = getDelegateAccountsWithVotesReceived(
 				ACTIVE_DELEGATES + STANDBY_DELEGATES,
 			);
 			forgedDelegates = accounts;
@@ -220,10 +194,7 @@ describe('dpos.apply()', () => {
 				[...forgedDelegates],
 				{
 					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-						forgerListSchema,
-						forgersList,
-					),
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 				},
 				{ lastBlockHeaders: [defaultLastBlockHeader] },
 			);
@@ -236,14 +207,10 @@ describe('dpos.apply()', () => {
 
 			lastBlockOfRound = {
 				height: 309,
-				generatorPublicKey: publicKeyMap1.get(
-					forgedDelegates[forgedDelegates.length - 1].address,
-				),
+				generatorPublicKey: publicKeyMap1.get(forgedDelegates[forgedDelegates.length - 1].address),
 			} as BlockHeader;
 
-			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
-				forgedBlocks,
-			);
+			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(forgedBlocks);
 		});
 
 		it('should save next round forgers in forgers list after applying last block of round', async () => {
@@ -262,14 +229,9 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 
-			const { forgersList } = codec.decode(
-				forgerListSchema,
-				forgersListBuffer as Buffer,
-			);
+			const { forgersList } = codec.decode(forgerListSchema, forgersListBuffer as Buffer);
 
-			const forgers = forgersList.find(
-				(fl: { round: number }) => fl.round === nextRound,
-			);
+			const forgers = forgersList.find((fl: { round: number }) => fl.round === nextRound);
 
 			expect(forgers?.round).toEqual(nextRound);
 		});
@@ -320,9 +282,7 @@ describe('dpos.apply()', () => {
 			await dpos.apply(block, stateStore);
 
 			// Assert
-			const consensusState = await stateStore.consensus.get(
-				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
-			);
+			const consensusState = await stateStore.consensus.get(CONSENSUS_STATE_DELEGATE_FORGERS_LIST);
 
 			expect((consensusState as Buffer).toString('utf8')).toEqual(
 				forgersListBinary.toString('utf8'),
@@ -366,26 +326,19 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 						height: 926,
 						timestamp: 9260,
 					} as BlockHeader;
 					block = {
 						height: 927,
 						timestamp: 10290,
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 					} as BlockHeader;
 					stateStore = new StateStoreMock(
 						[...forgedDelegates],
 						{
-							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-								forgerListSchema,
-								forgersList,
-							),
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
 								voteWeightsSchema,
 								delegateVoteWeights,
@@ -398,17 +351,11 @@ describe('dpos.apply()', () => {
 
 					expect.assertions(forgedDelegates.length + 1);
 					for (const delegate of forgedDelegates) {
-						const updatedAccount = await stateStore.account.get(
-							delegate.address,
-						);
+						const updatedAccount = await stateStore.account.get(delegate.address);
 						if (delegate.address.equals(forgedDelegate.address)) {
-							expect(
-								updatedAccount.asset.delegate.consecutiveMissedBlocks,
-							).toEqual(0);
+							expect(updatedAccount.asset.delegate.consecutiveMissedBlocks).toEqual(0);
 						} else {
-							expect(
-								updatedAccount.asset.delegate.consecutiveMissedBlocks,
-							).toEqual(1);
+							expect(updatedAccount.asset.delegate.consecutiveMissedBlocks).toEqual(1);
 						}
 					}
 					const forger = await stateStore.account.get(forgedDelegate.address);
@@ -421,26 +368,19 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 						height: 926,
 						timestamp: 10260,
 					} as BlockHeader;
 					block = {
 						height: 927,
 						timestamp: 10290,
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 					} as BlockHeader;
 					stateStore = new StateStoreMock(
 						[...forgedDelegates],
 						{
-							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-								forgerListSchema,
-								forgersList,
-							),
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
 								voteWeightsSchema,
 								delegateVoteWeights,
@@ -448,8 +388,8 @@ describe('dpos.apply()', () => {
 						},
 						{ lastBlockHeaders: [lastBlock] },
 					);
-					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
-						forger => forger.equals(forgedDelegate.address),
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(forger =>
+						forger.equals(forgedDelegate.address),
 					);
 					const missedDelegate = [
 						forgedDelegates[forgerIndex - 1],
@@ -460,21 +400,13 @@ describe('dpos.apply()', () => {
 
 					expect.assertions(forgedDelegates.length);
 					for (const delegate of forgedDelegates) {
-						const updatedAccount = await stateStore.account.get(
-							delegate.address,
-						);
+						const updatedAccount = await stateStore.account.get(delegate.address);
 						if (
-							missedDelegate.some(missedAccount =>
-								missedAccount.address.equals(delegate.address),
-							)
+							missedDelegate.some(missedAccount => missedAccount.address.equals(delegate.address))
 						) {
-							expect(
-								updatedAccount.asset.delegate.consecutiveMissedBlocks,
-							).toEqual(1);
+							expect(updatedAccount.asset.delegate.consecutiveMissedBlocks).toEqual(1);
 						} else {
-							expect(
-								updatedAccount.asset.delegate.consecutiveMissedBlocks,
-							).toEqual(0);
+							expect(updatedAccount.asset.delegate.consecutiveMissedBlocks).toEqual(0);
 						}
 					}
 				});
@@ -495,17 +427,12 @@ describe('dpos.apply()', () => {
 					block = {
 						height: 927,
 						timestamp: 10290,
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 					} as BlockHeader;
 					stateStore = new StateStoreMock(
 						[...forgedDelegates],
 						{
-							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-								forgerListSchema,
-								forgersList,
-							),
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
 								voteWeightsSchema,
 								delegateVoteWeights,
@@ -513,37 +440,26 @@ describe('dpos.apply()', () => {
 						},
 						{ lastBlockHeaders: [lastBlock] },
 					);
-					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
-						forger => forger.equals(forgedDelegate.address),
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(forger =>
+						forger.equals(forgedDelegate.address),
 					);
-					const missedMorethan1Delegates = forgedDelegates.slice(
-						forgerIndex - 5,
-						forgerIndex,
-					);
+					const missedMorethan1Delegates = forgedDelegates.slice(forgerIndex - 5, forgerIndex);
 					// Act
 					await dpos.apply(block, stateStore);
 
 					expect.assertions(forgedDelegates.length);
 					for (const delegate of forgedDelegates) {
-						const updatedAccount = await stateStore.account.get(
-							delegate.address,
-						);
+						const updatedAccount = await stateStore.account.get(delegate.address);
 						if (delegate.address.equals(forgedDelegate.address)) {
-							expect(
-								updatedAccount.asset.delegate.consecutiveMissedBlocks,
-							).toEqual(0);
+							expect(updatedAccount.asset.delegate.consecutiveMissedBlocks).toEqual(0);
 						} else if (
 							missedMorethan1Delegates.some(missedAccount =>
 								missedAccount.address.equals(delegate.address),
 							)
 						) {
-							expect(
-								updatedAccount.asset.delegate.consecutiveMissedBlocks,
-							).toEqual(2);
+							expect(updatedAccount.asset.delegate.consecutiveMissedBlocks).toEqual(2);
 						} else {
-							expect(
-								updatedAccount.asset.delegate.consecutiveMissedBlocks,
-							).toEqual(1);
+							expect(updatedAccount.asset.delegate.consecutiveMissedBlocks).toEqual(1);
 						}
 					}
 				});
@@ -569,10 +485,7 @@ describe('dpos.apply()', () => {
 					stateStore = new StateStoreMock(
 						[...forgedDelegates],
 						{
-							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-								forgerListSchema,
-								forgersList,
-							),
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
 								voteWeightsSchema,
 								delegateVoteWeights,
@@ -585,12 +498,8 @@ describe('dpos.apply()', () => {
 					await dpos.apply(block, stateStore);
 					expect.assertions(forgedDelegates.length + 1);
 					for (const delegate of forgedDelegates) {
-						const updatedAccount = await stateStore.account.get(
-							delegate.address,
-						);
-						expect(
-							updatedAccount.asset.delegate.consecutiveMissedBlocks,
-						).toEqual(0);
+						const updatedAccount = await stateStore.account.get(delegate.address);
+						expect(updatedAccount.asset.delegate.consecutiveMissedBlocks).toEqual(0);
 					}
 					const forger = await stateStore.account.get(
 						forgedDelegates[forgedDelegates.length - 1].address,
@@ -604,21 +513,17 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 						height: 920006,
 						timestamp: 10000270,
 					} as BlockHeader;
 					block = {
 						height: 920007,
 						timestamp: 10000290,
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 					} as BlockHeader;
-					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
-						forger => forger.equals(forgedDelegate.address),
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(forger =>
+						forger.equals(forgedDelegate.address),
 					);
 					const missedDelegate = forgedDelegates[forgerIndex - 1];
 					forgersList = {
@@ -646,8 +551,7 @@ describe('dpos.apply()', () => {
 							...forgedDelegates.map(forger => {
 								if (forger.address.equals(missedDelegate.address)) {
 									// eslint-disable-next-line no-param-reassign
-									forger.asset.delegate.lastForgedHeight =
-										block.height - 260000 + 5000;
+									forger.asset.delegate.lastForgedHeight = block.height - 260000 + 5000;
 									// eslint-disable-next-line no-param-reassign
 									forger.asset.delegate.consecutiveMissedBlocks = 50;
 								}
@@ -655,10 +559,7 @@ describe('dpos.apply()', () => {
 							}),
 						],
 						{
-							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-								forgerListSchema,
-								forgersList,
-							),
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
 								voteWeightsSchema,
 								delegateVoteWeights,
@@ -669,13 +570,9 @@ describe('dpos.apply()', () => {
 					// Act
 					await dpos.apply(block, stateStore);
 
-					const updatedMissedForger = await stateStore.account.get(
-						missedDelegate.address,
-					);
+					const updatedMissedForger = await stateStore.account.get(missedDelegate.address);
 					expect(updatedMissedForger.asset.delegate.isBanned).toBeFalse();
-					expect(
-						updatedMissedForger.asset.delegate.consecutiveMissedBlocks,
-					).toEqual(51);
+					expect(updatedMissedForger.asset.delegate.consecutiveMissedBlocks).toEqual(51);
 				});
 			});
 
@@ -684,21 +581,17 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 						height: 920006,
 						timestamp: 10000270,
 					} as BlockHeader;
 					block = {
 						height: 920007,
 						timestamp: 10000290,
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 					} as BlockHeader;
-					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
-						forger => forger.equals(forgedDelegate.address),
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(forger =>
+						forger.equals(forgedDelegate.address),
 					);
 					const missedDelegate = forgedDelegates[forgerIndex - 1];
 					forgersList = {
@@ -726,8 +619,7 @@ describe('dpos.apply()', () => {
 							...forgedDelegates.map(forger => {
 								if (forger.address.equals(missedDelegate.address)) {
 									// eslint-disable-next-line no-param-reassign
-									forger.asset.delegate.lastForgedHeight =
-										block.height - 260000 - 1;
+									forger.asset.delegate.lastForgedHeight = block.height - 260000 - 1;
 									// eslint-disable-next-line no-param-reassign
 									forger.asset.delegate.consecutiveMissedBlocks = 40;
 								}
@@ -735,10 +627,7 @@ describe('dpos.apply()', () => {
 							}),
 						],
 						{
-							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-								forgerListSchema,
-								forgersList,
-							),
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
 								voteWeightsSchema,
 								delegateVoteWeights,
@@ -749,13 +638,9 @@ describe('dpos.apply()', () => {
 					// Act
 					await dpos.apply(block, stateStore);
 
-					const updatedMissedForger = await stateStore.account.get(
-						missedDelegate.address,
-					);
+					const updatedMissedForger = await stateStore.account.get(missedDelegate.address);
 					expect(updatedMissedForger.asset.delegate.isBanned).toBeFalse();
-					expect(
-						updatedMissedForger.asset.delegate.consecutiveMissedBlocks,
-					).toEqual(41);
+					expect(updatedMissedForger.asset.delegate.consecutiveMissedBlocks).toEqual(41);
 				});
 			});
 
@@ -764,21 +649,17 @@ describe('dpos.apply()', () => {
 					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
 					// Arrange
 					const lastBlock = {
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 						height: 920006,
 						timestamp: 10000270,
 					} as BlockHeader;
 					block = {
 						height: 920007,
 						timestamp: 10000290,
-						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
-							forgedDelegate.address,
-						),
+						generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 					} as BlockHeader;
-					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
-						forger => forger.equals(forgedDelegate.address),
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(forger =>
+						forger.equals(forgedDelegate.address),
 					);
 					const missedDelegate = forgedDelegates[forgerIndex - 1];
 					forgersList = {
@@ -806,8 +687,7 @@ describe('dpos.apply()', () => {
 							...forgedDelegates.map(forger => {
 								if (forger.address.equals(missedDelegate.address)) {
 									// eslint-disable-next-line no-param-reassign
-									forger.asset.delegate.lastForgedHeight =
-										block.height - 260000 - 1;
+									forger.asset.delegate.lastForgedHeight = block.height - 260000 - 1;
 									// eslint-disable-next-line no-param-reassign
 									forger.asset.delegate.consecutiveMissedBlocks = 50;
 								}
@@ -815,10 +695,7 @@ describe('dpos.apply()', () => {
 							}),
 						],
 						{
-							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-								forgerListSchema,
-								forgersList,
-							),
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
 								voteWeightsSchema,
 								delegateVoteWeights,
@@ -829,13 +706,9 @@ describe('dpos.apply()', () => {
 					// Act
 					await dpos.apply(block, stateStore);
 
-					const updatedMissedForger = await stateStore.account.get(
-						missedDelegate.address,
-					);
+					const updatedMissedForger = await stateStore.account.get(missedDelegate.address);
 					expect(updatedMissedForger.asset.delegate.isBanned).toBeTrue();
-					expect(
-						updatedMissedForger.asset.delegate.consecutiveMissedBlocks,
-					).toEqual(51);
+					expect(updatedMissedForger.asset.delegate.consecutiveMissedBlocks).toEqual(51);
 				});
 			});
 		});
@@ -846,10 +719,7 @@ describe('dpos.apply()', () => {
 		let forgedDelegates: Account[];
 
 		beforeEach(() => {
-			const {
-				accounts,
-				publicKeyMap: publicKeyMap2,
-			} = getDelegateAccountsWithVotesReceived(
+			const { accounts, publicKeyMap: publicKeyMap2 } = getDelegateAccountsWithVotesReceived(
 				ACTIVE_DELEGATES + STANDBY_DELEGATES - 1,
 			);
 			forgedDelegates = accounts;
@@ -878,34 +748,22 @@ describe('dpos.apply()', () => {
 				forgersList: [
 					{
 						round: 7,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
+						delegates: [...forgedDelegates.map(d => d.address), missedDelegate.address],
 						standby: [],
 					},
 					{
 						round: 8,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
+						delegates: [...forgedDelegates.map(d => d.address), missedDelegate.address],
 						standby: [],
 					},
 					{
 						round: 9,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
+						delegates: [...forgedDelegates.map(d => d.address), missedDelegate.address],
 						standby: [],
 					},
 					{
 						round: 10,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
+						delegates: [...forgedDelegates.map(d => d.address), missedDelegate.address],
 						standby: [],
 					},
 				],
@@ -915,10 +773,7 @@ describe('dpos.apply()', () => {
 				[...forgedDelegates, missedDelegate],
 				{
 					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-						forgerListSchema,
-						forgersList,
-					),
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(forgerListSchema, forgersList),
 				},
 				{ lastBlockHeaders: [defaultLastBlockHeader] },
 			);
@@ -931,24 +786,16 @@ describe('dpos.apply()', () => {
 
 			lastBlockOfTheRoundNine = {
 				height: 927,
-				generatorPublicKey: publicKeyMap2.get(
-					forgedDelegates[forgedDelegates.length - 1].address,
-				),
+				generatorPublicKey: publicKeyMap2.get(forgedDelegates[forgedDelegates.length - 1].address),
 			} as BlockHeader;
 
-			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
-				forgedBlocks,
-			);
+			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(forgedBlocks);
 		});
 
 		it('should save next round forgers in forgers list after applying last block of round', async () => {
 			// Arrange
-			const currentRound = dpos.rounds.calcRound(
-				lastBlockOfTheRoundNine.height,
-			);
-			const nextRound = dpos.rounds.calcRound(
-				lastBlockOfTheRoundNine.height + 1,
-			);
+			const currentRound = dpos.rounds.calcRound(lastBlockOfTheRoundNine.height);
+			const nextRound = dpos.rounds.calcRound(lastBlockOfTheRoundNine.height + 1);
 
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
@@ -961,14 +808,9 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 
-			const { forgersList } = codec.decode(
-				forgerListSchema,
-				forgersListBuffer as Buffer,
-			);
+			const { forgersList } = codec.decode(forgerListSchema, forgersListBuffer as Buffer);
 
-			const forgers = forgersList.find(
-				(fl: { round: number }) => fl.round === nextRound,
-			);
+			const forgers = forgersList.find((fl: { round: number }) => fl.round === nextRound);
 
 			expect(forgers?.round).toEqual(nextRound);
 		});
@@ -981,8 +823,7 @@ describe('dpos.apply()', () => {
 			);
 			const bftRoundOffset = 2; // TODO: get from BFT constants
 			const delegateActiveRoundLimit = 3;
-			const expectedRound =
-				finalizedBlockRound - bftRoundOffset - delegateActiveRoundLimit;
+			const expectedRound = finalizedBlockRound - bftRoundOffset - delegateActiveRoundLimit;
 
 			// Check before finalize exist for test
 			const forgersListBeforeBuffer = await stateStore.consensus.get(
@@ -1006,10 +847,7 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 
-			const { forgersList } = codec.decode(
-				forgerListSchema,
-				forgersListBuffer as Buffer,
-			);
+			const { forgersList } = codec.decode(forgerListSchema, forgersListBuffer as Buffer);
 
 			const filteredForgers = forgersList.filter(
 				(fl: { round: number }) => fl.round < expectedRound,
@@ -1022,8 +860,7 @@ describe('dpos.apply()', () => {
 		it('should should emit EVENT_ROUND_CHANGED', async () => {
 			// Arrange
 			const eventCallback = jest.fn();
-			const oldRound =
-				lastBlockOfTheRoundNine.height / (ACTIVE_DELEGATES + STANDBY_DELEGATES);
+			const oldRound = lastBlockOfTheRoundNine.height / (ACTIVE_DELEGATES + STANDBY_DELEGATES);
 			(dpos as any).events.on(constants.EVENT_ROUND_CHANGED, eventCallback);
 
 			// Act

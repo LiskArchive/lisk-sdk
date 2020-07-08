@@ -66,9 +66,7 @@ const convertUnlockObjects = (
 		unvoteHeight: unlock.unvoteHeight,
 	}));
 
-export const unlockToken = (
-	inputs: UnlockTokenInputs,
-): Partial<TransactionJSON> => {
+export const unlockToken = (inputs: UnlockTokenInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { passphrase, unlockObjects } = inputs;
 	const unlockAsset = convertUnlockObjects(unlockObjects);
@@ -86,9 +84,7 @@ export const unlockToken = (
 		return baseTransactionToJSON(transaction as UnlockTransaction);
 	}
 
-	const unlockTransaction = new UnlockTransaction(
-		transaction as UnlockTransaction,
-	);
+	const unlockTransaction = new UnlockTransaction(transaction as UnlockTransaction);
 	unlockTransaction.sign(networkIdentifier, passphrase);
 
 	const { errors } = unlockTransaction.validate();

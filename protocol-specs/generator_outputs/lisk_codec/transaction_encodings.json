@@ -249,13 +249,7 @@
 							"fieldNumber": 6
 						}
 					},
-					"required": [
-						"type",
-						"nonce",
-						"fee",
-						"senderPublicKey",
-						"asset"
-					]
+					"required": ["type", "nonce", "fee", "senderPublicKey", "asset"]
 				}
 			},
 			"output": {
@@ -344,16 +338,11 @@
 										"fieldNumber": 2
 									}
 								},
-								"required": [
-									"delegateAddress",
-									"amount"
-								]
+								"required": ["delegateAddress", "amount"]
 							}
 						}
 					},
-					"required": [
-						"votes"
-					]
+					"required": ["votes"]
 				}
 			},
 			"output": {
@@ -541,11 +530,7 @@
 							"fieldNumber": 3
 						}
 					},
-					"required": [
-						"numberOfSignatures",
-						"mandatoryKeys",
-						"optionalKeys"
-					]
+					"required": ["numberOfSignatures", "mandatoryKeys", "optionalKeys"]
 				}
 			},
 			"output": {
@@ -658,11 +643,7 @@
 							"fieldNumber": 3
 						}
 					},
-					"required": [
-						"numberOfSignatures",
-						"mandatoryKeys",
-						"optionalKeys"
-					]
+					"required": ["numberOfSignatures", "mandatoryKeys", "optionalKeys"]
 				}
 			},
 			"output": {

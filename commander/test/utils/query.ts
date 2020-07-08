@@ -62,14 +62,9 @@ describe('query utils', () => {
 		});
 
 		it('should call API client and should reject with an error', () => {
-			expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters.query,
-			);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters.query);
 
-			return expect(queryResult).to.be.rejectedWith(
-				Error,
-				'No data was returned.',
-			);
+			return expect(queryResult).to.be.rejectedWith(Error, 'No data was returned.');
 		});
 	});
 
@@ -87,9 +82,7 @@ describe('query utils', () => {
 
 		it('should call API client and should reject with an error', () => {
 			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
-			expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters.query,
-			);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters.query);
 
 			return expect(queryResult).to.be.rejectedWith(
 				Error,
@@ -106,9 +99,7 @@ describe('query utils', () => {
 				placeholder,
 			};
 			queryResult = query(apiClient, defaultEndpoint, paramWithPlaceholder);
-			expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters.query,
-			);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters.query);
 
 			return expect(queryResult).to.be.eventually.equal(placeholder);
 		});
@@ -133,9 +124,7 @@ describe('query utils', () => {
 		});
 
 		it('should call API client and resolve to an object', () => {
-			expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters.query,
-			);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters.query);
 			const resData = response.data as Array<object>;
 			return expect(queryResult).to.eventually.eql(resData[0]);
 		});
@@ -164,9 +153,7 @@ describe('query utils', () => {
 		});
 
 		it('should call API client and resolve to an array', () => {
-			expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters.query,
-			);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters.query);
 			return expect(queryResult).to.eventually.eql(response.data);
 		});
 	});
@@ -188,9 +175,7 @@ describe('query utils', () => {
 		});
 
 		it('should call API client and resolve to an object', () => {
-			expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters.query,
-			);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters.query);
 			return expect(queryResult).to.eventually.eql(response.data);
 		});
 	});
@@ -249,11 +234,7 @@ describe('query utils', () => {
 					getTransactions: sandbox.stub().resolves(response),
 				},
 			} as any;
-			queryResult = queryNodeTransaction(
-				apiClient.node,
-				txnState,
-				transactionArray,
-			);
+			queryResult = queryNodeTransaction(apiClient.node, txnState, transactionArray);
 		});
 
 		it('should call node API client and resolve to an object', () => {
@@ -298,19 +279,12 @@ describe('query utils', () => {
 					getTransactions: sandbox.stub().resolves(response),
 				},
 			} as any;
-			queryResult = queryNodeTransaction(
-				apiClient.node,
-				txnState,
-				transactionArray,
-			);
+			queryResult = queryNodeTransaction(apiClient.node, txnState, transactionArray);
 		});
 
 		it('should call getTransaction handler of node API client', () => {
 			transactionArray.forEach(param =>
-				expect(apiClient.node.getTransactions).to.be.calledWithExactly(
-					txnState,
-					param.query,
-				),
+				expect(apiClient.node.getTransactions).to.be.calledWithExactly(txnState, param.query),
 			);
 		});
 	});

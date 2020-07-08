@@ -78,9 +78,7 @@ describe('reader', () => {
 		it('should reject with error when repeated passphrase does not match', async () => {
 			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
 			promptStub.resolves(promptResult);
-			await expect(
-				getPassphraseFromPrompt(displayName, true),
-			).to.be.rejectedWith(
+			await expect(getPassphraseFromPrompt(displayName, true)).to.be.rejectedWith(
 				ValidationError,
 				'Password was not successfully repeated.',
 			);
@@ -121,10 +119,7 @@ describe('reader', () => {
 		});
 
 		it('should throw error when source is empty', async () => {
-			await expect(readFileSource()).to.be.rejectedWith(
-				ValidationError,
-				'No data was provided.',
-			);
+			await expect(readFileSource()).to.be.rejectedWith(ValidationError, 'No data was provided.');
 		});
 
 		it('should throw error when source is not file', async () => {

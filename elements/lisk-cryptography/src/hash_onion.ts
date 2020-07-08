@@ -30,9 +30,7 @@ export const hashOnion = (
 	distance: number = defaultDistance,
 ): ReadonlyArray<Buffer> => {
 	if (count < distance) {
-		throw new Error(
-			'Invalid count or distance. Count must be greater than distance',
-		);
+		throw new Error('Invalid count or distance. Count must be greater than distance');
 	}
 
 	if (count % distance !== 0) {

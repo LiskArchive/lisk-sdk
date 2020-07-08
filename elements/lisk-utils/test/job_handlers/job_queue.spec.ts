@@ -107,10 +107,7 @@ describe('JobQueue', () => {
 			sequence['_tick']();
 			jest.runAllTimers();
 
-			const [result1, result2] = await Promise.all([
-				result1Promise,
-				result2Promise,
-			]);
+			const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
 
 			expect(result1).toEqual(expectedResult1);
 			expect(result2).toEqual(expectedResult2);

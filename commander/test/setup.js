@@ -30,11 +30,7 @@ Assertion.addMethod('matchAny', function handleAssert(matcher) {
 
 	new Assertion(obj).to.be.an('array');
 	const result = obj.some(val => matcher(val));
-	this.assert(
-		result,
-		'expected #{this} to match at least once',
-		'expected #{this} not to match',
-	);
+	this.assert(result, 'expected #{this} to match at least once', 'expected #{this} not to match');
 });
 
 Assertion.addMethod('customError', function handleAssert(error) {

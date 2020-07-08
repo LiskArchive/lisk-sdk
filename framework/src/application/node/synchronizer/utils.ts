@@ -48,10 +48,7 @@ export const deleteBlocksAfterHeight = async (
 	backup = false,
 ): Promise<void> => {
 	let { height: currentHeight } = chainModule.lastBlock.header;
-	logger.debug(
-		{ desiredHeight, lastBlockHeight: currentHeight },
-		'Deleting blocks after height',
-	);
+	logger.debug({ desiredHeight, lastBlockHeight: currentHeight }, 'Deleting blocks after height');
 	while (desiredHeight < currentHeight) {
 		logger.trace(
 			{
@@ -89,8 +86,7 @@ export const restoreBlocksUponStartup = async (
 
 	const forkStatus = await processorModule.forkStatus(blockHighestHeight);
 	const blockHasPriority =
-		forkStatus === ForkStatus.DIFFERENT_CHAIN ||
-		forkStatus === ForkStatus.VALID_BLOCK;
+		forkStatus === ForkStatus.DIFFERENT_CHAIN || forkStatus === ForkStatus.VALID_BLOCK;
 
 	// Block in the temp table has preference over current tip of the chain
 	if (blockHasPriority) {
@@ -122,9 +118,7 @@ export const computeBlockHeightsList = (
 		.fill(0)
 		.map((_, i) => startingHeight - i * activeDelegates)
 		.filter(height => height >= 0);
-	const heightListAfterFinalized = heightList.filter(
-		height => height > finalizedHeight,
-	);
+	const heightListAfterFinalized = heightList.filter(height => height > finalizedHeight);
 	return heightList.length !== heightListAfterFinalized.length
 		? [...heightListAfterFinalized, finalizedHeight]
 		: heightListAfterFinalized;

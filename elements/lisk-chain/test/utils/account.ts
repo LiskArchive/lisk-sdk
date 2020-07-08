@@ -19,12 +19,8 @@ import { baseAccountSchema } from '../../src/schema';
 
 export const genesisAccount = {
 	address: Buffer.from('d04699e57c4a3846c988f3c15306796f8eae5c1c', 'hex'),
-	publicKey: Buffer.from(
-		'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
-		'hex',
-	),
-	passphrase:
-		'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready',
+	publicKey: Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+	passphrase: 'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready',
 	balance: '10000000000000000',
 	encryptedPassphrase:
 		'iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1',
@@ -140,12 +136,10 @@ export const createFakeDefaultAccount = (
 			delegate: {
 				username: account?.asset?.delegate?.username ?? '',
 				pomHeights: account?.asset?.delegate?.pomHeights ?? [],
-				consecutiveMissedBlocks:
-					account?.asset?.delegate?.consecutiveMissedBlocks ?? 0,
+				consecutiveMissedBlocks: account?.asset?.delegate?.consecutiveMissedBlocks ?? 0,
 				lastForgedHeight: account?.asset?.delegate?.lastForgedHeight ?? 0,
 				isBanned: account?.asset?.delegate?.isBanned ?? false,
-				totalVotesReceived:
-					account?.asset?.delegate?.totalVotesReceived ?? BigInt(0),
+				totalVotesReceived: account?.asset?.delegate?.totalVotesReceived ?? BigInt(0),
 			},
 			sentVotes: account?.asset?.sentVotes ?? [],
 			unlocking: account?.asset?.unlocking ?? [],

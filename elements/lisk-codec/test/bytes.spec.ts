@@ -20,17 +20,15 @@ describe('bytes', () => {
 		it('should encode bytes', () => {
 			const testCaseOneInput = testCases[0].input.object;
 			const testCaseOneOutput = testCases[0].output.value;
-			expect(
-				writeBytes(Buffer.from(testCaseOneInput.address.data)).toString('hex'),
-			).toEqual(testCaseOneOutput.slice(2, testCaseOneOutput.length)); // Ignoring the key part
+			expect(writeBytes(Buffer.from(testCaseOneInput.address.data)).toString('hex')).toEqual(
+				testCaseOneOutput.slice(2, testCaseOneOutput.length),
+			); // Ignoring the key part
 
 			const testCaseSecondInput = testCases[1].input.object;
 			const testCaseSecondOutput = testCases[1].output.value;
-			expect(
-				writeBytes(Buffer.from(testCaseSecondInput.address.data)).toString(
-					'hex',
-				),
-			).toEqual(testCaseSecondOutput.slice(2, testCaseOneOutput.length)); // Ignoring the key part
+			expect(writeBytes(Buffer.from(testCaseSecondInput.address.data)).toString('hex')).toEqual(
+				testCaseSecondOutput.slice(2, testCaseOneOutput.length),
+			); // Ignoring the key part
 		});
 	});
 

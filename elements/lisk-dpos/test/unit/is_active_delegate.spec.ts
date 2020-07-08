@@ -20,8 +20,7 @@ import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 import { Dpos } from '../../src';
 
 const MS_IN_A_SEC = 1000;
-const GENESIS_BLOCK_TIMESTAMP =
-	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
+const GENESIS_BLOCK_TIMESTAMP = new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 describe('dpos.isActiveDelegate', () => {
 	const defaultAddress = Buffer.from(delegateAddresses[0], 'base64');
@@ -45,9 +44,7 @@ describe('dpos.isActiveDelegate', () => {
 				getConsensusState: jest.fn(),
 			},
 		};
-		const initDelegates = delegateAddresses.map(addr =>
-			Buffer.from(addr, 'base64'),
-		);
+		const initDelegates = delegateAddresses.map(addr => Buffer.from(addr, 'base64'));
 
 		dpos = new Dpos({
 			chain: chainMock,
@@ -63,14 +60,9 @@ describe('dpos.isActiveDelegate', () => {
 				voteWeights: [{ round: 5, delegates: delegatesAddresses }],
 			};
 
-			const binaryVoteWeightsList = codec.encode(
-				voteWeightsSchema,
-				voteWeights,
-			);
+			const binaryVoteWeightsList = codec.encode(voteWeightsSchema, voteWeights);
 
-			chainMock.dataAccess.getConsensusState.mockResolvedValue(
-				binaryVoteWeightsList,
-			);
+			chainMock.dataAccess.getConsensusState.mockResolvedValue(binaryVoteWeightsList);
 
 			await expect(dpos.isActiveDelegate(defaultAddress, 1023)).rejects.toThrow(
 				'Vote weight not found for round 10 for the given height 1023',
@@ -93,14 +85,9 @@ describe('dpos.isActiveDelegate', () => {
 					],
 				};
 
-				const binaryVoteWeightsList = codec.encode(
-					voteWeightsSchema,
-					voteWeights,
-				);
+				const binaryVoteWeightsList = codec.encode(voteWeightsSchema, voteWeights);
 
-				chainMock.dataAccess.getConsensusState.mockResolvedValue(
-					binaryVoteWeightsList,
-				);
+				chainMock.dataAccess.getConsensusState.mockResolvedValue(binaryVoteWeightsList);
 
 				const isActive = await dpos.isActiveDelegate(defaultAddress, 503);
 
@@ -122,14 +109,9 @@ describe('dpos.isActiveDelegate', () => {
 					],
 				};
 
-				const binaryVoteWeightsList = codec.encode(
-					voteWeightsSchema,
-					voteWeights,
-				);
+				const binaryVoteWeightsList = codec.encode(voteWeightsSchema, voteWeights);
 
-				chainMock.dataAccess.getConsensusState.mockResolvedValue(
-					binaryVoteWeightsList,
-				);
+				chainMock.dataAccess.getConsensusState.mockResolvedValue(binaryVoteWeightsList);
 
 				const isActive = await dpos.isActiveDelegate(defaultAddress, 503);
 

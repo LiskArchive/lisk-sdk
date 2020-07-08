@@ -158,9 +158,7 @@
 					"asset": {
 						"delegate": {
 							"username": "Catullo",
-							"pomHeights": [
-								85
-							],
+							"pomHeights": [85],
 							"consecutiveMissedBlocks": 32,
 							"lastForgedHeight": 64,
 							"isBanned": false,
@@ -336,11 +334,7 @@
 									"fieldNumber": 3
 								}
 							},
-							"required": [
-								"numberOfSignatures",
-								"mandatoryKeys",
-								"optionalKeys"
-							]
+							"required": ["numberOfSignatures", "mandatoryKeys", "optionalKeys"]
 						},
 						"asset": {
 							"type": "object",
@@ -402,10 +396,7 @@
 												"fieldNumber": 2
 											}
 										},
-										"required": [
-											"delegateAddress",
-											"amount"
-										]
+										"required": ["delegateAddress", "amount"]
 									}
 								},
 								"unlocking": {
@@ -427,24 +418,13 @@
 												"fieldNumber": 3
 											}
 										},
-										"required": [
-											"delegateAddress",
-											"amount",
-											"unvoteHeight"
-										]
+										"required": ["delegateAddress", "amount", "unvoteHeight"]
 									}
 								}
 							}
 						}
 					},
-					"required": [
-						"address",
-						"balance",
-						"publicKey",
-						"nonce",
-						"keys",
-						"asset"
-					]
+					"required": ["address", "balance", "publicKey", "nonce", "keys", "asset"]
 				}
 			},
 			"output": {
@@ -547,11 +527,7 @@
 									"fieldNumber": 3
 								}
 							},
-							"required": [
-								"numberOfSignatures",
-								"mandatoryKeys",
-								"optionalKeys"
-							]
+							"required": ["numberOfSignatures", "mandatoryKeys", "optionalKeys"]
 						},
 						"asset": {
 							"type": "object",
@@ -613,10 +589,7 @@
 												"fieldNumber": 2
 											}
 										},
-										"required": [
-											"delegateAddress",
-											"amount"
-										]
+										"required": ["delegateAddress", "amount"]
 									}
 								},
 								"unlocking": {
@@ -638,24 +611,13 @@
 												"fieldNumber": 3
 											}
 										},
-										"required": [
-											"delegateAddress",
-											"amount",
-											"unvoteHeight"
-										]
+										"required": ["delegateAddress", "amount", "unvoteHeight"]
 									}
 								}
 							}
 						}
 					},
-					"required": [
-						"address",
-						"balance",
-						"publicKey",
-						"nonce",
-						"keys",
-						"asset"
-					]
+					"required": ["address", "balance", "publicKey", "nonce", "keys", "asset"]
 				}
 			},
 			"output": {

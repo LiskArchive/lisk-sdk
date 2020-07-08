@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	APIClient,
-	constants,
-	cryptography,
-	passphrase,
-	transactions,
-	transaction,
-} from '../src';
+import { APIClient, constants, cryptography, passphrase, transactions, transaction } from '../src';
 
 describe('lisk-client', () => {
 	it('APIClient should be a function', () => {

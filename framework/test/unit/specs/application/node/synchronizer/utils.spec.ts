@@ -71,16 +71,12 @@ describe('#synchronizer/utils', () => {
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
 			expect(processorMock.processValidated).toHaveBeenCalledTimes(2);
-			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
-				1,
-				blocks[0],
-				{ removeFromTempTable: true },
-			);
-			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
-				2,
-				blocks[1],
-				{ removeFromTempTable: true },
-			);
+			expect(processorMock.processValidated).toHaveBeenNthCalledWith(1, blocks[0], {
+				removeFromTempTable: true,
+			});
+			expect(processorMock.processValidated).toHaveBeenNthCalledWith(2, blocks[1], {
+				removeFromTempTable: true,
+			});
 		});
 
 		it('should return false when temp_blocks table is empty', async () => {

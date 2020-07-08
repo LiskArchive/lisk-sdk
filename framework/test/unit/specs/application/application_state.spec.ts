@@ -121,8 +121,7 @@ describe('Application State', () => {
 
 		describe('when wrong parameters are passed', () => {
 			let newState: any;
-			const heightErrorMessage =
-				'height is required to update application state.';
+			const heightErrorMessage = 'height is required to update application state.';
 
 			it('should throw AssertionError if height undefined', () => {
 				// Arrange
@@ -138,9 +137,7 @@ describe('Application State', () => {
 				});
 
 				// Act && Assert
-				expect(() => applicationState.update(newState)).toThrow(
-					heightAssertionError,
-				);
+				expect(() => applicationState.update(newState)).toThrow(heightAssertionError);
 			});
 
 			it('should throw AssertionError if height is null', () => {
@@ -157,9 +154,7 @@ describe('Application State', () => {
 				});
 
 				// Act && Assert
-				expect(() => applicationState.update(newState)).toThrow(
-					heightAssertionError,
-				);
+				expect(() => applicationState.update(newState)).toThrow(heightAssertionError);
 			});
 		});
 
@@ -193,19 +188,13 @@ describe('Application State', () => {
 			it('should print notification update in logs', () => {
 				// Assert
 				expect(logger.debug).toHaveBeenCalled();
-				expect(logger.debug).toHaveBeenLastCalledWith(
-					updatedState,
-					'Update application state',
-				);
+				expect(logger.debug).toHaveBeenLastCalledWith(updatedState, 'Update application state');
 			});
 
 			it('should publish notification update on the channel', () => {
 				// Assert
 				expect(channel.publish).toHaveBeenCalled();
-				expect(channel.publish).toHaveBeenLastCalledWith(
-					'app:state:updated',
-					updatedState,
-				);
+				expect(channel.publish).toHaveBeenLastCalledWith('app:state:updated', updatedState);
 			});
 		});
 
@@ -227,9 +216,7 @@ describe('Application State', () => {
 
 			it('should remain with the same value', () => {
 				// Assert
-				expect(updatedState.maxHeightPrevoted).toBe(
-					mockedState.maxHeightPrevoted,
-				);
+				expect(updatedState.maxHeightPrevoted).toBe(mockedState.maxHeightPrevoted);
 			});
 		});
 	});

@@ -14,11 +14,7 @@
  */
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_START_PORT,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork, NETWORK_START_PORT } from '../utils/network_setup';
 
 describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -43,7 +39,7 @@ describe('Maximum payload', () => {
 			p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 				if (message.event === 'maxPayload') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						message,
 					});
 				}
@@ -51,7 +47,7 @@ describe('Maximum payload', () => {
 
 			p2p.on('EVENT_CLOSE_INBOUND', packet => {
 				disconnectReasons.push({
-					peerPort: packet.peerInfo.wsPort,
+					peerPort: packet.peerInfo.port,
 					code: packet.code,
 					reason: packet.reason,
 				});
@@ -59,7 +55,7 @@ describe('Maximum payload', () => {
 
 			p2p.on('EVENT_CLOSE_OUTBOUND', packet => {
 				disconnectReasons.push({
-					peerPort: packet.peerInfo.wsPort,
+					peerPort: packet.peerInfo.port,
 					code: packet.code,
 					reason: packet.reason,
 				});

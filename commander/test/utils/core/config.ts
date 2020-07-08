@@ -21,21 +21,15 @@ describe('config core utils', () => {
 	});
 
 	it('should return defaultLiskPm2Path constant', () => {
-		return expect(defaultLiskPm2Path).to.equal(
-			path.join(`${defaultLiskPath}/pm2`),
-		);
+		return expect(defaultLiskPm2Path).to.equal(path.join(`${defaultLiskPath}/pm2`));
 	});
 
 	it('should return defaultLiskInstancePath constant', () => {
-		return expect(defaultLiskInstancePath).to.equal(
-			path.join(`${defaultLiskPath}/instances`),
-		);
+		return expect(defaultLiskInstancePath).to.equal(path.join(`${defaultLiskPath}/instances`));
 	});
 
 	it('should return defaultBackupPath constant', () => {
-		return expect(defaultBackupPath).to.equal(
-			path.join(`${defaultLiskPath}/backups`),
-		);
+		return expect(defaultBackupPath).to.equal(path.join(`${defaultLiskPath}/backups`));
 	});
 
 	describe('#getLiskConfig', () => {
@@ -50,10 +44,7 @@ describe('config core utils', () => {
 				stdout: JSON.stringify(liskConfig.config),
 			});
 
-			const config = await getLiskConfig(
-				defaultLiskInstancePath,
-				NETWORK.DEVNET,
-			);
+			const config = await getLiskConfig(defaultLiskInstancePath, NETWORK.DEVNET);
 			return expect(config).to.deep.equal(liskConfig.config);
 		});
 
@@ -62,9 +53,9 @@ describe('config core utils', () => {
 				stderr: 'Invalid config schema',
 			});
 
-			return expect(
-				getLiskConfig(defaultLiskInstancePath, NETWORK.DEVNET),
-			).to.be.rejectedWith('Invalid config schema');
+			return expect(getLiskConfig(defaultLiskInstancePath, NETWORK.DEVNET)).to.be.rejectedWith(
+				'Invalid config schema',
+			);
 		});
 	});
 });

@@ -36,9 +36,7 @@ describe('encode', () => {
 			const objectFixtureOutput = objectTestCases[0].output;
 			const message = objectFixtureInput.object;
 
-			(message as any).address = Buffer.from(
-				(message as any).address.data,
-			).toString('base64');
+			(message as any).address = Buffer.from((message as any).address.data).toString('base64');
 			(message as any).balance = BigInt(message.balance).toString();
 
 			const { schema } = objectFixtureInput;
@@ -78,13 +76,11 @@ describe('encode', () => {
 			const bytesFixtureOutput = bytesTestCases[0].output;
 			const message = bytesFixtureInput.object;
 
-			const originalMessageBytes = Buffer.from(
-				bytesFixtureInput.object.address.data,
-			).toString('hex');
-
-			(message as any).address = Buffer.from(message.address.data).toString(
-				'base64',
+			const originalMessageBytes = Buffer.from(bytesFixtureInput.object.address.data).toString(
+				'hex',
 			);
+
+			(message as any).address = Buffer.from(message.address.data).toString('base64');
 			const { schema } = bytesFixtureInput;
 			const { value: expectedOutput } = bytesFixtureOutput;
 			const liskBinaryMessage = codec.encodeJSON(schema as any, message as any);
@@ -259,9 +255,7 @@ describe('encode', () => {
 		for (const testCase of blockEncoding.testCases) {
 			it(testCase.description, () => {
 				const message = {
-					header: Buffer.from(testCase.input.object.header.data).toString(
-						'base64',
-					),
+					header: Buffer.from(testCase.input.object.header.data).toString('base64'),
 					payload: testCase.input.object.payload.map(payloadItem =>
 						Buffer.from(payloadItem.data).toString('base64'),
 					),
@@ -279,21 +273,17 @@ describe('encode', () => {
 				const message = {
 					...testCase.input.object,
 					reward: BigInt(testCase.input.object.reward).toString(),
-					asset: Buffer.from(testCase.input.object.asset.data).toString(
+					asset: Buffer.from(testCase.input.object.asset.data).toString('base64'),
+					signature: Buffer.from(testCase.input.object.signature.data).toString('base64'),
+					transactionRoot: Buffer.from(testCase.input.object.transactionRoot.data).toString(
 						'base64',
 					),
-					signature: Buffer.from(testCase.input.object.signature.data).toString(
+					previousBlockID: Buffer.from(testCase.input.object.previousBlockID.data).toString(
 						'base64',
 					),
-					transactionRoot: Buffer.from(
-						testCase.input.object.transactionRoot.data,
-					).toString('base64'),
-					previousBlockID: Buffer.from(
-						testCase.input.object.previousBlockID.data,
-					).toString('base64'),
-					generatorPublicKey: Buffer.from(
-						testCase.input.object.generatorPublicKey.data,
-					).toString('base64'),
+					generatorPublicKey: Buffer.from(testCase.input.object.generatorPublicKey.data).toString(
+						'base64',
+					),
 				};
 
 				const result = codec.encodeJSON(testCase.input.schema, message as any);
@@ -307,9 +297,7 @@ describe('encode', () => {
 			it(testCase.description, () => {
 				const message = {
 					...testCase.input.object,
-					seedReveal: Buffer.from(
-						testCase.input.object.seedReveal.data,
-					).toString('base64'),
+					seedReveal: Buffer.from(testCase.input.object.seedReveal.data).toString('base64'),
 				};
 
 				const result = codec.encodeJSON(testCase.input.schema, message as any);
@@ -346,22 +334,16 @@ describe('encode', () => {
 							...acc.asset,
 							delegate: {
 								...acc.asset.delegate,
-								totalVotesReceived: BigInt(
-									acc.asset.delegate.totalVotesReceived,
-								).toString(),
+								totalVotesReceived: BigInt(acc.asset.delegate.totalVotesReceived).toString(),
 							},
 							sentVotes: acc.asset.sentVotes.map(v => ({
 								...v,
-								delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-									'base64',
-								),
+								delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 								amount: BigInt(v.amount).toString(),
 							})),
 							unlocking: acc.asset.unlocking.map((v: any) => ({
 								...v,
-								delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-									'base64',
-								),
+								delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 								amount: BigInt(v.amount).toString(),
 							})),
 						},
@@ -380,21 +362,17 @@ describe('encode', () => {
 			it(testCase.description, () => {
 				const message = {
 					...testCase.input.object,
-					address: Buffer.from(testCase.input.object.address.data).toString(
-						'base64',
-					),
+					address: Buffer.from(testCase.input.object.address.data).toString('base64'),
 					balance: BigInt(testCase.input.object.balance).toString(),
-					publicKey: Buffer.from(testCase.input.object.publicKey.data).toString(
-						'base64',
-					),
+					publicKey: Buffer.from(testCase.input.object.publicKey.data).toString('base64'),
 					nonce: BigInt(testCase.input.object.nonce).toString(),
 					keys: {
 						...testCase.input.object.keys,
 						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b =>
 							Buffer.from(b.data).toString('base64'),
 						),
-						optionalKeys: testCase.input.object.keys.optionalKeys.map(
-							(b: any) => Buffer.from(b.data).toString('base64'),
+						optionalKeys: testCase.input.object.keys.optionalKeys.map((b: any) =>
+							Buffer.from(b.data).toString('base64'),
 						),
 					},
 					asset: {
@@ -407,25 +385,18 @@ describe('encode', () => {
 						},
 						sentVotes: testCase.input.object.asset.sentVotes.map(v => ({
 							...v,
-							delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-								'base64',
-							),
+							delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 							amount: BigInt(v.amount).toString(),
 						})),
 						unlocking: testCase.input.object.asset.unlocking.map(v => ({
 							...v,
-							delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-								'base64',
-							),
+							delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 							amount: BigInt(v.amount.toString()),
 						})),
 					},
 				};
 
-				const result = codec.encodeJSON(
-					testCase.input.schema as any,
-					message as any,
-				);
+				const result = codec.encodeJSON(testCase.input.schema as any, message as any);
 
 				expect(result.toString('hex')).toEqual(testCase.output.value);
 			});
@@ -439,21 +410,16 @@ describe('encode', () => {
 				...testCase.input.object,
 				nonce: BigInt(testCase.input.object.nonce).toString(),
 				fee: BigInt(testCase.input.object.fee).toString(),
-				senderPublicKey: Buffer.from(
-					(testCase.input.object.senderPublicKey as any).data,
-				).toString('base64'),
+				senderPublicKey: Buffer.from((testCase.input.object.senderPublicKey as any).data).toString(
+					'base64',
+				),
 				signatures: testCase.input.object.signatures?.map(v =>
 					Buffer.from(v.data).toString('base64'),
 				),
-				asset: Buffer.from((testCase.input.object.asset as any).data).toString(
-					'base64',
-				),
+				asset: Buffer.from((testCase.input.object.asset as any).data).toString('base64'),
 			};
 
-			const result = codec.encodeJSON(
-				testCase.input.schema as any,
-				message as any,
-			);
+			const result = codec.encodeJSON(testCase.input.schema as any, message as any);
 			expect(result.toString('hex')).toEqual(testCase.output.value);
 		});
 
@@ -461,17 +427,12 @@ describe('encode', () => {
 			const testCase = transactionEncoding.testCases[1];
 			const message = {
 				votes: testCase.input.object.votes?.map(v => ({
-					delegateAddress: Buffer.from(v.delegateAddress.data).toString(
-						'base64',
-					),
+					delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
 					amount: BigInt(v.amount).toString(),
 				})),
 			};
 
-			const result = codec.encodeJSON(
-				testCase.input.schema as any,
-				message as any,
-			);
+			const result = codec.encodeJSON(testCase.input.schema as any, message as any);
 			expect(result.toString('hex')).toEqual(testCase.output.value);
 		});
 
@@ -489,10 +450,7 @@ describe('encode', () => {
 						),
 					};
 
-					const result = codec.encodeJSON(
-						testCase.input.schema as any,
-						message as any,
-					);
+					const result = codec.encodeJSON(testCase.input.schema as any, message as any);
 					expect(result.toString('hex')).toEqual(testCase.output.value);
 				});
 			}
@@ -502,10 +460,7 @@ describe('encode', () => {
 	describe('peer info encoding', () => {
 		for (const testCase of peerInfoEncoding.testCases) {
 			it(testCase.description, () => {
-				const result = codec.encodeJSON(
-					testCase.input.schema,
-					testCase.input.object as any,
-				);
+				const result = codec.encodeJSON(testCase.input.schema, testCase.input.object as any);
 				expect(result.toString('hex')).toEqual(testCase.output.value);
 			});
 		}
@@ -514,10 +469,7 @@ describe('encode', () => {
 	describe('nested array encoding', () => {
 		for (const testCase of nestedArrayEncoding.testCases) {
 			it(testCase.description, () => {
-				const result = codec.encodeJSON(
-					testCase.input.schema,
-					testCase.input.object as any,
-				);
+				const result = codec.encodeJSON(testCase.input.schema, testCase.input.object as any);
 				expect(result.toString('hex')).toEqual(testCase.output.value);
 			});
 		}

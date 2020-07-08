@@ -16,11 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { codec } from '@liskhq/lisk-codec';
 import { KVStore } from '@liskhq/lisk-db';
-import {
-	createFakeDefaultAccount,
-	defaultAccountSchema,
-	AccountAsset,
-} from '../../utils/account';
+import { createFakeDefaultAccount, defaultAccountSchema, AccountAsset } from '../../utils/account';
 import { DataAccess } from '../../../src/data_access';
 import { defaultBlockHeaderAssetSchema } from '../../utils/block';
 import { registeredTransactions } from '../../utils/registered_transactions';
@@ -77,10 +73,7 @@ describe('stateStore.finalize.saveDiff', () => {
 				balance: BigInt('10000'),
 				keys: {
 					mandatoryKeys: [
-						Buffer.from(
-							'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
-							'hex',
-						),
+						Buffer.from('456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e', 'hex'),
 					],
 					optionalKeys: [],
 					numberOfSignatures: 3,
@@ -110,12 +103,8 @@ describe('stateStore.finalize.saveDiff', () => {
 			expect(decodedDiff).toStrictEqual({
 				updated: [],
 				created: [
-					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[0].address.toString(
-						'binary',
-					)}`,
-					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[1].address.toString(
-						'binary',
-					)}`,
+					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[0].address.toString('binary')}`,
+					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[1].address.toString('binary')}`,
 				],
 			});
 		});
@@ -156,10 +145,7 @@ describe('stateStore.finalize.saveDiff', () => {
 			// Assert
 			expect(decodedDiff).toStrictEqual({
 				updated: [],
-				created: [
-					`${DB_KEY_CONSENSUS_STATE}:key3`,
-					`${DB_KEY_CONSENSUS_STATE}:key4`,
-				],
+				created: [`${DB_KEY_CONSENSUS_STATE}:key3`, `${DB_KEY_CONSENSUS_STATE}:key4`],
 			});
 		});
 
@@ -183,12 +169,8 @@ describe('stateStore.finalize.saveDiff', () => {
 			expect(decodedDiff).toStrictEqual({
 				updated: [],
 				created: [
-					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[0].address.toString(
-						'binary',
-					)}`,
-					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[1].address.toString(
-						'binary',
-					)}`,
+					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[0].address.toString('binary')}`,
+					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[1].address.toString('binary')}`,
 					`${DB_KEY_CHAIN_STATE}:key1`,
 					`${DB_KEY_CHAIN_STATE}:key2`,
 					`${DB_KEY_CONSENSUS_STATE}:key3`,

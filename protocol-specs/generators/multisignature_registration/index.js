@@ -28,8 +28,7 @@ const networkIdentifier = Buffer.from(
 
 const accounts = {
 	targetAccount: {
-		passphrase:
-			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
+		passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
 		privateKey: Buffer.from(
 			'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 			'hex',
@@ -41,8 +40,7 @@ const accounts = {
 		address: Buffer.from('be046d336cd0c2fbde62bc47e20199395d2eeadc', 'hex'),
 	},
 	mandatoryOne: {
-		passphrase:
-			'trim elegant oven term access apple obtain error grain excite lawn neck',
+		passphrase: 'trim elegant oven term access apple obtain error grain excite lawn neck',
 		privateKey: Buffer.from(
 			'8a138c0dd8efe597c8b9c519af69e9821bd1e769cf0fb3490e22209e9cabfb8df1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 			'hex',
@@ -54,8 +52,7 @@ const accounts = {
 		address: Buffer.from('652bac0f3ef175917844a85c4a0a484fbe2395e4', 'hex'),
 	},
 	mandatoryTwo: {
-		passphrase:
-			'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
+		passphrase: 'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
 		privateKey: Buffer.from(
 			'ddc8e19d6697d6e5c1dacf6576a7169752810999918212afe14d3978b354f8aa4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
 			'hex',
@@ -67,8 +64,7 @@ const accounts = {
 		address: Buffer.from('ecb6308c3ee3cc2ed1fa266b85ba127d63a4ee1c', 'hex'),
 	},
 	optionalOne: {
-		passphrase:
-			'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
+		passphrase: 'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
 		privateKey: Buffer.from(
 			'69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 			'hex',
@@ -80,8 +76,7 @@ const accounts = {
 		address: Buffer.from('74a7c8ec9adc7e6ba5c1cf9410d5c6c6bf6aba7d', 'hex'),
 	},
 	optionalTwo: {
-		passphrase:
-			'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
+		passphrase: 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
 		privateKey: Buffer.from(
 			'ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 			'hex',
@@ -163,24 +158,12 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 		type: 12,
 		asset: {
 			mandatoryKeys: [
-				Buffer.from(
-					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-					'hex',
-				),
-				Buffer.from(
-					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-					'hex',
-				),
+				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
+				Buffer.from('f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3', 'hex'),
 			],
 			optionalKeys: [
-				Buffer.from(
-					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-					'hex',
-				),
-				Buffer.from(
-					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-					'hex',
-				),
+				Buffer.from('57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4', 'hex'),
+				Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
 			],
 			numberOfSignatures: 4,
 		},
@@ -198,22 +181,12 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.targetAccount).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	// Members sign in order
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryTwo).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.optionalOne).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryTwo).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryOne).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalOne).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalTwo).signature);
 
 	const encodedTx = encode(tx);
 
@@ -247,28 +220,13 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		type: 12,
 		asset: {
 			mandatoryKeys: [
-				Buffer.from(
-					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-					'hex',
-				),
-				Buffer.from(
-					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-					'hex',
-				),
-				Buffer.from(
-					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-					'hex',
-				),
+				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),
+				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
+				Buffer.from('f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3', 'hex'),
 			],
 			optionalKeys: [
-				Buffer.from(
-					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-					'hex',
-				),
-				Buffer.from(
-					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-					'hex',
-				),
+				Buffer.from('57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4', 'hex'),
+				Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
 			],
 			numberOfSignatures: 4,
 		},
@@ -287,27 +245,15 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.targetAccount).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	// Members sign in order
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.targetAccount).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	// In the case where the Sender is part of mandatory its signature should be included too;
 	// in this case given the lexicographical order it happens to be first but could be in different order
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryTwo).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.optionalOne).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryTwo).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryOne).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalOne).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalTwo).signature);
 
 	const encodedTx = encode(tx);
 
@@ -343,14 +289,8 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		asset: {
 			mandatoryKeys: [],
 			optionalKeys: [
-				Buffer.from(
-					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-					'hex',
-				),
-				Buffer.from(
-					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-					'hex',
-				),
+				Buffer.from('57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4', 'hex'),
+				Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
 			],
 			numberOfSignatures: 1,
 		},
@@ -369,16 +309,10 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.targetAccount).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	// Members sign in order
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.optionalOne).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalOne).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.optionalTwo).signature);
 
 	const encodedTx = encode(tx);
 
@@ -410,14 +344,8 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		type: 12,
 		asset: {
 			mandatoryKeys: [
-				Buffer.from(
-					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-					'hex',
-				),
-				Buffer.from(
-					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-					'hex',
-				),
+				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
+				Buffer.from('f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3', 'hex'),
 			],
 			optionalKeys: [],
 			numberOfSignatures: 2,
@@ -437,16 +365,10 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.targetAccount).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	// Members sign in order
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryTwo).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryTwo).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryOne).signature);
 
 	const encodedTx = encode(tx);
 
@@ -469,8 +391,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 const generateFormerSecondSignatureTransactioon = () => {
 	// Second signature
 	const secondSignature = {
-		passphrase:
-			'oyster observe cinnamon elder rose judge baby length again subway pill plate',
+		passphrase: 'oyster observe cinnamon elder rose judge baby length again subway pill plate',
 		privateKey: Buffer.from(
 			'ffa879f56c04b9293bc830ef29c53c8871fb892717be9d7e75fc89b507eba279ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d',
 			'hex',
@@ -493,10 +414,7 @@ const generateFormerSecondSignatureTransactioon = () => {
 		type: 12,
 		asset: {
 			mandatoryKeys: [
-				Buffer.from(
-					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-					'hex',
-				),
+				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),
 				secondSignature.publicKey,
 			],
 			optionalKeys: [],
@@ -517,16 +435,10 @@ const generateFormerSecondSignatureTransactioon = () => {
 	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.targetAccount).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	// Members sign in order
-	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.targetAccount).signature,
-	);
-	tx.signatures.push(
-		createSignatureObject(txBuffer, secondSignature).signature,
-	);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
+	tx.signatures.push(createSignatureObject(txBuffer, secondSignature).signature);
 
 	const encodedTx = encode(tx);
 
@@ -563,7 +475,6 @@ const validMultisignatureRegistrationSuite = () => ({
 	],
 });
 
-module.exports = BaseGenerator.runGenerator(
-	'multisignature_registration_transaction',
-	[validMultisignatureRegistrationSuite],
-);
+module.exports = BaseGenerator.runGenerator('multisignature_registration_transaction', [
+	validMultisignatureRegistrationSuite,
+]);

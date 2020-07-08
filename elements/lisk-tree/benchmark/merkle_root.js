@@ -14,9 +14,7 @@
 
 const { Suite } = require('benchmark');
 const { getRandomBytes } = require('@liskhq/lisk-cryptography');
-const {
-    MerkleTree,
-} = require('../dist-node/merkle_tree');
+const { MerkleTree } = require('../dist-node/merkle_tree');
 
 const suite = new Suite();
 const size = 150;
@@ -27,10 +25,10 @@ for (let i = 0; i < size; i += 1) {
 }
 
 suite
-    .add('constructor', () => {
-        new MerkleTree(testSamples);
-    })
-    .on('cycle', function (event) {
-        console.log(String(event.target));
-    })
-    .run({ async: true })
+	.add('constructor', () => {
+		new MerkleTree(testSamples);
+	})
+	.on('cycle', function (event) {
+		console.log(String(event.target));
+	})
+	.run({ async: true });

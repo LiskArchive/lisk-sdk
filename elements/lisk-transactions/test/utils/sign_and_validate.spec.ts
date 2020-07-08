@@ -24,12 +24,9 @@ import { TransferTransaction } from '../../src';
 describe('signAndVerify module', () => {
 	// TODO: Update after updating protocol-specs
 	describe.skip('#validateSignature', () => {
-		const networkIdentifier =
-			'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+		const networkIdentifier = 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
-		const defaultTransferTransaction = addTransactionFields(
-			transferFixture.testCases[0].output,
-		);
+		const defaultTransferTransaction = addTransactionFields(transferFixture.testCases[0].output);
 		const validTestTransaction = new TransferTransaction({
 			...defaultTransferTransaction,
 			networkIdentifier,

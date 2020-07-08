@@ -25,9 +25,9 @@ describe('PeerPool actions', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	describe('getConnectedPeers', () => {
-		const ALL_NODE_PORTS: ReadonlyArray<number> = [
-			...new Array(NETWORK_PEER_COUNT).keys(),
-		].map(index => NETWORK_START_PORT + index);
+		const ALL_NODE_PORTS: ReadonlyArray<number> = [...new Array(NETWORK_PEER_COUNT).keys()].map(
+			index => NETWORK_START_PORT + index,
+		);
 
 		beforeEach(async () => {
 			p2pNodeList = await createNetwork();
@@ -43,12 +43,12 @@ describe('PeerPool actions', () => {
 			// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 			const peerPorts = firstNode
 				.getConnectedPeers()
-				.map(peerInfo => peerInfo.wsPort)
+				.map(peerInfo => peerInfo.port)
 				.sort();
 
 			// The current node should not be in its own peer list.
 			const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-				return port !== firstNode.nodeInfo.wsPort;
+				return port !== firstNode.config.port;
 			});
 
 			expect(peerPorts).toEqual(expectedPeerPorts);
@@ -59,21 +59,13 @@ describe('PeerPool actions', () => {
 		const LIMITED_CONNECTIONS = 3;
 
 		beforeEach(async () => {
-			const customSeedPeers = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => [
+			const customSeedPeers = (index: number, startPort: number, networkSize: number) => [
 				{
 					ipAddress: '127.0.0.1',
-					wsPort: startPort + ((index + 1) % networkSize),
+					port: startPort + ((index + 1) % networkSize),
 				},
 			];
-			const customConfig = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => ({
+			const customConfig = (index: number, startPort: number, networkSize: number) => ({
 				populatorInterlatencyProtectionRatio: 0,
 				productivityProtectionRatio: 0,
 				longevityProtectionRatio: 0,
@@ -97,9 +89,7 @@ describe('PeerPool actions', () => {
 				const disconnectedPeers = p2p.getDisconnectedPeers();
 
 				for (const connectedPeer of connectedPeers) {
-					expect(disconnectedPeers).toEqual(
-						expect.not.arrayContaining([connectedPeer]),
-					);
+					expect(disconnectedPeers).toEqual(expect.not.arrayContaining([connectedPeer]));
 				}
 			}
 		});

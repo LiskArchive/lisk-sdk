@@ -24,8 +24,7 @@ import * as readerUtils from '../../../src/utils/reader';
 describe.skip('transaction:verify', () => {
 	const defaultTransaction = {
 		type: 8,
-		senderPublicKey:
-			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+		senderPublicKey: 'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		timestamp: 54316325,
 		asset: {
 			recipientId: 'dcb5bf35b6d521195e613c42483f520139e2331d',
@@ -51,20 +50,12 @@ describe.skip('transaction:verify', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(
-				config,
-				'getConfig',
-				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: { network: 'test' } }))
 			.stdout();
 
 	describe('transaction:verify', () => {
 		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().rejects(new Error('Timeout error')),
-			)
+			.stub(readerUtils, 'readStdIn', sandbox.stub().rejects(new Error('Timeout error')))
 			.command(['transaction:verify'])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -76,18 +67,14 @@ describe.skip('transaction:verify', () => {
 		setupTest()
 			.command(['transaction:verify', invalidTransaction])
 			.catch((error: Error) => {
-				return expect(error.message).to.contain(
-					'Could not parse transaction JSON.',
-				);
+				return expect(error.message).to.contain('Could not parse transaction JSON.');
 			})
 			.it('should throw an error for invalid JSON');
 
 		setupTest()
 			.command(['transaction:verify', JSON.stringify(defaultTransaction)])
 			.it('should verify transaction from arg', () => {
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultVerifyTransactionResult,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultVerifyTransactionResult);
 			});
 	});
 
@@ -101,30 +88,18 @@ describe.skip('transaction:verify', () => {
 			.it('should throw an error when no stdin was provided');
 
 		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().resolves([invalidTransaction]),
-			)
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves([invalidTransaction]))
 			.command(['transaction:verify'])
 			.catch((error: Error) => {
-				return expect(error.message).to.contain(
-					'Could not parse transaction JSON.',
-				);
+				return expect(error.message).to.contain('Could not parse transaction JSON.');
 			})
 			.it('should throw an error when invalid JSON format was provided');
 
 		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
-			)
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves([JSON.stringify(defaultTransaction)]))
 			.command(['transaction:verify'])
 			.it('should verify transaction from stdin', () => {
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultVerifyTransactionResult,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultVerifyTransactionResult);
 			});
 	});
 });

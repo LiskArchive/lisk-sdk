@@ -24,11 +24,7 @@ describe('Outbound peer shuffling', () => {
 	const OUTBOUND_SHUFFLE_INTERVAL = 1000;
 
 	beforeEach(async () => {
-		const customConfig = (
-			_index: number,
-			_startPort: number,
-			networkSize: number,
-		) => ({
+		const customConfig = (_index: number, _startPort: number, networkSize: number) => ({
 			maxOutboundConnections: Math.round(networkSize / 2),
 			maxInboundConnections: Math.round(networkSize / 2),
 			outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
@@ -38,22 +34,18 @@ describe('Outbound peer shuffling', () => {
 		p2pNodeList = await createNetwork({
 			customConfig,
 			networkDiscoveryWaitTime: 1,
+			networkSize: 4,
 		});
 
 		p2pNodeList.forEach(p2p => {
 			p2p.on(EVENT_CLOSE_OUTBOUND, msg => {
 				if (msg.code === constants.EVICTED_PEER_CODE) {
-					let evictedConnections = collectedEventsCount.get(
-						p2p.nodeInfo.wsPort,
-					);
+					let evictedConnections = collectedEventsCount.get(p2p.config.port);
 
 					if (evictedConnections) {
-						collectedEventsCount.set(
-							p2p.nodeInfo.wsPort,
-							(evictedConnections += 1),
-						);
+						collectedEventsCount.set(p2p.config.port, (evictedConnections += 1));
 					} else {
-						collectedEventsCount.set(p2p.nodeInfo.wsPort, 1);
+						collectedEventsCount.set(p2p.config.port, 1);
 					}
 				}
 			});
@@ -68,7 +60,7 @@ describe('Outbound peer shuffling', () => {
 		await wait(1500);
 
 		p2pNodeList.forEach(p2p => {
-			const evictedConnections = collectedEventsCount.get(p2p.nodeInfo.wsPort);
+			const evictedConnections = collectedEventsCount.get(p2p.config.port);
 
 			expect(evictedConnections).toBeGreaterThan(0);
 		});

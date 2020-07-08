@@ -26,11 +26,7 @@ import {
 	getDownloadedFileInfo,
 	dateDiff,
 } from '../../../src/utils/core/commons';
-import {
-	NETWORK,
-	RELEASE_URL,
-	SNAPSHOT_URL,
-} from '../../../src/utils/constants';
+import { NETWORK, RELEASE_URL, SNAPSHOT_URL } from '../../../src/utils/constants';
 import { defaultLiskInstancePath } from '../../../src/utils/core/config';
 import * as release from '../../../src/utils/core/release';
 import * as workerProcess from '../../../src/utils/worker-process';
@@ -78,18 +74,14 @@ describe('commons core utils', () => {
 	describe('#liskVersion', () => {
 		it('should return lisk version', () => {
 			const version = '1.0.0';
-			return expect(liskVersion(version)).to.equal(
-				`lisk-${version}-${os.type()}-x86_64`,
-			);
+			return expect(liskVersion(version)).to.equal(`lisk-${version}-${os.type()}-x86_64`);
 		});
 	});
 
 	describe('#liskTar', () => {
 		it('should return lisk tar', () => {
 			const version = '1.0.0';
-			return expect(liskTar(version)).to.equal(
-				`lisk-${version}-${os.type()}-x86_64.tar.gz`,
-			);
+			return expect(liskTar(version)).to.equal(`lisk-${version}-${os.type()}-x86_64.tar.gz`);
 		});
 	});
 
@@ -113,8 +105,7 @@ describe('commons core utils', () => {
 
 	describe('#liskSnapshotUrl', () => {
 		it('should construct snapshot url', () => {
-			const downloadURL =
-				'https://downloads.lisk.io/lisk/mainnet/blockchain.db.gz';
+			const downloadURL = 'https://downloads.lisk.io/lisk/mainnet/blockchain.db.gz';
 			return expect(liskSnapshotUrl(downloadURL, NETWORK.MAINNET)).to.equal(
 				`${RELEASE_URL}/${NETWORK.MAINNET}/blockchain.db.gz`,
 			);
@@ -123,9 +114,7 @@ describe('commons core utils', () => {
 		it('should return same url if it is a valid url', () => {
 			const downloadURL =
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
-			return expect(liskSnapshotUrl(downloadURL, NETWORK.MAINNET)).to.equal(
-				downloadURL,
-			);
+			return expect(liskSnapshotUrl(downloadURL, NETWORK.MAINNET)).to.equal(downloadURL);
 		});
 
 		it('should return empty string if network is not testnet or mainnet', () => {
@@ -270,9 +259,8 @@ describe('commons core utils', () => {
 
 		it('should throw error of failed to backup', () => {
 			execStub.resolves({ stdout: '', stderr: null });
-			return expect(
-				upgradeLisk(defaultLiskInstancePath, 'test', NETWORK.MAINNET, '1.0.0'),
-			).not.to.throw;
+			return expect(upgradeLisk(defaultLiskInstancePath, 'test', NETWORK.MAINNET, '1.0.0')).not.to
+				.throw;
 		});
 	});
 
@@ -300,9 +288,7 @@ describe('commons core utils', () => {
 		it('should throw if failed to get version', () => {
 			releaseStub.rejects(new Error('failed to get version'));
 			const invalidVersion = '9.9.9';
-			return expect(validateVersion(url, invalidVersion)).to.rejectedWith(
-				'failed to get version',
-			);
+			return expect(validateVersion(url, invalidVersion)).to.rejectedWith('failed to get version');
 		});
 
 		it('should successed for valid version', () => {
@@ -313,11 +299,9 @@ describe('commons core utils', () => {
 
 	describe('#getSemver', () => {
 		it('should extract version from url', () => {
-			expect(
-				getSemver(
-					'https://localhost/lisk-core/lisk-2.0.0-rc.1-Linux-x86_64.tar.gz',
-				),
-			).to.equal('2.0.0-rc.1');
+			expect(getSemver('https://localhost/lisk-core/lisk-2.0.0-rc.1-Linux-x86_64.tar.gz')).to.equal(
+				'2.0.0-rc.1',
+			);
 			return expect(getSemver(url)).to.equal('1.6.0-rc.4');
 		});
 	});
@@ -348,9 +332,9 @@ describe('commons core utils', () => {
 
 	describe('#dateDiff', () => {
 		it('should return number of days difference', () => {
-			expect(
-				dateDiff(new Date('25-Apr-2019 13:43'), new Date('24-Apr-2019 13:43')),
-			).to.deep.equal(1);
+			expect(dateDiff(new Date('25-Apr-2019 13:43'), new Date('24-Apr-2019 13:43'))).to.deep.equal(
+				1,
+			);
 			return expect(
 				dateDiff(new Date('5-May-2019 13:43'), new Date('25-Apr-2019 13:43')),
 			).to.deep.equal(10);

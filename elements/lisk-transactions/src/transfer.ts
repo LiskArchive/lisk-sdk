@@ -12,19 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getAddressFromPublicKey,
-	hexToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, hexToBuffer } from '@liskhq/lisk-cryptography';
 import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 
 import { TransferTransaction } from './8_transfer_transaction';
 import { BYTESIZES } from './constants';
-import {
-	createBaseTransaction,
-	baseTransactionToJSON,
-	convertKeysToBuffer,
-} from './utils';
+import { createBaseTransaction, baseTransactionToJSON, convertKeysToBuffer } from './utils';
 import { TransactionJSON } from './types';
 
 export interface TransferInputs {
@@ -66,9 +59,7 @@ const validateInputs = ({
 	}
 
 	if (!recipientAddress && !recipientPublicKey) {
-		throw new Error(
-			'Either recipientAddress or recipientPublicKey must be provided.',
-		);
+		throw new Error('Either recipientAddress or recipientPublicKey must be provided.');
 	}
 
 	if (typeof recipientAddress !== 'undefined') {
@@ -86,18 +77,14 @@ const validateInputs = ({
 	if (
 		recipientAddress &&
 		recipientPublicKey &&
-		hexToBuffer(recipientAddress).equals(
-			getAddressFromPublicKey(hexToBuffer(recipientPublicKey)),
-		)
+		hexToBuffer(recipientAddress).equals(getAddressFromPublicKey(hexToBuffer(recipientPublicKey)))
 	) {
 		throw new Error('recipientAddress does not match recipientPublicKey.');
 	}
 
 	if (data && data.length > 0) {
 		if (typeof data !== 'string') {
-			throw new Error(
-				'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
-			);
+			throw new Error('Invalid encoding in transaction data. Data must be utf-8 encoded string.');
 		}
 		if (data.length > BYTESIZES.DATA) {
 			throw new Error('Transaction data field cannot exceed 64 bytes.');
@@ -156,12 +143,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	if (passphrases && inputs.keys) {
 		const keys = convertKeysToBuffer(inputs.keys);
 
-		transferTransaction.sign(
-			networkIdentifierBytes,
-			undefined,
-			passphrases,
-			keys,
-		);
+		transferTransaction.sign(networkIdentifierBytes, undefined, passphrases, keys);
 
 		return baseTransactionToJSON(transferTransaction);
 	}

@@ -19,32 +19,20 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import {
-	getPassphraseFromPrompt,
-	isFileSource,
-	readFileSource,
-} from '../../utils/reader';
+import { getPassphraseFromPrompt, isFileSource, readFileSource } from '../../utils/reader';
 
 interface Args {
 	readonly message?: string;
 	readonly recipientPublicKey: string;
 }
 
-const processInputs = (
-	recipientPublicKey: string,
-	passphrase: string,
-	message?: string,
-) => {
+const processInputs = (recipientPublicKey: string, passphrase: string, message?: string) => {
 	if (!message) {
 		throw new ValidationError('No message was provided.');
 	}
 
 	return {
-		...encryptMessageWithPassphrase(
-			message,
-			passphrase,
-			Buffer.from(recipientPublicKey, 'hex'),
-		),
+		...encryptMessageWithPassphrase(message, passphrase, Buffer.from(recipientPublicKey, 'hex')),
 		recipientPublicKey,
 	};
 };
@@ -87,18 +75,13 @@ export default class EncryptCommand extends BaseCommand {
 		if (!message && !messageSource) {
 			throw new ValidationError('No message was provided.');
 		}
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const dataFromSource =
 			messageSource && isFileSource(messageSource)
 				? await readFileSource(messageSource)
 				: messageSource;
 
-		const result = processInputs(
-			recipientPublicKey,
-			passphrase,
-			message ?? dataFromSource,
-		);
+		const result = processInputs(recipientPublicKey, passphrase, message ?? dataFromSource);
 		this.print(result);
 	}
 }

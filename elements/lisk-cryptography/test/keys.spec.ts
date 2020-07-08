@@ -31,8 +31,7 @@ const hashModule = require('../src/hash');
 
 describe('keys', () => {
 	const defaultPassphrase = 'secret';
-	const defaultPassphraseHash =
-		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b';
+	const defaultPassphraseHash = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b';
 	const defaultPrivateKey = Buffer.from(
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		'hex',
@@ -41,10 +40,7 @@ describe('keys', () => {
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		'hex',
 	);
-	const defaultAddress = Buffer.from(
-		'2bb80d537b1da3e38bd30361aa855686bde0eacd',
-		'hex',
-	);
+	const defaultAddress = Buffer.from('2bb80d537b1da3e38bd30361aa855686bde0eacd', 'hex');
 
 	const defaultAddressAndPublicKey = {
 		publicKey: defaultPublicKey,
@@ -54,9 +50,7 @@ describe('keys', () => {
 	beforeEach(() => {
 		jest.spyOn(buffer, 'bufferToHex');
 
-		jest
-			.spyOn(hashModule, 'hash')
-			.mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
+		jest.spyOn(hashModule, 'hash').mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
 	});
 
 	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
@@ -101,17 +95,13 @@ describe('keys', () => {
 
 	describe('#getAddressFromPassphrase', () => {
 		it('should create correct address', () => {
-			expect(getAddressFromPassphrase(defaultPassphrase)).toEqual(
-				defaultAddress,
-			);
+			expect(getAddressFromPassphrase(defaultPassphrase)).toEqual(defaultAddress);
 		});
 	});
 
 	describe('#getAddressFromPrivateKey', () => {
 		it('should create correct address', () => {
-			expect(getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64))).toEqual(
-				defaultAddress,
-			);
+			expect(getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64))).toEqual(defaultAddress);
 		});
 	});
 
@@ -130,9 +120,7 @@ describe('keys', () => {
 		const hash = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
 		const expectedBase32Address = 'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 		beforeEach(() => {
-			return jest
-				.spyOn(hashModule, 'hash')
-				.mockReturnValue(Buffer.from(hash, 'hex'));
+			return jest.spyOn(hashModule, 'hash').mockReturnValue(Buffer.from(hash, 'hex'));
 		});
 
 		it('should generate base32 address from publicKey', () => {

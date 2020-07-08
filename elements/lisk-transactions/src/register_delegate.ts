@@ -18,11 +18,7 @@ import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { DelegateTransaction } from './10_delegate_transaction';
 import { USERNAME_MAX_LENGTH } from './constants';
 import { TransactionJSON } from './types';
-import {
-	createBaseTransaction,
-	baseTransactionToJSON,
-	convertKeysToBuffer,
-} from './utils';
+import { createBaseTransaction, baseTransactionToJSON, convertKeysToBuffer } from './utils';
 
 export interface RegisterDelegateInputs {
 	readonly passphrase?: string;
@@ -39,10 +35,7 @@ export interface RegisterDelegateInputs {
 	};
 }
 
-const validateInputs = ({
-	username,
-	networkIdentifier,
-}: RegisterDelegateInputs): void => {
+const validateInputs = ({ username, networkIdentifier }: RegisterDelegateInputs): void => {
 	if (!username || typeof username !== 'string') {
 		throw new Error('Please provide a username. Expected string.');
 	}
@@ -58,9 +51,7 @@ const validateInputs = ({
 	}
 };
 
-export const registerDelegate = (
-	inputs: RegisterDelegateInputs,
-): Partial<TransactionJSON> => {
+export const registerDelegate = (inputs: RegisterDelegateInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { username, passphrase, passphrases, senderPublicKey } = inputs;
 	const networkIdentifier = hexToBuffer(inputs.networkIdentifier);

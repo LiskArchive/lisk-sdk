@@ -26,10 +26,7 @@ export class BlockHeaderInterfaceAdapter {
 	public constructor(registeredBlocks: RegisteredBlockHeaders = {}) {
 		this._blockSchemaMap = new Map<number, Schema>();
 		Object.keys(registeredBlocks).forEach(version => {
-			this._blockSchemaMap.set(
-				Number(version),
-				registeredBlocks[Number(version)] as Schema,
-			);
+			this._blockSchemaMap.set(Number(version), registeredBlocks[Number(version)] as Schema);
 		});
 	}
 

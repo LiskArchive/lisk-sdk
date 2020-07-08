@@ -19,8 +19,7 @@ import * as fast from '../../src/nacl/fast';
 import * as slow from '../../src/nacl/slow';
 
 describe('nacl', () => {
-	const defaultPublicKey =
-		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
+	const defaultPublicKey = '7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultPrivateKey =
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultMessage = 'Some default text.';
@@ -29,10 +28,8 @@ describe('nacl', () => {
 	const defaultEncryptedMessage =
 		'a232e5ea10e18249efc5a0aa8ed68271fc494d02245c52277ee2e14cddd960144a65';
 	const defaultNonce = 'df4c8b09e270d2cb3f7b3d53dfa8a6f3441ad3b14a13fb66';
-	const defaultHash =
-		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d97';
-	const defaultDigest =
-		'aba8462bb7a1460f1e36c36a71f0b7f67d1606562001907c1b2dad08a8ce74ae';
+	const defaultHash = '314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d97';
+	const defaultDigest = 'aba8462bb7a1460f1e36c36a71f0b7f67d1606562001907c1b2dad08a8ce74ae';
 	const defaultConvertedPublicKeyEd2Curve =
 		'b8c0eecfd16c1cc4f057a6fc6d8dd3d46e4aa9625408d4bd0ba00e991326fe00';
 	const defaultConvertedPrivateKeyEd2Curve =
@@ -76,9 +73,7 @@ describe('nacl', () => {
 				});
 
 				it('should return an uint8array', () => {
-					expect(Object.prototype.toString.call(randomBuffer)).toEqual(
-						'[object Uint8Array]',
-					);
+					expect(Object.prototype.toString.call(randomBuffer)).toEqual('[object Uint8Array]');
 				});
 
 				it('should return an uint8array of size 24', () => {
@@ -95,9 +90,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a publicKey', () => {
-					expect(Buffer.from(signedKeys.publicKey).toString('hex')).toEqual(
-						defaultPublicKey,
-					);
+					expect(Buffer.from(signedKeys.publicKey).toString('hex')).toEqual(defaultPublicKey);
 				});
 
 				it('should create a publicKey of type uint8array', () => {
@@ -107,9 +100,7 @@ describe('nacl', () => {
 				});
 
 				it('should create a privateKey', () => {
-					expect(Buffer.from(signedKeys.privateKey).toString('hex')).toEqual(
-						defaultPrivateKey,
-					);
+					expect(Buffer.from(signedKeys.privateKey).toString('hex')).toEqual(defaultPrivateKey);
 				});
 
 				it('should create a privateKey of type uint8array', () => {
@@ -129,24 +120,16 @@ describe('nacl', () => {
 				});
 
 				it('should create a publicKey', () => {
-					expect(Buffer.from(publicKey).toString('hex')).toEqual(
-						defaultPublicKey,
-					);
+					expect(Buffer.from(publicKey).toString('hex')).toEqual(defaultPublicKey);
 				});
 
 				it('should create a publicKey when private key is 32 bytes', () => {
-					publicKey = getPublicKey(
-						Buffer.from(defaultPrivateKey, 'hex').slice(0, 32),
-					);
-					expect(Buffer.from(publicKey).toString('hex')).toEqual(
-						defaultPublicKey,
-					);
+					publicKey = getPublicKey(Buffer.from(defaultPrivateKey, 'hex').slice(0, 32));
+					expect(Buffer.from(publicKey).toString('hex')).toEqual(defaultPublicKey);
 				});
 
 				it('should create a publicKey of type uint8array', () => {
-					expect(Object.prototype.toString.call(publicKey)).toEqual(
-						'[object Uint8Array]',
-					);
+					expect(Object.prototype.toString.call(publicKey)).toEqual('[object Uint8Array]');
 				});
 			});
 
@@ -162,15 +145,11 @@ describe('nacl', () => {
 				});
 
 				it('should create a signature', () => {
-					expect(Buffer.from(signatureBytes).toString('hex')).toEqual(
-						defaultSignature,
-					);
+					expect(Buffer.from(signatureBytes).toString('hex')).toEqual(defaultSignature);
 				});
 
 				it('should create a signature of type uint8array', () => {
-					expect(Object.prototype.toString.call(signatureBytes)).toEqual(
-						'[object Uint8Array]',
-					);
+					expect(Object.prototype.toString.call(signatureBytes)).toEqual('[object Uint8Array]');
 				});
 			});
 
@@ -228,19 +207,14 @@ describe('nacl', () => {
 				});
 
 				it('should decrypt a message', () => {
-					expect(Buffer.from(decryptedMessageBytes).toString('utf8')).toEqual(
-						defaultMessage,
-					);
+					expect(Buffer.from(decryptedMessageBytes).toString('utf8')).toEqual(defaultMessage);
 				});
 
 				it('should throw an error for an invalid message', () => {
 					expect(
 						openBox.bind(
 							null,
-							Buffer.from(
-								'abcdef1234567890abcdef1234567890abcdef1234567890',
-								'hex',
-							),
+							Buffer.from('abcdef1234567890abcdef1234567890abcdef1234567890', 'hex'),
 							Buffer.from(defaultNonce, 'hex'),
 							Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
 							Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
@@ -263,9 +237,7 @@ describe('nacl', () => {
 						Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
 						Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
 					);
-					expect(Buffer.from(decryptedMessageBytes).toString('utf8')).toBe(
-						defaultMessage,
-					);
+					expect(Buffer.from(decryptedMessageBytes).toString('utf8')).toBe(defaultMessage);
 				});
 
 				it('should sign a given message and verify it using the same signature', () => {

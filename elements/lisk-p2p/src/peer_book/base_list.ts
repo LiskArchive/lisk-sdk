@@ -48,12 +48,7 @@ export class BaseList {
 	protected type: PEER_TYPE | undefined;
 	protected readonly peerListConfig: PeerListConfig;
 
-	public constructor({
-		bucketSize,
-		numOfBuckets,
-		secret,
-		peerType,
-	}: PeerListConfig) {
+	public constructor({ bucketSize, numOfBuckets, secret, peerType }: PeerListConfig) {
 		this.peerListConfig = {
 			bucketSize,
 			numOfBuckets,
@@ -82,25 +77,19 @@ export class BaseList {
 		return this.peerIdToPeerInfo.has(incomingPeerId);
 	}
 
-	public addPeer(
-		incomingPeerInfo: P2PEnhancedPeerInfo,
-	): P2PEnhancedPeerInfo | undefined {
+	public addPeer(incomingPeerInfo: P2PEnhancedPeerInfo): P2PEnhancedPeerInfo | undefined {
 		if (this.hasPeer(incomingPeerInfo.peerId)) {
 			throw new ExistingPeerError(incomingPeerInfo);
 		}
 
 		const { bucketId, bucket } = this.calculateBucket(
 			incomingPeerInfo.ipAddress,
-			this.type === PEER_TYPE.NEW_PEER
-				? incomingPeerInfo.sourceAddress
-				: undefined,
+			this.type === PEER_TYPE.NEW_PEER ? incomingPeerInfo.sourceAddress : undefined,
 		);
 
 		// If bucket is full, evict a peer to make space for incoming peer
 		const evictedPeer =
-			bucket.size >= this.peerListConfig.bucketSize
-				? this.makeSpace(bucket)
-				: undefined;
+			bucket.size >= this.peerListConfig.bucketSize ? this.makeSpace(bucket) : undefined;
 
 		const internalPeerInfo = {
 			...incomingPeerInfo,
@@ -147,9 +136,7 @@ export class BaseList {
 
 		if (bucket?.has(incomingPeerInfo.peerId)) {
 			const removedFromBucket = bucket.delete(incomingPeerInfo.peerId);
-			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(
-				incomingPeerInfo.peerId,
-			);
+			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(incomingPeerInfo.peerId);
 
 			return removedFromBucket && removedFromPeerLookup;
 		}
@@ -167,16 +154,12 @@ export class BaseList {
 		return this.removePeer(incomingPeerInfo);
 	}
 
-	public calculateBucket(
-		targetAddress: string,
-		sourceAddress?: string,
-	): BucketInfo {
+	public calculateBucket(targetAddress: string, sourceAddress?: string): BucketInfo {
 		const bucketId = getBucketId({
 			secret: this.peerListConfig.secret,
 			peerType: this.peerListConfig.peerType,
 			targetAddress,
-			sourceAddress:
-				this.type === PEER_TYPE.NEW_PEER ? sourceAddress : undefined,
+			sourceAddress: this.type === PEER_TYPE.NEW_PEER ? sourceAddress : undefined,
 			bucketCount: this.peerListConfig.numOfBuckets,
 		});
 
@@ -201,13 +184,8 @@ export class BaseList {
 
 	private _initBuckets(): void {
 		// Init the Map with all the buckets
-		for (const bucketId of [
-			...new Array(this.peerListConfig.numOfBuckets).keys(),
-		]) {
-			this.bucketIdToBucket.set(
-				bucketId,
-				new Map<string, P2PEnhancedPeerInfo>(),
-			);
+		for (const bucketId of [...new Array(this.peerListConfig.numOfBuckets).keys()]) {
+			this.bucketIdToBucket.set(bucketId, new Map<string, P2PEnhancedPeerInfo>());
 		}
 	}
 }

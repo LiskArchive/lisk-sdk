@@ -31,7 +31,7 @@ import {
 const nodeInfo: P2PNodeInfo = {
 	os: platform(),
 	nonce: randomBytes(8).toString('hex'),
-	wsPort: 5001,
+	port: 5001,
 	networkId: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
 	version: '2.0.0',
 	httpPort: 5000,
@@ -43,7 +43,7 @@ const testnetConfig: P2PConfig = {
 	maxOutboundConnections: 20,
 	maxInboundConnections: 100,
 	// Please make sure if there is a node running at below address and port.
-	seedPeers: [{ ipAddress: '104.237.2.182', wsPort: 8001 }],
+	seedPeers: [{ ipAddress: '104.237.2.182', port: 8001 }],
 	nodeInfo,
 };
 
@@ -71,11 +71,7 @@ const run = async () => {
 			console.log('Total number of connected peers:', p2p.getConnectedPeers());
 
 			const { data: peerData } = await p2p.request({ procedure: 'list' });
-			console.log(
-				'Received ',
-				(peerData as any).peers.length,
-				' number of peers.',
-			);
+			console.log('Received ', (peerData as any).peers.length, ' number of peers.');
 		},
 	);
 	// Listen to connect incoming connections error events

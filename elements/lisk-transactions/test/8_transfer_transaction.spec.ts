@@ -15,10 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { MAX_TRANSACTION_AMOUNT } from '../src/constants';
-import {
-	TransferTransaction,
-	TransferAsset,
-} from '../src/8_transfer_transaction';
+import { TransferTransaction, TransferAsset } from '../src/8_transfer_transaction';
 import { Account } from '../src/types';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
@@ -37,10 +34,7 @@ describe('Transfer transaction class', () => {
 	let store: StateStoreMock;
 
 	beforeEach(() => {
-		const buffer = Buffer.from(
-			fixture.testCases[0].output.transaction,
-			'base64',
-		);
+		const buffer = Buffer.from(fixture.testCases[0].output.transaction, 'base64');
 		const id = hash(buffer);
 		const decodedBaseTransaction = codec.decode<BaseTransaction>(
 			BaseTransaction.BASE_SCHEMA,
@@ -57,10 +51,7 @@ describe('Transfer transaction class', () => {
 		});
 		sender = defaultAccount({
 			balance: BigInt('10000000000'),
-			address: Buffer.from(
-				fixture.testCases[0].input.account.address,
-				'base64',
-			),
+			address: Buffer.from(fixture.testCases[0].input.account.address, 'base64'),
 			nonce: BigInt(validTransferAccount.nonce),
 		});
 
@@ -86,9 +77,7 @@ describe('Transfer transaction class', () => {
 
 		it('should call state store', async () => {
 			await (validTransferTestTransaction as any).applyAsset(store);
-			expect(store.account.get).toHaveBeenCalledWith(
-				validTransferTestTransaction.senderId,
-			);
+			expect(store.account.get).toHaveBeenCalledWith(validTransferTestTransaction.senderId);
 			expect(store.account.set).toHaveBeenCalledWith(
 				sender.address,
 				expect.objectContaining({
@@ -111,9 +100,7 @@ describe('Transfer transaction class', () => {
 				...recipient,
 				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
-			const errors = await (validTransferTestTransaction as any).applyAsset(
-				store,
-			);
+			const errors = await (validTransferTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).toEqual('Invalid amount');
 		});
 
@@ -125,29 +112,19 @@ describe('Transfer transaction class', () => {
 					BaseTransaction.MIN_REMAINING_BALANCE -
 					BigInt(1),
 			});
-			const errors = await (validTransferTestTransaction as any).applyAsset(
-				store,
-			);
-			expect(errors[0].message).toContain(
-				'Account does not have enough minimum remaining LSK',
-			);
+			const errors = await (validTransferTestTransaction as any).applyAsset(store);
+			expect(errors[0].message).toContain('Account does not have enough minimum remaining LSK');
 		});
 	});
 
 	describe('#sign', () => {
-		const networkIdentifier = Buffer.from(
-			fixture.testCases[0].input.networkIdentifier,
-			'base64',
-		);
+		const networkIdentifier = Buffer.from(fixture.testCases[0].input.networkIdentifier, 'base64');
 		const { account } = fixture.testCases[0].input;
 
 		let validTransferInstance: BaseTransaction;
 
 		beforeEach(() => {
-			const buffer = Buffer.from(
-				fixture.testCases[0].output.transaction,
-				'base64',
-			);
+			const buffer = Buffer.from(fixture.testCases[0].output.transaction, 'base64');
 			const id = hash(buffer);
 			const decodedBaseTransaction = codec.decode<BaseTransaction>(
 				BaseTransaction.BASE_SCHEMA,
@@ -166,12 +143,7 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should have one signature for single key pair account', () => {
-			validTransferInstance.sign(
-				networkIdentifier,
-				account.passphrase,
-				undefined,
-				undefined,
-			);
+			validTransferInstance.sign(networkIdentifier, account.passphrase, undefined, undefined);
 			expect(validTransferInstance.signatures[0]).toEqual(
 				validTransferTestTransaction.signatures[0],
 			);
@@ -194,10 +166,7 @@ describe('Transfer transaction class', () => {
 			validTransferInstance.sign(
 				networkIdentifier,
 				undefined,
-				[
-					(members.mandatoryOne as any).passphrase,
-					(members.mandatoryTwo as any).passphrase,
-				],
+				[(members.mandatoryOne as any).passphrase, (members.mandatoryTwo as any).passphrase],
 				{
 					...decodedAsset,
 				},

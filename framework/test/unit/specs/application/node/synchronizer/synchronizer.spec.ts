@@ -118,12 +118,8 @@ describe('Synchronizer', () => {
 			getBlockHeaderByHeight: jest.fn(),
 			getBlockHeaderByID: jest.fn(),
 			decode: chainModule.dataAccess.decode.bind(chainModule.dataAccess),
-			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(
-				chainModule.dataAccess,
-			),
-			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(
-				chainModule.dataAccess,
-			),
+			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(chainModule.dataAccess),
+			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(chainModule.dataAccess),
 			getBlockHeaderAssetSchema: chainModule.dataAccess.getBlockHeaderAssetSchema.bind(
 				chainModule.dataAccess,
 			),
@@ -270,14 +266,8 @@ describe('Synchronizer', () => {
 				await synchronizer.init();
 
 				// Assert
-				expect(loggerMock.info).toHaveBeenNthCalledWith(
-					1,
-					'Restoring blocks from temporary table',
-				);
-				expect(loggerMock.info).toHaveBeenNthCalledWith(
-					2,
-					'Chain successfully restored',
-				);
+				expect(loggerMock.info).toHaveBeenNthCalledWith(1, 'Restoring blocks from temporary table');
+				expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Chain successfully restored');
 				expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(2);
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					blocksTempTableEntries.length,
@@ -287,13 +277,9 @@ describe('Synchronizer', () => {
 				expect.assertions(blocksTempTableEntries.length + 4);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i];
-					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
-						i + 1,
-						tempBlock,
-						{
-							removeFromTempTable: true,
-						},
-					);
+					expect(processorModule.processValidated).toHaveBeenNthCalledWith(i + 1, tempBlock, {
+						removeFromTempTable: true,
+					});
 				}
 			});
 
@@ -315,9 +301,7 @@ describe('Synchronizer', () => {
 						},
 					},
 				];
-				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
-					blocksTempTableEntries,
-				);
+				chainModule.dataAccess.getTempBlocks.mockResolvedValue(blocksTempTableEntries);
 				// To load storage tip block into lastBlock in memory variable
 				when(chainModule.dataAccess.getLastBlock)
 					.calledWith()
@@ -329,14 +313,8 @@ describe('Synchronizer', () => {
 				await synchronizer.init();
 
 				// Assert
-				expect(loggerMock.info).toHaveBeenNthCalledWith(
-					1,
-					'Restoring blocks from temporary table',
-				);
-				expect(loggerMock.info).toHaveBeenNthCalledWith(
-					2,
-					'Chain successfully restored',
-				);
+				expect(loggerMock.info).toHaveBeenNthCalledWith(1, 'Restoring blocks from temporary table');
+				expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Chain successfully restored');
 
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					blocksTempTableEntries.length,
@@ -346,13 +324,9 @@ describe('Synchronizer', () => {
 				expect.assertions(blocksTempTableEntries.length + 3);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i];
-					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
-						i + 1,
-						tempBlock,
-						{
-							removeFromTempTable: true,
-						},
-					);
+					expect(processorModule.processValidated).toHaveBeenNthCalledWith(i + 1, tempBlock, {
+						removeFromTempTable: true,
+					});
 				}
 			});
 
@@ -366,9 +340,7 @@ describe('Synchronizer', () => {
 					},
 				});
 				const blocksTempTableEntries = [initialLastBlock];
-				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
-					blocksTempTableEntries,
-				);
+				chainModule.dataAccess.getTempBlocks.mockResolvedValue(blocksTempTableEntries);
 				// To load storage tip block into lastBlock in memory variable
 				when(chainModule.dataAccess.getLastBlock)
 					.calledWith()
@@ -416,9 +388,7 @@ describe('Synchronizer', () => {
 					version: 1,
 				},
 			});
-			chainModule.dataAccess.getTempBlocks.mockResolvedValue(
-				blocksTempTableEntries.reverse(),
-			);
+			chainModule.dataAccess.getTempBlocks.mockResolvedValue(blocksTempTableEntries.reverse());
 			// To load storage tip block into lastBlock in memory variable
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
@@ -462,9 +432,7 @@ describe('Synchronizer', () => {
 			});
 
 			expect(aSynchronizer['mechanisms']).toInclude(aSyncingMechanism as any);
-			expect(aSynchronizer['mechanisms']).toInclude(
-				anotherSyncingMechanism as any,
-			);
+			expect(aSynchronizer['mechanisms']).toInclude(anotherSyncingMechanism as any);
 		});
 
 		it('should enforce mandatory interfaces for passed mechanisms (isValidFor)', () => {
@@ -625,15 +593,10 @@ describe('Synchronizer', () => {
 			const transaction = new TransferTransaction({
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
-				senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-					genesis.passphrase,
-				).publicKey,
+				senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 				asset: {
 					amount: BigInt('100'),
-					recipientAddress: Buffer.from(
-						'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
-						'hex',
-					),
+					recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
 					data: '',
 				},
 			});
@@ -684,9 +647,7 @@ describe('Synchronizer', () => {
 					error = err;
 				}
 				expect(error).toHaveLength(1);
-				expect(error[0].message).toBe(
-					"should have required property 'transactions'",
-				);
+				expect(error[0].message).toBe("should have required property 'transactions'");
 			});
 		});
 	});

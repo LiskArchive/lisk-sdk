@@ -18,22 +18,16 @@ const putSuite = async (ldb, rdb, { key, value }) => {
 	const suite = new Suite();
 
 	suite
-		.add(
-			`LevelDB: put(key: string):Buffer x ${value.length}(bytes)`,
-			async () => {
-				await ldb.put(key, value);
-			},
-		)
-		.add(
-			`RocksDB: put(key: string):Buffer x ${value.length}(bytes)`,
-			async () => {
-				await rdb.put(key, value);
-			},
-		)
+		.add(`LevelDB: put(key: string):Buffer x ${value.length}(bytes)`, async () => {
+			await ldb.put(key, value);
+		})
+		.add(`RocksDB: put(key: string):Buffer x ${value.length}(bytes)`, async () => {
+			await rdb.put(key, value);
+		})
 		.on('cycle', event => {
 			console.log(String(event.target));
 		})
-		.on('complete', async function() {
+		.on('complete', async function () {
 			console.log('Fastest is ' + this.filter('fastest').map('name'));
 			await ldb.clear();
 			await rdb.clear();

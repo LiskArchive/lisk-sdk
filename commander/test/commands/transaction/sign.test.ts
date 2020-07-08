@@ -26,8 +26,7 @@ describe.skip('transaction:sign', () => {
 		type: 8,
 		nonce: '0',
 		fee: '10000000',
-		senderPublicKey:
-			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+		senderPublicKey: 'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		asset: {
 			recipientId: '3c80e7d9964a1c83a6dd5dc64e105e0e634bd58a',
 			amount: '1234567890',
@@ -40,10 +39,8 @@ describe.skip('transaction:sign', () => {
 		'wear protect skill sentence lift enter wild sting lottery power floor neglect';
 	const anotherUserPassphrase =
 		'inherit moon normal relief spring bargain hobby join baby flash fog blood';
-	const KeyOne =
-		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
-	const KeyTwo =
-		'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba';
+	const KeyOne = '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
+	const KeyTwo = 'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba';
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
@@ -57,8 +54,7 @@ describe.skip('transaction:sign', () => {
 	const signedTransaction = {
 		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
 		type: 8,
-		senderPublicKey:
-			'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
+		senderPublicKey: 'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
 		nonce: '1',
 		fee: '100000000',
 		signatures: [
@@ -81,46 +77,31 @@ describe.skip('transaction:sign', () => {
 		fee: '10000000',
 		nonce: '0',
 		senderId: '8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17',
-		senderPublicKey:
-			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+		senderPublicKey: 'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		signatures: [
 			'fc4ab8535fde94a5709bd42ff52d7c9d0f4ef1724eb62d2095c9fe602d90cb692f94c5b36e9e3e889c04ecfa7b5529b64aeff3d30926a17ae217a978db5e6f0a',
 		],
 		type: 8,
 	};
 
-	const mandatoryKey =
-		'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba';
-	const optionalKey =
-		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
+	const mandatoryKey = 'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba';
+	const optionalKey = '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(
-				config,
-				'getConfig',
-				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: { network: 'test' } }))
 			.stub(
 				readerUtils,
 				'getPassphraseFromPrompt',
-				sandbox
-					.stub()
-					.resolves(firstPassphrase)
-					.onSecondCall()
-					.resolves(anotherUserPassphrase),
+				sandbox.stub().resolves(firstPassphrase).onSecondCall().resolves(anotherUserPassphrase),
 			)
 			.stdout();
 
 	describe('transaction:sign', () => {
 		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().rejects(new Error('Timeout error')),
-			)
+			.stub(readerUtils, 'readStdIn', sandbox.stub().rejects(new Error('Timeout error')))
 			.command(['transaction:sign'])
 			.catch(error => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -132,9 +113,7 @@ describe.skip('transaction:sign', () => {
 		setupTest()
 			.command(['transaction:sign', invalidTransaction])
 			.catch(error => {
-				return expect(error.message).to.contain(
-					'Could not parse transaction JSON.',
-				);
+				return expect(error.message).to.contain('Could not parse transaction JSON.');
 			})
 			.it('should throw an error');
 
@@ -154,13 +133,8 @@ describe.skip('transaction:sign', () => {
 		setupTest()
 			.command(['transaction:sign', JSON.stringify(defaultTransaction)])
 			.it('should take transaction from arg to sign', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultSignedTransaction,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultSignedTransaction);
 			});
 	});
 
@@ -171,15 +145,10 @@ describe.skip('transaction:sign', () => {
 				JSON.stringify(defaultTransaction),
 				`--passphrase=${firstPassphrase}`,
 			])
-			.it(
-				'should take transaction from arg and passphrase from flag to sign',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultSignedTransaction,
-					);
-				},
-			);
+			.it('should take transaction from arg and passphrase from flag to sign', () => {
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
+				return expect(printMethodStub).to.be.calledWithExactly(defaultSignedTransaction);
+			});
 	});
 
 	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --mandatory-key=bbb --number-of-passphrases=2', () => {
@@ -244,9 +213,7 @@ describe.skip('transaction:sign', () => {
 				'should take transaction from arg to and passphrase, mandatoryKey, optionalKey and numberOfSignature to sign',
 				() => {
 					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					return expect(printMethodStub).to.be.calledWithExactly(
-						expectedMultiSignedTransaction,
-					);
+					return expect(printMethodStub).to.be.calledWithExactly(expectedMultiSignedTransaction);
 				},
 			);
 	});
@@ -263,14 +230,9 @@ describe.skip('transaction:sign', () => {
 			.it(
 				'should take transaction from arg, passphrase from prompt and rest of of the flags mandatoryKey, optionalKey and numberOfSignature to sign',
 				() => {
-					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-						'passphrase',
-						true,
-					);
+					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 					expect(readerUtils.getPassphraseFromPrompt).to.be.callCount(2);
-					return expect(printMethodStub).to.be.calledWithExactly(
-						expectedMultiSignedTransaction,
-					);
+					return expect(printMethodStub).to.be.calledWithExactly(expectedMultiSignedTransaction);
 				},
 			);
 	});

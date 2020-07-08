@@ -44,21 +44,9 @@ describe.skip('transaction:create:delegate', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(
-				config,
-				'getConfig',
-				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
-			.stub(
-				transactions,
-				'registerDelegate',
-				sandbox.stub().returns(defaultTransaction),
-			)
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: { network: 'test' } }))
+			.stub(transactions, 'registerDelegate', sandbox.stub().returns(defaultTransaction))
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stdout();
 
 	describe('transaction:create:delegate', () => {
@@ -74,10 +62,7 @@ describe.skip('transaction:create:delegate', () => {
 		setupTest()
 			.command(['transaction:create:delegate', '1', '100', defaultUsername])
 			.it('create a transaction with the username', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
@@ -85,48 +70,29 @@ describe.skip('transaction:create:delegate', () => {
 					passphrase: defaultInputs,
 					username: defaultUsername,
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
 	describe('transaction:create:delegate username --passphrase=xxx', () => {
 		setupTest()
-			.command([
-				'transaction:create:delegate',
-				'1',
-				'100',
-				defaultUsername,
-				'--passphrase=123',
-			])
-			.it(
-				'create a transaction with the username with the passphrase from flag',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					expect(transactions.registerDelegate).to.be.calledWithExactly({
-						nonce: '1',
-						fee: '10000000000',
-						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: defaultInputs,
-						username: defaultUsername,
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultTransaction,
-					);
-				},
-			);
+			.command(['transaction:create:delegate', '1', '100', defaultUsername, '--passphrase=123'])
+			.it('create a transaction with the username with the passphrase from flag', () => {
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
+				expect(transactions.registerDelegate).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
+					networkIdentifier: testnetNetworkIdentifier,
+					passphrase: defaultInputs,
+					username: defaultUsername,
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
+			});
 	});
 
 	describe('transaction:create:delegate username --no-signature', () => {
 		setupTest()
-			.command([
-				'transaction:create:delegate',
-				'1',
-				'100',
-				defaultUsername,
-				'--no-signature',
-			])
+			.command(['transaction:create:delegate', '1', '100', defaultUsername, '--no-signature'])
 			.it('create a transaction with the username without signature', () => {
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
 					nonce: '1',
@@ -136,9 +102,7 @@ describe.skip('transaction:create:delegate', () => {
 					username: defaultUsername,
 				});
 				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 });

@@ -39,18 +39,16 @@ describe('Transaction related actions', () => {
 
 	describe('getTransactionsFromPool', () => {
 		it('should return valid encoded encodedTransactions', async () => {
-			const encodedTransactions = await app['_channel'].invoke(
-				'app:getTransactionsFromPool',
-			);
+			const encodedTransactions = await app['_channel'].invoke('app:getTransactionsFromPool');
 			expect(encodedTransactions).toHaveLength(0);
 		});
 	});
 
 	describe('postTransaction', () => {
 		it('should successfully post valid transaction', async () => {
-			const genesisAccount = await app['_node'][
-				'_chain'
-			].dataAccess.getAccountByAddress(genesis.address);
+			const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress(
+				genesis.address,
+			);
 			const accountWithoutBalance = nodeUtils.createAccount();
 			const fundingTx = new TransferTransaction({
 				nonce: genesisAccount.nonce,
@@ -87,12 +85,9 @@ describe('Transaction related actions', () => {
 
 	describe('getTransactionsByIDs', () => {
 		it('should return valid encoded transactions', async () => {
-			const encodedTxs: string[] = await app['_channel'].invoke(
-				'app:getTransactionsByIDs',
-				{
-					ids: [sentTx.id.toString('base64')],
-				},
-			);
+			const encodedTxs: string[] = await app['_channel'].invoke('app:getTransactionsByIDs', {
+				ids: [sentTx.id.toString('base64')],
+			});
 			expect(encodedTxs).toHaveLength(1);
 			const tx = app['_node']['_chain'].dataAccess.decodeTransaction(
 				Buffer.from(encodedTxs[0], 'base64'),

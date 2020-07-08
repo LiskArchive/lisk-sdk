@@ -66,9 +66,7 @@ export const isEncryptedPassphrase = (data: string): boolean => {
 	// NOTE: Maximum lengths chosen here are arbitrary
 	const keyRegExp = /[a-zA-Z0-9]{2,15}/;
 	const valueRegExp = /[a-f0-9]{1,256}/;
-	const keyValueRegExp = new RegExp(
-		`${keyRegExp.source}=${valueRegExp.source}`,
-	);
+	const keyValueRegExp = new RegExp(`${keyRegExp.source}=${valueRegExp.source}`);
 	const encryptedPassphraseRegExp = new RegExp(
 		`^(${keyValueRegExp.source})(?:&(${keyValueRegExp.source})){0,10}$`,
 	);
@@ -78,8 +76,7 @@ export const isEncryptedPassphrase = (data: string): boolean => {
 
 export const isSemVer = (version: string): boolean => !!isValidVersion(version);
 
-export const isRangedSemVer = (version: string): boolean =>
-	!!isValidRangeVersion(version);
+export const isRangedSemVer = (version: string): boolean => !!isValidRangeVersion(version);
 
 export const isLessThanRangedVersion = isLessThanVersionInRange;
 export const isGreaterThanRangedVersion = isGreaterThanVersionInRange;
@@ -90,20 +87,16 @@ export const isProtocolString = (data: string): boolean =>
 const IPV4_NUMBER = '4';
 const IPV6_NUMBER = '6';
 
-export const isIPV4 = (data: string): boolean =>
-	validator.isIP(data, IPV4_NUMBER);
+export const isIPV4 = (data: string): boolean => validator.isIP(data, IPV4_NUMBER);
 
-export const isIPV6 = (data: string): boolean =>
-	validator.isIP(data, IPV6_NUMBER);
+export const isIPV6 = (data: string): boolean => validator.isIP(data, IPV6_NUMBER);
 
 export const isIP = (data: string): boolean => isIPV4(data) || isIPV6(data);
 
 export const isPort = (port: string): boolean => validator.isPort(port);
 
-export const isStringEndsWith = (
-	target: string,
-	suffixes: ReadonlyArray<string>,
-): boolean => suffixes.some(suffix => target.endsWith(suffix));
+export const isStringEndsWith = (target: string, suffixes: ReadonlyArray<string>): boolean =>
+	suffixes.some(suffix => target.endsWith(suffix));
 
 export const isVersionMatch = isVersionGte;
 

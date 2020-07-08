@@ -54,10 +54,7 @@ export class Sequence {
 		};
 
 		const nextSequence = async (): Promise<void> => {
-			if (
-				this._config.onWarning &&
-				this._queue.length >= this._config.warningLimit
-			) {
+			if (this._config.onWarning && this._queue.length >= this._config.warningLimit) {
 				this._config.onWarning(this._queue.length, this._config.warningLimit);
 			}
 			await this._tick();
