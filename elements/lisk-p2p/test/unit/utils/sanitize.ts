@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	sanitizeIncomingPeerInfo,
-	sanitizeInitialPeerInfo,
-} from '../../../src/utils';
+import { sanitizeIncomingPeerInfo, sanitizeInitialPeerInfo } from '../../../src/utils';
 import { initPeerInfoList } from '../../utils/peers';
 
 describe('utils/sanitize', () => {
@@ -36,9 +33,7 @@ describe('utils/sanitize', () => {
 					...sharedState,
 				};
 
-				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
-					samplePeerWithoutInternalState,
-				);
+				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(samplePeerWithoutInternalState);
 			});
 		});
 		describe('when rawPeerInfo is falsy', () => {
@@ -83,9 +78,7 @@ describe('utils/sanitize', () => {
 				...sharedState,
 			};
 
-			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
-				samplePeerWithoutInternalState,
-			);
+			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(samplePeerWithoutInternalState);
 		});
 	});
 

@@ -15,12 +15,7 @@
 export const constantsSchema = {
 	id: '#constants',
 	type: 'object',
-	required: [
-		'activeDelegates',
-		'standbyDelegates',
-		'totalAmount',
-		'delegateListRoundOffset',
-	],
+	required: ['activeDelegates', 'standbyDelegates', 'totalAmount', 'delegateListRoundOffset'],
 	properties: {
 		activeDelegates: {
 			type: 'integer',
@@ -33,15 +28,13 @@ export const constantsSchema = {
 			type: 'integer',
 			min: 1,
 			const: 2,
-			description:
-				'The default number of standby delegates allowed to forge a block',
+			description: 'The default number of standby delegates allowed to forge a block',
 		},
 		totalAmount: {
 			type: 'string',
 			format: 'uint64',
 			const: '10000000000000000',
-			description:
-				'Total amount of LSK available in network before rewards milestone started',
+			description: 'Total amount of LSK available in network before rewards milestone started',
 		},
 		delegateListRoundOffset: {
 			type: 'number',

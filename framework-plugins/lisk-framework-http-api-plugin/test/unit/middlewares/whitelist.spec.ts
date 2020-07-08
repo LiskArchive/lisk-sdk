@@ -24,11 +24,7 @@ describe('WhiteList middleware', () => {
 
 	describe('when empty whitelist is provided', () => {
 		it('should pass middleware without error', () => {
-			whiteListMiddleware()(
-				{ ip: '192.168.12.1' } as Request,
-				{} as Response,
-				next,
-			);
+			whiteListMiddleware()({ ip: '192.168.12.1' } as Request, {} as Response, next);
 			expect(next).toHaveBeenCalledTimes(1);
 			expect(next).toHaveBeenCalledWith();
 		});

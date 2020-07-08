@@ -12,24 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Status as TransactionStatus,
-	TransactionResponse,
-} from '@liskhq/lisk-transactions';
+import { Status as TransactionStatus, TransactionResponse } from '@liskhq/lisk-transactions';
 
 import { DataAccess } from './data_access';
 import * as transactionsModule from './transactions';
 import { BlockHeader, Block, Context, MatcherTransaction } from './types';
 
-export const verifyBlockNotExists = async (
-	dataAccess: DataAccess,
-	block: Block,
-): Promise<void> => {
+export const verifyBlockNotExists = async (dataAccess: DataAccess, block: Block): Promise<void> => {
 	const isPersisted = await dataAccess.isBlockPersisted(block.header.id);
 	if (isPersisted) {
-		throw new Error(
-			`Block ${block.header.id.toString('base64')} already exists`,
-		);
+		throw new Error(`Block ${block.header.id.toString('base64')} already exists`);
 	}
 };
 
@@ -68,23 +60,17 @@ export class BlocksVerify {
 	public async checkExists(block: Block): Promise<void> {
 		const isPersisted = await this.dataAccess.isBlockPersisted(block.header.id);
 		if (isPersisted) {
-			throw new Error(
-				`Block ${block.header.id.toString('base64')} already exists`,
-			);
+			throw new Error(`Block ${block.header.id.toString('base64')} already exists`);
 		}
 		if (!block.payload.length) {
 			return;
 		}
 		const transactionIDs = block.payload.map(transaction => transaction.id);
-		const persistedTransactions = await this.dataAccess.getTransactionsByIDs(
-			transactionIDs,
-		);
+		const persistedTransactions = await this.dataAccess.getTransactionsByIDs(transactionIDs);
 
 		if (persistedTransactions.length > 0) {
 			throw new Error(
-				`Transaction is already confirmed: ${persistedTransactions[0].id.toString(
-					'base64',
-				)}`,
+				`Transaction is already confirmed: ${persistedTransactions[0].id.toString('base64')}`,
 			);
 		}
 	}

@@ -101,23 +101,13 @@ import {
 	selectPeersForSend,
 	validatePeerCompatibility,
 } from './utils';
-import {
-	nodeInfoSchema,
-	mergeCustomSchema,
-	defaultRPCSchemas,
-	peerInfoSchema,
-} from './schema';
+import { nodeInfoSchema, mergeCustomSchema, defaultRPCSchemas, peerInfoSchema } from './schema';
 
-const createPeerPoolConfig = (
-	config: P2PConfig,
-	peerBook: PeerBook,
-): PeerPoolConfig => ({
+const createPeerPoolConfig = (config: P2PConfig, peerBook: PeerBook): PeerPoolConfig => ({
 	hostPort: config.port,
 	connectTimeout: config.connectTimeout,
 	ackTimeout: config.ackTimeout,
-	wsMaxPayload: config.wsMaxPayload
-		? config.wsMaxPayload
-		: DEFAULT_WS_MAX_PAYLOAD,
+	wsMaxPayload: config.wsMaxPayload ? config.wsMaxPayload : DEFAULT_WS_MAX_PAYLOAD,
 	peerSelectionForSend: config.peerSelectionForSend
 		? config.peerSelectionForSend
 		: selectPeersForSend,
@@ -128,9 +118,7 @@ const createPeerPoolConfig = (
 		? config.peerSelectionForConnection
 		: selectPeersForConnection,
 	sendPeerLimit:
-		config.sendPeerLimit === undefined
-			? DEFAULT_SEND_PEER_LIMIT
-			: config.sendPeerLimit,
+		config.sendPeerLimit === undefined ? DEFAULT_SEND_PEER_LIMIT : config.sendPeerLimit,
 	peerBanTime: config.peerBanTime ? config.peerBanTime : DEFAULT_BAN_TIME,
 	maxOutboundConnections:
 		config.maxOutboundConnections === undefined
@@ -144,9 +132,7 @@ const createPeerPoolConfig = (
 		config.maxPeerDiscoveryResponseLength === undefined
 			? DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH
 			: config.maxPeerDiscoveryResponseLength,
-	maxPeerInfoSize: config.maxPeerInfoSize
-		? config.maxPeerInfoSize
-		: DEFAULT_MAX_PEER_INFO_SIZE,
+	maxPeerInfoSize: config.maxPeerInfoSize ? config.maxPeerInfoSize : DEFAULT_MAX_PEER_INFO_SIZE,
 	outboundShuffleInterval: config.outboundShuffleInterval
 		? config.outboundShuffleInterval
 		: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
@@ -182,10 +168,7 @@ const createPeerPoolConfig = (
 	peerBook,
 	rpcSchemas: config.customNodeInfoSchema
 		? {
-				nodeInfo: mergeCustomSchema(
-					nodeInfoSchema,
-					config.customNodeInfoSchema,
-				),
+				nodeInfo: mergeCustomSchema(nodeInfoSchema, config.customNodeInfoSchema),
 				peerInfo: peerInfoSchema,
 		  }
 		: defaultRPCSchemas,
@@ -213,15 +196,9 @@ export class P2P extends EventEmitter {
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToSendMessage: (error: Error) => void;
 	private readonly _handleOutboundPeerConnect: (peerInfo: P2PPeerInfo) => void;
-	private readonly _handleOutboundPeerConnectAbort: (
-		peerInfo: P2PPeerInfo,
-	) => void;
-	private readonly _handlePeerCloseOutbound: (
-		closePacket: P2PClosePacket,
-	) => void;
-	private readonly _handlePeerCloseInbound: (
-		closePacket: P2PClosePacket,
-	) => void;
+	private readonly _handleOutboundPeerConnectAbort: (peerInfo: P2PPeerInfo) => void;
+	private readonly _handlePeerCloseOutbound: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseInbound: (closePacket: P2PClosePacket) => void;
 	private readonly _handleInboundPeerConnect: (
 		incomingPeerConnection: IncomingPeerConnection,
 	) => void;
@@ -241,13 +218,9 @@ export class P2P extends EventEmitter {
 		this._secret = config.secret ? config.secret : DEFAULT_RANDOM_SECRET;
 		this._sanitizedPeerLists = sanitizePeerLists(
 			{
-				seedPeers: config.seedPeers
-					? config.seedPeers.map(sanitizeInitialPeerInfo)
-					: [],
+				seedPeers: config.seedPeers ? config.seedPeers.map(sanitizeInitialPeerInfo) : [],
 				blacklistedIPs: config.blacklistedIPs ? config.blacklistedIPs : [],
-				fixedPeers: config.fixedPeers
-					? config.fixedPeers.map(sanitizeInitialPeerInfo)
-					: [],
+				fixedPeers: config.fixedPeers ? config.fixedPeers.map(sanitizeInitialPeerInfo) : [],
 				whitelisted: config.whitelistedPeers
 					? config.whitelistedPeers.map(sanitizeInitialPeerInfo)
 					: [],
@@ -256,10 +229,7 @@ export class P2P extends EventEmitter {
 					: [],
 			},
 			{
-				peerId: constructPeerId(
-					config.hostIp ?? DEFAULT_NODE_HOST_IP,
-					config.port,
-				),
+				peerId: constructPeerId(config.hostIp ?? DEFAULT_NODE_HOST_IP, config.port),
 				ipAddress: config.hostIp ?? DEFAULT_NODE_HOST_IP,
 				port: config.port,
 			},
@@ -275,10 +245,7 @@ export class P2P extends EventEmitter {
 		});
 		this._rpcSchemas = config.customNodeInfoSchema
 			? {
-					nodeInfo: mergeCustomSchema(
-						nodeInfoSchema,
-						config.customNodeInfoSchema,
-					),
+					nodeInfo: mergeCustomSchema(nodeInfoSchema, config.customNodeInfoSchema),
 					peerInfo: peerInfoSchema,
 			  }
 			: defaultRPCSchemas;
@@ -380,9 +347,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
 		};
 
-		this._handleInboundPeerConnect = (
-			incomingPeerConnection: IncomingPeerConnection,
-		): void => {
+		this._handleInboundPeerConnect = (incomingPeerConnection: IncomingPeerConnection): void => {
 			try {
 				this._peerPool.addInboundPeer(
 					incomingPeerConnection.peerInfo,
@@ -525,8 +490,7 @@ export class P2P extends EventEmitter {
 			? config.fallbackSeedPeerDiscoveryInterval
 			: DEFAULT_FALLBACK_SEED_PEER_DISCOVERY_INTERVAL;
 
-		this._nextSeedPeerDiscovery =
-			Date.now() + this._fallbackSeedPeerDiscoveryInterval;
+		this._nextSeedPeerDiscovery = Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 	}
 
 	public get config(): P2PConfig {
@@ -571,9 +535,7 @@ export class P2P extends EventEmitter {
 		// Only share the shared state to the user
 		return this._peerPool
 			.getAllConnectedPeerInfos()
-			.filter(
-				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
-			)
+			.filter(peer => !(peer.internalState && !peer.internalState.advertiseAddress))
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
@@ -590,8 +552,7 @@ export class P2P extends EventEmitter {
 			if (
 				connectedPeers.find(
 					connectedPeer =>
-						peer.ipAddress === connectedPeer.ipAddress &&
-						peer.port === connectedPeer.port,
+						peer.ipAddress === connectedPeer.ipAddress && peer.port === connectedPeer.port,
 				)
 			) {
 				return false;
@@ -602,9 +563,7 @@ export class P2P extends EventEmitter {
 
 		// Only share the shared state to the user and remove private peers
 		return disconnectedPeers
-			.filter(
-				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
-			)
+			.filter(peer => !(peer.internalState && !peer.internalState.advertiseAddress))
 			.map(peer => ({
 				...peer.sharedState,
 				ipAddress: peer.ipAddress,
@@ -650,9 +609,7 @@ export class P2P extends EventEmitter {
 				hostIp: this._config.hostIp ?? DEFAULT_NODE_HOST_IP,
 				secret: this._secret,
 				peerBook: this._peerBook,
-				maxPayload: this._config.wsMaxPayload
-					? this._config.wsMaxPayload
-					: DEFAULT_WS_MAX_PAYLOAD,
+				maxPayload: this._config.wsMaxPayload ? this._config.wsMaxPayload : DEFAULT_WS_MAX_PAYLOAD,
 				maxPeerInfoSize: this._config.maxPeerInfoSize
 					? this._config.maxPeerInfoSize
 					: DEFAULT_MAX_PEER_INFO_SIZE,
@@ -677,8 +634,7 @@ export class P2P extends EventEmitter {
 			// Initial discovery and disconnect from SeedPeers (LIP-0004)
 			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
 				this._peerPool.discoverFromSeedPeers();
-				this._nextSeedPeerDiscovery =
-					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
+				this._nextSeedPeerDiscovery = Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 			}
 
 			this._startPopulator();
@@ -714,32 +670,20 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_REQUEST_RECEIVED, this._handlePeerPoolRPC);
 		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
 		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handleOutboundPeerConnect);
-		peerPool.on(
-			EVENT_CONNECT_ABORT_OUTBOUND,
-			this._handleOutboundPeerConnectAbort,
-		);
+		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handleOutboundPeerConnectAbort);
 		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
 		peerPool.on(EVENT_REMOVE_PEER, this._handleRemovePeer);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
-		peerPool.on(
-			EVENT_FAILED_PEER_INFO_UPDATE,
-			this._handleFailedPeerInfoUpdate,
-		);
-		peerPool.on(
-			EVENT_FAILED_TO_FETCH_PEER_INFO,
-			this._handleFailedToFetchPeerInfo,
-		);
+		peerPool.on(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
+		peerPool.on(EVENT_FAILED_TO_FETCH_PEER_INFO, this._handleFailedToFetchPeerInfo);
 		peerPool.on(EVENT_FAILED_TO_FETCH_PEERS, this._handleFailedToFetchPeers);
 		peerPool.on(
 			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 			this._handleFailedToCollectPeerDetails,
 		);
 		peerPool.on(EVENT_DISCOVERED_PEER, this._handleDiscoveredPeer);
-		peerPool.on(
-			EVENT_FAILED_TO_PUSH_NODE_INFO,
-			this._handleFailedToPushNodeInfo,
-		);
+		peerPool.on(EVENT_FAILED_TO_PUSH_NODE_INFO, this._handleFailedToPushNodeInfo);
 		peerPool.on(EVENT_FAILED_TO_SEND_MESSAGE, this._handleFailedToSendMessage);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
@@ -749,14 +693,8 @@ export class P2P extends EventEmitter {
 	private _bindHandlersToPeerServer(peerServer: PeerServer): void {
 		peerServer.on(EVENT_BAN_PEER, this._handleBanPeer);
 		peerServer.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
-		peerServer.on(
-			EVENT_FAILED_TO_ADD_INBOUND_PEER,
-			this._handleFailedInboundPeerConnect,
-		);
-		peerServer.on(
-			EVENT_NEW_INBOUND_PEER_CONNECTION,
-			this._handleInboundPeerConnect,
-		);
+		peerServer.on(EVENT_FAILED_TO_ADD_INBOUND_PEER, this._handleFailedInboundPeerConnect);
+		peerServer.on(EVENT_NEW_INBOUND_PEER_CONNECTION, this._handleInboundPeerConnect);
 	}
 
 	private _startPopulator(): void {
@@ -764,27 +702,17 @@ export class P2P extends EventEmitter {
 			throw new Error('Populator is already running');
 		}
 		this._populatorIntervalId = setInterval(() => {
-			this._peerPool.triggerNewConnections(
-				this._peerBook.newPeers,
-				this._peerBook.triedPeers,
-			);
+			this._peerPool.triggerNewConnections(this._peerBook.newPeers, this._peerBook.triedPeers);
 
 			// LIP-0004 re-discovery SeedPeers when Outboundconnection < maxOutboundconnections
-			if (
-				this._nextSeedPeerDiscovery < Date.now() &&
-				this._peerPool.getFreeOutboundSlots() > 0
-			) {
+			if (this._nextSeedPeerDiscovery < Date.now() && this._peerPool.getFreeOutboundSlots() > 0) {
 				this._peerPool.discoverFromSeedPeers();
-				this._nextSeedPeerDiscovery =
-					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
+				this._nextSeedPeerDiscovery = Date.now() + this._fallbackSeedPeerDiscoveryInterval;
 			}
 		}, this._populatorInterval);
 
 		// Initial Populator
-		this._peerPool.triggerNewConnections(
-			this._peerBook.newPeers,
-			this._peerBook.triedPeers,
-		);
+		this._peerPool.triggerNewConnections(this._peerBook.newPeers, this._peerBook.triedPeers);
 	}
 
 	private _stopPopulator(): void {
@@ -804,12 +732,10 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
-		const minimumPeerDiscoveryThreshold = this._config
-			.minimumPeerDiscoveryThreshold
+		const minimumPeerDiscoveryThreshold = this._config.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
-		const maxPeerDiscoveryResponseLength = this._config
-			.maxPeerDiscoveryResponseLength
+		const maxPeerDiscoveryResponseLength = this._config.maxPeerDiscoveryResponseLength
 			? this._config.maxPeerDiscoveryResponseLength
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 		const wsMaxPayload = this._config.wsMaxPayload
@@ -819,8 +745,7 @@ export class P2P extends EventEmitter {
 			? this._config.maxPeerInfoSize
 			: DEFAULT_MAX_PEER_INFO_SIZE;
 
-		const safeMaxPeerInfoLength =
-			Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInfoSize) - 1;
+		const safeMaxPeerInfoLength = Math.floor(DEFAULT_WS_MAX_PAYLOAD / maxPeerInfoSize) - 1;
 
 		const selectedPeers = this._peerBook.getRandomizedPeerList(
 			minimumPeerDiscoveryThreshold,
@@ -829,9 +754,7 @@ export class P2P extends EventEmitter {
 
 		// Remove internal state to check byte size
 		const sanitizedPeerInfoList: ProtocolPeerInfo[] = selectedPeers
-			.filter(
-				peer => !(peer.internalState && !peer.internalState.advertiseAddress),
-			)
+			.filter(peer => !(peer.internalState && !peer.internalState.advertiseAddress))
 			.map(peer => ({
 				ipAddress: peer.ipAddress,
 				port: peer.port,

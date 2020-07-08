@@ -427,9 +427,7 @@ describe('KVStore', () => {
 
 			await expect(db.get(expectedValues[0].key)).toResolve();
 			await expect(db.get(expectedValues[1].key)).toResolve();
-			await expect(db.get(expectedValues[2].key)).rejects.toThrow(
-				NotFoundError,
-			);
+			await expect(db.get(expectedValues[2].key)).rejects.toThrow(NotFoundError);
 		});
 	});
 });

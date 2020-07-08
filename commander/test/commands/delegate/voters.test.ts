@@ -38,15 +38,13 @@ describe('delegate:voters', () => {
 		{
 			username: usernames[0],
 			balance: '0',
-			publicKey:
-				'0a47b151eafe8cfc278721ba14305071cae727395abf4c00bd298296c851dab9',
+			publicKey: '0a47b151eafe8cfc278721ba14305071cae727395abf4c00bd298296c851dab9',
 			address: '10730473708113756935L',
 			voters: [
 				{
 					address: '17534106505153007102L',
 					balance: '370400962539',
-					publicKey:
-						'e2281b7bb0e7cd51cc5ac49d9463c6a1640aac20ae9baa9333ddc92a5ad63e42',
+					publicKey: 'e2281b7bb0e7cd51cc5ac49d9463c6a1640aac20ae9baa9333ddc92a5ad63e42',
 				},
 			],
 			votes: 47,
@@ -73,22 +71,18 @@ describe('delegate:voters', () => {
 				.command(['delegate:voters', usernames[0]])
 				.it('should get delegate voters and display as an array', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									username: usernames[0],
-									...defaultQuery,
-								},
-								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								username: usernames[0],
+								...defaultQuery,
 							},
-						],
-					);
+							placeholder: {
+								username: usernames[0],
+								message: 'Delegate not found.',
+							},
+						},
+					]);
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
 		});
@@ -101,88 +95,71 @@ describe('delegate:voters', () => {
 				.command(['delegate:voters', usernames.join(',')])
 				.it('should get delegates voters and display as an array', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									username: usernames[0],
-									...defaultQuery,
-								},
-								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								username: usernames[0],
+								...defaultQuery,
 							},
-							{
-								query: {
-									username: usernames[1],
-									...defaultQuery,
-								},
-								placeholder: {
-									username: usernames[1],
-									message: 'Delegate not found.',
-								},
+							placeholder: {
+								username: usernames[0],
+								message: 'Delegate not found.',
 							},
-						],
-					);
+						},
+						{
+							query: {
+								username: usernames[1],
+								...defaultQuery,
+							},
+							placeholder: {
+								username: usernames[1],
+								message: 'Delegate not found.',
+							},
+						},
+					]);
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
 
 			setupTest()
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernamesWithEmpty.join(',')])
-				.it(
-					'should get delegates voters only using non-empty args and display as an array',
-					() => {
-						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-						expect(queryHandler.query).to.be.calledWithExactly(
-							apiClientStub,
-							endpoint,
-							[
-								{
-									query: {
-										username: usernamesWithEmpty[0],
-										...defaultQuery,
-									},
-									placeholder: {
-										username: usernamesWithEmpty[0],
-										message: 'Delegate not found.',
-									},
-								},
-							],
-						);
-						return expect(printMethodStub).to.be.calledWithExactly(queryResult);
-					},
-				);
+				.it('should get delegates voters only using non-empty args and display as an array', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								username: usernamesWithEmpty[0],
+								...defaultQuery,
+							},
+							placeholder: {
+								username: usernamesWithEmpty[0],
+								message: 'Delegate not found.',
+							},
+						},
+					]);
+					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+				});
 		});
 
 		describe('delegate:voters --limit=xxx', () => {
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--limit=wronglimit'])
 				.catch((error: Error) => {
-					return expect(error.message).to.contain(
-						'Limit must be an integer and greater than 0',
-					);
+					return expect(error.message).to.contain('Limit must be an integer and greater than 0');
 				})
 				.it('should throw an error when limit is not a valid integer');
 
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--limit=0'])
 				.catch((error: Error) => {
-					return expect(error.message).to.contain(
-						'Limit must be an integer and greater than 0',
-					);
+					return expect(error.message).to.contain('Limit must be an integer and greater than 0');
 				})
 				.it('should throw an error when limit is 0');
 
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--limit=101'])
 				.catch((error: Error) => {
-					return expect(error.message).to.contain(
-						'Maximum limit amount is 100',
-					);
+					return expect(error.message).to.contain('Maximum limit amount is 100');
 				})
 				.it('should throw an error when limit is greater than 100');
 
@@ -191,24 +168,20 @@ describe('delegate:voters', () => {
 				.command(['delegate:voters', usernames[0], '--limit=3'])
 				.it('should get voters for delegate with limit', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									username: usernames[0],
-									limit: 3,
-									offset: 0,
-									sort: 'balance:desc',
-								},
-								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								username: usernames[0],
+								limit: 3,
+								offset: 0,
+								sort: 'balance:desc',
 							},
-						],
-					);
+							placeholder: {
+								username: usernames[0],
+								message: 'Delegate not found.',
+							},
+						},
+					]);
 
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
@@ -238,24 +211,20 @@ describe('delegate:voters', () => {
 				.command(['delegate:voters', usernames[0], '--offset=1'])
 				.it('should get voters for delegate with offset', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									username: usernames[0],
-									limit: 10,
-									offset: 1,
-									sort: 'balance:desc',
-								},
-								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								username: usernames[0],
+								limit: 10,
+								offset: 1,
+								sort: 'balance:desc',
 							},
-						],
-					);
+							placeholder: {
+								username: usernames[0],
+								message: 'Delegate not found.',
+							},
+						},
+					]);
 
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
@@ -276,24 +245,20 @@ describe('delegate:voters', () => {
 				.command(['delegate:voters', usernames[0], '--sort=publicKey:asc'])
 				.it('should get sorted voters for delegate', () => {
 					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									username: usernames[0],
-									limit: 10,
-									offset: 0,
-									sort: 'publicKey:asc',
-								},
-								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
-								},
+					expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+						{
+							query: {
+								username: usernames[0],
+								limit: 10,
+								offset: 0,
+								sort: 'publicKey:asc',
 							},
-						],
-					);
+							placeholder: {
+								username: usernames[0],
+								message: 'Delegate not found.',
+							},
+						},
+					]);
 
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});

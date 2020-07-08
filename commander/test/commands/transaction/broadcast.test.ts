@@ -28,8 +28,7 @@ describe('transaction:broadcast', () => {
 	const defaultTransaction = {
 		amount: '10000000000',
 		recipientId: '123L',
-		senderPublicKey:
-			'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+		senderPublicKey: 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
 		timestamp: 66419917,
 		type: 0,
 		fee: '10000000',
@@ -64,11 +63,7 @@ describe('transaction:broadcast', () => {
 
 	describe('transaction:broadcast', () => {
 		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().rejects(new Error('Timeout error')),
-			)
+			.stub(readerUtils, 'readStdIn', sandbox.stub().rejects(new Error('Timeout error')))
 			.command(['transaction:broadcast'])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -80,9 +75,7 @@ describe('transaction:broadcast', () => {
 		setupTest()
 			.command(['transaction:broadcast', wrongTransaction])
 			.catch((error: Error) => {
-				return expect(error.message).to.contain(
-					'Could not parse transaction JSON.',
-				);
+				return expect(error.message).to.contain('Could not parse transaction JSON.');
 			})
 			.it('should throw an error with invalid transaction');
 
@@ -90,12 +83,8 @@ describe('transaction:broadcast', () => {
 			.command(['transaction:broadcast', JSON.stringify(defaultTransaction)])
 			.it('should broadcast the transaction', () => {
 				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-				expect(apiClientStub.transactions.broadcast).to.be.calledWithExactly(
-					defaultTransaction,
-				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultAPIResponse.data,
-				);
+				expect(apiClientStub.transactions.broadcast).to.be.calledWithExactly(defaultTransaction);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultAPIResponse.data);
 			});
 	});
 
@@ -109,34 +98,20 @@ describe('transaction:broadcast', () => {
 			.it('should throw an error with invalid transaction from stdin');
 
 		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().resolves([wrongTransaction]),
-			)
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves([wrongTransaction]))
 			.command(['transaction:broadcast'])
 			.catch(error => {
-				return expect(error.message).to.contain(
-					'Could not parse transaction JSON.',
-				);
+				return expect(error.message).to.contain('Could not parse transaction JSON.');
 			})
 			.it('should throw an error with invalid transaction from stdin');
 
 		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
-			)
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves([JSON.stringify(defaultTransaction)]))
 			.command(['transaction:broadcast'])
 			.it('should broadcast the transaction', () => {
 				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-				expect(apiClientStub.transactions.broadcast).to.be.calledWithExactly(
-					defaultTransaction,
-				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultAPIResponse.data,
-				);
+				expect(apiClientStub.transactions.broadcast).to.be.calledWithExactly(defaultTransaction);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultAPIResponse.data);
 			});
 	});
 });

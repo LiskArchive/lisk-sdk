@@ -19,9 +19,7 @@ interface NetworkIdentifierable {
 	readonly communityIdentifier: string;
 }
 
-export const getNetworkIdentifier = (
-	genesisBlock: NetworkIdentifierable,
-): Buffer =>
+export const getNetworkIdentifier = (genesisBlock: NetworkIdentifierable): Buffer =>
 	getNetworkID(genesisBlock.transactionRoot, genesisBlock.communityIdentifier);
 
 export const devnetNetworkIdentifier =

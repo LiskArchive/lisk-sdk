@@ -37,12 +37,8 @@ const generateValidPeerInfoEncodings = () => {
 							},
 						],
 					},
-
 				],
-				created: [
-					'chain:delegates',
-					'consensus:bft',
-				],
+				created: ['chain:delegates', 'consensus:bft'],
 			},
 			schema: {
 				$id: '/state/diff',
@@ -101,10 +97,7 @@ const generateValidPeerInfoEncodings = () => {
 						value: ['diff5', 'diff6', 'diff7', 'diff5'],
 					},
 				],
-				created: [
-					'chain:delegates',
-					'consensus:bft',
-				],
+				created: ['chain:delegates', 'consensus:bft'],
 			},
 			schema: {
 				$id: '/state/diff-string',

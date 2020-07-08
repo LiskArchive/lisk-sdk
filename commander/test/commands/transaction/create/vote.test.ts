@@ -45,22 +45,10 @@ describe.skip('transaction:create:vote', () => {
 	const setupStub = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(
-				config,
-				'getConfig',
-				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
-			.stub(
-				transactions,
-				'castVotes',
-				sandbox.stub().returns(defaultTransaction),
-			)
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: { network: 'test' } }))
+			.stub(transactions, 'castVotes', sandbox.stub().returns(defaultTransaction))
 			.stub(validator, 'validateAddress', sandbox.stub().returns(true))
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stdout();
 
 	describe('transaction:create:vote voting', () => {
@@ -70,20 +58,10 @@ describe.skip('transaction:create:vote', () => {
 			amount: String(Number(voteValues[1]) ** 9),
 		};
 		setupStub()
-			.command([
-				'transaction:create:vote',
-				'1',
-				'100',
-				`--votes=${defaultVote[0]}`,
-			])
+			.command(['transaction:create:vote', '1', '100', `--votes=${defaultVote[0]}`])
 			.it('should create transaction with only votes', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultVote[0].split(',')[0],
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				expect(validator.validateAddress).to.be.calledWithExactly(defaultVote[0].split(',')[0]);
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
@@ -91,9 +69,7 @@ describe.skip('transaction:create:vote', () => {
 					passphrase: defaultInputs,
 					votes: [vote],
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -105,20 +81,10 @@ describe.skip('transaction:create:vote', () => {
 		};
 
 		setupStub()
-			.command([
-				'transaction:create:vote',
-				'1',
-				'100',
-				`--votes=${defaultUnvote[0]}`,
-			])
+			.command(['transaction:create:vote', '1', '100', `--votes=${defaultUnvote[0]}`])
 			.it('should create transaction with only negative votes', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultUnvote[0].split(',')[0],
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				expect(validator.validateAddress).to.be.calledWithExactly(defaultUnvote[0].split(',')[0]);
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
@@ -126,9 +92,7 @@ describe.skip('transaction:create:vote', () => {
 					passphrase: defaultInputs,
 					votes: [vote],
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -154,9 +118,7 @@ describe.skip('transaction:create:vote', () => {
 				`--votes=${unvote.delegateAddress},-${voteValues[1]}`,
 			])
 			.catch(error => {
-				return expect(error.message).to.contain(
-					'Delegate address must be unique.',
-				);
+				return expect(error.message).to.contain('Delegate address must be unique.');
 			})
 			.it('should throw an error when vote and unvote are the same');
 
@@ -169,16 +131,9 @@ describe.skip('transaction:create:vote', () => {
 				`--votes=${validUnvote.delegateAddress},-${voteValues[1]}`,
 			])
 			.it('should create a transaction with votes and unvotes', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultUnvote[0].split(',')[0],
-				);
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultVote[0].split(',')[0],
-				);
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				expect(validator.validateAddress).to.be.calledWithExactly(defaultUnvote[0].split(',')[0]);
+				expect(validator.validateAddress).to.be.calledWithExactly(defaultVote[0].split(',')[0]);
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
@@ -186,9 +141,7 @@ describe.skip('transaction:create:vote', () => {
 					passphrase: defaultInputs,
 					votes: [vote, validUnvote],
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 			});
 	});
 
@@ -214,28 +167,19 @@ describe.skip('transaction:create:vote', () => {
 				`--votes=${unvote.delegateAddress},-30`,
 				'--no-signature',
 			])
-			.it(
-				'should create a transaction with votes and unvotes without signature',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					expect(validator.validateAddress).to.be.calledWithExactly(
-						voteValues[0],
-					);
-					expect(validator.validateAddress).to.be.calledWithExactly(
-						unvoteValues[0],
-					);
-					expect(transactions.castVotes).to.be.calledWithExactly({
-						nonce: '1',
-						fee: '10000000000',
-						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: undefined,
-						votes: [vote, unvote],
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultTransaction,
-					);
-				},
-			);
+			.it('should create a transaction with votes and unvotes without signature', () => {
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
+				expect(validator.validateAddress).to.be.calledWithExactly(voteValues[0]);
+				expect(validator.validateAddress).to.be.calledWithExactly(unvoteValues[0]);
+				expect(transactions.castVotes).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
+					networkIdentifier: testnetNetworkIdentifier,
+					passphrase: undefined,
+					votes: [vote, unvote],
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
+			});
 	});
 
 	describe('transaction:create:vote --votes=upvote --votes=downvote --passphrase=123', () => {
@@ -264,12 +208,8 @@ describe.skip('transaction:create:vote', () => {
 				'should create a transaction with votes and unvotes with the passphrase from the flag',
 				() => {
 					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					expect(validator.validateAddress).to.be.calledWithExactly(
-						defaultVote[0].split(',')[0],
-					);
-					expect(validator.validateAddress).to.be.calledWithExactly(
-						defaultUnvote[1].split(',')[0],
-					);
+					expect(validator.validateAddress).to.be.calledWithExactly(defaultVote[0].split(',')[0]);
+					expect(validator.validateAddress).to.be.calledWithExactly(defaultUnvote[1].split(',')[0]);
 					expect(transactions.castVotes).to.be.calledWithExactly({
 						nonce: '1',
 						fee: '10000000000',
@@ -277,9 +217,7 @@ describe.skip('transaction:create:vote', () => {
 						passphrase: defaultInputs,
 						votes: [vote, unvote],
 					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultTransaction,
-					);
+					return expect(printMethodStub).to.be.calledWithExactly(defaultTransaction);
 				},
 			);
 	});

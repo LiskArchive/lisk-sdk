@@ -72,16 +72,8 @@ describe('diff', () => {
 				const randomBytes3 = randomBytes(16);
 				const randomBytes4 = randomBytes(12);
 
-				const buffer1 = Buffer.concat([
-					randomBytes1,
-					randomBytes3,
-					randomBytes2,
-				]);
-				const buffer2 = Buffer.concat([
-					randomBytes4,
-					randomBytes1,
-					randomBytes2,
-				]);
+				const buffer1 = Buffer.concat([randomBytes1, randomBytes3, randomBytes2]);
+				const buffer2 = Buffer.concat([randomBytes4, randomBytes1, randomBytes2]);
 
 				const diff = calculateDiff(buffer1, buffer2);
 				expect(undo(buffer2, diff)).toEqual(buffer1);
@@ -95,8 +87,7 @@ describe('diff', () => {
 				blockId: '1349213844499460766',
 				type: 8,
 				nonce: '1',
-				senderPublicKey:
-					'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+				senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 				senderId: '5059876081639179984L',
 				fee: '0',
 				signatures: [
@@ -137,21 +128,14 @@ describe('diff', () => {
 				previousSenderState = { ...senderAccount };
 				previousSenderStateBuffer = Buffer.from(JSON.stringify(senderAccount));
 				previousReceiverState = { ...receiverAccount };
-				previousReceiverStateBuffer = Buffer.from(
-					JSON.stringify(receiverAccount),
-				);
+				previousReceiverStateBuffer = Buffer.from(JSON.stringify(receiverAccount));
 			});
 
 			it('should return senders/receiver account state back to previous state', () => {
 				// Transfer from sender and calculate account state diff of sender
 				previousSenderState.balance -= transferTransaction.asset.amount;
-				const currentSenderStateBuffer = Buffer.from(
-					JSON.stringify(previousSenderState),
-				);
-				const senderDiff = calculateDiff(
-					previousSenderStateBuffer,
-					currentSenderStateBuffer,
-				);
+				const currentSenderStateBuffer = Buffer.from(JSON.stringify(previousSenderState));
+				const senderDiff = calculateDiff(previousSenderStateBuffer, currentSenderStateBuffer);
 
 				const restoredSender = JSON.parse(
 					undo(currentSenderStateBuffer, senderDiff).toString('utf8'),
@@ -162,14 +146,9 @@ describe('diff', () => {
 				// Receiver from sender and calculate account state diff of receiver
 				previousReceiverState.balance += transferTransaction.asset.amount;
 
-				const currentReceiverStateBuffer = Buffer.from(
-					JSON.stringify(previousReceiverState),
-				);
+				const currentReceiverStateBuffer = Buffer.from(JSON.stringify(previousReceiverState));
 
-				const receiverDiff = calculateDiff(
-					previousReceiverStateBuffer,
-					currentReceiverStateBuffer,
-				);
+				const receiverDiff = calculateDiff(previousReceiverStateBuffer, currentReceiverStateBuffer);
 
 				const restoredReceiver = JSON.parse(
 					undo(currentReceiverStateBuffer, receiverDiff).toString('utf8'),
@@ -194,30 +173,18 @@ describe('diff', () => {
 					},
 				};
 
-				const multiSignatureAccountBuffer = Buffer.from(
-					JSON.stringify(multiSignatureAccount),
-				);
-				const diff = calculateDiff(
-					previousSenderStateBuffer,
-					multiSignatureAccountBuffer,
-				);
+				const multiSignatureAccountBuffer = Buffer.from(JSON.stringify(multiSignatureAccount));
+				const diff = calculateDiff(previousSenderStateBuffer, multiSignatureAccountBuffer);
 
-				const restoredSender = JSON.parse(
-					undo(multiSignatureAccountBuffer, diff).toString('utf8'),
-				);
+				const restoredSender = JSON.parse(undo(multiSignatureAccountBuffer, diff).toString('utf8'));
 
 				expect(restoredSender).toEqual(senderAccount);
 			});
 
 			it('should return a diff even if there is no state change and undo makes no change', () => {
-				const diff = calculateDiff(
-					previousSenderStateBuffer,
-					previousSenderStateBuffer,
-				);
+				const diff = calculateDiff(previousSenderStateBuffer, previousSenderStateBuffer);
 
-				const restoredSender = JSON.parse(
-					undo(previousSenderStateBuffer, diff).toString('utf8'),
-				);
+				const restoredSender = JSON.parse(undo(previousSenderStateBuffer, diff).toString('utf8'));
 
 				expect(restoredSender).toEqual(senderAccount);
 			});
@@ -228,9 +195,7 @@ describe('diff', () => {
 					previousSenderStateBuffer,
 				);
 
-				const restoredState = JSON.parse(
-					undo(previousSenderStateBuffer, diff).toString('utf8'),
-				);
+				const restoredState = JSON.parse(undo(previousSenderStateBuffer, diff).toString('utf8'));
 
 				expect(restoredState).toEqual('');
 			});

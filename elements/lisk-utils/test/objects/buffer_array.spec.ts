@@ -134,11 +134,7 @@ describe('buffer arrays', () => {
 
 	describe('bufferArrayOrderByLex', () => {
 		it('should not mutate the original array', () => {
-			const original = [
-				Buffer.from('val2'),
-				Buffer.from('target'),
-				Buffer.from('val1'),
-			];
+			const original = [Buffer.from('val2'), Buffer.from('target'), Buffer.from('val1')];
 			bufferArray.bufferArrayOrderByLex(original);
 			expect(original[0]).toEqual(Buffer.from('val2'));
 		});

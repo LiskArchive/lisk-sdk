@@ -20,22 +20,16 @@ const getSuite = async (ldb, rdb, { key, value }) => {
 	await rdb.put(key, value);
 
 	suite
-		.add(
-			`LevelDB: get(key: string):Buffer x ${value.length}(bytes)`,
-			async () => {
-				await ldb.get(key);
-			},
-		)
-		.add(
-			`RocksDB: get(key: string):Buffer x ${value.length}(bytes)`,
-			async () => {
-				await rdb.get(key);
-			},
-		)
+		.add(`LevelDB: get(key: string):Buffer x ${value.length}(bytes)`, async () => {
+			await ldb.get(key);
+		})
+		.add(`RocksDB: get(key: string):Buffer x ${value.length}(bytes)`, async () => {
+			await rdb.get(key);
+		})
 		.on('cycle', event => {
 			console.log(String(event.target));
 		})
-		.on('complete', async function() {
+		.on('complete', async function () {
 			console.log('Fastest is ' + this.filter('fastest').map('name'));
 			await ldb.clear();
 			await rdb.clear();

@@ -56,11 +56,7 @@ import {
 	P2PPeerInfo,
 	PeerServerConfig,
 } from '../types';
-import {
-	assignInternalInfo,
-	constructPeerId,
-	validatePeerInfo,
-} from '../utils';
+import { assignInternalInfo, constructPeerId, validatePeerInfo } from '../utils';
 
 interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
@@ -117,10 +113,7 @@ export class PeerServer extends EventEmitter {
 
 		this._scServer.addMiddleware(
 			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
-			(
-				req: http.IncomingMessage,
-				next: SCServer.nextMiddlewareFunction,
-			): void => {
+			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction): void => {
 				// Decline connections from banned IPs
 				if (this._peerBook.bannedIPs.has(req.socket.remoteAddress as string)) {
 					next(
@@ -217,9 +210,7 @@ export class PeerServer extends EventEmitter {
 		);
 	}
 
-	private _validateQueryObject(
-		socket: SCServerSocket,
-	): ParsedUrlQuery | undefined {
+	private _validateQueryObject(socket: SCServerSocket): ParsedUrlQuery | undefined {
 		if (!socket.request.url) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
@@ -275,10 +266,7 @@ export class PeerServer extends EventEmitter {
 		queryObject: ParsedUrlQuery,
 		socket: SCServerSocket,
 	): P2PPeerInfo | undefined {
-		const remoteport: number = parseInt(
-			queryObject.port as string,
-			BASE_10_RADIX,
-		);
+		const remoteport: number = parseInt(queryObject.port as string, BASE_10_RADIX);
 		const peerId = constructPeerId(socket.remoteAddress, remoteport);
 
 		// Remove these port and ip from the query object
@@ -335,40 +323,24 @@ export class PeerServer extends EventEmitter {
 		try {
 			const validPeerInfo = validatePeerInfo(
 				incomingPeerInfo,
-				this._maxPeerInfoSize
-					? this._maxPeerInfoSize
-					: DEFAULT_MAX_PEER_INFO_SIZE,
+				this._maxPeerInfoSize ? this._maxPeerInfoSize : DEFAULT_MAX_PEER_INFO_SIZE,
 			);
 
 			return validPeerInfo;
 		} catch (error) {
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				INCOMPATIBLE_PEER_INFO_CODE,
-				error,
-			);
+			this._disconnectSocketDueToFailedHandshake(socket, INCOMPATIBLE_PEER_INFO_CODE, error);
 
 			return undefined;
 		}
 	}
 
-	private _checkPeerCompatibility(
-		peerInfo: P2PPeerInfo,
-		socket: SCServerSocket,
-	): boolean {
-		const { success, error } = this._peerHandshakeCheck(
-			peerInfo,
-			this._nodeInfo,
-		);
+	private _checkPeerCompatibility(peerInfo: P2PPeerInfo, socket: SCServerSocket): boolean {
+		const { success, error } = this._peerHandshakeCheck(peerInfo, this._nodeInfo);
 
 		if (!success) {
 			const errorReason = error ?? INCOMPATIBLE_PEER_UNKNOWN_REASON;
 
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				INCOMPATIBLE_PEER_CODE,
-				errorReason,
-			);
+			this._disconnectSocketDueToFailedHandshake(socket, INCOMPATIBLE_PEER_CODE, errorReason);
 		}
 
 		return success;
@@ -381,10 +353,7 @@ export class PeerServer extends EventEmitter {
 			return;
 		}
 		// Validate and construct peerInfo object for the incoming connection
-		const incomingPeerInfo = this._constructPeerInfoForInboundConnection(
-			queryObject,
-			socket,
-		);
+		const incomingPeerInfo = this._constructPeerInfoForInboundConnection(queryObject, socket);
 
 		if (!incomingPeerInfo) {
 			return;
@@ -468,8 +437,7 @@ export class PeerServer extends EventEmitter {
 
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				if (parsed.event === '#disconnect') {
-					const count =
-						(this._invalidMessageCounter.get(peerIpAddress) ?? 0) + 1;
+					const count = (this._invalidMessageCounter.get(peerIpAddress) ?? 0) + 1;
 					this._invalidMessageCounter.set(peerIpAddress, count);
 
 					if (count > DEFAULT_CONTROL_MESSAGE_LIMIT) {

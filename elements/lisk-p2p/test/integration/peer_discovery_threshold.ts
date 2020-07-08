@@ -41,9 +41,7 @@ describe('Peer discovery threshold', () => {
 		for (let i = 0; i < 1000; i += 1) {
 			const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${
 				Math.floor(Math.random() * 254) + 1
-			}.${Math.floor(Math.random() * 254) + 1}.${
-				Math.floor(Math.random() * 254) + 1
-			}`;
+			}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}`;
 
 			p2pNodeList[0]['_peerBook'].addPeer({
 				peerId: `${generatedIP}:5000`,

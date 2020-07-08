@@ -104,9 +104,7 @@ export const writeObject = (
 				binaryKey,
 			} = property;
 			if (dataType === undefined) {
-				throw new Error(
-					'Compiled Schema is corrupted as "dataType" can not be undefined.',
-				);
+				throw new Error('Compiled Schema is corrupted as "dataType" can not be undefined.');
 			}
 
 			const binaryValue = _writers[dataType](value);
@@ -137,12 +135,7 @@ export const readObject = (
 					continue;
 				}
 				// eslint-disable-next-line no-use-before-define
-				const [arr, nextOffset] = readArray(
-					message,
-					index,
-					typeSchema,
-					terminateIndex,
-				);
+				const [arr, nextOffset] = readArray(message, index, typeSchema, terminateIndex);
 				result[typeSchema[0].propertyName] = arr;
 				index = nextOffset;
 			} else if (typeSchema[0].schemaProp.type === 'object') {
@@ -152,12 +145,7 @@ export const readObject = (
 				// Takeout the length
 				const [objectSize, objectSizeLength] = readUInt32(message, index);
 				index += objectSizeLength;
-				const [obj, nextOffset] = readObject(
-					message,
-					index,
-					typeSchema,
-					objectSize + index,
-				);
+				const [obj, nextOffset] = readObject(message, index, typeSchema, objectSize + index);
 				result[typeSchema[0].propertyName] = obj;
 				index = nextOffset;
 			} else {
@@ -165,18 +153,13 @@ export const readObject = (
 			}
 			continue;
 		}
-		if (
-			typeSchema.schemaProp.type === 'object' ||
-			typeSchema.schemaProp.type === 'array'
-		) {
+		if (typeSchema.schemaProp.type === 'object' || typeSchema.schemaProp.type === 'array') {
 			// typeSchema is header, and we ignroe this
 			continue;
 		}
 		if (message.length <= index) {
 			// assign default value
-			result[typeSchema.propertyName] = getDefaultValue(
-				typeSchema.schemaProp.dataType as string,
-			);
+			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
 			continue;
 		}
 		// Takeout the root wireType and field number
@@ -184,17 +167,16 @@ export const readObject = (
 		const [fieldNumber] = readKey(key);
 		if (fieldNumber !== typeSchema.schemaProp.fieldNumber) {
 			// assign default value
-			result[typeSchema.propertyName] = getDefaultValue(
-				typeSchema.schemaProp.dataType as string,
-			);
+			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
 			continue;
 		}
 		// Index is only incremented when the key is actually used
 		index += keySize;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const [scalarValue, scalarSize] = _readers[
-			typeSchema.schemaProp.dataType as string
-		](message, index);
+		const [scalarValue, scalarSize] = _readers[typeSchema.schemaProp.dataType as string](
+			message,
+			index,
+		);
 		index += scalarSize;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		result[typeSchema.propertyName] = scalarValue;
@@ -246,12 +228,7 @@ export const readArray = (
 				// If array of object, it also gives the terminating index of the particular object
 				const terminatingObjectSize = index + objectSize;
 				// readObject returns Next offset, not index used
-				const [res, nextOffset] = readObject(
-					message,
-					index,
-					typeSchema,
-					terminatingObjectSize,
-				);
+				const [res, nextOffset] = readObject(message, index, typeSchema, terminatingObjectSize);
 				result.push(res);
 				index = nextOffset;
 			}
@@ -260,10 +237,7 @@ export const readArray = (
 		throw new Error('Invalid container type');
 	}
 	// Case for string and bytes
-	if (
-		typeSchema.schemaProp.dataType === 'string' ||
-		typeSchema.schemaProp.dataType === 'bytes'
-	) {
+	if (typeSchema.schemaProp.dataType === 'string' || typeSchema.schemaProp.dataType === 'bytes') {
 		// If still the next bytes is the same key, it is still element of array
 		// Also, in case of object inside of array, it checks the size of the object
 		while (message[index] === startingByte && index !== terminateIndex) {
@@ -282,9 +256,7 @@ export const readArray = (
 				continue;
 			}
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const [res, wire2Size] = _readers[
-				typeSchema.schemaProp.dataType as string
-			](message, index);
+			const [res, wire2Size] = _readers[typeSchema.schemaProp.dataType as string](message, index);
 			result.push(res);
 			index += wire2Size;
 		}
@@ -299,10 +271,7 @@ export const readArray = (
 	const end = index + arrayLength;
 	while (index < end) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const [res, size] = _readers[typeSchema.schemaProp.dataType as string](
-			message,
-			index,
-		);
+		const [res, size] = _readers[typeSchema.schemaProp.dataType as string](message, index);
 		result.push(res);
 		index += size;
 	}
@@ -323,11 +292,7 @@ export const writeArray = (
 	// Array of object
 	if (Array.isArray(typeSchema)) {
 		for (let i = 0; i < message.length; i += 1) {
-			const [res, objectSize] = writeObject(
-				typeSchema,
-				message[i] as GenericObject,
-				[],
-			);
+			const [res, objectSize] = writeObject(typeSchema, message[i] as GenericObject, []);
 			chunks.push(rootSchema.binaryKey);
 			const size = _writers.uint32(objectSize);
 			chunks.push(size);
@@ -339,14 +304,9 @@ export const writeArray = (
 		return [chunks, totalSize];
 	}
 	// Array of string or bytes
-	if (
-		typeSchema.schemaProp.dataType === 'string' ||
-		typeSchema.schemaProp.dataType === 'bytes'
-	) {
+	if (typeSchema.schemaProp.dataType === 'string' || typeSchema.schemaProp.dataType === 'bytes') {
 		for (let i = 0; i < message.length; i += 1) {
-			const res = _writers[typeSchema.schemaProp.dataType as string](
-				message[i],
-			);
+			const res = _writers[typeSchema.schemaProp.dataType as string](message[i]);
 			chunks.push(rootSchema.binaryKey);
 			chunks.push(res);
 			totalSize += res.length + rootSchema.binaryKey.length;

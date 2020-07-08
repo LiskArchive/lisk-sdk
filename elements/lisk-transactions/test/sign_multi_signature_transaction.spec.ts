@@ -71,10 +71,8 @@ describe('#sign multi signature transaction', () => {
 		it('should return a transaction signed by first mandatory key', () => {
 			const txSignedByMember = signMultiSignatureTransaction({
 				transaction: validMultisigRegistrationTx,
-				passphrase:
-					'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				passphrase: 'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
+				networkIdentifier: 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 				keys: {
 					mandatoryKeys: [
 						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
@@ -87,18 +85,14 @@ describe('#sign multi signature transaction', () => {
 				},
 			});
 
-			expect(txSignedByMember.signatures[1]).toBe(
-				validMultisigRegistrationTx.signatures[1],
-			);
+			expect(txSignedByMember.signatures[1]).toBe(validMultisigRegistrationTx.signatures[1]);
 		});
 
 		it('should return a transaction signed by second mandatory key', () => {
 			const txSignedByMember = signMultiSignatureTransaction({
 				transaction: validMultisigRegistrationTx,
-				passphrase:
-					'trim elegant oven term access apple obtain error grain excite lawn neck',
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				passphrase: 'trim elegant oven term access apple obtain error grain excite lawn neck',
+				networkIdentifier: 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 				keys: {
 					mandatoryKeys: [
 						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
@@ -111,9 +105,7 @@ describe('#sign multi signature transaction', () => {
 				},
 			});
 
-			expect(txSignedByMember.signatures[2]).toBe(
-				validMultisigRegistrationTx.signatures[2],
-			);
+			expect(txSignedByMember.signatures[2]).toBe(validMultisigRegistrationTx.signatures[2]);
 		});
 
 		it('should return a transaction signed by first optional key', () => {
@@ -121,8 +113,7 @@ describe('#sign multi signature transaction', () => {
 				transaction: validMultisigRegistrationTx,
 				passphrase:
 					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				networkIdentifier: 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 				keys: {
 					mandatoryKeys: [
 						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
@@ -135,18 +126,14 @@ describe('#sign multi signature transaction', () => {
 				},
 			});
 
-			expect(txSignedByMember.signatures[3]).toBe(
-				validMultisigRegistrationTx.signatures[3],
-			);
+			expect(txSignedByMember.signatures[3]).toBe(validMultisigRegistrationTx.signatures[3]);
 		});
 
 		it('should return a transaction signed by second optional key', () => {
 			const txSignedByMember = signMultiSignatureTransaction({
 				transaction: validMultisigRegistrationTx,
-				passphrase:
-					'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				passphrase: 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
+				networkIdentifier: 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 				keys: {
 					mandatoryKeys: [
 						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
@@ -159,9 +146,7 @@ describe('#sign multi signature transaction', () => {
 				},
 			});
 
-			expect(txSignedByMember.signatures[4]).toBe(
-				validMultisigRegistrationTx.signatures[4],
-			);
+			expect(txSignedByMember.signatures[4]).toBe(validMultisigRegistrationTx.signatures[4]);
 		});
 
 		it('should return a transaction with third signature and empty string for the rest', () => {
@@ -174,10 +159,7 @@ describe('#sign multi signature transaction', () => {
 				),
 				asset: {
 					amount: BigInt('500000000'),
-					recipientAddress: Buffer.from(
-						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						'hex',
-					),
+					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 					data: '',
 				},
 			});
@@ -186,8 +168,7 @@ describe('#sign multi signature transaction', () => {
 				transaction: validTransfer,
 				passphrase:
 					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				networkIdentifier: 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 				keys: {
 					mandatoryKeys: [
 						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
@@ -218,10 +199,7 @@ describe('#sign multi signature transaction', () => {
 				),
 				asset: {
 					amount: BigInt('500000000'),
-					recipientAddress: Buffer.from(
-						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						'hex',
-					),
+					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 					data: '',
 				},
 			});
@@ -236,10 +214,8 @@ describe('#sign multi signature transaction', () => {
 
 			const txSignedByMember = signMultiSignatureTransaction({
 				transaction: partiallySignedTransaction,
-				passphrase:
-					'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				passphrase: 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
+				networkIdentifier: 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 				keys: {
 					mandatoryKeys: [
 						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
@@ -270,10 +246,7 @@ describe('#sign multi signature transaction', () => {
 				),
 				asset: {
 					amount: BigInt('500000000'),
-					recipientAddress: Buffer.from(
-						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						'hex',
-					),
+					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 					data: '',
 				},
 			});
@@ -290,8 +263,7 @@ describe('#sign multi signature transaction', () => {
 				transaction: partiallySignedTransaction,
 				passphrase:
 					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				networkIdentifier: 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 				keys: {
 					mandatoryKeys: [
 						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
@@ -322,10 +294,7 @@ describe('#sign multi signature transaction', () => {
 				),
 				asset: {
 					amount: BigInt('500000000'),
-					recipientAddress: Buffer.from(
-						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						'hex',
-					),
+					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 					data: '',
 				},
 			});
@@ -337,8 +306,7 @@ describe('#sign multi signature transaction', () => {
 				transaction: partiallySignedTransaction,
 				passphrase:
 					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				networkIdentifier: 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 				keys: {
 					mandatoryKeys: [
 						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',

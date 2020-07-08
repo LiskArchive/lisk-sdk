@@ -18,14 +18,8 @@ import { StateStore } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
 import { BlockHeader, StateDiff } from '../../../src/types';
 import { baseAccountSchema } from '../../../src/schema';
-import {
-	defaultAccountAssetSchema,
-	createFakeDefaultAccount,
-} from '../../utils/account';
-import {
-	defaultNetworkIdentifier,
-	defaultBlockHeaderAssetSchema,
-} from '../../utils/block';
+import { defaultAccountAssetSchema, createFakeDefaultAccount } from '../../utils/account';
+import { defaultNetworkIdentifier, defaultBlockHeaderAssetSchema } from '../../utils/block';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -33,10 +27,9 @@ describe('state store / chain_state', () => {
 	let stateStore: StateStore;
 	let db: any;
 
-	const lastBlockHeaders = ([
-		{ height: 30 },
-		{ height: 20 },
-	] as unknown) as ReadonlyArray<BlockHeader>;
+	const lastBlockHeaders = ([{ height: 30 }, { height: 20 }] as unknown) as ReadonlyArray<
+		BlockHeader
+	>;
 
 	beforeEach(() => {
 		db = new KVStore('temp');
@@ -77,9 +70,7 @@ describe('state store / chain_state', () => {
 
 	describe('networkIdentifier', () => {
 		it('should have first element as lastBlockHeader', () => {
-			expect(stateStore.chain.networkIdentifier).toEqual(
-				defaultNetworkIdentifier,
-			);
+			expect(stateStore.chain.networkIdentifier).toEqual(defaultNetworkIdentifier);
 		});
 	});
 
@@ -151,14 +142,8 @@ describe('state store / chain_state', () => {
 			stateStore.chain.set('key4', Buffer.from('value5'));
 			stateDiff = stateStore.chain.finalize(batchStub);
 			// Assert
-			expect(batchStub.put).toHaveBeenCalledWith(
-				'chain:key3',
-				Buffer.from('value4'),
-			);
-			expect(batchStub.put).toHaveBeenCalledWith(
-				'chain:key4',
-				Buffer.from('value5'),
-			);
+			expect(batchStub.put).toHaveBeenCalledWith('chain:key3', Buffer.from('value4'));
+			expect(batchStub.put).toHaveBeenCalledWith('chain:key4', Buffer.from('value5'));
 		});
 
 		it('should return state diff with created and updated values after finalize', () => {

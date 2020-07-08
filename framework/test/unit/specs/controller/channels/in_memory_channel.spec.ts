@@ -16,10 +16,7 @@ jest.mock('../../../../../src/controller/bus');
 
 /* eslint-disable import/first  */
 
-import {
-	InMemoryChannel,
-	BaseChannel,
-} from '../../../../../src/controller/channels';
+import { InMemoryChannel, BaseChannel } from '../../../../../src/controller/channels';
 import { Bus } from '../../../../../src/controller/bus';
 import { Event } from '../../../../../src/controller/event';
 
@@ -81,9 +78,7 @@ describe('InMemoryChannel Channel', () => {
 
 			// Assert
 			expect(inMemoryChannel['bus']).toBe(bus);
-			expect(
-				inMemoryChannel['bus'].registerChannel,
-			).toHaveBeenCalledWith(
+			expect(inMemoryChannel['bus'].registerChannel).toHaveBeenCalledWith(
 				inMemoryChannel['moduleAlias'],
 				inMemoryChannel.eventsList,
 				inMemoryChannel['actions'],
@@ -108,10 +103,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.once(eventName, () => {});
 
 			// Assert
-			expect(inMemoryChannel['bus'].once).toHaveBeenCalledWith(
-				event.key(),
-				expect.any(Function),
-			);
+			expect(inMemoryChannel['bus'].once).toHaveBeenCalledWith(event.key(), expect.any(Function));
 		});
 	});
 
@@ -132,10 +124,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.once(eventName, () => {});
 
 			// Assert
-			expect(inMemoryChannel['bus'].once).toHaveBeenCalledWith(
-				event.key(),
-				expect.any(Function),
-			);
+			expect(inMemoryChannel['bus'].once).toHaveBeenCalledWith(event.key(), expect.any(Function));
 		});
 
 		it.todo('write integration test to check if event is being listened');
@@ -168,10 +157,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.publish(eventFullName);
 
 			// Assert
-			expect(inMemoryChannel['bus'].publish).toHaveBeenCalledWith(
-				event.key(),
-				event.serialize(),
-			);
+			expect(inMemoryChannel['bus'].publish).toHaveBeenCalledWith(event.key(), event.serialize());
 		});
 
 		it.todo('write integration test to check if event is being published');

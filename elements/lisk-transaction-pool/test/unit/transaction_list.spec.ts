@@ -34,10 +34,7 @@ const insertNTransactions = (
 };
 
 describe('TransactionList class', () => {
-	const defaultAddress = Buffer.from(
-		'd04699e57c4a3846c988f3c15306796f8eae5c1c',
-		'hex',
-	);
+	const defaultAddress = Buffer.from('d04699e57c4a3846c988f3c15306796f8eae5c1c', 'hex');
 
 	let transactionList: TransactionList;
 
@@ -49,9 +46,7 @@ describe('TransactionList class', () => {
 		describe('when option are not given', () => {
 			it('should set default values', () => {
 				expect((transactionList as any)._maxSize).toEqual(64);
-				expect(
-					(transactionList as any)._minReplacementFeeDifference.toString(),
-				).toEqual('10');
+				expect((transactionList as any)._minReplacementFeeDifference.toString()).toEqual('10');
 			});
 		});
 
@@ -62,9 +57,7 @@ describe('TransactionList class', () => {
 					minReplacementFeeDifference: BigInt(100),
 				});
 				expect((transactionList as any)._maxSize).toEqual(10);
-				expect(
-					(transactionList as any)._minReplacementFeeDifference.toString(),
-				).toEqual('100');
+				expect((transactionList as any)._minReplacementFeeDifference.toString()).toEqual('100');
 			});
 		});
 	});
@@ -93,9 +86,7 @@ describe('TransactionList class', () => {
 					expect(removedID).toEqual(addedTxs[0].id);
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(5);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						Buffer.from('new-id'),
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(Buffer.from('new-id'));
 				});
 
 				it('should demote all subsequent transactions', () => {
@@ -115,9 +106,7 @@ describe('TransactionList class', () => {
 					expect(transactionList.size).toEqual(5);
 					expect(transactionList.getProcessable()).toHaveLength(0);
 					expect(transactionList.getUnprocessable()).toHaveLength(5);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						Buffer.from('new-id'),
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(Buffer.from('new-id'));
 				});
 			});
 
@@ -135,9 +124,7 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(5);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						addedTxs[0].id,
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(addedTxs[0].id);
 				});
 			});
 
@@ -158,9 +145,7 @@ describe('TransactionList class', () => {
 						'Incoming transaction fee is not sufficient to replace existing transaction',
 					);
 					expect(transactionList.size).toEqual(5);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						addedTxs[0].id,
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(addedTxs[0].id);
 				});
 			});
 
@@ -178,9 +163,7 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(5);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						addedTxs[0].id,
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(addedTxs[0].id);
 				});
 			});
 
@@ -197,9 +180,7 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(6);
-					expect(transactionList.get(BigInt(6))?.id).toEqual(
-						Buffer.from('new-id'),
-					);
+					expect(transactionList.get(BigInt(6))?.id).toEqual(Buffer.from('new-id'));
 				});
 			});
 
@@ -216,12 +197,8 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(6);
-					expect(transactionList.get(BigInt(0))?.id).toEqual(
-						Buffer.from('new-id'),
-					);
-					expect(transactionList.getProcessable()[0].id).toEqual(
-						Buffer.from('new-id'),
-					);
+					expect(transactionList.get(BigInt(0))?.id).toEqual(Buffer.from('new-id'));
+					expect(transactionList.getProcessable()[0].id).toEqual(Buffer.from('new-id'));
 				});
 			});
 		});
@@ -242,9 +219,7 @@ describe('TransactionList class', () => {
 					expect(added).toEqual(true);
 					expect(removedID).toEqual(addedTxs[0].id);
 					expect(transactionList.size).toEqual(10);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						Buffer.from('new-id'),
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(Buffer.from('new-id'));
 				});
 
 				it('should demote all subsequent transactions', () => {
@@ -264,9 +239,7 @@ describe('TransactionList class', () => {
 					expect(transactionList.size).toEqual(10);
 					expect(transactionList.getProcessable()).toHaveLength(0);
 					expect(transactionList.getUnprocessable()).toHaveLength(10);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						Buffer.from('new-id'),
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(Buffer.from('new-id'));
 				});
 			});
 
@@ -284,9 +257,7 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(10);
-					expect(transactionList.get(replacing.nonce)?.id).toEqual(
-						replacing.id,
-					);
+					expect(transactionList.get(replacing.nonce)?.id).toEqual(replacing.id);
 				});
 			});
 
@@ -307,9 +278,7 @@ describe('TransactionList class', () => {
 						'Incoming transaction fee is not sufficient to replace existing transaction',
 					);
 					expect(transactionList.size).toEqual(10);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						addedTxs[0].id,
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(addedTxs[0].id);
 				});
 			});
 
@@ -327,9 +296,7 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(10);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						addedTxs[0].id,
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(addedTxs[0].id);
 				});
 			});
 
@@ -347,9 +314,7 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(10);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
-						addedTxs[0].id,
-					);
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(addedTxs[0].id);
 				});
 			});
 
@@ -388,9 +353,7 @@ describe('TransactionList class', () => {
 					expect(added).toEqual(true);
 					expect(removedID).toEqual(Buffer.from('10'));
 					expect(transactionList.size).toEqual(10);
-					expect(transactionList.get(BigInt(0))?.id).toEqual(
-						Buffer.from('new-id'),
-					);
+					expect(transactionList.get(BigInt(0))?.id).toEqual(Buffer.from('new-id'));
 				});
 			});
 		});
@@ -462,9 +425,7 @@ describe('TransactionList class', () => {
 				// Assert
 				const processable = transactionList.getProcessable();
 				expect(processable[0].nonce.toString()).toEqual('9');
-				expect(processable[processable.length - 1].nonce.toString()).toEqual(
-					'21',
-				);
+				expect(processable[processable.length - 1].nonce.toString()).toEqual('21');
 			});
 		});
 	});

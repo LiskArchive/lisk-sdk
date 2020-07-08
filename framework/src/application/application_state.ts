@@ -89,10 +89,7 @@ export class ApplicationState {
 			this._logger.debug(this.state, 'Update application state');
 			this._channel.publish('app:state:updated', this.state);
 		} catch (err) {
-			this._logger.error(
-				{ err: err as Error },
-				'Failed to update application state',
-			);
+			this._logger.error({ err: err as Error }, 'Failed to update application state');
 			throw err;
 		}
 	}

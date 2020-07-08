@@ -55,10 +55,7 @@ export class Action {
 		this.params = params ?? {};
 
 		if (source) {
-			assert(
-				moduleNameReg.test(source),
-				`Source name "${source}" must be a valid module name.`,
-			);
+			assert(moduleNameReg.test(source), `Source name "${source}" must be a valid module name.`);
 			this.source = source;
 		}
 

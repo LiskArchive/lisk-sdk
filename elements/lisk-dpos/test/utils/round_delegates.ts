@@ -52,15 +52,10 @@ export const getDelegateAccounts = (num = 1): DelegateAccounts => {
 	return { accounts, publicKeyMap };
 };
 
-export const getDelegateAccountsWithVotesReceived = (
-	num = 1,
-): DelegateAccounts => {
+export const getDelegateAccountsWithVotesReceived = (num = 1): DelegateAccounts => {
 	const { accounts, publicKeyMap } = getDelegateAccounts(num);
 	for (const account of accounts) {
-		account.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
-			1000,
-			100000,
-		);
+		account.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 100000);
 	}
 	return { accounts, publicKeyMap };
 };

@@ -150,12 +150,8 @@ describe('processor', () => {
 				processor.register(blockProcessorV1, {
 					matcher: ({ height }) => height === 0,
 				});
-				expect(processor['matchers'][1]({ height: 0 } as BlockHeader)).toBe(
-					true,
-				);
-				expect(processor['matchers'][1]({ height: 10 } as BlockHeader)).toBe(
-					false,
-				);
+				expect(processor['matchers'][1]({ height: 0 } as BlockHeader)).toBe(true);
+				expect(processor['matchers'][1]({ height: 10 } as BlockHeader)).toBe(false);
 			});
 		});
 	});
@@ -239,9 +235,7 @@ describe('processor', () => {
 		describe('when processor fails to initialize', () => {
 			it('should throw an error', async () => {
 				initSteps[0].mockRejectedValue(new Error('failed to proceess init'));
-				await expect(processor.init()).rejects.toThrow(
-					'failed to proceess init',
-				);
+				await expect(processor.init()).rejects.toThrow('failed to proceess init');
 			});
 		});
 	});
@@ -329,9 +323,7 @@ describe('processor', () => {
 			});
 
 			it('should throw an error', async () => {
-				await expect(processor.process(blockV1)).rejects.toThrow(
-					'Unknown fork status',
-				);
+				await expect(processor.process(blockV1)).rejects.toThrow('Unknown fork status');
 			});
 		});
 
@@ -430,11 +422,9 @@ describe('processor', () => {
 			});
 
 			it('should revert the last block', () => {
-				expect(chainModuleStub.remove).toHaveBeenCalledWith(
-					defaultLastBlock,
-					stateStoreStub,
-					{ saveTempBlock: false },
-				);
+				expect(chainModuleStub.remove).toHaveBeenCalledWith(defaultLastBlock, stateStoreStub, {
+					saveTempBlock: false,
+				});
 			});
 
 			it('should verify the block', () => {
@@ -464,20 +454,15 @@ describe('processor', () => {
 			});
 
 			it('should save the block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(
-					blockV1,
-					stateStoreStub,
-					{ removeFromTempTable: false },
-				);
+				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
+					removeFromTempTable: false,
+				});
 			});
 
 			it('should emit broadcast event for the block', () => {
-				expect(processor.events.emit).toHaveBeenCalledWith(
-					'EVENT_PROCESSOR_BROADCAST_BLOCK',
-					{
-						block: blockV1,
-					},
-				);
+				expect(processor.events.emit).toHaveBeenCalledWith('EVENT_PROCESSOR_BROADCAST_BLOCK', {
+					block: blockV1,
+				});
 			});
 		});
 
@@ -511,11 +496,9 @@ describe('processor', () => {
 			});
 
 			it('should revert the last block', () => {
-				expect(chainModuleStub.remove).toHaveBeenCalledWith(
-					defaultLastBlock,
-					stateStoreStub,
-					{ saveTempBlock: false },
-				);
+				expect(chainModuleStub.remove).toHaveBeenCalledWith(defaultLastBlock, stateStoreStub, {
+					saveTempBlock: false,
+				});
 			});
 
 			// eslint-disable-next-line jest/no-disabled-tests
@@ -556,10 +539,7 @@ describe('processor', () => {
 
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should save the last block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(
-					defaultLastBlock,
-					stateStoreStub,
-				);
+				expect(chainModuleStub.save).toHaveBeenCalledWith(defaultLastBlock, stateStoreStub);
 			});
 		});
 
@@ -593,12 +573,9 @@ describe('processor', () => {
 			});
 
 			it('should publish sync', () => {
-				expect(processor.events.emit).toHaveBeenCalledWith(
-					'EVENT_PROCESSOR_SYNC_REQUIRED',
-					{
-						block: blockV1,
-					},
-				);
+				expect(processor.events.emit).toHaveBeenCalledWith('EVENT_PROCESSOR_SYNC_REQUIRED', {
+					block: blockV1,
+				});
 			});
 
 			it('should publish fork event', () => {
@@ -673,12 +650,9 @@ describe('processor', () => {
 			});
 
 			it('should broadcast with the block', () => {
-				expect(processor.events.emit).toHaveBeenCalledWith(
-					'EVENT_PROCESSOR_BROADCAST_BLOCK',
-					{
-						block: blockV1,
-					},
-				);
+				expect(processor.events.emit).toHaveBeenCalledWith('EVENT_PROCESSOR_BROADCAST_BLOCK', {
+					block: blockV1,
+				});
 			});
 		});
 	});
@@ -891,10 +865,7 @@ describe('processor', () => {
 			});
 
 			it('should not emit newBlock event', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:new',
-					expect.anything(),
-				);
+				expect(channelStub.publish).not.toHaveBeenCalledWith('app:block:new', expect.anything());
 			});
 		});
 
@@ -921,9 +892,7 @@ describe('processor', () => {
 				});
 			});
 
-			it.todo(
-				'should not save the block (figure out how to test if database tx was rolled back)',
-			);
+			it.todo('should not save the block (figure out how to test if database tx was rolled back)');
 
 			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
@@ -933,10 +902,7 @@ describe('processor', () => {
 			});
 
 			it('should not emit newBlock event', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:new',
-					expect.anything(),
-				);
+				expect(channelStub.publish).not.toHaveBeenCalledWith('app:block:new', expect.anything());
 			});
 		});
 
@@ -977,10 +943,7 @@ describe('processor', () => {
 			});
 
 			it('should not emit newBlock event', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:new',
-					expect.anything(),
-				);
+				expect(channelStub.publish).not.toHaveBeenCalledWith('app:block:new', expect.anything());
 			});
 		});
 
@@ -992,11 +955,9 @@ describe('processor', () => {
 			});
 
 			it('should remove block from temp_blocks table', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(
-					blockV1,
-					stateStoreStub,
-					{ removeFromTempTable: true },
-				);
+				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
+					removeFromTempTable: true,
+				});
 			});
 		});
 
@@ -1032,11 +993,9 @@ describe('processor', () => {
 			});
 
 			it('should save the block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(
-					blockV1,
-					stateStoreStub,
-					{ removeFromTempTable: false },
-				);
+				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
+					removeFromTempTable: false,
+				});
 			});
 
 			it('should not broadcast the block', () => {
@@ -1061,11 +1020,9 @@ describe('processor', () => {
 			});
 
 			it('should call remove from chainModule', () => {
-				expect(chainModuleStub.remove).toHaveBeenCalledWith(
-					defaultLastBlock,
-					stateStoreStub,
-					{ saveTempBlock: false },
-				);
+				expect(chainModuleStub.remove).toHaveBeenCalledWith(defaultLastBlock, stateStoreStub, {
+					saveTempBlock: false,
+				});
 			});
 		});
 	});

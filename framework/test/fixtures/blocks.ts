@@ -78,9 +78,7 @@ export const encodeValidBlockHeader = (header: BlockHeader): Buffer => {
 	return chain.dataAccess.encodeBlockHeader(header);
 };
 
-export const createFakeBlockHeader = (
-	header?: Partial<BlockHeader>,
-): BlockHeader => {
+export const createFakeBlockHeader = (header?: Partial<BlockHeader>): BlockHeader => {
 	const blockHeader = {
 		id: hash(getRandomBytes(8)),
 		version: 2,
@@ -149,10 +147,7 @@ export const createValidDefaultBlock = (
 		},
 	} as any);
 
-	const encodedHeaderWithoutSignature = chain.dataAccess.encodeBlockHeader(
-		blockHeader,
-		true,
-	);
+	const encodedHeaderWithoutSignature = chain.dataAccess.encodeBlockHeader(blockHeader, true);
 
 	const signature = signDataWithPrivateKey(
 		Buffer.concat([networkIdentifier, encodedHeaderWithoutSignature]),

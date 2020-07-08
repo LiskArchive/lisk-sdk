@@ -16,11 +16,7 @@
 
 const path = require('path');
 const BaseGenerator = require('../base_generator');
-const {
-	loadCSVFile,
-	generateBlockHeader,
-	generateBlockHeadersSeries,
-} = require('../../utils/bft');
+const { loadCSVFile, generateBlockHeader, generateBlockHeadersSeries } = require('../../utils/bft');
 
 const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 	const rows = loadCSVFile(path.join(__dirname, filePath));
@@ -33,8 +29,7 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 		const delegateName = rows[i][1];
 		const maxHeightPreviouslyForged = parseInt(rows[i][2], 10);
 		const maxHeightPrevoted = parseInt(rows[i][3], 10);
-		const delegateMinHeightActive =
-			(parseInt(rows[i][4], 10) - 1) * activeDelegates + 1;
+		const delegateMinHeightActive = (parseInt(rows[i][4], 10) - 1) * activeDelegates + 1;
 		const height = parseInt(rows[i][5], 10);
 
 		const blockHeader = generateBlockHeader({
@@ -77,18 +72,14 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 			.reverse()
 			.findIndex(val => val >= threshold);
 		const finalizedHeight =
-			highestHeightPreCommit > 0
-				? preCommitsRow.length - highestHeightPreCommit
-				: 0;
+			highestHeightPreCommit > 0 ? preCommitsRow.length - highestHeightPreCommit : 0;
 
 		const highestHeightPreVoted = preVotesRow
 			.slice(0)
 			.reverse()
 			.findIndex(val => val >= threshold);
 		const preVotedConfirmedHeight =
-			highestHeightPreVoted > 0
-				? preVotesRow.length - highestHeightPreVoted
-				: 0;
+			highestHeightPreVoted > 0 ? preVotesRow.length - highestHeightPreVoted : 0;
 
 		// Since BFT only keep track of 5 rounds
 		Object.keys(preVotes)
@@ -120,11 +111,7 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 	return steps;
 };
 
-const bftFinalityTestSuiteGenerator = ({
-	activeDelegates,
-	title,
-	filePath,
-}) => () => ({
+const bftFinalityTestSuiteGenerator = ({ activeDelegates, title, filePath }) => () => ({
 	title: 'BFT processing generation',
 	summary:
 		'Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification',
@@ -190,8 +177,7 @@ const invalidSameHeightBlock = activeDelegates => {
 	const invalidBlockHeader = {
 		...blockHeader,
 		// This delegate has forged block at first block of second round
-		maxHeightPreviouslyForged:
-			delegateLastBlockHeader.maxHeightPreviouslyForged,
+		maxHeightPreviouslyForged: delegateLastBlockHeader.maxHeightPreviouslyForged,
 		height: delegateLastBlockHeader.height,
 	};
 
@@ -227,8 +213,7 @@ const invalidLowerHeightBlock = activeDelegates => {
 		...blockHeader,
 		// This delegate has forged block at first block of second round
 		// so we make it 1 less as last block of second round
-		maxHeightPreviouslyForged:
-			delegateLastBlockHeader.maxHeightPreviouslyForged,
+		maxHeightPreviouslyForged: delegateLastBlockHeader.maxHeightPreviouslyForged,
 		height: delegateLastBlockHeader.height - 1,
 	};
 
@@ -313,9 +298,7 @@ const invalidLowerMaxHeightPrevoted = activeDelegates => {
 	};
 };
 
-const bftInvalidBlockHeaderTestSuiteGenerator = ({
-	activeDelegates,
-}) => () => ({
+const bftInvalidBlockHeaderTestSuiteGenerator = ({ activeDelegates }) => () => ({
 	title: 'BFT processing generation',
 	summary: 'Generate set of invalid blocks headers for BFT',
 	config: { activeDelegates, finalizedHeight: 0 },
@@ -350,8 +333,7 @@ const bftForkChoiceTestSuiteGenerator = () => {
 		id: '4787605425910193884',
 		height: lastBlockHeight,
 		version: 2,
-		generatorPublicKey:
-			'774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534',
+		generatorPublicKey: '774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534',
 		maxHeightPrevoted: 1,
 		timestamp: (lastBlockHeight - 1) * blockInterval, // Block slot time was height * blockInterval
 		receivedAt: (lastBlockHeight - 1) * blockInterval + 2, // Block received 2 seconds after its slot time started
@@ -362,8 +344,7 @@ const bftForkChoiceTestSuiteGenerator = () => {
 		id: '5687604425910193884',
 		height: lastBlockHeight + 1,
 		version: 2,
-		generatorPublicKey:
-			'544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435',
+		generatorPublicKey: '544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435',
 		maxHeightPrevoted: 1,
 		timestamp: lastBlockHeight * blockInterval, // Block slot time was height * blockInterval
 		receivedAt: lastBlockHeight * blockInterval + 2, // Block received 2 seconds after
@@ -404,8 +385,7 @@ const bftForkChoiceTestSuiteGenerator = () => {
 				},
 			},
 			{
-				description:
-					'VALID_BLOCK: Received valid block, as described as "Case 2" in the LIP',
+				description: 'VALID_BLOCK: Received valid block, as described as "Case 2" in the LIP',
 				input: {
 					// Valid blocks are always one step ahead and linked to previous block
 					receivedBlock,
@@ -415,8 +395,7 @@ const bftForkChoiceTestSuiteGenerator = () => {
 				},
 			},
 			{
-				description:
-					'DISCARD: Received invalid block for current state of chain',
+				description: 'DISCARD: Received invalid block for current state of chain',
 				input: {
 					// Any block with lower height than last block is invalid to current
 					// state of chain if maxHeightPrevoted is less or same

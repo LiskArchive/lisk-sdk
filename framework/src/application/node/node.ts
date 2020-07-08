@@ -12,22 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Chain,
-	events as chainEvents,
-	Block,
-	blockSchema,
-	Account,
-} from '@liskhq/lisk-chain';
+import { Chain, events as chainEvents, Block, blockSchema, Account } from '@liskhq/lisk-chain';
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { GenesisBlock } from '@liskhq/lisk-genesis';
-import {
-	TransactionPool,
-	Job,
-	events as txPoolEvents,
-} from '@liskhq/lisk-transaction-pool';
+import { TransactionPool, Job, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Schema } from '@liskhq/lisk-codec';
@@ -51,11 +41,7 @@ import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
-import {
-	accountAssetSchema,
-	defaultAccountAsset,
-	AccountAsset,
-} from './account';
+import { accountAssetSchema, defaultAccountAsset, AccountAsset } from './account';
 import {
 	EVENT_PROCESSOR_BROADCAST_BLOCK,
 	EVENT_PROCESSOR_SYNC_REQUIRED,
@@ -166,9 +152,7 @@ export class Node {
 				throw Error('Missing genesis block');
 			}
 
-			if (
-				this._options.forging.waitThreshold >= this._options.constants.blockTime
-			) {
+			if (this._options.forging.waitThreshold >= this._options.constants.blockTime) {
 				throw Error(
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					`forging.waitThreshold=${this._options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this._options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
@@ -189,13 +173,11 @@ export class Node {
 					logger: this._logger,
 					constants: {
 						roundLength:
-							this._options.constants.activeDelegates +
-							this._options.constants.standbyDelegates,
+							this._options.constants.activeDelegates + this._options.constants.standbyDelegates,
 					},
 				}),
 				{
-					matcher: header =>
-						header.version === this._options.genesisBlock.header.version,
+					matcher: header => header.version === this._options.genesisBlock.header.version,
 				},
 			);
 
@@ -260,10 +242,7 @@ export class Node {
 					};
 					try {
 						if (event === 'postTransactionsAnnouncement') {
-							await this._transport.handleEventPostTransactionsAnnouncement(
-								data,
-								peerId,
-							);
+							await this._transport.handleEventPostTransactionsAnnouncement(data, peerId);
 							return;
 						}
 						if (event === 'postBlock') {
@@ -300,12 +279,8 @@ export class Node {
 				this._chain.blockReward.calculateMilestone(params.height),
 			calculateReward: (params: { height: number }): bigint =>
 				this._chain.blockReward.calculateReward(params.height),
-			getForgerAddressesForRound: async (params: {
-				round: number;
-			}): Promise<readonly string[]> => {
-				const forgersAddress = await this._dpos.getForgerAddressesForRound(
-					params.round,
-				);
+			getForgerAddressesForRound: async (params: { round: number }): Promise<readonly string[]> => {
+				const forgersAddress = await this._dpos.getForgerAddressesForRound(params.round);
 				return forgersAddress.map(a => a.toString('base64'));
 			},
 			updateForgingStatus: async (params: {
@@ -330,9 +305,7 @@ export class Node {
 				);
 				return this._chain.dataAccess.encodeAccount(account).toString('base64');
 			},
-			getAccounts: async (params: {
-				address: readonly string[];
-			}): Promise<readonly string[]> => {
+			getAccounts: async (params: { address: readonly string[] }): Promise<readonly string[]> => {
 				const accounts = await this._chain.dataAccess.getAccountsByAddress(
 					params.address.map(address => Buffer.from(address, 'base64')),
 				);
@@ -340,13 +313,9 @@ export class Node {
 					this._chain.dataAccess.encodeAccount(account).toString('base64'),
 				);
 			},
-			getBlockByID: async (params: {
-				id: string;
-			}): Promise<string | undefined> => {
+			getBlockByID: async (params: { id: string }): Promise<string | undefined> => {
 				try {
-					const block = await this._chain.dataAccess.getBlockByID(
-						Buffer.from(params.id, 'base64'),
-					);
+					const block = await this._chain.dataAccess.getBlockByID(Buffer.from(params.id, 'base64'));
 					return this._chain.dataAccess.encode(block).toString('base64');
 				} catch (error) {
 					if (error instanceof NotFoundError) {
@@ -355,15 +324,11 @@ export class Node {
 					throw error;
 				}
 			},
-			getBlocksByIDs: async (params: {
-				ids: readonly string[];
-			}): Promise<readonly string[]> => {
+			getBlocksByIDs: async (params: { ids: readonly string[] }): Promise<readonly string[]> => {
 				const blocks = [];
 				try {
 					for (const id of params.ids) {
-						const block = await this._chain.dataAccess.getBlockByID(
-							Buffer.from(id, 'base64'),
-						);
+						const block = await this._chain.dataAccess.getBlockByID(Buffer.from(id, 'base64'));
 						blocks.push(block);
 					}
 				} catch (error) {
@@ -371,17 +336,11 @@ export class Node {
 						throw error;
 					}
 				}
-				return blocks.map(block =>
-					this._chain.dataAccess.encode(block).toString('base64'),
-				);
+				return blocks.map(block => this._chain.dataAccess.encode(block).toString('base64'));
 			},
-			getBlockByHeight: async (params: {
-				height: number;
-			}): Promise<string | undefined> => {
+			getBlockByHeight: async (params: { height: number }): Promise<string | undefined> => {
 				try {
-					const block = await this._chain.dataAccess.getBlockByHeight(
-						params.height,
-					);
+					const block = await this._chain.dataAccess.getBlockByHeight(params.height);
 					return this._chain.dataAccess.encode(block).toString('base64');
 				} catch (error) {
 					if (error instanceof NotFoundError) {
@@ -399,9 +358,7 @@ export class Node {
 					params.to,
 				);
 
-				return blocks.map(b =>
-					this._chain.dataAccess.encode(b).toString('base64'),
-				);
+				return blocks.map(b => this._chain.dataAccess.encode(b).toString('base64'));
 			},
 			getTransactionByID: async (params: { id: string }): Promise<string> => {
 				const transaction = await this._chain.dataAccess.getTransactionByID(
@@ -411,9 +368,7 @@ export class Node {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				return transaction.getBytes().toString('base64');
 			},
-			getTransactionsByIDs: async (params: {
-				ids: readonly string[];
-			}): Promise<string[]> => {
+			getTransactionsByIDs: async (params: { ids: readonly string[] }): Promise<string[]> => {
 				const transactions = [];
 				try {
 					for (const id of params.ids) {
@@ -434,23 +389,16 @@ export class Node {
 				peerId: string;
 			}): Promise<HandleRPCGetTransactionsReturn> =>
 				this._transport.handleRPCGetTransactions(params.data, params.peerId),
-			getForgingStatusOfAllDelegates: ():
-				| { address: string; forging: boolean }[]
-				| undefined =>
-				this._forger
-					.getForgingStatusOfAllDelegates()
-					?.map(({ address, forging }) => ({
-						address: address.toString('base64'),
-						forging,
-					})),
+			getForgingStatusOfAllDelegates: (): { address: string; forging: boolean }[] | undefined =>
+				this._forger.getForgingStatusOfAllDelegates()?.map(({ address, forging }) => ({
+					address: address.toString('base64'),
+					forging,
+				})),
 			getTransactionsFromPool: (): string[] =>
-				this._transactionPool
-					.getAll()
-					.map(tx => tx.getBytes().toString('base64')),
+				this._transactionPool.getAll().map(tx => tx.getBytes().toString('base64')),
 			postTransaction: async (
 				params: EventPostTransactionData,
-			): Promise<handlePostTransactionReturn> =>
-				this._transport.handleEventPostTransaction(params),
+			): Promise<handlePostTransactionReturn> => this._transport.handleEventPostTransaction(params),
 			getSlotNumber: (params: { timeStamp: number | undefined }): number =>
 				this._chain.slots.getSlotNumber(params.timeStamp),
 			calcSlotRound: (params: { height: number }): number =>
@@ -459,27 +407,19 @@ export class Node {
 				syncing: this._synchronizer.isActive,
 				unconfirmedTransactions: this._transactionPool.getAll().length,
 				secondsSinceEpoch: this._chain.slots.timeSinceGenesis(),
-				lastBlock: this._chain.dataAccess
-					.encode(this._chain.lastBlock)
-					.toString('base64'),
+				lastBlock: this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
 				chainMaxHeightFinalized: this._bft.finalityManager.finalizedHeight,
 			}),
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getLastBlock: async (): Promise<string> =>
 				this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
-			getBlocksFromId: async (params: {
-				data: unknown;
-				peerId: string;
-			}): Promise<string[]> =>
+			getBlocksFromId: async (params: { data: unknown; peerId: string }): Promise<string[]> =>
 				this._transport.handleRPCGetBlocksFromId(params.data, params.peerId),
 			getHighestCommonBlock: async (params: {
 				data: unknown;
 				peerId: string;
 			}): Promise<string | undefined> =>
-				this._transport.handleRPCGetGetHighestCommonBlock(
-					params.data,
-					params.peerId,
-				),
+				this._transport.handleRPCGetGetHighestCommonBlock(params.data, params.peerId),
 			getSchema: () => ({
 				account: this._chain.accountSchema,
 				blockHeader: blockSchema,
@@ -667,29 +607,23 @@ export class Node {
 			networkModule: this._networkModule,
 		});
 
-		blockSyncMechanism.events.on(
-			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
-			({ block, peerId }) => {
-				this._synchronizer.run(block, peerId).catch(err => {
-					this._logger.error(
-						{ err: err as Error },
-						'Error occurred during block synchronization mechanism.',
-					);
-				});
-			},
-		);
+		blockSyncMechanism.events.on(EVENT_SYNCHRONIZER_SYNC_REQUIRED, ({ block, peerId }) => {
+			this._synchronizer.run(block, peerId).catch(err => {
+				this._logger.error(
+					{ err: err as Error },
+					'Error occurred during block synchronization mechanism.',
+				);
+			});
+		});
 
-		fastChainSwitchMechanism.events.on(
-			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
-			({ block, peerId }) => {
-				this._synchronizer.run(block, peerId).catch(err => {
-					this._logger.error(
-						{ err: err as Error },
-						'Error occurred during fast chain synchronization mechanism.',
-					);
-				});
-			},
-		);
+		fastChainSwitchMechanism.events.on(EVENT_SYNCHRONIZER_SYNC_REQUIRED, ({ block, peerId }) => {
+			this._synchronizer.run(block, peerId).catch(err => {
+				this._logger.error(
+					{ err: err as Error },
+					'Error occurred during fast chain synchronization mechanism.',
+				);
+			});
+		});
 
 		this._forger = new Forger({
 			logger: this._logger,
@@ -744,10 +678,7 @@ export class Node {
 		try {
 			await this._forger.loadDelegates();
 		} catch (err) {
-			this._logger.error(
-				{ err: err as Error },
-				'Failed to load delegates for forging',
-			);
+			this._logger.error({ err: err as Error }, 'Failed to load delegates for forging');
 		}
 		this._forgingJob = new Job(async () => this._forgingTask(), forgeInterval);
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -764,17 +695,11 @@ export class Node {
 			},
 		);
 
-		this._processor.events.on(
-			EVENT_PROCESSOR_SYNC_REQUIRED,
-			({ block, peerId }) => {
-				this._synchronizer.run(block, peerId).catch(err => {
-					this._logger.error(
-						{ err: err as Error },
-						'Error occurred during synchronization.',
-					);
-				});
-			},
-		);
+		this._processor.events.on(EVENT_PROCESSOR_SYNC_REQUIRED, ({ block, peerId }) => {
+			this._synchronizer.run(block, peerId).catch(err => {
+				this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
+			});
+		});
 
 		this._transactionPool.events.on(EVENT_TRANSACTION_REMOVED, event => {
 			this._logger.debug(event, 'Transaction was removed from the pool.');
@@ -787,11 +712,8 @@ export class Node {
 	private _getRegisteredTransactionSchemas(): RegisteredSchemas {
 		const registredTransactions: RegisteredSchemas = {};
 
-		for (const aTransactionSchema of Object.entries(
-			this._options.registeredTransactions,
-		)) {
-			registredTransactions[aTransactionSchema[0]] = aTransactionSchema[1]
-				.ASSET_SCHEMA as Schema;
+		for (const aTransactionSchema of Object.entries(this._options.registeredTransactions)) {
+			registredTransactions[aTransactionSchema[0]] = aTransactionSchema[1].ASSET_SCHEMA as Schema;
 		}
 		return registredTransactions;
 	}

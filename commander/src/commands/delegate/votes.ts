@@ -29,15 +29,9 @@ const DEFAULT_LIMIT = 10;
 const DEFAULT_OFFSET = 0;
 const DEFAULT_SORT = 'balance:desc';
 
-const VOTES_SORT_FIELDS = SORT_FIELDS.filter(
-	field => !field.includes('publicKey'),
-);
+const VOTES_SORT_FIELDS = SORT_FIELDS.filter(field => !field.includes('publicKey'));
 
-const processFlagInputs = (
-	limitStr: string,
-	offsetStr: string,
-	sortStr: string,
-) => {
+const processFlagInputs = (limitStr: string, offsetStr: string, sortStr: string) => {
 	const limit = parseInt(limitStr, 10);
 	const offset = parseInt(offsetStr, 10);
 	const sort = sortStr ? sortStr.trim() : undefined;
@@ -47,11 +41,7 @@ const processFlagInputs = (
 	if (limit && limit > MAXIMUM_LIMIT) {
 		throw new Error(`Maximum limit amount is ${MAXIMUM_LIMIT}`);
 	}
-	if (
-		offsetStr !== offset.toString() ||
-		!Number.isInteger(offset) ||
-		offset < 0
-	) {
+	if (offsetStr !== offset.toString() || !Number.isInteger(offset) || offset < 0) {
 		throw new Error('Offset must be an integer and greater than or equal to 0');
 	}
 	if (sort && !VOTES_SORT_FIELDS.includes(sort)) {
@@ -108,11 +98,7 @@ export default class VotesCommand extends BaseCommand {
 
 		const { addresses: addressesStr } = args as Args;
 		const addresses = addressesStr.split(',').filter(Boolean);
-		const { limit, offset, sort } = processFlagInputs(
-			limitStr,
-			offsetStr,
-			sortStr,
-		);
+		const { limit, offset, sort } = processFlagInputs(limitStr, offsetStr, sortStr);
 
 		const req = addresses.map(address => ({
 			query: {

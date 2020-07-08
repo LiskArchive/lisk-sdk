@@ -13,13 +13,7 @@
  */
 
 import * as axon from 'pm2-axon';
-import {
-	PubSocket,
-	PullSocket,
-	PushSocket,
-	ReqSocket,
-	SubSocket,
-} from 'pm2-axon';
+import { PubSocket, PullSocket, PushSocket, ReqSocket, SubSocket } from 'pm2-axon';
 import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
 import { Action, ActionInfoObject, ActionsObject } from './action';
@@ -132,12 +126,9 @@ export class Bus {
 				.catch(error => cb(error));
 		});
 
-		this._subSocket.on(
-			'message',
-			(eventName: string, eventValue: EventInfoObject) => {
-				this.publish(eventName, eventValue);
-			},
-		);
+		this._subSocket.on('message', (eventName: string, eventValue: EventInfoObject) => {
+			this.publish(eventName, eventValue);
+		});
 
 		return true;
 	}
@@ -199,10 +190,7 @@ export class Bus {
 
 		const channelInfo = this.channels[action.module];
 		if (channelInfo.type === ChannelType.InMemory) {
-			return (channelInfo.channel as BaseChannel).invoke<T>(
-				actionFullName,
-				actionParams,
-			);
+			return (channelInfo.channel as BaseChannel).invoke<T>(actionFullName, actionParams);
 		}
 
 		// For child process channel
@@ -221,9 +209,7 @@ export class Bus {
 		});
 	}
 
-	public async invokePublic<T>(
-		actionData: string | ActionInfoObject,
-	): Promise<T> {
+	public async invokePublic<T>(actionData: string | ActionInfoObject): Promise<T> {
 		const action = Action.deserialize(actionData);
 
 		// Check if action exists
@@ -233,9 +219,7 @@ export class Bus {
 
 		// Check if action is public
 		if (!this.actions[action.key()].isPublic) {
-			throw new Error(
-				`Action '${action.key()}' is not allowed because it's not public.`,
-			);
+			throw new Error(`Action '${action.key()}' is not allowed because it's not public.`);
 		}
 
 		return this.invoke(actionData);
@@ -256,9 +240,7 @@ export class Bus {
 
 	public subscribe(eventName: string, cb: Listener): void {
 		if (!this.getEvents().includes(eventName)) {
-			this.logger.info(
-				`Event ${eventName} was subscribed but not registered to the bus yet.`,
-			);
+			this.logger.info(`Event ${eventName} was subscribed but not registered to the bus yet.`);
 		}
 
 		// Communicate through event emitter
@@ -267,9 +249,7 @@ export class Bus {
 
 	public once(eventName: string, cb: Listener): this {
 		if (!this.getEvents().includes(eventName)) {
-			this.logger.info(
-				`Event ${eventName} was subscribed but not registered to the bus yet.`,
-			);
+			this.logger.info(`Event ${eventName} was subscribed but not registered to the bus yet.`);
 		}
 
 		// Communicate through event emitter

@@ -87,10 +87,7 @@ const decodeTransactionToJSON = (
 	baseSchema: Schema,
 	assetsSchemas: { [key: number]: Schema },
 ): TransactionJSON => {
-	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(
-		baseSchema,
-		transactionBuffer,
-	);
+	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(baseSchema, transactionBuffer);
 
 	const transactionTypeAssetSchema = assetsSchemas[baseTransaction.type];
 
@@ -110,14 +107,8 @@ const decodeTransactionToJSON = (
 	};
 };
 
-const decodeAccountToJSON = (
-	encodedAccount: Buffer,
-	accountSchema: Schema,
-): AccountJSON => {
-	const decodedAcccount = codec.decodeJSON<AccountJSON>(
-		accountSchema,
-		encodedAccount,
-	);
+const decodeAccountToJSON = (encodedAccount: Buffer, accountSchema: Schema): AccountJSON => {
+	const decodedAcccount = codec.decodeJSON<AccountJSON>(accountSchema, encodedAccount);
 
 	return {
 		...decodedAcccount,
@@ -161,9 +152,7 @@ export abstract class BasePlugin {
 				);
 			},
 			decodeAccount: (data: Buffer | string) => {
-				const accountBuffer: Buffer = Buffer.isBuffer(data)
-					? data
-					: Buffer.from(data, 'base64');
+				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
 
 				return decodeAccountToJSON(accountBuffer, this.schemas.account);
 			},

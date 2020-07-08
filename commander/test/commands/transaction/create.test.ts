@@ -28,11 +28,7 @@ describe('transaction:create', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(
-				config,
-				'getConfig',
-				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: { network: 'test' } }))
 			.stub(TransferCommand, 'run', sandbox.stub())
 			.stub(DelegateCommand, 'run', sandbox.stub())
 			.stub(VoteCommand, 'run', sandbox.stub())
@@ -52,9 +48,7 @@ describe('transaction:create', () => {
 		setupTest()
 			.command(['transaction:create', '--type=wrongtype'])
 			.catch(error => {
-				return expect(error.message).to.contain(
-					'Expected --type=wrongtype to be one of',
-				);
+				return expect(error.message).to.contain('Expected --type=wrongtype to be one of');
 			})
 			.it('should throw an error when type is not in the options');
 
@@ -73,26 +67,17 @@ describe('transaction:create', () => {
 		setupTest()
 			.command(['transaction:create', '--type=10', 'username'])
 			.it('should call type 10 command with flag type=10', () => {
-				return expect(DelegateCommand.run).to.be.calledWithExactly([
-					'username',
-				]);
+				return expect(DelegateCommand.run).to.be.calledWithExactly(['username']);
 			});
 
 		setupTest()
 			.command(['transaction:create', '-t=delegate', '--json', 'username'])
 			.it('should call type 10 command with flag type=delegate', () => {
-				return expect(DelegateCommand.run).to.be.calledWithExactly([
-					'username',
-					'--json',
-				]);
+				return expect(DelegateCommand.run).to.be.calledWithExactly(['username', '--json']);
 			});
 
 		setupTest()
-			.command([
-				'transaction:create',
-				'--type=13',
-				'--votes=18070133408355683425L,15000000000',
-			])
+			.command(['transaction:create', '--type=13', '--votes=18070133408355683425L,15000000000'])
 			.it('should call type 13 command with flag type=13', () => {
 				return expect(VoteCommand.run).to.be.calledWithExactly([
 					'--votes=18070133408355683425L,15000000000',
@@ -100,11 +85,7 @@ describe('transaction:create', () => {
 			});
 
 		setupTest()
-			.command([
-				'transaction:create',
-				'-t=vote',
-				'--votes=18070133408355683425L,15000000000',
-			])
+			.command(['transaction:create', '-t=vote', '--votes=18070133408355683425L,15000000000'])
 			.it('should call type 13 command with flag type=vote', () => {
 				return expect(VoteCommand.run).to.be.calledWithExactly([
 					'--votes=18070133408355683425L,15000000000',
@@ -112,12 +93,7 @@ describe('transaction:create', () => {
 			});
 
 		setupTest()
-			.command([
-				'transaction:create',
-				'--type=12',
-				'--mandatory-key=xxx',
-				'--optional-key=yyy',
-			])
+			.command(['transaction:create', '--type=12', '--mandatory-key=xxx', '--optional-key=yyy'])
 			.it('should call type 12 command with flag type=12', () => {
 				return expect(MultisignatureCommand.run).to.be.calledWithExactly([
 					'--mandatory-key=xxx',
@@ -142,17 +118,13 @@ describe('transaction:create', () => {
 		setupTest()
 			.command(['transaction:create', '--type=14', '--unlock=xxx,yyy,zzz'])
 			.it('should call type 14 command with flag type=14', () => {
-				return expect(UnlockCommand.run).to.be.calledWithExactly([
-					'--unlock=xxx,yyy,zzz',
-				]);
+				return expect(UnlockCommand.run).to.be.calledWithExactly(['--unlock=xxx,yyy,zzz']);
 			});
 
 		setupTest()
 			.command(['transaction:create', '--type=unlock', '--unlock=xxx,yyy,zzz'])
 			.it('should call type 14 command with flag type=unlock', () => {
-				return expect(UnlockCommand.run).to.be.calledWithExactly([
-					'--unlock=xxx,yyy,zzz',
-				]);
+				return expect(UnlockCommand.run).to.be.calledWithExactly(['--unlock=xxx,yyy,zzz']);
 			});
 
 		setupTest()

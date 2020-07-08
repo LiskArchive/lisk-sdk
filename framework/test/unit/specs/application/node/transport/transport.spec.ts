@@ -59,12 +59,8 @@ describe('Transport', () => {
 		};
 		synchronizerStub = {};
 		chainStub = {
-			deserializeTransaction: jest
-				.fn()
-				.mockImplementation(val => ({ ...val, toJSON: () => val })),
-			validateTransactions: jest
-				.fn()
-				.mockReturnValue([{ status: 1, errors: [] }]),
+			deserializeTransaction: jest.fn().mockImplementation(val => ({ ...val, toJSON: () => val })),
+			validateTransactions: jest.fn().mockReturnValue([{ status: 1, errors: [] }]),
 			dataAccess: {
 				getTransactionByID: jest.fn(),
 				getTransactionsByIDs: jest.fn(),
@@ -98,15 +94,10 @@ describe('Transport', () => {
 				const tx = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-							'hex',
-						),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 						data: '',
 					},
 				});
@@ -120,15 +111,10 @@ describe('Transport', () => {
 				const tx = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-							'hex',
-						),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 						data: '',
 					},
 				});
@@ -149,15 +135,10 @@ describe('Transport', () => {
 				const tx = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-							'hex',
-						),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 						data: '',
 					},
 				});
@@ -173,15 +154,10 @@ describe('Transport', () => {
 				const tx = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-							'hex',
-						),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 						data: '',
 					},
 				});
@@ -205,15 +181,10 @@ describe('Transport', () => {
 					const tx = new TransferTransaction({
 						nonce: BigInt(v),
 						fee: BigInt('100000000'),
-						senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-							genesis.passphrase,
-						).publicKey,
+						senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 						asset: {
 							amount: BigInt(v + 1),
-							recipientAddress: Buffer.from(
-								'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-								'hex',
-							),
+							recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 							data: '',
 						},
 					});
@@ -232,15 +203,10 @@ describe('Transport', () => {
 					const tx = new TransferTransaction({
 						nonce: BigInt('0'),
 						fee: BigInt('100000000'),
-						senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-							genesis.passphrase,
-						).publicKey,
+						senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 						asset: {
 							amount: BigInt(v + 1),
-							recipientAddress: Buffer.from(
-								'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-								'hex',
-							),
+							recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 							data: '',
 						},
 					});
@@ -267,15 +233,10 @@ describe('Transport', () => {
 					const tx = new TransferTransaction({
 						nonce: BigInt('0'),
 						fee: BigInt('100000000'),
-						senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-							genesis.passphrase,
-						).publicKey,
+						senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 						asset: {
 							amount: BigInt(v + 1),
-							recipientAddress: Buffer.from(
-								'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-								'hex',
-							),
+							recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 							data: '',
 						},
 					});
@@ -293,15 +254,10 @@ describe('Transport', () => {
 					const tx = new TransferTransaction({
 						nonce: BigInt('0'),
 						fee: BigInt('100000000'),
-						senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-							genesis.passphrase,
-						).publicKey,
+						senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 						asset: {
 							amount: BigInt(v + 1),
-							recipientAddress: Buffer.from(
-								'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-								'hex',
-							),
+							recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 							data: '',
 						},
 					});
@@ -315,17 +271,13 @@ describe('Transport', () => {
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
 					data: {
-						transactionIds: txs
-							.map(tx => tx.id.toString('base64'))
-							.splice(0, defaultReleaseLimit),
+						transactionIds: txs.map(tx => tx.id.toString('base64')).splice(0, defaultReleaseLimit),
 					},
 				});
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
 					data: {
-						transactionIds: txs
-							.map(tx => tx.id.toString('base64'))
-							.splice(0, defaultReleaseLimit),
+						transactionIds: txs.map(tx => tx.id.toString('base64')).splice(0, defaultReleaseLimit),
 					},
 				});
 			});
@@ -341,10 +293,7 @@ describe('Transport', () => {
 					noKey: ['random', 'string'],
 				};
 				await expect(
-					transport.handleRPCGetGetHighestCommonBlock(
-						invalidData,
-						defaultPeerId,
-					),
+					transport.handleRPCGetGetHighestCommonBlock(invalidData, defaultPeerId),
 				).rejects.toMatchObject(
 					expect.objectContaining({
 						message: expect.stringContaining('should have required property'),
@@ -359,9 +308,7 @@ describe('Transport', () => {
 
 		describe('when commonBlock has not been found', () => {
 			beforeEach(() => {
-				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(
-					undefined,
-				);
+				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(undefined);
 			});
 
 			it('should return null', async () => {
@@ -369,13 +316,8 @@ describe('Transport', () => {
 					ids: [Buffer.from('15196562876801949910').toString('base64')],
 				};
 
-				const result = await transport.handleRPCGetGetHighestCommonBlock(
-					validData,
-					defaultPeerId,
-				);
-				expect(
-					chainStub.dataAccess.getHighestCommonBlockHeader,
-				).toHaveBeenCalledWith(
+				const result = await transport.handleRPCGetGetHighestCommonBlock(validData, defaultPeerId);
+				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(
 					validData.ids.map(id => Buffer.from(id, 'base64')),
 				);
 				expect(result).toBeUndefined();
@@ -388,9 +330,7 @@ describe('Transport', () => {
 			};
 
 			beforeEach(() => {
-				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(
-					validBlock,
-				);
+				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(validBlock);
 			});
 
 			it('should return the result', async () => {
@@ -398,13 +338,8 @@ describe('Transport', () => {
 					ids: ['15196562876801949910'],
 				};
 
-				const result = await transport.handleRPCGetGetHighestCommonBlock(
-					validData,
-					defaultPeerId,
-				);
-				expect(
-					chainStub.dataAccess.getHighestCommonBlockHeader,
-				).toHaveBeenCalledWith(
+				const result = await transport.handleRPCGetGetHighestCommonBlock(validData, defaultPeerId);
+				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(
 					validData.ids.map(id => Buffer.from(id, 'base64')),
 				);
 				expect(result).toBe(encodedBlock.toString('base64'));
@@ -437,30 +372,20 @@ describe('Transport', () => {
 				tx = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-							'hex',
-						),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 						data: '',
 					},
 				});
 				const processableTransactions = new BufferMap();
 				processableTransactions.set(tx.id, tx);
-				transactionPoolStub.getProcessableTransactions.mockReturnValue(
-					processableTransactions,
-				);
+				transactionPoolStub.getProcessableTransactions.mockReturnValue(processableTransactions);
 			});
 
 			it('should resolve to the transactions which are in the transaction pool', async () => {
-				const result = await transport.handleRPCGetTransactions(
-					undefined,
-					defaultPeerId,
-				);
+				const result = await transport.handleRPCGetTransactions(undefined, defaultPeerId);
 				expect(result).toEqual({
 					transactions: [tx.getBytes().toString('base64')],
 				});
@@ -473,31 +398,21 @@ describe('Transport', () => {
 				tx = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-							'hex',
-						),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 						data: '',
 					},
 				});
 				tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 				const processableTransactions = new BufferMap();
 				processableTransactions.set(tx.id, [tx]);
-				transactionPoolStub.getProcessableTransactions.mockReturnValue(
-					processableTransactions,
-				);
+				transactionPoolStub.getProcessableTransactions.mockReturnValue(processableTransactions);
 			});
 
 			it('should return transaction from pool', async () => {
-				const result = await transport.handleRPCGetTransactions(
-					{},
-					defaultPeerId,
-				);
+				const result = await transport.handleRPCGetTransactions({}, defaultPeerId);
 				expect(result.transactions).toEqual([tx.getBytes().toString('base64')]);
 			});
 		});
@@ -509,19 +424,13 @@ describe('Transport', () => {
 
 			it('should throw an error', async () => {
 				await expect(
-					transport.handleRPCGetTransactions(
-						{ transactionIds: ids },
-						defaultPeerId,
-					),
+					transport.handleRPCGetTransactions({ transactionIds: ids }, defaultPeerId),
 				).rejects.toThrow('Received invalid request');
 			});
 
 			it('should apply penalty', async () => {
 				await expect(
-					transport.handleRPCGetTransactions(
-						{ transactionIds: ids },
-						defaultPeerId,
-					),
+					transport.handleRPCGetTransactions({ transactionIds: ids }, defaultPeerId),
 				).toReject();
 				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
@@ -536,15 +445,10 @@ describe('Transport', () => {
 				tx = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-							'hex',
-						),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 						data: '',
 					},
 				});
@@ -565,9 +469,7 @@ describe('Transport', () => {
 					{ transactionIds: [tx.id.toString('base64')] },
 					defaultPeerId,
 				);
-				expect(result.transactions).toStrictEqual([
-					tx.getBytes().toString('base64'),
-				]);
+				expect(result.transactions).toStrictEqual([tx.getBytes().toString('base64')]);
 			});
 		});
 
@@ -578,15 +480,10 @@ describe('Transport', () => {
 				tx = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-							'hex',
-						),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 						data: '',
 					},
 				});
@@ -594,36 +491,23 @@ describe('Transport', () => {
 				const txDatabaseInstance = new TransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-						genesis.passphrase,
-					).publicKey,
+					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 					asset: {
 						amount: BigInt('100'),
-						recipientAddress: Buffer.from(
-							'bbc303f04202d23e1fea25859b140257e53bef5a',
-							'hex',
-						),
+						recipientAddress: Buffer.from('bbc303f04202d23e1fea25859b140257e53bef5a', 'hex'),
 						data: '',
 					},
 				});
-				txDatabaseInstance.sign(
-					Buffer.from(networkIdentifier, 'hex'),
-					genesis.passphrase,
-				);
+				txDatabaseInstance.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 				txDatabase = txDatabaseInstance;
 				when(transactionPoolStub.get).calledWith(tx.id).mockReturnValue(tx);
-				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
-					txDatabase,
-				]);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([txDatabase]);
 			});
 
 			it('should call find get with the id', async () => {
 				await transport.handleRPCGetTransactions(
 					{
-						transactionIds: [
-							tx.id.toString('base64'),
-							txDatabase.id.toString('base64'),
-						],
+						transactionIds: [tx.id.toString('base64'), txDatabase.id.toString('base64')],
 					},
 					defaultPeerId,
 				);
@@ -632,15 +516,10 @@ describe('Transport', () => {
 			});
 
 			it('should return transaction in the pool', async () => {
-				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
-					txDatabase,
-				]);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([txDatabase]);
 				const result = await transport.handleRPCGetTransactions(
 					{
-						transactionIds: [
-							tx.id.toString('base64'),
-							txDatabase.id.toString('base64'),
-						],
+						transactionIds: [tx.id.toString('base64'), txDatabase.id.toString('base64')],
 					},
 					defaultPeerId,
 				);
@@ -667,48 +546,29 @@ describe('Transport', () => {
 			txInstance = new TransferTransaction({
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
-				senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-					genesis.passphrase,
-				).publicKey,
+				senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 				asset: {
 					amount: BigInt('100'),
-					recipientAddress: Buffer.from(
-						'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
-						'hex',
-					),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 					data: '',
 				},
 			});
-			txInstance.sign(
-				Buffer.from(networkIdentifier, 'hex'),
-				genesis.passphrase,
-			);
+			txInstance.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 			tx = txInstance.getBytes().toString('base64');
 			tx2Instance = new TransferTransaction({
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
-				senderPublicKey: getAddressAndPublicKeyFromPassphrase(
-					genesis.passphrase,
-				).publicKey,
+				senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
 				asset: {
 					amount: BigInt('100'),
-					recipientAddress: Buffer.from(
-						'bbc303f04202d23e1fea25859b140257e53bef5a',
-						'hex',
-					),
+					recipientAddress: Buffer.from('bbc303f04202d23e1fea25859b140257e53bef5a', 'hex'),
 					data: '',
 				},
 			});
-			tx2Instance.sign(
-				Buffer.from(networkIdentifier, 'hex'),
-				genesis.passphrase,
-			);
+			tx2Instance.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 			tx2 = tx2Instance.getBytes().toString('base64');
 			validTransactionsRequest = {
-				transactionIds: [
-					txInstance.id.toString('base64'),
-					tx2Instance.id.toString('base64'),
-				],
+				transactionIds: [txInstance.id.toString('base64'), tx2Instance.id.toString('base64')],
 			};
 		});
 
@@ -803,9 +663,7 @@ describe('Transport', () => {
 			it('should apply penalty when validateTransactions fails', async () => {
 				transactionPoolStub.contains.mockReturnValue(false);
 				const error = new Error('validate error');
-				chainStub.validateTransactions.mockResolvedValue([
-					{ status: 0, errors: [error] },
-				]);
+				chainStub.validateTransactions.mockResolvedValue([{ status: 0, errors: [error] }]);
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
@@ -831,9 +689,7 @@ describe('Transport', () => {
 		});
 		describe('when some of the transactions ids are known', () => {
 			beforeEach(() => {
-				when(transactionPoolStub.contains)
-					.calledWith(txInstance.id)
-					.mockReturnValue(true);
+				when(transactionPoolStub.contains).calledWith(txInstance.id).mockReturnValue(true);
 				when(networkStub.requestFromPeer)
 					.calledWith(expect.anything())
 					.mockResolvedValue({

@@ -22,10 +22,7 @@ import cloneDeep = require('lodash.clonedeep');
 
 const { EVENT_CLOSE_OUTBOUND } = events;
 
-const {
-	INTENTIONAL_DISCONNECT_CODE,
-	SEED_PEER_DISCONNECTION_REASON,
-} = constants;
+const { INTENTIONAL_DISCONNECT_CODE, SEED_PEER_DISCONNECTION_REASON } = constants;
 
 describe('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
@@ -42,8 +39,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 	beforeAll(() => {
 		const serverSocketPrototype = SCServerSocket.prototype as any;
-		const realResetPongTimeoutFunction =
-			serverSocketPrototype._resetPongTimeout;
+		const realResetPongTimeoutFunction = serverSocketPrototype._resetPongTimeout;
 		// eslint-disable-next-line func-names
 		serverSocketPrototype._resetPongTimeout = function () {
 			const queryObject = url.parse(this.request.url, true).query as any;
@@ -78,22 +74,14 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 		];
 
 		beforeEach(async () => {
-			const customSeedPeers = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => [
+			const customSeedPeers = (index: number, startPort: number, networkSize: number) => [
 				{
 					ipAddress: `127.0.0.${((index + 1) % networkSize) + 10}`,
 					port: startPort + ((index + 1) % networkSize),
 				},
 			];
 
-			const customConfig = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => ({
+			const customConfig = (index: number, startPort: number, networkSize: number) => ({
 				hostIp: `127.0.0.${index + 10}`,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 				blacklistedIPs: blacklistedPeers.map(p => p.ipAddress),
@@ -171,30 +159,19 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			},
 		];
 		beforeEach(async () => {
-			const customSeedPeers = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => [
+			const customSeedPeers = (index: number, startPort: number, networkSize: number) => [
 				{
 					ipAddress: `127.0.0.${((index + 1) % networkSize) + 10}`,
 					port: startPort + ((index + 1) % networkSize),
 				},
 			];
 
-			const customConfig = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => ({
+			const customConfig = (index: number, startPort: number, networkSize: number) => ({
 				hostIp: `127.0.0.${index + 10}`,
 				maxOutboundConnections: FIVE_CONNECTIONS,
 				maxInboundConnections: FIVE_CONNECTIONS,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
-				fixedPeers: [
-					...customSeedPeers(index, startPort, networkSize),
-					...fixedPeers,
-				],
+				fixedPeers: [...customSeedPeers(index, startPort, networkSize), ...fixedPeers],
 				previousPeers,
 			});
 
@@ -250,22 +227,14 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 			},
 		];
 		beforeEach(async () => {
-			const customSeedPeers = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => [
+			const customSeedPeers = (index: number, startPort: number, networkSize: number) => [
 				{
 					ipAddress: `127.0.0.${((index + 1) % networkSize) + 10}`,
 					port: startPort + ((index + 1) % networkSize),
 				},
 			];
 
-			const customConfig = (
-				index: number,
-				startPort: number,
-				networkSize: number,
-			) => ({
+			const customConfig = (index: number, startPort: number, networkSize: number) => ({
 				hostIp: `127.0.0.${index + 10}`,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 				whitelistedPeers,

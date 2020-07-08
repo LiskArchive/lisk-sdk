@@ -85,9 +85,9 @@ describe('Bus', () => {
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			await expect(
-				bus.registerChannel(moduleAlias, events, {}, channelOptions),
-			).rejects.toThrow(Error);
+			await expect(bus.registerChannel(moduleAlias, events, {}, channelOptions)).rejects.toThrow(
+				Error,
+			);
 		});
 
 		it('should register actions.', async () => {
@@ -104,9 +104,7 @@ describe('Bus', () => {
 			// Assert
 			expect(Object.keys(bus['actions'])).toHaveLength(2);
 			Object.keys(actions).forEach(actionName => {
-				expect(bus['actions'][`${moduleAlias}:${actionName}`]).toBe(
-					actions[actionName],
-				);
+				expect(bus['actions'][`${moduleAlias}:${actionName}`]).toBe(actions[actionName]);
 			});
 		});
 
@@ -119,9 +117,9 @@ describe('Bus', () => {
 
 			// Act && Assert
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
-			await expect(
-				bus.registerChannel(moduleAlias, [], actions, channelOptions),
-			).rejects.toThrow(Error);
+			await expect(bus.registerChannel(moduleAlias, [], actions, channelOptions)).rejects.toThrow(
+				Error,
+			);
 		});
 	});
 
@@ -228,10 +226,7 @@ describe('Bus', () => {
 			bus.publish(eventName, eventData as any);
 
 			// Assert
-			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(
-				eventName,
-				eventData,
-			);
+			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(eventName, eventData);
 		});
 	});
 

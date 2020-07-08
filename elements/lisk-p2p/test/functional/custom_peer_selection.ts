@@ -64,22 +64,14 @@ describe('Custom peer selection', () => {
 				peerInfo.internalState.connectionKind !== ConnectionKind.INBOUND &&
 				peerInfo.internalState.connectionKind !== ConnectionKind.OUTBOUND
 			) {
-				throw new Error(
-					`Invalid peer kind: ${peerInfo.internalState.connectionKind}`,
-				);
+				throw new Error(`Invalid peer kind: ${peerInfo.internalState.connectionKind}`);
 			}
 		});
 
 		const filteredPeers = peersList.filter(peer => {
 			const { sharedState } = peer;
-			const peerHeight = sharedState
-				? (sharedState.options?.height as number)
-				: 0;
-			if (
-				nodeInfo &&
-				peer.sharedState &&
-				(nodeInfo.options?.height as number) <= peerHeight
-			) {
+			const peerHeight = sharedState ? (sharedState.options?.height as number) : 0;
+			if (nodeInfo && peer.sharedState && (nodeInfo.options?.height as number) <= peerHeight) {
 				const nodesModules = nodeInfo.options?.modules
 					? (nodeInfo.options?.modules as ReadonlyArray<string>)
 					: undefined;
@@ -100,10 +92,7 @@ describe('Custom peer selection', () => {
 		});
 
 		// In case there are no peers with same modules or less than 30% of the peers are selected then use only height to select peers
-		if (
-			filteredPeers.length === 0 ||
-			(filteredPeers.length / peersList.length) * 100 < 30
-		) {
+		if (filteredPeers.length === 0 || (filteredPeers.length / peersList.length) * 100 < 30) {
 			return peersList.filter(
 				peer =>
 					peer.sharedState &&
@@ -232,24 +221,14 @@ describe('Custom peer selection', () => {
 				if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 					nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 				}
-				nodePortToMessagesMap[receivedMessageData.nodePort].push(
-					receivedMessageData,
-				);
+				nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 			}
 
-			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
-				networkSize / 2 - 1,
-			);
-			for (const receivedMessages of Object.values(
-				nodePortToMessagesMap,
-			) as any) {
+			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(networkSize / 2 - 1);
+			for (const receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 				expect(receivedMessages).toEqual(expect.any(Array));
-				expect(receivedMessages.length).toBeGreaterThan(
-					expectedMessagesLowerBound,
-				);
-				expect(receivedMessages.length).toBeLessThan(
-					expectedMessagesUpperBound,
-				);
+				expect(receivedMessages.length).toBeGreaterThan(expectedMessagesLowerBound);
+				expect(receivedMessages.length).toBeLessThan(expectedMessagesUpperBound);
 			}
 		});
 	});

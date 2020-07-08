@@ -28,32 +28,22 @@ const REDIS_CONFIG = 'etc/redis.conf';
 const REDIS_BIN = './bin/redis-server';
 const REDIS_CLI = './bin/redis-cli';
 
-export const isCacheRunning = async (
-	installDir: string,
-	name: string,
-): Promise<boolean> => {
+export const isCacheRunning = async (installDir: string, name: string): Promise<boolean> => {
 	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
-	const { stderr }: ExecResult = await exec(
-		`${REDIS_CLI} -p ${redisPort} ping`,
-		{ cwd: installDir },
-	);
+	const { stderr }: ExecResult = await exec(`${REDIS_CLI} -p ${redisPort} ping`, {
+		cwd: installDir,
+	});
 
 	return !stderr;
 };
 
-export const startCache = async (
-	installDir: string,
-	name: string,
-): Promise<string> => {
+export const startCache = async (installDir: string, name: string): Promise<string> => {
 	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
-	const {
-		stderr,
-	}: ExecResult = await exec(
-		`${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`,
-		{ cwd: installDir },
-	);
+	const { stderr }: ExecResult = await exec(`${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`, {
+		cwd: installDir,
+	});
 
 	if (!stderr) {
 		return CACHE_START_SUCCESS;
@@ -62,11 +52,7 @@ export const startCache = async (
 	throw new Error(`${CACHE_START_FAILURE}: \n\n ${stderr}`);
 };
 
-const stopCommand = async (
-	installDir: string,
-	network: NETWORK,
-	name: string,
-): Promise<string> => {
+const stopCommand = async (installDir: string, network: NETWORK, name: string): Promise<string> => {
 	const config = await getLiskConfig(installDir, network);
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const password = config?.components?.cache?.password;
@@ -95,10 +81,7 @@ export const stopCache = async (
 	throw new Error(`${CACHE_STOP_FAILURE}: \n\n ${stderr}`);
 };
 
-export const isCacheEnabled = async (
-	installDir: string,
-	network: NETWORK,
-): Promise<boolean> => {
+export const isCacheEnabled = async (installDir: string, network: NETWORK): Promise<boolean> => {
 	const config = await getLiskConfig(installDir, network);
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const enabled = config?.components?.cache?.enabled;

@@ -62,8 +62,6 @@ describe('P2P protocol message limit', () => {
 		await wait(100);
 
 		// Assert
-		expect(bannedPeer).toBe(
-			constructPeerId(SEED_PEER_IP, p2pNodeList[2].config.port),
-		);
+		expect(bannedPeer).toBe(constructPeerId(SEED_PEER_IP, p2pNodeList[2].config.port));
 	});
 });

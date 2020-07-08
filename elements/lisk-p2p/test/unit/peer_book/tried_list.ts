@@ -41,12 +41,8 @@ describe('Tried Peers List', () => {
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
 			expect(triedPeersList.triedPeerConfig).toEqual(triedPeerConfig);
-			expect(triedPeersList.triedPeerConfig.bucketSize).toBe(
-				DEFAULT_NEW_BUCKET_SIZE,
-			);
-			expect(triedPeersList.triedPeerConfig.numOfBuckets).toBe(
-				DEFAULT_NEW_BUCKET_COUNT,
-			);
+			expect(triedPeersList.triedPeerConfig.bucketSize).toBe(DEFAULT_NEW_BUCKET_SIZE);
+			expect(triedPeersList.triedPeerConfig.numOfBuckets).toBe(DEFAULT_NEW_BUCKET_COUNT);
 		});
 	});
 
@@ -130,9 +126,7 @@ describe('Tried Peers List', () => {
 			it('should not remove the peer after the first call and remove it after second failed connection', () => {
 				const success1 = triedPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success1).toBe(false);
-				expect(triedPeersList.getPeer(samplePeers[0].peerId)).toEqual(
-					samplePeers[0],
-				);
+				expect(triedPeersList.getPeer(samplePeers[0].peerId)).toEqual(samplePeers[0]);
 
 				const success2 = triedPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success2).toBe(true);

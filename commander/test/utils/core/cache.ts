@@ -64,9 +64,9 @@ describe('cache node utils', () => {
 		it('should throw error when failed get cache config', () => {
 			configStub.resolves({});
 
-			return expect(
-				isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET),
-			).to.rejectedWith('Cache config is not found.');
+			return expect(isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET)).to.rejectedWith(
+				'Cache config is not found.',
+			);
 		});
 	});
 
@@ -114,9 +114,7 @@ describe('cache node utils', () => {
 			it('should throw error', () => {
 				workerProcessStub.resolves({ stderr: 'Command failed' });
 
-				return expect(startCache('/tmp/dummypath', 'test')).to.rejectedWith(
-					'Command failed',
-				);
+				return expect(startCache('/tmp/dummypath', 'test')).to.rejectedWith('Command failed');
 			});
 		});
 
@@ -125,9 +123,7 @@ describe('cache node utils', () => {
 				workerProcessStub.resolves({ stdout: '', stderr: null });
 
 				const status = await startCache('/tmp/dummypath', 'test');
-				return expect(status).to.equal(
-					'[+] Redis-Server started successfully.',
-				);
+				return expect(status).to.equal('[+] Redis-Server started successfully.');
 			});
 
 			it('should throw error when failed to stop', () => {
@@ -146,9 +142,7 @@ describe('cache node utils', () => {
 	describe('#stopCache', () => {
 		describe('when installation does not exists', () => {
 			it('should throw error', () => {
-				return expect(
-					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
-				).to.rejectedWith(
+				return expect(stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test')).to.rejectedWith(
 					'[-] Failed to stop Redis-Server.: \n\n Error: spawn /bin/sh ENOENT',
 				);
 			});
@@ -157,9 +151,7 @@ describe('cache node utils', () => {
 		describe('when installation exists', () => {
 			let workerProcessStub: SinonStub;
 			beforeEach(() => {
-				workerProcessStub = sandbox
-					.stub(workerProcess, 'exec')
-					.resolves({} as any);
+				workerProcessStub = sandbox.stub(workerProcess, 'exec').resolves({} as any);
 			});
 
 			it('should stop successfully when password is empty', async () => {
@@ -172,27 +164,15 @@ describe('cache node utils', () => {
 					components: { cache: { password: null } },
 				});
 
-				const status = await stopCache(
-					'/tmp/dummypath',
-					NETWORK.MAINNET,
-					'test',
-				);
-				return expect(status).to.equal(
-					'[+] Redis-Server stopped successfully.',
-				);
+				const status = await stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test');
+				return expect(status).to.equal('[+] Redis-Server stopped successfully.');
 			});
 
 			it('should stop successfully when password is present', async () => {
 				workerProcessStub.resolves({ stdout: liskConfig.config, stderr: null });
 
-				const status = await stopCache(
-					'/tmp/dummypath',
-					NETWORK.MAINNET,
-					'test',
-				);
-				return expect(status).to.equal(
-					'[+] Redis-Server stopped successfully.',
-				);
+				const status = await stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test');
+				return expect(status).to.equal('[+] Redis-Server stopped successfully.');
 			});
 
 			it('should throw error when failed to stop', () => {
@@ -201,17 +181,17 @@ describe('cache node utils', () => {
 					stderr: 'Failed to stop redis',
 				});
 
-				return expect(
-					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
-				).to.rejectedWith('[-] Failed to stop Redis-Server');
+				return expect(stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test')).to.rejectedWith(
+					'[-] Failed to stop Redis-Server',
+				);
 			});
 
 			it('should throw error when failed get cache config', () => {
 				configStub.rejects(new Error('Fail to get config.'));
 
-				return expect(
-					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
-				).to.rejectedWith('Fail to get config.');
+				return expect(stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test')).to.rejectedWith(
+					'Fail to get config.',
+				);
 			});
 		});
 	});

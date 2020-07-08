@@ -13,10 +13,7 @@
  *
  */
 
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	bufferToHex,
-} from '@liskhq/lisk-cryptography';
+import { getAddressAndPublicKeyFromPassphrase, bufferToHex } from '@liskhq/lisk-cryptography';
 import { TransactionJSON } from '../types';
 
 export interface CreateBaseTransactionInput {
@@ -37,11 +34,7 @@ interface BaseTransaction {
 }
 
 // eslint-disable-next-line
-export const createBaseTransaction = ({
-	passphrase,
-	nonce,
-	fee,
-}: CreateBaseTransactionInput) => {
+export const createBaseTransaction = ({ passphrase, nonce, fee }: CreateBaseTransactionInput) => {
 	const { publicKey: senderPublicKey } = passphrase
 		? getAddressAndPublicKeyFromPassphrase(passphrase)
 		: { publicKey: undefined };
@@ -53,9 +46,7 @@ export const createBaseTransaction = ({
 	};
 };
 
-export const baseTransactionToJSON = (
-	transaction: BaseTransaction,
-): Partial<TransactionJSON> => ({
+export const baseTransactionToJSON = (transaction: BaseTransaction): Partial<TransactionJSON> => ({
 	id: String(transaction.id),
 	type: transaction.type,
 	senderPublicKey: bufferToHex(transaction.senderPublicKey),

@@ -29,9 +29,7 @@ import {
 import { validGenesisBlockParams } from './fixtures';
 import { getHeaderAssetSchemaWithAccountAsset } from '../src/utils/schema';
 
-const encodeGenesisBlock = (
-	genesisBlock: GenesisBlock<DefaultAccountAsset>,
-) => {
+const encodeGenesisBlock = (genesisBlock: GenesisBlock<DefaultAccountAsset>) => {
 	const blockHeaderWithAccountAssetSchema = getHeaderAssetSchemaWithAccountAsset(
 		genesisBlockHeaderAssetSchema,
 		defaultAccountAssetSchema,
@@ -57,27 +55,23 @@ const encodeGenesisBlock = (
 	};
 };
 
-const decodeGenesisBlock = (
-	genesisBlockBuffer: Buffer,
-): GenesisBlock<DefaultAccountAsset> => {
+const decodeGenesisBlock = (genesisBlockBuffer: Buffer): GenesisBlock<DefaultAccountAsset> => {
 	const { header, payload } = codec.decode<{
 		header: Buffer;
 		payload: [];
 	}>(genesisBlockSchema, genesisBlockBuffer);
 
-	const blockHeaderWithAssetBuffer = codec.decode<RawBlockHeader>(
-		genesisBlockHeaderSchema,
-		header,
-	);
+	const blockHeaderWithAssetBuffer = codec.decode<RawBlockHeader>(genesisBlockHeaderSchema, header);
 
 	const blockHeaderAssetSchema = getHeaderAssetSchemaWithAccountAsset(
 		genesisBlockHeaderAssetSchema,
 		defaultAccountAssetSchema,
 	);
 
-	const blockHeaderAsset = codec.decode<
-		GenesisBlockHeaderAsset<DefaultAccountAsset>
-	>(blockHeaderAssetSchema, blockHeaderWithAssetBuffer.asset);
+	const blockHeaderAsset = codec.decode<GenesisBlockHeaderAsset<DefaultAccountAsset>>(
+		blockHeaderAssetSchema,
+		blockHeaderWithAssetBuffer.asset,
+	);
 
 	return {
 		header: {
@@ -94,9 +88,7 @@ describe('encoding/decoding', () => {
 		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
 		// Act
-		const { genesisBlockBuffer, genesisBlockHeaderBuffer } = encodeGenesisBlock(
-			genesisBlock,
-		);
+		const { genesisBlockBuffer, genesisBlockHeaderBuffer } = encodeGenesisBlock(genesisBlock);
 
 		// Assert
 		expect(genesisBlockBuffer).toBeInstanceOf(Buffer);
@@ -111,15 +103,11 @@ describe('encoding/decoding', () => {
 			header: genesisBlockHeaderWithoutId,
 			payload: genesisBlock.payload,
 		};
-		const { genesisBlockBuffer: encodedBlockBuffer } = encodeGenesisBlock(
-			genesisBlock,
-		);
+		const { genesisBlockBuffer: encodedBlockBuffer } = encodeGenesisBlock(genesisBlock);
 
 		// Act
 		const decodedBlock = decodeGenesisBlock(encodedBlockBuffer);
-		const { genesisBlockBuffer: doubleEncodedBlockBuffer } = encodeGenesisBlock(
-			decodedBlock,
-		);
+		const { genesisBlockBuffer: doubleEncodedBlockBuffer } = encodeGenesisBlock(decodedBlock);
 
 		// Assert
 		expect(decodedBlock).toEqual(genesisBlockWithoutId);

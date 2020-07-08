@@ -24,8 +24,7 @@ import { Contexter, MatcherTransaction } from '../types';
 
 export const validateTransactions = (
 	transactions: ReadonlyArray<BaseTransaction>,
-): ReadonlyArray<TransactionResponse> =>
-	transactions.map(transaction => transaction.validate());
+): ReadonlyArray<TransactionResponse> => transactions.map(transaction => transaction.validate());
 
 export const applyTransactions = async (
 	transactions: ReadonlyArray<BaseTransaction>,

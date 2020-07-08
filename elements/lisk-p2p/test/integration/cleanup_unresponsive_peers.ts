@@ -14,11 +14,7 @@
  */
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-	DEFAULT_CONNECTION_TIMEOUT,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork, DEFAULT_CONNECTION_TIMEOUT } from '../utils/network_setup';
 
 describe('Cleanup unresponsive peers', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -51,14 +47,9 @@ describe('Cleanup unresponsive peers', () => {
 			.map(peerInfo => peerInfo.port)
 			.sort();
 
-		const expectedPeerPortsAfterPeerCrash = peerPortsbeforePeerCrash.filter(
-			port => {
-				return (
-					port !== p2pNodeList[0].config.port &&
-					port !== p2pNodeList[1].config.port
-				);
-			},
-		);
+		const expectedPeerPortsAfterPeerCrash = peerPortsbeforePeerCrash.filter(port => {
+			return port !== p2pNodeList[0].config.port && port !== p2pNodeList[1].config.port;
+		});
 
 		expect(peerPortsAfterPeerCrash).toEqual(expectedPeerPortsAfterPeerCrash);
 	});

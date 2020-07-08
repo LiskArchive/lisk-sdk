@@ -21,8 +21,7 @@ interface APIResponse {
 	readonly data?: unknown;
 }
 
-const isArray = <T>(val: T | ReadonlyArray<T>): val is ReadonlyArray<T> =>
-	Array.isArray(val);
+const isArray = <T>(val: T | ReadonlyArray<T>): val is ReadonlyArray<T> => Array.isArray(val);
 
 export const handleResponse = (
 	endpoint: string,
@@ -75,16 +74,12 @@ export const query = async (
 				parameters.map(async (param: QueryParameter) =>
 					client[endpoint]
 						.get(param.query)
-						.then((res: APIResponse) =>
-							handleResponse(endpoint, res, param.placeholder),
-						),
+						.then((res: APIResponse) => handleResponse(endpoint, res, param.placeholder)),
 				),
 		  )
 		: client[endpoint]
 				.get(parameters.query)
-				.then((res: APIResponse) =>
-					handleResponse(endpoint, res, parameters.placeholder),
-				);
+				.then((res: APIResponse) => handleResponse(endpoint, res, parameters.placeholder));
 
 export const queryNodeTransaction = async (
 	client: NodeResource,
@@ -95,8 +90,6 @@ export const queryNodeTransaction = async (
 		parameters.map(async (param: QueryParameter) =>
 			client
 				.getTransactions(txnState, param.query)
-				.then(res =>
-					handleResponse('node/transactions', res, param.placeholder),
-				),
+				.then(res => handleResponse('node/transactions', res, param.placeholder)),
 		),
 	);

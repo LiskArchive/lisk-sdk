@@ -86,18 +86,11 @@ describe('fs utils', () => {
 		});
 
 		it('JSON.stringify should be called with the object using tab indentation', () => {
-			return expect(JSON.stringify).to.be.calledWithExactly(
-				writingObject,
-				undefined,
-				'\t',
-			);
+			return expect(JSON.stringify).to.be.calledWithExactly(writingObject, undefined, '\t');
 		});
 
 		it('fs.writeFileSync should be called with the path and the stringified JSON"', () => {
-			return expect(fs.writeFileSync).to.be.calledWithExactly(
-				path,
-				stringifiedObject,
-			);
+			return expect(fs.writeFileSync).to.be.calledWithExactly(path, stringifiedObject);
 		});
 	});
 });

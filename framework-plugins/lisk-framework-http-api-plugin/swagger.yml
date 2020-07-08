@@ -553,7 +553,7 @@ definitions:
         $ref: '#/definitions/NodeInfo'
       meta:
         type: object
-  
+
   Meta:
     type: object
     required:

@@ -13,12 +13,7 @@
  */
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import {
-	createApplication,
-	closeApplication,
-	waitNBlocks,
-	getURL,
-} from './utils/application';
+import { createApplication, closeApplication, waitNBlocks, getURL } from './utils/application';
 
 describe('Hello endpoint', () => {
 	let app: Application;

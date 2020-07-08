@@ -152,8 +152,7 @@ export const initPeerInfoListWithSuffix = (
 					123456,
 				),
 				reputation: 10 + i,
-				connectionKind:
-					i % 4 === 0 ? ConnectionKind.OUTBOUND : ConnectionKind.INBOUND,
+				connectionKind: i % 4 === 0 ? ConnectionKind.OUTBOUND : ConnectionKind.INBOUND,
 			},
 		});
 	}

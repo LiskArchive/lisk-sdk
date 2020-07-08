@@ -14,10 +14,7 @@
 
 import { EventEmitter2 } from 'eventemitter2';
 import { IPCClient } from '../../../../../src/controller/ipc/ipc_client';
-import {
-	IPCChannel,
-	BaseChannel,
-} from '../../../../../src/controller/channels';
+import { IPCChannel, BaseChannel } from '../../../../../src/controller/channels';
 import { Event } from '../../../../../src/controller/event';
 import { Action } from '../../../../../src/controller/action';
 
@@ -127,12 +124,7 @@ describe('IPCChannel Channel', () => {
 	let ipcChannel: IPCChannel;
 
 	beforeEach(() => {
-		ipcChannel = new IPCChannel(
-			params.moduleAlias,
-			params.events,
-			params.actions,
-			params.options,
-		);
+		ipcChannel = new IPCChannel(params.moduleAlias, params.events, params.actions, params.options);
 	});
 
 	afterEach(() => {
@@ -167,12 +159,7 @@ describe('IPCChannel Channel', () => {
 			expect(ipcClientMock.rpcClient.call).toHaveBeenCalledWith(
 				'registerChannel',
 				params.moduleAlias,
-				[
-					...params.events,
-					'registeredToBus',
-					'loading:started',
-					'loading:finished',
-				],
+				[...params.events, 'registeredToBus', 'loading:started', 'loading:finished'],
 				actionsInfo,
 				{
 					rpcSocketPath: undefined,
@@ -184,10 +171,7 @@ describe('IPCChannel Channel', () => {
 
 		it('should expose "invoke" event on rpcServer', () => {
 			// Assert
-			expect(ipcClientMock.rpcServer.expose).toHaveBeenCalledWith(
-				'invoke',
-				expect.any(Function),
-			);
+			expect(ipcClientMock.rpcServer.expose).toHaveBeenCalledWith('invoke', expect.any(Function));
 		});
 
 		it('should expose "invokePublic" event on rpcServer', () => {
@@ -200,10 +184,7 @@ describe('IPCChannel Channel', () => {
 
 		it('should register "message" event on subSocket', () => {
 			// Assert
-			expect(ipcClientMock.subSocket.on).toHaveBeenCalledWith(
-				'message',
-				expect.any(Function),
-			);
+			expect(ipcClientMock.subSocket.on).toHaveBeenCalledWith('message', expect.any(Function));
 		});
 	});
 
@@ -218,10 +199,7 @@ describe('IPCChannel Channel', () => {
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			ipcChannel.subscribe(validEventName, () => {});
 			// Assert
-			expect(emitterMock.on).toHaveBeenCalledWith(
-				validEventName,
-				expect.any(Function),
-			);
+			expect(emitterMock.on).toHaveBeenCalledWith(validEventName, expect.any(Function));
 		});
 	});
 
@@ -236,10 +214,7 @@ describe('IPCChannel Channel', () => {
 			ipcChannel.once(validEventName, () => {});
 
 			// Assert
-			expect(emitterMock.once).toHaveBeenCalledWith(
-				validEventName,
-				expect.any(Function),
-			);
+			expect(emitterMock.once).toHaveBeenCalledWith(validEventName, expect.any(Function));
 		});
 	});
 
@@ -276,10 +251,7 @@ describe('IPCChannel Channel', () => {
 			ipcChannel.publish(validEventName, data);
 
 			// Assert
-			expect(ipcClientMock.pubSocket.send).toHaveBeenCalledWith(
-				event.key(),
-				event.serialize(),
-			);
+			expect(ipcClientMock.pubSocket.send).toHaveBeenCalledWith(event.key(), event.serialize());
 		});
 	});
 

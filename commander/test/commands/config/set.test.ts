@@ -40,9 +40,7 @@ describe('config:set', () => {
 		setupTest()
 			.stdout()
 			.command(['config:set'])
-			.catch((error: Error) =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch((error: Error) => expect(error.message).to.contain('Missing 1 required arg'))
 			.it('should throw an error when no value is set');
 	});
 
@@ -52,9 +50,7 @@ describe('config:set', () => {
 			.stdout()
 			.command(['config:set', 'newvalue'])
 			.catch((error: Error) =>
-				expect(error.message).to.contain(
-					`Expected ${unknownValue} to be one of:`,
-				),
+				expect(error.message).to.contain(`Expected ${unknownValue} to be one of:`),
 			)
 			.it('should throw an error when the value is not supported');
 
@@ -86,19 +82,12 @@ describe('config:set', () => {
 							nodes: ['http://somehost:1234'],
 						},
 					};
-					return expect(config.setConfig).to.be.calledWith(
-						defaultDir,
-						newConfig,
-					);
+					return expect(config.setConfig).to.be.calledWith(defaultDir, newConfig);
 				});
 
 			setupTest()
 				.stdout()
-				.command([
-					'config:set',
-					'api.nodes',
-					'http://somehost:1234,http://localhost:4000',
-				])
+				.command(['config:set', 'api.nodes', 'http://somehost:1234,http://localhost:4000'])
 				.it('should set api.nodes to array with 2 values', () => {
 					const newConfig = {
 						...defaultConfig,
@@ -107,10 +96,7 @@ describe('config:set', () => {
 							nodes: ['http://somehost:1234', 'http://localhost:4000'],
 						},
 					};
-					return expect(config.setConfig).to.be.calledWith(
-						defaultDir,
-						newConfig,
-					);
+					return expect(config.setConfig).to.be.calledWith(defaultDir, newConfig);
 				});
 
 			setupTest()
@@ -121,9 +107,7 @@ describe('config:set', () => {
 						'Node URLs must include a supported protocol (http, https) and a hostname.',
 					),
 				)
-				.it(
-					'should throw error when api.nodes value is not supported protocol',
-				);
+				.it('should throw error when api.nodes value is not supported protocol');
 
 			setupTest()
 				.stdout()
@@ -156,10 +140,7 @@ describe('config:set', () => {
 						...defaultConfig,
 						json: true,
 					};
-					return expect(config.setConfig).to.be.calledWith(
-						defaultDir,
-						newConfig,
-					);
+					return expect(config.setConfig).to.be.calledWith(defaultDir, newConfig);
 				});
 
 			setupTest()
@@ -176,42 +157,31 @@ describe('config:set', () => {
 			setupTest()
 				.stdout()
 				.command(['config:set', 'json', 'truely'])
-				.catch((error: Error) =>
-					expect(error.message).to.contain('Value must be a boolean.'),
-				)
+				.catch((error: Error) => expect(error.message).to.contain('Value must be a boolean.'))
 				.it('should throw error when json value is not boolean');
 
 			setupTest()
 				.stdout()
 				.command(['config:set', 'json'])
-				.catch((error: Error) =>
-					expect(error.message).to.contain('Value must be a boolean.'),
-				)
+				.catch((error: Error) => expect(error.message).to.contain('Value must be a boolean.'))
 				.it('should throw error when json value is not specified');
 		});
 
 		describe('config:set api.network value', () => {
-			const validNethash =
-				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d';
+			const validNethash = '198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d';
 			setupTest()
 				.stdout()
 				.command(['config:set', 'api.network', validNethash])
-				.it(
-					'should set api.network to the custom genesisBlockTransactionRoot',
-					() => {
-						const newConfig = {
-							...defaultConfig,
-							api: {
-								network: validNethash,
-								nodes: defaultConfig.api.nodes,
-							},
-						};
-						return expect(config.setConfig).to.be.calledWith(
-							defaultDir,
-							newConfig,
-						);
-					},
-				);
+				.it('should set api.network to the custom genesisBlockTransactionRoot', () => {
+					const newConfig = {
+						...defaultConfig,
+						api: {
+							network: validNethash,
+							nodes: defaultConfig.api.nodes,
+						},
+					};
+					return expect(config.setConfig).to.be.calledWith(defaultDir, newConfig);
+				});
 
 			setupTest()
 				.stdout()
@@ -224,10 +194,7 @@ describe('config:set', () => {
 							nodes: defaultConfig.api.nodes,
 						},
 					};
-					return expect(config.setConfig).to.be.calledWith(
-						defaultDir,
-						newConfig,
-					);
+					return expect(config.setConfig).to.be.calledWith(defaultDir, newConfig);
 				});
 
 			setupTest()
@@ -242,9 +209,7 @@ describe('config:set', () => {
 						'Value must be a hex string with 64 characters, or one of main or test.',
 					),
 				)
-				.it(
-					'should throw error when api.network value is unknown and does not have length 64',
-				);
+				.it('should throw error when api.network value is unknown and does not have length 64');
 
 			setupTest()
 				.stdout()
@@ -258,9 +223,7 @@ describe('config:set', () => {
 						'Value must be a hex string with 64 characters, or one of main or test.',
 					),
 				)
-				.it(
-					'should throw error when api.network value is unknown and not a valid hex string',
-				);
+				.it('should throw error when api.network value is unknown and not a valid hex string');
 		});
 	});
 });

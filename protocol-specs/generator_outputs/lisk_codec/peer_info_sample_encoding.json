@@ -52,10 +52,7 @@
 							"fieldNumber": 7
 						}
 					},
-					"required": [
-						"ipAddress",
-						"wsPort"
-					]
+					"required": ["ipAddress", "wsPort"]
 				}
 			},
 			"output": {
@@ -103,10 +100,7 @@
 							"fieldNumber": 7
 						}
 					},
-					"required": [
-						"ipAddress",
-						"wsPort"
-					]
+					"required": ["ipAddress", "wsPort"]
 				}
 			},
 			"output": {

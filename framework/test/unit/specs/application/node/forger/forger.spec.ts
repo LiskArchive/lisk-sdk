@@ -159,29 +159,17 @@ describe('forger', () => {
 				);
 
 				await expect(
-					forgeModule.updateForgingStatus(
-						invalidPublicKey,
-						defaultPassword,
-						true,
-					),
+					forgeModule.updateForgingStatus(invalidPublicKey, defaultPassword, true),
 				).rejects.toThrow(
-					`Delegate with publicKey: ${invalidPublicKey.toString(
-						'base64',
-					)} not found`,
+					`Delegate with publicKey: ${invalidPublicKey.toString('base64')} not found`,
 				);
 			});
 
 			it('should return error with non delegate account', async () => {
 				await expect(
-					forgeModule.updateForgingStatus(
-						genesis.publicKey,
-						genesis.password,
-						true,
-					),
+					forgeModule.updateForgingStatus(genesis.publicKey, genesis.password, true),
 				).rejects.toThrow(
-					`Delegate with publicKey: ${genesis.publicKey.toString(
-						'base64',
-					)} not found`,
+					`Delegate with publicKey: ${genesis.publicKey.toString('base64')} not found`,
 				);
 			});
 
@@ -198,9 +186,7 @@ describe('forger', () => {
 					},
 				]);
 				(forgeModule as any)._keypairs.set(
-					getAddressFromPublicKey(
-						Buffer.from(testDelegate.publicKey, 'base64'),
-					),
+					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'base64')),
 					Buffer.from('privateKey', 'utf8'),
 				);
 
@@ -213,9 +199,7 @@ describe('forger', () => {
 
 				// Assert
 				expect(
-					(forgeModule as any)._keypairs.get(
-						Buffer.from(testDelegate.address, 'base64'),
-					),
+					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'base64')),
 				).toBeUndefined();
 				expect(data.address.toString('base64')).toEqual(testDelegate.address);
 			});
@@ -228,9 +212,7 @@ describe('forger', () => {
 				);
 
 				expect(
-					(forgeModule as any)._keypairs.get(
-						Buffer.from(testDelegate.address, 'base64'),
-					),
+					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'base64')),
 				).not.toBeUndefined();
 				expect(data.address.toString('base64')).toEqual(testDelegate.address);
 			});
@@ -244,10 +226,7 @@ describe('forger', () => {
 						'hex',
 					),
 					address: getAddressFromPublicKey(
-						Buffer.from(
-							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-							'hex',
-						),
+						Buffer.from('9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f', 'hex'),
 					),
 					encryptedPassphrase:
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
@@ -263,10 +242,7 @@ describe('forger', () => {
 						'hex',
 					),
 					address: getAddressFromPublicKey(
-						Buffer.from(
-							'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-							'hex',
-						),
+						Buffer.from('141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a', 'hex'),
 					),
 					encryptedPassphrase:
 						'iterations=1&salt=5c709afdae35d43d4090e9ef31d14d85&cipherText=c205189b91f797c3914f5d82ccc7cccfb3c620cef512c3bf8f50cd280bd5ff1450e8b9be997179582e62bec0cb655ca2eb8ff6833892f9e350dc5182b61bd648cd02f7f95468c7ec51aa3b43&iv=bfae7a255077c6de61a1ec59&tag=59cfd0a55d39a765a84725f4be464179&version=1',
@@ -282,10 +258,7 @@ describe('forger', () => {
 						'hex',
 					),
 					address: getAddressFromPublicKey(
-						Buffer.from(
-							'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-							'hex',
-						),
+						Buffer.from('3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135', 'hex'),
 					),
 					encryptedPassphrase:
 						'iterations=1&salt=588600600cd7660cf2346cd390093900&cipherText=6469aca1fe386e709c89c9a1d644abd969e64326f0f27f7be25248727892ec860e1e2dae54d283e65b1d21657a74047fb46ba732d1c83b93c8e2c0c96e98c2a9c4d87d0ac23db6dec9e3728426e3&iv=357d723a607f5baaf1fb218a&tag=f42bc3722b2964806d83a8ca3da2f94d&version=1',
@@ -305,9 +278,7 @@ describe('forger', () => {
 			beforeEach(() => {
 				accountDetails = {
 					address: getAddressFromPublicKey(
-						Buffer.from(
-							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-						),
+						Buffer.from('9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'),
 					),
 					encryptedPassphrase:
 						'salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
@@ -590,8 +561,7 @@ describe('forger', () => {
 
 			it('should return error if account does not exist', async () => {
 				const randomAccount = {
-					passphrase:
-						'robust swift deputy enable forget peasant grocery road convince',
+					passphrase: 'robust swift deputy enable forget peasant grocery road convince',
 					publicKey: Buffer.from(
 						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
 						'hex',
@@ -619,8 +589,7 @@ describe('forger', () => {
 
 			it('if account does not exist forgeModule.keypairs should be empty', async () => {
 				const randomAccount = {
-					passphrase:
-						'robust swift deputy enable forget peasant grocery road convince',
+					passphrase: 'robust swift deputy enable forget peasant grocery road convince',
 					publicKey: Buffer.from(
 						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
 						'hex',
@@ -672,9 +641,7 @@ describe('forger', () => {
 				(forgeModule as any)._config.forging.delegates = delegates;
 
 				await forgeModule.loadDelegates();
-				expect(forgeModule['_keypairs'].values()).toHaveLength(
-					delegates.length,
-				);
+				expect(forgeModule['_keypairs'].values()).toHaveLength(delegates.length);
 			});
 
 			it('should load delegates in encrypted format with the key with default 1e6 iterations if not set', async () => {
@@ -731,9 +698,7 @@ describe('forger', () => {
 				];
 
 				await forgeModule.loadDelegates();
-				expect(forgeModule['_keypairs'].values()).toHaveLength(
-					delegates.length,
-				);
+				expect(forgeModule['_keypairs'].values()).toHaveLength(delegates.length);
 			});
 
 			it('should load all 101 delegates', async () => {
@@ -757,9 +722,7 @@ describe('forger', () => {
 						address: Buffer.from(delegate.address, 'base64'),
 						hashOnion: {
 							...delegate.hashOnion,
-							hashes: delegate.hashOnion.hashes.map(h =>
-								Buffer.from(h, 'base64'),
-							),
+							hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
 						},
 					}),
 				);
@@ -793,8 +756,7 @@ describe('forger', () => {
 				for (const delegate of delegates) {
 					originalKey.registeredHashOnions.push({
 						address: getAddressFromPublicKey(delegate.publicKey),
-						seedHash:
-							delegate.hashOnion.hashes[delegate.hashOnion.hashes.length - 1],
+						seedHash: delegate.hashOnion.hashes[delegate.hashOnion.hashes.length - 1],
 					});
 				}
 
@@ -822,9 +784,7 @@ describe('forger', () => {
 				};
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
-					.mockResolvedValue(
-						codec.encode(usedHashOnionsStoreSchema, usedHashOnions) as never,
-					);
+					.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, usedHashOnions) as never);
 
 				// Act
 				await forgeModule.loadDelegates();
@@ -850,14 +810,10 @@ describe('forger', () => {
 				};
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
-					.mockResolvedValue(
-						codec.encode(usedHashOnionsStoreSchema, usedHashOnion) as never,
-					);
+					.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, usedHashOnion) as never);
 
 				// Act
-				await expect(forgeModule.loadDelegates()).rejects.toThrow(
-					'All of the hash onion is used',
-				);
+				await expect(forgeModule.loadDelegates()).rejects.toThrow('All of the hash onion is used');
 			});
 		});
 
@@ -887,25 +843,16 @@ describe('forger', () => {
 				processorModuleStub.create.mockResolvedValue(forgedBlock);
 				getSlotNumberStub = chainModuleStub.slots.getSlotNumber;
 
-				when(getSlotNumberStub)
-					.calledWith(undefined)
-					.mockReturnValue(currentSlot);
+				when(getSlotNumberStub).calledWith(undefined).mockReturnValue(currentSlot);
 				when(getSlotNumberStub)
 					.calledWith(lastBlock.header.timestamp)
 					.mockReturnValue(lastBlockSlot);
-				(forgeModule as any)._keypairs[testDelegate.publicKey] = Buffer.from(
-					'privateKey',
-					'utf8',
-				);
+				(forgeModule as any)._keypairs[testDelegate.publicKey] = Buffer.from('privateKey', 'utf8');
 			});
 
 			it('should log message and return if current block slot is same as last block slot', async () => {
-				when(getSlotNumberStub)
-					.calledWith(undefined)
-					.mockReturnValue(currentSlot);
-				when(getSlotNumberStub)
-					.calledWith(lastBlock.header.timestamp)
-					.mockReturnValue(currentSlot);
+				when(getSlotNumberStub).calledWith(undefined).mockReturnValue(currentSlot);
+				when(getSlotNumberStub).calledWith(lastBlock.header.timestamp).mockReturnValue(currentSlot);
 
 				const data = await forgeModule.forge();
 
@@ -954,9 +901,7 @@ describe('forger', () => {
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime() / 1000;
 				const currentTime = new Date(2019, 0, 1, 0, 0, 2).getTime();
 
-				const dateNowMockFn = jest
-					.spyOn(Date.prototype, 'getTime')
-					.mockReturnValue(currentTime);
+				const dateNowMockFn = jest.spyOn(Date.prototype, 'getTime').mockReturnValue(currentTime);
 
 				chainModuleStub.slots.getSlotTime.mockReturnValue(currentSlotTime);
 
@@ -980,18 +925,14 @@ describe('forger', () => {
 			});
 
 			it('should not wait if threshold time passed and last block not received', async () => {
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue({
-						publicKey: Buffer.from(testDelegate.publicKey, 'base64'),
-						privateKey: Buffer.from(testDelegate.privateKey, 'base64'),
-					});
+				jest.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot').mockResolvedValue({
+					publicKey: Buffer.from(testDelegate.publicKey, 'base64'),
+					privateKey: Buffer.from(testDelegate.privateKey, 'base64'),
+				});
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
 				const currentTime = new Date(2019, 0, 1, 0, 0, 3).getTime();
 
-				const dateNowMockFn = jest
-					.spyOn(Date.prototype, 'getTime')
-					.mockReturnValue(currentTime);
+				const dateNowMockFn = jest.spyOn(Date.prototype, 'getTime').mockReturnValue(currentTime);
 
 				const changedLastBlockSlot = currentSlot - 2;
 
@@ -1007,18 +948,14 @@ describe('forger', () => {
 			});
 
 			it('should not wait if threshold remaining but last block already received', async () => {
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue({
-						publicKey: Buffer.from(testDelegate.publicKey, 'base64'),
-						privateKey: Buffer.from(testDelegate.privateKey, 'base64'),
-					});
+				jest.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot').mockResolvedValue({
+					publicKey: Buffer.from(testDelegate.publicKey, 'base64'),
+					privateKey: Buffer.from(testDelegate.privateKey, 'base64'),
+				});
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
 				const currentTime = new Date(2019, 0, 1, 0, 0, 1).getTime();
 
-				const dateNowMockFn = jest
-					.spyOn(Date.prototype, 'getTime')
-					.mockReturnValue(currentTime);
+				const dateNowMockFn = jest.spyOn(Date.prototype, 'getTime').mockReturnValue(currentTime);
 
 				const lastBlockSlotChanged = currentSlot - 1;
 				chainModuleStub.slots.getRealTime.mockReturnValue(currentSlotTime);
@@ -1034,12 +971,10 @@ describe('forger', () => {
 
 			it('should get transactions from the forging strategy', async () => {
 				// Arrange
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue({
-						publicKey: Buffer.from(testDelegate.publicKey, 'base64'),
-						privateKey: Buffer.from(testDelegate.privateKey, 'base64'),
-					});
+				jest.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot').mockResolvedValue({
+					publicKey: Buffer.from(testDelegate.publicKey, 'base64'),
+					privateKey: Buffer.from(testDelegate.privateKey, 'base64'),
+				});
 
 				// Act
 				await forgeModule.forge();
@@ -1051,12 +986,10 @@ describe('forger', () => {
 			it('should set the seedReveal to the next hash onion', async () => {
 				// Arrange
 				const targetDelegate = genesisDelegates.delegates[0];
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue({
-						publicKey: Buffer.from(testDelegate.publicKey, 'base64'),
-						privateKey: Buffer.from(testDelegate.privateKey, 'base64'),
-					});
+				jest.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot').mockResolvedValue({
+					publicKey: Buffer.from(testDelegate.publicKey, 'base64'),
+					privateKey: Buffer.from(testDelegate.privateKey, 'base64'),
+				});
 				(forgeModule as any)._config.forging.delegates = convertDelegateFixture(
 					genesisDelegates.delegates,
 				);
@@ -1066,35 +999,25 @@ describe('forger', () => {
 						{
 							count: 5,
 							height: 9,
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 						},
 						{
 							count: 6,
 							height: 12,
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 						},
 					],
 				};
 
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
-					.mockResolvedValue(
-						codec.encode(usedHashOnionsStoreSchema, usedHashOnion) as never,
-					);
+					.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, usedHashOnion) as never);
 
 				// Act
 				await forgeModule.forge();
 				const seed = targetDelegate.hashOnion.hashes[1];
 				// Assert
-				const hashes = hashOnion(
-					Buffer.from(seed, 'base64'),
-					targetDelegate.hashOnion.distance,
-					1,
-				);
+				const hashes = hashOnion(Buffer.from(seed, 'base64'), targetDelegate.hashOnion.distance, 1);
 				expect(processorModuleStub.create).toHaveBeenCalledTimes(1);
 				expect(processorModuleStub.create).toHaveBeenCalledWith(
 					expect.objectContaining({
@@ -1106,12 +1029,10 @@ describe('forger', () => {
 			it('should update the used hash onion', async () => {
 				// Arrange
 				const targetDelegate = genesisDelegates.delegates[0];
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue({
-						publicKey: Buffer.from(targetDelegate.publicKey, 'base64'),
-						privateKey: Buffer.from(targetDelegate.privateKey, 'base64'),
-					});
+				jest.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot').mockResolvedValue({
+					publicKey: Buffer.from(targetDelegate.publicKey, 'base64'),
+					privateKey: Buffer.from(targetDelegate.privateKey, 'base64'),
+				});
 				(forgeModule as any)._config.forging.delegates = convertDelegateFixture(
 					genesisDelegates.delegates,
 				);
@@ -1121,16 +1042,12 @@ describe('forger', () => {
 						{
 							count: 5,
 							height: 9,
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 						},
 						{
 							count: 6,
 							height: 12,
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 						},
 					],
 				};
@@ -1142,23 +1059,17 @@ describe('forger', () => {
 				const usedHashOnionOutput: UsedHashOnionStoreObject = {
 					usedHashOnions: [
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 5,
 							height: 9,
 						},
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 6,
 							height: 12,
 						},
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 7,
 							height: lastBlock.header.height + 1,
 						},
@@ -1184,12 +1095,10 @@ describe('forger', () => {
 
 			it('should overwrite the used hash onion when forging the same height', async () => {
 				const targetDelegate = genesisDelegates.delegates[0];
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue({
-						publicKey: Buffer.from(targetDelegate.publicKey, 'base64'),
-						privateKey: Buffer.from(targetDelegate.privateKey, 'base64'),
-					});
+				jest.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot').mockResolvedValue({
+					publicKey: Buffer.from(targetDelegate.publicKey, 'base64'),
+					privateKey: Buffer.from(targetDelegate.privateKey, 'base64'),
+				});
 				(forgeModule as any)._config.forging.delegates = convertDelegateFixture(
 					genesisDelegates.delegates,
 				);
@@ -1199,23 +1108,17 @@ describe('forger', () => {
 						{
 							count: 5,
 							height: 9,
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 						},
 						{
 							count: 6,
 							height: 12,
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 						},
 						{
 							count: 7,
 							height: lastBlock.header.height + 1,
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 						},
 					],
 				};
@@ -1226,23 +1129,17 @@ describe('forger', () => {
 				const usedHashOnionOutput: UsedHashOnionStoreObject = {
 					usedHashOnions: [
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 5,
 							height: 9,
 						},
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 6,
 							height: 12,
 						},
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 7,
 							height: lastBlock.header.height + 1,
 						},
@@ -1269,12 +1166,10 @@ describe('forger', () => {
 			it('should remove all used hash onions before finality height', async () => {
 				// Arrange
 				const targetDelegate = genesisDelegates.delegates[0];
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue({
-						publicKey: Buffer.from(targetDelegate.publicKey, 'base64'),
-						privateKey: Buffer.from(targetDelegate.privateKey, 'base64'),
-					});
+				jest.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot').mockResolvedValue({
+					publicKey: Buffer.from(targetDelegate.publicKey, 'base64'),
+					privateKey: Buffer.from(targetDelegate.privateKey, 'base64'),
+				});
 				(forgeModule as any)._config.forging.delegates = convertDelegateFixture(
 					genesisDelegates.delegates,
 				);
@@ -1282,16 +1177,12 @@ describe('forger', () => {
 				const usedHashOnionInput: UsedHashOnionStoreObject = {
 					usedHashOnions: [
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 5,
 							height: 9,
 						},
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 6,
 							height: 412,
 						},
@@ -1305,16 +1196,12 @@ describe('forger', () => {
 				const usedHashOnionOutput: UsedHashOnionStoreObject = {
 					usedHashOnions: [
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 6,
 							height: 412,
 						},
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 7,
 							height: lastBlock.header.height + 1,
 						},
@@ -1341,18 +1228,15 @@ describe('forger', () => {
 
 			it('should use random seedReveal when all seedReveal are used', async () => {
 				const targetDelegate = genesisDelegates.delegates[0];
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue({
-						publicKey: Buffer.from(targetDelegate.publicKey, 'base64'),
-						privateKey: Buffer.from(targetDelegate.privateKey, 'base64'),
-					});
+				jest.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot').mockResolvedValue({
+					publicKey: Buffer.from(targetDelegate.publicKey, 'base64'),
+					privateKey: Buffer.from(targetDelegate.privateKey, 'base64'),
+				});
 				(forgeModule as any)._config.forging.delegates = convertDelegateFixture(
 					genesisDelegates.delegates,
 				);
 				const maxCount = (forgeModule as any)._config.forging.delegates.find(
-					(d: { publicKey: Buffer }) =>
-						d.publicKey.toString('base64') === targetDelegate.publicKey,
+					(d: { publicKey: Buffer }) => d.publicKey.toString('base64') === targetDelegate.publicKey,
 				).hashOnion.count;
 
 				const usedHashOnionInput: UsedHashOnionStoreObject = {
@@ -1360,9 +1244,7 @@ describe('forger', () => {
 						{
 							count: maxCount,
 							height: 10,
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 						},
 					],
 				};
@@ -1374,16 +1256,12 @@ describe('forger', () => {
 				const usedHashOnionOutput: UsedHashOnionStoreObject = {
 					usedHashOnions: [
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: maxCount,
 							height: 10,
 						},
 						{
-							address: getAddressFromPublicKey(
-								Buffer.from(targetDelegate.publicKey, 'base64'),
-							),
+							address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'base64')),
 							count: 0,
 							height: lastBlock.header.height + 1,
 						},
@@ -1423,8 +1301,7 @@ describe('forger', () => {
 		};
 
 		const genesis2 = {
-			passphrase:
-				'weapon van trap again sustain write useless great pottery urge month nominee',
+			passphrase: 'weapon van trap again sustain write useless great pottery urge month nominee',
 			publicKey: Buffer.from(
 				'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 				'hex',
@@ -1432,8 +1309,7 @@ describe('forger', () => {
 		};
 
 		const genesis3 = {
-			passphrase:
-				'course genuine appear elite library fabric armed chat pipe scissors mask novel',
+			passphrase: 'course genuine appear elite library fabric armed chat pipe scissors mask novel',
 			publicKey: Buffer.from(
 				'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
 				'hex',
@@ -1445,23 +1321,17 @@ describe('forger', () => {
 		let genesis3Keypair: { publicKey: any; privateKey: any };
 
 		beforeEach(() => {
-			const genesis1KeypairBuffer = getPrivateAndPublicKeyFromPassphrase(
-				genesis1.passphrase,
-			);
+			const genesis1KeypairBuffer = getPrivateAndPublicKeyFromPassphrase(genesis1.passphrase);
 			genesis1Keypair = {
 				publicKey: genesis1KeypairBuffer.publicKey,
 				privateKey: genesis1KeypairBuffer.privateKey,
 			};
-			const genesis2KeypairBuffer = getPrivateAndPublicKeyFromPassphrase(
-				genesis2.passphrase,
-			);
+			const genesis2KeypairBuffer = getPrivateAndPublicKeyFromPassphrase(genesis2.passphrase);
 			genesis2Keypair = {
 				publicKey: genesis2KeypairBuffer.publicKey,
 				privateKey: genesis2KeypairBuffer.privateKey,
 			};
-			const genesis3KeypairBuffer = getPrivateAndPublicKeyFromPassphrase(
-				genesis3.passphrase,
-			);
+			const genesis3KeypairBuffer = getPrivateAndPublicKeyFromPassphrase(genesis3.passphrase);
 			genesis3Keypair = {
 				publicKey: genesis3KeypairBuffer.publicKey,
 				privateKey: genesis3KeypairBuffer.privateKey,
@@ -1497,10 +1367,7 @@ describe('forger', () => {
 			const {
 				publicKey,
 				privateKey,
-			} = await (forgeModule as any)._getDelegateKeypairForCurrentSlot(
-				currentSlot,
-				round,
-			);
+			} = await (forgeModule as any)._getDelegateKeypairForCurrentSlot(currentSlot, round);
 			expect(publicKey).toBe(genesis1Keypair.publicKey);
 			expect(privateKey).toBe(genesis1Keypair.privateKey);
 		});
@@ -1511,18 +1378,13 @@ describe('forger', () => {
 			const round = 2;
 
 			dposModuleStub.getForgerAddressesForRound.mockResolvedValue(
-				delegatesRoundsList[round].map(pk =>
-					getAddressFromPublicKey(Buffer.from(pk, 'base64')),
-				),
+				delegatesRoundsList[round].map(pk => getAddressFromPublicKey(Buffer.from(pk, 'base64'))),
 			);
 
 			const {
 				publicKey,
 				privateKey,
-			} = await (forgeModule as any)._getDelegateKeypairForCurrentSlot(
-				currentSlot,
-				round,
-			);
+			} = await (forgeModule as any)._getDelegateKeypairForCurrentSlot(currentSlot, round);
 			expect(publicKey).toBe(genesis2Keypair.publicKey);
 			expect(privateKey).toBe(genesis2Keypair.privateKey);
 		});
@@ -1533,18 +1395,13 @@ describe('forger', () => {
 			const round = 3;
 
 			dposModuleStub.getForgerAddressesForRound.mockResolvedValue(
-				delegatesRoundsList[round].map(pk =>
-					getAddressFromPublicKey(Buffer.from(pk, 'base64')),
-				),
+				delegatesRoundsList[round].map(pk => getAddressFromPublicKey(Buffer.from(pk, 'base64'))),
 			);
 
 			const {
 				publicKey,
 				privateKey,
-			} = await (forgeModule as any)._getDelegateKeypairForCurrentSlot(
-				currentSlot,
-				round,
-			);
+			} = await (forgeModule as any)._getDelegateKeypairForCurrentSlot(currentSlot, round);
 			expect(publicKey).toBe(genesis3Keypair.publicKey);
 			expect(privateKey).toBe(genesis3Keypair.privateKey);
 		});
@@ -1556,9 +1413,7 @@ describe('forger', () => {
 			const round = 4;
 
 			dposModuleStub.getForgerAddressesForRound.mockResolvedValue(
-				delegatesRoundsList[round].map(pk =>
-					getAddressFromPublicKey(Buffer.from(pk, 'base64')),
-				),
+				delegatesRoundsList[round].map(pk => getAddressFromPublicKey(Buffer.from(pk, 'base64'))),
 			);
 
 			const keyPair = await (forgeModule as any)._getDelegateKeypairForCurrentSlot(
@@ -1574,15 +1429,10 @@ describe('forger', () => {
 
 			const expectedError = new Error('getForgerAddressesForRound error');
 
-			dposModuleStub.getForgerAddressesForRound.mockReturnValue(
-				Promise.reject(expectedError),
-			);
+			dposModuleStub.getForgerAddressesForRound.mockReturnValue(Promise.reject(expectedError));
 
 			await expect(
-				(forgeModule as any)._getDelegateKeypairForCurrentSlot(
-					currentSlot,
-					round,
-				),
+				(forgeModule as any)._getDelegateKeypairForCurrentSlot(currentSlot, round),
 			).rejects.toThrow(expectedError);
 		});
 	});

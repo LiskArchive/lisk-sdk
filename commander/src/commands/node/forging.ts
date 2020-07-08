@@ -89,8 +89,7 @@ export default class ForgingCommand extends BaseCommand {
 		}
 
 		const client = getAPIClient(this.userConfig.api);
-		const password =
-			passwordSource ?? (await getPassphraseFromPrompt('password'));
+		const password = passwordSource ?? (await getPassphraseFromPrompt('password'));
 
 		const result = await processInput(client, status, publicKey, password);
 

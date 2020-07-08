@@ -25,9 +25,7 @@ const generateDelegates = num => {
 	for (let i = 0; i < num; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic();
 		const { publicKey } = getKeys(passphrase);
-		const address = hash(Buffer.from(publicKey, 'hex'))
-			.slice(0, 20)
-			.toString('hex');
+		const address = hash(Buffer.from(publicKey, 'hex')).slice(0, 20).toString('hex');
 
 		delegateList.push({
 			address,

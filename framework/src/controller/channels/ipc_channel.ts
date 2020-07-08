@@ -72,17 +72,14 @@ export class IPCChannel extends BaseChannel {
 		// Register channel details
 		await new Promise((resolve, reject) => {
 			let actionsInfo: { [key: string]: ActionInfoForBus } = {};
-			actionsInfo = Object.keys(this.actions).reduce(
-				(accumulator, value: string) => {
-					accumulator[value] = {
-						name: value,
-						module: this.moduleAlias,
-						isPublic: this.actions[value].isPublic,
-					};
-					return accumulator;
-				},
-				actionsInfo,
-			);
+			actionsInfo = Object.keys(this.actions).reduce((accumulator, value: string) => {
+				accumulator[value] = {
+					name: value,
+					module: this.moduleAlias,
+					isPublic: this.actions[value].isPublic,
+				};
+				return accumulator;
+			}, actionsInfo);
 
 			this._rpcClient.call(
 				'registerChannel',
@@ -106,33 +103,24 @@ export class IPCChannel extends BaseChannel {
 		if (this.actionsList.length > 0) {
 			this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
 				const actionObject = Action.deserialize(action);
-				this.invoke(
-					`${actionObject.module}:${actionObject.name}`,
-					actionObject.params,
-				)
+				this.invoke(`${actionObject.module}:${actionObject.name}`, actionObject.params)
 					.then(data => cb(null, data))
 					.catch(error => cb(error));
 			});
 
-			this._rpcServer.expose(
-				'invokePublic',
-				(action: string, cb: NodeCallback) => {
-					this.invokePublic(action)
-						.then(data => cb(null, data))
-						.catch(error => cb(error));
-				},
-			);
+			this._rpcServer.expose('invokePublic', (action: string, cb: NodeCallback) => {
+				this.invokePublic(action)
+					.then(data => cb(null, data))
+					.catch(error => cb(error));
+			});
 		}
 
 		// Listen to messages
-		this._subSocket.on(
-			'message',
-			(eventName: string, eventData: EventInfoObject) => {
-				if (eventData.module !== this.moduleAlias) {
-					this._emitter.emit(eventName, eventData);
-				}
-			},
-		);
+		this._subSocket.on('message', (eventName: string, eventData: EventInfoObject) => {
+			if (eventData.module !== this.moduleAlias) {
+				this._emitter.emit(eventName, eventData);
+			}
+		});
 	}
 
 	public subscribe(eventName: string, cb: Listener): void {
@@ -148,13 +136,8 @@ export class IPCChannel extends BaseChannel {
 	public publish(eventName: string, data?: object): void {
 		const event = new Event(eventName, data);
 
-		if (
-			event.module !== this.moduleAlias ||
-			!this.eventsList.includes(event.name)
-		) {
-			throw new Error(
-				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`,
-			);
+		if (event.module !== this.moduleAlias || !this.eventsList.includes(event.name)) {
+			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
 		}
 
 		this._pubSocket.send(event.key(), event.serialize());
@@ -186,17 +169,12 @@ export class IPCChannel extends BaseChannel {
 		});
 	}
 
-	public async invokePublic<T>(
-		actionName: string,
-		params?: object,
-	): Promise<T> {
+	public async invokePublic<T>(actionName: string, params?: object): Promise<T> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
 		if (action.module === this.moduleAlias) {
 			if (!this.actions[action.name].isPublic) {
-				throw new Error(
-					`Action ${action.name} is not allowed because it's not public.`,
-				);
+				throw new Error(`Action ${action.name} is not allowed because it's not public.`);
 			}
 			const handler = this.actions[action.name]?.handler;
 			if (!handler) {

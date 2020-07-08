@@ -27,10 +27,7 @@ interface APIClientOptions {
 	readonly nodes: ReadonlyArray<string>;
 }
 
-export const getAPIClient = ({
-	nodes,
-	network,
-}: APIClientOptions): APIClient => {
+export const getAPIClient = ({ nodes, network }: APIClientOptions): APIClient => {
 	const genesisBlockTransactionRoot = NETHASHES[network] || network;
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];

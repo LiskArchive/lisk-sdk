@@ -47,10 +47,7 @@ export class Event {
 		const parsedEvent: EventInfoObject =
 			typeof data === 'string' ? (JSON.parse(data) as EventInfoObject) : data;
 
-		return new Event(
-			`${parsedEvent.module}:${parsedEvent.name}`,
-			parsedEvent.data,
-		);
+		return new Event(`${parsedEvent.module}:${parsedEvent.name}`, parsedEvent.data);
 	}
 
 	public serialize(): EventInfoObject {

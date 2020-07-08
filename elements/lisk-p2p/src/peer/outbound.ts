@@ -41,12 +41,7 @@ import {
 	P2PNodeInfo,
 } from '../types';
 
-import {
-	Peer,
-	PeerConfig,
-	SCClientSocket,
-	socketErrorStatusCodes,
-} from './base';
+import { Peer, PeerConfig, SCClientSocket, socketErrorStatusCodes } from './base';
 
 interface ClientOptionsUpdated {
 	readonly hostname: string;
@@ -84,10 +79,7 @@ export class OutboundPeer extends Peer {
 		this._socket.connect();
 	}
 
-	public disconnect(
-		code: number = INTENTIONAL_DISCONNECT_CODE,
-		reason?: string,
-	): void {
+	public disconnect(code: number = INTENTIONAL_DISCONNECT_CODE, reason?: string): void {
 		super.disconnect(code, reason);
 		if (this._socket) {
 			this._unbindHandlersFromOutboundSocket(this._socket);
@@ -132,9 +124,7 @@ export class OutboundPeer extends Peer {
 			hostname: this.ipAddress,
 			path: DEFAULT_HTTP_PATH,
 			port: this.port,
-			query: querystring.stringify(
-				queryObject as querystring.ParsedUrlQueryInput,
-			),
+			query: querystring.stringify(queryObject as querystring.ParsedUrlQueryInput),
 			connectTimeout,
 			ackTimeout,
 			multiplex: false,
@@ -179,21 +169,18 @@ export class OutboundPeer extends Peer {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
 		});
 
-		outboundSocket.on(
-			'close',
-			(code: number, reasonMessage: string | undefined) => {
-				const reason: string =
-					reasonMessage !== undefined && reasonMessage !== ''
-						? reasonMessage
-						: socketErrorStatusCodes[code] ?? 'Unknown reason';
-				this.emit(EVENT_CLOSE_OUTBOUND, {
-					peerInfo: this._peerInfo,
-					code,
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-					reason,
-				});
-			},
-		);
+		outboundSocket.on('close', (code: number, reasonMessage: string | undefined) => {
+			const reason: string =
+				reasonMessage !== undefined && reasonMessage !== ''
+					? reasonMessage
+					: socketErrorStatusCodes[code] ?? 'Unknown reason';
+			this.emit(EVENT_CLOSE_OUTBOUND, {
+				peerInfo: this._peerInfo,
+				code,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				reason,
+			});
+		});
 
 		outboundSocket.on('message', this._handleWSMessage);
 
@@ -210,9 +197,7 @@ export class OutboundPeer extends Peer {
 	}
 
 	// All event handlers for the outbound socket should be unbound in this method.
-	private _unbindHandlersFromOutboundSocket(
-		outboundSocket: SCClientSocket,
-	): void {
+	private _unbindHandlersFromOutboundSocket(outboundSocket: SCClientSocket): void {
 		// Do not unbind the error handler because error could still throw after disconnect.
 		// We don't want to have uncaught errors.
 		outboundSocket.off('connect');

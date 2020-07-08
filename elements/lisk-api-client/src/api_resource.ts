@@ -45,9 +45,7 @@ export class APIResource {
 		retryCount: number,
 	): Promise<APIResponse> {
 		if (this.apiClient.hasAvailableNodes()) {
-			return new Promise<APIResponse>(resolve =>
-				setTimeout(resolve, REQUEST_RETRY_TIMEOUT),
-			).then(
+			return new Promise<APIResponse>(resolve => setTimeout(resolve, REQUEST_RETRY_TIMEOUT)).then(
 				async (): Promise<APIResponse> => {
 					if (retryCount > API_RECONNECT_MAX_RETRY_COUNT) {
 						throw error;
@@ -77,11 +75,7 @@ export class APIResource {
 					const { status } = error.response;
 					if (error.response.data) {
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						const {
-							error: errorString,
-							errors,
-							message,
-						}: APIErrorResponse = error.response.data;
+						const { error: errorString, errors, message }: APIErrorResponse = error.response.data;
 						throw new APIError(
 							message ?? errorString ?? 'An unknown error has occurred.',
 							status,
@@ -95,9 +89,7 @@ export class APIResource {
 
 		if (retry) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return request.catch(async (err: Error) =>
-				this.handleRetry(err, req, retryCount),
-			);
+			return request.catch(async (err: Error) => this.handleRetry(err, req, retryCount));
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return

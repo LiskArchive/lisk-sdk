@@ -30,15 +30,11 @@ describe('helpers utils', () => {
 		});
 
 		it('should throw validation error with NaN', () => {
-			return expect(validateLifetime.bind(null, 'NaN')).to.throw(
-				'Lifetime must be an integer.',
-			);
+			return expect(validateLifetime.bind(null, 'NaN')).to.throw('Lifetime must be an integer.');
 		});
 
 		it('should throw validation error with decimals', () => {
-			return expect(validateLifetime.bind(null, '123.4')).to.throw(
-				'Lifetime must be an integer.',
-			);
+			return expect(validateLifetime.bind(null, '123.4')).to.throw('Lifetime must be an integer.');
 		});
 	});
 
@@ -102,9 +98,7 @@ describe('helpers utils', () => {
 
 		it('should throw a non-EPIPE error', () => {
 			const message = 'some error';
-			return expect(handleEPIPE.bind(null, new Error(message) as any)).to.throw(
-				message,
-			);
+			return expect(handleEPIPE.bind(null, new Error(message) as any)).to.throw(message);
 		});
 	});
 });

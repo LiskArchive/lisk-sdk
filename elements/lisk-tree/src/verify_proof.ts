@@ -34,9 +34,7 @@ export const verifyProof = (options: {
 	const locationToPathMap: { [key: string]: Buffer } = {};
 	for (const p of path) {
 		if (p.layerIndex !== undefined && p.nodeIndex !== undefined) {
-			locationToPathMap[
-				`${getBinaryString(p.nodeIndex, treeHeight - p.layerIndex)}`
-			] = p.hash;
+			locationToPathMap[`${getBinaryString(p.nodeIndex, treeHeight - p.layerIndex)}`] = p.hash;
 		}
 	}
 
@@ -68,23 +66,14 @@ export const verifyProof = (options: {
 				side: pairSide,
 			} = getPairLocation({ layerIndex, nodeIndex, dataLength });
 			const nextPath =
-				locationToPathMap[
-					`${getBinaryString(pairNodeIndex, treeHeight - pairLayerIndex)}`
-				];
+				locationToPathMap[`${getBinaryString(pairNodeIndex, treeHeight - pairLayerIndex)}`];
 			if (nextPath === undefined) {
 				break;
 			}
-			const leftHashBuffer =
-				pairSide === NodeSide.LEFT ? nextPath : currentHash;
-			const rightHashBuffer =
-				pairSide === NodeSide.RIGHT ? nextPath : currentHash;
-			currentHash = generateHash(
-				BRANCH_PREFIX,
-				leftHashBuffer,
-				rightHashBuffer,
-			);
-			layerIndex =
-				pairLayerIndex > layerIndex ? pairLayerIndex + 1 : layerIndex + 1;
+			const leftHashBuffer = pairSide === NodeSide.LEFT ? nextPath : currentHash;
+			const rightHashBuffer = pairSide === NodeSide.RIGHT ? nextPath : currentHash;
+			currentHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);
+			layerIndex = pairLayerIndex > layerIndex ? pairLayerIndex + 1 : layerIndex + 1;
 			// If tree is balanced, divide pair index by 2, else divide by power of two of layer difference
 			nodeIndex =
 				dataLength === 2 ** (treeHeight - 1)
@@ -99,7 +88,5 @@ export const verifyProof = (options: {
 		results.set(queryHash, true);
 	}
 
-	return results
-		.entries()
-		.map(result => ({ hash: result[0], verified: result[1] as boolean }));
+	return results.entries().map(result => ({ hash: result[0], verified: result[1] as boolean }));
 };

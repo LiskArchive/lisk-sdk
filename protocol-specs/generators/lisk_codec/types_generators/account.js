@@ -118,14 +118,8 @@ const generateValidAccountEncodings = () => {
 				keys: {
 					numberOfSignatures: 2,
 					mandatoryKeys: [
-						Buffer.from(
-							'c8b8fbe474a2b63ccb9744a409569b0a465ee1803f80435aec1c5e7fc2d4ee18',
-							'hex',
-						),
-						Buffer.from(
-							'6115424fec0ce9c3bac5a81b5c782827d1f956fb95f1ccfa36c566d04e4d7267',
-							'hex',
-						),
+						Buffer.from('c8b8fbe474a2b63ccb9744a409569b0a465ee1803f80435aec1c5e7fc2d4ee18', 'hex'),
+						Buffer.from('6115424fec0ce9c3bac5a81b5c782827d1f956fb95f1ccfa36c566d04e4d7267', 'hex'),
 					],
 					optionalKeys: [],
 				},
@@ -196,12 +190,8 @@ const generateValidAccountEncodings = () => {
 		},
 	};
 
-	const validAccount1Encoded = Account.encode(
-		input.validAccount1.object,
-	).finish();
-	const validAccount2Encoded = Account.encode(
-		input.validAccount2.object,
-	).finish();
+	const validAccount1Encoded = Account.encode(input.validAccount1.object).finish();
+	const validAccount2Encoded = Account.encode(input.validAccount2.object).finish();
 
 	return [
 		{

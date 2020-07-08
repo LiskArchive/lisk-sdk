@@ -40,10 +40,7 @@ export class ChainStateStore {
 	private readonly _lastBlockReward: bigint;
 	private readonly _initialValue: KeyValuePair;
 
-	public constructor(
-		dataAccess: DataAccess,
-		additionalInformation: AdditionalInformation,
-	) {
+	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
 		this._dataAccess = dataAccess;
 		this._lastBlockHeader = additionalInformation.lastBlockHeader;
 		this._networkIdentifier = additionalInformation.networkIdentifier;
@@ -121,10 +118,7 @@ export class ChainStateStore {
 			batch.put(dbKey, updatedValue);
 
 			if (this._initialValue.length) {
-				const diff = calculateDiff(
-					this._initialValue[key] as Buffer,
-					updatedValue,
-				);
+				const diff = calculateDiff(this._initialValue[key] as Buffer, updatedValue);
 				stateDiff.updated.push({
 					key: dbKey,
 					value: diff,

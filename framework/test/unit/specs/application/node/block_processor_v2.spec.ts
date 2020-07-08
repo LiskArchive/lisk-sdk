@@ -200,9 +200,7 @@ describe('block processor v2', () => {
 			});
 			// Assert
 			expect(forgerDBStub.get).toHaveBeenCalledWith('forger:previouslyForged');
-			expect(block.header.asset.maxHeightPreviouslyForged).toBe(
-				previouslyForgedHeight,
-			);
+			expect(block.header.asset.maxHeightPreviouslyForged).toBe(previouslyForgedHeight);
 		});
 
 		it('should update maxPreviouslyForgedHeight to the next higher one but not change for other delegates', async () => {
@@ -238,10 +236,7 @@ describe('block processor v2', () => {
 					},
 				}),
 			);
-			expect(forgerDBStub.put).toHaveBeenCalledWith(
-				'forger:previouslyForged',
-				maxHeightResult,
-			);
+			expect(forgerDBStub.put).toHaveBeenCalledWith('forger:previouslyForged', maxHeightResult);
 		});
 
 		it('should set maxPreviouslyForgedHeight to forging height', async () => {
@@ -268,10 +263,7 @@ describe('block processor v2', () => {
 					},
 				}),
 			);
-			expect(forgerDBStub.put).toHaveBeenCalledWith(
-				'forger:previouslyForged',
-				maxHeightResult,
-			);
+			expect(forgerDBStub.put).toHaveBeenCalledWith('forger:previouslyForged', maxHeightResult);
 		});
 
 		it('should not set maxPreviouslyForgedHeight to next height if lower', async () => {

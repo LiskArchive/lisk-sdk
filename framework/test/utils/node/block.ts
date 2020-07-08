@@ -28,16 +28,14 @@ export const createBlock = async (
 	transactions: BaseTransaction[] = [],
 	options: Option = {},
 ) => {
-	const lastBlock = options.lastBlock
-		? options.lastBlock
-		: node['_chain'].lastBlock;
-	const currentSlot =
-		node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
+	const lastBlock = options.lastBlock ? options.lastBlock : node['_chain'].lastBlock;
+	const currentSlot = node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
 	const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
 	const round = node['_dpos'].rounds.calcRound(lastBlock.header.height + 1);
-	const currentKeypair = await node['_forger'][
-		'_getDelegateKeypairForCurrentSlot'
-	](currentSlot, round);
+	const currentKeypair = await node['_forger']['_getDelegateKeypairForCurrentSlot'](
+		currentSlot,
+		round,
+	);
 	return node['_processor'].create({
 		keypair: options.keypair
 			? options.keypair

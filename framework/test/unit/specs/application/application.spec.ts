@@ -29,10 +29,7 @@ import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
 import { createLogger } from '../../../../src/application/logger';
-import {
-	genesisBlockFromJSON,
-	GenesisBlockJSON,
-} from '../../../../src/application/genesis_block';
+import { genesisBlockFromJSON, GenesisBlockJSON } from '../../../../src/application/genesis_block';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -70,9 +67,7 @@ describe('Application', () => {
 			// Act
 
 			// Assert
-			expect(
-				() => new Application({ invalid: 'genesis block' } as any, config),
-			).toThrow();
+			expect(() => new Application({ invalid: 'genesis block' } as any, config)).toThrow();
 		});
 
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
@@ -80,10 +75,7 @@ describe('Application', () => {
 			const configWithoutLabel = _.cloneDeep(config);
 			delete configWithoutLabel.label;
 
-			const app = new Application(
-				genesisBlock as GenesisBlockJSON,
-				configWithoutLabel,
-			);
+			const app = new Application(genesisBlock as GenesisBlockJSON, configWithoutLabel);
 
 			expect(app.config.label).toBe(label);
 		});
@@ -101,10 +93,7 @@ describe('Application', () => {
 			delete configWithoutrootPath.rootPath;
 
 			// Act
-			const app = new Application(
-				genesisBlock as GenesisBlockJSON,
-				configWithoutrootPath,
-			);
+			const app = new Application(genesisBlock as GenesisBlockJSON, configWithoutrootPath);
 
 			// Assert
 			expect(app.config.rootPath).toBe(rootPath);
@@ -117,10 +106,7 @@ describe('Application', () => {
 			configWithCustomrootPath.rootPath = customrootPath;
 
 			// Act
-			const app = new Application(
-				genesisBlock as GenesisBlockJSON,
-				configWithCustomrootPath,
-			);
+			const app = new Application(genesisBlock as GenesisBlockJSON, configWithCustomrootPath);
 
 			// Assert
 			expect(app.config.rootPath).toBe(customrootPath);
@@ -132,10 +118,7 @@ describe('Application', () => {
 			configWithoutLogger.logger = {};
 
 			// Act
-			const app = new Application(
-				genesisBlock as GenesisBlockJSON,
-				configWithoutLogger,
-			);
+			const app = new Application(genesisBlock as GenesisBlockJSON, configWithoutLogger);
 
 			// Assert
 			expect(app.config.logger.logFileName).toBe('lisk.log');
@@ -149,22 +132,13 @@ describe('Application', () => {
 				communityIdentifier: 'Lisk',
 				blockTime: 2,
 				rewards: {
-					milestones: [
-						'500000000',
-						'400000000',
-						'300000000',
-						'200000000',
-						'100000000',
-					],
+					milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
 					offset: 2160,
 					distance: 3000000,
 				},
 			};
 
-			const app = new Application(
-				genesisBlock as GenesisBlockJSON,
-				customConfig,
-			);
+			const app = new Application(genesisBlock as GenesisBlockJSON, customConfig);
 
 			expect(app.constants.maxPayloadLength).toBe(15 * 1024);
 		});
@@ -240,9 +214,9 @@ describe('Application', () => {
 			TransactionWithoutBase.TYPE = 99;
 
 			// Act && Assert
-			expect(() =>
-				app.registerTransaction(TransactionWithoutBase as any),
-			).toThrow(LiskValidationError);
+			expect(() => app.registerTransaction(TransactionWithoutBase as any)).toThrow(
+				LiskValidationError,
+			);
 		});
 
 		it('should throw error when transaction type is missing.', () => {
@@ -434,10 +408,7 @@ describe('Application', () => {
 		});
 
 		it('should delete all files in ~/.lisk/tmp/sockets', () => {
-			const { sockets: socketsPath } = systemDirs(
-				app.config.label,
-				app.config.rootPath,
-			);
+			const { sockets: socketsPath } = systemDirs(app.config.label, app.config.rootPath);
 
 			// Arrange
 			const spy = jest.spyOn(fs, 'unlink').mockReturnValue(Promise.resolve());
@@ -445,10 +416,7 @@ describe('Application', () => {
 
 			// Assert
 			for (const aSocketFile of fakeSocketFiles) {
-				expect(spy).toHaveBeenCalledWith(
-					join(socketsPath, aSocketFile),
-					expect.anything(),
-				);
+				expect(spy).toHaveBeenCalledWith(join(socketsPath, aSocketFile), expect.anything());
 			}
 		});
 	});

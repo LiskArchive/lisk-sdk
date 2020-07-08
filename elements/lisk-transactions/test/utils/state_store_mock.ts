@@ -16,9 +16,7 @@ import { hexToBuffer, getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Account, BlockHeader, AccountAsset } from '../../src/types';
 import { AccountState, ChainState } from '../../src/base_transaction';
 
-export const defaultAccount = (
-	account?: Partial<Account>,
-): Account<AccountAsset> => ({
+export const defaultAccount = (account?: Partial<Account>): Account<AccountAsset> => ({
 	address: account?.address ?? getRandomBytes(20),
 	balance: account?.balance ?? BigInt(0),
 	nonce: account?.nonce ?? BigInt(0),
@@ -31,12 +29,10 @@ export const defaultAccount = (
 		delegate: {
 			username: account?.asset?.delegate?.username ?? '',
 			pomHeights: account?.asset?.delegate?.pomHeights ?? [],
-			consecutiveMissedBlocks:
-				account?.asset?.delegate?.consecutiveMissedBlocks ?? 0,
+			consecutiveMissedBlocks: account?.asset?.delegate?.consecutiveMissedBlocks ?? 0,
 			lastForgedHeight: account?.asset?.delegate?.lastForgedHeight ?? 0,
 			isBanned: account?.asset?.delegate?.isBanned ?? false,
-			totalVotesReceived:
-				account?.asset?.delegate?.totalVotesReceived ?? BigInt(0),
+			totalVotesReceived: account?.asset?.delegate?.totalVotesReceived ?? BigInt(0),
 		},
 		sentVotes: account?.asset?.sentVotes ?? [],
 		unlocking: account?.asset?.unlocking ?? [],
@@ -62,17 +58,13 @@ export class StateStoreMock {
 
 	constructor(initialAccount?: Account[], additionalInfo?: AdditionalInfo) {
 		// Make sure to be deep copy
-		this.accountData = initialAccount
-			? initialAccount.map(a => ({ ...a }))
-			: [];
+		this.accountData = initialAccount ? initialAccount.map(a => ({ ...a })) : [];
 		this.chainData = additionalInfo?.chainData ?? {};
 
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (address: Buffer): Promise<Account> => {
-				const account = this.accountData.find(acc =>
-					acc.address.equals(address),
-				);
+				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
 					throw new Error('Account not defined');
 				}
@@ -80,18 +72,14 @@ export class StateStoreMock {
 			},
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getOrDefault: async (address: Buffer): Promise<Account> => {
-				const account = this.accountData.find(acc =>
-					acc.address.equals(address),
-				);
+				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
 					return { ...defaultAccount(), address };
 				}
 				return { ...account };
 			},
 			set: (address: Buffer, account: Account): void => {
-				const index = this.accountData.findIndex(acc =>
-					acc.address.equals(address),
-				);
+				const index = this.accountData.findIndex(acc => acc.address.equals(address));
 				if (index > -1) {
 					this.accountData[index] = account;
 					return;
@@ -101,13 +89,10 @@ export class StateStoreMock {
 		};
 
 		this.chain = {
-			networkIdentifier: hexToBuffer(
-				additionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
-			),
+			networkIdentifier: hexToBuffer(additionalInfo?.networkIdentifier ?? defaultNetworkIdentifier),
 			lastBlockHeader: additionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
 			lastBlockReward: additionalInfo?.lastBlockReward ?? BigInt(0),
-			get: async (key: string): Promise<Buffer | undefined> =>
-				Promise.resolve(this.chainData[key]),
+			get: async (key: string): Promise<Buffer | undefined> => Promise.resolve(this.chainData[key]),
 			set: (key: string, value: Buffer): void => {
 				this.chainData[key] = value;
 			},

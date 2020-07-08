@@ -17,5 +17,7 @@
 export const writeBoolean = (value: boolean): Buffer =>
 	value ? Buffer.from('01', 'hex') : Buffer.from('00', 'hex');
 
-export const readBoolean = (buffer: Buffer, offset: number): [boolean, number] =>
-	[buffer[offset] !== 0x00, 1];
+export const readBoolean = (buffer: Buffer, offset: number): [boolean, number] => [
+	buffer[offset] !== 0x00,
+	1,
+];

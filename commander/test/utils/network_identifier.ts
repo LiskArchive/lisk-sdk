@@ -47,10 +47,7 @@ describe('network identifier utils', () => {
 
 		describe('when input network identifier hex is defined', () => {
 			it('should return hex value', () => {
-				const result = getNetworkIdentifierWithInput(
-					defaultNetworkIdentifier,
-					'main',
-				);
+				const result = getNetworkIdentifierWithInput(defaultNetworkIdentifier, 'main');
 				expect(result).to.eql(defaultNetworkIdentifier);
 			});
 		});
@@ -64,9 +61,7 @@ describe('network identifier utils', () => {
 					error = err;
 				}
 
-				expect(error.message).to.eql(
-					'Network identifier must be base64 string',
-				);
+				expect(error.message).to.eql('Network identifier must be base64 string');
 			});
 		});
 

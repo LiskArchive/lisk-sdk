@@ -19,29 +19,19 @@ import { StateStore } from './state_store';
 import { Block, BlockRewardOptions } from './types';
 
 const parseHeight = (height: number): number => {
-	if (
-		typeof height === 'undefined' ||
-		height === null ||
-		Number.isNaN(height)
-	) {
+	if (typeof height === 'undefined' || height === null || Number.isNaN(height)) {
 		throw new TypeError('Invalid block height');
 	}
 
 	return Math.abs(height);
 };
 
-export const calculateMilestone = (
-	height: number,
-	blockRewardArgs: BlockRewardOptions,
-): number => {
+export const calculateMilestone = (height: number, blockRewardArgs: BlockRewardOptions): number => {
 	const parsedHeight = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
 
-	const location = Math.trunc(
-		(parsedHeight - blockRewardArgs.rewardOffset) / distance,
-	);
-	const lastMile =
-		blockRewardArgs.milestones[blockRewardArgs.milestones.length - 1];
+	const location = Math.trunc((parsedHeight - blockRewardArgs.rewardOffset) / distance);
+	const lastMile = blockRewardArgs.milestones[blockRewardArgs.milestones.length - 1];
 
 	if (location > blockRewardArgs.milestones.length - 1) {
 		return blockRewardArgs.milestones.lastIndexOf(lastMile);
@@ -50,27 +40,17 @@ export const calculateMilestone = (
 	return location;
 };
 
-export const calculateReward = (
-	height: number,
-	blockRewardArgs: BlockRewardOptions,
-): bigint => {
+export const calculateReward = (height: number, blockRewardArgs: BlockRewardOptions): bigint => {
 	const parsedHeight = parseHeight(height);
 
 	if (parsedHeight < blockRewardArgs.rewardOffset) {
 		return BigInt(0);
 	}
 
-	return BigInt(
-		blockRewardArgs.milestones[
-			calculateMilestone(parsedHeight, blockRewardArgs)
-		],
-	);
+	return BigInt(blockRewardArgs.milestones[calculateMilestone(parsedHeight, blockRewardArgs)]);
 };
 
-export const calculateSupply = (
-	height: number,
-	blockRewardArgs: BlockRewardOptions,
-): bigint => {
+export const calculateSupply = (height: number, blockRewardArgs: BlockRewardOptions): bigint => {
 	let parsedHeight = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
 	let supply = blockRewardArgs.totalAmount;
@@ -121,9 +101,7 @@ export const calculateSupply = (
 	return supply;
 };
 
-const getTotalFees = (
-	block: Block,
-): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
+const getTotalFees = (block: Block): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
 	block.payload.reduce(
 		(prev, current) => {
 			const { minFee } = current;
@@ -136,13 +114,8 @@ const getTotalFees = (
 		{ totalFee: BigInt(0), totalMinFee: BigInt(0) },
 	);
 
-export const applyFeeAndRewards = async (
-	block: Block,
-	stateStore: StateStore,
-): Promise<void> => {
-	const generatorAddress = getAddressFromPublicKey(
-		block.header.generatorPublicKey,
-	);
+export const applyFeeAndRewards = async (block: Block, stateStore: StateStore): Promise<void> => {
+	const generatorAddress = getAddressFromPublicKey(block.header.generatorPublicKey);
 	const generator = await stateStore.account.get(generatorAddress);
 	generator.balance += block.header.reward;
 	// If there is no transactions, no need to give fee
@@ -158,9 +131,7 @@ export const applyFeeAndRewards = async (
 	// Also, genesis block cannot be reverted
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
 	const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	let totalFeeBurnt = totalFeeBurntBuffer
-		? totalFeeBurntBuffer.readBigInt64BE()
-		: BigInt(0);
+	let totalFeeBurnt = totalFeeBurntBuffer ? totalFeeBurntBuffer.readBigInt64BE() : BigInt(0);
 	totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
 
 	// Update state store

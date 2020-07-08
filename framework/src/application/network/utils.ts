@@ -16,10 +16,7 @@ import { isIPv4 } from 'net';
 import { lookup, LookupOptions } from 'dns';
 import { SeedPeerInfo } from '../../types';
 
-const lookupPromise = async (
-	hostname: string,
-	options: LookupOptions,
-): Promise<unknown> =>
+const lookupPromise = async (hostname: string, options: LookupOptions): Promise<unknown> =>
 	new Promise((resolve, reject) => {
 		lookup(hostname, options, (err, address) => {
 			if (err) {
@@ -54,9 +51,7 @@ export const lookupPeersIPs = async (
 					ip: address as string,
 				};
 			} catch (err) {
-				console.error(
-					`Failed to resolve peer domain name ${ip} to an IP address`,
-				);
+				console.error(`Failed to resolve peer domain name ${ip} to an IP address`);
 				return peer;
 			}
 		}),

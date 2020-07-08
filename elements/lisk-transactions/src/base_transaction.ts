@@ -87,8 +87,7 @@ export abstract class BaseTransaction {
 
 	public constructor(transaction: BaseTransactionInput) {
 		this._id = transaction.id ?? Buffer.alloc(0);
-		this.type =
-			transaction.type ?? (this.constructor as typeof BaseTransaction).TYPE;
+		this.type = transaction.type ?? (this.constructor as typeof BaseTransaction).TYPE;
 		this.asset = transaction.asset;
 		this.nonce = transaction.nonce;
 		this.fee = transaction.fee;
@@ -241,16 +240,12 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public async verifySignatures(
-		store: StateStore,
-	): Promise<TransactionResponse> {
+	public async verifySignatures(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.get(this.senderId);
 		const { networkIdentifier } = store.chain;
 		const transactionBytes = this.getSigningBytes();
 		if (networkIdentifier === undefined || !networkIdentifier.length) {
-			throw new Error(
-				'Network identifier is required to validate a transaction ',
-			);
+			throw new Error('Network identifier is required to validate a transaction ');
 		}
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifier,
@@ -297,14 +292,10 @@ export abstract class BaseTransaction {
 
 		// If senderPassphrase is passed in assume only one signature required
 		if (senderPassphrase) {
-			const { publicKey } = getAddressAndPublicKeyFromPassphrase(
-				senderPassphrase,
-			);
+			const { publicKey } = getAddressAndPublicKeyFromPassphrase(senderPassphrase);
 
 			if (!this.senderPublicKey.equals(publicKey)) {
-				throw new Error(
-					'Transaction senderPublicKey does not match public key from passphrase',
-				);
+				throw new Error('Transaction senderPublicKey does not match public key from passphrase');
 			}
 
 			this.senderPublicKey = publicKey;
@@ -314,10 +305,7 @@ export abstract class BaseTransaction {
 				this.getSigningBytes(),
 			]);
 
-			const signature = signData(
-				transactionWithNetworkIdentifierBytes,
-				senderPassphrase,
-			);
+			const signature = signData(transactionWithNetworkIdentifierBytes, senderPassphrase);
 			// Reset signatures when only one passphrase is provided
 			this.signatures = [];
 			this.signatures.push(signature);
@@ -340,9 +328,7 @@ export abstract class BaseTransaction {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (keysAndPassphrases[publicKeyStr]) {
 					const { passphrase } = keysAndPassphrases[publicKeyStr];
-					this.signatures.push(
-						signData(transactionWithNetworkIdentifierBytes, passphrase),
-					);
+					this.signatures.push(signData(transactionWithNetworkIdentifierBytes, passphrase));
 				} else {
 					// Push an empty signature if a passphrase is missing
 					this.signatures.push(Buffer.alloc(0));
@@ -358,8 +344,7 @@ export abstract class BaseTransaction {
 	}
 
 	private _getAssetBytes(): Buffer {
-		const assetSchema = (this.constructor as typeof BaseTransaction)
-			.ASSET_SCHEMA;
+		const assetSchema = (this.constructor as typeof BaseTransaction).ASSET_SCHEMA;
 		return codec.encode(assetSchema as Schema, this.asset);
 	}
 
@@ -368,28 +353,17 @@ export abstract class BaseTransaction {
 			...this,
 			asset: Buffer.alloc(0),
 		};
-		const schemaErrors = validator.validate(
-			BaseTransaction.BASE_SCHEMA,
-			valueWithoutAsset,
-		);
-		const errors = convertToTransactionError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
+		const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, valueWithoutAsset);
+		const errors = convertToTransactionError(this.id, schemaErrors) as TransactionError[];
 
 		const assetSchemaErrors = validator.validate(
 			(this.constructor as typeof BaseTransaction).ASSET_SCHEMA,
 			this.asset,
 		);
-		const assetErrors = convertToTransactionError(
-			this.id,
-			assetSchemaErrors,
-		) as TransactionError[];
+		const assetErrors = convertToTransactionError(this.id, assetSchemaErrors) as TransactionError[];
 
 		return [...errors, ...assetErrors];
 	}
 
-	protected abstract applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>>;
+	protected abstract applyAsset(store: StateStore): Promise<ReadonlyArray<TransactionError>>;
 }

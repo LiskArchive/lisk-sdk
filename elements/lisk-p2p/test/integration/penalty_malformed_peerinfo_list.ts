@@ -13,11 +13,7 @@
  *
  */
 import { P2P, events } from '../../src/index';
-import {
-	createNetwork,
-	destroyNetwork,
-	SEED_PEER_IP,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork, SEED_PEER_IP } from '../utils/network_setup';
 import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
 
@@ -42,9 +38,7 @@ describe('penalty sending malformed Peer List', () => {
 			for (let i = 0; i < 1000; i += 1) {
 				const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${
 					Math.floor(Math.random() * 254) + 1
-				}.${Math.floor(Math.random() * 254) + 1}.${
-					Math.floor(Math.random() * 254) + 1
-				}`;
+				}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}`;
 
 				p2pNodeList[0]['_peerBook'].addPeer({
 					peerId: `${generatedIP}:5000`,

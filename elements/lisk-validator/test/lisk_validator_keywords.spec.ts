@@ -41,22 +41,17 @@ describe('validator keywords', () => {
 	});
 
 	describe('dataType', () => {
-		it.each([
-			'bytes',
-			'uint32',
-			'sint32',
-			'uint64',
-			'sint64',
-			'string',
-			'boolean',
-		])('should be ok with "dataType=%s"', dataType => {
-			// Arrange
-			const schema = cloneDeep(validSchema);
-			schema.properties.myProp.dataType = dataType;
+		it.each(['bytes', 'uint32', 'sint32', 'uint64', 'sint64', 'string', 'boolean'])(
+			'should be ok with "dataType=%s"',
+			dataType => {
+				// Arrange
+				const schema = cloneDeep(validSchema);
+				schema.properties.myProp.dataType = dataType;
 
-			// Assert
-			expect(() => validator.compile(schema)).not.toThrow();
-		});
+				// Assert
+				expect(() => validator.compile(schema)).not.toThrow();
+			},
+		);
 
 		it('should return error when "dataType" and "type" both present', () => {
 			// Arrange

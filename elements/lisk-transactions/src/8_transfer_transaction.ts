@@ -61,28 +61,19 @@ export class TransferTransaction extends BaseTransaction {
 		this.asset = transaction.asset;
 	}
 
-	protected async applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
+	protected async applyAsset(store: StateStore): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get(this.senderId);
 
 		sender.balance -= this.asset.amount;
 		store.account.set(sender.address, sender);
-		const recipient = await store.account.getOrDefault(
-			this.asset.recipientAddress,
-		);
+		const recipient = await store.account.getOrDefault(this.asset.recipientAddress);
 
 		recipient.balance += this.asset.amount;
 
 		if (recipient.balance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
-				new TransactionError(
-					'Invalid amount',
-					this.id,
-					'.amount',
-					this.asset.amount.toString(),
-				),
+				new TransactionError('Invalid amount', this.id, '.amount', this.asset.amount.toString()),
 			);
 		}
 

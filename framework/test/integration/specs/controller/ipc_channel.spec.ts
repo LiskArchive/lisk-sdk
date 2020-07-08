@@ -15,10 +15,7 @@
 import { homedir } from 'os';
 
 import { resolve as pathResolve } from 'path';
-import {
-	IPCChannel,
-	InMemoryChannel,
-} from '../../../../src/controller/channels';
+import { IPCChannel, InMemoryChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
 
@@ -77,19 +74,9 @@ describe.skip('IPCChannel', () => {
 			// Arrange
 			bus = new Bus(logger, config);
 
-			alphaChannel = new IPCChannel(
-				alpha.moduleAlias,
-				alpha.events,
-				alpha.actions,
-				config,
-			);
+			alphaChannel = new IPCChannel(alpha.moduleAlias, alpha.events, alpha.actions, config);
 
-			betaChannel = new IPCChannel(
-				beta.moduleAlias,
-				beta.events,
-				beta.actions,
-				config,
-			);
+			betaChannel = new IPCChannel(beta.moduleAlias, beta.events, beta.actions, config);
 
 			await bus.setup();
 			await alphaChannel.registerToBus();
@@ -145,11 +132,7 @@ describe.skip('IPCChannel', () => {
 				const omegaEventName = 'omegaEventName';
 				const omegaAlias = 'omegaAlias';
 				const dummyData = { data: '#DATA' };
-				const inMemoryChannelOmega = new InMemoryChannel(
-					omegaAlias,
-					[omegaEventName],
-					{},
-				);
+				const inMemoryChannelOmega = new InMemoryChannel(omegaAlias, [omegaEventName], {});
 
 				const donePromise = new Promise(resolve => {
 					// Act
@@ -162,10 +145,7 @@ describe.skip('IPCChannel', () => {
 
 				await inMemoryChannelOmega.registerToBus(bus);
 
-				inMemoryChannelOmega.publish(
-					`${omegaAlias}:${omegaEventName}`,
-					dummyData,
-				);
+				inMemoryChannelOmega.publish(`${omegaAlias}:${omegaEventName}`, dummyData);
 
 				return donePromise;
 			});
@@ -186,10 +166,7 @@ describe.skip('IPCChannel', () => {
 					});
 				});
 
-				alphaChannel.publish(
-					`${alpha.moduleAlias}:${eventName}`,
-					alphaEventData,
-				);
+				alphaChannel.publish(`${alpha.moduleAlias}:${eventName}`, alphaEventData);
 
 				return donePromise;
 			});

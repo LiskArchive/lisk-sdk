@@ -78,9 +78,9 @@ describe('encode', () => {
 			const bytesFixtureOutput = bytesTestCases[0].output;
 			const message = bytesFixtureInput.object;
 
-			const originalMessageBytes = Buffer.from(
-				bytesFixtureInput.object.address.data,
-			).toString('hex');
+			const originalMessageBytes = Buffer.from(bytesFixtureInput.object.address.data).toString(
+				'hex',
+			);
 			// Replace the JSON representation of buffer with an actual buffer
 			(message as any).address = Buffer.from(message.address.data);
 			const { schema } = bytesFixtureInput;
@@ -258,9 +258,7 @@ describe('encode', () => {
 			it(testCase.description, () => {
 				const message = {
 					header: Buffer.from(testCase.input.object.header.data),
-					payload: testCase.input.object.payload.map(payloadItem =>
-						Buffer.from(payloadItem.data),
-					),
+					payload: testCase.input.object.payload.map(payloadItem => Buffer.from(payloadItem.data)),
 				};
 
 				const result = codec.encode(testCase.input.schema, message);
@@ -277,15 +275,9 @@ describe('encode', () => {
 					reward: BigInt(testCase.input.object.reward),
 					asset: Buffer.from(testCase.input.object.asset.data),
 					signature: Buffer.from(testCase.input.object.signature.data),
-					transactionRoot: Buffer.from(
-						testCase.input.object.transactionRoot.data,
-					),
-					previousBlockID: Buffer.from(
-						testCase.input.object.previousBlockID.data,
-					),
-					generatorPublicKey: Buffer.from(
-						testCase.input.object.generatorPublicKey.data,
-					),
+					transactionRoot: Buffer.from(testCase.input.object.transactionRoot.data),
+					previousBlockID: Buffer.from(testCase.input.object.previousBlockID.data),
+					generatorPublicKey: Buffer.from(testCase.input.object.generatorPublicKey.data),
 				};
 
 				const result = codec.encode(testCase.input.schema, message);
@@ -314,9 +306,7 @@ describe('encode', () => {
 			it(testCase.description, () => {
 				const message = {
 					...testCase.input.object,
-					initDelegates: testCase.input.object.initDelegates.map(d =>
-						Buffer.from(d.data),
-					),
+					initDelegates: testCase.input.object.initDelegates.map(d => Buffer.from(d.data)),
 					accounts: testCase.input.object.accounts.map(acc => ({
 						...acc,
 						address: Buffer.from(acc.address.data),
@@ -325,20 +315,14 @@ describe('encode', () => {
 						nonce: BigInt(acc.nonce),
 						keys: {
 							...acc.keys,
-							mandatoryKeys: acc.keys.mandatoryKeys.map((b: any) =>
-								Buffer.from(b.data),
-							),
-							optionalKeys: acc.keys.optionalKeys.map((b: any) =>
-								Buffer.from(b.data),
-							),
+							mandatoryKeys: acc.keys.mandatoryKeys.map((b: any) => Buffer.from(b.data)),
+							optionalKeys: acc.keys.optionalKeys.map((b: any) => Buffer.from(b.data)),
 						},
 						asset: {
 							...acc.asset,
 							delegate: {
 								...acc.asset.delegate,
-								totalVotesReceived: BigInt(
-									acc.asset.delegate.totalVotesReceived,
-								),
+								totalVotesReceived: BigInt(acc.asset.delegate.totalVotesReceived),
 							},
 							sentVotes: acc.asset.sentVotes.map(v => ({
 								...v,
@@ -372,20 +356,16 @@ describe('encode', () => {
 					nonce: BigInt(testCase.input.object.nonce),
 					keys: {
 						...testCase.input.object.keys,
-						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b =>
+						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b => Buffer.from(b.data)),
+						optionalKeys: testCase.input.object.keys.optionalKeys.map((b: any) =>
 							Buffer.from(b.data),
-						),
-						optionalKeys: testCase.input.object.keys.optionalKeys.map(
-							(b: any) => Buffer.from(b.data),
 						),
 					},
 					asset: {
 						...testCase.input.object.asset,
 						delegate: {
 							...testCase.input.object.asset.delegate,
-							totalVotesReceived: BigInt(
-								testCase.input.object.asset.delegate.totalVotesReceived,
-							),
+							totalVotesReceived: BigInt(testCase.input.object.asset.delegate.totalVotesReceived),
 						},
 						sentVotes: testCase.input.object.asset.sentVotes.map(v => ({
 							...v,
@@ -414,12 +394,8 @@ describe('encode', () => {
 				...testCase.input.object,
 				nonce: BigInt(testCase.input.object.nonce),
 				fee: BigInt(testCase.input.object.fee),
-				senderPublicKey: Buffer.from(
-					(testCase.input.object.senderPublicKey as any).data,
-				),
-				signatures: testCase.input.object.signatures?.map(v =>
-					Buffer.from(v.data),
-				),
+				senderPublicKey: Buffer.from((testCase.input.object.senderPublicKey as any).data),
+				signatures: testCase.input.object.signatures?.map(v => Buffer.from(v.data)),
 				asset: Buffer.from((testCase.input.object.asset as any).data),
 			};
 
@@ -446,18 +422,11 @@ describe('encode', () => {
 				it(testCase.description, () => {
 					const message = {
 						...testCase.input.object,
-						mandatoryKeys: testCase.input.object.mandatoryKeys?.map(k =>
-							Buffer.from(k.data),
-						),
-						optionalKeys: testCase.input.object.optionalKeys?.map(k =>
-							Buffer.from(k.data),
-						),
+						mandatoryKeys: testCase.input.object.mandatoryKeys?.map(k => Buffer.from(k.data)),
+						optionalKeys: testCase.input.object.optionalKeys?.map(k => Buffer.from(k.data)),
 					};
 
-					const result = codec.encode(
-						testCase.input.schema as any,
-						message as any,
-					);
+					const result = codec.encode(testCase.input.schema as any, message as any);
 					expect(result.toString('hex')).toEqual(testCase.output.value);
 				});
 			}
@@ -467,10 +436,7 @@ describe('encode', () => {
 	describe('peer info encoding', () => {
 		for (const testCase of peerInfoEncoding.testCases) {
 			it(testCase.description, () => {
-				const result = codec.encode(
-					testCase.input.schema,
-					testCase.input.object,
-				);
+				const result = codec.encode(testCase.input.schema, testCase.input.object);
 				expect(result.toString('hex')).toEqual(testCase.output.value);
 			});
 		}
@@ -479,10 +445,7 @@ describe('encode', () => {
 	describe('nested array encoding', () => {
 		for (const testCase of nestedArrayEncoding.testCases) {
 			it(testCase.description, () => {
-				const result = codec.encode(
-					testCase.input.schema,
-					testCase.input.object,
-				);
+				const result = codec.encode(testCase.input.schema, testCase.input.object);
 				expect(result.toString('hex')).toEqual(testCase.output.value);
 			});
 		}

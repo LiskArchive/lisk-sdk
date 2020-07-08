@@ -14,16 +14,10 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import {
-	getAddressFromPublicKey,
-	bufferToHex,
-} from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, bufferToHex } from '@liskhq/lisk-cryptography';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import {
-	MAX_POM_HEIGHTS,
-	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
-} from './constants';
+import { MAX_POM_HEIGHTS, MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE } from './constants';
 import { TransactionError } from './errors';
 import { getPunishmentPeriod, validateSignature } from './utils';
 import { BlockHeader, BaseTransactionInput, AccountAsset } from './types';
@@ -56,11 +50,7 @@ const signingBlockHeaderSchema = {
 					fieldNumber: 3,
 				},
 			},
-			required: [
-				'maxHeightPreviouslyForged',
-				'maxHeightPrevoted',
-				'seedReveal',
-			],
+			required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
 		},
 	},
 	required: [
@@ -119,11 +109,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const errors = [];
 
-		if (
-			!this.asset.header1.generatorPublicKey.equals(
-				this.asset.header2.generatorPublicKey,
-			)
-		) {
+		if (!this.asset.header1.generatorPublicKey.equals(this.asset.header2.generatorPublicKey)) {
 			errors.push(
 				new TransactionError(
 					'GeneratorPublicKey of each BlockHeader should match.',
@@ -161,11 +147,9 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		// Order the two block headers such that b1 must be forged first
 		if (
 			b1.asset.maxHeightPreviouslyForged > b2.asset.maxHeightPreviouslyForged ||
-			(b1.asset.maxHeightPreviouslyForged ===
-				b2.asset.maxHeightPreviouslyForged &&
+			(b1.asset.maxHeightPreviouslyForged === b2.asset.maxHeightPreviouslyForged &&
 				b1.asset.maxHeightPrevoted > b2.asset.maxHeightPrevoted) ||
-			(b1.asset.maxHeightPreviouslyForged ===
-				b2.asset.maxHeightPreviouslyForged &&
+			(b1.asset.maxHeightPreviouslyForged === b2.asset.maxHeightPreviouslyForged &&
 				b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted &&
 				b1.height > b2.height)
 		) {
@@ -174,10 +158,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		}
 
 		if (
-			!(
-				b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted &&
-				b1.height >= b2.height
-			) &&
+			!(b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted && b1.height >= b2.height) &&
 			!(b1.height > b2.asset.maxHeightPreviouslyForged) &&
 			!(b1.asset.maxHeightPrevoted > b2.asset.maxHeightPrevoted)
 		) {
@@ -193,9 +174,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected async applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
+	protected async applyAsset(store: StateStore): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
 		const currentHeight = store.chain.lastBlockHeader.height + 1;
 		const senderAccount = await store.account.get<AccountAsset>(this.senderId);
@@ -206,8 +185,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		*/
 
 		if (
-			Math.abs(this.asset.header1.height - currentHeight) >=
-			MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE
+			Math.abs(this.asset.header1.height - currentHeight) >= MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE
 		) {
 			errors.push(
 				new TransactionError(
@@ -220,8 +198,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		}
 
 		if (
-			Math.abs(this.asset.header2.height - currentHeight) >=
-			MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE
+			Math.abs(this.asset.header2.height - currentHeight) >= MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE
 		) {
 			errors.push(
 				new TransactionError(
@@ -236,12 +213,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Check if delegate is eligible to be punished
 		*/
-		const delegateAddress = getAddressFromPublicKey(
-			this.asset.header1.generatorPublicKey,
-		);
-		const delegateAccount = await store.account.getOrDefault<AccountAsset>(
-			delegateAddress,
-		);
+		const delegateAddress = getAddressFromPublicKey(this.asset.header1.generatorPublicKey);
+		const delegateAccount = await store.account.getOrDefault<AccountAsset>(delegateAddress);
 
 		if (!delegateAccount.asset.delegate.username) {
 			errors.push(
@@ -269,11 +242,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		}
 
 		if (
-			getPunishmentPeriod(
-				delegateAccount,
-				delegateAccount,
-				store.chain.lastBlockHeader.height,
-			) > 0
+			getPunishmentPeriod(delegateAccount, delegateAccount, store.chain.lastBlockHeader.height) > 0
 		) {
 			errors.push(
 				new TransactionError(
@@ -350,15 +319,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		*/
 
 		// Fetch delegate account again in case sender and delegate are the same account
-		const updatedDelegateAccount = await store.account.get<AccountAsset>(
-			delegateAddress,
-		);
+		const updatedDelegateAccount = await store.account.get<AccountAsset>(delegateAddress);
 
 		updatedDelegateAccount.asset.delegate.pomHeights.push(currentHeight);
 
-		if (
-			updatedDelegateAccount.asset.delegate.pomHeights.length >= MAX_POM_HEIGHTS
-		) {
+		if (updatedDelegateAccount.asset.delegate.pomHeights.length >= MAX_POM_HEIGHTS) {
 			updatedDelegateAccount.asset.delegate.isBanned = true;
 		}
 		updatedDelegateAccount.balance -= reward;

@@ -64,10 +64,7 @@ export class Broadcaster {
 	}
 
 	public enqueueTransactionId(transactionId: Buffer): boolean {
-		if (
-			this._transactionIdQueue.find(id => id.equals(transactionId)) !==
-			undefined
-		) {
+		if (this._transactionIdQueue.find(id => id.equals(transactionId)) !== undefined) {
 			return false;
 		}
 		this._transactionIdQueue.push(transactionId);
@@ -80,10 +77,7 @@ export class Broadcaster {
 			this._transactionPool.contains(id),
 		);
 		if (this._transactionIdQueue.length > 0) {
-			const transactionIds = this._transactionIdQueue.slice(
-				0,
-				this._config.releaseLimit,
-			);
+			const transactionIds = this._transactionIdQueue.slice(0, this._config.releaseLimit);
 
 			this._networkModule.broadcast({
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,

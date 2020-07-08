@@ -48,12 +48,7 @@ describe('hash-onion command', () => {
 
 	describe('hash-onion --count=1000 --distance=200 --output=./test/sample.json', () => {
 		setupTest()
-			.command([
-				'hash-onion',
-				'--count=1000',
-				'--distance=200',
-				'--output=./test/sample.json',
-			])
+			.command(['hash-onion', '--count=1000', '--distance=200', '--output=./test/sample.json'])
 			.it('should write to file', () => {
 				expect(fs.ensureDirSync).to.be.calledWith('./test');
 				expect(fs.writeJSONSync).to.be.calledWith('./test/sample.json');
@@ -86,9 +81,7 @@ describe('hash-onion command', () => {
 		setupTest()
 			.command(['hash-onion', '--count=-1', '--distance=200'])
 			.catch(error => {
-				return expect(error.message).to.contain(
-					'Invalid count. Count has to be positive integer',
-				);
+				return expect(error.message).to.contain('Invalid count. Count has to be positive integer');
 			})
 			.it('should throw an error');
 	});

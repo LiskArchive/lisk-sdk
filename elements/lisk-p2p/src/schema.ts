@@ -59,10 +59,7 @@ export const defaultRPCSchemas = {
 	nodeInfo: nodeInfoSchema,
 };
 
-export const mergeCustomSchema = (
-	baseSchema: Schema,
-	customSchema: Schema,
-): Schema => ({
+export const mergeCustomSchema = (baseSchema: Schema, customSchema: Schema): Schema => ({
 	...baseSchema,
 	properties: {
 		...baseSchema.properties,

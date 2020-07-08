@@ -71,11 +71,7 @@ const run = async () => {
 			console.log('Total number of connected peers:', p2p.getConnectedPeers());
 
 			const { data: peerData } = await p2p.request({ procedure: 'list' });
-			console.log(
-				'Received ',
-				(peerData as any).peers.length,
-				' number of peers.',
-			);
+			console.log('Received ', (peerData as any).peers.length, ' number of peers.');
 		},
 	);
 	// Listen to connect incoming connections error events

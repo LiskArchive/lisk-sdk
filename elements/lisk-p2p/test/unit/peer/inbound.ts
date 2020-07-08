@@ -67,11 +67,7 @@ describe('peer/inbound', () => {
 			emit: jest.fn(),
 			destroy: jest.fn(),
 		} as any);
-		defaultInboundPeer = new InboundPeer(
-			defaultPeerInfo,
-			inboundSocket,
-			defaultPeerConfig,
-		);
+		defaultInboundPeer = new InboundPeer(defaultPeerInfo, inboundSocket, defaultPeerConfig);
 	});
 
 	afterEach(() => {
@@ -84,14 +80,10 @@ describe('peer/inbound', () => {
 			expect(defaultInboundPeer).toBeInstanceOf(InboundPeer));
 
 		it('should have a function named _handleInboundSocketError', () =>
-			expect((defaultInboundPeer as any)._handleInboundSocketError).toEqual(
-				expect.any(Function),
-			));
+			expect((defaultInboundPeer as any)._handleInboundSocketError).toEqual(expect.any(Function)));
 
 		it('should have a function named _handleInboundSocketClose ', () =>
-			expect((defaultInboundPeer as any)._handleInboundSocketClose).toEqual(
-				expect.any(Function),
-			));
+			expect((defaultInboundPeer as any)._handleInboundSocketClose).toEqual(expect.any(Function)));
 
 		it('should set ping timeout', () => {
 			expect((defaultInboundPeer as any)._pingTimeoutId).toBeDefined();
@@ -104,17 +96,13 @@ describe('peer/inbound', () => {
 			jest.spyOn(defaultInboundPeer as any, '_sendPing');
 			expect((defaultInboundPeer as any)._sendPing).not.toHaveBeenCalled();
 
-			jest.advanceTimersByTime(
-				DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1,
-			);
+			jest.advanceTimersByTime(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
 
 			expect((defaultInboundPeer as any)._sendPing).toHaveBeenCalled();
 		});
 
 		it(`should emit ${REMOTE_EVENT_PING} event`, () => {
-			jest.advanceTimersByTime(
-				DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1,
-			);
+			jest.advanceTimersByTime(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
 
 			expect((defaultInboundPeer as any)._socket.emit).toHaveBeenCalledTimes(1);
 			expect((defaultInboundPeer as any)._socket.emit).toHaveBeenCalledWith(
@@ -165,9 +153,9 @@ describe('peer/inbound', () => {
 		it('should unbind handlers from a former inbound socket', () => {
 			jest.spyOn(defaultInboundPeer as any, '_unbindHandlersFromInboundSocket');
 			defaultInboundPeer.socket = newInboundSocket;
-			expect(
-				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
-			).toHaveBeenCalledWith(inboundSocket);
+			expect((defaultInboundPeer as any)._unbindHandlersFromInboundSocket).toHaveBeenCalledWith(
+				inboundSocket,
+			);
 		});
 
 		it('should set a new socket', () => {
@@ -180,12 +168,10 @@ describe('peer/inbound', () => {
 			jest.spyOn(defaultInboundPeer as any, '_bindHandlersToInboundSocket');
 			defaultInboundPeer.socket = newInboundSocket;
 
-			expect(
-				(defaultInboundPeer as any)._bindHandlersToInboundSocket,
-			).toHaveBeenCalledTimes(1);
-			expect(
-				(defaultInboundPeer as any)._bindHandlersToInboundSocket,
-			).toHaveBeenCalledWith(newInboundSocket);
+			expect((defaultInboundPeer as any)._bindHandlersToInboundSocket).toHaveBeenCalledTimes(1);
+			expect((defaultInboundPeer as any)._bindHandlersToInboundSocket).toHaveBeenCalledWith(
+				newInboundSocket,
+			);
 		});
 	});
 
@@ -200,18 +186,16 @@ describe('peer/inbound', () => {
 		it('should not send ping anymore', () => {
 			jest.spyOn(defaultInboundPeer as any, '_sendPing');
 			defaultInboundPeer.disconnect();
-			jest.advanceTimersByTime(
-				DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1,
-			);
+			jest.advanceTimersByTime(DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1);
 			expect((defaultInboundPeer as any)._sendPing).not.toHaveBeenCalled();
 		});
 
 		it('should call _unbindHandlersFromInboundSocket with inbound socket', () => {
 			jest.spyOn(defaultInboundPeer as any, '_unbindHandlersFromInboundSocket');
 			defaultInboundPeer.disconnect();
-			expect(
-				(defaultInboundPeer as any)._unbindHandlersFromInboundSocket,
-			).toHaveBeenCalledWith(inboundSocket);
+			expect((defaultInboundPeer as any)._unbindHandlersFromInboundSocket).toHaveBeenCalledWith(
+				inboundSocket,
+			);
 		});
 
 		it('should unbind handlers from an inbound socket', () => {

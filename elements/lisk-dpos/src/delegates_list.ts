@@ -16,11 +16,7 @@ import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 
 import * as Debug from 'debug';
-import {
-	delegatesUserNamesSchema,
-	forgerListSchema,
-	voteWeightsSchema,
-} from './schemas';
+import { delegatesUserNamesSchema, forgerListSchema, voteWeightsSchema } from './schemas';
 
 import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
@@ -61,55 +57,35 @@ interface DelegateListWithRoundHash {
 	roundHash: Buffer;
 }
 
-export const getForgersList = async (
-	stateStore: StateStore,
-): Promise<ForgersList> => {
-	const forgersList = await stateStore.consensus.get(
-		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
-	);
+export const getForgersList = async (stateStore: StateStore): Promise<ForgersList> => {
+	const forgersList = await stateStore.consensus.get(CONSENSUS_STATE_DELEGATE_FORGERS_LIST);
 	if (!forgersList) {
 		return [];
 	}
 
-	const forgerListDecoded = codec.decode<DecodedForgersList>(
-		forgerListSchema,
-		forgersList,
-	);
+	const forgerListDecoded = codec.decode<DecodedForgersList>(forgerListSchema, forgersList);
 
 	return forgerListDecoded.forgersList;
 };
 
-export const setForgersList = (
-	stateStore: StateStore,
-	forgersList: ForgersList,
-): void => {
+export const setForgersList = (stateStore: StateStore, forgersList: ForgersList): void => {
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 		codec.encode(forgerListSchema, { forgersList }),
 	);
 };
 
-export const getVoteWeights = async (
-	stateStore: StateStore,
-): Promise<VoteWeights> => {
-	const voteWeights = await stateStore.consensus.get(
-		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
-	);
+export const getVoteWeights = async (stateStore: StateStore): Promise<VoteWeights> => {
+	const voteWeights = await stateStore.consensus.get(CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS);
 	if (!voteWeights) {
 		return [];
 	}
 
-	const voteWeightsDecoded = codec.decode<DecodedVoteWeights>(
-		voteWeightsSchema,
-		voteWeights,
-	);
+	const voteWeightsDecoded = codec.decode<DecodedVoteWeights>(voteWeightsSchema, voteWeights);
 	return voteWeightsDecoded.voteWeights;
 };
 
-const _setVoteWeights = (
-	stateStore: StateStore,
-	voteWeights: VoteWeights,
-): void => {
+const _setVoteWeights = (stateStore: StateStore, voteWeights: VoteWeights): void => {
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		codec.encode(voteWeightsSchema, { voteWeights }),
@@ -170,8 +146,7 @@ export const getForgerAddressesForRound = async (
 	stateStore: StateStore,
 ): Promise<ReadonlyArray<Buffer>> => {
 	const forgersList = await getForgersList(stateStore);
-	const delegateAddresses = forgersList.find(fl => fl.round === round)
-		?.delegates;
+	const delegateAddresses = forgersList.find(fl => fl.round === round)?.delegates;
 
 	if (!delegateAddresses) {
 		throw new Error(`No delegate list found for round: ${round.toString()}`);
@@ -180,10 +155,7 @@ export const getForgerAddressesForRound = async (
 	return delegateAddresses;
 };
 
-export const isCurrentlyPunished = (
-	height: number,
-	pomHeights: ReadonlyArray<number>,
-): boolean => {
+export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<number>): boolean => {
 	if (pomHeights.length === 0) {
 		return false;
 	}
@@ -195,13 +167,8 @@ export const isCurrentlyPunished = (
 	return false;
 };
 
-const _getTotalVoteWeight = (
-	delegateWeights: ReadonlyArray<DelegateWeight>,
-): bigint =>
-	delegateWeights.reduce(
-		(prev, current) => prev + BigInt(current.voteWeight),
-		BigInt(0),
-	);
+const _getTotalVoteWeight = (delegateWeights: ReadonlyArray<DelegateWeight>): bigint =>
+	delegateWeights.reduce((prev, current) => prev + BigInt(current.voteWeight), BigInt(0));
 
 const _pickStandByDelegate = (
 	delegateWeights: ReadonlyArray<DelegateWeight>,
@@ -258,9 +225,7 @@ export class DelegatesList {
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesBuffer = await stateStore.chain.get(
-			CHAIN_STATE_DELEGATE_USERNAMES,
-		);
+		const usernamesBuffer = await stateStore.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
 
 		let usernames = { registeredDelegates: [] } as ChainStateUsernames;
 
@@ -281,9 +246,7 @@ export class DelegatesList {
 		}
 
 		const delegates: Account[] = await Promise.all(
-			usernames.registeredDelegates.map(async delegate =>
-				stateStore.account.get(delegate.address),
-			),
+			usernames.registeredDelegates.map(async delegate => stateStore.account.get(delegate.address)),
 		);
 
 		// Update totalVotesReceived to voteWeight equivalent before sorting
@@ -297,17 +260,14 @@ export class DelegatesList {
 			const selfVote = account.asset.sentVotes.find(vote =>
 				vote.delegateAddress.equals(account.address),
 			);
-			const cappedValue =
-				(selfVote?.amount ?? BigInt(0)) * BigInt(this.voteWeightCapRate);
+			const cappedValue = (selfVote?.amount ?? BigInt(0)) * BigInt(this.voteWeightCapRate);
 			if (account.asset.delegate.totalVotesReceived > cappedValue) {
 				account.asset.delegate.totalVotesReceived = cappedValue;
 			}
 		}
 
 		delegates.sort((a, b) => {
-			const diff =
-				b.asset.delegate.totalVotesReceived -
-				a.asset.delegate.totalVotesReceived;
+			const diff = b.asset.delegate.totalVotesReceived - a.asset.delegate.totalVotesReceived;
 			if (diff > BigInt(0)) {
 				return 1;
 			}
@@ -391,9 +351,7 @@ export class DelegatesList {
 		const voteWeights = await getVoteWeights(stateStore);
 		const voteWeight = voteWeights.find(vw => vw.round === round);
 		if (!voteWeight) {
-			throw new Error(
-				`Corresponding vote weight for round ${round.toString()} not found`,
-			);
+			throw new Error(`Corresponding vote weight for round ${round.toString()} not found`);
 		}
 		// Expect that voteWeight is stored in order of voteWeight and address
 		const hasStandbySlot = voteWeight.delegates.length > this.activeDelegates;
@@ -424,9 +382,7 @@ export class DelegatesList {
 				if (standbyDelegateIndex < 0) {
 					throw new Error('Fail to pick standby delegate');
 				}
-				standbyDelegateAddresses.push(
-					standbyDelegateVoteWeights[standbyDelegateIndex].address,
-				);
+				standbyDelegateAddresses.push(standbyDelegateVoteWeights[standbyDelegateIndex].address);
 				standbyDelegateVoteWeights.splice(standbyDelegateIndex, 1);
 			}
 		}
@@ -456,13 +412,9 @@ export class DelegatesList {
 			throw new Error(`No delegate list found for round: ${round.toString()}`);
 		}
 
-		const { forgersList } = codec.decode<DecodedForgersList>(
-			forgerListSchema,
-			forgersListBuffer,
-		);
+		const { forgersList } = codec.decode<DecodedForgersList>(forgerListSchema, forgersListBuffer);
 
-		const delegateAddresses = forgersList.find(fl => fl.round === round)
-			?.delegates;
+		const delegateAddresses = forgersList.find(fl => fl.round === round)?.delegates;
 
 		if (!delegateAddresses) {
 			throw new Error(`No delegate list found for round: ${round.toString()}`);
@@ -486,15 +438,10 @@ export class DelegatesList {
 		}
 
 		// Get delegate public key that was supposed to forge the block
-		const expectedForgerAddress =
-			delegateList[currentSlot % delegateList.length];
+		const expectedForgerAddress = delegateList[currentSlot % delegateList.length];
 
 		// Verify if forger exists and matches the generatorPublicKey on block
-		if (
-			!getAddressFromPublicKey(block.generatorPublicKey).equals(
-				expectedForgerAddress,
-			)
-		) {
+		if (!getAddressFromPublicKey(block.generatorPublicKey).equals(expectedForgerAddress)) {
 			throw new Error(
 				`Failed to verify slot: ${currentSlot.toString()}. Block Height: ${block.height.toString()}`,
 			);

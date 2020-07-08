@@ -18,13 +18,7 @@
 /// <reference path="../../external_types/pm2-axon-rpc/index.d.ts" />
 
 import * as axon from 'pm2-axon';
-import {
-	PubSocket,
-	PullSocket,
-	PushSocket,
-	RepSocket,
-	SubSocket,
-} from 'pm2-axon';
+import { PubSocket, PullSocket, PushSocket, RepSocket, SubSocket } from 'pm2-axon';
 import { join } from 'path';
 import { Server as RPCServer } from 'pm2-axon-rpc';
 
@@ -38,14 +32,8 @@ export abstract class IPCSocket {
 	protected readonly _actionRpcSeverSocketPath: string;
 
 	protected constructor(options: { socketsDir: string; name: string }) {
-		this._eventPubSocketPath = `unix://${join(
-			options.socketsDir,
-			'pub_socket.sock',
-		)}`;
-		this._eventSubSocketPath = `unix://${join(
-			options.socketsDir,
-			'sub_socket.sock',
-		)}`;
+		this._eventPubSocketPath = `unix://${join(options.socketsDir, 'pub_socket.sock')}`;
+		this._eventSubSocketPath = `unix://${join(options.socketsDir, 'sub_socket.sock')}`;
 		this._actionRpcSeverSocketPath = `unix://${join(
 			options.socketsDir,
 			`${options.name}_rpc_socket.sock`,

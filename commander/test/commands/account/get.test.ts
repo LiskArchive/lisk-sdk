@@ -38,9 +38,7 @@ describe('account:get command', () => {
 		setupTest()
 			.stdout()
 			.command(['account:get'])
-			.catch((error: Error) =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch((error: Error) => expect(error.message).to.contain('Missing 1 required arg'))
 			.it('should throw an error when arg is not provided');
 	});
 
@@ -59,22 +57,18 @@ describe('account:get command', () => {
 			.command(['account:get', address])
 			.it('should get an account info and display as an object', () => {
 				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-				expect(queryHandler.query).to.be.calledWithExactly(
-					apiClientStub,
-					endpoint,
-					[
-						{
-							query: {
-								limit: 1,
-								address,
-							},
-							placeholder: {
-								address,
-								message: 'Address not found.',
-							},
+				expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							address,
 						},
-					],
-				);
+						placeholder: {
+							address,
+							message: 'Address not found.',
+						},
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
@@ -99,32 +93,28 @@ describe('account:get command', () => {
 			.command(['account:get', addresses.join(',')])
 			.it('should get accounts info and display as an array', () => {
 				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-				expect(queryHandler.query).to.be.calledWithExactly(
-					apiClientStub,
-					endpoint,
-					[
-						{
-							query: {
-								limit: 1,
-								address: addresses[0],
-							},
-							placeholder: {
-								address: addresses[0],
-								message: 'Address not found.',
-							},
+				expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							address: addresses[0],
 						},
-						{
-							query: {
-								limit: 1,
-								address: addresses[1],
-							},
-							placeholder: {
-								address: addresses[1],
-								message: 'Address not found.',
-							},
+						placeholder: {
+							address: addresses[0],
+							message: 'Address not found.',
 						},
-					],
-				);
+					},
+					{
+						query: {
+							limit: 1,
+							address: addresses[1],
+						},
+						placeholder: {
+							address: addresses[1],
+							message: 'Address not found.',
+						},
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 
@@ -132,28 +122,21 @@ describe('account:get command', () => {
 			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.stdout()
 			.command(['account:get', addressesWithEmpty.join(',')])
-			.it(
-				'should get accounts info only using non-empty args and display as an array',
-				() => {
-					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									limit: 1,
-									address: addressesWithEmpty[0],
-								},
-								placeholder: {
-									address: addressesWithEmpty[0],
-									message: 'Address not found.',
-								},
-							},
-						],
-					);
-					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
-				},
-			);
+			.it('should get accounts info only using non-empty args and display as an array', () => {
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
+				expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							address: addressesWithEmpty[0],
+						},
+						placeholder: {
+							address: addressesWithEmpty[0],
+							message: 'Address not found.',
+						},
+					},
+				]);
+				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+			});
 	});
 });

@@ -23,8 +23,6 @@ describe('readKey', () => {
 	});
 
 	it('it should throw error for unsupported wireType', () => {
-		return expect(() => readKey(47)).toThrow(
-			'Value yields unsupported wireType',
-		);
+		return expect(() => readKey(47)).toThrow('Value yields unsupported wireType');
 	});
 });

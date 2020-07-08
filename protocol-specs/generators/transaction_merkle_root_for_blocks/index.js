@@ -14,12 +14,7 @@
 
 'use strict';
 
-const {
-	bufferToHex,
-	hash,
-	intToBuffer,
-	getRandomBytes,
-} = require('@liskhq/lisk-cryptography');
+const { bufferToHex, hash, intToBuffer, getRandomBytes } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
 
 const getRandomTransactionIds = count => {
@@ -76,6 +71,4 @@ const transactionMerkleRootSuite = () => ({
 	testCases: [...generateTransactionMerkleRoot()],
 });
 
-BaseGenerator.runGenerator('transaction_merkle_root', [
-	transactionMerkleRootSuite,
-]);
+BaseGenerator.runGenerator('transaction_merkle_root', [transactionMerkleRootSuite]);

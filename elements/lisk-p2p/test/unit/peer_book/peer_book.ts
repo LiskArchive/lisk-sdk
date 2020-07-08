@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	initPeerInfoList,
-	initPeerInfoListWithSuffix,
-} from '../../utils/peers';
+import { initPeerInfoList, initPeerInfoListWithSuffix } from '../../utils/peers';
 import { PeerBook, PeerBookConfig } from '../../../src/peer_book';
 import {
 	DEFAULT_RANDOM_SECRET,
@@ -68,30 +65,22 @@ describe('peerBook', () => {
 			expect(peerBook.newPeers).toHaveLength(0);
 			// fixedPeers +  whitelisted + previousPeers
 			expect(peerBook.triedPeers).toHaveLength(30);
-			expect((peerBook as any)._newPeers.peerListConfig.secret).toEqual(
-				DEFAULT_RANDOM_SECRET,
-			);
+			expect((peerBook as any)._newPeers.peerListConfig.secret).toEqual(DEFAULT_RANDOM_SECRET);
 			expect((peerBook as any)._newPeers.peerListConfig.numOfBuckets).toEqual(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
 			expect((peerBook as any)._newPeers.peerListConfig.bucketSize).toEqual(
 				DEFAULT_NEW_BUCKET_SIZE,
 			);
-			expect((peerBook as any)._newPeers.peerListConfig.peerType).toEqual(
-				PEER_TYPE.NEW_PEER,
-			);
-			expect((peerBook as any)._triedPeers.peerListConfig.secret).toEqual(
-				DEFAULT_RANDOM_SECRET,
-			);
+			expect((peerBook as any)._newPeers.peerListConfig.peerType).toEqual(PEER_TYPE.NEW_PEER);
+			expect((peerBook as any)._triedPeers.peerListConfig.secret).toEqual(DEFAULT_RANDOM_SECRET);
 			expect((peerBook as any)._triedPeers.peerListConfig.numOfBuckets).toEqual(
 				DEFAULT_TRIED_BUCKET_COUNT,
 			);
 			expect((peerBook as any)._triedPeers.peerListConfig.bucketSize).toEqual(
 				DEFAULT_TRIED_BUCKET_SIZE,
 			);
-			expect((peerBook as any)._triedPeers.peerListConfig.peerType).toEqual(
-				PEER_TYPE.TRIED_PEER,
-			);
+			expect((peerBook as any)._triedPeers.peerListConfig.peerType).toEqual(PEER_TYPE.TRIED_PEER);
 			expect(peerBook.seedPeers).toHaveLength(10);
 			expect(peerBook.fixedPeers).toHaveLength(10);
 			expect(peerBook.whitelistedPeers).toHaveLength(10);
@@ -184,18 +173,14 @@ describe('peerBook', () => {
 			it('should return the peer info', () => {
 				peerBook.addPeer(samplePeers[0]);
 				peerBook.upgradePeer(samplePeers[0]);
-				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
-					samplePeers[0].peerId,
-				);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(samplePeers[0].peerId);
 			});
 		});
 
 		describe('when peer exists in the new peers list', () => {
 			it('should return the peer info', () => {
 				peerBook.addPeer(samplePeers[0]);
-				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
-					samplePeers[0].peerId,
-				);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(samplePeers[0].peerId);
 			});
 		});
 
@@ -232,9 +217,7 @@ describe('peerBook', () => {
 		describe('when peer exists in the new peers list', () => {
 			it('should throw ExistingPeerError', () => {
 				// 'Peer already exists'
-				expect(() => peerBook.addPeer(samplePeers[0])).toThrow(
-					ExistingPeerError,
-				);
+				expect(() => peerBook.addPeer(samplePeers[0])).toThrow(ExistingPeerError);
 			});
 		});
 
@@ -251,9 +234,7 @@ describe('peerBook', () => {
 		describe('when peer does not exist in the peer book', () => {
 			it('should add peer to the new peers list', () => {
 				expect(peerBook.newPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
-					samplePeers[0].peerId,
-				);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(samplePeers[0].peerId);
 			});
 		});
 	});
@@ -335,9 +316,7 @@ describe('peerBook', () => {
 				peerBook.upgradePeer(samplePeers[0]);
 				expect(peerBook.newPeers).toHaveLength(0);
 				expect(peerBook.triedPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
-					samplePeers[0]?.peerId,
-				);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(samplePeers[0]?.peerId);
 			});
 		});
 
@@ -360,9 +339,7 @@ describe('peerBook', () => {
 				peerBook.addPeer(samplePeers[0]);
 				peerBook.upgradePeer(samplePeers[0]);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
-				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
-					samplePeers[0]?.peerId,
-				);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(samplePeers[0]?.peerId);
 			});
 
 			it('should add peer to the new peer list when downgraded 3 times', () => {
@@ -376,9 +353,7 @@ describe('peerBook', () => {
 				expect(peerBook.triedPeers).toHaveLength(0);
 				// Should move to newPeers
 				expect(peerBook.newPeers).toHaveLength(1);
-				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
-					samplePeers[0]?.peerId,
-				);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(samplePeers[0]?.peerId);
 			});
 
 			it('should remove a peer from all peer lists when downgraded 4 times', () => {
@@ -400,9 +375,7 @@ describe('peerBook', () => {
 		describe('when peer exists in the new peers list', () => {
 			it('should return false if disconnection was not successful', () => {
 				// Arrange
-				jest
-					.spyOn((peerBook as any)._newPeers, 'failedConnectionAction')
-					.mockReturnValue(false);
+				jest.spyOn((peerBook as any)._newPeers, 'failedConnectionAction').mockReturnValue(false);
 
 				// Act
 				peerBook.addPeer(samplePeers[0]);
@@ -411,9 +384,7 @@ describe('peerBook', () => {
 
 				expect(peerBook.newPeers).toHaveLength(1);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
-				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(
-					samplePeers[0]?.peerId,
-				);
+				expect(peerBook.getPeer(samplePeers[0])?.peerId).toEqual(samplePeers[0]?.peerId);
 				expect(peerBook.newPeers).toHaveLength(1);
 			});
 
@@ -457,12 +428,10 @@ describe('peerBook', () => {
 			const maxPeerListLength = 100;
 
 			expect(
-				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength)
-					.length,
+				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength).length,
 			).toBeGreaterThan(minPeerListLength - 1);
 			expect(
-				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength)
-					.length,
+				peerBook.getRandomizedPeerList(minPeerListLength, maxPeerListLength).length,
 			).toBeLessThan(maxPeerListLength + 1);
 		});
 	});

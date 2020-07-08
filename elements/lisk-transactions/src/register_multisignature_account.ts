@@ -14,11 +14,7 @@
  */
 
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
-import {
-	isValidInteger,
-	isNumberString,
-	isUInt64,
-} from '@liskhq/lisk-validator';
+import { isValidInteger, isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import {
@@ -87,10 +83,7 @@ const validateInputs = ({
 		);
 	}
 
-	if (
-		numberOfSignatures >
-		mandatoryPublicKeys.length + optionalPublicKeys.length
-	) {
+	if (numberOfSignatures > mandatoryPublicKeys.length + optionalPublicKeys.length) {
 		throw new Error(
 			`Please provide a valid numberOfSignatures. numberOfSignatures (${numberOfSignatures.toString()}) is bigger than the count of optional (${
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -101,8 +94,7 @@ const validateInputs = ({
 	}
 
 	if (
-		mandatoryPublicKeys.length + optionalPublicKeys.length >
-			MAX_NUMBER_OF_KEYS ||
+		mandatoryPublicKeys.length + optionalPublicKeys.length > MAX_NUMBER_OF_KEYS ||
 		mandatoryPublicKeys.length + optionalPublicKeys.length < MIN_NUMBER_OF_KEYS
 	) {
 		throw new Error(
@@ -111,26 +103,16 @@ const validateInputs = ({
 	}
 
 	// Check key duplication between sets
-	const repeatedKeys = findRepeatedKeys(
-		optionalPublicKeys,
-		mandatoryPublicKeys,
-	);
+	const repeatedKeys = findRepeatedKeys(optionalPublicKeys, mandatoryPublicKeys);
 	if (repeatedKeys.length > 0) {
 		throw new Error(
-			`There are repeated values in optional and mandatory keys: '${repeatedKeys.join(
-				', ',
-			)}'`,
+			`There are repeated values in optional and mandatory keys: '${repeatedKeys.join(', ')}'`,
 		);
 	}
 
 	// Check key repetitions inside each set
-	const uniqueKeys = Array.from(
-		new Set([...mandatoryPublicKeys, ...optionalPublicKeys]),
-	);
-	if (
-		uniqueKeys.length !==
-		mandatoryPublicKeys.length + optionalPublicKeys.length
-	) {
+	const uniqueKeys = Array.from(new Set([...mandatoryPublicKeys, ...optionalPublicKeys]));
+	if (uniqueKeys.length !== mandatoryPublicKeys.length + optionalPublicKeys.length) {
 		throw new Error(
 			'There are repeated public keys. Mandatory and Optional Public Keys need too be unique.',
 		);
@@ -183,16 +165,11 @@ export const registerMultisignature = (
 		return baseTransactionToJSON(multisignatureTransaction);
 	}
 
-	multisignatureTransaction.sign(
-		networkIdentifierBytes,
-		senderPassphrase,
-		passphrases,
-		{
-			mandatoryKeys: keys.mandatoryKeys,
-			optionalKeys: keys.optionalKeys,
-			numberOfSignatures,
-		},
-	);
+	multisignatureTransaction.sign(networkIdentifierBytes, senderPassphrase, passphrases, {
+		mandatoryKeys: keys.mandatoryKeys,
+		optionalKeys: keys.optionalKeys,
+		numberOfSignatures,
+	});
 
 	return baseTransactionToJSON(multisignatureTransaction);
 };

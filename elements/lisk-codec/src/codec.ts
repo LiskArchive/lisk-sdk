@@ -60,9 +60,7 @@ export const validateSchema = (schema: {
 		$schema: schema.$schema ?? liskSchemaIdentifier,
 	};
 
-	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(
-		schemaToValidate,
-	);
+	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(schemaToValidate);
 
 	if (errors.length) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -88,11 +86,7 @@ export class Codec {
 		validateSchema(schema);
 
 		const schemaName = schema.$id;
-		this._compileSchemas[schemaName] = this._compileSchema(
-			schema as ValidatedSchema,
-			[],
-			[],
-		);
+		this._compileSchemas[schemaName] = this._compileSchema(schema as ValidatedSchema, [], []);
 
 		return true;
 	}
@@ -119,10 +113,7 @@ export class Codec {
 
 	// For performance applications use decode() instead!
 	public decodeJSON<T>(schema: Schema, message: Buffer): T {
-		const decodedMessage: IteratableGenericObject = this.decode(
-			schema,
-			message,
-		);
+		const decodedMessage: IteratableGenericObject = this.decode(schema, message);
 
 		const jsonMessageAsObject = this.toJSON(schema, decodedMessage);
 		return (jsonMessageAsObject as unknown) as T;
@@ -192,19 +183,13 @@ export class Codec {
 							binaryKey: generateKey(schemaPropertyValue),
 						},
 					];
-					const res = this._compileSchema(
-						schemaPropertyValue,
-						nestedSchema,
-						dataPath,
-					);
+					const res = this._compileSchema(schemaPropertyValue, nestedSchema, dataPath);
 					compiledSchema.push(res as CompiledSchema[]);
 					dataPath.pop();
 				} else if (schemaPropertyValue.type === 'array') {
 					// Array recursive case
 					if (schemaPropertyValue.items === undefined) {
-						throw new Error(
-							'Invalid schema. Missing "items" property for Array schema',
-						);
+						throw new Error('Invalid schema. Missing "items" property for Array schema');
 					}
 					dataPath.push(schemaPropertyName);
 					if (schemaPropertyValue.items.type === 'object') {
@@ -219,11 +204,7 @@ export class Codec {
 								binaryKey: generateKey(schemaPropertyValue),
 							},
 						];
-						const res = this._compileSchema(
-							schemaPropertyValue.items,
-							nestedSchema,
-							dataPath,
-						);
+						const res = this._compileSchema(schemaPropertyValue.items, nestedSchema, dataPath);
 						compiledSchema.push([
 							{
 								propertyName: schemaPropertyName,

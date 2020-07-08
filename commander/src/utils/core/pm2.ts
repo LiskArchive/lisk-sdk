@@ -152,9 +152,7 @@ const stopPM2 = async (process: string | number): Promise<void> =>
 		});
 	});
 
-const describePM2 = async (
-	process: string | number,
-): Promise<ProcessDescription> =>
+const describePM2 = async (process: string | number): Promise<ProcessDescription> =>
 	new Promise<ProcessDescription>((resolve, reject) => {
 		describe(process, (err, descs) => {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -163,9 +161,7 @@ const describePM2 = async (
 
 				return;
 			}
-			const pDesc = descs.find(
-				desc => desc.pid === process || desc.name === process,
-			);
+			const pDesc = descs.find(desc => desc.pid === process || desc.name === process);
 			if (!pDesc) {
 				reject(new Error(`Process ${process} not found`));
 			}
@@ -229,9 +225,7 @@ export const stopApplication = async (name: string): Promise<void> => {
 	disconnect();
 };
 
-const extractProcessDetails = (
-	appDesc: ProcessDescription,
-): PM2ProcessInstance => {
+const extractProcessDetails = (appDesc: ProcessDescription): PM2ProcessInstance => {
 	// eslint-disable-next-line camelcase
 	const { pm2_env, monit, name, pid } = appDesc;
 	const {
@@ -265,9 +259,7 @@ const extractProcessDetails = (
 	};
 };
 
-export const listApplication = async (): Promise<ReadonlyArray<
-	PM2ProcessInstance
->> => {
+export const listApplication = async (): Promise<ReadonlyArray<PM2ProcessInstance>> => {
 	await connectPM2();
 	const applications = (await listPM2()) as ReadonlyArray<PM2ProcessInstance>;
 	disconnect();

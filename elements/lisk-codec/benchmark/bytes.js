@@ -13,31 +13,25 @@
  */
 
 const { Suite } = require('benchmark');
-const bytesEncodingOutput = require('../fixtures/validBytesEncodings.json')
-const {
-    readBytes,
-    writeBytes,
-} = require('../dist-node/bytes');
-const { writeUInt32 } = require('../dist-node/varint')
+const bytesEncodingOutput = require('../fixtures/validBytesEncodings.json');
+const { readBytes, writeBytes } = require('../dist-node/bytes');
+const { writeUInt32 } = require('../dist-node/varint');
 const suite = new Suite();
 const data = bytesEncodingOutput.testCases[0].input.bytes.object.address.data;
 const dataBuffer = Buffer.from(data);
-const dataEncodedBuffer = Buffer.concat([
-    writeUInt32(dataBuffer.length),
-    dataBuffer,
-]);
+const dataEncodedBuffer = Buffer.concat([writeUInt32(dataBuffer.length), dataBuffer]);
 
 suite
-    .add('readBytes', () => {
-        readBytes(dataEncodedBuffer, 0);
-    })
-    .add('writeBytes', () => {
-        writeBytes(dataBuffer, { dataType: 'bytes' });
-    })
-    .on('cycle', function (event) {
-        console.log(String(event.target));
-    })
-    .run({ async: true });
+	.add('readBytes', () => {
+		readBytes(dataEncodedBuffer, 0);
+	})
+	.add('writeBytes', () => {
+		writeBytes(dataBuffer, { dataType: 'bytes' });
+	})
+	.on('cycle', function (event) {
+		console.log(String(event.target));
+	})
+	.run({ async: true });
 
 /**
  * Bytes write benchmark results

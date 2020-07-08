@@ -45,15 +45,10 @@ const isStringMapArray = (
 ): result is ReadonlyArray<StringMap> => Array.isArray(result);
 
 const removeANSI = (result: ReadonlyArray<StringMap> | StringMap) =>
-	isStringMapArray(result)
-		? result.map(removeANSIFromObject)
-		: removeANSIFromObject(result);
+	isStringMapArray(result) ? result.map(removeANSIFromObject) : removeANSIFromObject(result);
 
 export const print = ({ json, pretty }: PrintInput = {}) =>
-	function printResult(
-		this: Printer,
-		result: ReadonlyArray<StringMap> | StringMap,
-	): void {
+	function printResult(this: Printer, result: ReadonlyArray<StringMap> | StringMap): void {
 		const resultToPrint = json ? removeANSI(result) : result;
 
 		const output = json

@@ -45,13 +45,8 @@ const multiSignatureAccount = {
 	},
 };
 
-const multiSignatureAccountBuffer = Buffer.from(
-	JSON.stringify(multiSignatureAccount),
-);
-const diff = calculateDiff(
-	previousSenderStateBuffer,
-	multiSignatureAccountBuffer,
-);
+const multiSignatureAccountBuffer = Buffer.from(JSON.stringify(multiSignatureAccount));
+const diff = calculateDiff(previousSenderStateBuffer, multiSignatureAccountBuffer);
 
 /**
  * calculateDiff x 119,928 ops/sec ±1.27% (86 runs sampled)
@@ -64,7 +59,7 @@ suite
 	.add('undo', () => {
 		undo(multiSignatureAccountBuffer, diff);
 	})
-	.on('cycle', function(event) {
+	.on('cycle', function (event) {
 		console.log(String(event.target));
 	})
 	.run({ async: true });

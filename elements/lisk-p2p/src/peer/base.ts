@@ -146,9 +146,7 @@ export class Peer extends EventEmitter {
 		codec.addSchema(this._rpcSchemas.peerInfo);
 		codec.addSchema(this._rpcSchemas.nodeInfo);
 
-		this._peerInfo = this._initializeInternalState(
-			peerInfo,
-		) as ConnectedPeerInfo;
+		this._peerInfo = this._initializeInternalState(peerInfo) as ConnectedPeerInfo;
 		this._rateInterval = this._peerConfig.rateCalculationInterval;
 		this._counterResetInterval = setInterval(() => {
 			this._resetCounters();
@@ -294,10 +292,7 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public disconnect(
-		code: number = INTENTIONAL_DISCONNECT_CODE,
-		reason?: string,
-	): void {
+	public disconnect(code: number = INTENTIONAL_DISCONNECT_CODE, reason?: string): void {
 		clearInterval(this._counterResetInterval);
 		clearInterval(this._productivityResetInterval);
 
@@ -319,10 +314,7 @@ export class Peer extends EventEmitter {
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		return new Promise<P2PResponsePacket>(
-			(
-				resolve: (result: P2PResponsePacket) => void,
-				reject: (result: Error) => void,
-			): void => {
+			(resolve: (result: P2PResponsePacket) => void, reject: (result: Error) => void): void => {
 				if (!this._socket) {
 					throw new Error('Peer socket does not exist');
 				}
@@ -379,19 +371,13 @@ export class Peer extends EventEmitter {
 				sourceAddress: this.ipAddress,
 			}));
 		} catch (error) {
-			if (
-				error instanceof InvalidPeerInfoError ||
-				error instanceof InvalidPeerInfoListError
-			) {
+			if (error instanceof InvalidPeerInfoError || error instanceof InvalidPeerInfoListError) {
 				this.applyPenalty(INVALID_PEER_LIST_PENALTY);
 			}
 
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
-			throw new RPCResponseError(
-				'Failed to fetch peer list of peer',
-				this.ipAddress,
-			);
+			throw new RPCResponseError('Failed to fetch peer list of peer', this.ipAddress);
 		}
 	}
 
@@ -453,27 +439,20 @@ export class Peer extends EventEmitter {
 
 	private _resetCounters(): void {
 		this._peerInfo.internalState.wsMessageRate =
-			(this.peerInfo.internalState.wsMessageCount * RATE_NORMALIZATION_FACTOR) /
-			this._rateInterval;
+			(this.peerInfo.internalState.wsMessageCount * RATE_NORMALIZATION_FACTOR) / this._rateInterval;
 
 		this._peerInfo.internalState.wsMessageCount = 0;
 
-		if (
-			this.peerInfo.internalState.wsMessageRate >
-			this._peerConfig.wsMaxMessageRate
-		) {
+		if (this.peerInfo.internalState.wsMessageRate > this._peerConfig.wsMaxMessageRate) {
 			// Allow to increase penalty based on message rate limit exceeded
 			const messageRateExceedCoefficient = Math.floor(
-				this.peerInfo.internalState.wsMessageRate /
-					this._peerConfig.wsMaxMessageRate,
+				this.peerInfo.internalState.wsMessageRate / this._peerConfig.wsMaxMessageRate,
 			);
 
 			const penaltyRateMultiplier =
 				messageRateExceedCoefficient > 1 ? messageRateExceedCoefficient : 1;
 
-			this.applyPenalty(
-				this._peerConfig.wsMaxMessageRatePenalty * penaltyRateMultiplier,
-			);
+			this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty * penaltyRateMultiplier);
 		}
 
 		this._peerInfo.internalState.rpcRates = new Map(
@@ -531,9 +510,7 @@ export class Peer extends EventEmitter {
 		const result = validatePeerCompatibility(peerInfo, this._serverNodeInfo);
 
 		if (!result.success && result.error) {
-			throw new Error(
-				`${result.error} : ${peerInfo.ipAddress}:${peerInfo.port}`,
-			);
+			throw new Error(`${result.error} : ${peerInfo.ipAddress}:${peerInfo.port}`);
 		}
 
 		this.updatePeerInfo(peerInfo);
@@ -585,8 +562,7 @@ export class Peer extends EventEmitter {
 	}
 
 	private _getRPCRate(packet: P2PRequestPacket): number {
-		const rate =
-			this.peerInfo.internalState.rpcRates.get(packet.procedure) ?? 0;
+		const rate = this.peerInfo.internalState.rpcRates.get(packet.procedure) ?? 0;
 
 		return rate * RATE_NORMALIZATION_FACTOR;
 	}

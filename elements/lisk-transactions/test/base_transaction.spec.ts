@@ -47,10 +47,7 @@ describe('Base transaction class', () => {
 
 	beforeEach(() => {
 		{
-			const buffer = Buffer.from(
-				validTransferTransactionScenario.output.transaction,
-				'base64',
-			);
+			const buffer = Buffer.from(validTransferTransactionScenario.output.transaction, 'base64');
 			const id = hash(buffer);
 			const decodedBaseTransaction = codec.decode<BaseTransaction>(
 				BaseTransaction.BASE_SCHEMA,
@@ -67,10 +64,7 @@ describe('Base transaction class', () => {
 			};
 		}
 		{
-			const buffer = Buffer.from(
-				validMultiSigTransactionScenario.output.transaction,
-				'base64',
-			);
+			const buffer = Buffer.from(validMultiSigTransactionScenario.output.transaction, 'base64');
 			const id = hash(buffer);
 			const decodedBaseTransaction = codec.decode<BaseTransaction>(
 				BaseTransaction.BASE_SCHEMA,
@@ -87,10 +81,7 @@ describe('Base transaction class', () => {
 			};
 		}
 		defaultSenderAccount = defaultAccount({
-			address: Buffer.from(
-				validTransferTransactionScenario.input.account.address,
-				'base64',
-			),
+			address: Buffer.from(validTransferTransactionScenario.input.account.address, 'base64'),
 			nonce: decodedTransferTransaction.nonce,
 			balance: BigInt('1000000000000'),
 		});
@@ -114,9 +105,7 @@ describe('Base transaction class', () => {
 			const byteLength = BigInt(validTestTransaction.getBytes().length);
 			const minFeePerByte = 1000;
 
-			expect(validTestTransaction.minFee).toEqual(
-				byteLength * BigInt(minFeePerByte),
-			);
+			expect(validTestTransaction.minFee).toEqual(byteLength * BigInt(minFeePerByte));
 		});
 	});
 
@@ -147,10 +136,7 @@ describe('Base transaction class', () => {
 
 	describe('#getBytes', () => {
 		it('should encode asset bytes', () => {
-			const buffer = Buffer.from(
-				validTransferTransactionScenario.output.transaction,
-				'base64',
-			);
+			const buffer = Buffer.from(validTransferTransactionScenario.output.transaction, 'base64');
 			expect(validTestTransaction.getBytes()).toEqual(buffer);
 		});
 	});
@@ -185,9 +171,7 @@ describe('Base transaction class', () => {
 				signature: '1111111111',
 				id: '1',
 			};
-			const invalidTestTransaction = new TestTransaction(
-				invalidTransaction as any,
-			);
+			const invalidTestTransaction = new TestTransaction(invalidTransaction as any);
 			const errors = (invalidTestTransaction as any)._validateSchema();
 
 			expect(Object.keys(errors)).not.toHaveLength(0);
@@ -218,10 +202,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should call getBytes', () => {
-			const buffer = Buffer.from(
-				validTransferTransactionScenario.output.transaction,
-				'base64',
-			);
+			const buffer = Buffer.from(validTransferTransactionScenario.output.transaction, 'base64');
 			const getBytesStub = jest
 				.spyOn(validTestTransaction as any, 'getBytes')
 				.mockReturnValue(buffer);
@@ -267,9 +248,7 @@ describe('Base transaction class', () => {
 			expect(id).toEqual(validTestTransaction.id);
 			expect(status).toEqual(Status.FAIL);
 			expect(errors[0]).toBeInstanceOf(TransactionError);
-			expect(errors[0].message).toContain(
-				'Account does not have enough minimum remaining LSK',
-			);
+			expect(errors[0].message).toContain('Account does not have enough minimum remaining LSK');
 		});
 
 		it('should return a failed transaction response with insufficient minimum remaining balance', async () => {
@@ -417,29 +396,20 @@ describe('Base transaction class', () => {
 				validTransferTransactionScenario.input.account.passphrase,
 			);
 
-			expect(newTransaction.senderPublicKey).toEqual(
-				validTestTransaction.senderPublicKey,
-			);
-			expect(newTransaction.signatures).toEqual(
-				validTestTransaction.signatures,
-			);
+			expect(newTransaction.senderPublicKey).toEqual(validTestTransaction.senderPublicKey);
+			expect(newTransaction.signatures).toEqual(validTestTransaction.signatures);
 		});
 	});
 
 	describe('#sign', () => {
 		const account = {
-			address: Buffer.from(
-				validTransferTransactionScenario.input.account.address,
-				'base64',
-			),
+			address: Buffer.from(validTransferTransactionScenario.input.account.address, 'base64'),
 			passphrase: validTransferTransactionScenario.input.account.passphrase,
 		};
 		let validTransferInstance: BaseTransaction;
 
 		beforeEach(() => {
-			validTransferInstance = new TransferTransaction(
-				decodedTransferTransaction,
-			);
+			validTransferInstance = new TransferTransaction(decodedTransferTransaction);
 		});
 
 		it('should return transaction with one signature when only passphrase is used', () => {
@@ -449,10 +419,7 @@ describe('Base transaction class', () => {
 				validTransferInstance['getSigningBytes'](),
 			]);
 
-			const validSignature = cryptography.signData(
-				bytesToBeSigned,
-				account.passphrase,
-			);
+			const validSignature = cryptography.signData(bytesToBeSigned, account.passphrase);
 
 			validTransferInstance.sign(networkIdentifier, account.passphrase);
 

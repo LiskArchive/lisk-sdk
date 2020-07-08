@@ -31,9 +31,5 @@ export interface NaclInterface {
 		convertedPrivateKey: Buffer,
 	) => Buffer;
 	signDetached: (messageBytes: Buffer, privateKeyBytes: Buffer) => Buffer;
-	verifyDetached: (
-		messageBytes: Buffer,
-		signatureBytes: Buffer,
-		publicKeyBytes: Buffer,
-	) => boolean;
+	verifyDetached: (messageBytes: Buffer, signatureBytes: Buffer, publicKeyBytes: Buffer) => boolean;
 }

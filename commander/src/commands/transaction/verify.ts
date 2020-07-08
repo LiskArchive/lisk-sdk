@@ -20,10 +20,7 @@ import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
 import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
 import { readStdIn } from '../../utils/reader';
-import {
-	instantiateTransaction,
-	parseTransactionString,
-} from '../../utils/transactions';
+import { instantiateTransaction, parseTransactionString } from '../../utils/transactions';
 
 interface Args {
 	readonly transaction?: string;

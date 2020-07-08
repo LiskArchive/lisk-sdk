@@ -14,13 +14,7 @@
  */
 import { AxiosRequestConfig } from 'axios';
 
-import {
-	APIHandler,
-	APIResponse,
-	HashMap,
-	RequestConfig,
-	Resource,
-} from './api_types';
+import { APIHandler, APIResponse, HashMap, RequestConfig, Resource } from './api_types';
 import { GET } from './constants';
 import { solveURLParams, toQueryString } from './utils';
 
@@ -47,8 +41,7 @@ export const apiMethod = (options: RequestConfig = {}): APIHandler =>
 
 		const data = {
 			...defaultData,
-			...(args.length > urlParams.length &&
-			typeof args[urlParams.length] === 'object'
+			...(args.length > urlParams.length && typeof args[urlParams.length] === 'object'
 				? (args[urlParams.length] as object)
 				: {}),
 		};

@@ -13,11 +13,7 @@
  *
  */
 import { P2P, events } from '../../../src/index';
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_PEER_COUNT,
-} from '../../utils/network_setup';
+import { createNetwork, destroyNetwork, NETWORK_PEER_COUNT } from '../../utils/network_setup';
 
 describe('P2P.request', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -92,14 +88,10 @@ describe('P2P.request', () => {
 		}
 
 		// Assert
-		for (const requestsHandled of Object.values(
-			nodePortToResponsesMap,
-		) as any) {
+		for (const requestsHandled of Object.values(nodePortToResponsesMap) as any) {
 			expect(requestsHandled).toEqual(expect.any(Array));
 
-			expect(requestsHandled.length).toBeGreaterThan(
-				expectedRequestsLowerBound,
-			);
+			expect(requestsHandled.length).toBeGreaterThan(expectedRequestsLowerBound);
 			expect(requestsHandled.length).toBeLessThan(expectedRequestsUpperBound);
 		}
 	});

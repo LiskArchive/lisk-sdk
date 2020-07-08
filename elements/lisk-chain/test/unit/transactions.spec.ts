@@ -92,9 +92,7 @@ describe('blocks/transactions', () => {
 				// Arrange
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -110,10 +108,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
-							'hex',
-						),
+						recipientAddress: Buffer.from('a6f6a0543ae470c6b056021cb2ac153368eafeec', 'hex'),
 						amount: BigInt('10000000000'),
 						data: '',
 					},
@@ -144,10 +139,11 @@ describe('blocks/transactions', () => {
 					transactionClass,
 				);
 				// Act
-				const result = await chainInstance.filterReadyTransactions(
-					[validTx, notAllowedTx],
-					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
-				);
+				const result = await chainInstance.filterReadyTransactions([validTx, notAllowedTx], {
+					blockTimestamp: 0,
+					blockHeight: 1,
+					blockVersion: 1,
+				});
 				// Assert
 				expect(result).toHaveLength(1);
 				expect(result[0].id).toBe(validTx.id);
@@ -159,9 +155,7 @@ describe('blocks/transactions', () => {
 				// Arrange
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -177,10 +171,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
-							'hex',
-						),
+						recipientAddress: Buffer.from('a6f6a0543ae470c6b056021cb2ac153368eafeec', 'hex'),
 						amount: BigInt('10000000000'),
 						data: '',
 					},
@@ -194,9 +185,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
-						),
+						recipientAddress: Buffer.from('b28d5e34007fd8fe6d7903444eb23a60fdad3c11'),
 						amount: BigInt('100'),
 						data: '',
 					},
@@ -205,10 +194,11 @@ describe('blocks/transactions', () => {
 				notAllowedTx.sign(networkIdentifier, genesisAccount.passphrase);
 
 				// Act
-				const result = await chainInstance.filterReadyTransactions(
-					[validTx, notAllowedTx],
-					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
-				);
+				const result = await chainInstance.filterReadyTransactions([validTx, notAllowedTx], {
+					blockTimestamp: 0,
+					blockHeight: 1,
+					blockVersion: 1,
+				});
 				// Assert
 				expect(result).toHaveLength(1);
 				expect(result[0].id).toBe(validTx.id);
@@ -226,9 +216,7 @@ describe('blocks/transactions', () => {
 				// Arrange
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -244,10 +232,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
-							'hex',
-						),
+						recipientAddress: Buffer.from('a6f6a0543ae470c6b056021cb2ac153368eafeec', 'hex'),
 						amount: BigInt('10000000000'),
 						data: '',
 					},
@@ -261,9 +246,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('1'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
-						),
+						recipientAddress: Buffer.from('b28d5e34007fd8fe6d7903444eb23a60fdad3c11'),
 						amount: BigInt('100000000'),
 						data: '',
 					},
@@ -274,10 +257,11 @@ describe('blocks/transactions', () => {
 				validTxSpy = jest.spyOn(validTx, 'apply');
 				validTx2Spy = jest.spyOn(validTx2, 'apply');
 				// Act
-				result = await chainInstance.filterReadyTransactions(
-					[validTx, validTx2],
-					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
-				);
+				result = await chainInstance.filterReadyTransactions([validTx, validTx2], {
+					blockTimestamp: 0,
+					blockHeight: 1,
+					blockVersion: 1,
+				});
 			});
 
 			it('should return all transactions', () => {
@@ -300,9 +284,7 @@ describe('blocks/transactions', () => {
 			it('should return transaction response corresponds to the setup', () => {
 				// Arrange
 				when(db.get)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -318,10 +300,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
-							'hex',
-						),
+						recipientAddress: Buffer.from('a6f6a0543ae470c6b056021cb2ac153368eafeec', 'hex'),
 						amount: BigInt('10000000000'),
 						data: '',
 					},
@@ -352,10 +331,7 @@ describe('blocks/transactions', () => {
 					transactionClass,
 				);
 				// Act
-				const transactionsResponses = chainInstance.validateTransactions([
-					validTx,
-					notAllowedTx,
-				]);
+				const transactionsResponses = chainInstance.validateTransactions([validTx, notAllowedTx]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(res =>
@@ -375,9 +351,7 @@ describe('blocks/transactions', () => {
 			it('should return transaction response corresponds to the setup', () => {
 				// Arrange
 				when(db.get)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -393,10 +367,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
-							'hex',
-						),
+						recipientAddress: Buffer.from('a6f6a0543ae470c6b056021cb2ac153368eafeec', 'hex'),
 						amount: BigInt('10000000000'),
 						data: '',
 					},
@@ -410,10 +381,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
-							'hex',
-						),
+						recipientAddress: Buffer.from('b28d5e34007fd8fe6d7903444eb23a60fdad3c11', 'hex'),
 						amount: BigInt('100'),
 						data: '',
 					},
@@ -423,10 +391,7 @@ describe('blocks/transactions', () => {
 				(notAllowedTx.signatures as any) = 'invalid-signature';
 
 				// Act
-				const transactionsResponses = chainInstance.validateTransactions([
-					validTx,
-					notAllowedTx,
-				]);
+				const transactionsResponses = chainInstance.validateTransactions([validTx, notAllowedTx]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(res =>
@@ -450,9 +415,7 @@ describe('blocks/transactions', () => {
 			beforeEach(() => {
 				// Arrange
 				when(db.get)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -468,10 +431,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
-							'hex',
-						),
+						recipientAddress: Buffer.from('a6f6a0543ae470c6b056021cb2ac153368eafeec', 'hex'),
 						amount: BigInt('100'),
 						data: '',
 					},
@@ -485,10 +445,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('1'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
-							'hex',
-						),
+						recipientAddress: Buffer.from('b28d5e34007fd8fe6d7903444eb23a60fdad3c11', 'hex'),
 						amount: BigInt('10000000000'),
 						data: '',
 					},
@@ -498,10 +455,7 @@ describe('blocks/transactions', () => {
 				validTxValidateSpy = jest.spyOn(validTx, 'validate');
 				validTx2ValidateSpy = jest.spyOn(validTx2, 'validate');
 				// Act
-				const transactionsResponses = chainInstance.validateTransactions([
-					validTx,
-					validTx2,
-				]);
+				const transactionsResponses = chainInstance.validateTransactions([validTx, validTx2]);
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
@@ -525,9 +479,7 @@ describe('blocks/transactions', () => {
 				// Arrange
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -543,10 +495,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('0'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
-							'hex',
-						),
+						recipientAddress: Buffer.from('a6f6a0543ae470c6b056021cb2ac153368eafeec', 'hex'),
 						amount: BigInt('10000000000'),
 						data: '',
 					},
@@ -606,24 +555,16 @@ describe('blocks/transactions', () => {
 			beforeEach(async () => {
 				// Arrange
 				delegate1 = createFakeDefaultAccount({
-					address: Buffer.from(
-						'b01c191580cbe2b28b9df8836a49f0d3a1429137',
-						'hex',
-					),
+					address: Buffer.from('b01c191580cbe2b28b9df8836a49f0d3a1429137', 'hex'),
 				});
 				delegate1.asset.delegate.username = 'genesis_200';
 				delegate2 = createFakeDefaultAccount({
-					address: Buffer.from(
-						'e2817646f906eb0d7e2f2a9ccf5c6bf633a4c210',
-						'hex',
-					),
+					address: Buffer.from('e2817646f906eb0d7e2f2a9ccf5c6bf633a4c210', 'hex'),
 				});
 				delegate2.asset.delegate.username = 'genesis_201';
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultAccount(
 							createFakeDefaultAccount({
@@ -632,13 +573,9 @@ describe('blocks/transactions', () => {
 							}),
 						) as never,
 					)
-					.calledWith(
-						`accounts:address:${delegate1.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${delegate1.address.toString('binary')}`)
 					.mockResolvedValue(encodeDefaultAccount(delegate1) as never)
-					.calledWith(
-						`accounts:address:${delegate2.address.toString('binary')}`,
-					)
+					.calledWith(`accounts:address:${delegate2.address.toString('binary')}`)
 					.mockResolvedValue(encodeDefaultAccount(delegate2) as never);
 				(db.exists as jest.Mock).mockResolvedValue(false as never);
 				// Act
@@ -670,9 +607,7 @@ describe('blocks/transactions', () => {
 					nonce: BigInt('1'),
 					senderPublicKey: genesisAccount.publicKey,
 					asset: {
-						recipientAddress: Buffer.from(
-							'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
-						),
+						recipientAddress: Buffer.from('b28d5e34007fd8fe6d7903444eb23a60fdad3c11'),
 						amount: BigInt('100000000'),
 						data: '',
 					},
@@ -682,10 +617,7 @@ describe('blocks/transactions', () => {
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
 				// Act
-				const transactionsResponses = await chainInstance.applyTransactions([
-					validTx,
-					validTx2,
-				]);
+				const transactionsResponses = await chainInstance.applyTransactions([validTx, validTx2]);
 				responses = transactionsResponses;
 			});
 

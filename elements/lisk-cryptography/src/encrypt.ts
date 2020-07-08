@@ -37,12 +37,8 @@ export const encryptMessageWithPassphrase = (
 	passphrase: string,
 	recipientPublicKey: Buffer,
 ): EncryptedMessageWithNonce => {
-	const {
-		privateKey: senderPrivateKeyBytes,
-	} = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(
-		convertPrivateKeyEd2Curve(senderPrivateKeyBytes),
-	);
+	const { privateKey: senderPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const convertedPrivateKey = Buffer.from(convertPrivateKeyEd2Curve(senderPrivateKeyBytes));
 	const messageInBytes = Buffer.from(message, 'utf8');
 	const nonceSize = 24;
 	const nonce = getRandomBytes(nonceSize);
@@ -55,12 +51,7 @@ export const encryptMessageWithPassphrase = (
 
 	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
 
-	const cipherBytes = box(
-		messageInBytes,
-		nonce,
-		convertedPublicKey,
-		convertedPrivateKey,
-	);
+	const cipherBytes = box(messageInBytes, nonce, convertedPublicKey, convertedPrivateKey);
 
 	const nonceHex = bufferToHex(nonce);
 	const encryptedMessage = bufferToHex(cipherBytes);
@@ -77,12 +68,8 @@ export const decryptMessageWithPassphrase = (
 	passphrase: string,
 	senderPublicKey: Buffer,
 ): string => {
-	const {
-		privateKey: recipientPrivateKeyBytes,
-	} = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(
-		convertPrivateKeyEd2Curve(recipientPrivateKeyBytes),
-	);
+	const { privateKey: recipientPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const convertedPrivateKey = Buffer.from(convertPrivateKeyEd2Curve(recipientPrivateKeyBytes));
 	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
 
@@ -96,12 +83,7 @@ export const decryptMessageWithPassphrase = (
 	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
 
 	try {
-		const decoded = openBox(
-			cipherBytes,
-			nonceBytes,
-			convertedPublicKey,
-			convertedPrivateKey,
-		);
+		const decoded = openBox(cipherBytes, nonceBytes, convertedPublicKey, convertedPrivateKey);
 
 		return Buffer.from(decoded).toString();
 	} catch (error) {
@@ -113,24 +95,12 @@ export const decryptMessageWithPassphrase = (
 		) {
 			throw new Error('Expected nonce to be 24 bytes.');
 		}
-		throw new Error(
-			'Something went wrong during decryption. Is this the full encrypted message?',
-		);
+		throw new Error('Something went wrong during decryption. Is this the full encrypted message?');
 	}
 };
 
-const getKeyFromPassword = (
-	password: string,
-	salt: Buffer,
-	iterations: number,
-): Buffer =>
-	crypto.pbkdf2Sync(
-		password,
-		salt,
-		iterations,
-		PBKDF2_KEYLEN,
-		PBKDF2_HASH_FUNCTION,
-	);
+const getKeyFromPassword = (password: string, salt: Buffer, iterations: number): Buffer =>
+	crypto.pbkdf2Sync(password, salt, iterations, PBKDF2_KEYLEN, PBKDF2_HASH_FUNCTION);
 
 export interface EncryptedPassphraseObject {
 	readonly [key: string]: string | number | undefined;
@@ -182,26 +152,12 @@ const decryptAES256GCMWithPassword = (
 	encryptedPassphrase: EncryptedPassphraseObject,
 	password: string,
 ): string => {
-	const {
-		iterations = PBKDF2_ITERATIONS,
-		cipherText,
-		iv,
-		salt,
-		tag,
-	} = encryptedPassphrase;
+	const { iterations = PBKDF2_ITERATIONS, cipherText, iv, salt, tag } = encryptedPassphrase;
 
 	const tagBuffer = getTagBuffer(tag);
-	const key = getKeyFromPassword(
-		password,
-		hexToBuffer(salt, 'Salt'),
-		iterations,
-	);
+	const key = getKeyFromPassword(password, hexToBuffer(salt, 'Salt'), iterations);
 
-	const decipher = crypto.createDecipheriv(
-		'aes-256-gcm',
-		key,
-		hexToBuffer(iv, 'IV'),
-	);
+	const decipher = crypto.createDecipheriv('aes-256-gcm', key, hexToBuffer(iv, 'IV'));
 	decipher.setAuthTag(tagBuffer);
 	const firstBlock = decipher.update(hexToBuffer(cipherText, 'Cipher text'));
 	const decrypted = Buffer.concat([firstBlock, decipher.final()]);

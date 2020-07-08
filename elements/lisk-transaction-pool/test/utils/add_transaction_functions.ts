@@ -14,15 +14,12 @@
  */
 import { TransactionObject, Transaction } from '../../src/types';
 
-export interface TransactionJSON
-	extends Omit<TransactionObject, 'nonce' | 'fee' | 'minFee'> {
+export interface TransactionJSON extends Omit<TransactionObject, 'nonce' | 'fee' | 'minFee'> {
 	nonce: string;
 	fee: string;
 }
 
-export const wrapTransactionWithoutUniqueData = (
-	transaction: TransactionJSON,
-): Transaction => {
+export const wrapTransactionWithoutUniqueData = (transaction: TransactionJSON): Transaction => {
 	return {
 		...transaction,
 		nonce: BigInt(transaction.nonce),
@@ -33,9 +30,7 @@ export const wrapTransactionWithoutUniqueData = (
 	};
 };
 
-export const wrapTransactionWithUniqueData = (
-	transaction: TransactionJSON,
-): Transaction => {
+export const wrapTransactionWithUniqueData = (transaction: TransactionJSON): Transaction => {
 	return {
 		...transaction,
 		nonce: BigInt(transaction.nonce),

@@ -21,10 +21,7 @@ const payload = [...Array(65).keys()].map(() => crypto.randomBytes(220));
 const suite = new Suite();
 
 const block = {
-	header: Buffer.from(
-		'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
-		'hex',
-	),
+	header: Buffer.from('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad', 'hex'),
 	payload,
 };
 
@@ -47,7 +44,7 @@ suite
 	.add('Decode Lisk block', () => {
 		codec.decode(testSchema, blockEncoded);
 	})
-	.on('cycle', function(event) {
+	.on('cycle', function (event) {
 		console.log(String(event.target));
 	})
 	.run({ async: false });

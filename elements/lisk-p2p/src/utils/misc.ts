@@ -110,18 +110,12 @@ export const getNetgroup = (address: string, secret: number): number => {
 		throw Error('IP address is unsupported.');
 	}
 
-	const netgroupBytes = Buffer.concat([
-		secretBytes,
-		networkBytes,
-		aBytes,
-		bBytes,
-	]);
+	const netgroupBytes = Buffer.concat([secretBytes, networkBytes, aBytes, bBytes]);
 
 	return hash(netgroupBytes).readUInt32BE(0);
 };
 
-export const constructPeerId = (ipAddress: string, port: number): string =>
-	`${ipAddress}:${port}`;
+export const constructPeerId = (ipAddress: string, port: number): string => `${ipAddress}:${port}`;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
 export const getByteSize = (data: Buffer | object): number => {
@@ -171,13 +165,7 @@ export const getBucketId = (options: {
 	readonly sourceAddress?: string;
 	readonly bucketCount: number;
 }): number => {
-	const {
-		secret,
-		targetAddress,
-		sourceAddress,
-		peerType,
-		bucketCount,
-	} = options;
+	const { secret, targetAddress, sourceAddress, peerType, bucketCount } = options;
 	const firstMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_16 : BYTES_4;
 	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	secretBytes.writeUInt32BE(secret, 0);
@@ -200,18 +188,10 @@ export const getBucketId = (options: {
 
 	// Separate buckets for local and private addresses
 	if (network !== NETWORK.NET_IPV4) {
-		return (
-			hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) %
-			bucketCount
-		);
+		return hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) % bucketCount;
 	}
 
-	const addressBytes = Buffer.concat([
-		targetABytes,
-		targetBBytes,
-		targetCBytes,
-		targetDBytes,
-	]);
+	const addressBytes = Buffer.concat([targetABytes, targetBBytes, targetCBytes, targetDBytes]);
 
 	// New peers: k = Hash(random_secret, source_group, group) % 16
 	// Tried peers: k = Hash(random_secret, IP) % 4
@@ -232,9 +212,7 @@ export const getBucketId = (options: {
 						targetBBytes,
 					]),
 			  ).readUInt32BE(0) % firstMod
-			: hash(
-					Buffer.concat([secretBytes, networkBytes, addressBytes]),
-			  ).readUInt32BE(0) % firstMod;
+			: hash(Buffer.concat([secretBytes, networkBytes, addressBytes])).readUInt32BE(0) % firstMod;
 
 	kBytes.writeUInt32BE(k, 0);
 
@@ -242,20 +220,8 @@ export const getBucketId = (options: {
 	// Tried peers: b = Hash(random_secret, group, k) % 64
 	const bucketBytes =
 		peerType === PEER_TYPE.NEW_PEER && sourceBytes
-			? Buffer.concat([
-					secretBytes,
-					networkBytes,
-					sourceBytes.aBytes,
-					sourceBytes.bBytes,
-					kBytes,
-			  ])
-			: Buffer.concat([
-					secretBytes,
-					networkBytes,
-					targetABytes,
-					targetBBytes,
-					kBytes,
-			  ]);
+			? Buffer.concat([secretBytes, networkBytes, sourceBytes.aBytes, sourceBytes.bBytes, kBytes])
+			: Buffer.concat([secretBytes, networkBytes, targetABytes, targetBBytes, kBytes]);
 
 	return hash(bucketBytes).readUInt32BE(0) % bucketCount;
 };

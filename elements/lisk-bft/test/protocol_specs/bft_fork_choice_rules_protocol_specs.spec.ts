@@ -78,16 +78,12 @@ describe('bft', () => {
 							? testCase.config.lastBlock
 							: forkChoiceSpecs.config.lastBlock;
 
-						(chainStub.slots as any)._genesisTime = new Date(
-							genesisBlockTimestamp,
-						);
+						(chainStub.slots as any)._genesisTime = new Date(genesisBlockTimestamp);
 						(chainStub.slots as any)._interval = interval;
 
 						Date.now = jest.fn(
 							// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-							() =>
-								genesisBlockTimestamp +
-								testCase.input.receivedBlock.receivedAt * 1000,
+							() => genesisBlockTimestamp + testCase.input.receivedBlock.receivedAt * 1000,
 						);
 
 						const {

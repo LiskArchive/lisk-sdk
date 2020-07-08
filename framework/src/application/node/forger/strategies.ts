@@ -12,15 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	MaxHeap,
-	TransactionPool,
-	PooledTransaction,
-} from '@liskhq/lisk-transaction-pool';
-import {
-	Status as TransactionStatus,
-	BaseTransaction,
-} from '@liskhq/lisk-transactions';
+import { MaxHeap, TransactionPool, PooledTransaction } from '@liskhq/lisk-transaction-pool';
+import { Status as TransactionStatus, BaseTransaction } from '@liskhq/lisk-transactions';
 import { Chain } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
@@ -63,24 +56,17 @@ export class HighFeeForgingStrategy {
 		const feePriorityHeap = new MaxHeap();
 		for (const transactions of transactionsBySender.values()) {
 			const lowestNonceTrx = transactions[0];
-			feePriorityHeap.push(
-				lowestNonceTrx.feePriority as bigint,
-				lowestNonceTrx,
-			);
+			feePriorityHeap.push(lowestNonceTrx.feePriority as bigint, lowestNonceTrx);
 		}
 
 		// Loop till we have last account exhausted to pick transactions
 		while (transactionsBySender.size > 0) {
 			// Get the transaction with highest fee and lowest nonce
-			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()?.value as
-				| BaseTransaction
-				| undefined;
+			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()?.value as BaseTransaction | undefined;
 			if (!lowestNonceHighestFeeTrx) {
 				throw new Error('lowest nonce tx must exist');
 			}
-			const senderId = getAddressFromPublicKey(
-				lowestNonceHighestFeeTrx.senderPublicKey,
-			);
+			const senderId = getAddressFromPublicKey(lowestNonceHighestFeeTrx.senderPublicKey);
 			// Try to process transaction
 			const result = await this._chainModule.applyTransactionsWithStateStore(
 				[lowestNonceHighestFeeTrx],
@@ -114,9 +100,7 @@ export class HighFeeForgingStrategy {
 			// Remove the selected transaction from the list
 			// as original array is readonly in future when we convert it to
 			// typescript the `splice` will not work so why used destruction
-			const [, ...choppedArray] = transactionsBySender.get(
-				senderId,
-			) as PooledTransaction[];
+			const [, ...choppedArray] = transactionsBySender.get(senderId) as PooledTransaction[];
 			transactionsBySender.set(senderId, choppedArray);
 
 			// If there is no transaction left in heap for that account
@@ -129,9 +113,7 @@ export class HighFeeForgingStrategy {
 			}
 
 			// Pick next lowest transaction from same account and push to fee queue
-			const nextLowestNonceTransactions = transactionsBySender.get(
-				senderId,
-			) as PooledTransaction[];
+			const nextLowestNonceTransactions = transactionsBySender.get(senderId) as PooledTransaction[];
 			feePriorityHeap.push(
 				nextLowestNonceTransactions[0].feePriority as bigint,
 				nextLowestNonceTransactions[0],

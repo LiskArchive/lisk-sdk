@@ -53,9 +53,7 @@ describe('network-identifier command', () => {
 		setupTest()
 			.command(['network-identifier', '123'])
 			.it('should show networkIdentifier', () => {
-				return expect(printMethodStub).to.be.calledWithExactly(
-					networkIdentifier,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(networkIdentifier);
 			});
 	});
 });

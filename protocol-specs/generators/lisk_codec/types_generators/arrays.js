@@ -17,12 +17,7 @@ const protobuf = require('protobufjs');
 const prepareProtobuffersArrays = () =>
 	protobuf.loadSync('./generators/lisk_codec/proto_files/arrays.proto');
 
-const {
-	ArrayOfIntegers,
-	ArrayBools,
-	ArrayString,
-	ArrayObjects,
-} = prepareProtobuffersArrays();
+const { ArrayOfIntegers, ArrayBools, ArrayString, ArrayObjects } = prepareProtobuffersArrays();
 
 const generateValidArrayEncodings = () => {
 	const input = {
@@ -137,16 +132,10 @@ const generateValidArrayEncodings = () => {
 		},
 	};
 
-	const arrayOfIntegersEncoded = ArrayOfIntegers.encode(
-		input.ArrayOfIntegers.object,
-	).finish();
+	const arrayOfIntegersEncoded = ArrayOfIntegers.encode(input.ArrayOfIntegers.object).finish();
 	const arrayBoolsEncoded = ArrayBools.encode(input.arrayBools.object).finish();
-	const arrayStringsEncoded = ArrayString.encode(
-		input.arrayStrings.object,
-	).finish();
-	const arrayOfObjectsEncoded = ArrayObjects.encode(
-		input.arrayObjects.object,
-	).finish();
+	const arrayStringsEncoded = ArrayString.encode(input.arrayStrings.object).finish();
+	const arrayOfObjectsEncoded = ArrayObjects.encode(input.arrayObjects.object).finish();
 	const emptyArrayEncoded = ArrayBools.encode(input.emptyArray.object).finish();
 
 	return [

@@ -181,9 +181,7 @@ describe('validate', () => {
 	describe('asset.initDelegates', () => {
 		it('should fail if "asset.initDelegates" list is not lexicographically ordered', () => {
 			// Arrange
-			const initDelegates = cloneDeep([
-				...genesisBlock.header.asset.initDelegates,
-			]);
+			const initDelegates = cloneDeep([...genesisBlock.header.asset.initDelegates]);
 			initDelegates.sort((a, b) => b.compare(a));
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
@@ -247,9 +245,7 @@ describe('validate', () => {
 
 		it('should fail if "asset.initDelegates" list contains address which is not a "delegate" account', () => {
 			// Arrange
-			const accounts = genesisBlock.header.asset.accounts.map(acc =>
-				mergeDeep({}, acc),
-			);
+			const accounts = genesisBlock.header.asset.accounts.map(acc => mergeDeep({}, acc));
 			const delegate = accounts.find(a => {
 				return genesisBlock.header.asset.initDelegates[0].equals(a.address);
 			}) as GenesisAccountState<DefaultAccountAsset>;
@@ -346,9 +342,7 @@ describe('validate', () => {
 		it('should fail if "asset.initDelegates" list items contains more than  "roundLength" items', () => {
 			// Arrange
 			const roundLength = 2;
-			const gb = mergeDeep({}, genesisBlock) as GenesisBlock<
-				DefaultAccountAsset
-			>;
+			const gb = mergeDeep({}, genesisBlock) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -435,18 +429,14 @@ describe('validate', () => {
 
 		it('should fail if sum of balance of all "asset.accounts" is greater than 2^63-1', () => {
 			// Arrange
-			const [account, ...accounts] = cloneDeep(
-				genesisBlock.header.asset.accounts,
-			);
+			const [account, ...accounts] = cloneDeep(genesisBlock.header.asset.accounts);
 			const newAccount = mergeDeep({}, account, {
 				balance: BigInt(2) ** BigInt(63),
 			});
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
 					asset: {
-						accounts: [newAccount, ...accounts].sort((a, b) =>
-							a.address.compare(b.address),
-						),
+						accounts: [newAccount, ...accounts].sort((a, b) => a.address.compare(b.address)),
 					},
 				},
 			}) as GenesisBlock<DefaultAccountAsset>;
@@ -473,11 +463,7 @@ describe('validate', () => {
 		it('should fail if "mandatoryKeys" are not ordered lexicographically', () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
-			const mandatoryKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-			];
+			const mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
 			mandatoryKeys.sort((a, b) => b.compare(a));
 			accounts[0].keys.numberOfSignatures = 3;
 			accounts[0].keys.mandatoryKeys = mandatoryKeys;
@@ -501,8 +487,7 @@ describe('validate', () => {
 					message: 'should be lexicographically ordered',
 					keyword: 'mandatoryKeys',
 					dataPath: '.accounts[0].keys.mandatoryKeys',
-					schemaPath:
-						'#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
 					params: { mandatoryKeys },
 				}),
 			);
@@ -511,11 +496,7 @@ describe('validate', () => {
 		it('should fail if "optionalKeys" are not ordered lexicographically', () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
-			const optionalKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-			];
+			const optionalKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
 			optionalKeys.sort((a, b) => b.compare(a));
 			accounts[0].keys.numberOfSignatures = 1;
 			accounts[0].keys.optionalKeys = optionalKeys;
@@ -539,8 +520,7 @@ describe('validate', () => {
 					message: 'should be lexicographically ordered',
 					keyword: 'optionalKeys',
 					dataPath: '.accounts[0].keys.optionalKeys',
-					schemaPath:
-						'#/properties/accounts/items/properties/keys/properties/optionalKeys',
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/optionalKeys',
 					params: { optionalKeys },
 				}),
 			);
@@ -549,15 +529,8 @@ describe('validate', () => {
 		it('should fail if "mandatoryKeys" are not unique', () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
-			let mandatoryKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-			];
-			mandatoryKeys = [
-				...cloneDeep(mandatoryKeys),
-				...cloneDeep(mandatoryKeys),
-			];
+			let mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
+			mandatoryKeys = [...cloneDeep(mandatoryKeys), ...cloneDeep(mandatoryKeys)];
 			mandatoryKeys.sort((a, b) => a.compare(b));
 			accounts[0].keys.numberOfSignatures = 6;
 			accounts[0].keys.mandatoryKeys = mandatoryKeys;
@@ -591,11 +564,7 @@ describe('validate', () => {
 		it('should fail if "optionalKeys" are not unique', () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
-			let optionalKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-			];
+			let optionalKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
 			optionalKeys = [...cloneDeep(optionalKeys), ...cloneDeep(optionalKeys)];
 			optionalKeys.sort((a, b) => a.compare(b));
 			accounts[0].keys.numberOfSignatures = 1;
@@ -631,18 +600,8 @@ describe('validate', () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
 			const commonKey = getRandomBytes(32);
-			const optionalKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-				commonKey,
-			];
-			const mandatoryKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-				commonKey,
-			];
+			const optionalKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32), commonKey];
+			const mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32), commonKey];
 			mandatoryKeys.sort((a, b) => a.compare(b));
 			optionalKeys.sort((a, b) => a.compare(b));
 			accounts[0].keys.numberOfSignatures = mandatoryKeys.length;
@@ -665,11 +624,9 @@ describe('validate', () => {
 			expect(errors).toHaveLength(1);
 			expect(errors[0]).toEqual(
 				expect.objectContaining({
-					dataPath:
-						'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+					dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
 					keyword: 'uniqueItems',
-					message:
-						'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+					message: 'should NOT have duplicate items among mandatoryKeys and optionalKeys',
 					params: {},
 					schemaPath: '#/properties/accounts/items/properties/keys',
 				}),
@@ -701,13 +658,11 @@ describe('validate', () => {
 				expect.objectContaining({
 					dataPath: '.accounts[0].keys.numberOfSignatures',
 					keyword: 'max',
-					message:
-						'should be maximum of length of mandatoryKeys and optionalKeys',
+					message: 'should be maximum of length of mandatoryKeys and optionalKeys',
 					params: {
 						max: 0,
 					},
-					schemaPath:
-						'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 				}),
 			);
 		});
@@ -724,8 +679,7 @@ describe('validate', () => {
 				.fill(0)
 				.map(() => getRandomBytes(32));
 			accounts[0].keys.optionalKeys.sort((a, b) => a.compare(b));
-			accounts[0].keys.numberOfSignatures =
-				accounts[0].keys.mandatoryKeys.length;
+			accounts[0].keys.numberOfSignatures = accounts[0].keys.mandatoryKeys.length;
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
 					asset: {
@@ -743,8 +697,7 @@ describe('validate', () => {
 			expect(errors).toHaveLength(1);
 			expect(errors[0]).toEqual(
 				expect.objectContaining({
-					dataPath:
-						'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+					dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
 					keyword: 'maxItems',
 					message: 'should not have more than 64 keys',
 					params: { maxItems: 64 },
@@ -757,11 +710,7 @@ describe('validate', () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
 			accounts[0].keys.numberOfSignatures = 2;
-			accounts[0].keys.mandatoryKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-			];
+			accounts[0].keys.mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
 			accounts[0].keys.mandatoryKeys.sort((a, b) => a.compare(b));
 			accounts[0].keys.optionalKeys = [];
 			const gb = mergeDeep({}, genesisBlock, {
@@ -787,8 +736,7 @@ describe('validate', () => {
 					params: {
 						min: 3,
 					},
-					schemaPath:
-						'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 				}),
 			);
 		});
@@ -797,17 +745,9 @@ describe('validate', () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
 			accounts[0].keys.numberOfSignatures = 7;
-			accounts[0].keys.mandatoryKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-			];
+			accounts[0].keys.mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
 			accounts[0].keys.mandatoryKeys.sort((a, b) => a.compare(b));
-			accounts[0].keys.optionalKeys = [
-				getRandomBytes(32),
-				getRandomBytes(32),
-				getRandomBytes(32),
-			];
+			accounts[0].keys.optionalKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
 			accounts[0].keys.optionalKeys.sort((a, b) => a.compare(b));
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
@@ -828,13 +768,11 @@ describe('validate', () => {
 				expect.objectContaining({
 					dataPath: '.accounts[0].keys.numberOfSignatures',
 					keyword: 'max',
-					message:
-						'should be maximum of length of mandatoryKeys and optionalKeys',
+					message: 'should be maximum of length of mandatoryKeys and optionalKeys',
 					params: {
 						max: 6,
 					},
-					schemaPath:
-						'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 				}),
 			);
 		});

@@ -17,12 +17,7 @@ const protobuf = require('protobufjs');
 const prepareProtobuffersNumbers = () =>
 	protobuf.loadSync('./generators/lisk_codec/proto_files/numbers.proto');
 
-const {
-	Number32,
-	SignedNumber32,
-	Number64,
-	SignedNumber64,
-} = prepareProtobuffersNumbers();
+const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffersNumbers();
 
 const generateValidNumberEncodings = () => {
 	const input = {
@@ -89,13 +84,9 @@ const generateValidNumberEncodings = () => {
 	};
 
 	const numberEncoded32 = Number32.encode(input.message32.object).finish();
-	const signedNumberEncoded32 = SignedNumber32.encode(
-		input.messageSigned32.object,
-	).finish();
+	const signedNumberEncoded32 = SignedNumber32.encode(input.messageSigned32.object).finish();
 	const numberEncoded64 = Number64.encode(input.message64.object).finish();
-	const signedNumberEncoded64 = SignedNumber64.encode(
-		input.messageSigned64.object,
-	).finish();
+	const signedNumberEncoded64 = SignedNumber64.encode(input.messageSigned64.object).finish();
 
 	return [
 		{

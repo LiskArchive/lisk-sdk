@@ -19,11 +19,7 @@ describe('errors', () => {
 		let TxError: TransactionError;
 
 		beforeEach(() => {
-			TxError = new TransactionError(
-				'error message',
-				Buffer.from('transaction id'),
-				'.dataPath',
-			);
+			TxError = new TransactionError('error message', Buffer.from('transaction id'), '.dataPath');
 		});
 
 		describe('#constructor', () => {
@@ -53,9 +49,7 @@ describe('errors', () => {
 					'.dataPath',
 					'__ACTUAL_PROPERTY_1__',
 				);
-				return expect(TxError.toString()).toMatch(
-					/actual: __ACTUAL_PROPERTY_1__/,
-				);
+				return expect(TxError.toString()).toMatch(/actual: __ACTUAL_PROPERTY_1__/);
 			});
 
 			it('should show provided expected property when present', () => {
@@ -66,17 +60,13 @@ describe('errors', () => {
 					'actual_value_provided',
 					'__EXPECTED_PROPERTY_1__',
 				);
-				return expect(TxError.toString()).toMatch(
-					/expected: __EXPECTED_PROPERTY_1__/,
-				);
+				return expect(TxError.toString()).toMatch(/expected: __EXPECTED_PROPERTY_1__/);
 			});
 		});
 
 		describe('#toString', () => {
 			it('should return a string from a TransactionError', () => {
-				return expect(TxError.toString()).toInclude(
-					'failed at .dataPath: error message',
-				);
+				return expect(TxError.toString()).toInclude('failed at .dataPath: error message');
 			});
 		});
 	});

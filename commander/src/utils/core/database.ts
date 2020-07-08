@@ -38,18 +38,14 @@ const DB_LOG_FILE = 'logs/pgsql.log';
 const PG_BIN = './pgsql/bin';
 const PG_CTL = `${PG_BIN}/pg_ctl`;
 
-const isDbInitialized = (installDir: string): boolean =>
-	fs.existsSync(`${installDir}/${DB_DATA}`);
+const isDbInitialized = (installDir: string): boolean => fs.existsSync(`${installDir}/${DB_DATA}`);
 
-const isDbRunning = async (
-	installDir: string,
-	port: string,
-): Promise<boolean> => {
-	const {
-		stderr,
-	}: ExecResult = await exec(
+const isDbRunning = async (installDir: string, port: string): Promise<boolean> => {
+	const { stderr }: ExecResult = await exec(
 		`${PG_CTL} --pgdata ${DB_DATA} --options '-F -p ${port}' status`,
-		{ cwd: installDir },
+		{
+			cwd: installDir,
+		},
 	);
 
 	return !stderr;
@@ -60,12 +56,9 @@ export const initDB = async (installDir: string): Promise<string> => {
 		return 'Postgres database initialized';
 	}
 
-	const { stderr }: ExecResult = await exec(
-		`${PG_CTL} initdb --pgdata ${DB_DATA}`,
-		{
-			cwd: installDir,
-		},
-	);
+	const { stderr }: ExecResult = await exec(`${PG_CTL} initdb --pgdata ${DB_DATA}`, {
+		cwd: installDir,
+	});
 
 	if (!stderr) {
 		return DATABASE_START_SUCCESS;
@@ -74,10 +67,7 @@ export const initDB = async (installDir: string): Promise<string> => {
 	throw new Error(`${DATABASE_START_FAILURE}: \n\n ${stderr}`);
 };
 
-export const startDatabase = async (
-	installDir: string,
-	name: string,
-): Promise<string> => {
+export const startDatabase = async (installDir: string, name: string): Promise<string> => {
 	const { dbPort } = (await describeApplication(name)) as PM2ProcessInstance;
 	const isRunning = await isDbRunning(installDir, dbPort);
 	if (isRunning) {
@@ -158,21 +148,18 @@ export const createDatabase = async (
 	}
 };
 
-export const stopDatabase = async (
-	installDir: string,
-	name: string,
-): Promise<string> => {
+export const stopDatabase = async (installDir: string, name: string): Promise<string> => {
 	const { dbPort } = (await describeApplication(name)) as PM2ProcessInstance;
 	const isRunning = await isDbRunning(installDir, dbPort);
 	if (!isRunning) {
 		return DATABASE_STATUS;
 	}
 
-	const {
-		stderr,
-	}: ExecResult = await exec(
+	const { stderr }: ExecResult = await exec(
 		`${PG_CTL} --pgdata ${DB_DATA} --log ${DB_LOG_FILE} stop`,
-		{ cwd: installDir },
+		{
+			cwd: installDir,
+		},
 	);
 
 	if (!stderr) {

@@ -95,10 +95,7 @@ const sign = (header, privateKey) => {
 		asset: assetBytes,
 	});
 	return Buffer.from(
-		signDataWithPrivateKey(
-			Buffer.concat([networkIdentifier, blockBytes]),
-			privateKey,
-		),
+		signDataWithPrivateKey(Buffer.concat([networkIdentifier, blockBytes]), privateKey),
 		'hex',
 	);
 };
@@ -156,8 +153,7 @@ const accounts = {
 			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 			'hex',
 		),
-		passphrase:
-			'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
+		passphrase: 'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
 		balance: BigInt('10000000000000000'),
 		encryptedPassphrase:
 			'iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1',
@@ -183,9 +179,7 @@ const getBase64Account = account => ({
 	balance: account.balance.toString(),
 });
 
-const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(
-	accounts.forger.passphrase,
-);
+const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(accounts.forger.passphrase);
 
 /*
 	Scenario 1:
@@ -214,10 +208,7 @@ const scenario1Header1 = {
 	},
 };
 
-scenario1Header1.signature = sign(
-	scenario1Header1,
-	forgerKeyPair.privateKeyBytes,
-);
+scenario1Header1.signature = sign(scenario1Header1, forgerKeyPair.privateKeyBytes);
 
 const scenario1Header2 = {
 	version: 2,
@@ -240,10 +231,7 @@ const scenario1Header2 = {
 	},
 };
 
-scenario1Header2.signature = sign(
-	scenario1Header2,
-	forgerKeyPair.privateKeyBytes,
-);
+scenario1Header2.signature = sign(scenario1Header2, forgerKeyPair.privateKeyBytes);
 
 const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 	const unsignedTransaction = {
@@ -266,9 +254,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 
 	const signBytes = getSignBytes(tx);
 
-	tx.signatures.push(
-		createSignatureObject(signBytes, accounts.reporter).signature,
-	);
+	tx.signatures.push(createSignatureObject(signBytes, accounts.reporter).signature);
 
 	const encodedTx = encode(tx);
 
@@ -312,10 +298,7 @@ const scenario2Header1 = {
 	},
 };
 
-scenario2Header1.signature = sign(
-	scenario2Header1,
-	forgerKeyPair.privateKeyBytes,
-);
+scenario2Header1.signature = sign(scenario2Header1, forgerKeyPair.privateKeyBytes);
 
 const scenario2Header2 = {
 	version: 2,
@@ -338,10 +321,7 @@ const scenario2Header2 = {
 	},
 };
 
-scenario2Header2.signature = sign(
-	scenario2Header2,
-	forgerKeyPair.privateKeyBytes,
-);
+scenario2Header2.signature = sign(scenario2Header2, forgerKeyPair.privateKeyBytes);
 
 const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 	const unsignedTransaction = {
@@ -364,9 +344,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 
 	const signBytes = getSignBytes(tx);
 
-	tx.signatures.push(
-		createSignatureObject(signBytes, accounts.reporter).signature,
-	);
+	tx.signatures.push(createSignatureObject(signBytes, accounts.reporter).signature);
 
 	const encodedTx = encode(tx);
 
@@ -410,10 +388,7 @@ const scenario3Header1 = {
 	},
 };
 
-scenario3Header1.signature = sign(
-	scenario3Header1,
-	forgerKeyPair.privateKeyBytes,
-);
+scenario3Header1.signature = sign(scenario3Header1, forgerKeyPair.privateKeyBytes);
 
 const scenario3Header2 = {
 	version: 2,
@@ -436,10 +411,7 @@ const scenario3Header2 = {
 	},
 };
 
-scenario3Header2.signature = sign(
-	scenario3Header2,
-	forgerKeyPair.privateKeyBytes,
-);
+scenario3Header2.signature = sign(scenario3Header2, forgerKeyPair.privateKeyBytes);
 
 const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 	const unsignedTransaction = {
@@ -462,9 +434,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 
 	const signBytes = getSignBytes(tx);
 
-	tx.signatures.push(
-		createSignatureObject(signBytes, accounts.reporter).signature,
-	);
+	tx.signatures.push(createSignatureObject(signBytes, accounts.reporter).signature);
 
 	const encodedTx = encode(tx);
 
@@ -496,7 +466,6 @@ const validProofOfMisbehaviorForScenario1Suite = () => ({
 	],
 });
 
-module.exports = BaseGenerator.runGenerator(
-	'proof_of_misbehavior_transaction',
-	[validProofOfMisbehaviorForScenario1Suite],
-);
+module.exports = BaseGenerator.runGenerator('proof_of_misbehavior_transaction', [
+	validProofOfMisbehaviorForScenario1Suite,
+]);

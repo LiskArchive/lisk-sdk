@@ -26,8 +26,7 @@ describe('Outbound IP limit', () => {
 
 	beforeAll(() => {
 		const serverSocketPrototype = SCServerSocket.prototype as any;
-		const realResetPongTimeoutFunction =
-			serverSocketPrototype._resetPongTimeout;
+		const realResetPongTimeoutFunction = serverSocketPrototype._resetPongTimeout;
 		// eslint-disable-next-line func-names
 		serverSocketPrototype._resetPongTimeout = function () {
 			const queryObject = url.parse(this.request.url, true).query as any;
@@ -80,9 +79,7 @@ describe('Outbound IP limit', () => {
 	it('should not have multiple Outbound connection for same IP addresses', () => {
 		for (const p2p of p2pNodeList) {
 			const uniqIpAddresses: Array<string> = [];
-			p2p['_peerPool']
-				.getPeers(OutboundPeer)
-				.map(peer => uniqIpAddresses.push(peer.ipAddress));
+			p2p['_peerPool'].getPeers(OutboundPeer).map(peer => uniqIpAddresses.push(peer.ipAddress));
 
 			expect([...new Set(uniqIpAddresses)]).toHaveLength(
 				p2p['_peerPool'].getPeers(OutboundPeer).length,

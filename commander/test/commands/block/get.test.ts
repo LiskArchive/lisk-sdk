@@ -38,9 +38,7 @@ describe('block:get', () => {
 		setupTest()
 			.stdout()
 			.command(['block:get'])
-			.catch((error: Error) =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch((error: Error) => expect(error.message).to.contain('Missing 1 required arg'))
 			.it('should throw an error when arg is not provided');
 	});
 
@@ -57,22 +55,18 @@ describe('block:get', () => {
 			.command(['block:get', blockId])
 			.it('should get block info and display as an object', () => {
 				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-				expect(queryHandler.query).to.be.calledWithExactly(
-					apiClientStub,
-					endpoint,
-					[
-						{
-							query: {
-								limit: 1,
-								blockId,
-							},
-							placeholder: {
-								id: blockId,
-								message: 'Block not found.',
-							},
+				expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							blockId,
 						},
-					],
-				);
+						placeholder: {
+							id: blockId,
+							message: 'Block not found.',
+						},
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
@@ -97,32 +91,28 @@ describe('block:get', () => {
 			.command(['block:get', blockIds.join(',')])
 			.it('should get blocks info and display as an array', () => {
 				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-				expect(queryHandler.query).to.be.calledWithExactly(
-					apiClientStub,
-					endpoint,
-					[
-						{
-							query: {
-								limit: 1,
-								blockId: blockIds[0],
-							},
-							placeholder: {
-								id: blockIds[0],
-								message: 'Block not found.',
-							},
+				expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							blockId: blockIds[0],
 						},
-						{
-							query: {
-								limit: 1,
-								blockId: blockIds[1],
-							},
-							placeholder: {
-								id: blockIds[1],
-								message: 'Block not found.',
-							},
+						placeholder: {
+							id: blockIds[0],
+							message: 'Block not found.',
 						},
-					],
-				);
+					},
+					{
+						query: {
+							limit: 1,
+							blockId: blockIds[1],
+						},
+						placeholder: {
+							id: blockIds[1],
+							message: 'Block not found.',
+						},
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 
@@ -130,28 +120,21 @@ describe('block:get', () => {
 			.stdout()
 			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['block:get', blockIdsWithEmpty.join(',')])
-			.it(
-				'should get blocks info only using non-empty args and display as an array',
-				() => {
-					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
-					expect(queryHandler.query).to.be.calledWithExactly(
-						apiClientStub,
-						endpoint,
-						[
-							{
-								query: {
-									limit: 1,
-									blockId: blockIdsWithEmpty[0],
-								},
-								placeholder: {
-									id: blockIdsWithEmpty[0],
-									message: 'Block not found.',
-								},
-							},
-						],
-					);
-					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
-				},
-			);
+			.it('should get blocks info only using non-empty args and display as an array', () => {
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
+				expect(queryHandler.query).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							blockId: blockIdsWithEmpty[0],
+						},
+						placeholder: {
+							id: blockIdsWithEmpty[0],
+							message: 'Block not found.',
+						},
+					},
+				]);
+				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+			});
 	});
 });

@@ -158,37 +158,23 @@ describe('Controller Class', () => {
 			it.todo('should call validatePluginSpec function.');
 
 			describe('when creating channel', () => {
-				it.todo(
-					'should add created channel to `controller.pluginsChannel` object',
-				);
+				it.todo('should add created channel to `controller.pluginsChannel` object');
 
-				it.todo(
-					'should call `channel.registerToBus` method to register channel to the Bus.',
-				);
+				it.todo('should call `channel.registerToBus` method to register channel to the Bus.');
 			});
 
 			describe('when creating plugin', () => {
-				it.todo(
-					'should publish `loading:started` event before loading plugin.',
-				);
+				it.todo('should publish `loading:started` event before loading plugin.');
 				it.todo('should call `plugin.load` method.');
-				it.todo(
-					'should publish `loading:finished` event after loading plugin.',
-				);
+				it.todo('should publish `loading:finished` event after loading plugin.');
 				it.todo('should add plugin to `controller.plugins` object.');
 			});
 		});
 
 		it('should log registered events and actions', () => {
 			// Assert
-			expect(logger.debug).toHaveBeenCalledWith(
-				undefined,
-				'Bus listening to events',
-			);
-			expect(logger.debug).toHaveBeenCalledWith(
-				undefined,
-				'Bus ready for actions',
-			);
+			expect(logger.debug).toHaveBeenCalledWith(undefined, 'Bus listening to events');
+			expect(logger.debug).toHaveBeenCalledWith(undefined, 'Bus ready for actions');
 		});
 	});
 
@@ -209,16 +195,8 @@ describe('Controller Class', () => {
 			};
 
 			const plugins: any = {
-				plugin1: createMockPlugin(
-					'plugin1',
-					loadStubs.plugin1,
-					unloadStubs.plugin1,
-				),
-				plugin2: createMockPlugin(
-					'plugin2',
-					loadStubs.plugin2,
-					unloadStubs.plugin2,
-				),
+				plugin1: createMockPlugin('plugin1', loadStubs.plugin1, unloadStubs.plugin1),
+				plugin2: createMockPlugin('plugin2', loadStubs.plugin2, unloadStubs.plugin2),
 			};
 			const pluginOptions: any = {
 				plugin1: {

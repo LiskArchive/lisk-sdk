@@ -43,9 +43,7 @@ describe('config utils', () => {
 		beforeEach(() => {
 			existsSyncStub = sandbox.stub(fs, 'existsSync');
 			mkdirSyncStub = sandbox.stub(fs, 'mkdirSync');
-			readJSONSyncStub = sandbox
-				.stub(fsUtils, 'readJSONSync')
-				.returns(defaultConfig);
+			readJSONSyncStub = sandbox.stub(fsUtils, 'readJSONSync').returns(defaultConfig);
 		});
 
 		describe('when config folder does not exist', () => {
@@ -97,9 +95,7 @@ describe('config utils', () => {
 				const customConfig = { ...defaultConfig, name: 'custom config' };
 				readJSONSyncStub.returns(customConfig);
 				const result = getConfig(defaultPath);
-				expect(fsUtils.readJSONSync).to.be.calledWithExactly(
-					`${defaultPath}/${configFileName}`,
-				);
+				expect(fsUtils.readJSONSync).to.be.calledWithExactly(`${defaultPath}/${configFileName}`);
 				return expect(result).to.be.equal(customConfig);
 			});
 
@@ -136,9 +132,7 @@ describe('config utils', () => {
 		describe('when lockfile exists', () => {
 			it('should log error and exit', () => {
 				checkSyncStub.returns(true);
-				return expect(
-					setConfig.bind(null, defaultPath, newConfigValue),
-				).to.throw(
+				return expect(setConfig.bind(null, defaultPath, newConfigValue)).to.throw(
 					`Config lockfile at ${defaultPath}/${lockfileName} found. Are you running Lisk Commander in another process?`,
 				);
 			});
@@ -160,9 +154,7 @@ describe('config utils', () => {
 
 			it('should create lock file', () => {
 				setConfig(defaultPath, newConfigValue);
-				return expect(lockfile.lockSync).to.be.calledWithExactly(
-					`${defaultPath}/${lockfileName}`,
-				);
+				return expect(lockfile.lockSync).to.be.calledWithExactly(`${defaultPath}/${lockfileName}`);
 			});
 
 			it('should unlock file', () => {

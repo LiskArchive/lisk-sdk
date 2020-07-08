@@ -22,8 +22,7 @@ export const forgingSlot = (slots: Slots, block: BlockHeader): number =>
 export const isBlockReceivedWithinForgingSlot = (
 	slots: Slots,
 	{ timestamp, receivedAt }: BlockHeader,
-): boolean =>
-	slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
+): boolean => slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
 
 export const isLastAppliedBlockReceivedWithinForgingSlot = (
 	slots: Slots,
@@ -38,30 +37,18 @@ export const isLastAppliedBlockReceivedWithinForgingSlot = (
 	return isBlockReceivedWithinForgingSlot(slots, lastAppliedBlock);
 };
 
-export const isValidBlock = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
-): boolean =>
-	lastBlock.height + 1 === currentBlock.height &&
-	lastBlock.id.equals(currentBlock.previousBlockID);
+export const isValidBlock = (lastBlock: BlockHeader, currentBlock: BlockHeader): boolean =>
+	lastBlock.height + 1 === currentBlock.height && lastBlock.id.equals(currentBlock.previousBlockID);
 
-export const isIdenticalBlock = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
-): boolean => lastBlock.id.equals(currentBlock.id);
+export const isIdenticalBlock = (lastBlock: BlockHeader, currentBlock: BlockHeader): boolean =>
+	lastBlock.id.equals(currentBlock.id);
 
-export const isDuplicateBlock = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
-): boolean =>
+export const isDuplicateBlock = (lastBlock: BlockHeader, currentBlock: BlockHeader): boolean =>
 	lastBlock.height === currentBlock.height &&
 	lastBlock.asset.maxHeightPrevoted === currentBlock.asset.maxHeightPrevoted &&
 	lastBlock.previousBlockID.equals(currentBlock.previousBlockID);
 
-export const isDoubleForging = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
-): boolean =>
+export const isDoubleForging = (lastBlock: BlockHeader, currentBlock: BlockHeader): boolean =>
 	isDuplicateBlock(lastBlock, currentBlock) &&
 	lastBlock.generatorPublicKey.equals(currentBlock.generatorPublicKey);
 
@@ -79,10 +66,7 @@ export const isTieBreak = ({
 	!isLastAppliedBlockReceivedWithinForgingSlot(slots, lastAppliedBlock) &&
 	isBlockReceivedWithinForgingSlot(slots, receivedBlock);
 
-export const isDifferentChain = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
-): boolean => {
+export const isDifferentChain = (lastBlock: BlockHeader, currentBlock: BlockHeader): boolean => {
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const maxHeightPrevoted = lastBlock.asset.maxHeightPrevoted || 0;
 

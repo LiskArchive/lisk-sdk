@@ -50,9 +50,7 @@ describe('pm2 node utils', () => {
 			sandbox.stub(pm2, 'connect').yields(null, 'connected');
 			sandbox.stub(pm2, 'start').yields(null, 'started');
 			sandbox.stub(pm2, 'stop').yields(null, 'stopped');
-			sandbox
-				.stub(fsExtra, 'readJson')
-				.resolves({ apps: [{ script: 'src/index.js' }] } as any);
+			sandbox.stub(fsExtra, 'readJson').resolves({ apps: [{ script: 'src/index.js' }] } as any);
 		});
 
 		it('should register an application', async () => {
@@ -131,9 +129,7 @@ describe('pm2 node utils', () => {
 
 		it('should return application description', async () => {
 			describeStub.yields(null, applicationList);
-			const appDesc = (await describeApplication(
-				'testnet',
-			)) as PM2ProcessInstance;
+			const appDesc = (await describeApplication('testnet')) as PM2ProcessInstance;
 
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.describe).to.be.calledOnce;

@@ -38,14 +38,8 @@ const generateValidBlockEncodings = () => {
 					'hex',
 				),
 				payload: [
-					Buffer.from(
-						'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3',
-						'hex',
-					),
-					Buffer.from(
-						'68a751863fe73b8ede8d832be628ff680d617fa15c74d00142f9025d5f37dd50',
-						'hex',
-					),
+					Buffer.from('a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'hex'),
+					Buffer.from('68a751863fe73b8ede8d832be628ff680d617fa15c74d00142f9025d5f37dd50', 'hex'),
 				],
 			},
 			schema: blockSchema,

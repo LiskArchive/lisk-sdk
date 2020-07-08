@@ -13,10 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	reportMisbehavior,
-	utils as transactionUtils,
-} from '@liskhq/lisk-transactions';
+import { reportMisbehavior, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
@@ -115,12 +112,7 @@ export default class PoMCommand extends BaseCommand {
 			},
 		} = this.parse(PoMCommand);
 
-		const {
-			nonce,
-			fee,
-			header1: header1Str,
-			header2: header2Str,
-		} = args as Args;
+		const { nonce, fee, header1: header1Str, header2: header2Str } = args as Args;
 
 		if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 			throw new ValidationError('Enter a valid nonce in number string format.');
@@ -176,8 +168,7 @@ export default class PoMCommand extends BaseCommand {
 			return;
 		}
 
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
 		const result = processInputs(
 			nonce,

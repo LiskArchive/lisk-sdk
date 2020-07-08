@@ -52,9 +52,7 @@ export interface GenesisBlock<T> {
 
 export interface GenesisBlockParams<T> {
 	// List of accounts in the genesis
-	readonly accounts: ReadonlyArray<
-		PartialReq<GenesisAccountState<T>, 'address'>
-	>;
+	readonly accounts: ReadonlyArray<PartialReq<GenesisAccountState<T>, 'address'>>;
 	// List fo initial delegate addresses used during the bootstrap period to forge blocks
 	readonly initDelegates: ReadonlyArray<Buffer>;
 	// Number of blocks per round

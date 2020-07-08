@@ -18,14 +18,8 @@ import { StateStore } from '../../../src';
 import { BlockHeader, StateDiff } from '../../../src/types';
 import { DataAccess } from '../../../src/data_access';
 import { baseAccountSchema } from '../../../src/schema';
-import {
-	createFakeDefaultAccount,
-	defaultAccountAssetSchema,
-} from '../../utils/account';
-import {
-	defaultBlockHeaderAssetSchema,
-	defaultNetworkIdentifier,
-} from '../../utils/block';
+import { createFakeDefaultAccount, defaultAccountAssetSchema } from '../../utils/account';
+import { defaultBlockHeaderAssetSchema, defaultNetworkIdentifier } from '../../utils/block';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -33,10 +27,9 @@ describe('state store / chain_state', () => {
 	let stateStore: StateStore;
 	let db: any;
 
-	const lastBlockHeaders = ([
-		{ height: 30 },
-		{ height: 20 },
-	] as unknown) as ReadonlyArray<BlockHeader>;
+	const lastBlockHeaders = ([{ height: 30 }, { height: 20 }] as unknown) as ReadonlyArray<
+		BlockHeader
+	>;
 
 	beforeEach(() => {
 		db = new KVStore('temp');
@@ -83,9 +76,7 @@ describe('state store / chain_state', () => {
 				.calledWith('consensus:key1')
 				.mockResolvedValue(Buffer.from('value5') as never);
 			// Act & Assert
-			expect(await stateStore.consensus.get('key1')).toEqual(
-				Buffer.from('value1'),
-			);
+			expect(await stateStore.consensus.get('key1')).toEqual(Buffer.from('value1'));
 		});
 
 		it('should try to get value from database if not in cache', async () => {
@@ -94,9 +85,7 @@ describe('state store / chain_state', () => {
 				.calledWith('consensus:key1')
 				.mockResolvedValue(Buffer.from('value5') as never);
 			// Act & Assert
-			expect(await stateStore.consensus.get('key1')).toEqual(
-				Buffer.from('value5'),
-			);
+			expect(await stateStore.consensus.get('key1')).toEqual(Buffer.from('value5'));
 		});
 	});
 
@@ -105,9 +94,7 @@ describe('state store / chain_state', () => {
 			// Act
 			stateStore.consensus.set('key3', Buffer.from('value3'));
 			// Assert
-			expect(await stateStore.consensus.get('key3')).toEqual(
-				Buffer.from('value3'),
-			);
+			expect(await stateStore.consensus.get('key3')).toEqual(Buffer.from('value3'));
 			expect((stateStore.consensus as any)._updatedKeys.size).toBe(1);
 		});
 
@@ -116,9 +103,7 @@ describe('state store / chain_state', () => {
 			stateStore.consensus.set('key3', Buffer.from('value3'));
 			stateStore.consensus.set('key3', Buffer.from('value4'));
 			// Assert
-			expect(await stateStore.consensus.get('key3')).toEqual(
-				Buffer.from('value4'),
-			);
+			expect(await stateStore.consensus.get('key3')).toEqual(Buffer.from('value4'));
 			expect((stateStore.consensus as any)._updatedKeys.size).toBe(1);
 		});
 	});
@@ -145,18 +130,15 @@ describe('state store / chain_state', () => {
 			stateStore.consensus.set('key4', Buffer.from('value5'));
 			stateDiff = stateStore.consensus.finalize(batchStub);
 			// Assert
-			expect(batchStub.put).toHaveBeenCalledWith(
-				'consensus:key3',
-				Buffer.from('value4'),
-			);
-			expect(batchStub.put).toHaveBeenCalledWith(
-				'consensus:key4',
-				Buffer.from('value5'),
-			);
+			expect(batchStub.put).toHaveBeenCalledWith('consensus:key3', Buffer.from('value4'));
+			expect(batchStub.put).toHaveBeenCalledWith('consensus:key4', Buffer.from('value5'));
 		});
 
 		it('should return state diff with created and updated values after finalize', () => {
-			expect(stateDiff).toStrictEqual({ updated: [], created: ['consensus:key3', 'consensus:key4'] });
+			expect(stateDiff).toStrictEqual({
+				updated: [],
+				created: ['consensus:key3', 'consensus:key4'],
+			});
 		});
 	});
 });

@@ -151,8 +151,7 @@ const transactionEncodingsSuite = () => ({
 
 const cartSampleEncodingSuite = () => ({
 	title: 'Encondings for a complex object',
-	summary:
-		'Example of encoding a complex object that might exist in custom apps',
+	summary: 'Example of encoding a complex object that might exist in custom apps',
 	config: {
 		network: 'devnet',
 	},

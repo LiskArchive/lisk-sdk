@@ -37,10 +37,7 @@ export class ConsensusStateStore {
 	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	private _initialValue: KeyValuePair;
 
-	public constructor(
-		dataAccess: DataAccess,
-		additionalInformation: AdditionalInformation,
-	) {
+	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
 		this._dataAccess = dataAccess;
 		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
 		this._data = {};
@@ -111,10 +108,7 @@ export class ConsensusStateStore {
 			batch.put(dbKey, updatedValue);
 
 			if (this._initialValue[key] !== undefined) {
-				const diff = calculateDiff(
-					this._initialValue[key] as Buffer,
-					updatedValue,
-				);
+				const diff = calculateDiff(this._initialValue[key] as Buffer, updatedValue);
 				stateDiff.updated.push({
 					key: dbKey,
 					value: diff,

@@ -43,11 +43,7 @@ export const createNode = ({
 	channel,
 	options = {},
 }: CreateNodeInput): Node => {
-	const mergedConfig = mergeDeep(
-		{},
-		nodeConfig(),
-		nodeConfigs,
-	) as ApplicationConfig;
+	const mergedConfig = mergeDeep({}, nodeConfig(), nodeConfigs) as ApplicationConfig;
 	const convertedDelegates = mergedConfig.forging.delegates.map(delegate => ({
 		...delegate,
 		address: Buffer.from(delegate.address, 'base64'),

@@ -40,9 +40,7 @@ describe('Transaction pool', () => {
 		let transaction: any;
 
 		beforeAll(async () => {
-			const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
-				genesis.address,
-			);
+			const genesisAccount = await node._chain.dataAccess.getAccountByAddress(genesis.address);
 			const account = nodeUtils.createAccount();
 			transaction = new TransferTransaction({
 				nonce: genesisAccount.nonce,
@@ -54,10 +52,7 @@ describe('Transaction pool', () => {
 					data: '',
 				},
 			});
-			transaction.sign(
-				Buffer.from(node._networkIdentifier, 'hex'),
-				genesis.passphrase,
-			);
+			transaction.sign(Buffer.from(node._networkIdentifier, 'hex'), genesis.passphrase);
 			await node._transport.handleEventPostTransaction({
 				transaction: transaction.getBytes().toString('base64'),
 			});

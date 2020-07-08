@@ -25,32 +25,21 @@ export const validateSignature = (
 	signature: Buffer,
 	networkIdentifier: Buffer,
 ): void => {
-	const blockWithNetworkIdentifierBytes = Buffer.concat([
-		networkIdentifier,
-		dataWithoutSignature,
-	]);
+	const blockWithNetworkIdentifierBytes = Buffer.concat([networkIdentifier, dataWithoutSignature]);
 
-	const verified = verifyData(
-		blockWithNetworkIdentifierBytes,
-		signature,
-		publicKey,
-	);
+	const verified = verifyData(blockWithNetworkIdentifierBytes, signature, publicKey);
 
 	if (!verified) {
 		throw new Error('Invalid block signature');
 	}
 };
 
-export const validatePreviousBlockProperty = (
-	block: Block,
-	genesisBlock: Block,
-): void => {
+export const validatePreviousBlockProperty = (block: Block, genesisBlock: Block): void => {
 	const isGenesisBlock =
 		block.header.id.equals(genesisBlock.header.id) &&
 		block.header.version === genesisBlock.header.version;
 	const propertyIsValid =
-		isGenesisBlock ||
-		(block.header.previousBlockID.length > 0 && block.header.version !== 0);
+		isGenesisBlock || (block.header.previousBlockID.length > 0 && block.header.version !== 0);
 
 	if (!propertyIsValid) {
 		throw new Error('Invalid previous block');
@@ -86,11 +75,7 @@ export const validateBlockProperties = (
 	block.payload.forEach(transaction => {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (appliedTransactions.has(transaction.id)) {
-			throw new Error(
-				`Encountered duplicate transaction: ${transaction.id.toString(
-					'base64',
-				)}`,
-			);
+			throw new Error(`Encountered duplicate transaction: ${transaction.id.toString('base64')}`);
 		}
 		transactionIds.push(transaction.id);
 		appliedTransactions.add(transaction.id);
@@ -103,18 +88,11 @@ export const validateBlockProperties = (
 	}
 };
 
-export const validateBlockSlot = (
-	block: Block,
-	lastBlock: Block,
-	slots: Slots,
-): void => {
+export const validateBlockSlot = (block: Block, lastBlock: Block, slots: Slots): void => {
 	const blockSlotNumber = slots.getSlotNumber(block.header.timestamp);
 	const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.header.timestamp);
 
-	if (
-		blockSlotNumber > slots.getSlotNumber() ||
-		blockSlotNumber <= lastBlockSlotNumber
-	) {
+	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
 		throw new Error('Invalid block timestamp');
 	}
 };

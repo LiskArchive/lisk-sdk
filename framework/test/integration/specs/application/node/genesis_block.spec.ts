@@ -42,9 +42,7 @@ describe('genesis block', () => {
 	describe('given the application has not been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
 			it('should save genesis block to the database', async () => {
-				const block = await node['_chain'].dataAccess.getBlockByID(
-					genesisBlock.header.id,
-				);
+				const block = await node['_chain'].dataAccess.getBlockByID(genesisBlock.header.id);
 
 				expect(block.header.version).toEqual(0);
 				expect(block.header).toEqual(genesisBlock.header);
@@ -73,19 +71,13 @@ describe('genesis block', () => {
 
 	describe('given the application was initialized earlier', () => {
 		const account =
-			genesisBlock.header.asset.accounts[
-				genesisBlock.header.asset.accounts.length - 1
-			];
+			genesisBlock.header.asset.accounts[genesisBlock.header.asset.accounts.length - 1];
 		let newBalance: bigint;
 		let oldBalance: bigint;
 
 		beforeEach(async () => {
-			const genesisAccount = await node[
-				'_chain'
-			].dataAccess.getAccountByAddress(genesis.address);
-			const recipient = await node['_chain'].dataAccess.getAccountByAddress(
-				account.address,
-			);
+			const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
+			const recipient = await node['_chain'].dataAccess.getAccountByAddress(account.address);
 			oldBalance = account.balance;
 			newBalance = oldBalance + BigInt('100000000000');
 
@@ -111,9 +103,7 @@ describe('genesis block', () => {
 				node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 
 				// Arrange & Assert
-				const recipient = await node['_chain'].dataAccess.getAccountByAddress(
-					account.address,
-				);
+				const recipient = await node['_chain'].dataAccess.getAccountByAddress(account.address);
 				expect(recipient.balance).toEqual(newBalance);
 			});
 		});

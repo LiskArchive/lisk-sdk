@@ -117,14 +117,9 @@ describe('strategies', () => {
 			it('should return transactions in order by highest feePriority and lowest nonce', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(
-						allValidCase.input.transactions,
-						mockChainModule,
-					),
+					buildProcessableTxMock(allValidCase.input.transactions, mockChainModule),
 				);
-				strategy._constants.maxPayloadLength = BigInt(
-					allValidCase.input.maxPayloadLength,
-				);
+				strategy._constants.maxPayloadLength = BigInt(allValidCase.input.maxPayloadLength);
 
 				// Act
 				const result = await strategy.getTransactionsForBlock();
@@ -138,14 +133,9 @@ describe('strategies', () => {
 			it('should forge transactions upto maximum payload length', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(
-						maxPayloadLengthCase.input.transactions,
-						mockChainModule,
-					),
+					buildProcessableTxMock(maxPayloadLengthCase.input.transactions, mockChainModule),
 				);
-				strategy._constants.maxPayloadLength = BigInt(
-					maxPayloadLengthCase.input.maxPayloadLength,
-				);
+				strategy._constants.maxPayloadLength = BigInt(maxPayloadLengthCase.input.maxPayloadLength);
 
 				// Act
 				const result = await strategy.getTransactionsForBlock();
@@ -159,14 +149,9 @@ describe('strategies', () => {
 			it('should not include subsequent transactions from same sender if one failed', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(
-						invalidTxCase.input.transactions,
-						mockChainModule,
-					),
+					buildProcessableTxMock(invalidTxCase.input.transactions, mockChainModule),
 				);
-				strategy._constants.maxPayloadLength = BigInt(
-					invalidTxCase.input.maxPayloadLength,
-				);
+				strategy._constants.maxPayloadLength = BigInt(invalidTxCase.input.maxPayloadLength);
 
 				// Act
 				const result = await strategy.getTransactionsForBlock();
@@ -190,14 +175,9 @@ describe('strategies', () => {
 			it("should forge empty block if all processable transactions can't be processed", async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(
-						allInvalidCase.input.transactions,
-						mockChainModule,
-					),
+					buildProcessableTxMock(allInvalidCase.input.transactions, mockChainModule),
 				);
-				strategy._constants.maxPayloadLength = BigInt(
-					allInvalidCase.input.maxPayloadLength,
-				);
+				strategy._constants.maxPayloadLength = BigInt(allInvalidCase.input.maxPayloadLength);
 
 				// Act
 				const result = await strategy.getTransactionsForBlock();

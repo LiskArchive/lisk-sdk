@@ -24,9 +24,7 @@ describe('TransactionPool class', () => {
 	beforeEach(() => {
 		jest.useFakeTimers();
 		transactionPool = new TransactionPool({
-			applyTransactions: jest
-				.fn()
-				.mockResolvedValue([{ status: Status.OK, errors: [] }]),
+			applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 			transactionReorganizationInterval: 1,
 		});
 		jest.spyOn(transactionPool.events, 'emit');
@@ -37,15 +35,9 @@ describe('TransactionPool class', () => {
 			it('should set default values', () => {
 				expect((transactionPool as any)._maxTransactions).toEqual(4096);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(64);
-				expect((transactionPool as any)._minEntranceFeePriority).toEqual(
-					BigInt(0),
-				);
-				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(
-					BigInt(10),
-				);
-				expect((transactionPool as any)._transactionExpiryTime).toEqual(
-					3 * 60 * 60 * 1000,
-				);
+				expect((transactionPool as any)._minEntranceFeePriority).toEqual(BigInt(0));
+				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(BigInt(10));
+				expect((transactionPool as any)._transactionExpiryTime).toEqual(3 * 60 * 60 * 1000);
 			});
 		});
 
@@ -62,15 +54,9 @@ describe('TransactionPool class', () => {
 
 				expect((transactionPool as any)._maxTransactions).toEqual(2048);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(32);
-				expect((transactionPool as any)._minEntranceFeePriority).toEqual(
-					BigInt(10),
-				);
-				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(
-					BigInt(100),
-				);
-				expect((transactionPool as any)._transactionExpiryTime).toEqual(
-					60 * 60 * 1000,
-				);
+				expect((transactionPool as any)._minEntranceFeePriority).toEqual(BigInt(10));
+				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(BigInt(100));
+				expect((transactionPool as any)._transactionExpiryTime).toEqual(60 * 60 * 1000);
 			});
 		});
 	});
@@ -197,25 +183,16 @@ describe('TransactionPool class', () => {
 			);
 
 			expect(transactionFromSender0).toHaveLength(1);
-			expect(
-				(transactionFromSender0 as Transaction[])[0].nonce.toString(),
-			).toEqual('1');
+			expect((transactionFromSender0 as Transaction[])[0].nonce.toString()).toEqual('1');
 			expect(transactionFromSender1).toHaveLength(1);
-			expect(
-				(transactionFromSender1 as Transaction[])[0].nonce.toString(),
-			).toEqual('1');
+			expect((transactionFromSender1 as Transaction[])[0].nonce.toString()).toEqual('1');
 			// Check if it is a copy
-			processableTransactions.delete(
-				getAddressFromPublicKey(senderPublicKeys[0]),
-			);
-			(processableTransactions as any).get(
-				getAddressFromPublicKey(senderPublicKeys[1]),
-			)[0] = 'random thing';
+			processableTransactions.delete(getAddressFromPublicKey(senderPublicKeys[0]));
+			(processableTransactions as any).get(getAddressFromPublicKey(senderPublicKeys[1]))[0] =
+				'random thing';
 
 			expect(
-				(transactionPool as any)._transactionList.get(
-					getAddressFromPublicKey(senderPublicKeys[0]),
-				),
+				(transactionPool as any)._transactionList.get(getAddressFromPublicKey(senderPublicKeys[0])),
 			).not.toBeUndefined();
 			expect(
 				transactionPool
@@ -249,9 +226,7 @@ describe('TransactionPool class', () => {
 		it('should add a valid transaction and is added to the transaction list as processable', async () => {
 			const { status } = await transactionPool.add(tx);
 			expect(status).toEqual(Status.OK);
-			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(
-				true,
-			);
+			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(true);
 
 			const originalTrxObj =
 				transactionPool['_transactionList']
@@ -281,9 +256,7 @@ describe('TransactionPool class', () => {
 			const { status } = await transactionPool.add(tx);
 
 			expect(status).toEqual(Status.OK);
-			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(
-				true,
-			);
+			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(true);
 
 			const originalTrxObj =
 				transactionPool['_transactionList']
@@ -294,9 +267,7 @@ describe('TransactionPool class', () => {
 			const trxSenderAddressList = transactionPool['_transactionList'].get(
 				getAddressFromPublicKey(tx.senderPublicKey),
 			);
-			expect(trxSenderAddressList?.getUnprocessable()).toContain(
-				originalTrxObj,
-			);
+			expect(trxSenderAddressList?.getUnprocessable()).toContain(originalTrxObj);
 		});
 
 		it('should reject a duplicate transaction', async () => {
@@ -314,16 +285,12 @@ describe('TransactionPool class', () => {
 				{ status: Status.FAIL, errors: [new Error('Invalid transaction')] },
 			];
 			jest.spyOn(transactionPool, '_getStatus' as any);
-			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue(
-				transactionResponse,
-			);
+			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue(transactionResponse);
 			try {
 				await transactionPool.add(tx);
 			} catch (error) {
 				// eslint-disable-next-line jest/no-try-expect
-				expect(transactionPool['_getStatus']).toHaveReturnedWith(
-					TransactionStatus.INVALID,
-				);
+				expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
 				// eslint-disable-next-line jest/no-try-expect
 				expect(error.message).toContain(
 					`transaction id ${tx.id.toString('hex')} is an invalid transaction`,
@@ -346,9 +313,7 @@ describe('TransactionPool class', () => {
 			} as Transaction;
 
 			const tempTxGetBytesStub = jest.fn();
-			lowFeeTrx.getBytes = tempTxGetBytesStub.mockReturnValue(
-				Buffer.from(new Array(10)),
-			);
+			lowFeeTrx.getBytes = tempTxGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
 			const { status } = await transactionPool.add(lowFeeTrx);
 			expect(status).toEqual(Status.FAIL);
@@ -378,9 +343,7 @@ describe('TransactionPool class', () => {
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
 
-				tempApplyTransactionsStub.mockResolvedValue([
-					{ status: Status.OK, errors: [] },
-				]);
+				tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 
 				await transactionPool.add(tempTx);
 			}
@@ -399,9 +362,7 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionsStub.mockResolvedValue([
-				{ status: Status.OK, errors: [] },
-			]);
+			tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 			jest.spyOn(transactionPool, '_evictProcessable' as any);
 			const { status } = await transactionPool.add(highFeePriorityTx);
 			expect(transactionPool['_evictProcessable']).toHaveBeenCalledTimes(1);
@@ -432,9 +393,7 @@ describe('TransactionPool class', () => {
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
 
-				tempApplyTransactionsStub.mockResolvedValue([
-					{ status: Status.OK, errors: [] },
-				]);
+				tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 
 				await transactionPool.add(tempTx);
 			}
@@ -473,9 +432,7 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionsStub.mockResolvedValue([
-				{ status: Status.OK, errors: [] },
-			]);
+			tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 			jest.spyOn(transactionPool, '_evictUnprocessable' as any);
 
 			const { status } = await transactionPool.add(highFeePriorityTx);
@@ -508,9 +465,7 @@ describe('TransactionPool class', () => {
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
 
-				tempApplyTransactionsStub.mockResolvedValue([
-					{ status: Status.OK, errors: [] },
-				]);
+				tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 
 				await transactionPool.add(tempTx);
 			}
@@ -529,9 +484,7 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(2 * MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionsStub.mockResolvedValue([
-				{ status: Status.OK, errors: [] },
-			]);
+			tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 
 			const { status } = await transactionPool.add(lowFeePriorityTx);
 
@@ -616,9 +569,7 @@ describe('TransactionPool class', () => {
 			transactionPool.remove(tx);
 			transactionPool.remove(additionalTx);
 			expect(
-				transactionPool['_transactionList'].get(
-					getAddressFromPublicKey(tx.senderPublicKey),
-				),
+				transactionPool['_transactionList'].get(getAddressFromPublicKey(tx.senderPublicKey)),
 			).toBeUndefined();
 		});
 	});
@@ -644,18 +595,12 @@ describe('TransactionPool class', () => {
 		let txGetBytesStub: any;
 		// eslint-disable-next-line prefer-const
 		txGetBytesStub = jest.fn();
-		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
-			Buffer.from(new Array(10)),
-		);
-		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
-			Buffer.from(new Array(10)),
-		);
+		transactions[0].getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
+		transactions[1].getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				applyTransactions: jest
-					.fn()
-					.mockResolvedValue([{ status: Status.OK, errors: [] }]),
+				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 			});
@@ -673,9 +618,7 @@ describe('TransactionPool class', () => {
 			const isEvicted = (transactionPool as any)._evictUnprocessable();
 
 			expect(isEvicted).toBe(true);
-			expect((transactionPool as any)._allTransactions).not.toContain(
-				transactions[0],
-			);
+			expect((transactionPool as any)._allTransactions).not.toContain(transactions[0]);
 			expect(transactionPool.events.emit).toHaveBeenCalledTimes(1);
 		});
 	});
@@ -716,10 +659,7 @@ describe('TransactionPool class', () => {
 				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 		];
-		const higherNonceTrxs = [
-			transactionsFromSender1[1],
-			transactionsFromSender2[1],
-		];
+		const higherNonceTrxs = [transactionsFromSender1[1], transactionsFromSender2[1]];
 		let txGetBytesStub: any;
 		// eslint-disable-next-line prefer-const
 		txGetBytesStub = jest.fn();
@@ -738,9 +678,7 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				applyTransactions: jest
-					.fn()
-					.mockResolvedValue([{ status: Status.OK, errors: [] }]),
+				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 			});
@@ -762,9 +700,7 @@ describe('TransactionPool class', () => {
 			const isEvicted = (transactionPool as any)._evictProcessable();
 
 			expect(isEvicted).toBe(true);
-			expect((transactionPool as any)._allTransactions).not.toContain(
-				transactionsFromSender2[1],
-			);
+			expect((transactionPool as any)._allTransactions).not.toContain(transactionsFromSender2[1]);
 			// To check if evicted processable transaction is the higher nonce transaction of an account
 			expect(higherNonceTrxs).toContain(transactionsFromSender2[1]);
 			expect(transactionPool.events.emit).toHaveBeenCalledTimes(1);
@@ -828,9 +764,7 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				applyTransactions: jest
-					.fn()
-					.mockResolvedValue([{ status: Status.OK, errors: [] }]),
+				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 			});
 			(transactionPool as any)._applyFunction.mockResolvedValue([
@@ -869,12 +803,8 @@ describe('TransactionPool class', () => {
 			// First transaction is processable
 			jest.advanceTimersByTime(2);
 
-			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(
-				transactionsFromSender1,
-			);
-			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(
-				transactionsFromSender2,
-			);
+			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(transactionsFromSender1);
+			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(transactionsFromSender2);
 		});
 	});
 
@@ -953,15 +883,9 @@ describe('TransactionPool class', () => {
 		it('should expire old transactions', () => {
 			(transactionPool as any).remove = jest.fn().mockReturnValue(true);
 			(transactionPool as any)._expire();
-			expect((transactionPool as any).remove).toHaveBeenCalledWith(
-				transactionsForSender1[0],
-			);
-			expect((transactionPool as any).remove).toHaveBeenCalledWith(
-				transactionsForSender1[2],
-			);
-			expect((transactionPool as any).remove).toHaveBeenCalledWith(
-				transactionsForSender2[0],
-			);
+			expect((transactionPool as any).remove).toHaveBeenCalledWith(transactionsForSender1[0]);
+			expect((transactionPool as any).remove).toHaveBeenCalledWith(transactionsForSender1[2]);
+			expect((transactionPool as any).remove).toHaveBeenCalledWith(transactionsForSender2[0]);
 			expect(transactionPool.events.emit).toHaveBeenCalledTimes(3);
 		});
 	});

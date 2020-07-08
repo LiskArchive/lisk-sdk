@@ -32,8 +32,7 @@ const forkStatusList = [
 ];
 
 export const EVENT_PROCESSOR_SYNC_REQUIRED = 'EVENT_PROCESSOR_SYNC_REQUIRED';
-export const EVENT_PROCESSOR_BROADCAST_BLOCK =
-	'EVENT_PROCESSOR_BROADCAST_BLOCK';
+export const EVENT_PROCESSOR_BROADCAST_BLOCK = 'EVENT_PROCESSOR_BROADCAST_BLOCK';
 
 interface ProcessorInput {
 	readonly channel: InMemoryChannel;
@@ -62,12 +61,7 @@ export class Processor {
 	private readonly processors: { [key: string]: BaseBlockProcessor };
 	private readonly matchers: { [key: string]: Matcher };
 
-	public constructor({
-		channel,
-		logger,
-		chainModule,
-		bftModule,
-	}: ProcessorInput) {
+	public constructor({ channel, logger, chainModule, bftModule }: ProcessorInput) {
 		this.channel = channel;
 		this.logger = logger;
 		this.chainModule = chainModule;
@@ -79,10 +73,7 @@ export class Processor {
 	}
 
 	// register a block processor with particular version
-	public register(
-		processor: BaseBlockProcessor,
-		{ matcher }: { matcher?: Matcher } = {},
-	): void {
+	public register(processor: BaseBlockProcessor, { matcher }: { matcher?: Matcher } = {}): void {
 		if (typeof processor.version !== 'number') {
 			throw new Error('version property must exist for processor');
 		}
@@ -112,10 +103,7 @@ export class Processor {
 	}
 
 	// process is for standard processing of block, especially when received from network
-	public async process(
-		block: Block,
-		{ peerId }: { peerId?: string } = {},
-	): Promise<void> {
+	public async process(block: Block, { peerId }: { peerId?: string } = {}): Promise<void> {
 		return this.sequence.add(async () => {
 			this.logger.debug(
 				{ id: block.header.id, height: block.header.height },
@@ -131,19 +119,13 @@ export class Processor {
 			});
 
 			if (!forkStatusList.includes(forkStatus)) {
-				this.logger.debug(
-					{ status: forkStatus, blockId: block.header.id },
-					'Unknown fork status',
-				);
+				this.logger.debug({ status: forkStatus, blockId: block.header.id }, 'Unknown fork status');
 				throw new Error('Unknown fork status');
 			}
 
 			// Discarding block
 			if (forkStatus === ForkStatus.DISCARD) {
-				this.logger.debug(
-					{ id: block.header.id, height: block.header.height },
-					'Discarding block',
-				);
+				this.logger.debug({ id: block.header.id, height: block.header.height }, 'Discarding block');
 				const encodedBlock = this.chainModule.dataAccess.encode(block);
 				this.channel.publish('app:chain:fork', {
 					block: encodedBlock.toString('base64'),
@@ -218,12 +200,9 @@ export class Processor {
 						},
 						'Failed to apply newly received block. restoring previous block.',
 					);
-					await this._processValidated(
-						previousLastBlock,
-						newLastBlock,
-						blockProcessor,
-						{ skipBroadcast: true },
-					);
+					await this._processValidated(previousLastBlock, newLastBlock, blockProcessor, {
+						skipBroadcast: true,
+					});
 				}
 				return;
 			}
@@ -242,10 +221,7 @@ export class Processor {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async forkStatus(
-		receivedBlock: Block,
-		lastBlock?: Block,
-	): Promise<number> {
+	public async forkStatus(receivedBlock: Block, lastBlock?: Block): Promise<number> {
 		const blockProcessor = this._getBlockProcessor(receivedBlock);
 
 		return blockProcessor.forkStatus.run({
@@ -274,10 +250,7 @@ export class Processor {
 	}
 
 	public async validate(block: Block): Promise<void> {
-		this.logger.debug(
-			{ id: block.header.id, height: block.header.height },
-			'Validating block',
-		);
+		this.logger.debug({ id: block.header.id, height: block.header.height }, 'Validating block');
 		const blockProcessor = this._getBlockProcessor(block);
 		await blockProcessor.validate.run({
 			block,
@@ -306,10 +279,7 @@ export class Processor {
 	// apply processes a block assuming that statically it's valid without saving a block
 	public async apply(block: Block): Promise<Block> {
 		return this.sequence.add<Block>(async () => {
-			this.logger.debug(
-				{ id: block.header.id, height: block.header.height },
-				'Applying block',
-			);
+			this.logger.debug({ id: block.header.id, height: block.header.height }, 'Applying block');
 			const { lastBlock } = this.chainModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
@@ -373,10 +343,7 @@ export class Processor {
 		return block;
 	}
 
-	private async _deleteBlock(
-		block: Block,
-		saveTempBlock = false,
-	): Promise<void> {
+	private async _deleteBlock(block: Block, saveTempBlock = false): Promise<void> {
 		if (block.header.height <= this.bftModule.finalityManager.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
@@ -393,9 +360,7 @@ export class Processor {
 			throw new Error('Block processing version is not registered');
 		}
 		// Sort in asc order
-		const matcherVersions = Object.keys(this.matchers).sort((a, b) =>
-			a.localeCompare(b, 'en'),
-		);
+		const matcherVersions = Object.keys(this.matchers).sort((a, b) => a.localeCompare(b, 'en'));
 		// eslint-disable-next-line no-restricted-syntax
 		for (const matcherVersion of matcherVersions) {
 			const matcher = this.matchers[matcherVersion];

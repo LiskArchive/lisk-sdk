@@ -30,37 +30,26 @@ import {
 import { exec, ExecResult } from '../worker-process';
 
 import { defaultBackupPath } from './config';
-import {
-	listApplication,
-	PM2ProcessInstance,
-	ReadableInstanceType,
-} from './pm2';
+import { listApplication, PM2ProcessInstance, ReadableInstanceType } from './pm2';
 // eslint-disable-next-line import/no-cycle
 import { getLatestVersion } from './release';
 
-export const liskInstall = (installPath: string): string =>
-	installPath.replace('~', os.homedir);
+export const liskInstall = (installPath: string): string => installPath.replace('~', os.homedir);
 
 export const installDirectory = (installPath: string, name: string): string =>
 	`${liskInstall(installPath)}/${name}`;
 
-export const liskVersion = (version: string): string =>
-	`lisk-${version}-${os.type()}-x86_64`;
+export const liskVersion = (version: string): string => `lisk-${version}-${os.type()}-x86_64`;
 
-export const liskTar = (version: string): string =>
-	`${liskVersion(version)}.tar.gz`;
+export const liskTar = (version: string): string => `${liskVersion(version)}.tar.gz`;
 
-export const liskTarSHA256 = (version: string): string =>
-	`${liskTar(version)}.SHA256`;
+export const liskTarSHA256 = (version: string): string => `${liskTar(version)}.SHA256`;
 
 export const liskLatestUrl = (url: string, network: NETWORK): string =>
 	`${url}/${network}/latest.txt`;
 
 export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
-	if (
-		!['testnet', 'mainnet'].includes(network.toLowerCase()) &&
-		url === SNAPSHOT_URL
-	) {
+	if (!['testnet', 'mainnet'].includes(network.toLowerCase()) && url === SNAPSHOT_URL) {
 		return '';
 	}
 
@@ -71,8 +60,7 @@ export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
 	return url;
 };
 
-export const logsDir = (installPath: string): string =>
-	`${liskInstall(installPath)}/logs`;
+export const logsDir = (installPath: string): string => `${liskInstall(installPath)}/logs`;
 
 export const SH_LOG_FILE = 'logs/lisk.out';
 
@@ -91,9 +79,7 @@ export const validateNetwork = (network: NETWORK): void => {
 	}
 
 	throw new Error(
-		`Network "${network}" is not supported, please try options ${Object.values(
-			NETWORK,
-		).join(',')}`,
+		`Network "${network}" is not supported, please try options ${Object.values(NETWORK).join(',')}`,
 	);
 };
 
@@ -171,10 +157,7 @@ export const upgradeLisk = async (
 	}
 };
 
-export const validateVersion = async (
-	releaseUrl: string,
-	version: string,
-): Promise<void> => {
+export const validateVersion = async (releaseUrl: string, version: string): Promise<void> => {
 	if (!semver.valid(version)) {
 		throw new Error(`Upgrade version: ${version} has invalid semver format`);
 	}
@@ -184,9 +167,7 @@ export const validateVersion = async (
 	} catch (error) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if (error.message === 'Request failed with status code 404') {
-			throw new Error(
-				`Upgrade version: ${version} doesn't exists in ${RELEASE_URL}`,
-			);
+			throw new Error(`Upgrade version: ${version} doesn't exists in ${RELEASE_URL}`);
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		throw new Error(error.message);
@@ -210,10 +191,7 @@ interface FileInfo {
 	readonly filePath: string;
 }
 
-export const getDownloadedFileInfo = (
-	url: string,
-	cacheDir: string,
-): FileInfo => {
+export const getDownloadedFileInfo = (url: string, cacheDir: string): FileInfo => {
 	const pathWithoutProtocol = url.replace(/(^\w+:|^)\/\//, '').split('/');
 	const fileName = pathWithoutProtocol.pop() as string;
 	const fileDir = `${cacheDir}/${pathWithoutProtocol.join('/')}`;
@@ -263,10 +241,7 @@ export const generateEnvConfig = async (network: NETWORK): Promise<object> => {
 	return {
 		LISK_DB_PORT: getEnvByKey(instances, 'dbPort', POSTGRES_PORT) + 1,
 		LISK_REDIS_PORT: getEnvByKey(instances, 'redisPort', REDIS_PORT) + 1,
-		LISK_HTTP_PORT:
-			getEnvByKey(filteredByNetwork, 'httpPort', HTTP_PORTS[network]) +
-			INCREMENT,
-		LISK_WS_PORT:
-			getEnvByKey(filteredByNetwork, 'wsPort', WS_PORTS[network]) + INCREMENT,
+		LISK_HTTP_PORT: getEnvByKey(filteredByNetwork, 'httpPort', HTTP_PORTS[network]) + INCREMENT,
+		LISK_WS_PORT: getEnvByKey(filteredByNetwork, 'wsPort', WS_PORTS[network]) + INCREMENT,
 	};
 };

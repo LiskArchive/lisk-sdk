@@ -55,10 +55,7 @@ describe('P2P.applyNodeInfo', () => {
 		for (const p2p of p2pNodeList) {
 			// eslint-disable-next-line no-loop-func
 			p2p.on(EVENT_MESSAGE_RECEIVED, request => {
-				if (
-					request.event === REMOTE_EVENT_POST_NODE_INFO &&
-					request.peerId === '127.0.0.1:5000'
-				) {
+				if (request.event === REMOTE_EVENT_POST_NODE_INFO && request.peerId === '127.0.0.1:5000') {
 					collectedMessages.push({
 						nodePort: p2p.config.port,
 						request,
@@ -70,8 +67,7 @@ describe('P2P.applyNodeInfo', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		firstP2PNode.applyNodeInfo({
-			networkId:
-				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			networkVersion: '1.1',
 			nonce: 'nonce',
 			advertiseAddress: true,
@@ -92,8 +88,7 @@ describe('P2P.applyNodeInfo', () => {
 
 		expect(() =>
 			firstP2PNode.applyNodeInfo({
-				networkId:
-					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				networkVersion: '1.1',
 				nonce: 'nonce',
 				advertiseAddress: true,
@@ -116,25 +111,21 @@ describe('P2P.applyNodeInfo', () => {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
-			nodePortToMessagesMap[receivedMessageData.nodePort].push(
-				receivedMessageData,
-			);
+			nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 		}
 
 		// Check that each message contains the updated P2PNodeInfo.
 		Object.values(nodePortToMessagesMap)
 			.filter(
 				(receivedMessages: any) =>
-					receivedMessages?.[0] &&
-					receivedMessages[0].nodePort !== firstP2PNode.config.port,
+					receivedMessages?.[0] && receivedMessages[0].nodePort !== firstP2PNode.config.port,
 			)
 			.forEach((receivedMessages: any) => {
 				expect(receivedMessages).toHaveLength(1);
 
 				expect(receivedMessages[0].request).toMatchObject({
 					data: {
-						networkId:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						networkVersion: '1.1',
 						nonce: firstP2PNode.nodeInfo.nonce,
 						advertiseAddress: true,
@@ -150,8 +141,7 @@ describe('P2P.applyNodeInfo', () => {
 			expect(firstP2PNodePeerInfo).toMatchObject({
 				options: {},
 				ipAddress: '127.0.0.1',
-				networkId:
-					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				peerId: '127.0.0.1:5000',
 				port: 5000,
 			});
@@ -177,8 +167,7 @@ describe('P2P.applyNodeInfo', () => {
 			if (firstNodeInAllPeersList) {
 				expect(firstNodeInAllPeersList).toMatchObject({
 					sharedState: {
-						networkId:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						nonce: expect.any(String),
 					},
 					ipAddress: '127.0.0.1',
@@ -190,8 +179,7 @@ describe('P2P.applyNodeInfo', () => {
 			// Check if the peerinfo is updated in connected peer list
 			if (firstNodeInConnectedPeer) {
 				expect(firstNodeInConnectedPeer).toMatchObject({
-					networkId:
-						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					nonce: expect.any(String),
 					ipAddress: '127.0.0.1',
 					port: 5000,

@@ -16,10 +16,7 @@ import { platform } from 'os';
 import { P2P, constants } from '../../src/index';
 import { wait } from './helpers';
 
-const {
-	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
-	DEFAULT_MAX_INBOUND_CONNECTIONS,
-} = constants;
+const { DEFAULT_MAX_OUTBOUND_CONNECTIONS, DEFAULT_MAX_INBOUND_CONNECTIONS } = constants;
 
 export const NETWORK_START_PORT = 5000;
 export const NETWORK_PEER_COUNT = 10;
@@ -46,11 +43,7 @@ interface TestNetworkConfig {
 	networkSize?: number;
 	startNodePort?: number;
 	networkDiscoveryWaitTime?: number;
-	customConfig?: (
-		index: number,
-		startPort: number,
-		networkSize: number,
-	) => object;
+	customConfig?: (index: number, startPort: number, networkSize: number) => object;
 }
 
 export const createNetwork = async ({
@@ -87,8 +80,7 @@ export const createNetwork = async ({
 			rateCalculationInterval: RATE_CALCULATION_INTERVAL,
 			seedPeers: defaultSeedPeers,
 			populatorInterval:
-				POPULATOR_INTERVAL +
-				Math.floor((POPULATOR_INTERVAL / NETWORK_PEER_COUNT) * index), // Should be different for each Peer to avoid connection debounce
+				POPULATOR_INTERVAL + Math.floor((POPULATOR_INTERVAL / NETWORK_PEER_COUNT) * index), // Should be different for each Peer to avoid connection debounce
 			maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
@@ -118,8 +110,6 @@ export const destroyNetwork = async (
 	p2pNodeList: ReadonlyArray<P2P>,
 	networkDestroyWaitTime?: number,
 ): Promise<void> => {
-	await Promise.all(
-		p2pNodeList.filter(p2p => p2p.isActive).map(async p2p => p2p.stop()),
-	);
+	await Promise.all(p2pNodeList.filter(p2p => p2p.isActive).map(async p2p => p2p.stop()));
 	await wait(networkDestroyWaitTime ?? NETWORK_DESTROY_WAIT_TIME);
 };

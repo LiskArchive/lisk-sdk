@@ -128,15 +128,9 @@ describe('block_synchronization_mechanism', () => {
 			getLastBlockHeader: jest.fn(),
 			resetBlockHeaderCache: jest.fn(),
 			decode: chainModule.dataAccess.decode.bind(chainModule.dataAccess),
-			decodeBlockHeader: chainModule.dataAccess.decodeBlockHeader.bind(
-				chainModule.dataAccess,
-			),
-			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(
-				chainModule.dataAccess,
-			),
-			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(
-				chainModule.dataAccess,
-			),
+			decodeBlockHeader: chainModule.dataAccess.decodeBlockHeader.bind(chainModule.dataAccess),
+			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(chainModule.dataAccess),
+			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(chainModule.dataAccess),
 		};
 		chainModule.dataAccess = dataAccessMock;
 
@@ -245,18 +239,9 @@ describe('block_synchronization_mechanism', () => {
 			.calledWith([genesisBlock.header.height, lastBlock.header.height])
 			.mockResolvedValue([genesisBlock.header, lastBlock.header] as never);
 
-		jest.spyOn(
-			blockSynchronizationMechanism,
-			'_requestAndValidateLastBlock' as never,
-		);
-		jest.spyOn(
-			blockSynchronizationMechanism,
-			'_revertToLastCommonBlock' as never,
-		);
-		jest.spyOn(
-			blockSynchronizationMechanism,
-			'_requestAndApplyBlocksToCurrentChain' as never,
-		);
+		jest.spyOn(blockSynchronizationMechanism, '_requestAndValidateLastBlock' as never);
+		jest.spyOn(blockSynchronizationMechanism, '_revertToLastCommonBlock' as never);
+		jest.spyOn(blockSynchronizationMechanism, '_requestAndApplyBlocksToCurrentChain' as never);
 		jest.spyOn(blockSynchronizationMechanism.events, 'emit');
 
 		when(networkMock.getConnectedPeers)
@@ -341,10 +326,7 @@ describe('block_synchronization_mechanism', () => {
 	});
 
 	describe('async run()', () => {
-		const expectApplyPenaltyAndRestartIsCalled = (
-			receivedBlock: Block,
-			reason: string,
-		) => {
+		const expectApplyPenaltyAndRestartIsCalled = (receivedBlock: Block, reason: string) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				expect.objectContaining({
 					peerId: expect.any(String),
@@ -426,23 +408,15 @@ describe('block_synchronization_mechanism', () => {
 					'Successfully computed the best peer',
 				);
 
-				expect(
-					blockSynchronizationMechanism['_requestAndValidateLastBlock'],
-				).toHaveBeenCalledWith(
+				expect(blockSynchronizationMechanism['_requestAndValidateLastBlock']).toHaveBeenCalledWith(
 					expect.stringMatching(
-						new RegExp(
-							peersList.expectedSelection.map(peer => peer.peerId).join('|'),
-						),
+						new RegExp(peersList.expectedSelection.map(peer => peer.peerId).join('|')),
 					),
 				);
 
-				expect(
-					blockSynchronizationMechanism['_revertToLastCommonBlock'],
-				).toHaveBeenCalledWith(
+				expect(blockSynchronizationMechanism['_revertToLastCommonBlock']).toHaveBeenCalledWith(
 					expect.stringMatching(
-						new RegExp(
-							peersList.expectedSelection.map(peer => peer.peerId).join('|'),
-						),
+						new RegExp(peersList.expectedSelection.map(peer => peer.peerId).join('|')),
 					),
 				);
 			});
@@ -464,19 +438,15 @@ describe('block_synchronization_mechanism', () => {
 						);
 
 					// Act && Assert
-					await expect(
-						blockSynchronizationMechanism.run(aBlock),
-					).rejects.toThrow('Connected compatible peers list is empty');
+					await expect(blockSynchronizationMechanism.run(aBlock)).rejects.toThrow(
+						'Connected compatible peers list is empty',
+					);
 					expect(
 						blockSynchronizationMechanism['_requestAndValidateLastBlock'],
 					).not.toHaveBeenCalled();
+					expect(blockSynchronizationMechanism['_revertToLastCommonBlock']).not.toHaveBeenCalled();
 					expect(
-						blockSynchronizationMechanism['_revertToLastCommonBlock'],
-					).not.toHaveBeenCalled();
-					expect(
-						blockSynchronizationMechanism[
-							'_requestAndApplyBlocksToCurrentChain'
-						],
+						blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 					).not.toHaveBeenCalled();
 				}
 			});
@@ -494,9 +464,7 @@ describe('block_synchronization_mechanism', () => {
 				expect(
 					blockSynchronizationMechanism['_requestAndValidateLastBlock'],
 				).not.toHaveBeenCalled();
-				expect(
-					blockSynchronizationMechanism['_revertToLastCommonBlock'],
-				).not.toHaveBeenCalled();
+				expect(blockSynchronizationMechanism['_revertToLastCommonBlock']).not.toHaveBeenCalled();
 				expect(
 					blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 				).not.toHaveBeenCalled();
@@ -527,17 +495,14 @@ describe('block_synchronization_mechanism', () => {
 						error: new AbortError(
 							'Peer tip does not have preference over current tip. Fork status: 6',
 						),
-						reason:
-							'Peer tip does not have preference over current tip. Fork status: 6',
+						reason: 'Peer tip does not have preference over current tip. Fork status: 6',
 					},
 					'Aborting synchronization mechanism',
 				);
 				expect(
 					blockSynchronizationMechanism['_requestAndValidateLastBlock'],
 				).not.toHaveBeenCalled();
-				expect(
-					blockSynchronizationMechanism['_revertToLastCommonBlock'],
-				).not.toHaveBeenCalled();
+				expect(blockSynchronizationMechanism['_revertToLastCommonBlock']).not.toHaveBeenCalled();
 				expect(
 					blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 				).not.toHaveBeenCalled();
@@ -558,22 +523,16 @@ describe('block_synchronization_mechanism', () => {
 
 				await blockSynchronizationMechanism.run(aBlock);
 
-				expect(
-					blockSynchronizationMechanism['_revertToLastCommonBlock'],
-				).toHaveBeenCalled();
+				expect(blockSynchronizationMechanism['_revertToLastCommonBlock']).toHaveBeenCalled();
 				expect(
 					blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 				).toHaveBeenCalled();
 			});
 
 			it('should request and validate the last block of the peer and continue if block is equal to the last block of the current chain', async () => {
-				await blockSynchronizationMechanism.run(
-					requestedBlocks[requestedBlocks.length - 1],
-				);
+				await blockSynchronizationMechanism.run(requestedBlocks[requestedBlocks.length - 1]);
 
-				expect(
-					blockSynchronizationMechanism['_revertToLastCommonBlock'],
-				).toHaveBeenCalled();
+				expect(blockSynchronizationMechanism['_revertToLastCommonBlock']).toHaveBeenCalled();
 				expect(
 					blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 				).toHaveBeenCalledWith(
@@ -631,9 +590,7 @@ describe('block_synchronization_mechanism', () => {
 					// Expected error
 				}
 
-				expect(
-					blockSynchronizationMechanism['_revertToLastCommonBlock'],
-				).not.toHaveBeenCalled();
+				expect(blockSynchronizationMechanism['_revertToLastCommonBlock']).not.toHaveBeenCalled();
 				expect(
 					blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 				).not.toHaveBeenCalled();
@@ -663,17 +620,12 @@ describe('block_synchronization_mechanism', () => {
 					// Expected error
 				}
 
-				expect(
-					blockSynchronizationMechanism['_revertToLastCommonBlock'],
-				).not.toHaveBeenCalled();
+				expect(blockSynchronizationMechanism['_revertToLastCommonBlock']).not.toHaveBeenCalled();
 				expect(
 					blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 				).not.toHaveBeenCalled();
 
-				expectApplyPenaltyAndRestartIsCalled(
-					aBlock,
-					'Peer did not provide its last block',
-				);
+				expectApplyPenaltyAndRestartIsCalled(aBlock, 'Peer did not provide its last block');
 			});
 		});
 
@@ -697,9 +649,7 @@ describe('block_synchronization_mechanism', () => {
 					const receivedBlock = createValidDefaultBlock({
 						header: {
 							height: lastBlock.header.height + 304,
-							reward: chainModule.blockReward.calculateReward(
-								lastBlock.header.height + 304,
-							),
+							reward: chainModule.blockReward.calculateReward(lastBlock.header.height + 304),
 						},
 					});
 
@@ -770,9 +720,7 @@ describe('block_synchronization_mechanism', () => {
 					expect(networkMock.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 
 					expect(
-						blockSynchronizationMechanism[
-							'_requestAndApplyBlocksToCurrentChain'
-						],
+						blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 					).not.toHaveBeenCalled();
 
 					expectApplyPenaltyAndRestartIsCalled(
@@ -816,9 +764,7 @@ describe('block_synchronization_mechanism', () => {
 								},
 							})
 							.mockResolvedValue({
-								data: encodeValidBlockHeader(highestCommonBlock).toString(
-									'base64',
-								),
+								data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
 							} as never);
 
 						when(networkMock.requestFromPeer)
@@ -838,9 +784,7 @@ describe('block_synchronization_mechanism', () => {
 								},
 							})
 							.mockResolvedValue({
-								data: requestedBlocks.map(b =>
-									encodeValidBlock(b).toString('base64'),
-								),
+								data: requestedBlocks.map(b => encodeValidBlock(b).toString('base64')),
 							} as never);
 					}
 
@@ -857,9 +801,7 @@ describe('block_synchronization_mechanism', () => {
 					}
 
 					expect(
-						blockSynchronizationMechanism[
-							'_requestAndApplyBlocksToCurrentChain'
-						],
+						blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 					).not.toHaveBeenCalled();
 
 					expectApplyPenaltyAndRestartIsCalled(
@@ -874,9 +816,7 @@ describe('block_synchronization_mechanism', () => {
 					await blockSynchronizationMechanism.run(aBlock);
 
 					expect(
-						blockSynchronizationMechanism[
-							'_requestAndApplyBlocksToCurrentChain'
-						],
+						blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 					).toHaveBeenCalled();
 
 					expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(1);
@@ -884,14 +824,8 @@ describe('block_synchronization_mechanism', () => {
 						saveTempBlock: true,
 					});
 					expect(
-						blockSynchronizationMechanism[
-							'_requestAndApplyBlocksToCurrentChain'
-						],
-					).toHaveBeenCalledWith(
-						aBlock,
-						highestCommonBlock,
-						expect.any(String),
-					);
+						blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
+					).toHaveBeenCalledWith(aBlock, highestCommonBlock, expect.any(String));
 				});
 			});
 		});
@@ -953,24 +887,16 @@ describe('block_synchronization_mechanism', () => {
 
 				const blocksToApply = cloneDeep(requestedBlocks);
 				const blocksToNotApply = blocksToApply.splice(
-					requestedBlocks.findIndex(block =>
-						block.header.id.equals(aBlock.header.id),
-					) + 1,
+					requestedBlocks.findIndex(block => block.header.id.equals(aBlock.header.id)) + 1,
 				);
 
-				expect(processorModule.processValidated).toHaveBeenCalledTimes(
-					blocksToApply.length,
-				);
+				expect(processorModule.processValidated).toHaveBeenCalledTimes(blocksToApply.length);
 				for (const requestedBlock of blocksToApply) {
-					expect(processorModule.processValidated).toHaveBeenCalledWith(
-						requestedBlock,
-					);
+					expect(processorModule.processValidated).toHaveBeenCalledWith(requestedBlock);
 				}
 
 				for (const requestedBlock of blocksToNotApply) {
-					expect(processorModule.processValidated).not.toHaveBeenCalledWith(
-						requestedBlock,
-					);
+					expect(processorModule.processValidated).not.toHaveBeenCalledWith(requestedBlock);
 				}
 			});
 
@@ -1038,9 +964,7 @@ describe('block_synchronization_mechanism', () => {
 
 					const tempTableBlocks = [
 						previousTip,
-						...new Array(
-							previousTip.header.height - highestCommonBlock.height - 1,
-						)
+						...new Array(previousTip.header.height - highestCommonBlock.height - 1)
 							.fill(0)
 							.map((_, index) =>
 								createValidDefaultBlock({
@@ -1067,9 +991,7 @@ describe('block_synchronization_mechanism', () => {
 								},
 							})
 							.mockResolvedValue({
-								data: requestedBlocks.map(b =>
-									encodeValidBlock(b).toString('base64'),
-								),
+								data: requestedBlocks.map(b => encodeValidBlock(b).toString('base64')),
 							} as never);
 					}
 
@@ -1081,38 +1003,18 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith({
 							saveTempBlock: false,
 						})
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 9 } }) as never,
-						)
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 8 } }) as never,
-						)
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 7 } }) as never,
-						)
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 6 } }) as never,
-						)
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 5 } }) as never,
-						)
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 4 } }) as never,
-						)
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 3 } }) as never,
-						)
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 2 } }) as never,
-						)
-						.mockResolvedValueOnce(
-							createValidDefaultBlock({ header: { height: 1 } }) as never,
-						);
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 9 } }) as never)
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 8 } }) as never)
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 7 } }) as never)
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 6 } }) as never)
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 5 } }) as never)
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 4 } }) as never)
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 3 } }) as never)
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 2 } }) as never)
+						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 1 } }) as never);
 
 					const processingError = new Error('Error processing blocks');
-					processorModule.processValidated.mockRejectedValueOnce(
-						processingError,
-					);
+					processorModule.processValidated.mockRejectedValueOnce(processingError);
 
 					try {
 						await blockSynchronizationMechanism.run(aBlock);
@@ -1144,22 +1046,15 @@ describe('block_synchronization_mechanism', () => {
 						'Deleting blocks after height',
 					);
 
-					expect(loggerMock.debug).toHaveBeenCalledWith(
-						'Restoring blocks from temporary table',
-					);
+					expect(loggerMock.debug).toHaveBeenCalledWith('Restoring blocks from temporary table');
 
 					for (const tempTableBlock of tempTableBlocks) {
-						expect(processorModule.processValidated).toHaveBeenCalledWith(
-							tempTableBlock,
-							{
-								removeFromTempTable: true,
-							},
-						);
+						expect(processorModule.processValidated).toHaveBeenCalledWith(tempTableBlock, {
+							removeFromTempTable: true,
+						});
 					}
 
-					expect(loggerMock.debug).toHaveBeenCalledWith(
-						'Cleaning blocks temp table',
-					);
+					expect(loggerMock.debug).toHaveBeenCalledWith('Cleaning blocks temp table');
 
 					expectApplyPenaltyAndRestartIsCalled(
 						aBlock,
@@ -1214,9 +1109,7 @@ describe('block_synchronization_mechanism', () => {
 					chainModule.dataAccess.getTempBlocks.mockResolvedValue([previousTip]);
 
 					const processingError = new Error('Error processing blocks');
-					processorModule.processValidated.mockRejectedValueOnce(
-						processingError,
-					);
+					processorModule.processValidated.mockRejectedValueOnce(processingError);
 
 					chainModule._lastBlock = aBlock;
 
@@ -1253,14 +1146,9 @@ describe('block_synchronization_mechanism', () => {
 						'Current tip of the chain has preference over previous tip',
 					);
 
-					expect(loggerMock.debug).toHaveBeenNthCalledWith(
-						15,
-						'Cleaning blocks temporary table',
-					);
+					expect(loggerMock.debug).toHaveBeenNthCalledWith(15, 'Cleaning blocks temporary table');
 
-					expect(loggerMock.info).toHaveBeenCalledWith(
-						'Restarting block synchronization',
-					);
+					expect(loggerMock.info).toHaveBeenCalledWith('Restarting block synchronization');
 
 					expectRestartIsCalled(aBlock as any);
 				});

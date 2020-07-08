@@ -23,9 +23,7 @@ export const box: NaclInterface['box'] = (
 	convertedPublicKey,
 	convertedPrivateKey,
 ) => {
-	const cipherBytes = Buffer.alloc(
-		messageInBytes.length + sodium.crypto_box_MACBYTES,
-	);
+	const cipherBytes = Buffer.alloc(messageInBytes.length + sodium.crypto_box_MACBYTES);
 	sodium.crypto_box_easy(
 		cipherBytes,
 		messageInBytes,
@@ -43,9 +41,7 @@ export const openBox: NaclInterface['openBox'] = (
 	convertedPublicKey,
 	convertedPrivateKey,
 ) => {
-	const plainText = Buffer.alloc(
-		cipherBytes.length - sodium.crypto_box_MACBYTES,
-	);
+	const plainText = Buffer.alloc(cipherBytes.length - sodium.crypto_box_MACBYTES);
 	// Returns false if decryption fails
 	if (
 		!sodium.crypto_box_open_easy(
@@ -62,10 +58,7 @@ export const openBox: NaclInterface['openBox'] = (
 	return plainText;
 };
 
-export const signDetached: NaclInterface['signDetached'] = (
-	messageBytes,
-	privateKeyBytes,
-) => {
+export const signDetached: NaclInterface['signDetached'] = (messageBytes, privateKeyBytes) => {
 	const signatureBytes = Buffer.alloc(sodium.crypto_sign_BYTES);
 	sodium.crypto_sign_detached(signatureBytes, messageBytes, privateKeyBytes);
 
@@ -76,12 +69,7 @@ export const verifyDetached: NaclInterface['verifyDetached'] = (
 	messageBytes,
 	signatureBytes,
 	publicKeyBytes,
-) =>
-	sodium.crypto_sign_verify_detached(
-		signatureBytes,
-		messageBytes,
-		publicKeyBytes,
-	);
+) => sodium.crypto_sign_verify_detached(signatureBytes, messageBytes, publicKeyBytes);
 
 export const getRandomBytes: NaclInterface['getRandomBytes'] = length => {
 	const nonce = Buffer.alloc(length);

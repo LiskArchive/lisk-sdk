@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	constantsSchema,
-	applicationConfigSchema,
-} from '../../src/application/schema';
+import { constantsSchema, applicationConfigSchema } from '../../src/application/schema';
 import { deepFreeze } from './deep_freeze';
 
 export const constants = deepFreeze({
