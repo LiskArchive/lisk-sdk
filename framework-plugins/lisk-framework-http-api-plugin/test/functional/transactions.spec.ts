@@ -77,9 +77,7 @@ describe('Hello endpoint', () => {
 
 				expect(status).toEqual(400);
 				expect(response).toEqual({
-					errors: [
-						{ message: 'Transaction id parameter should be a base64 string.' },
-					],
+					errors: [{ message: 'Transaction id parameter should be a base64 string.' }],
 				});
 			});
 		});
@@ -95,9 +93,7 @@ describe('Hello endpoint', () => {
 
 				expect(status).toEqual(404);
 				expect(response).toEqual({
-					errors: [
-						{ message: 'The transaction with id "123abcd===" not found.' },
-					],
+					errors: [{ message: 'The transaction with id "123abcd===" not found.' }],
 				});
 			});
 		});
@@ -152,8 +148,7 @@ describe('Hello endpoint', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message:
-								'Lisk validator found 1 error[s]:\nshould NOT have fewer than 1 items',
+							message: 'Lisk validator found 1 error[s]:\nshould NOT have fewer than 1 items',
 						},
 					],
 				});
@@ -243,9 +238,7 @@ describe('Hello endpoint', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message: `Failed to validate signature ${newSignature.toString(
-								'hex',
-							)}`,
+							message: `Failed to validate signature ${newSignature.toString('hex')}`,
 						},
 					],
 				});

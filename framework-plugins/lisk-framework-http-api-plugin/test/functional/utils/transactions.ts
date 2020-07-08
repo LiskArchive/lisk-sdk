@@ -47,9 +47,7 @@ export const createTransferTransaction = ({
 		id: transaction.id.toString('base64'),
 		type: transaction.type,
 		senderPublicKey: transaction.senderPublicKey.toString('base64'),
-		signatures: transaction.signatures.map(s =>
-			(s as Buffer).toString('base64'),
-		),
+		signatures: transaction.signatures.map(s => (s as Buffer).toString('base64')),
 		asset: {
 			...transaction.asset,
 			amount: transaction.asset.amount.toString(),

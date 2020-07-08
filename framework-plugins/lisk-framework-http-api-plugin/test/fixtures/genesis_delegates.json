@@ -2586,9 +2586,7 @@
 		}
 	],
 	"votes": {
-		"publicKeys": [
-			"0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a"
-		],
+		"publicKeys": ["0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a"],
 		"votes": [
 			"+27bac3eec40f65394197a93c93e3e03f427ec04271ec3e45d933b9550c8ab015",
 			"+1d4677e06f870449f271f859e299e3514718e4b8498c1bd832daa7843b83d9c5",

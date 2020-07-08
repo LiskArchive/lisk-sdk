@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	isBase64String,
-	validator,
-	LiskValidationError,
-} from '@liskhq/lisk-validator';
+import { isBase64String, validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Request, Response } from 'express';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 
@@ -40,8 +36,7 @@ const transactionInputSchema = {
 		senderPublicKey: {
 			type: 'string',
 			format: 'base64',
-			description:
-				'Base64 encoded value of the public key of the Senders account.\n',
+			description: 'Base64 encoded value of the public key of the Senders account.\n',
 		},
 		asset: {
 			type: 'object',
@@ -52,8 +47,7 @@ const transactionInputSchema = {
 			items: {
 				type: 'string',
 				format: 'base64',
-				description:
-					'Base64 encoded value of the signature for the transaction.',
+				description: 'Base64 encoded value of the signature for the transaction.',
 			},
 			minItems: 1,
 		},
@@ -70,18 +64,16 @@ interface TransactionInput {
 	signatures: string[];
 }
 
-export const getTransaction = (
-	channel: BaseChannel,
-	codec: PluginCodec,
-) => async (req: Request, res: Response): Promise<void> => {
+export const getTransaction = (channel: BaseChannel, codec: PluginCodec) => async (
+	req: Request,
+	res: Response,
+): Promise<void> => {
 	const transactionId = req.params.id;
 
 	// 400 - Client Side Error
 	if (!transactionId || !isBase64String(transactionId)) {
 		res.status(400).send({
-			errors: [
-				{ message: 'Transaction id parameter should be a base64 string.' },
-			],
+			errors: [{ message: 'Transaction id parameter should be a base64 string.' }],
 		});
 		return;
 	}
@@ -95,9 +87,7 @@ export const getTransaction = (
 	} catch (error) {
 		// 404 - Not Found Error
 		res.status(404).json({
-			errors: [
-				{ message: `The transaction with id "${transactionId}" not found.` },
-			],
+			errors: [{ message: `The transaction with id "${transactionId}" not found.` }],
 		});
 		return;
 	}
@@ -106,10 +96,10 @@ export const getTransaction = (
 	res.status(200).json(codec.decodeTransaction(transaction));
 };
 
-export const postTransaction = (
-	channel: BaseChannel,
-	codec: PluginCodec,
-) => async (req: Request, res: Response): Promise<void> => {
+export const postTransaction = (channel: BaseChannel, codec: PluginCodec) => async (
+	req: Request,
+	res: Response,
+): Promise<void> => {
 	const errors = validator.validate(transactionInputSchema, req.body);
 
 	// 400 - Malformed query or parameters
@@ -120,9 +110,7 @@ export const postTransaction = (
 		return;
 	}
 
-	const encodedTransaction = codec.encodeTransaction(
-		req.body as TransactionInput,
-	);
+	const encodedTransaction = codec.encodeTransaction(req.body as TransactionInput);
 
 	const result = await channel.invoke<{
 		transactionId?: string;

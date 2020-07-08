@@ -12,16 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	getAddressFromPublicKey,
-	getKeys,
-	getRandomBytes,
-} from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getKeys, getRandomBytes } from '@liskhq/lisk-cryptography';
 
 export const getRandomAccount = () => {
-	const { publicKey, privateKey } = getKeys(
-		getRandomBytes(20).toString('base64'),
-	);
+	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('base64'));
 	const address = getAddressFromPublicKey(publicKey);
 
 	return {
