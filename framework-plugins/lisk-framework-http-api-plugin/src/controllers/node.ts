@@ -11,7 +11,18 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Request, Response, NextFunction } from 'express';
+import { BaseChannel } from 'lisk-framework';
 
-export * from './hello';
-export * as accounts from './account';
-export * as node from './node';
+export const getNodeStatusAndConstants = (channel: BaseChannel) => async (
+	_req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const nodeStatusAndInfo: Buffer = await channel.invoke('app:getNodeStatusAndConstants');
+		res.status(200).send(nodeStatusAndInfo);
+	} catch (err) {
+		next(err);
+	}
+};

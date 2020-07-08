@@ -876,3 +876,11 @@ definitions:
                 type: integer
                 description: Distance in height between each milestone.
                 example: 3000000
+          communityIdentifier:
+            type: string
+            description: Community identifier the node is part of.
+            example: Lisk
+          totalAmount:
+            type: string
+            description: Initial token senderPublicKey
+            example: 10000000000000000
