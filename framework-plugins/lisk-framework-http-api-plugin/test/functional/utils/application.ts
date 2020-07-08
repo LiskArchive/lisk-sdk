@@ -81,3 +81,19 @@ export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 		});
 	});
 };
+
+export const callNetwork = async (promise: Promise<any>) => {
+	let response;
+	let status;
+
+	try {
+		const result = await promise;
+		response = result.data;
+		status = result.status;
+	} catch (error) {
+		status = error.response.status;
+		response = error.response.data;
+	}
+
+	return { status, response };
+};
