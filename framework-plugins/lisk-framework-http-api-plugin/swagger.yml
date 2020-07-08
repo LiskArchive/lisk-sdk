@@ -285,18 +285,14 @@ paths:
           description: Transaction object for processing by the transaction pool.
           required: true
           schema:
-            $ref: '#/definitions/Transaction'
+            $ref: '#/definitions/TransactionRequest'
       responses:
         200:
           description: Transaction requested.
           schema:
-            $ref: '#/definitions/TransactionResponse'
+            $ref: '#/definitions/TransactionCreateResponse'
         400:
           description: Malformed query or parameters.
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        404:
-          description: Data not found.
           schema:
             $ref: '#/definitions/ErrorResponse'
         409:
@@ -510,6 +506,21 @@ definitions:
       meta:
         type: object
 
+  TransactionCreateResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        required:
+          - transactionId
+        properties:
+          transactionId:
+            type: string
+      meta:
+        type: object
+
   TransactionResponse:
     type: object
     required:
@@ -553,7 +564,7 @@ definitions:
         $ref: '#/definitions/NodeInfo'
       meta:
         type: object
-  
+
   Meta:
     type: object
     required:
@@ -672,6 +683,41 @@ definitions:
       id:
         type: string
         description: Base64 encoded value of the unique identifier of the transaction.
+      type:
+        type: number
+        description: Describes the Transaction type.
+      fee:
+        type: string
+        description: |
+          Transaction fee associated with this transaction.
+      nonce:
+        type: string
+        example: '1'
+        description: |
+          Unique sequence of number per account.
+      senderPublicKey:
+        type: string
+        description: |
+          Base64 encoded value of the public key of the Senders account.
+      asset:
+        type: object
+        description: Object stored per transaction type
+      signatures:
+        type: array
+        items:
+          type: string
+          description: Base64 encoded value of the signature for the transaction.
+
+  TransactionRequest:
+    type: object
+    required:
+      - type
+      - nonce
+      - fee
+      - senderPublicKey
+      - asset
+      - signatures
+    properties:
       type:
         type: number
         description: Describes the Transaction type.
