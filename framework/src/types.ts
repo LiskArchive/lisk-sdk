@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
+import { Schema } from '@liskhq/lisk-codec';
 
 export interface StringKeyVal {
 	[key: string]: string;
@@ -142,3 +143,92 @@ export interface ActionInfoForBus {
 	readonly module: string;
 	readonly name: string;
 }
+
+/* Start codec */
+export interface CodecSchema {
+	account: Schema;
+	blockSchema: Schema;
+	blockHeaderSchema: Schema;
+	blockHeadersAssets: {
+		[key: number]: Schema;
+	};
+	baseTransaction: Schema;
+	transactionsAssets: {
+		[key: number]: Schema;
+	};
+}
+
+export interface AccountJSON {
+	address: string;
+	balance: string;
+	nonce: string;
+	keys: {
+		numberOfSignatures: number;
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+	};
+	asset: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: string;
+		};
+		sentVotes: { delegateAddress: string; amount: string }[];
+		unlocking: {
+			delegateAddress: string;
+			amount: string;
+			unvoteHeight: number;
+		}[];
+	};
+}
+
+export interface BaseTransactionJSON {
+	readonly type: number;
+	readonly nonce: string;
+	readonly fee: string;
+	readonly senderPublicKey: string;
+	readonly signatures: Array<Readonly<string>>;
+
+	readonly asset: string;
+}
+
+export interface BlockJSON {
+	readonly header: BlockHeaderJSON;
+	readonly payload: ReadonlyArray<TransactionJSON>;
+}
+
+export interface BaseBlockHeaderJSON {
+	readonly id: string;
+	readonly version: number;
+	readonly timestamp: number;
+	readonly height: number;
+	readonly previousBlockID: string;
+	readonly transactionRoot: string;
+	readonly generatorPublicKey: string;
+	readonly reward: string;
+	readonly signature: string;
+	readonly asset: string;
+}
+
+type BlockHeaderJSON = Omit<BaseBlockHeaderJSON, 'asset'> & { asset: BlockAssetJSON };
+
+export type BlockAssetJSON = {
+	readonly seedReveal: string;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+}
+
+export interface TransactionJSON {
+	readonly type: number;
+	readonly nonce: string;
+	readonly fee: string;
+	readonly senderPublicKey: string;
+	readonly signatures: Array<Readonly<string>>;
+
+	readonly id: string;
+	readonly asset: object;
+}
+/* End codec */
