@@ -40,7 +40,6 @@ interface FastChainSwitchingMechanismInput {
 }
 
 export class FastChainSwitchingMechanism extends BaseSynchronizer {
-	public active: boolean;
 	private readonly bft: BFT;
 	private readonly dpos: Dpos;
 	private readonly processor: Processor;
@@ -59,7 +58,6 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		this._chain = chain;
 		this.bft = bft;
 		this.processor = processor;
-		this.active = false;
 	}
 
 	public async run(receivedBlock: Block, peerId: string): Promise<void> {
@@ -70,7 +68,9 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			const blocks = await this._queryBlocks(receivedBlock, highestCommonBlock, peerId);
 			await this._validateBlocks(blocks, peerId);
 			await this._switchChain(highestCommonBlock as BlockHeader, blocks, peerId);
+			this.active = false;
 		} catch (err) {
+			this.active = false;
 			if (err instanceof ApplyPenaltyAndAbortError) {
 				this._logger.info(
 					{ err, peerId, reason: err.reason },
@@ -104,8 +104,6 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			}
 
 			throw err;
-		} finally {
-			this.active = false;
 		}
 	}
 

@@ -24,6 +24,7 @@ export const EVENT_SYNCHRONIZER_SYNC_REQUIRED = 'EVENT_SYNCHRONIZER_SYNC_REQUIRE
 
 export abstract class BaseSynchronizer {
 	public events: EventEmitter;
+	public active: boolean;
 
 	protected _logger: Logger;
 	protected _channel: InMemoryChannel;
@@ -31,6 +32,7 @@ export abstract class BaseSynchronizer {
 	protected _networkModule: Network;
 
 	public constructor(logger: Logger, channel: InMemoryChannel, chain: Chain, network: Network) {
+		this.active = false;
 		this._logger = logger;
 		this._channel = channel;
 		this._chain = chain;
