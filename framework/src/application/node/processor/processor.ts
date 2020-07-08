@@ -336,7 +336,7 @@ export class Processor {
 			stateStore,
 		});
 
-		await this.chainModule.save(block, stateStore, {
+		await this.chainModule.save(block, stateStore, this.bftModule.finalizedHeight, {
 			removeFromTempTable,
 		});
 
@@ -344,7 +344,7 @@ export class Processor {
 	}
 
 	private async _deleteBlock(block: Block, saveTempBlock = false): Promise<void> {
-		if (block.header.height <= this.bftModule.finalityManager.finalizedHeight) {
+		if (block.header.height <= this.bftModule.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
 

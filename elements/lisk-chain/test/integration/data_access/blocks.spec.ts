@@ -328,7 +328,7 @@ describe('dataAccess.blocks', () => {
 		const stateStore = { finalize: () => {} };
 
 		it('should create block with all index required', async () => {
-			await dataAccess.saveBlock(block, stateStore as any);
+			await dataAccess.saveBlock(block, stateStore as any, 0);
 
 			await expect(
 				db.exists(`blocks:id:${block.header.id.toString('binary')}`),
@@ -352,7 +352,7 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should create block with all index required and remove the same height block from temp', async () => {
-			await dataAccess.saveBlock(block, stateStore as any, true);
+			await dataAccess.saveBlock(block, stateStore as any, 0, true);
 
 			await expect(
 				db.exists(`blocks:id:${block.header.id.toString('binary')}`),
@@ -373,6 +373,15 @@ describe('dataAccess.blocks', () => {
 				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
 			).resolves.toBeFalse();
 			await expect(dataAccess.getBlockByID(block.header.id)).resolves.toStrictEqual(block);
+		});
+
+		it('should delete diff before the finalized height', async () => {
+			await db.put(`diff:${formatInt(99)}`, Buffer.from('random diff'));
+			await db.put(`diff:${formatInt(100)}`, Buffer.from('random diff 2'));
+			await dataAccess.saveBlock(block, stateStore as any, 100, true);
+
+			await expect(db.exists(`diff:${formatInt(100)}`)).resolves.toBeTrue();
+			await expect(db.exists(`diff:${formatInt(99)}`)).resolves.toBeFalse();
 		});
 	});
 

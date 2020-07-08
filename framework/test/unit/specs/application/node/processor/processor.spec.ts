@@ -70,9 +70,7 @@ describe('processor', () => {
 			},
 		};
 		bftModuleStub = {
-			finalityManager: {
-				finalizedHeight: 5,
-			},
+			finalizedHeight: 5,
 		};
 
 		Object.defineProperty(chainModuleStub, 'lastBlock', {
@@ -454,9 +452,14 @@ describe('processor', () => {
 			});
 
 			it('should save the block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
-					removeFromTempTable: false,
-				});
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
+					blockV1,
+					stateStoreStub,
+					bftModuleStub.finalizedHeight,
+					{
+						removeFromTempTable: false,
+					},
+				);
 			});
 
 			it('should emit broadcast event for the block', () => {
@@ -539,7 +542,11 @@ describe('processor', () => {
 
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should save the last block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(defaultLastBlock, stateStoreStub);
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
+					defaultLastBlock,
+					stateStoreStub,
+					bftModuleStub.finalizedHeight,
+				);
 			});
 		});
 
@@ -955,9 +962,14 @@ describe('processor', () => {
 			});
 
 			it('should remove block from temp_blocks table', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
-					removeFromTempTable: true,
-				});
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
+					blockV1,
+					stateStoreStub,
+					bftModuleStub.finalizedHeight,
+					{
+						removeFromTempTable: true,
+					},
+				);
 			});
 		});
 
@@ -993,9 +1005,14 @@ describe('processor', () => {
 			});
 
 			it('should save the block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
-					removeFromTempTable: false,
-				});
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
+					blockV1,
+					stateStoreStub,
+					bftModuleStub.finalizedHeight,
+					{
+						removeFromTempTable: false,
+					},
+				);
 			});
 
 			it('should not broadcast the block', () => {
