@@ -116,5 +116,9 @@ export class HTTPAPIPlugin extends BasePlugin {
 			'/api/transactions/:id',
 			controllers.transactions.getTransaction(this._channel, this.codec),
 		);
+		this._app.post(
+			'/api/transactions',
+			controllers.transactions.postTransaction(this._channel, this.codec),
+		);
 	}
 }

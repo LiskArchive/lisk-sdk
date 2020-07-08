@@ -70,6 +70,8 @@
 		"ts-jest": "26.1.1",
 		"ts-node": "8.6.2",
 		"tsconfig-paths": "3.9.0",
-		"typescript": "3.8.3"
+		"typescript": "3.8.3",
+		"@liskhq/lisk-transactions": "4.0.0-alpha.0",
+		"@liskhq/lisk-cryptography": "2.5.0-alpha.0"
 	}
 }

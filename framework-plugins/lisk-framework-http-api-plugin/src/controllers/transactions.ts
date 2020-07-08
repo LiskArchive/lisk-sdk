@@ -12,9 +12,63 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { isBase64String } from '@liskhq/lisk-validator';
+import {
+	isBase64String,
+	validator,
+	LiskValidationError,
+} from '@liskhq/lisk-validator';
 import { Request, Response } from 'express';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
+
+const transactionInputSchema = {
+	type: 'object',
+	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset', 'signatures'],
+	properties: {
+		type: {
+			type: 'number',
+			description: 'Describes the Transaction type.',
+		},
+		fee: {
+			type: 'string',
+			description: 'Transaction fee associated with this transaction.\n',
+		},
+		nonce: {
+			type: 'string',
+			example: '1',
+			description: 'Unique sequence of number per account.\n',
+		},
+		senderPublicKey: {
+			type: 'string',
+			format: 'base64',
+			description:
+				'Base64 encoded value of the public key of the Senders account.\n',
+		},
+		asset: {
+			type: 'object',
+			description: 'Object stored per transaction type',
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'base64',
+				description:
+					'Base64 encoded value of the signature for the transaction.',
+			},
+			minItems: 1,
+		},
+	},
+};
+
+interface TransactionInput {
+	id: string;
+	type: number;
+	fee: string;
+	nonce: string;
+	senderPublicKey: string;
+	asset: object;
+	signatures: string[];
+}
 
 export const getTransaction = (
 	channel: BaseChannel,
@@ -26,7 +80,7 @@ export const getTransaction = (
 	if (!transactionId || !isBase64String(transactionId)) {
 		res.status(400).send({
 			errors: [
-				{ message: 'The transaction id parameter should be a base64 string.' },
+				{ message: 'Transaction id parameter should be a base64 string.' },
 			],
 		});
 		return;
@@ -39,23 +93,53 @@ export const getTransaction = (
 			id: transactionId,
 		});
 	} catch (error) {
-		if (
-			(error as Error).message ===
-			'Specified key transactions:id:×m does not exist'
-		) {
-			// 404 - Not Found Error
-			res.status(404).send({
-				errors: [
-					{ message: `The transaction with id ${transactionId} not found.` },
-				],
-			});
-			return;
-		}
-
-		// 500 - Server Error
-		throw error;
+		// 404 - Not Found Error
+		res.status(404).json({
+			errors: [
+				{ message: `The transaction with id "${transactionId}" not found.` },
+			],
+		});
+		return;
 	}
 
 	// 200 - Response
 	res.status(200).json(codec.decodeTransaction(transaction));
+};
+
+export const postTransaction = (
+	channel: BaseChannel,
+	codec: PluginCodec,
+) => async (req: Request, res: Response): Promise<void> => {
+	const errors = validator.validate(transactionInputSchema, req.body);
+
+	// 400 - Malformed query or parameters
+	if (errors.length) {
+		res.status(400).send({
+			errors: [{ message: new LiskValidationError([...errors]).message }],
+		});
+		return;
+	}
+
+	const encodedTransaction = codec.encodeTransaction(
+		req.body as TransactionInput,
+	);
+
+	const result = await channel.invoke<{
+		transactionId?: string;
+		message?: string;
+		errors?: Error[] | Error;
+	}>('app:postTransaction', {
+		transaction: encodedTransaction,
+	});
+
+	if (result.errors) {
+		const processingErrors = (result.errors as Error[]).map(e => ({
+			message: e.message,
+		}));
+
+		res.status(409).json({ errors: processingErrors });
+		return;
+	}
+
+	res.status(200).json(result);
 };
