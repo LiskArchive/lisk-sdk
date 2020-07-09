@@ -46,6 +46,8 @@
 		"lisk-framework": "0.6.0-alpha.0"
 	},
 	"devDependencies": {
+		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
+		"@liskhq/lisk-transactions": "4.0.0-alpha.0",
 		"@types/cors": "2.8.6",
 		"@types/express": "4.17.6",
 		"@types/express-rate-limit": "5.0.0",

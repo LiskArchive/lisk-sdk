@@ -19,7 +19,7 @@ import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
-import { accounts, helloController, node } from './controllers';
+import * as controllers from './controllers';
 import * as middlewares from './middlewares';
 import * as config from './defaults';
 import { Options } from './types';
@@ -103,8 +103,19 @@ export class HTTPAPIPlugin extends BasePlugin {
 	}
 
 	private _registerControllers(): void {
-		this._app.get('/v1/hello', helloController(this._channel));
-		this._app.get('/api/accounts/:address', accounts.getAccount(this._channel, this.codec));
-		this._app.get('/api/node/info', node.getNodeInfo(this._channel));
+		this._app.get('/v1/hello', controllers.helloController(this._channel));
+		this._app.get(
+			'/api/transactions/:id',
+			controllers.transactions.getTransaction(this._channel, this.codec),
+		);
+		this._app.post(
+			'/api/transactions',
+			controllers.transactions.postTransaction(this._channel, this.codec),
+		);
+		this._app.get(
+			'/api/accounts/:address',
+			controllers.accounts.getAccount(this._channel, this.codec),
+		);
+		this._app.get('/api/node/info', controllers.node.getNodeInfo(this._channel));
 	}
 }

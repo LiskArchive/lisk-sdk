@@ -13,13 +13,26 @@
  */
 import { Request, Response, NextFunction } from 'express';
 
+interface ErrorWithDetails extends Error {
+	errors: Error[];
+}
+
 export const errorMiddleware = () => (
-	err: Error | Error[],
+	err: Error | Error[] | ErrorWithDetails,
 	_req: Request,
 	res: Response,
 	_next: NextFunction,
 ): void => {
-	const errors = Array.isArray(err) ? err : [err];
+	let errors;
+
+	if (Array.isArray(err)) {
+		errors = err;
+	} else if ((err as ErrorWithDetails).errors) {
+		errors = (err as ErrorWithDetails).errors;
+	} else {
+		errors = [err];
+	}
+
 	for (const error of errors) {
 		// Include message property in response
 		Object.defineProperty(error, 'message', { enumerable: true });

@@ -12,9 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as transactions from './transactions';
-import * as accounts from './account';
-import * as node from './node';
+import { getAddressFromPublicKey, getKeys, getRandomBytes } from '@liskhq/lisk-cryptography';
 
-export * from './hello';
-export { transactions, accounts, node };
+export const getRandomAccount = () => {
+	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('base64'));
+	const address = getAddressFromPublicKey(publicKey);
+
+	return {
+		address: address.toString('base64'),
+		publicKey: publicKey.toString('base64'),
+		privateKey: privateKey.toString('base64'),
+		nonce: 0,
+	};
+};
