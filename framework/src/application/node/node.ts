@@ -103,6 +103,15 @@ interface RegisteredSchemas {
 	[key: string]: Schema;
 }
 
+interface TransactionFees {
+	readonly fees: Array<Readonly<Fees>>;
+}
+
+interface Fees {
+	readonly minFeePerByte: string;
+	readonly baseFee: string;
+}
+
 export class Node {
 	private readonly _channel: InMemoryChannel;
 	private readonly _options: Options;
@@ -390,6 +399,7 @@ export class Node {
 					address: address.toString('base64'),
 					forging,
 				})),
+			getTransactionsFees: (): TransactionFees => this._getRegisteredTransactionFees(),
 			getTransactionsFromPool: (): string[] =>
 				this._transactionPool.getAll().map(tx => tx.getBytes().toString('base64')),
 			postTransaction: async (
@@ -715,11 +725,23 @@ export class Node {
 		this._bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 	}
 	private _getRegisteredTransactionSchemas(): RegisteredSchemas {
-		const registredTransactions: RegisteredSchemas = {};
+		const registeredTransactions: RegisteredSchemas = {};
 
 		for (const aTransactionSchema of Object.entries(this._options.registeredTransactions)) {
-			registredTransactions[aTransactionSchema[0]] = aTransactionSchema[1].ASSET_SCHEMA as Schema;
+			registeredTransactions[aTransactionSchema[0]] = aTransactionSchema[1].ASSET_SCHEMA as Schema;
 		}
-		return registredTransactions;
+		return registeredTransactions;
+	}
+
+	private _getRegisteredTransactionFees(): TransactionFees {
+		const transactionFees: TransactionFees = { fees: [] };
+
+		for (const aTransaction of Object.entries(this._options.registeredTransactions)) {
+			transactionFees.fees.push({
+				baseFee: aTransaction[1].NAME_FEE.toString(),
+				minFeePerByte: aTransaction[1].MIN_FEE_PER_BYTE.toString(),
+			});
+		}
+		return transactionFees;
 	}
 }

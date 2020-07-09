@@ -47,7 +47,7 @@ export interface ForgerInfo {
 	totalReceivedRewards: bigint;
 	votesReceived: Voters[];
 }
-interface Voters {
+export interface Voters {
 	address: Buffer;
 	amount: bigint;
 }
