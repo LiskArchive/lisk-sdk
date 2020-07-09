@@ -14,7 +14,7 @@
 import { Application } from 'lisk-framework';
 import axios from 'axios';
 import { when } from 'jest-when';
-import { createApplication, closeApplication, getURL } from './utils/application';
+import { createApplication, closeApplication, getURL, callNetwork } from './utils/application';
 
 const peers = [
 	{
@@ -61,11 +61,11 @@ describe('Peers endpoint', () => {
 				.mockResolvedValue(peers as never);
 
 			// Act
-			const result = await axios.get(getURL('/api/peers'));
+			const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
 
 			// Assert
-			expect(result.data).toEqual(peers);
-			expect(result.status).toBe(200);
+			expect(response).toEqual(peers);
+			expect(status).toBe(200);
 		});
 
 		it('should respond with all disconnected peers when all query parameters are passed', async () => {
@@ -77,11 +77,13 @@ describe('Peers endpoint', () => {
 				.mockResolvedValue(peers as never);
 
 			// Act
-			const result = await axios.get(getURL('/api/peers?state=disconnected&limit=100&offset=2'));
+			const { response, status } = await callNetwork(
+				axios.get(getURL('/api/peers?state=disconnected&limit=100&offset=2')),
+			);
 
 			// Assert
-			expect(result.data).toEqual(peers.slice(2, peers.length));
-			expect(result.status).toBe(200);
+			expect(response).toEqual(peers.slice(2, peers.length));
+			expect(status).toBe(200);
 		});
 
 		it('should respond with 400 and error message when channel.invoke throws error', async () => {
