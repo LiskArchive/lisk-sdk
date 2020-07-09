@@ -344,15 +344,8 @@ export class Node {
 				return blocks.map(block => this._chain.dataAccess.encode(block).toString('base64'));
 			},
 			getBlockByHeight: async (params: { height: number }): Promise<string | undefined> => {
-				try {
-					const block = await this._chain.dataAccess.getBlockByHeight(params.height);
-					return this._chain.dataAccess.encode(block).toString('base64');
-				} catch (error) {
-					if (error instanceof NotFoundError) {
-						return undefined;
-					}
-					throw error;
-				}
+				const block = await this._chain.dataAccess.getBlockByHeight(params.height);
+				return this._chain.dataAccess.encode(block).toString('base64');
 			},
 			getBlocksByHeightBetween: async (params: {
 				from: number;
