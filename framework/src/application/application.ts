@@ -385,6 +385,9 @@ export class Application {
 					handler: (_action: ActionInfoObject) =>
 						this._node.actions.getForgingStatusOfAllDelegates(),
 				},
+				getTransactionsFees: {
+					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFees(),
+				},
 				getTransactionsFromPool: {
 					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFromPool(),
 				},

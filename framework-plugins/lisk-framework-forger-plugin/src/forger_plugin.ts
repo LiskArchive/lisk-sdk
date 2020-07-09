@@ -26,8 +26,13 @@ import {
 	EventsArray,
 	EventInfoObject,
 	PluginInfo,
+	TransactionJSON,
 } from 'lisk-framework';
-import { constants as transactionConstants } from '@liskhq/lisk-transactions';
+import {
+	constants as transactionConstants,
+	VoteTransaction,
+	DelegateTransaction,
+} from '@liskhq/lisk-transactions';
 import { objects } from '@liskhq/lisk-utils';
 import * as express from 'express';
 import type { Express } from 'express';
@@ -36,7 +41,7 @@ import * as rateLimit from 'express-rate-limit';
 import * as controllers from './controllers';
 import * as middlewares from './middlewares';
 import * as config from './defaults';
-import { Forger, ForgerInfo, Options } from './types';
+import { Forger, ForgerInfo, Options, Voters } from './types';
 import { DB_KEY_FORGER_INFO } from './constants';
 import { forgerInfoSchema } from './schema';
 
@@ -144,37 +149,61 @@ export class ForgerPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app:block:new', async (newBlock: EventInfoObject) => {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const { header: { generatorPublicKey }, payload } = this.codec.decodeBlock((newBlock.data as any).block);
-			const forgerInfo = await this._getForgerInfo(generatorPublicKey);
-			let totalProducedBlocks = forgerInfo.totalProducedBlocks;
-			let totalReceivedRewards = forgerInfo.totalReceivedRewards;
-			let totalReceivedFees = forgerInfo.totalReceivedFees;
+			const { header: { generatorPublicKey, reward }, payload } = this.codec.decodeBlock((newBlock.data as any).block);
+			const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString('base64');
+			const forgerInfo = await this._getForgerInfo(forgerAddress);
 
-			if (this._checkIfForgingDelegate(generatorPublicKey)) {
-				totalProducedBlocks += 1;
-				totalReceivedRewards = forgerInfo.totalReceivedRewards;
-				totalReceivedFees = forgerInfo.totalReceivedFees;
+			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
+				forgerInfo.totalProducedBlocks += 1;
+				forgerInfo.totalReceivedRewards += BigInt(reward);
+				forgerInfo.totalReceivedFees += BigInt(this._getFee(payload));
 			}
 
-			const votesReceived = [...forgerInfo.votesReceived, payload.map(trx => trx.type === )]
+			for (const trx of payload) {
+				if (trx.type === VoteTransaction.TYPE) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-explicit-any
+					const votes = (trx.asset as any).votes.filter((vote: any) => {
+						if (vote.delegateAddress === forgerAddress) {
+							return {
+								address: Buffer.from(vote.delegateAddress, 'base64'),
+								amount: BigInt(vote.amount),
+							};
+						}
+						return {};
+					}) as Voters[];
+					forgerInfo.votesReceived.push(...votes);
+				}
+			}
 
-			await this._setForgerInfo(generatorPublicKey, {
-				totalProducedBlocks,
-				totalReceivedFees,
-				totalReceivedRewards,
-				votesReceived,
-			});
+			await this._setForgerInfo(generatorPublicKey, { ...forgerInfo });
 		});
 
-		// this._channel.subscribe('app:block:delete', newBlock => {
-		// 	console.log({ newBlock }, 'newBlock...................');
-		// });
-	}
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		this._channel.subscribe('app:block:delete', async (deleteBlock: EventInfoObject) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const { header: { generatorPublicKey, reward }, payload } = this.codec.decodeBlock((deleteBlock.data as any).block);
+			const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString('base64');
+			const forgerInfo = await this._getForgerInfo(forgerAddress);
 
-	private _checkIfForgingDelegate(generatorPublicKey: string): boolean {
-		const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString('base64');
+			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
+				forgerInfo.totalProducedBlocks -= 1;
+				forgerInfo.totalReceivedRewards -= BigInt(reward);
+				forgerInfo.totalReceivedFees -= BigInt(this._getFee(payload));
+			}
 
-		return !this._forgersList.find(forger => forger.address === forgerAddress);
+			for (const trx of payload) {
+				if (trx.type === VoteTransaction.TYPE) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-explicit-any
+					for (const vote of (trx.asset as any).votes) {
+						if (vote.delegateAddress === forgerAddress) {
+							forgerInfo.votesReceived = forgerInfo.votesReceived.filter(vote => vote.address === Buffer.from(forgerAddress, 'base64'));
+						}
+					}
+				}
+			}
+
+			await this._setForgerInfo(generatorPublicKey, { ...forgerInfo });
+		});
 	}
 
 	private async _setForgersInfo(): Promise<void> {
@@ -186,8 +215,8 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private async _getForgerInfo(generatorPublicKey: string): Promise<ForgerInfo> {
-		const forgerInfo = await this._forgerPluginDB.get(`${DB_KEY_FORGER_INFO}:${generatorPublicKey}`);
+	private async _getForgerInfo(forgerAddress: string): Promise<ForgerInfo> {
+		const forgerInfo = await this._forgerPluginDB.get(`${DB_KEY_FORGER_INFO}:${forgerAddress}`);
 
 		return codec.decode<ForgerInfo>(forgerInfoSchema, forgerInfo);
 	}
@@ -195,5 +224,20 @@ export class ForgerPlugin extends BasePlugin {
 	private async _setForgerInfo(generatorPublicKey: string, forgerInfo: ForgerInfo): Promise<void> {
 		const encodedForgerInfo = codec.encode(forgerInfoSchema, forgerInfo);
 		await this._forgerPluginDB.put(`${DB_KEY_FORGER_INFO}:${generatorPublicKey}`, encodedForgerInfo);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getFee(payload: ReadonlyArray<TransactionJSON>): BigInt {
+		let fee = BigInt(0);
+
+		for (const trx of payload) {
+			if (trx.type === DelegateTransaction.TYPE) {
+				fee += BigInt(transactionConstants.DELEGATE_NAME_FEE);
+			}
+			fee += BigInt(transactionConstants.MIN_FEE_PER_BYTE);
+			fee *= BigInt(payload);
+		}
+
+		return fee;
 	}
 }
