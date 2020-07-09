@@ -107,5 +107,6 @@ export class HTTPAPIPlugin extends BasePlugin {
 		this._app.get('/api/accounts/:address', accounts.getAccount(this._channel, this.codec));
 		this._app.get('/api/node/info', node.getNodeInfo(this._channel));
 		this._app.get('/api/blocks/:id', blocks.getBlockById(this._channel, this.codec));
+		this._app.get('/api/blocks', blocks.getBlockByHeight(this._channel, this.codec));
 	}
 }
