@@ -11,12 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-// TODO: Remove this file completely after #5354
-//  Add JSON decode and encode for the lisk-codec
-
-import { GenesisAccountState, GenesisBlock } from '@liskhq/lisk-genesis';
-import { AccountAsset } from './node/account';
+import { GenesisBlock, genesisBlockHeaderAssetSchema } from '@liskhq/lisk-genesis';
+import { blockHeaderSchema, blockSchema, baseAccountSchema } from '@liskhq/lisk-chain';
+import { Schema, codec } from '@liskhq/lisk-codec';
+import { AccountAsset, accountAssetSchema } from './node/account';
 
 export interface GenesisBlockJSON {
 	header: {
@@ -65,52 +63,44 @@ export interface GenesisAccountStateJSON {
 	};
 }
 
-const accountFromJSON = (account: GenesisAccountStateJSON): GenesisAccountState<AccountAsset> => ({
-	address: Buffer.from(account.address, 'base64'),
-	balance: BigInt(account.balance),
-	nonce: BigInt(account.nonce),
-	keys: {
-		mandatoryKeys: account.keys.mandatoryKeys.map(key => Buffer.from(key, 'base64')),
-		optionalKeys: account.keys.optionalKeys.map(key => Buffer.from(key, 'base64')),
-		numberOfSignatures: account.keys.numberOfSignatures,
-	},
-	asset: {
-		delegate: {
-			...account.asset.delegate,
-			totalVotesReceived: BigInt(account.asset.delegate.totalVotesReceived),
+export const genesisSchema = (accountSchema: object): Schema => ({
+	...blockSchema,
+	properties: {
+		...blockSchema.properties,
+		header: {
+			...blockHeaderSchema,
+			properties: {
+				...blockHeaderSchema.properties,
+				id: {
+					dataType: 'bytes',
+				},
+				asset: {
+					...genesisBlockHeaderAssetSchema,
+					properties: {
+						...genesisBlockHeaderAssetSchema.properties,
+						accounts: {
+							...(genesisBlockHeaderAssetSchema.properties as { accounts: Record<string, unknown> })
+								.accounts,
+							items: {
+								...baseAccountSchema,
+								properties: {
+									...baseAccountSchema.properties,
+									asset: {
+										...baseAccountSchema.properties.asset,
+										properties: accountSchema,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
-		sentVotes: account.asset.sentVotes.map(vote => ({
-			delegateAddress: Buffer.from(vote.delegateAddress, 'base64'),
-			amount: BigInt(vote.amount),
-		})),
-		unlocking: account.asset.unlocking.map(unlock => ({
-			delegateAddress: Buffer.from(unlock.delegateAddress, 'base64'),
-			amount: BigInt(unlock.amount),
-			unvoteHeight: unlock.unvoteHeight,
-		})),
 	},
 });
 
-export const genesisBlockFromJSON = (genesis: GenesisBlockJSON): GenesisBlock<AccountAsset> => {
-	const header = {
-		...genesis.header,
-		id: Buffer.from(genesis.header.id, 'base64'),
-		previousBlockID: Buffer.from(genesis.header.previousBlockID, 'base64'),
-		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'base64'),
-		generatorPublicKey: Buffer.from(genesis.header.generatorPublicKey, 'base64'),
-		reward: BigInt(genesis.header.reward),
-		signature: Buffer.from(genesis.header.signature, 'base64'),
-		asset: {
-			initRounds: genesis.header.asset.initRounds,
-			initDelegates: genesis.header.asset.initDelegates.map(address =>
-				Buffer.from(address, 'base64'),
-			),
-			accounts: genesis.header.asset.accounts.map(accountFromJSON),
-		},
-	};
-
-	return {
-		header,
-		payload: [],
-	};
-};
+export const genesisBlockFromJSON = (
+	genesis: GenesisBlockJSON,
+	accountSchema = accountAssetSchema,
+): GenesisBlock<AccountAsset> =>
+	codec.fromJSON<GenesisBlock<AccountAsset>>(genesisSchema(accountSchema), genesis);
