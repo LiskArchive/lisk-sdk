@@ -158,42 +158,6 @@ export interface CodecSchema {
 	};
 }
 
-export interface BaseTransactionJSON {
-	readonly type: number;
-	readonly nonce: string;
-	readonly fee: string;
-	readonly senderPublicKey: string;
-	readonly signatures: Array<Readonly<string>>;
-
-	readonly asset: string;
-}
-
-export interface BlockJSON {
-	readonly header: BlockHeaderJSON;
-	readonly payload: ReadonlyArray<TransactionJSON>;
-}
-
-export interface BaseBlockHeaderJSON {
-	readonly id: string;
-	readonly version: number;
-	readonly timestamp: number;
-	readonly height: number;
-	readonly previousBlockID: string;
-	readonly transactionRoot: string;
-	readonly generatorPublicKey: string;
-	readonly reward: string;
-	readonly signature: string;
-	readonly asset: string;
-}
-
-type BlockHeaderJSON = Omit<BaseBlockHeaderJSON, 'asset'> & { asset: BlockAssetJSON };
-
-export interface BlockAssetJSON {
-	readonly seedReveal: string;
-	readonly maxHeightPreviouslyForged: number;
-	readonly maxHeightPrevoted: number;
-}
-
 export interface TransactionJSON {
 	readonly type: number;
 	readonly nonce: string;

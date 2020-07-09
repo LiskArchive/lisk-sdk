@@ -19,6 +19,7 @@ import { ImplementationMissingError } from '../errors';
 import { EventsArray } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
+import { CodecSchema, TransactionJSON } from '../types';
 
 interface AccountJSON {
 	address: string;
@@ -44,19 +45,6 @@ interface AccountJSON {
 			amount: string;
 			unvoteHeight: number;
 		}[];
-	};
-}
-
-interface CodecSchema {
-	account: Schema;
-	blockSchema: Schema;
-	blockHeaderSchema: Schema;
-	blockHeadersAssets: {
-		[key: number]: Schema;
-	};
-	baseTransaction: Schema;
-	transactionsAssets: {
-		[key: number]: Schema;
 	};
 }
 
@@ -94,17 +82,6 @@ interface BlockAssetJSON {
 	readonly seedReveal: string;
 	readonly maxHeightPreviouslyForged: number;
 	readonly maxHeightPrevoted: number;
-}
-
-interface TransactionJSON {
-	readonly type: number;
-	readonly nonce: string;
-	readonly fee: string;
-	readonly senderPublicKey: string;
-	readonly signatures: Array<Readonly<string>>;
-
-	readonly id: string;
-	readonly asset: object;
 }
 
 interface AccountJSON {

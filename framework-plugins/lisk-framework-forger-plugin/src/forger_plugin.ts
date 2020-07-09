@@ -38,7 +38,7 @@ import * as rateLimit from 'express-rate-limit';
 import * as controllers from './controllers';
 import * as middlewares from './middlewares';
 import * as config from './defaults';
-import { Forger, ForgerInfo, Options, TransactionFees, Voters } from './types';
+import { Forger, ForgerInfo, Options, TransactionFees } from './types';
 import { DB_KEY_FORGER_INFO } from './constants';
 import { forgerInfoSchema } from './schema';
 
@@ -169,6 +169,7 @@ export class ForgerPlugin extends BasePlugin {
 			const forgerAddress = getAddressFromPublicKey(
 				Buffer.from(generatorPublicKey, 'base64'),
 			).toString('base64');
+			const forgerAddressBuffer = Buffer.from(forgerAddress, 'base64');
 			const forgerInfo = await this._getForgerInfo(forgerAddress);
 
 			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
@@ -181,10 +182,17 @@ export class ForgerPlugin extends BasePlugin {
 				if (trx.type === VoteTransaction.TYPE) {
 					for (const vote of (trx.asset as Asset).votes) {
 						if (vote.delegateAddress === forgerAddress) {
-							forgerInfo.votesReceived.push({
-								address: Buffer.from(vote.delegateAddress, 'base64'),
-								amount: BigInt(vote.amount),
-							});
+							const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
+								aVote.address.equals(forgerAddressBuffer),
+							);
+							if (delegateVoteIndex < 0) {
+								forgerInfo.votesReceived.push({
+									address: Buffer.from(vote.delegateAddress, 'base64'),
+									amount: BigInt(vote.amount),
+								});
+							} else {
+								forgerInfo.votesReceived[delegateVoteIndex].amount += BigInt(vote.amount);
+							}
 						}
 					}
 				}
@@ -214,19 +222,18 @@ export class ForgerPlugin extends BasePlugin {
 				forgerInfo.totalReceivedFees -= await this._getFee(payload, block);
 			}
 
-			const filteredVotes: Voters[] = [];
 			for (const trx of payload) {
 				if (trx.type === VoteTransaction.TYPE) {
 					for (const vote of (trx.asset as Asset).votes) {
 						if (vote.delegateAddress === forgerAddress) {
-							filteredVotes.push(
-								...forgerInfo.votesReceived.filter(
-									aVote => !aVote.address.equals(forgerAddressBuffer),
-								),
+							const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
+								aVote.address.equals(forgerAddressBuffer),
 							);
+							if (delegateVoteIndex >= 0) {
+								forgerInfo.votesReceived[delegateVoteIndex].amount -= BigInt(vote.amount);
+							}
 						}
 					}
-					forgerInfo.votesReceived = filteredVotes;
 				}
 			}
 
