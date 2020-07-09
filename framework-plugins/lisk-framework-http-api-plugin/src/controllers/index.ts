@@ -15,3 +15,4 @@
 export * from './hello';
 export * as accounts from './account';
 export * as node from './node';
+export * as blocks from './blocks';
