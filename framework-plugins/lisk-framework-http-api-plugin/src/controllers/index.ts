@@ -16,6 +16,7 @@ import * as transactions from './transactions';
 import * as accounts from './accounts';
 import * as node from './node';
 import * as blocks from './blocks';
+import * as peers from './peers';
 
 export * from './hello';
-export { accounts, blocks, node, transactions };
+export { accounts, blocks, node, transactions, peers };
