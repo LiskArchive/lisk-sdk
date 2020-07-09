@@ -114,9 +114,6 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		this.forgerDB = forgerDB;
 		this.constants = constants;
 
-		/* eslint-disable @typescript-eslint/explicit-function-return-type */
-		this.init.pipe([async ({ stateStore }) => this.bftModule.init(stateStore)]);
-
 		this.validate.pipe([
 			// eslint-disable-next-line @typescript-eslint/require-await
 			async data => this._validateVersion(data),

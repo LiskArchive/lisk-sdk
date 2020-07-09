@@ -384,6 +384,7 @@ export class DataAccess {
 	public async saveBlock(
 		block: Block,
 		stateStore: StateStore,
+		finalizedHeight: number,
 		removeFromTemp = false,
 	): Promise<void> {
 		const { id: blockID, height } = block.header;
@@ -397,6 +398,7 @@ export class DataAccess {
 		await this._storage.saveBlock(
 			blockID,
 			height,
+			finalizedHeight,
 			encodedHeader,
 			encodedPayload,
 			stateStore,

@@ -97,18 +97,6 @@ describe('block processor v2', () => {
 		});
 	});
 
-	// TODO: Fix this skipped test after state store modification
-	// eslint-disable-next-line jest/no-disabled-tests
-	describe('init', () => {
-		it('should initialize BFT module', async () => {
-			// Arrange & Act
-			const stateStore = new StateStore(forgerDBStub, defaultAdditionalData);
-			await blockProcessor.init.run({ stateStore });
-			// Assert
-			expect(bftModuleStub.init).toHaveBeenCalledTimes(1);
-		});
-	});
-
 	describe('validate', () => {
 		it('should throw error on invalid data', async () => {
 			// Arrange & Act
