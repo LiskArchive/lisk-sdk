@@ -28,11 +28,7 @@ import {
 	PluginInfo,
 	TransactionJSON,
 } from 'lisk-framework';
-import {
-	constants as transactionConstants,
-	VoteTransaction,
-	DelegateTransaction,
-} from '@liskhq/lisk-transactions';
+import { VoteTransaction } from '@liskhq/lisk-transactions';
 import { objects } from '@liskhq/lisk-utils';
 import * as express from 'express';
 import type { Express } from 'express';
@@ -41,9 +37,21 @@ import * as rateLimit from 'express-rate-limit';
 import * as controllers from './controllers';
 import * as middlewares from './middlewares';
 import * as config from './defaults';
-import { Forger, ForgerInfo, Options, Voters } from './types';
+import { Forger, ForgerInfo, Options, TransactionFees, Voters } from './types';
 import { DB_KEY_FORGER_INFO } from './constants';
 import { forgerInfoSchema } from './schema';
+
+interface Data {
+	readonly block: string;
+}
+
+interface Asset {
+	readonly votes: Array<Readonly<Vote>>;
+}
+interface Vote {
+	delegateAddress: string;
+	amount: string;
+}
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
@@ -101,7 +109,7 @@ export class ForgerPlugin extends BasePlugin {
 			this._registerControllers();
 			this._registerAfterMiddlewares(options);
 			this._subscribeToChannel();
-			await this._setForgersInfo();
+			await this._setForgersList();
 			this._server = this._app.listen(options.port, '0.0.0.0');
 		});
 	}
@@ -148,70 +156,87 @@ export class ForgerPlugin extends BasePlugin {
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app:block:new', async (newBlock: EventInfoObject) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const { header: { generatorPublicKey, reward }, payload } = this.codec.decodeBlock((newBlock.data as any).block);
-			const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString('base64');
+			const { block } = newBlock.data as Data;
+			const {
+				header: { generatorPublicKey, reward },
+				payload,
+			} = this.codec.decodeBlock(block);
+			const forgerAddress = getAddressFromPublicKey(
+				Buffer.from(generatorPublicKey, 'base64'),
+			).toString('base64');
 			const forgerInfo = await this._getForgerInfo(forgerAddress);
 
 			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
 				forgerInfo.totalProducedBlocks += 1;
 				forgerInfo.totalReceivedRewards += BigInt(reward);
-				forgerInfo.totalReceivedFees += BigInt(this._getFee(payload));
+				forgerInfo.totalReceivedFees += BigInt(await this._getFee(payload, block));
 			}
 
 			for (const trx of payload) {
 				if (trx.type === VoteTransaction.TYPE) {
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-explicit-any
-					const votes = (trx.asset as any).votes.filter((vote: any) => {
+					for (const vote of (trx.asset as Asset).votes) {
 						if (vote.delegateAddress === forgerAddress) {
-							return {
+							forgerInfo.votesReceived.push({
 								address: Buffer.from(vote.delegateAddress, 'base64'),
 								amount: BigInt(vote.amount),
-							};
-						}
-						return {};
-					}) as Voters[];
-					forgerInfo.votesReceived.push(...votes);
-				}
-			}
-
-			await this._setForgerInfo(generatorPublicKey, { ...forgerInfo });
-		});
-
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:block:delete', async (deleteBlock: EventInfoObject) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const { header: { generatorPublicKey, reward }, payload } = this.codec.decodeBlock((deleteBlock.data as any).block);
-			const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString('base64');
-			const forgerInfo = await this._getForgerInfo(forgerAddress);
-
-			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
-				forgerInfo.totalProducedBlocks -= 1;
-				forgerInfo.totalReceivedRewards -= BigInt(reward);
-				forgerInfo.totalReceivedFees -= BigInt(this._getFee(payload));
-			}
-
-			for (const trx of payload) {
-				if (trx.type === VoteTransaction.TYPE) {
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-explicit-any
-					for (const vote of (trx.asset as any).votes) {
-						if (vote.delegateAddress === forgerAddress) {
-							forgerInfo.votesReceived = forgerInfo.votesReceived.filter(vote => vote.address === Buffer.from(forgerAddress, 'base64'));
+							});
 						}
 					}
 				}
 			}
 
-			await this._setForgerInfo(generatorPublicKey, { ...forgerInfo });
+			await this._setForgerInfo(forgerAddress, { ...forgerInfo });
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		this._channel.subscribe('app:block:delete', async (deleteBlock: EventInfoObject) => {
+			const { block } = deleteBlock.data as Data;
+			const {
+				header: { generatorPublicKey, reward },
+				payload,
+			} = this.codec.decodeBlock(block);
+			const forgerAddress = getAddressFromPublicKey(
+				Buffer.from(generatorPublicKey, 'base64'),
+			).toString('base64');
+			const forgerAddressBuffer = Buffer.from(forgerAddress, 'base64');
+			const forgerInfo = await this._getForgerInfo(forgerAddress);
+
+			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
+				forgerInfo.totalProducedBlocks -= 1;
+				forgerInfo.totalReceivedRewards -= BigInt(reward);
+				forgerInfo.totalReceivedFees -= BigInt(await this._getFee(payload, block));
+			}
+
+			const filteredVotes: Voters[] = [];
+			for (const trx of payload) {
+				if (trx.type === VoteTransaction.TYPE) {
+					for (const vote of (trx.asset as Asset).votes) {
+						if (vote.delegateAddress === forgerAddress) {
+							filteredVotes.push(
+								...forgerInfo.votesReceived.filter(
+									aVote => !aVote.address.equals(forgerAddressBuffer),
+								),
+							);
+						}
+					}
+				}
+			}
+			forgerInfo.votesReceived = filteredVotes;
+
+			await this._setForgerInfo(forgerAddress, { ...forgerInfo });
 		});
 	}
 
-	private async _setForgersInfo(): Promise<void> {
+	private async _setForgersList(): Promise<void> {
 		try {
-			const forgingDelegates = await this._channel.invoke<Forger[]>('app:getForgingStatusOfAllDelegates');
+			const forgingDelegates = await this._channel.invoke<Forger[]>(
+				'app:getForgingStatusOfAllDelegates',
+			);
 			this._forgersList = forgingDelegates.filter(forgers => forgers.forging);
 		} catch (error) {
-			throw new Error(`Action app:getForgingStatusOfAllDelegates failed with error: ${(error as Error).message}`);
+			throw new Error(
+				`Action app:getForgingStatusOfAllDelegates failed with error: ${(error as Error).message}`,
+			);
 		}
 	}
 
@@ -221,23 +246,28 @@ export class ForgerPlugin extends BasePlugin {
 		return codec.decode<ForgerInfo>(forgerInfoSchema, forgerInfo);
 	}
 
-	private async _setForgerInfo(generatorPublicKey: string, forgerInfo: ForgerInfo): Promise<void> {
+	private async _setForgerInfo(forgerAddress: string, forgerInfo: ForgerInfo): Promise<void> {
 		const encodedForgerInfo = codec.encode(forgerInfoSchema, forgerInfo);
-		await this._forgerPluginDB.put(`${DB_KEY_FORGER_INFO}:${generatorPublicKey}`, encodedForgerInfo);
+		await this._forgerPluginDB.put(`${DB_KEY_FORGER_INFO}:${forgerAddress}`, encodedForgerInfo);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	private _getFee(payload: ReadonlyArray<TransactionJSON>): BigInt {
+	private async _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): Promise<BigInt> {
+		const { payload: payloadBuffer } = this.codec.decodeRawBlock(block);
+		let transactionFees;
+		try {
+			transactionFees = await this._channel.invoke<TransactionFees>('app:getTransactionsFees');
+		} catch (error) {
+			throw new Error(
+				`Action app:getTransactionsFees failed with error: ${(error as Error).message}`,
+			);
+		}
 		let fee = BigInt(0);
 
 		for (const trx of payload) {
-			if (trx.type === DelegateTransaction.TYPE) {
-				fee += BigInt(transactionConstants.DELEGATE_NAME_FEE);
-			}
-			fee += BigInt(transactionConstants.MIN_FEE_PER_BYTE);
-			fee *= BigInt(payload);
+			fee =
+				BigInt(transactionFees[trx.type].baseFee) +
+				BigInt(transactionFees[trx.type].minFeePerByte) * BigInt(payloadBuffer.length);
 		}
-
 		return fee;
 	}
 }

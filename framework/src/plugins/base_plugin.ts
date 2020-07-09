@@ -19,7 +19,15 @@ import { ImplementationMissingError } from '../errors';
 import { EventsArray } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
-import { AccountJSON, BaseTransactionJSON, BlockJSON, CodecSchema, TransactionJSON, BaseBlockHeaderJSON, BlockAssetJSON } from '../types';
+import {
+	AccountJSON,
+	BaseTransactionJSON,
+	BlockJSON,
+	CodecSchema,
+	TransactionJSON,
+	BaseBlockHeaderJSON,
+	BlockAssetJSON,
+} from '../types';
 
 export interface PluginInfo {
 	readonly author: string;
@@ -33,7 +41,7 @@ export interface InstantiablePlugin<T, U = object> {
 	defaults: object;
 	load: () => Promise<void>;
 	unload: () => Promise<void>;
-	new(...args: U[]): T;
+	new (...args: U[]): T;
 }
 
 const decodeTransactionToJSON = (
@@ -69,26 +77,38 @@ const decodeAccountToJSON = (encodedAccount: Buffer, accountSchema: Schema): Acc
 	};
 };
 
-const decodeBlockToJSON = (
-	encodedBlock: Buffer,
-	codecSchema: CodecSchema,
-): BlockJSON => {
-	const { blockSchema, blockHeaderSchema, blockHeadersAssets, baseTransaction, transactionsAssets } = codecSchema;
-	const { header, payload } = codec.decode<RawBlock>(blockSchema, encodedBlock);
+const decodeRawBlock = (blockSchema: Schema, encodedBlock: Buffer): RawBlock =>
+	codec.decode<RawBlock>(blockSchema, encodedBlock);
+
+const decodeBlockToJSON = (codecSchema: CodecSchema, encodedBlock: Buffer): BlockJSON => {
+	const {
+		blockSchema,
+		blockHeaderSchema,
+		blockHeadersAssets,
+		baseTransaction,
+		transactionsAssets,
+	} = codecSchema;
+	const { header, payload } = decodeRawBlock(blockSchema, encodedBlock);
 
 	const baseHeaderJSON = codec.decodeJSON<BaseBlockHeaderJSON>(blockHeaderSchema, header);
-	const blockAssetJSON = codec.decodeJSON<BlockAssetJSON>(blockHeadersAssets[baseHeaderJSON.version], Buffer.from(baseHeaderJSON.asset, 'base64'));
-	const payloadJSON = payload.map(transactionBuffer => decodeTransactionToJSON(transactionBuffer, baseTransaction, transactionsAssets));
+	const blockAssetJSON = codec.decodeJSON<BlockAssetJSON>(
+		blockHeadersAssets[baseHeaderJSON.version],
+		Buffer.from(baseHeaderJSON.asset, 'base64'),
+	);
+	const payloadJSON = payload.map(transactionBuffer =>
+		decodeTransactionToJSON(transactionBuffer, baseTransaction, transactionsAssets),
+	);
 
 	return {
 		header: { ...baseHeaderJSON, asset: { ...blockAssetJSON } },
-		payload: { ...payloadJSON },
+		payload: payloadJSON,
 	};
 };
 
 export interface PluginCodec {
 	decodeAccount: (data: Buffer | string) => AccountJSON;
 	decodeBlock: (data: Buffer | string) => BlockJSON;
+	decodeRawBlock: (data: Buffer | string) => RawBlock;
 	decodeTransaction: (data: Buffer | string) => TransactionJSON;
 }
 
@@ -110,7 +130,12 @@ export abstract class BasePlugin {
 			decodeBlock: (data: Buffer | string): BlockJSON => {
 				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
 
-				return decodeBlockToJSON(blockBuffer, this.schemas);
+				return decodeBlockToJSON(this.schemas, blockBuffer);
+			},
+			decodeRawBlock: (data: Buffer | string): RawBlock => {
+				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
+
+				return decodeRawBlock(this.schemas.blockSchema, blockBuffer);
 			},
 			decodeTransaction: (data: Buffer | string): TransactionJSON => {
 				const transactionBuffer: Buffer = Buffer.isBuffer(data)
