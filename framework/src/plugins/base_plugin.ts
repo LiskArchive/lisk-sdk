@@ -99,8 +99,10 @@ const decodeBlockToJSON = (codecSchema: CodecSchema, encodedBlock: Buffer): Bloc
 		decodeTransactionToJSON(transactionBuffer, baseTransaction, transactionsAssets),
 	);
 
+	const blockId = hash(header);
+
 	return {
-		header: { ...baseHeaderJSON, asset: { ...blockAssetJSON } },
+		header: { ...baseHeaderJSON, asset: { ...blockAssetJSON }, id: blockId.toString('base64') },
 		payload: payloadJSON,
 	};
 };
