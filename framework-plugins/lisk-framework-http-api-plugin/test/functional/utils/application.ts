@@ -32,6 +32,9 @@ export const createApplication = async (
 			consoleLogLevel: consoleLogLevel ?? 'fatal',
 			fileLogLevel: 'fatal',
 		},
+		network: {
+			maxInboundConnections: 0,
+		},
 	} as Partial<ApplicationConfig>;
 
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
