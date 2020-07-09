@@ -107,16 +107,44 @@ const decodeTransactionToJSON = (
 	};
 };
 
+const encodeTransactionFromJSON = (
+	transaction: TransactionJSON,
+	baseSchema: Schema,
+	assetsSchemas: { [key: number]: Schema },
+): string => {
+	const transactionTypeAssetSchema = assetsSchemas[transaction.type];
+
+	if (!transactionTypeAssetSchema) {
+		throw new Error('Transaction type not found.');
+	}
+
+	const transactionAssetBuffer = codec.encode(
+		transactionTypeAssetSchema,
+		codec.fromJSON(transactionTypeAssetSchema, transaction.asset),
+	);
+
+	const transactionBuffer = codec.encode(
+		baseSchema,
+		codec.fromJSON(baseSchema, {
+			...transaction,
+			asset: transactionAssetBuffer,
+		}),
+	);
+
+	return transactionBuffer.toString('base64');
+};
+
 const decodeAccountToJSON = (encodedAccount: Buffer, accountSchema: Schema): AccountJSON => {
-	const decodedAcccount = codec.decodeJSON<AccountJSON>(accountSchema, encodedAccount);
+	const decodedAccount = codec.decodeJSON<AccountJSON>(accountSchema, encodedAccount);
 
 	return {
-		...decodedAcccount,
+		...decodedAccount,
 	};
 };
 
 export interface PluginCodec {
 	decodeTransaction: (data: Buffer | string) => TransactionJSON;
+	encodeTransaction: (transaction: TransactionJSON) => string;
 	decodeAccount: (data: Buffer | string) => AccountJSON;
 }
 
@@ -133,7 +161,6 @@ export abstract class BasePlugin {
 			[key: number]: Schema;
 		};
 	};
-
 	public codec: PluginCodec;
 
 	protected constructor(options: object) {
@@ -151,6 +178,12 @@ export abstract class BasePlugin {
 					this.schemas.transactionsAssets,
 				);
 			},
+			encodeTransaction: (transaction: TransactionJSON): string =>
+				encodeTransactionFromJSON(
+					transaction,
+					this.schemas.baseTransaction,
+					this.schemas.transactionsAssets,
+				),
 			decodeAccount: (data: Buffer | string) => {
 				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
 

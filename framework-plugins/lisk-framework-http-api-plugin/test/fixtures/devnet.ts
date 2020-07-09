@@ -12,9 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as transactions from './transactions';
-import * as accounts from './account';
-import * as node from './node';
+import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import * as genesisBlock from '../../../../config/devnet/genesis_block.json';
 
-export * from './hello';
-export { transactions, accounts, node };
+export const genesisBlockTransactionRoot = Buffer.from(
+	genesisBlock.header.transactionRoot,
+	'base64',
+);
+export const communityIdentifier = 'Lisk';
+
+export const networkIdentifier = getNetworkIdentifier(
+	genesisBlockTransactionRoot,
+	communityIdentifier,
+);
