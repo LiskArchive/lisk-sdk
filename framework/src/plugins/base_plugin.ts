@@ -107,6 +107,33 @@ interface TransactionJSON {
 	readonly asset: object;
 }
 
+interface AccountJSON {
+	address: string;
+	balance: string;
+	nonce: string;
+	keys: {
+		numberOfSignatures: number;
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+	};
+	asset: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: string;
+		};
+		sentVotes: { delegateAddress: string; amount: string }[];
+		unlocking: {
+			delegateAddress: string;
+			amount: string;
+			unvoteHeight: number;
+		}[];
+	};
+}
+
 export interface PluginInfo {
 	readonly author: string;
 	readonly version: string;
@@ -193,7 +220,7 @@ const decodeBlockToJSON = (codecSchema: CodecSchema, encodedBlock: Buffer): Bloc
 		baseTransaction,
 		transactionsAssets,
 	} = codecSchema;
-	const { header, payload } = decodeRawBlock(blockSchema, encodedBlock);
+	const { header, payload } = codec.decode<RawBlock>(blockSchema, encodedBlock);
 
 	const baseHeaderJSON = codec.decodeJSON<BaseBlockHeaderJSON>(blockHeaderSchema, header);
 	const blockAssetJSON = codec.decodeJSON<BlockAssetJSON>(

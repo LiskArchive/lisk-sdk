@@ -174,7 +174,7 @@ export class ForgerPlugin extends BasePlugin {
 			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
 				forgerInfo.totalProducedBlocks += 1;
 				forgerInfo.totalReceivedRewards += BigInt(reward);
-				forgerInfo.totalReceivedFees += BigInt(await this._getFee(payload, block));
+				forgerInfo.totalReceivedFees += await this._getFee(payload, block);
 			}
 
 			for (const trx of payload) {
@@ -211,7 +211,7 @@ export class ForgerPlugin extends BasePlugin {
 			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
 				forgerInfo.totalProducedBlocks -= 1;
 				forgerInfo.totalReceivedRewards -= BigInt(reward);
-				forgerInfo.totalReceivedFees -= BigInt(await this._getFee(payload, block));
+				forgerInfo.totalReceivedFees -= await this._getFee(payload, block);
 			}
 
 			const filteredVotes: Voters[] = [];
@@ -237,16 +237,10 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _setForgersList(): Promise<void> {
-		try {
-			const forgingDelegates = await this._channel.invoke<Forger[]>(
-				'app:getForgingStatusOfAllDelegates',
-			);
-			this._forgersList = forgingDelegates.filter(forgers => forgers.forging);
-		} catch (error) {
-			throw new Error(
-				`Action app:getForgingStatusOfAllDelegates failed with error: ${(error as Error).message}`,
-			);
-		}
+		const forgingDelegates = await this._channel.invoke<Forger[]>(
+			'app:getForgingStatusOfAllDelegates',
+		);
+		this._forgersList = forgingDelegates.filter(forgers => forgers.forging);
 	}
 
 	private async _getForgerInfo(forgerAddress: string): Promise<ForgerInfo> {
@@ -266,23 +260,18 @@ export class ForgerPlugin extends BasePlugin {
 		await this._forgerPluginDB.put(`${DB_KEY_FORGER_INFO}:${forgerAddress}`, encodedForgerInfo);
 	}
 
-	private async _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): Promise<BigInt> {
+	private async _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): Promise<bigint> {
 		const { payload: payloadBuffer } = this.codec.decodeRawBlock(block);
-		let transactionFees;
-		try {
-			transactionFees = await this._channel.invoke<TransactionFees>('app:getTransactionsFees');
-		} catch (error) {
-			throw new Error(
-				`Action app:getTransactionsFees failed with error: ${(error as Error).message}`,
-			);
-		}
+		const transactionFees = await this._channel.invoke<TransactionFees>('app:getTransactionsFees');
 		let fee = BigInt(0);
 
-		for (const trx of payload) {
-			fee =
+		for (let index = 0; index < payload.length; index += 1) {
+			const trx = payload[index];
+			fee +=
 				BigInt(transactionFees[trx.type].baseFee) +
-				BigInt(transactionFees[trx.type].minFeePerByte) * BigInt(payloadBuffer.length);
+				BigInt(transactionFees[trx.type].minFeePerByte) * BigInt(payloadBuffer[index].length);
 		}
+
 		return fee;
 	}
 }

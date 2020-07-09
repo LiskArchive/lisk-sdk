@@ -158,33 +158,6 @@ export interface CodecSchema {
 	};
 }
 
-export interface AccountJSON {
-	address: string;
-	balance: string;
-	nonce: string;
-	keys: {
-		numberOfSignatures: number;
-		mandatoryKeys: string[];
-		optionalKeys: string[];
-	};
-	asset: {
-		delegate: {
-			username: string;
-			pomHeights: number[];
-			consecutiveMissedBlocks: number;
-			lastForgedHeight: number;
-			isBanned: boolean;
-			totalVotesReceived: string;
-		};
-		sentVotes: { delegateAddress: string; amount: string }[];
-		unlocking: {
-			delegateAddress: string;
-			amount: string;
-			unvoteHeight: number;
-		}[];
-	};
-}
-
 export interface BaseTransactionJSON {
 	readonly type: number;
 	readonly nonce: string;
