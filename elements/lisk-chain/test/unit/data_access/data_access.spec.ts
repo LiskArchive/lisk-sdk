@@ -255,6 +255,28 @@ describe('data_access', () => {
 			expect(db.get).not.toHaveBeenCalled();
 		});
 
+		it('should return the highest height block from the cache if cache exist', async () => {
+			// Arrange
+			dataAccess.addBlockHeader(block.header);
+			const additionalBlocks = [
+				createValidDefaultBlock({ header: { height: 2 } }).header,
+				createValidDefaultBlock({ header: { height: 3 } }).header,
+				createValidDefaultBlock({ header: { height: 4 } }).header,
+				createValidDefaultBlock({ header: { height: 5 } }).header,
+				createValidDefaultBlock({ header: { height: 6 } }).header,
+			];
+			for (const header of additionalBlocks) {
+				dataAccess.addBlockHeader(header);
+			}
+
+			// Act
+			const commonBlockHeader = await dataAccess.getHighestCommonBlockHeader(
+				additionalBlocks.slice(1, 4).map(h => h.id),
+			);
+
+			expect(commonBlockHeader?.height).toEqual(5);
+		});
+
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
 			(db.get as jest.Mock).mockResolvedValue(encodeDefaultBlockHeader(block.header));

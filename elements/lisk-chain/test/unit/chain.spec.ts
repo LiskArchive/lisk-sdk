@@ -65,6 +65,7 @@ describe('chain', () => {
 	beforeEach(() => {
 		// Arrange
 		db = new KVStore('temp');
+		(formatInt as jest.Mock).mockImplementation(n => n);
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
 
 		chainInstance = new Chain({
@@ -292,8 +293,18 @@ describe('chain', () => {
 			} as any;
 		});
 
+		it('should remove diff until finalized height', async () => {
+			await chainInstance.save(savingBlock, stateStoreStub, 100, {
+				removeFromTempTable: true,
+			});
+			expect(db.clear).toHaveBeenCalledWith({
+				gte: `diff:${formatInt(0)}`,
+				lt: `diff:${formatInt(100)}`,
+			});
+		});
+
 		it('should remove tempBlock by height when removeFromTempTable is true', async () => {
-			await chainInstance.save(savingBlock, stateStoreStub, {
+			await chainInstance.save(savingBlock, stateStoreStub, 0, {
 				removeFromTempTable: true,
 			});
 			expect(batchMock.del).toHaveBeenCalledWith(
@@ -303,7 +314,7 @@ describe('chain', () => {
 		});
 
 		it('should save block', async () => {
-			await chainInstance.save(savingBlock, stateStoreStub);
+			await chainInstance.save(savingBlock, stateStoreStub, 0);
 			expect(batchMock.put).toHaveBeenCalledWith(
 				`blocks:id:${savingBlock.header.id.toString('binary')}`,
 				expect.anything(),
@@ -321,7 +332,7 @@ describe('chain', () => {
 			const block = createValidDefaultBlock();
 
 			// Act
-			await chainInstance.save(block, stateStoreStub);
+			await chainInstance.save(block, stateStoreStub, 0);
 
 			// Assert
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith('EVENT_NEW_BLOCK', {
@@ -426,7 +437,7 @@ describe('chain', () => {
 			const block = createValidDefaultBlock();
 
 			// Act
-			await chainInstance.save(block, stateStoreStub);
+			await chainInstance.save(block, stateStoreStub, 0);
 
 			// Assert
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith('EVENT_NEW_BLOCK', {

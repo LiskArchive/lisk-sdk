@@ -360,6 +360,7 @@ export class Storage {
 	public async saveBlock(
 		id: Buffer,
 		height: number,
+		finalizedHeight: number,
 		header: Buffer,
 		payload: { id: Buffer; value: Buffer }[],
 		stateStore: StateStore,
@@ -382,6 +383,7 @@ export class Storage {
 		}
 		stateStore.finalize(heightStr, batch);
 		await batch.write();
+		await this._cleanUntil(finalizedHeight);
 	}
 
 	public async deleteBlock(
@@ -425,6 +427,14 @@ export class Storage {
 
 		stateStore.finalize(heightStr, batch);
 		await batch.write();
+	}
+
+	// This function is out of batch, but even if it fails, it will run again next time
+	private async _cleanUntil(height: number): Promise<void> {
+		await this._db.clear({
+			gte: `${DB_KEY_DIFF_STATE}:${formatInt(0)}`,
+			lt: `${DB_KEY_DIFF_STATE}:${formatInt(height)}`,
+		});
 	}
 
 	private async _getTransactions(blockID: Buffer): Promise<Buffer[]> {

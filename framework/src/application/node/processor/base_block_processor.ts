@@ -16,10 +16,6 @@ import { StateStore, Block } from '@liskhq/lisk-chain';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { Pipeline } from './pipeline';
 
-export interface InitInput {
-	readonly stateStore: StateStore;
-}
-
 export interface CreateInput {
 	readonly data: {
 		readonly keypair: { publicKey: Buffer; privateKey: Buffer };
@@ -54,7 +50,6 @@ export interface ProcessInput {
 }
 
 export abstract class BaseBlockProcessor {
-	public init: Pipeline<InitInput>;
 	public create: Pipeline<CreateInput, Block>;
 	public forkStatus: Pipeline<ForkStatusInput, number>;
 	public validate: Pipeline<ValidateInput>;
@@ -62,8 +57,6 @@ export abstract class BaseBlockProcessor {
 	public apply: Pipeline<ProcessInput>;
 
 	public constructor() {
-		this.init = new Pipeline();
-
 		this.create = new Pipeline();
 
 		this.forkStatus = new Pipeline();
