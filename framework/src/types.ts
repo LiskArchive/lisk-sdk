@@ -215,7 +215,7 @@ export interface BaseBlockHeaderJSON {
 
 type BlockHeaderJSON = Omit<BaseBlockHeaderJSON, 'asset'> & { asset: BlockAssetJSON };
 
-export type BlockAssetJSON = {
+export interface BlockAssetJSON {
 	readonly seedReveal: string;
 	readonly maxHeightPreviouslyForged: number;
 	readonly maxHeightPrevoted: number;

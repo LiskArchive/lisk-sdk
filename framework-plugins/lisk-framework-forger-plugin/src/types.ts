@@ -51,3 +51,12 @@ export interface Voters {
 	address: Buffer;
 	amount: bigint;
 }
+
+export interface TransactionFees {
+	[key: number]: Fees;
+}
+
+export interface Fees {
+	readonly baseFee: string;
+	readonly minFeePerByte: string;
+}

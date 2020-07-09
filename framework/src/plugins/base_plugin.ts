@@ -193,7 +193,7 @@ const decodeBlockToJSON = (codecSchema: CodecSchema, encodedBlock: Buffer): Bloc
 		baseTransaction,
 		transactionsAssets,
 	} = codecSchema;
-	const { header, payload } = codec.decode<RawBlock>(blockSchema, encodedBlock);
+	const { header, payload } = decodeRawBlock(blockSchema, encodedBlock);
 
 	const baseHeaderJSON = codec.decodeJSON<BaseBlockHeaderJSON>(blockHeaderSchema, header);
 	const blockAssetJSON = codec.decodeJSON<BlockAssetJSON>(

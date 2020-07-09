@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, events as chainEvents, Block, blockSchema, blockHeaderSchema, Account } from '@liskhq/lisk-chain';
+import {
+	Chain,
+	events as chainEvents,
+	Block,
+	blockSchema,
+	blockHeaderSchema,
+	Account,
+} from '@liskhq/lisk-chain';
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
@@ -102,12 +109,12 @@ interface RegisteredSchemas {
 }
 
 interface TransactionFees {
-	readonly fees: Array<Readonly<Fees>>;
+	[key: number]: Fees;
 }
 
 interface Fees {
-	readonly minFeePerByte: string;
 	readonly baseFee: string;
+	readonly minFeePerByte: string;
 }
 
 export class Node {
@@ -711,13 +718,14 @@ export class Node {
 	}
 
 	private _getRegisteredTransactionFees(): TransactionFees {
-		const transactionFees: TransactionFees = { fees: [] };
+		const transactionFees: TransactionFees = {};
 
 		for (const aTransaction of Object.entries(this._options.registeredTransactions)) {
-			transactionFees.fees.push({
-				baseFee: aTransaction[1].NAME_FEE.toString(),
-				minFeePerByte: aTransaction[1].MIN_FEE_PER_BYTE.toString(),
-			});
+			const { TYPE, NAME_FEE, MIN_FEE_PER_BYTE } = aTransaction[1];
+			transactionFees[TYPE] = {
+				baseFee: NAME_FEE.toString(),
+				minFeePerByte: MIN_FEE_PER_BYTE.toString(),
+			};
 		}
 		return transactionFees;
 	}
