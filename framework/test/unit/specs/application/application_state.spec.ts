@@ -24,7 +24,7 @@ describe('Application State', () => {
 	const initialState = {
 		blockVersion: 0,
 		version: '1.0.0-beta.3',
-		wsPort: 3001,
+		port: 3001,
 		protocolVersion: '1.0',
 		networkId: 'test networkId',
 		maxHeightPrevoted: 0,
@@ -35,7 +35,7 @@ describe('Application State', () => {
 		blockVersion: 0,
 		os: 'platformrelease',
 		version: '1.0.0-beta.3',
-		wsPort: 3001,
+		port: 3001,
 		protocolVersion: '1.0',
 		networkId: 'test networkId',
 		maxHeightPrevoted: 0,

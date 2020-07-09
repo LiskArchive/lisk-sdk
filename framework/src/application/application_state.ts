@@ -25,7 +25,7 @@ interface State {
 interface ApplicationStateConstructor {
 	readonly initialState: {
 		readonly version: string;
-		readonly wsPort: number;
+		readonly port: number;
 		readonly protocolVersion: string;
 		readonly networkId: string;
 	};
@@ -45,14 +45,14 @@ export class ApplicationState {
 	private _channel!: BaseChannel;
 
 	public constructor({
-		initialState: { version, wsPort, protocolVersion, networkId },
+		initialState: { version, port, protocolVersion, networkId },
 		logger,
 	}: ApplicationStateConstructor) {
 		this._logger = logger;
 		this._state = {
 			os: os.platform() + os.release(),
 			version,
-			wsPort,
+			port,
 			protocolVersion,
 			height: 0,
 			blockVersion: 0,

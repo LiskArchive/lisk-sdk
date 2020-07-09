@@ -62,7 +62,7 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	await app.shutdown();
 };
 
-export const getPeerID = (app: Application): string => `127.0.0.1:${app.config.network.wsPort}`;
+export const getPeerID = (app: Application): string => `127.0.0.1:${app.config.network.port}`;
 
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	const height = app['_node']['_chain'].lastBlock.header.height + n;

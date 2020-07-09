@@ -2198,13 +2198,13 @@ Object {
     "logFileName": "lisk.log",
   },
   "network": Object {
+    "port": 5000,
     "seedPeers": Array [
       Object {
         "ip": "127.0.0.1",
-        "wsPort": 5000,
+        "port": 5000,
       },
     ],
-    "wsPort": 5000,
   },
   "plugins": Object {},
   "protocolVersion": "1.1",

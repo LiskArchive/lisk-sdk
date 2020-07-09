@@ -35,8 +35,8 @@ Object {
         "logFileName": "lisk.log",
       },
       "network": Object {
+        "port": 5000,
         "seedPeers": Array [],
-        "wsPort": 5000,
       },
       "plugins": Object {},
       "protocolVersion": "1.1",
@@ -257,7 +257,7 @@ Object {
                   "format": "ip",
                   "type": "string",
                 },
-                "wsPort": Object {
+                "port": Object {
                   "maximum": 65535,
                   "minimum": 1,
                   "type": "integer",
@@ -289,6 +289,11 @@ Object {
           "peerBanTime": Object {
             "type": "integer",
           },
+          "port": Object {
+            "maximum": 65535,
+            "minimum": 1,
+            "type": "integer",
+          },
           "seedPeers": Object {
             "items": Object {
               "properties": Object {
@@ -296,7 +301,7 @@ Object {
                   "format": "ipOrFQDN",
                   "type": "string",
                 },
-                "wsPort": Object {
+                "port": Object {
                   "maximum": 65535,
                   "minimum": 1,
                   "type": "integer",
@@ -318,7 +323,7 @@ Object {
                   "format": "ip",
                   "type": "string",
                 },
-                "wsPort": Object {
+                "port": Object {
                   "maximum": 65535,
                   "minimum": 1,
                   "type": "integer",
@@ -330,11 +335,6 @@ Object {
           },
           "wsMaxPayload": Object {
             "maximum": 3048576,
-            "type": "integer",
-          },
-          "wsPort": Object {
-            "maximum": 65535,
-            "minimum": 1,
             "type": "integer",
           },
         },

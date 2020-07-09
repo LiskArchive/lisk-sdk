@@ -32,7 +32,7 @@ describe('init_steps/lookup_peers_ips', () => {
 		});
 
 		it('should throw error when failed to resolve hostname', async () => {
-			await lookupPeersIPs([{ ip: 'https://lisk.io/', wsPort: 4000 }], true);
+			await lookupPeersIPs([{ ip: 'https://lisk.io/', port: 4000 }], true);
 
 			expect(spyConsoleError).toHaveBeenCalledTimes(1);
 			return expect(spyConsoleError).toHaveBeenCalledWith(
