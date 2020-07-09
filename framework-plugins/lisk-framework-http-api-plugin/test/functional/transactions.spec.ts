@@ -34,7 +34,6 @@ describe('Hello endpoint', () => {
 	let app: Application;
 	beforeAll(async () => {
 		app = await createApplication('transactions');
-		await waitNBlocks(app, 1);
 	});
 
 	afterAll(async () => {
@@ -54,17 +53,22 @@ describe('Hello endpoint', () => {
 				accountNonce += 1;
 
 				const { id, ...input } = transaction;
-				await axios.post(getURL('/api/transactions'), input);
+				const { response, status } = await callNetwork(
+					axios.post(getURL('/api/transactions'), input),
+				);
+				expect(status).toEqual(200);
+				expect(response).toEqual({ data: { transactionId: id }, meta: {} });
 				await waitNBlocks(app, 1);
 
 				// Act
-				const { response, status } = await callNetwork(
-					axios.get(getURL(`/api/transactions/${id}`)),
+				const { response: getResponse, status: getStatus } = await callNetwork(
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					axios.get(getURL(`/api/transactions/${encodeURIComponent(id)}`)),
 				);
 
 				// Assert
-				expect(status).toEqual(200);
-				expect(response).toEqual(transaction);
+				expect(getStatus).toEqual(200);
+				expect(getResponse).toEqual({ data: transaction, meta: {} });
 			});
 		});
 
@@ -121,7 +125,7 @@ describe('Hello endpoint', () => {
 
 				// Assert
 				expect(status).toEqual(200);
-				expect(response).toEqual({ transactionId: id });
+				expect(response).toEqual({ data: { transactionId: id }, meta: {} });
 			});
 		});
 

@@ -23,7 +23,7 @@ export const createApplication = async (
 	label: string,
 	consoleLogLevel?: string,
 ): Promise<Application> => {
-	const rootPath = '~/.lisk/http-plugin';
+	const rootPath = path.join(os.homedir(), '.lisk/http-plugin');
 	const config = {
 		...configJSON,
 		rootPath,
@@ -37,26 +37,32 @@ export const createApplication = async (
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
 	app.registerPlugin(HTTPAPIPlugin);
 
-	// Remoe pre-existing data
-	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
+	// Remove pre-existing data
+	fs.removeSync(path.join(rootPath, label));
 
-	// eslint-disable-next-line @typescript-eslint/no-floating-promises
-	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
-	await new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height === 2) {
-				resolve();
-			}
-		});
-	});
+	await Promise.race([
+		app.run(),
+		new Promise((_resolve, reject) => {
+			const id = setTimeout(() => {
+				clearTimeout(id);
+				reject(new Error('App can not started in time.'));
+			}, 10000);
+		}),
+	]);
+
 	return app;
 };
 
-export const closeApplication = async (app: Application): Promise<void> => {
+export const closeApplication = async (app: Application, removeData = true): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-	await app['_forgerDB'].clear();
-	await app['_blockchainDB'].clear();
+
+	if (removeData) {
+		await app['_forgerDB'].clear();
+		await app['_blockchainDB'].clear();
+		await app['_nodeDB'].clear();
+	}
+
 	await app.shutdown();
 };
 
@@ -74,7 +80,9 @@ export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	});
 };
 
-export const callNetwork = async (promise: Promise<any>) => {
+export const callNetwork = async (
+	promise: Promise<any>,
+): Promise<{ status: number; response: any }> => {
 	let response;
 	let status;
 

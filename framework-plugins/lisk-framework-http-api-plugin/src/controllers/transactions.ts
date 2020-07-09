@@ -77,7 +77,6 @@ export const getTransaction = (channel: BaseChannel, codec: PluginCodec) => asyn
 		});
 		return;
 	}
-
 	let transaction: string;
 
 	try {
@@ -93,7 +92,7 @@ export const getTransaction = (channel: BaseChannel, codec: PluginCodec) => asyn
 	}
 
 	// 200 - Response
-	res.status(200).json(codec.decodeTransaction(transaction));
+	res.status(200).json({ data: codec.decodeTransaction(transaction), meta: {} });
 };
 
 export const postTransaction = (channel: BaseChannel, codec: PluginCodec) => async (
@@ -129,5 +128,5 @@ export const postTransaction = (channel: BaseChannel, codec: PluginCodec) => asy
 		return;
 	}
 
-	res.status(200).json(result);
+	res.status(200).json({ data: result, meta: {} });
 };
