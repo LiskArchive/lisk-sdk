@@ -336,11 +336,12 @@ export class Chain {
 	public async save(
 		block: Block,
 		stateStore: StateStore,
+		finalizedHeight: number,
 		{ removeFromTempTable } = {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		await this.dataAccess.saveBlock(block, stateStore, removeFromTempTable);
+		await this.dataAccess.saveBlock(block, stateStore, finalizedHeight, removeFromTempTable);
 		this.dataAccess.addBlockHeader(block.header);
 		this._lastBlock = block;
 

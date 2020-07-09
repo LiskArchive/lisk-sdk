@@ -70,9 +70,8 @@ describe('processor', () => {
 			},
 		};
 		bftModuleStub = {
-			finalityManager: {
-				finalizedHeight: 5,
-			},
+			init: jest.fn(),
+			finalizedHeight: 5,
 		};
 
 		Object.defineProperty(chainModuleStub, 'lastBlock', {
@@ -165,20 +164,13 @@ describe('processor', () => {
 			payload: [],
 		} as unknown) as Block;
 
-		let initSteps: jest.Mock[];
-		let genesisInitSteps: jest.Mock[];
-
 		beforeEach(() => {
 			chainModuleStub.genesisBlock = genesisBlock;
-			initSteps = [jest.fn(), jest.fn()];
-			genesisInitSteps = [jest.fn(), jest.fn()];
 			processor.register(genesisBlockProcessor, {
 				matcher: header => header.version === genesisBlockProcessor.version,
 			});
-			genesisBlockProcessor.init.pipe(genesisInitSteps);
 			genesisBlockProcessor.verify.pipe([jest.fn(), jest.fn()]);
 			genesisBlockProcessor.apply.pipe([jest.fn(), jest.fn()]);
-			blockProcessorV1.init.pipe(initSteps);
 			processor.register(blockProcessorV1);
 		});
 
@@ -195,6 +187,7 @@ describe('processor', () => {
 				removeFromTempTable: true,
 			});
 			expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
+			expect(bftModuleStub.init).toHaveBeenCalledTimes(1);
 		});
 
 		it('should not invoke processValidated for genesis block if it exists in chain', async () => {
@@ -208,35 +201,6 @@ describe('processor', () => {
 			// Assert
 			expect(processor.processValidated).not.toHaveBeenCalled();
 			expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
-		});
-
-		describe('when processor has multiple block processor registered', () => {
-			let initSteps2: jest.Mock[];
-			let blockProcessorV2;
-
-			beforeEach(() => {
-				initSteps2 = [jest.fn(), jest.fn()];
-				blockProcessorV2 = new FakeBlockProcessorV2();
-				blockProcessorV2.init.pipe(initSteps2);
-				processor.register(blockProcessorV2);
-			});
-
-			it('should call all of the init steps', async () => {
-				await processor.init();
-				for (const step of initSteps2) {
-					expect(step).toHaveBeenCalledTimes(1);
-				}
-				for (const step of genesisInitSteps) {
-					expect(step).toHaveBeenCalledTimes(1);
-				}
-			});
-		});
-
-		describe('when processor fails to initialize', () => {
-			it('should throw an error', async () => {
-				initSteps[0].mockRejectedValue(new Error('failed to proceess init'));
-				await expect(processor.init()).rejects.toThrow('failed to proceess init');
-			});
 		});
 	});
 
@@ -454,9 +418,14 @@ describe('processor', () => {
 			});
 
 			it('should save the block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
-					removeFromTempTable: false,
-				});
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
+					blockV1,
+					stateStoreStub,
+					bftModuleStub.finalizedHeight,
+					{
+						removeFromTempTable: false,
+					},
+				);
 			});
 
 			it('should emit broadcast event for the block', () => {
@@ -539,7 +508,11 @@ describe('processor', () => {
 
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should save the last block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(defaultLastBlock, stateStoreStub);
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
+					defaultLastBlock,
+					stateStoreStub,
+					bftModuleStub.finalizedHeight,
+				);
 			});
 		});
 
@@ -955,9 +928,14 @@ describe('processor', () => {
 			});
 
 			it('should remove block from temp_blocks table', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
-					removeFromTempTable: true,
-				});
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
+					blockV1,
+					stateStoreStub,
+					bftModuleStub.finalizedHeight,
+					{
+						removeFromTempTable: true,
+					},
+				);
 			});
 		});
 
@@ -993,9 +971,14 @@ describe('processor', () => {
 			});
 
 			it('should save the block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(blockV1, stateStoreStub, {
-					removeFromTempTable: false,
-				});
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
+					blockV1,
+					stateStoreStub,
+					bftModuleStub.finalizedHeight,
+					{
+						removeFromTempTable: false,
+					},
+				);
 			});
 
 			it('should not broadcast the block', () => {

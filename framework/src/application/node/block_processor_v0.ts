@@ -64,13 +64,6 @@ export class BlockProcessorV0 extends BaseBlockProcessor {
 		this.logger = logger;
 		this.constants = constants;
 
-		this.init.pipe([
-			// eslint-disable-next-line @typescript-eslint/require-await
-			async (): Promise<void> => {
-				this.logger.info('Skipping init genesis block processor');
-			},
-		]);
-
 		this.verify.pipe([
 			// eslint-disable-next-line @typescript-eslint/require-await
 			async (): Promise<void> => {
