@@ -175,12 +175,13 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 				const previousBlockID = data.previousBlock.header.id;
 				const forgerInfo = previouslyForgedMap.get(delegateAddress);
 				const maxHeightPreviouslyForged = forgerInfo?.height ?? 0;
+				const maxHeightPrevoted = await this.bftModule.getMaxHeightPrevoted();
 				const block = await this._create({
 					...data,
 					height,
 					previousBlockID,
 					maxHeightPreviouslyForged,
-					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
+					maxHeightPrevoted,
 					stateStore,
 				});
 

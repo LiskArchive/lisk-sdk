@@ -93,11 +93,8 @@ export class BFT extends EventEmitter {
 		);
 	}
 
-	public verifyNewBlock(blockHeader: BlockHeader, stateStore: StateStore): boolean {
-		return this.finalityManager.verifyBlockHeaders(
-			blockHeader,
-			stateStore.consensus.lastBlockHeaders,
-		);
+	public async verifyNewBlock(blockHeader: BlockHeader, stateStore: StateStore): Promise<boolean> {
+		return this.finalityManager.verifyBlockHeaders(blockHeader, stateStore);
 	}
 
 	public forkChoice(blockHeader: BlockHeader, lastBlockHeader: BlockHeader): ForkStatus {
@@ -168,7 +165,7 @@ export class BFT extends EventEmitter {
 			!maxHeightPreviouslyForgedBlock ||
 			blockHeader.asset.maxHeightPreviouslyForged >= blockHeader.height ||
 			(blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <= heightThreshold &&
-				blockHeader.generatorPublicKey !== maxHeightPreviouslyForgedBlock.generatorPublicKey)
+				!blockHeader.generatorPublicKey.equals(maxHeightPreviouslyForgedBlock.generatorPublicKey))
 		) {
 			return false;
 		}
@@ -176,16 +173,12 @@ export class BFT extends EventEmitter {
 		return true;
 	}
 
+	public async getMaxHeightPrevoted(): Promise<number> {
+		return this.finalityManager.getMaxHeightPrevoted();
+	}
+
 	public get finalizedHeight(): number {
 		return this.finalityManager.finalizedHeight;
-	}
-
-	public get maxHeightPrevoted(): number {
-		return this.finalityManager.chainMaxHeightPrevoted;
-	}
-
-	public reset(): void {
-		this.finalityManager.reset();
 	}
 
 	private async _initFinalityManager(stateStore: StateStore): Promise<FinalityManager> {
@@ -205,12 +198,11 @@ export class BFT extends EventEmitter {
 
 		// Initialize consensus manager
 		const finalityManager = new FinalityManager({
+			chain: this._chain,
 			dpos: this._dpos,
 			finalizedHeight,
 			activeDelegates: this.constants.activeDelegates,
 		});
-		// Initialize maxHeightPrevoted with the current state
-		await finalityManager.updatePreVotedAndFinalizedHeight(stateStore);
 
 		return finalityManager;
 	}

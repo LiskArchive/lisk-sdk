@@ -922,3 +922,11 @@ definitions:
                 type: integer
                 description: Distance in height between each milestone.
                 example: 3000000
+          communityIdentifier:
+            type: string
+            description: The unique name of the relevant community as a string encoded in UTF-8 format.
+            example: Lisk
+          totalAmount:
+            type: string
+            description: Total amount of LSK available in network before rewards milestone started
+            example: 10000000000000000

@@ -27,12 +27,32 @@ describe('FinalityManager', () => {
 			isBootstrapPeriod: jest.Mock;
 		};
 		let stateStore: StateStoreMock;
+		let chainStub: {
+			slots: {
+				getSlotNumber: jest.Mock;
+				isWithinTimeslot: jest.Mock;
+				timeSinceGenesis: jest.Mock;
+			};
+			dataAccess: {
+				getConsensusState: jest.Mock;
+			};
+		};
 
 		beforeEach(() => {
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
 				isStandbyDelegate: jest.fn(),
 				isBootstrapPeriod: jest.fn().mockReturnValue(false),
+			};
+			chainStub = {
+				slots: {
+					getSlotNumber: jest.fn(),
+					isWithinTimeslot: jest.fn(),
+					timeSinceGenesis: jest.fn(),
+				},
+				dataAccess: {
+					getConsensusState: jest.fn(),
+				},
 			};
 			stateStore = new StateStoreMock();
 		});
@@ -45,6 +65,7 @@ describe('FinalityManager', () => {
 				);
 
 				const finalityManager = new FinalityManager({
+					chain: chainStub,
 					dpos: dposStub,
 					finalizedHeight: invalidBlockHeaderSpec.config.finalizedHeight,
 					activeDelegates: invalidBlockHeaderSpec.config.activeDelegates,

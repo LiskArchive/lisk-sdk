@@ -116,5 +116,6 @@ export class HTTPAPIPlugin extends BasePlugin {
 			'/api/accounts/:address',
 			controllers.accounts.getAccount(this._channel, this.codec),
 		);
+		this._app.get('/api/node/info', controllers.node.getNodeInfo(this._channel));
 	}
 }

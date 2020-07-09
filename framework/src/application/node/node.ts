@@ -69,6 +69,9 @@ export interface NodeConstants {
 }
 
 export interface Options {
+	readonly version: string;
+	readonly protocolVersion: string;
+	readonly networkId: string;
 	readonly label: string;
 	readonly rootPath: string;
 	readonly communityIdentifier: string;
@@ -83,6 +86,7 @@ export interface Options {
 		readonly [key: number]: typeof BaseTransaction;
 	};
 	genesisBlock: GenesisBlock<AccountAsset>;
+	readonly genesisConfig: object;
 }
 
 interface NodeConstructor {
@@ -93,14 +97,6 @@ interface NodeConstructor {
 	readonly blockchainDB: KVStore;
 	readonly applicationState: ApplicationState;
 	readonly networkModule: Network;
-}
-
-interface NodeStatus {
-	readonly syncing: boolean;
-	readonly unconfirmedTransactions: number;
-	readonly secondsSinceEpoch: number;
-	readonly lastBlock: string;
-	readonly chainMaxHeightFinalized: number;
 }
 
 interface RegisteredSchemas {
@@ -403,13 +399,6 @@ export class Node {
 				this._chain.slots.getSlotNumber(params.timeStamp),
 			calcSlotRound: (params: { height: number }): number =>
 				this._dpos.rounds.calcRound(params.height),
-			getNodeStatus: (): NodeStatus => ({
-				syncing: this._synchronizer.isActive,
-				unconfirmedTransactions: this._transactionPool.getAll().length,
-				secondsSinceEpoch: this._chain.slots.timeSinceGenesis(),
-				lastBlock: this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
-				chainMaxHeightFinalized: this._bft.finalityManager.finalizedHeight,
-			}),
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getLastBlock: async (): Promise<string> =>
 				this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
@@ -429,6 +418,21 @@ export class Node {
 				},
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
 				transactionsAssets: this._getRegisteredTransactionSchemas(),
+			}),
+			getNodeInfo: () => ({
+				version: this._options.version,
+				protocolVersion: this._options.protocolVersion,
+				networkID: this._options.networkId,
+				lastBlockID: this._chain.lastBlock.header.id.toString('base64'),
+				height: this._chain.lastBlock.header.height,
+				finalizedHeight: this._bft.finalityManager.finalizedHeight,
+				syncing: this._synchronizer.isActive,
+				unconfirmedTransactions: this._transactionPool.getAll().length,
+				genesisConfig: {
+					...this._options.genesisConfig,
+					...this._options.constants,
+					totalAmount: this._options.constants.totalAmount.toString(),
+				},
 			}),
 		};
 	}
