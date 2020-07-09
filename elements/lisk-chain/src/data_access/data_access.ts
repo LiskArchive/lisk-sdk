@@ -183,28 +183,29 @@ export class DataAccess {
 	public async getHighestCommonBlockHeader(
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
 	): Promise<BlockHeader | undefined> {
-		const blocks = this._blocksCache.getByIDs(arrayOfBlockIds);
-		const cachedBlock = blocks[blocks.length - 1];
+		const headers = this._blocksCache.getByIDs(arrayOfBlockIds);
+		headers.sort((a, b) => b.height - a.height);
+		const cachedBlockHeader = headers[0];
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (cachedBlock) {
-			return cachedBlock;
+		if (cachedBlockHeader) {
+			return cachedBlockHeader;
 		}
 
-		const storageBlocks = [];
+		const storageBlockHeaders = [];
 		for (const id of arrayOfBlockIds) {
 			try {
-				const block = await this.getBlockHeaderByID(id);
-				storageBlocks.push(block);
+				const blockHeader = await this.getBlockHeaderByID(id);
+				storageBlockHeaders.push(blockHeader);
 			} catch (error) {
 				if (!(error instanceof NotFoundError)) {
 					throw error;
 				}
 			}
 		}
-		storageBlocks.sort((a, b) => b.height - a.height);
+		storageBlockHeaders.sort((a, b) => b.height - a.height);
 
-		return storageBlocks[0];
+		return storageBlockHeaders[0];
 	}
 
 	/** End: BlockHeaders */
@@ -383,6 +384,7 @@ export class DataAccess {
 	public async saveBlock(
 		block: Block,
 		stateStore: StateStore,
+		finalizedHeight: number,
 		removeFromTemp = false,
 	): Promise<void> {
 		const { id: blockID, height } = block.header;
@@ -396,6 +398,7 @@ export class DataAccess {
 		await this._storage.saveBlock(
 			blockID,
 			height,
+			finalizedHeight,
 			encodedHeader,
 			encodedPayload,
 			stateStore,

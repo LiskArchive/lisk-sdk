@@ -91,14 +91,13 @@ export class Processor {
 			'Initializing processor',
 		);
 		// do init check for block state. We need to load the blockchain
-		if (!(await this.chainModule.exists(genesisBlock))) {
+		const stateStore = await this.chainModule.newStateStore();
+		await this.bftModule.init(stateStore);
+		const genesisBlockExists = await this.chainModule.exists(genesisBlock);
+		if (!genesisBlockExists) {
 			await this.processValidated(genesisBlock, { removeFromTempTable: true });
 		}
 		await this.chainModule.init();
-		const stateStore = await this.chainModule.newStateStore();
-		for (const processor of Object.values(this.processors)) {
-			await processor.init.run({ stateStore });
-		}
 		this.logger.info('Blockchain ready');
 	}
 
@@ -336,7 +335,7 @@ export class Processor {
 			stateStore,
 		});
 
-		await this.chainModule.save(block, stateStore, {
+		await this.chainModule.save(block, stateStore, this.bftModule.finalizedHeight, {
 			removeFromTempTable,
 		});
 
@@ -344,7 +343,7 @@ export class Processor {
 	}
 
 	private async _deleteBlock(block: Block, saveTempBlock = false): Promise<void> {
-		if (block.header.height <= this.bftModule.finalityManager.finalizedHeight) {
+		if (block.header.height <= this.bftModule.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
 
