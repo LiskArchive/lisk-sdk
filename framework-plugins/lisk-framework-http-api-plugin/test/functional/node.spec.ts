@@ -19,7 +19,7 @@ describe('Node Info endpoint', () => {
 	let app: Application;
 
 	beforeAll(async () => {
-		app = await createApplication('hello');
+		app = await createApplication('node_http_functional');
 	});
 
 	afterAll(async () => {
@@ -47,7 +47,7 @@ describe('Node Info endpoint', () => {
 
 			const result = await axios.get(getURL('/api/node/info'));
 
-			expect(result.data).toEqual(nodeStatusAndConstantFixture);
+			expect(result.data).toEqual({ data: nodeStatusAndConstantFixture });
 			expect(result.status).toBe(200);
 		});
 	});

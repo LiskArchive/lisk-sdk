@@ -21,7 +21,7 @@ export const getNodeInfo = (channel: BaseChannel) => async (
 ): Promise<void> => {
 	try {
 		const nodeStatusAndInfo = await channel.invoke('app:getNodeInfo');
-		res.status(200).send(nodeStatusAndInfo);
+		res.status(200).send({ data: nodeStatusAndInfo });
 	} catch (err) {
 		next(err);
 	}

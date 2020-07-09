@@ -46,7 +46,7 @@ describe('Account endpoint', () => {
 	};
 
 	beforeAll(async () => {
-		app = await createApplication('hello');
+		app = await createApplication('account_http_functional');
 	});
 
 	afterAll(async () => {
@@ -56,7 +56,7 @@ describe('Account endpoint', () => {
 	describe('/api/accounts', () => {
 		it('should respond with account when account found in db', async () => {
 			const result = await axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip9k1a%2FOtigdf7U%3D'));
-			expect(result.data).toEqual(accountFixture);
+			expect(result.data).toEqual({ data: accountFixture });
 			expect(result.status).toBe(200);
 		});
 
