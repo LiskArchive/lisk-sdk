@@ -95,15 +95,9 @@ describe('Blocks endpoints', () => {
 
 	describe('api/blocks/:blockID', () => {
 		it('should respond with block when block found for specified id', async () => {
-			const {
-				data: {
-					data: {
-						header: { id },
-					},
-				},
-			} = await axios.get(getURL('/api/blocks/?height=1'));
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			const result = await axios.get(getURL(`/api/blocks/${id}`));
+			const result = await axios.get(
+				getURL('/api/blocks/4ILnnQEBZjLEUcnfknbkhst%2FRg3Hk%2F9bENj3HuzsKLQ%3D'),
+			);
 
 			expect(result.status).toBe(200);
 			expect(result).toHaveProperty('data');
