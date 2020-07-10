@@ -86,93 +86,47 @@ describe('Peers endpoint', () => {
 			expect(status).toBe(200);
 		});
 
-		it('should respond with 400 and error message when channel.invoke throws error', async () => {
-			expect.assertions(2);
-			try {
-				// Arrange
-				app['_channel'].invoke = jest.fn();
-				// Mock channel invoke only when app:getConnectedPeers is called
-				when(app['_channel'].invoke)
-					.calledWith('app:getConnectedPeers')
-					.mockRejectedValue(new Error('Error occured') as never);
-				// Act
-				await axios.get(getURL('/api/peers'));
-			} catch (err) {
-				// Assert
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.status).toBe(500);
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.data).toEqual({
-					errors: [
-						{
-							message: 'Something went wrong while fetching peers list: Error occured',
-						},
-					],
-				});
-			}
-		});
-
 		it('should respond with 400 and error message when passed incorrect state value', async () => {
-			expect.assertions(2);
-			try {
-				// Act
-				await axios.get(getURL('/api/peers?state=xxx'));
-			} catch (err) {
-				// Assert
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.status).toBe(400);
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.data).toEqual({
-					errors: [
-						{
-							message:
-								'Invalid param value(s), limit and offset should be a valid number and state can be either "connected" or "disconnected"',
-						},
-					],
-				});
-			}
+			const { response, status } = await callNetwork(axios.get(getURL('/api/peers?state=xxx')));
+			// Assert
+			expect(status).toBe(400);
+			expect(response).toEqual({
+				errors: [
+					{
+						message:
+							'Lisk validator found 1 error[s]:\nshould be equal to one of the allowed values',
+					},
+				],
+			});
 		});
 
 		it('should respond with 400 and error message when passed incorrect limit value', async () => {
-			expect.assertions(2);
-			try {
-				// Act
-				await axios.get(getURL('/api/peers?limit=123xy'));
-			} catch (err) {
-				// Assert
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.status).toBe(400);
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.data).toEqual({
-					errors: [
-						{
-							message:
-								'Invalid param value(s), limit and offset should be a valid number and state can be either "connected" or "disconnected"',
-						},
-					],
-				});
-			}
+			const { response, status } = await callNetwork(axios.get(getURL('/api/peers?limit=123xy')));
+			// Assert
+			expect(status).toBe(400);
+			expect(response).toEqual({
+				errors: [
+					{
+						message:
+							'Lisk validator found 1 error[s]:\nProperty \'.limit\' should match format "uint64"',
+					},
+				],
+			});
 		});
 
 		it('should respond with 400 and error message when passed incorrect offset value', async () => {
-			expect.assertions(2);
-			try {
-				// Act
-				await axios.get(getURL('/api/peers?offset=123xy'));
-			} catch (err) {
-				// Assert
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.status).toBe(400);
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.data).toEqual({
-					errors: [
-						{
-							message:
-								'Invalid param value(s), limit and offset should be a valid number and state can be either "connected" or "disconnected"',
-						},
-					],
-				});
-			}
+			// Act
+			const { response, status } = await callNetwork(axios.get(getURL('/api/peers?offset=123xy')));
+			// Assert
+			expect(status).toBe(400);
+			expect(response).toEqual({
+				errors: [
+					{
+						message:
+							'Lisk validator found 1 error[s]:\nProperty \'.offset\' should match format "uint64"',
+					},
+				],
+			});
 		});
 	});
 });
