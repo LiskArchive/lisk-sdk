@@ -54,7 +54,7 @@ import {
 	PluginOptions,
 } from '../types';
 import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
-import { AccountAsset } from './node/account';
+import { AccountAsset, accountAssetSchema } from './node/account';
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const rm = promisify(fs.unlink);
@@ -118,7 +118,7 @@ export class Application {
 	private _forgerDB!: KVStore;
 
 	public constructor(genesisBlock: GenesisBlockJSON, config: Partial<ApplicationConfig> = {}) {
-		const parsedGenesisBlock = genesisBlockFromJSON(genesisBlock);
+		const parsedGenesisBlock = genesisBlockFromJSON(genesisBlock, accountAssetSchema);
 		// TODO: Read hard coded value from configuration or constant
 		const errors = validateGenesisBlock(parsedGenesisBlock, {
 			roundLength: 103,
