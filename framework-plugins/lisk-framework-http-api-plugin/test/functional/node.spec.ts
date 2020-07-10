@@ -100,6 +100,37 @@ describe('Node Info endpoint', () => {
 				expect(status).toEqual(200);
 				expect(response).toEqual({ data: [transaction], meta: { limit: 0, offset: 0, total: 1 } });
 			});
+
+			it('should be ok with limit', async () => {
+				const transaction = createTransferTransaction({
+					amount: '2',
+					recipientAddress: account.address,
+					fee: '0.3',
+					nonce: accountNonce,
+				});
+				accountNonce += 1;
+				const { id: txID, ...input1 } = transaction;
+				await axios.post(getURL('/api/transactions'), input1);
+				const transaction2 = createTransferTransaction({
+					amount: '2',
+					recipientAddress: account.address,
+					fee: '0.3',
+					nonce: accountNonce,
+				});
+				accountNonce += 1;
+
+				const { id, ...input2 } = transaction2;
+				await axios.post(getURL('/api/transactions'), input2);
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.get(getURL('/api/node/transactions/?limit=1')),
+				);
+
+				// Assert
+				expect(status).toEqual(200);
+				expect(response).toEqual({ data: [transaction], meta: { limit: 1, offset: 0, total: 2 } });
+			});
 		});
 	});
 });
