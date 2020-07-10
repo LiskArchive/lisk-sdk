@@ -162,5 +162,19 @@ describe('Node Info endpoint', () => {
 				expect(response).toEqual({ data: [transaction2], meta: { limit: 0, offset: 1, total: 2 } });
 			});
 		});
+
+		describe('400 - Malformed query or parameters', () => {
+			it('should fail if limit is not a number', async () => {
+				// Act
+				const { response, status } = await callNetwork(
+					axios.get(getURL('/api/node/transactions/?limit=a')),
+				);
+
+				expect(status).toEqual(400);
+				expect(response).toEqual({
+					errors: [{ message: 'The limit query parameter should be a number.' }],
+				});
+			});
+		});
 	});
 });
