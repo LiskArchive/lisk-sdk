@@ -15,33 +15,11 @@ import { Application } from 'lisk-framework';
 import axios from 'axios';
 import { when } from 'jest-when';
 import { createApplication, closeApplication, getURL, callNetwork } from './utils/application';
-
-const peers = [
-	{
-		ipAddress: '1.1.1.1',
-		port: 1001,
-		networkId: 'networkId',
-		networVersion: '1.1',
-		nonce: 'nonce1',
-	},
-	{
-		ipAddress: '1.1.1.2',
-		port: 1002,
-		networkId: 'networkId',
-		networVersion: '1.1',
-		nonce: 'nonce2',
-	},
-	{
-		ipAddress: '1.1.1.3',
-		port: 1003,
-		networkId: 'networkId',
-		networVersion: '1.1',
-		nonce: 'nonce3',
-	},
-];
+import { generatePeers } from './utils/peers';
 
 describe('Peers endpoint', () => {
 	let app: Application;
+	const peers = generatePeers();
 
 	beforeAll(async () => {
 		app = await createApplication('peers');
@@ -52,7 +30,7 @@ describe('Peers endpoint', () => {
 	});
 
 	describe('/api/peers', () => {
-		it('should respond with all connected peers', async () => {
+		it('should respond with 100 connected peers as limit has 100 default value', async () => {
 			// Arrange
 			app['_channel'].invoke = jest.fn();
 			// Mock channel invoke only when app:getConnectedPeers is called
@@ -64,7 +42,7 @@ describe('Peers endpoint', () => {
 			const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
 
 			// Assert
-			expect(response).toEqual(peers);
+			expect(response).toEqual(peers.slice(0, 100));
 			expect(status).toBe(200);
 		});
 
@@ -82,7 +60,7 @@ describe('Peers endpoint', () => {
 			);
 
 			// Assert
-			expect(response).toEqual(peers.slice(2, peers.length));
+			expect(response).toEqual(peers.slice(2, 102));
 			expect(status).toBe(200);
 		});
 
