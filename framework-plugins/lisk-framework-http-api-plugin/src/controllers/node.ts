@@ -34,8 +34,9 @@ export const getTransactions = (channel: BaseChannel, codec: PluginCodec) => asy
 	next: NextFunction,
 ): Promise<void> => {
 	const { limit, offset } = req.query;
-	let limitNumber = 0;
+	let limitNumber = 10;
 	let offsetNumber = 0;
+
 	if (limit) {
 		if (!isNumberString(limit)) {
 			res.status(400).send({
@@ -70,19 +71,12 @@ export const getTransactions = (channel: BaseChannel, codec: PluginCodec) => asy
 		decodedTransactions.push(codec.decodeTransaction(transaction));
 	}
 
-	let data = decodedTransactions;
-
-	if (offset) {
-		data = decodedTransactions.slice(offsetNumber, decodedTransactions.length);
-	}
-
-	if (limit) {
-		data = data.slice(0, limitNumber);
-	}
-
 	// 200 - Response
 	res.status(200).json({
-		data,
+		data: decodedTransactions.slice(
+			offsetNumber || 0,
+			Math.min(limitNumber + offsetNumber, decodedTransactions.length),
+		),
 		meta: { limit: limitNumber, offset: offsetNumber, total: decodedTransactions.length },
 	});
 };

@@ -79,7 +79,7 @@ describe('Node Info endpoint', () => {
 
 				// Assert
 				expect(status).toEqual(200);
-				expect(response).toEqual({ data: [], meta: { limit: 0, offset: 0, total: 0 } });
+				expect(response).toEqual({ data: [], meta: { limit: 10, offset: 0, total: 0 } });
 			});
 
 			it('should be ok with transactions in pool', async () => {
@@ -98,7 +98,7 @@ describe('Node Info endpoint', () => {
 
 				// Assert
 				expect(status).toEqual(200);
-				expect(response).toEqual({ data: [transaction], meta: { limit: 0, offset: 0, total: 1 } });
+				expect(response).toEqual({ data: [transaction], meta: { limit: 10, offset: 0, total: 1 } });
 			});
 
 			it('should be ok with limit', async () => {
@@ -159,7 +159,10 @@ describe('Node Info endpoint', () => {
 
 				// Assert
 				expect(status).toEqual(200);
-				expect(response).toEqual({ data: [transaction2], meta: { limit: 0, offset: 1, total: 2 } });
+				expect(response).toEqual({
+					data: [transaction2],
+					meta: { limit: 10, offset: 1, total: 2 },
+				});
 			});
 		});
 
