@@ -175,6 +175,18 @@ describe('Node Info endpoint', () => {
 					errors: [{ message: 'The limit query parameter should be a number.' }],
 				});
 			});
+
+			it('should fail if offset is not a number', async () => {
+				// Act
+				const { response, status } = await callNetwork(
+					axios.get(getURL('/api/node/transactions/?offset=a')),
+				);
+
+				expect(status).toEqual(400);
+				expect(response).toEqual({
+					errors: [{ message: 'The offset query parameter should be a number.' }],
+				});
+			});
 		});
 	});
 });
