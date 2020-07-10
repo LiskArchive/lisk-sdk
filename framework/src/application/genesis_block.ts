@@ -13,6 +13,7 @@
  */
 import { GenesisBlock, genesisBlockHeaderAssetSchema } from '@liskhq/lisk-genesis';
 import { blockHeaderSchema, blockSchema, baseAccountSchema } from '@liskhq/lisk-chain';
+import { objects } from '@liskhq/lisk-utils';
 import { Schema, codec } from '@liskhq/lisk-codec';
 import { AccountAsset, accountAssetSchema } from './node/account';
 
@@ -63,32 +64,37 @@ export interface GenesisAccountStateJSON {
 	};
 }
 
-export const genesisSchema = (accountSchema: object): Schema => ({
-	...blockSchema,
-	properties: {
-		...blockSchema.properties,
-		header: {
-			...blockHeaderSchema,
+export const genesisSchema = (accountSchema: object): Schema =>
+	objects.mergeDeep(
+		{},
+		blockSchema,
+		{
+			$id: '/block/genesis',
 			properties: {
-				...blockHeaderSchema.properties,
-				id: {
-					dataType: 'bytes',
-				},
-				asset: {
-					...genesisBlockHeaderAssetSchema,
+				header: objects.mergeDeep({}, blockHeaderSchema, {
 					properties: {
-						...genesisBlockHeaderAssetSchema.properties,
-						accounts: {
-							...(genesisBlockHeaderAssetSchema.properties as { accounts: Record<string, unknown> })
-								.accounts,
-							items: {
-								...baseAccountSchema,
-								properties: {
-									...baseAccountSchema.properties,
-									asset: {
-										...baseAccountSchema.properties.asset,
-										properties: accountSchema,
-									},
+						id: {
+							dataType: 'bytes',
+						},
+						asset: genesisBlockHeaderAssetSchema,
+					},
+				}),
+			},
+		},
+		{
+			properties: {
+				header: {
+					properties: {
+						asset: {
+							properties: {
+								accounts: {
+									items: objects.mergeDeep({}, baseAccountSchema, {
+										properties: {
+											asset: {
+												properties: accountSchema,
+											},
+										},
+									}),
 								},
 							},
 						},
@@ -96,8 +102,7 @@ export const genesisSchema = (accountSchema: object): Schema => ({
 				},
 			},
 		},
-	},
-});
+	) as Schema;
 
 export const genesisBlockFromJSON = (
 	genesis: GenesisBlockJSON,
