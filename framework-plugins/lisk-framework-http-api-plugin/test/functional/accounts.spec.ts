@@ -13,7 +13,7 @@
  */
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import { createApplication, closeApplication, getURL } from './utils/application';
+import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
 
 describe('Account endpoint', () => {
 	let app: Application;
@@ -61,35 +61,27 @@ describe('Account endpoint', () => {
 		});
 
 		it('should respond with 404 and error message when account not found in db', async () => {
-			expect.assertions(2);
-			try {
-				await axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip0k1a%2FOtigdf7U%3D'));
-			} catch (err) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.status).toBe(404);
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.data).toEqual({
-					errors: [
-						{
-							message: "Account with address 'nQFJsJYtRL/Aip0k1a/Otigdf7U=' was not found",
-						},
-					],
-				});
-			}
+			const { response, status } = await callNetwork(
+				axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip0k1a%2FOtigdf7U%3D')),
+			);
+
+			expect(status).toBe(404);
+			expect(response).toEqual({
+				errors: [
+					{
+						message: "Account with address 'nQFJsJYtRL/Aip0k1a/Otigdf7U=' was not found",
+					},
+				],
+			});
 		});
 
 		it('should respond with 400 and error message when address param is not base64', async () => {
-			expect.assertions(2);
-			try {
-				await axios.get(getURL('/api/accounts/-nein-no'));
-			} catch (err) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.status).toBe(400);
-				// eslint-disable-next-line jest/no-try-expect
-				expect(err.response.data).toEqual({
-					errors: [{ message: 'The Address parameter should be a base64 string.' }],
-				});
-			}
+			const { response, status } = await callNetwork(axios.get(getURL('/api/accounts/-nein-no')));
+
+			expect(status).toBe(400);
+			expect(response).toEqual({
+				errors: [{ message: 'The Address parameter should be a base64 string.' }],
+			});
 		});
 	});
 });

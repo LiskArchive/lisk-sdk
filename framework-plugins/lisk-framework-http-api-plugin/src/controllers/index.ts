@@ -13,7 +13,7 @@
  */
 
 import * as transactions from './transactions';
-import * as accounts from './account';
+import * as accounts from './accounts';
 import * as node from './node';
 import * as blocks from './blocks';
 
