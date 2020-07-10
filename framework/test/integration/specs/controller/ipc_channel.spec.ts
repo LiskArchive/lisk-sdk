@@ -13,7 +13,7 @@
  */
 
 import { homedir } from 'os';
-
+import { mkdirSync, rmdirSync } from 'fs';
 import { resolve as pathResolve } from 'path';
 import { IPCChannel, InMemoryChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
@@ -23,7 +23,7 @@ const logger: any = {
 	info: jest.fn(),
 };
 
-const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
+const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel/sockets`);
 
 const config: any = {
 	ipc: {
@@ -63,14 +63,16 @@ const beta = {
 		},
 	},
 };
-/* eslint-disable jest/no-disabled-tests */
-describe.skip('IPCChannel', () => {
+
+describe('IPCChannel', () => {
 	describe('after registering itself to the bus', () => {
 		let alphaChannel: IPCChannel;
 		let betaChannel: IPCChannel;
 		let bus: Bus;
 
 		beforeAll(async () => {
+			mkdirSync(socketsDir, { recursive: true });
+
 			// Arrange
 			bus = new Bus(logger, config);
 
@@ -87,6 +89,8 @@ describe.skip('IPCChannel', () => {
 			alphaChannel.cleanup();
 			betaChannel.cleanup();
 			await bus.cleanup();
+
+			rmdirSync(socketsDir);
 		});
 
 		describe('#subscribe', () => {
