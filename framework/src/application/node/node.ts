@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, events as chainEvents, Block, blockSchema, Account } from '@liskhq/lisk-chain';
+import {
+	Chain,
+	events as chainEvents,
+	Block,
+	blockSchema,
+	blockHeaderSchema,
+	Account,
+} from '@liskhq/lisk-chain';
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
@@ -397,7 +404,8 @@ export class Node {
 				this._transport.handleRPCGetGetHighestCommonBlock(params.data, params.peerId),
 			getSchema: () => ({
 				account: this._chain.accountSchema,
-				blockHeader: blockSchema,
+				blockSchema,
+				blockHeaderSchema,
 				blockHeadersAssets: {
 					0: BlockProcessorV0.schema,
 					2: BlockProcessorV2.schema,
