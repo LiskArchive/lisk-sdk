@@ -12,10 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Request, Response, NextFunction } from 'express';
-import { isUInt32, isString } from '@liskhq/lisk-validator';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseChannel } from 'lisk-framework';
+import { paginateList } from '../utils';
 
-export enum PeerState {
+const getPeerSchema = {
+	type: 'object',
+	properties: {
+		limit: {
+			type: 'string',
+			format: 'uint64',
+			description: 'Number of peers to be returned',
+		},
+		offset: {
+			type: 'string',
+			format: 'uint64',
+			description: 'Offset to get peers after a specific point in a peer list',
+		},
+		state: {
+			type: 'string',
+			enum: ['connected', 'disconnected'],
+		},
+	},
+	default: {
+		limit: 100,
+		offset: 0,
+		state: 'connected',
+	},
+};
+
+enum PeerState {
 	connected = 'connected',
 	disconnected = 'disconnected',
 }
@@ -29,41 +55,21 @@ interface PeerInfo {
 	readonly options: { [key: string]: unknown };
 }
 
-const filterPeers = (
-	peers: ReadonlyArray<PeerInfo>,
-	limit: number,
-	offset: number,
-): ReadonlyArray<PeerInfo> => {
-	if (offset === 0) {
-		return peers.slice(0, Math.min(limit, peers.length));
-	}
-
-	return peers.slice(offset, Math.min(limit + offset, peers.length));
-};
-
 export const getPeers = (channel: BaseChannel) => async (
 	req: Request,
 	res: Response,
-	_next: NextFunction,
+	next: NextFunction,
 ): Promise<void> => {
-	const { limit = 100, offset = 0, state = PeerState.connected } = req.query;
+	const errors = validator.validate(getPeerSchema, req.query);
 
-	if (
-		!isUInt32(Number(limit)) ||
-		!isUInt32(Number(offset)) ||
-		!isString(state) ||
-		!(state === PeerState.connected || state === PeerState.disconnected)
-	) {
+	// 400 - Malformed query or parameters
+	if (errors.length) {
 		res.status(400).send({
-			errors: [
-				{
-					message:
-						'Invalid param value(s), limit and offset should be a valid number and state can be either "connected" or "disconnected"',
-				},
-			],
+			errors: [{ message: new LiskValidationError([...errors]).message }],
 		});
 		return;
 	}
+	const { limit = 100, offset = 0, state = PeerState.connected } = req.query;
 
 	try {
 		let peers;
@@ -73,14 +79,10 @@ export const getPeers = (channel: BaseChannel) => async (
 			peers = await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers');
 		}
 
-		peers = filterPeers(peers, +limit, +offset);
+		peers = paginateList(peers, +limit, +offset);
 
 		res.status(200).send(peers);
 	} catch (err) {
-		res.status(500).send({
-			errors: [
-				{ message: `Something went wrong while fetching peers list: ${(err as Error).message}` },
-			],
-		});
+		next();
 	}
 };
