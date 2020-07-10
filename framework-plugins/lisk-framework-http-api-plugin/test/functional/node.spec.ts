@@ -13,11 +13,19 @@
  */
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import { createApplication, closeApplication, getURL, waitNBlocks } from './utils/application';
+import {
+	callNetwork,
+	createApplication,
+	closeApplication,
+	getURL,
+	waitNBlocks,
+} from './utils/application';
 import { getRandomAccount } from './utils/accounts';
+import { createTransferTransaction } from './utils/transactions';
 
 describe('Node Info endpoint', () => {
 	let app: Application;
+	let accountNonce = 0;
 
 	beforeAll(async () => {
 		app = await createApplication('node_http_functional');
@@ -72,6 +80,25 @@ describe('Node Info endpoint', () => {
 				// Assert
 				expect(status).toEqual(200);
 				expect(response).toEqual({ data: [], meta: { limit: 0, offset: 0, total: 0 } });
+			});
+
+			it('should be ok with transactions in pool', async () => {
+				const transaction = createTransferTransaction({
+					amount: '2',
+					recipientAddress: account.address,
+					fee: '0.3',
+					nonce: 0,
+				});
+				accountNonce += 1;
+				const { id: txID, ...input } = transaction;
+				await axios.post(getURL('/api/transactions'), input);
+
+				// Act
+				const { response, status } = await callNetwork(axios.get(getURL('/api/node/transactions')));
+
+				// Assert
+				expect(status).toEqual(200);
+				expect(response).toEqual({ data: [transaction], meta: { limit: 0, offset: 0, total: 1 } });
 			});
 		});
 	});
