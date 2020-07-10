@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Request, Response, NextFunction } from 'express';
-import { isBase64String } from '@liskhq/lisk-validator';
+import { isBase64String, isNumberString } from '@liskhq/lisk-validator';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 
 export const getBlockById = (channel: BaseChannel, codec: PluginCodec) => async (
@@ -36,6 +36,36 @@ export const getBlockById = (channel: BaseChannel, codec: PluginCodec) => async 
 		if (/^Specified key blocks:id:(.*)does not exist/.test((err as Error).message)) {
 			res.status(404).send({
 				errors: [{ message: `Block with id '${blockId}' was not found` }],
+			});
+		} else {
+			next(err);
+		}
+	}
+};
+
+export const getBlockByHeight = (channel: BaseChannel, codec: PluginCodec) => async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	const { height } = req.query;
+
+	if (!isNumberString(height)) {
+		res.status(400).send({
+			errors: [{ message: 'The block height query parameter should be a number.' }],
+		});
+		return;
+	}
+
+	try {
+		const block: Buffer = await channel.invoke('app:getBlockByHeight', {
+			height: parseInt(height as string, 10),
+		});
+		res.status(200).send({ data: codec.decodeBlock(block) });
+	} catch (err) {
+		if (/^Specified key blocks:height:(.*)does not exist/.test((err as Error).message)) {
+			res.status(404).send({
+				errors: [{ message: `Block with height '${height as string}' was not found` }],
 			});
 		} else {
 			next(err);
