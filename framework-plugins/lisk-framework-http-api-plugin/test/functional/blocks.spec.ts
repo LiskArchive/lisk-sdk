@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// import { codec } from '@liskhq/lisk-codec';
 import { Application } from 'lisk-framework';
 import axios from 'axios';
 import {
@@ -38,22 +37,27 @@ describe('Blocks endpoints', () => {
 		it('should respond with block when block found for specified height', async () => {
 			const result = await axios.get(getURL('/api/blocks/?height=1'));
 
-			expect(result.status).toBe(200);
-			expect(result).toHaveProperty('data');
-			expect(result.data).toHaveProperty('data.header');
-			expect(result.data).toHaveProperty('data.payload');
-			expect(result.data).toHaveProperty('data.header.id');
-			expect(result.data).toHaveProperty('data.header.version');
-			expect(result.data).toHaveProperty('data.header.timestamp');
-			expect(result.data).toHaveProperty('data.header.height');
-			expect(result.data).toHaveProperty('data.header.previousBlockID');
-			expect(result.data).toHaveProperty('data.header.transactionRoot');
-			expect(result.data).toHaveProperty('data.header.generatorPublicKey');
-			expect(result.data).toHaveProperty('data.header.reward');
-			expect(result.data).toHaveProperty('data.header.asset');
-			expect(result.data).toHaveProperty('data.header.asset.maxHeightPreviouslyForged');
-			expect(result.data).toHaveProperty('data.header.asset.maxHeightPrevoted');
-			expect(result.data).toHaveProperty('data.header.asset.seedReveal');
+			const returnedBlock = result.data.data;
+
+			expect(Object.keys(returnedBlock)).toEqual(['header', 'payload']);
+			expect(Object.keys(returnedBlock.header)).toEqual([
+				'version',
+				'timestamp',
+				'height',
+				'previousBlockID',
+				'transactionRoot',
+				'generatorPublicKey',
+				'reward',
+				'asset',
+				'signature',
+				'id',
+			]);
+
+			expect(Object.keys(returnedBlock.header.asset)).toEqual([
+				'maxHeightPreviouslyForged',
+				'maxHeightPrevoted',
+				'seedReveal',
+			]);
 
 			expect(typeof result.data.data.header.id).toBe('string');
 			expect(typeof result.data.data.header.version).toBe('number');
@@ -95,26 +99,42 @@ describe('Blocks endpoints', () => {
 
 	describe('api/blocks/:blockID', () => {
 		it('should respond with block when block found for specified id', async () => {
+			await waitNBlocks(app, 1);
+			const {
+				data: {
+					data: {
+						header: { id },
+					},
+				},
+			} = await axios.get(getURL('/api/blocks/?height=1'));
+
+			await waitNBlocks(app, 1);
 			const result = await axios.get(
-				getURL('/api/blocks/4ILnnQEBZjLEUcnfknbkhst%2FRg3Hk%2F9bENj3HuzsKLQ%3D'),
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				getURL(`/api/blocks/${encodeURIComponent(id)}`),
 			);
 
-			expect(result.status).toBe(200);
-			expect(result).toHaveProperty('data');
-			expect(result.data).toHaveProperty('data.header');
-			expect(result.data).toHaveProperty('data.payload');
-			expect(result.data).toHaveProperty('data.header.id');
-			expect(result.data).toHaveProperty('data.header.version');
-			expect(result.data).toHaveProperty('data.header.timestamp');
-			expect(result.data).toHaveProperty('data.header.height');
-			expect(result.data).toHaveProperty('data.header.previousBlockID');
-			expect(result.data).toHaveProperty('data.header.transactionRoot');
-			expect(result.data).toHaveProperty('data.header.generatorPublicKey');
-			expect(result.data).toHaveProperty('data.header.reward');
-			expect(result.data).toHaveProperty('data.header.asset');
-			expect(result.data).toHaveProperty('data.header.asset.maxHeightPreviouslyForged');
-			expect(result.data).toHaveProperty('data.header.asset.maxHeightPrevoted');
-			expect(result.data).toHaveProperty('data.header.asset.seedReveal');
+			const returnedBlock = result.data.data;
+
+			expect(Object.keys(returnedBlock)).toEqual(['header', 'payload']);
+			expect(Object.keys(returnedBlock.header)).toEqual([
+				'version',
+				'timestamp',
+				'height',
+				'previousBlockID',
+				'transactionRoot',
+				'generatorPublicKey',
+				'reward',
+				'asset',
+				'signature',
+				'id',
+			]);
+
+			expect(Object.keys(returnedBlock.header.asset)).toEqual([
+				'maxHeightPreviouslyForged',
+				'maxHeightPrevoted',
+				'seedReveal',
+			]);
 
 			expect(typeof result.data.data.header.id).toBe('string');
 			expect(typeof result.data.data.header.version).toBe('number');
