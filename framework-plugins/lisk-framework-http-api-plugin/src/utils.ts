@@ -14,8 +14,8 @@
 
 export const paginateList = <T>(
 	list: ReadonlyArray<T>,
-	limit: number,
-	offset: number,
+	limit = 100,
+	offset = 0,
 ): ReadonlyArray<T> => {
 	if (offset === 0) {
 		return list.slice(0, Math.min(limit, list.length));
