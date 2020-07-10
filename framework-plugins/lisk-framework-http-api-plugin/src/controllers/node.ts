@@ -34,37 +34,37 @@ export const getTransactions = (channel: BaseChannel, codec: PluginCodec) => asy
 	next: NextFunction,
 ): Promise<void> => {
 	const { limit, offset } = req.query;
-	let limitNumber = 10;
-	let offsetNumber = 0;
 
-	if (limit) {
-		if (!isNumberString(limit)) {
-			res.status(400).send({
-				errors: [{ message: 'The limit query parameter should be a number.' }],
-			});
-			return;
-		}
-		limitNumber = Number(limit);
+	if (limit && !isNumberString(limit)) {
+		res.status(400).send({
+			errors: [{ message: 'The limit query parameter should be a number.' }],
+		});
+		return;
 	}
+	const limitNumber = Number(limit) || 10;
 
-	if (offset) {
-		if (!isNumberString(offset)) {
-			res.status(400).send({
-				errors: [{ message: 'The offset query parameter should be a number.' }],
-			});
-			return;
-		}
-		offsetNumber = Number(offset);
+	if (offset && !isNumberString(offset)) {
+		res.status(400).send({
+			errors: [{ message: 'The offset query parameter should be a number.' }],
+		});
+		return;
 	}
+	const offsetNumber = Number(offset) || 0;
 
 	let transactionsInPool;
 
 	try {
-		transactionsInPool = await channel.invoke<string>('app:getTransactionsFromPool');
+		transactionsInPool = await channel.invoke<ReadonlyArray<Buffer>>('app:getTransactionsFromPool');
 	} catch (err) {
 		next(err);
 		return;
 	}
+	const totalTransactionsInPool = transactionsInPool.length;
+
+	transactionsInPool = transactionsInPool.slice(
+		offsetNumber || 0,
+		Math.min(limitNumber + offsetNumber, transactionsInPool.length),
+	);
 
 	const decodedTransactions = [];
 	for (const transaction of transactionsInPool) {
@@ -73,10 +73,7 @@ export const getTransactions = (channel: BaseChannel, codec: PluginCodec) => asy
 
 	// 200 - Response
 	res.status(200).json({
-		data: decodedTransactions.slice(
-			offsetNumber || 0,
-			Math.min(limitNumber + offsetNumber, decodedTransactions.length),
-		),
-		meta: { limit: limitNumber, offset: offsetNumber, total: decodedTransactions.length },
+		data: decodedTransactions,
+		meta: { limit: limitNumber, offset: offsetNumber, total: totalTransactionsInPool },
 	});
 };
