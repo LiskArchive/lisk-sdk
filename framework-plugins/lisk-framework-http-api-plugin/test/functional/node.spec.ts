@@ -13,7 +13,8 @@
  */
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import { createApplication, closeApplication, getURL } from './utils/application';
+import { createApplication, closeApplication, getURL, waitNBlocks } from './utils/application';
+import { getRandomAccount } from './utils/accounts';
 
 describe('Node Info endpoint', () => {
 	let app: Application;
@@ -49,6 +50,29 @@ describe('Node Info endpoint', () => {
 
 			expect(result.data).toEqual({ data: nodeStatusAndConstantFixture });
 			expect(result.status).toBe(200);
+		});
+	});
+
+	describe('GET /api/node/transactions/', () => {
+		describe('200 - Success', () => {
+			let account: any;
+
+			beforeEach(() => {
+				account = getRandomAccount();
+			});
+
+			afterEach(async () => {
+				await waitNBlocks(app, 2);
+			});
+
+			it('should be ok with no transactions in pool', async () => {
+				// Act
+				const { response, status } = await callNetwork(axios.get(getURL('/api/node/transactions')));
+
+				// Assert
+				expect(status).toEqual(200);
+				expect(response).toEqual({ data: [], meta: { limit: 0, offset: 0, total: 0 } });
+			});
 		});
 	});
 });
