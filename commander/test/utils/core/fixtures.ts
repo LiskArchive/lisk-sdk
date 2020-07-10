@@ -2,7 +2,7 @@ export const config = {
 	app: {
 		version: '2.0.0-alpha.0',
 		minVersion: '1.1.0-rc.0',
-		protocolVersion: '1.0',
+		networkVersion: '1.0',
 	},
 	components: {
 		logger: {

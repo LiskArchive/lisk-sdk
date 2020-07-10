@@ -21,7 +21,7 @@ export const createProbe = async (config: ApplicationConfig): Promise<P2P> => {
 		port: 1111,
 		customNodeInfoSchema,
 		nodeInfo: {
-			networkVersion: config.protocolVersion,
+			networkVersion: config.networkVersion,
 			advertiseAddress: true,
 			networkId: config.networkId,
 			nonce: 'O2wTkjqplHII',

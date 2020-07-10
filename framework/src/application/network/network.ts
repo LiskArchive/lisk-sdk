@@ -18,10 +18,8 @@ import * as liskP2P from '@liskhq/lisk-p2p';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
-import { EventInfoObject } from '../../controller/event';
 import { NetworkConfig } from '../../types';
 import { customNodeInfoSchema } from './schema';
-import { ApplicationState } from '../application_state';
 
 const {
 	P2P,
@@ -50,15 +48,21 @@ const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
-interface State {
-	[key: string]: number | string | object | boolean;
+interface NodeInfoOptions {
+	[key: string]: unknown;
+	readonly lastBlockID: Buffer;
+	readonly height: number;
+	readonly maxHeightPrevoted: number;
+	readonly blockVersion: number;
 }
+
 interface NetworkConstructor {
 	readonly options: NetworkConfig;
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly nodeDB: KVStore;
-	readonly applicationState: ApplicationState;
+	readonly networkId: string;
+	readonly networkVersion: string;
 }
 
 interface P2PRequestPacket extends liskP2P.p2pTypes.P2PRequestPacket {
@@ -83,16 +87,25 @@ export class Network {
 	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
 	private readonly _nodeDB: KVStore;
-	private readonly _applicationState: ApplicationState;
+	private readonly _networkVersion: string;
+	private readonly _networkID: string;
 	private _secret: number | null;
 	private _p2p!: liskP2P.P2P;
 
-	public constructor({ options, channel, logger, nodeDB, applicationState }: NetworkConstructor) {
+	public constructor({
+		options,
+		channel,
+		logger,
+		nodeDB,
+		networkVersion,
+		networkId,
+	}: NetworkConstructor) {
 		this._options = options;
 		this._channel = channel;
 		this._logger = logger;
 		this._nodeDB = nodeDB;
-		this._applicationState = applicationState;
+		this._networkID = networkId;
+		this._networkVersion = networkVersion;
 		this._secret = null;
 	}
 
@@ -128,26 +141,20 @@ export class Network {
 		} else {
 			this._secret = Number(secret);
 		}
-		const extractNodeInfoParams = (state: State): liskP2P.p2pTypes.P2PNodeInfo => {
-			const { networkId, protocolVersion, advertiseAddress, os, version, port, ...options } = state;
 
-			const nodeInfo = {
-				networkId,
-				networkVersion: protocolVersion,
-				advertiseAddress,
-				options: { ...options },
-			};
-
-			return nodeInfo as liskP2P.p2pTypes.P2PNodeInfo;
-		};
-		const sanitizeNodeInfo = (
-			nodeInfo: liskP2P.p2pTypes.P2PNodeInfo,
-		): liskP2P.p2pTypes.P2PNodeInfo => ({
-			...nodeInfo,
+		const initialNodeInfo = {
+			networkId: this._networkID,
+			networkVersion: this._networkVersion,
+			// Nonce is required in type, but it is overwritten
+			nonce: '',
 			advertiseAddress: this._options.advertiseAddress ?? true,
-		});
-
-		const initialNodeInfo = sanitizeNodeInfo(extractNodeInfoParams(this._applicationState.state));
+			options: {
+				lastBlockID: Buffer.alloc(0),
+				blockVersion: 0,
+				height: 0,
+				maxHeightPrevoted: 0,
+			},
+		};
 
 		const seedPeers = await lookupPeersIPs(this._options.seedPeers, true);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -193,16 +200,6 @@ export class Network {
 		};
 
 		this._p2p = new P2P(p2pConfig);
-
-		this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
-			const newNodeInfo = sanitizeNodeInfo(extractNodeInfoParams(event.data as State));
-
-			try {
-				this._p2p.applyNodeInfo(newNodeInfo);
-			} catch (error) {
-				this._logger.error({ err: error as Error }, 'Applying NodeInfo failed because of error');
-			}
-		});
 
 		// ---- START: Bind event handlers ----
 		this._p2p.on(EVENT_NETWORK_READY, () => {
@@ -442,8 +439,22 @@ export class Network {
 		});
 	}
 
+	public applyNodeInfo(data: NodeInfoOptions): void {
+		const newNodeInfo = {
+			networkId: this._networkID,
+			networkVersion: this._networkVersion,
+			advertiseAddress: this._options.advertiseAddress ?? true,
+			options: data,
+		};
+
+		try {
+			this._p2p.applyNodeInfo(newNodeInfo);
+		} catch (error) {
+			this._logger.error({ err: error as Error }, 'Applying NodeInfo failed because of error');
+		}
+	}
+
 	public async cleanup(): Promise<void> {
-		// TODO: Unsubscribe 'app:state:updated' from channel.
 		this._logger.info({}, 'Cleaning network...');
 
 		await this._p2p.stop();

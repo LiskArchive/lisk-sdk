@@ -23,7 +23,7 @@ const nodeInfo: P2PNodeInfo = {
 	port: 6001,
 	networkId: '123456',
 	version: '2.0.0',
-	protocolVersion: '1.1',
+	networkVersion: '1.1',
 	advertiseAddress: false,
 	module: 'greet',
 };

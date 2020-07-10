@@ -536,7 +536,7 @@ describe('transport', () => {
 					});
 
 					describe('when query is defined', () => {
-						it('should call modules.chain.loadBlocksFromLastBlockId with lastBlockId and limit 34', async () => {
+						it('should call modules.chain.loadBlocksFromLastBlockId with lastBlockID and limit 34', async () => {
 							query = {
 								blockId: Buffer.from('6258354802676165798').toString('base64'),
 							};

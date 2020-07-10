@@ -15,7 +15,7 @@
 export const applicationConfigSchema = {
 	id: '#/config',
 	type: 'object',
-	required: ['version', 'protocolVersion', 'ipc', 'genesisConfig', 'forging', 'network', 'plugins'],
+	required: ['version', 'networkVersion', 'ipc', 'genesisConfig', 'forging', 'network', 'plugins'],
 	properties: {
 		label: {
 			type: 'string',
@@ -28,9 +28,9 @@ export const applicationConfigSchema = {
 			type: 'string',
 			format: 'version',
 		},
-		protocolVersion: {
+		networkVersion: {
 			type: 'string',
-			format: 'protocolVersion',
+			format: 'networkVersion',
 		},
 		buildVersion: {
 			type: 'string',
@@ -310,7 +310,7 @@ export const applicationConfigSchema = {
 	default: {
 		label: 'alpha-sdk-app',
 		version: '0.0.0',
-		protocolVersion: '1.1',
+		networkVersion: '1.1',
 		rootPath: '~/.lisk',
 		ipc: {
 			enabled: false,

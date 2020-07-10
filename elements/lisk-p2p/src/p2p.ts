@@ -505,7 +505,7 @@ export class P2P extends EventEmitter {
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on Peers to give them our new node status.
 	 */
-	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
+	public applyNodeInfo(nodeInfo: Omit<P2PNodeInfo, 'nonce'>): void {
 		this._nodeInfo = {
 			...nodeInfo,
 			nonce: this.nodeInfo.nonce,

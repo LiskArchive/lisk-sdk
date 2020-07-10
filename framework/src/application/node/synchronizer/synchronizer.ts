@@ -123,7 +123,7 @@ export class Synchronizer {
 		return this.logger.info(
 			{
 				lastBlockHeight: this.chainModule.lastBlock.header.height,
-				lastBlockId: this.chainModule.lastBlock.header.id,
+				lastBlockID: this.chainModule.lastBlock.header.id,
 				mechanism: validMechanism.constructor.name,
 			},
 			'Synchronization finished',

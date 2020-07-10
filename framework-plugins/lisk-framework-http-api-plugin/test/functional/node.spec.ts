@@ -40,7 +40,7 @@ describe('Node Info endpoint', () => {
 			const appInstance = app as any;
 			const nodeStatusAndConstantFixture = {
 				version: appInstance._node._options.version,
-				protocolVersion: appInstance._node._options.protocolVersion,
+				networkVersion: appInstance._node._options.networkVersion,
 				networkID: appInstance._node._options.networkId,
 				lastBlockID: appInstance._node._chain.lastBlock.header.id.toString('base64'),
 				height: appInstance._node._chain.lastBlock.header.height,

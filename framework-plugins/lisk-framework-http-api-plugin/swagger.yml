@@ -782,7 +782,7 @@ definitions:
       - port
       - networkID
       - state
-      - protocolVersion
+      - networkVersion
       - nonce
       - options
     properties:
@@ -796,7 +796,7 @@ definitions:
         minimum: 1
         maximum: 65535
         description: The port the peer node uses for P2P communication.
-      protocolVersion:
+      networkVersion:
         type: string
         example: 1.1
         description: The protocol version of Lisk Core that the peer node runs on.
@@ -820,7 +820,7 @@ definitions:
     type: object
     required:
       - version
-      - protocolVersion
+      - networkVersion
       - networkID
       - lastBlockID
       - height
@@ -834,7 +834,7 @@ definitions:
         format: version
         example: v0.8.0
         description: The application version that the node is running on.
-      protocolVersion:
+      networkVersion:
         type: string
         example: 1.1
         description: The protocol version of Lisk Core that the peer node runs on.
