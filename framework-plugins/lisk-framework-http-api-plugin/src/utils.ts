@@ -12,11 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as transactions from './transactions';
-import * as accounts from './accounts';
-import * as node from './node';
-import * as blocks from './blocks';
-import * as peers from './peers';
+export const paginateList = <T>(
+	list: ReadonlyArray<T>,
+	limit = 100,
+	offset = 0,
+): ReadonlyArray<T> => {
+	if (offset === 0) {
+		return list.slice(0, Math.min(limit, list.length));
+	}
 
-export * from './hello';
-export { accounts, blocks, node, transactions, peers };
+	return list.slice(offset, Math.min(limit + offset, list.length));
+};

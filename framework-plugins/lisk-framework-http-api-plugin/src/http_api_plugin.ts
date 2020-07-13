@@ -123,5 +123,6 @@ export class HTTPAPIPlugin extends BasePlugin {
 			'/api/node/transactions',
 			controllers.node.getTransactions(this._channel, this.codec),
 		);
+		this._app.get('/api/peers', controllers.peers.getPeers(this._channel));
 	}
 }
