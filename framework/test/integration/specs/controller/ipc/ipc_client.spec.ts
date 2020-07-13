@@ -12,18 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { mkdirSync, rmdirSync } from 'fs';
 import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { IPCServer } from '../../../../../src/controller/ipc/ipc_server';
 import { IPCClient } from '../../../../../src/controller/ipc/ipc_client';
 
-const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
-/* eslint-disable jest/no-disabled-tests */
-describe.skip('IPCClient', () => {
+const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_client/sockets`);
+
+describe('IPCClient', () => {
 	let server: IPCServer;
 	let client: IPCClient;
 
 	beforeEach(async () => {
+		mkdirSync(socketsDir, { recursive: true });
+
 		server = new IPCServer({
 			socketsDir,
 			name: 'bus',
@@ -45,6 +48,7 @@ describe.skip('IPCClient', () => {
 	afterEach(() => {
 		client.stop();
 		server.stop();
+		rmdirSync(socketsDir);
 	});
 
 	describe('start', () => {
