@@ -13,9 +13,9 @@
  */
 
 // eslint-disable-next-line
-/// <reference path="../../external_types/pm2-axon/index.d.ts" />
+/// <reference path="../../../external_types/pm2-axon/index.d.ts" />
 // eslint-disable-next-line
-/// <reference path="../../external_types/pm2-axon-rpc/index.d.ts" />
+/// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
 
 import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket } from 'pm2-axon';
