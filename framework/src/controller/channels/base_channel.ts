@@ -44,13 +44,11 @@ export abstract class BaseChannel {
 			const actionData = actions[actionName];
 
 			const handler = typeof actionData === 'object' ? actionData.handler : actionData;
-			const isPublic = typeof actionData === 'object' ? actionData.isPublic ?? true : true;
 
 			this.actions[actionName] = new Action(
 				`${this.moduleAlias}:${actionName}`,
 				undefined,
 				undefined,
-				isPublic,
 				handler,
 			);
 		}
@@ -89,11 +87,6 @@ export abstract class BaseChannel {
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
 	abstract async invoke<T>(actionName: string, params?: object): Promise<T>;
-
-	// Call action of any moduleAlias through controller
-	// Specified as moduleName:actionName
-	// Specified action must be defined as publicly callable
-	abstract async invokePublic<T>(actionName: string, params?: object): Promise<T>;
 
 	abstract async registerToBus(arg: unknown): Promise<void>;
 	abstract once(eventName: string, cb: EventCallback): void;

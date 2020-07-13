@@ -141,7 +141,6 @@ export interface ApplicationConfig {
 }
 
 export interface ActionInfoForBus {
-	readonly isPublic: boolean;
 	readonly module: string;
 	readonly name: string;
 }

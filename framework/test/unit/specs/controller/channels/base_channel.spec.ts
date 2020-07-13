@@ -36,10 +36,6 @@ class MyChannel extends BaseChannel {
 	public async invoke<T>(_actionName: string, _params?: object): Promise<T> {
 		return {} as T;
 	}
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/require-await
-	public async invokePublic<T>(_actionName: string, _params?: object): Promise<T> {
-		return {} as T;
-	}
 }
 
 describe('Base Channel', () => {
