@@ -44,7 +44,7 @@ import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
 import { BlockProcessorV0 } from './block_processor_v0';
 import { Logger } from '../logger';
-import { CodecSchema, EventPostTransactionData } from '../../types';
+import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { accountAssetSchema, defaultAccountAsset, AccountAsset } from './account';

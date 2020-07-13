@@ -62,6 +62,8 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 	await app['_forgerDB'].clear();
 	await app['_blockchainDB'].clear();
+	const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+	await forgerPluginInstance['_forgerPluginDB'].clear();
 	await app.shutdown();
 };
 

@@ -39,7 +39,7 @@ export const createApplication = async (
 
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
 
-	// Remoe pre-existing data
+	// Remove pre-existing data
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
 
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
