@@ -20,12 +20,15 @@ import * as configJSON from '../fixtures/config.json';
 import { ForgerPlugin } from '../../src';
 import { HTTPAPIPlugin } from '../../../lisk-framework-http-api-plugin/dist-node/http_api_plugin';
 
+const httpApiPort = 5000;
+const forgerApiPort = 5001;
+
 export const createApplication = async (
 	label: string,
 	consoleLogLevel?: string,
 ): Promise<Application> => {
 	const rootPath = '~/.lisk/forger-plugin';
-	const config = {
+	const config = ({
 		...configJSON,
 		rootPath,
 		label,
@@ -36,7 +39,15 @@ export const createApplication = async (
 		network: {
 			maxInboundConnections: 0,
 		},
-	} as Partial<ApplicationConfig>;
+		plugins: {
+			httpApi: {
+				port: httpApiPort,
+			},
+			forger: {
+				port: forgerApiPort,
+			},
+		},
+	} as unknown) as Partial<ApplicationConfig>;
 
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
 	app.registerPlugin(HTTPAPIPlugin);
@@ -67,7 +78,7 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	await app.shutdown();
 };
 
-export const getURL = (url: string, port = 4000): string => `http://localhost:${port}${url}`;
+export const getURL = (url: string, port = httpApiPort): string => `http://localhost:${port}${url}`;
 
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
