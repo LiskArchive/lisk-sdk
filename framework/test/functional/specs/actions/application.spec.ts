@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { blockSchema, baseAccountSchema } from '@liskhq/lisk-chain';
+import { blockSchema, blockHeaderSchema, baseAccountSchema } from '@liskhq/lisk-chain';
 
 import {
 	TransferTransaction,
@@ -59,7 +59,8 @@ describe('Application related actions', () => {
 
 			const expectedFrameworkSchemas = {
 				account: accountSchema,
-				blockHeader: blockSchema,
+				blockSchema,
+				blockHeaderSchema,
 				blockHeadersAssets: {
 					0: BlockProcessorV0.schema,
 					2: BlockProcessorV2.schema,

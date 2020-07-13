@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, events as chainEvents, Block, blockSchema, Account } from '@liskhq/lisk-chain';
+import {
+	Chain,
+	events as chainEvents,
+	Block,
+	blockSchema,
+	blockHeaderSchema,
+	Account,
+} from '@liskhq/lisk-chain';
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
@@ -310,15 +317,8 @@ export class Node {
 				);
 			},
 			getBlockByID: async (params: { id: string }): Promise<string | undefined> => {
-				try {
-					const block = await this._chain.dataAccess.getBlockByID(Buffer.from(params.id, 'base64'));
-					return this._chain.dataAccess.encode(block).toString('base64');
-				} catch (error) {
-					if (error instanceof NotFoundError) {
-						return undefined;
-					}
-					throw error;
-				}
+				const block = await this._chain.dataAccess.getBlockByID(Buffer.from(params.id, 'base64'));
+				return this._chain.dataAccess.encode(block).toString('base64');
 			},
 			getBlocksByIDs: async (params: { ids: readonly string[] }): Promise<readonly string[]> => {
 				const blocks = [];
@@ -335,15 +335,8 @@ export class Node {
 				return blocks.map(block => this._chain.dataAccess.encode(block).toString('base64'));
 			},
 			getBlockByHeight: async (params: { height: number }): Promise<string | undefined> => {
-				try {
-					const block = await this._chain.dataAccess.getBlockByHeight(params.height);
-					return this._chain.dataAccess.encode(block).toString('base64');
-				} catch (error) {
-					if (error instanceof NotFoundError) {
-						return undefined;
-					}
-					throw error;
-				}
+				const block = await this._chain.dataAccess.getBlockByHeight(params.height);
+				return this._chain.dataAccess.encode(block).toString('base64');
 			},
 			getBlocksByHeightBetween: async (params: {
 				from: number;
@@ -411,7 +404,8 @@ export class Node {
 				this._transport.handleRPCGetGetHighestCommonBlock(params.data, params.peerId),
 			getSchema: () => ({
 				account: this._chain.accountSchema,
-				blockHeader: blockSchema,
+				blockSchema,
+				blockHeaderSchema,
 				blockHeadersAssets: {
 					0: BlockProcessorV0.schema,
 					2: BlockProcessorV2.schema,

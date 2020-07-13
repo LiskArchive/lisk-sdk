@@ -12,11 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as transactions from './transactions';
-import * as accounts from './accounts';
-import * as node from './node';
-import * as blocks from './blocks';
-import * as peers from './peers';
+export const generatePeers = (numOfPeers = 200) => {
+	const peers = [];
+	for (let i = 0; i < numOfPeers; i += 1) {
+		peers.push({
+			ipAddress: `1.1.1.${i}`,
+			port: 1000 + i,
+			networkId: 'networkId',
+			networVersion: '1.1',
+			nonce: `nonce${i}`,
+		});
+	}
 
-export * from './hello';
-export { accounts, blocks, node, transactions, peers };
+	return peers;
+};
