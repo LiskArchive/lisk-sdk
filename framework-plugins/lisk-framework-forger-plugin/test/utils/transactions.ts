@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TransferTransaction, utils } from '@liskhq/lisk-transactions';
+import { TransferTransaction, VoteTransaction, utils } from '@liskhq/lisk-transactions';
 import * as genesisDelegates from '../fixtures/genesis_delegates.json';
 import { networkIdentifier } from '../fixtures/devnet';
 
@@ -52,6 +52,53 @@ export const createTransferTransaction = ({
 			...transaction.asset,
 			amount: transaction.asset.amount.toString(),
 			recipientAddress: transaction.asset.recipientAddress.toString('base64'),
+		},
+		nonce: transaction.nonce.toString(),
+		fee: transaction.fee.toString(),
+	};
+};
+
+export const createVoteTransaction = ({
+	amount,
+	fee,
+	recipientAddress,
+	nonce,
+}: {
+	amount: string;
+	fee: string;
+	recipientAddress: string;
+	nonce: number;
+}) => {
+	const genesisAccount = genesisDelegates.accounts[0];
+	const transaction = new VoteTransaction({
+		nonce: BigInt(nonce),
+		fee: BigInt(convertLSKToBeddows(fee)),
+		senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
+		asset: {
+			votes: [
+				{
+					delegateAddress: Buffer.from(recipientAddress, 'base64'),
+					amount: BigInt(convertLSKToBeddows(amount)),
+				},
+			],
+		},
+	});
+
+	transaction.sign(networkIdentifier, genesisAccount.passphrase);
+
+	return {
+		id: transaction.id.toString('base64'),
+		type: transaction.type,
+		senderPublicKey: transaction.senderPublicKey.toString('base64'),
+		signatures: transaction.signatures.map(s => (s as Buffer).toString('base64')),
+		asset: {
+			...transaction.asset,
+			votes: [
+				...transaction.asset.votes.map(v => ({
+					delegateAddress: v.delegateAddress.toString('base64'),
+					amount: v.amount.toString(),
+				})),
+			],
 		},
 		nonce: transaction.nonce.toString(),
 		fee: transaction.fee.toString(),

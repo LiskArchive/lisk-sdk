@@ -227,12 +227,7 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _incrementForgerInfo(block: string): Promise<void> {
-		const {
-			forgerAddress,
-			forgerAddressBuffer,
-			reward,
-			payload,
-		} = this._getGeneratorAndPayloadInfo(block);
+		const { forgerAddress, reward, payload } = this._getGeneratorAndPayloadInfo(block);
 		const forgerInfo = await this._getForgerInfo(forgerAddress);
 		let isUpdated = false;
 
@@ -246,20 +241,18 @@ export class ForgerPlugin extends BasePlugin {
 		for (const trx of payload) {
 			if (trx.type === VoteTransaction.TYPE) {
 				for (const vote of (trx.asset as Asset).votes) {
-					if (vote.delegateAddress === forgerAddress) {
-						const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
-							aVote.address.equals(forgerAddressBuffer),
-						);
-						if (delegateVoteIndex < 0) {
-							forgerInfo.votesReceived.push({
-								address: Buffer.from(vote.delegateAddress, 'base64'),
-								amount: BigInt(vote.amount),
-							});
-						} else {
-							forgerInfo.votesReceived[delegateVoteIndex].amount += BigInt(vote.amount);
-						}
-						isUpdated = true;
+					const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
+						aVote.address.equals(Buffer.from(vote.delegateAddress, 'base64')),
+					);
+					if (delegateVoteIndex < 0) {
+						forgerInfo.votesReceived.push({
+							address: Buffer.from(vote.delegateAddress, 'base64'),
+							amount: BigInt(vote.amount),
+						});
+					} else {
+						forgerInfo.votesReceived[delegateVoteIndex].amount += BigInt(vote.amount);
 					}
+					isUpdated = true;
 				}
 			}
 		}
@@ -270,12 +263,7 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _decrementForgerInfo(block: string): Promise<void> {
-		const {
-			forgerAddress,
-			forgerAddressBuffer,
-			reward,
-			payload,
-		} = this._getGeneratorAndPayloadInfo(block);
+		const { forgerAddress, reward, payload } = this._getGeneratorAndPayloadInfo(block);
 		const forgerInfo = await this._getForgerInfo(forgerAddress);
 		let isUpdated = false;
 
@@ -289,14 +277,12 @@ export class ForgerPlugin extends BasePlugin {
 		for (const trx of payload) {
 			if (trx.type === VoteTransaction.TYPE) {
 				for (const vote of (trx.asset as Asset).votes) {
-					if (vote.delegateAddress === forgerAddress) {
-						const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
-							aVote.address.equals(forgerAddressBuffer),
-						);
-						if (delegateVoteIndex >= 0) {
-							forgerInfo.votesReceived[delegateVoteIndex].amount -= BigInt(vote.amount);
-							isUpdated = true;
-						}
+					const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
+						aVote.address.equals(Buffer.from(vote.delegateAddress, 'base64')),
+					);
+					if (delegateVoteIndex >= 0) {
+						forgerInfo.votesReceived[delegateVoteIndex].amount -= BigInt(vote.amount);
+						isUpdated = true;
 					}
 				}
 			}
