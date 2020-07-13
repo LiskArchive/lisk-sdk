@@ -324,11 +324,11 @@ export class Network {
 				const error = new Error(`Requested procedure "${request.procedure}" is not permitted.`);
 				this._logger.error(
 					{ err: error, procedure: request.procedure },
-					'Peer request not fulfilled event: Could not respond to peer request',
+					'Peer request not fulfilled event: Requested procedure is not permitted.',
 				);
 
-				// Apply penalty for requested non-permitted action
-				this._p2p.applyPenalty({ peerId: request.peerId, penalty: 10 });
+				// Ban peer on if non-permitted procedure is requested
+				this._p2p.applyPenalty({ peerId: request.peerId, penalty: 100 });
 
 				// Send an error back to the peer.
 				request.error(error);
