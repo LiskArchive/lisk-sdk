@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-http-api-plugin",
-	"version": "0.1.0-alpha.0",
+	"version": "0.1.0-alpha.1",
 	"description": "A plugin for lisk-framework that provides basic HTTP API endpoints to get running node information.",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -43,7 +43,7 @@
 		"express": "4.17.1",
 		"express-rate-limit": "5.1.3",
 		"ip": "1.1.5",
-		"lisk-framework": "0.7.0-alpha.0"
+		"lisk-framework": "0.7.0-alpha.1"
 	},
 	"devDependencies": {
 		"@liskhq/lisk-cryptography": "3.0.0-alpha.0",
