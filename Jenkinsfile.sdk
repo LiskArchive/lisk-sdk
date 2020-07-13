@@ -256,6 +256,16 @@ pipeline {
 						}
 					}
 				}
+
+				stage('Lisk Framework Plugins Integration') {
+					agent { node { label 'lisk-framework' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							sh 'npx lerna run test:integration --scope=@liskhq/lisk-framework-*'
+						}
+					}
+				}
 			}
 		}
 	}
