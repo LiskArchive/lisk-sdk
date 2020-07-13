@@ -64,6 +64,25 @@ describe('Peers endpoint', () => {
 			expect(status).toBe(200);
 		});
 
+		it('should throw 500 error when channel.invoke fails', async () => {
+			// Arrange
+			app['_channel'].invoke = jest.fn();
+			// Mock channel invoke only when app:getConnectedPeers is called
+			when(app['_channel'].invoke)
+				.calledWith('app:getConnectedPeers')
+				.mockRejectedValue(new Error('test') as never);
+			const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
+			// Assert
+			expect(status).toBe(500);
+			expect(response).toEqual({
+				errors: [
+					{
+						message: 'test',
+					},
+				],
+			});
+		});
+
 		it('should respond with 400 and error message when passed incorrect state value', async () => {
 			const { response, status } = await callNetwork(axios.get(getURL('/api/peers?state=xxx')));
 			// Assert

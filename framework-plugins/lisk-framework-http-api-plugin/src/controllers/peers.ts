@@ -83,6 +83,6 @@ export const getPeers = (channel: BaseChannel) => async (
 
 		res.status(200).send(peers);
 	} catch (err) {
-		next();
+		next(err);
 	}
 };
