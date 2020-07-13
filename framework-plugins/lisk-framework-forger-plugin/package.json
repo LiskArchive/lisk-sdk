@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-forger-plugin",
-	"version": "0.1.0-alpha.1",
+	"version": "0.1.0-alpha.2",
 	"description": "A plugin for lisk-framework that provides forging HTTP API endpoints to manage forging and enables monitoring capabilities.",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -46,7 +46,7 @@
 		"express-rate-limit": "5.1.3",
 		"fs-extra": "9.0.0",
 		"ip": "1.1.5",
-		"lisk-framework": "0.7.0-alpha.1"
+		"lisk-framework": "0.7.0-alpha.2"
 	},
 	"devDependencies": {
 		"@types/cors": "2.8.6",
