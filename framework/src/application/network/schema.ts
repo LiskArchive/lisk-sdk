@@ -28,8 +28,8 @@ export const customNodeInfoSchema = {
 			dataType: 'uint32',
 			fieldNumber: 3,
 		},
-		lastBlockId: {
-			dataType: 'uint32',
+		lastBlockID: {
+			dataType: 'bytes',
 			fieldNumber: 4,
 		},
 	},

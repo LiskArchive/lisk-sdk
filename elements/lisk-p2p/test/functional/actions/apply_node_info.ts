@@ -69,7 +69,6 @@ describe('P2P.applyNodeInfo', () => {
 		firstP2PNode.applyNodeInfo({
 			networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			networkVersion: '1.1',
-			nonce: 'nonce',
 			advertiseAddress: true,
 			options: {
 				height: 10,
@@ -90,7 +89,6 @@ describe('P2P.applyNodeInfo', () => {
 			firstP2PNode.applyNodeInfo({
 				networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				networkVersion: '1.1',
-				nonce: 'nonce',
 				advertiseAddress: true,
 				options: {
 					junk: '1.'.repeat(130000),

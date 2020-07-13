@@ -33,7 +33,7 @@ const dummyBuildVersion = '#buildVersion';
 
 const appConfig = {
 	version: '3.0.0',
-	protocolVersion: '2.0',
+	networkVersion: '2.0',
 	label: 'lisk-devnet',
 	lastCommitId: dummyLastCommitId,
 	buildVersion: dummyBuildVersion,

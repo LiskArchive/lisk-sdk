@@ -21,7 +21,7 @@ export const peersList = {
 	connectedPeers: [
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				blockVersion: 2,
 				maxHeightPrevoted: 1,
 				height: 66,
@@ -32,7 +32,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				maxHeightPrevoted: 1,
 				blockVersion: 2,
 				height: 67,
@@ -43,7 +43,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 68,
@@ -54,7 +54,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,
@@ -65,7 +65,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,
@@ -76,7 +76,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,
@@ -87,7 +87,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343246',
+				lastBlockID: Buffer.from('12343246'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,
@@ -98,7 +98,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343246',
+				lastBlockID: Buffer.from('12343246'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,
@@ -109,7 +109,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343246',
+				lastBlockID: Buffer.from('12343246'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,
@@ -120,7 +120,7 @@ export const peersList = {
 		}, // Next three are incompatible peers (No height or blockVersion or maxHeightPrevoted properties are present
 		{
 			options: {
-				lastBlockId: '12343246',
+				lastBlockID: Buffer.from('12343246'),
 				maxHeightPrevoted: 2,
 				height: 69,
 			},
@@ -130,7 +130,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343246',
+				lastBlockID: Buffer.from('12343246'),
 				blockVersion: 2,
 				height: 69,
 			},
@@ -140,7 +140,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343246',
+				lastBlockID: Buffer.from('12343246'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 			},
@@ -152,7 +152,7 @@ export const peersList = {
 	expectedSelection: [
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,
@@ -163,7 +163,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,
@@ -174,7 +174,7 @@ export const peersList = {
 		},
 		{
 			options: {
-				lastBlockId: '12343245',
+				lastBlockID: Buffer.from('12343245'),
 				blockVersion: 2,
 				maxHeightPrevoted: 2,
 				height: 69,

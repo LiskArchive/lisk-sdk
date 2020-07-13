@@ -17,7 +17,7 @@ const p2p = new P2P({
 	nodeInfo: {
 		port: 5001,
 		networkId: '123xyz',
-		protocolVersion: '1.1',
+		networkVersion: '1.1',
 	},
 });
 

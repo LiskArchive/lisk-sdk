@@ -43,7 +43,7 @@ export const camelCase = (data: string): boolean => camelCaseRegex.exec(data) !=
 
 export const version = isSemVer;
 
-export const protocolVersion = (data: string): boolean =>
+export const networkVersion = (data: string): boolean =>
 	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
 
 export const path = (data: string): boolean => /^(.?)(\/[^/]+)+(\/?)$/.test(data);

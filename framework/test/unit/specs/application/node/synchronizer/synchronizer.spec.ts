@@ -552,7 +552,7 @@ describe('Synchronizer', () => {
 				3,
 				{
 					lastBlockHeight: chainModule.lastBlock.header.height,
-					lastBlockId: chainModule.lastBlock.header.id,
+					lastBlockID: chainModule.lastBlock.header.id,
 					mechanism: syncMechanism1.constructor.name,
 				},
 				'Synchronization finished',

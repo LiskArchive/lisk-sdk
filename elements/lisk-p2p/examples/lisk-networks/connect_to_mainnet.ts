@@ -35,7 +35,7 @@ const nodeInfo: P2PNodeInfo = {
 	networkId: 'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
 	version: '2.0.0',
 	httpPort: 5000,
-	protocolVersion: '1.1',
+	networkVersion: '1.1',
 	advertiseAddress: false,
 };
 

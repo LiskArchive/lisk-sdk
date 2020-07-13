@@ -52,9 +52,7 @@ export interface RPCHighestCommonBlockData {
 }
 /* End P2P */
 
-export interface PluginOptions {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly [key: string]: any;
+export interface PluginOptions extends Record<string, unknown> {
 	readonly loadAsChildProcess?: boolean;
 }
 
@@ -115,7 +113,7 @@ export interface ApplicationConstants {
 export interface ApplicationConfig {
 	label: string;
 	version: string;
-	protocolVersion: string;
+	networkVersion: string;
 	networkId: string;
 	lastCommitId: string;
 	buildVersion: string;
