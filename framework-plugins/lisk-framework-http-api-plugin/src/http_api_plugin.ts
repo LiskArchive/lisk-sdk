@@ -119,5 +119,9 @@ export class HTTPAPIPlugin extends BasePlugin {
 		this._app.get('/api/node/info', controllers.node.getNodeInfo(this._channel));
 		this._app.get('/api/blocks/:id', controllers.blocks.getBlockById(this._channel, this.codec));
 		this._app.get('/api/blocks', controllers.blocks.getBlockByHeight(this._channel, this.codec));
+		this._app.get(
+			'/api/node/transactions',
+			controllers.node.getTransactions(this._channel, this.codec),
+		);
 	}
 }
