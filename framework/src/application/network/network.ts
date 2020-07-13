@@ -129,15 +129,7 @@ export class Network {
 			this._secret = Number(secret);
 		}
 		const extractNodeInfoParams = (state: State): liskP2P.p2pTypes.P2PNodeInfo => {
-			const {
-				networkId,
-				protocolVersion,
-				advertiseAddress,
-				os,
-				version,
-				wsPort,
-				...options
-			} = state;
+			const { networkId, protocolVersion, advertiseAddress, os, version, port, ...options } = state;
 
 			const nodeInfo = {
 				networkId,
@@ -165,7 +157,7 @@ export class Network {
 		const fixedPeers = this._options.fixedPeers
 			? this._options.fixedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					port: peer.wsPort,
+					port: peer.port,
 			  }))
 			: [];
 
@@ -173,12 +165,12 @@ export class Network {
 		const whitelistedPeers = this._options.whitelistedPeers
 			? this._options.whitelistedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					port: peer.wsPort,
+					port: peer.port,
 			  }))
 			: [];
 
 		const p2pConfig: liskP2P.p2pTypes.P2PConfig = {
-			port: this._options.wsPort,
+			port: this._options.port,
 			nodeInfo: initialNodeInfo,
 			hostIp: this._options.hostIp,
 			blacklistedIPs,
@@ -186,7 +178,7 @@ export class Network {
 			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
-				port: peer.wsPort,
+				port: peer.port,
 			})),
 			previousPeers,
 			maxOutboundConnections: this._options.maxOutboundConnections,

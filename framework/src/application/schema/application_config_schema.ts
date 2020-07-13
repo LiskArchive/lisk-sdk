@@ -193,7 +193,7 @@ export const applicationConfigSchema = {
 		network: {
 			type: 'object',
 			properties: {
-				wsPort: {
+				port: {
 					type: 'integer',
 					minimum: 1,
 					maximum: 65535,
@@ -211,7 +211,7 @@ export const applicationConfigSchema = {
 								type: 'string',
 								format: 'ipOrFQDN',
 							},
-							wsPort: {
+							port: {
 								type: 'integer',
 								minimum: 1,
 								maximum: 65535,
@@ -236,7 +236,7 @@ export const applicationConfigSchema = {
 								type: 'string',
 								format: 'ip',
 							},
-							wsPort: {
+							port: {
 								type: 'integer',
 								minimum: 1,
 								maximum: 65535,
@@ -256,7 +256,7 @@ export const applicationConfigSchema = {
 								type: 'string',
 								format: 'ip',
 							},
-							wsPort: {
+							port: {
 								type: 'integer',
 								minimum: 1,
 								maximum: 65535,
@@ -343,7 +343,7 @@ export const applicationConfigSchema = {
 		},
 		network: {
 			seedPeers: [],
-			wsPort: 5000,
+			port: 5000,
 		},
 		plugins: {},
 	},

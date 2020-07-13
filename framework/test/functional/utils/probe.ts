@@ -32,7 +32,7 @@ export const createProbe = async (config: ApplicationConfig): Promise<P2P> => {
 		seedPeers: [
 			{
 				ipAddress: '127.0.0.1',
-				port: config.network.wsPort,
+				port: config.network.port,
 			},
 		],
 		populatorInterval: 50,

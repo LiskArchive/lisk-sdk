@@ -353,7 +353,7 @@ export class Application {
 				version: this.config.version,
 				protocolVersion: this.config.protocolVersion,
 				networkId: this.config.networkId,
-				wsPort: this.config.network.wsPort,
+				port: this.config.network.port,
 			},
 			logger: this.logger,
 		});

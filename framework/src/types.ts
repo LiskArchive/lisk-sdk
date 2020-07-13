@@ -20,7 +20,7 @@ export interface StringKeyVal {
 /* Start P2P */
 export interface SeedPeerInfo {
 	readonly ip: string;
-	readonly wsPort: number;
+	readonly port: number;
 }
 
 export interface P2PRequestPeerPacket extends p2pTypes.P2PRequestPacket {
@@ -73,12 +73,12 @@ export interface DelegateConfig {
 }
 
 export interface NetworkConfig {
-	wsPort: number;
-	seedPeers: { ip: string; wsPort: number }[];
+	port: number;
+	seedPeers: { ip: string; port: number }[];
 	hostIp?: string;
 	blacklistedIPs?: string[];
-	fixedPeers?: { ip: string; wsPort: number }[];
-	whitelistedPeers?: { ip: string; wsPort: number }[];
+	fixedPeers?: { ip: string; port: number }[];
+	whitelistedPeers?: { ip: string; port: number }[];
 	peerBanTime?: number;
 	connectTimeout?: number;
 	ackTimeout?: number;
