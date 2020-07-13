@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-dpos",
-	"version": "0.1.0-alpha.0",
+	"version": "0.2.0-alpha.0",
 	"description": "DPoS consensus algorithm implementation according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,15 +36,15 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "0.1.0",
-		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
+		"@liskhq/lisk-codec": "0.1.0-alpha.0",
+		"@liskhq/lisk-cryptography": "3.0.0-alpha.0",
 		"@types/node": "12.12.11",
 		"debug": "4.1.1"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-chain": "0.1.0-alpha.0",
+		"@liskhq/lisk-chain": "0.2.0-alpha.0",
 		"@liskhq/lisk-passphrase": "3.0.1-alpha.0",
-		"@liskhq/lisk-utils": "0.1.0",
+		"@liskhq/lisk-utils": "0.1.0-alpha.0",
 		"@types/debug": "4.1.5",
 		"@types/jest": "26.0.3",
 		"@types/jest-when": "2.7.1",
