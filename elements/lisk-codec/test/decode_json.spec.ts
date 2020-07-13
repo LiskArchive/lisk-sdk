@@ -410,7 +410,7 @@ describe('decodeJSON', () => {
 				height: 0,
 				networkId: '',
 				nonce: '',
-				protocolVersion: '',
+				networkVersion: '',
 			});
 		});
 	});
