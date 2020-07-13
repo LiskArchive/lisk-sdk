@@ -379,7 +379,7 @@ describe('decode', () => {
 				height: 0,
 				networkId: '',
 				nonce: '',
-				protocolVersion: '',
+				networkVersion: '',
 			});
 		});
 	});

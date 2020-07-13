@@ -26,7 +26,7 @@ const generateValidPeerInfoEncodings = () => {
 				ipAddress: '1.1.1.1',
 				wsPort: 1111,
 				networkId: '+P5+zD4p9Y852KU4+aNbgLS2q5Z08DAOJeM/9BJ0rjI=',
-				protocolVersion: '2.0',
+				networkVersion: '2.0',
 				nonce: 'iNIgD0Mb3s/RMaXbs',
 				os: 'darwin',
 				height: 123,
@@ -47,7 +47,7 @@ const generateValidPeerInfoEncodings = () => {
 						dataType: 'string',
 						fieldNumber: 3,
 					},
-					protocolVersion: {
+					networkVersion: {
 						dataType: 'string',
 						fieldNumber: 4,
 					},
@@ -89,7 +89,7 @@ const generateValidPeerInfoEncodings = () => {
 						dataType: 'string',
 						fieldNumber: 3,
 					},
-					protocolVersion: {
+					networkVersion: {
 						dataType: 'string',
 						fieldNumber: 4,
 					},

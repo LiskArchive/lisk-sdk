@@ -13,11 +13,11 @@
  */
 
 export class CommonBlockError extends Error {
-	public lastBlockId: string;
+	public lastBlockID: string;
 
-	public constructor(message: string, lastBlockId: string) {
+	public constructor(message: string, lastBlockID: Buffer) {
 		super(message);
-		this.lastBlockId = lastBlockId;
+		this.lastBlockID = lastBlockID.toString('base64');
 	}
 }
 

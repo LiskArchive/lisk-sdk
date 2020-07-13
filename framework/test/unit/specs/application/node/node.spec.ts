@@ -80,8 +80,8 @@ describe('Node', () => {
 			once: jest.fn(),
 		};
 
-		stubs.applicationState = {
-			update: jest.fn(),
+		stubs.networkModule = {
+			applyNodeInfo: jest.fn(),
 		};
 
 		when(stubs.channel.invoke)
@@ -93,9 +93,9 @@ describe('Node', () => {
 			channel: stubs.channel,
 			blockchainDB,
 			forgerDB,
+			networkModule: stubs.networkModule,
 			logger: stubs.logger,
 			options: nodeOptions,
-			applicationState: stubs.applicationState,
 		};
 
 		node = new Node(params as any);
@@ -219,7 +219,6 @@ describe('Node', () => {
 			expect(node).toHaveProperty('_options');
 			expect(node).toHaveProperty('_sequence');
 			expect(node).toHaveProperty('_channel');
-			expect(node).toHaveProperty('_applicationState');
 			expect(node).toHaveProperty('_networkIdentifier');
 		});
 
@@ -241,21 +240,14 @@ describe('Node', () => {
 			expect(node['_processor'].init).toHaveBeenCalledTimes(1);
 		});
 
-		it('should invoke "app:updateApplicationState" with correct params', () => {
+		it('should call "applyNodeInfo" with correct params', () => {
 			// Assert
-			return expect(node['_applicationState'].update).toHaveBeenCalledWith({
+			return expect(node['_networkModule'].applyNodeInfo).toHaveBeenCalledWith({
 				height: lastBlock.header.height,
 				blockVersion: lastBlock.header.version,
 				maxHeightPrevoted: 0,
-				lastBlockId: lastBlock.header.id.toString('base64'),
+				lastBlockID: lastBlock.header.id,
 			});
-		});
-
-		it('should subscribe to "app:state:updated" event', () => {
-			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
-				'app:state:updated',
-				expect.any(Function),
-			);
 		});
 
 		it('should subscribe to "network:subscribe" event', () => {

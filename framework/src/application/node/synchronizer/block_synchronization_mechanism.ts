@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { groupBy } from 'lodash';
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
-import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
+import { Block, Chain, BlockHeader, BufferMap } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { BaseSynchronizer, EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './base_synchronizer';
 import {
@@ -39,7 +38,7 @@ interface Peer {
 	readonly peerId: string;
 	readonly options: {
 		readonly maxHeightPrevoted: number;
-		readonly lastBlockId: number;
+		readonly lastBlockID: Buffer;
 		readonly height: number;
 		readonly blockVersion: number;
 	};
@@ -54,6 +53,19 @@ interface BlockSynchronizationMechanismInput {
 	readonly processorModule: Processor;
 	readonly networkModule: Network;
 }
+
+const groupByPeer = (peers: Peer[]): BufferMap<Peer[]> => {
+	const groupedPeers = new BufferMap<Peer[]>();
+	for (const peer of peers) {
+		let grouped = groupedPeers.get(peer.options.lastBlockID);
+		if (grouped === undefined) {
+			grouped = [];
+		}
+		grouped.push(peer);
+		groupedPeers.set(peer.options.lastBlockID, grouped);
+	}
+	return groupedPeers;
+};
 
 export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	private readonly bft: BFT;
@@ -345,7 +357,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 
 		this._logger.debug(
-			{ lastBlockId: this._chain.lastBlock.header.id },
+			{ lastBlockID: this._chain.lastBlock.header.id },
 			'Successfully deleted blocks',
 		);
 
@@ -498,21 +510,19 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			peer => peer.options.height,
 		);
 		// Group peers by their block Id
-		// Output: {{'lastBlockId':[peers], 'anotherBlockId': [peers]}
-		const peersGroupedByBlockId = groupBy(largestSubsetByHeight, peer => peer.options.lastBlockId);
+		const peersGroupedByBlockId = groupByPeer(largestSubsetByHeight);
 
-		const blockIds = Object.keys(peersGroupedByBlockId);
+		const blockIds = peersGroupedByBlockId.entries();
 		let maxNumberOfPeersInSet = 0;
 		let selectedPeers: Peer[] = [];
-		let selectedBlockId = blockIds[0];
+		let selectedBlockId = blockIds[0][0];
 		// Find the largest subset with same block ID
 		// eslint-disable-next-line no-restricted-syntax
-		for (const blockId of blockIds) {
-			const peersByBlockId = peersGroupedByBlockId[blockId];
+		for (const [blockId, peersByBlockId] of blockIds) {
 			const numberOfPeersInSet = peersByBlockId.length;
 			if (
 				numberOfPeersInSet > maxNumberOfPeersInSet ||
-				(numberOfPeersInSet === maxNumberOfPeersInSet && blockId < selectedBlockId)
+				(numberOfPeersInSet === maxNumberOfPeersInSet && selectedBlockId.compare(blockId) > 0)
 			) {
 				maxNumberOfPeersInSet = numberOfPeersInSet;
 				selectedPeers = peersByBlockId;

@@ -36,7 +36,7 @@ const nodeInfo: P2PNodeInfo = {
 	version: '2.0.0',
 	httpPort: 5000,
 	broadhash: 'a3b09ed438f5b9559fc847a179f822478150bf8950687fa3a26571f05fc50eb7',
-	protocolVersion: '1.1',
+	networkVersion: '1.1',
 	advertiseAddress: false,
 };
 

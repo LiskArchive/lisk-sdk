@@ -47,7 +47,6 @@ import { Logger } from '../logger';
 import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
-import { ApplicationState } from '../application_state';
 import { accountAssetSchema, defaultAccountAsset, AccountAsset } from './account';
 import {
 	EVENT_PROCESSOR_BROADCAST_BLOCK,
@@ -77,7 +76,7 @@ export interface NodeConstants {
 
 export interface Options {
 	readonly version: string;
-	readonly protocolVersion: string;
+	readonly networkVersion: string;
 	readonly networkId: string;
 	readonly label: string;
 	readonly rootPath: string;
@@ -102,7 +101,6 @@ interface NodeConstructor {
 	readonly logger: Logger;
 	readonly forgerDB: KVStore;
 	readonly blockchainDB: KVStore;
-	readonly applicationState: ApplicationState;
 	readonly networkModule: Network;
 }
 
@@ -116,7 +114,6 @@ export class Node {
 	private readonly _logger: Logger;
 	private readonly _forgerDB: KVStore;
 	private readonly _blockchainDB: KVStore;
-	private readonly _applicationState: ApplicationState;
 	private readonly _networkModule: Network;
 	private _sequence!: Sequence;
 	private _networkIdentifier!: Buffer;
@@ -136,13 +133,11 @@ export class Node {
 		logger,
 		blockchainDB,
 		forgerDB,
-		applicationState,
 		networkModule,
 	}: NodeConstructor) {
 		this._channel = channel;
 		this._options = options;
 		this._logger = logger;
-		this._applicationState = applicationState;
 		this._blockchainDB = blockchainDB;
 		this._forgerDB = forgerDB;
 		this._networkModule = networkModule;
@@ -196,27 +191,21 @@ export class Node {
 				}),
 			);
 
-			this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
-				Object.assign(this._applicationState, event.data);
-			});
-
 			this._logger.info('Node ready and launched');
 			// After binding, it should immediately load blockchain
 			await this._processor.init();
 			// Check if blocks are left in temp_blocks table
 			await this._synchronizer.init();
 
-			// Update Application State after processor is initialized
-			this._applicationState.update({
+			this._networkModule.applyNodeInfo({
 				height: this._chain.lastBlock.header.height,
-				lastBlockId: this._chain.lastBlock.header.id.toString('base64'),
+				lastBlockID: this._chain.lastBlock.header.id,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 				maxHeightPrevoted:
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					this._chain.lastBlock.header.asset.maxHeightPrevoted ?? 0,
 				blockVersion: this._chain.lastBlock.header.version,
 			});
-
 			this._subscribeToEvents();
 
 			this._channel.subscribe(
@@ -402,6 +391,7 @@ export class Node {
 				peerId: string;
 			}): Promise<string | undefined> =>
 				this._transport.handleRPCGetGetHighestCommonBlock(params.data, params.peerId),
+			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			getSchema: () => ({
 				account: this._chain.accountSchema,
 				blockSchema,
@@ -413,9 +403,10 @@ export class Node {
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
 				transactionsAssets: this._getRegisteredTransactionSchemas(),
 			}),
+			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			getNodeInfo: () => ({
 				version: this._options.version,
-				protocolVersion: this._options.protocolVersion,
+				networkVersion: this._options.networkVersion,
 				networkID: this._options.networkId,
 				lastBlockID: this._chain.lastBlock.header.id.toString('base64'),
 				height: this._chain.lastBlock.header.height,
@@ -490,9 +481,9 @@ export class Node {
 				}
 
 				if (!this._synchronizer.isActive) {
-					this._applicationState.update({
+					this._networkModule.applyNodeInfo({
 						height: block.header.height,
-						lastBlockId: block.header.id.toString('base64'),
+						lastBlockID: block.header.id,
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 						maxHeightPrevoted: block.header.asset.maxHeightPrevoted,
 						blockVersion: block.header.version,

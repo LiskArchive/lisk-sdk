@@ -23,7 +23,7 @@ import { exec } from '../worker-process';
 interface AppConfig {
 	readonly version: string;
 	readonly minVersion: string;
-	readonly protocolVersion: string;
+	readonly networkVersion: string;
 }
 
 interface StorageConfig {

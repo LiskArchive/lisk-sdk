@@ -1,7 +1,7 @@
 {
 	"label": "devnet-alpha-sdk",
 	"version": "0.0.0",
-	"protocolVersion": "1.1",
+	"networkVersion": "1.1",
 	"ipc": {
 		"enabled": true
 	},

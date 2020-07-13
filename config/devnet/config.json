@@ -3,7 +3,7 @@
 		"enabled": false
 	},
 	"version": "2.1.0",
-	"protocolVersion": "1.1",
+	"networkVersion": "1.1",
 	"label": "devnet",
 	"genesisConfig": {
 		"blockTime": 10,

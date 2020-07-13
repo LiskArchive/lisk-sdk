@@ -2206,8 +2206,8 @@ Object {
       },
     ],
   },
+  "networkVersion": "1.1",
   "plugins": Object {},
-  "protocolVersion": "1.1",
   "rootPath": "~/.lisk",
   "version": "2.1.0",
 }

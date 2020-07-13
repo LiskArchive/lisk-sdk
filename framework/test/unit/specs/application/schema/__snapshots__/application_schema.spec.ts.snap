@@ -38,8 +38,8 @@ Object {
         "port": 5000,
         "seedPeers": Array [],
       },
+      "networkVersion": "1.1",
       "plugins": Object {},
-      "protocolVersion": "1.1",
       "rootPath": "~/.lisk",
       "version": "0.0.0",
     },
@@ -343,12 +343,12 @@ Object {
         ],
         "type": "object",
       },
+      "networkVersion": Object {
+        "format": "networkVersion",
+        "type": "string",
+      },
       "plugins": Object {
         "type": "object",
-      },
-      "protocolVersion": Object {
-        "format": "protocolVersion",
-        "type": "string",
       },
       "rootPath": Object {
         "description": "The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.",
@@ -365,7 +365,7 @@ Object {
     },
     "required": Array [
       "version",
-      "protocolVersion",
+      "networkVersion",
       "ipc",
       "genesisConfig",
       "forging",

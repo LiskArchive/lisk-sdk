@@ -38,7 +38,6 @@ import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from '../controller';
 import { version } from '../version';
 import { constantsSchema, applicationConfigSchema } from './schema';
-import { ApplicationState } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
 import { Logger, createLogger } from './logger';
@@ -107,7 +106,6 @@ export class Application {
 	private _node!: Node;
 	private _network!: Network;
 	private _controller!: Controller;
-	private _applicationState!: ApplicationState;
 	private _transactions: { [key: number]: typeof BaseTransaction };
 	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
 	private _channel!: InMemoryChannel;
@@ -272,9 +270,7 @@ export class Application {
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
 		// Initialize all objects
-		this._applicationState = this._initApplicationState();
 		this._channel = this._initChannel();
-		this._applicationState.channel = this._channel;
 
 		this._controller = this._initController();
 		this._network = this._initNetwork();
@@ -323,7 +319,7 @@ export class Application {
 		// TODO: Check which config and options are actually required to avoid sending large data
 		const appConfigToShareWithPlugin = {
 			version: this.config.version,
-			protocolVersion: this.config.protocolVersion,
+			networkVersion: this.config.networkVersion,
 			networkId: this.config.networkId,
 			// TODO: Analyze if we need to provide genesis block as options to plugins
 			//  If yes then we should encode it to json with the issue https://github.com/LiskHQ/lisk-sdk/issues/5513
@@ -347,18 +343,6 @@ export class Application {
 		});
 	}
 
-	private _initApplicationState(): ApplicationState {
-		return new ApplicationState({
-			initialState: {
-				version: this.config.version,
-				protocolVersion: this.config.protocolVersion,
-				networkId: this.config.networkId,
-				port: this.config.network.port,
-			},
-			logger: this.logger,
-		});
-	}
-
 	private _initChannel(): InMemoryChannel {
 		/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 		/* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -366,7 +350,6 @@ export class Application {
 			'app',
 			[
 				'ready',
-				'state:updated',
 				'network:event',
 				'network:ready',
 				'transaction:new',
@@ -487,11 +470,12 @@ export class Application {
 
 	private _initNetwork(): Network {
 		const network = new Network({
+			networkId: this.config.networkId,
+			networkVersion: this.config.networkVersion,
 			options: this.config.network,
 			logger: this.logger,
 			channel: this._channel,
 			nodeDB: this._nodeDB,
-			applicationState: this._applicationState,
 		});
 
 		return network;
@@ -528,7 +512,6 @@ export class Application {
 			logger: this.logger,
 			forgerDB: this._forgerDB,
 			blockchainDB: this._blockchainDB,
-			applicationState: this._applicationState,
 			networkModule: this._network,
 		});
 

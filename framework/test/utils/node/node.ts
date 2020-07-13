@@ -57,6 +57,7 @@ export const createNode = ({
 		requestFromPeer: jest.fn(),
 		send: jest.fn(),
 		broadcast: jest.fn(),
+		applyNodeInfo: jest.fn(),
 	};
 	const nodeOptions = {
 		...mergedConfig,
@@ -76,9 +77,6 @@ export const createNode = ({
 		logger,
 		blockchainDB,
 		forgerDB,
-		applicationState: {
-			update: jest.fn(),
-		} as any,
 		networkModule: networkMock as any,
 	});
 };
