@@ -54,6 +54,13 @@ interface Vote {
 	amount: string;
 }
 
+interface GeneratorPayloadInfo {
+	forgerAddress: string;
+	forgerAddressBuffer: Buffer;
+	reward: string;
+	payload: readonly TransactionJSON[];
+}
+
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
 // eslint-disable-next-line new-cap
@@ -150,7 +157,10 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private async _getDBInstance(options: Options, dbName = 'forger_plugin.db'): Promise<KVStore> {
+	private async _getDBInstance(
+		options: Options,
+		dbName = 'lisk-framework-forger-plugin.db',
+	): Promise<KVStore> {
 		const resolvedPath = options.dataPath.replace('~', os.homedir());
 		const dirPath = path.join(resolvedPath, dbName);
 		await fs.ensureDir(dirPath);
@@ -162,92 +172,18 @@ export class ForgerPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app:block:new', async (newBlock: EventInfoObject) => {
 			const { block } = newBlock.data as Data;
-			const {
-				header: { generatorPublicKey, reward },
-				payload,
-			} = this.codec.decodeBlock(block);
-			const forgerAddress = getAddressFromPublicKey(
-				Buffer.from(generatorPublicKey, 'base64'),
-			).toString('base64');
-			const forgerAddressBuffer = Buffer.from(forgerAddress, 'base64');
-			const forgerInfo = await this._getForgerInfo(forgerAddress);
-
-			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
-				forgerInfo.totalProducedBlocks += 1;
-				forgerInfo.totalReceivedRewards += BigInt(reward);
-				forgerInfo.totalReceivedFees += await this._getFee(payload, block);
-			}
-
-			for (const trx of payload) {
-				if (trx.type === VoteTransaction.TYPE) {
-					for (const vote of (trx.asset as Asset).votes) {
-						if (vote.delegateAddress === forgerAddress) {
-							const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
-								aVote.address.equals(forgerAddressBuffer),
-							);
-							if (delegateVoteIndex < 0) {
-								forgerInfo.votesReceived.push({
-									address: Buffer.from(vote.delegateAddress, 'base64'),
-									amount: BigInt(vote.amount),
-								});
-							} else {
-								forgerInfo.votesReceived[delegateVoteIndex].amount += BigInt(vote.amount);
-							}
-						}
-					}
-				}
-			}
-
-			if (Object.values(forgerInfo).length) {
-				await this._setForgerInfo(forgerAddress, { ...forgerInfo });
-			}
+			await this._incrementForgerInfo(block);
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app:block:delete', async (deleteBlock: EventInfoObject) => {
 			const { block } = deleteBlock.data as Data;
-			const {
-				header: { generatorPublicKey, reward },
-				payload,
-			} = this.codec.decodeBlock(block);
-			const forgerAddress = getAddressFromPublicKey(
-				Buffer.from(generatorPublicKey, 'base64'),
-			).toString('base64');
-			const forgerAddressBuffer = Buffer.from(forgerAddress, 'base64');
-			const forgerInfo = await this._getForgerInfo(forgerAddress);
-
-			if (this._forgersList.find(forger => forger.address === forgerAddress)) {
-				forgerInfo.totalProducedBlocks -= 1;
-				forgerInfo.totalReceivedRewards -= BigInt(reward);
-				forgerInfo.totalReceivedFees -= await this._getFee(payload, block);
-			}
-
-			for (const trx of payload) {
-				if (trx.type === VoteTransaction.TYPE) {
-					for (const vote of (trx.asset as Asset).votes) {
-						if (vote.delegateAddress === forgerAddress) {
-							const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
-								aVote.address.equals(forgerAddressBuffer),
-							);
-							if (delegateVoteIndex >= 0) {
-								forgerInfo.votesReceived[delegateVoteIndex].amount -= BigInt(vote.amount);
-							}
-						}
-					}
-				}
-			}
-
-			if (Object.values(forgerInfo).length) {
-				await this._setForgerInfo(forgerAddress, { ...forgerInfo });
-			}
+			await this._decrementForgerInfo(block);
 		});
 	}
 
 	private async _setForgersList(): Promise<void> {
-		const forgingDelegates = await this._channel.invoke<Forger[]>(
-			'app:getForgingStatusOfAllDelegates',
-		);
-		this._forgersList = forgingDelegates.filter(forgers => forgers.forging);
+		this._forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatusOfAllDelegates');
 	}
 
 	private async _getForgerInfo(forgerAddress: string): Promise<ForgerInfo> {
@@ -256,7 +192,12 @@ export class ForgerPlugin extends BasePlugin {
 			forgerInfo = await this._forgerPluginDB.get(`${DB_KEY_FORGER_INFO}:${forgerAddress}`);
 		} catch (error) {
 			debug(`Forger info does not exists for delegate: ${forgerAddress}`);
-			return {} as ForgerInfo;
+			return {
+				totalProducedBlocks: 0,
+				totalReceivedFees: BigInt(0),
+				totalReceivedRewards: BigInt(0),
+				votesReceived: [],
+			};
 		}
 
 		return codec.decode<ForgerInfo>(forgerInfoSchema, forgerInfo);
@@ -265,6 +206,105 @@ export class ForgerPlugin extends BasePlugin {
 	private async _setForgerInfo(forgerAddress: string, forgerInfo: ForgerInfo): Promise<void> {
 		const encodedForgerInfo = codec.encode(forgerInfoSchema, forgerInfo);
 		await this._forgerPluginDB.put(`${DB_KEY_FORGER_INFO}:${forgerAddress}`, encodedForgerInfo);
+	}
+
+	private _getGeneratorAndPayloadInfo(block: string): GeneratorPayloadInfo {
+		const {
+			header: { generatorPublicKey, reward },
+			payload,
+		} = this.codec.decodeBlock(block);
+		const forgerAddress = getAddressFromPublicKey(
+			Buffer.from(generatorPublicKey, 'base64'),
+		).toString('base64');
+		const forgerAddressBuffer = Buffer.from(forgerAddress, 'base64');
+
+		return {
+			forgerAddress,
+			forgerAddressBuffer,
+			reward,
+			payload,
+		};
+	}
+
+	private async _incrementForgerInfo(block: string): Promise<void> {
+		const {
+			forgerAddress,
+			forgerAddressBuffer,
+			reward,
+			payload,
+		} = this._getGeneratorAndPayloadInfo(block);
+		const forgerInfo = await this._getForgerInfo(forgerAddress);
+		let isUpdated = false;
+
+		if (this._forgersList.find(forger => forger.address === forgerAddress)) {
+			forgerInfo.totalProducedBlocks += 1;
+			forgerInfo.totalReceivedRewards += BigInt(reward);
+			forgerInfo.totalReceivedFees += await this._getFee(payload, block);
+			isUpdated = true;
+		}
+
+		for (const trx of payload) {
+			if (trx.type === VoteTransaction.TYPE) {
+				for (const vote of (trx.asset as Asset).votes) {
+					if (vote.delegateAddress === forgerAddress) {
+						const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
+							aVote.address.equals(forgerAddressBuffer),
+						);
+						if (delegateVoteIndex < 0) {
+							forgerInfo.votesReceived.push({
+								address: Buffer.from(vote.delegateAddress, 'base64'),
+								amount: BigInt(vote.amount),
+							});
+						} else {
+							forgerInfo.votesReceived[delegateVoteIndex].amount += BigInt(vote.amount);
+						}
+						isUpdated = true;
+					}
+				}
+			}
+		}
+
+		if (isUpdated) {
+			await this._setForgerInfo(forgerAddress, { ...forgerInfo });
+		}
+	}
+
+	private async _decrementForgerInfo(block: string): Promise<void> {
+		const {
+			forgerAddress,
+			forgerAddressBuffer,
+			reward,
+			payload,
+		} = this._getGeneratorAndPayloadInfo(block);
+		const forgerInfo = await this._getForgerInfo(forgerAddress);
+		let isUpdated = false;
+
+		if (this._forgersList.find(forger => forger.address === forgerAddress)) {
+			forgerInfo.totalProducedBlocks -= 1;
+			forgerInfo.totalReceivedRewards -= BigInt(reward);
+			forgerInfo.totalReceivedFees -= await this._getFee(payload, block);
+			isUpdated = true;
+		}
+
+		for (const trx of payload) {
+			if (trx.type === VoteTransaction.TYPE) {
+				for (const vote of (trx.asset as Asset).votes) {
+					if (vote.delegateAddress === forgerAddress) {
+						const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
+							aVote.address.equals(forgerAddressBuffer),
+						);
+						if (delegateVoteIndex >= 0) {
+							forgerInfo.votesReceived[delegateVoteIndex].amount -= BigInt(vote.amount);
+							isUpdated = true;
+						}
+					}
+				}
+			}
+		}
+
+		if (isUpdated) {
+			await this._setForgerInfo(forgerAddress, { ...forgerInfo });
+		}
 	}
 
 	private async _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): Promise<bigint> {
