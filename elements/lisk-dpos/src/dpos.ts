@@ -275,10 +275,11 @@ export class Dpos {
 		return false;
 	}
 
-	public async getAllUsernames(): Promise<DecodedUsernames | undefined> {
+	public async getAllUsernames(): Promise<DecodedUsernames | []> {
 		const usernamesBuffer = await this.chain.dataAccess.getChainState(
 			CHAIN_STATE_DELEGATE_USERNAMES,
 		);
+
 		if (usernamesBuffer) {
 			const parsedUsernames = codec.decode<DecodedUsernames>(
 				delegatesUserNamesSchema,
@@ -287,7 +288,7 @@ export class Dpos {
 			return parsedUsernames;
 		}
 
-		return undefined;
+		return [];
 	}
 
 	/**
