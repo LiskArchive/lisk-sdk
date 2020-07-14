@@ -285,7 +285,7 @@ export class Node {
 				return forgersAddress.map(a => a.toString('base64'));
 			},
 			getAllDelegates: async (): Promise<readonly string[]> => {
-				const delegatesUsernames = await this._dpos.getAllDelegates();
+				const delegatesUsernames = await this._dpos.getAllUsernames();
 				if (delegatesUsernames) {
 					const delegates = await Promise.all(
 						delegatesUsernames.registeredDelegates.map(async delegate =>

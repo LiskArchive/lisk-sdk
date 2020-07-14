@@ -275,7 +275,7 @@ export class Dpos {
 		return false;
 	}
 
-	public async getAllDelegates(): Promise<DecodedUsernames | undefined> {
+	public async getAllUsernames(): Promise<DecodedUsernames | undefined> {
 		const usernamesBuffer = await this.chain.dataAccess.getChainState(
 			CHAIN_STATE_DELEGATE_USERNAMES,
 		);
