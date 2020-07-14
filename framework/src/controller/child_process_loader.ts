@@ -14,10 +14,10 @@
 
 // Parameters passed by `child_process.fork(_, parameters)`
 
-import { IPCChannel } from './channels';
-import { InstantiablePlugin, BasePlugin } from '../plugins/base_plugin';
-import { SocketPaths } from './types';
+import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import { PluginOptions } from '../types';
+import { IPCChannel } from './channels';
+import { SocketPaths } from './types';
 
 const modulePath: string = process.argv[2];
 const moduleExportName: string = process.argv[3];
@@ -49,10 +49,10 @@ const _loadPlugin = async (
 	channel.publish(`${pluginAlias}:loading:finished`);
 };
 
-process.on('message', ({ loadPlugin, config, moduleOptions }) => {
+process.on('message', ({ loadPlugin, config, options }) => {
 	const internalWorker = async (): Promise<void> => {
 		if (loadPlugin) {
-			await _loadPlugin(config, moduleOptions);
+			await _loadPlugin(config, options);
 		}
 	};
 	internalWorker().catch((err: Error) => err);
