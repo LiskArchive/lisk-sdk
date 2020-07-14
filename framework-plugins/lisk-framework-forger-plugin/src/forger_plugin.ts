@@ -195,6 +195,9 @@ export class ForgerPlugin extends BasePlugin {
 			i = to;
 		}
 
+		// Update height upto which plugin is synced
+		await setForgerSyncInfo(this._forgerPluginDB, lastBlockHeight);
+
 		// Try to sync again if more blocks forged meanwhile
 		await this._syncForgerInfo();
 	}
@@ -203,13 +206,23 @@ export class ForgerPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app:block:new', async (eventInfo: EventInfoObject) => {
 			const { block } = eventInfo.data as Data;
+			const {
+				header: { height },
+			} = this._getForgerHeaderAndPayloadInfo(block);
+
 			await this._incrementForgerInfo(block);
+			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app:block:delete', async (eventInfo: EventInfoObject) => {
 			const { block } = eventInfo.data as Data;
+			const {
+				header: { height },
+			} = this._getForgerHeaderAndPayloadInfo(block);
+
 			await this._decrementForgerInfo(block);
+			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 	}
 
@@ -241,7 +254,7 @@ export class ForgerPlugin extends BasePlugin {
 		const {
 			forgerAddress,
 			forgerAddressBinary,
-			header: { reward, height },
+			header: { reward },
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
@@ -283,15 +296,13 @@ export class ForgerPlugin extends BasePlugin {
 		if (isUpdated) {
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
-
-		await setForgerSyncInfo(this._forgerPluginDB, height);
 	}
 
 	private async _decrementForgerInfo(encodedBlock: string): Promise<void> {
 		const {
 			forgerAddress,
 			forgerAddressBinary,
-			header: { reward, height },
+			header: { reward },
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
@@ -324,8 +335,6 @@ export class ForgerPlugin extends BasePlugin {
 		if (isUpdated) {
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
-
-		await setForgerSyncInfo(this._forgerPluginDB, height);
 	}
 
 	private _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): bigint {
