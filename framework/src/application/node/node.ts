@@ -284,6 +284,20 @@ export class Node {
 				const forgersAddress = await this._dpos.getForgerAddressesForRound(params.round);
 				return forgersAddress.map(a => a.toString('base64'));
 			},
+			getAllDelegates: async (): Promise<readonly string[]> => {
+				const delegatesUsernames = await this._dpos.getAllDelegates();
+				if (delegatesUsernames) {
+					const delegates = await Promise.all(
+						delegatesUsernames.registeredDelegates.map(async delegate =>
+							this._chain.dataAccess.getAccountByAddress(delegate.address),
+						),
+					);
+
+					return delegates.map(d => this._chain.dataAccess.encodeAccount(d).toString('base64'));
+				}
+
+				return [];
+			},
 			updateForgingStatus: async (params: {
 				address: string;
 				password: string;

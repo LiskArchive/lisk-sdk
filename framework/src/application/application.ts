@@ -420,6 +420,9 @@ export class Application {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getAccounts(action.params as { address: readonly string[] }),
 				},
+				getAllDelegates: {
+					handler: async () => this._node.actions.getAllDelegates(),
+				},
 				getBlockByID: {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getBlockByID(action.params as { id: string }),
