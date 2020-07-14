@@ -147,5 +147,5 @@ export interface RegisteredDelegate {
 }
 
 export interface DecodedUsernames {
-	registeredDelegates: [RegisteredDelegate];
+	registeredDelegates: RegisteredDelegate[];
 }
