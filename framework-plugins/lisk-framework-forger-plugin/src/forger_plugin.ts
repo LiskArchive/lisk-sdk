@@ -13,9 +13,6 @@
  */
 
 import { Server } from 'http';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as os from 'os';
 import * as Debug from 'debug';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
@@ -34,6 +31,7 @@ import { VoteTransaction } from '@liskhq/lisk-transactions';
 import { objects } from '@liskhq/lisk-utils';
 import type { Express } from 'express';
 import { initApi } from './api';
+import { getDBInstance, getForgerSyncInfo } from './db';
 import * as config from './defaults';
 import { Forger, ForgerInfo, Options, TransactionFees } from './types';
 import { DB_KEY_FORGER_INFO } from './constants';
@@ -114,7 +112,7 @@ export class ForgerPlugin extends BasePlugin {
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
-		this._forgerPluginDB = await this._getDBInstance(options);
+		this._forgerPluginDB = await getDBInstance(options.dataPath);
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {
@@ -123,8 +121,11 @@ export class ForgerPlugin extends BasePlugin {
 			// Fetch and set forger list from the app
 			await this._setForgersList();
 
-			// Fetch and set transactiton fees
+			// Fetch and set transactions fees
 			await this._setTransactionFees();
+
+			// Sync the information
+			await this._syncForgerInfo();
 
 			// Listen to new block and delete block events
 			this._subscribeToChannel();
@@ -148,16 +149,37 @@ export class ForgerPlugin extends BasePlugin {
 		await this._forgerPluginDB.close();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	private async _getDBInstance(
-		options: Options,
-		dbName = 'lisk-framework-forger-plugin.db',
-	): Promise<KVStore> {
-		const resolvedPath = options.dataPath.replace('~', os.homedir());
-		const dirPath = path.join(resolvedPath, dbName);
-		await fs.ensureDir(dirPath);
+	private async _syncForgerInfo(): Promise<void> {
+		const lastBlock = this.codec.decodeBlock(
+			await this._channel.invoke<Buffer>('app:getLastBlock'),
+		);
+		const forgerSyncInfo = await getForgerSyncInfo(this._forgerPluginDB);
 
-		return new KVStore(dirPath);
+		if (forgerSyncInfo.syncUptoHeight === lastBlock.header.height) {
+			// No need to sync
+			return;
+		}
+
+		let syncFromHeight: number;
+
+		if (forgerSyncInfo.syncUptoHeight > lastBlock.header.height) {
+			await this._forgerPluginDB.clear();
+			syncFromHeight = 1;
+		} else {
+			syncFromHeight = lastBlock.header.height + 1;
+		}
+
+		const blocks = await this._channel.invoke<string[]>('app: getBlocksByHeightBetween', {
+			from: syncFromHeight,
+			to: lastBlock.header.height,
+		});
+
+		for (const block of blocks) {
+			await this._incrementForgerInfo(block);
+		}
+
+		// Try to sync again if more blocks forged meanwhile
+		await this._syncForgerInfo();
 	}
 
 	private _subscribeToChannel(): void {

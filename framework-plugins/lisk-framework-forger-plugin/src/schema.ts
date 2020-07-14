@@ -59,3 +59,15 @@ export const forgerInfoSchema = {
 		'votesReceived',
 	],
 };
+
+export const forgerSyncSchema = {
+	$id: 'forger/sync',
+	type: 'object',
+	required: ['syncUptoHeight'],
+	properties: {
+		syncUptoHeight: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+	},
+};

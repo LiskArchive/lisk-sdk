@@ -61,3 +61,7 @@ export interface Fees {
 	readonly baseFee: string;
 	readonly minFeePerByte: string;
 }
+
+export interface ForgetSyncInfo {
+	syncUptoHeight: number;
+}
