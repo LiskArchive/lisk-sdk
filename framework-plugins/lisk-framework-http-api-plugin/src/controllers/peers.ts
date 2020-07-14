@@ -21,12 +21,12 @@ const getPeerSchema = {
 	properties: {
 		limit: {
 			type: 'string',
-			format: 'uint64',
+			format: 'uint32',
 			description: 'Number of peers to be returned',
 		},
 		offset: {
 			type: 'string',
-			format: 'uint64',
+			format: 'uint32',
 			description: 'Offset to get peers after a specific point in a peer list',
 		},
 		state: {

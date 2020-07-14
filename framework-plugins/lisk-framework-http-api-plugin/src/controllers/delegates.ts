@@ -21,13 +21,13 @@ const getDelegatesQuerySchema = {
 	properties: {
 		limit: {
 			type: 'string',
-			format: 'uint64',
+			format: 'uint32',
 			description: 'Number of delegates to be returned',
 		},
 		offset: {
 			type: 'string',
-			format: 'uint64',
-			description: 'Offset to get delegates after a specific length in a peer list',
+			format: 'uint32',
+			description: 'Offset to get delegates after a specific length in a delegates list',
 		},
 	},
 	default: {
@@ -54,9 +54,7 @@ export const getDelegates = (channel: BaseChannel, codec: PluginCodec) => async 
 
 	try {
 		const encodedDelegates: string[] = await channel.invoke('app:getAllDelegates');
-		const decodedDelegates = encodedDelegates
-			.map(account => codec.decodeAccount(account))
-			.filter(account => account.asset.delegate.username);
+		const decodedDelegates = encodedDelegates.map(delegate => codec.decodeAccount(delegate));
 
 		res.status(200).send({ data: paginateList(decodedDelegates, +limit, +offset) });
 	} catch (err) {
