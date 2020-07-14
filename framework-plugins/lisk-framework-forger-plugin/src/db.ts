@@ -12,14 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as Debug from 'debug';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { DB_KEY_FORGER_SYNC_INFO } from './constants';
+import { DB_KEY_FORGER_INFO, DB_KEY_FORGER_SYNC_INFO } from './constants';
 import { forgerInfoSchema, forgerSyncSchema } from './schema';
-import { ForgetSyncInfo } from './types';
+import { ForgerInfo, ForgetSyncInfo } from './types';
+
+// eslint-disable-next-line new-cap
+const debug = Debug('plugin:forger:db');
 
 export const getDBInstance = async (
 	dataPath: string,
@@ -33,11 +37,45 @@ export const getDBInstance = async (
 };
 
 export const getForgerSyncInfo = async (db: KVStore): Promise<ForgetSyncInfo> => {
-	const encodedSyncInfo = await db.get(DB_KEY_FORGER_SYNC_INFO);
-	return codec.decode<ForgetSyncInfo>(forgerInfoSchema, encodedSyncInfo);
+	try {
+		const encodedSyncInfo = await db.get(DB_KEY_FORGER_SYNC_INFO);
+		return codec.decode<ForgetSyncInfo>(forgerInfoSchema, encodedSyncInfo);
+	} catch (error) {
+		debug('Forger sync info does not exists');
+		return {
+			syncUptoHeight: 0,
+		};
+	}
 };
 
 export const setForgerSyncInfo = async (db: KVStore, blockHeight: number): Promise<void> => {
 	const encodedSyncInfo = codec.encode(forgerSyncSchema, { syncUptoHeight: blockHeight });
 	await db.put(DB_KEY_FORGER_SYNC_INFO, encodedSyncInfo);
+};
+
+export const setForgerInfo = async (
+	db: KVStore,
+	forgerAddress: string,
+	forgerInfo: ForgerInfo,
+): Promise<void> => {
+	const encodedForgerInfo = codec.encode(forgerInfoSchema, forgerInfo);
+	await db.put(`${DB_KEY_FORGER_INFO}:${forgerAddress}`, encodedForgerInfo);
+};
+
+export const getForgerInfo = async (db: KVStore, forgerAddress: string): Promise<ForgerInfo> => {
+	let forgerInfo;
+	try {
+		forgerInfo = await db.get(`${DB_KEY_FORGER_INFO}:${forgerAddress}`);
+	} catch (error) {
+		debug(`Forger info does not exists for delegate: ${forgerAddress}`);
+		return {
+			totalProducedBlocks: 0,
+			totalMissedBlocks: 0,
+			totalReceivedFees: BigInt(0),
+			totalReceivedRewards: BigInt(0),
+			votesReceived: [],
+		};
+	}
+
+	return codec.decode<ForgerInfo>(forgerInfoSchema, forgerInfo);
 };
