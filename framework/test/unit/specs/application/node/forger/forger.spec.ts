@@ -146,7 +146,7 @@ describe('forger', () => {
 			it('should return error with invalid password', async () => {
 				await expect(
 					forgeModule.updateForgingStatus(
-						Buffer.from(testDelegate.publicKey, 'base64'),
+						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'base64')),
 						'Invalid password',
 						true,
 					),
@@ -157,20 +157,18 @@ describe('forger', () => {
 				const invalidPublicKey = Buffer.from(
 					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a',
 				);
+				const invalidAddress = getAddressFromPublicKey(invalidPublicKey);
 
 				await expect(
-					forgeModule.updateForgingStatus(invalidPublicKey, defaultPassword, true),
-				).rejects.toThrow(
-					`Delegate with publicKey: ${invalidPublicKey.toString('base64')} not found`,
-				);
+					forgeModule.updateForgingStatus(invalidAddress, defaultPassword, true),
+				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('base64')} not found`);
 			});
 
 			it('should return error with non delegate account', async () => {
+				const invalidAddress = getAddressFromPublicKey(genesis.publicKey);
 				await expect(
-					forgeModule.updateForgingStatus(genesis.publicKey, genesis.password, true),
-				).rejects.toThrow(
-					`Delegate with publicKey: ${genesis.publicKey.toString('base64')} not found`,
-				);
+					forgeModule.updateForgingStatus(invalidAddress, genesis.password, true),
+				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('base64')} not found`);
 			});
 
 			it('should update forging from enabled to disabled', async () => {
@@ -192,7 +190,7 @@ describe('forger', () => {
 
 				// Act
 				const data = await forgeModule.updateForgingStatus(
-					Buffer.from(testDelegate.publicKey, 'base64'),
+					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'base64')),
 					testDelegate.password,
 					false,
 				);
@@ -206,7 +204,7 @@ describe('forger', () => {
 
 			it('should update forging from disabled to enabled', async () => {
 				const data = await forgeModule.updateForgingStatus(
-					Buffer.from(testDelegate.publicKey, 'base64'),
+					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'base64')),
 					testDelegate.password,
 					true,
 				);
