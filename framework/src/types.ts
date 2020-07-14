@@ -142,3 +142,14 @@ export interface ActionInfoForBus {
 	readonly module: string;
 	readonly name: string;
 }
+
+export interface TransactionJSON {
+	readonly type: number;
+	readonly nonce: string;
+	readonly fee: string;
+	readonly senderPublicKey: string;
+	readonly signatures: Array<Readonly<string>>;
+
+	readonly id: string;
+	readonly asset: object;
+}

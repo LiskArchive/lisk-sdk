@@ -34,7 +34,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
-		return 'http_api';
+		return 'httpApi';
 	}
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style

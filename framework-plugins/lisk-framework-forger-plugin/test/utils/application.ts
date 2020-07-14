@@ -17,14 +17,16 @@ import * as path from 'path';
 import { Application, ApplicationConfig, GenesisBlockJSON } from 'lisk-framework';
 import * as genesisBlockJSON from '../fixtures/genesis_block.json';
 import * as configJSON from '../fixtures/config.json';
-import { ForgerPlugin } from '../../../src';
+import { ForgerPlugin } from '../../src';
+
+const forgerApiPort = 5001;
 
 export const createApplication = async (
 	label: string,
 	consoleLogLevel?: string,
 ): Promise<Application> => {
 	const rootPath = '~/.lisk/forger-plugin';
-	const config = {
+	const config = ({
 		...configJSON,
 		rootPath,
 		label,
@@ -35,10 +37,15 @@ export const createApplication = async (
 		network: {
 			maxInboundConnections: 0,
 		},
-	} as Partial<ApplicationConfig>;
+		plugins: {
+			forger: {
+				port: forgerApiPort,
+			},
+		},
+	} as unknown) as Partial<ApplicationConfig>;
 
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
-	app.registerPlugin(ForgerPlugin);
+	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: false });
 
 	// Remove pre-existing data
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
@@ -60,10 +67,13 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 	await app['_forgerDB'].clear();
 	await app['_blockchainDB'].clear();
+	const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+	await forgerPluginInstance['_forgerPluginDB'].clear();
 	await app.shutdown();
 };
 
-export const getURL = (url: string, port = 4001): string => `http://localhost:${port}${url}`;
+export const getURL = (url: string, port = forgerApiPort): string =>
+	`http://localhost:${port}${url}`;
 
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
@@ -75,4 +85,29 @@ export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 			}
 		});
 	});
+};
+
+export const waitTill = async (ms: number) =>
+	new Promise(r =>
+		setTimeout(() => {
+			r();
+		}, ms),
+	);
+
+export const callNetwork = async (
+	promise: Promise<any>,
+): Promise<{ status: number; response: any }> => {
+	let response;
+	let status;
+
+	try {
+		const result = await promise;
+		response = result.data;
+		status = result.status;
+	} catch (error) {
+		status = error.response.status;
+		response = error.response.data;
+	}
+
+	return { status, response };
 };

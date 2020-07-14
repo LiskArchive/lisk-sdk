@@ -19,6 +19,7 @@ import { ImplementationMissingError } from '../errors';
 import { EventsArray } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
+import { TransactionJSON } from '../types';
 
 interface AccountJSON {
 	address: string;
@@ -44,19 +45,6 @@ interface AccountJSON {
 			amount: string;
 			unvoteHeight: number;
 		}[];
-	};
-}
-
-interface CodecSchema {
-	account: Schema;
-	blockSchema: Schema;
-	blockHeaderSchema: Schema;
-	blockHeadersAssets: {
-		[key: number]: Schema;
-	};
-	baseTransaction: Schema;
-	transactionsAssets: {
-		[key: number]: Schema;
 	};
 }
 
@@ -88,7 +76,7 @@ interface BaseBlockHeaderJSON {
 	readonly asset: string;
 }
 
-type BlockHeaderJSON = Omit<BaseBlockHeaderJSON, 'asset'> & { asset: BlockAssetJSON };
+export type BlockHeaderJSON = Omit<BaseBlockHeaderJSON, 'asset'> & { asset: BlockAssetJSON };
 
 interface BlockAssetJSON {
 	readonly seedReveal: string;
@@ -96,15 +84,44 @@ interface BlockAssetJSON {
 	readonly maxHeightPrevoted: number;
 }
 
-interface TransactionJSON {
-	readonly type: number;
-	readonly nonce: string;
-	readonly fee: string;
-	readonly senderPublicKey: string;
-	readonly signatures: Array<Readonly<string>>;
+interface CodecSchema {
+	account: Schema;
+	blockSchema: Schema;
+	blockHeaderSchema: Schema;
+	blockHeadersAssets: {
+		[key: number]: Schema;
+	};
+	baseTransaction: Schema;
+	transactionsAssets: {
+		[key: number]: Schema;
+	};
+}
 
-	readonly id: string;
-	readonly asset: object;
+interface AccountJSON {
+	address: string;
+	balance: string;
+	nonce: string;
+	keys: {
+		numberOfSignatures: number;
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+	};
+	asset: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: string;
+		};
+		sentVotes: { delegateAddress: string; amount: string }[];
+		unlocking: {
+			delegateAddress: string;
+			amount: string;
+			unvoteHeight: number;
+		}[];
+	};
 }
 
 export interface PluginInfo {

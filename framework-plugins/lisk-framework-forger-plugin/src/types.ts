@@ -35,3 +35,29 @@ interface Webhook {
 	readonly url: string;
 	readonly eventFilter: ReadonlyArray<string>;
 }
+
+export interface Forger {
+	readonly forging: boolean;
+	readonly address: string;
+}
+
+export interface ForgerInfo {
+	totalProducedBlocks: number;
+	totalMissedBlocks: number;
+	totalReceivedFees: bigint;
+	totalReceivedRewards: bigint;
+	votesReceived: Voters[];
+}
+export interface Voters {
+	address: Buffer;
+	amount: bigint;
+}
+
+export interface TransactionFees {
+	[key: number]: Fees;
+}
+
+export interface Fees {
+	readonly baseFee: string;
+	readonly minFeePerByte: string;
+}

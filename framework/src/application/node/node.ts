@@ -108,6 +108,15 @@ interface RegisteredSchemas {
 	[key: string]: Schema;
 }
 
+interface TransactionFees {
+	[key: number]: Fees;
+}
+
+interface Fees {
+	readonly baseFee: string;
+	readonly minFeePerByte: string;
+}
+
 export class Node {
 	private readonly _channel: InMemoryChannel;
 	private readonly _options: Options;
@@ -276,12 +285,12 @@ export class Node {
 				return forgersAddress.map(a => a.toString('base64'));
 			},
 			updateForgingStatus: async (params: {
-				publicKey: string;
+				address: string;
 				password: string;
 				forging: boolean;
 			}): Promise<{ address: string; forging: boolean }> => {
 				const result = await this._forger.updateForgingStatus(
-					Buffer.from(params.publicKey, 'base64'),
+					Buffer.from(params.address, 'base64'),
 					params.password,
 					params.forging,
 				);
@@ -372,6 +381,7 @@ export class Node {
 					address: address.toString('base64'),
 					forging,
 				})),
+			getTransactionsFees: (): TransactionFees => this._getRegisteredTransactionFees(),
 			getTransactionsFromPool: (): string[] =>
 				this._transactionPool.getAll().map(tx => tx.getBytes().toString('base64')),
 			postTransaction: async (
@@ -699,11 +709,24 @@ export class Node {
 		this._bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 	}
 	private _getRegisteredTransactionSchemas(): RegisteredSchemas {
-		const registredTransactions: RegisteredSchemas = {};
+		const registeredTransactions: RegisteredSchemas = {};
 
 		for (const aTransactionSchema of Object.entries(this._options.registeredTransactions)) {
-			registredTransactions[aTransactionSchema[0]] = aTransactionSchema[1].ASSET_SCHEMA as Schema;
+			registeredTransactions[aTransactionSchema[0]] = aTransactionSchema[1].ASSET_SCHEMA as Schema;
 		}
-		return registredTransactions;
+		return registeredTransactions;
+	}
+
+	private _getRegisteredTransactionFees(): TransactionFees {
+		const transactionFees: TransactionFees = {};
+
+		for (const aTransaction of Object.values(this._options.registeredTransactions)) {
+			const { TYPE, NAME_FEE, MIN_FEE_PER_BYTE } = aTransaction;
+			transactionFees[TYPE] = {
+				baseFee: NAME_FEE.toString(),
+				minFeePerByte: MIN_FEE_PER_BYTE.toString(),
+			};
+		}
+		return transactionFees;
 	}
 }

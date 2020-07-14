@@ -19,8 +19,8 @@ info:
     # Welcome!
 
     ## Access restrictions
-    The API endpoints are by default restricted to a whitelist of IPs that can be found under `plugins.http_api.whiteList` in the config.
-    If it is required for your API to be accessible by the public, this can be achieved by changing `plugins.http_api.whiteList` to `[]`.
+    The API endpoints are by default restricted to a whitelist of IPs that can be found under `plugins.httpApi.whiteList` in the config.
+    If it is required for your API to be accessible by the public, this can be achieved by changing `plugins.httpApi.whiteList` to `[]`.
     This will allow anyone to make requests to your application.
 
     ## Requests
