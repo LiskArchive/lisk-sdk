@@ -13,7 +13,6 @@
  */
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import { when } from 'jest-when';
 import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
 
 describe('Delegates endpoint', () => {
@@ -52,35 +51,54 @@ describe('Delegates endpoint', () => {
 
 	describe('/api/delegates', () => {
 		it('should respond with all the delegates', async () => {
+			// Act
 			const { response, status } = await callNetwork(axios.get(getURL('/api/delegates?limit=100')));
+			// Assert
 			expect(response.data).toHaveLength(100);
 			expect(response.data[0]).toEqual(firstDelegateAccount);
+			expect(response.meta).toEqual({
+				count: 103,
+				limit: 100,
+				offset: 0,
+			});
 			expect(status).toBe(200);
 		});
 
 		it('should respond with all the delegates after first 100 delegates', async () => {
+			// Act
 			const { response, status } = await callNetwork(
 				axios.get(getURL('/api/delegates?limit=100&offset=100')),
 			);
+			// Assert
 			expect(response.data).toHaveLength(3);
+			expect(response.meta).toEqual({
+				count: 103,
+				limit: 100,
+				offset: 100,
+			});
 			expect(status).toBe(200);
 		});
 
 		it('should respond with blank array when no delegates are found', async () => {
-			app['_channel'].invoke = jest.fn();
-			when(app['_channel'].invoke)
-				.calledWith('app:getAllDelegates')
-				.mockResolvedValue([] as never);
-
-			const { response, status } = await callNetwork(axios.get(getURL('/api/delegates?limit=100')));
+			// Act
+			const { response, status } = await callNetwork(
+				axios.get(getURL('/api/delegates?limit=100&offset=103')),
+			);
+			// Assert
 			expect(response.data).toHaveLength(0);
 			expect(response.data).toEqual([]);
+			expect(response.meta).toEqual({
+				count: 103,
+				limit: 100,
+				offset: 103,
+			});
 			expect(status).toBe(200);
 		});
 
 		it('should respond with 400 and error message when limit value is invalid', async () => {
+			// Act
 			const { response, status } = await callNetwork(axios.get(getURL('/api/delegates?limit=xxx')));
-
+			// Assert
 			expect(status).toBe(400);
 			expect(response).toEqual({
 				errors: [
@@ -93,10 +111,11 @@ describe('Delegates endpoint', () => {
 		});
 
 		it('should respond with 400 and error message when offset value is invalid', async () => {
+			// Act
 			const { response, status } = await callNetwork(
 				axios.get(getURL('/api/delegates?offset=xxx')),
 			);
-
+			// Assert
 			expect(status).toBe(400);
 			expect(response).toEqual({
 				errors: [

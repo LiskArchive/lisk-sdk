@@ -42,7 +42,8 @@ describe('Peers endpoint', () => {
 			const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
 
 			// Assert
-			expect(response).toEqual(peers.slice(0, 100));
+			expect(response.data).toEqual(peers.slice(0, 100));
+			expect(response.meta).toEqual({ count: peers.length, limit: 100, offset: 0 });
 			expect(status).toBe(200);
 		});
 
@@ -60,7 +61,8 @@ describe('Peers endpoint', () => {
 			);
 
 			// Assert
-			expect(response).toEqual(peers.slice(2, 102));
+			expect(response.data).toEqual(peers.slice(2, 102));
+			expect(response.meta).toEqual({ count: peers.length, limit: 100, offset: 2 });
 			expect(status).toBe(200);
 		});
 

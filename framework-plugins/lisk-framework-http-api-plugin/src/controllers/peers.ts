@@ -34,11 +34,6 @@ const getPeerSchema = {
 			enum: ['connected', 'disconnected'],
 		},
 	},
-	default: {
-		limit: 100,
-		offset: 0,
-		state: 'connected',
-	},
 };
 
 enum PeerState {
@@ -79,9 +74,12 @@ export const getPeers = (channel: BaseChannel) => async (
 			peers = await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers');
 		}
 
-		peers = paginateList(peers, +limit, +offset);
-
-		res.status(200).send(peers);
+		res
+			.status(200)
+			.send({
+				meta: { count: peers.length, limit: +limit, offset: +offset },
+				data: paginateList(peers, +limit, +offset),
+			});
 	} catch (err) {
 		next(err);
 	}

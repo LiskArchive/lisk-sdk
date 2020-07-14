@@ -30,10 +30,6 @@ const getDelegatesQuerySchema = {
 			description: 'Offset to get delegates after a specific length in a delegates list',
 		},
 	},
-	default: {
-		limit: 100,
-		offset: 0,
-	},
 };
 
 export const getDelegates = (channel: BaseChannel, codec: PluginCodec) => async (
@@ -51,12 +47,16 @@ export const getDelegates = (channel: BaseChannel, codec: PluginCodec) => async 
 	}
 
 	const { limit = 100, offset = 0 } = req.query;
-
 	try {
 		const encodedDelegates: string[] = await channel.invoke('app:getAllDelegates');
 		const decodedDelegates = encodedDelegates.map(delegate => codec.decodeAccount(delegate));
 
-		res.status(200).send({ data: paginateList(decodedDelegates, +limit, +offset) });
+		res
+			.status(200)
+			.send({
+				meta: { count: decodedDelegates.length, limit: +limit, offset: +offset },
+				data: paginateList(decodedDelegates, +limit, +offset),
+			});
 	} catch (err) {
 		next(err);
 	}
