@@ -13,9 +13,9 @@
  */
 
 // eslint-disable-next-line
-/// <reference path="../../external_types/pm2-axon/index.d.ts" />
+/// <reference path="../../../external_types/pm2-axon/index.d.ts" />
 // eslint-disable-next-line
-/// <reference path="../../external_types/pm2-axon-rpc/index.d.ts" />
+/// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
 
 import { EventEmitter2, Listener } from 'eventemitter2';
 import { Server as RPCServer, Client as RPCClient } from 'pm2-axon-rpc';
