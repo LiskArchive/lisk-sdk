@@ -236,20 +236,20 @@ export class ForgerPlugin extends BasePlugin {
 		};
 	}
 
-	private async _incrementForgerInfo(block: string): Promise<void> {
+	private async _incrementForgerInfo(encodedBlock: string): Promise<void> {
 		const {
 			forgerAddress,
 			forgerAddressBinary,
 			header: { reward },
 			payload,
-		} = this._getForgerHeaderAndPayloadInfo(block);
+		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
 		const forgerInfo = await this._getForgerInfo(forgerAddressBinary);
 		let isUpdated = false;
 
 		if (this._forgersList.find(forger => forger.address === forgerAddress)) {
 			forgerInfo.totalProducedBlocks += 1;
 			forgerInfo.totalReceivedRewards += BigInt(reward);
-			forgerInfo.totalReceivedFees += this._getFee(payload, block);
+			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
 			isUpdated = true;
 		}
 
@@ -277,27 +277,27 @@ export class ForgerPlugin extends BasePlugin {
 			}
 		}
 
-		await this._updateMissedBlock(block);
+		await this._updateMissedBlock(encodedBlock);
 
 		if (isUpdated) {
 			await this._setForgerInfo(forgerAddressBinary, { ...forgerInfo });
 		}
 	}
 
-	private async _decrementForgerInfo(block: string): Promise<void> {
+	private async _decrementForgerInfo(encodedBlock: string): Promise<void> {
 		const {
 			forgerAddress,
 			forgerAddressBinary,
 			header: { reward },
 			payload,
-		} = this._getForgerHeaderAndPayloadInfo(block);
+		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
 		const forgerInfo = await this._getForgerInfo(forgerAddressBinary);
 		let isUpdated = false;
 
 		if (this._forgersList.find(forger => forger.address === forgerAddress)) {
 			forgerInfo.totalProducedBlocks -= 1;
 			forgerInfo.totalReceivedRewards -= BigInt(reward);
-			forgerInfo.totalReceivedFees -= this._getFee(payload, block);
+			forgerInfo.totalReceivedFees -= this._getFee(payload, encodedBlock);
 			isUpdated = true;
 		}
 

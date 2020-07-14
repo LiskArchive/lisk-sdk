@@ -18,7 +18,6 @@ import { Application, ApplicationConfig, GenesisBlockJSON } from 'lisk-framework
 import * as genesisBlockJSON from '../fixtures/genesis_block.json';
 import * as configJSON from '../fixtures/config.json';
 import { ForgerPlugin } from '../../src';
-import { HTTPAPIPlugin } from '../../../lisk-framework-http-api-plugin/dist-node/http_api_plugin';
 
 const forgerApiPort = 5001;
 
@@ -46,7 +45,6 @@ export const createApplication = async (
 	} as unknown) as Partial<ApplicationConfig>;
 
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
-	app.registerPlugin(HTTPAPIPlugin);
 	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: false });
 
 	// Remove pre-existing data
