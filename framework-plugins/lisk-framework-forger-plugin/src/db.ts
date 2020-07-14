@@ -39,7 +39,7 @@ export const getDBInstance = async (
 export const getForgerSyncInfo = async (db: KVStore): Promise<ForgetSyncInfo> => {
 	try {
 		const encodedSyncInfo = await db.get(DB_KEY_FORGER_SYNC_INFO);
-		return codec.decode<ForgetSyncInfo>(forgerInfoSchema, encodedSyncInfo);
+		return codec.decode<ForgetSyncInfo>(forgerSyncSchema, encodedSyncInfo);
 	} catch (error) {
 		debug('Forger sync info does not exists');
 		return {
