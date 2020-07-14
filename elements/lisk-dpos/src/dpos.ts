@@ -42,6 +42,7 @@ import {
 	StateStore,
 	DecodedVoteWeights,
 	DecodedUsernames,
+	RegisteredDelegate,
 } from './types';
 
 interface DposConstructor {
@@ -275,7 +276,7 @@ export class Dpos {
 		return false;
 	}
 
-	public async getAllUsernames(): Promise<DecodedUsernames | []> {
+	public async getAllUsernames(): Promise<RegisteredDelegate[]> {
 		const usernamesBuffer = await this.chain.dataAccess.getChainState(
 			CHAIN_STATE_DELEGATE_USERNAMES,
 		);
@@ -285,7 +286,7 @@ export class Dpos {
 				delegatesUserNamesSchema,
 				usernamesBuffer,
 			);
-			return parsedUsernames;
+			return parsedUsernames.registeredDelegates;
 		}
 
 		return [];

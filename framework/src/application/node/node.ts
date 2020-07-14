@@ -286,9 +286,9 @@ export class Node {
 			},
 			getAllDelegates: async (): Promise<readonly string[]> => {
 				const delegatesUsernames = await this._dpos.getAllUsernames();
-				if (delegatesUsernames) {
+				if (delegatesUsernames.length > 0) {
 					const delegates = await Promise.all(
-						delegatesUsernames.registeredDelegates.map(async delegate =>
+						delegatesUsernames.map(async delegate =>
 							this._chain.dataAccess.getAccountByAddress(delegate.address),
 						),
 					);

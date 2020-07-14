@@ -141,11 +141,11 @@ export interface DecodedVoteWeights {
 	voteWeights: VoteWeights;
 }
 
+export interface RegisteredDelegate {
+	readonly username: string;
+	readonly address: Buffer;
+}
+
 export interface DecodedUsernames {
-	registeredDelegates: [
-		{
-			username: string;
-			address: Buffer;
-		},
-	];
+	registeredDelegates: [RegisteredDelegate];
 }
