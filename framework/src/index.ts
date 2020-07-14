@@ -15,7 +15,7 @@
 export { Application } from './application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
-export { BasePlugin, PluginInfo, PluginCodec } from './plugins/base_plugin';
+export { BasePlugin, BlockHeaderJSON, PluginInfo, PluginCodec } from './plugins/base_plugin';
 export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';
 export type { EventsArray, EventInfoObject } from './controller/event';

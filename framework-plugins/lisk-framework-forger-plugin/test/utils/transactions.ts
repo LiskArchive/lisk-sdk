@@ -43,19 +43,7 @@ export const createTransferTransaction = ({
 
 	transaction.sign(networkIdentifier, genesisAccount.passphrase);
 
-	return {
-		id: transaction.id.toString('base64'),
-		type: transaction.type,
-		senderPublicKey: transaction.senderPublicKey.toString('base64'),
-		signatures: transaction.signatures.map(s => (s as Buffer).toString('base64')),
-		asset: {
-			...transaction.asset,
-			amount: transaction.asset.amount.toString(),
-			recipientAddress: transaction.asset.recipientAddress.toString('base64'),
-		},
-		nonce: transaction.nonce.toString(),
-		fee: transaction.fee.toString(),
-	};
+	return transaction;
 };
 
 export const createVoteTransaction = ({
@@ -86,21 +74,5 @@ export const createVoteTransaction = ({
 
 	transaction.sign(networkIdentifier, genesisAccount.passphrase);
 
-	return {
-		id: transaction.id.toString('base64'),
-		type: transaction.type,
-		senderPublicKey: transaction.senderPublicKey.toString('base64'),
-		signatures: transaction.signatures.map(s => (s as Buffer).toString('base64')),
-		asset: {
-			...transaction.asset,
-			votes: [
-				...transaction.asset.votes.map(v => ({
-					delegateAddress: v.delegateAddress.toString('base64'),
-					amount: v.amount.toString(),
-				})),
-			],
-		},
-		nonce: transaction.nonce.toString(),
-		fee: transaction.fee.toString(),
-	};
+	return transaction;
 };

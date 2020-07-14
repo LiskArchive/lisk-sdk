@@ -375,7 +375,7 @@ export class Application {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.updateForgingStatus(
 							action.params as {
-								publicKey: string;
+								address: string;
 								password: string;
 								forging: boolean;
 							},
@@ -451,6 +451,11 @@ export class Application {
 				},
 				getNodeInfo: {
 					handler: () => this._node.actions.getNodeInfo(),
+				},
+				// TODO: This will be removed after https://github.com/LiskHQ/lisk-sdk/issues/5256
+				getSlotRound: {
+					handler: (action: ActionInfoObject) =>
+						this._node.actions.calcSlotRound(action.params as { height: number }),
 				},
 			},
 			{ skipInternalEvents: true },

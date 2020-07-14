@@ -15,12 +15,9 @@
 import { Application } from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-import axios from 'axios';
 import {
 	closeApplication,
 	createApplication,
-	getURL,
-	callNetwork,
 	waitNBlocks,
 	waitTill,
 } from '../../utils/application';
@@ -30,7 +27,7 @@ import { createTransferTransaction, createVoteTransaction } from '../../utils/tr
 
 const getForgerInfo = async (forgerPluginInstance: ForgerPlugin, generatorPublicKey: string) => {
 	const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString(
-		'base64',
+		'binary',
 	);
 	const forgerInfo = await forgerPluginInstance['_getForgerInfo'](forgerAddress);
 
@@ -55,14 +52,7 @@ describe('Forger Info', () => {
 			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
 
 			// Act
-			const result = await axios.get(getURL('/api/blocks/?height=1'));
-			const {
-				data: {
-					data: {
-						header: { generatorPublicKey },
-					},
-				},
-			} = result;
+			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
 			const forgerInfo = await getForgerInfo(forgerPluginInstance, generatorPublicKey);
 
 			// Assert
@@ -81,21 +71,10 @@ describe('Forger Info', () => {
 			});
 			accountNonce += 1;
 
-			const { id, ...input } = transaction;
-			const { response, status } = await callNetwork(
-				axios.post(getURL('/api/transactions'), input),
-			);
-			expect(status).toEqual(200);
-			expect(response).toEqual({ data: { transactionId: id }, meta: {} });
+			await app['_channel'].invoke('app:postTransaction', {
+				transaction: transaction.getBytes().toString('base64'),
+			});
 			await waitNBlocks(app, 1);
-
-			const { response: getResponse, status: getStatus } = await callNetwork(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				axios.get(getURL(`/api/transactions/${encodeURIComponent(id)}`)),
-			);
-
-			expect(getStatus).toEqual(200);
-			expect(getResponse).toEqual({ data: transaction, meta: {} });
 
 			const {
 				header: { generatorPublicKey },
@@ -118,21 +97,10 @@ describe('Forger Info', () => {
 			});
 			accountNonce += 1;
 
-			const { id, ...input } = transaction;
-			const { response, status } = await callNetwork(
-				axios.post(getURL('/api/transactions'), input),
-			);
-			expect(status).toEqual(200);
-			expect(response).toEqual({ data: { transactionId: id }, meta: {} });
+			await app['_channel'].invoke('app:postTransaction', {
+				transaction: transaction.getBytes().toString('base64'),
+			});
 			await waitNBlocks(app, 1);
-
-			const { response: getResponse, status: getStatus } = await callNetwork(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				axios.get(getURL(`/api/transactions/${encodeURIComponent(id)}`)),
-			);
-
-			expect(getStatus).toEqual(200);
-			expect(getResponse).toEqual({ data: transaction, meta: {} });
 
 			const {
 				header: { generatorPublicKey },
@@ -149,7 +117,6 @@ describe('Forger Info', () => {
 			// Arrange
 			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
 			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
-			// const forgingDelegateAddress = forgerPluginInstance['_forgersList'][0].address;
 			await app['_node']['_processor'].deleteLastBlock();
 
 			// Act
@@ -158,6 +125,46 @@ describe('Forger Info', () => {
 
 			// Asserts
 			expect(forgerInfo).toMatchSnapshot();
+		});
+	});
+
+	describe('Missed Block', () => {
+		let disableForgerAddresses: string[];
+		beforeEach(async () => {
+			const { height, generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
+			const round = await app['_channel'].invoke('app:getSlotRound', { height });
+			const forgerAddressForRound: string[] = await app[
+				'_channel'
+			].invoke('app:getForgerAddressesForRound', { round });
+			const lastForgerAddress = getAddressFromPublicKey(
+				Buffer.from(generatorPublicKey, 'base64'),
+			).toString('base64');
+			const lastForgerIndex = forgerAddressForRound.findIndex(f => f === lastForgerAddress);
+			disableForgerAddresses = forgerAddressForRound.splice(lastForgerIndex, 1);
+
+			await Promise.all(
+				disableForgerAddresses.map(async disableForgerAddress => {
+					await app['_channel'].invoke('app:updateForgingStatus', {
+						address: disableForgerAddress,
+						password: 'elephant tree paris dragon chair galaxy',
+						forging: false,
+					});
+				}),
+			);
+		});
+
+		it('should save missed block info', async () => {
+			// Arrange
+			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+
+			// Assert
+			await Promise.all(
+				disableForgerAddresses.map(async missedForgerAddress => {
+					const forgerAddressBinary = Buffer.from(missedForgerAddress, 'base64').toString('binary');
+					const forgerInfo = await forgerPluginInstance['_getForgerInfo'](forgerAddressBinary);
+					expect(forgerInfo).toMatchSnapshot();
+				}),
+			);
 		});
 	});
 });

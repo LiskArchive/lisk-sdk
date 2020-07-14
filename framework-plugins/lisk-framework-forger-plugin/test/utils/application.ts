@@ -20,7 +20,6 @@ import * as configJSON from '../fixtures/config.json';
 import { ForgerPlugin } from '../../src';
 import { HTTPAPIPlugin } from '../../../lisk-framework-http-api-plugin/dist-node/http_api_plugin';
 
-const httpApiPort = 5000;
 const forgerApiPort = 5001;
 
 export const createApplication = async (
@@ -40,9 +39,6 @@ export const createApplication = async (
 			maxInboundConnections: 0,
 		},
 		plugins: {
-			httpApi: {
-				port: httpApiPort,
-			},
 			forger: {
 				port: forgerApiPort,
 			},
@@ -78,7 +74,8 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	await app.shutdown();
 };
 
-export const getURL = (url: string, port = httpApiPort): string => `http://localhost:${port}${url}`;
+export const getURL = (url: string, port = forgerApiPort): string =>
+	`http://localhost:${port}${url}`;
 
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands

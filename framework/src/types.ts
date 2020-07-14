@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
-import { Schema } from '@liskhq/lisk-codec';
 
 export interface StringKeyVal {
 	[key: string]: string;
@@ -144,20 +143,6 @@ export interface ActionInfoForBus {
 	readonly name: string;
 }
 
-/* Start codec */
-export interface CodecSchema {
-	account: Schema;
-	blockSchema: Schema;
-	blockHeaderSchema: Schema;
-	blockHeadersAssets: {
-		[key: number]: Schema;
-	};
-	baseTransaction: Schema;
-	transactionsAssets: {
-		[key: number]: Schema;
-	};
-}
-
 export interface TransactionJSON {
 	readonly type: number;
 	readonly nonce: string;
@@ -168,4 +153,3 @@ export interface TransactionJSON {
 	readonly id: string;
 	readonly asset: object;
 }
-/* End codec */

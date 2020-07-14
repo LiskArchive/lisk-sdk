@@ -20,16 +20,21 @@ export const forgerInfoSchema = {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
-		totalReceivedFees: {
-			dataType: 'uint64',
+		totalMissedBlocks: {
+			dataType: 'uint32',
 			fieldNumber: 2,
 		},
-		totalReceivedRewards: {
+		totalReceivedFees: {
 			dataType: 'uint64',
 			fieldNumber: 3,
 		},
+		totalReceivedRewards: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
 		votesReceived: {
 			type: 'array',
+			fieldNumber: 5,
 			items: {
 				type: 'object',
 				properties: {
@@ -43,9 +48,14 @@ export const forgerInfoSchema = {
 					},
 				},
 			},
-			fieldNumber: 4,
 			required: ['address', 'amount'],
 		},
 	},
-	required: ['totalProducedBlocks', 'totalReceivedFees', 'totalReceivedRewards', 'votesReceived'],
+	required: [
+		'totalProducedBlocks',
+		'totalMissedBlocks',
+		'totalReceivedFees',
+		'totalReceivedRewards',
+		'votesReceived',
+	],
 };

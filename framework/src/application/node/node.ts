@@ -285,12 +285,12 @@ export class Node {
 				return forgersAddress.map(a => a.toString('base64'));
 			},
 			updateForgingStatus: async (params: {
-				publicKey: string;
+				address: string;
 				password: string;
 				forging: boolean;
 			}): Promise<{ address: string; forging: boolean }> => {
 				const result = await this._forger.updateForgingStatus(
-					Buffer.from(params.publicKey, 'base64'),
+					Buffer.from(params.address, 'base64'),
 					params.password,
 					params.forging,
 				);

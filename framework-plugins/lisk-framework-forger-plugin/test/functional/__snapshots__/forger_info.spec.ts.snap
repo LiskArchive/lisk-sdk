@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Forger Info Delete Block should update forger info after delete block 1`] = `
+Object {
+  "totalMissedBlocks": 2259,
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [],
+}
+`;
+
+exports[`Forger Info Missed Block should save missed block info 1`] = `
+Object {
+  "totalMissedBlocks": 2259,
+  "totalProducedBlocks": 1,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [],
+}
+`;
+
+exports[`Forger Info New Block should save forger info after new block 1`] = `
+Object {
+  "totalMissedBlocks": 153,
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [],
+}
+`;
+
+exports[`Forger Info New Block should save forger info with received fees if payload included in new block 1`] = `
+Object {
+  "totalMissedBlocks": 1664,
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [],
+}
+`;
+
+exports[`Forger Info New Block should save forger info with votes received in new block 1`] = `
+Object {
+  "totalMissedBlocks": 2259,
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [],
+}
+`;

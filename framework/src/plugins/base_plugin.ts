@@ -19,7 +19,7 @@ import { ImplementationMissingError } from '../errors';
 import { EventsArray } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
-import { CodecSchema, TransactionJSON } from '../types';
+import { TransactionJSON } from '../types';
 
 interface AccountJSON {
 	address: string;
@@ -76,12 +76,25 @@ interface BaseBlockHeaderJSON {
 	readonly asset: string;
 }
 
-type BlockHeaderJSON = Omit<BaseBlockHeaderJSON, 'asset'> & { asset: BlockAssetJSON };
+export type BlockHeaderJSON = Omit<BaseBlockHeaderJSON, 'asset'> & { asset: BlockAssetJSON };
 
 interface BlockAssetJSON {
 	readonly seedReveal: string;
 	readonly maxHeightPreviouslyForged: number;
 	readonly maxHeightPrevoted: number;
+}
+
+interface CodecSchema {
+	account: Schema;
+	blockSchema: Schema;
+	blockHeaderSchema: Schema;
+	blockHeadersAssets: {
+		[key: number]: Schema;
+	};
+	baseTransaction: Schema;
+	transactionsAssets: {
+		[key: number]: Schema;
+	};
 }
 
 interface AccountJSON {

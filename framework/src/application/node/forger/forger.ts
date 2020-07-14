@@ -154,12 +154,11 @@ export class Forger {
 	}
 
 	public async updateForgingStatus(
-		publicKey: Buffer,
+		forgerAddress: Buffer,
 		password: string,
 		forging: boolean,
 	): Promise<ForgingStatus> {
 		const encryptedList = this._config.forging.delegates;
-		const forgerAddress = getAddressFromPublicKey(publicKey);
 		const encryptedItem = encryptedList?.find(item => item.address.equals(forgerAddress));
 
 		let keypair: Keypair;
@@ -177,11 +176,15 @@ export class Forger {
 
 			keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 		} else {
-			throw new Error(`Delegate with publicKey: ${publicKey.toString('base64')} not found`);
+			throw new Error(`Delegate with address: ${forgerAddress.toString('base64')} not found`);
 		}
 
-		if (!keypair.publicKey.equals(publicKey)) {
-			throw new Error('Invalid password and public key combination');
+		if (!getAddressFromPublicKey(keypair.publicKey).equals(forgerAddress)) {
+			throw new Error(
+				`Invalid keypair: ${getAddressFromPublicKey(keypair.publicKey).toString(
+					'base64',
+				)}  and address: ${forgerAddress.toString('base64')} combination`,
+			);
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

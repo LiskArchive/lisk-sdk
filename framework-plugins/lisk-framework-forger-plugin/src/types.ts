@@ -43,6 +43,7 @@ export interface Forger {
 
 export interface ForgerInfo {
 	totalProducedBlocks: number;
+	totalMissedBlocks: number;
 	totalReceivedFees: bigint;
 	totalReceivedRewards: bigint;
 	votesReceived: Voters[];
