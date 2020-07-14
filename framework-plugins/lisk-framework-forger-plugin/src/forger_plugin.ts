@@ -32,12 +32,8 @@ import {
 } from 'lisk-framework';
 import { VoteTransaction } from '@liskhq/lisk-transactions';
 import { objects } from '@liskhq/lisk-utils';
-import * as express from 'express';
 import type { Express } from 'express';
-import * as cors from 'cors';
-import * as rateLimit from 'express-rate-limit';
-import * as controllers from './controllers';
-import * as middlewares from './middlewares';
+import { initApi } from './api';
 import * as config from './defaults';
 import { Forger, ForgerInfo, Options, TransactionFees } from './types';
 import { DB_KEY_FORGER_INFO } from './constants';
@@ -115,7 +111,6 @@ export class ForgerPlugin extends BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
-		this._app = express();
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
@@ -123,12 +118,18 @@ export class ForgerPlugin extends BasePlugin {
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {
-			this._registerMiddlewares(options);
-			this._registerControllers();
-			this._registerAfterMiddlewares(options);
+			this._app = initApi(options, this._channel, this.codec);
+
+			// Fetch and set forger list from the app
 			await this._setForgersList();
+
+			// Fetch and set transactiton fees
 			await this._setTransactionFees();
+
+			// Listen to new block and delete block events
 			this._subscribeToChannel();
+
+			// Start http server
 			this._server = this._app.listen(options.port, '0.0.0.0');
 		});
 	}
@@ -145,22 +146,6 @@ export class ForgerPlugin extends BasePlugin {
 		});
 
 		await this._forgerPluginDB.close();
-	}
-
-	private _registerMiddlewares(options: Options): void {
-		// Register middlewares
-		this._app.use(cors(options.cors));
-		this._app.use(express.json());
-		this._app.use(rateLimit(options.limits));
-		this._app.use(middlewares.whiteListMiddleware(options));
-	}
-
-	private _registerAfterMiddlewares(_options: Options): void {
-		this._app.use(middlewares.errorMiddleware());
-	}
-
-	private _registerControllers(): void {
-		this._app.get('/v1/hello', controllers.helloController(this._channel));
 	}
 
 	// eslint-disable-next-line class-methods-use-this
