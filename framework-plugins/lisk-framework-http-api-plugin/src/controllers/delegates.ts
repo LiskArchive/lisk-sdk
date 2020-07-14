@@ -51,12 +51,10 @@ export const getDelegates = (channel: BaseChannel, codec: PluginCodec) => async 
 		const encodedDelegates: string[] = await channel.invoke('app:getAllDelegates');
 		const decodedDelegates = encodedDelegates.map(delegate => codec.decodeAccount(delegate));
 
-		res
-			.status(200)
-			.send({
-				meta: { count: decodedDelegates.length, limit: +limit, offset: +offset },
-				data: paginateList(decodedDelegates, +limit, +offset),
-			});
+		res.status(200).send({
+			meta: { count: decodedDelegates.length, limit: +limit, offset: +offset },
+			data: paginateList(decodedDelegates, +limit, +offset),
+		});
 	} catch (err) {
 		next(err);
 	}

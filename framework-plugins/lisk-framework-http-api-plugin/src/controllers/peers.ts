@@ -74,12 +74,10 @@ export const getPeers = (channel: BaseChannel) => async (
 			peers = await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers');
 		}
 
-		res
-			.status(200)
-			.send({
-				meta: { count: peers.length, limit: +limit, offset: +offset },
-				data: paginateList(peers, +limit, +offset),
-			});
+		res.status(200).send({
+			meta: { count: peers.length, limit: +limit, offset: +offset },
+			data: paginateList(peers, +limit, +offset),
+		});
 	} catch (err) {
 		next(err);
 	}
