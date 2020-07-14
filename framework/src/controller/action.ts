@@ -25,7 +25,7 @@ export interface ActionInfoObject {
 export type ActionHandler = (action: ActionInfoObject) => unknown;
 
 export interface ActionsDefinition {
-	[key: string]: ActionHandler | { handler: ActionHandler; isPublic?: boolean };
+	[key: string]: ActionHandler | { handler: ActionHandler };
 }
 
 export interface ActionsObject {
@@ -35,7 +35,6 @@ export interface ActionsObject {
 export class Action {
 	public module: string;
 	public name: string;
-	public isPublic: boolean;
 	public handler?: (action: ActionInfoObject) => unknown;
 	public source?: string;
 	public params: object;
@@ -44,7 +43,6 @@ export class Action {
 		name: string,
 		params?: object,
 		source?: string,
-		isPublic?: boolean,
 		handler?: (action: ActionInfoObject) => unknown,
 	) {
 		assert(
@@ -60,7 +58,6 @@ export class Action {
 		}
 
 		this.handler = handler;
-		this.isPublic = isPublic ?? false;
 	}
 
 	public static deserialize(data: ActionInfoObject | string): Action {

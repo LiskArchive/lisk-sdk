@@ -42,11 +42,16 @@ const {
 	},
 } = liskP2P;
 
-const hasNamespaceReg = /:/;
-
 const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
+
+const REMOTE_ACTIONS_WHITE_LIST = [
+	'getTransactions',
+	'getLastBlock',
+	'getBlocksFromId',
+	'getHighestCommonBlock',
+];
 
 interface NodeInfoOptions {
 	[key: string]: unknown;
@@ -308,13 +313,25 @@ export class Network {
 			if (request.wasResponseSent) {
 				return;
 			}
-			// eslint-disable-next-line @typescript-eslint/prefer-includes
-			const hasTargetModule = hasNamespaceReg.test(request.procedure);
-			// If the request has no target module, default to app (to support legacy protocol).
-			const sanitizedProcedure = hasTargetModule ? request.procedure : `app:${request.procedure}`;
+
+			if (!REMOTE_ACTIONS_WHITE_LIST.includes(request.procedure)) {
+				const error = new Error(`Requested procedure "${request.procedure}" is not permitted.`);
+				this._logger.error(
+					{ err: error, procedure: request.procedure },
+					'Peer request not fulfilled event: Requested procedure is not permitted.',
+				);
+
+				// Ban peer on if non-permitted procedure is requested
+				this._p2p.applyPenalty({ peerId: request.peerId, penalty: 100 });
+
+				// Send an error back to the peer.
+				request.error(error);
+				return;
+			}
+
 			try {
-				const result = await this._channel.invokePublic<liskP2P.p2pTypes.P2PNodeInfo>(
-					sanitizedProcedure,
+				const result = await this._channel.invoke<liskP2P.p2pTypes.P2PNodeInfo>(
+					`app:${request.procedure}`,
 					{
 						data: request.data,
 						peerId: request.peerId,

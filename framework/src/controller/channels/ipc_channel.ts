@@ -76,7 +76,6 @@ export class IPCChannel extends BaseChannel {
 				accumulator[value] = {
 					name: value,
 					module: this.moduleAlias,
-					isPublic: this.actions[value].isPublic,
 				};
 				return accumulator;
 			}, actionsInfo);
@@ -104,12 +103,6 @@ export class IPCChannel extends BaseChannel {
 			this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
 				const actionObject = Action.deserialize(action);
 				this.invoke(`${actionObject.module}:${actionObject.name}`, actionObject.params)
-					.then(data => cb(null, data))
-					.catch(error => cb(error));
-			});
-
-			this._rpcServer.expose('invokePublic', (action: string, cb: NodeCallback) => {
-				this.invokePublic(action)
 					.then(data => cb(null, data))
 					.catch(error => cb(error));
 			});
@@ -160,36 +153,6 @@ export class IPCChannel extends BaseChannel {
 				action.serialize(),
 				(err: Error | undefined, data: T | PromiseLike<T>) => {
 					if (err) {
-						return reject(err);
-					}
-
-					return resolve(data);
-				},
-			);
-		});
-	}
-
-	public async invokePublic<T>(actionName: string, params?: object): Promise<T> {
-		const action = new Action(actionName, params, this.moduleAlias);
-
-		if (action.module === this.moduleAlias) {
-			if (!this.actions[action.name].isPublic) {
-				throw new Error(`Action ${action.name} is not allowed because it's not public.`);
-			}
-			const handler = this.actions[action.name]?.handler;
-			if (!handler) {
-				throw new Error('Handler does not exist.');
-			}
-
-			return handler(action.serialize()) as T;
-		}
-
-		return new Promise((resolve, reject) => {
-			this._rpcClient.call(
-				'invokePublic',
-				action.serialize(),
-				(err: Error, data: T | PromiseLike<T>) => {
-					if (err !== undefined) {
 						return reject(err);
 					}
 

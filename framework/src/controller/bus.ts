@@ -120,12 +120,6 @@ export class Bus {
 				});
 		});
 
-		this._rpcServer.expose('invokePublic', (action, cb: NodeCallback) => {
-			this.invokePublic(action)
-				.then(data => cb(null, data))
-				.catch(error => cb(error));
-		});
-
 		this._subSocket.on('message', (eventName: string, eventValue: EventInfoObject) => {
 			this.publish(eventName, eventValue);
 		});
@@ -207,22 +201,6 @@ export class Bus {
 				},
 			);
 		});
-	}
-
-	public async invokePublic<T>(actionData: string | ActionInfoObject): Promise<T> {
-		const action = Action.deserialize(actionData);
-
-		// Check if action exists
-		if (this.actions[action.key()] === undefined) {
-			throw new Error(`Action '${action.key()}' is not registered to bus.`);
-		}
-
-		// Check if action is public
-		if (!this.actions[action.key()].isPublic) {
-			throw new Error(`Action '${action.key()}' is not allowed because it's not public.`);
-		}
-
-		return this.invoke(actionData);
 	}
 
 	public publish(eventName: string, eventValue: object): void {

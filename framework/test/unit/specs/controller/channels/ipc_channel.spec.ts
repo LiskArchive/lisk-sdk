@@ -34,7 +34,6 @@ const ipcClientMock = {
 			cb(
 				{
 					handler: jest.fn(),
-					isPublic: true,
 					module: 'moduleAlias',
 					name: 'action1',
 				},
@@ -87,15 +86,12 @@ describe('IPCChannel Channel', () => {
 		actions: {
 			action1: {
 				handler: jest.fn(),
-				isPublic: true,
 			},
 			action2: {
 				handler: jest.fn(),
-				isPublic: true,
 			},
 			action3: {
 				handler: jest.fn(),
-				isPublic: true,
 			},
 		},
 		options: {
@@ -107,17 +103,14 @@ describe('IPCChannel Channel', () => {
 		action1: {
 			name: 'action1',
 			module: 'moduleAlias',
-			isPublic: true,
 		},
 		action2: {
 			name: 'action2',
 			module: 'moduleAlias',
-			isPublic: true,
 		},
 		action3: {
 			name: 'action3',
 			module: 'moduleAlias',
-			isPublic: true,
 		},
 	};
 
@@ -172,14 +165,6 @@ describe('IPCChannel Channel', () => {
 		it('should expose "invoke" event on rpcServer', () => {
 			// Assert
 			expect(ipcClientMock.rpcServer.expose).toHaveBeenCalledWith('invoke', expect.any(Function));
-		});
-
-		it('should expose "invokePublic" event on rpcServer', () => {
-			// Assert
-			expect(ipcClientMock.rpcServer.expose).toHaveBeenCalledWith(
-				'invokePublic',
-				expect.any(Function),
-			);
 		});
 
 		it('should register "message" event on subSocket', () => {

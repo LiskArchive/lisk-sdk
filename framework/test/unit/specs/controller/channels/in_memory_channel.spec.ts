@@ -28,15 +28,12 @@ describe('InMemoryChannel Channel', () => {
 		actions: {
 			action1: {
 				handler: jest.fn(),
-				isPublic: true,
 			},
 			action2: {
 				handler: jest.fn(),
-				isPublic: true,
 			},
 			action3: {
 				handler: jest.fn(),
-				isPublic: true,
 			},
 		},
 		options: {},

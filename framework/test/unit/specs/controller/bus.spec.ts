@@ -94,8 +94,8 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions: any = {
-				action1: new Action('alias:action1', {}, '', false, jest.fn()),
-				action2: new Action('alias:action2', {}, '', false, jest.fn()),
+				action1: new Action('alias:action1', {}, '', jest.fn()),
+				action2: new Action('alias:action2', {}, '', jest.fn()),
 			};
 
 			// Act
@@ -112,7 +112,7 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions = {
-				action1: new Action('alias:action1', {}, '', false, jest.fn()),
+				action1: new Action('alias:action1', {}, '', jest.fn()),
 			};
 
 			// Act && Assert
@@ -158,60 +158,6 @@ describe('Bus', () => {
 		});
 	});
 
-	describe('#invokePublic', () => {
-		it('should throw error if action was not registered', async () => {
-			// Arrange
-			const actionData: ActionInfoObject = {
-				name: 'nonExistentAction',
-				module: 'app',
-				source: 'chain',
-				params: {},
-			};
-
-			// Act && Assert
-			await expect(bus.invokePublic(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
-			);
-		});
-
-		it('should throw error if module does not exist', async () => {
-			// Arrange
-			const actionData: ActionInfoObject = {
-				name: 'getComponentConfig',
-				module: 'invalidModule',
-				source: 'chain',
-				params: {},
-			};
-
-			// Act && Assert
-			await expect(bus.invokePublic(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
-			);
-		});
-
-		it('should throw error if action is not public', async () => {
-			// Arrange
-			const moduleAlias = 'alias';
-			const actions = {
-				action1: new Action('alias:action1', {}, '', false, jest.fn()),
-			};
-			const actionData: ActionInfoObject = {
-				name: 'action1',
-				module: moduleAlias,
-				source: 'chain',
-				params: {},
-			};
-
-			// Act
-			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
-
-			// Assert
-			await expect(bus.invokePublic(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${actionData.name}' is not allowed because it's not public.`,
-			);
-		});
-	});
-
 	describe('#publish', () => {
 		it("should call eventemitter2 library's emit method", async () => {
 			// Arrange
@@ -235,8 +181,8 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions: any = {
-				action1: new Action('alias:action1', {}, '', false, jest.fn()),
-				action2: new Action('alias:action2', {}, '', false, jest.fn()),
+				action1: new Action('alias:action1', {}, '', jest.fn()),
+				action2: new Action('alias:action2', {}, '', jest.fn()),
 			};
 			const expectedActions = Object.keys(actions).map(
 				actionName => `${moduleAlias}:${actionName}`,

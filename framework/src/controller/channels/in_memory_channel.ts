@@ -70,23 +70,4 @@ export class InMemoryChannel extends BaseChannel {
 
 		return this.bus.invoke(action.serialize());
 	}
-
-	public async invokePublic<T>(actionName: string, params?: object): Promise<T> {
-		const action = new Action(actionName, params, this.moduleAlias);
-
-		if (action.module === this.moduleAlias) {
-			if (!this.actions[action.name].isPublic) {
-				throw new Error(`Action '${action.name}' is not allowed because it's not public.`);
-			}
-
-			const handler = this.actions[action.name]?.handler;
-			if (!handler) {
-				throw new Error('Handler does not exist.');
-			}
-
-			return handler(action.serialize()) as T;
-		}
-
-		return this.bus.invokePublic(action.serialize());
-	}
 }

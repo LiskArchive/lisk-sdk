@@ -391,7 +391,6 @@ export class Application {
 				getTransactions: {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getTransactions(action.params as { data: unknown; peerId: string }),
-					isPublic: true,
 				},
 				postTransaction: {
 					handler: async (action: ActionInfoObject) =>
@@ -399,19 +398,16 @@ export class Application {
 				},
 				getLastBlock: {
 					handler: async (_action: ActionInfoObject) => this._node.actions.getLastBlock(),
-					isPublic: true,
 				},
 				getBlocksFromId: {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getBlocksFromId(action.params as { data: unknown; peerId: string }),
-					isPublic: true,
 				},
 				getHighestCommonBlock: {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getHighestCommonBlock(
 							action.params as { data: unknown; peerId: string },
 						),
-					isPublic: true,
 				},
 				getAccount: {
 					handler: async (action: ActionInfoObject) =>
