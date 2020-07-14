@@ -88,6 +88,7 @@ export interface Chain {
 	};
 	readonly dataAccess: {
 		getConsensusState(key: string): Promise<Buffer | undefined>;
+		getChainState(key: string): Promise<Buffer | undefined>;
 		getBlockHeadersByHeightBetween(fromHeight: number, toHeight: number): Promise<BlockHeader[]>;
 	};
 }

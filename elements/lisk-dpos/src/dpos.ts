@@ -15,7 +15,7 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
-import { voteWeightsSchema } from './schemas';
+import { voteWeightsSchema, delegatesUserNamesSchema } from './schemas';
 
 import {
 	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
@@ -24,6 +24,7 @@ import {
 	DEFAULT_STANDBY_DELEGATE,
 	DEFAULT_STANDBY_THRESHOLD,
 	DEFAULT_VOTE_WEIGHT_CAP_RATE,
+	CHAIN_STATE_DELEGATE_USERNAMES,
 } from './constants';
 import { DelegatesInfo } from './delegates_info';
 import {
@@ -40,6 +41,7 @@ import {
 	ForgersList,
 	StateStore,
 	DecodedVoteWeights,
+	DecodedUsernames,
 } from './types';
 
 interface DposConstructor {
@@ -271,6 +273,21 @@ export class Dpos {
 		});
 
 		return false;
+	}
+
+	public async getAllDelegates(): Promise<DecodedUsernames | undefined> {
+		const usernamesBuffer = await this.chain.dataAccess.getChainState(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+		);
+		if (usernamesBuffer) {
+			const parsedUsernames = codec.decode<DecodedUsernames>(
+				delegatesUserNamesSchema,
+				usernamesBuffer,
+			);
+			return parsedUsernames;
+		}
+
+		return undefined;
 	}
 
 	/**
