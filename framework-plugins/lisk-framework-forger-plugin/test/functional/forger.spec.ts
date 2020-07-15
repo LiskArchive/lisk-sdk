@@ -49,5 +49,9 @@ describe('Forger endpoint', () => {
 		it('should return forger address', () => {
 			expect(typeof result.data[0].address).toBe('string');
 		});
+
+		it('should return forger nextForgingTime', () => {
+			expect(typeof result.data[0].nextForgingTime).toBe('number');
+		});
 	});
 });
