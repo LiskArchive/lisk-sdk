@@ -16,14 +16,13 @@
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-
 import {
 	BaseTransaction as Base,
 	TransferTransaction,
 	TransactionError,
 } from '@liskhq/lisk-transactions';
+import { objects } from '@liskhq/lisk-utils';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import * as _ from 'lodash';
 import { Application } from '../../../../src/application';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
@@ -72,7 +71,7 @@ describe('Application', () => {
 
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
 			const label = `lisk-${genesisBlock.header.transactionRoot.slice(0, 7)}`;
-			const configWithoutLabel = _.cloneDeep(config);
+			const configWithoutLabel = objects.cloneDeep(config);
 			delete configWithoutLabel.label;
 
 			const app = new Application(genesisBlock as GenesisBlockJSON, configWithoutLabel);
@@ -89,7 +88,7 @@ describe('Application', () => {
 		it('should set default rootPath if not provided', () => {
 			// Arrange
 			const rootPath = '~/.lisk';
-			const configWithoutrootPath = _.cloneDeep(config);
+			const configWithoutrootPath = objects.cloneDeep(config);
 			delete configWithoutrootPath.rootPath;
 
 			// Act
@@ -102,7 +101,7 @@ describe('Application', () => {
 		it('should set rootPath if provided', () => {
 			// Arragne
 			const customrootPath = '/my-lisk-folder';
-			const configWithCustomrootPath = _.cloneDeep(config);
+			const configWithCustomrootPath = objects.cloneDeep(config);
 			configWithCustomrootPath.rootPath = customrootPath;
 
 			// Act
@@ -114,7 +113,7 @@ describe('Application', () => {
 
 		it('should set filename for logger if logger config was not provided', () => {
 			// Arrange
-			const configWithoutLogger = _.cloneDeep(config);
+			const configWithoutLogger = objects.cloneDeep(config);
 			configWithoutLogger.logger = {};
 
 			// Act
@@ -125,7 +124,7 @@ describe('Application', () => {
 		});
 
 		it('should merge the constants with genesisConfig and assign it to app constants', () => {
-			const customConfig = _.cloneDeep(config);
+			const customConfig = objects.cloneDeep(config);
 
 			customConfig.genesisConfig = {
 				maxPayloadLength: 15 * 1024,
@@ -176,7 +175,7 @@ describe('Application', () => {
 		});
 
 		it('should throw validation error if constants are overriden by the user', () => {
-			const customConfig = _.cloneDeep(config);
+			const customConfig = objects.cloneDeep(config);
 
 			customConfig.genesisConfig = {
 				CONSTANT: 'aConstant',
