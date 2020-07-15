@@ -138,7 +138,7 @@ export class ForgerPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {
 			// eslint-disable-next-line no-void
-			void this._webhooks.handleEvent('forging:node:start', {
+			void this._webhooks.handleEvent({
 				event: 'forging:node:start',
 				time: new Date(),
 				payload: { reason: 'Node started' },
@@ -156,7 +156,7 @@ export class ForgerPlugin extends BasePlugin {
 		// @TODO Fix me! due to the way unload works this event is never fired in time.
 		this._channel.once('app:shutdown', () => {
 			// eslint-disable-next-line no-void
-			void this._webhooks.handleEvent('app:shutdown', {
+			void this._webhooks.handleEvent({
 				event: 'app:shutdown',
 				time: new Date(),
 				payload: { reason: 'node shutdown' },
@@ -285,7 +285,7 @@ export class ForgerPlugin extends BasePlugin {
 			isUpdated = true;
 
 			// eslint-disable-next-line no-void
-			void this._webhooks.handleEvent('forging:block:created', {
+			void this._webhooks.handleEvent({
 				event: 'forging:block:created',
 				time: new Date(),
 				payload: { reward, forgerAddress, height },
@@ -408,7 +408,7 @@ export class ForgerPlugin extends BasePlugin {
 				await this._setForgerInfo(missedForgerAddress, missedForger);
 
 				// eslint-disable-next-line no-void
-				void this._webhooks.handleEvent('forger:block:missed', {
+				void this._webhooks.handleEvent({
 					event: 'forger:block:missed',
 					time: new Date(),
 					payload: { missedForgerAddress, height },

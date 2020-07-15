@@ -59,10 +59,10 @@ export class Web {
 		return axios.post(targetURL, eventData, { headers: this.headers });
 	}
 
-	public async handleEvent(event: string, data: webHookPayload): Promise<void> {
+	public async handleEvent(data: webHookPayload): Promise<void> {
 		const requiredEvents = [];
 		for (const aRegisteredEvent of this.registeredEvents) {
-			if (aRegisteredEvent.events.includes(event)) {
+			if (aRegisteredEvent.events.includes(data.event)) {
 				requiredEvents.push({ url: aRegisteredEvent.url, data });
 			}
 		}
