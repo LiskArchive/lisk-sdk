@@ -11,5 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as forgers from './forger';
 
 export * from './hello';
+export { forgers };
