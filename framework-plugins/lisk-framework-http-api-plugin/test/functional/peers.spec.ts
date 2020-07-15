@@ -30,101 +30,109 @@ describe('Peers endpoint', () => {
 	});
 
 	describe('/api/peers', () => {
-		it('should respond with 100 connected peers as limit has 100 default value', async () => {
-			// Arrange
-			app['_channel'].invoke = jest.fn();
-			// Mock channel invoke only when app:getConnectedPeers is called
-			when(app['_channel'].invoke)
-				.calledWith('app:getConnectedPeers')
-				.mockResolvedValue(peers as never);
+		describe('200 - Success', () => {
+			it('should respond with 100 connected peers as limit has 100 default value', async () => {
+				// Arrange
+				app['_channel'].invoke = jest.fn();
+				// Mock channel invoke only when app:getConnectedPeers is called
+				when(app['_channel'].invoke)
+					.calledWith('app:getConnectedPeers')
+					.mockResolvedValue(peers as never);
 
-			// Act
-			const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
+				// Act
+				const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
 
-			// Assert
-			expect(response.data).toEqual(peers.slice(0, 100));
-			expect(response.meta).toEqual({ count: peers.length, limit: 100, offset: 0 });
-			expect(status).toBe(200);
-		});
+				// Assert
+				expect(response.data).toEqual(peers.slice(0, 100));
+				expect(response.meta).toEqual({ count: peers.length, limit: 100, offset: 0 });
+				expect(status).toBe(200);
+			});
 
-		it('should respond with all disconnected peers when all query parameters are passed', async () => {
-			// Arrange
-			app['_channel'].invoke = jest.fn();
-			// Mock channel invoke only when app:getDisconnectedPeers is called
-			when(app['_channel'].invoke)
-				.calledWith('app:getDisconnectedPeers')
-				.mockResolvedValue(peers as never);
+			it('should respond with all disconnected peers when all query parameters are passed', async () => {
+				// Arrange
+				app['_channel'].invoke = jest.fn();
+				// Mock channel invoke only when app:getDisconnectedPeers is called
+				when(app['_channel'].invoke)
+					.calledWith('app:getDisconnectedPeers')
+					.mockResolvedValue(peers as never);
 
-			// Act
-			const { response, status } = await callNetwork(
-				axios.get(getURL('/api/peers?state=disconnected&limit=100&offset=2')),
-			);
+				// Act
+				const { response, status } = await callNetwork(
+					axios.get(getURL('/api/peers?state=disconnected&limit=100&offset=2')),
+				);
 
-			// Assert
-			expect(response.data).toEqual(peers.slice(2, 102));
-			expect(response.meta).toEqual({ count: peers.length, limit: 100, offset: 2 });
-			expect(status).toBe(200);
-		});
-
-		it('should throw 500 error when channel.invoke fails', async () => {
-			// Arrange
-			app['_channel'].invoke = jest.fn();
-			// Mock channel invoke only when app:getConnectedPeers is called
-			when(app['_channel'].invoke)
-				.calledWith('app:getConnectedPeers')
-				.mockRejectedValue(new Error('test') as never);
-			const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
-			// Assert
-			expect(status).toBe(500);
-			expect(response).toEqual({
-				errors: [
-					{
-						message: 'test',
-					},
-				],
+				// Assert
+				expect(response.data).toEqual(peers.slice(2, 102));
+				expect(response.meta).toEqual({ count: peers.length, limit: 100, offset: 2 });
+				expect(status).toBe(200);
 			});
 		});
 
-		it('should respond with 400 and error message when passed incorrect state value', async () => {
-			const { response, status } = await callNetwork(axios.get(getURL('/api/peers?state=xxx')));
-			// Assert
-			expect(status).toBe(400);
-			expect(response).toEqual({
-				errors: [
-					{
-						message:
-							'Lisk validator found 1 error[s]:\nshould be equal to one of the allowed values',
-					},
-				],
+		describe('400 - Invalid query values', () => {
+			it('should respond with 400 and error message when passed incorrect state value', async () => {
+				const { response, status } = await callNetwork(axios.get(getURL('/api/peers?state=xxx')));
+				// Assert
+				expect(status).toBe(400);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'Lisk validator found 1 error[s]:\nshould be equal to one of the allowed values',
+						},
+					],
+				});
+			});
+
+			it('should respond with 400 and error message when passed incorrect limit value', async () => {
+				const { response, status } = await callNetwork(axios.get(getURL('/api/peers?limit=123xy')));
+				// Assert
+				expect(status).toBe(400);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'Lisk validator found 1 error[s]:\nProperty \'.limit\' should match format "uint32"',
+						},
+					],
+				});
+			});
+
+			it('should respond with 400 and error message when passed incorrect offset value', async () => {
+				// Act
+				const { response, status } = await callNetwork(
+					axios.get(getURL('/api/peers?offset=123xy')),
+				);
+				// Assert
+				expect(status).toBe(400);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'Lisk validator found 1 error[s]:\nProperty \'.offset\' should match format "uint32"',
+						},
+					],
+				});
 			});
 		});
 
-		it('should respond with 400 and error message when passed incorrect limit value', async () => {
-			const { response, status } = await callNetwork(axios.get(getURL('/api/peers?limit=123xy')));
-			// Assert
-			expect(status).toBe(400);
-			expect(response).toEqual({
-				errors: [
-					{
-						message:
-							'Lisk validator found 1 error[s]:\nProperty \'.limit\' should match format "uint32"',
-					},
-				],
-			});
-		});
-
-		it('should respond with 400 and error message when passed incorrect offset value', async () => {
-			// Act
-			const { response, status } = await callNetwork(axios.get(getURL('/api/peers?offset=123xy')));
-			// Assert
-			expect(status).toBe(400);
-			expect(response).toEqual({
-				errors: [
-					{
-						message:
-							'Lisk validator found 1 error[s]:\nProperty \'.offset\' should match format "uint32"',
-					},
-				],
+		describe('500 - Some internal operation fails to process', () => {
+			it('should throw 500 error when channel.invoke fails', async () => {
+				// Arrange
+				app['_channel'].invoke = jest.fn();
+				// Mock channel invoke only when app:getConnectedPeers is called
+				when(app['_channel'].invoke)
+					.calledWith('app:getConnectedPeers')
+					.mockRejectedValue(new Error('test') as never);
+				const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
+				// Assert
+				expect(status).toBe(500);
+				expect(response).toEqual({
+					errors: [
+						{
+							message: 'test',
+						},
+					],
+				});
 			});
 		});
 	});
