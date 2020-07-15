@@ -80,8 +80,8 @@ export class ForgerPlugin extends BasePlugin {
 	private _app!: Express;
 	private _channel!: BaseChannel;
 	private _forgersList!: ReadonlyArray<Forger>;
-  private _transactionFees!: TransactionFees;
-  private _webhooks!: Web;
+	private _transactionFees!: TransactionFees;
+	private _webhooks!: Web;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -121,11 +121,17 @@ export class ForgerPlugin extends BasePlugin {
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
-    this._webhooks = new Web(
+		// eslint-disable-next-line new-cap
+		const { locale } = Intl.DateTimeFormat().resolvedOptions();
+
+		this._webhooks = new Web(
 			{
-				'User-Agent': `lisk-framework-forger-plugin/0.1.0 (${os.platform()} ${os.release()}; ${os.arch()} ${Intl.DateTimeFormat().resolvedOptions().locale}.${process.env.LC_CTYPE ?? ''}) lisk-framework/${options.version}`,
+				'User-Agent': `lisk-framework-forger-plugin/0.1.0 (${os.platform()} ${os.release()}; ${os.arch()} ${locale}.${
+					process.env.LC_CTYPE ?? ''
+				}) lisk-framework/${options.version}`,
 			},
-			options.webhook);
+			options.webhook,
+		);
 
 		this._forgerPluginDB = await this._getDBInstance(options);
 
@@ -140,8 +146,10 @@ export class ForgerPlugin extends BasePlugin {
 			this._server = this._app.listen(options.port, '0.0.0.0');
 		});
 
+		// @TODO Fix me! due to the way unload works this event is never fired in time.
 		this._channel.once('app:shutdown', () => {
-			this._webhooks.handleEvent('app:shutdown', {
+			// eslint-disable-next-line no-void
+			void this._webhooks.handleEvent('app:shutdown', {
 				event: 'app:shutdown',
 				time: new Date(),
 				payload: { reason: 'node shutdown' },
@@ -256,9 +264,17 @@ export class ForgerPlugin extends BasePlugin {
 		const {
 			forgerAddress,
 			forgerAddressBinary,
-			header: { reward },
+			header: { reward, height },
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
+
+		// eslint-disable-next-line no-void
+		void this._webhooks.handleEvent('forging:block:created', {
+			event: 'forging:block:created',
+			time: new Date(),
+			payload: { reward, forgerAddress, height },
+		});
+
 		const forgerInfo = await this._getForgerInfo(forgerAddressBinary);
 		let isUpdated = false;
 

@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import axios from 'axios';
+import * as Debug from 'debug';
 
 import { Webhook } from '../types';
+// eslint-disable-next-line new-cap
+const debug = Debug('plugin:forger:webhooks');
 
 interface httpHeaders {
 	[key: string]: string;
@@ -21,8 +24,8 @@ interface httpHeaders {
 
 interface blockCreated {
 	readonly height: number;
-	readonly reward: number;
-	readonly address: string;
+	readonly reward: string;
+	readonly forgerAddress: string;
 }
 
 interface blockMissed {
@@ -56,12 +59,22 @@ export class Web {
 		return axios.post(targetURL, eventData, { headers: this.headers });
 	}
 
-	public handleEvent(event: string, data: webHookPayload): void {
+	public async handleEvent(event: string, data: webHookPayload): Promise<void> {
 		const requiredEvents = [];
 		for (const aRegisteredEvent of this.registeredEvents) {
 			if (aRegisteredEvent.events.includes(event)) {
-				requiredEvents.push({ url: aRegisteredEvent.url, eventName: event, data });
+				requiredEvents.push({ url: aRegisteredEvent.url, data });
 			}
+		}
+
+		try {
+			for (const anEvent of requiredEvents) {
+				// eslint-disable-next-line no-void
+				await this.execute(anEvent.data, anEvent.url);
+			}
+		} catch (err) {
+			debug('Error during webhook processing');
+			debug(err);
 		}
 	}
 }
