@@ -45,5 +45,9 @@ describe('Forger endpoint', () => {
 		it('should return forger totalVotesReceived', () => {
 			expect(typeof result.data[0].totalVotesReceived).toBe('string');
 		});
+
+		it('should return forger address', () => {
+			expect(typeof result.data[0].address).toBe('string');
+		});
 	});
 });
