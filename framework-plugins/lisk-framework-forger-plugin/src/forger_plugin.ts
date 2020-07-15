@@ -137,6 +137,13 @@ export class ForgerPlugin extends BasePlugin {
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {
+			// eslint-disable-next-line no-void
+			void this._webhooks.handleEvent('forging:node:start', {
+				event: 'forging:node:start',
+				time: new Date(),
+				payload: { reason: 'Node started' },
+			});
+
 			this._registerMiddlewares(options);
 			this._registerControllers();
 			this._registerAfterMiddlewares(options);
@@ -268,13 +275,6 @@ export class ForgerPlugin extends BasePlugin {
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
 
-		// eslint-disable-next-line no-void
-		void this._webhooks.handleEvent('forging:block:created', {
-			event: 'forging:block:created',
-			time: new Date(),
-			payload: { reward, forgerAddress, height },
-		});
-
 		const forgerInfo = await this._getForgerInfo(forgerAddressBinary);
 		let isUpdated = false;
 
@@ -283,6 +283,13 @@ export class ForgerPlugin extends BasePlugin {
 			forgerInfo.totalReceivedRewards += BigInt(reward);
 			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
 			isUpdated = true;
+
+			// eslint-disable-next-line no-void
+			void this._webhooks.handleEvent('forging:block:created', {
+				event: 'forging:block:created',
+				time: new Date(),
+				payload: { reward, forgerAddress, height },
+			});
 		}
 
 		for (const trx of payload) {
@@ -399,6 +406,13 @@ export class ForgerPlugin extends BasePlugin {
 				const missedForger = await this._getForgerInfo(missedForgerAddress);
 				missedForger.totalMissedBlocks += 1;
 				await this._setForgerInfo(missedForgerAddress, missedForger);
+
+				// eslint-disable-next-line no-void
+				void this._webhooks.handleEvent('forger:block:missed', {
+					event: 'forger:block:missed',
+					time: new Date(),
+					payload: { missedForgerAddress, height },
+				});
 			}
 		}
 	}

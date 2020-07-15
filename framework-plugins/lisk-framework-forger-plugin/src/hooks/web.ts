@@ -29,8 +29,8 @@ interface blockCreated {
 }
 
 interface blockMissed {
-	readonly reason: string;
-	readonly address: string;
+	readonly height: number;
+	readonly missedForgerAddress: string;
 }
 
 interface nodeStarted {
