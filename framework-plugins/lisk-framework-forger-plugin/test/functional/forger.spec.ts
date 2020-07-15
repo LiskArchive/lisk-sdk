@@ -37,5 +37,9 @@ describe('Forger endpoint', () => {
 		it('should return list of 103 forgers', () => {
 			expect(result.data).toHaveLength(103);
 		});
+
+		it('should return forger username', () => {
+			expect(typeof result.data[0].username).toBe('string');
+		});
 	});
 });
