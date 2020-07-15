@@ -44,7 +44,7 @@ describe('Forger Info', () => {
 	let accountNonce = 0;
 
 	beforeAll(async () => {
-		app = await createApplication('event_track', 'debug');
+		app = await createApplication('event_track');
 	});
 
 	afterAll(async () => {

@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Forger Info Sync should sync information from scratch on startup 1`] = `
+Object {
+  "totalMissedBlocks": 0,
+  "totalProducedBlocks": 1,
+  "totalReceivedFees": 140000n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [],
+}
+`;

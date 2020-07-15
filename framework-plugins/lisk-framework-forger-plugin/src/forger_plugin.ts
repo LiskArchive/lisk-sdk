@@ -138,15 +138,18 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	public async unload(): Promise<void> {
-		await new Promise((resolve, reject) => {
-			this._server.close(err => {
-				if (err) {
-					reject(err);
-					return;
-				}
-				resolve();
+		// eslint-disable-next-line consistent-return
+		if (this._server !== undefined) {
+			await new Promise((resolve, reject) => {
+				this._server.close(err => {
+					if (err) {
+						reject(err);
+						return;
+					}
+					resolve();
+				});
 			});
-		});
+		}
 
 		await this._forgerPluginDB.close();
 	}
@@ -154,45 +157,43 @@ export class ForgerPlugin extends BasePlugin {
 	private async _syncForgerInfo(): Promise<void> {
 		const {
 			header: { height: lastBlockHeight },
-		} = this.codec.decodeBlock(await this._channel.invoke<Buffer>('app:getLastBlock'));
-		const forgerSyncInfo = await getForgerSyncInfo(this._forgerPluginDB);
+		} = this.codec.decodeBlock(await this._channel.invoke<string>('app:getLastBlock'));
+		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
 
-		if (forgerSyncInfo.syncUptoHeight === lastBlockHeight) {
+		if (syncUptoHeight === lastBlockHeight) {
 			// No need to sync
 			return;
 		}
 
-		let syncFromHeight: number;
+		let needleHeight: number;
 
-		if (forgerSyncInfo.syncUptoHeight > lastBlockHeight) {
+		if (syncUptoHeight > lastBlockHeight) {
 			// Clear all forging information we have and sync again
 			await this._forgerPluginDB.clear();
-			syncFromHeight = 1;
+			needleHeight = 1;
 		} else {
-			syncFromHeight = lastBlockHeight + 1;
+			needleHeight = syncUptoHeight + 1;
 		}
 
-		let i = syncFromHeight;
-
 		// Sync in batch of 1000 blocks
-		while (i <= lastBlockHeight) {
-			const from = i;
-			const to =
-				from +
-				(from + BLOCKS_BATCH_TO_SYNC < lastBlockHeight
+		while (needleHeight <= lastBlockHeight) {
+			const toHeight =
+				needleHeight +
+				(needleHeight + BLOCKS_BATCH_TO_SYNC <= lastBlockHeight
 					? BLOCKS_BATCH_TO_SYNC
-					: lastBlockHeight - from);
+					: lastBlockHeight - needleHeight);
 
-			const blocks = await this._channel.invoke<string[]>('app: getBlocksByHeightBetween', {
-				from,
-				to,
+			const blocks = await this._channel.invoke<string[]>('app:getBlocksByHeightBetween', {
+				from: needleHeight,
+				to: toHeight,
 			});
 
-			for (const block of blocks) {
+			// Reverse the blocks to get blocks from lower height to highest
+			for (const block of blocks.reverse()) {
 				await this._incrementForgerInfo(block);
 			}
 
-			i = to;
+			needleHeight = toHeight + 1;
 		}
 
 		// Update height upto which plugin is synced

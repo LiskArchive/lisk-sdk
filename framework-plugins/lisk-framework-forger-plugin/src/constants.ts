@@ -13,4 +13,4 @@
  */
 
 export const DB_KEY_FORGER_INFO = 'forger:info';
-export const DB_KEY_FORGER_SYNC_INFO = 'forger:sync:info';
+export const DB_KEY_FORGER_SYNC_INFO = 'forger:info:sync';
