@@ -33,5 +33,9 @@ describe('Forger endpoint', () => {
 		beforeEach(async () => {
 			result = await axios.get(getURL('/api/forgers'));
 		});
+
+		it('should return list of 103 forgers', () => {
+			expect(result.data).toHaveLength(103);
+		});
 	});
 });
