@@ -202,7 +202,7 @@ describe('Unlock transaction', () => {
 		describe('given the delegate is not being punished', () => {
 			describe('when asset.unlockObjects contain valid entries, and voter account has waited 2000 blocks', () => {
 				beforeEach(() => {
-					// Mutate not to be selfvote and resign
+					// Mutate not to be self vote and resign
 					const senderIndex = tx.asset.unlockObjects.findIndex(u =>
 						u.delegateAddress.equals(
 							Buffer.from(validUnlockTransactionScenario.input.account.address, 'base64'),
@@ -350,7 +350,7 @@ describe('Unlock transaction', () => {
 
 			describe('when asset.unlockObjects contain valid entries, and voter account has waited 260,000 blocks and waited 2,000 blocks', () => {
 				beforeEach(() => {
-					// Mutate not to be selfvote and resign
+					// Mutate not to be self vote and resign
 					const senderIndex = tx.asset.unlockObjects.findIndex(u =>
 						u.delegateAddress.equals(
 							Buffer.from(validUnlockTransactionScenario.input.account.address, 'base64'),
@@ -443,7 +443,7 @@ describe('Unlock transaction', () => {
 			describe('when asset.unlockObjects contain valid entries, and voter account has waited pomHeight + 260,000 blocks but not waited 2000 blocks', () => {
 				it('should return errors', async () => {
 					delegates[0].asset.delegate.pomHeights = [punishHeight];
-					// Mutate not to be selfvote and resign
+					// Mutate not to be self vote and resign
 					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress.equals(
@@ -491,7 +491,7 @@ describe('Unlock transaction', () => {
 
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 blocks but not waited 260,000 blocks', () => {
 				it('should return errors', async () => {
-					// Mutate not to be selfvote and resign
+					// Mutate not to be self vote and resign
 					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress.equals(
@@ -536,7 +536,7 @@ describe('Unlock transaction', () => {
 			describe('when asset.unlockObjects contain valid entries, and voter account has not waited pomHeight + 260,000 blocks but waited 2000 blocks', () => {
 				it('should return errors', async () => {
 					delegates[0].asset.delegate.pomHeights = [punishHeight];
-					// Mutate not to be selfvote and resign
+					// Mutate not to be self vote and resign
 					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress.equals(
@@ -714,7 +714,7 @@ describe('Unlock transaction', () => {
 
 		describe('when account.unlocking has one entry but it has multiple corresponding unlockObjects', () => {
 			it('should return errors', async () => {
-				// Delegate 0 has duplicate entries accroding to the protocol spec
+				// Delegate 0 has duplicate entries according to the protocol spec
 				const unlockObject = sender.asset.unlocking.find((u: any) =>
 					u.delegateAddress.equals(delegates[0].address),
 				) as Unlock;

@@ -33,7 +33,7 @@ import { validateGenesisBlock, GenesisBlock } from '@liskhq/lisk-genesis';
 import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError, ErrorObject } from '@liskhq/lisk-validator';
-import * as _ from 'lodash';
+import { objects } from '@liskhq/lisk-utils';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from '../controller';
 import { version } from '../version';
@@ -127,8 +127,7 @@ export class Application {
 		this._genesisBlock = parsedGenesisBlock;
 
 		// Don't change the object parameters provided
-		// eslint-disable-next-line no-param-reassign
-		const appConfig = _.cloneDeep(applicationConfigSchema.default);
+		const appConfig = objects.cloneDeep(applicationConfigSchema.default);
 
 		appConfig.label =
 			config.label ??
@@ -421,6 +420,9 @@ export class Application {
 				getAccounts: {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getAccounts(action.params as { address: readonly string[] }),
+				},
+				getAllDelegates: {
+					handler: async () => this._node.actions.getAllDelegates(),
 				},
 				getBlockByID: {
 					handler: async (action: ActionInfoObject) =>

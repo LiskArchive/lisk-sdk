@@ -13,50 +13,31 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { BaseChannel } from 'lisk-framework';
+import { BaseChannel, PluginCodec } from 'lisk-framework';
 import { paginateList } from '../utils';
 
-const getPeerSchema = {
+const getDelegatesQuerySchema = {
 	type: 'object',
 	properties: {
 		limit: {
 			type: 'string',
 			format: 'uint32',
-			description: 'Number of peers to be returned',
+			description: 'Number of delegates to be returned',
 		},
 		offset: {
 			type: 'string',
 			format: 'uint32',
-			description: 'Offset to get peers after a specific point in a peer list',
-		},
-		state: {
-			type: 'string',
-			enum: ['connected', 'disconnected'],
+			description: 'Offset to get delegates after a specific length in a delegates list',
 		},
 	},
 };
 
-enum PeerState {
-	connected = 'connected',
-	disconnected = 'disconnected',
-}
-
-interface PeerInfo {
-	readonly ipAddress: string;
-	readonly port: number;
-	readonly networkId: string;
-	readonly networkVersion: string;
-	readonly nonce: string;
-	readonly options: { [key: string]: unknown };
-}
-
-export const getPeers = (channel: BaseChannel) => async (
+export const getDelegates = (channel: BaseChannel, codec: PluginCodec) => async (
 	req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
-	const errors = validator.validate(getPeerSchema, req.query);
-
+	const errors = validator.validate(getDelegatesQuerySchema, req.query);
 	// 400 - Malformed query or parameters
 	if (errors.length) {
 		res.status(400).send({
@@ -64,19 +45,15 @@ export const getPeers = (channel: BaseChannel) => async (
 		});
 		return;
 	}
-	const { limit = 100, offset = 0, state = PeerState.connected } = req.query;
 
+	const { limit = 100, offset = 0 } = req.query;
 	try {
-		let peers;
-		if (state === PeerState.disconnected) {
-			peers = await channel.invoke<ReadonlyArray<PeerInfo>>('app:getDisconnectedPeers');
-		} else {
-			peers = await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers');
-		}
+		const encodedDelegates: string[] = await channel.invoke('app:getAllDelegates');
+		const decodedDelegates = encodedDelegates.map(delegate => codec.decodeAccount(delegate));
 
 		res.status(200).json({
-			meta: { count: peers.length, limit: +limit, offset: +offset },
-			data: paginateList(peers, +limit, +offset),
+			meta: { count: decodedDelegates.length, limit: +limit, offset: +offset },
+			data: paginateList(decodedDelegates, +limit, +offset),
 		});
 	} catch (err) {
 		next(err);

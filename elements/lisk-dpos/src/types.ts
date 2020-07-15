@@ -88,6 +88,7 @@ export interface Chain {
 	};
 	readonly dataAccess: {
 		getConsensusState(key: string): Promise<Buffer | undefined>;
+		getChainState(key: string): Promise<Buffer | undefined>;
 		getBlockHeadersByHeightBetween(fromHeight: number, toHeight: number): Promise<BlockHeader[]>;
 	};
 }
@@ -140,11 +141,11 @@ export interface DecodedVoteWeights {
 	voteWeights: VoteWeights;
 }
 
+export interface RegisteredDelegate {
+	readonly username: string;
+	readonly address: Buffer;
+}
+
 export interface DecodedUsernames {
-	registeredDelegates: [
-		{
-			username: string;
-			address: Buffer;
-		},
-	];
+	registeredDelegates: RegisteredDelegate[];
 }

@@ -100,7 +100,7 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Amount cannot be less than or equal to zero',
 						this.id,
-						'.asset.votes.amount',
+						'.asset.unlockObjects.amount',
 						unlock.amount.toString(),
 					),
 				);
@@ -111,7 +111,7 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Amount should be multiple of 10 * 10^8',
 						this.id,
-						'.asset.votes.amount',
+						'.asset.unlockObjects.amount',
 						unlock.amount.toString(),
 					),
 				);
