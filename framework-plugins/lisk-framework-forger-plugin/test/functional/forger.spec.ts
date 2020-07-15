@@ -41,5 +41,9 @@ describe('Forger endpoint', () => {
 		it('should return forger username', () => {
 			expect(typeof result.data[0].username).toBe('string');
 		});
+
+		it('should return forger totalVotesReceived', () => {
+			expect(typeof result.data[0].totalVotesReceived).toBe('string');
+		});
 	});
 });
