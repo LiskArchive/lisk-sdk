@@ -287,6 +287,7 @@ export class Application {
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (this._controller) {
+			this._channel.publish('app:shutdown');
 			await this._controller.cleanup(errorCode, message);
 		}
 
@@ -350,6 +351,7 @@ export class Application {
 			'app',
 			[
 				'ready',
+				'shutdown',
 				'network:event',
 				'network:ready',
 				'transaction:new',
