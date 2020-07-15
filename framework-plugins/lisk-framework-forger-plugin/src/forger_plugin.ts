@@ -42,6 +42,7 @@ import * as config from './defaults';
 import { Forger, ForgerInfo, Options, TransactionFees } from './types';
 import { DB_KEY_FORGER_INFO } from './constants';
 import { forgerInfoSchema } from './schema';
+import { Web } from './hooks';
 
 interface Data {
 	readonly block: string;
@@ -79,7 +80,8 @@ export class ForgerPlugin extends BasePlugin {
 	private _app!: Express;
 	private _channel!: BaseChannel;
 	private _forgersList!: ReadonlyArray<Forger>;
-	private _transactionFees!: TransactionFees;
+  private _transactionFees!: TransactionFees;
+  private _webhooks!: Web;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -119,6 +121,12 @@ export class ForgerPlugin extends BasePlugin {
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
+    this._webhooks = new Web(
+			{
+				'User-Agent': `lisk-framework-forger-plugin/0.1.0 (${os.platform()} ${os.release()}; ${os.arch()} ${Intl.DateTimeFormat().resolvedOptions().locale}.${process.env.LC_CTYPE ?? ''}) lisk-framework/${options.version}`,
+			},
+			options.webhook);
+
 		this._forgerPluginDB = await this._getDBInstance(options);
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -130,6 +138,14 @@ export class ForgerPlugin extends BasePlugin {
 			await this._setTransactionFees();
 			this._subscribeToChannel();
 			this._server = this._app.listen(options.port, '0.0.0.0');
+		});
+
+		this._channel.once('app:shutdown', () => {
+			this._webhooks.handleEvent('app:shutdown', {
+				event: 'app:shutdown',
+				time: new Date(),
+				payload: { reason: 'node shutdown' },
+			});
 		});
 	}
 

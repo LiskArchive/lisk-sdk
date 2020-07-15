@@ -13,6 +13,8 @@
  */
 import axios from 'axios';
 
+import { Webhook } from '../types';
+
 interface httpHeaders {
 	[key: string]: string;
 }
@@ -43,12 +45,23 @@ interface webHookPayload {
 
 export class Web {
 	private readonly headers: httpHeaders;
+	private readonly registeredEvents: readonly Webhook[];
 
-	public constructor(defaultHeaders: httpHeaders) {
+	public constructor(defaultHeaders: httpHeaders, configuredEvents: readonly Webhook[]) {
 		this.headers = defaultHeaders;
+		this.registeredEvents = configuredEvents;
 	}
 
 	public async execute(eventData: webHookPayload, targetURL: string): Promise<object> {
-		return axios.post(targetURL, eventData, this.headers);
+		return axios.post(targetURL, eventData, { headers: this.headers });
+	}
+
+	public handleEvent(event: string, data: webHookPayload): void {
+		const requiredEvents = [];
+		for (const aRegisteredEvent of this.registeredEvents) {
+			if (aRegisteredEvent.events.includes(event)) {
+				requiredEvents.push({ url: aRegisteredEvent.url, eventName: event, data });
+			}
+		}
 	}
 }
