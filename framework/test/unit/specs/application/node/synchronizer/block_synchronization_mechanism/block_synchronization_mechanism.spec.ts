@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { cloneDeep } from 'lodash';
 import { KVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
+import { objects } from '@liskhq/lisk-utils';
 
 import { BlockProcessorV2 } from '../../../../../../../src/application/node/block_processor_v2';
 import { BlockSynchronizationMechanism } from '../../../../../../../src/application/node/synchronizer';
@@ -302,7 +302,8 @@ describe('block_synchronization_mechanism', () => {
 					},
 				})
 				.mockResolvedValue({
-					data: cloneDeep(requestedBlocks)
+					data: objects
+						.cloneDeep(requestedBlocks)
 						.reverse()
 						.map(b => encodeValidBlock(b).toString('base64')),
 				} as never);
@@ -431,7 +432,7 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith()
 						.mockReturnValue(
 							peersList.connectedPeers.map(peer => {
-								const incompatiblePeer: any = cloneDeep(peer);
+								const incompatiblePeer: any = objects.cloneDeep(peer);
 								delete incompatiblePeer.options[requiredProp];
 								return incompatiblePeer;
 							}) as never,
@@ -578,7 +579,8 @@ describe('block_synchronization_mechanism', () => {
 							},
 						})
 						.mockResolvedValue({
-							data: cloneDeep(requestedBlocks)
+							data: objects
+								.cloneDeep(requestedBlocks)
 								.reverse()
 								.map(b => encodeValidBlock(b).toString('base64')),
 						} as never);
@@ -682,7 +684,8 @@ describe('block_synchronization_mechanism', () => {
 								},
 							})
 							.mockResolvedValue({
-								data: cloneDeep(requestedBlocks)
+								data: objects
+									.cloneDeep(requestedBlocks)
 									.reverse()
 									.map(b => encodeValidBlock(b).toString('base64')),
 							} as never);
@@ -861,7 +864,8 @@ describe('block_synchronization_mechanism', () => {
 						})
 						// getBlocksFromId returns in height desc order
 						.mockResolvedValue({
-							data: cloneDeep(requestedBlocks)
+							data: objects
+								.cloneDeep(requestedBlocks)
 								.reverse()
 								.map(b => encodeValidBlock(b).toString('base64')),
 						} as never);
@@ -885,7 +889,7 @@ describe('block_synchronization_mechanism', () => {
 					'Applying obtained blocks from peer',
 				);
 
-				const blocksToApply = cloneDeep(requestedBlocks);
+				const blocksToApply = objects.cloneDeep(requestedBlocks);
 				const blocksToNotApply = blocksToApply.splice(
 					requestedBlocks.findIndex(block => block.header.id.equals(aBlock.header.id)) + 1,
 				);
@@ -1099,7 +1103,8 @@ describe('block_synchronization_mechanism', () => {
 							})
 							.mockResolvedValue({
 								data: [
-									cloneDeep(requestedBlocks)
+									objects
+										.cloneDeep(requestedBlocks)
 										.reverse()
 										.map(b => encodeValidBlock(b).toString('base64')),
 								],

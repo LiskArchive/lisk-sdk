@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { cloneDeep } from 'lodash';
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
+import { objects } from '@liskhq/lisk-utils';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { EventEmitter } from 'events';
 import { Sequence } from '../utils/sequence';
@@ -185,7 +185,7 @@ export class Processor {
 					lastBlock,
 					stateStore,
 				});
-				const previousLastBlock = cloneDeep(lastBlock);
+				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
 				const newLastBlock = this.chainModule.lastBlock;
 				try {

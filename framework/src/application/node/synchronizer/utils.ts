@@ -11,8 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { maxBy } from 'lodash';
 import { ForkStatus } from '@liskhq/lisk-bft';
 import { Chain } from '@liskhq/lisk-chain';
 import { Processor } from '../processor';
@@ -128,8 +126,8 @@ export const computeLargestSubsetMaxBy = <T>(
 	arrayOfObjects: T[],
 	propertySelectorFunc: (param: T) => number,
 ): T[] => {
-	const maximumBy = maxBy(arrayOfObjects, propertySelectorFunc) as T;
-	const absoluteMax = propertySelectorFunc(maximumBy);
+	const comparableValues = arrayOfObjects.map(propertySelectorFunc);
+	const absoluteMax = Math.max(...comparableValues);
 	const largestSubset = [];
 	// eslint-disable-next-line no-restricted-syntax
 	for (const item of arrayOfObjects) {
