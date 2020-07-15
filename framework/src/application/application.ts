@@ -302,6 +302,9 @@ export class Application {
 			this.logger.fatal({ err: error as Error }, 'failed to shutdown');
 		}
 
+		// Unfreeze the configuration
+		this.config = mergeDeep({}, this.config) as ApplicationConfig;
+
 		process.exit(errorCode);
 	}
 
