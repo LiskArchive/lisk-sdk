@@ -21,7 +21,7 @@ import * as middlewares from './middlewares';
 import * as controllers from './controllers';
 import { Options } from './types';
 
-export const initApi = (options: Options, channel: BaseChannel, _codec: PluginCodec): Express => {
+export const initApi = (options: Options, channel: BaseChannel, codec: PluginCodec): Express => {
 	const app: Express = express();
 
 	// Register before middleware
@@ -32,6 +32,7 @@ export const initApi = (options: Options, channel: BaseChannel, _codec: PluginCo
 
 	// Register controllers
 	app.get('/v1/hello', controllers.helloController(channel));
+	app.get('/api/forgers', controllers.forgers.getForgers(channel, codec));
 
 	// Register after middleware
 	app.use(middlewares.errorMiddleware());

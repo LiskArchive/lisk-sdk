@@ -280,9 +280,27 @@ export class Node {
 				this._chain.blockReward.calculateMilestone(params.height),
 			calculateReward: (params: { height: number }): bigint =>
 				this._chain.blockReward.calculateReward(params.height),
-			getForgerAddressesForRound: async (params: { round: number }): Promise<readonly string[]> => {
-				const forgersAddress = await this._dpos.getForgerAddressesForRound(params.round);
-				return forgersAddress.map(a => a.toString('base64'));
+			getForgersInfoForActiveRound: async (): Promise<
+				ReadonlyArray<{ address: string; nextForgingTime: number }>
+			> => {
+				const currentRound = this._dpos.rounds.calcRound(this._chain.lastBlock.header.height);
+				const forgerAddresses = await this._dpos.getForgerAddressesForRound(currentRound);
+				const slot = this._chain.slots.getSlotNumber(Date.now());
+				const startTime = this._chain.slots.getSlotTime(slot);
+
+				let nextForgingTime = startTime;
+				const slotInRound = slot % this._dpos.delegatesPerRound;
+				const blockTime = this._chain.slots.blockTime();
+				const forgersInfo = [];
+				for (let i = slotInRound; i < slotInRound + this._dpos.delegatesPerRound; i += 1) {
+					forgersInfo.push({
+						address: forgerAddresses[i % forgerAddresses.length].toString('base64'),
+						nextForgingTime,
+					});
+					nextForgingTime += blockTime;
+				}
+
+				return forgersInfo;
 			},
 			getAllDelegates: async (): Promise<readonly string[]> => {
 				const delegatesUsernames = await this._dpos.getAllUsernames();

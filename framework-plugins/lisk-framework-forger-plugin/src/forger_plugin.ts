@@ -411,29 +411,27 @@ export class ForgerPlugin extends BasePlugin {
 		const missedBlocks = Math.ceil((timestamp - previousBlock.timestamp) / blockTime) - 1;
 
 		if (missedBlocks > 0) {
-			const round = await this._channel.invoke('app:getSlotRound', { height });
-			const forgerAddressForRound = await this._channel.invoke<readonly string[]>(
-				'app:getForgerAddressesForRound',
-				{ round },
-			);
-			const forgersRoundLength = forgerAddressForRound.length;
-			const forgerIndex = forgerAddressForRound.findIndex(address => address === forgerAddress);
+			const forgersInfoForRound = await this._channel.invoke<
+				readonly { address: string; nextForgingTime: number }[]
+			>('app:getForgersInfoForActiveRound');
+			const forgersRoundLength = forgersInfoForRound.length;
+			const forgerIndex = forgersInfoForRound.findIndex(f => f.address === forgerAddress);
 
 			const missedBlocksByAddress: missedBlocksByAddress = {};
 
 			for (let index = 0; index < missedBlocks; index += 1) {
 				const rawIndex = (forgerIndex - 1 - index) % forgersRoundLength;
 				const forgerRoundIndex = rawIndex >= 0 ? rawIndex : rawIndex + forgersRoundLength;
-				const missedForgerAddress = forgerAddressForRound[forgerRoundIndex];
-				const missedForger = await getForgerInfo(this._forgerPluginDB, missedForgerAddress);
+				const missedForgerInfo = forgersInfoForRound[forgerRoundIndex];
+				const missedForger = await getForgerInfo(this._forgerPluginDB, missedForgerInfo.address);
 				missedForger.totalMissedBlocks += 1;
 
-				missedBlocksByAddress[missedForgerAddress] =
-					missedBlocksByAddress[missedForgerAddress] === undefined
+				missedBlocksByAddress[missedForgerInfo.address] =
+					missedBlocksByAddress[missedForgerInfo.address] === undefined
 						? 1
-						: (missedBlocksByAddress[missedForgerAddress] += 1);
+						: (missedBlocksByAddress[missedForgerInfo.address] += 1);
 
-				await setForgerInfo(this._forgerPluginDB, missedForgerAddress, missedForger);
+				await setForgerInfo(this._forgerPluginDB, missedForgerInfo.address, missedForger);
 			}
 
 			// Only emit event if block missed and the plugin is not syncing with the forging node
