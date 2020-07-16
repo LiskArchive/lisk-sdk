@@ -170,7 +170,7 @@ export class ForgerPlugin extends BasePlugin {
 			void this._webhooks.handleEvent({
 				event: 'app:shutdown',
 				time: Date.now(),
-				payload: { reason: 'node shutdown' },
+				payload: { reason: 'Node shutdown' },
 			});
 		});
 	}
