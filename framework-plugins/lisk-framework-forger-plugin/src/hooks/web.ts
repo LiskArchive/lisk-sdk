@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import * as Debug from 'debug';
 
 import { Webhook } from '../types';
@@ -30,7 +30,7 @@ interface blockCreated {
 
 interface blockMissed {
 	readonly height: number;
-	readonly missedForgerAddress: string;
+	readonly missedBlocksByAddress: { [key: string]: number };
 }
 
 interface nodeStarted {
@@ -75,6 +75,9 @@ export class Web {
 		} catch (err) {
 			debug('Error during webhook processing');
 			debug(err);
+			if ((err as AxiosError).response) {
+				debug((err as AxiosError).response?.data);
+			}
 		}
 	}
 }

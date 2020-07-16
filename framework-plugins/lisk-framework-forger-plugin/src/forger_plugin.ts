@@ -68,6 +68,10 @@ interface NodeInfo {
 	};
 }
 
+interface missedBlocksByAddress {
+	[key: string]: number;
+}
+
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
 
@@ -229,7 +233,6 @@ export class ForgerPlugin extends BasePlugin {
 
 		// Update height upto which plugin is synced
 		await setForgerSyncInfo(this._forgerPluginDB, lastBlockHeight);
-
 		// Try to sync again if more blocks forged meanwhile
 		await this._syncForgerInfo();
 	}
@@ -413,21 +416,43 @@ export class ForgerPlugin extends BasePlugin {
 			const forgersRoundLength = forgerAddressForRound.length;
 			const forgerIndex = forgerAddressForRound.findIndex(address => address === forgerAddress);
 
+			const missedBlocksByAddress: missedBlocksByAddress = {};
+
 			for (let index = 0; index < missedBlocks; index += 1) {
 				const rawIndex = (forgerIndex - 1 - index) % forgersRoundLength;
 				const forgerRoundIndex = rawIndex >= 0 ? rawIndex : rawIndex + forgersRoundLength;
 				const missedForgerAddress = forgerAddressForRound[forgerRoundIndex];
 				const missedForger = await getForgerInfo(this._forgerPluginDB, missedForgerAddress);
 				missedForger.totalMissedBlocks += 1;
-				await setForgerInfo(this._forgerPluginDB, missedForgerAddress, missedForger);
 
+				missedBlocksByAddress[missedForgerAddress] =
+					missedBlocksByAddress[missedForgerAddress] === undefined
+						? 1
+						: (missedBlocksByAddress[missedForgerAddress] += 1);
+
+				await setForgerInfo(this._forgerPluginDB, missedForgerAddress, missedForger);
+			}
+
+			// Only emit event if block missed and not syncing
+			if (await this._isNodeSynced()) {
 				// eslint-disable-next-line no-void
 				void this._webhooks.handleEvent({
 					event: 'forger:block:missed',
 					time: new Date(),
-					payload: { missedForgerAddress, height },
+					payload: { missedBlocksByAddress, height },
 				});
 			}
 		}
+	}
+
+	private async _isNodeSynced(): Promise<boolean> {
+		const {
+			header: { height: lastBlockHeight },
+		} = this.codec.decodeBlock(await this._channel.invoke<string>('app:getLastBlock'));
+		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
+		if (syncUptoHeight === lastBlockHeight) {
+			return true;
+		}
+		return false;
 	}
 }
