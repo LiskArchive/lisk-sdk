@@ -113,7 +113,6 @@ describe('Node', () => {
 		it('should initialize class properties', () => {
 			expect(node['_logger']).toEqual(stubs.logger);
 			expect(node['_channel']).toEqual(stubs.channel);
-			expect(node['_sequence']).toBeUndefined();
 		});
 	});
 
@@ -217,7 +216,6 @@ describe('Node', () => {
 
 		it('should initialize scope object with valid structure', () => {
 			expect(node).toHaveProperty('_options');
-			expect(node).toHaveProperty('_sequence');
 			expect(node).toHaveProperty('_channel');
 			expect(node).toHaveProperty('_networkIdentifier');
 		});
@@ -316,9 +314,6 @@ describe('Node', () => {
 			await node.bootstrap();
 			jest.spyOn(node['_forger'], 'delegatesEnabled').mockReturnValue(true);
 			jest.spyOn(node['_forger'], 'forge');
-			jest.spyOn(node['_sequence'], 'add').mockImplementation(async fn => {
-				await fn();
-			});
 			jest.spyOn(node['_synchronizer'], 'isActive', 'get').mockReturnValue(false);
 		});
 
@@ -331,7 +326,6 @@ describe('Node', () => {
 
 			// Assert
 			expect(stubs.logger.trace).toHaveBeenNthCalledWith(1, 'No delegates are enabled');
-			expect(node['_sequence'].add).toHaveBeenCalled();
 			expect(node['_forger'].forge).not.toHaveBeenCalled();
 		});
 
@@ -344,14 +338,12 @@ describe('Node', () => {
 
 			// Assert
 			expect(stubs.logger.debug).toHaveBeenNthCalledWith(1, 'Client not ready to forge');
-			expect(node['_sequence'].add).toHaveBeenCalled();
 			expect(node['_forger'].forge).not.toHaveBeenCalled();
 		});
 
 		it('should execute forger.forge otherwise', async () => {
 			await node['_forgingTask']();
 
-			expect(node['_sequence'].add).toHaveBeenCalled();
 			expect(node['_forger'].forge).toHaveBeenCalled();
 		});
 	});

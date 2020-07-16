@@ -14,13 +14,13 @@
 
 import { Block, BlockHeader } from '@liskhq/lisk-chain';
 import { ForkStatus } from '@liskhq/lisk-bft';
+import { jobHandlers } from '@liskhq/lisk-utils';
 import {
 	FakeBlockProcessorV0,
 	FakeBlockProcessorV1,
 	FakeBlockProcessorV2,
 } from './block_processor';
 import { Processor } from '../../../../../../src/application/node/processor';
-import { Sequence } from '../../../../../../src/application/node/utils/sequence';
 
 describe('processor', () => {
 	const defaultLastBlock = {
@@ -91,27 +91,27 @@ describe('processor', () => {
 	describe('constructor', () => {
 		describe('when the instance is created', () => {
 			it('should initialize the processors', () => {
-				expect(processor['processors']).toEqual({});
+				expect(processor['_processors']).toEqual({});
 			});
 
 			it('should initialize the matchers', () => {
-				expect(processor['matchers']).toEqual({});
+				expect(processor['_matchers']).toEqual({});
 			});
 
 			it('should initialize the sequence', () => {
-				expect(processor['sequence']).toBeInstanceOf(Sequence);
+				expect(processor['_jobQueue']).toBeInstanceOf(jobHandlers.JobQueue);
 			});
 
 			it('should assign channel to its context', () => {
-				expect(processor['channel']).toBe(channelStub);
+				expect(processor['_channel']).toBe(channelStub);
 			});
 
 			it('should assign blocks module to its context', () => {
-				expect(processor['chainModule']).toBe(chainModuleStub);
+				expect(processor['_chain']).toBe(chainModuleStub);
 			});
 
 			it('should assign logger to its context', () => {
-				expect(processor['logger']).toBe(loggerStub);
+				expect(processor['_logger']).toBe(loggerStub);
 			});
 		});
 	});
@@ -128,12 +128,12 @@ describe('processor', () => {
 		describe('when processor is register without matcher', () => {
 			it('should set the processors with the version key', () => {
 				processor.register(blockProcessorV1);
-				expect(processor['processors'][1]).toBe(blockProcessorV1);
+				expect(processor['_processors'][1]).toBe(blockProcessorV1);
 			});
 
 			it('should set a functions always return true to the matchers with the version key', () => {
 				processor.register(blockProcessorV1);
-				expect(processor['matchers'][1]({} as any)).toBe(true);
+				expect(processor['_matchers'][1]({} as any)).toBe(true);
 			});
 		});
 
@@ -142,15 +142,15 @@ describe('processor', () => {
 				processor.register(blockProcessorV1, {
 					matcher: ({ height }) => height === 0,
 				});
-				expect(processor['processors'][1]).toBe(blockProcessorV1);
+				expect(processor['_processors'][1]).toBe(blockProcessorV1);
 			});
 
 			it('should set the functions to the matchers with the version key', () => {
 				processor.register(blockProcessorV1, {
 					matcher: ({ height }) => height === 0,
 				});
-				expect(processor['matchers'][1]({ height: 0 } as BlockHeader)).toBe(true);
-				expect(processor['matchers'][1]({ height: 10 } as BlockHeader)).toBe(false);
+				expect(processor['_matchers'][1]({ height: 0 } as BlockHeader)).toBe(true);
+				expect(processor['_matchers'][1]({ height: 10 } as BlockHeader)).toBe(false);
 			});
 		});
 	});

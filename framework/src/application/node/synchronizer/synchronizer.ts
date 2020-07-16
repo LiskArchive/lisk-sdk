@@ -134,6 +134,12 @@ export class Synchronizer {
 		return this.mechanisms.some(m => m.active);
 	}
 
+	public async stop(): Promise<void> {
+		for (const mechanism of this.mechanisms) {
+			await mechanism.stop();
+		}
+	}
+
 	public async loadUnconfirmedTransactions(): Promise<void> {
 		for (let retry = 0; retry < this.loadTransactionsRetries; retry += 1) {
 			try {

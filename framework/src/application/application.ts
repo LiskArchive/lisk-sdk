@@ -293,8 +293,8 @@ export class Application {
 		this.logger.info({ errorCode, message }, 'Shutting down application');
 
 		try {
-			await this._network.cleanup();
 			await this._node.cleanup();
+			await this._network.cleanup();
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
 			await this._nodeDB.close();
