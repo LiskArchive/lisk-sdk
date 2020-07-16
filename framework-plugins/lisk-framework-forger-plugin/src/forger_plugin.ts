@@ -83,6 +83,7 @@ export class ForgerPlugin extends BasePlugin {
 	private _forgersList!: ReadonlyArray<Forger>;
 	private _transactionFees!: TransactionFees;
 	private _webhooks!: Web;
+	private _syncingWithNode!: boolean;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -152,7 +153,9 @@ export class ForgerPlugin extends BasePlugin {
 			await this._setTransactionFees();
 
 			// Sync the information
+			this._syncingWithNode = true;
 			await this._syncForgerInfo();
+			this._syncingWithNode = false;
 
 			// Listen to new block and delete block events
 			this._subscribeToChannel();
@@ -433,8 +436,8 @@ export class ForgerPlugin extends BasePlugin {
 				await setForgerInfo(this._forgerPluginDB, missedForgerAddress, missedForger);
 			}
 
-			// Only emit event if block missed and not syncing
-			if (await this._isNodeSynced()) {
+			// Only emit event if block missed and the plugin is not syncing with the forging node
+			if (!this._syncingWithNode) {
 				// eslint-disable-next-line no-void
 				void this._webhooks.handleEvent({
 					event: 'forger:block:missed',
@@ -443,16 +446,5 @@ export class ForgerPlugin extends BasePlugin {
 				});
 			}
 		}
-	}
-
-	private async _isNodeSynced(): Promise<boolean> {
-		const {
-			header: { height: lastBlockHeight },
-		} = this.codec.decodeBlock(await this._channel.invoke<string>('app:getLastBlock'));
-		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
-		if (syncUptoHeight === lastBlockHeight) {
-			return true;
-		}
-		return false;
 	}
 }
