@@ -19,16 +19,16 @@ export const getForgers = (channel: BaseChannel, codec: PluginCodec) => async (
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
-	let forgersInfo: ReadonlyArray<{ address: string; forging: boolean }>;
+	let forgersFrameworkInfo: ReadonlyArray<{ address: string; forging: boolean }>;
 	try {
-		forgersInfo = await channel.invoke('app:getForgersInfoForActiveRound');
+		forgersFrameworkInfo = await channel.invoke('app:getForgersInfoForActiveRound');
 	} catch (err) {
 		next(err);
 		return;
 	}
 	try {
-		const forgerAccounts = await channel.invoke<Buffer[]>('app:getAccounts', {
-			address: forgersInfo.map(forgerInfo => forgerInfo.address),
+		const forgerAccounts = await channel.invoke<string[]>('app:getAccounts', {
+			address: forgersFrameworkInfo.map(info => info.address),
 		});
 
 		const data = [];
@@ -38,11 +38,11 @@ export const getForgers = (channel: BaseChannel, codec: PluginCodec) => async (
 			data.push({
 				username: account.asset.delegate.username,
 				totalVotesReceived: account.asset.delegate.totalVotesReceived,
-				...forgersInfo[i],
+				...forgersFrameworkInfo[i],
 			});
 		}
 
-		res.status(200).send(data);
+		res.status(200).json({ data, meta: {} });
 	} catch (err) {
 		next(err);
 	}
