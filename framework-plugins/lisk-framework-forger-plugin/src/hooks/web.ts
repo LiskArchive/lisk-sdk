@@ -75,9 +75,7 @@ export class Web {
 		} catch (err) {
 			debug('Error during webhook processing');
 			debug(err);
-			if ((err as AxiosError).response) {
-				debug((err as AxiosError).response?.data);
-			}
+			debug((err as AxiosError).response?.data);
 		}
 	}
 }
