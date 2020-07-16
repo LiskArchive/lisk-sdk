@@ -13,3 +13,4 @@
  */
 
 export * from './hello';
+export * from './voters';

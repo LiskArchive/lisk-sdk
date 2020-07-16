@@ -193,7 +193,7 @@ definitions:
 
   ForgerWithVoters:
     allOf:
-      - $ref: '#/definitions/Forger'
+      - $ref: '#/definitions/ForgerBasicInfo'
       - properties:
           voters:
             type: array
@@ -208,17 +208,17 @@ definitions:
                   example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
                   description: |
                     The binary address in base64 format as defined in LIP-0018.
-                votes:
+                amount:
                   type: string
                   example: 56072
                   description: Votes from that account
 
-  Forger:
+  ForgerBasicInfo:
     type: object
     required:
       - address
       - username
-      - nextForgingTime
+      - totalVotesReceived
     properties:
       address:
         type: string
@@ -238,9 +238,16 @@ definitions:
           The delegates username.
           A delegate chooses the username by registering a delegate on the network.
           It is unique and cannot be changed later.
-      nextForgingTime:
-        type: number
-        example: 4368793
-        description: |
-          Returns the unix timestamp in second in which the forger will be able to forge the next block.
-          Each slot has a time span of 10 seconds.
+
+  Forger:
+    allOf:
+      - $ref: '#/definitions/ForgerBasicInfo'
+      - required:
+        - nextForgingTime
+        properties:
+          nextForgingTime:
+            type: number
+            example: 4368793
+            description: |
+              Returns the unix timestamp in second in which the forger will be able to forge the next block.
+              Each slot has a time span of 10 seconds.
