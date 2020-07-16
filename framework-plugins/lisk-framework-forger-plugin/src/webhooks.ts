@@ -42,7 +42,7 @@ interface nodeStopped {
 
 interface webHookPayload {
 	readonly event: string;
-	readonly time: Date;
+	readonly time: number;
 	readonly payload: blockCreated | blockMissed | nodeStarted | nodeStopped;
 }
 

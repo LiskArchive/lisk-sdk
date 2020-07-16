@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import axios from 'axios';
-import { Web } from '../../src/hooks/web';
+import { Webhooks } from '../../src/webhooks';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('Webhook', () => {
-	let webHook: Web;
+	let webHook: Webhooks;
 	let defaultHeaders: any;
 
 	beforeEach(() => {
@@ -26,7 +26,17 @@ describe('Webhook', () => {
 			'Content-Type': 'application/json',
 			'User-Agent': 'LISK/Test',
 		};
-		webHook = new Web(defaultHeaders);
+		webHook = new Webhooks(defaultHeaders, [
+			{
+				url: 'https://webhook.service.fake',
+				events: [
+					'forging:node:start',
+					'app:shutdown',
+					'forging:block:created',
+					'forger:block:missed',
+				],
+			},
+		]);
 	});
 
 	it('Should post event to webhook', async () => {
@@ -38,14 +48,14 @@ describe('Webhook', () => {
 		} as any);
 
 		const eventData = {
-			event: 'TEST_EVENT',
-			time: new Date(),
+			event: 'forging:node:start',
+			time: Date.now(),
 			payload: { reason: 'broken', address: '0x123131' },
 		};
 		const targetURL = 'https://webhook.service.fake';
 		await webHook.execute(eventData, targetURL);
 		const [requestArgs] = mockedAxios.post.mock.calls;
 
-		expect(requestArgs).toEqual([targetURL, eventData, defaultHeaders]);
+		expect(requestArgs).toEqual([targetURL, eventData, { headers: defaultHeaders }]);
 	});
 });

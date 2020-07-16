@@ -142,7 +142,7 @@ export class ForgerPlugin extends BasePlugin {
 			// eslint-disable-next-line no-void
 			void this._webhooks.handleEvent({
 				event: 'forging:node:start',
-				time: new Date(),
+				time: Date.now(),
 				payload: { reason: 'Node started' },
 			});
 
@@ -169,7 +169,7 @@ export class ForgerPlugin extends BasePlugin {
 			// eslint-disable-next-line no-void
 			void this._webhooks.handleEvent({
 				event: 'app:shutdown',
-				time: new Date(),
+				time: Date.now(),
 				payload: { reason: 'node shutdown' },
 			});
 		});
@@ -307,7 +307,7 @@ export class ForgerPlugin extends BasePlugin {
 			// eslint-disable-next-line no-void
 			void this._webhooks.handleEvent({
 				event: 'forging:block:created',
-				time: new Date(),
+				time: Date.now(),
 				payload: { reward, forgerAddress, height },
 			});
 		}
@@ -441,7 +441,7 @@ export class ForgerPlugin extends BasePlugin {
 				// eslint-disable-next-line no-void
 				void this._webhooks.handleEvent({
 					event: 'forger:block:missed',
-					time: new Date(),
+					time: Date.now(),
 					payload: { missedBlocksByAddress, height },
 				});
 			}
