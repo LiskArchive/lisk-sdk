@@ -16,3 +16,4 @@ import * as voters from './voters';
 
 export * from './hello';
 export { voters };
+export * from './forging';
