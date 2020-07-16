@@ -280,7 +280,7 @@ export class Node {
 				this._chain.blockReward.calculateMilestone(params.height),
 			calculateReward: (params: { height: number }): bigint =>
 				this._chain.blockReward.calculateReward(params.height),
-			getForgersInfoForRound: async (): Promise<
+			getForgersInfoForActiveRound: async (): Promise<
 				ReadonlyArray<{ address: string; nextForgingTime: number }>
 			> => {
 				const currentRound = this._dpos.rounds.calcRound(this._chain.lastBlock.header.height);

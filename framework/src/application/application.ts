@@ -369,8 +369,9 @@ export class Application {
 				getDisconnectedPeers: {
 					handler: (_action: ActionInfoObject) => this._network.getDisconnectedPeers(),
 				},
-				getForgersInfoForRound: {
-					handler: async (_action: ActionInfoObject) => this._node.actions.getForgersInfoForRound(),
+				getForgersInfoForActiveRound: {
+					handler: async (_action: ActionInfoObject) =>
+						this._node.actions.getForgersInfoForActiveRound(),
 				},
 				updateForgingStatus: {
 					handler: async (action: ActionInfoObject) =>

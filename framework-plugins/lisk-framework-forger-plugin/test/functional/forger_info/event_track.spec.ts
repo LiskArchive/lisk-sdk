@@ -139,7 +139,7 @@ describe('Forger Info', () => {
 			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
 			const forgersInfoForRound: Array<{ address: string; nextForgingTime: number }> = await app[
 				'_channel'
-			].invoke('app:getForgersInfoForRound');
+			].invoke('app:getForgersInfoForActiveRound');
 			const lastForgerAddress = getAddressFromPublicKey(
 				Buffer.from(generatorPublicKey, 'base64'),
 			).toString('base64');

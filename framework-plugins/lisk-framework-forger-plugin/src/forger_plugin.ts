@@ -369,7 +369,7 @@ export class ForgerPlugin extends BasePlugin {
 		if (missedBlocks > 0) {
 			const forgersInfoForRound = await this._channel.invoke<
 				readonly { address: string; nextForgingTime: number }[]
-			>('app:getForgersInfoForRound');
+			>('app:getForgersInfoForActiveRound');
 			const forgersRoundLength = forgersInfoForRound.length;
 			const forgerIndex = forgersInfoForRound.findIndex(f => f.address === forgerAddress);
 
@@ -377,9 +377,9 @@ export class ForgerPlugin extends BasePlugin {
 				const rawIndex = (forgerIndex - 1 - index) % forgersRoundLength;
 				const forgerRoundIndex = rawIndex >= 0 ? rawIndex : rawIndex + forgersRoundLength;
 				const missedForgerInfo = forgersInfoForRound[forgerRoundIndex];
-				const missedForger = await this._getForgerInfo(missedForgerInfo.address);
+				const missedForger = await getForgerInfo(this._forgerPluginDB, missedForgerInfo.address);
 				missedForger.totalMissedBlocks += 1;
-				await this._setForgerInfo(missedForgerInfo.address, missedForger);
+				await setForgerInfo(this._forgerPluginDB, missedForgerInfo.address, missedForger);
 			}
 		}
 	}
