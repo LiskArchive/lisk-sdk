@@ -22,7 +22,7 @@ const updateForgingParams = {
 	properties: {
 		address: {
 			type: 'string',
-			description: 'Address should a Base64 string',
+			description: 'Address should be a Base64 string',
 		},
 		password: {
 			type: 'string',
