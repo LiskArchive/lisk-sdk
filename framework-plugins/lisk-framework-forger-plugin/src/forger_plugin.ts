@@ -139,8 +139,8 @@ export class ForgerPlugin extends BasePlugin {
 		this._channel.once('app:ready', async () => {
 			this._app = initApi(options, this._channel, this.codec);
 
-			// eslint-disable-next-line no-void
-			void this._webhooks.handleEvent({
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			this._webhooks.handleEvent({
 				event: 'forging:node:start',
 				time: Date.now(),
 				payload: { reason: 'Node started' },
@@ -166,8 +166,8 @@ export class ForgerPlugin extends BasePlugin {
 
 		// @TODO Fix me! due to the way unload works this event is never fired in time.
 		this._channel.once('app:shutdown', () => {
-			// eslint-disable-next-line no-void
-			void this._webhooks.handleEvent({
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			this._webhooks.handleEvent({
 				event: 'app:shutdown',
 				time: Date.now(),
 				payload: { reason: 'Node shutdown' },
@@ -304,8 +304,8 @@ export class ForgerPlugin extends BasePlugin {
 			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
 			isUpdated = true;
 
-			// eslint-disable-next-line no-void
-			void this._webhooks.handleEvent({
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			this._webhooks.handleEvent({
 				event: 'forging:block:created',
 				time: Date.now(),
 				payload: { reward, forgerAddress, height },
@@ -436,8 +436,8 @@ export class ForgerPlugin extends BasePlugin {
 
 			// Only emit event if block missed and the plugin is not syncing with the forging node
 			if (!this._syncingWithNode) {
-				// eslint-disable-next-line no-void
-				void this._webhooks.handleEvent({
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
+				this._webhooks.handleEvent({
 					event: 'forger:block:missed',
 					time: Date.now(),
 					payload: { missedBlocksByAddress, height },
