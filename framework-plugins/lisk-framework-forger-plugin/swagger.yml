@@ -55,9 +55,36 @@ tags:
     description: Forgers related API endpoints.
 
 schemes:
-  - forger
+  - http
 
 paths:
+  /voters:
+    get:
+      tags:
+        - Forgers
+      summary: Requests voters information for each delegate corresponding to local node
+      description: |
+        Requests voters information for each delegate corresponding to local node
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A list of delegates with voters
+          schema:
+            $ref: '#/definitions/VotersResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
   /forgers:
     get:
       tags:
@@ -131,7 +158,20 @@ definitions:
         items:
           $ref: '#/definitions/Forger'
       meta:
-        type: object
+        $ref: '#/definitions/Meta'
+
+  VotersResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        description: List of forgers with voters.
+        type: array
+        items:
+          $ref: '#/definitions/ForgerWithVoters'
+      meta:
+        $ref: '#/definitions/Meta'
 
   Meta:
     type: object
@@ -150,6 +190,28 @@ definitions:
         format: int32
         minimum: 0
         default: 0
+
+  ForgerWithVoters:
+    allOf:
+      - $ref: '#/definitions/Forger'
+      - properties:
+          voters:
+            type: array
+            items:
+              type: object
+              required:
+                - address
+                - voters
+              properties:
+                address:
+                  type: string
+                  example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+                  description: |
+                    The binary address in base64 format as defined in LIP-0018.
+                votes:
+                  type: string
+                  example: 56072
+                  description: Votes from that account
 
   Forger:
     type: object
