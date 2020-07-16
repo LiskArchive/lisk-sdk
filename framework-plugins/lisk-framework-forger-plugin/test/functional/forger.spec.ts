@@ -35,23 +35,23 @@ describe('Forger endpoint', () => {
 		});
 
 		it('should return list of 103 forgers', () => {
-			expect(result.data).toHaveLength(103);
+			expect(result.data.data).toHaveLength(103);
 		});
 
 		it('should return forger username', () => {
-			expect(typeof result.data[0].username).toBe('string');
+			expect(typeof result.data.data[0].username).toBe('string');
 		});
 
 		it('should return forger totalVotesReceived', () => {
-			expect(typeof result.data[0].totalVotesReceived).toBe('string');
+			expect(typeof result.data.data[0].totalVotesReceived).toBe('string');
 		});
 
 		it('should return forger address', () => {
-			expect(typeof result.data[0].address).toBe('string');
+			expect(typeof result.data.data[0].address).toBe('string');
 		});
 
 		it('should return forger nextForgingTime', () => {
-			expect(typeof result.data[0].nextForgingTime).toBe('number');
+			expect(typeof result.data.data[0].nextForgingTime).toBe('number');
 		});
 	});
 });
