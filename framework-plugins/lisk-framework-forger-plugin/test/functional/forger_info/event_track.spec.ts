@@ -136,16 +136,15 @@ describe('Forger Info', () => {
 	describe('Missed Block', () => {
 		let disableForgerAddresses: string[];
 		beforeEach(async () => {
-			const { height, generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
-			const round = await app['_channel'].invoke('app:getSlotRound', { height });
-			const forgerAddressForRound: string[] = await app[
+			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
+			const forgersInfoForRound: Array<{ address: string; nextForgingTime: number }> = await app[
 				'_channel'
-			].invoke('app:getForgerAddressesForRound', { round });
+			].invoke('app:getForgersInfoForRound');
 			const lastForgerAddress = getAddressFromPublicKey(
 				Buffer.from(generatorPublicKey, 'base64'),
 			).toString('base64');
-			const lastForgerIndex = forgerAddressForRound.findIndex(f => f === lastForgerAddress);
-			disableForgerAddresses = forgerAddressForRound.splice(lastForgerIndex, 1);
+			const lastForgerIndex = forgersInfoForRound.findIndex(f => f.address === lastForgerAddress);
+			disableForgerAddresses = forgersInfoForRound.map(f => f.address).splice(lastForgerIndex, 1);
 
 			await Promise.all(
 				disableForgerAddresses.map(async disableForgerAddress => {
