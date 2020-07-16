@@ -14,7 +14,7 @@
 import axios, { AxiosError } from 'axios';
 import * as Debug from 'debug';
 
-import { Webhook } from '../types';
+import { Webhook } from './types';
 // eslint-disable-next-line new-cap
 const debug = Debug('plugin:forger:webhooks');
 
@@ -46,7 +46,7 @@ interface webHookPayload {
 	readonly payload: blockCreated | blockMissed | nodeStarted | nodeStopped;
 }
 
-export class Web {
+export class Webhooks {
 	private readonly headers: httpHeaders;
 	private readonly registeredEvents: readonly Webhook[];
 

@@ -39,7 +39,7 @@ import {
 } from './db';
 import * as config from './defaults';
 import { Forger, Options, TransactionFees } from './types';
-import { Web } from './hooks';
+import { Webhooks } from './webhooks';
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
 
@@ -82,7 +82,7 @@ export class ForgerPlugin extends BasePlugin {
 	private _channel!: BaseChannel;
 	private _forgersList!: ReadonlyArray<Forger>;
 	private _transactionFees!: TransactionFees;
-	private _webhooks!: Web;
+	private _webhooks!: Webhooks;
 	private _syncingWithNode!: boolean;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -125,7 +125,7 @@ export class ForgerPlugin extends BasePlugin {
 		// eslint-disable-next-line new-cap
 		const { locale } = Intl.DateTimeFormat().resolvedOptions();
 
-		this._webhooks = new Web(
+		this._webhooks = new Webhooks(
 			{
 				'User-Agent': `lisk-framework-forger-plugin/0.1.0 (${os.platform()} ${os.release()}; ${os.arch()} ${locale}.${
 					process.env.LC_CTYPE ?? ''
