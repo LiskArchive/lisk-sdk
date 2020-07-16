@@ -53,7 +53,7 @@ export const getForgingInfo = (
 
 		res.status(200).json({
 			data,
-			meta: {},
+			meta: { count: data.length },
 		});
 	} catch (err) {
 		next(err);

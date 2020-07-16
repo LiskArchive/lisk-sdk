@@ -47,7 +47,7 @@ describe('Forger endpoint', () => {
 			const { data: resultData } = await axios.get(getURL('/api/forging/info'));
 
 			// Assert
-			expect(resultData.data).toHaveLength(forgersInfo.length);
+			expect(resultData.meta.count).toEqual(forgersInfo.length);
 			expect(Object.keys(resultData.data[0])).toEqual([
 				'address',
 				'forging',
