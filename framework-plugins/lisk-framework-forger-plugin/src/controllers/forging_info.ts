@@ -24,28 +24,31 @@ export const getForgingInfo = (
 	forgerPluginDB: KVStore,
 ) => async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		const forgersInfo = await channel.invoke<ReadonlyArray<Forger>>(
-			'app:getForgerAddressesForRound',
+		const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>(
+			'app:getForgingStatusOfAllDelegates',
 		);
 		const forgerAccounts = await channel.invoke<Buffer[]>('app:getAccounts', {
-			address: forgersInfo.map(forgerInfo => forgerInfo.address),
+			address: forgingDelegates.map(forgerInfo => forgerInfo.address),
 		});
 
 		const data = [];
-		for (let i = 0; i < forgerAccounts.length; i += 1) {
-			const account = codec.decodeAccount(forgerAccounts[i]);
+		for (const forgerAccount of forgerAccounts) {
+			const account = codec.decodeAccount(forgerAccount);
 			const forgerAddressBinary = Buffer.from(account.address, 'base64').toString('binary');
 			const forgerInfo = await getForgerInfo(forgerPluginDB, forgerAddressBinary);
+			const forger = forgingDelegates.find(aForger => aForger.address === account.address);
 
-			data.push({
-				username: account.asset.delegate.username,
-				totalReceivedFees: forgerInfo.totalReceivedFees,
-				totalReceivedRewards: forgerInfo.totalReceivedRewards,
-				totalProducedBlocks: forgerInfo.totalProducedBlocks,
-				totalVotesReceived: account.asset.delegate.totalVotesReceived,
-				consecutiveMissedBlocks: account.asset.delegate.consecutiveMissedBlocks,
-				...forgersInfo[i],
-			});
+			if (forger) {
+				data.push({
+					...forger,
+					username: account.asset.delegate.username,
+					totalReceivedFees: forgerInfo.totalReceivedFees.toString(),
+					totalReceivedRewards: forgerInfo.totalReceivedRewards.toString(),
+					totalProducedBlocks: forgerInfo.totalProducedBlocks,
+					totalVotesReceived: account.asset.delegate.totalVotesReceived,
+					consecutiveMissedBlocks: account.asset.delegate.consecutiveMissedBlocks,
+				});
+			}
 		}
 
 		res.status(200).json({
