@@ -14,16 +14,35 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Application, ApplicationConfig, GenesisBlockJSON } from 'lisk-framework';
-import * as genesisBlockJSON from '../fixtures/genesis_block.json';
+import { Application, ApplicationConfig } from 'lisk-framework';
+import { validator } from '@liskhq/lisk-validator';
 import * as configJSON from '../fixtures/config.json';
 import { ForgerPlugin } from '../../src';
+import { getGenesisBlockJSON } from './genesis_block';
 
 const forgerApiPort = 5001;
 
+export const startApplication = async (app: Application): Promise<void> => {
+	// TODO: Need to figure out why below error appears but its only in tests
+	//  Trace: Error: schema with key or id "/block/header"
+	validator.removeSchema('/block/header');
+
+	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
+	await new Promise(resolve => {
+		app['_channel'].subscribe('app:block:new', () => {
+			if (app['_node']['_chain'].lastBlock.header.height > 1) {
+				resolve();
+			}
+		});
+	});
+};
+
 export const createApplication = async (
 	label: string,
-	consoleLogLevel?: string,
+	options: { consoleLogLevel?: string; clearDB: boolean } = {
+		clearDB: true,
+		consoleLogLevel: 'fatal',
+	},
 ): Promise<Application> => {
 	const rootPath = '~/.lisk/forger-plugin';
 	const config = ({
@@ -31,7 +50,7 @@ export const createApplication = async (
 		rootPath,
 		label,
 		logger: {
-			consoleLogLevel: consoleLogLevel ?? 'fatal',
+			consoleLogLevel: options.consoleLogLevel,
 			fileLogLevel: 'fatal',
 		},
 		network: {
@@ -44,31 +63,37 @@ export const createApplication = async (
 		},
 	} as unknown) as Partial<ApplicationConfig>;
 
-	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
+	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
+	const genesisBlock = getGenesisBlockJSON({
+		timestamp: Math.floor(Date.now() / 1000) - 30,
+	});
+
+	const app = new Application(genesisBlock, config);
 	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: false });
 
-	// Remove pre-existing data
-	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
+	if (options.clearDB) {
+		// Remove pre-existing data
+		fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
+	}
 
-	// eslint-disable-next-line @typescript-eslint/no-floating-promises
-	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
-	await new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height === 2) {
-				resolve();
-			}
-		});
-	});
+	await startApplication(app);
 	return app;
 };
 
-export const closeApplication = async (app: Application): Promise<void> => {
+export const closeApplication = async (
+	app: Application,
+	options: { clearDB: boolean } = { clearDB: true },
+): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-	await app['_forgerDB'].clear();
-	await app['_blockchainDB'].clear();
-	const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
-	await forgerPluginInstance['_forgerPluginDB'].clear();
+
+	if (options.clearDB) {
+		await app['_forgerDB'].clear();
+		await app['_blockchainDB'].clear();
+		const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+		await forgerPluginInstance['_forgerPluginDB'].clear();
+	}
+
 	await app.shutdown();
 };
 

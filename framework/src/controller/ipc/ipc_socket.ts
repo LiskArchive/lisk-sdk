@@ -47,7 +47,7 @@ export abstract class IPCSocket {
 	}
 
 	public stop(): void {
-		this.subSocket.removeAllListeners('message');
+		this.subSocket.removeAllListeners();
 		this.pubSocket.close();
 		this.subSocket.close();
 		this.rpcServer.sock.close();

@@ -13,12 +13,7 @@
  */
 
 import { Server } from 'http';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as os from 'os';
-import * as Debug from 'debug';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import { KVStore } from '@liskhq/lisk-db';
 import {
 	ActionsDefinition,
@@ -32,16 +27,19 @@ import {
 } from 'lisk-framework';
 import { VoteTransaction } from '@liskhq/lisk-transactions';
 import { objects } from '@liskhq/lisk-utils';
-import * as express from 'express';
 import type { Express } from 'express';
-import * as cors from 'cors';
-import * as rateLimit from 'express-rate-limit';
-import * as controllers from './controllers';
-import * as middlewares from './middlewares';
+import { initApi } from './api';
+import {
+	getDBInstance,
+	getForgerInfo,
+	getForgerSyncInfo,
+	setForgerInfo,
+	setForgerSyncInfo,
+} from './db';
 import * as config from './defaults';
-import { Forger, ForgerInfo, Options, TransactionFees } from './types';
-import { DB_KEY_FORGER_INFO } from './constants';
-import { forgerInfoSchema } from './schema';
+import { Forger, Options, TransactionFees } from './types';
+
+const BLOCKS_BATCH_TO_SYNC = 1000;
 
 interface Data {
 	readonly block: string;
@@ -70,8 +68,6 @@ interface NodeInfo {
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
-// eslint-disable-next-line new-cap
-const debug = Debug('plugin:forger');
 
 export class ForgerPlugin extends BasePlugin {
 	private _forgerPluginDB!: KVStore;
@@ -115,105 +111,124 @@ export class ForgerPlugin extends BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
-		this._app = express();
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
-		this._forgerPluginDB = await this._getDBInstance(options);
+		this._forgerPluginDB = await getDBInstance(options.dataPath);
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {
-			this._registerMiddlewares(options);
-			this._registerControllers();
-			this._registerAfterMiddlewares(options);
+			this._app = initApi(options, this._channel, this.codec);
+
+			// Fetch and set forger list from the app
 			await this._setForgersList();
+
+			// Fetch and set transactions fees
 			await this._setTransactionFees();
+
+			// Sync the information
+			await this._syncForgerInfo();
+
+			// Listen to new block and delete block events
 			this._subscribeToChannel();
+
+			// Start http server
 			this._server = this._app.listen(options.port, '0.0.0.0');
 		});
 	}
 
 	public async unload(): Promise<void> {
-		await new Promise((resolve, reject) => {
-			this._server.close(err => {
-				if (err) {
-					reject(err);
-					return;
-				}
-				resolve();
+		// eslint-disable-next-line consistent-return
+		if (this._server !== undefined) {
+			await new Promise((resolve, reject) => {
+				this._server.close(err => {
+					if (err) {
+						reject(err);
+						return;
+					}
+					resolve();
+				});
 			});
-		});
+		}
 
 		await this._forgerPluginDB.close();
 	}
 
-	private _registerMiddlewares(options: Options): void {
-		// Register middlewares
-		this._app.use(cors(options.cors));
-		this._app.use(express.json());
-		this._app.use(rateLimit(options.limits));
-		this._app.use(middlewares.whiteListMiddleware(options));
-	}
+	private async _syncForgerInfo(): Promise<void> {
+		const {
+			header: { height: lastBlockHeight },
+		} = this.codec.decodeBlock(await this._channel.invoke<string>('app:getLastBlock'));
+		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
 
-	private _registerAfterMiddlewares(_options: Options): void {
-		this._app.use(middlewares.errorMiddleware());
-	}
+		if (syncUptoHeight === lastBlockHeight) {
+			// No need to sync
+			return;
+		}
 
-	private _registerControllers(): void {
-		this._app.get('/v1/hello', controllers.helloController(this._channel));
-	}
+		let needleHeight: number;
 
-	// eslint-disable-next-line class-methods-use-this
-	private async _getDBInstance(
-		options: Options,
-		dbName = 'lisk-framework-forger-plugin.db',
-	): Promise<KVStore> {
-		const resolvedPath = options.dataPath.replace('~', os.homedir());
-		const dirPath = path.join(resolvedPath, dbName);
-		await fs.ensureDir(dirPath);
+		if (syncUptoHeight > lastBlockHeight) {
+			// Clear all forging information we have and sync again
+			await this._forgerPluginDB.clear();
+			needleHeight = 1;
+		} else {
+			needleHeight = syncUptoHeight + 1;
+		}
 
-		return new KVStore(dirPath);
+		// Sync in batch of 1000 blocks
+		while (needleHeight <= lastBlockHeight) {
+			const toHeight =
+				needleHeight +
+				(needleHeight + BLOCKS_BATCH_TO_SYNC <= lastBlockHeight
+					? BLOCKS_BATCH_TO_SYNC
+					: lastBlockHeight - needleHeight);
+
+			const blocks = await this._channel.invoke<string[]>('app:getBlocksByHeightBetween', {
+				from: needleHeight,
+				to: toHeight,
+			});
+
+			// Reverse the blocks to get blocks from lower height to highest
+			for (const block of blocks.reverse()) {
+				await this._incrementForgerInfo(block);
+			}
+
+			needleHeight = toHeight + 1;
+		}
+
+		// Update height upto which plugin is synced
+		await setForgerSyncInfo(this._forgerPluginDB, lastBlockHeight);
+
+		// Try to sync again if more blocks forged meanwhile
+		await this._syncForgerInfo();
 	}
 
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app:block:new', async (eventInfo: EventInfoObject) => {
 			const { block } = eventInfo.data as Data;
+			const {
+				header: { height },
+			} = this._getForgerHeaderAndPayloadInfo(block);
+
 			await this._incrementForgerInfo(block);
+			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app:block:delete', async (eventInfo: EventInfoObject) => {
 			const { block } = eventInfo.data as Data;
+			const {
+				header: { height },
+			} = this._getForgerHeaderAndPayloadInfo(block);
+
 			await this._decrementForgerInfo(block);
+			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 	}
 
 	private async _setForgersList(): Promise<void> {
 		this._forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatusOfAllDelegates');
-	}
-
-	private async _getForgerInfo(forgerAddress: string): Promise<ForgerInfo> {
-		let forgerInfo;
-		try {
-			forgerInfo = await this._forgerPluginDB.get(`${DB_KEY_FORGER_INFO}:${forgerAddress}`);
-		} catch (error) {
-			debug(`Forger info does not exists for delegate: ${forgerAddress}`);
-			return {
-				totalProducedBlocks: 0,
-				totalMissedBlocks: 0,
-				totalReceivedFees: BigInt(0),
-				totalReceivedRewards: BigInt(0),
-				votesReceived: [],
-			};
-		}
-
-		return codec.decode<ForgerInfo>(forgerInfoSchema, forgerInfo);
-	}
-
-	private async _setForgerInfo(forgerAddress: string, forgerInfo: ForgerInfo): Promise<void> {
-		const encodedForgerInfo = codec.encode(forgerInfoSchema, forgerInfo);
-		await this._forgerPluginDB.put(`${DB_KEY_FORGER_INFO}:${forgerAddress}`, encodedForgerInfo);
 	}
 
 	private async _setTransactionFees(): Promise<void> {
@@ -243,7 +258,7 @@ export class ForgerPlugin extends BasePlugin {
 			header: { reward },
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
-		const forgerInfo = await this._getForgerInfo(forgerAddressBinary);
+		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 		let isUpdated = false;
 
 		if (this._forgersList.find(forger => forger.address === forgerAddress)) {
@@ -280,7 +295,7 @@ export class ForgerPlugin extends BasePlugin {
 		await this._updateMissedBlock(encodedBlock);
 
 		if (isUpdated) {
-			await this._setForgerInfo(forgerAddressBinary, { ...forgerInfo });
+			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 	}
 
@@ -291,7 +306,7 @@ export class ForgerPlugin extends BasePlugin {
 			header: { reward },
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
-		const forgerInfo = await this._getForgerInfo(forgerAddressBinary);
+		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 		let isUpdated = false;
 
 		if (this._forgersList.find(forger => forger.address === forgerAddress)) {
@@ -319,7 +334,7 @@ export class ForgerPlugin extends BasePlugin {
 		}
 
 		if (isUpdated) {
-			await this._setForgerInfo(forgerAddressBinary, { ...forgerInfo });
+			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 	}
 
@@ -364,9 +379,9 @@ export class ForgerPlugin extends BasePlugin {
 				const rawIndex = (forgerIndex - 1 - index) % forgersRoundLength;
 				const forgerRoundIndex = rawIndex >= 0 ? rawIndex : rawIndex + forgersRoundLength;
 				const missedForgerAddress = forgerAddressForRound[forgerRoundIndex];
-				const missedForger = await this._getForgerInfo(missedForgerAddress);
+				const missedForger = await getForgerInfo(this._forgerPluginDB, missedForgerAddress);
 				missedForger.totalMissedBlocks += 1;
-				await this._setForgerInfo(missedForgerAddress, missedForger);
+				await setForgerInfo(this._forgerPluginDB, missedForgerAddress, missedForger);
 			}
 		}
 	}
