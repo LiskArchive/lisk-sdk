@@ -18,39 +18,36 @@ import { Webhook } from './types';
 // eslint-disable-next-line new-cap
 const debug = Debug('plugin:forger:webhooks');
 
-interface httpHeaders {
+interface HttpHeaders {
 	[key: string]: string;
 }
 
-interface blockCreated {
+interface BlockCreated {
 	readonly height: number;
 	readonly reward: string;
 	readonly forgerAddress: string;
 }
 
-interface blockMissed {
+interface BlockMissed {
 	readonly height: number;
 	readonly missedBlocksByAddress: { [key: string]: number };
 }
 
-interface nodeStarted {
-	readonly reason: string;
-}
-interface nodeStopped {
+interface NodeStatusChange {
 	readonly reason: string;
 }
 
 interface webHookPayload {
 	readonly event: string;
 	readonly time: number;
-	readonly payload: blockCreated | blockMissed | nodeStarted | nodeStopped;
+	readonly payload: BlockCreated | BlockMissed | NodeStatusChange;
 }
 
 export class Webhooks {
-	private readonly headers: httpHeaders;
+	private readonly headers: HttpHeaders;
 	private readonly registeredEvents: readonly Webhook[];
 
-	public constructor(defaultHeaders: httpHeaders, configuredEvents: readonly Webhook[]) {
+	public constructor(defaultHeaders: HttpHeaders, configuredEvents: readonly Webhook[]) {
 		this.headers = defaultHeaders;
 		this.registeredEvents = configuredEvents;
 	}
