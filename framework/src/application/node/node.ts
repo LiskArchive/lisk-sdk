@@ -289,10 +289,10 @@ export class Node {
 				const startTime = this._chain.slots.getSlotTime(slot);
 
 				let nextForgingTime = startTime;
-				const slotInRound = slot % 103;
+				const slotInRound = slot % this._dpos.delegatesPerRound;
 				const blockTime = this._chain.slots.blockTime();
 				const forgersInfo = [];
-				for (let i = slotInRound; i < slotInRound + 103; i += 1) {
+				for (let i = slotInRound; i < slotInRound + this._dpos.delegatesPerRound; i += 1) {
 					forgersInfo.push({
 						address: forgerAddresses[i % forgerAddresses.length].toString('base64'),
 						nextForgingTime,
