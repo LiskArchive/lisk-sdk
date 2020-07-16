@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Application } from 'lisk-framework';
 
 import {
@@ -22,6 +23,7 @@ import {
 	waitTill,
 } from '../../utils/application';
 import { ForgerPlugin } from '../../../src';
+import { getForgerInfo as getForgerInfoFromDB } from '../../../src/db';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
 

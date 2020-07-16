@@ -18,11 +18,11 @@ import { KVStore } from '@liskhq/lisk-db';
 import { getForgerInfo } from '../db';
 import { Forger } from '../types';
 
-export const getForgingInfo = (
-	channel: BaseChannel,
-	codec: PluginCodec,
-	forgerPluginDB: KVStore,
-) => async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getForgingInfo = (channel: BaseChannel, codec: PluginCodec, db: KVStore) => async (
+	_req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
 	try {
 		const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>(
 			'app:getForgingStatusOfAllDelegates',
@@ -35,7 +35,7 @@ export const getForgingInfo = (
 		for (const forgerAccount of forgerAccounts) {
 			const account = codec.decodeAccount(forgerAccount);
 			const forgerAddressBinary = Buffer.from(account.address, 'base64').toString('binary');
-			const forgerInfo = await getForgerInfo(forgerPluginDB, forgerAddressBinary);
+			const forgerInfo = await getForgerInfo(db, forgerAddressBinary);
 			const forger = forgingDelegates.find(aForger => aForger.address === account.address);
 
 			if (forger) {
