@@ -24,12 +24,17 @@ import {
 import { ForgerPlugin } from '../../../src';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
+import { getForgerInfo as getForgerInfoFromDB } from '../../../src/db';
 
 const getForgerInfo = async (forgerPluginInstance: ForgerPlugin, generatorPublicKey: string) => {
 	const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString(
 		'binary',
 	);
-	const forgerInfo = await forgerPluginInstance['_getForgerInfo'](forgerAddress);
+
+	const forgerInfo = await getForgerInfoFromDB(
+		forgerPluginInstance['_forgerPluginDB'],
+		forgerAddress,
+	);
 
 	return forgerInfo;
 };
@@ -39,7 +44,7 @@ describe('Forger Info', () => {
 	let accountNonce = 0;
 
 	beforeAll(async () => {
-		app = await createApplication('transactions');
+		app = await createApplication('event_track');
 	});
 
 	afterAll(async () => {
@@ -161,7 +166,10 @@ describe('Forger Info', () => {
 			await Promise.all(
 				disableForgerAddresses.map(async missedForgerAddress => {
 					const forgerAddressBinary = Buffer.from(missedForgerAddress, 'base64').toString('binary');
-					const forgerInfo = await forgerPluginInstance['_getForgerInfo'](forgerAddressBinary);
+					const forgerInfo = await getForgerInfoFromDB(
+						forgerPluginInstance['_forgerPluginDB'],
+						forgerAddressBinary,
+					);
 					expect(forgerInfo).toMatchSnapshot();
 				}),
 			);

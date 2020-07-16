@@ -246,6 +246,7 @@ export class Bus {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async cleanup(): Promise<void> {
+		this._emitter.removeAllListeners();
 		this._ipcServer.stop();
 	}
 
