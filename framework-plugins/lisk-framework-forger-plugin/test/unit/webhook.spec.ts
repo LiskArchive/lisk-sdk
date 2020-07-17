@@ -53,7 +53,7 @@ describe('Webhook', () => {
 
 		const eventData = {
 			event: 'forger:node:start',
-			time: Date.now(),
+			timestamp: Date.now(),
 			payload: { reason: 'broken', address: '0x123131' },
 		};
 		const targetURL = 'https://webhook.service.fake';
@@ -73,7 +73,7 @@ describe('Webhook', () => {
 
 		await webHook.handleEvent({
 			event: 'forger:block:created',
-			time: Date.now(),
+			timestamp: Date.now(),
 			payload: { reward: '0', forgerAddress: '0x13231', height: 1 },
 		});
 
@@ -103,7 +103,7 @@ describe('Webhook', () => {
 
 		await webHook.handleEvent({
 			event: 'forger:block:created',
-			time: Date.now(),
+			timestamp: Date.now(),
 			payload: { reward: '0', forgerAddress: '0x13231', height: 1 },
 		});
 

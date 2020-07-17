@@ -39,7 +39,7 @@ interface NodeStatusChange {
 
 interface WebHookPayload {
 	readonly event: string;
-	readonly time: number;
+	readonly timestamp: number;
 	readonly payload: BlockCreated | BlockMissed | NodeStatusChange;
 }
 
