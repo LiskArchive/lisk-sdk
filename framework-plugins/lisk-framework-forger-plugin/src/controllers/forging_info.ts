@@ -27,26 +27,27 @@ export const getForgingInfo = (channel: BaseChannel, codec: PluginCodec, db: KVS
 		const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>(
 			'app:getForgingStatusOfAllDelegates',
 		);
-		const forgerAccounts = await channel.invoke<Buffer[]>('app:getAccounts', {
-			address: forgingDelegates.map(forgerInfo => forgerInfo.address),
-		});
+		const forgerAccounts = (
+			await channel.invoke<string[]>('app:getAccounts', {
+				address: forgingDelegates.map(forger => forger.address),
+			})
+		).map(encodedAccount => codec.decodeAccount(encodedAccount));
 
 		const data = [];
 		for (const forgerAccount of forgerAccounts) {
-			const account = codec.decodeAccount(forgerAccount);
-			const forgerAddressBinary = Buffer.from(account.address, 'base64').toString('binary');
+			const forgerAddressBinary = Buffer.from(forgerAccount.address, 'base64').toString('binary');
 			const forgerInfo = await getForgerInfo(db, forgerAddressBinary);
-			const forger = forgingDelegates.find(aForger => aForger.address === account.address);
+			const forger = forgingDelegates.find(aForger => aForger.address === forgerAccount.address);
 
 			if (forger) {
 				data.push({
 					...forger,
-					username: account.asset.delegate.username,
+					username: forgerAccount.asset.delegate.username,
 					totalReceivedFees: forgerInfo.totalReceivedFees.toString(),
 					totalReceivedRewards: forgerInfo.totalReceivedRewards.toString(),
 					totalProducedBlocks: forgerInfo.totalProducedBlocks,
-					totalVotesReceived: account.asset.delegate.totalVotesReceived,
-					consecutiveMissedBlocks: account.asset.delegate.consecutiveMissedBlocks,
+					totalVotesReceived: forgerAccount.asset.delegate.totalVotesReceived,
+					consecutiveMissedBlocks: forgerAccount.asset.delegate.consecutiveMissedBlocks,
 				});
 			}
 		}

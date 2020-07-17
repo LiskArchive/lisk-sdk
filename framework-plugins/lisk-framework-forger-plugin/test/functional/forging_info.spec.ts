@@ -48,16 +48,6 @@ describe('Forger endpoint', () => {
 
 			// Assert
 			expect(resultData.meta.count).toEqual(forgersInfo.length);
-			expect(Object.keys(resultData.data[0])).toEqual([
-				'address',
-				'forging',
-				'username',
-				'totalReceivedFees',
-				'totalReceivedRewards',
-				'totalProducedBlocks',
-				'totalVotesReceived',
-				'consecutiveMissedBlocks',
-			]);
 			expect(resultData.data).toMatchSnapshot();
 			expect(
 				resultData.data.filter(
