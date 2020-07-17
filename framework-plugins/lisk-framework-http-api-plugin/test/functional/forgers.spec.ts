@@ -13,7 +13,7 @@
  */
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import { createApplication, closeApplication, waitNBlocks, getURL } from '../utils/application';
+import { createApplication, closeApplication, waitNBlocks, getURL } from './utils/application';
 
 describe('Forger endpoint', () => {
 	let app: Application;

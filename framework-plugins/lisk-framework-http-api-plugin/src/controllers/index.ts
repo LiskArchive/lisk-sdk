@@ -18,6 +18,7 @@ import * as node from './node';
 import * as blocks from './blocks';
 import * as peers from './peers';
 import * as delegates from './delegates';
+import * as forgers from './forgers';
 
 export * from './hello';
-export { accounts, blocks, node, transactions, peers, delegates };
+export { accounts, blocks, node, transactions, peers, delegates, forgers };
