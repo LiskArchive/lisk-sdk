@@ -37,8 +37,8 @@ export const initApi = (
 	app.use(middlewares.whiteListMiddleware(options));
 
 	// Register controllers
-	app.get('/v1/hello', controllers.helloController(channel));
 	app.get('/api/voters', controllers.voters.getVoters(channel, codec, db));
+	app.patch('/api/forging', controllers.forging.updateForging(channel, db));
 
 	// Register after middleware
 	app.use(middlewares.errorMiddleware());
