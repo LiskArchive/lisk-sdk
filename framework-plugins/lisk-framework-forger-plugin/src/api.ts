@@ -41,7 +41,7 @@ export const initApi = (
 	app.patch('/api/forging', controllers.forging.updateForging(channel, db));
 	app.get(
 		'/api/forging/info',
-		controllers.forgingInfo.getForgingInfo(channel, codec, forgerPluginDB),
+		controllers.forgingInfo.getForgingInfo(channel, codec, db),
 	);
 
 	// Register after middleware
