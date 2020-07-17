@@ -30,13 +30,17 @@ describe('Webhook', () => {
 			{
 				url: 'https://webhook.service.fake',
 				events: [
-					'forging:node:start',
-					'app:shutdown',
-					'forging:block:created',
+					'forger:node:start',
+					'forger:app:shutdown',
+					'forger:block:created',
 					'forger:block:missed',
 				],
 			},
 		]);
+	});
+
+	afterEach(() => {
+		mockedAxios.post.mockClear();
 	});
 
 	it('Should post event to webhook', async () => {
@@ -48,7 +52,7 @@ describe('Webhook', () => {
 		} as any);
 
 		const eventData = {
-			event: 'forging:node:start',
+			event: 'forger:node:start',
 			time: Date.now(),
 			payload: { reason: 'broken', address: '0x123131' },
 		};
@@ -57,5 +61,52 @@ describe('Webhook', () => {
 		const [requestArgs] = mockedAxios.post.mock.calls;
 
 		expect(requestArgs).toEqual([targetURL, eventData, { headers: defaultHeaders }]);
+	});
+
+	it('Should not call execute if event is cconfigured', async () => {
+		(webHook as any)['registeredEvents'] = [
+			{
+				url: 'https://webhook.service.fake',
+				events: ['forger:block:created'],
+			},
+		];
+
+		await webHook.handleEvent({
+			event: 'forger:block:created',
+			time: Date.now(),
+			payload: { reward: '0', forgerAddress: '0x13231', height: 1 },
+		});
+
+		const expectedCallArgs = [
+			'https://webhook.service.fake',
+			{
+				event: 'forger:block:created',
+				payload: { reward: '0', forgerAddress: '0x13231', height: 1 },
+			},
+			{
+				headers: { 'Content-Type': 'application/json', 'User-Agent': 'LISK/Test' },
+			},
+		];
+
+		const [httpCallArgs] = mockedAxios.post.mock.calls;
+
+		expect(httpCallArgs).toMatchObject(expectedCallArgs);
+	});
+
+	it('Should not call execute if event is not cconfigured', async () => {
+		(webHook as any)['registeredEvents'] = [
+			{
+				url: 'https://webhook.service.fake',
+				events: ['forger:node:start', 'forger:app:shutdown', 'forger:block:missed'],
+			},
+		];
+
+		await webHook.handleEvent({
+			event: 'forger:block:created',
+			time: Date.now(),
+			payload: { reward: '0', forgerAddress: '0x13231', height: 1 },
+		});
+
+		expect(mockedAxios.post.mock.calls).toHaveLength(0);
 	});
 });
