@@ -15,10 +15,13 @@ import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { Application, ApplicationConfig } from 'lisk-framework';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import * as configJSON from '../fixtures/config.json';
 import { ForgerPlugin } from '../../src';
+import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
 import { getGenesisBlockJSON } from './genesis_block';
+import { ForgerInfo } from '../../src/types';
 
 const forgerApiPort = 5001;
 
@@ -141,4 +144,20 @@ export const callNetwork = async (
 	}
 
 	return { status, response };
+};
+
+export const getForgerInfo = async (
+	forgerPluginInstance: ForgerPlugin,
+	generatorPublicKey: string,
+): Promise<ForgerInfo> => {
+	const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString(
+		'binary',
+	);
+
+	const forgerInfo = await getForgerInfoFromDB(
+		forgerPluginInstance['_forgerPluginDB'],
+		forgerAddress,
+	);
+
+	return forgerInfo;
 };

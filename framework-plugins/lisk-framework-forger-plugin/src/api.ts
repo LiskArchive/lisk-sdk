@@ -39,6 +39,7 @@ export const initApi = (
 	// Register controllers
 	app.get('/api/voters', controllers.voters.getVoters(channel, codec, db));
 	app.patch('/api/forging', controllers.forging.updateForging(channel, db));
+	app.get('/api/forging/info', controllers.forgingInfo.getForgingInfo(channel, codec, db));
 
 	// Register after middleware
 	app.use(middlewares.errorMiddleware());
