@@ -74,6 +74,8 @@ interface MissedBlocksByAddress {
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
+const getBinaryAddress = (base64AddressStr: string) =>
+	Buffer.from(base64AddressStr, 'base64').toString('binary');
 
 export class ForgerPlugin extends BasePlugin {
 	private _forgerPluginDB!: KVStore;
@@ -129,7 +131,7 @@ export class ForgerPlugin extends BasePlugin {
 			{
 				'User-Agent': `lisk-framework-forger-plugin/0.1.0 (${os.platform()} ${os.release()}; ${os.arch()} ${locale}.${
 					process.env.LC_CTYPE ?? ''
-				}) lisk-framework/${options.version}`,
+					}) lisk-framework/${options.version}`,
 			},
 			options.webhook,
 		);
@@ -228,7 +230,7 @@ export class ForgerPlugin extends BasePlugin {
 
 			// Reverse the blocks to get blocks from lower height to highest
 			for (const block of blocks.reverse()) {
-				await this._incrementForgerInfo(block);
+				await this._addForgerInfo(block);
 			}
 
 			needleHeight = toHeight + 1;
@@ -248,7 +250,7 @@ export class ForgerPlugin extends BasePlugin {
 				header: { height },
 			} = this._getForgerHeaderAndPayloadInfo(block);
 
-			await this._incrementForgerInfo(block);
+			await this._addForgerInfo(block);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 
@@ -259,7 +261,7 @@ export class ForgerPlugin extends BasePlugin {
 				header: { height },
 			} = this._getForgerHeaderAndPayloadInfo(block);
 
-			await this._decrementForgerInfo(block);
+			await this._revertForgerInfo(block);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 	}
@@ -277,8 +279,7 @@ export class ForgerPlugin extends BasePlugin {
 		const forgerAddress = getAddressFromPublicKey(
 			Buffer.from(header.generatorPublicKey, 'base64'),
 		).toString('base64');
-		const forgerAddressBuffer = Buffer.from(forgerAddress, 'base64');
-		const forgerAddressBinary = forgerAddressBuffer.toString('binary');
+		const forgerAddressBinary = getBinaryAddress(forgerAddress);
 
 		return {
 			forgerAddress,
@@ -288,7 +289,7 @@ export class ForgerPlugin extends BasePlugin {
 		};
 	}
 
-	private async _incrementForgerInfo(encodedBlock: string): Promise<void> {
+	private async _addForgerInfo(encodedBlock: string): Promise<void> {
 		const {
 			forgerAddress,
 			forgerAddressBinary,
@@ -296,54 +297,24 @@ export class ForgerPlugin extends BasePlugin {
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
-		let isUpdated = false;
 
 		if (this._forgersList.find(forger => forger.address === forgerAddress)) {
 			forgerInfo.totalProducedBlocks += 1;
 			forgerInfo.totalReceivedRewards += BigInt(reward);
 			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
-			isUpdated = true;
-
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			this._webhooks.handleEvent({
+			await this._webhooks.handleEvent({
 				event: 'forger:block:created',
 				timestamp: Date.now(),
 				payload: { reward, forgerAddress, height },
 			});
-		}
-
-		for (const trx of payload) {
-			if (trx.type === VoteTransaction.TYPE) {
-				for (const vote of (trx.asset as Asset).votes) {
-					const registeredDelegateIndex = this._forgersList.findIndex(
-						forger => forger.address === vote.delegateAddress,
-					);
-					if (registeredDelegateIndex !== -1) {
-						const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
-							aVote.address.equals(Buffer.from(vote.delegateAddress, 'base64')),
-						);
-						if (delegateVoteIndex === -1) {
-							forgerInfo.votesReceived.push({
-								address: Buffer.from(vote.delegateAddress, 'base64'),
-								amount: BigInt(vote.amount),
-							});
-						} else {
-							forgerInfo.votesReceived[delegateVoteIndex].amount += BigInt(vote.amount);
-						}
-						isUpdated = true;
-					}
-				}
-			}
-		}
-
-		await this._updateMissedBlock(encodedBlock);
-
-		if (isUpdated) {
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
+
+		await this._addVotesReceived(payload);
+		await this._updateMissedBlock(encodedBlock);
 	}
 
-	private async _decrementForgerInfo(encodedBlock: string): Promise<void> {
+	private async _revertForgerInfo(encodedBlock: string): Promise<void> {
 		const {
 			forgerAddress,
 			forgerAddressBinary,
@@ -351,35 +322,83 @@ export class ForgerPlugin extends BasePlugin {
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
-		let isUpdated = false;
 
 		if (this._forgersList.find(forger => forger.address === forgerAddress)) {
 			forgerInfo.totalProducedBlocks -= 1;
 			forgerInfo.totalReceivedRewards -= BigInt(reward);
 			forgerInfo.totalReceivedFees -= this._getFee(payload, encodedBlock);
-			isUpdated = true;
+			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
+		await this._revertVotesReceived(payload);
+	}
+
+	private async _addVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
+		const batch = this._forgerPluginDB.batch();
 		for (const trx of payload) {
 			if (trx.type === VoteTransaction.TYPE) {
+				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'base64'));
 				for (const vote of (trx.asset as Asset).votes) {
-					const delegateVoteIndex = forgerInfo.votesReceived.findIndex(aVote =>
-						aVote.address.equals(Buffer.from(vote.delegateAddress, 'base64')),
+					const registeredDelegateIndex = this._forgersList.findIndex(
+						forger => forger.address === vote.delegateAddress,
 					);
-					if (delegateVoteIndex !== -1) {
-						forgerInfo.votesReceived[delegateVoteIndex].amount -= BigInt(vote.amount);
-						if (forgerInfo.votesReceived[delegateVoteIndex].amount === BigInt(0)) {
-							forgerInfo.votesReceived.splice(delegateVoteIndex, 1);
+					if (registeredDelegateIndex !== -1) {
+						const affectedForgerInfo = await getForgerInfo(
+							this._forgerPluginDB,
+							getBinaryAddress(vote.delegateAddress),
+						);
+						const voterIndex = affectedForgerInfo.votesReceived.findIndex(aVote =>
+							aVote.address.equals(senderAddress),
+						);
+						if (voterIndex === -1) {
+							affectedForgerInfo.votesReceived.push({
+								address: senderAddress,
+								amount: BigInt(vote.amount),
+							});
+						} else {
+							affectedForgerInfo.votesReceived[voterIndex].amount += BigInt(vote.amount);
 						}
-						isUpdated = true;
+						await setForgerInfo(batch, getBinaryAddress(vote.delegateAddress), affectedForgerInfo);
 					}
 				}
 			}
 		}
+		await batch.write();
+	}
 
-		if (isUpdated) {
-			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
+	private async _revertVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
+		const batch = this._forgerPluginDB.batch();
+		for (const trx of payload) {
+			if (trx.type === VoteTransaction.TYPE) {
+				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'base64'));
+				for (const vote of (trx.asset as Asset).votes) {
+					const registeredDelegateIndex = this._forgersList.findIndex(
+						forger => forger.address === vote.delegateAddress,
+					);
+					if (registeredDelegateIndex !== -1) {
+						const affectedForgerInfo = await getForgerInfo(
+							this._forgerPluginDB,
+							getBinaryAddress(vote.delegateAddress),
+						);
+						const voterIndex = affectedForgerInfo.votesReceived.findIndex(aVote =>
+							aVote.address.equals(senderAddress),
+						);
+						if (voterIndex !== -1) {
+							affectedForgerInfo.votesReceived[voterIndex].amount -= BigInt(vote.amount);
+							if (affectedForgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
+								affectedForgerInfo.votesReceived.splice(voterIndex, 1);
+							}
+							await setForgerInfo(
+								this._forgerPluginDB,
+								getBinaryAddress(vote.delegateAddress),
+								affectedForgerInfo,
+							);
+						}
+					}
+				}
+			}
 		}
+		await batch.write();
 	}
 
 	private _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): bigint {

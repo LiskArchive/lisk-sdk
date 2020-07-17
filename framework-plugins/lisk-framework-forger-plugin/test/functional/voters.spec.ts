@@ -66,9 +66,7 @@ describe('Voters endpoint', () => {
 				);
 			});
 
-			// TODO: Enable after fixing https://github.com/LiskHQ/lisk-sdk/issues/5574
-			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should return valid voters', async () => {
+			it('should return valid voters', async () => {
 				// Arrange
 				const { response: delegateResponse } = await callNetwork(axios.get(getURL('/api/voters')));
 				const forgingDelegateAddress = delegateResponse.data[0].address;
@@ -82,7 +80,7 @@ describe('Voters endpoint', () => {
 				await app['_channel'].invoke('app:postTransaction', {
 					transaction: transaction.getBytes().toString('base64'),
 				});
-				await waitNBlocks(app, 103);
+				await waitNBlocks(app, 1);
 				// Wait a bit to give plugin a time to calculate forger info
 				await waitTill(2000);
 
@@ -96,8 +94,8 @@ describe('Voters endpoint', () => {
 				expect(status).toEqual(200);
 				expect(forgerInfo.voters[0]).toMatchObject(
 					expect.objectContaining({
-						address: forgingDelegateAddress,
-						amount: '10',
+						address: transaction.senderId.toString('base64'),
+						amount: '1000000000',
 					}),
 				);
 			});

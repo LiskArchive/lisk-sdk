@@ -13,7 +13,7 @@
  */
 
 import * as Debug from 'debug';
-import { KVStore } from '@liskhq/lisk-db';
+import { KVStore, BatchChain } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import * as os from 'os';
 import { join } from 'path';
@@ -54,7 +54,7 @@ export const setForgerSyncInfo = async (db: KVStore, blockHeight: number): Promi
 };
 
 export const setForgerInfo = async (
-	db: KVStore,
+	db: KVStore | BatchChain,
 	forgerAddress: string,
 	forgerInfo: ForgerInfo,
 ): Promise<void> => {
