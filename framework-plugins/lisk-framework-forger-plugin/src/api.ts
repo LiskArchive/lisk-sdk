@@ -15,13 +15,19 @@
 import * as express from 'express';
 import { Express } from 'express';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
+import { KVStore } from '@liskhq/lisk-db';
 import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
 import * as middlewares from './middlewares';
 import * as controllers from './controllers';
 import { Options } from './types';
 
-export const initApi = (options: Options, channel: BaseChannel, _codec: PluginCodec): Express => {
+export const initApi = (
+	options: Options,
+	channel: BaseChannel,
+	codec: PluginCodec,
+	db: KVStore,
+): Express => {
 	const app: Express = express();
 
 	// Register before middleware
@@ -32,6 +38,8 @@ export const initApi = (options: Options, channel: BaseChannel, _codec: PluginCo
 
 	// Register controllers
 	app.get('/v1/hello', controllers.helloController(channel));
+	app.get('/api/voters', controllers.voters.getVoters(channel, codec, db));
+
 	// Register after middleware
 	app.use(middlewares.errorMiddleware());
 

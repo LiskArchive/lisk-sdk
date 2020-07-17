@@ -12,4 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as voters from './voters';
+
 export * from './hello';
+export { voters };

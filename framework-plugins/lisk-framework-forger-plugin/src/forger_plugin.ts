@@ -118,7 +118,7 @@ export class ForgerPlugin extends BasePlugin {
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {
-			this._app = initApi(options, this._channel, this.codec);
+			this._app = initApi(options, this._channel, this.codec, this._forgerPluginDB);
 
 			// Fetch and set forger list from the app
 			await this._setForgersList();
