@@ -141,7 +141,7 @@ export class ForgerPlugin extends BasePlugin {
 
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			this._webhooks.handleEvent({
-				event: 'forging:node:start',
+				event: 'forger:node:start',
 				time: Date.now(),
 				payload: { reason: 'Node started' },
 			});
@@ -168,7 +168,7 @@ export class ForgerPlugin extends BasePlugin {
 		this._channel.once('app:shutdown', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			this._webhooks.handleEvent({
-				event: 'app:shutdown',
+				event: 'forger:node:stop',
 				time: Date.now(),
 				payload: { reason: 'Node shutdown' },
 			});
@@ -306,7 +306,7 @@ export class ForgerPlugin extends BasePlugin {
 
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			this._webhooks.handleEvent({
-				event: 'forging:block:created',
+				event: 'forger:block:created',
 				time: Date.now(),
 				payload: { reward, forgerAddress, height },
 			});
