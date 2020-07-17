@@ -35,6 +35,15 @@ const updateForgingParams = {
 	},
 };
 
+interface ForgingResponseData {
+	readonly forging: boolean;
+	readonly address: string;
+}
+
+interface ForgingRequestData extends ForgingResponseData {
+	readonly password: string;
+}
+
 export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 	req: Request,
 	res: Response,
@@ -48,11 +57,7 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 		});
 		return;
 	}
-	const { address, password, forging } = req.body as {
-		address: string;
-		password: string;
-		forging: boolean;
-	};
+	const { address, password, forging } = req.body as ForgingRequestData;
 
 	if (!isBase64String(address)) {
 		res.status(400).send({
@@ -62,14 +67,11 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 	}
 
 	try {
-		const result: { address: string; forging: boolean } = await channel.invoke(
-			'app:updateForgingStatus',
-			{
-				address,
-				password,
-				forging,
-			},
-		);
+		const result: ForgingResponseData = await channel.invoke('app:updateForgingStatus', {
+			address,
+			password,
+			forging,
+		});
 
 		const {
 			totalReceivedFees,

@@ -85,20 +85,49 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
-  /forgers:
-    get:
+  /forging:
+    patch:
       tags:
-        - Forgers
-      summary: Requests forgers data corresponding to local node.
+        - Node
+      summary: Toggles the forging status of a delegate.
       description: |
-        Returns a list of forgers information enabled in the local node.
+        Upon passing the correct password and address, forging will be enabled or disabled for the delegate of this particular node.
+        The password can be generated locally by encrypting your passphrase, either by using Lisk Commander or with Lisk Elements.
       produces:
         - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: Password for decrypting passphrase of delegate with corresponding delegate address.
+          required: true
+          schema:
+            type: object
+            required:
+              - password
+              - address
+              - forging
+            properties:
+              forging:
+                type: boolean
+                example: true
+                description: Forging status of the delegate.
+              password:
+                type: string
+                example: 'happy tree friends elephant tree'
+                minLength: 5
+                description: Password for decrypting passphrase of delegate.
+              address:
+                type: string
+                example: 'CQP0xctZmnkorvJ+KU6YKT0eOIg='
+                format: base64
+                description: Address of the delegate.
       responses:
         200:
-          description: A list of forgers.
+          description: Delegate forging toggled on or off.
           schema:
-            $ref: '#/definitions/ForgersResponse'
+            $ref: '#/definitions/ForgingStatusResponse'
         400:
           description: Malformed query or parameters.
           schema:
@@ -147,19 +176,6 @@ definitions:
               type: string
               minLength: 1
 
-  ForgersResponse:
-    type: object
-    required:
-      - data
-    properties:
-      data:
-        description: List of forgers.
-        type: array
-        items:
-          $ref: '#/definitions/Forger'
-      meta:
-        $ref: '#/definitions/Meta'
-
   VotersResponse:
     type: object
     required:
@@ -172,6 +188,60 @@ definitions:
           $ref: '#/definitions/ForgerWithVoters'
       meta:
         $ref: '#/definitions/Meta'
+
+  ForgingStatusResponse:
+    type: object
+    required:
+      - data
+      - meta
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ForgingStatus'
+      meta:
+        type: object
+        properties:
+          count:
+            description: Number of records returned in response.
+            type: integer
+            minimum: 0
+
+  ForgingStatus:
+    type: object
+    required:
+      - forging
+      - address
+      - receivedFees
+      - receivedRewards
+      - producedBlocks
+      - missedBlocks
+    properties:
+      forging:
+        type: boolean
+        example: true
+        description: True if the delegate enabled forging.
+      address:
+        type: string
+        example: 'CQP0xctZmnkorvJ+KU6YKT0eOIg='
+        format: base64
+        description: Address of the delegate.
+      receivedFees:
+        type: string
+        example: '33333232323'
+        description: Total fees received by a delagate.
+      receivedRewards:
+        type: string
+        example: '33333232323'
+        description: Total rewards received by a delagate.
+      producedBlocks:
+        type: integer
+        example: '23'
+        description: Total blocks produced by a delagate.
+      missedBlocks:
+        type: integer
+        example: '2'
+        description: Total blocks missed by a delagate.
 
   Meta:
     type: object
