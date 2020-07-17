@@ -14,6 +14,5 @@
 
 import * as voters from './voters';
 import * as forging from './forging';
-import * as hello from './hello';
 
-export { voters, forging, hello };
+export { voters, forging };
