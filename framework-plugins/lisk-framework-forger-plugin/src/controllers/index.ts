@@ -14,5 +14,6 @@
 
 import * as voters from './voters';
 import * as forging from './forging';
+import * as forgingInfo from './forging_info';
 
-export { voters, forging };
+export { voters, forging, forgingInfo };

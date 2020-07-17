@@ -12,32 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Application } from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { Application } from 'lisk-framework';
 
 import {
 	closeApplication,
 	createApplication,
+	getForgerInfo,
 	waitNBlocks,
 	waitTill,
 } from '../../utils/application';
 import { ForgerPlugin } from '../../../src';
+import { getForgerInfo as getForgerInfoFromDB } from '../../../src/db';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
-import { getForgerInfo as getForgerInfoFromDB } from '../../../src/db';
-
-const getForgerInfo = async (forgerPluginInstance: ForgerPlugin, generatorPublicKey: string) => {
-	const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString(
-		'binary',
-	);
-
-	const forgerInfo = await getForgerInfoFromDB(
-		forgerPluginInstance['_forgerPluginDB'],
-		forgerAddress,
-	);
-
-	return forgerInfo;
-};
 
 describe('Forger Info', () => {
 	let app: Application;
