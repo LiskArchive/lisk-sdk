@@ -13,7 +13,7 @@
  */
 
 import * as voters from './voters';
+import * as forging from './forging';
+import * as hello from './hello';
 
-export * from './hello';
-export { voters };
-export * from './forging';
+export { voters, forging, hello };
