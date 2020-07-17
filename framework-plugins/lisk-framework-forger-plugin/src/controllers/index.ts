@@ -12,4 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './hello';
+import * as voters from './voters';
+import * as forging from './forging';
+
+export { voters, forging };

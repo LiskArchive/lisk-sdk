@@ -55,23 +55,79 @@ tags:
     description: Forgers related API endpoints.
 
 schemes:
-  - forger
+  - http
 
 paths:
-  /forgers:
+  /voters:
     get:
       tags:
         - Forgers
-      summary: Requests forgers data corresponding to local node.
+      summary: Requests voters information for each delegate corresponding to local node
       description: |
-        Returns a list of forgers information enabled in the local node.
+        Requests voters information for each delegate corresponding to local node
       produces:
         - application/json
       responses:
         200:
-          description: A list of forgers.
+          description: A list of delegates with voters
           schema:
-            $ref: '#/definitions/ForgersResponse'
+            $ref: '#/definitions/VotersResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+  /forging:
+    patch:
+      tags:
+        - Node
+      summary: Toggles the forging status of a delegate.
+      description: |
+        Upon passing the correct password and address, forging will be enabled or disabled for the delegate of this particular node.
+        The password can be generated locally by encrypting your passphrase, either by using Lisk Commander or with Lisk Elements.
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: Password for decrypting passphrase of delegate with corresponding delegate address.
+          required: true
+          schema:
+            type: object
+            required:
+              - password
+              - address
+              - forging
+            properties:
+              forging:
+                type: boolean
+                example: true
+                description: Forging status of the delegate.
+              password:
+                type: string
+                example: 'happy tree friends elephant tree'
+                minLength: 5
+                description: Password for decrypting passphrase of delegate.
+              address:
+                type: string
+                example: 'CQP0xctZmnkorvJ+KU6YKT0eOIg='
+                format: base64
+                description: Address of the delegate.
+      responses:
+        200:
+          description: Delegate forging toggled on or off.
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
         400:
           description: Malformed query or parameters.
           schema:
@@ -120,18 +176,72 @@ definitions:
               type: string
               minLength: 1
 
-  ForgersResponse:
+  VotersResponse:
     type: object
     required:
       - data
     properties:
       data:
-        description: List of forgers.
+        description: List of forgers with voters.
         type: array
         items:
-          $ref: '#/definitions/Forger'
+          $ref: '#/definitions/ForgerWithVoters'
+      meta:
+        $ref: '#/definitions/Meta'
+
+  ForgingStatusResponse:
+    type: object
+    required:
+      - data
+      - meta
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ForgingStatus'
       meta:
         type: object
+        properties:
+          count:
+            description: Number of records returned in response.
+            type: integer
+            minimum: 0
+
+  ForgingStatus:
+    type: object
+    required:
+      - forging
+      - address
+      - receivedFees
+      - receivedRewards
+      - producedBlocks
+      - missedBlocks
+    properties:
+      forging:
+        type: boolean
+        example: true
+        description: True if the delegate enabled forging.
+      address:
+        type: string
+        example: 'CQP0xctZmnkorvJ+KU6YKT0eOIg='
+        format: base64
+        description: Address of the delegate.
+      receivedFees:
+        type: string
+        example: '33333232323'
+        description: Total fees received by a delagate.
+      receivedRewards:
+        type: string
+        example: '33333232323'
+        description: Total rewards received by a delagate.
+      producedBlocks:
+        type: integer
+        example: '23'
+        description: Total blocks produced by a delagate.
+      missedBlocks:
+        type: integer
+        example: '2'
+        description: Total blocks missed by a delagate.
 
   Meta:
     type: object
@@ -151,12 +261,34 @@ definitions:
         minimum: 0
         default: 0
 
-  Forger:
+  ForgerWithVoters:
+    allOf:
+      - $ref: '#/definitions/ForgerBasicInfo'
+      - properties:
+          voters:
+            type: array
+            items:
+              type: object
+              required:
+                - address
+                - voters
+              properties:
+                address:
+                  type: string
+                  example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+                  description: |
+                    The binary address in base64 format as defined in LIP-0018.
+                amount:
+                  type: string
+                  example: 56072
+                  description: Votes from that account
+
+  ForgerBasicInfo:
     type: object
     required:
       - address
       - username
-      - nextForgingTime
+      - totalVotesReceived
     properties:
       address:
         type: string
@@ -176,9 +308,16 @@ definitions:
           The delegates username.
           A delegate chooses the username by registering a delegate on the network.
           It is unique and cannot be changed later.
-      nextForgingTime:
-        type: number
-        example: 4368793
-        description: |
-          Returns the unix timestamp in second in which the forger will be able to forge the next block.
-          Each slot has a time span of 10 seconds.
+
+  Forger:
+    allOf:
+      - $ref: '#/definitions/ForgerBasicInfo'
+      - required:
+          - nextForgingTime
+        properties:
+          nextForgingTime:
+            type: number
+            example: 4368793
+            description: |
+              Returns the unix timestamp in second in which the forger will be able to forge the next block.
+              Each slot has a time span of 10 seconds.

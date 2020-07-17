@@ -137,7 +137,7 @@ export class ForgerPlugin extends BasePlugin {
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {
-			this._app = initApi(options, this._channel, this.codec);
+			this._app = initApi(options, this._channel, this.codec, this._forgerPluginDB);
 
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			this._webhooks.handleEvent({
