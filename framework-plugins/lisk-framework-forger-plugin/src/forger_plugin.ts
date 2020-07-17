@@ -68,7 +68,7 @@ interface NodeInfo {
 	};
 }
 
-interface missedBlocksByAddress {
+interface MissedBlocksByAddress {
 	[key: string]: number;
 }
 
@@ -417,7 +417,7 @@ export class ForgerPlugin extends BasePlugin {
 			const forgersRoundLength = forgersInfoForRound.length;
 			const forgerIndex = forgersInfoForRound.findIndex(f => f.address === forgerAddress);
 
-			const missedBlocksByAddress: missedBlocksByAddress = {};
+			const missedBlocksByAddress: MissedBlocksByAddress = {};
 
 			for (let index = 0; index < missedBlocks; index += 1) {
 				const rawIndex = (forgerIndex - 1 - index) % forgersRoundLength;

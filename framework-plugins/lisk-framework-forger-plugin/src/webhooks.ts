@@ -37,7 +37,7 @@ interface NodeStatusChange {
 	readonly reason: string;
 }
 
-interface webHookPayload {
+interface WebHookPayload {
 	readonly event: string;
 	readonly time: number;
 	readonly payload: BlockCreated | BlockMissed | NodeStatusChange;
@@ -52,11 +52,11 @@ export class Webhooks {
 		this.registeredEvents = configuredEvents;
 	}
 
-	public async execute(eventData: webHookPayload, targetURL: string): Promise<object> {
+	public async execute(eventData: WebHookPayload, targetURL: string): Promise<object> {
 		return axios.post(targetURL, eventData, { headers: this.headers });
 	}
 
-	public async handleEvent(data: webHookPayload): Promise<void> {
+	public async handleEvent(data: WebHookPayload): Promise<void> {
 		const requiredEvents = [];
 		for (const aRegisteredEvent of this.registeredEvents) {
 			if (aRegisteredEvent.events.includes(data.event)) {
