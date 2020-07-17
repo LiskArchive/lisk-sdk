@@ -64,15 +64,12 @@ export class Webhooks {
 			}
 		}
 
-		try {
-			for (const anEvent of requiredEvents) {
-				// eslint-disable-next-line no-void
+		for (const anEvent of requiredEvents) {
+			try {
 				await this.execute(anEvent.data, anEvent.url);
+			} catch (err) {
+				debug('Error during webhook processing', err, (err as AxiosError).response?.data);
 			}
-		} catch (err) {
-			debug('Error during webhook processing');
-			debug(err);
-			debug((err as AxiosError).response?.data);
 		}
 	}
 }
