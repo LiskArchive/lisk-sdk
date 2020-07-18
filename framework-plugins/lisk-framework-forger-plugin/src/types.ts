@@ -13,6 +13,7 @@
  */
 
 export interface Options {
+	version: string;
 	readonly dataPath: string;
 	readonly webhook: ReadonlyArray<Webhook>;
 	readonly port: number;
@@ -31,9 +32,9 @@ export interface Options {
 	};
 }
 
-interface Webhook {
+export interface Webhook {
 	readonly url: string;
-	readonly eventFilter: ReadonlyArray<string>;
+	readonly events: ReadonlyArray<string>;
 }
 
 export interface Forger {

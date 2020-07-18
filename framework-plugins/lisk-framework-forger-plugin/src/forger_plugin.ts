@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as os from 'os';
 import { Server } from 'http';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
@@ -38,6 +39,7 @@ import {
 } from './db';
 import * as config from './defaults';
 import { Forger, Options, TransactionFees } from './types';
+import { Webhooks } from './webhooks';
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
 
@@ -66,6 +68,10 @@ interface NodeInfo {
 	};
 }
 
+interface MissedBlocksByAddress {
+	[key: string]: number;
+}
+
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
 
@@ -76,6 +82,8 @@ export class ForgerPlugin extends BasePlugin {
 	private _channel!: BaseChannel;
 	private _forgersList!: ReadonlyArray<Forger>;
 	private _transactionFees!: TransactionFees;
+	private _webhooks!: Webhooks;
+	private _syncingWithNode!: boolean;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -114,11 +122,29 @@ export class ForgerPlugin extends BasePlugin {
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
+		// eslint-disable-next-line new-cap
+		const { locale } = Intl.DateTimeFormat().resolvedOptions();
+
+		this._webhooks = new Webhooks(
+			{
+				'User-Agent': `lisk-framework-forger-plugin/0.1.0 (${os.platform()} ${os.release()}; ${os.arch()} ${locale}.${
+					process.env.LC_CTYPE ?? ''
+				}) lisk-framework/${options.version}`,
+			},
+			options.webhook,
+		);
 		this._forgerPluginDB = await getDBInstance(options.dataPath);
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {
 			this._app = initApi(options, this._channel, this.codec, this._forgerPluginDB);
+
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			this._webhooks.handleEvent({
+				event: 'forger:node:start',
+				timestamp: Date.now(),
+				payload: { reason: 'Node started' },
+			});
 
 			// Fetch and set forger list from the app
 			await this._setForgersList();
@@ -127,13 +153,25 @@ export class ForgerPlugin extends BasePlugin {
 			await this._setTransactionFees();
 
 			// Sync the information
+			this._syncingWithNode = true;
 			await this._syncForgerInfo();
+			this._syncingWithNode = false;
 
 			// Listen to new block and delete block events
 			this._subscribeToChannel();
 
 			// Start http server
 			this._server = this._app.listen(options.port, '0.0.0.0');
+		});
+
+		// @TODO Fix me! due to the way unload works this event is never fired in time.
+		this._channel.once('app:shutdown', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			this._webhooks.handleEvent({
+				event: 'forger:node:stop',
+				timestamp: Date.now(),
+				payload: { reason: 'Node shutdown' },
+			});
 		});
 	}
 
@@ -198,7 +236,6 @@ export class ForgerPlugin extends BasePlugin {
 
 		// Update height upto which plugin is synced
 		await setForgerSyncInfo(this._forgerPluginDB, lastBlockHeight);
-
 		// Try to sync again if more blocks forged meanwhile
 		await this._syncForgerInfo();
 	}
@@ -255,7 +292,7 @@ export class ForgerPlugin extends BasePlugin {
 		const {
 			forgerAddress,
 			forgerAddressBinary,
-			header: { reward },
+			header: { reward, height },
 			payload,
 		} = this._getForgerHeaderAndPayloadInfo(encodedBlock);
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
@@ -266,6 +303,13 @@ export class ForgerPlugin extends BasePlugin {
 			forgerInfo.totalReceivedRewards += BigInt(reward);
 			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
 			isUpdated = true;
+
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			this._webhooks.handleEvent({
+				event: 'forger:block:created',
+				timestamp: Date.now(),
+				payload: { reward, forgerAddress, height },
+			});
 		}
 
 		for (const trx of payload) {
@@ -373,13 +417,31 @@ export class ForgerPlugin extends BasePlugin {
 			const forgersRoundLength = forgersInfoForRound.length;
 			const forgerIndex = forgersInfoForRound.findIndex(f => f.address === forgerAddress);
 
+			const missedBlocksByAddress: MissedBlocksByAddress = {};
+
 			for (let index = 0; index < missedBlocks; index += 1) {
 				const rawIndex = (forgerIndex - 1 - index) % forgersRoundLength;
 				const forgerRoundIndex = rawIndex >= 0 ? rawIndex : rawIndex + forgersRoundLength;
 				const missedForgerInfo = forgersInfoForRound[forgerRoundIndex];
 				const missedForger = await getForgerInfo(this._forgerPluginDB, missedForgerInfo.address);
 				missedForger.totalMissedBlocks += 1;
+
+				missedBlocksByAddress[missedForgerInfo.address] =
+					missedBlocksByAddress[missedForgerInfo.address] === undefined
+						? 1
+						: (missedBlocksByAddress[missedForgerInfo.address] += 1);
+
 				await setForgerInfo(this._forgerPluginDB, missedForgerInfo.address, missedForger);
+			}
+
+			// Only emit event if block missed and the plugin is not syncing with the forging node
+			if (!this._syncingWithNode) {
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
+				this._webhooks.handleEvent({
+					event: 'forger:block:missed',
+					timestamp: Date.now(),
+					payload: { missedBlocksByAddress, height },
+				});
 			}
 		}
 	}

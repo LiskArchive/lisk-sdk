@@ -42,9 +42,14 @@ export const startApplication = async (app: Application): Promise<void> => {
 
 export const createApplication = async (
 	label: string,
-	options: { consoleLogLevel?: string; clearDB: boolean } = {
+	options: {
+		consoleLogLevel?: string;
+		clearDB?: boolean;
+		appConfig?: { plugins: { forger: object } };
+	} = {
 		clearDB: true,
 		consoleLogLevel: 'fatal',
+		appConfig: { plugins: { forger: {} } },
 	},
 ): Promise<Application> => {
 	const rootPath = '~/.lisk/forger-plugin';
@@ -62,6 +67,7 @@ export const createApplication = async (
 		plugins: {
 			forger: {
 				port: forgerApiPort,
+				...options.appConfig?.plugins.forger,
 			},
 		},
 	} as unknown) as Partial<ApplicationConfig>;
