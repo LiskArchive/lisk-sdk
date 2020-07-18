@@ -34,6 +34,8 @@ describe('Forger Plugin webhooks', () => {
 
 	beforeAll(async () => {
 		app = await createApplication('event_track_webhook', {
+			clearDB: true,
+			consoleLogLevel: 'error',
 			appConfig: {
 				plugins: {
 					forger: {
