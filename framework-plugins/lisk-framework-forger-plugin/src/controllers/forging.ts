@@ -78,7 +78,6 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 			totalReceivedRewards,
 			votesReceived,
 			totalProducedBlocks,
-			totalMissedBlocks,
 		} = await getForgerInfo(db, address);
 
 		res.status(200).json({
@@ -88,7 +87,6 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 				forging: result.forging,
 				totalProducedBlocks,
 				votesReceived,
-				totalMissedBlocks,
 				totalReceivedFees: totalReceivedFees.toString(),
 				totalReceivedRewards: totalReceivedRewards.toString(),
 			},

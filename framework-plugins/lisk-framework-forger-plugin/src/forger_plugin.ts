@@ -131,7 +131,7 @@ export class ForgerPlugin extends BasePlugin {
 			{
 				'User-Agent': `lisk-framework-forger-plugin/0.1.0 (${os.platform()} ${os.release()}; ${os.arch()} ${locale}.${
 					process.env.LC_CTYPE ?? ''
-					}) lisk-framework/${options.version}`,
+				}) lisk-framework/${options.version}`,
 			},
 			options.webhook,
 		);
@@ -442,15 +442,11 @@ export class ForgerPlugin extends BasePlugin {
 				const rawIndex = (forgerIndex - 1 - index) % forgersRoundLength;
 				const forgerRoundIndex = rawIndex >= 0 ? rawIndex : rawIndex + forgersRoundLength;
 				const missedForgerInfo = forgersInfoForRound[forgerRoundIndex];
-				const missedForger = await getForgerInfo(this._forgerPluginDB, missedForgerInfo.address);
-				missedForger.totalMissedBlocks += 1;
 
 				missedBlocksByAddress[missedForgerInfo.address] =
 					missedBlocksByAddress[missedForgerInfo.address] === undefined
 						? 1
 						: (missedBlocksByAddress[missedForgerInfo.address] += 1);
-
-				await setForgerInfo(this._forgerPluginDB, missedForgerInfo.address, missedForger);
 			}
 
 			// Only emit event if block missed and the plugin is not syncing with the forging node

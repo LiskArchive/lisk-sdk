@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Application } from 'lisk-framework';
 
 import {
@@ -23,7 +22,6 @@ import {
 	waitTill,
 } from '../../utils/application';
 import { ForgerPlugin } from '../../../src';
-import { getForgerInfo as getForgerInfoFromDB } from '../../../src/db';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
 
@@ -118,48 +116,6 @@ describe('Forger Info', () => {
 
 			// Asserts
 			expect(forgerInfo).toMatchSnapshot();
-		});
-	});
-
-	describe('Missed Block', () => {
-		let disableForgerAddresses: string[];
-		beforeEach(async () => {
-			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
-			const forgersInfoForRound: Array<{ address: string; nextForgingTime: number }> = await app[
-				'_channel'
-			].invoke('app:getForgersInfoForActiveRound');
-			const lastForgerAddress = getAddressFromPublicKey(
-				Buffer.from(generatorPublicKey, 'base64'),
-			).toString('base64');
-			const lastForgerIndex = forgersInfoForRound.findIndex(f => f.address === lastForgerAddress);
-			disableForgerAddresses = forgersInfoForRound.map(f => f.address).splice(lastForgerIndex, 1);
-
-			await Promise.all(
-				disableForgerAddresses.map(async disableForgerAddress => {
-					await app['_channel'].invoke('app:updateForgingStatus', {
-						address: disableForgerAddress,
-						password: 'elephant tree paris dragon chair galaxy',
-						forging: false,
-					});
-				}),
-			);
-		});
-
-		it('should save missed block info', async () => {
-			// Arrange
-			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
-
-			// Assert
-			await Promise.all(
-				disableForgerAddresses.map(async missedForgerAddress => {
-					const forgerAddressBinary = Buffer.from(missedForgerAddress, 'base64').toString('binary');
-					const forgerInfo = await getForgerInfoFromDB(
-						forgerPluginInstance['_forgerPluginDB'],
-						forgerAddressBinary,
-					);
-					expect(forgerInfo).toMatchSnapshot();
-				}),
-			);
 		});
 	});
 });
