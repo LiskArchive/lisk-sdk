@@ -38,7 +38,7 @@ import {
 	setForgerSyncInfo,
 } from './db';
 import * as config from './defaults';
-import { Forger, Options, TransactionFees } from './types';
+import { Forger, Options, TransactionFees, Voters } from './types';
 import { Webhooks } from './webhooks';
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
@@ -70,6 +70,10 @@ interface NodeInfo {
 
 interface MissedBlocksByAddress {
 	[key: string]: number;
+}
+
+interface ForgerReceivedVotes {
+	[key: string]: Voters;
 }
 
 // eslint-disable-next-line
@@ -302,7 +306,8 @@ export class ForgerPlugin extends BasePlugin {
 			forgerInfo.totalProducedBlocks += 1;
 			forgerInfo.totalReceivedRewards += BigInt(reward);
 			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
-			await this._webhooks.handleEvent({
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			this._webhooks.handleEvent({
 				event: 'forger:block:created',
 				timestamp: Date.now(),
 				payload: { reward, forgerAddress, height },
@@ -333,72 +338,69 @@ export class ForgerPlugin extends BasePlugin {
 		await this._revertVotesReceived(payload);
 	}
 
-	private async _addVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const batch = this._forgerPluginDB.batch();
+	private _getForgerReceivedVotes(payload: ReadonlyArray<TransactionJSON>): ForgerReceivedVotes {
+		const forgerReceivedVotes: ForgerReceivedVotes = {};
+
 		for (const trx of payload) {
 			if (trx.type === VoteTransaction.TYPE) {
 				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'base64'));
-				for (const vote of (trx.asset as Asset).votes) {
+				(trx.asset as Asset).votes.reduce((acc: ForgerReceivedVotes, curr) => {
 					const registeredDelegateIndex = this._forgersList.findIndex(
-						forger => forger.address === vote.delegateAddress,
+						forger => forger.address === curr.delegateAddress,
 					);
 					if (registeredDelegateIndex !== -1) {
-						const affectedForgerInfo = await getForgerInfo(
-							this._forgerPluginDB,
-							getBinaryAddress(vote.delegateAddress),
-						);
-						const voterIndex = affectedForgerInfo.votesReceived.findIndex(aVote =>
-							aVote.address.equals(senderAddress),
-						);
-						if (voterIndex === -1) {
-							affectedForgerInfo.votesReceived.push({
-								address: senderAddress,
-								amount: BigInt(vote.amount),
-							});
-						} else {
-							affectedForgerInfo.votesReceived[voterIndex].amount += BigInt(vote.amount);
-						}
-						await setForgerInfo(batch, getBinaryAddress(vote.delegateAddress), affectedForgerInfo);
+						acc[curr.delegateAddress] = {
+							address: senderAddress,
+							amount: BigInt(acc[curr.delegateAddress] || 0) + BigInt(curr.amount),
+						};
 					}
-				}
+					return acc;
+				}, forgerReceivedVotes);
 			}
 		}
-		await batch.write();
+
+		return forgerReceivedVotes;
+	}
+
+	private async _addVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
+		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+
+		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
+			const forgerInfo = await getForgerInfo(
+				this._forgerPluginDB,
+				getBinaryAddress(delegateAddress),
+			);
+
+			const voterIndex = forgerInfo.votesReceived.findIndex(aVote =>
+				aVote.address.equals(votesReceived.address),
+			);
+			if (voterIndex === -1) {
+				forgerInfo.votesReceived.push(votesReceived);
+			} else {
+				forgerInfo.votesReceived[voterIndex].amount += votesReceived.amount;
+			}
+			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
+		}
 	}
 
 	private async _revertVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const batch = this._forgerPluginDB.batch();
-		for (const trx of payload) {
-			if (trx.type === VoteTransaction.TYPE) {
-				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'base64'));
-				for (const vote of (trx.asset as Asset).votes) {
-					const registeredDelegateIndex = this._forgersList.findIndex(
-						forger => forger.address === vote.delegateAddress,
-					);
-					if (registeredDelegateIndex !== -1) {
-						const affectedForgerInfo = await getForgerInfo(
-							this._forgerPluginDB,
-							getBinaryAddress(vote.delegateAddress),
-						);
-						const voterIndex = affectedForgerInfo.votesReceived.findIndex(aVote =>
-							aVote.address.equals(senderAddress),
-						);
-						if (voterIndex !== -1) {
-							affectedForgerInfo.votesReceived[voterIndex].amount -= BigInt(vote.amount);
-							if (affectedForgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
-								affectedForgerInfo.votesReceived.splice(voterIndex, 1);
-							}
-							await setForgerInfo(
-								this._forgerPluginDB,
-								getBinaryAddress(vote.delegateAddress),
-								affectedForgerInfo,
-							);
-						}
-					}
-				}
+		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+
+		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
+			const forgerInfo = await getForgerInfo(
+				this._forgerPluginDB,
+				getBinaryAddress(delegateAddress),
+			);
+			const voterIndex = forgerInfo.votesReceived.findIndex(aVote =>
+				aVote.address.equals(votesReceived.address),
+			);
+
+			forgerInfo.votesReceived[voterIndex].amount -= BigInt(votesReceived.amount);
+			if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
+				forgerInfo.votesReceived.splice(voterIndex, 1);
 			}
+			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
 		}
-		await batch.write();
 	}
 
 	private _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): bigint {
