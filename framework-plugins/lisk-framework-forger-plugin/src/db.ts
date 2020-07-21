@@ -70,7 +70,6 @@ export const getForgerInfo = async (db: KVStore, forgerAddress: string): Promise
 		debug(`Forger info does not exists for delegate: ${forgerAddress}`);
 		return {
 			totalProducedBlocks: 0,
-			totalMissedBlocks: 0,
 			totalReceivedFees: BigInt(0),
 			totalReceivedRewards: BigInt(0),
 			votesReceived: [],

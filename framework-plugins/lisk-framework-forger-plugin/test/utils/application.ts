@@ -146,7 +146,7 @@ export const callNetwork = async (
 	return { status, response };
 };
 
-export const getForgerInfo = async (
+export const getForgerInfoByPublicKey = async (
 	forgerPluginInstance: ForgerPlugin,
 	generatorPublicKey: string,
 ): Promise<ForgerInfo> => {
@@ -154,6 +154,18 @@ export const getForgerInfo = async (
 		'binary',
 	);
 
+	const forgerInfo = await getForgerInfoFromDB(
+		forgerPluginInstance['_forgerPluginDB'],
+		forgerAddress,
+	);
+
+	return forgerInfo;
+};
+
+export const getForgerInfoByAddress = async (
+	forgerPluginInstance: ForgerPlugin,
+	forgerAddress: string,
+): Promise<ForgerInfo> => {
 	const forgerInfo = await getForgerInfoFromDB(
 		forgerPluginInstance['_forgerPluginDB'],
 		forgerAddress,

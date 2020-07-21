@@ -43,7 +43,7 @@ export const getVoters = (channel: BaseChannel, codec: PluginCodec, db: KVStore)
 				username: account.asset.delegate.username,
 				totalVotesReceived: account.asset.delegate.totalVotesReceived,
 				voters: forgerInfo.votesReceived.map(vote => ({
-					address: vote.address,
+					address: vote.address.toString('base64'),
 					amount: vote.amount.toString(),
 				})),
 			});

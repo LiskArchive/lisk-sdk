@@ -13,11 +13,11 @@
  */
 
 import { Application } from 'lisk-framework';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 import {
 	closeApplication,
 	createApplication,
+	getForgerInfoByPublicKey,
 	startApplication,
 	waitNBlocks,
 	waitTill,
@@ -25,20 +25,6 @@ import {
 import { ForgerPlugin } from '../../../src';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction } from '../../utils/transactions';
-import { getForgerInfo as getForgerInfoFromDB } from '../../../src/db';
-
-const getForgerInfo = async (forgerPluginInstance: ForgerPlugin, generatorPublicKey: string) => {
-	const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString(
-		'binary',
-	);
-
-	const forgerInfo = await getForgerInfoFromDB(
-		forgerPluginInstance['_forgerPluginDB'],
-		forgerAddress,
-	);
-
-	return forgerInfo;
-};
 
 describe('Forger Info Sync', () => {
 	let app: Application;
@@ -69,7 +55,7 @@ describe('Forger Info Sync', () => {
 		await waitNBlocks(app, 1);
 		await waitTill(2000);
 		const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
-		const forgerInfo = await getForgerInfo(forgerPluginInstance, generatorPublicKey);
+		const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
 		// Make sure forger info is not changed
 		expect(forgerInfo).toMatchSnapshot();
 
@@ -86,7 +72,10 @@ describe('Forger Info Sync', () => {
 
 		await waitTill(2000);
 		// Get forger info
-		const forgerInfoAfterRestart = await getForgerInfo(forgerPluginInstance, generatorPublicKey);
+		const forgerInfoAfterRestart = await getForgerInfoByPublicKey(
+			forgerPluginInstance,
+			generatorPublicKey,
+		);
 
 		// Assert
 		expect(forgerInfo).toEqual(forgerInfoAfterRestart);
