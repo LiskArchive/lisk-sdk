@@ -14,9 +14,7 @@
  *
  */
 import { Command, flags as flagParser } from '@oclif/command';
-import os from 'os';
 
-import { ConfigOptions, getConfig } from './utils/config';
 import { defaultLiskPm2Path } from './utils/core/config';
 import { handleEPIPE } from './utils/helpers';
 import { print, StringMap } from './utils/print';
@@ -51,14 +49,6 @@ export default abstract class BaseCommand extends Command {
 	};
 
 	public printFlags: PrintFlags = {};
-	public userConfig: ConfigOptions = {
-		api: {
-			network: 'main',
-			nodes: [],
-		},
-		json: true,
-		pretty: true,
-	};
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async finally(error?: Error | string): Promise<void> {
@@ -77,19 +67,10 @@ export default abstract class BaseCommand extends Command {
 		this.printFlags = flags as PrintFlags;
 
 		process.stdout.on('error', handleEPIPE);
-
-		process.env.XDG_CONFIG_HOME =
-			process.env.LISK_COMMANDER_CONFIG_DIR ?? `${os.homedir()}/${defaultConfigFolder}`;
-		this.userConfig = getConfig(process.env.XDG_CONFIG_HOME);
 	}
 
-	print(result: unknown, readAgain = false): void {
-		if (readAgain) {
-			this.userConfig = getConfig(process.env.XDG_CONFIG_HOME as string);
-		}
+	print(result: unknown): void {
 		print({
-			json: this.userConfig.json,
-			pretty: this.userConfig.pretty,
 			...this.printFlags,
 		}).call(this, result as StringMap);
 	}

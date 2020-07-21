@@ -16,7 +16,6 @@
 import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as readerUtils from '../../../src/utils/reader';
 
@@ -37,7 +36,6 @@ describe('message:decrypt', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(cryptography, 'decryptMessageWithPassphrase', sandbox.stub().returns(message))
 			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stub(readerUtils, 'readFileSource', sandbox.stub().resolves(defaultData))

@@ -13,15 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
-import * as config from '../../src/utils/config';
 
 describe('warranty command', () => {
-	const setupStub = () => test.stub(config, 'getConfig', sandbox.stub().returns({}));
-
 	describe('warranty', () => {
-		setupStub()
+		test
 			.stdout()
 			.command(['warranty'])
 			.it('should show warranty', ctx => {

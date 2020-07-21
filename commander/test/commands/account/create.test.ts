@@ -16,7 +16,6 @@
 import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as mnemonic from '../../../src/utils/mnemonic';
 
@@ -50,7 +49,6 @@ describe('account:create', () => {
 
 		return test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				mnemonic,
 				'createMnemonicPassphrase',
