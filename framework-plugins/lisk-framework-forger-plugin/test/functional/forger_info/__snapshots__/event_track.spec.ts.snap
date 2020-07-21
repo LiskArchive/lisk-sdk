@@ -123,45 +123,16 @@ Object {
 }
 `;
 
-exports[`Forger Info New Block Vote transactions should update forger info with voters info in new block 1`] = `
+exports[`Forger Info New Block Vote transactions should update forger info with voters info and remove when amount becomes zero 1`] = `
 Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
-  "votesReceived": Array [
-    Object {
-      "address": Object {
-        "data": Array [
-          208,
-          70,
-          153,
-          229,
-          124,
-          74,
-          56,
-          70,
-          201,
-          136,
-          243,
-          193,
-          83,
-          6,
-          121,
-          111,
-          142,
-          174,
-          92,
-          28,
-        ],
-        "type": "Buffer",
-      },
-      "amount": 5000000000n,
-    },
-  ],
+  "votesReceived": Array [],
 }
 `;
 
-exports[`Forger Info New Block Vote transactions should update forger info with voters info in new block 2`] = `
+exports[`Forger Info New Block Vote transactions should update forger info with voters info and remove when amount becomes zero 2`] = `
 Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,

@@ -27,7 +27,7 @@ import {
 	BlockHeaderJSON,
 } from 'lisk-framework';
 import { VoteTransaction } from '@liskhq/lisk-transactions';
-import { objects, dataStructures as ds } from '@liskhq/lisk-utils';
+import { objects, dataStructures } from '@liskhq/lisk-utils';
 import type { Express } from 'express';
 import { initApi } from './api';
 import {
@@ -88,7 +88,7 @@ export class ForgerPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
 	private _channel!: BaseChannel;
-	private _forgersList!: ds.BufferMap<boolean>;
+	private _forgersList!: dataStructures.BufferMap<boolean>;
 	private _transactionFees!: TransactionFees;
 	private _webhooks!: Webhooks;
 	private _syncingWithNode!: boolean;
@@ -201,7 +201,7 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _setForgersList(): Promise<void> {
-		this._forgersList = new ds.BufferMap<boolean>();
+		this._forgersList = new dataStructures.BufferMap<boolean>();
 		const forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatusOfAllDelegates');
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'base64'), forging);
@@ -398,6 +398,10 @@ export class ForgerPlugin extends BasePlugin {
 				forgerInfo.votesReceived.push(votesReceived);
 			} else {
 				forgerInfo.votesReceived[voterIndex].amount += votesReceived.amount;
+				// Remove voter when amount becomes zero
+				if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
+					forgerInfo.votesReceived.splice(voterIndex, 1);
+				}
 			}
 			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
 		}
@@ -415,11 +419,14 @@ export class ForgerPlugin extends BasePlugin {
 				aVote.address.equals(votesReceived.address),
 			);
 
-			forgerInfo.votesReceived[voterIndex].amount -= BigInt(votesReceived.amount);
-			if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
-				forgerInfo.votesReceived.splice(voterIndex, 1);
+			if (voterIndex !== -1) {
+				forgerInfo.votesReceived[voterIndex].amount -= BigInt(votesReceived.amount);
+				// Remove voter when amount becomes zero
+				if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
+					forgerInfo.votesReceived.splice(voterIndex, 1);
+				}
+				await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
 			}
-			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
 		}
 	}
 

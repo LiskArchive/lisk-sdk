@@ -179,13 +179,13 @@ describe('Forger Info', () => {
 				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(3000000000));
 			});
 
-			it('should update forger info with voters info in new block', async () => {
+			it('should update forger info with voters info and remove when amount becomes zero', async () => {
 				// Arrange
 				const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
 				const [forgingDelegateAddress1] = forgerPluginInstance['_forgersList'].entries()[0];
 				const [forgingDelegateAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
 				const transaction1 = createVoteTransaction({
-					amount: '20',
+					amount: '-30',
 					recipientAddress: forgingDelegateAddress1.toString('base64'),
 					fee: '0.3',
 					nonce: accountNonce,
@@ -218,7 +218,7 @@ describe('Forger Info', () => {
 				);
 				// Assert
 				expect(forgerInfo1).toMatchSnapshot();
-				expect(forgerInfo1.votesReceived[0].amount).toEqual(BigInt(5000000000));
+				expect(forgerInfo1.votesReceived).toBeEmpty();
 				expect(forgerInfo2).toMatchSnapshot();
 				expect(forgerInfo2.votesReceived[0].amount).toEqual(BigInt(2000000000));
 			});
