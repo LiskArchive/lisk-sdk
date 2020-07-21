@@ -27,7 +27,6 @@ describe('api/forging', () => {
 		forging: true,
 		totalProducedBlocks: 0,
 		votesReceived: [],
-		totalMissedBlocks: 1,
 		totalReceivedFees: '0',
 		totalReceivedRewards: '0',
 	};

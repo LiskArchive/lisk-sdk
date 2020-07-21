@@ -18,11 +18,10 @@ import { ForgerPlugin } from '../../src';
 import {
 	createApplication,
 	closeApplication,
-	getForgerInfo,
+	getForgerInfoByAddress,
 	waitNBlocks,
 	getURL,
 } from '../utils/application';
-import { Forger } from '../../src/types';
 
 describe('Forger endpoint', () => {
 	let app: Application;
@@ -40,9 +39,13 @@ describe('Forger endpoint', () => {
 		it('should return list of all forgers info', async () => {
 			// Arrange
 			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
-			const forgersList = forgerPluginInstance['_forgersList'] as ReadonlyArray<Forger>;
+			const forgersList = forgerPluginInstance['_forgersList'].entries() as ReadonlyArray<
+				[Buffer, boolean]
+			>;
 			const forgersInfo = await Promise.all(
-				forgersList.map(async forger => getForgerInfo(forgerPluginInstance, forger.address)),
+				forgersList.map(async ([forgerAddress, _]) =>
+					getForgerInfoByAddress(forgerPluginInstance, forgerAddress.toString('binary')),
+				),
 			);
 			const { data: resultData } = await axios.get(getURL('/api/forging/info'));
 

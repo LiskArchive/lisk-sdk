@@ -2,7 +2,6 @@
 
 exports[`Forger Info Delete Block should update forger info after delete block 1`] = `
 Object {
-  "totalMissedBlocks": 0,
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
@@ -10,19 +9,169 @@ Object {
 }
 `;
 
-exports[`Forger Info Missed Block should save missed block info 1`] = `
+exports[`Forger Info New Block Vote transactions should save forger info with votes received in new block 1`] = `
 Object {
-  "totalMissedBlocks": 0,
-  "totalProducedBlocks": 1,
-  "totalReceivedFees": 140000n,
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [
+    Object {
+      "address": Object {
+        "data": Array [
+          208,
+          70,
+          153,
+          229,
+          124,
+          74,
+          56,
+          70,
+          201,
+          136,
+          243,
+          193,
+          83,
+          6,
+          121,
+          111,
+          142,
+          174,
+          92,
+          28,
+        ],
+        "type": "Buffer",
+      },
+      "amount": 1000000000n,
+    },
+  ],
+}
+`;
+
+exports[`Forger Info New Block Vote transactions should update forger info with multiple votes received for same delegate in new block 1`] = `
+Object {
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [
+    Object {
+      "address": Object {
+        "data": Array [
+          208,
+          70,
+          153,
+          229,
+          124,
+          74,
+          56,
+          70,
+          201,
+          136,
+          243,
+          193,
+          83,
+          6,
+          121,
+          111,
+          142,
+          174,
+          92,
+          28,
+        ],
+        "type": "Buffer",
+      },
+      "amount": 7000000000n,
+    },
+  ],
+}
+`;
+
+exports[`Forger Info New Block Vote transactions should update forger info with upvote and downvote for same delegate in new block 1`] = `
+Object {
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [
+    Object {
+      "address": Object {
+        "data": Array [
+          208,
+          70,
+          153,
+          229,
+          124,
+          74,
+          56,
+          70,
+          201,
+          136,
+          243,
+          193,
+          83,
+          6,
+          121,
+          111,
+          142,
+          174,
+          92,
+          28,
+        ],
+        "type": "Buffer",
+      },
+      "amount": 3000000000n,
+    },
+  ],
+}
+`;
+
+exports[`Forger Info New Block Vote transactions should update forger info with voters info and remove when amount becomes zero 1`] = `
+Object {
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
   "votesReceived": Array [],
 }
 `;
 
+exports[`Forger Info New Block Vote transactions should update forger info with voters info and remove when amount becomes zero 2`] = `
+Object {
+  "totalProducedBlocks": 0,
+  "totalReceivedFees": 0n,
+  "totalReceivedRewards": 0n,
+  "votesReceived": Array [
+    Object {
+      "address": Object {
+        "data": Array [
+          208,
+          70,
+          153,
+          229,
+          124,
+          74,
+          56,
+          70,
+          201,
+          136,
+          243,
+          193,
+          83,
+          6,
+          121,
+          111,
+          142,
+          174,
+          92,
+          28,
+        ],
+        "type": "Buffer",
+      },
+      "amount": 2000000000n,
+    },
+  ],
+}
+`;
+
 exports[`Forger Info New Block should save forger info after new block 1`] = `
 Object {
-  "totalMissedBlocks": 0,
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
@@ -32,17 +181,6 @@ Object {
 
 exports[`Forger Info New Block should save forger info with received fees if payload included in new block 1`] = `
 Object {
-  "totalMissedBlocks": 0,
-  "totalProducedBlocks": 0,
-  "totalReceivedFees": 0n,
-  "totalReceivedRewards": 0n,
-  "votesReceived": Array [],
-}
-`;
-
-exports[`Forger Info New Block should save forger info with votes received in new block 1`] = `
-Object {
-  "totalMissedBlocks": 0,
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,
   "totalReceivedRewards": 0n,
