@@ -40,11 +40,14 @@ export class IPCClient extends IPCSocket {
 
 	public async start(): Promise<void> {
 		await super.start();
+		let timeout1: NodeJS.Timeout;
+		let timeout2: NodeJS.Timeout;
+		let timeout3: NodeJS.Timeout;
 
 		await new Promise((resolve, reject) => {
 			this.pubSocket.on('connect', resolve);
 			this.pubSocket.on('error', reject);
-			setTimeout(() => {
+			timeout1 = setTimeout(() => {
 				reject(
 					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
 				);
@@ -54,6 +57,7 @@ export class IPCClient extends IPCSocket {
 			// The socket on which server is observing clients will publish
 			this.pubSocket.connect(this._eventSubSocketPath);
 		}).finally(() => {
+			clearTimeout(timeout1);
 			this.pubSocket.removeAllListeners('connect');
 			this.pubSocket.removeAllListeners('error');
 		});
@@ -61,7 +65,7 @@ export class IPCClient extends IPCSocket {
 		await new Promise((resolve, reject) => {
 			this.subSocket.on('connect', resolve);
 			this.subSocket.on('error', reject);
-			setTimeout(() => {
+			timeout2 = setTimeout(() => {
 				reject(
 					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
 				);
@@ -71,6 +75,7 @@ export class IPCClient extends IPCSocket {
 			// The socket on which server is publishing clients will observer
 			this.subSocket.connect(this._eventPubSocketPath);
 		}).finally(() => {
+			clearTimeout(timeout2);
 			this.subSocket.removeAllListeners('connect');
 			this.subSocket.removeAllListeners('error');
 		});
@@ -78,7 +83,7 @@ export class IPCClient extends IPCSocket {
 		await new Promise((resolve, reject) => {
 			this.rpcClient.sock.on('connect', resolve);
 			this.rpcClient.sock.on('error', reject);
-			setTimeout(() => {
+			timeout3 = setTimeout(() => {
 				reject(
 					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
 				);
@@ -86,8 +91,14 @@ export class IPCClient extends IPCSocket {
 
 			this.rpcClient.sock.connect(this._actionRPCConnectingServerSocketPath);
 		}).finally(() => {
+			clearTimeout(timeout3);
 			this.rpcClient.sock.removeAllListeners('connect');
 			this.rpcClient.sock.removeAllListeners('error');
 		});
+	}
+
+	public stop(): void {
+		super.stop();
+		this.rpcClient.sock.close();
 	}
 }
