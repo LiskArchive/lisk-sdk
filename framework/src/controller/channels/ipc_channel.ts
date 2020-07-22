@@ -77,6 +77,8 @@ export class IPCChannel extends BaseChannel {
 	}
 
 	public async registerToBus(): Promise<void> {
+		// Start IPCClient and subscribe to socket messages
+		await this.startAndListen();
 		// Register channel details
 		await new Promise((resolve, reject) => {
 			let actionsInfo: { [key: string]: ActionInfoForBus } = {};
@@ -115,9 +117,6 @@ export class IPCChannel extends BaseChannel {
 					.catch(error => cb(error));
 			});
 		}
-
-		// Start IPCClient and subscribe to socket messages
-		await this.startAndListen();
 	}
 
 	public subscribe(eventName: string, cb: Listener): void {
