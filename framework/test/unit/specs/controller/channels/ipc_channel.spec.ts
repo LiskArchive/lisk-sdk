@@ -139,6 +139,20 @@ describe('IPCChannel Channel', () => {
 		});
 	});
 
+	describe('#startAndListen', () => {
+		beforeEach(async () => ipcChannel.startAndListen());
+
+		it('should start ipc client', () => {
+			// Assert
+			expect(ipcClientMock.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should register "message" event on subSocket', () => {
+			// Assert
+			expect(ipcClientMock.subSocket.on).toHaveBeenCalledWith('message', expect.any(Function));
+		});
+	});
+
 	describe('#registerToBus', () => {
 		beforeEach(async () => ipcChannel.registerToBus());
 
