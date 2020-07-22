@@ -217,8 +217,7 @@ describe('Hello endpoint', () => {
 			});
 		});
 
-		// TODO: Include after https://github.com/LiskHQ/lisk-sdk/issues/5529
-		describe.skip('409 - Some error related to processing of request.', () => {
+		describe('409 - Some error related to processing of request.', () => {
 			it('should fail if signatures are invalid', async () => {
 				// Arrange
 				const account = getRandomAccount();

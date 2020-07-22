@@ -64,6 +64,19 @@ export const events = {
 	EVENT_TRANSACTION_REMOVED: 'EVENT_TRANSACTION_REMOVED',
 };
 
+const removeHigherNonceError = (txResponse: TransactionResponse): TransactionResponse => ({
+	...txResponse,
+	errors: txResponse.errors.filter(
+		error =>
+			!(
+				error.dataPath === '.nonce' &&
+				error.actual &&
+				error.expected &&
+				BigInt(error.actual) > BigInt(error.expected)
+			),
+	),
+});
+
 export class TransactionPool {
 	public events: EventEmitter;
 
@@ -184,11 +197,14 @@ export class TransactionPool {
 
 		// _applyFunction is injected from chain module applyTransaction
 		const transactionsResponses = await this._applyFunction([incomingTx]);
-		const txStatus = this._getStatus(transactionsResponses);
+		const txStatus = this._getStatus(transactionsResponses[0]);
 
 		// If applyTransaction fails for the transaction then throw error
 		if (txStatus === TransactionStatus.INVALID) {
-			return { status: Status.FAIL, errors: transactionsResponses[0].errors };
+			return {
+				status: Status.FAIL,
+				errors: removeHigherNonceError(transactionsResponses[0]).errors,
+			};
 		}
 
 		/*
@@ -298,20 +314,15 @@ export class TransactionPool {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _getStatus(txResponse: ReadonlyArray<TransactionResponse>): TransactionStatus {
-		if (txResponse[0].status === Status.OK) {
+	private _getStatus(txResponse: TransactionResponse): TransactionStatus {
+		if (txResponse.status === Status.OK) {
 			debug('Received PROCESSABLE transaction');
 
 			return TransactionStatus.PROCESSABLE;
 		}
-		const txResponseErrors = txResponse[0].errors;
-		if (
-			txResponse[0].errors.length === 1 &&
-			txResponseErrors[0].dataPath === '.nonce' &&
-			txResponseErrors[0].actual &&
-			txResponseErrors[0].expected &&
-			BigInt(txResponseErrors[0].actual) > BigInt(txResponseErrors[0].expected)
-		) {
+
+		// If there was only one higher nonce error
+		if (txResponse.errors.length === 1 && removeHigherNonceError(txResponse).errors.length === 0) {
 			debug('Received UNPROCESSABLE transaction');
 
 			return TransactionStatus.UNPROCESSABLE;
