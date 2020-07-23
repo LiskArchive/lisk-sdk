@@ -66,9 +66,19 @@ export class IPCChannel extends BaseChannel {
 		setupProcessHandlers(this);
 	}
 
-	public async registerToBus(): Promise<void> {
+	public async startAndListen(): Promise<void> {
 		await this._ipcClient.start();
+		// Listen to messages
+		this._subSocket.on('message', (eventName: string, eventData: EventInfoObject) => {
+			if (eventData.module !== this.moduleAlias) {
+				this._emitter.emit(eventName, eventData);
+			}
+		});
+	}
 
+	public async registerToBus(): Promise<void> {
+		// Start IPCClient and subscribe to socket messages
+		await this.startAndListen();
 		// Register channel details
 		await new Promise((resolve, reject) => {
 			let actionsInfo: { [key: string]: ActionInfoForBus } = {};
@@ -107,13 +117,6 @@ export class IPCChannel extends BaseChannel {
 					.catch(error => cb(error));
 			});
 		}
-
-		// Listen to messages
-		this._subSocket.on('message', (eventName: string, eventData: EventInfoObject) => {
-			if (eventData.module !== this.moduleAlias) {
-				this._emitter.emit(eventName, eventData);
-			}
-		});
 	}
 
 	public subscribe(eventName: string, cb: Listener): void {
