@@ -24,11 +24,11 @@ import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { GenesisBlock } from '@liskhq/lisk-genesis';
-import { TransactionPool, Job, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
+import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Schema } from '@liskhq/lisk-codec';
-import { Sequence } from './utils/sequence';
+import { jobHandlers } from '@liskhq/lisk-utils';
 import { Forger, RegisteredDelegate } from './forger';
 import {
 	Transport,
@@ -124,7 +124,6 @@ export class Node {
 	private readonly _forgerDB: KVStore;
 	private readonly _blockchainDB: KVStore;
 	private readonly _networkModule: Network;
-	private _sequence!: Sequence;
 	private _networkIdentifier!: Buffer;
 	private _chain!: Chain;
 	private _bft!: BFT;
@@ -134,7 +133,7 @@ export class Node {
 	private _transactionPool!: TransactionPool;
 	private _transport!: Transport;
 	private _forger!: Forger;
-	private _forgingJob!: Job<void>;
+	private _forgingJob!: jobHandlers.Scheduler<void>;
 
 	public constructor({
 		channel,
@@ -165,12 +164,6 @@ export class Node {
 					`forging.waitThreshold=${this._options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this._options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
 				);
 			}
-
-			this._sequence = new Sequence({
-				onWarning: (current: number): void => {
-					this._logger.warn({ queueLength: current }, 'Main queue');
-				},
-			});
 
 			this._initModules();
 
@@ -468,6 +461,11 @@ export class Node {
 	public async cleanup(): Promise<void> {
 		this._transactionPool.stop();
 		this._unsubscribeToEvents();
+		if (this._forgingJob) {
+			this._forgingJob.stop();
+		}
+		await this._synchronizer.stop();
+		await this._processor.stop();
 		this._logger.info('Cleaned up successfully');
 	}
 
@@ -688,21 +686,19 @@ export class Node {
 	}
 
 	private async _forgingTask(): Promise<void> {
-		return this._sequence.add(async () => {
-			try {
-				if (!this._forger.delegatesEnabled()) {
-					this._logger.trace('No delegates are enabled');
-					return;
-				}
-				if (this._synchronizer.isActive) {
-					this._logger.debug('Client not ready to forge');
-					return;
-				}
-				await this._forger.forge();
-			} catch (err) {
-				this._logger.error({ err: err as Error });
+		try {
+			if (!this._forger.delegatesEnabled()) {
+				this._logger.trace('No delegates are enabled');
+				return;
 			}
-		});
+			if (this._synchronizer.isActive) {
+				this._logger.debug('Client not ready to forge');
+				return;
+			}
+			await this._forger.forge();
+		} catch (err) {
+			this._logger.error({ err: err as Error });
+		}
 	}
 
 	private async _startForging(): Promise<void> {
@@ -711,7 +707,7 @@ export class Node {
 		} catch (err) {
 			this._logger.error({ err: err as Error }, 'Failed to load delegates for forging');
 		}
-		this._forgingJob = new Job(async () => this._forgingTask(), forgeInterval);
+		this._forgingJob = new jobHandlers.Scheduler(async () => this._forgingTask(), forgeInterval);
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		this._forgingJob.start();
 	}

@@ -55,10 +55,10 @@ export const deleteBlocksAfterHeight = async (
 			},
 			'Deleting block and backing it up to temporary table',
 		);
-		const lastBlock = await processorModule.deleteLastBlock({
+		await processorModule.deleteLastBlock({
 			saveTempBlock: backup,
 		});
-		currentHeight = lastBlock.header.height;
+		currentHeight = chainModule.lastBlock.header.height;
 	}
 };
 

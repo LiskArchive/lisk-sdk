@@ -253,11 +253,15 @@ describe('Synchronizer', () => {
 					.calledWith({
 						saveTempBlock: false,
 					})
-					.mockResolvedValueOnce({
-						header: { height: initialLastBlock.header.height - 1 },
+					.mockImplementationOnce(() => {
+						chainModule._lastBlock = {
+							header: { height: initialLastBlock.header.height - 1 },
+						};
 					})
-					.mockResolvedValueOnce({
-						header: { height: initialLastBlock.header.height - 2 },
+					.mockImplementationOnce(() => {
+						chainModule._lastBlock = {
+							header: { height: initialLastBlock.header.height - 2 },
+						};
 					});
 
 				await chainModule.init();

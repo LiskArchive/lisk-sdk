@@ -175,6 +175,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 			try {
 				for (const block of blocks) {
+					if (this._stop) {
+						return;
+					}
 					await this.processorModule.processValidated(block);
 				}
 			} catch (err) {
