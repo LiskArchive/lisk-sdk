@@ -30,6 +30,7 @@ export abstract class BaseSynchronizer {
 	protected _channel: InMemoryChannel;
 	protected _chain: Chain;
 	protected _networkModule: Network;
+	protected _stop = false;
 
 	public constructor(logger: Logger, channel: InMemoryChannel, chain: Chain, network: Network) {
 		this.active = false;
@@ -38,6 +39,13 @@ export abstract class BaseSynchronizer {
 		this._chain = chain;
 		this._networkModule = network;
 		this.events = new EventEmitter();
+	}
+
+	public async stop(): Promise<void> {
+		this._stop = true;
+		while (this.active) {
+			await new Promise(resolve => setTimeout(resolve, 10));
+		}
 	}
 
 	protected _applyPenaltyAndRestartSync(

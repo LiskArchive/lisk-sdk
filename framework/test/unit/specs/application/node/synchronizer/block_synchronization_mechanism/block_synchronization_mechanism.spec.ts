@@ -15,7 +15,7 @@
 import { KVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
-import { BFT } from '@liskhq/lisk-bft';
+import { BFT, ForkStatus } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { objects } from '@liskhq/lisk-utils';
 
@@ -177,7 +177,9 @@ describe('block_synchronization_mechanism', () => {
 			logger: loggerMock,
 			bftModule,
 		});
-		processorModule.processValidated = jest.fn();
+		processorModule.processValidated = jest.fn().mockImplementation(block => {
+			chainModule._lastBlock = block;
+		});
 		processorModule.validate = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
 		processorModule.register(blockProcessorV0, {
@@ -316,7 +318,9 @@ describe('block_synchronization_mechanism', () => {
 			.calledWith({
 				saveTempBlock: true,
 			})
-			.mockResolvedValueOnce(genesisBlock as never);
+			.mockImplementation(() => {
+				chainModule._lastBlock = genesisBlock;
+			});
 
 		// eslint-disable-next-line require-atomic-updates
 		chainModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
@@ -1007,15 +1011,33 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith({
 							saveTempBlock: false,
 						})
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 9 } }) as never)
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 8 } }) as never)
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 7 } }) as never)
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 6 } }) as never)
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 5 } }) as never)
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 4 } }) as never)
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 3 } }) as never)
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 2 } }) as never)
-						.mockResolvedValueOnce(createValidDefaultBlock({ header: { height: 1 } }) as never);
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 9 } });
+						})
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 8 } });
+						})
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 7 } });
+						})
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 6 } });
+						})
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 5 } });
+						})
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 4 } });
+						})
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 3 } });
+						})
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 2 } });
+						})
+						.mockImplementationOnce(() => {
+							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 1 } });
+						});
 
 					const processingError = new Error('Error processing blocks');
 					processorModule.processValidated.mockRejectedValueOnce(processingError);
@@ -1037,7 +1059,7 @@ describe('block_synchronization_mechanism', () => {
 
 					expect(loggerMock.debug).toHaveBeenCalledWith(
 						{
-							currentTip: chainModule.lastBlock.header.id,
+							currentTip: expect.any(Buffer),
 							previousTip: expect.anything(),
 						},
 						'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
@@ -1115,19 +1137,20 @@ describe('block_synchronization_mechanism', () => {
 
 					const processingError = new Error('Error processing blocks');
 					processorModule.processValidated.mockRejectedValueOnce(processingError);
+					jest.spyOn(processorModule, 'forkStatus').mockResolvedValue(ForkStatus.DIFFERENT_CHAIN);
 
 					chainModule._lastBlock = aBlock;
 
+					when(networkMock.requestFromPeer)
+						.calledWith({
+							procedure: 'getBlocksFromId',
+							peerId: expect.any(String),
+							data: { blockId: expect.any(String) },
+						})
+						.mockResolvedValue({
+							data: [encodeValidBlock(aBlock).toString('base64')],
+						} as never);
 					try {
-						when(networkMock.requestFromPeer)
-							.calledWith({
-								procedure: 'getBlocksFromId',
-								peerId: expect.any(String),
-								data: { blockId: expect.any(String) },
-							})
-							.mockResolvedValue({
-								data: [encodeValidBlock(aBlock).toString('base64')],
-							} as never);
 						await blockSynchronizationMechanism.run(aBlock);
 					} catch (err) {
 						// Expected error
@@ -1145,7 +1168,7 @@ describe('block_synchronization_mechanism', () => {
 					expect(loggerMock.debug).toHaveBeenNthCalledWith(
 						14,
 						{
-							currentTip: chainModule.lastBlock.header.id,
+							currentTip: expect.any(Buffer),
 							previousTip: previousTip.header.id,
 						},
 						'Current tip of the chain has preference over previous tip',

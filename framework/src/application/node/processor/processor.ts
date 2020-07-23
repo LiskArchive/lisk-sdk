@@ -14,10 +14,9 @@
 
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
-import { objects } from '@liskhq/lisk-utils';
+import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { EventEmitter } from 'events';
-import { Sequence } from '../utils/sequence';
 import { Logger } from '../../logger';
 import { BaseBlockProcessor } from './base_block_processor';
 import { InMemoryChannel } from '../../../controller/channels';
@@ -53,22 +52,23 @@ type Matcher = (block: BlockHeader) => boolean;
 
 export class Processor {
 	public readonly events: EventEmitter;
-	private readonly channel: InMemoryChannel;
-	private readonly logger: Logger;
-	private readonly chainModule: Chain;
-	private readonly bftModule: BFT;
-	private readonly sequence: Sequence;
-	private readonly processors: { [key: string]: BaseBlockProcessor };
-	private readonly matchers: { [key: string]: Matcher };
+	private readonly _channel: InMemoryChannel;
+	private readonly _logger: Logger;
+	private readonly _chain: Chain;
+	private readonly _bft: BFT;
+	private readonly _jobQueue: jobHandlers.JobQueue;
+	private readonly _processors: { [key: string]: BaseBlockProcessor };
+	private readonly _matchers: { [key: string]: Matcher };
+	private _stop = false;
 
 	public constructor({ channel, logger, chainModule, bftModule }: ProcessorInput) {
-		this.channel = channel;
-		this.logger = logger;
-		this.chainModule = chainModule;
-		this.bftModule = bftModule;
-		this.sequence = new Sequence();
-		this.processors = {};
-		this.matchers = {};
+		this._channel = channel;
+		this._logger = logger;
+		this._chain = chainModule;
+		this._bft = bftModule;
+		this._jobQueue = new jobHandlers.JobQueue();
+		this._processors = {};
+		this._matchers = {};
 		this.events = new EventEmitter();
 	}
 
@@ -77,13 +77,13 @@ export class Processor {
 		if (typeof processor.version !== 'number') {
 			throw new Error('version property must exist for processor');
 		}
-		this.processors[processor.version] = processor;
-		this.matchers[processor.version] = matcher ?? ((): boolean => true);
+		this._processors[processor.version] = processor;
+		this._matchers[processor.version] = matcher ?? ((): boolean => true);
 	}
 
 	public async init(): Promise<void> {
-		const { genesisBlock } = this.chainModule;
-		this.logger.debug(
+		const { genesisBlock } = this._chain;
+		this._logger.debug(
 			{
 				id: genesisBlock.header.id,
 				transactionRoot: genesisBlock.header.transactionRoot,
@@ -91,26 +91,34 @@ export class Processor {
 			'Initializing processor',
 		);
 		// do init check for block state. We need to load the blockchain
-		const stateStore = await this.chainModule.newStateStore();
-		await this.bftModule.init(stateStore);
-		const genesisBlockExists = await this.chainModule.exists(genesisBlock);
+		const stateStore = await this._chain.newStateStore();
+		await this._bft.init(stateStore);
+		const genesisBlockExists = await this._chain.exists(genesisBlock);
 		if (!genesisBlockExists) {
 			await this.processValidated(genesisBlock, { removeFromTempTable: true });
 		}
-		await this.chainModule.init();
-		this.logger.info('Blockchain ready');
+		await this._chain.init();
+		this._logger.info('Blockchain ready');
+	}
+
+	public async stop(): Promise<void> {
+		this._stop = true;
+		await this._jobQueue.stop();
 	}
 
 	// process is for standard processing of block, especially when received from network
 	public async process(block: Block, { peerId }: { peerId?: string } = {}): Promise<void> {
-		return this.sequence.add(async () => {
-			this.logger.debug(
+		if (this._stop) {
+			return;
+		}
+		await this._jobQueue.add(async () => {
+			this._logger.debug(
 				{ id: block.header.id, height: block.header.height },
 				'Starting to process block',
 			);
 			const blockProcessor = this._getBlockProcessor(block);
-			const { lastBlock } = this.chainModule;
-			const stateStore = await this.chainModule.newStateStore();
+			const { lastBlock } = this._chain;
+			const stateStore = await this._chain.newStateStore();
 
 			const forkStatus = await blockProcessor.forkStatus.run({
 				block,
@@ -118,65 +126,68 @@ export class Processor {
 			});
 
 			if (!forkStatusList.includes(forkStatus)) {
-				this.logger.debug({ status: forkStatus, blockId: block.header.id }, 'Unknown fork status');
+				this._logger.debug({ status: forkStatus, blockId: block.header.id }, 'Unknown fork status');
 				throw new Error('Unknown fork status');
 			}
 
 			// Discarding block
 			if (forkStatus === ForkStatus.DISCARD) {
-				this.logger.debug({ id: block.header.id, height: block.header.height }, 'Discarding block');
-				const encodedBlock = this.chainModule.dataAccess.encode(block);
-				this.channel.publish('app:chain:fork', {
+				this._logger.debug(
+					{ id: block.header.id, height: block.header.height },
+					'Discarding block',
+				);
+				const encodedBlock = this._chain.dataAccess.encode(block);
+				this._channel.publish('app:chain:fork', {
 					block: encodedBlock.toString('base64'),
 				});
 				return;
 			}
 			if (forkStatus === ForkStatus.IDENTICAL_BLOCK) {
-				this.logger.debug(
+				this._logger.debug(
 					{ id: block.header.id, height: block.header.height },
 					'Block already processed',
 				);
 				return;
 			}
 			if (forkStatus === ForkStatus.DOUBLE_FORGING) {
-				this.logger.warn(
+				this._logger.warn(
 					{
 						id: block.header.id,
 						generatorPublicKey: block.header.generatorPublicKey,
 					},
 					'Discarding block due to double forging',
 				);
-				const encodedBlock = this.chainModule.dataAccess.encode(block);
-				this.channel.publish('app:chain:fork', {
+				const encodedBlock = this._chain.dataAccess.encode(block);
+				this._channel.publish('app:chain:fork', {
 					block: encodedBlock.toString('base64'),
 				});
 				return;
 			}
 			// Discard block and move to different chain
 			if (forkStatus === ForkStatus.DIFFERENT_CHAIN) {
-				this.logger.debug(
+				this._logger.debug(
 					{ id: block.header.id, height: block.header.height },
 					'Detected different chain to sync',
 				);
-				const encodedBlock = this.chainModule.dataAccess.encode(block);
+				const encodedBlock = this._chain.dataAccess.encode(block);
 				// Sync requires decoded block
 				this.events.emit(EVENT_PROCESSOR_SYNC_REQUIRED, {
 					block,
 					peerId,
 				});
-				this.channel.publish('app:chain:fork', {
+				this._channel.publish('app:chain:fork', {
 					block: encodedBlock.toString('base64'),
 				});
 				return;
 			}
 			// Replacing a block
 			if (forkStatus === ForkStatus.TIE_BREAK) {
-				this.logger.info(
+				this._logger.info(
 					{ id: lastBlock.header.id, height: lastBlock.header.height },
 					'Received tie breaking block',
 				);
-				const encodedBlock = this.chainModule.dataAccess.encode(block);
-				this.channel.publish('app:chain:fork', {
+				const encodedBlock = this._chain.dataAccess.encode(block);
+				this._channel.publish('app:chain:fork', {
 					block: encodedBlock.toString('base64'),
 				});
 
@@ -187,11 +198,11 @@ export class Processor {
 				});
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
-				const newLastBlock = this.chainModule.lastBlock;
+				const newLastBlock = this._chain.lastBlock;
 				try {
 					await this._processValidated(block, newLastBlock, blockProcessor);
 				} catch (err) {
-					this.logger.error(
+					this._logger.error(
 						{
 							id: block.header.id,
 							previousBlockId: previousLastBlock.header.id,
@@ -206,7 +217,7 @@ export class Processor {
 				return;
 			}
 
-			this.logger.debug(
+			this._logger.debug(
 				{ id: block.header.id, height: block.header.height },
 				'Processing valid block',
 			);
@@ -225,13 +236,13 @@ export class Processor {
 
 		return blockProcessor.forkStatus.run({
 			block: receivedBlock,
-			lastBlock: lastBlock ?? this.chainModule.lastBlock,
+			lastBlock: lastBlock ?? this._chain.lastBlock,
 		});
 	}
 
 	public async create(data: CreateInput): Promise<Block> {
 		const { previousBlock } = data;
-		this.logger.trace(
+		this._logger.trace(
 			{
 				previousBlockId: previousBlock.header.id,
 				previousBlockHeight: previousBlock.header.height,
@@ -240,16 +251,16 @@ export class Processor {
 		);
 		const highestVersion = Math.max.apply(
 			null,
-			Object.keys(this.processors).map(v => parseInt(v, 10)),
+			Object.keys(this._processors).map(v => parseInt(v, 10)),
 		);
-		const processor = this.processors[highestVersion];
-		const stateStore = await this.chainModule.newStateStore();
+		const processor = this._processors[highestVersion];
+		const stateStore = await this._chain.newStateStore();
 
 		return processor.create.run({ data, stateStore });
 	}
 
 	public async validate(block: Block): Promise<void> {
-		this.logger.debug({ id: block.header.id, height: block.header.height }, 'Validating block');
+		this._logger.debug({ id: block.header.id, height: block.header.height }, 'Validating block');
 		const blockProcessor = this._getBlockProcessor(block);
 		await blockProcessor.validate.run({
 			block,
@@ -260,13 +271,16 @@ export class Processor {
 	public async processValidated(
 		block: Block,
 		{ removeFromTempTable = false }: { removeFromTempTable?: boolean } = {},
-	): Promise<Block> {
-		return this.sequence.add<Block>(async () => {
-			this.logger.debug(
+	): Promise<void> {
+		if (this._stop) {
+			return;
+		}
+		await this._jobQueue.add(async () => {
+			this._logger.debug(
 				{ id: block.header.id, height: block.header.height },
 				'Processing validated block',
 			);
-			const { lastBlock } = this.chainModule;
+			const { lastBlock } = this._chain;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
 				skipBroadcast: true,
@@ -275,29 +289,20 @@ export class Processor {
 		});
 	}
 
-	// apply processes a block assuming that statically it's valid without saving a block
-	public async apply(block: Block): Promise<Block> {
-		return this.sequence.add<Block>(async () => {
-			this.logger.debug({ id: block.header.id, height: block.header.height }, 'Applying block');
-			const { lastBlock } = this.chainModule;
-			const blockProcessor = this._getBlockProcessor(block);
-			return this._processValidated(block, lastBlock, blockProcessor, {
-				skipBroadcast: true,
-			});
-		});
-	}
-
 	public async deleteLastBlock({
 		saveTempBlock = false,
-	}: { saveTempBlock?: boolean } = {}): Promise<Block> {
-		return this.sequence.add<Block>(async () => {
-			const { lastBlock } = this.chainModule;
-			this.logger.debug(
+	}: { saveTempBlock?: boolean } = {}): Promise<void> {
+		if (this._stop) {
+			return;
+		}
+		await this._jobQueue.add(async () => {
+			const { lastBlock } = this._chain;
+			this._logger.debug(
 				{ id: lastBlock.header.id, height: lastBlock.header.height },
 				'Deleting last block',
 			);
 			await this._deleteBlock(lastBlock, saveTempBlock);
-			return this.chainModule.lastBlock;
+			return this._chain.lastBlock;
 		});
 	}
 
@@ -313,7 +318,7 @@ export class Processor {
 			removeFromTempTable?: boolean;
 		} = {},
 	): Promise<Block> {
-		const stateStore = await this.chainModule.newStateStore();
+		const stateStore = await this._chain.newStateStore();
 		await processor.verify.run({
 			block,
 			lastBlock,
@@ -335,7 +340,7 @@ export class Processor {
 			stateStore,
 		});
 
-		await this.chainModule.save(block, stateStore, this.bftModule.finalizedHeight, {
+		await this._chain.save(block, stateStore, this._bft.finalizedHeight, {
 			removeFromTempTable,
 		});
 
@@ -343,28 +348,28 @@ export class Processor {
 	}
 
 	private async _deleteBlock(block: Block, saveTempBlock = false): Promise<void> {
-		if (block.header.height <= this.bftModule.finalizedHeight) {
+		if (block.header.height <= this._bft.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
-		const stateStore = await this.chainModule.newStateStore(1);
-		await this.chainModule.remove(block, stateStore, { saveTempBlock });
+		const stateStore = await this._chain.newStateStore(1);
+		await this._chain.remove(block, stateStore, { saveTempBlock });
 	}
 
 	private _getBlockProcessor(block: Block): BaseBlockProcessor {
 		const { version } = block.header;
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (!this.processors[version]) {
+		if (!this._processors[version]) {
 			throw new Error('Block processing version is not registered');
 		}
 		// Sort in asc order
-		const matcherVersions = Object.keys(this.matchers).sort((a, b) => a.localeCompare(b, 'en'));
+		const matcherVersions = Object.keys(this._matchers).sort((a, b) => a.localeCompare(b, 'en'));
 		// eslint-disable-next-line no-restricted-syntax
 		for (const matcherVersion of matcherVersions) {
-			const matcher = this.matchers[matcherVersion];
+			const matcher = this._matchers[matcherVersion];
 			if (matcher(block.header)) {
-				return this.processors[matcherVersion];
+				return this._processors[matcherVersion];
 			}
 		}
 		throw new Error('No matching block processor found');
