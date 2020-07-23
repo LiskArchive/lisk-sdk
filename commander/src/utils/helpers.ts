@@ -13,41 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { ValidationError } from './error';
-
-const regExpAmount = /^\d+(\.\d{1,8})?$/;
-
-const isStringInteger = (n: string): boolean => {
-	const parsed = parseInt(n, 10);
-
-	return !Number.isNaN(parsed) && parsed.toString() === n;
-};
-
-export const validateLifetime = (lifetime: string): boolean => {
-	if (!isStringInteger(lifetime)) {
-		throw new ValidationError('Lifetime must be an integer.');
-	}
-
-	return true;
-};
-
-export const validateMinimum = (minimum: string): boolean => {
-	if (!isStringInteger(minimum)) {
-		throw new ValidationError('Minimum number of signatures must be an integer.');
-	}
-
-	return true;
-};
-
-export const validateAmount = (amount: string): boolean => {
-	// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-	if (!amount.match(regExpAmount)) {
-		throw new ValidationError('Amount must be a number with no more than 8 decimal places.');
-	}
-
-	return true;
-};
-
 interface ErrorMessageObject {
 	readonly error: string;
 }

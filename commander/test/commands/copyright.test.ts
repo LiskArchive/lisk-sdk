@@ -13,15 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
-import * as config from '../../src/utils/config';
 
 describe('copyright command', () => {
-	const setupStub = () => test.stub(config, 'getConfig', sandbox.stub().returns({}));
-
 	describe('copyright', () => {
-		setupStub()
+		test
 			.stdout()
 			.command(['copyright'])
 			.it('should show copyright', ctx => {

@@ -15,7 +15,6 @@
  */
 import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
-import * as config from '../../src/utils/config';
 import * as printUtils from '../../src/utils/print';
 
 describe('network-identifier command', () => {
@@ -26,10 +25,7 @@ describe('network-identifier command', () => {
 	const printMethodStub = sandbox.stub();
 
 	const setupTest = () =>
-		test
-			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stdout();
+		test.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub)).stdout();
 
 	describe('network-identifier', () => {
 		setupTest()

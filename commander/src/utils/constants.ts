@@ -13,60 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const COMMAND_TYPES: ReadonlyArray<string> = [
-	'accounts',
-	'addresses',
-	'blocks',
-	'delegates',
-	'transactions',
-];
-
-export const PLURALS = {
-	account: 'accounts',
-	address: 'addresses',
-	block: 'blocks',
-	delegate: 'delegates',
-	transaction: 'transactions',
-};
-
-export const QUERY_INPUT_MAP = {
-	accounts: 'address',
-	blocks: 'blockId',
-	delegates: 'username',
-	transactions: 'id',
-};
-
-export const CONFIG_VARIABLES: ReadonlyArray<string> = [
-	'api.nodes',
-	'api.network',
-	'json',
-	'pretty',
-];
-
-export const API_PROTOCOLS: ReadonlyArray<string> = ['http:', 'https:'];
-
 export const COMMUNITY_IDENTIFIER = 'Lisk';
-
-// FIXME: Update this based on new network ID input
-export const NETHASHES: { readonly [key: string]: string } = {
-	main: Buffer.from(
-		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-		'hex',
-	).toString('base64'),
-	test: Buffer.from(
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-		'hex',
-	).toString('base64'),
-};
-
-export const SORT_FIELDS: ReadonlyArray<string> = [
-	'publicKey:asc',
-	'publicKey:desc',
-	'balance:asc',
-	'balance:desc',
-	'username:asc',
-	'username:desc',
-];
 
 export enum NETWORK {
 	MAINNET = 'mainnet',
