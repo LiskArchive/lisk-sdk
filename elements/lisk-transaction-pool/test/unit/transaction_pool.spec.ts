@@ -223,8 +223,11 @@ describe('TransactionPool class', () => {
 		txGetBytesStub = jest.fn();
 		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
-		it('should add a valid transaction and is added to the transaction list as processable', async () => {
+		it('should add a valid transaction to the transaction list as processable', async () => {
+			// Act
 			const { status } = await transactionPool.add(tx);
+
+			// Arrange & Assert
 			expect(status).toEqual(Status.OK);
 			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(true);
 
@@ -240,10 +243,11 @@ describe('TransactionPool class', () => {
 			expect(trxSenderAddressList?.getProcessable()).toContain(originalTrxObj);
 		});
 
-		it('should add a valid transaction and is added to the transaction list as unprocessable', async () => {
+		it('should add a valid higher nonce transaction to the transaction list as unprocessable', async () => {
+			// Arrange
 			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue([
 				{
-					status: 0,
+					status: Status.FAIL,
 					errors: [
 						{
 							dataPath: '.nonce',
@@ -253,8 +257,11 @@ describe('TransactionPool class', () => {
 					],
 				},
 			]);
+
+			// Act
 			const { status } = await transactionPool.add(tx);
 
+			// Assert
 			expect(status).toEqual(Status.OK);
 			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(true);
 
@@ -271,9 +278,14 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should reject a duplicate transaction', async () => {
+			// Arrange
 			const txDuplicate = { ...tx };
+
+			// Act
 			const { status: status1 } = await transactionPool.add(tx);
 			const { status: status2 } = await transactionPool.add(txDuplicate);
+
+			// Assert
 			expect(status1).toEqual(Status.OK);
 			expect(status2).toEqual(Status.OK);
 			// Check if its not added to the transaction list
@@ -281,29 +293,57 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should throw when a transaction is invalid', async () => {
+			// Arrange
 			const transactionResponse = [
 				{ status: Status.FAIL, errors: [new Error('Invalid transaction')] },
 			];
 			jest.spyOn(transactionPool, '_getStatus' as any);
 			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue(transactionResponse);
-			try {
-				await transactionPool.add(tx);
-			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
-				// eslint-disable-next-line jest/no-try-expect
-				expect(error.message).toContain(
-					`transaction id ${tx.id.toString('hex')} is an invalid transaction`,
-				);
-			}
+
+			// Act
+			const result = await transactionPool.add(tx);
+
+			// Assert
+			expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
+			expect(result.status).toEqual(Status.FAIL);
+			expect(result.errors).toHaveLength(1);
+			expect(result.errors[0].message).toEqual('Invalid transaction');
+		});
+
+		it('should throw when a transaction is invalid but not include higher nonce error', async () => {
+			// Arrange
+			const transactionResponse = [
+				{
+					status: Status.FAIL,
+					errors: [
+						new Error('Invalid transaction'),
+						{
+							dataPath: '.nonce',
+							actual: '123',
+							expected: '2',
+						},
+					],
+				},
+			];
+			jest.spyOn(transactionPool, '_getStatus' as any);
+			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue(transactionResponse);
+
+			// Act
+			const result = await transactionPool.add(tx);
+
+			// Assert
+			expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
+			expect(result.status).toEqual(Status.FAIL);
+			expect(result.errors).toHaveLength(1);
+			expect(result.errors[0].message).toEqual('Invalid transaction');
 		});
 
 		it('should reject a transaction with lower fee than minEntranceFee', async () => {
+			// Arrange
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 			});
-
 			const lowFeeTrx = {
 				id: Buffer.from('1'),
 				nonce: BigInt(1),
@@ -315,11 +355,15 @@ describe('TransactionPool class', () => {
 			const tempTxGetBytesStub = jest.fn();
 			lowFeeTrx.getBytes = tempTxGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
+			// Act
 			const { status } = await transactionPool.add(lowFeeTrx);
+
+			// Assert
 			expect(status).toEqual(Status.FAIL);
 		});
 
 		it('should evict lowest feePriority among highest nonce trx from the pool when txPool is full and all the trxs are processable', async () => {
+			// Arrange
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
@@ -364,7 +408,11 @@ describe('TransactionPool class', () => {
 
 			tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 			jest.spyOn(transactionPool, '_evictProcessable' as any);
+
+			// Act
 			const { status } = await transactionPool.add(highFeePriorityTx);
+
+			// Assert
 			expect(transactionPool['_evictProcessable']).toHaveBeenCalledTimes(1);
 			expect(status).toEqual(Status.OK);
 		});

@@ -19,7 +19,7 @@ import { IPCChannel } from '../../../../src/controller/channels';
 import { IPCServer } from '../../../../src/controller/ipc/ipc_server';
 import { Event } from '../../../../src/controller/event';
 
-const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel/sockets`);
+const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel_without_bus/sockets`);
 
 const config: any = {
 	ipc: {
