@@ -44,6 +44,8 @@ interface JobQueueConfig {
 export class JobQueue {
 	private readonly _config: Config;
 	private readonly _queue: Task[] = [];
+	private _active = false;
+	private _stop = false;
 
 	public constructor(config?: JobQueueConfig) {
 		this._queue = [];
@@ -86,16 +88,30 @@ export class JobQueue {
 		return this._queue.length;
 	}
 
-	private async _tick(): Promise<void> {
-		const task = this._queue.shift();
-		if (!task) {
+	public async stop(): Promise<void> {
+		if (!this._active) {
 			return;
 		}
+		this._stop = true;
+		this._queue.splice(1);
+		while (this._active) {
+			await new Promise(resolve => setTimeout(resolve, 10));
+		}
+	}
+
+	private async _tick(): Promise<void> {
+		const task = this._queue.shift();
+		if (!task || this._stop) {
+			return;
+		}
+		this._active = true;
 		try {
 			const result = await task.worker();
 			task.done.resolve(result);
 		} catch (error) {
 			task.done.reject(error);
+		} finally {
+			this._active = false;
 		}
 	}
 }

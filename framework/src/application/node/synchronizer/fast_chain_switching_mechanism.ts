@@ -243,6 +243,9 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	private async _applyBlocks(blocksToApply: ReadonlyArray<Block>): Promise<void> {
 		try {
 			for (const block of blocksToApply) {
+				if (this._stop) {
+					return;
+				}
 				this._logger.trace(
 					{
 						blockId: block.header.id,

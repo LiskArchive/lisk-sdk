@@ -161,7 +161,9 @@ describe('fast_chain_switching_mechanism', () => {
 			logger: loggerMock,
 			bftModule,
 		});
-		processorModule.processValidated = jest.fn();
+		processorModule.processValidated = jest.fn().mockImplementation(block => {
+			chainModule._lastBlock = block;
+		});
 		processorModule.validate = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
 		processorModule.register(blockProcessorV0, {
@@ -280,6 +282,8 @@ describe('fast_chain_switching_mechanism', () => {
 			lastBlock = createValidDefaultBlock({
 				header: { height: finalizedHeight + 1 },
 			});
+
+			chainModule._lastBlock = lastBlock;
 
 			when(chainModule.dataAccess.getBlockHeaderByID)
 				.calledWith(genesisBlock.header.id)
@@ -603,7 +607,9 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith({
 						saveTempBlock: true,
 					})
-					.mockResolvedValue(genesisBlock as never);
+					.mockImplementation(() => {
+						chainModule._lastBlock = genesisBlock;
+					});
 
 				when(chainModule.dataAccess.getBlockByID)
 					.calledWith(highestCommonBlock.id)
@@ -739,7 +745,9 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith({
 						saveTempBlock: true,
 					})
-					.mockResolvedValue(genesisBlock as never);
+					.mockImplementation(() => {
+						chainModule._lastBlock = genesisBlock;
+					});
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
 					.mockResolvedValue(storageReturnValue as never);
@@ -858,15 +866,11 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith(highestCommonBlock.id)
 					.mockResolvedValue(highestCommonBlock as never);
 
-				when(processorModule.deleteLastBlock)
-					.calledWith({
-						saveTempBlock: true,
-					})
-					.mockResolvedValueOnce(genesisBlock as never)
-					.calledWith({
-						saveTempBlock: false,
-					})
-					.mockResolvedValueOnce(genesisBlock as never);
+				processorModule.deleteLastBlock.mockImplementation(() => {
+					chainModule._lastBlock = createValidDefaultBlock({
+						header: { height: chainModule._lastBlock.header.height - 1 },
+					});
+				});
 
 				const blocksInTempTable = [chainModule.lastBlock];
 
@@ -899,10 +903,6 @@ describe('fast_chain_switching_mechanism', () => {
 					},
 					'Deleting blocks after height',
 				);
-				expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(2);
-				expect(processorModule.deleteLastBlock).toHaveBeenCalledWith({
-					saveTempBlock: false,
-				});
 				expect(loggerMock.debug).toHaveBeenCalledWith('Restoring blocks from temporary table');
 				expect(loggerMock.debug).toHaveBeenCalledWith('Cleaning blocks temp table');
 				// Restore blocks from temp table:
