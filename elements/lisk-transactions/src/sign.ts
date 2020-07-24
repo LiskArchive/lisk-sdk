@@ -15,32 +15,14 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseTransaction } from './base_transaction';
 import { sortKeysAscending } from './utils';
+import { validateTransactionSchema } from './validate';
 
 interface MultiSignatureKeys {
 	readonly mandatoryKeys: Array<Readonly<Buffer>>;
 	readonly optionalKeys: Array<Readonly<Buffer>>;
 }
-
-export const validateTransactionSchema = (
-	assetSchema: object,
-	transactionObject: Record<string, unknown>,
-): Error => {
-	const valueWithoutAsset = {
-		...transactionObject,
-		asset: Buffer.alloc(0),
-	};
-	const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, valueWithoutAsset);
-
-	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
-		throw new Error('Asset must be of type object and not null');
-	}
-	const assetSchemaErrors = validator.validate(assetSchema, transactionObject.asset);
-
-	return new LiskValidationError([...schemaErrors, ...assetSchemaErrors]);
-};
 
 export const getSigningBytes = (
 	assetSchema: object,
