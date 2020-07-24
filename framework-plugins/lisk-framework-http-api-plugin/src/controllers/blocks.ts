@@ -30,7 +30,7 @@ export const getBlockById = (channel: BaseChannel, codec: PluginCodec) => async 
 	}
 
 	try {
-		const block: Buffer = await channel.invoke('app:getBlockByID', { id: blockId });
+		const block = await channel.invoke<string>('app:getBlockByID', { id: blockId });
 		res.status(200).send({ data: codec.decodeBlock(block) });
 	} catch (err) {
 		if (/^Specified key blocks:id:(.*)does not exist/.test((err as Error).message)) {
@@ -58,10 +58,10 @@ export const getBlockByHeight = (channel: BaseChannel, codec: PluginCodec) => as
 	}
 
 	try {
-		const block: Buffer = await channel.invoke('app:getBlockByHeight', {
+		const block = await channel.invoke<string>('app:getBlockByHeight', {
 			height: parseInt(height as string, 10),
 		});
-		res.status(200).send({ data: codec.decodeBlock(block) });
+		res.status(200).send({ data: [codec.decodeBlock(block)] });
 	} catch (err) {
 		if (/^Specified key blocks:height:(.*)does not exist/.test((err as Error).message)) {
 			res.status(404).send({

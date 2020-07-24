@@ -37,7 +37,11 @@ describe('Blocks endpoints', () => {
 		it('should respond with block when block found for specified height', async () => {
 			const result = await axios.get(getURL('/api/blocks/?height=1'));
 
-			const returnedBlock = result.data.data;
+			const returnedBlocks = result.data.data;
+
+			expect(returnedBlocks).toBeArrayOfSize(1);
+
+			const [returnedBlock] = returnedBlocks;
 
 			expect(Object.keys(returnedBlock)).toEqual(['header', 'payload']);
 			expect(Object.keys(returnedBlock.header)).toEqual([
@@ -59,17 +63,17 @@ describe('Blocks endpoints', () => {
 				'seedReveal',
 			]);
 
-			expect(typeof result.data.data.header.id).toBe('string');
-			expect(typeof result.data.data.header.version).toBe('number');
-			expect(typeof result.data.data.header.timestamp).toBe('number');
-			expect(typeof result.data.data.header.height).toBe('number');
-			expect(typeof result.data.data.header.previousBlockID).toBe('string');
-			expect(typeof result.data.data.header.transactionRoot).toBe('string');
-			expect(typeof result.data.data.header.generatorPublicKey).toBe('string');
-			expect(typeof result.data.data.header.reward).toBe('string');
-			expect(typeof result.data.data.header.asset.maxHeightPreviouslyForged).toBe('number');
-			expect(typeof result.data.data.header.asset.maxHeightPrevoted).toBe('number');
-			expect(typeof result.data.data.header.asset.seedReveal).toBe('string');
+			expect(typeof returnedBlock.header.id).toBe('string');
+			expect(typeof returnedBlock.header.version).toBe('number');
+			expect(typeof returnedBlock.header.timestamp).toBe('number');
+			expect(typeof returnedBlock.header.height).toBe('number');
+			expect(typeof returnedBlock.header.previousBlockID).toBe('string');
+			expect(typeof returnedBlock.header.transactionRoot).toBe('string');
+			expect(typeof returnedBlock.header.generatorPublicKey).toBe('string');
+			expect(typeof returnedBlock.header.reward).toBe('string');
+			expect(typeof returnedBlock.header.asset.maxHeightPreviouslyForged).toBe('number');
+			expect(typeof returnedBlock.header.asset.maxHeightPrevoted).toBe('number');
+			expect(typeof returnedBlock.header.asset.seedReveal).toBe('string');
 		});
 
 		it('should respond with 404 and error message when block not found for specified height', async () => {
@@ -102,9 +106,11 @@ describe('Blocks endpoints', () => {
 			await waitNBlocks(app, 1);
 			const {
 				data: {
-					data: {
-						header: { id },
-					},
+					data: [
+						{
+							header: { id },
+						},
+					],
 				},
 			} = await axios.get(getURL('/api/blocks/?height=1'));
 
