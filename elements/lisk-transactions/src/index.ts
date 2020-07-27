@@ -24,12 +24,7 @@ import * as constants from './constants';
 import { convertToAssetError, convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status, TransactionResponse } from './response';
 import { transactionInterface } from './schema';
-import {
-	getSigningBytes,
-	validateTransactionSchema,
-	signTransaction,
-	signMultiSignatureTransaction,
-} from './transaction_helper';
+import { getSigningBytes, signTransaction, signMultiSignatureTransaction } from './sign';
 import { Account, TransactionJSON } from './types';
 import {
 	convertBeddowsToLSK,
@@ -41,6 +36,7 @@ import {
 	verifyMinRemainingBalance,
 	verifyMultiSignatureTransaction,
 } from './utils';
+import { validateTransactionSchema } from './validate';
 
 const exposedUtils = {
 	convertBeddowsToLSK,

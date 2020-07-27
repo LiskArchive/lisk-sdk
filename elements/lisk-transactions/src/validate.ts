@@ -19,17 +19,26 @@ import { BaseTransaction } from './base_transaction';
 export const validateTransactionSchema = (
 	assetSchema: object,
 	transactionObject: Record<string, unknown>,
-): Error => {
-	const valueWithoutAsset = {
+): LiskValidationError | Error | undefined => {
+	const transactionObjectWithEmptyAsset = {
 		...transactionObject,
 		asset: Buffer.alloc(0),
 	};
-	const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, valueWithoutAsset);
+	const schemaErrors = validator.validate(
+		BaseTransaction.BASE_SCHEMA,
+		transactionObjectWithEmptyAsset,
+	);
+	if (schemaErrors.length) {
+		return new LiskValidationError([...schemaErrors]);
+	}
 
 	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
-		throw new Error('Asset must be of type object and not null');
+		return new Error('Transaction object asset must be of type object and not null');
 	}
 	const assetSchemaErrors = validator.validate(assetSchema, transactionObject.asset);
-
-	return new LiskValidationError([...schemaErrors, ...assetSchemaErrors]);
+	if (assetSchemaErrors.length) {
+		return new LiskValidationError([...assetSchemaErrors]);
+	}
+	// eslint-disable-next-line consistent-return, no-useless-return
+	return;
 };

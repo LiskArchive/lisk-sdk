@@ -24,14 +24,18 @@ interface MultiSignatureKeys {
 	readonly optionalKeys: Array<Readonly<Buffer>>;
 }
 
+// Validates transaction against schema and returns transaction bytes for signing
 export const getSigningBytes = (
 	assetSchema: object,
 	transactionObject: Record<string, unknown>,
 ): Buffer => {
+	const validationErrors = validateTransactionSchema(assetSchema, transactionObject);
+	if (validationErrors) {
+		throw validationErrors;
+	}
 	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
 		throw new Error('Asset must be of type object and not null');
 	}
-	validateTransactionSchema(assetSchema, transactionObject);
 	const assetBytes = codec.encode((assetSchema as unknown) as Schema, transactionObject.asset);
 	const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
 		...transactionObject,
@@ -42,21 +46,25 @@ export const getSigningBytes = (
 	return transactionBytes;
 };
 
+// Validates transaction against schema and returns transaction including signature
 export const signTransaction = (
 	assetSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
-	senderPassphrase: string,
+	passphrase: string,
 ): Record<string, unknown> => {
 	if (!networkIdentifier.length) {
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	if (!senderPassphrase) {
+	if (!passphrase) {
 		throw new Error('Passphrase is required to sign a transaction');
 	}
-	validateTransactionSchema(assetSchema, transactionObject);
-	const { publicKey } = getAddressAndPublicKeyFromPassphrase(senderPassphrase);
+	const validationErrors = validateTransactionSchema(assetSchema, transactionObject);
+	if (validationErrors) {
+		throw validationErrors;
+	}
+	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
 	if (
 		!Buffer.isBuffer(transactionObject.senderPublicKey) ||
@@ -70,12 +78,11 @@ export const signTransaction = (
 		getSigningBytes(assetSchema, transactionObject),
 	]);
 
-	const signature = signData(transactionWithNetworkIdentifierBytes, senderPassphrase);
-	// Reset signatures
-	if (!Array.isArray(transactionObject.signatures)) {
-		throw new Error('Signatures must be of type array');
-	}
-	transactionObject.signatures.push(signature);
+	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
+	// eslint-disable-next-line no-param-reassign
+	transactionObject.signatures = [];
+	// eslint-disable-next-line no-param-reassign
+	transactionObject.signatures = [signature];
 	return transactionObject;
 };
 
@@ -101,35 +108,43 @@ const sanitizeSignaturesArray = (
 	}
 };
 
+// Validates transaction against schema and sign a multi-signature transaction
 export const signMultiSignatureTransaction = (
 	assetSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
-	senderPassphrase: string,
+	passphrase: string,
 	keys: MultiSignatureKeys,
 	includeSenderSignature = false,
 ): Record<string, unknown> => {
-	validateTransactionSchema(assetSchema, transactionObject);
-
+	const validationErrors = validateTransactionSchema(assetSchema, transactionObject);
+	if (validationErrors) {
+		throw validationErrors;
+	}
+	if (!Array.isArray(transactionObject.signatures)) {
+		throw new Error('Signatures must be of type array');
+	}
 	// Sort keys
 	sortKeysAscending(keys.mandatoryKeys);
 	sortKeysAscending(keys.optionalKeys);
 
-	const { publicKey } = getAddressAndPublicKeyFromPassphrase(senderPassphrase);
+	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifier,
 		getSigningBytes(assetSchema, transactionObject),
 	]);
 
-	const signature = signData(transactionWithNetworkIdentifierBytes, senderPassphrase);
+	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
 
 	if (
 		includeSenderSignature &&
 		Buffer.isBuffer(transactionObject.senderPublicKey) &&
 		publicKey.equals(transactionObject.senderPublicKey)
 	) {
-		(transactionObject.signatures as Array<Readonly<Buffer>>).unshift(signature);
+		// Include sender signature at position zero
+		// eslint-disable-next-line no-param-reassign
+		transactionObject.signatures[0] = signature;
 	}
 
 	if (
@@ -148,35 +163,22 @@ export const signMultiSignatureTransaction = (
 	);
 	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey => aPublicKey.equals(publicKey));
 
-	if (!Array.isArray(transactionObject.signatures)) {
-		throw new Error('Signatures must be of type array');
-	}
 	// If it's a mandatory Public Key find where to add the signature
 	if (mandatoryKeyIndex !== -1) {
-		let signatureOffset = 0;
-
-		if (includeSenderSignature) {
-			// Account for sender signature
-			signatureOffset = 1;
-		}
+		const signatureOffset = includeSenderSignature ? 1 : 0;
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[mandatoryKeyIndex + signatureOffset] = signature;
 	}
 
 	if (optionalKeyIndex !== -1) {
-		let signatureOffset = 0;
-
-		if (includeSenderSignature) {
-			// Account for sender signature
-			signatureOffset = 1;
-		}
+		const signatureOffset = includeSenderSignature ? 1 : 0;
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[
 			keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset
 		] = signature;
 	}
 
-	sanitizeSignaturesArray(transactionObject, keys);
+	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
 	return transactionObject;
 };
