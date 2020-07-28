@@ -15,6 +15,7 @@
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as liskP2P from '@liskhq/lisk-p2p';
+import { codec } from '@liskhq/lisk-codec';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
@@ -441,12 +442,32 @@ export class Network {
 		});
 	}
 
-	public getConnectedPeers(): ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> {
-		return this._p2p.getConnectedPeers();
+	public getConnectedPeers(): ReadonlyArray<liskP2P.p2pTypes.PeerInfo> {
+		const peers = this._p2p.getConnectedPeers();
+		return peers.map(peer => {
+			const parsedPeer = {
+				...peer,
+			};
+			if (parsedPeer.options) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				parsedPeer.options = codec.toJSON(customNodeInfoSchema, parsedPeer.options);
+			}
+			return parsedPeer;
+		});
 	}
 
-	public getDisconnectedPeers(): ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> {
-		return this._p2p.getDisconnectedPeers();
+	public getDisconnectedPeers(): ReadonlyArray<liskP2P.p2pTypes.PeerInfo> {
+		const peers = this._p2p.getDisconnectedPeers();
+		return peers.map(peer => {
+			const parsedPeer = {
+				...peer,
+			};
+			if (parsedPeer.options) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				parsedPeer.options = codec.toJSON(customNodeInfoSchema, parsedPeer.options);
+			}
+			return parsedPeer;
+		});
 	}
 
 	public applyPenaltyOnPeer(penaltyPacket: liskP2P.p2pTypes.P2PPenalty): void {

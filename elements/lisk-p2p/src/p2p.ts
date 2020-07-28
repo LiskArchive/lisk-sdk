@@ -89,6 +89,7 @@ import {
 	PeerLists,
 	ProtocolPeerInfo,
 	RPCSchemas,
+	PeerInfo,
 } from './types';
 import {
 	assignInternalInfo,
@@ -531,7 +532,7 @@ export class P2P extends EventEmitter {
 	}
 
 	// Make sure you always share shared peer state to a user
-	public getConnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
+	public getConnectedPeers(): ReadonlyArray<PeerInfo> {
 		// Only share the shared state to the user
 		return this._peerPool
 			.getAllConnectedPeerInfos()
@@ -545,7 +546,7 @@ export class P2P extends EventEmitter {
 	}
 
 	// Make sure you always share shared peer state to a user
-	public getDisconnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
+	public getDisconnectedPeers(): ReadonlyArray<PeerInfo> {
 		const { allPeers } = this._peerBook;
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
