@@ -14,9 +14,10 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
 import { getSigningBytes, signTransaction, signMultiSignatureTransaction } from '../src/sign';
 import { BaseTransaction } from '../src';
+// import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 
 const validAssetSchema = {
 	$id: 'lisk/transfer-transaction',
@@ -47,15 +48,17 @@ const networkIdentifier = Buffer.from(
 	'base64',
 );
 const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-const passphrase2 =
+const passphrase2 = 'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic';
+const passphrase3 =
 	'sugar object slender confirm clock peanut auto spice carbon knife increase estate';
-const passphrase3 = 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb';
+const passphrase4 = 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb';
 const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
 const { publicKey: publicKey2 } = getAddressAndPublicKeyFromPassphrase(passphrase2);
 const { publicKey: publicKey3 } = getAddressAndPublicKeyFromPassphrase(passphrase3);
+const { publicKey: publicKey4 } = getAddressAndPublicKeyFromPassphrase(passphrase4);
 const keys = {
 	mandatoryKeys: [publicKey1, publicKey2],
-	optionalKeys: [publicKey3],
+	optionalKeys: [publicKey3, publicKey4],
 };
 
 const validTransaction = {
@@ -68,6 +71,19 @@ const validTransaction = {
 		amount: BigInt('4008489300000000'),
 		data: '',
 	},
+};
+
+const getSignature = (
+	passphrase: string,
+	transactionObject: Record<string, unknown>,
+	assetSchema = validAssetSchema,
+) => {
+	const transactionWithNetworkIdentifierBytes = Buffer.concat([
+		networkIdentifier,
+		getSigningBytes(assetSchema, transactionObject),
+	]);
+
+	return signData(transactionWithNetworkIdentifierBytes, passphrase);
 };
 
 describe('getSigningBytes', () => {
@@ -291,13 +307,19 @@ describe('signMultiSignatureTransaction', () => {
 			true,
 		);
 
-		expect((senderTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
-		expect(senderTransaction.signatures).toHaveLength(4);
+		expect(senderTransaction.signatures).toStrictEqual([
+			getSignature(passphrase1, senderTransaction),
+			Buffer.alloc(0),
+			Buffer.alloc(0),
+			Buffer.alloc(0),
+			Buffer.alloc(0),
+		]);
+		expect(senderTransaction.signatures).toHaveLength(5);
 		return expect(senderTransaction).toMatchSnapshot();
 	});
 
-	it('should sign and return signature for sender passphrase', () => {
-		const signer2 = signMultiSignatureTransaction(
+	it('should assign empty string for signatures of missing passphrases', () => {
+		const signedTransaction = signMultiSignatureTransaction(
 			validAssetSchema,
 			{ ...validTransaction, signatures: [] },
 			networkIdentifier,
@@ -305,17 +327,61 @@ describe('signMultiSignatureTransaction', () => {
 			keys,
 			true,
 		);
-		const finalSignedTransaction = signMultiSignatureTransaction(
+		const partialSignedTransaction = signMultiSignatureTransaction(
 			validAssetSchema,
-			{ ...signer2 },
+			{ ...signedTransaction, signatures: [...(signedTransaction.signatures as Array<Buffer>)] },
 			networkIdentifier,
 			passphrase3,
 			keys,
 			true,
 		);
 
-		expect(finalSignedTransaction.signatures).toHaveLength(4);
-		expect((finalSignedTransaction.signatures as Array<Buffer>)[2]).toEqual(Buffer.alloc(0));
-		return expect(finalSignedTransaction).toMatchSnapshot();
+		expect(signedTransaction.signatures).toHaveLength(5);
+		expect(partialSignedTransaction.signatures).toHaveLength(5);
+		expect(signedTransaction.signatures).toStrictEqual([
+			Buffer.alloc(0),
+			getSignature(passphrase2, signedTransaction),
+			Buffer.alloc(0),
+			Buffer.alloc(0),
+			Buffer.alloc(0),
+		]);
+		expect(partialSignedTransaction.signatures).toStrictEqual([
+			Buffer.alloc(0),
+			getSignature(passphrase2, signedTransaction),
+			Buffer.alloc(0),
+			getSignature(passphrase3, partialSignedTransaction),
+			Buffer.alloc(0),
+		]);
+		expect(signedTransaction).toMatchSnapshot();
+		return expect(partialSignedTransaction).toMatchSnapshot();
+	});
+
+	it('should sort keys and sign transaction', () => {
+		const unSortedKeys = {
+			mandatoryKeys: [publicKey1, publicKey2],
+			optionalKeys: [publicKey4, publicKey3],
+		};
+		const transactionObject = { ...validTransaction, signatures: [] };
+		const unSignedTransaction = { ...validTransaction, signatures: [] };
+
+		[passphrase1, passphrase2, passphrase3, passphrase4].forEach(passphrase =>
+			signMultiSignatureTransaction(
+				validAssetSchema,
+				transactionObject,
+				networkIdentifier,
+				passphrase,
+				unSortedKeys,
+				true,
+			),
+		);
+
+		expect(transactionObject.signatures).toStrictEqual([
+			getSignature(passphrase1, unSignedTransaction),
+			getSignature(passphrase2, unSignedTransaction),
+			Buffer.alloc(0),
+			getSignature(passphrase3, unSignedTransaction),
+			getSignature(passphrase4, unSignedTransaction),
+		]);
+		return expect(transactionObject).toMatchSnapshot();
 	});
 });
