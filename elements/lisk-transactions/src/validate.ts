@@ -39,6 +39,5 @@ export const validateTransactionSchema = (
 	if (assetSchemaErrors.length) {
 		return new LiskValidationError([...assetSchemaErrors]);
 	}
-	// eslint-disable-next-line consistent-return, no-useless-return
-	return;
+	return undefined;
 };

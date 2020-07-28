@@ -20,8 +20,8 @@ import { sortKeysAscending } from './utils';
 import { validateTransactionSchema } from './validate';
 
 interface MultiSignatureKeys {
-	readonly mandatoryKeys: Array<Readonly<Buffer>>;
-	readonly optionalKeys: Array<Readonly<Buffer>>;
+	readonly mandatoryKeys: Array<Buffer>;
+	readonly optionalKeys: Array<Buffer>;
 }
 
 // Validates transaction against schema and returns transaction bytes for signing
@@ -80,20 +80,32 @@ export const signTransaction = (
 
 	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
 	// eslint-disable-next-line no-param-reassign
-	transactionObject.signatures = [];
-	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
 	return transactionObject;
 };
+
+const isSenderIncludedInKey = (
+	keys: MultiSignatureKeys,
+	transactionObject: Record<string, unknown>,
+) =>
+	keys.mandatoryKeys.findIndex(key => key.equals(transactionObject.senderPublicKey as Buffer)) ===
+		-1 ||
+	keys.optionalKeys.findIndex(key => key.equals(transactionObject.senderPublicKey as Buffer)) ===
+		-1;
 
 const sanitizeSignaturesArray = (
 	transactionObject: Record<string, unknown>,
 	keys: MultiSignatureKeys,
 	includeSenderSignature: boolean,
+	signature: Buffer,
 ): void => {
 	let numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
 	// Add one extra for multisig account registration
-	if (includeSenderSignature) {
+	if (
+		includeSenderSignature &&
+		Buffer.isBuffer(transactionObject.senderPublicKey) &&
+		!isSenderIncludedInKey(keys, transactionObject)
+	) {
 		numberOfSignatures += 1;
 	}
 
@@ -103,7 +115,7 @@ const sanitizeSignaturesArray = (
 			transactionObject.signatures[i] === undefined
 		) {
 			// eslint-disable-next-line no-param-reassign
-			transactionObject.signatures[i] = Buffer.from('');
+			transactionObject.signatures[i] = signature;
 		}
 	}
 };
@@ -151,7 +163,6 @@ export const signMultiSignatureTransaction = (
 		Buffer.isBuffer(transactionObject.senderPublicKey) &&
 		publicKey.equals(transactionObject.senderPublicKey)
 	) {
-		// Include sender signature at position zero
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[0] = signature;
 	}
@@ -161,7 +172,7 @@ export const signMultiSignatureTransaction = (
 			s => s instanceof Buffer && s.equals(signature),
 		) !== undefined
 	) {
-		sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
+		sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature, signature);
 
 		return transactionObject;
 	}
@@ -187,7 +198,7 @@ export const signMultiSignatureTransaction = (
 		] = signature;
 	}
 
-	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
+	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature, signature);
 
 	return transactionObject;
 };
