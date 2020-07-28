@@ -117,12 +117,21 @@ export const signMultiSignatureTransaction = (
 	keys: MultiSignatureKeys,
 	includeSenderSignature = false,
 ): Record<string, unknown> => {
+	if (!networkIdentifier.length) {
+		throw new Error('Network identifier is required to sign a transaction');
+	}
+
+	if (!passphrase) {
+		throw new Error('Passphrase is required to sign a transaction');
+	}
+
+	if (!Array.isArray(transactionObject.signatures)) {
+		throw new Error('Signatures must be of type array');
+	}
+
 	const validationErrors = validateTransactionSchema(assetSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
-	}
-	if (!Array.isArray(transactionObject.signatures)) {
-		throw new Error('Signatures must be of type array');
 	}
 	// Sort keys
 	sortKeysAscending(keys.mandatoryKeys);
