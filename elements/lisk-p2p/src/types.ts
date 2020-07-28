@@ -50,6 +50,8 @@ export interface UnknownKVPair {
 	[key: string]: unknown;
 }
 
+export type PeerInfo = ProtocolPeerInfo & Partial<P2PSharedState>;
+
 export interface P2PSharedState {
 	readonly networkId: string;
 	readonly networkVersion: string;
