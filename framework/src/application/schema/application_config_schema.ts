@@ -98,6 +98,11 @@ export const applicationConfigSchema = {
 					description:
 						'The unique name of the relevant community as a string encoded in UTF-8 format',
 				},
+				bftThreshold: {
+					type: 'number',
+					minimum: 1,
+					description: 'Number of validator required to set finality',
+				},
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
 				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
 				// TODO this recommendations need to be updated now that we changed to a byte size block
@@ -137,7 +142,7 @@ export const applicationConfigSchema = {
 					additionalProperties: false,
 				},
 			},
-			additionalProperties: false,
+			additionalProperties: true,
 		},
 		forging: {
 			type: 'object',
