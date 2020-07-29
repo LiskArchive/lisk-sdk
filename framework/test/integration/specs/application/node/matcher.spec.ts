@@ -132,11 +132,7 @@ describe('Matcher', () => {
 					node['_transport'].handleEventPostTransaction({
 						transaction: tx.getBytes().toString('base64'),
 					}),
-				).resolves.toEqual(
-					expect.objectContaining({
-						message: expect.stringContaining('Transaction was rejected'),
-					}),
-				);
+				).rejects.toEqual(new Error('Transaction type not found.'));
 			});
 		});
 	});
