@@ -328,21 +328,13 @@ export class Transport {
 	public async handleEventPostTransaction(
 		data: EventPostTransactionData,
 	): Promise<handlePostTransactionReturn> {
-		try {
-			const tx = this._chainModule.dataAccess.decodeTransaction(
-				Buffer.from(data.transaction, 'base64'),
-			);
-			const id = await this._receiveTransaction(tx);
-			return {
-				transactionId: id.toString('base64'),
-			};
-		} catch (err) {
-			return {
-				message: 'Transaction was rejected with errors',
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-				errors: err.errors || err,
-			};
-		}
+		const tx = this._chainModule.dataAccess.decodeTransaction(
+			Buffer.from(data.transaction, 'base64'),
+		);
+		const id = await this._receiveTransaction(tx);
+		return {
+			transactionId: id.toString('base64'),
+		};
 	}
 
 	/**
