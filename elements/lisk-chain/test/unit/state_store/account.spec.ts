@@ -13,31 +13,31 @@
  */
 import { KVStore, BatchChain, NotFoundError } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { StateStore, StateDiff } from '../../../src';
+import { objects } from '@liskhq/lisk-utils';
+import { StateStore } from '../../../src/state_store';
 import { DataAccess } from '../../../src/data_access';
-import { Account } from '../../../src/account';
+import { Account, StateDiff } from '../../../src/types';
 import {
 	createFakeDefaultAccount,
 	encodeDefaultAccount,
-	defaultAccountAssetSchema,
+	defaultAccountSchema,
+	defaultAccount,
 } from '../../utils/account';
-import { defaultBlockHeaderAssetSchema, defaultNetworkIdentifier } from '../../utils/block';
-import { baseAccountSchema } from '../../../src/schema';
+import { defaultNetworkIdentifier, registeredBlockHeaders } from '../../utils/block';
 
 jest.mock('@liskhq/lisk-db');
 
 describe('state store / account', () => {
 	const stateStoreAccounts = [
 		createFakeDefaultAccount({
-			balance: BigInt(100),
+			token: { balance: BigInt(100) },
 		}),
 		createFakeDefaultAccount({
-			balance: BigInt(555),
+			token: { balance: BigInt(555) },
 		}),
 	];
 
-	const accountOnlyInDB = createFakeDefaultAccount({ balance: BigInt(333) });
+	const accountOnlyInDB = createFakeDefaultAccount({ token: { balance: BigInt(333) } });
 
 	const accountInDB = [
 		...stateStoreAccounts.map(acc => ({
@@ -55,31 +55,17 @@ describe('state store / account', () => {
 
 	beforeEach(() => {
 		db = new KVStore('temp');
-		const defaultAccountSchema = {
-			...baseAccountSchema,
-			properties: {
-				...baseAccountSchema.properties,
-				asset: {
-					...baseAccountSchema.properties.asset,
-					properties: defaultAccountAssetSchema,
-				},
-			},
-		};
 		const dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema as any,
-			registeredBlockHeaders: {
-				0: defaultBlockHeaderAssetSchema,
-				2: defaultBlockHeaderAssetSchema,
-			},
-			registeredTransactions: { 8: TransferTransaction },
+			accountSchema: defaultAccountSchema,
+			registeredBlockHeaders,
 			maxBlockHeaderCache: 505,
 			minBlockHeaderCache: 309,
 		});
 		stateStore = new StateStore(dataAccess, {
 			lastBlockHeaders: [],
 			networkIdentifier: defaultNetworkIdentifier,
-			defaultAsset: createFakeDefaultAccount().asset,
+			defaultAccount,
 			lastBlockReward: BigInt(500000000),
 		});
 		// Setting this as default behavior throws UnhandledPromiseRejection, so it is specifying the non-existing account
@@ -149,7 +135,7 @@ describe('state store / account', () => {
 			const account = await stateStore.account.getOrDefault(Buffer.from('123L'));
 			// Assert
 			expect(account).toEqual(createFakeDefaultAccount({ address: Buffer.from('123L') }));
-			expect(account.balance).toBe(BigInt(0));
+			expect(account.token?.balance).toBe(BigInt(0));
 		});
 	});
 
@@ -158,8 +144,8 @@ describe('state store / account', () => {
 			// Act
 			const updatedAccount = await stateStore.account.get(accountInDB[0].key);
 
-			updatedAccount.balance = BigInt(123);
-			updatedAccount.nonce = BigInt(99);
+			updatedAccount.token = { balance: BigInt(123) };
+			updatedAccount.sequence = { nonce: BigInt(99) };
 
 			stateStore.account.set(accountInDB[0].key, updatedAccount);
 			const updatedAccountAfterSet = await stateStore.account.get(accountInDB[0].key);
@@ -169,8 +155,8 @@ describe('state store / account', () => {
 
 		it('should update the updateKeys property', async () => {
 			const existingAccount = await stateStore.account.get(accountInDB[0].key);
-			const updatedAccount = new Account(existingAccount);
-			updatedAccount.balance = BigInt(999);
+			const updatedAccount = objects.cloneDeep(existingAccount);
+			updatedAccount.token = { balance: BigInt(999) };
 
 			stateStore.account.set(accountInDB[0].key, updatedAccount);
 
@@ -187,8 +173,8 @@ describe('state store / account', () => {
 			batchStub = { put: jest.fn() } as any;
 
 			existingAccount = await stateStore.account.get(accountInDB[0].key);
-			updatedAccount = new Account(existingAccount);
-			updatedAccount.balance = BigInt(999);
+			updatedAccount = objects.cloneDeep(existingAccount);
+			updatedAccount.token = { balance: BigInt(999) };
 
 			stateStore.account.set(updatedAccount.address, updatedAccount);
 		});
@@ -213,8 +199,8 @@ describe('state store / account', () => {
 			batchStub = { put: jest.fn() } as any;
 
 			existingAccount = await stateStore.account.get(accountInDB[0].key);
-			updatedAccount = new Account(existingAccount);
-			updatedAccount.balance = BigInt(999);
+			updatedAccount = objects.cloneDeep(existingAccount);
+			updatedAccount.token = { balance: BigInt(999) };
 
 			stateStore.account.set(updatedAccount.address, updatedAccount);
 		});

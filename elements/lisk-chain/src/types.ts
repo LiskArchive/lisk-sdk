@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseTransaction, TransactionResponse } from '@liskhq/lisk-transactions';
+import { Transaction } from './transaction';
 
 export interface Context {
 	readonly blockVersion: number;
@@ -21,19 +21,10 @@ export interface Context {
 export type Contexter = (() => Context) | Context;
 
 export interface BlockRewardOptions {
-	readonly totalAmount: bigint;
 	readonly distance: number;
 	readonly rewardOffset: number;
-	readonly milestones: ReadonlyArray<string>;
+	readonly milestones: ReadonlyArray<bigint>;
 }
-
-export type MatcherTransaction = BaseTransaction & {
-	readonly matcher: (contexter: Context) => boolean;
-};
-
-export type WriteableTransactionResponse = {
-	-readonly [P in keyof TransactionResponse]: TransactionResponse[P];
-};
 
 export interface BaseBlockHeader {
 	readonly id: Buffer;
@@ -54,13 +45,32 @@ export interface RawBlock {
 	payload: ReadonlyArray<Buffer>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type BlockHeader<T = any> = BaseBlockHeader & { asset: T };
+export interface GenesisBlockHeaderAsset<T = Account> {
+	readonly accounts: ReadonlyArray<T>;
+	readonly initDelegates: ReadonlyArray<Buffer>;
+	readonly initRounds: number;
+}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface Block<T = any> {
+export interface BlockHeaderAsset {
+	readonly seedReveal: Buffer;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+}
+
+export type BlockHeader<T = BlockHeaderAsset> = BaseBlockHeader & { asset: T };
+
+export type GenesisBlockHeader<T = Account> = BaseBlockHeader & {
+	asset: GenesisBlockHeaderAsset<T>;
+};
+
+export interface Block<T = BlockHeaderAsset> {
 	header: BlockHeader<T>;
-	payload: ReadonlyArray<BaseTransaction>;
+	payload: ReadonlyArray<Transaction>;
+}
+
+export interface GenesisBlock<T = Account> {
+	header: GenesisBlockHeader<T>;
+	payload: ReadonlyArray<Transaction>;
 }
 
 export interface DiffHistory {
@@ -76,4 +86,23 @@ export interface StateDiff {
 interface UpdatedDiff {
 	readonly key: string;
 	readonly value: Buffer;
+}
+
+export interface AccountSchema {
+	type: string;
+	fieldNumber: number;
+	properties: Record<string, unknown>;
+	default: Record<string, unknown>;
+}
+
+export type AccountDefaultProps = {
+	[name: string]: { [key: string]: unknown } | undefined | Buffer;
+};
+
+export type Account<T = AccountDefaultProps> = T & { address: Buffer };
+
+export interface Validator {
+	address: Buffer;
+	minActiveHeight: number;
+	canVote: boolean;
 }
