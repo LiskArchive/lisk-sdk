@@ -65,7 +65,7 @@ export const isEncryptedPassphrase = (data: string): boolean => {
 	// - cipherText=abcd1234&iterations=10000&iv=ef012345
 	// NOTE: Maximum lengths chosen here are arbitrary
 	const keyRegExp = /[a-zA-Z0-9]{2,15}/;
-	const valueRegExp = /[a-f0-9]{1,256}/;
+	const valueRegExp = /[a-f0-9]{1,512}/;
 	const keyValueRegExp = new RegExp(`${keyRegExp.source}=${valueRegExp.source}`);
 	const encryptedPassphraseRegExp = new RegExp(
 		`^(${keyValueRegExp.source})(?:&(${keyValueRegExp.source})){0,10}$`,
