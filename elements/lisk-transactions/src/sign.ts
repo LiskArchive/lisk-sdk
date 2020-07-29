@@ -84,30 +84,14 @@ export const signTransaction = (
 	return transactionObject;
 };
 
-const isSenderIncludedInKey = (
-	keys: MultiSignatureKeys,
-	transactionObject: Record<string, unknown>,
-) =>
-	keys.mandatoryKeys.findIndex(key => key.equals(transactionObject.senderPublicKey as Buffer)) ===
-		-1 ||
-	keys.optionalKeys.findIndex(key => key.equals(transactionObject.senderPublicKey as Buffer)) ===
-		-1;
-
 const sanitizeSignaturesArray = (
 	transactionObject: Record<string, unknown>,
 	keys: MultiSignatureKeys,
 	includeSenderSignature: boolean,
 	signature: Buffer,
 ): void => {
-	let numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
-	// Add one extra for multisig account registration
-	if (
-		includeSenderSignature &&
-		Buffer.isBuffer(transactionObject.senderPublicKey) &&
-		!isSenderIncludedInKey(keys, transactionObject)
-	) {
-		numberOfSignatures += 1;
-	}
+	const numberOfSignatures =
+		(includeSenderSignature ? 1 : 0) + keys.mandatoryKeys.length + keys.optionalKeys.length;
 
 	for (let i = 0; i < numberOfSignatures; i += 1) {
 		if (
