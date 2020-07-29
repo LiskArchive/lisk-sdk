@@ -112,6 +112,14 @@ describe('validation', () => {
 		it('should return false when value is empty', () => {
 			return expect(isEncryptedPassphrase('')).toBeFalse();
 		});
+
+		it('should return true when 24 words bip39 Mnemonic was encrypted', () => {
+			return expect(
+				isEncryptedPassphrase(
+					'iterations=1000000&cipherText=d8d8bd8a883cd5a8a5b0c0a5ee7221f5fcd93bad0ab7675d156bec831f2aee8c10c683eb472188dd28e6caa1e9ed3d3f2769b9265c5a11e28428775cd0697ad023dc6f4b780f37f18ac03a2c14b51def04ec0391e7d258c0c65e3910b65812c61aebb8b098537a4240111a8c1509cffdc970b7cd0885c32811a0d5e7cd4539740fad661dd4c8a131a0438e7d17ed54e8d5127a81a663a0af127b01&iv=87a17399fe06332c2775dd75&salt=3503a17ea682784b490f22cf9d728563&tag=23be4e96c71d31eae005b29502179862&version=1',
+				),
+			).toBeTrue();
+		});
 	});
 
 	describe('#isRangedSemVer', () => {
