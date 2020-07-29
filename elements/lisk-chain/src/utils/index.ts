@@ -13,5 +13,4 @@
  */
 
 export * from './buffer_string';
-export * from './buffer_set';
-export * from './buffer_map';
+export * from './genesis_block';

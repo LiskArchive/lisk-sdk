@@ -12,12 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { hash } from '@liskhq/lisk-cryptography';
+
 export const CHAIN_STATE_BURNT_FEE = 'burntFee';
 export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'finalizedHeight';
+export const CONSENSUS_STATE_VALIDATORS_KEY = 'validators';
 
 export const DEFAULT_MIN_BLOCK_HEADER_CACHE = 309;
 export const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;
-export const DEFAULT_STATE_BLOCK_SIZE = 309;
 
 export const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 export const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
+
+export const EMPTY_BUFFER = Buffer.alloc(0);
+export const EMPTY_HASH = hash(EMPTY_BUFFER);
+
+export const GENESIS_BLOCK_VERSION = 0;
+export const GENESIS_BLOCK_GENERATOR_PUBLIC_KEY = EMPTY_BUFFER;
+export const GENESIS_BLOCK_REWARD = BigInt(0);
+export const GENESIS_BLOCK_SIGNATURE = EMPTY_BUFFER;
+export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;

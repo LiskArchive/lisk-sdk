@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Schema } from '@liskhq/lisk-codec';
+import { objects } from '@liskhq/lisk-utils';
+
 export const blockSchema = {
 	$id: '/block',
 	type: 'object',
@@ -65,37 +68,58 @@ export const blockHeaderSchema = {
 	},
 };
 
+export const baseGenesisBlockHeaderAssetSchema = {
+	$id: '/genesis_block/header/asset',
+	type: 'object',
+	required: ['accounts', 'initDelegates', 'initRounds'],
+	properties: {
+		accounts: {
+			type: 'array',
+			fieldNumber: 1,
+		},
+		initDelegates: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 2,
+			minItems: 1,
+		},
+		initRounds: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+			minimum: 3,
+		},
+	},
+};
+
 export const baseAccountSchema = {
 	$id: '/account/base',
 	type: 'object',
 	properties: {
 		address: { dataType: 'bytes', fieldNumber: 1 },
-		balance: { dataType: 'uint64', fieldNumber: 2 },
-		nonce: { dataType: 'uint64', fieldNumber: 3 },
-		keys: {
-			fieldNumber: 4,
-			type: 'object',
-			properties: {
-				numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
-				mandatoryKeys: {
-					type: 'array',
-					items: { dataType: 'bytes' },
-					fieldNumber: 2,
-				},
-				optionalKeys: {
-					type: 'array',
-					items: { dataType: 'bytes' },
-					fieldNumber: 3,
-				},
-			},
-			required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+	},
+	required: ['address'],
+};
+
+export const blockHeaderAssetSchema = {
+	$id: '/block-header/asset/v2',
+	type: 'object',
+	properties: {
+		maxHeightPreviouslyForged: {
+			dataType: 'uint32',
+			fieldNumber: 1,
 		},
-		asset: {
-			fieldNumber: 5,
-			type: 'object',
+		maxHeightPrevoted: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		seedReveal: {
+			dataType: 'bytes',
+			fieldNumber: 3,
 		},
 	},
-	required: ['address', 'balance', 'nonce', 'keys', 'asset'],
+	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
 };
 
 export const stateDiffSchema = {
@@ -129,3 +153,43 @@ export const stateDiffSchema = {
 		},
 	},
 };
+
+export const validatorsSchema = {
+	$id: '/state/validators',
+	type: 'object',
+	required: ['validators'],
+	properties: {
+		validators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				properties: {
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					minActiveHeight: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+					canVote: {
+						dataType: 'boolean',
+						fieldNumber: 3,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getGenesisBlockHeaderAssetSchema = (accountSchema: Schema): Schema =>
+	objects.mergeDeep({}, baseGenesisBlockHeaderAssetSchema, {
+		properties: {
+			accounts: {
+				items: {
+					...accountSchema,
+				},
+			},
+		},
+	}) as Schema;

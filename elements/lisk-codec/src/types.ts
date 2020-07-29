@@ -25,7 +25,8 @@ export interface SchemaPair {
 export interface Schema {
 	readonly $id: string;
 	readonly type: string;
-	readonly properties: object;
+	readonly properties: Record<string, unknown>;
+	readonly required?: string[];
 }
 
 export interface ValidatedSchema {
@@ -69,7 +70,7 @@ export interface CompiledSchemas {
 }
 
 export interface Validator {
-	addMetaSchema: (schema: object, key?: string) => {};
+	addMetaSchema: (schema: Record<string, unknown>, key?: string) => void;
 }
 export interface IteratorReturnValue {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -12,40 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	getRandomBytes,
-	getAddressAndPublicKeyFromPassphrase,
-	hash,
-} from '@liskhq/lisk-cryptography';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { Mnemonic } from '@liskhq/lisk-passphrase';
+import { getRandomBytes, signData } from '@liskhq/lisk-cryptography';
 import { genesisAccount } from './account';
 import { defaultNetworkIdentifier } from './block';
+import { Transaction } from '../../src/transaction';
 
-export const getTransferTransaction = (input?: {
-	nonce?: bigint;
-	amount?: bigint;
-	recipientAddress?: Buffer;
-}): TransferTransaction => {
-	const passphrase = Mnemonic.generateMnemonic();
-	const { address } = getAddressAndPublicKeyFromPassphrase(passphrase);
-
-	const tx = new TransferTransaction({
-		id: getRandomBytes(32),
-		type: 8,
+export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
+	const tx = new Transaction({
+		moduleType: 2,
+		assetType: 0,
 		fee: BigInt('10000000'),
 		nonce: input?.nonce ?? BigInt(0),
 		senderPublicKey: genesisAccount.publicKey,
-		asset: {
-			recipientAddress: input?.recipientAddress ?? address,
-			amount: input?.amount ?? BigInt('1'),
-			data: '',
-		},
+		asset: getRandomBytes(128),
 		signatures: [],
 	});
-	tx.sign(defaultNetworkIdentifier, genesisAccount.passphrase);
-	(tx as any)._id = hash(tx.getBytes());
-	(tx as any)._idStr = tx.id.toString('hex');
+	const signature = signData(
+		Buffer.concat([defaultNetworkIdentifier, tx.getSigningBytes()]),
+		genesisAccount.passphrase,
+	);
+	tx.signatures.push(signature);
 
 	return tx;
 };

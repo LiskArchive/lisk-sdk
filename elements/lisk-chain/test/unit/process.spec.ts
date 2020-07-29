@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-try-expect */
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -12,46 +13,43 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { KVStore } from '@liskhq/lisk-db';
+import { getRandomBytes, getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
-import { getRandomBytes, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { TransferTransaction, BaseTransaction, VoteTransaction } from '@liskhq/lisk-transactions';
+import { codec } from '@liskhq/lisk-codec';
+import { objects } from '@liskhq/lisk-utils';
+import { LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	createValidDefaultBlock,
 	defaultNetworkIdentifier,
 	genesisBlock,
-	defaultBlockHeaderAssetSchema,
+	registeredBlockHeaders,
 } from '../utils/block';
 import { Chain } from '../../src/chain';
 import { StateStore } from '../../src/state_store';
 import { DataAccess } from '../../src/data_access';
-import {
-	defaultAccountAssetSchema,
-	createFakeDefaultAccount,
-	defaultAccountSchema,
-	genesisAccount,
-	encodeDefaultAccount,
-} from '../utils/account';
-import { registeredTransactions } from '../utils/registered_transactions';
-import { Block } from '../../src/types';
-import { getTransferTransaction } from '../utils/transaction';
-import { CHAIN_STATE_BURNT_FEE } from '../../src/constants';
+import { defaultAccountModules, defaultAccountSchema, defaultAccount } from '../utils/account';
+import { Block, BlockHeader, GenesisBlock, Validator } from '../../src/types';
+import { getTransaction } from '../utils/transaction';
+import { validatorsSchema } from '../../src/schema';
+import { createStateStore } from '../utils/state_store';
+import { CONSENSUS_STATE_VALIDATORS_KEY } from '../../src/constants';
 
 jest.mock('events');
 jest.mock('@liskhq/lisk-db');
 
-describe('blocks/header', () => {
+describe('chain/process block', () => {
 	const constants = {
 		maxPayloadLength: 15 * 1024,
 		activeDelegates: 101,
 		rewardDistance: 3000000,
 		rewardOffset: 2160,
 		rewardMilestones: [
-			'500000000', // Initial Reward
-			'400000000', // Milestone 1
-			'300000000', // Milestone 2
-			'200000000', // Milestone 3
-			'100000000', // Milestone 4
+			BigInt(500000000), // Initial Reward
+			BigInt(400000000), // Milestone 1
+			BigInt(300000000), // Milestone 2
+			BigInt(200000000), // Milestone 3
+			BigInt(100000000), // Milestone 4
 		],
 		totalAmount: BigInt('10000000000000000'),
 		blockTime: 10,
@@ -68,15 +66,7 @@ describe('blocks/header', () => {
 			db,
 			genesisBlock,
 			networkIdentifier: defaultNetworkIdentifier,
-			registeredTransactions,
-			accountAsset: {
-				schema: defaultAccountAssetSchema,
-				default: createFakeDefaultAccount().asset,
-			},
-			registeredBlocks: {
-				0: defaultBlockHeaderAssetSchema,
-				2: defaultBlockHeaderAssetSchema,
-			},
+			accounts: defaultAccountModules,
 			...constants,
 		});
 		(chainInstance as any)._lastBlock = genesisBlock;
@@ -120,8 +110,9 @@ describe('blocks/header', () => {
 		describe('when a transaction included is invalid', () => {
 			it('should throw error', () => {
 				// Arrange
-				const invalidTx = getTransferTransaction();
+				const invalidTx = getTransaction();
 				(invalidTx.senderPublicKey as any) = '100';
+				invalidTx['_id'] = Buffer.from('123');
 				block = createValidDefaultBlock({ payload: [invalidTx] });
 				// Act & assert
 				expect(() => chainInstance.validateBlockHeader(block)).toThrow();
@@ -132,7 +123,7 @@ describe('blocks/header', () => {
 			it('should throw error', () => {
 				// Arrange
 				(chainInstance as any).constants.maxPayloadLength = 100;
-				const txs = new Array(200).fill(0).map(() => getTransferTransaction());
+				const txs = new Array(200).fill(0).map(() => getTransaction());
 				block = createValidDefaultBlock({ payload: txs });
 				// Act & assert
 				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
@@ -144,7 +135,7 @@ describe('blocks/header', () => {
 		describe('when transaction root is incorrect', () => {
 			it('should throw error', () => {
 				// Arrange
-				const txs = new Array(20).fill(0).map(() => getTransferTransaction());
+				const txs = new Array(20).fill(0).map(() => getTransaction());
 				block = createValidDefaultBlock({
 					payload: txs,
 					header: { transactionRoot: Buffer.from('1234567890') },
@@ -157,7 +148,7 @@ describe('blocks/header', () => {
 		describe('when all the value is valid', () => {
 			it('should not throw error', () => {
 				// Arrange
-				const txs = new Array(20).fill(0).map(() => getTransferTransaction());
+				const txs = new Array(20).fill(0).map(() => getTransaction());
 				block = createValidDefaultBlock({ payload: txs });
 				// Act & assert
 				expect(() => chainInstance.validateBlockHeader(block)).not.toThrow();
@@ -165,7 +156,7 @@ describe('blocks/header', () => {
 		});
 	});
 
-	describe('#verify', () => {
+	describe('#verifyBlockHeader', () => {
 		let stateStore: StateStore;
 
 		beforeEach(() => {
@@ -173,11 +164,7 @@ describe('blocks/header', () => {
 			const dataAccess = new DataAccess({
 				db,
 				accountSchema: defaultAccountSchema as any,
-				registeredBlockHeaders: {
-					0: defaultBlockHeaderAssetSchema,
-					2: defaultBlockHeaderAssetSchema,
-				},
-				registeredTransactions: { 8: TransferTransaction },
+				registeredBlockHeaders,
 				minBlockHeaderCache: 505,
 				maxBlockHeaderCache: 309,
 			});
@@ -185,7 +172,7 @@ describe('blocks/header', () => {
 				lastBlockHeaders: [],
 				networkIdentifier: defaultNetworkIdentifier,
 				lastBlockReward: BigInt(500000000),
-				defaultAsset: createFakeDefaultAccount().asset,
+				defaultAccount,
 			});
 		});
 
@@ -196,7 +183,7 @@ describe('blocks/header', () => {
 					header: { previousBlockID: getRandomBytes(32) },
 				});
 				// Act & assert
-				await expect(chainInstance.verify(block, stateStore)).rejects.toThrow(
+				await expect(chainInstance.verifyBlockHeader(block, stateStore)).rejects.toThrow(
 					'Invalid previous block',
 				);
 			});
@@ -214,7 +201,7 @@ describe('blocks/header', () => {
 				});
 				expect.assertions(1);
 				// Act & Assert
-				await expect(chainInstance.verify(block, stateStore)).rejects.toThrow(
+				await expect(chainInstance.verifyBlockHeader(block, stateStore)).rejects.toThrow(
 					'Invalid block timestamp',
 				);
 			});
@@ -226,7 +213,7 @@ describe('blocks/header', () => {
 				});
 				expect.assertions(1);
 				// Act & Assert
-				await expect(chainInstance.verify(block, stateStore)).rejects.toThrow(
+				await expect(chainInstance.verifyBlockHeader(block, stateStore)).rejects.toThrow(
 					'Invalid block timestamp',
 				);
 			});
@@ -246,8 +233,26 @@ describe('blocks/header', () => {
 					},
 				});
 				// Act & Assert
-				await expect(chainInstance.verify(block, stateStore)).rejects.toThrow(
+				await expect(chainInstance.verifyBlockHeader(block, stateStore)).rejects.toThrow(
 					'Invalid block timestamp',
+				);
+			});
+		});
+
+		describe('when block is generated by invalid address', () => {
+			it('should throw an error', async () => {
+				// Arrange
+				block = createValidDefaultBlock();
+				const validatorBuffer = codec.encode(validatorsSchema, {
+					validators: [{ address: getRandomBytes(20) }],
+				});
+				when(db.get)
+					.calledWith('consensus:validators')
+					.mockResolvedValue(validatorBuffer as never);
+
+				// Act & assert
+				await expect(chainInstance.verifyBlockHeader(block, stateStore)).rejects.toThrow(
+					'Failed to verify generator',
 				);
 			});
 		});
@@ -256,435 +261,469 @@ describe('blocks/header', () => {
 			it('should not throw error', async () => {
 				// Arrange
 				block = createValidDefaultBlock();
-				// Act & assert
-				let err;
-				try {
-					await chainInstance.verify(block, stateStore);
-				} catch (error) {
-					err = error;
-				}
-				expect(err).toBeUndefined();
-			});
-		});
-
-		describe('when skip existing check is true and a transaction is not allowed', () => {
-			let notAllowedTx;
-			let txApplySpy: jest.SpyInstance;
-			let originalClass: typeof BaseTransaction;
-
-			beforeEach(() => {
-				// Arrage
-				notAllowedTx = getTransferTransaction();
-				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
-					notAllowedTx.type,
-				);
-				originalClass = transactionClass;
-				Object.defineProperty(transactionClass.prototype, 'matcher', {
-					get: () => (): boolean => false,
-					configurable: true,
+				const validatorBuffer = codec.encode(validatorsSchema, {
+					validators: [{ address: getAddressFromPublicKey(block.header.generatorPublicKey) }],
 				});
-				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
-					notAllowedTx.type,
-					transactionClass,
-				);
-				txApplySpy = jest.spyOn(notAllowedTx, 'apply');
-				block = createValidDefaultBlock({ payload: [notAllowedTx] });
-			});
-
-			afterEach(() => {
-				Object.defineProperty(originalClass.prototype, 'matcher', {
-					get: () => (): boolean => true,
-					configurable: true,
-				});
-			});
-
-			it('should not call apply for the transaction and throw error', async () => {
-				// Arrange
-				const dataAccess = new DataAccess({
-					db,
-					accountSchema: defaultAccountSchema as any,
-					registeredBlockHeaders: {
-						0: defaultBlockHeaderAssetSchema,
-						2: defaultBlockHeaderAssetSchema,
-					},
-					registeredTransactions: { 8: TransferTransaction },
-					minBlockHeaderCache: 505,
-					maxBlockHeaderCache: 309,
-				});
-				stateStore = new StateStore(dataAccess, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-					lastBlockReward: BigInt(500000000),
-					defaultAsset: createFakeDefaultAccount().asset,
-				});
-
-				// Act && Assert
-				await expect(chainInstance.verify(block, stateStore)).rejects.toMatchObject([
-					expect.objectContaining({
-						message: expect.stringContaining('is currently not allowed'),
-					}),
-				]);
-				expect(txApplySpy).not.toHaveBeenCalled();
-			});
-		});
-
-		describe('when skip existing check is true and transactions are valid', () => {
-			let invalidTx;
-
-			beforeEach(() => {
-				// Arrage
 				when(db.get)
-					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								address: genesisAccount.address,
-								balance: BigInt('1000000000000'),
-							}),
-						) as never,
-					);
+					.calledWith('consensus:validators')
+					.mockResolvedValue(validatorBuffer as never);
 
-				invalidTx = getTransferTransaction();
-				block = createValidDefaultBlock({ payload: [invalidTx] });
-			});
-
-			it('should not call apply for the transaction and throw error', async () => {
-				// Act
-				const dataAccess = new DataAccess({
-					db,
-					accountSchema: defaultAccountSchema as any,
-					registeredBlockHeaders: {
-						0: defaultBlockHeaderAssetSchema,
-						2: defaultBlockHeaderAssetSchema,
-					},
-					registeredTransactions: { 8: TransferTransaction },
-					minBlockHeaderCache: 505,
-					maxBlockHeaderCache: 309,
-				});
-				stateStore = new StateStore(dataAccess, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-					lastBlockReward: BigInt(500000000),
-					defaultAsset: createFakeDefaultAccount().asset,
-				});
-				expect.assertions(1);
-				let err;
-				try {
-					await chainInstance.verify(block, stateStore);
-				} catch (errors) {
-					err = errors;
-				}
-				expect(err).toBeUndefined();
+				// Act & assert
+				await expect(chainInstance.verifyBlockHeader(block, stateStore)).resolves.toBeUndefined();
 			});
 		});
 	});
 
-	describe('#apply', () => {
-		describe('when block does not contain transactions', () => {
-			let stateStore: StateStore;
+	describe('isValidSeedReveal', () => {
+		const generatorPublicKey = Buffer.from(
+			'b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9',
+			'hex',
+		);
+		const blockHeaders = [
+			{
+				generatorPublicKey: Buffer.from(
+					'b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9',
+					'hex',
+				),
+				asset: {
+					seedReveal: Buffer.from('5ba62f5eab476baa25a500dc87df6844', 'hex'),
+				},
+				height: 3,
+			},
+			{
+				generatorPublicKey: Buffer.from(
+					'b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9',
+					'hex',
+				),
+				asset: {
+					seedReveal: Buffer.from('da855fe23751069fcbd934fa6a1c6e70', 'hex'),
+				},
+				height: 2,
+			},
+			{
+				generatorPublicKey: Buffer.from(
+					'842dcd768bf0311100781e6caa7141b62303a20274fa0b83357d7c920b8854c1',
+					'hex',
+				),
+				asset: {
+					seedReveal: Buffer.from('40f6788cec6edda672e52dd63d10a31a', 'hex'),
+				},
+				height: 1,
+			},
+		];
 
-			beforeEach(async () => {
-				block = createValidDefaultBlock({
-					header: { reward: BigInt(500000000) },
-				});
-				const dataAccess = new DataAccess({
-					db,
-					accountSchema: defaultAccountSchema as any,
-					registeredBlockHeaders: {
-						0: defaultBlockHeaderAssetSchema,
-						2: defaultBlockHeaderAssetSchema,
-					},
-					registeredTransactions: { 8: TransferTransaction },
-					minBlockHeaderCache: 505,
-					maxBlockHeaderCache: 309,
-				});
-				stateStore = new StateStore(dataAccess, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-					lastBlockReward: BigInt(500000000),
-					defaultAsset: createFakeDefaultAccount().asset,
-				});
-				when(db.get)
-					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								address: genesisAccount.address,
-								balance: BigInt('1000000000000'),
-							}),
-						) as never,
-					)
-					.calledWith(
-						`accounts:address:${getAddressFromPublicKey(block.header.generatorPublicKey).toString(
-							'binary',
-						)}`,
-					)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								address: getAddressFromPublicKey(block.header.generatorPublicKey),
-								balance: BigInt('0'),
-							}),
-						) as never,
-					)
-					.calledWith('chain:burntFee')
-					.mockResolvedValue(Buffer.from(JSON.stringify('100')) as never);
-				jest.spyOn(stateStore.chain, 'set');
-
-				// Arrage
-				await chainInstance.apply(block, stateStore);
-			});
-
-			it('should update generator balance to give rewards and fees - minFee', async () => {
-				const generator = await stateStore.account.get(
-					getAddressFromPublicKey(block.header.generatorPublicKey),
-				);
-				expect(generator.balance).toEqual(block.header.reward);
-			});
-
-			it('should not have updated burnt fee', () => {
-				expect(stateStore.chain.set).not.toHaveBeenCalled();
-			});
+		beforeEach(() => {
+			chainInstance['_numberOfValidators'] = 103;
 		});
 
-		describe('when transaction is not applicable', () => {
-			let validTx;
-			let stateStore: StateStore;
-
-			beforeEach(() => {
-				// Arrage
-				validTx = getTransferTransaction({ amount: BigInt(10000000) });
-				block = createValidDefaultBlock({ payload: [validTx] });
-
-				// Act
-				const dataAccess = new DataAccess({
-					db,
-					accountSchema: defaultAccountSchema as any,
-					registeredBlockHeaders: {
-						0: defaultBlockHeaderAssetSchema,
-						2: defaultBlockHeaderAssetSchema,
-					},
-					registeredTransactions: { 8: TransferTransaction },
-					minBlockHeaderCache: 505,
-					maxBlockHeaderCache: 309,
-				});
-				stateStore = new StateStore(dataAccess, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-					lastBlockReward: BigInt(500000000),
-					defaultAsset: createFakeDefaultAccount().asset,
-				});
-
-				const generatorAddress = getAddressFromPublicKey(block.header.generatorPublicKey);
-
-				when(db.get)
-					.calledWith(`accounts:address:${validTx.asset.recipientAddress.toString('binary')}`)
-					.mockRejectedValue(new NotFoundError('data not found') as never)
-					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								address: genesisAccount.address,
-								balance: BigInt('0'),
-							}),
-						) as never,
-					)
-					.calledWith(`accounts:address:${generatorAddress.toString('hex')}`)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								address: generatorAddress,
-								balance: BigInt('0'),
-							}),
-						) as never,
-					);
-			});
-
-			it('should throw error', async () => {
-				await expect(chainInstance.apply(block, stateStore)).rejects.toMatchObject([
-					expect.objectContaining({
-						message: expect.stringContaining('Account does not have enough minimum remaining LSK'),
-					}),
-				]);
-			});
-
-			it('should not set the block to the last block', () => {
-				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock);
-			});
-		});
-
-		describe('when transactions are all valid', () => {
-			const defaultBurntFee = '100';
-
-			let stateStore: StateStore;
-			let delegate1: any;
-			let delegate2: any;
-			let validTxApplySpy: jest.SpyInstance;
-			let validTx2ApplySpy: jest.SpyInstance;
-
-			beforeEach(async () => {
-				// Arrage
-				delegate1 = {
-					address: Buffer.from('32e4d3f46ae3bc74e7771780eee290ae5826006d', 'hex'),
-					passphrase:
-						'weapon visual tag seed deal solar country toy boring concert decline require',
-					publicKey: Buffer.from(
-						'8c4dddbfe40892940d3bd5446d9d2ee9cdd16ceffecebda684a0585837f60f23',
-						'hex',
-					),
-					username: 'genesis_200',
-					balance: BigInt('10000000000'),
-				};
-				delegate2 = {
-					address: Buffer.from('23d5abdb69c0dbbc21c7c732965589792cc5922a', 'hex'),
-					passphrase:
-						'shoot long boost electric upon mule enough swing ritual example custom party',
-					publicKey: Buffer.from(
-						'6263120d0ee380d60070e648684a7f98ece4767d140ccb277f267c3a6f36a799',
-						'hex',
-					),
-					username: 'genesis_201',
-					balance: BigInt('10000000000'),
-				};
-
-				// Act
-				const validTx = new VoteTransaction({
-					id: getRandomBytes(32),
-					type: 8,
-					fee: BigInt('10000000'),
-					nonce: BigInt('0'),
-					senderPublicKey: genesisAccount.publicKey,
+		describe('Given delegate was only active in last three rounds', () => {
+			it('should return false if current block seedReveal is not a preimage of previous block', () => {
+				// Arrange
+				const blockHeader = {
 					asset: {
-						votes: [
-							{
-								delegateAddress: delegate1.address,
-								amount: BigInt('10000000000'),
-							},
-							{
-								delegateAddress: delegate2.address,
-								amount: BigInt('10000000000'),
-							},
-						],
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
-					signatures: [],
-				});
-				validTx.sign(defaultNetworkIdentifier, genesisAccount.passphrase);
-				// Calling validate to inject id and min-fee
-				validTx.validate();
-				const validTx2 = getTransferTransaction({
-					nonce: BigInt(1),
-					amount: BigInt('10000000'),
-				});
-				// Calling validate to inject id and min-fee
-				validTx2.validate();
-				validTxApplySpy = jest.spyOn(validTx, 'apply');
-				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
-				block = createValidDefaultBlock({
-					header: { reward: BigInt(500000000) },
-					payload: [validTx, validTx2],
-				});
+					height: 5,
+					generatorPublicKey,
+				} as BlockHeader;
+
 				// Act
-				const dataAccess = new DataAccess({
-					db,
-					accountSchema: defaultAccountSchema as any,
-					registeredBlockHeaders: {
-						0: defaultBlockHeaderAssetSchema,
-						2: defaultBlockHeaderAssetSchema,
-					},
-					registeredTransactions,
-					minBlockHeaderCache: 505,
-					maxBlockHeaderCache: 309,
-				});
-				stateStore = new StateStore(dataAccess, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-					lastBlockReward: BigInt(500000000),
-					defaultAsset: createFakeDefaultAccount().asset,
-				});
-
-				const burntFeeBuffer = Buffer.alloc(8);
-				burntFeeBuffer.writeBigInt64BE(BigInt(defaultBurntFee));
-
-				when(db.get)
-					.mockRejectedValue(new NotFoundError('Data not found') as never)
-					.calledWith(`accounts:address:${genesisAccount.address.toString('binary')}`)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								address: genesisAccount.address,
-								balance: BigInt('1000000000000'),
-							}),
-						) as never,
-					)
-					.calledWith(
-						`accounts:address:${getAddressFromPublicKey(block.header.generatorPublicKey).toString(
-							'binary',
-						)}`,
-					)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								address: genesisAccount.address,
-								balance: BigInt('0'),
-								nonce: BigInt('0'),
-							}),
-						) as never,
-					)
-					.calledWith(
-						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-						`accounts:address:${delegate1.address.toString('binary')}`,
-					)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								...delegate1,
-								asset: { delegate: { username: delegate1.username } },
-							}),
-						) as never,
-					)
-					.calledWith(
-						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-						`accounts:address:${delegate2.address.toString('binary')}`,
-					)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								...delegate2,
-								asset: { delegate: { username: delegate2.username } },
-							}),
-						) as never,
-					)
-					.calledWith('chain:burntFee')
-					.mockResolvedValue(burntFeeBuffer as never);
-				await chainInstance.apply(block, stateStore);
-			});
-
-			it('should call apply for the transaction', () => {
-				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
-				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
-			});
-
-			it('should update generator balance with rewards and fees - minFee', async () => {
-				const generator = await stateStore.account.get(
-					getAddressFromPublicKey(block.header.generatorPublicKey),
+				const seedRevealValid = chainInstance.isValidSeedReveal(
+					blockHeader,
+					createStateStore(db, [blockHeader]),
 				);
-				let expected = block.header.reward;
-				for (const tx of block.payload) {
-					expected += tx.fee - tx.minFee;
-				}
-				expect(generator.balance.toString()).toEqual(expected.toString());
+				// Assert
+				expect(seedRevealValid).toBeFalse();
 			});
 
-			it('should update burntFee in the chain state', async () => {
-				const burntFee = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-				let expected = BigInt(0);
-				for (const tx of block.payload) {
-					expected += tx.minFee;
-				}
-				const expectedBuffer = Buffer.alloc(8);
-				expectedBuffer.writeBigInt64BE(BigInt(defaultBurntFee) + expected);
-				expect(burntFee).toEqual(expectedBuffer);
+			it('should return true if current block seedReveal is a preimage of previous block', () => {
+				// Arrange
+				const lastBlockHeaders = [...blockHeaders.slice(1)] as BlockHeader[];
+				const blockHeader = {
+					asset: {
+						seedReveal: blockHeaders[0].asset.seedReveal,
+					},
+					height: 5,
+					generatorPublicKey,
+				} as BlockHeader;
+
+				// Act
+				const seedRevealValid = chainInstance.isValidSeedReveal(
+					blockHeader,
+					createStateStore(db, lastBlockHeaders),
+				);
+				// Assert
+				expect(seedRevealValid).toBeTrue();
 			});
+		});
+
+		describe('Given delegate was not active in last rounds', () => {
+			it('should return true if the forger did not forge any block in the previous round or previously in the same round', () => {
+				// Arrange
+				const lastBlockHeaders = [...blockHeaders.slice(1)] as BlockHeader[];
+				const blockHeader = {
+					asset: {
+						seedReveal: blockHeaders[0].asset.seedReveal,
+					},
+					height: 404,
+					generatorPublicKey,
+				} as BlockHeader;
+
+				// Act
+				const seedRevealValid = chainInstance.isValidSeedReveal(
+					blockHeader,
+					createStateStore(db, lastBlockHeaders),
+				);
+				// Assert
+				expect(seedRevealValid).toBeTrue();
+			});
+
+			it('should return false if the forger did forge a block in the previous round or previously in the same round but new block with wrong seed reveal', () => {
+				// Arrange
+				const lastBlockHeaders = blockHeaders as BlockHeader[];
+				const blockHeader = {
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+					height: 202,
+					generatorPublicKey,
+				} as BlockHeader;
+
+				// Act
+				const seedRevealValid = chainInstance.isValidSeedReveal(
+					blockHeader,
+					createStateStore(db, lastBlockHeaders),
+				);
+				// Assert
+				expect(seedRevealValid).toBeFalse();
+			});
+		});
+	});
+
+	describe('validateGenesisBlockHeader', () => {
+		it('should fail if "version" is not zero', () => {
+			// Arrange
+			const gb = objects.mergeDeep({}, genesisBlock, {
+				header: { version: 1 },
+			}) as GenesisBlock;
+
+			// Act & Assert
+			expect.assertions(3);
+			try {
+				chainInstance.validateGenesisBlockHeader(gb);
+			} catch (error) {
+				expect(error).toBeInstanceOf(LiskValidationError);
+				expect((error as LiskValidationError).errors).toHaveLength(1);
+				expect((error as LiskValidationError).errors[0]).toEqual(
+					expect.objectContaining({
+						message: 'should be equal to constant',
+						params: { allowedValue: 0 },
+					}),
+				);
+			}
+		});
+
+		it('should fail if "reward" is not zero', () => {
+			// Arrange
+			const gb = objects.mergeDeep({}, genesisBlock, {
+				header: { reward: BigInt(1) },
+			}) as GenesisBlock;
+
+			// Act & Assert
+			expect.assertions(3);
+			try {
+				chainInstance.validateGenesisBlockHeader(gb);
+			} catch (error) {
+				expect(error).toBeInstanceOf(LiskValidationError);
+				expect((error as LiskValidationError).errors).toHaveLength(1);
+				expect((error as LiskValidationError).errors[0]).toEqual(
+					expect.objectContaining({
+						message: 'should be equal to constant',
+						params: { allowedValue: BigInt(0) },
+					}),
+				);
+			}
+		});
+
+		it('should fail if "transactionRoot" is not empty hash', () => {
+			// Arrange
+			const gb = objects.mergeDeep({}, genesisBlock, {
+				header: { transactionRoot: getRandomBytes(20) },
+			}) as GenesisBlock;
+
+			// Act & Assert
+			expect.assertions(3);
+			try {
+				chainInstance.validateGenesisBlockHeader(gb);
+			} catch (error) {
+				expect(error).toBeInstanceOf(LiskValidationError);
+				expect((error as LiskValidationError).errors).toHaveLength(1);
+				expect((error as LiskValidationError).errors[0]).toEqual(
+					expect.objectContaining({
+						message: 'should be equal to constant',
+						params: { allowedValue: hash(Buffer.alloc(0)) },
+					}),
+				);
+			}
+		});
+
+		it('should fail if "generatorPublicKey" is not empty buffer', () => {
+			// Arrange
+			const gb = objects.mergeDeep({}, genesisBlock, {
+				header: { generatorPublicKey: Buffer.from(getRandomBytes(20)) },
+			}) as GenesisBlock;
+
+			// Act & Assert
+			expect.assertions(3);
+			try {
+				chainInstance.validateGenesisBlockHeader(gb);
+			} catch (error) {
+				expect(error).toBeInstanceOf(LiskValidationError);
+				expect((error as LiskValidationError).errors).toHaveLength(1);
+				expect((error as LiskValidationError).errors[0]).toEqual(
+					expect.objectContaining({
+						message: 'should be equal to constant',
+						params: { allowedValue: Buffer.alloc(0) },
+					}),
+				);
+			}
+		});
+
+		it('should fail if "signature" is not empty buffer', () => {
+			// Arrange
+			const gb = objects.mergeDeep({}, genesisBlock, {
+				header: { signature: Buffer.from(getRandomBytes(20)) },
+			}) as GenesisBlock;
+
+			// Act & Assert
+			expect.assertions(3);
+			try {
+				chainInstance.validateGenesisBlockHeader(gb);
+			} catch (error) {
+				expect(error).toBeInstanceOf(LiskValidationError);
+				expect((error as LiskValidationError).errors).toHaveLength(1);
+				expect((error as LiskValidationError).errors[0]).toEqual(
+					expect.objectContaining({
+						message: 'should be equal to constant',
+						params: { allowedValue: Buffer.alloc(0) },
+					}),
+				);
+			}
+		});
+
+		it('should fail if "payload" is less not empty array', () => {
+			// Arrange
+			const gb = objects.mergeDeep({}, genesisBlock, {
+				payload: [Buffer.from(getRandomBytes(10))],
+			}) as GenesisBlock;
+
+			// Act & Assert
+			expect.assertions(3);
+			try {
+				chainInstance.validateGenesisBlockHeader(gb);
+			} catch (error) {
+				expect(error).toBeInstanceOf(LiskValidationError);
+				expect((error as LiskValidationError).errors).toHaveLength(1);
+				expect((error as LiskValidationError).errors[0]).toEqual(
+					expect.objectContaining({
+						message: 'Payload length must be zero',
+						params: { allowedValue: [] },
+					}),
+				);
+			}
+		});
+
+		describe('asset.initDelegates', () => {
+			it('should fail if "asset.initDelegates" list is not lexicographically ordered', () => {
+				// Arrange
+				const initDelegates = objects.cloneDeep([...genesisBlock.header.asset.initDelegates]);
+				initDelegates.sort((a, b) => b.compare(a));
+				const gb = objects.mergeDeep({}, genesisBlock, {
+					header: {
+						asset: {
+							initDelegates,
+						},
+					},
+				}) as GenesisBlock;
+
+				// Act & Assert
+				expect.assertions(3);
+				try {
+					chainInstance.validateGenesisBlockHeader(gb);
+				} catch (error) {
+					expect(error).toBeInstanceOf(LiskValidationError);
+					expect((error as LiskValidationError).errors).toHaveLength(1);
+					expect((error as LiskValidationError).errors[0]).toEqual(
+						expect.objectContaining({
+							message: 'should be lexicographically ordered',
+							keyword: 'initDelegates',
+							dataPath: 'header.asset.initDelegates',
+							schemaPath: 'properties.initDelegates',
+						}),
+					);
+				}
+			});
+
+			it('should fail if "asset.initDelegates" list items are not unique', () => {
+				// Arrange
+				const initDelegates = [
+					...objects.cloneDeep(genesisBlock.header.asset.initDelegates),
+					objects.cloneDeep(genesisBlock.header.asset.initDelegates[0]),
+				].sort((a, b) => a.compare(b));
+				const gb = objects.mergeDeep({}, genesisBlock, {
+					header: {
+						asset: {
+							initDelegates,
+						},
+					},
+				}) as GenesisBlock;
+
+				// Act & Assert
+				expect.assertions(3);
+				try {
+					chainInstance.validateGenesisBlockHeader(gb);
+				} catch (error) {
+					expect(error).toBeInstanceOf(LiskValidationError);
+					expect((error as LiskValidationError).errors).toHaveLength(1);
+					expect((error as LiskValidationError).errors[0]).toEqual(
+						expect.objectContaining({
+							dataPath: '.initDelegates',
+							keyword: 'uniqueItems',
+							message: 'should NOT have duplicate items',
+							params: {},
+							schemaPath: '#/properties/initDelegates/uniqueItems',
+						}),
+					);
+				}
+			});
+
+			it('should fail if "asset.initDelegates" list is empty', () => {
+				// Arrange
+				const initDelegates: Buffer[] = [];
+				const gb = objects.mergeDeep({}, genesisBlock, {
+					header: {
+						asset: {
+							initDelegates,
+						},
+					},
+				}) as GenesisBlock;
+
+				// Act & Assert
+				expect.assertions(3);
+				try {
+					chainInstance.validateGenesisBlockHeader(gb);
+				} catch (error) {
+					expect(error).toBeInstanceOf(LiskValidationError);
+					expect((error as LiskValidationError).errors).toHaveLength(1);
+					expect((error as LiskValidationError).errors[0]).toEqual(
+						expect.objectContaining({
+							dataPath: '.initDelegates',
+							keyword: 'minItems',
+							message: 'should NOT have fewer than 1 items',
+							params: {
+								limit: 1,
+							},
+							schemaPath: '#/properties/initDelegates/minItems',
+						}),
+					);
+				}
+			});
+		});
+
+		describe('asset.accounts', () => {
+			it('should fail if "asset.accounts" list is not lexicographically ordered by "address"', () => {
+				// Arrange
+				const accounts = objects.cloneDeep([...genesisBlock.header.asset.accounts]);
+				accounts.sort((a, b) => b.address.compare(a.address));
+				const gb = objects.mergeDeep({}, genesisBlock, {
+					header: {
+						asset: {
+							accounts,
+						},
+					},
+				}) as GenesisBlock;
+
+				// Act & Assert
+				expect.assertions(3);
+				try {
+					chainInstance.validateGenesisBlockHeader(gb);
+				} catch (error) {
+					expect(error).toBeInstanceOf(LiskValidationError);
+					expect((error as LiskValidationError).errors).toHaveLength(1);
+					expect((error as LiskValidationError).errors[0]).toEqual(
+						expect.objectContaining({
+							message: 'should be lexicographically ordered',
+							keyword: 'accounts',
+							dataPath: 'header.asset.accounts',
+							schemaPath: 'properties.accounts',
+							params: { orderKey: 'address' },
+						}),
+					);
+				}
+			});
+
+			it('should fail if "asset.accounts" list contains duplicate account by "address"', () => {
+				// Arrange
+				const accounts = [
+					...objects.cloneDeep(genesisBlock.header.asset.accounts),
+					objects.cloneDeep(genesisBlock.header.asset.accounts[0]),
+				];
+				accounts.sort((a, b) => a.address.compare(b.address));
+				const gb = objects.mergeDeep({}, genesisBlock, {
+					header: {
+						asset: {
+							accounts,
+						},
+					},
+				}) as GenesisBlock;
+
+				// Act & Assert
+				expect.assertions(3);
+				try {
+					chainInstance.validateGenesisBlockHeader(gb);
+				} catch (error) {
+					expect(error).toBeInstanceOf(LiskValidationError);
+					expect((error as LiskValidationError).errors).toHaveLength(1);
+					expect((error as LiskValidationError).errors[0]).toEqual(
+						expect.objectContaining({
+							dataPath: '.accounts',
+							keyword: 'uniqueItems',
+							message: 'should NOT have duplicate items',
+							params: {},
+							schemaPath: '#/properties/accounts/uniqueItems',
+						}),
+					);
+				}
+			});
+		});
+	});
+
+	describe('applGenesisBlock', () => {
+		let stateStore: StateStore;
+
+		beforeEach(() => {
+			stateStore = createStateStore(db);
+		});
+
+		it('should store init delegates to the validators', () => {
+			jest.spyOn(stateStore.account, 'set');
+			chainInstance.applyGenesisBlock(genesisBlock, stateStore);
+			expect(stateStore.account.set).toHaveBeenCalledTimes(
+				genesisBlock.header.asset.accounts.length,
+			);
+		});
+
+		it('should store all the accounts in the genesis block', async () => {
+			chainInstance.applyGenesisBlock(genesisBlock, stateStore);
+			const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);
+			const { validators } = codec.decode<{ validators: Validator[] }>(
+				validatorsSchema,
+				validatorsBuffer as Buffer,
+			);
+
+			expect(validators).toHaveLength(genesisBlock.header.asset.initDelegates.length);
+			expect(validators.every(v => !v.canVote)).toBeTrue();
+			expect(validators.every(v => v.minActiveHeight === 0)).toBeTrue();
 		});
 	});
 });

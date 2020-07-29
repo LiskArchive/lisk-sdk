@@ -17,7 +17,7 @@ import { RawBlockHeader, BlockHeader } from '../types';
 import { blockHeaderSchema, signingBlockHeaderSchema } from '../schema';
 
 export interface RegisteredBlockHeaders {
-	readonly [key: number]: object;
+	readonly [key: number]: Schema;
 }
 
 export class BlockHeaderInterfaceAdapter {
@@ -26,7 +26,7 @@ export class BlockHeaderInterfaceAdapter {
 	public constructor(registeredBlocks: RegisteredBlockHeaders = {}) {
 		this._blockSchemaMap = new Map<number, Schema>();
 		Object.keys(registeredBlocks).forEach(version => {
-			this._blockSchemaMap.set(Number(version), registeredBlocks[Number(version)] as Schema);
+			this._blockSchemaMap.set(Number(version), registeredBlocks[Number(version)]);
 		});
 	}
 
@@ -48,9 +48,12 @@ export class BlockHeaderInterfaceAdapter {
 		return { ...blockHeader, asset, id };
 	}
 
-	public encode(header: BlockHeader, skipSignature = false): Buffer {
+	public encode<T = Record<string, unknown>>(
+		header: BlockHeader<T>,
+		skipSignature = false,
+	): Buffer {
 		const assetSchema = this.getSchema(header.version);
-		const encodedAsset = codec.encode(assetSchema, header.asset);
+		const encodedAsset = codec.encode(assetSchema, header.asset as Record<string, unknown>);
 		const rawHeader = { ...header, asset: encodedAsset };
 
 		const schema = skipSignature ? signingBlockHeaderSchema : blockHeaderSchema;

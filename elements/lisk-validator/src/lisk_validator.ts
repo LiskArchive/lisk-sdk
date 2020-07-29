@@ -54,9 +54,9 @@ class LiskValidator {
 		this._validator.addKeyword('dataType', dataTypeKeyword);
 	}
 
-	public validate(schema: object, data: object): ReadonlyArray<ErrorObject> {
+	public validate(schema: object, data: object): ErrorObject[] {
 		if (!this._validator.validate(schema, data)) {
-			return (this._validator.errors as unknown) as ReadonlyArray<ErrorObject>;
+			return (this._validator.errors as unknown) as ErrorObject[];
 		}
 
 		return [];

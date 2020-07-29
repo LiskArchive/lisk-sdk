@@ -26,7 +26,7 @@ interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	readonly networkIdentifier: Buffer;
 	readonly lastBlockReward: bigint;
-	readonly defaultAsset: object;
+	readonly defaultAccount: Record<string, unknown>;
 }
 
 const saveDiff = (
@@ -56,13 +56,11 @@ export class StateStore {
 
 	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
 		this.account = new AccountStore(dataAccess, {
-			defaultAsset: additionalInformation.defaultAsset,
+			defaultAccount: additionalInformation.defaultAccount,
 		});
-		this.consensus = new ConsensusStateStore(dataAccess, {
-			lastBlockHeaders: additionalInformation.lastBlockHeaders,
-		});
+		this.consensus = new ConsensusStateStore(dataAccess);
 		this.chain = new ChainStateStore(dataAccess, {
-			lastBlockHeader: additionalInformation.lastBlockHeaders[0],
+			lastBlockHeaders: additionalInformation.lastBlockHeaders,
 			networkIdentifier: additionalInformation.networkIdentifier,
 			lastBlockReward: additionalInformation.lastBlockReward,
 		});

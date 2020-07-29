@@ -11,26 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { Account } from '../account';
-import { BlockHeader, Block, RawBlock } from '../types';
+import { Transaction } from '../transaction';
+import { BlockHeader, Block, RawBlock, Account } from '../types';
 
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
-import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
 import { StateStore } from '../state_store';
 import { BlockHeaderInterfaceAdapter } from './block_header_interface_adapter';
 import { blockSchema } from '../schema';
 
 interface DAConstructor {
 	readonly db: KVStore;
-	readonly registeredTransactions: {
-		readonly [key: number]: typeof BaseTransaction;
-	};
 	readonly registeredBlockHeaders: {
-		readonly [key: number]: object;
+		readonly [key: number]: Schema;
 	};
 	readonly accountSchema: Schema;
 	readonly minBlockHeaderCache: number;
@@ -41,12 +36,10 @@ export class DataAccess {
 	private readonly _storage: StorageAccess;
 	private readonly _blocksCache: BlockCache;
 	private readonly _accountSchema: Schema;
-	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 	private readonly _blockHeaderAdapter: BlockHeaderInterfaceAdapter;
 
 	public constructor({
 		db,
-		registeredTransactions,
 		registeredBlockHeaders,
 		accountSchema,
 		minBlockHeaderCache,
@@ -54,7 +47,6 @@ export class DataAccess {
 	}: DAConstructor) {
 		this._storage = new StorageAccess(db);
 		this._blocksCache = new BlockCache(minBlockHeaderCache, maxBlockHeaderCache);
-		this._transactionAdapter = new TransactionInterfaceAdapter(registeredTransactions);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._accountSchema = accountSchema;
 		this._blockHeaderAdapter = new BlockHeaderInterfaceAdapter(registeredBlockHeaders);
@@ -283,13 +275,13 @@ export class DataAccess {
 	): Promise<Account[]> {
 		const accounts = await this._storage.getAccountsByPublicKey(arrayOfPublicKeys);
 
-		return accounts.map(account => new Account(this.decodeAccount(account)));
+		return accounts.map(account => this.decodeAccount(account));
 	}
 
 	public async getAccountByAddress<T>(address: Buffer): Promise<Account<T>> {
 		const account = await this._storage.getAccountByAddress(address);
 
-		return new Account<T>(this.decodeAccount<T>(account));
+		return this.decodeAccount<T>(account);
 	}
 
 	public async getEncodedAccountByAddress(address: Buffer): Promise<Buffer> {
@@ -303,22 +295,22 @@ export class DataAccess {
 	): Promise<Account<T>[]> {
 		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
 
-		return accounts.map(account => new Account<T>(this.decodeAccount<T>(account)));
+		return accounts.map(account => this.decodeAccount<T>(account));
 	}
 	/** End: Accounts */
 
 	/** Begin: Transactions */
-	public async getTransactionByID(id: Buffer): Promise<BaseTransaction> {
+	public async getTransactionByID(id: Buffer): Promise<Transaction> {
 		const transaction = await this._storage.getTransactionByID(id);
-		return this._transactionAdapter.decode(transaction);
+		return Transaction.decode(transaction);
 	}
 
 	public async getTransactionsByIDs(
 		arrayOfTransactionIds: ReadonlyArray<Buffer>,
-	): Promise<BaseTransaction[]> {
+	): Promise<Transaction[]> {
 		const transactions = await this._storage.getTransactionsByIDs(arrayOfTransactionIds);
 
-		return transactions.map(transaction => this._transactionAdapter.decode(transaction));
+		return transactions.map(transaction => Transaction.decode(transaction));
 	}
 
 	public async isTransactionPersisted(transactionId: Buffer): Promise<boolean> {
@@ -331,9 +323,9 @@ export class DataAccess {
 	public decode<T>(buffer: Buffer): Block<T> {
 		const block = codec.decode<RawBlock>(blockSchema, buffer);
 		const header = this._blockHeaderAdapter.decode<T>(block.header);
-		const payload: BaseTransaction[] = [];
+		const payload: Transaction[] = [];
 		for (const rawTx of block.payload) {
-			const tx = this._transactionAdapter.decode(rawTx);
+			const tx = Transaction.decode(rawTx);
 			payload.push(tx);
 		}
 		return {
@@ -347,7 +339,7 @@ export class DataAccess {
 
 		const payload: Buffer[] = [];
 		for (const rawTx of block.payload) {
-			const tx = this._transactionAdapter.encode(rawTx);
+			const tx = rawTx.getBytes();
 			payload.push(tx);
 		}
 		return codec.encode(blockSchema, { header, payload });
@@ -370,12 +362,14 @@ export class DataAccess {
 		return codec.encode(this._accountSchema, account as any);
 	}
 
-	public decodeTransaction(buffer: Buffer): BaseTransaction {
-		return this._transactionAdapter.decode(buffer);
+	// eslint-disable-next-line class-methods-use-this
+	public decodeTransaction(buffer: Buffer): Transaction {
+		return Transaction.decode(buffer);
 	}
 
-	public encodeTransaction(tx: BaseTransaction): Buffer {
-		return this._transactionAdapter.encode(tx);
+	// eslint-disable-next-line class-methods-use-this
+	public encodeTransaction(tx: Transaction): Buffer {
+		return tx.getBytes();
 	}
 
 	/*
@@ -392,7 +386,7 @@ export class DataAccess {
 		const encodedPayload = [];
 		for (const tx of block.payload) {
 			const txID = tx.id;
-			const encodedTx = this._transactionAdapter.encode(tx);
+			const encodedTx = tx.getBytes();
 			encodedPayload.push({ id: txID, value: encodedTx });
 		}
 		await this._storage.saveBlock(
@@ -421,7 +415,7 @@ export class DataAccess {
 		const header = this._blockHeaderAdapter.decode<T>(block.header);
 		const payload = [];
 		for (const rawTx of block.payload) {
-			const tx = this._transactionAdapter.decode(rawTx);
+			const tx = Transaction.decode(rawTx);
 			payload.push(tx);
 		}
 		return {

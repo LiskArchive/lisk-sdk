@@ -13,17 +13,13 @@
  */
 
 import { BatchChain } from '@liskhq/lisk-db';
-import { BlockHeader, StateDiff } from '../types';
+import { StateDiff } from '../types';
 import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
 import { DataAccess } from '../data_access';
 import { CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '../constants';
 
 interface KeyValuePair {
 	[key: string]: Buffer | undefined;
-}
-
-interface AdditionalInformation {
-	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 
 export class ConsensusStateStore {
@@ -33,21 +29,15 @@ export class ConsensusStateStore {
 	private _updatedKeys: Set<string>;
 	private _originalUpdatedKeys: Set<string>;
 	private readonly _dataAccess: DataAccess;
-	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	private _initialValue: KeyValuePair;
 
-	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
+	public constructor(dataAccess: DataAccess) {
 		this._dataAccess = dataAccess;
-		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
 		this._data = {};
 		this._originalData = {};
 		this._initialValue = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
-	}
-
-	public get lastBlockHeaders(): ReadonlyArray<BlockHeader> {
-		return this._lastBlockHeaders;
 	}
 
 	public createSnapshot(): void {

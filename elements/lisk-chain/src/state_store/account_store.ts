@@ -12,75 +12,71 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { NotFoundError, BatchChain } from '@liskhq/lisk-db';
-import { Account, DefaultAsset } from '../account';
+import { objects, dataStructures } from '@liskhq/lisk-utils';
 import { DataAccess } from '../data_access';
-import { StateDiff } from '../types';
-import { BufferMap } from '../utils/buffer_map';
-import { BufferSet } from '../utils/buffer_set';
+import { StateDiff, Account, AccountDefaultProps } from '../types';
 import { DB_KEY_ACCOUNTS_ADDRESS } from '../data_access/constants';
 import { keyString } from '../utils';
-// eslint-disable-next-line import/order
-import cloneDeep = require('lodash.clonedeep');
 
 interface AdditionalInformation {
-	readonly defaultAsset: object;
+	readonly defaultAccount: Record<string, unknown>;
 }
 
 // FIXME: A lot of type casting
 // It is necessary to support generic account asset for the custom transactions now, but with the better type definition, it can be avoided
 export class AccountStore {
-	private _data: BufferMap<Account>;
-	private _originalData: BufferMap<Account>;
-	private _updatedKeys: BufferSet;
-	private _originalUpdatedKeys: BufferSet;
+	private _data: dataStructures.BufferMap<Account>;
+	private _originalData: dataStructures.BufferMap<Account>;
+	private _updatedKeys: dataStructures.BufferSet;
+	private _originalUpdatedKeys: dataStructures.BufferSet;
 	private readonly _dataAccess: DataAccess;
-	private readonly _defaultAsset: object;
-	private readonly _initialAccountValue: BufferMap<Buffer>;
+	private readonly _defaultAccount: Record<string, unknown>;
+	private readonly _initialAccountValue: dataStructures.BufferMap<Buffer>;
 
 	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
 		this._dataAccess = dataAccess;
-		this._data = new BufferMap<Account>();
-		this._updatedKeys = new BufferSet();
-		this._originalData = new BufferMap();
-		this._originalUpdatedKeys = new BufferSet();
-		this._defaultAsset = additionalInformation.defaultAsset;
-		this._initialAccountValue = new BufferMap<Buffer>();
+		this._data = new dataStructures.BufferMap<Account>();
+		this._updatedKeys = new dataStructures.BufferSet();
+		this._originalData = new dataStructures.BufferMap();
+		this._originalUpdatedKeys = new dataStructures.BufferSet();
+		this._defaultAccount = additionalInformation.defaultAccount;
+		this._initialAccountValue = new dataStructures.BufferMap<Buffer>();
 	}
 
 	public createSnapshot(): void {
 		this._originalData = this._data.clone();
-		this._updatedKeys = cloneDeep(this._updatedKeys);
+		this._updatedKeys = objects.cloneDeep(this._updatedKeys);
 	}
 
 	public restoreSnapshot(): void {
 		this._data = this._originalData;
 		this._updatedKeys = this._originalUpdatedKeys;
-		this._originalData = new BufferMap();
-		this._originalUpdatedKeys = new BufferSet();
+		this._originalData = new dataStructures.BufferMap();
+		this._originalUpdatedKeys = new dataStructures.BufferSet();
 	}
 
-	public async get<T = DefaultAsset>(address: Buffer): Promise<Account<T>> {
+	public async get<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
 		const cachedAccount = this._data.get(address);
 
 		if (cachedAccount) {
-			return (new Account(cachedAccount) as unknown) as Account<T>;
+			return (objects.cloneDeep(cachedAccount) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db
 		const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(address);
 		const account = this._getAccountInstance(encodedAccount);
 
-		this._data.set(address, account);
+		this._data.set(address, account as Account);
 		this._initialAccountValue.set(address, encodedAccount);
 		return (account as unknown) as Account<T>;
 	}
 
-	public async getOrDefault<T = DefaultAsset>(address: Buffer): Promise<Account<T>> {
+	public async getOrDefault<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
 		const cachedAccount = this._data.get(address);
 		if (cachedAccount) {
-			return (new Account(cachedAccount) as unknown) as Account<T>;
+			return (objects.cloneDeep(cachedAccount) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
@@ -88,7 +84,7 @@ export class AccountStore {
 			const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(address);
 			const account = this._getAccountInstance(encodedAccount);
 
-			this._data.set(address, account);
+			this._data.set(address, account as Account);
 			this._initialAccountValue.set(address, encodedAccount);
 			return (account as unknown) as Account<T>;
 		} catch (error) {
@@ -98,20 +94,20 @@ export class AccountStore {
 		}
 
 		// If account does not exists, return default account
-		const defaultAccount = Account.getDefaultAccount(
+		const defaultAccount = ({
 			address,
-			cloneDeep<T>((this._defaultAsset as unknown) as T),
-		);
+			...objects.cloneDeep<T>((this._defaultAccount as unknown) as T),
+		} as unknown) as Account<T>;
 		this._data.set(address, (defaultAccount as unknown) as Account);
 
-		return (new Account(defaultAccount) as unknown) as Account<T>;
+		return defaultAccount;
 	}
 
-	public getUpdated<T = DefaultAsset>(): ReadonlyArray<Account<T>> {
+	public getUpdated<T = AccountDefaultProps>(): ReadonlyArray<Account<T>> {
 		return ([...this._data.values()] as unknown) as ReadonlyArray<Account<T>>;
 	}
 
-	public set<T = DefaultAsset>(primaryValue: Buffer, updatedElement: Account<T>): void {
+	public set<T = AccountDefaultProps>(primaryValue: Buffer, updatedElement: Account<T>): void {
 		this._data.set(primaryValue, (updatedElement as unknown) as Account);
 		this._updatedKeys.add(primaryValue);
 	}
@@ -140,8 +136,8 @@ export class AccountStore {
 		return stateDiff;
 	}
 
-	private _getAccountInstance<T>(encodedAccount: Buffer): Account {
+	private _getAccountInstance<T>(encodedAccount: Buffer): Account<T> {
 		const decodedAccount = this._dataAccess.decodeAccount<T>(encodedAccount);
-		return (new Account(decodedAccount) as unknown) as Account;
+		return (objects.cloneDeep(decodedAccount) as unknown) as Account<T>;
 	}
 }
