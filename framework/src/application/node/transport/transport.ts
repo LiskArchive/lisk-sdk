@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Chain, Block } from '@liskhq/lisk-chain';
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
@@ -328,13 +328,21 @@ export class Transport {
 	public async handleEventPostTransaction(
 		data: EventPostTransactionData,
 	): Promise<handlePostTransactionReturn> {
-		const tx = this._chainModule.dataAccess.decodeTransaction(
-			Buffer.from(data.transaction, 'base64'),
-		);
-		const id = await this._receiveTransaction(tx);
-		return {
-			transactionId: id.toString('base64'),
-		};
+		try {
+			const tx = this._chainModule.dataAccess.decodeTransaction(
+				Buffer.from(data.transaction, 'base64'),
+			);
+			const id = await this._receiveTransaction(tx);
+			return {
+				transactionId: id.toString('base64'),
+			};
+		} catch (err) {
+			if (Array.isArray(err)) {
+				throw new LiskValidationError(err);
+			} else {
+				throw err;
+			}
+		}
 	}
 
 	/**
