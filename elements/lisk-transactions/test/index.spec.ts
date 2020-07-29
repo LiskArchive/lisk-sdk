@@ -16,12 +16,16 @@ import * as transaction from '../src';
 
 describe('transaction', () => {
 	describe('exports', () => {
-		it('should have #transfer', () => {
-			return expect(transaction.transfer).toBeFunction();
+		it('should have #getSigningBytes', () => {
+			return expect(transaction.getSigningBytes).toBeFunction();
 		});
 
-		it('should have #registerMultisignature', () => {
-			return expect(transaction.registerMultisignature).toBeFunction();
+		it('should have #signTransaction', () => {
+			return expect(transaction.signTransaction).toBeFunction();
+		});
+
+		it('should have #signMultiSignatureTransaction', () => {
+			return expect(transaction.signMultiSignatureTransaction).toBeFunction();
 		});
 
 		it('should have #utils', () => {
