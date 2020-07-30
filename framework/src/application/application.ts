@@ -283,12 +283,13 @@ export class Application {
 		this._node = this._initNode();
 
 		await this._controller.load();
-		await this._controller.loadPlugins(this.getPlugins(), this.config.plugins);
-		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
-		this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
 		await this._network.bootstrap();
 		await this._node.bootstrap();
+
+		await this._controller.loadPlugins(this.getPlugins(), this.config.plugins);
+		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
+		this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
 		this._channel.publish('app:ready');
 	}
