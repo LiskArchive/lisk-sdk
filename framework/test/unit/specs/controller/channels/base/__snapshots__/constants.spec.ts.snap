@@ -5,5 +5,8 @@ Array [
   "registeredToBus",
   "loading:started",
   "loading:finished",
+  "unloading:started",
+  "unloading:finished",
+  "unloading:error",
 ]
 `;

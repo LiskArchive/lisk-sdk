@@ -166,7 +166,15 @@ describe('IPCChannel Channel', () => {
 			expect(ipcClientMock.rpcClient.call).toHaveBeenCalledWith(
 				'registerChannel',
 				params.moduleAlias,
-				[...params.events, 'registeredToBus', 'loading:started', 'loading:finished'],
+				[
+					...params.events,
+					'registeredToBus',
+					'loading:started',
+					'loading:finished',
+					'unloading:started',
+					'unloading:finished',
+					'unloading:error',
+				],
 				actionsInfo,
 				{
 					rpcSocketPath: undefined,
@@ -291,21 +299,6 @@ describe('IPCChannel Channel', () => {
 
 			// Assert
 			expect(ipcClientMock.stop).toHaveBeenCalled();
-		});
-
-		it('should clear process events', async () => {
-			// Arrange
-			jest.spyOn(process, 'removeAllListeners');
-			await ipcChannel.registerToBus();
-
-			// Act
-			ipcChannel.cleanup();
-
-			// Assert
-			expect(ipcClientMock.stop).toHaveBeenCalled();
-			expect(process.removeAllListeners).toHaveBeenCalledWith('SIGTERM');
-			expect(process.removeAllListeners).toHaveBeenCalledWith('SIGINT');
-			expect(process.removeAllListeners).toHaveBeenCalledWith('exit');
 		});
 	});
 });

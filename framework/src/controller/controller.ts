@@ -58,7 +58,7 @@ interface PluginsObject {
 	readonly [key: string]: InstantiablePlugin<BasePlugin>;
 }
 
-const validatePluginSpec = (pluginSpec: Partial<BasePlugin>): void => {
+export const validatePluginSpec = (pluginSpec: Partial<BasePlugin>): void => {
 	assert((pluginSpec.constructor as typeof BasePlugin).alias, 'Plugin alias is required.');
 	assert((pluginSpec.constructor as typeof BasePlugin).info.name, 'Plugin name is required.');
 	assert((pluginSpec.constructor as typeof BasePlugin).info.author, 'Plugin author is required.');
@@ -213,7 +213,7 @@ export class Controller {
 		const plugin: BasePlugin = new Klass(options);
 		validatePluginSpec(plugin);
 
-		this.logger.info({ name, version, pluginAlias }, 'Loading in-memory plugin');
+		this.logger.info({ name, version, alias: pluginAlias }, 'Loading in-memory plugin');
 
 		const channel = new InMemoryChannel(pluginAlias, plugin.events, plugin.actions);
 
@@ -229,7 +229,7 @@ export class Controller {
 
 		this._inMemoryPlugins[pluginAlias] = { plugin, channel };
 
-		this.logger.info({ name, version, pluginAlias }, 'Loaded in-memory plugin');
+		this.logger.info({ name, version, alias: pluginAlias }, 'Loaded in-memory plugin');
 	}
 
 	private async _loadChildProcessPlugin(
@@ -243,7 +243,7 @@ export class Controller {
 		const plugin: BasePlugin = new Klass(options);
 		validatePluginSpec(plugin);
 
-		this.logger.info({ name, version, pluginAlias }, 'Loading plugin as child process');
+		this.logger.info({ name, version, alias: pluginAlias }, 'Loading child-process plugin');
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
@@ -289,7 +289,7 @@ export class Controller {
 		await Promise.race([
 			new Promise(resolve => {
 				this.channel.once(`${pluginAlias}:loading:finished`, () => {
-					this.logger.info({ name, version, pluginAlias }, 'Child process plugin ready');
+					this.logger.info({ name, version, alias: pluginAlias }, 'Loaded child-process plugin');
 					resolve();
 				});
 			}),
