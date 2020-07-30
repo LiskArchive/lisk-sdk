@@ -23,6 +23,8 @@ const modulePath: string = process.argv[2];
 const moduleExportName: string = process.argv[3];
 // eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
 const Klass: InstantiablePlugin<BasePlugin> = require(modulePath)[moduleExportName];
+let channel: IPCChannel;
+let plugin: BasePlugin;
 
 const _loadPlugin = async (
 	config: {
@@ -32,9 +34,9 @@ const _loadPlugin = async (
 	pluginOptions: PluginOptions,
 ): Promise<void> => {
 	const pluginAlias = Klass.alias;
-	const plugin: BasePlugin = new Klass(pluginOptions);
+	plugin = new Klass(pluginOptions);
 
-	const channel = new IPCChannel(pluginAlias, plugin.events, plugin.actions, {
+	channel = new IPCChannel(pluginAlias, plugin.events, plugin.actions, {
 		socketsPath: config.socketsPath,
 	});
 
@@ -49,16 +51,65 @@ const _loadPlugin = async (
 	channel.publish(`${pluginAlias}:loading:finished`);
 };
 
-process.on('message', ({ loadPlugin, config, options }) => {
+const _unloadPlugin = async (code = 0) => {
+	const pluginAlias = Klass.alias;
+
+	channel.publish(`${pluginAlias}:unloading:started`);
+	try {
+		await plugin.unload();
+		channel.publish(`${pluginAlias}:unloading:finished`);
+		channel.cleanup();
+		process.exit(code);
+	} catch (error) {
+		channel.publish(`${pluginAlias}:unloading:error`, error);
+		channel.cleanup();
+		process.exit(1);
+	}
+};
+
+process.on(
+	'message',
+	({
+		action,
+		config,
+		options,
+	}: {
+		action: string;
+		config: Record<string, unknown>;
+		options: PluginOptions;
+	}) => {
+		const internalWorker = async (): Promise<void> => {
+			if (action === 'load') {
+				await _loadPlugin(
+					config as {
+						[key: string]: unknown;
+						socketsPath: SocketPaths;
+					},
+					options,
+				);
+			} else if (action === 'unload') {
+				await _unloadPlugin();
+			} else {
+				console.error(`Unknown child process plugin action: ${action}`);
+			}
+		};
+		internalWorker().catch((err: Error) => err);
+	},
+);
+
+// A rare case, if master process is disconnecting IPC then unload the plugin
+process.on('disconnect', () => {
 	const internalWorker = async (): Promise<void> => {
-		if (loadPlugin) {
-			await _loadPlugin(config, options);
-		}
+		await _unloadPlugin(1);
 	};
+
 	internalWorker().catch((err: Error) => err);
 });
 
-// TODO: Removed after https://github.com/LiskHQ/lisk/issues/3210 is fixed
-process.on('disconnect', () => {
-	process.exit();
+process.once('SIGINT', () => {
+	// Do nothing and gave time to master process to cleanup properly
+});
+
+process.once('SIGTERM', () => {
+	// Do nothing and gave time to master process to cleanup properly
 });

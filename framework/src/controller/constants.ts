@@ -16,6 +16,9 @@ export const INTERNAL_EVENTS = Object.freeze([
 	'registeredToBus',
 	'loading:started',
 	'loading:finished',
+	'unloading:started',
+	'unloading:finished',
+	'unloading:error',
 ]);
 
 export const eventWithModuleNameReg = /^([^\d][\w]+)((?::[^\d][\w]+)+)$/;

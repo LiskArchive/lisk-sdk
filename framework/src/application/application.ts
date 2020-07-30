@@ -62,6 +62,10 @@ const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
 
 const registerProcessHooks = (app: Application): void => {
+	const handleShutdown = async (code: number, message: string) => {
+		await app.shutdown(code, message);
+	};
+
 	process.title = `${app.config.label}(${app.config.version})`;
 
 	process.on('uncaughtException', err => {
@@ -72,8 +76,8 @@ const registerProcessHooks = (app: Application): void => {
 			},
 			'System error: uncaughtException',
 		);
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises
-		app.shutdown(1, err.message);
+
+		handleShutdown(1, err.message).catch((error: Error) => app.logger.error({ error }));
 	});
 
 	process.on('unhandledRejection', err => {
@@ -84,18 +88,21 @@ const registerProcessHooks = (app: Application): void => {
 			},
 			'System error: unhandledRejection',
 		);
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises
-		app.shutdown(1, (err as Error).message);
+
+		handleShutdown(1, (err as Error).message).catch((error: Error) => app.logger.error({ error }));
 	});
 
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	process.once('SIGTERM', async () => app.shutdown(1));
+	process.once('SIGTERM', () => {
+		handleShutdown(0, 'SIGTERM').catch((error: Error) => app.logger.error({ error }));
+	});
 
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	process.once('SIGINT', async () => app.shutdown(1));
+	process.once('SIGINT', () => {
+		handleShutdown(0, 'SIGINT').catch((error: Error) => app.logger.error({ error }));
+	});
 
-	// eslint-disable-next-line
-	process.once('exit' as any, (code: number) => app.shutdown(code));
+	process.once('exit' as any, (code: number) => {
+		handleShutdown(code, 'process.exit').catch((error: Error) => app.logger.error({ error }));
+	});
 };
 
 export class Application {
@@ -275,22 +282,25 @@ export class Application {
 		this._network = this._initNetwork();
 		this._node = this._initNode();
 
-		await this._controller.load(this.getPlugins(), this.config.plugins);
+		await this._controller.load();
 
 		await this._network.bootstrap();
 		await this._node.bootstrap();
+
+		await this._controller.loadPlugins(this.getPlugins(), this.config.plugins);
+		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
+		this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
 		this._channel.publish('app:ready');
 	}
 
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		this.logger.info({ errorCode, message }, 'Application shutdown started');
+
 		if (this._controller) {
 			this._channel.publish('app:shutdown');
 			await this._controller.cleanup(errorCode, message);
 		}
-
-		this.logger.info({ errorCode, message }, 'Shutting down application');
 
 		try {
 			await this._node.cleanup();
@@ -299,14 +309,17 @@ export class Application {
 			await this._forgerDB.close();
 			await this._nodeDB.close();
 			await this._emptySocketsDirectory();
+			this.logger.info({ errorCode, message }, 'Application shutdown completed');
 		} catch (error) {
-			this.logger.fatal({ err: error as Error }, 'failed to shutdown');
+			this.logger.fatal({ err: error as Error }, 'Application shutdown failed');
+		} finally {
+			// Unfreeze the configuration
+			this.config = mergeDeep({}, this.config) as ApplicationConfig;
+
+			// To avoid redundant shutdown call
+			process.removeAllListeners('exit');
+			process.exit(errorCode);
 		}
-
-		// Unfreeze the configuration
-		this.config = mergeDeep({}, this.config) as ApplicationConfig;
-
-		process.exit(errorCode);
 	}
 
 	// --------------------------------------

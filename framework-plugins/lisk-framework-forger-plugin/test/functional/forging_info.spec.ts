@@ -14,13 +14,13 @@
 
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import { ForgerPlugin } from '../../src';
 import {
 	createApplication,
 	closeApplication,
 	getForgerInfoByAddress,
 	waitNBlocks,
 	getURL,
+	getForgerPlugin,
 } from '../utils/application';
 
 describe('Forger endpoint', () => {
@@ -38,7 +38,7 @@ describe('Forger endpoint', () => {
 	describe('GET /api/forging/info', () => {
 		it('should return list of all forgers info', async () => {
 			// Arrange
-			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+			const forgerPluginInstance = getForgerPlugin(app);
 			const forgersList = forgerPluginInstance['_forgersList'].entries() as ReadonlyArray<
 				[Buffer, boolean]
 			>;

@@ -27,12 +27,6 @@ import { SocketPaths } from '../types';
 import { IPCClient } from '../ipc/ipc_client';
 import { ActionInfoForBus } from '../../types';
 
-export const setupProcessHandlers = (channel: IPCChannel): void => {
-	process.once('SIGTERM', () => channel.cleanup(1));
-	process.once('SIGINT', () => channel.cleanup(1));
-	process.once('exit', code => channel.cleanup(code));
-};
-
 type NodeCallback = (error: Error | null, result?: unknown) => void;
 
 interface ChildProcessOptions extends BaseChannelOptions {
@@ -62,8 +56,6 @@ export class IPCChannel extends BaseChannel {
 			delimiter: ':',
 			maxListeners: 1000,
 		});
-
-		setupProcessHandlers(this);
 	}
 
 	public async startAndListen(): Promise<void> {
@@ -167,9 +159,6 @@ export class IPCChannel extends BaseChannel {
 
 	public cleanup(_status?: number, _message?: string): void {
 		this._ipcClient.stop();
-		process.removeAllListeners('SIGTERM');
-		process.removeAllListeners('SIGINT');
-		process.removeAllListeners('exit');
 	}
 
 	private get _rpcServer(): RPCServer {

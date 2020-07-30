@@ -18,11 +18,11 @@ import {
 	closeApplication,
 	createApplication,
 	getForgerInfoByPublicKey,
+	getForgerPlugin,
 	startApplication,
 	waitNBlocks,
 	waitTill,
 } from '../../utils/application';
-import { ForgerPlugin } from '../../../src';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction } from '../../utils/transactions';
 
@@ -40,7 +40,7 @@ describe('Forger Info Sync', () => {
 
 	it('should sync information from scratch on startup', async () => {
 		// Arrange
-		let forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+		let forgerPluginInstance = getForgerPlugin(app);
 		const account = getRandomAccount();
 		const transaction = createTransferTransaction({
 			amount: '2',
@@ -68,7 +68,7 @@ describe('Forger Info Sync', () => {
 
 		// Start the application again
 		await startApplication(app);
-		forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+		forgerPluginInstance = getForgerPlugin(app);
 
 		await waitTill(2000);
 		// Get forger info

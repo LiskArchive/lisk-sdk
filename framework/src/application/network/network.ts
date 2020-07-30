@@ -493,8 +493,8 @@ export class Network {
 	}
 
 	public async cleanup(): Promise<void> {
-		this._logger.info({}, 'Cleaning network...');
-
+		this._logger.info('Network cleanup started');
 		await this._p2p.stop();
+		this._logger.info('Network cleanup completed');
 	}
 }

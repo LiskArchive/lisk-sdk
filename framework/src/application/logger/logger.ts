@@ -102,7 +102,7 @@ class ConsoleLog {
 			}
 			process.stdout.write(log);
 		} catch (err) {
-			console.error('Failed on logging', rec.err);
+			console.error('Failed on logging', err);
 		}
 	}
 }

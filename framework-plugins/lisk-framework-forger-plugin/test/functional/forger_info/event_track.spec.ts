@@ -19,10 +19,10 @@ import {
 	createApplication,
 	getForgerInfoByAddress,
 	getForgerInfoByPublicKey,
+	getForgerPlugin,
 	waitNBlocks,
 	waitTill,
 } from '../../utils/application';
-import { ForgerPlugin } from '../../../src';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
 
@@ -41,7 +41,7 @@ describe('Forger Info', () => {
 	describe('New Block', () => {
 		it('should save forger info after new block', async () => {
 			// Arrange
-			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+			const forgerPluginInstance = getForgerPlugin(app);
 
 			// Act
 			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
@@ -53,7 +53,7 @@ describe('Forger Info', () => {
 
 		it('should save forger info with received fees if payload included in new block', async () => {
 			// Arrange
-			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+			const forgerPluginInstance = getForgerPlugin(app);
 			const account = getRandomAccount();
 			const transaction = createTransferTransaction({
 				amount: '2',
@@ -80,7 +80,7 @@ describe('Forger Info', () => {
 		describe('Vote transactions', () => {
 			it('should save forger info with votes received in new block', async () => {
 				// Arrange
-				const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+				const forgerPluginInstance = getForgerPlugin(app);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '10',
@@ -107,7 +107,7 @@ describe('Forger Info', () => {
 
 			it('should update forger info with multiple votes received for same delegate in new block', async () => {
 				// Arrange
-				const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+				const forgerPluginInstance = getForgerPlugin(app);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '10',
@@ -144,7 +144,7 @@ describe('Forger Info', () => {
 
 			it('should update forger info with upvote and downvote for same delegate in new block', async () => {
 				// Arrange
-				const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+				const forgerPluginInstance = getForgerPlugin(app);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '-50',
@@ -181,7 +181,7 @@ describe('Forger Info', () => {
 
 			it('should update forger info with voters info and remove when amount becomes zero', async () => {
 				// Arrange
-				const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+				const forgerPluginInstance = getForgerPlugin(app);
 				const [forgingDelegateAddress1] = forgerPluginInstance['_forgersList'].entries()[0];
 				const [forgingDelegateAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
 				const transaction1 = createVoteTransaction({
@@ -229,7 +229,7 @@ describe('Forger Info', () => {
 		it('should update forger info after delete block', async () => {
 			// Arrange
 			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
-			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+			const forgerPluginInstance = getForgerPlugin(app);
 			await app['_node']['_processor'].deleteLastBlock();
 
 			// Act
