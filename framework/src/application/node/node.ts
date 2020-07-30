@@ -459,6 +459,7 @@ export class Node {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async cleanup(): Promise<void> {
+		this._logger.info('Node cleanup started');
 		this._transactionPool.stop();
 		this._unsubscribeToEvents();
 		if (this._forgingJob) {
@@ -466,7 +467,7 @@ export class Node {
 		}
 		await this._synchronizer.stop();
 		await this._processor.stop();
-		this._logger.info('Cleaned up successfully');
+		this._logger.info('Node cleanup completed');
 	}
 
 	private _initModules(): void {
