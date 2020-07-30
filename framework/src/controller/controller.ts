@@ -24,6 +24,7 @@ import { SocketPaths } from './types';
 import { PluginsOptions, PluginOptions } from '../types';
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import { EventInfoObject } from './event';
+import { BaseChannel } from './channels';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -74,11 +75,10 @@ export class Controller {
 	public readonly appLabel: string;
 	public readonly channel: InMemoryChannel;
 	public readonly config: ControllerConfig;
-	public plugins: {
-		[key: string]: BasePlugin;
-	};
-	public childrenList: Array<ChildProcess>;
 	public bus!: Bus;
+
+	private readonly _childProcesses: Record<string, ChildProcess>;
+	private readonly _inMemoryPlugins: Record<string, { plugin: BasePlugin; channel: BaseChannel }>;
 
 	public constructor(options: ControllerOptions) {
 		this.logger = options.logger;
@@ -103,43 +103,87 @@ export class Controller {
 			},
 		};
 
-		this.plugins = {};
-		this.childrenList = [];
+		this._inMemoryPlugins = {};
+		this._childProcesses = {};
 	}
 
-	public async load(plugins: PluginsObject, pluginOptions: PluginsOptions): Promise<void> {
+	public async load(): Promise<void> {
 		this.logger.info('Loading controller');
 		await this._setupBus();
-		await this._loadPlugins(plugins, pluginOptions);
-
-		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
-		this.logger.debug(this.bus.getActions(), 'Bus ready for actions');
 	}
 
-	public async unloadPlugins(plugins = Object.keys(this.plugins)): Promise<void> {
-		// To perform operations in sequence and not using bluebird
+	public async loadPlugins(plugins: PluginsObject, pluginOptions: PluginsOptions): Promise<void> {
+		if (!this.bus) {
+			throw new Error('Controller bus is not initialized. Plugins can not be loaded.');
+		}
 
-		for (const alias of plugins) {
-			await this.plugins[alias].unload();
-			delete this.plugins[alias];
+		for (const alias of Object.keys(plugins)) {
+			const klass = plugins[alias];
+			const options = pluginOptions[alias];
+
+			if (options.loadAsChildProcess) {
+				if (this.config.ipc.enabled) {
+					await this._loadChildProcessPlugin(alias, klass, options);
+				} else {
+					this.logger.warn(`IPC is disabled. ${alias} will be loaded in-memory.`);
+					await this._loadInMemoryPlugin(alias, klass, options);
+				}
+			} else {
+				await this._loadInMemoryPlugin(alias, klass, options);
+			}
+		}
+	}
+
+	public async unloadPlugins(plugins: string[] = []): Promise<void> {
+		const pluginsToUnload =
+			plugins.length > 0
+				? plugins
+				: [...Object.keys(this._inMemoryPlugins), ...Object.keys(this._childProcesses)];
+
+		const errors = [];
+
+		for (const alias of pluginsToUnload) {
+			try {
+				// Unload in-memory plugins
+				if (this._inMemoryPlugins[alias]) {
+					await this._unloadInMemoryPlugin(alias);
+
+					// Unload child process plugins
+				} else if (this._childProcesses[alias]) {
+					await this._unloadChildProcessPlugin(alias);
+				} else {
+					throw new Error(`Unknown plugin "${alias}" was asked to unload.`);
+				}
+			} catch (error) {
+				this.logger.error(error);
+				errors.push(error);
+			}
+		}
+
+		if (errors.length) {
+			throw new Error('Unload Plugins failed');
 		}
 	}
 
 	public async cleanup(_code?: number, reason?: string): Promise<void> {
-		this.logger.info('Cleanup controller...');
+		this.logger.info('Controller cleanup started');
 
 		if (reason) {
-			this.logger.error(`Reason: ${reason}`);
+			this.logger.debug(`Reason: ${reason}`);
 		}
 
-		this.childrenList.forEach(child => child.kill());
-
 		try {
-			await this.bus.cleanup();
+			this.logger.debug('Plugins cleanup started');
 			await this.unloadPlugins();
-			this.logger.info('Unload completed');
+			this.logger.debug('Plugins cleanup completed');
+
+			this.logger.debug('Bus cleanup started');
+			await this.bus.cleanup();
+			this.logger.debug('Bus cleanup completed');
+
+			this.logger.info('Controller cleanup completed');
 		} catch (err) {
-			this.logger.error(err, 'Caused error during plugins cleanup');
+			this.logger.error(err, 'Controller cleanup failed');
 		}
 	}
 
@@ -155,25 +199,6 @@ export class Controller {
 			this.bus.subscribe('*', (event: EventInfoObject) => {
 				this.logger.trace(`eventName: ${event.name},`, 'Monitor Bus Channel');
 			});
-		}
-	}
-
-	private async _loadPlugins(plugins: PluginsObject, pluginOptions: PluginsOptions): Promise<void> {
-		// To perform operations in sequence and not using bluebird
-		for (const alias of Object.keys(plugins)) {
-			const klass = plugins[alias];
-			const options = pluginOptions[alias];
-
-			if (options.loadAsChildProcess) {
-				if (this.config.ipc.enabled) {
-					await this._loadChildProcessPlugin(alias, klass, options);
-				} else {
-					this.logger.warn(`IPC is disabled. ${alias} will be loaded in-memory.`);
-					await this._loadInMemoryPlugin(alias, klass, options);
-				}
-			} else {
-				await this._loadInMemoryPlugin(alias, klass, options);
-			}
 		}
 	}
 
@@ -202,7 +227,7 @@ export class Controller {
 
 		channel.publish(`${pluginAlias}:loading:finished`);
 
-		this.plugins[pluginAlias] = plugin;
+		this._inMemoryPlugins[pluginAlias] = { plugin, channel };
 
 		this.logger.info({ name, version, pluginAlias }, 'Loaded in-memory plugin');
 	}
@@ -239,18 +264,26 @@ export class Controller {
 		const child = childProcess.fork(program, parameters, forkedProcessOptions);
 
 		child.send({
-			loadPlugin: true,
+			action: 'load',
 			config: this.config,
 			options,
 		});
 
-		this.childrenList.push(child);
+		this._childProcesses[pluginAlias] = child;
 
 		child.on('exit', (code, signal) => {
-			this.logger.error(
-				{ name, version, pluginAlias, code, signal: signal ?? '' },
-				'Child process plugin exited',
-			);
+			// If child process exited with error
+			if (code && code !== 0) {
+				this.logger.error(
+					{ name, version, pluginAlias, code, signal: signal ?? '' },
+					'Child process plugin exited',
+				);
+			}
+		});
+
+		child.on('error', error => {
+			this.logger.error(error, `Child process for "${pluginAlias}" faced error.`);
+			// TODO: Develop a reload strategy
 		});
 
 		await Promise.race([
@@ -261,7 +294,58 @@ export class Controller {
 				});
 			}),
 			new Promise((_, reject) => {
-				setTimeout(reject, 2000);
+				setTimeout(() => {
+					reject(new Error('Child process plugin loading timeout'));
+				}, 2000);
+			}),
+		]);
+	}
+
+	private async _unloadInMemoryPlugin(alias: string): Promise<void> {
+		this._inMemoryPlugins[alias].channel.publish(`${alias}:unloading:started`);
+		try {
+			await this._inMemoryPlugins[alias].plugin.unload();
+			this._inMemoryPlugins[alias].channel.publish(`${alias}:unloading:finished`);
+		} catch (error) {
+			this._inMemoryPlugins[alias].channel.publish(`${alias}:unloading:error`, error);
+		} finally {
+			delete this._inMemoryPlugins[alias];
+		}
+	}
+
+	private async _unloadChildProcessPlugin(alias: string): Promise<void> {
+		if (!this._childProcesses[alias].connected) {
+			this._childProcesses[alias].kill('SIGTERM');
+			delete this._childProcesses[alias];
+			throw new Error('Child process is not connected any more.');
+		}
+
+		this._childProcesses[alias].send({
+			action: 'unload',
+		});
+
+		await Promise.race([
+			new Promise(resolve => {
+				this.channel.once(`${alias}:unloading:finished`, () => {
+					this.logger.info(`Child process plugin "${alias}" unloaded`);
+					delete this._childProcesses[alias];
+					resolve();
+				});
+			}),
+			new Promise((_, reject) => {
+				this.channel.once(`${alias}:unloading:error`, event => {
+					this.logger.info(`Child process plugin "${alias}" unloaded with error`);
+					this.logger.error(event.data || {}, 'Unloading plugin error.');
+					delete this._childProcesses[alias];
+					reject(event.data);
+				});
+			}),
+			new Promise((_, reject) => {
+				setTimeout(() => {
+					this._childProcesses[alias].kill('SIGTERM');
+					delete this._childProcesses[alias];
+					reject(new Error('Child process plugin unload timeout'));
+				}, 2000);
 			}),
 		]);
 	}
