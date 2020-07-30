@@ -25,6 +25,10 @@ import { ForgerInfo } from '../../src/types';
 
 const forgerApiPort = 5001;
 
+export const getForgerPlugin = (app: Application): ForgerPlugin => {
+	return app['_controller']['_inMemoryPlugins'][ForgerPlugin.alias]['plugin'];
+};
+
 export const startApplication = async (app: Application): Promise<void> => {
 	// TODO: Need to figure out why below error appears but its only in tests
 	//  Trace: Error: schema with key or id "/block/header"
@@ -99,7 +103,7 @@ export const closeApplication = async (
 	if (options.clearDB) {
 		await app['_forgerDB'].clear();
 		await app['_blockchainDB'].clear();
-		const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+		const forgerPluginInstance = getForgerPlugin(app);
 		await forgerPluginInstance['_forgerPluginDB'].clear();
 	}
 

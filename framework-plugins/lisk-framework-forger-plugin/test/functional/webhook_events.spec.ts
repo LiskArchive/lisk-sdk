@@ -15,8 +15,12 @@ import axios from 'axios';
 
 import { Application } from 'lisk-framework';
 
-import { closeApplication, createApplication, waitNBlocks } from '../utils/application';
-import { ForgerPlugin } from '../../src';
+import {
+	closeApplication,
+	createApplication,
+	getForgerPlugin,
+	waitNBlocks,
+} from '../utils/application';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -63,7 +67,7 @@ describe('Forger Plugin webhooks', () => {
 	describe('App start', () => {
 		it('should call webhook forger:node:start', () => {
 			// Arrange
-			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+			const forgerPluginInstance = getForgerPlugin(app) as any;
 			forgerPluginInstance._webhooks.headers['User-Agent'] = 'LISK/TEST/UA';
 			const expectedCallArgs = [
 				'http://fake.host',
@@ -84,7 +88,7 @@ describe('Forger Plugin webhooks', () => {
 	describe('New Block', () => {
 		it('should call webhook forger:block:created', async () => {
 			// Arrange
-			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+			const forgerPluginInstance = getForgerPlugin(app) as any;
 			forgerPluginInstance._webhooks.headers['User-Agent'] = 'LISK/TEST/UA';
 			const expectedCallArgs = [
 				'http://fake.host',
@@ -110,7 +114,7 @@ describe('Forger Plugin webhooks', () => {
 	describe('Missed Block', () => {
 		it('should call webhook forger:block:missed', () => {
 			// Arrange
-			const forgerPluginInstance = app['_controller'].plugins[ForgerPlugin.alias];
+			const forgerPluginInstance = getForgerPlugin(app) as any;
 			forgerPluginInstance._webhooks.headers['User-Agent'] = 'LISK/TEST/UA';
 			const expectedCallArgs = [
 				'http://fake.host',
