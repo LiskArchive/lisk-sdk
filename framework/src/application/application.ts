@@ -77,7 +77,7 @@ const registerProcessHooks = (app: Application): void => {
 			'System error: uncaughtException',
 		);
 
-		handleShutdown(1, err.message).catch(error => app.logger.error({}, error));
+		handleShutdown(1, err.message).catch((error: Error) => app.logger.error({ error }));
 	});
 
 	process.on('unhandledRejection', err => {
@@ -89,19 +89,19 @@ const registerProcessHooks = (app: Application): void => {
 			'System error: unhandledRejection',
 		);
 
-		handleShutdown(1, (err as Error).message).catch(error => app.logger.error({}, error));
+		handleShutdown(1, (err as Error).message).catch((error: Error) => app.logger.error({ error }));
 	});
 
 	process.once('SIGTERM', () => {
-		handleShutdown(0, 'SIGTERM').catch(error => app.logger.error({}, error));
+		handleShutdown(0, 'SIGTERM').catch((error: Error) => app.logger.error({ error }));
 	});
 
 	process.once('SIGINT', () => {
-		handleShutdown(0, 'SIGINT').catch(error => app.logger.error({}, error));
+		handleShutdown(0, 'SIGINT').catch((error: Error) => app.logger.error({ error }));
 	});
 
 	process.once('exit' as any, (code: number) => {
-		handleShutdown(code, 'process.exit').catch(error => app.logger.error({}, error));
+		handleShutdown(code, 'process.exit').catch((error: Error) => app.logger.error({ error }));
 	});
 };
 
