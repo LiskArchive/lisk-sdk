@@ -273,7 +273,7 @@ export class Controller {
 
 		child.on('exit', (code, signal) => {
 			// If child process exited with error
-			if (code && code !== 0) {
+			if (code !== null && code !== undefined && code !== 0) {
 				this.logger.error(
 					{ name, version, pluginAlias, code, signal: signal ?? '' },
 					'Child process plugin exited',
