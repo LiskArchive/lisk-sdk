@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Chain, Block } from '@liskhq/lisk-chain';
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
@@ -337,11 +337,11 @@ export class Transport {
 				transactionId: id.toString('base64'),
 			};
 		} catch (err) {
-			return {
-				message: 'Transaction was rejected with errors',
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-				errors: err.errors || err,
-			};
+			if (Array.isArray(err)) {
+				throw new LiskValidationError(err);
+			} else {
+				throw err;
+			}
 		}
 	}
 

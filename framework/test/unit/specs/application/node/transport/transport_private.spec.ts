@@ -659,34 +659,32 @@ describe('transport', () => {
 					describe('when transportModule._receiveTransaction fails', () => {
 						const receiveTransactionError = new Error('Invalid transaction body ...');
 
-						beforeEach(async () => {
+						beforeEach(() => {
 							transportModule._receiveTransaction = jest
 								.fn()
 								.mockResolvedValue(Promise.reject(receiveTransactionError));
-
-							result = await transportModule.handleEventPostTransaction(query);
 						});
 
-						it('should resolve with object { message: err }', () => {
-							expect(result).toHaveProperty('errors');
-							expect(result.errors).toEqual(receiveTransactionError);
+						it('should throw when transaction is invalid', async () => {
+							return expect(transportModule.handleEventPostTransaction(query)).rejects.toThrow(
+								receiveTransactionError,
+							);
 						});
 					});
 
 					describe('when transportModule._receiveTransaction fails with "Transaction pool is full"', () => {
 						const receiveTransactionError = new Error('Transaction pool is full');
 
-						beforeEach(async () => {
+						beforeEach(() => {
 							transportModule._receiveTransaction = jest
 								.fn()
 								.mockResolvedValue(Promise.reject(receiveTransactionError));
-
-							result = await transportModule.handleEventPostTransaction(query);
 						});
 
-						it('should resolve with object { message: err }', () => {
-							expect(result).toHaveProperty('errors');
-							expect(result.errors).toEqual(receiveTransactionError);
+						it('should throw when transaction pool is full', async () => {
+							return expect(transportModule.handleEventPostTransaction(query)).rejects.toThrow(
+								receiveTransactionError,
+							);
 						});
 					});
 				});
