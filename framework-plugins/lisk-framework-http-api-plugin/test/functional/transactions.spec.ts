@@ -239,7 +239,13 @@ describe('Hello endpoint', () => {
 				// Assert
 				expect(status).toEqual(409);
 				expect(response).toEqual({
-					errors: [{ message: `Failed to validate signature ${newSignature.toString('base64')}` }],
+					errors: [
+						{
+							message: `Lisk validator found 1 error[s]:\nFailed to validate signature ${newSignature.toString(
+								'base64',
+							)}`,
+						},
+					],
 				});
 			});
 		});

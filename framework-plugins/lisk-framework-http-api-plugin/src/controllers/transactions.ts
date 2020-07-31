@@ -123,9 +123,7 @@ export const postTransaction = (channel: BaseChannel, codec: PluginCodec) => asy
 		res.status(200).json({ data: result, meta: {} });
 	} catch (err) {
 		res.status(409).json({
-			errors: [
-				{ message: (err as Error).message.replace('Lisk validator found 1 error[s]:\n', '') },
-			],
+			errors: [{ message: (err as Error).message }],
 		});
 	}
 };
