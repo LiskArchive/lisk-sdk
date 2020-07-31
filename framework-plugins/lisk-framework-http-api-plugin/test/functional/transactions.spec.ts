@@ -239,7 +239,7 @@ describe('Hello endpoint', () => {
 				// Assert
 				expect(status).toEqual(409);
 				expect(response).toEqual({
-					errors: [{ message: `Failed to validate signature ${newSignature.toString('hex')}` }],
+					errors: [{ message: `Failed to validate signature ${newSignature.toString('base64')}` }],
 				});
 			});
 		});
