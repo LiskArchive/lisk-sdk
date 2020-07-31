@@ -109,24 +109,21 @@ export const postTransaction = (channel: BaseChannel, codec: PluginCodec) => asy
 		return;
 	}
 
-	const encodedTransaction = codec.encodeTransaction(req.body as TransactionInput);
+	try {
+		const encodedTransaction = codec.encodeTransaction(req.body as TransactionInput);
 
-	const result = await channel.invoke<{
-		transactionId?: string;
-		message?: string;
-		errors?: Error[] | Error;
-	}>('app:postTransaction', {
-		transaction: encodedTransaction,
-	});
+		const result = await channel.invoke<{
+			transactionId?: string;
+			message?: string;
+			errors?: Error[] | Error;
+		}>('app:postTransaction', {
+			transaction: encodedTransaction,
+		});
 
-	if (result.errors) {
-		const processingErrors = (result.errors as Error[]).map(e => ({
-			message: e.message,
-		}));
-
-		res.status(409).json({ errors: processingErrors });
-		return;
+		res.status(200).json({ data: result, meta: {} });
+	} catch (err) {
+		res.status(409).json({
+			errors: [{ message: (err as Error).message }],
+		});
 	}
-
-	res.status(200).json({ data: result, meta: {} });
 };

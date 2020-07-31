@@ -103,7 +103,6 @@ export class HTTPAPIPlugin extends BasePlugin {
 	}
 
 	private _registerControllers(): void {
-		this._app.get('/v1/hello', controllers.helloController(this._channel));
 		this._app.get(
 			'/api/transactions/:id',
 			controllers.transactions.getTransaction(this._channel, this.codec),

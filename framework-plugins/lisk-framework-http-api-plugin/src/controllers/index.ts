@@ -20,5 +20,4 @@ import * as peers from './peers';
 import * as delegates from './delegates';
 import * as forgers from './forgers';
 
-export * from './hello';
 export { accounts, blocks, node, transactions, peers, delegates, forgers };

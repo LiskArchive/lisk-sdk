@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { verifyData, bufferToHex } from '@liskhq/lisk-cryptography';
+import { verifyData } from '@liskhq/lisk-cryptography';
 
 import { TransactionError } from '../errors';
 import { IsValidResponseWithError } from '../types';
@@ -29,7 +29,7 @@ export const validateSignature = (
 		valid,
 		error: !valid
 			? new TransactionError(
-					`Failed to validate signature ${bufferToHex(signature)}`,
+					`Failed to validate signature ${signature.toString('base64')}`,
 					id,
 					'.signatures',
 			  )

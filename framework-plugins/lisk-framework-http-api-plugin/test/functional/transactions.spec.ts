@@ -241,7 +241,9 @@ describe('Hello endpoint', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message: `Failed to validate signature ${newSignature.toString('hex')}`,
+							message: `Lisk validator found 1 error[s]:\nFailed to validate signature ${newSignature.toString(
+								'base64',
+							)}`,
 						},
 					],
 				});

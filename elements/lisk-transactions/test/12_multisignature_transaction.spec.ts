@@ -646,7 +646,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				'Failed to validate signature 6667778476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06',
+				'Failed to validate signature Zmd3hHbS0wDQTL24RC6qSnWZmfBIRtMJiUb0WRGsv8ZZKDKEDvKQ3MVcK54+B89YlqxcAc0NunQKZD8N4Wd/Bg==',
 			);
 		});
 
@@ -668,7 +668,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				'Failed to validate signature 77d8d346e040bec26afd0af55845cf36aaeae0a0786b3f00a377898d6999f438848247bf776398b2ee7b6cb1b07cd75e7f9f3ac62ce65e860b275afdf1be910c',
+				'Failed to validate signature d9jTRuBAvsJq/Qr1WEXPNqrq4KB4az8Ao3eJjWmZ9DiEgke/d2OYsu57bLGwfNdef586xizmXoYLJ1r98b6RDA==',
 			);
 		});
 
@@ -690,7 +690,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				'Failed to validate signature 4fc142101188d7a9b3f00977c910a5473de6068b4af5df777530fe073e32869e688456b5604da9d65e7e1703adfe53e895fc156f414727ea123f7e34480fa80e',
+				'Failed to validate signature T8FCEBGI16mz8Al3yRClRz3mBotK9d93dTD+Bz4yhp5ohFa1YE2p1l5+FwOt/lPolfwVb0FHJ+oSP340SA+oDg==',
 			);
 		});
 
