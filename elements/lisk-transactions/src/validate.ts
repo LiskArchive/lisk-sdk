@@ -13,6 +13,7 @@
  *
  */
 
+import { codec, Schema } from '@liskhq/lisk-codec';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseTransaction } from './base_transaction';
 
@@ -32,10 +33,14 @@ export const validateTransactionSchema = (
 		return new LiskValidationError([...schemaErrors]);
 	}
 
-	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
-		return new Error('Transaction object asset must be of type object and not null');
+	if (!Buffer.isBuffer(transactionObject.asset)) {
+		return new Error('Transaction Asset must be of type buffer');
 	}
-	const assetSchemaErrors = validator.validate(assetSchema, transactionObject.asset);
+	const assetObject = codec.decode<Record<string, unknown>>(
+		assetSchema as Schema,
+		transactionObject.asset,
+	);
+	const assetSchemaErrors = validator.validate(assetSchema, assetObject);
 	if (assetSchemaErrors.length) {
 		return new LiskValidationError([...assetSchemaErrors]);
 	}

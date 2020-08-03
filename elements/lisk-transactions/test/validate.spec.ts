@@ -13,22 +13,8 @@
  *
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { validateTransactionSchema } from '../src/validate';
-
-const validTransaction = {
-	type: 8,
-	nonce: BigInt('1'),
-	fee: BigInt('10000000'),
-	senderPublicKey: Buffer.from(
-		'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
-		'hex',
-	),
-	asset: {
-		recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
-		amount: BigInt('4008489300000000'),
-		data: '',
-	},
-};
 
 const validAssetSchema = {
 	$id: 'lisk/transfer-transaction',
@@ -55,6 +41,23 @@ const validAssetSchema = {
 	},
 };
 
+const assetBuffer = codec.encode(validAssetSchema, {
+	recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
+	amount: BigInt('4008489300000000'),
+	data: '',
+});
+
+const validTransaction = {
+	type: 8,
+	nonce: BigInt('1'),
+	fee: BigInt('10000000'),
+	senderPublicKey: Buffer.from(
+		'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+		'hex',
+	),
+	asset: assetBuffer,
+};
+
 describe('validateTransactionSchema', () => {
 	it('should return error for invalid transaction header', () => {
 		const invalidTransactionObjects = [
@@ -71,7 +74,7 @@ describe('validateTransactionSchema', () => {
 	it('should return error when asset is null', () => {
 		return expect(
 			validateTransactionSchema(validAssetSchema, { ...validTransaction, asset: null }),
-		).toEqual(new Error('Transaction object asset must be of type object and not null'));
+		).toEqual(new Error('Transaction Asset must be of type buffer'));
 	});
 
 	it('should return error for invalid asset property', () => {
