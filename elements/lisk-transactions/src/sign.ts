@@ -13,7 +13,7 @@
  *
  */
 
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from './base_transaction';
 import { sortKeysAscending } from './utils';
@@ -33,13 +33,8 @@ export const getSigningBytes = (
 	if (validationErrors) {
 		throw validationErrors;
 	}
-	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
-		throw new Error('Asset must be of type object and not null');
-	}
-	const assetBytes = codec.encode((assetSchema as unknown) as Schema, transactionObject.asset);
 	const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
 		...transactionObject,
-		asset: assetBytes,
 		signatures: [],
 	});
 

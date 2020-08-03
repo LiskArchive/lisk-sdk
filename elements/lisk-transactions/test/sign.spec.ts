@@ -87,16 +87,18 @@ const keys = {
 	optionalKeys: [publicKey3, publicKey4],
 };
 
+const assetBuffer = codec.encode(validAssetSchema, {
+	recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
+	amount: BigInt('4008489300000000'),
+	data: '',
+});
+
 const validTransaction = {
 	type: 8,
 	nonce: BigInt('1'),
 	fee: BigInt('10000000'),
 	senderPublicKey: publicKey1,
-	asset: {
-		recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
-		amount: BigInt('4008489300000000'),
-		data: '',
-	},
+	asset: assetBuffer,
 };
 
 describe('sign', () => {
@@ -116,7 +118,7 @@ describe('sign', () => {
 		it('should throw error when asset is null', () => {
 			return expect(() =>
 				getSigningBytes(validAssetSchema, { ...validTransaction, asset: null }),
-			).toThrow(new Error('Transaction object asset must be of type object and not null'));
+			).toThrow(new Error('Transaction Asset must be of type buffer'));
 		});
 
 		it('should throw error for invalid asset object', () => {
@@ -136,11 +138,7 @@ describe('sign', () => {
 			const signingBytes = getSigningBytes(validAssetSchema, { ...validTransaction });
 			expect(signingBytes).toMatchSnapshot();
 			const decodedTransaction = codec.decode<object>(BaseTransaction.BASE_SCHEMA, signingBytes);
-			const decodedAsset = codec.decode<object>(
-				validAssetSchema,
-				(decodedTransaction as any).asset,
-			);
-			return expect({ ...decodedTransaction, asset: { ...decodedAsset } }).toEqual({
+			return expect({ ...decodedTransaction }).toEqual({
 				...validTransaction,
 				signatures: [],
 			});
@@ -182,7 +180,7 @@ describe('sign', () => {
 					networkIdentifier,
 					passphrase1,
 				),
-			).toThrow(new Error('Transaction object asset must be of type object and not null'));
+			).toThrow(new Error('Transaction Asset must be of type buffer'));
 		});
 
 		it('should throw error for invalid asset object', () => {
@@ -290,7 +288,7 @@ describe('sign', () => {
 					passphrase1,
 					keys,
 				),
-			).toThrow(new Error('Transaction object asset must be of type object and not null'));
+			).toThrow(new Error('Transaction Asset must be of type buffer'));
 		});
 
 		it('should throw error for invalid asset object', () => {
@@ -331,7 +329,6 @@ describe('sign', () => {
 					const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'base64');
 					const signedMultiSigTransaction = {
 						...transactionObject,
-						asset: { ...decodedAsset },
 						signatures: [],
 					};
 					const senderAccount = {
