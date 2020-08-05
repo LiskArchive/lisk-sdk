@@ -197,6 +197,7 @@ const delegateAccounts = [
 ];
 
 const assetSchema = {
+	$id: 'protocol-spec/assets/vote',
 	type: 'object',
 	properties: {
 		votes: {
@@ -238,7 +239,8 @@ const encode = tx => {
 
 const generateValidUpvoteTransaction = () => {
 	const unsignedTransaction = {
-		type: 13,
+		moduleType: 5,
+		assetType: 1,
 		fee: BigInt('1500000000'),
 		nonce: BigInt('1'),
 		senderPublicKey: senderAccount.publicKey,

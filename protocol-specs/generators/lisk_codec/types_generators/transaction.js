@@ -72,7 +72,8 @@ const generateValidTransactionEncodings = () => {
 	const input = {
 		validBaseTransaction: {
 			object: {
-				type: 21,
+				moduleType: 20,
+				assetType: 1,
 				nonce: 1570179673932370,
 				fee: 3156364651,
 				senderPublicKey: Buffer.from(
