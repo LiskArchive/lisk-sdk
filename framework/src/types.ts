@@ -165,7 +165,7 @@ export interface TransactionJSON {
 // TODO: replace definition from lisk-chain after "Update lisk-chain to support the on-chain architecture"
 export interface Validator {
 	address: Buffer;
-	weight: 0 | 1;
+	canVote: boolean;
 }
 
 // TODO: replace definition from lisk-chain after "Update lisk-chain to support the on-chain architecture"
