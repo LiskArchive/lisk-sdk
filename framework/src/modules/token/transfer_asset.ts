@@ -13,7 +13,7 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { BaseAsset, StateStore, ReducerHandler } from '../base_asset';
+import { BaseAsset, ApplyAssetInput } from '../base_asset';
 
 interface Asset {
 	readonly amount: bigint;
@@ -25,7 +25,7 @@ export class TransferAsset extends BaseAsset {
 	public name = 'transfer';
 	public type = 0;
 	public assetSchema = {
-		$id: 'lisk/transfer-transaction',
+		$id: 'lisk/transfer-asset',
 		title: 'Transfer transaction asset',
 		type: 'object',
 		required: ['amount', 'recipientAddress', 'data'],
@@ -50,10 +50,5 @@ export class TransferAsset extends BaseAsset {
 	};
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async applyAsset(_input: {
-		senderID: Buffer;
-		asset: Asset;
-		stateStore: StateStore;
-		reducerHandler: ReducerHandler;
-	}): Promise<void> {}
+	public async applyAsset(_input: ApplyAssetInput<Asset>): Promise<void> {}
 }

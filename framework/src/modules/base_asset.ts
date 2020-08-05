@@ -26,6 +26,13 @@ export interface ReducerHandler {
 	invoke: (params: Record<string, unknown>) => Promise<unknown>;
 }
 
+export interface ApplyAssetInput<T> {
+	senderID: Buffer;
+	asset: T;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
 export abstract class BaseAsset<T = unknown> {
 	public baseFee = BigInt(0);
 
@@ -35,10 +42,5 @@ export abstract class BaseAsset<T = unknown> {
 
 	public validateAsset?(asset: T): void;
 
-	public abstract applyAsset(input: {
-		senderID: Buffer;
-		asset: T;
-		stateStore: StateStore;
-		reducerHandler: ReducerHandler;
-	}): Promise<void>;
+	public abstract applyAsset(input: ApplyAssetInput<T>): Promise<void>;
 }
