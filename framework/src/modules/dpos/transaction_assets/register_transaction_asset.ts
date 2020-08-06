@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { ApplyAssetInput, BaseAsset, StateStore, ValidateAssetInput } from '../../base_asset';
-import { FrameworkError, ValidationError } from '../../../errors';
+import { ValidationError } from '../../../errors';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from '../constants';
 
 const isNullCharacterIncluded = (input: string): boolean =>
@@ -134,7 +134,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		}>(senderID);
 
 		if (sender.dpos.delegate.username) {
-			throw new FrameworkError('Account is already a delegate');
+			throw new Error('Account is already a delegate');
 		}
 
 		const usernames = await getRegisteredDelegates(stateStore);
@@ -157,7 +157,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		}
 
 		if (usernameExists) {
-			throw new FrameworkError('Username is not unique');
+			throw new Error('Username is not unique');
 		}
 
 		sender.dpos.delegate.username = asset.username;
