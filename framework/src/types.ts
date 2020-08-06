@@ -162,7 +162,7 @@ export interface TransactionJSON {
 }
 
 // TODO: replace definition from lisk-chain after #5609 "Update lisk-chain to support the on-chain architecture"
-export interface Validator {
+export interface BlockValidator {
 	address: Buffer;
 	canVote: boolean;
 }
@@ -175,6 +175,6 @@ export interface AccountSchema {
 }
 
 export interface Consensus {
-	updateValidators: (validators: Validator[]) => Error | undefined;
+	updateValidators: (validators: BlockValidator[]) => Error | undefined;
 	getFinalizedHeight: () => number;
 }
