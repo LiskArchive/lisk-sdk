@@ -155,11 +155,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		}
 
 		sender.asset.delegate.username = input.asset.username;
-		// Genesis block does not have last block header. Remove with #5200
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		sender.asset.delegate.lastForgedHeight = input.stateStore.chain.lastBlockHeader
-			? input.stateStore.chain.lastBlockHeader.height + 1
-			: 1;
+		sender.asset.delegate.lastForgedHeight = input.stateStore.chain.lastBlockHeader.height + 1;
 		input.stateStore.account.set(sender.address, sender);
 	}
 }
