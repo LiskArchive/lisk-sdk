@@ -24,8 +24,8 @@ export class FrameworkError extends Error {
 	}
 }
 
-export class NonceNotReadyError extends FrameworkError {
-	public code = 'ERR_NONCE_NOT_READY';
+export class NonceOutOfBoundsError extends FrameworkError {
+	public code = 'ERR_NONCE_OUT_OF_BOUNDS';
 	public actual: string;
 	public expected: string;
 	public constructor(message: string, actual: bigint, expected: bigint) {

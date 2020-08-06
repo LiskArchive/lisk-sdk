@@ -101,7 +101,7 @@ export const applicationConfigSchema = {
 				bftThreshold: {
 					type: 'number',
 					minimum: 1,
-					description: 'Number of validator required to set block finality',
+					description: 'Number of validators required to set block finality',
 				},
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
 				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
