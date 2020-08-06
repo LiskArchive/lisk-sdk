@@ -23,7 +23,7 @@ export type StateStore = Omit<
 > & { chain: { lastBlockHeaders: BlockHeader[] } };
 
 export interface ReducerHandler {
-	invoke: (params: Record<string, unknown>) => Promise<unknown>;
+	invoke: (name: string, params: Record<string, unknown>) => Promise<unknown>;
 }
 
 export interface ApplyAssetInput<T> {

@@ -15,6 +15,7 @@
 import { BaseModule } from '../base_module';
 
 export class SequenceModule extends BaseModule {
-	public name = '';
+	public name = 'sequence';
+	public type = 3;
 	public accountSchema = {};
 }

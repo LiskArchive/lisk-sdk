@@ -16,5 +16,6 @@ import { BaseModule } from '../base_module';
 
 export class DPoSModule extends BaseModule {
 	public name = 'dpos';
+	public type = 5;
 	public accountSchema = {};
 }

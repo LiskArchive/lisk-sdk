@@ -16,5 +16,6 @@ import { BaseModule } from '../base_module';
 
 export class KeysModule extends BaseModule {
 	public name = 'keys';
+	public type = 4;
 	public accountSchema = {};
 }

@@ -13,6 +13,7 @@
  */
 
 export * from './base_module';
+export * from './base_asset';
 export { KeysModule } from './keys';
 export { TokenModule } from './token';
 export { SequenceModule } from './sequence';
