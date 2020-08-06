@@ -14,35 +14,34 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { BlockHeader, Chain } from '@liskhq/lisk-chain';
 import * as assert from 'assert';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
-import { BufferMap } from './utils/buffer_map';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { BFT_ROUND_THRESHOLD } from './constant';
 import {
+	StateStore,
 	BFTChainDisjointError,
 	BFTForkChoiceRuleError,
 	BFTInvalidAttributeError,
 	BFTLowerChainBranchError,
-	BlockHeader,
-	DPoS,
-	StateStore,
-	Chain,
 } from './types';
+import { getValidators } from './utils/validators';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:bft:consensus_manager');
 
 export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED = 'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
-export const CONSENSUS_STATE_DELEGATE_LEDGER_KEY = 'bft:votingLedger';
+export const CONSENSUS_STATE_VALIDATOR_LEDGER_KEY = 'bft:votingLedger';
 
 export const BFTVotingLedgerSchema = {
 	type: 'object',
-	$id: '/BFT/Delegates',
-	title: 'Lisk BFT Delegate ledger',
-	required: ['delegates', 'ledger'],
+	$id: '/bft/validators',
+	title: 'Lisk BFT Validator ledger',
+	required: ['validators', 'ledger'],
 	properties: {
-		delegates: {
+		validators: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
@@ -91,7 +90,7 @@ export const BFTVotingLedgerSchema = {
 
 codec.addSchema(BFTVotingLedgerSchema);
 
-interface DelegatesState {
+interface ValidatorsState {
 	address: Buffer;
 	maxPreVoteHeight: number;
 	maxPreCommitHeight: number;
@@ -107,63 +106,59 @@ interface LedgerMap {
 	[key: string]: { preVotes: number; preCommits: number };
 }
 
-interface DelegateState {
+interface ValidatorState {
 	maxPreVoteHeight: number;
 	maxPreCommitHeight: number;
 }
 
 interface VotingLedgerMap {
-	readonly delegates: BufferMap<DelegateState>;
+	readonly validators: dataStructures.BufferMap<ValidatorState>;
 	readonly ledger: LedgerMap;
 }
 
 export interface VotingLedger {
-	readonly delegates: DelegatesState[];
+	readonly validators: ValidatorsState[];
 	readonly ledger: LedgerState[];
 }
 
 export class FinalityManager extends EventEmitter {
-	public readonly activeDelegates: number;
 	public readonly preVoteThreshold: number;
 	public readonly preCommitThreshold: number;
 	public readonly processingThreshold: number;
 	public readonly maxHeaders: number;
 
 	public finalizedHeight: number;
-	private readonly _dpos: DPoS;
 	private readonly _chain: Chain;
 
 	public constructor({
 		chain,
-		dpos,
 		finalizedHeight,
-		activeDelegates,
+		threshold,
 	}: {
 		readonly chain: Chain;
-		readonly dpos: DPoS;
 		readonly finalizedHeight: number;
-		readonly activeDelegates: number;
+		readonly threshold: number;
 	}) {
 		super();
-		assert(activeDelegates > 0, 'Must provide a positive activeDelegates');
+		assert(threshold > 0, 'Must provide a positive threshold');
 
 		this._chain = chain;
-		this._dpos = dpos;
-
-		// Set constants
-		this.activeDelegates = activeDelegates;
 
 		// Threshold to consider a block pre-voted
-		this.preVoteThreshold = Math.ceil((this.activeDelegates * 2) / 3);
+		this.preVoteThreshold = threshold;
 
 		// Threshold to consider a block pre-committed (or finalized)
-		this.preCommitThreshold = Math.ceil((this.activeDelegates * 2) / 3);
+		this.preCommitThreshold = threshold;
+
+		if (this._chain.numberOfValidators <= 0) {
+			throw new Error('Invalid number of validators for BFT property');
+		}
 
 		// Limit for blocks to make perform verification or pre-vote/pre-commit (1 block less than 3 rounds)
-		this.processingThreshold = this.activeDelegates * BFT_ROUND_THRESHOLD - 1;
+		this.processingThreshold = this._chain.numberOfValidators * BFT_ROUND_THRESHOLD - 1;
 
 		// Maximum headers to store (5 rounds)
-		this.maxHeaders = this.activeDelegates * 5;
+		this.maxHeaders = this._chain.numberOfValidators * 5;
 
 		// Height up to which blocks are finalized
 		this.finalizedHeight = finalizedHeight;
@@ -175,7 +170,7 @@ export class FinalityManager extends EventEmitter {
 	): Promise<FinalityManager> {
 		debug('addBlockHeader invoked');
 		debug('validateBlockHeader invoked');
-		const { lastBlockHeaders } = stateStore.consensus;
+		const { lastBlockHeaders } = stateStore.chain;
 
 		// Verify the integrity of the header with chain
 		await this.verifyBlockHeaders(blockHeader, stateStore);
@@ -199,62 +194,53 @@ export class FinalityManager extends EventEmitter {
 		bftBlockHeaders: ReadonlyArray<BlockHeader>,
 	): Promise<boolean> {
 		debug('updatePreVotesPreCommits invoked');
-
-		// If the block is in the bootstrap period, it does not have vote weight
-		if (this._dpos.isBootstrapPeriod(header.height)) {
-			return false;
-		}
-
-		// If delegate forged a block with higher or same height previously
+		// If validator forged a block with higher or same height previously
 		// That means he is forging on other chain and we don't count any
 		// Pre-votes and pre-commits from him
 		if (header.asset.maxHeightPreviouslyForged >= header.height) {
 			return false;
 		}
+		// Get validator public key
+		const { generatorPublicKey } = header;
+		const generatorAddress = getAddressFromPublicKey(generatorPublicKey);
+		const validators = await getValidators(stateStore);
+		const validator = validators.find(v => v.address.equals(generatorAddress));
+		if (!validator) {
+			throw new Error(
+				`Generator ${generatorPublicKey.toString('base64')} is not in validators set`,
+			);
+		}
 
-		// Get delegate public key
-		const { generatorPublicKey: delegatePublicKey } = header;
-		const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
-
-		const isStandby = await this._dpos.isStandbyDelegate(
-			delegateAddress,
-			header.height,
-			stateStore,
-		);
-
-		if (isStandby) {
+		// If validator cannot vote, it cannot vote on the block
+		if (!validator.isConsensusParticipant) {
 			return false;
 		}
 
 		const votingLedger = await this._getVotingLedger(stateStore);
-		const { delegates: delegatesMap, ledger: ledgerMap } = votingLedger;
+		const { validators: validatorsMap, ledger: ledgerMap } = votingLedger;
 
-		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
+		// Load or initialize validator state in reference to current BlockHeaderManager block headers
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		const delegateState = delegatesMap.get(delegateAddress) ?? {
+		const validatorState = validatorsMap.get(generatorAddress) ?? {
 			maxPreVoteHeight: 0,
 			maxPreCommitHeight: 0,
 		};
 
 		const minValidHeightToPreCommit = this._getMinValidHeightToPreCommit(header, bftBlockHeaders);
 
-		const delegateMinHeightActive = await this._dpos.getMinActiveHeight(
-			header.height,
-			delegateAddress,
-			stateStore,
-		);
+		const validatorMinHeightActive = validator.minActiveHeight;
 
-		// If delegate is new then first block of the round will be considered
+		// If validator is new then first block of the round will be considered
 		// If it forged before then we probably have the last commit height
-		// Delegate can't pre-commit a block before the above mentioned conditions
+		// Validator can't pre-commit a block before the above mentioned conditions
 		const minPreCommitHeight = Math.max(
 			header.height - this.processingThreshold,
-			delegateMinHeightActive,
+			validatorMinHeightActive,
 			minValidHeightToPreCommit,
-			delegateState.maxPreCommitHeight + 1,
+			validatorState.maxPreCommitHeight + 1,
 		);
 
-		// Delegate can't pre-commit the blocks on tip of the chain
+		// Validator can't pre-commit the blocks on tip of the chain
 		const maxPreCommitHeight = header.height - 1;
 
 		for (let j = minPreCommitHeight; j <= maxPreCommitHeight; j += 1) {
@@ -271,22 +257,22 @@ export class FinalityManager extends EventEmitter {
 				ledgerState.preCommits += 1;
 
 				// Keep track of the last pre-commit point
-				delegateState.maxPreCommitHeight = j;
+				validatorState.maxPreCommitHeight = j;
 
-				// Update ledger and delegates map
+				// Update ledger and validators map
 				ledgerMap[j] = ledgerState;
-				delegatesMap.set(delegateAddress, delegateState);
+				validatorsMap.set(generatorAddress, validatorState);
 			}
 		}
 
-		// Check between height of first block of the round when delegate was active
+		// Check between height of first block of the round when validator was active
 		// Or one step ahead where it forged the last block
 		// Or one step ahead where it left the last pre-vote
 		// Or maximum 3 rounds backward
 		const minPreVoteHeight = Math.max(
-			delegateMinHeightActive,
+			validatorMinHeightActive,
 			header.asset.maxHeightPreviouslyForged + 1,
-			// This is not written on LIP // delegateState.maxPreVoteHeight + 1,
+			// This is not written on LIP // validatorState.maxPreVoteHeight + 1,
 			header.height - this.processingThreshold,
 		);
 
@@ -306,9 +292,9 @@ export class FinalityManager extends EventEmitter {
 			ledgerMap[j] = ledgerState;
 		}
 
-		// Update delegate state
-		delegateState.maxPreVoteHeight = maxPreVoteHeight;
-		delegatesMap.set(delegateAddress, delegateState);
+		// Update validator state
+		validatorState.maxPreVoteHeight = maxPreVoteHeight;
+		validatorsMap.set(generatorAddress, validatorState);
 
 		// Remove ledger beyond maxHeaders size
 		Object.keys(ledgerMap)
@@ -319,7 +305,7 @@ export class FinalityManager extends EventEmitter {
 
 		// Update state to save the bft votes
 		this._setVotingLedger(stateStore, {
-			delegates: delegatesMap,
+			validators: validatorsMap,
 			ledger: ledgerMap,
 		});
 
@@ -356,7 +342,7 @@ export class FinalityManager extends EventEmitter {
 		debug('verifyBlockHeaders invoked');
 		debug(blockHeader);
 
-		const bftBlockHeaders = stateStore.consensus.lastBlockHeaders;
+		const bftBlockHeaders = stateStore.chain.lastBlockHeaders;
 		const { ledger } = await this._getVotingLedger(stateStore);
 		const { preVoted: chainMaxHeightPrevoted } = this._getChainMaxHeightStatus(ledger);
 		// We need minimum processingThreshold to decide
@@ -370,17 +356,17 @@ export class FinalityManager extends EventEmitter {
 			);
 		}
 
-		// Find top most block forged by same delegate
-		const delegateLastBlock = bftBlockHeaders.find(header =>
+		// Find top most block forged by same validator
+		const validatorLastBlock = bftBlockHeaders.find(header =>
 			header.generatorPublicKey.equals(blockHeader.generatorPublicKey),
 		);
 
-		if (!delegateLastBlock) {
+		if (!validatorLastBlock) {
 			return true;
 		}
 
 		// Order the two block headers such that earlierBlock must be forged first
-		let earlierBlock = delegateLastBlock;
+		let earlierBlock = validatorLastBlock;
 		let laterBlock = blockHeader;
 		const higherMaxHeightPreviouslyForged =
 			earlierBlock.asset.maxHeightPreviouslyForged > laterBlock.asset.maxHeightPreviouslyForged;
@@ -403,9 +389,9 @@ export class FinalityManager extends EventEmitter {
 			earlierBlock.asset.maxHeightPrevoted === laterBlock.asset.maxHeightPrevoted &&
 			earlierBlock.height >= laterBlock.height
 		) {
-			/* Violation of the fork choice rule as delegate moved to different chain
+			/* Violation of the fork choice rule as validator moved to different chain
 			 without strictly larger maxHeightPreviouslyForged or larger height as
-			 justification. This in particular happens, if a delegate is double forging. */
+			 justification. This in particular happens, if a validator is double forging. */
 			throw new BFTForkChoiceRuleError();
 		}
 
@@ -422,7 +408,7 @@ export class FinalityManager extends EventEmitter {
 
 	public async getMaxHeightPrevoted(): Promise<number> {
 		const bftState = await this._chain.dataAccess.getConsensusState(
-			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+			CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 		);
 		const { ledger } = this._decodeVotingLedger(bftState);
 		const { preVoted } = this._getChainMaxHeightStatus(ledger);
@@ -449,7 +435,7 @@ export class FinalityManager extends EventEmitter {
 	}
 
 	/**
-	 * Get the min height from which a delegate can make pre-commits
+	 * Get the min height from which a validator can make pre-commits
 	 *
 	 * The flow is as following:
 	 * - We search backward from top block to bottom block in the chain
@@ -472,8 +458,8 @@ export class FinalityManager extends EventEmitter {
 
 		const blocksIncludingCurrent = [header, ...bftApplicableBlocks];
 		while (needleHeight >= searchTillHeight) {
-			// We need to ensure that the delegate forging header did not forge on any other chain, i.e.,
-			// MaxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
+			// We need to ensure that the validator forging header did not forge on any other chain, i.e.,
+			// MaxHeightPreviouslyForged always refers to a height with a block forged by the same validator.
 			if (needleHeight === previousBlockHeight) {
 				const previousBlockHeader = blocksIncludingCurrent.find(
 					// eslint-disable-next-line no-loop-func
@@ -503,7 +489,7 @@ export class FinalityManager extends EventEmitter {
 
 	// eslint-disable-next-line class-methods-use-this
 	private async _getVotingLedger(stateStore: StateStore): Promise<VotingLedgerMap> {
-		const votingLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_DELEGATE_LEDGER_KEY);
+		const votingLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATOR_LEDGER_KEY);
 		return this._decodeVotingLedger(votingLedgerBuffer);
 	}
 
@@ -513,7 +499,7 @@ export class FinalityManager extends EventEmitter {
 			bftVotingLedgerBuffer === undefined
 				? {
 						ledger: [],
-						delegates: [],
+						validators: [],
 				  }
 				: codec.decode<VotingLedger>(BFTVotingLedgerSchema, bftVotingLedgerBuffer);
 
@@ -527,15 +513,18 @@ export class FinalityManager extends EventEmitter {
 			return prev;
 		}, {});
 
-		const delegates = votingLedger.delegates.reduce((prev: BufferMap<DelegateState>, curr) => {
-			prev.set(curr.address, {
-				maxPreVoteHeight: curr.maxPreVoteHeight,
-				maxPreCommitHeight: curr.maxPreCommitHeight,
-			});
-			return prev;
-		}, new BufferMap<DelegatesState>());
+		const validators = votingLedger.validators.reduce(
+			(prev: dataStructures.BufferMap<ValidatorState>, curr) => {
+				prev.set(curr.address, {
+					maxPreVoteHeight: curr.maxPreVoteHeight,
+					maxPreCommitHeight: curr.maxPreCommitHeight,
+				});
+				return prev;
+			},
+			new dataStructures.BufferMap<ValidatorsState>(),
+		);
 
-		return { ledger, delegates };
+		return { ledger, validators };
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -549,18 +538,18 @@ export class FinalityManager extends EventEmitter {
 			});
 		}
 
-		const delegatesState = [];
-		for (const [key, value] of votingLedgerMap.delegates.entries()) {
-			delegatesState.push({
+		const validatorsState = [];
+		for (const [key, value] of votingLedgerMap.validators.entries()) {
+			validatorsState.push({
 				address: key,
 				...value,
 			});
 		}
 
 		stateStore.consensus.set(
-			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+			CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 			codec.encode(BFTVotingLedgerSchema, {
-				delegates: delegatesState,
+				validators: validatorsState,
 				ledger: ledgerState,
 			}),
 		);

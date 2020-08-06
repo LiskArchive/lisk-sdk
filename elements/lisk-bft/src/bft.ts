@@ -16,11 +16,12 @@ import { codec } from '@liskhq/lisk-codec';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
+import { BlockHeader, Chain, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '@liskhq/lisk-chain';
 import { EVENT_BFT_FINALIZED_HEIGHT_CHANGED, FinalityManager } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
-import { BFTPersistedValues, BlockHeader, Chain, DPoS, ForkStatus, StateStore } from './types';
+import { BFTPersistedValues, ForkStatus, StateStore } from './types';
+import { getValidators } from './utils/validators';
 
-export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 export const BFTFinalizedHeightCodecSchema = {
@@ -43,30 +44,26 @@ codec.addSchema(BFTFinalizedHeightCodecSchema);
  */
 export class BFT extends EventEmitter {
 	public readonly constants: {
-		activeDelegates: number;
+		threshold: number;
 		genesisHeight: number;
 	};
 
 	private _finalityManager?: FinalityManager;
 	private readonly _chain: Chain;
-	private readonly _dpos: DPoS;
 
 	public constructor({
 		chain,
-		dpos,
-		activeDelegates,
+		threshold,
 		genesisHeight,
 	}: {
 		readonly chain: Chain;
-		readonly dpos: DPoS;
-		readonly activeDelegates: number;
+		readonly threshold: number;
 		readonly genesisHeight: number;
 	}) {
 		super();
 		this._chain = chain;
-		this._dpos = dpos;
 		this.constants = {
-			activeDelegates,
+			threshold,
 			genesisHeight,
 		};
 	}
@@ -146,18 +143,27 @@ export class BFT extends EventEmitter {
 		return ForkStatus.DISCARD;
 	}
 
-	public isBFTProtocolCompliant(blockHeader: BlockHeader, stateStore: StateStore): boolean {
+	// eslint-disable-next-line class-methods-use-this
+	public async isBFTProtocolCompliant(
+		blockHeader: BlockHeader,
+		stateStore: StateStore,
+	): Promise<boolean> {
 		assert(blockHeader, 'No block was provided to be verified');
 
 		const roundsThreshold = 3;
-		const heightThreshold = this.constants.activeDelegates * roundsThreshold;
+		const validators = await getValidators(stateStore);
+		const numberOfVotingValidators = validators.filter(
+			validator => validator.isConsensusParticipant,
+		).length;
+
+		const heightThreshold = numberOfVotingValidators * roundsThreshold;
 
 		// Special case to avoid reducing the reward of delegates forging for the first time before the `heightThreshold` height
 		if (blockHeader.asset.maxHeightPreviouslyForged === 0) {
 			return true;
 		}
 
-		const maxHeightPreviouslyForgedBlock = stateStore.consensus.lastBlockHeaders.find(
+		const maxHeightPreviouslyForgedBlock = stateStore.chain.lastBlockHeaders.find(
 			bftHeader => bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
 
@@ -199,9 +205,8 @@ export class BFT extends EventEmitter {
 		// Initialize consensus manager
 		const finalityManager = new FinalityManager({
 			chain: this._chain,
-			dpos: this._dpos,
 			finalizedHeight,
-			activeDelegates: this.constants.activeDelegates,
+			threshold: this.constants.threshold,
 		});
 
 		return finalityManager;

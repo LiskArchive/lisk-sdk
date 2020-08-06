@@ -13,21 +13,28 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { getRandomBytes, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
+	BlockHeader,
+	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+	Chain,
+	CONSENSUS_STATE_VALIDATORS_KEY,
+	validatorsSchema,
+} from '@liskhq/lisk-chain';
+import {
 	FinalityManager,
-	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+	CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 	BFTVotingLedgerSchema,
 } from '../../src/finality_manager';
 import {
 	BFTChainDisjointError,
 	BFTForkChoiceRuleError,
 	BFTLowerChainBranchError,
-	BlockHeader,
 } from '../../src/types';
 import { createFakeBlockHeader } from '../fixtures/blocks';
 import { StateStoreMock } from '../utils/state_store_mock';
-import { CONSENSUS_STATE_FINALIZED_HEIGHT_KEY, BFTFinalizedHeightCodecSchema } from '../../src';
+import { BFTFinalizedHeightCodecSchema } from '../../src';
 
 const generateValidHeaders = (count: number): any[] => {
 	return [...Array(count)].map((_, index) => {
@@ -43,36 +50,17 @@ const generateValidHeaders = (count: number): any[] => {
 describe('finality_manager', () => {
 	describe('FinalityManager', () => {
 		const finalizedHeight = 0;
-		const activeDelegates = 101;
-		const preVoteThreshold = 68;
-		const preCommitThreshold = 68;
-		const processingThreshold = 302;
-		const maxHeaders = 505;
+		const threshold = 68;
+		const preVoteThreshold = threshold;
+		const preCommitThreshold = threshold;
+		const processingThreshold = 308;
+		const maxHeaders = 515;
 
 		let finalityManager: FinalityManager;
-		let dposStub: {
-			getMinActiveHeight: jest.Mock;
-			isStandbyDelegate: jest.Mock;
-			isBootstrapPeriod: jest.Mock;
-		};
-		let chainStub: {
-			slots: {
-				getSlotNumber: jest.Mock;
-				isWithinTimeslot: jest.Mock;
-				timeSinceGenesis: jest.Mock;
-			};
-			dataAccess: {
-				getConsensusState: jest.Mock;
-			};
-		};
+		let chainStub: Chain;
 
 		beforeEach(() => {
-			dposStub = {
-				getMinActiveHeight: jest.fn(),
-				isStandbyDelegate: jest.fn(),
-				isBootstrapPeriod: jest.fn().mockReturnValue(false),
-			};
-			chainStub = {
+			chainStub = ({
 				slots: {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
@@ -81,36 +69,35 @@ describe('finality_manager', () => {
 				dataAccess: {
 					getConsensusState: jest.fn(),
 				},
-			};
+				numberOfValidators: 103,
+			} as unknown) as Chain;
 
 			finalityManager = new FinalityManager({
 				chain: chainStub,
-				dpos: dposStub,
 				finalizedHeight,
-				activeDelegates,
+				threshold,
 			});
 		});
 
 		describe('constructor', () => {
 			it('should initialize the object correctly', () => {
 				expect(finalityManager).toBeInstanceOf(FinalityManager);
-				expect(finalityManager.activeDelegates).toEqual(activeDelegates);
 				expect(finalityManager.preVoteThreshold).toEqual(preVoteThreshold);
 				expect(finalityManager.preCommitThreshold).toEqual(preCommitThreshold);
 				expect(finalityManager.processingThreshold).toEqual(processingThreshold);
 				expect(finalityManager.maxHeaders).toEqual(maxHeaders);
 			});
 
-			it('should throw error if activeDelegates is not positive', () => {
+			it('should throw error if number of validator is not positive', () => {
+				(chainStub as any).numberOfValidators = -3;
 				expect(
 					() =>
 						new FinalityManager({
 							chain: chainStub,
-							dpos: dposStub,
 							finalizedHeight,
-							activeDelegates: 0,
+							threshold,
 						}),
-				).toThrow('Must provide a positive activeDelegates');
+				).toThrow('Invalid number of validators for BFT property');
 			});
 		});
 
@@ -142,8 +129,8 @@ describe('finality_manager', () => {
 				const header = createFakeBlockHeader({
 					asset: { maxHeightPrevoted: 10 },
 				});
-				const delegateLedger = {
-					delegates: [
+				const validatorLedger = {
+					validators: [
 						{
 							address: getAddressFromPublicKey(header.generatorPublicKey),
 							maxPreVoteHeight: 1,
@@ -161,9 +148,9 @@ describe('finality_manager', () => {
 				stateStore = new StateStoreMock(
 					[],
 					{
-						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
+						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
 							BFTVotingLedgerSchema,
-							delegateLedger,
+							validatorLedger,
 						),
 					},
 					{ lastBlockHeaders: bftHeaders },
@@ -172,14 +159,14 @@ describe('finality_manager', () => {
 				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTrue();
 			});
 
-			it("should return true if delegate didn't forge any block previously", async () => {
+			it("should return true if validator didn't forge any block previously", async () => {
 				const header = createFakeBlockHeader();
 				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [] });
 
 				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTruthy();
 			});
 
-			it('should throw error if same delegate forged block on different height', async () => {
+			it('should throw error if same validator forged block on different height', async () => {
 				const maxHeightPrevoted = 10;
 				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
@@ -206,7 +193,7 @@ describe('finality_manager', () => {
 				);
 			});
 
-			it('should throw error if delegate forged block on same height', async () => {
+			it('should throw error if validator forged block on same height', async () => {
 				const maxHeightPreviouslyForged = 10;
 				const generatorPublicKey = getRandomBytes(32);
 				const lastBlock = createFakeBlockHeader({
@@ -286,8 +273,8 @@ describe('finality_manager', () => {
 		});
 
 		describe('addBlockHeader', () => {
-			const delegateLedger = {
-				delegates: [],
+			const validatorLedger = {
+				validators: [],
 				ledger: [],
 			};
 			let stateStore: StateStoreMock;
@@ -301,10 +288,19 @@ describe('finality_manager', () => {
 						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
 							finalizedHeight: 5,
 						}),
-						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
+						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
 							BFTVotingLedgerSchema,
-							delegateLedger,
+							validatorLedger,
 						),
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: bftHeaders
+								.slice(0, 103)
+								.map(h => ({
+									address: getAddressFromPublicKey(h.generatorPublicKey),
+									isConsensusParticipant: true,
+									minActiveHeight: 0,
+								})),
+						}),
 					},
 					{ lastBlockHeaders: bftHeaders },
 				);
@@ -316,6 +312,7 @@ describe('finality_manager', () => {
 					asset: {
 						maxHeightPreviouslyForged: 0,
 					},
+					generatorPublicKey: bftHeaders[102].generatorPublicKey,
 				});
 				jest.spyOn(finalityManager, 'verifyBlockHeaders');
 				await finalityManager.addBlockHeader(header1, stateStore);
@@ -330,6 +327,7 @@ describe('finality_manager', () => {
 					asset: {
 						maxHeightPreviouslyForged: 0,
 					},
+					generatorPublicKey: bftHeaders[102].generatorPublicKey,
 				});
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
@@ -342,15 +340,29 @@ describe('finality_manager', () => {
 				);
 			});
 
-			it('should not update prevotes and precommits in case of within bootstrap period', async () => {
+			it('should not update prevotes and precommits if validator does not have voting power', async () => {
 				const header1 = createFakeBlockHeader({
 					height: 2,
 					asset: {
 						maxHeightPreviouslyForged: 0,
 					},
 				});
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: [
+								{
+									address: getAddressFromPublicKey(header1.generatorPublicKey),
+									isConsensusParticipant: false,
+									minActiveHeight: 104,
+								},
+							],
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				);
 
-				dposStub.isBootstrapPeriod.mockResolvedValue(true);
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
@@ -361,21 +373,35 @@ describe('finality_manager', () => {
 					bftHeaders,
 				);
 
-				// Ignores a standby delegate from prevotes and precommit calculations
+				// Ignores a standby validator from prevotes and precommit calculations
 				await expect(
 					finalityManager.updatePreVotesPreCommits(header1, stateStore, bftHeaders),
 				).resolves.toEqual(false);
 			});
 
-			it('should not update prevotes and precommits in case of a standby delegate', async () => {
+			it('should not update prevotes and precommits in case of a standby validator', async () => {
 				const header1 = createFakeBlockHeader({
 					height: 2,
 					asset: {
 						maxHeightPreviouslyForged: 0,
 					},
 				});
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: [
+								{
+									address: getAddressFromPublicKey(header1.generatorPublicKey),
+									isConsensusParticipant: false,
+									minActiveHeight: 104,
+								},
+							],
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				);
 
-				dposStub.isStandbyDelegate.mockResolvedValue(true);
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
@@ -386,7 +412,7 @@ describe('finality_manager', () => {
 					bftHeaders,
 				);
 
-				// Ignores a standby delegate from prevotes and precommit calculations
+				// Ignores a standby validator from prevotes and precommit calculations
 				await expect(
 					finalityManager.updatePreVotesPreCommits(header1, stateStore, bftHeaders),
 				).resolves.toEqual(false);
@@ -406,6 +432,7 @@ describe('finality_manager', () => {
 						maxHeightPreviouslyForged: 34501,
 					},
 				});
+
 				const headers = [header1];
 				for (
 					// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
@@ -422,6 +449,22 @@ describe('finality_manager', () => {
 					headers.push(header);
 				}
 				headers.push(header2);
+				const addressMap = new dataStructures.BufferMap<Buffer>();
+				for (const header of headers) {
+					const addr = getAddressFromPublicKey(header.generatorPublicKey);
+					addressMap.set(addr, addr);
+				}
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: addressMap
+								.values()
+								.map(addr => ({ address: addr, isConsensusParticipant: true, minActiveHeight: 0 })),
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				);
 
 				try {
 					for (const header of headers) {
