@@ -33,14 +33,28 @@ export interface ApplyAssetInput<T> {
 	reducerHandler: ReducerHandler;
 }
 
-export abstract class BaseAsset<T = unknown, K = Record<string, unknown>> {
+// TODO: Replace after #5609 "Update lisk-chain to support the on-chain architecture"
+export interface Transaction {
+	readonly moduleType: number;
+	readonly assetType: number;
+	readonly nonce: bigint;
+	readonly fee: bigint;
+	readonly senderPublicKey: Buffer;
+	readonly signatures: ReadonlyArray<Buffer>;
+	readonly asset: Buffer;
+}
+
+export abstract class BaseAsset<T = unknown> {
 	public baseFee = BigInt(0);
 
 	public abstract name: string;
 	public abstract type: number;
 	public abstract assetSchema: Schema;
 
-	public validateAsset?(asset: T, transaction?: K): void;
+	public validateAsset?(asset: T, transaction: Transaction): void;
 
-	public abstract applyAsset(input: ApplyAssetInput<T>, transaction?: K): Promise<void>;
+	public abstract async applyAsset(
+		input: ApplyAssetInput<T>,
+		transaction: Transaction,
+	): Promise<void>;
 }

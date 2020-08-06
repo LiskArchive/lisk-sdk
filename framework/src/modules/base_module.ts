@@ -16,25 +16,14 @@
 import { Block } from '@liskhq/lisk-chain';
 import { GenesisBlock } from '@liskhq/lisk-genesis';
 import { GenesisConfig, Consensus, AccountSchema } from '../types';
-import { BaseAsset, StateStore, ReducerHandler } from './base_asset';
+import { BaseAsset, ReducerHandler, StateStore, Transaction } from './base_asset';
 
 interface Reducers {
-	[key: string]: (params: Record<string, unknown>, statestore: StateStore) => Promise<unknown>;
+	[key: string]: (params: Record<string, unknown>, stateStore: StateStore) => Promise<unknown>;
 }
 
 interface Actions {
 	[key: string]: (params: Record<string, unknown>) => Promise<unknown>;
-}
-
-// TODO: Replace after #5609 "Update lisk-chain to support the on-chain architecture"
-interface Transaction {
-	readonly moduleType: number;
-	readonly assetType: number;
-	readonly nonce: bigint;
-	readonly fee: bigint;
-	readonly senderPublicKey: Buffer;
-	readonly signatures: ReadonlyArray<Buffer>;
-	readonly asset: Buffer;
 }
 
 export interface TransactionApplyInput {
