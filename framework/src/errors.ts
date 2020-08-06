@@ -15,6 +15,7 @@
 
 export class FrameworkError extends Error {
 	public name: string;
+	public code = 'ERR_FRAMEWORK';
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public constructor(...args: any[]) {
 		super(...args);
@@ -23,8 +24,20 @@ export class FrameworkError extends Error {
 	}
 }
 
+export class NonceOutOfBoundsError extends FrameworkError {
+	public code = 'ERR_NONCE_OUT_OF_BOUNDS';
+	public actual: string;
+	public expected: string;
+	public constructor(message: string, actual: bigint, expected: bigint) {
+		super(message);
+		this.actual = actual.toString();
+		this.expected = expected.toString();
+	}
+}
+
 export class SchemaValidationError extends FrameworkError {
 	public errors: Error[];
+	public code = 'ERR_SCHEMA_VALIDATION';
 	public constructor(errors: Error[]) {
 		super(JSON.stringify(errors, null, 2));
 		this.errors = errors;
@@ -34,6 +47,7 @@ export class SchemaValidationError extends FrameworkError {
 export class DuplicateAppInstanceError extends FrameworkError {
 	public appLabel: string;
 	public pidPath: string;
+	public code = 'ERR_DUPLICATE_APP_INSTANCE';
 	public constructor(appLabel: string, pidPath: string) {
 		super(`Duplicate app instance for "${appLabel}"`);
 		this.appLabel = appLabel;
@@ -42,6 +56,7 @@ export class DuplicateAppInstanceError extends FrameworkError {
 }
 
 export class ImplementationMissingError extends FrameworkError {
+	public code = 'ERR_IMPLEMENTATION_MISSING';
 	public constructor() {
 		super('Implementation missing error');
 	}

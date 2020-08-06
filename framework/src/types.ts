@@ -91,7 +91,8 @@ export interface NetworkConfig {
 }
 
 export interface GenesisConfig {
-	epochTime: string;
+	[key: string]: unknown;
+	bftThreshold: number;
 	communityIdentifier: string;
 	blockTime: number;
 	maxPayloadLength: number;
@@ -100,6 +101,12 @@ export interface GenesisConfig {
 		offset: number;
 		distance: number;
 	};
+	minFeePerByte: number;
+	baseFees: {
+		moduleType: number;
+		assetType: number;
+		baseFee: bigint;
+	}[];
 }
 
 export interface ApplicationConstants {
@@ -152,4 +159,22 @@ export interface TransactionJSON {
 
 	readonly id: string;
 	readonly asset: object;
+}
+
+// TODO: replace definition from lisk-chain after #5609 "Update lisk-chain to support the on-chain architecture"
+export interface BlockValidator {
+	address: Buffer;
+	canVote: boolean;
+}
+
+// TODO: replace definition from lisk-chain after #5609 "Update lisk-chain to support the on-chain architecture"
+export interface AccountSchema {
+	type: string;
+	properties: Record<string, unknown>;
+	default: Record<string, unknown>;
+}
+
+export interface Consensus {
+	updateValidators: (validators: BlockValidator[]) => Error | undefined;
+	getFinalizedHeight: () => number;
 }
