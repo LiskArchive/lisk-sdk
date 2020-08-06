@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { BaseModule, BaseAsset } from './modules';
+export { ApplyAssetInput, BaseModule, BaseAsset, ReducerHandler, StateStore } from './modules';
 export { Application } from './application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
