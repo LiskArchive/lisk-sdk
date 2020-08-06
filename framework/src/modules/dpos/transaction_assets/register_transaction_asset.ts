@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { ApplyAssetInput, BaseAsset, StateStore } from '../../base_asset';
 import { FrameworkError, ValidationError } from '../../../errors';
-import { CHAIN_STATE_DELEGATE_USERNAMES } from '../constants';
+import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from '../constants';
 
 const isNullCharacterIncluded = (input: string): boolean =>
 	new RegExp(/\\0|\\u0000|\\x00/).test(input);
@@ -99,6 +99,7 @@ const getRegisteredDelegates = async (store: StateStore): Promise<ChainUsernames
 };
 
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetInput> {
+	public baseFee = DELEGATE_NAME_FEE;
 	public name = 'register';
 	public type = 0;
 	public assetSchema = {
@@ -126,6 +127,10 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 	public async applyAsset(input: ApplyAssetInput<RegisterTransactionAssetInput>): Promise<void> {
 		const sender = await input.stateStore.account.get(input.senderID);
 
+		if (sender.asset.delegate.username) {
+			throw new FrameworkError('Account is already a delegate');
+		}
+
 		const usernames = await getRegisteredDelegates(input.stateStore);
 		const usernameExists = usernames.registeredDelegates.find(
 			delegate => delegate.username === input.asset.username,
@@ -149,9 +154,6 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 			throw new FrameworkError('Username is not unique');
 		}
 
-		if (sender.asset.delegate.username) {
-			throw new FrameworkError('Account is already a delegate');
-		}
 		sender.asset.delegate.username = input.asset.username;
 		// Genesis block does not have last block header. Remove with #5200
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

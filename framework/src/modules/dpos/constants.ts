@@ -13,3 +13,4 @@
  */
 
 export const CHAIN_STATE_DELEGATE_USERNAMES = 'delegateUsernames';
+export const DELEGATE_NAME_FEE = BigInt(1000000000);
