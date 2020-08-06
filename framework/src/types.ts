@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
+import { Validator, AccountSchema as ChainAccountSchema } from '@liskhq/lisk-chain';
 
 export interface StringKeyVal {
 	[key: string]: string;
@@ -161,18 +162,10 @@ export interface TransactionJSON {
 	readonly asset: object;
 }
 
-// TODO: replace definition from lisk-chain after #5609 "Update lisk-chain to support the on-chain architecture"
-export interface BlockValidator {
-	address: Buffer;
-	canVote: boolean;
-}
-
-// TODO: replace definition from lisk-chain after #5609 "Update lisk-chain to support the on-chain architecture"
-export interface AccountSchema {
-	type: string;
-	properties: Record<string, unknown>;
-	default: Record<string, unknown>;
-}
+// minActiveHeight is automatically calculated while setting in chain library
+export type BlockValidator = Omit<Validator, 'minActiveHeight'>;
+// fieldNumber is automatically assigned when registering to the chain library
+export type AccountSchema = Omit<ChainAccountSchema, 'fieldNumber'>;
 
 export interface Consensus {
 	updateValidators: (validators: BlockValidator[]) => Error | undefined;
