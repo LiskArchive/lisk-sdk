@@ -14,19 +14,8 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '@liskhq/lisk-chain';
-import { defaultAccount } from './account';
-
-interface Account<T = any> {
-	readonly address: Buffer;
-	balance: bigint;
-	nonce: bigint;
-	keys: {
-		mandatoryKeys: Buffer[];
-		optionalKeys: Buffer[];
-		numberOfSignatures: number;
-	};
-	asset: T;
-}
+import { createFakeDefaultAccount } from './account';
+import { AccountStateStore, Account, AccountDefaultProps } from '../../../src/modules/base_asset';
 
 export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;
@@ -34,12 +23,6 @@ export interface ChainState {
 	readonly networkIdentifier: Buffer;
 	get(key: string): Promise<Buffer | undefined>;
 	set(key: string, value: Buffer): void;
-}
-
-interface AccountState {
-	get<T>(key: Buffer): Promise<Account<T>>;
-	getOrDefault<T>(key: Buffer): Promise<Account<T>>;
-	set<T>(key: Buffer, value: Account<T>): void;
 }
 
 export const defaultNetworkIdentifier =
@@ -53,7 +36,7 @@ export interface AdditionalInfo {
 }
 
 export class StateStoreMock {
-	readonly account: AccountState;
+	readonly account: AccountStateStore;
 	readonly chain: ChainState;
 
 	public accountData: Account[];
@@ -66,20 +49,20 @@ export class StateStoreMock {
 
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
-			get: async (address: Buffer): Promise<Account> => {
+			get: async <T = AccountDefaultProps>(address: Buffer): Promise<Account<T>> => {
 				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
 					throw new Error('Account not defined');
 				}
-				return { ...account };
+				return ({ ...account } as unknown) as Account<T>;
 			},
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getOrDefault: async (address: Buffer): Promise<Account> => {
+			getOrDefault: async <T = AccountDefaultProps>(address: Buffer): Promise<Account<T>> => {
 				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
-					return { ...defaultAccount({}), address };
+					return ({ ...createFakeDefaultAccount({}), address } as unknown) as Account<T>;
 				}
-				return { ...account };
+				return ({ ...account } as unknown) as Account<T>;
 			},
 			set: (address: Buffer, account: Account): void => {
 				const index = this.accountData.findIndex(acc => acc.address.equals(address));

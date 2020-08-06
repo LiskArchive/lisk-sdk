@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { ApplyAssetInput, BaseAsset, StateStore } from '../../base_asset';
+import { ApplyAssetInput, BaseAsset, StateStore, ValidateAssetInput } from '../../base_asset';
 import { FrameworkError, ValidationError } from '../../../errors';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from '../constants';
 
@@ -45,6 +45,7 @@ const delegatesUserNamesSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
+				required: ['username', 'address'],
 				properties: {
 					username: {
 						dataType: 'string',
@@ -69,7 +70,7 @@ interface RegisteredDelegate {
 interface RegisteredDelegates {
 	registeredDelegates: RegisteredDelegate[];
 }
-interface ChainUsernames {
+interface DelegatePersistedUsernames {
 	readonly registeredDelegates: RegisteredDelegate[];
 }
 
@@ -77,7 +78,7 @@ export interface RegisterTransactionAssetInput {
 	readonly username: string;
 }
 
-const getRegisteredDelegates = async (store: StateStore): Promise<ChainUsernames> => {
+const getRegisteredDelegates = async (store: StateStore): Promise<DelegatePersistedUsernames> => {
 	const usernamesBuffer = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
 	if (!usernamesBuffer) {
 		return { registeredDelegates: [] };
@@ -87,7 +88,6 @@ const getRegisteredDelegates = async (store: StateStore): Promise<ChainUsernames
 		usernamesBuffer,
 	);
 
-	// eslint-disable-next-line
 	parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map(
 		(value: { address: Buffer; username: string }) => ({
 			username: value.username,
@@ -95,7 +95,7 @@ const getRegisteredDelegates = async (store: StateStore): Promise<ChainUsernames
 		}),
 	);
 
-	return parsedUsernames as ChainUsernames;
+	return parsedUsernames as DelegatePersistedUsernames;
 };
 
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetInput> {
@@ -117,34 +117,40 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validateAsset(asset: RegisterTransactionAssetInput): void {
+	public validateAsset({ asset }: ValidateAssetInput<RegisterTransactionAssetInput>): void {
 		if (!isUsername(asset.username)) {
 			throw new ValidationError('The username is in unsupported format', asset.username);
 		}
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public async applyAsset(input: ApplyAssetInput<RegisterTransactionAssetInput>): Promise<void> {
-		const sender = await input.stateStore.account.get(input.senderID);
+	public async applyAsset({
+		asset,
+		senderID,
+		stateStore,
+	}: ApplyAssetInput<RegisterTransactionAssetInput>): Promise<void> {
+		const sender = await stateStore.account.get<{
+			dpos: { delegate: { username: string; lastForgedHeight: number } };
+		}>(senderID);
 
-		if (sender.asset.delegate.username) {
+		if (sender.dpos.delegate.username) {
 			throw new FrameworkError('Account is already a delegate');
 		}
 
-		const usernames = await getRegisteredDelegates(input.stateStore);
+		const usernames = await getRegisteredDelegates(stateStore);
 		const usernameExists = usernames.registeredDelegates.find(
-			delegate => delegate.username === input.asset.username,
+			delegate => delegate.username === asset.username,
 		);
 
 		if (!usernameExists) {
 			usernames.registeredDelegates.push({
-				username: input.asset.username,
-				address: input.senderID,
+				username: asset.username,
+				address: senderID,
 			});
 
 			usernames.registeredDelegates.sort((a, b) => a.address.compare(b.address));
 
-			input.stateStore.chain.set(
+			stateStore.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
 				codec.encode(delegatesUserNamesSchema, usernames),
 			);
@@ -154,8 +160,8 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 			throw new FrameworkError('Username is not unique');
 		}
 
-		sender.asset.delegate.username = input.asset.username;
-		sender.asset.delegate.lastForgedHeight = input.stateStore.chain.lastBlockHeader.height + 1;
-		input.stateStore.account.set(sender.address, sender);
+		sender.dpos.delegate.username = asset.username;
+		sender.dpos.delegate.lastForgedHeight = stateStore.chain.lastBlockHeader.height + 1;
+		stateStore.account.set(sender.address, sender);
 	}
 }

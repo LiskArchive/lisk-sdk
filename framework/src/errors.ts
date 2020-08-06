@@ -64,7 +64,7 @@ export class ImplementationMissingError extends FrameworkError {
 
 export class ValidationError extends Error {
 	public name: string;
-	public code = 'ERR_VALIDATION_ERROR';
+	public code = 'ERR_VALIDATION';
 	public value: string;
 	public constructor(message: string, value: string) {
 		super(message);

@@ -17,10 +17,23 @@ import { Schema } from '@liskhq/lisk-codec';
 import { StateStore as ChainStateStore, BlockHeader } from '@liskhq/lisk-chain';
 
 // Limit the scope of state store to which module can access
+
+export type AccountDefaultProps = {
+	[name: string]: { [key: string]: unknown } | undefined | Buffer;
+};
+
+export type Account<T = AccountDefaultProps> = T & { address: Buffer };
+
+export interface AccountStateStore {
+	get<T>(key: Buffer): Promise<Account<T>>;
+	getOrDefault<T>(key: Buffer): Promise<Account<T>>;
+	set(key: Buffer, value: Account): void;
+}
+
 export type StateStore = Omit<
 	ChainStateStore,
-	'consensus' | 'finalize' | 'createSnapshot' | 'restoreSnapshot'
-> & { chain: { lastBlockHeaders: BlockHeader[] } };
+	'account' | 'consensus' | 'finalize' | 'createSnapshot' | 'restoreSnapshot'
+> & { chain: { lastBlockHeaders: BlockHeader[] } } & { account: AccountStateStore };
 
 export interface ReducerHandler {
 	invoke: (name: string, params: Record<string, unknown>) => Promise<unknown>;
@@ -31,6 +44,12 @@ export interface ApplyAssetInput<T> {
 	asset: T;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
+	transaction: Transaction;
+}
+
+export interface ValidateAssetInput<T> {
+	asset: T;
+	transaction: Transaction;
 }
 
 // TODO: Replace after #5609 "Update lisk-chain to support the on-chain architecture"
@@ -51,10 +70,7 @@ export abstract class BaseAsset<T = unknown> {
 	public abstract type: number;
 	public abstract assetSchema: Schema;
 
-	public validateAsset?(asset: T, transaction: Transaction): void;
+	public validateAsset?(input: ValidateAssetInput<T>): void;
 
-	public abstract async applyAsset(
-		input: ApplyAssetInput<T>,
-		transaction: Transaction,
-	): Promise<void>;
+	public abstract async applyAsset(input: ApplyAssetInput<T>): Promise<void>;
 }

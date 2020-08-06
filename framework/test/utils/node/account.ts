@@ -36,25 +36,29 @@ export const createAccounts = (numberOfAccounts = 1) => {
 	return accounts;
 };
 
-export const defaultAccount = (account: any) => ({
+export const createFakeDefaultAccount = (account: any) => ({
 	address: account?.address ?? getRandomBytes(20),
-	balance: account?.balance ?? BigInt(0),
-	nonce: account?.nonce ?? BigInt(0),
+	token: {
+		balance: account?.token?.balance ?? BigInt(0),
+	},
+	sequence: {
+		nonce: account?.sequence?.nonce ?? BigInt(0),
+	},
 	keys: {
 		mandatoryKeys: account?.keys?.mandatoryKeys ?? [],
 		optionalKeys: account?.keys?.optionalKeys ?? [],
 		numberOfSignatures: account?.keys?.numberOfSignatures ?? 0,
 	},
-	asset: {
+	dpos: {
 		delegate: {
-			username: account?.asset?.delegate?.username ?? '',
-			pomHeights: account?.asset?.delegate?.pomHeights ?? [],
-			consecutiveMissedBlocks: account?.asset?.delegate?.consecutiveMissedBlocks ?? 0,
-			lastForgedHeight: account?.asset?.delegate?.lastForgedHeight ?? 0,
-			isBanned: account?.asset?.delegate?.isBanned ?? false,
-			totalVotesReceived: account?.asset?.delegate?.totalVotesReceived ?? BigInt(0),
+			username: account?.dpos?.delegate?.username ?? '',
+			pomHeights: account?.dpos?.delegate?.pomHeights ?? [],
+			consecutiveMissedBlocks: account?.dpos?.delegate?.consecutiveMissedBlocks ?? 0,
+			lastForgedHeight: account?.dpos?.delegate?.lastForgedHeight ?? 0,
+			isBanned: account?.dpos?.delegate?.isBanned ?? false,
+			totalVotesReceived: account?.dpos?.delegate?.totalVotesReceived ?? BigInt(0),
 		},
-		sentVotes: account?.asset?.sentVotes ?? [],
-		unlocking: account?.asset?.unlocking ?? [],
+		sentVotes: account?.dpos?.sentVotes ?? [],
+		unlocking: account?.dpos?.unlocking ?? [],
 	},
 });
