@@ -161,7 +161,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		}
 
 		sender.dpos.delegate.username = asset.username;
-		sender.dpos.delegate.lastForgedHeight = stateStore.chain.lastBlockHeader.height + 1;
+		sender.dpos.delegate.lastForgedHeight = stateStore.chain.lastBlockHeaders[0].height + 1;
 		stateStore.account.set(sender.address, sender);
 	}
 }

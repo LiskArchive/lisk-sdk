@@ -32,7 +32,7 @@ describe('RegisterTransactionAsset', () => {
 	beforeEach(() => {
 		sender = createFakeDefaultAccount(createAccount());
 		stateStoreMock = new StateStoreMock([sender], {
-			lastBlockHeader: { height: lastBlockHeight } as any,
+			lastBlockHeaders: [{ height: lastBlockHeight }] as any,
 		});
 		transactionAsset = new RegisterTransactionAsset();
 		input = {

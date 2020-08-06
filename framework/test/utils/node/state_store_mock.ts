@@ -18,7 +18,7 @@ import { createFakeDefaultAccount } from './account';
 import { AccountStateStore, Account, AccountDefaultProps } from '../../../src/modules/base_asset';
 
 export interface ChainState {
-	readonly lastBlockHeader: BlockHeader;
+	readonly lastBlockHeaders: BlockHeader[];
 	readonly lastBlockReward: bigint;
 	readonly networkIdentifier: Buffer;
 	get(key: string): Promise<Buffer | undefined>;
@@ -30,7 +30,7 @@ export const defaultNetworkIdentifier =
 
 export interface AdditionalInfo {
 	readonly networkIdentifier?: string;
-	readonly lastBlockHeader?: BlockHeader;
+	readonly lastBlockHeaders?: BlockHeader[];
 	readonly lastBlockReward?: bigint;
 	readonly chainData?: { [key: string]: Buffer };
 }
@@ -76,7 +76,7 @@ export class StateStoreMock {
 
 		this.chain = {
 			networkIdentifier: hexToBuffer(additionalInfo?.networkIdentifier ?? defaultNetworkIdentifier),
-			lastBlockHeader: additionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
+			lastBlockHeaders: additionalInfo?.lastBlockHeaders ?? ([] as BlockHeader[]),
 			lastBlockReward: additionalInfo?.lastBlockReward ?? BigInt(0),
 			get: async (key: string): Promise<Buffer | undefined> => Promise.resolve(this.chainData[key]),
 			set: (key: string, value: Buffer): void => {
