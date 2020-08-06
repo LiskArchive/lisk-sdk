@@ -61,3 +61,15 @@ export class ImplementationMissingError extends FrameworkError {
 		super('Implementation missing error');
 	}
 }
+
+export class ValidationError extends Error {
+	public name: string;
+	public code = 'ERR_VALIDATION';
+	public value: string;
+	public constructor(message: string, value: string) {
+		super(message);
+		this.name = this.constructor.name;
+		this.value = value;
+		Error.captureStackTrace(this, FrameworkError);
+	}
+}
