@@ -33,14 +33,14 @@ export interface ApplyAssetInput<T> {
 	reducerHandler: ReducerHandler;
 }
 
-export abstract class BaseAsset<T = unknown> {
+export abstract class BaseAsset<T = unknown, K = Record<string, unknown>> {
 	public baseFee = BigInt(0);
 
 	public abstract name: string;
 	public abstract type: number;
 	public abstract assetSchema: Schema;
 
-	public validateAsset?(asset: T): void;
+	public validateAsset?(asset: T, transaction?: K): void;
 
-	public abstract applyAsset(input: ApplyAssetInput<T>): Promise<void>;
+	public abstract applyAsset(input: ApplyAssetInput<T>, transaction?: K): Promise<void>;
 }
