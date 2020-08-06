@@ -61,7 +61,7 @@ export interface AfterBlockApplyInput extends BeforeBlockApplyInput {
 
 export abstract class BaseModule<T = unknown> {
 	public readonly config: GenesisConfig;
-	public readonly assets: BaseAsset[] = [];
+	public readonly transactionAssets: BaseAsset[] = [];
 	public reducers: Reducers = {};
 	public actions: Actions = {};
 	public events: string[] = [];
