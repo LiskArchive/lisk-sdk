@@ -49,6 +49,6 @@ export class TransferAsset extends BaseAsset {
 		},
 	};
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	// eslint-disable-next-line
 	public async applyAsset(_input: ApplyAssetInput<Asset>): Promise<void> {}
 }
