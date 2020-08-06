@@ -42,5 +42,5 @@ export abstract class BaseAsset<T = unknown> {
 
 	public validateAsset?(asset: T): void;
 
-	public abstract applyAsset(input: ApplyAssetInput<T>): Promise<void>;
+	public abstract async applyAsset(input: ApplyAssetInput<T>): Promise<void>;
 }
