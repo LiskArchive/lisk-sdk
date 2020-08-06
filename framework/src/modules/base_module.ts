@@ -13,10 +13,10 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { Block } from '@liskhq/lisk-chain';
+import { Block, Transaction } from '@liskhq/lisk-chain';
 import { GenesisBlock } from '@liskhq/lisk-genesis';
 import { GenesisConfig, Consensus, AccountSchema } from '../types';
-import { BaseAsset, ReducerHandler, StateStore, Transaction } from './base_asset';
+import { BaseAsset, ReducerHandler, StateStore } from './base_asset';
 
 interface Reducers {
 	[key: string]: (params: Record<string, unknown>, stateStore: StateStore) => Promise<unknown>;

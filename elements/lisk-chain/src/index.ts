@@ -27,12 +27,15 @@ export {
 } from './schema';
 export type {
 	Account,
+	AccountDefaultProps,
 	RawBlock,
 	RawBlockHeader,
 	GenesisBlock,
 	GenesisBlockHeader,
 	Block,
 	BlockHeader,
+	Validator,
+	AccountSchema,
 } from './types';
 export { readGenesisBlockJSON } from './utils';
 
