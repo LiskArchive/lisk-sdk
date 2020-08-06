@@ -15,6 +15,18 @@
 import { BaseModule } from '../base_module';
 
 export class SequenceModule extends BaseModule {
-	public name = '';
-	public accountSchema = {};
+	public name = 'sequence';
+	public type = 3;
+	public accountSchema = {
+		type: 'object',
+		properties: {
+			nonce: {
+				fieldNumber: 1,
+				dataType: 'uint64',
+			},
+		},
+		default: {
+			balance: BigInt(0),
+		},
+	};
 }

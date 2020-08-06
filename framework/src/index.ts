@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseAsset } from '@liskhq/lisk-chain';
-
-export { BaseAsset };
-export { BaseModule } from './modules';
+export { BaseModule, BaseAsset } from './modules';
 export { Application } from './application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';

@@ -16,5 +16,26 @@ import { BaseModule } from '../base_module';
 
 export class KeysModule extends BaseModule {
 	public name = 'keys';
-	public accountSchema = {};
+	public type = 4;
+	public accountSchema = {
+		type: 'object',
+		properties: {
+			numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
+			mandatoryKeys: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 2,
+			},
+			optionalKeys: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 3,
+			},
+		},
+		default: {
+			mandatoryKeys: [],
+			optionalKeys: [],
+			numberOfSignatures: 0,
+		},
+	};
 }

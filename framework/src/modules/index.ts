@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,6 +13,7 @@
  */
 
 export * from './base_module';
+export * from './base_asset';
 export { KeysModule } from './keys';
 export { TokenModule } from './token';
 export { SequenceModule } from './sequence';

@@ -25,6 +25,7 @@ export class TokenModule extends BaseModule<AccountBalance> {
 		type: 'object',
 		properties: {
 			balance: {
+				fieldNumber: 1,
 				dataType: 'uint64',
 			},
 		},

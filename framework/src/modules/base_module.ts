@@ -18,15 +18,15 @@ import { GenesisBlock } from '@liskhq/lisk-genesis';
 import { GenesisConfig, Consensus, AccountSchema } from '../types';
 import { BaseAsset, StateStore, ReducerHandler } from './base_asset';
 
-interface Reducer {
+interface Reducers {
 	[key: string]: (params: Record<string, unknown>, statestore: StateStore) => Promise<unknown>;
 }
 
-interface Action {
+interface Actions {
 	[key: string]: (params: Record<string, unknown>) => Promise<unknown>;
 }
 
-// TODO: Replace after "Update lisk-chain to support the on-chain architecture"
+// TODO: Replace after #5609 "Update lisk-chain to support the on-chain architecture"
 interface Transaction {
 	readonly moduleType: number;
 	readonly assetType: number;
@@ -37,11 +37,33 @@ interface Transaction {
 	readonly asset: Buffer;
 }
 
+export interface TransactionApplyInput {
+	tx: Transaction;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface AfterGenesisBlockApplyInput<T> {
+	genesisBlock: GenesisBlock<T>;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface BeforeBlockApplyInput {
+	block: Block;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface AfterBlockApplyInput extends BeforeBlockApplyInput {
+	consensus: Consensus;
+}
+
 export abstract class BaseModule<T = unknown> {
 	public readonly config: GenesisConfig;
-	public readonly assets: BaseAsset[] = [];
-	public reducers: Reducer = {};
-	public actions: Action = {};
+	public readonly transactionAssets: BaseAsset[] = [];
+	public reducers: Reducers = {};
+	public actions: Actions = {};
 	public events: string[] = [];
 	public accountSchema?: AccountSchema;
 
@@ -52,31 +74,9 @@ export abstract class BaseModule<T = unknown> {
 		this.config = config;
 	}
 
-	public beforeTransactionApply?(input: {
-		tx: Transaction;
-		stateStore: StateStore;
-		reducerHandler: ReducerHandler;
-	}): Promise<void>;
-	public afterTransactionApply?(input: {
-		tx: Transaction;
-		stateStore: StateStore;
-		reducerHandler: ReducerHandler;
-	}): Promise<void>;
-	public afterGenesisBlockApply?(input: {
-		genesisBlock: GenesisBlock<T>;
-		stateStore: StateStore;
-		reducerHandler: ReducerHandler;
-		consensus: Consensus;
-	}): Promise<void>;
-	public beforeBlockApply?(input: {
-		header: Block;
-		stateStore: StateStore;
-		reducerHandler: ReducerHandler;
-	}): Promise<void>;
-	public afterBlockApply?(input: {
-		header: Block;
-		stateStore: StateStore;
-		consensus: Consensus;
-		reducerHandler: ReducerHandler;
-	}): Promise<void>;
+	public beforeTransactionApply?(input: TransactionApplyInput): Promise<void>;
+	public afterTransactionApply?(input: TransactionApplyInput): Promise<void>;
+	public afterGenesisBlockApply?(input: AfterGenesisBlockApplyInput<T>): Promise<void>;
+	public beforeBlockApply?(input: BeforeBlockApplyInput): Promise<void>;
+	public afterBlockApply?(input: AfterBlockApplyInput): Promise<void>;
 }

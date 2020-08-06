@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { StateStore } from '@liskhq/lisk-chain';
 import { p2pTypes } from '@liskhq/lisk-p2p';
 
 export interface StringKeyVal {
@@ -162,13 +161,13 @@ export interface TransactionJSON {
 	readonly asset: object;
 }
 
-// TODO: replace definition from lisk-chain after "Update lisk-chain to support the on-chain architecture"
-export interface Validator {
+// TODO: replace definition from lisk-chain after #5609 "Update lisk-chain to support the on-chain architecture"
+export interface BlockValidator {
 	address: Buffer;
 	canVote: boolean;
 }
 
-// TODO: replace definition from lisk-chain after "Update lisk-chain to support the on-chain architecture"
+// TODO: replace definition from lisk-chain after #5609 "Update lisk-chain to support the on-chain architecture"
 export interface AccountSchema {
 	type: string;
 	properties: Record<string, unknown>;
@@ -176,14 +175,6 @@ export interface AccountSchema {
 }
 
 export interface Consensus {
-	updateValidators: (validators: Validator[]) => Error | undefined;
+	updateValidators: (validators: BlockValidator[]) => Error | undefined;
 	getFinalizedHeight: () => number;
-}
-
-export interface Reducer {
-	[key: string]: (params: Record<string, unknown>, statestore: StateStore) => Promise<unknown>;
-}
-
-export interface Action {
-	[key: string]: (params: Record<string, unknown>) => Promise<unknown>;
 }
