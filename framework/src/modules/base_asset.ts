@@ -27,7 +27,7 @@ export type Account<T = AccountDefaultProps> = T & { address: Buffer };
 export interface AccountStateStore {
 	get<T>(key: Buffer): Promise<Account<T>>;
 	getOrDefault<T>(key: Buffer): Promise<Account<T>>;
-	set(key: Buffer, value: Account): void;
+	set<T>(key: Buffer, value: Account<T>): void;
 }
 
 export type StateStore = Omit<

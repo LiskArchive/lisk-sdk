@@ -17,7 +17,7 @@ import { when } from 'jest-when';
 
 import { SequenceModule } from '../../../../../src/modules/sequence';
 import { GenesisConfig } from '../../../../../src';
-import { SequenceModuleError } from '../../../../../src/errors';
+import { NonceOutOfBoundsError } from '../../../../../src/errors';
 
 describe('sequence module', () => {
 	let sequenceModule: SequenceModule;
@@ -77,7 +77,7 @@ describe('sequence module', () => {
 	});
 
 	describe('incompatible nonce', () => {
-		it('should return a failed transaction response for incompatible nonce', async () => {
+		it('should throw NonceOutOfBoundsError error for tx nonce lower than account nonce', async () => {
 			// Arrange
 			const tx = { ...sampleTx, nonce: BigInt(0) };
 			when(stateStoreMock.account.getOrDefault)
@@ -96,19 +96,15 @@ describe('sequence module', () => {
 				receivedError = error;
 			}
 			// Assert
-			expect(receivedError).toBeInstanceOf(SequenceModuleError);
-			expect(receivedError.moduleName).toEqual('sequence');
+			expect(receivedError).toBeInstanceOf(NonceOutOfBoundsError);
 			expect(receivedError.message).toContain(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
-					'base64',
-				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.sequence.nonce.toString()}`,
+				`Transaction with id:${tx.id.toString()} nonce is lower than account nonce`,
 			);
 			expect(receivedError.actual).toEqual(tx.nonce.toString());
 			expect(receivedError.expected).toEqual(senderAccount.sequence.nonce.toString());
 		});
 
-		it('should return a failed transaction response for incompatible higher nonce', async () => {
+		it('should throw NonceOutOfBoundsError error for tx nonce not equal to account nonce', async () => {
 			// Arrange
 			const tx = { ...sampleTx, nonce: BigInt(4) };
 			when(stateStoreMock.account.getOrDefault)
@@ -126,13 +122,9 @@ describe('sequence module', () => {
 				receivedError = error;
 			}
 			// Assert
-			expect(receivedError).toBeInstanceOf(SequenceModuleError);
-			expect(receivedError.moduleName).toEqual('sequence');
+			expect(receivedError).toBeInstanceOf(NonceOutOfBoundsError);
 			expect(receivedError.message).toContain(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
-					'base64',
-				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.sequence.nonce.toString()}`,
+				`Transaction with id:${tx.id.toString()} nonce is not equal to account nonce`,
 			);
 			expect(receivedError.actual).toEqual(tx.nonce.toString());
 			expect(receivedError.expected).toEqual(senderAccount.sequence.nonce.toString());

@@ -15,7 +15,14 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 import { BaseModule, TransactionApplyInput } from '../base_module';
-import { SequenceModuleError } from '../../errors';
+import { Account } from '../base_asset';
+import { NonceOutOfBoundsError } from '../../errors';
+
+interface SequenceAccount {
+	readonly sequence: {
+		nonce: bigint;
+	};
+}
 
 export class SequenceModule extends BaseModule {
 	public name = 'sequence';
@@ -29,50 +36,40 @@ export class SequenceModule extends BaseModule {
 			},
 		},
 		default: {
-			balance: BigInt(0),
+			nonce: BigInt(0),
 		},
 	};
 
-	public async beforeTransactionApply(input: TransactionApplyInput): Promise<void> {
-		const { tx, stateStore } = input;
+	// eslint-disable-next-line class-methods-use-this
+	public async beforeTransactionApply({ tx, stateStore }: TransactionApplyInput): Promise<void> {
 		const senderAddress = getAddressFromPublicKey(tx.senderPublicKey);
-		const senderAccount = await stateStore.account.getOrDefault<{ sequence: { nonce: bigint } }>(
+		const senderAccount = await stateStore.account.getOrDefault<Account<SequenceAccount>>(
 			senderAddress,
 		);
 
 		// Throw error when tx nonce is lower than the account nonce
 		if (tx.nonce < senderAccount.sequence.nonce) {
-			throw new SequenceModuleError(
-				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
-					'base64',
-				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.sequence.nonce.toString()}`,
-				this.name,
-				tx.id,
-				'.nonce',
-				tx.nonce.toString(),
-				senderAccount.sequence.nonce.toString(),
+			throw new NonceOutOfBoundsError(
+				`Transaction with id:${tx.id.toString()} nonce is lower than account nonce`,
+				tx.nonce,
+				senderAccount.sequence.nonce,
 			);
 		}
 	}
 
-	public async afterTransactionApply(input: TransactionApplyInput): Promise<void> {
-		const { tx, stateStore } = input;
+	// eslint-disable-next-line class-methods-use-this
+	public async afterTransactionApply({ tx, stateStore }: TransactionApplyInput): Promise<void> {
 		const senderAddress = getAddressFromPublicKey(tx.senderPublicKey);
-		const senderAccount = await stateStore.account.getOrDefault<{
-			sequence: { address: Buffer; nonce: bigint };
-		}>(senderAddress);
+		const senderAccount = await stateStore.account.getOrDefault<Account<SequenceAccount>>(
+			senderAddress,
+		);
 
 		// Throw error when tx nonce is not equal to account nonce
 		if (tx.nonce !== senderAccount.sequence.nonce) {
-			throw new SequenceModuleError(
-				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
-					'base64',
-				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.sequence.nonce.toString()}`,
-				this.name,
-				tx.id,
-				'.nonce',
-				tx.nonce.toString(),
-				senderAccount.sequence.nonce.toString(),
+			throw new NonceOutOfBoundsError(
+				`Transaction with id:${tx.id.toString()} nonce is not equal to account nonce`,
+				tx.nonce,
+				senderAccount.sequence.nonce,
 			);
 		}
 
