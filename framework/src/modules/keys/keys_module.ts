@@ -48,7 +48,7 @@ export class KeysModule extends BaseModule {
 	// eslint-disable-next-line class-methods-use-this
 	public async beforeTransactionApply({
 		stateStore,
-		tx: { getSigningBytes, id, senderID, senderPublicKey, signatures },
+		transaction: { getSigningBytes, id, senderID, senderPublicKey, signatures },
 	}: TransactionApplyInput): Promise<void> {
 		const sender = await stateStore.account.get<AccountKeyAsset>(senderID);
 		const { networkIdentifier } = stateStore.chain;
