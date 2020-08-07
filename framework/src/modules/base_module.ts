@@ -32,7 +32,7 @@ export interface TransactionApplyInput {
 	reducerHandler: ReducerHandler;
 }
 
-export interface AfterGenesisBlockApplyInput<T> {
+export interface AfterGenesisBlockApplyInput<T = unknown> {
 	genesisBlock: GenesisBlock<T>;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
