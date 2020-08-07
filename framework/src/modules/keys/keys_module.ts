@@ -53,9 +53,7 @@ export class KeysModule extends BaseModule {
 		const sender = await stateStore.account.get<AccountKeyAsset>(senderID);
 		const { networkIdentifier } = stateStore.chain;
 		const transactionBytes = getSigningBytes();
-		if (networkIdentifier === undefined || !networkIdentifier.length) {
-			throw new Error('Network identifier is required to validate a transaction ');
-		}
+
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifier,
 			transactionBytes,
@@ -63,6 +61,7 @@ export class KeysModule extends BaseModule {
 
 		if (!isMultisignatureAccount(sender)) {
 			validateSignature(senderPublicKey, signatures[0], transactionWithNetworkIdentifierBytes, id);
+			return;
 		}
 
 		verifyMultiSignatureTransaction(id, sender, signatures, transactionWithNetworkIdentifierBytes);
