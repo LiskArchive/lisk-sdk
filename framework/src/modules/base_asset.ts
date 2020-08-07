@@ -36,7 +36,7 @@ export type StateStore = Omit<
 > & { chain: { lastBlockHeaders: BlockHeader[] } } & { account: AccountStateStore };
 
 export interface ReducerHandler {
-	invoke: (name: string, params: Record<string, unknown>) => Promise<unknown>;
+	invoke<T>(name: string, params: Record<string, unknown>): Promise<T>;
 }
 
 export interface ApplyAssetInput<T> {
@@ -54,6 +54,7 @@ export interface ValidateAssetInput<T> {
 
 // TODO: Replace after #5609 "Update lisk-chain to support the on-chain architecture"
 export interface Transaction {
+	readonly id: Buffer;
 	readonly moduleType: number;
 	readonly assetType: number;
 	readonly nonce: bigint;

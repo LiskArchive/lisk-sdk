@@ -12,7 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from '../base_module';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+
+import { BaseModule, TransactionApplyInput } from '../base_module';
+import { Account } from '../base_asset';
+import { NonceOutOfBoundsError } from '../../errors';
+import { InvalidNonceError } from './errors';
+
+interface SequenceAccount {
+	readonly sequence: {
+		nonce: bigint;
+	};
+}
 
 export class SequenceModule extends BaseModule {
 	public name = 'sequence';
@@ -26,7 +37,49 @@ export class SequenceModule extends BaseModule {
 			},
 		},
 		default: {
-			balance: BigInt(0),
+			nonce: BigInt(0),
 		},
 	};
+
+	// eslint-disable-next-line class-methods-use-this
+	public async beforeTransactionApply({
+		transaction,
+		stateStore,
+	}: TransactionApplyInput): Promise<void> {
+		const senderAddress = getAddressFromPublicKey(transaction.senderPublicKey);
+		const senderAccount = await stateStore.account.get<Account<SequenceAccount>>(senderAddress);
+
+		// Throw error when tx nonce is lower than the account nonce
+		if (transaction.nonce < senderAccount.sequence.nonce) {
+			throw new InvalidNonceError(
+				`Transaction with id:${transaction.id.toString()} nonce is lower than account nonce`,
+				transaction.nonce,
+				senderAccount.sequence.nonce,
+			);
+		}
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public async afterTransactionApply({
+		transaction,
+		stateStore,
+	}: TransactionApplyInput): Promise<void> {
+		const senderAddress = getAddressFromPublicKey(transaction.senderPublicKey);
+		const senderAccount = await stateStore.account.get<Account<SequenceAccount>>(senderAddress);
+
+		// Throw error when tx nonce is not equal to account nonce
+		if (transaction.nonce !== senderAccount.sequence.nonce) {
+			throw new NonceOutOfBoundsError(
+				`Transaction with id:${transaction.id.toString()} nonce is not equal to account nonce`,
+				transaction.nonce,
+				senderAccount.sequence.nonce,
+			);
+		}
+
+		// Increment nonce of account when tx is valid
+		senderAccount.sequence.nonce += BigInt(1);
+
+		// Update sender account nonce
+		stateStore.account.set(senderAddress, senderAccount);
+	}
 }
