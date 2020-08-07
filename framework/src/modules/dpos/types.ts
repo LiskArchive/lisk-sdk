@@ -12,5 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './types';
-export * from './dpos_module';
+interface RegisteredDelegate {
+	readonly username: string;
+	readonly address: Buffer;
+}
+
+export interface RegisteredDelegates {
+	registeredDelegates: RegisteredDelegate[];
+}
+
+export interface DelegatePersistedUsernames {
+	readonly registeredDelegates: RegisteredDelegate[];
+}
+
+export interface DPOSAccount {
+	dpos: { delegate: { username: string; lastForgedHeight: number } };
+}
