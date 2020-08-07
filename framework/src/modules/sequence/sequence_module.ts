@@ -42,30 +42,36 @@ export class SequenceModule extends BaseModule {
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public async beforeTransactionApply({ tx, stateStore }: TransactionApplyInput): Promise<void> {
-		const senderAddress = getAddressFromPublicKey(tx.senderPublicKey);
+	public async beforeTransactionApply({
+		transaction,
+		stateStore,
+	}: TransactionApplyInput): Promise<void> {
+		const senderAddress = getAddressFromPublicKey(transaction.senderPublicKey);
 		const senderAccount = await stateStore.account.get<Account<SequenceAccount>>(senderAddress);
 
 		// Throw error when tx nonce is lower than the account nonce
-		if (tx.nonce < senderAccount.sequence.nonce) {
+		if (transaction.nonce < senderAccount.sequence.nonce) {
 			throw new InvalidNonceError(
-				`Transaction with id:${tx.id.toString()} nonce is lower than account nonce`,
-				tx.nonce,
+				`Transaction with id:${transaction.id.toString()} nonce is lower than account nonce`,
+				transaction.nonce,
 				senderAccount.sequence.nonce,
 			);
 		}
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public async afterTransactionApply({ tx, stateStore }: TransactionApplyInput): Promise<void> {
-		const senderAddress = getAddressFromPublicKey(tx.senderPublicKey);
+	public async afterTransactionApply({
+		transaction,
+		stateStore,
+	}: TransactionApplyInput): Promise<void> {
+		const senderAddress = getAddressFromPublicKey(transaction.senderPublicKey);
 		const senderAccount = await stateStore.account.get<Account<SequenceAccount>>(senderAddress);
 
 		// Throw error when tx nonce is not equal to account nonce
-		if (tx.nonce !== senderAccount.sequence.nonce) {
+		if (transaction.nonce !== senderAccount.sequence.nonce) {
 			throw new NonceOutOfBoundsError(
-				`Transaction with id:${tx.id.toString()} nonce is not equal to account nonce`,
-				tx.nonce,
+				`Transaction with id:${transaction.id.toString()} nonce is not equal to account nonce`,
+				transaction.nonce,
 				senderAccount.sequence.nonce,
 			);
 		}
