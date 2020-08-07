@@ -27,12 +27,12 @@ interface Actions {
 }
 
 export interface TransactionApplyInput {
-	tx: Transaction;
+	transaction: Transaction;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
 }
 
-export interface AfterGenesisBlockApplyInput<T> {
+export interface AfterGenesisBlockApplyInput<T = unknown> {
 	genesisBlock: GenesisBlock<T>;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
@@ -63,9 +63,9 @@ export abstract class BaseModule<T = unknown> {
 		this.config = config;
 	}
 
-	public beforeTransactionApply?(input: TransactionApplyInput): Promise<void>;
-	public afterTransactionApply?(input: TransactionApplyInput): Promise<void>;
-	public afterGenesisBlockApply?(input: AfterGenesisBlockApplyInput<T>): Promise<void>;
-	public beforeBlockApply?(input: BeforeBlockApplyInput): Promise<void>;
-	public afterBlockApply?(input: AfterBlockApplyInput): Promise<void>;
+	public async beforeTransactionApply?(input: TransactionApplyInput): Promise<void>;
+	public async afterTransactionApply?(input: TransactionApplyInput): Promise<void>;
+	public async afterGenesisBlockApply?(input: AfterGenesisBlockApplyInput<T>): Promise<void>;
+	public async beforeBlockApply?(input: BeforeBlockApplyInput): Promise<void>;
+	public async afterBlockApply?(input: AfterBlockApplyInput): Promise<void>;
 }

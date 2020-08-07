@@ -36,7 +36,7 @@ export type StateStore = Omit<
 > & { chain: { lastBlockHeaders: BlockHeader[] } } & { account: AccountStateStore };
 
 export interface ReducerHandler {
-	invoke: (name: string, params: Record<string, unknown>) => Promise<unknown>;
+	invoke<T>(name: string, params: Record<string, unknown>): Promise<T>;
 }
 
 export interface ApplyAssetInput<T> {
