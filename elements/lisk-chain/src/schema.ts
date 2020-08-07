@@ -173,7 +173,7 @@ export const validatorsSchema = {
 						dataType: 'uint32',
 						fieldNumber: 2,
 					},
-					canVote: {
+					isConsensusParticipant: {
 						dataType: 'boolean',
 						fieldNumber: 3,
 					},

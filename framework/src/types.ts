@@ -163,11 +163,11 @@ export interface TransactionJSON {
 }
 
 // minActiveHeight is automatically calculated while setting in chain library
-export type BlockValidator = Omit<Validator, 'minActiveHeight'>;
+export type Delegate = Omit<Validator, 'minActiveHeight'>;
 // fieldNumber is automatically assigned when registering to the chain library
 export type AccountSchema = Omit<ChainAccountSchema, 'fieldNumber'>;
 
 export interface Consensus {
-	updateValidators: (validators: BlockValidator[]) => Error | undefined;
+	updateDelegates: (delegates: Delegate[]) => Error | undefined;
 	getFinalizedHeight: () => number;
 }
