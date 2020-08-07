@@ -13,11 +13,13 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { testing as testingUtils } from '@liskhq/lisk-utils';
 import { when } from 'jest-when';
 
 import { SequenceModule } from '../../../../../src/modules/sequence';
 import { GenesisConfig } from '../../../../../src';
 import { NonceOutOfBoundsError } from '../../../../../src/errors';
+import { InvalidNonceError } from '../../../../../src/modules/sequence';
 
 describe('sequence module', () => {
 	let sequenceModule: SequenceModule;
@@ -61,12 +63,10 @@ describe('sequence module', () => {
 		},
 	};
 
-	const stateStoreMock = {
-		account: {
-			getOrDefault: jest.fn(),
-			set: jest.fn(),
-		},
-	};
+	const stateStoreMock = new testingUtils.StateStoreMock({ accounts: [senderAccount] });
+
+	stateStoreMock.account.getOrDefault = jest.fn();
+	stateStoreMock.account.set = jest.fn();
 
 	const reducerMock = { invoke: jest.fn() };
 	const getAddressFromPublicKeyMock = jest.fn().mockReturnValue(senderAddress);
@@ -80,7 +80,7 @@ describe('sequence module', () => {
 		it('should throw NonceOutOfBoundsError error for tx nonce lower than account nonce', async () => {
 			// Arrange
 			const tx = { ...sampleTx, nonce: BigInt(0) };
-			when(stateStoreMock.account.getOrDefault)
+			when(stateStoreMock.account.getOrDefault as any)
 				.calledWith()
 				.mockResolvedValue(senderAccount as never);
 
@@ -96,7 +96,8 @@ describe('sequence module', () => {
 				receivedError = error;
 			}
 			// Assert
-			expect(receivedError).toBeInstanceOf(NonceOutOfBoundsError);
+			expect(receivedError).toBeInstanceOf(InvalidNonceError);
+			expect(receivedError.code).toEqual('ERR_INVALID_NONCE');
 			expect(receivedError.message).toContain(
 				`Transaction with id:${tx.id.toString()} nonce is lower than account nonce`,
 			);
@@ -107,7 +108,7 @@ describe('sequence module', () => {
 		it('should throw NonceOutOfBoundsError error for tx nonce not equal to account nonce', async () => {
 			// Arrange
 			const tx = { ...sampleTx, nonce: BigInt(4) };
-			when(stateStoreMock.account.getOrDefault)
+			when(stateStoreMock.account.getOrDefault as any)
 				.calledWith()
 				.mockResolvedValue(senderAccount as never);
 			let receivedError;
@@ -123,6 +124,7 @@ describe('sequence module', () => {
 			}
 			// Assert
 			expect(receivedError).toBeInstanceOf(NonceOutOfBoundsError);
+			expect(receivedError.code).toEqual('ERR_NONCE_OUT_OF_BOUNDS');
 			expect(receivedError.message).toContain(
 				`Transaction with id:${tx.id.toString()} nonce is not equal to account nonce`,
 			);
@@ -135,7 +137,7 @@ describe('sequence module', () => {
 		it('should increment account nonce', async () => {
 			// Arrange
 			const updatedAccount = { ...senderAccount, sequence: { ...senderAccount.sequence } };
-			when(stateStoreMock.account.getOrDefault)
+			when(stateStoreMock.account.getOrDefault as any)
 				.calledWith()
 				.mockResolvedValue(updatedAccount as never);
 

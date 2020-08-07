@@ -17,6 +17,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BaseModule, TransactionApplyInput } from '../base_module';
 import { Account } from '../base_asset';
 import { NonceOutOfBoundsError } from '../../errors';
+import { InvalidNonceError } from './errors';
 
 interface SequenceAccount {
 	readonly sequence: {
@@ -49,7 +50,7 @@ export class SequenceModule extends BaseModule {
 
 		// Throw error when tx nonce is lower than the account nonce
 		if (tx.nonce < senderAccount.sequence.nonce) {
-			throw new NonceOutOfBoundsError(
+			throw new InvalidNonceError(
 				`Transaction with id:${tx.id.toString()} nonce is lower than account nonce`,
 				tx.nonce,
 				senderAccount.sequence.nonce,
