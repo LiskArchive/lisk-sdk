@@ -27,7 +27,7 @@ interface Actions {
 }
 
 export interface TransactionApplyInput {
-	tx: Transaction;
+	transaction: Transaction;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
 }
