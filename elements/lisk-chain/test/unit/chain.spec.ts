@@ -368,7 +368,7 @@ describe('chain', () => {
 			validators = addresses.map(addr => ({
 				address: addr,
 				minActiveHeight: defaultMinActiveHeight,
-				canVote: true,
+				isConsensusParticipant: true,
 			}));
 			const validatorBuffer = codec.encode(validatorsSchema, {
 				validators,
@@ -396,7 +396,7 @@ describe('chain', () => {
 			validators = addresses.map(addr => ({
 				address: addr,
 				minActiveHeight: defaultMinActiveHeight,
-				canVote: true,
+				isConsensusParticipant: true,
 			}));
 			const validatorBuffer = codec.encode(validatorsSchema, {
 				validators,
@@ -431,7 +431,7 @@ describe('chain', () => {
 				validators: addresses.map(addr => ({
 					address: addr,
 					minActiveHeight: defaultMinActiveHeight,
-					canVote: true,
+					isConsensusParticipant: true,
 				})),
 			});
 			when(db.get)
@@ -439,8 +439,8 @@ describe('chain', () => {
 				.mockResolvedValue(validatorBuffer as never);
 		});
 
-		it('should set address and canVote as the input', async () => {
-			const validators = [{ address: addresses[0], canVote: true }];
+		it('should set address and isConsensusParticipant as the input', async () => {
+			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
 			stateStore = createStateStore(db, [
 				createValidDefaultBlock({ header: { height: 512 } }).header,
 			]);
@@ -455,13 +455,15 @@ describe('chain', () => {
 			);
 
 			expect(updatedValidators[0].address).toEqual(validators[0].address);
-			expect(updatedValidators[0].canVote).toEqual(validators[0].canVote);
+			expect(updatedValidators[0].isConsensusParticipant).toEqual(
+				validators[0].isConsensusParticipant,
+			);
 		});
 
 		it('should set minActiveHeight to the next height (last block height + 2) if the address does not exist in the previous set', async () => {
 			const validators = [
-				{ address: getRandomBytes(20), canVote: false },
-				{ address: addresses[0], canVote: true },
+				{ address: getRandomBytes(20), isConsensusParticipant: false },
+				{ address: addresses[0], isConsensusParticipant: true },
 			];
 			stateStore = createStateStore(db, [
 				createValidDefaultBlock({ header: { height: 514 } }).header,
@@ -477,16 +479,20 @@ describe('chain', () => {
 			);
 
 			expect(updatedValidators[0].address).toEqual(validators[0].address);
-			expect(updatedValidators[0].canVote).toEqual(validators[0].canVote);
+			expect(updatedValidators[0].isConsensusParticipant).toEqual(
+				validators[0].isConsensusParticipant,
+			);
 			expect(updatedValidators[0].minActiveHeight).toEqual(516);
 
 			expect(updatedValidators[1].address).toEqual(validators[1].address);
-			expect(updatedValidators[1].canVote).toEqual(validators[1].canVote);
+			expect(updatedValidators[1].isConsensusParticipant).toEqual(
+				validators[1].isConsensusParticipant,
+			);
 			expect(updatedValidators[1].minActiveHeight).toEqual(defaultMinActiveHeight);
 		});
 
 		it('should set minActiveHeight should not be changed if the address exists in the previous set', async () => {
-			const validators = [{ address: addresses[0], canVote: true }];
+			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
 			stateStore = createStateStore(db, [
 				createValidDefaultBlock({ header: { height: 512 } }).header,
 			]);
@@ -501,7 +507,9 @@ describe('chain', () => {
 			);
 
 			expect(updatedValidators[0].address).toEqual(validators[0].address);
-			expect(updatedValidators[0].canVote).toEqual(validators[0].canVote);
+			expect(updatedValidators[0].isConsensusParticipant).toEqual(
+				validators[0].isConsensusParticipant,
+			);
 			expect(updatedValidators[0].minActiveHeight).toEqual(defaultMinActiveHeight);
 		});
 	});

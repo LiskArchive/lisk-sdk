@@ -289,7 +289,7 @@ export class Chain {
 		const initialValidators = block.header.asset.initDelegates.map(address => ({
 			address,
 			minActiveHeight: 0,
-			canVote: false,
+			isConsensusParticipant: false,
 		}));
 		stateStore.consensus.set(
 			CONSENSUS_STATE_VALIDATORS_KEY,
@@ -408,7 +408,7 @@ export class Chain {
 
 	// eslint-disable-next-line class-methods-use-this
 	public async setValidators(
-		validators: { address: Buffer; canVote: boolean }[],
+		validators: { address: Buffer; isConsensusParticipant: boolean }[],
 		stateStore: StateStore,
 	): Promise<void> {
 		const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);

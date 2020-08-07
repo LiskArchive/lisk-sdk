@@ -104,5 +104,5 @@ export type Account<T = AccountDefaultProps> = T & { address: Buffer };
 export interface Validator {
 	address: Buffer;
 	minActiveHeight: number;
-	canVote: boolean;
+	isConsensusParticipant: boolean;
 }

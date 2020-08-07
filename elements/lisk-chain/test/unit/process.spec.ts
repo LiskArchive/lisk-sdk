@@ -722,7 +722,7 @@ describe('chain/process block', () => {
 			);
 
 			expect(validators).toHaveLength(genesisBlock.header.asset.initDelegates.length);
-			expect(validators.every(v => !v.canVote)).toBeTrue();
+			expect(validators.every(v => !v.isConsensusParticipant)).toBeTrue();
 			expect(validators.every(v => v.minActiveHeight === 0)).toBeTrue();
 		});
 	});
