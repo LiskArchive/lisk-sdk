@@ -12,7 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from '../base_module';
+import { AccountKeyAsset } from './types';
+import {
+	isMultisignatureAccount,
+	validateSignature,
+	verifyMultiSignatureTransaction,
+} from './utils';
+import { BaseModule, TransactionApplyInput } from '../base_module';
 
 export class KeysModule extends BaseModule {
 	public name = 'keys';
@@ -38,4 +44,27 @@ export class KeysModule extends BaseModule {
 			numberOfSignatures: 0,
 		},
 	};
+
+	// eslint-disable-next-line class-methods-use-this
+	public async beforeTransactionApply({
+		stateStore,
+		tx: { getSigningBytes, id, senderID, senderPublicKey, signatures },
+	}: TransactionApplyInput): Promise<void> {
+		const sender = await stateStore.account.get<AccountKeyAsset>(senderID);
+		const { networkIdentifier } = stateStore.chain;
+		const transactionBytes = getSigningBytes();
+		if (networkIdentifier === undefined || !networkIdentifier.length) {
+			throw new Error('Network identifier is required to validate a transaction ');
+		}
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifier,
+			transactionBytes,
+		]);
+
+		if (!isMultisignatureAccount(sender)) {
+			validateSignature(senderPublicKey, signatures[0], transactionWithNetworkIdentifierBytes, id);
+		}
+
+		verifyMultiSignatureTransaction(id, sender, signatures, transactionWithNetworkIdentifierBytes);
+	}
 }

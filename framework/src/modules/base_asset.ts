@@ -54,6 +54,7 @@ export interface ValidateAssetInput<T> {
 
 // TODO: Replace after #5609 "Update lisk-chain to support the on-chain architecture"
 export interface Transaction {
+	readonly id: Buffer;
 	readonly moduleType: number;
 	readonly assetType: number;
 	readonly nonce: bigint;
@@ -61,6 +62,8 @@ export interface Transaction {
 	readonly senderPublicKey: Buffer;
 	readonly signatures: ReadonlyArray<Buffer>;
 	readonly asset: Buffer;
+	readonly senderID: Buffer;
+	readonly getSigningBytes: () => Buffer;
 }
 
 export abstract class BaseAsset<T = unknown> {
