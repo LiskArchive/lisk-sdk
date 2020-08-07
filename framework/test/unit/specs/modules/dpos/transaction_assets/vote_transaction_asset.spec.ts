@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// import { codec } from '@liskhq/lisk-codec';
-// import { ValidationError } from '../../../../../../src/errors';
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
 import { ApplyAssetInput, ValidateAssetInput } from '../../../../../../src/modules';
