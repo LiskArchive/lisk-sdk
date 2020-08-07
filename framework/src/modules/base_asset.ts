@@ -54,6 +54,7 @@ export interface ValidateAssetInput<T> {
 
 // TODO: Replace after #5609 "Update lisk-chain to support the on-chain architecture"
 export interface Transaction {
+	readonly id: Buffer;
 	readonly moduleType: number;
 	readonly assetType: number;
 	readonly nonce: bigint;

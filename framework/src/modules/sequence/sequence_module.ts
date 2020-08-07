@@ -36,19 +36,21 @@ export class SequenceModule extends BaseModule {
 	public async beforeTransactionApply(input: TransactionApplyInput): Promise<void> {
 		const { tx, stateStore } = input;
 		const senderAddress = getAddressFromPublicKey(tx.senderPublicKey);
-		const senderAccount = await stateStore.account.getOrDefault(senderAddress);
+		const senderAccount = await stateStore.account.getOrDefault<{ sequence: { nonce: bigint } }>(
+			senderAddress,
+		);
 
 		// Throw error when tx nonce is lower than the account nonce
-		if (tx.nonce < senderAccount.nonce) {
+		if (tx.nonce < senderAccount.sequence.nonce) {
 			throw new SequenceModuleError(
 				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
 					'base64',
-				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.nonce.toString()}`,
+				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.sequence.nonce.toString()}`,
 				this.name,
 				tx.id,
 				'.nonce',
 				tx.nonce.toString(),
-				senderAccount.nonce.toString(),
+				senderAccount.sequence.nonce.toString(),
 			);
 		}
 	}
@@ -56,26 +58,28 @@ export class SequenceModule extends BaseModule {
 	public async afterTransactionApply(input: TransactionApplyInput): Promise<void> {
 		const { tx, stateStore } = input;
 		const senderAddress = getAddressFromPublicKey(tx.senderPublicKey);
-		const senderAccount = await stateStore.account.getOrDefault(senderAddress);
+		const senderAccount = await stateStore.account.getOrDefault<{
+			sequence: { address: Buffer; nonce: bigint };
+		}>(senderAddress);
 
 		// Throw error when tx nonce is not equal to account nonce
-		if (tx.nonce !== senderAccount.nonce) {
+		if (tx.nonce !== senderAccount.sequence.nonce) {
 			throw new SequenceModuleError(
 				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
 					'base64',
-				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.nonce.toString()}`,
+				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.sequence.nonce.toString()}`,
 				this.name,
 				tx.id,
 				'.nonce',
 				tx.nonce.toString(),
-				senderAccount.nonce.toString(),
+				senderAccount.sequence.nonce.toString(),
 			);
 		}
 
 		// Increment nonce of account when tx is valid
-		senderAccount.nonce += BigInt(1);
+		senderAccount.sequence.nonce += BigInt(1);
 
-		// Update sender accounts nonce
+		// Update sender account nonce
 		stateStore.account.set(senderAddress, senderAccount);
 	}
 }

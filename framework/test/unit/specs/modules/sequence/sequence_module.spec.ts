@@ -24,8 +24,9 @@ describe('sequence module', () => {
 	const senderAddress = cryptography.getRandomBytes(20);
 	const senderAccount = {
 		address: senderAddress,
-		balance: BigInt(0),
-		nonce: BigInt(2),
+		sequence: {
+			nonce: BigInt(2),
+		},
 	};
 
 	const sampleTx = {
@@ -101,10 +102,10 @@ describe('sequence module', () => {
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
 					'base64',
-				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.nonce.toString()}`,
+				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.sequence.nonce.toString()}`,
 			);
 			expect(receivedError.actual).toEqual(tx.nonce.toString());
-			expect(receivedError.expected).toEqual(senderAccount.nonce.toString());
+			expect(receivedError.expected).toEqual(senderAccount.sequence.nonce.toString());
 		});
 
 		it('should return a failed transaction response for incompatible higher nonce', async () => {
@@ -131,17 +132,17 @@ describe('sequence module', () => {
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
 					'base64',
-				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.nonce.toString()}`,
+				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.sequence.nonce.toString()}`,
 			);
 			expect(receivedError.actual).toEqual(tx.nonce.toString());
-			expect(receivedError.expected).toEqual(senderAccount.nonce.toString());
+			expect(receivedError.expected).toEqual(senderAccount.sequence.nonce.toString());
 		});
 	});
 
 	describe('valid nonce', () => {
 		it('should increment account nonce', async () => {
 			// Arrange
-			const updatedAccount = { ...senderAccount };
+			const updatedAccount = { ...senderAccount, sequence: { ...senderAccount.sequence } };
 			when(stateStoreMock.account.getOrDefault)
 				.calledWith()
 				.mockResolvedValue(updatedAccount as never);
@@ -154,7 +155,7 @@ describe('sequence module', () => {
 			});
 
 			// Assert
-			expect(updatedAccount.nonce).toEqual(senderAccount.nonce + BigInt(1));
+			expect(updatedAccount.sequence.nonce).toEqual(senderAccount.sequence.nonce + BigInt(1));
 			expect(stateStoreMock.account.set).toHaveBeenCalledTimes(1);
 			expect(stateStoreMock.account.set).toHaveBeenCalledWith(senderAddress, updatedAccount);
 		});
