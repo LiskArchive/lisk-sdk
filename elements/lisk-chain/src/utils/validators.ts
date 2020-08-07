@@ -12,16 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Validator, CONSENSUS_STATE_VALIDATORS_KEY, validatorsSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { StateStore } from '../types';
+import { Validator } from '../types';
+import { validatorsSchema } from '../schema';
+import { CONSENSUS_STATE_VALIDATORS_KEY } from '../constants';
 
-export const getValidators = async (stateStore: StateStore): Promise<Validator[]> => {
+interface MinimalStateStore {
+	consensus: {
+		get: (key: string) => Promise<Buffer | undefined>;
+	};
+}
+
+export const getValidators = async (stateStore: MinimalStateStore): Promise<Validator[]> => {
 	const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);
-		if (!validatorsBuffer) {
-			throw new Error('Validator set must exist');
-		}
-		const { validators } = codec.decode<{ validators: Validator[]}>(validatorsSchema, validatorsBuffer);
+	if (!validatorsBuffer) {
+		throw new Error('Validator set must exist');
+	}
+	const { validators } = codec.decode<{ validators: Validator[] }>(
+		validatorsSchema,
+		validatorsBuffer,
+	);
 
-		return validators;
+	return validators;
 };
