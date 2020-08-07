@@ -14,30 +14,7 @@
 /* eslint-disable class-methods-use-this */
 
 import { Schema } from '@liskhq/lisk-codec';
-import { StateStore as ChainStateStore, Transaction } from '@liskhq/lisk-chain';
-
-// Limit the scope of state store to which module can access
-export type StateStore = Omit<
-	ChainStateStore,
-	'consensus' | 'finalize' | 'createSnapshot' | 'restoreSnapshot'
->;
-
-export interface ReducerHandler {
-	invoke<T>(name: string, params: Record<string, unknown>): Promise<T>;
-}
-
-export interface ApplyAssetInput<T> {
-	senderID: Buffer;
-	asset: T;
-	stateStore: StateStore;
-	reducerHandler: ReducerHandler;
-	transaction: Transaction;
-}
-
-export interface ValidateAssetInput<T> {
-	asset: T;
-	transaction: Transaction;
-}
+import { ValidateAssetInput, ApplyAssetInput } from '../types';
 
 export abstract class BaseAsset<T = unknown> {
 	public baseFee = BigInt(0);

@@ -85,18 +85,19 @@ export class Chain {
 	public readonly dataAccess: DataAccess;
 	public readonly events: EventEmitter;
 	public readonly slots: Slots;
-
-	private _lastBlock: Block;
-	private readonly _networkIdentifier: Buffer;
-	private readonly _blockRewardArgs: BlockRewardOptions;
-	private readonly _genesisBlock: GenesisBlock;
-	private readonly constants: {
+	public readonly constants: {
 		readonly blockTime: number;
 		readonly maxPayloadLength: number;
 		readonly rewardDistance: number;
 		readonly rewardOffset: number;
 		readonly rewardMilestones: ReadonlyArray<bigint>;
+		readonly networkIdentifier: Buffer;
 	};
+
+	private _lastBlock: Block;
+	private readonly _networkIdentifier: Buffer;
+	private readonly _blockRewardArgs: BlockRewardOptions;
+	private readonly _genesisBlock: GenesisBlock;
 	private readonly _accountSchema: Schema;
 	private readonly _blockAssetSchema: {
 		readonly [key: number]: Schema;
@@ -174,6 +175,7 @@ export class Chain {
 			rewardDistance,
 			rewardOffset,
 			rewardMilestones,
+			networkIdentifier,
 		};
 	}
 

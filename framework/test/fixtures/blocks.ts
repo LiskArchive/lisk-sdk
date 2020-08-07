@@ -20,56 +20,33 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
-import { Block, BlockHeader, Chain } from '@liskhq/lisk-chain';
-import { GenesisBlock } from '@liskhq/lisk-genesis';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
-import { codec } from '@liskhq/lisk-codec';
+import {
+	GenesisBlock,
+	Block,
+	BlockHeader,
+	Chain,
+	Transaction,
+	readGenesisBlockJSON,
+} from '@liskhq/lisk-chain';
 import * as genesisBlockJSON from './config/devnet/genesis_block.json';
-import { BlockProcessorV2 } from '../../src/application/node/block_processor_v2';
-import { genesisSchema } from '../../src/application/genesis_block';
-import { AccountAsset, accountAssetSchema } from '../../src/application/node/account';
-import { BlockProcessorV0 } from '../../src/application/node/block_processor_v0';
+import { defaultAccountSchema } from './accounts';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
 	'hex',
 );
 
-export const genesisBlock = (): GenesisBlock<AccountAsset> =>
-	codec.fromJSON(genesisSchema(accountAssetSchema), genesisBlockJSON);
+export const genesisBlock = (): GenesisBlock =>
+	readGenesisBlockJSON(genesisBlockJSON, defaultAccountSchema);
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
 	return getPrivateAndPublicKeyFromPassphrase(passphrase);
 };
 
-export const defaultBlockHeaderAssetSchema = {
-	$id: 'test/defaultBlockHeaderAssetSchema',
-	type: 'object',
-	properties: {
-		maxHeightPreviouslyForged: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		maxHeightPrevoted: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		seedReveal: {
-			dataType: 'bytes',
-			fieldNumber: 3,
-		},
-	},
-	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
-};
-
 export const encodeValidBlockHeader = (header: BlockHeader): Buffer => {
 	const chain = new Chain({
-		registeredBlocks: {
-			2: BlockProcessorV2.schema,
-			0: BlockProcessorV0.schema,
-		},
-		accountAsset: { schema: {}, default: {} },
+		accountAsset: {},
 		genesisBlock: {
 			header: {
 				timestamp: 0,
@@ -109,7 +86,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeader>): BlockHeade
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
 export const createValidDefaultBlock = (
-	block?: { header?: Partial<BlockHeader>; payload?: BaseTransaction[] },
+	block?: { header?: Partial<BlockHeader>; payload?: Transaction[] },
 	networkIdentifier: Buffer = defaultNetworkIdentifier,
 ): Block => {
 	const keypair = getKeyPair();
@@ -136,11 +113,7 @@ export const createValidDefaultBlock = (
 	});
 
 	const chain = new Chain({
-		registeredBlocks: {
-			2: BlockProcessorV2.schema,
-			0: BlockProcessorV0.schema,
-		},
-		accountAsset: { schema: {}, default: {} },
+		accountAsset: {},
 		genesisBlock: {
 			header: {
 				timestamp: 0,
@@ -170,11 +143,7 @@ export const createValidDefaultBlock = (
 
 export const encodeValidBlock = (block: Block): Buffer => {
 	const chain = new Chain({
-		registeredBlocks: {
-			2: BlockProcessorV2.schema,
-			0: BlockProcessorV0.schema,
-		},
-		accountAsset: { schema: {}, default: {} },
+		accountAsset: {},
 		genesisBlock: {
 			header: {
 				timestamp: 0,
