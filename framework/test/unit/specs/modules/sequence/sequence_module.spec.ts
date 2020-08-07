@@ -11,3 +11,152 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import * as cryptography from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
+
+import { SequenceModule } from '../../../../../src/modules/sequence';
+import { GenesisConfig } from '../../../../../src';
+import { SequenceModuleError } from '../../../../../src/errors';
+
+describe('sequence module', () => {
+	let sequenceModule: SequenceModule;
+	const senderAddress = cryptography.getRandomBytes(20);
+	const senderAccount = {
+		address: senderAddress,
+		balance: BigInt(0),
+		nonce: BigInt(2),
+	};
+
+	const sampleTx = {
+		nonce: BigInt(2),
+		id: cryptography.getRandomBytes(32),
+		assetType: 0,
+		baseFee: BigInt(1),
+		moduleType: 3,
+		fee: BigInt(1),
+		senderPublicKey: Buffer.from(''),
+		signatures: [],
+		asset: Buffer.from(''),
+	};
+
+	const genesisConfig: GenesisConfig = {
+		baseFees: [
+			{
+				assetType: 0,
+				baseFee: BigInt(1),
+				moduleType: 3,
+			},
+		],
+		bftThreshold: 67,
+		blockTime: 10,
+		communityIdentifier: 'lisk',
+		maxPayloadLength: 15360,
+		minFeePerByte: 1,
+		rewards: {
+			distance: 1,
+			milestones: ['milestone'],
+			offset: 2,
+		},
+	};
+
+	const stateStoreMock = {
+		account: {
+			getOrDefault: jest.fn(),
+			set: jest.fn(),
+		},
+	};
+
+	const reducerMock = { invoke: jest.fn() };
+	const getAddressFromPublicKeyMock = jest.fn().mockReturnValue(senderAddress);
+
+	beforeEach(() => {
+		sequenceModule = new SequenceModule(genesisConfig);
+		(cryptography as any).getAddressFromPublicKey = getAddressFromPublicKeyMock;
+	});
+
+	describe('incompatible nonce', () => {
+		it('should return a failed transaction response for incompatible nonce', async () => {
+			// Arrange
+			const tx = { ...sampleTx, nonce: BigInt(0) };
+			when(stateStoreMock.account.getOrDefault)
+				.calledWith()
+				.mockResolvedValue(senderAccount as never);
+
+			let receivedError;
+			try {
+				// Act
+				await sequenceModule.beforeTransactionApply({
+					stateStore: stateStoreMock as any,
+					reducerHandler: reducerMock,
+					tx,
+				});
+			} catch (error) {
+				receivedError = error;
+			}
+			// Assert
+			expect(receivedError).toBeInstanceOf(SequenceModuleError);
+			expect(receivedError.moduleName).toEqual('sequence');
+			expect(receivedError.message).toContain(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
+					'base64',
+				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.nonce.toString()}`,
+			);
+			expect(receivedError.actual).toEqual(tx.nonce.toString());
+			expect(receivedError.expected).toEqual(senderAccount.nonce.toString());
+		});
+
+		it('should return a failed transaction response for incompatible higher nonce', async () => {
+			// Arrange
+			const tx = { ...sampleTx, nonce: BigInt(4) };
+			when(stateStoreMock.account.getOrDefault)
+				.calledWith()
+				.mockResolvedValue(senderAccount as never);
+			let receivedError;
+			try {
+				// Act
+				await sequenceModule.afterTransactionApply({
+					stateStore: stateStoreMock as any,
+					reducerHandler: reducerMock,
+					tx,
+				});
+			} catch (error) {
+				receivedError = error;
+			}
+			// Assert
+			expect(receivedError).toBeInstanceOf(SequenceModuleError);
+			expect(receivedError.moduleName).toEqual('sequence');
+			expect(receivedError.message).toContain(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
+					'base64',
+				)}, Tx Nonce: ${tx.nonce.toString()}, Account Nonce: ${senderAccount.nonce.toString()}`,
+			);
+			expect(receivedError.actual).toEqual(tx.nonce.toString());
+			expect(receivedError.expected).toEqual(senderAccount.nonce.toString());
+		});
+	});
+
+	describe('valid nonce', () => {
+		it('should increment account nonce', async () => {
+			// Arrange
+			const updatedAccount = { ...senderAccount };
+			when(stateStoreMock.account.getOrDefault)
+				.calledWith()
+				.mockResolvedValue(updatedAccount as never);
+
+			// Act
+			await sequenceModule.afterTransactionApply({
+				stateStore: stateStoreMock as any,
+				reducerHandler: reducerMock,
+				tx: sampleTx,
+			});
+
+			// Assert
+			expect(updatedAccount.nonce).toEqual(senderAccount.nonce + BigInt(1));
+			expect(stateStoreMock.account.set).toHaveBeenCalledTimes(1);
+			expect(stateStoreMock.account.set).toHaveBeenCalledWith(senderAddress, updatedAccount);
+		});
+	});
+});
