@@ -16,11 +16,15 @@ import { codec } from '@liskhq/lisk-codec';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
-import { BlockHeader, Chain, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '@liskhq/lisk-chain';
+import {
+	BlockHeader,
+	Chain,
+	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+	getValidators,
+} from '@liskhq/lisk-chain';
 import { EVENT_BFT_FINALIZED_HEIGHT_CHANGED, FinalityManager } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
 import { BFTPersistedValues, ForkStatus, StateStore } from './types';
-import { getValidators } from './utils/validators';
 
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
@@ -80,7 +84,7 @@ export class BFT extends EventEmitter {
 		return this._finalityManager as FinalityManager;
 	}
 
-	public async addNewBlock(block: BlockHeader, stateStore: StateStore): Promise<void> {
+	public async applyBlockHeader(block: BlockHeader, stateStore: StateStore): Promise<void> {
 		await this.finalityManager.addBlockHeader(block, stateStore);
 		const { finalizedHeight } = this.finalityManager;
 
@@ -90,7 +94,18 @@ export class BFT extends EventEmitter {
 		);
 	}
 
-	public async verifyNewBlock(blockHeader: BlockHeader, stateStore: StateStore): Promise<boolean> {
+	public async verifyBlockHeader(
+		blockHeader: BlockHeader,
+		stateStore: StateStore,
+	): Promise<boolean> {
+		const isCompliant = await this.isBFTProtocolCompliant(blockHeader, stateStore);
+		const reward = this._chain.calculateReward(blockHeader.height);
+		const expectedReward = isCompliant ? reward : reward / BigInt(4);
+		if (blockHeader.reward !== expectedReward) {
+			throw new Error(
+				`Invalid block reward: ${blockHeader.reward.toString()} expected: ${expectedReward.toString()}`,
+			);
+		}
 		return this.finalityManager.verifyBlockHeaders(blockHeader, stateStore);
 	}
 

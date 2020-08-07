@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { BlockHeader, Chain } from '@liskhq/lisk-chain';
+import { BlockHeader, Chain, getValidators } from '@liskhq/lisk-chain';
 import * as assert from 'assert';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
@@ -27,7 +27,6 @@ import {
 	BFTInvalidAttributeError,
 	BFTLowerChainBranchError,
 } from './types';
-import { getValidators } from './utils/validators';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:bft:consensus_manager');

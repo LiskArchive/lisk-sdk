@@ -25,10 +25,7 @@ export {
 	signingBlockHeaderSchema,
 	validatorsSchema,
 } from './schema';
-export {
-	CONSENSUS_STATE_VALIDATORS_KEY,
-	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
-} from './constants';
+export { CONSENSUS_STATE_VALIDATORS_KEY, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from './constants';
 export type {
 	Account,
 	AccountDefaultProps,
@@ -42,6 +39,6 @@ export type {
 	AccountSchema,
 } from './types';
 export { Slots } from './slots';
-export { readGenesisBlockJSON } from './utils';
+export { readGenesisBlockJSON, getValidators } from './utils';
 
 export type { StateStore } from './state_store';

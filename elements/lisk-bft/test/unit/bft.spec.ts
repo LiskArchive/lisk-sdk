@@ -30,8 +30,6 @@ import {
 import { BFT, BFTPersistedValues, BFTFinalizedHeightCodecSchema } from '../../src';
 import { StateStoreMock } from '../utils/state_store_mock';
 
-jest.mock('@liskhq/lisk-chain');
-
 const generateBlocks = ({
 	startHeight,
 	numberOfBlocks,
@@ -129,7 +127,7 @@ describe('bft', () => {
 			});
 		});
 
-		describe('#addNewBlock', () => {
+		describe('#applyBlockHeader', () => {
 			const block1 = createFakeBlockHeader({ height: 2, version: 2 });
 			const lastFinalizedHeight = 5;
 			const validatorAddress = getAddressFromPublicKey(block1.generatorPublicKey);
@@ -183,7 +181,7 @@ describe('bft', () => {
 
 			describe('when valid block which does not change the finality is added', () => {
 				it('should update the latest finalized height to storage', async () => {
-					await bft.addNewBlock(block1, stateStore);
+					await bft.applyBlockHeader(block1, stateStore);
 					const finalizedHeightBuffer =
 						(await stateStore.consensus.get(CONSENSUS_STATE_FINALIZED_HEIGHT_KEY)) ??
 						Buffer.from('00');
