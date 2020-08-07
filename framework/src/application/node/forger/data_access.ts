@@ -12,12 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { BufferMap } from '@liskhq/lisk-chain';
+import { dataStructures } from '@liskhq/lisk-utils';
+import { BlockHeader } from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	DB_KEY_FORGER_USED_HASH_ONION,
 	DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
+	DB_KEY_FORGER_PREVIOUSLY_FORGED,
 } from './constant';
 
 export const registeredHashOnionsStoreSchema = {
@@ -110,27 +113,29 @@ export interface ForgedInfo {
 	maxHeightPreviouslyForged: number;
 }
 
-export const getRegisteredHashOnionSeeds = async (db: KVStore): Promise<BufferMap<Buffer>> => {
+export const getRegisteredHashOnionSeeds = async (
+	db: KVStore,
+): Promise<dataStructures.BufferMap<Buffer>> => {
 	try {
 		const registeredHashes = codec.decode<RegisteredHashOnionStoreObject>(
 			registeredHashOnionsStoreSchema,
 			await db.get(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS),
 		);
 
-		const result = new BufferMap<Buffer>();
+		const result = new dataStructures.BufferMap<Buffer>();
 		for (const registeredHash of registeredHashes.registeredHashOnions) {
 			result.set(registeredHash.address, registeredHash.seedHash);
 		}
 
 		return result;
 	} catch (error) {
-		return new BufferMap<Buffer>();
+		return new dataStructures.BufferMap<Buffer>();
 	}
 };
 
 export const setRegisteredHashOnionSeeds = async (
 	db: KVStore,
-	registeredHashOnionSeeds: BufferMap<Buffer>,
+	registeredHashOnionSeeds: dataStructures.BufferMap<Buffer>,
 ): Promise<void> => {
 	const savingData: RegisteredHashOnionStoreObject = {
 		registeredHashOnions: [],
@@ -168,4 +173,57 @@ export const setUsedHashOnions = async (
 		DB_KEY_FORGER_USED_HASH_ONION,
 		codec.encode(usedHashOnionsStoreSchema, usedHashOnionObject),
 	);
+};
+
+export const getPreviouslyForgedMap = async (
+	db: KVStore,
+): Promise<dataStructures.BufferMap<ForgedInfo>> => {
+	try {
+		const previouslyForgedBuffer = await db.get(DB_KEY_FORGER_PREVIOUSLY_FORGED);
+		const parsedMap = JSON.parse(previouslyForgedBuffer.toString('utf8')) as {
+			[address: string]: ForgedInfo;
+		};
+		const result = new dataStructures.BufferMap<ForgedInfo>();
+		for (const address of Object.keys(parsedMap)) {
+			result.set(Buffer.from(address, 'binary'), parsedMap[address]);
+		}
+		return result;
+	} catch (error) {
+		if (!(error instanceof NotFoundError)) {
+			throw error;
+		}
+		return new dataStructures.BufferMap<ForgedInfo>();
+	}
+};
+
+/**
+ * Saving a height which delegate last forged. this needs to be saved before broadcasting
+ * so it needs to be outside of the DB transaction
+ */
+export const saveMaxHeightPreviouslyForged = async (
+	db: KVStore,
+	header: BlockHeader,
+	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
+): Promise<void> => {
+	const generatorAddress = getAddressFromPublicKey(header.generatorPublicKey);
+	// In order to compare with the minimum height in case of the first block, here it should be 0
+	const previouslyForged = previouslyForgedMap.get(generatorAddress);
+	const previouslyForgedHeightByDelegate = previouslyForged?.height ?? 0;
+	// previously forged height only saves maximum forged height
+	if (header.height <= previouslyForgedHeightByDelegate) {
+		return;
+	}
+	previouslyForgedMap.set(generatorAddress, {
+		height: header.height,
+		maxHeightPrevoted: header.asset.maxHeightPrevoted,
+		maxHeightPreviouslyForged: header.asset.maxHeightPreviouslyForged,
+	});
+
+	const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
+	for (const [key, value] of previouslyForgedMap.entries()) {
+		parsedPreviouslyForgedMap[key.toString('binary')] = value;
+	}
+
+	const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
+	await db.put(DB_KEY_FORGER_PREVIOUSLY_FORGED, Buffer.from(previouslyForgedStr, 'utf8'));
 };

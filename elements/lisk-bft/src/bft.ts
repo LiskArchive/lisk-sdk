@@ -97,7 +97,7 @@ export class BFT extends EventEmitter {
 	public async verifyBlockHeader(
 		blockHeader: BlockHeader,
 		stateStore: StateStore,
-	): Promise<boolean> {
+	): Promise<void> {
 		const isCompliant = await this.isBFTProtocolCompliant(blockHeader, stateStore);
 		const reward = this._chain.calculateReward(blockHeader.height);
 		const expectedReward = isCompliant ? reward : reward / BigInt(4);
@@ -106,7 +106,7 @@ export class BFT extends EventEmitter {
 				`Invalid block reward: ${blockHeader.reward.toString()} expected: ${expectedReward.toString()}`,
 			);
 		}
-		return this.finalityManager.verifyBlockHeaders(blockHeader, stateStore);
+		await this.finalityManager.verifyBlockHeaders(blockHeader, stateStore);
 	}
 
 	public forkChoice(blockHeader: BlockHeader, lastBlockHeader: BlockHeader): ForkStatus {

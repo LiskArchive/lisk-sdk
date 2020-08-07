@@ -13,8 +13,9 @@
  */
 
 import { Schema, codec } from '@liskhq/lisk-codec';
+import { objects } from '@liskhq/lisk-utils';
 import { GenesisBlock, AccountSchema } from '../types';
-import { baseAccountSchema, getGenesisBlockHeaderAssetSchema } from '../schema';
+import { baseAccountSchema, getGenesisBlockHeaderAssetSchema, blockSchema, blockHeaderSchema } from '../schema';
 
 export const readGenesisBlockJSON = (
 	genesisBlockJSON: Record<string, unknown>,
@@ -26,6 +27,27 @@ export const readGenesisBlockJSON = (
 	for (const [name, schema] of Object.entries(accounts)) {
 		accountSchema.properties[name] = schema;
 	}
-	const genesisBlockSchema = getGenesisBlockHeaderAssetSchema(accountSchema);
-	return codec.fromJSON(genesisBlockSchema, genesisBlockJSON);
+	const genesisBlockSchema = {
+		...blockSchema,
+		properties: {
+			...blockSchema.properties,
+			header: {
+				...blockHeaderSchema,
+				properties: {
+					...blockHeaderSchema.properties,
+					asset: {
+						...blockHeaderSchema.properties.asset,
+						...getGenesisBlockHeaderAssetSchema(accountSchema),
+					},
+				},
+			},
+		},
+	};
+	const cloned = objects.cloneDeep(genesisBlockJSON);
+
+	if (typeof cloned.header === 'object' && cloned.header !== null) {
+		// eslint-disable-next-line no-param-reassign
+		delete (cloned as { header: { id: unknown }}).header.id;
+	}
+	return codec.fromJSON(genesisBlockSchema, cloned);
 };

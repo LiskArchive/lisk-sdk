@@ -12,41 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable class-methods-use-this */
-
-import { Block, Transaction } from '@liskhq/lisk-chain';
-import { GenesisBlock } from '@liskhq/lisk-genesis';
-import { GenesisConfig, Consensus, AccountSchema } from '../types';
-import { BaseAsset, ReducerHandler, StateStore } from './base_asset';
-
-interface Reducers {
-	[key: string]: (params: Record<string, unknown>, stateStore: StateStore) => Promise<unknown>;
-}
-
-interface Actions {
-	[key: string]: (params: Record<string, unknown>) => Promise<unknown>;
-}
-
-export interface TransactionApplyInput {
-	transaction: Transaction;
-	stateStore: StateStore;
-	reducerHandler: ReducerHandler;
-}
-
-export interface AfterGenesisBlockApplyInput<T = unknown> {
-	genesisBlock: GenesisBlock<T>;
-	stateStore: StateStore;
-	reducerHandler: ReducerHandler;
-}
-
-export interface BeforeBlockApplyInput {
-	block: Block;
-	stateStore: StateStore;
-	reducerHandler: ReducerHandler;
-}
-
-export interface AfterBlockApplyInput extends BeforeBlockApplyInput {
-	consensus: Consensus;
-}
+import {
+	GenesisConfig,
+	AccountSchema,
+	TransactionApplyInput,
+	AfterBlockApplyInput,
+	BeforeBlockApplyInput,
+	AfterGenesisBlockApplyInput,
+	Reducers,
+	Actions,
+} from '../types';
+import { BaseAsset } from './base_asset';
 
 export abstract class BaseModule<T = unknown> {
 	public readonly config: GenesisConfig;
