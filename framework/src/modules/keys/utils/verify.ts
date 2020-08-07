@@ -38,7 +38,7 @@ export const validateSignature = (
 	}
 };
 
-const validateKeysSignatures = (
+export const validateKeysSignatures = (
 	keys: ReadonlyArray<Buffer>,
 	signatures: ReadonlyArray<Buffer>,
 	transactionBytes: Buffer,

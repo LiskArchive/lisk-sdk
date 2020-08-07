@@ -19,3 +19,9 @@ export interface AccountKeyAsset {
 		numberOfSignatures: number;
 	};
 }
+
+export interface DecodedAsset {
+	numberOfSignatures: number;
+	mandatoryKeys: Buffer[];
+	optionalKeys: Buffer[];
+}

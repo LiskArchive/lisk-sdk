@@ -14,6 +14,7 @@
 /* eslint-disable class-methods-use-this */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BaseAsset, ApplyAssetInput, StateStore, ValidateAssetInput } from '../base_asset';
+import { KeysSchema } from './schemas';
 
 interface Asset {
 	mandatoryKeys: Array<Readonly<Buffer>>;
@@ -52,44 +53,12 @@ const hasDuplicateKey = (keys: Buffer[]): boolean => {
 	return false;
 };
 
+export const RegisterAssetType = 0;
+
 export class RegisterAsset extends BaseAsset {
 	public name = 'register';
-	public type = 0;
-	public assetSchema = {
-		$id: 'lisk/keys/register',
-		type: 'object',
-		required: ['numberOfSignatures', 'optionalKeys', 'mandatoryKeys'],
-		properties: {
-			numberOfSignatures: {
-				dataType: 'uint32',
-				fieldNumber: 1,
-				minimum: 1,
-				maximum: 64,
-			},
-			mandatoryKeys: {
-				type: 'array',
-				items: {
-					dataType: 'bytes',
-				},
-				fieldNumber: 2,
-				minItems: 0,
-				maxItems: 64,
-				minLength: 32,
-				maxLength: 32,
-			},
-			optionalKeys: {
-				type: 'array',
-				items: {
-					dataType: 'bytes',
-				},
-				fieldNumber: 3,
-				minItems: 0,
-				maxItems: 64,
-				minLength: 32,
-				maxLength: 32,
-			},
-		},
-	};
+	public type = RegisterAssetType;
+	public assetSchema = KeysSchema;
 	private readonly MAX_KEYS_COUNT = 64;
 
 	public validateAsset({ asset, transaction }: ValidateAssetInput<Asset>): void {
