@@ -13,6 +13,8 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { objects as ObjectUtils } from '@liskhq/lisk-utils';
+import { LiskValidationError } from '@liskhq/lisk-validator';
 import { AccountKeyAsset, DecodedAsset } from './types';
 import {
 	isMultisignatureAccount,
@@ -20,9 +22,11 @@ import {
 	validateSignature,
 	verifyMultiSignatureTransaction,
 } from './utils';
-import { BaseModule, TransactionApplyInput } from '../base_module';
+import { AfterGenesisBlockApplyInput, BaseModule, TransactionApplyInput } from '../base_module';
 import { RegisterAssetType } from './register_asset';
 import { KeysSchema } from './schemas';
+
+const { bufferArrayOrderByLex, bufferArrayUniqueItems, bufferArrayContainsSome } = ObjectUtils;
 
 export class KeysModule extends BaseModule {
 	public name = 'keys';
@@ -114,5 +118,104 @@ export class KeysModule extends BaseModule {
 		}
 
 		verifyMultiSignatureTransaction(id, sender, signatures, transactionWithNetworkIdentifierBytes);
+	}
+
+	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
+	public async afterGenesisBlockApply({
+		genesisBlock,
+	}: AfterGenesisBlockApplyInput): Promise<void> {
+		const errors = [];
+		for (const account of genesisBlock.header.asset.accounts) {
+			if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {
+				errors.push({
+					message: 'should be lexicographically ordered',
+					keyword: 'mandatoryKeys',
+					dataPath: '.accounts[0].keys.mandatoryKeys',
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
+					params: { mandatoryKeys: account.keys.mandatoryKeys },
+				});
+			}
+
+			if (!bufferArrayUniqueItems(account.keys.mandatoryKeys)) {
+				errors.push({
+					dataPath: '.accounts[0].keys.mandatoryKeys',
+					keyword: 'uniqueItems',
+					message: 'should NOT have duplicate items',
+					params: {},
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/mandatoryKeys/uniqueItems',
+				});
+			}
+
+			if (!bufferArrayOrderByLex(account.keys.optionalKeys)) {
+				errors.push({
+					message: 'should be lexicographically ordered',
+					keyword: 'optionalKeys',
+					dataPath: '.accounts[0].keys.optionalKeys',
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/optionalKeys',
+					params: { optionalKeys: account.keys.optionalKeys },
+				});
+			}
+
+			if (!bufferArrayUniqueItems(account.keys.optionalKeys)) {
+				errors.push({
+					dataPath: '.accounts[0].keys.optionalKeys',
+					keyword: 'uniqueItems',
+					message: 'should NOT have duplicate items',
+					params: {},
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
+				});
+			}
+
+			if (bufferArrayContainsSome(account.keys.mandatoryKeys, account.keys.optionalKeys)) {
+				errors.push({
+					dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+					keyword: 'uniqueItems',
+					message: 'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+					params: {},
+					schemaPath: '#/properties/accounts/items/properties/keys',
+				});
+			}
+
+			if (account.keys.mandatoryKeys.length + account.keys.optionalKeys.length > 64) {
+				errors.push({
+					dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+					keyword: 'maxItems',
+					message: 'should not have more than 64 keys',
+					params: { maxItems: 64 },
+					schemaPath: '#/properties/accounts/items/properties/keys',
+				});
+			}
+
+			if (account.keys.numberOfSignatures < account.keys.mandatoryKeys.length) {
+				errors.push({
+					dataPath: '.accounts[0].keys.numberOfSignatures',
+					keyword: 'min',
+					message: 'should be minimum of length of mandatoryKeys',
+					params: { min: account.keys.mandatoryKeys.length },
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+				});
+			}
+
+			if (
+				account.keys.numberOfSignatures >
+				account.keys.mandatoryKeys.length + account.keys.optionalKeys.length
+			) {
+				errors.push({
+					dataPath: '.accounts[0].keys.numberOfSignatures',
+					keyword: 'max',
+					message: 'should be maximum of length of mandatoryKeys and optionalKeys',
+					params: {
+						max: account.keys.mandatoryKeys.length + account.keys.optionalKeys.length,
+					},
+					schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+				});
+			}
+		}
+
+		if (errors.length) {
+			throw new LiskValidationError(errors);
+		}
 	}
 }
