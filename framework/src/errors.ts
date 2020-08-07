@@ -73,3 +73,45 @@ export class ValidationError extends Error {
 		Error.captureStackTrace(this, FrameworkError);
 	}
 }
+
+export class SequenceModuleError extends Error {
+	public message: string;
+	public txId: Buffer;
+	public dataPath: string;
+	public actual?: string | number;
+	public expected?: string | number;
+	public moduleName: string;
+	public constructor(
+		message = '',
+		moduleName: string,
+		txId = Buffer.from(''),
+		dataPath = '',
+		actual?: string | number,
+		expected?: string | number,
+	) {
+		super();
+		this.message = message;
+		this.name = 'SequenceModuleError';
+		this.txId = txId;
+		this.dataPath = dataPath;
+		this.actual = actual;
+		this.expected = expected;
+		this.moduleName = moduleName;
+	}
+
+	public toString(): string {
+		const defaultMessage = `Transaction: ${this.txId.toString('base64')} failed at ${
+			this.dataPath
+		}: ${this.message}`;
+		const withActual = this.actual
+			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			  `${defaultMessage}, actual: ${this.actual}`
+			: defaultMessage;
+		const withExpected = this.expected
+			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			  `${withActual}, expected: ${this.expected}`
+			: withActual;
+
+		return withExpected;
+	}
+}
