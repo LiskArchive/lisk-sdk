@@ -12,5 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './sequence_module';
-export * from './errors';
+import { FrameworkError } from '../../errors';
+
+export class InvalidNonceError extends FrameworkError {
+	public code = 'ERR_INVALID_NONCE';
+	public actual: string;
+	public expected: string;
+	public constructor(message: string, actual: bigint, expected: bigint) {
+		super(message);
+		this.actual = actual.toString();
+		this.expected = expected.toString();
+	}
+}
