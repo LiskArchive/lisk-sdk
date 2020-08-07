@@ -44,9 +44,7 @@ export class SequenceModule extends BaseModule {
 	// eslint-disable-next-line class-methods-use-this
 	public async beforeTransactionApply({ tx, stateStore }: TransactionApplyInput): Promise<void> {
 		const senderAddress = getAddressFromPublicKey(tx.senderPublicKey);
-		const senderAccount = await stateStore.account.getOrDefault<Account<SequenceAccount>>(
-			senderAddress,
-		);
+		const senderAccount = await stateStore.account.get<Account<SequenceAccount>>(senderAddress);
 
 		// Throw error when tx nonce is lower than the account nonce
 		if (tx.nonce < senderAccount.sequence.nonce) {
@@ -61,9 +59,7 @@ export class SequenceModule extends BaseModule {
 	// eslint-disable-next-line class-methods-use-this
 	public async afterTransactionApply({ tx, stateStore }: TransactionApplyInput): Promise<void> {
 		const senderAddress = getAddressFromPublicKey(tx.senderPublicKey);
-		const senderAccount = await stateStore.account.getOrDefault<Account<SequenceAccount>>(
-			senderAddress,
-		);
+		const senderAccount = await stateStore.account.get<Account<SequenceAccount>>(senderAddress);
 
 		// Throw error when tx nonce is not equal to account nonce
 		if (tx.nonce !== senderAccount.sequence.nonce) {

@@ -65,7 +65,7 @@ describe('sequence module', () => {
 
 	const stateStoreMock = new testingUtils.StateStoreMock({ accounts: [senderAccount] });
 
-	stateStoreMock.account.getOrDefault = jest.fn();
+	stateStoreMock.account.get = jest.fn();
 	stateStoreMock.account.set = jest.fn();
 
 	const reducerMock = { invoke: jest.fn() };
@@ -80,7 +80,7 @@ describe('sequence module', () => {
 		it('should throw NonceOutOfBoundsError error for tx nonce lower than account nonce', async () => {
 			// Arrange
 			const tx = { ...sampleTx, nonce: BigInt(0) };
-			when(stateStoreMock.account.getOrDefault as any)
+			when(stateStoreMock.account.get as any)
 				.calledWith()
 				.mockResolvedValue(senderAccount as never);
 
@@ -108,7 +108,7 @@ describe('sequence module', () => {
 		it('should throw NonceOutOfBoundsError error for tx nonce not equal to account nonce', async () => {
 			// Arrange
 			const tx = { ...sampleTx, nonce: BigInt(4) };
-			when(stateStoreMock.account.getOrDefault as any)
+			when(stateStoreMock.account.get as any)
 				.calledWith()
 				.mockResolvedValue(senderAccount as never);
 			let receivedError;
@@ -137,7 +137,7 @@ describe('sequence module', () => {
 		it('should increment account nonce', async () => {
 			// Arrange
 			const updatedAccount = { ...senderAccount, sequence: { ...senderAccount.sequence } };
-			when(stateStoreMock.account.getOrDefault as any)
+			when(stateStoreMock.account.get as any)
 				.calledWith()
 				.mockResolvedValue(updatedAccount as never);
 
