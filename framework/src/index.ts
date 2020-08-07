@@ -13,12 +13,17 @@
  */
 
 export {
+	AfterGenesisBlockApplyInput,
+	AfterBlockApplyInput,
 	ApplyAssetInput,
 	BaseModule,
 	BaseAsset,
+	BeforeBlockApplyInput,
 	ReducerHandler,
 	StateStore,
 	Transaction,
+	TransactionApplyInput,
+	ValidateAssetInput,
 } from './modules';
 export { Application } from './application';
 export { version } from './version';
