@@ -25,6 +25,27 @@ export interface DelegatePersistedUsernames {
 	readonly registeredDelegates: RegisteredDelegate[];
 }
 
-export interface DPOSAccount {
-	dpos: { delegate: { username: string; lastForgedHeight: number } };
+export interface UnlockingAccountAsset {
+	readonly delegateAddress: Buffer;
+	readonly amount: bigint;
+	readonly unvoteHeight: number;
+}
+
+export interface DPOSAccountProps {
+	dpos: {
+		delegate: {
+			username: string;
+			pomHeights: [];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: bigint;
+		};
+		sentVotes: {
+			readonly delegateAddress: Buffer;
+			amount: bigint;
+		}[];
+
+		unlocking: UnlockingAccountAsset[];
+	};
 }

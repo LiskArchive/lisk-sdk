@@ -16,7 +16,7 @@ import { ApplyAssetInput, BaseAsset, ValidateAssetInput } from '../../base_asset
 import { ValidationError } from '../../../errors';
 import { DELEGATE_NAME_FEE } from '../constants';
 import { getRegisteredDelegates, setRegisteredDelegates } from '../utils';
-import { DPOSAccount } from '../types';
+import { DPOSAccountProps } from '../types';
 
 const isNullCharacterIncluded = (input: string): boolean =>
 	new RegExp(/\\0|\\u0000|\\x00/).test(input);
@@ -72,7 +72,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		senderID,
 		stateStore,
 	}: ApplyAssetInput<RegisterTransactionAssetInput>): Promise<void> {
-		const sender = await stateStore.account.get<DPOSAccount>(senderID);
+		const sender = await stateStore.account.get<DPOSAccountProps>(senderID);
 
 		if (sender.dpos.delegate.username) {
 			throw new Error('Account is already a delegate');
@@ -98,6 +98,6 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 
 		sender.dpos.delegate.username = asset.username;
 		sender.dpos.delegate.lastForgedHeight = stateStore.chain.lastBlockHeaders[0].height + 1;
-		stateStore.account.set<DPOSAccount>(sender.address, sender);
+		stateStore.account.set<DPOSAccountProps>(sender.address, sender);
 	}
 }

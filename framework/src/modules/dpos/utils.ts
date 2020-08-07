@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { StateStore } from '../base_asset';
-import { DelegatePersistedUsernames, RegisteredDelegates } from './types';
+import { DelegatePersistedUsernames, RegisteredDelegates, UnlockingAccountAsset } from './types';
 import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
 
 const delegatesUserNamesSchema = {
@@ -75,4 +75,24 @@ export const setRegisteredDelegates = (
 		CHAIN_STATE_DELEGATE_USERNAMES,
 		codec.encode(delegatesUserNamesSchema, usernames),
 	);
+};
+
+export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
+	unlocks.sort((a, b) => {
+		if (!a.delegateAddress.equals(b.delegateAddress)) {
+			return a.delegateAddress.compare(b.delegateAddress);
+		}
+		if (a.unvoteHeight !== b.unvoteHeight) {
+			return b.unvoteHeight - a.unvoteHeight;
+		}
+		const diff = b.amount - a.amount;
+		if (diff > BigInt(0)) {
+			return 1;
+		}
+		if (diff < BigInt(0)) {
+			return -1;
+		}
+
+		return 0;
+	});
 };
