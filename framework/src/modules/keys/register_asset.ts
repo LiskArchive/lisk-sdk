@@ -15,19 +15,12 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BaseAsset, ApplyAssetInput, StateStore, ValidateAssetInput } from '../base_asset';
 import { KeysSchema } from './schemas';
+import { AccountKeyAsset } from './types';
 
 interface Asset {
 	mandatoryKeys: Array<Readonly<Buffer>>;
 	optionalKeys: Array<Readonly<Buffer>>;
 	readonly numberOfSignatures: number;
-}
-
-interface AccountKeys {
-	keys: {
-		mandatoryKeys: Array<Readonly<Buffer>>;
-		optionalKeys: Array<Readonly<Buffer>>;
-		readonly numberOfSignatures: number;
-	};
 }
 
 const setMemberAccounts = async (
@@ -127,7 +120,7 @@ export class RegisterAsset extends BaseAsset {
 
 	// eslint-disable-next-line
 	public async applyAsset({ asset, stateStore, senderID }: ApplyAssetInput<Asset>): Promise<void> {
-		const sender = await stateStore.account.get<AccountKeys>(senderID);
+		const sender = await stateStore.account.get<AccountKeyAsset>(senderID);
 
 		// Check if multisignatures already exists on account
 		if (sender.keys.numberOfSignatures > 0) {
@@ -140,7 +133,7 @@ export class RegisterAsset extends BaseAsset {
 			optionalKeys: asset.optionalKeys as Buffer[],
 		};
 
-		stateStore.account.set<AccountKeys>(sender.address, sender);
+		stateStore.account.set<AccountKeyAsset>(sender.address, sender);
 
 		// Cache all members public keys
 		await setMemberAccounts(stateStore, sender.keys.mandatoryKeys);

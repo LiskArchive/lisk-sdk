@@ -78,12 +78,14 @@ export class KeysModule extends BaseModule {
 
 		// This is for registration of multisignature that requires all signatures
 		if (moduleType === this.type && assetType === RegisterAssetType) {
-			const decodedAsset = codec.decode(KeysSchema, asset);
-			const { mandatoryKeys, optionalKeys } = decodedAsset as DecodedAsset;
+			const { mandatoryKeys, optionalKeys } = codec.decode<DecodedAsset>(KeysSchema, asset);
 
 			// For multisig registration we need all signatures to be present
-			if (mandatoryKeys.length + optionalKeys.length + 1 !== signatures.length) {
-				throw new Error('There are missing signatures');
+			const numberOfExpectedKeys = mandatoryKeys.length + optionalKeys.length + 1;
+			if (numberOfExpectedKeys !== signatures.length) {
+				throw new Error(
+					`There are missing signatures. Expected: ${numberOfExpectedKeys} signatures but got: ${signatures.length}`,
+				);
 			}
 
 			// Check if empty signatures are present
