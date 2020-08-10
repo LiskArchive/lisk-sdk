@@ -15,7 +15,6 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BFT } from '@liskhq/lisk-bft';
 import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
-import { Dpos } from '@liskhq/lisk-dpos';
 import { BaseSynchronizer, EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './base_synchronizer';
 import { clearBlocksTempTable, restoreBlocks, deleteBlocksAfterHeight } from './utils';
 import {
@@ -33,7 +32,6 @@ interface FastChainSwitchingMechanismInput {
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
 	readonly bft: BFT;
-	readonly dpos: Dpos;
 	readonly chain: Chain;
 	readonly processor: Processor;
 	readonly networkModule: Network;
@@ -41,7 +39,6 @@ interface FastChainSwitchingMechanismInput {
 
 export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	private readonly bft: BFT;
-	private readonly dpos: Dpos;
 	private readonly processor: Processor;
 
 	public constructor({
@@ -50,11 +47,9 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		chain,
 		bft,
 		processor,
-		dpos,
 		networkModule,
 	}: FastChainSwitchingMechanismInput) {
 		super(logger, channel, chain, networkModule);
-		this.dpos = dpos;
 		this._chain = chain;
 		this.bft = bft;
 		this.processor = processor;
@@ -66,7 +61,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		try {
 			const highestCommonBlock = await this._requestLastCommonBlock(peerId);
 			const blocks = await this._queryBlocks(receivedBlock, highestCommonBlock, peerId);
-			await this._validateBlocks(blocks, peerId);
+			this._validateBlocks(blocks, peerId);
 			await this._switchChain(highestCommonBlock as BlockHeader, blocks, peerId);
 			this.active = false;
 		} catch (err) {
@@ -107,7 +102,6 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async isValidFor(receivedBlock: Block, peerId: string): Promise<boolean> {
 		if (!peerId) {
 			// If peerId is not specified, fast chain switching cannot be done
@@ -116,14 +110,19 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const { lastBlock } = this._chain;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const twoRounds = this.dpos.delegatesPerRound * 2;
+		const twoRounds = this._chain.numberOfValidators * 2;
 		if (Math.abs(receivedBlock.header.height - lastBlock.header.height) > twoRounds) {
 			return false;
 		}
 
 		const generatorAddress = getAddressFromPublicKey(receivedBlock.header.generatorPublicKey);
 
-		return this.dpos.isActiveDelegate(generatorAddress, receivedBlock.header.height);
+		const validators = await this._chain.getValidators();
+
+		return (
+			validators.find(v => v.address.equals(generatorAddress) && v.isConsensusParticipant) !==
+			undefined
+		);
 	}
 
 	private async _requestBlocksWithinIDs(
@@ -178,11 +177,13 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 		if (
 			this._chain.lastBlock.header.height - highestCommonBlock.height >
-				this.dpos.delegatesPerRound * 2 ||
-			receivedBlock.header.height - highestCommonBlock.height > this.dpos.delegatesPerRound * 2
+				this._chain.numberOfValidators * 2 ||
+			receivedBlock.header.height - highestCommonBlock.height > this._chain.numberOfValidators * 2
 		) {
 			throw new AbortError(
-				`Height difference between both chains is higher than ${this.dpos.delegatesPerRound * 2}`,
+				`Height difference between both chains is higher than ${
+					this._chain.numberOfValidators * 2
+				}`,
 			);
 		}
 
@@ -213,7 +214,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return blocks;
 	}
 
-	private async _validateBlocks(blocks: ReadonlyArray<Block>, peerId: string): Promise<void> {
+	private _validateBlocks(blocks: ReadonlyArray<Block>, peerId: string): void {
 		this._logger.debug(
 			{
 				blocks: blocks.map(block => ({
@@ -232,7 +233,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 					},
 					'Validating block',
 				);
-				await this.processor.validate(block);
+				this.processor.validate(block);
 			}
 		} catch (err) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');
@@ -331,7 +332,9 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	}
 
 	private _computeLastTwoRoundsHeights(): number[] {
-		return new Array(Math.min(this.dpos.delegatesPerRound * 2, this._chain.lastBlock.header.height))
+		return new Array(
+			Math.min(this._chain.numberOfValidators * 2, this._chain.lastBlock.header.height),
+		)
 			.fill(0)
 			.map((_, index) => this._chain.lastBlock.header.height - index);
 	}

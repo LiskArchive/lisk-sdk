@@ -31,7 +31,8 @@ import {
 	blockHeaderAssetSchema,
 	getGenesisBlockHeaderAssetSchema,
 } from '../../src/schema';
-import { defaultAccountSchema } from './account';
+import { defaultAccountSchema, defaultAccountModules } from './account';
+import { readGenesisBlockJSON } from '../../src';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
@@ -61,10 +62,10 @@ export const genesisBlock: GenesisBlock = {
 			accounts: genesis.header.asset.accounts.map(account => ({
 				address: Buffer.from(account.address, 'base64'),
 				token: {
-					balance: BigInt(account.balance),
+					balance: BigInt(account.token?.balance),
 				},
 				sequence: {
-					nonce: BigInt(account.nonce),
+					nonce: BigInt(account.sequence.nonce),
 				},
 				keys: {
 					mandatoryKeys: account.keys.mandatoryKeys.map(key => Buffer.from(key, 'base64')),
@@ -73,14 +74,14 @@ export const genesisBlock: GenesisBlock = {
 				},
 				dpos: {
 					delegate: {
-						...account.asset.delegate,
-						totalVotesReceived: BigInt(account.asset.delegate.totalVotesReceived),
+						...account.dpos.delegate,
+						totalVotesReceived: BigInt(account.dpos.delegate.totalVotesReceived),
 					},
-					sentVotes: account.asset.sentVotes.map(vote => ({
+					sentVotes: account.dpos.sentVotes.map(vote => ({
 						delegateAddress: Buffer.from(vote.delegateAddress, 'base64'),
 						amount: BigInt(vote.amount),
 					})),
-					unlocking: account.asset.unlocking.map(
+					unlocking: account.dpos.unlocking.map(
 						(unlock: { delegateAddress: string; amount: string; unvoteHeight: string }) => ({
 							delegateAddress: Buffer.from(unlock.delegateAddress, 'base64'),
 							amount: BigInt(unlock.amount),
@@ -188,3 +189,9 @@ export const registeredBlockHeaders = {
 	0: genesisBlockAssetSchema,
 	2: blockHeaderAssetSchema,
 };
+
+try {
+	readGenesisBlockJSON(genesis, defaultAccountModules);
+} catch (error) {
+	console.error(error);
+}

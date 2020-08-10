@@ -358,6 +358,13 @@ export class Processor {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		await this._bft.verifyBlockHeader(block.header, stateStore);
 
+		if (!skipBroadcast) {
+			// FIXME: this is using instance, use event emitter instead
+			this.events.emit(EVENT_PROCESSOR_BROADCAST_BLOCK, {
+				block,
+			});
+		}
+
 		await this._hooks.beforeBlockApply.run({
 			block,
 			stateStore,
@@ -372,13 +379,6 @@ export class Processor {
 					tx: transaction,
 				});
 			}
-		}
-
-		if (!skipBroadcast) {
-			// FIXME: this is using instance, use event emitter instead
-			this.events.emit(EVENT_PROCESSOR_BROADCAST_BLOCK, {
-				block,
-			});
 		}
 
 		if (block.payload.length) {

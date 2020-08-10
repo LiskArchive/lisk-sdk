@@ -14,30 +14,24 @@
 
 import { when } from 'jest-when';
 import { KVStore } from '@liskhq/lisk-db';
-import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
+import { Block, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
-import { Dpos } from '@liskhq/lisk-dpos';
-
-import { BlockProcessorV2 } from '../../../../../../../src/application/node/block_processor_v2';
+import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
 	FastChainSwitchingMechanism,
 	Errors,
 } from '../../../../../../../src/application/node/synchronizer';
 import { Processor } from '../../../../../../../src/application/node/processor';
 import { constants } from '../../../../../../utils';
-import { registeredTransactions } from '../../../../../../utils/registered_transactions';
 import {
 	defaultNetworkIdentifier,
 	genesisBlock as getGenesisBlock,
 	createValidDefaultBlock,
 	createFakeBlockHeader,
 	encodeValidBlockHeader,
+	defaultAccountSchema,
 } from '../../../../../../fixtures';
-import {
-	accountAssetSchema,
-	defaultAccountAsset,
-} from '../../../../../../../src/application/node/account';
-import { BlockProcessorV0 } from '../../../../../../../src/application/node/block_processor_v0';
+import { TokenModule } from '../../../../../../../src/modules';
 
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -52,10 +46,7 @@ describe('fast_chain_switching_mechanism', () => {
 	let lastBlock: Block;
 
 	let bftModule: any;
-	let blockProcessorV2;
-	let blockProcessorV0;
 	let chainModule: any;
-	let dposModule: any;
 	let processorModule: any;
 	let fastChainSwitchingMechanism: FastChainSwitchingMechanism;
 
@@ -80,27 +71,22 @@ describe('fast_chain_switching_mechanism', () => {
 		channelMock = new ChannelMock();
 
 		const blockchainDB = new KVStore('blockchain.db');
-		const forgerDB = new KVStore('forger.db');
 
 		chainModule = new Chain({
 			networkIdentifier: defaultNetworkIdentifier,
 			db: blockchainDB,
 			genesisBlock,
-			registeredTransactions,
-			registeredBlocks: { 2: BlockProcessorV2.schema },
-			accountAsset: {
-				schema: accountAssetSchema,
-				default: defaultAccountAsset,
-			},
+			accounts: defaultAccountSchema,
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
-			totalAmount: constants.totalAmount,
 			blockTime: constants.blockTime,
 		});
+		chainModule['_numberOfValidators'] = 103;
 
 		dataAccessMock = {
+			getConsensusState: jest.fn(),
 			getTempBlocks: jest.fn(),
 			clearTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
@@ -118,41 +104,14 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 		chainModule.dataAccess = dataAccessMock;
 
-		dposModule = new Dpos({
-			chain: chainModule,
-			activeDelegates: constants.activeDelegates,
-			standbyDelegates: constants.standbyDelegates,
-			delegateListRoundOffset: constants.delegateListRoundOffset,
-			initDelegates: genesisBlock.header.asset.initDelegates,
-			initRound: genesisBlock.header.asset.initRounds,
-			genesisBlockHeight: genesisBlock.header.height,
-		});
-
 		bftModule = new BFT({
 			chain: chainModule,
-			dpos: dposModule,
-			activeDelegates: constants.activeDelegates,
+			threshold: constants.bftThreshold,
 			genesisHeight: genesisBlock.header.height,
 		});
 
 		Object.defineProperty(bftModule, 'finalizedHeight', {
 			get: jest.fn(() => finalizedHeight),
-		});
-
-		blockProcessorV0 = new BlockProcessorV0({
-			dposModule,
-			logger: loggerMock,
-			constants,
-		});
-
-		blockProcessorV2 = new BlockProcessorV2({
-			networkIdentifier: defaultNetworkIdentifier,
-			forgerDB,
-			chainModule,
-			bftModule,
-			dposModule,
-			logger: loggerMock,
-			constants,
 		});
 
 		processorModule = new Processor({
@@ -166,10 +125,7 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 		processorModule.validate = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
-		processorModule.register(blockProcessorV0, {
-			matcher: (header: BlockHeader) => header.version === genesisBlock.header.version,
-		});
-		processorModule.register(blockProcessorV2);
+		processorModule.register(new TokenModule(constants));
 
 		fastChainSwitchingMechanism = new FastChainSwitchingMechanism({
 			logger: loggerMock,
@@ -177,7 +133,6 @@ describe('fast_chain_switching_mechanism', () => {
 			chain: chainModule,
 			bft: bftModule,
 			processor: processorModule,
-			dpos: dposModule,
 			networkModule: networkMock,
 		});
 	});
@@ -192,13 +147,18 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 
 		beforeEach(() => {
-			jest.spyOn(dposModule, 'isActiveDelegate');
+			jest.spyOn(chainModule, 'getValidators');
 			chainModule._lastBlock = { header: { height: 310 } };
 		});
 
 		describe('when reveivedBlock is within the two rounds of the last block', () => {
-			it('should return true when the receivedBlock is from active delegate', async () => {
-				dposModule.isActiveDelegate.mockResolvedValue(true);
+			it('should return true when the receivedBlock is from consensus participant', async () => {
+				chainModule.getValidators.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(defaultGenerator.publicKey),
+						isConsensusParticipant: true,
+					},
+				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
@@ -211,8 +171,29 @@ describe('fast_chain_switching_mechanism', () => {
 				expect(isValid).toEqual(true);
 			});
 
-			it('should return false when the receivedBlock is not from active delegate', async () => {
-				dposModule.isActiveDelegate.mockResolvedValue(false);
+			it('should return true when the receivedBlock is not from consensus participant', async () => {
+				chainModule.getValidators.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(defaultGenerator.publicKey),
+						isConsensusParticipant: false,
+					},
+				]);
+				const isValid = await fastChainSwitchingMechanism.isValidFor(
+					{
+						header: {
+							generatorPublicKey: defaultGenerator.publicKey,
+							height: 515,
+						},
+					} as Block,
+					'peer-id',
+				);
+				expect(isValid).toEqual(false);
+			});
+
+			it('should return true when the receivedBlock is not current validator', async () => {
+				chainModule.getValidators.mockResolvedValue([
+					{ address: getRandomBytes(20), isConsensusParticipant: false },
+				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
@@ -227,8 +208,13 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 
 		describe('when reveivedBlock is not within two rounds of the last block', () => {
-			it('should return false even when the block is from active delegate', async () => {
-				dposModule.isActiveDelegate.mockResolvedValue(true);
+			it('should return false even when the block is from consensus participant', async () => {
+				chainModule.getValidators.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(defaultGenerator.publicKey),
+						isConsensusParticipant: true,
+					},
+				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
@@ -282,6 +268,13 @@ describe('fast_chain_switching_mechanism', () => {
 			lastBlock = createValidDefaultBlock({
 				header: { height: finalizedHeight + 1 },
 			});
+
+			jest.spyOn(chainModule, 'getValidators').mockResolvedValue([
+				{
+					address: getAddressFromPublicKey(aBlock.header.generatorPublicKey),
+					isConsensusParticipant: true,
+				},
+			]);
 
 			chainModule._lastBlock = lastBlock;
 
@@ -448,7 +441,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// the difference in height between the common block and the received block is > delegatesPerRound*2
 				const receivedBlock = createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
 					},
 				});
 				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
@@ -457,7 +450,7 @@ describe('fast_chain_switching_mechanism', () => {
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
 						`Height difference between both chains is higher than ${
-							dposModule.delegatesPerRound * 2
+							chainModule.numberOfValidators * 2
 						}`,
 					),
 				);
@@ -476,7 +469,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Difference in height between the common block and the last block is > delegatesPerRound*2
 				lastBlock = createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
 					},
 				});
 				when(chainModule.dataAccess.getBlockHeaderByHeight)
@@ -509,7 +502,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue([lastBlock] as never);
 
 				const heightList = new Array(
-					Math.min(dposModule.delegatesPerRound * 2, chainModule.lastBlock.header.height),
+					Math.min(chainModule.numberOfValidators * 2, chainModule.lastBlock.header.height),
 				)
 					.fill(0)
 					.map((_, index) => chainModule.lastBlock.header.height - index);
@@ -534,7 +527,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Act
 				const receivedBlock = createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
 					},
 				});
 				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
@@ -543,7 +536,7 @@ describe('fast_chain_switching_mechanism', () => {
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
 						`Height difference between both chains is higher than ${
-							dposModule.delegatesPerRound * 2
+							chainModule.numberOfValidators * 2
 						}`,
 					),
 				);
@@ -678,7 +671,9 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue({
 						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
 					} as never);
-				processorModule.validate.mockRejectedValue(new Error('validation error'));
+				processorModule.validate.mockImplementation(() => {
+					throw new Error('validation error');
+				});
 
 				// Act
 				try {

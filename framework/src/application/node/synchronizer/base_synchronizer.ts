@@ -16,7 +16,6 @@ import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { EventEmitter } from 'events';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../../controller/channels';
-import { BlockHeaderAsset } from '../block_processor_v2';
 import { ApplyPenaltyAndRestartError, ApplyPenaltyAndAbortError } from './errors';
 import { Network } from '../../network';
 
@@ -65,7 +64,7 @@ export abstract class BaseSynchronizer {
 		});
 	}
 
-	protected async _getLastBlockFromNetwork(peerId: string): Promise<Block<BlockHeaderAsset>> {
+	protected async _getLastBlockFromNetwork(peerId: string): Promise<Block> {
 		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getLastBlock',
 			peerId,
@@ -76,13 +75,13 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndRestartError(peerId, 'Peer did not provide its last block');
 		}
-		return this._chain.dataAccess.decode<BlockHeaderAsset>(Buffer.from(data, 'base64'));
+		return this._chain.dataAccess.decode(Buffer.from(data, 'base64'));
 	}
 
 	protected async _getHighestCommonBlockFromNetwork(
 		peerId: string,
 		ids: Buffer[],
-	): Promise<BlockHeader<BlockHeaderAsset>> {
+	): Promise<BlockHeader> {
 		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getHighestCommonBlock',
 			peerId,
@@ -96,13 +95,10 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Peer did not return a common block');
 		}
-		return this._chain.dataAccess.decodeBlockHeader<BlockHeaderAsset>(Buffer.from(data, 'base64'));
+		return this._chain.dataAccess.decodeBlockHeader(Buffer.from(data, 'base64'));
 	}
 
-	protected async _getBlocksFromNetwork(
-		peerId: string,
-		fromID: Buffer,
-	): Promise<Block<BlockHeaderAsset>[]> {
+	protected async _getBlocksFromNetwork(peerId: string, fromID: Buffer): Promise<Block[]> {
 		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getBlocksFromId',
 			peerId,
@@ -116,7 +112,7 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new Error('Peer did not respond with block');
 		}
-		return data.map(d => this._chain.dataAccess.decode<BlockHeaderAsset>(Buffer.from(d, 'base64')));
+		return data.map(d => this._chain.dataAccess.decode(Buffer.from(d, 'base64')));
 	}
 
 	public abstract async run(receivedBlock: Block, peerId: string): Promise<void>;

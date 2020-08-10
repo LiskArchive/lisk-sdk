@@ -11,10 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { TransactionError, TransferTransaction, BaseTransaction } from '@liskhq/lisk-transactions';
 import { validator } from '@liskhq/lisk-validator';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	getRandomBytes,
+	signDataWithPassphrase,
+} from '@liskhq/lisk-cryptography';
+import { Transaction } from '@liskhq/lisk-chain';
 import { Logger } from '../../../../../../src/application/logger';
 import { Transport } from '../../../../../../src/application/node/transport';
 
@@ -36,10 +39,10 @@ describe('transport', () => {
 	let networkStub: any;
 	let channelStub: Partial<InMemoryChannel>;
 	let transportModule: any;
-	let transaction: TransferTransaction;
+	let transaction: Transaction;
 	let block: any;
 	let blocksList;
-	let transactionsList: BaseTransaction[];
+	let transactionsList: Transaction[];
 	let error: Error;
 	let result: any;
 	let query: any = { ids: ['1', '2', '3'] };
@@ -49,40 +52,52 @@ describe('transport', () => {
 		// sure that they are fresh every time; that way each test case can modify
 		// stubs without affecting other test cases.
 
-		transaction = new TransferTransaction({
+		transaction = new Transaction({
+			moduleType: 2,
+			assetType: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-			asset: {
-				amount: BigInt('100'),
-				recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
-				data: '',
-			},
+			asset: getRandomBytes(100),
+			signatures: [],
 		});
-		transaction.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
+		transaction.signatures.push(
+			signDataWithPassphrase(
+				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				genesis.passphrase,
+			),
+		);
 
-		const transactionOne = new TransferTransaction({
+		const transactionOne = new Transaction({
+			moduleType: 2,
+			assetType: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-			asset: {
-				amount: BigInt('100'),
-				recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
-				data: '',
-			},
+			asset: getRandomBytes(100),
+			signatures: [],
 		});
-		transactionOne.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
-		const transactionTwo = new TransferTransaction({
+		transactionOne.signatures.push(
+			signDataWithPassphrase(
+				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				genesis.passphrase,
+			),
+		);
+		const transactionTwo = new Transaction({
+			moduleType: 2,
+			assetType: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-			asset: {
-				amount: BigInt('100'),
-				recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
-				data: '',
-			},
+			asset: getRandomBytes(100),
+			signatures: [],
 		});
-		transactionTwo.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
+		transactionOne.signatures.push(
+			signDataWithPassphrase(
+				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				genesis.passphrase,
+			),
+		);
 
 		transactionsList = [transactionOne, transactionTwo];
 
@@ -127,11 +142,6 @@ describe('transport', () => {
 			} as any,
 			chainModule: {
 				lastBlock: jest.fn().mockReturnValue({ height: 1, version: 1, timestamp: 1 }) as any,
-				receiveBlockFromNetwork: jest.fn(),
-				loadBlocksFromLastBlockId: jest.fn(),
-				validateTransactions: jest.fn().mockReturnValue([{ status: 1, errors: [] }]),
-				applyTransactions: jest.fn().mockResolvedValue([{ status: 1, errors: [] }]),
-				deserializeTransaction: jest.fn().mockImplementation(val => val),
 				dataAccess: {
 					getBlockHeaderByID: jest.fn().mockReturnValue({ height: 2, version: 1, timestamp: 1 }),
 					getBlocksByHeightBetween: jest.fn().mockReturnValue([
@@ -147,8 +157,8 @@ describe('transport', () => {
 			} as any,
 			processorModule: {
 				validate: jest.fn(),
+				validateTransaction: jest.fn(),
 				process: jest.fn(),
-				deserialize: jest.fn(),
 			} as any,
 			networkModule: networkStub,
 		});
@@ -276,44 +286,31 @@ describe('transport', () => {
 					status: 1,
 					errors: [],
 				});
-				transportModule['_chainModule'].deserializeTransaction.mockReturnValue({
-					...transaction,
-					toJSON: () => transaction,
-				});
-			});
-
-			afterEach(() => {
-				transportModule['_chainModule'].deserializeTransaction.mockReturnValue({
-					...transaction,
-				});
 			});
 
 			it('should call validateTransactions', async () => {
 				await transportModule['_receiveTransaction'](transaction);
-				return expect(transportModule['_chainModule'].validateTransactions).toHaveBeenCalledTimes(
-					1,
-				);
+				return expect(
+					transportModule['_processorModule'].validateTransaction,
+				).toHaveBeenCalledTimes(1);
 			});
 
 			it('should call validateTransactions with an array of transactions', async () => {
 				await transportModule['_receiveTransaction'](transaction);
-				return expect(transportModule['_chainModule'].validateTransactions).toHaveBeenCalledTimes(
-					1,
-				);
+				return expect(
+					transportModule['_processorModule'].validateTransaction,
+				).toHaveBeenCalledTimes(1);
 			});
 
 			it('should reject with error if transaction is not allowed', async () => {
 				const invalidTrsError = new InvalidTransactionError(
 					'Transaction type 0 is currently not allowed.',
 					Buffer.alloc(0),
-					[new Error()],
 				);
 
-				transportModule['_chainModule'].validateTransactions.mockReturnValue([
-					{
-						errors: [invalidTrsError],
-					},
-				]);
+				transportModule['_processorModule'].validateTransaction.mockImplementation(() => {
+					throw invalidTrsError;
+				});
 
 				await expect(transportModule['_receiveTransaction'](transaction)).rejects.toThrow(
 					invalidTrsError.message,
@@ -331,33 +328,22 @@ describe('transport', () => {
 			});
 
 			describe('when transaction is invalid', () => {
-				let invalidTransaction;
-				let errorResult: any;
+				let invalidTransaction: Transaction;
 
-				beforeEach(async () => {
+				beforeEach(() => {
 					invalidTransaction = {
 						...transaction,
-						asset: {},
-					};
-					transportModule['_chainModule'].validateTransactions.mockReturnValue([
-						{
-							status: 1,
-							errors: [new TransactionError('invalid transaction')],
-						},
-					]);
-
-					try {
-						await transportModule['_receiveTransaction'](invalidTransaction);
-					} catch (err) {
-						errorResult = err;
-					}
+						senderPublicKey: 'random str' as any,
+					} as any;
+					transportModule['_processorModule'].validateTransaction.mockImplementation(() => {
+						throw new Error('Invalid tx');
+					});
 				});
 
-				it('should call the call back with error message', () => {
-					expect(errorResult.errors).toBeInstanceOf(Array);
-					errorResult.errors.forEach((anError: TransactionError) => {
-						expect(anError).toBeInstanceOf(TransactionError);
-					});
+				it('should throw with the error from invalid transaction', async () => {
+					await expect(transportModule['_receiveTransaction'](invalidTransaction)).rejects.toThrow(
+						'Invalid tx',
+					);
 				});
 			});
 
@@ -407,19 +393,16 @@ describe('transport', () => {
 
 			describe('onUnconfirmedTransaction', () => {
 				beforeEach(() => {
-					transaction = new TransferTransaction({
-						id: Buffer.from('222675625422353767'),
+					transaction = new Transaction({
+						moduleType: 2,
+						assetType: 0,
 						fee: BigInt('10'),
 						nonce: BigInt(0),
 						senderPublicKey: Buffer.from(
 							'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
 							'hex',
 						),
-						asset: {
-							amount: BigInt('100'),
-							recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
-							data: '',
-						},
+						asset: getRandomBytes(100),
 						signatures: [
 							Buffer.from(
 								'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',

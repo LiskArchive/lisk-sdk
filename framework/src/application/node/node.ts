@@ -15,15 +15,16 @@
 import {
 	Chain,
 	events as chainEvents,
+	GenesisBlock,
 	Block,
 	blockSchema,
 	blockHeaderSchema,
 	Account,
+	AccountSchema,
+	readGenesisBlockJSON,
 } from '@liskhq/lisk-chain';
-import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { GenesisBlock } from '@liskhq/lisk-genesis';
 import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
@@ -41,59 +42,38 @@ import {
 	FastChainSwitchingMechanism,
 } from './synchronizer';
 import { Processor } from './processor';
-import { BlockProcessorV2 } from './block_processor_v2';
-import { BlockProcessorV0 } from './block_processor_v0';
 import { Logger } from '../logger';
-import { EventPostTransactionData } from '../../types';
+import { EventPostTransactionData, GenesisConfig } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
-import { accountAssetSchema, defaultAccountAsset, AccountAsset } from './account';
 import {
 	EVENT_PROCESSOR_BROADCAST_BLOCK,
 	EVENT_PROCESSOR_SYNC_REQUIRED,
 } from './processor/processor';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchronizer';
 import { Network } from '../network';
+import { BaseModule } from '../../modules';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK } = chainEvents;
-const { EVENT_ROUND_CHANGED } = dposConstants;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
-
-export interface NodeConstants {
-	readonly maxPayloadLength: number;
-	readonly activeDelegates: number;
-	readonly standbyDelegates: number;
-	readonly delegateListRoundOffset: number;
-	readonly rewards: {
-		readonly distance: number;
-		readonly offset: number;
-		readonly milestones: string[];
-	};
-	readonly totalAmount: bigint;
-	readonly blockTime: number;
-}
 
 export interface Options {
 	readonly version: string;
 	readonly networkVersion: string;
-	readonly networkId: string;
 	readonly label: string;
 	readonly rootPath: string;
-	readonly communityIdentifier: string;
 	readonly forging: {
 		readonly waitThreshold: number;
 		readonly delegates: RegisteredDelegate[];
 		readonly force?: boolean;
 		readonly defaultPassword?: string;
 	};
-	readonly constants: NodeConstants;
-	readonly registeredTransactions: {
-		readonly [key: number]: typeof BaseTransaction;
-	};
-	genesisBlock: GenesisBlock<AccountAsset>;
-	readonly genesisConfig: object;
+	genesisBlock: Record<string, unknown>;
+	readonly genesisConfig: GenesisConfig;
 }
+
+type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
 
 interface NodeConstructor {
 	readonly channel: InMemoryChannel;
@@ -102,17 +82,18 @@ interface NodeConstructor {
 	readonly forgerDB: KVStore;
 	readonly blockchainDB: KVStore;
 	readonly networkModule: Network;
+	readonly customModules: InstantiableBaseModule[];
 }
 
-interface RegisteredSchemas {
-	[key: string]: Schema;
+interface RegisteredSchema {
+	readonly moduleType: number;
+	readonly assetType: number;
+	readonly schema: Schema;
 }
 
-interface TransactionFees {
-	[key: number]: Fees;
-}
-
-interface Fees {
+interface TransactionFee {
+	readonly moduleType: number;
+	readonly assetType: number;
 	readonly baseFee: string;
 	readonly minFeePerByte: string;
 }
@@ -124,10 +105,13 @@ export class Node {
 	private readonly _forgerDB: KVStore;
 	private readonly _blockchainDB: KVStore;
 	private readonly _networkModule: Network;
+	private readonly _customModules: InstantiableBaseModule[];
+	private readonly _registeredModules: BaseModule[] = [];
 	private _networkIdentifier!: Buffer;
+	private _genesisBlock!: GenesisBlock;
+	private _registeredAccountSchemas: { [moduleName: string]: AccountSchema } = {};
 	private _chain!: Chain;
 	private _bft!: BFT;
-	private _dpos!: Dpos;
 	private _processor!: Processor;
 	private _synchronizer!: Synchronizer;
 	private _transactionPool!: TransactionPool;
@@ -142,6 +126,7 @@ export class Node {
 		blockchainDB,
 		forgerDB,
 		networkModule,
+		customModules,
 	}: NodeConstructor) {
 		this._channel = channel;
 		this._options = options;
@@ -149,6 +134,7 @@ export class Node {
 		this._blockchainDB = blockchainDB;
 		this._forgerDB = forgerDB;
 		this._networkModule = networkModule;
+		this._customModules = customModules;
 	}
 
 	public async bootstrap(): Promise<void> {
@@ -158,44 +144,42 @@ export class Node {
 				throw Error('Missing genesis block');
 			}
 
-			if (this._options.forging.waitThreshold >= this._options.constants.blockTime) {
+			for (const CustomModule of this._customModules) {
+				const customModule = new CustomModule(this._options.genesisConfig);
+				const exist = this._registeredModules.find(rm => rm.type === customModule.type);
+				if (exist) {
+					throw new Error(`Custom module with type ${customModule.type} already exists`);
+				}
+				if (customModule.accountSchema) {
+					this._registeredAccountSchemas[customModule.name] = {
+						...customModule.accountSchema,
+						fieldNumber: customModule.type,
+					};
+				}
+				this._registeredModules.push(customModule);
+			}
+
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			this._genesisBlock = readGenesisBlockJSON(
+				this._options.genesisBlock,
+				this._registeredAccountSchemas,
+			);
+
+			if (this._options.forging.waitThreshold >= this._options.genesisConfig.blockTime) {
 				throw Error(
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					`forging.waitThreshold=${this._options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this._options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
+					`forging.waitThreshold=${this._options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this._options.genesisConfig.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
 				);
 			}
 
 			this._initModules();
-
-			this._processor.register(
-				new BlockProcessorV0({
-					dposModule: this._dpos,
-					logger: this._logger,
-					constants: {
-						roundLength:
-							this._options.constants.activeDelegates + this._options.constants.standbyDelegates,
-					},
-				}),
-				{
-					matcher: header => header.version === this._options.genesisBlock.header.version,
-				},
-			);
-
-			this._processor.register(
-				new BlockProcessorV2({
-					networkIdentifier: this._networkIdentifier,
-					chainModule: this._chain,
-					bftModule: this._bft,
-					dposModule: this._dpos,
-					logger: this._logger,
-					constants: this._options.constants,
-					forgerDB: this._forgerDB,
-				}),
-			);
+			for (const customModule of this._registeredModules) {
+				this._processor.register(customModule);
+			}
 
 			this._logger.info('Node ready and launched');
 			// After binding, it should immediately load blockchain
-			await this._processor.init();
+			await this._processor.init(this._genesisBlock);
 			// Check if blocks are left in temp_blocks table
 			await this._synchronizer.init();
 
@@ -264,50 +248,34 @@ export class Node {
 		}
 	}
 
+	public get networkIdentifier(): Buffer {
+		return this._networkIdentifier;
+	}
+
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
 	public get actions() {
 		return {
-			calculateSupply: (params: { height: number }): bigint =>
-				this._chain.blockReward.calculateSupply(params.height),
-			calculateMilestone: (params: { height: number }): number =>
-				this._chain.blockReward.calculateMilestone(params.height),
-			calculateReward: (params: { height: number }): bigint =>
-				this._chain.blockReward.calculateReward(params.height),
-			getForgersInfoForActiveRound: async (): Promise<
+			getValidators: async (): Promise<
 				ReadonlyArray<{ address: string; nextForgingTime: number }>
 			> => {
-				const currentRound = this._dpos.rounds.calcRound(this._chain.lastBlock.header.height);
-				const forgerAddresses = await this._dpos.getForgerAddressesForRound(currentRound);
+				const validators = await this._chain.getValidators();
+				const validatorAddresses = validators.map(v => v.address);
 				const slot = this._chain.slots.getSlotNumber(Date.now());
 				const startTime = this._chain.slots.getSlotTime(slot);
 
 				let nextForgingTime = startTime;
-				const slotInRound = slot % this._dpos.delegatesPerRound;
+				const slotInRound = slot % this._chain.numberOfValidators;
 				const blockTime = this._chain.slots.blockTime();
 				const forgersInfo = [];
-				for (let i = slotInRound; i < slotInRound + this._dpos.delegatesPerRound; i += 1) {
+				for (let i = slotInRound; i < slotInRound + this._chain.numberOfValidators; i += 1) {
 					forgersInfo.push({
-						address: forgerAddresses[i % forgerAddresses.length].toString('base64'),
+						address: validatorAddresses[i % validatorAddresses.length].toString('base64'),
 						nextForgingTime,
 					});
 					nextForgingTime += blockTime;
 				}
 
 				return forgersInfo;
-			},
-			getAllDelegates: async (): Promise<readonly string[]> => {
-				const delegatesUsernames = await this._dpos.getAllUsernames();
-				if (delegatesUsernames.length > 0) {
-					const delegates = await Promise.all(
-						delegatesUsernames.map(async delegate =>
-							this._chain.dataAccess.getAccountByAddress(delegate.address),
-						),
-					);
-
-					return delegates.map(d => this._chain.dataAccess.encodeAccount(d).toString('base64'));
-				}
-
-				return [];
 			},
 			updateForgingStatus: async (params: {
 				address: string;
@@ -406,16 +374,12 @@ export class Node {
 					address: address.toString('base64'),
 					forging,
 				})),
-			getTransactionsFees: (): TransactionFees => this._getRegisteredTransactionFees(),
+			getTransactionsFees: (): TransactionFee[] => this._getRegisteredTransactionFees(),
 			getTransactionsFromPool: (): string[] =>
 				this._transactionPool.getAll().map(tx => tx.getBytes().toString('base64')),
 			postTransaction: async (
 				params: EventPostTransactionData,
 			): Promise<handlePostTransactionReturn> => this._transport.handleEventPostTransaction(params),
-			getSlotNumber: (params: { timeStamp: number | undefined }): number =>
-				this._chain.slots.getSlotNumber(params.timeStamp),
-			calcSlotRound: (params: { height: number }): number =>
-				this._dpos.rounds.calcRound(params.height),
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getLastBlock: async (): Promise<string> =>
 				this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
@@ -431,10 +395,7 @@ export class Node {
 				account: this._chain.accountSchema,
 				blockSchema,
 				blockHeaderSchema,
-				blockHeadersAssets: {
-					0: BlockProcessorV0.schema,
-					2: BlockProcessorV2.schema,
-				},
+				blockHeadersAssets: this._chain.blockAssetSchema,
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
 				transactionsAssets: this._getRegisteredTransactionSchemas(),
 			}),
@@ -442,7 +403,7 @@ export class Node {
 			getNodeInfo: () => ({
 				version: this._options.version,
 				networkVersion: this._options.networkVersion,
-				networkID: this._options.networkId,
+				networkID: this._networkIdentifier.toString('base64'),
 				lastBlockID: this._chain.lastBlock.header.id.toString('base64'),
 				height: this._chain.lastBlock.header.height,
 				finalizedHeight: this._bft.finalityManager.finalizedHeight,
@@ -450,8 +411,6 @@ export class Node {
 				unconfirmedTransactions: this._transactionPool.getAll().length,
 				genesisConfig: {
 					...this._options.genesisConfig,
-					...this._options.constants,
-					totalAmount: this._options.constants.totalAmount.toString(),
 				},
 			}),
 		};
@@ -472,28 +431,19 @@ export class Node {
 
 	private _initModules(): void {
 		this._networkIdentifier = getNetworkIdentifier(
-			this._options.genesisBlock.header.transactionRoot,
-			this._options.communityIdentifier,
+			this._genesisBlock.header.transactionRoot,
+			this._options.genesisConfig.communityIdentifier,
 		);
 		this._chain = new Chain({
 			db: this._blockchainDB,
-			genesisBlock: this._options.genesisBlock,
-			registeredTransactions: this._options.registeredTransactions,
-			accountAsset: {
-				schema: accountAssetSchema,
-				default: defaultAccountAsset,
-			},
-			registeredBlocks: {
-				0: BlockProcessorV0.schema,
-				2: BlockProcessorV2.schema,
-			},
+			genesisBlock: this._genesisBlock,
 			networkIdentifier: this._networkIdentifier,
-			maxPayloadLength: this._options.constants.maxPayloadLength,
-			rewardDistance: this._options.constants.rewards.distance,
-			rewardOffset: this._options.constants.rewards.offset,
-			rewardMilestones: this._options.constants.rewards.milestones,
-			totalAmount: this._options.constants.totalAmount,
-			blockTime: this._options.constants.blockTime,
+			maxPayloadLength: this._options.genesisConfig.maxPayloadLength,
+			rewardDistance: this._options.genesisConfig.rewards.distance,
+			rewardOffset: this._options.genesisConfig.rewards.offset,
+			rewardMilestones: this._options.genesisConfig.rewards.milestones.map(s => BigInt(s)),
+			blockTime: this._options.genesisConfig.blockTime,
+			accounts: this._registeredAccountSchemas,
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
@@ -517,7 +467,8 @@ export class Node {
 				// Remove any transactions from the pool on new block
 				if (block.payload.length) {
 					for (const transaction of block.payload) {
-						this._transactionPool.remove(transaction);
+						// FIXME: #5619 any should be removed
+						this._transactionPool.remove(transaction as any);
 					}
 				}
 
@@ -559,7 +510,8 @@ export class Node {
 				if (block.payload.length) {
 					for (const transaction of block.payload) {
 						try {
-							await this._transactionPool.add(transaction);
+							// FIXME: #5619 any should be removed
+							await this._transactionPool.add(transaction as any);
 						} catch (err) {
 							this._logger.error(
 								{ err: err as Error },
@@ -575,25 +527,10 @@ export class Node {
 			},
 		);
 
-		this._dpos = new Dpos({
-			chain: this._chain,
-			initDelegates: this._options.genesisBlock.header.asset.initDelegates,
-			initRound: this._options.genesisBlock.header.asset.initRounds,
-			genesisBlockHeight: this._options.genesisBlock.header.height,
-			activeDelegates: this._options.constants.activeDelegates,
-			standbyDelegates: this._options.constants.standbyDelegates,
-			delegateListRoundOffset: this._options.constants.delegateListRoundOffset,
-		});
-
 		this._bft = new BFT({
-			dpos: this._dpos,
 			chain: this._chain,
-			activeDelegates: this._options.constants.activeDelegates,
-			genesisHeight: this._options.genesisBlock.header.height,
-		});
-
-		this._dpos.events.on(EVENT_ROUND_CHANGED, (data: { newRound: number }) => {
-			this._channel.publish('app:round:change', { number: data.newRound });
+			threshold: this._options.genesisConfig.bftThreshold,
+			genesisHeight: this._genesisBlock.header.height,
 		});
 
 		this._processor = new Processor({
@@ -604,13 +541,14 @@ export class Node {
 		});
 
 		this._transactionPool = new TransactionPool({
-			applyTransactions: this._chain.applyTransactions.bind(this._chain),
+			// FIXME: #5619 any should be removed
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			applyTransactions: this._processor.verifyTransactions.bind(this._processor) as any,
 		});
 
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			logger: this._logger,
 			bft: this._bft,
-			dpos: this._dpos,
 			channel: this._channel,
 			chain: this._chain,
 			processorModule: this._processor,
@@ -622,7 +560,6 @@ export class Node {
 			channel: this._channel,
 			chain: this._chain,
 			bft: this._bft,
-			dpos: this._dpos,
 			processor: this._processor,
 			networkModule: this._networkModule,
 		});
@@ -631,6 +568,7 @@ export class Node {
 			channel: this._channel,
 			logger: this._logger,
 			chainModule: this._chain,
+			bftModule: this._bft,
 			processorModule: this._processor,
 			transactionPoolModule: this._transactionPool,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
@@ -659,7 +597,6 @@ export class Node {
 			logger: this._logger,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			db: this._forgerDB,
-			dposModule: this._dpos,
 			bftModule: this._bft,
 			transactionPoolModule: this._transactionPool,
 			processorModule: this._processor,
@@ -668,7 +605,6 @@ export class Node {
 			forgingForce: this._options.forging.force,
 			forgingDefaultPassword: this._options.forging.defaultPassword,
 			forgingWaitThreshold: this._options.forging.waitThreshold,
-			maxPayloadLength: this._options.constants.maxPayloadLength,
 		});
 
 		this._transport = new Transport({
@@ -737,24 +673,31 @@ export class Node {
 	private _unsubscribeToEvents(): void {
 		this._bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 	}
-	private _getRegisteredTransactionSchemas(): RegisteredSchemas {
-		const registeredTransactions: RegisteredSchemas = {};
+	private _getRegisteredTransactionSchemas(): RegisteredSchema[] {
+		const registeredSchemas: RegisteredSchema[] = [];
 
-		for (const aTransactionSchema of Object.entries(this._options.registeredTransactions)) {
-			registeredTransactions[aTransactionSchema[0]] = aTransactionSchema[1].ASSET_SCHEMA as Schema;
+		for (const customModule of this._registeredModules) {
+			for (const customAsset of customModule.transactionAssets) {
+				registeredSchemas.push({
+					moduleType: customModule.type,
+					assetType: customAsset.type,
+					schema: customAsset.assetSchema,
+				});
+			}
 		}
-		return registeredTransactions;
+		return registeredSchemas;
 	}
 
-	private _getRegisteredTransactionFees(): TransactionFees {
-		const transactionFees: TransactionFees = {};
+	private _getRegisteredTransactionFees(): TransactionFee[] {
+		const transactionFees: TransactionFee[] = [];
 
-		for (const aTransaction of Object.values(this._options.registeredTransactions)) {
-			const { TYPE, NAME_FEE, MIN_FEE_PER_BYTE } = aTransaction;
-			transactionFees[TYPE] = {
-				baseFee: NAME_FEE.toString(),
-				minFeePerByte: MIN_FEE_PER_BYTE.toString(),
-			};
+		for (const baseFeeInfo of this._options.genesisConfig.baseFees) {
+			transactionFees.push({
+				moduleType: baseFeeInfo.moduleType,
+				assetType: baseFeeInfo.assetType,
+				minFeePerByte: BigInt(this._options.genesisConfig.minFeePerByte).toString(),
+				baseFee: baseFeeInfo.baseFee,
+			});
 		}
 		return transactionFees;
 	}

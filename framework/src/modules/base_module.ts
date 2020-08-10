@@ -24,7 +24,7 @@ import {
 } from '../types';
 import { BaseAsset } from './base_asset';
 
-export abstract class BaseModule<T = unknown> {
+export abstract class BaseModule {
 	public readonly config: GenesisConfig;
 	public readonly transactionAssets: BaseAsset[] = [];
 	public reducers: Reducers = {};
@@ -41,7 +41,9 @@ export abstract class BaseModule<T = unknown> {
 
 	public async beforeTransactionApply?(input: TransactionApplyInput): Promise<void>;
 	public async afterTransactionApply?(input: TransactionApplyInput): Promise<void>;
-	public async afterGenesisBlockApply?(input: AfterGenesisBlockApplyInput<T>): Promise<void>;
+	public async afterGenesisBlockApply?<T = Account>(
+		input: AfterGenesisBlockApplyInput<T>,
+	): Promise<void>;
 	public async beforeBlockApply?(input: BeforeBlockApplyInput): Promise<void>;
 	public async afterBlockApply?(input: AfterBlockApplyInput): Promise<void>;
 }

@@ -12,24 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { genesisBlock } from './blocks';
+import { Options } from '../../src/application/node/node';
+import * as genesisBlockJSON from './config/devnet/genesis_block.json';
 
 export const cacheConfig = 'aCacheConfig';
 
 export const nodeOptions = {
+	version: '1.0.0',
+	networkVersion: '1.0',
 	rootPath: '~/.lisk',
 	label: 'default',
-	communityIdentifier: 'Lisk',
-	genesisBlock: genesisBlock(),
+	genesisBlock: genesisBlockJSON,
 	network: {
 		enabled: false,
 	},
 	forging: {
 		waitThreshold: 2,
+		delegates: [],
 	},
-	constants: {
+	genesisConfig: {
 		activeDelegates: 101,
+		standbyDelegates: 2,
 		maxPayloadLength: 15 * 1024,
+		bftThreshold: 68,
+		baseFees: [],
+		blockTime: 10,
+		minFeePerByte: 10000,
+		communityIdentifier: 'Lisk',
 		rewards: {
 			milestones: [
 				'500000000', // Initial Reward
@@ -41,6 +50,5 @@ export const nodeOptions = {
 			offset: 2160, // Start rewards at first block of the second round
 			distance: 3000000, // Distance between each milestone
 		},
-		totalAmount: BigInt('10000000000000000'),
 	},
-};
+} as Options;
