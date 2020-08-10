@@ -69,7 +69,7 @@ export const blockHeaderSchema = {
 };
 
 export const baseGenesisBlockHeaderAssetSchema = {
-	$id: '/genesis_block/header/asset',
+	$id: '/genesisBlock/header/asset',
 	type: 'object',
 	required: ['accounts', 'initDelegates', 'initRounds'],
 	properties: {
@@ -103,7 +103,7 @@ export const baseAccountSchema = {
 };
 
 export const blockHeaderAssetSchema = {
-	$id: '/block-header/asset/v2',
+	$id: '/blockHeader/asset/v2',
 	type: 'object',
 	properties: {
 		maxHeightPreviouslyForged: {
@@ -178,6 +178,7 @@ export const validatorsSchema = {
 						fieldNumber: 3,
 					},
 				},
+				required: ['address', 'minActiveHeight', 'isConsensusParticipant'],
 			},
 		},
 	},

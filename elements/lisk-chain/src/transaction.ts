@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -122,7 +122,6 @@ export class Transaction {
 	}
 
 	public validate(): void {
-		// Validate type format
 		const schemaErrors = validator.validate(transactionSchema, this);
 		if (schemaErrors.length > 0) {
 			throw new LiskValidationError(schemaErrors);
