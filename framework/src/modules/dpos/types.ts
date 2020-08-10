@@ -30,6 +30,11 @@ export interface UnlockingAccountAsset {
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
 }
+export interface VoteAccountAsset {
+	readonly delegateAddress: Buffer;
+	// Amount for some delegate can be updated
+	amount: bigint;
+}
 
 export interface DPOSAccountProps {
 	dpos: {
@@ -41,15 +46,19 @@ export interface DPOSAccountProps {
 			isBanned: boolean;
 			totalVotesReceived: bigint;
 		};
-		sentVotes: {
-			readonly delegateAddress: Buffer;
-			amount: bigint;
-		}[];
-
+		sentVotes: VoteAccountAsset[];
 		unlocking: UnlockingAccountAsset[];
 	};
 }
 
 export interface UnlockTransactionAssetInput {
 	readonly unlockObjects: ReadonlyArray<UnlockingAccountAsset>;
+}
+
+export interface RegisterTransactionAssetInput {
+	readonly username: string;
+}
+
+export interface VoteTransactionAssetInput {
+	readonly votes: ReadonlyArray<VoteAccountAsset>;
 }

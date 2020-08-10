@@ -13,12 +13,12 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { StateStore, Account } from '../base_asset';
+import { Account, StateStore } from '../base_asset';
 import {
 	DelegatePersistedUsernames,
+	DPOSAccountProps,
 	RegisteredDelegates,
 	UnlockingAccountAsset,
-	DPOSAccountProps,
 } from './types';
 import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
@@ -135,4 +135,23 @@ export const getWaitingPeriod = (
 	const waitTime = senderAddress.equals(delegateAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE;
 
 	return waitTime - (currentHeight - unlockObject.unvoteHeight);
+};
+
+export const isNullCharacterIncluded = (input: string): boolean =>
+	new RegExp(/\\0|\\u0000|\\x00/).test(input);
+
+export const isUsername = (username: string): boolean => {
+	if (isNullCharacterIncluded(username)) {
+		return false;
+	}
+
+	if (username !== username.trim().toLowerCase()) {
+		return false;
+	}
+
+	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
+		return false;
+	}
+
+	return /^[a-z0-9!@$&_.]+$/g.test(username);
 };

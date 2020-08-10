@@ -23,8 +23,7 @@ import {
 	UnlockingAccountAsset,
 	UnlockTransactionAssetInput,
 } from '../../../../../../src/modules/dpos';
-
-const liskToBeddows = (lisk: number) => BigInt(10) * BigInt(10) ** BigInt(8) * BigInt(lisk);
+import { liskToBeddows } from '../../../../../utils/assets';
 
 const setupUnlocks = ({
 	unVoteHeight,

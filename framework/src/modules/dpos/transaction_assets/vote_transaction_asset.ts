@@ -15,17 +15,8 @@
 import { ApplyAssetInput, BaseAsset, ValidateAssetInput } from '../../base_asset';
 import { ValidationError } from '../../../errors';
 import { MAX_INT64, MAX_UNLOCKING, MAX_VOTE, TEN_UNIT } from '../constants';
-import { DPOSAccountProps } from '../types';
+import { DPOSAccountProps, VoteTransactionAssetInput } from '../types';
 import { sortUnlocking } from '../utils';
-
-export interface Vote {
-	readonly delegateAddress: Buffer;
-	readonly amount: bigint;
-}
-
-export interface VoteTransactionAssetInput {
-	readonly votes: ReadonlyArray<Vote>;
-}
 
 export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 	public baseFee = BigInt(0);
