@@ -186,7 +186,6 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 								amount: BigInt(0),
 						  };
 				upvote.amount += vote.amount;
-				// Special case for postgres because maximum is int64 for bigint in postgres
 				if (upvote.amount > BigInt(MAX_INT64)) {
 					throw new Error('Cannot upvote which exceeds int64');
 				}
