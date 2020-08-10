@@ -14,3 +14,7 @@
 
 export const CHAIN_STATE_DELEGATE_USERNAMES = 'delegateUsernames';
 export const DELEGATE_NAME_FEE = BigInt(1000000000);
+export const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
+export const MAX_VOTE = 10;
+export const MAX_UNLOCKING = 20;
+export const MAX_INT64 = '9223372036854775807';

@@ -12,4 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export * from './types';
 export * from './dpos_module';

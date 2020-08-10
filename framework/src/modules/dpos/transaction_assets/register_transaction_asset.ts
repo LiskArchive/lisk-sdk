@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { ApplyAssetInput, BaseAsset, StateStore, ValidateAssetInput } from '../../base_asset';
+import { ApplyAssetInput, BaseAsset, ValidateAssetInput } from '../../base_asset';
 import { ValidationError } from '../../../errors';
-import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from '../constants';
+import { DELEGATE_NAME_FEE } from '../constants';
+import { getRegisteredDelegates, setRegisteredDelegates } from '../utils';
+import { DPOSAccountProps } from '../types';
 
 const isNullCharacterIncluded = (input: string): boolean =>
 	new RegExp(/\\0|\\u0000|\\x00/).test(input);
@@ -36,67 +37,9 @@ const isUsername = (username: string): boolean => {
 	return /^[a-z0-9!@$&_.]+$/g.test(username);
 };
 
-const delegatesUserNamesSchema = {
-	$id: '/dpos/userNames',
-	type: 'object',
-	properties: {
-		registeredDelegates: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['username', 'address'],
-				properties: {
-					username: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
-	},
-	required: ['registeredDelegates'],
-};
-
-interface RegisteredDelegate {
-	readonly username: string;
-	readonly address: Buffer;
-}
-
-interface RegisteredDelegates {
-	registeredDelegates: RegisteredDelegate[];
-}
-interface DelegatePersistedUsernames {
-	readonly registeredDelegates: RegisteredDelegate[];
-}
-
 export interface RegisterTransactionAssetInput {
 	readonly username: string;
 }
-
-const getRegisteredDelegates = async (store: StateStore): Promise<DelegatePersistedUsernames> => {
-	const usernamesBuffer = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
-	if (!usernamesBuffer) {
-		return { registeredDelegates: [] };
-	}
-	const parsedUsernames = codec.decode<RegisteredDelegates>(
-		delegatesUserNamesSchema,
-		usernamesBuffer,
-	);
-
-	parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map(
-		(value: { address: Buffer; username: string }) => ({
-			username: value.username,
-			address: value.address,
-		}),
-	);
-
-	return parsedUsernames as DelegatePersistedUsernames;
-};
 
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetInput> {
 	public baseFee = DELEGATE_NAME_FEE;
@@ -129,9 +72,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		senderID,
 		stateStore,
 	}: ApplyAssetInput<RegisterTransactionAssetInput>): Promise<void> {
-		const sender = await stateStore.account.get<{
-			dpos: { delegate: { username: string; lastForgedHeight: number } };
-		}>(senderID);
+		const sender = await stateStore.account.get<DPOSAccountProps>(senderID);
 
 		if (sender.dpos.delegate.username) {
 			throw new Error('Account is already a delegate');
@@ -148,12 +89,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 				address: senderID,
 			});
 
-			usernames.registeredDelegates.sort((a, b) => a.address.compare(b.address));
-
-			stateStore.chain.set(
-				CHAIN_STATE_DELEGATE_USERNAMES,
-				codec.encode(delegatesUserNamesSchema, usernames),
-			);
+			setRegisteredDelegates(stateStore, usernames);
 		}
 
 		if (usernameExists) {
@@ -162,6 +98,6 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 
 		sender.dpos.delegate.username = asset.username;
 		sender.dpos.delegate.lastForgedHeight = stateStore.chain.lastBlockHeaders[0].height + 1;
-		stateStore.account.set(sender.address, sender);
+		stateStore.account.set<DPOSAccountProps>(sender.address, sender);
 	}
 }
