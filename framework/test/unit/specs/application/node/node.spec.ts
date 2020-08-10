@@ -20,6 +20,8 @@ import { Synchronizer } from '../../../../../src/application/node/synchronizer/s
 import { Processor } from '../../../../../src/application/node/processor';
 import { Forger, HighFeeForgingStrategy } from '../../../../../src/application/node/forger';
 import { cacheConfig, nodeOptions } from '../../../../fixtures/node';
+import { genesisBlock } from '../../../../fixtures';
+import { TokenModule } from '../../../../../src/modules';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -27,7 +29,7 @@ describe('Node', () => {
 	let node: Node;
 	let subscribedEvents: any;
 	const stubs: any = {};
-	const lastBlock = { ...nodeOptions.genesisBlock };
+	const lastBlock = genesisBlock();
 
 	beforeEach(() => {
 		// Arrange
@@ -93,12 +95,13 @@ describe('Node', () => {
 			channel: stubs.channel,
 			blockchainDB,
 			forgerDB,
+			customModules: [TokenModule],
 			networkModule: stubs.networkModule,
 			logger: stubs.logger,
 			options: nodeOptions,
 		};
 
-		node = new Node(params as any);
+		node = new Node(params);
 	});
 
 	describe('constructor', () => {
@@ -135,6 +138,8 @@ describe('Node', () => {
 			node = new Node({
 				channel: stubs.channel,
 				logger: stubs.logger,
+				customModules: [TokenModule],
+				networkModule: stubs.networkModule,
 				options,
 			} as any);
 
@@ -155,7 +160,7 @@ describe('Node', () => {
 				forging: {
 					waitThreshold: 5,
 				},
-				constants: {
+				genesisConfig: {
 					blockTime: 4,
 				},
 			};
@@ -163,6 +168,8 @@ describe('Node', () => {
 			node = new Node({
 				channel: stubs.channel,
 				options: invalidChainOptions,
+				customModules: [TokenModule],
+				networkModule: stubs.networkModule,
 				logger: stubs.logger,
 			} as any);
 
@@ -188,7 +195,7 @@ describe('Node', () => {
 				forging: {
 					waitThreshold: 5,
 				},
-				constants: {
+				genesisConfig: {
 					blockTime: 5,
 				},
 			};
@@ -196,6 +203,8 @@ describe('Node', () => {
 			node = new Node({
 				channel: stubs.channel,
 				options: invalidChainOptions,
+				customModules: [TokenModule],
+				networkModule: stubs.networkModule,
 				logger: stubs.logger,
 			} as any);
 
@@ -270,6 +279,8 @@ describe('Node', () => {
 						...nodeOptions,
 						genesisBlock: null,
 					},
+					customModules: [TokenModule],
+					networkModule: stubs.networkModule,
 					logger: stubs.logger,
 				} as any);
 

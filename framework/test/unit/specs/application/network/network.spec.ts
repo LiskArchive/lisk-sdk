@@ -28,7 +28,6 @@ describe('network', () => {
 		const db = new KVStore('~/.lisk/stubed');
 		network = new Network({
 			nodeDB: db,
-			networkId: 'networkID',
 			networkVersion: '2.0',
 			logger: ({
 				info: jest.fn(),

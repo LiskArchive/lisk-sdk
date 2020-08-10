@@ -13,8 +13,8 @@
  */
 
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
-import { Block, Chain, BlockHeader, BufferMap } from '@liskhq/lisk-chain';
-import { Dpos } from '@liskhq/lisk-dpos';
+import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { BaseSynchronizer, EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './base_synchronizer';
 import {
 	computeLargestSubsetMaxBy,
@@ -48,14 +48,13 @@ interface BlockSynchronizationMechanismInput {
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
 	readonly bft: BFT;
-	readonly dpos: Dpos;
 	readonly chain: Chain;
 	readonly processorModule: Processor;
 	readonly networkModule: Network;
 }
 
-const groupByPeer = (peers: Peer[]): BufferMap<Peer[]> => {
-	const groupedPeers = new BufferMap<Peer[]>();
+const groupByPeer = (peers: Peer[]): dataStructures.BufferMap<Peer[]> => {
+	const groupedPeers = new dataStructures.BufferMap<Peer[]>();
 	for (const peer of peers) {
 		let grouped = groupedPeers.get(peer.options.lastBlockID);
 		if (grouped === undefined) {
@@ -69,14 +68,12 @@ const groupByPeer = (peers: Peer[]): BufferMap<Peer[]> => {
 
 export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	private readonly bft: BFT;
-	private readonly dpos: Dpos;
 	private readonly processorModule: Processor;
 
 	public constructor({
 		logger,
 		channel,
 		bft,
-		dpos,
 		chain,
 		processorModule,
 		networkModule,
@@ -84,7 +81,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		super(logger, channel, chain, networkModule);
 		this.bft = bft;
 		this._chain = chain;
-		this.dpos = dpos;
 		this.processorModule = processorModule;
 	}
 
@@ -92,7 +88,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	public async run(receivedBlock: Block): Promise<void> {
 		this.active = true;
 		try {
-			const bestPeer = await this._computeBestPeer();
+			const bestPeer = this._computeBestPeer();
 			await this._requestAndValidateLastBlock(bestPeer.peerId);
 			const lastCommonBlock = await this._revertToLastCommonBlock(bestPeer.peerId);
 			await this._requestAndApplyBlocksToCurrentChain(
@@ -128,7 +124,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 		const finalizedBlockSlot = this._chain.slots.getSlotNumber(finalizedBlock.timestamp);
 		const currentBlockSlot = this._chain.slots.getSlotNumber();
-		const threeRounds = this.dpos.delegatesPerRound * 3;
+		const threeRounds = this._chain.numberOfValidators * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
 	}
@@ -218,9 +214,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		// Check if the new tip has priority over the last tip we had before applying
-		const forkStatus = await this.processorModule.forkStatus(
-			this._chain.lastBlock, // New tip of the chain
-			tipBeforeApplying, // Previous tip of the chain
+		const forkStatus = this.bft.forkChoice(
+			this._chain.lastBlock.header, // New tip of the chain
+			tipBeforeApplying.header, // Previous tip of the chain
 		);
 
 		const newTipHasPreference = forkStatus === ForkStatus.DIFFERENT_CHAIN;
@@ -378,8 +374,10 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = this.dpos.rounds.calcRound(this._chain.lastBlock.header.height); // Holds the current round number
-		let currentHeight = currentRound * this.dpos.delegatesPerRound;
+		let currentRound = Math.ceil(
+			this._chain.lastBlock.header.height / this._chain.numberOfValidators,
+		); // Holds the current round number
+		let currentHeight = currentRound * this._chain.numberOfValidators;
 
 		while (
 			!highestCommonBlock &&
@@ -388,7 +386,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		) {
 			const heightList = computeBlockHeightsList(
 				this.bft.finalizedHeight,
-				this.dpos.delegatesPerRound,
+				this._chain.numberOfValidators,
 				blocksPerRequestLimit,
 				currentRound,
 			);
@@ -413,7 +411,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			highestCommonBlock = data; // If no common block, data is undefined.
 
 			currentRound -= blocksPerRequestLimit;
-			currentHeight = currentRound * this.dpos.delegatesPerRound;
+			currentHeight = currentRound * this._chain.numberOfValidators;
 		}
 
 		return highestCommonBlock;
@@ -438,9 +436,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Received tip of the chain from peer',
 		);
 
-		const { valid: validBlock } = await this._blockDetachedStatus(networkLastBlock);
+		const { valid: validBlock } = this._blockDetachedStatus(networkLastBlock);
 
-		const forkStatus = await this.processorModule.forkStatus(networkLastBlock);
+		const forkStatus = this.bft.forkChoice(networkLastBlock.header, this._chain.lastBlock.header);
 
 		const inDifferentChain =
 			forkStatus === ForkStatus.DIFFERENT_CHAIN ||
@@ -461,11 +459,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * of the Pipeline but not in other cases
 	 * that's why we wrap it here.
 	 */
-	private async _blockDetachedStatus(
-		networkLastBlock: Block,
-	): Promise<{ valid: boolean; err: Error | null }> {
+	private _blockDetachedStatus(networkLastBlock: Block): { valid: boolean; err: Error | null } {
 		try {
-			await this.processorModule.validate(networkLastBlock);
+			this.processorModule.validate(networkLastBlock);
 			return { valid: true, err: null };
 		} catch (err) {
 			return { valid: false, err: err as Error };
@@ -478,7 +474,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 *
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
-	private async _computeBestPeer(): Promise<Peer> {
+	private _computeBestPeer(): Peer {
 		const peers = (this._networkModule.getConnectedPeers() as unknown) as Peer[];
 
 		if (!peers.length) {
@@ -545,10 +541,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			},
 		};
 
-		const forkStatus = await this.processorModule.forkStatus(({
-			header: peersTip,
-			payload: [],
-		} as unknown) as Block);
+		const forkStatus = this.bft.forkChoice(peersTip as BlockHeader, this._chain.lastBlock.header);
 
 		const tipHasPreference = forkStatus === ForkStatus.DIFFERENT_CHAIN;
 

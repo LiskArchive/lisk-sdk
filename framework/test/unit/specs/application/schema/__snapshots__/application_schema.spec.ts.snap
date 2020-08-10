@@ -114,9 +114,14 @@ Object {
         "type": "object",
       },
       "genesisConfig": Object {
-        "additionalProperties": false,
+        "additionalProperties": true,
         "id": "#/config/genesisConfig",
         "properties": Object {
+          "bftThreshold": Object {
+            "description": "Number of validators required to set block finality",
+            "minimum": 1,
+            "type": "number",
+          },
           "blockTime": Object {
             "description": "Slot time interval in seconds",
             "minimum": 2,

@@ -14,8 +14,14 @@
 
 import { Schema, codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
+import { hash } from '@liskhq/lisk-cryptography';
 import { GenesisBlock, AccountSchema } from '../types';
-import { baseAccountSchema, getGenesisBlockHeaderAssetSchema, blockSchema, blockHeaderSchema } from '../schema';
+import {
+	baseAccountSchema,
+	getGenesisBlockHeaderAssetSchema,
+	blockSchema,
+	blockHeaderSchema,
+} from '../schema';
 
 export const readGenesisBlockJSON = (
 	genesisBlockJSON: Record<string, unknown>,
@@ -25,8 +31,17 @@ export const readGenesisBlockJSON = (
 		...baseAccountSchema,
 	} as Schema;
 	for (const [name, schema] of Object.entries(accounts)) {
-		accountSchema.properties[name] = schema;
+		const { default: defaultProps, ...others } = schema;
+		accountSchema.properties[name] = others;
 	}
+	const assetSchema = {
+		...blockHeaderSchema.properties.asset,
+		...getGenesisBlockHeaderAssetSchema(accountSchema),
+		dataType: undefined,
+	};
+	delete assetSchema.dataType;
+	delete assetSchema.fieldNumber;
+
 	const genesisBlockSchema = {
 		...blockSchema,
 		properties: {
@@ -35,10 +50,7 @@ export const readGenesisBlockJSON = (
 				...blockHeaderSchema,
 				properties: {
 					...blockHeaderSchema.properties,
-					asset: {
-						...blockHeaderSchema.properties.asset,
-						...getGenesisBlockHeaderAssetSchema(accountSchema),
-					},
+					asset: assetSchema,
 				},
 			},
 		},
@@ -47,7 +59,22 @@ export const readGenesisBlockJSON = (
 
 	if (typeof cloned.header === 'object' && cloned.header !== null) {
 		// eslint-disable-next-line no-param-reassign
-		delete (cloned as { header: { id: unknown }}).header.id;
+		delete (cloned as { header: { id: unknown } }).header.id;
 	}
-	return codec.fromJSON(genesisBlockSchema, cloned);
+	const genesisBlock = codec.fromJSON<GenesisBlock>(genesisBlockSchema, cloned);
+	const genesisAssetBuffer = codec.encode(assetSchema, genesisBlock.header.asset);
+	const id = hash(
+		codec.encode(blockHeaderSchema, {
+			...genesisBlock.header,
+			asset: genesisAssetBuffer,
+		}),
+	);
+
+	return {
+		...genesisBlock,
+		header: {
+			...genesisBlock.header,
+			id,
+		},
+	};
 };

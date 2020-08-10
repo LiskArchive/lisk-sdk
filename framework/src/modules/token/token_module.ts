@@ -13,12 +13,9 @@
  */
 
 import { BaseModule } from '../base_module';
+import { TransferAsset } from './transfer_asset';
 
-interface AccountBalance {
-	balance: bigint;
-}
-
-export class TokenModule extends BaseModule<AccountBalance> {
+export class TokenModule extends BaseModule {
 	public name = 'token';
 	public type = 2;
 	public accountSchema = {
@@ -33,4 +30,5 @@ export class TokenModule extends BaseModule<AccountBalance> {
 			balance: BigInt(0),
 		},
 	};
+	public transactionAssets = [new TransferAsset()];
 }

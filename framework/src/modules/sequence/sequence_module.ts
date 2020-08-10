@@ -13,9 +13,9 @@
  */
 
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-
-import { BaseModule, TransactionApplyInput } from '../base_module';
-import { Account } from '../base_asset';
+import { Account } from '@liskhq/lisk-chain';
+import { BaseModule } from '../base_module';
+import { TransactionApplyInput } from '../../types';
 import { NonceOutOfBoundsError } from '../../errors';
 import { InvalidNonceError } from './errors';
 

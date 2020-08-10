@@ -15,7 +15,6 @@
 
 import { KVStore } from '@liskhq/lisk-db';
 import { constantsConfig, nodeConfig } from '../configs';
-import { registeredTransactions } from '../registered_transactions';
 import { createMockChannel } from '../channel';
 import { Node, Options } from '../../../src/application/node/node';
 import { genesisBlock } from '../../fixtures/blocks';
@@ -68,8 +67,7 @@ export const createNode = ({
 		...options,
 		communityIdentifier: 'Lisk',
 		constants: constantsConfig(),
-		genesisBlock: genesisBlock(),
-		registeredTransactions: { ...registeredTransactions },
+		genesisBlock: (genesisBlock() as unknown) as Record<string, unknown>,
 	};
 	return new Node({
 		channel: channel ?? (createMockChannel() as any),
@@ -77,6 +75,7 @@ export const createNode = ({
 		logger,
 		blockchainDB,
 		forgerDB,
+		customModules: [],
 		networkModule: networkMock as any,
 	});
 };

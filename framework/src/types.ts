@@ -14,12 +14,12 @@
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import {
 	Validator,
+	Account,
 	AccountSchema as ChainAccountSchema,
 	Transaction,
 	StateStore as ChainStateStore,
 	GenesisBlock,
 	Block,
-	AccountDefaultProps,
 } from '@liskhq/lisk-chain';
 
 export interface StringKeyVal {
@@ -114,7 +114,7 @@ export interface GenesisConfig {
 	baseFees: {
 		moduleType: number;
 		assetType: number;
-		baseFee: bigint;
+		baseFee: string;
 	}[];
 }
 
@@ -189,12 +189,12 @@ export interface Actions {
 }
 
 export interface TransactionApplyInput {
-	tx: Transaction;
+	transaction: Transaction;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
 }
 
-export interface AfterGenesisBlockApplyInput<T = AccountDefaultProps> {
+export interface AfterGenesisBlockApplyInput<T = Account> {
 	genesisBlock: GenesisBlock<T>;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
