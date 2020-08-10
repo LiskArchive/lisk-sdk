@@ -126,6 +126,24 @@ describe('VoteTransactionAsset', () => {
 					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
 				});
 			});
+
+			describe('when asset.votes includes amount which is greater than int64 range', () => {
+				it('should return errors', () => {
+					// Arrange
+					validateInput.asset = {
+						votes: [
+							{
+								delegateAddress: delegate1.address,
+								amount: BigInt(2) ** BigInt(63) + BigInt(1),
+							},
+						],
+					};
+
+					// Act & Assert
+					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
+				});
+			});
 		});
 
 		describe('when asset.votes contains valid contents', () => {
@@ -544,11 +562,30 @@ describe('VoteTransactionAsset', () => {
 				};
 			});
 
-			describe('when asset.votes contain delegate address which is not registered', () => {
+			describe('when asset.votes contain delegate address which account does not exists', () => {
+				it('should throw error', async () => {
+					const nonExistingAccount = createFakeDefaultAccount({
+						dpos: { delegate: { username: '' } },
+					});
+					applyInput.asset = {
+						votes: [
+							...applyInput.asset.votes,
+							{ delegateAddress: nonExistingAccount.address, amount: liskToBeddows(76) },
+						],
+					};
+
+					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+						'Account not defined',
+					);
+				});
+			});
+
+			describe('when asset.votes contain delegate address which is not registered delegate', () => {
 				it('should throw error', async () => {
 					const nonRegisteredDelegate = createFakeDefaultAccount({
-						dpos: { delegate: { username: 'nonregistered' } },
+						dpos: { delegate: { username: '' } },
 					});
+					stateStoreMock.account.set(nonRegisteredDelegate.address, nonRegisteredDelegate);
 					applyInput.asset = {
 						votes: [
 							...applyInput.asset.votes,

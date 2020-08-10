@@ -126,9 +126,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 
 		for (const vote of assetCopy) {
 			const sender = await store.account.get<DPOSAccountProps>(senderID);
-			const votedDelegate = await store.account.getOrDefault<DPOSAccountProps>(
-				vote.delegateAddress,
-			);
+			const votedDelegate = await store.account.get<DPOSAccountProps>(vote.delegateAddress);
 
 			if (votedDelegate.dpos.delegate.username === '') {
 				throw new Error(
@@ -193,7 +191,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 					throw new Error('Cannot upvote which exceeds int64');
 				}
 
-				// Balance is checked in the base transaction
+				// Balance is checked in the token module
 				await reducerHandler.invoke('token:debit', {
 					address: senderID,
 					amount: vote.amount,
