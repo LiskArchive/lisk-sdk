@@ -35,7 +35,7 @@ export interface DPOSAccountProps {
 	dpos: {
 		delegate: {
 			username: string;
-			pomHeights: [];
+			pomHeights: number[];
 			consecutiveMissedBlocks: number;
 			lastForgedHeight: number;
 			isBanned: boolean;
@@ -48,4 +48,8 @@ export interface DPOSAccountProps {
 
 		unlocking: UnlockingAccountAsset[];
 	};
+}
+
+export interface UnlockTransactionAssetInput {
+	readonly unlockObjects: ReadonlyArray<UnlockingAccountAsset>;
 }
