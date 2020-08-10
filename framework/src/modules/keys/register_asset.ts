@@ -13,6 +13,7 @@
  */
 /* eslint-disable class-methods-use-this */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { BaseAsset, ApplyAssetInput, StateStore, ValidateAssetInput } from '../base_asset';
 import { KeysSchema } from './schemas';
 import { AccountKeyAsset } from './types';
@@ -35,33 +36,22 @@ const setMemberAccounts = async (
 	}
 };
 
-const hasDuplicateKey = (keys: Buffer[]): boolean => {
-	const temp: { [key: string]: boolean | undefined } = {};
-	for (const key of keys) {
-		if (temp[key.toString('base64')]) {
-			return true;
-		}
-		temp[key.toString('base64')] = true;
-	}
-	return false;
-};
-
 export const RegisterAssetType = 0;
+export const MAX_KEYS_COUNT = 64;
 
 export class RegisterAsset extends BaseAsset {
 	public name = 'register';
 	public type = RegisterAssetType;
 	public assetSchema = KeysSchema;
-	private readonly MAX_KEYS_COUNT = 64;
 
 	public validateAsset({ asset, transaction }: ValidateAssetInput<Asset>): void {
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = asset;
 
-		if (hasDuplicateKey(mandatoryKeys as Buffer[])) {
+		if (objectUtils.bufferArrayUniqueItems(mandatoryKeys as Buffer[])) {
 			throw new Error('MandatoryKeys contains duplicate public keys.');
 		}
 
-		if (hasDuplicateKey(optionalKeys as Buffer[])) {
+		if (objectUtils.bufferArrayUniqueItems(optionalKeys as Buffer[])) {
 			throw new Error('OptionalKeys contains duplicate public keys.');
 		}
 
@@ -74,7 +64,7 @@ export class RegisterAsset extends BaseAsset {
 
 		// Check if key count is out of bounds
 		if (
-			mandatoryKeys.length + optionalKeys.length > this.MAX_KEYS_COUNT ||
+			mandatoryKeys.length + optionalKeys.length > MAX_KEYS_COUNT ||
 			mandatoryKeys.length + optionalKeys.length <= 0
 		) {
 			throw new Error('The count of Mandatory and Optional keys should be between 1 and 64.');
