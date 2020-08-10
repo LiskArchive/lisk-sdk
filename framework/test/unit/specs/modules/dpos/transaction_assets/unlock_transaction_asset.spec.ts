@@ -206,7 +206,7 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		describe('when asset.unlockObjects includes zero amount', () => {
-			it('should return errors', () => {
+			it('should throw error', () => {
 				// Arrange
 				validateInput.asset = {
 					unlockObjects: [
@@ -226,7 +226,7 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		describe('when asset.unlockObjects includes amount which is not multiple of 10 * 10^8', () => {
-			it('should return errors', () => {
+			it('should throw error', () => {
 				// Arrange
 				validateInput.asset = {
 					unlockObjects: [
@@ -312,7 +312,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				describe('when asset.unlockObjects contain valid entries, and voter account has not waited 2000 blocks', () => {
-					it('should return errors', async () => {
+					it('should throw error', async () => {
 						stateStoreMock.chain.lastBlockHeaders = [{ height: 4000 }] as any;
 
 						await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
@@ -388,7 +388,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited 260,000 blocks', () => {
-					it('should return errors', async () => {
+					it('should throw error', async () => {
 						stateStoreMock.chain.lastBlockHeaders = [{ height: lastBlockHeight - 5000 }] as any;
 
 						await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
@@ -501,7 +501,7 @@ describe('UnlockTransactionAsset', () => {
 					};
 				});
 
-				it('should return errors', async () => {
+				it('should throw error', async () => {
 					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
 						'Unlocking is not permitted as it is still within the waiting period',
 					);
@@ -525,7 +525,7 @@ describe('UnlockTransactionAsset', () => {
 					};
 				});
 
-				it('should return errors', async () => {
+				it('should throw error', async () => {
 					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
 						'Unlocking is not permitted as delegate is currently being punished',
 					);
@@ -549,7 +549,7 @@ describe('UnlockTransactionAsset', () => {
 					};
 				});
 
-				it('should return errors', async () => {
+				it('should throw error', async () => {
 					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
 						'Unlocking is not permitted as it is still within the waiting period',
 					);
@@ -573,7 +573,7 @@ describe('UnlockTransactionAsset', () => {
 					};
 				});
 
-				it('should return errors', async () => {
+				it('should throw error', async () => {
 					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
 						'Unlocking is not permitted as delegate is currently being punished',
 					);
@@ -626,7 +626,7 @@ describe('UnlockTransactionAsset', () => {
 			});
 		});
 
-		describe('when account.unlocking does not have corresponding unlockingObject', () => {
+		describe('when account.dpos.unlocking does not have corresponding unlockingObject', () => {
 			beforeEach(() => {
 				sender.dpos.unlocking = [
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
@@ -640,14 +640,14 @@ describe('UnlockTransactionAsset', () => {
 				};
 			});
 
-			it('should return errors', async () => {
+			it('should throw error', async () => {
 				await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
 					'Corresponding unlocking object not found',
 				);
 			});
 		});
 
-		describe('when account.unlocking has one entry but it has multiple corresponding unlockObjects', () => {
+		describe('when account.dpos.unlocking has one entry but it has multiple corresponding unlockObjects', () => {
 			beforeEach(() => {
 				sender.dpos.unlocking = [
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
@@ -662,7 +662,7 @@ describe('UnlockTransactionAsset', () => {
 				};
 			});
 
-			it('should return errors', async () => {
+			it('should throw error', async () => {
 				await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
 					'Corresponding unlocking object not found',
 				);
