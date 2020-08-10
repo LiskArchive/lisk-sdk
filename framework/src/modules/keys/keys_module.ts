@@ -56,20 +56,11 @@ export class KeysModule extends BaseModule {
 	// eslint-disable-next-line class-methods-use-this
 	public async beforeTransactionApply({
 		stateStore,
-		transaction: {
-			asset,
-			assetType,
-			getSigningBytes,
-			id,
-			moduleType,
-			senderID,
-			senderPublicKey,
-			signatures,
-		},
+		transaction,
 	}: TransactionApplyInput): Promise<void> {
-		const sender = await stateStore.account.get<AccountKeyAsset>(senderID);
+		const sender = await stateStore.account.get<AccountKeyAsset>(transaction.senderID);
 		const { networkIdentifier } = stateStore.chain;
-		const transactionBytes = getSigningBytes();
+		const transactionBytes = transaction.getSigningBytes();
 
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifier,
@@ -77,49 +68,67 @@ export class KeysModule extends BaseModule {
 		]);
 
 		// This is for registration of multisignature that requires all signatures
-		if (moduleType === this.type && assetType === RegisterAssetType) {
-			const { mandatoryKeys, optionalKeys } = codec.decode<DecodedAsset>(KeysSchema, asset);
+		if (transaction.moduleType === this.type && transaction.assetType === RegisterAssetType) {
+			const { mandatoryKeys, optionalKeys } = codec.decode<DecodedAsset>(
+				KeysSchema,
+				transaction.asset,
+			);
 
 			// For multisig registration we need all signatures to be present
 			const numberOfExpectedKeys = mandatoryKeys.length + optionalKeys.length + 1;
-			if (numberOfExpectedKeys !== signatures.length) {
+			if (numberOfExpectedKeys !== transaction.signatures.length) {
 				throw new Error(
-					`There are missing signatures. Expected: ${numberOfExpectedKeys} signatures but got: ${signatures.length}`,
+					`There are missing signatures. Expected: ${numberOfExpectedKeys} signatures but got: ${transaction.signatures.length}`,
 				);
 			}
 
 			// Check if empty signatures are present
-			if (!signatures.every(signature => signature.length > 0)) {
+			if (!transaction.signatures.every(signature => signature.length > 0)) {
 				throw new Error('A signature is required for each registered key.');
 			}
 
 			// Verify first signature is from senderPublicKey
-			validateSignature(senderPublicKey, signatures[0], transactionWithNetworkIdentifierBytes, id);
+			validateSignature(
+				transaction.senderPublicKey,
+				transaction.signatures[0],
+				transactionWithNetworkIdentifierBytes,
+				transaction.id,
+			);
 
 			// Verify each mandatory key signed in order
 			validateKeysSignatures(
 				mandatoryKeys,
-				signatures.slice(1, mandatoryKeys.length + 1),
+				transaction.signatures.slice(1, mandatoryKeys.length + 1),
 				transactionWithNetworkIdentifierBytes,
-				id,
+				transaction.id,
 			);
 
 			// Verify each optional key signed in order
 			validateKeysSignatures(
 				optionalKeys,
-				signatures.slice(mandatoryKeys.length + 1),
+				transaction.signatures.slice(mandatoryKeys.length + 1),
 				transactionWithNetworkIdentifierBytes,
-				id,
+				transaction.id,
 			);
 			return;
 		}
 
 		if (!isMultisignatureAccount(sender)) {
-			validateSignature(senderPublicKey, signatures[0], transactionWithNetworkIdentifierBytes, id);
+			validateSignature(
+				transaction.senderPublicKey,
+				transaction.signatures[0],
+				transactionWithNetworkIdentifierBytes,
+				transaction.id,
+			);
 			return;
 		}
 
-		verifyMultiSignatureTransaction(id, sender, signatures, transactionWithNetworkIdentifierBytes);
+		verifyMultiSignatureTransaction(
+			transaction.id,
+			sender,
+			transaction.signatures,
+			transactionWithNetworkIdentifierBytes,
+		);
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
