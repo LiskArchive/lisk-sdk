@@ -14,7 +14,7 @@
 
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { ApplyAssetInput, ValidateAssetInput } from '../../../../../../src/modules';
+import { ApplyAssetInput, ValidateAssetInput } from '../../../../../../src/types';
 import { createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
 import {
@@ -22,7 +22,6 @@ import {
 	VoteTransactionAssetInput,
 } from '../../../../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
 import { DPOSAccountProps } from '../../../../../../src/modules/dpos';
-import { Account } from '../../../../../../src/modules/base_asset';
 
 const liskToBeddows = (lisk: number) => BigInt(10) * BigInt(10) ** BigInt(8) * BigInt(lisk);
 
@@ -633,7 +632,7 @@ describe('VoteTransactionAsset', () => {
 
 			describe('when asset.votes negative amount decrease account.dpos.sentVotes entries yet positive amount makes account exceeds more than 10', () => {
 				it('should throw error', async () => {
-					const updatedSender = objects.cloneDeep(sender) as Account<DPOSAccountProps>;
+					const updatedSender = objects.cloneDeep(sender);
 					// Suppose account already voted for 8 delegates
 					for (let i = 0; i < 8; i += 1) {
 						const delegate = createFakeDefaultAccount({
@@ -688,7 +687,7 @@ describe('VoteTransactionAsset', () => {
 
 			describe('when asset.votes negative amount and makes account.dpos.unlocking more than 20 entries', () => {
 				it('should throw error', async () => {
-					const updatedSender = objects.cloneDeep(sender) as Account<DPOSAccountProps>;
+					const updatedSender = objects.cloneDeep(sender);
 					// Suppose account already 19 unlocking
 					for (let i = 0; i < 19; i += 1) {
 						const delegate = createFakeDefaultAccount({
@@ -745,7 +744,7 @@ describe('VoteTransactionAsset', () => {
 
 			describe('when asset.votes negative amount exceeds the previously voted amount', () => {
 				it('should throw error', async () => {
-					const updatedSender = objects.cloneDeep(sender) as Account<DPOSAccountProps>;
+					const updatedSender = objects.cloneDeep(sender);
 					updatedSender.dpos.sentVotes.push({
 						delegateAddress: delegate1.address,
 						amount: liskToBeddows(70),
@@ -788,9 +787,7 @@ describe('VoteTransactionAsset', () => {
 				await transactionAsset.applyAsset(applyInput);
 
 				// Assert
-				const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
-					sender.address,
-				);
+				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.delegate.totalVotesReceived).toEqual(senderVoteAmount);
 				expect(updatedSender.dpos.sentVotes).toHaveLength(1);
 				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
@@ -824,9 +821,7 @@ describe('VoteTransactionAsset', () => {
 				await transactionAsset.applyAsset(applyInput);
 
 				// Assert
-				const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
-					sender.address,
-				);
+				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.delegate.totalVotesReceived).toEqual(
 					senderUpVoteAmount - senderDownVoteAmount,
 				);

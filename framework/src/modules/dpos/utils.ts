@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { StateStore } from '../base_asset';
+import { StateStore } from '../../types';
 import { DelegatePersistedUsernames, RegisteredDelegates, UnlockingAccountAsset } from './types';
 import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
 
