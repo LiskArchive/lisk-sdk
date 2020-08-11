@@ -28,7 +28,6 @@ import { constantsSchema, applicationConfigSchema } from './schema';
 import { Network } from './network';
 import { Node } from './node';
 import { Logger, createLogger } from './logger';
-import { mergeDeep } from './utils/merge_deep';
 
 import { DuplicateAppInstanceError } from '../errors';
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
@@ -122,7 +121,7 @@ export class Application {
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			config.label ?? `lisk-${config.genesisConfig?.communityIdentifier}`;
 
-		const mergedConfig = mergeDeep({}, appConfig, config) as ApplicationConfig;
+		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
 		mergedConfig.rootPath = mergedConfig.rootPath.replace('~', os.homedir());
 		const applicationConfigErrors = validator.validate(applicationConfigSchema, mergedConfig);
 		if (applicationConfigErrors.length) {
@@ -265,7 +264,7 @@ export class Application {
 			this.logger.fatal({ err: error as Error }, 'Application shutdown failed');
 		} finally {
 			// Unfreeze the configuration
-			this.config = mergeDeep({}, this.config) as ApplicationConfig;
+			this.config = objects.mergeDeep({}, this.config) as ApplicationConfig;
 
 			// To avoid redundant shutdown call
 			process.removeAllListeners('exit');
