@@ -13,14 +13,12 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import {
-	RegisterTransactionAsset,
-	RegisterTransactionAssetInput,
-} from '../../../../../../src/modules/dpos/transaction_assets/register_transaction_asset';
+import { RegisterTransactionAsset } from '../../../../../../src/modules/dpos/transaction_assets/register_transaction_asset';
 import { ValidationError } from '../../../../../../src/errors';
 import { ApplyAssetInput } from '../../../../../../src/modules';
 import { createAccount, createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
+import { RegisterTransactionAssetInput } from '../../../../../../src/modules/dpos';
 
 describe('RegisterTransactionAsset', () => {
 	const lastBlockHeight = 200;
