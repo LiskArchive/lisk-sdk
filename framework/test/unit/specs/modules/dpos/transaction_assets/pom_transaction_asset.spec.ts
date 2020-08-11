@@ -107,7 +107,7 @@ describe('UnlockTransactionAsset', () => {
 	});
 
 	describe('validateAsset', () => {
-		it('should not return errors when first height is equal to second height but equal maxHeightPrevoted', () => {
+		it('should not throw error when first height is equal to second height but equal maxHeightPrevoted', () => {
 			validateInput.asset = {
 				header1: {
 					...header1,
@@ -120,7 +120,7 @@ describe('UnlockTransactionAsset', () => {
 			expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
 		});
 
-		it('should not return errors when first height is greater than the second height but equal maxHeightPrevoted', () => {
+		it('should not throw error when first height is greater than the second height but equal maxHeightPrevoted', () => {
 			validateInput.asset = {
 				header1: {
 					...header1,
@@ -133,7 +133,7 @@ describe('UnlockTransactionAsset', () => {
 			expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
 		});
 
-		it("should not return errors when height is greater than the second header's maxHeightPreviouslyForged", () => {
+		it("should not throw error when height is greater than the second header's maxHeightPreviouslyForged", () => {
 			validateInput.asset = {
 				header1: {
 					...header1,
@@ -149,7 +149,7 @@ describe('UnlockTransactionAsset', () => {
 			expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
 		});
 
-		it('should not return errors when maxHeightPrevoted is greater than the second maxHeightPrevoted', () => {
+		it('should not throw error when maxHeightPrevoted is greater than the second maxHeightPrevoted', () => {
 			validateInput.asset = {
 				header1: {
 					...header1,
@@ -162,7 +162,7 @@ describe('UnlockTransactionAsset', () => {
 			expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
 		});
 
-		it('should return errors when headers are not contradicting', () => {
+		it('should throw error when headers are not contradicting', () => {
 			validateInput.asset = {
 				header1: {
 					...header1,
@@ -193,11 +193,11 @@ describe('UnlockTransactionAsset', () => {
 			(dposUtils.validateSignature as any).mockClear();
 		});
 
-		it('should not return errors with valid transactions', async () => {
+		it('should not throw error with valid transactions', async () => {
 			await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
 		});
 
-		it('should return errors if |header1.height - h| >= 260000', async () => {
+		it('should throw error if |header1.height - h| >= 260000', async () => {
 			applyInput.asset = {
 				...applyInput.asset,
 				header1: {
@@ -211,7 +211,7 @@ describe('UnlockTransactionAsset', () => {
 			);
 		});
 
-		it('should return errors if |header2.height - h| >= 260000', async () => {
+		it('should throw error if |header2.height - h| >= 260000', async () => {
 			applyInput.asset = {
 				...applyInput.asset,
 				header2: {
@@ -225,7 +225,7 @@ describe('UnlockTransactionAsset', () => {
 			);
 		});
 
-		it('should return errors when header1 is not properly signed', async () => {
+		it('should throw error when header1 is not properly signed', async () => {
 			when(dposUtils.validateSignature as any)
 				.calledWith(
 					applyInput.asset.header1.generatorPublicKey,
@@ -246,7 +246,7 @@ describe('UnlockTransactionAsset', () => {
 			);
 		});
 
-		it('should return errors when header2 is not properly signed', async () => {
+		it('should throw error when header2 is not properly signed', async () => {
 			when(dposUtils.validateSignature as any)
 				.calledWith(
 					applyInput.asset.header1.generatorPublicKey,
@@ -267,7 +267,7 @@ describe('UnlockTransactionAsset', () => {
 			);
 		});
 
-		it('should return errors if misbehaving account is not a delegate', async () => {
+		it('should throw error if misbehaving account is not a delegate', async () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.dpos.delegate.username = '';
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
@@ -277,7 +277,7 @@ describe('UnlockTransactionAsset', () => {
 			);
 		});
 
-		it('should return errors if misbehaving account is already banned', async () => {
+		it('should throw error if misbehaving account is already banned', async () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.dpos.delegate.isBanned = true;
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
@@ -287,7 +287,7 @@ describe('UnlockTransactionAsset', () => {
 			);
 		});
 
-		it('should return errors if misbehaving account is already punished at height h', async () => {
+		it('should throw error if misbehaving account is already punished at height h', async () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.dpos.delegate.pomHeights = [applyInput.asset.header1.height + 10];
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
