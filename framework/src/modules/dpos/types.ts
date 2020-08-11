@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BlockHeader } from '@liskhq/lisk-chain';
+
 interface RegisteredDelegate {
 	readonly username: string;
 	readonly address: Buffer;
@@ -61,4 +63,15 @@ export interface RegisterTransactionAssetInput {
 
 export interface VoteTransactionAssetInput {
 	readonly votes: ReadonlyArray<VoteAccountAsset>;
+}
+
+export interface BlockHeaderAssetForDPOS {
+	readonly seedReveal: Buffer;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+}
+
+export interface PomTransactionAssetInput {
+	readonly header1: BlockHeader<BlockHeaderAssetForDPOS>;
+	readonly header2: BlockHeader<BlockHeaderAssetForDPOS>;
 }
