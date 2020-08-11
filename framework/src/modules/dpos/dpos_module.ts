@@ -12,7 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
+import { GenesisConfig } from '../../types';
+
+export const dposModuleParamsSchema = {
+	$id: '/dops/params',
+	type: 'object',
+	required: ['activeDelegates', 'standbyDelegates', 'delegateListRoundOffset'],
+	additionalProperties: true,
+	properties: {
+		activeDelegates: {
+			dataType: 'uint32',
+		},
+		standbyDelegates: {
+			dataType: 'uint32',
+		},
+		delegateListRoundOffset: {
+			dataType: 'uint32',
+		},
+	},
+};
 
 export class DPoSModule extends BaseModule {
 	public name = 'dpos';
@@ -98,4 +118,13 @@ export class DPoSModule extends BaseModule {
 			unlocking: [],
 		},
 	};
+
+	public constructor(config: GenesisConfig) {
+		super(config);
+
+		const errors = validator.validate(dposModuleParamsSchema, this.config);
+		if (errors.length) {
+			throw new LiskValidationError([...errors]);
+		}
+	}
 }
