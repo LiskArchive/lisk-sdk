@@ -22,7 +22,7 @@ import { DPOSAccountProps, PomTransactionAssetInput } from '../types';
 import { getPunishmentPeriod, validateSignature } from '../utils';
 
 const signingBlockHeaderSchema = {
-	$id: 'lisk/signing-block-header',
+	$id: 'lisk/dpos/signingBlockHeader',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
@@ -77,7 +77,6 @@ const getBlockHeaderBytes = (header: BaseBlockHeader): Buffer =>
 	codec.encode(signingBlockHeaderSchema, header);
 
 export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
-	public baseFee = BigInt(0);
 	public name = 'pom';
 	public type = 3;
 	public assetSchema = {
@@ -105,9 +104,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 			);
 		}
 
-		if (
-			Buffer.compare(getBlockHeaderBytes(asset.header1), getBlockHeaderBytes(asset.header2)) === 0
-		) {
+		if (getBlockHeaderBytes(asset.header1).equals(getBlockHeaderBytes(asset.header2))) {
 			throw new Error('BlockHeaders are identical. No contradiction detected.');
 		}
 
@@ -151,7 +148,6 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 		reducerHandler,
 	}: ApplyAssetInput<PomTransactionAssetInput>): Promise<void> {
 		const currentHeight = store.chain.lastBlockHeaders[0].height + 1;
-		const senderAccount = await store.account.get<DPOSAccountProps>(senderID);
 		const { networkIdentifier } = store.chain;
 		/*
 			|header1.height - h| < 260,000.
@@ -241,8 +237,6 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 
 		await reducerHandler.invoke('token:credit', { address: senderID, amount: reward });
 
-		store.account.set(senderAccount.address, senderAccount);
-
 		/*
 			Update delegate account
 		*/
@@ -255,10 +249,11 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 		if (updatedDelegateAccount.dpos.delegate.pomHeights.length >= MAX_POM_HEIGHTS) {
 			updatedDelegateAccount.dpos.delegate.isBanned = true;
 		}
+		store.account.set(updatedDelegateAccount.address, updatedDelegateAccount);
+
 		await reducerHandler.invoke('token:debit', {
 			address: updatedDelegateAccount.address,
 			amount: reward,
 		});
-		store.account.set(updatedDelegateAccount.address, updatedDelegateAccount);
 	}
 }

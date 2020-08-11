@@ -19,7 +19,6 @@ import { DPOSAccountProps, VoteTransactionAssetInput } from '../types';
 import { sortUnlocking } from '../utils';
 
 export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
-	public baseFee = BigInt(0);
 	public name = 'vote';
 	public type = 1;
 	public assetSchema = {

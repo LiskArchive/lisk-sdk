@@ -29,7 +29,7 @@ import * as dposUtils from '../../../../../../src/modules/dpos/utils';
 import { createFakeBlockHeader } from '../../../../../fixtures';
 import { liskToBeddows } from '../../../../../utils/assets';
 
-describe('UnlockTransactionAsset', () => {
+describe('PomTransactionAsset', () => {
 	const lastBlockHeight = 8760000;
 	const lastBlockReward = liskToBeddows(69);
 	let transactionAsset: PomTransactionAsset;
@@ -306,7 +306,7 @@ describe('UnlockTransactionAsset', () => {
 
 			await transactionAsset.applyAsset(applyInput);
 
-			expect(applyInput.reducerHandler.invoke).toBeCalledWith('token:credit', {
+			expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 				address: applyInput.senderID,
 				amount: remainingBalance,
 			});
