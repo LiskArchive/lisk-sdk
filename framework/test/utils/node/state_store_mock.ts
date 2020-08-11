@@ -18,7 +18,7 @@ import { createFakeDefaultAccount } from './account';
 import { AccountStateStore, Account, AccountDefaultProps } from '../../../src/modules/base_asset';
 
 export interface ChainState {
-	lastBlockHeaders: BlockHeader[];
+	readonly lastBlockHeaders: BlockHeader[];
 	readonly lastBlockReward: bigint;
 	readonly networkIdentifier: Buffer;
 	get(key: string): Promise<Buffer | undefined>;

@@ -31,34 +31,50 @@ const setupUnlocks = ({
 	lastBlockHeight,
 	sender,
 	delegate,
-	stateStoreMock,
+	applyInput,
 }: {
 	unVoteHeight: number;
 	pomHeight: number;
 	lastBlockHeight: number;
 	sender: Account<DPOSAccountProps>;
 	delegate: Account<DPOSAccountProps>;
-	stateStoreMock: StateStoreMock;
+	applyInput: ApplyAssetInput<UnlockTransactionAssetInput>;
 }) => {
 	const unlockObj = {
 		delegateAddress: delegate.address,
 		amount: liskToBeddows(120),
 		unvoteHeight: unVoteHeight,
 	};
-	// Make sure delegate is registered as delegate
-	const updatedDelegate = { ...delegate };
-	updatedDelegate.dpos.delegate.username = 'delegate';
-	updatedDelegate.dpos.delegate.pomHeights = [pomHeight];
-	stateStoreMock.account.set(delegate.address, delegate);
+	const stateStore = new StateStoreMock([] as any, {
+		lastBlockHeaders: [{ height: lastBlockHeight }] as any,
+	});
 
-	const updatedSender = { ...sender };
-	updatedSender.dpos.unlocking = [unlockObj];
-	stateStoreMock.account.set(sender.address, updatedSender);
+	if (sender.address.equals(delegate.address)) {
+		const updatedSender = objects.cloneDeep(sender);
+		updatedSender.dpos.unlocking = [unlockObj];
+		// Make sure delegate is registered as delegate
+		updatedSender.dpos.delegate.username = 'delegate';
+		updatedSender.dpos.delegate.pomHeights = [pomHeight];
 
-	// eslint-disable-next-line no-param-reassign
-	stateStoreMock.chain.lastBlockHeaders = [{ height: lastBlockHeight }] as any;
+		stateStore.account.set(sender.address, updatedSender);
+	} else {
+		const updatedSender = objects.cloneDeep(sender);
+		updatedSender.dpos.unlocking = [unlockObj];
 
-	return [unlockObj];
+		const updatedDelegate = objects.cloneDeep(delegate);
+		// Make sure delegate is registered as delegate
+		updatedDelegate.dpos.delegate.username = 'delegate';
+		updatedDelegate.dpos.delegate.pomHeights = [pomHeight];
+
+		stateStore.account.set(sender.address, updatedSender);
+		stateStore.account.set(delegate.address, updatedDelegate);
+	}
+
+	return {
+		...applyInput,
+		stateStore: stateStore as any,
+		asset: { unlockObjects: [unlockObj] },
+	};
 };
 
 describe('UnlockTransactionAsset', () => {
@@ -313,7 +329,13 @@ describe('UnlockTransactionAsset', () => {
 
 				describe('when asset.unlockObjects contain valid entries, and voter account has not waited 2000 blocks', () => {
 					it('should throw error', async () => {
-						stateStoreMock.chain.lastBlockHeaders = [{ height: 4000 }] as any;
+						stateStoreMock = new StateStoreMock(objects.cloneDeep(stateStoreMock.accountData), {
+							lastBlockHeaders: [{ height: 4000 }] as any,
+						});
+						applyInput = {
+							...applyInput,
+							stateStore: stateStoreMock as any,
+						};
 
 						await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
 							'Unlocking is not permitted as it is still within the waiting period',
@@ -389,7 +411,13 @@ describe('UnlockTransactionAsset', () => {
 
 				describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited 260,000 blocks', () => {
 					it('should throw error', async () => {
-						stateStoreMock.chain.lastBlockHeaders = [{ height: lastBlockHeight - 5000 }] as any;
+						stateStoreMock = new StateStoreMock([...stateStoreMock.accountData], {
+							lastBlockHeaders: [{ height: lastBlockHeight - 5000 }] as any,
+						});
+						applyInput = {
+							...applyInput,
+							stateStore: stateStoreMock as any,
+						};
 
 						await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
 							'Unlocking is not permitted as it is still within the waiting period',
@@ -401,20 +429,18 @@ describe('UnlockTransactionAsset', () => {
 
 		describe('given the delegate is currently being punished', () => {
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 and unvoteHeight + 260,000 blocks', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 780000 + 10;
 
-					applyInput.asset = {
-						unlockObjects: setupUnlocks({
-							pomHeight,
-							unVoteHeight,
-							lastBlockHeight: Math.max(pomHeight + 780000, unVoteHeight + 260000),
-							sender,
-							delegate: sender,
-							stateStoreMock,
-						}),
-					};
+					applyInput = setupUnlocks({
+						pomHeight,
+						unVoteHeight,
+						lastBlockHeight: Math.max(pomHeight + 780000, unVoteHeight + 260000),
+						sender,
+						delegate: sender,
+						applyInput,
+					});
 				});
 
 				it('should not return error', async () => {
@@ -447,16 +473,14 @@ describe('UnlockTransactionAsset', () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 260000 + 10;
 
-					applyInput.asset = {
-						unlockObjects: setupUnlocks({
-							pomHeight,
-							unVoteHeight,
-							lastBlockHeight: Math.max(pomHeight + 260000, unVoteHeight + 2000),
-							sender,
-							delegate: delegate1,
-							stateStoreMock,
-						}),
-					};
+					applyInput = setupUnlocks({
+						pomHeight,
+						unVoteHeight,
+						lastBlockHeight: Math.max(pomHeight + 260000, unVoteHeight + 2000),
+						sender,
+						delegate: delegate1,
+						applyInput,
+					});
 				});
 
 				it('should not return error', async () => {
@@ -489,16 +513,14 @@ describe('UnlockTransactionAsset', () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 260000 + 10;
 
-					applyInput.asset = {
-						unlockObjects: setupUnlocks({
-							pomHeight,
-							unVoteHeight,
-							lastBlockHeight: pomHeight + 260000 + 5,
-							sender,
-							delegate: delegate1,
-							stateStoreMock,
-						}),
-					};
+					applyInput = setupUnlocks({
+						pomHeight,
+						unVoteHeight,
+						lastBlockHeight: pomHeight + 260000 + 5,
+						sender,
+						delegate: delegate1,
+						applyInput,
+					});
 				});
 
 				it('should throw error', async () => {
@@ -513,16 +535,14 @@ describe('UnlockTransactionAsset', () => {
 					const unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 260000 + 10;
 
-					applyInput.asset = {
-						unlockObjects: setupUnlocks({
-							pomHeight,
-							unVoteHeight,
-							lastBlockHeight: unVoteHeight + 260000 + 5,
-							sender,
-							delegate: delegate1,
-							stateStoreMock,
-						}),
-					};
+					applyInput = setupUnlocks({
+						pomHeight,
+						unVoteHeight,
+						lastBlockHeight: unVoteHeight + 260000 + 5,
+						sender,
+						delegate: delegate1,
+						applyInput,
+					});
 				});
 
 				it('should throw error', async () => {
@@ -537,16 +557,14 @@ describe('UnlockTransactionAsset', () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 780000 + 10;
 
-					applyInput.asset = {
-						unlockObjects: setupUnlocks({
-							pomHeight,
-							unVoteHeight,
-							lastBlockHeight: pomHeight + 780000 + 5,
-							sender,
-							delegate: sender,
-							stateStoreMock,
-						}),
-					};
+					applyInput = setupUnlocks({
+						pomHeight,
+						unVoteHeight,
+						lastBlockHeight: pomHeight + 780000 + 5,
+						sender,
+						delegate: sender,
+						applyInput,
+					});
 				});
 
 				it('should throw error', async () => {
@@ -561,16 +579,14 @@ describe('UnlockTransactionAsset', () => {
 					const unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 780000 + 10;
 
-					applyInput.asset = {
-						unlockObjects: setupUnlocks({
-							pomHeight,
-							unVoteHeight,
-							lastBlockHeight: unVoteHeight + 780000 + 5,
-							sender,
-							delegate: sender,
-							stateStoreMock,
-						}),
-					};
+					applyInput = setupUnlocks({
+						pomHeight,
+						unVoteHeight,
+						lastBlockHeight: unVoteHeight + 780000 + 5,
+						sender,
+						delegate: sender,
+						applyInput,
+					});
 				});
 
 				it('should throw error', async () => {
@@ -623,6 +639,47 @@ describe('UnlockTransactionAsset', () => {
 				);
 
 				expect(updatedSender.dpos.unlocking).toHaveLength(0);
+			});
+		});
+
+		describe('when account contain duplicate unlocking entries but asset.unlockObjects only contains one', () => {
+			beforeEach(() => {
+				const unlocking = [
+					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
+					{ delegateAddress: delegate1.address, amount: liskToBeddows(78), unvoteHeight: 98 },
+				];
+
+				sender.dpos.unlocking = unlocking;
+				stateStoreMock.account.set(sender.address, sender);
+
+				applyInput.asset = {
+					unlockObjects: [objects.cloneDeep(unlocking[0])],
+				};
+			});
+
+			it('should not return error', async () => {
+				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+			});
+
+			it('should make account to have correct balance', async () => {
+				await transactionAsset.applyAsset(applyInput);
+
+				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledTimes(1);
+				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					address: sender.address,
+					amount: applyInput.asset.unlockObjects[0].amount,
+				});
+			});
+
+			it('should keep the duplicated unlocking from the sender', async () => {
+				await transactionAsset.applyAsset(applyInput);
+
+				// Assert
+				const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
+					sender.address,
+				);
+
+				expect(updatedSender.dpos.unlocking).toHaveLength(1);
 			});
 		});
 
