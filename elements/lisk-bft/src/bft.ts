@@ -94,10 +94,7 @@ export class BFT extends EventEmitter {
 		);
 	}
 
-	public async verifyBlockHeader(
-		blockHeader: BlockHeader,
-		stateStore: StateStore,
-	): Promise<void> {
+	public async verifyBlockHeader(blockHeader: BlockHeader, stateStore: StateStore): Promise<void> {
 		const isCompliant = await this.isBFTProtocolCompliant(blockHeader, stateStore);
 		const reward = this._chain.calculateReward(blockHeader.height);
 		const expectedReward = isCompliant ? reward : reward / BigInt(4);
