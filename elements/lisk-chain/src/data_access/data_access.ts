@@ -334,7 +334,7 @@ export class DataAccess {
 		};
 	}
 
-	public encode(block: Block<unknown>): Buffer {
+	public encode(block: Block<Record<string, unknown>>): Buffer {
 		const header = this.encodeBlockHeader(block.header);
 
 		const payload: Buffer[] = [];
