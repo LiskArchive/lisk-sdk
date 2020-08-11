@@ -13,9 +13,20 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { StateStore } from '../base_asset';
-import { DelegatePersistedUsernames, RegisteredDelegates, UnlockingAccountAsset } from './types';
-import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
+import { Account, StateStore } from '../base_asset';
+import {
+	DelegatePersistedUsernames,
+	DPOSAccountProps,
+	RegisteredDelegates,
+	UnlockingAccountAsset,
+} from './types';
+import {
+	CHAIN_STATE_DELEGATE_USERNAMES,
+	SELF_VOTE_PUNISH_TIME,
+	VOTER_PUNISH_TIME,
+	WAIT_TIME_SELF_VOTE,
+	WAIT_TIME_VOTE,
+} from './constants';
 
 const delegatesUserNamesSchema = {
 	$id: '/dpos/userNames',
@@ -95,4 +106,52 @@ export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
 
 		return 0;
 	});
+};
+
+export const getPunishmentPeriod = (
+	sender: Account<DPOSAccountProps>,
+	delegateAccount: Account<DPOSAccountProps>,
+	lastBlockHeight: number,
+): number => {
+	if (delegateAccount.dpos.delegate.pomHeights.length === 0) {
+		return 0;
+	}
+	const lastPomHeight = Math.max(...delegateAccount.dpos.delegate.pomHeights);
+	const currentHeight = lastBlockHeight + 1;
+	const punishTime = sender.address.equals(delegateAccount.address)
+		? SELF_VOTE_PUNISH_TIME
+		: VOTER_PUNISH_TIME;
+
+	return punishTime - (currentHeight - lastPomHeight);
+};
+
+export const getWaitingPeriod = (
+	senderAddress: Buffer,
+	delegateAddress: Buffer,
+	lastBlockHeight: number,
+	unlockObject: UnlockingAccountAsset,
+): number => {
+	const currentHeight = lastBlockHeight + 1;
+	const waitTime = senderAddress.equals(delegateAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE;
+
+	return waitTime - (currentHeight - unlockObject.unvoteHeight);
+};
+
+export const isNullCharacterIncluded = (input: string): boolean =>
+	new RegExp(/\\0|\\u0000|\\x00/).test(input);
+
+export const isUsername = (username: string): boolean => {
+	if (isNullCharacterIncluded(username)) {
+		return false;
+	}
+
+	if (username !== username.trim().toLowerCase()) {
+		return false;
+	}
+
+	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
+		return false;
+	}
+
+	return /^[a-z0-9!@$&_.]+$/g.test(username);
 };

@@ -17,14 +17,10 @@ import { objects } from '@liskhq/lisk-utils';
 import { ApplyAssetInput, ValidateAssetInput } from '../../../../../../src/modules';
 import { createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
-import {
-	VoteTransactionAsset,
-	VoteTransactionAssetInput,
-} from '../../../../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
-import { DPOSAccountProps } from '../../../../../../src/modules/dpos';
+import { VoteTransactionAsset } from '../../../../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
+import { DPOSAccountProps, VoteTransactionAssetInput } from '../../../../../../src/modules/dpos';
 import { Account } from '../../../../../../src/modules/base_asset';
-
-const liskToBeddows = (lisk: number) => BigInt(10) * BigInt(10) ** BigInt(8) * BigInt(lisk);
+import { liskToBeddows } from '../../../../../utils/assets';
 
 describe('VoteTransactionAsset', () => {
 	const lastBlockHeight = 200;

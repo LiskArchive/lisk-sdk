@@ -15,31 +15,8 @@
 import { ApplyAssetInput, BaseAsset, ValidateAssetInput } from '../../base_asset';
 import { ValidationError } from '../../../errors';
 import { DELEGATE_NAME_FEE } from '../constants';
-import { getRegisteredDelegates, setRegisteredDelegates } from '../utils';
-import { DPOSAccountProps } from '../types';
-
-const isNullCharacterIncluded = (input: string): boolean =>
-	new RegExp(/\\0|\\u0000|\\x00/).test(input);
-
-const isUsername = (username: string): boolean => {
-	if (isNullCharacterIncluded(username)) {
-		return false;
-	}
-
-	if (username !== username.trim().toLowerCase()) {
-		return false;
-	}
-
-	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
-		return false;
-	}
-
-	return /^[a-z0-9!@$&_.]+$/g.test(username);
-};
-
-export interface RegisterTransactionAssetInput {
-	readonly username: string;
-}
+import { getRegisteredDelegates, isUsername, setRegisteredDelegates } from '../utils';
+import { DPOSAccountProps, RegisterTransactionAssetInput } from '../types';
 
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetInput> {
 	public baseFee = DELEGATE_NAME_FEE;
