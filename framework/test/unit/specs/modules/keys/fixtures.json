@@ -1,0 +1,186 @@
+{
+	"title": "Valid multi-signature registration",
+	"summary": "A valid multi-signature registration",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "multisignature_registration_transaction",
+	"handler": "multisignature_registration_transaction",
+	"testCases": [
+		{
+			"description": "Both mandatory and optional member group",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "3kooYQI5zqwuw/WS42ourY7UrJPLFqoNmWq2uwJJ2iwLIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/Pvg==",
+					"publicKey": "CyEfzkthUINwHLioyZQH5GSy+apPNnCVMi3ht35fz74=",
+					"address": "vgRtM2zQwvveYrxH4gGZOV0u6tw="
+				},
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU=",
+				"members": {
+					"mandatoryOne": {
+						"passphrase": "trim elegant oven term access apple obtain error grain excite lawn neck",
+						"privateKey": "ihOMDdjv5ZfIucUZr2npghvR52nPD7NJDiIgnpyr+43xufTucbXVhX07NG1EHKln8nhw6+6IVp2zZP0T4orbow==",
+						"publicKey": "8bn07nG11YV9OzRtRBypZ/J4cOvuiFads2T9E+KK26M=",
+						"address": "ZSusDz7xdZF4RKhcSgpIT74jleQ="
+					},
+					"mandatoryTwo": {
+						"passphrase": "desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic",
+						"privateKey": "3cjhnWaX1uXB2s9ldqcWl1KBCZmRghKv4U05eLNU+KpKZ2RqRGMT25ZMOTcDWYRcUvzpIlo5KXcO9BRIwlj9OQ==",
+						"publicKey": "SmdkakRjE9uWTDk3A1mEXFL86SJaOSl3DvQUSMJY/Tk=",
+						"address": "7LYwjD7jzC7R+iZrhboSfWOk7hw="
+					},
+					"optionalOne": {
+						"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
+						"privateKey": "aaqU6nreO3sI4nexjBpZCyMGzllzroRisLhRIrGA6JxX31w4EZYZOfjc+oWMbq7+v6pN6UL35wO/iBJ+DunMpA==",
+						"publicKey": "V99cOBGWGTn43PqFjG6u/r+qTelC9+cDv4gSfg7pzKQ=",
+						"address": "dKfI7Jrcfmulwc+UENXGxr9qun0="
+					},
+					"optionalTwo": {
+						"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
+						"privateKey": "/+04OAmYqQoq+VAfEBgrwqB5IkSKs4NXWx40rt36VIL6QGtpUtN38CeJIOPrjakZ5M9caLAu66XYszNP3ANptg==",
+						"publicKey": "+kBraVLTd/AniSDj642pGeTPXGiwLuul2LMzT9wDabY=",
+						"address": "5mHJ/wL2WWKsCLx5ovXA1EsxL7w="
+					}
+				}
+			},
+			"output": {
+				"transaction": "CAQQABgBIIDeoMsFKiALIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/PvjKKAQgEEiBKZ2RqRGMT25ZMOTcDWYRcUvzpIlo5KXcO9BRIwlj9ORIg8bn07nG11YV9OzRtRBypZ/J4cOvuiFads2T9E+KK26MaIFffXDgRlhk5+Nz6hYxurv6/qk3pQvfnA7+IEn4O6cykGiD6QGtpUtN38CeJIOPrjakZ5M9caLAu66XYszNP3ANptjpAHOJu0hd05PuoFCaQzsDACg7309lwtui8TUrsCJuyTmoRtH60o/zVQEfq2/qgH+B6yrUEQvow3BvGVeUoSmDtDjpA3myu7/4VBi/m/gX/V1nXFTO80a9ndZ+7mM0lv9m81CfmJiWneNnJ5mVkaEfDcAK7g0KfkGczwUTKnzb7Wlw+BTpAqZt+mbegQn+dohrZsVfmVISkX+x3V7n4+ZCXmyixpwE6zxeiDIfUFige2Wpd9mLmzrt/ZKY5xLJ6pXEKBIMhCzpAHBBoFdFZusEi+hKRDRCRHJa5U10zkf4lc6whdaqqYnn1wjZkuc9mzIYinsREFK30q8MVpQF91HOh7/zcao1sDzpA25OKrycZqAAXhE8ZaONc6ScSTc98BKCw2SaKp8mtHOUOYZBcG7ipArmC4lNDwjL65fBs2Ci30RylPxiCDq2MCA=="
+			}
+		},
+		{
+			"description": "Sender is a member of the group",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "3kooYQI5zqwuw/WS42ourY7UrJPLFqoNmWq2uwJJ2iwLIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/Pvg==",
+					"publicKey": "CyEfzkthUINwHLioyZQH5GSy+apPNnCVMi3ht35fz74=",
+					"address": "vgRtM2zQwvveYrxH4gGZOV0u6tw="
+				},
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU=",
+				"members": {
+					"targetAccount": {
+						"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+						"privateKey": "3kooYQI5zqwuw/WS42ourY7UrJPLFqoNmWq2uwJJ2iwLIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/Pvg==",
+						"publicKey": "CyEfzkthUINwHLioyZQH5GSy+apPNnCVMi3ht35fz74=",
+						"address": "vgRtM2zQwvveYrxH4gGZOV0u6tw="
+					},
+					"mandatoryOne": {
+						"passphrase": "trim elegant oven term access apple obtain error grain excite lawn neck",
+						"privateKey": "ihOMDdjv5ZfIucUZr2npghvR52nPD7NJDiIgnpyr+43xufTucbXVhX07NG1EHKln8nhw6+6IVp2zZP0T4orbow==",
+						"publicKey": "8bn07nG11YV9OzRtRBypZ/J4cOvuiFads2T9E+KK26M=",
+						"address": "ZSusDz7xdZF4RKhcSgpIT74jleQ="
+					},
+					"mandatoryTwo": {
+						"passphrase": "desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic",
+						"privateKey": "3cjhnWaX1uXB2s9ldqcWl1KBCZmRghKv4U05eLNU+KpKZ2RqRGMT25ZMOTcDWYRcUvzpIlo5KXcO9BRIwlj9OQ==",
+						"publicKey": "SmdkakRjE9uWTDk3A1mEXFL86SJaOSl3DvQUSMJY/Tk=",
+						"address": "7LYwjD7jzC7R+iZrhboSfWOk7hw="
+					},
+					"optionalOne": {
+						"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
+						"privateKey": "aaqU6nreO3sI4nexjBpZCyMGzllzroRisLhRIrGA6JxX31w4EZYZOfjc+oWMbq7+v6pN6UL35wO/iBJ+DunMpA==",
+						"publicKey": "V99cOBGWGTn43PqFjG6u/r+qTelC9+cDv4gSfg7pzKQ=",
+						"address": "dKfI7Jrcfmulwc+UENXGxr9qun0="
+					},
+					"optionalTwo": {
+						"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
+						"privateKey": "/+04OAmYqQoq+VAfEBgrwqB5IkSKs4NXWx40rt36VIL6QGtpUtN38CeJIOPrjakZ5M9caLAu66XYszNP3ANptg==",
+						"publicKey": "+kBraVLTd/AniSDj642pGeTPXGiwLuul2LMzT9wDabY=",
+						"address": "5mHJ/wL2WWKsCLx5ovXA1EsxL7w="
+					}
+				}
+			},
+			"output": {
+				"transaction": "CAQQABgBIIDeoMsFKiALIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/PvjKsAQgEEiALIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/PvhIgSmdkakRjE9uWTDk3A1mEXFL86SJaOSl3DvQUSMJY/TkSIPG59O5xtdWFfTs0bUQcqWfyeHDr7ohWnbNk/RPiitujGiBX31w4EZYZOfjc+oWMbq7+v6pN6UL35wO/iBJ+DunMpBog+kBraVLTd/AniSDj642pGeTPXGiwLuul2LMzT9wDabY6QNL5RALfsv4jIiltBvwan/5A2WTAHFjknANUckVwxrBeqjnWUH11yq3dluFEi9kNNnwd3uk0Rps7JRzFo60xDAc6QNL5RALfsv4jIiltBvwan/5A2WTAHFjknANUckVwxrBeqjnWUH11yq3dluFEi9kNNnwd3uk0Rps7JRzFo60xDAc6QHswCQ7xJZ8/jdUSXBWNOyxTvX0b9lZ5U1zSwLoCT/zCZbDBOeapUMzsrTqjBUBMZ9gdoPUYoju2MK1kPQ4VEAI6QJCeWmx3nkK/1Wmd9wSKa5N11+IkZH9xR8BJFKERl9fxzfOcGnS2M37cYKXztXkZTSKBH235Fqxvy7ZycfO1sgc6QBcE0Wy65KgXMX+t9wBZLGjNwCIrTa97iu4OvbJe1tZIQO2Rt79W9HCSozrWS6ehpsKd6Bhw2gcuYFbH15J6Eg46QEClAg99DI7urHQS2NBIlmCBVRzPIFmwNVm0ytJ1NV1acHknyAM7Q24fQ5uo8VkxysyY418s3fbh3CBPsxhUngg="
+			}
+		},
+		{
+			"description": "Only optional members",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "3kooYQI5zqwuw/WS42ourY7UrJPLFqoNmWq2uwJJ2iwLIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/Pvg==",
+					"publicKey": "CyEfzkthUINwHLioyZQH5GSy+apPNnCVMi3ht35fz74=",
+					"address": "vgRtM2zQwvveYrxH4gGZOV0u6tw="
+				},
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU=",
+				"members": {
+					"optionalOne": {
+						"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
+						"privateKey": "aaqU6nreO3sI4nexjBpZCyMGzllzroRisLhRIrGA6JxX31w4EZYZOfjc+oWMbq7+v6pN6UL35wO/iBJ+DunMpA==",
+						"publicKey": "V99cOBGWGTn43PqFjG6u/r+qTelC9+cDv4gSfg7pzKQ=",
+						"address": "dKfI7Jrcfmulwc+UENXGxr9qun0="
+					},
+					"optionalTwo": {
+						"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
+						"privateKey": "/+04OAmYqQoq+VAfEBgrwqB5IkSKs4NXWx40rt36VIL6QGtpUtN38CeJIOPrjakZ5M9caLAu66XYszNP3ANptg==",
+						"publicKey": "+kBraVLTd/AniSDj642pGeTPXGiwLuul2LMzT9wDabY=",
+						"address": "5mHJ/wL2WWKsCLx5ovXA1EsxL7w="
+					}
+				}
+			},
+			"output": {
+				"transaction": "CAQQABgBIIDeoMsFKiALIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/PvjJGCAEaIFffXDgRlhk5+Nz6hYxurv6/qk3pQvfnA7+IEn4O6cykGiD6QGtpUtN38CeJIOPrjakZ5M9caLAu66XYszNP3ANptjpAoSZ97zQ6VbXg6zUyhD0xiyAizHSvfhO76wEGugqVmjb/Ic2ojSw1+fFOJNo0A+p+uOxHA12iuADVzv15RH92AjpAaIVf9VWcVelRhBRmrW16zwLy+/A6et1TWQa2TFbnUtsnltjptaoxYzO0gnIP+n71StLEHB4UtvMCVq9h+XSJCDpArw94zBe4NkQwdfhYpwfdqDllFaV+Kn8AxTDyEwbxO3VTTsF/8WZLbP7UojWEi+V+z3Vpj/MxHbOfSiPiNEa9Bg=="
+			}
+		},
+		{
+			"description": "Only mandatory members",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "3kooYQI5zqwuw/WS42ourY7UrJPLFqoNmWq2uwJJ2iwLIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/Pvg==",
+					"publicKey": "CyEfzkthUINwHLioyZQH5GSy+apPNnCVMi3ht35fz74=",
+					"address": "vgRtM2zQwvveYrxH4gGZOV0u6tw="
+				},
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU=",
+				"members": {
+					"mandatoryOne": {
+						"passphrase": "trim elegant oven term access apple obtain error grain excite lawn neck",
+						"privateKey": "ihOMDdjv5ZfIucUZr2npghvR52nPD7NJDiIgnpyr+43xufTucbXVhX07NG1EHKln8nhw6+6IVp2zZP0T4orbow==",
+						"publicKey": "8bn07nG11YV9OzRtRBypZ/J4cOvuiFads2T9E+KK26M=",
+						"address": "ZSusDz7xdZF4RKhcSgpIT74jleQ="
+					},
+					"mandatoryTwo": {
+						"passphrase": "desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic",
+						"privateKey": "3cjhnWaX1uXB2s9ldqcWl1KBCZmRghKv4U05eLNU+KpKZ2RqRGMT25ZMOTcDWYRcUvzpIlo5KXcO9BRIwlj9OQ==",
+						"publicKey": "SmdkakRjE9uWTDk3A1mEXFL86SJaOSl3DvQUSMJY/Tk=",
+						"address": "7LYwjD7jzC7R+iZrhboSfWOk7hw="
+					}
+				}
+			},
+			"output": {
+				"transaction": "CAQQABgBIIDeoMsFKiALIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/PvjJGCAISIEpnZGpEYxPblkw5NwNZhFxS/OkiWjkpdw70FEjCWP05EiDxufTucbXVhX07NG1EHKln8nhw6+6IVp2zZP0T4orbozpAlbzVHMACTngz+zuLvvLpncir1HHdZ8g9DAflNZJny6uFuXlZdMkkyuFTGUiNYnY9i4BbgPHGPAXBdbEN06ZJBjpAMod5sPbU4iOobfeQZgyE3URi1JwD5sXqxn+TFm22ZYRAU7X13be52AFpvxDWiurbDsxBQUZhuRlRqsGbelHjBDpAZbcjE2yvmNMRhDY6TekrbN5U7TMDrX8yZKmJIv+tvzzNtl0o3QmYqZcEUvOzaSmlTCrMu4ZKoat5eDXa/ENGBA=="
+			}
+		},
+		{
+			"description": "Second signature case",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "3kooYQI5zqwuw/WS42ourY7UrJPLFqoNmWq2uwJJ2iwLIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/Pvg==",
+					"publicKey": "CyEfzkthUINwHLioyZQH5GSy+apPNnCVMi3ht35fz74=",
+					"address": "vgRtM2zQwvveYrxH4gGZOV0u6tw="
+				},
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU=",
+				"members": {
+					"mandatoryOne": {
+						"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+						"privateKey": "3kooYQI5zqwuw/WS42ourY7UrJPLFqoNmWq2uwJJ2iwLIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/Pvg==",
+						"publicKey": "CyEfzkthUINwHLioyZQH5GSy+apPNnCVMi3ht35fz74=",
+						"address": "vgRtM2zQwvveYrxH4gGZOV0u6tw="
+					},
+					"mandatoryTwo": {
+						"passphrase": "oyster observe cinnamon elder rose judge baby length again subway pill plate",
+						"privateKey": "/6h59WwEuSk7yDDvKcU8iHH7iScXvp1+dfyJtQfronn/MO9At95CEUE3vkbxAJ0w5cGYCac9WhYryZ9+doHWPQ==",
+						"publicKey": "/zDvQLfeQhFBN75G8QCdMOXBmAmnPVoWK8mffnaB1j0=",
+						"address": "C1x7QXZQYBBDS4CzIHrJZcJkmiM="
+					}
+				}
+			},
+			"output": {
+				"transaction": "CAQQABgBIIDeoMsFKiALIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/PvjJGCAISIAshH85LYVCDcBy4qMmUB+RksvmqTzZwlTIt4bd+X8++EiD/MO9At95CEUE3vkbxAJ0w5cGYCac9WhYryZ9+doHWPTpAUdarMBbrGERvlUZktWBn/eAJ5nhOLxbGIuh8vJlRuQ4Asv0LkSfJdQz2dfjZs/5Eyariai2HOnbZCBhbFJ3JCjpAUdarMBbrGERvlUZktWBn/eAJ5nhOLxbGIuh8vJlRuQ4Asv0LkSfJdQz2dfjZs/5Eyariai2HOnbZCBhbFJ3JCjpAFLrVDQgo+7417NAScbRelbhk/0Pow/HOAGOXxQ+JnZ0V+5t/htHFckYs79ooSM63+5FiDYEUU2LrwvpYQSqBBw=="
+			}
+		}
+	]
+}

@@ -18,7 +18,7 @@ import { BaseAsset, ApplyAssetInput, StateStore, ValidateAssetInput } from '../b
 import { KeysSchema } from './schemas';
 import { AccountKeyAsset } from './types';
 
-interface Asset {
+export interface Asset {
 	mandatoryKeys: Array<Readonly<Buffer>>;
 	optionalKeys: Array<Readonly<Buffer>>;
 	readonly numberOfSignatures: number;
@@ -47,11 +47,11 @@ export class RegisterAsset extends BaseAsset {
 	public validateAsset({ asset, transaction }: ValidateAssetInput<Asset>): void {
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = asset;
 
-		if (objectUtils.bufferArrayUniqueItems(mandatoryKeys as Buffer[])) {
+		if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys as Buffer[])) {
 			throw new Error('MandatoryKeys contains duplicate public keys.');
 		}
 
-		if (objectUtils.bufferArrayUniqueItems(optionalKeys as Buffer[])) {
+		if (!objectUtils.bufferArrayUniqueItems(optionalKeys as Buffer[])) {
 			throw new Error('OptionalKeys contains duplicate public keys.');
 		}
 
@@ -82,7 +82,9 @@ export class RegisterAsset extends BaseAsset {
 			value => optionalKeys.find(optional => optional.equals(value as Buffer)) !== undefined,
 		);
 		if (repeatedKeys.length > 0) {
-			throw new Error('Invalid combination of Mandatory and Optional keys.');
+			throw new Error(
+				'Invalid combination of Mandatory and Optional keys. Repeated keys across Mandatory and Optional were found.',
+			);
 		}
 
 		// Check if the length of mandatory, optional and sender keys matches the length of signatures
