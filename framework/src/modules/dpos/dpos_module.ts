@@ -12,9 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { objects as objectsUtils } from '@liskhq/lisk-utils';
+import { Account } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
-import { GenesisConfig } from '../../types';
+import { AfterGenesisBlockApplyInput, GenesisConfig } from '../../types';
+import { Rounds } from './rounds';
+import { DPOSAccountProps } from './types';
+
+const { bufferArrayUniqueItems, bufferArrayOrderByLex, bufferArrayContains } = objectsUtils;
 
 export const dposModuleParamsSchema = {
 	$id: '/dops/params',
@@ -24,9 +30,11 @@ export const dposModuleParamsSchema = {
 	properties: {
 		activeDelegates: {
 			dataType: 'uint32',
+			min: 1,
 		},
 		standbyDelegates: {
 			dataType: 'uint32',
+			min: 0,
 		},
 		delegateListRoundOffset: {
 			dataType: 'uint32',
@@ -119,12 +127,60 @@ export class DPoSModule extends BaseModule {
 		},
 	};
 
+	public readonly rounds!: Rounds;
+
+	private readonly _activeDelegates: number;
+	private readonly _standbyDelegates: number;
+	private readonly _delegateListRoundOffset: number;
+	private readonly _delegatesPerRound: number;
+	private readonly _delegateActiveRoundLimit: number;
+
 	public constructor(config: GenesisConfig) {
 		super(config);
 
 		const errors = validator.validate(dposModuleParamsSchema, this.config);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
+		}
+
+		this._activeDelegates = this.config.activeDelegates as number;
+		this._standbyDelegates = this.config.standbyDelegates as number;
+		this._delegateListRoundOffset = this.config.delegateListRoundOffset as number;
+		this._delegatesPerRound = this._activeDelegates + this._standbyDelegates;
+		this._delegateActiveRoundLimit = 3;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility,class-methods-use-this,@typescript-eslint/require-await
+	public async afterGenesisBlockApply<T = Account<DPOSAccountProps>>(
+		input: AfterGenesisBlockApplyInput<T>,
+	): Promise<void> {
+		const { accounts, initDelegates } = input.genesisBlock.header.asset;
+
+		const delegateAddresses = accounts
+			.filter(
+				account =>
+					((account as unknown) as Account<DPOSAccountProps>).dpos.delegate.username !== '',
+			)
+			.map(account => ((account as unknown) as Account<DPOSAccountProps>).address);
+
+		if (!bufferArrayUniqueItems(initDelegates)) {
+			throw new Error('Genesis block init delegates list contains duplicate addresses');
+		}
+
+		if (!bufferArrayOrderByLex(initDelegates)) {
+			throw new Error('Genesis block init delegates list is not ordered lexicographically');
+		}
+
+		if (initDelegates.length > this._delegatesPerRound) {
+			throw new Error(
+				'Genesis block init delegates list is larger than allowed delegates per round',
+			);
+		}
+
+		if (!bufferArrayContains(delegateAddresses, initDelegates)) {
+			throw new Error(
+				'Genesis block init delegates list contain addresses which are not delegates',
+			);
 		}
 	}
 }
