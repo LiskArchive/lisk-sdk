@@ -185,5 +185,55 @@ describe('keys module', () => {
 				new Error('There are missing signatures. Expected: 5 signatures but got: 4'),
 			);
 		});
+
+		it('should throw error if mandatory signatures are not in order', async () => {
+			const invalidTransaction = {
+				...validTestTransaction,
+				signatures: [...validTestTransaction.signatures],
+			};
+
+			[invalidTransaction.signatures[1], invalidTransaction.signatures[2]] = [
+				invalidTransaction.signatures[2],
+				invalidTransaction.signatures[1],
+			];
+			const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+			return expect(
+				keysModule.beforeTransactionApply({
+					stateStore,
+					transaction: invalidTransactionInstance as any,
+					reducerHandler,
+				}),
+			).rejects.toStrictEqual(
+				new Error(
+					"Failed to validate signature 'qZt+mbegQn+dohrZsVfmVISkX+x3V7n4+ZCXmyixpwE6zxeiDIfUFige2Wpd9mLmzrt/ZKY5xLJ6pXEKBIMhCw==' for transaction with id '6ftLshO2zqVil4zUIqVZfxAoeQfy19AHAk4JIzntoxk='",
+				),
+			);
+		});
+
+		it('should throw error if optional signatures are not in order', async () => {
+			const invalidTransaction = {
+				...validTestTransaction,
+				signatures: [...validTestTransaction.signatures],
+			};
+
+			[invalidTransaction.signatures[3], invalidTransaction.signatures[4]] = [
+				invalidTransaction.signatures[4],
+				invalidTransaction.signatures[3],
+			];
+			const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+			return expect(
+				keysModule.beforeTransactionApply({
+					stateStore,
+					transaction: invalidTransactionInstance as any,
+					reducerHandler,
+				}),
+			).rejects.toStrictEqual(
+				new Error(
+					"Failed to validate signature '25OKrycZqAAXhE8ZaONc6ScSTc98BKCw2SaKp8mtHOUOYZBcG7ipArmC4lNDwjL65fBs2Ci30RylPxiCDq2MCA==' for transaction with id 'cbHb8mt8DpG8sf6VcMwIdaphbeSjuSf8VEBFvfN4ibw='",
+				),
+			);
+		});
 	});
 });
