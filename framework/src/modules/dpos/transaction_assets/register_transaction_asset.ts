@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplyAssetInput, BaseAsset, ValidateAssetInput } from '../../base_asset';
+import { BaseAsset } from '../../base_asset';
+import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { DELEGATE_NAME_FEE } from '../constants';
 import { getRegisteredDelegates, isUsername, setRegisteredDelegates } from '../utils';

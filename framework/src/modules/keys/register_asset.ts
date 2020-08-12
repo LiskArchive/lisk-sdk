@@ -14,7 +14,8 @@
 /* eslint-disable class-methods-use-this */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
-import { BaseAsset, ApplyAssetInput, StateStore, ValidateAssetInput } from '../base_asset';
+import { BaseAsset } from '../base_asset';
+import { ApplyAssetInput, StateStore, ValidateAssetInput } from '../../types';
 import { KeysSchema } from './schemas';
 import { AccountKeyAsset } from './types';
 

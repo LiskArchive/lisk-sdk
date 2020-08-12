@@ -22,7 +22,8 @@ import {
 	validateSignature,
 	verifyMultiSignatureTransaction,
 } from './utils';
-import { AfterGenesisBlockApplyInput, BaseModule, TransactionApplyInput } from '../base_module';
+import { BaseModule } from '../base_module';
+import { AfterGenesisBlockApplyInput, TransactionApplyInput } from '../../types';
 import { RegisterAssetType } from './register_asset';
 import { KeysSchema } from './schemas';
 
@@ -132,9 +133,9 @@ export class KeysModule extends BaseModule {
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
-	public async afterGenesisBlockApply({
+	public async afterGenesisBlockApply<AccountKeyAsset>({
 		genesisBlock,
-	}: AfterGenesisBlockApplyInput): Promise<void> {
+	}: AfterGenesisBlockApplyInput<AccountKeyAsset>): Promise<void> {
 		const errors = [];
 		for (const account of genesisBlock.header.asset.accounts) {
 			if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {

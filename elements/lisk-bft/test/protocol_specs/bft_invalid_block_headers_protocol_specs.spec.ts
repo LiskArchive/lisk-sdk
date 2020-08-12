@@ -11,8 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { when } from 'jest-when';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { dataStructures } from '@liskhq/lisk-utils';
+import {
+	Chain,
+	Validator,
+	CONSENSUS_STATE_VALIDATORS_KEY,
+	validatorsSchema,
+} from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
 
 import { FinalityManager } from '../../src/finality_manager';
@@ -21,30 +28,11 @@ import { convertHeader } from '../fixtures/blocks';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {
-		let dposStub: {
-			getMinActiveHeight: jest.Mock;
-			isStandbyDelegate: jest.Mock;
-			isBootstrapPeriod: jest.Mock;
-		};
 		let stateStore: StateStoreMock;
-		let chainStub: {
-			slots: {
-				getSlotNumber: jest.Mock;
-				isWithinTimeslot: jest.Mock;
-				timeSinceGenesis: jest.Mock;
-			};
-			dataAccess: {
-				getConsensusState: jest.Mock;
-			};
-		};
+		let chainStub: Chain;
 
 		beforeEach(() => {
-			dposStub = {
-				getMinActiveHeight: jest.fn(),
-				isStandbyDelegate: jest.fn(),
-				isBootstrapPeriod: jest.fn().mockReturnValue(false),
-			};
-			chainStub = {
+			chainStub = ({
 				slots: {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
@@ -53,31 +41,36 @@ describe('FinalityManager', () => {
 				dataAccess: {
 					getConsensusState: jest.fn(),
 				},
-			};
+				numberOfValidators: 103,
+			} as unknown) as Chain;
 			stateStore = new StateStoreMock();
 		});
 
 		invalidBlockHeaderSpec.testCases.forEach(testCase => {
 			it('should fail adding invalid block header', async () => {
+				const validatorsMap = new dataStructures.BufferMap<Validator>();
+				for (const blockHeader of testCase.config.blockHeaders) {
+					const addr = getAddressFromPublicKey(Buffer.from(blockHeader.generatorPublicKey, 'hex'));
+					validatorsMap.set(addr, {
+						address: addr,
+						isConsensusParticipant: true,
+						minActiveHeight: blockHeader.delegateMinHeightActive,
+					});
+				}
+				stateStore.consensus.set(
+					CONSENSUS_STATE_VALIDATORS_KEY,
+					codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
+				);
 				// Arrange
-				stateStore.consensus.lastBlockHeaders = testCase.config.blockHeaders.map(bh =>
+				stateStore.chain.lastBlockHeaders = testCase.config.blockHeaders.map(bh =>
 					convertHeader(bh),
 				);
 
 				const finalityManager = new FinalityManager({
 					chain: chainStub,
-					dpos: dposStub,
 					finalizedHeight: invalidBlockHeaderSpec.config.finalizedHeight,
-					activeDelegates: invalidBlockHeaderSpec.config.activeDelegates,
+					threshold: invalidBlockHeaderSpec.config.activeDelegates,
 				});
-				for (const blockHeader of testCase.config.blockHeaders) {
-					when(dposStub.getMinActiveHeight)
-						.calledWith(
-							blockHeader.height,
-							getAddressFromPublicKey(Buffer.from(blockHeader.generatorPublicKey, 'hex')),
-						)
-						.mockResolvedValue(blockHeader.delegateMinHeightActive);
-				}
 
 				// Act & Assert
 				await expect(

@@ -13,8 +13,6 @@
  */
 
 import { when } from 'jest-when';
-
-import { Status as TransactionStatus } from '@liskhq/lisk-transactions';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BufferMap } from '@liskhq/lisk-transaction-pool';
 import { HighFeeForgingStrategy } from '../../../../../../src/application/node/forger/strategies';
@@ -37,7 +35,7 @@ const getTxMock = (
 		basicBytes = 0,
 		valid = true,
 	} = {} as any,
-	chainMock: any,
+	processorMock: any,
 ) => {
 	const tx = {
 		id: Buffer.from(id),
@@ -49,22 +47,19 @@ const getTxMock = (
 		getBasicBytes: jest.fn().mockReturnValue(Array(basicBytes)),
 	};
 
-	when(chainMock.applyTransactionsWithStateStore)
-		.calledWith([tx], undefined)
-		.mockResolvedValueOnce([
-			{
-				id,
-				status: valid ? TransactionStatus.OK : TransactionStatus.FAIL,
-			},
-		] as never);
+	when(processorMock.verifyTransactions)
+		.calledWith([tx], expect.anything())
+		.mockImplementationOnce(async () =>
+			valid ? Promise.resolve() : Promise.reject(new Error('Invalid transaction')),
+		);
 
 	return tx;
 };
 
-const buildProcessableTxMock = (input: any, chainMock: jest.Mock) => {
+const buildProcessableTxMock = (input: any, processorMock: jest.Mock) => {
 	const result = input
 		.map((tx: any) => {
-			return getTxMock(tx, chainMock);
+			return getTxMock(tx, processorMock);
 		})
 		.reduce((res: any, tx: any) => {
 			const senderId = getAddressFromPublicKey(tx.senderPublicKey);
@@ -93,14 +88,20 @@ describe('strategies', () => {
 			getProcessableTransactions: jest.fn().mockReturnValue(new BufferMap()),
 		} as any;
 		const mockChainModule = {
-			newStateStore: jest.fn(),
-			applyTransactionsWithStateStore: jest.fn(),
+			newStateStore: jest.fn().mockResolvedValue({
+				createSnapshot: jest.fn(),
+				restoreSnapshot: jest.fn(),
+			}),
+		} as any;
+		const mockProcessorModule = {
+			verifyTransactions: jest.fn(),
 		} as any;
 		let strategy: any;
 
 		beforeEach(() => {
 			strategy = new HighFeeForgingStrategy({
 				transactionPoolModule: mockTxPool,
+				processorModule: mockProcessorModule,
 				chainModule: mockChainModule,
 				maxPayloadLength,
 			});
@@ -117,7 +118,7 @@ describe('strategies', () => {
 			it('should return transactions in order by highest feePriority and lowest nonce', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(allValidCase.input.transactions, mockChainModule),
+					buildProcessableTxMock(allValidCase.input.transactions, mockProcessorModule),
 				);
 				strategy._constants.maxPayloadLength = BigInt(allValidCase.input.maxPayloadLength);
 
@@ -133,7 +134,7 @@ describe('strategies', () => {
 			it('should forge transactions upto maximum payload length', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(maxPayloadLengthCase.input.transactions, mockChainModule),
+					buildProcessableTxMock(maxPayloadLengthCase.input.transactions, mockProcessorModule),
 				);
 				strategy._constants.maxPayloadLength = BigInt(maxPayloadLengthCase.input.maxPayloadLength);
 
@@ -149,7 +150,7 @@ describe('strategies', () => {
 			it('should not include subsequent transactions from same sender if one failed', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(invalidTxCase.input.transactions, mockChainModule),
+					buildProcessableTxMock(invalidTxCase.input.transactions, mockProcessorModule),
 				);
 				strategy._constants.maxPayloadLength = BigInt(invalidTxCase.input.maxPayloadLength);
 
@@ -175,7 +176,7 @@ describe('strategies', () => {
 			it("should forge empty block if all processable transactions can't be processed", async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(allInvalidCase.input.transactions, mockChainModule),
+					buildProcessableTxMock(allInvalidCase.input.transactions, mockProcessorModule),
 				);
 				strategy._constants.maxPayloadLength = BigInt(allInvalidCase.input.maxPayloadLength);
 

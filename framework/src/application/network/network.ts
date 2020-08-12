@@ -67,7 +67,6 @@ interface NetworkConstructor {
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly nodeDB: KVStore;
-	readonly networkId: string;
 	readonly networkVersion: string;
 }
 
@@ -94,28 +93,21 @@ export class Network {
 	private readonly _logger: Logger;
 	private readonly _nodeDB: KVStore;
 	private readonly _networkVersion: string;
-	private readonly _networkID: string;
+	private _networkID!: string;
 	private _secret: number | null;
 	private _p2p!: liskP2P.P2P;
 
-	public constructor({
-		options,
-		channel,
-		logger,
-		nodeDB,
-		networkVersion,
-		networkId,
-	}: NetworkConstructor) {
+	public constructor({ options, channel, logger, nodeDB, networkVersion }: NetworkConstructor) {
 		this._options = options;
 		this._channel = channel;
 		this._logger = logger;
 		this._nodeDB = nodeDB;
-		this._networkID = networkId;
 		this._networkVersion = networkVersion;
 		this._secret = null;
 	}
 
-	public async bootstrap(): Promise<void> {
+	public async bootstrap(networkIdentifier: Buffer): Promise<void> {
+		this._networkID = networkIdentifier.toString('base64');
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running

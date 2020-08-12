@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader } from '@liskhq/lisk-chain';
-import { Schema } from '@liskhq/lisk-codec';
+import { AccountSchema, Account, GenesisBlockHeader } from '@liskhq/lisk-chain';
 
 export type PartialReq<T, Keys extends keyof T = keyof T> = Pick<
 	Partial<T>,
@@ -23,70 +22,20 @@ export type PartialReq<T, Keys extends keyof T = keyof T> = Pick<
 		[K in Keys]: T[K];
 	};
 
-export interface GenesisAccountState<T> {
-	readonly address: Buffer;
-	readonly balance: bigint;
-	readonly nonce: bigint;
-	readonly keys: {
-		mandatoryKeys: Buffer[];
-		optionalKeys: Buffer[];
-		numberOfSignatures: number;
-	};
-	readonly asset: T;
-}
+export type GenesisBlockHeaderWithoutId = Omit<GenesisBlockHeader, 'id'>;
 
-export interface GenesisBlockHeaderAsset<T> {
-	readonly accounts: ReadonlyArray<GenesisAccountState<T>>;
-	readonly initDelegates: ReadonlyArray<Buffer>;
-	readonly initRounds: number;
-}
-
-export type GenesisBlockHeader<T> = BlockHeader<GenesisBlockHeaderAsset<T>>;
-
-export type GenesisBlockHeaderWithoutId<T> = Omit<GenesisBlockHeader<T>, 'id'>;
-
-export interface GenesisBlock<T> {
-	readonly header: GenesisBlockHeader<T>;
-	readonly payload: [];
-}
-
-export interface GenesisBlockParams<T> {
+export interface GenesisBlockParams {
 	// List of accounts in the genesis
-	readonly accounts: ReadonlyArray<PartialReq<GenesisAccountState<T>, 'address'>>;
+	readonly accounts: ReadonlyArray<Account>;
 	// List fo initial delegate addresses used during the bootstrap period to forge blocks
 	readonly initDelegates: ReadonlyArray<Buffer>;
 	// Number of blocks per round
 	readonly roundLength: number;
+	// Account Schema for the genesis block
+	readonly accountAssetSchemas: { [moduleName: string]: AccountSchema };
 	// Number of rounds for bootstrap period, default is 3
 	readonly initRounds?: number;
 	readonly height?: number;
 	readonly timestamp?: number;
 	readonly previousBlockID?: Buffer;
-	readonly accountAssetSchema?: Schema;
-}
-
-export interface DefaultAccountAsset {
-	delegate: DelegateAccountAsset;
-	sentVotes: VoteAccountAsset[];
-	unlocking: UnlockingAccountAsset[];
-}
-
-export interface DelegateAccountAsset {
-	username: string;
-	pomHeights: number[];
-	consecutiveMissedBlocks: number;
-	lastForgedHeight: number;
-	isBanned: boolean;
-	totalVotesReceived: bigint;
-}
-
-export interface VoteAccountAsset {
-	delegateAddress: Buffer;
-	amount: bigint;
-}
-
-export interface UnlockingAccountAsset {
-	delegateAddress: Buffer;
-	amount: bigint;
-	unvoteHeight: number;
 }

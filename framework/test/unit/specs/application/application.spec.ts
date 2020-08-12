@@ -16,19 +16,14 @@
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import {
-	BaseTransaction as Base,
-	TransferTransaction,
-	TransactionError,
-} from '@liskhq/lisk-transactions';
 import { objects } from '@liskhq/lisk-utils';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { Application } from '../../../../src/application';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
-import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
 import { createLogger } from '../../../../src/application/logger';
-import { genesisBlockFromJSON, GenesisBlockJSON } from '../../../../src/application/genesis_block';
+import { genesisBlock } from '../../../fixtures/blocks';
+import { BaseModule } from '../../../../src';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -42,13 +37,13 @@ const config: any = {
 // eslint-disable-next-line
 describe('Application', () => {
 	// Arrange
-	const frameworkTxTypes = ['8', '10', '12', '13', '14', '15'];
 	const loggerMock = {
 		info: jest.fn(),
 		error: jest.fn(),
 		debug: jest.fn(),
 		trace: jest.fn(),
 	};
+	const genesisBlockJSON = (genesisBlock() as unknown) as Record<string, unknown>;
 
 	(createLogger as jest.Mock).mockReturnValue(loggerMock);
 
@@ -62,25 +57,19 @@ describe('Application', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should validate genesisBlock', () => {
-			// Act
-
-			// Assert
-			expect(() => new Application({ invalid: 'genesis block' } as any, config)).toThrow();
-		});
-
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
-			const label = `lisk-${genesisBlock.header.transactionRoot.slice(0, 7)}`;
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			const label = `lisk-${config.genesisConfig.communityIdentifier}`;
 			const configWithoutLabel = objects.cloneDeep(config);
 			delete configWithoutLabel.label;
 
-			const app = new Application(genesisBlock as GenesisBlockJSON, configWithoutLabel);
+			const app = Application.defaultApplication(genesisBlockJSON, configWithoutLabel);
 
 			expect(app.config.label).toBe(label);
 		});
 
 		it('should use the same app label if provided', () => {
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
+			const app = Application.defaultApplication(genesisBlockJSON, config);
 
 			expect(app.config.label).toBe(config.label);
 		});
@@ -88,27 +77,27 @@ describe('Application', () => {
 		it('should set default rootPath if not provided', () => {
 			// Arrange
 			const rootPath = '~/.lisk';
-			const configWithoutrootPath = objects.cloneDeep(config);
-			delete configWithoutrootPath.rootPath;
+			const configWithoutRootPath = objects.cloneDeep(config);
+			delete configWithoutRootPath.rootPath;
 
 			// Act
-			const app = new Application(genesisBlock as GenesisBlockJSON, configWithoutrootPath);
+			const app = Application.defaultApplication(genesisBlockJSON, configWithoutRootPath);
 
 			// Assert
 			expect(app.config.rootPath).toBe(rootPath);
 		});
 
 		it('should set rootPath if provided', () => {
-			// Arragne
-			const customrootPath = '/my-lisk-folder';
-			const configWithCustomrootPath = objects.cloneDeep(config);
-			configWithCustomrootPath.rootPath = customrootPath;
+			// Arrange
+			const customRootPath = '/my-lisk-folder';
+			const configWithCustomRootPath = objects.cloneDeep(config);
+			configWithCustomRootPath.rootPath = customRootPath;
 
 			// Act
-			const app = new Application(genesisBlock as GenesisBlockJSON, configWithCustomrootPath);
+			const app = Application.defaultApplication(genesisBlockJSON, configWithCustomRootPath);
 
 			// Assert
-			expect(app.config.rootPath).toBe(customrootPath);
+			expect(app.config.rootPath).toBe(customRootPath);
 		});
 
 		it('should set filename for logger if logger config was not provided', () => {
@@ -117,7 +106,7 @@ describe('Application', () => {
 			configWithoutLogger.logger = {};
 
 			// Act
-			const app = new Application(genesisBlock as GenesisBlockJSON, configWithoutLogger);
+			const app = Application.defaultApplication(genesisBlockJSON, configWithoutLogger);
 
 			// Assert
 			expect(app.config.logger.logFileName).toBe('lisk.log');
@@ -137,44 +126,34 @@ describe('Application', () => {
 				},
 			};
 
-			const app = new Application(genesisBlock as GenesisBlockJSON, customConfig);
+			const app = Application.defaultApplication(genesisBlockJSON, customConfig);
 
 			expect(app.constants.maxPayloadLength).toBe(15 * 1024);
 		});
 
 		it('should set internal variables', () => {
 			// Act
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
-			const parsedGenesisBlock = genesisBlockFromJSON(genesisBlock);
+			const app = Application.defaultApplication(genesisBlockJSON, config);
 
 			// Assert
-			expect(app['_genesisBlock']).toEqual(parsedGenesisBlock);
+			expect(app['_genesisBlock']).toEqual(genesisBlockJSON);
 			expect(app.config).toMatchSnapshot();
 			expect(app['_controller']).toBeUndefined();
 			expect(app['_node']).toBeUndefined();
 			expect(app['_network']).toBeUndefined();
 			expect(app['_channel']).toBeUndefined();
 			expect(app['_plugins']).toBeInstanceOf(Object);
-			expect(app['_transactions']).toBeInstanceOf(Object);
 		});
 
 		it('should not initialize logger', () => {
 			// Act
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
+			const app = Application.defaultApplication(genesisBlockJSON, config);
 
 			// Assert
 			expect(app.logger).toBeUndefined();
 		});
 
-		it('should contain all framework related transactions.', () => {
-			// Act
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
-
-			// Assert
-			expect(Object.keys(app.getTransactions())).toEqual(frameworkTxTypes);
-		});
-
-		it('should throw validation error if constants are overriden by the user', () => {
+		it('should throw validation error if constants are overridden by the user', () => {
 			const customConfig = objects.cloneDeep(config);
 
 			customConfig.genesisConfig = {
@@ -183,123 +162,35 @@ describe('Application', () => {
 
 			expect(() => {
 				// eslint-disable-next-line no-new
-				new Application(genesisBlock as GenesisBlockJSON, customConfig);
+				Application.defaultApplication(genesisBlockJSON, customConfig);
 			}).toThrow(
-				"Lisk validator found 2 error[s]:\nProperty '.genesisConfig' has extraneous property 'CONSTANT'\nMissing property, should have required property 'communityIdentifier'",
+				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'communityIdentifier'",
 			);
 		});
 	});
 
-	describe('#registerTransaction', () => {
+	describe('#registerModule', () => {
 		it('should throw error when transaction class is missing.', () => {
 			// Arrange
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
+			const app = Application.defaultApplication(genesisBlockJSON, config);
 
 			// Act && Assert
-			expect(() => (app as any).registerTransaction()).toThrow(
-				'Transaction implementation is required',
-			);
+			expect(() => (app as any).registerModule()).toThrow('Module implementation is required');
 		});
 
-		it('should throw error when transaction does not satisfy TransactionInterface.', () => {
+		it('should add custom module to collection.', () => {
 			// Arrange
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
-
-			const TransactionWithoutBase = {
-				prototype: {},
-				...TransferTransaction,
-			};
-			TransactionWithoutBase.TYPE = 99;
-
-			// Act && Assert
-			expect(() => app.registerTransaction(TransactionWithoutBase as any)).toThrow(
-				LiskValidationError,
-			);
-		});
-
-		it('should throw error when transaction type is missing.', () => {
-			// Arrange
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
-
-			class Sample extends Base {
-				// eslint-disable-next-line
-				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
-					return [];
-				}
-				// eslint-disable-next-line
-				public validateAsset(): ReadonlyArray<TransactionError> {
-					return [];
-				}
-			}
-			// Act && Assert
-			expect(() => app.registerTransaction(Sample)).toThrow(
-				'Transaction type is required as an integer',
-			);
-		});
-
-		it('should throw error when transaction type is not integer.', () => {
-			// Arrange
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
-
-			class Sample extends Base {
-				// eslint-disable-next-line
-				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
-					return [];
-				}
-				// eslint-disable-next-line
-				public validateAsset(): ReadonlyArray<TransactionError> {
-					return [];
-				}
-			}
-			Sample.TYPE = 'abc' as any;
-
-			// Act && Assert
-			expect(() => app.registerTransaction(Sample)).toThrow(
-				'Transaction type is required as an integer',
-			);
-		});
-
-		it('should throw error when transaction interface does not match.', () => {
-			// Arrange
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
-			class Sample extends Base {
-				// eslint-disable-next-line
-				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
-					return [];
-				}
-				// eslint-disable-next-line
-				public validateAsset(): ReadonlyArray<TransactionError> {
-					return [];
-				}
-			}
-
-			Sample.TYPE = 10;
-			Sample.prototype.apply = 'not a function' as any;
-
-			// Act && Assert
-			expect(() => app.registerTransaction(Sample)).toThrow();
-		});
-
-		it('should register transaction when passing a new transaction type and a transaction implementation.', () => {
-			// Arrange
-			const app = new Application(genesisBlock as GenesisBlockJSON, config);
+			const app = Application.defaultApplication(genesisBlockJSON, config);
 
 			// Act
-			class Sample extends Base {
-				// eslint-disable-next-line
-				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
-					return [];
-				}
-				// eslint-disable-next-line
-				public validateAsset(): ReadonlyArray<TransactionError> {
-					return [];
-				}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public type = 0;
 			}
-			Sample.TYPE = 99;
-			app.registerTransaction(Sample);
+			app.registerModule(SampleModule);
 
 			// Assert
-			expect(app.getTransaction(99)).toBe(Sample);
+			expect(app['_customModules'].pop()).toBe(SampleModule);
 		});
 	});
 
@@ -309,7 +200,7 @@ describe('Application', () => {
 
 		beforeEach(() => {
 			// Arrange
-			app = new Application(genesisBlock as GenesisBlockJSON, config);
+			app = Application.defaultApplication(genesisBlockJSON, config);
 			app['_channel'] = app['_initChannel']();
 			actionsList = app['_channel'].actionsList;
 		});
@@ -359,7 +250,7 @@ describe('Application', () => {
 		let app: Application;
 		let dirs: any;
 		beforeEach(async () => {
-			app = new Application(genesisBlock as GenesisBlockJSON, config);
+			app = Application.defaultApplication(genesisBlockJSON, config);
 			try {
 				await app.run();
 			} catch (error) {
@@ -396,7 +287,7 @@ describe('Application', () => {
 		const fakeSocketFiles = ['1.sock' as any, '2.sock' as any];
 
 		beforeEach(async () => {
-			app = new Application(genesisBlock as GenesisBlockJSON, config);
+			app = Application.defaultApplication(genesisBlockJSON, config);
 			try {
 				await app.run();
 			} catch (error) {

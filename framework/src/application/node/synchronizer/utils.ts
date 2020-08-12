@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { ForkStatus } from '@liskhq/lisk-bft';
+import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Chain } from '@liskhq/lisk-chain';
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
@@ -75,6 +75,7 @@ export const deleteBlocksAfterHeight = async (
 export const restoreBlocksUponStartup = async (
 	logger: Logger,
 	chainModule: Chain,
+	bftModule: BFT,
 	processorModule: Processor,
 ): Promise<void> => {
 	// Get all blocks and find lowest height (next one to be applied), as it should return in height desc
@@ -82,7 +83,7 @@ export const restoreBlocksUponStartup = async (
 	const blockLowestHeight = tempBlocks[tempBlocks.length - 1];
 	const blockHighestHeight = tempBlocks[0];
 
-	const forkStatus = await processorModule.forkStatus(blockHighestHeight);
+	const forkStatus = bftModule.forkChoice(blockHighestHeight.header, chainModule.lastBlock.header);
 	const blockHasPriority =
 		forkStatus === ForkStatus.DIFFERENT_CHAIN || forkStatus === ForkStatus.VALID_BLOCK;
 

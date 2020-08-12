@@ -11,17 +11,35 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Chain } from './chain';
 import { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK } from './constants';
 
 const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK };
 
-export { Account } from './account';
-export * from './block_reward';
-export { Chain, events };
-export * from './schema';
-export { StateStore } from './state_store';
+export { events };
+export { Chain } from './chain';
+export { Transaction, transactionSchema } from './transaction';
+export {
+	blockHeaderAssetSchema,
+	blockHeaderSchema,
+	blockSchema,
+	signingBlockHeaderSchema,
+	validatorsSchema,
+	getGenesisBlockHeaderAssetSchema,
+} from './schema';
+export { CONSENSUS_STATE_VALIDATORS_KEY, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from './constants';
+export type {
+	Account,
+	AccountDefaultProps,
+	RawBlock,
+	RawBlockHeader,
+	GenesisBlock,
+	GenesisBlockHeader,
+	Block,
+	BlockHeader,
+	Validator,
+	AccountSchema,
+} from './types';
 export { Slots } from './slots';
-export * from './types';
-export { BufferMap } from './utils/buffer_map';
-export { BufferSet } from './utils/buffer_set';
+export { readGenesisBlockJSON, getValidators, getAccountSchemaWithDefault } from './utils';
+
+export type { StateStore } from './state_store';

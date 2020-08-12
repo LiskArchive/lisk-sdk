@@ -13,8 +13,6 @@
  */
 
 import { createGenesisBlock } from './create';
-import { validateGenesisBlock } from './validate';
 
 export * from './types';
-export * from './schema';
-export { createGenesisBlock, validateGenesisBlock };
+export { createGenesisBlock };

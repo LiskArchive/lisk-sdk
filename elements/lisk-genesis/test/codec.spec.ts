@@ -14,37 +14,31 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
-import { RawBlockHeader } from '@liskhq/lisk-chain';
 import {
-	createGenesisBlock,
-	genesisBlockSchema,
-	genesisBlockHeaderSchema,
-	genesisBlockHeaderAssetSchema,
-	defaultAccountAssetSchema,
+	RawBlockHeader,
+	getGenesisBlockHeaderAssetSchema,
 	GenesisBlock,
-	DefaultAccountAsset,
-	GenesisBlockHeaderAsset,
-} from '../src';
+	GenesisBlockHeader,
+	blockHeaderSchema,
+	blockSchema,
+} from '@liskhq/lisk-chain';
+import { createGenesisBlock } from '../src';
 
-import { validGenesisBlockParams } from './fixtures';
-import { getHeaderAssetSchemaWithAccountAsset } from '../src/utils/schema';
+import { validGenesisBlockParams, defaultAccountSchema } from './fixtures';
 
-const encodeGenesisBlock = (genesisBlock: GenesisBlock<DefaultAccountAsset>) => {
-	const blockHeaderWithAccountAssetSchema = getHeaderAssetSchemaWithAccountAsset(
-		genesisBlockHeaderAssetSchema,
-		defaultAccountAssetSchema,
-	);
+const encodeGenesisBlock = (genesisBlock: GenesisBlock) => {
+	const blockHeaderWithAccountAssetSchema = getGenesisBlockHeaderAssetSchema(defaultAccountSchema);
 	const genesisBlockAssetBuffer = codec.encode(
 		blockHeaderWithAccountAssetSchema,
 		genesisBlock.header.asset,
 	);
 
-	const genesisBlockHeaderBuffer = codec.encode(genesisBlockHeaderSchema, {
+	const genesisBlockHeaderBuffer = codec.encode(blockHeaderSchema, {
 		...genesisBlock.header,
 		asset: genesisBlockAssetBuffer,
 	});
 
-	const genesisBlockBuffer = codec.encode(genesisBlockSchema, {
+	const genesisBlockBuffer = codec.encode(blockSchema, {
 		header: genesisBlockHeaderBuffer,
 		payload: genesisBlock.payload,
 	});
@@ -55,20 +49,17 @@ const encodeGenesisBlock = (genesisBlock: GenesisBlock<DefaultAccountAsset>) => 
 	};
 };
 
-const decodeGenesisBlock = (genesisBlockBuffer: Buffer): GenesisBlock<DefaultAccountAsset> => {
+const decodeGenesisBlock = (genesisBlockBuffer: Buffer): GenesisBlock => {
 	const { header, payload } = codec.decode<{
 		header: Buffer;
 		payload: [];
-	}>(genesisBlockSchema, genesisBlockBuffer);
+	}>(blockSchema, genesisBlockBuffer);
 
-	const blockHeaderWithAssetBuffer = codec.decode<RawBlockHeader>(genesisBlockHeaderSchema, header);
+	const blockHeaderWithAssetBuffer = codec.decode<RawBlockHeader>(blockHeaderSchema, header);
 
-	const blockHeaderAssetSchema = getHeaderAssetSchemaWithAccountAsset(
-		genesisBlockHeaderAssetSchema,
-		defaultAccountAssetSchema,
-	);
+	const blockHeaderAssetSchema = getGenesisBlockHeaderAssetSchema(defaultAccountSchema);
 
-	const blockHeaderAsset = codec.decode<GenesisBlockHeaderAsset<DefaultAccountAsset>>(
+	const blockHeaderAsset = codec.decode<GenesisBlockHeader['asset']>(
 		blockHeaderAssetSchema,
 		blockHeaderWithAssetBuffer.asset,
 	);

@@ -27,77 +27,160 @@ export const genesisAccount = {
 	password: 'elephant tree paris dragon chair galaxy',
 };
 
-export const defaultAccountAssetSchema = {
-	delegate: {
-		type: 'object',
-		fieldNumber: 1,
-		properties: {
-			username: { dataType: 'string', fieldNumber: 1 },
-			pomHeights: {
-				type: 'array',
-				items: { dataType: 'uint32' },
-				fieldNumber: 2,
-			},
-			consecutiveMissedBlocks: { dataType: 'uint32', fieldNumber: 3 },
-			lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
-			isBanned: { dataType: 'boolean', fieldNumber: 5 },
-			totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
-		},
-		required: [
-			'username',
-			'pomHeights',
-			'consecutiveMissedBlocks',
-			'lastForgedHeight',
-			'isBanned',
-			'totalVotesReceived',
-		],
-	},
-	sentVotes: {
-		type: 'array',
-		fieldNumber: 2,
-		items: {
-			type: 'object',
-			properties: {
-				delegateAddress: {
-					dataType: 'bytes',
-					fieldNumber: 1,
-				},
-				amount: {
-					dataType: 'uint64',
-					fieldNumber: 2,
-				},
-			},
-			required: ['delegateAddress', 'amount'],
+export const tokenAssetSchema = {
+	type: 'object',
+	properties: {
+		balance: {
+			fieldNumber: 1,
+			dataType: 'uint64',
 		},
 	},
-	unlocking: {
-		type: 'array',
-		fieldNumber: 3,
-		items: {
+	default: {
+		balance: BigInt(0),
+	},
+};
+
+export const sequenceAssetSchema = {
+	type: 'object',
+	properties: {
+		nonce: {
+			fieldNumber: 1,
+			dataType: 'uint64',
+		},
+	},
+	default: {
+		nonce: BigInt(0),
+	},
+};
+
+export const keysAssetSchema = {
+	type: 'object',
+	properties: {
+		mandatoryKeys: {
+			fieldNumber: 1,
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+		},
+		optionalKeys: {
+			fieldNumber: 2,
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+		},
+		numberOfSignatures: {
+			fieldNumber: 3,
+			dataType: 'uint32',
+		},
+	},
+	default: {
+		mandatoryKeys: [],
+		optionalKeys: [],
+		numberOfSignatures: 0,
+	},
+};
+
+export const dposAssetSchema = {
+	type: 'object',
+	properties: {
+		delegate: {
 			type: 'object',
+			fieldNumber: 1,
 			properties: {
-				delegateAddress: {
-					dataType: 'bytes',
-					fieldNumber: 1,
-				},
-				amount: {
-					dataType: 'uint64',
+				username: { dataType: 'string', fieldNumber: 1 },
+				pomHeights: {
+					type: 'array',
+					items: { dataType: 'uint32' },
 					fieldNumber: 2,
 				},
-				unvoteHeight: {
-					dataType: 'uint32',
-					fieldNumber: 3,
-				},
+				consecutiveMissedBlocks: { dataType: 'uint32', fieldNumber: 3 },
+				lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
+				isBanned: { dataType: 'boolean', fieldNumber: 5 },
+				totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
 			},
-			required: ['delegateAddress', 'amount', 'unvoteHeight'],
+			required: [
+				'username',
+				'pomHeights',
+				'consecutiveMissedBlocks',
+				'lastForgedHeight',
+				'isBanned',
+				'totalVotesReceived',
+			],
 		},
+		sentVotes: {
+			type: 'array',
+			fieldNumber: 2,
+			items: {
+				type: 'object',
+				properties: {
+					delegateAddress: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					amount: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+				required: ['delegateAddress', 'amount'],
+			},
+		},
+		unlocking: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				properties: {
+					delegateAddress: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					amount: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+					unvoteHeight: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+				},
+				required: ['delegateAddress', 'amount', 'unvoteHeight'],
+			},
+		},
+	},
+	default: {
+		delegate: {
+			username: '',
+			pomHeights: [],
+			consecutiveMissedBlocks: 0,
+			lastForgedHeight: 0,
+			isBanned: false,
+			totalVotesReceived: BigInt(0),
+		},
+		sentVotes: [],
+		unlocking: [],
 	},
 };
 
 export interface AccountAsset {
-	delegate: DelegateAccountAsset;
-	sentVotes: VoteAccountAsset[];
-	unlocking: UnlockingAccountAsset[];
+	token: {
+		balance: bigint;
+	};
+	sequence: {
+		nonce: bigint;
+	};
+	keys: {
+		mandatoryKeys: Buffer[];
+		optionalKeys: Buffer[];
+		numberOfSignatures: number;
+	};
+	dpos: {
+		delegate: DelegateAccountAsset;
+		sentVotes: VoteAccountAsset[];
+		unlocking: UnlockingAccountAsset[];
+	};
 }
 
 export interface DelegateAccountAsset {
@@ -122,40 +205,75 @@ export interface UnlockingAccountAsset {
 
 export const createFakeDefaultAccount = (
 	account?: Partial<Account<AccountAsset>>,
-): Account<AccountAsset> =>
-	new Account<AccountAsset>({
-		address: account?.address ?? getRandomBytes(20),
-		balance: account?.balance ?? BigInt(0),
-		nonce: account?.nonce ?? BigInt(0),
-		keys: {
-			mandatoryKeys: account?.keys?.mandatoryKeys ?? [],
-			optionalKeys: account?.keys?.optionalKeys ?? [],
-			numberOfSignatures: account?.keys?.numberOfSignatures ?? 0,
+): Account<AccountAsset> => ({
+	address: account?.address ?? getRandomBytes(20),
+	token: {
+		balance: account?.token?.balance ?? BigInt(0),
+	},
+	sequence: {
+		nonce: account?.sequence?.nonce ?? BigInt(0),
+	},
+	keys: {
+		mandatoryKeys: account?.keys?.mandatoryKeys ?? [],
+		optionalKeys: account?.keys?.optionalKeys ?? [],
+		numberOfSignatures: account?.keys?.numberOfSignatures ?? 0,
+	},
+	dpos: {
+		delegate: {
+			username: account?.dpos?.delegate?.username ?? '',
+			pomHeights: account?.dpos?.delegate?.pomHeights ?? [],
+			consecutiveMissedBlocks: account?.dpos?.delegate?.consecutiveMissedBlocks ?? 0,
+			lastForgedHeight: account?.dpos?.delegate?.lastForgedHeight ?? 0,
+			isBanned: account?.dpos?.delegate?.isBanned ?? false,
+			totalVotesReceived: account?.dpos?.delegate?.totalVotesReceived ?? BigInt(0),
 		},
-		asset: {
-			delegate: {
-				username: account?.asset?.delegate?.username ?? '',
-				pomHeights: account?.asset?.delegate?.pomHeights ?? [],
-				consecutiveMissedBlocks: account?.asset?.delegate?.consecutiveMissedBlocks ?? 0,
-				lastForgedHeight: account?.asset?.delegate?.lastForgedHeight ?? 0,
-				isBanned: account?.asset?.delegate?.isBanned ?? false,
-				totalVotesReceived: account?.asset?.delegate?.totalVotesReceived ?? BigInt(0),
-			},
-			sentVotes: account?.asset?.sentVotes ?? [],
-			unlocking: account?.asset?.unlocking ?? [],
-		},
-	});
+		sentVotes: account?.dpos?.sentVotes ?? [],
+		unlocking: account?.dpos?.unlocking ?? [],
+	},
+});
+
+export const defaultAccountModules = {
+	token: {
+		fieldNumber: 2,
+		...tokenAssetSchema,
+	},
+	sequence: {
+		fieldNumber: 3,
+		...sequenceAssetSchema,
+	},
+	keys: {
+		fieldNumber: 4,
+		...keysAssetSchema,
+	},
+	dpos: {
+		fieldNumber: 5,
+		...dposAssetSchema,
+	},
+};
 
 export const defaultAccountSchema = {
 	...baseAccountSchema,
 	properties: {
 		...baseAccountSchema.properties,
-		asset: {
-			...baseAccountSchema.properties.asset,
-			properties: defaultAccountAssetSchema,
-		},
+		...Object.entries(defaultAccountModules).reduce((prev, [key, val]) => {
+			const { default: defaultValue, ...others } = val;
+			return {
+				...prev,
+				[key]: others,
+			};
+		}, {}),
 	},
 };
+
+export const defaultAccount = Object.entries(defaultAccountModules).reduce<Record<string, unknown>>(
+	(prev, [key, current]) => {
+		return {
+			...prev,
+			[key]: current.default,
+		};
+	},
+	{},
+);
 
 export const encodeDefaultAccount = (account: Account<any>): Buffer => {
 	return codec.encode(defaultAccountSchema as any, { ...account });

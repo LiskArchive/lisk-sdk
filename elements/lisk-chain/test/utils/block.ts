@@ -21,10 +21,18 @@ import {
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { codec } from '@liskhq/lisk-codec';
 import { MerkleTree } from '@liskhq/lisk-tree';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
 import * as genesis from '../fixtures/genesis_block.json';
-import { Block, BlockHeader } from '../../src/types';
-import { signingBlockHeaderSchema, blockHeaderSchema, blockSchema } from '../../src/schema';
+import { Block, BlockHeader, GenesisBlock, GenesisBlockHeader } from '../../src/types';
+import { Transaction } from '../../src/transaction';
+import {
+	signingBlockHeaderSchema,
+	blockHeaderSchema,
+	blockSchema,
+	blockHeaderAssetSchema,
+	getGenesisBlockHeaderAssetSchema,
+} from '../../src/schema';
+import { defaultAccountSchema, defaultAccountModules } from './account';
+import { readGenesisBlockJSON } from '../../src';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
@@ -35,130 +43,9 @@ const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	return getPrivateAndPublicKeyFromPassphrase(passphrase);
 };
 
-export const defaultBlockHeaderAssetSchema = {
-	$id: 'test/defaultBlockHeaderAssetSchema',
-	type: 'object',
-	properties: {
-		maxHeightPreviouslyForged: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		maxHeightPrevoted: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		seedReveal: {
-			dataType: 'bytes',
-			fieldNumber: 3,
-		},
-	},
-	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
-};
+export const genesisBlockAssetSchema = getGenesisBlockHeaderAssetSchema(defaultAccountSchema);
 
-export const genesisBlockAssetSchema = {
-	$id: 'genesisBlockAssetSchema',
-	type: 'object',
-	required: ['accounts', 'initDelegates', 'initRounds'],
-	properties: {
-		accounts: {
-			type: 'array',
-			items: {
-				type: 'object',
-				properties: {
-					address: { dataType: 'bytes', fieldNumber: 1 },
-					balance: { dataType: 'uint64', fieldNumber: 2 },
-					nonce: { dataType: 'uint64', fieldNumber: 3 },
-					keys: {
-						fieldNumber: 4,
-						type: 'object',
-						properties: {
-							numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
-							mandatoryKeys: {
-								type: 'array',
-								items: { dataType: 'bytes' },
-								fieldNumber: 2,
-							},
-							optionalKeys: {
-								type: 'array',
-								items: { dataType: 'bytes' },
-								fieldNumber: 3,
-							},
-						},
-						required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
-					},
-					asset: {
-						fieldNumber: 5,
-						type: 'object',
-						properties: {
-							delegate: {
-								type: 'object',
-								fieldNumber: 1,
-								properties: {
-									username: { dataType: 'string', fieldNumber: 1 },
-									pomHeights: {
-										type: 'array',
-										items: { dataType: 'uint32' },
-										fieldNumber: 2,
-									},
-									consecutiveMissedBlocks: {
-										dataType: 'uint32',
-										fieldNumber: 3,
-									},
-									lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
-									isBanned: { dataType: 'boolean', fieldNumber: 5 },
-									totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
-								},
-								required: [
-									'username',
-									'pomHeights',
-									'consecutiveMissedBlocks',
-									'lastForgedHeight',
-									'isBanned',
-									'totalVotesReceived',
-								],
-							},
-							sentVotes: {
-								type: 'array',
-								fieldNumber: 2,
-								items: {
-									type: 'object',
-									properties: {
-										delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
-										amount: { dataType: 'uint64', fieldNumber: 2 },
-									},
-									required: ['delegateAddress', 'amount'],
-								},
-							},
-							unlocking: {
-								type: 'array',
-								fieldNumber: 3,
-								items: {
-									type: 'object',
-									properties: {
-										delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
-										amount: { dataType: 'uint64', fieldNumber: 2 },
-										unvoteHeight: { dataType: 'uint32', fieldNumber: 3 },
-									},
-									required: ['delegateAddress', 'amount', 'unvoteHeight'],
-								},
-							},
-						},
-					},
-				},
-				required: ['address', 'balance', 'nonce', 'keys', 'asset'],
-			},
-			fieldNumber: 1,
-		},
-		initDelegates: {
-			type: 'array',
-			items: { dataType: 'bytes' },
-			fieldNumber: 2,
-		},
-		initRounds: { dataType: 'uint32', fieldNumber: 3, minimum: 3 },
-	},
-};
-
-export const genesisBlock: Block = {
+export const genesisBlock: GenesisBlock = {
 	header: {
 		...genesis.header,
 		id: Buffer.from(genesis.header.id, 'base64'),
@@ -174,23 +61,27 @@ export const genesisBlock: Block = {
 			),
 			accounts: genesis.header.asset.accounts.map(account => ({
 				address: Buffer.from(account.address, 'base64'),
-				balance: BigInt(account.balance),
-				nonce: BigInt(account.nonce),
+				token: {
+					balance: BigInt(account.token.balance),
+				},
+				sequence: {
+					nonce: BigInt(account.sequence.nonce),
+				},
 				keys: {
 					mandatoryKeys: account.keys.mandatoryKeys.map(key => Buffer.from(key, 'base64')),
 					optionalKeys: account.keys.optionalKeys.map(key => Buffer.from(key, 'base64')),
 					numberOfSignatures: account.keys.numberOfSignatures,
 				},
-				asset: {
+				dpos: {
 					delegate: {
-						...account.asset.delegate,
-						totalVotesReceived: BigInt(account.asset.delegate.totalVotesReceived),
+						...account.dpos.delegate,
+						totalVotesReceived: BigInt(account.dpos.delegate.totalVotesReceived),
 					},
-					sentVotes: account.asset.sentVotes.map(vote => ({
+					sentVotes: account.dpos.sentVotes.map(vote => ({
 						delegateAddress: Buffer.from(vote.delegateAddress, 'base64'),
 						amount: BigInt(vote.amount),
 					})),
-					unlocking: account.asset.unlocking.map(
+					unlocking: account.dpos.unlocking.map(
 						(unlock: { delegateAddress: string; amount: string; unvoteHeight: string }) => ({
 							delegateAddress: Buffer.from(unlock.delegateAddress, 'base64'),
 							amount: BigInt(unlock.amount),
@@ -219,13 +110,16 @@ export const createFakeBlockHeader = <T = any>(
 	signature: header?.signature ?? getRandomBytes(64),
 });
 
-export const encodeGenesisBlockHeader = (header: BlockHeader): Buffer => {
-	const asset = codec.encode(genesisBlockAssetSchema, header.asset);
+export const encodeGenesisBlockHeader = (header: GenesisBlockHeader): Buffer => {
+	const asset = codec.encode(
+		genesisBlockAssetSchema,
+		(header.asset as unknown) as Record<string, unknown>,
+	);
 	return codec.encode(blockHeaderSchema, { ...header, asset });
 };
 
 export const encodeDefaultBlockHeader = (header: BlockHeader): Buffer => {
-	const asset = codec.encode(defaultBlockHeaderAssetSchema, header.asset);
+	const asset = codec.encode(blockHeaderAssetSchema, header.asset);
 	return codec.encode(blockHeaderSchema, { ...header, asset });
 };
 
@@ -241,7 +135,7 @@ export const encodedDefaultBlock = (block: Block): Buffer => {
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
 export const createValidDefaultBlock = (
-	block?: { header?: Partial<BlockHeader>; payload?: BaseTransaction[] },
+	block?: { header?: Partial<BlockHeader>; payload?: Transaction[] },
 	networkIdentifier: Buffer = defaultNetworkIdentifier,
 ): Block => {
 	const keypair = getKeyPair();
@@ -267,7 +161,7 @@ export const createValidDefaultBlock = (
 		asset,
 	});
 
-	const encodedAsset = codec.encode(defaultBlockHeaderAssetSchema, blockHeader.asset);
+	const encodedAsset = codec.encode(blockHeaderAssetSchema, blockHeader.asset);
 	const encodedHeaderWithoutSignature = codec.encode(signingBlockHeaderSchema, {
 		...blockHeader,
 		asset: encodedAsset,
@@ -290,3 +184,14 @@ export const createValidDefaultBlock = (
 		payload,
 	};
 };
+
+export const registeredBlockHeaders = {
+	0: genesisBlockAssetSchema,
+	2: blockHeaderAssetSchema,
+};
+
+try {
+	readGenesisBlockJSON(genesis, defaultAccountModules);
+} catch (error) {
+	console.error(error);
+}

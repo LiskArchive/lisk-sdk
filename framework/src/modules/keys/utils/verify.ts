@@ -11,9 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Account } from '@liskhq/lisk-chain';
 import { verifyData } from '@liskhq/lisk-cryptography';
 import { AccountKeyAsset } from '../types';
-import { Account } from '../../base_asset';
+
 
 export const isMultisignatureAccount = (account: Account<AccountKeyAsset>): boolean =>
 	!!(

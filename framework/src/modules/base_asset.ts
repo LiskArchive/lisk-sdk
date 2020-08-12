@@ -14,57 +14,7 @@
 /* eslint-disable class-methods-use-this */
 
 import { Schema } from '@liskhq/lisk-codec';
-import { StateStore as ChainStateStore, BlockHeader } from '@liskhq/lisk-chain';
-
-// Limit the scope of state store to which module can access
-
-export type AccountDefaultProps = {
-	[name: string]: { [key: string]: unknown } | undefined | Buffer;
-};
-
-export type Account<T = AccountDefaultProps> = T & { address: Buffer };
-
-export interface AccountStateStore {
-	get<T>(key: Buffer): Promise<Account<T>>;
-	getOrDefault<T>(key: Buffer): Promise<Account<T>>;
-	set<T>(key: Buffer, value: Account<T>): void;
-}
-
-export type StateStore = Omit<
-	ChainStateStore,
-	'account' | 'consensus' | 'finalize' | 'createSnapshot' | 'restoreSnapshot'
-> & { chain: { lastBlockHeaders: BlockHeader[] } } & { account: AccountStateStore };
-
-export interface ReducerHandler {
-	invoke<T>(name: string, params: Record<string, unknown>): Promise<T>;
-}
-
-export interface ApplyAssetInput<T> {
-	senderID: Buffer;
-	asset: T;
-	stateStore: StateStore;
-	reducerHandler: ReducerHandler;
-	transaction: Transaction;
-}
-
-export interface ValidateAssetInput<T> {
-	asset: T;
-	transaction: Transaction;
-}
-
-// TODO: Replace after #5609 "Update lisk-chain to support the on-chain architecture"
-export interface Transaction {
-	readonly id: Buffer;
-	readonly moduleType: number;
-	readonly assetType: number;
-	readonly nonce: bigint;
-	readonly fee: bigint;
-	readonly senderPublicKey: Buffer;
-	readonly signatures: ReadonlyArray<Buffer>;
-	readonly asset: Buffer;
-	readonly senderID: Buffer;
-	readonly getSigningBytes: () => Buffer;
-}
+import { ValidateAssetInput, ApplyAssetInput } from '../types';
 
 export abstract class BaseAsset<T = unknown> {
 	public baseFee = BigInt(0);
