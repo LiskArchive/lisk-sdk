@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseBlockHeader } from '@liskhq/lisk-chain';
+import { BlockHeader } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { ApplyAssetInput, BaseAsset, ValidateAssetInput } from '../../base_asset';
+import { BaseAsset } from '../../base_asset';
+import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE, MAX_POM_HEIGHTS } from '../constants';
 import { DPOSAccountProps, PomTransactionAssetInput } from '../types';
@@ -73,7 +74,7 @@ export const blockHeaderSchema = {
 	},
 };
 
-const getBlockHeaderBytes = (header: BaseBlockHeader): Buffer =>
+const getBlockHeaderBytes = (header: BlockHeader): Buffer =>
 	codec.encode(signingBlockHeaderSchema, header);
 
 export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {

@@ -177,7 +177,7 @@ export type StateStore = Omit<
 >;
 
 export interface ReducerHandler {
-	invoke: (name: string, params: Record<string, unknown>) => Promise<unknown>;
+	invoke: <T = unknown>(name: string, params: Record<string, unknown>) => Promise<T>;
 }
 
 export interface Reducers {
