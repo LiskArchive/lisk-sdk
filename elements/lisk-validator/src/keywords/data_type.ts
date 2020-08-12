@@ -104,7 +104,7 @@ const compile = (
 					validate.errors = [
 						{
 							keyword: 'dataType',
-							message: 'minLength does not satisfied',
+							message: 'minLength not satisfied',
 							params: { dataType: value, minLength: parent.minLength, length },
 						},
 					];
@@ -117,7 +117,7 @@ const compile = (
 					validate.errors = [
 						{
 							keyword: 'dataType',
-							message: 'maxLength does not satisfied',
+							message: 'maxLength exceeded',
 							params: { dataType: value, maxLength: parent.maxLength, length },
 						},
 					];
