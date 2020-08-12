@@ -30,7 +30,7 @@ let storeAccountSetStub: jest.SpyInstance;
 let registerAsset: RegisterAsset;
 let reducerHandler: any;
 
-describe('register asset module', () => {
+describe('register asset', () => {
 	const defualtTestCase = fixtures.testCases[0];
 	beforeEach(() => {
 		registerAsset = new RegisterAsset();
@@ -62,7 +62,6 @@ describe('register asset module', () => {
 		});
 
 		stateStore = new StateStoreMock();
-
 		storeAccountGetStub = jest.spyOn(stateStore.account, 'getOrDefault').mockResolvedValue(
 			createFakeDefaultAccount({
 				address: Buffer.from(defualtTestCase.input.account.address, 'base64'),

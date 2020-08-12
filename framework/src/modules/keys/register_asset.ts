@@ -110,7 +110,6 @@ export class RegisterAsset extends BaseAsset {
 		}
 	}
 
-	// eslint-disable-next-line
 	public async applyAsset({ asset, stateStore, senderID }: ApplyAssetInput<Asset>): Promise<void> {
 		const sender = await stateStore.account.get<AccountKeyAsset>(senderID);
 
