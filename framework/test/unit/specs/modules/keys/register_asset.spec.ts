@@ -19,18 +19,18 @@ import { RegisterAsset } from '../../../../../src/modules/keys/register_asset';
 import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
 import * as fixtures from './fixtures.json';
 
-let decodedMultiSignature: any;
-let validTestTransaction: any;
-let multisignatureSender: any;
-let targetMultisigAccount: any;
-let convertedAccount: any;
-let stateStore: any;
-let storeAccountGetStub: jest.SpyInstance;
-let storeAccountSetStub: jest.SpyInstance;
-let registerAsset: RegisterAsset;
-let reducerHandler: any;
-
 describe('register asset', () => {
+	let decodedMultiSignature: any;
+	let validTestTransaction: any;
+	let multisignatureSender: any;
+	let targetMultisigAccount: any;
+	let convertedAccount: any;
+	let stateStore: any;
+	let storeAccountGetStub: jest.SpyInstance;
+	let storeAccountSetStub: jest.SpyInstance;
+	let registerAsset: RegisterAsset;
+	let reducerHandler: any;
+
 	const defualtTestCase = fixtures.testCases[0];
 	beforeEach(() => {
 		registerAsset = new RegisterAsset();
