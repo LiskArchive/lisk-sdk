@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface AccountKeyAsset {
+export interface AccountKeys {
 	keys: {
 		mandatoryKeys: Buffer[];
 		optionalKeys: Buffer[];

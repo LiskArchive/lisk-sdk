@@ -13,9 +13,9 @@
  */
 import { Account } from '@liskhq/lisk-chain';
 import { verifyData } from '@liskhq/lisk-cryptography';
-import { AccountKeyAsset } from '../types';
+import { AccountKeys } from '../types';
 
-export const isMultisignatureAccount = (account: Account<AccountKeyAsset>): boolean =>
+export const isMultisignatureAccount = (account: Account<AccountKeys>): boolean =>
 	!!(
 		(account.keys.mandatoryKeys.length > 0 || account.keys.optionalKeys.length > 0) &&
 		account.keys.numberOfSignatures
@@ -55,7 +55,7 @@ export const validateKeysSignatures = (
 
 export const verifyMultiSignatureTransaction = (
 	id: Buffer,
-	sender: Account<AccountKeyAsset>,
+	sender: Account<AccountKeys>,
 	signatures: ReadonlyArray<Buffer>,
 	transactionBytes: Buffer,
 ): void => {

@@ -21,7 +21,7 @@ import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node
 import * as fixtures from './fixtures.json';
 import { GenesisConfig } from '../../../../../src';
 import { genesisBlock as createGenesisBlock } from '../../../../fixtures/blocks';
-import { AccountKeyAsset } from '../../../../../src/modules/keys/types';
+import { AccountKeys } from '../../../../../src/modules/keys/types';
 
 describe('keys module', () => {
 	let decodedMultiSignature: any;
@@ -244,9 +244,7 @@ describe('keys module', () => {
 	});
 
 	describe('afterGenesisBlockApply', () => {
-		const genesisBlock = (createGenesisBlock() as unknown) as GenesisBlock<
-			Account<AccountKeyAsset>
-		>;
+		const genesisBlock = (createGenesisBlock() as unknown) as GenesisBlock<Account<AccountKeys>>;
 		it('should fail if "mandatoryKeys" are not ordered lexicographically', async () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
@@ -261,7 +259,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				message: 'should be lexicographically ordered',
@@ -290,7 +288,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				message: 'should be lexicographically ordered',
@@ -320,7 +318,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				dataPath: '.accounts[0].keys.mandatoryKeys',
@@ -351,7 +349,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				dataPath: '.accounts[0].keys.optionalKeys',
@@ -385,7 +383,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
@@ -413,7 +411,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				dataPath: '.accounts[0].keys.numberOfSignatures',
@@ -450,7 +448,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
@@ -479,7 +477,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				dataPath: '.accounts[0].keys.numberOfSignatures',
@@ -511,7 +509,7 @@ describe('keys module', () => {
 						accounts,
 					},
 				},
-			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
 			const expectedError = {
 				dataPath: '.accounts[0].keys.numberOfSignatures',

@@ -17,7 +17,7 @@ import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { BaseAsset } from '../base_asset';
 import { ApplyAssetInput, StateStore, ValidateAssetInput } from '../../types';
 import { KeysSchema } from './schemas';
-import { AccountKeyAsset } from './types';
+import { AccountKeys } from './types';
 
 export interface Asset {
 	mandatoryKeys: Array<Readonly<Buffer>>;
@@ -112,7 +112,7 @@ export class RegisterAsset extends BaseAsset {
 	}
 
 	public async applyAsset({ asset, stateStore, senderID }: ApplyAssetInput<Asset>): Promise<void> {
-		const sender = await stateStore.account.get<AccountKeyAsset>(senderID);
+		const sender = await stateStore.account.get<AccountKeys>(senderID);
 
 		// Check if multisignatures already exists on account
 		if (sender.keys.numberOfSignatures > 0) {
@@ -125,7 +125,7 @@ export class RegisterAsset extends BaseAsset {
 			optionalKeys: asset.optionalKeys as Buffer[],
 		};
 
-		stateStore.account.set<AccountKeyAsset>(sender.address, sender);
+		stateStore.account.set<AccountKeys>(sender.address, sender);
 
 		// Cache all members public keys
 		await setMemberAccounts(stateStore, sender.keys.mandatoryKeys);

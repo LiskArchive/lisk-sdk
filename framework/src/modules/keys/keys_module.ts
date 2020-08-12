@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { AccountKeyAsset, DecodedAsset } from './types';
+import { AccountKeys, DecodedAsset } from './types';
 import {
 	isMultisignatureAccount,
 	validateKeysSignatures,
@@ -59,7 +59,7 @@ export class KeysModule extends BaseModule {
 		stateStore,
 		transaction,
 	}: TransactionApplyInput): Promise<void> {
-		const sender = await stateStore.account.get<AccountKeyAsset>(transaction.senderID);
+		const sender = await stateStore.account.get<AccountKeys>(transaction.senderID);
 		const { networkIdentifier } = stateStore.chain;
 		const transactionBytes = transaction.getSigningBytes();
 
@@ -135,7 +135,7 @@ export class KeysModule extends BaseModule {
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
 	public async afterGenesisBlockApply({
 		genesisBlock,
-	}: AfterGenesisBlockApplyInput<AccountKeyAsset>): Promise<void> {
+	}: AfterGenesisBlockApplyInput<AccountKeys>): Promise<void> {
 		const errors = [];
 		for (const account of genesisBlock.header.asset.accounts) {
 			if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {
