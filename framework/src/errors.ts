@@ -73,3 +73,16 @@ export class ValidationError extends Error {
 		Error.captureStackTrace(this, FrameworkError);
 	}
 }
+
+export class TransactionApplyError extends Error {
+	public id: Buffer;
+	public transactionError: Error;
+	public code = 'ERR_TRANSACTION_VERIFICATION_FAIL';
+
+	public constructor(message: string, id: Buffer, transactionError: Error) {
+		super(message);
+		this.name = this.constructor.name;
+		this.id = id;
+		this.transactionError = transactionError;
+	}
+}
