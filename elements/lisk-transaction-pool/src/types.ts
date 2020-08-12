@@ -17,9 +17,10 @@ export type Transaction = TransactionObject & TransactionFunctions;
 
 export interface TransactionObject {
 	readonly id: Buffer;
+	readonly moduleType: number;
+	readonly assetType: number;
 	readonly nonce: bigint;
 	readonly fee: bigint;
-	readonly minFee: bigint;
 	readonly senderPublicKey: Buffer;
 	receivedAt?: Date;
 	feePriority?: bigint;
@@ -38,18 +39,4 @@ export enum TransactionStatus {
 	INVALID = 0,
 	UNPROCESSABLE,
 	PROCESSABLE,
-}
-
-export interface TransactionError {
-	readonly message: string;
-	readonly id: Buffer;
-	readonly dataPath: string;
-	readonly actual?: string | number;
-	readonly expected?: string | number;
-}
-
-export interface TransactionResponse {
-	readonly errors: ReadonlyArray<TransactionError>;
-	readonly id: Buffer;
-	readonly status: Status;
 }
