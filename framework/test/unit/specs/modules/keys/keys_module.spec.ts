@@ -11,13 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { LiskValidationError } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
-import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { Account, GenesisBlock, Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { KeysModule } from '../../../../../src/modules/keys/keys_module';
 import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
 import * as fixtures from './fixtures.json';
 import { GenesisConfig } from '../../../../../src';
+import { genesisBlock as createGenesisBlock } from '../../../../fixtures/blocks';
+import { AccountKeyAsset } from '../../../../../src/modules/keys/types';
+
+// eslint-disable-next-line import/order
+import cloneDeep = require('lodash.clonedeep');
 
 describe('keys module', () => {
 	let decodedMultiSignature: any;
@@ -234,6 +241,293 @@ describe('keys module', () => {
 					"Failed to validate signature '25OKrycZqAAXhE8ZaONc6ScSTc98BKCw2SaKp8mtHOUOYZBcG7ipArmC4lNDwjL65fBs2Ci30RylPxiCDq2MCA==' for transaction with id 'cbHb8mt8DpG8sf6VcMwIdaphbeSjuSf8VEBFvfN4ibw='",
 				),
 			);
+		});
+	});
+
+	describe('afterGenesisBlockApply', () => {
+		const genesisBlock = (createGenesisBlock() as unknown) as GenesisBlock<
+			Account<AccountKeyAsset>
+		>;
+		it('should fail if "mandatoryKeys" are not ordered lexicographically', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			const mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
+			mandatoryKeys.sort((a, b) => b.compare(a));
+			accounts[0].keys.numberOfSignatures = 3;
+			accounts[0].keys.mandatoryKeys = mandatoryKeys;
+
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				message: 'should be lexicographically ordered',
+				keyword: 'mandatoryKeys',
+				dataPath: '.accounts[0].keys.mandatoryKeys',
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
+				params: { mandatoryKeys },
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+		});
+
+		it('should fail if "optionalKeys" are not ordered lexicographically', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			const optionalKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
+			optionalKeys.sort((a, b) => b.compare(a));
+			accounts[0].keys.numberOfSignatures = 1;
+			accounts[0].keys.optionalKeys = optionalKeys;
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				message: 'should be lexicographically ordered',
+				keyword: 'optionalKeys',
+				dataPath: '.accounts[0].keys.optionalKeys',
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/optionalKeys',
+				params: { optionalKeys },
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+		});
+
+		it('should fail if "mandatoryKeys" are not unique', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			let mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
+			mandatoryKeys = [...cloneDeep(mandatoryKeys), ...cloneDeep(mandatoryKeys)];
+			mandatoryKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.numberOfSignatures = 6;
+			accounts[0].keys.mandatoryKeys = mandatoryKeys;
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				dataPath: '.accounts[0].keys.mandatoryKeys',
+				keyword: 'uniqueItems',
+				message: 'should NOT have duplicate items',
+				params: {},
+				schemaPath:
+					'#/properties/accounts/items/properties/keys/properties/mandatoryKeys/uniqueItems',
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+		});
+
+		it('should fail if "optionalKeys" are not unique', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			let optionalKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
+			optionalKeys = [...cloneDeep(optionalKeys), ...cloneDeep(optionalKeys)];
+			optionalKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.numberOfSignatures = 1;
+			accounts[0].keys.optionalKeys = optionalKeys;
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				dataPath: '.accounts[0].keys.optionalKeys',
+				keyword: 'uniqueItems',
+				message: 'should NOT have duplicate items',
+				params: {},
+				schemaPath:
+					'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+		});
+
+		it('should fail if set of "mandatoryKeys" and "optionalKeys" are not unique', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			const commonKey = getRandomBytes(32);
+			const optionalKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32), commonKey];
+			const mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32), commonKey];
+			mandatoryKeys.sort((a, b) => a.compare(b));
+			optionalKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.numberOfSignatures = mandatoryKeys.length;
+			accounts[0].keys.mandatoryKeys = mandatoryKeys;
+			accounts[0].keys.optionalKeys = optionalKeys;
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+				keyword: 'uniqueItems',
+				message: 'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+				params: {},
+				schemaPath: '#/properties/accounts/items/properties/keys',
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+		});
+
+		it('should fail if set of "mandatoryKeys" and "optionalKeys" is empty', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			accounts[0].keys.numberOfSignatures = 1;
+			accounts[0].keys.mandatoryKeys = [];
+			accounts[0].keys.optionalKeys = [];
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				dataPath: '.accounts[0].keys.numberOfSignatures',
+				keyword: 'max',
+				message: 'should be maximum of length of mandatoryKeys and optionalKeys',
+				params: {
+					max: 0,
+				},
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+		});
+
+		it('should fail if set of "mandatoryKeys" and "optionalKeys" contains more than 64 elements', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			accounts[0].keys.mandatoryKeys = Array(33)
+				.fill(0)
+				.map(() => getRandomBytes(32));
+			accounts[0].keys.mandatoryKeys.sort((a, b) => a.compare(b));
+
+			accounts[0].keys.optionalKeys = Array(33)
+				.fill(0)
+				.map(() => getRandomBytes(32));
+			accounts[0].keys.optionalKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.numberOfSignatures = accounts[0].keys.mandatoryKeys.length;
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+				keyword: 'maxItems',
+				message: 'should not have more than 64 keys',
+				params: { maxItems: 64 },
+				schemaPath: '#/properties/accounts/items/properties/keys',
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+		});
+
+		it('should fail if "numberOfSignatures" is less than length of "mandatoryKeys"', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			accounts[0].keys.numberOfSignatures = 2;
+			accounts[0].keys.mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
+			accounts[0].keys.mandatoryKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.optionalKeys = [];
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				dataPath: '.accounts[0].keys.numberOfSignatures',
+				keyword: 'min',
+				message: 'should be minimum of length of mandatoryKeys',
+				params: {
+					min: 3,
+				},
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+		});
+
+		it('should fail if "numberOfSignatures" is greater than length of "mandatoryKeys" + "optionalKeys"', async () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			accounts[0].keys.numberOfSignatures = 7;
+			accounts[0].keys.mandatoryKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
+			accounts[0].keys.mandatoryKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.optionalKeys = [getRandomBytes(32), getRandomBytes(32), getRandomBytes(32)];
+			accounts[0].keys.optionalKeys.sort((a, b) => a.compare(b));
+			const gb = (ObjectUtils.mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as unknown) as GenesisBlock<Account<AccountKeyAsset>>;
+
+			const expectedError = {
+				dataPath: '.accounts[0].keys.numberOfSignatures',
+				keyword: 'max',
+				message: 'should be maximum of length of mandatoryKeys and optionalKeys',
+				params: {
+					max: 6,
+				},
+				schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+			};
+
+			// Act & Assert
+			return expect(
+				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
+			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
 		});
 	});
 });
