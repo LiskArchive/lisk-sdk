@@ -23,9 +23,6 @@ import { GenesisConfig } from '../../../../../src';
 import { genesisBlock as createGenesisBlock } from '../../../../fixtures/blocks';
 import { AccountKeyAsset } from '../../../../../src/modules/keys/types';
 
-// eslint-disable-next-line import/order
-import cloneDeep = require('lodash.clonedeep');
-
 describe('keys module', () => {
 	let decodedMultiSignature: any;
 	let validTestTransaction: any;
@@ -34,6 +31,8 @@ describe('keys module', () => {
 	let keysModule: KeysModule;
 	let reducerHandler: any;
 	let decodedBaseTransaction: any;
+
+	const { cloneDeep } = ObjectUtils;
 
 	const defualtTestCase = fixtures.testCases[0];
 
