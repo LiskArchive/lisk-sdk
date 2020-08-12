@@ -50,6 +50,7 @@ describe('chain', () => {
 			BigInt('100000000'), // Milestone 4
 		],
 		blockTime: 10,
+		networkIdentifier: defaultNetworkIdentifier,
 	};
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
 		created: [],

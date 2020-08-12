@@ -39,6 +39,7 @@
 		"@liskhq/lisk-chain": "0.2.0-alpha.0",
 		"@liskhq/lisk-codec": "0.1.0-alpha.0",
 		"@liskhq/lisk-cryptography": "3.0.0-alpha.0",
+		"@liskhq/lisk-utils": "0.1.0-alpha.0",
 		"@liskhq/lisk-validator": "0.5.0-alpha.0",
 		"lodash.clonedeep": "4.5.0"
 	},

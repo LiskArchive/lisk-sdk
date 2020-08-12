@@ -132,7 +132,9 @@ describe('state store / account', () => {
 		it('should get the default account', async () => {
 			// Arrange
 			// Act
-			const account = await stateStore.account.getOrDefault(Buffer.from('123L'));
+			const account = await stateStore.account.getOrDefault<{ token: { balance: bigint } }>(
+				Buffer.from('123L'),
+			);
 			// Assert
 			expect(account).toEqual(createFakeDefaultAccount({ address: Buffer.from('123L') }));
 			expect(account.token?.balance).toBe(BigInt(0));

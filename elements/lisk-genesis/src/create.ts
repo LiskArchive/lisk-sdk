@@ -14,46 +14,32 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
-import { LiskValidationError } from '@liskhq/lisk-validator';
+import {
+	getAccountSchemaWithDefault,
+	getGenesisBlockHeaderAssetSchema,
+	Account,
+	GenesisBlock,
+	blockHeaderSchema,
+} from '@liskhq/lisk-chain';
+import { objects } from '@liskhq/lisk-utils';
 import {
 	EMPTY_BUFFER,
 	GENESIS_BLOCK_GENERATOR_PUBLIC_KEY,
-	GENESIS_BLOCK_PAYLOAD,
 	GENESIS_BLOCK_REWARD,
 	GENESIS_BLOCK_SIGNATURE,
 	GENESIS_BLOCK_TRANSACTION_ROOT,
 	GENESIS_BLOCK_VERSION,
 } from './constants';
-import {
-	DefaultAccountAsset,
-	GenesisAccountState,
-	GenesisBlock,
-	GenesisBlockHeaderWithoutId,
-	GenesisBlockParams,
-	PartialReq,
-} from './types';
-import { validateGenesisBlock } from './validate';
-import {
-	defaultAccountAssetSchema,
-	genesisBlockHeaderAssetSchema,
-	genesisBlockHeaderSchema,
-} from './schema';
-import { getHeaderAssetSchemaWithAccountAsset } from './utils/schema';
+import { GenesisBlockHeaderWithoutId, GenesisBlockParams } from './types';
 
-// eslint-disable-next-line import/order
-import cloneDeep = require('lodash.clonedeep');
-
-const getBlockId = <T>(
-	header: GenesisBlockHeaderWithoutId<T>,
-	accountAssetSchema: Schema,
-): Buffer => {
+const getBlockId = (header: GenesisBlockHeaderWithoutId, accountSchema: Schema): Buffer => {
 	// eslint-disable-next-line
 	const genesisBlockAssetBuffer = codec.encode(
-		getHeaderAssetSchemaWithAccountAsset(genesisBlockHeaderAssetSchema, accountAssetSchema),
+		getGenesisBlockHeaderAssetSchema(accountSchema),
 		header.asset,
 	);
 
-	const genesisBlockHeaderBuffer = codec.encode(genesisBlockHeaderSchema, {
+	const genesisBlockHeaderBuffer = codec.encode(blockHeaderSchema, {
 		...header,
 		asset: genesisBlockAssetBuffer,
 	});
@@ -61,53 +47,35 @@ const getBlockId = <T>(
 	return hash(genesisBlockHeaderBuffer);
 };
 
-const createAccount = <T>(
-	account: PartialReq<GenesisAccountState<T>, 'address'>,
-): GenesisAccountState<T> => ({
-	address: account.address,
-	balance: account.balance ?? BigInt(0),
-	nonce: account.nonce ?? BigInt(0),
-	keys: account.keys
-		? {
-				mandatoryKeys: [...account.keys.mandatoryKeys.sort((a, b) => a.compare(b))],
-				optionalKeys: [...account.keys.optionalKeys.sort((a, b) => a.compare(b))],
-				numberOfSignatures: account.keys.numberOfSignatures,
-		  }
-		: {
-				mandatoryKeys: [],
-				optionalKeys: [],
-				numberOfSignatures: 0,
-		  },
-	asset: account.asset ? cloneDeep(account.asset) : ({} as T),
-});
+const createAccount = <T>(account: Account, defaultAccount: Record<string, unknown>): Account =>
+	objects.mergeDeep({}, objects.cloneDeep(defaultAccount), account) as Account<T>;
 
-export const createGenesisBlock = <T = DefaultAccountAsset>(
-	params: GenesisBlockParams<T>,
-): GenesisBlock<T> => {
+export const createGenesisBlock = (params: GenesisBlockParams): GenesisBlock => {
 	// Default values
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
 	const timestamp = params.timestamp ?? Math.floor(Date.now() / 1000);
 	const previousBlockID = params.previousBlockID ?? Buffer.from(EMPTY_BUFFER);
-	const accountAssetSchema = params.accountAssetSchema ?? defaultAccountAssetSchema;
+	const { default: defaultAccount, ...accountSchema } = getAccountSchemaWithDefault(
+		params.accountAssetSchemas,
+	);
 
 	// Constant values
 	const version = GENESIS_BLOCK_VERSION;
 	const generatorPublicKey = GENESIS_BLOCK_GENERATOR_PUBLIC_KEY;
 	const reward = GENESIS_BLOCK_REWARD;
-	const payload = GENESIS_BLOCK_PAYLOAD;
 	const signature = GENESIS_BLOCK_SIGNATURE;
 	const transactionRoot = GENESIS_BLOCK_TRANSACTION_ROOT;
 
-	const accounts: ReadonlyArray<GenesisAccountState<T>> = params.accounts
-		.map(createAccount)
+	const accounts: ReadonlyArray<Account> = params.accounts
+		.map(account => createAccount(account, defaultAccount))
 		.sort((a, b): number => a.address.compare(b.address));
 
 	const initDelegates: ReadonlyArray<Buffer> = [...params.initDelegates].sort((a, b): number =>
 		a.compare(b),
 	);
 
-	const header: GenesisBlockHeaderWithoutId<T> = {
+	const header: GenesisBlockHeaderWithoutId = {
 		generatorPublicKey,
 		height,
 		previousBlockID,
@@ -123,18 +91,10 @@ export const createGenesisBlock = <T = DefaultAccountAsset>(
 		},
 	};
 
-	const errors = validateGenesisBlock(
-		{ header, payload },
-		{ accountAssetSchema, roundLength: params.roundLength },
-	);
-	if (errors.length) {
-		throw new LiskValidationError(errors);
-	}
-
-	const genesisBlock: GenesisBlock<T> = {
+	const genesisBlock: GenesisBlock = {
 		header: {
 			...header,
-			id: getBlockId<T>(header, accountAssetSchema),
+			id: getBlockId(header, accountSchema),
 		},
 		payload: [],
 	};
