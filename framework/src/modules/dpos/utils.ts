@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { verifyData } from '@liskhq/lisk-cryptography';
 import { Account, StateStore } from '../base_asset';
 import {
 	DelegatePersistedUsernames,
@@ -155,3 +156,6 @@ export const isUsername = (username: string): boolean => {
 
 	return /^[a-z0-9!@$&_.]+$/g.test(username);
 };
+
+export const validateSignature = (publicKey: Buffer, signature: Buffer, bytes: Buffer): boolean =>
+	verifyData(bytes, signature, publicKey);

@@ -19,7 +19,6 @@ import { DPOSAccountProps, UnlockTransactionAssetInput } from '../types';
 import { getPunishmentPeriod, getWaitingPeriod } from '../utils';
 
 export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetInput> {
-	public baseFee = BigInt(0);
 	public name = 'unlock';
 	public type = 2;
 	public assetSchema = {
