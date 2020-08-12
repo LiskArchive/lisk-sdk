@@ -40,6 +40,6 @@ export type {
 	AccountSchema,
 } from './types';
 export { Slots } from './slots';
-export { readGenesisBlockJSON, getValidators, getAccountSchemaAndDefault } from './utils';
+export { readGenesisBlockJSON, getValidators, getAccountSchemaWithDefault } from './utils';
 
 export type { StateStore } from './state_store';

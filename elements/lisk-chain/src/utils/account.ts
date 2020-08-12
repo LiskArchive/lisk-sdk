@@ -17,9 +17,11 @@ import { Schema } from '@liskhq/lisk-codec';
 import { AccountSchema } from '../types';
 import { baseAccountSchema } from '../schema';
 
-export const getAccountSchemaAndDefault = (accountSchemas: {
+export type SchemaWithDefault = Schema & { default: Record<string, unknown> };
+
+export const getAccountSchemaWithDefault = (accountSchemas: {
 	[moduleName: string]: AccountSchema;
-}): { schema: Schema; defaultAccount: Record<string, unknown> } => {
+}): SchemaWithDefault => {
 	const defaultAccount: Record<string, unknown> = {};
 	const accountSchema: Schema = objects.cloneDeep(baseAccountSchema);
 	for (const [name, schema] of Object.entries(accountSchemas)) {
@@ -29,7 +31,7 @@ export const getAccountSchemaAndDefault = (accountSchemas: {
 		defaultAccount[name] = defaultValue;
 	}
 	return {
-		schema: accountSchema,
-		defaultAccount,
+		...accountSchema,
+		default: defaultAccount,
 	};
 };
