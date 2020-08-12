@@ -16,10 +16,9 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { testing as testingUtils } from '@liskhq/lisk-utils';
 import { when } from 'jest-when';
 
-import { SequenceModule } from '../../../../../src/modules/sequence';
-import { GenesisConfig } from '../../../../../src';
+import { SequenceModule, InvalidNonceError } from '../../../../../src/modules/sequence';
+import { GenesisConfig, Transaction } from '../../../../../src';
 import { NonceOutOfBoundsError } from '../../../../../src/errors';
-import { InvalidNonceError } from '../../../../../src/modules/sequence';
 
 describe('sequence module', () => {
 	let sequenceModule: SequenceModule;
@@ -47,7 +46,7 @@ describe('sequence module', () => {
 		baseFees: [
 			{
 				assetType: 0,
-				baseFee: BigInt(1),
+				baseFee: '1',
 				moduleType: 3,
 			},
 		],
@@ -79,7 +78,7 @@ describe('sequence module', () => {
 	describe('incompatible nonce', () => {
 		it('should throw NonceOutOfBoundsError error for tx nonce lower than account nonce', async () => {
 			// Arrange
-			const tx = { ...sampleTx, nonce: BigInt(0) };
+			const transaction = ({ ...sampleTx, nonce: BigInt(0) } as unknown) as Transaction;
 			when(stateStoreMock.account.get as any)
 				.calledWith()
 				.mockResolvedValue(senderAccount as never);
@@ -90,7 +89,7 @@ describe('sequence module', () => {
 				await sequenceModule.beforeTransactionApply({
 					stateStore: stateStoreMock as any,
 					reducerHandler: reducerMock,
-					tx,
+					transaction,
 				});
 			} catch (error) {
 				receivedError = error;
@@ -99,15 +98,15 @@ describe('sequence module', () => {
 			expect(receivedError).toBeInstanceOf(InvalidNonceError);
 			expect(receivedError.code).toEqual('ERR_INVALID_NONCE');
 			expect(receivedError.message).toContain(
-				`Transaction with id:${tx.id.toString()} nonce is lower than account nonce`,
+				`Transaction with id:${transaction.id.toString()} nonce is lower than account nonce`,
 			);
-			expect(receivedError.actual).toEqual(tx.nonce.toString());
+			expect(receivedError.actual).toEqual(transaction.nonce.toString());
 			expect(receivedError.expected).toEqual(senderAccount.sequence.nonce.toString());
 		});
 
 		it('should throw NonceOutOfBoundsError error for tx nonce not equal to account nonce', async () => {
 			// Arrange
-			const tx = { ...sampleTx, nonce: BigInt(4) };
+			const transaction = ({ ...sampleTx, nonce: BigInt(4) } as unknown) as Transaction;
 			when(stateStoreMock.account.get as any)
 				.calledWith()
 				.mockResolvedValue(senderAccount as never);
@@ -117,7 +116,7 @@ describe('sequence module', () => {
 				await sequenceModule.afterTransactionApply({
 					stateStore: stateStoreMock as any,
 					reducerHandler: reducerMock,
-					tx,
+					transaction,
 				});
 			} catch (error) {
 				receivedError = error;
@@ -126,9 +125,9 @@ describe('sequence module', () => {
 			expect(receivedError).toBeInstanceOf(NonceOutOfBoundsError);
 			expect(receivedError.code).toEqual('ERR_NONCE_OUT_OF_BOUNDS');
 			expect(receivedError.message).toContain(
-				`Transaction with id:${tx.id.toString()} nonce is not equal to account nonce`,
+				`Transaction with id:${transaction.id.toString()} nonce is not equal to account nonce`,
 			);
-			expect(receivedError.actual).toEqual(tx.nonce.toString());
+			expect(receivedError.actual).toEqual(transaction.nonce.toString());
 			expect(receivedError.expected).toEqual(senderAccount.sequence.nonce.toString());
 		});
 	});
@@ -145,7 +144,7 @@ describe('sequence module', () => {
 			await sequenceModule.afterTransactionApply({
 				stateStore: stateStoreMock as any,
 				reducerHandler: reducerMock,
-				tx: sampleTx,
+				transaction: (sampleTx as unknown) as Transaction,
 			});
 
 			// Assert

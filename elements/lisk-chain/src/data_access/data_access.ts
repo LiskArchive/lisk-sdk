@@ -14,7 +14,7 @@
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { Transaction } from '../transaction';
-import { BlockHeader, Block, RawBlock, Account } from '../types';
+import { BlockHeader, Block, RawBlock, Account, BlockHeaderAsset } from '../types';
 
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
@@ -320,7 +320,7 @@ export class DataAccess {
 	}
 	/** End: Transactions */
 
-	public decode<T>(buffer: Buffer): Block<T> {
+	public decode<T = BlockHeaderAsset>(buffer: Buffer): Block<T> {
 		const block = codec.decode<RawBlock>(blockSchema, buffer);
 		const header = this._blockHeaderAdapter.decode<T>(block.header);
 		const payload: Transaction[] = [];
@@ -334,7 +334,7 @@ export class DataAccess {
 		};
 	}
 
-	public encode(block: Block): Buffer {
+	public encode(block: Block<unknown>): Buffer {
 		const header = this.encodeBlockHeader(block.header);
 
 		const payload: Buffer[] = [];
@@ -345,11 +345,14 @@ export class DataAccess {
 		return codec.encode(blockSchema, { header, payload });
 	}
 
-	public decodeBlockHeader<T>(buffer: Buffer): BlockHeader<T> {
+	public decodeBlockHeader<T = BlockHeaderAsset>(buffer: Buffer): BlockHeader<T> {
 		return this._blockHeaderAdapter.decode(buffer);
 	}
 
-	public encodeBlockHeader<T>(blockHeader: BlockHeader<T>, skipSignature = false): Buffer {
+	public encodeBlockHeader<T = BlockHeaderAsset>(
+		blockHeader: BlockHeader<T>,
+		skipSignature = false,
+	): Buffer {
 		return this._blockHeaderAdapter.encode(blockHeader, skipSignature);
 	}
 

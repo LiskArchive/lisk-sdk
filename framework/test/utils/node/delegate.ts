@@ -13,7 +13,8 @@
  *
  */
 
+import { Validator } from '@liskhq/lisk-chain';
 import { Node } from '../../../src/application/node';
 
-export const getDelegateList = async (node: Node, round: number): Promise<ReadonlyArray<Buffer>> =>
-	node['_dpos'].getForgerAddressesForRound(round);
+export const getDelegateList = async (node: Node): Promise<ReadonlyArray<Validator>> =>
+	node['_chain'].getValidators();

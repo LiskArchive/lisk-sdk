@@ -293,13 +293,11 @@ describe('finality_manager', () => {
 							validatorLedger,
 						),
 						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: bftHeaders
-								.slice(0, 103)
-								.map(h => ({
-									address: getAddressFromPublicKey(h.generatorPublicKey),
-									isConsensusParticipant: true,
-									minActiveHeight: 0,
-								})),
+							validators: bftHeaders.slice(0, 103).map(h => ({
+								address: getAddressFromPublicKey(h.generatorPublicKey),
+								isConsensusParticipant: true,
+								minActiveHeight: 0,
+							})),
 						}),
 					},
 					{ lastBlockHeaders: bftHeaders },

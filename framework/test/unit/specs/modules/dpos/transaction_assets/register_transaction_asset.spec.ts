@@ -18,7 +18,7 @@ import {
 	RegisterTransactionAssetInput,
 } from '../../../../../../src/modules/dpos/transaction_assets/register_transaction_asset';
 import { ValidationError } from '../../../../../../src/errors';
-import { ApplyAssetInput } from '../../../../../../src/modules';
+import { ApplyAssetInput } from '../../../../../../src/types';
 import { createAccount, createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
 

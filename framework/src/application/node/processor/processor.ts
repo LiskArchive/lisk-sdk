@@ -13,13 +13,24 @@
  */
 
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
-import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
+import { Chain, Block, GenesisBlock, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { EventEmitter } from 'events';
+import { codec } from '@liskhq/lisk-codec';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
-import { BaseBlockProcessor } from './base_block_processor';
 import { InMemoryChannel } from '../../../controller/channels';
+import { BaseModule, BaseAsset } from '../../../modules';
+import { Pipeline } from './pipeline';
+import {
+	BeforeBlockApplyInput,
+	TransactionApplyInput,
+	AfterBlockApplyInput,
+	AfterGenesisBlockApplyInput,
+	ReducerHandler,
+	Consensus,
+	Delegate,
+} from '../../../types';
 
 const forkStatusList = [
 	ForkStatus.IDENTICAL_BLOCK,
@@ -40,16 +51,6 @@ interface ProcessorInput {
 	readonly bftModule: BFT;
 }
 
-interface CreateInput {
-	readonly keypair: { publicKey: Buffer; privateKey: Buffer };
-	readonly timestamp: number;
-	readonly transactions: BaseTransaction[];
-	readonly previousBlock: Block;
-	readonly seedReveal: Buffer;
-}
-
-type Matcher = (block: BlockHeader) => boolean;
-
 export class Processor {
 	public readonly events: EventEmitter;
 	private readonly _channel: InMemoryChannel;
@@ -57,9 +58,15 @@ export class Processor {
 	private readonly _chain: Chain;
 	private readonly _bft: BFT;
 	private readonly _jobQueue: jobHandlers.JobQueue;
-	private readonly _processors: { [key: string]: BaseBlockProcessor };
-	private readonly _matchers: { [key: string]: Matcher };
+	private readonly _modules: BaseModule[] = [];
 	private _stop = false;
+	private readonly _hooks: {
+		beforeTransactionApply: Pipeline<TransactionApplyInput>;
+		afterTransactionApply: Pipeline<TransactionApplyInput>;
+		beforeBlockApply: Pipeline<BeforeBlockApplyInput>;
+		afterBlockApply: Pipeline<AfterBlockApplyInput>;
+		afterGenesisBlockApply: Pipeline<AfterGenesisBlockApplyInput>;
+	};
 
 	public constructor({ channel, logger, chainModule, bftModule }: ProcessorInput) {
 		this._channel = channel;
@@ -67,22 +74,46 @@ export class Processor {
 		this._chain = chainModule;
 		this._bft = bftModule;
 		this._jobQueue = new jobHandlers.JobQueue();
-		this._processors = {};
-		this._matchers = {};
 		this.events = new EventEmitter();
+		this._hooks = {
+			beforeTransactionApply: new Pipeline<TransactionApplyInput>(),
+			afterTransactionApply: new Pipeline<TransactionApplyInput>(),
+			beforeBlockApply: new Pipeline<BeforeBlockApplyInput>(),
+			afterBlockApply: new Pipeline<AfterBlockApplyInput>(),
+			afterGenesisBlockApply: new Pipeline<AfterGenesisBlockApplyInput>(),
+		};
 	}
 
-	// register a block processor with particular version
-	public register(processor: BaseBlockProcessor, { matcher }: { matcher?: Matcher } = {}): void {
-		if (typeof processor.version !== 'number') {
-			throw new Error('version property must exist for processor');
+	public register(customModule: BaseModule): void {
+		const existingModule = this._modules.find(m => m.type === customModule.type);
+		if (existingModule) {
+			throw new Error(`Module type ${customModule.type} is already registered`);
 		}
-		this._processors[processor.version] = processor;
-		this._matchers[processor.version] = matcher ?? ((): boolean => true);
+		if (customModule.afterGenesisBlockApply) {
+			this._hooks.afterGenesisBlockApply.pipe([
+				customModule.afterGenesisBlockApply.bind(customModule),
+			]);
+		}
+		if (customModule.beforeBlockApply) {
+			this._hooks.beforeBlockApply.pipe([customModule.beforeBlockApply.bind(customModule)]);
+		}
+		if (customModule.beforeTransactionApply) {
+			this._hooks.beforeTransactionApply.pipe([
+				customModule.beforeTransactionApply.bind(customModule),
+			]);
+		}
+		if (customModule.afterTransactionApply) {
+			this._hooks.afterTransactionApply.pipe([
+				customModule.afterTransactionApply.bind(customModule),
+			]);
+		}
+		if (customModule.afterBlockApply) {
+			this._hooks.afterBlockApply.pipe([customModule.afterBlockApply.bind(customModule)]);
+		}
+		this._modules.push(customModule);
 	}
 
-	public async init(): Promise<void> {
-		const { genesisBlock } = this._chain;
+	public async init(genesisBlock: GenesisBlock): Promise<void> {
 		this._logger.debug(
 			{
 				id: genesisBlock.header.id,
@@ -90,14 +121,22 @@ export class Processor {
 			},
 			'Initializing processor',
 		);
+		const genesisExist = await this._chain.genesisBlockExist(genesisBlock);
 		// do init check for block state. We need to load the blockchain
 		const stateStore = await this._chain.newStateStore();
-		await this._bft.init(stateStore);
-		const genesisBlockExists = await this._chain.exists(genesisBlock);
-		if (!genesisBlockExists) {
-			await this.processValidated(genesisBlock, { removeFromTempTable: true });
+		if (!genesisExist) {
+			this._chain.validateGenesisBlockHeader(genesisBlock);
+			this._chain.applyGenesisBlock(genesisBlock, stateStore);
+			await this._hooks.afterGenesisBlockApply.run({
+				genesisBlock,
+				stateStore,
+				reducerHandler: this._createReducerHandler(stateStore),
+			});
+			// TODO: saveBlock should accept both genesis and normal block
+			await this._chain.saveBlock((genesisBlock as unknown) as Block, stateStore, 0);
 		}
 		await this._chain.init();
+		await this._bft.init(stateStore);
 		this._logger.info('Blockchain ready');
 	}
 
@@ -116,14 +155,8 @@ export class Processor {
 				{ id: block.header.id, height: block.header.height },
 				'Starting to process block',
 			);
-			const blockProcessor = this._getBlockProcessor(block);
 			const { lastBlock } = this._chain;
-			const stateStore = await this._chain.newStateStore();
-
-			const forkStatus = await blockProcessor.forkStatus.run({
-				block,
-				lastBlock,
-			});
+			const forkStatus = this._bft.forkChoice(block.header, lastBlock.header);
 
 			if (!forkStatusList.includes(forkStatus)) {
 				this._logger.debug({ status: forkStatus, blockId: block.header.id }, 'Unknown fork status');
@@ -191,16 +224,11 @@ export class Processor {
 					block: encodedBlock.toString('base64'),
 				});
 
-				await blockProcessor.validate.run({
-					block,
-					lastBlock,
-					stateStore,
-				});
+				this._validate(block);
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
-				const newLastBlock = this._chain.lastBlock;
 				try {
-					await this._processValidated(block, newLastBlock, blockProcessor);
+					await this._processValidated(block);
 				} catch (err) {
 					this._logger.error(
 						{
@@ -210,7 +238,7 @@ export class Processor {
 						},
 						'Failed to apply newly received block. restoring previous block.',
 					);
-					await this._processValidated(previousLastBlock, newLastBlock, blockProcessor, {
+					await this._processValidated(previousLastBlock, {
 						skipBroadcast: true,
 					});
 				}
@@ -221,50 +249,14 @@ export class Processor {
 				{ id: block.header.id, height: block.header.height },
 				'Processing valid block',
 			);
-			await blockProcessor.validate.run({
-				block,
-				lastBlock,
-				stateStore,
-			});
-			await this._processValidated(block, lastBlock, blockProcessor);
+			this._validate(block);
+			await this._processValidated(block);
 		});
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async forkStatus(receivedBlock: Block, lastBlock?: Block): Promise<number> {
-		const blockProcessor = this._getBlockProcessor(receivedBlock);
-
-		return blockProcessor.forkStatus.run({
-			block: receivedBlock,
-			lastBlock: lastBlock ?? this._chain.lastBlock,
-		});
-	}
-
-	public async create(data: CreateInput): Promise<Block> {
-		const { previousBlock } = data;
-		this._logger.trace(
-			{
-				previousBlockId: previousBlock.header.id,
-				previousBlockHeight: previousBlock.header.height,
-			},
-			'Creating block',
-		);
-		const highestVersion = Math.max.apply(
-			null,
-			Object.keys(this._processors).map(v => parseInt(v, 10)),
-		);
-		const processor = this._processors[highestVersion];
-		const stateStore = await this._chain.newStateStore();
-
-		return processor.create.run({ data, stateStore });
-	}
-
-	public async validate(block: Block): Promise<void> {
+	public validate(block: Block): void {
 		this._logger.debug({ id: block.header.id, height: block.header.height }, 'Validating block');
-		const blockProcessor = this._getBlockProcessor(block);
-		await blockProcessor.validate.run({
-			block,
-		});
+		this._validate(block);
 	}
 
 	// processValidated processes a block assuming that statically it's valid
@@ -280,9 +272,7 @@ export class Processor {
 				{ id: block.header.id, height: block.header.height },
 				'Processing validated block',
 			);
-			const { lastBlock } = this._chain;
-			const blockProcessor = this._getBlockProcessor(block);
-			return this._processValidated(block, lastBlock, blockProcessor, {
+			return this._processValidated(block, {
 				skipBroadcast: true,
 				removeFromTempTable,
 			});
@@ -306,10 +296,54 @@ export class Processor {
 		});
 	}
 
+	public validateTransaction(transaction: Transaction): void {
+		transaction.validate();
+		const customAsset = this._getAsset(transaction);
+		if (customAsset.validateAsset) {
+			const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
+			const assetSchemaErrors = validator.validate(customAsset.assetSchema, decodedAsset as object);
+			if (assetSchemaErrors.length) {
+				throw new LiskValidationError(assetSchemaErrors);
+			}
+			customAsset.validateAsset({
+				asset: decodedAsset,
+				transaction,
+			});
+		}
+	}
+
+	public async verifyTransactions(
+		transactions: Transaction[],
+		stateStore: StateStore,
+	): Promise<void> {
+		if (!transactions.length) {
+			return;
+		}
+		for (const transaction of transactions) {
+			await this._hooks.beforeTransactionApply.run({
+				reducerHandler: this._createReducerHandler(stateStore),
+				stateStore,
+				transaction,
+			});
+			const customAsset = this._getAsset(transaction);
+			const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
+			await customAsset.applyAsset({
+				asset: decodedAsset,
+				reducerHandler: this._createReducerHandler(stateStore),
+				senderID: transaction.senderID,
+				stateStore,
+				transaction,
+			});
+			await this._hooks.afterTransactionApply.run({
+				reducerHandler: this._createReducerHandler(stateStore),
+				stateStore,
+				transaction,
+			});
+		}
+	}
+
 	private async _processValidated(
 		block: Block,
-		lastBlock: Block,
-		processor: BaseBlockProcessor,
 		{
 			skipBroadcast,
 			removeFromTempTable = false,
@@ -319,11 +353,10 @@ export class Processor {
 		} = {},
 	): Promise<Block> {
 		const stateStore = await this._chain.newStateStore();
-		await processor.verify.run({
-			block,
-			lastBlock,
-			stateStore,
-		});
+		const reducerHandler = this._createReducerHandler(stateStore);
+		await this._chain.verifyBlockHeader(block, stateStore);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		await this._bft.verifyBlockHeader(block.header, stateStore);
 
 		if (!skipBroadcast) {
 			// FIXME: this is using instance, use event emitter instead
@@ -332,19 +365,64 @@ export class Processor {
 			});
 		}
 
-		// Apply should always be executed after save as it performs database calculations
-		// i.e. Dpos.apply expects to have this processing block in the database
-		await processor.apply.run({
+		await this._hooks.beforeBlockApply.run({
 			block,
-			lastBlock,
 			stateStore,
+			reducerHandler,
 		});
 
-		await this._chain.save(block, stateStore, this._bft.finalizedHeight, {
+		if (block.payload.length) {
+			for (const transaction of block.payload) {
+				await this._hooks.beforeTransactionApply.run({
+					reducerHandler: this._createReducerHandler(stateStore),
+					stateStore,
+					transaction,
+				});
+			}
+		}
+
+		if (block.payload.length) {
+			for (const transaction of block.payload) {
+				const customAsset = this._getAsset(transaction);
+				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
+				await customAsset.applyAsset({
+					asset: decodedAsset,
+					reducerHandler,
+					senderID: transaction.senderID,
+					stateStore,
+					transaction,
+				});
+				await this._hooks.afterTransactionApply.run({
+					reducerHandler: this._createReducerHandler(stateStore),
+					stateStore,
+					transaction,
+				});
+			}
+		}
+
+		// Apply should always be executed after save as it performs database calculations
+		// i.e. Dpos.apply expects to have this processing block in the database
+		await this._hooks.afterBlockApply.run({
+			block,
+			reducerHandler,
+			stateStore,
+			consensus: this._createConsensus(stateStore),
+		});
+
+		await this._chain.saveBlock(block, stateStore, this._bft.finalizedHeight, {
 			removeFromTempTable,
 		});
 
 		return block;
+	}
+
+	private _validate(block: Block): void {
+		this._chain.validateBlockHeader(block);
+		if (block.payload.length) {
+			for (const transaction of block.payload) {
+				this.validateTransaction(transaction);
+			}
+		}
 	}
 
 	private async _deleteBlock(block: Block, saveTempBlock = false): Promise<void> {
@@ -354,24 +432,57 @@ export class Processor {
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = await this._chain.newStateStore(1);
-		await this._chain.remove(block, stateStore, { saveTempBlock });
+		await this._chain.removeBlock(block, stateStore, { saveTempBlock });
 	}
 
-	private _getBlockProcessor(block: Block): BaseBlockProcessor {
-		const { version } = block.header;
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (!this._processors[version]) {
-			throw new Error('Block processing version is not registered');
+	private _createConsensus(stateStore: StateStore): Consensus {
+		return {
+			getFinalizedHeight: (): number => this._bft.finalizedHeight,
+			updateDelegates: async (delegates: Delegate[]): Promise<void> => {
+				await this._chain.setValidators(delegates, stateStore);
+			},
+		};
+	}
+
+	private _createReducerHandler(stateStore: StateStore): ReducerHandler {
+		return {
+			invoke: async (name: string, params: Record<string, unknown>): Promise<unknown> => {
+				const requestNames = name.split(':');
+				if (requestNames.length !== 2) {
+					throw new Error('Invalid format to call reducer');
+				}
+				const [moduleName, funcName] = requestNames;
+				const customModule = this._getModuleByName(moduleName);
+				const fn = customModule.reducers[funcName];
+				if (!fn) {
+					throw new Error(`${funcName} does not exist in module ${moduleName}`);
+				}
+				return fn(params, stateStore);
+			},
+		};
+	}
+
+	private _getModuleByName(name: string): BaseModule {
+		const customModule = this._modules.find(m => m.name === name);
+		if (!customModule) {
+			throw new Error(`Module ${name} does not exist`);
 		}
-		// Sort in asc order
-		const matcherVersions = Object.keys(this._matchers).sort((a, b) => a.localeCompare(b, 'en'));
-		// eslint-disable-next-line no-restricted-syntax
-		for (const matcherVersion of matcherVersions) {
-			const matcher = this._matchers[matcherVersion];
-			if (matcher(block.header)) {
-				return this._processors[matcherVersion];
-			}
+		return customModule;
+	}
+
+	private _getAsset(transaction: Transaction): BaseAsset {
+		const customModule = this._modules.find(m => m.type === transaction.moduleType);
+		if (!customModule) {
+			throw new Error(`Module type ${transaction.moduleType} does not exist`);
 		}
-		throw new Error('No matching block processor found');
+		const customAsset = customModule.transactionAssets.find(
+			asset => asset.type === transaction.assetType,
+		);
+		if (!customAsset) {
+			throw new Error(
+				`Asset type ${transaction.assetType} does not exist in module type ${transaction.moduleType}.`,
+			);
+		}
+		return customAsset;
 	}
 }

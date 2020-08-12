@@ -31,25 +31,21 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
               "lastForgedHeight": 0,
               "pomHeights": Array [],
               "totalVotesReceived": 0n,
-              "username": "13462f8e59880cfde6280d34dfd044",
+              "username": "",
             },
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 2620126571n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 2620126571n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -77,25 +73,21 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
               "lastForgedHeight": 0,
               "pomHeights": Array [],
               "totalVotesReceived": 0n,
-              "username": "ef374a2e8fb9934ad1db0fd5346eb7",
+              "username": "",
             },
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 2874239947n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 2874239947n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -123,25 +115,21 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
               "lastForgedHeight": 0,
               "pomHeights": Array [],
               "totalVotesReceived": 0n,
-              "username": "920cc701231b2f8c624d4bc8f4c267",
+              "username": "",
             },
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 2384412768n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 2384412768n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -169,25 +157,21 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
               "lastForgedHeight": 0,
               "pomHeights": Array [],
               "totalVotesReceived": 0n,
-              "username": "4a1076aa54533dce1c9b7ed51c509b",
+              "username": "",
             },
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 28138131n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 28138131n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -215,7 +199,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -227,13 +211,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 476696623n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 476696623n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -261,7 +241,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -273,13 +253,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 4218444994n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 4218444994n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -307,7 +283,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -319,13 +295,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 1340967959n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 1340967959n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -353,25 +325,21 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
               "lastForgedHeight": 0,
               "pomHeights": Array [],
               "totalVotesReceived": 0n,
-              "username": "98beeddc903498ed7cdd36b417b40f",
+              "username": "",
             },
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 2165380961n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 2165380961n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -399,7 +367,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -411,13 +379,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 3116632800n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 3116632800n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -445,7 +409,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -457,13 +421,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 4056778033n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 4056778033n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -491,7 +451,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -503,13 +463,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 2910960211n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 2910960211n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -537,7 +493,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -549,13 +505,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 1966001160n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 1966001160n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -583,7 +535,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -595,13 +547,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 3756324977n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 3756324977n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -629,7 +577,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -641,13 +589,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 489340925n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 489340925n,
           },
-          "nonce": 0n,
         },
         Object {
           "address": Object {
@@ -675,7 +619,7 @@ Object {
             ],
             "type": "Buffer",
           },
-          "asset": Object {
+          "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
               "isBanned": false,
@@ -687,13 +631,9 @@ Object {
             "sentVotes": Array [],
             "unlocking": Array [],
           },
-          "balance": 653021139n,
-          "keys": Object {
-            "mandatoryKeys": Array [],
-            "numberOfSignatures": 0,
-            "optionalKeys": Array [],
+          "token": Object {
+            "balance": 653021139n,
           },
-          "nonce": 0n,
         },
       ],
       "initDelegates": Array [
@@ -832,38 +772,38 @@ Object {
     "height": 5,
     "id": Object {
       "data": Array [
-        197,
-        125,
-        232,
-        115,
-        235,
-        80,
-        250,
+        225,
+        58,
+        175,
+        73,
+        200,
+        178,
+        31,
+        71,
+        166,
+        79,
+        72,
+        112,
+        66,
+        70,
+        110,
+        142,
         47,
-        48,
-        125,
-        192,
-        217,
-        0,
-        211,
-        191,
-        49,
-        155,
-        193,
-        56,
-        85,
-        249,
+        208,
+        227,
+        210,
+        110,
+        179,
+        6,
+        228,
+        177,
+        61,
         196,
-        162,
-        21,
-        42,
-        105,
-        124,
-        215,
-        62,
-        33,
-        183,
-        140,
+        82,
+        77,
+        240,
+        136,
+        152,
       ],
       "type": "Buffer",
     },

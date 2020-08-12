@@ -17,7 +17,6 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 import { validator } from '@liskhq/lisk-validator';
-import { objects } from '@liskhq/lisk-utils';
 import { calculateReward } from './block_reward';
 import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
@@ -37,6 +36,7 @@ import {
 	AccountSchema,
 	Validator,
 } from './types';
+import { getAccountSchemaWithDefault } from './utils/account';
 import {
 	validateBlockSlot,
 	validateBlockProperties,
@@ -54,7 +54,6 @@ import {
 import {
 	blockSchema,
 	signingBlockHeaderSchema,
-	baseAccountSchema,
 	blockHeaderSchema,
 	stateDiffSchema,
 	getGenesisBlockHeaderAssetSchema,
@@ -85,18 +84,19 @@ export class Chain {
 	public readonly dataAccess: DataAccess;
 	public readonly events: EventEmitter;
 	public readonly slots: Slots;
-
-	private _lastBlock: Block;
-	private readonly _networkIdentifier: Buffer;
-	private readonly _blockRewardArgs: BlockRewardOptions;
-	private readonly _genesisBlock: GenesisBlock;
-	private readonly constants: {
+	public readonly constants: {
 		readonly blockTime: number;
 		readonly maxPayloadLength: number;
 		readonly rewardDistance: number;
 		readonly rewardOffset: number;
 		readonly rewardMilestones: ReadonlyArray<bigint>;
+		readonly networkIdentifier: Buffer;
 	};
+
+	private _lastBlock: Block;
+	private readonly _networkIdentifier: Buffer;
+	private readonly _blockRewardArgs: BlockRewardOptions;
+	private readonly _genesisBlock: GenesisBlock;
 	private readonly _accountSchema: Schema;
 	private readonly _blockAssetSchema: {
 		readonly [key: number]: Schema;
@@ -123,14 +123,9 @@ export class Chain {
 		this._numberOfValidators = -1;
 		this.events = new EventEmitter();
 
-		this._accountSchema = objects.cloneDeep(baseAccountSchema);
-		this._defaultAccount = {};
-		for (const [name, schema] of Object.entries(accounts)) {
-			const { default: defaultValue, ...schemaWithoutDefault } = schema;
-			this._accountSchema.properties[name] = schemaWithoutDefault;
-			(this._accountSchema.required as string[]).push(name);
-			this._defaultAccount[name] = defaultValue;
-		}
+		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(accounts);
+		this._defaultAccount = defaultAccount;
+		this._accountSchema = schema;
 		this._blockAssetSchema = {
 			0: getGenesisBlockHeaderAssetSchema(this._accountSchema),
 			2: blockHeaderAssetSchema,
@@ -174,6 +169,7 @@ export class Chain {
 			rewardDistance,
 			rewardOffset,
 			rewardMilestones,
+			networkIdentifier,
 		};
 	}
 

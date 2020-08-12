@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { blockSchema, blockHeaderSchema, baseAccountSchema } from '@liskhq/lisk-chain';
+import { blockSchema, blockHeaderSchema } from '@liskhq/lisk-chain';
 
 import {
 	TransferTransaction,
@@ -22,10 +22,6 @@ import {
 	ProofOfMisbehaviorTransaction,
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
-import { accountAssetSchema } from '../../../../src/application/node/account';
-
-import { BlockProcessorV0 } from '../../../../src/application/node/block_processor_v0';
-import { BlockProcessorV2 } from '../../../../src/application/node/block_processor_v2';
 
 import { createApplication, closeApplication } from '../../utils/application';
 
@@ -45,26 +41,13 @@ describe('Application related actions', () => {
 	describe('getSchema', () => {
 		it('should return schemas used to encode objects in framework', async () => {
 			const frameworkSchemas = await app['_channel'].invoke('app:getSchema');
-
-			const accountSchema = {
-				...baseAccountSchema,
-				properties: {
-					...baseAccountSchema.properties,
-					asset: {
-						...baseAccountSchema.properties.asset,
-						properties: accountAssetSchema,
-					},
-				},
-			};
+			const appInstance = app as any;
 
 			const expectedFrameworkSchemas = {
-				account: accountSchema,
+				account: appInstance._node._chain.accountSchema,
 				blockSchema,
 				blockHeaderSchema,
-				blockHeadersAssets: {
-					0: BlockProcessorV0.schema,
-					2: BlockProcessorV2.schema,
-				},
+				blockHeadersAssets: appInstance._node._chain.blockAssetSchema,
 				baseTransaction: BaseTransaction.BASE_SCHEMA,
 				transactionsAssets: {
 					[TransferTransaction.TYPE]: TransferTransaction.ASSET_SCHEMA,

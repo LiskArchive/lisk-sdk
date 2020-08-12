@@ -12,7 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
-import { Validator, AccountSchema as ChainAccountSchema } from '@liskhq/lisk-chain';
+import {
+	Validator,
+	Account,
+	AccountSchema as ChainAccountSchema,
+	Transaction,
+	StateStore as ChainStateStore,
+	GenesisBlock,
+	Block,
+} from '@liskhq/lisk-chain';
 
 export interface StringKeyVal {
 	[key: string]: string;
@@ -106,7 +114,7 @@ export interface GenesisConfig {
 	baseFees: {
 		moduleType: number;
 		assetType: number;
-		baseFee: bigint;
+		baseFee: string;
 	}[];
 }
 
@@ -162,12 +170,65 @@ export interface TransactionJSON {
 	readonly asset: object;
 }
 
+// Limit the scope of state store to which module can access
+export type StateStore = Omit<
+	ChainStateStore,
+	'consensus' | 'finalize' | 'createSnapshot' | 'restoreSnapshot'
+>;
+
+export interface ReducerHandler {
+	invoke: (name: string, params: Record<string, unknown>) => Promise<unknown>;
+}
+
+export interface Reducers {
+	[key: string]: (params: Record<string, unknown>, stateStore: StateStore) => Promise<unknown>;
+}
+
+export interface Actions {
+	[key: string]: (params: Record<string, unknown>) => Promise<unknown>;
+}
+
+export interface TransactionApplyInput {
+	transaction: Transaction;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface AfterGenesisBlockApplyInput<T = Account> {
+	genesisBlock: GenesisBlock<T>;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface BeforeBlockApplyInput {
+	block: Block;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface AfterBlockApplyInput extends BeforeBlockApplyInput {
+	consensus: Consensus;
+}
+
+export interface ApplyAssetInput<T> {
+	senderID: Buffer;
+	asset: T;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+	transaction: Transaction;
+}
+
+export interface ValidateAssetInput<T> {
+	asset: T;
+	transaction: Transaction;
+}
+
 // minActiveHeight is automatically calculated while setting in chain library
 export type Delegate = Omit<Validator, 'minActiveHeight'>;
 // fieldNumber is automatically assigned when registering to the chain library
 export type AccountSchema = Omit<ChainAccountSchema, 'fieldNumber'>;
 
 export interface Consensus {
-	updateDelegates: (delegates: Delegate[]) => Error | undefined;
+	updateDelegates: (delegates: Delegate[]) => Promise<void>;
 	getFinalizedHeight: () => number;
 }

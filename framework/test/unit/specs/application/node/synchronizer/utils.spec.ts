@@ -22,6 +22,7 @@ import { createValidDefaultBlock } from '../../../../../fixtures';
 
 describe('#synchronizer/utils', () => {
 	let chainMock: any;
+	let bftMock: any;
 	let processorMock: any;
 	let loggerMock: any;
 
@@ -34,6 +35,10 @@ describe('#synchronizer/utils', () => {
 			},
 		};
 
+		bftMock = {
+			forkChoice: jest.fn(),
+		};
+
 		loggerMock = {
 			info: jest.fn(),
 			debug: jest.fn(),
@@ -42,7 +47,6 @@ describe('#synchronizer/utils', () => {
 
 		processorMock = {
 			processValidated: jest.fn(),
-			forkStatus: jest.fn(),
 			deleteLastBlock: jest.fn(),
 		};
 	});
@@ -102,6 +106,8 @@ describe('#synchronizer/utils', () => {
 						height: 11,
 						asset: {
 							maxHeightPrevoted: 5,
+							seedReveal: Buffer.alloc(0),
+							maxHeightPreviouslyForged: 0,
 						},
 					},
 				}),
@@ -110,6 +116,8 @@ describe('#synchronizer/utils', () => {
 						height: 10,
 						asset: {
 							maxHeightPrevoted: 6,
+							seedReveal: Buffer.alloc(0),
+							maxHeightPreviouslyForged: 0,
 						},
 					},
 				}),
@@ -119,10 +127,10 @@ describe('#synchronizer/utils', () => {
 
 		it('should restore blocks if fork status = ForkStatus.DIFFERENT_CHAIN', async () => {
 			// Arrange
-			processorMock.forkStatus.mockResolvedValue(ForkStatus.DIFFERENT_CHAIN);
+			bftMock.forkChoice.mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
+			await restoreBlocksUponStartup(loggerMock, chainMock, bftMock, processorMock);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -130,10 +138,10 @@ describe('#synchronizer/utils', () => {
 
 		it('should restore blocks if fork status = ForkStatus.VALID_BLOCK', async () => {
 			// Arrange
-			processorMock.forkStatus.mockResolvedValue(ForkStatus.VALID_BLOCK);
+			bftMock.forkChoice.mockReturnValue(ForkStatus.VALID_BLOCK);
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
+			await restoreBlocksUponStartup(loggerMock, chainMock, bftMock, processorMock);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -141,7 +149,7 @@ describe('#synchronizer/utils', () => {
 
 		it('should truncate temp_blocks table if fork status != ForkStatus.DIFFERENT_CHAIN || != ForkStatus.VALID_BLOCK', async () => {
 			// Arrange
-			processorMock.forkStatus.mockResolvedValue(ForkStatus.DISCARD);
+			bftMock.forkChoice.mockReturnValue(ForkStatus.DISCARD);
 			processorMock.deleteLastBlock.mockResolvedValue({ height: 0 });
 
 			chainMock.lastBlock = {
@@ -152,7 +160,7 @@ describe('#synchronizer/utils', () => {
 			};
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
+			await restoreBlocksUponStartup(loggerMock, chainMock, bftMock, processorMock);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -160,13 +168,16 @@ describe('#synchronizer/utils', () => {
 
 		it('should call forkStatus with lowest block object', async () => {
 			// Arrange
-			processorMock.forkStatus.mockResolvedValue(ForkStatus.DIFFERENT_CHAIN);
+			bftMock.forkChoice.mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
+			await restoreBlocksUponStartup(loggerMock, chainMock, bftMock, processorMock);
 
 			// Assert
-			expect(processorMock.forkStatus).toHaveBeenCalledWith(tempBlocks[1]);
+			expect(bftMock.forkChoice).toHaveBeenCalledWith(
+				tempBlocks[1].header,
+				chainMock.lastBlock.header,
+			);
 		});
 	});
 });
