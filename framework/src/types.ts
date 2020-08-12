@@ -194,7 +194,7 @@ export interface TransactionApplyInput {
 	reducerHandler: ReducerHandler;
 }
 
-export interface AfterGenesisBlockApplyInput<T = Account> {
+export interface AfterGenesisBlockApplyInput<T = unknown> {
 	genesisBlock: GenesisBlock<Account<T>>;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;

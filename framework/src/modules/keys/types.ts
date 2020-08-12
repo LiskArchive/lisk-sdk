@@ -14,8 +14,8 @@
 
 export interface AccountKeyAsset {
 	keys: {
-		mandatoryKeys: Array<Buffer>;
-		optionalKeys: Array<Buffer>;
+		mandatoryKeys: Buffer[];
+		optionalKeys: Buffer[];
 		numberOfSignatures: number;
 	};
 }

@@ -133,7 +133,7 @@ export class KeysModule extends BaseModule {
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
-	public async afterGenesisBlockApply<AccountKeyAsset>({
+	public async afterGenesisBlockApply({
 		genesisBlock,
 	}: AfterGenesisBlockApplyInput<AccountKeyAsset>): Promise<void> {
 		const errors = [];
