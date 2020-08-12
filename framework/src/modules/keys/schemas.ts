@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const KeysSchema = {
+export const keysSchema = {
 	$id: 'lisk/keys/register',
 	type: 'object',
 	required: ['numberOfSignatures', 'optionalKeys', 'mandatoryKeys'],
@@ -27,23 +27,23 @@ export const KeysSchema = {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
 			},
 			fieldNumber: 2,
 			minItems: 0,
 			maxItems: 64,
-			minLength: 32,
-			maxLength: 32,
 		},
 		optionalKeys: {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
 			},
 			fieldNumber: 3,
 			minItems: 0,
 			maxItems: 64,
-			minLength: 32,
-			maxLength: 32,
 		},
 	},
 };
