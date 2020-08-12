@@ -446,6 +446,7 @@ export class Processor {
 			updateDelegates: async (delegates: Delegate[]): Promise<void> => {
 				await this._chain.setValidators(delegates, stateStore);
 			},
+			getDelegates: async (): Promise<Delegate[]> => this._chain.getValidators(),
 		};
 	}
 

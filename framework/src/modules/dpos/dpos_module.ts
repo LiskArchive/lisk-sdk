@@ -12,16 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as Debug from 'debug';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { objects as objectsUtils } from '@liskhq/lisk-utils';
-import { Account } from '@liskhq/lisk-chain';
+import { Account, BlockHeader } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
-import { AfterBlockApplyInput, AfterGenesisBlockApplyInput, GenesisConfig } from '../../types';
+import {
+	AfterBlockApplyInput,
+	AfterGenesisBlockApplyInput,
+	GenesisConfig,
+	StateStore,
+} from '../../types';
 import { Rounds } from './rounds';
 import { DPOSAccountProps } from './types';
 import { setRegisteredDelegates } from './utils';
+import { MAX_CONSECUTIVE_MISSED_BLOCKS, MAX_LAST_FORGED_HEIGHT_DIFF } from './constants';
 
 const { bufferArrayUniqueItems, bufferArrayOrderByLex, bufferArrayContains } = objectsUtils;
+
+// eslint-disable-next-line new-cap
+const debug = Debug('dpos');
 
 export const dposModuleParamsSchema = {
 	$id: '/dops/params',
@@ -128,13 +139,14 @@ export class DPoSModule extends BaseModule {
 		},
 	};
 
-	public readonly rounds!: Rounds;
+	public readonly rounds: Rounds;
 
 	private readonly _activeDelegates: number;
 	private readonly _standbyDelegates: number;
 	private readonly _delegateListRoundOffset: number;
 	private readonly _delegatesPerRound: number;
 	private readonly _delegateActiveRoundLimit: number;
+	private readonly _blockTime: number;
 	private _finalizedHeight = 0;
 
 	public constructor(config: GenesisConfig) {
@@ -149,12 +161,16 @@ export class DPoSModule extends BaseModule {
 		this._standbyDelegates = this.config.standbyDelegates as number;
 		this._delegateListRoundOffset = this.config.delegateListRoundOffset as number;
 		this._delegatesPerRound = this._activeDelegates + this._standbyDelegates;
+		this._blockTime = config.blockTime;
 		this._delegateActiveRoundLimit = 3;
+
+		this.rounds = new Rounds({ blocksPerRound: this._delegatesPerRound });
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async afterBlockApply(input: AfterBlockApplyInput): Promise<void> {
 		const finalizedHeight = input.consensus.getFinalizedHeight();
+
 		if (finalizedHeight !== this._finalizedHeight) {
 			this._finalizedHeight = finalizedHeight;
 
@@ -165,6 +181,26 @@ export class DPoSModule extends BaseModule {
 			// await deleteForgersListUntilRound(disposableDelegateListUntilRound, stateStore);
 			// await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, stateStore);
 		}
+
+		// TODO: See how to handle case of this.rounds.isBootstrapPeriod where _applyBootstrap is called
+		// Calculate the voteWeight regularly, but forger list already exist except the last one
+		// if (!this._isLastBlockOfTheRound(header)) {
+		// 	return false;
+		// }
+		// // Creating voteWeight snapshot for next round
+		// await this.delegatesList.createVoteWeightsSnapshot(header.height + 1, stateStore);
+		// // last block of the bootstrap period should create the forgers list
+		// if (this.rounds.lastHeightBootstrap() === header.height) {
+		// 	const round = this.rounds.calcRound(header.height);
+		// 	const [randomSeed1, randomSeed2] = generateRandomSeeds(
+		// 		round,
+		// 		this.rounds,
+		// 		stateStore.consensus.lastBlockHeaders,
+		// 	);
+		// 	await this.delegatesList.updateForgersList(round + 1, [randomSeed1, randomSeed2], stateStore);
+		// }
+
+		await this._updateProductivity(input);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility,class-methods-use-this,@typescript-eslint/require-await
@@ -206,5 +242,50 @@ export class DPoSModule extends BaseModule {
 		}
 
 		setRegisteredDelegates(input.stateStore, { registeredDelegates: delegateUsernames });
+	}
+
+	private async _updateProductivity(input: AfterBlockApplyInput): Promise<void> {
+		const {
+			block: { header: blockHeader },
+			consensus,
+			stateStore,
+		} = input;
+
+		const round = this.rounds.calcRound(blockHeader.height);
+		debug('Calculating missed block', round);
+
+		const lastBlock = stateStore.chain.lastBlockHeaders[0];
+		const expectedForgingAddresses = (await consensus.getDelegates()).map(d => d.address);
+
+		const missedBlocks =
+			Math.ceil((blockHeader.timestamp - lastBlock.timestamp) / this._blockTime) - 1;
+		const forgerAddress = getAddressFromPublicKey(blockHeader.generatorPublicKey);
+		const forgerIndex = expectedForgingAddresses.findIndex(address =>
+			address.equals(forgerAddress),
+		);
+		// Update consecutive missed block
+		for (let i = 0; i < missedBlocks; i += 1) {
+			const rawIndex = (forgerIndex - 1 - i) % expectedForgingAddresses.length;
+			const index = rawIndex >= 0 ? rawIndex : rawIndex + expectedForgingAddresses.length;
+			const missedForgerAddress = expectedForgingAddresses[index];
+			const missedForger = await stateStore.account.get<DPOSAccountProps>(missedForgerAddress);
+			missedForger.dpos.delegate.consecutiveMissedBlocks += 1;
+
+			// Ban the missed forger if both consecutive missed block and last forged blcok diff condition are met
+			if (
+				missedForger.dpos.delegate.consecutiveMissedBlocks > MAX_CONSECUTIVE_MISSED_BLOCKS &&
+				blockHeader.height - missedForger.dpos.delegate.lastForgedHeight >
+					MAX_LAST_FORGED_HEIGHT_DIFF
+			) {
+				missedForger.dpos.delegate.isBanned = true;
+			}
+			stateStore.account.set(missedForgerAddress, missedForger);
+		}
+
+		// Reset consecutive missed block
+		const forger = await stateStore.account.get<DPOSAccountProps>(forgerAddress);
+		forger.dpos.delegate.consecutiveMissedBlocks = 0;
+		forger.dpos.delegate.lastForgedHeight = blockHeader.height;
+		stateStore.account.set(forgerAddress, forger);
 	}
 }
