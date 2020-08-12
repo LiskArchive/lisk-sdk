@@ -22,12 +22,8 @@ import { GenesisConfig } from '../../../../../src';
 describe('keys module', () => {
 	let decodedMultiSignature: any;
 	let validTestTransaction: any;
-	let multisignatureSender: any;
 	let targetMultisigAccount: any;
-	let convertedAccount: any;
 	let stateStore: any;
-	let storeAccountGetStub: jest.SpyInstance;
-	let storeAccountSetStub: jest.SpyInstance;
 	let keysModule: KeysModule;
 	let reducerHandler: any;
 	let decodedBaseTransaction: any;
@@ -65,34 +61,21 @@ describe('keys module', () => {
 		};
 		validTestTransaction = new Transaction(decodedMultiSignature);
 
-		multisignatureSender = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
-		});
-
 		targetMultisigAccount = createFakeDefaultAccount({
 			address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
 			balance: BigInt('94378900000'),
 		});
-		convertedAccount = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
-			balance: BigInt('94378900000'),
-			keys: {
-				...validTestTransaction.asset,
-			},
-		});
 
 		stateStore = new StateStoreMock();
-		storeAccountGetStub = jest.spyOn(stateStore.account, 'getOrDefault').mockResolvedValue(
-			createFakeDefaultAccount({
-				address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
-			}) as never,
-		);
 
-		storeAccountGetStub = jest
-			.spyOn(stateStore.account, 'get')
-			.mockResolvedValue(targetMultisigAccount);
-
-		storeAccountSetStub = jest.spyOn(stateStore.account, 'set');
+		stateStore.account = {
+			get: jest.fn().mockResolvedValue(targetMultisigAccount),
+			getOrDefault: jest.fn().mockResolvedValue(
+				createFakeDefaultAccount({
+					address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
+				}) as never,
+			),
+		};
 
 		reducerHandler = {};
 	});
