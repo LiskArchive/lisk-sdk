@@ -36,7 +36,7 @@ import {
 	AccountSchema,
 	Validator,
 } from './types';
-import { getAccountSchemaAndDefault } from './utils/account';
+import { getAccountSchemaWithDefault } from './utils/account';
 import {
 	validateBlockSlot,
 	validateBlockProperties,
@@ -123,7 +123,7 @@ export class Chain {
 		this._numberOfValidators = -1;
 		this.events = new EventEmitter();
 
-		const { defaultAccount, schema } = getAccountSchemaAndDefault(accounts);
+		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(accounts);
 		this._defaultAccount = defaultAccount;
 		this._accountSchema = schema;
 		this._blockAssetSchema = {

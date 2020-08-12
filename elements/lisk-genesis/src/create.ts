@@ -15,7 +15,7 @@
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import {
-	getAccountSchemaAndDefault,
+	getAccountSchemaWithDefault,
 	getGenesisBlockHeaderAssetSchema,
 	Account,
 	GenesisBlock,
@@ -56,7 +56,7 @@ export const createGenesisBlock = (params: GenesisBlockParams): GenesisBlock => 
 	const height = params.height ?? 0;
 	const timestamp = params.timestamp ?? Math.floor(Date.now() / 1000);
 	const previousBlockID = params.previousBlockID ?? Buffer.from(EMPTY_BUFFER);
-	const { schema: accountSchema, defaultAccount } = getAccountSchemaAndDefault(
+	const { default: defaultAccount, ...accountSchema } = getAccountSchemaWithDefault(
 		params.accountAssetSchemas,
 	);
 
