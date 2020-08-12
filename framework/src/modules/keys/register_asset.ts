@@ -16,7 +16,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { BaseAsset } from '../base_asset';
 import { ApplyAssetInput, StateStore, ValidateAssetInput } from '../../types';
-import { KeysSchema } from './schemas';
+import { keysSchema } from './schemas';
 import { AccountKeys } from './types';
 
 export interface Asset {
@@ -43,7 +43,7 @@ export const MAX_KEYS_COUNT = 64;
 export class RegisterAsset extends BaseAsset {
 	public name = 'register';
 	public type = RegisterAssetType;
-	public assetSchema = KeysSchema;
+	public assetSchema = keysSchema;
 
 	public validateAsset({ asset, transaction }: ValidateAssetInput<Asset>): void {
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = asset;

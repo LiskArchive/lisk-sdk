@@ -12,12 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { randomBytes } from 'crypto';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
 import { RegisterAsset } from '../../../../../src/modules/keys/register_asset';
 import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
 import * as fixtures from './fixtures.json';
+import { keysSchema } from '../../../../../src/modules/keys/schemas';
 
 describe('register asset', () => {
 	let decodedMultiSignature: any;
@@ -75,6 +77,104 @@ describe('register asset', () => {
 		storeAccountSetStub = jest.spyOn(stateStore.account, 'set');
 
 		reducerHandler = {};
+	});
+
+	describe('validateSchema', () => {
+		it('should fail validation if asset has numberOfSignatures > 64', () => {
+			const asset = {
+				numberOfSignatures: 100,
+				mandatoryKeys: [getRandomBytes(32)],
+				optionalKeys: [getRandomBytes(32)],
+			} as any;
+
+			const errors = validator.validate(keysSchema, asset);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude('should be <= 64');
+		});
+
+		it('should fail validation if asset has numberOfSignatures < 1', () => {
+			const asset = {
+				numberOfSignatures: 0,
+				mandatoryKeys: [getRandomBytes(32)],
+				optionalKeys: [getRandomBytes(32)],
+			} as any;
+
+			const errors = validator.validate(keysSchema, asset);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude('should be >= 1');
+		});
+
+		it('should fail validation if asset has more than 64 mandatory keys', () => {
+			const asset = {
+				numberOfSignatures: 2,
+				mandatoryKeys: [...Array(65).keys()].map(() => getRandomBytes(32)),
+				optionalKeys: [],
+			} as any;
+
+			const errors = validator.validate(keysSchema, asset);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude('should NOT have more than 64 items');
+		});
+
+		it('should fail validation if asset mandatory keys contains items with length bigger than 32', () => {
+			const asset = {
+				numberOfSignatures: 2,
+				mandatoryKeys: [...Array(1).keys()].map(() => getRandomBytes(64)),
+				optionalKeys: [],
+			} as any;
+
+			const errors = validator.validate(keysSchema, asset);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude('maxLength exceeded');
+		});
+
+		it('should fail validation if asset mandatory keys contains items with length smaller than 32', () => {
+			const asset = {
+				numberOfSignatures: 2,
+				mandatoryKeys: [...Array(1).keys()].map(() => getRandomBytes(10)),
+				optionalKeys: [],
+			} as any;
+
+			const errors = validator.validate(keysSchema, asset);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude('minLength not satisfied');
+		});
+
+		it('should fail validation if asset optional keys contains items with length bigger than 32', () => {
+			const asset = {
+				numberOfSignatures: 2,
+				mandatoryKeys: [],
+				optionalKeys: [...Array(1).keys()].map(() => getRandomBytes(64)),
+			} as any;
+
+			const errors = validator.validate(keysSchema, asset);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude('maxLength exceeded');
+		});
+
+		it('should fail validation if asset optional keys contains items with length smaller than 32', () => {
+			const asset = {
+				numberOfSignatures: 2,
+				mandatoryKeys: [],
+				optionalKeys: [...Array(1).keys()].map(() => getRandomBytes(31)),
+			} as any;
+
+			const errors = validator.validate(keysSchema, asset);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude('minLength not satisfied');
+		});
+
+		it('should fail validation if asset has more than 64 optional keys', () => {
+			const asset = {
+				numberOfSignatures: 2,
+				mandatoryKeys: [],
+				optionalKeys: [...Array(65).keys()].map(() => getRandomBytes(32)),
+			} as any;
+
+			const errors = validator.validate(keysSchema, asset);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude('should NOT have more than 64 items');
+		});
 	});
 
 	describe('validateAsset', () => {
