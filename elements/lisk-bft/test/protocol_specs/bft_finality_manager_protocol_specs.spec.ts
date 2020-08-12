@@ -95,7 +95,7 @@ describe('FinalityManager', () => {
 					finalityManager = new FinalityManager({
 						chain: chainStub,
 						finalizedHeight: scenario.config.finalizedHeight,
-						threshold: Math.ceil((scenario.config.activeDelegates * 2) / 3),
+						threshold: Math.floor((scenario.config.activeDelegates * 2) / 3) + 1,
 					});
 
 					stateStore = new StateStoreMock();
