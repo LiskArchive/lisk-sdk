@@ -62,7 +62,7 @@ export const genesisBlock: GenesisBlock = {
 			accounts: genesis.header.asset.accounts.map(account => ({
 				address: Buffer.from(account.address, 'base64'),
 				token: {
-					balance: BigInt(account.token?.balance),
+					balance: BigInt(account.token.balance),
 				},
 				sequence: {
 					nonce: BigInt(account.sequence.nonce),
