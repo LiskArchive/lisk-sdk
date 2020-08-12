@@ -33,11 +33,11 @@ export const nodeOptions = {
 	genesisConfig: {
 		activeDelegates: 101,
 		standbyDelegates: 2,
-		maxPayloadLength: 15 * 1024,
-		bftThreshold: 68,
+		maxPayloadLength: 15 * 1024, // 15kb
+		bftThreshold: 68, // Two third of active delegates Math.ceil(activeDelegates * 2 / 3)
 		baseFees: [],
-		blockTime: 10,
-		minFeePerByte: 10000,
+		blockTime: 10, // 10 seconds
+		minFeePerByte: 10000, // 10k beddows or 0.00001 LSK
 		communityIdentifier: 'Lisk',
 		rewards: {
 			milestones: [
