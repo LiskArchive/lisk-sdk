@@ -14,7 +14,7 @@
 import { randomBytes } from 'crypto';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
-import { Transaction, transactionSchema } from './lisk_chain_transaction_tmp';
+import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
 import { RegisterAsset } from '../../../../../src/modules/keys/register_asset';
 import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
 import * as fixtures from './fixtures.json';
