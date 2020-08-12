@@ -13,7 +13,8 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { BaseAsset, ApplyAssetInput } from '../base_asset';
+import { BaseAsset } from '../base_asset';
+import { ApplyAssetInput } from '../../types';
 
 interface Asset {
 	readonly amount: bigint;
