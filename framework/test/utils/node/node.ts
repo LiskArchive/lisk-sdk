@@ -14,6 +14,7 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
+import { objects } from '@liskhq/lisk-utils';
 import { constantsConfig, nodeConfig } from '../configs';
 import { createMockChannel } from '../channel';
 import { Node, Options } from '../../../src/application/node/node';
@@ -21,7 +22,6 @@ import { genesisBlock } from '../../fixtures/blocks';
 import * as config from '../../fixtures/config/devnet/config.json';
 import { Logger } from '../../../src/application/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
-import { mergeDeep } from '../../../src/application/utils/merge_deep';
 import { ApplicationConfig } from '../../../src/types';
 
 const { plugins, ...rootConfigs } = config;
@@ -42,7 +42,7 @@ export const createNode = ({
 	channel,
 	options = {},
 }: CreateNodeInput): Node => {
-	const mergedConfig = mergeDeep({}, nodeConfig(), nodeConfigs) as ApplicationConfig;
+	const mergedConfig = objects.mergeDeep({}, nodeConfig(), nodeConfigs) as ApplicationConfig;
 	const convertedDelegates = mergedConfig.forging.delegates.map(delegate => ({
 		...delegate,
 		address: Buffer.from(delegate.address, 'base64'),

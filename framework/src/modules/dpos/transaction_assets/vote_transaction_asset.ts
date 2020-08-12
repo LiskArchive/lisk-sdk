@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplyAssetInput, BaseAsset, ValidateAssetInput } from '../../base_asset';
+import { BaseAsset } from '../../base_asset';
 import { ValidationError } from '../../../errors';
 import { MAX_INT64, MAX_UNLOCKING, MAX_VOTE, TEN_UNIT } from '../constants';
 import { DPOSAccountProps } from '../types';
 import { sortUnlocking } from '../utils';
+import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
 
 export interface Vote {
 	readonly delegateAddress: Buffer;

@@ -323,7 +323,7 @@ export class Processor {
 			await this._hooks.beforeTransactionApply.run({
 				reducerHandler: this._createReducerHandler(stateStore),
 				stateStore,
-				tx: transaction,
+				transaction,
 			});
 			const customAsset = this._getAsset(transaction);
 			const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
@@ -337,7 +337,7 @@ export class Processor {
 			await this._hooks.afterTransactionApply.run({
 				reducerHandler: this._createReducerHandler(stateStore),
 				stateStore,
-				tx: transaction,
+				transaction,
 			});
 		}
 	}
@@ -376,7 +376,7 @@ export class Processor {
 				await this._hooks.beforeTransactionApply.run({
 					reducerHandler: this._createReducerHandler(stateStore),
 					stateStore,
-					tx: transaction,
+					transaction,
 				});
 			}
 		}
@@ -395,7 +395,7 @@ export class Processor {
 				await this._hooks.afterTransactionApply.run({
 					reducerHandler: this._createReducerHandler(stateStore),
 					stateStore,
-					tx: transaction,
+					transaction,
 				});
 			}
 		}

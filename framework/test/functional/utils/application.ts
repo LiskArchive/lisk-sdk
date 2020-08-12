@@ -18,7 +18,6 @@ import { TransferTransaction } from '@liskhq/lisk-transactions';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as configJSON from '../../fixtures/config/devnet/config.json';
 import { Application, ApplicationConfig } from '../../../src';
-import { GenesisBlockJSON } from '../../../src/application/genesis_block';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
 
@@ -37,7 +36,7 @@ export const createApplication = async (
 		},
 	} as Partial<ApplicationConfig>;
 
-	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
+	const app = new Application(genesisBlockJSON, config);
 
 	// Remove pre-existing data
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
