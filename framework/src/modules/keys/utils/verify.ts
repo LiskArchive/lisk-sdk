@@ -15,7 +15,6 @@ import { Account } from '@liskhq/lisk-chain';
 import { verifyData } from '@liskhq/lisk-cryptography';
 import { AccountKeyAsset } from '../types';
 
-
 export const isMultisignatureAccount = (account: Account<AccountKeyAsset>): boolean =>
 	!!(
 		(account.keys.mandatoryKeys.length > 0 || account.keys.optionalKeys.length > 0) &&
