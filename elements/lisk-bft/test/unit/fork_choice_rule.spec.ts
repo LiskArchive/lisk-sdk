@@ -13,6 +13,7 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
 	isDifferentChain,
 	isDoubleForging,
@@ -21,7 +22,7 @@ import {
 	isTieBreak,
 	isValidBlock,
 } from '../../src/fork_choice_rule';
-import { BlockHeader } from '../../src/types';
+import { BlockHeaderWithReceivedAt as BlockHeader } from '../../src/types';
 
 const GENESIS_BLOCK_TIME_STAMP = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).getTime() / 1000;
 const BLOCK_TIME = 10;
@@ -33,6 +34,8 @@ const createBlock = (data?: Partial<BlockHeader>): BlockHeader => ({
 	id: data?.id ?? Buffer.from('id'),
 	generatorPublicKey: Buffer.from('generator'),
 	previousBlockID: data?.previousBlockID ?? Buffer.from('previous block'),
+	transactionRoot: getRandomBytes(32),
+	signature: getRandomBytes(64),
 	receivedAt: data?.receivedAt ?? 0,
 	reward: BigInt(0),
 	asset: {

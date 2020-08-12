@@ -13,9 +13,8 @@
  */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
-import { BlockHeader } from '@liskhq/lisk-chain';
+import { BlockHeader, Account, StateStore, AccountDefaultProps } from '@liskhq/lisk-chain';
 import { createFakeDefaultAccount } from './account';
-import { AccountStateStore, Account, AccountDefaultProps } from '../../../src/modules/base_asset';
 
 export interface ChainState {
 	readonly lastBlockHeaders: BlockHeader[];
@@ -36,8 +35,11 @@ export interface AdditionalInfo {
 }
 
 export class StateStoreMock {
-	readonly account: AccountStateStore;
-	readonly chain: ChainState;
+	readonly account: Pick<StateStore['account'], 'get' | 'getOrDefault' | 'set'>;
+	readonly chain: Pick<
+		StateStore['chain'],
+		'lastBlockHeaders' | 'lastBlockReward' | 'networkIdentifier' | 'get' | 'set'
+	>;
 
 	public accountData: Account[];
 	public chainData: { [key: string]: Buffer };

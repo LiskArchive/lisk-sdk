@@ -13,11 +13,9 @@
  */
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { Chain, Block } from '@liskhq/lisk-chain';
+import { Chain, Block, Transaction } from '@liskhq/lisk-chain';
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
-import { convertErrorsToString } from '../utils/error_handlers';
 import { InvalidTransactionError } from './errors';
 import { schemas } from './schemas';
 import { Synchronizer } from '../synchronizer';
@@ -40,10 +38,6 @@ const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
 const DEFAULT_RELEASE_LIMIT = 100;
 const DEFAULT_RELEASE_INTERVAL = 5000;
 
-interface TransactionPoolTransaction extends BaseTransaction {
-	asset: { [key: string]: string | number | readonly string[] | undefined };
-}
-
 export interface TransportConstructor {
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
@@ -61,10 +55,6 @@ export interface handlePostTransactionReturn {
 }
 export interface HandleRPCGetTransactionsReturn {
 	transactions: string[];
-}
-
-export interface RPCGetTransactionsReturn {
-	data: { transactions: TransactionJSON[] };
 }
 
 interface RateTracker {
@@ -117,7 +107,7 @@ export class Transport {
 		}, DEFAULT_RATE_RESET_TIME);
 	}
 
-	public handleBroadcastTransaction(transaction: BaseTransaction): void {
+	public handleBroadcastTransaction(transaction: Transaction): void {
 		this._broadcaster.enqueueTransactionId(transaction.id);
 		this._channel.publish('app:transaction:new', {
 			transaction: transaction.getBytes().toString('base64'),
@@ -297,7 +287,8 @@ export class Transport {
 		for (const idStr of transactionIds) {
 			// Check if any transaction is in the queues.
 			const id = Buffer.from(idStr, 'base64');
-			const transaction = this._transactionPoolModule.get(id) as BaseTransaction;
+			// FIXME: #5619 type casting should be removed
+			const transaction = (this._transactionPoolModule.get(id) as unknown) as Transaction;
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
@@ -309,7 +300,7 @@ export class Transport {
 
 		if (idsNotInPool.length) {
 			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase: BaseTransaction[] = await this._chainModule.dataAccess.getTransactionsByIDs(
+			const transactionsFromDatabase: Transaction[] = await this._chainModule.dataAccess.getTransactionsByIDs(
 				idsNotInPool,
 			);
 
@@ -411,7 +402,7 @@ export class Transport {
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.
-			const existingTransactions: BaseTransaction[] = await this._chainModule.dataAccess.getTransactionsByIDs(
+			const existingTransactions: Transaction[] = await this._chainModule.dataAccess.getTransactionsByIDs(
 				unknownTransactionsIDs,
 			);
 
@@ -425,28 +416,12 @@ export class Transport {
 		return unknownTransactionsIDs;
 	}
 
-	private async _receiveTransaction(transaction: BaseTransaction): Promise<Buffer> {
+	private async _receiveTransaction(transaction: Transaction): Promise<Buffer> {
 		try {
-			// Composed transaction checks are all static, so it does not need state store
-			const transactionsResponses = this._chainModule.validateTransactions([transaction]);
-
-			if (transactionsResponses[0].errors.length > 0) {
-				throw transactionsResponses[0].errors;
-			}
-		} catch (errors) {
-			const errString = convertErrorsToString(errors);
-			const err = new InvalidTransactionError(errString, transaction.id, errors);
-			this._logger.error(
-				{
-					err,
-					module: 'transport',
-				},
-				'Transaction normalization failed',
-			);
-
-			throw err;
+			this._processorModule.validateTransaction(transaction);
+		} catch (err) {
+			throw new InvalidTransactionError((err as Error).toString(), transaction.id);
 		}
-
 		if (this._transactionPoolModule.contains(transaction.id)) {
 			return transaction.id;
 		}
@@ -455,7 +430,8 @@ export class Transport {
 		this.handleBroadcastTransaction(transaction);
 
 		const { errors } = await this._transactionPoolModule.add(
-			transaction as TransactionPoolTransaction,
+			// FIXME: #5619 type casting should be removed
+			transaction as any,
 		);
 
 		if (!errors.length) {

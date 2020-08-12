@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { verifyData } from '@liskhq/lisk-cryptography';
-import { Account, StateStore } from '../base_asset';
+import { Account } from '@liskhq/lisk-chain';
 import {
 	DelegatePersistedUsernames,
 	DPOSAccountProps,
@@ -28,6 +28,7 @@ import {
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from './constants';
+import { StateStore } from '../../types';
 
 const delegatesUserNamesSchema = {
 	$id: '/dpos/userNames',

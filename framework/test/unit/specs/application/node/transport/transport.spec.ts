@@ -60,7 +60,6 @@ describe('Transport', () => {
 		synchronizerStub = {};
 		chainStub = {
 			deserializeTransaction: jest.fn().mockImplementation(val => ({ ...val, toJSON: () => val })),
-			validateTransactions: jest.fn().mockReturnValue([{ status: 1, errors: [] }]),
 			dataAccess: {
 				getTransactionByID: jest.fn(),
 				getTransactionsByIDs: jest.fn(),
@@ -69,7 +68,9 @@ describe('Transport', () => {
 				encodeBlockHeader: jest.fn().mockReturnValue(encodedBlock),
 			},
 		};
-		processorStub = {};
+		processorStub = {
+			validateTransaction: jest.fn(),
+		};
 		transport = new Transport({
 			channel: channelStub,
 			logger: loggerStub,
@@ -655,7 +656,7 @@ describe('Transport', () => {
 					defaultPeerId,
 				);
 				expect(chainStub.dataAccess.decodeTransaction).toHaveBeenCalledTimes(1);
-				expect(chainStub.validateTransactions).toHaveBeenCalledTimes(1);
+				expect(processorStub.validateTransaction).toHaveBeenCalledTimes(1);
 				expect(transactionPoolStub.contains).toHaveBeenCalledTimes(3);
 				expect(transactionPoolStub.add).toHaveBeenCalledTimes(1);
 			});
@@ -663,7 +664,9 @@ describe('Transport', () => {
 			it('should apply penalty when validateTransactions fails', async () => {
 				transactionPoolStub.contains.mockReturnValue(false);
 				const error = new Error('validate error');
-				chainStub.validateTransactions.mockResolvedValue([{ status: 0, errors: [error] }]);
+				processorStub.validateTransaction.mockImplementation(() => {
+					throw error;
+				});
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
@@ -718,7 +721,7 @@ describe('Transport', () => {
 					defaultPeerId,
 				);
 				expect(chainStub.dataAccess.decodeTransaction).toHaveBeenCalledTimes(1);
-				expect(chainStub.validateTransactions).toHaveBeenCalledTimes(1);
+				expect(processorStub.validateTransaction).toHaveBeenCalledTimes(1);
 				expect(transactionPoolStub.contains).toHaveBeenCalledTimes(3);
 				expect(transactionPoolStub.add).toHaveBeenCalledTimes(1);
 			});

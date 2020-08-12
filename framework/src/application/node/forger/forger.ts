@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -19,11 +20,13 @@ import {
 	getPrivateAndPublicKeyFromPassphrase,
 	hashOnion,
 	parseEncryptedPassphrase,
+	signDataWithPrivateKey,
+	hash,
 } from '@liskhq/lisk-cryptography';
-import { BufferMap, Chain, BufferSet } from '@liskhq/lisk-chain';
-import { Dpos } from '@liskhq/lisk-dpos';
+import { Chain, Block, Transaction, BlockHeader } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { MerkleTree } from '@liskhq/lisk-tree';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { KVStore } from '@liskhq/lisk-db';
 import { HighFeeForgingStrategy } from './strategies';
@@ -35,6 +38,8 @@ import {
 	setRegisteredHashOnionSeeds,
 	setUsedHashOnions,
 	UsedHashOnion,
+	saveMaxHeightPreviouslyForged,
+	getPreviouslyForgedMap,
 } from './data_access';
 
 interface HashOnionConfig {
@@ -68,26 +73,33 @@ interface ForgerConstructor {
 	readonly logger: Logger;
 	readonly db: KVStore;
 	readonly processorModule: Processor;
-	readonly dposModule: Dpos;
 	readonly bftModule: BFT;
 	readonly transactionPoolModule: TransactionPool;
 	readonly chainModule: Chain;
-	readonly maxPayloadLength: number;
 	readonly forgingDelegates?: ReadonlyArray<RegisteredDelegate>;
 	readonly forgingForce?: boolean;
 	readonly forgingDefaultPassword?: string;
 	readonly forgingWaitThreshold: number;
 }
 
+interface CreateBlockInput {
+	readonly keypair: { publicKey: Buffer; privateKey: Buffer };
+	readonly timestamp: number;
+	readonly transactions: Transaction[];
+	readonly previousBlock: Block;
+	readonly seedReveal: Buffer;
+}
+
+const BLOCK_VERSION = 2;
+
 export class Forger {
 	private readonly _logger: Logger;
 	private readonly _db: KVStore;
 	private readonly _processorModule: Processor;
-	private readonly _dposModule: Dpos;
 	private readonly _bftModule: BFT;
 	private readonly _transactionPoolModule: TransactionPool;
 	private readonly _chainModule: Chain;
-	private readonly _keypairs: BufferMap<Keypair>;
+	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _config: {
 		readonly forging: {
 			readonly force?: boolean;
@@ -96,10 +108,7 @@ export class Forger {
 			readonly waitThreshold: number;
 		};
 	};
-	private readonly _constants: {
-		readonly maxPayloadLength: number;
-	};
-	private readonly _forgingStrategy?: HighFeeForgingStrategy;
+	private readonly _forgingStrategy: HighFeeForgingStrategy;
 
 	public constructor({
 		forgingStrategy,
@@ -107,18 +116,16 @@ export class Forger {
 		db,
 		// Modules
 		processorModule,
-		dposModule,
 		bftModule,
 		transactionPoolModule,
 		chainModule,
 		// constants
-		maxPayloadLength,
 		forgingDelegates,
 		forgingForce,
 		forgingDefaultPassword,
 		forgingWaitThreshold,
 	}: ForgerConstructor) {
-		this._keypairs = new BufferMap<Keypair>();
+		this._keypairs = new dataStructures.BufferMap<Keypair>();
 		this._logger = logger;
 		this._db = db;
 		this._config = {
@@ -129,12 +136,8 @@ export class Forger {
 				waitThreshold: forgingWaitThreshold,
 			},
 		};
-		this._constants = {
-			maxPayloadLength,
-		};
 
 		this._processorModule = processorModule;
-		this._dposModule = dposModule;
 		this._bftModule = bftModule;
 		this._transactionPoolModule = transactionPoolModule;
 		this._chainModule = chainModule;
@@ -145,12 +148,13 @@ export class Forger {
 			new HighFeeForgingStrategy({
 				transactionPoolModule: this._transactionPoolModule,
 				chainModule: this._chainModule,
-				maxPayloadLength: this._constants.maxPayloadLength,
+				maxPayloadLength: this._chainModule.constants.maxPayloadLength,
+				processorModule: this._processorModule,
 			});
 	}
 
 	public delegatesEnabled(): boolean {
-		return Object.keys(this._keypairs).length > 0;
+		return this._keypairs.values().length > 0;
 	}
 
 	public async updateForgingStatus(
@@ -187,26 +191,20 @@ export class Forger {
 			);
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const [account] = await this._chainModule.dataAccess.getAccountsByPublicKey([
-			keypair.publicKey,
-		]);
+		const account = await this._chainModule.dataAccess.getAccountByAddress(forgerAddress);
 
-		if (account.asset.delegate.username !== '') {
-			if (forging) {
-				this._keypairs.set(getAddressFromPublicKey(keypair.publicKey), keypair);
-				this._logger.info(`Forging enabled on account: ${account.address.toString('base64')}`);
-			} else {
-				this._keypairs.delete(getAddressFromPublicKey(keypair.publicKey));
-				this._logger.info(`Forging disabled on account: ${account.address.toString('base64')}`);
-			}
-
-			return {
-				address: forgerAddress,
-				forging,
-			};
+		if (forging) {
+			this._keypairs.set(forgerAddress, keypair);
+			this._logger.info(`Forging enabled on account: ${account.address.toString('base64')}`);
+		} else {
+			this._keypairs.delete(forgerAddress);
+			this._logger.info(`Forging disabled on account: ${account.address.toString('base64')}`);
 		}
-		throw new Error('Delegate not found');
+
+		return {
+			address: forgerAddress,
+			forging,
+		};
 	}
 
 	public async loadDelegates(): Promise<void> {
@@ -253,25 +251,11 @@ export class Forger {
 				);
 			}
 
-			const [account] = await this._chainModule.dataAccess.getAccountsByPublicKey([
-				keypair.publicKey,
-			]);
+			const validatorAddress = getAddressFromPublicKey(keypair.publicKey);
+			const account = await this._chainModule.dataAccess.getAccountByAddress(validatorAddress);
 
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			if (!account) {
-				throw new Error(
-					`Account with public key: ${keypair.publicKey.toString('base64')} not found`,
-				);
-			}
-			if (account.asset.delegate.username !== '') {
-				this._keypairs.set(getAddressFromPublicKey(keypair.publicKey), keypair);
-				this._logger.info(`Forging enabled on account: ${account.address.toString('base64')}`);
-			} else {
-				this._logger.warn(
-					{},
-					`Account with public key: ${keypair.publicKey.toString('base64')} is not a delegate`,
-				);
-			}
+			this._keypairs.set(validatorAddress, keypair);
+			this._logger.info(`Forging enabled on account: ${account.address.toString('base64')}`);
 			// Prepare hash-onion
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const registeredHashOnionSeed = registeredHashOnionSeeds.get(account.address);
@@ -346,19 +330,10 @@ export class Forger {
 			return;
 		}
 
-		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
-		const round = this._dposModule.rounds.calcRound(this._chainModule.lastBlock.header.height + 1);
+		const validator = await this._chainModule.getValidator(currentTime);
+		const validatorKeypair = this._keypairs.get(validator.address);
 
-		let delegateKeypair: Keypair | undefined;
-		try {
-			// eslint-disable-next-line @typescript-eslint/no-use-before-define
-			delegateKeypair = await this._getDelegateKeypairForCurrentSlot(currentSlot, round);
-		} catch (err) {
-			this._logger.error({ err: err as Error }, 'Skipping delegate slot');
-			throw err;
-		}
-
-		if (delegateKeypair === undefined) {
+		if (validatorKeypair === undefined) {
 			this._logger.trace(
 				{ currentSlot: this._chainModule.slots.getSlotNumber() },
 				'Waiting for delegate slot',
@@ -384,9 +359,9 @@ export class Forger {
 		const timestamp = currentSlotTime;
 
 		const previousBlock = this._chainModule.lastBlock;
-		const transactions = await this._forgingStrategy?.getTransactionsForBlock();
+		const transactions = await this._forgingStrategy.getTransactionsForBlock();
 
-		const delegateAddress = getAddressFromPublicKey(delegateKeypair.publicKey);
+		const delegateAddress = getAddressFromPublicKey(validatorKeypair.publicKey);
 		const nextHeight = previousBlock.header.height + 1;
 
 		const usedHashOnions = await getUsedHashOnions(this._db);
@@ -412,10 +387,10 @@ export class Forger {
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const forgedBlock = await this._processorModule.create({
-			keypair: delegateKeypair,
+		const forgedBlock = await this._create({
+			keypair: validatorKeypair,
 			timestamp,
-			transactions: transactions as BaseTransaction[],
+			transactions,
 			previousBlock,
 			seedReveal: nextHashOnion.hash,
 		});
@@ -430,7 +405,6 @@ export class Forger {
 				generatorAddress: delegateAddress,
 				seedReveal: nextHashOnion.hash,
 				height: forgedBlock.header.height,
-				round: this._dposModule.rounds.calcRound(forgedBlock.header.height),
 				slot: this._chainModule.slots.getSlotNumber(forgedBlock.header.timestamp),
 				reward: forgedBlock.header.reward.toString(),
 			},
@@ -438,14 +412,14 @@ export class Forger {
 		);
 	}
 
-	public getForgersKeyPairs(): BufferMap<Keypair> {
+	public getForgersKeyPairs(): dataStructures.BufferMap<Keypair> {
 		return this._keypairs;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
 	public getForgingStatusOfAllDelegates(): ForgingStatus[] | undefined {
 		const forgingDelegates = this._config.forging.delegates;
-		const forgersAddress = new BufferSet();
+		const forgersAddress = new dataStructures.BufferSet();
 
 		for (const keypair of this._keypairs.values()) {
 			forgersAddress.add(getAddressFromPublicKey(keypair.publicKey));
@@ -543,7 +517,7 @@ export class Forger {
 			},
 			{
 				others: [] as UsedHashOnion[],
-				highest: new BufferMap<UsedHashOnion>(),
+				highest: new dataStructures.BufferMap<UsedHashOnion>(),
 			},
 		);
 
@@ -551,19 +525,94 @@ export class Forger {
 		return filtered.concat(filteredObject.highest.values());
 	}
 
-	private async _getDelegateKeypairForCurrentSlot(
-		currentSlot: number,
-		round: number,
-	): Promise<Keypair | undefined> {
-		const activeDelegates = await this._dposModule.getForgerAddressesForRound(round);
+	private async _create({
+		transactions,
+		keypair,
+		seedReveal,
+		timestamp,
+		previousBlock,
+	}: CreateBlockInput): Promise<Block> {
+		const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
+		const delegateAddress = getAddressFromPublicKey(keypair.publicKey);
+		const height = previousBlock.header.height + 1;
+		const previousBlockID = previousBlock.header.id;
+		const forgerInfo = previouslyForgedMap.get(delegateAddress);
+		const maxHeightPreviouslyForged = forgerInfo?.height ?? 0;
+		const maxHeightPrevoted = await this._bftModule.getMaxHeightPrevoted();
+		const stateStore = await this._chainModule.newStateStore();
+		const reward = this._chainModule.calculateReward(height);
+		let size = 0;
 
-		const currentSlotIndex = currentSlot % activeDelegates.length;
-		const currentSlotDelegate = activeDelegates[currentSlotIndex];
+		const blockTransactions = [];
+		const transactionIds = [];
 
-		if (currentSlotDelegate.length > 0 && this._keypairs.has(currentSlotDelegate)) {
-			return this._keypairs.get(currentSlotDelegate);
+		for (const transaction of transactions) {
+			const transactionBytes = transaction.getBytes();
+
+			if (size + transactionBytes.length > this._chainModule.constants.maxPayloadLength) {
+				break;
+			}
+
+			size += transactionBytes.length;
+			blockTransactions.push(transaction);
+			transactionIds.push(transaction.id);
 		}
 
-		return undefined;
+		const transactionRoot = new MerkleTree(transactionIds).root;
+
+		const header = {
+			version: BLOCK_VERSION,
+			height,
+			reward,
+			transactionRoot,
+			previousBlockID,
+			timestamp,
+			generatorPublicKey: keypair.publicKey,
+			asset: {
+				seedReveal,
+				maxHeightPreviouslyForged,
+				maxHeightPrevoted,
+			},
+		};
+
+		const isBFTProtocolCompliant = await this._bftModule.isBFTProtocolCompliant(
+			header as BlockHeader,
+			stateStore,
+		);
+
+		// Reduce reward based on BFT rules
+		if (!isBFTProtocolCompliant) {
+			header.reward /= BigInt(4);
+		}
+
+		header.reward = this._chainModule.isValidSeedReveal(header as BlockHeader, stateStore)
+			? reward
+			: BigInt(0);
+
+		const headerBytesWithoutSignature = this._chainModule.dataAccess.encodeBlockHeader(
+			header as BlockHeader,
+			true,
+		);
+		const signature = signDataWithPrivateKey(
+			Buffer.concat([this._chainModule.constants.networkIdentifier, headerBytesWithoutSignature]),
+			keypair.privateKey,
+		);
+		const headerBytes = this._chainModule.dataAccess.encodeBlockHeader({
+			...header,
+			signature,
+		} as BlockHeader);
+		const id = hash(headerBytes);
+
+		const block = {
+			header: {
+				...header,
+				signature,
+				id,
+			},
+			payload: blockTransactions,
+		};
+
+		await saveMaxHeightPreviouslyForged(this._db, block.header, previouslyForgedMap);
+		return block;
 	}
 }

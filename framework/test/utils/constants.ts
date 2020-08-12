@@ -18,4 +18,10 @@ import { deepFreeze } from './deep_freeze';
 export const constants = deepFreeze({
 	...constantsSchema.default,
 	...applicationConfigSchema.default.genesisConfig,
+	rewards: {
+		...applicationConfigSchema.default.genesisConfig.rewards,
+		milestones: applicationConfigSchema.default.genesisConfig.rewards.milestones.map(r =>
+			BigInt(r),
+		),
+	},
 });

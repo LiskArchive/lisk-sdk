@@ -2,7 +2,7 @@
 	"header": {
 		"generatorPublicKey": "",
 		"height": 0,
-		"id": "4ILnnQEBZjLEUcnfknbkhst/Rg3Hk/9bENj3HuzsKLQ=",
+		"id": "gTpgE4VY5yP3vyonT4OK6+JK+fO1g/6vgb5phXcO2wQ=",
 		"previousBlockID": "",
 		"reward": "0",
 		"signature": "",
@@ -119,14 +119,18 @@
 			"accounts": [
 				{
 					"address": "A/bZC329BJfcOlLRwn4ju4x1iX8=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_34",
 							"pomHeights": [],
@@ -146,14 +150,18 @@
 				},
 				{
 					"address": "CQP0xctZmnkorvJ+MU6YKR0eOIg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_74",
 							"pomHeights": [],
@@ -173,14 +181,18 @@
 				},
 				{
 					"address": "CtpqL2yPiRdpNm/Jqm/Z8frLNs8=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_98",
 							"pomHeights": [],
@@ -200,14 +212,18 @@
 				},
 				{
 					"address": "C8O+wv21ZZlv0xbjaOZuXY6DCAg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_83",
 							"pomHeights": [],
@@ -227,14 +243,18 @@
 				},
 				{
 					"address": "DSw3fpNraMcAZmE7EMD9rVN/kNo=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_54",
 							"pomHeights": [],
@@ -254,14 +274,18 @@
 				},
 				{
 					"address": "DzOlAzt1DmxNykfji6Ag6RLfFD4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_50",
 							"pomHeights": [],
@@ -281,14 +305,18 @@
 				},
 				{
 					"address": "Gsc7/3SSStm3QjbElivicXSuh9A=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_15",
 							"pomHeights": [],
@@ -308,14 +336,18 @@
 				},
 				{
 					"address": "HBlMK+HMU/ZjqTxkiZy6o0AW9BU=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_46",
 							"pomHeights": [],
@@ -335,14 +367,18 @@
 				},
 				{
 					"address": "IVn3XlRAw2QxrtvH3CmmWjJ3eLg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_49",
 							"pomHeights": [],
@@ -362,14 +398,18 @@
 				},
 				{
 					"address": "JG+6XFGVdtk8X6yJnESym3L1Jq4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_77",
 							"pomHeights": [],
@@ -389,14 +429,18 @@
 				},
 				{
 					"address": "JMEw62zA2PZjqPbRb/xh+TWi4C4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_12",
 							"pomHeights": [],
@@ -416,14 +460,18 @@
 				},
 				{
 					"address": "J4Q6YKHgRMHm488Rn99k6ys+DZQ=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_88",
 							"pomHeights": [],
@@ -443,14 +491,18 @@
 				},
 				{
 					"address": "KQq8SiJEvw7PWqHM7orI9g+Lzkg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_44",
 							"pomHeights": [],
@@ -470,14 +522,18 @@
 				},
 				{
 					"address": "LPUsCMx2CR2IToAMHGl7E/aZB9Q=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_56",
 							"pomHeights": [],
@@ -497,14 +553,18 @@
 				},
 				{
 					"address": "MIqV0dP3u1VvSNpPQ0RWbln28cs=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_39",
 							"pomHeights": [],
@@ -524,14 +584,18 @@
 				},
 				{
 					"address": "MSBK1bld2SLCiZqlv45+5bdUavM=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_75",
 							"pomHeights": [],
@@ -551,14 +615,18 @@
 				},
 				{
 					"address": "Mf54m0MnfjWrQQ8q/PtXQoCvLdg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_16",
 							"pomHeights": [],
@@ -578,14 +646,18 @@
 				},
 				{
 					"address": "Mo0PVGaVxfoCEF3rBVzygB2bi6E=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_3",
 							"pomHeights": [],
@@ -605,14 +677,18 @@
 				},
 				{
 					"address": "Oz4TexvsbyDJqLKtT1eEZh+w+nk=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_68",
 							"pomHeights": [],
@@ -632,14 +708,18 @@
 				},
 				{
 					"address": "O5bYVlVpQh9DaEssTqoGOcu14BE=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_94",
 							"pomHeights": [],
@@ -659,14 +739,18 @@
 				},
 				{
 					"address": "PIDn2ZZKHIOm3V3GThBeDmNL1Yo=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_92",
 							"pomHeights": [],
@@ -686,14 +770,18 @@
 				},
 				{
 					"address": "PeleGPGKVOImm7+PGjjqcHYsc/o=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_25",
 							"pomHeights": [],
@@ -713,14 +801,18 @@
 				},
 				{
 					"address": "Pe6wp0JqAotDW03djTWshc9Wcjc=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_31",
 							"pomHeights": [],
@@ -740,14 +832,18 @@
 				},
 				{
 					"address": "Q2tA9YwMJ+0TP2ABoBn/JVYe+tQ=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_22",
 							"pomHeights": [],
@@ -767,14 +863,18 @@
 				},
 				{
 					"address": "Rj5+h5t73GqX7AKipgOqGkagTIA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_2",
 							"pomHeights": [],
@@ -794,14 +894,18 @@
 				},
 				{
 					"address": "S2EmWXiBy2uhpFwfYoZ2nnoJT7Q=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_28",
 							"pomHeights": [],
@@ -821,14 +925,18 @@
 				},
 				{
 					"address": "TodLz7b1iW/p5dqzsm9ZsuKpwJs=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_23",
 							"pomHeights": [],
@@ -848,14 +956,18 @@
 				},
 				{
 					"address": "T0Qi62HEXttNdvEM2HHJ+YPy66o=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_73",
 							"pomHeights": [],
@@ -875,14 +987,18 @@
 				},
 				{
 					"address": "T9UvZ/FR+73andkqcUiEo5mDDso=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_11",
 							"pomHeights": [],
@@ -902,14 +1018,18 @@
 				},
 				{
 					"address": "T9jMTiejSJtX7Zhu/j0yfT3kDZI=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_101",
 							"pomHeights": [],
@@ -929,14 +1049,18 @@
 				},
 				{
 					"address": "UvnNz/BgUkHHgnhpCuNusBNqMP8=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_9",
 							"pomHeights": [],
@@ -956,14 +1080,18 @@
 				},
 				{
 					"address": "WFOj8kmQ3uzO1J1rwVmQEC7Awzo=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_71",
 							"pomHeights": [],
@@ -983,14 +1111,18 @@
 				},
 				{
 					"address": "WNkH0mUIYD6DhCPaogYcKceoSVA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_8",
 							"pomHeights": [],
@@ -1010,14 +1142,18 @@
 				},
 				{
 					"address": "Wt5WQ5nmcL0dQpWDBZBn86bKK38=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_103",
 							"pomHeights": [],
@@ -1037,14 +1173,18 @@
 				},
 				{
 					"address": "XNHQzPmPK9Wkv6p3DVXxZJivC8w=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_47",
 							"pomHeights": [],
@@ -1064,14 +1204,18 @@
 				},
 				{
 					"address": "X71EKkZHsHnNoSKez22PRPNhyMo=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_32",
 							"pomHeights": [],
@@ -1091,14 +1235,18 @@
 				},
 				{
 					"address": "YXRRX6Zskb/xEokT7dTg8d43zuA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_4",
 							"pomHeights": [],
@@ -1118,14 +1266,18 @@
 				},
 				{
 					"address": "YfOW0qShOrejm6eR+sS5IbVKII4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_36",
 							"pomHeights": [],
@@ -1145,14 +1297,18 @@
 				},
 				{
 					"address": "YzD9iukd9KXX+8I5DBguxmdtxaY=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_42",
 							"pomHeights": [],
@@ -1172,14 +1328,18 @@
 				},
 				{
 					"address": "ZX9hByju+X1V5QIShx8Jk7t8xwA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_48",
 							"pomHeights": [],
@@ -1199,14 +1359,18 @@
 				},
 				{
 					"address": "ZfknGHv5aqxdlo/Mk1HlSStfk1Y=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_58",
 							"pomHeights": [],
@@ -1226,14 +1390,18 @@
 				},
 				{
 					"address": "a5iVwxvNstnJKbnafjie2R3mcqA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_14",
 							"pomHeights": [],
@@ -1253,14 +1421,18 @@
 				},
 				{
 					"address": "bhLkSYrmn7B/8tiqsDapESKdbGI=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_60",
 							"pomHeights": [],
@@ -1280,14 +1452,18 @@
 				},
 				{
 					"address": "b/zYrVR9ilSaMbJSNuMix4GlLYU=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_69",
 							"pomHeights": [],
@@ -1307,14 +1483,18 @@
 				},
 				{
 					"address": "cKvwVr2S6Pd8/FUXSPpUpOMBjV8=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_29",
 							"pomHeights": [],
@@ -1334,14 +1514,18 @@
 				},
 				{
 					"address": "efMMHLwbnElJyLhazCSnV44BVYs=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_20",
 							"pomHeights": [],
@@ -1361,14 +1545,18 @@
 				},
 				{
 					"address": "fSxngdhz7SunqH9G9zX14VpBpvE=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_67",
 							"pomHeights": [],
@@ -1388,14 +1576,18 @@
 				},
 				{
 					"address": "fWDbGHM3y9iBFA1p2EySRu2oOC4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_79",
 							"pomHeights": [],
@@ -1415,14 +1607,18 @@
 				},
 				{
 					"address": "gHTw0C90j8VUSKS/IA8drehRcFk=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_38",
 							"pomHeights": [],
@@ -1442,14 +1638,18 @@
 				},
 				{
 					"address": "gsvHs501rzWPniUTrxOy93tkegA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_53",
 							"pomHeights": [],
@@ -1469,14 +1669,18 @@
 				},
 				{
 					"address": "hFm4hw/O//WfFy1xa3v+n8wo1Ag=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_76",
 							"pomHeights": [],
@@ -1496,14 +1700,18 @@
 				},
 				{
 					"address": "hQbzwQ91BElG8aI6fK9XglNklHE=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_62",
 							"pomHeights": [],
@@ -1523,14 +1731,18 @@
 				},
 				{
 					"address": "hyJFM4P3gdVCek7iEQIOSb80ork=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_37",
 							"pomHeights": [],
@@ -1550,14 +1762,18 @@
 				},
 				{
 					"address": "ibFE7P3V6jUgg79iTTz4QuwGpeM=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_55",
 							"pomHeights": [],
@@ -1577,14 +1793,18 @@
 				},
 				{
 					"address": "isgAEk1bFq/Ve1z3JF7fzViF6js=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_89",
 							"pomHeights": [],
@@ -1604,14 +1824,18 @@
 				},
 				{
 					"address": "ixwiGgMM9yBzbZ+30Emd1ydvwbM=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_41",
 							"pomHeights": [],
@@ -1631,14 +1855,18 @@
 				},
 				{
 					"address": "js7/1aQeZ4tkZ8m8gM410uhUPZg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_81",
 							"pomHeights": [],
@@ -1658,14 +1886,18 @@
 				},
 				{
 					"address": "kTnJH4oKofs4V3D+rymbmYg67C0=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_35",
 							"pomHeights": [],
@@ -1685,14 +1917,18 @@
 				},
 				{
 					"address": "k286D013a2p3Iu0Sbo/xe0TX57g=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_102",
 							"pomHeights": [],
@@ -1712,14 +1948,18 @@
 				},
 				{
 					"address": "lBRsmIl0jHtyfrOsjCDlPFLv/TI=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_43",
 							"pomHeights": [],
@@ -1739,14 +1979,18 @@
 				},
 				{
 					"address": "m0LkJkAg88Pcqu2AZXjM1GkgUGA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_51",
 							"pomHeights": [],
@@ -1766,14 +2010,18 @@
 				},
 				{
 					"address": "nKvuPSdCZna4Us5rgEyy/f980LU=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_1",
 							"pomHeights": [],
@@ -1793,14 +2041,18 @@
 				},
 				{
 					"address": "nQFJsJYtRL/Aip9k1a/Otigdf7U=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_5",
 							"pomHeights": [],
@@ -1820,14 +2072,18 @@
 				},
 				{
 					"address": "oGIEcs3gPnfK7OcBq3vFkopdNnw=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_17",
 							"pomHeights": [],
@@ -1847,14 +2103,18 @@
 				},
 				{
 					"address": "oLxQsn56w5Bg7QFaVfL0UIyE8MI=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_65",
 							"pomHeights": [],
@@ -1874,14 +2134,18 @@
 				},
 				{
 					"address": "oo1eNAB/2P5teQMETrI6YP2tPAA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_90",
 							"pomHeights": [],
@@ -1901,14 +2165,18 @@
 				},
 				{
 					"address": "pvagVDrkcMawVgIcsqwVM2jq/uw=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_19",
 							"pomHeights": [],
@@ -1928,14 +2196,18 @@
 				},
 				{
 					"address": "qcZmlN1lsv30DN9FoMMIy9OABPw=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_97",
 							"pomHeights": [],
@@ -1955,14 +2227,18 @@
 				},
 				{
 					"address": "qwBBp9P3ssKQtbg01Gvce364WBU=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_84",
 							"pomHeights": [],
@@ -1982,14 +2258,18 @@
 				},
 				{
 					"address": "q9LtWtNbOghwqtrm3OrMmIumOJU=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_45",
 							"pomHeights": [],
@@ -2009,14 +2289,18 @@
 				},
 				{
 					"address": "rPvbrrk9WHFwx82cC1/963/52uw=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_95",
 							"pomHeights": [],
@@ -2036,14 +2320,18 @@
 				},
 				{
 					"address": "rUL46GfWGBcb9JguZCaUQhSPbhE=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_33",
 							"pomHeights": [],
@@ -2063,14 +2351,18 @@
 				},
 				{
 					"address": "rr2Z8HIYEJFiqQXQ4MkeWL7cg8U=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_52",
 							"pomHeights": [],
@@ -2090,14 +2382,18 @@
 				},
 				{
 					"address": "sRxYEeoHSjAULYJLboz9PfFLJog=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_80",
 							"pomHeights": [],
@@ -2117,14 +2413,18 @@
 				},
 				{
 					"address": "tIW+zYjbGrPVVtQFIERRugCtqn0=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_10",
 							"pomHeights": [],
@@ -2144,14 +2444,18 @@
 				},
 				{
 					"address": "tUPi5ZIgC+s4I19uSPir4dh62HI=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_100",
 							"pomHeights": [],
@@ -2171,14 +2475,18 @@
 				},
 				{
 					"address": "tWxVuacMji8Hl5uGI3Su0Okqbdo=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_6",
 							"pomHeights": [],
@@ -2198,14 +2506,18 @@
 				},
 				{
 					"address": "t1gJad1WFR9giTHxJveTu/Rdj6A=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_7",
 							"pomHeights": [],
@@ -2225,14 +2537,18 @@
 				},
 				{
 					"address": "t2oPGBnEvgoUglZ8qbn77T7aREw=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_99",
 							"pomHeights": [],
@@ -2252,14 +2568,18 @@
 				},
 				{
 					"address": "vRdXKdQXclnHHPE/1Oz7XQFUJwY=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_70",
 							"pomHeights": [],
@@ -2279,14 +2599,18 @@
 				},
 				{
 					"address": "von06YPfsE4rWKEuue0YFJ4Qiwc=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_27",
 							"pomHeights": [],
@@ -2306,14 +2630,18 @@
 				},
 				{
 					"address": "w6sqwjUS2b9isCd14iz4DfgU6xs=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_86",
 							"pomHeights": [],
@@ -2333,14 +2661,18 @@
 				},
 				{
 					"address": "xpe2IMfEAV4y3XvdfQQwszQE4Qc=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_85",
 							"pomHeights": [],
@@ -2360,14 +2692,18 @@
 				},
 				{
 					"address": "yYVUEjBirFeVo+6QWwgehj21qBg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_64",
 							"pomHeights": [],
@@ -2387,14 +2723,18 @@
 				},
 				{
 					"address": "yjCaX0u/EcqGWS/rttLMx4MJ9p4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_87",
 							"pomHeights": [],
@@ -2414,14 +2754,18 @@
 				},
 				{
 					"address": "yl9tduq25PWqzuKGTHkDTXERuYY=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_82",
 							"pomHeights": [],
@@ -2441,14 +2785,18 @@
 				},
 				{
 					"address": "y1ee5TezSSbUcSmgtUwObQDvMAQ=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_21",
 							"pomHeights": [],
@@ -2468,14 +2816,18 @@
 				},
 				{
 					"address": "0EaZ5XxKOEbJiPPBUwZ5b46uXBw=",
-					"balance": "9897000000000000",
-					"nonce": "0",
+					"token": {
+						"balance": "9897000000000000"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "",
 							"pomHeights": [],
@@ -2490,14 +2842,18 @@
 				},
 				{
 					"address": "0G/m0+X3+stYVeyoOUIv44JKXW4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_59",
 							"pomHeights": [],
@@ -2517,14 +2873,18 @@
 				},
 				{
 					"address": "0KDkW5UOOHHYeDuXNAkEK0qzgtQ=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_30",
 							"pomHeights": [],
@@ -2544,14 +2904,18 @@
 				},
 				{
 					"address": "0smpN1Wu0gxNj1XB6SuBLSx9SdI=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_24",
 							"pomHeights": [],
@@ -2571,14 +2935,18 @@
 				},
 				{
 					"address": "08gGTQEe+FPjvlBrlaBF9B945yo=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_63",
 							"pomHeights": [],
@@ -2598,14 +2966,18 @@
 				},
 				{
 					"address": "1b0gULdLMJ1UgZyhet0XPG/KHhY=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_40",
 							"pomHeights": [],
@@ -2625,14 +2997,18 @@
 				},
 				{
 					"address": "1cTjgLHsL38gaM+6mpDLOueBYRA=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_66",
 							"pomHeights": [],
@@ -2652,14 +3028,18 @@
 				},
 				{
 					"address": "1eH1LL5KEaNzC5j1IQm1dgKpxKE=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_91",
 							"pomHeights": [],
@@ -2679,14 +3059,18 @@
 				},
 				{
 					"address": "2OYRuv1wpUnwNc9hqw1u2efyXE4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_78",
 							"pomHeights": [],
@@ -2706,14 +3090,18 @@
 				},
 				{
 					"address": "3LW/NbbVIRleYTxCSD9SATniMx0=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_61",
 							"pomHeights": [],
@@ -2733,14 +3121,18 @@
 				},
 				{
 					"address": "3w4Ye7OJWAYmHIfPZuF3JWbujlg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_26",
 							"pomHeights": [],
@@ -2760,14 +3152,18 @@
 				},
 				{
 					"address": "4pUKnwe0TnJN8hKTYMwUApPAgwg=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_57",
 							"pomHeights": [],
@@ -2787,14 +3183,18 @@
 				},
 				{
 					"address": "45MWzAIAiep6VhS89pqJMcEGMKc=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_13",
 							"pomHeights": [],
@@ -2814,14 +3214,18 @@
 				},
 				{
 					"address": "6TVRUsEXyeH62L6G6avqlhzvSjY=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_72",
 							"pomHeights": [],
@@ -2841,14 +3245,18 @@
 				},
 				{
 					"address": "9zDLkpocRQMjh8NF4Q0kJ76lWl4=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_18",
 							"pomHeights": [],
@@ -2868,14 +3276,18 @@
 				},
 				{
 					"address": "+lJqFhHMxm3sgVy5YxdBGAdLc24=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_93",
 							"pomHeights": [],
@@ -2895,14 +3307,18 @@
 				},
 				{
 					"address": "/86M4iXF2ACY9Q6HcSW2Va720QE=",
-					"balance": "0",
-					"nonce": "0",
+					"token": {
+						"balance": "0"
+					},
+					"sequence": {
+						"nonce": "0"
+					},
 					"keys": {
 						"mandatoryKeys": [],
 						"optionalKeys": [],
 						"numberOfSignatures": 0
 					},
-					"asset": {
+					"dpos": {
 						"delegate": {
 							"username": "genesis_96",
 							"pomHeights": [],

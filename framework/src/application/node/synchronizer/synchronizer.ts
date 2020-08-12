@@ -14,13 +14,9 @@
 
 import * as assert from 'assert';
 import { validator } from '@liskhq/lisk-validator';
-import {
-	Status as TransactionStatus,
-	TransactionError,
-	BaseTransaction,
-} from '@liskhq/lisk-transactions';
 import { Chain, Block } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { BFT } from '@liskhq/lisk-bft';
 import * as definitions from './schema';
 import * as utils from './utils';
 import { Logger } from '../../logger';
@@ -33,20 +29,18 @@ interface SynchronizerInput {
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
 	readonly chainModule: Chain;
+	readonly bftModule: BFT;
 	readonly processorModule: Processor;
 	readonly transactionPoolModule: TransactionPool;
 	readonly mechanisms: BaseSynchronizer[];
 	readonly networkModule: Network;
 }
 
-interface TransactionPoolTransaction extends BaseTransaction {
-	asset: { [key: string]: string | number | readonly string[] | undefined };
-}
-
 export class Synchronizer {
 	protected logger: Logger;
 	protected channel: InMemoryChannel;
 	private readonly chainModule: Chain;
+	private readonly bftModule: BFT;
 	private readonly processorModule: Processor;
 	private readonly transactionPoolModule: TransactionPool;
 	private readonly _networkModule: Network;
@@ -57,6 +51,7 @@ export class Synchronizer {
 		channel,
 		logger,
 		chainModule,
+		bftModule,
 		processorModule,
 		transactionPoolModule,
 		mechanisms = [],
@@ -67,6 +62,7 @@ export class Synchronizer {
 		this.channel = channel;
 		this.logger = logger;
 		this.chainModule = chainModule;
+		this.bftModule = bftModule;
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this._networkModule = networkModule;
@@ -79,7 +75,12 @@ export class Synchronizer {
 		const isEmpty = await this.chainModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
-				await utils.restoreBlocksUponStartup(this.logger, this.chainModule, this.processorModule);
+				await utils.restoreBlocksUponStartup(
+					this.logger,
+					this.chainModule,
+					this.bftModule,
+					this.processorModule,
+				);
 			} catch (err) {
 				this.logger.error(
 					{ err: err as Error },
@@ -104,7 +105,7 @@ export class Synchronizer {
 
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain
-		await this.processorModule.validate(receivedBlock);
+		this.processorModule.validate(receivedBlock);
 
 		// Choose the right mechanism to sync
 		const validMechanism = await this._determineSyncMechanism(receivedBlock, peerId);
@@ -194,32 +195,15 @@ export class Synchronizer {
 			this.chainModule.dataAccess.decodeTransaction(Buffer.from(txStr, 'base64')),
 		);
 
-		try {
-			const transactionsResponses = this.chainModule.validateTransactions(transactions);
-			const invalidTransactionResponse = transactionsResponses.find(
-				transactionResponse => transactionResponse.status !== TransactionStatus.OK,
-			);
-			if (invalidTransactionResponse) {
-				throw invalidTransactionResponse.errors;
-			}
-		} catch (errors) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const error: TransactionError =
-				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
-			this.logger.error(
-				{
-					id: error.id,
-					err: error.toString(),
-				},
-				'Transaction normalization failed',
-			);
-			throw error;
+		for (const transaction of transactions) {
+			this.processorModule.validateTransaction(transaction);
 		}
 
 		const transactionCount = transactions.length;
 		for (let i = 0; i < transactionCount; i += 1) {
 			const { errors } = await this.transactionPoolModule.add(
-				transactions[i] as TransactionPoolTransaction,
+				// FIXME: #5619 any should be removed
+				transactions[i] as any,
 			);
 
 			if (errors.length) {

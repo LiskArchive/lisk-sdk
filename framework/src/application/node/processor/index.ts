@@ -13,4 +13,3 @@
  */
 
 export { Processor } from './processor';
-export { BaseBlockProcessor } from './base_block_processor';

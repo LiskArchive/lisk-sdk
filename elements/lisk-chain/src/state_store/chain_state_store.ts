@@ -18,7 +18,7 @@ import { BlockHeader, StateDiff } from '../types';
 import { DB_KEY_CHAIN_STATE } from '../data_access/constants';
 
 interface AdditionalInformation {
-	readonly lastBlockHeader: BlockHeader;
+	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	readonly networkIdentifier: Buffer;
 	readonly lastBlockReward: bigint;
 }
@@ -34,14 +34,14 @@ export class ChainStateStore {
 	private _updatedKeys: Set<string>;
 	private _originalUpdatedKeys: Set<string>;
 	private readonly _dataAccess: DataAccess;
-	private readonly _lastBlockHeader: BlockHeader;
+	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	private readonly _networkIdentifier: Buffer;
 	private readonly _lastBlockReward: bigint;
 	private readonly _initialValue: KeyValuePair;
 
 	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
 		this._dataAccess = dataAccess;
-		this._lastBlockHeader = additionalInformation.lastBlockHeader;
+		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
 		this._networkIdentifier = additionalInformation.networkIdentifier;
 		this._lastBlockReward = additionalInformation.lastBlockReward;
 		this._data = {};
@@ -55,8 +55,8 @@ export class ChainStateStore {
 		return this._networkIdentifier;
 	}
 
-	public get lastBlockHeader(): BlockHeader {
-		return this._lastBlockHeader;
+	public get lastBlockHeaders(): ReadonlyArray<BlockHeader> {
+		return this._lastBlockHeaders;
 	}
 
 	public get lastBlockReward(): bigint {

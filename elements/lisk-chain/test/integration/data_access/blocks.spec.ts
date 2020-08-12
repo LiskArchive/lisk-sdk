@@ -21,13 +21,13 @@ import {
 	createValidDefaultBlock,
 	encodeDefaultBlockHeader,
 	encodedDefaultBlock,
-	defaultBlockHeaderAssetSchema,
+	registeredBlockHeaders,
 } from '../../utils/block';
-import { getTransferTransaction } from '../../utils/transaction';
-import { Block, stateDiffSchema } from '../../../src';
+import { getTransaction } from '../../utils/transaction';
+import { Block, Transaction } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
+import { stateDiffSchema } from '../../../src/schema';
 import { defaultAccountSchema } from '../../utils/account';
-import { registeredTransactions } from '../../utils/registered_transactions';
 
 describe('dataAccess.blocks', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
@@ -49,29 +49,22 @@ describe('dataAccess.blocks', () => {
 	beforeEach(async () => {
 		dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema as any,
-			registeredBlockHeaders: {
-				0: defaultBlockHeaderAssetSchema,
-				2: defaultBlockHeaderAssetSchema,
-			},
-			registeredTransactions,
+			accountSchema: defaultAccountSchema,
+			registeredBlockHeaders,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
 		// Prepare sample data
 		const block300 = createValidDefaultBlock({
 			header: { height: 300 },
-			payload: [getTransferTransaction()],
+			payload: [getTransaction()],
 		});
 
 		const block301 = createValidDefaultBlock({ header: { height: 301 } });
 
 		const block302 = createValidDefaultBlock({
 			header: { height: 302 },
-			payload: [
-				getTransferTransaction({ nonce: BigInt(1) }),
-				getTransferTransaction({ nonce: BigInt(2) }),
-			],
+			payload: [getTransaction({ nonce: BigInt(1) }), getTransaction({ nonce: BigInt(2) })],
 		});
 
 		const block303 = createValidDefaultBlock({ header: { height: 303 } });
@@ -175,7 +168,10 @@ describe('dataAccess.blocks', () => {
 				blocks[1].header.id,
 			]);
 
-			expect(blocksFound).toEqual([blocks[0], blocks[1]]);
+			expect(blocksFound[0].header).toEqual(blocks[0].header);
+			expect(blocksFound[0].payload[0]).toBeInstanceOf(Transaction);
+			expect(blocksFound[0].payload[0].id).toEqual(blocks[0].payload[0].id);
+			expect(blocksFound[1].header).toEqual(blocks[1].header);
 			expect(blocksFound).toHaveLength(2);
 		});
 
@@ -185,8 +181,11 @@ describe('dataAccess.blocks', () => {
 				blocks[0].header.id,
 			]);
 
-			expect(blocksFound).toEqual([blocks[1], blocks[0]]);
 			expect(blocksFound).toHaveLength(2);
+			expect(blocksFound[0].header).toEqual(blocks[1].header);
+			expect(blocksFound[1].header).toEqual(blocks[0].header);
+			expect(blocksFound[1].payload[0]).toBeInstanceOf(Transaction);
+			expect(blocksFound[1].payload[0].id).toEqual(blocks[0].payload[0].id);
 		});
 	});
 
@@ -264,7 +263,9 @@ describe('dataAccess.blocks', () => {
 
 		it('should return full block by ID', async () => {
 			const block = await dataAccess.getBlockByID(blocks[0].header.id);
-			expect(block).toStrictEqual(blocks[0]);
+			expect(block.header).toStrictEqual(blocks[0].header);
+			expect(block.payload[0]).toBeInstanceOf(Transaction);
+			expect(block.payload[0].id).toStrictEqual(blocks[0].payload[0].id);
 		});
 	});
 
@@ -281,7 +282,9 @@ describe('dataAccess.blocks', () => {
 
 		it('should return full block by height', async () => {
 			const block = await dataAccess.getBlockByHeight(blocks[2].header.height);
-			expect(block).toStrictEqual(blocks[2]);
+			expect(block.header).toStrictEqual(blocks[2].header);
+			expect(block.payload[0]).toBeInstanceOf(Transaction);
+			expect(block.payload[0].id).toStrictEqual(blocks[2].payload[0].id);
 		});
 	});
 
@@ -319,10 +322,7 @@ describe('dataAccess.blocks', () => {
 	describe('saveBlock', () => {
 		const block = createValidDefaultBlock({
 			header: { height: 304 },
-			payload: [
-				getTransferTransaction({ nonce: BigInt(10) }),
-				getTransferTransaction({ nonce: BigInt(20) }),
-			],
+			payload: [getTransaction({ nonce: BigInt(10) }), getTransaction({ nonce: BigInt(20) })],
 		});
 		// eslint-disable-next-line @typescript-eslint/no-empty-function
 		const stateStore = { finalize: () => {} };
@@ -348,7 +348,12 @@ describe('dataAccess.blocks', () => {
 			await expect(
 				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
 			).resolves.toBeTrue();
-			await expect(dataAccess.getBlockByID(block.header.id)).resolves.toStrictEqual(block);
+			const createdBlock = await dataAccess.getBlockByID(block.header.id);
+			expect(createdBlock.header).toStrictEqual(block.header);
+			expect(createdBlock.payload[0]).toBeInstanceOf(Transaction);
+			expect(createdBlock.payload[0].id).toStrictEqual(block.payload[0].id);
+			expect(createdBlock.payload[1]).toBeInstanceOf(Transaction);
+			expect(createdBlock.payload[1].id).toStrictEqual(block.payload[1].id);
 		});
 
 		it('should create block with all index required and remove the same height block from temp', async () => {
@@ -372,7 +377,12 @@ describe('dataAccess.blocks', () => {
 			await expect(
 				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
 			).resolves.toBeFalse();
-			await expect(dataAccess.getBlockByID(block.header.id)).resolves.toStrictEqual(block);
+			const createdBlock = await dataAccess.getBlockByID(block.header.id);
+			expect(createdBlock.header).toStrictEqual(block.header);
+			expect(createdBlock.payload[0]).toBeInstanceOf(Transaction);
+			expect(createdBlock.payload[0].id).toStrictEqual(block.payload[0].id);
+			expect(createdBlock.payload[1]).toBeInstanceOf(Transaction);
+			expect(createdBlock.payload[1].id).toStrictEqual(block.payload[1].id);
 		});
 
 		it('should delete diff before the finalized height', async () => {
@@ -440,7 +450,9 @@ describe('dataAccess.blocks', () => {
 
 			const tempBlocks = await dataAccess.getTempBlocks();
 			expect(tempBlocks).toHaveLength(1);
-			expect(tempBlocks[0]).toStrictEqual(blocks[2]);
+			expect(tempBlocks[0].header).toStrictEqual(blocks[2].header);
+			expect(tempBlocks[0].payload[0]).toBeInstanceOf(Transaction);
+			expect(tempBlocks[0].payload[0].id).toStrictEqual(blocks[2].payload[0].id);
 		});
 	});
 });

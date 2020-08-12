@@ -13,13 +13,14 @@
  */
 
 import { when } from 'jest-when';
-import { Block, Chain } from '@liskhq/lisk-chain';
+import { Block, Chain, Transaction } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
-import { Rounds } from '@liskhq/lisk-dpos';
 import { KVStore } from '@liskhq/lisk-db';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { BlockProcessorV2 } from '../../../../../../src/application/node/block_processor_v2';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	getRandomBytes,
+	signDataWithPassphrase,
+} from '@liskhq/lisk-cryptography';
 import { Synchronizer } from '../../../../../../src/application/node/synchronizer/synchronizer';
 import { Processor } from '../../../../../../src/application/node/processor';
 import { constants } from '../../../../../utils';
@@ -29,13 +30,8 @@ import {
 	genesisBlock as getGenesisBlock,
 } from '../../../../../fixtures/blocks';
 import * as synchronizerUtils from '../../../../../../src/application/node/synchronizer/utils';
-import {
-	defaultAccountAsset,
-	accountAssetSchema,
-} from '../../../../../../src/application/node/account';
-import { registeredTransactions } from '../../../../../utils/registered_transactions';
-import { genesis } from '../../../../../fixtures';
-import { BlockProcessorV0 } from '../../../../../../src/application/node/block_processor_v0';
+import { genesis, defaultAccountSchema } from '../../../../../fixtures';
+import { TokenModule } from '../../../../../../src/modules';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -45,19 +41,15 @@ const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 
 describe('Synchronizer', () => {
 	const genesisBlock = getGenesisBlock();
-	let bftModule;
-	let blockProcessorV0;
-	let blockProcessorV2;
+	let bftModule: any;
 	let chainModule: any;
 	let processorModule: Processor;
 	let synchronizer: Synchronizer;
 	let syncMechanism1: any;
 	let syncMechanism2: any;
-	let rounds;
 
 	let transactionPoolModuleStub: any;
 	let channelMock: any;
-	let dposModuleMock: any;
 	let loggerMock: any;
 	let syncParameters;
 	let dataAccessMock;
@@ -77,34 +69,22 @@ describe('Synchronizer', () => {
 		};
 		channelMock = new ChannelMock();
 
-		rounds = new Rounds({
-			blocksPerRound: constants.activeDelegates,
-			initRound: genesisBlock.header.asset.initRounds,
-			genesisBlockHeight: genesisBlock.header.height,
-		});
-
 		const blockchainDB = new KVStore('blockchain.db');
-		const forgerDB = new KVStore('forger.db');
 
 		chainModule = new Chain({
 			networkIdentifier: defaultNetworkIdentifier,
 			db: blockchainDB,
 			genesisBlock,
-			registeredTransactions,
-			registeredBlocks: { 2: BlockProcessorV2.schema },
-			accountAsset: {
-				schema: accountAssetSchema,
-				default: defaultAccountAsset,
-			},
+			accounts: defaultAccountSchema,
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
-			totalAmount: constants.totalAmount,
 			blockTime: constants.blockTime,
 		});
 
 		dataAccessMock = {
+			getConsensusState: jest.fn(),
 			getTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
 			getBlockByID: jest.fn(),
@@ -128,25 +108,8 @@ describe('Synchronizer', () => {
 
 		bftModule = new BFT({
 			chain: chainModule,
-			dpos: { rounds } as any,
-			activeDelegates: constants.activeDelegates,
+			threshold: constants.bftThreshold,
 			genesisHeight: genesisBlock.header.height,
-		});
-
-		blockProcessorV0 = new BlockProcessorV0({
-			dposModule: dposModuleMock,
-			logger: loggerMock,
-			constants,
-		});
-
-		blockProcessorV2 = new BlockProcessorV2({
-			networkIdentifier: defaultNetworkIdentifier,
-			forgerDB,
-			chainModule,
-			bftModule,
-			dposModule: dposModuleMock,
-			logger: loggerMock,
-			constants,
 		});
 
 		processorModule = new Processor({
@@ -157,10 +120,7 @@ describe('Synchronizer', () => {
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
-		processorModule.register(blockProcessorV2);
-		processorModule.register(blockProcessorV0, {
-			matcher: header => header.version === genesisBlock.header.version,
-		});
+		processorModule.register(new TokenModule(constants));
 
 		syncMechanism1 = {
 			run: jest.fn().mockResolvedValue({}),
@@ -181,6 +141,7 @@ describe('Synchronizer', () => {
 			logger: loggerMock,
 			processorModule,
 			chainModule,
+			bftModule,
 			transactionPoolModule: transactionPoolModuleStub,
 			mechanisms: [syncMechanism1, syncMechanism2],
 			networkModule: networkMock,
@@ -430,6 +391,7 @@ describe('Synchronizer', () => {
 				logger: loggerMock,
 				processorModule,
 				chainModule,
+				bftModule,
 				transactionPoolModule: transactionPoolModuleStub,
 				mechanisms: [aSyncingMechanism, anotherSyncingMechanism] as any,
 				networkModule: networkMock,
@@ -451,6 +413,7 @@ describe('Synchronizer', () => {
 						logger: loggerMock,
 						processorModule,
 						chainModule,
+						bftModule,
 						transactionPoolModule: transactionPoolModuleStub,
 						mechanisms: [aSyncingMechanism] as any,
 						networkModule: networkMock,
@@ -470,6 +433,7 @@ describe('Synchronizer', () => {
 						logger: loggerMock,
 						processorModule,
 						chainModule,
+						bftModule,
 						transactionPoolModule: transactionPoolModuleStub,
 						mechanisms: [aSyncingMechanism] as any,
 						networkModule: networkMock,
@@ -588,6 +552,7 @@ describe('Synchronizer', () => {
 				logger: loggerMock,
 				processorModule,
 				chainModule,
+				bftModule,
 				transactionPoolModule: transactionPoolModuleStub,
 				mechanisms: [syncMechanism1, syncMechanism2],
 				networkModule: networkMock,
@@ -596,17 +561,20 @@ describe('Synchronizer', () => {
 		});
 
 		describe('when peer returns valid transaction response', () => {
-			const transaction = new TransferTransaction({
+			const transaction = new Transaction({
+				moduleType: 2,
+				assetType: 0,
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-				asset: {
-					amount: BigInt('100'),
-					recipientAddress: Buffer.from('b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56', 'hex'),
-					data: '',
-				},
+				asset: getRandomBytes(100),
+				signatures: [],
 			});
-			transaction.sign(defaultNetworkIdentifier, genesis.passphrase);
+			const signature = signDataWithPassphrase(
+				Buffer.concat([defaultNetworkIdentifier, transaction.getBytes()]),
+				genesis.passphrase,
+			);
+			transaction.signatures.push(signature);
 			const validtransactions = {
 				transactions: [transaction.getBytes().toString('base64')],
 			};

@@ -12,11 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NodeConstants } from '../../../src/application/node/node';
-
-export const constantsConfig = (
-	overriddenConfigProperties: Partial<NodeConstants> = {},
-): NodeConstants => ({
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	blockTime: 10,
 	delegateListRoundOffset: 2,
 	rewards: {
