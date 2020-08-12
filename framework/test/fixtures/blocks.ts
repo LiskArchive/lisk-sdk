@@ -27,6 +27,7 @@ import {
 	Chain,
 	Transaction,
 	readGenesisBlockJSON,
+	Account,
 } from '@liskhq/lisk-chain';
 import * as genesisBlockJSON from './config/devnet/genesis_block.json';
 import { defaultAccountSchema } from './accounts';
@@ -36,8 +37,8 @@ export const defaultNetworkIdentifier = Buffer.from(
 	'hex',
 );
 
-export const genesisBlock = (): GenesisBlock =>
-	readGenesisBlockJSON(genesisBlockJSON, defaultAccountSchema);
+export const genesisBlock = <T>(): GenesisBlock<Account<T>> =>
+	readGenesisBlockJSON<Account<T>>(genesisBlockJSON, defaultAccountSchema);
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();

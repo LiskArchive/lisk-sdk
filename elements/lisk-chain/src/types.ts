@@ -45,8 +45,8 @@ export interface RawBlock {
 	payload: ReadonlyArray<Buffer>;
 }
 
-export interface GenesisBlockHeaderAsset<T = Account> {
-	readonly accounts: ReadonlyArray<T>;
+export interface GenesisBlockHeaderAsset<T = AccountDefaultProps> {
+	readonly accounts: ReadonlyArray<Account<T>>;
 	readonly initDelegates: ReadonlyArray<Buffer>;
 	readonly initRounds: number;
 }
@@ -59,7 +59,7 @@ export interface BlockHeaderAsset {
 
 export type BlockHeader<T = BlockHeaderAsset> = BaseBlockHeader & { asset: T };
 
-export type GenesisBlockHeader<T = Account> = BaseBlockHeader & {
+export type GenesisBlockHeader<T = AccountDefaultProps> = BaseBlockHeader & {
 	asset: GenesisBlockHeaderAsset<T>;
 };
 
@@ -68,7 +68,7 @@ export interface Block<T = BlockHeaderAsset> {
 	payload: ReadonlyArray<Transaction>;
 }
 
-export interface GenesisBlock<T = Account> {
+export interface GenesisBlock<T = AccountDefaultProps> {
 	header: GenesisBlockHeader<T>;
 	payload: ReadonlyArray<Transaction>;
 }
