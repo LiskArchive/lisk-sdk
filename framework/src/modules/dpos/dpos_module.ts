@@ -16,9 +16,10 @@ import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { Account } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
-import { AfterGenesisBlockApplyInput, GenesisConfig } from '../../types';
+import { AfterBlockApplyInput, AfterGenesisBlockApplyInput, GenesisConfig } from '../../types';
 import { Rounds } from './rounds';
 import { DPOSAccountProps } from './types';
+import { setRegisteredDelegates } from './utils';
 
 const { bufferArrayUniqueItems, bufferArrayOrderByLex, bufferArrayContains } = objectsUtils;
 
@@ -134,6 +135,7 @@ export class DPoSModule extends BaseModule {
 	private readonly _delegateListRoundOffset: number;
 	private readonly _delegatesPerRound: number;
 	private readonly _delegateActiveRoundLimit: number;
+	private _finalizedHeight = 0;
 
 	public constructor(config: GenesisConfig) {
 		super(config);
@@ -150,18 +152,38 @@ export class DPoSModule extends BaseModule {
 		this._delegateActiveRoundLimit = 3;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async afterBlockApply(input: AfterBlockApplyInput): Promise<void> {
+		const finalizedHeight = input.consensus.getFinalizedHeight();
+		if (finalizedHeight !== this._finalizedHeight) {
+			this._finalizedHeight = finalizedHeight;
+
+			// Code from "onBlockFinalized"
+			// const finalizedBlockRound = this.rounds.calcRound(finalizedHeight);
+			// const disposableDelegateListUntilRound =
+			// 	finalizedBlockRound - this._delegateListRoundOffset - this._delegateActiveRoundLimit;
+			// await deleteForgersListUntilRound(disposableDelegateListUntilRound, stateStore);
+			// await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, stateStore);
+		}
+	}
+
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility,class-methods-use-this,@typescript-eslint/require-await
 	public async afterGenesisBlockApply<T = Account<DPOSAccountProps>>(
 		input: AfterGenesisBlockApplyInput<T>,
 	): Promise<void> {
 		const { accounts, initDelegates } = input.genesisBlock.header.asset;
+		const delegateAddresses: Buffer[] = [];
+		const delegateUsernames: { address: Buffer; username: string }[] = [];
 
-		const delegateAddresses = accounts
-			.filter(
-				account =>
-					((account as unknown) as Account<DPOSAccountProps>).dpos.delegate.username !== '',
-			)
-			.map(account => ((account as unknown) as Account<DPOSAccountProps>).address);
+		for (const account of (accounts as unknown) as Account<DPOSAccountProps>[]) {
+			if (account.dpos.delegate.username !== '') {
+				delegateUsernames.push({
+					address: account.address,
+					username: account.dpos.delegate.username,
+				});
+				delegateAddresses.push(account.address);
+			}
+		}
 
 		if (!bufferArrayUniqueItems(initDelegates)) {
 			throw new Error('Genesis block init delegates list contains duplicate addresses');
@@ -182,5 +204,7 @@ export class DPoSModule extends BaseModule {
 				'Genesis block init delegates list contain addresses which are not delegates',
 			);
 		}
+
+		setRegisteredDelegates(input.stateStore, { registeredDelegates: delegateUsernames });
 	}
 }
