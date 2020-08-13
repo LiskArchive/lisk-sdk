@@ -284,7 +284,8 @@ export class Chain {
 		}
 		const initialValidators = block.header.asset.initDelegates.map(address => ({
 			address,
-			minActiveHeight: 0,
+			// MinActiveHeight must be genesis block height + 1
+			minActiveHeight: block.header.height + 1,
 			isConsensusParticipant: false,
 		}));
 		stateStore.consensus.set(
@@ -409,12 +410,7 @@ export class Chain {
 	): Promise<void> {
 		const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);
 		if (!validatorsBuffer) {
-			const initialValidators = validators.map(v => ({ ...v, minActiveHeight: 0 }));
-			stateStore.consensus.set(
-				CONSENSUS_STATE_VALIDATORS_KEY,
-				codec.encode(validatorsSchema, { validators: initialValidators }),
-			);
-			return;
+			throw new Error('Previous validator set must exist');
 		}
 		const { validators: previousValidators } = codec.decode<{ validators: Validator[] }>(
 			validatorsSchema,
