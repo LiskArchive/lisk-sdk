@@ -429,12 +429,12 @@ export class Transport {
 		// Broadcast transaction to network if not present in pool
 		this.handleBroadcastTransaction(transaction);
 
-		const { errors } = await this._transactionPoolModule.add(
+		const { error } = await this._transactionPoolModule.add(
 			// FIXME: #5619 type casting should be removed
 			transaction as any,
 		);
 
-		if (!errors.length) {
+		if (!error) {
 			this._logger.info(
 				{
 					id: transaction.id,
@@ -446,8 +446,8 @@ export class Transport {
 			return transaction.id;
 		}
 
-		this._logger.error({ errors }, 'Failed to add transaction to pool');
-		throw errors;
+		this._logger.error({ error }, 'Failed to add transaction to pool');
+		throw error;
 	}
 
 	private _addRateLimit(procedure: string, peerId: string, limit: number): void {

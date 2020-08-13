@@ -201,15 +201,13 @@ export class Synchronizer {
 
 		const transactionCount = transactions.length;
 		for (let i = 0; i < transactionCount; i += 1) {
-			const { errors } = await this.transactionPoolModule.add(
+			const { error } = await this.transactionPoolModule.add(
 				// FIXME: #5619 any should be removed
 				transactions[i] as any,
 			);
 
-			if (errors.length) {
-				this.logger.error({ errors }, 'Failed to add transaction to pool');
-				throw errors;
-			}
+			this.logger.error({ error }, 'Failed to add transaction to pool');
+			throw error;
 		}
 	}
 
