@@ -23,7 +23,7 @@ interface TransactionInput {
 	readonly nonce: bigint;
 	readonly fee: bigint;
 	readonly asset: Buffer;
-	readonly signatures: Array<Readonly<Buffer>>;
+	readonly signatures: ReadonlyArray<Buffer>;
 }
 
 export const transactionSchema = {
@@ -73,7 +73,7 @@ export class Transaction {
 	public readonly nonce: bigint;
 	public readonly fee: bigint;
 	public readonly senderPublicKey: Buffer;
-	public readonly signatures: Array<Readonly<Buffer>>;
+	public readonly signatures: ReadonlyArray<Buffer>;
 	private _id?: Buffer;
 	private _senderID?: Buffer;
 
