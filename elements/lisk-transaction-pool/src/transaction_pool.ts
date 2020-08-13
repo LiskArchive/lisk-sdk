@@ -312,11 +312,14 @@ export class TransactionPool {
 	}
 
 	private _calculateMinFee(trx: Transaction): bigint {
-		const baseFee = this._baseFees.filter(
+		const foundBaseFee = this._baseFees.find(
 			f => f.moduleType === trx.moduleType && f.assetType === trx.assetType,
 		);
 
-		return BigInt(baseFee[0].baseFee) + BigInt(this._minFeePerByte * trx.getBytes().length);
+		return (
+			BigInt(foundBaseFee?.baseFee ?? BigInt(0)) +
+			BigInt(this._minFeePerByte * trx.getBytes().length)
+		);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
