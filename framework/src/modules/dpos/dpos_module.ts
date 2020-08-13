@@ -18,126 +18,28 @@ import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { Account, BlockHeader } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
-import {
-	AfterBlockApplyInput,
-	AfterGenesisBlockApplyInput,
-	GenesisConfig,
-	StateStore,
-} from '../../types';
+import { AfterBlockApplyInput, AfterGenesisBlockApplyInput, GenesisConfig } from '../../types';
 import { Rounds } from './rounds';
 import { DPOSAccountProps } from './types';
-import { setRegisteredDelegates } from './utils';
 import { MAX_CONSECUTIVE_MISSED_BLOCKS, MAX_LAST_FORGED_HEIGHT_DIFF } from './constants';
+import { dposAccountSchema, dposModuleParamsSchema } from './schema';
+import { generateRandomSeeds } from './random_seed';
+import {
+	createVoteWeightsSnapshot,
+	deleteVoteWeightsUntilRound,
+	updateDelegateList,
+} from './delegates';
+import { setRegisteredDelegates } from './db';
 
 const { bufferArrayUniqueItems, bufferArrayOrderByLex, bufferArrayContains } = objectsUtils;
 
 // eslint-disable-next-line new-cap
 const debug = Debug('dpos');
 
-export const dposModuleParamsSchema = {
-	$id: '/dops/params',
-	type: 'object',
-	required: ['activeDelegates', 'standbyDelegates', 'delegateListRoundOffset'],
-	additionalProperties: true,
-	properties: {
-		activeDelegates: {
-			dataType: 'uint32',
-			min: 1,
-		},
-		standbyDelegates: {
-			dataType: 'uint32',
-			min: 0,
-		},
-		delegateListRoundOffset: {
-			dataType: 'uint32',
-		},
-	},
-};
-
 export class DPoSModule extends BaseModule {
 	public name = 'dpos';
 	public type = 5;
-	public accountSchema = {
-		type: 'object',
-		properties: {
-			delegate: {
-				type: 'object',
-				fieldNumber: 1,
-				properties: {
-					username: { dataType: 'string', fieldNumber: 1 },
-					pomHeights: {
-						type: 'array',
-						items: { dataType: 'uint32' },
-						fieldNumber: 2,
-					},
-					consecutiveMissedBlocks: { dataType: 'uint32', fieldNumber: 3 },
-					lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
-					isBanned: { dataType: 'boolean', fieldNumber: 5 },
-					totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
-				},
-				required: [
-					'username',
-					'pomHeights',
-					'consecutiveMissedBlocks',
-					'lastForgedHeight',
-					'isBanned',
-					'totalVotesReceived',
-				],
-			},
-			sentVotes: {
-				type: 'array',
-				fieldNumber: 2,
-				items: {
-					type: 'object',
-					properties: {
-						delegateAddress: {
-							dataType: 'bytes',
-							fieldNumber: 1,
-						},
-						amount: {
-							dataType: 'uint64',
-							fieldNumber: 2,
-						},
-					},
-					required: ['delegateAddress', 'amount'],
-				},
-			},
-			unlocking: {
-				type: 'array',
-				fieldNumber: 3,
-				items: {
-					type: 'object',
-					properties: {
-						delegateAddress: {
-							dataType: 'bytes',
-							fieldNumber: 1,
-						},
-						amount: {
-							dataType: 'uint64',
-							fieldNumber: 2,
-						},
-						unvoteHeight: {
-							dataType: 'uint32',
-							fieldNumber: 3,
-						},
-					},
-					required: ['delegateAddress', 'amount', 'unvoteHeight'],
-				},
-			},
-		},
-		default: {
-			delegate: {
-				username: '',
-				pomHeights: [],
-				consecutiveMissedBlocks: 0,
-				lastForgedHeight: 0,
-				isBanned: false,
-				totalVotesReceived: BigInt(0),
-			},
-			sentVotes: [],
-			unlocking: [],
-		},
-	};
+	public accountSchema = dposAccountSchema;
 
 	public readonly rounds: Rounds;
 
@@ -167,26 +69,23 @@ export class DPoSModule extends BaseModule {
 		this.rounds = new Rounds({ blocksPerRound: this._delegatesPerRound });
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	// eslint-disable-next-line consistent-return
 	public async afterBlockApply(input: AfterBlockApplyInput): Promise<void> {
 		const finalizedHeight = input.consensus.getFinalizedHeight();
 
 		if (finalizedHeight !== this._finalizedHeight) {
 			this._finalizedHeight = finalizedHeight;
 
-			// Code from "onBlockFinalized"
-			// const finalizedBlockRound = this.rounds.calcRound(finalizedHeight);
-			// const disposableDelegateListUntilRound =
-			// 	finalizedBlockRound - this._delegateListRoundOffset - this._delegateActiveRoundLimit;
-			// await deleteForgersListUntilRound(disposableDelegateListUntilRound, stateStore);
-			// await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, stateStore);
+			const finalizedBlockRound = this.rounds.calcRound(finalizedHeight);
+			const disposableDelegateListUntilRound =
+				finalizedBlockRound - this._delegateListRoundOffset - this._delegateActiveRoundLimit;
+			await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, input.stateStore);
 		}
 
+		// Calculate account.dpos.delegate.consecutiveMissedBlocks and account.dpos.delegate.isBanned
+		await this._updateProductivity(input);
+
 		// TODO: See how to handle case of this.rounds.isBootstrapPeriod where _applyBootstrap is called
-		// Calculate the voteWeight regularly, but forger list already exist except the last one
-		// if (!this._isLastBlockOfTheRound(header)) {
-		// 	return false;
-		// }
 		// // Creating voteWeight snapshot for next round
 		// await this.delegatesList.createVoteWeightsSnapshot(header.height + 1, stateStore);
 		// // last block of the bootstrap period should create the forgers list
@@ -200,7 +99,40 @@ export class DPoSModule extends BaseModule {
 		// 	await this.delegatesList.updateForgersList(round + 1, [randomSeed1, randomSeed2], stateStore);
 		// }
 
-		await this._updateProductivity(input);
+		// Below processing of delegate list only happens end of round
+		if (!this._isLastBlockOfTheRound(input.block.header)) {
+			return Promise.resolve();
+		}
+
+		const round = this.rounds.calcRound(input.block.header.height);
+		const nextRound = round + 1;
+
+		// Calculate Vote Weights List
+		debug('Creating delegate list for', round + this._delegateListRoundOffset);
+		const snapshotHeight = input.block.header.height + 1;
+		const snapshotRound = this.rounds.calcRound(snapshotHeight) + this._delegateListRoundOffset;
+		await createVoteWeightsSnapshot({
+			stateStore: input.stateStore,
+			height: snapshotHeight,
+			round: snapshotRound,
+			activeDelegates: this._activeDelegates,
+			standByDelegates: this._standbyDelegates,
+		});
+
+		// Calculate Delegate List
+		const [randomSeed1, randomSeed2] = generateRandomSeeds(
+			round,
+			this.rounds,
+			input.stateStore.chain.lastBlockHeaders,
+		);
+		await updateDelegateList({
+			round: nextRound,
+			randomSeeds: [randomSeed1, randomSeed2],
+			stateStore: input.stateStore,
+			consensus: input.consensus,
+			activeDelegates: this._activeDelegates,
+			standbyDelegates: this._standbyDelegates,
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility,class-methods-use-this,@typescript-eslint/require-await
@@ -287,5 +219,12 @@ export class DPoSModule extends BaseModule {
 		forger.dpos.delegate.consecutiveMissedBlocks = 0;
 		forger.dpos.delegate.lastForgedHeight = blockHeader.height;
 		stateStore.account.set(forgerAddress, forger);
+	}
+
+	private _isLastBlockOfTheRound(block: BlockHeader): boolean {
+		const round = this.rounds.calcRound(block.height);
+		const nextRound = this.rounds.calcRound(block.height + 1);
+
+		return round < nextRound;
 	}
 }

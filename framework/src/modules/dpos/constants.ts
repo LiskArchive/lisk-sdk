@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const CHAIN_STATE_DELEGATE_USERNAMES = 'delegateUsernames';
+// State store related constants
+export const CHAIN_STATE_DELEGATE_USERNAMES = 'dpos:delegateUsernames';
+export const CHAIN_STATE_DELEGATE_VOTE_WEIGHTS = 'dpos:delegateVoteWeights';
+
 export const DELEGATE_NAME_FEE = BigInt(1000000000);
 export const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_VOTE = 10;
@@ -27,3 +30,14 @@ export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
 export const MAX_POM_HEIGHTS = 5;
 export const MAX_CONSECUTIVE_MISSED_BLOCKS = 50;
 export const MAX_LAST_FORGED_HEIGHT_DIFF = 260000;
+
+export const DEFAULT_ACTIVE_DELEGATE = 101;
+export const DEFAULT_STANDBY_DELEGATE = 2;
+export const DEFAULT_ROUND_OFFSET = 2;
+
+// Vote weight is capped at the self-vote * DEFAULT_VOTE_WEIGHT_CAP_RATE
+export const DEFAULT_VOTE_WEIGHT_CAP_RATE = 10;
+export const DEFAULT_STANDBY_THRESHOLD = BigInt(1000) * BigInt(10) ** BigInt(8);
+
+// Punishment period is 780k block height by default
+export const PUNISHMENT_PERIOD = 780000;

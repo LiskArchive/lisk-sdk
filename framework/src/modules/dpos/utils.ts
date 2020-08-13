@@ -12,83 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
 import { verifyData } from '@liskhq/lisk-cryptography';
 import { Account } from '@liskhq/lisk-chain';
+import { DPOSAccountProps, UnlockingAccountAsset } from './types';
 import {
-	DelegatePersistedUsernames,
-	DPOSAccountProps,
-	RegisteredDelegates,
-	UnlockingAccountAsset,
-} from './types';
-import {
-	CHAIN_STATE_DELEGATE_USERNAMES,
+	PUNISHMENT_PERIOD,
 	SELF_VOTE_PUNISH_TIME,
 	VOTER_PUNISH_TIME,
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from './constants';
-import { StateStore } from '../../types';
-
-const delegatesUserNamesSchema = {
-	$id: '/dpos/userNames',
-	type: 'object',
-	properties: {
-		registeredDelegates: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				required: ['username', 'address'],
-				properties: {
-					username: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 2,
-					},
-				},
-			},
-		},
-	},
-	required: ['registeredDelegates'],
-};
-
-export const getRegisteredDelegates = async (
-	store: StateStore,
-): Promise<DelegatePersistedUsernames> => {
-	const usernamesBuffer = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
-	if (!usernamesBuffer) {
-		return { registeredDelegates: [] };
-	}
-	const parsedUsernames = codec.decode<RegisteredDelegates>(
-		delegatesUserNamesSchema,
-		usernamesBuffer,
-	);
-
-	parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map(
-		(value: { address: Buffer; username: string }) => ({
-			username: value.username,
-			address: value.address,
-		}),
-	);
-
-	return parsedUsernames as DelegatePersistedUsernames;
-};
-
-export const setRegisteredDelegates = (
-	store: StateStore,
-	usernames: DelegatePersistedUsernames,
-): void => {
-	usernames.registeredDelegates.sort((a, b) => a.address.compare(b.address));
-
-	store.chain.set(
-		CHAIN_STATE_DELEGATE_USERNAMES,
-		codec.encode(delegatesUserNamesSchema, usernames),
-	);
-};
 
 export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
 	unlocks.sort((a, b) => {
@@ -160,3 +93,15 @@ export const isUsername = (username: string): boolean => {
 
 export const validateSignature = (publicKey: Buffer, signature: Buffer, bytes: Buffer): boolean =>
 	verifyData(bytes, signature, publicKey);
+
+export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<number>): boolean => {
+	if (pomHeights.length === 0) {
+		return false;
+	}
+	const lastPomHeight = Math.max(...pomHeights);
+	if (height - lastPomHeight < PUNISHMENT_PERIOD) {
+		return true;
+	}
+
+	return false;
+};
