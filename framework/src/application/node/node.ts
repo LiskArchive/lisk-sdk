@@ -22,6 +22,7 @@ import {
 	Account,
 	AccountSchema,
 	readGenesisBlockJSON,
+	Transaction,
 } from '@liskhq/lisk-chain';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
@@ -74,6 +75,7 @@ export interface Options {
 }
 
 type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
+type applyTransactions = (transactions: readonly Transaction[]) => Promise<void>;
 
 interface NodeConstructor {
 	readonly channel: InMemoryChannel;
@@ -541,9 +543,15 @@ export class Node {
 		});
 
 		this._transactionPool = new TransactionPool({
-			// FIXME: #5619 any should be removed
+			baseFees: this._options.genesisConfig.baseFees.map(fees => ({
+				...fees,
+				baseFee: BigInt(fees.baseFee),
+			})),
+			minFeePerByte: this._options.genesisConfig.minFeePerByte,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			applyTransactions: this._processor.verifyTransactions.bind(this._processor) as any,
+			applyTransactions: this._processor.verifyTransactions.bind(
+				this._processor,
+			) as applyTransactions,
 		});
 
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
