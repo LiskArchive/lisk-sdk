@@ -15,9 +15,8 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from './base_transaction';
-import { sortKeysAscending } from './utils';
 import { validateTransactionSchema } from './validate';
+import { baseTransactionSchema } from './schema';
 
 interface MultiSignatureKeys {
 	readonly mandatoryKeys: Array<Buffer>;
@@ -37,7 +36,7 @@ export const getSigningBytes = (
 		throw new Error('Asset must be of type object and not null');
 	}
 	const assetBytes = codec.encode((assetSchema as unknown) as Schema, transactionObject.asset);
-	const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
+	const transactionBytes = codec.encode(baseTransactionSchema, {
 		...transactionObject,
 		asset: assetBytes,
 		signatures: [],
@@ -130,8 +129,8 @@ export const signMultiSignatureTransaction = (
 		throw validationErrors;
 	}
 	// Sort keys
-	sortKeysAscending(keys.mandatoryKeys);
-	sortKeysAscending(keys.optionalKeys);
+	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
+	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
