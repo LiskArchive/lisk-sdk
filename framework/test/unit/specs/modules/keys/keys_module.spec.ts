@@ -11,13 +11,24 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import {
+	getRandomBytes,
+	getPrivateAndPublicKeyFromPassphrase,
+	hash,
+	getAddressFromPublicKey,
+	signDataWithPassphrase,
+} from '@liskhq/lisk-cryptography';
 import { Account, GenesisBlock, Transaction, transactionSchema } from '@liskhq/lisk-chain';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { KeysModule } from '../../../../../src/modules/keys/keys_module';
-import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
+import {
+	createFakeDefaultAccount,
+	StateStoreMock,
+	defaultNetworkIdentifier,
+} from '../../../../utils/node';
 import * as fixtures from './fixtures.json';
 import { GenesisConfig } from '../../../../../src';
 import { genesisBlock as createGenesisBlock } from '../../../../fixtures/blocks';
@@ -238,6 +249,45 @@ describe('keys module', () => {
 			).rejects.toStrictEqual(
 				new Error(
 					"Failed to validate signature '25OKrycZqAAXhE8ZaONc6ScSTc98BKCw2SaKp8mtHOUOYZBcG7ipArmC4lNDwjL65fBs2Ci30RylPxiCDq2MCA==' for transaction with id 'cbHb8mt8DpG8sf6VcMwIdaphbeSjuSf8VEBFvfN4ibw='",
+				),
+			);
+		});
+
+		it('should throw error if account is not multisignature and more than one signature present', async () => {
+			const passphrase = Mnemonic.generateMnemonic();
+			const passphraseDerivedKeys = getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const address = getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
+
+			const singleSignatureAccount = createFakeDefaultAccount({ address });
+
+			const transaction = new Transaction({
+				moduleType: 2,
+				assetType: 0,
+				nonce: BigInt('0'),
+				fee: BigInt('100000000'),
+				senderPublicKey: passphraseDerivedKeys.publicKey,
+				asset: getRandomBytes(100),
+				signatures: [],
+			});
+
+			const signature = signDataWithPassphrase(
+				Buffer.concat([Buffer.from(defaultNetworkIdentifier, 'hex'), transaction.getBytes()]),
+				passphrase,
+			);
+
+			(transaction.signatures as any).push(signature);
+			(transaction.signatures as any).push(signature);
+
+			stateStore.account.get = jest.fn().mockResolvedValue(singleSignatureAccount);
+			return expect(
+				keysModule.beforeTransactionApply({
+					stateStore,
+					transaction,
+					reducerHandler,
+				}),
+			).rejects.toStrictEqual(
+				new Error(
+					'Transaction from non multisignature account can only have one signature. Found 2 signatures.',
 				),
 			);
 		});

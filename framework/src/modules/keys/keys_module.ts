@@ -115,6 +115,11 @@ export class KeysModule extends BaseModule {
 		}
 
 		if (!isMultisignatureAccount(sender)) {
+			if (transaction.signatures.length > 1) {
+				throw new Error(
+					`Transaction from non multisignature account can only have one signature. Found ${transaction.signatures.length} signatures.`,
+				);
+			}
 			validateSignature(
 				transaction.senderPublicKey,
 				transaction.signatures[0],
