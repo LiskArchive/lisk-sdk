@@ -59,6 +59,14 @@ export class DPoSModule extends BaseModule {
 			throw new LiskValidationError([...errors]);
 		}
 
+		if ((this.config.activeDelegates as number) < 1) {
+			throw new Error('Active delegates must have minimum 1');
+		}
+
+		if ((this.config.activeDelegates as number) < (this.config.standbyDelegates as number)) {
+			throw new Error('Active delegates must be greater or equal to standby delegates');
+		}
+
 		this._activeDelegates = this.config.activeDelegates as number;
 		this._standbyDelegates = this.config.standbyDelegates as number;
 		this._delegateListRoundOffset = this.config.delegateListRoundOffset as number;

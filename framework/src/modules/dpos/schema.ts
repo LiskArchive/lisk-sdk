@@ -46,11 +46,9 @@ export const dposModuleParamsSchema = {
 	properties: {
 		activeDelegates: {
 			dataType: 'uint32',
-			min: 1,
 		},
 		standbyDelegates: {
 			dataType: 'uint32',
-			min: 0,
 		},
 		delegateListRoundOffset: {
 			dataType: 'uint32',
