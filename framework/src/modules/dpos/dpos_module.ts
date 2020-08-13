@@ -98,7 +98,7 @@ export class DPoSModule extends BaseModule {
 		await this._createVoteWeightSnapshot(input);
 
 		if (!isBootstrapPeriod || (isBootstrapPeriod && height === lastBootstrapHeight)) {
-			await this._updateDelegatesList(input);
+			await this._updateValidators(input);
 		}
 	}
 
@@ -204,7 +204,7 @@ export class DPoSModule extends BaseModule {
 		});
 	}
 
-	private async _updateDelegatesList(input: AfterBlockApplyInput): Promise<void> {
+	private async _updateValidators(input: AfterBlockApplyInput): Promise<void> {
 		const round = this.rounds.calcRound(input.block.header.height);
 		const nextRound = round + 1;
 
