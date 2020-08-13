@@ -72,6 +72,10 @@ export class DPoSModule extends BaseModule {
 	// eslint-disable-next-line consistent-return
 	public async afterBlockApply(input: AfterBlockApplyInput): Promise<void> {
 		const finalizedHeight = input.consensus.getFinalizedHeight();
+		const lastBootstrapHeight = input.consensus.getLastBootstrapHeight();
+		const isLastBlockOfRound = this._isLastBlockOfTheRound(input.block.header);
+		const { height } = input.block.header;
+		const isBootstrapPeriod = height <= lastBootstrapHeight;
 
 		if (finalizedHeight !== this._finalizedHeight) {
 			this._finalizedHeight = finalizedHeight;
@@ -82,57 +86,20 @@ export class DPoSModule extends BaseModule {
 			await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, input.stateStore);
 		}
 
-		// Calculate account.dpos.delegate.consecutiveMissedBlocks and account.dpos.delegate.isBanned
-		await this._updateProductivity(input);
+		if (!isBootstrapPeriod) {
+			// Calculate account.dpos.delegate.consecutiveMissedBlocks and account.dpos.delegate.isBanned
+			await this._updateProductivity(input);
+		}
 
-		// TODO: See how to handle case of this.rounds.isBootstrapPeriod where _applyBootstrap is called
-		// // Creating voteWeight snapshot for next round
-		// await this.delegatesList.createVoteWeightsSnapshot(header.height + 1, stateStore);
-		// // last block of the bootstrap period should create the forgers list
-		// if (this.rounds.lastHeightBootstrap() === header.height) {
-		// 	const round = this.rounds.calcRound(header.height);
-		// 	const [randomSeed1, randomSeed2] = generateRandomSeeds(
-		// 		round,
-		// 		this.rounds,
-		// 		stateStore.consensus.lastBlockHeaders,
-		// 	);
-		// 	await this.delegatesList.updateForgersList(round + 1, [randomSeed1, randomSeed2], stateStore);
-		// }
-
-		// Below processing of delegate list only happens end of round
-		if (!this._isLastBlockOfTheRound(input.block.header)) {
+		if (!isLastBlockOfRound) {
 			return Promise.resolve();
 		}
 
-		const round = this.rounds.calcRound(input.block.header.height);
-		const nextRound = round + 1;
+		await this._createVoteWeightSnapshot(input);
 
-		// Calculate Vote Weights List
-		debug('Creating delegate list for', round + this._delegateListRoundOffset);
-		const snapshotHeight = input.block.header.height + 1;
-		const snapshotRound = this.rounds.calcRound(snapshotHeight) + this._delegateListRoundOffset;
-		await createVoteWeightsSnapshot({
-			stateStore: input.stateStore,
-			height: snapshotHeight,
-			round: snapshotRound,
-			activeDelegates: this._activeDelegates,
-			standByDelegates: this._standbyDelegates,
-		});
-
-		// Calculate Delegate List
-		const [randomSeed1, randomSeed2] = generateRandomSeeds(
-			round,
-			this.rounds,
-			input.stateStore.chain.lastBlockHeaders,
-		);
-		await updateDelegateList({
-			round: nextRound,
-			randomSeeds: [randomSeed1, randomSeed2],
-			stateStore: input.stateStore,
-			consensus: input.consensus,
-			activeDelegates: this._activeDelegates,
-			standbyDelegates: this._standbyDelegates,
-		});
+		if (!isBootstrapPeriod || (isBootstrapPeriod && height === lastBootstrapHeight)) {
+			await this._updateDelegatesList(input);
+		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility,class-methods-use-this,@typescript-eslint/require-await
@@ -153,11 +120,11 @@ export class DPoSModule extends BaseModule {
 			}
 		}
 
-		if (!bufferArrayUniqueItems(initDelegates)) {
+		if (!bufferArrayUniqueItems([...initDelegates])) {
 			throw new Error('Genesis block init delegates list contains duplicate addresses');
 		}
 
-		if (!bufferArrayOrderByLex(initDelegates)) {
+		if (!bufferArrayOrderByLex([...initDelegates])) {
 			throw new Error('Genesis block init delegates list is not ordered lexicographically');
 		}
 
@@ -167,7 +134,7 @@ export class DPoSModule extends BaseModule {
 			);
 		}
 
-		if (!bufferArrayContains(delegateAddresses, initDelegates)) {
+		if (!bufferArrayContains(delegateAddresses, [...initDelegates])) {
 			throw new Error(
 				'Genesis block init delegates list contain addresses which are not delegates',
 			);
@@ -219,6 +186,43 @@ export class DPoSModule extends BaseModule {
 		forger.dpos.delegate.consecutiveMissedBlocks = 0;
 		forger.dpos.delegate.lastForgedHeight = blockHeader.height;
 		stateStore.account.set(forgerAddress, forger);
+	}
+
+	private async _createVoteWeightSnapshot(input: AfterBlockApplyInput): Promise<void> {
+		const round = this.rounds.calcRound(input.block.header.height);
+		// Calculate Vote Weights List
+		debug('Creating delegate list for', round + this._delegateListRoundOffset);
+
+		const snapshotHeight = input.block.header.height + 1;
+		const snapshotRound = this.rounds.calcRound(snapshotHeight) + this._delegateListRoundOffset;
+		await createVoteWeightsSnapshot({
+			stateStore: input.stateStore,
+			height: snapshotHeight,
+			round: snapshotRound,
+			activeDelegates: this._activeDelegates,
+			standByDelegates: this._standbyDelegates,
+		});
+	}
+
+	private async _updateDelegatesList(input: AfterBlockApplyInput): Promise<void> {
+		const round = this.rounds.calcRound(input.block.header.height);
+		const nextRound = round + 1;
+
+		debug('Updating delegate list for', nextRound);
+		// Calculate Delegate List
+		const [randomSeed1, randomSeed2] = generateRandomSeeds(
+			round,
+			this.rounds,
+			input.stateStore.chain.lastBlockHeaders,
+		);
+		await updateDelegateList({
+			round: nextRound,
+			randomSeeds: [randomSeed1, randomSeed2],
+			stateStore: input.stateStore,
+			consensus: input.consensus,
+			activeDelegates: this._activeDelegates,
+			standbyDelegates: this._standbyDelegates,
+		});
 	}
 
 	private _isLastBlockOfTheRound(block: BlockHeader): boolean {

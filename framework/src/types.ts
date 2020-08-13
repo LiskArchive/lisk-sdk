@@ -231,4 +231,5 @@ export interface Consensus {
 	getDelegates: () => Promise<Delegate[]>;
 	updateDelegates: (delegates: Delegate[]) => Promise<void>;
 	getFinalizedHeight: () => number;
+	getLastBootstrapHeight: () => number;
 }

@@ -13,7 +13,6 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { Account } from '@liskhq/lisk-chain';
 import {
 	GenesisConfig,
 	AccountSchema,
