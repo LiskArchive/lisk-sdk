@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable class-methods-use-this */
-import { AccountDefaultProps } from '@liskhq/lisk-chain';
 import {
 	GenesisConfig,
 	AccountSchema,
@@ -42,9 +41,7 @@ export abstract class BaseModule {
 
 	public async beforeTransactionApply?(input: TransactionApplyInput): Promise<void>;
 	public async afterTransactionApply?(input: TransactionApplyInput): Promise<void>;
-	public async afterGenesisBlockApply?<T = AccountDefaultProps>(
-		input: AfterGenesisBlockApplyInput<T>,
-	): Promise<void>;
+	public async afterGenesisBlockApply?(input: AfterGenesisBlockApplyInput): Promise<void>;
 	public async beforeBlockApply?(input: BeforeBlockApplyInput): Promise<void>;
 	public async afterBlockApply?(input: AfterBlockApplyInput): Promise<void>;
 }

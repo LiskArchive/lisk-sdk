@@ -19,7 +19,6 @@ import {
 	StateStore as ChainStateStore,
 	GenesisBlock,
 	Block,
-	AccountDefaultProps,
 } from '@liskhq/lisk-chain';
 
 export interface StringKeyVal {
@@ -194,7 +193,7 @@ export interface TransactionApplyInput {
 	reducerHandler: ReducerHandler;
 }
 
-export interface AfterGenesisBlockApplyInput<T = AccountDefaultProps> {
+export interface AfterGenesisBlockApplyInput<T = unknown> {
 	genesisBlock: GenesisBlock<T>;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
