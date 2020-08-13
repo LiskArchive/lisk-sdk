@@ -26,11 +26,12 @@ import { ForgerInfo, ForgetSyncInfo } from './types';
 const debug = Debug('plugin:forger:db');
 
 export const getDBInstance = async (
-	dataPath: string,
+	rootPath: string,
+	dataPath = 'plugins',
 	dbName = 'lisk-framework-forger-plugin.db',
 ): Promise<KVStore> => {
-	const resolvedPath = dataPath.replace('~', os.homedir());
-	const dirPath = join(resolvedPath, dbName);
+	const resolvedPath = rootPath.replace('~', os.homedir());
+	const dirPath = join(resolvedPath, dataPath, dbName);
 	await ensureDir(dirPath);
 
 	return new KVStore(dirPath);
