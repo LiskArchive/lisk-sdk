@@ -54,7 +54,6 @@ export class KeysModule extends BaseModule {
 		},
 	};
 
-	// eslint-disable-next-line class-methods-use-this
 	public async beforeTransactionApply({
 		stateStore,
 		transaction,
@@ -75,7 +74,7 @@ export class KeysModule extends BaseModule {
 				transaction.asset,
 			);
 
-			// For multisig registration we need all signatures to be present
+			// For multisig registration we need all signatures to be present (including sender's one that's why we add 1 to the count)
 			const numberOfExpectedKeys = mandatoryKeys.length + optionalKeys.length + 1;
 			if (numberOfExpectedKeys !== transaction.signatures.length) {
 				throw new Error(

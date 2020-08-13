@@ -13,11 +13,7 @@
  */
 
 export interface AccountKeys {
-	keys: {
-		mandatoryKeys: Buffer[];
-		optionalKeys: Buffer[];
-		numberOfSignatures: number;
-	};
+	keys: DecodedAsset;
 }
 
 export interface DecodedAsset {

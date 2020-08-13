@@ -24,10 +24,10 @@ export const isMultisignatureAccount = (account: Account<AccountKeys>): boolean 
 export const validateSignature = (
 	publicKey: Buffer,
 	signature: Buffer,
-	bytes: Buffer,
+	transactionBytes: Buffer,
 	id: Buffer,
 ): void => {
-	const valid = verifyData(bytes, signature, publicKey);
+	const valid = verifyData(transactionBytes, signature, publicKey);
 
 	if (!valid) {
 		throw new Error(
