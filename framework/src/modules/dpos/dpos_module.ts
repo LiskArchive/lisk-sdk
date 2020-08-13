@@ -29,9 +29,9 @@ import {
 	deleteVoteWeightsUntilRound,
 	updateDelegateList,
 } from './delegates';
-import { setRegisteredDelegates } from './db';
+import { setRegisteredDelegates } from './data_access';
 
-const { bufferArrayUniqueItems, bufferArrayOrderByLex, bufferArrayContains } = objectsUtils;
+const { bufferArrayContains } = objectsUtils;
 
 // eslint-disable-next-line new-cap
 const debug = Debug('dpos');
@@ -46,7 +46,7 @@ export class DPoSModule extends BaseModule {
 	private readonly _activeDelegates: number;
 	private readonly _standbyDelegates: number;
 	private readonly _delegateListRoundOffset: number;
-	private readonly _delegatesPerRound: number;
+	private readonly _blocksPerRound: number;
 	private readonly _delegateActiveRoundLimit: number;
 	private readonly _blockTime: number;
 	private _finalizedHeight = 0;
@@ -62,14 +62,13 @@ export class DPoSModule extends BaseModule {
 		this._activeDelegates = this.config.activeDelegates as number;
 		this._standbyDelegates = this.config.standbyDelegates as number;
 		this._delegateListRoundOffset = this.config.delegateListRoundOffset as number;
-		this._delegatesPerRound = this._activeDelegates + this._standbyDelegates;
+		this._blocksPerRound = this._activeDelegates + this._standbyDelegates;
 		this._blockTime = config.blockTime;
 		this._delegateActiveRoundLimit = 3;
 
-		this.rounds = new Rounds({ blocksPerRound: this._delegatesPerRound });
+		this.rounds = new Rounds({ blocksPerRound: this._blocksPerRound });
 	}
 
-	// eslint-disable-next-line consistent-return
 	public async afterBlockApply(input: AfterBlockApplyInput): Promise<void> {
 		const finalizedHeight = input.consensus.getFinalizedHeight();
 		const lastBootstrapHeight = input.consensus.getLastBootstrapHeight();
@@ -92,7 +91,7 @@ export class DPoSModule extends BaseModule {
 		}
 
 		if (!isLastBlockOfRound) {
-			return Promise.resolve();
+			return;
 		}
 
 		await this._createVoteWeightSnapshot(input);
@@ -102,7 +101,7 @@ export class DPoSModule extends BaseModule {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility,class-methods-use-this,@typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async afterGenesisBlockApply<T = Account<DPOSAccountProps>>(
 		input: AfterGenesisBlockApplyInput<T>,
 	): Promise<void> {
@@ -120,15 +119,7 @@ export class DPoSModule extends BaseModule {
 			}
 		}
 
-		if (!bufferArrayUniqueItems([...initDelegates])) {
-			throw new Error('Genesis block init delegates list contains duplicate addresses');
-		}
-
-		if (!bufferArrayOrderByLex([...initDelegates])) {
-			throw new Error('Genesis block init delegates list is not ordered lexicographically');
-		}
-
-		if (initDelegates.length > this._delegatesPerRound) {
+		if (initDelegates.length > this._blocksPerRound) {
 			throw new Error(
 				'Genesis block init delegates list is larger than allowed delegates per round',
 			);

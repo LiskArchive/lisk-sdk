@@ -17,7 +17,7 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { Account } from '@liskhq/lisk-chain';
 import { Consensus, StateStore } from '../../types';
 import { DelegateWeight, DPOSAccountProps } from './types';
-import { getRegisteredDelegates, getVoteWeights, setVoteWeights } from './db';
+import { getRegisteredDelegates, getVoteWeights, setVoteWeights } from './data_access';
 import {
 	DEFAULT_ACTIVE_DELEGATE,
 	DEFAULT_STANDBY_DELEGATE,
