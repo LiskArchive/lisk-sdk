@@ -75,7 +75,6 @@ export interface Options {
 }
 
 type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
-type applyTransactions = (transactions: readonly Transaction[]) => Promise<void>;
 
 interface NodeConstructor {
 	readonly channel: InMemoryChannel;
@@ -548,10 +547,10 @@ export class Node {
 				baseFee: BigInt(fees.baseFee),
 			})),
 			minFeePerByte: this._options.genesisConfig.minFeePerByte,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			applyTransactions: this._processor.verifyTransactions.bind(
-				this._processor,
-			) as applyTransactions,
+			applyTransactions: async (transactions: Transaction[]) => {
+				const stateStore = await this._chain.newStateStore();
+				return this._processor.verifyTransactions(transactions, stateStore);
+			},
 		});
 
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
