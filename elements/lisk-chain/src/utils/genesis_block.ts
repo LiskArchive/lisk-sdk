@@ -15,7 +15,7 @@
 import { Schema, codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
 import { hash } from '@liskhq/lisk-cryptography';
-import { GenesisBlock, AccountSchema } from '../types';
+import { GenesisBlock, AccountSchema, AccountDefaultProps } from '../types';
 import {
 	baseAccountSchema,
 	getGenesisBlockHeaderAssetSchema,
@@ -23,10 +23,10 @@ import {
 	blockHeaderSchema,
 } from '../schema';
 
-export const readGenesisBlockJSON = (
+export const readGenesisBlockJSON = <T = AccountDefaultProps>(
 	genesisBlockJSON: Record<string, unknown>,
 	accounts: { [name: string]: AccountSchema },
-): GenesisBlock => {
+): GenesisBlock<T> => {
 	const accountSchema = {
 		...baseAccountSchema,
 	} as Schema;
@@ -61,7 +61,7 @@ export const readGenesisBlockJSON = (
 		// eslint-disable-next-line no-param-reassign
 		delete (cloned as { header: { id: unknown } }).header.id;
 	}
-	const genesisBlock = codec.fromJSON<GenesisBlock>(genesisBlockSchema, cloned);
+	const genesisBlock = codec.fromJSON<GenesisBlock<T>>(genesisBlockSchema, cloned);
 	const genesisAssetBuffer = codec.encode(assetSchema, genesisBlock.header.asset);
 	const id = hash(
 		codec.encode(blockHeaderSchema, {

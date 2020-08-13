@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Account, getAccountSchemaAndDefault } from '@liskhq/lisk-chain';
+import { Account, getAccountSchemaWithDefault } from '@liskhq/lisk-chain';
 import { GenesisBlockParams } from '../../src';
 
 const delegates = [
@@ -200,7 +200,11 @@ export const defaultAccountModules = {
 	},
 };
 
-export const { schema: defaultAccountSchema } = getAccountSchemaAndDefault(defaultAccountModules);
+const { default: defaultAccount, ...defaultAccountSchema } = getAccountSchemaWithDefault(
+	defaultAccountModules,
+);
+
+export { defaultAccountSchema };
 
 export const validGenesisBlockParams = {
 	initRounds: 5,
