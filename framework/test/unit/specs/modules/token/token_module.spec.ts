@@ -114,4 +114,45 @@ describe('token module', () => {
 			);
 		});
 	});
+
+	describe('#afterTransactionApply', () => {
+		it('should return no errors', async () => {
+			return expect(
+				tokenModule.afterTransactionApply({
+					stateStore,
+					transaction: validTransaction,
+					reducerHandler,
+				}),
+			).resolves.toBeUndefined();
+		});
+
+		it('should return error when sender balance is below the minimum required balance', async () => {
+			stateStore.account = {
+				...stateStore.account,
+				get: jest.fn().mockResolvedValue(senderAccount),
+				getOrDefault: jest.fn().mockResolvedValue({
+					...senderAccount,
+					token: {
+						balance: BigInt(0),
+					},
+				}),
+			};
+			return expect(
+				tokenModule.afterTransactionApply({
+					stateStore,
+					transaction: validTransaction,
+					reducerHandler,
+				}),
+			).rejects.toStrictEqual(
+				new Error(
+					`Account does not have enough minimum remaining balance: ${senderAccount.address.toString(
+						'base64',
+					)}. Current balance is: 0. Required minimum balance is: ${minRemainingBalance}.`,
+				),
+			);
+		});
+	});
+	// TODO: Add #reducers test
+	// TODO: Add #afterBlockApply test
+	// TODO: Add #afterGenesisBlockApply test
 });
