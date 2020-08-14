@@ -16,3 +16,9 @@ export interface Asset {
 	readonly recipientAddress: Buffer;
 	readonly data: string;
 }
+
+export interface TokenAccount {
+	token: {
+		balance: bigint;
+	};
+}
