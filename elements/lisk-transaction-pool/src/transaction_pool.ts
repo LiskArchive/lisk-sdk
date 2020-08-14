@@ -20,22 +20,19 @@ import { TransactionPoolError } from './errors';
 import { Job } from './job';
 import { MinHeap } from './min_heap';
 import { TransactionList } from './transaction_list';
-import {
-	Status,
-	Transaction,
-	TransactionError,
-	TransactionResponse,
-	TransactionStatus,
-} from './types';
+import { Status, Transaction, TransactionStatus } from './types';
 import { BufferMap } from './buffer_map';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:transaction_pool');
 
-type ApplyFunction = (
-	transactions: ReadonlyArray<Transaction>,
-) => Promise<ReadonlyArray<TransactionResponse>>;
+type ApplyFunction = (transactions: ReadonlyArray<Transaction>) => Promise<void>;
 
+interface BaseFee {
+	readonly moduleType: number;
+	readonly assetType: number;
+	readonly baseFee: bigint;
+}
 export interface TransactionPoolConfig {
 	readonly maxTransactions?: number;
 	readonly maxTransactionsPerAccount?: number;
@@ -43,14 +40,20 @@ export interface TransactionPoolConfig {
 	readonly minEntranceFeePriority?: bigint;
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
-	applyTransactions(
-		transactions: ReadonlyArray<Transaction>,
-	): Promise<ReadonlyArray<TransactionResponse>>;
+	readonly minFeePerByte: number;
+	readonly baseFees: BaseFee[];
+	applyTransactions(transactions: ReadonlyArray<Transaction>): Promise<void>;
+}
+
+interface TransactionFailedResponse {
+	readonly code: string;
+	readonly id: Buffer;
+	readonly transactionError: Error & { code: string };
 }
 
 interface AddTransactionResponse {
 	readonly status: Status;
-	readonly errors: ReadonlyArray<TransactionError>;
+	readonly error?: Error;
 }
 
 export const DEFAULT_MAX_TRANSACTIONS = 4096;
@@ -63,19 +66,8 @@ export const DEFAULT_REORGANIZE_TIME = 500;
 export const events = {
 	EVENT_TRANSACTION_REMOVED: 'EVENT_TRANSACTION_REMOVED',
 };
-
-const removeHigherNonceError = (txResponse: TransactionResponse): TransactionResponse => ({
-	...txResponse,
-	errors: txResponse.errors.filter(
-		error =>
-			!(
-				error.dataPath === '.nonce' &&
-				error.actual &&
-				error.expected &&
-				BigInt(error.actual) > BigInt(error.expected)
-			),
-	),
-});
+const ERR_NONCE_OUT_OF_BOUNDS_CODE = 'ERR_NONCE_OUT_OF_BOUNDS';
+const ERR_TRANSACTION_VERIFICATION_FAIL = 'ERR_TRANSACTION_VERIFICATION_FAIL';
 
 export class TransactionPool {
 	public events: EventEmitter;
@@ -89,6 +81,8 @@ export class TransactionPool {
 	private readonly _minEntranceFeePriority: bigint;
 	private readonly _transactionReorganizationInterval: number;
 	private readonly _minReplacementFeeDifference: bigint;
+	private readonly _minFeePerByte: number;
+	private readonly _baseFees: BaseFee[];
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: MinHeap<Buffer, bigint>;
 	private readonly _expireJob: Job<void>;
@@ -110,6 +104,8 @@ export class TransactionPool {
 			config.transactionReorganizationInterval ?? DEFAULT_REORGANIZE_TIME;
 		this._minReplacementFeeDifference =
 			config.minReplacementFeeDifference ?? DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
+		this._baseFees = config.baseFees;
+		this._minFeePerByte = config.minFeePerByte;
 		this._reorganizeJob = new Job(
 			async () => this._reorganize(),
 			this._transactionReorganizationInterval,
@@ -157,7 +153,7 @@ export class TransactionPool {
 
 			// Since we receive too many duplicate transactions
 			// To avoid too many errors we are returning Status.OK
-			return { status: Status.OK, errors: [] };
+			return { status: Status.OK };
 		}
 
 		// Check for minimum entrance fee priority to the TxPool and if its low then reject the incoming tx
@@ -172,7 +168,7 @@ export class TransactionPool {
 				this._minEntranceFeePriority.toString(),
 			);
 
-			return { status: Status.FAIL, errors: [error] };
+			return { status: Status.FAIL, error };
 		}
 
 		// Check if incoming transaction fee is greater than the minimum fee priority in the TxPool if the TxPool is full
@@ -190,23 +186,26 @@ export class TransactionPool {
 				lowestFeePriorityTrx.key.toString(),
 			);
 
-			return { status: Status.FAIL, errors: [error] };
+			return { status: Status.FAIL, error };
 		}
 
 		const incomingTxAddress = getAddressFromPublicKey(incomingTx.senderPublicKey);
 
 		// _applyFunction is injected from chain module applyTransaction
-		const transactionsResponses = await this._applyFunction([incomingTx]);
-		const txStatus = this._getStatus(transactionsResponses[0]);
-
-		// If applyTransaction fails for the transaction then throw error
-		if (txStatus === TransactionStatus.INVALID) {
-			return {
-				status: Status.FAIL,
-				errors: removeHigherNonceError(transactionsResponses[0]).errors,
-			};
+		let txStatus;
+		try {
+			await this._applyFunction([incomingTx]);
+			txStatus = TransactionStatus.PROCESSABLE;
+		} catch (err) {
+			txStatus = this._getStatus(err);
+			// If applyTransaction fails for the transaction then throw error
+			if (txStatus === TransactionStatus.INVALID) {
+				return {
+					status: Status.FAIL,
+					error: err as Error,
+				};
+			}
 		}
-
 		/*
 			Evict transactions if pool is full
 				1. Evict unprocessable by fee priority
@@ -233,7 +232,6 @@ export class TransactionPool {
 				}),
 			);
 		}
-
 		// Add the PROCESSABLE, UNPROCESSABLE transaction to _transactionList and set PROCESSABLE as true
 		const { added, removedID, reason } = (this._transactionList.get(
 			incomingTxAddress,
@@ -242,7 +240,7 @@ export class TransactionPool {
 		if (!added) {
 			return {
 				status: Status.FAIL,
-				errors: [new TransactionPoolError(reason, incomingTx.id)],
+				error: new TransactionPoolError(reason, incomingTx.id),
 			};
 		}
 
@@ -266,7 +264,7 @@ export class TransactionPool {
 		// Add to feePriorityQueue
 		this._feePriorityQueue.push(this._calculateFeePriority(incomingTx), incomingTx.id);
 
-		return { status: Status.OK, errors: [] };
+		return { status: Status.OK };
 	}
 
 	public remove(tx: Transaction): boolean {
@@ -310,19 +308,26 @@ export class TransactionPool {
 
 	// eslint-disable-next-line class-methods-use-this
 	private _calculateFeePriority(trx: Transaction): bigint {
-		return (trx.fee - trx.minFee) / BigInt(trx.getBytes().length);
+		return (trx.fee - this._calculateMinFee(trx)) / BigInt(trx.getBytes().length);
+	}
+
+	private _calculateMinFee(trx: Transaction): bigint {
+		const foundBaseFee = this._baseFees.find(
+			f => f.moduleType === trx.moduleType && f.assetType === trx.assetType,
+		);
+
+		return (
+			BigInt(foundBaseFee?.baseFee ?? BigInt(0)) +
+			BigInt(this._minFeePerByte * trx.getBytes().length)
+		);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _getStatus(txResponse: TransactionResponse): TransactionStatus {
-		if (txResponse.status === Status.OK) {
-			debug('Received PROCESSABLE transaction');
-
-			return TransactionStatus.PROCESSABLE;
-		}
-
-		// If there was only one higher nonce error
-		if (txResponse.errors.length === 1 && removeHigherNonceError(txResponse).errors.length === 0) {
+	private _getStatus(errorResponse: TransactionFailedResponse): TransactionStatus {
+		if (
+			errorResponse.code === ERR_TRANSACTION_VERIFICATION_FAIL &&
+			errorResponse.transactionError.code === ERR_NONCE_OUT_OF_BOUNDS_CODE
+		) {
 			debug('Received UNPROCESSABLE transaction');
 
 			return TransactionStatus.UNPROCESSABLE;
@@ -410,18 +415,21 @@ export class TransactionPool {
 			}
 			const processableTransactions = txList.getProcessable();
 			const allTransactions = [...processableTransactions, ...promotableTransactions];
-			const applyResults = await this._applyFunction(allTransactions);
+			let firstInvalidTransactionId: Buffer | undefined;
+			try {
+				await this._applyFunction(allTransactions);
+			} catch (error) {
+				firstInvalidTransactionId = (error as TransactionFailedResponse).id;
+			}
 
 			const successfulTransactionIds: Buffer[] = [];
-			let firstInvalidTransactionId: Buffer | undefined;
 
-			for (const result of applyResults) {
+			for (const tx of allTransactions) {
 				// If a tx is invalid, all subsequent are also invalid, so exit loop.
-				if (result.status === Status.FAIL) {
-					firstInvalidTransactionId = result.id;
+				if (firstInvalidTransactionId && tx.id.equals(firstInvalidTransactionId)) {
 					break;
 				}
-				successfulTransactionIds.push(result.id);
+				successfulTransactionIds.push(tx.id);
 			}
 
 			// Promote all transactions which were successful
