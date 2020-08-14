@@ -40,7 +40,6 @@ export class TokenModule extends BaseModule {
 		},
 	};
 	public transactionAssets = [new TransferAsset()];
-
 	public reducers = {
 		credit: async (params: Record<string, unknown>, stateStore: StateStore): Promise<void> => {
 			const { address, amount } = params;
@@ -52,10 +51,9 @@ export class TokenModule extends BaseModule {
 			}
 			const account = await stateStore.account.getOrDefault<TokenAccount>(address);
 			account.token.balance += amount;
-			if (account.token.balance < this.config.minRemainingBalance) {
+			if (account.token.balance < this._minRemainingBalance) {
 				throw new Error(
-					`Remaining balance must be greater than ${(this.config
-						.minRemainingBalance as bigint).toString()}`,
+					`Remaining balance must be greater than ${this._minRemainingBalance.toString()}`,
 				);
 			}
 			stateStore.account.set(address, account);
@@ -70,15 +68,16 @@ export class TokenModule extends BaseModule {
 			}
 			const account = await stateStore.account.getOrDefault<TokenAccount>(address);
 			account.token.balance -= amount;
-			if (account.token.balance < this.config.minRemainingBalance) {
+			if (account.token.balance < this._minRemainingBalance) {
 				throw new Error(
-					`Remaining balance must be greater than ${(this.config
-						.minRemainingBalance as bigint).toString()}`,
+					`Remaining balance must be greater than ${this._minRemainingBalance.toString()}`,
 				);
 			}
 			stateStore.account.set(address, account);
 		},
 	};
+
+	private readonly _minRemainingBalance = this.config.minRemainingBalance as bigint;
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
 	public async beforeTransactionApply({ transaction }: TransactionApplyInput): Promise<void> {
@@ -95,6 +94,7 @@ export class TokenModule extends BaseModule {
 		}
 	}
 
+	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
 	public async afterTransactionApply({
 		transaction,
 		stateStore,
@@ -102,12 +102,13 @@ export class TokenModule extends BaseModule {
 		// Verify sender has minimum remaining balance
 		const senderAddress = transaction.senderPublicKey;
 		const sender = await stateStore.account.getOrDefault<TokenAccount>(senderAddress);
-		if (sender.token.balance < this.config.minRemainingBalance) {
+		if (sender.token.balance < this._minRemainingBalance) {
 			throw new Error(
 				`Account does not have enough minimum remaining balance: ${sender.address.toString(
 					'base64',
-				)}. Current balance is: ${sender.token.balance}. Required minimum balance is: ${(this.config
-					.minRemainingBalance as bigint).toString()}.`,
+				)}. Current balance is: ${
+					sender.token.balance
+				}. Required minimum balance is: ${this._minRemainingBalance.toString()}.`,
 			);
 		}
 	}
