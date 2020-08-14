@@ -24,7 +24,7 @@ import { VoteTransactionAsset } from '../../../src/modules/dpos/transaction_asse
 
 export const createTransferTransaction = (input: {
 	recipientAddress: Buffer;
-	amount: bigint;
+	amount?: bigint;
 	nonce: bigint;
 	networkIdentifier: Buffer;
 	passphrase: string;
@@ -32,7 +32,7 @@ export const createTransferTransaction = (input: {
 }): Transaction => {
 	const encodedAsset = codec.encode(new TransferAsset().assetSchema, {
 		recipientAddress: input.recipientAddress,
-		amount: BigInt('10000000000'),
+		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);

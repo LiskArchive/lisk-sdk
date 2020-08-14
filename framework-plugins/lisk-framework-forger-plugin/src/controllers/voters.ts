@@ -24,7 +24,7 @@ export const getVoters = (channel: BaseChannel, codec: PluginCodec, db: KVStore)
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const forgersList = await channel.invoke<Forger[]>('app:getForgingStatusOfAllDelegates');
+		const forgersList = await channel.invoke<Forger[]>('app:getForgingStatus');
 		const forgerAccounts = (
 			await channel.invoke<string[]>('app:getAccounts', {
 				address: forgersList.map(forger => forger.address),

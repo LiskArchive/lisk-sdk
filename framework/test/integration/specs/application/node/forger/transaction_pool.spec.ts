@@ -13,6 +13,7 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
+import { Transaction } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { genesis } from '../../../../../fixtures';
@@ -37,13 +38,13 @@ describe('Transaction pool', () => {
 	});
 
 	describe('given a valid transaction while forging is disabled', () => {
-		let transaction: any;
+		let transaction: Transaction;
 
 		beforeAll(async () => {
 			const genesisAccount = await node._chain.dataAccess.getAccountByAddress(genesis.address);
 			const account = nodeUtils.createAccount();
 			transaction = createTransferTransaction({
-				nonce: genesisAccount.nonce,
+				nonce: genesisAccount.sequence.nonce,
 				recipientAddress: account.address,
 				amount: BigInt('100000000000'),
 				networkIdentifier: Buffer.from(node._networkIdentifier, 'hex'),

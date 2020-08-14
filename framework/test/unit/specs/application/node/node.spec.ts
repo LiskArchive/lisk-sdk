@@ -161,6 +161,7 @@ describe('Node', () => {
 					waitThreshold: 5,
 				},
 				genesisConfig: {
+					...nodeOptions.genesisConfig,
 					blockTime: 4,
 				},
 			};
@@ -196,6 +197,7 @@ describe('Node', () => {
 					waitThreshold: 5,
 				},
 				genesisConfig: {
+					...nodeOptions.genesisConfig,
 					blockTime: 5,
 				},
 			};

@@ -574,7 +574,7 @@ describe('Synchronizer', () => {
 				Buffer.concat([defaultNetworkIdentifier, transaction.getBytes()]),
 				genesis.passphrase,
 			);
-			transaction.signatures.push(signature);
+			(transaction.signatures as Buffer[]).push(signature);
 			const validtransactions = {
 				transactions: [transaction.getBytes().toString('base64')],
 			};

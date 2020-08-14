@@ -24,9 +24,7 @@ export const getForgingInfo = (channel: BaseChannel, codec: PluginCodec, db: KVS
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>(
-			'app:getForgingStatusOfAllDelegates',
-		);
+		const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>('app:getForgingStatus');
 		const forgerAccounts = (
 			await channel.invoke<string[]>('app:getAccounts', {
 				address: forgingDelegates.map(forger => forger.address),

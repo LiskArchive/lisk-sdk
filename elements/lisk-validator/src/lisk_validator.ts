@@ -31,6 +31,9 @@ class LiskValidator {
 			allErrors: true,
 			schemaId: 'auto',
 			useDefaults: false,
+			// FIXME: Combination with lisk-codec schema, making true would throw error becasue
+			// Trace: Error: schema with key or id "/block/header"
+			addUsedSchema: false,
 		});
 
 		for (const formatName of Object.keys(formats)) {

@@ -121,7 +121,6 @@ export interface ApplicationConfig {
 	label: string;
 	version: string;
 	networkVersion: string;
-	networkId: string;
 	lastCommitId: string;
 	buildVersion: string;
 	ipc: {

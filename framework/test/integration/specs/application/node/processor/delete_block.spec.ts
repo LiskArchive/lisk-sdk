@@ -15,6 +15,7 @@
 import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
 import { Block, stateDiffSchema, Account, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { validator } from '@liskhq/lisk-validator';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { nodeUtils } from '../../../../../utils';
 import { genesis, DefaultAccountProps } from '../../../../../fixtures';
@@ -35,6 +36,9 @@ describe('Delete block', () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
 		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 		await node['_forger'].loadDelegates();
+		// TODO: Need to figure out why below error appears but its only in tests
+		//  Trace: Error: schema with key or id "/block/header"
+		validator['_validator']._opts.addUsedSchema = false;
 	});
 
 	afterAll(async () => {

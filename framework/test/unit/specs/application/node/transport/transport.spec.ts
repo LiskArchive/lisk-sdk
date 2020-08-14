@@ -13,12 +13,12 @@
  */
 
 import { when } from 'jest-when';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { BufferMap } from '@liskhq/lisk-transaction-pool';
+import { Transaction } from '@liskhq/lisk-chain';
 import { Transport } from '../../../../../../src/application/node/transport';
 import { genesis } from '../../../../../fixtures';
 import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../utils/network_identifier';
+import { createTransferTransaction } from '../../../../../utils/node/transaction';
 
 describe('Transport', () => {
 	const defaultBroadcastInterval = 5000;
@@ -92,15 +92,13 @@ describe('Transport', () => {
 	describe('handleBroadcastTransaction', () => {
 		describe('when a transaction is given', () => {
 			it('should enqueue to the broadcaster', async () => {
-				const tx = new TransferTransaction({
+				const tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
 				transport['_broadcaster']._transactionIdQueue = [];
 
@@ -109,17 +107,14 @@ describe('Transport', () => {
 			});
 
 			it('should broadcast after 5 sec', async () => {
-				const tx = new TransferTransaction({
+				const tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
-				tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 				await transport.handleBroadcastTransaction(tx);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
@@ -133,15 +128,13 @@ describe('Transport', () => {
 
 		describe('when a duplicate transaction is given', () => {
 			it('should not enqueue to the broadcaster', async () => {
-				const tx = new TransferTransaction({
+				const tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
 				transport['_broadcaster']._transactionIdQueue = [];
 				await transport.handleBroadcastTransaction(tx);
@@ -152,17 +145,14 @@ describe('Transport', () => {
 
 		describe('when the transaction is not in the pool', () => {
 			it('should not broadcast after 5 sec', async () => {
-				const tx = new TransferTransaction({
+				const tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
-				tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 				await transport.handleBroadcastTransaction(tx);
 				transactionPoolStub.contains.mockReturnValue(false);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
@@ -179,17 +169,14 @@ describe('Transport', () => {
 			it('should enqueue to the broadcaster', async () => {
 				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(25).fill(0).map((_, v) => {
-					const tx = new TransferTransaction({
+					const tx = createTransferTransaction({
 						nonce: BigInt(v),
 						fee: BigInt('100000000'),
-						senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-						asset: {
-							amount: BigInt(v + 1),
-							recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-							data: '',
-						},
+						amount: BigInt(v + 1),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+						networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+						passphrase: genesis.passphrase,
 					});
-					tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 					return tx;
 				});
 				for (const tx of txs) {
@@ -201,17 +188,14 @@ describe('Transport', () => {
 			it('should broadcast all after 5 sec', async () => {
 				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(25).fill(0).map((_, v) => {
-					const tx = new TransferTransaction({
+					const tx = createTransferTransaction({
 						nonce: BigInt('0'),
 						fee: BigInt('100000000'),
-						senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-						asset: {
-							amount: BigInt(v + 1),
-							recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-							data: '',
-						},
+						amount: BigInt(v + 1),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+						networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+						passphrase: genesis.passphrase,
 					});
-					tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 					return tx;
 				});
 				for (const tx of txs) {
@@ -231,17 +215,14 @@ describe('Transport', () => {
 			it('should enqueue to the broadcaster', async () => {
 				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(50).fill(0).map((_, v) => {
-					const tx = new TransferTransaction({
+					const tx = createTransferTransaction({
 						nonce: BigInt('0'),
 						fee: BigInt('100000000'),
-						senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-						asset: {
-							amount: BigInt(v + 1),
-							recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-							data: '',
-						},
+						amount: BigInt(v + 1),
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+						networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+						passphrase: genesis.passphrase,
 					});
-					tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 					return tx;
 				});
 				for (const tx of txs) {
@@ -252,17 +233,14 @@ describe('Transport', () => {
 
 			it('should broadcast all after 10 sec', async () => {
 				const txs = new Array(50).fill(0).map((_, v) => {
-					const tx = new TransferTransaction({
+					const tx = createTransferTransaction({
 						nonce: BigInt('0'),
 						fee: BigInt('100000000'),
-						senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-						asset: {
-							amount: BigInt(v + 1),
-							recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-							data: '',
-						},
+						amount: BigInt(v + 1),
+						networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+						passphrase: genesis.passphrase,
+						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
 					});
-					tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 					return tx;
 				});
 				for (const tx of txs) {
@@ -368,17 +346,15 @@ describe('Transport', () => {
 		});
 
 		describe('when it is called with undefined', () => {
-			let tx: TransferTransaction;
+			let tx: Transaction;
 			beforeEach(() => {
-				tx = new TransferTransaction({
+				tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
 				const processableTransactions = new BufferMap();
 				processableTransactions.set(tx.id, tx);
@@ -396,17 +372,14 @@ describe('Transport', () => {
 		describe('when it is called without ids', () => {
 			let tx: any;
 			beforeEach(() => {
-				tx = new TransferTransaction({
+				tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
-				tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 				const processableTransactions = new BufferMap();
 				processableTransactions.set(tx.id, [tx]);
 				transactionPoolStub.getProcessableTransactions.mockReturnValue(processableTransactions);
@@ -443,17 +416,14 @@ describe('Transport', () => {
 		describe('when it is called without ids, and all exists in the pool', () => {
 			let tx: any;
 			beforeEach(() => {
-				tx = new TransferTransaction({
+				tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
-				tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 				transactionPoolStub.get.mockReturnValue(tx);
 			});
 
@@ -478,28 +448,22 @@ describe('Transport', () => {
 			let tx: any;
 			let txDatabase: any;
 			beforeEach(() => {
-				tx = new TransferTransaction({
+				tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
-				tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
-				const txDatabaseInstance = new TransferTransaction({
+				const txDatabaseInstance = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
-					senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-					asset: {
-						amount: BigInt('100'),
-						recipientAddress: Buffer.from('bbc303f04202d23e1fea25859b140257e53bef5a', 'hex'),
-						data: '',
-					},
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from('bbc303f04202d23e1fea25859b140257e53bef5a', 'hex'),
+					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+					passphrase: genesis.passphrase,
 				});
-				txDatabaseInstance.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 				txDatabase = txDatabaseInstance;
 				when(transactionPoolStub.get).calledWith(tx.id).mockReturnValue(tx);
 				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([txDatabase]);
@@ -539,34 +503,28 @@ describe('Transport', () => {
 
 		let tx: string;
 		let tx2: string;
-		let txInstance: TransferTransaction;
-		let tx2Instance: TransferTransaction;
+		let txInstance: Transaction;
+		let tx2Instance: Transaction;
 		let validTransactionsRequest: { transactionIds: string[] };
 
 		beforeEach(() => {
-			txInstance = new TransferTransaction({
+			txInstance = createTransferTransaction({
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
-				senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-				asset: {
-					amount: BigInt('100'),
-					recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
-					data: '',
-				},
+				amount: BigInt('100'),
+				recipientAddress: Buffer.from('e3e6563a45aa82c58a83f2f353e0f6d9de07cf82', 'hex'),
+				networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+				passphrase: genesis.passphrase,
 			});
-			txInstance.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 			tx = txInstance.getBytes().toString('base64');
-			tx2Instance = new TransferTransaction({
+			tx2Instance = createTransferTransaction({
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
-				senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-				asset: {
-					amount: BigInt('100'),
-					recipientAddress: Buffer.from('bbc303f04202d23e1fea25859b140257e53bef5a', 'hex'),
-					data: '',
-				},
+				amount: BigInt('100'),
+				recipientAddress: Buffer.from('bbc303f04202d23e1fea25859b140257e53bef5a', 'hex'),
+				networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+				passphrase: genesis.passphrase,
 			});
-			tx2Instance.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 			tx2 = tx2Instance.getBytes().toString('base64');
 			validTransactionsRequest = {
 				transactionIds: [txInstance.id.toString('base64'), tx2Instance.id.toString('base64')],

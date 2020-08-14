@@ -15,6 +15,7 @@
 import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
 import { Block, Account, Transaction } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
+import { validator } from '@liskhq/lisk-validator';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { genesis, DefaultAccountProps } from '../../../../../fixtures';
@@ -35,6 +36,9 @@ describe('Process block', () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
 		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 		await node['_forger'].loadDelegates();
+		// TODO: Need to figure out why below error appears but its only in tests
+		//  Trace: Error: schema with key or id "/block/header"
+		validator['_validator']._opts.addUsedSchema = false;
 	});
 
 	afterAll(async () => {
@@ -124,11 +128,11 @@ describe('Process block', () => {
 
 			it('should fail to process the block', async () => {
 				const invalidBlock = await nodeUtils.createBlock(node, [transaction]);
-				await expect(node['_processor'].process(invalidBlock)).rejects.toEqual([
+				await expect(node['_processor'].process(invalidBlock)).rejects.toThrow(
 					expect.objectContaining({
-						message: expect.stringContaining('Incompatible transaction nonce for account'),
+						message: expect.stringContaining('nonce is lower than account nonce'),
 					}),
-				]);
+				);
 			});
 		});
 	});
@@ -148,9 +152,9 @@ describe('Process block', () => {
 			});
 
 			it('should discard the block', async () => {
-				await expect(node['_processor'].process(newBlock)).rejects.toEqual(
+				await expect(node['_processor'].process(newBlock)).rejects.toThrow(
 					expect.objectContaining({
-						message: expect.stringContaining('Failed to verify slot'),
+						message: expect.stringContaining('Failed to verify generator'),
 					}),
 				);
 			});

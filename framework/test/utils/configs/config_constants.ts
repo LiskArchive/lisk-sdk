@@ -29,7 +29,7 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 		distance: 3000000, // Distance between each milestone
 	},
 	bftThreshold: 68,
-	minRemainingBalance: 5000000,
+	minRemainingBalance: '5000000',
 	minFeePerByte: 1000,
 	baseFees: [
 		{

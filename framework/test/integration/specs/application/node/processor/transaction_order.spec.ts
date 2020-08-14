@@ -13,6 +13,7 @@
  */
 import { KVStore } from '@liskhq/lisk-db';
 import { Block } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { genesis, DefaultAccountProps } from '../../../../../fixtures';
@@ -35,6 +36,9 @@ describe('Transaction order', () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
 		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 		await node['_forger'].loadDelegates();
+		// TODO: Need to figure out why below error appears but its only in tests
+		//  Trace: Error: schema with key or id "/block/header"
+		validator['_validator']._opts.addUsedSchema = false;
 	});
 
 	afterAll(async () => {
@@ -216,17 +220,9 @@ describe('Transaction order', () => {
 			});
 
 			it('should not accept the block', async () => {
-				expect.assertions(2);
-				try {
-					await node['_processor'].process(newBlock);
-				} catch (errors) {
-					// eslint-disable-next-line jest/no-try-expect
-					expect(errors).toHaveLength(1);
-					// eslint-disable-next-line jest/no-try-expect
-					expect(errors[0].message).toContain(
-						'Transaction signatures does not match required number of signatures',
-					);
-				}
+				await expect(node['_processor'].process(newBlock)).rejects.toThrow(
+					'Transaction signatures does not match required number of signature',
+				);
 			});
 		});
 
@@ -266,15 +262,9 @@ describe('Transaction order', () => {
 			});
 
 			it('should not accept the block', async () => {
-				expect.assertions(2);
-				try {
-					await node['_processor'].process(newBlock);
-				} catch (errors) {
-					// eslint-disable-next-line jest/no-try-expect
-					expect(errors).toHaveLength(1);
-					// eslint-disable-next-line jest/no-try-expect
-					expect(errors[0].message).toContain('Account does not have enough minimum remaining');
-				}
+				await expect(node['_processor'].process(newBlock)).rejects.toThrow(
+					'Account does not have enough minimum remaining',
+				);
 			});
 		});
 	});

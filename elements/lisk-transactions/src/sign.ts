@@ -87,7 +87,6 @@ const sanitizeSignaturesArray = (
 	transactionObject: Record<string, unknown>,
 	keys: MultiSignatureKeys,
 	includeSenderSignature: boolean,
-	signature: Buffer,
 ): void => {
 	const numberOfSignatures =
 		(includeSenderSignature ? 1 : 0) + keys.mandatoryKeys.length + keys.optionalKeys.length;
@@ -98,7 +97,7 @@ const sanitizeSignaturesArray = (
 			transactionObject.signatures[i] === undefined
 		) {
 			// eslint-disable-next-line no-param-reassign
-			transactionObject.signatures[i] = signature;
+			transactionObject.signatures[i] = Buffer.alloc(0);
 		}
 	}
 };
@@ -140,6 +139,15 @@ export const signMultiSignatureTransaction = (
 	]);
 
 	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
+	if (
+		(transactionObject.signatures as Array<Readonly<Buffer>>).find(
+			s => s instanceof Buffer && s.equals(signature),
+		) !== undefined
+	) {
+		sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
+
+		return transactionObject;
+	}
 
 	if (
 		includeSenderSignature &&
@@ -148,16 +156,6 @@ export const signMultiSignatureTransaction = (
 	) {
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[0] = signature;
-	}
-
-	if (
-		(transactionObject.signatures as Array<Readonly<Buffer>>).find(
-			s => s instanceof Buffer && s.equals(signature),
-		) !== undefined
-	) {
-		sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature, signature);
-
-		return transactionObject;
 	}
 
 	// Locate where this public key should go in the signatures array
@@ -181,7 +179,7 @@ export const signMultiSignatureTransaction = (
 		] = signature;
 	}
 
-	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature, signature);
+	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
 	return transactionObject;
 };

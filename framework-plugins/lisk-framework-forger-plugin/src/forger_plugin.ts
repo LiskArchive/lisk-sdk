@@ -201,7 +201,7 @@ export class ForgerPlugin extends BasePlugin {
 
 	private async _setForgersList(): Promise<void> {
 		this._forgersList = new dataStructures.BufferMap<boolean>();
-		const forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatusOfAllDelegates');
+		const forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatus');
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'base64'), forging);
 		}

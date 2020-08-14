@@ -14,6 +14,7 @@
 
 import { KVStore } from '@liskhq/lisk-db';
 import { Account } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import { nodeUtils } from '../../../../utils';
 import { createDB, removeDB } from '../../../../utils/kv_store';
 import { Node } from '../../../../../src/application/node';
@@ -82,6 +83,9 @@ describe('genesis block', () => {
 		let oldBalance: bigint;
 
 		beforeEach(async () => {
+			// TODO: Need to figure out why below error appears but its only in tests
+			//  Trace: Error: schema with key or id "/block/header"
+			validator.removeSchema('/block/header');
 			const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
 				DefaultAccountProps
 			>(genesis.address);
@@ -92,7 +96,7 @@ describe('genesis block', () => {
 			newBalance = oldBalance + BigInt('100000000000');
 
 			const transaction = createTransferTransaction({
-				amount: BigInt('10000000000'),
+				amount: BigInt('100000000000'),
 				recipientAddress: recipient.address,
 				networkIdentifier: node['_networkIdentifier'],
 				nonce: genesisAccount.sequence.nonce,

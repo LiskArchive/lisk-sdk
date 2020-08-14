@@ -21,7 +21,7 @@ export const getForgers = (channel: BaseChannel, codec: PluginCodec) => async (
 ): Promise<void> => {
 	let forgersFrameworkInfo: ReadonlyArray<{ address: string; forging: boolean }>;
 	try {
-		forgersFrameworkInfo = await channel.invoke('app:getForgersInfoForActiveRound');
+		forgersFrameworkInfo = await channel.invoke('app:getForgers');
 	} catch (err) {
 		next(err);
 		return;

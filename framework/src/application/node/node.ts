@@ -185,16 +185,6 @@ export class Node {
 			await this._processor.init(this._genesisBlock);
 			// Check if blocks are left in temp_blocks table
 			await this._synchronizer.init();
-
-			this._networkModule.applyNodeInfo({
-				height: this._chain.lastBlock.header.height,
-				lastBlockID: this._chain.lastBlock.header.id,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-				maxHeightPrevoted:
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-					this._chain.lastBlock.header.asset.maxHeightPrevoted ?? 0,
-				blockVersion: this._chain.lastBlock.header.version,
-			});
 			this._subscribeToEvents();
 
 			this._channel.subscribe(

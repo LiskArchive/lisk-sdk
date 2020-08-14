@@ -23,6 +23,7 @@ import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.js
 import { Logger } from '../../../src/application/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { ApplicationConfig } from '../../../src/types';
+import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../../../src/modules';
 
 const { plugins, ...rootConfigs } = config;
 const { network, ...nodeConfigs } = rootConfigs;
@@ -74,7 +75,7 @@ export const createNode = ({
 		logger,
 		blockchainDB,
 		forgerDB,
-		customModules: [],
+		customModules: [TokenModule, SequenceModule, KeysModule, DPoSModule],
 		networkModule: networkMock as any,
 	});
 };

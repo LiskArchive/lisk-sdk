@@ -140,6 +140,10 @@ export class Application {
 		this._customModules = [];
 	}
 
+	public get networkIdentifier(): Buffer {
+		return this._node.networkIdentifier;
+	}
+
 	public static defaultApplication(
 		genesisBlock: Record<string, unknown>,
 		config: Partial<ApplicationConfig> = {},

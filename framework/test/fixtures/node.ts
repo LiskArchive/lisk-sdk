@@ -54,7 +54,7 @@ export const nodeOptions = {
 			offset: 2160, // Start rewards at first block of the second round
 			distance: 3000000, // Distance between each milestone
 		},
-		minRemainingBalance: 5000000,
+		minRemainingBalance: '5000000',
 		activeDelegates: 101,
 		standbyDelegates: 2,
 		delegateListRoundOffset: 2,

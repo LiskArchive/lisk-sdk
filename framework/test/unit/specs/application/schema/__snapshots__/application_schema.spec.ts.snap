@@ -11,8 +11,11 @@ Object {
         "waitThreshold": 2,
       },
       "genesisConfig": Object {
+        "baseFees": Array [],
+        "bftThreshold": 68,
         "blockTime": 10,
         "maxPayloadLength": 15360,
+        "minFeePerByte": 1000,
         "rewards": Object {
           "distance": 3000000,
           "milestones": Array [
@@ -117,10 +120,31 @@ Object {
         "additionalProperties": true,
         "id": "#/config/genesisConfig",
         "properties": Object {
+          "baseFees": Object {
+            "description": "Minimum fee per bytes required for a transaction to be valid",
+            "items": Object {
+              "properties": Object {
+                "assetType": Object {
+                  "minimum": 0,
+                  "type": "integer",
+                },
+                "baseFee": Object {
+                  "format": "uint64",
+                  "type": "string",
+                },
+                "moduleType": Object {
+                  "minimum": 2,
+                  "type": "number",
+                },
+              },
+              "type": "object",
+            },
+            "type": "array",
+          },
           "bftThreshold": Object {
             "description": "Number of validators required to set block finality",
             "minimum": 1,
-            "type": "number",
+            "type": "integer",
           },
           "blockTime": Object {
             "description": "Slot time interval in seconds",
@@ -135,6 +159,11 @@ Object {
             "description": "Maximum number of transactions allowed per block",
             "maximum": 30720,
             "minimum": 10240,
+            "type": "integer",
+          },
+          "minFeePerByte": Object {
+            "description": "Minimum fee per bytes required for a transaction to be valid",
+            "minimum": 0,
             "type": "integer",
           },
           "rewards": Object {
