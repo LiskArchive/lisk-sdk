@@ -24,7 +24,6 @@ Lisk Elements supports the modular architecture of the Lisk SDK, where libraries
 | [@liskhq/lisk-transaction-pool](lisk-transaction-pool) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-transaction-pool) | Transaction pool implementation for the Lisk network                                                     |
 | [@liskhq/lisk-p2p](lisk-p2p)                           |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-p2p)        | _unstructured_ P2P library for the Lisk protocol                                                         |
 | [@liskhq/lisk-validator](lisk-validator)               |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-validator)     | Custom validations utilities related to Lisk protocol                                                    |
-| [@liskhq/lisk-dpos](lisk-dpos)                         |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-dpos)       | DPoS consensus algorithm implementation according to the Lisk protocol                                   |
 | [@liskhq/lisk-bft](lisk-bft)                           |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-bft)        | Byzantine fault tolerance implementation according to the Lisk protocol                                  |
 | [@liskhq/lisk-chain](lisk-chain)                       |      ![npm](https://img.shields.io/npm/v/@liskhq/lisk-chain)       | Implements blocks and state management that are used for block processing according to the Lisk protocol |
 
@@ -53,16 +52,12 @@ const { APIClient, transaction } = require('lisk-elements');
 const transferTransaction = lisk.transaction.transfer({
 	amount: '123000000',
 	recipientId: '12668885769632475474L',
-	passphrase:
-		'robust swift grocery peasant forget share enable convince deputy road keep cheap',
+	passphrase: 'robust swift grocery peasant forget share enable convince deputy road keep cheap',
 });
 
 const client = APIClient.createTestnetAPIClient();
 
-client.transactions
-	.broadcast(transferTransaction)
-	.then(console.info)
-	.catch(console.error);
+client.transactions.broadcast(transferTransaction).then(console.info).catch(console.error);
 ```
 
 Full documentation can be found on the [Lisk documentation site][].

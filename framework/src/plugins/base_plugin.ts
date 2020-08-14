@@ -49,7 +49,8 @@ interface AccountJSON {
 }
 
 interface BaseTransactionJSON {
-	readonly type: number;
+	readonly moduleType: number;
+	readonly assetType: number;
 	readonly nonce: string;
 	readonly fee: string;
 	readonly senderPublicKey: string;
@@ -85,16 +86,18 @@ interface BlockAssetJSON {
 }
 
 interface CodecSchema {
-	account: Schema;
+	accountSchema: Schema;
 	blockSchema: Schema;
 	blockHeaderSchema: Schema;
 	blockHeadersAssets: {
 		[key: number]: Schema;
 	};
-	baseTransaction: Schema;
-	transactionsAssets: {
-		[key: number]: Schema;
-	};
+	transactionSchema: Schema;
+	transactionsAssetSchemas: {
+		moduleType: number;
+		assetType: number;
+		schema: Schema;
+	}[];
 }
 
 interface AccountJSON {
@@ -142,18 +145,20 @@ export interface InstantiablePlugin<T, U = object> {
 const decodeTransactionToJSON = (
 	transactionBuffer: Buffer,
 	baseSchema: Schema,
-	assetsSchemas: { [key: number]: Schema },
+	assetsSchemas: CodecSchema['transactionsAssetSchemas'],
 ): TransactionJSON => {
 	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(baseSchema, transactionBuffer);
 
-	const transactionTypeAssetSchema = assetsSchemas[baseTransaction.type];
+	const transactionTypeAsset = assetsSchemas.find(
+		s => s.assetType === baseTransaction.assetType && s.moduleType === baseTransaction.moduleType,
+	);
 
-	if (!transactionTypeAssetSchema) {
+	if (!transactionTypeAsset) {
 		throw new Error('Transaction type not found.');
 	}
 
 	const transactionAsset = codec.decodeJSON<object>(
-		transactionTypeAssetSchema,
+		transactionTypeAsset.schema,
 		Buffer.from(baseTransaction.asset, 'base64'),
 	);
 
@@ -167,17 +172,19 @@ const decodeTransactionToJSON = (
 const encodeTransactionFromJSON = (
 	transaction: TransactionJSON,
 	baseSchema: Schema,
-	assetsSchemas: { [key: number]: Schema },
+	assetsSchemas: CodecSchema['transactionsAssetSchemas'],
 ): string => {
-	const transactionTypeAssetSchema = assetsSchemas[transaction.type];
+	const transactionTypeAsset = assetsSchemas.find(
+		s => s.assetType === transaction.assetType && s.moduleType === transaction.moduleType,
+	);
 
-	if (!transactionTypeAssetSchema) {
+	if (!transactionTypeAsset) {
 		throw new Error('Transaction type not found.');
 	}
 
 	const transactionAssetBuffer = codec.encode(
-		transactionTypeAssetSchema,
-		codec.fromJSON(transactionTypeAssetSchema, transaction.asset),
+		transactionTypeAsset.schema,
+		codec.fromJSON(transactionTypeAsset.schema, transaction.asset),
 	);
 
 	const transactionBuffer = codec.encode(
@@ -207,8 +214,8 @@ const decodeBlockToJSON = (codecSchema: CodecSchema, encodedBlock: Buffer): Bloc
 		blockSchema,
 		blockHeaderSchema,
 		blockHeadersAssets,
-		baseTransaction,
-		transactionsAssets,
+		transactionSchema,
+		transactionsAssetSchemas,
 	} = codecSchema;
 	const { header, payload } = codec.decode<RawBlock>(blockSchema, encodedBlock);
 
@@ -218,7 +225,7 @@ const decodeBlockToJSON = (codecSchema: CodecSchema, encodedBlock: Buffer): Bloc
 		Buffer.from(baseHeaderJSON.asset, 'base64'),
 	);
 	const payloadJSON = payload.map(transactionBuffer =>
-		decodeTransactionToJSON(transactionBuffer, baseTransaction, transactionsAssets),
+		decodeTransactionToJSON(transactionBuffer, transactionSchema, transactionsAssetSchemas),
 	);
 
 	const blockId = hash(header);
@@ -250,7 +257,7 @@ export abstract class BasePlugin {
 			decodeAccount: (data: Buffer | string): AccountJSON => {
 				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
 
-				return decodeAccountToJSON(accountBuffer, this.schemas.account);
+				return decodeAccountToJSON(accountBuffer, this.schemas.accountSchema);
 			},
 			decodeBlock: (data: Buffer | string): BlockJSON => {
 				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
@@ -269,15 +276,15 @@ export abstract class BasePlugin {
 
 				return decodeTransactionToJSON(
 					transactionBuffer,
-					this.schemas.baseTransaction,
-					this.schemas.transactionsAssets,
+					this.schemas.transactionSchema,
+					this.schemas.transactionsAssetSchemas,
 				);
 			},
 			encodeTransaction: (transaction: TransactionJSON): string =>
 				encodeTransactionFromJSON(
 					transaction,
-					this.schemas.baseTransaction,
-					this.schemas.transactionsAssets,
+					this.schemas.transactionSchema,
+					this.schemas.transactionsAssetSchemas,
 				),
 		};
 	}

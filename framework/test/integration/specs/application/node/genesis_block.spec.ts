@@ -13,11 +13,16 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
+import { Account } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../../utils';
 import { createDB, removeDB } from '../../../../utils/kv_store';
 import { Node } from '../../../../../src/application/node';
-import { genesis, genesisBlock as getGenesisBlock } from '../../../../fixtures';
+import {
+	genesis,
+	genesisBlock as getGenesisBlock,
+	DefaultAccountProps,
+} from '../../../../fixtures';
+import { createTransferTransaction } from '../../../../utils/node/transaction';
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';
@@ -63,35 +68,36 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct delegate list', async () => {
-				const delegateListFromChain = await nodeUtils.getDelegateList(node, 1);
+				const delegateListFromChain = await nodeUtils.getDelegateList(node);
 				expect(delegateListFromChain).toMatchSnapshot();
 			});
 		});
 	});
 
 	describe('given the application was initialized earlier', () => {
-		const account =
-			genesisBlock.header.asset.accounts[genesisBlock.header.asset.accounts.length - 1];
+		const account = (genesisBlock.header.asset.accounts[
+			genesisBlock.header.asset.accounts.length - 1
+		] as unknown) as Account<DefaultAccountProps>;
 		let newBalance: bigint;
 		let oldBalance: bigint;
 
 		beforeEach(async () => {
-			const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
-			const recipient = await node['_chain'].dataAccess.getAccountByAddress(account.address);
-			oldBalance = account.balance;
+			const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
+				DefaultAccountProps
+			>(genesis.address);
+			const recipient = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
+				account.address,
+			);
+			oldBalance = account.token.balance;
 			newBalance = oldBalance + BigInt('100000000000');
 
-			const transaction = new TransferTransaction({
-				nonce: genesisAccount.nonce,
-				senderPublicKey: genesis.publicKey,
-				fee: BigInt('200000'),
-				asset: {
-					recipientAddress: recipient.address,
-					amount: BigInt('100000000000'),
-					data: '',
-				},
+			const transaction = createTransferTransaction({
+				amount: BigInt('10000000000'),
+				recipientAddress: recipient.address,
+				networkIdentifier: node['_networkIdentifier'],
+				nonce: genesisAccount.sequence.nonce,
+				passphrase: genesis.passphrase,
 			});
-			transaction.sign(node['_networkIdentifier'], genesis.passphrase);
 			const newBlock = await nodeUtils.createBlock(node, [transaction]);
 			await node['_processor'].process(newBlock);
 		});
@@ -103,8 +109,10 @@ describe('genesis block', () => {
 				node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 
 				// Arrange & Assert
-				const recipient = await node['_chain'].dataAccess.getAccountByAddress(account.address);
-				expect(recipient.balance).toEqual(newBalance);
+				const recipient = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
+					account.address,
+				);
+				expect(recipient.token.balance).toEqual(newBalance);
 			});
 		});
 	});

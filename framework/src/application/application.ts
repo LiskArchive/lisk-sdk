@@ -24,7 +24,7 @@ import { objects } from '@liskhq/lisk-utils';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from '../controller';
 import { version } from '../version';
-import { constantsSchema, applicationConfigSchema } from './schema';
+import { applicationConfigSchema } from './schema';
 import { Network } from './network';
 import { Node } from './node';
 import { Logger, createLogger } from './logger';
@@ -33,7 +33,6 @@ import { DuplicateAppInstanceError } from '../errors';
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import {
 	ApplicationConfig,
-	ApplicationConstants,
 	GenesisConfig,
 	EventPostTransactionData,
 	PluginOptions,
@@ -94,7 +93,7 @@ type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
 
 export class Application {
 	public config: ApplicationConfig;
-	public constants: ApplicationConstants & GenesisConfig;
+	public constants: GenesisConfig;
 	public logger!: Logger;
 
 	private _node!: Node;
@@ -132,7 +131,6 @@ export class Application {
 		// we are merging these here to refactor the underlying code in other iteration
 		// eslint-disable-next-line
 		this.constants = {
-			...constantsSchema.default,
 			...mergedConfig.genesisConfig,
 		};
 		this.config = mergedConfig;

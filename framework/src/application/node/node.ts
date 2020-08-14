@@ -23,11 +23,11 @@ import {
 	AccountSchema,
 	readGenesisBlockJSON,
 	Transaction,
+	transactionSchema,
 } from '@liskhq/lisk-chain';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Schema } from '@liskhq/lisk-codec';
 import { jobHandlers } from '@liskhq/lisk-utils';
@@ -92,11 +92,13 @@ interface RegisteredSchema {
 	readonly schema: Schema;
 }
 
-interface TransactionFee {
-	readonly moduleType: number;
-	readonly assetType: number;
-	readonly baseFee: string;
-	readonly minFeePerByte: string;
+interface TransactionFees {
+	readonly minFeePerByte: number;
+	readonly baseFees: {
+		readonly moduleType: number;
+		readonly assetType: number;
+		readonly baseFee: string;
+	}[];
 }
 
 export class Node {
@@ -375,7 +377,7 @@ export class Node {
 					address: address.toString('base64'),
 					forging,
 				})),
-			getTransactionsFees: (): TransactionFee[] => this._getRegisteredTransactionFees(),
+			getTransactionsFees: (): TransactionFees => this._getRegisteredTransactionFees(),
 			getTransactionsFromPool: (): string[] =>
 				this._transactionPool.getAll().map(tx => tx.getBytes().toString('base64')),
 			postTransaction: async (
@@ -393,12 +395,12 @@ export class Node {
 				this._transport.handleRPCGetGetHighestCommonBlock(params.data, params.peerId),
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			getSchema: () => ({
-				account: this._chain.accountSchema,
+				accountSchema: this._chain.accountSchema,
 				blockSchema,
 				blockHeaderSchema,
 				blockHeadersAssets: this._chain.blockAssetSchema,
-				baseTransaction: BaseTransaction.BASE_SCHEMA,
-				transactionsAssets: this._getRegisteredTransactionSchemas(),
+				transactionSchema,
+				transactionsAssetSchemas: this._getRegisteredTransactionSchemas(),
 			}),
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			getNodeInfo: () => ({
@@ -695,14 +697,16 @@ export class Node {
 		return registeredSchemas;
 	}
 
-	private _getRegisteredTransactionFees(): TransactionFee[] {
-		const transactionFees: TransactionFee[] = [];
+	private _getRegisteredTransactionFees(): TransactionFees {
+		const transactionFees: TransactionFees = {
+			minFeePerByte: this._options.genesisConfig.minFeePerByte,
+			baseFees: [],
+		};
 
 		for (const baseFeeInfo of this._options.genesisConfig.baseFees) {
-			transactionFees.push({
+			transactionFees.baseFees.push({
 				moduleType: baseFeeInfo.moduleType,
 				assetType: baseFeeInfo.assetType,
-				minFeePerByte: BigInt(this._options.genesisConfig.minFeePerByte).toString(),
 				baseFee: baseFeeInfo.baseFee,
 			});
 		}

@@ -11,19 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import {
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	MultisignatureTransaction,
-} from '@liskhq/lisk-transactions';
 import { KVStore } from '@liskhq/lisk-db';
 import { Block } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
-import { genesis } from '../../../../../fixtures';
+import { genesis, DefaultAccountProps } from '../../../../../fixtures';
 import { Node } from '../../../../../../src/application/node';
+import {
+	createTransferTransaction,
+	createDelegateRegisterTransaction,
+	createMultiSignRegisterTransaction,
+	createMultisignatureTransferTransaction,
+	createDelegateVoteTransaction,
+} from '../../../../../utils/node/transaction';
 
 describe('Transaction order', () => {
 	const dbName = 'transaction_order';
@@ -50,30 +50,25 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
-				const fundingTx = new TransferTransaction({
-					nonce: genesisAccount.nonce,
-					senderPublicKey: genesis.publicKey,
-					fee: BigInt('200000'),
-					asset: {
-						recipientAddress: accountWithoutBalance.address,
-						amount: BigInt('10000000000'),
-						data: '',
-					},
+				const fundingTx = createTransferTransaction({
+					nonce: genesisAccount.sequence.nonce,
+					recipientAddress: accountWithoutBalance.address,
+					amount: BigInt('10000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: genesis.passphrase,
 				});
-				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
-				const returningTx = new TransferTransaction({
+				const returningTx = createTransferTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('200000'),
-					senderPublicKey: accountWithoutBalance.publicKey,
-					asset: {
-						recipientAddress: genesis.address,
-						amount: BigInt('9900000000'),
-						data: '',
-					},
+					recipientAddress: genesis.address,
+					amount: BigInt('9900000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: accountWithoutBalance.passphrase,
 				});
-				returningTx.sign(node['_networkIdentifier'], accountWithoutBalance.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [fundingTx, returningTx]);
 				await node['_processor'].process(newBlock);
 			});
@@ -88,42 +83,37 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
-				const fundingTx = new TransferTransaction({
-					nonce: genesisAccount.nonce,
-					senderPublicKey: genesis.publicKey,
+				const fundingTx = createTransferTransaction({
+					nonce: genesisAccount.sequence.nonce,
 					fee: BigInt('200000'),
-					asset: {
-						recipientAddress: newAccount.address,
-						amount: BigInt('10000000000'),
-						data: '',
-					},
+					recipientAddress: newAccount.address,
+					amount: BigInt('10000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: genesis.passphrase,
 				});
-				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
-				const registerDelegateTx = new DelegateTransaction({
+				const registerDelegateTx = createDelegateRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
-					senderPublicKey: newAccount.publicKey,
-					asset: {
-						username: 'newdelegate',
-					},
+					username: 'newdelegate',
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: newAccount.passphrase,
 				});
-				registerDelegateTx.sign(node['_networkIdentifier'], newAccount.passphrase);
-				const selfVoteTx = new VoteTransaction({
+				const selfVoteTx = createDelegateVoteTransaction({
 					nonce: BigInt('1'),
 					fee: BigInt('100000000'),
-					senderPublicKey: newAccount.publicKey,
-					asset: {
-						votes: [
-							{
-								delegateAddress: newAccount.address,
-								amount: BigInt('1000000000'),
-							},
-						],
-					},
+					votes: [
+						{
+							delegateAddress: newAccount.address,
+							amount: BigInt('1000000000'),
+						},
+					],
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: newAccount.passphrase,
 				});
-				selfVoteTx.sign(node['_networkIdentifier'], newAccount.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerDelegateTx, selfVoteTx]);
 				await node['_processor'].process(newBlock);
 			});
@@ -138,61 +128,43 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
-				const fundingTx = new TransferTransaction({
-					nonce: genesisAccount.nonce,
-					senderPublicKey: genesis.publicKey,
+				const fundingTx = createTransferTransaction({
+					nonce: genesisAccount.sequence.nonce,
 					fee: BigInt('200000'),
-					asset: {
-						recipientAddress: newAccount.address,
-						amount: BigInt('10000000000'),
-						data: '',
-					},
+					recipientAddress: newAccount.address,
+					amount: BigInt('10000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: genesis.passphrase,
 				});
-				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
 				optionalKeys.sort((a, b) => a.compare(b));
-				const registerMultisigTx = new MultisignatureTransaction({
+				const registerMultisigTx = createMultiSignRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
-					senderPublicKey: newAccount.publicKey,
-					asset: {
-						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys,
-						numberOfSignatures: 2,
-					},
+					mandatoryKeys: [newAccount.publicKey],
+					optionalKeys,
+					numberOfSignatures: 2,
+					networkIdentifier: node['_networkIdentifier'],
+					senderPassphrase: newAccount.passphrase,
+					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
 				});
-				registerMultisigTx.sign(
-					node['_networkIdentifier'],
-					newAccount.passphrase,
-					[newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
-					{
-						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys,
-						numberOfSignatures: 2,
-					},
-				);
-				const transferTx = new TransferTransaction({
+
+				const transferTx = createMultisignatureTransferTransaction({
 					nonce: BigInt('1'),
 					senderPublicKey: newAccount.publicKey,
 					fee: BigInt('300000'),
-					asset: {
-						amount: BigInt('8000000000'),
-						recipientAddress: newAccount.address,
-						data: '',
-					},
+					amount: BigInt('8000000000'),
+					recipientAddress: newAccount.address,
+					mandatoryKeys: [newAccount.publicKey],
+					optionalKeys,
+					networkIdentifier: node['_networkIdentifier'],
+					passphrases: [newAccount.passphrase, multiSignatureMembers[0].passphrase],
 				});
-				transferTx.sign(
-					node['_networkIdentifier'],
-					undefined,
-					[newAccount.passphrase, multiSignatureMembers[0].passphrase],
-					{
-						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys,
-					},
-				);
 				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerMultisigTx, transferTx]);
 				await node['_processor'].process(newBlock);
 			});
@@ -207,53 +179,39 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
-				const fundingTx = new TransferTransaction({
-					nonce: genesisAccount.nonce,
-					senderPublicKey: genesis.publicKey,
+				const fundingTx = createTransferTransaction({
+					nonce: genesisAccount.sequence.nonce,
 					fee: BigInt('200000'),
-					asset: {
-						recipientAddress: newAccount.address,
-						amount: BigInt('10000000000'),
-						data: '',
-					},
+					recipientAddress: newAccount.address,
+					amount: BigInt('10000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: genesis.passphrase,
 				});
-				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
 				optionalKeys.sort((a, b) => a.compare(b));
-				const registerMultisigTx = new MultisignatureTransaction({
+				const registerMultisigTx = createMultiSignRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
-					senderPublicKey: newAccount.publicKey,
-					asset: {
-						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys,
-						numberOfSignatures: 2,
-					},
+					mandatoryKeys: [newAccount.publicKey],
+					optionalKeys,
+					numberOfSignatures: 2,
+					networkIdentifier: node['_networkIdentifier'],
+					senderPassphrase: newAccount.passphrase,
+					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
 				});
-				registerMultisigTx.sign(
-					node['_networkIdentifier'],
-					newAccount.passphrase,
-					[newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
-					{
-						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys,
-						numberOfSignatures: 2,
-					},
-				);
-				const transferTx = new TransferTransaction({
+				const transferTx = createTransferTransaction({
 					nonce: BigInt('1'),
-					senderPublicKey: newAccount.publicKey,
 					fee: BigInt('300000'),
-					asset: {
-						amount: BigInt('8000000000'),
-						recipientAddress: newAccount.address,
-						data: '',
-					},
+					amount: BigInt('8000000000'),
+					recipientAddress: newAccount.address,
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: newAccount.passphrase,
 				});
-				transferTx.sign(node['_networkIdentifier'], newAccount.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerMultisigTx, transferTx]);
 			});
 
@@ -276,41 +234,34 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
-				const fundingTx = new TransferTransaction({
-					nonce: genesisAccount.nonce,
-					senderPublicKey: genesis.publicKey,
+				const fundingTx = createTransferTransaction({
+					nonce: genesisAccount.sequence.nonce,
 					fee: BigInt('200000'),
-					asset: {
-						recipientAddress: accountWithoutBalance.address,
-						amount: BigInt('10000000000'),
-						data: '',
-					},
+					recipientAddress: accountWithoutBalance.address,
+					amount: BigInt('10000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: genesis.passphrase,
 				});
-				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
-				const spendingTx = new TransferTransaction({
+				const spendingTx = createTransferTransaction({
 					nonce: BigInt(0),
-					senderPublicKey: accountWithoutBalance.publicKey,
 					fee: BigInt('200000'),
-					asset: {
-						recipientAddress: genesis.address,
-						amount: BigInt('14000000000'),
-						data: '',
-					},
+					recipientAddress: genesis.address,
+					amount: BigInt('14000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: accountWithoutBalance.passphrase,
 				});
-				spendingTx.sign(node['_networkIdentifier'], accountWithoutBalance.passphrase);
-				const refundingTx = new TransferTransaction({
-					nonce: genesisAccount.nonce + BigInt(1),
-					senderPublicKey: genesis.publicKey,
+				const refundingTx = createTransferTransaction({
+					nonce: genesisAccount.sequence.nonce + BigInt(1),
 					fee: BigInt('200000'),
-					asset: {
-						recipientAddress: accountWithoutBalance.address,
-						amount: BigInt('5000000000'),
-						data: '',
-					},
+					recipientAddress: accountWithoutBalance.address,
+					amount: BigInt('5000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: genesis.passphrase,
 				});
-				refundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [fundingTx, spendingTx, refundingTx]);
 			});
 

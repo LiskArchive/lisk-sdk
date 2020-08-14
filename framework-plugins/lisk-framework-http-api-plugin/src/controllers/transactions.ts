@@ -56,7 +56,8 @@ const transactionInputSchema = {
 
 interface TransactionInput {
 	id: string;
-	type: number;
+	moduleType: number;
+	assetType: number;
 	fee: string;
 	nonce: string;
 	senderPublicKey: string;

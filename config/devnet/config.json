@@ -9,17 +9,31 @@
 		"blockTime": 10,
 		"communityIdentifier": "Lisk",
 		"maxPayloadLength": 15360,
+		"bftThreshold": 68,
+		"minFeePerByte": 1000,
+		"baseFees": [
+			{
+				"moduleType": 5,
+				"assetType": 0,
+				"baseFee": "1000000000"
+			}
+		],
 		"rewards": {
 			"milestones": ["500000000", "400000000", "300000000", "200000000", "100000000"],
 			"offset": 2160,
 			"distance": 3000000
-		}
+		},
+		"minRemainingBalance": 5000000,
+		"activeDelegates": 101,
+		"standbyDelegates": 2,
+		"delegateListRoundOffset": 2
 	},
 	"logger": {
 		"fileLogLevel": "debug",
 		"consoleLogLevel": "info"
 	},
 	"network": {
+		"port": 5000,
 		"seedPeers": [
 			{
 				"ip": "127.0.0.1",
@@ -29,6 +43,7 @@
 	},
 	"forging": {
 		"force": true,
+		"waitThreshold": 2,
 		"delegates": [
 			{
 				"encryptedPassphrase": "iterations=10&cipherText=0dbd21ac5c154dbb72ce90a4e252a64b692203a4f8e25f8bfa1b1993e2ba7a9bd9e1ef1896d8d584a62daf17a8ccf12b99f29521b92cc98b74434ff501374f7e1c6d8371a6ce4e2d083489&iv=98a89678d1ccd054b85e3b3c&salt=c9cb4e7783cacca6c0e1c210cb9252e1&tag=5c66c5e75a6241538695fb16d8f0cdc9&version=1",

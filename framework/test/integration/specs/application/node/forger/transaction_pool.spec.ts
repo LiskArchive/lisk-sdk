@@ -13,10 +13,10 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { genesis } from '../../../../../fixtures';
+import { createTransferTransaction } from '../../../../../utils/node/transaction';
 
 describe('Transaction pool', () => {
 	const dbName = 'transaction_pool';
@@ -42,17 +42,13 @@ describe('Transaction pool', () => {
 		beforeAll(async () => {
 			const genesisAccount = await node._chain.dataAccess.getAccountByAddress(genesis.address);
 			const account = nodeUtils.createAccount();
-			transaction = new TransferTransaction({
+			transaction = createTransferTransaction({
 				nonce: genesisAccount.nonce,
-				senderPublicKey: genesis.publicKey,
-				fee: BigInt('200000'),
-				asset: {
-					recipientAddress: account.address,
-					amount: BigInt('100000000000'),
-					data: '',
-				},
+				recipientAddress: account.address,
+				amount: BigInt('100000000000'),
+				networkIdentifier: Buffer.from(node._networkIdentifier, 'hex'),
+				passphrase: genesis.passphrase,
 			});
-			transaction.sign(Buffer.from(node._networkIdentifier, 'hex'), genesis.passphrase);
 			await node._transport.handleEventPostTransaction({
 				transaction: transaction.getBytes().toString('base64'),
 			});

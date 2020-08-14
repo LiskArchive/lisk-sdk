@@ -58,7 +58,7 @@ try {
 		},
 	};
 	// To run multiple applications for same network for integration tests
-	app = new Application(genesisBlock, mergedConfig);
+	app = Application.defaultApplication(genesisBlock, mergedConfig);
 
 	app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
 	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: true });

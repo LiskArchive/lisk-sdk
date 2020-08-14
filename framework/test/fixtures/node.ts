@@ -31,14 +31,18 @@ export const nodeOptions = {
 		delegates: [],
 	},
 	genesisConfig: {
-		activeDelegates: 101,
-		standbyDelegates: 2,
+		blockTime: 10, // 10 seconds
+		communityIdentifier: 'Lisk',
 		maxPayloadLength: 15 * 1024, // 15kb
 		bftThreshold: 68, // Two third of active delegates Math.ceil(activeDelegates * 2 / 3)
-		baseFees: [],
-		blockTime: 10, // 10 seconds
-		minFeePerByte: 10000, // 10k beddows or 0.00001 LSK
-		communityIdentifier: 'Lisk',
+		baseFees: [
+			{
+				moduleType: 5,
+				assetType: 0,
+				baseFee: '1000000000',
+			},
+		],
+		minFeePerByte: 1000, // 10k beddows or 0.00001 LSK
 		rewards: {
 			milestones: [
 				'500000000', // Initial Reward
@@ -50,5 +54,9 @@ export const nodeOptions = {
 			offset: 2160, // Start rewards at first block of the second round
 			distance: 3000000, // Distance between each milestone
 		},
+		minRemainingBalance: 5000000,
+		activeDelegates: 101,
+		standbyDelegates: 2,
+		delegateListRoundOffset: 2,
 	},
 } as Options;

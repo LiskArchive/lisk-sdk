@@ -23,6 +23,39 @@ export const genesis = {
 	password: 'elephant tree paris dragon chair galaxy',
 };
 
+export interface DefaultAccountProps {
+	token: {
+		balance: bigint;
+	};
+	sequence: {
+		nonce: bigint;
+	};
+	keys: {
+		mandatoryKeys: Buffer[];
+		optionalKeys: Buffer[];
+		numberOfSignatures: number;
+	};
+	dpos: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: bigint;
+		};
+		sentVotes: {
+			delegateAddress: Buffer;
+			amount: bigint;
+		}[];
+		unlocking: {
+			delegateAddress: Buffer;
+			amount: bigint;
+			unvoteHeight: number;
+		}[];
+	};
+}
+
 export const defaultAccountSchema = {
 	token: {
 		type: 'object',

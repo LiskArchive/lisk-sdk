@@ -18,8 +18,8 @@ import { objects } from '@liskhq/lisk-utils';
 import { constantsConfig, nodeConfig } from '../configs';
 import { createMockChannel } from '../channel';
 import { Node, Options } from '../../../src/application/node/node';
-import { genesisBlock } from '../../fixtures/blocks';
 import * as config from '../../fixtures/config/devnet/config.json';
+import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import { Logger } from '../../../src/application/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { ApplicationConfig } from '../../../src/types';
@@ -64,10 +64,9 @@ export const createNode = ({
 			...mergedConfig.forging,
 			delegates: convertedDelegates,
 		},
+		genesisConfig: constantsConfig(),
 		...options,
-		communityIdentifier: 'Lisk',
-		constants: constantsConfig(),
-		genesisBlock: (genesisBlock() as unknown) as Record<string, unknown>,
+		genesisBlock: genesisBlockJSON,
 	};
 	return new Node({
 		channel: channel ?? (createMockChannel() as any),

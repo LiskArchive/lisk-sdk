@@ -26,7 +26,6 @@ import {
 	TransactionJSON,
 	BlockHeaderJSON,
 } from 'lisk-framework';
-import { VoteTransaction } from '@liskhq/lisk-transactions';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
 import type { Express } from 'express';
 import { initApi } from './api';
@@ -360,7 +359,7 @@ export class ForgerPlugin extends BasePlugin {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
 		for (const trx of payload) {
-			if (trx.type === VoteTransaction.TYPE) {
+			if (trx.moduleType === 5 && trx.assetType === 1) {
 				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'base64'));
 				(trx.asset as Asset).votes.reduce((acc: ForgerReceivedVotes, curr) => {
 					if (
@@ -436,9 +435,13 @@ export class ForgerPlugin extends BasePlugin {
 
 		for (let index = 0; index < payload.length; index += 1) {
 			const trx = payload[index];
+			const baseFee =
+				this._transactionFees.baseFees.find(
+					bf => bf.moduleType === trx.moduleType && bf.assetType === trx.assetType,
+				)?.baseFee ?? '0';
 			fee +=
-				BigInt(this._transactionFees[trx.type].baseFee) +
-				BigInt(this._transactionFees[trx.type].minFeePerByte) * BigInt(payloadBuffer[index].length);
+				BigInt(baseFee) +
+				BigInt(this._transactionFees.minFeePerByte) * BigInt(payloadBuffer[index].length);
 		}
 
 		return fee;

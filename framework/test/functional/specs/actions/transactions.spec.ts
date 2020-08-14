@@ -11,21 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { TransferTransaction } from '@liskhq/lisk-transactions';
 import {
 	createApplication,
 	closeApplication,
 	sendTransaction,
 	waitNBlocks,
 } from '../../utils/application';
-import { Application } from '../../../../src';
-import { genesis } from '../../../fixtures';
+import { Application, Transaction } from '../../../../src';
+import { genesis, DefaultAccountProps } from '../../../fixtures';
 import { nodeUtils } from '../../../utils';
+import { createTransferTransaction } from '../../../utils/node/transaction';
 
 describe('Transaction related actions', () => {
 	let app: Application;
-	let sentTx: TransferTransaction;
+	let sentTx: Transaction;
 
 	beforeAll(async () => {
 		app = await createApplication('actions-transactions');
@@ -46,21 +45,18 @@ describe('Transaction related actions', () => {
 
 	describe('postTransaction', () => {
 		it('should successfully post valid transaction', async () => {
-			const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress(
-				genesis.address,
-			);
+			const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress<
+				DefaultAccountProps
+			>(genesis.address);
 			const accountWithoutBalance = nodeUtils.createAccount();
-			const fundingTx = new TransferTransaction({
-				nonce: genesisAccount.nonce,
-				senderPublicKey: genesis.publicKey,
+			const fundingTx = createTransferTransaction({
+				nonce: genesisAccount.sequence.nonce,
 				fee: BigInt('200000'),
-				asset: {
-					recipientAddress: accountWithoutBalance.address,
-					amount: BigInt('10000000000'),
-					data: '',
-				},
+				recipientAddress: accountWithoutBalance.address,
+				amount: BigInt('10000000000'),
+				networkIdentifier: app['_node']['_networkIdentifier'],
+				passphrase: genesis.passphrase,
 			});
-			fundingTx.sign(app['_node']['_networkIdentifier'], genesis.passphrase);
 
 			await expect(
 				app['_channel'].invoke('app:postTransaction', {

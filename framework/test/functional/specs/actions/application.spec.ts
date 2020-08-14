@@ -11,17 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { blockSchema, blockHeaderSchema } from '@liskhq/lisk-chain';
-
-import {
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	UnlockTransaction,
-	MultisignatureTransaction,
-	ProofOfMisbehaviorTransaction,
-	BaseTransaction,
-} from '@liskhq/lisk-transactions';
+import { blockSchema, blockHeaderSchema, transactionSchema } from '@liskhq/lisk-chain';
 
 import { createApplication, closeApplication } from '../../utils/application';
 
@@ -44,19 +34,12 @@ describe('Application related actions', () => {
 			const appInstance = app as any;
 
 			const expectedFrameworkSchemas = {
-				account: appInstance._node._chain.accountSchema,
+				accountSchema: appInstance._node._chain.accountSchema,
 				blockSchema,
 				blockHeaderSchema,
 				blockHeadersAssets: appInstance._node._chain.blockAssetSchema,
-				baseTransaction: BaseTransaction.BASE_SCHEMA,
-				transactionsAssets: {
-					[TransferTransaction.TYPE]: TransferTransaction.ASSET_SCHEMA,
-					[DelegateTransaction.TYPE]: DelegateTransaction.ASSET_SCHEMA,
-					[VoteTransaction.TYPE]: VoteTransaction.ASSET_SCHEMA,
-					[UnlockTransaction.TYPE]: UnlockTransaction.ASSET_SCHEMA,
-					[MultisignatureTransaction.TYPE]: MultisignatureTransaction.ASSET_SCHEMA,
-					[ProofOfMisbehaviorTransaction.TYPE]: ProofOfMisbehaviorTransaction.ASSET_SCHEMA,
-				},
+				transactionSchema,
+				transactionsAssetSchemas: [],
 			};
 
 			expect(frameworkSchemas).toEqual(expectedFrameworkSchemas);
@@ -76,11 +59,7 @@ describe('Application related actions', () => {
 				finalizedHeight: appInstance._node._bft.finalityManager.finalizedHeight,
 				syncing: appInstance._node._synchronizer.isActive,
 				unconfirmedTransactions: appInstance._node._transactionPool.getAll().length,
-				genesisConfig: {
-					...appInstance._node._options.genesisConfig,
-					...appInstance._node._options.constants,
-					totalAmount: appInstance._node._options.constants.totalAmount.toString(),
-				},
+				genesisConfig: appInstance._node._options.genesisConfig,
 			};
 
 			const nodeStatusAndConstants = await app['_channel'].invoke('app:getNodeInfo');
