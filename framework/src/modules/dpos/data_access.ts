@@ -44,6 +44,7 @@ export const getRegisteredDelegates = async (
 
 	return parsedUsernames as DelegatePersistedUsernames;
 };
+
 export const setRegisteredDelegates = (
 	store: StateStore,
 	usernames: DelegatePersistedUsernames,

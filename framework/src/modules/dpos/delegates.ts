@@ -257,10 +257,10 @@ export const createVoteWeightsSnapshot = async ({
 	const voteWeights = await getVoteWeights(stateStore);
 	const voteWeightsIndex = voteWeights.findIndex(vw => vw.round === round);
 
-	if (voteWeightsIndex > -1) {
-		voteWeights[voteWeightsIndex] = voteWeight;
-	} else {
+	if (voteWeightsIndex === -1) {
 		voteWeights.push(voteWeight);
+	} else {
+		voteWeights[voteWeightsIndex] = voteWeight;
 	}
 
 	setVoteWeights(stateStore, voteWeights);
@@ -295,7 +295,7 @@ export const updateProductivity = async ({
 		const missedForger = await stateStore.account.get<DPOSAccountProps>(missedForgerAddress);
 		missedForger.dpos.delegate.consecutiveMissedBlocks += 1;
 
-		// Ban the missed forger if both consecutive missed block and last forged blcok diff condition are met
+		// Ban the missed forger if both consecutive missed block and last forged block diff condition are met
 		if (
 			missedForger.dpos.delegate.consecutiveMissedBlocks > MAX_CONSECUTIVE_MISSED_BLOCKS &&
 			height - missedForger.dpos.delegate.lastForgedHeight > MAX_LAST_FORGED_HEIGHT_DIFF

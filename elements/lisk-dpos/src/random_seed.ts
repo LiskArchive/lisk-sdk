@@ -19,7 +19,7 @@ import { Rounds } from './rounds';
 import { BlockHeader, FixedLengthArray, RandomSeed } from './types';
 
 // eslint-disable-next-line new-cap
-const debug = Debug('lisk:dpos:random_seed');
+const debug = Debug('dpos:random_seed');
 
 interface HeadersMap {
 	[key: number]: BlockHeader;

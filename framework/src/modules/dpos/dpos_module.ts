@@ -146,7 +146,7 @@ export class DPoSModule extends BaseModule {
 		} = input;
 
 		const round = this.rounds.calcRound(blockHeader.height);
-		debug('Calculating missed block', round);
+		debug('Updating delegates productivity', round);
 		await updateProductivity({
 			height: blockHeader.height,
 			blockTime: this._blockTime,
