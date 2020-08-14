@@ -228,6 +228,8 @@ export type Delegate = Omit<Validator, 'minActiveHeight'>;
 export type AccountSchema = Omit<ChainAccountSchema, 'fieldNumber'>;
 
 export interface Consensus {
+	getDelegates: () => Promise<Delegate[]>;
 	updateDelegates: (delegates: Delegate[]) => Promise<void>;
 	getFinalizedHeight: () => number;
+	getLastBootstrapHeight: () => number;
 }

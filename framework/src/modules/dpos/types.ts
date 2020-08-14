@@ -14,7 +14,7 @@
 
 import { BlockHeader } from '@liskhq/lisk-chain';
 
-interface RegisteredDelegate {
+export interface RegisteredDelegate {
 	readonly username: string;
 	readonly address: Buffer;
 }
@@ -75,3 +75,32 @@ export interface PomTransactionAssetInput {
 	readonly header1: BlockHeader<BlockHeaderAssetForDPOS>;
 	readonly header2: BlockHeader<BlockHeaderAssetForDPOS>;
 }
+
+export interface DelegateWeight {
+	readonly address: Buffer;
+	readonly voteWeight: bigint;
+}
+
+export interface VoteWeight {
+	readonly round: number;
+	readonly delegates: ReadonlyArray<DelegateWeight>;
+}
+
+export type VoteWeights = VoteWeight[];
+
+export interface DecodedVoteWeights {
+	voteWeights: VoteWeights;
+}
+
+type Grow<T, A extends T[]> = ((x: T, ...xs: A) => void) extends (...a: infer X) => void
+	? X
+	: never;
+type GrowToSize<T, A extends T[], N extends number> = {
+	readonly 0: A;
+	readonly 1: GrowToSize<T, Grow<T, A>, N>;
+}[A['length'] extends N ? 0 : 1];
+
+export type FixedLengthArray<T, N extends number> = GrowToSize<T, [], N>;
+
+// Look for a way to define buffer type with fixed size
+export type RandomSeed = Buffer;

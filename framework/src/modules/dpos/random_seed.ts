@@ -12,14 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BlockHeader } from '@liskhq/lisk-chain';
 import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import { Rounds } from './rounds';
-import { BlockHeader, FixedLengthArray, RandomSeed } from './types';
+import { FixedLengthArray, RandomSeed } from './types';
 
 // eslint-disable-next-line new-cap
-const debug = Debug('dpos:random_seed');
+const debug = Debug('lisk:dpos:random_seed');
 
 interface HeadersMap {
 	[key: number]: BlockHeader;

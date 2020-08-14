@@ -13,10 +13,10 @@
  */
 
 import { when } from 'jest-when';
-import { BlockHeader } from '@liskhq/lisk-chain';
+import { BlockHeader, Account } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import { getAddressAndPublicKeyFromPassphrase, getRandomBytes } from '@liskhq/lisk-cryptography';
-import { ApplyAssetInput, ValidateAssetInput, Account } from '../../../../../../src/modules';
+import { ApplyAssetInput, ValidateAssetInput } from '../../../../../../src';
 import { createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
 import {

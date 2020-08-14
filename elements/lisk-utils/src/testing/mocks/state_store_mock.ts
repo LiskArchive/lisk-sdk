@@ -27,7 +27,7 @@ interface AccountState {
 }
 
 interface ChainState {
-	lastBlockHeader: BlockHeader;
+	lastBlockHeaders: BlockHeader[];
 	lastBlockReward: bigint;
 	networkIdentifier: Buffer;
 	get(key: string): Promise<Buffer | undefined>;
@@ -107,7 +107,7 @@ export class StateStoreMock {
 
 		this.chain = {
 			networkIdentifier: networkIdentifier ?? defaultNetworkIdentifier,
-			lastBlockHeader: lastBlockHeaders && lastBlockHeaders.length > 0 ? lastBlockHeaders[0] : {},
+			lastBlockHeaders: lastBlockHeaders ?? [],
 			lastBlockReward: lastBlockReward ?? BigInt(0),
 			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(cloneDeep(this.chainData[key])),

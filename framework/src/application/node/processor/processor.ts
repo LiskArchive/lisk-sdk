@@ -13,7 +13,14 @@
  */
 
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
-import { Chain, Block, GenesisBlock, StateStore, Transaction } from '@liskhq/lisk-chain';
+import {
+	Chain,
+	Block,
+	GenesisBlock,
+	StateStore,
+	Transaction,
+	getValidators,
+} from '@liskhq/lisk-chain';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { EventEmitter } from 'events';
 import { codec } from '@liskhq/lisk-codec';
@@ -442,10 +449,12 @@ export class Processor {
 
 	private _createConsensus(stateStore: StateStore): Consensus {
 		return {
+			getLastBootstrapHeight: (): number => this._chain.lastBootstrapHeight,
 			getFinalizedHeight: (): number => this._bft.finalizedHeight,
 			updateDelegates: async (delegates: Delegate[]): Promise<void> => {
 				await this._chain.setValidators(delegates, stateStore);
 			},
+			getDelegates: async (): Promise<Delegate[]> => getValidators(stateStore),
 		};
 	}
 

@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Account } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { Account, ApplyAssetInput, ValidateAssetInput } from '../../../../../../src/modules';
+import { ApplyAssetInput, ValidateAssetInput } from '../../../../../../src';
 import { createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
 import { UnlockTransactionAsset } from '../../../../../../src/modules/dpos/transaction_assets/unlock_transaction_asset';

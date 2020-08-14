@@ -16,8 +16,9 @@ import { BaseAsset } from '../../base_asset';
 import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { DELEGATE_NAME_FEE } from '../constants';
-import { getRegisteredDelegates, isUsername, setRegisteredDelegates } from '../utils';
+import { isUsername } from '../utils';
 import { DPOSAccountProps, RegisterTransactionAssetInput } from '../types';
+import { getRegisteredDelegates, setRegisteredDelegates } from '../data_access';
 
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetInput> {
 	public baseFee = DELEGATE_NAME_FEE;

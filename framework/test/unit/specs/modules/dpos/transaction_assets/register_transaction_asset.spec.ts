@@ -19,6 +19,7 @@ import { ApplyAssetInput } from '../../../../../../src/types';
 import { createAccount, createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
 import { RegisterTransactionAssetInput } from '../../../../../../src/modules/dpos';
+import { CHAIN_STATE_DELEGATE_USERNAMES } from '../../../../../../src/modules/dpos/constants';
 
 describe('RegisterTransactionAsset', () => {
 	const lastBlockHeight = 200;
@@ -175,7 +176,7 @@ describe('RegisterTransactionAsset', () => {
 			input.asset = { username: 'myuser' };
 
 			stateStoreMock.chain.set(
-				'delegateUsernames',
+				CHAIN_STATE_DELEGATE_USERNAMES,
 				codec.encode(delegatesUserNamesSchema, {
 					registeredDelegates: [
 						{
