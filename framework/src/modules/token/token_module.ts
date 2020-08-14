@@ -94,4 +94,21 @@ export class TokenModule extends BaseModule {
 			);
 		}
 	}
+
+	public async afterTransactionApply({
+		transaction,
+		stateStore,
+	}: TransactionApplyInput): Promise<void> {
+		// Verify sender has minimum remaining balance
+		const senderAddress = transaction.senderPublicKey;
+		const sender = await stateStore.account.getOrDefault<TokenAccount>(senderAddress);
+		if (sender.token.balance < this.config.minRemainingBalance) {
+			throw new Error(
+				`Account does not have enough minimum remaining balance: ${sender.address.toString(
+					'base64',
+				)}. Current balance is: ${sender.token.balance}. Required minimum balance is: ${(this.config
+					.minRemainingBalance as bigint).toString()}.`,
+			);
+		}
+	}
 }
