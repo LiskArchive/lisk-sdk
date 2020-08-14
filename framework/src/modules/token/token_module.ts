@@ -111,4 +111,37 @@ export class TokenModule extends BaseModule {
 			);
 		}
 	}
+
+	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
+	public async afterBlockApply({ block, stateStore }: AfterBlockApplyInput): Promise<void> {
+		// Credit reward and fee to generator
+		const generatorAddress = getAddressFromPublicKey(block.header.generatorPublicKey);
+		const generator = await stateStore.account.get<TokenAccount>(generatorAddress);
+		generator.token.balance += block.header.reward;
+		// If there is no transactions, no need to give fee
+		if (!block.payload.length) {
+			stateStore.account.set(generatorAddress, generator);
+
+			return;
+		}
+		const { totalFee, totalMinFee } = getTotalFees(
+			block,
+			BigInt(this.config.minFeePerByte),
+			this.config.baseFees,
+		);
+		// Generator only gets total fee - min fee
+		const givenFee = totalFee - totalMinFee;
+		// This is necessary only for genesis block case, where total fee is 0, which is invalid
+		// Also, genesis block cannot be reverted
+		generator.token.balance += givenFee > 0 ? givenFee : BigInt(0);
+		const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
+		let totalFeeBurnt = totalFeeBurntBuffer ? totalFeeBurntBuffer.readBigInt64BE() : BigInt(0);
+		totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
+
+		// Update state store
+		const updatedTotalBurntBuffer = Buffer.alloc(8);
+		updatedTotalBurntBuffer.writeBigInt64BE(totalFeeBurnt);
+		stateStore.account.set(generatorAddress, generator);
+		stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
+	}
 }
