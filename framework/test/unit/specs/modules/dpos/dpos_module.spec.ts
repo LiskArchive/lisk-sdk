@@ -16,11 +16,23 @@ import { testing } from '@liskhq/lisk-utils';
 import { GenesisBlock, Account } from '@liskhq/lisk-chain';
 import { DPOSAccountProps, DPoSModule } from '../../../../../src/modules/dpos';
 import * as dataAccess from '../../../../../src/modules/dpos/data_access';
-import { AfterGenesisBlockApplyInput, GenesisConfig } from '../../../../../src';
+import * as delegates from '../../../../../src/modules/dpos/delegates';
+import * as randomSeed from '../../../../../src/modules/dpos/random_seed';
+import {
+	AfterBlockApplyInput,
+	AfterGenesisBlockApplyInput,
+	GenesisConfig,
+} from '../../../../../src';
 import { Rounds } from '../../../../../src/modules/dpos/rounds';
-import { genesisBlock as createGenesisBlock } from '../../../../fixtures/blocks';
+import {
+	createValidDefaultBlock,
+	genesisBlock as createGenesisBlock,
+} from '../../../../fixtures/blocks';
+import Mock = jest.Mock;
 
-jest.mock('../../../../../src/modules/dpos/data_access.ts');
+jest.mock('../../../../../src/modules/dpos/data_access');
+jest.mock('../../../../../src/modules/dpos/delegates');
+jest.mock('../../../../../src/modules/dpos/random_seed');
 
 const { StateStoreMock } = testing;
 
@@ -32,7 +44,7 @@ describe('DPoSModule', () => {
 	beforeEach(() => {
 		genesisConfig = {
 			activeDelegates: 101,
-			standbyDelegates: 3,
+			standbyDelegates: 2,
 			delegateListRoundOffset: 3,
 			baseFees: [
 				{
@@ -192,6 +204,192 @@ describe('DPoSModule', () => {
 			expect(dataAccess.setRegisteredDelegates).toBeCalledTimes(1);
 			expect(dataAccess.setRegisteredDelegates).toBeCalledWith(input.stateStore, {
 				registeredDelegates: allDelegates,
+			});
+		});
+	});
+
+	describe('afterBlockApply', () => {
+		let input: AfterBlockApplyInput;
+
+		beforeEach(() => {
+			(randomSeed.generateRandomSeeds as Mock).mockReturnValue([]);
+			input = {
+				block: createValidDefaultBlock(),
+				stateStore: new StateStoreMock({
+					lastBlockHeaders: [createValidDefaultBlock({ header: { height: 10 } })],
+				}) as any,
+				reducerHandler: reducerHandlerMock,
+				consensus: {
+					getLastBootstrapHeight: jest.fn().mockReturnValue(5),
+					getFinalizedHeight: jest.fn().mockReturnValue(0),
+					getDelegates: jest.fn(),
+					updateDelegates: jest.fn(),
+				},
+			};
+
+			dposModule = new DPoSModule(genesisConfig);
+		});
+
+		describe('when finalized height changed', () => {
+			it('should delete cache vote weight list', async () => {
+				const round34 = 103 * 34;
+				dposModule['_finalizedHeight'] = round34 - 5;
+				// 34 rounds
+				(input.consensus.getFinalizedHeight as Mock).mockReturnValue(round34);
+				await dposModule.afterBlockApply(input);
+
+				expect(dataAccess.deleteVoteWeightsUntilRound).toBeCalledTimes(1);
+				expect(dataAccess.deleteVoteWeightsUntilRound).toBeCalledWith(
+					34 - (genesisConfig.delegateListRoundOffset as number) - 3,
+					input.stateStore,
+				);
+			});
+		});
+
+		describe('when finalized height not changed', () => {
+			it('should not delete cache vote weight list', async () => {
+				await dposModule.afterBlockApply(input);
+
+				expect(dataAccess.deleteVoteWeightsUntilRound).not.toBeCalled();
+			});
+		});
+
+		describe('when its bootstrap period', () => {
+			const bootstrapRound = 50;
+
+			beforeEach(() => {
+				input.block = createValidDefaultBlock({ header: { height: 10 } });
+				(input.consensus.getLastBootstrapHeight as Mock).mockReturnValue(bootstrapRound * 103);
+			});
+
+			it('should not update productivity', async () => {
+				await dposModule.afterBlockApply(input);
+
+				expect(delegates.updateProductivity).not.toBeCalled();
+			});
+
+			describe('when its not the last block of round', () => {
+				beforeEach(async () => {
+					input.block = createValidDefaultBlock({ header: { height: 10 * 103 - 1 } });
+
+					await dposModule.afterBlockApply(input);
+				});
+
+				it('should not create vote weight', () => {
+					expect(delegates.createVoteWeightsSnapshot).not.toBeCalled();
+				});
+
+				it('should not update validators', () => {
+					expect(randomSeed.generateRandomSeeds).not.toBeCalled();
+					expect(delegates.updateDelegateList).not.toBeCalled();
+				});
+			});
+
+			describe('when its the last block of round and the last block of bootstrap period', () => {
+				beforeEach(async () => {
+					input.block = createValidDefaultBlock({ header: { height: bootstrapRound * 103 } });
+
+					await dposModule.afterBlockApply(input);
+				});
+
+				it('should create vote weight', () => {
+					expect(delegates.createVoteWeightsSnapshot).toBeCalledTimes(1);
+					expect(delegates.createVoteWeightsSnapshot).toBeCalledWith({
+						activeDelegates: genesisConfig.activeDelegates,
+						standbyDelegates: genesisConfig.standbyDelegates,
+						height: bootstrapRound * 103 + 1,
+						stateStore: input.stateStore,
+						round: bootstrapRound + (genesisConfig.delegateListRoundOffset as number) + 1,
+					});
+				});
+
+				it('should update validators', () => {
+					expect(randomSeed.generateRandomSeeds).toBeCalledTimes(1);
+					expect(delegates.updateDelegateList).toBeCalledTimes(1);
+				});
+			});
+
+			describe('when its the last block of round and not the last block of bootstrap period', () => {
+				let blockRound: number;
+
+				beforeEach(async () => {
+					blockRound = bootstrapRound - 1;
+
+					input.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
+
+					await dposModule.afterBlockApply(input);
+				});
+
+				it('should create vote weight', () => {
+					expect(delegates.createVoteWeightsSnapshot).toBeCalledTimes(1);
+					expect(delegates.createVoteWeightsSnapshot).toBeCalledWith({
+						activeDelegates: genesisConfig.activeDelegates,
+						standbyDelegates: genesisConfig.standbyDelegates,
+						height: blockRound * 103 + 1,
+						stateStore: input.stateStore,
+						round: blockRound + (genesisConfig.delegateListRoundOffset as number) + 1,
+					});
+				});
+
+				it('should not update validators', () => {
+					expect(randomSeed.generateRandomSeeds).not.toBeCalled();
+					expect(delegates.updateDelegateList).not.toBeCalled();
+				});
+			});
+		});
+
+		describe('when its not bootstrap period', () => {
+			const bootstrapRound = 5;
+
+			beforeEach(() => {
+				(input.consensus.getLastBootstrapHeight as Mock).mockReturnValue(bootstrapRound * 103);
+			});
+
+			describe('when its the last block of round', () => {
+				let blockRound: number;
+
+				beforeEach(async () => {
+					blockRound = bootstrapRound + 1;
+
+					input.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
+
+					await dposModule.afterBlockApply(input);
+				});
+
+				it('should create vote weight', () => {
+					expect(delegates.createVoteWeightsSnapshot).toBeCalledTimes(1);
+					expect(delegates.createVoteWeightsSnapshot).toBeCalledWith({
+						activeDelegates: genesisConfig.activeDelegates,
+						standbyDelegates: genesisConfig.standbyDelegates,
+						height: blockRound * 103 + 1,
+						stateStore: input.stateStore,
+						round: blockRound + (genesisConfig.delegateListRoundOffset as number) + 1,
+					});
+				});
+
+				it('should update validators', () => {
+					expect(randomSeed.generateRandomSeeds).toBeCalledTimes(1);
+					expect(delegates.updateDelegateList).toBeCalledTimes(1);
+				});
+			});
+
+			describe('when its not the last block of round', () => {
+				beforeEach(async () => {
+					input.block = createValidDefaultBlock({
+						header: { height: (bootstrapRound + 1) * 103 + 3 },
+					});
+
+					await dposModule.afterBlockApply(input);
+				});
+
+				it('should not create vote weight', () => {
+					expect(delegates.createVoteWeightsSnapshot).not.toBeCalled();
+				});
+
+				it('should not update validators', () => {
+					expect(randomSeed.generateRandomSeeds).not.toBeCalled();
+					expect(delegates.updateDelegateList).not.toBeCalled();
+				});
 			});
 		});
 	});

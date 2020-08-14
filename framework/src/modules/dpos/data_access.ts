@@ -72,3 +72,12 @@ export const setVoteWeights = (stateStore: StateStore, voteWeights: VoteWeights)
 		codec.encode(voteWeightsSchema, { voteWeights }),
 	);
 };
+
+export const deleteVoteWeightsUntilRound = async (
+	round: number,
+	stateStore: StateStore,
+): Promise<void> => {
+	const voteWeights = await getVoteWeights(stateStore);
+	const newVoteWeights = voteWeights.filter(vw => vw.round >= round);
+	setVoteWeights(stateStore, newVoteWeights);
+};

@@ -13,23 +13,17 @@
  */
 
 import * as Debug from 'debug';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { objects as objectsUtils } from '@liskhq/lisk-utils';
-import { Account, BlockHeader } from '@liskhq/lisk-chain';
+import { Account } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
 import { AfterBlockApplyInput, AfterGenesisBlockApplyInput, GenesisConfig } from '../../types';
 import { Rounds } from './rounds';
 import { DPOSAccountProps } from './types';
-import { MAX_CONSECUTIVE_MISSED_BLOCKS, MAX_LAST_FORGED_HEIGHT_DIFF } from './constants';
 import { dposAccountSchema, dposModuleParamsSchema } from './schema';
 import { generateRandomSeeds } from './random_seed';
-import {
-	createVoteWeightsSnapshot,
-	deleteVoteWeightsUntilRound,
-	updateDelegateList,
-} from './delegates';
-import { setRegisteredDelegates } from './data_access';
+import { createVoteWeightsSnapshot, updateDelegateList, updateProductivity } from './delegates';
+import { deleteVoteWeightsUntilRound, setRegisteredDelegates } from './data_access';
 
 const { bufferArrayContains } = objectsUtils;
 
@@ -80,8 +74,8 @@ export class DPoSModule extends BaseModule {
 	public async afterBlockApply(input: AfterBlockApplyInput): Promise<void> {
 		const finalizedHeight = input.consensus.getFinalizedHeight();
 		const lastBootstrapHeight = input.consensus.getLastBootstrapHeight();
-		const isLastBlockOfRound = this._isLastBlockOfTheRound(input.block.header);
 		const { height } = input.block.header;
+		const isLastBlockOfRound = this._isLastBlockOfTheRound(height);
 		const isBootstrapPeriod = height <= lastBootstrapHeight;
 
 		if (finalizedHeight !== this._finalizedHeight) {
@@ -90,6 +84,8 @@ export class DPoSModule extends BaseModule {
 			const finalizedBlockRound = this.rounds.calcRound(finalizedHeight);
 			const disposableDelegateListUntilRound =
 				finalizedBlockRound - this._delegateListRoundOffset - this._delegateActiveRoundLimit;
+
+			debug('Deleting voteWeights until round: ', disposableDelegateListUntilRound);
 			await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, input.stateStore);
 		}
 
@@ -151,40 +147,14 @@ export class DPoSModule extends BaseModule {
 
 		const round = this.rounds.calcRound(blockHeader.height);
 		debug('Calculating missed block', round);
-
-		const lastBlock = stateStore.chain.lastBlockHeaders[0];
-		const expectedForgingAddresses = (await consensus.getDelegates()).map(d => d.address);
-
-		const missedBlocks =
-			Math.ceil((blockHeader.timestamp - lastBlock.timestamp) / this._blockTime) - 1;
-		const forgerAddress = getAddressFromPublicKey(blockHeader.generatorPublicKey);
-		const forgerIndex = expectedForgingAddresses.findIndex(address =>
-			address.equals(forgerAddress),
-		);
-		// Update consecutive missed block
-		for (let i = 0; i < missedBlocks; i += 1) {
-			const rawIndex = (forgerIndex - 1 - i) % expectedForgingAddresses.length;
-			const index = rawIndex >= 0 ? rawIndex : rawIndex + expectedForgingAddresses.length;
-			const missedForgerAddress = expectedForgingAddresses[index];
-			const missedForger = await stateStore.account.get<DPOSAccountProps>(missedForgerAddress);
-			missedForger.dpos.delegate.consecutiveMissedBlocks += 1;
-
-			// Ban the missed forger if both consecutive missed block and last forged blcok diff condition are met
-			if (
-				missedForger.dpos.delegate.consecutiveMissedBlocks > MAX_CONSECUTIVE_MISSED_BLOCKS &&
-				blockHeader.height - missedForger.dpos.delegate.lastForgedHeight >
-					MAX_LAST_FORGED_HEIGHT_DIFF
-			) {
-				missedForger.dpos.delegate.isBanned = true;
-			}
-			stateStore.account.set(missedForgerAddress, missedForger);
-		}
-
-		// Reset consecutive missed block
-		const forger = await stateStore.account.get<DPOSAccountProps>(forgerAddress);
-		forger.dpos.delegate.consecutiveMissedBlocks = 0;
-		forger.dpos.delegate.lastForgedHeight = blockHeader.height;
-		stateStore.account.set(forgerAddress, forger);
+		await updateProductivity({
+			height: blockHeader.height,
+			blockTime: this._blockTime,
+			blockTimestamp: blockHeader.timestamp,
+			generatorPublicKey: blockHeader.generatorPublicKey,
+			stateStore,
+			consensus,
+		});
 	}
 
 	private async _createVoteWeightSnapshot(input: AfterBlockApplyInput): Promise<void> {
@@ -199,7 +169,7 @@ export class DPoSModule extends BaseModule {
 			height: snapshotHeight,
 			round: snapshotRound,
 			activeDelegates: this._activeDelegates,
-			standByDelegates: this._standbyDelegates,
+			standbyDelegates: this._standbyDelegates,
 		});
 	}
 
@@ -224,9 +194,9 @@ export class DPoSModule extends BaseModule {
 		});
 	}
 
-	private _isLastBlockOfTheRound(block: BlockHeader): boolean {
-		const round = this.rounds.calcRound(block.height);
-		const nextRound = this.rounds.calcRound(block.height + 1);
+	private _isLastBlockOfTheRound(height: number): boolean {
+		const round = this.rounds.calcRound(height);
+		const nextRound = this.rounds.calcRound(height + 1);
 
 		return round < nextRound;
 	}

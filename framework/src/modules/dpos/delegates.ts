@@ -13,7 +13,7 @@
  */
 
 import * as Debug from 'debug';
-import { hash } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { Account } from '@liskhq/lisk-chain';
 import { Consensus, StateStore } from '../../types';
 import { DelegateWeight, DPOSAccountProps } from './types';
@@ -23,6 +23,8 @@ import {
 	DEFAULT_STANDBY_DELEGATE,
 	DEFAULT_STANDBY_THRESHOLD,
 	DEFAULT_VOTE_WEIGHT_CAP_RATE,
+	MAX_CONSECUTIVE_MISSED_BLOCKS,
+	MAX_LAST_FORGED_HEIGHT_DIFF,
 } from './constants';
 import { isCurrentlyPunished } from './utils';
 
@@ -152,7 +154,7 @@ export const createVoteWeightsSnapshot = async ({
 	round,
 	voteWeightCapRate = DEFAULT_VOTE_WEIGHT_CAP_RATE,
 	activeDelegates = DEFAULT_ACTIVE_DELEGATE,
-	standByDelegates = DEFAULT_STANDBY_DELEGATE,
+	standbyDelegates = DEFAULT_STANDBY_DELEGATE,
 	standbyThreshold = DEFAULT_STANDBY_THRESHOLD,
 }: {
 	height: number;
@@ -160,7 +162,7 @@ export const createVoteWeightsSnapshot = async ({
 	round: number;
 	voteWeightCapRate?: number;
 	activeDelegates?: number;
-	standByDelegates?: number;
+	standbyDelegates?: number;
 	standbyThreshold?: bigint;
 }): Promise<void> => {
 	debug(`Creating vote weight snapshot for round: ${round.toString()}`);
@@ -233,7 +235,7 @@ export const createVoteWeightsSnapshot = async ({
 
 		// From here, it's below threshold
 		// Below threshold, but prepared array does not have enough selected delegate
-		if (standbyDelegatesList.length < standByDelegates) {
+		if (standbyDelegatesList.length < standbyDelegates) {
 			// In case there was 1 standby delegate who has more than threshold
 			standbyDelegatesList.push({
 				address: account.address,
@@ -264,12 +266,48 @@ export const createVoteWeightsSnapshot = async ({
 	setVoteWeights(stateStore, voteWeights);
 };
 
-export const deleteVoteWeightsUntilRound = async (
-	round: number,
-	stateStore: StateStore,
-): Promise<void> => {
-	debug('Deleting voteWeights until round: ', round);
-	const voteWeights = await getVoteWeights(stateStore);
-	const newVoteWeights = voteWeights.filter(vw => vw.round >= round);
-	setVoteWeights(stateStore, newVoteWeights);
+export const updateProductivity = async ({
+	height,
+	blockTime,
+	generatorPublicKey,
+	blockTimestamp,
+	stateStore,
+	consensus,
+}: {
+	height: number;
+	blockTime: number;
+	generatorPublicKey: Buffer;
+	blockTimestamp: number;
+	stateStore: StateStore;
+	consensus: Consensus;
+}): Promise<void> => {
+	const lastBlock = stateStore.chain.lastBlockHeaders[0];
+	const expectedForgingAddresses = (await consensus.getDelegates()).map(d => d.address);
+
+	const missedBlocks = Math.ceil((blockTimestamp - lastBlock.timestamp) / blockTime) - 1;
+	const forgerAddress = getAddressFromPublicKey(generatorPublicKey);
+	const forgerIndex = expectedForgingAddresses.findIndex(address => address.equals(forgerAddress));
+	// Update consecutive missed block
+	for (let i = 0; i < missedBlocks; i += 1) {
+		const rawIndex = (forgerIndex - 1 - i) % expectedForgingAddresses.length;
+		const index = rawIndex >= 0 ? rawIndex : rawIndex + expectedForgingAddresses.length;
+		const missedForgerAddress = expectedForgingAddresses[index];
+		const missedForger = await stateStore.account.get<DPOSAccountProps>(missedForgerAddress);
+		missedForger.dpos.delegate.consecutiveMissedBlocks += 1;
+
+		// Ban the missed forger if both consecutive missed block and last forged blcok diff condition are met
+		if (
+			missedForger.dpos.delegate.consecutiveMissedBlocks > MAX_CONSECUTIVE_MISSED_BLOCKS &&
+			height - missedForger.dpos.delegate.lastForgedHeight > MAX_LAST_FORGED_HEIGHT_DIFF
+		) {
+			missedForger.dpos.delegate.isBanned = true;
+		}
+		stateStore.account.set(missedForgerAddress, missedForger);
+	}
+
+	// Reset consecutive missed block
+	const forger = await stateStore.account.get<DPOSAccountProps>(forgerAddress);
+	forger.dpos.delegate.consecutiveMissedBlocks = 0;
+	forger.dpos.delegate.lastForgedHeight = height;
+	stateStore.account.set(forgerAddress, forger);
 };
