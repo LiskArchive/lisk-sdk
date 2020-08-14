@@ -31,6 +31,7 @@ import {
 	Consensus,
 	Delegate,
 } from '../../../types';
+import { TransactionApplyError } from '../../../errors';
 
 const forkStatusList = [
 	ForkStatus.IDENTICAL_BLOCK,
@@ -320,25 +321,29 @@ export class Processor {
 			return;
 		}
 		for (const transaction of transactions) {
-			await this._hooks.beforeTransactionApply.run({
-				reducerHandler: this._createReducerHandler(stateStore),
-				stateStore,
-				transaction,
-			});
-			const customAsset = this._getAsset(transaction);
-			const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
-			await customAsset.applyAsset({
-				asset: decodedAsset,
-				reducerHandler: this._createReducerHandler(stateStore),
-				senderID: transaction.senderID,
-				stateStore,
-				transaction,
-			});
-			await this._hooks.afterTransactionApply.run({
-				reducerHandler: this._createReducerHandler(stateStore),
-				stateStore,
-				transaction,
-			});
+			try {
+				await this._hooks.beforeTransactionApply.run({
+					reducerHandler: this._createReducerHandler(stateStore),
+					stateStore,
+					transaction,
+				});
+				const customAsset = this._getAsset(transaction);
+				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
+				await customAsset.applyAsset({
+					asset: decodedAsset,
+					reducerHandler: this._createReducerHandler(stateStore),
+					senderID: transaction.senderID,
+					stateStore,
+					transaction,
+				});
+				await this._hooks.afterTransactionApply.run({
+					reducerHandler: this._createReducerHandler(stateStore),
+					stateStore,
+					transaction,
+				});
+			} catch (err) {
+				throw new TransactionApplyError('Transaction verification failed', transaction.id, err);
+			}
 		}
 	}
 

@@ -24,8 +24,16 @@ describe('TransactionPool class', () => {
 	beforeEach(() => {
 		jest.useFakeTimers();
 		transactionPool = new TransactionPool({
-			applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
+			applyTransactions: jest.fn(),
 			transactionReorganizationInterval: 1,
+			baseFees: [
+				{
+					assetType: 0,
+					baseFee: BigInt(1),
+					moduleType: 3,
+				},
+			],
+			minFeePerByte: 1000,
 		});
 		jest.spyOn(transactionPool.events, 'emit');
 	});
@@ -50,6 +58,14 @@ describe('TransactionPool class', () => {
 					minReplacementFeeDifference: BigInt(100),
 					minEntranceFeePriority: BigInt(10),
 					transactionExpiryTime: 60 * 60 * 1000, // 1 hours in ms
+					baseFees: [
+						{
+							assetType: 0,
+							baseFee: BigInt(1),
+							moduleType: 3,
+						},
+					],
+					minFeePerByte: 1000,
 				});
 
 				expect((transactionPool as any)._maxTransactions).toEqual(2048);
@@ -68,9 +84,10 @@ describe('TransactionPool class', () => {
 		beforeEach(async () => {
 			tx = {
 				id: Buffer.from('1'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(1000),
+				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
 
@@ -95,9 +112,10 @@ describe('TransactionPool class', () => {
 		beforeEach(async () => {
 			tx = {
 				id: Buffer.from('1'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(1000),
+				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
 
@@ -122,37 +140,43 @@ describe('TransactionPool class', () => {
 			const txs = [
 				{
 					id: Buffer.from('1'),
+					moduleType: 3,
+					assetType: 0,
 					nonce: BigInt(1),
-					minFee: BigInt(10),
-					fee: BigInt(1000),
+					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[0],
 				},
 				{
 					id: Buffer.from('2'),
+					moduleType: 3,
+					assetType: 0,
 					nonce: BigInt(2),
-					minFee: BigInt(10),
-					fee: BigInt(1000),
+					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[0],
 				},
 				{
 					id: Buffer.from('9'),
+					moduleType: 3,
+					assetType: 0,
 					nonce: BigInt(9),
 					minFee: BigInt(10),
-					fee: BigInt(1000),
+					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[0],
 				},
 				{
 					id: Buffer.from('3'),
+					moduleType: 3,
+					assetType: 0,
 					nonce: BigInt(1),
-					minFee: BigInt(10),
-					fee: BigInt(1000),
+					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[1],
 				},
 				{
 					id: Buffer.from('10'),
+					moduleType: 3,
+					assetType: 0,
 					nonce: BigInt(100),
-					minFee: BigInt(10),
-					fee: BigInt(1000),
+					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[2],
 				},
 			] as Transaction[];
@@ -215,8 +239,9 @@ describe('TransactionPool class', () => {
 		const tx = {
 			id: Buffer.from('1'),
 			nonce: BigInt(1),
-			minFee: BigInt(10),
-			fee: BigInt(1000),
+			moduleType: 3,
+			assetType: 0,
+			fee: BigInt(30000),
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
 
@@ -245,18 +270,10 @@ describe('TransactionPool class', () => {
 
 		it('should add a valid higher nonce transaction to the transaction list as unprocessable', async () => {
 			// Arrange
-			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue([
-				{
-					status: Status.FAIL,
-					errors: [
-						{
-							dataPath: '.nonce',
-							actual: '123',
-							expected: '2',
-						},
-					],
-				},
-			]);
+			(transactionPool['_applyFunction'] as jest.Mock).mockRejectedValue({
+				code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
+				transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS', actual: '123', expected: '2' },
+			});
 
 			// Act
 			const { status } = await transactionPool.add(tx);
@@ -294,11 +311,10 @@ describe('TransactionPool class', () => {
 
 		it('should throw when a transaction is invalid', async () => {
 			// Arrange
-			const transactionResponse = [
-				{ status: Status.FAIL, errors: [new Error('Invalid transaction')] },
-			];
 			jest.spyOn(transactionPool, '_getStatus' as any);
-			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue(transactionResponse);
+			(transactionPool['_applyFunction'] as jest.Mock).mockRejectedValue(
+				new Error('Invalid transaction'),
+			);
 
 			// Act
 			const result = await transactionPool.add(tx);
@@ -306,27 +322,15 @@ describe('TransactionPool class', () => {
 			// Assert
 			expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
 			expect(result.status).toEqual(Status.FAIL);
-			expect(result.errors).toHaveLength(1);
-			expect(result.errors[0].message).toEqual('Invalid transaction');
+			expect(result.error?.message).toEqual('Invalid transaction');
 		});
 
 		it('should throw when a transaction is invalid but not include higher nonce error', async () => {
 			// Arrange
-			const transactionResponse = [
-				{
-					status: Status.FAIL,
-					errors: [
-						new Error('Invalid transaction'),
-						{
-							dataPath: '.nonce',
-							actual: '123',
-							expected: '2',
-						},
-					],
-				},
-			];
 			jest.spyOn(transactionPool, '_getStatus' as any);
-			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue(transactionResponse);
+			(transactionPool['_applyFunction'] as jest.Mock).mockRejectedValue(
+				new Error('Invalid transaction'),
+			);
 
 			// Act
 			const result = await transactionPool.add(tx);
@@ -334,8 +338,7 @@ describe('TransactionPool class', () => {
 			// Assert
 			expect(transactionPool['_getStatus']).toHaveReturnedWith(TransactionStatus.INVALID);
 			expect(result.status).toEqual(Status.FAIL);
-			expect(result.errors).toHaveLength(1);
-			expect(result.errors[0].message).toEqual('Invalid transaction');
+			expect(result.error?.message).toEqual('Invalid transaction');
 		});
 
 		it('should reject a transaction with lower fee than minEntranceFee', async () => {
@@ -343,12 +346,21 @@ describe('TransactionPool class', () => {
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: BigInt(1),
+						moduleType: 3,
+					},
+				],
+				minFeePerByte: 1000,
 			});
 			const lowFeeTrx = {
 				id: Buffer.from('1'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(100),
+				fee: BigInt(3000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
 
@@ -369,6 +381,14 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: BigInt(1),
+						moduleType: 3,
+					},
+				],
+				minFeePerByte: 1000,
 			});
 
 			const tempApplyTransactionsStub = jest.fn();
@@ -378,9 +398,10 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
+					moduleType: 3,
+					assetType: 0,
 					nonce: BigInt(1),
-					minFee: BigInt(10),
-					fee: BigInt(1000),
+					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
 				} as Transaction;
 				tempTx.getBytes = txGetBytesStub.mockReturnValue(
@@ -396,9 +417,10 @@ describe('TransactionPool class', () => {
 
 			const highFeePriorityTx = {
 				id: Buffer.from('11'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(5000),
+				fee: BigInt(50000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
 
@@ -423,6 +445,14 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: BigInt(1),
+						moduleType: 3,
+					},
+				],
+				minFeePerByte: 1000,
 			});
 
 			const tempApplyTransactionsStub = jest.fn();
@@ -432,37 +462,35 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS - 1; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
+					moduleType: 3,
+					assetType: 0,
 					nonce: BigInt(1),
-					minFee: BigInt(10),
-					fee: BigInt(1000),
+					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
 				} as Transaction;
 				tempTx.getBytes = txGetBytesStub.mockReturnValue(
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
 
-				tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
-
 				await transactionPool.add(tempTx);
 			}
 
 			const nonSequentialTx = {
 				id: Buffer.from('21'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(5000),
+				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
 
 			nonSequentialTx.getBytes = txGetBytesStub.mockReturnValue(
 				Buffer.from(new Array(MAX_TRANSACTIONS)),
 			);
-			tempApplyTransactionsStub.mockResolvedValue([
-				{
-					status: Status.FAIL,
-					errors: [{ dataPath: '.nonce', actual: 21, expected: 10 }],
-				},
-			]);
+			tempApplyTransactionsStub.mockRejectedValue({
+				code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
+				transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS' },
+			});
 			await transactionPool.add(nonSequentialTx);
 
 			expect(transactionPool.getAll()).toContain(nonSequentialTx);
@@ -470,9 +498,10 @@ describe('TransactionPool class', () => {
 
 			const highFeePriorityTx = {
 				id: Buffer.from('11'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(5000),
+				fee: BigInt(50000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
 
@@ -495,6 +524,14 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: BigInt(1),
+						moduleType: 3,
+					},
+				],
+				minFeePerByte: 1000,
 			});
 
 			const tempApplyTransactionsStub = jest.fn();
@@ -504,16 +541,15 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
+					moduleType: 3,
+					assetType: 0,
 					nonce: BigInt(1),
-					minFee: BigInt(10),
-					fee: BigInt(1000),
+					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
 				} as Transaction;
 				tempTx.getBytes = txGetBytesStub.mockReturnValue(
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
-
-				tempApplyTransactionsStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 
 				await transactionPool.add(tempTx);
 			}
@@ -522,8 +558,9 @@ describe('TransactionPool class', () => {
 
 			const lowFeePriorityTx = {
 				id: Buffer.from('11'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
 				fee: BigInt(1000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
@@ -545,16 +582,18 @@ describe('TransactionPool class', () => {
 		const senderPublicKey = generateRandomPublicKeys()[0];
 		const tx = {
 			id: Buffer.from('1'),
+			moduleType: 3,
+			assetType: 0,
 			nonce: BigInt(1),
-			minFee: BigInt(10),
-			fee: BigInt(1000),
+			fee: BigInt(30000),
 			senderPublicKey,
 		} as Transaction;
 		const additionalTx = {
 			id: Buffer.from('2'),
+			moduleType: 3,
+			assetType: 0,
 			nonce: BigInt(3),
-			minFee: BigInt(10),
-			fee: BigInt(1000),
+			fee: BigInt(30000),
 			senderPublicKey,
 		} as Transaction;
 
@@ -584,8 +623,9 @@ describe('TransactionPool class', () => {
 			// Remove a transaction that does not exist
 			const nonExistentTrx = {
 				id: Buffer.from('155'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
 				fee: BigInt(1000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
@@ -627,16 +667,18 @@ describe('TransactionPool class', () => {
 		const transactions = [
 			{
 				id: Buffer.from('1'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(1000),
+				fee: BigInt(20000),
 				senderPublicKey,
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(3),
-				minFee: BigInt(10),
-				fee: BigInt(3000),
+				fee: BigInt(30000),
 				senderPublicKey,
 			} as Transaction,
 		];
@@ -651,6 +693,14 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: BigInt(1),
+						moduleType: 3,
+					},
+				],
+				minFeePerByte: 1000,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
 			await transactionPool.add(transactions[0]);
@@ -677,16 +727,18 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender1 = [
 			{
 				id: Buffer.from('1'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(1000),
+				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(2),
-				minFee: BigInt(10),
-				fee: BigInt(2000),
+				fee: BigInt(60000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 		];
@@ -694,16 +746,18 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender2 = [
 			{
 				id: Buffer.from('11'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(1000),
+				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 			{
 				id: Buffer.from('12'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(2),
-				minFee: BigInt(10),
-				fee: BigInt(1000),
+				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 		];
@@ -729,6 +783,14 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: BigInt(1),
+						moduleType: 3,
+					},
+				],
+				minFeePerByte: 1000,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
 			await transactionPool.add(transactionsFromSender1[0]);
@@ -761,23 +823,26 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender1 = [
 			{
 				id: Buffer.from('1'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(1000),
+				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(2),
-				minFee: BigInt(10),
-				fee: BigInt(2000),
+				fee: BigInt(60000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(3),
-				minFee: BigInt(10),
-				fee: BigInt(3000),
+				fee: BigInt(90000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 		];
@@ -785,9 +850,10 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender2 = [
 			{
 				id: Buffer.from('11'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
-				fee: BigInt(1000),
+				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 		];
@@ -812,14 +878,17 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
+				applyTransactions: jest.fn(),
 				transactionReorganizationInterval: 1,
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: BigInt(1),
+						moduleType: 3,
+					},
+				],
+				minFeePerByte: 1000,
 			});
-			(transactionPool as any)._applyFunction.mockResolvedValue([
-				{ id: '1', status: Status.OK, errors: [] },
-				{ id: '2', status: Status.OK, errors: [] },
-				{ id: '3', status: Status.OK, errors: [] },
-			]);
 			await transactionPool.add(transactionsFromSender1[0]);
 			await transactionPool.add(transactionsFromSender1[1]);
 			await transactionPool.add(transactionsFromSender1[2]);
@@ -862,24 +931,27 @@ describe('TransactionPool class', () => {
 		const transactionsForSender1 = [
 			{
 				id: Buffer.from('1'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey1,
 				receivedAt: new Date(0),
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(2),
-				minFee: BigInt(10),
 				fee: BigInt(2000),
 				senderPublicKey: senderPublicKey1,
 				receivedAt: new Date(),
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(3),
-				minFee: BigInt(10),
 				fee: BigInt(3000),
 				senderPublicKey: senderPublicKey1,
 				receivedAt: new Date(0),
@@ -889,16 +961,18 @@ describe('TransactionPool class', () => {
 		const transactionsForSender2 = [
 			{
 				id: Buffer.from('11'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(1),
-				minFee: BigInt(10),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey2,
 				receivedAt: new Date(0),
 			} as Transaction,
 			{
 				id: Buffer.from('12'),
+				moduleType: 3,
+				assetType: 0,
 				nonce: BigInt(2),
-				minFee: BigInt(10),
 				fee: BigInt(2000),
 				senderPublicKey: senderPublicKey2,
 				receivedAt: new Date(),
