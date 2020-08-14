@@ -449,8 +449,7 @@ export class Processor {
 
 	private _createConsensus(stateStore: StateStore): Consensus {
 		return {
-			// TODO: Calculate correct getLastBootstrapHeight
-			getLastBootstrapHeight: (): number => 13,
+			getLastBootstrapHeight: (): number => this._chain.lastBootstrapHeight,
 			getFinalizedHeight: (): number => this._bft.finalizedHeight,
 			updateDelegates: async (delegates: Delegate[]): Promise<void> => {
 				await this._chain.setValidators(delegates, stateStore);

@@ -185,6 +185,13 @@ export class Chain {
 		return this._genesisBlock;
 	}
 
+	public get lastBootstrapHeight(): number {
+		return (
+			this._numberOfValidators * this._genesisBlock.header.asset.initRounds +
+			this._genesisBlock.header.height
+		);
+	}
+
 	public get accountSchema(): Schema {
 		return this._accountSchema;
 	}
