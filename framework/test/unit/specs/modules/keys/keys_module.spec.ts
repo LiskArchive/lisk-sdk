@@ -42,6 +42,9 @@ describe('keys module', () => {
 	let keysModule: KeysModule;
 	let reducerHandler: any;
 	let decodedBaseTransaction: any;
+	let singleSignatureAccount: any;
+	let passphrase: any;
+	let passphraseDerivedKeys: any;
 
 	const { cloneDeep } = ObjectUtils;
 
@@ -83,6 +86,12 @@ describe('keys module', () => {
 			balance: BigInt('94378900000'),
 		});
 
+		passphrase = Mnemonic.generateMnemonic();
+		passphraseDerivedKeys = getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const address = getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
+
+		singleSignatureAccount = createFakeDefaultAccount({ address });
+
 		stateStore = new StateStoreMock();
 
 		stateStore.account = {
@@ -98,198 +107,838 @@ describe('keys module', () => {
 	});
 
 	describe('beforeTransactionApply', () => {
-		it('should not fail to validate valid signatures', async () => {
-			return expect(
-				keysModule.beforeTransactionApply({
-					stateStore,
-					transaction: validTestTransaction,
-					reducerHandler,
-				}),
-			).resolves.toBeUndefined();
-		});
-
-		it('should throw error if first signature is not from the sender public key', async () => {
-			const invalidTransaction = {
-				...validTestTransaction,
-				signatures: [...validTestTransaction.signatures],
-			};
-
-			invalidTransaction.signatures[0] = Buffer.from(
-				'6667778476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06',
-				'hex',
-			);
-
-			const invalidTransactionInstance = new Transaction(invalidTransaction);
-
-			return expect(
-				keysModule.beforeTransactionApply({
-					stateStore,
-					transaction: invalidTransactionInstance as any,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(
-				new Error(
-					"Failed to validate signature 'Zmd3hHbS0wDQTL24RC6qSnWZmfBIRtMJiUb0WRGsv8ZZKDKEDvKQ3MVcK54+B89YlqxcAc0NunQKZD8N4Wd/Bg==' for transaction with id '9Li6WfVUFi4WkrYYpXpxVbj/iQv9M7/8BOAFcffk/ro='",
-				),
-			);
-		});
-
-		it('should throw error if any of the mandatory signatures is not valid', async () => {
-			const invalidTransaction = {
-				...validTestTransaction,
-				signatures: [...validTestTransaction.signatures],
-			};
-
-			// this is the first mandatory signature from the fixture; we change a byte
-			invalidTransaction.signatures[1][10] = 10;
-
-			const invalidTransactionInstance = new Transaction(invalidTransaction);
-
-			return expect(
-				keysModule.beforeTransactionApply({
-					stateStore,
-					transaction: invalidTransactionInstance as any,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(
-				new Error(
-					"Failed to validate signature '3myu7/4VBi/m/gr/V1nXFTO80a9ndZ+7mM0lv9m81CfmJiWneNnJ5mVkaEfDcAK7g0KfkGczwUTKnzb7Wlw+BQ==' for transaction with id '0uM910NbJpiK3LgYj6STQAN09MxfJnKGjkXYjME3cRg='",
-				),
-			);
-		});
-
-		it('should throw error if any of the optional signatures is not valid', async () => {
-			const invalidTransaction = {
-				...validTestTransaction,
-				signatures: [...validTestTransaction.signatures],
-			};
-
-			// this is the first optional signature from the fixture; we change a byte
-			invalidTransaction.signatures[3][10] = 9;
-
-			const invalidTransactionInstance = new Transaction(invalidTransaction);
-
-			return expect(
-				keysModule.beforeTransactionApply({
-					stateStore,
-					transaction: invalidTransactionInstance as any,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(
-				new Error(
-					"Failed to validate signature 'HBBoFdFZusEi+gmRDRCRHJa5U10zkf4lc6whdaqqYnn1wjZkuc9mzIYinsREFK30q8MVpQF91HOh7/zcao1sDw==' for transaction with id 'QGBPNpD0ubTtZss+Ci5xNlDSniS3/D7P+bQxq4d4/+A='",
-				),
-			);
-		});
-
-		it('should throw error if signatures from sender, mandatory and optional keys are not all present', async () => {
-			const invalidTransaction = {
-				...validTestTransaction,
-				signatures: [...validTestTransaction.signatures],
-			};
-
-			invalidTransaction.signatures.pop();
-
-			const invalidTransactionInstance = new Transaction(invalidTransaction);
-
-			return expect(
-				keysModule.beforeTransactionApply({
-					stateStore,
-					transaction: invalidTransactionInstance as any,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(
-				new Error('There are missing signatures. Expected: 5 signatures but got: 4'),
-			);
-		});
-
-		it('should throw error if mandatory signatures are not in order', async () => {
-			const invalidTransaction = {
-				...validTestTransaction,
-				signatures: [...validTestTransaction.signatures],
-			};
-
-			[invalidTransaction.signatures[1], invalidTransaction.signatures[2]] = [
-				invalidTransaction.signatures[2],
-				invalidTransaction.signatures[1],
-			];
-			const invalidTransactionInstance = new Transaction(invalidTransaction);
-
-			return expect(
-				keysModule.beforeTransactionApply({
-					stateStore,
-					transaction: invalidTransactionInstance as any,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(
-				new Error(
-					"Failed to validate signature 'qZt+mbegQn+dohrZsVfmVISkX+x3V7n4+ZCXmyixpwE6zxeiDIfUFige2Wpd9mLmzrt/ZKY5xLJ6pXEKBIMhCw==' for transaction with id '6ftLshO2zqVil4zUIqVZfxAoeQfy19AHAk4JIzntoxk='",
-				),
-			);
-		});
-
-		it('should throw error if optional signatures are not in order', async () => {
-			const invalidTransaction = {
-				...validTestTransaction,
-				signatures: [...validTestTransaction.signatures],
-			};
-
-			[invalidTransaction.signatures[3], invalidTransaction.signatures[4]] = [
-				invalidTransaction.signatures[4],
-				invalidTransaction.signatures[3],
-			];
-			const invalidTransactionInstance = new Transaction(invalidTransaction);
-
-			return expect(
-				keysModule.beforeTransactionApply({
-					stateStore,
-					transaction: invalidTransactionInstance as any,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(
-				new Error(
-					"Failed to validate signature '25OKrycZqAAXhE8ZaONc6ScSTc98BKCw2SaKp8mtHOUOYZBcG7ipArmC4lNDwjL65fBs2Ci30RylPxiCDq2MCA==' for transaction with id 'cbHb8mt8DpG8sf6VcMwIdaphbeSjuSf8VEBFvfN4ibw='",
-				),
-			);
-		});
-
-		it('should throw error if account is not multisignature and more than one signature present', async () => {
-			const passphrase = Mnemonic.generateMnemonic();
-			const passphraseDerivedKeys = getPrivateAndPublicKeyFromPassphrase(passphrase);
-			const address = getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
-
-			const singleSignatureAccount = createFakeDefaultAccount({ address });
-
-			const transaction = new Transaction({
-				moduleType: 2,
-				assetType: 0,
-				nonce: BigInt('0'),
-				fee: BigInt('100000000'),
-				senderPublicKey: passphraseDerivedKeys.publicKey,
-				asset: getRandomBytes(100),
-				signatures: [],
+		describe('Multi-signature registration transaction', () => {
+			it('should not throw for valid transaction', async () => {
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction: validTestTransaction,
+						reducerHandler,
+					}),
+				).resolves.toBeUndefined();
 			});
 
-			const signature = signDataWithPassphrase(
-				Buffer.concat([Buffer.from(defaultNetworkIdentifier, 'hex'), transaction.getBytes()]),
-				passphrase,
-			);
+			it('should throw if number of provided signatures is smaller than number of optional, mandatory and sender keys', async () => {
+				const invalidTransaction = {
+					...validTestTransaction,
+					signatures: [...validTestTransaction.signatures],
+				};
 
-			(transaction.signatures as any).push(signature);
-			(transaction.signatures as any).push(signature);
+				// remove one signature making the registration asset invalid
+				invalidTransaction.signatures.pop();
 
-			stateStore.account.get = jest.fn().mockResolvedValue(singleSignatureAccount);
-			return expect(
-				keysModule.beforeTransactionApply({
-					stateStore,
-					transaction,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(
-				new Error(
-					'Transaction from non multisignature account can only have one signature. Found 2 signatures.',
-				),
-			);
+				const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction: invalidTransactionInstance as any,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error('There are missing signatures. Expected: 5 signatures but got: 4.'),
+				);
+			});
+
+			it('should throw if number of provided signatures is bigger than number of optional, mandatory and sender keys', async () => {
+				const invalidTransaction = {
+					...validTestTransaction,
+					signatures: [...validTestTransaction.signatures],
+				};
+
+				// add one signature making the registration asset invalid
+				invalidTransaction.signatures.push(getRandomBytes(32));
+
+				const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction: invalidTransactionInstance as any,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error('There are missing signatures. Expected: 5 signatures but got: 6.'),
+				);
+			});
+
+			it('should throw if any of the signatures is empty', async () => {
+				const invalidTransaction = {
+					...validTestTransaction,
+					signatures: [...validTestTransaction.signatures],
+				};
+
+				// this is the first mandatory signature we set it to an empty buffer
+				invalidTransaction.signatures[1] = Buffer.from('');
+
+				const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction: invalidTransactionInstance as any,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error('A valid signature is required for each registered key.'),
+				);
+			});
+
+			it('should throw error if any of the mandatory signatures is not valid', async () => {
+				const invalidTransaction = {
+					...validTestTransaction,
+					signatures: [...validTestTransaction.signatures],
+				};
+
+				// this is the first mandatory signature from the fixture; we change a byte
+				invalidTransaction.signatures[1][10] = 10;
+
+				const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction: invalidTransactionInstance as any,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error(
+						"Failed to validate signature '3myu7/4VBi/m/gr/V1nXFTO80a9ndZ+7mM0lv9m81CfmJiWneNnJ5mVkaEfDcAK7g0KfkGczwUTKnzb7Wlw+BQ==' for transaction with id '0uM910NbJpiK3LgYj6STQAN09MxfJnKGjkXYjME3cRg='",
+					),
+				);
+			});
+
+			it('should throw error if any of the optional signatures is not valid', async () => {
+				const invalidTransaction = {
+					...validTestTransaction,
+					signatures: [...validTestTransaction.signatures],
+				};
+
+				// this is the first optional signature from the fixture; we change a byte
+				invalidTransaction.signatures[3][10] = 9;
+
+				const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction: invalidTransactionInstance as any,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error(
+						"Failed to validate signature 'HBBoFdFZusEi+gmRDRCRHJa5U10zkf4lc6whdaqqYnn1wjZkuc9mzIYinsREFK30q8MVpQF91HOh7/zcao1sDw==' for transaction with id 'QGBPNpD0ubTtZss+Ci5xNlDSniS3/D7P+bQxq4d4/+A='",
+					),
+				);
+			});
+
+			it('should throw error if mandatory signatures are not in order', async () => {
+				const invalidTransaction = {
+					...validTestTransaction,
+					signatures: [...validTestTransaction.signatures],
+				};
+
+				// Swap mandatory keys
+				[invalidTransaction.signatures[1], invalidTransaction.signatures[2]] = [
+					invalidTransaction.signatures[2],
+					invalidTransaction.signatures[1],
+				];
+
+				const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction: invalidTransactionInstance as any,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error(
+						"Failed to validate signature 'qZt+mbegQn+dohrZsVfmVISkX+x3V7n4+ZCXmyixpwE6zxeiDIfUFige2Wpd9mLmzrt/ZKY5xLJ6pXEKBIMhCw==' for transaction with id '6ftLshO2zqVil4zUIqVZfxAoeQfy19AHAk4JIzntoxk='",
+					),
+				);
+			});
+
+			it('should throw error if optional signatures are not in order', async () => {
+				const invalidTransaction = {
+					...validTestTransaction,
+					signatures: [...validTestTransaction.signatures],
+				};
+
+				// Swap optional keys
+				[invalidTransaction.signatures[3], invalidTransaction.signatures[4]] = [
+					invalidTransaction.signatures[4],
+					invalidTransaction.signatures[3],
+				];
+
+				const invalidTransactionInstance = new Transaction(invalidTransaction);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction: invalidTransactionInstance as any,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error(
+						"Failed to validate signature '25OKrycZqAAXhE8ZaONc6ScSTc98BKCw2SaKp8mtHOUOYZBcG7ipArmC4lNDwjL65fBs2Ci30RylPxiCDq2MCA==' for transaction with id 'cbHb8mt8DpG8sf6VcMwIdaphbeSjuSf8VEBFvfN4ibw='",
+					),
+				);
+			});
+		});
+
+		describe('Transaction from single signatures account', () => {
+			it('should not throw for valid transaction', async () => {
+				const transaction = new Transaction({
+					moduleType: 2,
+					assetType: 0,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: passphraseDerivedKeys.publicKey,
+					asset: getRandomBytes(100),
+					signatures: [],
+				});
+
+				const signature = signDataWithPassphrase(
+					Buffer.concat([Buffer.from(defaultNetworkIdentifier, 'hex'), transaction.getBytes()]),
+					passphrase,
+				);
+
+				(transaction.signatures as any).push(signature);
+
+				stateStore.account.get = jest.fn().mockResolvedValue(singleSignatureAccount);
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).resolves.toBeUndefined();
+			});
+
+			it('should throw if signatue is missing', async () => {
+				const transaction = new Transaction({
+					moduleType: 2,
+					assetType: 0,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: passphraseDerivedKeys.publicKey,
+					asset: getRandomBytes(100),
+					signatures: [],
+				});
+
+				stateStore.account.get = jest.fn().mockResolvedValue(singleSignatureAccount);
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error(
+						'Transactions from a single signature account should have exactly one signature. Found 0 signatures.',
+					),
+				);
+			});
+
+			it('should throw error if account is not multi signature and more than one signature present', async () => {
+				const transaction = new Transaction({
+					moduleType: 2,
+					assetType: 0,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: passphraseDerivedKeys.publicKey,
+					asset: getRandomBytes(100),
+					signatures: [],
+				});
+
+				const signature = signDataWithPassphrase(
+					Buffer.concat([Buffer.from(defaultNetworkIdentifier, 'hex'), transaction.getBytes()]),
+					passphrase,
+				);
+
+				(transaction.signatures as any).push(signature);
+				(transaction.signatures as any).push(signature);
+
+				stateStore.account.get = jest.fn().mockResolvedValue(singleSignatureAccount);
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toStrictEqual(
+					new Error(
+						'Transactions from a single signature account should have exactly one signature. Found 2 signatures.',
+					),
+				);
+			});
+		});
+
+		describe('Transaction from multi-signatures account', () => {
+			interface memberFixture {
+				passphrase: string;
+				keys?: {
+					privateKey: Buffer;
+					publicKey: Buffer;
+				};
+				address?: Buffer;
+			}
+
+			interface membersFixture {
+				[key: string]: memberFixture;
+			}
+
+			const members: membersFixture = {
+				mainAccount: {
+					passphrase: 'order trip this crop race amused climb rather taxi morning holiday team',
+				},
+				mandatoryA: {
+					passphrase:
+						'clock cradle permit opinion hobby excite athlete weird soap mesh valley belt',
+				},
+				mandatoryB: {
+					passphrase:
+						'team dignity frost rookie gesture gaze piano daring fruit patrol chalk hidden',
+				},
+				optionalA: {
+					passphrase:
+						'welcome hello ostrich country drive car river jaguar warfare color tell risk',
+				},
+				optionalB: {
+					passphrase: 'beef volcano emotion say lab reject small repeat reveal napkin bunker make',
+				},
+			};
+
+			for (const aMember of Object.values(members)) {
+				aMember.keys = { ...getPrivateAndPublicKeyFromPassphrase(aMember.passphrase) };
+				aMember.address = getAddressFromPublicKey(aMember.keys.publicKey);
+			}
+
+			const multisigAccount = createFakeDefaultAccount({
+				address: members.mainAccount.address,
+				token: {
+					balance: BigInt(100000000000000),
+				},
+				keys: {
+					numberOfSignatures: 3,
+					mandatoryKeys: [members.mandatoryA.keys?.publicKey, members.mandatoryB.keys?.publicKey],
+					optionalKeys: [members.optionalA.keys?.publicKey, members.optionalB.keys?.publicKey],
+				},
+			});
+
+			let transaction: Transaction;
+
+			beforeEach(() => {
+				stateStore.account.get = jest.fn().mockResolvedValue(multisigAccount);
+
+				transaction = new Transaction({
+					moduleType: 2,
+					assetType: 0,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: (members as any).mainAccount.keys.publicKey,
+					asset: getRandomBytes(100),
+					signatures: [],
+				});
+			});
+
+			it('should not throw for valid transaction', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).resolves.toBeUndefined();
+			});
+
+			it('should not throw for valid transaction when first optional is present', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).resolves.toBeUndefined();
+			});
+
+			it('should not throw for valid transaction when second optional is present', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).resolves.toBeUndefined();
+			});
+
+			it('should throw for transaction where non optional absent signature is not empty buffer', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toThrow(
+					new Error(
+						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
+							'base64',
+						)}'`,
+					),
+				);
+			});
+
+			it('should throw error if number of provided signatures is bigger than numberOfSignatures in account asset', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toThrow(
+					new Error(
+						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
+							'base64',
+						)}'`,
+					),
+				);
+			});
+
+			it('should throw error if number of provided signatures is smaller than numberOfSignatures in account asset', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toThrow(
+					new Error(
+						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
+							'base64',
+						)}'`,
+					),
+				);
+			});
+
+			it('should throw for transaction with valid numberOfSignatures but missing mandatory key signature', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toThrow(new Error('Invalid signature. Empty buffer is not a valid signature.'));
+			});
+
+			it('should throw error if any of the mandatory signatures is not valid', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).resolves.toBeUndefined();
+			});
+
+			it('should throw error if any of the optional signatures is not valid', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				// We change the first byte of the 2nd optional signature
+				(transaction.signatures as any)[3][0] = 10;
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toThrow(
+					new Error(
+						`Failed to validate signature '${transaction.signatures[3].toString(
+							'base64',
+						)}' for transaction with id '${transaction.id.toString('base64')}'`,
+					),
+				);
+			});
+
+			it('should throw error if mandatory signatures are not in order', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toThrow(
+					new Error(
+						`Failed to validate signature '${transaction.signatures[0].toString(
+							'base64',
+						)}' for transaction with id '${transaction.id.toString('base64')}'`,
+					),
+				);
+			});
+
+			it('should throw error if optional signatures are not in order', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).rejects.toThrow(
+					new Error(
+						`Failed to validate signature '${transaction.signatures[3].toString(
+							'base64',
+						)}' for transaction with id '${transaction.id.toString('base64')}'`,
+					),
+				);
+			});
 		});
 	});
 

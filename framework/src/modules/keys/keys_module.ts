@@ -78,13 +78,13 @@ export class KeysModule extends BaseModule {
 			const numberOfExpectedKeys = mandatoryKeys.length + optionalKeys.length + 1;
 			if (numberOfExpectedKeys !== transaction.signatures.length) {
 				throw new Error(
-					`There are missing signatures. Expected: ${numberOfExpectedKeys} signatures but got: ${transaction.signatures.length}`,
+					`There are missing signatures. Expected: ${numberOfExpectedKeys} signatures but got: ${transaction.signatures.length}.`,
 				);
 			}
 
 			// Check if empty signatures are present
 			if (!transaction.signatures.every(signature => signature.length > 0)) {
-				throw new Error('A signature is required for each registered key.');
+				throw new Error('A valid signature is required for each registered key.');
 			}
 
 			// Verify first signature is from senderPublicKey
@@ -116,7 +116,7 @@ export class KeysModule extends BaseModule {
 		if (!isMultisignatureAccount(sender)) {
 			if (transaction.signatures.length !== 1) {
 				throw new Error(
-					`Transaction from non multisignature account can only have one signature. Found ${transaction.signatures.length} signatures.`,
+					`Transactions from a single signature account should have exactly one signature. Found ${transaction.signatures.length} signatures.`,
 				);
 			}
 			validateSignature(

@@ -65,7 +65,7 @@ export const verifyMultiSignatureTransaction = (
 	// Filter empty signature to compare against numberOfSignatures
 	const nonEmptySignaturesCount = signatures.filter(k => k.length !== 0).length;
 
-	// Check if signatures excluding empty string matched required numberOfSignatures
+	// Check if signatures excluding empty string match required numberOfSignatures
 	if (
 		nonEmptySignaturesCount !== numberOfSignatures ||
 		signatures.length !== numMandatoryKeys + numOptionalKeys
