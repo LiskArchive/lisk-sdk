@@ -79,4 +79,19 @@ export class TokenModule extends BaseModule {
 			stateStore.account.set(address, account);
 		},
 	};
+
+	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
+	public async beforeTransactionApply({ transaction }: TransactionApplyInput): Promise<void> {
+		// Throw error if fee is lower than minimum fee (minFeePerBytes + baseFee)
+		const minFee = BigInt(this.config.minFeePerByte) * BigInt(transaction.getBytes().length);
+		const baseFee =
+			this.config.baseFees.find(
+				fee => fee.moduleType === transaction.moduleType && fee.assetType === transaction.assetType,
+			)?.baseFee ?? BigInt(0);
+		if (BigInt(baseFee) < minFee) {
+			throw new Error(
+				`Insufficient transaction fee. Minimum required fee is: ${minFee.toString()}`,
+			);
+		}
+	}
 }
