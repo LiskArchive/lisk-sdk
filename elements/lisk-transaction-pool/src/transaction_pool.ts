@@ -184,7 +184,7 @@ export class TransactionPool {
 
 		// _applyFunction is injected from chain module applyTransaction
 		const transactionsResponses = await this._applyFunction([incomingTx]);
-		const txStatus = this._getStatus(transactionsResponses);
+		const txStatus = this._getStatus(transactionsResponses[0]);
 
 		// If applyTransaction fails for the transaction then throw error
 		if (txStatus === TransactionStatus.INVALID) {
@@ -301,17 +301,15 @@ export class TransactionPool {
 		return (trx.fee - trx.minFee) / BigInt(trx.getBytes().length);
 	}
 
-	private _getStatus(
-		txResponse: ReadonlyArray<TransactionResponse>,
-	): TransactionStatus {
-		if (txResponse[0].status === Status.OK) {
+	private _getStatus(txResponse: TransactionResponse): TransactionStatus {
+		if (txResponse.status === Status.OK) {
 			debug('Received PROCESSABLE transaction');
 
 			return TransactionStatus.PROCESSABLE;
 		}
-		const txResponseErrors = txResponse[0].errors;
+		const txResponseErrors = txResponse.errors;
 		if (
-			txResponse[0].errors.length === 1 &&
+			txResponse.errors.length === 1 &&
 			txResponseErrors[0].dataPath === '.nonce' &&
 			txResponseErrors[0].actual &&
 			txResponseErrors[0].expected &&
@@ -412,22 +410,28 @@ export class TransactionPool {
 			const applyResults = await this._applyFunction(allTransactions);
 
 			const successfulTransactionIds: string[] = [];
+			let nonProcessableIds: string[] = [];
 			let firstInvalidTransactionId: string | undefined;
 
 			for (const result of applyResults) {
+				const txApplyStatus = this._getStatus(result);
 				// If a tx is invalid, all subsequent are also invalid, so exit loop.
-				if (result.status === Status.FAIL) {
+				if (txApplyStatus === TransactionStatus.INVALID) {
 					firstInvalidTransactionId = result.id;
 					break;
 				}
+				if (txApplyStatus === TransactionStatus.UNPROCESSABLE) {
+					nonProcessableIds.push(result.id);
+				}
 				successfulTransactionIds.push(result.id);
 			}
-
+			// Unprocessable trx should not be promoted
+			const trxsToPromote = successfulTransactionIds.filter(
+				id => !nonProcessableIds.includes(id),
+			);
 			// Promote all transactions which were successful
 			txList.promote(
-				promotableTransactions.filter(tx =>
-					successfulTransactionIds.includes(tx.id),
-				),
+				promotableTransactions.filter(tx => trxsToPromote.includes(tx.id)),
 			);
 
 			// Remove invalid transaction and all subsequent transactions
