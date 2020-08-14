@@ -19,7 +19,7 @@ import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
 import { AfterBlockApplyInput, AfterGenesisBlockApplyInput, GenesisConfig } from '../../types';
 import { Rounds } from './rounds';
-import { DPOSAccountProps } from './types';
+import { DPOSAccountProps, RegisteredDelegate } from './types';
 import { dposAccountSchema, dposModuleParamsSchema } from './schema';
 import { generateRandomSeeds } from './random_seed';
 import { createVoteWeightsSnapshot, updateDelegateList, updateProductivity } from './delegates';
@@ -111,7 +111,7 @@ export class DPoSModule extends BaseModule {
 	): Promise<void> {
 		const { accounts, initDelegates } = input.genesisBlock.header.asset;
 		const delegateAddresses: Buffer[] = [];
-		const delegateUsernames: { address: Buffer; username: string }[] = [];
+		const delegateUsernames: RegisteredDelegate[] = [];
 
 		for (const account of (accounts as unknown) as Account<DPOSAccountProps>[]) {
 			if (account.dpos.delegate.username !== '') {

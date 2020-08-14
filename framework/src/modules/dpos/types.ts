@@ -14,7 +14,7 @@
 
 import { BlockHeader } from '@liskhq/lisk-chain';
 
-interface RegisteredDelegate {
+export interface RegisteredDelegate {
 	readonly username: string;
 	readonly address: Buffer;
 }
