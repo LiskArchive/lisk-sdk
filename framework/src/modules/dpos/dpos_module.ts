@@ -22,7 +22,11 @@ import { Rounds } from './rounds';
 import { DPOSAccountProps, RegisteredDelegate } from './types';
 import { dposAccountSchema, dposModuleParamsSchema } from './schema';
 import { generateRandomSeeds } from './random_seed';
-import { createVoteWeightsSnapshot, updateDelegateList, updateProductivity } from './delegates';
+import {
+	createVoteWeightsSnapshot,
+	updateDelegateList,
+	updateDelegateProductivity,
+} from './delegates';
 import { deleteVoteWeightsUntilRound, setRegisteredDelegates } from './data_access';
 
 const { bufferArrayContains } = objectsUtils;
@@ -147,7 +151,7 @@ export class DPoSModule extends BaseModule {
 
 		const round = this.rounds.calcRound(blockHeader.height);
 		debug('Updating delegates productivity', round);
-		await updateProductivity({
+		await updateDelegateProductivity({
 			height: blockHeader.height,
 			blockTime: this._blockTime,
 			blockTimestamp: blockHeader.timestamp,

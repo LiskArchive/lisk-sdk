@@ -266,7 +266,7 @@ export const createVoteWeightsSnapshot = async ({
 	setVoteWeights(stateStore, voteWeights);
 };
 
-export const updateProductivity = async ({
+export const updateDelegateProductivity = async ({
 	height,
 	blockTime,
 	generatorPublicKey,

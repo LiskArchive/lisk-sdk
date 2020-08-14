@@ -12,18 +12,30 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { BlockHeader, Account } from '@liskhq/lisk-chain';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { testing } from '@liskhq/lisk-utils';
 import { getAddressAndPublicKeyFromPassphrase, hexToBuffer } from '@liskhq/lisk-cryptography';
 import * as delegateShufflingScenario from '../../../../fixtures/dpos_delegate_shuffling/uniformly_shuffled_delegate_list.json';
-import { shuffleDelegateList, updateProductivity } from '../../../../../src/modules/dpos/delegates';
+import {
+	shuffleDelegateList,
+	updateDelegateProductivity,
+	updateDelegateList,
+} from '../../../../../src/modules/dpos/delegates';
 import { Delegate } from '../../../../../src';
 import {
 	DelegateAccountsWithPublicKeysMap,
 	getDelegateAccounts,
 } from '../../../../fixtures/delegates';
 import { DPOSAccountProps } from '../../../../../src/modules/dpos';
+import * as forgerSelectionZeroStandbyScenario from '../../../../fixtures/dpos_forger_selection/dpos_forger_selection_0_standby.json';
+import * as forgerSelectionOneStandbyScenario from '../../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_1_standby.json';
+import * as forgerSelectionTwoStandbyScenario from '../../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_2_standby.json';
+import * as forgerSelectionLessTHan103Scenario from '../../../../fixtures/dpos_forger_selection/dpos_forger_selection_less_than_103.json';
+import * as forgerSelectionMoreThan2StandByScenario from '../../../../fixtures/dpos_forger_selection/dpos_forger_selection_more_than_2_standby.json';
+import { voteWeightsSchema } from '../../../../../src/modules/dpos/schema';
+import { CHAIN_STATE_DELEGATE_VOTE_WEIGHTS } from '../../../../../src/modules/dpos/constants';
 
 const { StateStoreMock } = testing;
 
@@ -50,7 +62,7 @@ describe('delegates', () => {
 		});
 	});
 
-	describe('updateProductivity', () => {
+	describe('updateDelegateProductivity', () => {
 		let accountsPublicKeys: DelegateAccountsWithPublicKeysMap;
 		let forgedDelegates: Account<DPOSAccountProps>[];
 		let forgersList: Delegate[];
@@ -99,7 +111,7 @@ describe('delegates', () => {
 				};
 
 				// Act
-				await updateProductivity(params);
+				await updateDelegateProductivity(params);
 
 				// Assert
 				expect.assertions(forgedDelegates.length + 1);
@@ -137,7 +149,7 @@ describe('delegates', () => {
 					generatorPublicKey: accountsPublicKeys.publicKeyMap.get(forgedDelegate.address),
 				};
 
-				await updateProductivity(params);
+				await updateDelegateProductivity(params);
 
 				expect.assertions(forgedDelegates.length);
 				for (const delegate of forgedDelegates) {
@@ -175,7 +187,7 @@ describe('delegates', () => {
 				};
 
 				// Act
-				await updateProductivity(params);
+				await updateDelegateProductivity(params);
 
 				expect.assertions(forgedDelegates.length);
 				for (const delegate of forgedDelegates) {
@@ -215,7 +227,7 @@ describe('delegates', () => {
 					),
 				};
 
-				await updateProductivity(params);
+				await updateDelegateProductivity(params);
 
 				expect.assertions(forgedDelegates.length + 1);
 				for (const delegate of forgedDelegates) {
@@ -262,7 +274,7 @@ describe('delegates', () => {
 				});
 
 				// Act
-				await updateProductivity(params);
+				await updateDelegateProductivity(params);
 
 				const updatedMissedForger = await params.stateStore.account.get(missedDelegate.address);
 				expect(updatedMissedForger.dpos.delegate.isBanned).toBeFalse();
@@ -303,7 +315,7 @@ describe('delegates', () => {
 				});
 
 				// Act
-				await updateProductivity(params);
+				await updateDelegateProductivity(params);
 
 				const updatedMissedForger = await params.stateStore.account.get(missedDelegate.address);
 				expect(updatedMissedForger.dpos.delegate.isBanned).toBeFalse();
@@ -344,11 +356,181 @@ describe('delegates', () => {
 				});
 
 				// Act
-				await updateProductivity(params);
+				await updateDelegateProductivity(params);
 
 				const updatedMissedForger = await params.stateStore.account.get(missedDelegate.address);
 				expect(updatedMissedForger.dpos.delegate.isBanned).toBeTrue();
 				expect(updatedMissedForger.dpos.delegate.consecutiveMissedBlocks).toEqual(51);
+			});
+		});
+	});
+
+	describe('updateDelegateList', () => {
+		let params: any;
+
+		beforeEach(() => {
+			params = {
+				round: 100,
+				randomSeeds: [],
+				stateStore: new StateStoreMock(),
+				activeDelegates: 101,
+				standbyDelegates: 2,
+				consensus: {
+					getLastBootstrapHeight: jest.fn().mockReturnValue(5),
+					getFinalizedHeight: jest.fn().mockReturnValue(0),
+					getDelegates: jest.fn(),
+					updateDelegates: jest.fn(),
+				},
+			};
+		});
+
+		describe('given valid scenarios', () => {
+			const scenarios = [
+				forgerSelectionZeroStandbyScenario,
+				forgerSelectionOneStandbyScenario,
+				forgerSelectionTwoStandbyScenario,
+				forgerSelectionLessTHan103Scenario,
+				forgerSelectionMoreThan2StandByScenario,
+			];
+			const defaultRound = 5;
+
+			for (const scenario of scenarios) {
+				// eslint-disable-next-line no-loop-func
+				describe(scenario.title, () => {
+					it('should result in the expected forgers list', async () => {
+						// Forger selection relies on vote weight to be sorted
+						const delegates = [
+							...scenario.testCases.input.voteWeights.map(d => ({
+								address: Buffer.from(d.address, 'hex'),
+								voteWeight: BigInt(d.voteWeight),
+							})),
+						];
+						delegates.sort((a, b) => {
+							const diff = b.voteWeight - a.voteWeight;
+							if (diff > BigInt(0)) {
+								return 1;
+							}
+							if (diff < BigInt(0)) {
+								return -1;
+							}
+							return a.address.compare(b.address);
+						});
+
+						const encodedDelegateVoteWeights = codec.encode(voteWeightsSchema, {
+							voteWeights: [
+								{
+									round: defaultRound,
+									delegates: delegates.map(d => ({
+										address: d.address,
+										voteWeight: d.voteWeight,
+									})),
+								},
+							],
+						});
+
+						params.stateStore = new StateStoreMock({
+							chain: { [CHAIN_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights },
+						});
+						params.randomSeeds = [
+							Buffer.from(scenario.testCases.input.randomSeed1, 'hex'),
+							Buffer.from(scenario.testCases.input.randomSeed2, 'hex'),
+						];
+						params.round = defaultRound;
+
+						await updateDelegateList(params);
+
+						expect(params.consensus.updateDelegates).toBeCalledTimes(1);
+						const forgersList = params.consensus.updateDelegates.mock.calls[0][0] as Delegate[];
+
+						expect(forgersList.length).toBeGreaterThan(1);
+
+						const forgersListAddresses = forgersList
+							.map(d => d.address)
+							.sort((a, b) => a.compare(b));
+
+						const sortedFixturesForgersBuffer = scenario.testCases.output.selectedForgers
+							.map(aForger => Buffer.from(aForger, 'hex'))
+							.sort((a, b) => a.compare(b));
+
+						expect(forgersListAddresses).toEqual(sortedFixturesForgersBuffer);
+					});
+				});
+			}
+		});
+
+		describe('when there are enough standby delegates', () => {
+			const defaultRound = 123;
+			let stateStore: any;
+			let forgersList: Delegate[];
+			const scenario = forgerSelectionMoreThan2StandByScenario;
+
+			beforeEach(async () => {
+				// Forger selection relies on vote weight to be sorted
+				const delegates: { address: Buffer; voteWeight: bigint }[] = [
+					...scenario.testCases.input.voteWeights.map(d => ({
+						address: Buffer.from(d.address, 'hex'),
+						voteWeight: BigInt(d.voteWeight),
+					})),
+				];
+				delegates.sort((a, b) => {
+					const diff = BigInt(b.voteWeight) - BigInt(a.voteWeight);
+					if (diff > BigInt(0)) {
+						return 1;
+					}
+					if (diff < BigInt(0)) {
+						return -1;
+					}
+					return a.address.compare(b.address);
+				});
+
+				const encodedDelegateVoteWeights = codec.encode(voteWeightsSchema, {
+					voteWeights: [
+						{
+							round: defaultRound,
+							delegates: delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.voteWeight,
+							})),
+						},
+					],
+				});
+
+				stateStore = new StateStoreMock({
+					chain: { [CHAIN_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights },
+				});
+
+				params.stateStore = stateStore;
+				params.round = defaultRound;
+				params.randomSeeds = [
+					Buffer.from(scenario.testCases.input.randomSeed1, 'hex'),
+					Buffer.from(scenario.testCases.input.randomSeed2, 'hex'),
+				];
+
+				await updateDelegateList(params);
+
+				// eslint-disable-next-line jest/no-standalone-expect
+				expect(params.consensus.updateDelegates).toBeCalledTimes(1);
+
+				forgersList = params.consensus.updateDelegates.mock.calls[0][0] as Delegate[];
+			});
+
+			it('should have activeDelegates + standbyDelegates delegates in the forgers list', async () => {
+				expect(forgersList).toHaveLength(params.activeDelegates + params.standbyDelegates);
+			});
+
+			it('should store selected stand by delegates in the forgers list', async () => {
+				const standbyCandidatesAddresses = forgersList
+					.filter(d => !d.isConsensusParticipant)
+					.map(d => d.address)
+					.sort((a, b) => a.compare(b));
+				const { selectedForgers } = scenario.testCases.output;
+				const standbyDelegatesInFixture = [
+					Buffer.from(selectedForgers[selectedForgers.length - 1], 'hex'),
+					Buffer.from(selectedForgers[selectedForgers.length - 2], 'hex'),
+				].sort((a, b) => a.compare(b));
+
+				expect(standbyCandidatesAddresses).toHaveLength(2);
+				expect(standbyCandidatesAddresses).toEqual(standbyDelegatesInFixture);
 			});
 		});
 	});

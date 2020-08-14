@@ -265,7 +265,7 @@ describe('DPoSModule', () => {
 			it('should not update productivity', async () => {
 				await dposModule.afterBlockApply(input);
 
-				expect(delegates.updateProductivity).not.toBeCalled();
+				expect(delegates.updateDelegateProductivity).not.toBeCalled();
 			});
 
 			describe('when its not the last block of round', () => {
