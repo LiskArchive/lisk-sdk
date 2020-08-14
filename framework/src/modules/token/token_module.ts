@@ -144,4 +144,21 @@ export class TokenModule extends BaseModule {
 		stateStore.account.set(generatorAddress, generator);
 		stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
 	}
+
+	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
+	public async afterGenesisBlockApply({
+		genesisBlock,
+	}: AfterGenesisBlockApplyInput<TokenAccount>): Promise<void> {
+		// Validate genesis accounts balance
+		const accountAddresses = [];
+		let totalBalance = BigInt(0);
+		for (const account of genesisBlock.header.asset.accounts) {
+			accountAddresses.push(account.address);
+			totalBalance += BigInt(account.token.balance);
+		}
+
+		if (totalBalance > GENESIS_BLOCK_MAX_BALANCE) {
+			throw new Error('Total balance exceeds the limit (2^63)-1');
+		}
+	}
 }
