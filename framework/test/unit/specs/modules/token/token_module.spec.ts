@@ -75,4 +75,43 @@ describe('token module', () => {
 		};
 		reducerHandler = {};
 	});
+
+	describe('#beforeTransactionApply', () => {
+		it('should return no errors', async () => {
+			return expect(
+				tokenModule.beforeTransactionApply({
+					stateStore,
+					transaction: validTransaction,
+					reducerHandler,
+				}),
+			).resolves.toBeUndefined();
+		});
+
+		it('should return error when baseFee is less than minimum required fee.', async () => {
+			tokenModule = new TokenModule({
+				...genesisConfig,
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: '1',
+						moduleType: 2,
+					},
+				],
+			});
+			const expectedMinFee =
+				BigInt(genesisConfig.minFeePerByte) * BigInt(validTransaction.getBytes().length);
+
+			return expect(
+				tokenModule.beforeTransactionApply({
+					stateStore,
+					transaction: validTransaction,
+					reducerHandler,
+				}),
+			).rejects.toStrictEqual(
+				new Error(
+					`Insufficient transaction fee. Minimum required fee is: ${expectedMinFee.toString()}`,
+				),
+			);
+		});
+	});
 });
