@@ -25,7 +25,6 @@ import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from '../controller';
 import { version } from '../version';
 import { applicationConfigSchema } from './schema';
-import { Network } from './network';
 import { Node } from './node';
 import { Logger, createLogger } from './logger';
 
@@ -97,7 +96,6 @@ export class Application {
 	public logger!: Logger;
 
 	private _node!: Node;
-	private _network!: Network;
 	private _controller!: Controller;
 	private readonly _customModules: InstantiableBaseModule[];
 	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
@@ -231,13 +229,11 @@ export class Application {
 		this._channel = this._initChannel();
 
 		this._controller = this._initController();
-		this._network = this._initNetwork();
 		this._node = this._initNode();
 
 		await this._controller.load();
 
 		await this._node.bootstrap();
-		await this._network.bootstrap(this._node.networkIdentifier);
 
 		await this._controller.loadPlugins(this._plugins, this.config.plugins);
 		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
@@ -256,7 +252,6 @@ export class Application {
 
 		try {
 			await this._node.cleanup();
-			await this._network.cleanup();
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
 			await this._nodeDB.close();
@@ -286,8 +281,6 @@ export class Application {
 			//  If yes then we should encode it to json with the issue https://github.com/LiskHQ/lisk-sdk/issues/5513
 			// genesisBlock: this._genesisBlock,
 			constants: this.constants,
-			lastCommitId: this.config.lastCommitId,
-			buildVersion: this.config.buildVersion,
 		};
 
 		Object.keys(this._plugins).forEach(alias => {
@@ -323,10 +316,10 @@ export class Application {
 			],
 			{
 				getConnectedPeers: {
-					handler: (_action: ActionInfoObject) => this._network.getConnectedPeers(),
+					handler: (_action: ActionInfoObject) => this._node.actions.getConnectedPeers(),
 				},
 				getDisconnectedPeers: {
-					handler: (_action: ActionInfoObject) => this._network.getDisconnectedPeers(),
+					handler: (_action: ActionInfoObject) => this._node.actions.getDisconnectedPeers(),
 				},
 				getForgers: {
 					handler: async (_action: ActionInfoObject) => this._node.actions.getValidators(),
@@ -342,8 +335,7 @@ export class Application {
 						),
 				},
 				getForgingStatus: {
-					handler: (_action: ActionInfoObject) =>
-						this._node.actions.getForgingStatusOfAllDelegates(),
+					handler: (_action: ActionInfoObject) => this._node.actions.getForgingStatus(),
 				},
 				getTransactionsFees: {
 					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFees(),
@@ -431,47 +423,16 @@ export class Application {
 		});
 	}
 
-	private _initNetwork(): Network {
-		const network = new Network({
-			networkVersion: this.config.networkVersion,
-			options: this.config.network,
-			logger: this.logger,
-			channel: this._channel,
-			nodeDB: this._nodeDB,
-		});
-
-		return network;
-	}
-
 	private _initNode(): Node {
 		const { plugins, ...rootConfigs } = this.config;
-		const { network, ...nodeConfigs } = rootConfigs;
-		// Decode JSON into object
-		const convertedDelegates = nodeConfigs.forging.delegates.map(delegate => ({
-			...delegate,
-			address: Buffer.from(delegate.address, 'base64'),
-			hashOnion: {
-				...delegate.hashOnion,
-				hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
-			},
-		}));
 		const node = new Node({
 			channel: this._channel,
-			options: {
-				...nodeConfigs,
-				forging: {
-					...nodeConfigs.forging,
-					delegates: convertedDelegates,
-				},
-				genesisBlock: this._genesisBlock,
-				genesisConfig: {
-					...this.constants,
-				},
-			},
+			genesisBlockJSON: this._genesisBlock,
+			options: rootConfigs,
 			logger: this.logger,
 			forgerDB: this._forgerDB,
 			blockchainDB: this._blockchainDB,
-			networkModule: this._network,
+			nodeDB: this._nodeDB,
 			customModules: this._customModules,
 		});
 

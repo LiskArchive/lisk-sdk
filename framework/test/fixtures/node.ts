@@ -12,19 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Options } from '../../src/application/node/node';
-import * as genesisBlockJSON from './config/devnet/genesis_block.json';
+import { NodeOptions } from '../../src/application/node/node';
 
 export const cacheConfig = 'aCacheConfig';
 
-export const nodeOptions = {
+export const nodeOptions = ({
 	version: '1.0.0',
 	networkVersion: '1.0',
 	rootPath: '~/.lisk',
 	label: 'default',
-	genesisBlock: genesisBlockJSON,
 	network: {
-		enabled: false,
+		maxInboundConnections: 0,
+		seedPeers: [{ ip: '127.0.0.1', port: 5000 }],
 	},
 	forging: {
 		waitThreshold: 2,
@@ -59,4 +58,4 @@ export const nodeOptions = {
 		standbyDelegates: 2,
 		delegateListRoundOffset: 2,
 	},
-} as Options;
+} as unknown) as NodeOptions;

@@ -36,8 +36,8 @@ export const getForgers = (channel: BaseChannel, codec: PluginCodec) => async (
 			const account = codec.decodeAccount(forgerAccounts[i]);
 
 			data.push({
-				username: account.asset.delegate.username,
-				totalVotesReceived: account.asset.delegate.totalVotesReceived,
+				username: account.dpos.delegate.username,
+				totalVotesReceived: account.dpos.delegate.totalVotesReceived,
 				...forgersFrameworkInfo[i],
 			});
 		}

@@ -31,7 +31,7 @@ import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transactio
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Schema } from '@liskhq/lisk-codec';
 import { jobHandlers } from '@liskhq/lisk-utils';
-import { Forger, RegisteredDelegate } from './forger';
+import { Forger } from './forger';
 import {
 	Transport,
 	HandleRPCGetTransactionsReturn,
@@ -44,7 +44,7 @@ import {
 } from './synchronizer';
 import { Processor } from './processor';
 import { Logger } from '../logger';
-import { EventPostTransactionData, GenesisConfig } from '../../types';
+import { EventPostTransactionData, GenesisConfig, ApplicationConfig } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import {
@@ -59,30 +59,18 @@ const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK } = chainEvents;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
 
-export interface Options {
-	readonly version: string;
-	readonly networkVersion: string;
-	readonly label: string;
-	readonly rootPath: string;
-	readonly forging: {
-		readonly waitThreshold: number;
-		readonly delegates: RegisteredDelegate[];
-		readonly force?: boolean;
-		readonly defaultPassword?: string;
-	};
-	genesisBlock: Record<string, unknown>;
-	readonly genesisConfig: GenesisConfig;
-}
+export type NodeOptions = Omit<ApplicationConfig, 'plugins'>;
 
 type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
 
 interface NodeConstructor {
 	readonly channel: InMemoryChannel;
-	readonly options: Options;
+	readonly genesisBlockJSON: Record<string, unknown>;
+	readonly options: NodeOptions;
 	readonly logger: Logger;
 	readonly forgerDB: KVStore;
 	readonly blockchainDB: KVStore;
-	readonly networkModule: Network;
+	readonly nodeDB: KVStore;
 	readonly customModules: InstantiableBaseModule[];
 }
 
@@ -103,13 +91,15 @@ interface TransactionFees {
 
 export class Node {
 	private readonly _channel: InMemoryChannel;
-	private readonly _options: Options;
+	private readonly _options: NodeOptions;
 	private readonly _logger: Logger;
+	private readonly _nodeDB: KVStore;
 	private readonly _forgerDB: KVStore;
 	private readonly _blockchainDB: KVStore;
-	private readonly _networkModule: Network;
 	private readonly _customModules: InstantiableBaseModule[];
 	private readonly _registeredModules: BaseModule[] = [];
+	private readonly _genesisBlockJSON: Record<string, unknown>;
+	private readonly _networkModule: Network;
 	private _networkIdentifier!: Buffer;
 	private _genesisBlock!: GenesisBlock;
 	private _registeredAccountSchemas: { [moduleName: string]: AccountSchema } = {};
@@ -128,7 +118,8 @@ export class Node {
 		logger,
 		blockchainDB,
 		forgerDB,
-		networkModule,
+		nodeDB,
+		genesisBlockJSON,
 		customModules,
 	}: NodeConstructor) {
 		this._channel = channel;
@@ -136,14 +127,22 @@ export class Node {
 		this._logger = logger;
 		this._blockchainDB = blockchainDB;
 		this._forgerDB = forgerDB;
-		this._networkModule = networkModule;
+		this._nodeDB = nodeDB;
 		this._customModules = customModules;
+		this._genesisBlockJSON = genesisBlockJSON;
+		this._networkModule = new Network({
+			networkVersion: this._options.networkVersion,
+			options: this._options.network,
+			logger: this._logger,
+			channel: this._channel,
+			nodeDB: this._nodeDB,
+		});
 	}
 
 	public async bootstrap(): Promise<void> {
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			if (!this._options.genesisBlock) {
+			if (!this._genesisBlockJSON) {
 				throw Error('Missing genesis block');
 			}
 
@@ -162,9 +161,8 @@ export class Node {
 				this._registeredModules.push(customModule);
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			this._genesisBlock = readGenesisBlockJSON(
-				this._options.genesisBlock,
+				this._genesisBlockJSON,
 				this._registeredAccountSchemas,
 			);
 
@@ -175,18 +173,38 @@ export class Node {
 				);
 			}
 
+			this._networkIdentifier = getNetworkIdentifier(
+				this._genesisBlock.header.transactionRoot,
+				this._options.genesisConfig.communityIdentifier,
+			);
+
 			this._initModules();
+
 			for (const customModule of this._registeredModules) {
 				this._processor.register(customModule);
 			}
 
-			this._logger.info('Node ready and launched');
+			// Network needs to be initialized first to call events
+			await this._networkModule.bootstrap(this.networkIdentifier);
+
+			// Start subscribing to events, so that genesis block will also be included in event
+			this._subscribeToEvents();
 			// After binding, it should immediately load blockchain
 			await this._processor.init(this._genesisBlock);
 			// Check if blocks are left in temp_blocks table
 			await this._synchronizer.init();
-			this._subscribeToEvents();
 
+			this._networkModule.applyNodeInfo({
+				height: this._chain.lastBlock.header.height,
+				lastBlockID: this._chain.lastBlock.header.id,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+				maxHeightPrevoted:
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+					this._chain.lastBlock.header.asset.maxHeightPrevoted ?? 0,
+				blockVersion: this._chain.lastBlock.header.version,
+			});
+
+			this._logger.info('Node ready and launched');
 			this._channel.subscribe(
 				'app:network:ready',
 				// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -362,7 +380,7 @@ export class Node {
 				peerId: string;
 			}): Promise<HandleRPCGetTransactionsReturn> =>
 				this._transport.handleRPCGetTransactions(params.data, params.peerId),
-			getForgingStatusOfAllDelegates: (): { address: string; forging: boolean }[] | undefined =>
+			getForgingStatus: (): { address: string; forging: boolean }[] | undefined =>
 				this._forger.getForgingStatusOfAllDelegates()?.map(({ address, forging }) => ({
 					address: address.toString('base64'),
 					forging,
@@ -406,6 +424,8 @@ export class Node {
 					...this._options.genesisConfig,
 				},
 			}),
+			getConnectedPeers: () => this._networkModule.getConnectedPeers(),
+			getDisconnectedPeers: () => this._networkModule.getDisconnectedPeers(),
 		};
 	}
 
@@ -420,13 +440,10 @@ export class Node {
 		await this._synchronizer.stop();
 		await this._processor.stop();
 		this._logger.info('Node cleanup completed');
+		await this._networkModule.cleanup();
 	}
 
 	private _initModules(): void {
-		this._networkIdentifier = getNetworkIdentifier(
-			this._genesisBlock.header.transactionRoot,
-			this._options.genesisConfig.communityIdentifier,
-		);
 		this._chain = new Chain({
 			db: this._blockchainDB,
 			genesisBlock: this._genesisBlock,
@@ -438,87 +455,6 @@ export class Node {
 			blockTime: this._options.genesisConfig.blockTime,
 			accounts: this._registeredAccountSchemas,
 		});
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-		this._chain.events.on(
-			EVENT_NEW_BLOCK,
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (eventData: {
-				block: Block;
-				accounts: Account[];
-				// eslint-disable-next-line @typescript-eslint/require-await
-			}): Promise<void> => {
-				const { block } = eventData;
-				// Publish to the outside
-				this._channel.publish('app:block:new', {
-					block: this._chain.dataAccess.encode(block).toString('base64'),
-					accounts: eventData.accounts.map(acc =>
-						this._chain.dataAccess.encodeAccount(acc).toString('base64'),
-					),
-				});
-
-				// Remove any transactions from the pool on new block
-				if (block.payload.length) {
-					for (const transaction of block.payload) {
-						// FIXME: #5619 any should be removed
-						this._transactionPool.remove(transaction as any);
-					}
-				}
-
-				if (!this._synchronizer.isActive) {
-					this._networkModule.applyNodeInfo({
-						height: block.header.height,
-						lastBlockID: block.header.id,
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-						maxHeightPrevoted: block.header.asset.maxHeightPrevoted,
-						blockVersion: block.header.version,
-					});
-				}
-
-				this._logger.info(
-					{
-						id: block.header.id,
-						height: block.header.height,
-						numberOfTransactions: block.payload.length,
-					},
-					'New block added to the chain',
-				);
-			},
-		);
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-		this._chain.events.on(
-			EVENT_DELETE_BLOCK,
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (eventData: { block: Block; accounts: Account[] }) => {
-				const { block } = eventData;
-				// Publish to the outside
-				this._channel.publish('app:block:delete', {
-					block: this._chain.dataAccess.encode(block).toString('base64'),
-					accounts: eventData.accounts.map(acc =>
-						this._chain.dataAccess.encodeAccount(acc).toString('base64'),
-					),
-				});
-
-				if (block.payload.length) {
-					for (const transaction of block.payload) {
-						try {
-							// FIXME: #5619 any should be removed
-							await this._transactionPool.add(transaction as any);
-						} catch (err) {
-							this._logger.error(
-								{ err: err as Error },
-								'Failed to add transaction back to the pool',
-							);
-						}
-					}
-				}
-				this._logger.info(
-					{ id: block.header.id, height: block.header.height },
-					'Deleted a block from the chain',
-				);
-			},
-		);
 
 		this._bft = new BFT({
 			chain: this._chain,
@@ -600,7 +536,14 @@ export class Node {
 			transactionPoolModule: this._transactionPool,
 			processorModule: this._processor,
 			chainModule: this._chain,
-			forgingDelegates: this._options.forging.delegates,
+			forgingDelegates: this._options.forging.delegates.map(delegate => ({
+				...delegate,
+				address: Buffer.from(delegate.address, 'base64'),
+				hashOnion: {
+					...delegate.hashOnion,
+					hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
+				},
+			})),
 			forgingForce: this._options.forging.force,
 			forgingDefaultPassword: this._options.forging.defaultPassword,
 			forgingWaitThreshold: this._options.forging.waitThreshold,
@@ -649,6 +592,85 @@ export class Node {
 	}
 
 	private _subscribeToEvents(): void {
+		this._chain.events.on(
+			EVENT_NEW_BLOCK,
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			async (eventData: {
+				block: Block;
+				accounts: Account[];
+				// eslint-disable-next-line @typescript-eslint/require-await
+			}): Promise<void> => {
+				const { block } = eventData;
+				// Publish to the outside
+				this._channel.publish('app:block:new', {
+					block: this._chain.dataAccess.encode(block).toString('base64'),
+					accounts: eventData.accounts.map(acc =>
+						this._chain.dataAccess.encodeAccount(acc).toString('base64'),
+					),
+				});
+
+				// Remove any transactions from the pool on new block
+				if (block.payload.length) {
+					for (const transaction of block.payload) {
+						// FIXME: #5619 any should be removed
+						this._transactionPool.remove(transaction as any);
+					}
+				}
+
+				if (!this._synchronizer.isActive) {
+					this._networkModule.applyNodeInfo({
+						height: block.header.height,
+						lastBlockID: block.header.id,
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+						maxHeightPrevoted: block.header.asset.maxHeightPrevoted,
+						blockVersion: block.header.version,
+					});
+				}
+
+				this._logger.info(
+					{
+						id: block.header.id,
+						height: block.header.height,
+						numberOfTransactions: block.payload.length,
+					},
+					'New block added to the chain',
+				);
+			},
+		);
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+		this._chain.events.on(
+			EVENT_DELETE_BLOCK,
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			async (eventData: { block: Block; accounts: Account[] }) => {
+				const { block } = eventData;
+				// Publish to the outside
+				this._channel.publish('app:block:delete', {
+					block: this._chain.dataAccess.encode(block).toString('base64'),
+					accounts: eventData.accounts.map(acc =>
+						this._chain.dataAccess.encodeAccount(acc).toString('base64'),
+					),
+				});
+
+				if (block.payload.length) {
+					for (const transaction of block.payload) {
+						try {
+							// FIXME: #5619 any should be removed
+							await this._transactionPool.add(transaction as any);
+						} catch (err) {
+							this._logger.error(
+								{ err: err as Error },
+								'Failed to add transaction back to the pool',
+							);
+						}
+					}
+				}
+				this._logger.info(
+					{ id: block.header.id, height: block.header.height },
+					'Deleted a block from the chain',
+				);
+			},
+		);
 		// FIXME: this event is using instance, it should be replaced by event emitter
 		this._processor.events.on(
 			EVENT_PROCESSOR_BROADCAST_BLOCK,

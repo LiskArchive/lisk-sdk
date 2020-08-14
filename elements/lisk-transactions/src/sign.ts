@@ -14,7 +14,7 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
+import { getAddressAndPublicKeyFromPassphrase, signData, hash } from '@liskhq/lisk-cryptography';
 import { validateTransactionSchema } from './validate';
 import { baseTransactionSchema } from './schema';
 
@@ -40,6 +40,22 @@ export const getSigningBytes = (
 		...transactionObject,
 		asset: assetBytes,
 		signatures: [],
+	});
+
+	return transactionBytes;
+};
+
+export const getBytes = (
+	assetSchema: object,
+	transactionObject: Record<string, unknown>,
+): Buffer => {
+	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
+		throw new Error('Asset must be of type object and not null');
+	}
+	const assetBytes = codec.encode((assetSchema as unknown) as Schema, transactionObject.asset);
+	const transactionBytes = codec.encode(baseTransactionSchema, {
+		...transactionObject,
+		asset: assetBytes,
 	});
 
 	return transactionBytes;
@@ -80,7 +96,7 @@ export const signTransaction = (
 	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
-	return transactionObject;
+	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
 };
 
 const sanitizeSignaturesArray = (
@@ -146,7 +162,7 @@ export const signMultiSignatureTransaction = (
 	) {
 		sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-		return transactionObject;
+		return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
 	}
 
 	if (
@@ -181,5 +197,5 @@ export const signMultiSignatureTransaction = (
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-	return transactionObject;
+	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
 };

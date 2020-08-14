@@ -15,7 +15,6 @@
 import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
 import { Block, Account, Transaction } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
-import { validator } from '@liskhq/lisk-validator';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { genesis, DefaultAccountProps } from '../../../../../fixtures';
@@ -36,9 +35,6 @@ describe('Process block', () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
 		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 		await node['_forger'].loadDelegates();
-		// TODO: Need to figure out why below error appears but its only in tests
-		//  Trace: Error: schema with key or id "/block/header"
-		validator['_validator']._opts.addUsedSchema = false;
 	});
 
 	afterAll(async () => {

@@ -23,14 +23,14 @@ import { TransactionJSON } from '../types';
 
 interface AccountJSON {
 	address: string;
-	balance: string;
-	nonce: string;
+	token: { balance: string };
+	sequence: { nonce: string };
 	keys: {
 		numberOfSignatures: number;
 		mandatoryKeys: string[];
 		optionalKeys: string[];
 	};
-	asset: {
+	dpos: {
 		delegate: {
 			username: string;
 			pomHeights: number[];

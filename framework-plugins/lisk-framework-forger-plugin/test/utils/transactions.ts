@@ -11,12 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { TransferTransaction, VoteTransaction, utils } from '@liskhq/lisk-transactions';
+import { TokenTransferAsset, Transaction, DPoSVoteAsset } from 'lisk-framework';
+import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
+import { codec } from '@liskhq/lisk-codec';
+import { signData } from '@liskhq/lisk-cryptography';
 import * as genesisDelegates from '../fixtures/genesis_delegates.json';
 import { networkIdentifier } from '../fixtures/devnet';
-
-const { convertLSKToBeddows } = utils;
 
 export const createTransferTransaction = ({
 	amount,
@@ -30,20 +30,24 @@ export const createTransferTransaction = ({
 	nonce: number;
 }) => {
 	const genesisAccount = genesisDelegates.accounts[0];
-	const transaction = new TransferTransaction({
-		nonce: BigInt(nonce),
-		fee: BigInt(convertLSKToBeddows(fee)),
-		senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
-		asset: {
-			amount: BigInt(convertLSKToBeddows(amount)),
-			recipientAddress: Buffer.from(recipientAddress, 'base64'),
-			data: '',
-		},
+	const encodedAsset = codec.encode(new TokenTransferAsset().assetSchema, {
+		recipientAddress: Buffer.from(recipientAddress, 'base64'),
+		amount: BigInt(convertLSKToBeddows(amount)),
+		data: '',
 	});
-
-	transaction.sign(networkIdentifier, genesisAccount.passphrase);
-
-	return transaction;
+	const tx = new Transaction({
+		moduleType: 2,
+		assetType: 0,
+		nonce: BigInt(nonce),
+		senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
+		fee: BigInt(convertLSKToBeddows(fee)),
+		asset: encodedAsset,
+		signatures: [],
+	});
+	(tx.signatures as Buffer[]).push(
+		signData(Buffer.concat([networkIdentifier, tx.getSigningBytes()]), genesisAccount.passphrase),
+	);
+	return tx;
 };
 
 export const createVoteTransaction = ({
@@ -58,21 +62,26 @@ export const createVoteTransaction = ({
 	nonce: number;
 }) => {
 	const genesisAccount = genesisDelegates.accounts[0];
-	const transaction = new VoteTransaction({
-		nonce: BigInt(nonce),
-		fee: BigInt(convertLSKToBeddows(fee)),
-		senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
-		asset: {
-			votes: [
-				{
-					delegateAddress: Buffer.from(recipientAddress, 'base64'),
-					amount: BigInt(convertLSKToBeddows(amount)),
-				},
-			],
-		},
+
+	const encodedAsset = codec.encode(new DPoSVoteAsset().assetSchema, {
+		votes: [
+			{
+				delegateAddress: Buffer.from(recipientAddress, 'base64'),
+				amount: BigInt(convertLSKToBeddows(amount)),
+			},
+		],
 	});
-
-	transaction.sign(networkIdentifier, genesisAccount.passphrase);
-
-	return transaction;
+	const tx = new Transaction({
+		moduleType: 5,
+		assetType: 1,
+		nonce: BigInt(nonce),
+		senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
+		fee: BigInt(convertLSKToBeddows(fee)),
+		asset: encodedAsset,
+		signatures: [],
+	});
+	(tx.signatures as Buffer[]).push(
+		signData(Buffer.concat([networkIdentifier, tx.getSigningBytes()]), genesisAccount.passphrase),
+	);
+	return tx;
 };
