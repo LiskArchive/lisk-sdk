@@ -60,5 +60,23 @@ export class TokenModule extends BaseModule {
 			}
 			stateStore.account.set(address, account);
 		},
+		debit: async (params: Record<string, unknown>, stateStore: StateStore): Promise<void> => {
+			const { address, amount } = params;
+			if (!Buffer.isBuffer(address)) {
+				throw new Error('Address must be a buffer');
+			}
+			if (typeof amount !== 'bigint') {
+				throw new Error('Amount must be a bigint');
+			}
+			const account = await stateStore.account.getOrDefault<TokenAccount>(address);
+			account.token.balance -= amount;
+			if (account.token.balance < this.config.minRemainingBalance) {
+				throw new Error(
+					`Remaining balance must be greater than ${(this.config
+						.minRemainingBalance as bigint).toString()}`,
+				);
+			}
+			stateStore.account.set(address, account);
+		},
 	};
 }
