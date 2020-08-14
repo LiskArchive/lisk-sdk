@@ -12,15 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable class-methods-use-this */
-
+import { MAX_TRANSACTION_AMOUNT, MIN_REMAINING_BALANCE } from './constants';
+import { TokenAccount, Asset } from './types';
 import { BaseAsset } from '../base_asset';
 import { ApplyAssetInput } from '../../types';
-
-interface Asset {
-	readonly amount: bigint;
-	readonly recipientAddress: Buffer;
-	readonly data: string;
-}
 
 export class TransferAsset extends BaseAsset {
 	public name = 'transfer';
@@ -50,6 +45,37 @@ export class TransferAsset extends BaseAsset {
 		},
 	};
 
-	// eslint-disable-next-line
-	public async applyAsset(_input: ApplyAssetInput<Asset>): Promise<void> {}
+	public async applyAsset({ asset, senderID, stateStore }: ApplyAssetInput<Asset>): Promise<void> {
+		const sender = await stateStore.account.get<TokenAccount>(senderID);
+
+		if (!sender) {
+			throw new Error(`Account does not exist for senderID: ${senderID.toString('base64')}`);
+		}
+
+		sender.token.balance -= asset.amount;
+		stateStore.account.set(sender.address, sender);
+		const recipient = await stateStore.account.getOrDefault<TokenAccount>(asset.recipientAddress);
+
+		if (!recipient) {
+			throw new Error('Invalid recipientAddress.');
+		}
+
+		recipient.token.balance += asset.amount;
+
+		if (recipient.token.balance > BigInt(MAX_TRANSACTION_AMOUNT)) {
+			throw new Error(
+				`Invalid transfer amount: ${asset.amount.toString()}. Maximum allowed amount is: ${MAX_TRANSACTION_AMOUNT}`,
+			);
+		}
+
+		if (recipient.token.balance < MIN_REMAINING_BALANCE) {
+			throw new Error(
+				`Recipient account does not have enough minimum remaining LSK: ${recipient.address.toString(
+					'base64',
+				)}. Minimum required balance: ${MIN_REMAINING_BALANCE}. Remaining balance: ${recipient.token.balance.toString()}`,
+			);
+		}
+
+		stateStore.account.set(recipient.address, recipient);
+	}
 }
