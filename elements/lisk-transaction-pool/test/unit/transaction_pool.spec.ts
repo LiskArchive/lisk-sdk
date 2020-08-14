@@ -17,6 +17,7 @@ import { TransactionPool } from '../../src/transaction_pool';
 import { Transaction, Status, TransactionStatus } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
 
 describe('TransactionPool class', () => {
 	let transactionPool: TransactionPool;
@@ -860,6 +861,58 @@ describe('TransactionPool class', () => {
 			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(
 				transactionsFromSender2,
 			);
+		});
+
+		it('should not remove unprocessable transaction but also does not promote', () => {
+			// Arrange
+			const trx1Sender1FailedResponse = {
+				id: '1',
+				status: Status.OK,
+				errors: [],
+			};
+			const trx2Sender1FailedResponse = {
+				id: '2',
+				status: Status.FAIL,
+				errors: [new Error('Higher nonce')],
+			};
+			const trx3Sender1FailedResponse = {
+				id: '3',
+				status: Status.FAIL,
+				errors: [new Error()],
+			};
+
+			let applyFuncStub: any;
+			applyFuncStub = jest.fn();
+			(transactionPool as any)['_applyFunction'] = applyFuncStub;
+			when(applyFuncStub)
+				.calledWith(transactionsFromSender1)
+				.mockResolvedValue([
+					{ id: '1', status: Status.OK, errors: [] },
+					trx2Sender1FailedResponse,
+					{ id: '3', status: Status.FAIL, errors: [new Error()] },
+				] as never);
+
+			let getStatusStub: any;
+			getStatusStub = jest.fn();
+			(transactionPool as any)['_getStatus'] = getStatusStub;
+			when(getStatusStub)
+				.calledWith(trx1Sender1FailedResponse)
+				.mockReturnValue(TransactionStatus.PROCESSABLE)
+				.calledWith(trx2Sender1FailedResponse)
+				.mockReturnValue(TransactionStatus.UNPROCESSABLE)
+				.calledWith(trx3Sender1FailedResponse)
+				.mockReturnValue(TransactionStatus.INVALID);
+
+			// Assert
+			expect(transactionPool['_allTransactions'][transactionsFromSender1[1].id])
+				.not.toBeUndefined;
+			// Invalid trx is removed
+			expect(transactionPool['_allTransactions'][transactionsFromSender1[2].id])
+				.toBeUndefined;
+			// Unprocessable trx should not be promoted
+			expect(
+				transactionPool.getProcessableTransactions()[address].map(tx => tx.id),
+			).not.toContain(transactionsFromSender1[1].id);
 		});
 	});
 
