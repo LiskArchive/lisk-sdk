@@ -12,3 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export const CHAIN_STATE_BURNT_FEE = 'burntFee';
+export const GENESIS_BLOCK_MAX_BALANCE = BigInt(2) ** BigInt(63) - BigInt(1);
