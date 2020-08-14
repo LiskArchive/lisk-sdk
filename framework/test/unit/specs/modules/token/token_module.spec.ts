@@ -11,3 +11,68 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { codec } from '@liskhq/lisk-codec';
+import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { TokenModule } from '../../../../../src/modules/token';
+import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
+import * as fixtures from './transfer_transaction_validate.json';
+import { GenesisConfig } from '../../../../../src';
+
+describe('token module', () => {
+	let tokenModule: TokenModule;
+	let validTransaction: any;
+	let decodedTransaction: any;
+	let senderAccount: any;
+	let recipientAccount: any;
+	let stateStore: any;
+	let reducerHandler: any;
+
+	const defaultTestCase = fixtures.testCases[0];
+	const minRemainingBalance = BigInt(1);
+	const genesisConfig: GenesisConfig = {
+		baseFees: [
+			{
+				assetType: 0,
+				baseFee: '10000000',
+				moduleType: 2,
+			},
+		],
+		bftThreshold: 67,
+		blockTime: 10,
+		communityIdentifier: 'lisk',
+		maxPayloadLength: 15360,
+		minFeePerByte: 1,
+		rewards: {
+			distance: 1,
+			milestones: ['milestone'],
+			offset: 2,
+		},
+		minRemainingBalance,
+	};
+
+	beforeEach(() => {
+		tokenModule = new TokenModule(genesisConfig);
+		const buffer = Buffer.from(defaultTestCase.output.transaction, 'base64');
+		decodedTransaction = codec.decode<Transaction>(transactionSchema, buffer);
+		validTransaction = new Transaction(decodedTransaction);
+		senderAccount = createFakeDefaultAccount({
+			address: Buffer.from(defaultTestCase.input.account.address, 'base64'),
+			token: {
+				balance: BigInt('1000000000000000'),
+			},
+		});
+		recipientAccount = createFakeDefaultAccount({
+			address: Buffer.from(defaultTestCase.input.account.address, 'base64'),
+			token: {
+				balance: BigInt('1000000000000000'),
+			},
+		});
+		stateStore = new StateStoreMock([senderAccount, recipientAccount]);
+		stateStore.account = {
+			...stateStore.account,
+			get: jest.fn().mockResolvedValue(senderAccount),
+			getOrDefault: jest.fn().mockResolvedValue(senderAccount),
+		};
+		reducerHandler = {};
+	});
+});
