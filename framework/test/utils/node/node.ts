@@ -15,24 +15,24 @@
 
 import { KVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
-import { constantsConfig, nodeConfig } from '../configs';
+import { nodeConfig } from '../configs';
 import { createMockChannel } from '../channel';
-import { Node, Options } from '../../../src/application/node/node';
-import { genesisBlock } from '../../fixtures/blocks';
+import { Node, NodeOptions } from '../../../src/application/node/node';
 import * as config from '../../fixtures/config/devnet/config.json';
+import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import { Logger } from '../../../src/application/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { ApplicationConfig } from '../../../src/types';
+import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../../../src/modules';
 
 const { plugins, ...rootConfigs } = config;
-const { network, ...nodeConfigs } = rootConfigs;
 
 interface CreateNodeInput {
 	blockchainDB: KVStore;
 	forgerDB: KVStore;
 	logger: Logger;
 	channel?: InMemoryChannel;
-	options?: Partial<Options>;
+	options?: Partial<NodeOptions>;
 }
 
 export const createNode = ({
@@ -42,41 +42,22 @@ export const createNode = ({
 	channel,
 	options = {},
 }: CreateNodeInput): Node => {
-	const mergedConfig = objects.mergeDeep({}, nodeConfig(), nodeConfigs) as ApplicationConfig;
-	const convertedDelegates = mergedConfig.forging.delegates.map(delegate => ({
-		...delegate,
-		address: Buffer.from(delegate.address, 'base64'),
-		hashOnion: {
-			...delegate.hashOnion,
-			hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
-		},
-	}));
-	const networkMock = {
-		request: jest.fn(),
-		requestFromPeer: jest.fn(),
-		send: jest.fn(),
-		broadcast: jest.fn(),
-		applyNodeInfo: jest.fn(),
-	};
-	const nodeOptions = {
-		...mergedConfig,
-		forging: {
-			...mergedConfig.forging,
-			delegates: convertedDelegates,
-		},
-		...options,
-		communityIdentifier: 'Lisk',
-		constants: constantsConfig(),
-		genesisBlock: (genesisBlock() as unknown) as Record<string, unknown>,
-	};
+	const mergedConfig = objects.mergeDeep({}, nodeConfig(), rootConfigs, options, {
+		network: { maxInboundConnections: 0 },
+	}) as ApplicationConfig;
+	const nodeDB = ({
+		get: jest.fn(),
+		put: jest.fn(),
+	} as unknown) as KVStore;
 	return new Node({
 		channel: channel ?? (createMockChannel() as any),
-		options: nodeOptions,
+		options: mergedConfig,
 		logger,
+		genesisBlockJSON,
 		blockchainDB,
 		forgerDB,
-		customModules: [],
-		networkModule: networkMock as any,
+		nodeDB,
+		customModules: [TokenModule, SequenceModule, KeysModule, DPoSModule],
 	});
 };
 
@@ -96,7 +77,7 @@ export const createAndLoadNode = async (
 	forgerDB: KVStore,
 	logger: Logger = fakeLogger as Logger,
 	channel?: InMemoryChannel,
-	options?: Options,
+	options?: NodeOptions,
 ): Promise<Node> => {
 	const chainModule = createNode({
 		blockchainDB,

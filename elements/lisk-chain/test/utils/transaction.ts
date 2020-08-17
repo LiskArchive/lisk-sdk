@@ -31,7 +31,7 @@ export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 		Buffer.concat([defaultNetworkIdentifier, tx.getSigningBytes()]),
 		genesisAccount.passphrase,
 	);
-	tx.signatures.push(signature);
+	(tx.signatures as Buffer[]).push(signature);
 
 	return tx;
 };

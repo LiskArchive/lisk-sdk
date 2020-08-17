@@ -13,7 +13,20 @@
  */
 
 export { Transaction } from '@liskhq/lisk-chain';
-export { BaseModule, BaseAsset } from './modules';
+export {
+	BaseModule,
+	BaseAsset,
+	TokenModule,
+	TokenTransferAsset,
+	SequenceModule,
+	KeysModule,
+	KeysRegisterAsset,
+	DPoSModule,
+	DPoSRegisterAsset,
+	DPoSVoteAsset,
+	DPoSUnlockAsset,
+	DPoSPoMAsset,
+} from './modules';
 export { Application } from './application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';

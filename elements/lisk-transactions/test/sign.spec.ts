@@ -16,8 +16,8 @@
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { getSigningBytes, signTransaction, signMultiSignatureTransaction } from '../src/sign';
-import { BaseTransaction } from '../src';
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
+import { baseTransactionSchema } from '../src/schema';
 
 const validAssetSchema = {
 	$id: 'lisk/transfer-transaction',
@@ -63,6 +63,11 @@ const multisigRegAsset = {
 	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 };
 
+interface Transaction {
+	asset: Buffer;
+	signatures: Buffer[];
+}
+
 interface MultiSignatureAsset {
 	mandatoryKeys: Array<Buffer>;
 	optionalKeys: Array<Buffer>;
@@ -88,7 +93,8 @@ const keys = {
 };
 
 const validTransaction = {
-	type: 8,
+	moduleType: 2,
+	assetType: 0,
 	nonce: BigInt('1'),
 	fee: BigInt('10000000'),
 	senderPublicKey: publicKey1,
@@ -103,7 +109,7 @@ describe('sign', () => {
 	describe('getSigningBytes', () => {
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [
-				{ ...validTransaction, type: BigInt(8) },
+				{ ...validTransaction, moduleType: BigInt(8) },
 				{ ...validTransaction, nonce: 1 },
 				{ ...validTransaction, fee: 1000000 },
 				{ ...validTransaction, senderPublicKey: 1 },
@@ -135,7 +141,7 @@ describe('sign', () => {
 		it('should return transaction bytes for given asset', () => {
 			const signingBytes = getSigningBytes(validAssetSchema, { ...validTransaction });
 			expect(signingBytes).toMatchSnapshot();
-			const decodedTransaction = codec.decode<object>(BaseTransaction.BASE_SCHEMA, signingBytes);
+			const decodedTransaction = codec.decode<object>(baseTransactionSchema, signingBytes);
 			const decodedAsset = codec.decode<object>(
 				validAssetSchema,
 				(decodedTransaction as any).asset,
@@ -162,7 +168,7 @@ describe('sign', () => {
 
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [
-				{ ...validTransaction, type: BigInt(8) },
+				{ ...validTransaction, moduleType: BigInt(8) },
 				{ ...validTransaction, nonce: 1 },
 				{ ...validTransaction, fee: 1000000 },
 				{ ...validTransaction, senderPublicKey: 1 },
@@ -319,13 +325,13 @@ describe('sign', () => {
 		multisigScenario.testCases.forEach((testCase: any) => {
 			describe(testCase.description, () => {
 				it('should have correct signatures', () => {
-					const decodedBaseTransaction = codec.decode<BaseTransaction>(
-						BaseTransaction.BASE_SCHEMA,
+					const decodedBaseTransaction = codec.decode<Transaction>(
+						baseTransactionSchema,
 						Buffer.from(testCase.output.transaction, 'base64'),
 					);
 					const decodedAsset = codec.decode<MultiSignatureAsset>(
 						multisigRegAsset,
-						decodedBaseTransaction.asset as Buffer,
+						decodedBaseTransaction.asset,
 					);
 					const { signatures, ...transactionObject } = decodedBaseTransaction;
 					const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'base64');

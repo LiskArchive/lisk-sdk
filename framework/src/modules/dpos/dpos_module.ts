@@ -28,6 +28,10 @@ import {
 	updateDelegateProductivity,
 } from './delegates';
 import { deleteVoteWeightsUntilRound, setRegisteredDelegates } from './data_access';
+import { RegisterTransactionAsset } from './transaction_assets/register_transaction_asset';
+import { VoteTransactionAsset } from './transaction_assets/vote_transaction_asset';
+import { UnlockTransactionAsset } from './transaction_assets/unlock_transaction_asset';
+import { PomTransactionAsset } from './transaction_assets/pom_transaction_asset';
 
 const { bufferArrayContains } = objectsUtils;
 
@@ -40,6 +44,12 @@ export class DPoSModule extends BaseModule {
 	public accountSchema = dposAccountSchema;
 
 	public readonly rounds: Rounds;
+	public readonly transactionAssets = [
+		new RegisterTransactionAsset(),
+		new VoteTransactionAsset(),
+		new UnlockTransactionAsset(),
+		new PomTransactionAsset(),
+	];
 
 	private readonly _activeDelegates: number;
 	private readonly _standbyDelegates: number;

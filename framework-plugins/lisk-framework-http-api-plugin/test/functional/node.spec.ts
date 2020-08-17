@@ -41,17 +41,13 @@ describe('Node Info endpoint', () => {
 			const nodeStatusAndConstantFixture = {
 				version: appInstance._node._options.version,
 				networkVersion: appInstance._node._options.networkVersion,
-				networkID: appInstance._node._options.networkId,
+				networkID: appInstance._node.networkIdentifier.toString('base64'),
 				lastBlockID: appInstance._node._chain.lastBlock.header.id.toString('base64'),
 				height: appInstance._node._chain.lastBlock.header.height,
 				finalizedHeight: appInstance._node._bft.finalityManager.finalizedHeight,
 				syncing: appInstance._node._synchronizer.isActive,
 				unconfirmedTransactions: appInstance._node._transactionPool.getAll().length,
-				genesisConfig: {
-					...appInstance._node._options.genesisConfig,
-					...appInstance._node._options.constants,
-					totalAmount: appInstance._node._options.constants.totalAmount.toString(),
-				},
+				genesisConfig: appInstance._node._options.genesisConfig,
 			};
 
 			const result = await axios.get(getURL('/api/node/info'));

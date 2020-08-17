@@ -99,9 +99,35 @@ export const applicationConfigSchema = {
 						'The unique name of the relevant community as a string encoded in UTF-8 format',
 				},
 				bftThreshold: {
-					type: 'number',
+					type: 'integer',
 					minimum: 1,
 					description: 'Number of validators required to set block finality',
+				},
+				minFeePerByte: {
+					type: 'integer',
+					minimum: 0,
+					description: 'Minimum fee per bytes required for a transaction to be valid',
+				},
+				baseFees: {
+					type: 'array',
+					description: 'Base fee for a transaction to be valid',
+					items: {
+						type: 'object',
+						properties: {
+							moduleType: {
+								type: 'number',
+								minimum: 2,
+							},
+							assetType: {
+								type: 'integer',
+								minimum: 0,
+							},
+							baseFee: {
+								type: 'string',
+								format: 'uint64',
+							},
+						},
+					},
 				},
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
 				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
@@ -329,6 +355,9 @@ export const applicationConfigSchema = {
 			blockTime: 10,
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxPayloadLength: 15 * 1024, // Kilo Bytes
+			bftThreshold: 68,
+			minFeePerByte: 1000,
+			baseFees: [],
 			rewards: {
 				milestones: [
 					'500000000', // Initial Reward

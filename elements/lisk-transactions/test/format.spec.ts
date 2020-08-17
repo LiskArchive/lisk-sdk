@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	convertBeddowsToLSK,
-	convertLSKToBeddows,
-	prependPlusToPublicKeys,
-	prependMinusToPublicKeys,
-} from '../../src/utils/format';
+import { convertBeddowsToLSK, convertLSKToBeddows } from '../src/format';
 
 describe('format', () => {
 	describe('#convertBeddowsToLSK', () => {
@@ -82,41 +77,6 @@ describe('format', () => {
 		});
 		it('should convert 92233720368.54775807 to 9223372036854775807', () => {
 			return expect(convertLSKToBeddows('92233720368.54775807')).toBe('9223372036854775807');
-		});
-	});
-	describe('#prependPlusToPublicKeys', () => {
-		describe('Given an array of public keys', () => {
-			it('should append plus to each public key', () => {
-				const publicKeys = [
-					'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-					'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				];
-				const expectedOutput = [
-					'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-					'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-					'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				];
-				return expect(prependPlusToPublicKeys(publicKeys)).toEqual(expectedOutput);
-			});
-		});
-	});
-
-	describe('#prependMinusToPublicKeys', () => {
-		describe('Given an array of public keys', () => {
-			it('should append minus to each public key', () => {
-				const publicKeys = [
-					'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-					'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				];
-				const expectedOutput = [
-					'-215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-					'-922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-					'-5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				];
-				return expect(prependMinusToPublicKeys(publicKeys)).toEqual(expectedOutput);
-			});
 		});
 	});
 });

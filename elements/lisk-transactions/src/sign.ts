@@ -14,10 +14,9 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from './base_transaction';
-import { sortKeysAscending } from './utils';
+import { getAddressAndPublicKeyFromPassphrase, signData, hash } from '@liskhq/lisk-cryptography';
 import { validateTransactionSchema } from './validate';
+import { baseTransactionSchema } from './schema';
 
 interface MultiSignatureKeys {
 	readonly mandatoryKeys: Array<Buffer>;
@@ -37,10 +36,26 @@ export const getSigningBytes = (
 		throw new Error('Asset must be of type object and not null');
 	}
 	const assetBytes = codec.encode((assetSchema as unknown) as Schema, transactionObject.asset);
-	const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
+	const transactionBytes = codec.encode(baseTransactionSchema, {
 		...transactionObject,
 		asset: assetBytes,
 		signatures: [],
+	});
+
+	return transactionBytes;
+};
+
+export const getBytes = (
+	assetSchema: object,
+	transactionObject: Record<string, unknown>,
+): Buffer => {
+	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
+		throw new Error('Asset must be of type object and not null');
+	}
+	const assetBytes = codec.encode((assetSchema as unknown) as Schema, transactionObject.asset);
+	const transactionBytes = codec.encode(baseTransactionSchema, {
+		...transactionObject,
+		asset: assetBytes,
 	});
 
 	return transactionBytes;
@@ -81,14 +96,13 @@ export const signTransaction = (
 	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
-	return transactionObject;
+	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
 };
 
 const sanitizeSignaturesArray = (
 	transactionObject: Record<string, unknown>,
 	keys: MultiSignatureKeys,
 	includeSenderSignature: boolean,
-	signature: Buffer,
 ): void => {
 	const numberOfSignatures =
 		(includeSenderSignature ? 1 : 0) + keys.mandatoryKeys.length + keys.optionalKeys.length;
@@ -99,7 +113,7 @@ const sanitizeSignaturesArray = (
 			transactionObject.signatures[i] === undefined
 		) {
 			// eslint-disable-next-line no-param-reassign
-			transactionObject.signatures[i] = signature;
+			transactionObject.signatures[i] = Buffer.alloc(0);
 		}
 	}
 };
@@ -130,8 +144,8 @@ export const signMultiSignatureTransaction = (
 		throw validationErrors;
 	}
 	// Sort keys
-	sortKeysAscending(keys.mandatoryKeys);
-	sortKeysAscending(keys.optionalKeys);
+	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
+	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
@@ -141,6 +155,15 @@ export const signMultiSignatureTransaction = (
 	]);
 
 	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
+	if (
+		(transactionObject.signatures as Array<Readonly<Buffer>>).find(
+			s => s instanceof Buffer && s.equals(signature),
+		) !== undefined
+	) {
+		sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
+
+		return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
+	}
 
 	if (
 		includeSenderSignature &&
@@ -149,16 +172,6 @@ export const signMultiSignatureTransaction = (
 	) {
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[0] = signature;
-	}
-
-	if (
-		(transactionObject.signatures as Array<Readonly<Buffer>>).find(
-			s => s instanceof Buffer && s.equals(signature),
-		) !== undefined
-	) {
-		sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature, signature);
-
-		return transactionObject;
 	}
 
 	// Locate where this public key should go in the signatures array
@@ -182,7 +195,7 @@ export const signMultiSignatureTransaction = (
 		] = signature;
 	}
 
-	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature, signature);
+	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-	return transactionObject;
+	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
 };

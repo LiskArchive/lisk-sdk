@@ -117,21 +117,10 @@ export interface GenesisConfig {
 	}[];
 }
 
-export interface ApplicationConstants {
-	[key: string]: {} | string | number | undefined;
-	activeDelegates: number;
-	standbyDelegates: number;
-	totalAmount: string;
-	delegateListRoundOffset: number;
-}
-
 export interface ApplicationConfig {
 	label: string;
 	version: string;
 	networkVersion: string;
-	networkId: string;
-	lastCommitId: string;
-	buildVersion: string;
 	ipc: {
 		enabled: boolean;
 	};
@@ -149,7 +138,6 @@ export interface ApplicationConfig {
 		consoleLogLevel: string;
 	};
 	genesisConfig: GenesisConfig;
-	constants: ApplicationConstants;
 	plugins: PluginsOptions;
 }
 
@@ -159,7 +147,8 @@ export interface ActionInfoForBus {
 }
 
 export interface TransactionJSON {
-	readonly type: number;
+	readonly moduleType: number;
+	readonly assetType: number;
 	readonly nonce: string;
 	readonly fee: string;
 	readonly senderPublicKey: string;

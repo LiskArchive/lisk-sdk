@@ -16,6 +16,7 @@
 export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	blockTime: 10,
 	delegateListRoundOffset: 2,
+	communityIdentifier: 'Lisk',
 	rewards: {
 		milestones: [
 			'500000000', // Initial Reward
@@ -27,9 +28,18 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 		offset: 2160, // Start rewards at first block of the second round
 		distance: 3000000, // Distance between each milestone
 	},
+	bftThreshold: 68,
+	minRemainingBalance: '5000000',
+	minFeePerByte: 1000,
+	baseFees: [
+		{
+			moduleType: 5,
+			assetType: 0,
+			baseFee: '1000000000',
+		},
+	],
 	activeDelegates: 101,
 	standbyDelegates: 2,
 	maxPayloadLength: 15 * 1024,
-	totalAmount: BigInt('10000000000000000'),
 	...overriddenConfigProperties,
 });

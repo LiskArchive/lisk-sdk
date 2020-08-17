@@ -24,7 +24,7 @@ import {
 } from './utils';
 import { BaseModule } from '../base_module';
 import { AfterGenesisBlockApplyInput, TransactionApplyInput } from '../../types';
-import { RegisterAssetType } from './register_asset';
+import { RegisterAssetType, RegisterAsset } from './register_asset';
 import { keysSchema } from './schemas';
 
 const { bufferArrayOrderByLex, bufferArrayUniqueItems, bufferArrayContainsSome } = ObjectUtils;
@@ -53,6 +53,8 @@ export class KeysModule extends BaseModule {
 			numberOfSignatures: 0,
 		},
 	};
+
+	public readonly transactionAssets = [new RegisterAsset()];
 
 	public async beforeTransactionApply({
 		stateStore,
