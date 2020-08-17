@@ -28,7 +28,7 @@ describe('token module', () => {
 	let reducerHandler: any;
 
 	const defaultTestCase = fixtures.testCases[0];
-	const minRemainingBalance = BigInt(1);
+	const minRemainingBalance = '1';
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
 			{
@@ -88,30 +88,31 @@ describe('token module', () => {
 		});
 
 		it('should return no errors if transaction asset does not have a baseFee entry and transaction fee is higher or equal to min fee', async () => {
+			tokenModule = new TokenModule({
+				...genesisConfig,
+				baseFees: [
+					{
+						assetType: 0,
+						baseFee: undefined as any,
+						moduleType: 2,
+					},
+				],
+			});
+
 			return expect(
 				tokenModule.beforeTransactionApply({
 					stateStore,
-					transaction: { ...validTransaction, asset: { ...validTransaction.asset, type: 100 } },
+					transaction: validTransaction,
 					reducerHandler,
 				}),
 			).resolves.toBeUndefined();
 		});
 
 		it('should return error if fee is lower than minimum required fee', async () => {
-			const baseFee = '1';
-			tokenModule = new TokenModule({
-				...genesisConfig,
-				baseFees: [
-					{
-						assetType: 0,
-						baseFee,
-						moduleType: 2,
-					},
-				],
-			});
+			validTransaction.fee = BigInt(0);
 			const expectedMinFee =
 				BigInt(genesisConfig.minFeePerByte) * BigInt(validTransaction.getBytes().length) +
-				BigInt(baseFee);
+				BigInt(genesisConfig.baseFees[0].baseFee);
 
 			return expect(
 				tokenModule.beforeTransactionApply({
