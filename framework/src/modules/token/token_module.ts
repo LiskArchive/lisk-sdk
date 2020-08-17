@@ -16,6 +16,7 @@ import { CHAIN_STATE_BURNT_FEE, GENESIS_BLOCK_MAX_BALANCE } from './constants';
 import { TransferAsset } from './transfer_asset';
 import { TokenAccount } from './types';
 import { getTotalFees } from './utils';
+import { BaseAsset } from '../base_asset';
 import { BaseModule } from '../base_module';
 import {
 	AfterBlockApplyInput,
@@ -40,6 +41,7 @@ export class TokenModule extends BaseModule {
 			balance: BigInt(0),
 		},
 	};
+	public transactionAssets: BaseAsset[];
 	public reducers = {
 		credit: async (params: Record<string, unknown>, stateStore: StateStore): Promise<void> => {
 			const { address, amount } = params;
@@ -97,9 +99,8 @@ export class TokenModule extends BaseModule {
 			throw new Error('minRemainingBalance in genesisConfig must be a string.');
 		}
 		this._minRemainingBalance = BigInt(minRemainingBalance);
+		this.transactionAssets = [new TransferAsset(this._minRemainingBalance)];
 	}
-	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public transactionAssets = [new TransferAsset(this._minRemainingBalance)];
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async beforeTransactionApply({ transaction }: TransactionApplyInput): Promise<void> {
