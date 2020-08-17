@@ -121,7 +121,7 @@ Object {
         "id": "#/config/genesisConfig",
         "properties": Object {
           "baseFees": Object {
-            "description": "Minimum fee per bytes required for a transaction to be valid",
+            "description": "Base fee for a transaction to be valid",
             "items": Object {
               "properties": Object {
                 "assetType": Object {

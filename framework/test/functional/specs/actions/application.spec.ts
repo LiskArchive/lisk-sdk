@@ -36,7 +36,17 @@ describe('Application related actions', () => {
 	describe('getNodeInfo', () => {
 		it('should return node status and constants', async () => {
 			const nodeStatusAndConstants = await app['_channel'].invoke('app:getNodeInfo');
-			expect(nodeStatusAndConstants).toMatchSnapshot();
+			expect(nodeStatusAndConstants).toEqual(
+				expect.objectContaining({
+					height: expect.any(Number),
+					version: expect.any(String),
+					networkID: expect.any(String),
+					networkVersion: expect.any(String),
+					lastBlockID: expect.any(String),
+					finalizedHeight: expect.any(Number),
+					unconfirmedTransactions: expect.any(Number),
+				}),
+			);
 		});
 	});
 });
