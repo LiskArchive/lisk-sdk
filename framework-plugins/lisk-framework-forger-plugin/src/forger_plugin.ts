@@ -141,7 +141,7 @@ export class ForgerPlugin extends BasePlugin {
 			},
 			options.webhook,
 		);
-		this._forgerPluginDB = await getDBInstance(options.rootPath, options.dataPath);
+		this._forgerPluginDB = await getDBInstance(options.dataPath);
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {

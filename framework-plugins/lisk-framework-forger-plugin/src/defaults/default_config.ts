@@ -62,6 +62,13 @@ export const defaultConfig = {
 			},
 			required: ['origin'],
 		},
+		dataPath: {
+			type: 'string',
+			format: 'path',
+			example: '~/.lisk/forger',
+			description:
+				'The data path for storing forging related information captured from application.',
+		},
 		limits: {
 			type: 'object',
 			properties: {

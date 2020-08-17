@@ -22,21 +22,22 @@ jest.mock('@liskhq/lisk-db');
 const mockedFsExtra = fs as jest.Mocked<typeof fs>;
 
 describe('Plugins DB', () => {
-	const unresolvedRootPath = '~/.lisk';
-	const pluginDataPath = 'plugins/forger/data';
+	const unresolvedRootPath = '~/.lisk/devnet';
 	const dbName = 'lisk-framework-forger-plugin.db';
 
 	it('should resolve to data directory', async () => {
-		await getDBInstance(unresolvedRootPath, pluginDataPath);
+		await getDBInstance(unresolvedRootPath);
 		const rootPath = unresolvedRootPath.replace('~', homedir());
-		const dirPath = join(rootPath, pluginDataPath, dbName);
+		const dirPath = join(rootPath, 'plugins/data', dbName);
 
 		expect(mockedFsExtra.ensureDir).toBeCalledWith(dirPath);
 	});
 
 	it('should resolve to default plugin data path', async () => {
-		await getDBInstance(unresolvedRootPath);
-		const rootPath = unresolvedRootPath.replace('~', homedir());
+		const customUnresolvedRootPath = '~/.lisk/devnet/custom/path';
+
+		await getDBInstance(customUnresolvedRootPath);
+		const rootPath = customUnresolvedRootPath.replace('~', homedir());
 		const dirPath = join(rootPath, 'plugins/data', dbName);
 
 		expect(mockedFsExtra.ensureDir).toBeCalledWith(dirPath);
