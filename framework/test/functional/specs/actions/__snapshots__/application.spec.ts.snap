@@ -1,47 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Application related actions getNodeInfo should return node status and constants 1`] = `
-Object {
-  "finalizedHeight": 0,
-  "genesisConfig": Object {
-    "activeDelegates": 101,
-    "baseFees": Array [
-      Object {
-        "assetType": 0,
-        "baseFee": "1000000000",
-        "moduleType": 5,
-      },
-    ],
-    "bftThreshold": 68,
-    "blockTime": 10,
-    "communityIdentifier": "Lisk",
-    "delegateListRoundOffset": 2,
-    "maxPayloadLength": 15360,
-    "minFeePerByte": 1000,
-    "minRemainingBalance": "5000000",
-    "rewards": Object {
-      "distance": 3000000,
-      "milestones": Array [
-        "500000000",
-        "400000000",
-        "300000000",
-        "200000000",
-        "100000000",
-      ],
-      "offset": 2160,
-    },
-    "standbyDelegates": 2,
-  },
-  "height": 2,
-  "lastBlockID": "TPXa7u9+n5sF+AMmt5+60dBbiy7Ce34qIy56tFyzsyo=",
-  "networkID": "hz2oWizucNpjHZCw8X+tqMOsm4OyYT9Mpf3dN00QNLM=",
-  "networkVersion": "1.1",
-  "syncing": false,
-  "unconfirmedTransactions": 0,
-  "version": "2.1.0",
-}
-`;
-
 exports[`Application related actions getSchema should return schemas used to encode objects in framework 1`] = `
 Object {
   "accountSchema": Object {
