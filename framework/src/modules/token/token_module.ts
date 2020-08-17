@@ -22,6 +22,7 @@ import {
 	AfterGenesisBlockApplyInput,
 	StateStore,
 	TransactionApplyInput,
+	GenesisConfig,
 } from '../../types';
 
 export class TokenModule extends BaseModule {
@@ -39,7 +40,6 @@ export class TokenModule extends BaseModule {
 			balance: BigInt(0),
 		},
 	};
-	public transactionAssets = [new TransferAsset()];
 	public reducers = {
 		credit: async (params: Record<string, unknown>, stateStore: StateStore): Promise<void> => {
 			const { address, amount } = params;
@@ -75,11 +75,33 @@ export class TokenModule extends BaseModule {
 			}
 			stateStore.account.set(address, account);
 		},
+		getBalance: async (
+			params: Record<string, unknown>,
+			stateStore: StateStore,
+		): Promise<bigint> => {
+			const { address } = params;
+			if (!Buffer.isBuffer(address)) {
+				throw new Error('Address must be a buffer.');
+			}
+			const account = await stateStore.account.getOrDefault<TokenAccount>(address);
+			return account.token.balance;
+		},
 	};
 
-	private readonly _minRemainingBalance = this.config.minRemainingBalance as bigint;
+	private readonly _minRemainingBalance: bigint;
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
+	public constructor(genesisConfig: GenesisConfig) {
+		super(genesisConfig);
+		const { minRemainingBalance } = this.config;
+		if (typeof minRemainingBalance !== 'string') {
+			throw new Error('minRemainingBalance in genesisConfig must be a string.');
+		}
+		this._minRemainingBalance = BigInt(minRemainingBalance);
+	}
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public transactionAssets = [new TransferAsset(this._minRemainingBalance)];
+
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async beforeTransactionApply({ transaction }: TransactionApplyInput): Promise<void> {
 		// Throw error if fee is lower than minimum fee (minFeePerBytes + baseFee)
 		const minFee = BigInt(this.config.minFeePerByte) * BigInt(transaction.getBytes().length);
@@ -87,20 +109,20 @@ export class TokenModule extends BaseModule {
 			this.config.baseFees.find(
 				fee => fee.moduleType === transaction.moduleType && fee.assetType === transaction.assetType,
 			)?.baseFee ?? BigInt(0);
-		if (BigInt(baseFee) < minFee) {
+		const minimumRequiredFee = minFee + BigInt(baseFee);
+		if (transaction.fee < minimumRequiredFee) {
 			throw new Error(
-				`Insufficient transaction fee. Minimum required fee is: ${minFee.toString()}`,
+				`Insufficient transaction fee. Minimum required fee is: ${minimumRequiredFee.toString()}`,
 			);
 		}
 	}
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
 	public async afterTransactionApply({
 		transaction,
 		stateStore,
 	}: TransactionApplyInput): Promise<void> {
 		// Verify sender has minimum remaining balance
-		const senderAddress = transaction.senderPublicKey;
+		const senderAddress = transaction.senderID;
 		const sender = await stateStore.account.getOrDefault<TokenAccount>(senderAddress);
 		if (sender.token.balance < this._minRemainingBalance) {
 			throw new Error(
@@ -113,7 +135,6 @@ export class TokenModule extends BaseModule {
 		}
 	}
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
 	public async afterBlockApply({ block, stateStore }: AfterBlockApplyInput): Promise<void> {
 		// Credit reward and fee to generator
 		const generatorAddress = getAddressFromPublicKey(block.header.generatorPublicKey);
@@ -132,9 +153,7 @@ export class TokenModule extends BaseModule {
 		);
 		// Generator only gets total fee - min fee
 		const givenFee = totalFee - totalMinFee;
-		// This is necessary only for genesis block case, where total fee is 0, which is invalid
-		// Also, genesis block cannot be reverted
-		generator.token.balance += givenFee > 0 ? givenFee : BigInt(0);
+		generator.token.balance += givenFee;
 		const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 		let totalFeeBurnt = totalFeeBurntBuffer ? totalFeeBurntBuffer.readBigInt64BE() : BigInt(0);
 		totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
@@ -151,10 +170,8 @@ export class TokenModule extends BaseModule {
 		genesisBlock,
 	}: AfterGenesisBlockApplyInput<TokenAccount>): Promise<void> {
 		// Validate genesis accounts balance
-		const accountAddresses = [];
 		let totalBalance = BigInt(0);
 		for (const account of genesisBlock.header.asset.accounts) {
-			accountAddresses.push(account.address);
 			totalBalance += BigInt(account.token.balance);
 		}
 

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable class-methods-use-this */
-import { MAX_TRANSACTION_AMOUNT, MIN_REMAINING_BALANCE } from './constants';
+import { MAX_TRANSACTION_AMOUNT } from './constants';
 import { TokenAccount, Asset } from './types';
 import { BaseAsset } from '../base_asset';
 import { ApplyAssetInput } from '../../types';
@@ -44,22 +44,21 @@ export class TransferAsset extends BaseAsset {
 			},
 		},
 	};
+	private readonly _minRemainingBalance: bigint;
+
+	public constructor(minRemainingBalance: bigint) {
+		super();
+		this._minRemainingBalance = minRemainingBalance;
+	}
 
 	public async applyAsset({ asset, senderID, stateStore }: ApplyAssetInput<Asset>): Promise<void> {
 		const sender = await stateStore.account.get<TokenAccount>(senderID);
-
 		if (!sender) {
 			throw new Error(`Account does not exist for senderID: ${senderID.toString('base64')}`);
 		}
-
 		sender.token.balance -= asset.amount;
 		stateStore.account.set(sender.address, sender);
 		const recipient = await stateStore.account.getOrDefault<TokenAccount>(asset.recipientAddress);
-
-		if (!recipient) {
-			throw new Error('Invalid recipientAddress.');
-		}
-
 		recipient.token.balance += asset.amount;
 
 		if (recipient.token.balance > BigInt(MAX_TRANSACTION_AMOUNT)) {
@@ -68,11 +67,12 @@ export class TransferAsset extends BaseAsset {
 			);
 		}
 
-		if (recipient.token.balance < MIN_REMAINING_BALANCE) {
+		if (recipient.token.balance < this._minRemainingBalance) {
 			throw new Error(
-				`Recipient account does not have enough minimum remaining LSK: ${recipient.address.toString(
-					'base64',
-				)}. Minimum required balance: ${MIN_REMAINING_BALANCE}. Remaining balance: ${recipient.token.balance.toString()}`,
+				`Recipient account does not have enough minimum remaining LSK: ${((recipient as TokenAccount)
+					.address as Buffer).toString('base64')}. Minimum required balance: ${
+					this._minRemainingBalance
+				}. Remaining balance: ${recipient.token.balance.toString()}`,
 			);
 		}
 
