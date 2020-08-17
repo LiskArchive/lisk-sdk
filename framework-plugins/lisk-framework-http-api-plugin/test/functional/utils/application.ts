@@ -14,7 +14,7 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Application, ApplicationConfig, GenesisBlockJSON } from 'lisk-framework';
+import { Application } from 'lisk-framework';
 import * as genesisBlockJSON from '../fixtures/genesis_block.json';
 import * as configJSON from '../fixtures/config.json';
 import { HTTPAPIPlugin } from '../../../src';
@@ -31,13 +31,15 @@ export const createApplication = async (
 		logger: {
 			consoleLogLevel: consoleLogLevel ?? 'fatal',
 			fileLogLevel: 'fatal',
+			logFileName: 'lisk.log',
 		},
 		network: {
+			...configJSON.network,
 			maxInboundConnections: 0,
 		},
-	} as Partial<ApplicationConfig>;
+	};
 
-	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
+	const app = Application.defaultApplication(genesisBlockJSON, config);
 	app.registerPlugin(HTTPAPIPlugin);
 
 	// Remove pre-existing data

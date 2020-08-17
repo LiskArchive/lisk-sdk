@@ -14,4 +14,3 @@
  */
 
 export { applicationConfigSchema } from './application_config_schema';
-export { constantsSchema } from './constants_schema';

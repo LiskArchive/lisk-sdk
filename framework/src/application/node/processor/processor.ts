@@ -349,7 +349,11 @@ export class Processor {
 					transaction,
 				});
 			} catch (err) {
-				throw new TransactionApplyError('Transaction verification failed', transaction.id, err);
+				throw new TransactionApplyError(
+					(err as Error).message ?? 'Transaction verification failed',
+					transaction.id,
+					err,
+				);
 			}
 		}
 	}
@@ -390,11 +394,6 @@ export class Processor {
 					stateStore,
 					transaction,
 				});
-			}
-		}
-
-		if (block.payload.length) {
-			for (const transaction of block.payload) {
 				const customAsset = this._getAsset(transaction);
 				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
 				await customAsset.applyAsset({

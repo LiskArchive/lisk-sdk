@@ -83,7 +83,7 @@ describe('StateStoreMock', () => {
 			});
 
 			it('should have set first element of last block header', () => {
-				expect(mock.chain.lastBlockHeader.height).toEqual(2);
+				expect(mock.chain.lastBlockHeaders[0].height).toEqual(2);
 			});
 		});
 
@@ -124,12 +124,6 @@ describe('StateStoreMock', () => {
 					finality: Buffer.from('3'),
 				},
 				lastBlockHeaders: [{ height: 2 }, { height: 1 }],
-			});
-		});
-
-		describe('properties', () => {
-			it('should have set block reward', () => {
-				expect(mock.consensus.lastBlockHeaders).toEqual([{ height: 2 }, { height: 1 }]);
 			});
 		});
 

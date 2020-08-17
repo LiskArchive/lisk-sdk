@@ -1,0 +1,823 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Application related actions getSchema should return schemas used to encode objects in framework 1`] = `
+Object {
+  "accountSchema": Object {
+    "$id": "/account/base",
+    "properties": Object {
+      "address": Object {
+        "dataType": "bytes",
+        "fieldNumber": 1,
+      },
+      "dpos": Object {
+        "fieldNumber": 5,
+        "properties": Object {
+          "delegate": Object {
+            "fieldNumber": 1,
+            "properties": Object {
+              "consecutiveMissedBlocks": Object {
+                "dataType": "uint32",
+                "fieldNumber": 3,
+              },
+              "isBanned": Object {
+                "dataType": "boolean",
+                "fieldNumber": 5,
+              },
+              "lastForgedHeight": Object {
+                "dataType": "uint32",
+                "fieldNumber": 4,
+              },
+              "pomHeights": Object {
+                "fieldNumber": 2,
+                "items": Object {
+                  "dataType": "uint32",
+                },
+                "type": "array",
+              },
+              "totalVotesReceived": Object {
+                "dataType": "uint64",
+                "fieldNumber": 6,
+              },
+              "username": Object {
+                "dataType": "string",
+                "fieldNumber": 1,
+              },
+            },
+            "required": Array [
+              "username",
+              "pomHeights",
+              "consecutiveMissedBlocks",
+              "lastForgedHeight",
+              "isBanned",
+              "totalVotesReceived",
+            ],
+            "type": "object",
+          },
+          "sentVotes": Object {
+            "fieldNumber": 2,
+            "items": Object {
+              "properties": Object {
+                "amount": Object {
+                  "dataType": "uint64",
+                  "fieldNumber": 2,
+                },
+                "delegateAddress": Object {
+                  "dataType": "bytes",
+                  "fieldNumber": 1,
+                },
+              },
+              "required": Array [
+                "delegateAddress",
+                "amount",
+              ],
+              "type": "object",
+            },
+            "type": "array",
+          },
+          "unlocking": Object {
+            "fieldNumber": 3,
+            "items": Object {
+              "properties": Object {
+                "amount": Object {
+                  "dataType": "uint64",
+                  "fieldNumber": 2,
+                },
+                "delegateAddress": Object {
+                  "dataType": "bytes",
+                  "fieldNumber": 1,
+                },
+                "unvoteHeight": Object {
+                  "dataType": "uint32",
+                  "fieldNumber": 3,
+                },
+              },
+              "required": Array [
+                "delegateAddress",
+                "amount",
+                "unvoteHeight",
+              ],
+              "type": "object",
+            },
+            "type": "array",
+          },
+        },
+        "type": "object",
+      },
+      "keys": Object {
+        "fieldNumber": 4,
+        "properties": Object {
+          "mandatoryKeys": Object {
+            "fieldNumber": 2,
+            "items": Object {
+              "dataType": "bytes",
+            },
+            "type": "array",
+          },
+          "numberOfSignatures": Object {
+            "dataType": "uint32",
+            "fieldNumber": 1,
+          },
+          "optionalKeys": Object {
+            "fieldNumber": 3,
+            "items": Object {
+              "dataType": "bytes",
+            },
+            "type": "array",
+          },
+        },
+        "type": "object",
+      },
+      "sequence": Object {
+        "fieldNumber": 3,
+        "properties": Object {
+          "nonce": Object {
+            "dataType": "uint64",
+            "fieldNumber": 1,
+          },
+        },
+        "type": "object",
+      },
+      "token": Object {
+        "fieldNumber": 2,
+        "properties": Object {
+          "balance": Object {
+            "dataType": "uint64",
+            "fieldNumber": 1,
+          },
+        },
+        "type": "object",
+      },
+    },
+    "required": Array [
+      "address",
+      "token",
+      "sequence",
+      "keys",
+      "dpos",
+    ],
+    "type": "object",
+  },
+  "blockHeaderSchema": Object {
+    "$id": "/block/header",
+    "properties": Object {
+      "asset": Object {
+        "dataType": "bytes",
+        "fieldNumber": 8,
+      },
+      "generatorPublicKey": Object {
+        "dataType": "bytes",
+        "fieldNumber": 6,
+      },
+      "height": Object {
+        "dataType": "uint32",
+        "fieldNumber": 3,
+      },
+      "previousBlockID": Object {
+        "dataType": "bytes",
+        "fieldNumber": 4,
+      },
+      "reward": Object {
+        "dataType": "uint64",
+        "fieldNumber": 7,
+      },
+      "signature": Object {
+        "dataType": "bytes",
+        "fieldNumber": 9,
+      },
+      "timestamp": Object {
+        "dataType": "uint32",
+        "fieldNumber": 2,
+      },
+      "transactionRoot": Object {
+        "dataType": "bytes",
+        "fieldNumber": 5,
+      },
+      "version": Object {
+        "dataType": "uint32",
+        "fieldNumber": 1,
+      },
+    },
+    "required": Array [
+      "version",
+      "timestamp",
+      "height",
+      "previousBlockID",
+      "transactionRoot",
+      "generatorPublicKey",
+      "reward",
+      "asset",
+    ],
+    "type": "object",
+  },
+  "blockHeadersAssets": Object {
+    "0": Object {
+      "$id": "/genesisBlock/header/asset",
+      "properties": Object {
+        "accounts": Object {
+          "fieldNumber": 1,
+          "items": Object {
+            "$id": "/account/base",
+            "properties": Object {
+              "address": Object {
+                "dataType": "bytes",
+                "fieldNumber": 1,
+              },
+              "dpos": Object {
+                "fieldNumber": 5,
+                "properties": Object {
+                  "delegate": Object {
+                    "fieldNumber": 1,
+                    "properties": Object {
+                      "consecutiveMissedBlocks": Object {
+                        "dataType": "uint32",
+                        "fieldNumber": 3,
+                      },
+                      "isBanned": Object {
+                        "dataType": "boolean",
+                        "fieldNumber": 5,
+                      },
+                      "lastForgedHeight": Object {
+                        "dataType": "uint32",
+                        "fieldNumber": 4,
+                      },
+                      "pomHeights": Object {
+                        "fieldNumber": 2,
+                        "items": Object {
+                          "dataType": "uint32",
+                        },
+                        "type": "array",
+                      },
+                      "totalVotesReceived": Object {
+                        "dataType": "uint64",
+                        "fieldNumber": 6,
+                      },
+                      "username": Object {
+                        "dataType": "string",
+                        "fieldNumber": 1,
+                      },
+                    },
+                    "required": Array [
+                      "username",
+                      "pomHeights",
+                      "consecutiveMissedBlocks",
+                      "lastForgedHeight",
+                      "isBanned",
+                      "totalVotesReceived",
+                    ],
+                    "type": "object",
+                  },
+                  "sentVotes": Object {
+                    "fieldNumber": 2,
+                    "items": Object {
+                      "properties": Object {
+                        "amount": Object {
+                          "dataType": "uint64",
+                          "fieldNumber": 2,
+                        },
+                        "delegateAddress": Object {
+                          "dataType": "bytes",
+                          "fieldNumber": 1,
+                        },
+                      },
+                      "required": Array [
+                        "delegateAddress",
+                        "amount",
+                      ],
+                      "type": "object",
+                    },
+                    "type": "array",
+                  },
+                  "unlocking": Object {
+                    "fieldNumber": 3,
+                    "items": Object {
+                      "properties": Object {
+                        "amount": Object {
+                          "dataType": "uint64",
+                          "fieldNumber": 2,
+                        },
+                        "delegateAddress": Object {
+                          "dataType": "bytes",
+                          "fieldNumber": 1,
+                        },
+                        "unvoteHeight": Object {
+                          "dataType": "uint32",
+                          "fieldNumber": 3,
+                        },
+                      },
+                      "required": Array [
+                        "delegateAddress",
+                        "amount",
+                        "unvoteHeight",
+                      ],
+                      "type": "object",
+                    },
+                    "type": "array",
+                  },
+                },
+                "type": "object",
+              },
+              "keys": Object {
+                "fieldNumber": 4,
+                "properties": Object {
+                  "mandatoryKeys": Object {
+                    "fieldNumber": 2,
+                    "items": Object {
+                      "dataType": "bytes",
+                    },
+                    "type": "array",
+                  },
+                  "numberOfSignatures": Object {
+                    "dataType": "uint32",
+                    "fieldNumber": 1,
+                  },
+                  "optionalKeys": Object {
+                    "fieldNumber": 3,
+                    "items": Object {
+                      "dataType": "bytes",
+                    },
+                    "type": "array",
+                  },
+                },
+                "type": "object",
+              },
+              "sequence": Object {
+                "fieldNumber": 3,
+                "properties": Object {
+                  "nonce": Object {
+                    "dataType": "uint64",
+                    "fieldNumber": 1,
+                  },
+                },
+                "type": "object",
+              },
+              "token": Object {
+                "fieldNumber": 2,
+                "properties": Object {
+                  "balance": Object {
+                    "dataType": "uint64",
+                    "fieldNumber": 1,
+                  },
+                },
+                "type": "object",
+              },
+            },
+            "required": Array [
+              "address",
+              "token",
+              "sequence",
+              "keys",
+              "dpos",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "initDelegates": Object {
+          "fieldNumber": 2,
+          "items": Object {
+            "dataType": "bytes",
+          },
+          "minItems": 1,
+          "type": "array",
+        },
+        "initRounds": Object {
+          "dataType": "uint32",
+          "fieldNumber": 3,
+          "minimum": 3,
+        },
+      },
+      "required": Array [
+        "accounts",
+        "initDelegates",
+        "initRounds",
+      ],
+      "type": "object",
+    },
+    "2": Object {
+      "$id": "/blockHeader/asset/v2",
+      "properties": Object {
+        "maxHeightPreviouslyForged": Object {
+          "dataType": "uint32",
+          "fieldNumber": 1,
+        },
+        "maxHeightPrevoted": Object {
+          "dataType": "uint32",
+          "fieldNumber": 2,
+        },
+        "seedReveal": Object {
+          "dataType": "bytes",
+          "fieldNumber": 3,
+        },
+      },
+      "required": Array [
+        "maxHeightPreviouslyForged",
+        "maxHeightPrevoted",
+        "seedReveal",
+      ],
+      "type": "object",
+    },
+  },
+  "blockSchema": Object {
+    "$id": "/block",
+    "properties": Object {
+      "header": Object {
+        "dataType": "bytes",
+        "fieldNumber": 1,
+      },
+      "payload": Object {
+        "fieldNumber": 2,
+        "items": Object {
+          "dataType": "bytes",
+        },
+        "type": "array",
+      },
+    },
+    "required": Array [
+      "header",
+      "payload",
+    ],
+    "type": "object",
+  },
+  "transactionSchema": Object {
+    "$id": "lisk/transaction",
+    "properties": Object {
+      "asset": Object {
+        "dataType": "bytes",
+        "fieldNumber": 6,
+      },
+      "assetType": Object {
+        "dataType": "uint32",
+        "fieldNumber": 2,
+      },
+      "fee": Object {
+        "dataType": "uint64",
+        "fieldNumber": 4,
+      },
+      "moduleType": Object {
+        "dataType": "uint32",
+        "fieldNumber": 1,
+        "minimum": 2,
+      },
+      "nonce": Object {
+        "dataType": "uint64",
+        "fieldNumber": 3,
+      },
+      "senderPublicKey": Object {
+        "dataType": "bytes",
+        "fieldNumber": 5,
+      },
+      "signatures": Object {
+        "fieldNumber": 7,
+        "items": Object {
+          "dataType": "bytes",
+        },
+        "type": "array",
+      },
+    },
+    "required": Array [
+      "moduleType",
+      "assetType",
+      "nonce",
+      "fee",
+      "senderPublicKey",
+      "asset",
+    ],
+    "type": "object",
+  },
+  "transactionsAssetSchemas": Array [
+    Object {
+      "assetType": 0,
+      "moduleType": 2,
+      "schema": Object {
+        "$id": "lisk/transfer-asset",
+        "properties": Object {
+          "amount": Object {
+            "dataType": "uint64",
+            "fieldNumber": 1,
+          },
+          "data": Object {
+            "dataType": "string",
+            "fieldNumber": 3,
+            "maxLength": 64,
+            "minLength": 0,
+          },
+          "recipientAddress": Object {
+            "dataType": "bytes",
+            "fieldNumber": 2,
+            "maxLength": 20,
+            "minLength": 20,
+          },
+        },
+        "required": Array [
+          "amount",
+          "recipientAddress",
+          "data",
+        ],
+        "title": "Transfer transaction asset",
+        "type": "object",
+      },
+    },
+    Object {
+      "assetType": 0,
+      "moduleType": 4,
+      "schema": Object {
+        "$id": "lisk/keys/register",
+        "properties": Object {
+          "mandatoryKeys": Object {
+            "fieldNumber": 2,
+            "items": Object {
+              "dataType": "bytes",
+              "maxLength": 32,
+              "minLength": 32,
+            },
+            "maxItems": 64,
+            "minItems": 0,
+            "type": "array",
+          },
+          "numberOfSignatures": Object {
+            "dataType": "uint32",
+            "fieldNumber": 1,
+            "maximum": 64,
+            "minimum": 1,
+          },
+          "optionalKeys": Object {
+            "fieldNumber": 3,
+            "items": Object {
+              "dataType": "bytes",
+              "maxLength": 32,
+              "minLength": 32,
+            },
+            "maxItems": 64,
+            "minItems": 0,
+            "type": "array",
+          },
+        },
+        "required": Array [
+          "numberOfSignatures",
+          "optionalKeys",
+          "mandatoryKeys",
+        ],
+        "type": "object",
+      },
+    },
+    Object {
+      "assetType": 0,
+      "moduleType": 5,
+      "schema": Object {
+        "$id": "lisk/dpos/register",
+        "properties": Object {
+          "username": Object {
+            "dataType": "string",
+            "fieldNumber": 1,
+            "maxLength": 20,
+            "minLength": 1,
+          },
+        },
+        "required": Array [
+          "username",
+        ],
+        "type": "object",
+      },
+    },
+    Object {
+      "assetType": 1,
+      "moduleType": 5,
+      "schema": Object {
+        "$id": "lisk/dpos/vote",
+        "properties": Object {
+          "votes": Object {
+            "fieldNumber": 1,
+            "items": Object {
+              "properties": Object {
+                "amount": Object {
+                  "dataType": "sint64",
+                  "fieldNumber": 2,
+                },
+                "delegateAddress": Object {
+                  "dataType": "bytes",
+                  "fieldNumber": 1,
+                  "maxLength": 20,
+                  "minLength": 20,
+                },
+              },
+              "required": Array [
+                "delegateAddress",
+                "amount",
+              ],
+              "type": "object",
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "type": "array",
+          },
+        },
+        "required": Array [
+          "votes",
+        ],
+        "type": "object",
+      },
+    },
+    Object {
+      "assetType": 2,
+      "moduleType": 5,
+      "schema": Object {
+        "$id": "lisk/dpos/unlock",
+        "properties": Object {
+          "unlockObjects": Object {
+            "fieldNumber": 1,
+            "items": Object {
+              "properties": Object {
+                "amount": Object {
+                  "dataType": "uint64",
+                  "fieldNumber": 2,
+                },
+                "delegateAddress": Object {
+                  "dataType": "bytes",
+                  "fieldNumber": 1,
+                  "maxLength": 20,
+                  "minLength": 20,
+                },
+                "unvoteHeight": Object {
+                  "dataType": "uint32",
+                  "fieldNumber": 3,
+                },
+              },
+              "required": Array [
+                "delegateAddress",
+                "amount",
+                "unvoteHeight",
+              ],
+              "type": "object",
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "type": "array",
+          },
+        },
+        "required": Array [
+          "unlockObjects",
+        ],
+        "type": "object",
+      },
+    },
+    Object {
+      "assetType": 3,
+      "moduleType": 5,
+      "schema": Object {
+        "$id": "lisk/dpos/pom",
+        "properties": Object {
+          "header1": Object {
+            "$id": "lisk/block-header",
+            "fieldNumber": 1,
+            "properties": Object {
+              "asset": Object {
+                "fieldNumber": 8,
+                "properties": Object {
+                  "maxHeightPreviouslyForged": Object {
+                    "dataType": "uint32",
+                    "fieldNumber": 1,
+                  },
+                  "maxHeightPrevoted": Object {
+                    "dataType": "uint32",
+                    "fieldNumber": 2,
+                  },
+                  "seedReveal": Object {
+                    "dataType": "bytes",
+                    "fieldNumber": 3,
+                  },
+                },
+                "required": Array [
+                  "maxHeightPreviouslyForged",
+                  "maxHeightPrevoted",
+                  "seedReveal",
+                ],
+                "type": "object",
+              },
+              "generatorPublicKey": Object {
+                "dataType": "bytes",
+                "fieldNumber": 6,
+              },
+              "height": Object {
+                "dataType": "uint32",
+                "fieldNumber": 3,
+              },
+              "previousBlockID": Object {
+                "dataType": "bytes",
+                "fieldNumber": 4,
+              },
+              "reward": Object {
+                "dataType": "uint64",
+                "fieldNumber": 7,
+              },
+              "signature": Object {
+                "dataType": "bytes",
+                "fieldNumber": 9,
+              },
+              "timestamp": Object {
+                "dataType": "uint32",
+                "fieldNumber": 2,
+              },
+              "transactionRoot": Object {
+                "dataType": "bytes",
+                "fieldNumber": 5,
+              },
+              "version": Object {
+                "dataType": "uint32",
+                "fieldNumber": 1,
+              },
+            },
+            "required": Array [
+              "version",
+              "timestamp",
+              "height",
+              "previousBlockID",
+              "transactionRoot",
+              "generatorPublicKey",
+              "reward",
+              "asset",
+            ],
+            "type": "object",
+          },
+          "header2": Object {
+            "$id": "lisk/block-header",
+            "fieldNumber": 2,
+            "properties": Object {
+              "asset": Object {
+                "fieldNumber": 8,
+                "properties": Object {
+                  "maxHeightPreviouslyForged": Object {
+                    "dataType": "uint32",
+                    "fieldNumber": 1,
+                  },
+                  "maxHeightPrevoted": Object {
+                    "dataType": "uint32",
+                    "fieldNumber": 2,
+                  },
+                  "seedReveal": Object {
+                    "dataType": "bytes",
+                    "fieldNumber": 3,
+                  },
+                },
+                "required": Array [
+                  "maxHeightPreviouslyForged",
+                  "maxHeightPrevoted",
+                  "seedReveal",
+                ],
+                "type": "object",
+              },
+              "generatorPublicKey": Object {
+                "dataType": "bytes",
+                "fieldNumber": 6,
+              },
+              "height": Object {
+                "dataType": "uint32",
+                "fieldNumber": 3,
+              },
+              "previousBlockID": Object {
+                "dataType": "bytes",
+                "fieldNumber": 4,
+              },
+              "reward": Object {
+                "dataType": "uint64",
+                "fieldNumber": 7,
+              },
+              "signature": Object {
+                "dataType": "bytes",
+                "fieldNumber": 9,
+              },
+              "timestamp": Object {
+                "dataType": "uint32",
+                "fieldNumber": 2,
+              },
+              "transactionRoot": Object {
+                "dataType": "bytes",
+                "fieldNumber": 5,
+              },
+              "version": Object {
+                "dataType": "uint32",
+                "fieldNumber": 1,
+              },
+            },
+            "required": Array [
+              "version",
+              "timestamp",
+              "height",
+              "previousBlockID",
+              "transactionRoot",
+              "generatorPublicKey",
+              "reward",
+              "asset",
+            ],
+            "type": "object",
+          },
+        },
+        "required": Array [
+          "header1",
+          "header2",
+        ],
+        "type": "object",
+      },
+    },
+  ],
+}
+`;

@@ -16,7 +16,8 @@
 import { validateTransactionSchema } from '../src/validate';
 
 const validTransaction = {
-	type: 8,
+	moduleType: 2,
+	assetType: 0,
 	nonce: BigInt('1'),
 	fee: BigInt('10000000'),
 	senderPublicKey: Buffer.from(
@@ -58,7 +59,8 @@ const validAssetSchema = {
 describe('validateTransactionSchema', () => {
 	it('should return error for invalid transaction header', () => {
 		const invalidTransactionObjects = [
-			{ ...validTransaction, type: BigInt(8) },
+			{ ...validTransaction, moduleType: BigInt(8) },
+			{ ...validTransaction, assetType: BigInt(8) },
 			{ ...validTransaction, nonce: 1 },
 			{ ...validTransaction, fee: 1000000 },
 			{ ...validTransaction, senderPublicKey: 1 },

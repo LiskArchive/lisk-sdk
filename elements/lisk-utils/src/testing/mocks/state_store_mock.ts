@@ -35,7 +35,6 @@ interface ChainState {
 }
 
 interface ConsensusState {
-	lastBlockHeaders: BlockHeader[];
 	get(key: string): Promise<Buffer | undefined>;
 	set(address: string, value: Buffer): void;
 }
@@ -117,7 +116,6 @@ export class StateStoreMock {
 		};
 
 		this.consensus = {
-			lastBlockHeaders: lastBlockHeaders ?? [],
 			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(cloneDeep(this.consensusData[key])),
 			set: (key: string, value: Buffer): void => {

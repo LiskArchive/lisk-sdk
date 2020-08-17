@@ -61,7 +61,7 @@ describe('transport', () => {
 			asset: getRandomBytes(100),
 			signatures: [],
 		});
-		transaction.signatures.push(
+		(transaction.signatures as Buffer[]).push(
 			signDataWithPassphrase(
 				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
 				genesis.passphrase,
@@ -77,7 +77,7 @@ describe('transport', () => {
 			asset: getRandomBytes(100),
 			signatures: [],
 		});
-		transactionOne.signatures.push(
+		(transactionOne.signatures as Buffer[]).push(
 			signDataWithPassphrase(
 				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
 				genesis.passphrase,
@@ -92,7 +92,7 @@ describe('transport', () => {
 			asset: getRandomBytes(100),
 			signatures: [],
 		});
-		transactionOne.signatures.push(
+		(transactionOne.signatures as Buffer[]).push(
 			signDataWithPassphrase(
 				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
 				genesis.passphrase,
@@ -356,7 +356,7 @@ describe('transport', () => {
 
 					transportModule['_transactionPoolModule'].add.mockResolvedValue({
 						status: 0,
-						errors: [new Error(addError)],
+						error: new Error(addError),
 					});
 
 					try {
@@ -367,8 +367,7 @@ describe('transport', () => {
 				});
 
 				it('should reject with error', () => {
-					expect(error).toBeInstanceOf(Array);
-					expect((error as any)[0].message).toEqual(addError);
+					expect((error as any).message).toEqual(addError);
 				});
 			});
 

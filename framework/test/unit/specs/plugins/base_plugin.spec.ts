@@ -13,9 +13,9 @@
  */
 
 import { when } from 'jest-when';
-import { BaseTransaction, TransferTransaction } from '@liskhq/lisk-transactions';
-
+import { transactionSchema } from '@liskhq/lisk-chain';
 import { BaseChannel, BasePlugin } from '../../../../src';
+import { TransferAsset } from '../../../../src/modules/token/transfer_asset';
 
 class MyPlugin extends BasePlugin {
 	public constructor(options: object = {}) {
@@ -61,11 +61,15 @@ const channelMock = {
 };
 
 const schemas = {
-	account: {},
-	baseTransaction: BaseTransaction.BASE_SCHEMA,
-	transactionsAssets: {
-		[TransferTransaction.TYPE]: TransferTransaction.ASSET_SCHEMA,
-	},
+	accountSchema: {},
+	transactionSchema,
+	transactionsAssetSchemas: [
+		{
+			moduleType: 2,
+			assetType: 0,
+			schema: new TransferAsset(BigInt(5000000)).assetSchema,
+		},
+	],
 	blockHeader: {},
 	blockHeadersAssets: {},
 };

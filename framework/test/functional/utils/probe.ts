@@ -13,10 +13,13 @@
  */
 
 import { P2P, events } from '@liskhq/lisk-p2p';
-import { ApplicationConfig } from '../../../src';
 import { customNodeInfoSchema } from '../../../src/application/network/schema';
 
-export const createProbe = async (config: ApplicationConfig): Promise<P2P> => {
+export const createProbe = async (config: {
+	networkVersion: string;
+	networkId: string;
+	port: number;
+}): Promise<P2P> => {
 	const p2p = new P2P({
 		port: 1111,
 		customNodeInfoSchema,
@@ -32,7 +35,7 @@ export const createProbe = async (config: ApplicationConfig): Promise<P2P> => {
 		seedPeers: [
 			{
 				ipAddress: '127.0.0.1',
-				port: config.network.port,
+				port: config.port,
 			},
 		],
 		populatorInterval: 50,

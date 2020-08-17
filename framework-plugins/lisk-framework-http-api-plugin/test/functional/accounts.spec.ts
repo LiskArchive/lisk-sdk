@@ -19,14 +19,14 @@ describe('Account endpoint', () => {
 	let app: Application;
 	const accountFixture = {
 		address: 'nQFJsJYtRL/Aip9k1a/Otigdf7U=',
-		balance: '0',
-		nonce: '0',
+		token: { balance: '0' },
+		sequence: { nonce: '0' },
 		keys: {
 			numberOfSignatures: 0,
 			mandatoryKeys: [],
 			optionalKeys: [],
 		},
-		asset: {
+		dpos: {
 			delegate: {
 				username: 'genesis_5',
 				pomHeights: [],

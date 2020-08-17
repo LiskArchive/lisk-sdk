@@ -3,7 +3,7 @@
 exports[`Forger Info Sync should sync information from scratch on startup 1`] = `
 Object {
   "totalProducedBlocks": 1,
-  "totalReceivedFees": 140000n,
+  "totalReceivedFees": 29858000n,
   "totalReceivedRewards": 0n,
   "votesReceived": Array [],
 }

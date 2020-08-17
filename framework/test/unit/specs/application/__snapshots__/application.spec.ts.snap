@@ -2173,9 +2173,21 @@ Object {
     "waitThreshold": 2,
   },
   "genesisConfig": Object {
+    "activeDelegates": 101,
+    "baseFees": Array [
+      Object {
+        "assetType": 0,
+        "baseFee": "1000000000",
+        "moduleType": 5,
+      },
+    ],
+    "bftThreshold": 68,
     "blockTime": 10,
     "communityIdentifier": "Lisk",
+    "delegateListRoundOffset": 2,
     "maxPayloadLength": 15360,
+    "minFeePerByte": 1000,
+    "minRemainingBalance": "5000000",
     "rewards": Object {
       "distance": 3000000,
       "milestones": Array [
@@ -2187,6 +2199,7 @@ Object {
       ],
       "offset": 2160,
     },
+    "standbyDelegates": 2,
   },
   "ipc": Object {
     "enabled": false,

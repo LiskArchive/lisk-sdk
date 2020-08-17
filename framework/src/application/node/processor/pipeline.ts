@@ -52,10 +52,6 @@ export class Pipeline<T, K = void> {
 	}
 
 	public async run(data: T): Promise<K> {
-		if (this.stages.length === 0) {
-			throw new Error('No stage registered to the pipeline');
-		}
-
 		let lastResult;
 		try {
 			// eslint-disable-next-line no-restricted-syntax

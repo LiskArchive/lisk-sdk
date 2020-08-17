@@ -14,8 +14,7 @@
  */
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
 
-import { FIXED_POINT } from '../constants';
-
+const FIXED_POINT = 10 ** 8;
 const LISK_MAX_DECIMAL_POINTS = 8;
 const getDecimalPlaces = (amount: string): number =>
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -63,10 +62,3 @@ export const convertLSKToBeddows = (lskAmount?: string): string => {
 
 	return beddowsAmountBigInt.toString();
 };
-
-export const prependPlusToPublicKeys = (publicKeys: ReadonlyArray<string>): ReadonlyArray<string> =>
-	publicKeys.map(publicKey => `+${publicKey}`);
-
-export const prependMinusToPublicKeys = (
-	publicKeys: ReadonlyArray<string>,
-): ReadonlyArray<string> => publicKeys.map(publicKey => `-${publicKey}`);

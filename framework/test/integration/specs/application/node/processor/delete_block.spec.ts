@@ -13,13 +13,14 @@
  */
 
 import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
-import { Block, stateDiffSchema, Account } from '@liskhq/lisk-chain';
+import { Block, stateDiffSchema, Account, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
+import { validator } from '@liskhq/lisk-validator';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { nodeUtils } from '../../../../../utils';
-import { genesis } from '../../../../../fixtures';
+import { genesis, DefaultAccountProps } from '../../../../../fixtures';
 import { Node } from '../../../../../../src/application/node';
+import { createTransferTransaction } from '../../../../../utils/node/transaction';
 
 describe('Delete block', () => {
 	const dbName = 'delete_block';
@@ -35,6 +36,9 @@ describe('Delete block', () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
 		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 		await node['_forger'].loadDelegates();
+		// TODO: Need to figure out why below error appears but its only in tests
+		//  Trace: Error: schema with key or id "/block/header"
+		validator['_validator']._opts.addUsedSchema = false;
 	});
 
 	afterAll(async () => {
@@ -63,23 +67,21 @@ describe('Delete block', () => {
 		const recipientAccount = nodeUtils.createAccount();
 
 		let newBlock: Block;
-		let transaction: TransferTransaction;
-		let genesisAccount: Account;
+		let transaction: Transaction;
+		let genesisAccount: Account<DefaultAccountProps>;
 
 		describe('when deleteLastBlock is called', () => {
 			beforeEach(async () => {
-				genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
-				transaction = new TransferTransaction({
-					nonce: genesisAccount.nonce,
-					senderPublicKey: genesis.publicKey,
-					fee: BigInt('200000'),
-					asset: {
-						recipientAddress: recipientAccount.address,
-						amount: BigInt('100000000000'),
-						data: '',
-					},
+				genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
+					genesis.address,
+				);
+				transaction = createTransferTransaction({
+					nonce: genesisAccount.sequence.nonce,
+					recipientAddress: recipientAccount.address,
+					amount: BigInt('100000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: genesis.passphrase,
 				});
-				transaction.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [transaction]);
 				await blockchainDB.put(`diff:${formatInt(newBlock.header.height)}`, emptyDiffState);
 				await node['_processor'].process(newBlock);
@@ -99,8 +101,12 @@ describe('Delete block', () => {
 			});
 
 			it('should match the sender account to the original state', async () => {
-				const genesisAfter = await node['_chain'].dataAccess.getAccountByAddress(genesis.address);
-				expect(genesisAfter.balance.toString()).toEqual(genesisAccount.balance.toString());
+				const genesisAfter = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(genesis.address);
+				expect(genesisAfter.token.balance.toString()).toEqual(
+					genesisAccount.token.balance.toString(),
+				);
 			});
 
 			it('should not persist virgin recipient account', async () => {

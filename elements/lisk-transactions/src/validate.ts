@@ -14,7 +14,7 @@
  */
 
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { BaseTransaction } from './base_transaction';
+import { baseTransactionSchema } from './schema';
 
 export const validateTransactionSchema = (
 	assetSchema: object,
@@ -24,10 +24,7 @@ export const validateTransactionSchema = (
 		...transactionObject,
 		asset: Buffer.alloc(0),
 	};
-	const schemaErrors = validator.validate(
-		BaseTransaction.BASE_SCHEMA,
-		transactionObjectWithEmptyAsset,
-	);
+	const schemaErrors = validator.validate(baseTransactionSchema, transactionObjectWithEmptyAsset);
 	if (schemaErrors.length) {
 		return new LiskValidationError([...schemaErrors]);
 	}

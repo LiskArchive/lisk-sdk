@@ -140,7 +140,6 @@ describe('Application', () => {
 			expect(app.config).toMatchSnapshot();
 			expect(app['_controller']).toBeUndefined();
 			expect(app['_node']).toBeUndefined();
-			expect(app['_network']).toBeUndefined();
 			expect(app['_channel']).toBeUndefined();
 			expect(app['_plugins']).toBeInstanceOf(Object);
 		});

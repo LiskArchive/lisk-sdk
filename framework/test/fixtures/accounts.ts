@@ -23,6 +23,39 @@ export const genesis = {
 	password: 'elephant tree paris dragon chair galaxy',
 };
 
+export interface DefaultAccountProps {
+	token: {
+		balance: bigint;
+	};
+	sequence: {
+		nonce: bigint;
+	};
+	keys: {
+		mandatoryKeys: Buffer[];
+		optionalKeys: Buffer[];
+		numberOfSignatures: number;
+	};
+	dpos: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: bigint;
+		};
+		sentVotes: {
+			delegateAddress: Buffer;
+			amount: bigint;
+		}[];
+		unlocking: {
+			delegateAddress: Buffer;
+			amount: bigint;
+			unvoteHeight: number;
+		}[];
+	};
+}
+
 export const defaultAccountSchema = {
 	token: {
 		type: 'object',
@@ -54,29 +87,22 @@ export const defaultAccountSchema = {
 		type: 'object',
 		fieldNumber: 4,
 		properties: {
+			numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
 			mandatoryKeys: {
-				fieldNumber: 1,
 				type: 'array',
-				items: {
-					dataType: 'bytes',
-				},
+				items: { dataType: 'bytes' },
+				fieldNumber: 2,
 			},
 			optionalKeys: {
-				fieldNumber: 2,
 				type: 'array',
-				items: {
-					dataType: 'bytes',
-				},
-			},
-			numberOfSignatures: {
+				items: { dataType: 'bytes' },
 				fieldNumber: 3,
-				dataType: 'uint32',
 			},
 		},
 		default: {
+			numberOfSignatures: 0,
 			mandatoryKeys: [],
 			optionalKeys: [],
-			numberOfSignatures: 0,
 		},
 	},
 	dpos: {

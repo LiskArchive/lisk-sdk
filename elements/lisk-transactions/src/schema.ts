@@ -12,55 +12,41 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const transactionInterface = {
-	required: ['getBytes', 'validate', 'apply', 'verifySignatures'],
-	properties: {
-		getBytes: {
-			typeof: 'function',
-		},
-		validate: {
-			typeof: 'function',
-		},
-		apply: {
-			typeof: 'function',
-		},
-		verifySignatures: {
-			typeof: 'function',
-		},
-	},
-};
-
 export const baseTransactionSchema = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	required: ['moduleType', 'assetType', 'nonce', 'fee', 'senderPublicKey', 'asset'],
 	properties: {
-		type: {
+		moduleType: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
-		nonce: {
-			dataType: 'uint64',
+		assetType: {
+			dataType: 'uint32',
 			fieldNumber: 2,
 		},
-		fee: {
+		nonce: {
 			dataType: 'uint64',
 			fieldNumber: 3,
 		},
+		fee: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
 		senderPublicKey: {
 			dataType: 'bytes',
-			fieldNumber: 4,
+			fieldNumber: 5,
 		},
 		asset: {
 			dataType: 'bytes',
-			fieldNumber: 5,
+			fieldNumber: 6,
 		},
 		signatures: {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
 			},
-			fieldNumber: 6,
+			fieldNumber: 7,
 		},
 	},
 };

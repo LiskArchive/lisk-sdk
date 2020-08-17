@@ -14,7 +14,7 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Application, ApplicationConfig } from 'lisk-framework';
+import { Application } from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import * as configJSON from '../fixtures/config.json';
@@ -57,15 +57,17 @@ export const createApplication = async (
 	},
 ): Promise<Application> => {
 	const rootPath = '~/.lisk/forger-plugin';
-	const config = ({
+	const config = {
 		...configJSON,
 		rootPath,
 		label,
 		logger: {
-			consoleLogLevel: options.consoleLogLevel,
+			consoleLogLevel: options.consoleLogLevel ?? 'fatal',
 			fileLogLevel: 'fatal',
+			logFileName: 'lisk.log',
 		},
 		network: {
+			...configJSON.network,
 			maxInboundConnections: 0,
 		},
 		plugins: {
@@ -74,14 +76,14 @@ export const createApplication = async (
 				...options.appConfig?.plugins.forger,
 			},
 		},
-	} as unknown) as Partial<ApplicationConfig>;
+	};
 
 	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
 	const genesisBlock = getGenesisBlockJSON({
 		timestamp: Math.floor(Date.now() / 1000) - 30,
 	});
 
-	const app = new Application(genesisBlock, config);
+	const app = Application.defaultApplication(genesisBlock, config);
 	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: false });
 
 	if (options.clearDB) {

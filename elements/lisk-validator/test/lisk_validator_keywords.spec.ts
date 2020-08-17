@@ -157,7 +157,7 @@ describe('validator keywords', () => {
 						{ myProp: Buffer.alloc(9) },
 					);
 					expect(result).toHaveLength(1);
-					expect(result[0].message).toEqual('minLength does not satisfied');
+					expect(result[0].message).toEqual('minLength not satisfied');
 					expect(result[0].params).toEqual({
 						dataType: 'bytes',
 						minLength: 10,
