@@ -15,13 +15,7 @@
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import * as genesisBlock from '../../../../config/devnet/genesis_block.json';
 
-export const genesisBlockTransactionRoot = Buffer.from(
-	genesisBlock.header.transactionRoot,
-	'base64',
-);
+export const genesisBlockID = Buffer.from(genesisBlock.header.id, 'base64');
 export const communityIdentifier = 'Lisk';
 
-export const networkIdentifier = getNetworkIdentifier(
-	genesisBlockTransactionRoot,
-	communityIdentifier,
-);
+export const networkIdentifier = getNetworkIdentifier(genesisBlockID, communityIdentifier);
