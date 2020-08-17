@@ -13,7 +13,6 @@
  */
 import { P2P, events, p2pTypes } from '@liskhq/lisk-p2p';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { Application } from '../../../../src';
 import {
 	createApplication,
@@ -23,8 +22,9 @@ import {
 	sendTransaction,
 } from '../../utils/application';
 import { createProbe } from '../../utils/probe';
-import { genesis } from '../../../fixtures';
+import { genesis, DefaultAccountProps } from '../../../fixtures';
 import { nodeUtils } from '../../../utils';
+import { createTransferTransaction } from '../../../utils/node/transaction';
 
 describe('Public transaction related P2P endpoints', () => {
 	let app: Application;
@@ -32,7 +32,11 @@ describe('Public transaction related P2P endpoints', () => {
 
 	beforeAll(async () => {
 		app = await createApplication('network-transactions');
-		p2p = await createProbe(app.config);
+		p2p = await createProbe({
+			networkId: app.networkIdentifier.toString('base64'),
+			networkVersion: app.config.networkVersion,
+			port: app.config.network.port,
+		});
 	});
 
 	afterAll(async () => {
@@ -71,21 +75,18 @@ describe('Public transaction related P2P endpoints', () => {
 
 	describe('postTransactionsAnnouncement', () => {
 		it('should request announced transaction', async () => {
-			const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress(
-				genesis.address,
-			);
+			const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress<
+				DefaultAccountProps
+			>(genesis.address);
 			const accountWithoutBalance = nodeUtils.createAccount();
-			const tx = new TransferTransaction({
-				nonce: genesisAccount.nonce,
-				senderPublicKey: genesis.publicKey,
+			const tx = createTransferTransaction({
+				nonce: genesisAccount.sequence.nonce,
 				fee: BigInt('200000'),
-				asset: {
-					recipientAddress: accountWithoutBalance.address,
-					amount: BigInt('10000000000'),
-					data: '',
-				},
+				recipientAddress: accountWithoutBalance.address,
+				amount: BigInt('10000000000'),
+				networkIdentifier: app['_node']['_networkIdentifier'],
+				passphrase: genesis.passphrase,
 			});
-			tx.sign(app['_node']['_networkIdentifier'], genesis.passphrase);
 			p2p.sendToPeer(
 				{
 					event: 'postTransactionsAnnouncement',

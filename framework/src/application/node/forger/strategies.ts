@@ -13,12 +13,13 @@
  */
 
 import { MaxHeap, TransactionPool, PooledTransaction } from '@liskhq/lisk-transaction-pool';
-import { Status as TransactionStatus, BaseTransaction } from '@liskhq/lisk-transactions';
-import { Chain } from '@liskhq/lisk-chain';
+import { Chain, Transaction } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { Processor } from '../processor';
 
 export class HighFeeForgingStrategy {
 	private readonly _chainModule: Chain;
+	private readonly _processorModule: Processor;
 	private readonly _transactionPoolModule: TransactionPool;
 	private readonly _constants: {
 		readonly maxPayloadLength: number;
@@ -27,20 +28,23 @@ export class HighFeeForgingStrategy {
 	public constructor({
 		// Modules
 		chainModule,
+		processorModule,
 		transactionPoolModule,
 		// constants
 		maxPayloadLength,
 	}: {
 		readonly chainModule: Chain;
+		readonly processorModule: Processor;
 		readonly transactionPoolModule: TransactionPool;
 		readonly maxPayloadLength: number;
 	}) {
 		this._chainModule = chainModule;
+		this._processorModule = processorModule;
 		this._transactionPoolModule = transactionPoolModule;
 		this._constants = { maxPayloadLength };
 	}
 
-	public async getTransactionsForBlock(): Promise<BaseTransaction[]> {
+	public async getTransactionsForBlock(): Promise<Transaction[]> {
 		// Initialize array to select transactions
 		const readyTransactions = [];
 
@@ -62,22 +66,20 @@ export class HighFeeForgingStrategy {
 		// Loop till we have last account exhausted to pick transactions
 		while (transactionsBySender.size > 0) {
 			// Get the transaction with highest fee and lowest nonce
-			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()?.value as BaseTransaction | undefined;
+			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()?.value as Transaction | undefined;
 			if (!lowestNonceHighestFeeTrx) {
 				throw new Error('lowest nonce tx must exist');
 			}
 			const senderId = getAddressFromPublicKey(lowestNonceHighestFeeTrx.senderPublicKey);
 			// Try to process transaction
-			const result = await this._chainModule.applyTransactionsWithStateStore(
-				[lowestNonceHighestFeeTrx],
-				stateStore,
-			);
-
-			// If transaction can't be processed then discard all transactions
-			// from that account as other transactions will be higher nonce
-			if (result[0].status !== TransactionStatus.OK) {
+			stateStore.createSnapshot();
+			try {
+				await this._processorModule.verifyTransactions([lowestNonceHighestFeeTrx], stateStore);
+			} catch (error) {
+				// If transaction can't be processed then discard all transactions
+				// from that account as other transactions will be higher nonce
+				stateStore.restoreSnapshot();
 				transactionsBySender.delete(senderId);
-
 				// eslint-disable-next-line no-continue
 				continue;
 			}

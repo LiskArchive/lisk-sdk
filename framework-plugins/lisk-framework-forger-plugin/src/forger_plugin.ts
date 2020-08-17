@@ -26,7 +26,6 @@ import {
 	TransactionJSON,
 	BlockHeaderJSON,
 } from 'lisk-framework';
-import { VoteTransaction } from '@liskhq/lisk-transactions';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
 import type { Express } from 'express';
 import { initApi } from './api';
@@ -202,7 +201,7 @@ export class ForgerPlugin extends BasePlugin {
 
 	private async _setForgersList(): Promise<void> {
 		this._forgersList = new dataStructures.BufferMap<boolean>();
-		const forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatusOfAllDelegates');
+		const forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatus');
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'base64'), forging);
 		}
@@ -360,7 +359,7 @@ export class ForgerPlugin extends BasePlugin {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
 		for (const trx of payload) {
-			if (trx.type === VoteTransaction.TYPE) {
+			if (trx.moduleType === 5 && trx.assetType === 1) {
 				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'base64'));
 				(trx.asset as Asset).votes.reduce((acc: ForgerReceivedVotes, curr) => {
 					if (
@@ -436,9 +435,14 @@ export class ForgerPlugin extends BasePlugin {
 
 		for (let index = 0; index < payload.length; index += 1) {
 			const trx = payload[index];
-			fee +=
-				BigInt(this._transactionFees[trx.type].baseFee) +
-				BigInt(this._transactionFees[trx.type].minFeePerByte) * BigInt(payloadBuffer[index].length);
+			const baseFee =
+				this._transactionFees.baseFees.find(
+					bf => bf.moduleType === trx.moduleType && bf.assetType === trx.assetType,
+				)?.baseFee ?? '0';
+			const minFeeRequired =
+				BigInt(baseFee) +
+				BigInt(this._transactionFees.minFeePerByte) * BigInt(payloadBuffer[index].length);
+			fee += BigInt(trx.fee) - minFeeRequired;
 		}
 
 		return fee;
@@ -459,18 +463,18 @@ export class ForgerPlugin extends BasePlugin {
 		const missedBlocks = Math.ceil((timestamp - previousBlock.timestamp) / blockTime) - 1;
 
 		if (missedBlocks > 0) {
-			const forgersInfoForRound = await this._channel.invoke<
+			const forgersInfo = await this._channel.invoke<
 				readonly { address: string; nextForgingTime: number }[]
-			>('app:getForgersInfoForActiveRound');
-			const forgersRoundLength = forgersInfoForRound.length;
-			const forgerIndex = forgersInfoForRound.findIndex(f => f.address === forgerAddress);
+			>('app:getForgers');
+			const forgersRoundLength = forgersInfo.length;
+			const forgerIndex = forgersInfo.findIndex(f => f.address === forgerAddress);
 
 			const missedBlocksByAddress: MissedBlocksByAddress = {};
 
 			for (let index = 0; index < missedBlocks; index += 1) {
 				const rawIndex = (forgerIndex - 1 - index) % forgersRoundLength;
 				const forgerRoundIndex = rawIndex >= 0 ? rawIndex : rawIndex + forgersRoundLength;
-				const missedForgerInfo = forgersInfoForRound[forgerRoundIndex];
+				const missedForgerInfo = forgersInfo[forgerRoundIndex];
 
 				missedBlocksByAddress[missedForgerInfo.address] =
 					missedBlocksByAddress[missedForgerInfo.address] === undefined

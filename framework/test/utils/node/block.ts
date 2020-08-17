@@ -13,8 +13,7 @@
  *
  */
 
-import { Block } from '@liskhq/lisk-chain';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { Block, Transaction } from '@liskhq/lisk-chain';
 import { Node } from '../../../src/application/node';
 
 interface Option {
@@ -25,18 +24,16 @@ interface Option {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createBlock = async (
 	node: Node,
-	transactions: BaseTransaction[] = [],
+	transactions: Transaction[] = [],
 	options: Option = {},
 ) => {
 	const lastBlock = options.lastBlock ? options.lastBlock : node['_chain'].lastBlock;
 	const currentSlot = node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
 	const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
-	const round = node['_dpos'].rounds.calcRound(lastBlock.header.height + 1);
-	const currentKeypair = await node['_forger']['_getDelegateKeypairForCurrentSlot'](
-		currentSlot,
-		round,
-	);
-	return node['_processor'].create({
+	const validator = await node['_chain'].getValidator(timestamp);
+
+	const currentKeypair = node['_forger']['_keypairs'].get(validator.address);
+	return node['_forger']['_create']({
 		keypair: options.keypair
 			? options.keypair
 			: (currentKeypair as { publicKey: Buffer; privateKey: Buffer }),

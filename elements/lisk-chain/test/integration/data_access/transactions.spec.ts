@@ -17,9 +17,8 @@ import * as fs from 'fs-extra';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { DataAccess } from '../../../src/data_access';
 import { defaultAccountSchema } from '../../utils/account';
-import { defaultBlockHeaderAssetSchema } from '../../utils/block';
-import { registeredTransactions } from '../../utils/registered_transactions';
-import { getTransferTransaction } from '../../utils/transaction';
+import { registeredBlockHeaders } from '../../utils/block';
+import { getTransaction } from '../../utils/transaction';
 
 describe('dataAccess.transactions', () => {
 	let db: KVStore;
@@ -32,22 +31,15 @@ describe('dataAccess.transactions', () => {
 		db = new KVStore(path.join(parentPath, '/test-transactions.db'));
 		dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema as any,
-			registeredBlockHeaders: {
-				0: defaultBlockHeaderAssetSchema,
-				2: defaultBlockHeaderAssetSchema,
-			},
-			registeredTransactions,
+			accountSchema: defaultAccountSchema,
+			registeredBlockHeaders,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
 	});
 
 	beforeEach(async () => {
-		transactions = [
-			getTransferTransaction({ nonce: BigInt(1000) }),
-			getTransferTransaction({ nonce: BigInt(0) }),
-		];
+		transactions = [getTransaction({ nonce: BigInt(1000) }), getTransaction({ nonce: BigInt(0) })];
 		const batch = db.batch();
 		for (const tx of transactions) {
 			batch.put(`transactions:id:${tx.id.toString('binary')}`, tx.getBytes());
@@ -72,25 +64,31 @@ describe('dataAccess.transactions', () => {
 
 		it('should return transaction by ID', async () => {
 			const tx = await dataAccess.getTransactionByID(transactions[0].id);
+			expect(tx.id).toStrictEqual(transactions[0].id);
 			expect(tx).toStrictEqual(transactions[0]);
 		});
 	});
 
 	describe('getTransactionsByIDs', () => {
 		it('should not throw "not found" error if one of ID specified does not exist', async () => {
-			await expect(
-				dataAccess.getTransactionsByIDs([Buffer.from('randomId'), transactions[0].id]),
-			).resolves.toEqual([transactions[0]]);
+			const txs = await dataAccess.getTransactionsByIDs([
+				Buffer.from('randomId'),
+				transactions[0].id,
+			]);
+			// Call id to initialize ID field
+			txs.forEach(tx => tx.id);
+			expect(txs).toEqual([transactions[0]]);
 		});
 
 		it('should return existent transaction by ID when some of the IDs do not exist', async () => {
-			await expect(
-				dataAccess.getTransactionsByIDs([
-					transactions[1].id,
-					Buffer.from('randomId'),
-					transactions[0].id,
-				]),
-			).resolves.toEqual([transactions[1], transactions[0]]);
+			const txs = await dataAccess.getTransactionsByIDs([
+				transactions[1].id,
+				Buffer.from('randomId'),
+				transactions[0].id,
+			]);
+			// Call id to initialize ID field
+			txs.forEach(tx => tx.id);
+			expect(txs).toEqual([transactions[1], transactions[0]]);
 		});
 
 		it('should return transaction by ID', async () => {
@@ -98,6 +96,9 @@ describe('dataAccess.transactions', () => {
 				transactions[1].id,
 				transactions[0].id,
 			]);
+			// Call id to initialize ID field
+			expect(result[1].id).toStrictEqual(transactions[0].id);
+			expect(result[0].id).toStrictEqual(transactions[1].id);
 			expect(result[1]).toStrictEqual(transactions[0]);
 			expect(result[0]).toStrictEqual(transactions[1]);
 		});

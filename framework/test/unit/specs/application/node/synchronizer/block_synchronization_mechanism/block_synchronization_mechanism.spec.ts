@@ -16,17 +16,14 @@ import { KVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { BFT, ForkStatus } from '@liskhq/lisk-bft';
-import { Dpos } from '@liskhq/lisk-dpos';
 import { objects } from '@liskhq/lisk-utils';
 
-import { BlockProcessorV2 } from '../../../../../../../src/application/node/block_processor_v2';
 import { BlockSynchronizationMechanism } from '../../../../../../../src/application/node/synchronizer';
 import { computeBlockHeightsList } from '../../../../../../../src/application/node/synchronizer/utils';
 
 import { AbortError } from '../../../../../../../src/application/node/synchronizer/errors';
 import { Processor } from '../../../../../../../src/application/node/processor';
 import { constants } from '../../../../../../utils';
-import { registeredTransactions } from '../../../../../../utils/registered_transactions';
 import {
 	defaultNetworkIdentifier,
 	genesisBlock as getGenesisBlock,
@@ -34,15 +31,12 @@ import {
 	encodeValidBlock,
 	encodeValidBlockHeader,
 	createFakeBlockHeader,
+	defaultAccountSchema,
 } from '../../../../../../fixtures';
-import {
-	accountAssetSchema,
-	defaultAccountAsset,
-} from '../../../../../../../src/application/node/account';
 
 import { peersList } from './peers';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from '../../../../../../../src/application/node/synchronizer/base_synchronizer';
-import { BlockProcessorV0 } from '../../../../../../../src/application/node/block_processor_v0';
+import { TokenModule } from '../../../../../../../src/modules';
 
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -55,10 +49,7 @@ describe('block_synchronization_mechanism', () => {
 	const finalizedHeight = genesisBlock.header.height + 1;
 
 	let bftModule: any;
-	let blockProcessorV0;
-	let blockProcessorV2;
 	let chainModule: any;
-	let dposModule: any;
 	let processorModule: any;
 	let blockSynchronizationMechanism: BlockSynchronizationMechanism;
 	let networkMock: any;
@@ -85,7 +76,6 @@ describe('block_synchronization_mechanism', () => {
 		channelMock = new ChannelMock();
 
 		const blockchainDB = new KVStore('blockchain.db');
-		const forgerDB = new KVStore('forger.db');
 
 		networkMock = {
 			requestFromPeer: jest.fn(),
@@ -97,24 +87,17 @@ describe('block_synchronization_mechanism', () => {
 			networkIdentifier: defaultNetworkIdentifier,
 			db: blockchainDB,
 			genesisBlock,
-			registeredTransactions,
-			registeredBlocks: {
-				0: BlockProcessorV0.schema,
-				2: BlockProcessorV2.schema,
-			},
-			accountAsset: {
-				schema: accountAssetSchema,
-				default: defaultAccountAsset,
-			},
+			accounts: defaultAccountSchema,
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
-			totalAmount: constants.totalAmount,
 			blockTime: constants.blockTime,
 		});
+		chainModule['_numberOfValidators'] = 103;
 
 		dataAccessMock = {
+			getConsensusState: jest.fn(),
 			getTempBlocks: jest.fn(),
 			clearTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
@@ -134,41 +117,14 @@ describe('block_synchronization_mechanism', () => {
 		};
 		chainModule.dataAccess = dataAccessMock;
 
-		dposModule = new Dpos({
-			chain: chainModule,
-			activeDelegates: constants.activeDelegates,
-			standbyDelegates: constants.standbyDelegates,
-			delegateListRoundOffset: constants.delegateListRoundOffset,
-			initDelegates: genesisBlock.header.asset.initDelegates,
-			initRound: genesisBlock.header.asset.initRounds,
-			genesisBlockHeight: genesisBlock.header.height,
-		});
-
 		bftModule = new BFT({
 			chain: chainModule,
-			dpos: dposModule,
-			activeDelegates: constants.activeDelegates,
+			threshold: constants.bftThreshold,
 			genesisHeight: genesisBlock.header.height,
 		});
 
 		Object.defineProperty(bftModule, 'finalizedHeight', {
 			get: jest.fn(() => finalizedHeight),
-		});
-
-		blockProcessorV0 = new BlockProcessorV0({
-			dposModule,
-			logger: loggerMock,
-			constants,
-		});
-
-		blockProcessorV2 = new BlockProcessorV2({
-			networkIdentifier: defaultNetworkIdentifier,
-			forgerDB,
-			chainModule,
-			bftModule,
-			dposModule,
-			logger: loggerMock,
-			constants,
 		});
 
 		processorModule = new Processor({
@@ -182,17 +138,13 @@ describe('block_synchronization_mechanism', () => {
 		});
 		processorModule.validate = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
-		processorModule.register(blockProcessorV0, {
-			matcher: (header: BlockHeader) => header.version === 0,
-		});
-		processorModule.register(blockProcessorV2);
+		processorModule.register(new TokenModule(constants));
 
 		blockSynchronizationMechanism = new BlockSynchronizationMechanism({
 			logger: loggerMock,
 			channel: channelMock,
 			chain: chainModule,
 			bft: bftModule,
-			dpos: dposModule,
 			processorModule,
 			networkModule: networkMock,
 		});
@@ -200,11 +152,17 @@ describe('block_synchronization_mechanism', () => {
 
 	beforeEach(async () => {
 		finalizedBlock = createValidDefaultBlock({
-			header: { height: finalizedHeight, asset: { maxHeightPrevoted: 0 } },
+			header: {
+				height: finalizedHeight,
+				asset: { maxHeightPrevoted: 0, maxHeightPreviouslyForged: 0, seedReveal: Buffer.alloc(0) },
+			},
 		});
 
 		aBlock = createValidDefaultBlock({
-			header: { height: 10, asset: { maxHeightPrevoted: 0 } },
+			header: {
+				height: 10,
+				asset: { maxHeightPrevoted: 0, maxHeightPreviouslyForged: 0, seedReveal: Buffer.alloc(0) },
+			},
 		});
 		// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 		// memory. The following mock fakes this to be true
@@ -251,13 +209,14 @@ describe('block_synchronization_mechanism', () => {
 			.mockReturnValue(peersList.connectedPeers as never);
 
 		await chainModule.init();
+		chainModule['_numberOfValidators'] = 103;
 
 		// Used in getHighestCommonBlock network action payload
 		const blockHeightsList = computeBlockHeightsList(
 			bftModule.finalizedHeight,
-			dposModule.delegatesPerRound,
+			chainModule.numberOfValidators,
 			10,
-			dposModule.rounds.calcRound(chainModule.lastBlock.header.height),
+			Math.ceil(chainModule.lastBlock.header.height / chainModule.numberOfValidators),
 		);
 
 		blockList = [finalizedBlock as any];
@@ -372,7 +331,7 @@ describe('block_synchronization_mechanism', () => {
 
 		describe('compute the best peer', () => {
 			it('should compute the best peer out of a list of connected peers and return it', async () => {
-				jest.spyOn(processorModule, 'forkStatus');
+				jest.spyOn(bftModule, 'forkChoice');
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getBlocksFromId',
@@ -391,8 +350,8 @@ describe('block_synchronization_mechanism', () => {
 					},
 					'List of connected peers',
 				);
-				expect(processorModule.forkStatus).toHaveBeenCalledWith({
-					header: {
+				expect(bftModule.forkChoice).toHaveBeenCalledWith(
+					{
 						id: Buffer.alloc(0),
 						previousBlockID: Buffer.alloc(0),
 						version: 2,
@@ -401,8 +360,8 @@ describe('block_synchronization_mechanism', () => {
 							maxHeightPrevoted: expect.any(Number),
 						},
 					},
-					payload: [],
-				});
+					chainModule.lastBlock.header,
+				);
 				expect(loggerMock.debug).toHaveBeenCalledWith(
 					'Computing the best peer to synchronize from',
 				);
@@ -551,7 +510,11 @@ describe('block_synchronization_mechanism', () => {
 				const receivedBlock = createValidDefaultBlock({
 					header: {
 						height: 0,
-						asset: { maxHeightPrevoted: 0 },
+						asset: {
+							maxHeightPrevoted: 0,
+							seedReveal: Buffer.alloc(0),
+							maxHeightPreviouslyForged: 0,
+						},
 					},
 				});
 
@@ -647,15 +610,15 @@ describe('block_synchronization_mechanism', () => {
 					// Used in getHighestCommonBlock network action payload
 					const blockHeightsList = computeBlockHeightsList(
 						bftModule.finalizedHeight,
-						dposModule.delegatesPerRound,
+						chainModule.numberOfValidators,
 						10,
-						dposModule.rounds.calcRound(lastBlock.header.height),
+						Math.ceil(lastBlock.header.height / chainModule.numberOfValidators),
 					);
 
 					const receivedBlock = createValidDefaultBlock({
 						header: {
 							height: lastBlock.header.height + 304,
-							reward: chainModule.blockReward.calculateReward(lastBlock.header.height + 304),
+							reward: chainModule.calculateReward(lastBlock.header.height + 304),
 						},
 					});
 
@@ -715,6 +678,7 @@ describe('block_synchronization_mechanism', () => {
 						.mockResolvedValue([lastBlock] as never);
 
 					await chainModule.init();
+					chainModule['_numberOfValidators'] = 103;
 
 					try {
 						await blockSynchronizationMechanism.run(receivedBlock);
@@ -740,9 +704,9 @@ describe('block_synchronization_mechanism', () => {
 					// Used in getHighestCommonBlock network action payload
 					const blockHeightsList = computeBlockHeightsList(
 						bftModule.finalizedHeight,
-						dposModule.delegatesPerRound,
+						chainModule.numberOfValidators,
 						10,
-						dposModule.rounds.calcRound(chainModule.lastBlock.header.height),
+						Math.ceil(chainModule.lastBlock.header.height / chainModule.numberOfValidators),
 					);
 
 					blockList = [finalizedBlock];
@@ -952,7 +916,11 @@ describe('block_synchronization_mechanism', () => {
 					const previousTip = createValidDefaultBlock({
 						header: {
 							height: genesisBlock.header.height + 140, // So it has preference over new tip (height <)
-							asset: { maxHeightPrevoted: 0 },
+							asset: {
+								maxHeightPrevoted: 0,
+								seedReveal: Buffer.alloc(0),
+								maxHeightPreviouslyForged: 0,
+							},
 						},
 					});
 
@@ -1094,6 +1062,8 @@ describe('block_synchronization_mechanism', () => {
 							height: aBlock.header.height - 1, // So it doesn't have preference over new tip (height >)
 							asset: {
 								maxHeightPrevoted: aBlock.header.asset.maxHeightPrevoted,
+								seedReveal: Buffer.alloc(0),
+								maxHeightPreviouslyForged: 0,
 							},
 						},
 					});
@@ -1137,7 +1107,7 @@ describe('block_synchronization_mechanism', () => {
 
 					const processingError = new Error('Error processing blocks');
 					processorModule.processValidated.mockRejectedValueOnce(processingError);
-					jest.spyOn(processorModule, 'forkStatus').mockResolvedValue(ForkStatus.DIFFERENT_CHAIN);
+					jest.spyOn(bftModule, 'forkChoice').mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
 
 					chainModule._lastBlock = aBlock;
 
@@ -1191,9 +1161,9 @@ describe('block_synchronization_mechanism', () => {
 			it('should return height list for given round', () => {
 				const heightList = computeBlockHeightsList(
 					bftModule.finalizedHeight,
-					dposModule.delegatesPerRound,
+					chainModule.numberOfValidators,
 					10,
-					dposModule.rounds.calcRound(chainModule.lastBlock.header.height),
+					Math.ceil(chainModule.lastBlock.header.height / chainModule.numberOfValidators),
 				);
 				expect(heightList).not.toBeEmpty();
 			});

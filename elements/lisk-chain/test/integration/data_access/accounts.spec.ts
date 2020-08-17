@@ -23,8 +23,7 @@ import {
 	defaultAccountSchema,
 } from '../../utils/account';
 import { DataAccess } from '../../../src/data_access';
-import { defaultBlockHeaderAssetSchema } from '../../utils/block';
-import { registeredTransactions } from '../../utils/registered_transactions';
+import { registeredBlockHeaders } from '../../utils/block';
 
 describe('dataAccess.transactions', () => {
 	let db: KVStore;
@@ -40,11 +39,7 @@ describe('dataAccess.transactions', () => {
 		dataAccess = new DataAccess({
 			db,
 			accountSchema: defaultAccountSchema as any,
-			registeredBlockHeaders: {
-				0: defaultBlockHeaderAssetSchema,
-				2: defaultBlockHeaderAssetSchema,
-			},
-			registeredTransactions,
+			registeredBlockHeaders,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
@@ -54,11 +49,9 @@ describe('dataAccess.transactions', () => {
 		accounts = [
 			createFakeDefaultAccount({
 				address: Buffer.from('cc96c0a5db38b968f563e7af6fb435585c889111', 'hex'),
-				balance: BigInt(99),
 			}),
 			createFakeDefaultAccount({
 				address: Buffer.from('584dd8a902822a9469fb2911fcc14ed5fd98220d', 'hex'),
-				balance: BigInt('10000'),
 				keys: {
 					mandatoryKeys: [
 						Buffer.from('456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e', 'hex'),

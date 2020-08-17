@@ -20,6 +20,9 @@ import { Synchronizer } from '../../../../../src/application/node/synchronizer/s
 import { Processor } from '../../../../../src/application/node/processor';
 import { Forger, HighFeeForgingStrategy } from '../../../../../src/application/node/forger';
 import { cacheConfig, nodeOptions } from '../../../../fixtures/node';
+import { genesisBlock } from '../../../../fixtures';
+import { TokenModule } from '../../../../../src/modules';
+import * as genesisBlockJSON from '../../../../fixtures/config/devnet/genesis_block.json';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -27,7 +30,10 @@ describe('Node', () => {
 	let node: Node;
 	let subscribedEvents: any;
 	const stubs: any = {};
-	const lastBlock = { ...nodeOptions.genesisBlock };
+	const lastBlock = genesisBlock();
+	let blockchainDB: KVStore;
+	let forgerDB: KVStore;
+	let nodeDB: KVStore;
 
 	beforeEach(() => {
 		// Arrange
@@ -36,8 +42,9 @@ describe('Node', () => {
 		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(undefined);
 		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(undefined);
 
-		const blockchainDB = new KVStore('blockchain.db');
-		const forgerDB = new KVStore('forger.db');
+		blockchainDB = new KVStore('blockchain.db');
+		forgerDB = new KVStore('forger.db');
+		nodeDB = new KVStore('node.db');
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -93,12 +100,15 @@ describe('Node', () => {
 			channel: stubs.channel,
 			blockchainDB,
 			forgerDB,
+			nodeDB,
+			customModules: [TokenModule],
 			networkModule: stubs.networkModule,
 			logger: stubs.logger,
 			options: nodeOptions,
+			genesisBlockJSON,
 		};
 
-		node = new Node(params as any);
+		node = new Node(params);
 	});
 
 	describe('constructor', () => {
@@ -119,6 +129,7 @@ describe('Node', () => {
 	describe('bootstrap', () => {
 		beforeEach(async () => {
 			// Act
+			jest.spyOn(node['_networkModule'], 'applyNodeInfo');
 			await node.bootstrap();
 		});
 
@@ -135,7 +146,13 @@ describe('Node', () => {
 			node = new Node({
 				channel: stubs.channel,
 				logger: stubs.logger,
+				customModules: [TokenModule],
+				networkModule: stubs.networkModule,
+				genesisBlockJSON: null,
 				options,
+				blockchainDB,
+				forgerDB,
+				nodeDB,
 			} as any);
 
 			// Act
@@ -155,7 +172,8 @@ describe('Node', () => {
 				forging: {
 					waitThreshold: 5,
 				},
-				constants: {
+				genesisConfig: {
+					...nodeOptions.genesisConfig,
 					blockTime: 4,
 				},
 			};
@@ -163,7 +181,13 @@ describe('Node', () => {
 			node = new Node({
 				channel: stubs.channel,
 				options: invalidChainOptions,
+				customModules: [TokenModule],
+				networkModule: stubs.networkModule,
+				genesisBlockJSON,
 				logger: stubs.logger,
+				blockchainDB,
+				forgerDB,
+				nodeDB,
 			} as any);
 
 			await expect(node.bootstrap()).rejects.toThrow(
@@ -188,7 +212,8 @@ describe('Node', () => {
 				forging: {
 					waitThreshold: 5,
 				},
-				constants: {
+				genesisConfig: {
+					...nodeOptions.genesisConfig,
 					blockTime: 5,
 				},
 			};
@@ -196,7 +221,13 @@ describe('Node', () => {
 			node = new Node({
 				channel: stubs.channel,
 				options: invalidChainOptions,
+				customModules: [TokenModule],
+				networkModule: stubs.networkModule,
 				logger: stubs.logger,
+				genesisBlockJSON,
+				blockchainDB,
+				forgerDB,
+				nodeDB,
 			} as any);
 
 			await expect(node.bootstrap()).rejects.toThrow(
@@ -266,11 +297,14 @@ describe('Node', () => {
 				// Arrange
 				node = new Node({
 					channel: stubs.channel,
-					options: {
-						...nodeOptions,
-						genesisBlock: null,
-					},
+					options: nodeOptions,
+					customModules: [TokenModule],
+					networkModule: stubs.networkModule,
 					logger: stubs.logger,
+					genesisBlockJSON: null,
+					blockchainDB,
+					forgerDB,
+					nodeDB,
 				} as any);
 
 				// Act

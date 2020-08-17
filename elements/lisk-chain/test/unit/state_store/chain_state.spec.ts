@@ -13,13 +13,11 @@
  */
 import { KVStore, BatchChain } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { StateStore } from '../../../src';
+import { StateStore } from '../../../src/state_store';
 import { DataAccess } from '../../../src/data_access';
 import { BlockHeader, StateDiff } from '../../../src/types';
-import { baseAccountSchema } from '../../../src/schema';
-import { defaultAccountAssetSchema, createFakeDefaultAccount } from '../../utils/account';
-import { defaultNetworkIdentifier, defaultBlockHeaderAssetSchema } from '../../utils/block';
+import { defaultAccount, defaultAccountSchema } from '../../utils/account';
+import { defaultNetworkIdentifier, registeredBlockHeaders } from '../../utils/block';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -33,38 +31,24 @@ describe('state store / chain_state', () => {
 
 	beforeEach(() => {
 		db = new KVStore('temp');
-		const defaultAccountSchema = {
-			...baseAccountSchema,
-			properties: {
-				...baseAccountSchema.properties,
-				asset: {
-					...baseAccountSchema.properties.asset,
-					properties: defaultAccountAssetSchema,
-				},
-			},
-		};
 		const dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema as any,
-			registeredBlockHeaders: {
-				0: defaultBlockHeaderAssetSchema,
-				2: defaultBlockHeaderAssetSchema,
-			},
-			registeredTransactions: { 8: TransferTransaction },
+			accountSchema: defaultAccountSchema,
+			registeredBlockHeaders,
 			maxBlockHeaderCache: 505,
 			minBlockHeaderCache: 309,
 		});
 		stateStore = new StateStore(dataAccess, {
 			lastBlockHeaders,
 			networkIdentifier: defaultNetworkIdentifier,
-			defaultAsset: createFakeDefaultAccount().asset,
+			defaultAccount,
 			lastBlockReward: BigInt(500000000),
 		});
 	});
 
 	describe('lastBlockHeader', () => {
-		it('should have first element as lastBlockHeader', () => {
-			expect(stateStore.chain.lastBlockHeader).toEqual({ height: 30 });
+		it('should have first element as lastBlockHeaders', () => {
+			expect(stateStore.chain.lastBlockHeaders).toEqual(lastBlockHeaders);
 		});
 	});
 

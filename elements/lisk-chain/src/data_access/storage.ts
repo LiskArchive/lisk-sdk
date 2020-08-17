@@ -132,6 +132,9 @@ export class Storage {
 					resolve(ids);
 				});
 		});
+		if (!blockID) {
+			throw new NotFoundError('Last block header not found');
+		}
 
 		return this.getBlockHeaderByID(blockID);
 	}

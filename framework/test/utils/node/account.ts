@@ -14,7 +14,7 @@
  */
 
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import { getKeys, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { getKeys, getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createAccount = () => {
@@ -35,3 +35,30 @@ export const createAccounts = (numberOfAccounts = 1) => {
 	const accounts = new Array(numberOfAccounts).fill(0).map(createAccount);
 	return accounts;
 };
+
+export const createFakeDefaultAccount = (account: any) => ({
+	address: account?.address ?? getRandomBytes(20),
+	token: {
+		balance: account?.token?.balance ?? BigInt(0),
+	},
+	sequence: {
+		nonce: account?.sequence?.nonce ?? BigInt(0),
+	},
+	keys: {
+		mandatoryKeys: account?.keys?.mandatoryKeys ?? [],
+		optionalKeys: account?.keys?.optionalKeys ?? [],
+		numberOfSignatures: account?.keys?.numberOfSignatures ?? 0,
+	},
+	dpos: {
+		delegate: {
+			username: account?.dpos?.delegate?.username ?? '',
+			pomHeights: account?.dpos?.delegate?.pomHeights ?? [],
+			consecutiveMissedBlocks: account?.dpos?.delegate?.consecutiveMissedBlocks ?? 0,
+			lastForgedHeight: account?.dpos?.delegate?.lastForgedHeight ?? 0,
+			isBanned: account?.dpos?.delegate?.isBanned ?? false,
+			totalVotesReceived: account?.dpos?.delegate?.totalVotesReceived ?? BigInt(0),
+		},
+		sentVotes: account?.dpos?.sentVotes ?? [],
+		unlocking: account?.dpos?.unlocking ?? [],
+	},
+});

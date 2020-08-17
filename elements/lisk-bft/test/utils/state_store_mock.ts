@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Account, BlockHeader } from '../../src/types';
+import { Account, BlockHeader } from '@liskhq/lisk-chain';
 
 interface AccountStoreMock {
 	get: (address: Buffer) => Promise<Account>;
@@ -23,11 +23,11 @@ interface AccountStoreMock {
 interface ConsensusStateStoreMock {
 	get: (key: string) => Promise<Buffer | undefined>;
 	set: (key: string, v: Buffer) => void;
-	lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 interface ChainStateStoreMock {
 	get: (key: string) => Promise<Buffer | undefined>;
 	set: (key: string, v: Buffer) => void;
+	lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 
 interface ConsensusState {
@@ -88,13 +88,13 @@ export class StateStoreMock {
 			set: (key: string, val: Buffer): void => {
 				this.consensusStateData[key] = val;
 			},
-			lastBlockHeaders: additionalInformation?.lastBlockHeaders ?? [],
 		};
 		this.chain = {
 			get: async (key: string): Promise<Buffer | undefined> => Promise.resolve(this.chainData[key]),
 			set: (key: string, value: Buffer): void => {
 				this.chainData[key] = value;
 			},
+			lastBlockHeaders: additionalInformation?.lastBlockHeaders ?? [],
 		};
 	}
 }

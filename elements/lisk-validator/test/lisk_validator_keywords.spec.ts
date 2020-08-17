@@ -157,7 +157,7 @@ describe('validator keywords', () => {
 						{ myProp: Buffer.alloc(9) },
 					);
 					expect(result).toHaveLength(1);
-					expect(result[0].message).toEqual('minLength does not satisfied');
+					expect(result[0].message).toEqual('minLength not satisfied');
 					expect(result[0].params).toEqual({
 						dataType: 'bytes',
 						minLength: 10,
@@ -176,7 +176,7 @@ describe('validator keywords', () => {
 						{ myProp: Buffer.alloc(11) },
 					);
 					expect(result).toHaveLength(1);
-					expect(result[0].message).toEqual('maxLength does not satisfied');
+					expect(result[0].message).toEqual('maxLength exceeded');
 					expect(result[0].params).toEqual({
 						dataType: 'bytes',
 						maxLength: 10,

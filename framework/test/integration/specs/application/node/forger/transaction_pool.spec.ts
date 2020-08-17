@@ -13,10 +13,11 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
+import { Transaction } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { genesis } from '../../../../../fixtures';
+import { createTransferTransaction } from '../../../../../utils/node/transaction';
 
 describe('Transaction pool', () => {
 	const dbName = 'transaction_pool';
@@ -37,22 +38,18 @@ describe('Transaction pool', () => {
 	});
 
 	describe('given a valid transaction while forging is disabled', () => {
-		let transaction: any;
+		let transaction: Transaction;
 
 		beforeAll(async () => {
 			const genesisAccount = await node._chain.dataAccess.getAccountByAddress(genesis.address);
 			const account = nodeUtils.createAccount();
-			transaction = new TransferTransaction({
-				nonce: genesisAccount.nonce,
-				senderPublicKey: genesis.publicKey,
-				fee: BigInt('200000'),
-				asset: {
-					recipientAddress: account.address,
-					amount: BigInt('100000000000'),
-					data: '',
-				},
+			transaction = createTransferTransaction({
+				nonce: genesisAccount.sequence.nonce,
+				recipientAddress: account.address,
+				amount: BigInt('100000000000'),
+				networkIdentifier: Buffer.from(node._networkIdentifier, 'hex'),
+				passphrase: genesis.passphrase,
 			});
-			transaction.sign(Buffer.from(node._networkIdentifier, 'hex'), genesis.passphrase);
 			await node._transport.handleEventPostTransaction({
 				transaction: transaction.getBytes().toString('base64'),
 			});

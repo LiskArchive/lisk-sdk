@@ -14,22 +14,21 @@
 import { Readable } from 'stream';
 import { when } from 'jest-when';
 import { KVStore, formatInt, NotFoundError, getFirstPrefix, getLastPrefix } from '@liskhq/lisk-db';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { DataAccess } from '../../../src/data_access';
 import {
 	createFakeBlockHeader,
-	defaultBlockHeaderAssetSchema,
 	createValidDefaultBlock,
 	encodeDefaultBlockHeader,
 	encodedDefaultBlock,
 } from '../../utils/block';
 import { Block } from '../../../src/types';
-import { baseAccountSchema } from '../../../src/schema';
+import { Transaction } from '../../../src/transaction';
 import {
 	createFakeDefaultAccount,
 	encodeDefaultAccount,
-	defaultAccountAssetSchema,
+	defaultAccountSchema,
 } from '../../utils/account';
+import { getGenesisBlockHeaderAssetSchema, blockHeaderAssetSchema } from '../../../src/schema';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -37,17 +36,6 @@ describe('data_access', () => {
 	let dataAccess: DataAccess;
 	let db: any;
 	let block: Block;
-
-	const defaultAccountSchema = {
-		...baseAccountSchema,
-		properties: {
-			...baseAccountSchema.properties,
-			asset: {
-				...baseAccountSchema.properties.asset,
-				properties: defaultAccountAssetSchema,
-			},
-		},
-	};
 
 	beforeEach(() => {
 		db = new KVStore('temp');
@@ -57,12 +45,11 @@ describe('data_access', () => {
 		(getLastPrefix as jest.Mock).mockImplementation(str => str);
 		dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema as any,
+			accountSchema: defaultAccountSchema,
 			registeredBlockHeaders: {
-				0: defaultBlockHeaderAssetSchema,
-				2: defaultBlockHeaderAssetSchema,
+				0: getGenesisBlockHeaderAssetSchema(defaultAccountSchema),
+				2: blockHeaderAssetSchema,
 			},
-			registeredTransactions: { 8: TransferTransaction },
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
@@ -458,18 +445,24 @@ describe('data_access', () => {
 			// Arrange
 			const account = createFakeDefaultAccount({
 				address: Buffer.from('cc96c0a5db38b968f563e7af6fb435585c889111', 'hex'),
-				nonce: BigInt('0'),
-				balance: BigInt('100'),
+				token: {
+					balance: BigInt('100'),
+				},
+				sequence: {
+					nonce: BigInt('0'),
+				},
 			});
 			when(db.get)
 				.calledWith(`accounts:address:${account.address.toString('binary')}`)
 				.mockResolvedValue(encodeDefaultAccount(account) as never);
 			// Act
-			const result = await dataAccess.getAccountByAddress(account.address);
+			const result = await dataAccess.getAccountByAddress<{ token: { balance: bigint } }>(
+				account.address,
+			);
 
 			// Assert
 			expect(db.get).toHaveBeenCalledWith(`accounts:address:${account.address.toString('binary')}`);
-			expect(typeof result.balance).toEqual('bigint');
+			expect(typeof result.token.balance).toEqual('bigint');
 		});
 	});
 
@@ -479,13 +472,21 @@ describe('data_access', () => {
 			const accounts = [
 				createFakeDefaultAccount({
 					address: Buffer.from('cc96c0a5db38b968f563e7af6fb435585c889111', 'hex'),
-					nonce: BigInt('0'),
-					balance: BigInt('100'),
+					token: {
+						balance: BigInt('100'),
+					},
+					sequence: {
+						nonce: BigInt('0'),
+					},
 				}),
 				createFakeDefaultAccount({
 					address: Buffer.from('584dd8a902822a9469fb2911fcc14ed5fd98220d', 'hex'),
-					nonce: BigInt('0'),
-					balance: BigInt('300'),
+					token: {
+						balance: BigInt('300'),
+					},
+					sequence: {
+						nonce: BigInt('0'),
+					},
 				}),
 			];
 			when(db.get)
@@ -494,19 +495,21 @@ describe('data_access', () => {
 				.calledWith(`accounts:address:${accounts[1].address.toString('binary')}`)
 				.mockResolvedValue(encodeDefaultAccount(accounts[1]) as never);
 			// Act
-			const result = await dataAccess.getAccountsByAddress(accounts.map(acc => acc.address));
+			const result = await dataAccess.getAccountsByAddress<{ token: { balance: bigint } }>(
+				accounts.map(acc => acc.address),
+			);
 
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
-			expect(typeof result[0].balance).toEqual('bigint');
+			expect(typeof result[0].token.balance).toEqual('bigint');
 		});
 	});
 
 	describe('#getTransactionsByIDs', () => {
 		it('should get transaction by id', async () => {
-			const tx = new TransferTransaction({
-				id: Buffer.from('1065693148641117014'),
-				type: 8,
+			const tx = new Transaction({
+				moduleType: 2,
+				assetType: 0,
 				fee: BigInt('10000000'),
 				nonce: BigInt('0'),
 				senderPublicKey: Buffer.from(
@@ -519,11 +522,7 @@ describe('data_access', () => {
 						'hex',
 					),
 				],
-				asset: {
-					amount: BigInt('1'),
-					recipientAddress: Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf2', 'hex'),
-					data: '',
-				},
+				asset: Buffer.alloc(0),
 			});
 			// Arrange
 			when(db.get)
@@ -585,9 +584,9 @@ describe('data_access', () => {
 				},
 			}),
 			payload: [
-				new TransferTransaction({
+				new Transaction({
 					id: Buffer.from('1065693148641117014'),
-					type: 8,
+					type: 'token/transfer',
 					fee: BigInt('10000000'),
 					nonce: BigInt('0'),
 					senderPublicKey: Buffer.from(
@@ -600,11 +599,7 @@ describe('data_access', () => {
 							'hex',
 						),
 					],
-					asset: {
-						amount: BigInt('1'),
-						recipientAddress: Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf2', 'hex'),
-						data: '',
-					},
+					asset: Buffer.alloc(0),
 				} as any),
 			],
 		};
@@ -620,7 +615,7 @@ describe('data_access', () => {
 
 		it('should convert transaction to be a class', () => {
 			const decodedBlock = dataAccess.decode(encodedDefaultBlock(originalBlock));
-			expect(decodedBlock.payload[0]).toBeInstanceOf(TransferTransaction);
+			expect(decodedBlock.payload[0]).toBeInstanceOf(Transaction);
 		});
 	});
 

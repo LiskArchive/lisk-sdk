@@ -12,6 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
+import {
+	Validator,
+	AccountSchema as ChainAccountSchema,
+	Transaction,
+	StateStore as ChainStateStore,
+	GenesisBlock,
+	Block,
+} from '@liskhq/lisk-chain';
 
 export interface StringKeyVal {
 	[key: string]: string;
@@ -91,7 +99,8 @@ export interface NetworkConfig {
 }
 
 export interface GenesisConfig {
-	epochTime: string;
+	[key: string]: unknown;
+	bftThreshold: number;
 	communityIdentifier: string;
 	blockTime: number;
 	maxPayloadLength: number;
@@ -100,23 +109,18 @@ export interface GenesisConfig {
 		offset: number;
 		distance: number;
 	};
-}
-
-export interface ApplicationConstants {
-	[key: string]: {} | string | number | undefined;
-	activeDelegates: number;
-	standbyDelegates: number;
-	totalAmount: string;
-	delegateListRoundOffset: number;
+	minFeePerByte: number;
+	baseFees: {
+		moduleType: number;
+		assetType: number;
+		baseFee: string;
+	}[];
 }
 
 export interface ApplicationConfig {
 	label: string;
 	version: string;
 	networkVersion: string;
-	networkId: string;
-	lastCommitId: string;
-	buildVersion: string;
 	ipc: {
 		enabled: boolean;
 	};
@@ -134,7 +138,6 @@ export interface ApplicationConfig {
 		consoleLogLevel: string;
 	};
 	genesisConfig: GenesisConfig;
-	constants: ApplicationConstants;
 	plugins: PluginsOptions;
 }
 
@@ -144,7 +147,8 @@ export interface ActionInfoForBus {
 }
 
 export interface TransactionJSON {
-	readonly type: number;
+	readonly moduleType: number;
+	readonly assetType: number;
 	readonly nonce: string;
 	readonly fee: string;
 	readonly senderPublicKey: string;
@@ -152,4 +156,69 @@ export interface TransactionJSON {
 
 	readonly id: string;
 	readonly asset: object;
+}
+
+// Limit the scope of state store to which module can access
+export type StateStore = Omit<
+	ChainStateStore,
+	'consensus' | 'finalize' | 'createSnapshot' | 'restoreSnapshot'
+>;
+
+export interface ReducerHandler {
+	invoke: <T = unknown>(name: string, params: Record<string, unknown>) => Promise<T>;
+}
+
+export interface Reducers {
+	[key: string]: (params: Record<string, unknown>, stateStore: StateStore) => Promise<unknown>;
+}
+
+export interface Actions {
+	[key: string]: (params: Record<string, unknown>) => Promise<unknown>;
+}
+
+export interface TransactionApplyInput {
+	transaction: Transaction;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface AfterGenesisBlockApplyInput<T = unknown> {
+	genesisBlock: GenesisBlock<T>;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface BeforeBlockApplyInput {
+	block: Block;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+}
+
+export interface AfterBlockApplyInput extends BeforeBlockApplyInput {
+	consensus: Consensus;
+}
+
+export interface ApplyAssetInput<T> {
+	senderID: Buffer;
+	asset: T;
+	stateStore: StateStore;
+	reducerHandler: ReducerHandler;
+	transaction: Transaction;
+}
+
+export interface ValidateAssetInput<T> {
+	asset: T;
+	transaction: Transaction;
+}
+
+// minActiveHeight is automatically calculated while setting in chain library
+export type Delegate = Omit<Validator, 'minActiveHeight'>;
+// fieldNumber is automatically assigned when registering to the chain library
+export type AccountSchema = Omit<ChainAccountSchema, 'fieldNumber'>;
+
+export interface Consensus {
+	getDelegates: () => Promise<Delegate[]>;
+	updateDelegates: (delegates: Delegate[]) => Promise<void>;
+	getFinalizedHeight: () => number;
+	getLastBootstrapHeight: () => number;
 }

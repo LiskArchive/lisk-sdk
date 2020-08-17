@@ -12,12 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TransferTransaction, utils } from '@liskhq/lisk-transactions';
+import { convertLSKToBeddows, signTransaction } from '@liskhq/lisk-transactions';
 import * as genesisDelegates from '../../fixtures/genesis_delegates.json';
 import { networkIdentifier } from '../../fixtures/devnet';
 
-const { convertLSKToBeddows } = utils;
+const schema = {
+	$id: 'lisk/transfer-asset',
+	title: 'Transfer transaction asset',
+	type: 'object',
+	required: ['amount', 'recipientAddress', 'data'],
+	properties: {
+		amount: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+		recipientAddress: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+			minLength: 20,
+			maxLength: 20,
+		},
+		data: {
+			dataType: 'string',
+			fieldNumber: 3,
+			minLength: 0,
+			maxLength: 64,
+		},
+	},
+};
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createTransferTransaction = ({
 	amount,
 	fee,
@@ -30,24 +54,29 @@ export const createTransferTransaction = ({
 	nonce: number;
 }) => {
 	const genesisAccount = genesisDelegates.accounts[0];
-	const transaction = new TransferTransaction({
-		nonce: BigInt(nonce),
-		fee: BigInt(convertLSKToBeddows(fee)),
-		senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
-		asset: {
-			amount: BigInt(convertLSKToBeddows(amount)),
-			recipientAddress: Buffer.from(recipientAddress, 'base64'),
-			data: '',
+	const transaction = signTransaction(
+		schema,
+		{
+			moduleType: 2,
+			assetType: 0,
+			nonce: BigInt(nonce),
+			fee: BigInt(convertLSKToBeddows(fee)),
+			senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
+			asset: {
+				amount: BigInt(convertLSKToBeddows(amount)),
+				recipientAddress: Buffer.from(recipientAddress, 'base64'),
+				data: '',
+			},
 		},
-	});
-
-	transaction.sign(networkIdentifier, genesisAccount.passphrase);
+		networkIdentifier,
+		genesisAccount.passphrase,
+	) as any;
 
 	return {
+		...transaction,
 		id: transaction.id.toString('base64'),
-		type: transaction.type,
 		senderPublicKey: transaction.senderPublicKey.toString('base64'),
-		signatures: transaction.signatures.map(s => (s as Buffer).toString('base64')),
+		signatures: transaction.signatures.map((s: Buffer) => s.toString('base64')),
 		asset: {
 			...transaction.asset,
 			amount: transaction.asset.amount.toString(),

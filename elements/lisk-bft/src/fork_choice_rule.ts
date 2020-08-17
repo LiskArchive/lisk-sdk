@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, Chain } from './types';
+import { Chain } from '@liskhq/lisk-chain';
+import { BlockHeaderWithReceivedAt as BlockHeader } from './types';
 
 type Slots = Chain['slots'];
 

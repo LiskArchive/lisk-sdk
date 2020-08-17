@@ -149,13 +149,14 @@ const createSignatureObject = (txBuffer, account) => ({
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
+		moduleType: 4,
+		assetType: 0,
 		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 			'hex',
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		type: 12,
 		asset: {
 			mandatoryKeys: [
 				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
@@ -217,7 +218,8 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		type: 12,
+		moduleType: 4,
+		assetType: 0,
 		asset: {
 			mandatoryKeys: [
 				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),
@@ -285,7 +287,8 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		type: 12,
+		moduleType: 4,
+		assetType: 0,
 		asset: {
 			mandatoryKeys: [],
 			optionalKeys: [
@@ -341,7 +344,8 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		type: 12,
+		moduleType: 4,
+		assetType: 0,
 		asset: {
 			mandatoryKeys: [
 				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
@@ -411,7 +415,8 @@ const generateFormerSecondSignatureTransactioon = () => {
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		type: 12,
+		moduleType: 4,
+		assetType: 0,
 		asset: {
 			mandatoryKeys: [
 				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),

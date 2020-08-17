@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Slots } from '@liskhq/lisk-chain';
+import { Slots, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '../../src/bft';
 import { convertHeader } from '../fixtures/blocks';
 
@@ -25,47 +25,32 @@ const constants = {
 
 describe('bft', () => {
 	describe('forkChoice', () => {
-		let activeDelegates;
+		let threshold;
 		let genesisHeight;
 		let bftParams;
 		let bftInstance: BFT;
 
-		let chainStub: {
-			slots: Slots;
-			dataAccess: {
-				getConsensusState: jest.Mock;
-			};
-		};
-		let dposStub: {
-			getMinActiveHeight: jest.Mock;
-			isStandbyDelegate: jest.Mock;
-			isBootstrapPeriod: jest.Mock;
-		};
+		let chainStub: Chain;
 
 		beforeEach(() => {
 			const slots = new Slots({
 				genesisBlockTimestamp: 0,
 				interval: constants.BLOCK_TIME,
 			});
-			chainStub = {
+			chainStub = ({
 				slots,
 				dataAccess: {
 					getConsensusState: jest.fn(),
 				},
-			};
-			dposStub = {
-				getMinActiveHeight: jest.fn(),
-				isStandbyDelegate: jest.fn(),
-				isBootstrapPeriod: jest.fn().mockReturnValue(false),
-			};
+				numberOfValidators: 103,
+			} as unknown) as Chain;
 
-			activeDelegates = 101;
+			threshold = 68;
 			genesisHeight = 0;
 
 			bftParams = {
 				chain: chainStub,
-				dpos: dposStub,
-				activeDelegates,
+				threshold,
 				genesisHeight,
 			};
 

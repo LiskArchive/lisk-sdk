@@ -12,6 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export { Transaction } from '@liskhq/lisk-chain';
+export {
+	BaseModule,
+	BaseAsset,
+	TokenModule,
+	TokenTransferAsset,
+	SequenceModule,
+	KeysModule,
+	KeysRegisterAsset,
+	DPoSModule,
+	DPoSRegisterAsset,
+	DPoSVoteAsset,
+	DPoSUnlockAsset,
+	DPoSPoMAsset,
+} from './modules';
 export { Application } from './application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
@@ -20,5 +35,4 @@ export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';
 export type { EventsArray, EventInfoObject } from './controller/event';
 export type { ActionsDefinition } from './controller/action';
-export { GenesisBlockJSON } from './application/genesis_block';
 export * from './types';

@@ -24,9 +24,7 @@ export const getForgingInfo = (channel: BaseChannel, codec: PluginCodec, db: KVS
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>(
-			'app:getForgingStatusOfAllDelegates',
-		);
+		const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>('app:getForgingStatus');
 		const forgerAccounts = (
 			await channel.invoke<string[]>('app:getAccounts', {
 				address: forgingDelegates.map(forger => forger.address),
@@ -42,12 +40,12 @@ export const getForgingInfo = (channel: BaseChannel, codec: PluginCodec, db: KVS
 			if (forger) {
 				data.push({
 					...forger,
-					username: forgerAccount.asset.delegate.username,
+					username: forgerAccount.dpos.delegate.username,
 					totalReceivedFees: forgerInfo.totalReceivedFees.toString(),
 					totalReceivedRewards: forgerInfo.totalReceivedRewards.toString(),
 					totalProducedBlocks: forgerInfo.totalProducedBlocks,
-					totalVotesReceived: forgerAccount.asset.delegate.totalVotesReceived,
-					consecutiveMissedBlocks: forgerAccount.asset.delegate.consecutiveMissedBlocks,
+					totalVotesReceived: forgerAccount.dpos.delegate.totalVotesReceived,
+					consecutiveMissedBlocks: forgerAccount.dpos.delegate.consecutiveMissedBlocks,
 				});
 			}
 		}

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -14,10 +17,19 @@
 
 import { verifyData } from '@liskhq/lisk-cryptography';
 import { MerkleTree } from '@liskhq/lisk-tree';
-
+import { dataStructures, objects } from '@liskhq/lisk-utils';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { Schema } from '@liskhq/lisk-codec';
 import { Slots } from './slots';
-import { Block } from './types';
-import { BufferSet } from './utils';
+import { Block, GenesisBlock } from './types';
+import { getGenesisBlockHeaderAssetSchema, blockHeaderSchema } from './schema';
+import {
+	GENESIS_BLOCK_GENERATOR_PUBLIC_KEY,
+	GENESIS_BLOCK_REWARD,
+	GENESIS_BLOCK_SIGNATURE,
+	GENESIS_BLOCK_TRANSACTION_ROOT,
+	EMPTY_BUFFER,
+} from './constants';
 
 export const validateSignature = (
 	publicKey: Buffer,
@@ -34,7 +46,7 @@ export const validateSignature = (
 	}
 };
 
-export const validatePreviousBlockProperty = (block: Block, genesisBlock: Block): void => {
+export const validatePreviousBlockProperty = (block: Block, genesisBlock: GenesisBlock): void => {
 	const isGenesisBlock =
 		block.header.id.equals(genesisBlock.header.id) &&
 		block.header.version === genesisBlock.header.version;
@@ -54,7 +66,7 @@ export const validateReward = (block: Block, maxReward: bigint): void => {
 	}
 };
 
-export const getTransactionRoot = (ids: Buffer[]): Buffer => {
+const getTransactionRoot = (ids: Buffer[]): Buffer => {
 	const tree = new MerkleTree(ids);
 
 	return tree.root;
@@ -70,16 +82,14 @@ export const validateBlockProperties = (
 	}
 
 	const transactionIds: Buffer[] = [];
-	const appliedTransactions = new BufferSet();
-
-	block.payload.forEach(transaction => {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	const appliedTransactions = new dataStructures.BufferSet();
+	for (const transaction of block.payload) {
 		if (appliedTransactions.has(transaction.id)) {
 			throw new Error(`Encountered duplicate transaction: ${transaction.id.toString('base64')}`);
 		}
 		transactionIds.push(transaction.id);
 		appliedTransactions.add(transaction.id);
-	});
+	}
 
 	const transactionRoot = getTransactionRoot(transactionIds);
 
@@ -94,5 +104,125 @@ export const validateBlockSlot = (block: Block, lastBlock: Block, slots: Slots):
 
 	if (blockSlotNumber > slots.getSlotNumber() || blockSlotNumber <= lastBlockSlotNumber) {
 		throw new Error('Invalid block timestamp');
+	}
+};
+
+export const validateGenesisBlockHeader = (block: GenesisBlock, accountSchema: Schema): void => {
+	const { header, payload } = block;
+	const errors = [];
+	const headerErrors = validator.validate(
+		objects.mergeDeep({}, blockHeaderSchema, {
+			properties: {
+				version: {
+					const: 0,
+				},
+			},
+		}),
+		{ ...header, asset: EMPTY_BUFFER },
+	);
+	if (headerErrors.length) {
+		errors.push(...headerErrors);
+	}
+	const assetErrors = validator.validate(
+		getGenesisBlockHeaderAssetSchema(accountSchema),
+		header.asset,
+	);
+	if (assetErrors.length) {
+		errors.push(...assetErrors);
+	}
+	// Custom header validation not possible with validator
+	if (!header.generatorPublicKey.equals(GENESIS_BLOCK_GENERATOR_PUBLIC_KEY)) {
+		errors.push({
+			message: 'should be equal to constant',
+			keyword: 'const',
+			dataPath: 'header.generatorPublicKey',
+			schemaPath: 'properties.generatorPublicKey',
+			params: { allowedValue: GENESIS_BLOCK_GENERATOR_PUBLIC_KEY },
+		});
+	}
+
+	if (header.reward !== GENESIS_BLOCK_REWARD) {
+		errors.push({
+			message: 'should be equal to constant',
+			keyword: 'const',
+			dataPath: 'header.reward',
+			schemaPath: 'properties.reward',
+			params: { allowedValue: GENESIS_BLOCK_REWARD },
+		});
+	}
+
+	if (!header.signature.equals(GENESIS_BLOCK_SIGNATURE)) {
+		errors.push({
+			message: 'should be equal to constant',
+			keyword: 'const',
+			dataPath: 'header.signature',
+			schemaPath: 'properties.signature',
+			params: { allowedValue: GENESIS_BLOCK_SIGNATURE },
+		});
+	}
+
+	if (!header.transactionRoot.equals(GENESIS_BLOCK_TRANSACTION_ROOT)) {
+		errors.push({
+			message: 'should be equal to constant',
+			keyword: 'const',
+			dataPath: 'header.transactionRoot',
+			schemaPath: 'properties.transactionRoot',
+			params: { allowedValue: GENESIS_BLOCK_TRANSACTION_ROOT },
+		});
+	}
+	if (payload.length !== 0) {
+		errors.push({
+			message: 'Payload length must be zero',
+			keyword: 'const',
+			dataPath: 'payload',
+			schemaPath: 'properties.payload',
+			params: { allowedValue: [] },
+		});
+	}
+
+	if (!objects.bufferArrayUniqueItems(header.asset.initDelegates as Buffer[])) {
+		errors.push({
+			dataPath: '.initDelegates',
+			keyword: 'uniqueItems',
+			message: 'should NOT have duplicate items',
+			params: {},
+			schemaPath: '#/properties/initDelegates/uniqueItems',
+		});
+	}
+
+	if (!objects.bufferArrayOrderByLex(header.asset.initDelegates as Buffer[])) {
+		errors.push({
+			message: 'should be lexicographically ordered',
+			keyword: 'initDelegates',
+			dataPath: 'header.asset.initDelegates',
+			schemaPath: 'properties.initDelegates',
+			params: { initDelegates: header.asset.initDelegates },
+		});
+	}
+
+	const accountAddresses = header.asset.accounts.map(a => a.address);
+
+	if (!objects.bufferArrayOrderByLex(accountAddresses)) {
+		errors.push({
+			message: 'should be lexicographically ordered',
+			keyword: 'accounts',
+			dataPath: 'header.asset.accounts',
+			schemaPath: 'properties.accounts',
+			params: { orderKey: 'address' },
+		});
+	}
+
+	if (!objects.bufferArrayUniqueItems(accountAddresses)) {
+		errors.push({
+			dataPath: '.accounts',
+			keyword: 'uniqueItems',
+			message: 'should NOT have duplicate items',
+			params: {},
+			schemaPath: '#/properties/accounts/uniqueItems',
+		});
+	}
+
+	if (errors.length) {
+		throw new LiskValidationError(errors);
 	}
 };

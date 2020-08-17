@@ -13,7 +13,7 @@
  */
 
 import { hash, getRandomBytes } from '@liskhq/lisk-cryptography';
-import { BlockHeader } from '../../src';
+import { BlockHeader } from '@liskhq/lisk-chain';
 
 type DeepPartial<T> = T extends Buffer
 	? T
@@ -31,6 +31,8 @@ export const createFakeBlockHeader = (header?: DeepPartial<BlockHeader>): BlockH
 	previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
 	generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
 	reward: BigInt(0),
+	transactionRoot: getRandomBytes(32),
+	signature: getRandomBytes(64),
 	asset: {
 		seedReveal: Buffer.alloc(0),
 		maxHeightPreviouslyForged: header?.asset?.maxHeightPreviouslyForged ?? 0,

@@ -12,10 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { constantsSchema, applicationConfigSchema } from '../../src/application/schema';
+import { applicationConfigSchema } from '../../src/application/schema';
 import { deepFreeze } from './deep_freeze';
+import { nodeOptions } from '../fixtures/node';
 
 export const constants = deepFreeze({
-	...constantsSchema.default,
 	...applicationConfigSchema.default.genesisConfig,
+	...nodeOptions.genesisConfig,
+	rewards: {
+		...applicationConfigSchema.default.genesisConfig.rewards,
+		milestones: applicationConfigSchema.default.genesisConfig.rewards.milestones.map(r =>
+			BigInt(r),
+		),
+	},
 });

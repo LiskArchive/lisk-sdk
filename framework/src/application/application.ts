@@ -18,42 +18,25 @@ import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
 import { promisify } from 'util';
-import {
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	UnlockTransaction,
-	MultisignatureTransaction,
-	ProofOfMisbehaviorTransaction,
-	transactionInterface,
-	BaseTransaction,
-} from '@liskhq/lisk-transactions';
-import { Contexter } from '@liskhq/lisk-chain';
-import { validateGenesisBlock, GenesisBlock } from '@liskhq/lisk-genesis';
 import { KVStore } from '@liskhq/lisk-db';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { validator, LiskValidationError, ErrorObject } from '@liskhq/lisk-validator';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from '../controller';
 import { version } from '../version';
-import { constantsSchema, applicationConfigSchema } from './schema';
-import { Network } from './network';
+import { applicationConfigSchema } from './schema';
 import { Node } from './node';
 import { Logger, createLogger } from './logger';
-import { mergeDeep } from './utils/merge_deep';
 
 import { DuplicateAppInstanceError } from '../errors';
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import {
 	ApplicationConfig,
-	ApplicationConstants,
 	GenesisConfig,
 	EventPostTransactionData,
 	PluginOptions,
 } from '../types';
-import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
-import { AccountAsset, accountAssetSchema } from './node/account';
+import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const rm = promisify(fs.unlink);
@@ -105,66 +88,71 @@ const registerProcessHooks = (app: Application): void => {
 	});
 };
 
+type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
+
 export class Application {
 	public config: ApplicationConfig;
-	public constants: ApplicationConstants & GenesisConfig;
+	public constants: GenesisConfig;
 	public logger!: Logger;
 
 	private _node!: Node;
-	private _network!: Network;
 	private _controller!: Controller;
-	private _transactions: { [key: number]: typeof BaseTransaction };
+	private readonly _customModules: InstantiableBaseModule[];
 	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
 	private _channel!: InMemoryChannel;
 
-	private readonly _genesisBlock: GenesisBlock<AccountAsset>;
+	private readonly _genesisBlock: Record<string, unknown>;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
 
-	public constructor(genesisBlock: GenesisBlockJSON, config: Partial<ApplicationConfig> = {}) {
-		const parsedGenesisBlock = genesisBlockFromJSON(genesisBlock, accountAssetSchema);
-		// TODO: Read hard coded value from configuration or constant
-		const errors = validateGenesisBlock(parsedGenesisBlock, {
-			roundLength: 103,
-		});
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
-		this._genesisBlock = parsedGenesisBlock;
-
+	public constructor(
+		genesisBlock: Record<string, unknown>,
+		config: Partial<ApplicationConfig> = {},
+	) {
 		// Don't change the object parameters provided
+		this._genesisBlock = genesisBlock;
 		const appConfig = objects.cloneDeep(applicationConfigSchema.default);
 
 		appConfig.label =
-			config.label ??
-			`lisk-${this._genesisBlock.header.transactionRoot.toString('base64').slice(0, 7)}`;
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			config.label ?? `lisk-${config.genesisConfig?.communityIdentifier}`;
 
-		const mergedConfig = mergeDeep({}, appConfig, config) as ApplicationConfig;
+		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
 		mergedConfig.rootPath = mergedConfig.rootPath.replace('~', os.homedir());
 		const applicationConfigErrors = validator.validate(applicationConfigSchema, mergedConfig);
 		if (applicationConfigErrors.length) {
-			throw new LiskValidationError(applicationConfigErrors as ErrorObject[]);
+			throw new LiskValidationError(applicationConfigErrors);
 		}
 
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration
+		// eslint-disable-next-line
 		this.constants = {
-			...constantsSchema.default,
 			...mergedConfig.genesisConfig,
 		};
 		this.config = mergedConfig;
 
 		// Private members
 		this._plugins = {};
-		this._transactions = {};
+		this._customModules = [];
+	}
 
-		this.registerTransaction(TransferTransaction);
-		this.registerTransaction(DelegateTransaction);
-		this.registerTransaction(MultisignatureTransaction);
-		this.registerTransaction(VoteTransaction);
-		this.registerTransaction(UnlockTransaction);
-		this.registerTransaction(ProofOfMisbehaviorTransaction);
+	public get networkIdentifier(): Buffer {
+		return this._node.networkIdentifier;
+	}
+
+	public static defaultApplication(
+		genesisBlock: Record<string, unknown>,
+		config: Partial<ApplicationConfig> = {},
+	): Application {
+		const application = new Application(genesisBlock, config);
+		application.registerModule(TokenModule);
+		application.registerModule(SequenceModule);
+		application.registerModule(KeysModule);
+		application.registerModule(DPoSModule);
+
+		return application;
 	}
 
 	public registerPlugin(
@@ -179,7 +167,7 @@ export class Application {
 		assert(alias ?? pluginKlass.alias, 'Module alias must be provided.');
 		const pluginAlias = alias ?? pluginKlass.alias;
 		assert(
-			!Object.keys(this.getPlugins()).includes(pluginAlias),
+			!Object.keys(this._plugins).includes(pluginAlias),
 			`A plugin with alias "${pluginAlias}" already registered.`,
 		);
 
@@ -192,55 +180,17 @@ export class Application {
 	}
 
 	public overridePluginOptions(alias: string, options?: PluginOptions): void {
-		const plugins = this.getPlugins();
-		assert(Object.keys(plugins).includes(alias), `No plugin ${alias} is registered`);
+		assert(Object.keys(this._plugins).includes(alias), `No plugin ${alias} is registered`);
 		this.config.plugins[alias] = {
 			...this.config.plugins[alias],
 			...options,
 		};
 	}
 
-	public registerTransaction(
-		Transaction: typeof BaseTransaction,
-		{ matcher }: { matcher?: (context: Contexter) => boolean } = {},
-	): void {
-		assert(Transaction, 'Transaction implementation is required');
+	public registerModule(Module: typeof BaseModule): void {
+		assert(Module, 'Module implementation is required');
 
-		assert(Number.isInteger(Transaction.TYPE), 'Transaction type is required as an integer');
-
-		assert(
-			!Object.keys(this.getTransactions()).includes(Transaction.TYPE.toString()),
-			`A transaction type "${Transaction.TYPE}" is already registered.`,
-		);
-
-		const transactionSchemaErrors = validator.validate(transactionInterface, Transaction.prototype);
-		if (transactionSchemaErrors.length) {
-			throw new LiskValidationError(transactionSchemaErrors as ErrorObject[]);
-		}
-
-		if (matcher) {
-			Object.defineProperty(Transaction.prototype, 'matcher', {
-				get: () => matcher,
-			});
-		}
-
-		this._transactions[Transaction.TYPE] = Object.freeze(Transaction);
-	}
-
-	public getTransactions(): { [key: number]: typeof BaseTransaction } {
-		return this._transactions;
-	}
-
-	public getTransaction(transactionType: number): typeof BaseTransaction {
-		return this._transactions[transactionType];
-	}
-
-	public getPlugin(alias: string): InstantiablePlugin<BasePlugin> {
-		return this._plugins[alias];
-	}
-
-	public getPlugins(): { [key: string]: InstantiablePlugin<BasePlugin> } {
-		return this._plugins;
+		this._customModules.push(Module as InstantiableBaseModule);
 	}
 
 	public async run(): Promise<void> {
@@ -279,15 +229,13 @@ export class Application {
 		this._channel = this._initChannel();
 
 		this._controller = this._initController();
-		this._network = this._initNetwork();
 		this._node = this._initNode();
 
 		await this._controller.load();
 
-		await this._network.bootstrap();
 		await this._node.bootstrap();
 
-		await this._controller.loadPlugins(this.getPlugins(), this.config.plugins);
+		await this._controller.loadPlugins(this._plugins, this.config.plugins);
 		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
 		this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
@@ -304,7 +252,6 @@ export class Application {
 
 		try {
 			await this._node.cleanup();
-			await this._network.cleanup();
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
 			await this._nodeDB.close();
@@ -314,7 +261,7 @@ export class Application {
 			this.logger.fatal({ err: error as Error }, 'Application shutdown failed');
 		} finally {
 			// Unfreeze the configuration
-			this.config = mergeDeep({}, this.config) as ApplicationConfig;
+			this.config = objects.mergeDeep({}, this.config) as ApplicationConfig;
 
 			// To avoid redundant shutdown call
 			process.removeAllListeners('exit');
@@ -326,26 +273,17 @@ export class Application {
 	// Private
 	// --------------------------------------
 	private _compileAndValidateConfigurations(): void {
-		const plugins = this.getPlugins();
-		this.config.networkId = getNetworkIdentifier(
-			this._genesisBlock.header.transactionRoot,
-			this.config.genesisConfig.communityIdentifier,
-		).toString('base64');
-
 		// TODO: Check which config and options are actually required to avoid sending large data
 		const appConfigToShareWithPlugin = {
 			version: this.config.version,
 			networkVersion: this.config.networkVersion,
-			networkId: this.config.networkId,
 			// TODO: Analyze if we need to provide genesis block as options to plugins
 			//  If yes then we should encode it to json with the issue https://github.com/LiskHQ/lisk-sdk/issues/5513
 			// genesisBlock: this._genesisBlock,
 			constants: this.constants,
-			lastCommitId: this.config.lastCommitId,
-			buildVersion: this.config.buildVersion,
 		};
 
-		Object.keys(plugins).forEach(alias => {
+		Object.keys(this._plugins).forEach(alias => {
 			this.overridePluginOptions(alias, appConfigToShareWithPlugin);
 		});
 	}
@@ -370,7 +308,6 @@ export class Application {
 				'network:event',
 				'network:ready',
 				'transaction:new',
-				'round:change',
 				'chain:sync',
 				'chain:fork',
 				'block:new',
@@ -379,14 +316,13 @@ export class Application {
 			],
 			{
 				getConnectedPeers: {
-					handler: (_action: ActionInfoObject) => this._network.getConnectedPeers(),
+					handler: (_action: ActionInfoObject) => this._node.actions.getConnectedPeers(),
 				},
 				getDisconnectedPeers: {
-					handler: (_action: ActionInfoObject) => this._network.getDisconnectedPeers(),
+					handler: (_action: ActionInfoObject) => this._node.actions.getDisconnectedPeers(),
 				},
-				getForgersInfoForActiveRound: {
-					handler: async (_action: ActionInfoObject) =>
-						this._node.actions.getForgersInfoForActiveRound(),
+				getForgers: {
+					handler: async (_action: ActionInfoObject) => this._node.actions.getValidators(),
 				},
 				updateForgingStatus: {
 					handler: async (action: ActionInfoObject) =>
@@ -398,9 +334,8 @@ export class Application {
 							},
 						),
 				},
-				getForgingStatusOfAllDelegates: {
-					handler: (_action: ActionInfoObject) =>
-						this._node.actions.getForgingStatusOfAllDelegates(),
+				getForgingStatus: {
+					handler: (_action: ActionInfoObject) => this._node.actions.getForgingStatus(),
 				},
 				getTransactionsFees: {
 					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFees(),
@@ -437,9 +372,6 @@ export class Application {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getAccounts(action.params as { address: readonly string[] }),
 				},
-				getAllDelegates: {
-					handler: async () => this._node.actions.getAllDelegates(),
-				},
 				getBlockByID: {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getBlockByID(action.params as { id: string }),
@@ -472,11 +404,6 @@ export class Application {
 				getNodeInfo: {
 					handler: () => this._node.actions.getNodeInfo(),
 				},
-				// TODO: This will be removed after https://github.com/LiskHQ/lisk-sdk/issues/5256
-				getSlotRound: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calcSlotRound(action.params as { height: number }),
-				},
 			},
 			{ skipInternalEvents: true },
 		);
@@ -496,51 +423,17 @@ export class Application {
 		});
 	}
 
-	private _initNetwork(): Network {
-		const network = new Network({
-			networkId: this.config.networkId,
-			networkVersion: this.config.networkVersion,
-			options: this.config.network,
-			logger: this.logger,
-			channel: this._channel,
-			nodeDB: this._nodeDB,
-		});
-
-		return network;
-	}
-
 	private _initNode(): Node {
 		const { plugins, ...rootConfigs } = this.config;
-		const { network, ...nodeConfigs } = rootConfigs;
-		// Decode JSON into object
-		const convertedDelegates = nodeConfigs.forging.delegates.map(delegate => ({
-			...delegate,
-			address: Buffer.from(delegate.address, 'base64'),
-			hashOnion: {
-				...delegate.hashOnion,
-				hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
-			},
-		}));
 		const node = new Node({
 			channel: this._channel,
-			options: {
-				...nodeConfigs,
-				communityIdentifier: nodeConfigs.genesisConfig.communityIdentifier,
-				forging: {
-					...nodeConfigs.forging,
-					delegates: convertedDelegates,
-				},
-				genesisBlock: this._genesisBlock,
-				constants: {
-					...this.constants,
-					totalAmount: BigInt(this.constants.totalAmount),
-				},
-				registeredTransactions: this.getTransactions(),
-			},
+			genesisBlockJSON: this._genesisBlock,
+			options: rootConfigs,
 			logger: this.logger,
 			forgerDB: this._forgerDB,
 			blockchainDB: this._blockchainDB,
-			networkModule: this._network,
+			nodeDB: this._nodeDB,
+			customModules: this._customModules,
 		});
 
 		return node;

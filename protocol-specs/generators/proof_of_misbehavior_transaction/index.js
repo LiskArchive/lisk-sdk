@@ -235,10 +235,11 @@ scenario1Header2.signature = sign(scenario1Header2, forgerKeyPair.privateKeyByte
 
 const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 	const unsignedTransaction = {
+		moduleType: 5,
+		assetType: 5,
 		senderPublicKey: accounts.reporter.publicKey,
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		type: 15,
 		asset: {
 			header1: scenario1Header1,
 			header2: scenario1Header2,

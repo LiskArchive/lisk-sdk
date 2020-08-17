@@ -14,13 +14,13 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
+import { Transaction } from '@liskhq/lisk-chain';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as configJSON from '../../fixtures/config/devnet/config.json';
-import { Application, ApplicationConfig } from '../../../src';
-import { GenesisBlockJSON } from '../../../src/application/genesis_block';
+import { Application } from '../../../src';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
+import { createTransferTransaction } from '../../utils/node/transaction';
 
 export const createApplication = async (
 	label: string,
@@ -34,10 +34,11 @@ export const createApplication = async (
 		logger: {
 			consoleLogLevel: consoleLogLevel ?? 'fatal',
 			fileLogLevel: 'fatal',
+			logFileName: 'functional-test.log',
 		},
-	} as Partial<ApplicationConfig>;
+	};
 
-	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
+	const app = Application.defaultApplication(genesisBlockJSON, config);
 
 	// Remove pre-existing data
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
@@ -75,22 +76,19 @@ export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	});
 };
 
-export const sendTransaction = async (app: Application): Promise<TransferTransaction> => {
-	const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress(
-		genesis.address,
-	);
+export const sendTransaction = async (app: Application): Promise<Transaction> => {
+	const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress<{
+		sequence: { nonce: bigint };
+	}>(genesis.address);
 	const accountWithoutBalance = nodeUtils.createAccount();
-	const fundingTx = new TransferTransaction({
-		nonce: genesisAccount.nonce,
-		senderPublicKey: genesis.publicKey,
-		fee: BigInt('200000'),
-		asset: {
-			recipientAddress: accountWithoutBalance.address,
-			amount: BigInt('10000000000'),
-			data: '',
-		},
+
+	const fundingTx = createTransferTransaction({
+		recipientAddress: accountWithoutBalance.address,
+		amount: BigInt('10000000000'),
+		networkIdentifier: app['_node']['_networkIdentifier'],
+		nonce: genesisAccount.sequence.nonce,
+		passphrase: genesis.passphrase,
 	});
-	fundingTx.sign(app['_node']['_networkIdentifier'], genesis.passphrase);
 
 	await app['_channel'].invoke('app:postTransaction', {
 		transaction: fundingTx.getBytes().toString('base64'),

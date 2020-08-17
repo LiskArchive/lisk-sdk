@@ -31,6 +31,9 @@ class LiskValidator {
 			allErrors: true,
 			schemaId: 'auto',
 			useDefaults: false,
+			// FIXME: Combination with lisk-codec schema, making true would throw error becasue
+			// Trace: Error: schema with key or id "/block/header"
+			addUsedSchema: false,
 		});
 
 		for (const formatName of Object.keys(formats)) {
@@ -54,9 +57,9 @@ class LiskValidator {
 		this._validator.addKeyword('dataType', dataTypeKeyword);
 	}
 
-	public validate(schema: object, data: object): ReadonlyArray<ErrorObject> {
+	public validate(schema: object, data: object): ErrorObject[] {
 		if (!this._validator.validate(schema, data)) {
-			return (this._validator.errors as unknown) as ReadonlyArray<ErrorObject>;
+			return (this._validator.errors as unknown) as ErrorObject[];
 		}
 
 		return [];

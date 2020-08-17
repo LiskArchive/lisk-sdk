@@ -27,12 +27,13 @@ const baseTransactionSchema = {
 	$id: 'baseTransactionSchema',
 	type: 'object',
 	properties: {
-		type: { dataType: 'uint32', fieldNumber: 1 },
-		nonce: { dataType: 'uint64', fieldNumber: 2 },
-		fee: { dataType: 'uint64', fieldNumber: 3 },
-		senderPublicKey: { dataType: 'bytes', fieldNumber: 4 },
-		asset: { dataType: 'bytes', fieldNumber: 5 },
-		signatures: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 6 },
+		moduleType: { dataType: 'uint32', fieldNumber: 1 },
+		assetType: { dataType: 'uint32', fieldNumber: 2 },
+		nonce: { dataType: 'uint64', fieldNumber: 3 },
+		fee: { dataType: 'uint64', fieldNumber: 4 },
+		senderPublicKey: { dataType: 'bytes', fieldNumber: 5 },
+		asset: { dataType: 'bytes', fieldNumber: 6 },
+		signatures: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 7 },
 	},
 	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
 };
@@ -72,7 +73,8 @@ const generateValidTransactionEncodings = () => {
 	const input = {
 		validBaseTransaction: {
 			object: {
-				type: 21,
+				moduleType: 20,
+				assetType: 1,
 				nonce: 1570179673932370,
 				fee: 3156364651,
 				senderPublicKey: Buffer.from(

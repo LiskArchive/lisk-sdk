@@ -16,11 +16,16 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { codec } from '@liskhq/lisk-codec';
 import { KVStore } from '@liskhq/lisk-db';
-import { createFakeDefaultAccount, defaultAccountSchema, AccountAsset } from '../../utils/account';
+import {
+	createFakeDefaultAccount,
+	defaultAccountSchema,
+	AccountAsset,
+	defaultAccount,
+} from '../../utils/account';
 import { DataAccess } from '../../../src/data_access';
-import { defaultBlockHeaderAssetSchema } from '../../utils/block';
-import { registeredTransactions } from '../../utils/registered_transactions';
-import { StateStore, Account } from '../../../src';
+import { registeredBlockHeaders } from '../../utils/block';
+import { StateStore } from '../../../src/state_store';
+import { Account } from '../../../src/types';
 import {
 	DB_KEY_DIFF_STATE,
 	DB_KEY_ACCOUNTS_ADDRESS,
@@ -45,11 +50,7 @@ describe('stateStore.finalize.saveDiff', () => {
 		dataAccess = new DataAccess({
 			db,
 			accountSchema: defaultAccountSchema as any,
-			registeredBlockHeaders: {
-				0: defaultBlockHeaderAssetSchema,
-				2: defaultBlockHeaderAssetSchema,
-			},
-			registeredTransactions,
+			registeredBlockHeaders,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
@@ -60,17 +61,17 @@ describe('stateStore.finalize.saveDiff', () => {
 			lastBlockHeaders: [],
 			networkIdentifier: defaultNetworkIdentifier,
 			lastBlockReward: BigInt(500000000),
-			defaultAsset: createFakeDefaultAccount().asset,
+			defaultAccount,
 		});
 
 		accounts = [
 			createFakeDefaultAccount({
 				address: Buffer.from('cc96c0a5db38b968f563e7af6fb435585c889111', 'hex'),
-				balance: BigInt(99),
+				token: { balance: BigInt(99) },
 			}),
 			createFakeDefaultAccount({
 				address: Buffer.from('584dd8a902822a9469fb2911fcc14ed5fd98220d', 'hex'),
-				balance: BigInt('10000'),
+				token: { balance: BigInt('10000') },
 				keys: {
 					mandatoryKeys: [
 						Buffer.from('456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e', 'hex'),
@@ -194,7 +195,7 @@ describe('stateStore.finalize.saveDiff', () => {
 				lastBlockHeaders: [],
 				networkIdentifier: defaultNetworkIdentifier,
 				lastBlockReward: BigInt(500000000),
-				defaultAsset: createFakeDefaultAccount().asset,
+				defaultAccount,
 			});
 			const val1 = await stateStore.consensus.get('key1');
 			const val2 = await stateStore.consensus.get('key2');

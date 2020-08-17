@@ -11,7 +11,8 @@
 			"description": "Encoding of valid base transaction",
 			"input": {
 				"object": {
-					"type": 21,
+					"moduleType": 20,
+					"assetType": 1,
 					"nonce": 1570179673932370,
 					"fee": 3156364651,
 					"senderPublicKey": {
@@ -221,39 +222,43 @@
 					"$id": "baseTransactionSchema",
 					"type": "object",
 					"properties": {
-						"type": {
+						"moduleType": {
 							"dataType": "uint32",
 							"fieldNumber": 1
 						},
-						"nonce": {
-							"dataType": "uint64",
+						"assetType": {
+							"dataType": "uint32",
 							"fieldNumber": 2
 						},
-						"fee": {
+						"nonce": {
 							"dataType": "uint64",
 							"fieldNumber": 3
 						},
+						"fee": {
+							"dataType": "uint64",
+							"fieldNumber": 4
+						},
 						"senderPublicKey": {
 							"dataType": "bytes",
-							"fieldNumber": 4
+							"fieldNumber": 5
 						},
 						"asset": {
 							"dataType": "bytes",
-							"fieldNumber": 5
+							"fieldNumber": 6
 						},
 						"signatures": {
 							"type": "array",
 							"items": {
 								"dataType": "bytes"
 							},
-							"fieldNumber": 6
+							"fieldNumber": 7
 						}
 					},
 					"required": ["type", "nonce", "fee", "senderPublicKey", "asset"]
 				}
 			},
 			"output": {
-				"value": "081510d284cb8d9f82e50218eb9a89e10b22208f057d088a585d938c20d63e430a068d4cea384e588aa0b758c68fca21644dbc2a14f214d75bbc4b2ea89e433f3a45af803725416ec33240204514eb1152355799ece36d17037e5feb4871472c60763bdafe67eb6a38bec632a8e2e62f84a32cf764342a4708a65fbad194e37feec03940f0ff84d3df2a0532400b6730e5898ca56fe0dc1c73de9363f6fc8b335592ef10725a8463bff101a4943e60311f0b1a439a2c9e02cca1379b80a822f4ec48cf212bff1f1c757e92ec02"
+				"value": "0814100118d284cb8d9f82e50220eb9a89e10b2a208f057d088a585d938c20d63e430a068d4cea384e588aa0b758c68fca21644dbc3214f214d75bbc4b2ea89e433f3a45af803725416ec33a40204514eb1152355799ece36d17037e5feb4871472c60763bdafe67eb6a38bec632a8e2e62f84a32cf764342a4708a65fbad194e37feec03940f0ff84d3df2a053a400b6730e5898ca56fe0dc1c73de9363f6fc8b335592ef10725a8463bff101a4943e60311f0b1a439a2c9e02cca1379b80a822f4ec48cf212bff1f1c757e92ec02"
 			}
 		},
 		{

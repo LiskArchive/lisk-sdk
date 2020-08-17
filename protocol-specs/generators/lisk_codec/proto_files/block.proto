@@ -19,12 +19,13 @@ message BlockHeader {
 }
 
 message BaseTransaction {
-	required uint32 type = 1;
-	required uint64 nonce = 2;
-	required uint64 fee = 3;
-	required bytes senderPublicKey = 4;
-	required bytes asset = 5;
-	repeated bytes signatures = 6;
+	required uint32 moduleType = 1;
+	required uint32 assetType = 2;
+	required uint64 nonce = 3;
+	required uint64 fee = 4;
+	required bytes senderPublicKey = 5;
+	required bytes asset = 6;
+	repeated bytes signatures = 7;
 }
 
 message Vote {
