@@ -30,7 +30,7 @@ export const createTransferTransaction = (input: {
 	passphrase: string;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new TransferAsset().assetSchema, {
+	const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).assetSchema, {
 		recipientAddress: input.recipientAddress,
 		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
@@ -167,7 +167,7 @@ export const createMultisignatureTransferTransaction = (input: {
 	senderPublicKey: Buffer;
 	passphrases: string[];
 }): Transaction => {
-	const schema = new TransferAsset().assetSchema;
+	const schema = new TransferAsset(BigInt(5000000)).assetSchema;
 	const asset = {
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),

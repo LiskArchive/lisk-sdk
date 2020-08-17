@@ -110,7 +110,7 @@ export const applicationConfigSchema = {
 				},
 				baseFees: {
 					type: 'array',
-					description: 'Minimum fee per bytes required for a transaction to be valid',
+					description: 'Base fee for a transaction to be valid',
 					items: {
 						type: 'object',
 						properties: {

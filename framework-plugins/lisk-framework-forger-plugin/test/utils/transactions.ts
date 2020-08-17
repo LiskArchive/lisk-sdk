@@ -30,7 +30,7 @@ export const createTransferTransaction = ({
 	nonce: number;
 }) => {
 	const genesisAccount = genesisDelegates.accounts[0];
-	const encodedAsset = codec.encode(new TokenTransferAsset().assetSchema, {
+	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).assetSchema, {
 		recipientAddress: Buffer.from(recipientAddress, 'base64'),
 		amount: BigInt(convertLSKToBeddows(amount)),
 		data: '',

@@ -439,9 +439,10 @@ export class ForgerPlugin extends BasePlugin {
 				this._transactionFees.baseFees.find(
 					bf => bf.moduleType === trx.moduleType && bf.assetType === trx.assetType,
 				)?.baseFee ?? '0';
-			fee +=
+			const minFeeRequired =
 				BigInt(baseFee) +
 				BigInt(this._transactionFees.minFeePerByte) * BigInt(payloadBuffer[index].length);
+			fee += BigInt(trx.fee) - minFeeRequired;
 		}
 
 		return fee;

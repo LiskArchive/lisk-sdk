@@ -612,8 +612,7 @@ export class Node {
 				// Remove any transactions from the pool on new block
 				if (block.payload.length) {
 					for (const transaction of block.payload) {
-						// FIXME: #5619 any should be removed
-						this._transactionPool.remove(transaction as any);
+						this._transactionPool.remove(transaction);
 					}
 				}
 
@@ -655,8 +654,7 @@ export class Node {
 				if (block.payload.length) {
 					for (const transaction of block.payload) {
 						try {
-							// FIXME: #5619 any should be removed
-							await this._transactionPool.add(transaction as any);
+							await this._transactionPool.add(transaction);
 						} catch (err) {
 							this._logger.error(
 								{ err: err as Error },
