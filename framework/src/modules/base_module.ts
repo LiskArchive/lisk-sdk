@@ -27,7 +27,7 @@ import { BaseAsset } from './base_asset';
 
 export abstract class BaseModule {
 	public readonly config: GenesisConfig;
-	public readonly transactionAssets: BaseAsset[] = [];
+	public transactionAssets: BaseAsset[] = [];
 	public reducers: Reducers = {};
 	public actions: Actions = {};
 	public events: string[] = [];

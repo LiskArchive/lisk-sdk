@@ -16,7 +16,6 @@ import { CHAIN_STATE_BURNT_FEE, GENESIS_BLOCK_MAX_BALANCE } from './constants';
 import { TransferAsset } from './transfer_asset';
 import { TokenAccount } from './types';
 import { getTotalFees } from './utils';
-import { BaseAsset } from '../base_asset';
 import { BaseModule } from '../base_module';
 import {
 	AfterBlockApplyInput,
@@ -41,7 +40,6 @@ export class TokenModule extends BaseModule {
 			balance: BigInt(0),
 		},
 	};
-	public transactionAssets: BaseAsset[];
 	public reducers = {
 		credit: async (params: Record<string, unknown>, stateStore: StateStore): Promise<void> => {
 			const { address, amount } = params;
