@@ -29,8 +29,7 @@ export const getDBInstance = async (
 	dataPath: string,
 	dbName = 'lisk-framework-forger-plugin.db',
 ): Promise<KVStore> => {
-	const resolvedPath = dataPath.replace('~', os.homedir());
-	const dirPath = join(resolvedPath, dbName);
+	const dirPath = join(dataPath.replace('~', os.homedir()), 'plugins/data', dbName);
 	await ensureDir(dirPath);
 
 	return new KVStore(dirPath);
