@@ -39,7 +39,7 @@ export interface ControllerOptions {
 }
 
 interface ControllerConfig {
-	readonly rootPath: string;
+	readonly dataPath: string;
 	readonly socketsPath: SocketPaths;
 	readonly dirs: {
 		readonly root: string;
@@ -88,7 +88,7 @@ export class Controller {
 
 		const dirs = systemDirs(this.appLabel, options.config.rootPath);
 		this.config = {
-			rootPath: dirs.root,
+			dataPath: dirs.root,
 			ipc: {
 				enabled: options.config.ipc.enabled,
 			},
@@ -119,7 +119,7 @@ export class Controller {
 
 		for (const alias of Object.keys(plugins)) {
 			const klass = plugins[alias];
-			const options = { dataPath: this.config.rootPath, ...pluginOptions[alias] };
+			const options = { dataPath: this.config.dataPath, ...pluginOptions[alias] };
 
 			if (options.loadAsChildProcess) {
 				if (this.config.ipc.enabled) {

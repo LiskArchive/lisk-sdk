@@ -92,7 +92,7 @@ describe('Controller Class', () => {
 		pids: `${config.rootPath}/${appLabel}/tmp/pids`,
 	};
 	const configController = {
-		rootPath: '~/.lisk/#LABEL',
+		dataPath: '~/.lisk/#LABEL',
 		ipc: {
 			enabled: false,
 		},
