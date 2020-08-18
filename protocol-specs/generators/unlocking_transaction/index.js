@@ -218,7 +218,7 @@ const encode = tx => {
 
 const generateValidUpvoteTransaction = () => {
 	const unsignedTransaction = {
-		moduleType: 5,
+		moduleID: 5,
 		assetID: 2,
 		fee: BigInt('1500000000'),
 		nonce: BigInt('3'),

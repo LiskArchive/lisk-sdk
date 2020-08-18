@@ -56,7 +56,7 @@ export interface Voters {
 export interface TransactionFees {
 	readonly minFeePerByte: number;
 	readonly baseFees: {
-		readonly moduleType: number;
+		readonly moduleID: number;
 		readonly assetID: number;
 		readonly baseFee: string;
 	}[];

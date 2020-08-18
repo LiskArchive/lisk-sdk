@@ -149,7 +149,7 @@ const createSignatureObject = (txBuffer, account) => ({
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
-		moduleType: 4,
+		moduleID: 4,
 		assetID: 0,
 		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
@@ -218,7 +218,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleType: 4,
+		moduleID: 4,
 		assetID: 0,
 		asset: {
 			mandatoryKeys: [
@@ -287,7 +287,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleType: 4,
+		moduleID: 4,
 		assetID: 0,
 		asset: {
 			mandatoryKeys: [],
@@ -344,7 +344,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleType: 4,
+		moduleID: 4,
 		assetID: 0,
 		asset: {
 			mandatoryKeys: [
@@ -415,7 +415,7 @@ const generateFormerSecondSignatureTransactioon = () => {
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleType: 4,
+		moduleID: 4,
 		assetID: 0,
 		asset: {
 			mandatoryKeys: [

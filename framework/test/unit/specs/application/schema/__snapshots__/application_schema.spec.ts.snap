@@ -132,7 +132,7 @@ Object {
                   "format": "uint64",
                   "type": "string",
                 },
-                "moduleType": Object {
+                "moduleID": Object {
                   "minimum": 2,
                   "type": "number",
                 },

@@ -16,7 +16,7 @@
 import { validateTransactionSchema } from '../src/validate';
 
 const validTransaction = {
-	moduleType: 2,
+	moduleID: 2,
 	assetID: 0,
 	nonce: BigInt('1'),
 	fee: BigInt('10000000'),
@@ -59,7 +59,7 @@ const validAssetSchema = {
 describe('validateTransactionSchema', () => {
 	it('should return error for invalid transaction header', () => {
 		const invalidTransactionObjects = [
-			{ ...validTransaction, moduleType: BigInt(8) },
+			{ ...validTransaction, moduleID: BigInt(8) },
 			{ ...validTransaction, assetID: BigInt(8) },
 			{ ...validTransaction, nonce: 1 },
 			{ ...validTransaction, fee: 1000000 },

@@ -29,7 +29,7 @@ const debug = Debug('lisk:transaction_pool');
 type ApplyFunction = (transactions: ReadonlyArray<Transaction>) => Promise<void>;
 
 interface BaseFee {
-	readonly moduleType: number;
+	readonly moduleID: number;
 	readonly assetID: number;
 	readonly baseFee: bigint;
 }
@@ -313,7 +313,7 @@ export class TransactionPool {
 
 	private _calculateMinFee(trx: Transaction): bigint {
 		const foundBaseFee = this._baseFees.find(
-			f => f.moduleType === trx.moduleType && f.assetID === trx.assetID,
+			f => f.moduleID === trx.moduleID && f.assetID === trx.assetID,
 		);
 
 		return (

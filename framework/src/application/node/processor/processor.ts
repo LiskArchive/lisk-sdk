@@ -484,16 +484,16 @@ export class Processor {
 	}
 
 	private _getAsset(transaction: Transaction): BaseAsset {
-		const customModule = this._modules.find(m => m.type === transaction.moduleType);
+		const customModule = this._modules.find(m => m.type === transaction.moduleID);
 		if (!customModule) {
-			throw new Error(`Module type ${transaction.moduleType} does not exist`);
+			throw new Error(`Module type ${transaction.moduleID} does not exist`);
 		}
 		const customAsset = customModule.transactionAssets.find(
 			asset => asset.type === transaction.assetID,
 		);
 		if (!customAsset) {
 			throw new Error(
-				`Asset type ${transaction.assetID} does not exist in module type ${transaction.moduleType}.`,
+				`Asset type ${transaction.assetID} does not exist in module type ${transaction.moduleID}.`,
 			);
 		}
 		return customAsset;

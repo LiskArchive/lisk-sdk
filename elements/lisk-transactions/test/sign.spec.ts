@@ -93,7 +93,7 @@ const keys = {
 };
 
 const validTransaction = {
-	moduleType: 2,
+	moduleID: 2,
 	assetID: 0,
 	nonce: BigInt('1'),
 	fee: BigInt('10000000'),
@@ -109,7 +109,7 @@ describe('sign', () => {
 	describe('getSigningBytes', () => {
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [
-				{ ...validTransaction, moduleType: BigInt(8) },
+				{ ...validTransaction, moduleID: BigInt(8) },
 				{ ...validTransaction, nonce: 1 },
 				{ ...validTransaction, fee: 1000000 },
 				{ ...validTransaction, senderPublicKey: 1 },
@@ -168,7 +168,7 @@ describe('sign', () => {
 
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [
-				{ ...validTransaction, moduleType: BigInt(8) },
+				{ ...validTransaction, moduleID: BigInt(8) },
 				{ ...validTransaction, nonce: 1 },
 				{ ...validTransaction, fee: 1000000 },
 				{ ...validTransaction, senderPublicKey: 1 },

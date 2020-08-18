@@ -57,7 +57,7 @@ export const createTransferTransaction = ({
 	const transaction = signTransaction(
 		schema,
 		{
-			moduleType: 2,
+			moduleID: 2,
 			assetID: 0,
 			nonce: BigInt(nonce),
 			fee: BigInt(convertLSKToBeddows(fee)),

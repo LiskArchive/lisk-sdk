@@ -19,7 +19,7 @@ import { Transaction } from '../../src/transaction';
 
 export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 	const tx = new Transaction({
-		moduleType: 2,
+		moduleID: 2,
 		assetID: 0,
 		fee: BigInt('10000000'),
 		nonce: input?.nonce ?? BigInt(0),

@@ -55,7 +55,7 @@ describe('keys module', () => {
 			{
 				assetID: 0,
 				baseFee: '1',
-				moduleType: 3,
+				moduleID: 3,
 			},
 		],
 		bftThreshold: 67,
@@ -290,7 +290,7 @@ describe('keys module', () => {
 		describe('Transaction from single signatures account', () => {
 			it('should not throw for valid transaction', async () => {
 				const transaction = new Transaction({
-					moduleType: 2,
+					moduleID: 2,
 					assetID: 0,
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
@@ -318,7 +318,7 @@ describe('keys module', () => {
 
 			it('should throw if signatue is missing', async () => {
 				const transaction = new Transaction({
-					moduleType: 2,
+					moduleID: 2,
 					assetID: 0,
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
@@ -343,7 +343,7 @@ describe('keys module', () => {
 
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
 				const transaction = new Transaction({
-					moduleType: 2,
+					moduleID: 2,
 					assetID: 0,
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
@@ -433,7 +433,7 @@ describe('keys module', () => {
 				stateStore.account.get = jest.fn().mockResolvedValue(multisigAccount);
 
 				transaction = new Transaction({
-					moduleType: 2,
+					moduleID: 2,
 					assetID: 0,
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),

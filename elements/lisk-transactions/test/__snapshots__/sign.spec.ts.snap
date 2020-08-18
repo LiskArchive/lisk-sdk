@@ -158,7 +158,7 @@ Object {
     ],
     "type": "Buffer",
   },
-  "moduleType": 2,
+  "moduleID": 2,
   "nonce": 1n,
   "senderPublicKey": Object {
     "data": Array [

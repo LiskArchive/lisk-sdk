@@ -36,7 +36,7 @@ export const nodeOptions = ({
 		bftThreshold: 68, // Two third of active delegates Math.ceil(activeDelegates * 2 / 3)
 		baseFees: [
 			{
-				moduleType: 5,
+				moduleID: 5,
 				assetID: 0,
 				baseFee: '1000000000',
 			},

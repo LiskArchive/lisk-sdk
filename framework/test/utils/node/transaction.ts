@@ -38,7 +38,7 @@ export const createTransferTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleType: 2,
+		moduleID: 2,
 		assetID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
@@ -65,7 +65,7 @@ export const createDelegateRegisterTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleType: 5,
+		moduleID: 5,
 		assetID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
@@ -92,7 +92,7 @@ export const createDelegateVoteTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleType: 5,
+		moduleID: 5,
 		assetID: 1,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
@@ -142,7 +142,7 @@ export const createMultiSignRegisterTransaction = (input: {
 			);
 		},
 		{
-			moduleType: 4,
+			moduleID: 4,
 			assetID: 0,
 			nonce: input.nonce,
 			senderPublicKey: publicKey,
@@ -182,7 +182,7 @@ export const createMultisignatureTransferTransaction = (input: {
 			});
 		},
 		{
-			moduleType: 2,
+			moduleID: 2,
 			assetID: 0,
 			nonce: input.nonce,
 			senderPublicKey: input.senderPublicKey,

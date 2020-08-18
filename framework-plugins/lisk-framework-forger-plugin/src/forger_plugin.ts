@@ -359,7 +359,7 @@ export class ForgerPlugin extends BasePlugin {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
 		for (const trx of payload) {
-			if (trx.moduleType === 5 && trx.assetID === 1) {
+			if (trx.moduleID === 5 && trx.assetID === 1) {
 				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'base64'));
 				(trx.asset as Asset).votes.reduce((acc: ForgerReceivedVotes, curr) => {
 					if (
@@ -437,7 +437,7 @@ export class ForgerPlugin extends BasePlugin {
 			const trx = payload[index];
 			const baseFee =
 				this._transactionFees.baseFees.find(
-					bf => bf.moduleType === trx.moduleType && bf.assetID === trx.assetID,
+					bf => bf.moduleID === trx.moduleID && bf.assetID === trx.assetID,
 				)?.baseFee ?? '0';
 			const minFeeRequired =
 				BigInt(baseFee) +

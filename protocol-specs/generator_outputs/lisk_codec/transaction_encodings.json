@@ -11,7 +11,7 @@
 			"description": "Encoding of valid base transaction",
 			"input": {
 				"object": {
-					"moduleType": 20,
+					"moduleID": 20,
 					"assetID": 1,
 					"nonce": 1570179673932370,
 					"fee": 3156364651,
@@ -222,7 +222,7 @@
 					"$id": "baseTransactionSchema",
 					"type": "object",
 					"properties": {
-						"moduleType": {
+						"moduleID": {
 							"dataType": "uint32",
 							"fieldNumber": 1
 						},

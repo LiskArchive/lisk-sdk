@@ -40,7 +40,7 @@ describe('token module', () => {
 			{
 				assetID: 0,
 				baseFee: '10000000',
-				moduleType: 2,
+				moduleID: 2,
 			},
 		],
 		bftThreshold: 67,
@@ -206,7 +206,7 @@ describe('token module', () => {
 					{
 						assetID: 0,
 						baseFee: undefined as any,
-						moduleType: 2,
+						moduleID: 2,
 					},
 				],
 			});

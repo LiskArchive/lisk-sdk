@@ -562,7 +562,7 @@ describe('Synchronizer', () => {
 
 		describe('when peer returns valid transaction response', () => {
 			const transaction = new Transaction({
-				moduleType: 2,
+				moduleID: 2,
 				assetID: 0,
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),

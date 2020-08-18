@@ -453,7 +453,7 @@ Object {
         "dataType": "uint64",
         "fieldNumber": 4,
       },
-      "moduleType": Object {
+      "moduleID": Object {
         "dataType": "uint32",
         "fieldNumber": 1,
         "minimum": 2,
@@ -475,7 +475,7 @@ Object {
       },
     },
     "required": Array [
-      "moduleType",
+      "moduleID",
       "assetID",
       "nonce",
       "fee",
@@ -487,7 +487,7 @@ Object {
   "transactionsAssetSchemas": Array [
     Object {
       "assetID": 0,
-      "moduleType": 2,
+      "moduleID": 2,
       "schema": Object {
         "$id": "lisk/transfer-asset",
         "properties": Object {
@@ -519,7 +519,7 @@ Object {
     },
     Object {
       "assetID": 0,
-      "moduleType": 4,
+      "moduleID": 4,
       "schema": Object {
         "$id": "lisk/keys/register",
         "properties": Object {
@@ -562,7 +562,7 @@ Object {
     },
     Object {
       "assetID": 0,
-      "moduleType": 5,
+      "moduleID": 5,
       "schema": Object {
         "$id": "lisk/dpos/register",
         "properties": Object {
@@ -581,7 +581,7 @@ Object {
     },
     Object {
       "assetID": 1,
-      "moduleType": 5,
+      "moduleID": 5,
       "schema": Object {
         "$id": "lisk/dpos/vote",
         "properties": Object {
@@ -619,7 +619,7 @@ Object {
     },
     Object {
       "assetID": 2,
-      "moduleType": 5,
+      "moduleID": 5,
       "schema": Object {
         "$id": "lisk/dpos/unlock",
         "properties": Object {
@@ -662,7 +662,7 @@ Object {
     },
     Object {
       "assetID": 3,
-      "moduleType": 5,
+      "moduleID": 5,
       "schema": Object {
         "$id": "lisk/dpos/pom",
         "properties": Object {

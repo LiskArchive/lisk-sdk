@@ -30,7 +30,7 @@ describe('TransactionPool class', () => {
 				{
 					assetID: 0,
 					baseFee: BigInt(1),
-					moduleType: 3,
+					moduleID: 3,
 				},
 			],
 			minFeePerByte: 1000,
@@ -62,7 +62,7 @@ describe('TransactionPool class', () => {
 						{
 							assetID: 0,
 							baseFee: BigInt(1),
-							moduleType: 3,
+							moduleID: 3,
 						},
 					],
 					minFeePerByte: 1000,
@@ -84,7 +84,7 @@ describe('TransactionPool class', () => {
 		beforeEach(async () => {
 			tx = {
 				id: Buffer.from('1'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
@@ -112,7 +112,7 @@ describe('TransactionPool class', () => {
 		beforeEach(async () => {
 			tx = {
 				id: Buffer.from('1'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
@@ -140,7 +140,7 @@ describe('TransactionPool class', () => {
 			const txs = [
 				{
 					id: Buffer.from('1'),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
@@ -148,7 +148,7 @@ describe('TransactionPool class', () => {
 				},
 				{
 					id: Buffer.from('2'),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					nonce: BigInt(2),
 					fee: BigInt(30000),
@@ -156,7 +156,7 @@ describe('TransactionPool class', () => {
 				},
 				{
 					id: Buffer.from('9'),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					nonce: BigInt(9),
 					minFee: BigInt(10),
@@ -165,7 +165,7 @@ describe('TransactionPool class', () => {
 				},
 				{
 					id: Buffer.from('3'),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
@@ -173,7 +173,7 @@ describe('TransactionPool class', () => {
 				},
 				{
 					id: Buffer.from('10'),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					nonce: BigInt(100),
 					fee: BigInt(30000),
@@ -239,7 +239,7 @@ describe('TransactionPool class', () => {
 		const tx = {
 			id: Buffer.from('1'),
 			nonce: BigInt(1),
-			moduleType: 3,
+			moduleID: 3,
 			assetID: 0,
 			fee: BigInt(30000),
 			senderPublicKey: generateRandomPublicKeys()[0],
@@ -350,14 +350,14 @@ describe('TransactionPool class', () => {
 					{
 						assetID: 0,
 						baseFee: BigInt(1),
-						moduleType: 3,
+						moduleID: 3,
 					},
 				],
 				minFeePerByte: 1000,
 			});
 			const lowFeeTrx = {
 				id: Buffer.from('1'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(3000),
@@ -385,7 +385,7 @@ describe('TransactionPool class', () => {
 					{
 						assetID: 0,
 						baseFee: BigInt(1),
-						moduleType: 3,
+						moduleID: 3,
 					},
 				],
 				minFeePerByte: 1000,
@@ -398,7 +398,7 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
@@ -417,7 +417,7 @@ describe('TransactionPool class', () => {
 
 			const highFeePriorityTx = {
 				id: Buffer.from('11'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(50000),
@@ -449,7 +449,7 @@ describe('TransactionPool class', () => {
 					{
 						assetID: 0,
 						baseFee: BigInt(1),
-						moduleType: 3,
+						moduleID: 3,
 					},
 				],
 				minFeePerByte: 1000,
@@ -462,7 +462,7 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS - 1; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
@@ -477,7 +477,7 @@ describe('TransactionPool class', () => {
 
 			const nonSequentialTx = {
 				id: Buffer.from('21'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
@@ -498,7 +498,7 @@ describe('TransactionPool class', () => {
 
 			const highFeePriorityTx = {
 				id: Buffer.from('11'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(50000),
@@ -528,7 +528,7 @@ describe('TransactionPool class', () => {
 					{
 						assetID: 0,
 						baseFee: BigInt(1),
-						moduleType: 3,
+						moduleID: 3,
 					},
 				],
 				minFeePerByte: 1000,
@@ -541,7 +541,7 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
@@ -558,7 +558,7 @@ describe('TransactionPool class', () => {
 
 			const lowFeePriorityTx = {
 				id: Buffer.from('11'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(1000),
@@ -582,7 +582,7 @@ describe('TransactionPool class', () => {
 		const senderPublicKey = generateRandomPublicKeys()[0];
 		const tx = {
 			id: Buffer.from('1'),
-			moduleType: 3,
+			moduleID: 3,
 			assetID: 0,
 			nonce: BigInt(1),
 			fee: BigInt(30000),
@@ -590,7 +590,7 @@ describe('TransactionPool class', () => {
 		} as Transaction;
 		const additionalTx = {
 			id: Buffer.from('2'),
-			moduleType: 3,
+			moduleID: 3,
 			assetID: 0,
 			nonce: BigInt(3),
 			fee: BigInt(30000),
@@ -623,7 +623,7 @@ describe('TransactionPool class', () => {
 			// Remove a transaction that does not exist
 			const nonExistentTrx = {
 				id: Buffer.from('155'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(1000),
@@ -667,7 +667,7 @@ describe('TransactionPool class', () => {
 		const transactions = [
 			{
 				id: Buffer.from('1'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(20000),
@@ -675,7 +675,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(3),
 				fee: BigInt(30000),
@@ -697,7 +697,7 @@ describe('TransactionPool class', () => {
 					{
 						assetID: 0,
 						baseFee: BigInt(1),
-						moduleType: 3,
+						moduleID: 3,
 					},
 				],
 				minFeePerByte: 1000,
@@ -727,7 +727,7 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender1 = [
 			{
 				id: Buffer.from('1'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
@@ -735,7 +735,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(60000),
@@ -746,7 +746,7 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender2 = [
 			{
 				id: Buffer.from('11'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
@@ -754,7 +754,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('12'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(30000),
@@ -787,7 +787,7 @@ describe('TransactionPool class', () => {
 					{
 						assetID: 0,
 						baseFee: BigInt(1),
-						moduleType: 3,
+						moduleID: 3,
 					},
 				],
 				minFeePerByte: 1000,
@@ -823,7 +823,7 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender1 = [
 			{
 				id: Buffer.from('1'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
@@ -831,7 +831,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(60000),
@@ -839,7 +839,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(3),
 				fee: BigInt(90000),
@@ -850,7 +850,7 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender2 = [
 			{
 				id: Buffer.from('11'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
@@ -884,7 +884,7 @@ describe('TransactionPool class', () => {
 					{
 						assetID: 0,
 						baseFee: BigInt(1),
-						moduleType: 3,
+						moduleID: 3,
 					},
 				],
 				minFeePerByte: 1000,
@@ -931,7 +931,7 @@ describe('TransactionPool class', () => {
 		const transactionsForSender1 = [
 			{
 				id: Buffer.from('1'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(1000),
@@ -940,7 +940,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(2000),
@@ -949,7 +949,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(3),
 				fee: BigInt(3000),
@@ -961,7 +961,7 @@ describe('TransactionPool class', () => {
 		const transactionsForSender2 = [
 			{
 				id: Buffer.from('11'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(1000),
@@ -970,7 +970,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('12'),
-				moduleType: 3,
+				moduleID: 3,
 				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(2000),

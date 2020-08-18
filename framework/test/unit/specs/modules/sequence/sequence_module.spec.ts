@@ -35,7 +35,7 @@ describe('sequence module', () => {
 		id: cryptography.getRandomBytes(32),
 		assetID: 0,
 		baseFee: BigInt(1),
-		moduleType: 3,
+		moduleID: 3,
 		fee: BigInt(1),
 		senderPublicKey: Buffer.from(''),
 		signatures: [],
@@ -47,7 +47,7 @@ describe('sequence module', () => {
 			{
 				assetID: 0,
 				baseFee: '1',
-				moduleType: 3,
+				moduleID: 3,
 			},
 		],
 		bftThreshold: 67,

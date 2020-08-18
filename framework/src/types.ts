@@ -111,7 +111,7 @@ export interface GenesisConfig {
 	};
 	minFeePerByte: number;
 	baseFees: {
-		moduleType: number;
+		moduleID: number;
 		assetID: number;
 		baseFee: string;
 	}[];
@@ -147,7 +147,7 @@ export interface ActionInfoForBus {
 }
 
 export interface TransactionJSON {
-	readonly moduleType: number;
+	readonly moduleID: number;
 	readonly assetID: number;
 	readonly nonce: string;
 	readonly fee: string;

@@ -19,7 +19,7 @@ message BlockHeader {
 }
 
 message BaseTransaction {
-	required uint32 moduleType = 1;
+	required uint32 moduleID = 1;
 	required uint32 assetID = 2;
 	required uint64 nonce = 3;
 	required uint64 fee = 4;

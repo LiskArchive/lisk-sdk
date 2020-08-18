@@ -27,7 +27,7 @@ const baseTransactionSchema = {
 	$id: 'baseTransactionSchema',
 	type: 'object',
 	properties: {
-		moduleType: { dataType: 'uint32', fieldNumber: 1 },
+		moduleID: { dataType: 'uint32', fieldNumber: 1 },
 		assetID: { dataType: 'uint32', fieldNumber: 2 },
 		nonce: { dataType: 'uint64', fieldNumber: 3 },
 		fee: { dataType: 'uint64', fieldNumber: 4 },
@@ -73,7 +73,7 @@ const generateValidTransactionEncodings = () => {
 	const input = {
 		validBaseTransaction: {
 			object: {
-				moduleType: 20,
+				moduleID: 20,
 				assetID: 1,
 				nonce: 1570179673932370,
 				fee: 3156364651,

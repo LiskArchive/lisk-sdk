@@ -508,7 +508,7 @@ describe('data_access', () => {
 	describe('#getTransactionsByIDs', () => {
 		it('should get transaction by id', async () => {
 			const tx = new Transaction({
-				moduleType: 2,
+				moduleID: 2,
 				assetID: 0,
 				fee: BigInt('10000000'),
 				nonce: BigInt('0'),

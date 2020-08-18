@@ -75,7 +75,7 @@ interface NodeConstructor {
 }
 
 interface RegisteredSchema {
-	readonly moduleType: number;
+	readonly moduleID: number;
 	readonly assetID: number;
 	readonly schema: Schema;
 }
@@ -83,7 +83,7 @@ interface RegisteredSchema {
 interface TransactionFees {
 	readonly minFeePerByte: number;
 	readonly baseFees: {
-		readonly moduleType: number;
+		readonly moduleID: number;
 		readonly assetID: number;
 		readonly baseFee: string;
 	}[];
@@ -718,7 +718,7 @@ export class Node {
 		for (const customModule of this._registeredModules) {
 			for (const customAsset of customModule.transactionAssets) {
 				registeredSchemas.push({
-					moduleType: customModule.type,
+					moduleID: customModule.type,
 					assetID: customAsset.type,
 					schema: customAsset.assetSchema,
 				});
@@ -735,7 +735,7 @@ export class Node {
 
 		for (const baseFeeInfo of this._options.genesisConfig.baseFees) {
 			transactionFees.baseFees.push({
-				moduleType: baseFeeInfo.moduleType,
+				moduleID: baseFeeInfo.moduleID,
 				assetID: baseFeeInfo.assetID,
 				baseFee: baseFeeInfo.baseFee,
 			});

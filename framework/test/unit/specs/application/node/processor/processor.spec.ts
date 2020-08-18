@@ -183,7 +183,7 @@ describe('processor', () => {
 			payload: [
 				new Transaction({
 					asset: Buffer.alloc(0),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					fee: BigInt(10000000),
 					nonce: BigInt(3),
@@ -509,7 +509,7 @@ describe('processor', () => {
 	describe('validate', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
-			moduleType: 3,
+			moduleID: 3,
 			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
@@ -561,7 +561,7 @@ describe('processor', () => {
 				payload: [
 					new Transaction({
 						asset: Buffer.alloc(0),
-						moduleType: 20,
+						moduleID: 20,
 						assetID: 5,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
@@ -583,7 +583,7 @@ describe('processor', () => {
 				payload: [
 					new Transaction({
 						asset: Buffer.alloc(0),
-						moduleType: 3,
+						moduleID: 3,
 						assetID: 5,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
@@ -608,7 +608,7 @@ describe('processor', () => {
 			payload: [
 				new Transaction({
 					asset: Buffer.alloc(0),
-					moduleType: 3,
+					moduleID: 3,
 					assetID: 0,
 					fee: BigInt(10000000),
 					nonce: BigInt(3),
@@ -793,7 +793,7 @@ describe('processor', () => {
 	describe('validateTransaction', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
-			moduleType: 3,
+			moduleID: 3,
 			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
@@ -810,7 +810,7 @@ describe('processor', () => {
 				processor.validateTransaction(
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
-						moduleType: 99,
+						moduleID: 99,
 						assetID: 0,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
@@ -826,7 +826,7 @@ describe('processor', () => {
 				processor.validateTransaction(
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
-						moduleType: 3,
+						moduleID: 3,
 						assetID: 99,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
@@ -842,7 +842,7 @@ describe('processor', () => {
 				processor.validateTransaction(
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
-						moduleType: 3,
+						moduleID: 3,
 						assetID: 0,
 						fee: BigInt(10000000),
 						nonce: BigInt(-3),
@@ -868,7 +868,7 @@ describe('processor', () => {
 	describe('verifyTransaction', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
-			moduleType: 3,
+			moduleID: 3,
 			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
@@ -877,7 +877,7 @@ describe('processor', () => {
 		});
 		const tx2 = new Transaction({
 			asset: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
-			moduleType: 3,
+			moduleID: 3,
 			assetID: 0,
 			fee: BigInt(10100000),
 			nonce: BigInt(4),
@@ -909,7 +909,7 @@ describe('processor', () => {
 					[
 						new Transaction({
 							asset: Buffer.alloc(0),
-							moduleType: 99,
+							moduleID: 99,
 							assetID: 0,
 							fee: BigInt(10000000),
 							nonce: BigInt(3),
@@ -928,7 +928,7 @@ describe('processor', () => {
 					[
 						new Transaction({
 							asset: Buffer.alloc(0),
-							moduleType: 4,
+							moduleID: 4,
 							assetID: 0,
 							fee: BigInt(10000000),
 							nonce: BigInt(3),

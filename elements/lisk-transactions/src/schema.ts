@@ -15,9 +15,9 @@
 export const baseTransactionSchema = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['moduleType', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
 	properties: {
-		moduleType: {
+		moduleID: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},

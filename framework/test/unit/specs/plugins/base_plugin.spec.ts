@@ -65,7 +65,7 @@ const schemas = {
 	transactionSchema,
 	transactionsAssetSchemas: [
 		{
-			moduleType: 2,
+			moduleID: 2,
 			assetID: 0,
 			schema: new TransferAsset(BigInt(5000000)).assetSchema,
 		},

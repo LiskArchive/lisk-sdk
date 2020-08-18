@@ -2178,7 +2178,7 @@ Object {
       Object {
         "assetID": 0,
         "baseFee": "1000000000",
-        "moduleType": 5,
+        "moduleID": 5,
       },
     ],
     "bftThreshold": 68,

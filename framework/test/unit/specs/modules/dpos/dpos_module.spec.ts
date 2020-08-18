@@ -50,7 +50,7 @@ describe('DPoSModule', () => {
 				{
 					assetID: 0,
 					baseFee: '1',
-					moduleType: 3,
+					moduleID: 3,
 				},
 			],
 			bftThreshold: 67,
