@@ -42,7 +42,7 @@ interface ControllerConfig {
 	readonly dataPath: string;
 	readonly socketsPath: SocketPaths;
 	readonly dirs: {
-		readonly root: string;
+		readonly dataPath: string;
 		readonly data: string;
 		readonly tmp: string;
 		readonly logs: string;
@@ -88,7 +88,7 @@ export class Controller {
 
 		const dirs = systemDirs(this.appLabel, options.config.rootPath);
 		this.config = {
-			dataPath: dirs.root,
+			dataPath: dirs.dataPath,
 			ipc: {
 				enabled: options.config.ipc.enabled,
 			},
