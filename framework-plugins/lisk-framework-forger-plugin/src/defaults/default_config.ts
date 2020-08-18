@@ -29,15 +29,6 @@ export const defaultConfig = {
 			description:
 				'Explicitly allowing some identified entities access to forger plugin endpoints.',
 		},
-		dataPath: {
-			type: 'string',
-			format: 'path',
-			minLength: 1,
-			maxLength: 50,
-			example: '~/.lisk/plugins/data',
-			description:
-				'The data path for storing forging related information captured from application.',
-		},
 		webhook: {
 			type: 'array',
 			description: 'Third party API endpoints with configurable events to emit.',
@@ -70,6 +61,13 @@ export const defaultConfig = {
 				},
 			},
 			required: ['origin'],
+		},
+		dataPath: {
+			type: 'string',
+			format: 'path',
+			example: '~/.lisk/forger',
+			description:
+				'The data path for storing forging related information captured from application.',
 		},
 		limits: {
 			type: 'object',
@@ -105,7 +103,6 @@ export const defaultConfig = {
 		port: 4001,
 		whiteList: ['127.0.0.1'],
 		webhook: [],
-		dataPath: '~/.lisk/plugins/data',
 		cors: {
 			origin: '*',
 			methods: ['GET', 'POST', 'PUT'],

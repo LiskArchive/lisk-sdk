@@ -191,8 +191,8 @@ describe('Controller Class', () => {
 			};
 
 			pluginOptions = {
-				plugin1: { option: '#OPTIONS1' },
-				plugin2: { option2: '#OPTIONS2' },
+				plugin1: { option: '#OPTIONS1', dataPath: '~/.lisk/#LABEL' },
+				plugin2: { option2: '#OPTIONS2', dataPath: '~/.lisk/#LABEL' },
 			};
 
 			await controller.load();
