@@ -70,7 +70,7 @@ describe('state store / account', () => {
 		});
 		// Setting this as default behavior throws UnhandledPromiseRejection, so it is specifying the non-existing account
 		const dbGetMock = when(db.get)
-			.calledWith('accounts:address:123L')
+			.calledWith(`accounts:address:${Buffer.from('123L', 'utf8').toString('binary')}`)
 			.mockRejectedValue(new NotFoundError('Data not found') as never);
 		for (const data of accountInDB) {
 			dbGetMock
@@ -79,6 +79,10 @@ describe('state store / account', () => {
 		}
 		for (const account of stateStoreAccounts) {
 			stateStore.account.set(account.address, account);
+			stateStore.account['_initialAccountValue'].set(
+				account.address,
+				encodeDefaultAccount(account),
+			);
 		}
 	});
 
@@ -166,6 +170,49 @@ describe('state store / account', () => {
 		});
 	});
 
+	describe('del', () => {
+		it('should throw an error if address does not exist nither in momory or in database', async () => {
+			await expect(stateStore.account.del(Buffer.from('123L'))).rejects.toBeInstanceOf(
+				NotFoundError,
+			);
+		});
+
+		it('should delete from memory and not register as deleted key if address only exist in memory', async () => {
+			// Arrange
+			const inmemoryAccount = createFakeDefaultAccount({ token: { balance: BigInt(200000000) } });
+			when(db.get)
+				.calledWith(`accounts:address:${inmemoryAccount.address.toString('binary')}`)
+				.mockRejectedValue(new NotFoundError('Data not found') as never);
+			stateStore.account.set(inmemoryAccount.address, inmemoryAccount);
+			// Act
+			await stateStore.account.del(inmemoryAccount.address);
+			await expect(stateStore.account.get(inmemoryAccount.address)).rejects.toBeInstanceOf(
+				NotFoundError,
+			);
+			expect(stateStore.account['_deletedKeys'].size).toEqual(0);
+		});
+
+		it('should delete from memory and register as deleted key if address only exist in DB', async () => {
+			await stateStore.account.del(accountOnlyInDB.address);
+			await expect(stateStore.account.get(accountOnlyInDB.address)).rejects.toBeInstanceOf(
+				NotFoundError,
+			);
+			expect(stateStore.account['_deletedKeys'].size).toEqual(1);
+			expect(stateStore.account['_initialAccountValue'].has(accountOnlyInDB.address)).toBeTrue();
+		});
+
+		it('should delete from memory and register as deleted key if address only exist both in memory and in DB', async () => {
+			await stateStore.account.del(stateStoreAccounts[0].address);
+			await expect(stateStore.account.get(stateStoreAccounts[0].address)).rejects.toBeInstanceOf(
+				NotFoundError,
+			);
+			expect(stateStore.account['_deletedKeys'].size).toEqual(1);
+			expect(
+				stateStore.account['_initialAccountValue'].has(stateStoreAccounts[0].address),
+			).toBeTrue();
+		});
+	});
+
 	describe('finalize', () => {
 		let existingAccount;
 		let updatedAccount: Account;
@@ -192,31 +239,61 @@ describe('state store / account', () => {
 	});
 
 	describe('diff', () => {
-		let existingAccount;
-		let updatedAccount: Account;
 		let batchStub: BatchChain;
 		let stateDiff: StateDiff;
 
-		beforeEach(async () => {
-			batchStub = { put: jest.fn() } as any;
+		beforeEach(() => {
+			batchStub = { put: jest.fn(), del: jest.fn() } as any;
+		});
 
-			existingAccount = await stateStore.account.get(accountInDB[0].key);
-			updatedAccount = objects.cloneDeep(existingAccount);
+		it('should have updated with initial values', async () => {
+			const existingAccount = await stateStore.account.get(accountInDB[0].key);
+			const originalBytes = encodeDefaultAccount(existingAccount);
+			const updatedAccount = objects.cloneDeep(existingAccount);
 			updatedAccount.token = { balance: BigInt(999) };
 
 			stateStore.account.set(updatedAccount.address, updatedAccount);
+			stateDiff = stateStore.account.finalize(batchStub);
+			expect(stateDiff).toStrictEqual({
+				updated: [
+					{
+						key: `accounts:address:${existingAccount.address.toString('binary')}`,
+						value: originalBytes,
+					},
+				],
+				created: [],
+				deleted: [],
+			});
 		});
 
-		it('should return empty array for updated and keys for newly created account', async () => {
-			stateDiff = stateStore.account.finalize(batchStub);
-			const account1 = await stateStore.account.get(accountInDB[0].key);
-			const account2 = await stateStore.account.get(accountInDB[1].key);
+		it('should return empty array for updated and keys for newly created account', () => {
+			const account1 = createFakeDefaultAccount();
+			const account2 = createFakeDefaultAccount();
 
+			stateStore.account.set(account1.address, account1);
+			stateStore.account.set(account2.address, account2);
+			stateDiff = stateStore.account.finalize(batchStub);
 			expect(stateDiff).toStrictEqual({
 				updated: [],
 				created: [
 					`accounts:address:${account1.address.toString('binary')}`,
 					`accounts:address:${account2.address.toString('binary')}`,
+				],
+				deleted: [],
+			});
+		});
+
+		it('should have deleted key value set for deleted accounts', async () => {
+			await stateStore.account.del(accountOnlyInDB.address);
+			stateDiff = stateStore.account.finalize(batchStub);
+			expect(stateDiff).toStrictEqual({
+				updated: [],
+				created: [],
+				deleted: [
+					{
+						key: `accounts:address:${accountOnlyInDB.address.toString('binary')}`,
+						value: encodeDefaultAccount(accountOnlyInDB),
+					},
 				],
 			});
 		});

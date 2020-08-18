@@ -412,15 +412,26 @@ export class Storage {
 		}
 		// Take the diff to revert back states
 		const diffKey = `${DB_KEY_DIFF_STATE}:${heightStr}`;
-		const stateDiff = await this._db.get(diffKey);
+		// If there is no diff, the key might not exist
+		let stateDiff = Buffer.alloc(0);
+		try {
+			stateDiff = await this._db.get(diffKey);
+		} catch (err) {
+			if (!(err instanceof NotFoundError)) {
+				throw err;
+			}
+		}
 
-		const { created: createdStates, updated: updatedStates } = codec.decode<StateDiff>(
-			stateDiffSchema,
-			stateDiff,
-		);
+		const { created: createdStates, updated: updatedStates, deleted: deletedStates } = codec.decode<
+			StateDiff
+		>(stateDiffSchema, stateDiff);
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
+		}
+		// Revert all deleted values
+		for (const { key, value: previousValue } of deletedStates) {
+			batch.put(key, previousValue);
 		}
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);

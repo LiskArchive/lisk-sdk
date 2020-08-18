@@ -116,6 +116,7 @@ describe('state store / chain_state', () => {
 			expect(stateDiff).toStrictEqual({
 				updated: [],
 				created: ['consensus:key3', 'consensus:key4'],
+				deleted: [],
 			});
 		});
 	});

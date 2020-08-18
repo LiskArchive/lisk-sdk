@@ -3,6 +3,7 @@
 exports[`stateStore.finalize.saveDiff finalize should save updated changes as diff 1`] = `
 Object {
   "created": Array [],
+  "deleted": Array [],
   "updated": Array [
     Object {
       "key": "consensus:key1",

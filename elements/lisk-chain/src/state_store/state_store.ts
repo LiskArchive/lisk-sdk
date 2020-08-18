@@ -38,12 +38,13 @@ const saveDiff = (
 		(acc, val) => {
 			acc.updated.push(...val.updated);
 			acc.created.push(...val.created);
+			acc.deleted.push(...val.deleted);
 			return acc;
 		},
-		{ updated: [], created: [] },
+		{ updated: [], created: [], deleted: [] },
 	);
 
-	if (diffToEncode.created.length || diffToEncode.updated.length) {
+	if (diffToEncode.created.length || diffToEncode.updated.length || diffToEncode.deleted.length) {
 		const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
 		batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
 	}
