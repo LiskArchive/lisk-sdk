@@ -12,7 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { Transaction } from '@liskhq/lisk-chain';
+export {
+	Transaction,
+	transactionSchema,
+	readGenesisBlockJSON,
+	blockHeaderSchema,
+	blockSchema,
+	signingBlockHeaderSchema,
+	getAccountSchemaWithDefault,
+	getGenesisBlockHeaderAssetSchema,
+	blockHeaderAssetSchema,
+} from '@liskhq/lisk-chain';
 export {
 	BaseModule,
 	BaseAsset,
