@@ -119,7 +119,7 @@ export class Controller {
 
 		for (const alias of Object.keys(plugins)) {
 			const klass = plugins[alias];
-			const options = pluginOptions[alias];
+			const options = { dataPath: this.config.rootPath, ...pluginOptions[alias] };
 
 			if (options.loadAsChildProcess) {
 				if (this.config.ipc.enabled) {
