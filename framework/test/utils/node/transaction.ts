@@ -39,7 +39,7 @@ export const createTransferTransaction = (input: {
 
 	const tx = new Transaction({
 		moduleType: 2,
-		assetType: 0,
+		assetID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('200000'),
@@ -66,7 +66,7 @@ export const createDelegateRegisterTransaction = (input: {
 
 	const tx = new Transaction({
 		moduleType: 5,
-		assetType: 0,
+		assetID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('2500000000'),
@@ -93,7 +93,7 @@ export const createDelegateVoteTransaction = (input: {
 
 	const tx = new Transaction({
 		moduleType: 5,
-		assetType: 1,
+		assetID: 1,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('100000000'),
@@ -143,7 +143,7 @@ export const createMultiSignRegisterTransaction = (input: {
 		},
 		{
 			moduleType: 4,
-			assetType: 0,
+			assetID: 0,
 			nonce: input.nonce,
 			senderPublicKey: publicKey,
 			fee: input.fee ?? BigInt('1100000000'),
@@ -183,7 +183,7 @@ export const createMultisignatureTransferTransaction = (input: {
 		},
 		{
 			moduleType: 2,
-			assetType: 0,
+			assetID: 0,
 			nonce: input.nonce,
 			senderPublicKey: input.senderPublicKey,
 			fee: input.fee ?? BigInt('1100000000'),

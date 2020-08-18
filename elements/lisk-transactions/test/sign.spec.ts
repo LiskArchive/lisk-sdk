@@ -94,7 +94,7 @@ const keys = {
 
 const validTransaction = {
 	moduleType: 2,
-	assetType: 0,
+	assetID: 0,
 	nonce: BigInt('1'),
 	fee: BigInt('10000000'),
 	senderPublicKey: publicKey1,

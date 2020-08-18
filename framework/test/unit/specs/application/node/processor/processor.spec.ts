@@ -184,7 +184,7 @@ describe('processor', () => {
 				new Transaction({
 					asset: Buffer.alloc(0),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					fee: BigInt(10000000),
 					nonce: BigInt(3),
 					senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -510,7 +510,7 @@ describe('processor', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
 			moduleType: 3,
-			assetType: 0,
+			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
 			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -562,7 +562,7 @@ describe('processor', () => {
 					new Transaction({
 						asset: Buffer.alloc(0),
 						moduleType: 20,
-						assetType: 5,
+						assetID: 5,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
 						senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -584,7 +584,7 @@ describe('processor', () => {
 					new Transaction({
 						asset: Buffer.alloc(0),
 						moduleType: 3,
-						assetType: 5,
+						assetID: 5,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
 						senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -609,7 +609,7 @@ describe('processor', () => {
 				new Transaction({
 					asset: Buffer.alloc(0),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					fee: BigInt(10000000),
 					nonce: BigInt(3),
 					senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -794,7 +794,7 @@ describe('processor', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
 			moduleType: 3,
-			assetType: 0,
+			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
 			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -811,7 +811,7 @@ describe('processor', () => {
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
 						moduleType: 99,
-						assetType: 0,
+						assetID: 0,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
 						senderPublicKey: Buffer.alloc(0),
@@ -827,7 +827,7 @@ describe('processor', () => {
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
 						moduleType: 3,
-						assetType: 99,
+						assetID: 99,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
 						senderPublicKey: Buffer.alloc(0),
@@ -843,7 +843,7 @@ describe('processor', () => {
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
 						moduleType: 3,
-						assetType: 0,
+						assetID: 0,
 						fee: BigInt(10000000),
 						nonce: BigInt(-3),
 						senderPublicKey: Buffer.alloc(0),
@@ -869,7 +869,7 @@ describe('processor', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
 			moduleType: 3,
-			assetType: 0,
+			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
 			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -878,7 +878,7 @@ describe('processor', () => {
 		const tx2 = new Transaction({
 			asset: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
 			moduleType: 3,
-			assetType: 0,
+			assetID: 0,
 			fee: BigInt(10100000),
 			nonce: BigInt(4),
 			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -910,7 +910,7 @@ describe('processor', () => {
 						new Transaction({
 							asset: Buffer.alloc(0),
 							moduleType: 99,
-							assetType: 0,
+							assetID: 0,
 							fee: BigInt(10000000),
 							nonce: BigInt(3),
 							senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -929,7 +929,7 @@ describe('processor', () => {
 						new Transaction({
 							asset: Buffer.alloc(0),
 							moduleType: 4,
-							assetType: 0,
+							assetID: 0,
 							fee: BigInt(10000000),
 							nonce: BigInt(3),
 							senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),

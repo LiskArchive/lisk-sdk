@@ -24,7 +24,7 @@ import {
 } from './utils';
 import { BaseModule } from '../base_module';
 import { AfterGenesisBlockApplyInput, TransactionApplyInput } from '../../types';
-import { RegisterAssetType, RegisterAsset } from './register_asset';
+import { RegisterassetID, RegisterAsset } from './register_asset';
 import { keysSchema } from './schemas';
 
 const { bufferArrayOrderByLex, bufferArrayUniqueItems, bufferArrayContainsSome } = ObjectUtils;
@@ -70,7 +70,7 @@ export class KeysModule extends BaseModule {
 		]);
 
 		// This is for registration of multisignature that requires all signatures
-		if (transaction.moduleType === this.type && transaction.assetType === RegisterAssetType) {
+		if (transaction.moduleType === this.type && transaction.assetID === RegisterassetID) {
 			const { mandatoryKeys, optionalKeys } = codec.decode<DecodedAsset>(
 				keysSchema,
 				transaction.asset,

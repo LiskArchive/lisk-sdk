@@ -28,7 +28,7 @@ describe('TransactionPool class', () => {
 			transactionReorganizationInterval: 1,
 			baseFees: [
 				{
-					assetType: 0,
+					assetID: 0,
 					baseFee: BigInt(1),
 					moduleType: 3,
 				},
@@ -60,7 +60,7 @@ describe('TransactionPool class', () => {
 					transactionExpiryTime: 60 * 60 * 1000, // 1 hours in ms
 					baseFees: [
 						{
-							assetType: 0,
+							assetID: 0,
 							baseFee: BigInt(1),
 							moduleType: 3,
 						},
@@ -85,7 +85,7 @@ describe('TransactionPool class', () => {
 			tx = {
 				id: Buffer.from('1'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -113,7 +113,7 @@ describe('TransactionPool class', () => {
 			tx = {
 				id: Buffer.from('1'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -141,7 +141,7 @@ describe('TransactionPool class', () => {
 				{
 					id: Buffer.from('1'),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[0],
@@ -149,7 +149,7 @@ describe('TransactionPool class', () => {
 				{
 					id: Buffer.from('2'),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					nonce: BigInt(2),
 					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[0],
@@ -157,7 +157,7 @@ describe('TransactionPool class', () => {
 				{
 					id: Buffer.from('9'),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					nonce: BigInt(9),
 					minFee: BigInt(10),
 					fee: BigInt(30000),
@@ -166,7 +166,7 @@ describe('TransactionPool class', () => {
 				{
 					id: Buffer.from('3'),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[1],
@@ -174,7 +174,7 @@ describe('TransactionPool class', () => {
 				{
 					id: Buffer.from('10'),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					nonce: BigInt(100),
 					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[2],
@@ -240,7 +240,7 @@ describe('TransactionPool class', () => {
 			id: Buffer.from('1'),
 			nonce: BigInt(1),
 			moduleType: 3,
-			assetType: 0,
+			assetID: 0,
 			fee: BigInt(30000),
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
@@ -348,7 +348,7 @@ describe('TransactionPool class', () => {
 				minEntranceFeePriority: BigInt(10),
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: BigInt(1),
 						moduleType: 3,
 					},
@@ -358,7 +358,7 @@ describe('TransactionPool class', () => {
 			const lowFeeTrx = {
 				id: Buffer.from('1'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(3000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -383,7 +383,7 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: BigInt(1),
 						moduleType: 3,
 					},
@@ -399,7 +399,7 @@ describe('TransactionPool class', () => {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
@@ -418,7 +418,7 @@ describe('TransactionPool class', () => {
 			const highFeePriorityTx = {
 				id: Buffer.from('11'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(50000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -447,7 +447,7 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: BigInt(1),
 						moduleType: 3,
 					},
@@ -463,7 +463,7 @@ describe('TransactionPool class', () => {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
@@ -478,7 +478,7 @@ describe('TransactionPool class', () => {
 			const nonSequentialTx = {
 				id: Buffer.from('21'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -499,7 +499,7 @@ describe('TransactionPool class', () => {
 			const highFeePriorityTx = {
 				id: Buffer.from('11'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(50000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -526,7 +526,7 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: BigInt(1),
 						moduleType: 3,
 					},
@@ -542,7 +542,7 @@ describe('TransactionPool class', () => {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
 					moduleType: 3,
-					assetType: 0,
+					assetID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
@@ -559,7 +559,7 @@ describe('TransactionPool class', () => {
 			const lowFeePriorityTx = {
 				id: Buffer.from('11'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(1000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -583,7 +583,7 @@ describe('TransactionPool class', () => {
 		const tx = {
 			id: Buffer.from('1'),
 			moduleType: 3,
-			assetType: 0,
+			assetID: 0,
 			nonce: BigInt(1),
 			fee: BigInt(30000),
 			senderPublicKey,
@@ -591,7 +591,7 @@ describe('TransactionPool class', () => {
 		const additionalTx = {
 			id: Buffer.from('2'),
 			moduleType: 3,
-			assetType: 0,
+			assetID: 0,
 			nonce: BigInt(3),
 			fee: BigInt(30000),
 			senderPublicKey,
@@ -624,7 +624,7 @@ describe('TransactionPool class', () => {
 			const nonExistentTrx = {
 				id: Buffer.from('155'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(1000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -668,7 +668,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('1'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(20000),
 				senderPublicKey,
@@ -676,7 +676,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('3'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(3),
 				fee: BigInt(30000),
 				senderPublicKey,
@@ -695,7 +695,7 @@ describe('TransactionPool class', () => {
 				maxTransactions: 2,
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: BigInt(1),
 						moduleType: 3,
 					},
@@ -728,7 +728,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('1'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey1,
@@ -736,7 +736,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('2'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(60000),
 				senderPublicKey: senderPublicKey1,
@@ -747,7 +747,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('11'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
@@ -755,7 +755,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('12'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
@@ -785,7 +785,7 @@ describe('TransactionPool class', () => {
 				maxTransactions: 2,
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: BigInt(1),
 						moduleType: 3,
 					},
@@ -824,7 +824,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('1'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey1,
@@ -832,7 +832,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('2'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(60000),
 				senderPublicKey: senderPublicKey1,
@@ -840,7 +840,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('3'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(3),
 				fee: BigInt(90000),
 				senderPublicKey: senderPublicKey1,
@@ -851,7 +851,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('11'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
@@ -882,7 +882,7 @@ describe('TransactionPool class', () => {
 				transactionReorganizationInterval: 1,
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: BigInt(1),
 						moduleType: 3,
 					},
@@ -932,7 +932,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('1'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey1,
@@ -941,7 +941,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('2'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(2000),
 				senderPublicKey: senderPublicKey1,
@@ -950,7 +950,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('3'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(3),
 				fee: BigInt(3000),
 				senderPublicKey: senderPublicKey1,
@@ -962,7 +962,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('11'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey2,
@@ -971,7 +971,7 @@ describe('TransactionPool class', () => {
 			{
 				id: Buffer.from('12'),
 				moduleType: 3,
-				assetType: 0,
+				assetID: 0,
 				nonce: BigInt(2),
 				fee: BigInt(2000),
 				senderPublicKey: senderPublicKey2,

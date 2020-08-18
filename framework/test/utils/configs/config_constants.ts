@@ -34,7 +34,7 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	baseFees: [
 		{
 			moduleType: 5,
-			assetType: 0,
+			assetID: 0,
 			baseFee: '1000000000',
 		},
 	],

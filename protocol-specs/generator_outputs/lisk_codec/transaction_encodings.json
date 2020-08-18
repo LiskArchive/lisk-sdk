@@ -12,7 +12,7 @@
 			"input": {
 				"object": {
 					"moduleType": 20,
-					"assetType": 1,
+					"assetID": 1,
 					"nonce": 1570179673932370,
 					"fee": 3156364651,
 					"senderPublicKey": {
@@ -226,7 +226,7 @@
 							"dataType": "uint32",
 							"fieldNumber": 1
 						},
-						"assetType": {
+						"assetID": {
 							"dataType": "uint32",
 							"fieldNumber": 2
 						},

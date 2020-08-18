@@ -445,7 +445,7 @@ Object {
         "dataType": "bytes",
         "fieldNumber": 6,
       },
-      "assetType": Object {
+      "assetID": Object {
         "dataType": "uint32",
         "fieldNumber": 2,
       },
@@ -476,7 +476,7 @@ Object {
     },
     "required": Array [
       "moduleType",
-      "assetType",
+      "assetID",
       "nonce",
       "fee",
       "senderPublicKey",
@@ -486,7 +486,7 @@ Object {
   },
   "transactionsAssetSchemas": Array [
     Object {
-      "assetType": 0,
+      "assetID": 0,
       "moduleType": 2,
       "schema": Object {
         "$id": "lisk/transfer-asset",
@@ -518,7 +518,7 @@ Object {
       },
     },
     Object {
-      "assetType": 0,
+      "assetID": 0,
       "moduleType": 4,
       "schema": Object {
         "$id": "lisk/keys/register",
@@ -561,7 +561,7 @@ Object {
       },
     },
     Object {
-      "assetType": 0,
+      "assetID": 0,
       "moduleType": 5,
       "schema": Object {
         "$id": "lisk/dpos/register",
@@ -580,7 +580,7 @@ Object {
       },
     },
     Object {
-      "assetType": 1,
+      "assetID": 1,
       "moduleType": 5,
       "schema": Object {
         "$id": "lisk/dpos/vote",
@@ -618,7 +618,7 @@ Object {
       },
     },
     Object {
-      "assetType": 2,
+      "assetID": 2,
       "moduleType": 5,
       "schema": Object {
         "$id": "lisk/dpos/unlock",
@@ -661,7 +661,7 @@ Object {
       },
     },
     Object {
-      "assetType": 3,
+      "assetID": 3,
       "moduleType": 5,
       "schema": Object {
         "$id": "lisk/dpos/pom",

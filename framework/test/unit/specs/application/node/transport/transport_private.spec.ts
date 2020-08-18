@@ -55,7 +55,7 @@ describe('transport', () => {
 
 		transaction = new Transaction({
 			moduleType: 2,
-			assetType: 0,
+			assetID: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
@@ -71,7 +71,7 @@ describe('transport', () => {
 
 		const transactionOne = new Transaction({
 			moduleType: 2,
-			assetType: 0,
+			assetID: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
@@ -86,7 +86,7 @@ describe('transport', () => {
 		);
 		const transactionTwo = new Transaction({
 			moduleType: 2,
-			assetType: 0,
+			assetID: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
@@ -395,7 +395,7 @@ describe('transport', () => {
 				beforeEach(() => {
 					transaction = new Transaction({
 						moduleType: 2,
-						assetType: 0,
+						assetID: 0,
 						fee: BigInt('10'),
 						nonce: BigInt(0),
 						senderPublicKey: Buffer.from(

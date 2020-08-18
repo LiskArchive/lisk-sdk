@@ -18,7 +18,7 @@ export type Transaction = TransactionObject & TransactionFunctions;
 export interface TransactionObject {
 	readonly id: Buffer;
 	readonly moduleType: number;
-	readonly assetType: number;
+	readonly assetID: number;
 	readonly nonce: bigint;
 	readonly fee: bigint;
 	readonly senderPublicKey: Buffer;

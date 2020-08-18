@@ -48,7 +48,7 @@ describe('DPoSModule', () => {
 			delegateListRoundOffset: 3,
 			baseFees: [
 				{
-					assetType: 0,
+					assetID: 0,
 					baseFee: '1',
 					moduleType: 3,
 				},

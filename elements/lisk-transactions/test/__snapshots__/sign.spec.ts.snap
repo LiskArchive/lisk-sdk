@@ -119,7 +119,7 @@ Object {
       "type": "Buffer",
     },
   },
-  "assetType": 0,
+  "assetID": 0,
   "fee": 10000000n,
   "id": Object {
     "data": Array [

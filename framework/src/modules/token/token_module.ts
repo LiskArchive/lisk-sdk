@@ -106,7 +106,7 @@ export class TokenModule extends BaseModule {
 		const minFee = BigInt(this.config.minFeePerByte) * BigInt(transaction.getBytes().length);
 		const baseFee =
 			this.config.baseFees.find(
-				fee => fee.moduleType === transaction.moduleType && fee.assetType === transaction.assetType,
+				fee => fee.moduleType === transaction.moduleType && fee.assetID === transaction.assetID,
 			)?.baseFee ?? BigInt(0);
 		const minimumRequiredFee = minFee + BigInt(baseFee);
 		if (transaction.fee < minimumRequiredFee) {

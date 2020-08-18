@@ -38,7 +38,7 @@ export const createTransferTransaction = ({
 	});
 	const tx = new Transaction({
 		moduleType: 2,
-		assetType: 0,
+		assetID: 0,
 		nonce: BigInt(nonce),
 		senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
 		fee: BigInt(convertLSKToBeddows(fee)),
@@ -77,7 +77,7 @@ export const createVoteTransaction = ({
 
 	const tx = new Transaction({
 		moduleType: 5,
-		assetType: 1,
+		assetID: 1,
 		nonce: BigInt(nonce),
 		senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
 		fee: BigInt(convertLSKToBeddows(fee)),

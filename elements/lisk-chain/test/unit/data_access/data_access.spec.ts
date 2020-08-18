@@ -509,7 +509,7 @@ describe('data_access', () => {
 		it('should get transaction by id', async () => {
 			const tx = new Transaction({
 				moduleType: 2,
-				assetType: 0,
+				assetID: 0,
 				fee: BigInt('10000000'),
 				nonce: BigInt('0'),
 				senderPublicKey: Buffer.from(

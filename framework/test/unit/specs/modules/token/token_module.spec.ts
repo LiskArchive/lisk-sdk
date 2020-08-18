@@ -38,7 +38,7 @@ describe('token module', () => {
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
 			{
-				assetType: 0,
+				assetID: 0,
 				baseFee: '10000000',
 				moduleType: 2,
 			},
@@ -204,7 +204,7 @@ describe('token module', () => {
 				...genesisConfig,
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: undefined as any,
 						moduleType: 2,
 					},
