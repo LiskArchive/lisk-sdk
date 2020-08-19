@@ -288,5 +288,22 @@ describe('token module', () => {
 				],
 			};
 		});
+
+		describe('when block contains transactions', () => {
+			it('should update generator balance to give rewards and fees - minFee', async () => {
+				let expected = BigInt(senderAccount.token.balance) + block.header.reward;
+				for (const tx of block.payload) {
+					expected += tx.fee - minFee;
+				}
+				await tokenModule.afterBlockApply({
+					block,
+					stateStore,
+					reducerHandler,
+					consensus: {} as any,
+				});
+
+				expect(senderAccount.token.balance).toEqual(expected);
+			});
+		});
 	});
 });
