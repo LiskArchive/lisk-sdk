@@ -453,7 +453,7 @@ export class Node {
 			rewardOffset: this._options.genesisConfig.rewards.offset,
 			rewardMilestones: this._options.genesisConfig.rewards.milestones.map(s => BigInt(s)),
 			blockTime: this._options.genesisConfig.blockTime,
-			accounts: this._registeredAccountSchemas,
+			accountSchemas: this._registeredAccountSchemas,
 		});
 
 		this._bft = new BFT({

@@ -66,7 +66,7 @@ describe('chain/process block', () => {
 			db,
 			genesisBlock,
 			networkIdentifier: defaultNetworkIdentifier,
-			accounts: defaultAccountModules,
+			accountSchemas: defaultAccountModules,
 			...constants,
 		});
 		(chainInstance as any)._lastBlock = genesisBlock;

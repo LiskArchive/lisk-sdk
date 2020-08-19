@@ -75,7 +75,7 @@ describe('Synchronizer', () => {
 			networkIdentifier: defaultNetworkIdentifier,
 			db: blockchainDB,
 			genesisBlock,
-			accounts: defaultAccountSchema,
+			accountSchemas: defaultAccountSchema,
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
