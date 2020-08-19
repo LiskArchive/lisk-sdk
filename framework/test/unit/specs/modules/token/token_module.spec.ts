@@ -107,10 +107,12 @@ describe('token module', () => {
 
 			return expect(
 				tokenModule.reducers.credit(
-					{ address: senderAccount.address, amount: BigInt('1000') },
+					{ address: senderAccount.address, amount: BigInt('0') },
 					stateStore,
 				),
-			).resolves.toBeUndefined();
+			).rejects.toStrictEqual(
+				new Error(`Remaining balance must be greater than ${minRemainingBalance}`),
+			);
 		});
 
 		it('should credit target account', async () => {
@@ -268,14 +270,14 @@ describe('token module', () => {
 	});
 
 	describe('#afterBlockApply', () => {
-		const generatorPublicKey = getRandomBytes(20);
 		let block: any;
 		const minFee =
-			BigInt(genesisConfig.minFeePerByte) * BigInt(1) + BigInt(genesisConfig.baseFees[0].baseFee);
+			BigInt(genesisConfig.minFeePerByte) * validTransaction.getBytes().length +
+			BigInt(genesisConfig.baseFees[0].baseFee);
 		beforeEach(() => {
 			block = {
 				header: {
-					generatorPublicKey,
+					generatorPublicKey: 'senderAccountPublicKey',
 					reward: BigInt(1),
 				},
 				payload: [
@@ -306,7 +308,7 @@ describe('token module', () => {
 			});
 
 			it('should update burntFee in the chain state', async () => {
-				const expected = BigInt(0) + minFee;
+				const expected = minFee;
 				const expectedBuffer = Buffer.alloc(8);
 				expectedBuffer.writeBigInt64BE(expected);
 				await tokenModule.afterBlockApply({
