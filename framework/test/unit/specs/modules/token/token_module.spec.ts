@@ -304,6 +304,20 @@ describe('token module', () => {
 
 				expect(senderAccount.token.balance).toEqual(expected);
 			});
+
+			it('should update burntFee in the chain state', async () => {
+				const expected = BigInt(0) + minFee;
+				const expectedBuffer = Buffer.alloc(8);
+				expectedBuffer.writeBigInt64BE(expected);
+				await tokenModule.afterBlockApply({
+					block,
+					stateStore,
+					reducerHandler,
+					consensus: {} as any,
+				});
+
+				expect(stateStore.chain.set).toBeCalledWith(CHAIN_STATE_BURNT_FEE, expectedBuffer);
+			});
 		});
 	});
 });
