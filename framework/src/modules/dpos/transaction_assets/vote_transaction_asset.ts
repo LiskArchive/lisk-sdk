@@ -15,11 +15,11 @@
 import { BaseAsset } from '../../base_asset';
 import { ValidationError } from '../../../errors';
 import { MAX_INT64, MAX_UNLOCKING, MAX_VOTE, TEN_UNIT } from '../constants';
-import { DPOSAccountProps, VoteTransactionAssetInput } from '../types';
+import { DPOSAccountProps, VoteTransactionAssetContext } from '../types';
 import { sortUnlocking } from '../utils';
-import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
+import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 
-export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
+export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext> {
 	public name = 'vote';
 	public id = 1;
 	public schema = {
@@ -53,7 +53,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validate({ asset }: ValidateAssetInput<VoteTransactionAssetInput>): void {
+	public validate({ asset }: ValidateAssetContext<VoteTransactionAssetContext>): void {
 		let upVoteCount = 0;
 		let downVoteCount = 0;
 		const addressSet: { [addressStr: string]: boolean } = {};
@@ -98,7 +98,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 		senderID,
 		stateStore: store,
 		reducerHandler,
-	}: ApplyAssetInput<VoteTransactionAssetInput>): Promise<void> {
+	}: ApplyAssetContext<VoteTransactionAssetContext>): Promise<void> {
 		// Only order should be change, so no need to copy object itself
 		const assetCopy = [...asset.votes];
 

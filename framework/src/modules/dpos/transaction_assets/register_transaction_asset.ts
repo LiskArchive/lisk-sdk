@@ -13,14 +13,14 @@
  */
 
 import { BaseAsset } from '../../base_asset';
-import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
+import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { DELEGATE_NAME_FEE } from '../constants';
 import { isUsername } from '../utils';
-import { DPOSAccountProps, RegisterTransactionAssetInput } from '../types';
+import { DPOSAccountProps, RegisterTransactionAssetContext } from '../types';
 import { getRegisteredDelegates, setRegisteredDelegates } from '../data_access';
 
-export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetInput> {
+export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetContext> {
 	public baseFee = DELEGATE_NAME_FEE;
 	public name = 'register';
 	public id = 0;
@@ -39,7 +39,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validate({ asset }: ValidateAssetInput<RegisterTransactionAssetInput>): void {
+	public validate({ asset }: ValidateAssetContext<RegisterTransactionAssetContext>): void {
 		if (!isUsername(asset.username)) {
 			throw new ValidationError('The username is in unsupported format', asset.username);
 		}
@@ -50,7 +50,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		asset,
 		senderID,
 		stateStore,
-	}: ApplyAssetInput<RegisterTransactionAssetInput>): Promise<void> {
+	}: ApplyAssetContext<RegisterTransactionAssetContext>): Promise<void> {
 		const sender = await stateStore.account.get<DPOSAccountProps>(senderID);
 
 		if (sender.dpos.delegate.username) {

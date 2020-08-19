@@ -16,10 +16,10 @@
 import {
 	GenesisConfig,
 	AccountSchema,
-	TransactionApplyInput,
-	AfterBlockApplyInput,
-	BeforeBlockApplyInput,
-	AfterGenesisBlockApplyInput,
+	TransactionApplyContext,
+	AfterBlockApplyContext,
+	BeforeBlockApplyContext,
+	AfterGenesisBlockApplyContext,
 	Reducers,
 	Actions,
 } from '../types';
@@ -40,9 +40,9 @@ export abstract class BaseModule {
 		this.config = config;
 	}
 
-	public async beforeTransactionApply?(input: TransactionApplyInput): Promise<void>;
-	public async afterTransactionApply?(input: TransactionApplyInput): Promise<void>;
-	public async afterGenesisBlockApply?(input: AfterGenesisBlockApplyInput): Promise<void>;
-	public async beforeBlockApply?(input: BeforeBlockApplyInput): Promise<void>;
-	public async afterBlockApply?(input: AfterBlockApplyInput): Promise<void>;
+	public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
+	public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;
+	public async afterGenesisBlockApply?(context: AfterGenesisBlockApplyContext): Promise<void>;
+	public async beforeBlockApply?(context: BeforeBlockApplyContext): Promise<void>;
+	public async afterBlockApply?(context: AfterBlockApplyContext): Promise<void>;
 }

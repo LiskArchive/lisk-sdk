@@ -23,7 +23,7 @@ import {
 	verifyMultiSignatureTransaction,
 } from './utils';
 import { BaseModule } from '../base_module';
-import { AfterGenesisBlockApplyInput, TransactionApplyInput } from '../../types';
+import { AfterGenesisBlockApplyContext, TransactionApplyContext } from '../../types';
 import { RegisterassetID, RegisterAsset } from './register_asset';
 import { keysSchema } from './schemas';
 
@@ -59,7 +59,7 @@ export class KeysModule extends BaseModule {
 	public async beforeTransactionApply({
 		stateStore,
 		transaction,
-	}: TransactionApplyInput): Promise<void> {
+	}: TransactionApplyContext): Promise<void> {
 		const sender = await stateStore.account.get<AccountKeys>(transaction.senderID);
 		const { networkIdentifier } = stateStore.chain;
 		const transactionBytes = transaction.getSigningBytes();
@@ -141,7 +141,7 @@ export class KeysModule extends BaseModule {
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
 	public async afterGenesisBlockApply({
 		genesisBlock,
-	}: AfterGenesisBlockApplyInput<AccountKeys>): Promise<void> {
+	}: AfterGenesisBlockApplyContext<AccountKeys>): Promise<void> {
 		const errors = [];
 		for (const account of genesisBlock.header.asset.accounts) {
 			if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {

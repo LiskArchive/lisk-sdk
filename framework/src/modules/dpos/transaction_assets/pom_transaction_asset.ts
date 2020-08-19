@@ -16,10 +16,10 @@ import { BlockHeader } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseAsset } from '../../base_asset';
-import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
+import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE, MAX_POM_HEIGHTS } from '../constants';
-import { DPOSAccountProps, PomTransactionAssetInput } from '../types';
+import { DPOSAccountProps, PomTransactionAssetContext } from '../types';
 import { getPunishmentPeriod, validateSignature } from '../utils';
 
 const signingBlockHeaderSchema = {
@@ -77,7 +77,7 @@ export const blockHeaderSchema = {
 const getBlockHeaderBytes = (header: BlockHeader): Buffer =>
 	codec.encode(signingBlockHeaderSchema, header);
 
-export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
+export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 	public name = 'pom';
 	public id = 3;
 	public schema = {
@@ -97,7 +97,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validate({ asset }: ValidateAssetInput<PomTransactionAssetInput>): void {
+	public validate({ asset }: ValidateAssetContext<PomTransactionAssetContext>): void {
 		if (!asset.header1.generatorPublicKey.equals(asset.header2.generatorPublicKey)) {
 			throw new ValidationError(
 				'GeneratorPublicKey of each BlockHeader should match.',
@@ -147,7 +147,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 		senderID,
 		stateStore: store,
 		reducerHandler,
-	}: ApplyAssetInput<PomTransactionAssetInput>): Promise<void> {
+	}: ApplyAssetContext<PomTransactionAssetContext>): Promise<void> {
 		const currentHeight = store.chain.lastBlockHeaders[0].height + 1;
 		const { networkIdentifier } = store.chain;
 		/*

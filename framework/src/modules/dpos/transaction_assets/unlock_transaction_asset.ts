@@ -13,13 +13,13 @@
  */
 
 import { BaseAsset } from '../../base_asset';
-import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
+import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { AMOUNT_MULTIPLIER_FOR_VOTES } from '../constants';
-import { DPOSAccountProps, UnlockTransactionAssetInput } from '../types';
+import { DPOSAccountProps, UnlockTransactionAssetContext } from '../types';
 import { getPunishmentPeriod, getWaitingPeriod } from '../utils';
 
-export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetInput> {
+export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetContext> {
 	public name = 'unlock';
 	public id = 2;
 	public schema = {
@@ -57,7 +57,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetInpu
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validate({ asset }: ValidateAssetInput<UnlockTransactionAssetInput>): void {
+	public validate({ asset }: ValidateAssetContext<UnlockTransactionAssetContext>): void {
 		for (const unlock of asset.unlockObjects) {
 			if (unlock.amount <= BigInt(0)) {
 				throw new ValidationError(
@@ -81,7 +81,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetInpu
 		senderID,
 		stateStore: store,
 		reducerHandler,
-	}: ApplyAssetInput<UnlockTransactionAssetInput>): Promise<void> {
+	}: ApplyAssetContext<UnlockTransactionAssetContext>): Promise<void> {
 		for (const unlock of asset.unlockObjects) {
 			const sender = await store.account.get<DPOSAccountProps>(senderID);
 			const delegate = await store.account.get<DPOSAccountProps>(unlock.delegateAddress);

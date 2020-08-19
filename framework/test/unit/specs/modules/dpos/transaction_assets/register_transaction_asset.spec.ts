@@ -15,16 +15,16 @@
 import { codec } from '@liskhq/lisk-codec';
 import { RegisterTransactionAsset } from '../../../../../../src/modules/dpos/transaction_assets/register_transaction_asset';
 import { ValidationError } from '../../../../../../src/errors';
-import { ApplyAssetInput } from '../../../../../../src/types';
+import { ApplyAssetContext } from '../../../../../../src/types';
 import { createAccount, createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
-import { RegisterTransactionAssetInput } from '../../../../../../src/modules/dpos';
+import { RegisterTransactionAssetContext } from '../../../../../../src/modules/dpos';
 import { CHAIN_STATE_DELEGATE_USERNAMES } from '../../../../../../src/modules/dpos/constants';
 
 describe('RegisterTransactionAsset', () => {
 	const lastBlockHeight = 200;
 	let transactionAsset: RegisterTransactionAsset;
-	let input: ApplyAssetInput<RegisterTransactionAssetInput>;
+	let context: ApplyAssetContext<RegisterTransactionAssetContext>;
 	let sender: any;
 	let stateStoreMock: StateStoreMock;
 
@@ -34,7 +34,7 @@ describe('RegisterTransactionAsset', () => {
 			lastBlockHeaders: [{ height: lastBlockHeight }] as any,
 		});
 		transactionAsset = new RegisterTransactionAsset();
-		input = {
+		context = {
 			senderID: sender.address,
 			asset: {
 				username: 'delegate',
@@ -69,7 +69,7 @@ describe('RegisterTransactionAsset', () => {
 	describe('#validate', () => {
 		it('should not throw error if valid username is provided', () => {
 			// Arrange
-			const asset: RegisterTransactionAssetInput = { username: 'obelisk' };
+			const asset: RegisterTransactionAssetContext = { username: 'obelisk' };
 			const error = new ValidationError('The username is in unsupported format', 'obelisk');
 
 			// Act & Assert
@@ -78,7 +78,7 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should throw error when username includes capital letter', () => {
 			// Arrange
-			const asset: RegisterTransactionAssetInput = { username: 'Obelisk' };
+			const asset: RegisterTransactionAssetContext = { username: 'Obelisk' };
 			const error = new ValidationError('The username is in unsupported format', 'Obelisk');
 
 			// Act & Assert
@@ -87,7 +87,7 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should throw error when username is like address', () => {
 			// Arrange
-			const asset: RegisterTransactionAssetInput = { username: '17670127987160191762l' };
+			const asset: RegisterTransactionAssetContext = { username: '17670127987160191762l' };
 			const error = new ValidationError(
 				'The username is in unsupported format',
 				'17670127987160191762l',
@@ -99,7 +99,7 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should throw error when username includes forbidden character', () => {
 			// Arrange
-			const asset: RegisterTransactionAssetInput = { username: 'obe^lis' };
+			const asset: RegisterTransactionAssetContext = { username: 'obe^lis' };
 
 			// Act & Assert
 			expect(() => transactionAsset.validate({ asset } as any)).toThrowErrorMatchingSnapshot();
@@ -107,7 +107,7 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should throw error when username includes forbidden null character', () => {
 			// Arrange
-			const asset: RegisterTransactionAssetInput = { username: 'obe\0lisk' };
+			const asset: RegisterTransactionAssetContext = { username: 'obe\0lisk' };
 			const error = new ValidationError('The username is in unsupported format', 'obe\0lisk');
 
 			// Act & Assert
@@ -118,17 +118,17 @@ describe('RegisterTransactionAsset', () => {
 	describe('#apply', () => {
 		it('should call state store', async () => {
 			// Act
-			await transactionAsset.apply(input);
+			await transactionAsset.apply(context);
 
 			// Assert
-			expect(stateStoreMock.account.get).toHaveBeenCalledWith(input.senderID);
+			expect(stateStoreMock.account.get).toHaveBeenCalledWith(context.senderID);
 			expect(stateStoreMock.account.set).toHaveBeenCalledWith(sender.address, {
 				...sender,
 				dpos: {
 					...sender.dpos,
 					delegate: {
 						...sender.dpos.delegate,
-						username: input.asset.username,
+						username: context.asset.username,
 					},
 				},
 			});
@@ -142,7 +142,7 @@ describe('RegisterTransactionAsset', () => {
 			);
 
 			// Act & Assert
-			await expect(transactionAsset.apply(input)).resolves.toBeUndefined();
+			await expect(transactionAsset.apply(context)).resolves.toBeUndefined();
 		});
 
 		it('should throw error when username is taken', async () => {
@@ -173,21 +173,21 @@ describe('RegisterTransactionAsset', () => {
 
 			const secondAccount = createFakeDefaultAccount({ asset: { delegate: 'myuser' } });
 			stateStoreMock.account.set(secondAccount.address, secondAccount);
-			input.asset = { username: 'myuser' };
+			context.asset = { username: 'myuser' };
 
 			stateStoreMock.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
 				codec.encode(delegatesUserNamesSchema, {
 					registeredDelegates: [
 						{
-							username: input.asset.username,
+							username: context.asset.username,
 							address: Buffer.from('random'),
 						},
 					],
 				}),
 			);
 
-			await expect(transactionAsset.apply(input)).rejects.toThrow('Username is not unique');
+			await expect(transactionAsset.apply(context)).rejects.toThrow('Username is not unique');
 		});
 
 		it('should throw error when account is already delegate', async () => {
@@ -205,7 +205,9 @@ describe('RegisterTransactionAsset', () => {
 				}),
 			);
 
-			await expect(transactionAsset.apply(input)).rejects.toThrow('Account is already a delegate');
+			await expect(transactionAsset.apply(context)).rejects.toThrow(
+				'Account is already a delegate',
+			);
 		});
 
 		it('should set lastForgedHeight to the lastBlock height + 1', async () => {
@@ -216,7 +218,7 @@ describe('RegisterTransactionAsset', () => {
 			);
 
 			// Act
-			await transactionAsset.apply(input);
+			await transactionAsset.apply(context);
 
 			// Assert
 			const updatedSender = (await stateStoreMock.account.get(sender.address)) as any;

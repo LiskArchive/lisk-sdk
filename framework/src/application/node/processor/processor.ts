@@ -30,10 +30,10 @@ import { InMemoryChannel } from '../../../controller/channels';
 import { BaseModule, BaseAsset } from '../../../modules';
 import { Pipeline } from './pipeline';
 import {
-	BeforeBlockApplyInput,
-	TransactionApplyInput,
-	AfterBlockApplyInput,
-	AfterGenesisBlockApplyInput,
+	BeforeBlockApplyContext,
+	TransactionApplyContext,
+	AfterBlockApplyContext,
+	AfterGenesisBlockApplyContext,
 	ReducerHandler,
 	Consensus,
 	Delegate,
@@ -69,11 +69,11 @@ export class Processor {
 	private readonly _modules: BaseModule[] = [];
 	private _stop = false;
 	private readonly _hooks: {
-		beforeTransactionApply: Pipeline<TransactionApplyInput>;
-		afterTransactionApply: Pipeline<TransactionApplyInput>;
-		beforeBlockApply: Pipeline<BeforeBlockApplyInput>;
-		afterBlockApply: Pipeline<AfterBlockApplyInput>;
-		afterGenesisBlockApply: Pipeline<AfterGenesisBlockApplyInput>;
+		beforeTransactionApply: Pipeline<TransactionApplyContext>;
+		afterTransactionApply: Pipeline<TransactionApplyContext>;
+		beforeBlockApply: Pipeline<BeforeBlockApplyContext>;
+		afterBlockApply: Pipeline<AfterBlockApplyContext>;
+		afterGenesisBlockApply: Pipeline<AfterGenesisBlockApplyContext>;
 	};
 
 	public constructor({ channel, logger, chainModule, bftModule }: ProcessorInput) {
@@ -84,11 +84,11 @@ export class Processor {
 		this._jobQueue = new jobHandlers.JobQueue();
 		this.events = new EventEmitter();
 		this._hooks = {
-			beforeTransactionApply: new Pipeline<TransactionApplyInput>(),
-			afterTransactionApply: new Pipeline<TransactionApplyInput>(),
-			beforeBlockApply: new Pipeline<BeforeBlockApplyInput>(),
-			afterBlockApply: new Pipeline<AfterBlockApplyInput>(),
-			afterGenesisBlockApply: new Pipeline<AfterGenesisBlockApplyInput>(),
+			beforeTransactionApply: new Pipeline<TransactionApplyContext>(),
+			afterTransactionApply: new Pipeline<TransactionApplyContext>(),
+			beforeBlockApply: new Pipeline<BeforeBlockApplyContext>(),
+			afterBlockApply: new Pipeline<AfterBlockApplyContext>(),
+			afterGenesisBlockApply: new Pipeline<AfterGenesisBlockApplyContext>(),
 		};
 	}
 
