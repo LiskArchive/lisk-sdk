@@ -64,6 +64,17 @@ describe('StateStoreMock', () => {
 				expect(updated.balance).toEqual(BigInt(200));
 			});
 		});
+
+		describe('del', () => {
+			it('should delete from cache', async () => {
+				await mock.account.del(Buffer.from('accountA'));
+				expect(mock.account.getUpdated()).toHaveLength(0);
+			});
+
+			it('should throw if data does not exist', async () => {
+				await expect(mock.account.get(Buffer.from('account2'))).rejects.toThrow();
+			});
+		});
 	});
 
 	describe('chain store', () => {

@@ -33,6 +33,7 @@ describe('dataAccess.blocks', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
 		created: [],
 		updated: [],
+		deleted: [],
 	});
 	let db: KVStore;
 	let storage: Storage;
@@ -401,6 +402,32 @@ describe('dataAccess.blocks', () => {
 
 		it('should delete block and all related indexes', async () => {
 			// Deleting temp blocks to test the saving
+			await dataAccess.clearTempBlocks();
+			await dataAccess.deleteBlock(blocks[2], stateStore as any);
+
+			await expect(
+				db.exists(`blocks:id:${blocks[2].header.id.toString('binary')}`),
+			).resolves.toBeFalse();
+			await expect(
+				db.exists(`blocks:height:${formatInt(blocks[2].header.height)}`),
+			).resolves.toBeFalse();
+			await expect(
+				db.exists(`transactions:blockID:${blocks[2].header.id.toString('binary')}`),
+			).resolves.toBeFalse();
+			await expect(
+				db.exists(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`),
+			).resolves.toBeFalse();
+			await expect(
+				db.exists(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`),
+			).resolves.toBeFalse();
+			await expect(
+				db.exists(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),
+			).resolves.toBeFalse();
+		});
+
+		it('should delete block and all related indexes when there is no diff', async () => {
+			// Deleting temp blocks to test the saving
+			await db.del(`diff:${formatInt(blocks[2].header.height)}`);
 			await dataAccess.clearTempBlocks();
 			await dataAccess.deleteBlock(blocks[2], stateStore as any);
 

@@ -174,7 +174,7 @@ export class Node {
 			}
 
 			this._networkIdentifier = getNetworkIdentifier(
-				this._genesisBlock.header.transactionRoot,
+				this._genesisBlock.header.id,
 				this._options.genesisConfig.communityIdentifier,
 			);
 

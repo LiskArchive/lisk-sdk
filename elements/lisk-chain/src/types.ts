@@ -81,6 +81,7 @@ export interface DiffHistory {
 export interface StateDiff {
 	readonly updated: Array<Readonly<UpdatedDiff>>;
 	readonly created: Array<Readonly<string>>;
+	readonly deleted: Array<Readonly<UpdatedDiff>>;
 }
 
 interface UpdatedDiff {

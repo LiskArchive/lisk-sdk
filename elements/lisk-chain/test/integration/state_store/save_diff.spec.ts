@@ -21,6 +21,7 @@ import {
 	defaultAccountSchema,
 	AccountAsset,
 	defaultAccount,
+	encodeDefaultAccount,
 } from '../../utils/account';
 import { DataAccess } from '../../../src/data_access';
 import { registeredBlockHeaders } from '../../utils/block';
@@ -90,7 +91,7 @@ describe('stateStore.finalize.saveDiff', () => {
 	describe('finalize', () => {
 		it('should save only account state changes diff', async () => {
 			// Arrange
-			accounts.map(account => stateStore.account.set(account.address, account));
+			accounts.forEach(account => stateStore.account.set(account.address, account));
 			const fakeHeight = '1';
 			const batch = db.batch();
 
@@ -106,6 +107,70 @@ describe('stateStore.finalize.saveDiff', () => {
 				created: [
 					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[0].address.toString('binary')}`,
 					`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[1].address.toString('binary')}`,
+				],
+				deleted: [],
+			});
+		});
+
+		it('should not save deleted account from memory', async () => {
+			// Arrange
+			accounts.forEach(account => stateStore.account.set(account.address, account));
+			const fakeHeight = '1';
+			const batch = db.batch();
+			// Act
+			await stateStore.account.del(accounts[0].address);
+			stateStore.finalize(fakeHeight, batch);
+			await batch.write();
+			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+			const decodedDiff = codec.decode(stateDiffSchema, diff);
+
+			// Assert
+			expect(decodedDiff).toStrictEqual({
+				updated: [],
+				created: [`${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[1].address.toString('binary')}`],
+				deleted: [],
+			});
+		});
+
+		it('should save original value as deleted for deleted existed account', async () => {
+			// Arrange
+			accounts.forEach(account => stateStore.account.set(account.address, account));
+			const fakeHeight = '1';
+			const batch = db.batch();
+			stateStore.finalize(fakeHeight, batch);
+			await batch.write();
+
+			// Act
+			const nextHeight = '2';
+			const newStateStore = new StateStore(dataAccess, {
+				lastBlockHeaders: [],
+				networkIdentifier: defaultNetworkIdentifier,
+				lastBlockReward: BigInt(500000000),
+				defaultAccount,
+			});
+			const originalAccount = await newStateStore.account.get<{ token: { balance: bigint } }>(
+				accounts[0].address,
+			);
+			const originalBuffer = encodeDefaultAccount(originalAccount);
+			originalAccount.token.balance = BigInt(777);
+			newStateStore.account.set(accounts[0].address, originalAccount);
+			const nextBatch = db.batch();
+			await newStateStore.account.del(accounts[0].address);
+			newStateStore.finalize(nextHeight, nextBatch);
+			await nextBatch.write();
+
+			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${nextHeight}`);
+			const decodedDiff = codec.decode(stateDiffSchema, diff);
+
+			// Assert
+			expect(decodedDiff).toStrictEqual({
+				updated: [],
+				created: [],
+				deleted: [
+					{
+						key: `${DB_KEY_ACCOUNTS_ADDRESS}:${accounts[0].address.toString('binary')}`,
+						value: originalBuffer,
+					},
 				],
 			});
 		});
@@ -127,6 +192,7 @@ describe('stateStore.finalize.saveDiff', () => {
 			expect(decodedDiff).toStrictEqual({
 				updated: [],
 				created: [`${DB_KEY_CHAIN_STATE}:key1`, `${DB_KEY_CHAIN_STATE}:key2`],
+				deleted: [],
 			});
 		});
 
@@ -147,6 +213,7 @@ describe('stateStore.finalize.saveDiff', () => {
 			expect(decodedDiff).toStrictEqual({
 				updated: [],
 				created: [`${DB_KEY_CONSENSUS_STATE}:key3`, `${DB_KEY_CONSENSUS_STATE}:key4`],
+				deleted: [],
 			});
 		});
 
@@ -177,6 +244,7 @@ describe('stateStore.finalize.saveDiff', () => {
 					`${DB_KEY_CONSENSUS_STATE}:key3`,
 					`${DB_KEY_CONSENSUS_STATE}:key4`,
 				],
+				deleted: [],
 			});
 		});
 
