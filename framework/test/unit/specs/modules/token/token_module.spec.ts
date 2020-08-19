@@ -339,4 +339,27 @@ describe('token module', () => {
 			});
 		});
 	});
+
+	describe('#afterGenesisBlockApply', () => {
+		it('should not throw error if total genesis accounts balance does not exceed limit', async () => {
+			return expect(
+				tokenModule.afterGenesisBlockApply({
+					stateStore,
+					genesisBlock,
+					reducerHandler,
+				}),
+			).resolves.toBeUndefined();
+		});
+
+		it('should throw error if total genesis accounts balance exceeds limit', async () => {
+			senderAccount.token.balance = BigInt(GENESIS_BLOCK_MAX_BALANCE) + BigInt(1);
+			return expect(
+				tokenModule.afterGenesisBlockApply({
+					stateStore,
+					genesisBlock,
+					reducerHandler,
+				}),
+			).rejects.toStrictEqual(new Error('Total balance exceeds the limit (2^63)-1'));
+		});
+	});
 });
