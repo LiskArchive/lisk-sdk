@@ -148,14 +148,14 @@ export class Node {
 
 			for (const CustomModule of this._customModules) {
 				const customModule = new CustomModule(this._options.genesisConfig);
-				const exist = this._registeredModules.find(rm => rm.type === customModule.type);
+				const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 				if (exist) {
-					throw new Error(`Custom module with type ${customModule.type} already exists`);
+					throw new Error(`Custom module with type ${customModule.id} already exists`);
 				}
 				if (customModule.accountSchema) {
 					this._registeredAccountSchemas[customModule.name] = {
 						...customModule.accountSchema,
-						fieldNumber: customModule.type,
+						fieldNumber: customModule.id,
 					};
 				}
 				this._registeredModules.push(customModule);
@@ -718,7 +718,7 @@ export class Node {
 		for (const customModule of this._registeredModules) {
 			for (const customAsset of customModule.transactionAssets) {
 				registeredSchemas.push({
-					moduleID: customModule.type,
+					moduleID: customModule.id,
 					assetID: customAsset.type,
 					schema: customAsset.assetSchema,
 				});

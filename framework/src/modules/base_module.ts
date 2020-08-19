@@ -34,7 +34,7 @@ export abstract class BaseModule {
 	public accountSchema?: AccountSchema;
 
 	public abstract name: string;
-	public abstract type: number;
+	public abstract id: number;
 
 	public constructor(config: GenesisConfig) {
 		this.config = config;

@@ -93,9 +93,9 @@ export class Processor {
 	}
 
 	public register(customModule: BaseModule): void {
-		const existingModule = this._modules.find(m => m.type === customModule.type);
+		const existingModule = this._modules.find(m => m.id === customModule.id);
 		if (existingModule) {
-			throw new Error(`Module type ${customModule.type} is already registered`);
+			throw new Error(`Module type ${customModule.id} is already registered`);
 		}
 		if (customModule.afterGenesisBlockApply) {
 			this._hooks.afterGenesisBlockApply.pipe([
@@ -484,9 +484,9 @@ export class Processor {
 	}
 
 	private _getAsset(transaction: Transaction): BaseAsset {
-		const customModule = this._modules.find(m => m.type === transaction.moduleID);
+		const customModule = this._modules.find(m => m.id === transaction.moduleID);
 		if (!customModule) {
-			throw new Error(`Module type ${transaction.moduleID} does not exist`);
+			throw new Error(`Module id ${transaction.moduleID} does not exist`);
 		}
 		const customAsset = customModule.transactionAssets.find(
 			asset => asset.type === transaction.assetID,

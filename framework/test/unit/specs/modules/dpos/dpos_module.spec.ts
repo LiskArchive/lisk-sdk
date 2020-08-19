@@ -76,7 +76,7 @@ describe('DPoSModule', () => {
 		it('should have valid type', () => {
 			dposModule = new DPoSModule(genesisConfig);
 
-			expect(dposModule.type).toEqual(5);
+			expect(dposModule.id).toEqual(5);
 		});
 
 		it('should have valid name', () => {

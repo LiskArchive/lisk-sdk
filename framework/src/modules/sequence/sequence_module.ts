@@ -27,7 +27,7 @@ interface SequenceAccount {
 
 export class SequenceModule extends BaseModule {
 	public name = 'sequence';
-	public type = 3;
+	public id = 3;
 	public accountSchema = {
 		type: 'object',
 		properties: {

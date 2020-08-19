@@ -27,7 +27,7 @@ import {
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
-	public type = 2;
+	public id = 2;
 	public accountSchema = {
 		type: 'object',
 		properties: {

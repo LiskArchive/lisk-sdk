@@ -551,7 +551,7 @@ describe('processor', () => {
 			);
 		});
 
-		it('should fail when module type does not exist', () => {
+		it('should fail when module id does not exist', () => {
 			const block = ({
 				header: {
 					id: Buffer.from('fakelock2'),
@@ -570,7 +570,7 @@ describe('processor', () => {
 					}),
 				],
 			} as unknown) as Block;
-			expect(() => processor.validate(block)).toThrow('Module type 20 does not exist');
+			expect(() => processor.validate(block)).toThrow('Module id 20 does not exist');
 		});
 
 		it('should fail when asset type does not exist', () => {
@@ -818,7 +818,7 @@ describe('processor', () => {
 						signatures: [],
 					}),
 				),
-			).toThrow('Module type 99 does not exist');
+			).toThrow('Module id 99 does not exist');
 		});
 
 		it('should throw if asset is not registered', () => {
@@ -903,7 +903,7 @@ describe('processor', () => {
 			expect(customModule1.afterTransactionApply).toHaveBeenCalledTimes(2);
 		});
 
-		it('should reject if module type does not exist', async () => {
+		it('should reject if module id does not exist', async () => {
 			await expect(
 				processor.verifyTransactions(
 					[
@@ -919,7 +919,7 @@ describe('processor', () => {
 					],
 					stateStoreStub,
 				),
-			).rejects.toThrow('Module type 99 does not exist');
+			).rejects.toThrow('Module id 99 does not exist');
 		});
 
 		it('should reject if asset type does not exist', async () => {

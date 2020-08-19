@@ -31,7 +31,7 @@ const { bufferArrayOrderByLex, bufferArrayUniqueItems, bufferArrayContainsSome }
 
 export class KeysModule extends BaseModule {
 	public name = 'keys';
-	public type = 4;
+	public id = 4;
 	public accountSchema = {
 		type: 'object',
 		properties: {
@@ -70,7 +70,7 @@ export class KeysModule extends BaseModule {
 		]);
 
 		// This is for registration of multisignature that requires all signatures
-		if (transaction.moduleID === this.type && transaction.assetID === RegisterassetID) {
+		if (transaction.moduleID === this.id && transaction.assetID === RegisterassetID) {
 			const { mandatoryKeys, optionalKeys } = codec.decode<DecodedAsset>(
 				keysSchema,
 				transaction.asset,

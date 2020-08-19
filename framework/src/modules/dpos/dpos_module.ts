@@ -40,7 +40,7 @@ const debug = Debug('dpos');
 
 export class DPoSModule extends BaseModule {
 	public name = 'dpos';
-	public type = 5;
+	public id = 5;
 	public accountSchema = dposAccountSchema;
 
 	public readonly rounds: Rounds;

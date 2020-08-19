@@ -35,7 +35,7 @@ export class CustomAsset0 extends BaseAsset {
 }
 
 export class CustomModule0 extends BaseModule {
-	public type = 3;
+	public id = 3;
 	public name = 'customModule0';
 	public transactionAssets = [new CustomAsset0()];
 	public reducers = {
@@ -50,7 +50,7 @@ export class CustomModule0 extends BaseModule {
 }
 
 export class CustomModule1 extends BaseModule {
-	public type = 4;
+	public id = 4;
 	public name = 'customModule1';
 
 	public beforeBlockApply = jest.fn();
