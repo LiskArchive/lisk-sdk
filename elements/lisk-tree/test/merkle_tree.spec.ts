@@ -25,6 +25,42 @@ describe('MerkleTree', () => {
 
 					expect(merkleTree.root).toEqual(Buffer.from(test.output.transactionMerkleRoot, 'hex'));
 				});
+
+				describe('should allow pre-hashed leafs', () => {
+					if (test.input.transactionIds.length > 2 ** 2) {
+						it('should result in same merkle root if divideed into sub tree of power of 2', () => {
+							const inputs = test.input.transactionIds.map(hexString =>
+								Buffer.from(hexString, 'hex'),
+							);
+							const subTreeRoots = [];
+
+							const chunk = 2 ** 2;
+							for (let i = 0; i < inputs.length; i += chunk) {
+								subTreeRoots.push(new MerkleTree(inputs.slice(i, i + chunk)).root);
+							}
+
+							expect(new MerkleTree(subTreeRoots, { preHashedLeaf: true }).root).toEqual(
+								Buffer.from(test.output.transactionMerkleRoot, 'hex'),
+							);
+						});
+
+						it('should not result in same merkle root if divideed into sub tree which is not power of 2', () => {
+							const inputs = test.input.transactionIds.map(hexString =>
+								Buffer.from(hexString, 'hex'),
+							);
+							const subTreeRoots = [];
+
+							const chunk = 3;
+							for (let i = 0; i < inputs.length; i += chunk) {
+								subTreeRoots.push(new MerkleTree(inputs.slice(i, i + chunk)).root);
+							}
+
+							expect(new MerkleTree(subTreeRoots, { preHashedLeaf: true }).root).not.toEqual(
+								Buffer.from(test.output.transactionMerkleRoot, 'hex'),
+							);
+						});
+					}
+				});
 			});
 		}
 	});

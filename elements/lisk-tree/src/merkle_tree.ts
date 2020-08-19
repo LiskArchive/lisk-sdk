@@ -30,12 +30,13 @@ import { generateHash, getBinaryString, isLeaf, getPairLocation } from './utils'
 export class MerkleTree {
 	private _root: Buffer;
 	private _width = 0;
+	private readonly _preHashedLeaf: boolean;
 
 	// Object holds data in format { [hash]: value }
 	private _hashToValueMap: { [key: string]: Buffer | undefined } = {};
 	private _locationToHashMap: { [key: string]: Buffer | undefined } = {};
 
-	public constructor(initValues: Buffer[] = []) {
+	public constructor(initValues: Buffer[] = [], options?: { preHashedLeaf: boolean }) {
 		if (initValues.length <= 1) {
 			const rootNode = initValues.length
 				? this._generateLeaf(initValues[0], 0)
@@ -44,9 +45,11 @@ export class MerkleTree {
 			this._hashToValueMap[this._root.toString('binary')] = rootNode.value;
 			this._locationToHashMap[`${getBinaryString(0, this._getHeight())}`] = this._root;
 			this._width = initValues.length ? 1 : 0;
+			this._preHashedLeaf = options?.preHashedLeaf ?? false;
 			return;
 		}
 
+		this._preHashedLeaf = options?.preHashedLeaf ?? false;
 		this._root = this._build(initValues);
 	}
 
@@ -266,7 +269,7 @@ export class MerkleTree {
 			[LEAF_PREFIX, value],
 			LEAF_PREFIX.length + value.length,
 		);
-		const leafHash = hash(leafValueWithoutNodeIndex);
+		const leafHash = this._preHashedLeaf ? value : hash(leafValueWithoutNodeIndex);
 		// We include nodeIndex into the value to allow for nodeIndex retrieval for leaf nodes
 		const leafValueWithNodeIndex = Buffer.concat(
 			[LEAF_PREFIX, nodeIndexBuffer, value],
