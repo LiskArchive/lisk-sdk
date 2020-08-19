@@ -138,5 +138,30 @@ describe('Transfer asset', () => {
 				),
 			);
 		});
+
+		it('should throw error when recipient balance is below minimum remaining balance', async () => {
+			storeAccountGetOrDefaultStub.mockResolvedValue({
+				...recipient,
+				token: {
+					...recipient.token,
+					balance: BigInt(0),
+				},
+			});
+			return expect(async () =>
+				transferAsset.applyAsset({
+					asset: { ...validTransaction.asset, amount: BigInt(0) },
+					senderID: validTransaction.address,
+					stateStore,
+					reducerHandler,
+					transaction: validTransaction,
+				}),
+			).rejects.toStrictEqual(
+				new Error(
+					`Recipient account does not have enough minimum remaining LSK: ${recipient.address.toString(
+						'base64',
+					)}. Minimum required balance: ${minRemainingBalance}. Remaining balance: 0`,
+				),
+			);
+		});
 	});
 });
