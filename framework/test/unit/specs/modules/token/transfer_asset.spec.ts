@@ -115,5 +115,28 @@ describe('Transfer asset', () => {
 				}),
 			);
 		});
+
+		it('should throw error when recipient balance is over maximum amount', async () => {
+			storeAccountGetOrDefaultStub.mockResolvedValue({
+				...recipient,
+				token: {
+					...recipient.token,
+					balance: BigInt(MAX_TRANSACTION_AMOUNT),
+				},
+			});
+			return expect(async () =>
+				transferAsset.applyAsset({
+					asset: validTransaction.asset,
+					senderID: validTransaction.address,
+					stateStore,
+					reducerHandler,
+					transaction: validTransaction,
+				}),
+			).rejects.toStrictEqual(
+				new Error(
+					`Invalid transfer amount: ${decodedAsset.amount.toString()}. Maximum allowed balance for recipient is: ${MAX_TRANSACTION_AMOUNT}`,
+				),
+			);
+		});
 	});
 });
