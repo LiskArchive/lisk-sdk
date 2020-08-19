@@ -129,6 +129,14 @@ describe('token module', () => {
 		});
 	});
 
+	describe('#reducers.debit', () => {
+		it('should throw error if address is not a buffer', async () => {
+			return expect(
+				tokenModule.reducers.debit({ address: 'address', amount: BigInt('1000') }, stateStore),
+			).rejects.toStrictEqual(new Error('Address must be a buffer'));
+		});
+	});
+
 	describe('#beforeTransactionApply', () => {
 		it('should not throw error if fee is equal or higher or equal to min fee', async () => {
 			return expect(
