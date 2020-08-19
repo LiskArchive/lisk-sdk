@@ -319,5 +319,24 @@ describe('token module', () => {
 				expect(stateStore.chain.set).toBeCalledWith(CHAIN_STATE_BURNT_FEE, expectedBuffer);
 			});
 		});
+
+		describe('when block does not contain transactions', () => {
+			it('should update generator balance to give rewards', async () => {
+				block.payload = [];
+				const expected = BigInt(senderAccount.token.balance) + block.header.reward;
+				await tokenModule.afterBlockApply({
+					block,
+					stateStore,
+					reducerHandler,
+					consensus: {} as any,
+				});
+
+				expect(senderAccount.token.balance).toEqual(expected);
+			});
+
+			it('should not have updated burnt fee', () => {
+				expect(stateStore.chain.set).not.toHaveBeenCalled();
+			});
+		});
 	});
 });
