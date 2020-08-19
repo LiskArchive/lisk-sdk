@@ -670,22 +670,17 @@ export class Node {
 			},
 		);
 
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._chain.events.on(
 			EVENT_VALIDATORS_CHANGED,
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (
-				eventData: {
-					validators: [
-						{
-							address: Buffer;
-							isConsensusParticipant: boolean;
-							minActiveHeight: number;
-						},
-					];
-				},
-				// eslint-disable-next-line @typescript-eslint/require-await
-			): Promise<void> => {
+			(eventData: {
+				validators: [
+					{
+						address: Buffer;
+						isConsensusParticipant: boolean;
+						minActiveHeight: number;
+					},
+				];
+			}): void => {
 				const updatedValidatorsList = eventData.validators.map(aValidator => ({
 					...aValidator,
 					address: aValidator.address.toString('base64'),
