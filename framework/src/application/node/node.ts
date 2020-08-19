@@ -720,7 +720,7 @@ export class Node {
 				registeredSchemas.push({
 					moduleID: customModule.id,
 					assetID: customAsset.type,
-					schema: customAsset.assetSchema,
+					schema: customAsset.schema,
 				});
 			}
 		}

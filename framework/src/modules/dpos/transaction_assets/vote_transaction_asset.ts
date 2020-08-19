@@ -22,7 +22,7 @@ import { ApplyAssetInput, ValidateAssetInput } from '../../../types';
 export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 	public name = 'vote';
 	public type = 1;
-	public assetSchema = {
+	public schema = {
 		$id: 'lisk/dpos/vote',
 		type: 'object',
 		required: ['votes'],

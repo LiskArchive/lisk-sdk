@@ -98,7 +98,7 @@ describe('PomTransactionAsset', () => {
 		});
 
 		it('should have valid accountSchema', () => {
-			expect(transactionAsset.assetSchema).toMatchSnapshot();
+			expect(transactionAsset.schema).toMatchSnapshot();
 		});
 
 		it('should have valid baseFee', () => {

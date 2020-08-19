@@ -30,7 +30,7 @@ export const createTransferTransaction = (input: {
 	passphrase: string;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).assetSchema, {
+	const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).schema, {
 		recipientAddress: input.recipientAddress,
 		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
@@ -59,7 +59,7 @@ export const createDelegateRegisterTransaction = (input: {
 	username: string;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new RegisterTransactionAsset().assetSchema, {
+	const encodedAsset = codec.encode(new RegisterTransactionAsset().schema, {
 		username: input.username,
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
@@ -86,7 +86,7 @@ export const createDelegateVoteTransaction = (input: {
 	fee?: bigint;
 	votes: { delegateAddress: Buffer; amount: bigint }[];
 }): Transaction => {
-	const encodedAsset = codec.encode(new VoteTransactionAsset().assetSchema, {
+	const encodedAsset = codec.encode(new VoteTransactionAsset().schema, {
 		votes: input.votes,
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
@@ -116,12 +116,12 @@ export const createMultiSignRegisterTransaction = (input: {
 	senderPassphrase: string;
 	passphrases: string[];
 }): Transaction => {
-	const encodedAsset = codec.encode(new MultisignatureRegisterAsset().assetSchema, {
+	const encodedAsset = codec.encode(new MultisignatureRegisterAsset().schema, {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
 	});
-	const schema = new MultisignatureRegisterAsset().assetSchema;
+	const { schema } = new MultisignatureRegisterAsset();
 	const asset = {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
@@ -167,7 +167,7 @@ export const createMultisignatureTransferTransaction = (input: {
 	senderPublicKey: Buffer;
 	passphrases: string[];
 }): Transaction => {
-	const schema = new TransferAsset(BigInt(5000000)).assetSchema;
+	const { schema } = new TransferAsset(BigInt(5000000));
 	const asset = {
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),

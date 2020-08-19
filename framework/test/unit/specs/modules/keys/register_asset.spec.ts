@@ -39,7 +39,7 @@ describe('register asset', () => {
 		const buffer = Buffer.from(defualtTestCase.output.transaction, 'base64');
 		const id = hash(buffer);
 		const decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
-		const decodedAsset = codec.decode<any>(registerAsset.assetSchema, decodedBaseTransaction.asset);
+		const decodedAsset = codec.decode<any>(registerAsset.schema, decodedBaseTransaction.asset);
 		decodedMultiSignature = {
 			...decodedBaseTransaction,
 			asset: decodedAsset,

@@ -43,7 +43,7 @@ export const MAX_KEYS_COUNT = 64;
 export class RegisterAsset extends BaseAsset {
 	public name = 'register';
 	public type = RegisterassetID;
-	public assetSchema = keysSchema;
+	public schema = keysSchema;
 
 	public validateAsset({ asset, transaction }: ValidateAssetInput<Asset>): void {
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = asset;

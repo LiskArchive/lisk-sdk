@@ -308,8 +308,8 @@ export class Processor {
 		transaction.validate();
 		const customAsset = this._getAsset(transaction);
 		if (customAsset.validateAsset) {
-			const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
-			const assetSchemaErrors = validator.validate(customAsset.assetSchema, decodedAsset as object);
+			const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
+			const assetSchemaErrors = validator.validate(customAsset.schema, decodedAsset as object);
 			if (assetSchemaErrors.length) {
 				throw new LiskValidationError(assetSchemaErrors);
 			}
@@ -335,7 +335,7 @@ export class Processor {
 					transaction,
 				});
 				const customAsset = this._getAsset(transaction);
-				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
+				const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
 				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler: this._createReducerHandler(stateStore),
@@ -395,7 +395,7 @@ export class Processor {
 					transaction,
 				});
 				const customAsset = this._getAsset(transaction);
-				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
+				const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
 				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler,

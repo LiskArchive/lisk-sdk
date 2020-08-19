@@ -21,7 +21,7 @@ export abstract class BaseAsset<T = unknown> {
 
 	public abstract name: string;
 	public abstract type: number;
-	public abstract assetSchema: Schema;
+	public abstract schema: Schema;
 
 	public validateAsset?(input: ValidateAssetInput<T>): void;
 

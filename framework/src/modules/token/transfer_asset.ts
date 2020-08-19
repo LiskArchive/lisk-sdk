@@ -20,7 +20,7 @@ import { ApplyAssetInput } from '../../types';
 export class TransferAsset extends BaseAsset {
 	public name = 'transfer';
 	public type = 0;
-	public assetSchema = {
+	public schema = {
 		$id: 'lisk/transfer-asset',
 		title: 'Transfer transaction asset',
 		type: 'object',

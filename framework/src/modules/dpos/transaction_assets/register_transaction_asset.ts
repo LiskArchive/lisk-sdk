@@ -24,7 +24,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 	public baseFee = DELEGATE_NAME_FEE;
 	public name = 'register';
 	public type = 0;
-	public assetSchema = {
+	public schema = {
 		$id: 'lisk/dpos/register',
 		type: 'object',
 		required: ['username'],

@@ -546,7 +546,7 @@ describe('processor', () => {
 			processor.validate(blockV2);
 			expect(validator.validate).toHaveBeenCalledTimes(2);
 			expect(validator.validate).toHaveBeenCalledWith(
-				customModule0.transactionAssets[0].assetSchema,
+				customModule0.transactionAssets[0].schema,
 				expect.any(Object),
 			);
 		});

@@ -127,7 +127,7 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		it('should have valid accountSchema', () => {
-			expect(transactionAsset.assetSchema).toMatchSnapshot();
+			expect(transactionAsset.schema).toMatchSnapshot();
 		});
 
 		it('should have valid baseFee', () => {
@@ -142,7 +142,7 @@ describe('UnlockTransactionAsset', () => {
 					// Arrange
 					validateInput.asset = { unlockObjects: [] };
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateInput.asset);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should NOT have fewer than 1 items');
 				});
@@ -161,7 +161,7 @@ describe('UnlockTransactionAsset', () => {
 							})),
 					};
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateInput.asset);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should NOT have more than 20 items');
 				});
@@ -180,7 +180,7 @@ describe('UnlockTransactionAsset', () => {
 						],
 					};
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateInput.asset);
 
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
@@ -196,7 +196,7 @@ describe('UnlockTransactionAsset', () => {
 						],
 					};
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateInput.asset);
 
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');

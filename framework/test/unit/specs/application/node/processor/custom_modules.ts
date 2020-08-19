@@ -19,7 +19,7 @@ import { BaseAsset } from '../../../../../../src/modules/base_asset';
 export class CustomAsset0 extends BaseAsset {
 	public type = 0;
 	public name = 'customAsset0';
-	public assetSchema = {
+	public schema = {
 		$id: 'lisk/custom-asset-0',
 		type: 'object',
 		properties: {
