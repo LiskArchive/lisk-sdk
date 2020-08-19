@@ -13,7 +13,12 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { TokenModule } from '../../../../../src/modules/token';
+import {
+	CHAIN_STATE_BURNT_FEE,
+	GENESIS_BLOCK_MAX_BALANCE,
+} from '../../../../../src/modules/token/constants';
 import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
 import * as fixtures from './transfer_transaction_validate.json';
 import { GenesisConfig } from '../../../../../src';
@@ -25,8 +30,8 @@ describe('token module', () => {
 	let senderAccount: any;
 	let recipientAccount: any;
 	let stateStore: any;
+	let genesisBlock: any;
 	let reducerHandler: any;
-
 	const defaultTestCase = fixtures.testCases[0];
 	const minRemainingBalance = '1';
 	const genesisConfig: GenesisConfig = {
@@ -67,17 +72,25 @@ describe('token module', () => {
 				balance: BigInt('1000000000000000'),
 			},
 		});
-		stateStore = new StateStoreMock([senderAccount, recipientAccount]);
-		stateStore.account = {
-			...stateStore.account,
-			get: jest.fn().mockResolvedValue(senderAccount),
-			getOrDefault: jest.fn().mockResolvedValue(senderAccount),
+		genesisBlock = {
+			header: {
+				asset: {
+					accounts: [senderAccount],
+				},
+			},
 		};
+		stateStore = new StateStoreMock([senderAccount, recipientAccount]);
+		jest.spyOn(stateStore.account, 'getOrDefault').mockResolvedValue(senderAccount);
+		jest.spyOn(stateStore.account, 'get').mockResolvedValue(senderAccount);
+		jest.spyOn(stateStore.account, 'set');
+		jest.spyOn(stateStore.chain, 'get');
+		jest.spyOn(stateStore.chain, 'set');
+
 		reducerHandler = {};
 	});
 
 	describe('#beforeTransactionApply', () => {
-		it('should return no errors if fee is equal or higher or equal to min fee', async () => {
+		it('should not throw error if fee is equal or higher or equal to min fee', async () => {
 			return expect(
 				tokenModule.beforeTransactionApply({
 					stateStore,
@@ -87,7 +100,7 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should return no errors if transaction asset does not have a baseFee entry and transaction fee is higher or equal to min fee', async () => {
+		it('should not throw error if transaction asset does not have a baseFee entry and transaction fee is higher or equal to min fee', async () => {
 			tokenModule = new TokenModule({
 				...genesisConfig,
 				baseFees: [
@@ -108,7 +121,7 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should return error if fee is lower than minimum required fee', async () => {
+		it('should throw error if fee is lower than minimum required fee', async () => {
 			validTransaction.fee = BigInt(0);
 			const expectedMinFee =
 				BigInt(genesisConfig.minFeePerByte) * BigInt(validTransaction.getBytes().length) +
@@ -129,7 +142,7 @@ describe('token module', () => {
 	});
 
 	describe('#afterTransactionApply', () => {
-		it('should return no errors', async () => {
+		it('should not throw error if account has sufficient balance', async () => {
 			return expect(
 				tokenModule.afterTransactionApply({
 					stateStore,
@@ -139,17 +152,9 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should return error when sender balance is below the minimum required balance', async () => {
-			stateStore.account = {
-				...stateStore.account,
-				get: jest.fn().mockResolvedValue(senderAccount),
-				getOrDefault: jest.fn().mockResolvedValue({
-					...senderAccount,
-					token: {
-						balance: BigInt(0),
-					},
-				}),
-			};
+		it('should throw error when sender balance is below the minimum required balance', async () => {
+			senderAccount.token.balance = BigInt(0);
+
 			return expect(
 				tokenModule.afterTransactionApply({
 					stateStore,
@@ -165,7 +170,4 @@ describe('token module', () => {
 			);
 		});
 	});
-	// TODO: Add #reducers test
-	// TODO: Add #afterBlockApply test
-	// TODO: Add #afterGenesisBlockApply test
 });
