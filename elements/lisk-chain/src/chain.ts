@@ -23,6 +23,7 @@ import {
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
 	EVENT_DELETE_BLOCK,
 	EVENT_NEW_BLOCK,
+	EVENT_VALIDATORS_CHANGED,
 	CONSENSUS_STATE_VALIDATORS_KEY,
 } from './constants';
 import { DataAccess } from './data_access';
@@ -436,6 +437,7 @@ export class Chain {
 		}
 		const encodedValidators = codec.encode(validatorsSchema, { validators: nextValidatorSet });
 		stateStore.consensus.set(CONSENSUS_STATE_VALIDATORS_KEY, encodedValidators);
+		this.events.emit(EVENT_VALIDATORS_CHANGED, nextValidatorSet);
 	}
 
 	private async _cacheBlockHeaders(storageLastBlock: Block): Promise<void> {
