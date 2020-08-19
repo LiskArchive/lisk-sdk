@@ -268,7 +268,7 @@ describe('VoteTransactionAsset', () => {
 		});
 	});
 
-	describe('applyAsset', () => {
+	describe('apply', () => {
 		const delegate1VoteAmount = liskToBeddows(90);
 		const delegate2VoteAmount = liskToBeddows(50);
 
@@ -283,11 +283,11 @@ describe('VoteTransactionAsset', () => {
 
 		describe('when asset.votes contain positive amount', () => {
 			it('should not throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 			});
 
 			it('should make account to have correct balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledTimes(2);
 				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
@@ -301,7 +301,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should not change account.dpos.unlocking', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.unlocking).toHaveLength(0);
@@ -312,7 +312,7 @@ describe('VoteTransactionAsset', () => {
 					votes: [...applyInput.asset.votes].reverse(),
 				};
 
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				const senderVotesCopy = updatedSender.dpos.sentVotes.slice(0);
@@ -321,7 +321,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedDelegate1 = await stateStoreMock.account.get<DPOSAccountProps>(
 					delegate1.address,
@@ -335,7 +335,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should create vote object when it does not exist before', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 
@@ -344,9 +344,9 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should update vote object when it exists before and create if it does not exist', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 				// Send votes second time
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(sender.dpos.sentVotes).toEqual([]);
@@ -370,7 +370,7 @@ describe('VoteTransactionAsset', () => {
 						{ delegateAddress: delegate2.address, amount: delegate2VoteAmount },
 					],
 				};
-				await transactionAsset.applyAsset(votesInput);
+				await transactionAsset.apply(votesInput);
 
 				// Clears mock calls for earlier apply asset
 				(applyInput.reducerHandler.invoke as jest.Mock).mockClear();
@@ -384,11 +384,11 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should not throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 			});
 
 			it('should not change account balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				expect(applyInput.reducerHandler.invoke).not.toHaveBeenCalled();
 			});
@@ -398,7 +398,7 @@ describe('VoteTransactionAsset', () => {
 					votes: [{ delegateAddress: delegate1.address, amount: BigInt(-1) * delegate1VoteAmount }],
 				};
 
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.sentVotes).toHaveLength(1);
@@ -411,7 +411,7 @@ describe('VoteTransactionAsset', () => {
 					votes: [{ delegateAddress: delegate1.address, amount: BigInt(-1) * downVoteAmount }],
 				};
 
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.sentVotes).toHaveLength(2);
@@ -424,7 +424,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make account to have correct unlocking', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.unlocking).toHaveLength(2);
@@ -445,7 +445,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should order account.dpos.unlocking', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.unlocking).toHaveLength(2);
@@ -455,7 +455,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make downvoted delegate account to have correct totalVotesReceived', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedDelegate1 = await stateStoreMock.account.get<DPOSAccountProps>(
 					delegate1.address,
@@ -481,7 +481,7 @@ describe('VoteTransactionAsset', () => {
 						{ delegateAddress: delegate2.address, amount: delegate2VoteAmount },
 					],
 				};
-				await transactionAsset.applyAsset(votesInput);
+				await transactionAsset.apply(votesInput);
 
 				// Clears mock calls for earlier apply asset
 				(applyInput.reducerHandler.invoke as jest.Mock).mockClear();
@@ -495,11 +495,11 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should not throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 			});
 
 			it('should make account to have correct balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledTimes(1);
 				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
@@ -509,7 +509,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make account to have correct unlocking', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.unlocking).toHaveLength(1);
@@ -523,7 +523,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedDelegate1 = await stateStoreMock.account.get<DPOSAccountProps>(
 					delegate1.address,
@@ -535,7 +535,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make downvoted delegate account to have correct totalVotesReceived', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				const updatedDelegate2 = await stateStoreMock.account.get<DPOSAccountProps>(
 					delegate2.address,
@@ -569,9 +569,7 @@ describe('VoteTransactionAsset', () => {
 						],
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
-						'Account not defined',
-					);
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow('Account not defined');
 				});
 			});
 
@@ -588,7 +586,7 @@ describe('VoteTransactionAsset', () => {
 						],
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						`Voted delegate is not registered. Address: ${nonRegisteredDelegate.address.toString(
 							'base64',
 						)}`,
@@ -615,7 +613,7 @@ describe('VoteTransactionAsset', () => {
 						votes,
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						'Account can only vote upto 10',
 					);
 				});
@@ -675,7 +673,7 @@ describe('VoteTransactionAsset', () => {
 						votes,
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						'Account can only vote upto 10',
 					);
 				});
@@ -732,7 +730,7 @@ describe('VoteTransactionAsset', () => {
 						votes,
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						'Cannot downvote which exceeds account.dpos.unlocking to have more than 20',
 					);
 				});
@@ -757,7 +755,7 @@ describe('VoteTransactionAsset', () => {
 						],
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						'Cannot downvote more than upvoted',
 					);
 				});
@@ -780,7 +778,7 @@ describe('VoteTransactionAsset', () => {
 
 			it('should update votes and totalVotesReceived', async () => {
 				// Act
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				// Assert
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
@@ -814,7 +812,7 @@ describe('VoteTransactionAsset', () => {
 
 			it('should update votes, totalVotesReceived and unlocking', async () => {
 				// Act
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				// Assert
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);

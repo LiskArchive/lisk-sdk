@@ -31,7 +31,7 @@ export class CustomAsset0 extends BaseAsset {
 	};
 
 	public validateAsset = jest.fn();
-	public applyAsset = jest.fn();
+	public apply = jest.fn();
 }
 
 export class CustomModule0 extends BaseModule {

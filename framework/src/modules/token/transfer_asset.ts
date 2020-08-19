@@ -51,7 +51,7 @@ export class TransferAsset extends BaseAsset {
 		this._minRemainingBalance = minRemainingBalance;
 	}
 
-	public async applyAsset({ asset, senderID, stateStore }: ApplyAssetInput<Asset>): Promise<void> {
+	public async apply({ asset, senderID, stateStore }: ApplyAssetInput<Asset>): Promise<void> {
 		const sender = await stateStore.account.get<TokenAccount>(senderID);
 		if (!sender) {
 			throw new Error(`Account does not exist for senderID: ${senderID.toString('base64')}`);

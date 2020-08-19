@@ -263,7 +263,7 @@ describe('UnlockTransactionAsset', () => {
 		});
 	});
 
-	describe('applyAsset', () => {
+	describe('apply', () => {
 		describe('given the delegate is not being punished', () => {
 			describe('when asset.unlockObjects contain valid entries, and voter account has waited 2000 blocks', () => {
 				let unlockTrsObj1: UnlockingAccountAsset;
@@ -299,11 +299,11 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should not return error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+					await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 				});
 
 				it('should make account to have correct balance', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyInput);
 
 					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
@@ -317,7 +317,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should remove unlocking from the sender', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyInput);
 
 					// Assert
 					const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -338,7 +338,7 @@ describe('UnlockTransactionAsset', () => {
 							stateStore: stateStoreMock as any,
 						};
 
-						await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+						await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 							'Unlocking is not permitted as it is still within the waiting period',
 						);
 					});
@@ -381,11 +381,11 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should not return error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+					await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 				});
 
 				it('should make account to have correct balance', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyInput);
 
 					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
@@ -399,7 +399,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should remove unlocking from the sender', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyInput);
 
 					// Assert
 					const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -420,7 +420,7 @@ describe('UnlockTransactionAsset', () => {
 							stateStore: stateStoreMock as any,
 						};
 
-						await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+						await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 							'Unlocking is not permitted as it is still within the waiting period',
 						);
 					});
@@ -445,11 +445,11 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should not return error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+					await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 				});
 
 				it('should make account to have correct balance', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyInput);
 
 					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
@@ -458,7 +458,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should remove unlocking from the sender', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyInput);
 
 					// Assert
 					const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -485,11 +485,11 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should not return error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+					await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 				});
 
 				it('should make account to have correct balance', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyInput);
 
 					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
@@ -498,7 +498,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should remove unlocking from the sender', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyInput);
 
 					// Assert
 					const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -525,7 +525,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should throw error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						'Unlocking is not permitted as it is still within the waiting period',
 					);
 				});
@@ -547,7 +547,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should throw error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						'Unlocking is not permitted as delegate is currently being punished',
 					);
 				});
@@ -569,7 +569,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should throw error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						'Unlocking is not permitted as it is still within the waiting period',
 					);
 				});
@@ -591,7 +591,7 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should throw error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 						'Unlocking is not permitted as delegate is currently being punished',
 					);
 				});
@@ -614,11 +614,11 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			it('should not return error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 			});
 
 			it('should make account to have correct balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 					address: sender.address,
@@ -632,7 +632,7 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			it('should remove unlocking from the sender', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				// Assert
 				const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -659,11 +659,11 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			it('should not return error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 			});
 
 			it('should make account to have correct balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledTimes(1);
 				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
@@ -673,7 +673,7 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			it('should keep the duplicated unlocking from the sender', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyInput);
 
 				// Assert
 				const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -699,7 +699,7 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			it('should throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+				await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 					'Corresponding unlocking object not found',
 				);
 			});
@@ -721,7 +721,7 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			it('should throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+				await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 					'Corresponding unlocking object not found',
 				);
 			});

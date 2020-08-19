@@ -389,14 +389,14 @@ describe('register asset', () => {
 		});
 	});
 
-	describe('applyAsset', () => {
+	describe('apply', () => {
 		beforeEach(() => {
 			storeAccountGetStub.mockReturnValue(targetMultisigAccount);
 		});
 
 		it('should not throw when registering for first time', () => {
 			expect(async () =>
-				registerAsset.applyAsset({
+				registerAsset.apply({
 					stateStore,
 					asset: validTestTransaction.asset,
 					senderID: validTestTransaction.address,
@@ -407,7 +407,7 @@ describe('register asset', () => {
 		});
 
 		it('should call state store get() with senderID and set() with adress and updated account', async () => {
-			await registerAsset.applyAsset({
+			await registerAsset.apply({
 				stateStore,
 				asset: validTestTransaction.asset,
 				senderID: validTestTransaction.address,
@@ -427,7 +427,7 @@ describe('register asset', () => {
 			storeAccountGetStub.mockReturnValue(convertedAccount);
 
 			return expect(
-				registerAsset.applyAsset({
+				registerAsset.apply({
 					stateStore,
 					asset: validTestTransaction.asset,
 					senderID: validTestTransaction.address,

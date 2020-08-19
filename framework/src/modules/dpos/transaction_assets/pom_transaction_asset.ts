@@ -142,7 +142,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public async applyAsset({
+	public async apply({
 		asset,
 		senderID,
 		stateStore: store,

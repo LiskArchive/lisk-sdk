@@ -898,7 +898,7 @@ describe('processor', () => {
 		it('should call all hooks for transaction', async () => {
 			await processor.verifyTransactions([tx, tx2], stateStoreStub);
 			expect(customModule0.beforeTransactionApply).toHaveBeenCalledTimes(2);
-			expect(customModule0.transactionAssets[0].applyAsset).toHaveBeenCalledTimes(2);
+			expect(customModule0.transactionAssets[0].apply).toHaveBeenCalledTimes(2);
 			expect(customModule0.afterTransactionApply).toHaveBeenCalledTimes(2);
 			expect(customModule1.afterTransactionApply).toHaveBeenCalledTimes(2);
 		});

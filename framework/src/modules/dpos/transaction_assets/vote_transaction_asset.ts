@@ -93,7 +93,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public async applyAsset({
+	public async apply({
 		asset,
 		senderID,
 		stateStore: store,

@@ -336,7 +336,7 @@ export class Processor {
 				});
 				const customAsset = this._getAsset(transaction);
 				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
-				await customAsset.applyAsset({
+				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler: this._createReducerHandler(stateStore),
 					senderID: transaction.senderID,
@@ -396,7 +396,7 @@ export class Processor {
 				});
 				const customAsset = this._getAsset(transaction);
 				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
-				await customAsset.applyAsset({
+				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler,
 					senderID: transaction.senderID,

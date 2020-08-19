@@ -76,7 +76,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetInpu
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public async applyAsset({
+	public async apply({
 		asset,
 		senderID,
 		stateStore: store,

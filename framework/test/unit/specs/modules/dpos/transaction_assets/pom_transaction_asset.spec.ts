@@ -176,7 +176,7 @@ describe('PomTransactionAsset', () => {
 		});
 	});
 
-	describe('applyAsset', () => {
+	describe('apply', () => {
 		const block1Height = lastBlockHeight - 768;
 		const block2Height = block1Height + 15;
 
@@ -194,7 +194,7 @@ describe('PomTransactionAsset', () => {
 		});
 
 		it('should not throw error with valid transactions', async () => {
-			await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+			await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 		});
 
 		it('should throw error if |header1.height - h| >= 260000', async () => {
@@ -206,7 +206,7 @@ describe('PomTransactionAsset', () => {
 				},
 			};
 
-			await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+			await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 				'Difference between header1.height and current height must be less than 260000.',
 			);
 		});
@@ -220,7 +220,7 @@ describe('PomTransactionAsset', () => {
 				},
 			};
 
-			await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+			await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 				'Difference between header2.height and current height must be less than 260000.',
 			);
 		});
@@ -241,7 +241,7 @@ describe('PomTransactionAsset', () => {
 				)
 				.mockReturnValue(true);
 
-			await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+			await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 				'Invalid block signature for header 1',
 			);
 		});
@@ -262,7 +262,7 @@ describe('PomTransactionAsset', () => {
 				)
 				.mockReturnValue(false);
 
-			await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+			await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 				'Invalid block signature for header 2',
 			);
 		});
@@ -272,9 +272,7 @@ describe('PomTransactionAsset', () => {
 			updatedDelegateAccount.dpos.delegate.username = '';
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
-			await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
-				'Account is not a delegate',
-			);
+			await expect(transactionAsset.apply(applyInput)).rejects.toThrow('Account is not a delegate');
 		});
 
 		it('should throw error if misbehaving account is already banned', async () => {
@@ -282,7 +280,7 @@ describe('PomTransactionAsset', () => {
 			updatedDelegateAccount.dpos.delegate.isBanned = true;
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
-			await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+			await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 				'Cannot apply proof-of-misbehavior. Delegate is banned.',
 			);
 		});
@@ -292,7 +290,7 @@ describe('PomTransactionAsset', () => {
 			updatedDelegateAccount.dpos.delegate.pomHeights = [applyInput.asset.header1.height + 10];
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
-			await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+			await expect(transactionAsset.apply(applyInput)).rejects.toThrow(
 				'Cannot apply proof-of-misbehavior. Delegate is already punished.',
 			);
 		});
@@ -304,7 +302,7 @@ describe('PomTransactionAsset', () => {
 				.calledWith('token:getBalance', { address: misBehavingDelegate.address })
 				.mockResolvedValue(remainingBalance as never);
 
-			await transactionAsset.applyAsset(applyInput);
+			await transactionAsset.apply(applyInput);
 
 			expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 				address: applyInput.senderID,
@@ -313,7 +311,7 @@ describe('PomTransactionAsset', () => {
 		});
 
 		it('should append height h to pomHeights property of misbehaving account', async () => {
-			await transactionAsset.applyAsset(applyInput);
+			await transactionAsset.apply(applyInput);
 
 			const updatedDelegate = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
 				misBehavingDelegate.address,
@@ -329,7 +327,7 @@ describe('PomTransactionAsset', () => {
 			updatedDelegateAccount.dpos.delegate.isBanned = false;
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
-			await transactionAsset.applyAsset(applyInput);
+			await transactionAsset.apply(applyInput);
 
 			const updatedDelegate = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
 				misBehavingDelegate.address,
@@ -346,7 +344,7 @@ describe('PomTransactionAsset', () => {
 		it('should not return balance if sender and delegate account are same', async () => {
 			applyInput.senderID = misBehavingDelegate.address;
 
-			await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+			await expect(transactionAsset.apply(applyInput)).resolves.toBeUndefined();
 		});
 	});
 });

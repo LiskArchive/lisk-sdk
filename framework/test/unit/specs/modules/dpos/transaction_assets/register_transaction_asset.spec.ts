@@ -115,10 +115,10 @@ describe('RegisterTransactionAsset', () => {
 		});
 	});
 
-	describe('#applyAsset', () => {
+	describe('#apply', () => {
 		it('should call state store', async () => {
 			// Act
-			await transactionAsset.applyAsset(input);
+			await transactionAsset.apply(input);
 
 			// Assert
 			expect(stateStoreMock.account.get).toHaveBeenCalledWith(input.senderID);
@@ -142,7 +142,7 @@ describe('RegisterTransactionAsset', () => {
 			);
 
 			// Act & Assert
-			await expect(transactionAsset.applyAsset(input)).resolves.toBeUndefined();
+			await expect(transactionAsset.apply(input)).resolves.toBeUndefined();
 		});
 
 		it('should throw error when username is taken', async () => {
@@ -187,7 +187,7 @@ describe('RegisterTransactionAsset', () => {
 				}),
 			);
 
-			await expect(transactionAsset.applyAsset(input)).rejects.toThrow('Username is not unique');
+			await expect(transactionAsset.apply(input)).rejects.toThrow('Username is not unique');
 		});
 
 		it('should throw error when account is already delegate', async () => {
@@ -205,9 +205,7 @@ describe('RegisterTransactionAsset', () => {
 				}),
 			);
 
-			await expect(transactionAsset.applyAsset(input)).rejects.toThrow(
-				'Account is already a delegate',
-			);
+			await expect(transactionAsset.apply(input)).rejects.toThrow('Account is already a delegate');
 		});
 
 		it('should set lastForgedHeight to the lastBlock height + 1', async () => {
@@ -218,7 +216,7 @@ describe('RegisterTransactionAsset', () => {
 			);
 
 			// Act
-			await transactionAsset.applyAsset(input);
+			await transactionAsset.apply(input);
 
 			// Assert
 			const updatedSender = (await stateStoreMock.account.get(sender.address)) as any;

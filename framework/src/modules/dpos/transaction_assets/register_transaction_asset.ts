@@ -46,7 +46,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public async applyAsset({
+	public async apply({
 		asset,
 		senderID,
 		stateStore,
