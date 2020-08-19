@@ -462,6 +462,22 @@ describe('chain', () => {
 			);
 		});
 
+		it('should emmit event EVENT_VALIDATORS_CHANGED', async () => {
+			jest.spyOn((chainInstance as any).events, 'emit');
+			const validators = [
+				{ address: addresses[0], isConsensusParticipant: true, minActiveHeight: 104 },
+			];
+			stateStore = createStateStore(db, [
+				createValidDefaultBlock({ header: { height: 512 } }).header,
+			]);
+
+			await chainInstance.setValidators(validators, stateStore);
+
+			expect((chainInstance as any).events.emit).toHaveBeenCalledWith('EVENT_VALIDATORS_CHANGED', {
+				validators,
+			});
+		});
+
 		it('should set minActiveHeight to the next height (last block height + 2) if the address does not exist in the previous set', async () => {
 			const validators = [
 				{ address: getRandomBytes(20), isConsensusParticipant: false },

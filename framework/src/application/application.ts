@@ -310,6 +310,7 @@ export class Application {
 				'transaction:new',
 				'chain:sync',
 				'chain:fork',
+				'chain:validators:change',
 				'block:new',
 				'block:broadcast',
 				'block:delete',

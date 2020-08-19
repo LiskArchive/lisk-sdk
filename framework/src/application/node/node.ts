@@ -56,7 +56,7 @@ import { Network } from '../network';
 import { BaseModule } from '../../modules';
 
 const forgeInterval = 1000;
-const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK } = chainEvents;
+const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK, EVENT_VALIDATORS_CHANGED } = chainEvents;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
 
 export type NodeOptions = Omit<ApplicationConfig, 'plugins'>;
@@ -669,6 +669,26 @@ export class Node {
 				);
 			},
 		);
+
+		this._chain.events.on(
+			EVENT_VALIDATORS_CHANGED,
+			(eventData: {
+				validators: [
+					{
+						address: Buffer;
+						isConsensusParticipant: boolean;
+						minActiveHeight: number;
+					},
+				];
+			}): void => {
+				const updatedValidatorsList = eventData.validators.map(aValidator => ({
+					...aValidator,
+					address: aValidator.address.toString('base64'),
+				}));
+				this._channel.publish('app:chain:validators:change', { validators: updatedValidatorsList });
+			},
+		);
+
 		// FIXME: this event is using instance, it should be replaced by event emitter
 		this._processor.events.on(
 			EVENT_PROCESSOR_BROADCAST_BLOCK,
