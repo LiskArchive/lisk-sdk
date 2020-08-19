@@ -171,7 +171,7 @@ describe('state store / account', () => {
 	});
 
 	describe('del', () => {
-		it('should throw an error if address does not exist nither in momory or in database', async () => {
+		it('should throw an error if the address exists neither in memory nor database', async () => {
 			await expect(stateStore.account.del(Buffer.from('123L'))).rejects.toBeInstanceOf(
 				NotFoundError,
 			);
