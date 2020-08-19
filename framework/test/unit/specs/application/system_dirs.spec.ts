@@ -25,7 +25,7 @@ describe('systemDirs', () => {
 
 		// Assert
 		expect(dirsObj).toEqual({
-			root: `${rootPath}/${appLabel}`,
+			dataPath: `${rootPath}/${appLabel}`,
 			data: `${rootPath}/${appLabel}/data`,
 			tmp: `${rootPath}/${appLabel}/tmp`,
 			logs: `${rootPath}/${appLabel}/logs`,

@@ -24,6 +24,8 @@ interface AccountState {
 	get(address: Buffer): Promise<Account>;
 	getOrDefault(address: Buffer): Promise<Account>;
 	set(address: Buffer, account: any): void;
+	del(address: Buffer): Promise<void>;
+	getUpdated(): Account[];
 }
 
 interface ChainState {
@@ -94,6 +96,7 @@ export class StateStoreMock {
 				}
 				return cloneDeep(account);
 			},
+			getUpdated: () => this.accountData,
 			set: (address: Buffer, account: Account): void => {
 				const index = this.accountData.findIndex(acc => acc.address.equals(address));
 				if (index > -1) {
@@ -101,6 +104,14 @@ export class StateStoreMock {
 					return;
 				}
 				this.accountData.push(account);
+			},
+			// eslint-disable-next-line @typescript-eslint/require-await
+			del: async (address: Buffer): Promise<void> => {
+				const index = this.accountData.findIndex(acc => acc.address.equals(address));
+				if (index < 0) {
+					throw new Error('Cannot delete not existing account');
+				}
+				this.accountData.splice(index, 1);
 			},
 		};
 

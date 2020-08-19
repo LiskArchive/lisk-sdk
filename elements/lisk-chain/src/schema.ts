@@ -151,6 +151,23 @@ export const stateDiffSchema = {
 				dataType: 'string',
 			},
 		},
+		deleted: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				properties: {
+					key: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+					value: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
 	},
 };
 

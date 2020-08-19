@@ -27,6 +27,7 @@ describe('Delete block', () => {
 	const emptyDiffState = codec.encode(stateDiffSchema, {
 		updated: [],
 		created: [],
+		deleted: [],
 	});
 	let node: Node;
 	let blockchainDB: KVStore;

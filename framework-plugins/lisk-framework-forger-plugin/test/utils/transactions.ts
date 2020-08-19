@@ -16,18 +16,19 @@ import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
 import { codec } from '@liskhq/lisk-codec';
 import { signData } from '@liskhq/lisk-cryptography';
 import * as genesisDelegates from '../fixtures/genesis_delegates.json';
-import { networkIdentifier } from '../fixtures/devnet';
 
 export const createTransferTransaction = ({
 	amount,
 	fee,
 	recipientAddress,
 	nonce,
+	networkIdentifier,
 }: {
 	amount: string;
 	fee: string;
 	recipientAddress: string;
 	nonce: number;
+	networkIdentifier: Buffer;
 }) => {
 	const genesisAccount = genesisDelegates.accounts[0];
 	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).assetSchema, {
@@ -55,11 +56,13 @@ export const createVoteTransaction = ({
 	fee,
 	recipientAddress,
 	nonce,
+	networkIdentifier,
 }: {
 	amount: string;
 	fee: string;
 	recipientAddress: string;
 	nonce: number;
+	networkIdentifier: Buffer;
 }) => {
 	const genesisAccount = genesisDelegates.accounts[0];
 
@@ -71,6 +74,7 @@ export const createVoteTransaction = ({
 			},
 		],
 	});
+
 	const tx = new Transaction({
 		moduleType: 5,
 		assetType: 1,

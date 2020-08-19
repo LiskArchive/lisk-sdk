@@ -22,7 +22,6 @@ import { Logger } from '../../../../../../src/application/logger';
 import { Transport } from '../../../../../../src/application/node/transport';
 
 import { genesis } from '../../../../../fixtures/accounts';
-import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../utils/network_identifier';
 import {
 	createValidDefaultBlock,
 	genesisBlock as getGenesisBlock,
@@ -34,6 +33,8 @@ import { InMemoryChannel } from '../../../../../../src/controller/channels';
 
 describe('transport', () => {
 	const encodedBlock = Buffer.from('encoded block');
+	const networkIdentifier = '93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
+
 	let loggerStub: Logger;
 	let synchronizerStub: any;
 	let networkStub: any;

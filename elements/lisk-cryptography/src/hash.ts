@@ -44,8 +44,5 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 	);
 };
 
-export const getNetworkIdentifier = (
-	genesisBlockTransactionRoot: Buffer,
-	communityIdentifier: string,
-): Buffer =>
-	hash(Buffer.concat([genesisBlockTransactionRoot, Buffer.from(communityIdentifier, 'utf8')]));
+export const getNetworkIdentifier = (genesisBlockID: Buffer, communityIdentifier: string): Buffer =>
+	hash(Buffer.concat([genesisBlockID, Buffer.from(communityIdentifier, 'utf8')]));

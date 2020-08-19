@@ -28,7 +28,9 @@ export class AccountStore {
 	private _data: dataStructures.BufferMap<Account>;
 	private _originalData: dataStructures.BufferMap<Account>;
 	private _updatedKeys: dataStructures.BufferSet;
+	private _deletedKeys: dataStructures.BufferSet;
 	private _originalUpdatedKeys: dataStructures.BufferSet;
+	private _originalDeletedKeys: dataStructures.BufferSet;
 	private readonly _dataAccess: DataAccess;
 	private readonly _defaultAccount: Record<string, unknown>;
 	private readonly _initialAccountValue: dataStructures.BufferMap<Buffer>;
@@ -37,22 +39,27 @@ export class AccountStore {
 		this._dataAccess = dataAccess;
 		this._data = new dataStructures.BufferMap<Account>();
 		this._updatedKeys = new dataStructures.BufferSet();
+		this._deletedKeys = new dataStructures.BufferSet();
 		this._originalData = new dataStructures.BufferMap();
 		this._originalUpdatedKeys = new dataStructures.BufferSet();
+		this._originalDeletedKeys = new dataStructures.BufferSet();
 		this._defaultAccount = additionalInformation.defaultAccount;
 		this._initialAccountValue = new dataStructures.BufferMap<Buffer>();
 	}
 
 	public createSnapshot(): void {
 		this._originalData = this._data.clone();
-		this._updatedKeys = objects.cloneDeep(this._updatedKeys);
+		this._originalUpdatedKeys = this._updatedKeys.clone();
+		this._originalDeletedKeys = this._deletedKeys.clone();
 	}
 
 	public restoreSnapshot(): void {
 		this._data = this._originalData;
 		this._updatedKeys = this._originalUpdatedKeys;
+		this._deletedKeys = this._originalDeletedKeys;
 		this._originalData = new dataStructures.BufferMap();
 		this._originalUpdatedKeys = new dataStructures.BufferSet();
+		this._originalDeletedKeys = new dataStructures.BufferSet();
 	}
 
 	public async get<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>> {
@@ -61,6 +68,10 @@ export class AccountStore {
 
 		if (cachedAccount) {
 			return (objects.cloneDeep(cachedAccount) as unknown) as Account<T>;
+		}
+
+		if (this._deletedKeys.has(address)) {
+			throw new NotFoundError(`Account ${address.toString('base64')} has been deleted`);
 		}
 
 		// Account was not cached previously so we try to fetch it from db
@@ -107,13 +118,28 @@ export class AccountStore {
 		return ([...this._data.values()] as unknown) as ReadonlyArray<Account<T>>;
 	}
 
-	public set<T = AccountDefaultProps>(primaryValue: Buffer, updatedElement: Account<T>): void {
-		this._data.set(primaryValue, (updatedElement as unknown) as Account);
-		this._updatedKeys.add(primaryValue);
+	public set<T = AccountDefaultProps>(address: Buffer, updatedElement: Account<T>): void {
+		this._data.set(address, (updatedElement as unknown) as Account);
+		this._updatedKeys.add(address);
+		// Updating deleted key will make it not deleted
+		this._deletedKeys.delete(address);
+	}
+
+	public async del(address: Buffer): Promise<void> {
+		// If account is nither in memory or DB, it should not be able to delete
+		await this.get(address);
+		const initialAccount = this._initialAccountValue.get(address);
+		// If initial account is not undefined, it means account exists in DB
+		// Potentially only existed in the DB before this call, but "get" will cache to memory
+		if (initialAccount !== undefined) {
+			this._deletedKeys.add(address);
+		}
+		this._updatedKeys.delete(address);
+		this._data.delete(address);
 	}
 
 	public finalize(batch: BatchChain): StateDiff {
-		const stateDiff = { updated: [], created: [] } as StateDiff;
+		const stateDiff = { updated: [], created: [], deleted: [] } as StateDiff;
 
 		for (const updatedAccount of this._data.values()) {
 			if (this._updatedKeys.has(updatedAccount.address)) {
@@ -131,6 +157,18 @@ export class AccountStore {
 					stateDiff.created.push(dbKey);
 				}
 			}
+		}
+		for (const deletedAddress of this._deletedKeys) {
+			const initialAccount = this._initialAccountValue.get(deletedAddress);
+			if (!initialAccount) {
+				throw new Error('Deleting account should have initial account');
+			}
+			const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(deletedAddress)}`;
+			batch.del(dbKey);
+			stateDiff.deleted.push({
+				key: dbKey,
+				value: initialAccount,
+			});
 		}
 
 		return stateDiff;

@@ -29,9 +29,12 @@ import { createTransferTransaction } from '../../utils/transactions';
 describe('Forger Info Sync', () => {
 	let app: Application;
 	let accountNonce = 0;
+	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
 		app = await createApplication('sync');
+		// The test application generates a dynamic genesis block so we need to get the networkID like this
+		networkIdentifier = app['_node'].networkIdentifier;
 	});
 
 	afterAll(async () => {
@@ -47,6 +50,7 @@ describe('Forger Info Sync', () => {
 			recipientAddress: account.address,
 			fee: '0.3',
 			nonce: accountNonce,
+			networkIdentifier,
 		});
 		accountNonce += 1;
 		await app['_channel'].invoke('app:postTransaction', {

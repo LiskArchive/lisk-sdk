@@ -131,7 +131,11 @@ describe('state store / chain_state', () => {
 		});
 
 		it('should return state diff with created and updated values after finalize', () => {
-			expect(stateDiff).toStrictEqual({ updated: [], created: ['chain:key3', 'chain:key4'] });
+			expect(stateDiff).toStrictEqual({
+				updated: [],
+				created: ['chain:key3', 'chain:key4'],
+				deleted: [],
+			});
 		});
 	});
 });

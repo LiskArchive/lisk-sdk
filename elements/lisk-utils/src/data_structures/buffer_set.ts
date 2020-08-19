@@ -13,6 +13,9 @@
  */
 import { keyString } from './buffer_string';
 
+// eslint-disable-next-line import/order
+import cloneDeep = require('lodash.clonedeep');
+
 export class BufferSet {
 	private _data: { [key: string]: Buffer } = {};
 
@@ -35,6 +38,10 @@ export class BufferSet {
 
 	public has(value: Buffer): boolean {
 		return this._data[keyString(value)] !== undefined;
+	}
+
+	public clone(): BufferSet {
+		return new BufferSet(cloneDeep(Object.values(this._data)));
 	}
 
 	public get size(): number {
