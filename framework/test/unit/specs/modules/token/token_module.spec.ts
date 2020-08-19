@@ -171,6 +171,20 @@ describe('token module', () => {
 		});
 	});
 
+	describe('#reducers.getBalance', () => {
+		it('should throw error if address is not a buffer', async () => {
+			return expect(
+				tokenModule.reducers.getBalance({ address: 'address' }, stateStore),
+			).rejects.toStrictEqual(new Error('Address must be a buffer'));
+		});
+
+		it('should should return account balance', async () => {
+			return expect(
+				tokenModule.reducers.getBalance({ address: senderAccount.address }, stateStore),
+			).resolves.toBe(senderAccount.token.balance);
+		});
+	});
+
 	describe('#beforeTransactionApply', () => {
 		it('should not throw error if fee is equal or higher or equal to min fee', async () => {
 			return expect(
