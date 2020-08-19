@@ -89,5 +89,31 @@ describe('Transfer asset', () => {
 				}),
 			).not.toThrow();
 		});
+
+		it('should call state store with a valid transfer asset', async () => {
+			await transferAsset.applyAsset({
+				asset: validTransaction.asset,
+				senderID: validTransaction.address,
+				stateStore,
+				reducerHandler,
+				transaction: validTransaction,
+			});
+			expect(stateStore.account.get).toHaveBeenCalledWith(validTransaction.address);
+			expect(storeAccountSetStub).toHaveBeenCalledWith(
+				sender.address,
+				expect.objectContaining({
+					address: sender.address,
+				}),
+			);
+			expect(stateStore.account.getOrDefault).toHaveBeenCalledWith(
+				validTransaction.asset.recipientAddress,
+			);
+			expect(stateStore.account.set).toHaveBeenCalledWith(
+				recipient.address,
+				expect.objectContaining({
+					address: recipient.address,
+				}),
+			);
+		});
 	});
 });
