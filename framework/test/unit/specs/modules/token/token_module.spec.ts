@@ -13,7 +13,6 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { TokenModule } from '../../../../../src/modules/token';
 import {
 	CHAIN_STATE_BURNT_FEE,
@@ -127,7 +126,7 @@ describe('token module', () => {
 					balance: senderAccount.token.balance += BigInt('1000'),
 				},
 			};
-			expect(stateStore.account.set).toBeCalledWith(senderAccount.address, expected);
+			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);
 		});
 	});
 
@@ -169,7 +168,7 @@ describe('token module', () => {
 					balance: senderAccount.token.balance -= BigInt('1000'),
 				},
 			};
-			expect(stateStore.account.set).toBeCalledWith(senderAccount.address, expected);
+			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);
 		});
 	});
 
@@ -271,31 +270,33 @@ describe('token module', () => {
 
 	describe('#afterBlockApply', () => {
 		let block: any;
-		const minFee =
-			BigInt(genesisConfig.minFeePerByte) * validTransaction.getBytes().length +
-			BigInt(genesisConfig.baseFees[0].baseFee);
+		let minFee: any;
+		let tx: any;
 		beforeEach(() => {
+			tx = {
+				moduleType: 2,
+				assetType: 0,
+				getBytes: () => [1],
+				fee: BigInt(20000000),
+			};
 			block = {
 				header: {
-					generatorPublicKey: 'senderAccountPublicKey',
+					generatorPublicKey: Buffer.from('public_key_of_sender', 'utf8'),
 					reward: BigInt(1),
 				},
-				payload: [
-					{
-						moduleType: 2,
-						assetType: 0,
-						getBytes: () => [1],
-						fee: BigInt(20000000),
-					},
-				],
+				payload: [tx],
 			};
+
+			minFee =
+				BigInt(genesisConfig.minFeePerByte) * BigInt(tx.getBytes().length) +
+				BigInt(genesisConfig.baseFees[0].baseFee);
 		});
 
 		describe('when block contains transactions', () => {
 			it('should update generator balance to give rewards and fees - minFee', async () => {
 				let expected = BigInt(senderAccount.token.balance) + block.header.reward;
-				for (const tx of block.payload) {
-					expected += tx.fee - minFee;
+				for (const transaction of block.payload) {
+					expected += transaction.fee - minFee;
 				}
 				await tokenModule.afterBlockApply({
 					block,
