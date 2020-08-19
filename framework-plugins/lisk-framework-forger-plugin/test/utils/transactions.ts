@@ -31,7 +31,7 @@ export const createTransferTransaction = ({
 	networkIdentifier: Buffer;
 }) => {
 	const genesisAccount = genesisDelegates.accounts[0];
-	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).assetSchema, {
+	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).schema, {
 		recipientAddress: Buffer.from(recipientAddress, 'base64'),
 		amount: BigInt(convertLSKToBeddows(amount)),
 		data: '',
@@ -66,7 +66,7 @@ export const createVoteTransaction = ({
 }) => {
 	const genesisAccount = genesisDelegates.accounts[0];
 
-	const encodedAsset = codec.encode(new DPoSVoteAsset().assetSchema, {
+	const encodedAsset = codec.encode(new DPoSVoteAsset().schema, {
 		votes: [
 			{
 				delegateAddress: Buffer.from(recipientAddress, 'base64'),
