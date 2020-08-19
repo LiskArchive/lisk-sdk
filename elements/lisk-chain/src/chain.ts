@@ -437,7 +437,7 @@ export class Chain {
 		}
 		const encodedValidators = codec.encode(validatorsSchema, { validators: nextValidatorSet });
 		stateStore.consensus.set(CONSENSUS_STATE_VALIDATORS_KEY, encodedValidators);
-		this.events.emit(EVENT_VALIDATORS_CHANGED, nextValidatorSet);
+		this.events.emit(EVENT_VALIDATORS_CHANGED, { validators: nextValidatorSet });
 	}
 
 	private async _cacheBlockHeaders(storageLastBlock: Block): Promise<void> {

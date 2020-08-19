@@ -675,20 +675,22 @@ export class Node {
 			EVENT_VALIDATORS_CHANGED,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			async (
-				eventData: [
-					{
-						address: Buffer;
-						isConsensusParticipant: boolean;
-						minActiveHeight: number;
-					},
-				],
+				eventData: {
+					validators: [
+						{
+							address: Buffer;
+							isConsensusParticipant: boolean;
+							minActiveHeight: number;
+						},
+					];
+				},
 				// eslint-disable-next-line @typescript-eslint/require-await
 			): Promise<void> => {
-				const updatedValidatorsList = eventData.map(aValidator => ({
+				const updatedValidatorsList = eventData.validators.map(aValidator => ({
 					...aValidator,
 					address: aValidator.address.toString('base64'),
 				}));
-				this._channel.publish('app:chain:validators:change', updatedValidatorsList);
+				this._channel.publish('app:chain:validators:change', { validators: updatedValidatorsList });
 			},
 		);
 
