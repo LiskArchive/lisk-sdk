@@ -85,7 +85,7 @@ export class ConsensusStateStore {
 	}
 
 	public finalize(batch: BatchChain): StateDiff {
-		const stateDiff = { updated: [], created: [] } as StateDiff;
+		const stateDiff = { updated: [], created: [], deleted: [] } as StateDiff;
 
 		if (this._updatedKeys.size === 0) {
 			return stateDiff;

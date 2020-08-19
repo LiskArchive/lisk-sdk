@@ -55,6 +55,7 @@ describe('chain', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
 		created: [],
 		updated: [],
+		deleted: [],
 	});
 	let chainInstance: Chain;
 	let db: any;
