@@ -45,7 +45,7 @@ export class RegisterAsset extends BaseAsset {
 	public id = RegisterassetID;
 	public schema = keysSchema;
 
-	public validateAsset({ asset, transaction }: ValidateAssetInput<Asset>): void {
+	public validate({ asset, transaction }: ValidateAssetInput<Asset>): void {
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = asset;
 
 		if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys as Buffer[])) {

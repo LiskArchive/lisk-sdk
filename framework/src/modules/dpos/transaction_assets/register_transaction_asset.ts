@@ -39,7 +39,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validateAsset({ asset }: ValidateAssetInput<RegisterTransactionAssetInput>): void {
+	public validate({ asset }: ValidateAssetInput<RegisterTransactionAssetInput>): void {
 		if (!isUsername(asset.username)) {
 			throw new ValidationError('The username is in unsupported format', asset.username);
 		}

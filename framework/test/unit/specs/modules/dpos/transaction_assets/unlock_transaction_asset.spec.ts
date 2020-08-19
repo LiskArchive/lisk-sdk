@@ -135,7 +135,7 @@ describe('UnlockTransactionAsset', () => {
 		});
 	});
 
-	describe('validateAsset', () => {
+	describe('validate', () => {
 		describe('schema validation', () => {
 			describe('when asset.unlockObjects does not include any unlockingObject', () => {
 				it('should return errors', () => {
@@ -218,7 +218,7 @@ describe('UnlockTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+				expect(() => transactionAsset.validate(validateInput)).not.toThrow();
 			});
 		});
 
@@ -236,7 +236,7 @@ describe('UnlockTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateInput)).toThrow(
 					'Amount cannot be less than or equal to zero',
 				);
 			});
@@ -256,7 +256,7 @@ describe('UnlockTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateInput)).toThrow(
 					'Amount should be multiple of 10 * 10^8',
 				);
 			});

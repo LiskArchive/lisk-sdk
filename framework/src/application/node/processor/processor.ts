@@ -95,7 +95,7 @@ export class Processor {
 	public register(customModule: BaseModule): void {
 		const existingModule = this._modules.find(m => m.id === customModule.id);
 		if (existingModule) {
-			throw new Error(`Module type ${customModule.id} is already registered`);
+			throw new Error(`Module id ${customModule.id} is already registered`);
 		}
 		if (customModule.afterGenesisBlockApply) {
 			this._hooks.afterGenesisBlockApply.pipe([
@@ -307,13 +307,13 @@ export class Processor {
 	public validateTransaction(transaction: Transaction): void {
 		transaction.validate();
 		const customAsset = this._getAsset(transaction);
-		if (customAsset.validateAsset) {
+		if (customAsset.validate) {
 			const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
 			const assetSchemaErrors = validator.validate(customAsset.schema, decodedAsset as object);
 			if (assetSchemaErrors.length) {
 				throw new LiskValidationError(assetSchemaErrors);
 			}
-			customAsset.validateAsset({
+			customAsset.validate({
 				asset: decodedAsset,
 				transaction,
 			});
@@ -493,7 +493,7 @@ export class Processor {
 		);
 		if (!customAsset) {
 			throw new Error(
-				`Asset type ${transaction.assetID} does not exist in module type ${transaction.moduleID}.`,
+				`Asset id ${transaction.assetID} does not exist in module id ${transaction.moduleID}.`,
 			);
 		}
 		return customAsset;

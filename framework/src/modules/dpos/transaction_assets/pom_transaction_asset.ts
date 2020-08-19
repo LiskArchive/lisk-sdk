@@ -97,7 +97,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validateAsset({ asset }: ValidateAssetInput<PomTransactionAssetInput>): void {
+	public validate({ asset }: ValidateAssetInput<PomTransactionAssetInput>): void {
 		if (!asset.header1.generatorPublicKey.equals(asset.header2.generatorPublicKey)) {
 			throw new ValidationError(
 				'GeneratorPublicKey of each BlockHeader should match.',

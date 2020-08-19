@@ -66,14 +66,14 @@ describe('RegisterTransactionAsset', () => {
 		});
 	});
 
-	describe('#validateAsset', () => {
+	describe('#validate', () => {
 		it('should not throw error if valid username is provided', () => {
 			// Arrange
 			const asset: RegisterTransactionAssetInput = { username: 'obelisk' };
 			const error = new ValidationError('The username is in unsupported format', 'obelisk');
 
 			// Act & Assert
-			expect(() => transactionAsset.validateAsset({ asset } as any)).not.toThrow(error);
+			expect(() => transactionAsset.validate({ asset } as any)).not.toThrow(error);
 		});
 
 		it('should throw error when username includes capital letter', () => {
@@ -82,7 +82,7 @@ describe('RegisterTransactionAsset', () => {
 			const error = new ValidationError('The username is in unsupported format', 'Obelisk');
 
 			// Act & Assert
-			expect(() => transactionAsset.validateAsset({ asset } as any)).toThrow(error);
+			expect(() => transactionAsset.validate({ asset } as any)).toThrow(error);
 		});
 
 		it('should throw error when username is like address', () => {
@@ -94,7 +94,7 @@ describe('RegisterTransactionAsset', () => {
 			);
 
 			// Act & Assert
-			expect(() => transactionAsset.validateAsset({ asset } as any)).toThrow(error);
+			expect(() => transactionAsset.validate({ asset } as any)).toThrow(error);
 		});
 
 		it('should throw error when username includes forbidden character', () => {
@@ -102,7 +102,7 @@ describe('RegisterTransactionAsset', () => {
 			const asset: RegisterTransactionAssetInput = { username: 'obe^lis' };
 
 			// Act & Assert
-			expect(() => transactionAsset.validateAsset({ asset } as any)).toThrowErrorMatchingSnapshot();
+			expect(() => transactionAsset.validate({ asset } as any)).toThrowErrorMatchingSnapshot();
 		});
 
 		it('should throw error when username includes forbidden null character', () => {
@@ -111,7 +111,7 @@ describe('RegisterTransactionAsset', () => {
 			const error = new ValidationError('The username is in unsupported format', 'obe\0lisk');
 
 			// Act & Assert
-			expect(() => transactionAsset.validateAsset({ asset } as any)).toThrow(error);
+			expect(() => transactionAsset.validate({ asset } as any)).toThrow(error);
 		});
 	});
 

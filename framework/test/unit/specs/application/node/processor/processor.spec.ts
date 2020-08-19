@@ -852,7 +852,7 @@ describe('processor', () => {
 		});
 
 		it('should throw if asset validation fails', () => {
-			customModule0.transactionAssets[0].validateAsset.mockImplementation(() => {
+			customModule0.transactionAssets[0].validate.mockImplementation(() => {
 				throw new Error('invalid tx');
 			});
 			expect(() => processor.validateTransaction(tx)).toThrow('invalid tx');

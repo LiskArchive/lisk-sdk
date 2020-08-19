@@ -57,7 +57,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetInpu
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validateAsset({ asset }: ValidateAssetInput<UnlockTransactionAssetInput>): void {
+	public validate({ asset }: ValidateAssetInput<UnlockTransactionAssetInput>): void {
 		for (const unlock of asset.unlockObjects) {
 			if (unlock.amount <= BigInt(0)) {
 				throw new ValidationError(

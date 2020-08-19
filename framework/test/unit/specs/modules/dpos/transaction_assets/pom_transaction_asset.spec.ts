@@ -106,7 +106,7 @@ describe('PomTransactionAsset', () => {
 		});
 	});
 
-	describe('validateAsset', () => {
+	describe('validate', () => {
 		it('should not throw error when first height is equal to second height but equal maxHeightPrevoted', () => {
 			validateInput.asset = {
 				header1: {
@@ -117,7 +117,7 @@ describe('PomTransactionAsset', () => {
 				header2: { ...header2, height: 10999 },
 			};
 
-			expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+			expect(() => transactionAsset.validate(validateInput)).not.toThrow();
 		});
 
 		it('should not throw error when first height is greater than the second height but equal maxHeightPrevoted', () => {
@@ -130,7 +130,7 @@ describe('PomTransactionAsset', () => {
 				header2: { ...header2, height: 11999 },
 			};
 
-			expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+			expect(() => transactionAsset.validate(validateInput)).not.toThrow();
 		});
 
 		it("should not throw error when height is greater than the second header's maxHeightPreviouslyForged", () => {
@@ -146,7 +146,7 @@ describe('PomTransactionAsset', () => {
 				},
 			};
 
-			expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+			expect(() => transactionAsset.validate(validateInput)).not.toThrow();
 		});
 
 		it('should not throw error when maxHeightPrevoted is greater than the second maxHeightPrevoted', () => {
@@ -159,7 +159,7 @@ describe('PomTransactionAsset', () => {
 				header2: { ...header2, height: 123, asset: { ...header1.asset, maxHeightPrevoted: 98 } },
 			};
 
-			expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+			expect(() => transactionAsset.validate(validateInput)).not.toThrow();
 		});
 
 		it('should throw error when headers are not contradicting', () => {
@@ -170,7 +170,7 @@ describe('PomTransactionAsset', () => {
 				header2: { ...header1 },
 			};
 
-			expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+			expect(() => transactionAsset.validate(validateInput)).toThrow(
 				'BlockHeaders are identical. No contradiction detected.',
 			);
 		});

@@ -177,10 +177,10 @@ describe('register asset', () => {
 		});
 	});
 
-	describe('validateAsset', () => {
+	describe('validate', () => {
 		it('should not throw errors for valid asset', () => {
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: validTestTransaction.asset,
 					transaction: validTestTransaction,
 				}),
@@ -200,7 +200,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -220,7 +220,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -237,7 +237,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -254,7 +254,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -280,7 +280,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -303,7 +303,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -324,7 +324,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -342,7 +342,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -361,7 +361,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -379,7 +379,7 @@ describe('register asset', () => {
 			invalidTransaction.signatures.pop();
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),

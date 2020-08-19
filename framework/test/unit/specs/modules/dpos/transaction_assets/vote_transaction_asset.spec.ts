@@ -75,7 +75,7 @@ describe('VoteTransactionAsset', () => {
 		});
 	});
 
-	describe('validateAsset', () => {
+	describe('validate', () => {
 		describe('schema validation', () => {
 			describe('when asset.votes does not include any vote', () => {
 				it('should return errors', () => {
@@ -149,7 +149,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+				expect(() => transactionAsset.validate(validateInput)).not.toThrow();
 			});
 
 			it('should not throw errors with valid downvote case', () => {
@@ -159,7 +159,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+				expect(() => transactionAsset.validate(validateInput)).not.toThrow();
 			});
 
 			it('should not throw errors with valid mix votes case', () => {
@@ -172,7 +172,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+				expect(() => transactionAsset.validate(validateInput)).not.toThrow();
 			});
 		});
 
@@ -186,7 +186,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateInput)).toThrow(
 					'Upvote can only be casted upto 10',
 				);
 			});
@@ -202,7 +202,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateInput)).toThrow(
 					'Downvote can only be casted upto 10',
 				);
 			});
@@ -218,7 +218,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateInput)).toThrow(
 					'Delegate address must be unique',
 				);
 			});
@@ -235,7 +235,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateInput)).toThrow(
 					'Delegate address must be unique',
 				);
 			});
@@ -249,7 +249,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow('Amount cannot be 0');
+				expect(() => transactionAsset.validate(validateInput)).toThrow('Amount cannot be 0');
 			});
 		});
 
@@ -261,7 +261,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateInput)).toThrow(
 					'Amount should be multiple of 10 * 10^8',
 				);
 			});

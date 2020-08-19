@@ -30,7 +30,7 @@ export class CustomAsset0 extends BaseAsset {
 		},
 	};
 
-	public validateAsset = jest.fn();
+	public validate = jest.fn();
 	public apply = jest.fn();
 }
 

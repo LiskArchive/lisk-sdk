@@ -23,7 +23,7 @@ export abstract class BaseAsset<T = unknown> {
 	public abstract id: number;
 	public abstract schema: Schema;
 
-	public validateAsset?(input: ValidateAssetInput<T>): void;
+	public validate?(input: ValidateAssetInput<T>): void;
 
 	public abstract async apply(input: ApplyAssetInput<T>): Promise<void>;
 }

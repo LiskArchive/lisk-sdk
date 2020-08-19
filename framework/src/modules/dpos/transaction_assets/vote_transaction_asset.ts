@@ -53,7 +53,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetInput> {
 	};
 
 	// eslint-disable-next-line class-methods-use-this
-	public validateAsset({ asset }: ValidateAssetInput<VoteTransactionAssetInput>): void {
+	public validate({ asset }: ValidateAssetInput<VoteTransactionAssetInput>): void {
 		let upVoteCount = 0;
 		let downVoteCount = 0;
 		const addressSet: { [addressStr: string]: boolean } = {};
