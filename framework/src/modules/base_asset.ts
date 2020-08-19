@@ -20,7 +20,7 @@ export abstract class BaseAsset<T = unknown> {
 	public baseFee = BigInt(0);
 
 	public abstract name: string;
-	public abstract type: number;
+	public abstract id: number;
 	public abstract schema: Schema;
 
 	public validateAsset?(input: ValidateAssetInput<T>): void;

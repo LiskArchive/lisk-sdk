@@ -489,7 +489,7 @@ export class Processor {
 			throw new Error(`Module id ${transaction.moduleID} does not exist`);
 		}
 		const customAsset = customModule.transactionAssets.find(
-			asset => asset.type === transaction.assetID,
+			asset => asset.id === transaction.assetID,
 		);
 		if (!customAsset) {
 			throw new Error(

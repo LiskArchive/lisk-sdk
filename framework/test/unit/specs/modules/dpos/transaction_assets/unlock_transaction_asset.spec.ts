@@ -118,15 +118,15 @@ describe('UnlockTransactionAsset', () => {
 	});
 
 	describe('constructor', () => {
-		it('should have valid type', () => {
-			expect(transactionAsset.type).toEqual(2);
+		it('should have valid id', () => {
+			expect(transactionAsset.id).toEqual(2);
 		});
 
 		it('should have valid name', () => {
 			expect(transactionAsset.name).toEqual('unlock');
 		});
 
-		it('should have valid accountSchema', () => {
+		it('should have valid schema', () => {
 			expect(transactionAsset.schema).toMatchSnapshot();
 		});
 

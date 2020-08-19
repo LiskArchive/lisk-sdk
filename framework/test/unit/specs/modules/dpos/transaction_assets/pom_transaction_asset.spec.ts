@@ -89,15 +89,15 @@ describe('PomTransactionAsset', () => {
 	});
 
 	describe('constructor', () => {
-		it('should have valid type', () => {
-			expect(transactionAsset.type).toEqual(3);
+		it('should have valid id', () => {
+			expect(transactionAsset.id).toEqual(3);
 		});
 
 		it('should have valid name', () => {
 			expect(transactionAsset.name).toEqual('pom');
 		});
 
-		it('should have valid accountSchema', () => {
+		it('should have valid schema', () => {
 			expect(transactionAsset.schema).toMatchSnapshot();
 		});
 

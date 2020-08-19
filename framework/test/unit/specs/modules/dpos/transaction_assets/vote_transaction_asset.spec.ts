@@ -58,15 +58,15 @@ describe('VoteTransactionAsset', () => {
 	});
 
 	describe('constructor', () => {
-		it('should have valid type', () => {
-			expect(transactionAsset.type).toEqual(1);
+		it('should have valid id', () => {
+			expect(transactionAsset.id).toEqual(1);
 		});
 
 		it('should have valid name', () => {
 			expect(transactionAsset.name).toEqual('vote');
 		});
 
-		it('should have valid accountSchema', () => {
+		it('should have valid schema', () => {
 			expect(transactionAsset.schema).toMatchSnapshot();
 		});
 

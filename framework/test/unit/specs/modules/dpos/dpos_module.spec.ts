@@ -73,7 +73,7 @@ describe('DPoSModule', () => {
 			expect(dposModule).toBeInstanceOf(DPoSModule);
 		});
 
-		it('should have valid type', () => {
+		it('should have valid id', () => {
 			dposModule = new DPoSModule(genesisConfig);
 
 			expect(dposModule.id).toEqual(5);
@@ -85,7 +85,7 @@ describe('DPoSModule', () => {
 			expect(dposModule.name).toEqual('dpos');
 		});
 
-		it('should have valid accountSchema', () => {
+		it('should have valid schema', () => {
 			dposModule = new DPoSModule(genesisConfig);
 
 			expect(dposModule.accountSchema).toMatchSnapshot();

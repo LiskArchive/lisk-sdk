@@ -23,7 +23,7 @@ import { getRegisteredDelegates, setRegisteredDelegates } from '../data_access';
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetInput> {
 	public baseFee = DELEGATE_NAME_FEE;
 	public name = 'register';
-	public type = 0;
+	public id = 0;
 	public schema = {
 		$id: 'lisk/dpos/register',
 		type: 'object',

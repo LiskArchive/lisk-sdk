@@ -573,7 +573,7 @@ describe('processor', () => {
 			expect(() => processor.validate(block)).toThrow('Module id 20 does not exist');
 		});
 
-		it('should fail when asset type does not exist', () => {
+		it('should fail when asset id does not exist', () => {
 			const block = ({
 				header: {
 					id: Buffer.from('fakelock2'),
@@ -592,9 +592,7 @@ describe('processor', () => {
 					}),
 				],
 			} as unknown) as Block;
-			expect(() => processor.validate(block)).toThrow(
-				'Asset type 5 does not exist in module type 3.',
-			);
+			expect(() => processor.validate(block)).toThrow('Asset id 5 does not exist in module id 3.');
 		});
 	});
 
@@ -834,7 +832,7 @@ describe('processor', () => {
 						signatures: [],
 					}),
 				),
-			).toThrow('Asset type 99 does not exist in module type 3');
+			).toThrow('Asset id 99 does not exist in module id 3');
 		});
 
 		it('should throw if root schema is invalid', () => {
@@ -922,7 +920,7 @@ describe('processor', () => {
 			).rejects.toThrow('Module id 99 does not exist');
 		});
 
-		it('should reject if asset type does not exist', async () => {
+		it('should reject if asset id does not exist', async () => {
 			await expect(
 				processor.verifyTransactions(
 					[
@@ -938,7 +936,7 @@ describe('processor', () => {
 					],
 					stateStoreStub,
 				),
-			).rejects.toThrow('Asset type 0 does not exist in module type 4');
+			).rejects.toThrow('Asset id 0 does not exist in module id 4');
 		});
 
 		it('should resolve transaction is valid', async () => {

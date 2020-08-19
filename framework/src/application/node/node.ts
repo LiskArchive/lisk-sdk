@@ -719,7 +719,7 @@ export class Node {
 			for (const customAsset of customModule.transactionAssets) {
 				registeredSchemas.push({
 					moduleID: customModule.id,
-					assetID: customAsset.type,
+					assetID: customAsset.id,
 					schema: customAsset.schema,
 				});
 			}

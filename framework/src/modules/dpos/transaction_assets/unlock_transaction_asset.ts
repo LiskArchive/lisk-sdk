@@ -21,7 +21,7 @@ import { getPunishmentPeriod, getWaitingPeriod } from '../utils';
 
 export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetInput> {
 	public name = 'unlock';
-	public type = 2;
+	public id = 2;
 	public schema = {
 		$id: 'lisk/dpos/unlock',
 		type: 'object',

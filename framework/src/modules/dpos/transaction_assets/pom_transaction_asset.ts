@@ -79,7 +79,7 @@ const getBlockHeaderBytes = (header: BlockHeader): Buffer =>
 
 export class PomTransactionAsset extends BaseAsset<PomTransactionAssetInput> {
 	public name = 'pom';
-	public type = 3;
+	public id = 3;
 	public schema = {
 		$id: 'lisk/dpos/pom',
 		type: 'object',

@@ -49,15 +49,15 @@ describe('RegisterTransactionAsset', () => {
 	});
 
 	describe('constructor', () => {
-		it('should have valid type', () => {
-			expect(transactionAsset.type).toEqual(0);
+		it('should have valid id', () => {
+			expect(transactionAsset.id).toEqual(0);
 		});
 
 		it('should have valid name', () => {
 			expect(transactionAsset.name).toEqual('register');
 		});
 
-		it('should have valid accountSchema', () => {
+		it('should have valid schema', () => {
 			expect(transactionAsset.schema).toMatchSnapshot();
 		});
 
