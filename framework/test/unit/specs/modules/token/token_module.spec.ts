@@ -266,4 +266,27 @@ describe('token module', () => {
 			);
 		});
 	});
+
+	describe('#afterBlockApply', () => {
+		const generatorPublicKey = getRandomBytes(20);
+		let block: any;
+		const minFee =
+			BigInt(genesisConfig.minFeePerByte) * BigInt(1) + BigInt(genesisConfig.baseFees[0].baseFee);
+		beforeEach(() => {
+			block = {
+				header: {
+					generatorPublicKey,
+					reward: BigInt(1),
+				},
+				payload: [
+					{
+						moduleType: 2,
+						assetType: 0,
+						getBytes: () => [1],
+						fee: BigInt(20000000),
+					},
+				],
+			};
+		});
+	});
 });
