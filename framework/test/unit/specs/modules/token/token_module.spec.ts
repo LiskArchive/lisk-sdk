@@ -101,6 +101,17 @@ describe('token module', () => {
 				tokenModule.reducers.credit({ address: senderAccount.address, amount: '1000' }, stateStore),
 			).rejects.toStrictEqual(new Error('Amount must be a bigint'));
 		});
+
+		it('should throw error if account does not have sufficient balance', async () => {
+			senderAccount.token.balance = BigInt(0);
+
+			return expect(
+				tokenModule.reducers.credit(
+					{ address: senderAccount.address, amount: BigInt('1000') },
+					stateStore,
+				),
+			).resolves.toBeUndefined();
+		});
 	});
 
 	describe('#beforeTransactionApply', () => {
