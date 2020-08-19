@@ -112,6 +112,21 @@ describe('token module', () => {
 				),
 			).resolves.toBeUndefined();
 		});
+
+		it('should credit target account', async () => {
+			await tokenModule.reducers.credit(
+				{ address: senderAccount.address, amount: BigInt('1000') },
+				stateStore,
+			);
+			const expected = {
+				...senderAccount,
+				token: {
+					...senderAccount.token,
+					balance: senderAccount.token.balance += BigInt('1000'),
+				},
+			};
+			expect(stateStore.account.set).toBeCalledWith(senderAccount.address, expected);
+		});
 	});
 
 	describe('#beforeTransactionApply', () => {
