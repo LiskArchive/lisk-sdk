@@ -76,4 +76,18 @@ describe('Transfer asset', () => {
 		storeAccountSetStub = jest.spyOn(stateStore.account, 'set');
 		reducerHandler = {};
 	});
+
+	describe('#applyAsset', () => {
+		it('should return not throw error with a valid transfer asset', () => {
+			expect(async () =>
+				transferAsset.applyAsset({
+					asset: validTransaction.asset,
+					senderID: validTransaction.address,
+					stateStore,
+					reducerHandler,
+					transaction: validTransaction,
+				}),
+			).not.toThrow();
+		});
+	});
 });
