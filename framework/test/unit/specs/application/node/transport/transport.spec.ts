@@ -17,13 +17,13 @@ import { BufferMap } from '@liskhq/lisk-transaction-pool';
 import { Transaction } from '@liskhq/lisk-chain';
 import { Transport } from '../../../../../../src/application/node/transport';
 import { genesis } from '../../../../../fixtures';
-import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../utils/network_identifier';
 import { createTransferTransaction } from '../../../../../utils/node/transaction';
 
 describe('Transport', () => {
 	const defaultBroadcastInterval = 5000;
 	const defaultReleaseLimit = 100;
 	const encodedBlock = Buffer.from('encodedBlock');
+	const networkIdentifier = '93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 
 	let transport: any;
 	let transactionPoolStub: any;

@@ -26,9 +26,12 @@ import { createVoteTransaction } from '../utils/transactions';
 describe('Voters endpoint', () => {
 	let app: Application;
 	let accountNonce = 0;
+	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
 		app = await createApplication('forger_functional_voters');
+		// The test application generates a dynamic genesis block so we need to get the networkID like this
+		networkIdentifier = app['_node'].networkIdentifier;
 	});
 
 	afterAll(async () => {
@@ -75,8 +78,10 @@ describe('Voters endpoint', () => {
 					recipientAddress: forgingDelegateAddress,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier,
 				});
 				accountNonce += 1;
+
 				await app['_channel'].invoke('app:postTransaction', {
 					transaction: transaction.getBytes().toString('base64'),
 				});

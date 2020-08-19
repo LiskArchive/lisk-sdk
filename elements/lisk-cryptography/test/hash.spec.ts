@@ -60,7 +60,7 @@ describe('hash', () => {
 	});
 
 	describe('#getNetworkIdentifier', () => {
-		const genesisBlockTransactionRoot = Buffer.from(
+		const genesisBlockID = Buffer.from(
 			'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
 			'hex',
 		);
@@ -71,10 +71,7 @@ describe('hash', () => {
 		);
 
 		it('should generate a sha256 hash from genesis block transaction root and community identifier', () => {
-			const networkIdentifier = getNetworkIdentifier(
-				genesisBlockTransactionRoot,
-				communityIdentifier,
-			);
+			const networkIdentifier = getNetworkIdentifier(genesisBlockID, communityIdentifier);
 
 			expect(networkIdentifier).toEqual(expectedHash);
 		});
