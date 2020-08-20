@@ -20,30 +20,24 @@ Upon successful completion, NPM will add the `lisk-commander` executable `lisk` 
 $ lisk COMMAND
 running command...
 $ lisk (-v|--version|version)
-lisk-commander/2.0.0 darwin-x64 node-v8.12.0
+lisk-commander/5.0.0 darwin-x64 node-v12.18.3
 $ lisk --help [COMMAND]
 A command line interface for Lisk
 
 VERSION
-  lisk-commander/2.0.0 darwin-x64 node-v8.12.0
+  lisk-commander/5.0.0 darwin-x64 node-v12.18.3
 
 USAGE
   $ lisk [COMMAND]
 
 COMMANDS
-  account      Commands relating to Lisk accounts.
-  block        Commands relating to Lisk blocks.
-  config       Manages Lisk Commander configuration.
-  core         Install and Manages Lisk Core instances.
-  copyright    Displays copyright notice.
-  delegate     Commands relating to Lisk delegates.
-  help         Displays help.
-  message      Commands relating to user messages.
-  node         Commands relating to Lisk node.
-  passphrase   Commands relating to Lisk passphrases.
-  signature    Commands relating to signatures for Lisk transactions from multisignature accounts.
-  transaction  Commands relating to Lisk transactions.
-  warranty     Displays warranty notice.
+  account              Commands relating to Lisk accounts.
+  copyright            Displays copyright notice.
+  help                 Displays help.
+  message              Commands relating to user messages.
+  passphrase           Commands relating to Lisk passphrases.
+  network-identifier   Creates network identifier of Lisk network.
+  warranty             Displays warranty notice.
 ```
 
 ### Running Tests

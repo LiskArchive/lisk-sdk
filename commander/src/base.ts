@@ -14,13 +14,7 @@
  *
  */
 import { Command, flags as flagParser } from '@oclif/command';
-
-import { defaultLiskPm2Path } from './utils/core/config';
-import { handleEPIPE } from './utils/helpers';
 import { print, StringMap } from './utils/print';
-
-// Set PM2_HOME to ensure PM2 is isolated from system wide installation
-process.env.PM2_HOME = defaultLiskPm2Path;
 
 export const defaultConfigFolder = '.lisk';
 
@@ -66,7 +60,11 @@ export default abstract class BaseCommand extends Command {
 		);
 		this.printFlags = flags as PrintFlags;
 
-		process.stdout.on('error', handleEPIPE);
+		process.stdout.on('error', (err: { errno: string }): void => {
+			if (err.errno !== 'EPIPE') {
+				throw err;
+			}
+		});
 	}
 
 	print(result: unknown): void {
