@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PomTransactionAsset constructor should have valid accountSchema 1`] = `
+exports[`PomTransactionAsset constructor should have valid schema 1`] = `
 Object {
   "$id": "lisk/dpos/pom",
   "properties": Object {

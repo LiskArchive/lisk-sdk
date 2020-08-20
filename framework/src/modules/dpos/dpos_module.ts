@@ -17,7 +17,7 @@ import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { Account } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
-import { AfterBlockApplyInput, AfterGenesisBlockApplyInput, GenesisConfig } from '../../types';
+import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
 import { Rounds } from './rounds';
 import { DPOSAccountProps, RegisteredDelegate } from './types';
 import { dposAccountSchema, dposModuleParamsSchema } from './schema';
@@ -40,7 +40,7 @@ const debug = Debug('dpos');
 
 export class DPoSModule extends BaseModule {
 	public name = 'dpos';
-	public type = 5;
+	public id = 5;
 	public accountSchema = dposAccountSchema;
 
 	public readonly rounds: Rounds;
@@ -85,10 +85,10 @@ export class DPoSModule extends BaseModule {
 		this.rounds = new Rounds({ blocksPerRound: this._blocksPerRound });
 	}
 
-	public async afterBlockApply(input: AfterBlockApplyInput): Promise<void> {
-		const finalizedHeight = input.consensus.getFinalizedHeight();
-		const lastBootstrapHeight = input.consensus.getLastBootstrapHeight();
-		const { height } = input.block.header;
+	public async afterBlockApply(context: AfterBlockApplyContext): Promise<void> {
+		const finalizedHeight = context.consensus.getFinalizedHeight();
+		const lastBootstrapHeight = context.consensus.getLastBootstrapHeight();
+		const { height } = context.block.header;
 		const isLastBlockOfRound = this._isLastBlockOfTheRound(height);
 		const isBootstrapPeriod = height <= lastBootstrapHeight;
 
@@ -100,30 +100,30 @@ export class DPoSModule extends BaseModule {
 				finalizedBlockRound - this._delegateListRoundOffset - this._delegateActiveRoundLimit;
 
 			debug('Deleting voteWeights until round: ', disposableDelegateListUntilRound);
-			await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, input.stateStore);
+			await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, context.stateStore);
 		}
 
 		if (!isBootstrapPeriod) {
 			// Calculate account.dpos.delegate.consecutiveMissedBlocks and account.dpos.delegate.isBanned
-			await this._updateProductivity(input);
+			await this._updateProductivity(context);
 		}
 
 		if (!isLastBlockOfRound) {
 			return;
 		}
 
-		await this._createVoteWeightSnapshot(input);
+		await this._createVoteWeightSnapshot(context);
 
 		if (!isBootstrapPeriod || (isBootstrapPeriod && height === lastBootstrapHeight)) {
-			await this._updateValidators(input);
+			await this._updateValidators(context);
 		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async afterGenesisBlockApply<T = Account<DPOSAccountProps>>(
-		input: AfterGenesisBlockApplyInput<T>,
+		context: AfterGenesisBlockApplyContext<T>,
 	): Promise<void> {
-		const { accounts, initDelegates } = input.genesisBlock.header.asset;
+		const { accounts, initDelegates } = context.genesisBlock.header.asset;
 		const delegateAddresses: Buffer[] = [];
 		const delegateUsernames: RegisteredDelegate[] = [];
 
@@ -149,15 +149,15 @@ export class DPoSModule extends BaseModule {
 			);
 		}
 
-		setRegisteredDelegates(input.stateStore, { registeredDelegates: delegateUsernames });
+		setRegisteredDelegates(context.stateStore, { registeredDelegates: delegateUsernames });
 	}
 
-	private async _updateProductivity(input: AfterBlockApplyInput): Promise<void> {
+	private async _updateProductivity(context: AfterBlockApplyContext): Promise<void> {
 		const {
 			block: { header: blockHeader },
 			consensus,
 			stateStore,
-		} = input;
+		} = context;
 
 		const round = this.rounds.calcRound(blockHeader.height);
 		debug('Updating delegates productivity', round);
@@ -171,15 +171,15 @@ export class DPoSModule extends BaseModule {
 		});
 	}
 
-	private async _createVoteWeightSnapshot(input: AfterBlockApplyInput): Promise<void> {
-		const round = this.rounds.calcRound(input.block.header.height);
+	private async _createVoteWeightSnapshot(context: AfterBlockApplyContext): Promise<void> {
+		const round = this.rounds.calcRound(context.block.header.height);
 		// Calculate Vote Weights List
 		debug('Creating delegate list for', round + this._delegateListRoundOffset);
 
-		const snapshotHeight = input.block.header.height + 1;
+		const snapshotHeight = context.block.header.height + 1;
 		const snapshotRound = this.rounds.calcRound(snapshotHeight) + this._delegateListRoundOffset;
 		await createVoteWeightsSnapshot({
-			stateStore: input.stateStore,
+			stateStore: context.stateStore,
 			height: snapshotHeight,
 			round: snapshotRound,
 			activeDelegates: this._activeDelegates,
@@ -187,8 +187,8 @@ export class DPoSModule extends BaseModule {
 		});
 	}
 
-	private async _updateValidators(input: AfterBlockApplyInput): Promise<void> {
-		const round = this.rounds.calcRound(input.block.header.height);
+	private async _updateValidators(context: AfterBlockApplyContext): Promise<void> {
+		const round = this.rounds.calcRound(context.block.header.height);
 		const nextRound = round + 1;
 
 		debug('Updating delegate list for', nextRound);
@@ -196,13 +196,13 @@ export class DPoSModule extends BaseModule {
 		const [randomSeed1, randomSeed2] = generateRandomSeeds(
 			round,
 			this.rounds,
-			input.stateStore.chain.lastBlockHeaders,
+			context.stateStore.chain.lastBlockHeaders,
 		);
 		await updateDelegateList({
 			round: nextRound,
 			randomSeeds: [randomSeed1, randomSeed2],
-			stateStore: input.stateStore,
-			consensus: input.consensus,
+			stateStore: context.stateStore,
+			consensus: context.consensus,
 			activeDelegates: this._activeDelegates,
 			standbyDelegates: this._standbyDelegates,
 		});

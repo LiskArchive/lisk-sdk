@@ -46,7 +46,7 @@ const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 
 export const encodeValidBlockHeader = (header: BlockHeader): Buffer => {
 	const chain = new Chain({
-		accounts: defaultAccountSchema,
+		accountSchemas: defaultAccountSchema,
 		genesisBlock: {
 			header: {
 				timestamp: 0,
@@ -113,7 +113,7 @@ export const createValidDefaultBlock = (
 	});
 
 	const chain = new Chain({
-		accounts: defaultAccountSchema,
+		accountSchemas: defaultAccountSchema,
 		genesisBlock: {
 			header: {
 				timestamp: 0,
@@ -143,7 +143,7 @@ export const createValidDefaultBlock = (
 
 export const encodeValidBlock = (block: Block | GenesisBlock): Buffer => {
 	const chain = new Chain({
-		accounts: defaultAccountSchema,
+		accountSchemas: defaultAccountSchema,
 		genesisBlock: {
 			header: {
 				timestamp: 0,

@@ -75,7 +75,7 @@ describe('Synchronizer', () => {
 			networkIdentifier: defaultNetworkIdentifier,
 			db: blockchainDB,
 			genesisBlock,
-			accounts: defaultAccountSchema,
+			accountSchemas: defaultAccountSchema,
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
@@ -562,8 +562,8 @@ describe('Synchronizer', () => {
 
 		describe('when peer returns valid transaction response', () => {
 			const transaction = new Transaction({
-				moduleType: 2,
-				assetType: 0,
+				moduleID: 2,
+				assetID: 0,
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,

@@ -18,13 +18,13 @@ import { BaseChannel, PluginCodec } from 'lisk-framework';
 
 const transactionInputSchema = {
 	type: 'object',
-	required: ['moduleType', 'assetType', 'nonce', 'fee', 'senderPublicKey', 'asset', 'signatures'],
+	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset', 'signatures'],
 	properties: {
-		moduleType: {
+		moduleID: {
 			type: 'number',
 			description: 'Describes the Transaction module type.',
 		},
-		assetType: {
+		assetID: {
 			type: 'number',
 			description: 'Describes the Transaction asset type.',
 		},
@@ -60,8 +60,8 @@ const transactionInputSchema = {
 
 interface TransactionInput {
 	id: string;
-	moduleType: number;
-	assetType: number;
+	moduleID: number;
+	assetID: number;
 	fee: string;
 	nonce: string;
 	senderPublicKey: string;

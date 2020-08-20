@@ -33,9 +33,9 @@ describe('sequence module', () => {
 	const sampleTx = {
 		nonce: BigInt(2),
 		id: cryptography.getRandomBytes(32),
-		assetType: 0,
+		assetID: 0,
 		baseFee: BigInt(1),
-		moduleType: 3,
+		moduleID: 3,
 		fee: BigInt(1),
 		senderPublicKey: Buffer.from(''),
 		signatures: [],
@@ -45,9 +45,9 @@ describe('sequence module', () => {
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
 			{
-				assetType: 0,
+				assetID: 0,
 				baseFee: '1',
-				moduleType: 3,
+				moduleID: 3,
 			},
 		],
 		bftThreshold: 67,

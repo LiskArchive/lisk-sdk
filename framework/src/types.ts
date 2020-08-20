@@ -111,8 +111,8 @@ export interface GenesisConfig {
 	};
 	minFeePerByte: number;
 	baseFees: {
-		moduleType: number;
-		assetType: number;
+		moduleID: number;
+		assetID: number;
 		baseFee: string;
 	}[];
 }
@@ -147,8 +147,8 @@ export interface ActionInfoForBus {
 }
 
 export interface TransactionJSON {
-	readonly moduleType: number;
-	readonly assetType: number;
+	readonly moduleID: number;
+	readonly assetID: number;
 	readonly nonce: string;
 	readonly fee: string;
 	readonly senderPublicKey: string;
@@ -176,29 +176,29 @@ export interface Actions {
 	[key: string]: (params: Record<string, unknown>) => Promise<unknown>;
 }
 
-export interface TransactionApplyInput {
+export interface TransactionApplyContext {
 	transaction: Transaction;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
 }
 
-export interface AfterGenesisBlockApplyInput<T = unknown> {
+export interface AfterGenesisBlockApplyContext<T = unknown> {
 	genesisBlock: GenesisBlock<T>;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
 }
 
-export interface BeforeBlockApplyInput {
+export interface BeforeBlockApplyContext {
 	block: Block;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;
 }
 
-export interface AfterBlockApplyInput extends BeforeBlockApplyInput {
+export interface AfterBlockApplyContext extends BeforeBlockApplyContext {
 	consensus: Consensus;
 }
 
-export interface ApplyAssetInput<T> {
+export interface ApplyAssetContext<T> {
 	senderID: Buffer;
 	asset: T;
 	stateStore: StateStore;
@@ -206,7 +206,7 @@ export interface ApplyAssetInput<T> {
 	transaction: Transaction;
 }
 
-export interface ValidateAssetInput<T> {
+export interface ValidateAssetContext<T> {
 	asset: T;
 	transaction: Transaction;
 }

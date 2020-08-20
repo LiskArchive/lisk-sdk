@@ -36,7 +36,7 @@ describe('Transfer asset', () => {
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'base64');
 		const decodedTransaction = codec.decode<Transaction>(transactionSchema, buffer);
 		transferAsset = new TransferAsset(BigInt(minRemainingBalance));
-		decodedAsset = codec.decode<TransferAsset>(transferAsset.assetSchema, decodedTransaction.asset);
+		decodedAsset = codec.decode<TransferAsset>(transferAsset.schema, decodedTransaction.asset);
 		decodedTransferTransaction = {
 			...decodedTransaction,
 			asset: decodedAsset,
@@ -66,7 +66,7 @@ describe('Transfer asset', () => {
 	describe('#applyAsset', () => {
 		it('should return not throw error with a valid transfer asset', () => {
 			expect(async () =>
-				transferAsset.applyAsset({
+				transferAsset.apply({
 					asset: validTransaction.asset,
 					senderID: validTransaction.address,
 					stateStore,
@@ -77,7 +77,7 @@ describe('Transfer asset', () => {
 		});
 
 		it('should call state store with a valid transfer asset', async () => {
-			await transferAsset.applyAsset({
+			await transferAsset.apply({
 				asset: validTransaction.asset,
 				senderID: validTransaction.address,
 				stateStore,
@@ -111,7 +111,7 @@ describe('Transfer asset', () => {
 				},
 			});
 			return expect(async () =>
-				transferAsset.applyAsset({
+				transferAsset.apply({
 					asset: validTransaction.asset,
 					senderID: validTransaction.address,
 					stateStore,
@@ -134,7 +134,7 @@ describe('Transfer asset', () => {
 				},
 			});
 			return expect(async () =>
-				transferAsset.applyAsset({
+				transferAsset.apply({
 					asset: { ...validTransaction.asset, amount: BigInt(0) },
 					senderID: validTransaction.address,
 					stateStore,

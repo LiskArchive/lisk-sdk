@@ -15,7 +15,7 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { BaseAsset } from '../base_asset';
-import { ApplyAssetInput, StateStore, ValidateAssetInput } from '../../types';
+import { ApplyAssetContext, StateStore, ValidateAssetContext } from '../../types';
 import { keysSchema } from './schemas';
 import { AccountKeys } from './types';
 
@@ -37,15 +37,15 @@ const setMemberAccounts = async (
 	}
 };
 
-export const RegisterAssetType = 0;
+export const RegisterassetID = 0;
 export const MAX_KEYS_COUNT = 64;
 
 export class RegisterAsset extends BaseAsset {
 	public name = 'register';
-	public type = RegisterAssetType;
-	public assetSchema = keysSchema;
+	public id = RegisterassetID;
+	public schema = keysSchema;
 
-	public validateAsset({ asset, transaction }: ValidateAssetInput<Asset>): void {
+	public validate({ asset, transaction }: ValidateAssetContext<Asset>): void {
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = asset;
 
 		if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys as Buffer[])) {
@@ -111,7 +111,7 @@ export class RegisterAsset extends BaseAsset {
 		}
 	}
 
-	public async applyAsset({ asset, stateStore, senderID }: ApplyAssetInput<Asset>): Promise<void> {
+	public async apply({ asset, stateStore, senderID }: ApplyAssetContext<Asset>): Promise<void> {
 		const sender = await stateStore.account.get<AccountKeys>(senderID);
 
 		// Check if multisignatures already exists on account

@@ -38,9 +38,9 @@ describe('token module', () => {
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
 			{
-				assetType: 0,
+				assetID: 0,
 				baseFee: '10000000',
-				moduleType: 2,
+				moduleID: 2,
 			},
 		],
 		bftThreshold: 67,
@@ -204,9 +204,9 @@ describe('token module', () => {
 				...genesisConfig,
 				baseFees: [
 					{
-						assetType: 0,
+						assetID: 0,
 						baseFee: undefined as any,
-						moduleType: 2,
+						moduleID: 2,
 					},
 				],
 			});
@@ -282,8 +282,8 @@ describe('token module', () => {
 				address: generator.address,
 			});
 			tx = new Transaction({
-				moduleType: 2,
-				assetType: 0,
+				moduleID: 2,
+				assetID: 0,
 				asset: getRandomBytes(200),
 				nonce: BigInt(0),
 				senderPublicKey: getRandomBytes(32),

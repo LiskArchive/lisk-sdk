@@ -18,16 +18,16 @@ import { TokenAccount } from './types';
 import { getTotalFees } from './utils';
 import { BaseModule } from '../base_module';
 import {
-	AfterBlockApplyInput,
-	AfterGenesisBlockApplyInput,
+	AfterBlockApplyContext,
+	AfterGenesisBlockApplyContext,
 	StateStore,
-	TransactionApplyInput,
+	TransactionApplyContext,
 	GenesisConfig,
 } from '../../types';
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
-	public type = 2;
+	public id = 2;
 	public accountSchema = {
 		type: 'object',
 		properties: {
@@ -101,12 +101,12 @@ export class TokenModule extends BaseModule {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async beforeTransactionApply({ transaction }: TransactionApplyInput): Promise<void> {
+	public async beforeTransactionApply({ transaction }: TransactionApplyContext): Promise<void> {
 		// Throw error if fee is lower than minimum fee (minFeePerBytes + baseFee)
 		const minFee = BigInt(this.config.minFeePerByte) * BigInt(transaction.getBytes().length);
 		const baseFee =
 			this.config.baseFees.find(
-				fee => fee.moduleType === transaction.moduleType && fee.assetType === transaction.assetType,
+				fee => fee.moduleID === transaction.moduleID && fee.assetID === transaction.assetID,
 			)?.baseFee ?? BigInt(0);
 		const minimumRequiredFee = minFee + BigInt(baseFee);
 		if (transaction.fee < minimumRequiredFee) {
@@ -119,7 +119,7 @@ export class TokenModule extends BaseModule {
 	public async afterTransactionApply({
 		transaction,
 		stateStore,
-	}: TransactionApplyInput): Promise<void> {
+	}: TransactionApplyContext): Promise<void> {
 		// Verify sender has minimum remaining balance
 		const senderAddress = transaction.senderID;
 		const sender = await stateStore.account.getOrDefault<TokenAccount>(senderAddress);
@@ -134,7 +134,7 @@ export class TokenModule extends BaseModule {
 		}
 	}
 
-	public async afterBlockApply({ block, stateStore }: AfterBlockApplyInput): Promise<void> {
+	public async afterBlockApply({ block, stateStore }: AfterBlockApplyContext): Promise<void> {
 		// Credit reward and fee to generator
 		const generatorAddress = getAddressFromPublicKey(block.header.generatorPublicKey);
 		const generator = await stateStore.account.get<TokenAccount>(generatorAddress);
@@ -166,7 +166,7 @@ export class TokenModule extends BaseModule {
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
 	public async afterGenesisBlockApply({
 		genesisBlock,
-	}: AfterGenesisBlockApplyInput<TokenAccount>): Promise<void> {
+	}: AfterGenesisBlockApplyContext<TokenAccount>): Promise<void> {
 		// Validate genesis accounts balance
 		let totalBalance = BigInt(0);
 		for (const account of genesisBlock.header.asset.accounts) {

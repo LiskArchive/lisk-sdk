@@ -15,14 +15,14 @@
 import { Account } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { ApplyAssetInput, ValidateAssetInput } from '../../../../../../src';
+import { ApplyAssetContext, ValidateAssetContext } from '../../../../../../src';
 import { createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
 import { UnlockTransactionAsset } from '../../../../../../src/modules/dpos/transaction_assets/unlock_transaction_asset';
 import {
 	DPOSAccountProps,
 	UnlockingAccountAsset,
-	UnlockTransactionAssetInput,
+	UnlockTransactionAssetContext,
 } from '../../../../../../src/modules/dpos';
 import { liskToBeddows } from '../../../../../utils/assets';
 
@@ -32,14 +32,14 @@ const setupUnlocks = ({
 	lastBlockHeight,
 	sender,
 	delegate,
-	applyInput,
+	applyContext,
 }: {
 	unVoteHeight: number;
 	pomHeight: number;
 	lastBlockHeight: number;
 	sender: Account<DPOSAccountProps>;
 	delegate: Account<DPOSAccountProps>;
-	applyInput: ApplyAssetInput<UnlockTransactionAssetInput>;
+	applyContext: ApplyAssetContext<UnlockTransactionAssetContext>;
 }) => {
 	const unlockObj = {
 		delegateAddress: delegate.address,
@@ -72,7 +72,7 @@ const setupUnlocks = ({
 	}
 
 	return {
-		...applyInput,
+		...applyContext,
 		stateStore: stateStore as any,
 		asset: { unlockObjects: [unlockObj] },
 	};
@@ -81,8 +81,8 @@ const setupUnlocks = ({
 describe('UnlockTransactionAsset', () => {
 	const lastBlockHeight = 8760000;
 	let transactionAsset: UnlockTransactionAsset;
-	let applyInput: ApplyAssetInput<UnlockTransactionAssetInput>;
-	let validateInput: ValidateAssetInput<UnlockTransactionAssetInput>;
+	let applyContext: ApplyAssetContext<UnlockTransactionAssetContext>;
+	let validateContext: ValidateAssetContext<UnlockTransactionAssetContext>;
 	let sender: any;
 	let stateStoreMock: StateStoreMock;
 	const delegate1 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate1' } } });
@@ -101,7 +101,7 @@ describe('UnlockTransactionAsset', () => {
 			},
 		);
 		transactionAsset = new UnlockTransactionAsset();
-		applyInput = {
+		applyContext = {
 			senderID: sender.address,
 			asset: {
 				unlockObjects: [],
@@ -111,23 +111,23 @@ describe('UnlockTransactionAsset', () => {
 				invoke: jest.fn(),
 			},
 		} as any;
-		validateInput = { asset: { unlockObjects: [] } } as any;
+		validateContext = { asset: { unlockObjects: [] } } as any;
 
 		jest.spyOn(stateStoreMock.account, 'get');
 		jest.spyOn(stateStoreMock.account, 'set');
 	});
 
 	describe('constructor', () => {
-		it('should have valid type', () => {
-			expect(transactionAsset.type).toEqual(2);
+		it('should have valid id', () => {
+			expect(transactionAsset.id).toEqual(2);
 		});
 
 		it('should have valid name', () => {
 			expect(transactionAsset.name).toEqual('unlock');
 		});
 
-		it('should have valid accountSchema', () => {
-			expect(transactionAsset.assetSchema).toMatchSnapshot();
+		it('should have valid schema', () => {
+			expect(transactionAsset.schema).toMatchSnapshot();
 		});
 
 		it('should have valid baseFee', () => {
@@ -135,14 +135,14 @@ describe('UnlockTransactionAsset', () => {
 		});
 	});
 
-	describe('validateAsset', () => {
+	describe('validate', () => {
 		describe('schema validation', () => {
 			describe('when asset.unlockObjects does not include any unlockingObject', () => {
 				it('should return errors', () => {
 					// Arrange
-					validateInput.asset = { unlockObjects: [] };
+					validateContext.asset = { unlockObjects: [] };
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should NOT have fewer than 1 items');
 				});
@@ -151,7 +151,7 @@ describe('UnlockTransactionAsset', () => {
 			describe('when asset.unlockObjects includes more than 20 unlockObjects', () => {
 				it('should return errors', () => {
 					// Arrange
-					validateInput.asset = {
+					validateContext.asset = {
 						unlockObjects: Array(21)
 							.fill(0)
 							.map(() => ({
@@ -161,7 +161,7 @@ describe('UnlockTransactionAsset', () => {
 							})),
 					};
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should NOT have more than 20 items');
 				});
@@ -170,7 +170,7 @@ describe('UnlockTransactionAsset', () => {
 			describe('when asset.unlockObjects includes negative amount', () => {
 				it('should return errors', () => {
 					// Arrange
-					validateInput.asset = {
+					validateContext.asset = {
 						unlockObjects: [
 							{
 								delegateAddress: delegate1.address,
@@ -180,7 +180,7 @@ describe('UnlockTransactionAsset', () => {
 						],
 					};
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
@@ -190,13 +190,13 @@ describe('UnlockTransactionAsset', () => {
 			describe('when asset.unlockObjects includes negative unvoteHeight', () => {
 				it('should return errors', () => {
 					// Arrange
-					validateInput.asset = {
+					validateContext.asset = {
 						unlockObjects: [
 							{ delegateAddress: delegate1.address, amount: liskToBeddows(20), unvoteHeight: -1 },
 						],
 					};
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
@@ -207,7 +207,7 @@ describe('UnlockTransactionAsset', () => {
 		describe('when asset.votes contains valid contents', () => {
 			it('should not return errors', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					unlockObjects: [
 						{
 							delegateAddress: delegate1.address,
@@ -218,14 +218,14 @@ describe('UnlockTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+				expect(() => transactionAsset.validate(validateContext)).not.toThrow();
 			});
 		});
 
 		describe('when asset.unlockObjects includes zero amount', () => {
 			it('should throw error', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					unlockObjects: [
 						{
 							delegateAddress: delegate1.address,
@@ -236,7 +236,7 @@ describe('UnlockTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
 					'Amount cannot be less than or equal to zero',
 				);
 			});
@@ -245,7 +245,7 @@ describe('UnlockTransactionAsset', () => {
 		describe('when asset.unlockObjects includes amount which is not multiple of 10 * 10^8', () => {
 			it('should throw error', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					unlockObjects: [
 						{
 							delegateAddress: delegate1.address,
@@ -256,14 +256,14 @@ describe('UnlockTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
 					'Amount should be multiple of 10 * 10^8',
 				);
 			});
 		});
 	});
 
-	describe('applyAsset', () => {
+	describe('apply', () => {
 		describe('given the delegate is not being punished', () => {
 			describe('when asset.unlockObjects contain valid entries, and voter account has waited 2000 blocks', () => {
 				let unlockTrsObj1: UnlockingAccountAsset;
@@ -293,31 +293,31 @@ describe('UnlockTransactionAsset', () => {
 						unlockObjNotPassed,
 					]);
 
-					applyInput.asset = { unlockObjects: objects.cloneDeep([unlockTrsObj1, unlockTrsObj2]) };
+					applyContext.asset = { unlockObjects: objects.cloneDeep([unlockTrsObj1, unlockTrsObj2]) };
 
 					stateStoreMock.account.set(sender.address, sender);
 				});
 
 				it('should not return error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+					await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 				});
 
 				it('should make account to have correct balance', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyContext);
 
-					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
 						amount: unlockTrsObj1.amount,
 					});
 
-					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
 						amount: unlockTrsObj2.amount,
 					});
 				});
 
 				it('should remove unlocking from the sender', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyContext);
 
 					// Assert
 					const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -333,12 +333,12 @@ describe('UnlockTransactionAsset', () => {
 						stateStoreMock = new StateStoreMock(objects.cloneDeep(stateStoreMock.accountData), {
 							lastBlockHeaders: [{ height: 4000 }] as any,
 						});
-						applyInput = {
-							...applyInput,
+						applyContext = {
+							...applyContext,
 							stateStore: stateStoreMock as any,
 						};
 
-						await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+						await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 							'Unlocking is not permitted as it is still within the waiting period',
 						);
 					});
@@ -373,7 +373,7 @@ describe('UnlockTransactionAsset', () => {
 						unlockObjNotPassed,
 					]);
 
-					applyInput.asset = { unlockObjects: objects.cloneDeep([unlockTrsObj1, unlockTrsObj2]) };
+					applyContext.asset = { unlockObjects: objects.cloneDeep([unlockTrsObj1, unlockTrsObj2]) };
 
 					// Make sender a delegate as well
 					sender.dpos.delegate.username = 'sender';
@@ -381,25 +381,25 @@ describe('UnlockTransactionAsset', () => {
 				});
 
 				it('should not return error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+					await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 				});
 
 				it('should make account to have correct balance', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyContext);
 
-					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
 						amount: unlockTrsObj1.amount,
 					});
 
-					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
 						amount: unlockTrsObj2.amount,
 					});
 				});
 
 				it('should remove unlocking from the sender', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyContext);
 
 					// Assert
 					const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -415,12 +415,12 @@ describe('UnlockTransactionAsset', () => {
 						stateStoreMock = new StateStoreMock([...stateStoreMock.accountData], {
 							lastBlockHeaders: [{ height: lastBlockHeight - 5000 }] as any,
 						});
-						applyInput = {
-							...applyInput,
+						applyContext = {
+							...applyContext,
 							stateStore: stateStoreMock as any,
 						};
 
-						await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+						await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 							'Unlocking is not permitted as it is still within the waiting period',
 						);
 					});
@@ -434,31 +434,31 @@ describe('UnlockTransactionAsset', () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 780000 + 10;
 
-					applyInput = setupUnlocks({
+					applyContext = setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: Math.max(pomHeight + 780000, unVoteHeight + 260000),
 						sender,
 						delegate: sender,
-						applyInput,
+						applyContext,
 					});
 				});
 
 				it('should not return error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+					await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 				});
 
 				it('should make account to have correct balance', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyContext);
 
-					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
-						amount: applyInput.asset.unlockObjects[0].amount,
+						amount: applyContext.asset.unlockObjects[0].amount,
 					});
 				});
 
 				it('should remove unlocking from the sender', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyContext);
 
 					// Assert
 					const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -474,31 +474,31 @@ describe('UnlockTransactionAsset', () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 260000 + 10;
 
-					applyInput = setupUnlocks({
+					applyContext = setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: Math.max(pomHeight + 260000, unVoteHeight + 2000),
 						sender,
 						delegate: delegate1,
-						applyInput,
+						applyContext,
 					});
 				});
 
 				it('should not return error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+					await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 				});
 
 				it('should make account to have correct balance', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyContext);
 
-					expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 						address: sender.address,
-						amount: applyInput.asset.unlockObjects[0].amount,
+						amount: applyContext.asset.unlockObjects[0].amount,
 					});
 				});
 
 				it('should remove unlocking from the sender', async () => {
-					await transactionAsset.applyAsset(applyInput);
+					await transactionAsset.apply(applyContext);
 
 					// Assert
 					const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -514,18 +514,18 @@ describe('UnlockTransactionAsset', () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 260000 + 10;
 
-					applyInput = setupUnlocks({
+					applyContext = setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: pomHeight + 260000 + 5,
 						sender,
 						delegate: delegate1,
-						applyInput,
+						applyContext,
 					});
 				});
 
 				it('should throw error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						'Unlocking is not permitted as it is still within the waiting period',
 					);
 				});
@@ -536,18 +536,18 @@ describe('UnlockTransactionAsset', () => {
 					const unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 260000 + 10;
 
-					applyInput = setupUnlocks({
+					applyContext = setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: unVoteHeight + 260000 + 5,
 						sender,
 						delegate: delegate1,
-						applyInput,
+						applyContext,
 					});
 				});
 
 				it('should throw error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						'Unlocking is not permitted as delegate is currently being punished',
 					);
 				});
@@ -558,18 +558,18 @@ describe('UnlockTransactionAsset', () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 780000 + 10;
 
-					applyInput = setupUnlocks({
+					applyContext = setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: pomHeight + 780000 + 5,
 						sender,
 						delegate: sender,
-						applyInput,
+						applyContext,
 					});
 				});
 
 				it('should throw error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						'Unlocking is not permitted as it is still within the waiting period',
 					);
 				});
@@ -580,18 +580,18 @@ describe('UnlockTransactionAsset', () => {
 					const unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 780000 + 10;
 
-					applyInput = setupUnlocks({
+					applyContext = setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: unVoteHeight + 780000 + 5,
 						sender,
 						delegate: sender,
-						applyInput,
+						applyContext,
 					});
 				});
 
 				it('should throw error', async () => {
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						'Unlocking is not permitted as delegate is currently being punished',
 					);
 				});
@@ -608,31 +608,31 @@ describe('UnlockTransactionAsset', () => {
 				sender.dpos.unlocking = unlocking;
 				stateStoreMock.account.set(sender.address, sender);
 
-				applyInput.asset = {
+				applyContext.asset = {
 					unlockObjects: objects.cloneDeep(unlocking),
 				};
 			});
 
 			it('should not return error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 			});
 
 			it('should make account to have correct balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 					address: sender.address,
-					amount: applyInput.asset.unlockObjects[0].amount,
+					amount: applyContext.asset.unlockObjects[0].amount,
 				});
 
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 					address: sender.address,
-					amount: applyInput.asset.unlockObjects[1].amount,
+					amount: applyContext.asset.unlockObjects[1].amount,
 				});
 			});
 
 			it('should remove unlocking from the sender', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				// Assert
 				const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -653,27 +653,27 @@ describe('UnlockTransactionAsset', () => {
 				sender.dpos.unlocking = unlocking;
 				stateStoreMock.account.set(sender.address, sender);
 
-				applyInput.asset = {
+				applyContext.asset = {
 					unlockObjects: [objects.cloneDeep(unlocking[0])],
 				};
 			});
 
 			it('should not return error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 			});
 
 			it('should make account to have correct balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledTimes(1);
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledTimes(1);
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 					address: sender.address,
-					amount: applyInput.asset.unlockObjects[0].amount,
+					amount: applyContext.asset.unlockObjects[0].amount,
 				});
 			});
 
 			it('should keep the duplicated unlocking from the sender', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				// Assert
 				const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
@@ -691,7 +691,7 @@ describe('UnlockTransactionAsset', () => {
 				];
 				stateStoreMock.account.set(sender.address, sender);
 
-				applyInput.asset = {
+				applyContext.asset = {
 					unlockObjects: [
 						{ delegateAddress: delegate2.address, amount: liskToBeddows(78), unvoteHeight: 98 },
 					],
@@ -699,7 +699,7 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			it('should throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+				await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 					'Corresponding unlocking object not found',
 				);
 			});
@@ -712,7 +712,7 @@ describe('UnlockTransactionAsset', () => {
 				];
 				stateStoreMock.account.set(sender.address, sender);
 
-				applyInput.asset = {
+				applyContext.asset = {
 					unlockObjects: [
 						{ delegateAddress: delegate1.address, amount: liskToBeddows(40), unvoteHeight: 56 },
 						{ delegateAddress: delegate1.address, amount: liskToBeddows(50), unvoteHeight: 56 },
@@ -721,7 +721,7 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			it('should throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+				await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 					'Corresponding unlocking object not found',
 				);
 			});

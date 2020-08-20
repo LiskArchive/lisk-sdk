@@ -101,8 +101,8 @@ const delegateRegAsset = {
 
 const generateValidTransferTransaction = () => {
 	const tx = {
-		moduleType: 2,
-		assetType: 0,
+		moduleID: 2,
+		assetID: 0,
 		senderPublicKey: accounts[0].publicKey,
 		nonce: BigInt(2),
 		fee: BigInt('100000000'),
@@ -152,8 +152,8 @@ const generateValidTransferTransaction = () => {
 
 const generateValidDelegateTransaction = () => {
 	const tx = {
-		moduleType: 5,
-		assetType: 0,
+		moduleID: 5,
+		assetID: 0,
 		senderPublicKey: accounts[0].publicKey,
 		nonce: BigInt('2'),
 		fee: BigInt('100000000'),

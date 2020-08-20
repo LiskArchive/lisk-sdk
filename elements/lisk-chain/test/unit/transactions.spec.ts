@@ -15,9 +15,9 @@ describe('blocks/transactions', () => {
 	describe('transaction', () => {
 		it.todo('should have id');
 		it.todo('should have senderID');
-		it.todo('should throw when moduleType is below 2');
-		it.todo('should throw when moduleType is invalid');
-		it.todo('should throw when assetType is invalid');
+		it.todo('should throw when moduleID is below 2');
+		it.todo('should throw when moduleID is invalid');
+		it.todo('should throw when assetID is invalid');
 		it.todo('should throw when sender public key is invalid');
 		it.todo('should throw when nonce is invalid');
 		it.todo('should throw when fee is invalid');

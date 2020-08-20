@@ -124,7 +124,7 @@ Object {
             "description": "Base fee for a transaction to be valid",
             "items": Object {
               "properties": Object {
-                "assetType": Object {
+                "assetID": Object {
                   "minimum": 0,
                   "type": "integer",
                 },
@@ -132,7 +132,7 @@ Object {
                   "format": "uint64",
                   "type": "string",
                 },
-                "moduleType": Object {
+                "moduleID": Object {
                   "minimum": 2,
                   "type": "number",
                 },

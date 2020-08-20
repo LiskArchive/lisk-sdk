@@ -75,16 +75,16 @@ interface NodeConstructor {
 }
 
 interface RegisteredSchema {
-	readonly moduleType: number;
-	readonly assetType: number;
+	readonly moduleID: number;
+	readonly assetID: number;
 	readonly schema: Schema;
 }
 
 interface TransactionFees {
 	readonly minFeePerByte: number;
 	readonly baseFees: {
-		readonly moduleType: number;
-		readonly assetType: number;
+		readonly moduleID: number;
+		readonly assetID: number;
 		readonly baseFee: string;
 	}[];
 }
@@ -148,14 +148,14 @@ export class Node {
 
 			for (const CustomModule of this._customModules) {
 				const customModule = new CustomModule(this._options.genesisConfig);
-				const exist = this._registeredModules.find(rm => rm.type === customModule.type);
+				const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 				if (exist) {
-					throw new Error(`Custom module with type ${customModule.type} already exists`);
+					throw new Error(`Custom module with type ${customModule.id} already exists`);
 				}
 				if (customModule.accountSchema) {
 					this._registeredAccountSchemas[customModule.name] = {
 						...customModule.accountSchema,
-						fieldNumber: customModule.type,
+						fieldNumber: customModule.id,
 					};
 				}
 				this._registeredModules.push(customModule);
@@ -453,7 +453,7 @@ export class Node {
 			rewardOffset: this._options.genesisConfig.rewards.offset,
 			rewardMilestones: this._options.genesisConfig.rewards.milestones.map(s => BigInt(s)),
 			blockTime: this._options.genesisConfig.blockTime,
-			accounts: this._registeredAccountSchemas,
+			accountSchemas: this._registeredAccountSchemas,
 		});
 
 		this._bft = new BFT({
@@ -718,9 +718,9 @@ export class Node {
 		for (const customModule of this._registeredModules) {
 			for (const customAsset of customModule.transactionAssets) {
 				registeredSchemas.push({
-					moduleType: customModule.type,
-					assetType: customAsset.type,
-					schema: customAsset.assetSchema,
+					moduleID: customModule.id,
+					assetID: customAsset.id,
+					schema: customAsset.schema,
 				});
 			}
 		}
@@ -735,8 +735,8 @@ export class Node {
 
 		for (const baseFeeInfo of this._options.genesisConfig.baseFees) {
 			transactionFees.baseFees.push({
-				moduleType: baseFeeInfo.moduleType,
-				assetType: baseFeeInfo.assetType,
+				moduleID: baseFeeInfo.moduleID,
+				assetID: baseFeeInfo.assetID,
 				baseFee: baseFeeInfo.baseFee,
 			});
 		}

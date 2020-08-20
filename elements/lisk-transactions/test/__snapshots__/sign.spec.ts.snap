@@ -119,7 +119,7 @@ Object {
       "type": "Buffer",
     },
   },
-  "assetType": 0,
+  "assetID": 0,
   "fee": 10000000n,
   "id": Object {
     "data": Array [
@@ -158,7 +158,7 @@ Object {
     ],
     "type": "Buffer",
   },
-  "moduleType": 2,
+  "moduleID": 2,
   "nonce": 1n,
   "senderPublicKey": Object {
     "data": Array [
