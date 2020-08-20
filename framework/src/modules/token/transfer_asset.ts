@@ -60,10 +60,9 @@ export class TransferAsset extends BaseAsset {
 		stateStore.account.set(sender.address, sender);
 		const recipient = await stateStore.account.getOrDefault<TokenAccount>(asset.recipientAddress);
 		recipient.token.balance += asset.amount;
-
 		if (recipient.token.balance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			throw new Error(
-				`Invalid transfer amount: ${asset.amount.toString()}. Maximum allowed amount is: ${MAX_TRANSACTION_AMOUNT}`,
+				`Invalid transfer amount: ${asset.amount.toString()}. Maximum allowed balance for recipient is: ${MAX_TRANSACTION_AMOUNT}`,
 			);
 		}
 

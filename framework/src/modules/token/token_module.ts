@@ -81,7 +81,7 @@ export class TokenModule extends BaseModule {
 		): Promise<bigint> => {
 			const { address } = params;
 			if (!Buffer.isBuffer(address)) {
-				throw new Error('Address must be a buffer.');
+				throw new Error('Address must be a buffer');
 			}
 			const account = await stateStore.account.getOrDefault<TokenAccount>(address);
 			return account.token.balance;
@@ -156,7 +156,6 @@ export class TokenModule extends BaseModule {
 		const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 		let totalFeeBurnt = totalFeeBurntBuffer ? totalFeeBurntBuffer.readBigInt64BE() : BigInt(0);
 		totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
-
 		// Update state store
 		const updatedTotalBurntBuffer = Buffer.alloc(8);
 		updatedTotalBurntBuffer.writeBigInt64BE(totalFeeBurnt);

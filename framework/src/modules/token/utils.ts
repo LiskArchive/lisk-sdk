@@ -15,7 +15,7 @@ import { Block } from '@liskhq/lisk-chain';
 
 export const getTotalFees = (
 	block: Block,
-	minimumFee: bigint,
+	minFeePerByte: bigint,
 	baseFees: ReadonlyArray<{ assetType: number; baseFee: string; moduleType: number }>,
 ): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
 	block.payload.reduce(
@@ -25,8 +25,7 @@ export const getTotalFees = (
 					(fee: { moduleType: number; assetType: number }) =>
 						fee.moduleType === current.moduleType && fee.assetType === current.assetType,
 				)?.baseFee ?? BigInt(0);
-
-			const minFee = minimumFee * BigInt(current.getBytes().length) + BigInt(baseFee);
+			const minFee = minFeePerByte * BigInt(current.getBytes().length) + BigInt(baseFee);
 
 			return {
 				totalFee: prev.totalFee + current.fee,

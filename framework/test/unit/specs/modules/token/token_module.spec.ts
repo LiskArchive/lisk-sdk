@@ -12,9 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { Block, Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
 import { TokenModule } from '../../../../../src/modules/token';
-import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
+import {
+	CHAIN_STATE_BURNT_FEE,
+	GENESIS_BLOCK_MAX_BALANCE,
+} from '../../../../../src/modules/token/constants';
+import { createAccount, createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
 import * as fixtures from './transfer_transaction_validate.json';
 import { GenesisConfig } from '../../../../../src';
 
@@ -25,8 +31,8 @@ describe('token module', () => {
 	let senderAccount: any;
 	let recipientAccount: any;
 	let stateStore: any;
+	let genesisBlock: any;
 	let reducerHandler: any;
-
 	const defaultTestCase = fixtures.testCases[0];
 	const minRemainingBalance = '1';
 	const genesisConfig: GenesisConfig = {
@@ -67,17 +73,123 @@ describe('token module', () => {
 				balance: BigInt('1000000000000000'),
 			},
 		});
-		stateStore = new StateStoreMock([senderAccount, recipientAccount]);
-		stateStore.account = {
-			...stateStore.account,
-			get: jest.fn().mockResolvedValue(senderAccount),
-			getOrDefault: jest.fn().mockResolvedValue(senderAccount),
+		genesisBlock = {
+			header: {
+				asset: {
+					accounts: [senderAccount],
+				},
+			},
 		};
+		stateStore = new StateStoreMock([senderAccount, recipientAccount]);
+		jest.spyOn(stateStore.account, 'getOrDefault').mockResolvedValue(senderAccount);
+		jest.spyOn(stateStore.account, 'get').mockResolvedValue(senderAccount);
+		jest.spyOn(stateStore.account, 'set');
+		jest.spyOn(stateStore.chain, 'get');
+		jest.spyOn(stateStore.chain, 'set');
+
 		reducerHandler = {};
 	});
 
+	describe('#reducers.credit', () => {
+		it('should throw error if address is not a buffer', async () => {
+			return expect(
+				tokenModule.reducers.credit({ address: 'address', amount: BigInt('1000') }, stateStore),
+			).rejects.toStrictEqual(new Error('Address must be a buffer'));
+		});
+
+		it('should throw error if amount is not a bigint', async () => {
+			return expect(
+				tokenModule.reducers.credit({ address: senderAccount.address, amount: '1000' }, stateStore),
+			).rejects.toStrictEqual(new Error('Amount must be a bigint'));
+		});
+
+		it('should throw error if account does not have sufficient balance', async () => {
+			senderAccount.token.balance = BigInt(0);
+
+			return expect(
+				tokenModule.reducers.credit(
+					{ address: senderAccount.address, amount: BigInt('0') },
+					stateStore,
+				),
+			).rejects.toStrictEqual(
+				new Error(`Remaining balance must be greater than ${minRemainingBalance}`),
+			);
+		});
+
+		it('should credit target account', async () => {
+			await tokenModule.reducers.credit(
+				{ address: senderAccount.address, amount: BigInt('1000') },
+				stateStore,
+			);
+			const expected = {
+				...senderAccount,
+				token: {
+					...senderAccount.token,
+					balance: senderAccount.token.balance += BigInt('1000'),
+				},
+			};
+			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);
+		});
+	});
+
+	describe('#reducers.debit', () => {
+		it('should throw error if address is not a buffer', async () => {
+			return expect(
+				tokenModule.reducers.debit({ address: 'address', amount: BigInt('1000') }, stateStore),
+			).rejects.toStrictEqual(new Error('Address must be a buffer'));
+		});
+
+		it('should throw error if amount is not a bigint', async () => {
+			return expect(
+				tokenModule.reducers.debit({ address: senderAccount.address, amount: '1000' }, stateStore),
+			).rejects.toStrictEqual(new Error('Amount must be a bigint'));
+		});
+
+		it('should throw error if account does not have sufficient balance', async () => {
+			senderAccount.token.balance = BigInt(0);
+
+			return expect(
+				tokenModule.reducers.debit(
+					{ address: senderAccount.address, amount: BigInt('1000') },
+					stateStore,
+				),
+			).rejects.toStrictEqual(
+				new Error(`Remaining balance must be greater than ${minRemainingBalance}`),
+			);
+		});
+
+		it('should debit target account', async () => {
+			await tokenModule.reducers.credit(
+				{ address: senderAccount.address, amount: BigInt('1000') },
+				stateStore,
+			);
+			const expected = {
+				...senderAccount,
+				token: {
+					...senderAccount.token,
+					balance: senderAccount.token.balance -= BigInt('1000'),
+				},
+			};
+			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);
+		});
+	});
+
+	describe('#reducers.getBalance', () => {
+		it('should throw error if address is not a buffer', async () => {
+			return expect(
+				tokenModule.reducers.getBalance({ address: 'address' }, stateStore),
+			).rejects.toStrictEqual(new Error('Address must be a buffer'));
+		});
+
+		it('should should return account balance', async () => {
+			return expect(
+				tokenModule.reducers.getBalance({ address: senderAccount.address }, stateStore),
+			).resolves.toBe(senderAccount.token.balance);
+		});
+	});
+
 	describe('#beforeTransactionApply', () => {
-		it('should return no errors if fee is equal or higher or equal to min fee', async () => {
+		it('should not throw error if fee is equal or higher or equal to min fee', async () => {
 			return expect(
 				tokenModule.beforeTransactionApply({
 					stateStore,
@@ -87,7 +199,7 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should return no errors if transaction asset does not have a baseFee entry and transaction fee is higher or equal to min fee', async () => {
+		it('should not throw error if transaction asset does not have a baseFee entry and transaction fee is higher or equal to min fee', async () => {
 			tokenModule = new TokenModule({
 				...genesisConfig,
 				baseFees: [
@@ -108,7 +220,7 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should return error if fee is lower than minimum required fee', async () => {
+		it('should throw error if fee is lower than minimum required fee', async () => {
 			validTransaction.fee = BigInt(0);
 			const expectedMinFee =
 				BigInt(genesisConfig.minFeePerByte) * BigInt(validTransaction.getBytes().length) +
@@ -129,7 +241,7 @@ describe('token module', () => {
 	});
 
 	describe('#afterTransactionApply', () => {
-		it('should return no errors', async () => {
+		it('should not throw error if account has sufficient balance', async () => {
 			return expect(
 				tokenModule.afterTransactionApply({
 					stateStore,
@@ -139,17 +251,9 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should return error when sender balance is below the minimum required balance', async () => {
-			stateStore.account = {
-				...stateStore.account,
-				get: jest.fn().mockResolvedValue(senderAccount),
-				getOrDefault: jest.fn().mockResolvedValue({
-					...senderAccount,
-					token: {
-						balance: BigInt(0),
-					},
-				}),
-			};
+		it('should throw error when sender balance is below the minimum required balance', async () => {
+			senderAccount.token.balance = BigInt(0);
+
 			return expect(
 				tokenModule.afterTransactionApply({
 					stateStore,
@@ -165,7 +269,113 @@ describe('token module', () => {
 			);
 		});
 	});
-	// TODO: Add #reducers test
-	// TODO: Add #afterBlockApply test
-	// TODO: Add #afterGenesisBlockApply test
+
+	describe('#afterBlockApply', () => {
+		let block: Block;
+		let minFee: bigint;
+		let tx: any;
+		let generatorAccount: any;
+
+		beforeEach(() => {
+			const generator = createAccount();
+			generatorAccount = createFakeDefaultAccount({
+				address: generator.address,
+			});
+			tx = new Transaction({
+				moduleType: 2,
+				assetType: 0,
+				asset: getRandomBytes(200),
+				nonce: BigInt(0),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(20)],
+				fee: BigInt(20000000),
+			});
+			block = ({
+				header: {
+					generatorPublicKey: generator.publicKey,
+					reward: BigInt(100000000),
+				},
+				payload: [tx],
+			} as unknown) as Block;
+			minFee =
+				BigInt(genesisConfig.minFeePerByte) * BigInt(tx.getBytes().length) +
+				BigInt(genesisConfig.baseFees[0].baseFee);
+			when(stateStore.account.get)
+				.calledWith(generator.address)
+				.mockResolvedValue(generatorAccount as never);
+		});
+
+		describe('when block contains transactions', () => {
+			it('should update generator balance to give rewards and fees - minFee', async () => {
+				let expected = generatorAccount.token.balance + block.header.reward;
+				for (const transaction of block.payload) {
+					expected += transaction.fee - minFee;
+				}
+				await tokenModule.afterBlockApply({
+					block,
+					stateStore,
+					reducerHandler,
+					consensus: {} as any,
+				});
+
+				expect(generatorAccount.token.balance).toEqual(expected);
+			});
+
+			it('should update burntFee in the chain state', async () => {
+				const expected = minFee;
+				const expectedBuffer = Buffer.alloc(8);
+				expectedBuffer.writeBigInt64BE(expected);
+				await tokenModule.afterBlockApply({
+					block,
+					stateStore,
+					reducerHandler,
+					consensus: {} as any,
+				});
+
+				expect(stateStore.chain.set).toHaveBeenCalledWith(CHAIN_STATE_BURNT_FEE, expectedBuffer);
+			});
+		});
+
+		describe('when block does not contain transactions', () => {
+			it('should update generator balance to give rewards', async () => {
+				block.payload = [];
+				const expected = BigInt(generatorAccount.token.balance) + block.header.reward;
+				await tokenModule.afterBlockApply({
+					block,
+					stateStore,
+					reducerHandler,
+					consensus: {} as any,
+				});
+
+				expect(generatorAccount.token.balance).toEqual(expected);
+			});
+
+			it('should not have updated burnt fee', () => {
+				expect(stateStore.chain.set).not.toHaveBeenCalled();
+			});
+		});
+	});
+
+	describe('#afterGenesisBlockApply', () => {
+		it('should not throw error if total genesis accounts balance does not exceed limit', async () => {
+			return expect(
+				tokenModule.afterGenesisBlockApply({
+					stateStore,
+					genesisBlock,
+					reducerHandler,
+				}),
+			).resolves.toBeUndefined();
+		});
+
+		it('should throw error if total genesis accounts balance exceeds limit', async () => {
+			senderAccount.token.balance = BigInt(GENESIS_BLOCK_MAX_BALANCE) + BigInt(1);
+			return expect(
+				tokenModule.afterGenesisBlockApply({
+					stateStore,
+					genesisBlock,
+					reducerHandler,
+				}),
+			).rejects.toStrictEqual(new Error('Total balance exceeds the limit (2^63)-1'));
+		});
+	});
 });
