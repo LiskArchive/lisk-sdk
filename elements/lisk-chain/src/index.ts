@@ -11,9 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK } from './constants';
+import { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK, EVENT_VALIDATORS_CHANGED } from './constants';
 
-const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK };
+const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK, EVENT_VALIDATORS_CHANGED };
 
 export { events };
 export { Chain } from './chain';
