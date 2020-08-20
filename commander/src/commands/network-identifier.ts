@@ -21,7 +21,7 @@ import { flags as commonFlags } from '../utils/flags';
 
 export default class NetworkIdentifierCommand extends BaseCommand {
 	static description = `
-  Creates Network identifier for the given genesis block transaction root and community identifier.
+  Creates Network identifier for the given genesis block id and community identifier.
 	`;
 
 	static examples = [
@@ -30,8 +30,8 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 
 	static args = [
 		{
-			name: 'genesisBlockTransactionRoot',
-			description: 'Transaction root of genesis block from the network.',
+			name: 'genesisBlockID',
+			description: 'ID of genesis block from the network.',
 			required: true,
 		},
 	];
@@ -49,10 +49,10 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 		const {
 			flags: { 'community-identifier': communityIdentifier },
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			args: { genesisBlockTransactionRoot },
+			args: { genesisBlockID },
 		} = this.parse(NetworkIdentifierCommand);
 		const networkIdentifier = getNetworkIdentifier(
-			Buffer.from(genesisBlockTransactionRoot, 'base64'),
+			Buffer.from(genesisBlockID, 'base64'),
 			communityIdentifier,
 		);
 		this.print({ networkIdentifier: networkIdentifier.toString('base64') });
