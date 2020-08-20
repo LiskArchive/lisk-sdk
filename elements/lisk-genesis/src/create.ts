@@ -30,7 +30,41 @@ import {
 	GENESIS_BLOCK_TRANSACTION_ROOT,
 	GENESIS_BLOCK_VERSION,
 } from './constants';
-import { GenesisBlockHeaderWithoutId, GenesisBlockParams } from './types';
+import {
+	GenesisBlockHeaderWithoutId,
+	GenesisBlockParams,
+	GenesisBlockJSONParams,
+	accountAssetSchemas,
+} from './types';
+
+export const getGenesisBlockSchema = (accountSchema: accountAssetSchemas): Schema =>
+	objects.mergeDeep(
+		{
+			$id: '/block/genesis',
+			type: 'object',
+			required: ['header', 'payload'],
+			properties: {
+				header: {
+					fieldNumber: 1,
+					type: 'object',
+				},
+				payload: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2, const: [] },
+			},
+		},
+		{
+			properties: {
+				header: objects.mergeDeep({}, blockHeaderSchema, {
+					$id: '/block/genesis/header/id',
+					properties: {
+						id: {
+							dataType: 'bytes',
+						},
+						asset: getGenesisBlockHeaderAssetSchema(getAccountSchemaWithDefault(accountSchema)),
+					},
+				}),
+			},
+		},
+	) as Schema;
 
 const getBlockId = (header: GenesisBlockHeaderWithoutId, accountSchema: Schema): Buffer => {
 	// eslint-disable-next-line
@@ -101,3 +135,6 @@ export const createGenesisBlock = (params: GenesisBlockParams): GenesisBlock => 
 
 	return genesisBlock;
 };
+
+export const getGenesisBlockJSON = (params: GenesisBlockJSONParams): Record<string, unknown> =>
+	codec.toJSON(getGenesisBlockSchema(params.accountAssetSchemas), params.genesisBlock);
