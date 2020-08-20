@@ -282,8 +282,8 @@ describe('token module', () => {
 				address: generator.address,
 			});
 			tx = new Transaction({
-				moduleType: 2,
-				assetType: 0,
+				moduleID: 2,
+				assetID: 0,
 				asset: getRandomBytes(200),
 				nonce: BigInt(0),
 				senderPublicKey: getRandomBytes(32),
