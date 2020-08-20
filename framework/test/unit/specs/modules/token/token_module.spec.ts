@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { Block, Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
 import { TokenModule } from '../../../../../src/modules/token';
 import {
 	CHAIN_STATE_BURNT_FEE,
 	GENESIS_BLOCK_MAX_BALANCE,
 } from '../../../../../src/modules/token/constants';
-import { createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
+import { createAccount, createFakeDefaultAccount, StateStoreMock } from '../../../../utils/node';
 import * as fixtures from './transfer_transaction_validate.json';
 import { GenesisConfig } from '../../../../../src';
 
@@ -269,32 +271,43 @@ describe('token module', () => {
 	});
 
 	describe('#afterBlockApply', () => {
-		let block: any;
-		let minFee: any;
+		let block: Block;
+		let minFee: bigint;
 		let tx: any;
+		let generatorAccount: any;
+
 		beforeEach(() => {
-			tx = {
+			const generator = createAccount();
+			generatorAccount = createFakeDefaultAccount({
+				address: generator.address,
+			});
+			tx = new Transaction({
 				moduleType: 2,
 				assetType: 0,
-				getBytes: () => [1],
+				asset: getRandomBytes(200),
+				nonce: BigInt(0),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(20)],
 				fee: BigInt(20000000),
-			};
-			block = {
+			});
+			block = ({
 				header: {
-					generatorPublicKey: Buffer.from('public_key_of_sender', 'utf8'),
-					reward: BigInt(1),
+					generatorPublicKey: generator.publicKey,
+					reward: BigInt(100000000),
 				},
 				payload: [tx],
-			};
-
+			} as unknown) as Block;
 			minFee =
 				BigInt(genesisConfig.minFeePerByte) * BigInt(tx.getBytes().length) +
 				BigInt(genesisConfig.baseFees[0].baseFee);
+			when(stateStore.account.get)
+				.calledWith(generator.address)
+				.mockResolvedValue(generatorAccount as never);
 		});
 
 		describe('when block contains transactions', () => {
 			it('should update generator balance to give rewards and fees - minFee', async () => {
-				let expected = BigInt(senderAccount.token.balance) + block.header.reward;
+				let expected = generatorAccount.token.balance + block.header.reward;
 				for (const transaction of block.payload) {
 					expected += transaction.fee - minFee;
 				}
@@ -305,7 +318,7 @@ describe('token module', () => {
 					consensus: {} as any,
 				});
 
-				expect(senderAccount.token.balance).toEqual(expected);
+				expect(generatorAccount.token.balance).toEqual(expected);
 			});
 
 			it('should update burntFee in the chain state', async () => {
@@ -319,14 +332,14 @@ describe('token module', () => {
 					consensus: {} as any,
 				});
 
-				expect(stateStore.chain.set).toBeCalledWith(CHAIN_STATE_BURNT_FEE, expectedBuffer);
+				expect(stateStore.chain.set).toHaveBeenCalledWith(CHAIN_STATE_BURNT_FEE, expectedBuffer);
 			});
 		});
 
 		describe('when block does not contain transactions', () => {
 			it('should update generator balance to give rewards', async () => {
 				block.payload = [];
-				const expected = BigInt(senderAccount.token.balance) + block.header.reward;
+				const expected = BigInt(generatorAccount.token.balance) + block.header.reward;
 				await tokenModule.afterBlockApply({
 					block,
 					stateStore,
@@ -334,7 +347,7 @@ describe('token module', () => {
 					consensus: {} as any,
 				});
 
-				expect(senderAccount.token.balance).toEqual(expected);
+				expect(generatorAccount.token.balance).toEqual(expected);
 			});
 
 			it('should not have updated burnt fee', () => {
