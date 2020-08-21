@@ -143,7 +143,11 @@ export class KeysModule extends BaseModule {
 		genesisBlock,
 	}: AfterGenesisBlockApplyContext<AccountKeys>): Promise<void> {
 		const errors = [];
-		for (const [index, account] of genesisBlock.header.asset.accounts.entries()) {
+		const accountsLength = genesisBlock.header.asset.accounts.length;
+
+		for (let index = 0; index < accountsLength; index += 1) {
+			const account = genesisBlock.header.asset.accounts[index];
+
 			if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {
 				errors.push({
 					message: 'should be lexicographically ordered',
