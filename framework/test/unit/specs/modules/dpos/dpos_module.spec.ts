@@ -19,8 +19,8 @@ import * as dataAccess from '../../../../../src/modules/dpos/data_access';
 import * as delegates from '../../../../../src/modules/dpos/delegates';
 import * as randomSeed from '../../../../../src/modules/dpos/random_seed';
 import {
-	AfterBlockApplyInput,
-	AfterGenesisBlockApplyInput,
+	AfterBlockApplyContext,
+	AfterGenesisBlockApplyContext,
 	GenesisConfig,
 } from '../../../../../src';
 import { Rounds } from '../../../../../src/modules/dpos/rounds';
@@ -48,9 +48,9 @@ describe('DPoSModule', () => {
 			delegateListRoundOffset: 3,
 			baseFees: [
 				{
-					assetType: 0,
+					assetID: 0,
 					baseFee: '1',
-					moduleType: 3,
+					moduleID: 3,
 				},
 			],
 			bftThreshold: 67,
@@ -73,10 +73,10 @@ describe('DPoSModule', () => {
 			expect(dposModule).toBeInstanceOf(DPoSModule);
 		});
 
-		it('should have valid type', () => {
+		it('should have valid id', () => {
 			dposModule = new DPoSModule(genesisConfig);
 
-			expect(dposModule.type).toEqual(5);
+			expect(dposModule.id).toEqual(5);
 		});
 
 		it('should have valid name', () => {
@@ -85,7 +85,7 @@ describe('DPoSModule', () => {
 			expect(dposModule.name).toEqual('dpos');
 		});
 
-		it('should have valid accountSchema', () => {
+		it('should have valid schema', () => {
 			dposModule = new DPoSModule(genesisConfig);
 
 			expect(dposModule.accountSchema).toMatchSnapshot();
@@ -157,10 +157,10 @@ describe('DPoSModule', () => {
 	});
 
 	describe('afterGenesisBlockApply', () => {
-		let input: AfterGenesisBlockApplyInput<Account<DPOSAccountProps>>;
+		let context: AfterGenesisBlockApplyContext<Account<DPOSAccountProps>>;
 
 		beforeEach(() => {
-			input = {
+			context = {
 				genesisBlock: (createGenesisBlock() as unknown) as GenesisBlock<Account<DPOSAccountProps>>,
 				stateStore: new StateStoreMock() as any,
 				reducerHandler: reducerHandlerMock,
@@ -173,47 +173,47 @@ describe('DPoSModule', () => {
 			// Genesis block contains 103 init delegates
 			dposModule = new DPoSModule(genesisConfig);
 
-			expect(input.genesisBlock.header.asset.initDelegates).toHaveLength(103);
-			await expect(dposModule.afterGenesisBlockApply(input)).rejects.toThrow(
+			expect(context.genesisBlock.header.asset.initDelegates).toHaveLength(103);
+			await expect(dposModule.afterGenesisBlockApply(context)).rejects.toThrow(
 				'Genesis block init delegates list is larger than allowed delegates per round',
 			);
 		});
 
 		it('should throw error if "initDelegates" list contains an account which is not a delegate', async () => {
 			dposModule = new DPoSModule(genesisConfig);
-			const delegateAccount = input.genesisBlock.header.asset.accounts.find(a =>
-				a.address.equals(input.genesisBlock.header.asset.initDelegates[0]),
+			const delegateAccount = context.genesisBlock.header.asset.accounts.find(a =>
+				a.address.equals(context.genesisBlock.header.asset.initDelegates[0]),
 			) as Account<DPOSAccountProps>;
 
 			// Make that account a non-delegate
 			delegateAccount.dpos.delegate.username = '';
 
-			await expect(dposModule.afterGenesisBlockApply(input)).rejects.toThrow(
+			await expect(dposModule.afterGenesisBlockApply(context)).rejects.toThrow(
 				'Genesis block init delegates list contain addresses which are not delegates',
 			);
 		});
 
 		it('should set all registered delegates usernames', async () => {
 			dposModule = new DPoSModule(genesisConfig);
-			const allDelegates = input.genesisBlock.header.asset.accounts
+			const allDelegates = context.genesisBlock.header.asset.accounts
 				.filter(a => a.dpos.delegate.username !== '')
 				.map(a => ({ address: a.address, username: a.dpos.delegate.username }));
 
-			await dposModule.afterGenesisBlockApply(input);
+			await dposModule.afterGenesisBlockApply(context);
 
 			expect(dataAccess.setRegisteredDelegates).toBeCalledTimes(1);
-			expect(dataAccess.setRegisteredDelegates).toBeCalledWith(input.stateStore, {
+			expect(dataAccess.setRegisteredDelegates).toBeCalledWith(context.stateStore, {
 				registeredDelegates: allDelegates,
 			});
 		});
 	});
 
 	describe('afterBlockApply', () => {
-		let input: AfterBlockApplyInput;
+		let context: AfterBlockApplyContext;
 
 		beforeEach(() => {
 			(randomSeed.generateRandomSeeds as Mock).mockReturnValue([]);
-			input = {
+			context = {
 				block: createValidDefaultBlock(),
 				stateStore: new StateStoreMock({
 					lastBlockHeaders: [createValidDefaultBlock({ header: { height: 10 } })],
@@ -235,20 +235,20 @@ describe('DPoSModule', () => {
 				const round34 = 103 * 34;
 				dposModule['_finalizedHeight'] = round34 - 5;
 				// 34 rounds
-				(input.consensus.getFinalizedHeight as Mock).mockReturnValue(round34);
-				await dposModule.afterBlockApply(input);
+				(context.consensus.getFinalizedHeight as Mock).mockReturnValue(round34);
+				await dposModule.afterBlockApply(context);
 
 				expect(dataAccess.deleteVoteWeightsUntilRound).toBeCalledTimes(1);
 				expect(dataAccess.deleteVoteWeightsUntilRound).toBeCalledWith(
 					34 - (genesisConfig.delegateListRoundOffset as number) - 3,
-					input.stateStore,
+					context.stateStore,
 				);
 			});
 		});
 
 		describe('when finalized height not changed', () => {
 			it('should not delete cache vote weight list', async () => {
-				await dposModule.afterBlockApply(input);
+				await dposModule.afterBlockApply(context);
 
 				expect(dataAccess.deleteVoteWeightsUntilRound).not.toBeCalled();
 			});
@@ -258,21 +258,21 @@ describe('DPoSModule', () => {
 			const bootstrapRound = 50;
 
 			beforeEach(() => {
-				input.block = createValidDefaultBlock({ header: { height: 10 } });
-				(input.consensus.getLastBootstrapHeight as Mock).mockReturnValue(bootstrapRound * 103);
+				context.block = createValidDefaultBlock({ header: { height: 10 } });
+				(context.consensus.getLastBootstrapHeight as Mock).mockReturnValue(bootstrapRound * 103);
 			});
 
 			it('should not update productivity', async () => {
-				await dposModule.afterBlockApply(input);
+				await dposModule.afterBlockApply(context);
 
 				expect(delegates.updateDelegateProductivity).not.toBeCalled();
 			});
 
 			describe('when its not the last block of round', () => {
 				beforeEach(async () => {
-					input.block = createValidDefaultBlock({ header: { height: 10 * 103 - 1 } });
+					context.block = createValidDefaultBlock({ header: { height: 10 * 103 - 1 } });
 
-					await dposModule.afterBlockApply(input);
+					await dposModule.afterBlockApply(context);
 				});
 
 				it('should not create vote weight', () => {
@@ -287,9 +287,9 @@ describe('DPoSModule', () => {
 
 			describe('when its the last block of round and the last block of bootstrap period', () => {
 				beforeEach(async () => {
-					input.block = createValidDefaultBlock({ header: { height: bootstrapRound * 103 } });
+					context.block = createValidDefaultBlock({ header: { height: bootstrapRound * 103 } });
 
-					await dposModule.afterBlockApply(input);
+					await dposModule.afterBlockApply(context);
 				});
 
 				it('should create vote weight', () => {
@@ -298,7 +298,7 @@ describe('DPoSModule', () => {
 						activeDelegates: genesisConfig.activeDelegates,
 						standbyDelegates: genesisConfig.standbyDelegates,
 						height: bootstrapRound * 103 + 1,
-						stateStore: input.stateStore,
+						stateStore: context.stateStore,
 						round: bootstrapRound + (genesisConfig.delegateListRoundOffset as number) + 1,
 					});
 				});
@@ -315,9 +315,9 @@ describe('DPoSModule', () => {
 				beforeEach(async () => {
 					blockRound = bootstrapRound - 1;
 
-					input.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
+					context.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
 
-					await dposModule.afterBlockApply(input);
+					await dposModule.afterBlockApply(context);
 				});
 
 				it('should create vote weight', () => {
@@ -326,7 +326,7 @@ describe('DPoSModule', () => {
 						activeDelegates: genesisConfig.activeDelegates,
 						standbyDelegates: genesisConfig.standbyDelegates,
 						height: blockRound * 103 + 1,
-						stateStore: input.stateStore,
+						stateStore: context.stateStore,
 						round: blockRound + (genesisConfig.delegateListRoundOffset as number) + 1,
 					});
 				});
@@ -342,7 +342,7 @@ describe('DPoSModule', () => {
 			const bootstrapRound = 5;
 
 			beforeEach(() => {
-				(input.consensus.getLastBootstrapHeight as Mock).mockReturnValue(bootstrapRound * 103);
+				(context.consensus.getLastBootstrapHeight as Mock).mockReturnValue(bootstrapRound * 103);
 			});
 
 			describe('when its the last block of round', () => {
@@ -351,9 +351,9 @@ describe('DPoSModule', () => {
 				beforeEach(async () => {
 					blockRound = bootstrapRound + 1;
 
-					input.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
+					context.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
 
-					await dposModule.afterBlockApply(input);
+					await dposModule.afterBlockApply(context);
 				});
 
 				it('should create vote weight', () => {
@@ -362,7 +362,7 @@ describe('DPoSModule', () => {
 						activeDelegates: genesisConfig.activeDelegates,
 						standbyDelegates: genesisConfig.standbyDelegates,
 						height: blockRound * 103 + 1,
-						stateStore: input.stateStore,
+						stateStore: context.stateStore,
 						round: blockRound + (genesisConfig.delegateListRoundOffset as number) + 1,
 					});
 				});
@@ -375,11 +375,11 @@ describe('DPoSModule', () => {
 
 			describe('when its not the last block of round', () => {
 				beforeEach(async () => {
-					input.block = createValidDefaultBlock({
+					context.block = createValidDefaultBlock({
 						header: { height: (bootstrapRound + 1) * 103 + 3 },
 					});
 
-					await dposModule.afterBlockApply(input);
+					await dposModule.afterBlockApply(context);
 				});
 
 				it('should not create vote weight', () => {

@@ -15,7 +15,7 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Account } from '@liskhq/lisk-chain';
 import { BaseModule } from '../base_module';
-import { TransactionApplyInput } from '../../types';
+import { TransactionApplyContext } from '../../types';
 import { NonceOutOfBoundsError } from '../../errors';
 import { InvalidNonceError } from './errors';
 
@@ -27,7 +27,7 @@ interface SequenceAccount {
 
 export class SequenceModule extends BaseModule {
 	public name = 'sequence';
-	public type = 3;
+	public id = 3;
 	public accountSchema = {
 		type: 'object',
 		properties: {
@@ -45,7 +45,7 @@ export class SequenceModule extends BaseModule {
 	public async beforeTransactionApply({
 		transaction,
 		stateStore,
-	}: TransactionApplyInput): Promise<void> {
+	}: TransactionApplyContext): Promise<void> {
 		const senderAddress = getAddressFromPublicKey(transaction.senderPublicKey);
 		const senderAccount = await stateStore.account.get<Account<SequenceAccount>>(senderAddress);
 
@@ -63,7 +63,7 @@ export class SequenceModule extends BaseModule {
 	public async afterTransactionApply({
 		transaction,
 		stateStore,
-	}: TransactionApplyInput): Promise<void> {
+	}: TransactionApplyContext): Promise<void> {
 		const senderAddress = getAddressFromPublicKey(transaction.senderPublicKey);
 		const senderAccount = await stateStore.account.get<Account<SequenceAccount>>(senderAddress);
 

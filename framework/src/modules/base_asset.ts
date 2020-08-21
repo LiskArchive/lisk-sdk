@@ -14,16 +14,16 @@
 /* eslint-disable class-methods-use-this */
 
 import { Schema } from '@liskhq/lisk-codec';
-import { ValidateAssetInput, ApplyAssetInput } from '../types';
+import { ValidateAssetContext, ApplyAssetContext } from '../types';
 
 export abstract class BaseAsset<T = unknown> {
 	public baseFee = BigInt(0);
 
 	public abstract name: string;
-	public abstract type: number;
-	public abstract assetSchema: Schema;
+	public abstract id: number;
+	public abstract schema: Schema;
 
-	public validateAsset?(input: ValidateAssetInput<T>): void;
+	public validate?(context: ValidateAssetContext<T>): void;
 
-	public abstract async applyAsset(input: ApplyAssetInput<T>): Promise<void>;
+	public abstract async apply(context: ApplyAssetContext<T>): Promise<void>;
 }

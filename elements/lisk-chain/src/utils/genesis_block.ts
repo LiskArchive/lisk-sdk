@@ -25,12 +25,12 @@ import {
 
 export const readGenesisBlockJSON = <T = AccountDefaultProps>(
 	genesisBlockJSON: Record<string, unknown>,
-	accounts: { [name: string]: AccountSchema },
+	accountSchemas: { [name: string]: AccountSchema },
 ): GenesisBlock<T> => {
 	const accountSchema = {
 		...baseAccountSchema,
 	} as Schema;
-	for (const [name, schema] of Object.entries(accounts)) {
+	for (const [name, schema] of Object.entries(accountSchemas)) {
 		const { default: defaultProps, ...others } = schema;
 		accountSchema.properties[name] = others;
 	}

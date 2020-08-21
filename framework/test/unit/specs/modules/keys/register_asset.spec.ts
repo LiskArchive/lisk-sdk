@@ -39,7 +39,7 @@ describe('register asset', () => {
 		const buffer = Buffer.from(defualtTestCase.output.transaction, 'base64');
 		const id = hash(buffer);
 		const decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
-		const decodedAsset = codec.decode<any>(registerAsset.assetSchema, decodedBaseTransaction.asset);
+		const decodedAsset = codec.decode<any>(registerAsset.schema, decodedBaseTransaction.asset);
 		decodedMultiSignature = {
 			...decodedBaseTransaction,
 			asset: decodedAsset,
@@ -177,10 +177,10 @@ describe('register asset', () => {
 		});
 	});
 
-	describe('validateAsset', () => {
+	describe('validate', () => {
 		it('should not throw errors for valid asset', () => {
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: validTestTransaction.asset,
 					transaction: validTestTransaction,
 				}),
@@ -200,7 +200,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -220,7 +220,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -237,7 +237,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -254,7 +254,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -280,7 +280,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -303,7 +303,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -324,7 +324,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -342,7 +342,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -361,7 +361,7 @@ describe('register asset', () => {
 			};
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -379,7 +379,7 @@ describe('register asset', () => {
 			invalidTransaction.signatures.pop();
 
 			expect(() =>
-				registerAsset.validateAsset({
+				registerAsset.validate({
 					asset: invalidTransaction.asset,
 					transaction: invalidTransaction,
 				}),
@@ -389,14 +389,14 @@ describe('register asset', () => {
 		});
 	});
 
-	describe('applyAsset', () => {
+	describe('apply', () => {
 		beforeEach(() => {
 			storeAccountGetStub.mockReturnValue(targetMultisigAccount);
 		});
 
 		it('should not throw when registering for first time', () => {
 			expect(async () =>
-				registerAsset.applyAsset({
+				registerAsset.apply({
 					stateStore,
 					asset: validTestTransaction.asset,
 					senderID: validTestTransaction.address,
@@ -407,7 +407,7 @@ describe('register asset', () => {
 		});
 
 		it('should call state store get() with senderID and set() with adress and updated account', async () => {
-			await registerAsset.applyAsset({
+			await registerAsset.apply({
 				stateStore,
 				asset: validTestTransaction.asset,
 				senderID: validTestTransaction.address,
@@ -427,7 +427,7 @@ describe('register asset', () => {
 			storeAccountGetStub.mockReturnValue(convertedAccount);
 
 			return expect(
-				registerAsset.applyAsset({
+				registerAsset.apply({
 					stateStore,
 					asset: validTestTransaction.asset,
 					senderID: validTestTransaction.address,

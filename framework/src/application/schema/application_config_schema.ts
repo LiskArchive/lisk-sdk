@@ -114,11 +114,11 @@ export const applicationConfigSchema = {
 					items: {
 						type: 'object',
 						properties: {
-							moduleType: {
+							moduleID: {
 								type: 'number',
 								minimum: 2,
 							},
-							assetType: {
+							assetID: {
 								type: 'integer',
 								minimum: 0,
 							},

@@ -23,15 +23,15 @@ import {
 	verifyMultiSignatureTransaction,
 } from './utils';
 import { BaseModule } from '../base_module';
-import { AfterGenesisBlockApplyInput, TransactionApplyInput } from '../../types';
-import { RegisterAssetType, RegisterAsset } from './register_asset';
+import { AfterGenesisBlockApplyContext, TransactionApplyContext } from '../../types';
+import { RegisterassetID, RegisterAsset } from './register_asset';
 import { keysSchema } from './schemas';
 
 const { bufferArrayOrderByLex, bufferArrayUniqueItems, bufferArrayContainsSome } = ObjectUtils;
 
 export class KeysModule extends BaseModule {
 	public name = 'keys';
-	public type = 4;
+	public id = 4;
 	public accountSchema = {
 		type: 'object',
 		properties: {
@@ -59,7 +59,7 @@ export class KeysModule extends BaseModule {
 	public async beforeTransactionApply({
 		stateStore,
 		transaction,
-	}: TransactionApplyInput): Promise<void> {
+	}: TransactionApplyContext): Promise<void> {
 		const sender = await stateStore.account.get<AccountKeys>(transaction.senderID);
 		const { networkIdentifier } = stateStore.chain;
 		const transactionBytes = transaction.getSigningBytes();
@@ -70,7 +70,7 @@ export class KeysModule extends BaseModule {
 		]);
 
 		// This is for registration of multisignature that requires all signatures
-		if (transaction.moduleType === this.type && transaction.assetType === RegisterAssetType) {
+		if (transaction.moduleID === this.id && transaction.assetID === RegisterassetID) {
 			const { mandatoryKeys, optionalKeys } = codec.decode<DecodedAsset>(
 				keysSchema,
 				transaction.asset,
@@ -141,7 +141,7 @@ export class KeysModule extends BaseModule {
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
 	public async afterGenesisBlockApply({
 		genesisBlock,
-	}: AfterGenesisBlockApplyInput<AccountKeys>): Promise<void> {
+	}: AfterGenesisBlockApplyContext<AccountKeys>): Promise<void> {
 		const errors = [];
 		for (const account of genesisBlock.header.asset.accounts) {
 			if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {

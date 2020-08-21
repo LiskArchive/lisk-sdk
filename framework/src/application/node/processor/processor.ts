@@ -30,10 +30,10 @@ import { InMemoryChannel } from '../../../controller/channels';
 import { BaseModule, BaseAsset } from '../../../modules';
 import { Pipeline } from './pipeline';
 import {
-	BeforeBlockApplyInput,
-	TransactionApplyInput,
-	AfterBlockApplyInput,
-	AfterGenesisBlockApplyInput,
+	BeforeBlockApplyContext,
+	TransactionApplyContext,
+	AfterBlockApplyContext,
+	AfterGenesisBlockApplyContext,
 	ReducerHandler,
 	Consensus,
 	Delegate,
@@ -69,11 +69,11 @@ export class Processor {
 	private readonly _modules: BaseModule[] = [];
 	private _stop = false;
 	private readonly _hooks: {
-		beforeTransactionApply: Pipeline<TransactionApplyInput>;
-		afterTransactionApply: Pipeline<TransactionApplyInput>;
-		beforeBlockApply: Pipeline<BeforeBlockApplyInput>;
-		afterBlockApply: Pipeline<AfterBlockApplyInput>;
-		afterGenesisBlockApply: Pipeline<AfterGenesisBlockApplyInput>;
+		beforeTransactionApply: Pipeline<TransactionApplyContext>;
+		afterTransactionApply: Pipeline<TransactionApplyContext>;
+		beforeBlockApply: Pipeline<BeforeBlockApplyContext>;
+		afterBlockApply: Pipeline<AfterBlockApplyContext>;
+		afterGenesisBlockApply: Pipeline<AfterGenesisBlockApplyContext>;
 	};
 
 	public constructor({ channel, logger, chainModule, bftModule }: ProcessorInput) {
@@ -84,18 +84,18 @@ export class Processor {
 		this._jobQueue = new jobHandlers.JobQueue();
 		this.events = new EventEmitter();
 		this._hooks = {
-			beforeTransactionApply: new Pipeline<TransactionApplyInput>(),
-			afterTransactionApply: new Pipeline<TransactionApplyInput>(),
-			beforeBlockApply: new Pipeline<BeforeBlockApplyInput>(),
-			afterBlockApply: new Pipeline<AfterBlockApplyInput>(),
-			afterGenesisBlockApply: new Pipeline<AfterGenesisBlockApplyInput>(),
+			beforeTransactionApply: new Pipeline<TransactionApplyContext>(),
+			afterTransactionApply: new Pipeline<TransactionApplyContext>(),
+			beforeBlockApply: new Pipeline<BeforeBlockApplyContext>(),
+			afterBlockApply: new Pipeline<AfterBlockApplyContext>(),
+			afterGenesisBlockApply: new Pipeline<AfterGenesisBlockApplyContext>(),
 		};
 	}
 
 	public register(customModule: BaseModule): void {
-		const existingModule = this._modules.find(m => m.type === customModule.type);
+		const existingModule = this._modules.find(m => m.id === customModule.id);
 		if (existingModule) {
-			throw new Error(`Module type ${customModule.type} is already registered`);
+			throw new Error(`Module id ${customModule.id} is already registered`);
 		}
 		if (customModule.afterGenesisBlockApply) {
 			this._hooks.afterGenesisBlockApply.pipe([
@@ -307,13 +307,13 @@ export class Processor {
 	public validateTransaction(transaction: Transaction): void {
 		transaction.validate();
 		const customAsset = this._getAsset(transaction);
-		if (customAsset.validateAsset) {
-			const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
-			const assetSchemaErrors = validator.validate(customAsset.assetSchema, decodedAsset as object);
+		if (customAsset.validate) {
+			const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
+			const assetSchemaErrors = validator.validate(customAsset.schema, decodedAsset as object);
 			if (assetSchemaErrors.length) {
 				throw new LiskValidationError(assetSchemaErrors);
 			}
-			customAsset.validateAsset({
+			customAsset.validate({
 				asset: decodedAsset,
 				transaction,
 			});
@@ -335,8 +335,8 @@ export class Processor {
 					transaction,
 				});
 				const customAsset = this._getAsset(transaction);
-				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
-				await customAsset.applyAsset({
+				const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
+				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler: this._createReducerHandler(stateStore),
 					senderID: transaction.senderID,
@@ -395,8 +395,8 @@ export class Processor {
 					transaction,
 				});
 				const customAsset = this._getAsset(transaction);
-				const decodedAsset = codec.decode(customAsset.assetSchema, transaction.asset);
-				await customAsset.applyAsset({
+				const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
+				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler,
 					senderID: transaction.senderID,
@@ -484,16 +484,16 @@ export class Processor {
 	}
 
 	private _getAsset(transaction: Transaction): BaseAsset {
-		const customModule = this._modules.find(m => m.type === transaction.moduleType);
+		const customModule = this._modules.find(m => m.id === transaction.moduleID);
 		if (!customModule) {
-			throw new Error(`Module type ${transaction.moduleType} does not exist`);
+			throw new Error(`Module id ${transaction.moduleID} does not exist`);
 		}
 		const customAsset = customModule.transactionAssets.find(
-			asset => asset.type === transaction.assetType,
+			asset => asset.id === transaction.assetID,
 		);
 		if (!customAsset) {
 			throw new Error(
-				`Asset type ${transaction.assetType} does not exist in module type ${transaction.moduleType}.`,
+				`Asset id ${transaction.assetID} does not exist in module id ${transaction.moduleID}.`,
 			);
 		}
 		return customAsset;

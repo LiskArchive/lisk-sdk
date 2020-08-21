@@ -49,8 +49,8 @@ interface AccountJSON {
 }
 
 interface BaseTransactionJSON {
-	readonly moduleType: number;
-	readonly assetType: number;
+	readonly moduleID: number;
+	readonly assetID: number;
 	readonly nonce: string;
 	readonly fee: string;
 	readonly senderPublicKey: string;
@@ -94,8 +94,8 @@ interface CodecSchema {
 	};
 	transactionSchema: Schema;
 	transactionsAssetSchemas: {
-		moduleType: number;
-		assetType: number;
+		moduleID: number;
+		assetID: number;
 		schema: Schema;
 	}[];
 }
@@ -150,7 +150,7 @@ const decodeTransactionToJSON = (
 	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(baseSchema, transactionBuffer);
 
 	const transactionTypeAsset = assetsSchemas.find(
-		s => s.assetType === baseTransaction.assetType && s.moduleType === baseTransaction.moduleType,
+		s => s.assetID === baseTransaction.assetID && s.moduleID === baseTransaction.moduleID,
 	);
 
 	if (!transactionTypeAsset) {
@@ -175,7 +175,7 @@ const encodeTransactionFromJSON = (
 	assetsSchemas: CodecSchema['transactionsAssetSchemas'],
 ): string => {
 	const transactionTypeAsset = assetsSchemas.find(
-		s => s.assetType === transaction.assetType && s.moduleType === transaction.moduleType,
+		s => s.assetID === transaction.assetID && s.moduleID === transaction.moduleID,
 	);
 
 	if (!transactionTypeAsset) {

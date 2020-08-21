@@ -69,8 +69,7 @@ describe('chain', () => {
 		chainInstance = new Chain({
 			db,
 			genesisBlock,
-			networkIdentifier: defaultNetworkIdentifier,
-			accounts: defaultAccountModules,
+			accountSchemas: defaultAccountModules,
 			...constants,
 		});
 	});

@@ -57,8 +57,8 @@ export const createTransferTransaction = ({
 	const transaction = signTransaction(
 		schema,
 		{
-			moduleType: 2,
-			assetType: 0,
+			moduleID: 2,
+			assetID: 0,
 			nonce: BigInt(nonce),
 			fee: BigInt(convertLSKToBeddows(fee)),
 			senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),

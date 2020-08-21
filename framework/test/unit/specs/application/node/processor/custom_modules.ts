@@ -17,9 +17,9 @@ import { BaseModule } from '../../../../../../src/modules/base_module';
 import { BaseAsset } from '../../../../../../src/modules/base_asset';
 
 export class CustomAsset0 extends BaseAsset {
-	public type = 0;
+	public id = 0;
 	public name = 'customAsset0';
-	public assetSchema = {
+	public schema = {
 		$id: 'lisk/custom-asset-0',
 		type: 'object',
 		properties: {
@@ -30,12 +30,12 @@ export class CustomAsset0 extends BaseAsset {
 		},
 	};
 
-	public validateAsset = jest.fn();
-	public applyAsset = jest.fn();
+	public validate = jest.fn();
+	public apply = jest.fn();
 }
 
 export class CustomModule0 extends BaseModule {
-	public type = 3;
+	public id = 3;
 	public name = 'customModule0';
 	public transactionAssets = [new CustomAsset0()];
 	public reducers = {
@@ -50,7 +50,7 @@ export class CustomModule0 extends BaseModule {
 }
 
 export class CustomModule1 extends BaseModule {
-	public type = 4;
+	public id = 4;
 	public name = 'customModule1';
 
 	public beforeBlockApply = jest.fn();

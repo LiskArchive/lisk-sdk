@@ -183,8 +183,8 @@ describe('processor', () => {
 			payload: [
 				new Transaction({
 					asset: Buffer.alloc(0),
-					moduleType: 3,
-					assetType: 0,
+					moduleID: 3,
+					assetID: 0,
 					fee: BigInt(10000000),
 					nonce: BigInt(3),
 					senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -509,8 +509,8 @@ describe('processor', () => {
 	describe('validate', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
-			moduleType: 3,
-			assetType: 0,
+			moduleID: 3,
+			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
 			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -546,12 +546,12 @@ describe('processor', () => {
 			processor.validate(blockV2);
 			expect(validator.validate).toHaveBeenCalledTimes(2);
 			expect(validator.validate).toHaveBeenCalledWith(
-				customModule0.transactionAssets[0].assetSchema,
+				customModule0.transactionAssets[0].schema,
 				expect.any(Object),
 			);
 		});
 
-		it('should fail when module type does not exist', () => {
+		it('should fail when module id does not exist', () => {
 			const block = ({
 				header: {
 					id: Buffer.from('fakelock2'),
@@ -561,8 +561,8 @@ describe('processor', () => {
 				payload: [
 					new Transaction({
 						asset: Buffer.alloc(0),
-						moduleType: 20,
-						assetType: 5,
+						moduleID: 20,
+						assetID: 5,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
 						senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -570,10 +570,10 @@ describe('processor', () => {
 					}),
 				],
 			} as unknown) as Block;
-			expect(() => processor.validate(block)).toThrow('Module type 20 does not exist');
+			expect(() => processor.validate(block)).toThrow('Module id 20 does not exist');
 		});
 
-		it('should fail when asset type does not exist', () => {
+		it('should fail when asset id does not exist', () => {
 			const block = ({
 				header: {
 					id: Buffer.from('fakelock2'),
@@ -583,8 +583,8 @@ describe('processor', () => {
 				payload: [
 					new Transaction({
 						asset: Buffer.alloc(0),
-						moduleType: 3,
-						assetType: 5,
+						moduleID: 3,
+						assetID: 5,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
 						senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -592,9 +592,7 @@ describe('processor', () => {
 					}),
 				],
 			} as unknown) as Block;
-			expect(() => processor.validate(block)).toThrow(
-				'Asset type 5 does not exist in module type 3.',
-			);
+			expect(() => processor.validate(block)).toThrow('Asset id 5 does not exist in module id 3.');
 		});
 	});
 
@@ -608,8 +606,8 @@ describe('processor', () => {
 			payload: [
 				new Transaction({
 					asset: Buffer.alloc(0),
-					moduleType: 3,
-					assetType: 0,
+					moduleID: 3,
+					assetID: 0,
 					fee: BigInt(10000000),
 					nonce: BigInt(3),
 					senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -793,8 +791,8 @@ describe('processor', () => {
 	describe('validateTransaction', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
-			moduleType: 3,
-			assetType: 0,
+			moduleID: 3,
+			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
 			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -810,15 +808,15 @@ describe('processor', () => {
 				processor.validateTransaction(
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
-						moduleType: 99,
-						assetType: 0,
+						moduleID: 99,
+						assetID: 0,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
 						senderPublicKey: Buffer.alloc(0),
 						signatures: [],
 					}),
 				),
-			).toThrow('Module type 99 does not exist');
+			).toThrow('Module id 99 does not exist');
 		});
 
 		it('should throw if asset is not registered', () => {
@@ -826,15 +824,15 @@ describe('processor', () => {
 				processor.validateTransaction(
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
-						moduleType: 3,
-						assetType: 99,
+						moduleID: 3,
+						assetID: 99,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
 						senderPublicKey: Buffer.alloc(0),
 						signatures: [],
 					}),
 				),
-			).toThrow('Asset type 99 does not exist in module type 3');
+			).toThrow('Asset id 99 does not exist in module id 3');
 		});
 
 		it('should throw if root schema is invalid', () => {
@@ -842,8 +840,8 @@ describe('processor', () => {
 				processor.validateTransaction(
 					new Transaction({
 						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
-						moduleType: 3,
-						assetType: 0,
+						moduleID: 3,
+						assetID: 0,
 						fee: BigInt(10000000),
 						nonce: BigInt(-3),
 						senderPublicKey: Buffer.alloc(0),
@@ -854,7 +852,7 @@ describe('processor', () => {
 		});
 
 		it('should throw if asset validation fails', () => {
-			customModule0.transactionAssets[0].validateAsset.mockImplementation(() => {
+			customModule0.transactionAssets[0].validate.mockImplementation(() => {
 				throw new Error('invalid tx');
 			});
 			expect(() => processor.validateTransaction(tx)).toThrow('invalid tx');
@@ -868,8 +866,8 @@ describe('processor', () => {
 	describe('verifyTransaction', () => {
 		const tx = new Transaction({
 			asset: Buffer.alloc(0),
-			moduleType: 3,
-			assetType: 0,
+			moduleID: 3,
+			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
 			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -877,8 +875,8 @@ describe('processor', () => {
 		});
 		const tx2 = new Transaction({
 			asset: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
-			moduleType: 3,
-			assetType: 0,
+			moduleID: 3,
+			assetID: 0,
 			fee: BigInt(10100000),
 			nonce: BigInt(4),
 			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -898,19 +896,19 @@ describe('processor', () => {
 		it('should call all hooks for transaction', async () => {
 			await processor.verifyTransactions([tx, tx2], stateStoreStub);
 			expect(customModule0.beforeTransactionApply).toHaveBeenCalledTimes(2);
-			expect(customModule0.transactionAssets[0].applyAsset).toHaveBeenCalledTimes(2);
+			expect(customModule0.transactionAssets[0].apply).toHaveBeenCalledTimes(2);
 			expect(customModule0.afterTransactionApply).toHaveBeenCalledTimes(2);
 			expect(customModule1.afterTransactionApply).toHaveBeenCalledTimes(2);
 		});
 
-		it('should reject if module type does not exist', async () => {
+		it('should reject if module id does not exist', async () => {
 			await expect(
 				processor.verifyTransactions(
 					[
 						new Transaction({
 							asset: Buffer.alloc(0),
-							moduleType: 99,
-							assetType: 0,
+							moduleID: 99,
+							assetID: 0,
 							fee: BigInt(10000000),
 							nonce: BigInt(3),
 							senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -919,17 +917,17 @@ describe('processor', () => {
 					],
 					stateStoreStub,
 				),
-			).rejects.toThrow('Module type 99 does not exist');
+			).rejects.toThrow('Module id 99 does not exist');
 		});
 
-		it('should reject if asset type does not exist', async () => {
+		it('should reject if asset id does not exist', async () => {
 			await expect(
 				processor.verifyTransactions(
 					[
 						new Transaction({
 							asset: Buffer.alloc(0),
-							moduleType: 4,
-							assetType: 0,
+							moduleID: 4,
+							assetID: 0,
 							fee: BigInt(10000000),
 							nonce: BigInt(3),
 							senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
@@ -938,7 +936,7 @@ describe('processor', () => {
 					],
 					stateStoreStub,
 				),
-			).rejects.toThrow('Asset type 0 does not exist in module type 4');
+			).rejects.toThrow('Asset id 0 does not exist in module id 4');
 		});
 
 		it('should resolve transaction is valid', async () => {

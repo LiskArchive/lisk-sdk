@@ -53,15 +53,15 @@ export interface DPOSAccountProps {
 	};
 }
 
-export interface UnlockTransactionAssetInput {
+export interface UnlockTransactionAssetContext {
 	readonly unlockObjects: ReadonlyArray<UnlockingAccountAsset>;
 }
 
-export interface RegisterTransactionAssetInput {
+export interface RegisterTransactionAssetContext {
 	readonly username: string;
 }
 
-export interface VoteTransactionAssetInput {
+export interface VoteTransactionAssetContext {
 	readonly votes: ReadonlyArray<VoteAccountAsset>;
 }
 
@@ -71,7 +71,7 @@ export interface BlockHeaderAssetForDPOS {
 	readonly maxHeightPrevoted: number;
 }
 
-export interface PomTransactionAssetInput {
+export interface PomTransactionAssetContext {
 	readonly header1: BlockHeader<BlockHeaderAssetForDPOS>;
 	readonly header2: BlockHeader<BlockHeaderAssetForDPOS>;
 }

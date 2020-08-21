@@ -17,8 +17,8 @@ import { hash, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 
 interface TransactionInput {
-	readonly moduleType: number;
-	readonly assetType: number;
+	readonly moduleID: number;
+	readonly assetID: number;
 	readonly senderPublicKey: Buffer;
 	readonly nonce: bigint;
 	readonly fee: bigint;
@@ -29,14 +29,14 @@ interface TransactionInput {
 export const transactionSchema = {
 	$id: 'lisk/transaction',
 	type: 'object',
-	required: ['moduleType', 'assetType', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
 	properties: {
-		moduleType: {
+		moduleID: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 			minimum: 2,
 		},
-		assetType: {
+		assetID: {
 			dataType: 'uint32',
 			fieldNumber: 2,
 		},
@@ -67,8 +67,8 @@ export const transactionSchema = {
 };
 
 export class Transaction {
-	public readonly moduleType: number;
-	public readonly assetType: number;
+	public readonly moduleID: number;
+	public readonly assetID: number;
 	public readonly asset: Buffer;
 	public readonly nonce: bigint;
 	public readonly fee: bigint;
@@ -78,8 +78,8 @@ export class Transaction {
 	private _senderID?: Buffer;
 
 	public constructor(transaction: TransactionInput) {
-		this.moduleType = transaction.moduleType;
-		this.assetType = transaction.assetType;
+		this.moduleID = transaction.moduleID;
+		this.assetID = transaction.assetID;
 		this.asset = transaction.asset;
 		this.nonce = transaction.nonce;
 		this.fee = transaction.fee;

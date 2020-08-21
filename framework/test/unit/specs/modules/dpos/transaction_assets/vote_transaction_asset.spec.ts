@@ -14,18 +14,18 @@
 
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { ApplyAssetInput, ValidateAssetInput } from '../../../../../../src/types';
+import { ApplyAssetContext, ValidateAssetContext } from '../../../../../../src/types';
 import { createFakeDefaultAccount } from '../../../../../utils/node';
 import { StateStoreMock } from '../../../../../utils/node/state_store_mock';
 import { VoteTransactionAsset } from '../../../../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
-import { DPOSAccountProps, VoteTransactionAssetInput } from '../../../../../../src/modules/dpos';
+import { DPOSAccountProps, VoteTransactionAssetContext } from '../../../../../../src/modules/dpos';
 import { liskToBeddows } from '../../../../../utils/assets';
 
 describe('VoteTransactionAsset', () => {
 	const lastBlockHeight = 200;
 	let transactionAsset: VoteTransactionAsset;
-	let applyInput: ApplyAssetInput<VoteTransactionAssetInput>;
-	let validateInput: ValidateAssetInput<VoteTransactionAssetInput>;
+	let applyContext: ApplyAssetContext<VoteTransactionAssetContext>;
+	let validateContext: ValidateAssetContext<VoteTransactionAssetContext>;
 	let sender: any;
 	let stateStoreMock: StateStoreMock;
 	const delegate1 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate1' } } });
@@ -41,7 +41,7 @@ describe('VoteTransactionAsset', () => {
 			},
 		);
 		transactionAsset = new VoteTransactionAsset();
-		applyInput = {
+		applyContext = {
 			senderID: sender.address,
 			asset: {
 				votes: [],
@@ -51,23 +51,23 @@ describe('VoteTransactionAsset', () => {
 				invoke: jest.fn(),
 			},
 		} as any;
-		validateInput = { asset: { votes: [] } } as any;
+		validateContext = { asset: { votes: [] } } as any;
 
 		jest.spyOn(stateStoreMock.account, 'get');
 		jest.spyOn(stateStoreMock.account, 'set');
 	});
 
 	describe('constructor', () => {
-		it('should have valid type', () => {
-			expect(transactionAsset.type).toEqual(1);
+		it('should have valid id', () => {
+			expect(transactionAsset.id).toEqual(1);
 		});
 
 		it('should have valid name', () => {
 			expect(transactionAsset.name).toEqual('vote');
 		});
 
-		it('should have valid accountSchema', () => {
-			expect(transactionAsset.assetSchema).toMatchSnapshot();
+		it('should have valid schema', () => {
+			expect(transactionAsset.schema).toMatchSnapshot();
 		});
 
 		it('should have valid baseFee', () => {
@@ -75,15 +75,15 @@ describe('VoteTransactionAsset', () => {
 		});
 	});
 
-	describe('validateAsset', () => {
+	describe('validate', () => {
 		describe('schema validation', () => {
 			describe('when asset.votes does not include any vote', () => {
 				it('should return errors', () => {
-					validateInput.asset = {
+					validateContext.asset = {
 						votes: [],
 					};
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should NOT have fewer than 1 items');
 				});
@@ -92,13 +92,13 @@ describe('VoteTransactionAsset', () => {
 			describe('when asset.votes includes more than 20 elements', () => {
 				it('should return errors', () => {
 					// Arrange
-					validateInput.asset = {
+					validateContext.asset = {
 						votes: Array(21)
 							.fill(0)
 							.map(() => ({ delegateAddress: delegate1.address, amount: liskToBeddows(0) })),
 					};
 
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toInclude('should NOT have more than 20 items');
 				});
@@ -107,7 +107,7 @@ describe('VoteTransactionAsset', () => {
 			describe('when asset.votes includes amount which is less than int64 range', () => {
 				it('should return errors', () => {
 					// Arrange
-					validateInput.asset = {
+					validateContext.asset = {
 						votes: [
 							{
 								delegateAddress: delegate1.address,
@@ -117,7 +117,7 @@ describe('VoteTransactionAsset', () => {
 					};
 
 					// Act & Assert
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
 				});
 			});
@@ -125,7 +125,7 @@ describe('VoteTransactionAsset', () => {
 			describe('when asset.votes includes amount which is greater than int64 range', () => {
 				it('should return errors', () => {
 					// Arrange
-					validateInput.asset = {
+					validateContext.asset = {
 						votes: [
 							{
 								delegateAddress: delegate1.address,
@@ -135,7 +135,7 @@ describe('VoteTransactionAsset', () => {
 					};
 
 					// Act & Assert
-					const errors = validator.validate(transactionAsset.assetSchema, validateInput.asset);
+					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
 				});
 			});
@@ -144,27 +144,27 @@ describe('VoteTransactionAsset', () => {
 		describe('when asset.votes contains valid contents', () => {
 			it('should not throw errors with valid upvote case', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: [{ delegateAddress: delegate1.address, amount: liskToBeddows(20) }],
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+				expect(() => transactionAsset.validate(validateContext)).not.toThrow();
 			});
 
 			it('should not throw errors with valid downvote case', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: [{ delegateAddress: delegate1.address, amount: liskToBeddows(-20) }],
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+				expect(() => transactionAsset.validate(validateContext)).not.toThrow();
 			});
 
 			it('should not throw errors with valid mix votes case', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: [
 						{ delegateAddress: delegate1.address, amount: liskToBeddows(-20) },
 						{ delegateAddress: delegate2.address, amount: liskToBeddows(20) },
@@ -172,21 +172,21 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).not.toThrow();
+				expect(() => transactionAsset.validate(validateContext)).not.toThrow();
 			});
 		});
 
 		describe('when asset.votes includes more than 10 positive votes', () => {
 			it('should throw error', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: Array(11)
 						.fill(0)
 						.map(() => ({ delegateAddress: delegate1.address, amount: liskToBeddows(10) })),
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
 					'Upvote can only be casted upto 10',
 				);
 			});
@@ -195,14 +195,14 @@ describe('VoteTransactionAsset', () => {
 		describe('when asset.votes includes more than 10 negative votes', () => {
 			it('should throw error', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: Array(11)
 						.fill(0)
 						.map(() => ({ delegateAddress: delegate1.address, amount: liskToBeddows(-10) })),
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
 					'Downvote can only be casted upto 10',
 				);
 			});
@@ -211,14 +211,14 @@ describe('VoteTransactionAsset', () => {
 		describe('when asset.votes includes duplicate delegates within positive amount', () => {
 			it('should throw error', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: Array(2)
 						.fill(0)
 						.map(() => ({ delegateAddress: delegate1.address, amount: liskToBeddows(-10) })),
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
 					'Delegate address must be unique',
 				);
 			});
@@ -227,7 +227,7 @@ describe('VoteTransactionAsset', () => {
 		describe('when asset.votes includes duplicate delegates within positive and negative amount', () => {
 			it('should throw error', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: [
 						{ delegateAddress: delegate1.address, amount: liskToBeddows(-10) },
 						{ delegateAddress: delegate1.address, amount: liskToBeddows(20) },
@@ -235,7 +235,7 @@ describe('VoteTransactionAsset', () => {
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
 					'Delegate address must be unique',
 				);
 			});
@@ -244,36 +244,36 @@ describe('VoteTransactionAsset', () => {
 		describe('when asset.votes includes zero amount', () => {
 			it('should throw error', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: [{ delegateAddress: delegate1.address, amount: liskToBeddows(0) }],
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow('Amount cannot be 0');
+				expect(() => transactionAsset.validate(validateContext)).toThrow('Amount cannot be 0');
 			});
 		});
 
 		describe('when asset.votes includes amount which is not multiple of 10 * 10^8', () => {
 			it('should throw error', () => {
 				// Arrange
-				validateInput.asset = {
+				validateContext.asset = {
 					votes: [{ delegateAddress: delegate1.address, amount: BigInt(20) }],
 				};
 
 				// Act & Assert
-				expect(() => transactionAsset.validateAsset(validateInput)).toThrow(
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
 					'Amount should be multiple of 10 * 10^8',
 				);
 			});
 		});
 	});
 
-	describe('applyAsset', () => {
+	describe('apply', () => {
 		const delegate1VoteAmount = liskToBeddows(90);
 		const delegate2VoteAmount = liskToBeddows(50);
 
 		beforeEach(() => {
-			applyInput.asset = {
+			applyContext.asset = {
 				votes: [
 					{ delegateAddress: delegate1.address, amount: delegate1VoteAmount },
 					{ delegateAddress: delegate2.address, amount: delegate2VoteAmount },
@@ -283,36 +283,36 @@ describe('VoteTransactionAsset', () => {
 
 		describe('when asset.votes contain positive amount', () => {
 			it('should not throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 			});
 
 			it('should make account to have correct balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledTimes(2);
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
-					address: applyInput.senderID,
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledTimes(2);
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
+					address: applyContext.senderID,
 					amount: delegate1VoteAmount,
 				});
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
-					address: applyInput.senderID,
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
+					address: applyContext.senderID,
 					amount: delegate2VoteAmount,
 				});
 			});
 
 			it('should not change account.dpos.unlocking', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.unlocking).toHaveLength(0);
 			});
 
 			it('should order account.dpos.sentVotes', async () => {
-				applyInput.asset = {
-					votes: [...applyInput.asset.votes].reverse(),
+				applyContext.asset = {
+					votes: [...applyContext.asset.votes].reverse(),
 				};
 
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				const senderVotesCopy = updatedSender.dpos.sentVotes.slice(0);
@@ -321,7 +321,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedDelegate1 = await stateStoreMock.account.get<DPOSAccountProps>(
 					delegate1.address,
@@ -335,47 +335,47 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should create vote object when it does not exist before', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 
 				expect(sender.dpos.sentVotes).toEqual([]);
-				expect(updatedSender.dpos.sentVotes).toEqual(applyInput.asset.votes);
+				expect(updatedSender.dpos.sentVotes).toEqual(applyContext.asset.votes);
 			});
 
 			it('should update vote object when it exists before and create if it does not exist', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 				// Send votes second time
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(sender.dpos.sentVotes).toEqual([]);
 				expect(updatedSender.dpos.sentVotes[0]).toEqual({
-					delegateAddress: applyInput.asset.votes[0].delegateAddress,
-					amount: applyInput.asset.votes[0].amount * BigInt(2),
+					delegateAddress: applyContext.asset.votes[0].delegateAddress,
+					amount: applyContext.asset.votes[0].amount * BigInt(2),
 				});
 				expect(updatedSender.dpos.sentVotes[1]).toEqual({
-					delegateAddress: applyInput.asset.votes[1].delegateAddress,
-					amount: applyInput.asset.votes[1].amount * BigInt(2),
+					delegateAddress: applyContext.asset.votes[1].delegateAddress,
+					amount: applyContext.asset.votes[1].amount * BigInt(2),
 				});
 			});
 		});
 
 		describe('when asset.votes contain negative amount which makes account.dpos.sentVotes to be 0 entries', () => {
 			beforeEach(async () => {
-				const votesInput = objects.cloneDeep(applyInput);
-				votesInput.asset = {
+				const votesContext = objects.cloneDeep(applyContext);
+				votesContext.asset = {
 					votes: [
 						{ delegateAddress: delegate1.address, amount: delegate1VoteAmount },
 						{ delegateAddress: delegate2.address, amount: delegate2VoteAmount },
 					],
 				};
-				await transactionAsset.applyAsset(votesInput);
+				await transactionAsset.apply(votesContext);
 
 				// Clears mock calls for earlier apply asset
-				(applyInput.reducerHandler.invoke as jest.Mock).mockClear();
+				(applyContext.reducerHandler.invoke as jest.Mock).mockClear();
 
-				applyInput.asset = {
+				applyContext.asset = {
 					votes: [
 						{ delegateAddress: delegate1.address, amount: BigInt(-1) * delegate1VoteAmount },
 						{ delegateAddress: delegate2.address, amount: BigInt(-1) * delegate2VoteAmount },
@@ -384,21 +384,21 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should not throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 			});
 
 			it('should not change account balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
-				expect(applyInput.reducerHandler.invoke).not.toHaveBeenCalled();
+				expect(applyContext.reducerHandler.invoke).not.toHaveBeenCalled();
 			});
 
 			it('should remove vote which has zero amount', async () => {
-				applyInput.asset = {
+				applyContext.asset = {
 					votes: [{ delegateAddress: delegate1.address, amount: BigInt(-1) * delegate1VoteAmount }],
 				};
 
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.sentVotes).toHaveLength(1);
@@ -407,11 +407,11 @@ describe('VoteTransactionAsset', () => {
 
 			it('should update vote which has non-zero amount', async () => {
 				const downVoteAmount = liskToBeddows(10);
-				applyInput.asset = {
+				applyContext.asset = {
 					votes: [{ delegateAddress: delegate1.address, amount: BigInt(-1) * downVoteAmount }],
 				};
 
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.sentVotes).toHaveLength(2);
@@ -424,7 +424,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make account to have correct unlocking', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.unlocking).toHaveLength(2);
@@ -445,7 +445,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should order account.dpos.unlocking', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.unlocking).toHaveLength(2);
@@ -455,7 +455,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make downvoted delegate account to have correct totalVotesReceived', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedDelegate1 = await stateStoreMock.account.get<DPOSAccountProps>(
 					delegate1.address,
@@ -474,19 +474,19 @@ describe('VoteTransactionAsset', () => {
 			const negativeVoteDelegate2 = liskToBeddows(-20);
 
 			beforeEach(async () => {
-				const votesInput = objects.cloneDeep(applyInput);
-				votesInput.asset = {
+				const votesContext = objects.cloneDeep(applyContext);
+				votesContext.asset = {
 					votes: [
 						{ delegateAddress: delegate1.address, amount: delegate1VoteAmount },
 						{ delegateAddress: delegate2.address, amount: delegate2VoteAmount },
 					],
 				};
-				await transactionAsset.applyAsset(votesInput);
+				await transactionAsset.apply(votesContext);
 
 				// Clears mock calls for earlier apply asset
-				(applyInput.reducerHandler.invoke as jest.Mock).mockClear();
+				(applyContext.reducerHandler.invoke as jest.Mock).mockClear();
 
-				applyInput.asset = {
+				applyContext.asset = {
 					votes: [
 						{ delegateAddress: delegate1.address, amount: positiveVoteDelegate1 },
 						{ delegateAddress: delegate2.address, amount: negativeVoteDelegate2 },
@@ -495,21 +495,21 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should not throw error', async () => {
-				await expect(transactionAsset.applyAsset(applyInput)).resolves.toBeUndefined();
+				await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 			});
 
 			it('should make account to have correct balance', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledTimes(1);
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
-					address: applyInput.senderID,
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledTimes(1);
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
+					address: applyContext.senderID,
 					amount: positiveVoteDelegate1,
 				});
 			});
 
 			it('should make account to have correct unlocking', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.unlocking).toHaveLength(1);
@@ -523,7 +523,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedDelegate1 = await stateStoreMock.account.get<DPOSAccountProps>(
 					delegate1.address,
@@ -535,7 +535,7 @@ describe('VoteTransactionAsset', () => {
 			});
 
 			it('should make downvoted delegate account to have correct totalVotesReceived', async () => {
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				const updatedDelegate2 = await stateStoreMock.account.get<DPOSAccountProps>(
 					delegate2.address,
@@ -549,7 +549,7 @@ describe('VoteTransactionAsset', () => {
 
 		describe('given asset.votes contain invalid data', () => {
 			beforeEach(() => {
-				applyInput.asset = {
+				applyContext.asset = {
 					votes: [
 						{ delegateAddress: delegate1.address, amount: delegate1VoteAmount },
 						{ delegateAddress: delegate2.address, amount: delegate2VoteAmount },
@@ -562,16 +562,14 @@ describe('VoteTransactionAsset', () => {
 					const nonExistingAccount = createFakeDefaultAccount({
 						dpos: { delegate: { username: '' } },
 					});
-					applyInput.asset = {
+					applyContext.asset = {
 						votes: [
-							...applyInput.asset.votes,
+							...applyContext.asset.votes,
 							{ delegateAddress: nonExistingAccount.address, amount: liskToBeddows(76) },
 						],
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
-						'Account not defined',
-					);
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow('Account not defined');
 				});
 			});
 
@@ -581,14 +579,14 @@ describe('VoteTransactionAsset', () => {
 						dpos: { delegate: { username: '' } },
 					});
 					stateStoreMock.account.set(nonRegisteredDelegate.address, nonRegisteredDelegate);
-					applyInput.asset = {
+					applyContext.asset = {
 						votes: [
-							...applyInput.asset.votes,
+							...applyContext.asset.votes,
 							{ delegateAddress: nonRegisteredDelegate.address, amount: liskToBeddows(76) },
 						],
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						`Voted delegate is not registered. Address: ${nonRegisteredDelegate.address.toString(
 							'base64',
 						)}`,
@@ -611,11 +609,11 @@ describe('VoteTransactionAsset', () => {
 						});
 					}
 
-					applyInput.asset = {
+					applyContext.asset = {
 						votes,
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						'Account can only vote upto 10',
 					);
 				});
@@ -668,14 +666,14 @@ describe('VoteTransactionAsset', () => {
 						});
 					}
 
-					applyInput.asset = {
+					applyContext.asset = {
 						// Account already contains 8 positive votes
 						// now we added 2 negative votes and 3 new positive votes
 						// which will make total positive votes to grow over 10
 						votes,
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						'Account can only vote upto 10',
 					);
 				});
@@ -725,14 +723,14 @@ describe('VoteTransactionAsset', () => {
 						},
 					];
 
-					applyInput.asset = {
+					applyContext.asset = {
 						// Account already contains 19 unlocking and 5 positive votes
 						// now we added 2 negative votes
 						// which will make total unlocking to grow over 20
 						votes,
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						'Cannot downvote which exceeds account.dpos.unlocking to have more than 20',
 					);
 				});
@@ -747,7 +745,7 @@ describe('VoteTransactionAsset', () => {
 					});
 					stateStoreMock.account.set(sender.address, updatedSender);
 
-					applyInput.asset = {
+					applyContext.asset = {
 						// Negative vote for more than what was earlier voted
 						votes: [
 							{
@@ -757,7 +755,7 @@ describe('VoteTransactionAsset', () => {
 						],
 					};
 
-					await expect(transactionAsset.applyAsset(applyInput)).rejects.toThrow(
+					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						'Cannot downvote more than upvoted',
 					);
 				});
@@ -773,20 +771,20 @@ describe('VoteTransactionAsset', () => {
 				updatedSender.dpos.delegate.username = 'sender_delegate';
 				stateStoreMock.account.set(sender.address, updatedSender);
 
-				applyInput.asset = {
+				applyContext.asset = {
 					votes: [{ delegateAddress: sender.address, amount: senderVoteAmount }],
 				};
 			});
 
 			it('should update votes and totalVotesReceived', async () => {
 				// Act
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				// Assert
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
 				expect(updatedSender.dpos.delegate.totalVotesReceived).toEqual(senderVoteAmount);
 				expect(updatedSender.dpos.sentVotes).toHaveLength(1);
-				expect(applyInput.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
 					address: sender.address,
 					amount: senderVoteAmount,
 				});
@@ -807,14 +805,14 @@ describe('VoteTransactionAsset', () => {
 				];
 				stateStoreMock.account.set(sender.address, updatedSender);
 
-				applyInput.asset = {
+				applyContext.asset = {
 					votes: [{ delegateAddress: sender.address, amount: BigInt(-1) * senderDownVoteAmount }],
 				};
 			});
 
 			it('should update votes, totalVotesReceived and unlocking', async () => {
 				// Act
-				await transactionAsset.applyAsset(applyInput);
+				await transactionAsset.apply(applyContext);
 
 				// Assert
 				const updatedSender = await stateStoreMock.account.get<DPOSAccountProps>(sender.address);
@@ -833,7 +831,7 @@ describe('VoteTransactionAsset', () => {
 						unvoteHeight: lastBlockHeight + 1,
 					},
 				]);
-				expect(applyInput.reducerHandler.invoke).not.toHaveBeenCalled();
+				expect(applyContext.reducerHandler.invoke).not.toHaveBeenCalled();
 			});
 		});
 	});

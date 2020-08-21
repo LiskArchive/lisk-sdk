@@ -54,8 +54,8 @@ describe('transport', () => {
 		// stubs without affecting other test cases.
 
 		transaction = new Transaction({
-			moduleType: 2,
-			assetType: 0,
+			moduleID: 2,
+			assetID: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
@@ -70,8 +70,8 @@ describe('transport', () => {
 		);
 
 		const transactionOne = new Transaction({
-			moduleType: 2,
-			assetType: 0,
+			moduleID: 2,
+			assetID: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
@@ -85,8 +85,8 @@ describe('transport', () => {
 			),
 		);
 		const transactionTwo = new Transaction({
-			moduleType: 2,
-			assetType: 0,
+			moduleID: 2,
+			assetID: 0,
 			nonce: BigInt('0'),
 			fee: BigInt('100000000'),
 			senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
@@ -394,8 +394,8 @@ describe('transport', () => {
 			describe('onUnconfirmedTransaction', () => {
 				beforeEach(() => {
 					transaction = new Transaction({
-						moduleType: 2,
-						assetType: 0,
+						moduleID: 2,
+						assetID: 0,
 						fee: BigInt('10'),
 						nonce: BigInt(0),
 						senderPublicKey: Buffer.from(

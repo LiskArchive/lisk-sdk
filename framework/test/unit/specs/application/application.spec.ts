@@ -184,7 +184,7 @@ describe('Application', () => {
 			// Act
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
-				public type = 0;
+				public id = 0;
 			}
 			app.registerModule(SampleModule);
 

@@ -16,14 +16,14 @@ import { Block } from '@liskhq/lisk-chain';
 export const getTotalFees = (
 	block: Block,
 	minFeePerByte: bigint,
-	baseFees: ReadonlyArray<{ assetType: number; baseFee: string; moduleType: number }>,
+	baseFees: ReadonlyArray<{ assetID: number; baseFee: string; moduleID: number }>,
 ): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
 	block.payload.reduce(
 		(prev, current) => {
 			const baseFee =
 				baseFees.find(
-					(fee: { moduleType: number; assetType: number }) =>
-						fee.moduleType === current.moduleType && fee.assetType === current.assetType,
+					(fee: { moduleID: number; assetID: number }) =>
+						fee.moduleID === current.moduleID && fee.assetID === current.assetID,
 				)?.baseFee ?? BigInt(0);
 			const minFee = minFeePerByte * BigInt(current.getBytes().length) + BigInt(baseFee);
 

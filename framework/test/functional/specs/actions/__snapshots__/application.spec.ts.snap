@@ -445,7 +445,7 @@ Object {
         "dataType": "bytes",
         "fieldNumber": 6,
       },
-      "assetType": Object {
+      "assetID": Object {
         "dataType": "uint32",
         "fieldNumber": 2,
       },
@@ -453,7 +453,7 @@ Object {
         "dataType": "uint64",
         "fieldNumber": 4,
       },
-      "moduleType": Object {
+      "moduleID": Object {
         "dataType": "uint32",
         "fieldNumber": 1,
         "minimum": 2,
@@ -475,8 +475,8 @@ Object {
       },
     },
     "required": Array [
-      "moduleType",
-      "assetType",
+      "moduleID",
+      "assetID",
       "nonce",
       "fee",
       "senderPublicKey",
@@ -486,8 +486,8 @@ Object {
   },
   "transactionsAssetSchemas": Array [
     Object {
-      "assetType": 0,
-      "moduleType": 2,
+      "assetID": 0,
+      "moduleID": 2,
       "schema": Object {
         "$id": "lisk/transfer-asset",
         "properties": Object {
@@ -518,8 +518,8 @@ Object {
       },
     },
     Object {
-      "assetType": 0,
-      "moduleType": 4,
+      "assetID": 0,
+      "moduleID": 4,
       "schema": Object {
         "$id": "lisk/keys/register",
         "properties": Object {
@@ -561,8 +561,8 @@ Object {
       },
     },
     Object {
-      "assetType": 0,
-      "moduleType": 5,
+      "assetID": 0,
+      "moduleID": 5,
       "schema": Object {
         "$id": "lisk/dpos/register",
         "properties": Object {
@@ -580,8 +580,8 @@ Object {
       },
     },
     Object {
-      "assetType": 1,
-      "moduleType": 5,
+      "assetID": 1,
+      "moduleID": 5,
       "schema": Object {
         "$id": "lisk/dpos/vote",
         "properties": Object {
@@ -618,8 +618,8 @@ Object {
       },
     },
     Object {
-      "assetType": 2,
-      "moduleType": 5,
+      "assetID": 2,
+      "moduleID": 5,
       "schema": Object {
         "$id": "lisk/dpos/unlock",
         "properties": Object {
@@ -661,8 +661,8 @@ Object {
       },
     },
     Object {
-      "assetType": 3,
-      "moduleType": 5,
+      "assetID": 3,
+      "moduleID": 5,
       "schema": Object {
         "$id": "lisk/dpos/pom",
         "properties": Object {

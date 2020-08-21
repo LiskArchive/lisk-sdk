@@ -66,7 +66,7 @@ interface ChainConstructor {
 	readonly db: KVStore;
 	// Unique requirements
 	readonly genesisBlock: GenesisBlock;
-	readonly accounts: { [name: string]: AccountSchema };
+	readonly accountSchemas: { [name: string]: AccountSchema };
 	// Constants
 	readonly networkIdentifier: Buffer;
 	readonly blockTime: number;
@@ -110,7 +110,7 @@ export class Chain {
 		// Unique requirements
 		genesisBlock,
 		// schemas
-		accounts,
+		accountSchemas,
 		// Constants
 		blockTime,
 		networkIdentifier,
@@ -124,7 +124,7 @@ export class Chain {
 		this._numberOfValidators = -1;
 		this.events = new EventEmitter();
 
-		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(accounts);
+		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(accountSchemas);
 		this._defaultAccount = defaultAccount;
 		this._accountSchema = schema;
 		this._blockAssetSchema = {

@@ -15,12 +15,12 @@
 import { MAX_TRANSACTION_AMOUNT } from './constants';
 import { TokenAccount, Asset } from './types';
 import { BaseAsset } from '../base_asset';
-import { ApplyAssetInput } from '../../types';
+import { ApplyAssetContext } from '../../types';
 
 export class TransferAsset extends BaseAsset {
 	public name = 'transfer';
-	public type = 0;
-	public assetSchema = {
+	public id = 0;
+	public schema = {
 		$id: 'lisk/transfer-asset',
 		title: 'Transfer transaction asset',
 		type: 'object',
@@ -51,7 +51,7 @@ export class TransferAsset extends BaseAsset {
 		this._minRemainingBalance = minRemainingBalance;
 	}
 
-	public async applyAsset({ asset, senderID, stateStore }: ApplyAssetInput<Asset>): Promise<void> {
+	public async apply({ asset, senderID, stateStore }: ApplyAssetContext<Asset>): Promise<void> {
 		const sender = await stateStore.account.get<TokenAccount>(senderID);
 		if (!sender) {
 			throw new Error(`Account does not exist for senderID: ${senderID.toString('base64')}`);
