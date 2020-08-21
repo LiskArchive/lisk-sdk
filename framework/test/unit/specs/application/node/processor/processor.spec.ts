@@ -174,10 +174,10 @@ describe('processor', () => {
 	});
 
 	describe('process', () => {
-		const blockV1 = ({
+		const blockV2 = ({
 			header: {
 				id: Buffer.from('fakelock1'),
-				version: 1,
+				version: 2,
 				height: 99,
 			},
 			payload: [
@@ -207,14 +207,14 @@ describe('processor', () => {
 			});
 
 			it('should throw an error', async () => {
-				await expect(processor.process(blockV1)).rejects.toThrow('Unknown fork status');
+				await expect(processor.process(blockV2)).rejects.toThrow('Unknown fork status');
 			});
 		});
 
 		describe('when the fork step returns ForkStatus.IDENTICAL_BLOCK', () => {
 			beforeEach(async () => {
 				(bftModuleStub.forkChoice as jest.Mock).mockReturnValue(ForkStatus.IDENTICAL_BLOCK);
-				await processor.process(blockV1);
+				await processor.process(blockV2);
 			});
 
 			it('should not validate block', () => {
@@ -245,7 +245,7 @@ describe('processor', () => {
 		describe('when the fork step returns ForkStatus.DOUBLE_FORGING', () => {
 			beforeEach(async () => {
 				(bftModuleStub.forkChoice as jest.Mock).mockReturnValue(ForkStatus.DOUBLE_FORGING);
-				await processor.process(blockV1);
+				await processor.process(blockV2);
 			});
 
 			it('should not validate block', () => {
@@ -279,7 +279,7 @@ describe('processor', () => {
 			beforeEach(async () => {
 				(bftModuleStub.forkChoice as jest.Mock).mockReturnValue(ForkStatus.TIE_BREAK);
 				jest.spyOn(processor.events, 'emit');
-				await processor.process(blockV1);
+				await processor.process(blockV2);
 			});
 
 			it('should publish fork event', () => {
@@ -312,7 +312,7 @@ describe('processor', () => {
 
 			it('should save the block', () => {
 				expect(chainModuleStub.saveBlock).toHaveBeenCalledWith(
-					blockV1,
+					blockV2,
 					stateStoreStub,
 					bftModuleStub.finalizedHeight,
 					{
@@ -323,7 +323,7 @@ describe('processor', () => {
 
 			it('should emit broadcast event for the block', () => {
 				expect(processor.events.emit).toHaveBeenCalledWith('EVENT_PROCESSOR_BROADCAST_BLOCK', {
-					block: blockV1,
+					block: blockV2,
 				});
 			});
 		});
@@ -335,7 +335,7 @@ describe('processor', () => {
 				);
 				(bftModuleStub.forkChoice as jest.Mock).mockReturnValue(ForkStatus.TIE_BREAK);
 				try {
-					await processor.process(blockV1);
+					await processor.process(blockV2);
 				} catch (err) {
 					// Expected error
 				}
@@ -390,7 +390,7 @@ describe('processor', () => {
 			beforeEach(async () => {
 				(bftModuleStub.forkChoice as jest.Mock).mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
 				jest.spyOn(processor.events, 'emit');
-				await processor.process(blockV1);
+				await processor.process(blockV2);
 			});
 
 			it('should not validate block', () => {
@@ -415,7 +415,7 @@ describe('processor', () => {
 
 			it('should publish sync', () => {
 				expect(processor.events.emit).toHaveBeenCalledWith('EVENT_PROCESSOR_SYNC_REQUIRED', {
-					block: blockV1,
+					block: blockV2,
 				});
 			});
 
@@ -429,7 +429,7 @@ describe('processor', () => {
 		describe('when the fork step returns ForkStatus.DISCARD', () => {
 			beforeEach(async () => {
 				(bftModuleStub.forkChoice as jest.Mock).mockReturnValue(ForkStatus.DISCARD);
-				await processor.process(blockV1);
+				await processor.process(blockV2);
 			});
 
 			it('should not validate block', () => {
@@ -463,7 +463,7 @@ describe('processor', () => {
 			beforeEach(async () => {
 				(bftModuleStub.forkChoice as jest.Mock).mockReturnValue(ForkStatus.VALID_BLOCK);
 				jest.spyOn(processor.events, 'emit');
-				await processor.process(blockV1);
+				await processor.process(blockV2);
 			});
 
 			it('should validate block', () => {
@@ -491,7 +491,7 @@ describe('processor', () => {
 
 			it('should save the block', () => {
 				expect(chainModuleStub.saveBlock).toHaveBeenCalledWith(
-					blockV1,
+					blockV2,
 					stateStoreStub,
 					bftModuleStub.finalizedHeight,
 					{ removeFromTempTable: false },
@@ -500,7 +500,7 @@ describe('processor', () => {
 
 			it('should broadcast with the block', () => {
 				expect(processor.events.emit).toHaveBeenCalledWith('EVENT_PROCESSOR_BROADCAST_BLOCK', {
-					block: blockV1,
+					block: blockV2,
 				});
 			});
 		});
@@ -528,6 +528,17 @@ describe('processor', () => {
 		beforeEach(() => {
 			processor.register(customModule0);
 			processor.register(customModule1);
+		});
+
+		it('should throw error if version is not 2', () => {
+			const blockV3 = {
+				...blockV2,
+				header: {
+					...blockV2.header,
+					version: 3,
+				},
+			};
+			expect(() => processor.validate(blockV3)).toThrow('Block version must be 2');
 		});
 
 		it('should validate basic properties of block header', () => {

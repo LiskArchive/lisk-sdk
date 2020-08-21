@@ -59,6 +59,8 @@ interface ProcessorInput {
 	readonly bftModule: BFT;
 }
 
+const BLOCK_VERSION = 2;
+
 export class Processor {
 	public readonly events: EventEmitter;
 	private readonly _channel: InMemoryChannel;
@@ -428,6 +430,11 @@ export class Processor {
 	}
 
 	private _validate(block: Block): void {
+		// If the schema or bytes does not match with version 2, it fails even before this
+		// This is for fail safe, and genesis block does not use this function
+		if (block.header.version !== BLOCK_VERSION) {
+			throw new Error(`Block version must be ${BLOCK_VERSION}`);
+		}
 		this._chain.validateBlockHeader(block);
 		if (block.payload.length) {
 			for (const transaction of block.payload) {
