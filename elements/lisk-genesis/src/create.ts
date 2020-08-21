@@ -20,6 +20,7 @@ import {
 	Account,
 	GenesisBlock,
 	blockHeaderSchema,
+	blockSchema,
 } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import {
@@ -38,33 +39,19 @@ import {
 } from './types';
 
 export const getGenesisBlockSchema = (accountSchema: accountAssetSchemas): Schema =>
-	objects.mergeDeep(
-		{
-			$id: '/block/genesis',
-			type: 'object',
-			required: ['header', 'payload'],
-			properties: {
-				header: {
-					fieldNumber: 1,
-					type: 'object',
-				},
-				payload: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2, const: [] },
-			},
-		},
-		{
-			properties: {
-				header: objects.mergeDeep({}, blockHeaderSchema, {
-					$id: '/block/genesis/header/id',
-					properties: {
-						id: {
-							dataType: 'bytes',
-						},
-						asset: getGenesisBlockHeaderAssetSchema(getAccountSchemaWithDefault(accountSchema)),
+	objects.mergeDeep({}, blockSchema, {
+		properties: {
+			header: objects.mergeDeep({}, blockHeaderSchema, {
+				$id: '/block/genesis/header/id',
+				properties: {
+					id: {
+						dataType: 'bytes',
 					},
-				}),
-			},
+					asset: getGenesisBlockHeaderAssetSchema(getAccountSchemaWithDefault(accountSchema)),
+				},
+			}),
 		},
-	) as Schema;
+	}) as Schema;
 
 const getBlockId = (header: GenesisBlockHeaderWithoutId, accountSchema: Schema): Buffer => {
 	// eslint-disable-next-line
