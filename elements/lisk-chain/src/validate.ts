@@ -17,7 +17,7 @@
 
 import { verifyData } from '@liskhq/lisk-cryptography';
 import { MerkleTree } from '@liskhq/lisk-tree';
-import { dataStructures, objects } from '@liskhq/lisk-utils';
+import { objects } from '@liskhq/lisk-utils';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Schema } from '@liskhq/lisk-codec';
 import { Slots } from './slots';
@@ -46,18 +46,6 @@ export const validateSignature = (
 	}
 };
 
-export const validatePreviousBlockProperty = (block: Block, genesisBlock: GenesisBlock): void => {
-	const isGenesisBlock =
-		block.header.id.equals(genesisBlock.header.id) &&
-		block.header.version === genesisBlock.header.version;
-	const propertyIsValid =
-		isGenesisBlock || (block.header.previousBlockID.length > 0 && block.header.version !== 0);
-
-	if (!propertyIsValid) {
-		throw new Error('Invalid previous block');
-	}
-};
-
 export const validateReward = (block: Block, maxReward: bigint): void => {
 	if (block.header.reward > maxReward) {
 		throw new Error(
@@ -82,17 +70,11 @@ export const validateBlockProperties = (
 	}
 
 	const transactionIds: Buffer[] = [];
-	const appliedTransactions = new dataStructures.BufferSet();
 	for (const transaction of block.payload) {
-		if (appliedTransactions.has(transaction.id)) {
-			throw new Error(`Encountered duplicate transaction: ${transaction.id.toString('base64')}`);
-		}
 		transactionIds.push(transaction.id);
-		appliedTransactions.add(transaction.id);
 	}
 
 	const transactionRoot = getTransactionRoot(transactionIds);
-
 	if (!transactionRoot.equals(block.header.transactionRoot)) {
 		throw new Error('Invalid transaction root');
 	}
