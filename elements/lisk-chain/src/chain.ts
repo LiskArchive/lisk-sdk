@@ -16,7 +16,7 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
-import { validator } from '@liskhq/lisk-validator';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { calculateReward } from './block_reward';
 import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
@@ -41,7 +41,6 @@ import { getAccountSchemaWithDefault } from './utils/account';
 import {
 	validateBlockSlot,
 	validateBlockProperties,
-	validatePreviousBlockProperty,
 	validateReward,
 	validateSignature,
 	validateGenesisBlockHeader,
@@ -311,16 +310,15 @@ export class Chain {
 		// Validate block header
 		const errors = validator.validate(blockHeaderSchema, headerWithoutAsset);
 		if (errors.length) {
-			throw new Error(errors[0].message);
+			throw new LiskValidationError(errors);
 		}
 		// Validate block header asset
 		const assetSchema = this.dataAccess.getBlockHeaderAssetSchema(block.header.version);
 		const assetErrors = validator.validate(assetSchema, block.header.asset);
 		if (assetErrors.length) {
-			throw new Error(assetErrors[0].message);
+			throw new LiskValidationError(assetErrors);
 		}
 
-		validatePreviousBlockProperty(block, this._genesisBlock);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 		const encodedBlockHeaderWithoutSignature = this.dataAccess.encodeBlockHeader(
 			block.header,
@@ -341,7 +339,7 @@ export class Chain {
 	}
 
 	public async verifyBlockHeader(block: Block, stateStore: StateStore): Promise<void> {
-		verifyPreviousBlockId(block, this._lastBlock, this._genesisBlock);
+		verifyPreviousBlockId(block, this._lastBlock);
 		validateBlockSlot(block, this._lastBlock, this.slots);
 		verifyReward(block.header, stateStore, this.numberOfValidators);
 		await verifyBlockGenerator(block.header, this.slots, stateStore);

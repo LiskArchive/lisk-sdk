@@ -75,17 +75,6 @@ describe('chain/process block', () => {
 	});
 
 	describe('#validateBlockHeader', () => {
-		describe('when previous block property is invalid', () => {
-			it('should throw error', () => {
-				// Arrange
-				block = createValidDefaultBlock({
-					header: { previousBlockID: Buffer.alloc(0), height: 3 },
-				} as any);
-				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow('Invalid previous block');
-			});
-		});
-
 		describe('when signature is invalid', () => {
 			it('should throw error', () => {
 				// Arrange

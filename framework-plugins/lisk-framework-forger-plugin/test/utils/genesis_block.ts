@@ -12,15 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createGenesisBlock } from '@liskhq/lisk-genesis';
-import { objects } from '@liskhq/lisk-utils';
-import { codec, Schema } from '@liskhq/lisk-codec';
-import {
-	blockHeaderSchema,
-	readGenesisBlockJSON,
-	getGenesisBlockHeaderAssetSchema,
-	getAccountSchemaWithDefault,
-} from '@liskhq/lisk-chain';
+import { createGenesisBlock, getGenesisBlockJSON as getGenesisJSON } from '@liskhq/lisk-genesis';
+import { readGenesisBlockJSON } from '@liskhq/lisk-chain';
 import * as genesisBlockJSON from '../fixtures/genesis_block.json';
 
 export const defaultAccountSchema = {
@@ -156,36 +149,6 @@ export const defaultAccountSchema = {
 	},
 };
 
-export const genesisSchema = objects.mergeDeep(
-	{
-		$id: '/block/genesis',
-		type: 'object',
-		required: ['header', 'payload'],
-		properties: {
-			header: {
-				fieldNumber: 1,
-				type: 'object',
-			},
-			payload: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2, const: [] },
-		},
-	},
-	{
-		properties: {
-			header: objects.mergeDeep({}, blockHeaderSchema, {
-				$id: '/block/genesis/header/id',
-				properties: {
-					id: {
-						dataType: 'bytes',
-					},
-					asset: getGenesisBlockHeaderAssetSchema(
-						getAccountSchemaWithDefault(defaultAccountSchema),
-					),
-				},
-			}),
-		},
-	},
-) as Schema;
-
 export const getGenesisBlockJSON = ({
 	timestamp,
 }: {
@@ -202,5 +165,8 @@ export const getGenesisBlockJSON = ({
 		accountAssetSchemas: defaultAccountSchema,
 	});
 
-	return codec.toJSON(genesisSchema, updatedGenesisBlock);
+	return getGenesisJSON({
+		genesisBlock: updatedGenesisBlock,
+		accountAssetSchemas: defaultAccountSchema,
+	});
 };

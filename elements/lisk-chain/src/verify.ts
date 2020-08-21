@@ -31,20 +31,12 @@ export const verifyBlockNotExists = async (dataAccess: DataAccess, block: Block)
 	}
 };
 
-export const verifyPreviousBlockId = (
-	block: Block,
-	lastBlock: Block,
-	genesisBlock: GenesisBlock,
-): void => {
-	const isGenesisBlock =
-		block.header.id.equals(genesisBlock.header.id) &&
-		block.header.version === genesisBlock.header.version;
-
+export const verifyPreviousBlockId = (block: Block, lastBlock: Block): void => {
 	const isConsecutiveBlock =
 		lastBlock.header.height + 1 === block.header.height &&
 		block.header.previousBlockID.equals(lastBlock.header.id);
 
-	if (!isGenesisBlock && !isConsecutiveBlock) {
+	if (!isConsecutiveBlock) {
 		throw new Error('Invalid previous block');
 	}
 };

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { AccountSchema, Account, GenesisBlockHeader } from '@liskhq/lisk-chain';
+import { AccountSchema, Account, GenesisBlockHeader, GenesisBlock } from '@liskhq/lisk-chain';
 
 export type PartialReq<T, Keys extends keyof T = keyof T> = Pick<
 	Partial<T>,
@@ -24,6 +24,13 @@ export type PartialReq<T, Keys extends keyof T = keyof T> = Pick<
 
 export type GenesisBlockHeaderWithoutId = Omit<GenesisBlockHeader, 'id'>;
 
+export type accountAssetSchemas = { [moduleName: string]: AccountSchema };
+
+export interface GenesisBlockJSONParams {
+	readonly genesisBlock: GenesisBlock;
+	readonly accountAssetSchemas: accountAssetSchemas;
+}
+
 export interface GenesisBlockParams {
 	// List of accounts in the genesis
 	readonly accounts: ReadonlyArray<Account>;
@@ -32,7 +39,7 @@ export interface GenesisBlockParams {
 	// Number of blocks per round
 	readonly roundLength: number;
 	// Account Schema for the genesis block
-	readonly accountAssetSchemas: { [moduleName: string]: AccountSchema };
+	readonly accountAssetSchemas: accountAssetSchemas;
 	// Number of rounds for bootstrap period, default is 3
 	readonly initRounds?: number;
 	readonly height?: number;
