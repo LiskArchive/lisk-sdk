@@ -143,23 +143,23 @@ export class KeysModule extends BaseModule {
 		genesisBlock,
 	}: AfterGenesisBlockApplyContext<AccountKeys>): Promise<void> {
 		const errors = [];
-		for (const account of genesisBlock.header.asset.accounts) {
+		for (const [index, account] of genesisBlock.header.asset.accounts.entries()) {
 			if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {
 				errors.push({
 					message: 'should be lexicographically ordered',
 					keyword: 'mandatoryKeys',
-					dataPath: '.accounts[0].keys.mandatoryKeys',
+					dataPath: `.accounts[${index}].keys.mandatoryKeys`,
 					schemaPath: '#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
-					params: { mandatoryKeys: account.keys.mandatoryKeys },
+					params: { keys: account.keys, address: account.address },
 				});
 			}
 
 			if (!bufferArrayUniqueItems(account.keys.mandatoryKeys)) {
 				errors.push({
-					dataPath: '.accounts[0].keys.mandatoryKeys',
+					dataPath: `.accounts[${index}].keys.mandatoryKeys`,
 					keyword: 'uniqueItems',
 					message: 'should NOT have duplicate items',
-					params: {},
+					params: { keys: account.keys, address: account.address },
 					schemaPath:
 						'#/properties/accounts/items/properties/keys/properties/mandatoryKeys/uniqueItems',
 				});
@@ -169,18 +169,18 @@ export class KeysModule extends BaseModule {
 				errors.push({
 					message: 'should be lexicographically ordered',
 					keyword: 'optionalKeys',
-					dataPath: '.accounts[0].keys.optionalKeys',
+					dataPath: `.accounts[${index}].keys.optionalKeys`,
 					schemaPath: '#/properties/accounts/items/properties/keys/properties/optionalKeys',
-					params: { optionalKeys: account.keys.optionalKeys },
+					params: { keys: account.keys, address: account.address },
 				});
 			}
 
 			if (!bufferArrayUniqueItems(account.keys.optionalKeys)) {
 				errors.push({
-					dataPath: '.accounts[0].keys.optionalKeys',
+					dataPath: `.accounts[${index}].keys.optionalKeys`,
 					keyword: 'uniqueItems',
 					message: 'should NOT have duplicate items',
-					params: {},
+					params: { keys: account.keys, address: account.address },
 					schemaPath:
 						'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
 				});
@@ -188,30 +188,34 @@ export class KeysModule extends BaseModule {
 
 			if (bufferArrayContainsSome(account.keys.mandatoryKeys, account.keys.optionalKeys)) {
 				errors.push({
-					dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+					dataPath: `.accounts[${index}].keys.mandatoryKeys, .accounts[${index}].keys.optionalKeys`,
 					keyword: 'uniqueItems',
 					message: 'should NOT have duplicate items among mandatoryKeys and optionalKeys',
-					params: {},
+					params: { keys: account.keys, address: account.address },
 					schemaPath: '#/properties/accounts/items/properties/keys',
 				});
 			}
 
 			if (account.keys.mandatoryKeys.length + account.keys.optionalKeys.length > 64) {
 				errors.push({
-					dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+					dataPath: `.accounts[${index}].keys.mandatoryKeys, .accounts[${index}].keys.optionalKeys`,
 					keyword: 'maxItems',
 					message: 'should not have more than 64 keys',
-					params: { maxItems: 64 },
+					params: { keys: account.keys, address: account.address, maxItems: 64 },
 					schemaPath: '#/properties/accounts/items/properties/keys',
 				});
 			}
 
 			if (account.keys.numberOfSignatures < account.keys.mandatoryKeys.length) {
 				errors.push({
-					dataPath: '.accounts[0].keys.numberOfSignatures',
+					dataPath: `.accounts[${index}].keys.numberOfSignatures`,
 					keyword: 'min',
 					message: 'should be minimum of length of mandatoryKeys',
-					params: { min: account.keys.mandatoryKeys.length },
+					params: {
+						keys: account.keys,
+						address: account.address,
+						min: account.keys.mandatoryKeys.length,
+					},
 					schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 				});
 			}
@@ -221,10 +225,12 @@ export class KeysModule extends BaseModule {
 				account.keys.mandatoryKeys.length + account.keys.optionalKeys.length
 			) {
 				errors.push({
-					dataPath: '.accounts[0].keys.numberOfSignatures',
+					dataPath: `.accounts[${index}].keys.numberOfSignatures`,
 					keyword: 'max',
 					message: 'should be maximum of length of mandatoryKeys and optionalKeys',
 					params: {
+						keys: account.keys,
+						address: account.address,
 						max: account.keys.mandatoryKeys.length + account.keys.optionalKeys.length,
 					},
 					schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
