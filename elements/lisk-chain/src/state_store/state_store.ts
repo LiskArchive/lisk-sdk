@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { BatchChain } from '@liskhq/lisk-db';
-import { BlockHeader, StateDiff } from '../types';
+import { BlockHeader, StateDiff, UpdatedDiff } from '../types';
 import { AccountStore } from './account_store';
 import { ChainStateStore } from './chain_state_store';
 import { ConsensusStateStore } from './consensus_state_store';
@@ -34,15 +34,17 @@ const saveDiff = (
 	stateDiffs: Array<Readonly<StateDiff>>,
 	batch: BatchChain,
 ): void => {
-	const diffToEncode = stateDiffs.reduce(
-		(acc, val) => {
-			acc.updated.push(...val.updated);
-			acc.created.push(...val.created);
-			acc.deleted.push(...val.deleted);
-			return acc;
-		},
-		{ updated: [], created: [], deleted: [] },
-	);
+	const diffToEncode: { updated: UpdatedDiff[]; created: string[]; deleted: UpdatedDiff[] } = {
+		updated: [],
+		created: [],
+		deleted: [],
+	};
+
+	for (const diff of stateDiffs) {
+		diffToEncode.updated = diffToEncode.updated.concat(diff.updated);
+		diffToEncode.created = diffToEncode.created.concat(diff.created);
+		diffToEncode.deleted = diffToEncode.deleted.concat(diff.deleted);
+	}
 
 	if (diffToEncode.created.length || diffToEncode.updated.length || diffToEncode.deleted.length) {
 		const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
