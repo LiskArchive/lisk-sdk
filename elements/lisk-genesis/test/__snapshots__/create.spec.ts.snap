@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`create should create genesis block 1`] = `
+exports[`create createGenesisBlock should create genesis block 1`] = `
 Object {
   "header": Object {
     "asset": Object {
@@ -887,6 +887,305 @@ Object {
       ],
       "type": "Buffer",
     },
+    "version": 0,
+  },
+  "payload": Array [],
+}
+`;
+
+exports[`create getGenesisBlockJSON should generate the JSON object for the given genesis block 1`] = `
+Object {
+  "header": Object {
+    "asset": Object {
+      "accounts": Array [
+        Object {
+          "address": "I3C6mEUeH/AHAp8eYC4Uuwl7UW8=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "2620126571",
+          },
+        },
+        Object {
+          "address": "JdTB7S2iS6hWuJTCCRiPcODKq24=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "2874239947",
+          },
+        },
+        Object {
+          "address": "NLPa3tVQ9bDFCUfY4XdiuXMM8fk=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "2384412768",
+          },
+        },
+        Object {
+          "address": "NyudB23TfnwYPPbtA8F92M3A0xI=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "28138131",
+          },
+        },
+        Object {
+          "address": "TJUT73sLzO4CRVlHRwCq1wN3BDs=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "476696623",
+          },
+        },
+        Object {
+          "address": "UsldJKfqQ9IC2ooNp/CMM6TrbVw=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "4218444994",
+          },
+        },
+        Object {
+          "address": "YhUMz5HMFjT5MO7Qt3YPQhdSppg=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "1340967959",
+          },
+        },
+        Object {
+          "address": "bjWFsRdRQjpy61tJ9XlAvlCQR1c=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "2165380961",
+          },
+        },
+        Object {
+          "address": "gOCNMiwktTKaJXxbG9dXgDLTuSE=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "3116632800",
+          },
+        },
+        Object {
+          "address": "nTSmlVHYuF7A9VLWXqjdNXJN7pA=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "4056778033",
+          },
+        },
+        Object {
+          "address": "wBi13X2ktre/Tmxojo1+mEHUqo8=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "2910960211",
+          },
+        },
+        Object {
+          "address": "w8MHF05a4wHElDlsD9tjB+xOxgw=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "1966001160",
+          },
+        },
+        Object {
+          "address": "w8Y2FSQEMyXoq86MwfiZ4sL/2bA=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "3756324977",
+          },
+        },
+        Object {
+          "address": "2fvbTyL6pgk2oBE0V9oBnrYcPXc=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "489340925",
+          },
+        },
+        Object {
+          "address": "3t+9TGoa0e8NepXNaQcRRUjYxtg=",
+          "dpos": Object {
+            "delegate": Object {
+              "consecutiveMissedBlocks": 0,
+              "isBanned": false,
+              "lastForgedHeight": 0,
+              "pomHeights": Array [],
+              "totalVotesReceived": "0",
+              "username": "",
+            },
+            "sentVotes": Array [],
+            "unlocking": Array [],
+          },
+          "token": Object {
+            "balance": "653021139",
+          },
+        },
+      ],
+      "initDelegates": Array [
+        "I3C6mEUeH/AHAp8eYC4Uuwl7UW8=",
+        "JdTB7S2iS6hWuJTCCRiPcODKq24=",
+        "NLPa3tVQ9bDFCUfY4XdiuXMM8fk=",
+        "NyudB23TfnwYPPbtA8F92M3A0xI=",
+        "bjWFsRdRQjpy61tJ9XlAvlCQR1c=",
+      ],
+      "initRounds": 5,
+    },
+    "generatorPublicKey": "",
+    "height": 5,
+    "id": "4TqvSciyH0emT0hwQkZuji/Q49JuswbksT3EUk3wiJg=",
+    "previousBlockID": "RUaQocN4ODJgB1GafOHIpqSV31CJjx69adIvvO35aJo=",
+    "reward": "0",
+    "signature": "",
+    "timestamp": 1591873718,
+    "transactionRoot": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
     "version": 0,
   },
   "payload": Array [],

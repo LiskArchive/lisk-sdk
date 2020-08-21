@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createGenesisBlock } from './create';
+import { createGenesisBlock, getGenesisBlockJSON, getGenesisBlockSchema } from './create';
 
 export * from './types';
-export { createGenesisBlock };
+export { createGenesisBlock, getGenesisBlockJSON, getGenesisBlockSchema };
