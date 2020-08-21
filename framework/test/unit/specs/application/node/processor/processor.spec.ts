@@ -75,6 +75,7 @@ describe('processor', () => {
 			init: jest.fn(),
 			forkChoice: jest.fn(),
 			verifyBlockHeader: jest.fn(),
+			applyBlockHeader: jest.fn(),
 			finalizedHeight: 5,
 		} as unknown) as BFT;
 
@@ -304,6 +305,7 @@ describe('processor', () => {
 			});
 
 			it('should apply the block', () => {
+				expect(bftModuleStub.applyBlockHeader).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.afterBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeTransactionApply).toHaveBeenCalledTimes(1);
@@ -370,6 +372,7 @@ describe('processor', () => {
 			});
 
 			it('should apply the last block', () => {
+				expect(bftModuleStub.applyBlockHeader).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.afterBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeTransactionApply).toHaveBeenCalledTimes(0);
@@ -483,6 +486,7 @@ describe('processor', () => {
 			});
 
 			it('should apply the block', () => {
+				expect(bftModuleStub.applyBlockHeader).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.afterBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeTransactionApply).toHaveBeenCalledTimes(1);
@@ -634,6 +638,7 @@ describe('processor', () => {
 			});
 
 			it('should not apply the block', () => {
+				expect(bftModuleStub.applyBlockHeader).not.toHaveBeenCalled();
 				expect(customModule0.beforeBlockApply).not.toHaveBeenCalled();
 				expect(customModule0.afterBlockApply).not.toHaveBeenCalled();
 				expect(customModule0.beforeTransactionApply).not.toHaveBeenCalled();
@@ -700,6 +705,7 @@ describe('processor', () => {
 			});
 
 			it('should apply the block', () => {
+				expect(bftModuleStub.applyBlockHeader).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.afterBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeTransactionApply).toHaveBeenCalledTimes(1);
@@ -748,6 +754,7 @@ describe('processor', () => {
 			});
 
 			it('should apply the block', () => {
+				expect(bftModuleStub.applyBlockHeader).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.afterBlockApply).toHaveBeenCalledTimes(1);
 				expect(customModule0.beforeTransactionApply).toHaveBeenCalledTimes(1);

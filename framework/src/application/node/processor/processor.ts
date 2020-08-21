@@ -371,7 +371,6 @@ export class Processor {
 		const stateStore = await this._chain.newStateStore();
 		const reducerHandler = this._createReducerHandler(stateStore);
 		await this._chain.verifyBlockHeader(block, stateStore);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		await this._bft.verifyBlockHeader(block.header, stateStore);
 
 		if (!skipBroadcast) {
@@ -386,6 +385,8 @@ export class Processor {
 			stateStore,
 			reducerHandler,
 		});
+
+		await this._bft.applyBlockHeader(block.header, stateStore);
 
 		if (block.payload.length) {
 			for (const transaction of block.payload) {
