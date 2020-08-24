@@ -84,7 +84,7 @@ export interface StateDiff {
 	readonly deleted: Array<Readonly<UpdatedDiff>>;
 }
 
-interface UpdatedDiff {
+export interface UpdatedDiff {
 	readonly key: string;
 	readonly value: Buffer;
 }
