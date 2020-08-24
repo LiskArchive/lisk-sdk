@@ -27,8 +27,6 @@ module.exports = {
 	},
 	setupFilesAfterEnv: ['<rootDir>/test/config/setup.js'],
 	collectCoverageFrom: ['<rootDir>/src/**'],
-	coveragePathIgnorePatterns: ['/dist-node/', '/test/'],
-
 	transform: {
 		'^.+\\.(ts|tsx)$': 'ts-jest',
 	},
