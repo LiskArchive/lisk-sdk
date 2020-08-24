@@ -14,7 +14,7 @@
 
 import * as Debug from 'debug';
 import { objects as objectsUtils } from '@liskhq/lisk-utils';
-import { Account } from '@liskhq/lisk-chain';
+import { Account, StateStore } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { BaseModule } from '../base_module';
 import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
@@ -27,7 +27,11 @@ import {
 	updateDelegateList,
 	updateDelegateProductivity,
 } from './delegates';
-import { deleteVoteWeightsUntilRound, setRegisteredDelegates } from './data_access';
+import {
+	deleteVoteWeightsUntilRound,
+	getRegisteredDelegates,
+	setRegisteredDelegates,
+} from './data_access';
 import { RegisterTransactionAsset } from './transaction_assets/register_transaction_asset';
 import { VoteTransactionAsset } from './transaction_assets/vote_transaction_asset';
 import { UnlockTransactionAsset } from './transaction_assets/unlock_transaction_asset';
@@ -61,6 +65,11 @@ export class DPoSModule extends BaseModule {
 
 	public constructor(config: GenesisConfig) {
 		super(config);
+		// Register Action
+		this.actions = {
+			getAllDelegates: async stateStore =>
+				getRegisteredDelegates((stateStore as unknown) as StateStore),
+		};
 
 		const errors = validator.validate(dposModuleParamsSchema, this.config);
 		if (errors.length) {

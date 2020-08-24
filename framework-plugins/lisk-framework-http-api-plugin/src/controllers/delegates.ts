@@ -48,7 +48,7 @@ export const getDelegates = (channel: BaseChannel, codec: PluginCodec) => async 
 
 	const { limit = 100, offset = 0 } = req.query;
 	try {
-		const encodedDelegates: string[] = await channel.invoke('app:getAllDelegates');
+		const encodedDelegates: string[] = await channel.invoke('dpos:getAllDelegates');
 		const decodedDelegates = encodedDelegates.map(delegate => codec.decodeAccount(delegate));
 
 		res.status(200).json({
