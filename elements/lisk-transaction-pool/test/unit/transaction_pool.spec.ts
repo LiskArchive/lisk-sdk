@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { when } from 'jest-when';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { TransactionList } from '../../src/transaction_list';
 import { TransactionPool } from '../../src/transaction_pool';
@@ -873,7 +874,7 @@ describe('TransactionPool class', () => {
 		transactionsFromSender2[0].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
 		);
-		let address: string;
+		let address: Buffer;
 		let txList: TransactionList;
 
 		beforeEach(async () => {
@@ -922,6 +923,45 @@ describe('TransactionPool class', () => {
 
 			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(transactionsFromSender1);
 			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(transactionsFromSender2);
+		});
+
+		it('should not remove unprocessable transaction but also does not promote', () => {
+			// Arrange
+			when(transactionPool['_applyFunction'] as jest.Mock)
+				.calledWith(transactionsFromSender1)
+				.mockRejectedValue({
+					id: Buffer.from('2'),
+					code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
+					transactionError: {
+						code: 'ERR_NONCE_OUT_OF_BOUNDS',
+					},
+				} as never);
+
+			jest.advanceTimersByTime(2);
+			// Assert
+			expect(
+				transactionPool['_allTransactions'].get(transactionsFromSender1[0].id),
+			).not.toBeUndefined();
+			// Unprocessable trx should not be removed
+			expect(
+				transactionPool['_allTransactions'].get(transactionsFromSender1[1].id),
+			).not.toBeUndefined();
+			expect(
+				transactionPool['_allTransactions'].get(transactionsFromSender1[2].id),
+			).not.toBeUndefined();
+			// Unprocessable trx should not be promoted
+			expect(
+				transactionPool
+					.getProcessableTransactions()
+					.get(address)
+					?.map(tx => tx.id),
+			).not.toContain(transactionsFromSender1[1].id);
+			expect(
+				transactionPool
+					.getProcessableTransactions()
+					.get(address)
+					?.map(tx => tx.id),
+			).not.toContain(transactionsFromSender1[2].id);
 		});
 	});
 
