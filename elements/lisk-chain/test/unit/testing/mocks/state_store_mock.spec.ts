@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { StateStoreMock } from '../../../src/testing/mocks/state_store_mock';
+import { StateStoreMock } from '../../../../src/testing/mocks/state_store_mock';
 
 describe('StateStoreMock', () => {
 	let mock: StateStoreMock;
@@ -19,8 +19,8 @@ describe('StateStoreMock', () => {
 	describe('account store', () => {
 		beforeEach(() => {
 			mock = new StateStoreMock({
-				accounts: [{ address: Buffer.from('accountA'), balance: BigInt(200) }],
-				defaultAccount: { balance: BigInt(0) },
+				accounts: [{ address: Buffer.from('accountA'), token: { balance: BigInt(200) } }],
+				defaultAccount: { token: { balance: BigInt(0) } },
 			});
 		});
 
@@ -31,7 +31,7 @@ describe('StateStoreMock', () => {
 
 			it('should return the prepared account if exists', async () => {
 				const result = await mock.account.get(Buffer.from('accountA'));
-				expect(result.balance).toEqual(BigInt(200));
+				expect(result.token.balance).toEqual(BigInt(200));
 			});
 		});
 
@@ -39,29 +39,29 @@ describe('StateStoreMock', () => {
 			it('should return default account if not set', async () => {
 				const result = await mock.account.getOrDefault(Buffer.from('accountB'));
 				expect(result.address).toEqual(Buffer.from('accountB'));
-				expect(result.balance).toEqual(BigInt(0));
+				expect(result.token.balance).toEqual(BigInt(0));
 			});
 
 			it('should return the prepared account if exists', async () => {
 				const result = await mock.account.get(Buffer.from('accountA'));
-				expect(result.balance).toEqual(BigInt(200));
+				expect(result.token.balance).toEqual(BigInt(200));
 			});
 		});
 
 		describe('set', () => {
 			it('should add update the existing account', async () => {
 				const result = await mock.account.get(Buffer.from('accountA'));
-				result.balance = BigInt(300);
+				result.token.balance = BigInt(300);
 				mock.account.set(Buffer.from('accountA'), result);
 				const updated = await mock.account.get(Buffer.from('accountA'));
-				expect(updated.balance).toEqual(BigInt(300));
+				expect(updated.token.balance).toEqual(BigInt(300));
 			});
 
 			it('should not update if the set is not called', async () => {
 				const result = await mock.account.get(Buffer.from('accountA'));
-				result.balance = BigInt(300);
+				result.token.balance = BigInt(300);
 				const updated = await mock.account.get(Buffer.from('accountA'));
-				expect(updated.balance).toEqual(BigInt(200));
+				expect(updated.token.balance).toEqual(BigInt(200));
 			});
 		});
 
