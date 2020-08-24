@@ -31,7 +31,7 @@ export const constants = constantsModule;
 export const cryptography = cryptographyModule;
 export const passphrase = passphraseModule;
 export const transactions = transactionsModule;
-// Also export as `transacation` for backward compatibility.
+// Also export as `transaction` for backward compatibility.
 // See https://github.com/LiskHQ/lisk-sdk/issues/3925#issuecomment-508664703
 export const transaction = transactionsModule;
 
@@ -43,7 +43,7 @@ export default {
 	passphrase,
 	transactions,
 	Buffer,
-	// Also export as `transacation` for backward compatibility.
+	// Also export as `transaction` for backward compatibility.
 	// See https://github.com/LiskHQ/lisk-sdk/issues/3925#issuecomment-508664703
 	transaction: transactions,
 };
