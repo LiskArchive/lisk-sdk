@@ -22,8 +22,13 @@ import {
 	AfterGenesisBlockApplyContext,
 	Reducers,
 	Actions,
+	BaseModuleDataAccess,
 } from '../types';
 import { BaseAsset } from './base_asset';
+
+interface Channel {
+	emit(name: string, data?: object): void;
+}
 
 export abstract class BaseModule {
 	public readonly config: GenesisConfig;
@@ -32,14 +37,21 @@ export abstract class BaseModule {
 	public actions: Actions = {};
 	public events: string[] = [];
 	public accountSchema?: AccountSchema;
-
+	public channel!: Channel;
+	public dataAccess!: BaseModuleDataAccess;
 	public abstract name: string;
 	public abstract id: number;
 
-	public constructor(config: GenesisConfig) {
-		this.config = config;
+	public constructor(genesisConfig: GenesisConfig) {
+		this.config = genesisConfig;
 	}
 
+	public registerChannel = (channel: Channel): void => {
+		this.channel = channel;
+	};
+	public setDataAccess = (dataAccess: BaseModuleDataAccess): void => {
+		this.dataAccess = dataAccess;
+	};
 	public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
 	public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;
 	public async afterGenesisBlockApply?(context: AfterGenesisBlockApplyContext): Promise<void>;
