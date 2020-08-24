@@ -54,6 +54,8 @@ import {
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchronizer';
 import { Network } from '../network';
 import { BaseModule } from '../../modules';
+import { ActionsDefinition } from '../..';
+import { Bus } from '../../controller/bus';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK, EVENT_VALIDATORS_CHANGED } = chainEvents;
@@ -90,6 +92,7 @@ interface TransactionFees {
 }
 
 export class Node {
+	private _bus!: Bus;
 	private readonly _channel: InMemoryChannel;
 	private readonly _options: NodeOptions;
 	private readonly _logger: Logger;
@@ -139,7 +142,8 @@ export class Node {
 		});
 	}
 
-	public async bootstrap(): Promise<void> {
+	public async bootstrap(bus: Bus): Promise<void> {
+		this._bus = bus;
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!this._genesisBlockJSON) {
@@ -148,6 +152,17 @@ export class Node {
 
 			for (const CustomModule of this._customModules) {
 				const customModule = new CustomModule(this._options.genesisConfig);
+				const channel = new InMemoryChannel(
+					customModule.name,
+					customModule.events,
+					(customModule.actions as unknown) as ActionsDefinition,
+				);
+				await channel.registerToBus(this._bus);
+				// Give limited access of channel to custom module to publish events
+				customModule.registerChannel({
+					emit: (name: string, data?: object | undefined) => channel.publish(name, data),
+				});
+
 				const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 				if (exist) {
 					throw new Error(`Custom module with type ${customModule.id} already exists`);
@@ -182,6 +197,13 @@ export class Node {
 
 			for (const customModule of this._registeredModules) {
 				this._processor.register(customModule);
+
+				customModule.setDataAccess({
+					// eslint-disable-next-line @typescript-eslint/unbound-method
+					getAccount: this._chain.dataAccess.getAccountByAddress,
+					// eslint-disable-next-line @typescript-eslint/unbound-method
+					getChainState: this._chain.dataAccess.getChainState,
+				});
 			}
 
 			// Network needs to be initialized first to call events

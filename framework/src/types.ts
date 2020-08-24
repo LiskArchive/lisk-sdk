@@ -222,3 +222,9 @@ export interface Consensus {
 	getFinalizedHeight: () => number;
 	getLastBootstrapHeight: () => number;
 }
+
+// Base Module
+export interface BaseModuleDataAccess {
+	getChainState(key: string): Promise<Buffer | undefined>;
+	getAccount(address: Buffer): Promise<Account>;
+}
