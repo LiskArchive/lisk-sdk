@@ -415,18 +415,22 @@ export class TransactionPool {
 			}
 			const processableTransactions = txList.getProcessable();
 			const allTransactions = [...processableTransactions, ...promotableTransactions];
-			let firstInvalidTransactionId: Buffer | undefined;
+			let firstInvalidTransaction: { id: Buffer; status: TransactionStatus } | undefined;
 			try {
 				await this._applyFunction(allTransactions);
 			} catch (error) {
-				firstInvalidTransactionId = (error as TransactionFailedResponse).id;
+				const failedStatus = this._getStatus(error);
+				firstInvalidTransaction = {
+					id: (error as TransactionFailedResponse).id,
+					status: failedStatus,
+				};
 			}
 
 			const successfulTransactionIds: Buffer[] = [];
 
 			for (const tx of allTransactions) {
 				// If a tx is invalid, all subsequent are also invalid, so exit loop.
-				if (firstInvalidTransactionId && tx.id.equals(firstInvalidTransactionId)) {
+				if (firstInvalidTransaction && tx.id.equals(firstInvalidTransaction.id)) {
 					break;
 				}
 				successfulTransactionIds.push(tx.id);
@@ -436,9 +440,10 @@ export class TransactionPool {
 			txList.promote(promotableTransactions.filter(tx => successfulTransactionIds.includes(tx.id)));
 
 			// Remove invalid transaction and all subsequent transactions
-			const invalidTransaction = firstInvalidTransactionId
-				? allTransactions.find(tx => tx.id.equals(firstInvalidTransactionId as Buffer))
-				: undefined;
+			const invalidTransaction =
+				firstInvalidTransaction && firstInvalidTransaction.status === TransactionStatus.INVALID
+					? allTransactions.find(tx => tx.id.equals(firstInvalidTransaction?.id as Buffer))
+					: undefined;
 
 			if (invalidTransaction) {
 				for (const tx of allTransactions) {
