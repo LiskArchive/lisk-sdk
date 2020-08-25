@@ -48,12 +48,19 @@ export const getDelegates = (channel: BaseChannel, codec: PluginCodec) => async 
 
 	const { limit = 100, offset = 0 } = req.query;
 	try {
-		const encodedDelegates: string[] = await channel.invoke('dpos:getAllDelegates');
-		const decodedDelegates = encodedDelegates.map(delegate => codec.decodeAccount(delegate));
+		const registeredDelegates: { address: Buffer; username: string }[] = await channel.invoke(
+			'dpos:getAllDelegates',
+		);
+		const encodedDelegateAccounts: string[] = await channel.invoke('app:getAccounts', {
+			address: registeredDelegates.map(d => d.address.toString('base64')),
+		});
+		const decodedDelegateAccounts = encodedDelegateAccounts.map((d: string) =>
+			codec.decodeAccount(Buffer.from(d, 'base64')),
+		);
 
 		res.status(200).json({
-			meta: { count: decodedDelegates.length, limit: +limit, offset: +offset },
-			data: paginateList(decodedDelegates, +limit, +offset),
+			meta: { count: decodedDelegateAccounts.length, limit: +limit, offset: +offset },
+			data: paginateList(decodedDelegateAccounts, +limit, +offset),
 		});
 	} catch (err) {
 		next(err);
