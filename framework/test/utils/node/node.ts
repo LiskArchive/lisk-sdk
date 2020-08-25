@@ -16,7 +16,7 @@
 import { KVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { nodeConfig } from '../configs';
-import { createMockChannel } from '../channel';
+import { createMockChannel, createMockBus } from '../channel';
 import { Node, NodeOptions } from '../../../src/application/node/node';
 import * as config from '../../fixtures/config/devnet/config.json';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
@@ -86,6 +86,6 @@ export const createAndLoadNode = async (
 		channel,
 		options,
 	});
-	await chainModule.bootstrap();
+	await chainModule.bootstrap(createMockBus as any);
 	return chainModule;
 };

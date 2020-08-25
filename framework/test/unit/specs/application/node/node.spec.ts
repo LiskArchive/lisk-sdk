@@ -23,6 +23,7 @@ import { cacheConfig, nodeOptions } from '../../../../fixtures/node';
 import { genesisBlock } from '../../../../fixtures';
 import { TokenModule } from '../../../../../src/modules';
 import * as genesisBlockJSON from '../../../../fixtures/config/devnet/genesis_block.json';
+import { createMockBus } from '../../../../utils/channel';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -85,6 +86,7 @@ describe('Node', () => {
 				subscribedEvents[event] = cb;
 			}),
 			once: jest.fn(),
+			registerToBus: jest.fn(),
 		};
 
 		stubs.networkModule = {
@@ -130,7 +132,7 @@ describe('Node', () => {
 		beforeEach(async () => {
 			// Act
 			jest.spyOn(node['_networkModule'], 'applyNodeInfo');
-			await node.bootstrap();
+			await node.bootstrap(createMockBus as any);
 		});
 
 		it('should be an async function', () => {
@@ -156,7 +158,7 @@ describe('Node', () => {
 			} as any);
 
 			// Act
-			await expect(node.bootstrap()).rejects.toThrow('Missing genesis block');
+			await expect(node.bootstrap(createMockBus as any)).rejects.toThrow('Missing genesis block');
 
 			// Assert
 			expect(node['_logger'].fatal).toHaveBeenCalledTimes(1);
@@ -190,7 +192,7 @@ describe('Node', () => {
 				nodeDB,
 			} as any);
 
-			await expect(node.bootstrap()).rejects.toThrow(
+			await expect(node.bootstrap(createMockBus as any)).rejects.toThrow(
 				'forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=4',
 			);
 
@@ -230,7 +232,7 @@ describe('Node', () => {
 				nodeDB,
 			} as any);
 
-			await expect(node.bootstrap()).rejects.toThrow(
+			await expect(node.bootstrap(createMockBus as any)).rejects.toThrow(
 				'forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=5',
 			);
 
@@ -309,7 +311,7 @@ describe('Node', () => {
 
 				// Act
 				try {
-					await node.bootstrap();
+					await node.bootstrap(createMockBus as any);
 				} catch (e) {
 					// ignore
 				}
@@ -327,7 +329,7 @@ describe('Node', () => {
 	describe('beforeExit', () => {
 		beforeEach(async () => {
 			// Arrange
-			await node.bootstrap();
+			await node.bootstrap(createMockBus as any);
 		});
 
 		it('should be an async function', () => {
@@ -345,7 +347,7 @@ describe('Node', () => {
 
 	describe('#_forgingTask', () => {
 		beforeEach(async () => {
-			await node.bootstrap();
+			await node.bootstrap(createMockBus as any);
 			jest.spyOn(node['_forger'], 'delegatesEnabled').mockReturnValue(true);
 			jest.spyOn(node['_forger'], 'forge');
 			jest.spyOn(node['_synchronizer'], 'isActive', 'get').mockReturnValue(false);
@@ -384,7 +386,7 @@ describe('Node', () => {
 
 	describe('#_startForging', () => {
 		beforeEach(async () => {
-			await node.bootstrap();
+			await node.bootstrap(createMockBus as any);
 			jest.spyOn(node['_forger'], 'loadDelegates');
 		});
 

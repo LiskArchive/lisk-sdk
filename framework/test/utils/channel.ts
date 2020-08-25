@@ -23,3 +23,8 @@ export const createMockChannel = () => {
 	};
 	return channel;
 };
+
+export const createMockBus = {
+	registerChannel: jest.fn().mockResolvedValue(undefined),
+	setup: jest.fn().mockResolvedValue(undefined),
+};
