@@ -410,7 +410,6 @@ export class TransactionPool {
 			const promotableTransactions = txList.getPromotable();
 			// If no promotable transactions, check next list
 			if (!promotableTransactions.length) {
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 			const processableTransactions = txList.getProcessable();

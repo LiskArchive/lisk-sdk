@@ -80,7 +80,6 @@ export class HighFeeForgingStrategy {
 				// from that account as other transactions will be higher nonce
 				stateStore.restoreSnapshot();
 				transactionsBySender.delete(senderId);
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -110,7 +109,7 @@ export class HighFeeForgingStrategy {
 			const reaminingTransactions = transactionsBySender.get(senderId);
 			if (!reaminingTransactions || reaminingTransactions.length === 0) {
 				transactionsBySender.delete(senderId);
-				// eslint-disable-next-line no-continue
+				// eslin
 				continue;
 			}
 

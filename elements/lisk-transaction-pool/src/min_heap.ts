@@ -83,7 +83,6 @@ export class MinHeap<T, K = bigint | number> {
 			if (this._nodes[parentIndex].key > node.key) {
 				this._nodes[index] = this._nodes[parentIndex];
 				index = parentIndex;
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 			break;
