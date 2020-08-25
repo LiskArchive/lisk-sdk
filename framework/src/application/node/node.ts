@@ -152,16 +152,6 @@ export class Node {
 
 			for (const CustomModule of this._customModules) {
 				const customModule = new CustomModule(this._options.genesisConfig);
-				const channel = new InMemoryChannel(
-					customModule.name,
-					customModule.events,
-					(customModule.actions as unknown) as ActionsDefinition,
-				);
-				await channel.registerToBus(this._bus);
-				// Give limited access of channel to custom module to publish events
-				customModule.registerChannel({
-					emit: (name: string, data?: object | undefined) => channel.publish(name, data),
-				});
 
 				const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 				if (exist) {
@@ -199,10 +189,20 @@ export class Node {
 				this._processor.register(customModule);
 
 				customModule.setDataAccess({
-					// eslint-disable-next-line @typescript-eslint/unbound-method
-					getAccount: this._chain.dataAccess.getAccountByAddress,
-					// eslint-disable-next-line @typescript-eslint/unbound-method
-					getChainState: this._chain.dataAccess.getChainState,
+					getAccount: async (address: Buffer) =>
+						this._chain.dataAccess.getAccountByAddress(address),
+					getChainState: async (key: string) => this._chain.dataAccess.getChainState(key),
+				});
+				customModule.setActions();
+				const channel = new InMemoryChannel(
+					customModule.name,
+					customModule.events,
+					(customModule.actions as unknown) as ActionsDefinition,
+				);
+				await channel.registerToBus(this._bus);
+				// Give limited access of channel to custom module to publish events
+				customModule.registerChannel({
+					emit: (name: string, data?: object | undefined) => channel.publish(name, data),
 				});
 			}
 
