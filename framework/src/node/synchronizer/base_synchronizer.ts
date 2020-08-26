@@ -15,9 +15,9 @@
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { EventEmitter } from 'events';
 import { Logger } from '../../logger';
-import { InMemoryChannel } from '../../../controller/channels';
+import { InMemoryChannel } from '../../controller/channels';
 import { ApplyPenaltyAndRestartError, ApplyPenaltyAndAbortError } from './errors';
-import { Network } from '../../network';
+import { Network } from '../network';
 
 export const EVENT_SYNCHRONIZER_SYNC_REQUIRED = 'EVENT_SYNCHRONIZER_SYNC_REQUIRED';
 

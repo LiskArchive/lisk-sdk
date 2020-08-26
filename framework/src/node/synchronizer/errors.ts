@@ -13,7 +13,7 @@
  */
 /* eslint-disable max-classes-per-file */
 
-import { FrameworkError } from '../../../errors';
+import { FrameworkError } from '../../errors';
 
 export class SynchronizerError extends FrameworkError {}
 

@@ -14,7 +14,7 @@
 
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { Logger } from '../../logger';
-import { Network } from '../../network';
+import { Network } from '../network';
 
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
 

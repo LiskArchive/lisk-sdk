@@ -38,8 +38,7 @@ export {
 	DPoSPoMAsset,
 } from './modules';
 export { Application } from './application';
-export { version } from './version';
-export { systemDirs } from './application/system_dirs';
+export { systemDirs } from './system_dirs';
 export { BasePlugin, BlockHeaderJSON, PluginInfo, PluginCodec } from './plugins/base_plugin';
 export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';

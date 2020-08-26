@@ -22,21 +22,15 @@ import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
 import { systemDirs } from './system_dirs';
-import { Controller, InMemoryChannel, ActionInfoObject } from '../controller';
-import { version } from '../version';
+import { Controller, InMemoryChannel, ActionInfoObject } from './controller';
 import { applicationConfigSchema } from './schema';
 import { Node } from './node';
 import { Logger, createLogger } from './logger';
 
-import { DuplicateAppInstanceError } from '../errors';
-import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
-import {
-	ApplicationConfig,
-	GenesisConfig,
-	EventPostTransactionData,
-	PluginOptions,
-} from '../types';
-import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
+import { DuplicateAppInstanceError } from './errors';
+import { BasePlugin, InstantiablePlugin } from './plugins/base_plugin';
+import { ApplicationConfig, GenesisConfig, EventPostTransactionData, PluginOptions } from './types';
+import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const rm = promisify(fs.unlink);
@@ -215,7 +209,7 @@ export class Application {
 		this.logger.info(
 			'Contribution guidelines can be found at Lisk-docs: https://github.com/LiskHQ/lisk-docs/blob/build/CONTRIBUTING.adoc',
 		);
-		this.logger.info(`Booting the application with Lisk Framework(${version})`);
+		this.logger.info(`Booting the application with Lisk Framework(${this.config.version})`);
 
 		// Validate the instance
 		await this._validatePidFile();

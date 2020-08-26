@@ -17,7 +17,7 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as liskP2P from '@liskhq/lisk-p2p';
 import { codec } from '@liskhq/lisk-codec';
 import { lookupPeersIPs } from './utils';
-import { Logger } from '../logger';
+import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { NetworkConfig } from '../../types';
 import { customNodeInfoSchema } from './schema';

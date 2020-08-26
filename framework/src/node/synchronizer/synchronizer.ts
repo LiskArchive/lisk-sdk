@@ -22,8 +22,8 @@ import * as utils from './utils';
 import { Logger } from '../../logger';
 import { Processor } from '../processor';
 import { BaseSynchronizer } from './base_synchronizer';
-import { InMemoryChannel } from '../../../controller/channels';
-import { Network } from '../../network';
+import { InMemoryChannel } from '../../controller/channels';
+import { Network } from '../network';
 
 interface SynchronizerInput {
 	readonly logger: Logger;

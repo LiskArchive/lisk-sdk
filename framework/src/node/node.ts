@@ -44,18 +44,18 @@ import {
 } from './synchronizer';
 import { Processor } from './processor';
 import { Logger } from '../logger';
-import { EventPostTransactionData, GenesisConfig, ApplicationConfig } from '../../types';
-import { InMemoryChannel } from '../../controller/channels';
-import { EventInfoObject } from '../../controller/event';
+import { EventPostTransactionData, GenesisConfig, ApplicationConfig } from '../types';
+import { InMemoryChannel } from '../controller/channels';
+import { EventInfoObject } from '../controller/event';
+import { ActionsDefinition } from '../controller/action';
 import {
 	EVENT_PROCESSOR_BROADCAST_BLOCK,
 	EVENT_PROCESSOR_SYNC_REQUIRED,
 } from './processor/processor';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchronizer';
-import { Network } from '../network';
-import { BaseModule } from '../../modules';
-import { ActionsDefinition } from '../..';
-import { Bus } from '../../controller/bus';
+import { Network } from './network';
+import { BaseModule } from '../modules';
+import { Bus } from '../controller/bus';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK, EVENT_VALIDATORS_CHANGED } = chainEvents;

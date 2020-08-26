@@ -25,8 +25,8 @@ import {
 } from './errors';
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
-import { InMemoryChannel } from '../../../controller/channels';
-import { Network } from '../../network';
+import { InMemoryChannel } from '../../controller/channels';
+import { Network } from '../network';
 
 interface FastChainSwitchingMechanismInput {
 	readonly logger: Logger;

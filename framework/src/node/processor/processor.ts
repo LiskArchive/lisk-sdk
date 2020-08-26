@@ -26,8 +26,8 @@ import { EventEmitter } from 'events';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
-import { InMemoryChannel } from '../../../controller/channels';
-import { BaseModule, BaseAsset } from '../../../modules';
+import { InMemoryChannel } from '../../controller/channels';
+import { BaseModule, BaseAsset } from '../../modules';
 import { Pipeline } from './pipeline';
 import {
 	BeforeBlockApplyContext,
@@ -37,8 +37,8 @@ import {
 	ReducerHandler,
 	Consensus,
 	Delegate,
-} from '../../../types';
-import { TransactionApplyError } from '../../../errors';
+} from '../../types';
+import { TransactionApplyError } from '../../errors';
 
 const forkStatusList = [
 	ForkStatus.IDENTICAL_BLOCK,

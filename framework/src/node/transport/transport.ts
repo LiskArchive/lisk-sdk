@@ -28,10 +28,10 @@ import {
 	RPCTransactionsByIdData,
 	EventPostTransactionData,
 	EventPostTransactionsAnnouncementData,
-} from '../../../types';
+} from '../../types';
 import { Broadcaster } from './broadcaster';
-import { InMemoryChannel } from '../../../controller/channels';
-import { Network } from '../../network';
+import { InMemoryChannel } from '../../controller/channels';
+import { Network } from '../network';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
