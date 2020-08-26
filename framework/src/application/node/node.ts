@@ -185,6 +185,7 @@ export class Node {
 
 			this._initModules();
 
+			// TODO: Move custom Module initialization after _initModules() so that we don't need setDataAccess, related issue #5671
 			for (const customModule of this._registeredModules) {
 				this._processor.register(customModule);
 
@@ -193,7 +194,7 @@ export class Node {
 						this._chain.dataAccess.getAccountByAddress(address),
 					getChainState: async (key: string) => this._chain.dataAccess.getChainState(key),
 				});
-				customModule.setActions();
+
 				const channel = new InMemoryChannel(
 					customModule.name,
 					customModule.events,

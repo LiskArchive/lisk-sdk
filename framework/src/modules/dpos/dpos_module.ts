@@ -64,6 +64,20 @@ export class DPoSModule extends BaseModule {
 	public constructor(config: GenesisConfig) {
 		super(config);
 
+		// Set actions
+		this.actions = {
+			getAllDelegates: async _ => {
+				const validatorsBuffer = await this.dataAccess.getChainState(
+					CHAIN_STATE_DELEGATE_USERNAMES,
+				);
+				const { registeredDelegates } = codec.decode<{
+					registeredDelegates: RegisteredDelegates[];
+				}>(delegatesUserNamesSchema, validatorsBuffer as Buffer);
+
+				return registeredDelegates;
+			},
+		};
+
 		const errors = validator.validate(dposModuleParamsSchema, this.config);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
@@ -85,22 +99,6 @@ export class DPoSModule extends BaseModule {
 		this._delegateActiveRoundLimit = 3;
 
 		this.rounds = new Rounds({ blocksPerRound: this._blocksPerRound });
-	}
-
-	public setActions() {
-		// Register Action
-		this.actions = {
-			getAllDelegates: async _ => {
-				const validatorsBuffer = await this.dataAccess.getChainState(
-					CHAIN_STATE_DELEGATE_USERNAMES,
-				);
-				const { registeredDelegates } = codec.decode<{
-					registeredDelegates: RegisteredDelegates[];
-				}>(delegatesUserNamesSchema, validatorsBuffer as Buffer);
-
-				return registeredDelegates;
-			},
-		};
 	}
 
 	public async afterBlockApply(context: AfterBlockApplyContext): Promise<void> {

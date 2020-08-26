@@ -53,10 +53,6 @@ export abstract class BaseModule {
 		this.dataAccess = dataAccess;
 	};
 
-	// Override this function to register actions
-	public setActions(): void {
-		this.actions = {};
-	}
 	public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
 	public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;
 	public async afterGenesisBlockApply?(context: AfterGenesisBlockApplyContext): Promise<void>;
