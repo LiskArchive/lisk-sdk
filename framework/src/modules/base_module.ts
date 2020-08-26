@@ -37,8 +37,8 @@ export abstract class BaseModule {
 	public actions: Actions = {};
 	public events: string[] = [];
 	public accountSchema?: AccountSchema;
-	public channel!: Channel;
-	public dataAccess!: BaseModuleDataAccess;
+	protected _channel!: Channel;
+	protected _dataAccess!: BaseModuleDataAccess;
 	public abstract name: string;
 	public abstract id: number;
 
@@ -47,10 +47,10 @@ export abstract class BaseModule {
 	}
 
 	public registerChannel = (channel: Channel): void => {
-		this.channel = channel;
+		this._channel = channel;
 	};
-	public setDataAccess = (dataAccess: BaseModuleDataAccess): void => {
-		this.dataAccess = dataAccess;
+	public registerDataAccess = (dataAccess: BaseModuleDataAccess): void => {
+		this._dataAccess = dataAccess;
 	};
 
 	public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;

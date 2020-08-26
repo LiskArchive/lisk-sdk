@@ -189,7 +189,7 @@ export class Node {
 			for (const customModule of this._registeredModules) {
 				this._processor.register(customModule);
 
-				customModule.setDataAccess({
+				customModule.registerDataAccess({
 					getAccount: async (address: Buffer) =>
 						this._chain.dataAccess.getAccountByAddress(address),
 					getChainState: async (key: string) => this._chain.dataAccess.getChainState(key),

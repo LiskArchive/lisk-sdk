@@ -67,12 +67,17 @@ export class DPoSModule extends BaseModule {
 		// Set actions
 		this.actions = {
 			getAllDelegates: async _ => {
-				const validatorsBuffer = await this.dataAccess.getChainState(
+				const validatorsBuffer = await this._dataAccess.getChainState(
 					CHAIN_STATE_DELEGATE_USERNAMES,
 				);
+
+				if (!validatorsBuffer) {
+					return [];
+				}
+
 				const { registeredDelegates } = codec.decode<{
 					registeredDelegates: RegisteredDelegates[];
-				}>(delegatesUserNamesSchema, validatorsBuffer as Buffer);
+				}>(delegatesUserNamesSchema, validatorsBuffer);
 
 				return registeredDelegates;
 			},
