@@ -549,6 +549,53 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 
 		describe('request and validate blocks', () => {
+			it('should retry to request blocks 10 times and throw error', async () => {
+				// Arrange
+				const storageReturnValue = [
+					{
+						id: genesisBlock.header.id,
+					},
+					{
+						id: finalizedBlock.header.id,
+					},
+					{
+						id: chainModule.lastBlock.header.id,
+					},
+				];
+
+				const highestCommonBlock = createFakeBlockHeader({
+					height: finalizedBlock.header.height,
+				});
+
+				when(chainModule.dataAccess.getBlockHeadersWithHeights)
+					.calledWith([2, 1])
+					.mockResolvedValue(storageReturnValue as never);
+				when(networkMock.requestFromPeer)
+					.calledWith({
+						procedure: 'getHighestCommonBlock',
+						peerId: aPeerId,
+						data: {
+							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+						},
+					})
+					.mockResolvedValue({
+						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+					} as never)
+					.calledWith({
+						procedure: 'getBlocksFromId',
+						peerId: aPeerId,
+						data: expect.anything(),
+					})
+					.mockRejectedValue(new Error('Invalid connection') as never);
+
+				// Act & Asset
+				await expect(fastChainSwitchingMechanism.run(aBlock, aPeerId)).rejects.toThrow(
+					"Peer didn't return any requested block within IDs",
+				);
+				// 10 times with getBlocksFromId and 1 time with getHighestCommonBlock
+				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(11);
+			});
+
 			it('should request blocks within a range of IDs [commonBlock.id <-> receivedBlock.id] and validate them', async () => {
 				// Arrange
 				const storageReturnValue = [

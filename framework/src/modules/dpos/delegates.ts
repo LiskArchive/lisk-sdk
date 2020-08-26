@@ -180,7 +180,6 @@ export const createVoteWeightsSnapshot = async ({
 		// If the account is being punished, then consider them as vote weight 0
 		if (isCurrentlyPunished(height, account.dpos.delegate.pomHeights)) {
 			account.dpos.delegate.totalVotesReceived = BigInt(0);
-			// eslint-disable-next-line no-continue
 			continue;
 		}
 		const selfVote = account.dpos.sentVotes.find(vote =>
@@ -209,7 +208,6 @@ export const createVoteWeightsSnapshot = async ({
 	for (const account of delegates) {
 		// If the account is banned, do not include in the list
 		if (account.dpos.delegate.isBanned) {
-			// eslint-disable-next-line no-continue
 			continue;
 		}
 
@@ -219,7 +217,6 @@ export const createVoteWeightsSnapshot = async ({
 				address: account.address,
 				voteWeight: account.dpos.delegate.totalVotesReceived,
 			});
-			// eslint-disable-next-line no-continue
 			continue;
 		}
 
@@ -229,7 +226,6 @@ export const createVoteWeightsSnapshot = async ({
 				address: account.address,
 				voteWeight: account.dpos.delegate.totalVotesReceived,
 			});
-			// eslint-disable-next-line no-continue
 			continue;
 		}
 
@@ -241,7 +237,6 @@ export const createVoteWeightsSnapshot = async ({
 				address: account.address,
 				voteWeight: account.dpos.delegate.totalVotesReceived,
 			});
-			// eslint-disable-next-line no-continue
 			continue;
 		}
 		break;

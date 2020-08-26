@@ -291,7 +291,6 @@ export class Forger {
 			// If there are no previous usage, no need to check further
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!highestUsedHashOnion) {
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 			// If hash onion used is close to being used up, then put the warning message

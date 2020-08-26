@@ -4,7 +4,4 @@ module.exports = {
 		project: './tsconfig.json',
 		tsconfigRootDir: __dirname,
 	},
-	rules: {
-		'no-continue': 'off',
-	},
 };

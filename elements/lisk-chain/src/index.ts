@@ -42,5 +42,6 @@ export type {
 } from './types';
 export { Slots } from './slots';
 export { readGenesisBlockJSON, getValidators, getAccountSchemaWithDefault } from './utils';
+export * as testing from './testing';
 
 export type { StateStore } from './state_store';

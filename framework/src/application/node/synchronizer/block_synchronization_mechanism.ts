@@ -145,7 +145,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				blocks = await this._getBlocksFromNetwork(peerId, lastFetchedID);
 			} catch (error) {
 				failedAttempts += 1;
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -404,7 +403,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				);
 			} catch (e) {
 				numberOfRequests += 1;
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 

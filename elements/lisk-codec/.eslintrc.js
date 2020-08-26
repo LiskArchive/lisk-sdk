@@ -5,7 +5,6 @@ module.exports = {
 		tsconfigRootDir: __dirname,
 	},
 	rules: {
-		'no-continue': 'off',
 		'@typescript-eslint/prefer-for-of': 'off',
 		'@typescript-eslint/no-use-before-define': 'off',
 	},

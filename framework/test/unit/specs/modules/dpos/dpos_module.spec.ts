@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from '@liskhq/lisk-utils';
-import { GenesisBlock, Account } from '@liskhq/lisk-chain';
+import { GenesisBlock, Account, testing } from '@liskhq/lisk-chain';
 import { DPOSAccountProps, DPoSModule } from '../../../../../src/modules/dpos';
 import * as dataAccess from '../../../../../src/modules/dpos/data_access';
 import * as delegates from '../../../../../src/modules/dpos/delegates';
@@ -201,8 +200,8 @@ describe('DPoSModule', () => {
 
 			await dposModule.afterGenesisBlockApply(context);
 
-			expect(dataAccess.setRegisteredDelegates).toBeCalledTimes(1);
-			expect(dataAccess.setRegisteredDelegates).toBeCalledWith(context.stateStore, {
+			expect(dataAccess.setRegisteredDelegates).toHaveBeenCalledTimes(1);
+			expect(dataAccess.setRegisteredDelegates).toHaveBeenCalledWith(context.stateStore, {
 				registeredDelegates: allDelegates,
 			});
 		});
@@ -216,7 +215,7 @@ describe('DPoSModule', () => {
 			context = {
 				block: createValidDefaultBlock(),
 				stateStore: new StateStoreMock({
-					lastBlockHeaders: [createValidDefaultBlock({ header: { height: 10 } })],
+					lastBlockHeaders: [createValidDefaultBlock({ header: { height: 10 } }).header],
 				}) as any,
 				reducerHandler: reducerHandlerMock,
 				consensus: {
@@ -238,8 +237,8 @@ describe('DPoSModule', () => {
 				(context.consensus.getFinalizedHeight as Mock).mockReturnValue(round34);
 				await dposModule.afterBlockApply(context);
 
-				expect(dataAccess.deleteVoteWeightsUntilRound).toBeCalledTimes(1);
-				expect(dataAccess.deleteVoteWeightsUntilRound).toBeCalledWith(
+				expect(dataAccess.deleteVoteWeightsUntilRound).toHaveBeenCalledTimes(1);
+				expect(dataAccess.deleteVoteWeightsUntilRound).toHaveBeenCalledWith(
 					34 - (genesisConfig.delegateListRoundOffset as number) - 3,
 					context.stateStore,
 				);
@@ -250,7 +249,7 @@ describe('DPoSModule', () => {
 			it('should not delete cache vote weight list', async () => {
 				await dposModule.afterBlockApply(context);
 
-				expect(dataAccess.deleteVoteWeightsUntilRound).not.toBeCalled();
+				expect(dataAccess.deleteVoteWeightsUntilRound).not.toHaveBeenCalled();
 			});
 		});
 
@@ -265,7 +264,7 @@ describe('DPoSModule', () => {
 			it('should not update productivity', async () => {
 				await dposModule.afterBlockApply(context);
 
-				expect(delegates.updateDelegateProductivity).not.toBeCalled();
+				expect(delegates.updateDelegateProductivity).not.toHaveBeenCalled();
 			});
 
 			describe('when its not the last block of round', () => {
@@ -276,12 +275,12 @@ describe('DPoSModule', () => {
 				});
 
 				it('should not create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).not.toBeCalled();
+					expect(delegates.createVoteWeightsSnapshot).not.toHaveBeenCalled();
 				});
 
 				it('should not update validators', () => {
-					expect(randomSeed.generateRandomSeeds).not.toBeCalled();
-					expect(delegates.updateDelegateList).not.toBeCalled();
+					expect(randomSeed.generateRandomSeeds).not.toHaveBeenCalled();
+					expect(delegates.updateDelegateList).not.toHaveBeenCalled();
 				});
 			});
 
@@ -293,8 +292,8 @@ describe('DPoSModule', () => {
 				});
 
 				it('should create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).toBeCalledTimes(1);
-					expect(delegates.createVoteWeightsSnapshot).toBeCalledWith({
+					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledTimes(1);
+					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledWith({
 						activeDelegates: genesisConfig.activeDelegates,
 						standbyDelegates: genesisConfig.standbyDelegates,
 						height: bootstrapRound * 103 + 1,
@@ -304,8 +303,8 @@ describe('DPoSModule', () => {
 				});
 
 				it('should update validators', () => {
-					expect(randomSeed.generateRandomSeeds).toBeCalledTimes(1);
-					expect(delegates.updateDelegateList).toBeCalledTimes(1);
+					expect(randomSeed.generateRandomSeeds).toHaveBeenCalledTimes(1);
+					expect(delegates.updateDelegateList).toHaveBeenCalledTimes(1);
 				});
 			});
 
@@ -321,8 +320,8 @@ describe('DPoSModule', () => {
 				});
 
 				it('should create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).toBeCalledTimes(1);
-					expect(delegates.createVoteWeightsSnapshot).toBeCalledWith({
+					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledTimes(1);
+					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledWith({
 						activeDelegates: genesisConfig.activeDelegates,
 						standbyDelegates: genesisConfig.standbyDelegates,
 						height: blockRound * 103 + 1,
@@ -332,8 +331,8 @@ describe('DPoSModule', () => {
 				});
 
 				it('should not update validators', () => {
-					expect(randomSeed.generateRandomSeeds).not.toBeCalled();
-					expect(delegates.updateDelegateList).not.toBeCalled();
+					expect(randomSeed.generateRandomSeeds).not.toHaveBeenCalled();
+					expect(delegates.updateDelegateList).not.toHaveBeenCalled();
 				});
 			});
 		});
@@ -357,8 +356,8 @@ describe('DPoSModule', () => {
 				});
 
 				it('should create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).toBeCalledTimes(1);
-					expect(delegates.createVoteWeightsSnapshot).toBeCalledWith({
+					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledTimes(1);
+					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledWith({
 						activeDelegates: genesisConfig.activeDelegates,
 						standbyDelegates: genesisConfig.standbyDelegates,
 						height: blockRound * 103 + 1,
@@ -368,8 +367,8 @@ describe('DPoSModule', () => {
 				});
 
 				it('should update validators', () => {
-					expect(randomSeed.generateRandomSeeds).toBeCalledTimes(1);
-					expect(delegates.updateDelegateList).toBeCalledTimes(1);
+					expect(randomSeed.generateRandomSeeds).toHaveBeenCalledTimes(1);
+					expect(delegates.updateDelegateList).toHaveBeenCalledTimes(1);
 				});
 			});
 
@@ -383,12 +382,12 @@ describe('DPoSModule', () => {
 				});
 
 				it('should not create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).not.toBeCalled();
+					expect(delegates.createVoteWeightsSnapshot).not.toHaveBeenCalled();
 				});
 
 				it('should not update validators', () => {
-					expect(randomSeed.generateRandomSeeds).not.toBeCalled();
-					expect(delegates.updateDelegateList).not.toBeCalled();
+					expect(randomSeed.generateRandomSeeds).not.toHaveBeenCalled();
+					expect(delegates.updateDelegateList).not.toHaveBeenCalled();
 				});
 			});
 		});
