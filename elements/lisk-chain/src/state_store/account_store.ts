@@ -71,7 +71,7 @@ export class AccountStore {
 		}
 
 		if (this._deletedKeys.has(address)) {
-			throw new NotFoundError(`Account ${address.toString('base64')} has been deleted`);
+			throw new NotFoundError(`Account ${address.toString('hex')} has been deleted`);
 		}
 
 		// Account was not cached previously so we try to fetch it from db

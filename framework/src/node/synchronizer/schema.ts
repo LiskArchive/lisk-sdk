@@ -15,7 +15,7 @@
 export const CommonBlock = {
 	id: 'CommonBlock',
 	type: 'string',
-	format: 'base64',
+	format: 'hex',
 };
 
 export const WSBlocksList = {
@@ -23,7 +23,7 @@ export const WSBlocksList = {
 	type: 'array',
 	items: {
 		type: 'string',
-		format: 'base64',
+		format: 'hex',
 	},
 };
 
@@ -38,7 +38,7 @@ export const WSTransactionsResponse = {
 			maxItems: 100,
 			items: {
 				type: 'string',
-				format: 'base64',
+				format: 'hex',
 			},
 		},
 	},

@@ -398,7 +398,7 @@ describe('peer/base', () => {
 							ipAddress: peer.ipAddress,
 							port: peer.port,
 						})
-						.toString('base64'),
+						.toString('hex'),
 				);
 
 				const responseData = {
@@ -427,7 +427,7 @@ describe('peer/base', () => {
 							ipAddress: peer.ipAddress,
 							port: peer.port,
 						})
-						.toString('base64'),
+						.toString('hex'),
 				);
 
 				const peerListResponse = {
@@ -584,7 +584,7 @@ describe('peer/base', () => {
 				};
 				beforeEach(() => {
 					codec.addSchema(peerInfoSchema);
-					const encodedResponse = codec.encode(peerInfoSchema, peer).toString('base64');
+					const encodedResponse = codec.encode(peerInfoSchema, peer).toString('hex');
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'emit');
 				});
@@ -619,7 +619,7 @@ describe('peer/base', () => {
 
 				beforeEach(() => {
 					codec.addSchema(peerInfoSchema);
-					const encodedResponse = codec.encode(nodeInfoSchema, peerSharedState).toString('base64');
+					const encodedResponse = codec.encode(nodeInfoSchema, peerSharedState).toString('hex');
 
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'updatePeerInfo');

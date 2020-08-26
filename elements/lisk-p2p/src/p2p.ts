@@ -276,7 +276,7 @@ export class P2P extends EventEmitter {
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				const decodedNodeInfo = codec.decode(
 					nodeInfoSchema,
-					Buffer.from(message.data as string, 'base64'),
+					Buffer.from(message.data as string, 'hex'),
 				);
 
 				this.emit(EVENT_MESSAGE_RECEIVED, {
@@ -661,9 +661,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
-		const encodedNodeInfo = codec
-			.encode(this._rpcSchemas.nodeInfo, this._nodeInfo)
-			.toString('base64');
+		const encodedNodeInfo = codec.encode(this._rpcSchemas.nodeInfo, this._nodeInfo).toString('hex');
 		request.end(encodedNodeInfo);
 	}
 
@@ -762,7 +760,7 @@ export class P2P extends EventEmitter {
 			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
-			codec.encode(this._rpcSchemas.peerInfo, peer).toString('base64'),
+			codec.encode(this._rpcSchemas.peerInfo, peer).toString('hex'),
 		);
 		const validatedPeerList =
 			getByteSize(encodedPeersList) < wsMaxPayload

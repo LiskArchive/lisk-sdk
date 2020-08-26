@@ -17,27 +17,27 @@ import { GenesisBlockParams } from '../../src';
 
 const delegates = [
 	{
-		address: 'JdTB7S2iS6hWuJTCCRiPcODKq24=',
+		address: '25d4c1ed2da24ba856b894c209188f70e0caab6e',
 		token: { balance: 2874239947 },
 		dpos: { delegate: { username: 'ef374a2e8fb9934ad1db0fd5346eb7' } },
 	},
 	{
-		address: 'I3C6mEUeH/AHAp8eYC4Uuwl7UW8=',
+		address: '2370ba98451e1ff007029f1e602e14bb097b516f',
 		token: { balance: 2620126571 },
 		dpos: { delegate: { username: '13462f8e59880cfde6280d34dfd044' } },
 	},
 	{
-		address: 'NLPa3tVQ9bDFCUfY4XdiuXMM8fk=',
+		address: '34b3daded550f5b0c50947d8e17762b9730cf1f9',
 		token: { balance: 2384412768 },
 		dpos: { delegate: { username: '920cc701231b2f8c624d4bc8f4c267' } },
 	},
 	{
-		address: 'NyudB23TfnwYPPbtA8F92M3A0xI=',
+		address: '372b9d076dd37e7c183cf6ed03c17dd8cdc0d312',
 		token: { balance: 28138131 },
 		dpos: { delegate: { username: '4a1076aa54533dce1c9b7ed51c509b' } },
 	},
 	{
-		address: 'bjWFsRdRQjpy61tJ9XlAvlCQR1c=',
+		address: '6e3585b11751423a72eb5b49f57940be50904757',
 		token: { balance: 2165380961 },
 		dpos: { delegate: { username: '98beeddc903498ed7cdd36b417b40f' } },
 	},
@@ -45,43 +45,43 @@ const delegates = [
 
 const accounts = [
 	{
-		address: '3t+9TGoa0e8NepXNaQcRRUjYxtg=',
+		address: 'dedfbd4c6a1ad1ef0d7a95cd6907114548d8c6d8',
 		token: { balance: 653021139 },
 	},
 	{
-		address: 'w8MHF05a4wHElDlsD9tjB+xOxgw=',
+		address: 'c3c307174e5ae301c494396c0fdb6307ec4ec60c',
 		token: { balance: 1966001160 },
 	},
 	{
-		address: 'gOCNMiwktTKaJXxbG9dXgDLTuSE=',
+		address: '80e08d322c24b5329a257c5b1bd7578032d3b921',
 		token: { balance: 3116632800 },
 	},
 	{
-		address: 'wBi13X2ktre/Tmxojo1+mEHUqo8=',
+		address: 'c018b5dd7da4b6b7bf4e6c688e8d7e9841d4aa8f',
 		token: { balance: 2910960211 },
 	},
 	{
-		address: 'UsldJKfqQ9IC2ooNp/CMM6TrbVw=',
+		address: '52c95d24a7ea43d202da8a0da7f08c33a4eb6d5c',
 		token: { balance: 4218444994 },
 	},
 	{
-		address: 'TJUT73sLzO4CRVlHRwCq1wN3BDs=',
+		address: '4c9513ef7b0bccee024559474700aad70377043b',
 		token: { balance: 476696623 },
 	},
 	{
-		address: 'nTSmlVHYuF7A9VLWXqjdNXJN7pA=',
+		address: '9d34a69551d8b85ec0f552d65ea8dd35724dee90',
 		token: { balance: 4056778033 },
 	},
 	{
-		address: 'w8Y2FSQEMyXoq86MwfiZ4sL/2bA=',
+		address: 'c3c6361524043325e8abce8cc1f899e2c2ffd9b0',
 		token: { balance: 3756324977 },
 	},
 	{
-		address: '2fvbTyL6pgk2oBE0V9oBnrYcPXc=',
+		address: 'd9fbdb4f22faa60936a0113457da019eb61c3d77',
 		token: { balance: 489340925 },
 	},
 	{
-		address: 'YhUMz5HMFjT5MO7Qt3YPQhdSppg=',
+		address: '62150ccf91cc1634f930eed0b7760f421752a698',
 		token: { balance: 1340967959 },
 	},
 ];
@@ -93,7 +93,7 @@ const prepareAccounts = (
 	}[],
 ): Account[] => {
 	return data.map(acc => ({
-		address: Buffer.from(acc.address, 'base64'),
+		address: Buffer.from(acc.address, 'hex'),
 		token: { balance: BigInt(acc.token.balance) },
 	}));
 };
@@ -210,7 +210,10 @@ export const validGenesisBlockParams = {
 	initRounds: 5,
 	height: 5,
 	timestamp: 1591873718,
-	previousBlockID: Buffer.from('RUaQocN4ODJgB1GafOHIpqSV31CJjx69adIvvO35aJo=', 'base64'),
+	previousBlockID: Buffer.from(
+		'454690a1c37838326007519a7ce1c8a6a495df50898f1ebd69d22fbcedf9689a',
+		'hex',
+	),
 	roundLength: 103,
 	initDelegates: validDelegateAccounts.map(a => a.address),
 	accounts: [...validAccounts, ...validDelegateAccounts] as Account[],

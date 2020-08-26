@@ -83,7 +83,7 @@ describe('Voters endpoint', () => {
 				accountNonce += 1;
 
 				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction.getBytes().toString('base64'),
+					transaction: transaction.getBytes().toString('hex'),
 				});
 				await waitNBlocks(app, 1);
 				// Wait a bit to give plugin a time to calculate forger info
@@ -99,7 +99,7 @@ describe('Voters endpoint', () => {
 				expect(status).toEqual(200);
 				expect(forgerInfo.voters[0]).toMatchObject(
 					expect.objectContaining({
-						address: transaction.senderID.toString('base64'),
+						address: transaction.senderID.toString('hex'),
 						amount: '1000000000',
 					}),
 				);

@@ -24,7 +24,7 @@ describe('Public block related P2P endpoints', () => {
 	beforeAll(async () => {
 		app = await createApplication('network-blocks');
 		p2p = await createProbe({
-			networkId: app.networkIdentifier.toString('base64'),
+			networkId: app.networkIdentifier.toString('hex'),
 			networkVersion: app.config.networkVersion,
 			port: app.config.network.port,
 		});
@@ -43,7 +43,7 @@ describe('Public block related P2P endpoints', () => {
 				getPeerID(app),
 			);
 			const decodedBlock = app['_node']['_chain'].dataAccess.decode(
-				Buffer.from(data as string, 'base64'),
+				Buffer.from(data as string, 'hex'),
 			);
 			expect(decodedBlock.header.height).toBeGreaterThan(1);
 		});
@@ -55,7 +55,7 @@ describe('Public block related P2P endpoints', () => {
 				{
 					procedure: 'getBlocksFromId',
 					data: {
-						blockId: app['_node']['_chain'].genesisBlock.header.id.toString('base64'),
+						blockId: app['_node']['_chain'].genesisBlock.header.id.toString('hex'),
 					},
 				},
 				getPeerID(app),
@@ -63,7 +63,7 @@ describe('Public block related P2P endpoints', () => {
 			expect.assertions(data.length + 1);
 			expect(data.length).toBeGreaterThan(0);
 			for (const id of data) {
-				const decodedBlock = app['_node']['_chain'].dataAccess.decode(Buffer.from(id, 'base64'));
+				const decodedBlock = app['_node']['_chain'].dataAccess.decode(Buffer.from(id, 'hex'));
 				expect(decodedBlock.header.height).toBeGreaterThan(0);
 			}
 		});
@@ -74,7 +74,7 @@ describe('Public block related P2P endpoints', () => {
 					{
 						procedure: 'getBlocksFromId',
 						data: {
-							blockId: getRandomBytes(32).toString('base64'),
+							blockId: getRandomBytes(32).toString('hex'),
 						},
 					},
 					getPeerID(app),
@@ -90,15 +90,15 @@ describe('Public block related P2P endpoints', () => {
 					procedure: 'getHighestCommonBlock',
 					data: {
 						ids: [
-							app['_node']['_chain'].genesisBlock.header.id.toString('base64'),
-							getRandomBytes(32).toString('base64'),
+							app['_node']['_chain'].genesisBlock.header.id.toString('hex'),
+							getRandomBytes(32).toString('hex'),
 						],
 					},
 				},
 				getPeerID(app),
 			);
 			const decodedBlock = app['_node']['_chain'].dataAccess.decodeBlockHeader(
-				Buffer.from(data as string, 'base64'),
+				Buffer.from(data as string, 'hex'),
 			);
 			expect(decodedBlock.version).toEqual(0);
 			expect(decodedBlock.height).toEqual(0);
@@ -109,7 +109,7 @@ describe('Public block related P2P endpoints', () => {
 				{
 					procedure: 'getHighestCommonBlock',
 					data: {
-						ids: [getRandomBytes(32).toString('base64')],
+						ids: [getRandomBytes(32).toString('hex')],
 					},
 				},
 				getPeerID(app),
@@ -125,7 +125,7 @@ describe('Public block related P2P endpoints', () => {
 			p2p.sendToPeer(
 				{
 					event: 'postBlock',
-					data: { block: encodedBlock.toString('base64') },
+					data: { block: encodedBlock.toString('hex') },
 				},
 				getPeerID(app),
 			);

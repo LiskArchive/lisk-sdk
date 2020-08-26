@@ -33,7 +33,7 @@ describe('Transfer asset', () => {
 	const minRemainingBalance = '1';
 
 	beforeEach(() => {
-		const buffer = Buffer.from(defaultTestCase.output.transaction, 'base64');
+		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		const decodedTransaction = codec.decode<Transaction>(transactionSchema, buffer);
 		transferAsset = new TransferAsset(BigInt(minRemainingBalance));
 		decodedAsset = codec.decode<TransferAsset>(transferAsset.schema, decodedTransaction.asset);
@@ -43,13 +43,13 @@ describe('Transfer asset', () => {
 		};
 		validTransaction = new Transaction(decodedTransferTransaction);
 		sender = createFakeDefaultAccount({
-			address: Buffer.from(defaultTestCase.input.account.address, 'base64'),
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
 			token: {
 				balance: BigInt('1000000000000000'),
 			},
 		});
 		recipient = createFakeDefaultAccount({
-			address: Buffer.from(defaultTestCase.input.account.address, 'base64'),
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
 			token: {
 				balance: BigInt('1000000000000000'),
 			},
@@ -144,7 +144,7 @@ describe('Transfer asset', () => {
 			).rejects.toStrictEqual(
 				new Error(
 					`Recipient account does not have enough minimum remaining LSK: ${recipient.address.toString(
-						'base64',
+						'hex',
 					)}. Minimum required balance: ${minRemainingBalance}. Remaining balance: 0`,
 				),
 			);

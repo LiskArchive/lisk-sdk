@@ -48,19 +48,17 @@ export const genesisBlockAssetSchema = getGenesisBlockHeaderAssetSchema(defaultA
 export const genesisBlock: GenesisBlock = {
 	header: {
 		...genesis.header,
-		id: Buffer.from(genesis.header.id, 'base64'),
-		previousBlockID: Buffer.from(genesis.header.previousBlockID, 'base64'),
-		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'base64'),
-		generatorPublicKey: Buffer.from(genesis.header.generatorPublicKey, 'base64'),
+		id: Buffer.from(genesis.header.id, 'hex'),
+		previousBlockID: Buffer.from(genesis.header.previousBlockID, 'hex'),
+		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'hex'),
+		generatorPublicKey: Buffer.from(genesis.header.generatorPublicKey, 'hex'),
 		reward: BigInt(genesis.header.reward),
-		signature: Buffer.from(genesis.header.signature, 'base64'),
+		signature: Buffer.from(genesis.header.signature, 'hex'),
 		asset: {
 			initRounds: genesis.header.asset.initRounds,
-			initDelegates: genesis.header.asset.initDelegates.map(address =>
-				Buffer.from(address, 'base64'),
-			),
+			initDelegates: genesis.header.asset.initDelegates.map(address => Buffer.from(address, 'hex')),
 			accounts: genesis.header.asset.accounts.map(account => ({
-				address: Buffer.from(account.address, 'base64'),
+				address: Buffer.from(account.address, 'hex'),
 				token: {
 					balance: BigInt(account.token.balance),
 				},
@@ -68,8 +66,8 @@ export const genesisBlock: GenesisBlock = {
 					nonce: BigInt(account.sequence.nonce),
 				},
 				keys: {
-					mandatoryKeys: account.keys.mandatoryKeys.map(key => Buffer.from(key, 'base64')),
-					optionalKeys: account.keys.optionalKeys.map(key => Buffer.from(key, 'base64')),
+					mandatoryKeys: account.keys.mandatoryKeys.map(key => Buffer.from(key, 'hex')),
+					optionalKeys: account.keys.optionalKeys.map(key => Buffer.from(key, 'hex')),
 					numberOfSignatures: account.keys.numberOfSignatures,
 				},
 				dpos: {
@@ -78,12 +76,12 @@ export const genesisBlock: GenesisBlock = {
 						totalVotesReceived: BigInt(account.dpos.delegate.totalVotesReceived),
 					},
 					sentVotes: account.dpos.sentVotes.map(vote => ({
-						delegateAddress: Buffer.from(vote.delegateAddress, 'base64'),
+						delegateAddress: Buffer.from(vote.delegateAddress, 'hex'),
 						amount: BigInt(vote.amount),
 					})),
 					unlocking: account.dpos.unlocking.map(
 						(unlock: { delegateAddress: string; amount: string; unvoteHeight: string }) => ({
-							delegateAddress: Buffer.from(unlock.delegateAddress, 'base64'),
+							delegateAddress: Buffer.from(unlock.delegateAddress, 'hex'),
 							amount: BigInt(unlock.amount),
 							unvoteHeight: unlock.unvoteHeight,
 						}),

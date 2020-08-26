@@ -30,11 +30,11 @@ describe('Account related actions', () => {
 	describe('getAccount', () => {
 		it('should return valid encoded account', async () => {
 			const encodedAccount = await app['_channel'].invoke('app:getAccount', {
-				address: genesis.address.toString('base64'),
+				address: genesis.address.toString('hex'),
 			});
 			expect(encodedAccount).toBeString();
 			const account = app['_node']['_chain'].dataAccess.decodeAccount(
-				Buffer.from(encodedAccount as string, 'base64'),
+				Buffer.from(encodedAccount as string, 'hex'),
 			);
 			expect(account.address).toEqual(genesis.address);
 		});
@@ -43,11 +43,11 @@ describe('Account related actions', () => {
 	describe('getAccounts', () => {
 		it('should return valid encoded account', async () => {
 			const encodedAccounts: string[] = await app['_channel'].invoke('app:getAccounts', {
-				address: [genesis.address.toString('base64')],
+				address: [genesis.address.toString('hex')],
 			});
 			expect(encodedAccounts).toHaveLength(1);
 			const account = app['_node']['_chain'].dataAccess.decodeAccount(
-				Buffer.from(encodedAccounts[0], 'base64'),
+				Buffer.from(encodedAccounts[0], 'hex'),
 			);
 			expect(account.address).toEqual(genesis.address);
 		});

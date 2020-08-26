@@ -78,13 +78,13 @@ describe('LiskValidationError formatter', () => {
 
 	it('should format custom format errors', () => {
 		const schema = cloneDeep(validSchema);
-		schema.properties.myProp.format = 'base64';
+		schema.properties.myProp.format = 'hex';
 		const obj = {
-			myProp: 'this is not base 64',
+			myProp: 'this is not hex',
 		};
 
 		const expectedError =
-			'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should match format "base64"';
+			'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should match format "hex"';
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);

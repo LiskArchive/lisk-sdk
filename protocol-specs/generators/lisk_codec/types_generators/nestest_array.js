@@ -25,7 +25,7 @@ const generateValidPeerInfoEncodings = () => {
 			object: {
 				updated: [
 					{
-						key: 'accounts:address:rUL46GfWGBcb9JguZCaUQhSPbhE=',
+						key: 'accounts:address:ad42f8e867d618171bf4982e64269442148f6e11',
 						value: [
 							{
 								code: '=',
@@ -89,11 +89,11 @@ const generateValidPeerInfoEncodings = () => {
 			object: {
 				updated: [
 					{
-						key: 'accounts:address:rUL46GfWGBcb9JguZCaUQhSPbhE=',
+						key: 'accounts:address:ad42f8e867d618171bf4982e64269442148f6e11',
 						value: ['diff1', 'diff2'],
 					},
 					{
-						key: 'accounts:address:aaa6GfWGBcb9JguZCaUQhSPbhE=',
+						key: 'accounts:address:69a6ba19f58605c6fd260b9909a5108523db84',
 						value: ['diff5', 'diff6', 'diff7', 'diff5'],
 					},
 				],

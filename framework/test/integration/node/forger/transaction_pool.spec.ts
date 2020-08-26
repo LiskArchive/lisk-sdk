@@ -51,7 +51,7 @@ describe('Transaction pool', () => {
 				passphrase: genesis.passphrase,
 			});
 			await node._transport.handleEventPostTransaction({
-				transaction: transaction.getBytes().toString('base64'),
+				transaction: transaction.getBytes().toString('hex'),
 			});
 		});
 

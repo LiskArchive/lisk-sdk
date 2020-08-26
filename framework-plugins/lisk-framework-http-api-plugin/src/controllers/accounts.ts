@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Request, Response, NextFunction } from 'express';
-import { isBase64String } from '@liskhq/lisk-validator';
+import { isHexString } from '@liskhq/lisk-validator';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 
 export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
@@ -22,9 +22,9 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 ): Promise<void> => {
 	const accountAddres = req.params.address;
 
-	if (!isBase64String(accountAddres)) {
+	if (!isHexString(accountAddres)) {
 		res.status(400).send({
-			errors: [{ message: 'The Address parameter should be a base64 string.' }],
+			errors: [{ message: 'The Address parameter should be a hex string.' }],
 		});
 		return;
 	}

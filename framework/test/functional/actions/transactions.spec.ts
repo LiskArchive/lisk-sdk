@@ -60,20 +60,20 @@ describe('Transaction related actions', () => {
 
 			await expect(
 				app['_channel'].invoke('app:postTransaction', {
-					transaction: fundingTx.getBytes().toString('base64'),
+					transaction: fundingTx.getBytes().toString('hex'),
 				}),
-			).resolves.toEqual({ transactionId: fundingTx.id.toString('base64') });
+			).resolves.toEqual({ transactionId: fundingTx.id.toString('hex') });
 		});
 	});
 
 	describe('getTransactionByID', () => {
 		it('should return valid encoded transaction', async () => {
 			const encodedTx = await app['_channel'].invoke('app:getTransactionByID', {
-				id: sentTx.id.toString('base64'),
+				id: sentTx.id.toString('hex'),
 			});
 			expect(encodedTx).toBeString();
 			const tx = app['_node']['_chain'].dataAccess.decodeTransaction(
-				Buffer.from(encodedTx as string, 'base64'),
+				Buffer.from(encodedTx as string, 'hex'),
 			);
 			expect(tx.senderPublicKey).toEqual(sentTx.senderPublicKey);
 		});
@@ -82,11 +82,11 @@ describe('Transaction related actions', () => {
 	describe('getTransactionsByIDs', () => {
 		it('should return valid encoded transactions', async () => {
 			const encodedTxs: string[] = await app['_channel'].invoke('app:getTransactionsByIDs', {
-				ids: [sentTx.id.toString('base64')],
+				ids: [sentTx.id.toString('hex')],
 			});
 			expect(encodedTxs).toHaveLength(1);
 			const tx = app['_node']['_chain'].dataAccess.decodeTransaction(
-				Buffer.from(encodedTxs[0], 'base64'),
+				Buffer.from(encodedTxs[0], 'hex'),
 			);
 			expect(tx.senderPublicKey).toEqual(sentTx.senderPublicKey);
 		});

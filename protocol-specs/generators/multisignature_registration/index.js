@@ -89,11 +89,11 @@ const accounts = {
 	},
 };
 
-const outputBase64Account = account => ({
+const outputHexAccount = account => ({
 	...account,
-	privateKey: account.privateKey.toString('base64'),
-	publicKey: account.publicKey.toString('base64'),
-	address: account.address.toString('base64'),
+	privateKey: account.privateKey.toString('hex'),
+	publicKey: account.publicKey.toString('hex'),
+	address: account.address.toString('hex'),
 });
 
 const multisigRegAsset = {
@@ -194,17 +194,17 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	return {
 		description: 'Both mandatory and optional member group',
 		input: {
-			account: outputBase64Account(accounts.targetAccount),
-			networkIdentifier: networkIdentifier.toString('base64'),
+			account: outputHexAccount(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('hex'),
 			members: {
-				mandatoryOne: outputBase64Account(accounts.mandatoryOne),
-				mandatoryTwo: outputBase64Account(accounts.mandatoryTwo),
-				optionalOne: outputBase64Account(accounts.optionalOne),
-				optionalTwo: outputBase64Account(accounts.optionalTwo),
+				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
+				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
+				optionalOne: outputHexAccount(accounts.optionalOne),
+				optionalTwo: outputHexAccount(accounts.optionalTwo),
 			},
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -262,18 +262,18 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	return {
 		description: 'Sender is a member of the group',
 		input: {
-			account: outputBase64Account(accounts.targetAccount),
-			networkIdentifier: networkIdentifier.toString('base64'),
+			account: outputHexAccount(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('hex'),
 			members: {
-				targetAccount: outputBase64Account(accounts.targetAccount),
-				mandatoryOne: outputBase64Account(accounts.mandatoryOne),
-				mandatoryTwo: outputBase64Account(accounts.mandatoryTwo),
-				optionalOne: outputBase64Account(accounts.optionalOne),
-				optionalTwo: outputBase64Account(accounts.optionalTwo),
+				targetAccount: outputHexAccount(accounts.targetAccount),
+				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
+				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
+				optionalOne: outputHexAccount(accounts.optionalOne),
+				optionalTwo: outputHexAccount(accounts.optionalTwo),
 			},
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -322,15 +322,15 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 	return {
 		description: 'Only optional members',
 		input: {
-			account: outputBase64Account(accounts.targetAccount),
-			networkIdentifier: networkIdentifier.toString('base64'),
+			account: outputHexAccount(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('hex'),
 			members: {
-				optionalOne: outputBase64Account(accounts.optionalOne),
-				optionalTwo: outputBase64Account(accounts.optionalTwo),
+				optionalOne: outputHexAccount(accounts.optionalOne),
+				optionalTwo: outputHexAccount(accounts.optionalTwo),
 			},
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -379,15 +379,15 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	return {
 		description: 'Only mandatory members',
 		input: {
-			account: outputBase64Account(accounts.targetAccount),
-			networkIdentifier: networkIdentifier.toString('base64'),
+			account: outputHexAccount(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('hex'),
 			members: {
-				mandatoryOne: outputBase64Account(accounts.mandatoryOne),
-				mandatoryTwo: outputBase64Account(accounts.mandatoryTwo),
+				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
+				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
 			},
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -450,15 +450,15 @@ const generateFormerSecondSignatureTransactioon = () => {
 	return {
 		description: 'Second signature case',
 		input: {
-			account: outputBase64Account(accounts.targetAccount),
-			networkIdentifier: networkIdentifier.toString('base64'),
+			account: outputHexAccount(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('hex'),
 			members: {
-				mandatoryOne: outputBase64Account(accounts.targetAccount),
-				mandatoryTwo: outputBase64Account(secondSignature),
+				mandatoryOne: outputHexAccount(accounts.targetAccount),
+				mandatoryTwo: outputHexAccount(secondSignature),
 			},
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };

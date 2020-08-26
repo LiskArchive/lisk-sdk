@@ -128,15 +128,18 @@ const generateValidGenesisBlockAssetEncodings = () => {
 		validGenesisBlockAsset1: {
 			object: {
 				initDelegates: [
-					Buffer.from('A/bZC329BJfcOlLRwn4ju4x1iX8=', 'base64'),
-					Buffer.from('CQP0xctZmnkorvJ+MU6YKR0eOIg=', 'base64'),
-					Buffer.from('CtpqL2yPiRdpNm/Jqm/Z8frLNs8=', 'base64'),
+					Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
+					Buffer.from('0903f4c5cb599a7928aef27e314e98291d1e3888', 'hex'),
+					Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
 				],
 				initRounds: 3,
 				accounts: [
 					{
-						address: Buffer.from('A/bZC329BJfcOlLRwn4ju4x1iX8=', 'base64'),
-						publicKey: Buffer.from('/GV3fB1MAPGvWIDCO6f2DNO/hNG/XGl6vE/+F896ysA=', 'base64'),
+						address: Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
+						publicKey: Buffer.from(
+							'fc65777c1d4c00f1af5880c23ba7f60cd3bf84d1bf5c697abc4ffe17cf7acac0',
+							'hex',
+						),
 						balance: '0',
 						nonce: '0',
 						keys: {
@@ -155,7 +158,7 @@ const generateValidGenesisBlockAssetEncodings = () => {
 							},
 							sentVotes: [
 								{
-									delegateAddress: Buffer.from('A/bZC329BJfcOlLRwn4ju4x1iX8=', 'base64'),
+									delegateAddress: Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
 									amount: '1000000000000',
 								},
 							],
@@ -163,8 +166,11 @@ const generateValidGenesisBlockAssetEncodings = () => {
 						},
 					},
 					{
-						address: Buffer.from('CQP0xctZmnkorvJ+MU6YKR0eOIg=', 'base64'),
-						publicKey: Buffer.from('P1cTJOnceySBtxp9xWY38SNFBBWJhqJC6Qwz2NIP3ZI=', 'base64'),
+						address: Buffer.from('0903f4c5cb599a7928aef27e314e98291d1e3888', 'hex'),
+						publicKey: Buffer.from(
+							'3f571324e9dc7b2481b71a7dc56637f1234504158986a242e90c33d8d20fdd92',
+							'hex',
+						),
 						balance: '0',
 						nonce: '0',
 						keys: {
@@ -186,8 +192,11 @@ const generateValidGenesisBlockAssetEncodings = () => {
 						},
 					},
 					{
-						address: Buffer.from('CtpqL2yPiRdpNm/Jqm/Z8frLNs8=', 'base64'),
-						publicKey: Buffer.from('xpaY7zABKWSq+s++Y3u2OFS2EJzFxfIqpLPcPo3Kghc=', 'base64'),
+						address: Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
+						publicKey: Buffer.from(
+							'c69698ef30012964aafacfbe637bb63854b6109cc5c5f22aa4b3dc3e8dca8217',
+							'hex',
+						),
 						balance: '0',
 						nonce: '0',
 						keys: {
@@ -206,7 +215,7 @@ const generateValidGenesisBlockAssetEncodings = () => {
 							},
 							sentVotes: [
 								{
-									delegateAddress: Buffer.from('CtpqL2yPiRdpNm/Jqm/Z8frLNs8=', 'base64'),
+									delegateAddress: Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
 									amount: '1000000000000',
 								},
 							],

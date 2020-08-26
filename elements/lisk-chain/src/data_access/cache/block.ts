@@ -53,7 +53,7 @@ export class BlockCache extends Base<BlockHeader> {
 		if (this.items.length && !this.last.id.equals(id)) {
 			throw new Error(
 				`Failed to remove the block id: ${id.toString(
-					'base64',
+					'hex',
 				)} which is not the last block header cached`,
 			);
 		}

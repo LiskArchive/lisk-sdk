@@ -69,15 +69,13 @@ describe('account:create', () => {
 				expect(printUtils.print).to.be.called;
 				return expect(printMethodStub).to.be.calledWith([
 					{
-						publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('base64'),
-						privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('base64'),
+						publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
+						privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
 						address: cryptography.getBase32AddressFromPublicKey(
 							cryptography.getKeys(defaultMnemonic).publicKey,
 							'lsk',
 						),
-						binaryAddress: cryptography
-							.getAddressFromPassphrase(defaultMnemonic)
-							.toString('base64'),
+						binaryAddress: cryptography.getAddressFromPassphrase(defaultMnemonic).toString('hex'),
 						passphrase: defaultMnemonic,
 					},
 				]);
@@ -92,27 +90,25 @@ describe('account:create', () => {
 				expect(printUtils.print).to.be.calledOnce;
 				const result = [
 					{
-						publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('base64'),
-						privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('base64'),
+						publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
+						privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
 						address: cryptography.getBase32AddressFromPublicKey(
 							cryptography.getKeys(defaultMnemonic).publicKey,
 							'lsk',
 						),
-						binaryAddress: cryptography
-							.getAddressFromPassphrase(defaultMnemonic)
-							.toString('base64'),
+						binaryAddress: cryptography.getAddressFromPassphrase(defaultMnemonic).toString('hex'),
 						passphrase: defaultMnemonic,
 					},
 					{
-						publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('base64'),
-						privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('base64'),
+						publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
+						privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
 						address: cryptography.getBase32AddressFromPublicKey(
 							cryptography.getKeys(secondDefaultMnemonic).publicKey,
 							'lsk',
 						),
 						binaryAddress: cryptography
 							.getAddressFromPassphrase(secondDefaultMnemonic)
-							.toString('base64'),
+							.toString('hex'),
 						passphrase: secondDefaultMnemonic,
 					},
 				];

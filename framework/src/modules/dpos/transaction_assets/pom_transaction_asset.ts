@@ -101,7 +101,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		if (!asset.header1.generatorPublicKey.equals(asset.header2.generatorPublicKey)) {
 			throw new ValidationError(
 				'GeneratorPublicKey of each BlockHeader should match.',
-				asset.header1.generatorPublicKey.toString('base64'),
+				asset.header1.generatorPublicKey.toString('hex'),
 			);
 		}
 

@@ -301,18 +301,18 @@ const generateValidUpvoteTransaction = () => {
 		input: {
 			account: {
 				...senderAccount,
-				address: senderAccount.address.toString('base64'),
-				publicKey: senderAccount.publicKey.toString('base64'),
+				address: senderAccount.address.toString('hex'),
+				publicKey: senderAccount.publicKey.toString('hex'),
 			},
-			networkIdentifier: networkIdentifier.toString('base64'),
+			networkIdentifier: networkIdentifier.toString('hex'),
 			delegates: delegateAccounts.map(d => ({
 				...d,
-				address: d.address.toString('base64'),
-				publicKey: d.publicKey.toString('base64'),
+				address: d.address.toString('hex'),
+				publicKey: d.publicKey.toString('hex'),
 			})),
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -381,18 +381,18 @@ const generateValidDownvoteTransaction = () => {
 		input: {
 			account: {
 				...senderAccount,
-				address: senderAccount.address.toString('base64'),
-				publicKey: senderAccount.publicKey.toString('base64'),
+				address: senderAccount.address.toString('hex'),
+				publicKey: senderAccount.publicKey.toString('hex'),
 			},
-			networkIdentifier: networkIdentifier.toString('base64'),
+			networkIdentifier: networkIdentifier.toString('hex'),
 			delegates: delegateAccounts.map(d => ({
 				...d,
-				address: d.address.toString('base64'),
-				publicKey: d.publicKey.toString('base64'),
+				address: d.address.toString('hex'),
+				publicKey: d.publicKey.toString('hex'),
 			})),
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -501,18 +501,18 @@ const generateValidUpvoteAndDownvoteVoteTransaction = () => {
 		input: {
 			account: {
 				...senderAccount,
-				address: senderAccount.address.toString('base64'),
-				publicKey: senderAccount.publicKey.toString('base64'),
+				address: senderAccount.address.toString('hex'),
+				publicKey: senderAccount.publicKey.toString('hex'),
 			},
-			networkIdentifier: networkIdentifier.toString('base64'),
+			networkIdentifier: networkIdentifier.toString('hex'),
 			delegates: delegateAccounts.map(d => ({
 				...d,
-				address: d.address.toString('base64'),
-				publicKey: d.publicKey.toString('base64'),
+				address: d.address.toString('hex'),
+				publicKey: d.publicKey.toString('hex'),
 			})),
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };

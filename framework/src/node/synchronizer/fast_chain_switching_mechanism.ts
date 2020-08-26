@@ -207,8 +207,8 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			throw new ApplyPenaltyAndAbortError(
 				peerId,
 				`Peer didn't return any requested block within IDs ${highestCommonBlock.id.toString(
-					'base64',
-				)} and ${receivedBlock.header.id.toString('base64')}`,
+					'hex',
+				)} and ${receivedBlock.header.id.toString('hex')}`,
 			);
 		}
 

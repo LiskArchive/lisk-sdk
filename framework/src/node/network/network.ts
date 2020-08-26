@@ -107,7 +107,7 @@ export class Network {
 	}
 
 	public async bootstrap(networkIdentifier: Buffer): Promise<void> {
-		this._networkID = networkIdentifier.toString('base64');
+		this._networkID = networkIdentifier.toString('hex');
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running

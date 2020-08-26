@@ -588,7 +588,7 @@ describe('VoteTransactionAsset', () => {
 
 					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 						`Voted delegate is not registered. Address: ${nonRegisteredDelegate.address.toString(
-							'base64',
+							'hex',
 						)}`,
 					);
 				});

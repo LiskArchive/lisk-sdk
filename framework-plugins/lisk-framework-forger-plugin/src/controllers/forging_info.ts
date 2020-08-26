@@ -33,7 +33,7 @@ export const getForgingInfo = (channel: BaseChannel, codec: PluginCodec, db: KVS
 
 		const data = [];
 		for (const forgerAccount of forgerAccounts) {
-			const forgerAddressBinary = Buffer.from(forgerAccount.address, 'base64').toString('binary');
+			const forgerAddressBinary = Buffer.from(forgerAccount.address, 'hex').toString('binary');
 			const forgerInfo = await getForgerInfo(db, forgerAddressBinary);
 			const forger = forgingDelegates.find(aForger => aForger.address === forgerAccount.address);
 

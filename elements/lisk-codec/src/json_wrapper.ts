@@ -41,7 +41,7 @@ const mappers: mappersInterface = {
 		uint64: value => (value as BigInt).toString(),
 		sint64: value => (value as BigInt).toString(),
 		string: value => value as string,
-		bytes: value => (value as Buffer).toString('base64'),
+		bytes: value => (value as Buffer).toString('hex'),
 		boolean: value => value as boolean,
 	},
 	fromJSON: {
@@ -50,7 +50,7 @@ const mappers: mappersInterface = {
 		uint64: value => BigInt(value),
 		sint64: value => BigInt(value),
 		string: value => value as string,
-		bytes: value => Buffer.from(value as string, 'base64'),
+		bytes: value => Buffer.from(value as string, 'hex'),
 		boolean: value => value as boolean,
 	},
 };

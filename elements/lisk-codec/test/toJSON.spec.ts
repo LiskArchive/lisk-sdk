@@ -50,17 +50,17 @@ describe('toJSON', () => {
 
 		const jsonLikeObject = {
 			...object,
-			address: Buffer.from(object.address.data).toString('base64'),
+			address: Buffer.from(object.address.data).toString('hex'),
 			balance: BigInt(object.balance).toString(),
-			publicKey: Buffer.from(object.publicKey.data).toString('base64'),
+			publicKey: Buffer.from(object.publicKey.data).toString('hex'),
 			nonce: BigInt(object.nonce).toString(),
 			keys: {
 				...object.keys,
 				mandatoryKeys: object.keys.mandatoryKeys.map(mKey =>
-					Buffer.from(mKey.data).toString('base64'),
+					Buffer.from(mKey.data).toString('hex'),
 				),
 				optionalKeys: object.keys.optionalKeys.map((oKey: any) =>
-					Buffer.from(oKey.data).toString('base64'),
+					Buffer.from(oKey.data).toString('hex'),
 				),
 			},
 			asset: {
@@ -71,12 +71,12 @@ describe('toJSON', () => {
 				},
 				sentVotes: object.asset.sentVotes.map(v => ({
 					...v,
-					delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
+					delegateAddress: Buffer.from(v.delegateAddress.data).toString('hex'),
 					amount: BigInt(v.amount).toString(),
 				})),
 				unlocking: object.asset.unlocking.map(v => ({
 					...v,
-					delegateAddress: Buffer.from(v.delegateAddress.data).toString('base64'),
+					delegateAddress: Buffer.from(v.delegateAddress.data).toString('hex'),
 					amount: BigInt(v.amount.toString()).toString(),
 				})),
 			},

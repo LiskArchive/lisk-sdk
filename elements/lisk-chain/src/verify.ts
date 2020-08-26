@@ -27,7 +27,7 @@ const debug = Debug('lisk:chain:verify');
 export const verifyBlockNotExists = async (dataAccess: DataAccess, block: Block): Promise<void> => {
 	const isPersisted = await dataAccess.isBlockPersisted(block.header.id);
 	if (isPersisted) {
-		throw new Error(`Block ${block.header.id.toString('base64')} already exists`);
+		throw new Error(`Block ${block.header.id.toString('hex')} already exists`);
 	}
 };
 
@@ -120,7 +120,7 @@ export const isValidSeedReveal = (
 	}
 
 	debug('New block SeedReveal is not the preimage of last block', {
-		newBlockSeedReveal: newBlockSeedRevealBuffer.toString('base64'),
+		newBlockSeedReveal: newBlockSeedRevealBuffer.toString('hex'),
 		previousBlockSeedReveal,
 		delegate: blockHeader.generatorPublicKey,
 		height: blockHeader.height,

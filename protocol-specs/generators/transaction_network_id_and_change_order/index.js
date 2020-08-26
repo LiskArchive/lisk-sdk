@@ -138,14 +138,14 @@ const generateValidTransferTransaction = () => {
 			account: {
 				...accounts[0],
 				nonce: accounts[0].nonce.toString(),
-				publicKey: accounts[0].publicKey.toString('base64'),
-				privateKey: accounts[0].privateKey.toString('base64'),
-				address: accounts[0].address.toString('base64'),
+				publicKey: accounts[0].publicKey.toString('hex'),
+				privateKey: accounts[0].privateKey.toString('hex'),
+				address: accounts[0].address.toString('hex'),
 			},
-			networkIdentifier: networkIdentifier.toString('base64'),
+			networkIdentifier: networkIdentifier.toString('hex'),
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -187,14 +187,14 @@ const generateValidDelegateTransaction = () => {
 			account: {
 				...accounts[0],
 				nonce: accounts[0].nonce.toString(),
-				publicKey: accounts[0].publicKey.toString('base64'),
-				privateKey: accounts[0].privateKey.toString('base64'),
-				address: accounts[0].address.toString('base64'),
+				publicKey: accounts[0].publicKey.toString('hex'),
+				privateKey: accounts[0].privateKey.toString('hex'),
+				address: accounts[0].address.toString('hex'),
 			},
-			networkIdentifier: networkIdentifier.toString('base64'),
+			networkIdentifier: networkIdentifier.toString('hex'),
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };

@@ -180,14 +180,14 @@ export class Forger {
 
 			keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 		} else {
-			throw new Error(`Delegate with address: ${forgerAddress.toString('base64')} not found`);
+			throw new Error(`Delegate with address: ${forgerAddress.toString('hex')} not found`);
 		}
 
 		if (!getAddressFromPublicKey(keypair.publicKey).equals(forgerAddress)) {
 			throw new Error(
 				`Invalid keypair: ${getAddressFromPublicKey(keypair.publicKey).toString(
-					'base64',
-				)}  and address: ${forgerAddress.toString('base64')} combination`,
+					'hex',
+				)}  and address: ${forgerAddress.toString('hex')} combination`,
 			);
 		}
 
@@ -195,10 +195,10 @@ export class Forger {
 
 		if (forging) {
 			this._keypairs.set(forgerAddress, keypair);
-			this._logger.info(`Forging enabled on account: ${account.address.toString('base64')}`);
+			this._logger.info(`Forging enabled on account: ${account.address.toString('hex')}`);
 		} else {
 			this._keypairs.delete(forgerAddress);
-			this._logger.info(`Forging disabled on account: ${account.address.toString('base64')}`);
+			this._logger.info(`Forging disabled on account: ${account.address.toString('hex')}`);
 		}
 
 		return {
@@ -234,7 +234,7 @@ export class Forger {
 				);
 			} catch (error) {
 				const decryptionError = `Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
-					'base64',
+					'hex',
 				)}. ${(error as Error).message}`;
 				this._logger.error(decryptionError);
 				throw new Error(decryptionError);
@@ -246,7 +246,7 @@ export class Forger {
 			if (!delegateAddress.equals(encryptedItem.address)) {
 				throw new Error(
 					`Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
-						'base64',
+						'hex',
 					)}. Address do not match`,
 				);
 			}
@@ -255,7 +255,7 @@ export class Forger {
 			const account = await this._chainModule.dataAccess.getAccountByAddress(validatorAddress);
 
 			this._keypairs.set(validatorAddress, keypair);
-			this._logger.info(`Forging enabled on account: ${account.address.toString('base64')}`);
+			this._logger.info(`Forging enabled on account: ${account.address.toString('hex')}`);
 			// Prepare hash-onion
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const registeredHashOnionSeed = registeredHashOnionSeeds.get(account.address);
@@ -267,7 +267,7 @@ export class Forger {
 			if (registeredHashOnionSeed && !registeredHashOnionSeed.equals(configHashOnionSeed)) {
 				this._logger.warn(
 					`Hash onion for Account ${account.address.toString(
-						'base64',
+						'hex',
 					)} is not the same as previous one. Overwriting with new hash onion`,
 				);
 				usedHashOnions = usedHashOnions.filter(ho => !ho.address.equals(account.address));
@@ -305,7 +305,7 @@ export class Forger {
 			}
 			// If all hash onion is used, throw an error
 			if (highestCount >= hashOnionConfig.count) {
-				throw new Error(`All of the hash onion is used for ${account.address.toString('base64')}`);
+				throw new Error(`All of the hash onion is used for ${account.address.toString('hex')}`);
 			}
 		}
 		await setRegisteredHashOnionSeeds(this._db, registeredHashOnionSeeds);
@@ -486,9 +486,7 @@ export class Forger {
 	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
 		const delegateConfig = this._config.forging.delegates?.find(d => d.address.equals(address));
 		if (!delegateConfig?.hashOnion) {
-			throw new Error(
-				`Account ${address.toString('base64')} does not have hash onion in the config`,
-			);
+			throw new Error(`Account ${address.toString('hex')} does not have hash onion in the config`);
 		}
 
 		return delegateConfig.hashOnion;

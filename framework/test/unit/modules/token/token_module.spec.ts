@@ -58,17 +58,17 @@ describe('token module', () => {
 
 	beforeEach(() => {
 		tokenModule = new TokenModule(genesisConfig);
-		const buffer = Buffer.from(defaultTestCase.output.transaction, 'base64');
+		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		decodedTransaction = codec.decode<Transaction>(transactionSchema, buffer);
 		validTransaction = new Transaction(decodedTransaction);
 		senderAccount = createFakeDefaultAccount({
-			address: Buffer.from(defaultTestCase.input.account.address, 'base64'),
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
 			token: {
 				balance: BigInt('1000000000000000'),
 			},
 		});
 		recipientAccount = createFakeDefaultAccount({
-			address: Buffer.from(defaultTestCase.input.account.address, 'base64'),
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
 			token: {
 				balance: BigInt('1000000000000000'),
 			},
@@ -263,7 +263,7 @@ describe('token module', () => {
 			).rejects.toStrictEqual(
 				new Error(
 					`Account does not have enough minimum remaining balance: ${senderAccount.address.toString(
-						'base64',
+						'hex',
 					)}. Current balance is: 0. Required minimum balance is: ${minRemainingBalance}.`,
 				),
 			);

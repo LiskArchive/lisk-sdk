@@ -336,7 +336,7 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({ data: undefined } as never);
@@ -379,11 +379,11 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 					} as never);
 
 				// Act
@@ -427,11 +427,11 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({
-						data: chainModule.dataAccess.encodeBlockHeader(highestCommonBlock).toString('base64'),
+						data: chainModule.dataAccess.encodeBlockHeader(highestCommonBlock).toString('hex'),
 					} as never);
 
 				// Act
@@ -514,11 +514,11 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 					} as never);
 
 				// Act
@@ -572,11 +572,11 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 					} as never)
 					.calledWith({
 						procedure: 'getBlocksFromId',
@@ -634,11 +634,11 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 					} as never);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
@@ -709,11 +709,11 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 					} as never);
 				processorModule.validate.mockImplementation(() => {
 					throw new Error('validation error');
@@ -773,11 +773,11 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 					} as never);
 
 				when(processorModule.deleteLastBlock)
@@ -891,11 +891,11 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('base64')),
+							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
 						},
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 					} as never);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)

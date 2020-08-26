@@ -59,7 +59,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 		const addressSet: { [addressStr: string]: boolean } = {};
 
 		for (const vote of asset.votes) {
-			addressSet[vote.delegateAddress.toString('base64')] = true;
+			addressSet[vote.delegateAddress.toString('hex')] = true;
 
 			if (vote.amount === BigInt(0)) {
 				throw new ValidationError('Amount cannot be 0', vote.amount.toString());
@@ -87,7 +87,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 		if (Object.keys(addressSet).length !== asset.votes.length) {
 			throw new ValidationError(
 				'Delegate address must be unique',
-				asset.votes.map(v => v.delegateAddress.toString('base64')).join(),
+				asset.votes.map(v => v.delegateAddress.toString('hex')).join(),
 			);
 		}
 	}
@@ -121,7 +121,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 
 			if (votedDelegate.dpos.delegate.username === '') {
 				throw new Error(
-					`Voted delegate is not registered. Address: ${votedDelegate.address.toString('base64')}`,
+					`Voted delegate is not registered. Address: ${votedDelegate.address.toString('hex')}`,
 				);
 			}
 

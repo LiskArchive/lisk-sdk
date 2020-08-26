@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { isBase64String, validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { isHexString, validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Request, Response } from 'express';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 
@@ -39,8 +39,8 @@ const transactionInputSchema = {
 		},
 		senderPublicKey: {
 			type: 'string',
-			format: 'base64',
-			description: 'Base64 encoded value of the public key of the Senders account.\n',
+			format: 'hex',
+			description: 'Hex encoded value of the public key of the Senders account.\n',
 		},
 		asset: {
 			type: 'object',
@@ -50,8 +50,8 @@ const transactionInputSchema = {
 			type: 'array',
 			items: {
 				type: 'string',
-				format: 'base64',
-				description: 'Base64 encoded value of the signature for the transaction.',
+				format: 'hex',
+				description: 'Hex encoded value of the signature for the transaction.',
 			},
 			minItems: 1,
 		},
@@ -76,9 +76,9 @@ export const getTransaction = (channel: BaseChannel, codec: PluginCodec) => asyn
 	const transactionId = req.params.id;
 
 	// 400 - Client Side Error
-	if (!transactionId || !isBase64String(transactionId)) {
+	if (!transactionId || !isHexString(transactionId)) {
 		res.status(400).send({
-			errors: [{ message: 'Transaction id parameter should be a base64 string.' }],
+			errors: [{ message: 'Transaction id parameter should be a hex string.' }],
 		});
 		return;
 	}

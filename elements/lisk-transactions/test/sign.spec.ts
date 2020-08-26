@@ -76,7 +76,7 @@ interface MultiSignatureAsset {
 
 const networkIdentifier = Buffer.from(
 	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'base64',
+	'hex',
 );
 const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
 const passphrase2 = 'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic';
@@ -327,14 +327,14 @@ describe('sign', () => {
 				it('should have correct signatures', () => {
 					const decodedBaseTransaction = codec.decode<Transaction>(
 						baseTransactionSchema,
-						Buffer.from(testCase.output.transaction, 'base64'),
+						Buffer.from(testCase.output.transaction, 'hex'),
 					);
 					const decodedAsset = codec.decode<MultiSignatureAsset>(
 						multisigRegAsset,
 						decodedBaseTransaction.asset,
 					);
 					const { signatures, ...transactionObject } = decodedBaseTransaction;
-					const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'base64');
+					const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'hex');
 					const signedMultiSigTransaction = {
 						...transactionObject,
 						asset: { ...decodedAsset },
@@ -343,9 +343,9 @@ describe('sign', () => {
 					const senderAccount = {
 						passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
 						privateKey:
-							'3kooYQI5zqwuw/WS42ourY7UrJPLFqoNmWq2uwJJ2iwLIR/OS2FQg3AcuKjJlAfkZLL5qk82cJUyLeG3fl/Pvg==',
-						publicKey: 'CyEfzkthUINwHLioyZQH5GSy+apPNnCVMi3ht35fz74=',
-						address: 'vgRtM2zQwvveYrxH4gGZOV0u6tw=',
+							'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+						publicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+						address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
 					};
 
 					Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>

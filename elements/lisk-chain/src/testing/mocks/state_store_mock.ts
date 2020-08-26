@@ -49,7 +49,7 @@ export interface MockInput {
 	lastBlockReward?: bigint;
 }
 
-const defaultNetworkIdentifier = Buffer.from('', 'base64');
+const defaultNetworkIdentifier = Buffer.from('', 'hex');
 
 export class StateStoreMock {
 	public accountData: { address: Buffer }[];

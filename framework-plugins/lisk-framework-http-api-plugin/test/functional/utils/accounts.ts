@@ -15,13 +15,13 @@
 import { getAddressFromPublicKey, getKeys, getRandomBytes } from '@liskhq/lisk-cryptography';
 
 export const getRandomAccount = () => {
-	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('base64'));
+	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('hex'));
 	const address = getAddressFromPublicKey(publicKey);
 
 	return {
-		address: address.toString('base64'),
-		publicKey: publicKey.toString('base64'),
-		privateKey: privateKey.toString('base64'),
+		address: address.toString('hex'),
+		publicKey: publicKey.toString('hex'),
+		privateKey: privateKey.toString('hex'),
 		nonce: 0,
 	};
 };

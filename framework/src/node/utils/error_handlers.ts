@@ -17,7 +17,7 @@ export class CommonBlockError extends Error {
 
 	public constructor(message: string, lastBlockID: Buffer) {
 		super(message);
-		this.lastBlockID = lastBlockID.toString('base64');
+		this.lastBlockID = lastBlockID.toString('hex');
 	}
 }
 

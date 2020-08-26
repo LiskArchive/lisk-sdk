@@ -29,11 +29,11 @@ describe('Block related actions', () => {
 	describe('getBlockByID', () => {
 		it('should return valid encoded block', async () => {
 			const encodedBlock = await app['_channel'].invoke('app:getBlockByID', {
-				id: app['_node']['_chain'].genesisBlock.header.id.toString('base64'),
+				id: app['_node']['_chain'].genesisBlock.header.id.toString('hex'),
 			});
 			expect(encodedBlock).toBeString();
 			const block = app['_node']['_chain'].dataAccess.decode(
-				Buffer.from(encodedBlock as string, 'base64'),
+				Buffer.from(encodedBlock as string, 'hex'),
 			);
 			expect(block.header.version).toEqual(0);
 			expect(block.header.height).toEqual(0);
@@ -44,14 +44,12 @@ describe('Block related actions', () => {
 		it('should return valid encoded blocks', async () => {
 			const encodedBlocks: string[] = await app['_channel'].invoke('app:getBlocksByIDs', {
 				ids: [
-					app['_node']['_chain'].genesisBlock.header.id.toString('base64'),
-					app['_node']['_chain'].lastBlock.header.id.toString('base64'),
+					app['_node']['_chain'].genesisBlock.header.id.toString('hex'),
+					app['_node']['_chain'].lastBlock.header.id.toString('hex'),
 				],
 			});
 			expect(encodedBlocks).toHaveLength(2);
-			const block = app['_node']['_chain'].dataAccess.decode(
-				Buffer.from(encodedBlocks[0], 'base64'),
-			);
+			const block = app['_node']['_chain'].dataAccess.decode(Buffer.from(encodedBlocks[0], 'hex'));
 			expect(block.header.version).toEqual(0);
 			expect(block.header.height).toEqual(0);
 		});
@@ -62,7 +60,7 @@ describe('Block related actions', () => {
 			const encodedBlock = await app['_channel'].invoke('app:getBlockByHeight', { height: 2 });
 			expect(encodedBlock).toBeString();
 			const block = app['_node']['_chain'].dataAccess.decode(
-				Buffer.from(encodedBlock as string, 'base64'),
+				Buffer.from(encodedBlock as string, 'hex'),
 			);
 			expect(block.header.height).toEqual(2);
 		});
@@ -75,9 +73,7 @@ describe('Block related actions', () => {
 				to: 2,
 			});
 			expect(encodedBlocks).toHaveLength(2);
-			const block = app['_node']['_chain'].dataAccess.decode(
-				Buffer.from(encodedBlocks[0], 'base64'),
-			);
+			const block = app['_node']['_chain'].dataAccess.decode(Buffer.from(encodedBlocks[0], 'hex'));
 			expect(block.header.height).toEqual(2);
 		});
 	});

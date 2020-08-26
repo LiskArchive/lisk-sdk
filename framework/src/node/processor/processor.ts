@@ -181,7 +181,7 @@ export class Processor {
 				);
 				const encodedBlock = this._chain.dataAccess.encode(block);
 				this._channel.publish('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 				return;
 			}
@@ -202,7 +202,7 @@ export class Processor {
 				);
 				const encodedBlock = this._chain.dataAccess.encode(block);
 				this._channel.publish('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 				return;
 			}
@@ -219,7 +219,7 @@ export class Processor {
 					peerId,
 				});
 				this._channel.publish('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 				return;
 			}
@@ -231,7 +231,7 @@ export class Processor {
 				);
 				const encodedBlock = this._chain.dataAccess.encode(block);
 				this._channel.publish('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 
 				this._validate(block);

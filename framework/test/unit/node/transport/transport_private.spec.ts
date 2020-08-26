@@ -445,7 +445,7 @@ describe('transport', () => {
 						expect(transportModule['_channel'].publish).toHaveBeenCalledWith(
 							'app:transaction:new',
 							{
-								transaction: transaction.getBytes().toString('base64'),
+								transaction: transaction.getBytes().toString('hex'),
 							},
 						);
 					});
@@ -479,7 +479,7 @@ describe('transport', () => {
 						return expect(networkStub.send).toHaveBeenCalledWith({
 							event: 'postBlock',
 							data: {
-								block: encodedBlock.toString('base64'),
+								block: encodedBlock.toString('hex'),
 							},
 						});
 					});
@@ -521,13 +521,13 @@ describe('transport', () => {
 					describe('when query is defined', () => {
 						it('should call modules.chain.loadBlocksFromLastBlockId with lastBlockID and limit 34', async () => {
 							query = {
-								blockId: Buffer.from('6258354802676165798').toString('base64'),
+								blockId: Buffer.from('6258354802676165798').toString('hex'),
 							};
 
 							await transportModule.handleRPCGetBlocksFromId(query);
 							expect(
 								transportModule['_chainModule'].dataAccess.getBlockHeaderByID,
-							).toHaveBeenCalledWith(Buffer.from(query.blockId, 'base64'));
+							).toHaveBeenCalledWith(Buffer.from(query.blockId, 'hex'));
 							return expect(
 								transportModule['_chainModule'].dataAccess.getBlocksByHeightBetween,
 							).toHaveBeenCalledWith(3, 105);
@@ -537,7 +537,7 @@ describe('transport', () => {
 					describe('when modules.chain.loadBlocksFromLastBlockId fails', () => {
 						it('should throw an error', async () => {
 							query = {
-								blockId: Buffer.from('6258354802676165798').toString('base64'),
+								blockId: Buffer.from('6258354802676165798').toString('hex'),
 							};
 
 							const errorMessage = 'Failed to load blocks...';
@@ -560,13 +560,13 @@ describe('transport', () => {
 
 					beforeEach(() => {
 						postBlockQuery = {
-							block: 'non-base64_strinng@',
+							block: 'non-hex_strinng@',
 						};
 					});
 
 					describe('when query is specified', () => {
 						describe('when it throws', () => {
-							const blockValidationError = 'should match format "base64"';
+							const blockValidationError = 'should match format "hex"';
 
 							it('should throw an error', async () => {
 								await expect(
@@ -592,7 +592,7 @@ describe('transport', () => {
 							describe('when query.block is defined', () => {
 								it('should call modules.chain.addBlockProperties with query.block', async () => {
 									await transportModule.handleEventPostBlock({
-										block: encodedGenesisBlock.toString('base64'),
+										block: encodedGenesisBlock.toString('hex'),
 									});
 									expect(transportModule['_chainModule'].dataAccess.decode).toHaveBeenCalledWith(
 										encodedGenesisBlock,
@@ -603,7 +603,7 @@ describe('transport', () => {
 							it('should call transportModule.processorModule.process with block', async () => {
 								await transportModule.handleEventPostBlock(
 									{
-										block: encodedGenesisBlock.toString('base64'),
+										block: encodedGenesisBlock.toString('hex'),
 									},
 									'127.0.0.1:5000',
 								);
@@ -621,7 +621,7 @@ describe('transport', () => {
 				describe('handleEventPostTransaction', () => {
 					beforeEach(async () => {
 						query = {
-							transaction: transaction.getBytes().toString('base64'),
+							transaction: transaction.getBytes().toString('hex'),
 						};
 
 						transportModule['_receiveTransaction'] = jest.fn().mockResolvedValue(transaction.id);

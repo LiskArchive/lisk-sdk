@@ -357,7 +357,7 @@ export class Peer extends EventEmitter {
 			const { peers, success } = response.data;
 
 			const decodedPeers = peers.map((peer: string) =>
-				codec.decode(this._rpcSchemas.peerInfo, Buffer.from(peer, 'base64')),
+				codec.decode(this._rpcSchemas.peerInfo, Buffer.from(peer, 'hex')),
 			);
 
 			const validatedPeers = validatePeerInfoList(
@@ -407,7 +407,7 @@ export class Peer extends EventEmitter {
 		try {
 			const decodedNodeInfo = codec.decode(
 				this._rpcSchemas.nodeInfo,
-				Buffer.from(response.data as string, 'base64'),
+				Buffer.from(response.data as string, 'hex'),
 			);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
@@ -519,13 +519,13 @@ export class Peer extends EventEmitter {
 	private _handleUpdateNodeInfo(message: P2PMessagePacket): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			const nodeInfoBuffer = Buffer.from(message.data as string, 'base64');
+			const nodeInfoBuffer = Buffer.from(message.data as string, 'hex');
 			// Check incoming nodeInfo size before deocoding
 			validateNodeInfo(nodeInfoBuffer, this._peerConfig.maxPeerInfoSize);
 
 			const decodedNodeInfo = codec.decode(
 				this._rpcSchemas.nodeInfo,
-				Buffer.from(message.data as string, 'base64'),
+				Buffer.from(message.data as string, 'hex'),
 			);
 			// Only update options object
 			const { options } = decodedNodeInfo as P2PNodeInfo;
