@@ -13,7 +13,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { testing as testingUtils } from '@liskhq/lisk-utils';
+import { testing as testingUtils } from '@liskhq/lisk-chain';
 import { when } from 'jest-when';
 
 import { SequenceModule, InvalidNonceError } from '../../../../../src/modules/sequence';
