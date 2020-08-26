@@ -55,14 +55,16 @@ describe('Account endpoint', () => {
 
 	describe('/api/accounts', () => {
 		it('should respond with account when account found in db', async () => {
-			const result = await axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip9k1a%2FOtigdf7U%3D'));
+			const result = await axios.get(
+				getURL('/api/accounts/9d0149b0962d44bfc08a9f64d5afceb6281d7fb5'),
+			);
 			expect(result.data).toEqual({ data: accountFixture });
 			expect(result.status).toBe(200);
 		});
 
 		it('should respond with 404 and error message when account not found in db', async () => {
 			const { response, status } = await callNetwork(
-				axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip0k1a%2FOtigdf7U%3D')),
+				axios.get(getURL('/api/accounts/9d0149b0962d44bfc08a9d24d5afceb6281d7fb5')),
 			);
 
 			expect(status).toBe(404);

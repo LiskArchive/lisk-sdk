@@ -26,7 +26,7 @@ import {
 import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
 
-const invalidHexString = '69db1f75ab1f76c69f7dd6ac7da76c';
+const invalidHexString = '69db1f75ab1f76c69f7dxxxxxxxxxx';
 
 let accountNonce = 0;
 
