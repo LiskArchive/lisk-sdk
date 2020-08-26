@@ -19,8 +19,6 @@ const { hash } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
 const { list: sampleDelegateList } = require('./forger_list');
 
-/* eslint-disable new-cap, no-continue */
-
 const activeDelegates = 101;
 const standByDelegates = 2;
 

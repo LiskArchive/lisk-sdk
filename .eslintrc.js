@@ -22,6 +22,7 @@ module.exports = {
 		'operator-linebreak': 'off',
 		'import/prefer-default-export': 'off',
 		'lines-between-class-members': 'off', // Off because typescript has members and methods
+		'no-continue': 'off',
 		'no-useless-constructor': 'off',
 		'no-unused-expressions': 'off',
 		'@typescript-eslint/consistent-type-assertions': ['error'],

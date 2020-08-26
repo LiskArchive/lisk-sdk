@@ -102,14 +102,12 @@ const selectSeedReveals = ({
 
 		// If delegate not forged any other block earlier in current and last round
 		if (!lastForgedBlock) {
-			// eslint-disable-next-line no-continue
 			continue;
 		}
 
 		// To validate seed reveal of any block in the last round
 		// We have to check till second last round
 		if (!isValidSeedReveal(header.asset.seedReveal, lastForgedBlock.asset.seedReveal)) {
-			// eslint-disable-next-line no-continue
 			continue;
 		}
 

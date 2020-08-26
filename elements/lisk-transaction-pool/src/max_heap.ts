@@ -23,7 +23,6 @@ export class MaxHeap<T, K = bigint | number> extends MinHeap<T, K> {
 			if (this._nodes[parentIndex].key < node.key) {
 				this._nodes[index] = this._nodes[parentIndex];
 				index = parentIndex;
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 			break;

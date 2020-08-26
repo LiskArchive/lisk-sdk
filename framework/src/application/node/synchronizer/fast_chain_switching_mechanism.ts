@@ -140,6 +140,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 				chunkOfBlocks = await this._getBlocksFromNetwork(peerId, lastFetchedID);
 			} catch (error) {
 				failedAttempts += 1;
+				continue;
 			}
 
 			// Sort blocks with height in ascending order because blocks are returned in descending order
