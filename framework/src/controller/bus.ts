@@ -17,12 +17,11 @@ import { PubSocket, PullSocket, PushSocket, ReqSocket, SubSocket } from 'pm2-axo
 import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
 import { Action, ActionInfoObject, ActionsObject } from './action';
-import { Logger } from '../application/logger';
+import { Logger } from '../logger';
 import { BaseChannel } from './channels/base_channel';
 import { EventInfoObject, EventsArray } from './event';
-import { SocketPaths } from './types';
 import { IPCServer } from './ipc/ipc_server';
-import { ActionInfoForBus } from '../types';
+import { ActionInfoForBus, SocketPaths } from '../types';
 
 interface BusConfiguration {
 	ipc: {

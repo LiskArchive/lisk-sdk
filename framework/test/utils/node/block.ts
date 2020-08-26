@@ -14,7 +14,7 @@
  */
 
 import { Block, Transaction } from '@liskhq/lisk-chain';
-import { Node } from '../../../src/application/node';
+import { Node } from '../../../src/node';
 
 interface Option {
 	lastBlock?: Block;

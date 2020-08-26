@@ -14,7 +14,7 @@
  */
 
 import { Validator } from '@liskhq/lisk-chain';
-import { Node } from '../../../src/application/node';
+import { Node } from '../../../src/node';
 
 export const getDelegateList = async (node: Node): Promise<ReadonlyArray<Validator>> =>
 	node['_chain'].getValidators();

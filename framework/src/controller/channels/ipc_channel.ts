@@ -23,9 +23,8 @@ import { PubSocket, PullSocket, PushSocket, SubSocket } from 'pm2-axon';
 import { Action, ActionsDefinition } from '../action';
 import { Event, EventInfoObject } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
-import { SocketPaths } from '../types';
 import { IPCClient } from '../ipc/ipc_client';
-import { ActionInfoForBus } from '../../types';
+import { ActionInfoForBus, SocketPaths } from '../../types';
 
 type NodeCallback = (error: Error | null, result?: unknown) => void;
 

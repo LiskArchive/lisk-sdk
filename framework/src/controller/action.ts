@@ -13,7 +13,7 @@
  */
 
 import { strict as assert } from 'assert';
-import { actionWithModuleNameReg, moduleNameReg } from './constants';
+import { actionWithModuleNameReg, moduleNameReg } from '../constants';
 
 export interface ActionInfoObject {
 	readonly module: string;

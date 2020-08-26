@@ -19,7 +19,7 @@ const base = require('../config/jest.config.base');
 module.exports = {
 	...base,
 	setupFilesAfterEnv: ['<rootDir>/test/integration/setup.js'],
-	testMatch: ['<rootDir>/test/integration/specs/**/*.(spec|test).(js|ts)'],
+	testMatch: ['<rootDir>/test/integration/**/*.(spec|test).(js|ts)'],
 	/**
 	 * restoreMocks [boolean]
 	 *

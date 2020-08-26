@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { applicationConfigSchema } from '../../../src/application/schema/application_config_schema';
+import { applicationConfigSchema } from '../../../src/schema/application_config_schema';
 import { ApplicationConfig } from '../../../src/types';
 
 export const nodeConfig = (

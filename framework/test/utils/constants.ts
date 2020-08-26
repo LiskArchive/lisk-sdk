@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { applicationConfigSchema } from '../../src/application/schema';
+import { applicationConfigSchema } from '../../src/schema';
 import { deepFreeze } from './deep_freeze';
 import { nodeOptions } from '../fixtures/node';
 
