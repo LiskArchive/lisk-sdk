@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +10,14 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-import { Validator } from '@liskhq/lisk-chain';
-import { Node } from '../../../src/node';
+'use strict';
 
-export const getDelegateList = async (node: Node): Promise<ReadonlyArray<Validator>> =>
-	node['_chain'].getValidators();
+const config = require('../jest.config');
+
+describe('config/unit/jest.config.js', () => {
+	it('unit test config must match to the snapshot.', () => {
+		expect(config).toMatchSnapshot();
+	});
+});

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NodeOptions } from '../../src/application/node/node';
+import { NodeOptions } from '../../src/node/node';
 
 export const cacheConfig = 'aCacheConfig';
 

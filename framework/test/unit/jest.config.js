@@ -16,7 +16,7 @@ const base = require('../config/jest.config.base');
 
 module.exports = {
 	...base,
-	testMatch: ['<rootDir>/test/unit/specs/**/*.(spec|test).(js|ts)'],
+	testMatch: ['<rootDir>/test/unit/**/*.(spec|test).(js|ts)'],
 
 	coverageDirectory: '.coverage/unit',
 	collectCoverageFrom: ['src/controller/**', 'src/application/**'],

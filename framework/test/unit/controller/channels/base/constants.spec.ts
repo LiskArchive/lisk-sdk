@@ -12,12 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { INTERNAL_EVENTS } from '../../../../../src/controller/constants';
 
-const base = require('../config/jest.config.base');
+describe('base/constants.js', () => {
+	it('INTERNAL_EVENTS must match to the snapshot.', () => {
+		expect(INTERNAL_EVENTS).toMatchSnapshot();
+	});
 
-module.exports = {
-	...base,
-	setupFilesAfterEnv: ['<rootDir>/test/functional/setup.js'],
-	testMatch: ['<rootDir>/test/functional/**/*.(spec|test).ts'],
-};
+	it('INTERNAL_EVENTS array should be immutable', () => {
+		expect(() => (INTERNAL_EVENTS as any).push('test')).toThrow(TypeError);
+		expect(() => (INTERNAL_EVENTS as any).pop()).toThrow(TypeError);
+	});
+});

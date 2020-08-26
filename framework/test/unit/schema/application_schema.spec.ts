@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +10,12 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-import { Validator } from '@liskhq/lisk-chain';
-import { Node } from '../../../src/node';
+import * as applicationSchema from '../../../src/schema/application_config_schema';
 
-export const getDelegateList = async (node: Node): Promise<ReadonlyArray<Validator>> =>
-	node['_chain'].getValidators();
+describe('schema/application_config_schema.js', () => {
+	it('application config schema must match to the snapshot.', () => {
+		expect(applicationSchema).toMatchSnapshot();
+	});
+});
