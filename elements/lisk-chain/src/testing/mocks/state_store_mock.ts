@@ -15,14 +15,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-import cloneDeep = require('lodash.clonedeep');
-
-type BlockHeader = any;
-type Account = any;
+import { objects } from '@liskhq/lisk-utils';
+import { BlockHeader, Account, AccountDefaultProps } from '../../types';
 
 interface AccountState {
-	get(address: Buffer): Promise<Account>;
-	getOrDefault(address: Buffer): Promise<Account>;
+	get(address: Buffer): Promise<Account<any>>;
+	getOrDefault(address: Buffer): Promise<Account<any>>;
 	set(address: Buffer, account: any): void;
 	del(address: Buffer): Promise<void>;
 	getUpdated(): Account[];
@@ -42,11 +40,11 @@ interface ConsensusState {
 }
 
 export interface MockInput {
-	accounts?: Account[];
-	defaultAccount?: Account;
+	accounts?: Account<any>[];
+	defaultAccount?: AccountDefaultProps;
 	chain?: { [key: string]: Buffer };
 	consensus?: { [key: string]: Buffer };
-	lastBlockHeaders?: BlockHeader[];
+	lastBlockHeaders?: Partial<BlockHeader>[];
 	networkIdentifier?: Buffer;
 	lastBlockReward?: bigint;
 }
@@ -62,7 +60,7 @@ export class StateStoreMock {
 	public chain: ChainState;
 	public consensus: ConsensusState;
 
-	private readonly _defaultAccount: Account;
+	private readonly _defaultAccount: AccountDefaultProps;
 
 	public constructor({
 		accounts,
@@ -81,23 +79,23 @@ export class StateStoreMock {
 
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
-			get: async (address: Buffer): Promise<Account> => {
+			get: async <T = any>(address: Buffer): Promise<Account<T>> => {
 				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
 					throw new Error('Account not defined');
 				}
-				return cloneDeep(account);
+				return objects.cloneDeep(account) as Account<T>;
 			},
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getOrDefault: async (address: Buffer): Promise<Account> => {
+			getOrDefault: async <T = any>(address: Buffer): Promise<Account<T>> => {
 				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
-					return cloneDeep({ ...this._defaultAccount, address });
+					return objects.cloneDeep({ ...this._defaultAccount, address }) as Account<T>;
 				}
-				return cloneDeep(account);
+				return objects.cloneDeep(account) as Account<T>;
 			},
 			getUpdated: () => this.accountData,
-			set: (address: Buffer, account: Account): void => {
+			set: <T = any>(address: Buffer, account: Account<T>): void => {
 				const index = this.accountData.findIndex(acc => acc.address.equals(address));
 				if (index > -1) {
 					this.accountData[index] = account;
@@ -117,10 +115,10 @@ export class StateStoreMock {
 
 		this.chain = {
 			networkIdentifier: networkIdentifier ?? defaultNetworkIdentifier,
-			lastBlockHeaders: lastBlockHeaders ?? [],
+			lastBlockHeaders: (lastBlockHeaders as BlockHeader[]) ?? [],
 			lastBlockReward: lastBlockReward ?? BigInt(0),
 			get: async (key: string): Promise<Buffer | undefined> =>
-				Promise.resolve(cloneDeep(this.chainData[key])),
+				Promise.resolve(objects.cloneDeep(this.chainData[key])),
 			set: (key: string, value: Buffer): void => {
 				this.chainData[key] = value;
 			},
@@ -128,7 +126,7 @@ export class StateStoreMock {
 
 		this.consensus = {
 			get: async (key: string): Promise<Buffer | undefined> =>
-				Promise.resolve(cloneDeep(this.consensusData[key])),
+				Promise.resolve(objects.cloneDeep(this.consensusData[key])),
 			set: (key: string, value: Buffer): void => {
 				this.consensusData[key] = value;
 			},

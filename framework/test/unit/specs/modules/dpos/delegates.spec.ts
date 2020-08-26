@@ -13,9 +13,8 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BlockHeader, Account } from '@liskhq/lisk-chain';
+import { BlockHeader, Account, testing } from '@liskhq/lisk-chain';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import { testing } from '@liskhq/lisk-utils';
 import { getAddressAndPublicKeyFromPassphrase, hexToBuffer } from '@liskhq/lisk-cryptography';
 import * as delegateShufflingScenario from '../../../../fixtures/dpos_delegate_shuffling/uniformly_shuffled_delegate_list.json';
 import {
@@ -439,7 +438,7 @@ describe('delegates', () => {
 
 						await updateDelegateList(params);
 
-						expect(params.consensus.updateDelegates).toBeCalledTimes(1);
+						expect(params.consensus.updateDelegates).toHaveBeenCalledTimes(1);
 						const forgersList = params.consensus.updateDelegates.mock.calls[0][0] as Delegate[];
 
 						expect(forgersList.length).toBeGreaterThan(1);
@@ -509,16 +508,16 @@ describe('delegates', () => {
 				await updateDelegateList(params);
 
 				// eslint-disable-next-line jest/no-standalone-expect
-				expect(params.consensus.updateDelegates).toBeCalledTimes(1);
+				expect(params.consensus.updateDelegates).toHaveBeenCalledTimes(1);
 
 				forgersList = params.consensus.updateDelegates.mock.calls[0][0] as Delegate[];
 			});
 
-			it('should have activeDelegates + standbyDelegates delegates in the forgers list', async () => {
+			it('should have activeDelegates + standbyDelegates delegates in the forgers list', () => {
 				expect(forgersList).toHaveLength(params.activeDelegates + params.standbyDelegates);
 			});
 
-			it('should store selected stand by delegates in the forgers list', async () => {
+			it('should store selected stand by delegates in the forgers list', () => {
 				const standbyCandidatesAddresses = forgersList
 					.filter(d => !d.isConsensusParticipant)
 					.map(d => d.address)
