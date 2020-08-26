@@ -15,16 +15,14 @@ import { Application } from 'lisk-framework';
 import axios from 'axios';
 import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
 
-// TODO: Enable with #5645 Add support for module action and events
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip('Delegates endpoint', () => {
+describe('Delegates endpoint', () => {
 	let app: Application;
 	const firstDelegateAccount = {
 		address: 'A/bZC329BJfcOlLRwn4ju4x1iX8=',
 		token: { balance: '0' },
 		sequence: { nonce: '0' },
 		keys: { numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] },
-		asset: {
+		dpos: {
 			delegate: {
 				username: 'genesis_34',
 				pomHeights: [],

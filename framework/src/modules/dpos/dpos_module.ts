@@ -16,11 +16,12 @@ import * as Debug from 'debug';
 import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { Account } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
 import { BaseModule } from '../base_module';
 import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
 import { Rounds } from './rounds';
-import { DPOSAccountProps, RegisteredDelegate } from './types';
-import { dposAccountSchema, dposModuleParamsSchema } from './schema';
+import { DPOSAccountProps, RegisteredDelegate, RegisteredDelegates } from './types';
+import { dposAccountSchema, dposModuleParamsSchema, delegatesUserNamesSchema } from './schema';
 import { generateRandomSeeds } from './random_seed';
 import {
 	createVoteWeightsSnapshot,
@@ -32,6 +33,7 @@ import { RegisterTransactionAsset } from './transaction_assets/register_transact
 import { VoteTransactionAsset } from './transaction_assets/vote_transaction_asset';
 import { UnlockTransactionAsset } from './transaction_assets/unlock_transaction_asset';
 import { PomTransactionAsset } from './transaction_assets/pom_transaction_asset';
+import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
 
 const { bufferArrayContains } = objectsUtils;
 
@@ -61,6 +63,25 @@ export class DPoSModule extends BaseModule {
 
 	public constructor(config: GenesisConfig) {
 		super(config);
+
+		// Set actions
+		this.actions = {
+			getAllDelegates: async _ => {
+				const validatorsBuffer = await this._dataAccess.getChainState(
+					CHAIN_STATE_DELEGATE_USERNAMES,
+				);
+
+				if (!validatorsBuffer) {
+					return [];
+				}
+
+				const { registeredDelegates } = codec.decode<{
+					registeredDelegates: RegisteredDelegates[];
+				}>(delegatesUserNamesSchema, validatorsBuffer);
+
+				return registeredDelegates;
+			},
+		};
 
 		const errors = validator.validate(dposModuleParamsSchema, this.config);
 		if (errors.length) {

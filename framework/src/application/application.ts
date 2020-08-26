@@ -233,7 +233,7 @@ export class Application {
 
 		await this._controller.load();
 
-		await this._node.bootstrap();
+		await this._node.bootstrap(this._controller.bus);
 
 		await this._controller.loadPlugins(this._plugins, this.config.plugins);
 		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
