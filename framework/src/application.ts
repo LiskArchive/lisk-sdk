@@ -207,7 +207,7 @@ export class Application {
 			'If you experience any type of error, please open an issue on Lisk GitHub: https://github.com/LiskHQ/lisk-sdk/issues',
 		);
 		this.logger.info(
-			'Contribution guidelines can be found at Lisk-docs: https://github.com/LiskHQ/lisk-docs/blob/build/CONTRIBUTING.adoc',
+			'Contribution guidelines can be found at Lisk-sdk: https://github.com/LiskHQ/lisk-sdk/blob/development/docs/CONTRIBUTING.md',
 		);
 		this.logger.info(`Booting the application with Lisk Framework(${this.config.version})`);
 

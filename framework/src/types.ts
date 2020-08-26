@@ -21,6 +21,13 @@ import {
 	Block,
 } from '@liskhq/lisk-chain';
 
+export interface SocketPaths {
+	readonly pub: string;
+	readonly sub: string;
+	readonly rpc: string;
+	readonly root: string;
+}
+
 export interface StringKeyVal {
 	[key: string]: string;
 }

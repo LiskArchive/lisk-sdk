@@ -20,9 +20,8 @@ import { Action, ActionInfoObject, ActionsObject } from './action';
 import { Logger } from '../logger';
 import { BaseChannel } from './channels/base_channel';
 import { EventInfoObject, EventsArray } from './event';
-import { SocketPaths } from './types';
 import { IPCServer } from './ipc/ipc_server';
-import { ActionInfoForBus } from '../types';
+import { ActionInfoForBus, SocketPaths } from '../types';
 
 interface BusConfiguration {
 	ipc: {

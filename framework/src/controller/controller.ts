@@ -20,7 +20,7 @@ import { systemDirs } from '../system_dirs';
 import { InMemoryChannel } from './channels/in_memory_channel';
 import { Bus } from './bus';
 import { Logger } from '../logger';
-import { SocketPaths } from './types';
+import { SocketPaths } from '../types';
 import { PluginsOptions, PluginOptions } from '../types';
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import { EventInfoObject } from './event';

@@ -19,7 +19,7 @@ import { EventCallback } from '../../../../src/controller/event';
 // eslint-disable-next-line import/first
 import { BaseChannel } from '../../../../src/controller/channels';
 // eslint-disable-next-line import/first
-import { INTERNAL_EVENTS } from '../../../../src/controller/constants';
+import { INTERNAL_EVENTS } from '../../../../src/constants';
 // eslint-disable-next-line import/first
 import { Action } from '../../../../src/controller/action';
 

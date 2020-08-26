@@ -15,9 +15,8 @@
 // Parameters passed by `child_process.fork(_, parameters)`
 
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
-import { PluginOptions } from '../types';
+import { PluginOptions, SocketPaths } from '../types';
 import { IPCChannel } from './channels';
-import { SocketPaths } from './types';
 
 const modulePath: string = process.argv[2];
 const moduleExportName: string = process.argv[3];

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { INTERNAL_EVENTS } from '../../../../../src/controller/constants';
+import { INTERNAL_EVENTS } from '../../src/constants';
 
 describe('base/constants.js', () => {
 	it('INTERNAL_EVENTS must match to the snapshot.', () => {
