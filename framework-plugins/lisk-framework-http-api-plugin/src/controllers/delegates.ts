@@ -52,10 +52,10 @@ export const getDelegates = (channel: BaseChannel, codec: PluginCodec) => async 
 			'dpos:getAllDelegates',
 		);
 		const encodedDelegateAccounts: string[] = await channel.invoke('app:getAccounts', {
-			address: registeredDelegates.map(d => d.address.toString('base64')),
+			address: registeredDelegates.map(d => d.address.toString('hex')),
 		});
 		const decodedDelegateAccounts = encodedDelegateAccounts.map((d: string) =>
-			codec.decodeAccount(Buffer.from(d, 'base64')),
+			codec.decodeAccount(Buffer.from(d, 'hex')),
 		);
 
 		res.status(200).json({

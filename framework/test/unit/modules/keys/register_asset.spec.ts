@@ -36,7 +36,7 @@ describe('register asset', () => {
 	const defualtTestCase = fixtures.testCases[0];
 	beforeEach(() => {
 		registerAsset = new RegisterAsset();
-		const buffer = Buffer.from(defualtTestCase.output.transaction, 'base64');
+		const buffer = Buffer.from(defualtTestCase.output.transaction, 'hex');
 		const id = hash(buffer);
 		const decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
 		const decodedAsset = codec.decode<any>(registerAsset.schema, decodedBaseTransaction.asset);
@@ -48,15 +48,15 @@ describe('register asset', () => {
 		validTestTransaction = new Transaction(decodedMultiSignature);
 
 		multisignatureSender = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
+			address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
 		});
 
 		targetMultisigAccount = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
+			address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
 			balance: BigInt('94378900000'),
 		});
 		convertedAccount = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
+			address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
 			balance: BigInt('94378900000'),
 			keys: {
 				...validTestTransaction.asset,
@@ -66,7 +66,7 @@ describe('register asset', () => {
 		stateStore = new StateStoreMock();
 		storeAccountGetStub = jest.spyOn(stateStore.account, 'getOrDefault').mockResolvedValue(
 			createFakeDefaultAccount({
-				address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
+				address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
 			}) as never,
 		);
 

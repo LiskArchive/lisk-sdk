@@ -120,7 +120,7 @@ describe('Transport', () => {
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
 					data: {
-						transactionIds: [tx.id.toString('base64')],
+						transactionIds: [tx.id.toString('hex')],
 					},
 				});
 			});
@@ -205,7 +205,7 @@ describe('Transport', () => {
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
 					data: {
-						transactionIds: txs.map(tx => tx.id.toString('base64')),
+						transactionIds: txs.map(tx => tx.id.toString('hex')),
 					},
 				});
 			});
@@ -250,13 +250,13 @@ describe('Transport', () => {
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
 					data: {
-						transactionIds: txs.map(tx => tx.id.toString('base64')).splice(0, defaultReleaseLimit),
+						transactionIds: txs.map(tx => tx.id.toString('hex')).splice(0, defaultReleaseLimit),
 					},
 				});
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
 					data: {
-						transactionIds: txs.map(tx => tx.id.toString('base64')).splice(0, defaultReleaseLimit),
+						transactionIds: txs.map(tx => tx.id.toString('hex')).splice(0, defaultReleaseLimit),
 					},
 				});
 			});
@@ -292,12 +292,12 @@ describe('Transport', () => {
 
 			it('should return null', async () => {
 				const validData = {
-					ids: [Buffer.from('15196562876801949910').toString('base64')],
+					ids: [Buffer.from('15196562876801949910').toString('hex')],
 				};
 
 				const result = await transport.handleRPCGetGetHighestCommonBlock(validData, defaultPeerId);
 				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(
-					validData.ids.map(id => Buffer.from(id, 'base64')),
+					validData.ids.map(id => Buffer.from(id, 'hex')),
 				);
 				expect(result).toBeUndefined();
 			});
@@ -305,7 +305,7 @@ describe('Transport', () => {
 
 		describe('when commonBlock has been found', () => {
 			const validBlock = {
-				ids: [Buffer.from('15196562876801949910').toString('base64')],
+				ids: [Buffer.from('15196562876801949910').toString('hex')],
 			};
 
 			beforeEach(() => {
@@ -319,9 +319,9 @@ describe('Transport', () => {
 
 				const result = await transport.handleRPCGetGetHighestCommonBlock(validData, defaultPeerId);
 				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(
-					validData.ids.map(id => Buffer.from(id, 'base64')),
+					validData.ids.map(id => Buffer.from(id, 'hex')),
 				);
-				expect(result).toBe(encodedBlock.toString('base64'));
+				expect(result).toBe(encodedBlock.toString('hex'));
 			});
 		});
 	});
@@ -364,7 +364,7 @@ describe('Transport', () => {
 			it('should resolve to the transactions which are in the transaction pool', async () => {
 				const result = await transport.handleRPCGetTransactions(undefined, defaultPeerId);
 				expect(result).toEqual({
-					transactions: [tx.getBytes().toString('base64')],
+					transactions: [tx.getBytes().toString('hex')],
 				});
 			});
 		});
@@ -387,14 +387,14 @@ describe('Transport', () => {
 
 			it('should return transaction from pool', async () => {
 				const result = await transport.handleRPCGetTransactions({}, defaultPeerId);
-				expect(result.transactions).toEqual([tx.getBytes().toString('base64')]);
+				expect(result.transactions).toEqual([tx.getBytes().toString('hex')]);
 			});
 		});
 
 		describe('when it is called without ids, but exceeds maximum', () => {
 			const ids = new Array(defaultReleaseLimit + 10)
 				.fill(0)
-				.map((_, v) => Buffer.from(`10000000000000000${v}`).toString('base64'));
+				.map((_, v) => Buffer.from(`10000000000000000${v}`).toString('hex'));
 
 			it('should throw an error', async () => {
 				await expect(
@@ -429,7 +429,7 @@ describe('Transport', () => {
 
 			it('should call find get with the id', async () => {
 				await transport.handleRPCGetTransactions(
-					{ transactionIds: [tx.id.toString('base64')] },
+					{ transactionIds: [tx.id.toString('hex')] },
 					defaultPeerId,
 				);
 				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
@@ -437,10 +437,10 @@ describe('Transport', () => {
 
 			it('should return transaction in the pool', async () => {
 				const result = await transport.handleRPCGetTransactions(
-					{ transactionIds: [tx.id.toString('base64')] },
+					{ transactionIds: [tx.id.toString('hex')] },
 					defaultPeerId,
 				);
-				expect(result.transactions).toStrictEqual([tx.getBytes().toString('base64')]);
+				expect(result.transactions).toStrictEqual([tx.getBytes().toString('hex')]);
 			});
 		});
 
@@ -472,7 +472,7 @@ describe('Transport', () => {
 			it('should call find get with the id', async () => {
 				await transport.handleRPCGetTransactions(
 					{
-						transactionIds: [tx.id.toString('base64'), txDatabase.id.toString('base64')],
+						transactionIds: [tx.id.toString('hex'), txDatabase.id.toString('hex')],
 					},
 					defaultPeerId,
 				);
@@ -484,15 +484,15 @@ describe('Transport', () => {
 				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([txDatabase]);
 				const result = await transport.handleRPCGetTransactions(
 					{
-						transactionIds: [tx.id.toString('base64'), txDatabase.id.toString('base64')],
+						transactionIds: [tx.id.toString('hex'), txDatabase.id.toString('hex')],
 					},
 					defaultPeerId,
 				);
 				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
 				expect(result.transactions).toHaveLength(2);
 				expect(result.transactions).toStrictEqual([
-					tx.getBytes().toString('base64'),
-					txDatabase.getBytes().toString('base64'),
+					tx.getBytes().toString('hex'),
+					txDatabase.getBytes().toString('hex'),
 				]);
 			});
 		});
@@ -516,7 +516,7 @@ describe('Transport', () => {
 				networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 				passphrase: genesis.passphrase,
 			});
-			tx = txInstance.getBytes().toString('base64');
+			tx = txInstance.getBytes().toString('hex');
 			tx2Instance = createTransferTransaction({
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
@@ -525,9 +525,9 @@ describe('Transport', () => {
 				networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 				passphrase: genesis.passphrase,
 			});
-			tx2 = tx2Instance.getBytes().toString('base64');
+			tx2 = tx2Instance.getBytes().toString('hex');
 			validTransactionsRequest = {
-				transactionIds: [txInstance.id.toString('base64'), tx2Instance.id.toString('base64')],
+				transactionIds: [txInstance.id.toString('hex'), tx2Instance.id.toString('hex')],
 			};
 		});
 
@@ -668,7 +668,7 @@ describe('Transport', () => {
 				);
 				expect(networkStub.requestFromPeer).toHaveBeenCalledWith({
 					procedure: 'getTransactions',
-					data: { transactionIds: [tx2Instance.id.toString('base64')] },
+					data: { transactionIds: [tx2Instance.id.toString('hex')] },
 					peerId: defaultPeerId,
 				});
 			});

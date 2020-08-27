@@ -899,7 +899,7 @@ Object {
     "asset": Object {
       "accounts": Array [
         Object {
-          "address": "I3C6mEUeH/AHAp8eYC4Uuwl7UW8=",
+          "address": "2370ba98451e1ff007029f1e602e14bb097b516f",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -917,7 +917,7 @@ Object {
           },
         },
         Object {
-          "address": "JdTB7S2iS6hWuJTCCRiPcODKq24=",
+          "address": "25d4c1ed2da24ba856b894c209188f70e0caab6e",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -935,7 +935,7 @@ Object {
           },
         },
         Object {
-          "address": "NLPa3tVQ9bDFCUfY4XdiuXMM8fk=",
+          "address": "34b3daded550f5b0c50947d8e17762b9730cf1f9",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -953,7 +953,7 @@ Object {
           },
         },
         Object {
-          "address": "NyudB23TfnwYPPbtA8F92M3A0xI=",
+          "address": "372b9d076dd37e7c183cf6ed03c17dd8cdc0d312",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -971,7 +971,7 @@ Object {
           },
         },
         Object {
-          "address": "TJUT73sLzO4CRVlHRwCq1wN3BDs=",
+          "address": "4c9513ef7b0bccee024559474700aad70377043b",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -989,7 +989,7 @@ Object {
           },
         },
         Object {
-          "address": "UsldJKfqQ9IC2ooNp/CMM6TrbVw=",
+          "address": "52c95d24a7ea43d202da8a0da7f08c33a4eb6d5c",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1007,7 +1007,7 @@ Object {
           },
         },
         Object {
-          "address": "YhUMz5HMFjT5MO7Qt3YPQhdSppg=",
+          "address": "62150ccf91cc1634f930eed0b7760f421752a698",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1025,7 +1025,7 @@ Object {
           },
         },
         Object {
-          "address": "bjWFsRdRQjpy61tJ9XlAvlCQR1c=",
+          "address": "6e3585b11751423a72eb5b49f57940be50904757",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1043,7 +1043,7 @@ Object {
           },
         },
         Object {
-          "address": "gOCNMiwktTKaJXxbG9dXgDLTuSE=",
+          "address": "80e08d322c24b5329a257c5b1bd7578032d3b921",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1061,7 +1061,7 @@ Object {
           },
         },
         Object {
-          "address": "nTSmlVHYuF7A9VLWXqjdNXJN7pA=",
+          "address": "9d34a69551d8b85ec0f552d65ea8dd35724dee90",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1079,7 +1079,7 @@ Object {
           },
         },
         Object {
-          "address": "wBi13X2ktre/Tmxojo1+mEHUqo8=",
+          "address": "c018b5dd7da4b6b7bf4e6c688e8d7e9841d4aa8f",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1097,7 +1097,7 @@ Object {
           },
         },
         Object {
-          "address": "w8MHF05a4wHElDlsD9tjB+xOxgw=",
+          "address": "c3c307174e5ae301c494396c0fdb6307ec4ec60c",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1115,7 +1115,7 @@ Object {
           },
         },
         Object {
-          "address": "w8Y2FSQEMyXoq86MwfiZ4sL/2bA=",
+          "address": "c3c6361524043325e8abce8cc1f899e2c2ffd9b0",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1133,7 +1133,7 @@ Object {
           },
         },
         Object {
-          "address": "2fvbTyL6pgk2oBE0V9oBnrYcPXc=",
+          "address": "d9fbdb4f22faa60936a0113457da019eb61c3d77",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1151,7 +1151,7 @@ Object {
           },
         },
         Object {
-          "address": "3t+9TGoa0e8NepXNaQcRRUjYxtg=",
+          "address": "dedfbd4c6a1ad1ef0d7a95cd6907114548d8c6d8",
           "dpos": Object {
             "delegate": Object {
               "consecutiveMissedBlocks": 0,
@@ -1170,22 +1170,22 @@ Object {
         },
       ],
       "initDelegates": Array [
-        "I3C6mEUeH/AHAp8eYC4Uuwl7UW8=",
-        "JdTB7S2iS6hWuJTCCRiPcODKq24=",
-        "NLPa3tVQ9bDFCUfY4XdiuXMM8fk=",
-        "NyudB23TfnwYPPbtA8F92M3A0xI=",
-        "bjWFsRdRQjpy61tJ9XlAvlCQR1c=",
+        "2370ba98451e1ff007029f1e602e14bb097b516f",
+        "25d4c1ed2da24ba856b894c209188f70e0caab6e",
+        "34b3daded550f5b0c50947d8e17762b9730cf1f9",
+        "372b9d076dd37e7c183cf6ed03c17dd8cdc0d312",
+        "6e3585b11751423a72eb5b49f57940be50904757",
       ],
       "initRounds": 5,
     },
     "generatorPublicKey": "",
     "height": 5,
-    "id": "4TqvSciyH0emT0hwQkZuji/Q49JuswbksT3EUk3wiJg=",
-    "previousBlockID": "RUaQocN4ODJgB1GafOHIpqSV31CJjx69adIvvO35aJo=",
+    "id": "e13aaf49c8b21f47a64f487042466e8e2fd0e3d26eb306e4b13dc4524df08898",
+    "previousBlockID": "454690a1c37838326007519a7ce1c8a6a495df50898f1ebd69d22fbcedf9689a",
     "reward": "0",
     "signature": "",
     "timestamp": 1591873718,
-    "transactionRoot": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+    "transactionRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "version": 0,
   },
   "payload": Array [],

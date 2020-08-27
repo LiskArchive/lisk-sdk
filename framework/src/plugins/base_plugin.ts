@@ -159,12 +159,12 @@ const decodeTransactionToJSON = (
 
 	const transactionAsset = codec.decodeJSON<object>(
 		transactionTypeAsset.schema,
-		Buffer.from(baseTransaction.asset, 'base64'),
+		Buffer.from(baseTransaction.asset, 'hex'),
 	);
 
 	return {
 		...baseTransaction,
-		id: hash(transactionBuffer).toString('base64'),
+		id: hash(transactionBuffer).toString('hex'),
 		asset: transactionAsset,
 	};
 };
@@ -195,7 +195,7 @@ const encodeTransactionFromJSON = (
 		}),
 	);
 
-	return transactionBuffer.toString('base64');
+	return transactionBuffer.toString('hex');
 };
 
 const decodeAccountToJSON = (encodedAccount: Buffer, accountSchema: Schema): AccountJSON => {
@@ -222,7 +222,7 @@ const decodeBlockToJSON = (codecSchema: CodecSchema, encodedBlock: Buffer): Bloc
 	const baseHeaderJSON = codec.decodeJSON<BaseBlockHeaderJSON>(blockHeaderSchema, header);
 	const blockAssetJSON = codec.decodeJSON<BlockAssetJSON>(
 		blockHeadersAssets[baseHeaderJSON.version],
-		Buffer.from(baseHeaderJSON.asset, 'base64'),
+		Buffer.from(baseHeaderJSON.asset, 'hex'),
 	);
 	const payloadJSON = payload.map(transactionBuffer =>
 		decodeTransactionToJSON(transactionBuffer, transactionSchema, transactionsAssetSchemas),
@@ -231,7 +231,7 @@ const decodeBlockToJSON = (codecSchema: CodecSchema, encodedBlock: Buffer): Bloc
 	const blockId = hash(header);
 
 	return {
-		header: { ...baseHeaderJSON, asset: { ...blockAssetJSON }, id: blockId.toString('base64') },
+		header: { ...baseHeaderJSON, asset: { ...blockAssetJSON }, id: blockId.toString('hex') },
 		payload: payloadJSON,
 	};
 };
@@ -255,24 +255,22 @@ export abstract class BasePlugin {
 
 		this.codec = {
 			decodeAccount: (data: Buffer | string): AccountJSON => {
-				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
+				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
 
 				return decodeAccountToJSON(accountBuffer, this.schemas.accountSchema);
 			},
 			decodeBlock: (data: Buffer | string): BlockJSON => {
-				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
+				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
 
 				return decodeBlockToJSON(this.schemas, blockBuffer);
 			},
 			decodeRawBlock: (data: Buffer | string): RawBlock => {
-				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'base64');
+				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
 
 				return decodeRawBlock(this.schemas.blockSchema, blockBuffer);
 			},
 			decodeTransaction: (data: Buffer | string): TransactionJSON => {
-				const transactionBuffer: Buffer = Buffer.isBuffer(data)
-					? data
-					: Buffer.from(data, 'base64');
+				const transactionBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
 
 				return decodeTransactionToJSON(
 					transactionBuffer,

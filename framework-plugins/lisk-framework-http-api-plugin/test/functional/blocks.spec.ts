@@ -157,14 +157,17 @@ describe('Blocks endpoints', () => {
 
 		it('should respond with 404 and error message when block not found for specified height', async () => {
 			const { response, status } = await callNetwork(
-				axios.get(getURL('/api/blocks/7DrLNMCpWZ39Rs%2BpdYGr9LXdXZGxNsIglQcZO%2FUYxMU%3D')),
+				axios.get(
+					getURL('/api/blocks/ec3acb34c0a9599dfd46cfa97581abf4b5dd5d91b136c2209507193bf518c4c5'),
+				),
 			);
 
 			expect(status).toBe(404);
 			expect(response).toEqual({
 				errors: [
 					{
-						message: "Block with id '7DrLNMCpWZ39Rs+pdYGr9LXdXZGxNsIglQcZO/UYxMU=' was not found",
+						message:
+							"Block with id 'ec3acb34c0a9599dfd46cfa97581abf4b5dd5d91b136c2209507193bf518c4c5' was not found",
 					},
 				],
 			});
@@ -175,7 +178,7 @@ describe('Blocks endpoints', () => {
 
 			expect(status).toBe(400);
 			expect(response).toEqual({
-				errors: [{ message: 'The block id parameter should be a base64 string.' }],
+				errors: [{ message: 'The block id parameter should be a hex string.' }],
 			});
 		});
 	});

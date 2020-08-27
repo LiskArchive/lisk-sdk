@@ -303,7 +303,7 @@ export class Node {
 				const forgersInfo = [];
 				for (let i = slotInRound; i < slotInRound + this._chain.numberOfValidators; i += 1) {
 					forgersInfo.push({
-						address: validatorAddresses[i % validatorAddresses.length].toString('base64'),
+						address: validatorAddresses[i % validatorAddresses.length].toString('hex'),
 						nextForgingTime,
 					});
 					nextForgingTime += blockTime;
@@ -317,39 +317,39 @@ export class Node {
 				forging: boolean;
 			}): Promise<{ address: string; forging: boolean }> => {
 				const result = await this._forger.updateForgingStatus(
-					Buffer.from(params.address, 'base64'),
+					Buffer.from(params.address, 'hex'),
 					params.password,
 					params.forging,
 				);
 
 				return {
-					address: result.address.toString('base64'),
+					address: result.address.toString('hex'),
 					forging: result.forging,
 				};
 			},
 			getAccount: async (params: { address: string }): Promise<string> => {
 				const account = await this._chain.dataAccess.getAccountByAddress(
-					Buffer.from(params.address, 'base64'),
+					Buffer.from(params.address, 'hex'),
 				);
-				return this._chain.dataAccess.encodeAccount(account).toString('base64');
+				return this._chain.dataAccess.encodeAccount(account).toString('hex');
 			},
 			getAccounts: async (params: { address: readonly string[] }): Promise<readonly string[]> => {
 				const accounts = await this._chain.dataAccess.getAccountsByAddress(
-					params.address.map(address => Buffer.from(address, 'base64')),
+					params.address.map(address => Buffer.from(address, 'hex')),
 				);
 				return accounts.map(account =>
-					this._chain.dataAccess.encodeAccount(account).toString('base64'),
+					this._chain.dataAccess.encodeAccount(account).toString('hex'),
 				);
 			},
 			getBlockByID: async (params: { id: string }): Promise<string | undefined> => {
-				const block = await this._chain.dataAccess.getBlockByID(Buffer.from(params.id, 'base64'));
-				return this._chain.dataAccess.encode(block).toString('base64');
+				const block = await this._chain.dataAccess.getBlockByID(Buffer.from(params.id, 'hex'));
+				return this._chain.dataAccess.encode(block).toString('hex');
 			},
 			getBlocksByIDs: async (params: { ids: readonly string[] }): Promise<readonly string[]> => {
 				const blocks = [];
 				try {
 					for (const id of params.ids) {
-						const block = await this._chain.dataAccess.getBlockByID(Buffer.from(id, 'base64'));
+						const block = await this._chain.dataAccess.getBlockByID(Buffer.from(id, 'hex'));
 						blocks.push(block);
 					}
 				} catch (error) {
@@ -357,11 +357,11 @@ export class Node {
 						throw error;
 					}
 				}
-				return blocks.map(block => this._chain.dataAccess.encode(block).toString('base64'));
+				return blocks.map(block => this._chain.dataAccess.encode(block).toString('hex'));
 			},
 			getBlockByHeight: async (params: { height: number }): Promise<string | undefined> => {
 				const block = await this._chain.dataAccess.getBlockByHeight(params.height);
-				return this._chain.dataAccess.encode(block).toString('base64');
+				return this._chain.dataAccess.encode(block).toString('hex');
 			},
 			getBlocksByHeightBetween: async (params: {
 				from: number;
@@ -372,22 +372,22 @@ export class Node {
 					params.to,
 				);
 
-				return blocks.map(b => this._chain.dataAccess.encode(b).toString('base64'));
+				return blocks.map(b => this._chain.dataAccess.encode(b).toString('hex'));
 			},
 			getTransactionByID: async (params: { id: string }): Promise<string> => {
 				const transaction = await this._chain.dataAccess.getTransactionByID(
-					Buffer.from(params.id, 'base64'),
+					Buffer.from(params.id, 'hex'),
 				);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				return transaction.getBytes().toString('base64');
+				return transaction.getBytes().toString('hex');
 			},
 			getTransactionsByIDs: async (params: { ids: readonly string[] }): Promise<string[]> => {
 				const transactions = [];
 				try {
 					for (const id of params.ids) {
 						const transaction = await this._chain.dataAccess.getTransactionByID(
-							Buffer.from(id, 'base64'),
+							Buffer.from(id, 'hex'),
 						);
 						transactions.push(transaction);
 					}
@@ -396,7 +396,7 @@ export class Node {
 						throw error;
 					}
 				}
-				return transactions.map(tx => tx.getBytes().toString('base64'));
+				return transactions.map(tx => tx.getBytes().toString('hex'));
 			},
 			getTransactions: async (params: {
 				data: unknown;
@@ -405,18 +405,18 @@ export class Node {
 				this._transport.handleRPCGetTransactions(params.data, params.peerId),
 			getForgingStatus: (): { address: string; forging: boolean }[] | undefined =>
 				this._forger.getForgingStatusOfAllDelegates()?.map(({ address, forging }) => ({
-					address: address.toString('base64'),
+					address: address.toString('hex'),
 					forging,
 				})),
 			getTransactionsFees: (): TransactionFees => this._getRegisteredTransactionFees(),
 			getTransactionsFromPool: (): string[] =>
-				this._transactionPool.getAll().map(tx => tx.getBytes().toString('base64')),
+				this._transactionPool.getAll().map(tx => tx.getBytes().toString('hex')),
 			postTransaction: async (
 				params: EventPostTransactionData,
 			): Promise<handlePostTransactionReturn> => this._transport.handleEventPostTransaction(params),
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getLastBlock: async (): Promise<string> =>
-				this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
+				this._chain.dataAccess.encode(this._chain.lastBlock).toString('hex'),
 			getBlocksFromId: async (params: { data: unknown; peerId: string }): Promise<string[]> =>
 				this._transport.handleRPCGetBlocksFromId(params.data, params.peerId),
 			getHighestCommonBlock: async (params: {
@@ -437,8 +437,8 @@ export class Node {
 			getNodeInfo: () => ({
 				version: this._options.version,
 				networkVersion: this._options.networkVersion,
-				networkID: this._networkIdentifier.toString('base64'),
-				lastBlockID: this._chain.lastBlock.header.id.toString('base64'),
+				networkID: this._networkIdentifier.toString('hex'),
+				lastBlockID: this._chain.lastBlock.header.id.toString('hex'),
 				height: this._chain.lastBlock.header.height,
 				finalizedHeight: this._bft.finalityManager.finalizedHeight,
 				syncing: this._synchronizer.isActive,
@@ -561,10 +561,10 @@ export class Node {
 			chainModule: this._chain,
 			forgingDelegates: this._options.forging.delegates.map(delegate => ({
 				...delegate,
-				address: Buffer.from(delegate.address, 'base64'),
+				address: Buffer.from(delegate.address, 'hex'),
 				hashOnion: {
 					...delegate.hashOnion,
-					hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
+					hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
 				},
 			})),
 			forgingForce: this._options.forging.force,
@@ -626,9 +626,9 @@ export class Node {
 				const { block } = eventData;
 				// Publish to the outside
 				this._channel.publish('app:block:new', {
-					block: this._chain.dataAccess.encode(block).toString('base64'),
+					block: this._chain.dataAccess.encode(block).toString('hex'),
 					accounts: eventData.accounts.map(acc =>
-						this._chain.dataAccess.encodeAccount(acc).toString('base64'),
+						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
 					),
 				});
 
@@ -668,9 +668,9 @@ export class Node {
 				const { block } = eventData;
 				// Publish to the outside
 				this._channel.publish('app:block:delete', {
-					block: this._chain.dataAccess.encode(block).toString('base64'),
+					block: this._chain.dataAccess.encode(block).toString('hex'),
 					accounts: eventData.accounts.map(acc =>
-						this._chain.dataAccess.encodeAccount(acc).toString('base64'),
+						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
 					),
 				});
 
@@ -706,7 +706,7 @@ export class Node {
 			}): void => {
 				const updatedValidatorsList = eventData.validators.map(aValidator => ({
 					...aValidator,
-					address: aValidator.address.toString('base64'),
+					address: aValidator.address.toString('hex'),
 				}));
 				this._channel.publish('app:chain:validators:change', { validators: updatedValidatorsList });
 			},

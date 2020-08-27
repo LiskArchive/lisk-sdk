@@ -35,7 +35,7 @@ export const getVoters = (channel: BaseChannel, codec: PluginCodec, db: KVStore)
 		for (const account of forgerAccounts) {
 			const forgerInfo = await getForgerInfo(
 				db,
-				Buffer.from(account.address, 'base64').toString('binary'),
+				Buffer.from(account.address, 'hex').toString('binary'),
 			);
 
 			result.push({
@@ -43,7 +43,7 @@ export const getVoters = (channel: BaseChannel, codec: PluginCodec, db: KVStore)
 				username: account.dpos.delegate.username,
 				totalVotesReceived: account.dpos.delegate.totalVotesReceived,
 				voters: forgerInfo.votesReceived.map(vote => ({
-					address: vote.address.toString('base64'),
+					address: vote.address.toString('hex'),
 					amount: vote.amount.toString(),
 				})),
 			});

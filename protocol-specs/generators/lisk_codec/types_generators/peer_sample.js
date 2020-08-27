@@ -25,7 +25,7 @@ const generateValidPeerInfoEncodings = () => {
 			object: {
 				ipAddress: '1.1.1.1',
 				wsPort: 1111,
-				networkId: '+P5+zD4p9Y852KU4+aNbgLS2q5Z08DAOJeM/9BJ0rjI=',
+				networkId: 'f8fe7ecc3e29f58f39d8a538f9a35b80b4b6ab9674f0300e25e33ff41274ae32',
 				networkVersion: '2.0',
 				nonce: 'iNIgD0Mb3s/RMaXbs',
 				os: 'darwin',

@@ -52,9 +52,9 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 			args: { genesisBlockID },
 		} = this.parse(NetworkIdentifierCommand);
 		const networkIdentifier = getNetworkIdentifier(
-			Buffer.from(genesisBlockID, 'base64'),
+			Buffer.from(genesisBlockID, 'hex'),
 			communityIdentifier,
 		);
-		this.print({ networkIdentifier: networkIdentifier.toString('base64') });
+		this.print({ networkIdentifier: networkIdentifier.toString('hex') });
 	}
 }

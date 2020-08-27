@@ -26,7 +26,7 @@ import {
 import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
 
-const invalidBase64String = 'adsfdasfd&saÄffdasfads==';
+const invalidHexString = '69db1f75ab1f76c69f7dxxxxxxxxxx';
 
 let accountNonce = 0;
 
@@ -73,31 +73,31 @@ describe('Hello endpoint', () => {
 		});
 
 		describe('400 - Malformed query or parameters', () => {
-			it('should fail if id is not valid base64 string', async () => {
+			it('should fail if id is not valid hex string', async () => {
 				// Act
 				const { response, status } = await callNetwork(
-					axios.get(getURL(`/api/transactions/${invalidBase64String}`)),
+					axios.get(getURL(`/api/transactions/${invalidHexString}`)),
 				);
 
 				expect(status).toEqual(400);
 				expect(response).toEqual({
-					errors: [{ message: 'Transaction id parameter should be a base64 string.' }],
+					errors: [{ message: 'Transaction id parameter should be a hex string.' }],
 				});
 			});
 		});
 
 		describe('404 - Not found', () => {
-			it('should fail if id is not valid base64 string', async () => {
+			it('should fail if id is not valid hex string', async () => {
 				// Act
 				const { response, status } = await callNetwork(
-					axios.get(getURL('/api/transactions/123abcd==='), {
+					axios.get(getURL('/api/transactions/d76dda6dc7'), {
 						headers: { Accept: 'application/json' },
 					}),
 				);
 
 				expect(status).toEqual(404);
 				expect(response).toEqual({
-					errors: [{ message: 'The transaction with id "123abcd===" not found.' }],
+					errors: [{ message: 'The transaction with id "d76dda6dc7" not found.' }],
 				});
 			});
 		});
@@ -158,7 +158,7 @@ describe('Hello endpoint', () => {
 				});
 			});
 
-			it('should fail if senderPublicKey is not base64 string', async () => {
+			it('should fail if senderPublicKey is not hex string', async () => {
 				// Arrange
 				const account = getRandomAccount();
 				const transaction = createTransferTransaction({
@@ -168,7 +168,7 @@ describe('Hello endpoint', () => {
 					nonce: accountNonce,
 				});
 				const { id, ...input } = transaction;
-				input.senderPublicKey = invalidBase64String;
+				input.senderPublicKey = invalidHexString;
 
 				// Act
 				const { response, status } = await callNetwork(
@@ -181,13 +181,13 @@ describe('Hello endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.senderPublicKey\' should match format "base64"',
+								'Lisk validator found 1 error[s]:\nProperty \'.senderPublicKey\' should match format "hex"',
 						},
 					],
 				});
 			});
 
-			it('should fail if signatures contains invalid base64 string', async () => {
+			it('should fail if signatures contains invalid hex string', async () => {
 				// Arrange
 				const account = getRandomAccount();
 				const transaction = createTransferTransaction({
@@ -197,7 +197,7 @@ describe('Hello endpoint', () => {
 					nonce: accountNonce,
 				});
 				const { id, ...input } = transaction;
-				input.signatures = [invalidBase64String];
+				input.signatures = [invalidHexString];
 
 				// Act
 				const { response, status } = await callNetwork(
@@ -210,7 +210,7 @@ describe('Hello endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.signatures[0]\' should match format "base64"',
+								'Lisk validator found 1 error[s]:\nProperty \'.signatures[0]\' should match format "hex"',
 						},
 					],
 				});
@@ -229,7 +229,7 @@ describe('Hello endpoint', () => {
 				});
 				const { id, ...input } = transaction;
 				const newSignature = getRandomBytes(64);
-				input.signatures = [newSignature.toString('base64')];
+				input.signatures = [newSignature.toString('hex')];
 
 				// Act
 				const { response, status } = await callNetwork(
@@ -242,7 +242,7 @@ describe('Hello endpoint', () => {
 					errors: [
 						{
 							message: expect.stringContaining(
-								`Failed to validate signature '${newSignature.toString('base64')}'`,
+								`Failed to validate signature '${newSignature.toString('hex')}'`,
 							),
 						},
 					],

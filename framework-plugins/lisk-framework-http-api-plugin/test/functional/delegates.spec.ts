@@ -18,7 +18,7 @@ import { callNetwork, createApplication, closeApplication, getURL } from './util
 describe('Delegates endpoint', () => {
 	let app: Application;
 	const firstDelegateAccount = {
-		address: 'A/bZC329BJfcOlLRwn4ju4x1iX8=',
+		address: '03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
 		token: { balance: '0' },
 		sequence: { nonce: '0' },
 		keys: { numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] },
@@ -33,7 +33,7 @@ describe('Delegates endpoint', () => {
 			},
 			sentVotes: [
 				{
-					delegateAddress: 'A/bZC329BJfcOlLRwn4ju4x1iX8=',
+					delegateAddress: '03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
 					amount: '1000000000000',
 				},
 			],

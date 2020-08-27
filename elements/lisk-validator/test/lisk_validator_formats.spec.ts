@@ -25,7 +25,7 @@ describe('validator formats', () => {
 		};
 	});
 
-	describe('base64', () => {
+	describe('hex', () => {
 		let schema: object;
 		beforeEach(() => {
 			schema = {
@@ -35,7 +35,7 @@ describe('validator formats', () => {
 						properties: {
 							target: {
 								type: 'string',
-								format: 'base64',
+								format: 'hex',
 							},
 						},
 					},
@@ -43,24 +43,26 @@ describe('validator formats', () => {
 			};
 		});
 
-		it('should validate to true when valid base64 string is provided', () => {
-			expect(validator.validate(schema, { target: 'I7ntgYUmqSi86RuW+0UIursSHuI=' })).toEqual([]);
+		it('should validate to true when valid hex string is provided', () => {
+			expect(
+				validator.validate(schema, { target: '23b9ed818526a928bce91b96fb4508babb121ee2' }),
+			).toEqual([]);
 		});
 
-		it('should validate to false when not base64 is provided', () => {
+		it('should validate to false when not hex is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
 					dataPath: '.target',
 					schemaPath: '#/allOf/1/properties/target/format',
-					params: { format: 'base64' },
-					message: 'should match format "base64"',
+					params: { format: 'hex' },
+					message: 'should match format "hex"',
 				},
 			];
 
 			expect(
 				validator.validate(schema, {
-					target: 'notValid?!base64-!!@',
+					target: 'notValid?!hex-!!@',
 				}),
 			).toEqual(expectedError);
 		});

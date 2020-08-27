@@ -68,7 +68,7 @@ describe('Forger Info', () => {
 			accountNonce += 1;
 
 			await app['_channel'].invoke('app:postTransaction', {
-				transaction: transaction.getBytes().toString('base64'),
+				transaction: transaction.getBytes().toString('hex'),
 			});
 			await waitNBlocks(app, 1);
 
@@ -88,7 +88,7 @@ describe('Forger Info', () => {
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '10',
-					recipientAddress: forgingDelegateAddress.toString('base64'),
+					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					networkIdentifier,
@@ -96,7 +96,7 @@ describe('Forger Info', () => {
 				accountNonce += 1;
 
 				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction1.getBytes().toString('base64'),
+					transaction: transaction1.getBytes().toString('hex'),
 				});
 				await waitNBlocks(app, 1);
 				await waitTill(200);
@@ -116,7 +116,7 @@ describe('Forger Info', () => {
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '10',
-					recipientAddress: forgingDelegateAddress.toString('base64'),
+					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					networkIdentifier,
@@ -124,7 +124,7 @@ describe('Forger Info', () => {
 				accountNonce += 1;
 				const transaction2 = createVoteTransaction({
 					amount: '50',
-					recipientAddress: forgingDelegateAddress.toString('base64'),
+					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					networkIdentifier,
@@ -132,10 +132,10 @@ describe('Forger Info', () => {
 				accountNonce += 1;
 
 				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction1.getBytes().toString('base64'),
+					transaction: transaction1.getBytes().toString('hex'),
 				});
 				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction2.getBytes().toString('base64'),
+					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await waitNBlocks(app, 1);
 				await waitTill(200);
@@ -155,7 +155,7 @@ describe('Forger Info', () => {
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '-50',
-					recipientAddress: forgingDelegateAddress.toString('base64'),
+					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					networkIdentifier,
@@ -163,7 +163,7 @@ describe('Forger Info', () => {
 				accountNonce += 1;
 				const transaction2 = createVoteTransaction({
 					amount: '+10',
-					recipientAddress: forgingDelegateAddress.toString('base64'),
+					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					networkIdentifier,
@@ -171,10 +171,10 @@ describe('Forger Info', () => {
 				accountNonce += 1;
 
 				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction1.getBytes().toString('base64'),
+					transaction: transaction1.getBytes().toString('hex'),
 				});
 				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction2.getBytes().toString('base64'),
+					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await waitNBlocks(app, 1);
 				await waitTill(200);
@@ -195,7 +195,7 @@ describe('Forger Info', () => {
 				const [forgingDelegateAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
 				const transaction1 = createVoteTransaction({
 					amount: '-30',
-					recipientAddress: forgingDelegateAddress1.toString('base64'),
+					recipientAddress: forgingDelegateAddress1.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					networkIdentifier,
@@ -203,7 +203,7 @@ describe('Forger Info', () => {
 				accountNonce += 1;
 				const transaction2 = createVoteTransaction({
 					amount: '20',
-					recipientAddress: forgingDelegateAddress2.toString('base64'),
+					recipientAddress: forgingDelegateAddress2.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
 					networkIdentifier,
@@ -211,10 +211,10 @@ describe('Forger Info', () => {
 				accountNonce += 1;
 
 				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction1.getBytes().toString('base64'),
+					transaction: transaction1.getBytes().toString('hex'),
 				});
 				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction2.getBytes().toString('base64'),
+					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await waitNBlocks(app, 1);
 				await waitTill(200);

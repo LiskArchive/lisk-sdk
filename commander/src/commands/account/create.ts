@@ -39,9 +39,9 @@ const createAccount = (): AccountInfo => {
 
 	return {
 		passphrase,
-		privateKey: privateKey.toString('base64'),
-		publicKey: publicKey.toString('base64'),
-		binaryAddress: binaryAddress.toString('base64'),
+		privateKey: privateKey.toString('hex'),
+		publicKey: publicKey.toString('hex'),
+		binaryAddress: binaryAddress.toString('hex'),
 		address,
 	};
 };

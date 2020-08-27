@@ -54,7 +54,7 @@ export class TransferAsset extends BaseAsset {
 	public async apply({ asset, senderID, stateStore }: ApplyAssetContext<Asset>): Promise<void> {
 		const sender = await stateStore.account.get<TokenAccount>(senderID);
 		if (!sender) {
-			throw new Error(`Account does not exist for senderID: ${senderID.toString('base64')}`);
+			throw new Error(`Account does not exist for senderID: ${senderID.toString('hex')}`);
 		}
 		sender.token.balance -= asset.amount;
 		stateStore.account.set(sender.address, sender);
@@ -69,7 +69,7 @@ export class TransferAsset extends BaseAsset {
 		if (recipient.token.balance < this._minRemainingBalance) {
 			throw new Error(
 				`Recipient account does not have enough minimum remaining LSK: ${recipient.address.toString(
-					'base64',
+					'hex',
 				)}. Minimum required balance: ${
 					this._minRemainingBalance
 				}. Remaining balance: ${recipient.token.balance.toString()}`,

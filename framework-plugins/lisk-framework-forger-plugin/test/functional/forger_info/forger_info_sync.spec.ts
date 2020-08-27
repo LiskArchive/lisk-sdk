@@ -54,7 +54,7 @@ describe('Forger Info Sync', () => {
 		});
 		accountNonce += 1;
 		await app['_channel'].invoke('app:postTransaction', {
-			transaction: transaction.getBytes().toString('base64'),
+			transaction: transaction.getBytes().toString('hex'),
 		});
 		await waitNBlocks(app, 1);
 		await waitTill(2000);

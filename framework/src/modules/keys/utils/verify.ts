@@ -32,8 +32,8 @@ export const validateSignature = (
 	if (!valid) {
 		throw new Error(
 			`Failed to validate signature '${signature.toString(
-				'base64',
-			)}' for transaction with id '${id.toString('base64')}'`,
+				'hex',
+			)}' for transaction with id '${id.toString('hex')}'`,
 		);
 	}
 };
@@ -72,7 +72,7 @@ export const verifyMultiSignatureTransaction = (
 	) {
 		throw new Error(
 			`Transaction signatures does not match required number of signatures: '${numberOfSignatures.toString()}' for transaction with id '${id.toString(
-				'base64',
+				'hex',
 			)}'`,
 		);
 	}

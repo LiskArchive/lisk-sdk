@@ -110,7 +110,7 @@ export class Transport {
 	public handleBroadcastTransaction(transaction: Transaction): void {
 		this._broadcaster.enqueueTransactionId(transaction.id);
 		this._channel.publish('app:transaction:new', {
-			transaction: transaction.getBytes().toString('base64'),
+			transaction: transaction.getBytes().toString('hex'),
 		});
 	}
 
@@ -126,7 +126,7 @@ export class Transport {
 		return this._networkModule.send({
 			event: 'postBlock',
 			data: {
-				block: this._chainModule.dataAccess.encode(block).toString('base64'),
+				block: this._chainModule.dataAccess.encode(block).toString('hex'),
 			},
 		});
 	}
@@ -152,7 +152,7 @@ export class Transport {
 			throw new Error(error);
 		}
 
-		const blockID = Buffer.from((data as RPCBlocksByIdData).blockId, 'base64');
+		const blockID = Buffer.from((data as RPCBlocksByIdData).blockId, 'hex');
 
 		// Get height of block with supplied ID
 		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(blockID);
@@ -168,7 +168,7 @@ export class Transport {
 			fetchUntilHeight,
 		);
 
-		return blocks.map(block => this._chainModule.dataAccess.encode(block).toString('base64'));
+		return blocks.map(block => this._chainModule.dataAccess.encode(block).toString('hex'));
 	}
 
 	public async handleRPCGetGetHighestCommonBlock(
@@ -195,14 +195,14 @@ export class Transport {
 			throw new Error(error);
 		}
 
-		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id => Buffer.from(id, 'base64'));
+		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id => Buffer.from(id, 'hex'));
 
 		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(
 			blockIDs,
 		);
 
 		return commonBlockHeader
-			? this._chainModule.dataAccess.encodeBlockHeader(commonBlockHeader).toString('base64')
+			? this._chainModule.dataAccess.encodeBlockHeader(commonBlockHeader).toString('hex')
 			: undefined;
 	}
 
@@ -230,7 +230,7 @@ export class Transport {
 			throw errors;
 		}
 
-		const blockBytes = Buffer.from((data as EventPostBlockData).block, 'base64');
+		const blockBytes = Buffer.from((data as EventPostBlockData).block, 'hex');
 
 		const block = this._chainModule.dataAccess.decode(blockBytes);
 
@@ -263,7 +263,7 @@ export class Transport {
 			const transactions = transactionsBySender
 				.values()
 				.flat()
-				.map(tx => tx.getBytes().toString('base64'));
+				.map(tx => tx.getBytes().toString('hex'));
 			transactions.splice(DEFAULT_RATE_RESET_TIME);
 
 			return {
@@ -286,13 +286,13 @@ export class Transport {
 
 		for (const idStr of transactionIds) {
 			// Check if any transaction is in the queues.
-			const id = Buffer.from(idStr, 'base64');
+			const id = Buffer.from(idStr, 'hex');
 			// FIXME: #5619 type casting should be removed
 			const transaction = (this._transactionPoolModule.get(id) as unknown) as Transaction;
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
-				transactionsFromQueues.push(transaction.getBytes().toString('base64'));
+				transactionsFromQueues.push(transaction.getBytes().toString('hex'));
 			} else {
 				idsNotInPool.push(id);
 			}
@@ -306,7 +306,7 @@ export class Transport {
 
 			return {
 				transactions: transactionsFromQueues.concat(
-					transactionsFromDatabase.map(t => t.getBytes().toString('base64')),
+					transactionsFromDatabase.map(t => t.getBytes().toString('hex')),
 				),
 			};
 		}
@@ -321,11 +321,11 @@ export class Transport {
 	): Promise<handlePostTransactionReturn> {
 		try {
 			const tx = this._chainModule.dataAccess.decodeTransaction(
-				Buffer.from(data.transaction, 'base64'),
+				Buffer.from(data.transaction, 'hex'),
 			);
 			const id = await this._receiveTransaction(tx);
 			return {
-				transactionId: id.toString('base64'),
+				transactionId: id.toString('hex'),
 			};
 		} catch (err) {
 			if (Array.isArray(err)) {
@@ -357,7 +357,7 @@ export class Transport {
 		}
 
 		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds.map(idStr =>
-			Buffer.from(idStr, 'base64'),
+			Buffer.from(idStr, 'hex'),
 		);
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
@@ -365,7 +365,7 @@ export class Transport {
 			const { data: result } = (await this._networkModule.requestFromPeer({
 				procedure: 'getTransactions',
 				data: {
-					transactionIds: unknownTransactionIDs.map(id => id.toString('base64')),
+					transactionIds: unknownTransactionIDs.map(id => id.toString('hex')),
 				},
 				peerId,
 			})) as {
@@ -377,7 +377,7 @@ export class Transport {
 				for (const transaction of result.transactions) {
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					const tx = this._chainModule.dataAccess.decodeTransaction(
-						Buffer.from(transaction, 'base64'),
+						Buffer.from(transaction, 'hex'),
 					);
 					await this._receiveTransaction(tx);
 				}

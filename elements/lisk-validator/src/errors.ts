@@ -39,7 +39,7 @@ const errorParamToString = (param: string | Buffer | BigInt | undefined | unknow
 	if (typeof param === 'bigint') {
 		paramAsString = param.toString();
 	} else if (Buffer.isBuffer(param)) {
-		paramAsString = param.toString('base64');
+		paramAsString = param.toString('hex');
 	} else if (param === undefined) {
 		paramAsString = '';
 	} else {

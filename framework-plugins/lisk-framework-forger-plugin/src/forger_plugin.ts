@@ -78,9 +78,9 @@ interface ForgerReceivedVotes {
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
-const getBinaryAddress = (base64AddressStr: string) =>
-	Buffer.from(base64AddressStr, 'base64').toString('binary');
-const getAddressBuffer = (base64AddressStr: string) => Buffer.from(base64AddressStr, 'base64');
+const getBinaryAddress = (hexAddressStr: string) =>
+	Buffer.from(hexAddressStr, 'hex').toString('binary');
+const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, 'hex');
 
 export class ForgerPlugin extends BasePlugin {
 	private _forgerPluginDB!: KVStore;
@@ -203,7 +203,7 @@ export class ForgerPlugin extends BasePlugin {
 		this._forgersList = new dataStructures.BufferMap<boolean>();
 		const forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatus');
 		for (const { address, forging } of forgersList) {
-			this._forgersList.set(Buffer.from(address, 'base64'), forging);
+			this._forgersList.set(Buffer.from(address, 'hex'), forging);
 		}
 	}
 
@@ -214,8 +214,8 @@ export class ForgerPlugin extends BasePlugin {
 	private _getForgerHeaderAndPayloadInfo(block: string): ForgerPayloadInfo {
 		const { header, payload } = this.codec.decodeBlock(block);
 		const forgerAddress = getAddressFromPublicKey(
-			Buffer.from(header.generatorPublicKey, 'base64'),
-		).toString('base64');
+			Buffer.from(header.generatorPublicKey, 'hex'),
+		).toString('hex');
 		const forgerAddressBuffer = getAddressBuffer(forgerAddress);
 		const forgerAddressBinary = getBinaryAddress(forgerAddress);
 
@@ -360,7 +360,7 @@ export class ForgerPlugin extends BasePlugin {
 
 		for (const trx of payload) {
 			if (trx.moduleID === 5 && trx.assetID === 1) {
-				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'base64'));
+				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'hex'));
 				(trx.asset as Asset).votes.reduce((acc: ForgerReceivedVotes, curr) => {
 					if (
 						this._forgersList.has(getAddressBuffer(curr.delegateAddress)) &&

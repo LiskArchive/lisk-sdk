@@ -576,7 +576,7 @@ describe('Synchronizer', () => {
 			);
 			(transaction.signatures as Buffer[]).push(signature);
 			const validtransactions = {
-				transactions: [transaction.getBytes().toString('base64')],
+				transactions: [transaction.getBytes().toString('hex')],
 			};
 
 			beforeEach(() => {

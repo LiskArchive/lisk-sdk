@@ -75,7 +75,7 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndRestartError(peerId, 'Peer did not provide its last block');
 		}
-		return this._chain.dataAccess.decode(Buffer.from(data, 'base64'));
+		return this._chain.dataAccess.decode(Buffer.from(data, 'hex'));
 	}
 
 	protected async _getHighestCommonBlockFromNetwork(
@@ -86,7 +86,7 @@ export abstract class BaseSynchronizer {
 			procedure: 'getHighestCommonBlock',
 			peerId,
 			data: {
-				ids: ids.map(id => id.toString('base64')),
+				ids: ids.map(id => id.toString('hex')),
 			},
 		})) as {
 			data: string | undefined;
@@ -95,7 +95,7 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Peer did not return a common block');
 		}
-		return this._chain.dataAccess.decodeBlockHeader(Buffer.from(data, 'base64'));
+		return this._chain.dataAccess.decodeBlockHeader(Buffer.from(data, 'hex'));
 	}
 
 	protected async _getBlocksFromNetwork(peerId: string, fromID: Buffer): Promise<Block[]> {
@@ -103,7 +103,7 @@ export abstract class BaseSynchronizer {
 			procedure: 'getBlocksFromId',
 			peerId,
 			data: {
-				blockId: fromID.toString('base64'),
+				blockId: fromID.toString('hex'),
 			},
 		})) as {
 			data: string[] | undefined;
@@ -112,7 +112,7 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new Error('Peer did not respond with block');
 		}
-		return data.map(d => this._chain.dataAccess.decode(Buffer.from(d, 'base64')));
+		return data.map(d => this._chain.dataAccess.decode(Buffer.from(d, 'hex')));
 	}
 
 	public abstract async run(receivedBlock: Block, peerId: string): Promise<void>;

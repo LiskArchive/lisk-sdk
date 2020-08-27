@@ -13,7 +13,7 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { BaseChannel } from 'lisk-framework';
-import { validator, LiskValidationError, isBase64String } from '@liskhq/lisk-validator';
+import { validator, LiskValidationError, isHexString } from '@liskhq/lisk-validator';
 import { KVStore } from '@liskhq/lisk-db';
 import { getForgerInfo } from '../db';
 
@@ -22,7 +22,7 @@ const updateForgingParams = {
 	properties: {
 		address: {
 			type: 'string',
-			description: 'Address should be a Base64 string',
+			description: 'Address should be a hex string',
 		},
 		password: {
 			type: 'string',
@@ -59,9 +59,9 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 	}
 	const { address, password, forging } = req.body as ForgingRequestData;
 
-	if (!isBase64String(address)) {
+	if (!isHexString(address)) {
 		res.status(400).send({
-			errors: [{ message: 'The Address parameter should be a base64 string.' }],
+			errors: [{ message: 'The Address parameter should be a hex string.' }],
 		});
 		return;
 	}

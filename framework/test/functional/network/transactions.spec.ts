@@ -33,7 +33,7 @@ describe('Public transaction related P2P endpoints', () => {
 	beforeAll(async () => {
 		app = await createApplication('network-transactions');
 		p2p = await createProbe({
-			networkId: app.networkIdentifier.toString('base64'),
+			networkId: app.networkIdentifier.toString('hex'),
 			networkVersion: app.config.networkVersion,
 			port: app.config.network.port,
 		});
@@ -49,7 +49,7 @@ describe('Public transaction related P2P endpoints', () => {
 				{
 					procedure: 'getTransactions',
 					data: {
-						transactionIds: [getRandomBytes(32).toString('base64')],
+						transactionIds: [getRandomBytes(32).toString('hex')],
 					},
 				},
 				getPeerID(app),
@@ -64,7 +64,7 @@ describe('Public transaction related P2P endpoints', () => {
 				{
 					procedure: 'getTransactions',
 					data: {
-						transactionIds: [sendTx.id.toString('base64')],
+						transactionIds: [sendTx.id.toString('hex')],
 					},
 				},
 				getPeerID(app),
@@ -90,19 +90,19 @@ describe('Public transaction related P2P endpoints', () => {
 			p2p.sendToPeer(
 				{
 					event: 'postTransactionsAnnouncement',
-					data: { transactionIds: [tx.id.toString('base64')] },
+					data: { transactionIds: [tx.id.toString('hex')] },
 				},
 				getPeerID(app),
 			);
 
 			const request = await new Promise<p2pTypes.P2PRequestPacket>(resolve => {
 				p2p.on(events.EVENT_REQUEST_RECEIVED, (req: any) => {
-					req.end({ transaction: tx.getBytes().toString('base64') });
+					req.end({ transaction: tx.getBytes().toString('hex') });
 					resolve(req);
 				});
 			});
 			expect(request.procedure).toEqual('getTransactions');
-			expect((request as any).data.transactionIds[0]).toEqual(tx.id.toString('base64'));
+			expect((request as any).data.transactionIds[0]).toEqual(tx.id.toString('hex'));
 		});
 	});
 });

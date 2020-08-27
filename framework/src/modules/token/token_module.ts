@@ -126,7 +126,7 @@ export class TokenModule extends BaseModule {
 		if (sender.token.balance < this._minRemainingBalance) {
 			throw new Error(
 				`Account does not have enough minimum remaining balance: ${sender.address.toString(
-					'base64',
+					'hex',
 				)}. Current balance is: ${
 					sender.token.balance
 				}. Required minimum balance is: ${this._minRemainingBalance.toString()}.`,

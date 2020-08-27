@@ -39,13 +39,13 @@ describe('account:show', () => {
 				expect(printUtils.print).to.be.called;
 				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
 				return expect(printMethodStub).to.be.calledWith({
-					privateKey: cryptography.getKeys(passphraseInput).privateKey.toString('base64'),
-					publicKey: cryptography.getKeys(passphraseInput).publicKey.toString('base64'),
+					privateKey: cryptography.getKeys(passphraseInput).privateKey.toString('hex'),
+					publicKey: cryptography.getKeys(passphraseInput).publicKey.toString('hex'),
 					address: cryptography.getBase32AddressFromPublicKey(
 						cryptography.getKeys(passphraseInput).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.getAddressFromPassphrase(passphraseInput).toString('base64'),
+					binaryAddress: cryptography.getAddressFromPassphrase(passphraseInput).toString('hex'),
 				});
 			});
 
@@ -56,15 +56,15 @@ describe('account:show', () => {
 				expect(printUtils.print).to.be.called;
 				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 				return expect(printMethodStub).to.be.calledWith({
-					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('base64'),
-					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('base64'),
+					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
+					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
 					address: cryptography.getBase32AddressFromPublicKey(
 						cryptography.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography
 						.getAddressFromPassphrase(secondDefaultMnemonic)
-						.toString('base64'),
+						.toString('hex'),
 				});
 			});
 	});

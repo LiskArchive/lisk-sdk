@@ -19,7 +19,7 @@ import * as printUtils from '../../src/utils/print';
 
 describe('network-identifier command', () => {
 	const networkIdentifier = {
-		networkIdentifier: '8EetDbmdyMMqEEwrX8UW/skK9+Zbl5A0qzibQI/Ixrk=',
+		networkIdentifier: '03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
 	};
 
 	const printMethodStub = sandbox.stub();

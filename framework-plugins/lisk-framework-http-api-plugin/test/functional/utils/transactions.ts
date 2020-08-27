@@ -61,10 +61,10 @@ export const createTransferTransaction = ({
 			assetID: 0,
 			nonce: BigInt(nonce),
 			fee: BigInt(convertLSKToBeddows(fee)),
-			senderPublicKey: Buffer.from(genesisAccount.publicKey, 'base64'),
+			senderPublicKey: Buffer.from(genesisAccount.publicKey, 'hex'),
 			asset: {
 				amount: BigInt(convertLSKToBeddows(amount)),
-				recipientAddress: Buffer.from(recipientAddress, 'base64'),
+				recipientAddress: Buffer.from(recipientAddress, 'hex'),
 				data: '',
 			},
 		},
@@ -74,13 +74,13 @@ export const createTransferTransaction = ({
 
 	return {
 		...transaction,
-		id: transaction.id.toString('base64'),
-		senderPublicKey: transaction.senderPublicKey.toString('base64'),
-		signatures: transaction.signatures.map((s: Buffer) => s.toString('base64')),
+		id: transaction.id.toString('hex'),
+		senderPublicKey: transaction.senderPublicKey.toString('hex'),
+		signatures: transaction.signatures.map((s: Buffer) => s.toString('hex')),
 		asset: {
 			...transaction.asset,
 			amount: transaction.asset.amount.toString(),
-			recipientAddress: transaction.asset.recipientAddress.toString('base64'),
+			recipientAddress: transaction.asset.recipientAddress.toString('hex'),
 		},
 		nonce: transaction.nonce.toString(),
 		fee: transaction.fee.toString(),

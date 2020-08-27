@@ -72,7 +72,7 @@ describe('keys module', () => {
 
 	beforeEach(() => {
 		keysModule = new KeysModule(genesisConfig);
-		const buffer = Buffer.from(defualtTestCase.output.transaction, 'base64');
+		const buffer = Buffer.from(defualtTestCase.output.transaction, 'hex');
 		const id = hash(buffer);
 		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
 		decodedMultiSignature = {
@@ -82,7 +82,7 @@ describe('keys module', () => {
 		validTestTransaction = new Transaction(decodedMultiSignature);
 
 		targetMultisigAccount = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
+			address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
 			balance: BigInt('94378900000'),
 		});
 
@@ -98,7 +98,7 @@ describe('keys module', () => {
 			get: jest.fn().mockResolvedValue(targetMultisigAccount),
 			getOrDefault: jest.fn().mockResolvedValue(
 				createFakeDefaultAccount({
-					address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
+					address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
 				}) as never,
 			),
 		};
@@ -203,7 +203,7 @@ describe('keys module', () => {
 					}),
 				).rejects.toStrictEqual(
 					new Error(
-						"Failed to validate signature '3myu7/4VBi/m/gr/V1nXFTO80a9ndZ+7mM0lv9m81CfmJiWneNnJ5mVkaEfDcAK7g0KfkGczwUTKnzb7Wlw+BQ==' for transaction with id '0uM910NbJpiK3LgYj6STQAN09MxfJnKGjkXYjME3cRg='",
+						"Failed to validate signature 'de6caeeffe15062fe6fe0aff5759d71533bcd1af67759fbb98cd25bfd9bcd427e62625a778d9c9e665646847c37002bb83429f906733c144ca9f36fb5a5c3e05' for transaction with id 'd2e33dd7435b26988adcb8188fa493400374f4cc5f2672868e45d88cc1377118'",
 					),
 				);
 			});
@@ -227,7 +227,7 @@ describe('keys module', () => {
 					}),
 				).rejects.toStrictEqual(
 					new Error(
-						"Failed to validate signature 'HBBoFdFZusEi+gmRDRCRHJa5U10zkf4lc6whdaqqYnn1wjZkuc9mzIYinsREFK30q8MVpQF91HOh7/zcao1sDw==' for transaction with id 'QGBPNpD0ubTtZss+Ci5xNlDSniS3/D7P+bQxq4d4/+A='",
+						"Failed to validate signature '1c106815d159bac122fa09910d10911c96b9535d3391fe2573ac2175aaaa6279f5c23664b9cf66cc86229ec44414adf4abc315a5017dd473a1effcdc6a8d6c0f' for transaction with id '40604f3690f4b9b4ed66cb3e0a2e713650d29e24b7fc3ecff9b431ab8778ffe0'",
 					),
 				);
 			});
@@ -254,7 +254,7 @@ describe('keys module', () => {
 					}),
 				).rejects.toStrictEqual(
 					new Error(
-						"Failed to validate signature 'qZt+mbegQn+dohrZsVfmVISkX+x3V7n4+ZCXmyixpwE6zxeiDIfUFige2Wpd9mLmzrt/ZKY5xLJ6pXEKBIMhCw==' for transaction with id '6ftLshO2zqVil4zUIqVZfxAoeQfy19AHAk4JIzntoxk='",
+						"Failed to validate signature 'a99b7e99b7a0427f9da21ad9b157e65484a45fec7757b9f8f990979b28b1a7013acf17a20c87d416281ed96a5df662e6cebb7f64a639c4b27aa5710a0483210b' for transaction with id 'e9fb4bb213b6cea562978cd422a5597f10287907f2d7d007024e092339eda319'",
 					),
 				);
 			});
@@ -281,7 +281,7 @@ describe('keys module', () => {
 					}),
 				).rejects.toStrictEqual(
 					new Error(
-						"Failed to validate signature '25OKrycZqAAXhE8ZaONc6ScSTc98BKCw2SaKp8mtHOUOYZBcG7ipArmC4lNDwjL65fBs2Ci30RylPxiCDq2MCA==' for transaction with id 'cbHb8mt8DpG8sf6VcMwIdaphbeSjuSf8VEBFvfN4ibw='",
+						"Failed to validate signature 'db938aaf2719a80017844f1968e35ce927124dcf7c04a0b0d9268aa7c9ad1ce50e61905c1bb8a902b982e25343c232fae5f06cd828b7d11ca53f18820ead8c08' for transaction with id '71b1dbf26b7c0e91bcb1fe9570cc0875aa616de4a3b927fc544045bdf37889bc'",
 					),
 				);
 			});
@@ -609,7 +609,7 @@ describe('keys module', () => {
 				).rejects.toThrow(
 					new Error(
 						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
-							'base64',
+							'hex',
 						)}'`,
 					),
 				);
@@ -665,7 +665,7 @@ describe('keys module', () => {
 				).rejects.toThrow(
 					new Error(
 						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
-							'base64',
+							'hex',
 						)}'`,
 					),
 				);
@@ -703,7 +703,7 @@ describe('keys module', () => {
 				).rejects.toThrow(
 					new Error(
 						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
-							'base64',
+							'hex',
 						)}'`,
 					),
 				);
@@ -838,8 +838,8 @@ describe('keys module', () => {
 				).rejects.toThrow(
 					new Error(
 						`Failed to validate signature '${transaction.signatures[3].toString(
-							'base64',
-						)}' for transaction with id '${transaction.id.toString('base64')}'`,
+							'hex',
+						)}' for transaction with id '${transaction.id.toString('hex')}'`,
 					),
 				);
 			});
@@ -886,8 +886,8 @@ describe('keys module', () => {
 				).rejects.toThrow(
 					new Error(
 						`Failed to validate signature '${transaction.signatures[0].toString(
-							'base64',
-						)}' for transaction with id '${transaction.id.toString('base64')}'`,
+							'hex',
+						)}' for transaction with id '${transaction.id.toString('hex')}'`,
 					),
 				);
 			});
@@ -934,8 +934,8 @@ describe('keys module', () => {
 				).rejects.toThrow(
 					new Error(
 						`Failed to validate signature '${transaction.signatures[3].toString(
-							'base64',
-						)}' for transaction with id '${transaction.id.toString('base64')}'`,
+							'hex',
+						)}' for transaction with id '${transaction.id.toString('hex')}'`,
 					),
 				);
 			});

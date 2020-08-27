@@ -37,10 +37,10 @@ const processInput = (
 	const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
 
 	return {
-		privateKey: privateKey.toString('base64'),
-		publicKey: publicKey.toString('base64'),
+		privateKey: privateKey.toString('hex'),
+		publicKey: publicKey.toString('hex'),
 		address,
-		binaryAddress: binaryAddress.toString('base64'),
+		binaryAddress: binaryAddress.toString('hex'),
 	};
 };
 

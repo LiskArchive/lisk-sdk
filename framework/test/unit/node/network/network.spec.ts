@@ -69,7 +69,7 @@ describe('network', () => {
 
 		describe('when peer does have options', () => {
 			it('should return decoded peer info in JSON format', () => {
-				const id = 'GhAypT2vepaauMk/TN+rbZ+YziLGnm7hUeobRuobLOQ=';
+				const id = '1a1032a53daf7a969ab8c93f4cdfab6d9f98ce22c69e6ee151ea1b46ea1b2ce4';
 				const expected = [
 					{
 						ipAddress: '1.1.1.1',
@@ -81,7 +81,7 @@ describe('network', () => {
 							height: 32,
 							maxHeightPrevoted: 3,
 							blockVersion: 1,
-							lastBlockID: Buffer.from(id, 'base64'),
+							lastBlockID: Buffer.from(id, 'hex'),
 						},
 					},
 				];
@@ -96,7 +96,7 @@ describe('network', () => {
 						...e,
 						options: {
 							...e.options,
-							lastBlockID: e.options.lastBlockID.toString('base64'),
+							lastBlockID: e.options.lastBlockID.toString('hex'),
 						},
 					})),
 				);
@@ -128,7 +128,7 @@ describe('network', () => {
 
 		describe('when peer does have options', () => {
 			it('should return decoded peer info in JSON format', () => {
-				const id = 'GhAypT2vepaauMk/TN+rbZ+YziLGnm7hUeobRuobLOQ=';
+				const id = '1a1032a53daf7a969ab8c93f4cdfab6d9f98ce22c69e6ee151ea1b46ea1b2ce4';
 				const expected = [
 					{
 						ipAddress: '1.1.1.1',
@@ -140,7 +140,7 @@ describe('network', () => {
 							height: 32,
 							maxHeightPrevoted: 3,
 							blockVersion: 1,
-							lastBlockID: Buffer.from(id, 'base64'),
+							lastBlockID: Buffer.from(id, 'hex'),
 						},
 					},
 				];
@@ -155,7 +155,7 @@ describe('network', () => {
 						...e,
 						options: {
 							...e.options,
-							lastBlockID: e.options.lastBlockID.toString('base64'),
+							lastBlockID: e.options.lastBlockID.toString('hex'),
 						},
 					})),
 				);

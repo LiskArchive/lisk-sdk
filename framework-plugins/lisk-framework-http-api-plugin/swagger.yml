@@ -79,9 +79,9 @@ paths:
       parameters:
         - name: address
           in: path
-          example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+          example: 9d0149b0962d44bfc08a9f64d5afceb6281d7fb5
           description: |
-            The binary address in base64 format as defined in LIP-0018.
+            The binary address in hex format as defined in LIP-0018.
           required: true
           schema:
             type: string
@@ -171,7 +171,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: id of the searching block in base64 format
+          description: id of the searching block in hex format
           required: true
           schema:
             type: string
@@ -243,7 +243,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: id of the searching transaction in base64 format
+          description: id of the searching transaction in hex format
           required: true
           schema:
             type: string
@@ -594,9 +594,9 @@ definitions:
     properties:
       address:
         type: string
-        example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+        example: 9d0149b0962d44bfc08a9f64d5afceb6281d7fb5
         description: |
-          The binary address in base64 format as defined in LIP-0018.
+          The binary address in hex format as defined in LIP-0018.
       balance:
         type: string
         example: 1081560729258
@@ -610,12 +610,12 @@ definitions:
         properties:
           mandatoryKeys:
             type: array
-            description: Base64 encoded value of mandatory multi-signature account members public keys
+            description: Hex encoded value of mandatory multi-signature account members public keys
             items:
               type: string
           optionalKeys:
             type: array
-            description: Base64 encoded value of optional multi-signature account members public keys
+            description: Hex encoded value of optional multi-signature account members public keys
             items:
               type: string
           numberOfSignatures:
@@ -640,7 +640,7 @@ definitions:
     properties:
       id:
         type: string
-        description: Base64 encoded value of the unique identifier of the block.
+        description: Hex encoded value of the unique identifier of the block.
       version:
         type: number
         description: Versioning for future upgrades of the Lisk protocol.
@@ -655,13 +655,13 @@ definitions:
           that have been forged on the network since the genesis block.
       previoudBlockID:
         type: string
-        description: Base64 encoded value of the ID of the previous block of the chain.
+        description: Hex encoded value of the ID of the previous block of the chain.
       transactionRoot:
         type: string
-        description: Base64 encoded value of Merkle tree root of transaction IDs
+        description: Hex encoded value of Merkle tree root of transaction IDs
       generatorPublicKey:
         type: string
-        description: Base64 encoded value of public key of the delegate who forged the block.
+        description: Hex encoded value of public key of the delegate who forged the block.
       reward:
         type: string
         description: The reward for the delegate.
@@ -682,7 +682,7 @@ definitions:
     properties:
       id:
         type: string
-        description: Base64 encoded value of the unique identifier of the transaction.
+        description: Hex encoded value of the unique identifier of the transaction.
       type:
         type: number
         description: Describes the Transaction type.
@@ -698,7 +698,7 @@ definitions:
       senderPublicKey:
         type: string
         description: |
-          Base64 encoded value of the public key of the Senders account.
+          Hex encoded value of the public key of the Senders account.
       asset:
         type: object
         description: Object stored per transaction type
@@ -706,7 +706,7 @@ definitions:
         type: array
         items:
           type: string
-          description: Base64 encoded value of the signature for the transaction.
+          description: Hex encoded value of the signature for the transaction.
 
   TransactionRequest:
     type: object
@@ -733,7 +733,7 @@ definitions:
       senderPublicKey:
         type: string
         description: |
-          Base64 encoded value of the public key of the Senders account.
+          Hex encoded value of the public key of the Senders account.
       asset:
         type: object
         description: Object stored per transaction type
@@ -741,7 +741,7 @@ definitions:
         type: array
         items:
           type: string
-          description: Base64 encoded value of the signature for the transaction.
+          description: Hex encoded value of the signature for the transaction.
 
   Forger:
     type: object
@@ -752,9 +752,9 @@ definitions:
     properties:
       address:
         type: string
-        example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+        example: 9d0149b0962d44bfc08a9f64d5afceb6281d7fb5
         description: |
-          The binary address in base64 format as defined in LIP-0018.
+          The binary address in hex format as defined in LIP-0018.
       totalVotesReceived:
         type: string
         example: 1081560729258
@@ -802,8 +802,8 @@ definitions:
         description: The protocol version of Lisk Core that the peer node runs on.
       networkID:
         type: string
-        example: 'k9AP5b5w2Q564keTai59g7UICcebc/oUKF8CyEI0iz4='
-        description: Base64 encoded value of the network identifier as per LIP-0009.
+        example: '93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e'
+        description: Hex encoded value of the network identifier as per LIP-0009.
       state:
         type: string
         example: 'connected'
@@ -840,8 +840,8 @@ definitions:
         description: The protocol version of Lisk Core that the peer node runs on.
       networkID:
         type: string
-        example: 'k9AP5b5w2Q564keTai59g7UICcebc/oUKF8CyEI0iz4='
-        description: Base64 encoded value of the network identifier as per LIP-0009.
+        example: '93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e'
+        description: Hex encoded value of the network identifier as per LIP-0009.
       lastBlockID:
         description: ID of the last processed block.
         type: string

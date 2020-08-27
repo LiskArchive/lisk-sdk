@@ -188,7 +188,7 @@ describe('processor', () => {
 					assetID: 0,
 					fee: BigInt(10000000),
 					nonce: BigInt(3),
-					senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+					senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 					signatures: [],
 				}),
 			],
@@ -271,7 +271,7 @@ describe('processor', () => {
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 			});
 		});
@@ -285,7 +285,7 @@ describe('processor', () => {
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 			});
 
@@ -345,7 +345,7 @@ describe('processor', () => {
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 			});
 
@@ -424,7 +424,7 @@ describe('processor', () => {
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 			});
 		});
@@ -457,7 +457,7 @@ describe('processor', () => {
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: encodedBlock.toString('base64'),
+					block: encodedBlock.toString('hex'),
 				});
 			});
 		});
@@ -517,7 +517,7 @@ describe('processor', () => {
 			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
-			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+			senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 			signatures: [],
 		});
 		const blockV2 = ({
@@ -580,7 +580,7 @@ describe('processor', () => {
 						assetID: 5,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
-						senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+						senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 						signatures: [],
 					}),
 				],
@@ -602,7 +602,7 @@ describe('processor', () => {
 						assetID: 5,
 						fee: BigInt(10000000),
 						nonce: BigInt(3),
-						senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+						senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 						signatures: [],
 					}),
 				],
@@ -625,7 +625,7 @@ describe('processor', () => {
 					assetID: 0,
 					fee: BigInt(10000000),
 					nonce: BigInt(3),
-					senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+					senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 					signatures: [],
 				}),
 			],
@@ -813,7 +813,7 @@ describe('processor', () => {
 			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
-			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+			senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 			signatures: [],
 		});
 		beforeEach(() => {
@@ -825,7 +825,7 @@ describe('processor', () => {
 			expect(() =>
 				processor.validateTransaction(
 					new Transaction({
-						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
+						asset: Buffer.from('0a0873d34d3420737472', 'hex'),
 						moduleID: 99,
 						assetID: 0,
 						fee: BigInt(10000000),
@@ -841,7 +841,7 @@ describe('processor', () => {
 			expect(() =>
 				processor.validateTransaction(
 					new Transaction({
-						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
+						asset: Buffer.from('0a0873d34d3420737472', 'hex'),
 						moduleID: 3,
 						assetID: 99,
 						fee: BigInt(10000000),
@@ -857,7 +857,7 @@ describe('processor', () => {
 			expect(() =>
 				processor.validateTransaction(
 					new Transaction({
-						asset: Buffer.from('Cghz0000IHN0cg==', 'base64'),
+						asset: Buffer.from('0a0873d34d3420737472', 'hex'),
 						moduleID: 3,
 						assetID: 0,
 						fee: BigInt(10000000),
@@ -888,16 +888,16 @@ describe('processor', () => {
 			assetID: 0,
 			fee: BigInt(10000000),
 			nonce: BigInt(3),
-			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+			senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 			signatures: [],
 		});
 		const tx2 = new Transaction({
-			asset: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+			asset: Buffer.from('0a08736f6d6520737472', 'hex'),
 			moduleID: 3,
 			assetID: 0,
 			fee: BigInt(10100000),
 			nonce: BigInt(4),
-			senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+			senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 			signatures: [],
 		});
 		beforeEach(() => {
@@ -929,7 +929,7 @@ describe('processor', () => {
 							assetID: 0,
 							fee: BigInt(10000000),
 							nonce: BigInt(3),
-							senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+							senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 							signatures: [],
 						}),
 					],
@@ -948,7 +948,7 @@ describe('processor', () => {
 							assetID: 0,
 							fee: BigInt(10000000),
 							nonce: BigInt(3),
-							senderPublicKey: Buffer.from('Cghzb21lIHN0cg==', 'base64'),
+							senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
 							signatures: [],
 						}),
 					],

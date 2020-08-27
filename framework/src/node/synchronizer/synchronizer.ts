@@ -192,7 +192,7 @@ export class Synchronizer {
 		}
 
 		const transactions = result.transactions.map(txStr =>
-			this.chainModule.dataAccess.decodeTransaction(Buffer.from(txStr, 'base64')),
+			this.chainModule.dataAccess.decodeTransaction(Buffer.from(txStr, 'hex')),
 		);
 
 		for (const transaction of transactions) {

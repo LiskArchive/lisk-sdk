@@ -91,7 +91,7 @@ export const sendTransaction = async (app: Application): Promise<Transaction> =>
 	});
 
 	await app['_channel'].invoke('app:postTransaction', {
-		transaction: fundingTx.getBytes().toString('base64'),
+		transaction: fundingTx.getBytes().toString('hex'),
 	});
 	return fundingTx;
 };

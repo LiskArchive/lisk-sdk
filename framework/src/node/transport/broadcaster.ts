@@ -82,7 +82,7 @@ export class Broadcaster {
 			this._networkModule.broadcast({
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,
 				data: {
-					transactionIds: transactionIds.map(id => id.toString('base64')),
+					transactionIds: transactionIds.map(id => id.toString('hex')),
 				},
 			});
 

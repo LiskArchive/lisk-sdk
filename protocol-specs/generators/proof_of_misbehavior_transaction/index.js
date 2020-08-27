@@ -172,10 +172,10 @@ const accounts = {
 	},
 };
 
-const getBase64Account = account => ({
+const getHexAccount = account => ({
 	...account,
-	address: account.address.toString('base64'),
-	publicKey: account.publicKey.toString('base64'),
+	address: account.address.toString('hex'),
+	publicKey: account.publicKey.toString('hex'),
 	balance: account.balance.toString(),
 });
 
@@ -262,12 +262,12 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 	return {
 		description: 'PoM with scenario 1',
 		input: {
-			reportingAccount: getBase64Account(accounts.reporter),
-			targetAccount: getBase64Account(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('base64'),
+			reportingAccount: getHexAccount(accounts.reporter),
+			targetAccount: getHexAccount(accounts.forger),
+			networkIdentifier: networkIdentifier.toString('hex'),
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -352,12 +352,12 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 	return {
 		description: 'PoM with scenario 2',
 		input: {
-			reportingAccount: getBase64Account(accounts.reporter),
-			targetAccount: getBase64Account(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('base64'),
+			reportingAccount: getHexAccount(accounts.reporter),
+			targetAccount: getHexAccount(accounts.forger),
+			networkIdentifier: networkIdentifier.toString('hex'),
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };
@@ -442,12 +442,12 @@ const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 	return {
 		description: 'PoM with scenario 3',
 		input: {
-			reportingAccount: getBase64Account(accounts.reporter),
-			targetAccount: getBase64Account(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('base64'),
+			reportingAccount: getHexAccount(accounts.reporter),
+			targetAccount: getHexAccount(accounts.forger),
+			networkIdentifier: networkIdentifier.toString('hex'),
 		},
 		output: {
-			transaction: encodedTx.toString('base64'),
+			transaction: encodedTx.toString('hex'),
 		},
 	};
 };

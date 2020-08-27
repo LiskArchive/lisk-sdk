@@ -205,9 +205,7 @@ export class FinalityManager extends EventEmitter {
 		const validators = await getValidators(stateStore);
 		const validator = validators.find(v => v.address.equals(generatorAddress));
 		if (!validator) {
-			throw new Error(
-				`Generator ${generatorPublicKey.toString('base64')} is not in validators set`,
-			);
+			throw new Error(`Generator ${generatorPublicKey.toString('hex')} is not in validators set`);
 		}
 
 		// If validator cannot vote, it cannot vote on the block

@@ -96,7 +96,7 @@ describe('Forger Plugin webhooks', () => {
 					event: 'forger:block:created',
 					payload: {
 						reward: '0',
-						forgerAddress: 'DSw3fpNraMcAZmE7EMD9rVN/kNo=',
+						forgerAddress: '0d2c377e936b68c70066613b10c0fdad537f90da',
 						height: 2,
 					},
 				},
@@ -122,8 +122,8 @@ describe('Forger Plugin webhooks', () => {
 					event: 'forger:block:missed',
 					payload: {
 						missedBlocksByAddress: {
-							'CtpqL2yPiRdpNm/Jqm/Z8frLNs8=': 1,
-							'CQP0xctZmnkorvJ+MU6YKR0eOIg=': 1,
+							'0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf': 1,
+							'0903f4c5cb599a7928aef27e314e98291d1e3888': 1,
 						},
 						height: 1,
 					},

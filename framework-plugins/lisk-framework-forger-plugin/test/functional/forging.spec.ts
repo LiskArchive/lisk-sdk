@@ -23,7 +23,7 @@ import {
 
 describe('api/forging', () => {
 	const sampleForgerInfo = {
-		address: 'CQP0xctZmnkorvJ+MU6YKR0eOIg=',
+		address: '0903f4c5cb599a7928aef27e314e98291d1e3888',
 		forging: true,
 		totalProducedBlocks: 0,
 		votesReceived: [],
@@ -85,7 +85,7 @@ describe('api/forging', () => {
 			});
 		});
 		describe('400 - Invalid param values', () => {
-			it('should respond with 400 and error message when address is not base64 format', async () => {
+			it('should respond with 400 and error message when address is not hex format', async () => {
 				// Arrange
 				const forgerParams = {
 					address: '12345689-xxx',
@@ -101,7 +101,7 @@ describe('api/forging', () => {
 				// Assert
 				expect(status).toEqual(400);
 				expect(response).toEqual({
-					errors: [{ message: 'The Address parameter should be a base64 string.' }],
+					errors: [{ message: 'The Address parameter should be a hex string.' }],
 				});
 			});
 

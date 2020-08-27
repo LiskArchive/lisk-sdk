@@ -18,7 +18,7 @@ import { callNetwork, createApplication, closeApplication, getURL } from './util
 describe('Account endpoint', () => {
 	let app: Application;
 	const accountFixture = {
-		address: 'nQFJsJYtRL/Aip9k1a/Otigdf7U=',
+		address: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5',
 		token: { balance: '0' },
 		sequence: { nonce: '0' },
 		keys: {
@@ -37,7 +37,7 @@ describe('Account endpoint', () => {
 			},
 			sentVotes: [
 				{
-					delegateAddress: 'nQFJsJYtRL/Aip9k1a/Otigdf7U=',
+					delegateAddress: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5',
 					amount: '1000000000000',
 				},
 			],
@@ -55,32 +55,35 @@ describe('Account endpoint', () => {
 
 	describe('/api/accounts', () => {
 		it('should respond with account when account found in db', async () => {
-			const result = await axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip9k1a%2FOtigdf7U%3D'));
+			const result = await axios.get(
+				getURL('/api/accounts/9d0149b0962d44bfc08a9f64d5afceb6281d7fb5'),
+			);
 			expect(result.data).toEqual({ data: accountFixture });
 			expect(result.status).toBe(200);
 		});
 
 		it('should respond with 404 and error message when account not found in db', async () => {
 			const { response, status } = await callNetwork(
-				axios.get(getURL('/api/accounts/nQFJsJYtRL%2FAip0k1a%2FOtigdf7U%3D')),
+				axios.get(getURL('/api/accounts/9d0149b0962d44bfc08a9d24d5afceb6281d7fb5')),
 			);
 
 			expect(status).toBe(404);
 			expect(response).toEqual({
 				errors: [
 					{
-						message: "Account with address 'nQFJsJYtRL/Aip0k1a/Otigdf7U=' was not found",
+						message:
+							"Account with address '9d0149b0962d44bfc08a9d24d5afceb6281d7fb5' was not found",
 					},
 				],
 			});
 		});
 
-		it('should respond with 400 and error message when address param is not base64', async () => {
+		it('should respond with 400 and error message when address param is not hex', async () => {
 			const { response, status } = await callNetwork(axios.get(getURL('/api/accounts/-nein-no')));
 
 			expect(status).toBe(400);
 			expect(response).toEqual({
-				errors: [{ message: 'The Address parameter should be a base64 string.' }],
+				errors: [{ message: 'The Address parameter should be a hex string.' }],
 			});
 		});
 	});

@@ -239,11 +239,11 @@ describe('block_synchronization_mechanism', () => {
 					procedure: 'getHighestCommonBlock',
 					peerId,
 					data: {
-						ids: blockIdsList.map(id => id.toString('base64')),
+						ids: blockIdsList.map(id => id.toString('hex')),
 					},
 				})
 				.mockResolvedValue({
-					data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+					data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 				} as never);
 
 			when(networkMock.requestFromPeer)
@@ -252,21 +252,21 @@ describe('block_synchronization_mechanism', () => {
 					peerId,
 				})
 				.mockResolvedValue({
-					data: encodeValidBlock(aBlock).toString('base64'),
+					data: encodeValidBlock(aBlock).toString('hex'),
 				} as never);
 			when(networkMock.requestFromPeer)
 				.calledWith({
 					procedure: 'getBlocksFromId',
 					peerId,
 					data: {
-						blockId: highestCommonBlock.id.toString('base64'),
+						blockId: highestCommonBlock.id.toString('hex'),
 					},
 				})
 				.mockResolvedValue({
 					data: objects
 						.cloneDeep(requestedBlocks)
 						.reverse()
-						.map(b => encodeValidBlock(b).toString('base64')),
+						.map(b => encodeValidBlock(b).toString('hex')),
 				} as never);
 		}
 		when(chainModule.dataAccess.getBlockHeadersWithHeights)
@@ -339,7 +339,7 @@ describe('block_synchronization_mechanism', () => {
 						data: { blockId: expect.any(String) },
 					})
 					.mockResolvedValue({
-						data: [encodeValidBlock(aBlock).toString('base64')],
+						data: [encodeValidBlock(aBlock).toString('hex')],
 					} as never);
 
 				await blockSynchronizationMechanism.run(aBlock);
@@ -482,7 +482,7 @@ describe('block_synchronization_mechanism', () => {
 						data: { blockId: expect.any(String) },
 					})
 					.mockResolvedValue({
-						data: [encodeValidBlock(aBlock).toString('base64')],
+						data: [encodeValidBlock(aBlock).toString('hex')],
 					} as never);
 
 				await blockSynchronizationMechanism.run(aBlock);
@@ -535,21 +535,21 @@ describe('block_synchronization_mechanism', () => {
 							peerId,
 						})
 						.mockResolvedValue({
-							data: encodeValidBlock(receivedBlock).toString('base64'),
+							data: encodeValidBlock(receivedBlock).toString('hex'),
 						} as never);
 					when(networkMock.requestFromPeer)
 						.calledWith({
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
-								blockId: highestCommonBlock.id.toString('base64'),
+								blockId: highestCommonBlock.id.toString('hex'),
 							},
 						})
 						.mockResolvedValue({
 							data: objects
 								.cloneDeep(requestedBlocks)
 								.reverse()
-								.map(b => encodeValidBlock(b).toString('base64')),
+								.map(b => encodeValidBlock(b).toString('hex')),
 						} as never);
 				}
 
@@ -629,7 +629,7 @@ describe('block_synchronization_mechanism', () => {
 								procedure: 'getHighestCommonBlock',
 								peerId,
 								data: {
-									ids: blockIdsList.map(id => id.toString('base64')),
+									ids: blockIdsList.map(id => id.toString('hex')),
 								},
 							})
 							.mockResolvedValue({ data: undefined } as never);
@@ -640,21 +640,21 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 							})
 							.mockResolvedValue({
-								data: encodeValidBlock(receivedBlock).toString('base64'),
+								data: encodeValidBlock(receivedBlock).toString('hex'),
 							} as never);
 						when(networkMock.requestFromPeer)
 							.calledWith({
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
-									blockId: highestCommonBlock.id.toString('base64'),
+									blockId: highestCommonBlock.id.toString('hex'),
 								},
 							})
 							.mockResolvedValue({
 								data: objects
 									.cloneDeep(requestedBlocks)
 									.reverse()
-									.map(b => encodeValidBlock(b).toString('base64')),
+									.map(b => encodeValidBlock(b).toString('hex')),
 							} as never);
 					}
 
@@ -731,11 +731,11 @@ describe('block_synchronization_mechanism', () => {
 								procedure: 'getHighestCommonBlock',
 								peerId,
 								data: {
-									ids: blockIdsList.map(id => id.toString('base64')),
+									ids: blockIdsList.map(id => id.toString('hex')),
 								},
 							})
 							.mockResolvedValue({
-								data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+								data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
 							} as never);
 
 						when(networkMock.requestFromPeer)
@@ -744,18 +744,18 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 							})
 							.mockResolvedValue({
-								data: encodeValidBlock(aBlock).toString('base64'),
+								data: encodeValidBlock(aBlock).toString('hex'),
 							} as never);
 						when(networkMock.requestFromPeer)
 							.calledWith({
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
-									blockId: highestCommonBlock.id.toString('base64'),
+									blockId: highestCommonBlock.id.toString('hex'),
 								},
 							})
 							.mockResolvedValue({
-								data: requestedBlocks.map(b => encodeValidBlock(b).toString('base64')),
+								data: requestedBlocks.map(b => encodeValidBlock(b).toString('hex')),
 							} as never);
 					}
 
@@ -827,7 +827,7 @@ describe('block_synchronization_mechanism', () => {
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
-								blockId: highestCommonBlock.id.toString('base64'),
+								blockId: highestCommonBlock.id.toString('hex'),
 							},
 						})
 						// getBlocksFromId returns in height desc order
@@ -835,7 +835,7 @@ describe('block_synchronization_mechanism', () => {
 							data: objects
 								.cloneDeep(requestedBlocks)
 								.reverse()
-								.map(b => encodeValidBlock(b).toString('base64')),
+								.map(b => encodeValidBlock(b).toString('hex')),
 						} as never);
 				}
 
@@ -845,7 +845,7 @@ describe('block_synchronization_mechanism', () => {
 					procedure: 'getBlocksFromId',
 					peerId: expect.any(String),
 					data: {
-						blockId: highestCommonBlock.id.toString('base64'),
+						blockId: highestCommonBlock.id.toString('hex'),
 					},
 				});
 
@@ -880,7 +880,7 @@ describe('block_synchronization_mechanism', () => {
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
-								blockId: highestCommonBlock.id.toString('base64'),
+								blockId: highestCommonBlock.id.toString('hex'),
 							},
 						})
 						.mockResolvedValue({ data: undefined } as never);
@@ -895,7 +895,7 @@ describe('block_synchronization_mechanism', () => {
 					procedure: 'getBlocksFromId',
 					peerId: expect.any(String),
 					data: {
-						blockId: highestCommonBlock.id.toString('base64'),
+						blockId: highestCommonBlock.id.toString('hex'),
 					},
 				});
 
@@ -963,11 +963,11 @@ describe('block_synchronization_mechanism', () => {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
-									blockId: highestCommonBlock.id.toString('base64'),
+									blockId: highestCommonBlock.id.toString('hex'),
 								},
 							})
 							.mockResolvedValue({
-								data: requestedBlocks.map(b => encodeValidBlock(b).toString('base64')),
+								data: requestedBlocks.map(b => encodeValidBlock(b).toString('hex')),
 							} as never);
 					}
 
@@ -1090,7 +1090,7 @@ describe('block_synchronization_mechanism', () => {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
-									blockId: highestCommonBlock.id.toString('base64'),
+									blockId: highestCommonBlock.id.toString('hex'),
 								},
 							})
 							.mockResolvedValue({
@@ -1098,7 +1098,7 @@ describe('block_synchronization_mechanism', () => {
 									objects
 										.cloneDeep(requestedBlocks)
 										.reverse()
-										.map(b => encodeValidBlock(b).toString('base64')),
+										.map(b => encodeValidBlock(b).toString('hex')),
 								],
 							} as never);
 					}
@@ -1118,7 +1118,7 @@ describe('block_synchronization_mechanism', () => {
 							data: { blockId: expect.any(String) },
 						})
 						.mockResolvedValue({
-							data: [encodeValidBlock(aBlock).toString('base64')],
+							data: [encodeValidBlock(aBlock).toString('hex')],
 						} as never);
 					try {
 						await blockSynchronizationMechanism.run(aBlock);

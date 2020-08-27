@@ -156,7 +156,7 @@ export const getForgerInfoByPublicKey = async (
 	forgerPluginInstance: ForgerPlugin,
 	generatorPublicKey: string,
 ): Promise<ForgerInfo> => {
-	const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'base64')).toString(
+	const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'hex')).toString(
 		'binary',
 	);
 

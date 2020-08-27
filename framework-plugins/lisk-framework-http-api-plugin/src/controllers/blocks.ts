@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Request, Response, NextFunction } from 'express';
-import { isBase64String, isNumberString } from '@liskhq/lisk-validator';
+import { isHexString, isNumberString } from '@liskhq/lisk-validator';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 
 export const getBlockById = (channel: BaseChannel, codec: PluginCodec) => async (
@@ -22,9 +22,9 @@ export const getBlockById = (channel: BaseChannel, codec: PluginCodec) => async 
 ): Promise<void> => {
 	const blockId = req.params.id;
 
-	if (!isBase64String(blockId)) {
+	if (!isHexString(blockId)) {
 		res.status(400).send({
-			errors: [{ message: 'The block id parameter should be a base64 string.' }],
+			errors: [{ message: 'The block id parameter should be a hex string.' }],
 		});
 		return;
 	}
