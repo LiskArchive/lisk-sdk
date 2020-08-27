@@ -29,7 +29,14 @@ import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
 import { BasePlugin, InstantiablePlugin } from './plugins/base_plugin';
-import { ApplicationConfig, GenesisConfig, EventPostTransactionData, PluginOptions } from './types';
+import {
+	ApplicationConfig,
+	GenesisConfig,
+	EventPostTransactionData,
+	PluginOptions,
+	RegisteredSchema,
+	RegisteredModule,
+} from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -77,6 +84,7 @@ const registerProcessHooks = (app: Application): void => {
 		handleShutdown(0, 'SIGINT').catch((error: Error) => app.logger.error({ error }));
 	});
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	process.once('exit' as any, (code: number) => {
 		handleShutdown(code, 'process.exit').catch((error: Error) => app.logger.error({ error }));
 	});
@@ -86,12 +94,10 @@ type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
 
 export class Application {
 	public config: ApplicationConfig;
-	public constants: GenesisConfig;
 	public logger!: Logger;
 
-	private _node!: Node;
+	private readonly _node: Node;
 	private _controller!: Controller;
-	private readonly _customModules: InstantiableBaseModule[];
 	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
 	private _channel!: InMemoryChannel;
 
@@ -118,18 +124,16 @@ export class Application {
 		if (applicationConfigErrors.length) {
 			throw new LiskValidationError(applicationConfigErrors);
 		}
-
-		// app.genesisConfig are actually old constants
-		// we are merging these here to refactor the underlying code in other iteration
-		// eslint-disable-next-line
-		this.constants = {
-			...mergedConfig.genesisConfig,
-		};
 		this.config = mergedConfig;
 
 		// Private members
 		this._plugins = {};
-		this._customModules = [];
+		// Initialize node
+		const { plugins, ...rootConfigs } = this.config;
+		this._node = new Node({
+			genesisBlockJSON: this._genesisBlock,
+			options: rootConfigs,
+		});
 	}
 
 	public get networkIdentifier(): Buffer {
@@ -183,8 +187,17 @@ export class Application {
 
 	public registerModule(Module: typeof BaseModule): void {
 		assert(Module, 'Module implementation is required');
+		const InstanciabltModule = Module as InstantiableBaseModule;
+		const moduleInstance = new InstanciabltModule(this.config.genesisConfig);
+		this._node.registerModule(moduleInstance);
+	}
 
-		this._customModules.push(Module as InstantiableBaseModule);
+	public getSchema(): RegisteredSchema {
+		return this._node.getSchema();
+	}
+
+	public getRegisteredModules(): RegisteredModule[] {
+		return this._node.getRegisteredModules();
 	}
 
 	public async run(): Promise<void> {
@@ -192,7 +205,6 @@ export class Application {
 		this._compileAndValidateConfigurations();
 
 		Object.freeze(this._genesisBlock);
-		Object.freeze(this.constants);
 		Object.freeze(this.config);
 
 		registerProcessHooks(this);
@@ -223,11 +235,17 @@ export class Application {
 		this._channel = this._initChannel();
 
 		this._controller = this._initController();
-		this._node = this._initNode();
 
 		await this._controller.load();
 
-		await this._node.bootstrap(this._controller.bus);
+		await this._node.init({
+			bus: this._controller.bus,
+			channel: this._channel,
+			forgerDB: this._forgerDB,
+			blockchainDB: this._blockchainDB,
+			nodeDB: this._nodeDB,
+			logger: this.logger,
+		});
 
 		await this._controller.loadPlugins(this._plugins, this.config.plugins);
 		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
@@ -274,7 +292,7 @@ export class Application {
 			// TODO: Analyze if we need to provide genesis block as options to plugins
 			//  If yes then we should encode it to json with the issue https://github.com/LiskHQ/lisk-sdk/issues/5513
 			// genesisBlock: this._genesisBlock,
-			constants: this.constants,
+			genesisConfig: this.config.genesisConfig,
 		};
 
 		Object.keys(this._plugins).forEach(alias => {
@@ -331,9 +349,6 @@ export class Application {
 				},
 				getForgingStatus: {
 					handler: (_action: ActionInfoObject) => this._node.actions.getForgingStatus(),
-				},
-				getTransactionsFees: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFees(),
 				},
 				getTransactionsFromPool: {
 					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFromPool(),
@@ -396,6 +411,9 @@ export class Application {
 				getSchema: {
 					handler: () => this._node.actions.getSchema(),
 				},
+				getRegisteredModules: {
+					handler: () => this._node.actions.getRegisteredModules(),
+				},
 				getNodeInfo: {
 					handler: () => this._node.actions.getNodeInfo(),
 				},
@@ -416,22 +434,6 @@ export class Application {
 			logger: this.logger,
 			channel: this._channel,
 		});
-	}
-
-	private _initNode(): Node {
-		const { plugins, ...rootConfigs } = this.config;
-		const node = new Node({
-			channel: this._channel,
-			genesisBlockJSON: this._genesisBlock,
-			options: rootConfigs,
-			logger: this.logger,
-			forgerDB: this._forgerDB,
-			blockchainDB: this._blockchainDB,
-			nodeDB: this._nodeDB,
-			customModules: this._customModules,
-		});
-
-		return node;
 	}
 
 	// eslint-disable-next-line class-methods-use-this

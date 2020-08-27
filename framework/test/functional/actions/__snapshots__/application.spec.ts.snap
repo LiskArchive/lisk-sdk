@@ -2,7 +2,7 @@
 
 exports[`Application related actions getSchema should return schemas used to encode objects in framework 1`] = `
 Object {
-  "accountSchema": Object {
+  "account": Object {
     "$id": "/account/base",
     "properties": Object {
       "address": Object {
@@ -157,7 +157,28 @@ Object {
     ],
     "type": "object",
   },
-  "blockHeaderSchema": Object {
+  "block": Object {
+    "$id": "/block",
+    "properties": Object {
+      "header": Object {
+        "dataType": "bytes",
+        "fieldNumber": 1,
+      },
+      "payload": Object {
+        "fieldNumber": 2,
+        "items": Object {
+          "dataType": "bytes",
+        },
+        "type": "array",
+      },
+    },
+    "required": Array [
+      "header",
+      "payload",
+    ],
+    "type": "object",
+  },
+  "blockHeader": Object {
     "$id": "/block/header",
     "properties": Object {
       "asset": Object {
@@ -417,28 +438,7 @@ Object {
       "type": "object",
     },
   },
-  "blockSchema": Object {
-    "$id": "/block",
-    "properties": Object {
-      "header": Object {
-        "dataType": "bytes",
-        "fieldNumber": 1,
-      },
-      "payload": Object {
-        "fieldNumber": 2,
-        "items": Object {
-          "dataType": "bytes",
-        },
-        "type": "array",
-      },
-    },
-    "required": Array [
-      "header",
-      "payload",
-    ],
-    "type": "object",
-  },
-  "transactionSchema": Object {
+  "transaction": Object {
     "$id": "lisk/transaction",
     "properties": Object {
       "asset": Object {
@@ -484,10 +484,12 @@ Object {
     ],
     "type": "object",
   },
-  "transactionsAssetSchemas": Array [
+  "transactionsAssets": Array [
     Object {
       "assetID": 0,
+      "assetName": "transfer",
       "moduleID": 2,
+      "moduleName": "token",
       "schema": Object {
         "$id": "lisk/transfer-asset",
         "properties": Object {
@@ -519,7 +521,9 @@ Object {
     },
     Object {
       "assetID": 0,
+      "assetName": "register",
       "moduleID": 4,
+      "moduleName": "keys",
       "schema": Object {
         "$id": "lisk/keys/register",
         "properties": Object {
@@ -562,7 +566,9 @@ Object {
     },
     Object {
       "assetID": 0,
+      "assetName": "register",
       "moduleID": 5,
+      "moduleName": "dpos",
       "schema": Object {
         "$id": "lisk/dpos/register",
         "properties": Object {
@@ -581,7 +587,9 @@ Object {
     },
     Object {
       "assetID": 1,
+      "assetName": "vote",
       "moduleID": 5,
+      "moduleName": "dpos",
       "schema": Object {
         "$id": "lisk/dpos/vote",
         "properties": Object {
@@ -619,7 +627,9 @@ Object {
     },
     Object {
       "assetID": 2,
+      "assetName": "unlock",
       "moduleID": 5,
+      "moduleName": "dpos",
       "schema": Object {
         "$id": "lisk/dpos/unlock",
         "properties": Object {
@@ -662,7 +672,9 @@ Object {
     },
     Object {
       "assetID": 3,
+      "assetName": "pom",
       "moduleID": 5,
+      "moduleName": "dpos",
       "schema": Object {
         "$id": "lisk/dpos/pom",
         "properties": Object {

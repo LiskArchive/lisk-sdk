@@ -211,3 +211,12 @@ export const getGenesisBlockHeaderAssetSchema = (accountSchema: Schema): Schema 
 			},
 		},
 	}) as Schema;
+
+export const getRegisteredBlockAssetSchema = (
+	accountSchema: Schema,
+): {
+	readonly [key: number]: Schema;
+} => ({
+	0: getGenesisBlockHeaderAssetSchema(accountSchema),
+	2: blockHeaderAssetSchema,
+});

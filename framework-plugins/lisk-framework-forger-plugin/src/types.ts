@@ -70,3 +70,13 @@ export interface Fees {
 export interface ForgetSyncInfo {
 	syncUptoHeight: number;
 }
+
+export interface DPoSAccountJSON {
+	dpos: {
+		delegate: {
+			username: string;
+			totalVotesReceived: string;
+			consecutiveMissedBlocks: number;
+		};
+	};
+}
