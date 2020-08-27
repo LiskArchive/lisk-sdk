@@ -22,6 +22,7 @@ export {
 	getAccountSchemaWithDefault,
 	getGenesisBlockHeaderAssetSchema,
 	blockHeaderAssetSchema,
+	testing,
 } from '@liskhq/lisk-chain';
 export {
 	BaseModule,
