@@ -421,6 +421,8 @@ paths:
             - fee:desc
             - type:asc
             - type:desc
+            - nonce:asc
+            - nonce:desc
           default: fee:desc
       responses:
         200:

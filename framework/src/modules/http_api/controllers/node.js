@@ -71,6 +71,24 @@ function _filterTransactions(transactions, filters) {
 				return left.type - right.type;
 			});
 		}
+		if (key === 'nonce') {
+			filteredTransactions.sort((a, b) => {
+				let left = a;
+				let right = b;
+				if (order === 'desc') {
+					left = b;
+					right = a;
+				}
+				const diff = BigInt(left.nonce) - BigInt(right.nonce);
+				if (diff > BigInt(0)) {
+					return 1;
+				}
+				if (diff < BigInt(0)) {
+					return -1;
+				}
+				return 0;
+			});
+		}
 	}
 	return filteredTransactions.slice(offset, limit + offset);
 }

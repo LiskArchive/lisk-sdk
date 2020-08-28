@@ -318,6 +318,24 @@ describe('GET /api/node', () => {
 					});
 				});
 
+				describe('nonce', () => {
+					it('sorted by nonce:asc should be ok', async () => {
+						return ReadyEndpoint.makeRequest({ sort: 'nonce:asc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							},
+						);
+					});
+
+					it('sorted by nonce:desc should be ok', async () => {
+						return ReadyEndpoint.makeRequest({ sort: 'nonce:desc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							},
+						);
+					});
+				});
+
 				it('using any other sort field should fail', async () => {
 					return ReadyEndpoint.makeRequest({ sort: 'id:asc' }, 400).then(
 						res => {
