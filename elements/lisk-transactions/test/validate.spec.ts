@@ -13,7 +13,7 @@
  *
  */
 
-import { validateTransactionSchema } from '../src/validate';
+import { validateTransaction } from '../src/validate';
 
 const validTransaction = {
 	moduleID: 2,
@@ -56,7 +56,7 @@ const validAssetSchema = {
 	},
 };
 
-describe('validateTransactionSchema', () => {
+describe('validateTransaction', () => {
 	it('should return error for invalid transaction header', () => {
 		const invalidTransactionObjects = [
 			{ ...validTransaction, moduleID: BigInt(8) },
@@ -66,13 +66,13 @@ describe('validateTransactionSchema', () => {
 			{ ...validTransaction, senderPublicKey: 1 },
 		];
 		return invalidTransactionObjects.forEach(transactionObject =>
-			expect(validateTransactionSchema(validAssetSchema, transactionObject)).toBeInstanceOf(Error),
+			expect(validateTransaction(validAssetSchema, transactionObject)).toBeInstanceOf(Error),
 		);
 	});
 
 	it('should return error when asset is null', () => {
 		return expect(
-			validateTransactionSchema(validAssetSchema, { ...validTransaction, asset: null }),
+			validateTransaction(validAssetSchema, { ...validTransaction, asset: null }),
 		).toEqual(new Error('Transaction object asset must be of type object and not null'));
 	});
 
@@ -85,11 +85,11 @@ describe('validateTransactionSchema', () => {
 			},
 		];
 		return invalidAssets.forEach(transactionObject =>
-			expect(validateTransactionSchema(validAssetSchema, transactionObject)).toBeInstanceOf(Error),
+			expect(validateTransaction(validAssetSchema, transactionObject)).toBeInstanceOf(Error),
 		);
 	});
 
 	it('should return undefined for valid transaction object', () => {
-		return expect(validateTransactionSchema(validAssetSchema, validTransaction)).toBeUndefined();
+		return expect(validateTransaction(validAssetSchema, validTransaction)).toBeUndefined();
 	});
 });
