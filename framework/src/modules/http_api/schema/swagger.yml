@@ -798,6 +798,8 @@ paths:
             - fee:desc
             - type:asc
             - type:desc
+            - nonce:asc
+            - nonce:desc
           default: amount:asc
         - name: data
           in: query
