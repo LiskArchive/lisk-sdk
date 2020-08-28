@@ -79,12 +79,10 @@ paths:
       parameters:
         - name: address
           in: path
-          example: 9d0149b0962d44bfc08a9f64d5afceb6281d7fb5
+          type: string
           description: |
             The binary address in hex format as defined in LIP-0018.
           required: true
-          schema:
-            type: string
       responses:
         200:
           description: Account requested.
@@ -171,10 +169,9 @@ paths:
       parameters:
         - name: id
           in: path
+          type: string
           description: id of the searching block in hex format
           required: true
-          schema:
-            type: string
       responses:
         200:
           description: Block requested.
@@ -207,10 +204,9 @@ paths:
       parameters:
         - name: height
           in: query
+          type: integer
           description: height of the searching block.
           required: true
-          schema:
-            type: integer
       responses:
         200:
           description: Block requested.
@@ -243,10 +239,9 @@ paths:
       parameters:
         - name: id
           in: path
+          type: string
           description: id of the searching transaction in hex format
           required: true
-          schema:
-            type: string
       responses:
         200:
           description: Transaction requested.
