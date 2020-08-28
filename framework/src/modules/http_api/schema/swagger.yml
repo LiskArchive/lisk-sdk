@@ -1482,10 +1482,6 @@ definitions:
           By forging a new block on a chain, all former blocks and their contained transactions in the chain get confirmed by the forging delegate.
       asset:
         type: object
-      receivedAt:
-        type: string
-        format: 'date-time'
-        description: The timestamp of the exact point in time where a node discovered a transaction for the first time.
       ready:
         type: boolean
         example: false
