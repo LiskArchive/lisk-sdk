@@ -32,6 +32,7 @@ import {
 import { Broadcaster } from './broadcaster';
 import { InMemoryChannel } from '../../controller/channels';
 import { Network } from '../network';
+import { ApplyPenaltyError } from '../../errors';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
@@ -209,7 +210,8 @@ export class Transport {
 	public async handleEventPostBlock(data: unknown, peerId: string): Promise<void> {
 		// Should ignore received block if syncing
 		if (this._synchronizerModule.isActive) {
-			return this._logger.debug("Client is syncing. Can't process new block at the moment.");
+			this._logger.debug("Client is syncing. Can't process new block at the moment.");
+			return;
 		}
 
 		const errors = validator.validate(schemas.postBlockEvent, data as object);
@@ -232,11 +234,44 @@ export class Transport {
 
 		const blockBytes = Buffer.from((data as EventPostBlockData).block, 'hex');
 
-		const block = this._chainModule.dataAccess.decode(blockBytes);
+		let block: Block;
+		try {
+			block = this._chainModule.dataAccess.decode(blockBytes);
+		} catch (error) {
+			this._logger.warn(
+				{
+					err: error as Error,
+					data,
+				},
+				'Received post block broadcast request in not decodable format',
+			);
+			this._networkModule.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			throw errors;
+		}
 
-		return this._processorModule.process(block, {
-			peerId,
-		} as p2pTypes.P2PPeerInfo);
+		try {
+			await this._processorModule.process(block, {
+				peerId,
+			} as p2pTypes.P2PPeerInfo);
+		} catch (error) {
+			if (error instanceof ApplyPenaltyError) {
+				this._logger.warn(
+					{
+						err: error as Error,
+						data,
+					},
+					'Received post block broadcast request with invalid block',
+				);
+				this._networkModule.applyPenaltyOnPeer({
+					peerId,
+					penalty: 100,
+				});
+			}
+			throw error;
+		}
 	}
 
 	public async handleRPCGetTransactions(
