@@ -740,6 +740,32 @@ describe('GET /api/transactions', () => {
 				});
 			});
 
+			describe('nonce', () => {
+				it('sorted by nonce:asc should be ok', async () => {
+					return transactionsEndpoint
+						.makeRequest({ sort: 'nonce:asc' }, 200)
+						.then(res => {
+							const values = _.map(res.body.data, 'nonce').map(value => {
+								return parseInt(value, 10);
+							});
+
+							expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
+						});
+				});
+
+				it('sorted by nonce:desc should be ok', async () => {
+					return transactionsEndpoint
+						.makeRequest({ sort: 'nonce:desc' }, 200)
+						.then(res => {
+							const values = _.map(res.body.data, 'nonce').map(value => {
+								return parseInt(value, 10);
+							});
+
+							expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(values);
+						});
+				});
+			});
+
 			describe('fee', () => {
 				it('sorted by fee:asc should be ok', async () => {
 					return transactionsEndpoint
