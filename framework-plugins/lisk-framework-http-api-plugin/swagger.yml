@@ -747,9 +747,12 @@ definitions:
       id:
         type: string
         description: Hex encoded value of the unique identifier of the transaction.
-      type:
+      moduleID: 
         type: number
-        description: Describes the Transaction type.
+        description: Module Id for transaction asset
+      assetID: 
+        type: number
+        description: Asset Id for for transaction asset
       fee:
         type: string
         description: |
@@ -775,16 +778,20 @@ definitions:
   TransactionRequest:
     type: object
     required:
-      - type
+      - moduleID
+      - assetID
       - nonce
       - fee
       - senderPublicKey
       - asset
       - signatures
     properties:
-      type:
+      moduleID: 
         type: number
-        description: Describes the Transaction type.
+        description: Module Id for transaction asset
+      assetID: 
+        type: number
+        description: Asset Id for for transaction asset
       fee:
         type: string
         description: |
