@@ -95,7 +95,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 	// eslint-disable-next-line class-methods-use-this
 	public async apply({
 		asset,
-		senderID,
+		senderAddress,
 		stateStore: store,
 		reducerHandler,
 	}: ApplyAssetContext<VoteTransactionAssetContext>): Promise<void> {
@@ -116,7 +116,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 		});
 
 		for (const vote of assetCopy) {
-			const sender = await store.account.get<DPOSAccountProps>(senderID);
+			const sender = await store.account.get<DPOSAccountProps>(senderAddress);
 			const votedDelegate = await store.account.get<DPOSAccountProps>(vote.delegateAddress);
 
 			if (votedDelegate.dpos.delegate.username === '') {
@@ -183,7 +183,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 
 				// Balance is checked in the token module
 				await reducerHandler.invoke('token:debit', {
-					address: senderID,
+					address: senderAddress,
 					amount: vote.amount,
 				});
 

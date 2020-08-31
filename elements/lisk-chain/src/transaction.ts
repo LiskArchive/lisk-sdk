@@ -88,7 +88,7 @@ export class Transaction {
 	public readonly senderPublicKey: Buffer;
 	public readonly signatures: ReadonlyArray<Buffer>;
 	private _id?: Buffer;
-	private _senderID?: Buffer;
+	private _senderAddress?: Buffer;
 
 	public constructor(transaction: TransactionInput) {
 		this.moduleID = transaction.moduleID;
@@ -112,11 +112,11 @@ export class Transaction {
 		return this._id;
 	}
 
-	public get senderID(): Buffer {
-		if (!this._senderID) {
-			this._senderID = getAddressFromPublicKey(this.senderPublicKey);
+	public get senderAddress(): Buffer {
+		if (!this._senderAddress) {
+			this._senderAddress = getAddressFromPublicKey(this.senderPublicKey);
 		}
-		return this._senderID;
+		return this._senderAddress;
 	}
 
 	public getBytes(): Buffer {
