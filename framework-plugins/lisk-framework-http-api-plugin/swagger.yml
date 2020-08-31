@@ -717,7 +717,7 @@ definitions:
           Height of the network, when the block was forged.
           The height of the network represents the number of blocks
           that have been forged on the network since the genesis block.
-      previoudBlockID:
+      previousBlockID:
         type: string
         description: Hex encoded value of the ID of the previous block of the chain.
       transactionRoot:
