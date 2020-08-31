@@ -27,7 +27,7 @@ import {
 import { BaseAsset } from './base_asset';
 
 interface Channel {
-	emit(name: string, data?: object): void;
+	publish(name: string, data?: object): void;
 }
 
 export abstract class BaseModule {
@@ -46,12 +46,10 @@ export abstract class BaseModule {
 		this.config = genesisConfig;
 	}
 
-	public registerChannel = (channel: Channel): void => {
-		this._channel = channel;
-	};
-	public registerDataAccess = (dataAccess: BaseModuleDataAccess): void => {
-		this._dataAccess = dataAccess;
-	};
+	public init(input: { channel: Channel; dataAccess: BaseModuleDataAccess }): void {
+		this._channel = input.channel;
+		this._dataAccess = input.dataAccess;
+	}
 
 	public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
 	public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;

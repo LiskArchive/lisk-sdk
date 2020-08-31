@@ -16,7 +16,7 @@ import { Request, Response, NextFunction } from 'express';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 import { KVStore } from '@liskhq/lisk-db';
 import { getForgerInfo } from '../db';
-import { Forger } from '../types';
+import { Forger, DPoSAccountJSON } from '../types';
 
 export const getForgingInfo = (channel: BaseChannel, codec: PluginCodec, db: KVStore) => async (
 	_req: Request,
@@ -25,11 +25,12 @@ export const getForgingInfo = (channel: BaseChannel, codec: PluginCodec, db: KVS
 ): Promise<void> => {
 	try {
 		const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>('app:getForgingStatus');
-		const forgerAccounts = (
-			await channel.invoke<string[]>('app:getAccounts', {
-				address: forgingDelegates.map(forger => forger.address),
-			})
-		).map(encodedAccount => codec.decodeAccount(encodedAccount));
+		const encodedAccounts = await channel.invoke<string[]>('app:getAccounts', {
+			address: forgingDelegates.map(forger => forger.address),
+		});
+		const forgerAccounts = encodedAccounts.map(encodedAccount =>
+			codec.decodeAccount<DPoSAccountJSON>(encodedAccount),
+		);
 
 		const data = [];
 		for (const forgerAccount of forgerAccounts) {

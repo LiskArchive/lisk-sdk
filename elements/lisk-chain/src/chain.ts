@@ -56,8 +56,7 @@ import {
 	signingBlockHeaderSchema,
 	blockHeaderSchema,
 	stateDiffSchema,
-	getGenesisBlockHeaderAssetSchema,
-	blockHeaderAssetSchema,
+	getRegisteredBlockAssetSchema,
 	validatorsSchema,
 } from './schema';
 
@@ -126,10 +125,7 @@ export class Chain {
 		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(accountSchemas);
 		this._defaultAccount = defaultAccount;
 		this._accountSchema = schema;
-		this._blockAssetSchema = {
-			0: getGenesisBlockHeaderAssetSchema(this._accountSchema),
-			2: blockHeaderAssetSchema,
-		};
+		this._blockAssetSchema = getRegisteredBlockAssetSchema(this._accountSchema);
 
 		// Register codec schema
 		// Add block header schemas

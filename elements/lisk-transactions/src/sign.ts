@@ -15,7 +15,7 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData, hash } from '@liskhq/lisk-cryptography';
-import { validateTransactionSchema } from './validate';
+import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
 
 interface MultiSignatureKeys {
@@ -28,7 +28,7 @@ export const getSigningBytes = (
 	assetSchema: object,
 	transactionObject: Record<string, unknown>,
 ): Buffer => {
-	const validationErrors = validateTransactionSchema(assetSchema, transactionObject);
+	const validationErrors = validateTransaction(assetSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
 	}
@@ -75,7 +75,7 @@ export const signTransaction = (
 	if (!passphrase) {
 		throw new Error('Passphrase is required to sign a transaction');
 	}
-	const validationErrors = validateTransactionSchema(assetSchema, transactionObject);
+	const validationErrors = validateTransaction(assetSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
 	}
@@ -139,7 +139,7 @@ export const signMultiSignatureTransaction = (
 		throw new Error('Signatures must be of type array');
 	}
 
-	const validationErrors = validateTransactionSchema(assetSchema, transactionObject);
+	const validationErrors = validateTransaction(assetSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
 	}

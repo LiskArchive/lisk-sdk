@@ -25,6 +25,7 @@ import {
 	PluginInfo,
 	TransactionJSON,
 	BlockHeaderJSON,
+	GenesisConfig,
 } from 'lisk-framework';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
 import type { Express } from 'express';
@@ -63,9 +64,7 @@ interface ForgerPayloadInfo {
 }
 
 interface NodeInfo {
-	genesisConfig: {
-		readonly blockTime: number;
-	};
+	genesisConfig: GenesisConfig;
 }
 
 interface MissedBlocksByAddress {
@@ -208,7 +207,11 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _setTransactionFees(): Promise<void> {
-		this._transactionFees = await this._channel.invoke<TransactionFees>('app:getTransactionsFees');
+		const { genesisConfig } = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
+		this._transactionFees = {
+			minFeePerByte: genesisConfig.minFeePerByte,
+			baseFees: genesisConfig.baseFees,
+		};
 	}
 
 	private _getForgerHeaderAndPayloadInfo(block: string): ForgerPayloadInfo {

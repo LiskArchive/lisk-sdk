@@ -24,7 +24,8 @@ export const createMockChannel = () => {
 	return channel;
 };
 
-export const createMockBus = {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const createMockBus = () => ({
 	registerChannel: jest.fn().mockResolvedValue(undefined),
 	setup: jest.fn().mockResolvedValue(undefined),
-};
+});

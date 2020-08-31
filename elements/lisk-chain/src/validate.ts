@@ -65,6 +65,9 @@ export const validateBlockProperties = (
 	encodedPayload: Buffer,
 	maxPayloadLength: number,
 ): void => {
+	if (block.header.previousBlockID.length === 0) {
+		throw new Error('Previous block id must not be empty');
+	}
 	if (encodedPayload.length > maxPayloadLength) {
 		throw new Error('Payload length is too long');
 	}

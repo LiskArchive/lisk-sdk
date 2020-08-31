@@ -209,8 +209,7 @@ describe('Hello endpoint', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.signatures[0]\' should match format "hex"',
+							message: expect.stringContaining("Property '.signatures[0]' should match format"),
 						},
 					],
 				});
@@ -218,6 +217,39 @@ describe('Hello endpoint', () => {
 		});
 
 		describe('409 - Some error related to processing of request.', () => {
+			it('should be pass the static validation but fail while processing of the request when signatures contain empty string ', async () => {
+				// Arrange
+				const account = getRandomAccount();
+				const transaction = createTransferTransaction({
+					amount: '2',
+					recipientAddress: account.address,
+					fee: '0.3',
+					nonce: accountNonce,
+				});
+				accountNonce += 1;
+
+				transaction.signatures.push('');
+
+				const { id, ...input } = transaction;
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.post(getURL('/api/transactions'), input),
+				);
+
+				// Assert
+				expect(status).toEqual(409);
+				expect(response).toEqual({
+					errors: [
+						{
+							message: expect.stringContaining(
+								'Transactions from a single signature account should have exactly one signature',
+							),
+						},
+					],
+				});
+			});
+
 			it('should fail if signatures are invalid', async () => {
 				// Arrange
 				const account = getRandomAccount();

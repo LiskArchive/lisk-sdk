@@ -75,11 +75,15 @@ export class DPoSModule extends BaseModule {
 					return [];
 				}
 
-				const { registeredDelegates } = codec.decode<{
-					registeredDelegates: RegisteredDelegates[];
-				}>(delegatesUserNamesSchema, validatorsBuffer);
+				const { registeredDelegates } = codec.decode<RegisteredDelegates>(
+					delegatesUserNamesSchema,
+					validatorsBuffer,
+				);
 
-				return registeredDelegates;
+				return registeredDelegates.map(delegate => ({
+					username: delegate.username,
+					address: delegate.address.toString('hex'),
+				}));
 			},
 		};
 
