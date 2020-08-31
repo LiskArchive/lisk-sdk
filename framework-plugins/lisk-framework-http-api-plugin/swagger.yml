@@ -592,20 +592,20 @@ definitions:
         example: 9d0149b0962d44bfc08a9f64d5afceb6281d7fb5
         description: |
           The binary address in hex format as defined in LIP-0018.
-      token: 
+      token:
         type: object
         required:
           - balance
-        properties:   
+        properties:
           balance:
             type: string
             example: 1081560729258
             description: The current balance of the account in Beddows.
-      sequence:         
+      sequence:
         type: object
         required:
           - nonce
-        properties:           
+        properties:
           nonce:
             type: string
             example: 154
@@ -646,45 +646,45 @@ definitions:
               - lastForgedHeight
               - isBanned
               - totalVotesReceived
-            properties: 
-              username: 
+            properties:
+              username:
                 type: string
-              pomHeights: 
+              pomHeights:
                 type: array
-                items: 
+                items:
                   type: number
-              consecutiveMissedBlocks: 
+              consecutiveMissedBlocks:
                 type: number
-              lastForgedHeight: 
+              lastForgedHeight:
                 type: number
-              isBanned: 
+              isBanned:
                 type: boolean
-              totalVotesReceived: 
+              totalVotesReceived:
                 type: string
-          sentVotes: 
+          sentVotes:
             type: array
-            items: 
+            items:
               type: object
               required:
                 - delegateAddress
                 - amount
-              properties: 
+              properties:
                 delegateAddress:
                   type: string
                 amount:
                   type: string
           unlocking:
             type: array
-            items: 
+            items:
               type: object
               required:
                 - delegateAddress
                 - amount
                 - unvoteHeight
-              properties: 
-                delegateAddress: 
+              properties:
+                delegateAddress:
                   type: string
-                amount: 
+                amount:
                   type: string
                 unvoteHeight:
                   type: number
@@ -747,10 +747,10 @@ definitions:
       id:
         type: string
         description: Hex encoded value of the unique identifier of the transaction.
-      moduleID: 
+      moduleID:
         type: number
         description: Module Id for transaction asset
-      assetID: 
+      assetID:
         type: number
         description: Asset Id for transaction asset
       fee:
@@ -786,10 +786,10 @@ definitions:
       - asset
       - signatures
     properties:
-      moduleID: 
+      moduleID:
         type: number
         description: Module Id for transaction asset
-      assetID: 
+      assetID:
         type: number
         description: Asset Id for transaction asset
       fee:
