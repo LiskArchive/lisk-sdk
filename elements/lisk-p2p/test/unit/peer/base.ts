@@ -14,6 +14,7 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { SCServerSocket } from 'socketcluster-server';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Peer, PeerConfig } from '../../../src/peer';
 import {
 	DEFAULT_REPUTATION_SCORE,
@@ -439,9 +440,9 @@ describe('peer/base', () => {
 
 				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(peerListResponse);
 
+				expect.assertions(2);
 				try {
 					await defaultPeer.fetchPeers();
-					expect('never').toBe('called');
 				} catch (e) {
 					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
@@ -450,8 +451,7 @@ describe('peer/base', () => {
 				}
 			});
 
-			// Skipping as schema validation doesn't allow custom fields and supported properties are validated before applying nodeInfo.
-			it.skip('should throw apply penalty on malformed Peer', async () => {
+			it('should throw apply penalty on malformed Peer', async () => {
 				const malformedPeerList = [
 					{
 						peerId: "'1.1.1.1:5000",
@@ -475,9 +475,9 @@ describe('peer/base', () => {
 					},
 				});
 
+				expect.assertions(2);
 				try {
 					await defaultPeer.fetchPeers();
-					expect('never').toBe('called');
 				} catch (e) {
 					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
@@ -575,16 +575,42 @@ describe('peer/base', () => {
 		});
 
 		describe('when request() succeeds', () => {
+			describe('when nodeInfo contains malformed information', () => {
+				beforeEach(() => {
+					codec.addSchema(nodeInfoSchema);
+					jest
+						.spyOn(defaultPeer as any, 'request')
+						.mockResolvedValue({ data: getRandomBytes(111).toString('hex') });
+					jest.spyOn(defaultPeer, 'emit');
+					jest.spyOn(defaultPeer, 'applyPenalty');
+				});
+
+				it('should apply penalty', async () => {
+					expect.assertions(2);
+					try {
+						await defaultPeer.fetchAndUpdateStatus();
+					} catch (error) {
+						// eslint-disable-next-line jest/no-try-expect
+						expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
+						// eslint-disable-next-line jest/no-try-expect
+						expect(defaultPeer.applyPenalty).toHaveBeenCalledWith(100);
+					}
+				});
+
+				it('should throw error', async () => {
+					return expect(defaultPeer.fetchAndUpdateStatus()).rejects.toThrow(RPCResponseError);
+				});
+			});
+
 			describe('when _updateFromProtocolPeerInfo() fails', () => {
-				const peer = {
+				const nodeInfo = {
 					ipAddress: '1.1.1.1',
 					port: 1111,
 					networkVersion: '9.2',
 					networkId: 'networkId',
 				};
 				beforeEach(() => {
-					codec.addSchema(peerInfoSchema);
-					const encodedResponse = codec.encode(peerInfoSchema, peer).toString('hex');
+					const encodedResponse = codec.encode(nodeInfoSchema, nodeInfo).toString('hex');
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'emit');
 				});

@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import validator from 'validator';
-
+import { isIP, isPort } from '@liskhq/lisk-validator';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -44,9 +43,6 @@ interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
 	readonly success?: boolean; // Could be used in future
 }
-
-const IPV4_NUMBER = '4';
-const IPV6_NUMBER = '6';
 
 const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeInfo): boolean => {
 	if (!peerInfo.sharedState) {
@@ -102,10 +98,7 @@ export const validatePeerCompatibility = (
 };
 
 export const validatePeerAddress = (ipAddress: string, port: number): boolean => {
-	if (
-		(!validator.isIP(ipAddress, IPV4_NUMBER) && !validator.isIP(ipAddress, IPV6_NUMBER)) ||
-		!validator.isPort(port.toString())
-	) {
+	if (!isIP(ipAddress) || !isPort(port.toString())) {
 		return false;
 	}
 
