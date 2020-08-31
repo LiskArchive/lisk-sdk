@@ -59,6 +59,7 @@ describe('bft', () => {
 		beforeEach(() => {
 			lastBlock = createFakeBlockHeader({ height: 1, version: 2 });
 			chainStub = ({
+				calculateReward: jest.fn(),
 				slots: {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
@@ -124,6 +125,78 @@ describe('bft', () => {
 				await bft.init(stateStore);
 
 				expect(bft.finalizedHeight).toEqual(finalizedHeight);
+			});
+		});
+
+		describe('#verifyBlockHeader', () => {
+			let bft: BFT;
+			let blocks: BlockHeader[];
+			let stateStore: StateStoreMock;
+
+			beforeEach(async () => {
+				// Arrange
+				// Setup BFT module with blocks
+				const numberOfBlocks = 101;
+				blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+
+				bft = new BFT(bftParams);
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
+							finalizedHeight: 1,
+						}),
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: blocks.map(b => ({
+								address: getAddressFromPublicKey(b.generatorPublicKey),
+								isConsensusParticipant: true,
+								minActiveHeight: 0,
+							})),
+						}),
+					},
+					{ lastBlockHeaders: blocks },
+				);
+				await bft.init(stateStore);
+			});
+
+			describe('when BFT protocol is followed', () => {
+				it('should resolve without error', async () => {
+					(chainStub.calculateReward as jest.Mock).mockReturnValue(BigInt(500000000));
+					const blockHeader = {
+						height: 102,
+						reward: BigInt(500000000),
+						generatorPublicKey: Buffer.from('zxc'),
+						asset: {
+							maxHeightPreviouslyForged: 0,
+						},
+					};
+
+					// Act & Assert
+					await expect(
+						bft.verifyBlockHeader(blockHeader as BlockHeader, stateStore),
+					).resolves.toBeUndefined();
+				});
+			});
+
+			describe('when BFT protocol is not followed', () => {
+				it('should throw an error if reward is not deducted', async () => {
+					(chainStub.calculateReward as jest.Mock).mockReturnValue(BigInt(500000000));
+					const blockHeader = {
+						height: 203,
+						reward: BigInt(500000000),
+						asset: {
+							maxHeightPreviouslyForged: 204,
+						},
+					};
+
+					// Act & Assert
+					await expect(
+						bft.verifyBlockHeader(blockHeader as BlockHeader, stateStore),
+					).rejects.toThrow('Invalid block reward');
+				});
 			});
 		});
 
