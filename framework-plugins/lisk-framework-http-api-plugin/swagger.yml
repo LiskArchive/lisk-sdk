@@ -752,7 +752,7 @@ definitions:
         description: Module Id for transaction asset
       assetID: 
         type: number
-        description: Asset Id for for transaction asset
+        description: Asset Id for transaction asset
       fee:
         type: string
         description: |
@@ -791,7 +791,7 @@ definitions:
         description: Module Id for transaction asset
       assetID: 
         type: number
-        description: Asset Id for for transaction asset
+        description: Asset Id for transaction asset
       fee:
         type: string
         description: |
