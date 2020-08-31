@@ -428,6 +428,8 @@ Object {
         "seedReveal": Object {
           "dataType": "bytes",
           "fieldNumber": 3,
+          "maxLength": 16,
+          "minLength": 16,
         },
       },
       "required": Array [
@@ -465,6 +467,8 @@ Object {
       "senderPublicKey": Object {
         "dataType": "bytes",
         "fieldNumber": 5,
+        "maxLength": 32,
+        "minLength": 32,
       },
       "signatures": Object {
         "fieldNumber": 7,

@@ -51,6 +51,8 @@ export const transactionSchema = {
 		senderPublicKey: {
 			dataType: 'bytes',
 			fieldNumber: 5,
+			minLength: 32,
+			maxLength: 32,
 		},
 		asset: {
 			dataType: 'bytes',
@@ -66,6 +68,17 @@ export const transactionSchema = {
 	},
 };
 
+export const calculateMinFee = (
+	tx: Transaction,
+	minFeePerByte: number,
+	baseFees: { moduleID: number; assetID: number; baseFee: string }[],
+): bigint => {
+	const size = tx.getBytes().length;
+	const baseFee =
+		baseFees.find(bf => bf.moduleID === tx.moduleID && bf.assetID === tx.assetID)?.baseFee ?? '0';
+	return BigInt(minFeePerByte * size) + BigInt(baseFee);
+};
+
 export class Transaction {
 	public readonly moduleID: number;
 	public readonly assetID: number;
@@ -75,7 +88,7 @@ export class Transaction {
 	public readonly senderPublicKey: Buffer;
 	public readonly signatures: ReadonlyArray<Buffer>;
 	private _id?: Buffer;
-	private _senderID?: Buffer;
+	private _senderAddress?: Buffer;
 
 	public constructor(transaction: TransactionInput) {
 		this.moduleID = transaction.moduleID;
@@ -99,11 +112,11 @@ export class Transaction {
 		return this._id;
 	}
 
-	public get senderID(): Buffer {
-		if (!this._senderID) {
-			this._senderID = getAddressFromPublicKey(this.senderPublicKey);
+	public get senderAddress(): Buffer {
+		if (!this._senderAddress) {
+			this._senderAddress = getAddressFromPublicKey(this.senderPublicKey);
 		}
-		return this._senderID;
+		return this._senderAddress;
 	}
 
 	public getBytes(): Buffer {
@@ -121,10 +134,27 @@ export class Transaction {
 		return transactionBytes;
 	}
 
-	public validate(): void {
+	public validate(input: {
+		minFeePerByte: number;
+		baseFees: { moduleID: number; assetID: number; baseFee: string }[];
+	}): void {
 		const schemaErrors = validator.validate(transactionSchema, this);
 		if (schemaErrors.length > 0) {
 			throw new LiskValidationError(schemaErrors);
+		}
+		if (this.signatures.length === 0) {
+			throw new Error('Signatures must not be empty');
+		}
+		for (const signature of this.signatures) {
+			if (signature.length !== 0 && signature.length !== 64) {
+				throw new Error('Signature must be empty or 64 bytes');
+			}
+		}
+		const minFee = calculateMinFee(this, input.minFeePerByte, input.baseFees);
+		if (this.fee < minFee) {
+			throw new Error(
+				`Insufficient transaction fee. Minimum required fee is: ${minFee.toString()}`,
+			);
 		}
 	}
 }

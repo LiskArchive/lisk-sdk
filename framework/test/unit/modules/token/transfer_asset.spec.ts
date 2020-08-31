@@ -68,7 +68,7 @@ describe('Transfer asset', () => {
 			expect(async () =>
 				transferAsset.apply({
 					asset: validTransaction.asset,
-					senderID: validTransaction.address,
+					senderAddress: validTransaction.address,
 					stateStore,
 					reducerHandler,
 					transaction: validTransaction,
@@ -79,7 +79,7 @@ describe('Transfer asset', () => {
 		it('should call state store with a valid transfer asset', async () => {
 			await transferAsset.apply({
 				asset: validTransaction.asset,
-				senderID: validTransaction.address,
+				senderAddress: validTransaction.address,
 				stateStore,
 				reducerHandler,
 				transaction: validTransaction,
@@ -113,7 +113,7 @@ describe('Transfer asset', () => {
 			return expect(async () =>
 				transferAsset.apply({
 					asset: validTransaction.asset,
-					senderID: validTransaction.address,
+					senderAddress: validTransaction.address,
 					stateStore,
 					reducerHandler,
 					transaction: validTransaction,
@@ -136,7 +136,7 @@ describe('Transfer asset', () => {
 			return expect(async () =>
 				transferAsset.apply({
 					asset: { ...validTransaction.asset, amount: BigInt(0) },
-					senderID: validTransaction.address,
+					senderAddress: validTransaction.address,
 					stateStore,
 					reducerHandler,
 					transaction: validTransaction,

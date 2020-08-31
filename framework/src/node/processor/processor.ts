@@ -307,7 +307,7 @@ export class Processor {
 	}
 
 	public validateTransaction(transaction: Transaction): void {
-		transaction.validate();
+		this._chain.validateTransaction(transaction);
 		const customAsset = this._getAsset(transaction);
 		if (customAsset.validate) {
 			const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
@@ -341,7 +341,7 @@ export class Processor {
 				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler: this._createReducerHandler(stateStore),
-					senderID: transaction.senderID,
+					senderAddress: transaction.senderAddress,
 					stateStore,
 					transaction,
 				});
@@ -402,7 +402,7 @@ export class Processor {
 				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler,
-					senderID: transaction.senderID,
+					senderAddress: transaction.senderAddress,
 					stateStore,
 					transaction,
 				});

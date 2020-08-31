@@ -100,20 +100,15 @@ export class TokenModule extends BaseModule {
 		this.transactionAssets = [new TransferAsset(this._minRemainingBalance)];
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async beforeTransactionApply({ transaction }: TransactionApplyContext): Promise<void> {
-		// Throw error if fee is lower than minimum fee (minFeePerBytes + baseFee)
-		const minFee = BigInt(this.config.minFeePerByte) * BigInt(transaction.getBytes().length);
-		const baseFee =
-			this.config.baseFees.find(
-				fee => fee.moduleID === transaction.moduleID && fee.assetID === transaction.assetID,
-			)?.baseFee ?? BigInt(0);
-		const minimumRequiredFee = minFee + BigInt(baseFee);
-		if (transaction.fee < minimumRequiredFee) {
-			throw new Error(
-				`Insufficient transaction fee. Minimum required fee is: ${minimumRequiredFee.toString()}`,
-			);
-		}
+	// eslint-disable-next-line class-methods-use-this
+	public async beforeTransactionApply({
+		transaction,
+		stateStore,
+	}: TransactionApplyContext): Promise<void> {
+		// Deduct transaction fee from sender balance
+		const sender = await stateStore.account.get<TokenAccount>(transaction.senderAddress);
+		sender.token.balance -= transaction.fee;
+		stateStore.account.set(transaction.senderAddress, sender);
 	}
 
 	public async afterTransactionApply({
@@ -121,8 +116,7 @@ export class TokenModule extends BaseModule {
 		stateStore,
 	}: TransactionApplyContext): Promise<void> {
 		// Verify sender has minimum remaining balance
-		const senderAddress = transaction.senderID;
-		const sender = await stateStore.account.getOrDefault<TokenAccount>(senderAddress);
+		const sender = await stateStore.account.getOrDefault<TokenAccount>(transaction.senderAddress);
 		if (sender.token.balance < this._minRemainingBalance) {
 			throw new Error(
 				`Account does not have enough minimum remaining balance: ${sender.address.toString(

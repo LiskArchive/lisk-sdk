@@ -28,7 +28,7 @@ describe('Public block related P2P endpoints with invalid block property', () =>
 	let p2p: P2P;
 
 	beforeAll(async () => {
-		app = await createApplication('network-invalid-blocks', 'debug');
+		app = await createApplication('network-invalid-blocks');
 		p2p = await createProbe({
 			networkId: app.networkIdentifier.toString('hex'),
 			networkVersion: app.config.networkVersion,

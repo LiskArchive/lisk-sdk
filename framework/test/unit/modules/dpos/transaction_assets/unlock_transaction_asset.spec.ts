@@ -102,7 +102,7 @@ describe('UnlockTransactionAsset', () => {
 		);
 		transactionAsset = new UnlockTransactionAsset();
 		applyContext = {
-			senderID: sender.address,
+			senderAddress: sender.address,
 			asset: {
 				unlockObjects: [],
 			},

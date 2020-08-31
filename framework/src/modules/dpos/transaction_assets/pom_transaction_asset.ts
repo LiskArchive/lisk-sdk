@@ -144,7 +144,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 	// eslint-disable-next-line class-methods-use-this
 	public async apply({
 		asset,
-		senderID,
+		senderAddress,
 		stateStore: store,
 		reducerHandler,
 	}: ApplyAssetContext<PomTransactionAssetContext>): Promise<void> {
@@ -236,7 +236,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 				? delegateAccountBalance
 				: store.chain.lastBlockReward;
 
-		await reducerHandler.invoke('token:credit', { address: senderID, amount: reward });
+		await reducerHandler.invoke('token:credit', { address: senderAddress, amount: reward });
 
 		/*
 			Update delegate account

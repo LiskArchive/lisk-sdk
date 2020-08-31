@@ -51,6 +51,8 @@ describe('chain', () => {
 		],
 		blockTime: 10,
 		networkIdentifier: defaultNetworkIdentifier,
+		minFeePerByte: 1000,
+		baseFees: [],
 	};
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
 		created: [],
