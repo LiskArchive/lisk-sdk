@@ -68,6 +68,7 @@ import {
 	P2PResponsePacket,
 	RPCSchemas,
 } from './types';
+import { encodeNodeInfo } from './utils/codec';
 // eslint-disable-next-line import/order
 import shuffle = require('lodash.shuffle');
 
@@ -592,7 +593,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer): void {
-		const encodedNodeInfo = codec.encode(this._rpcSchema.nodeInfo, this._nodeInfo as object);
+		const encodedNodeInfo = encodeNodeInfo(this._rpcSchema.nodeInfo, this._nodeInfo as P2PNodeInfo);
 		// Validate nodeInfo before sending to peers
 		validateNodeInfo(encodedNodeInfo, this._peerPoolConfig.maxPeerInfoSize);
 		try {
