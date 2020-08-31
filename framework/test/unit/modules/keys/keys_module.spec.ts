@@ -485,6 +485,34 @@ describe('keys module', () => {
 				).resolves.toBeUndefined();
 			});
 
+			it('should not throw for multisignature account with only optional', async () => {
+				const optionalOnlyMultisigAccount = cloneDeep(multisigAccount);
+				optionalOnlyMultisigAccount.keys.mandatoryKeys = [];
+				optionalOnlyMultisigAccount.keys.numberOfSignatures = 1;
+
+				stateStore.account.get = jest.fn().mockResolvedValue(optionalOnlyMultisigAccount);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						Buffer.concat([
+							Buffer.from(defaultNetworkIdentifier, 'hex'),
+							transaction.getSigningBytes(),
+						]),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				return expect(
+					keysModule.beforeTransactionApply({
+						stateStore,
+						transaction,
+						reducerHandler,
+					}),
+				).resolves.toBeUndefined();
+			});
+
 			it('should not throw for valid transaction when first optional is present', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
