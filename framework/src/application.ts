@@ -187,8 +187,8 @@ export class Application {
 
 	public registerModule(Module: typeof BaseModule): void {
 		assert(Module, 'Module implementation is required');
-		const InstanciabltModule = Module as InstantiableBaseModule;
-		const moduleInstance = new InstanciabltModule(this.config.genesisConfig);
+		const InstantiableModule = Module as InstantiableBaseModule;
+		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
 		this._node.registerModule(moduleInstance);
 	}
 
