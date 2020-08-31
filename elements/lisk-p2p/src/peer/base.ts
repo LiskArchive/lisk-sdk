@@ -16,7 +16,7 @@ import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { codec } from '@liskhq/lisk-codec';
-
+import { isHexString } from '@liskhq/lisk-validator';
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
@@ -356,9 +356,7 @@ export class Peer extends EventEmitter {
 			})) as GetPeersResponseData;
 			const { peers, success } = response.data;
 
-			const decodedPeers = peers.map((peer: string) =>
-				codec.decode(this._rpcSchemas.peerInfo, Buffer.from(peer, 'hex')),
-			);
+			const decodedPeers = peers.map((peer: string) => this._decodePeerInfo(peer));
 
 			const validatedPeers = validatePeerInfoList(
 				{ peers: decodedPeers, success },
@@ -405,16 +403,13 @@ export class Peer extends EventEmitter {
 			);
 		}
 		try {
-			const decodedNodeInfo = codec.decode(
-				this._rpcSchemas.nodeInfo,
-				Buffer.from(response.data as string, 'hex'),
-			);
+			const decodedNodeInfo = this._decodeNodeInfo(response.data);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
 			// Apply penalty for malformed PeerInfo
-			if (error instanceof InvalidPeerInfoError) {
+			if (error instanceof InvalidNodeInfoError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
@@ -523,12 +518,9 @@ export class Peer extends EventEmitter {
 			// Check incoming nodeInfo size before deocoding
 			validateNodeInfo(nodeInfoBuffer, this._peerConfig.maxPeerInfoSize);
 
-			const decodedNodeInfo = codec.decode(
-				this._rpcSchemas.nodeInfo,
-				Buffer.from(message.data as string, 'hex'),
-			);
+			const decodedNodeInfo = this._decodeNodeInfo(message.data);
 			// Only update options object
-			const { options } = decodedNodeInfo as P2PNodeInfo;
+			const { options } = decodedNodeInfo;
 			// Only update options property
 			this._peerInfo = {
 				...this._peerInfo,
@@ -586,5 +578,27 @@ export class Peer extends EventEmitter {
 					...peerInfo,
 					internalState: assignInternalInfo(peerInfo, this._peerConfig.secret),
 			  };
+	}
+
+	private _decodeNodeInfo(data: unknown): P2PNodeInfo {
+		try {
+			if (typeof data !== 'string' || !isHexString(data)) {
+				throw new Error('Invalid encoded data');
+			}
+			return codec.decode<P2PNodeInfo>(this._rpcSchemas.nodeInfo, Buffer.from(data, 'hex'));
+		} catch (error) {
+			throw new InvalidNodeInfoError((error as Error).message);
+		}
+	}
+
+	private _decodePeerInfo(data: unknown): P2PPeerInfo {
+		try {
+			if (typeof data !== 'string' || !isHexString(data)) {
+				throw new Error('Invalid encoded data');
+			}
+			return codec.decode<P2PPeerInfo>(this._rpcSchemas.peerInfo, Buffer.from(data, 'hex'));
+		} catch (error) {
+			throw new InvalidPeerInfoError((error as Error).message);
+		}
 	}
 }

@@ -274,6 +274,7 @@ export class P2P extends EventEmitter {
 		this._handlePeerPoolMessage = (message: P2PMessagePacket): void => {
 			// Re-emit the message for external use.
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
+				// This 'decode' only happens with the successful case after decoding in "peer"
 				const decodedNodeInfo = codec.decode(
 					nodeInfoSchema,
 					Buffer.from(message.data as string, 'hex'),
