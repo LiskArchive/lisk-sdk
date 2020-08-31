@@ -16,7 +16,7 @@
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { baseTransactionSchema } from './schema';
 
-export const validateTransactionSchema = (
+export const validateTransaction = (
 	assetSchema: object,
 	transactionObject: Record<string, unknown>,
 ): LiskValidationError | Error | undefined => {

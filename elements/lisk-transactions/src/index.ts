@@ -13,5 +13,5 @@
  *
  */
 export { getSigningBytes, signTransaction, signMultiSignatureTransaction } from './sign';
-export { validateTransactionSchema } from './validate';
+export { validateTransaction } from './validate';
 export { convertBeddowsToLSK, convertLSKToBeddows } from './format';
