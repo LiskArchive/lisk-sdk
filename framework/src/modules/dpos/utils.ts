@@ -84,10 +84,6 @@ export const isUsername = (username: string): boolean => {
 		return false;
 	}
 
-	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
-		return false;
-	}
-
 	return /^[a-z0-9!@$&_.]+$/g.test(username);
 };
 

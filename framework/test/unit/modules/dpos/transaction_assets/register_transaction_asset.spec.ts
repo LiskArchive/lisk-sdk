@@ -85,18 +85,6 @@ describe('RegisterTransactionAsset', () => {
 			expect(() => transactionAsset.validate({ asset } as any)).toThrow(error);
 		});
 
-		it('should throw error when username is like address', () => {
-			// Arrange
-			const asset: RegisterTransactionAssetContext = { username: '17670127987160191762l' };
-			const error = new ValidationError(
-				'The username is in unsupported format',
-				'17670127987160191762l',
-			);
-
-			// Act & Assert
-			expect(() => transactionAsset.validate({ asset } as any)).toThrow(error);
-		});
-
 		it('should throw error when username includes forbidden character', () => {
 			// Arrange
 			const asset: RegisterTransactionAssetContext = { username: 'obe^lis' };
