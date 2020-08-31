@@ -482,6 +482,8 @@ export class Node {
 			rewardMilestones: this._options.genesisConfig.rewards.milestones.map(s => BigInt(s)),
 			blockTime: this._options.genesisConfig.blockTime,
 			accountSchemas: this._registeredAccountSchemas,
+			minFeePerByte: this._options.genesisConfig.minFeePerByte,
+			baseFees: this._options.genesisConfig.baseFees,
 		});
 
 		this._bft = new BFT({

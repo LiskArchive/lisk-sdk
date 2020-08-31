@@ -189,56 +189,6 @@ describe('token module', () => {
 	});
 
 	describe('#beforeTransactionApply', () => {
-		it('should not throw error if fee is equal or higher or equal to min fee', async () => {
-			return expect(
-				tokenModule.beforeTransactionApply({
-					stateStore,
-					transaction: validTransaction,
-					reducerHandler,
-				}),
-			).resolves.toBeUndefined();
-		});
-
-		it('should not throw error if transaction asset does not have a baseFee entry and transaction fee is higher or equal to min fee', async () => {
-			tokenModule = new TokenModule({
-				...genesisConfig,
-				baseFees: [
-					{
-						assetID: 0,
-						baseFee: undefined as any,
-						moduleID: 2,
-					},
-				],
-			});
-
-			return expect(
-				tokenModule.beforeTransactionApply({
-					stateStore,
-					transaction: validTransaction,
-					reducerHandler,
-				}),
-			).resolves.toBeUndefined();
-		});
-
-		it('should throw error if fee is lower than minimum required fee', async () => {
-			validTransaction.fee = BigInt(0);
-			const expectedMinFee =
-				BigInt(genesisConfig.minFeePerByte) * BigInt(validTransaction.getBytes().length) +
-				BigInt(genesisConfig.baseFees[0].baseFee);
-
-			return expect(
-				tokenModule.beforeTransactionApply({
-					stateStore,
-					transaction: validTransaction,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(
-				new Error(
-					`Insufficient transaction fee. Minimum required fee is: ${expectedMinFee.toString()}`,
-				),
-			);
-		});
-
 		it('should deduct transaction fee from sender account', async () => {
 			const expectedSenderAccount = {
 				...senderAccount,
@@ -283,6 +233,7 @@ describe('token module', () => {
 				}),
 			).rejects.toStrictEqual(
 				new Error(
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					`Account does not have enough minimum remaining balance: ${senderAccount.address.toString(
 						'hex',
 					)}. Current balance is: 0. Required minimum balance is: ${minRemainingBalance}.`,
@@ -328,6 +279,7 @@ describe('token module', () => {
 
 		describe('when block contains transactions', () => {
 			it('should update generator balance to give rewards and fees - minFee', async () => {
+				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 				let expected = generatorAccount.token.balance + block.header.reward;
 				for (const transaction of block.payload) {
 					expected += transaction.fee - minFee;
