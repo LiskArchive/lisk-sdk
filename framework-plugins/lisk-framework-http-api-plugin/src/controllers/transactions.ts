@@ -50,7 +50,7 @@ const transactionInputSchema = {
 			type: 'array',
 			items: {
 				type: 'string',
-				format: 'hex',
+				anyOf: [{ const: '' }, { format: 'hex' }],
 				description: 'Hex encoded value of the signature for the transaction.',
 			},
 			minItems: 1,
