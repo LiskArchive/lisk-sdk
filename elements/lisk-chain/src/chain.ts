@@ -59,7 +59,7 @@ import {
 	getRegisteredBlockAssetSchema,
 	validatorsSchema,
 } from './schema';
-import { Transaction, calculateMinFee } from './transaction';
+import { Transaction } from './transaction';
 
 interface ChainConstructor {
 	readonly db: KVStore;
@@ -316,25 +316,10 @@ export class Chain {
 	}
 
 	public validateTransaction(transaction: Transaction): void {
-		transaction.validate();
-		if (transaction.signatures.length === 0) {
-			throw new Error('Signatures must not be empty');
-		}
-		for (const signature of transaction.signatures) {
-			if (signature.length !== 0 && signature.length !== 64) {
-				throw new Error('Signature must be empty or 64 bytes');
-			}
-		}
-		const minFee = calculateMinFee(
-			transaction,
-			this.constants.minFeePerByte,
-			this.constants.baseFees,
-		);
-		if (transaction.fee < minFee) {
-			throw new Error(
-				`Insufficient transaction fee. Minimum required fee is: ${minFee.toString()}`,
-			);
-		}
+		transaction.validate({
+			minFeePerByte: this.constants.minFeePerByte,
+			baseFees: this.constants.baseFees,
+		});
 	}
 
 	public validateBlockHeader(block: Block): void {

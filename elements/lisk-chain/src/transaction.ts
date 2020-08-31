@@ -134,10 +134,27 @@ export class Transaction {
 		return transactionBytes;
 	}
 
-	public validate(): void {
+	public validate(input: {
+		minFeePerByte: number;
+		baseFees: { moduleID: number; assetID: number; baseFee: string }[];
+	}): void {
 		const schemaErrors = validator.validate(transactionSchema, this);
 		if (schemaErrors.length > 0) {
 			throw new LiskValidationError(schemaErrors);
+		}
+		if (this.signatures.length === 0) {
+			throw new Error('Signatures must not be empty');
+		}
+		for (const signature of this.signatures) {
+			if (signature.length !== 0 && signature.length !== 64) {
+				throw new Error('Signature must be empty or 64 bytes');
+			}
+		}
+		const minFee = calculateMinFee(this, input.minFeePerByte, input.baseFees);
+		if (this.fee < minFee) {
+			throw new Error(
+				`Insufficient transaction fee. Minimum required fee is: ${minFee.toString()}`,
+			);
 		}
 	}
 }
