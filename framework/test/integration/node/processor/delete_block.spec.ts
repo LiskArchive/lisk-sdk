@@ -13,7 +13,13 @@
  */
 
 import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
-import { Block, stateDiffSchema, Account, Transaction } from '@liskhq/lisk-chain';
+import {
+	Block,
+	stateDiffSchema,
+	Account,
+	Transaction,
+	CONSENSUS_STATE_VALIDATORS_KEY,
+} from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
 import { createDB, removeDB } from '../../../utils/kv_store';
@@ -117,6 +123,63 @@ describe('Delete block', () => {
 				await expect(
 					blockchainDB.get(`diff:${formatInt(newBlock.header.height)}`),
 				).rejects.toBeInstanceOf(NotFoundError);
+			});
+		});
+	});
+
+	describe('given an block that introduces account state change', () => {
+		describe('when the deleteLastBlock is called', () => {
+			it('should rollback all the accounts to the previous state', async () => {
+				// Arrange
+				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(genesis.address);
+				const genesisBalance = genesisAccount.token.balance;
+				const recipientAccount = nodeUtils.createAccount();
+				const transaction1 = createTransferTransaction({
+					nonce: genesisAccount.sequence.nonce,
+					recipientAddress: recipientAccount.address,
+					amount: BigInt('100000000000'),
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: genesis.passphrase,
+				});
+				const newBlock = await nodeUtils.createBlock(node, [transaction1]);
+				await node['_processor'].process(newBlock);
+				await node['_processor'].deleteLastBlock();
+				// Assert
+				await expect(
+					node['_chain'].dataAccess.getAccountByAddress(recipientAccount.address),
+				).rejects.toThrow('Specified key accounts:address');
+				const revertedGenesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(genesisAccount.address);
+				expect(revertedGenesisAccount.token.balance).toEqual(genesisBalance);
+			});
+		});
+	});
+
+	describe('given an block that introduces consensus state change', () => {
+		describe('when the deleteLastBlock is called', () => {
+			it('should rollback validators to the previous state', async () => {
+				// Arrange
+				while (node['_chain'].lastBlock.header.height !== node['_chain'].lastBootstrapHeight - 1) {
+					const newBlock = await nodeUtils.createBlock(node);
+					await node['_processor'].process(newBlock);
+				}
+				const consensusStateBefore = await node['_chain'].dataAccess.getConsensusState(
+					CONSENSUS_STATE_VALIDATORS_KEY,
+				);
+				const newBlock = await nodeUtils.createBlock(node);
+				await node['_processor'].process(newBlock);
+				const consensusStateAfter = await node['_chain'].dataAccess.getConsensusState(
+					CONSENSUS_STATE_VALIDATORS_KEY,
+				);
+				expect(consensusStateBefore).not.toEqual(consensusStateAfter);
+				await node['_processor'].deleteLastBlock();
+				const consensusStateReverted = await node['_chain'].dataAccess.getConsensusState(
+					CONSENSUS_STATE_VALIDATORS_KEY,
+				);
+				expect(consensusStateReverted).toEqual(consensusStateBefore);
 			});
 		});
 	});

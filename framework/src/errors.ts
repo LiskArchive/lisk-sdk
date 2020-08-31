@@ -62,15 +62,12 @@ export class ImplementationMissingError extends FrameworkError {
 	}
 }
 
-export class ValidationError extends Error {
-	public name: string;
+export class ValidationError extends FrameworkError {
 	public code = 'ERR_VALIDATION';
 	public value: string;
 	public constructor(message: string, value: string) {
 		super(message);
-		this.name = this.constructor.name;
 		this.value = value;
-		Error.captureStackTrace(this, FrameworkError);
 	}
 }
 
@@ -84,5 +81,12 @@ export class TransactionApplyError extends Error {
 		this.name = this.constructor.name;
 		this.id = id;
 		this.transactionError = transactionError;
+	}
+}
+
+export class ApplyPenaltyError extends FrameworkError {
+	public code = 'ERR_APPLY_PENALTY';
+	public constructor(message: string) {
+		super(message);
 	}
 }

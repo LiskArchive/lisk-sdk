@@ -38,7 +38,7 @@ import {
 	Consensus,
 	Delegate,
 } from '../../types';
-import { TransactionApplyError } from '../../errors';
+import { TransactionApplyError, ApplyPenaltyError } from '../../errors';
 
 const forkStatusList = [
 	ForkStatus.IDENTICAL_BLOCK,
@@ -434,13 +434,17 @@ export class Processor {
 		// If the schema or bytes does not match with version 2, it fails even before this
 		// This is for fail safe, and genesis block does not use this function
 		if (block.header.version !== BLOCK_VERSION) {
-			throw new Error(`Block version must be ${BLOCK_VERSION}`);
+			throw new ApplyPenaltyError(`Block version must be ${BLOCK_VERSION}`);
 		}
-		this._chain.validateBlockHeader(block);
-		if (block.payload.length) {
-			for (const transaction of block.payload) {
-				this.validateTransaction(transaction);
+		try {
+			this._chain.validateBlockHeader(block);
+			if (block.payload.length) {
+				for (const transaction of block.payload) {
+					this.validateTransaction(transaction);
+				}
 			}
+		} catch (error) {
+			throw new ApplyPenaltyError((error as Error).message ?? 'Invalid block to be processed');
 		}
 	}
 
