@@ -229,19 +229,19 @@ definitions:
       receivedFees:
         type: string
         example: '33333232323'
-        description: Total fees received by a delagate.
+        description: Total fees received by a delegate.
       receivedRewards:
         type: string
         example: '33333232323'
-        description: Total rewards received by a delagate.
+        description: Total rewards received by a delegate.
       producedBlocks:
         type: integer
         example: '23'
-        description: Total blocks produced by a delagate.
+        description: Total blocks produced by a delegate.
       missedBlocks:
         type: integer
         example: '2'
-        description: Total blocks missed by a delagate.
+        description: Total blocks missed by a delegate.
 
   ForgingInfoResponse:
     type: object

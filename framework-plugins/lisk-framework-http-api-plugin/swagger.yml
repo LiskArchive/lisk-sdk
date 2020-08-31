@@ -79,12 +79,10 @@ paths:
       parameters:
         - name: address
           in: path
-          example: 9d0149b0962d44bfc08a9f64d5afceb6281d7fb5
+          type: string
           description: |
             The binary address in hex format as defined in LIP-0018.
           required: true
-          schema:
-            type: string
       responses:
         200:
           description: Account requested.
@@ -171,10 +169,9 @@ paths:
       parameters:
         - name: id
           in: path
+          type: string
           description: id of the searching block in hex format
           required: true
-          schema:
-            type: string
       responses:
         200:
           description: Block requested.
@@ -207,10 +204,9 @@ paths:
       parameters:
         - name: height
           in: query
+          type: integer
           description: height of the searching block.
           required: true
-          schema:
-            type: integer
       responses:
         200:
           description: Block requested.
@@ -243,10 +239,9 @@ paths:
       parameters:
         - name: id
           in: path
+          type: string
           description: id of the searching transaction in hex format
           required: true
-          schema:
-            type: string
       responses:
         200:
           description: Transaction requested.
@@ -587,26 +582,40 @@ definitions:
     type: object
     required:
       - address
-      - balance
-      - nonce
+      - token
+      - sequence
       - keys
-      - asset
+      - dpos
     properties:
       address:
         type: string
         example: 9d0149b0962d44bfc08a9f64d5afceb6281d7fb5
         description: |
           The binary address in hex format as defined in LIP-0018.
-      balance:
-        type: string
-        example: 1081560729258
-        description: The current balance of the account in Beddows.
-      nonce:
-        type: string
-        example: 154
-        description: The current nonce associated to account for transaction processing.
+      token:
+        type: object
+        required:
+          - balance
+        properties:
+          balance:
+            type: string
+            example: 1081560729258
+            description: The current balance of the account in Beddows.
+      sequence:
+        type: object
+        required:
+          - nonce
+        properties:
+          nonce:
+            type: string
+            example: 154
+            description: The current nonce associated to account for transaction processing.
       keys:
         type: object
+        required:
+          - mandatoryKeys
+          - optionalKeys
+          - numberOfSignatures
         properties:
           mandatoryKeys:
             type: array
@@ -621,9 +630,64 @@ definitions:
           numberOfSignatures:
             type: number
             description: Number of required signatures
-      asset:
+      dpos:
         type: object
-        description: Object stored in the account state as defined by the application
+        required:
+          - delegate
+          - unlocking
+          - sentVotes
+        properties:
+          delegate:
+            type: object
+            required:
+              - username
+              - pomHeights
+              - consecutiveMissedBlocks
+              - lastForgedHeight
+              - isBanned
+              - totalVotesReceived
+            properties:
+              username:
+                type: string
+              pomHeights:
+                type: array
+                items:
+                  type: number
+              consecutiveMissedBlocks:
+                type: number
+              lastForgedHeight:
+                type: number
+              isBanned:
+                type: boolean
+              totalVotesReceived:
+                type: string
+          sentVotes:
+            type: array
+            items:
+              type: object
+              required:
+                - delegateAddress
+                - amount
+              properties:
+                delegateAddress:
+                  type: string
+                amount:
+                  type: string
+          unlocking:
+            type: array
+            items:
+              type: object
+              required:
+                - delegateAddress
+                - amount
+                - unvoteHeight
+              properties:
+                delegateAddress:
+                  type: string
+                amount:
+                  type: string
+                unvoteHeight:
+                  type: number
 
   BlockHeader:
     type: object
@@ -653,7 +717,7 @@ definitions:
           Height of the network, when the block was forged.
           The height of the network represents the number of blocks
           that have been forged on the network since the genesis block.
-      previoudBlockID:
+      previousBlockID:
         type: string
         description: Hex encoded value of the ID of the previous block of the chain.
       transactionRoot:
@@ -683,9 +747,12 @@ definitions:
       id:
         type: string
         description: Hex encoded value of the unique identifier of the transaction.
-      type:
+      moduleID:
         type: number
-        description: Describes the Transaction type.
+        description: Module Id for transaction asset
+      assetID:
+        type: number
+        description: Asset Id for transaction asset
       fee:
         type: string
         description: |
@@ -711,16 +778,20 @@ definitions:
   TransactionRequest:
     type: object
     required:
-      - type
+      - moduleID
+      - assetID
       - nonce
       - fee
       - senderPublicKey
       - asset
       - signatures
     properties:
-      type:
+      moduleID:
         type: number
-        description: Describes the Transaction type.
+        description: Module Id for transaction asset
+      assetID:
+        type: number
+        description: Asset Id for transaction asset
       fee:
         type: string
         description: |
