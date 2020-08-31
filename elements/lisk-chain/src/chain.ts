@@ -59,6 +59,7 @@ import {
 	getRegisteredBlockAssetSchema,
 	validatorsSchema,
 } from './schema';
+import { Transaction, calculateMinFee } from './transaction';
 
 interface ChainConstructor {
 	readonly db: KVStore;
@@ -71,6 +72,12 @@ interface ChainConstructor {
 	readonly maxPayloadLength: number;
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
+	readonly minFeePerByte: number;
+	readonly baseFees: {
+		readonly moduleID: number;
+		readonly assetID: number;
+		readonly baseFee: string;
+	}[];
 	readonly rewardMilestones: ReadonlyArray<bigint>;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
@@ -90,6 +97,12 @@ export class Chain {
 		readonly rewardOffset: number;
 		readonly rewardMilestones: ReadonlyArray<bigint>;
 		readonly networkIdentifier: Buffer;
+		readonly minFeePerByte: number;
+		readonly baseFees: {
+			readonly moduleID: number;
+			readonly assetID: number;
+			readonly baseFee: string;
+		}[];
 	};
 
 	private _lastBlock: Block;
@@ -116,6 +129,8 @@ export class Chain {
 		rewardDistance,
 		rewardOffset,
 		rewardMilestones,
+		minFeePerByte,
+		baseFees,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
@@ -166,6 +181,8 @@ export class Chain {
 			rewardOffset,
 			rewardMilestones,
 			networkIdentifier,
+			minFeePerByte,
+			baseFees,
 		};
 	}
 
@@ -296,6 +313,28 @@ export class Chain {
 			codec.encode(validatorsSchema, { validators: initialValidators }),
 		);
 		this._numberOfValidators = block.header.asset.initDelegates.length;
+	}
+
+	public validateTransaction(transaction: Transaction): void {
+		transaction.validate();
+		if (transaction.signatures.length === 0) {
+			throw new Error('Signatures must not be empty');
+		}
+		for (const signature of transaction.signatures) {
+			if (signature.length !== 0 && signature.length !== 64) {
+				throw new Error('Signature must be empty or 64 bytes');
+			}
+		}
+		const minFee = calculateMinFee(
+			transaction,
+			this.constants.minFeePerByte,
+			this.constants.baseFees,
+		);
+		if (transaction.fee < minFee) {
+			throw new Error(
+				`Insufficient transaction fee. Minimum required fee is: ${minFee.toString()}`,
+			);
+		}
 	}
 
 	public validateBlockHeader(block: Block): void {

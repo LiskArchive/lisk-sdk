@@ -62,6 +62,7 @@ describe('processor', () => {
 			validateGenesisBlockHeader: jest.fn(),
 			applyGenesisBlock: jest.fn(),
 			validateBlockHeader: jest.fn(),
+			validateTransaction: jest.fn(),
 			verifyBlockHeader: jest.fn(),
 			saveBlock: jest.fn(),
 			removeBlock: jest.fn(),
@@ -551,15 +552,14 @@ describe('processor', () => {
 		});
 
 		it('should validate payload', () => {
-			jest.spyOn(tx, 'validate');
 			processor.validate(blockV2);
-			expect(tx.validate).toHaveBeenCalledTimes(1);
+			expect(chainModuleStub.validateTransaction).toHaveBeenCalledTimes(1);
 		});
 
 		it('should validate payload asset', () => {
 			jest.spyOn(validator, 'validate');
 			processor.validate(blockV2);
-			expect(validator.validate).toHaveBeenCalledTimes(2);
+			expect(validator.validate).toHaveBeenCalledTimes(1);
 			expect(validator.validate).toHaveBeenCalledWith(
 				customModule0.transactionAssets[0].schema,
 				expect.any(Object),
@@ -854,6 +854,9 @@ describe('processor', () => {
 		});
 
 		it('should throw if root schema is invalid', () => {
+			(chainModuleStub.validateTransaction as jest.Mock).mockImplementation(() => {
+				throw new Error('Lisk validator found 1 error');
+			});
 			expect(() =>
 				processor.validateTransaction(
 					new Transaction({

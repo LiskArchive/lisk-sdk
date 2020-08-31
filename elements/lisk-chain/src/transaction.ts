@@ -51,6 +51,8 @@ export const transactionSchema = {
 		senderPublicKey: {
 			dataType: 'bytes',
 			fieldNumber: 5,
+			minLength: 32,
+			maxLength: 32,
 		},
 		asset: {
 			dataType: 'bytes',
@@ -64,6 +66,17 @@ export const transactionSchema = {
 			fieldNumber: 7,
 		},
 	},
+};
+
+export const calculateMinFee = (
+	tx: Transaction,
+	minFeePerByte: number,
+	baseFees: { moduleID: number; assetID: number; baseFee: string }[],
+): bigint => {
+	const size = tx.getBytes().length;
+	const baseFee =
+		baseFees.find(bf => bf.moduleID === tx.moduleID && bf.assetID === tx.assetID)?.baseFee ?? '0';
+	return BigInt(minFeePerByte * size) + BigInt(baseFee);
 };
 
 export class Transaction {
