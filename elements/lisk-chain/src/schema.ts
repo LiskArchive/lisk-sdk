@@ -116,6 +116,8 @@ export const blockHeaderAssetSchema = {
 		},
 		seedReveal: {
 			dataType: 'bytes',
+			minLength: 16,
+			maxLength: 16,
 			fieldNumber: 3,
 		},
 	},

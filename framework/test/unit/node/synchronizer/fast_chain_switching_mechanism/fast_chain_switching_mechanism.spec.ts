@@ -79,6 +79,8 @@ describe('fast_chain_switching_mechanism', () => {
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			blockTime: constants.blockTime,
+			minFeePerByte: constants.minFeePerByte,
+			baseFees: constants.baseFees,
 		});
 		chainModule['_numberOfValidators'] = 103;
 

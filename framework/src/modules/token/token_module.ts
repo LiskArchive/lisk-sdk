@@ -100,24 +100,11 @@ export class TokenModule extends BaseModule {
 		this.transactionAssets = [new TransferAsset(this._minRemainingBalance)];
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	// eslint-disable-next-line class-methods-use-this
 	public async beforeTransactionApply({
 		transaction,
 		stateStore,
 	}: TransactionApplyContext): Promise<void> {
-		// Check if transaction fee is lower than the minimum required fee (minFeePerBytes + baseFee)
-		const minFee = BigInt(this.config.minFeePerByte) * BigInt(transaction.getBytes().length);
-		const baseFee =
-			this.config.baseFees.find(
-				fee => fee.moduleID === transaction.moduleID && fee.assetID === transaction.assetID,
-			)?.baseFee ?? BigInt(0);
-		const minimumRequiredFee = minFee + BigInt(baseFee);
-		if (transaction.fee < minimumRequiredFee) {
-			throw new Error(
-				`Insufficient transaction fee. Minimum required fee is: ${minimumRequiredFee.toString()}`,
-			);
-		}
-
 		// Deduct transaction fee from sender balance
 		const senderAddress = transaction.senderID;
 		const sender = await stateStore.account.get<TokenAccount>(senderAddress);

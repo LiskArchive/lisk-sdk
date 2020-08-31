@@ -81,6 +81,8 @@ describe('Synchronizer', () => {
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			blockTime: constants.blockTime,
+			minFeePerByte: constants.minFeePerByte,
+			baseFees: constants.baseFees,
 		});
 
 		dataAccessMock = {

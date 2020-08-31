@@ -34,6 +34,7 @@ import { getTransaction } from '../utils/transaction';
 import { validatorsSchema } from '../../src/schema';
 import { createStateStore } from '../utils/state_store';
 import { CONSENSUS_STATE_VALIDATORS_KEY } from '../../src/constants';
+import { Transaction } from '../../src';
 
 jest.mock('events');
 jest.mock('@liskhq/lisk-db');
@@ -53,7 +54,14 @@ describe('chain/process block', () => {
 		],
 		totalAmount: BigInt('10000000000000000'),
 		blockTime: 10,
-		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
+		minFeePerByte: 1000,
+		baseFees: [
+			{
+				moduleID: 2,
+				assetID: 1,
+				baseFee: '100000000',
+			},
+		],
 	};
 
 	let chainInstance: Chain;
@@ -72,6 +80,135 @@ describe('chain/process block', () => {
 		(chainInstance as any)._lastBlock = genesisBlock;
 
 		block = createValidDefaultBlock();
+	});
+
+	describe('#validateTransaction', () => {
+		let transaction: Transaction;
+		it('should not throw error if fee is equal or higher or equal to min fee where base fee does not exist', () => {
+			// size of this transaction is 613
+			transaction = new Transaction({
+				moduleID: 2,
+				assetID: 0,
+				fee: BigInt(613000),
+				asset: getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(64)],
+			});
+			expect(() => chainInstance.validateTransaction(transaction)).not.toThrow();
+		});
+
+		it('should not throw error if transaction asset does have a baseFee entry and transaction fee is higher or equal to min fee', () => {
+			// size of this transaction is 614
+			transaction = new Transaction({
+				moduleID: 2,
+				assetID: 1,
+				fee: BigInt(100614000),
+				asset: getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(64)],
+			});
+
+			expect(() => chainInstance.validateTransaction(transaction)).not.toThrow();
+		});
+
+		it('should throw error if fee is lower than minimum required fee and base fee does not exist', () => {
+			// size of this transaction is 613
+			transaction = new Transaction({
+				moduleID: 2,
+				assetID: 0,
+				fee: BigInt(612999),
+				asset: getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(64)],
+			});
+			expect(() => chainInstance.validateTransaction(transaction)).toThrow(
+				'Insufficient transaction fee. Minimum required fee is: 613000',
+			);
+		});
+
+		it('should throw error if fee is lower than minimum required fee when base fee exists', () => {
+			// size of this transaction is 614
+			transaction = new Transaction({
+				moduleID: 2,
+				assetID: 1,
+				fee: BigInt(614000),
+				asset: getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(64)],
+			});
+			expect(() => chainInstance.validateTransaction(transaction)).toThrow(
+				'Insufficient transaction fee. Minimum required fee is: 100613000',
+			);
+		});
+
+		it('should throw when moduleID is below 2', () => {
+			transaction = new Transaction({
+				moduleID: 1,
+				assetID: 0,
+				fee: BigInt(613000),
+				asset: getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(64)],
+			});
+			expect(() => chainInstance.validateTransaction(transaction)).toThrow(
+				'Lisk validator found 1 error[s]',
+			);
+		});
+
+		it('should throw when sender public key is not 32 bytes', () => {
+			transaction = new Transaction({
+				moduleID: 2,
+				assetID: 0,
+				fee: BigInt(613000),
+				asset: getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: getRandomBytes(31),
+				signatures: [getRandomBytes(64)],
+			});
+			expect(() => chainInstance.validateTransaction(transaction)).toThrow(
+				'Lisk validator found 1 error[s]',
+			);
+		});
+
+		it('should throw when signatures is empty', () => {
+			transaction = new Transaction({
+				moduleID: 2,
+				assetID: 0,
+				fee: BigInt(613000),
+				asset: getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [],
+			});
+			expect(() => chainInstance.validateTransaction(transaction)).toThrow(
+				'Signatures must not be empty',
+			);
+		});
+
+		it('should throw when any of signatures are not 64 bytes', () => {
+			transaction = new Transaction({
+				moduleID: 2,
+				assetID: 0,
+				fee: BigInt(613000),
+				asset: getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [
+					getRandomBytes(64),
+					getRandomBytes(32),
+					getRandomBytes(32),
+					getRandomBytes(64),
+				],
+			});
+			expect(() => chainInstance.validateTransaction(transaction)).toThrow(
+				'Signature must be empty or 64 bytes',
+			);
+		});
 	});
 
 	describe('#validateBlockHeader', () => {
