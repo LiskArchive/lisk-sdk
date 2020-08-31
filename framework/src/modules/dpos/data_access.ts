@@ -35,14 +35,7 @@ export const getRegisteredDelegates = async (
 		usernamesBuffer,
 	);
 
-	parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map(
-		(value: { address: Buffer; username: string }) => ({
-			username: value.username,
-			address: value.address,
-		}),
-	);
-
-	return parsedUsernames as DelegatePersistedUsernames;
+	return parsedUsernames;
 };
 
 export const setRegisteredDelegates = (
