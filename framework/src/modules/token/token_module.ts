@@ -120,7 +120,7 @@ export class TokenModule extends BaseModule {
 
 		// Deduct transaction fee from sender balance
 		const senderAddress = transaction.senderID;
-		const sender = await stateStore.account.getOrDefault<TokenAccount>(senderAddress);
+		const sender = await stateStore.account.get<TokenAccount>(senderAddress);
 		sender.token.balance -= transaction.fee;
 		stateStore.account.set(senderAddress, sender);
 	}
