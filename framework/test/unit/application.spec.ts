@@ -116,9 +116,10 @@ describe('Application', () => {
 			const customConfig = objects.cloneDeep(config);
 
 			customConfig.genesisConfig = {
+				...config.genesisConfig,
 				maxPayloadLength: 15 * 1024,
 				communityIdentifier: 'Lisk',
-				blockTime: 2,
+				blockTime: 5,
 				rewards: {
 					milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
 					offset: 2160,
@@ -128,7 +129,7 @@ describe('Application', () => {
 
 			const app = Application.defaultApplication(genesisBlockJSON, customConfig);
 
-			expect(app.constants.maxPayloadLength).toBe(15 * 1024);
+			expect(app.config.genesisConfig.maxPayloadLength).toBe(15 * 1024);
 		});
 
 		it('should set internal variables', () => {
@@ -138,9 +139,7 @@ describe('Application', () => {
 			// Assert
 			expect(app['_genesisBlock']).toEqual(genesisBlockJSON);
 			expect(app.config).toMatchSnapshot();
-			expect(app['_controller']).toBeUndefined();
-			expect(app['_node']).toBeUndefined();
-			expect(app['_channel']).toBeUndefined();
+			expect(app['_node']).not.toBeUndefined();
 			expect(app['_plugins']).toBeInstanceOf(Object);
 		});
 
@@ -180,6 +179,7 @@ describe('Application', () => {
 		it('should add custom module to collection.', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
 
 			// Act
 			class SampleModule extends BaseModule {
@@ -189,7 +189,7 @@ describe('Application', () => {
 			app.registerModule(SampleModule);
 
 			// Assert
-			expect(app['_customModules'].pop()).toBe(SampleModule);
+			expect(app['_node'].registerModule).toHaveBeenCalledTimes(1);
 		});
 	});
 

@@ -20,6 +20,7 @@ import {
 	GenesisBlock,
 	Block,
 } from '@liskhq/lisk-chain';
+import { Schema } from '@liskhq/lisk-codec';
 
 export interface SocketPaths {
 	readonly pub: string;
@@ -234,4 +235,31 @@ export interface Consensus {
 export interface BaseModuleDataAccess {
 	getChainState(key: string): Promise<Buffer | undefined>;
 	getAccount(address: Buffer): Promise<Account>;
+}
+
+export interface RegisteredModule {
+	id: number;
+	name: string;
+	actions: string[];
+	events: string[];
+	reducers: string[];
+	transactionAssets: {
+		id: number;
+		name: string;
+	}[];
+}
+
+export interface RegisteredSchema {
+	account: Schema;
+	block: Schema;
+	blockHeader: Schema;
+	blockHeadersAssets: { [version: number]: Schema };
+	transaction: Schema;
+	transactionsAssets: {
+		moduleID: number;
+		moduleName: string;
+		assetID: number;
+		assetName: string;
+		schema: Schema;
+	}[];
 }

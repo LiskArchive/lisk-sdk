@@ -48,6 +48,7 @@ describe('Node Info endpoint', () => {
 				syncing: appInstance._node._synchronizer.isActive,
 				unconfirmedTransactions: appInstance._node._transactionPool.getAll().length,
 				genesisConfig: appInstance._node._options.genesisConfig,
+				registeredModules: expect.any(Array),
 			};
 
 			const result = await axios.get(getURL('/api/node/info'));

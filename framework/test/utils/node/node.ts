@@ -27,38 +27,20 @@ import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../../../sr
 
 const { plugins, ...rootConfigs } = config;
 
-interface CreateNodeInput {
-	blockchainDB: KVStore;
-	forgerDB: KVStore;
-	logger: Logger;
-	channel?: InMemoryChannel;
-	options?: Partial<NodeOptions>;
-}
-
-export const createNode = ({
-	blockchainDB,
-	forgerDB,
-	logger,
-	channel,
-	options = {},
-}: CreateNodeInput): Node => {
+export const createNode = ({ options = {} }: { options?: Partial<NodeOptions> }): Node => {
 	const mergedConfig = objects.mergeDeep({}, nodeConfig(), rootConfigs, options, {
 		network: { maxInboundConnections: 0 },
 	}) as ApplicationConfig;
-	const nodeDB = ({
-		get: jest.fn(),
-		put: jest.fn(),
-	} as unknown) as KVStore;
-	return new Node({
-		channel: channel ?? (createMockChannel() as any),
+	const node = new Node({
 		options: mergedConfig,
-		logger,
 		genesisBlockJSON,
-		blockchainDB,
-		forgerDB,
-		nodeDB,
-		customModules: [TokenModule, SequenceModule, KeysModule, DPoSModule],
 	});
+	node.registerModule(new TokenModule(mergedConfig.genesisConfig));
+	node.registerModule(new SequenceModule(mergedConfig.genesisConfig));
+	node.registerModule(new KeysModule(mergedConfig.genesisConfig));
+	node.registerModule(new DPoSModule(mergedConfig.genesisConfig));
+
+	return node;
 };
 
 /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/explicit-module-boundary-types */
@@ -80,12 +62,19 @@ export const createAndLoadNode = async (
 	options?: NodeOptions,
 ): Promise<Node> => {
 	const chainModule = createNode({
-		blockchainDB,
-		forgerDB,
-		logger,
-		channel,
 		options,
 	});
-	await chainModule.bootstrap(createMockBus as any);
+	const nodeDB = ({
+		get: jest.fn(),
+		put: jest.fn(),
+	} as unknown) as KVStore;
+	await chainModule.init({
+		bus: createMockBus() as any,
+		channel: channel ?? (createMockChannel() as any),
+		logger,
+		blockchainDB,
+		forgerDB,
+		nodeDB,
+	});
 	return chainModule;
 };

@@ -26,6 +26,7 @@ export {
 	validatorsSchema,
 	getGenesisBlockHeaderAssetSchema,
 	stateDiffSchema,
+	getRegisteredBlockAssetSchema,
 } from './schema';
 export { CONSENSUS_STATE_VALIDATORS_KEY, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from './constants';
 export type {

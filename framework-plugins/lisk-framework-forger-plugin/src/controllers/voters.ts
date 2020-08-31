@@ -15,7 +15,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 import { KVStore } from '@liskhq/lisk-db';
-import { Forger } from '../types';
+import { Forger, DPoSAccountJSON } from '../types';
 import { getForgerInfo } from '../db';
 
 export const getVoters = (channel: BaseChannel, codec: PluginCodec, db: KVStore) => async (
@@ -29,7 +29,7 @@ export const getVoters = (channel: BaseChannel, codec: PluginCodec, db: KVStore)
 			await channel.invoke<string[]>('app:getAccounts', {
 				address: forgersList.map(forger => forger.address),
 			})
-		).map(encodedAccount => codec.decodeAccount(encodedAccount));
+		).map(encodedAccount => codec.decodeAccount<DPoSAccountJSON>(encodedAccount));
 
 		const result = [];
 		for (const account of forgerAccounts) {

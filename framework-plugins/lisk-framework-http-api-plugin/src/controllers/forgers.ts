@@ -14,6 +14,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 
+interface DPoSAccountJSON {
+	dpos: {
+		delegate: {
+			username: string;
+			totalVotesReceived: string;
+		};
+	};
+}
+
 export const getForgers = (channel: BaseChannel, codec: PluginCodec) => async (
 	_req: Request,
 	res: Response,
@@ -33,7 +42,7 @@ export const getForgers = (channel: BaseChannel, codec: PluginCodec) => async (
 
 		const data = [];
 		for (let i = 0; i < forgerAccounts.length; i += 1) {
-			const account = codec.decodeAccount(forgerAccounts[i]);
+			const account = codec.decodeAccount<DPoSAccountJSON>(forgerAccounts[i]);
 
 			data.push({
 				username: account.dpos.delegate.username,
