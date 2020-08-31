@@ -238,6 +238,27 @@ describe('token module', () => {
 				),
 			);
 		});
+
+		it('should deduct transaction fee from sender account', async () => {
+			const expectedSenderAccount = {
+				...senderAccount,
+				token: {
+					...senderAccount.token,
+					balance: senderAccount.token.balance - validTransaction.fee,
+				},
+			};
+
+			await tokenModule.beforeTransactionApply({
+				stateStore,
+				transaction: validTransaction,
+				reducerHandler,
+			});
+
+			expect(stateStore.account.set).toHaveBeenCalledWith(
+				senderAccount.address,
+				expectedSenderAccount,
+			);
+		});
 	});
 
 	describe('#afterTransactionApply', () => {
