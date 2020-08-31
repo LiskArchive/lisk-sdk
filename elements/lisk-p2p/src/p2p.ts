@@ -103,6 +103,7 @@ import {
 	validatePeerCompatibility,
 } from './utils';
 import { nodeInfoSchema, mergeCustomSchema, defaultRPCSchemas, peerInfoSchema } from './schema';
+import { encodeNodeInfo, encodePeerInfo } from './utils/codec';
 
 const createPeerPoolConfig = (config: P2PConfig, peerBook: PeerBook): PeerPoolConfig => ({
 	hostPort: config.port,
@@ -662,7 +663,9 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
-		const encodedNodeInfo = codec.encode(this._rpcSchemas.nodeInfo, this._nodeInfo).toString('hex');
+		const encodedNodeInfo = encodeNodeInfo(this._rpcSchemas.nodeInfo, this._nodeInfo).toString(
+			'hex',
+		);
 		request.end(encodedNodeInfo);
 	}
 
@@ -761,7 +764,7 @@ export class P2P extends EventEmitter {
 			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
-			codec.encode(this._rpcSchemas.peerInfo, peer).toString('hex'),
+			encodePeerInfo(this._rpcSchemas.peerInfo, peer).toString('hex'),
 		);
 		const validatedPeerList =
 			getByteSize(encodedPeersList) < wsMaxPayload

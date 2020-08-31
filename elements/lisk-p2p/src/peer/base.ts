@@ -16,7 +16,6 @@ import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { codec } from '@liskhq/lisk-codec';
-import { isHexString } from '@liskhq/lisk-validator';
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
@@ -71,6 +70,7 @@ import {
 	validateRPCRequest,
 	validateNodeInfo,
 } from '../utils';
+import { decodePeerInfo, decodeNodeInfo } from '../utils/codec';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -356,7 +356,9 @@ export class Peer extends EventEmitter {
 			})) as GetPeersResponseData;
 			const { peers, success } = response.data;
 
-			const decodedPeers = peers.map((peer: string) => this._decodePeerInfo(peer));
+			const decodedPeers = peers.map((peer: string) =>
+				decodePeerInfo(this._rpcSchemas.peerInfo, peer),
+			);
 
 			const validatedPeers = validatePeerInfoList(
 				{ peers: decodedPeers, success },
@@ -403,7 +405,7 @@ export class Peer extends EventEmitter {
 			);
 		}
 		try {
-			const decodedNodeInfo = this._decodeNodeInfo(response.data);
+			const decodedNodeInfo = decodeNodeInfo(this._rpcSchemas.nodeInfo, response.data);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
@@ -518,7 +520,7 @@ export class Peer extends EventEmitter {
 			// Check incoming nodeInfo size before deocoding
 			validateNodeInfo(nodeInfoBuffer, this._peerConfig.maxPeerInfoSize);
 
-			const decodedNodeInfo = this._decodeNodeInfo(message.data);
+			const decodedNodeInfo = decodeNodeInfo(this._rpcSchemas.nodeInfo, message.data);
 			// Only update options object
 			const { options } = decodedNodeInfo;
 			// Only update options property
@@ -578,27 +580,5 @@ export class Peer extends EventEmitter {
 					...peerInfo,
 					internalState: assignInternalInfo(peerInfo, this._peerConfig.secret),
 			  };
-	}
-
-	private _decodeNodeInfo(data: unknown): P2PNodeInfo {
-		try {
-			if (typeof data !== 'string' || !isHexString(data)) {
-				throw new Error('Invalid encoded data');
-			}
-			return codec.decode<P2PNodeInfo>(this._rpcSchemas.nodeInfo, Buffer.from(data, 'hex'));
-		} catch (error) {
-			throw new InvalidNodeInfoError((error as Error).message);
-		}
-	}
-
-	private _decodePeerInfo(data: unknown): P2PPeerInfo {
-		try {
-			if (typeof data !== 'string' || !isHexString(data)) {
-				throw new Error('Invalid encoded data');
-			}
-			return codec.decode<P2PPeerInfo>(this._rpcSchemas.peerInfo, Buffer.from(data, 'hex'));
-		} catch (error) {
-			throw new InvalidPeerInfoError((error as Error).message);
-		}
 	}
 }
