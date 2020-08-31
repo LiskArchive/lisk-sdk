@@ -15,6 +15,7 @@
 import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
 import { Block, Account, Transaction } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
+import { getRandomBytes, signDataWithPrivateKey } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import { createDB, removeDB } from '../../../utils/kv_store';
 import { genesis, DefaultAccountProps } from '../../../fixtures';
@@ -251,6 +252,79 @@ describe('Process block', () => {
 				await expect(
 					node['_chain'].dataAccess.isTransactionPersisted(invalidTx.id),
 				).resolves.toBeFalse();
+			});
+		});
+	});
+
+	describe('given a block with invalid properties', () => {
+		let invalidBlock: Block;
+
+		describe('when block has lower reward than expected', () => {
+			it('should reject the block', async () => {
+				const { lastBlock } = node['_chain'];
+				const currentSlot = node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
+				const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
+				const validator = await node['_chain'].getValidator(timestamp);
+
+				const currentKeypair = node['_forger']['_keypairs'].get(validator.address);
+				invalidBlock = await node['_forger']['_create']({
+					keypair: currentKeypair as { publicKey: Buffer; privateKey: Buffer },
+					previousBlock: lastBlock,
+					seedReveal: getRandomBytes(16),
+					timestamp,
+					transactions: [],
+				});
+				node['_chain']['_blockRewardArgs'].rewardOffset = 0;
+				(invalidBlock.header as any).reward = BigInt(1000);
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(invalidBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(invalidBlock.header as any).signature = signature;
+				await expect(node['_processor'].process(invalidBlock)).rejects.toThrow(
+					'Invalid block reward',
+				);
+			});
+		});
+
+		describe('when block has tie break BFT properties', () => {
+			it('should repace the last block', async () => {
+				const { lastBlock } = node['_chain'];
+				const currentSlot = node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
+				const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
+				const validator = await node['_chain'].getValidator(timestamp);
+
+				const currentKeypair = node['_forger']['_keypairs'].get(validator.address);
+				const tieBreakBlock = await node['_forger']['_create']({
+					keypair: currentKeypair as { publicKey: Buffer; privateKey: Buffer },
+					previousBlock: lastBlock,
+					seedReveal: getRandomBytes(16),
+					timestamp,
+					transactions: [],
+				});
+				(tieBreakBlock.header as any).height = lastBlock.header.height;
+				(tieBreakBlock.header as any).previousBlockID = lastBlock.header.previousBlockID;
+				(tieBreakBlock.header as any).asset = lastBlock.header.asset;
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(tieBreakBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(tieBreakBlock.header as any).signature = signature;
+				(tieBreakBlock.header as any).receivedAt = timestamp;
+				// There is no other way to mutate the time so that the tieBreak block is received at currect slot
+				jest.spyOn(node['_chain'].slots, 'timeSinceGenesis').mockReturnValue(timestamp);
+				(node['_chain'].lastBlock.header as any).receivedAt = timestamp + 2;
+				// mutate the last block so that the last block was not received in the timeslot
+
+				await node['_processor'].process(tieBreakBlock);
+
+				expect(node['_chain'].lastBlock.header.id).toEqual(tieBreakBlock.header.id);
 			});
 		});
 	});
