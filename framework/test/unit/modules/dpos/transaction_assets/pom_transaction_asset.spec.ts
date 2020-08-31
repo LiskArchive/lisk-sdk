@@ -70,7 +70,7 @@ describe('PomTransactionAsset', () => {
 		);
 		transactionAsset = new PomTransactionAsset();
 		applyContext = ({
-			senderID: sender.address,
+			senderAddress: sender.address,
 			asset: {
 				header1: {},
 				header2: {},
@@ -307,7 +307,7 @@ describe('PomTransactionAsset', () => {
 			await transactionAsset.apply(applyContext);
 
 			expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
-				address: applyContext.senderID,
+				address: applyContext.senderAddress,
 				amount: remainingBalance,
 			});
 		});
@@ -344,7 +344,7 @@ describe('PomTransactionAsset', () => {
 		});
 
 		it('should not return balance if sender and delegate account are same', async () => {
-			applyContext.senderID = misBehavingDelegate.address;
+			applyContext.senderAddress = misBehavingDelegate.address;
 
 			await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 		});

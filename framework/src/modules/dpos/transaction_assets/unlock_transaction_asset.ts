@@ -78,12 +78,12 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 	// eslint-disable-next-line class-methods-use-this
 	public async apply({
 		asset,
-		senderID,
+		senderAddress,
 		stateStore: store,
 		reducerHandler,
 	}: ApplyAssetContext<UnlockTransactionAssetContext>): Promise<void> {
 		for (const unlock of asset.unlockObjects) {
-			const sender = await store.account.get<DPOSAccountProps>(senderID);
+			const sender = await store.account.get<DPOSAccountProps>(senderAddress);
 			const delegate = await store.account.get<DPOSAccountProps>(unlock.delegateAddress);
 
 			if (delegate.dpos.delegate.username === '') {
@@ -123,7 +123,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 			sender.dpos.unlocking.splice(unlockIndex, 1);
 
 			await reducerHandler.invoke('token:credit', {
-				address: senderID,
+				address: senderAddress,
 				amount: unlock.amount,
 			});
 
