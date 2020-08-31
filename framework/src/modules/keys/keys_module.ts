@@ -60,7 +60,7 @@ export class KeysModule extends BaseModule {
 		stateStore,
 		transaction,
 	}: TransactionApplyContext): Promise<void> {
-		const sender = await stateStore.account.get<AccountKeys>(transaction.senderID);
+		const sender = await stateStore.account.get<AccountKeys>(transaction.senderAddress);
 		const { networkIdentifier } = stateStore.chain;
 		const transactionBytes = transaction.getSigningBytes();
 

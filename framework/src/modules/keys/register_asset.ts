@@ -111,8 +111,12 @@ export class RegisterAsset extends BaseAsset {
 		}
 	}
 
-	public async apply({ asset, stateStore, senderID }: ApplyAssetContext<Asset>): Promise<void> {
-		const sender = await stateStore.account.get<AccountKeys>(senderID);
+	public async apply({
+		asset,
+		stateStore,
+		senderAddress,
+	}: ApplyAssetContext<Asset>): Promise<void> {
+		const sender = await stateStore.account.get<AccountKeys>(senderAddress);
 
 		// Check if multisignatures already exists on account
 		if (sender.keys.numberOfSignatures > 0) {

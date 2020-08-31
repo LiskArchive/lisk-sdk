@@ -99,7 +99,7 @@ describe('Voters endpoint', () => {
 				expect(status).toEqual(200);
 				expect(forgerInfo.voters[0]).toMatchObject(
 					expect.objectContaining({
-						address: transaction.senderID.toString('hex'),
+						address: transaction.senderAddress.toString('hex'),
 						amount: '1000000000',
 					}),
 				);

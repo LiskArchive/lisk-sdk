@@ -399,18 +399,18 @@ describe('register asset', () => {
 				registerAsset.apply({
 					stateStore,
 					asset: validTestTransaction.asset,
-					senderID: validTestTransaction.address,
+					senderAddress: validTestTransaction.address,
 					reducerHandler,
 					transaction: validTestTransaction,
 				}),
 			).not.toThrow();
 		});
 
-		it('should call state store get() with senderID and set() with adress and updated account', async () => {
+		it('should call state store get() with senderAddress and set() with adress and updated account', async () => {
 			await registerAsset.apply({
 				stateStore,
 				asset: validTestTransaction.asset,
-				senderID: validTestTransaction.address,
+				senderAddress: validTestTransaction.address,
 				reducerHandler,
 				transaction: validTestTransaction,
 			});
@@ -430,7 +430,7 @@ describe('register asset', () => {
 				registerAsset.apply({
 					stateStore,
 					asset: validTestTransaction.asset,
-					senderID: validTestTransaction.address,
+					senderAddress: validTestTransaction.address,
 					reducerHandler,
 					transaction: validTestTransaction,
 				}),

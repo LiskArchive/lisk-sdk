@@ -106,10 +106,9 @@ export class TokenModule extends BaseModule {
 		stateStore,
 	}: TransactionApplyContext): Promise<void> {
 		// Deduct transaction fee from sender balance
-		const senderAddress = transaction.senderID;
-		const sender = await stateStore.account.get<TokenAccount>(senderAddress);
+		const sender = await stateStore.account.get<TokenAccount>(transaction.senderAddress);
 		sender.token.balance -= transaction.fee;
-		stateStore.account.set(senderAddress, sender);
+		stateStore.account.set(transaction.senderAddress, sender);
 	}
 
 	public async afterTransactionApply({
@@ -117,8 +116,7 @@ export class TokenModule extends BaseModule {
 		stateStore,
 	}: TransactionApplyContext): Promise<void> {
 		// Verify sender has minimum remaining balance
-		const senderAddress = transaction.senderID;
-		const sender = await stateStore.account.getOrDefault<TokenAccount>(senderAddress);
+		const sender = await stateStore.account.getOrDefault<TokenAccount>(transaction.senderAddress);
 		if (sender.token.balance < this._minRemainingBalance) {
 			throw new Error(
 				`Account does not have enough minimum remaining balance: ${sender.address.toString(
