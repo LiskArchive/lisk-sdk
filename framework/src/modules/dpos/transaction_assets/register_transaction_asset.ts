@@ -53,7 +53,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 	}: ApplyAssetContext<RegisterTransactionAssetContext>): Promise<void> {
 		const sender = await stateStore.account.get<DPOSAccountProps>(senderAddress);
 
-		if (sender.dpos.delegate.username) {
+		if (sender.dpos.delegate.username !== '') {
 			throw new Error('Account is already a delegate');
 		}
 
