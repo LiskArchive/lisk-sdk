@@ -13,7 +13,7 @@
 				"object": {
 					"ipAddress": "1.1.1.1",
 					"wsPort": 1111,
-					"networkId": "+P5+zD4p9Y852KU4+aNbgLS2q5Z08DAOJeM/9BJ0rjI=",
+					"networkIdentifier": "+P5+zD4p9Y852KU4+aNbgLS2q5Z08DAOJeM/9BJ0rjI=",
 					"networkVersion": "2.0",
 					"nonce": "iNIgD0Mb3s/RMaXbs",
 					"os": "darwin",
@@ -31,7 +31,7 @@
 							"dataType": "uint32",
 							"fieldNumber": 2
 						},
-						"networkId": {
+						"networkIdentifier": {
 							"dataType": "string",
 							"fieldNumber": 3
 						},
@@ -79,7 +79,7 @@
 							"dataType": "uint32",
 							"fieldNumber": 2
 						},
-						"networkId": {
+						"networkIdentifier": {
 							"dataType": "string",
 							"fieldNumber": 3
 						},

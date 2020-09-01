@@ -63,7 +63,7 @@ describe('peer/base', () => {
 			port: 5001,
 			sharedState: {
 				networkVersion: '1.1',
-				networkId: 'networkId',
+				networkIdentifier: 'networkId',
 				nonce: 'nonce',
 				options: {},
 			},
@@ -77,7 +77,7 @@ describe('peer/base', () => {
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
 			serverNodeInfo: {
-				networkId: 'networkId',
+				networkIdentifier: 'networkId',
 				networkVersion: '1.2',
 				nonce: 'nonce',
 				advertiseAddress: true,
@@ -94,7 +94,7 @@ describe('peer/base', () => {
 			port: defaultPeerInfo.port,
 			sharedState: {
 				networkVersion: '1.3',
-				networkId: 'networkId',
+				networkIdentifier: 'networkId',
 				nonce: 'nonce',
 				options: {},
 			},
@@ -498,7 +498,7 @@ describe('peer/base', () => {
 					ipAddress: '1.1.1.1',
 					port: 1111,
 					sharedState: {
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						nonce: 'nonce',
 						networkVersion: '',
 						options: {},
@@ -509,7 +509,7 @@ describe('peer/base', () => {
 					ipAddress: '2.2.2.2',
 					port: 2222,
 					sharedState: {
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						nonce: 'nonce',
 						networkVersion: '',
 						options: {},
@@ -607,7 +607,7 @@ describe('peer/base', () => {
 					ipAddress: '1.1.1.1',
 					port: 1111,
 					networkVersion: '9.2',
-					networkId: 'networkId',
+					networkIdentifier: 'networkId',
 				};
 				beforeEach(() => {
 					const encodedResponse = codec.encode(nodeInfoSchema, nodeInfo).toString('hex');
@@ -640,7 +640,7 @@ describe('peer/base', () => {
 					ipAddress: '1.1.1.1',
 					port: 1111,
 					networkVersion: '1.2',
-					networkId: 'networkId',
+					networkIdentifier: 'networkId',
 				};
 
 				beforeEach(() => {
@@ -661,7 +661,7 @@ describe('peer/base', () => {
 						sharedState: {
 							advertiseAddress: false,
 							networkVersion: '1.2',
-							networkId: 'networkId',
+							networkIdentifier: 'networkId',
 							nonce: '',
 						},
 					};
@@ -681,7 +681,7 @@ describe('peer/base', () => {
 				it('should return fetched peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(peerInfo.sharedState).toMatchObject({
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						networkVersion: '1.2',
 					});
 				});

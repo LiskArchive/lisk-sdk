@@ -44,7 +44,7 @@ enum PeerState {
 interface PeerInfo {
 	readonly ipAddress: string;
 	readonly port: number;
-	readonly networkId: string;
+	readonly networkIdentifier: string;
 	readonly networkVersion: string;
 	readonly nonce: string;
 	readonly options: { [key: string]: unknown };

@@ -17,7 +17,7 @@ import { customNodeInfoSchema } from '../../../src/node/network/schema';
 
 export const createProbe = async (config: {
 	networkVersion: string;
-	networkId: string;
+	networkIdentifier: string;
 	port: number;
 }): Promise<P2P> => {
 	const p2p = new P2P({
@@ -26,7 +26,7 @@ export const createProbe = async (config: {
 		nodeInfo: {
 			networkVersion: config.networkVersion,
 			advertiseAddress: true,
-			networkId: config.networkId,
+			networkIdentifier: config.networkIdentifier,
 			nonce: 'O2wTkjqplHII',
 			options: {
 				height: 3,
