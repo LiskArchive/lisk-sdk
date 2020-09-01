@@ -119,11 +119,9 @@ export class TokenModule extends BaseModule {
 		const sender = await stateStore.account.getOrDefault<TokenAccount>(transaction.senderAddress);
 		if (sender.token.balance < this._minRemainingBalance) {
 			throw new Error(
-				`Account does not have enough minimum remaining balance: ${sender.address.toString(
+				`Account ${sender.address.toString(
 					'hex',
-				)}. Current balance is: ${
-					sender.token.balance
-				}. Required minimum balance is: ${this._minRemainingBalance.toString()}.`,
+				)} does not meet the minimum remaining balance requirement: ${this._minRemainingBalance.toString()}.`,
 			);
 		}
 	}
