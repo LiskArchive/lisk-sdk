@@ -67,7 +67,7 @@ describe('P2P.applyNodeInfo', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		firstP2PNode.applyNodeInfo({
-			networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			networkVersion: '1.1',
 			advertiseAddress: true,
 			options: {
@@ -87,7 +87,7 @@ describe('P2P.applyNodeInfo', () => {
 
 		expect(() =>
 			firstP2PNode.applyNodeInfo({
-				networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				networkVersion: '1.1',
 				advertiseAddress: true,
 				options: {
@@ -123,7 +123,7 @@ describe('P2P.applyNodeInfo', () => {
 
 				expect(receivedMessages[0].request).toMatchObject({
 					data: {
-						networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						networkVersion: '1.1',
 						nonce: firstP2PNode.nodeInfo.nonce,
 						advertiseAddress: true,
@@ -139,7 +139,7 @@ describe('P2P.applyNodeInfo', () => {
 			expect(firstP2PNodePeerInfo).toMatchObject({
 				options: {},
 				ipAddress: '127.0.0.1',
-				networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				peerId: '127.0.0.1:5000',
 				port: 5000,
 			});
@@ -165,7 +165,7 @@ describe('P2P.applyNodeInfo', () => {
 			if (firstNodeInAllPeersList) {
 				expect(firstNodeInAllPeersList).toMatchObject({
 					sharedState: {
-						networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						nonce: expect.any(String),
 					},
 					ipAddress: '127.0.0.1',
@@ -177,7 +177,7 @@ describe('P2P.applyNodeInfo', () => {
 			// Check if the peerinfo is updated in connected peer list
 			if (firstNodeInConnectedPeer) {
 				expect(firstNodeInConnectedPeer).toMatchObject({
-					networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					nonce: expect.any(String),
 					ipAddress: '127.0.0.1',
 					port: 5000,

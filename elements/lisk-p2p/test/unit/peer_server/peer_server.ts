@@ -25,7 +25,7 @@ import {
 
 describe('peerServer', () => {
 	const nodeInfo: P2PNodeInfo = {
-		networkId: '73458irc3yb7rg37r7326dbt7236',
+		networkIdentifier: '73458irc3yb7rg37r7326dbt7236',
 		networkVersion: '1.1',
 		nonce: 'nonce',
 		advertiseAddress: true,

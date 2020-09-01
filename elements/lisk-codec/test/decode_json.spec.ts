@@ -402,7 +402,7 @@ describe('decodeJSON', () => {
 			expect(result).toEqual({
 				...testCase.input.object,
 				height: 0,
-				networkId: '',
+				networkIdentifier: '',
 				nonce: '',
 				networkVersion: '',
 			});

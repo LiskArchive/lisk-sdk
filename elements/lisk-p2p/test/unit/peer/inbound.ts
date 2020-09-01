@@ -43,7 +43,7 @@ describe('peer/inbound', () => {
 			sharedState: {
 				networkVersion: '1.1',
 				nonce: 'nonce',
-				networkId: 'networkId',
+				networkIdentifier: 'networkId',
 				options: {},
 			},
 		};

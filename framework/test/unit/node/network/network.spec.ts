@@ -52,7 +52,7 @@ describe('network', () => {
 					{
 						ipAddress: '1.1.1.1',
 						port: 1000,
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						networVersion: '1.1',
 						nonce: 'nonce1',
 					},
@@ -74,7 +74,7 @@ describe('network', () => {
 					{
 						ipAddress: '1.1.1.1',
 						port: 1000,
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						networVersion: '1.1',
 						nonce: 'nonce1',
 						options: {
@@ -111,7 +111,7 @@ describe('network', () => {
 					{
 						ipAddress: '1.1.1.1',
 						port: 1000,
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						networVersion: '1.1',
 						nonce: 'nonce1',
 					},
@@ -133,7 +133,7 @@ describe('network', () => {
 					{
 						ipAddress: '1.1.1.1',
 						port: 1000,
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						networVersion: '1.1',
 						nonce: 'nonce1',
 						options: {
