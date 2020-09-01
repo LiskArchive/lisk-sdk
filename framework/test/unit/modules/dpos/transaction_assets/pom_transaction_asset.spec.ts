@@ -100,10 +100,6 @@ describe('PomTransactionAsset', () => {
 		it('should have valid schema', () => {
 			expect(transactionAsset.schema).toMatchSnapshot();
 		});
-
-		it('should have valid baseFee', () => {
-			expect(transactionAsset.baseFee).toEqual(BigInt(0));
-		});
 	});
 
 	describe('validate', () => {
