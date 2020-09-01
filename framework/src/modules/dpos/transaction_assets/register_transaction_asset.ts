@@ -15,13 +15,11 @@
 import { BaseAsset } from '../../base_asset';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 import { ValidationError } from '../../../errors';
-import { DELEGATE_NAME_FEE } from '../constants';
 import { isUsername } from '../utils';
 import { DPOSAccountProps, RegisterTransactionAssetContext } from '../types';
 import { getRegisteredDelegates, setRegisteredDelegates } from '../data_access';
 
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetContext> {
-	public baseFee = DELEGATE_NAME_FEE;
 	public name = 'register';
 	public id = 0;
 	public schema = {

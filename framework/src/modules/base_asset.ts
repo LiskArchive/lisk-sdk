@@ -17,8 +17,6 @@ import { Schema } from '@liskhq/lisk-codec';
 import { ValidateAssetContext, ApplyAssetContext } from '../types';
 
 export abstract class BaseAsset<T = unknown> {
-	public baseFee = BigInt(0);
-
 	public abstract name: string;
 	public abstract id: number;
 	public abstract schema: Schema;

@@ -60,10 +60,6 @@ describe('RegisterTransactionAsset', () => {
 		it('should have valid schema', () => {
 			expect(transactionAsset.schema).toMatchSnapshot();
 		});
-
-		it('should have valid baseFee', () => {
-			expect(transactionAsset.baseFee).toEqual(BigInt(1000000000));
-		});
 	});
 
 	describe('#validate', () => {

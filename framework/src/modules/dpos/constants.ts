@@ -16,7 +16,6 @@
 export const CHAIN_STATE_DELEGATE_USERNAMES = 'dpos:delegateUsernames';
 export const CHAIN_STATE_DELEGATE_VOTE_WEIGHTS = 'dpos:delegateVoteWeights';
 
-export const DELEGATE_NAME_FEE = BigInt(1000000000);
 export const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_VOTE = 10;
 export const MAX_UNLOCKING = 20;
