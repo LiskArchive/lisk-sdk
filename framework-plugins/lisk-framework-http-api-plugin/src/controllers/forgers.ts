@@ -51,7 +51,7 @@ export const getForgers = (channel: BaseChannel, codec: PluginCodec) => async (
 			});
 		}
 
-		res.status(200).json({ data, meta: {} });
+		res.status(200).json({ data, meta: { count: forgerAccounts.length } });
 	} catch (err) {
 		next(err);
 	}
