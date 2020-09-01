@@ -30,7 +30,7 @@ export const NETWORK_DESTROY_WAIT_TIME = 1000;
 export const FALLBACK_PEER_DISCOVER_INTERVAL = 800;
 
 export const nodeInfoConstants = {
-	networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+	networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	version: '1.0.1',
 	networkVersion: '1.1',
 	minVersion: '1.0.0',
@@ -85,7 +85,7 @@ export const createNetwork = async ({
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
 			nodeInfo: {
-				networkId: nodeInfoConstants.networkId,
+				networkIdentifier: nodeInfoConstants.networkIdentifier,
 				networkVersion: nodeInfoConstants.networkVersion,
 				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
 				options: {},

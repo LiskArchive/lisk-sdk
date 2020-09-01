@@ -208,7 +208,7 @@ describe('Network discovery', () => {
 				maxInboundConnections: 0,
 				port: 5020,
 				nodeInfo: {
-					networkId: 'aaa',
+					networkIdentifier: 'aaa',
 					networkVersion: '9.9',
 					nonce: '404',
 					advertiseAddress: true,

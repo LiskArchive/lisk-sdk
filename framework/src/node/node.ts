@@ -433,7 +433,7 @@ export class Node {
 			getNodeInfo: () => ({
 				version: this._options.version,
 				networkVersion: this._options.networkVersion,
-				networkID: this._networkIdentifier.toString('hex'),
+				networkIdentifier: this._networkIdentifier.toString('hex'),
 				lastBlockID: this._chain.lastBlock.header.id.toString('hex'),
 				height: this._chain.lastBlock.header.height,
 				finalizedHeight: this._bft.finalityManager.finalizedHeight,
