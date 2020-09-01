@@ -72,11 +72,9 @@ export class TransferAsset extends BaseAsset {
 
 		if (recipient.token.balance < this._minRemainingBalance) {
 			throw new Error(
-				`Recipient account does not have enough minimum remaining LSK: ${recipient.address.toString(
+				`Recipient account does not have enough minimum remaining balance: ${recipient.address.toString(
 					'hex',
-				)}. Minimum required balance: ${
-					this._minRemainingBalance
-				}. Remaining balance: ${recipient.token.balance.toString()}`,
+				)}. Minimum required balance: ${this._minRemainingBalance}.`,
 			);
 		}
 
