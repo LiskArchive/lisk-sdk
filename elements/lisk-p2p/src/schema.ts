@@ -18,7 +18,7 @@ export const nodeInfoSchema = {
 	$id: '/nodeInfo',
 	type: 'object',
 	properties: {
-		networkId: {
+		networkIdentifier: {
 			dataType: 'string',
 			fieldNumber: 1,
 		},
@@ -35,7 +35,7 @@ export const nodeInfoSchema = {
 			fieldNumber: 5,
 		},
 	},
-	required: ['networkId', 'networkVersion', 'nonce'],
+	required: ['networkIdentifier', 'networkVersion', 'nonce'],
 };
 
 export const peerInfoSchema = {

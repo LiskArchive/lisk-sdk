@@ -248,7 +248,7 @@ export class PeerServer extends EventEmitter {
 
 		if (
 			typeof queryObject.networkVersion !== 'string' ||
-			typeof queryObject.networkId !== 'string'
+			typeof queryObject.networkIdentifier !== 'string'
 		) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
@@ -270,7 +270,7 @@ export class PeerServer extends EventEmitter {
 		const peerId = constructPeerId(socket.remoteAddress, remoteport);
 
 		// Remove these port and ip from the query object
-		const { advertiseAddress, nonce, networkId, networkVersion } = queryObject;
+		const { advertiseAddress, nonce, networkIdentifier, networkVersion } = queryObject;
 
 		const peerInPeerBook = this._peerBook.getPeer({
 			peerId,
@@ -285,7 +285,7 @@ export class PeerServer extends EventEmitter {
 						...peerInPeerBook.sharedState,
 						nonce: nonce as string,
 						networkVersion: networkVersion as string,
-						networkId: networkId as string,
+						networkIdentifier: networkIdentifier as string,
 						options: { ...peerInPeerBook.sharedState?.options },
 					},
 					internalState: {
@@ -298,7 +298,7 @@ export class PeerServer extends EventEmitter {
 			  }
 			: {
 					sharedState: {
-						networkId: networkId as string,
+						networkIdentifier: networkIdentifier as string,
 						nonce: nonce as string,
 						networkVersion: networkVersion as string,
 						options: {},
