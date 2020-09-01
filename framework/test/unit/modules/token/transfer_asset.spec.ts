@@ -143,9 +143,9 @@ describe('Transfer asset', () => {
 				}),
 			).rejects.toStrictEqual(
 				new Error(
-					`Recipient account does not have enough minimum remaining LSK: ${recipient.address.toString(
+					`Recipient account ${recipient.address.toString(
 						'hex',
-					)}. Minimum required balance: ${minRemainingBalance}. Remaining balance: 0`,
+					)} does not meet the minimum remaining balance requirement: ${minRemainingBalance}.`,
 				),
 			);
 		});
