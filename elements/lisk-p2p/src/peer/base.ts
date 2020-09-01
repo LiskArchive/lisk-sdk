@@ -16,7 +16,6 @@ import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { codec } from '@liskhq/lisk-codec';
-
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
@@ -71,6 +70,7 @@ import {
 	validateRPCRequest,
 	validateNodeInfo,
 } from '../utils';
+import { decodePeerInfo, decodeNodeInfo } from '../utils/codec';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -357,7 +357,7 @@ export class Peer extends EventEmitter {
 			const { peers, success } = response.data;
 
 			const decodedPeers = peers.map((peer: string) =>
-				codec.decode(this._rpcSchemas.peerInfo, Buffer.from(peer, 'hex')),
+				decodePeerInfo(this._rpcSchemas.peerInfo, peer),
 			);
 
 			const validatedPeers = validatePeerInfoList(
@@ -405,16 +405,13 @@ export class Peer extends EventEmitter {
 			);
 		}
 		try {
-			const decodedNodeInfo = codec.decode(
-				this._rpcSchemas.nodeInfo,
-				Buffer.from(response.data as string, 'hex'),
-			);
+			const decodedNodeInfo = decodeNodeInfo(this._rpcSchemas.nodeInfo, response.data);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
 			// Apply penalty for malformed PeerInfo
-			if (error instanceof InvalidPeerInfoError) {
+			if (error instanceof InvalidNodeInfoError) {
 				this.applyPenalty(INVALID_PEER_INFO_PENALTY);
 			}
 
@@ -523,12 +520,9 @@ export class Peer extends EventEmitter {
 			// Check incoming nodeInfo size before deocoding
 			validateNodeInfo(nodeInfoBuffer, this._peerConfig.maxPeerInfoSize);
 
-			const decodedNodeInfo = codec.decode(
-				this._rpcSchemas.nodeInfo,
-				Buffer.from(message.data as string, 'hex'),
-			);
+			const decodedNodeInfo = decodeNodeInfo(this._rpcSchemas.nodeInfo, message.data);
 			// Only update options object
-			const { options } = decodedNodeInfo as P2PNodeInfo;
+			const { options } = decodedNodeInfo;
 			// Only update options property
 			this._peerInfo = {
 				...this._peerInfo,

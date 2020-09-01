@@ -48,10 +48,10 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 	// eslint-disable-next-line class-methods-use-this
 	public async apply({
 		asset,
-		senderID,
+		senderAddress,
 		stateStore,
 	}: ApplyAssetContext<RegisterTransactionAssetContext>): Promise<void> {
-		const sender = await stateStore.account.get<DPOSAccountProps>(senderID);
+		const sender = await stateStore.account.get<DPOSAccountProps>(senderAddress);
 
 		if (sender.dpos.delegate.username !== '') {
 			throw new Error('Account is already a delegate');
@@ -65,7 +65,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		if (!usernameExists) {
 			usernames.registeredDelegates.push({
 				username: asset.username,
-				address: senderID,
+				address: senderAddress,
 			});
 
 			setRegisteredDelegates(stateStore, usernames);

@@ -42,7 +42,7 @@ describe('VoteTransactionAsset', () => {
 		);
 		transactionAsset = new VoteTransactionAsset();
 		applyContext = {
-			senderID: sender.address,
+			senderAddress: sender.address,
 			asset: {
 				votes: [],
 			},
@@ -291,11 +291,11 @@ describe('VoteTransactionAsset', () => {
 
 				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledTimes(2);
 				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
-					address: applyContext.senderID,
+					address: applyContext.senderAddress,
 					amount: delegate1VoteAmount,
 				});
 				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
-					address: applyContext.senderID,
+					address: applyContext.senderAddress,
 					amount: delegate2VoteAmount,
 				});
 			});
@@ -503,7 +503,7 @@ describe('VoteTransactionAsset', () => {
 
 				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledTimes(1);
 				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:debit', {
-					address: applyContext.senderID,
+					address: applyContext.senderAddress,
 					amount: positiveVoteDelegate1,
 				});
 			});

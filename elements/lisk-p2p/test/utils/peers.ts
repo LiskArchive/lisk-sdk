@@ -30,7 +30,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		sharedState: {
 			networkVersion: '1.1',
 			nonce: 'nonce',
-			networkId: 'networkId',
+			networkIdentifier: 'networkId',
 			options: {
 				height: 1,
 			},
@@ -49,7 +49,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		port: 5002,
 		sharedState: {
 			nonce: 'nonce',
-			networkId: 'networkId',
+			networkIdentifier: 'networkId',
 			networkVersion: '1.1',
 			options: {
 				height: 1,
@@ -69,7 +69,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		port: 5008,
 		sharedState: {
 			nonce: 'nonce',
-			networkId: 'networkId',
+			networkIdentifier: 'networkId',
 			networkVersion: '1.1',
 			options: {
 				height: 1,
@@ -89,7 +89,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		port: 5006,
 		sharedState: {
 			nonce: 'nonce',
-			networkId: 'networkId',
+			networkIdentifier: 'networkId',
 			networkVersion: '1.1',
 			options: {
 				height: 1,
@@ -109,7 +109,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		port: 5001,
 		sharedState: {
 			nonce: 'nonce',
-			networkId: 'networkId',
+			networkIdentifier: 'networkId',
 			networkVersion: '1.1',
 			options: {
 				height: 1,
@@ -138,7 +138,7 @@ export const initPeerInfoListWithSuffix = (
 			port: 5000 + (i % 40000),
 			sharedState: {
 				nonce: 'nonce',
-				networkId: 'networkId',
+				networkIdentifier: 'networkId',
 				networkVersion: '1.1',
 				options: {},
 			},

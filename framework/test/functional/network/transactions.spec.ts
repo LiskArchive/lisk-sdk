@@ -33,7 +33,7 @@ describe('Public transaction related P2P endpoints', () => {
 	beforeAll(async () => {
 		app = await createApplication('network-transactions');
 		p2p = await createProbe({
-			networkId: app.networkIdentifier.toString('hex'),
+			networkIdentifier: app.networkIdentifier.toString('hex'),
 			networkVersion: app.config.networkVersion,
 			port: app.config.network.port,
 		});
