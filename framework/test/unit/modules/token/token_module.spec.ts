@@ -234,9 +234,9 @@ describe('token module', () => {
 			).rejects.toStrictEqual(
 				new Error(
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					`Account does not have enough minimum remaining balance: ${senderAccount.address.toString(
+					`Account ${senderAccount.address.toString(
 						'hex',
-					)}. Current balance is: 0. Required minimum balance is: ${minRemainingBalance}.`,
+					)} does not meet the minimum remaining balance requirement: ${minRemainingBalance}.`,
 				),
 			);
 		});

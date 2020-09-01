@@ -263,7 +263,7 @@ describe('Transaction order', () => {
 
 			it('should not accept the block', async () => {
 				await expect(node['_processor'].process(newBlock)).rejects.toThrow(
-					'Account does not have enough minimum remaining',
+					'does not meet the minimum remaining balance requirement',
 				);
 			});
 		});
