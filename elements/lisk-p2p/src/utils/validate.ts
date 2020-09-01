@@ -49,11 +49,11 @@ const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeIn
 		return false;
 	}
 
-	if (!peerInfo.sharedState.networkId) {
+	if (!peerInfo.sharedState.networkIdentifier) {
 		return false;
 	}
 
-	return peerInfo.sharedState.networkId === nodeInfo.networkId;
+	return peerInfo.sharedState.networkIdentifier === nodeInfo.networkIdentifier;
 };
 
 const validateNetworkVersionCompatibility = (

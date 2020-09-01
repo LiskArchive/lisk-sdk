@@ -41,7 +41,7 @@ describe('Node Info endpoint', () => {
 			const nodeStatusAndConstantFixture = {
 				version: appInstance._node._options.version,
 				networkVersion: appInstance._node._options.networkVersion,
-				networkID: appInstance._node.networkIdentifier.toString('hex'),
+				networkIdentifier: appInstance._node.networkIdentifier.toString('hex'),
 				lastBlockID: appInstance._node._chain.lastBlock.header.id.toString('hex'),
 				height: appInstance._node._chain.lastBlock.header.height,
 				finalizedHeight: appInstance._node._bft.finalityManager.finalizedHeight,

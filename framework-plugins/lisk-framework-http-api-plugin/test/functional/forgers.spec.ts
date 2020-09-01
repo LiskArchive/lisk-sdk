@@ -36,6 +36,9 @@ describe('Forger endpoint', () => {
 
 		it('should return list of 103 forgers', () => {
 			expect(result.data.data).toHaveLength(103);
+			expect(result.data.meta).toEqual({
+				count: 103,
+			});
 		});
 
 		it('should return forger username', () => {

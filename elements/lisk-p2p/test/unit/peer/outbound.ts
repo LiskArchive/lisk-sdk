@@ -43,7 +43,7 @@ describe('peer/outbound', () => {
 			port: 5001,
 			sharedState: {
 				nonce: 'nonce',
-				networkId: 'networkId',
+				networkIdentifier: 'networkId',
 				networkVersion: '1.1',
 				options: {},
 			},
@@ -63,7 +63,7 @@ describe('peer/outbound', () => {
 			},
 			serverNodeInfo: {
 				advertiseAddress: true,
-				networkId: 'networkId',
+				networkIdentifier: 'networkId',
 				networkVersion: '1.1',
 				nonce: 'nonce',
 				options: {
@@ -192,7 +192,7 @@ describe('peer/outbound', () => {
 					hostname: defaultOutboundPeer.ipAddress,
 					port: defaultOutboundPeer.port,
 					query:
-						'networkVersion=1.1&networkId=networkId&nonce=nonce&advertiseAddress=true&port=5000',
+						'networkVersion=1.1&networkIdentifier=networkId&nonce=nonce&advertiseAddress=true&port=5000',
 					path: DEFAULT_HTTP_PATH,
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,

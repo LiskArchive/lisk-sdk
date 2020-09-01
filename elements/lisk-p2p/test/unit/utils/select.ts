@@ -23,7 +23,7 @@ import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
-		networkId: '73458irc3yb7rg37r7326dbt7236',
+		networkIdentifier: '73458irc3yb7rg37r7326dbt7236',
 		networkVersion: '1.1',
 		nonce: 'nonce',
 		advertiseAddress: true,
@@ -379,7 +379,7 @@ describe('peer selector', () => {
 					port: 10001 + i,
 					sharedState: {
 						nonce: 'nonce',
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						networkVersion: '1.1',
 						options: {},
 					},
@@ -394,7 +394,7 @@ describe('peer selector', () => {
 					port: 5000 + i,
 					sharedState: {
 						nonce: 'nonce',
-						networkId: 'networkId',
+						networkIdentifier: 'networkId',
 						networkVersion: '1.1',
 						options: {},
 					},

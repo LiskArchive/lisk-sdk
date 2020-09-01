@@ -141,7 +141,7 @@ export class Network {
 		}
 
 		const initialNodeInfo = {
-			networkId: this._networkID,
+			networkIdentifier: this._networkID,
 			networkVersion: this._networkVersion,
 			// Nonce is required in type, but it is overwritten
 			nonce: '',
@@ -471,7 +471,7 @@ export class Network {
 
 	public applyNodeInfo(data: NodeInfoOptions): void {
 		const newNodeInfo = {
-			networkId: this._networkID,
+			networkIdentifier: this._networkID,
 			networkVersion: this._networkVersion,
 			advertiseAddress: this._options.advertiseAddress ?? true,
 			options: data,
