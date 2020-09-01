@@ -871,7 +871,7 @@ definitions:
         type: string
         example: 1.1
         description: The protocol version of Lisk Core that the peer node runs on.
-			networkIdentifier:
+      networkIdentifier:
         type: string
         example: '93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e'
         description: Hex encoded value of the network identifier as per LIP-0009.
@@ -909,7 +909,7 @@ definitions:
         type: string
         example: 1.1
         description: The protocol version of Lisk Core that the peer node runs on.
-			networkIdentifier:
+      networkIdentifier:
         type: string
         example: '93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e'
         description: Hex encoded value of the network identifier as per LIP-0009.
