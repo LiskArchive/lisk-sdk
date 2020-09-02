@@ -16,8 +16,22 @@ import { BaseAsset } from '../../base_asset';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { AMOUNT_MULTIPLIER_FOR_VOTES } from '../constants';
-import { DPOSAccountProps, UnlockTransactionAssetContext } from '../types';
+import { DPOSAccountProps, UnlockTransactionAssetContext, UnlockingAccountAsset } from '../types';
 import { getPunishmentPeriod, getWaitingPeriod } from '../utils';
+
+const uniqueUnlockObjects = (arr: UnlockingAccountAsset[]): UnlockingAccountAsset[] =>
+	Object.values(
+		arr.reduce<Record<string, UnlockingAccountAsset>>((uniqueMap, unlockObject) => {
+			const key = `${unlockObject.delegateAddress.toString(
+				'hex',
+			)}|${unlockObject.amount.toString()}|${unlockObject.unvoteHeight.toString()}`;
+
+			// eslint-disable-next-line no-param-reassign
+			if (!(key in uniqueMap)) uniqueMap[key] = unlockObject;
+
+			return uniqueMap;
+		}, {}),
+	);
 
 export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetContext> {
 	public name = 'unlock';
@@ -58,6 +72,10 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 
 	// eslint-disable-next-line class-methods-use-this
 	public validate({ asset }: ValidateAssetContext<UnlockTransactionAssetContext>): void {
+		if (uniqueUnlockObjects([...asset.unlockObjects]).length !== asset.unlockObjects.length) {
+			throw new Error('Unlock objects must be unique');
+		}
+
 		for (const unlock of asset.unlockObjects) {
 			if (unlock.amount <= BigInt(0)) {
 				throw new ValidationError(
@@ -90,6 +108,16 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 				throw new Error('Voted account is not registered as delegate');
 			}
 
+			const unlockIndex = sender.dpos.unlocking.findIndex(
+				obj =>
+					obj.amount === unlock.amount &&
+					obj.delegateAddress.equals(unlock.delegateAddress) &&
+					obj.unvoteHeight === unlock.unvoteHeight,
+			);
+			if (unlockIndex < 0) {
+				throw new Error('Corresponding unlocking object not found');
+			}
+
 			const waitingPeriod = getWaitingPeriod(
 				sender.address,
 				delegate.address,
@@ -111,15 +139,6 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 				throw new Error('Unlocking is not permitted as delegate is currently being punished');
 			}
 
-			const unlockIndex = sender.dpos.unlocking.findIndex(
-				obj =>
-					obj.amount === unlock.amount &&
-					obj.delegateAddress.equals(unlock.delegateAddress) &&
-					obj.unvoteHeight === unlock.unvoteHeight,
-			);
-			if (unlockIndex < 0) {
-				throw new Error('Corresponding unlocking object not found');
-			}
 			sender.dpos.unlocking.splice(unlockIndex, 1);
 
 			await reducerHandler.invoke('token:credit', {
