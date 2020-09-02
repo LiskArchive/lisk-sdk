@@ -60,9 +60,7 @@ describe('Transaction pool', () => {
 				expect(node._transactionPool.contains(transaction.id)).toBeTrue();
 			});
 
-			// TODO: Fix this test after implementing expireTransactions
-			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should expire after X sec', async () => {
+			it('should expire after X sec', async () => {
 				const tx = node._transactionPool.get(transaction.id);
 				// Mutate received at to be expired (3 hours + 1s)
 				tx.receivedAt = new Date(Date.now() - 10801000);

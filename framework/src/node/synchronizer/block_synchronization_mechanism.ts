@@ -134,7 +134,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		fromId: Buffer,
 		toId: Buffer,
 	): Promise<void> {
-		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
+		const maxFailedAttempts = 10;
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
 		let lastFetchedID = fromId;
 		let finished = false;
@@ -481,7 +481,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		this._logger.trace({ peers: peers.map(peer => peer.peerId) }, 'List of connected peers');
 
-		// TODO: Move this to validator
 		const requiredProps = ['blockVersion', 'maxHeightPrevoted', 'height'];
 		const compatiblePeers = peers.filter(p =>
 			requiredProps.every(prop => Object.keys(p.options).includes(prop)),

@@ -85,9 +85,6 @@ export const applicationConfigSchema = {
 			type: 'object',
 			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards'],
 			properties: {
-				// NOTICE: blockTime and maxPayloadLength are related and it's values
-				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
-				// TODO this recommendations need to be updated now that we changed to a byte size block
 				blockTime: {
 					type: 'number',
 					minimum: 2,
@@ -129,9 +126,6 @@ export const applicationConfigSchema = {
 						},
 					},
 				},
-				// NOTICE: blockTime and maxPayloadLength are related and it's values
-				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
-				// TODO this recommendations need to be updated now that we changed to a byte size block
 				maxPayloadLength: {
 					type: 'integer',
 					// eslint-disable-next-line @typescript-eslint/no-magic-numbers

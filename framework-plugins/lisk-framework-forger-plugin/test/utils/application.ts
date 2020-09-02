@@ -30,8 +30,7 @@ export const getForgerPlugin = (app: Application): ForgerPlugin => {
 };
 
 export const startApplication = async (app: Application): Promise<void> => {
-	// TODO: Need to figure out why below error appears but its only in tests
-	//  Trace: Error: schema with key or id "/block/header"
+	// FIXME: Remove with #5572
 	validator.removeSchema('/block/header');
 
 	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);

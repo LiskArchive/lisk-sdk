@@ -615,11 +615,6 @@ describe('VoteTransactionAsset', () => {
 				});
 			});
 
-			// TODO: Handle this test case elsewhere
-			describe('when the last asset.votes amount makes sender not having sufficient balance', () => {
-				it.todo('should throw error');
-			});
-
 			describe('when asset.votes negative amount decrease account.dpos.sentVotes entries yet positive amount makes account exceeds more than 10', () => {
 				it('should throw error', async () => {
 					const updatedSender = objects.cloneDeep(sender);

@@ -719,7 +719,6 @@ export class Node {
 			},
 		);
 
-		// FIXME: this event is using instance, it should be replaced by event emitter
 		this._processor.events.on(
 			EVENT_PROCESSOR_BROADCAST_BLOCK,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises

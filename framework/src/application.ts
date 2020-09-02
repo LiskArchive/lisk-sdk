@@ -285,13 +285,9 @@ export class Application {
 	// Private
 	// --------------------------------------
 	private _compileAndValidateConfigurations(): void {
-		// TODO: Check which config and options are actually required to avoid sending large data
 		const appConfigToShareWithPlugin = {
 			version: this.config.version,
 			networkVersion: this.config.networkVersion,
-			// TODO: Analyze if we need to provide genesis block as options to plugins
-			//  If yes then we should encode it to json with the issue https://github.com/LiskHQ/lisk-sdk/issues/5513
-			// genesisBlock: this._genesisBlock,
 			genesisConfig: this.config.genesisConfig,
 		};
 

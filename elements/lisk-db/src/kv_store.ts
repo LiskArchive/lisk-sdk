@@ -59,7 +59,6 @@ export class KVStore {
 		await this._db.close();
 	}
 
-	// TODO: Update to return Buffer
 	public async get(key: string): Promise<Buffer> {
 		logger('get', { key });
 		try {
