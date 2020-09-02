@@ -118,16 +118,6 @@ describe('processor', () => {
 				processor.register(customModule1);
 				expect(processor['_modules']).toHaveLength(2);
 			});
-
-			it('should register all defined functions to hooks', () => {
-				processor.register(customModule0);
-				processor.register(customModule1);
-				expect(processor['_hooks'].afterGenesisBlockApply['stages']).toHaveLength(1);
-				expect(processor['_hooks'].beforeBlockApply['stages']).toHaveLength(2);
-				expect(processor['_hooks'].afterBlockApply['stages']).toHaveLength(1);
-				expect(processor['_hooks'].beforeTransactionApply['stages']).toHaveLength(1);
-				expect(processor['_hooks'].afterTransactionApply['stages']).toHaveLength(2);
-			});
 		});
 	});
 
@@ -148,13 +138,12 @@ describe('processor', () => {
 		it('should process genesis block if genesis block does not exist', async () => {
 			// Arrange
 			jest.spyOn(chainModuleStub, 'genesisBlockExist').mockResolvedValue(false);
-			jest.spyOn(processor['_hooks'].afterGenesisBlockApply, 'run');
 
 			// Act
 			await processor.init(genesisBlock);
 
 			// Assert
-			expect(processor['_hooks'].afterGenesisBlockApply.run).toHaveBeenCalledTimes(1);
+			expect(customModule0.afterGenesisBlockApply).toHaveBeenCalledTimes(1);
 			expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
 			expect(chainModuleStub.saveBlock).toHaveBeenCalledTimes(1);
 			expect(bftModuleStub.init).toHaveBeenCalledTimes(1);
@@ -163,13 +152,12 @@ describe('processor', () => {
 		it('should not apply genesis block if it exists in chain', async () => {
 			// Arrange
 			jest.spyOn(chainModuleStub, 'genesisBlockExist').mockResolvedValue(true);
-			jest.spyOn(processor['_hooks'].afterGenesisBlockApply, 'run');
 
 			// Act
 			await processor.init(genesisBlock);
 
 			// Assert
-			expect(processor['_hooks'].afterGenesisBlockApply.run).not.toHaveBeenCalled();
+			expect(customModule0.afterGenesisBlockApply).not.toHaveBeenCalled();
 			expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
 			expect(bftModuleStub.init).toHaveBeenCalledTimes(1);
 		});
@@ -993,7 +981,7 @@ describe('processor', () => {
 			const handler = processor['_createReducerHandler'](stateStoreStub);
 			const res = await handler.invoke('customModule0:testing', { input: 0 });
 			expect(res).toEqual(BigInt(200));
-			expect(customModule0.reducers.testing).toHaveBeenCalledWith({ input: 0 }, stateStoreStub);
+			expect(customModule0.reducers.testing).toHaveBeenCalledWith({ input: 0 }, expect.anything());
 		});
 	});
 });

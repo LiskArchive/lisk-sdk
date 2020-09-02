@@ -56,7 +56,7 @@ export class TokenModule extends BaseModule {
 					`Remaining balance must be greater than ${this._minRemainingBalance.toString()}`,
 				);
 			}
-			stateStore.account.set(address, account);
+			await stateStore.account.set(address, account);
 		},
 		debit: async (params: Record<string, unknown>, stateStore: StateStore): Promise<void> => {
 			const { address, amount } = params;
@@ -73,7 +73,7 @@ export class TokenModule extends BaseModule {
 					`Remaining balance must be greater than ${this._minRemainingBalance.toString()}`,
 				);
 			}
-			stateStore.account.set(address, account);
+			await stateStore.account.set(address, account);
 		},
 		getBalance: async (
 			params: Record<string, unknown>,
@@ -108,7 +108,7 @@ export class TokenModule extends BaseModule {
 		// Deduct transaction fee from sender balance
 		const sender = await stateStore.account.get<TokenAccount>(transaction.senderAddress);
 		sender.token.balance -= transaction.fee;
-		stateStore.account.set(transaction.senderAddress, sender);
+		await stateStore.account.set(transaction.senderAddress, sender);
 	}
 
 	public async afterTransactionApply({
@@ -133,7 +133,7 @@ export class TokenModule extends BaseModule {
 		generator.token.balance += block.header.reward;
 		// If there is no transactions, no need to give fee
 		if (!block.payload.length) {
-			stateStore.account.set(generatorAddress, generator);
+			await stateStore.account.set(generatorAddress, generator);
 
 			return;
 		}
@@ -151,8 +151,8 @@ export class TokenModule extends BaseModule {
 		// Update state store
 		const updatedTotalBurntBuffer = Buffer.alloc(8);
 		updatedTotalBurntBuffer.writeBigInt64BE(totalFeeBurnt);
-		stateStore.account.set(generatorAddress, generator);
-		stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
+		await stateStore.account.set(generatorAddress, generator);
+		await stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await

@@ -33,7 +33,7 @@ const setMemberAccounts = async (
 		const address = getAddressFromPublicKey(memberPublicKey as Buffer);
 		// Key might not exists in the blockchain yet so we fetch or default
 		const memberAccount = await store.account.getOrDefault(address);
-		store.account.set(memberAccount.address, memberAccount);
+		await store.account.set(memberAccount.address, memberAccount);
 	}
 };
 
@@ -129,7 +129,7 @@ export class RegisterAsset extends BaseAsset {
 			optionalKeys: asset.optionalKeys as Buffer[],
 		};
 
-		stateStore.account.set<AccountKeys>(sender.address, sender);
+		await stateStore.account.set<AccountKeys>(sender.address, sender);
 
 		// Cache all members public keys
 		await setMemberAccounts(stateStore, sender.keys.mandatoryKeys);

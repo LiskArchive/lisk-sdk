@@ -258,7 +258,7 @@ export const createVoteWeightsSnapshot = async ({
 		voteWeights[voteWeightsIndex] = voteWeight;
 	}
 
-	setVoteWeights(stateStore, voteWeights);
+	await setVoteWeights(stateStore, voteWeights);
 };
 
 export const updateDelegateProductivity = async ({
@@ -297,12 +297,12 @@ export const updateDelegateProductivity = async ({
 		) {
 			missedForger.dpos.delegate.isBanned = true;
 		}
-		stateStore.account.set(missedForgerAddress, missedForger);
+		await stateStore.account.set(missedForgerAddress, missedForger);
 	}
 
 	// Reset consecutive missed block
 	const forger = await stateStore.account.get<DPOSAccountProps>(forgerAddress);
 	forger.dpos.delegate.consecutiveMissedBlocks = 0;
 	forger.dpos.delegate.lastForgedHeight = height;
-	stateStore.account.set(forgerAddress, forger);
+	await stateStore.account.set(forgerAddress, forger);
 };

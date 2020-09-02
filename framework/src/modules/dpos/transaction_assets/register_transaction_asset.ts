@@ -66,7 +66,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 				address: senderAddress,
 			});
 
-			setRegisteredDelegates(stateStore, usernames);
+			await setRegisteredDelegates(stateStore, usernames);
 		}
 
 		if (usernameExists) {
@@ -75,6 +75,6 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 
 		sender.dpos.delegate.username = asset.username;
 		sender.dpos.delegate.lastForgedHeight = stateStore.chain.lastBlockHeaders[0].height + 1;
-		stateStore.account.set<DPOSAccountProps>(sender.address, sender);
+		await stateStore.account.set<DPOSAccountProps>(sender.address, sender);
 	}
 }
