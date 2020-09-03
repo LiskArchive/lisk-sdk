@@ -33,7 +33,7 @@ export const getBlockById = (channel: BaseChannel, codec: PluginCodec) => async 
 		const block = await channel.invoke<string>('app:getBlockByID', { id: blockId });
 		res.status(200).send({ data: codec.decodeBlock(block) });
 	} catch (err) {
-		if ((err as Error).message.startsWith('Specified key blocks:height')) {
+		if ((err as Error).message.startsWith('Specified key blocks:id')) {
 			res.status(404).send({
 				errors: [{ message: `Block with id '${blockId}' was not found` }],
 			});
