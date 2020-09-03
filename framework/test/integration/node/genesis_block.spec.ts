@@ -79,8 +79,7 @@ describe('genesis block', () => {
 		let oldBalance: bigint;
 
 		beforeEach(async () => {
-			// TODO: Need to figure out why below error appears but its only in tests
-			//  Trace: Error: schema with key or id "/block/header"
+			// FIXME: Remove with #5572
 			validator.removeSchema('/block/header');
 			const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
 				DefaultAccountProps

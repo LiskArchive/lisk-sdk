@@ -44,9 +44,6 @@ enum ChannelType {
 }
 
 interface ChannelInfo {
-	// TODO: Consolidate both channel and rpcClient
-	//  For now in-memory channel will contain channel reference
-	//  Child process channel will contain rpcClient
 	readonly channel?: BaseChannel;
 	readonly rpcClient?: RPCClient;
 	readonly actions: {

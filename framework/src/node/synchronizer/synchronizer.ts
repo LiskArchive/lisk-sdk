@@ -179,7 +179,6 @@ export class Synchronizer {
 	private async _getUnconfirmedTransactionsFromNetwork(): Promise<void> {
 		this.logger.info('Loading transactions from the network');
 
-		// TODO: Add target module to procedure name. E.g. chain:getTransactions
 		const { data: result } = (await this._networkModule.request({
 			procedure: 'getTransactions',
 		})) as {

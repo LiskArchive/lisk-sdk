@@ -48,7 +48,6 @@ describe('KVStore', () => {
 			await expect(db.get('Random value')).rejects.toThrow(NotFoundError);
 		});
 
-		// TODO: Update to check for Buffer
 		it('should return JSON object if exists', async () => {
 			const defaultKey = 'random';
 			const defaultValue = Buffer.from(
@@ -70,7 +69,6 @@ describe('KVStore', () => {
 			await expect(db.exists('Random value')).resolves.toBeFalse();
 		});
 
-		// TODO: Update to check for Buffer
 		it('should return true if key exists', async () => {
 			const defaultKey = 'random';
 			const defaultValue = Buffer.from(

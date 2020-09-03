@@ -130,7 +130,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		fromId: Buffer,
 		toId: Buffer,
 	): Promise<Block[]> {
-		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
+		const maxFailedAttempts = 10;
 		const blocks = [];
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
 		let lastFetchedID = fromId;

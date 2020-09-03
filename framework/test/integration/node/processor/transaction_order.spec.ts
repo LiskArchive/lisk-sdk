@@ -36,8 +36,7 @@ describe('Transaction order', () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
 		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 		await node['_forger'].loadDelegates();
-		// TODO: Need to figure out why below error appears but its only in tests
-		//  Trace: Error: schema with key or id "/block/header"
+		// FIXME: Remove with #5572
 		validator['_validator']._opts.addUsedSchema = false;
 	});
 

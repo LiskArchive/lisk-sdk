@@ -836,15 +836,7 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 						'Applying blocks',
 					);
-					// expect(loggerMock.trace).toHaveBeenCalledTimes(
-					// 	requestedBlocks.length,
-					// );
 					expect(processorModule.processValidated).toHaveBeenCalledWith(block);
-					// TODO: Figure out why call count is not resetting
-					// expect(processorModule.processValidated).toHaveBeenCalledTimes(
-					// 	requestedBlocks.length,
-					// );
-
 					expect(loggerMock.debug).toHaveBeenCalledWith('Cleaning blocks temp table');
 					expect(chainModule.dataAccess.clearTempBlocks).toHaveBeenCalled();
 					expect(loggerMock.info).toHaveBeenCalledWith(

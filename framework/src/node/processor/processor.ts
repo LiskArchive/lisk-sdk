@@ -346,7 +346,6 @@ export class Processor {
 		await this._bft.verifyBlockHeader(block.header, stateStore);
 
 		if (!skipBroadcast) {
-			// FIXME: this is using instance, use event emitter instead
 			this.events.emit(EVENT_PROCESSOR_BROADCAST_BLOCK, {
 				block,
 			});

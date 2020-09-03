@@ -283,7 +283,6 @@ export class Controller {
 
 		child.on('error', error => {
 			this.logger.error(error, `Child process for "${pluginAlias}" faced error.`);
-			// TODO: Develop a reload strategy
 		});
 
 		await Promise.race([
