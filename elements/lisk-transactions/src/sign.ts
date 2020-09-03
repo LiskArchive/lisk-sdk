@@ -148,22 +148,11 @@ export const signMultiSignatureTransaction = (
 	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifier,
 		getSigningBytes(assetSchema, transactionObject),
 	]);
-
 	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
-	if (
-		(transactionObject.signatures as Array<Readonly<Buffer>>).find(
-			s => s instanceof Buffer && s.equals(signature),
-		) !== undefined
-	) {
-		sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
-
-		return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
-	}
 
 	if (
 		includeSenderSignature &&

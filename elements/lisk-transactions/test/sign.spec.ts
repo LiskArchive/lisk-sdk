@@ -365,4 +365,46 @@ describe('sign', () => {
 			});
 		});
 	});
+
+	describe('when signing multisignature register transaction where sender is member', () => {
+		it('should have correct signatures', () => {
+			const testCase = multisigScenario.testCases[1];
+			const decodedBaseTransaction = codec.decode<Transaction>(
+				baseTransactionSchema,
+				Buffer.from(testCase.output.transaction, 'hex'),
+			);
+			const decodedAsset = codec.decode<MultiSignatureAsset>(
+				multisigRegAsset,
+				decodedBaseTransaction.asset,
+			);
+			const { signatures, ...transactionObject } = decodedBaseTransaction;
+			const signedMultiSigTransaction = {
+				...transactionObject,
+				asset: { ...decodedAsset },
+				signatures: signatures.slice(0, 1),
+			};
+			const senderAccount = {
+				passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
+				privateKey:
+					'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+				publicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+				address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
+			};
+			const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'hex');
+
+			Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
+				signMultiSignatureTransaction(
+					multisigRegAsset,
+					signedMultiSigTransaction,
+					_networkIdentifier,
+					member.passphrase,
+					decodedAsset,
+					true,
+				),
+			);
+
+			expect(signedMultiSigTransaction.signatures).toStrictEqual(signatures);
+			expect(signedMultiSigTransaction.signatures.every(s => s.length > 0)).toBeTrue();
+		});
+	});
 });
