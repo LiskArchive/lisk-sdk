@@ -3291,15 +3291,7 @@ buffer@^5.0.2, buffer@^5.2.1:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
 
-buffer@^5.5.0:
-  version "5.6.0"
-  resolved "https://registry.yarnpkg.com/buffer/-/buffer-5.6.0.tgz#a31749dc7d81d84db08abf937b6b8c4033f62786"
-  integrity sha512-/gDYp/UtU0eA1ys8bOs9J6a+E/KWIY+DZ+Q2WESNUA0jFRsJOc0SNUO6xJ5SGA1xueg3NL65W6s+NY5l9cunuw==
-  dependencies:
-    base64-js "^1.0.2"
-    ieee754 "^1.1.4"
-
-buffer@liskHQ/buffer#4d498e6:
+buffer@^5.5.0, buffer@liskHQ/buffer#4d498e6:
   version "5.6.0"
   resolved "https://codeload.github.com/liskHQ/buffer/tar.gz/4d498e6acd7f2a20073b10d31961b86c6be530b8"
   dependencies:
