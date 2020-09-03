@@ -61,7 +61,7 @@ export class TransferAsset extends BaseAsset {
 			throw new Error(`Account does not exist for senderAddress: ${senderAddress.toString('hex')}`);
 		}
 		sender.token.balance -= asset.amount;
-		stateStore.account.set(sender.address, sender);
+		await stateStore.account.set(sender.address, sender);
 		const recipient = await stateStore.account.getOrDefault<TokenAccount>(asset.recipientAddress);
 		recipient.token.balance += asset.amount;
 		if (recipient.token.balance > BigInt(MAX_TRANSACTION_AMOUNT)) {
@@ -78,6 +78,6 @@ export class TransferAsset extends BaseAsset {
 			);
 		}
 
-		stateStore.account.set(recipient.address, recipient);
+		await stateStore.account.set(recipient.address, recipient);
 	}
 }
