@@ -12,22 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { APIClient } from '@liskhq/lisk-api-client';
-import * as constants from '@liskhq/lisk-constants';
-import * as cryptography from '@liskhq/lisk-cryptography';
-import * as p2p from '@liskhq/lisk-p2p';
-import * as passphrase from '@liskhq/lisk-passphrase';
-import * as transactionPool from '@liskhq/lisk-transaction-pool';
-import * as transactions from '@liskhq/lisk-transactions';
-import * as validator from '@liskhq/lisk-validator';
-
-export {
-	APIClient,
-	constants,
-	cryptography,
-	passphrase,
-	p2p,
-	transactions,
-	transactionPool,
-	validator,
-};
+export * as cryptography from '@liskhq/lisk-cryptography';
+export * as p2p from '@liskhq/lisk-p2p';
+export * as passphrase from '@liskhq/lisk-passphrase';
+export * as transactionPool from '@liskhq/lisk-transaction-pool';
+export * as transactions from '@liskhq/lisk-transactions';
+export * as utils from '@liskhq/lisk-utils';
+export * as tree from '@liskhq/lisk-tree';
+export * as validator from '@liskhq/lisk-validator';
+export * as codec from '@liskhq/lisk-codec';
+export * as db from '@liskhq/lisk-db';
+export * as chain from '@liskhq/lisk-chain';
+export * as bft from '@liskhq/lisk-bft';
+export * as genesis from '@liskhq/lisk-genesis';
