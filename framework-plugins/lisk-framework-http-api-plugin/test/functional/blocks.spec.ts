@@ -155,7 +155,7 @@ describe('Blocks endpoints', () => {
 			expect(typeof result.data.data.header.asset.seedReveal).toBe('string');
 		});
 
-		it('should respond with 404 and error message when block not found for specified height', async () => {
+		it('should respond with 404 and error message when block not found for specified id', async () => {
 			const { response, status } = await callNetwork(
 				axios.get(
 					getURL('/api/blocks/ec3acb34c0a9599dfd46cfa97581abf4b5dd5d91b136c2209507193bf518c4c5'),
@@ -173,7 +173,7 @@ describe('Blocks endpoints', () => {
 			});
 		});
 
-		it('should respond with 400 and error message when height param is not number', async () => {
+		it('should respond with 400 and error message when id param is not number', async () => {
 			const { response, status } = await callNetwork(axios.get(getURL('/api/blocks/nein-no')));
 
 			expect(status).toBe(400);
