@@ -38,13 +38,13 @@ export const getRegisteredDelegates = async (
 	return parsedUsernames;
 };
 
-export const setRegisteredDelegates = (
+export const setRegisteredDelegates = async (
 	store: StateStore,
 	usernames: DelegatePersistedUsernames,
-): void => {
+): Promise<void> => {
 	usernames.registeredDelegates.sort((a, b) => a.address.compare(b.address));
 
-	store.chain.set(
+	await store.chain.set(
 		CHAIN_STATE_DELEGATE_USERNAMES,
 		codec.encode(delegatesUserNamesSchema, usernames),
 	);
@@ -60,8 +60,11 @@ export const getVoteWeights = async (stateStore: StateStore): Promise<VoteWeight
 	return voteWeightsDecoded.voteWeights;
 };
 
-export const setVoteWeights = (stateStore: StateStore, voteWeights: VoteWeights): void => {
-	stateStore.chain.set(
+export const setVoteWeights = async (
+	stateStore: StateStore,
+	voteWeights: VoteWeights,
+): Promise<void> => {
+	await stateStore.chain.set(
 		CHAIN_STATE_DELEGATE_VOTE_WEIGHTS,
 		codec.encode(voteWeightsSchema, { voteWeights }),
 	);
@@ -73,5 +76,5 @@ export const deleteVoteWeightsUntilRound = async (
 ): Promise<void> => {
 	const voteWeights = await getVoteWeights(stateStore);
 	const newVoteWeights = voteWeights.filter(vw => vw.round >= round);
-	setVoteWeights(stateStore, newVoteWeights);
+	await setVoteWeights(stateStore, newVoteWeights);
 };

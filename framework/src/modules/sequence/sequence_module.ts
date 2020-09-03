@@ -80,6 +80,6 @@ export class SequenceModule extends BaseModule {
 		senderAccount.sequence.nonce += BigInt(1);
 
 		// Update sender account nonce
-		stateStore.account.set(senderAddress, senderAccount);
+		await stateStore.account.set(senderAddress, senderAccount);
 	}
 }

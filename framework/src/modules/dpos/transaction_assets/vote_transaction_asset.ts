@@ -196,12 +196,12 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 				}
 			}
 
-			store.account.set(sender.address, sender);
+			await store.account.set(sender.address, sender);
 
 			// In case of self-vote, sender needs to be set and re-fetched to reflect both account change
 			const delegate = await store.account.get<DPOSAccountProps>(vote.delegateAddress);
 			delegate.dpos.delegate.totalVotesReceived += vote.amount;
-			store.account.set(delegate.address, delegate);
+			await store.account.set(delegate.address, delegate);
 		}
 	}
 }
