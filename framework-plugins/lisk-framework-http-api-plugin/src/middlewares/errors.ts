@@ -37,5 +37,6 @@ export const errorMiddleware = () => (
 		// Include message property in response
 		Object.defineProperty(error, 'message', { enumerable: true });
 	}
+
 	res.status(500).send({ errors });
 };

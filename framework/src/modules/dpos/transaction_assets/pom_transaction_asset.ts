@@ -250,7 +250,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		if (updatedDelegateAccount.dpos.delegate.pomHeights.length >= MAX_POM_HEIGHTS) {
 			updatedDelegateAccount.dpos.delegate.isBanned = true;
 		}
-		store.account.set(updatedDelegateAccount.address, updatedDelegateAccount);
+		await store.account.set(updatedDelegateAccount.address, updatedDelegateAccount);
 
 		await reducerHandler.invoke('token:debit', {
 			address: updatedDelegateAccount.address,

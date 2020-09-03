@@ -128,7 +128,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 				amount: unlock.amount,
 			});
 
-			store.account.set(sender.address, sender);
+			await store.account.set(sender.address, sender);
 		}
 	}
 }
