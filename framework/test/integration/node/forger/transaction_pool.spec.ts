@@ -65,7 +65,7 @@ describe('Transaction pool', () => {
 				// Mutate received at to be expired (3 hours + 1s)
 				tx.receivedAt = new Date(Date.now() - 10801000);
 				// Forcefully call expire
-				await node._transactionPool.pool.expireTransactions();
+				await node._transactionPool._expire();
 				expect(node._transactionPool.contains(transaction.id)).toBeFalse();
 			});
 		});
