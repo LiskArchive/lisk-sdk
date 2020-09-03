@@ -110,7 +110,6 @@ describe('P2P.send', () => {
 		});
 	});
 
-	// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 	it('should reach multiple peers with even distribution', async () => {
 		// Arrange
 		const TOTAL_SENDS = 1000;

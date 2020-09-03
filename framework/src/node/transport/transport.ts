@@ -322,8 +322,7 @@ export class Transport {
 		for (const idStr of transactionIds) {
 			// Check if any transaction is in the queues.
 			const id = Buffer.from(idStr, 'hex');
-			// FIXME: #5619 type casting should be removed
-			const transaction = (this._transactionPoolModule.get(id) as unknown) as Transaction;
+			const transaction = this._transactionPoolModule.get(id);
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
@@ -464,10 +463,7 @@ export class Transport {
 		// Broadcast transaction to network if not present in pool
 		this.handleBroadcastTransaction(transaction);
 
-		const { error } = await this._transactionPoolModule.add(
-			// FIXME: #5619 type casting should be removed
-			transaction as any,
-		);
+		const { error } = await this._transactionPoolModule.add(transaction);
 
 		if (!error) {
 			this._logger.info(

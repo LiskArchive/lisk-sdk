@@ -24,7 +24,6 @@ import {
 import shuffle = require('lodash.shuffle');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 
-// TODO: Revisit this function to choose better parameters to select the best peer in common IPs
 const _removeCommonIPsFromLists = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
 ): ReadonlyArray<P2PPeerInfo> => {
@@ -149,6 +148,5 @@ export const selectPeersForConnection = (
 		return shuffledTriedPeers.pop() as P2PPeerInfo;
 	});
 
-	// TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 	return _removeCommonIPsFromLists(peerList);
 };

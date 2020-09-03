@@ -308,12 +308,7 @@ const bftInvalidBlockHeaderTestSuiteGenerator = ({ activeDelegates }) => () => (
 		invalidMaxHeightPrevoted(activeDelegates),
 		invalidSameHeightBlock(activeDelegates),
 		invalidLowerHeightBlock(activeDelegates),
-
-		// TODO: Once we remove this line we can uncomment this generator
-		// https://github.com/LiskHQ/lisk-sdk/blob/037f9e8160372908aea52fffa5a3b1a9f3dd3ebd/framework/src/modules/chain/bft/finality_manager.js#L93
-
-		// invalidPreviouslyForgedHeight(activeDelegates),
-
+		invalidPreviouslyForgedHeight(activeDelegates),
 		invalidLowerMaxHeightPrevoted(activeDelegates),
 	],
 });

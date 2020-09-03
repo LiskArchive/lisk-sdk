@@ -170,7 +170,6 @@ export class ForgerPlugin extends BasePlugin {
 			this._server = this._app.listen(options.port, '0.0.0.0');
 		});
 
-		// @TODO Fix me! due to the way unload works this event is never fired in time.
 		this._channel.once('app:shutdown', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			this._webhooks.handleEvent({
