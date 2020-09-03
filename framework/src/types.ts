@@ -16,9 +16,11 @@ import {
 	Validator,
 	AccountSchema as ChainAccountSchema,
 	Transaction,
-	StateStore as ChainStateStore,
 	GenesisBlock,
 	Block,
+	AccountDefaultProps,
+	Account,
+	BlockHeader,
 } from '@liskhq/lisk-chain';
 import { Schema } from '@liskhq/lisk-codec';
 
@@ -166,11 +168,21 @@ export interface TransactionJSON {
 	readonly asset: object;
 }
 
-// Limit the scope of state store to which module can access
-export type StateStore = Omit<
-	ChainStateStore,
-	'consensus' | 'finalize' | 'createSnapshot' | 'restoreSnapshot'
->;
+export interface StateStore {
+	readonly account: {
+		get<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>>;
+		getOrDefault<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>>;
+		set<T = AccountDefaultProps>(address: Buffer, updatedElement: Account<T>): Promise<void>;
+		del(address: Buffer): Promise<void>;
+	};
+	readonly chain: {
+		lastBlockHeaders: ReadonlyArray<BlockHeader>;
+		lastBlockReward: bigint;
+		networkIdentifier: Buffer;
+		get(key: string): Promise<Buffer | undefined>;
+		set(key: string, value: Buffer): Promise<void>;
+	};
+}
 
 export interface ReducerHandler {
 	invoke: <T = unknown>(name: string, params: Record<string, unknown>) => Promise<T>;

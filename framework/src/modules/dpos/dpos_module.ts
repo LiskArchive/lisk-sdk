@@ -174,7 +174,7 @@ export class DPoSModule extends BaseModule {
 			);
 		}
 
-		setRegisteredDelegates(context.stateStore, { registeredDelegates: delegateUsernames });
+		await setRegisteredDelegates(context.stateStore, { registeredDelegates: delegateUsernames });
 	}
 
 	private async _updateProductivity(context: AfterBlockApplyContext): Promise<void> {

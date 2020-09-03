@@ -20,6 +20,7 @@ import {
 	StateStore,
 	Transaction,
 	getValidators,
+	Account,
 } from '@liskhq/lisk-chain';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { EventEmitter } from 'events';
@@ -28,16 +29,7 @@ import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { BaseModule, BaseAsset } from '../../modules';
-import { Pipeline } from './pipeline';
-import {
-	BeforeBlockApplyContext,
-	TransactionApplyContext,
-	AfterBlockApplyContext,
-	AfterGenesisBlockApplyContext,
-	ReducerHandler,
-	Consensus,
-	Delegate,
-} from '../../types';
+import { ReducerHandler, Consensus, Delegate, StateStore as ModuleStateStore } from '../../types';
 import { TransactionApplyError, ApplyPenaltyError } from '../../errors';
 
 const forkStatusList = [
@@ -70,13 +62,6 @@ export class Processor {
 	private readonly _jobQueue: jobHandlers.JobQueue;
 	private readonly _modules: BaseModule[] = [];
 	private _stop = false;
-	private readonly _hooks: {
-		beforeTransactionApply: Pipeline<TransactionApplyContext>;
-		afterTransactionApply: Pipeline<TransactionApplyContext>;
-		beforeBlockApply: Pipeline<BeforeBlockApplyContext>;
-		afterBlockApply: Pipeline<AfterBlockApplyContext>;
-		afterGenesisBlockApply: Pipeline<AfterGenesisBlockApplyContext>;
-	};
 
 	public constructor({ channel, logger, chainModule, bftModule }: ProcessorInput) {
 		this._channel = channel;
@@ -85,40 +70,12 @@ export class Processor {
 		this._bft = bftModule;
 		this._jobQueue = new jobHandlers.JobQueue();
 		this.events = new EventEmitter();
-		this._hooks = {
-			beforeTransactionApply: new Pipeline<TransactionApplyContext>(),
-			afterTransactionApply: new Pipeline<TransactionApplyContext>(),
-			beforeBlockApply: new Pipeline<BeforeBlockApplyContext>(),
-			afterBlockApply: new Pipeline<AfterBlockApplyContext>(),
-			afterGenesisBlockApply: new Pipeline<AfterGenesisBlockApplyContext>(),
-		};
 	}
 
 	public register(customModule: BaseModule): void {
 		const existingModule = this._modules.find(m => m.id === customModule.id);
 		if (existingModule) {
 			throw new Error(`Module id ${customModule.id} is already registered`);
-		}
-		if (customModule.afterGenesisBlockApply) {
-			this._hooks.afterGenesisBlockApply.pipe([
-				customModule.afterGenesisBlockApply.bind(customModule),
-			]);
-		}
-		if (customModule.beforeBlockApply) {
-			this._hooks.beforeBlockApply.pipe([customModule.beforeBlockApply.bind(customModule)]);
-		}
-		if (customModule.beforeTransactionApply) {
-			this._hooks.beforeTransactionApply.pipe([
-				customModule.beforeTransactionApply.bind(customModule),
-			]);
-		}
-		if (customModule.afterTransactionApply) {
-			this._hooks.afterTransactionApply.pipe([
-				customModule.afterTransactionApply.bind(customModule),
-			]);
-		}
-		if (customModule.afterBlockApply) {
-			this._hooks.afterBlockApply.pipe([customModule.afterBlockApply.bind(customModule)]);
 		}
 		this._modules.push(customModule);
 	}
@@ -137,11 +94,15 @@ export class Processor {
 		if (!genesisExist) {
 			this._chain.validateGenesisBlockHeader(genesisBlock);
 			this._chain.applyGenesisBlock(genesisBlock, stateStore);
-			await this._hooks.afterGenesisBlockApply.run({
-				genesisBlock,
-				stateStore,
-				reducerHandler: this._createReducerHandler(stateStore),
-			});
+			for (const customModule of this._modules) {
+				if (customModule.afterGenesisBlockApply) {
+					await customModule.afterGenesisBlockApply({
+						genesisBlock,
+						stateStore: this._createScopedStateStore(stateStore, customModule.name),
+						reducerHandler: this._createReducerHandler(stateStore),
+					});
+				}
+			}
 			// TODO: saveBlock should accept both genesis and normal block
 			await this._chain.saveBlock((genesisBlock as unknown) as Block, stateStore, 0);
 		}
@@ -331,25 +292,34 @@ export class Processor {
 		}
 		for (const transaction of transactions) {
 			try {
-				await this._hooks.beforeTransactionApply.run({
-					reducerHandler: this._createReducerHandler(stateStore),
-					stateStore,
-					transaction,
-				});
+				for (const customModule of this._modules) {
+					if (customModule.beforeTransactionApply) {
+						await customModule.beforeTransactionApply({
+							reducerHandler: this._createReducerHandler(stateStore),
+							stateStore: this._createScopedStateStore(stateStore, customModule.name),
+							transaction,
+						});
+					}
+				}
+				const moduleName = this._getModule(transaction).name;
 				const customAsset = this._getAsset(transaction);
 				const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
 				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler: this._createReducerHandler(stateStore),
 					senderAddress: transaction.senderAddress,
-					stateStore,
+					stateStore: this._createScopedStateStore(stateStore, moduleName),
 					transaction,
 				});
-				await this._hooks.afterTransactionApply.run({
-					reducerHandler: this._createReducerHandler(stateStore),
-					stateStore,
-					transaction,
-				});
+				for (const customModule of this._modules) {
+					if (customModule.afterTransactionApply) {
+						await customModule.afterTransactionApply({
+							reducerHandler: this._createReducerHandler(stateStore),
+							stateStore: this._createScopedStateStore(stateStore, customModule.name),
+							transaction,
+						});
+					}
+				}
 			} catch (err) {
 				throw new TransactionApplyError(
 					(err as Error).message ?? 'Transaction verification failed',
@@ -381,47 +351,63 @@ export class Processor {
 			});
 		}
 
-		await this._hooks.beforeBlockApply.run({
-			block,
-			stateStore,
-			reducerHandler,
-		});
+		for (const customModule of this._modules) {
+			if (customModule.beforeBlockApply) {
+				await customModule.beforeBlockApply({
+					block,
+					stateStore: this._createScopedStateStore(stateStore, customModule.name),
+					reducerHandler,
+				});
+			}
+		}
 
 		await this._bft.applyBlockHeader(block.header, stateStore);
 
 		if (block.payload.length) {
 			for (const transaction of block.payload) {
-				await this._hooks.beforeTransactionApply.run({
-					reducerHandler: this._createReducerHandler(stateStore),
-					stateStore,
-					transaction,
-				});
+				for (const customModule of this._modules) {
+					if (customModule.beforeTransactionApply) {
+						await customModule.beforeTransactionApply({
+							reducerHandler: this._createReducerHandler(stateStore),
+							stateStore: this._createScopedStateStore(stateStore, customModule.name),
+							transaction,
+						});
+					}
+				}
+				const moduleName = this._getModule(transaction).name;
 				const customAsset = this._getAsset(transaction);
 				const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
 				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler,
 					senderAddress: transaction.senderAddress,
-					stateStore,
+					stateStore: this._createScopedStateStore(stateStore, moduleName),
 					transaction,
 				});
-				await this._hooks.afterTransactionApply.run({
-					reducerHandler: this._createReducerHandler(stateStore),
-					stateStore,
-					transaction,
-				});
+				for (const customModule of this._modules) {
+					if (customModule.afterTransactionApply) {
+						await customModule.afterTransactionApply({
+							reducerHandler: this._createReducerHandler(stateStore),
+							stateStore: this._createScopedStateStore(stateStore, customModule.name),
+							transaction,
+						});
+					}
+				}
 			}
 		}
 
 		// Apply should always be executed after save as it performs database calculations
 		// i.e. Dpos.apply expects to have this processing block in the database
-		await this._hooks.afterBlockApply.run({
-			block,
-			reducerHandler,
-			stateStore,
-			consensus: this._createConsensus(stateStore),
-		});
-
+		for (const customModule of this._modules) {
+			if (customModule.afterBlockApply) {
+				await customModule.afterBlockApply({
+					block,
+					reducerHandler,
+					stateStore: this._createScopedStateStore(stateStore, customModule.name),
+					consensus: this._createConsensus(stateStore),
+				});
+			}
+		}
 		await this._chain.saveBlock(block, stateStore, this._bft.finalizedHeight, {
 			removeFromTempTable,
 		});
@@ -468,6 +454,44 @@ export class Processor {
 		};
 	}
 
+	// eslint-disable-next-line class-methods-use-this
+	private _createScopedStateStore(stateStore: StateStore, moduleName: string): ModuleStateStore {
+		return {
+			account: {
+				get: async <T>(key: Buffer): Promise<Account<T>> => {
+					const account = await stateStore.account.get(key);
+					return {
+						address: account.address,
+						[moduleName]: account[moduleName],
+					} as Account<T>;
+				},
+				getOrDefault: async <T>(key: Buffer): Promise<Account<T>> => {
+					const account = await stateStore.account.getOrDefault(key);
+					return {
+						address: account.address,
+						[moduleName]: account[moduleName],
+					} as Account<T>;
+				},
+				set: async (key: Buffer, value: Account): Promise<void> => {
+					const account = await stateStore.account.getOrDefault(key);
+					account[moduleName] = value[moduleName];
+					stateStore.account.set(key, account);
+				},
+				del: async (key: Buffer): Promise<void> => stateStore.account.del(key),
+			},
+			chain: {
+				get: async (key: string): Promise<Buffer | undefined> => stateStore.chain.get(key),
+				lastBlockHeaders: stateStore.chain.lastBlockHeaders,
+				lastBlockReward: stateStore.chain.lastBlockReward,
+				networkIdentifier: stateStore.chain.networkIdentifier,
+				// eslint-disable-next-line @typescript-eslint/require-await
+				set: async (key: string, value: Buffer): Promise<void> => {
+					stateStore.chain.set(key, value);
+				},
+			},
+		};
+	}
+
 	private _createReducerHandler(stateStore: StateStore): ReducerHandler {
 		return {
 			invoke: async <T = unknown>(name: string, params: Record<string, unknown>): Promise<T> => {
@@ -481,7 +505,7 @@ export class Processor {
 				if (!fn) {
 					throw new Error(`${funcName} does not exist in module ${moduleName}`);
 				}
-				return fn(params, stateStore) as Promise<T>;
+				return fn(params, this._createScopedStateStore(stateStore, moduleName)) as Promise<T>;
 			},
 		};
 	}
@@ -494,11 +518,16 @@ export class Processor {
 		return customModule;
 	}
 
-	private _getAsset(transaction: Transaction): BaseAsset {
+	private _getModule(transaction: Transaction): BaseModule {
 		const customModule = this._modules.find(m => m.id === transaction.moduleID);
 		if (!customModule) {
 			throw new Error(`Module id ${transaction.moduleID} does not exist`);
 		}
+		return customModule;
+	}
+
+	private _getAsset(transaction: Transaction): BaseAsset {
+		const customModule = this._getModule(transaction);
 		const customAsset = customModule.transactionAssets.find(
 			asset => asset.id === transaction.assetID,
 		);

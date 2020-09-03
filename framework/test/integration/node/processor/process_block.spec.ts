@@ -22,6 +22,7 @@ import { genesis, DefaultAccountProps } from '../../../fixtures';
 import { Node } from '../../../../src/node';
 import {
 	createDelegateRegisterTransaction,
+	createDelegateVoteTransaction,
 	createTransferTransaction,
 } from '../../../utils/node/transaction';
 
@@ -214,6 +215,40 @@ describe('Process block', () => {
 			});
 			newBlock = await nodeUtils.createBlock(node, [transaction]);
 			await node['_processor'].process(newBlock);
+		});
+
+		describe('when processing a block with a transaction which has votes for the delegate', () => {
+			it('should update the sender balance and the vote of the sender', async () => {
+				// Arrange
+				const sender = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
+					account.address,
+				);
+				const voteAmount = BigInt('1000000000');
+				const voteTransaction = createDelegateVoteTransaction({
+					nonce: sender.sequence.nonce,
+					networkIdentifier: node['_networkIdentifier'],
+					passphrase: account.passphrase,
+					votes: [
+						{
+							delegateAddress: account.address,
+							amount: voteAmount,
+						},
+					],
+				});
+				const block = await nodeUtils.createBlock(node, [voteTransaction]);
+
+				// Act
+				await node['_processor'].process(block);
+
+				// Assess
+				const updatedSender = await node['_chain'].dataAccess.getAccountByAddress<
+					DefaultAccountProps
+				>(account.address);
+				expect(updatedSender.dpos.sentVotes).toHaveLength(1);
+				expect(updatedSender.token.balance).toEqual(
+					sender.token.balance - voteAmount - voteTransaction.fee,
+				);
+			});
 		});
 
 		describe('when processing a block with a transaction which has delegate registration from the same account', () => {

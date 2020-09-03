@@ -90,6 +90,16 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 				throw new Error('Voted account is not registered as delegate');
 			}
 
+			const unlockIndex = sender.dpos.unlocking.findIndex(
+				obj =>
+					obj.amount === unlock.amount &&
+					obj.delegateAddress.equals(unlock.delegateAddress) &&
+					obj.unvoteHeight === unlock.unvoteHeight,
+			);
+			if (unlockIndex < 0) {
+				throw new Error('Corresponding unlocking object not found');
+			}
+
 			const waitingPeriod = getWaitingPeriod(
 				sender.address,
 				delegate.address,
@@ -111,15 +121,6 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 				throw new Error('Unlocking is not permitted as delegate is currently being punished');
 			}
 
-			const unlockIndex = sender.dpos.unlocking.findIndex(
-				obj =>
-					obj.amount === unlock.amount &&
-					obj.delegateAddress.equals(unlock.delegateAddress) &&
-					obj.unvoteHeight === unlock.unvoteHeight,
-			);
-			if (unlockIndex < 0) {
-				throw new Error('Corresponding unlocking object not found');
-			}
 			sender.dpos.unlocking.splice(unlockIndex, 1);
 
 			await reducerHandler.invoke('token:credit', {
@@ -127,7 +128,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 				amount: unlock.amount,
 			});
 
-			store.account.set(sender.address, sender);
+			await store.account.set(sender.address, sender);
 		}
 	}
 }
