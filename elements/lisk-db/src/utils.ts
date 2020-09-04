@@ -32,3 +32,16 @@ export const formatInt = (num: number | bigint): string => {
 
 export const getFirstPrefix = (prefix: string): string => `${prefix}\x00`;
 export const getLastPrefix = (prefix: string): string => `${prefix}\xFF`;
+
+export const isASCIIChar = (val: string): boolean => /^[\x21-\x7F]*$/.test(val);
+
+export const smartConvert = (message: string, delimiter: string, format: string): string =>
+	message
+		.split(delimiter)
+		.map(s => {
+			if (isASCIIChar(s)) {
+				return s;
+			}
+			return Buffer.from(s, 'binary').toString(format);
+		})
+		.join(delimiter);
