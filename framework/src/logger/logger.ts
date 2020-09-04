@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+/* eslint-disable max-classes-per-file */
 import * as path from 'path';
 import * as fs from 'fs';
 import * as bunyan from 'bunyan';
@@ -50,7 +50,7 @@ const levelToName = {
 } as { [key: number]: string };
 
 interface LogObject {
-	[key: string]: string | number | Error | undefined;
+	[key: string]: string | number | Error | undefined | bigint | Buffer;
 }
 
 class ConsoleLog {
@@ -107,6 +107,66 @@ class ConsoleLog {
 	}
 }
 
+class FileLog {
+	private readonly _stream: fs.WriteStream;
+
+	public constructor(filePath: string) {
+		this._stream = fs.createWriteStream(filePath, { flags: 'a', encoding: 'utf8' });
+	}
+
+	public write(rec: LogObject): void {
+		const {
+			time,
+			level,
+			name,
+			msg,
+			module: moduleName,
+			err,
+			hostname,
+			pid,
+			src,
+			v,
+			...others
+		} = rec;
+		const log: Record<string, unknown> = {
+			time,
+			level,
+			name,
+			msg,
+			hostname,
+			pid,
+			module: moduleName ?? 'unknown',
+		};
+		const otherKeys = Object.entries(others);
+		if (otherKeys.length > 0) {
+			const meta = otherKeys.reduce<Record<string, unknown>>((prev, [key, value]) => {
+				if (typeof value === 'bigint') {
+					// eslint-disable-next-line
+					prev[key] = value.toString();
+				} else if (Buffer.isBuffer(value)) {
+					// eslint-disable-next-line
+					prev[key] = value.toString('hex');
+				} else {
+					// eslint-disable-next-line
+					prev[key] = value;
+				}
+				// console.log({ current })
+				return prev;
+			}, {});
+			log.meta = meta;
+		}
+		this._stream.write(`${JSON.stringify(log)}\n`);
+	}
+
+	public end() {
+		this._stream.end();
+	}
+
+	public destroy() {
+		this._stream.destroy();
+	}
+}
+
 interface LoggerInput {
 	readonly fileLogLevel: string;
 	readonly consoleLogLevel: string;
@@ -149,8 +209,9 @@ export const createLogger = ({
 			? [
 					{
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+						type: 'raw',
 						level: fileLogLevel as bunyan.LogLevel,
-						path: logFilePath,
+						stream: new FileLog(logFilePath),
 					},
 			  ]
 			: [];
@@ -160,7 +221,6 @@ export const createLogger = ({
 		name: 'lisk-framework',
 		streams,
 		src: consoleSrc || fileSrc,
-		// eslint-disable-next-line
 		serializers: { err: bunyan.stdSerializers.err },
 		module,
 	}) as Logger;
