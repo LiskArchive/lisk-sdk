@@ -35,7 +35,7 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 		});
 		res.status(200).send({ data: codec.decodeAccount(account) });
 	} catch (err) {
-		if (/^Specified key accounts:address:(.*)does not exist/.test((err as Error).message)) {
+		if ((err as Error).message.startsWith('Specified key accounts:address')) {
 			res.status(404).send({
 				errors: [{ message: `Account with address '${accountAddres}' was not found` }],
 			});
