@@ -869,6 +869,144 @@ describe('chain/process block', () => {
 		});
 
 		describe('asset.accounts', () => {
+			const legacyAccounts = [
+				{
+					address: Buffer.from('8789de4316d79d22', 'hex'),
+					token: {
+						balance: BigInt('0'),
+					},
+					sequence: {
+						nonce: BigInt('0'),
+					},
+					keys: {
+						mandatoryKeys: [],
+						optionalKeys: [],
+						numberOfSignatures: 0,
+					},
+					dpos: {
+						delegate: {
+							username: '',
+							pomHeights: [],
+							consecutiveMissedBlocks: 0,
+							lastForgedHeight: 0,
+							isBanned: false,
+							totalVotesReceived: BigInt('0'),
+						},
+						sentVotes: [],
+						unlocking: [],
+					},
+				},
+				{
+					address: Buffer.from('bdf994ff9c884ffa', 'hex'),
+					token: {
+						balance: BigInt('0'),
+					},
+					sequence: {
+						nonce: BigInt('0'),
+					},
+					keys: {
+						mandatoryKeys: [],
+						optionalKeys: [],
+						numberOfSignatures: 0,
+					},
+					dpos: {
+						delegate: {
+							username: '',
+							pomHeights: [],
+							consecutiveMissedBlocks: 0,
+							lastForgedHeight: 0,
+							isBanned: false,
+							totalVotesReceived: BigInt('0'),
+						},
+						sentVotes: [],
+						unlocking: [],
+					},
+				},
+			];
+
+			it('should not fail if "asset.accounts" list is ordered by "address" length', () => {
+				// Arrange
+				const accounts = objects.cloneDeep([
+					...legacyAccounts,
+					...genesisBlock.header.asset.accounts,
+				]);
+				const gb = objects.mergeDeep({}, genesisBlock, {
+					header: {
+						asset: {
+							accounts,
+						},
+					},
+				}) as GenesisBlock;
+
+				// Act & Assert
+				expect(() => chainInstance.validateGenesisBlockHeader(gb)).not.toThrow();
+			});
+
+			it('should fail if "asset.accounts" list is not ordered by "address" length', () => {
+				// Arrange
+				const accounts = objects.cloneDeep([...genesisBlock.header.asset.accounts]);
+				accounts.push(...legacyAccounts);
+				const gb = objects.mergeDeep({}, genesisBlock, {
+					header: {
+						asset: {
+							accounts,
+						},
+					},
+				}) as GenesisBlock;
+
+				// Act & Assert
+				expect.assertions(3);
+				try {
+					chainInstance.validateGenesisBlockHeader(gb);
+				} catch (error) {
+					expect(error).toBeInstanceOf(LiskValidationError);
+					expect((error as LiskValidationError).errors).toHaveLength(1);
+					expect((error as LiskValidationError).errors[0]).toEqual(
+						expect.objectContaining({
+							message: 'should be length and lexicographically ordered',
+							keyword: 'accounts',
+							dataPath: 'header.asset.accounts',
+							schemaPath: 'properties.accounts',
+							params: { orderKey: 'address' },
+						}),
+					);
+				}
+			});
+
+			it('should fail if "asset.accounts" list is not lexicographically ordered by "address" within the length', () => {
+				// Arrange
+				const accounts = objects.cloneDeep([
+					legacyAccounts[1],
+					legacyAccounts[0],
+					...genesisBlock.header.asset.accounts,
+				]);
+				const gb = objects.mergeDeep({}, genesisBlock, {
+					header: {
+						asset: {
+							accounts,
+						},
+					},
+				}) as GenesisBlock;
+
+				// Act & Assert
+				expect.assertions(3);
+				try {
+					chainInstance.validateGenesisBlockHeader(gb);
+				} catch (error) {
+					expect(error).toBeInstanceOf(LiskValidationError);
+					expect((error as LiskValidationError).errors).toHaveLength(1);
+					expect((error as LiskValidationError).errors[0]).toEqual(
+						expect.objectContaining({
+							message: 'should be length and lexicographically ordered',
+							keyword: 'accounts',
+							dataPath: 'header.asset.accounts',
+							schemaPath: 'properties.accounts',
+							params: { orderKey: 'address' },
+						}),
+					);
+				}
+			});
+
 			it('should fail if "asset.accounts" list is not lexicographically ordered by "address"', () => {
 				// Arrange
 				const accounts = objects.cloneDeep([...genesisBlock.header.asset.accounts]);
@@ -890,7 +1028,7 @@ describe('chain/process block', () => {
 					expect((error as LiskValidationError).errors).toHaveLength(1);
 					expect((error as LiskValidationError).errors[0]).toEqual(
 						expect.objectContaining({
-							message: 'should be lexicographically ordered',
+							message: 'should be length and lexicographically ordered',
 							keyword: 'accounts',
 							dataPath: 'header.asset.accounts',
 							schemaPath: 'properties.accounts',

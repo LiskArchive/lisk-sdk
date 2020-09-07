@@ -11,9 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { smartConvert } from './utils';
 
 export class NotFoundError extends Error {
 	public constructor(key: string) {
-		super(`Specified key ${key} does not exist`);
+		super(`Specified key ${smartConvert(key, ':', 'hex')} does not exist`);
 	}
 }

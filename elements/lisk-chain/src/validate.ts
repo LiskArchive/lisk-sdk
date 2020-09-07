@@ -186,10 +186,20 @@ export const validateGenesisBlockHeader = (block: GenesisBlock, accountSchema: S
 	}
 
 	const accountAddresses = header.asset.accounts.map(a => a.address);
+	const copiedAddresses = [...accountAddresses];
+	copiedAddresses.sort((a, b) => {
+		if (a.length > b.length) {
+			return 1;
+		}
+		if (a.length < b.length) {
+			return -1;
+		}
+		return a.compare(b);
+	});
 
-	if (!objects.bufferArrayOrderByLex(accountAddresses)) {
+	if (!objects.bufferArrayEqual(accountAddresses, copiedAddresses)) {
 		errors.push({
-			message: 'should be lexicographically ordered',
+			message: 'should be length and lexicographically ordered',
 			keyword: 'accounts',
 			dataPath: 'header.asset.accounts',
 			schemaPath: 'properties.accounts',
