@@ -398,13 +398,13 @@ export class Chain {
 			throw new Error('PreviousBlock is null');
 		}
 
-		await this.dataAccess.deleteBlock(block, stateStore, saveTempBlock);
+		const updatedAccounts = await this.dataAccess.deleteBlock(block, stateStore, saveTempBlock);
 		await this.dataAccess.removeBlockHeader(block.header.id);
 		this._lastBlock = secondLastBlock;
 
 		this.events.emit(EVENT_DELETE_BLOCK, {
 			block,
-			accounts: stateStore.account.getUpdated(),
+			accounts: updatedAccounts,
 		});
 	}
 

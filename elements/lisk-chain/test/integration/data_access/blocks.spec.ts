@@ -27,7 +27,8 @@ import { getTransaction } from '../../utils/transaction';
 import { Block, Transaction } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
 import { stateDiffSchema } from '../../../src/schema';
-import { defaultAccountSchema } from '../../utils/account';
+import { defaultAccountSchema, createFakeDefaultAccount } from '../../utils/account';
+import { DB_KEY_ACCOUNTS_ADDRESS } from '../../../src/data_access/constants';
 
 describe('dataAccess.blocks', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
@@ -423,6 +424,48 @@ describe('dataAccess.blocks', () => {
 			await expect(
 				db.exists(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),
 			).resolves.toBeFalse();
+		});
+
+		it('should return all updated accounts', async () => {
+			// Deleting temp blocks to test the saving
+			await dataAccess.clearTempBlocks();
+			const deletedAccount = createFakeDefaultAccount({
+				token: {
+					balance: BigInt(200),
+				},
+			});
+			const updatedAccount = createFakeDefaultAccount({
+				token: {
+					balance: BigInt(100000000),
+				},
+			});
+			await db.put(
+				`diff:${formatInt(blocks[2].header.height)}`,
+				codec.encode(stateDiffSchema, {
+					created: [],
+					updated: [
+						{
+							key: `${DB_KEY_ACCOUNTS_ADDRESS}:${updatedAccount.address.toString('binary')}`,
+							value: dataAccess.encodeAccount(updatedAccount),
+						},
+					],
+					deleted: [
+						{
+							key: `${DB_KEY_ACCOUNTS_ADDRESS}:${deletedAccount.address.toString('binary')}`,
+							value: dataAccess.encodeAccount(deletedAccount),
+						},
+					],
+				}),
+			);
+			const diffAccounts = await dataAccess.deleteBlock(blocks[2], stateStore as any);
+
+			expect(diffAccounts).toHaveLength(2);
+			expect(
+				(diffAccounts.find(a => a.address.equals(deletedAccount.address)) as any).token.balance,
+			).toEqual(BigInt(200));
+			expect(
+				(diffAccounts.find(a => a.address.equals(deletedAccount.address)) as any).token.balance,
+			).toEqual(BigInt(200));
 		});
 
 		it('should delete block and all related indexes when there is no diff', async () => {
