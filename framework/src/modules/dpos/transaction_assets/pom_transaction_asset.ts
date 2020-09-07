@@ -230,10 +230,19 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		const delegateAccountBalance = await reducerHandler.invoke<bigint>('token:getBalance', {
 			address: delegateAccount.address,
 		});
+		const minRemainingBalance = await reducerHandler.invoke<bigint>(
+			'token:getMinRemainingBalance',
+			{},
+		);
+
+		const delegateSubtractableBalance =
+			delegateAccountBalance - minRemainingBalance > BigInt(0)
+				? delegateAccountBalance - minRemainingBalance
+				: BigInt(0);
 
 		const reward =
-			store.chain.lastBlockReward > delegateAccountBalance
-				? delegateAccountBalance
+			store.chain.lastBlockReward > delegateSubtractableBalance
+				? delegateSubtractableBalance
 				: store.chain.lastBlockReward;
 
 		await reducerHandler.invoke('token:credit', { address: senderAddress, amount: reward });
