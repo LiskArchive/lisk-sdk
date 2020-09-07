@@ -25,6 +25,7 @@
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"format": "prettier --write '**/*'",
+		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
 		"build": "tsc"
 	},
 	"dependencies": {
