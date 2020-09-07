@@ -17,6 +17,8 @@ import * as url from 'url';
 import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import { P2PConfig } from '../../src/types';
+import { InboundPeer } from '../../src/peer';
 // eslint-disable-next-line import/order
 import cloneDeep = require('lodash.clonedeep');
 
@@ -219,6 +221,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 	describe('whitelisting', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
+		let testPeer: P2P;
 
 		const whitelistedPeers = [
 			{
@@ -226,6 +229,7 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				port: NETWORK_START_PORT,
 			},
 		];
+
 		beforeEach(async () => {
 			const customSeedPeers = (index: number, startPort: number, networkSize: number) => [
 				{
@@ -234,11 +238,16 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 				},
 			];
 
-			const customConfig = (index: number, startPort: number, networkSize: number) => ({
+			const customConfig = (
+				index: number,
+				startPort: number,
+				networkSize: number,
+			): Partial<P2PConfig> => ({
 				hostIp: `127.0.0.${index + 10}`,
 				seedPeers: customSeedPeers(index, startPort, networkSize),
 				whitelistedPeers,
 				previousPeers,
+				maxInboundConnections: index === 1 ? 1 : 20, // Second node only accepts one incoming connection
 			});
 
 			p2pNodeList = await createNetwork({ customConfig });
@@ -246,6 +255,9 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 
 		afterEach(async () => {
 			await destroyNetwork(p2pNodeList);
+			if (testPeer?.isActive) {
+				await testPeer.stop();
+			}
 		});
 
 		it('should add every whitelisted peer to triedPeers', () => {
@@ -281,6 +293,68 @@ describe('Blacklisted/fixed/whitelisted peers', () => {
 					expect(connectedPeersIPWS).toIncludeAllMembers(whitelistedPeers);
 				}
 			});
+		});
+
+		it('should allow connection from whitelisted peer even when incoming slots are full', async () => {
+			const firstWhitelistNode = p2pNodeList[0];
+			const secondNode = p2pNodeList[1];
+			expect(secondNode.getConnectedPeers().map(p => p.ipAddress)).toContain(
+				firstWhitelistNode.config.hostIp,
+			);
+
+			// Stop the node
+			await firstWhitelistNode.stop();
+			await wait(100);
+
+			expect(secondNode['_peerPool'].getPeers(InboundPeer).map(p => p.ipAddress)).not.toContain(
+				firstWhitelistNode.config.hostIp,
+			);
+			expect(secondNode.getConnectedPeers().map(p => p.ipAddress)).not.toContain(
+				firstWhitelistNode.config.hostIp,
+			);
+
+			const nodeInfoConstants = {
+				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				version: '1.0.1',
+				networkVersion: '1.1',
+				minVersion: '1.0.0',
+				os: 'darwin',
+				height: 0,
+				nonce: 'O2wTkjqplHII',
+			};
+
+			testPeer = new P2P({
+				fixedPeers: [
+					{
+						ipAddress: secondNode.config.hostIp as string,
+						port: secondNode.config.port,
+					},
+				],
+				port: 5015,
+				nodeInfo: {
+					...nodeInfoConstants,
+					advertiseAddress: true,
+					options: {},
+				},
+			});
+
+			// Start a new node to connect to the second node to full the slot
+			await testPeer.start();
+			await wait(100);
+			expect(testPeer.getConnectedPeers().map(p => p.ipAddress)).toContain(
+				secondNode.config.hostIp,
+			);
+
+			// Start the first node again that is whitelisted in the second node
+			firstWhitelistNode['_populatorIntervalId'] = undefined;
+			await firstWhitelistNode.start();
+
+			await wait(100);
+
+			// Whitelisted first node should be able to connect back to second node even when the slot is full
+			expect(secondNode.getConnectedPeers().map(p => p.ipAddress)).toContain(
+				firstWhitelistNode.config.hostIp,
+			);
 		});
 	});
 });
