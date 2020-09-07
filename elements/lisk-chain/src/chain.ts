@@ -198,13 +198,6 @@ export class Chain {
 		return this._genesisBlock;
 	}
 
-	public get lastBootstrapHeight(): number {
-		return (
-			this._numberOfValidators * this._genesisBlock.header.asset.initRounds +
-			this._genesisBlock.header.height
-		);
-	}
-
 	public get accountSchema(): Schema {
 		return this._accountSchema;
 	}
@@ -433,7 +426,16 @@ export class Chain {
 	public async setValidators(
 		validators: { address: Buffer; isConsensusParticipant: boolean }[],
 		stateStore: StateStore,
+		blockHeader: BlockHeader,
 	): Promise<void> {
+		if (this._getLastBootstrapHeight() > blockHeader.height) {
+			debug(
+				`Skipping updating validator since current height ${
+					blockHeader.height
+				} is lower than last bootstrap height ${this._getLastBootstrapHeight()}`,
+			);
+			return;
+		}
 		const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);
 		if (!validatorsBuffer) {
 			throw new Error('Previous validator set must exist');
@@ -442,15 +444,13 @@ export class Chain {
 			validatorsSchema,
 			validatorsBuffer,
 		);
-		const [lastBlock] = stateStore.chain.lastBlockHeaders;
 		const nextValidatorSet = [];
 		for (const nextValidator of validators) {
 			const previousInfo = previousValidators.find(pv => pv.address.equals(nextValidator.address));
 			nextValidatorSet.push({
 				...nextValidator,
 				minActiveHeight:
-					// currently processed block is still in process, so the next block height is +2
-					previousInfo !== undefined ? previousInfo.minActiveHeight : lastBlock.height + 2,
+					previousInfo !== undefined ? previousInfo.minActiveHeight : blockHeader.height + 1,
 			});
 		}
 		const encodedValidators = codec.encode(validatorsSchema, { validators: nextValidatorSet });
@@ -476,5 +476,12 @@ export class Chain {
 			debug({ height: blockHeader.height }, 'Add block header to cache');
 			this.dataAccess.addBlockHeader(blockHeader);
 		}
+	}
+
+	private _getLastBootstrapHeight(): number {
+		return (
+			this._numberOfValidators * this._genesisBlock.header.asset.initRounds +
+			this._genesisBlock.header.height
+		);
 	}
 }

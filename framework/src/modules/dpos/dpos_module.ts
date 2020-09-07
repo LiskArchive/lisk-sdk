@@ -112,10 +112,8 @@ export class DPoSModule extends BaseModule {
 
 	public async afterBlockApply(context: AfterBlockApplyContext): Promise<void> {
 		const finalizedHeight = context.consensus.getFinalizedHeight();
-		const lastBootstrapHeight = context.consensus.getLastBootstrapHeight();
 		const { height } = context.block.header;
 		const isLastBlockOfRound = this._isLastBlockOfTheRound(height);
-		const isBootstrapPeriod = height <= lastBootstrapHeight;
 
 		if (finalizedHeight !== this._finalizedHeight) {
 			this._finalizedHeight = finalizedHeight;
@@ -128,20 +126,14 @@ export class DPoSModule extends BaseModule {
 			await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, context.stateStore);
 		}
 
-		if (!isBootstrapPeriod) {
-			// Calculate account.dpos.delegate.consecutiveMissedBlocks and account.dpos.delegate.isBanned
-			await this._updateProductivity(context);
-		}
+		await this._updateProductivity(context);
 
 		if (!isLastBlockOfRound) {
 			return;
 		}
 
 		await this._createVoteWeightSnapshot(context);
-
-		if (!isBootstrapPeriod || (isBootstrapPeriod && height === lastBootstrapHeight)) {
-			await this._updateValidators(context);
-		}
+		await this._updateValidators(context);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

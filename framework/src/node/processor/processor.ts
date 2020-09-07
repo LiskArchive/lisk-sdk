@@ -21,6 +21,7 @@ import {
 	Transaction,
 	getValidators,
 	Account,
+	BlockHeader,
 } from '@liskhq/lisk-chain';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { EventEmitter } from 'events';
@@ -404,7 +405,7 @@ export class Processor {
 					block,
 					reducerHandler,
 					stateStore: this._createScopedStateStore(stateStore, customModule.name),
-					consensus: this._createConsensus(stateStore),
+					consensus: this._createConsensus(stateStore, block.header),
 				});
 			}
 		}
@@ -443,12 +444,11 @@ export class Processor {
 		await this._chain.removeBlock(block, stateStore, { saveTempBlock });
 	}
 
-	private _createConsensus(stateStore: StateStore): Consensus {
+	private _createConsensus(stateStore: StateStore, blockHeader: BlockHeader): Consensus {
 		return {
-			getLastBootstrapHeight: (): number => this._chain.lastBootstrapHeight,
 			getFinalizedHeight: (): number => this._bft.finalizedHeight,
 			updateDelegates: async (delegates: Delegate[]): Promise<void> => {
-				await this._chain.setValidators(delegates, stateStore);
+				await this._chain.setValidators(delegates, stateStore, blockHeader);
 			},
 			getDelegates: async (): Promise<Delegate[]> => getValidators(stateStore),
 		};
