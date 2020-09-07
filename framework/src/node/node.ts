@@ -63,7 +63,6 @@ import { Network } from './network';
 import { BaseModule } from '../modules';
 import { Bus } from '../controller/bus';
 
-const SEC_IN_MS = 1000;
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK, EVENT_VALIDATORS_CHANGED } = chainEvents;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
@@ -300,7 +299,7 @@ export class Node {
 			> => {
 				const validators = await this._chain.getValidators();
 				const validatorAddresses = validators.map(v => v.address);
-				const slot = this._chain.slots.getSlotNumber(Math.floor(Date.now() / SEC_IN_MS));
+				const slot = this._chain.slots.getSlotNumber();
 				const startTime = this._chain.slots.getSlotTime(slot);
 
 				let nextForgingTime = startTime;
