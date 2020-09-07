@@ -330,6 +330,31 @@ export const applicationConfigSchema = {
 		plugins: {
 			type: 'object',
 		},
+		transactionPool: {
+			type: 'object',
+			properties: {
+				maxTransactions: {
+					type: 'integer',
+					minimum: 1,
+				},
+				maxTransactionsPerAccount: {
+					type: 'integer',
+					minimum: 1,
+				},
+				transactionExpiryTime: {
+					type: 'integer',
+					minimum: 60 * 1000,
+				},
+				minEntranceFeePriority: {
+					type: 'string',
+					format: 'uint64',
+				},
+				minReplacementFeeDifference: {
+					type: 'string',
+					format: 'uint64',
+				},
+			},
+		},
 	},
 	additionalProperties: false,
 	default: {
@@ -374,5 +399,12 @@ export const applicationConfigSchema = {
 			port: 5000,
 		},
 		plugins: {},
+		transactionPool: {
+			maxTransactions: 4096,
+			maxTransactionsPerAccount: 64,
+			transactionExpiryTime: 3 * 60 * 60 * 1000,
+			minEntranceFeePriority: '0',
+			minReplacementFeeDifference: '10',
+		},
 	},
 };

@@ -58,4 +58,11 @@ export const nodeOptions = ({
 		standbyDelegates: 2,
 		delegateListRoundOffset: 2,
 	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
 } as unknown) as NodeOptions;
