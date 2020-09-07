@@ -17,13 +17,14 @@ import { P2P } from '@liskhq/lisk-p2p';
 import { Network } from '../../../../src/node/network';
 import { Logger } from '../../../../src/logger';
 import { InMemoryChannel } from '../../../../src/controller';
+import { defaultNetworkIdentifier } from '../../../fixtures';
 
 jest.mock('@liskhq/lisk-p2p');
 jest.mock('@liskhq/lisk-db');
 
 describe('network', () => {
 	let network: Network;
-
+	jest.useFakeTimers();
 	beforeEach(() => {
 		const db = new KVStore('~/.lisk/stubed');
 		network = new Network({
@@ -159,6 +160,66 @@ describe('network', () => {
 						},
 					})),
 				);
+			});
+		});
+
+		describe('previousPeers', () => {
+			const getDBStub = jest.fn();
+			const putDBStub = jest.fn();
+
+			const previousPeers = [
+				{
+					ipAddress: '127.0.0.10',
+					port: 5000,
+				},
+				{
+					ipAddress: '127.0.0.12',
+					port: 5001,
+				},
+			];
+
+			const previousPeersBuffer = Buffer.from(JSON.stringify(previousPeers), 'utf8');
+
+			beforeEach(() => {
+				const db = new KVStore('~/.lisk/stubed');
+
+				db.get = getDBStub;
+				db.put = putDBStub;
+
+				getDBStub.mockResolvedValue(previousPeersBuffer);
+
+				network = new Network({
+					nodeDB: db,
+					networkVersion: '2.0',
+					logger: ({
+						info: jest.fn(),
+						error: jest.fn(),
+						warn: jest.fn(),
+						level: jest.fn(),
+						debug: jest.fn(),
+						trace: jest.fn(),
+					} as unknown) as Logger,
+					channel: ({} as unknown) as InMemoryChannel,
+					options: {
+						port: 3000,
+						seedPeers: [],
+					},
+				});
+			});
+
+			describe('Loading and saving previous peers on start up', () => {
+				it('should load all the previous peers into p2p and save after 10 mins', async () => {
+					const parseSpy = jest.spyOn(JSON, 'parse');
+					await network.bootstrap(defaultNetworkIdentifier);
+					expect(parseSpy).toBeCalledWith(previousPeersBuffer.toString('utf8'));
+
+					network['_p2p'] = {
+						getTriedPeers: jest.fn().mockReturnValue(previousPeers),
+					} as any;
+
+					jest.advanceTimersByTime(600000);
+					expect(putDBStub).toHaveBeenCalledTimes(1);
+				});
 			});
 		});
 	});

@@ -24,6 +24,7 @@ describe('p2p', () => {
 		ipAddress: `120.0.0.${i}`,
 		port: 5000 + i,
 	}));
+	const previousPeers = generatedPeers.slice(4, 5);
 
 	beforeEach(async () => {
 		p2pNode = new P2P({
@@ -32,7 +33,7 @@ describe('p2p', () => {
 			blacklistedIPs: generatedPeers.slice(6).map(peer => peer.ipAddress),
 			fixedPeers: generatedPeers.slice(0, 6),
 			whitelistedPeers: generatedPeers.slice(2, 3),
-			previousPeers: generatedPeers.slice(4, 5),
+			previousPeers,
 			connectTimeout: 5000,
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
@@ -74,6 +75,12 @@ describe('p2p', () => {
 					.filter(peer => peer.internalState?.peerKind === 'fixedPeer')
 					.map(peer => peer.peerId),
 			);
+		});
+
+		it('should have previous peers passed from the config', () => {
+			expect(
+				[...p2pNode.getDisconnectedPeers(), ...p2pNode.getConnectedPeers()].map(p => p.ipAddress),
+			).toContain(previousPeers[0].ipAddress);
 		});
 
 		it('should reject at multiple start attempt', async () => {
