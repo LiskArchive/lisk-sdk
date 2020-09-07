@@ -293,7 +293,7 @@ describe('PomTransactionAsset', () => {
 			);
 		});
 
-		it('should reward the sender with last block reward if delegate have emough balance', async () => {
+		it('should reward the sender with last block reward if delegate have enough balance', async () => {
 			const remainingBalance = lastBlockReward + BigInt('10000000000');
 			const minRemainingBalance = BigInt('5000000');
 
