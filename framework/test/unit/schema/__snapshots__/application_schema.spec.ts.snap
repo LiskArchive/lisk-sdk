@@ -44,6 +44,13 @@ Object {
       "networkVersion": "1.1",
       "plugins": Object {},
       "rootPath": "~/.lisk",
+      "transactionPool": Object {
+        "maxTransactions": 4096,
+        "maxTransactionsPerAccount": 64,
+        "minEntranceFeePriority": "0",
+        "minReplacementFeeDifference": "10",
+        "transactionExpiryTime": 10800000,
+      },
       "version": "0.0.0",
     },
     "id": "#/config",
@@ -391,6 +398,31 @@ Object {
         "maxLength": 50,
         "minLength": 1,
         "type": "string",
+      },
+      "transactionPool": Object {
+        "properties": Object {
+          "maxTransactions": Object {
+            "minimum": 1,
+            "type": "integer",
+          },
+          "maxTransactionsPerAccount": Object {
+            "minimum": 1,
+            "type": "integer",
+          },
+          "minEntranceFeePriority": Object {
+            "format": "uint64",
+            "type": "string",
+          },
+          "minReplacementFeeDifference": Object {
+            "format": "uint64",
+            "type": "string",
+          },
+          "transactionExpiryTime": Object {
+            "minimum": 60000,
+            "type": "integer",
+          },
+        },
+        "type": "object",
       },
       "version": Object {
         "format": "version",

@@ -509,6 +509,11 @@ export class Node {
 				const stateStore = await this._chain.newStateStore();
 				return this._processor.verifyTransactions(transactions, stateStore);
 			},
+			...this._options.transactionPool,
+			minEntranceFeePriority: BigInt(this._options.transactionPool.minEntranceFeePriority),
+			minReplacementFeeDifference: BigInt(
+				this._options.transactionPool.minReplacementFeeDifference,
+			),
 		});
 
 		const blockSyncMechanism = new BlockSynchronizationMechanism({

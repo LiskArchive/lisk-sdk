@@ -127,6 +127,14 @@ export interface GenesisConfig {
 	}[];
 }
 
+export interface TransactionPoolConfig {
+	readonly maxTransactions?: number;
+	readonly maxTransactionsPerAccount?: number;
+	readonly transactionExpiryTime?: number;
+	readonly minEntranceFeePriority?: string;
+	readonly minReplacementFeeDifference?: string;
+}
+
 export interface ApplicationConfig {
 	label: string;
 	version: string;
@@ -149,6 +157,7 @@ export interface ApplicationConfig {
 	};
 	genesisConfig: GenesisConfig;
 	plugins: PluginsOptions;
+	transactionPool: TransactionPoolConfig;
 }
 
 export interface ActionInfoForBus {
