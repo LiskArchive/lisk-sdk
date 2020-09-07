@@ -230,10 +230,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		const delegateAccountBalance = await reducerHandler.invoke<bigint>('token:getBalance', {
 			address: delegateAccount.address,
 		});
-		const minRemainingBalance = await reducerHandler.invoke<bigint>(
-			'token:getMinRemainingBalance',
-			{},
-		);
+		const minRemainingBalance = await reducerHandler.invoke<bigint>('token:getMinRemainingBalance');
 
 		const delegateSubtractableBalance =
 			delegateAccountBalance - minRemainingBalance > BigInt(0)
