@@ -86,6 +86,8 @@ export class TokenModule extends BaseModule {
 			const account = await stateStore.account.getOrDefault<TokenAccount>(address);
 			return account.token.balance;
 		},
+		// eslint-disable-next-line @typescript-eslint/require-await
+		getMinRemainingBalance: async (): Promise<bigint> => this._minRemainingBalance,
 	};
 
 	private readonly _minRemainingBalance: bigint;
