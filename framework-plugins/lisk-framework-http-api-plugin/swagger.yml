@@ -689,6 +689,46 @@ definitions:
                 unvoteHeight:
                   type: number
 
+  BlockAsset:
+    type: object
+    required:
+      - maxHeightPreviouslyForged
+      - maxHeightPrevoted
+      - seedReveal
+    properties:
+      maxHeightPreviouslyForged:
+        type: number
+        description: The largest height of any block previously forged by the forging delegate.
+      maxHeightPrevoted:
+        type: number
+        description: The largest height of any block previously prevoted by the forging delegate.
+      seedReveal:
+        type: string
+        description: Hex encoded value that contains the new seed value revealed each round by the forging delegate.
+
+  GenesisBlockAsset:
+    type: object
+    required:
+      - accounts
+      - initDelegates
+      - initRounds
+    properties:
+      accounts:
+        type: array
+        description: Array of of initial forging delegate accounts.
+        items:
+          type: object
+          $ref: '#/definitions/Account'
+      initDelegates:
+        type: array
+        description: Array of public keys of initial forging delegates.
+        items:
+          type: string
+          description: Public key of forging delegate.
+      initRounds:
+        type: number
+        description: Number of rounds for bootstrapping period.
+
   BlockHeader:
     type: object
     required:
@@ -730,8 +770,11 @@ definitions:
         type: string
         description: The reward for the delegate.
       asset:
-        type: object
         description: Object stored in the block header as defined by the application
+        $ref: '#/definitions/BlockAsset'
+      signature:
+        type: string
+        description: Hex encoded value of the signature for the block.
 
   Transaction:
     type: object
