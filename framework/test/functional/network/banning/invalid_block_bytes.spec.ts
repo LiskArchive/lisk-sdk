@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { P2P } from '@liskhq/lisk-p2p';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Application } from '../../../../src';
 import {
 	createApplication,
@@ -42,11 +41,12 @@ describe('Public block related P2P endpoints with invalid block', () => {
 
 	describe('postBlock with random block bytes', () => {
 		it('should not accept the block and ban the peer', async () => {
-			// const { lastBlock } = app['_node']['_chain'];
+			const invalidBytesString =
+				'17f7ca093a17c174afa4a9ac48e27c6ea08b345d325d54c5433df2a73850c04b3a2b503d04ed37b30deaa3d429dc7e6b159a';
 			p2p.sendToPeer(
 				{
 					event: 'postBlock',
-					data: { block: getRandomBytes(5000).toString('hex') },
+					data: { block: invalidBytesString },
 				},
 				getPeerID(app),
 			);

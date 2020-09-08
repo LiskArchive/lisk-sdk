@@ -14,7 +14,6 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { SCServerSocket } from 'socketcluster-server';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Peer, PeerConfig } from '../../../src/peer';
 import {
 	DEFAULT_REPUTATION_SCORE,
@@ -38,11 +37,10 @@ import {
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	PROTOCOL_EVENTS_TO_RATE_LIMIT,
 } from '../../../src/events';
-import { RPCResponseError, InvalidNodeInfoError } from '../../../src/errors';
+import { RPCResponseError } from '../../../src/errors';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
 import { p2pTypes } from '../../../src';
 import { peerInfoSchema, nodeInfoSchema } from '../../../src/schema';
-import * as codecUtils from '../../../src/utils/codec';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const createSocketStubInstance = () => <SCServerSocket>({
@@ -577,11 +575,11 @@ describe('peer/base', () => {
 
 		describe('when request() succeeds', () => {
 			describe('when nodeInfo contains malformed information', () => {
-				const invalidData = { data: getRandomBytes(10).toString('hex') };
+				const invalidData = {
+					data:
+						'0b4bfc826a027f228c21da9e4ce2eef156f0742719b6b2466ec706b15441025f638f748b22adfab873561587be7285be3e3888cd9acdce226e342cf196fbc2c5',
+				};
 				beforeEach(() => {
-					jest.spyOn(codecUtils, 'decodeNodeInfo').mockImplementation(() => {
-						throw new InvalidNodeInfoError('Invalid node Info');
-					});
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(invalidData);
 					jest.spyOn(defaultPeer, 'emit');
 					jest.spyOn(defaultPeer, 'applyPenalty');
