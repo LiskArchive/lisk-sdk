@@ -22,7 +22,9 @@ class MyPlugin extends BasePlugin {
 		super(options);
 	}
 
-	public static readonly alias = 'my_plugin';
+	public static get alias() {
+		return 'my_plugin';
+	}
 
 	public static get info() {
 		return {
