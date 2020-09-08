@@ -35,7 +35,7 @@ import { TokenModule } from '../../../../src/modules';
 
 jest.mock('@liskhq/lisk-db');
 
-const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
+const { InMemoryChannel: ChannelMock } = jest.createMockFromModule(
 	'../../../../src/controller/channels/in_memory_channel',
 );
 

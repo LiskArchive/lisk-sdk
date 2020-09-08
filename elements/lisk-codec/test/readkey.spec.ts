@@ -14,15 +14,15 @@
 import { readKey } from '../src/keys';
 
 describe('readKey', () => {
-	it('it should return fieldNumber and wireType(0) for a given value', () => {
+	it('should return fieldNumber and wireType(0) for a given value', () => {
 		return expect(readKey(48)).toEqual([6, 0]);
 	});
 
-	it('it should return fieldNumber and wireType(2) for a given value', () => {
+	it('should return fieldNumber and wireType(2) for a given value', () => {
 		return expect(readKey(42)).toEqual([5, 2]);
 	});
 
-	it('it should throw error for unsupported wireType', () => {
+	it('should throw error for unsupported wireType', () => {
 		return expect(() => readKey(47)).toThrow('Value yields unsupported wireType');
 	});
 });

@@ -30,7 +30,7 @@ import {
 } from '../../../../fixtures';
 import { TokenModule } from '../../../../../src/modules';
 
-const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
+const { InMemoryChannel: ChannelMock } = jest.createMockFromModule(
 	'../../../../../src/controller/channels/in_memory_channel',
 );
 
@@ -410,7 +410,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 			});
 
-			it('should abort the syncing mechanism if the difference in height between the common block and the received block is > delegatesPerRound*2 ', async () => {
+			it('should abort the syncing mechanism if the difference in height between the common block and the received block is > delegatesPerRound*2', async () => {
 				// Arrange
 				const storageReturnValue = [
 					{
@@ -460,7 +460,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 			});
 
-			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > delegatesPerRound*2 ', async () => {
+			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > delegatesPerRound*2', async () => {
 				// Arrange
 				const highestCommonBlock = createFakeBlockHeader({
 					height: lastBlock.header.height + 1,

@@ -63,7 +63,7 @@ describe('utils/sanitize', () => {
 			});
 		});
 
-		it('should remove ', () => {
+		it('should remove', () => {
 			const samplePeers = initPeerInfoList();
 			const { ipAddress, port, sharedState, peerId } = samplePeers[0];
 			const samplePeerWithoutInternalState = {

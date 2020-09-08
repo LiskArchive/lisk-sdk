@@ -38,7 +38,7 @@ import { peersList } from './peers';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from '../../../../../src/node/synchronizer/base_synchronizer';
 import { TokenModule } from '../../../../../src/modules';
 
-const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
+const { InMemoryChannel: ChannelMock } = jest.createMockFromModule(
 	'../../../../../src/controller/channels/in_memory_channel',
 );
 
@@ -784,7 +784,7 @@ describe('block_synchronization_mechanism', () => {
 				});
 			});
 
-			describe('revert chain to highest common block ', () => {
+			describe('revert chain to highest common block', () => {
 				it('should delete blocks after highest common block height and back them up to temp table', async () => {
 					await blockSynchronizationMechanism.run(aBlock);
 
