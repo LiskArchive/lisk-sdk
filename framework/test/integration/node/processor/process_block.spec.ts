@@ -326,7 +326,7 @@ describe('Process block', () => {
 		});
 
 		describe('when block has tie break BFT properties', () => {
-			it('should repace the last block', async () => {
+			it('should replace the last block', async () => {
 				const { lastBlock } = node['_chain'];
 				const currentSlot = node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
 				const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
@@ -352,7 +352,7 @@ describe('Process block', () => {
 				);
 				(tieBreakBlock.header as any).signature = signature;
 				(tieBreakBlock.header as any).receivedAt = timestamp;
-				// There is no other way to mutate the time so that the tieBreak block is received at currect slot
+				// There is no other way to mutate the time so that the tieBreak block is received at current slot
 				jest.spyOn(node['_chain'].slots, 'timeSinceGenesis').mockReturnValue(timestamp);
 				(node['_chain'].lastBlock.header as any).receivedAt = timestamp + 2;
 				// mutate the last block so that the last block was not received in the timeslot
