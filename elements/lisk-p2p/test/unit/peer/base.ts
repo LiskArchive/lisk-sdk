@@ -75,6 +75,7 @@ describe('peer/base', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
+			peerStatusMessageRate: 4,
 			serverNodeInfo: {
 				networkIdentifier: 'networkId',
 				networkVersion: '1.2',
@@ -768,7 +769,7 @@ describe('peer/base', () => {
 					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 				};
 				const { reputation } = defaultPeer.peerInfo.internalState;
-				const requestCount = 10;
+				const requestCount = 9;
 
 				// Act
 				for (let i = 0; i < requestCount; i += 1) {
@@ -778,8 +779,9 @@ describe('peer/base', () => {
 				jest.advanceTimersByTime(peerConfig.rateCalculationInterval + 1);
 
 				// Assert
+				// ((requestCount - 1) * 10) is the penalty added for every getPeers RPC request after the first request
 				expect(defaultPeer.peerInfo.internalState.reputation).toBe(
-					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY - (requestCount - 1) * 10,
 				);
 			});
 
