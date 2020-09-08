@@ -168,11 +168,11 @@ export class DPoSModule extends BaseModule {
 
 		await setRegisteredDelegates(context.stateStore, { registeredDelegates: delegateUsernames });
 
-		const initialRound = this.rounds.calcRound(context.genesisBlock.header.height) + 1;
+		const roundAfterGenesis = this.rounds.calcRound(context.genesisBlock.header.height) + 1;
 		for (
 			// tslint:disable-next-line no-let
-			let i = initialRound;
-			i <= initialRound + this._delegateListRoundOffset;
+			let i = roundAfterGenesis;
+			i <= roundAfterGenesis + this._delegateListRoundOffset;
 			i += 1
 		) {
 			// Height is 1, but to create round 1-3, round offset should start from 0 - 2
