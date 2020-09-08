@@ -8,6 +8,27 @@
 $ npm install --save @liskhq/lisk-framework-http-api-plugin
 ```
 
+## Config Options
+
+```
+{
+	port?: number,
+	whiteList?: string[],
+	cors?: {
+		origin: string,
+		methods: string,
+	},
+	limits?: {
+		max: number,
+		delayMs: number,
+		delayAfter: number,
+		windowMs: number,
+		headersTimeout: number,
+		serverSetTimeout: number,
+	},
+}
+```
+
 ## License
 
 Copyright 2016-2020 Lisk Foundation

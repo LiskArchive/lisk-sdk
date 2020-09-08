@@ -8,6 +8,29 @@
 $ npm install --save @liskhq/lisk-framework-forger-plugin
 ```
 
+## Config Options
+
+```
+{
+	port?: number,
+	whiteList?: string[],
+	webhook?: string[],
+	cors?: {
+		origin: string,
+		methods: string,
+	},
+	limits?: {
+		max: number,
+		delayMs: number,
+		delayAfter: number,
+		windowMs: number,
+		headersTimeout: number,
+		serverSetTimeout: number,
+	},
+	dataPath?: string,
+}
+```
+
 ## License
 
 Copyright 2016-2020 Lisk Foundation
