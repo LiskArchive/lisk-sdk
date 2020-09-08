@@ -394,7 +394,7 @@ export class Storage {
 		fullBlock: Buffer,
 		stateStore: StateStore,
 		saveToTemp = false,
-	): Promise<void> {
+	): Promise<StateDiff> {
 		const batch = this._db.batch();
 		const heightStr = formatInt(height);
 		batch.del(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
@@ -439,6 +439,11 @@ export class Storage {
 
 		stateStore.finalize(heightStr, batch);
 		await batch.write();
+		return {
+			deleted: deletedStates,
+			created: createdStates,
+			updated: updatedStates,
+		};
 	}
 
 	// This function is out of batch, but even if it fails, it will run again next time
