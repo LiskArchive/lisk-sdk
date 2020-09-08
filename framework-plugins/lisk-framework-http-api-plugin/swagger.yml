@@ -770,12 +770,8 @@ definitions:
         type: string
         description: The reward for the delegate.
       asset:
-        type: object
         description: Object stored in the block header as defined by the application
-        schema:
-          anyOf:
-            - $ref: '#/definitions/BlockAsset'
-            - $ref: '#/definitions/GenesisBlockAsset'
+        $ref: '#/definitions/BlockAsset'
       signature:
         type: string
         description: Hex encoded value of the signature for the block.
