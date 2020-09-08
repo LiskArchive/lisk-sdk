@@ -137,6 +137,7 @@ export interface PeerPoolConfig {
 	readonly wsMaxMessageRate: number;
 	readonly wsMaxMessageRatePenalty: number;
 	readonly rateCalculationInterval: number;
+	readonly peerStatusMessageRate: number;
 	readonly secret: number;
 	readonly peerBook: PeerBook;
 	readonly rpcSchemas: RPCSchemas;
@@ -187,6 +188,7 @@ export class PeerPool extends EventEmitter {
 			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
 			maxPeerDiscoveryResponseLength: this._peerPoolConfig.maxPeerDiscoveryResponseLength,
 			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
+			peerStatusMessageRate: this._peerPoolConfig.peerStatusMessageRate,
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			secret: this._peerPoolConfig.secret,
