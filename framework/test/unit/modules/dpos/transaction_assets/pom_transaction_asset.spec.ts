@@ -301,7 +301,7 @@ describe('PomTransactionAsset', () => {
 				.calledWith('token:getBalance', { address: misBehavingDelegate.address })
 				.mockResolvedValue(remainingBalance as never);
 			when(applyContext.reducerHandler.invoke as any)
-				.calledWith('token:getMinRemainingBalance', {})
+				.calledWith('token:getMinRemainingBalance')
 				.mockResolvedValue(minRemainingBalance as never);
 
 			await transactionAsset.apply(applyContext);
@@ -320,7 +320,7 @@ describe('PomTransactionAsset', () => {
 				.calledWith('token:getBalance', { address: misBehavingDelegate.address })
 				.mockResolvedValue(remainingBalance as never);
 			when(applyContext.reducerHandler.invoke as any)
-				.calledWith('token:getMinRemainingBalance', {})
+				.calledWith('token:getMinRemainingBalance')
 				.mockResolvedValue(minRemainingBalance as never);
 
 			await transactionAsset.apply(applyContext);
@@ -339,7 +339,7 @@ describe('PomTransactionAsset', () => {
 				.calledWith('token:getBalance', { address: misBehavingDelegate.address })
 				.mockResolvedValue(remainingBalance as never);
 			when(applyContext.reducerHandler.invoke as any)
-				.calledWith('token:getMinRemainingBalance', {})
+				.calledWith('token:getMinRemainingBalance')
 				.mockResolvedValue(minRemainingBalance as never);
 
 			await transactionAsset.apply(applyContext);
