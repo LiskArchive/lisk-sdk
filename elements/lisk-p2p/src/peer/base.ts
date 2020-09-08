@@ -405,8 +405,8 @@ export class Peer extends EventEmitter {
 			);
 		}
 		try {
-			const decodedNodeInfo = decodeNodeInfo(this._rpcSchemas.nodeInfo, response.data);
-			this._updateFromProtocolPeerInfo(decodedNodeInfo);
+			const receivedNodeInfo = decodeNodeInfo(this._rpcSchemas.nodeInfo, response.data);
+			this._updateFromProtocolPeerInfo(receivedNodeInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 

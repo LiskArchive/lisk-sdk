@@ -38,10 +38,11 @@ import {
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	PROTOCOL_EVENTS_TO_RATE_LIMIT,
 } from '../../../src/events';
-import { RPCResponseError } from '../../../src/errors';
+import { RPCResponseError, InvalidNodeInfoError } from '../../../src/errors';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
 import { p2pTypes } from '../../../src';
 import { peerInfoSchema, nodeInfoSchema } from '../../../src/schema';
+import * as codecUtils from '../../../src/utils/codec';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const createSocketStubInstance = () => <SCServerSocket>({
@@ -576,11 +577,12 @@ describe('peer/base', () => {
 
 		describe('when request() succeeds', () => {
 			describe('when nodeInfo contains malformed information', () => {
+				const invalidData = { data: getRandomBytes(10).toString('hex') };
 				beforeEach(() => {
-					codec.addSchema(nodeInfoSchema);
-					jest
-						.spyOn(defaultPeer as any, 'request')
-						.mockResolvedValue({ data: getRandomBytes(111).toString('hex') });
+					jest.spyOn(codecUtils, 'decodeNodeInfo').mockImplementation(() => {
+						throw new InvalidNodeInfoError('Invalid node Info');
+					});
+					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(invalidData);
 					jest.spyOn(defaultPeer, 'emit');
 					jest.spyOn(defaultPeer, 'applyPenalty');
 				});
