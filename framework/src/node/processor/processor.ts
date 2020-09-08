@@ -494,7 +494,7 @@ export class Processor {
 
 	private _createReducerHandler(stateStore: StateStore): ReducerHandler {
 		return {
-			invoke: async <T = unknown>(name: string, params: Record<string, unknown>): Promise<T> => {
+			invoke: async <T = unknown>(name: string, params?: Record<string, unknown>): Promise<T> => {
 				const requestNames = name.split(':');
 				if (requestNames.length !== 2) {
 					throw new Error('Invalid format to call reducer');
@@ -505,7 +505,7 @@ export class Processor {
 				if (!fn) {
 					throw new Error(`${funcName} does not exist in module ${moduleName}`);
 				}
-				return fn(params, this._createScopedStateStore(stateStore, moduleName)) as Promise<T>;
+				return fn(params ?? {}, this._createScopedStateStore(stateStore, moduleName)) as Promise<T>;
 			},
 		};
 	}

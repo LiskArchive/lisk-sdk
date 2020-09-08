@@ -194,7 +194,7 @@ export interface StateStore {
 }
 
 export interface ReducerHandler {
-	invoke: <T = unknown>(name: string, params: Record<string, unknown>) => Promise<T>;
+	invoke: <T = unknown>(name: string, params?: Record<string, unknown>) => Promise<T>;
 }
 
 export interface Reducers {

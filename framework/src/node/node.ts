@@ -299,7 +299,7 @@ export class Node {
 			> => {
 				const validators = await this._chain.getValidators();
 				const validatorAddresses = validators.map(v => v.address);
-				const slot = this._chain.slots.getSlotNumber(Date.now());
+				const slot = this._chain.slots.getSlotNumber();
 				const startTime = this._chain.slots.getSlotTime(slot);
 
 				let nextForgingTime = startTime;

@@ -21,6 +21,7 @@ import { Storage as StorageAccess } from './storage';
 import { StateStore } from '../state_store';
 import { BlockHeaderInterfaceAdapter } from './block_header_interface_adapter';
 import { blockSchema } from '../schema';
+import { DB_KEY_ACCOUNTS_ADDRESS } from './constants';
 
 interface DAConstructor {
 	readonly db: KVStore;
@@ -407,11 +408,31 @@ export class DataAccess {
 		block: Block,
 		stateStore: StateStore,
 		saveToTemp = false,
-	): Promise<void> {
+	): Promise<Account[]> {
 		const { id: blockID, height } = block.header;
 		const txIDs = block.payload.map(tx => tx.id);
 		const encodedBlock = this.encode(block);
-		await this._storage.deleteBlock(blockID, height, txIDs, encodedBlock, stateStore, saveToTemp);
+		const diff = await this._storage.deleteBlock(
+			blockID,
+			height,
+			txIDs,
+			encodedBlock,
+			stateStore,
+			saveToTemp,
+		);
+		const updatedAccounts: Account[] = [];
+		// Diff is deleted since when saving a block, it was deleted, but when it's deleting the block, now it's creating
+		for (const created of diff.deleted) {
+			if (created.key.includes(DB_KEY_ACCOUNTS_ADDRESS)) {
+				updatedAccounts.push(this.decodeAccount(created.value));
+			}
+		}
+		for (const updated of diff.updated) {
+			if (updated.key.includes(DB_KEY_ACCOUNTS_ADDRESS)) {
+				updatedAccounts.push(this.decodeAccount(updated.value));
+			}
+		}
+		return updatedAccounts;
 	}
 
 	private _decodeRawBlock<T>(block: RawBlock): Block<T> {
