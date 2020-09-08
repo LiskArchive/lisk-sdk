@@ -437,17 +437,62 @@ describe('chain', () => {
 					isConsensusParticipant: true,
 				})),
 			});
+			chainInstance['_numberOfValidators'] = 103;
 			when(db.get)
 				.calledWith(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`)
 				.mockResolvedValue(validatorBuffer as never);
 		});
 
+		it('should not affect validator if block is within bootstrap period', async () => {
+			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
+			stateStore = createStateStore(db, [
+				createValidDefaultBlock({ header: { height: 307 } }).header,
+			]);
+			const currentBlock = createValidDefaultBlock({ header: { height: 308 } });
+			jest.spyOn(stateStore.consensus, 'get');
+			jest.spyOn(stateStore.consensus, 'set');
+
+			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
+
+			expect(stateStore.consensus.get).not.toHaveBeenCalled();
+			expect(stateStore.consensus.set).not.toHaveBeenCalled();
+		});
+
+		it('should affect validator if block is at the last height of bootstrap period', async () => {
+			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
+			stateStore = createStateStore(db, [
+				createValidDefaultBlock({ header: { height: 308 } }).header,
+			]);
+			const currentBlock = createValidDefaultBlock({ header: { height: 309 } });
+			jest.spyOn(stateStore.consensus, 'get');
+			jest.spyOn(stateStore.consensus, 'set');
+
+			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
+
+			expect(stateStore.consensus.get).toHaveBeenCalledTimes(1);
+			expect(stateStore.consensus.set).toHaveBeenCalledTimes(1);
+
+			const updatedValidatorsBuffer = await stateStore.consensus.get(
+				CONSENSUS_STATE_VALIDATORS_KEY,
+			);
+			const { validators: updatedValidators } = codec.decode<{ validators: Validator[] }>(
+				validatorsSchema,
+				updatedValidatorsBuffer as Buffer,
+			);
+
+			expect(updatedValidators[0].address).toEqual(validators[0].address);
+			expect(updatedValidators[0].isConsensusParticipant).toEqual(
+				validators[0].isConsensusParticipant,
+			);
+		});
+
 		it('should set address and isConsensusParticipant as the input', async () => {
 			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
+			const currentBlock = createValidDefaultBlock({ header: { height: 513 } });
 			stateStore = createStateStore(db, [
 				createValidDefaultBlock({ header: { height: 512 } }).header,
 			]);
-			await chainInstance.setValidators(validators, stateStore);
+			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
 
 			const updatedValidatorsBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_VALIDATORS_KEY,
@@ -468,11 +513,12 @@ describe('chain', () => {
 			const validators = [
 				{ address: addresses[0], isConsensusParticipant: true, minActiveHeight: 104 },
 			];
+			const currentBlock = createValidDefaultBlock({ header: { height: 513 } });
 			stateStore = createStateStore(db, [
 				createValidDefaultBlock({ header: { height: 512 } }).header,
 			]);
 
-			await chainInstance.setValidators(validators, stateStore);
+			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
 
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith('EVENT_VALIDATORS_CHANGED', {
 				validators,
@@ -487,7 +533,8 @@ describe('chain', () => {
 			stateStore = createStateStore(db, [
 				createValidDefaultBlock({ header: { height: 514 } }).header,
 			]);
-			await chainInstance.setValidators(validators, stateStore);
+			const currentBlock = createValidDefaultBlock({ header: { height: 515 } });
+			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
 
 			const updatedValidatorsBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_VALIDATORS_KEY,
@@ -515,7 +562,8 @@ describe('chain', () => {
 			stateStore = createStateStore(db, [
 				createValidDefaultBlock({ header: { height: 512 } }).header,
 			]);
-			await chainInstance.setValidators(validators, stateStore);
+			const currentBlock = createValidDefaultBlock({ header: { height: 513 } });
+			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
 
 			const updatedValidatorsBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_VALIDATORS_KEY,

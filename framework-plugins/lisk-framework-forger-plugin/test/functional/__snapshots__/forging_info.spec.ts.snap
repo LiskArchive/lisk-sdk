@@ -734,7 +734,7 @@ Array [
   },
   Object {
     "address": "0903f4c5cb599a7928aef27e314e98291d1e3888",
-    "consecutiveMissedBlocks": 0,
+    "consecutiveMissedBlocks": 1,
     "forging": true,
     "totalProducedBlocks": 0,
     "totalReceivedFees": "0",
@@ -974,7 +974,7 @@ Array [
   },
   Object {
     "address": "0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf",
-    "consecutiveMissedBlocks": 0,
+    "consecutiveMissedBlocks": 1,
     "forging": true,
     "totalProducedBlocks": 0,
     "totalReceivedFees": "0",

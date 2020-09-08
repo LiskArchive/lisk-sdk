@@ -161,7 +161,8 @@ describe('Delete block', () => {
 		describe('when the deleteLastBlock is called', () => {
 			it('should rollback validators to the previous state', async () => {
 				// Arrange
-				while (node['_chain'].lastBlock.header.height !== node['_chain'].lastBootstrapHeight - 1) {
+				const lastBootstrapHeight = node['_chain']['_getLastBootstrapHeight']();
+				while (node['_chain'].lastBlock.header.height !== lastBootstrapHeight - 1) {
 					const newBlock = await nodeUtils.createBlock(node);
 					await node['_processor'].process(newBlock);
 				}
