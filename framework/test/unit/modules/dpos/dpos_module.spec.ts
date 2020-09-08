@@ -208,6 +208,7 @@ describe('DPoSModule', () => {
 	});
 
 	describe('afterBlockApply', () => {
+		const bootstrapRound = 5;
 		let context: AfterBlockApplyContext;
 
 		beforeEach(() => {
@@ -219,7 +220,6 @@ describe('DPoSModule', () => {
 				}) as any,
 				reducerHandler: reducerHandlerMock,
 				consensus: {
-					getLastBootstrapHeight: jest.fn().mockReturnValue(5),
 					getFinalizedHeight: jest.fn().mockReturnValue(0),
 					getDelegates: jest.fn(),
 					updateDelegates: jest.fn(),
@@ -253,142 +253,50 @@ describe('DPoSModule', () => {
 			});
 		});
 
-		describe('when its bootstrap period', () => {
-			const bootstrapRound = 50;
+		describe('when its the last block of round', () => {
+			let blockRound: number;
 
-			beforeEach(() => {
-				context.block = createValidDefaultBlock({ header: { height: 10 } });
-				(context.consensus.getLastBootstrapHeight as Mock).mockReturnValue(bootstrapRound * 103);
-			});
+			beforeEach(async () => {
+				blockRound = bootstrapRound + 1;
 
-			it('should not update productivity', async () => {
+				context.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
+
 				await dposModule.afterBlockApply(context);
-
-				expect(delegates.updateDelegateProductivity).not.toHaveBeenCalled();
 			});
 
-			describe('when its not the last block of round', () => {
-				beforeEach(async () => {
-					context.block = createValidDefaultBlock({ header: { height: 10 * 103 - 1 } });
-
-					await dposModule.afterBlockApply(context);
-				});
-
-				it('should not create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).not.toHaveBeenCalled();
-				});
-
-				it('should not update validators', () => {
-					expect(randomSeed.generateRandomSeeds).not.toHaveBeenCalled();
-					expect(delegates.updateDelegateList).not.toHaveBeenCalled();
+			it('should create vote weight', () => {
+				expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledTimes(1);
+				expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledWith({
+					activeDelegates: genesisConfig.activeDelegates,
+					standbyDelegates: genesisConfig.standbyDelegates,
+					height: blockRound * 103 + 1,
+					stateStore: context.stateStore,
+					round: blockRound + (genesisConfig.delegateListRoundOffset as number) + 1,
 				});
 			});
 
-			describe('when its the last block of round and the last block of bootstrap period', () => {
-				beforeEach(async () => {
-					context.block = createValidDefaultBlock({ header: { height: bootstrapRound * 103 } });
-
-					await dposModule.afterBlockApply(context);
-				});
-
-				it('should create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledTimes(1);
-					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledWith({
-						activeDelegates: genesisConfig.activeDelegates,
-						standbyDelegates: genesisConfig.standbyDelegates,
-						height: bootstrapRound * 103 + 1,
-						stateStore: context.stateStore,
-						round: bootstrapRound + (genesisConfig.delegateListRoundOffset as number) + 1,
-					});
-				});
-
-				it('should update validators', () => {
-					expect(randomSeed.generateRandomSeeds).toHaveBeenCalledTimes(1);
-					expect(delegates.updateDelegateList).toHaveBeenCalledTimes(1);
-				});
-			});
-
-			describe('when its the last block of round and not the last block of bootstrap period', () => {
-				let blockRound: number;
-
-				beforeEach(async () => {
-					blockRound = bootstrapRound - 1;
-
-					context.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
-
-					await dposModule.afterBlockApply(context);
-				});
-
-				it('should create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledTimes(1);
-					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledWith({
-						activeDelegates: genesisConfig.activeDelegates,
-						standbyDelegates: genesisConfig.standbyDelegates,
-						height: blockRound * 103 + 1,
-						stateStore: context.stateStore,
-						round: blockRound + (genesisConfig.delegateListRoundOffset as number) + 1,
-					});
-				});
-
-				it('should not update validators', () => {
-					expect(randomSeed.generateRandomSeeds).not.toHaveBeenCalled();
-					expect(delegates.updateDelegateList).not.toHaveBeenCalled();
-				});
+			it('should update validators', () => {
+				expect(randomSeed.generateRandomSeeds).toHaveBeenCalledTimes(1);
+				expect(delegates.updateDelegateList).toHaveBeenCalledTimes(1);
 			});
 		});
 
-		describe('when its not bootstrap period', () => {
-			const bootstrapRound = 5;
+		describe('when its not the last block of round', () => {
+			beforeEach(async () => {
+				context.block = createValidDefaultBlock({
+					header: { height: (bootstrapRound + 1) * 103 + 3 },
+				});
 
-			beforeEach(() => {
-				(context.consensus.getLastBootstrapHeight as Mock).mockReturnValue(bootstrapRound * 103);
+				await dposModule.afterBlockApply(context);
 			});
 
-			describe('when its the last block of round', () => {
-				let blockRound: number;
-
-				beforeEach(async () => {
-					blockRound = bootstrapRound + 1;
-
-					context.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
-
-					await dposModule.afterBlockApply(context);
-				});
-
-				it('should create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledTimes(1);
-					expect(delegates.createVoteWeightsSnapshot).toHaveBeenCalledWith({
-						activeDelegates: genesisConfig.activeDelegates,
-						standbyDelegates: genesisConfig.standbyDelegates,
-						height: blockRound * 103 + 1,
-						stateStore: context.stateStore,
-						round: blockRound + (genesisConfig.delegateListRoundOffset as number) + 1,
-					});
-				});
-
-				it('should update validators', () => {
-					expect(randomSeed.generateRandomSeeds).toHaveBeenCalledTimes(1);
-					expect(delegates.updateDelegateList).toHaveBeenCalledTimes(1);
-				});
+			it('should not create vote weight', () => {
+				expect(delegates.createVoteWeightsSnapshot).not.toHaveBeenCalled();
 			});
 
-			describe('when its not the last block of round', () => {
-				beforeEach(async () => {
-					context.block = createValidDefaultBlock({
-						header: { height: (bootstrapRound + 1) * 103 + 3 },
-					});
-
-					await dposModule.afterBlockApply(context);
-				});
-
-				it('should not create vote weight', () => {
-					expect(delegates.createVoteWeightsSnapshot).not.toHaveBeenCalled();
-				});
-
-				it('should not update validators', () => {
-					expect(randomSeed.generateRandomSeeds).not.toHaveBeenCalled();
-					expect(delegates.updateDelegateList).not.toHaveBeenCalled();
-				});
+			it('should not update validators', () => {
+				expect(randomSeed.generateRandomSeeds).not.toHaveBeenCalled();
+				expect(delegates.updateDelegateList).not.toHaveBeenCalled();
 			});
 		});
 	});

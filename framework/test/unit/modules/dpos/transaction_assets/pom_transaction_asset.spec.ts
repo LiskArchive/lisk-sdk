@@ -293,18 +293,60 @@ describe('PomTransactionAsset', () => {
 			);
 		});
 
-		it('should add remaining balance of delegate to balance of the sender if delegate balance is less than last block reward', async () => {
-			const remainingBalance = lastBlockReward - BigInt(1);
+		it('should reward the sender with last block reward if delegate have enough balance', async () => {
+			const remainingBalance = lastBlockReward + BigInt('10000000000');
+			const minRemainingBalance = BigInt('5000000');
 
 			when(applyContext.reducerHandler.invoke as any)
 				.calledWith('token:getBalance', { address: misBehavingDelegate.address })
 				.mockResolvedValue(remainingBalance as never);
+			when(applyContext.reducerHandler.invoke as any)
+				.calledWith('token:getMinRemainingBalance')
+				.mockResolvedValue(minRemainingBalance as never);
 
 			await transactionAsset.apply(applyContext);
 
 			expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
 				address: applyContext.senderAddress,
-				amount: remainingBalance,
+				amount: lastBlockReward,
+			});
+		});
+
+		it('should not reward the sender if delegate does not have emough minimum remaining balance', async () => {
+			const remainingBalance = BigInt(100);
+			const minRemainingBalance = BigInt('5000000');
+
+			when(applyContext.reducerHandler.invoke as any)
+				.calledWith('token:getBalance', { address: misBehavingDelegate.address })
+				.mockResolvedValue(remainingBalance as never);
+			when(applyContext.reducerHandler.invoke as any)
+				.calledWith('token:getMinRemainingBalance')
+				.mockResolvedValue(minRemainingBalance as never);
+
+			await transactionAsset.apply(applyContext);
+
+			expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+				address: applyContext.senderAddress,
+				amount: BigInt(0),
+			});
+		});
+
+		it('should add (remaining balance - min remaining balance) of delegate to balance of the sender if delegate balance is less than last block reward', async () => {
+			const remainingBalance = lastBlockReward - BigInt(1);
+			const minRemainingBalance = BigInt('5000000');
+
+			when(applyContext.reducerHandler.invoke as any)
+				.calledWith('token:getBalance', { address: misBehavingDelegate.address })
+				.mockResolvedValue(remainingBalance as never);
+			when(applyContext.reducerHandler.invoke as any)
+				.calledWith('token:getMinRemainingBalance')
+				.mockResolvedValue(minRemainingBalance as never);
+
+			await transactionAsset.apply(applyContext);
+
+			expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+				address: applyContext.senderAddress,
+				amount: remainingBalance - minRemainingBalance,
 			});
 		});
 
