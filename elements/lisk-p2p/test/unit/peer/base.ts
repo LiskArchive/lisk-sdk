@@ -14,7 +14,6 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { SCServerSocket } from 'socketcluster-server';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Peer, PeerConfig } from '../../../src/peer';
 import {
 	DEFAULT_REPUTATION_SCORE,
@@ -576,11 +575,12 @@ describe('peer/base', () => {
 
 		describe('when request() succeeds', () => {
 			describe('when nodeInfo contains malformed information', () => {
+				const invalidData = {
+					data:
+						'0b4bfc826a027f228c21da9e4ce2eef156f0742719b6b2466ec706b15441025f638f748b22adfab873561587be7285be3e3888cd9acdce226e342cf196fbc2c5',
+				};
 				beforeEach(() => {
-					codec.addSchema(nodeInfoSchema);
-					jest
-						.spyOn(defaultPeer as any, 'request')
-						.mockResolvedValue({ data: getRandomBytes(111).toString('hex') });
+					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(invalidData);
 					jest.spyOn(defaultPeer, 'emit');
 					jest.spyOn(defaultPeer, 'applyPenalty');
 				});

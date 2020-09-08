@@ -15,6 +15,7 @@
 import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork, SEED_PEER_IP } from '../../utils/network_setup';
 import { P2P, events, p2pTypes } from '../../../src/index';
+import { P2PConfig } from '../../../src/types';
 
 const { EVENT_BAN_PEER, EVENT_CLOSE_INBOUND } = events;
 
@@ -24,10 +25,18 @@ describe('Peer banning mechanism', () => {
 	const PEER_BAN_TIME = 100;
 
 	beforeEach(async () => {
-		const customConfig = () => ({
+		const customConfig = (index: number): Partial<P2PConfig> => ({
 			peerBanTime: PEER_BAN_TIME,
+			fixedPeers:
+				index === 1
+					? [
+							{
+								ipAddress: SEED_PEER_IP,
+								port: 5001,
+							},
+					  ]
+					: [],
 		});
-
 		p2pNodeList = await createNetwork({ customConfig });
 	});
 
@@ -104,6 +113,12 @@ describe('Peer banning mechanism', () => {
 			const updatedConnectedPeers = p2pNodeList[0].getConnectedPeers();
 
 			expect(updatedConnectedPeers.map(peer => peer.port)).toEqual(
+				expect.arrayContaining([badPeer.port]),
+			);
+
+			await wait(200);
+
+			expect(p2pNodeList[0].getConnectedPeers().map(peer => peer.port)).toEqual(
 				expect.arrayContaining([badPeer.port]),
 			);
 		});
