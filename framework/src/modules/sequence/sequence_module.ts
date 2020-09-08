@@ -52,7 +52,7 @@ export class SequenceModule extends BaseModule {
 		// Throw error when tx nonce is lower than the account nonce
 		if (transaction.nonce < senderAccount.sequence.nonce) {
 			throw new InvalidNonceError(
-				`Transaction with id:${transaction.id.toString()} nonce is lower than account nonce`,
+				`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce`,
 				transaction.nonce,
 				senderAccount.sequence.nonce,
 			);
@@ -70,7 +70,7 @@ export class SequenceModule extends BaseModule {
 		// Throw error when tx nonce is not equal to account nonce
 		if (transaction.nonce !== senderAccount.sequence.nonce) {
 			throw new NonceOutOfBoundsError(
-				`Transaction with id:${transaction.id.toString()} nonce is not equal to account nonce`,
+				`Transaction with id:${transaction.id.toString('hex')} nonce is not equal to account nonce`,
 				transaction.nonce,
 				senderAccount.sequence.nonce,
 			);

@@ -98,7 +98,7 @@ describe('sequence module', () => {
 			expect(receivedError).toBeInstanceOf(InvalidNonceError);
 			expect(receivedError.code).toEqual('ERR_INVALID_NONCE');
 			expect(receivedError.message).toContain(
-				`Transaction with id:${transaction.id.toString()} nonce is lower than account nonce`,
+				`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce`,
 			);
 			expect(receivedError.actual).toEqual(transaction.nonce.toString());
 			expect(receivedError.expected).toEqual(senderAccount.sequence.nonce.toString());
@@ -125,7 +125,7 @@ describe('sequence module', () => {
 			expect(receivedError).toBeInstanceOf(NonceOutOfBoundsError);
 			expect(receivedError.code).toEqual('ERR_NONCE_OUT_OF_BOUNDS');
 			expect(receivedError.message).toContain(
-				`Transaction with id:${transaction.id.toString()} nonce is not equal to account nonce`,
+				`Transaction with id:${transaction.id.toString('hex')} nonce is not equal to account nonce`,
 			);
 			expect(receivedError.actual).toEqual(transaction.nonce.toString());
 			expect(receivedError.expected).toEqual(senderAccount.sequence.nonce.toString());
