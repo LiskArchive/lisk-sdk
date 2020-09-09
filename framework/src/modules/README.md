@@ -33,7 +33,7 @@ export class MyModule extends BaseModule {
 
     // Optional
     /**
-     * Reducers are functions that can be called during block processing
+     * Reducers are functions that can be called during block processing from other modules.
      */
     public reducers: Reducers = {};
 
@@ -66,12 +66,12 @@ export class MyModule extends BaseModule {
 
     /**
      * afterTransactionApply is a function which is called for all the transactions after applying asset
-     * even though it is registered to the particular module or not.
+     * whether it is registered to the particular module or not.
      */
     public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;
 
     /**
-     * afterGenesisBlockApply is a function which is called once when starting a blockchain from scratch.
+     * afterGenesisBlockApply is a function which is called once when starting a blockchain.
      */
     public async afterGenesisBlockApply?(context: AfterGenesisBlockApplyContext): Promise<void>;
 
