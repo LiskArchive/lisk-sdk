@@ -3,6 +3,8 @@ module.exports = {
 	rules: {
 		'arrow-body-style': 'off',
 		'dot-notation': 'off',
+		'jest/no-conditional-expect': 'off',
+		'jest/valid-title': 'off',
 		'@typescript-eslint/explicit-function-return-type': 'off',
 		'@typescript-eslint/no-magic-numbers': 'off',
 		'@typescript-eslint/unbound-method': 'off',

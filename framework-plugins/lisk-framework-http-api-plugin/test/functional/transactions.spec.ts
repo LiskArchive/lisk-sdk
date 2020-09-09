@@ -217,7 +217,7 @@ describe('Hello endpoint', () => {
 		});
 
 		describe('409 - Some error related to processing of request.', () => {
-			it('should be pass the static validation but fail while processing of the request when signatures contain empty string ', async () => {
+			it('should be pass the static validation but fail while processing of the request when signatures contain empty string', async () => {
 				// Arrange
 				const account = getRandomAccount();
 				const transaction = createTransferTransaction({

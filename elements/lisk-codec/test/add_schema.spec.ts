@@ -20,7 +20,7 @@ import { codec } from '../src/codec';
 const objectFixtureInput = objectTestCases[0].input;
 
 describe('addSchema', () => {
-	it('it should add schema and keep it in cache', () => {
+	it('should add schema and keep it in cache', () => {
 		const message = objectFixtureInput.object;
 		// Replace the JSON representation of buffer with an actual buffer
 		(message as any).address = Buffer.from((message as any).address.data);

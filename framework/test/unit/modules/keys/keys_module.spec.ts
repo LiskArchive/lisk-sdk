@@ -1391,7 +1391,7 @@ describe('keys module', () => {
 			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
 		});
 
-		it('should fail if a key is repeated among "mandatoryKeys" and "optionalKeys" ', async () => {
+		it('should fail if a key is repeated among "mandatoryKeys" and "optionalKeys"', async () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
 			const repeatedKey = getRandomBytes(32);

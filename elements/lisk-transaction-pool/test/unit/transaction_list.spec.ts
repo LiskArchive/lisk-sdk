@@ -416,7 +416,7 @@ describe('TransactionList class', () => {
 				expect(transactionList.getProcessable()).toHaveLength(3);
 			});
 
-			it('should maintain processable in order ', () => {
+			it('should maintain processable in order', () => {
 				// Arrange
 				const addedTrx = insertNTransactions(transactionList, 60);
 				// Act
