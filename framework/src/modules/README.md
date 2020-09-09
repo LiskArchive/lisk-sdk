@@ -43,7 +43,7 @@ export class MyModule extends BaseModule {
     public actions: Actions = {};
 
     /**
-     * Actions are functions registered to the framework and will be subscribable from the plugins.
+     * Events are functions registered to the framework and will be subscribable from the plugins.
      */
     public events: string[] = [];
 
@@ -60,7 +60,7 @@ export class MyModule extends BaseModule {
 
     /**
      * beforeTransactionApply is a function which is called for all the transactions before applying
-     * asset even though it is registered to the particular module or not.
+     * asset whether it is registered to the particular module or not.
      */
     public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
 
@@ -82,7 +82,7 @@ export class MyModule extends BaseModule {
     public async beforeBlockApply?(context: BeforeBlockApplyContext): Promise<void>;
 
     /**
-     * beforeBlockApply is a function which is called once per module after all the state changes
+     * afterBlockApply is a function which is called once per module after all the state changes
      * on each block processing.
      */
 	public async afterBlockApply?(context: AfterBlockApplyContext): Promise<void>;
