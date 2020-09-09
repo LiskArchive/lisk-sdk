@@ -171,6 +171,7 @@ export const initPeerList = (): ReadonlyArray<Peer> =>
 				secret: DEFAULT_RANDOM_SECRET,
 				maxPeerInfoSize: 10000,
 				maxPeerDiscoveryResponseLength: 1000,
+				peerStatusMessageRate: 4,
 				rpcSchemas: {
 					peerInfo: peerInfoSchema,
 					nodeInfo: nodeInfoSchema,
