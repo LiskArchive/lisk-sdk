@@ -8,7 +8,7 @@
 
 ## Description
 
-Modules are logics to define state changes which will be executed on-chain meaning that it will be a part of the blockchain protocol.
+Modules are logic which define state changes that are executed on-chain, meaning that it will be a part of the blockchain protocol.
 
 ### Custom Modules
 
