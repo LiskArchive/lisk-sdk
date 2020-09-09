@@ -126,7 +126,7 @@ export class AccountStore {
 	}
 
 	public async del(address: Buffer): Promise<void> {
-		// If account is either in memory or DB, it should not be able to delete
+		// If account is neither in memory nor DB, it should not be able to delete
 		await this.get(address);
 		const initialAccount = this._initialAccountValue.get(address);
 		// If initial account is not undefined, it means account exists in DB
