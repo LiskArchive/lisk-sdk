@@ -11,7 +11,7 @@
 
 ## Description
 
-Plugins are individual building blocks for Lisk Core.
+Plugins define an off-chain logic which are not part of the blockchain protocol, but which enhance the application features.
 
 ### Custom Plugins
 
@@ -22,7 +22,7 @@ They extend the existing instance with a specific (and circumscribed) set of fea
 
 ```js
 // Exported as main file to javascript package
-export default class MyPlugin extends BasePlugin {
+export class MyPlugin extends BasePlugin {
     /**
     * Constructor of the plugin.
     *
