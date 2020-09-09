@@ -16,11 +16,11 @@
 
 Please read this carefully. With this repository we have opened access to the beta release of the Lisk SDK. We have released the Lisk SDK in its current form in order for us to improve the development experience through community feedback and contributions.
 
-We strictly discourage anyone from using the beta release of the Lisk SDK for any production-based blockchain applications, i.e. a blockchain operating on a real mainnet. Over the course of the beta phase there will be significant changes in the Lisk protocol and implementation, which will eventually bring the accessibility and reliability to a level which is feasible for production-based blockchain applications. At this time we only recommend the Lisk SDK for proof-of-concept blockchain applications, i.e. a blockchain operating on a fake testnet.
+We strictly discourage anyone from using the beta release of the Lisk SDK for any production-based blockchain applications, i.e. a blockchain operating on a real mainnet. Throughout the beta phase, there will be significant changes in the Lisk protocol and implementation, which will eventually bring accessibility and reliability to a level that is feasible for production-based blockchain applications. At this time we only recommend the Lisk SDK for proof-of-concept blockchain applications, i.e. a blockchain operating on a fake testnet.
 
 The only application built using the Lisk SDK currently feasible for production usage is [Lisk Core](https://github.com/liskhq/lisk-core), the client of the Lisk network itself.
 
-Please be advised, although we have stablized the architecture of SDK, we cannot guarantee blockchains created with the beta release of the Lisk SDK will remain compatible with our planned release candidates.
+Please be advised, although we have stabilised the architecture of SDK, we cannot guarantee blockchains created with the beta release of the Lisk SDK will remain compatible with our planned release candidates.
 
 We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the beta phase.
 
@@ -101,8 +101,8 @@ For a complete list of configuration options see the [lisk-docs repo](https://gi
 
 ### Register a custom module or a custom plugin
 
-A custom module is a logic to define state changes which will be executed on-chain meaning that it will be a part of blockchain protocol.
-On the other hand, custom plugin is a logic to define a off-chain logic which is not part of the blockchain protocol but to enhance the application features.
+A custom module is a logic to define state changes that will be executed on-chain meaning that it will be a part of the blockchain protocol.
+On the other hand, a custom plugin is a logic to define an off-chain logic which is not part of the blockchain protocol but to enhance the application features.
 
 You can define [your own module](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) and [your own plugin](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) with Lisk-SDK.
 

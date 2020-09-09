@@ -11,7 +11,7 @@
 
 ## Description
 
-Plugins are logics to define a off-chain logic which is not part of the blockchain protocol but to enhance the application features
+Plugins are logics to define an off-chain logic which is not part of the blockchain protocol but to enhance the application features
 
 ### Custom Plugins
 

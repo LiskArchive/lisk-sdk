@@ -8,13 +8,13 @@
 
 ## Description
 
-Modules are logics to define state changes which will be executed on-chain meaning that it will be a part of blockchain protocol.
+Modules are logics to define state changes which will be executed on-chain meaning that it will be a part of the blockchain protocol.
 
 ### Custom Modules
 
-> The implementation of each modules is up-to user but it must inherit from `BaseModule` class and implement its methods.
+> The implementation of each module is up-to user but it must inherit from the `BaseModule` class and implement its methods.
 
-Custom Module can be plugged into Lisk Framework and implement new protocol for the application.
+Custom Modules can be plugged into the Lisk Framework and implement a new protocol for the application.
 
 ```js
 // Exported as main file to javascript package
@@ -54,19 +54,19 @@ export class MyModule extends BaseModule {
     public accountSchema?: AccountSchema;
 
     /**
-     * Transaction assets are set of instantiated custom assets described below.
+     * Transaction assets are a set of instantiated custom assets described below.
      */
     public transactionAssets: BaseAsset[] = [];
 
     /**
      * beforeTransactionApply is a function which is called for all the transactions before applying
-     * asset regardless of the fact that it is registered to the particular module or not.
+     * asset even though it is registered to the particular module or not.
      */
     public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
 
     /**
      * afterTransactionApply is a function which is called for all the transactions after applying asset
-     * regardless of the fact that it is registered to the particular module or not.
+     * even though it is registered to the particular module or not.
      */
     public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;
 

@@ -24,4 +24,4 @@ The following events and actions are available for all enabled plugins and are a
 
 Most of the data flow will be handled through the propagation of such events.
 Each plugin can also define its own custom events or actions and will register that list with the controller at the time of initialization.
-The controller contains a complete list of events which may occur in the plugins of Lisk Framework at any given time.
+The controller contains a complete list of events that may occur in the plugins of the Lisk Framework at any given time.
