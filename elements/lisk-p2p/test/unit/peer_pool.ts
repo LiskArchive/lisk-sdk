@@ -45,6 +45,7 @@ import {
 	DEFAULT_SEND_PEER_LIMIT,
 	PeerKind,
 	DEFAULT_WS_MAX_MESSAGE_RATE,
+	DEFAULT_PEER_STATUS_MESSAGE_RATE,
 } from '../../src/constants';
 
 import { errors } from '../../src';
@@ -87,6 +88,7 @@ describe('peerPool', () => {
 		latencyProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_LATENCY,
 		productivityProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 		longevityProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
+		peerStatusMessageRate: DEFAULT_PEER_STATUS_MESSAGE_RATE,
 		maxPeerInfoSize: 10000,
 		maxPeerDiscoveryResponseLength: 1000,
 		secret: DEFAULT_RANDOM_SECRET,
@@ -177,6 +179,7 @@ describe('peerPool', () => {
 				rateCalculationInterval: peerPoolConfig.rateCalculationInterval,
 				wsMaxPayload: peerPoolConfig.wsMaxPayload,
 				maxPeerInfoSize: peerPoolConfig.maxPeerInfoSize,
+				peerStatusMessageRate: 4,
 				secret: peerPoolConfig.secret,
 				rpcSchemas: {
 					peerInfo: peerInfoSchema,
