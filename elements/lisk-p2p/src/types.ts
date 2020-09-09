@@ -155,6 +155,7 @@ export interface P2PConfig {
 	readonly wsMaxMessageRate?: number;
 	readonly wsMaxMessageRatePenalty?: number;
 	readonly rateCalculationInterval?: number;
+	readonly peerStatusMessageRate?: number; // Number of status messages per 10 seconds
 	readonly minimumPeerDiscoveryThreshold?: number;
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;

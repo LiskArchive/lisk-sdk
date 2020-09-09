@@ -335,7 +335,7 @@ describe('peerBook', () => {
 		});
 
 		describe('when peer exists in the tried peers list', () => {
-			it('should return false when downgrade has occured less than 3 times', () => {
+			it('should return false when downgrade has occurred less than 3 times', () => {
 				peerBook.addPeer(samplePeers[0]);
 				peerBook.upgradePeer(samplePeers[0]);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);

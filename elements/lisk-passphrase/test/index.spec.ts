@@ -19,7 +19,7 @@ describe('passphrase index.js', () => {
 		return expect(passphrase).toEqual(expect.any(Object));
 	});
 
-	describe('menmonic module', () => {
+	describe('mnemonic module', () => {
 		it('should have the BIP39 Mnemonic module', () => {
 			return expect(passphrase.Mnemonic).toBeTruthy();
 		});

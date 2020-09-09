@@ -49,7 +49,7 @@ describe('encode', () => {
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
 
-		it('should not encode missing propertiees of an object to Buffer', () => {
+		it('should not encode missing properties of an object to Buffer', () => {
 			const objectFixtureInput = objectTestCases[1].input;
 			const objectFixtureOutput = objectTestCases[1].output;
 			const message = objectFixtureInput.object;

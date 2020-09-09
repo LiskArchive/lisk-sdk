@@ -560,7 +560,7 @@ describe('transport', () => {
 
 					beforeEach(() => {
 						postBlockQuery = {
-							block: 'non-hex_strinng@',
+							block: 'non-hex_string@',
 						};
 					});
 

@@ -154,7 +154,7 @@ export const readObject = (
 			continue;
 		}
 		if (typeSchema.schemaProp.type === 'object' || typeSchema.schemaProp.type === 'array') {
-			// typeSchema is header, and we ignroe this
+			// typeSchema is header, and we ignore this
 			continue;
 		}
 		if (message.length <= index) {

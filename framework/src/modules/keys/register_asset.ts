@@ -37,12 +37,12 @@ const setMemberAccounts = async (
 	}
 };
 
-export const RegisterassetID = 0;
+export const RegisterAssetID = 0;
 export const MAX_KEYS_COUNT = 64;
 
 export class RegisterAsset extends BaseAsset {
 	public name = 'register';
-	public id = RegisterassetID;
+	public id = RegisterAssetID;
 	public schema = keysSchema;
 
 	public validate({ asset, transaction }: ValidateAssetContext<Asset>): void {

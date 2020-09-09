@@ -28,7 +28,7 @@ describe('MerkleTree', () => {
 
 				describe('should allow pre-hashed leafs', () => {
 					if (test.input.transactionIds.length > 2 ** 2) {
-						it('should result in same merkle root if divideed into sub tree of power of 2', () => {
+						it('should result in same merkle root if divided into sub tree of power of 2', () => {
 							const inputs = test.input.transactionIds.map(hexString =>
 								Buffer.from(hexString, 'hex'),
 							);
@@ -44,7 +44,7 @@ describe('MerkleTree', () => {
 							);
 						});
 
-						it('should not result in same merkle root if divideed into sub tree which is not power of 2', () => {
+						it('should not result in same merkle root if divided into sub tree which is not power of 2', () => {
 							const inputs = test.input.transactionIds.map(hexString =>
 								Buffer.from(hexString, 'hex'),
 							);

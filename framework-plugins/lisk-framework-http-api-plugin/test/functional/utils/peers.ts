@@ -19,7 +19,7 @@ export const generatePeers = (numOfPeers = 200) => {
 			ipAddress: `1.1.1.${i}`,
 			port: 1000 + i,
 			networkIdentifier: 'networkId',
-			networVersion: '1.1',
+			networkVersion: '1.1',
 			nonce: `nonce${i}`,
 		});
 	}

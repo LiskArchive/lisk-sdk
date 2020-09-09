@@ -1074,7 +1074,7 @@ describe('chain/process block', () => {
 		});
 	});
 
-	describe('applGenesisBlock', () => {
+	describe('applyGenesisBlock', () => {
 		let stateStore: StateStore;
 
 		beforeEach(() => {

@@ -211,7 +211,7 @@ describe('dataAccess.blocks', () => {
 			).resolves.toEqual([blocks[1].header]);
 		});
 
-		it('should return existent blocks if non existent heeight is specified', async () => {
+		it('should return existent blocks if non existent height is specified', async () => {
 			const headers = await dataAccess.getBlockHeadersWithHeights([
 				blocks[1].header.height,
 				blocks[3].header.height,

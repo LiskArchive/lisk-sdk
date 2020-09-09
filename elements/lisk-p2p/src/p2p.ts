@@ -43,6 +43,7 @@ import {
 	DUPLICATE_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
+	DEFAULT_PEER_STATUS_MESSAGE_RATE,
 } from './constants';
 import { PeerInboundDuplicateConnectionError } from './errors';
 import {
@@ -166,6 +167,10 @@ const createPeerPoolConfig = (config: P2PConfig, peerBook: PeerBook): PeerPoolCo
 		typeof config.rateCalculationInterval === 'number'
 			? config.rateCalculationInterval
 			: DEFAULT_RATE_CALCULATION_INTERVAL,
+	peerStatusMessageRate:
+		typeof config.peerStatusMessageRate === 'number'
+			? config.peerStatusMessageRate
+			: DEFAULT_PEER_STATUS_MESSAGE_RATE,
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 	peerBook,
 	rpcSchemas: config.customNodeInfoSchema

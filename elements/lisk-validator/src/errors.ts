@@ -70,11 +70,11 @@ const errorFormatterMap: KeywordDataFormatters = {
 	dataType: error => `Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
 };
 
-const defaultErrorFormater: KeywordFormatterFunction = error =>
+const defaultErrorFormatter: KeywordFormatterFunction = error =>
 	error.message ?? 'Unspecified validator error';
 
 const errorFormatter = (error: ErrorObject): string =>
-	(errorFormatterMap[error.keyword] ?? defaultErrorFormater)(error);
+	(errorFormatterMap[error.keyword] ?? defaultErrorFormatter)(error);
 
 export class LiskValidationError extends Error {
 	public readonly errors: ErrorObject[];

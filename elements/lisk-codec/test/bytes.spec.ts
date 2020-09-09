@@ -38,14 +38,14 @@ describe('bytes', () => {
 			const firstResult = Buffer.from(testCaseOneInput.address.data);
 			expect(
 				readBytes(writeBytes(firstResult), 0),
-				// Result length + varint length refering to the size
+				// Result length + varint length referring to the size
 			).toEqual([firstResult, firstResult.length + 1]);
 
 			const testCaseSecondInput = testCases[0].input.object;
 			const secondResult = Buffer.from(testCaseSecondInput.address.data);
 			expect(
 				readBytes(writeBytes(secondResult), 0),
-				// Result length + varint length refering to the size
+				// Result length + varint length referring to the size
 			).toEqual([secondResult, secondResult.length + 1]);
 		});
 	});

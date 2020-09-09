@@ -44,9 +44,9 @@ export class Slots {
 	}
 
 	public getSlotTime(slot: number): number {
-		const slotGensisTimeOffset = slot * this._interval;
+		const slotGenesisTimeOffset = slot * this._interval;
 
-		return this._genesisTime + slotGensisTimeOffset;
+		return this._genesisTime + slotGenesisTimeOffset;
 	}
 
 	public getNextSlot(): number {

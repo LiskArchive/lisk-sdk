@@ -82,6 +82,9 @@ export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
 // Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
 const RATE_NORMALIZATION_FACTOR = 1000;
 
+// Peer status message rate to be checked in every 10 seconds and reset
+const PEER_STATUS_MESSAGE_RATE_INTERVAL = 10000;
+
 export type SCClientSocket = socketClusterClient.SCClientSocket;
 
 export type SCServerSocketUpdated = {
@@ -114,6 +117,7 @@ export interface PeerConfig {
 	readonly secret: number;
 	readonly serverNodeInfo?: P2PNodeInfo;
 	readonly rpcSchemas: RPCSchemas;
+	readonly peerStatusMessageRate: number;
 }
 
 interface GetPeersResponseData {
@@ -136,7 +140,13 @@ export class Peer extends EventEmitter {
 	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _rateInterval: number;
 	private readonly _rpcSchemas: RPCSchemas;
-
+	private readonly _discoveryMessageCounter: {
+		getPeers: number;
+		getNodeInfo: number;
+		postNodeInfo: number;
+	};
+	private readonly _peerStatusMessageRate: number;
+	private readonly _peerStatusRateInterval: NodeJS.Timer;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
@@ -155,6 +165,15 @@ export class Peer extends EventEmitter {
 			this._resetProductivity();
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
 		this._serverNodeInfo = peerConfig.serverNodeInfo;
+		this._discoveryMessageCounter = {
+			getPeers: 0,
+			getNodeInfo: 0,
+			postNodeInfo: 0,
+		};
+		this._peerStatusMessageRate = peerConfig.peerStatusMessageRate;
+		this._peerStatusRateInterval = setInterval(() => {
+			this._resetStatusMessageRate();
+		}, PEER_STATUS_MESSAGE_RATE_INTERVAL);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -172,6 +191,22 @@ export class Peer extends EventEmitter {
 				});
 
 				return;
+			}
+
+			// Apply penalty when you receive getNodeInfo RPC more than once
+			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
+				this._discoveryMessageCounter.getNodeInfo += 1;
+				if (this._discoveryMessageCounter.getNodeInfo > 1) {
+					this.applyPenalty(10);
+				}
+			}
+
+			// Apply penalty when you receive getPeers RPC more than once
+			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
+				this._discoveryMessageCounter.getPeers += 1;
+				if (this._discoveryMessageCounter.getPeers > 1) {
+					this.applyPenalty(10);
+				}
 			}
 
 			if (
@@ -230,6 +265,10 @@ export class Peer extends EventEmitter {
 			};
 
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
+				this._discoveryMessageCounter.postNodeInfo += 1;
+				if (this._discoveryMessageCounter.postNodeInfo > this._peerStatusMessageRate) {
+					this.applyPenalty(10);
+				}
 				this._handleUpdateNodeInfo(message);
 			}
 
@@ -295,6 +334,7 @@ export class Peer extends EventEmitter {
 	public disconnect(code: number = INTENTIONAL_DISCONNECT_CODE, reason?: string): void {
 		clearInterval(this._counterResetInterval);
 		clearInterval(this._productivityResetInterval);
+		clearInterval(this._peerStatusRateInterval);
 
 		if (this._socket) {
 			this._socket.destroy(code, reason);
@@ -489,6 +529,11 @@ export class Peer extends EventEmitter {
 			this._peerInfo.internalState.productivity = { ...DEFAULT_PRODUCTIVITY };
 		}
 	}
+	private _resetStatusMessageRate(): void {
+		// Reset only postNodeInfo counter to zero after every 10 seconds
+		this._discoveryMessageCounter.postNodeInfo = 0;
+	}
+
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
 		if (!this._serverNodeInfo) {
 			throw new Error('Missing server node info.');
