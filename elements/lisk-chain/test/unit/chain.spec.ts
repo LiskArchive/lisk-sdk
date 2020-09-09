@@ -409,12 +409,12 @@ describe('chain', () => {
 				.mockResolvedValue(validatorBuffer as never);
 		});
 
-		it('should return current a validator based on the timestamp and round robin from genesis timestamp', async () => {
+		it('should return current validator based on the timestamp and round robin from genesis timestamp', async () => {
 			const validator = await chainInstance.getValidator(genesisBlock.header.timestamp);
 			expect(validator.address).toEqual(validators[0].address);
 		});
 
-		it('should return current a validator based on the timestamp and round robin from genesis timestamp with offset 5', async () => {
+		it('should return current validator based on the timestamp and round robin from genesis timestamp with offset 5', async () => {
 			const validator = await chainInstance.getValidator(genesisBlock.header.timestamp + 50);
 			expect(validator.address).toEqual(validators[5].address);
 		});
