@@ -1309,7 +1309,7 @@ describe('forger', () => {
 
 			it('should include seed reveal as specified in the block', async () => {
 				dbStub.get.mockRejectedValue(new NotFoundError('notfound'));
-				// Arange
+				// Arrange
 				const seedReveal = Buffer.from('c04ecc8875400b2f51110f76cbb3dc28', 'hex');
 				// Act
 				block = await forgeModule['_create']({

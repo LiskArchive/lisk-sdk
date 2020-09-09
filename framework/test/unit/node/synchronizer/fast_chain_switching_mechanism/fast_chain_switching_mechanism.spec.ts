@@ -150,7 +150,7 @@ describe('fast_chain_switching_mechanism', () => {
 			chainModule._lastBlock = { header: { height: 310 } };
 		});
 
-		describe('when reveivedBlock is within the two rounds of the last block', () => {
+		describe('when receivedBlock is within the two rounds of the last block', () => {
 			it('should return true when the receivedBlock is from consensus participant', async () => {
 				chainModule.getValidators.mockResolvedValue([
 					{
@@ -206,7 +206,7 @@ describe('fast_chain_switching_mechanism', () => {
 			});
 		});
 
-		describe('when reveivedBlock is not within two rounds of the last block', () => {
+		describe('when receivedBlock is not within two rounds of the last block', () => {
 			it('should return false even when the block is from consensus participant', async () => {
 				chainModule.getValidators.mockResolvedValue([
 					{

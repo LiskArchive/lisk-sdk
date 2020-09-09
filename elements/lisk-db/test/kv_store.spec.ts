@@ -36,7 +36,7 @@ describe('KVStore', () => {
 	});
 
 	describe('constructor', () => {
-		it('shoult throw error if the parent folder does not exist', () => {
+		it('should throw error if the parent folder does not exist', () => {
 			expect(() => new KVStore('./random-folder/sample.db')).toThrow(
 				'random-folder does not exist',
 			);
@@ -174,7 +174,7 @@ describe('KVStore', () => {
 			expect(result[2].key).toEqual(expectedValues[1].key);
 		});
 
-		it('should return all the entries in reverse lexicographical order when revese is specified', async () => {
+		it('should return all the entries in reverse lexicographical order when reverse is specified', async () => {
 			const stream = db.createReadStream({ reverse: true });
 			const result = await new Promise<KeyValuePair[]>((resolve, reject) => {
 				const data: KeyValuePair[] = [];
@@ -196,7 +196,7 @@ describe('KVStore', () => {
 			expect(result[2].key).toEqual(expectedValues[2].key);
 		});
 
-		it('should return limited number of entries when limit is sepcified', async () => {
+		it('should return limited number of entries when limit is specified', async () => {
 			const stream = db.createReadStream({ limit: 2 });
 			const result = await new Promise<KeyValuePair[]>((resolve, reject) => {
 				const data: KeyValuePair[] = [];
@@ -217,7 +217,7 @@ describe('KVStore', () => {
 			expect(result[1].key).toEqual(expectedValues[2].key);
 		});
 
-		it('should return limited number of entries in reverse order when limit and reverse are sepcified', async () => {
+		it('should return limited number of entries in reverse order when limit and reverse are specified', async () => {
 			const stream = db.createReadStream({ limit: 2, reverse: true });
 			const result = await new Promise<KeyValuePair[]>((resolve, reject) => {
 				const data: KeyValuePair[] = [];

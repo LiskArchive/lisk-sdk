@@ -26,18 +26,18 @@ export const generateHash = (prefix: Buffer, leftHash: Buffer, rightHash: Buffer
 		),
 	);
 
-export const getMaxIdxAtLayer = (layer: number, datalength: number): number => {
-	let [max, r] = [datalength, 0];
+export const getMaxIdxAtLayer = (layer: number, dataLength: number): number => {
+	let [max, r] = [dataLength, 0];
 	for (let i = 0; i < layer; i += 1) {
 		[max, r] = [[Math.floor, Math.ceil][r % 2](max / 2), r + (max % 2)];
 	}
 	return max;
 };
 
-export const getLayerStructure = (datalength: number): number[] => {
+export const getLayerStructure = (dataLength: number): number[] => {
 	const structure = [];
-	for (let i = 0; i <= Math.ceil(Math.log2(datalength)); i += 1) {
-		structure.push(getMaxIdxAtLayer(i, datalength));
+	for (let i = 0; i <= Math.ceil(Math.log2(dataLength)); i += 1) {
+		structure.push(getMaxIdxAtLayer(i, dataLength));
 	}
 
 	return structure;
@@ -67,7 +67,7 @@ export const getPairLocation = (nodeInfo: {
 	const { layerIndex, nodeIndex, dataLength } = nodeInfo;
 	const treeHeight = Math.ceil(Math.log2(dataLength)) + 1;
 	const layerStructure = getLayerStructure(dataLength);
-	const numberOfNodesinLayer = layerStructure[layerIndex];
+	const numberOfNodesInLayer = layerStructure[layerIndex];
 	const binary = getBinary(nodeIndex, treeHeight - layerIndex);
 	const side = [NodeSide.LEFT, NodeSide.RIGHT][binary[binary.length - 1]];
 	const pairSide = side === NodeSide.LEFT ? NodeSide.RIGHT : NodeSide.LEFT;
@@ -77,15 +77,15 @@ export const getPairLocation = (nodeInfo: {
 		return { layerIndex: treeHeight - 1, nodeIndex: 0 };
 	}
 	// If node is left node not last element in the layer
-	if (side === NodeSide.LEFT && nodeIndex < numberOfNodesinLayer - 1) {
+	if (side === NodeSide.LEFT && nodeIndex < numberOfNodesInLayer - 1) {
 		const pairNodeIndex = nodeIndex + 1;
 		return { layerIndex, nodeIndex: pairNodeIndex, side: pairSide };
 	}
 	// If node is right node AND (not last element in layer OR last element in the layer with even # of nodes)
 	if (
 		side === NodeSide.RIGHT &&
-		((numberOfNodesinLayer % 2 === 0 && nodeIndex === numberOfNodesinLayer - 1) ||
-			(nodeIndex < numberOfNodesinLayer - 1 && nodeIndex < numberOfNodesinLayer - 1))
+		((numberOfNodesInLayer % 2 === 0 && nodeIndex === numberOfNodesInLayer - 1) ||
+			(nodeIndex < numberOfNodesInLayer - 1 && nodeIndex < numberOfNodesInLayer - 1))
 	) {
 		const pairNodeIndex = nodeIndex - 1;
 		return { layerIndex, nodeIndex: pairNodeIndex, side: pairSide };

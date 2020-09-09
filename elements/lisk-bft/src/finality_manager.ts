@@ -413,7 +413,7 @@ export class FinalityManager extends EventEmitter {
 		return preVoted;
 	}
 
-	private _getChainMaxHeightStatus(ledger: LedgerMap): { preVoted: number; preComitted: number } {
+	private _getChainMaxHeightStatus(ledger: LedgerMap): { preVoted: number; preCommitted: number } {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
 		const highestHeightPreVoted = Object.keys(ledger)
@@ -422,13 +422,13 @@ export class FinalityManager extends EventEmitter {
 
 		const preVoted = highestHeightPreVoted ? parseInt(highestHeightPreVoted, 10) : 0;
 
-		const highestHeightPreComitted = Object.keys(ledger)
+		const highestHeightPreCommitted = Object.keys(ledger)
 			.reverse()
 			.find(key => ledger[key].preCommits >= this.preCommitThreshold);
 
-		const preComitted = highestHeightPreComitted ? parseInt(highestHeightPreComitted, 10) : 0;
+		const preCommitted = highestHeightPreCommitted ? parseInt(highestHeightPreCommitted, 10) : 0;
 
-		return { preVoted, preComitted };
+		return { preVoted, preCommitted };
 	}
 
 	/**

@@ -20,9 +20,9 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
-	const accountAddres = req.params.address;
+	const accountAddress = req.params.address;
 
-	if (!isHexString(accountAddres)) {
+	if (!isHexString(accountAddress)) {
 		res.status(400).send({
 			errors: [{ message: 'The Address parameter should be a hex string.' }],
 		});
@@ -31,13 +31,13 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 
 	try {
 		const account: Buffer = await channel.invoke('app:getAccount', {
-			address: accountAddres,
+			address: accountAddress,
 		});
 		res.status(200).send({ data: codec.decodeAccount(account) });
 	} catch (err) {
 		if ((err as Error).message.startsWith('Specified key accounts:address')) {
 			res.status(404).send({
-				errors: [{ message: `Account with address '${accountAddres}' was not found` }],
+				errors: [{ message: `Account with address '${accountAddress}' was not found` }],
 			});
 		} else {
 			next(err);

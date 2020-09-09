@@ -360,8 +360,8 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			// Request the highest common block with the previously computed list
 			// to the given peer
 			try {
-				const commomBlock = await this._getHighestCommonBlockFromNetwork(peerId, blockIds);
-				return commomBlock;
+				const commonBlock = await this._getHighestCommonBlockFromNetwork(peerId, blockIds);
+				return commonBlock;
 			} catch (error) {
 				numberOfRequests += 1;
 			}

@@ -140,7 +140,7 @@ export class TransactionPool {
 
 	/*
 	1. Reject duplicate transaction
-	2. Reject the transaction with lower feePriority than the minEntrancefeePriority
+	2. Reject the transaction with lower feePriority than the minEntranceFeePriority
 	3. Reject the transaction when its feePriority is lower than the lowest feePriority present in the TxPool.
 	4. Apply the transaction using applyFunction and check if it is PROCESSABLE, UNPROCESSABLE or INVALID.
 	5. If PROCESSABLE or UNPROCESSABLE then add it to transactionList and feePriorityQueue, if INVALID then return a relevant error
@@ -371,7 +371,7 @@ export class TransactionPool {
 		const processableFeePriorityHeap = new MinHeap<Transaction>();
 		// Loop through tx lists and push processable tx to fee priority heap
 		for (const txList of this._transactionList.values()) {
-			// Push highest nonce tx to processable fee priorty heap
+			// Push highest nonce tx to processable fee priority heap
 			const processableTransactions = txList.getProcessable();
 			if (processableTransactions.length) {
 				const processableTransactionWithHighestNonce =

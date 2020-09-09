@@ -316,7 +316,7 @@ describe('keys module', () => {
 				).resolves.toBeUndefined();
 			});
 
-			it('should throw if signatue is missing', async () => {
+			it('should throw if signature is missing', async () => {
 				const transaction = new Transaction({
 					moduleID: 2,
 					assetID: 0,
@@ -1083,7 +1083,7 @@ describe('keys module', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should not fail for a maximum of 64 optioonal keys and number of signatures smaller than 64', async () => {
+		it('should not fail for a maximum of 64 optional keys and number of signatures smaller than 64', async () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
 

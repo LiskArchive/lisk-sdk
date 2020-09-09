@@ -103,7 +103,7 @@ describe('validation', () => {
 			).toBeTrue();
 		});
 
-		it('should return false when value includes invalud query', () => {
+		it('should return false when value includes invalid query', () => {
 			return expect(
 				isEncryptedPassphrase('cipherText=abcd1234&&iterations=10000&iv=ef012345'),
 			).toBeFalse();

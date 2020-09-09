@@ -409,12 +409,12 @@ describe('chain', () => {
 				.mockResolvedValue(validatorBuffer as never);
 		});
 
-		it('should return current a validator based on the timestamp and round robin from genesis timestap', async () => {
+		it('should return current a validator based on the timestamp and round robin from genesis timestamp', async () => {
 			const validator = await chainInstance.getValidator(genesisBlock.header.timestamp);
 			expect(validator.address).toEqual(validators[0].address);
 		});
 
-		it('should return current a validator based on the timestamp and round robin from genesis timestap with offset 5', async () => {
+		it('should return current a validator based on the timestamp and round robin from genesis timestamp with offset 5', async () => {
 			const validator = await chainInstance.getValidator(genesisBlock.header.timestamp + 50);
 			expect(validator.address).toEqual(validators[5].address);
 		});
@@ -508,7 +508,7 @@ describe('chain', () => {
 			);
 		});
 
-		it('should emmit event EVENT_VALIDATORS_CHANGED', async () => {
+		it('should emit event EVENT_VALIDATORS_CHANGED', async () => {
 			jest.spyOn((chainInstance as any).events, 'emit');
 			const validators = [
 				{ address: addresses[0], isConsensusParticipant: true, minActiveHeight: 104 },

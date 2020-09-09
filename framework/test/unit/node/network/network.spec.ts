@@ -26,7 +26,7 @@ describe('network', () => {
 	let network: Network;
 	jest.useFakeTimers();
 	beforeEach(() => {
-		const db = new KVStore('~/.lisk/stubed');
+		const db = new KVStore('~/.lisk/stubbed');
 		network = new Network({
 			nodeDB: db,
 			networkVersion: '2.0',
@@ -54,7 +54,7 @@ describe('network', () => {
 						ipAddress: '1.1.1.1',
 						port: 1000,
 						networkIdentifier: 'networkId',
-						networVersion: '1.1',
+						networkVersion: '1.1',
 						nonce: 'nonce1',
 					},
 				];
@@ -76,7 +76,7 @@ describe('network', () => {
 						ipAddress: '1.1.1.1',
 						port: 1000,
 						networkIdentifier: 'networkId',
-						networVersion: '1.1',
+						networkVersion: '1.1',
 						nonce: 'nonce1',
 						options: {
 							height: 32,
@@ -113,7 +113,7 @@ describe('network', () => {
 						ipAddress: '1.1.1.1',
 						port: 1000,
 						networkIdentifier: 'networkId',
-						networVersion: '1.1',
+						networkVersion: '1.1',
 						nonce: 'nonce1',
 					},
 				];
@@ -135,7 +135,7 @@ describe('network', () => {
 						ipAddress: '1.1.1.1',
 						port: 1000,
 						networkIdentifier: 'networkId',
-						networVersion: '1.1',
+						networkVersion: '1.1',
 						nonce: 'nonce1',
 						options: {
 							height: 32,
@@ -181,7 +181,7 @@ describe('network', () => {
 			const previousPeersBuffer = Buffer.from(JSON.stringify(previousPeers), 'utf8');
 
 			beforeEach(() => {
-				const db = new KVStore('~/.lisk/stubed');
+				const db = new KVStore('~/.lisk/stubbed');
 
 				db.get = getDBStub;
 				db.put = putDBStub;

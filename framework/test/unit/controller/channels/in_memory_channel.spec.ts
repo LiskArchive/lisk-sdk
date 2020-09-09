@@ -174,7 +174,7 @@ describe('InMemoryChannel Channel', () => {
 			expect(params.actions.action1.handler).toHaveBeenCalled();
 		});
 
-		it('should call bus.invoke if the atcion module is different to moduleAlias', async () => {
+		it('should call bus.invoke if the action module is different to moduleAlias', async () => {
 			// Arrange
 			const actionFullName = `aDifferentModule:${actionName}`;
 
