@@ -143,8 +143,9 @@ export class Peer extends EventEmitter {
 	private readonly _discoveryMessageCounter: {
 		getPeers: number;
 		getNodeInfo: number;
+		postNodeInfo: number;
 	};
-	private _peerStatusMessageRate: number;
+	private readonly _peerStatusMessageRate: number;
 	private readonly _peerStatusRateInterval: NodeJS.Timer;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	private readonly _productivityResetInterval: NodeJS.Timer;
@@ -167,6 +168,7 @@ export class Peer extends EventEmitter {
 		this._discoveryMessageCounter = {
 			getPeers: 0,
 			getNodeInfo: 0,
+			postNodeInfo: 0,
 		};
 		this._peerStatusMessageRate = peerConfig.peerStatusMessageRate;
 		this._peerStatusRateInterval = setInterval(() => {
@@ -193,18 +195,18 @@ export class Peer extends EventEmitter {
 
 			// Apply penalty when you receive getNodeInfo RPC more than once
 			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
-				if (this._discoveryMessageCounter.getNodeInfo >= 1) {
+				this._discoveryMessageCounter.getNodeInfo += 1;
+				if (this._discoveryMessageCounter.getNodeInfo > 1) {
 					this.applyPenalty(10);
 				}
-				this._discoveryMessageCounter.getNodeInfo += 1;
 			}
 
 			// Apply penalty when you receive getPeers RPC more than once
 			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
-				if (this._discoveryMessageCounter.getPeers >= 1) {
+				this._discoveryMessageCounter.getPeers += 1;
+				if (this._discoveryMessageCounter.getPeers > 1) {
 					this.applyPenalty(10);
 				}
-				this._discoveryMessageCounter.getPeers += 1;
 			}
 
 			if (
@@ -263,8 +265,8 @@ export class Peer extends EventEmitter {
 			};
 
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
-				this._peerStatusMessageRate += 1;
-				if (this._peerStatusMessageRate > 4) {
+				this._discoveryMessageCounter.postNodeInfo += 1;
+				if (this._discoveryMessageCounter.postNodeInfo > this._peerStatusMessageRate) {
 					this.applyPenalty(10);
 				}
 				this._handleUpdateNodeInfo(message);
@@ -528,7 +530,8 @@ export class Peer extends EventEmitter {
 		}
 	}
 	private _resetStatusMessageRate(): void {
-		this._peerStatusMessageRate = 0;
+		// Reset only postNodeInfo counter to zero after every 10 seconds
+		this._discoveryMessageCounter.postNodeInfo = 0;
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {

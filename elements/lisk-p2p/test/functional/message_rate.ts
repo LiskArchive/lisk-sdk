@@ -233,7 +233,7 @@ describe('Message rate limit', () => {
 			const targetNode = p2pNodeList[1];
 
 			// Act
-			// Send nodeInfo message 3 times, once it sends on connection so total 4
+			// Send nodeInfo message 3 times, so total of 4 messages of max allowed and not get ban score
 			for (let i = 0; i < 3; i += 1) {
 				attackerNode.applyNodeInfo(attackerNode.nodeInfo);
 			}
@@ -241,17 +241,34 @@ describe('Message rate limit', () => {
 			await wait(10);
 
 			// Assert
-			expect(removedPeers.get(targetNode.config.port)).toBeUndefined();
+			expect(targetNode['_peerBook'].triedPeers[0].internalState?.reputation).toEqual(100);
 		});
 
-		it('should ban a peer when it sends postNodeInfo messages more than 4 within 10 seconds', async () => {
+		it('should add a ban score of peer when it sends postNodeInfo messages more than 4 within 10 seconds', async () => {
 			// Arrange
 			const attackerNode = p2pNodeList[0];
 			const targetNode = p2pNodeList[1];
 
 			// Act
-			// Send nodeInfo message 5 times
-			for (let i = 0; i < 5; i += 1) {
+			// Send nodeInfo message 4 times and once its send on connection to get a ban score
+			for (let i = 0; i < 4; i += 1) {
+				attackerNode.applyNodeInfo(attackerNode.nodeInfo);
+			}
+
+			await wait(10);
+
+			// Assert
+			expect(targetNode['_peerBook'].triedPeers[0].internalState?.reputation).toEqual(90);
+		});
+
+		it('should ban a peer when it sends postNodeInfo messages more than 4 + 10 times within 10 seconds', async () => {
+			// Arrange
+			const attackerNode = p2pNodeList[0];
+			const targetNode = p2pNodeList[1];
+
+			// Act
+			// Send nodeInfo message 14 times and once its send on connection (total of 15 messages to get banned)
+			for (let i = 0; i < 14; i += 1) {
 				attackerNode.applyNodeInfo(attackerNode.nodeInfo);
 			}
 
