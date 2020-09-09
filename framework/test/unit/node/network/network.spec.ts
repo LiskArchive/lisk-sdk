@@ -211,7 +211,7 @@ describe('network', () => {
 				it('should load all the previous peers into p2p and save after 10 mins', async () => {
 					const parseSpy = jest.spyOn(JSON, 'parse');
 					await network.bootstrap(defaultNetworkIdentifier);
-					expect(parseSpy).toBeCalledWith(previousPeersBuffer.toString('utf8'));
+					expect(parseSpy).toHaveBeenCalledWith(previousPeersBuffer.toString('utf8'));
 
 					network['_p2p'] = {
 						getTriedPeers: jest.fn().mockReturnValue(previousPeers),

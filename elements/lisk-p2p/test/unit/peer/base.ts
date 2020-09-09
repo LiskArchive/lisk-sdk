@@ -113,7 +113,7 @@ describe('peer/base', () => {
 	describe('#constructor', () => {
 		it('should be an instance of Peer class', () => expect(defaultPeer).toBeInstanceOf(Peer));
 
-		it('should have a function named _handleRawRPC ', () => {
+		it('should have a function named _handleRawRPC', () => {
 			expect((defaultPeer as any)._handleRawRPC).toEqual(expect.any(Function));
 		});
 

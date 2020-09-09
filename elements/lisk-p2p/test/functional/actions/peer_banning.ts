@@ -98,7 +98,7 @@ describe('Peer banning mechanism', () => {
 			expect((p2pNodeList[0] as any)._peerBook.bannedIPs).toEqual(new Set([badPeer.ipAddress]));
 		});
 
-		it('should unbanTimer into PeerBook ', () => {
+		it('should unbanTimer into PeerBook', () => {
 			expect((p2pNodeList[0] as any)._peerBook._unbanTimers).toHaveLength(1);
 		});
 

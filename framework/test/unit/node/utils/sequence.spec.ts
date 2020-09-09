@@ -72,7 +72,7 @@ describe('Sequence', () => {
 			expect(result).toBeUndefined();
 		});
 
-		it('should resolve to the result of the fist function ', async () => {
+		it('should resolve to the result of the fist function', async () => {
 			const expectedResult = 'result';
 			const resultPromise = sequence.add(async () => {
 				return new Promise(resolve => {

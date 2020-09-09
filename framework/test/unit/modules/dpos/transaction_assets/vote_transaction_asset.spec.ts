@@ -465,7 +465,7 @@ describe('VoteTransactionAsset', () => {
 			});
 		});
 
-		describe('when asset.votes contain negative and positive amount ', () => {
+		describe('when asset.votes contain negative and positive amount', () => {
 			const positiveVoteDelegate1 = liskToBeddows(10);
 			const negativeVoteDelegate2 = liskToBeddows(-20);
 
