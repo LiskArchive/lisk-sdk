@@ -106,10 +106,9 @@ export class HighFeeForgingStrategy {
 
 			// If there is no transaction left in heap for that account
 			// then remove that account from map
-			const reaminingTransactions = transactionsBySender.get(senderId);
-			if (!reaminingTransactions || reaminingTransactions.length === 0) {
+			const remainingTransactions = transactionsBySender.get(senderId);
+			if (!remainingTransactions || remainingTransactions.length === 0) {
 				transactionsBySender.delete(senderId);
-				// eslin
 				continue;
 			}
 

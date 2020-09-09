@@ -139,7 +139,7 @@ describe('buffer arrays', () => {
 			expect(original[0]).toEqual(Buffer.from('val2'));
 		});
 
-		it('should return true if orderd lexicographically', () => {
+		it('should return true if ordered lexicographically', () => {
 			expect(
 				bufferArray.bufferArrayOrderByLex([
 					Buffer.from('target'),
@@ -150,7 +150,7 @@ describe('buffer arrays', () => {
 			).toBeTrue();
 		});
 
-		it('should return false if orderd lexicographically', () => {
+		it('should return false if ordered lexicographically', () => {
 			expect(
 				bufferArray.bufferArrayOrderByLex([
 					Buffer.from('val1'),

@@ -297,7 +297,7 @@ describe('Synchronizer', () => {
 				}
 			});
 
-			it('should clear the blocks temp table if the tip of the temp table doesnt have priority over current tip (Any other Fork Choice code', async () => {
+			it('should clear the blocks temp table if the tip of the temp table does not have priority over current tip (Any other Fork Choice code', async () => {
 				// Arrange
 				const initialLastBlock = createValidDefaultBlock({
 					header: {
@@ -577,13 +577,13 @@ describe('Synchronizer', () => {
 				genesis.passphrase,
 			);
 			(transaction.signatures as Buffer[]).push(signature);
-			const validtransactions = {
+			const validTransactions = {
 				transactions: [transaction.getBytes().toString('hex')],
 			};
 
 			beforeEach(() => {
 				networkMock.request.mockReturnValue({
-					data: validtransactions,
+					data: validTransactions,
 				});
 				transactionPoolModuleStub.add.mockReturnValue({
 					status: 1,

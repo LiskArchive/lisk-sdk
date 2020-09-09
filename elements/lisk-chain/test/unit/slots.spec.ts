@@ -76,7 +76,7 @@ describe('Slots', () => {
 			expect(slots.isWithinTimeslot(slot, time / MS_IN_A_SEC)).toBeTrue();
 		});
 
-		it('should return true if the slot is begining of the time', () => {
+		it('should return true if the slot is beginning of the time', () => {
 			const time = new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() + TIME_AFTER_EPOCH * 5;
 			const slot = slots.getSlotNumber(time / MS_IN_A_SEC);
 			expect(slots.isWithinTimeslot(slot, time / MS_IN_A_SEC + 5)).toBeTrue();

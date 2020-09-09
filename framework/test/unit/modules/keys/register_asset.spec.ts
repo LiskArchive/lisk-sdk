@@ -406,7 +406,7 @@ describe('register asset', () => {
 			).not.toThrow();
 		});
 
-		it('should call state store get() with senderAddress and set() with adress and updated account', async () => {
+		it('should call state store get() with senderAddress and set() with address and updated account', async () => {
 			await registerAsset.apply({
 				stateStore,
 				asset: validTestTransaction.asset,

@@ -28,12 +28,12 @@ describe('print utils', () => {
 	};
 	const arrayToPrint = [
 		{ lisk: 'Some prefix: \u001B[4mJS\u001B[0m' },
-		{ lisk: 'Some suffix: \u001B[4mawsome\u001B[0m' },
+		{ lisk: 'Some suffix: \u001B[4awesome\u001B[0m' },
 	];
-	const arrayToPrintWithoutANSI = [{ lisk: 'Some prefix: JS' }, { lisk: 'Some suffix: awsome' }];
+	const arrayToPrintWithoutANSI = [{ lisk: 'Some prefix: JS' }, { lisk: 'Some suffix: awesome' }];
 
 	const tablifyResult = 'tablify-result';
-	const stringifyResult = '[{"lisk":"Some prefix: JS"},{"lisk":"Some suffix: awsome"}]';
+	const stringifyResult = '[{"lisk":"Some prefix: JS"},{"lisk":"Some suffix: awesome"}]';
 
 	type Printer = (result: ReadonlyArray<StringMap> | StringMap) => void;
 

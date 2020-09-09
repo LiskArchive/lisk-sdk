@@ -147,8 +147,8 @@ describe('reader', () => {
 	});
 
 	describe('readStdIn', () => {
-		describe('when string without linebreak is given', () => {
-			it('should resolve to a signle element string array', async () => {
+		describe('when string without line break is given', () => {
+			it('should resolve to a single element string array', async () => {
 				const stdInContents = 'some contents';
 
 				sandbox
@@ -159,8 +159,8 @@ describe('reader', () => {
 			});
 		});
 
-		describe('when string with linebreak is given', () => {
-			it('should resolve to a signle element string array', async () => {
+		describe('when string with line break is given', () => {
+			it('should resolve to a single element string array', async () => {
 				const multilineStdContents = 'passphrase\npassword\ndata';
 
 				sandbox

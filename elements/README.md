@@ -25,7 +25,7 @@ Lisk Elements supports the modular architecture of the Lisk SDK, where libraries
 | [@liskhq/lisk-passphrase](./lisk-passphrase)             |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-passphrase)    | Mnemonic passphrase helpers for use with Lisk-related software                                           |
 | [@liskhq/lisk-transactions](./lisk-transactions)         |   ![npm](https://img.shields.io/npm/v/@liskhq/lisk-transactions)   | Everything related to transactions according to the Lisk protocol                                        |
 | [@liskhq/lisk-transaction-pool](./lisk-transaction-pool) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-transaction-pool) | Transaction pool implementation for the Lisk network                                                     |
-| [@liskhq/lisk-tree](./lisk-tree)                         |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-tree)       | Markle tree implementations for use with Lisk-related software                                           |
+| [@liskhq/lisk-tree](./lisk-tree)                         |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-tree)       | Merkle tree implementations for use with Lisk-related software                                           |
 | [@liskhq/lisk-utils](./lisk-utils)                       |      ![npm](https://img.shields.io/npm/v/@liskhq/lisk-utils)       | Generic utility functions for use with Lisk-related software                                             |
 | [@liskhq/lisk-validator](./lisk-validator)               |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-validator)     | Validation library according to the Lisk protocol                                                        |
 

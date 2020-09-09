@@ -142,12 +142,12 @@ const diffCommonPrefix = (buffer1: Buffer, buffer2: Buffer): number => {
 	let pointerMin = 0;
 	let pointerMax = Math.min(buffer1.length, buffer2.length);
 	let pointerMid = pointerMax;
-	let pointerstart = 0;
+	let pointerStart = 0;
 
 	while (pointerMin < pointerMid) {
-		if (buffer1.slice(pointerstart, pointerMid).equals(buffer2.slice(pointerstart, pointerMid))) {
+		if (buffer1.slice(pointerStart, pointerMid).equals(buffer2.slice(pointerStart, pointerMid))) {
 			pointerMin = pointerMid;
-			pointerstart = pointerMin;
+			pointerStart = pointerMin;
 		} else {
 			pointerMax = pointerMid;
 		}

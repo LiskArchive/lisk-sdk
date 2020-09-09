@@ -63,7 +63,7 @@ describe('Webhook', () => {
 		expect(requestArgs).toEqual([targetURL, eventData, { headers: defaultHeaders }]);
 	});
 
-	it('Should not call execute if event is cconfigured', async () => {
+	it('Should not call execute if event is configured', async () => {
 		(webHook as any)['registeredEvents'] = [
 			{
 				url: 'https://webhook.service.fake',
@@ -93,7 +93,7 @@ describe('Webhook', () => {
 		expect(httpCallArgs).toMatchObject(expectedCallArgs);
 	});
 
-	it('Should not call execute if event is not cconfigured', async () => {
+	it('Should not call execute if event is not configured', async () => {
 		(webHook as any)['registeredEvents'] = [
 			{
 				url: 'https://webhook.service.fake',

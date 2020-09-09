@@ -106,7 +106,7 @@ ${defaultSignature}
 			);
 			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
-		// higest range (length > 4294967296) is not practical to test
+		// highest range (length > 4294967296) is not practical to test
 		// but it is covered by `varuint-bitcoin` library
 	});
 
