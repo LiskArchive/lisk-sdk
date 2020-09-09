@@ -115,7 +115,7 @@ export class MyAsset extends BaseAsset<T = unknown> {
 
     /**
      * Apply is a function which is called for a transaction which contains this asset.
-     * It should implement state change introduce by this asset.
+     * It should implement any state change introduced by this asset.
      */
     public abstract async apply(context: ApplyAssetContext<T>): Promise<void>;
 
