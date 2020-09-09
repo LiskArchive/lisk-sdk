@@ -165,7 +165,7 @@ describe('delegates', () => {
 		});
 
 		describe('When delegate missed more than 1 blocks since last block', () => {
-			it('should increment "consecutiveMissedBlocks"  for the number of blocks that delegate missed ', async () => {
+			it('should increment "consecutiveMissedBlocks"  for the number of blocks that delegate missed', async () => {
 				// Arrange
 				const forgerIndex = forgedDelegates.length - 1;
 				const forgedDelegate = forgedDelegates[forgerIndex];

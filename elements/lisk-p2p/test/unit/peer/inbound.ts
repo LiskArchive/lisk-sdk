@@ -82,7 +82,7 @@ describe('peer/inbound', () => {
 		it('should have a function named _handleInboundSocketError', () =>
 			expect((defaultInboundPeer as any)._handleInboundSocketError).toEqual(expect.any(Function)));
 
-		it('should have a function named _handleInboundSocketClose ', () =>
+		it('should have a function named _handleInboundSocketClose', () =>
 			expect((defaultInboundPeer as any)._handleInboundSocketClose).toEqual(expect.any(Function)));
 
 		it('should set ping timeout', () => {

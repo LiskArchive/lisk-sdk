@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`addSchema it should add schema and keep it in cache 1`] = `
+exports[`addSchema should add schema and keep it in cache 1`] = `
 Array [
   Object {
     "binaryKey": Object {

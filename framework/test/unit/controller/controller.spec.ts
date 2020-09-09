@@ -203,7 +203,7 @@ describe('Controller Class', () => {
 			controller = new Controller(params);
 
 			// Act && Assert
-			await expect(controller.loadPlugins(plugins, pluginOptions)).rejects.toThrowError(
+			await expect(controller.loadPlugins(plugins, pluginOptions)).rejects.toThrow(
 				'Controller bus is not initialized. Plugins can not be loaded.',
 			);
 		});
@@ -216,11 +216,11 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toBeCalledWith(
+				expect(loggerMock.info).toHaveBeenCalledWith(
 					{ name: Plugin1.info.name, version: Plugin1.info.version, alias: Plugin1.alias },
 					'Loading in-memory plugin',
 				);
-				expect(loggerMock.info).toBeCalledWith(
+				expect(loggerMock.info).toHaveBeenCalledWith(
 					{ name: Plugin2.info.name, version: Plugin2.info.version, alias: Plugin2.alias },
 					'Loading in-memory plugin',
 				);
@@ -239,11 +239,11 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toBeCalledWith(
+				expect(loggerMock.info).toHaveBeenCalledWith(
 					{ name: Plugin1.info.name, version: Plugin1.info.version, alias: Plugin1.alias },
 					'Loading in-memory plugin',
 				);
-				expect(loggerMock.info).toBeCalledWith(
+				expect(loggerMock.info).toHaveBeenCalledWith(
 					{ name: Plugin2.info.name, version: Plugin2.info.version, alias: Plugin2.alias },
 					'Loading in-memory plugin',
 				);
@@ -259,8 +259,8 @@ describe('Controller Class', () => {
 
 				// Assert
 				expect(validateMock).toHaveBeenCalledTimes(2);
-				expect(validateMock).toBeCalledWith(expect.any(Plugin1));
-				expect(validateMock).toBeCalledWith(expect.any(Plugin2));
+				expect(validateMock).toHaveBeenCalledWith(expect.any(Plugin1));
+				expect(validateMock).toHaveBeenCalledWith(expect.any(Plugin2));
 			});
 
 			it('should create instance of in-memory channel', async () => {
@@ -268,7 +268,7 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(InMemoryChannel).toBeCalledTimes(2);
+				expect(InMemoryChannel).toHaveBeenCalledTimes(2);
 			});
 
 			it('should register channel to bus', async () => {
@@ -276,8 +276,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(InMemoryChannel.prototype.registerToBus).toBeCalledTimes(2);
-				expect(InMemoryChannel.prototype.registerToBus).toBeCalledWith(controller.bus);
+				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledTimes(2);
+				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledWith(controller.bus);
 			});
 
 			it('should publish `registeredToBus:started` event before loading plugin', async () => {
@@ -285,8 +285,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin1:registeredToBus');
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin2:registeredToBus');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:registeredToBus');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin2:registeredToBus');
 			});
 
 			it('should publish `loading:started` event before loading plugin', async () => {
@@ -294,8 +294,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin1:loading:started');
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin2:loading:started');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:loading:started');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin2:loading:started');
 			});
 
 			it('should call `plugin.init` method', async () => {
@@ -308,8 +308,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(initMock).toBeCalledTimes(2);
-				expect(initMock).toBeCalledWith(expect.any(InMemoryChannel));
+				expect(initMock).toHaveBeenCalledTimes(2);
+				expect(initMock).toHaveBeenCalledWith(expect.any(InMemoryChannel));
 			});
 
 			it('should call `plugin.load` method', async () => {
@@ -322,8 +322,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loadMock).toBeCalledTimes(2);
-				expect(loadMock).toBeCalledWith(expect.any(InMemoryChannel));
+				expect(loadMock).toHaveBeenCalledTimes(2);
+				expect(loadMock).toHaveBeenCalledWith(expect.any(InMemoryChannel));
 			});
 
 			it('should publish `loading:finished` after loading plugin', async () => {
@@ -331,8 +331,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin1:loading:finished');
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin2:loading:finished');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:loading:finished');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin2:loading:finished');
 			});
 
 			it('should add plugin to `controller._inMemoryPlugins` object', async () => {
@@ -375,11 +375,11 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toBeCalledWith(
+				expect(loggerMock.info).toHaveBeenCalledWith(
 					{ name: Plugin1.info.name, version: Plugin1.info.version, alias: Plugin1.alias },
 					'Loading child-process plugin',
 				);
-				expect(loggerMock.info).toBeCalledWith(
+				expect(loggerMock.info).toHaveBeenCalledWith(
 					{ name: Plugin2.info.name, version: Plugin2.info.version, alias: Plugin2.alias },
 					'Loading child-process plugin',
 				);
@@ -405,12 +405,12 @@ describe('Controller Class', () => {
 
 				// Assert
 				expect(childProcess.fork).toHaveBeenCalledTimes(2);
-				expect(childProcess.fork).toBeCalledWith(
+				expect(childProcess.fork).toHaveBeenCalledWith(
 					expect.stringContaining('child_process_loader.js'),
 					['plugin1', 'Plugin'],
 					{ execArgv: undefined },
 				);
-				expect(childProcess.fork).toBeCalledWith(
+				expect(childProcess.fork).toHaveBeenCalledWith(
 					expect.stringContaining('child_process_loader.js'),
 					['plugin2', 'Plugin'],
 					{ execArgv: undefined },
@@ -422,13 +422,13 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(childProcessMock.send).toBeCalledTimes(2);
-				expect(childProcessMock.send).toBeCalledWith({
+				expect(childProcessMock.send).toHaveBeenCalledTimes(2);
+				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'load',
 					config: controller.config,
 					options: pluginOptions.plugin1,
 				});
-				expect(childProcessMock.send).toBeCalledWith({
+				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'load',
 					config: controller.config,
 					options: pluginOptions.plugin2,
@@ -526,8 +526,8 @@ describe('Controller Class', () => {
 				await controller.unloadPlugins();
 
 				// Assert
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin1:unloading:started');
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin2:unloading:started');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:unloading:started');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin2:unloading:started');
 			});
 
 			it('should publish unloading:finished event', async () => {
@@ -535,8 +535,12 @@ describe('Controller Class', () => {
 				await controller.unloadPlugins();
 
 				// Assert
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin1:unloading:finished');
-				expect(InMemoryChannel.prototype.publish).toBeCalledWith('plugin2:unloading:finished');
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith(
+					'plugin1:unloading:finished',
+				);
+				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith(
+					'plugin2:unloading:finished',
+				);
 			});
 		});
 
@@ -559,9 +563,9 @@ describe('Controller Class', () => {
 				childProcessMock.connected = false;
 
 				// Act && Assert
-				await expect(controller.unloadPlugins()).rejects.toThrowError('Unload Plugins failed');
-				expect(childProcessMock.kill).toBeCalledTimes(2);
-				expect(childProcessMock.kill).toBeCalledWith('SIGTERM');
+				await expect(controller.unloadPlugins()).rejects.toThrow('Unload Plugins failed');
+				expect(childProcessMock.kill).toHaveBeenCalledTimes(2);
+				expect(childProcessMock.kill).toHaveBeenCalledWith('SIGTERM');
 			});
 
 			it('should send "unload" action to child process', async () => {
@@ -569,10 +573,10 @@ describe('Controller Class', () => {
 				await controller.unloadPlugins();
 
 				// Assert
-				expect(childProcessMock.send).toBeCalledWith({
+				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'unload',
 				});
-				expect(childProcessMock.send).toBeCalledWith({
+				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'unload',
 				});
 			});
