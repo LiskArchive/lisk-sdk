@@ -1,0 +1,13 @@
+pipeline {
+	agent { node { label 'lisk-sdk' } }
+	stages {
+		stage('yarn audit') {
+			steps {
+				nvm(readFile(".nvmrc").trim()) {
+					sh 'yarn audit'
+				}
+			}
+		}
+	}
+}
+// vim: filetype=groovy
