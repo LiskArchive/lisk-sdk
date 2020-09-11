@@ -13,8 +13,8 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { validator } from '@liskhq/lisk-validator';
 import { RegisterTransactionAsset } from '../../../../../src/modules/dpos/transaction_assets/register_transaction_asset';
-import { ValidationError } from '../../../../../src/errors';
 import { ApplyAssetContext } from '../../../../../src/types';
 import { createAccount, createFakeDefaultAccount } from '../../../../utils/node';
 import { StateStoreMock } from '../../../../utils/node/state_store_mock';
@@ -63,22 +63,42 @@ describe('RegisterTransactionAsset', () => {
 	});
 
 	describe('#validate', () => {
+		describe('schema validation', () => {
+			it('should throw error when username is more than 20 characters', () => {
+				const asset: RegisterTransactionAssetContext = { username: 'abchd1563890087376368' };
+
+				const errors = validator.validate(transactionAsset.schema, asset);
+				expect(errors).toHaveLength(1);
+				expect(errors[0].message).toInclude('should NOT be longer than 20 characters');
+			});
+
+			it('should throw error when username empty string', () => {
+				const asset: RegisterTransactionAssetContext = { username: '' };
+
+				const errors = validator.validate(transactionAsset.schema, asset);
+				expect(errors).toHaveLength(1);
+				expect(errors[0].message).toInclude('should NOT be shorter than 1 characters');
+			});
+		});
+
 		it('should not throw error if valid username is provided', () => {
 			// Arrange
 			const asset: RegisterTransactionAssetContext = { username: 'obelisk' };
-			const error = new ValidationError('The username is in unsupported format', 'obelisk');
 
 			// Act & Assert
-			expect(() => transactionAsset.validate({ asset } as any)).not.toThrow(error);
+			expect(() => transactionAsset.validate({ asset } as any)).not.toThrow(
+				'The username is in unsupported format',
+			);
 		});
 
 		it('should throw error when username includes capital letter', () => {
 			// Arrange
 			const asset: RegisterTransactionAssetContext = { username: 'Obelisk' };
-			const error = new ValidationError('The username is in unsupported format', 'Obelisk');
 
 			// Act & Assert
-			expect(() => transactionAsset.validate({ asset } as any)).toThrow(error);
+			expect(() => transactionAsset.validate({ asset } as any)).toThrow(
+				'The username is in unsupported format',
+			);
 		});
 
 		it('should throw error when username includes forbidden character', () => {
@@ -92,11 +112,52 @@ describe('RegisterTransactionAsset', () => {
 		it('should throw error when username includes forbidden null character', () => {
 			// Arrange
 			const asset: RegisterTransactionAssetContext = { username: 'obe\0lisk' };
-			const error = new ValidationError('The username is in unsupported format', 'obe\0lisk');
 
 			// Act & Assert
-			expect(() => transactionAsset.validate({ asset } as any)).toThrow(error);
+			expect(() => transactionAsset.validate({ asset } as any)).toThrow(
+				'The username is in unsupported format',
+			);
 		});
+
+		it('should not throw error when username includes only integers', () => {
+			// Arrange
+			const asset: RegisterTransactionAssetContext = { username: '123456789987' };
+
+			// Act & Assert
+			expect(() => transactionAsset.validate({ asset } as any)).not.toThrow();
+		});
+
+		it('should not throw error when username looks like legacy account address', () => {
+			// Arrange
+			const asset: RegisterTransactionAssetContext = { username: '123456789987l' };
+
+			// Act & Assert
+			expect(() => transactionAsset.validate({ asset } as any)).not.toThrow();
+		});
+
+		it.each(['!', '@', '$', '&', '_', '.'])(
+			'should not throw error when username includes whitelisted special character "%s"',
+			(character: string) => {
+				// Arrange
+				const asset: RegisterTransactionAssetContext = { username: `obe${character}lisk` };
+
+				// Act & Assert
+				expect(() => transactionAsset.validate({ asset } as any)).not.toThrow();
+			},
+		);
+
+		it.each(['%', '#', ')', '(', '-', ' '])(
+			'should throw error when username includes non-whitelisted special character "%s"',
+			(character: string) => {
+				// Arrange
+				const asset: RegisterTransactionAssetContext = { username: `obe${character}lisk` };
+
+				// Act & Assert
+				expect(() => transactionAsset.validate({ asset } as any)).toThrow(
+					'The username is in unsupported format',
+				);
+			},
+		);
 	});
 
 	describe('#apply', () => {
