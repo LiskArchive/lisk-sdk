@@ -249,11 +249,25 @@ describe('VoteTransactionAsset', () => {
 			});
 		});
 
-		describe('when asset.votes includes amount which is not multiple of 10 * 10^8', () => {
+		describe('when asset.votes includes positive amount which is not multiple of 10 * 10^8', () => {
 			it('should throw error', () => {
 				// Arrange
 				validateContext.asset = {
 					votes: [{ delegateAddress: delegate1.address, amount: BigInt(20) }],
+				};
+
+				// Act & Assert
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
+					'Amount should be multiple of 10 * 10^8',
+				);
+			});
+		});
+
+		describe('when asset.votes includes negative amount which is not multiple of 10 * 10^8', () => {
+			it('should throw error', () => {
+				// Arrange
+				validateContext.asset = {
+					votes: [{ delegateAddress: delegate1.address, amount: BigInt(-20) }],
 				};
 
 				// Act & Assert
@@ -280,6 +294,16 @@ describe('VoteTransactionAsset', () => {
 		describe('when asset.votes contain positive amount', () => {
 			it('should not throw error', async () => {
 				await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+			});
+
+			it('should throw error if vote amount is more than balance', async () => {
+				(applyContext.reducerHandler.invoke as jest.Mock).mockImplementation(() => {
+					throw new Error('Do not have enough balance');
+				});
+
+				await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
+					'Do not have enough balance',
+				);
 			});
 
 			it('should make account to have correct balance', async () => {
@@ -463,6 +487,16 @@ describe('VoteTransactionAsset', () => {
 				expect(updatedDelegate1.dpos.delegate.totalVotesReceived).toEqual(BigInt(0));
 				expect(updatedDelegate2.dpos.delegate.totalVotesReceived).toEqual(BigInt(0));
 			});
+
+			it('should throw error when downvoted delegate is not already upvoted', async () => {
+				applyContext.asset = {
+					votes: [{ delegateAddress: delegate3.address, amount: BigInt(-1) * delegate1VoteAmount }],
+				};
+
+				await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
+					'Cannot cast downvote to delegate who is not upvoted',
+				);
+			});
 		});
 
 		describe('when asset.votes contain negative and positive amount', () => {
@@ -543,7 +577,7 @@ describe('VoteTransactionAsset', () => {
 			});
 		});
 
-		describe('given asset.votes contain invalid data', () => {
+		describe('when asset.votes contain invalid data', () => {
 			beforeEach(() => {
 				applyContext.asset = {
 					votes: [
