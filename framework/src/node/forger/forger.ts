@@ -580,11 +580,21 @@ export class Forger {
 		// Reduce reward based on BFT rules
 		if (!isBFTProtocolCompliant) {
 			header.reward /= BigInt(4);
+			this._logger.warn(
+				{ originalReward: reward.toString(), deducted: header.reward.toString() },
+				'Deducting reward due to BFT violation',
+			);
 		}
-
-		header.reward = this._chainModule.isValidSeedReveal(header as BlockHeader, stateStore)
-			? reward
-			: BigInt(0);
+		// Reduce reward based on SeedReveal rules
+		const validSeedReveal = this._chainModule.isValidSeedReveal(header as BlockHeader, stateStore);
+		if (!validSeedReveal) {
+			const originalReward = header.reward.toString();
+			header.reward = BigInt(0);
+			this._logger.warn(
+				{ originalReward, deducted: header.reward.toString() },
+				'Deducting reward due to SeedReveal violation',
+			);
+		}
 
 		const headerBytesWithoutSignature = this._chainModule.dataAccess.encodeBlockHeader(
 			header as BlockHeader,
