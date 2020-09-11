@@ -14,14 +14,13 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { BlockHeader, Chain, getValidators } from '@liskhq/lisk-chain';
+import { BlockHeader, Chain, getValidators, StateStore } from '@liskhq/lisk-chain';
 import * as assert from 'assert';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BFT_ROUND_THRESHOLD } from './constant';
 import {
-	StateStore,
 	BFTChainDisjointError,
 	BFTForkChoiceRuleError,
 	BFTInvalidAttributeError,

@@ -537,7 +537,7 @@ export class Forger {
 		const maxHeightPreviouslyForged = forgerInfo?.height ?? 0;
 		const maxHeightPrevoted = await this._bftModule.getMaxHeightPrevoted();
 		const stateStore = await this._chainModule.newStateStore();
-		const reward = this._chainModule.calculateReward(height);
+		const reward = this._chainModule.calculateDefaultReward(height);
 		let size = 0;
 
 		const blockTransactions = [];

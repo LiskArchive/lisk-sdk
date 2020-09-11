@@ -20,6 +20,7 @@ import {
 	validatorsSchema,
 	Validator,
 	BlockHeader,
+	StateStore,
 } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
@@ -44,7 +45,7 @@ const bftScenarios = [
 	scenario11DelegatesPartialSwitch,
 ];
 
-const preVotesAndCommits = async (stateStore: StateStoreMock) => {
+const preVotesAndCommits = async (stateStore: StateStore) => {
 	const delegateLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATOR_LEDGER_KEY);
 
 	const delegateLedger = codec.decode<VotingLedger>(
@@ -71,7 +72,7 @@ const preVotesAndCommits = async (stateStore: StateStoreMock) => {
 
 describe('FinalityManager', () => {
 	let chainStub: Chain;
-	let stateStore: StateStoreMock;
+	let stateStore: StateStore;
 
 	describe('addBlockHeader', () => {
 		for (const scenario of bftScenarios) {
@@ -98,7 +99,7 @@ describe('FinalityManager', () => {
 						threshold: Math.floor((scenario.config.activeDelegates * 2) / 3) + 1,
 					});
 
-					stateStore = new StateStoreMock();
+					stateStore = (new StateStoreMock() as unknown) as StateStore;
 
 					const blockHeaders = (scenario.testCases as any).map((tc: any) =>
 						convertHeader(tc.input.blockHeader),
@@ -134,7 +135,7 @@ describe('FinalityManager', () => {
 							CONSENSUS_STATE_VALIDATORS_KEY,
 							codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
 						);
-						stateStore.chain.lastBlockHeaders = filteredBlockHeaders;
+						(stateStore.chain as any).lastBlockHeaders = filteredBlockHeaders;
 
 						// Act
 						await finalityManager.addBlockHeader(
