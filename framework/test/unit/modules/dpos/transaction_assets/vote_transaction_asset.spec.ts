@@ -63,7 +63,7 @@ describe('VoteTransactionAsset', () => {
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('vote');
+			expect(transactionAsset.name).toEqual('voteDelegate');
 		});
 
 		it('should have valid schema', () => {
