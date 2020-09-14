@@ -268,6 +268,7 @@ export class Application {
 			await this._forgerDB.close();
 			await this._nodeDB.close();
 			await this._emptySocketsDirectory();
+			this._clearControllerPidFile();
 			this.logger.info({ errorCode, message }, 'Application shutdown completed');
 		} catch (error) {
 			this.logger.fatal({ err: error as Error }, 'Application shutdown failed');
@@ -447,7 +448,7 @@ export class Application {
 
 	private async _validatePidFile(): Promise<void> {
 		const dirs = systemDirs(this.config.label, this.config.rootPath);
-		const pidPath = `${dirs.pids}/controller.pid`;
+		const pidPath = path.join(dirs.pids, 'controller.pid');
 		const pidExists = await fs.pathExists(pidPath);
 		if (pidExists) {
 			const pid = parseInt((await fs.readFile(pidPath)).toString(), 10);
@@ -465,6 +466,11 @@ export class Application {
 			}
 		}
 		await fs.writeFile(pidPath, process.pid);
+	}
+
+	private _clearControllerPidFile() {
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		fs.unlinkSync(path.join(dirs.pids, 'controller.pid'));
 	}
 
 	private _getDBInstance(options: ApplicationConfig, dbName: string): KVStore {
