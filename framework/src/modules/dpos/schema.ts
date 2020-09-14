@@ -39,7 +39,7 @@ export const delegatesUserNamesSchema = {
 };
 
 export const dposModuleParamsSchema = {
-	$id: '/dops/params',
+	$id: '/dpos/params',
 	type: 'object',
 	required: ['activeDelegates', 'standbyDelegates', 'delegateListRoundOffset'],
 	additionalProperties: true,

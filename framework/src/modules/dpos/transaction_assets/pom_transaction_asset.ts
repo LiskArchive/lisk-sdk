@@ -151,8 +151,8 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		const currentHeight = store.chain.lastBlockHeaders[0].height + 1;
 		const { networkIdentifier } = store.chain;
 		/*
-			|header1.height - h| < 260,000.
-			|header2.height - h| < 260,000.
+			|header1.height - h| >= 260,000.
+			|header2.height - h| >= 260,000.
 		*/
 
 		if (Math.abs(asset.header1.height - currentHeight) >= MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE) {
@@ -174,11 +174,11 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		const delegateAccount = await store.account.get<DPOSAccountProps>(delegateAddress);
 
 		if (delegateAccount.dpos.delegate.username === '') {
-			throw new Error('Account is not a delegate');
+			throw new Error('Account is not a delegate.');
 		}
 
 		if (delegateAccount.dpos.delegate.isBanned) {
-			throw new Error('Cannot apply proof-of-misbehavior. Delegate is banned.');
+			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already banned.');
 		}
 
 		if (
@@ -188,7 +188,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 				store.chain.lastBlockHeaders[0].height,
 			) > 0
 		) {
-			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already punished. ');
+			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already punished.');
 		}
 
 		/*

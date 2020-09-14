@@ -14,7 +14,7 @@
 
 import { BaseAsset } from '../../base_asset';
 import { ValidationError } from '../../../errors';
-import { MAX_INT64, MAX_UNLOCKING, MAX_VOTE, TEN_UNIT } from '../constants';
+import { MAX_UNLOCKING, MAX_VOTE, TEN_UNIT } from '../constants';
 import { DPOSAccountProps, VoteTransactionAssetContext } from '../types';
 import { sortUnlocking } from '../utils';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
@@ -62,11 +62,14 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 			addressSet[vote.delegateAddress.toString('hex')] = true;
 
 			if (vote.amount === BigInt(0)) {
-				throw new ValidationError('Amount cannot be 0', vote.amount.toString());
+				throw new ValidationError('Amount cannot be 0.', '');
 			}
 
 			if (vote.amount % TEN_UNIT !== BigInt(0)) {
-				throw new ValidationError('Amount should be multiple of 10 * 10^8', vote.amount.toString());
+				throw new ValidationError(
+					'Amount should be multiple of 10 * 10^8.',
+					vote.amount.toString(),
+				);
 			}
 
 			if (vote.amount > BigInt(0)) {
@@ -77,16 +80,16 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 		}
 
 		if (upVoteCount > MAX_VOTE) {
-			throw new ValidationError('Upvote can only be casted upto 10', upVoteCount.toString());
+			throw new ValidationError('Upvote can only be casted upto 10.', upVoteCount.toString());
 		}
 
 		if (downVoteCount > MAX_VOTE) {
-			throw new ValidationError('Downvote can only be casted upto 10', downVoteCount.toString());
+			throw new ValidationError('Downvote can only be casted upto 10.', downVoteCount.toString());
 		}
 
 		if (Object.keys(addressSet).length !== asset.votes.length) {
 			throw new ValidationError(
-				'Delegate address must be unique',
+				'Delegate address must be unique.',
 				asset.votes.map(v => v.delegateAddress.toString('hex')).join(),
 			);
 		}
@@ -121,7 +124,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 
 			if (votedDelegate.dpos.delegate.username === '') {
 				throw new Error(
-					`Voted delegate is not registered. Address: ${votedDelegate.address.toString('hex')}`,
+					`Voted delegate address ${votedDelegate.address.toString('hex')} is not registered.`,
 				);
 			}
 
@@ -131,13 +134,13 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 				);
 
 				if (originalUpvoteIndex < 0) {
-					throw new Error('Cannot cast downvote to delegate who is not upvoted');
+					throw new Error('Cannot cast downvote to delegate who is not upvoted.');
 				}
 
 				sender.dpos.sentVotes[originalUpvoteIndex].amount += vote.amount;
 
 				if (sender.dpos.sentVotes[originalUpvoteIndex].amount < BigInt(0)) {
-					throw new Error('Cannot downvote more than upvoted');
+					throw new Error('The downvote amount cannot be greater than upvoted amount.');
 				}
 
 				// Delete entry when amount becomes 0
@@ -148,6 +151,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 				}
 
 				// Create unlocking object
+				// Amount is converted to +BigInt for unlocking
 				sender.dpos.unlocking.push({
 					delegateAddress: vote.delegateAddress,
 					amount: BigInt(-1) * vote.amount,
@@ -160,7 +164,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 				// Unlocking object should not exceed maximum
 				if (sender.dpos.unlocking.length > MAX_UNLOCKING) {
 					throw new Error(
-						`Cannot downvote which exceeds account.dpos.unlocking to have more than ${MAX_UNLOCKING.toString()}`,
+						`Cannot downvote which exceeds account.dpos.unlocking to have more than ${MAX_UNLOCKING.toString()}.`,
 					);
 				}
 			} else {
@@ -177,9 +181,6 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 								amount: BigInt(0),
 						  };
 				upvote.amount += vote.amount;
-				if (upvote.amount > BigInt(MAX_INT64)) {
-					throw new Error('Cannot upvote which exceeds int64');
-				}
 
 				// Balance is checked in the token module
 				await reducerHandler.invoke('token:debit', {
@@ -192,7 +193,7 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 				// Sort account.votes
 				sender.dpos.sentVotes.sort((a, b) => a.delegateAddress.compare(b.delegateAddress));
 				if (sender.dpos.sentVotes.length > MAX_VOTE) {
-					throw new Error(`Account can only vote upto ${MAX_VOTE.toString()}`);
+					throw new Error(`Account can only vote upto ${MAX_VOTE.toString()}.`);
 				}
 			}
 

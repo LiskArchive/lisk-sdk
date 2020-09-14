@@ -564,7 +564,7 @@ describe('UnlockTransactionAsset', () => {
 
 				it('should throw error', async () => {
 					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
-						'Unlocking is not permitted as delegate is currently being punished',
+						'Unlocking is not permitted as the delegate is currently being punished.',
 					);
 				});
 			});
@@ -608,7 +608,7 @@ describe('UnlockTransactionAsset', () => {
 
 				it('should throw error', async () => {
 					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
-						'Unlocking is not permitted as delegate is currently being punished',
+						'Unlocking is not permitted as the delegate is currently being punished.',
 					);
 				});
 			});

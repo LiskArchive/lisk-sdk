@@ -156,13 +156,13 @@ export class DPoSModule extends BaseModule {
 
 		if (initDelegates.length > this._blocksPerRound) {
 			throw new Error(
-				'Genesis block init delegates list is larger than allowed delegates per round',
+				'Genesis block init delegates list is larger than allowed delegates per round.',
 			);
 		}
 
 		if (!bufferArrayContains(delegateAddresses, [...initDelegates])) {
 			throw new Error(
-				'Genesis block init delegates list contain addresses which are not delegates',
+				'Genesis block init delegates list contain addresses which are not delegates.',
 			);
 		}
 
@@ -194,7 +194,7 @@ export class DPoSModule extends BaseModule {
 		} = context;
 
 		const round = this.rounds.calcRound(blockHeader.height);
-		debug('Updating delegates productivity', round);
+		debug('Updating delegates productivity for round', round);
 		await updateDelegateProductivity({
 			height: blockHeader.height,
 			blockTime: this._blockTime,
@@ -208,7 +208,7 @@ export class DPoSModule extends BaseModule {
 	private async _createVoteWeightSnapshot(context: AfterBlockApplyContext): Promise<void> {
 		const round = this.rounds.calcRound(context.block.header.height);
 		// Calculate Vote Weights List
-		debug('Creating delegate list for', round + this._delegateListRoundOffset);
+		debug('Creating delegate list for round', round + this._delegateListRoundOffset);
 
 		const snapshotHeight = context.block.header.height + 1;
 		const snapshotRound = this.rounds.calcRound(snapshotHeight) + this._delegateListRoundOffset;
