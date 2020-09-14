@@ -13,7 +13,7 @@
  */
 /* eslint-disable max-classes-per-file */
 
-import { BlockHeader, Account } from '@liskhq/lisk-chain';
+import { BlockHeader } from '@liskhq/lisk-chain';
 
 export enum ForkStatus {
 	IDENTICAL_BLOCK = 1,
@@ -55,21 +55,3 @@ export interface BFTPersistedValues {
 }
 
 export type BlockHeaderWithReceivedAt = BlockHeader & { receivedAt?: number };
-
-export interface StateStore {
-	readonly account: {
-		readonly get: (primaryValue: Buffer) => Promise<Account>;
-		readonly getUpdated: () => ReadonlyArray<Account>;
-		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		set(key: Buffer, value: Account): void;
-	};
-	readonly consensus: {
-		readonly get: (key: string) => Promise<Buffer | undefined>;
-		readonly set: (key: string, value: Buffer) => void;
-	};
-	readonly chain: {
-		readonly get: (key: string) => Promise<Buffer | undefined>;
-		readonly set: (key: string, value: Buffer) => void;
-		readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
-	};
-}

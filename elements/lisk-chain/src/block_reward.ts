@@ -26,7 +26,10 @@ export const calculateMilestone = (height: number, blockRewardArgs: BlockRewardO
 	return location;
 };
 
-export const calculateReward = (height: number, blockRewardArgs: BlockRewardOptions): bigint => {
+export const calculateDefaultReward = (
+	height: number,
+	blockRewardArgs: BlockRewardOptions,
+): bigint => {
 	if (height < blockRewardArgs.rewardOffset) {
 		return BigInt(0);
 	}

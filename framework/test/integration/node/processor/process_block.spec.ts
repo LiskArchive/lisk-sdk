@@ -15,7 +15,11 @@
 import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
 import { Block, Account, Transaction } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
-import { getRandomBytes, signDataWithPrivateKey } from '@liskhq/lisk-cryptography';
+import {
+	getRandomBytes,
+	signDataWithPrivateKey,
+	getAddressFromPublicKey,
+} from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import { createDB, removeDB } from '../../../utils/kv_store';
 import { genesis, DefaultAccountProps } from '../../../fixtures';
@@ -309,7 +313,7 @@ describe('Process block', () => {
 					timestamp,
 					transactions: [],
 				});
-				node['_chain']['_blockRewardArgs'].rewardOffset = 0;
+				node['_chain']['_blockRewardArgs'].rewardOffset = 1;
 				(invalidBlock.header as any).reward = BigInt(1000);
 				const signature = signDataWithPrivateKey(
 					Buffer.concat([
@@ -343,6 +347,7 @@ describe('Process block', () => {
 				(tieBreakBlock.header as any).height = lastBlock.header.height;
 				(tieBreakBlock.header as any).previousBlockID = lastBlock.header.previousBlockID;
 				(tieBreakBlock.header as any).asset = lastBlock.header.asset;
+				(tieBreakBlock.header as any).reward = BigInt(500000000);
 				const signature = signDataWithPrivateKey(
 					Buffer.concat([
 						node.networkIdentifier,
@@ -360,6 +365,195 @@ describe('Process block', () => {
 				await node['_processor'].process(tieBreakBlock);
 
 				expect(node['_chain'].lastBlock.header.id).toEqual(tieBreakBlock.header.id);
+			});
+		});
+	});
+
+	describe('given a block with protocol violation', () => {
+		beforeEach(() => {
+			node['_chain']['_blockRewardArgs'].rewardOffset = 1;
+		});
+
+		describe('when SeedReveal is not preimage of the last block forged', () => {
+			it('should reject a block if reward is not 0', async () => {
+				const { lastBlock } = node['_chain'];
+				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
+				const currentKeypair = node['_forger']['_keypairs'].get(target);
+				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				// Mutate valid block to have reward 500000000 with invalid seed reveal
+				(nextBlock.header as any).reward = BigInt(500000000);
+				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(nextBlock.header as any).signature = signature;
+
+				await expect(node['_processor'].process(nextBlock)).rejects.toThrow(
+					'Invalid block reward: 500000000 expected: 0',
+				);
+				expect(node['_chain'].lastBlock.header.id).toEqual(lastBlock.header.id);
+			});
+
+			it('should accept a block if reward is 0', async () => {
+				const { lastBlock } = node['_chain'];
+				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
+				const currentKeypair = node['_forger']['_keypairs'].get(target);
+				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				// Mutate valid block to have reward 0 with invalid seed reveal
+				(nextBlock.header as any).reward = BigInt(0);
+				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(nextBlock.header as any).signature = signature;
+
+				await node['_processor'].process(nextBlock);
+				expect(node['_chain'].lastBlock.header.id).toEqual(nextBlock.header.id);
+			});
+
+			it('should accept a block if reward is full and forger did not forget last 2 rounds', async () => {
+				const targetHeight =
+					node['_chain'].numberOfValidators * 2 + node['_chain'].lastBlock.header.height;
+				const target = getAddressFromPublicKey(node['_chain'].lastBlock.header.generatorPublicKey);
+				// Forge 2 rounds of block without generator of the last block
+				while (node['_chain'].lastBlock.header.height !== targetHeight) {
+					const nextBlock = await nodeUtils.createValidBlock(node, [], target, true);
+					await node['_processor'].process(nextBlock);
+				}
+				const currentKeypair = node['_forger']['_keypairs'].get(target);
+				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				(nextBlock.header as any).reward = BigInt(500000000);
+				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(nextBlock.header as any).signature = signature;
+
+				await expect(node['_processor'].process(nextBlock)).resolves.toBeUndefined();
+				expect(node['_chain'].lastBlock.header.id).toEqual(nextBlock.header.id);
+			});
+		});
+
+		describe('when BFT protocol is violated', () => {
+			it('should reject a block if reward is not quarter', async () => {
+				const { lastBlock } = node['_chain'];
+				const targetHeight =
+					node['_chain'].numberOfValidators * 2 + node['_chain'].lastBlock.header.height;
+				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
+				while (node['_chain'].lastBlock.header.height !== targetHeight) {
+					const nextBlock = await nodeUtils.createValidBlock(node, [], target, true);
+					await node['_processor'].process(nextBlock);
+				}
+				// Forge 2 rounds of block without generator of the last block
+				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+
+				const currentKeypair = node['_forger']['_keypairs'].get(target);
+				(nextBlock.header as any).reward = BigInt(500000000);
+				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(nextBlock.header as any).signature = signature;
+
+				await expect(node['_processor'].process(nextBlock)).rejects.toThrow(
+					'Invalid block reward: 500000000 expected: 125000000',
+				);
+			});
+
+			it('should accept a block if reward is quarter', async () => {
+				const { lastBlock } = node['_chain'];
+				const targetHeight =
+					node['_chain'].numberOfValidators * 2 + node['_chain'].lastBlock.header.height;
+				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
+				while (node['_chain'].lastBlock.header.height !== targetHeight) {
+					const nextBlock = await nodeUtils.createValidBlock(node, [], target, true);
+					await node['_processor'].process(nextBlock);
+				}
+				// Forge 2 rounds of block without generator of the last block
+				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+
+				const currentKeypair = node['_forger']['_keypairs'].get(target);
+				// Make maxHeightPreviouslyForged to be current height (BFT violation) with quarter reward
+				(nextBlock.header as any).reward = BigInt(125000000);
+				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(nextBlock.header as any).signature = signature;
+
+				await node['_processor'].process(nextBlock);
+				expect(node['_chain'].lastBlock.header.id).toEqual(nextBlock.header.id);
+			});
+		});
+
+		describe('when BFT protocol is violated and seed reveal is not preimage', () => {
+			it('should reject a block if reward is not 0', async () => {
+				const { lastBlock } = node['_chain'];
+				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
+				// Forge 2 rounds of block without generator of the last block
+				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+
+				const currentKeypair = node['_forger']['_keypairs'].get(target);
+				// Make maxHeightPreviouslyForged to be current height (BFT violation) with random seedreveal and 0 reward
+				(nextBlock.header as any).reward = BigInt(125000000);
+				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
+				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(nextBlock.header as any).signature = signature;
+
+				await expect(node['_processor'].process(nextBlock)).rejects.toThrow(
+					'Invalid block reward: 125000000 expected: 0',
+				);
+			});
+
+			it('should accept a block if reward is 0', async () => {
+				const { lastBlock } = node['_chain'];
+				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
+				// Forge 2 rounds of block without generator of the last block
+				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+
+				const currentKeypair = node['_forger']['_keypairs'].get(target);
+				// Make maxHeightPreviouslyForged to be current height (BFT violation) with random seedreveal and 0 reward
+				(nextBlock.header as any).reward = BigInt(0);
+				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
+				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
+				const signature = signDataWithPrivateKey(
+					Buffer.concat([
+						node.networkIdentifier,
+						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
+					]),
+					currentKeypair?.privateKey as Buffer,
+				);
+				(nextBlock.header as any).signature = signature;
+
+				await node['_processor'].process(nextBlock);
+				expect(node['_chain'].lastBlock.header.id).toEqual(nextBlock.header.id);
 			});
 		});
 	});
