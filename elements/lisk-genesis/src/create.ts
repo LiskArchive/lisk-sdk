@@ -90,7 +90,15 @@ export const createGenesisBlock = (params: GenesisBlockParams): GenesisBlock => 
 
 	const accounts: ReadonlyArray<Account> = params.accounts
 		.map(account => createAccount(account, defaultAccount))
-		.sort((a, b): number => a.address.compare(b.address));
+		.sort((a, b): number => {
+			if (a.address.length < b.address.length) {
+				return -1;
+			}
+			if (a.address.length > b.address.length) {
+				return 1;
+			}
+			return a.address.compare(b.address);
+		});
 
 	const initDelegates: ReadonlyArray<Buffer> = [...params.initDelegates].sort((a, b): number =>
 		a.compare(b),

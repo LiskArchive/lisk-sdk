@@ -59,6 +59,13 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 	// eslint-disable-next-line class-methods-use-this
 	public validate({ asset }: ValidateAssetContext<UnlockTransactionAssetContext>): void {
 		for (const unlock of asset.unlockObjects) {
+			if (unlock.unvoteHeight <= 0) {
+				throw new ValidationError(
+					'Height cannot be less than or equal to zero',
+					unlock.unvoteHeight.toString(),
+				);
+			}
+
 			if (unlock.amount <= BigInt(0)) {
 				throw new ValidationError(
 					'Amount cannot be less than or equal to zero',
