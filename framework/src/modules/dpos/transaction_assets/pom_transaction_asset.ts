@@ -78,7 +78,7 @@ const getBlockHeaderBytes = (header: BlockHeader): Buffer =>
 	codec.encode(signingBlockHeaderSchema, header);
 
 export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
-	public name = 'pom';
+	public name = 'reportDelegateMisbehavior';
 	public id = 3;
 	public schema = {
 		$id: 'lisk/dpos/pom',
