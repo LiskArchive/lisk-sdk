@@ -16,6 +16,7 @@ import * as path from 'path';
 import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
+import { unlinkSync } from 'fs';
 import { systemDirs } from '../system_dirs';
 import { InMemoryChannel } from './channels/in_memory_channel';
 import { Bus } from './bus';
@@ -182,6 +183,8 @@ export class Controller {
 			this.logger.debug('Bus cleanup completed');
 
 			this.logger.info('Controller cleanup completed');
+
+			this.clearPid();
 		} catch (err) {
 			this.logger.error(err, 'Controller cleanup failed');
 		}
@@ -347,5 +350,9 @@ export class Controller {
 				}, 2000);
 			}),
 		]);
+	}
+
+	private clearPid() {
+		unlinkSync(path.join(this.config.dirs.pids, 'controller.pid'));
 	}
 }
