@@ -581,7 +581,7 @@ export class Forger {
 		if (!isBFTProtocolCompliant) {
 			header.reward /= BigInt(4);
 			this._logger.warn(
-				{ originalReward: reward.toString(), deducted: header.reward.toString() },
+				{ originalReward: reward.toString(), deductedReward: header.reward.toString() },
 				'Deducting reward due to BFT violation',
 			);
 		}
@@ -591,7 +591,7 @@ export class Forger {
 			const originalReward = header.reward.toString();
 			header.reward = BigInt(0);
 			this._logger.warn(
-				{ originalReward, deducted: header.reward.toString() },
+				{ originalReward, deductedReward: header.reward.toString() },
 				'Deducting reward due to SeedReveal violation',
 			);
 		}
