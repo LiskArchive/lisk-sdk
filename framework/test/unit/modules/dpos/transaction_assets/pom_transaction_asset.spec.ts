@@ -94,7 +94,7 @@ describe('PomTransactionAsset', () => {
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('pom');
+			expect(transactionAsset.name).toEqual('reportDelegateMisbehavior');
 		});
 
 		it('should have valid schema', () => {
