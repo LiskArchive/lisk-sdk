@@ -54,7 +54,7 @@ describe('RegisterTransactionAsset', () => {
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('register');
+			expect(transactionAsset.name).toEqual('registerDelegate');
 		});
 
 		it('should have valid schema', () => {
@@ -232,7 +232,9 @@ describe('RegisterTransactionAsset', () => {
 				}),
 			);
 
-			await expect(transactionAsset.apply(context)).rejects.toThrow('Username is not unique');
+			await expect(transactionAsset.apply(context)).rejects.toThrow(
+				`Username ${context.asset.username} is already registered.`,
+			);
 		});
 
 		it('should throw error when account is already delegate', async () => {

@@ -17,7 +17,7 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { calculateReward } from './block_reward';
+import { calculateDefaultReward } from './block_reward';
 import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
@@ -224,8 +224,14 @@ export class Chain {
 		this._lastBlock = storageLastBlock;
 	}
 
-	public calculateReward(height: number): bigint {
-		return calculateReward(height, this._blockRewardArgs);
+	public calculateDefaultReward(height: number): bigint {
+		return calculateDefaultReward(height, this._blockRewardArgs);
+	}
+
+	public calculateExpectedReward(blockHeader: BlockHeader, stateStore: StateStore): bigint {
+		const defaultReward = this.calculateDefaultReward(blockHeader.height);
+		const isValid = this.isValidSeedReveal(blockHeader, stateStore);
+		return isValid ? defaultReward : BigInt(0);
 	}
 
 	public resetBlockHeaderCache(): void {
@@ -243,7 +249,7 @@ export class Chain {
 			toHeight,
 		);
 
-		const lastBlockReward = this.calculateReward(
+		const lastBlockReward = this.calculateDefaultReward(
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			lastBlockHeaders[0]?.height ?? 1,
 		);
@@ -343,7 +349,7 @@ export class Chain {
 			block.header.signature,
 			this._networkIdentifier,
 		);
-		validateReward(block, this.calculateReward(block.header.height));
+		validateReward(block, this.calculateDefaultReward(block.header.height));
 
 		const encodedPayload = Buffer.concat(
 			block.payload.map(tx => this.dataAccess.encodeTransaction(tx)),

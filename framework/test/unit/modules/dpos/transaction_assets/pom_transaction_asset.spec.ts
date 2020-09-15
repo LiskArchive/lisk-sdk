@@ -94,7 +94,7 @@ describe('PomTransactionAsset', () => {
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('pom');
+			expect(transactionAsset.name).toEqual('reportDelegateMisbehavior');
 		});
 
 		it('should have valid schema', () => {
@@ -305,7 +305,7 @@ describe('PomTransactionAsset', () => {
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
 			await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
-				'Cannot apply proof-of-misbehavior. Delegate is banned.',
+				'Cannot apply proof-of-misbehavior. Delegate is already banned.',
 			);
 		});
 

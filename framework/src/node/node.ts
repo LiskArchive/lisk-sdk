@@ -545,23 +545,43 @@ export class Node {
 			networkModule: this._networkModule,
 		});
 
-		blockSyncMechanism.events.on(EVENT_SYNCHRONIZER_SYNC_REQUIRED, ({ block, peerId }) => {
-			this._synchronizer.run(block, peerId).catch(err => {
-				this._logger.error(
-					{ err: err as Error },
-					'Error occurred during block synchronization mechanism.',
-				);
-			});
-		});
+		blockSyncMechanism.events.on(
+			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
+			({ block, peerId }: { block: Block; peerId: string }) => {
+				if (this._synchronizer.isActive) {
+					this._logger.debug(
+						{ blockId: block.header.id, peerId },
+						'Synchronizer is already running. Ignoring block to sync',
+					);
+					return;
+				}
+				this._synchronizer.run(block, peerId).catch(err => {
+					this._logger.error(
+						{ err: err as Error },
+						'Error occurred during block synchronization mechanism.',
+					);
+				});
+			},
+		);
 
-		fastChainSwitchMechanism.events.on(EVENT_SYNCHRONIZER_SYNC_REQUIRED, ({ block, peerId }) => {
-			this._synchronizer.run(block, peerId).catch(err => {
-				this._logger.error(
-					{ err: err as Error },
-					'Error occurred during fast chain synchronization mechanism.',
-				);
-			});
-		});
+		fastChainSwitchMechanism.events.on(
+			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
+			({ block, peerId }: { block: Block; peerId: string }) => {
+				if (this._synchronizer.isActive) {
+					this._logger.debug(
+						{ blockId: block.header.id, peerId },
+						'Synchronizer is already running. Ignoring block to sync',
+					);
+					return;
+				}
+				this._synchronizer.run(block, peerId).catch(err => {
+					this._logger.error(
+						{ err: err as Error },
+						'Error occurred during fast chain synchronization mechanism.',
+					);
+				});
+			},
+		);
 
 		this._forger = new Forger({
 			logger: this._logger,
@@ -732,11 +752,21 @@ export class Node {
 			},
 		);
 
-		this._processor.events.on(EVENT_PROCESSOR_SYNC_REQUIRED, ({ block, peerId }) => {
-			this._synchronizer.run(block, peerId).catch(err => {
-				this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
-			});
-		});
+		this._processor.events.on(
+			EVENT_PROCESSOR_SYNC_REQUIRED,
+			({ block, peerId }: { block: Block; peerId: string }) => {
+				if (this._synchronizer.isActive) {
+					this._logger.debug(
+						{ blockId: block.header.id, peerId },
+						'Synchronizer is already running. Ignoring block to sync',
+					);
+					return;
+				}
+				this._synchronizer.run(block, peerId).catch(err => {
+					this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
+				});
+			},
+		);
 
 		this._transactionPool.events.on(EVENT_TRANSACTION_REMOVED, event => {
 			this._logger.debug(event, 'Transaction was removed from the pool.');

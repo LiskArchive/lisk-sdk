@@ -96,7 +96,7 @@ describe('forger', () => {
 				}),
 				encodeBlockHeader: jest.fn().mockImplementation(() => getRandomBytes(100)),
 			},
-			calculateReward: jest.fn().mockReturnValue(BigInt(500000000)),
+			calculateDefaultReward: jest.fn().mockReturnValue(BigInt(500000000)),
 			newStateStore: jest.fn().mockResolvedValue(stateStoreMock),
 			isValidSeedReveal: jest.fn().mockReturnValue(true),
 			constants: {
