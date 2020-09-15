@@ -620,7 +620,7 @@ describe('block_synchronization_mechanism', () => {
 					const receivedBlock = createValidDefaultBlock({
 						header: {
 							height: lastBlock.header.height + 304,
-							reward: chainModule.calculateReward(lastBlock.header.height + 304),
+							reward: chainModule.calculateDefaultReward(lastBlock.header.height + 304),
 						},
 					});
 
