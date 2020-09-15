@@ -47,6 +47,13 @@ export abstract class BaseSynchronizer {
 		}
 	}
 
+	protected _restartSync(receivedBlock: Block, reason: string): void {
+		this._logger.info({ reason }, `Restarting synchronization mechanism with reason: ${reason}`);
+		this.events.emit(EVENT_SYNCHRONIZER_SYNC_REQUIRED, {
+			block: receivedBlock,
+		});
+	}
+
 	protected _applyPenaltyAndRestartSync(
 		peerId: string,
 		receivedBlock: Block,
