@@ -20,7 +20,7 @@ import { createMockChannel, createMockBus } from '../channel';
 import { Node, NodeOptions } from '../../../src/node/node';
 import * as config from '../../fixtures/config/devnet/config.json';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
-import { Logger } from '../../../src/logger';
+import { Logger, createLogger } from '../../../src/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { ApplicationConfig } from '../../../src/types';
 import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../../../src/modules';
@@ -44,20 +44,18 @@ export const createNode = ({ options = {} }: { options?: Partial<NodeOptions> })
 };
 
 /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/explicit-module-boundary-types */
-export const fakeLogger = {
-	trace: () => {},
-	debug: () => {},
-	info: () => {},
-	error: () => {},
-	warn: () => {},
-	fatal: () => {},
-};
+export const fakeLogger = createLogger({
+	fileLogLevel: 'none',
+	consoleLogLevel: 'none',
+	logFilePath: 'test.log',
+	module: 'test',
+});
 /* eslint-enable @typescript-eslint/no-empty-function, @typescript-eslint/explicit-module-boundary-types */
 
 export const createAndLoadNode = async (
 	blockchainDB: KVStore,
 	forgerDB: KVStore,
-	logger: Logger = fakeLogger as Logger,
+	logger: Logger = fakeLogger,
 	channel?: InMemoryChannel,
 	options?: NodeOptions,
 ): Promise<Node> => {
