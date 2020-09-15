@@ -42,6 +42,7 @@ describe('Application', () => {
 		error: jest.fn(),
 		debug: jest.fn(),
 		trace: jest.fn(),
+		fatal: jest.fn(),
 	};
 	const genesisBlockJSON = (genesisBlock() as unknown) as Record<string, unknown>;
 
@@ -306,6 +307,52 @@ describe('Application', () => {
 			for (const aSocketFile of fakeSocketFiles) {
 				expect(spy).toHaveBeenCalledWith(join(socketsPath, aSocketFile), expect.anything());
 			}
+		});
+	});
+
+	describe('shutdown', () => {
+		let app: Application;
+		const fakeSocketFiles = ['1.sock' as any, '2.sock' as any];
+		let clearControllerPidFileSpy: jest.SpyInstance<any, unknown[]>;
+		let emptySocketsDirectorySpy: jest.SpyInstance<any, unknown[]>;
+		let nodeCleanupSpy: jest.SpyInstance<any, unknown[]>;
+		let blockChainDBSpy: jest.SpyInstance<any, unknown[]>;
+		let forgerDBSpy: jest.SpyInstance<any, unknown[]>;
+		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
+
+		beforeEach(async () => {
+			app = Application.defaultApplication(genesisBlockJSON, config);
+			try {
+				await app.run();
+			} catch (error) {
+				// Expected error
+			}
+			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
+			jest.spyOn(process, 'exit').mockReturnValue(0 as never);
+			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup');
+			blockChainDBSpy = jest.spyOn((app as any)._blockchainDB, 'close');
+			forgerDBSpy = jest.spyOn((app as any)._forgerDB, 'close');
+			_nodeDBSpy = jest.spyOn((app as any)._nodeDB, 'close');
+			emptySocketsDirectorySpy = jest
+				.spyOn(app as any, '_emptySocketsDirectory')
+				.mockResolvedValue([]);
+			clearControllerPidFileSpy = jest.spyOn(app as any, '_clearControllerPidFile');
+		});
+
+		it('should call cleanup methods', async () => {
+			await app.shutdown();
+			expect(clearControllerPidFileSpy).toHaveBeenCalledTimes(1);
+			expect(emptySocketsDirectorySpy).toHaveBeenCalledTimes(1);
+			expect(nodeCleanupSpy).toHaveBeenCalledTimes(1);
+			expect(blockChainDBSpy).toHaveBeenCalledTimes(1);
+			expect(forgerDBSpy).toHaveBeenCalledTimes(1);
+			expect(_nodeDBSpy).toHaveBeenCalledTimes(1);
+		});
+
+		it('should call clearControllerPidFileSpy method with correct pid file location', async () => {
+			const unlinkSyncSpy = jest.spyOn(fs, 'unlinkSync').mockReturnValue();
+			await app.shutdown();
+			expect(unlinkSyncSpy).toHaveBeenCalledWith('~/.lisk/devnet/tmp/pids/controller.pid');
 		});
 	});
 });
