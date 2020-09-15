@@ -477,7 +477,7 @@ export class Transport {
 			return transaction.id;
 		}
 
-		this._logger.error({ error }, 'Failed to add transaction to pool');
+		this._logger.error({ error: error.message }, 'Failed to add transaction to pool');
 		throw error;
 	}
 
