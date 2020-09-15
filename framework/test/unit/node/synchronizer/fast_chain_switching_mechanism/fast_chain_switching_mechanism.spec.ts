@@ -548,7 +548,7 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 
 		describe('request and validate blocks', () => {
-			it('should retry to request blocks 10 times then apply pelanly and restart', async () => {
+			it('should retry to request blocks for 10 times then apply penalty and restart', async () => {
 				// Arrange
 				const storageReturnValue = [
 					{
