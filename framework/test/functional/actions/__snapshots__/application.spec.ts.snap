@@ -525,7 +525,7 @@ Object {
     },
     Object {
       "assetID": 0,
-      "assetName": "register",
+      "assetName": "registerMultisignatureGroup",
       "moduleID": 4,
       "moduleName": "keys",
       "schema": Object {
@@ -570,7 +570,7 @@ Object {
     },
     Object {
       "assetID": 0,
-      "assetName": "register",
+      "assetName": "registerDelegate",
       "moduleID": 5,
       "moduleName": "dpos",
       "schema": Object {
@@ -591,7 +591,7 @@ Object {
     },
     Object {
       "assetID": 1,
-      "assetName": "vote",
+      "assetName": "voteDelegate",
       "moduleID": 5,
       "moduleName": "dpos",
       "schema": Object {
@@ -631,7 +631,7 @@ Object {
     },
     Object {
       "assetID": 2,
-      "assetName": "unlock",
+      "assetName": "unlockToken",
       "moduleID": 5,
       "moduleName": "dpos",
       "schema": Object {
@@ -676,7 +676,7 @@ Object {
     },
     Object {
       "assetID": 3,
-      "assetName": "pom",
+      "assetName": "reportDelegateMisbehavior",
       "moduleID": 5,
       "moduleName": "dpos",
       "schema": Object {

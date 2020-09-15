@@ -20,7 +20,7 @@ import { sortUnlocking } from '../utils';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 
 export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext> {
-	public name = 'vote';
+	public name = 'voteDelegate';
 	public id = 1;
 	public schema = {
 		$id: 'lisk/dpos/vote',

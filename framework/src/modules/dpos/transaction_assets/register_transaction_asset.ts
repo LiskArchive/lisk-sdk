@@ -20,7 +20,7 @@ import { DPOSAccountProps, RegisterTransactionAssetContext } from '../types';
 import { getRegisteredDelegates, setRegisteredDelegates } from '../data_access';
 
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetContext> {
-	public name = 'register';
+	public name = 'registerDelegate';
 	public id = 0;
 	public schema = {
 		$id: 'lisk/dpos/register',

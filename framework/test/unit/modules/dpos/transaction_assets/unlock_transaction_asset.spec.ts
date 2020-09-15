@@ -123,7 +123,7 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('unlock');
+			expect(transactionAsset.name).toEqual('unlockToken');
 		});
 
 		it('should have valid schema', () => {

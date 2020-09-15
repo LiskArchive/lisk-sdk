@@ -54,7 +54,7 @@ describe('RegisterTransactionAsset', () => {
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('register');
+			expect(transactionAsset.name).toEqual('registerDelegate');
 		});
 
 		it('should have valid schema', () => {

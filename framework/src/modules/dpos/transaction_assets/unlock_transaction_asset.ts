@@ -20,7 +20,7 @@ import { DPOSAccountProps, UnlockTransactionAssetContext } from '../types';
 import { getPunishmentPeriod, getWaitingPeriod } from '../utils';
 
 export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetContext> {
-	public name = 'unlock';
+	public name = 'unlockToken';
 	public id = 2;
 	public schema = {
 		$id: 'lisk/dpos/unlock',
