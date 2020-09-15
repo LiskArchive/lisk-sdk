@@ -234,8 +234,8 @@ describe('fast_chain_switching_mechanism', () => {
 
 		const checkApplyPenaltyAndAbortIsCalled = (peerId: string, err: any) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
-				{ err, peerId, reason: err.reason },
-				'Applying penalty to peer and aborting synchronization mechanism',
+				{ peerId, reason: err.reason },
+				'Applying penalty to peer and restarting synchronizer',
 			);
 			expect(networkMock.applyPenaltyOnPeer).toHaveBeenCalledWith({
 				peerId,
@@ -548,7 +548,7 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 
 		describe('request and validate blocks', () => {
-			it('should retry to request blocks 10 times and throw error', async () => {
+			it('should retry to request blocks 10 times then apply pelanly and restart', async () => {
 				// Arrange
 				const storageReturnValue = [
 					{
@@ -587,9 +587,17 @@ describe('fast_chain_switching_mechanism', () => {
 					})
 					.mockRejectedValue(new Error('Invalid connection') as never);
 
-				// Act & Asset
-				await expect(fastChainSwitchingMechanism.run(aBlock, aPeerId)).rejects.toThrow(
-					"Peer didn't return any requested block within IDs",
+				// Act
+				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				// Assert
+				checkApplyPenaltyAndAbortIsCalled(
+					aPeerId,
+					new Errors.ApplyPenaltyAndAbortError(
+						aPeerId,
+						`Peer didn't return any requested block within IDs ${highestCommonBlock.id.toString(
+							'hex',
+						)} and ${aBlock.header.id.toString('hex')}`,
+					),
 				);
 				// 10 times with getBlocksFromId and 1 time with getHighestCommonBlock
 				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(11);
