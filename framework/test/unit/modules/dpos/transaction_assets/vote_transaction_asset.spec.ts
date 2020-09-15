@@ -617,9 +617,9 @@ describe('VoteTransactionAsset', () => {
 					};
 
 					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
-						`Voted delegate is not registered. Address: ${nonRegisteredDelegate.address.toString(
+						`Voted delegate address ${nonRegisteredDelegate.address.toString(
 							'hex',
-						)}`,
+						)} is not registered`,
 					);
 				});
 			});
@@ -781,7 +781,7 @@ describe('VoteTransactionAsset', () => {
 					};
 
 					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
-						'Cannot downvote more than upvoted',
+						'The downvote amount cannot be greater than upvoted amount.',
 					);
 				});
 			});
