@@ -21,6 +21,7 @@ import {
 	Chain,
 	CONSENSUS_STATE_VALIDATORS_KEY,
 	validatorsSchema,
+	StateStore,
 } from '@liskhq/lisk-chain';
 import {
 	FinalityManager,
@@ -102,13 +103,17 @@ describe('finality_manager', () => {
 		});
 
 		describe('verifyBlockHeaders', () => {
-			let stateStore: StateStoreMock;
+			let stateStore: StateStore;
 
 			it('should throw error if maxHeightPrevoted is not accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
 				const bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
 
-				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: bftHeaders });
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
 
 				const header = createFakeBlockHeader({
 					asset: { maxHeightPrevoted: 10 },
@@ -145,7 +150,7 @@ describe('finality_manager', () => {
 						},
 					],
 				};
-				stateStore = new StateStoreMock(
+				stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
@@ -154,14 +159,18 @@ describe('finality_manager', () => {
 						),
 					},
 					{ lastBlockHeaders: bftHeaders },
-				);
+				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTrue();
 			});
 
 			it("should return true if validator didn't forge any block previously", async () => {
 				const header = createFakeBlockHeader();
-				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [] });
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [] },
+				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTruthy();
 			});
@@ -186,7 +195,11 @@ describe('finality_manager', () => {
 					height: 9,
 				});
 
-				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTForkChoiceRuleError,
@@ -210,7 +223,11 @@ describe('finality_manager', () => {
 					},
 					height: 10,
 				});
-				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTForkChoiceRuleError,
@@ -230,7 +247,11 @@ describe('finality_manager', () => {
 					},
 				});
 
-				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTChainDisjointError,
@@ -255,7 +276,11 @@ describe('finality_manager', () => {
 					},
 				});
 
-				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTLowerChainBranchError,
@@ -264,7 +289,11 @@ describe('finality_manager', () => {
 
 			it('should return true if headers are valid', async () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
-				stateStore = new StateStoreMock([], {}, { lastBlockHeaders: [lastBlock] });
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
 
 				await expect(
 					finalityManager.verifyBlockHeaders(currentBlock, stateStore),
@@ -277,12 +306,12 @@ describe('finality_manager', () => {
 				validators: [],
 				ledger: [],
 			};
-			let stateStore: StateStoreMock;
+			let stateStore: StateStore;
 			let bftHeaders: ReadonlyArray<BlockHeader>;
 
 			beforeEach(() => {
 				bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
-				stateStore = new StateStoreMock(
+				stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
@@ -301,7 +330,7 @@ describe('finality_manager', () => {
 						}),
 					},
 					{ lastBlockHeaders: bftHeaders },
-				);
+				) as unknown) as StateStore;
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
@@ -345,7 +374,7 @@ describe('finality_manager', () => {
 						maxHeightPreviouslyForged: 0,
 					},
 				});
-				stateStore = new StateStoreMock(
+				stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
@@ -359,7 +388,7 @@ describe('finality_manager', () => {
 						}),
 					},
 					{ lastBlockHeaders: bftHeaders },
-				);
+				) as unknown) as StateStore;
 
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
@@ -384,7 +413,7 @@ describe('finality_manager', () => {
 						maxHeightPreviouslyForged: 0,
 					},
 				});
-				stateStore = new StateStoreMock(
+				stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
@@ -398,7 +427,7 @@ describe('finality_manager', () => {
 						}),
 					},
 					{ lastBlockHeaders: bftHeaders },
-				);
+				) as unknown) as StateStore;
 
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
@@ -452,7 +481,7 @@ describe('finality_manager', () => {
 					const addr = getAddressFromPublicKey(header.generatorPublicKey);
 					addressMap.set(addr, addr);
 				}
-				stateStore = new StateStoreMock(
+				stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
@@ -462,7 +491,7 @@ describe('finality_manager', () => {
 						}),
 					},
 					{ lastBlockHeaders: bftHeaders },
-				);
+				) as unknown) as StateStore;
 
 				try {
 					for (const header of headers) {

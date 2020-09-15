@@ -68,14 +68,14 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 
 			if (unlock.amount <= BigInt(0)) {
 				throw new ValidationError(
-					'Amount cannot be less than or equal to zero',
+					'Amount cannot be less than or equal to zero.',
 					unlock.amount.toString(),
 				);
 			}
 
 			if (unlock.amount % AMOUNT_MULTIPLIER_FOR_VOTES !== BigInt(0)) {
 				throw new ValidationError(
-					'Amount should be multiple of 10 * 10^8',
+					'Amount should be multiple of 10 * 10^8.',
 					unlock.amount.toString(),
 				);
 			}
@@ -94,7 +94,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 			const delegate = await store.account.get<DPOSAccountProps>(unlock.delegateAddress);
 
 			if (delegate.dpos.delegate.username === '') {
-				throw new Error('Voted account is not registered as delegate');
+				throw new Error('Voted account is not registered as delegate.');
 			}
 
 			const unlockIndex = sender.dpos.unlocking.findIndex(
@@ -104,7 +104,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 					obj.unvoteHeight === unlock.unvoteHeight,
 			);
 			if (unlockIndex < 0) {
-				throw new Error('Corresponding unlocking object not found');
+				throw new Error('Corresponding unlocking object not found.');
 			}
 
 			const waitingPeriod = getWaitingPeriod(
@@ -115,7 +115,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 			);
 
 			if (waitingPeriod > 0) {
-				throw new Error('Unlocking is not permitted as it is still within the waiting period');
+				throw new Error('Unlocking is not permitted as it is still within the waiting period.');
 			}
 
 			const punishmentPeriod = getPunishmentPeriod(
@@ -125,7 +125,7 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 			);
 
 			if (punishmentPeriod > 0) {
-				throw new Error('Unlocking is not permitted as delegate is currently being punished');
+				throw new Error('Unlocking is not permitted as the delegate is currently being punished.');
 			}
 
 			sender.dpos.unlocking.splice(unlockIndex, 1);
