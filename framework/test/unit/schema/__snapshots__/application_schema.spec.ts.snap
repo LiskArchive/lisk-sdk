@@ -55,11 +55,6 @@ Object {
     },
     "id": "#/config",
     "properties": Object {
-      "buildVersion": Object {
-        "description": "The build number. Consists of \`v\` + the date and time of the build of the node.",
-        "example": "2020-01-16T13:43:35.000Z",
-        "type": "string",
-      },
       "forging": Object {
         "properties": Object {
           "defaultPassword": Object {
@@ -79,9 +74,11 @@ Object {
                 "hashOnion": Object {
                   "properties": Object {
                     "count": Object {
+                      "minimum": 1,
                       "type": "integer",
                     },
                     "distance": Object {
+                      "minimum": 1,
                       "type": "integer",
                     },
                     "hashes": Object {
@@ -89,6 +86,7 @@ Object {
                         "format": "hex",
                         "type": "string",
                       },
+                      "minItems": 2,
                       "type": "array",
                     },
                   },
@@ -226,14 +224,6 @@ Object {
         "maxLength": 30,
         "minLength": 1,
         "pattern": "^[a-zA-Z][0-9a-zA-Z\\\\_\\\\-]*$",
-        "type": "string",
-      },
-      "lastCommitId": Object {
-        "description": "The version of Lisk Core that the peer node runs on.",
-        "example": "968d7b5b97a5bfad8f77614dc8a9918de49f6c6e",
-        "format": "hex",
-        "maxLength": 40,
-        "minLength": 40,
         "type": "string",
       },
       "logger": Object {
