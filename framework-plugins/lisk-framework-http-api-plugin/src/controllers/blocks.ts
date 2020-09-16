@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Request, Response, NextFunction } from 'express';
-import { isHexString, isNumberString } from '@liskhq/lisk-validator';
+import { isHexString, isNumberString, isUInt32 } from '@liskhq/lisk-validator';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 
 export const getBlockById = (channel: BaseChannel, codec: PluginCodec) => async (
@@ -50,9 +50,9 @@ export const getBlockByHeight = (channel: BaseChannel, codec: PluginCodec) => as
 ): Promise<void> => {
 	const { height } = req.query;
 
-	if (!isNumberString(height)) {
+	if (!isNumberString(height) || !isUInt32(Number(height))) {
 		res.status(400).send({
-			errors: [{ message: 'The block height query parameter should be a number.' }],
+			errors: [{ message: 'The block height query parameter should be a number within uint32.' }],
 		});
 		return;
 	}
