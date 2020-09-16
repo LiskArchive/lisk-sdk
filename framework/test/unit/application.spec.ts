@@ -202,12 +202,44 @@ describe('Application', () => {
 	});
 
 	describe('#registerModule', () => {
-		it('should throw error when transaction class is missing.', () => {
+		it('should throw error when transaction class is missing', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 
 			// Act && Assert
 			expect(() => (app as any).registerModule()).toThrow('Module implementation is required');
+		});
+
+		it('should throw an error if id is less than 2 when registering a module', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 0;
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module must have id greater than 2',
+			);
+		});
+
+		it('should throw error if id is less than 1000 when registering an external module', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999;
+			}
+			// Assert
+			expect(() => app.registerModule(SampleModule)).toThrow(
+				'Custom module must have id greater than 1000',
+			);
 		});
 
 		it('should add custom module to collection.', () => {
@@ -218,7 +250,7 @@ describe('Application', () => {
 			// Act
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
-				public id = 0;
+				public id = 1000;
 			}
 			app.registerModule(SampleModule);
 
