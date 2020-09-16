@@ -146,10 +146,10 @@ export class Application {
 		config: Partial<ApplicationConfig> = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
-		application._registerDefaultModule(TokenModule);
-		application._registerDefaultModule(SequenceModule);
-		application._registerDefaultModule(KeysModule);
-		application._registerDefaultModule(DPoSModule);
+		application._registerModule(TokenModule);
+		application._registerModule(SequenceModule);
+		application._registerModule(KeysModule);
+		application._registerModule(DPoSModule);
 
 		return application;
 	}
@@ -187,13 +187,7 @@ export class Application {
 	}
 
 	public registerModule(Module: typeof BaseModule): void {
-		assert(Module, 'Module implementation is required');
-		const InstantiableModule = Module as InstantiableBaseModule;
-		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
-		if (moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
-			throw new Error(`Custom module must have id greater than ${MINIMUM_EXTERNAL_MODULE_ID}`);
-		}
-		this._node.registerModule(moduleInstance);
+		this._registerModule(Module, true);
 	}
 
 	public getSchema(): RegisteredSchema {
@@ -290,10 +284,13 @@ export class Application {
 	// Private
 	// --------------------------------------
 
-	private _registerDefaultModule(Module: typeof BaseModule): void {
+	private _registerModule(Module: typeof BaseModule, validateModuleID = false): void {
 		assert(Module, 'Module implementation is required');
 		const InstantiableModule = Module as InstantiableBaseModule;
 		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
+		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
+			throw new Error(`Custom module must have id greater than ${MINIMUM_EXTERNAL_MODULE_ID}`);
+		}
 		this._node.registerModule(moduleInstance);
 	}
 

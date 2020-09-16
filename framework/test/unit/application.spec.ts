@@ -221,7 +221,7 @@ describe('Application', () => {
 				public id = 0;
 			}
 			// Assert
-			expect(() => app['_registerDefaultModule'](SampleModule)).toThrow(
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
 				'Custom module must have id greater than 2',
 			);
 		});
