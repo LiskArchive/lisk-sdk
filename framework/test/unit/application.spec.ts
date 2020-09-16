@@ -185,11 +185,19 @@ describe('Application', () => {
 					],
 				},
 			});
-
 			// Act & Assert
-			expect(() => Application.defaultApplication(genesisBlockJSON, invalidConfig)).toThrow(
-				'Lisk validator found 4 error[s]',
-			);
+			expect.assertions(5);
+			try {
+				Application.defaultApplication(genesisBlockJSON, invalidConfig);
+			} catch (error) {
+				/* eslint-disable jest/no-try-expect */
+				expect(error.errors).toHaveLength(4);
+				expect(error.errors[0].message).toContain('should match format "encryptedPassphrase"');
+				expect(error.errors[1].message).toContain('should be >= 1');
+				expect(error.errors[2].message).toContain('should be >= 1');
+				expect(error.errors[3].message).toContain('should NOT have fewer than 2 items');
+				/* eslint-enable jest/no-try-expect */
+			}
 		});
 	});
 
