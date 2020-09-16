@@ -358,7 +358,6 @@ export class Network {
 					// Ban peer on if non-permitted procedure is requested
 					this._p2p.applyPenalty({ peerId: packet.peerId, penalty: 100 });
 
-					// Send an error back to the peer.
 					return;
 				}
 				this._logger.trace(
