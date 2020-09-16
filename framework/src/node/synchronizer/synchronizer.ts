@@ -203,7 +203,7 @@ export class Synchronizer {
 			const { error } = await this.transactionPoolModule.add(transactions[i]);
 
 			if (error) {
-				this.logger.error({ err: error }, 'Failed to add transaction to pool');
+				this.logger.error({ err: error }, 'Failed to add transaction to pool.');
 				throw error;
 			}
 		}
