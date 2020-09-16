@@ -115,19 +115,7 @@ class FileLog {
 	}
 
 	public write(rec: LogObject): void {
-		const {
-			time,
-			level,
-			name,
-			msg,
-			module: moduleName,
-			err,
-			hostname,
-			pid,
-			src,
-			v,
-			...others
-		} = rec;
+		const { time, level, name, msg, module: moduleName, hostname, pid, src, v, ...others } = rec;
 		const log: Record<string, unknown> = {
 			time,
 			level,
@@ -146,6 +134,9 @@ class FileLog {
 				} else if (Buffer.isBuffer(value)) {
 					// eslint-disable-next-line
 					prev[key] = value.toString('hex');
+				} else if (value instanceof Error) {
+					// eslint-disable-next-line no-param-reassign
+					prev[key] = util.format('Message: %s. Trace: %s.', value.message, value.stack);
 				} else {
 					// eslint-disable-next-line
 					prev[key] = value;
