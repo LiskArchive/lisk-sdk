@@ -353,7 +353,7 @@ export class Network {
 					const error = new Error(`Sent event "${packet.event}" is not permitted.`);
 					this._logger.error(
 						{ err: error, event: packet.event },
-						'Peer request not fulfilled event: Sent event is not permitted.',
+						'Peer request not fulfilled. Sent event is not permitted.',
 					);
 					// Ban peer on if non-permitted procedure is requested
 					this._p2p.applyPenalty({ peerId: packet.peerId, penalty: 100 });
