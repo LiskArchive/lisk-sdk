@@ -32,20 +32,6 @@ export const applicationConfigSchema = {
 			type: 'string',
 			format: 'networkVersion',
 		},
-		buildVersion: {
-			type: 'string',
-			example: '2020-01-16T13:43:35.000Z',
-			description:
-				'The build number. Consists of `v` + the date and time of the build of the node.',
-		},
-		lastCommitId: {
-			type: 'string',
-			format: 'hex',
-			minLength: 40,
-			maxLength: 40,
-			example: '968d7b5b97a5bfad8f77614dc8a9918de49f6c6e',
-			description: 'The version of Lisk Core that the peer node runs on.',
-		},
 		rootPath: {
 			type: 'string',
 			format: 'path',
@@ -196,13 +182,16 @@ export const applicationConfigSchema = {
 								required: ['count', 'distance', 'hashes'],
 								properties: {
 									count: {
+										minimum: 1,
 										type: 'integer',
 									},
 									distance: {
+										minimum: 1,
 										type: 'integer',
 									},
 									hashes: {
 										type: 'array',
+										minItems: 2,
 										items: {
 											type: 'string',
 											format: 'hex',

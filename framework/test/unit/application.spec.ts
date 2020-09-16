@@ -166,6 +166,39 @@ describe('Application', () => {
 				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'communityIdentifier'",
 			);
 		});
+
+		it('should throw if invalid forger is provided', () => {
+			// Arrange
+			const invalidConfig = objects.mergeDeep({}, config, {
+				forging: {
+					delegates: [
+						{
+							encryptedPassphrase:
+								'0dbd21ac5c154dbb72ce90a4e252a64b692203a4f8e25f8bfa1b1993e2ba7a9bd9e1ef1896d8d584a62daf17a8ccf12b99f29521b92cc98b74434ff501374f7e1c6d8371a6ce4e2d083489',
+							address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
+							hashOnion: {
+								count: 0,
+								distance: 0,
+								hashes: [],
+							},
+						},
+					],
+				},
+			});
+			// Act & Assert
+			expect.assertions(5);
+			try {
+				Application.defaultApplication(genesisBlockJSON, invalidConfig);
+			} catch (error) {
+				/* eslint-disable jest/no-try-expect */
+				expect(error.errors).toHaveLength(4);
+				expect(error.errors[0].message).toContain('should match format "encryptedPassphrase"');
+				expect(error.errors[1].message).toContain('should be >= 1');
+				expect(error.errors[2].message).toContain('should be >= 1');
+				expect(error.errors[3].message).toContain('should NOT have fewer than 2 items');
+				/* eslint-enable jest/no-try-expect */
+			}
+		});
 	});
 
 	describe('#registerModule', () => {
