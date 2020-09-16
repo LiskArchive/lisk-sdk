@@ -136,9 +136,7 @@ export class Transport {
 		const errors = validator.validate(schemas.getBlocksFromIdRequest, data as object);
 
 		if (errors.length) {
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			const error = `${errors[0].message}`;
-
+			const error = new LiskValidationError(errors);
 			this._logger.warn(
 				{
 					err: error,
@@ -150,7 +148,7 @@ export class Transport {
 				peerId,
 				penalty: 100,
 			});
-			throw new Error(error);
+			throw error;
 		}
 
 		const blockID = Buffer.from((data as RPCBlocksByIdData).blockId, 'hex');
@@ -176,12 +174,11 @@ export class Transport {
 		data: unknown,
 		peerId: string,
 	): Promise<string | undefined> {
-		const valid = validator.validate(schemas.getHighestCommonBlockRequest, data as object);
+		const errors = validator.validate(schemas.getHighestCommonBlockRequest, data as object);
 
-		if (valid.length) {
-			const err = valid;
+		if (errors.length) {
+			const error = new LiskValidationError(errors);
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			const error = `${err[0].message}: ${err[0].dataPath}`;
 			this._logger.warn(
 				{
 					err: error,
@@ -193,7 +190,7 @@ export class Transport {
 				peerId,
 				penalty: 100,
 			});
-			throw new Error(error);
+			throw error;
 		}
 
 		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id => Buffer.from(id, 'hex'));
@@ -229,7 +226,7 @@ export class Transport {
 				peerId,
 				penalty: 100,
 			});
-			throw errors;
+			throw new LiskValidationError(errors);
 		}
 
 		const blockBytes = Buffer.from((data as EventPostBlockData).block, 'hex');
@@ -287,7 +284,7 @@ export class Transport {
 				peerId,
 				penalty: 100,
 			});
-			throw errors;
+			throw new LiskValidationError(errors);
 		}
 
 		const { transactionIds } = data as RPCTransactionsByIdData;
@@ -299,7 +296,7 @@ export class Transport {
 				.values()
 				.flat()
 				.map(tx => tx.getBytes().toString('hex'));
-			transactions.splice(DEFAULT_RATE_RESET_TIME);
+			transactions.splice(DEFAULT_RELEASE_LIMIT);
 
 			return {
 				transactions,
@@ -307,7 +304,9 @@ export class Transport {
 		}
 
 		if (transactionIds.length > DEFAULT_RELEASE_LIMIT) {
-			const error = new Error('Received invalid request.');
+			const error = new Error(
+				`Requested number of transsactions ${transactionIds.length} exceeds maximum allowed.`,
+			);
 			this._logger.warn({ err: error, peerId }, 'Received invalid request.');
 			this._networkModule.applyPenaltyOnPeer({
 				peerId,
@@ -334,7 +333,7 @@ export class Transport {
 
 		if (idsNotInPool.length) {
 			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase: Transaction[] = await this._chainModule.dataAccess.getTransactionsByIDs(
+			const transactionsFromDatabase = await this._chainModule.dataAccess.getTransactionsByIDs(
 				idsNotInPool,
 			);
 
@@ -353,21 +352,11 @@ export class Transport {
 	public async handleEventPostTransaction(
 		data: EventPostTransactionData,
 	): Promise<handlePostTransactionReturn> {
-		try {
-			const tx = this._chainModule.dataAccess.decodeTransaction(
-				Buffer.from(data.transaction, 'hex'),
-			);
-			const id = await this._receiveTransaction(tx);
-			return {
-				transactionId: id.toString('hex'),
-			};
-		} catch (err) {
-			if (Array.isArray(err)) {
-				throw new LiskValidationError(err);
-			} else {
-				throw err;
-			}
-		}
+		const tx = this._chainModule.dataAccess.decodeTransaction(Buffer.from(data.transaction, 'hex'));
+		const id = await this._receiveTransaction(tx);
+		return {
+			transactionId: id.toString('hex'),
+		};
 	}
 
 	/**
@@ -387,7 +376,7 @@ export class Transport {
 				peerId,
 				penalty: 100,
 			});
-			throw errors;
+			throw new LiskValidationError(errors);
 		}
 
 		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds.map(idStr =>
