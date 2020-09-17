@@ -399,7 +399,7 @@ describe('Transport', () => {
 			it('should throw an error', async () => {
 				await expect(
 					transport.handleRPCGetTransactions({ transactionIds: ids }, defaultPeerId),
-				).rejects.toThrow('Received invalid request');
+				).rejects.toThrow('Requested number of transactions 110 exceeds maximum allowed');
 			});
 
 			it('should apply penalty', async () => {
@@ -573,11 +573,7 @@ describe('Transport', () => {
 			it('should throw an error', async () => {
 				await expect(
 					transport.handleEventPostTransactionsAnnouncement({}, defaultPeerId),
-				).rejects.toMatchObject([
-					expect.objectContaining({
-						message: expect.stringContaining('should have required property'),
-					}),
-				]);
+				).rejects.toThrow("should have required property 'transactionIds'");
 			});
 		});
 

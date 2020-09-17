@@ -565,24 +565,15 @@ describe('transport', () => {
 					});
 
 					describe('when query is specified', () => {
-						describe('when it throws', () => {
-							const blockValidationError = 'should match format "hex"';
+						it('should throw an error', async () => {
+							await expect(
+								transportModule.handleEventPostBlock(postBlockQuery, defaultPeerId),
+							).rejects.toThrow('should match format "hex"');
 
-							it('should throw an error', async () => {
-								await expect(
-									transportModule.handleEventPostBlock(postBlockQuery, defaultPeerId),
-								).rejects.toEqual([
-									expect.objectContaining({
-										message: blockValidationError,
-										dataPath: '.block',
-									}),
-								]);
-
-								expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
-								expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
-									peerId: defaultPeerId,
-									penalty: 100,
-								});
+							expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
+							expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+								peerId: defaultPeerId,
+								penalty: 100,
 							});
 						});
 
