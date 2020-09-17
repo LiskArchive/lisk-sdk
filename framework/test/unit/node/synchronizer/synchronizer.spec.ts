@@ -622,8 +622,7 @@ describe('Synchronizer', () => {
 				} catch (err) {
 					error = err;
 				}
-				expect(error).toHaveLength(1);
-				expect(error[0].message).toBe("should have required property 'transactions'");
+				expect(error.message).toBe("should have required property 'transactions'");
 			});
 		});
 	});
