@@ -305,7 +305,7 @@ export class Transport {
 
 		if (transactionIds.length > DEFAULT_RELEASE_LIMIT) {
 			const error = new Error(
-				`Requested number of transsactions ${transactionIds.length} exceeds maximum allowed.`,
+				`Requested number of transactions ${transactionIds.length} exceeds maximum allowed.`,
 			);
 			this._logger.warn({ err: error, peerId }, 'Received invalid request.');
 			this._networkModule.applyPenaltyOnPeer({

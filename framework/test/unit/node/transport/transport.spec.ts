@@ -399,7 +399,7 @@ describe('Transport', () => {
 			it('should throw an error', async () => {
 				await expect(
 					transport.handleRPCGetTransactions({ transactionIds: ids }, defaultPeerId),
-				).rejects.toThrow('Requested number of transsactions 110 exceeds maximum allowed');
+				).rejects.toThrow('Requested number of transactions 110 exceeds maximum allowed');
 			});
 
 			it('should apply penalty', async () => {
