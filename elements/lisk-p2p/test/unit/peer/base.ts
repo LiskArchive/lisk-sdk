@@ -785,6 +785,31 @@ describe('peer/base', () => {
 				);
 			});
 
+			it('should not apply any penalty for second getPeers after 10 secs', () => {
+				// Arrange
+				const rawMessageRCP = {
+					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
+				};
+
+				// Act
+				// eslint-disable-next-line @typescript-eslint/no-empty-function
+				(defaultPeer as any)._handleRawRPC(rawMessageRCP, () => {});
+
+				// Assert
+				expect(defaultPeer['_discoveryMessageCounter'].getPeers).toBe(1);
+				expect(defaultPeer.peerInfo.internalState.reputation).toBe(100);
+
+				// Act
+				jest.advanceTimersByTime(10000);
+
+				// eslint-disable-next-line @typescript-eslint/no-empty-function
+				(defaultPeer as any)._handleRawRPC(rawMessageRCP, () => {});
+
+				// Assert
+				expect(defaultPeer['_discoveryMessageCounter'].getPeers).toBe(1);
+				expect(defaultPeer.peerInfo.internalState.reputation).toBe(100);
+			});
+
 			it('should silent the request events after limit exceed', () => {
 				// Arrange
 				const rawMessageRCP = {
