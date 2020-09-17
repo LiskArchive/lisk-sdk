@@ -24,6 +24,8 @@ import {
 	clearBlocksTempTable,
 } from '../../../../src/node/synchronizer/utils';
 
+jest.setTimeout(30000);
+
 describe('Temp block', () => {
 	const dbName = 'temp_block';
 	let node: Node;
