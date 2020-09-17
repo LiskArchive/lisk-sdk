@@ -39,6 +39,7 @@ import {
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
+const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const rm = promisify(fs.unlink);
 
@@ -145,10 +146,10 @@ export class Application {
 		config: Partial<ApplicationConfig> = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
-		application.registerModule(TokenModule);
-		application.registerModule(SequenceModule);
-		application.registerModule(KeysModule);
-		application.registerModule(DPoSModule);
+		application._registerModule(TokenModule);
+		application._registerModule(SequenceModule);
+		application._registerModule(KeysModule);
+		application._registerModule(DPoSModule);
 
 		return application;
 	}
@@ -186,10 +187,7 @@ export class Application {
 	}
 
 	public registerModule(Module: typeof BaseModule): void {
-		assert(Module, 'Module implementation is required');
-		const InstantiableModule = Module as InstantiableBaseModule;
-		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
-		this._node.registerModule(moduleInstance);
+		this._registerModule(Module, true);
 	}
 
 	public getSchema(): RegisteredSchema {
@@ -285,6 +283,17 @@ export class Application {
 	// --------------------------------------
 	// Private
 	// --------------------------------------
+
+	private _registerModule(Module: typeof BaseModule, validateModuleID = false): void {
+		assert(Module, 'Module implementation is required');
+		const InstantiableModule = Module as InstantiableBaseModule;
+		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
+		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
+			throw new Error(`Custom module must have id greater than ${MINIMUM_EXTERNAL_MODULE_ID}`);
+		}
+		this._node.registerModule(moduleInstance);
+	}
+
 	private _compileAndValidateConfigurations(): void {
 		const appConfigToShareWithPlugin = {
 			version: this.config.version,

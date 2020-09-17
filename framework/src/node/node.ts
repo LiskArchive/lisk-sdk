@@ -66,6 +66,7 @@ import { Bus } from '../controller/bus';
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK, EVENT_VALIDATORS_CHANGED } = chainEvents;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
+const MINIMUM_MODULE_ID = 2;
 
 export type NodeOptions = Omit<ApplicationConfig, 'plugins'>;
 
@@ -162,6 +163,9 @@ export class Node {
 		const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 		if (exist) {
 			throw new Error(`Custom module with type ${customModule.id} already exists`);
+		}
+		if (customModule.id < MINIMUM_MODULE_ID) {
+			throw new Error(`Custom module must have id greater than ${MINIMUM_MODULE_ID}`);
 		}
 		if (customModule.accountSchema) {
 			this._registeredAccountSchemas[customModule.name] = {
