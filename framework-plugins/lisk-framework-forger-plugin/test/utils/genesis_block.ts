@@ -159,7 +159,6 @@ export const getGenesisBlockJSON = ({
 	const updatedGenesisBlock = createGenesisBlock({
 		initDelegates: genesisBlock.header.asset.initDelegates,
 		initRounds: genesisBlock.header.asset.initRounds,
-		roundLength: 103,
 		timestamp,
 		accounts: genesisBlock.header.asset.accounts,
 		accountAssetSchemas: defaultAccountSchema,
