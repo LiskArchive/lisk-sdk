@@ -622,7 +622,9 @@ describe('Synchronizer', () => {
 				} catch (err) {
 					error = err;
 				}
-				expect(error.message).toBe("should have required property 'transactions'");
+				expect(error.message).toInclude(
+					"Missing property, should have required property 'transactions'",
+				);
 			});
 		});
 	});
