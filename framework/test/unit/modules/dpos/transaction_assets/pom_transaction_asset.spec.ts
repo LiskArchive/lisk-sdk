@@ -94,7 +94,7 @@ describe('PomTransactionAsset', () => {
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('pom');
+			expect(transactionAsset.name).toEqual('reportDelegateMisbehavior');
 		});
 
 		it('should have valid schema', () => {
@@ -103,6 +103,32 @@ describe('PomTransactionAsset', () => {
 	});
 
 	describe('validate', () => {
+		it('should throw error when generatorPublicKey does not match', () => {
+			validateContext.asset = {
+				header1: {
+					...header1,
+				},
+				header2: { ...header2, generatorPublicKey: getRandomBytes(20) },
+			};
+
+			expect(() => transactionAsset.validate(validateContext)).toThrow(
+				'GeneratorPublicKey of each BlockHeader should match.',
+			);
+		});
+
+		it('should throw error when both headers are identical', () => {
+			validateContext.asset = {
+				header1: {
+					...header1,
+				},
+				header2: { ...header1 },
+			};
+
+			expect(() => transactionAsset.validate(validateContext)).toThrow(
+				'BlockHeaders are identical. No contradiction detected.',
+			);
+		});
+
 		it('should not throw error when first height is equal to second height but equal maxHeightPrevoted', () => {
 			validateContext.asset = {
 				header1: {
@@ -279,7 +305,7 @@ describe('PomTransactionAsset', () => {
 			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
 			await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
-				'Cannot apply proof-of-misbehavior. Delegate is banned.',
+				'Cannot apply proof-of-misbehavior. Delegate is already banned.',
 			);
 		});
 

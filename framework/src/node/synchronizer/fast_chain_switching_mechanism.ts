@@ -15,7 +15,7 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BFT } from '@liskhq/lisk-bft';
 import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
-import { BaseSynchronizer, EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './base_synchronizer';
+import { BaseSynchronizer } from './base_synchronizer';
 import { clearBlocksTempTable, restoreBlocks, deleteBlocksAfterHeight } from './utils';
 import {
 	ApplyPenaltyAndAbortError,
@@ -64,41 +64,27 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			this._validateBlocks(blocks, peerId);
 			await this._switchChain(highestCommonBlock as BlockHeader, blocks, peerId);
 			this.active = false;
-		} catch (err) {
+		} catch (error) {
 			this.active = false;
-			if (err instanceof ApplyPenaltyAndAbortError) {
-				this._logger.info(
-					{ err, peerId, reason: err.reason },
-					'Applying penalty to peer and aborting synchronization mechanism',
-				);
-				this._networkModule.applyPenaltyOnPeer({
-					peerId,
-					penalty: 100,
-				});
-			}
-
-			if (err instanceof RestartError) {
-				this._logger.info(
-					{ err, reason: err.reason },
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					`Restarting synchronization mechanism with reason: ${err.reason}`,
-				);
-				this.events.emit(EVENT_SYNCHRONIZER_SYNC_REQUIRED, {
-					block: receivedBlock,
-					peerId,
-				});
+			if (error instanceof ApplyPenaltyAndAbortError) {
+				this._applyPenaltyAndRestartSync(error.peerId, receivedBlock, error.reason);
 				return;
 			}
 
-			if (err instanceof AbortError) {
+			if (error instanceof RestartError) {
+				this._restartSync(receivedBlock, error.reason);
+				return;
+			}
+
+			if (error instanceof AbortError) {
 				this._logger.info(
-					{ err, reason: err.reason },
-					`Aborting synchronization mechanism with reason: ${err.reason}`,
+					{ err: error, reason: error.reason },
+					`Aborting synchronization mechanism with reason: ${error.reason}`,
 				);
 				return;
 			}
 
-			throw err;
+			throw error;
 		}
 	}
 

@@ -154,6 +154,40 @@ describe('create', () => {
 				accountsSortedAddresses,
 			);
 		});
+
+		it('should sort accounts with variable lengths of address lexicographically', () => {
+			// Arrange
+			const accounts = objects.cloneDeep(validGenesisBlockParams.accounts) as Account[];
+			accounts.push({
+				address: Buffer.from('8789de4316d79d22', 'hex'),
+				token: {
+					balance: BigInt('12300000000'),
+				},
+			});
+
+			const accountsSortedAddresses = accounts
+				.map(a => a.address)
+				.sort((a, b) => {
+					if (a.length < b.length) {
+						return -1;
+					}
+					if (a.length > b.length) {
+						return 1;
+					}
+					return a.compare(b);
+				});
+
+			// Act
+			const genesisBlock = createGenesisBlock({
+				...validGenesisBlockParams,
+				accounts,
+			});
+
+			// Assert
+			expect(genesisBlock.header.asset.accounts.map(a => a.address)).toEqual(
+				accountsSortedAddresses,
+			);
+		});
 	});
 
 	describe('getGenesisBlockJSON', () => {

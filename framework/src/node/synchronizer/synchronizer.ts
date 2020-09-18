@@ -13,7 +13,7 @@
  */
 
 import * as assert from 'assert';
-import { validator } from '@liskhq/lisk-validator';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { Chain, Block } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { BFT } from '@liskhq/lisk-bft';
@@ -187,7 +187,7 @@ export class Synchronizer {
 
 		const validatorErrors = validator.validate(definitions.WSTransactionsResponse, result);
 		if (validatorErrors.length) {
-			throw validatorErrors;
+			throw new LiskValidationError(validatorErrors);
 		}
 
 		const transactions = result.transactions.map(txStr =>

@@ -13,5 +13,5 @@
  */
 require('../config/setup');
 
-jest.setTimeout(10000);
+jest.setTimeout(15000);
 jest.unmock('pm2-axon');

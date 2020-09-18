@@ -18,6 +18,7 @@ import {
 	Validator,
 	CONSENSUS_STATE_VALIDATORS_KEY,
 	validatorsSchema,
+	StateStore,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
@@ -28,7 +29,7 @@ import { convertHeader } from '../fixtures/blocks';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {
-		let stateStore: StateStoreMock;
+		let stateStore: StateStore;
 		let chainStub: Chain;
 
 		beforeEach(() => {
@@ -43,7 +44,7 @@ describe('FinalityManager', () => {
 				},
 				numberOfValidators: 103,
 			} as unknown) as Chain;
-			stateStore = new StateStoreMock();
+			stateStore = (new StateStoreMock() as unknown) as StateStore;
 		});
 
 		invalidBlockHeaderSpec.testCases.forEach(testCase => {
@@ -62,7 +63,7 @@ describe('FinalityManager', () => {
 					codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
 				);
 				// Arrange
-				stateStore.chain.lastBlockHeaders = testCase.config.blockHeaders.map(bh =>
+				(stateStore.chain as any).lastBlockHeaders = testCase.config.blockHeaders.map(bh =>
 					convertHeader(bh),
 				);
 

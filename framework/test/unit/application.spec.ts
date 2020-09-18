@@ -42,6 +42,7 @@ describe('Application', () => {
 		error: jest.fn(),
 		debug: jest.fn(),
 		trace: jest.fn(),
+		fatal: jest.fn(),
 	};
 	const genesisBlockJSON = (genesisBlock() as unknown) as Record<string, unknown>;
 
@@ -165,15 +166,80 @@ describe('Application', () => {
 				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'communityIdentifier'",
 			);
 		});
+
+		it('should throw if invalid forger is provided', () => {
+			// Arrange
+			const invalidConfig = objects.mergeDeep({}, config, {
+				forging: {
+					delegates: [
+						{
+							encryptedPassphrase:
+								'0dbd21ac5c154dbb72ce90a4e252a64b692203a4f8e25f8bfa1b1993e2ba7a9bd9e1ef1896d8d584a62daf17a8ccf12b99f29521b92cc98b74434ff501374f7e1c6d8371a6ce4e2d083489',
+							address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
+							hashOnion: {
+								count: 0,
+								distance: 0,
+								hashes: [],
+							},
+						},
+					],
+				},
+			});
+			// Act & Assert
+			expect.assertions(5);
+			try {
+				Application.defaultApplication(genesisBlockJSON, invalidConfig);
+			} catch (error) {
+				/* eslint-disable jest/no-try-expect */
+				expect(error.errors).toHaveLength(4);
+				expect(error.errors[0].message).toContain('should match format "encryptedPassphrase"');
+				expect(error.errors[1].message).toContain('should be >= 1');
+				expect(error.errors[2].message).toContain('should be >= 1');
+				expect(error.errors[3].message).toContain('should NOT have fewer than 2 items');
+				/* eslint-enable jest/no-try-expect */
+			}
+		});
 	});
 
 	describe('#registerModule', () => {
-		it('should throw error when transaction class is missing.', () => {
+		it('should throw error when transaction class is missing', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 
 			// Act && Assert
 			expect(() => (app as any).registerModule()).toThrow('Module implementation is required');
+		});
+
+		it('should throw an error if id is less than 2 when registering a module', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 0;
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module must have id greater than 2',
+			);
+		});
+
+		it('should throw error if id is less than 1000 when registering an external module', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999;
+			}
+			// Assert
+			expect(() => app.registerModule(SampleModule)).toThrow(
+				'Custom module must have id greater than 1000',
+			);
 		});
 
 		it('should add custom module to collection.', () => {
@@ -184,7 +250,7 @@ describe('Application', () => {
 			// Act
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
-				public id = 0;
+				public id = 1000;
 			}
 			app.registerModule(SampleModule);
 
@@ -306,6 +372,52 @@ describe('Application', () => {
 			for (const aSocketFile of fakeSocketFiles) {
 				expect(spy).toHaveBeenCalledWith(join(socketsPath, aSocketFile), expect.anything());
 			}
+		});
+	});
+
+	describe('shutdown', () => {
+		let app: Application;
+		const fakeSocketFiles = ['1.sock' as any, '2.sock' as any];
+		let clearControllerPidFileSpy: jest.SpyInstance<any, unknown[]>;
+		let emptySocketsDirectorySpy: jest.SpyInstance<any, unknown[]>;
+		let nodeCleanupSpy: jest.SpyInstance<any, unknown[]>;
+		let blockChainDBSpy: jest.SpyInstance<any, unknown[]>;
+		let forgerDBSpy: jest.SpyInstance<any, unknown[]>;
+		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
+
+		beforeEach(async () => {
+			app = Application.defaultApplication(genesisBlockJSON, config);
+			try {
+				await app.run();
+			} catch (error) {
+				// Expected error
+			}
+			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
+			jest.spyOn(process, 'exit').mockReturnValue(0 as never);
+			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup');
+			blockChainDBSpy = jest.spyOn((app as any)._blockchainDB, 'close');
+			forgerDBSpy = jest.spyOn((app as any)._forgerDB, 'close');
+			_nodeDBSpy = jest.spyOn((app as any)._nodeDB, 'close');
+			emptySocketsDirectorySpy = jest
+				.spyOn(app as any, '_emptySocketsDirectory')
+				.mockResolvedValue([]);
+			clearControllerPidFileSpy = jest.spyOn(app as any, '_clearControllerPidFile');
+		});
+
+		it('should call cleanup methods', async () => {
+			await app.shutdown();
+			expect(clearControllerPidFileSpy).toHaveBeenCalledTimes(1);
+			expect(emptySocketsDirectorySpy).toHaveBeenCalledTimes(1);
+			expect(nodeCleanupSpy).toHaveBeenCalledTimes(1);
+			expect(blockChainDBSpy).toHaveBeenCalledTimes(1);
+			expect(forgerDBSpy).toHaveBeenCalledTimes(1);
+			expect(_nodeDBSpy).toHaveBeenCalledTimes(1);
+		});
+
+		it('should call clearControllerPidFileSpy method with correct pid file location', async () => {
+			const unlinkSyncSpy = jest.spyOn(fs, 'unlinkSync').mockReturnValue();
+			await app.shutdown();
+			expect(unlinkSyncSpy).toHaveBeenCalledWith('~/.lisk/devnet/tmp/pids/controller.pid');
 		});
 	});
 });

@@ -214,7 +214,6 @@ export const validGenesisBlockParams = {
 		'454690a1c37838326007519a7ce1c8a6a495df50898f1ebd69d22fbcedf9689a',
 		'hex',
 	),
-	roundLength: 103,
 	initDelegates: validDelegateAccounts.map(a => a.address),
 	accounts: [...validAccounts, ...validDelegateAccounts] as Account[],
 	accountAssetSchemas: defaultAccountModules,

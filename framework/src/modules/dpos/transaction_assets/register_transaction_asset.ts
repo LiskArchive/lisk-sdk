@@ -20,7 +20,7 @@ import { DPOSAccountProps, RegisterTransactionAssetContext } from '../types';
 import { getRegisteredDelegates, setRegisteredDelegates } from '../data_access';
 
 export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAssetContext> {
-	public name = 'register';
+	public name = 'registerDelegate';
 	public id = 0;
 	public schema = {
 		$id: 'lisk/dpos/register',
@@ -52,7 +52,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		const sender = await stateStore.account.get<DPOSAccountProps>(senderAddress);
 
 		if (sender.dpos.delegate.username !== '') {
-			throw new Error('Account is already a delegate');
+			throw new Error('Account is already a delegate.');
 		}
 
 		const usernames = await getRegisteredDelegates(stateStore);
@@ -70,7 +70,7 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		}
 
 		if (usernameExists) {
-			throw new Error('Username is not unique');
+			throw new Error(`Username ${asset.username} is already registered.`);
 		}
 
 		sender.dpos.delegate.username = asset.username;

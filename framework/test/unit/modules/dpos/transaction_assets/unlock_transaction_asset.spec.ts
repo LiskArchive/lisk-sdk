@@ -123,7 +123,7 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('unlock');
+			expect(transactionAsset.name).toEqual('unlockToken');
 		});
 
 		it('should have valid schema', () => {
@@ -234,6 +234,26 @@ describe('UnlockTransactionAsset', () => {
 				// Act & Assert
 				expect(() => transactionAsset.validate(validateContext)).toThrow(
 					'Amount cannot be less than or equal to zero',
+				);
+			});
+		});
+
+		describe('when asset.unlockObjects includes zero height', () => {
+			it('should throw error', () => {
+				// Arrange
+				validateContext.asset = {
+					unlockObjects: [
+						{
+							delegateAddress: delegate1.address,
+							amount: liskToBeddows(10),
+							unvoteHeight: 0,
+						},
+					],
+				};
+
+				// Act & Assert
+				expect(() => transactionAsset.validate(validateContext)).toThrow(
+					'Height cannot be less than or equal to zero',
 				);
 			});
 		});
@@ -544,7 +564,7 @@ describe('UnlockTransactionAsset', () => {
 
 				it('should throw error', async () => {
 					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
-						'Unlocking is not permitted as delegate is currently being punished',
+						'Unlocking is not permitted as the delegate is currently being punished.',
 					);
 				});
 			});
@@ -588,9 +608,54 @@ describe('UnlockTransactionAsset', () => {
 
 				it('should throw error', async () => {
 					await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
-						'Unlocking is not permitted as delegate is currently being punished',
+						'Unlocking is not permitted as the delegate is currently being punished.',
 					);
 				});
+			});
+		});
+
+		describe('when asset.unlockObjects contain exactly same entries', () => {
+			beforeEach(() => {
+				const unlocking = [
+					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
+					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
+				];
+
+				sender.dpos.unlocking = unlocking;
+				stateStoreMock.account.set(sender.address, sender);
+
+				applyContext.asset = {
+					unlockObjects: objects.cloneDeep(unlocking),
+				};
+			});
+
+			it('should not return error', async () => {
+				await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+			});
+
+			it('should make account to have correct balance', async () => {
+				await transactionAsset.apply(applyContext);
+
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					address: sender.address,
+					amount: applyContext.asset.unlockObjects[0].amount,
+				});
+
+				expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+					address: sender.address,
+					amount: applyContext.asset.unlockObjects[1].amount,
+				});
+			});
+
+			it('should remove unlocking from the sender', async () => {
+				await transactionAsset.apply(applyContext);
+
+				// Assert
+				const updatedSender = await stateStoreMock.account.get<Account<DPOSAccountProps>>(
+					sender.address,
+				);
+
+				expect(updatedSender.dpos.unlocking).toHaveLength(0);
 			});
 		});
 

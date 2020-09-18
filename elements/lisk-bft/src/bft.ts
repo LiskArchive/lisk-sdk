@@ -15,16 +15,16 @@
 import { codec } from '@liskhq/lisk-codec';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
-
 import {
 	BlockHeader,
 	Chain,
 	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 	getValidators,
+	StateStore,
 } from '@liskhq/lisk-chain';
 import { EVENT_BFT_FINALIZED_HEIGHT_CHANGED, FinalityManager } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
-import { BFTPersistedValues, ForkStatus, StateStore } from './types';
+import { BFTPersistedValues, ForkStatus } from './types';
 
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
@@ -96,7 +96,7 @@ export class BFT extends EventEmitter {
 
 	public async verifyBlockHeader(blockHeader: BlockHeader, stateStore: StateStore): Promise<void> {
 		const isCompliant = await this.isBFTProtocolCompliant(blockHeader, stateStore);
-		const reward = this._chain.calculateReward(blockHeader.height);
+		const reward = this._chain.calculateExpectedReward(blockHeader, stateStore);
 		const expectedReward = isCompliant ? reward : reward / BigInt(4);
 		if (blockHeader.reward !== expectedReward) {
 			throw new Error(

@@ -39,6 +39,7 @@ import {
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
+const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const rm = promisify(fs.unlink);
 
@@ -145,10 +146,10 @@ export class Application {
 		config: Partial<ApplicationConfig> = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
-		application.registerModule(TokenModule);
-		application.registerModule(SequenceModule);
-		application.registerModule(KeysModule);
-		application.registerModule(DPoSModule);
+		application._registerModule(TokenModule);
+		application._registerModule(SequenceModule);
+		application._registerModule(KeysModule);
+		application._registerModule(DPoSModule);
 
 		return application;
 	}
@@ -186,10 +187,7 @@ export class Application {
 	}
 
 	public registerModule(Module: typeof BaseModule): void {
-		assert(Module, 'Module implementation is required');
-		const InstantiableModule = Module as InstantiableBaseModule;
-		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
-		this._node.registerModule(moduleInstance);
+		this._registerModule(Module, true);
 	}
 
 	public getSchema(): RegisteredSchema {
@@ -268,6 +266,7 @@ export class Application {
 			await this._forgerDB.close();
 			await this._nodeDB.close();
 			await this._emptySocketsDirectory();
+			this._clearControllerPidFile();
 			this.logger.info({ errorCode, message }, 'Application shutdown completed');
 		} catch (error) {
 			this.logger.fatal({ err: error as Error }, 'Application shutdown failed');
@@ -284,6 +283,17 @@ export class Application {
 	// --------------------------------------
 	// Private
 	// --------------------------------------
+
+	private _registerModule(Module: typeof BaseModule, validateModuleID = false): void {
+		assert(Module, 'Module implementation is required');
+		const InstantiableModule = Module as InstantiableBaseModule;
+		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
+		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
+			throw new Error(`Custom module must have id greater than ${MINIMUM_EXTERNAL_MODULE_ID}`);
+		}
+		this._node.registerModule(moduleInstance);
+	}
+
 	private _compileAndValidateConfigurations(): void {
 		const appConfigToShareWithPlugin = {
 			version: this.config.version,
@@ -447,7 +457,7 @@ export class Application {
 
 	private async _validatePidFile(): Promise<void> {
 		const dirs = systemDirs(this.config.label, this.config.rootPath);
-		const pidPath = `${dirs.pids}/controller.pid`;
+		const pidPath = path.join(dirs.pids, 'controller.pid');
 		const pidExists = await fs.pathExists(pidPath);
 		if (pidExists) {
 			const pid = parseInt((await fs.readFile(pidPath)).toString(), 10);
@@ -465,6 +475,11 @@ export class Application {
 			}
 		}
 		await fs.writeFile(pidPath, process.pid);
+	}
+
+	private _clearControllerPidFile() {
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		fs.unlinkSync(path.join(dirs.pids, 'controller.pid'));
 	}
 
 	private _getDBInstance(options: ApplicationConfig, dbName: string): KVStore {
