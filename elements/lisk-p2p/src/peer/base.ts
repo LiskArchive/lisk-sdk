@@ -532,6 +532,8 @@ export class Peer extends EventEmitter {
 	private _resetStatusMessageRate(): void {
 		// Reset only postNodeInfo counter to zero after every 10 seconds
 		this._discoveryMessageCounter.postNodeInfo = 0;
+		// Reset getPeers RPC request count to zero
+		this._discoveryMessageCounter.getPeers = 0;
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
