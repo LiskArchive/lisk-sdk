@@ -60,7 +60,7 @@ export class Processor {
 	private readonly _logger: Logger;
 	private readonly _chain: Chain;
 	private readonly _bft: BFT;
-	private readonly _jobQueue: jobHandlers.JobQueue;
+	private readonly _mutex: jobHandlers.Mutex;
 	private readonly _modules: BaseModule[] = [];
 	private _stop = false;
 
@@ -69,7 +69,7 @@ export class Processor {
 		this._logger = logger;
 		this._chain = chainModule;
 		this._bft = bftModule;
-		this._jobQueue = new jobHandlers.JobQueue();
+		this._mutex = new jobHandlers.Mutex();
 		this.events = new EventEmitter();
 	}
 
@@ -114,7 +114,13 @@ export class Processor {
 
 	public async stop(): Promise<void> {
 		this._stop = true;
-		await this._jobQueue.stop();
+		// eslint-disable-next-line no-constant-condition
+		while (true) {
+			if (!this._mutex.isLocked()) {
+				return;
+			}
+			await new Promise(resolve => setTimeout(resolve, 100));
+		}
 	}
 
 	// process is for standard processing of block, especially when received from network
@@ -122,7 +128,7 @@ export class Processor {
 		if (this._stop) {
 			return;
 		}
-		await this._jobQueue.add(async () => {
+		await this._mutex.runExclusive(async () => {
 			this._logger.debug(
 				{ id: block.header.id, height: block.header.height },
 				'Starting to process block',
@@ -239,7 +245,7 @@ export class Processor {
 		if (this._stop) {
 			return;
 		}
-		await this._jobQueue.add(async () => {
+		await this._mutex.runExclusive(async () => {
 			this._logger.debug(
 				{ id: block.header.id, height: block.header.height },
 				'Processing validated block',
@@ -257,7 +263,7 @@ export class Processor {
 		if (this._stop) {
 			return;
 		}
-		await this._jobQueue.add(async () => {
+		await this._mutex.runExclusive(async () => {
 			const { lastBlock } = this._chain;
 			this._logger.debug(
 				{ id: lastBlock.header.id, height: lastBlock.header.height },

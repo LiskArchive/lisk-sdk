@@ -17,6 +17,7 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { Chain, Block } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { BFT } from '@liskhq/lisk-bft';
+import { jobHandlers } from '@liskhq/lisk-utils';
 import * as definitions from './schema';
 import * as utils from './utils';
 import { Logger } from '../../logger';
@@ -41,6 +42,7 @@ export class Synchronizer {
 	protected channel: InMemoryChannel;
 	private readonly chainModule: Chain;
 	private readonly bftModule: BFT;
+	private readonly _mutex: jobHandlers.Mutex;
 	private readonly processorModule: Processor;
 	private readonly transactionPoolModule: TransactionPool;
 	private readonly _networkModule: Network;
@@ -69,6 +71,7 @@ export class Synchronizer {
 		this.loadTransactionsRetries = 5;
 
 		this._checkMechanismsInterfaces();
+		this._mutex = new jobHandlers.Mutex();
 	}
 
 	public async init(): Promise<void> {
@@ -91,53 +94,59 @@ export class Synchronizer {
 	}
 
 	public async run(receivedBlock: Block, peerId: string): Promise<void> {
-		if (this.isActive) {
-			throw new Error('Synchronizer is already running');
+		if (this._mutex.isLocked()) {
+			this.logger.debug('Synchronizer is already running.');
+			return;
 		}
-		assert(receivedBlock, 'A block must be provided to the Synchronizer in order to run');
-		this.logger.info(
-			{
-				blockId: receivedBlock.header.id,
-				height: receivedBlock.header.height,
-			},
-			'Starting synchronizer',
-		);
-
-		// Moving to a Different Chain
-		// 1. Step: Validate new tip of chain
-		this.processorModule.validate(receivedBlock);
-
-		// Choose the right mechanism to sync
-		const validMechanism = await this._determineSyncMechanism(receivedBlock, peerId);
-
-		if (!validMechanism) {
-			return this.logger.info(
-				{ blockId: receivedBlock.header.id },
-				'Syncing mechanism could not be determined for the given block',
+		await this._mutex.runExclusive(async () => {
+			assert(receivedBlock, 'A block must be provided to the Synchronizer in order to run');
+			this.logger.info(
+				{
+					blockId: receivedBlock.header.id,
+					height: receivedBlock.header.height,
+				},
+				'Starting synchronizer',
 			);
-		}
+			// Moving to a Different Chain
+			// 1. Step: Validate new tip of chain
+			this.processorModule.validate(receivedBlock);
 
-		this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
+			// Choose the right mechanism to sync
+			const validMechanism = await this._determineSyncMechanism(receivedBlock, peerId);
 
-		await validMechanism.run(receivedBlock, peerId);
+			if (!validMechanism) {
+				this.logger.info(
+					{ blockId: receivedBlock.header.id },
+					'Syncing mechanism could not be determined for the given block',
+				);
+				return;
+			}
 
-		return this.logger.info(
-			{
-				lastBlockHeight: this.chainModule.lastBlock.header.height,
-				lastBlockID: this.chainModule.lastBlock.header.id,
-				mechanism: validMechanism.constructor.name,
-			},
-			'Synchronization finished',
-		);
+			this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
+
+			await validMechanism.run(receivedBlock, peerId);
+
+			this.logger.info(
+				{
+					lastBlockHeight: this.chainModule.lastBlock.header.height,
+					lastBlockID: this.chainModule.lastBlock.header.id,
+					mechanism: validMechanism.constructor.name,
+				},
+				'Synchronization finished',
+			);
+		});
 	}
 
 	public get isActive(): boolean {
-		return this.mechanisms.some(m => m.active);
+		return this._mutex.isLocked();
 	}
 
 	public async stop(): Promise<void> {
 		for (const mechanism of this.mechanisms) {
-			await mechanism.stop();
+			mechanism.stop();
+		}
+		while (this.isActive) {
+			await new Promise(resolve => setTimeout(resolve, 10));
 		}
 	}
 

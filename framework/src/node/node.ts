@@ -552,18 +552,8 @@ export class Node {
 		blockSyncMechanism.events.on(
 			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
 			({ block, peerId }: { block: Block; peerId: string }) => {
-				if (this._synchronizer.isActive) {
-					this._logger.debug(
-						{ blockId: block.header.id, peerId },
-						'Synchronizer is already running. Ignoring block to sync',
-					);
-					return;
-				}
 				this._synchronizer.run(block, peerId).catch(err => {
-					this._logger.error(
-						{ err: err as Error },
-						'Error occurred during block synchronization mechanism.',
-					);
+					this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
 				});
 			},
 		);
@@ -571,18 +561,8 @@ export class Node {
 		fastChainSwitchMechanism.events.on(
 			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
 			({ block, peerId }: { block: Block; peerId: string }) => {
-				if (this._synchronizer.isActive) {
-					this._logger.debug(
-						{ blockId: block.header.id, peerId },
-						'Synchronizer is already running. Ignoring block to sync',
-					);
-					return;
-				}
 				this._synchronizer.run(block, peerId).catch(err => {
-					this._logger.error(
-						{ err: err as Error },
-						'Error occurred during fast chain synchronization mechanism.',
-					);
+					this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
 				});
 			},
 		);
@@ -759,13 +739,6 @@ export class Node {
 		this._processor.events.on(
 			EVENT_PROCESSOR_SYNC_REQUIRED,
 			({ block, peerId }: { block: Block; peerId: string }) => {
-				if (this._synchronizer.isActive) {
-					this._logger.debug(
-						{ blockId: block.header.id, peerId },
-						'Synchronizer is already running. Ignoring block to sync',
-					);
-					return;
-				}
 				this._synchronizer.run(block, peerId).catch(err => {
 					this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
 				});

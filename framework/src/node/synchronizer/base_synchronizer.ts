@@ -23,7 +23,6 @@ export const EVENT_SYNCHRONIZER_SYNC_REQUIRED = 'EVENT_SYNCHRONIZER_SYNC_REQUIRE
 
 export abstract class BaseSynchronizer {
 	public events: EventEmitter;
-	public active: boolean;
 
 	protected _logger: Logger;
 	protected _channel: InMemoryChannel;
@@ -32,7 +31,6 @@ export abstract class BaseSynchronizer {
 	protected _stop = false;
 
 	public constructor(logger: Logger, channel: InMemoryChannel, chain: Chain, network: Network) {
-		this.active = false;
 		this._logger = logger;
 		this._channel = channel;
 		this._chain = chain;
@@ -40,11 +38,8 @@ export abstract class BaseSynchronizer {
 		this.events = new EventEmitter();
 	}
 
-	public async stop(): Promise<void> {
+	public stop(): void {
 		this._stop = true;
-		while (this.active) {
-			await new Promise(resolve => setTimeout(resolve, 10));
-		}
 	}
 
 	protected _restartSync(receivedBlock: Block, reason: string): void {
