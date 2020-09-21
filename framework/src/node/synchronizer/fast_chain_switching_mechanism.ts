@@ -56,16 +56,12 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	}
 
 	public async run(receivedBlock: Block, peerId: string): Promise<void> {
-		this.active = true;
-
 		try {
 			const highestCommonBlock = await this._requestLastCommonBlock(peerId);
 			const blocks = await this._queryBlocks(receivedBlock, highestCommonBlock, peerId);
 			this._validateBlocks(blocks, peerId);
 			await this._switchChain(highestCommonBlock as BlockHeader, blocks, peerId);
-			this.active = false;
 		} catch (error) {
-			this.active = false;
 			if (error instanceof ApplyPenaltyAndAbortError) {
 				this._applyPenaltyAndRestartSync(error.peerId, receivedBlock, error.reason);
 				return;

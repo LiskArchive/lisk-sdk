@@ -86,7 +86,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 	// eslint-disable-next-line consistent-return
 	public async run(receivedBlock: Block): Promise<void> {
-		this.active = true;
 		try {
 			const bestPeer = this._computeBestPeer();
 			await this._requestAndValidateLastBlock(bestPeer.peerId);
@@ -96,9 +95,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				lastCommonBlock,
 				bestPeer.peerId,
 			);
-			this.active = false;
 		} catch (error) {
-			this.active = false;
 			if (error instanceof ApplyPenaltyAndRestartError) {
 				this._applyPenaltyAndRestartSync(error.peerId, receivedBlock, error.reason);
 				return;

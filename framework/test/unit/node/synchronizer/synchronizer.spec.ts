@@ -445,15 +445,14 @@ describe('Synchronizer', () => {
 	});
 
 	describe('get isActive()', () => {
-		it('should return false if the synchronizer is not running', () => {
-			synchronizer['mechanisms'][0].active = false;
-			synchronizer['mechanisms'][1].active = false;
+		it('should return false if the synchronizer is not running', async () => {
+			const release = await synchronizer['_mutex'].acquire();
+			release();
 			expect(synchronizer.isActive).toBeFalsy();
 		});
 
-		it('should return true if the synchronizer is running', () => {
-			synchronizer['mechanisms'][0].active = false;
-			synchronizer['mechanisms'][1].active = true;
+		it('should return true if the synchronizer is running', async () => {
+			await synchronizer['_mutex'].acquire();
 			expect(synchronizer.isActive).toBeTruthy();
 		});
 	});
@@ -466,11 +465,13 @@ describe('Synchronizer', () => {
 			aReceivedBlock = createValidDefaultBlock(); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
 		});
 
-		it('should reject with error if there is already an active mechanism', async () => {
-			synchronizer['mechanisms'][0].active = true;
-			await expect(synchronizer.run(aReceivedBlock, aPeerId)).rejects.toThrow(
-				'Synchronizer is already running',
-			);
+		it('should reject with error if there is already an active mechanism', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			synchronizer.run(aReceivedBlock, aPeerId);
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			synchronizer.run(aReceivedBlock, aPeerId);
+			expect(synchronizer['logger'].debug).toHaveBeenCalledTimes(1);
+			expect(synchronizer['logger'].debug).toHaveBeenCalledWith('Synchronizer is already running.');
 		});
 
 		it('should reject with error if required properties are missing (block)', async () => {
@@ -525,7 +526,7 @@ describe('Synchronizer', () => {
 					lastBlockID: chainModule.lastBlock.header.id,
 					mechanism: syncMechanism1.constructor.name,
 				},
-				'Synchronization finished',
+				'Synchronization finished.',
 			);
 			expect(synchronizer.isActive).toBeFalsy();
 		});

@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './job_queue';
+export * from './mutex';
 export * from './scheduler';
