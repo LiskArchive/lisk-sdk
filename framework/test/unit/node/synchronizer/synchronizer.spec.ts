@@ -526,7 +526,7 @@ describe('Synchronizer', () => {
 					lastBlockID: chainModule.lastBlock.header.id,
 					mechanism: syncMechanism1.constructor.name,
 				},
-				'Synchronization finished',
+				'Synchronization finished.',
 			);
 			expect(synchronizer.isActive).toBeFalsy();
 		});
