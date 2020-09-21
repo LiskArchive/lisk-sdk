@@ -145,9 +145,8 @@ export class Synchronizer {
 		for (const mechanism of this.mechanisms) {
 			mechanism.stop();
 		}
-		while (this.isActive) {
-			await new Promise(resolve => setTimeout(resolve, 10));
-		}
+		// Add mutex to wait for the current mutex to finish
+		await this._mutex.acquire();
 	}
 
 	public async loadUnconfirmedTransactions(): Promise<void> {

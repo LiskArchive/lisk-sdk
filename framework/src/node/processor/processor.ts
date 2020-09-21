@@ -114,13 +114,8 @@ export class Processor {
 
 	public async stop(): Promise<void> {
 		this._stop = true;
-		// eslint-disable-next-line no-constant-condition
-		while (true) {
-			if (!this._mutex.isLocked()) {
-				return;
-			}
-			await new Promise(resolve => setTimeout(resolve, 100));
-		}
+		// Add mutex to wait for the current mutex to finish
+		await this._mutex.acquire();
 	}
 
 	// process is for standard processing of block, especially when received from network

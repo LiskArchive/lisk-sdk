@@ -314,13 +314,6 @@ describe('fast_chain_switching_mechanism', () => {
 			await chainModule.init();
 		});
 
-		afterEach(() => {
-			// Independently of the correct execution of the mechanisms, `active` property should be always
-			// set to false upon finishing the execution
-			// eslint-disable-next-line jest/no-standalone-expect
-			expect(fastChainSwitchingMechanism.active).toBeFalsy();
-		});
-
 		describe('when fail to request the common block', () => {
 			it('should give up after trying 10 times, apply penalty and restart the mechanism', async () => {
 				// Arrange
