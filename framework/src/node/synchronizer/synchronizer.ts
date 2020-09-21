@@ -132,7 +132,7 @@ export class Synchronizer {
 					lastBlockID: this.chainModule.lastBlock.header.id,
 					mechanism: validMechanism.constructor.name,
 				},
-				'Synchronization finished',
+				'Synchronization finished.',
 			);
 		});
 	}
