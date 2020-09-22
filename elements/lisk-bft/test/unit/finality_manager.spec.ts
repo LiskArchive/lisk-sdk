@@ -502,6 +502,50 @@ describe('finality_manager', () => {
 					expect(error.message).toContain('Violation of disjointedness condition.');
 				}
 			});
+
+			it('should not update finalized height if calculated value is lower', async () => {
+				const header1 = createFakeBlockHeader({
+					height: 2,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+						maxHeightPrevoted: 200,
+					},
+				});
+				stateStore = (new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: [
+								{
+									address: getAddressFromPublicKey(header1.generatorPublicKey),
+									isConsensusParticipant: false,
+									minActiveHeight: 104,
+								},
+							],
+						}),
+						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(BFTVotingLedgerSchema, {
+							...validatorLedger,
+							ledger: [
+								{
+									height: 200,
+									preVotes: 99,
+									preCommits: 99,
+								},
+							],
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
+
+				const originalFinalizedHeight = 999;
+				finalityManager.finalizedHeight = originalFinalizedHeight;
+				jest.spyOn(finalityManager, 'updateFinalizedHeight');
+				await finalityManager.addBlockHeader(header1, stateStore);
+
+				// Ignores a standby validator from prevotes and precommit calculations
+				expect(finalityManager.updateFinalizedHeight).toHaveBeenCalledTimes(1);
+				expect(finalityManager.finalizedHeight).toEqual(originalFinalizedHeight);
+			});
 		});
 	});
 });
