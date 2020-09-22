@@ -96,12 +96,14 @@ export class ConsensusStateStore {
 			const updatedValue = this._data[key] as Buffer;
 			batch.put(dbKey, updatedValue);
 
+			// finalized height should never be saved to diff, since it will not changed
+			if (key === CONSENSUS_STATE_FINALIZED_HEIGHT_KEY) {
+				continue;
+			}
+
+			// Save diff of changed state
 			const initialValue = this._initialValue[key];
-			if (
-				initialValue !== undefined &&
-				!initialValue.equals(updatedValue) &&
-				key !== CONSENSUS_STATE_FINALIZED_HEIGHT_KEY
-			) {
+			if (initialValue !== undefined && !initialValue.equals(updatedValue)) {
 				stateDiff.updated.push({
 					key: dbKey,
 					value: initialValue,

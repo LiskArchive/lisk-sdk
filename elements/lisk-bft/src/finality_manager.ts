@@ -321,7 +321,12 @@ export class FinalityManager extends EventEmitter {
 		const previouslyFinalizedHeight = this.finalizedHeight;
 
 		if (highestHeightPreCommitted) {
-			this.finalizedHeight = parseInt(highestHeightPreCommitted, 10);
+			const nextFinalizedHeight = parseInt(highestHeightPreCommitted, 10);
+			// If finalized height is lower, do not set
+			if (nextFinalizedHeight < previouslyFinalizedHeight) {
+				return false;
+			}
+			this.finalizedHeight = nextFinalizedHeight;
 		}
 
 		if (previouslyFinalizedHeight !== this.finalizedHeight) {
