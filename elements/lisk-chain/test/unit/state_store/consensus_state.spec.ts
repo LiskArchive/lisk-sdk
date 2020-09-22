@@ -103,6 +103,7 @@ describe('state store / chain_state', () => {
 
 		it('should call storage for all the updated keys', () => {
 			// Act
+			stateStore.consensus.set('finalizedHeight', Buffer.from('3'));
 			stateStore.consensus.set('key3', Buffer.from('value3'));
 			stateStore.consensus.set('key3', Buffer.from('value4'));
 			stateStore.consensus.set('key4', Buffer.from('value5'));
@@ -110,9 +111,18 @@ describe('state store / chain_state', () => {
 			// Assert
 			expect(batchStub.put).toHaveBeenCalledWith('consensus:key3', Buffer.from('value4'));
 			expect(batchStub.put).toHaveBeenCalledWith('consensus:key4', Buffer.from('value5'));
+			expect(batchStub.put).toHaveBeenCalledWith('consensus:finalizedHeight', Buffer.from('3'));
 		});
 
 		it('should return state diff with created and updated values after finalize', () => {
+			// Act
+			stateStore.consensus.set('finalizedHeight', Buffer.from('3'));
+			stateStore.consensus.set('key3', Buffer.from('value3'));
+			stateStore.consensus.set('key3', Buffer.from('value4'));
+			stateStore.consensus.set('key4', Buffer.from('value5'));
+			stateDiff = stateStore.consensus.finalize(batchStub);
+
+			// Assert
 			expect(stateDiff).toStrictEqual({
 				updated: [],
 				created: ['consensus:key3', 'consensus:key4'],

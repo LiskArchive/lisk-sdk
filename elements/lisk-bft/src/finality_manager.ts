@@ -317,21 +317,20 @@ export class FinalityManager extends EventEmitter {
 			.reverse()
 			.find(key => ledger[key].preCommits >= this.preCommitThreshold);
 
+		if (!highestHeightPreCommitted) {
+			return false;
+		}
+
 		// Store current finalizedHeight
 		const previouslyFinalizedHeight = this.finalizedHeight;
-
-		if (highestHeightPreCommitted) {
-			const nextFinalizedHeight = parseInt(highestHeightPreCommitted, 10);
-			// If finalized height is lower, do not set
-			if (nextFinalizedHeight < previouslyFinalizedHeight) {
-				return false;
-			}
-			this.finalizedHeight = nextFinalizedHeight;
+		const nextFinalizedHeight = parseInt(highestHeightPreCommitted, 10);
+		// If finalized height is lower or equal, do not set
+		if (nextFinalizedHeight <= previouslyFinalizedHeight) {
+			return false;
 		}
 
-		if (previouslyFinalizedHeight !== this.finalizedHeight) {
-			this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, this.finalizedHeight);
-		}
+		this.finalizedHeight = nextFinalizedHeight;
+		this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, this.finalizedHeight);
 
 		return true;
 	}
