@@ -120,7 +120,7 @@ export class ChainStateStore {
 			if (initialValue !== undefined && !initialValue.equals(updatedValue)) {
 				stateDiff.updated.push({
 					key: dbKey,
-					value: updatedValue,
+					value: initialValue,
 				});
 			} else if (initialValue === undefined) {
 				stateDiff.created.push(dbKey);
