@@ -381,6 +381,7 @@ describe('Application', () => {
 		let clearControllerPidFileSpy: jest.SpyInstance<any, unknown[]>;
 		let emptySocketsDirectorySpy: jest.SpyInstance<any, unknown[]>;
 		let nodeCleanupSpy: jest.SpyInstance<any, unknown[]>;
+		let controllerCleanupSpy: jest.SpyInstance<any, unknown[]>;
 		let blockChainDBSpy: jest.SpyInstance<any, unknown[]>;
 		let forgerDBSpy: jest.SpyInstance<any, unknown[]>;
 		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
@@ -395,6 +396,7 @@ describe('Application', () => {
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			jest.spyOn(process, 'exit').mockReturnValue(0 as never);
 			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup');
+			controllerCleanupSpy = jest.spyOn((app as any)._controller, 'cleanup');
 			blockChainDBSpy = jest.spyOn((app as any)._blockchainDB, 'close');
 			forgerDBSpy = jest.spyOn((app as any)._forgerDB, 'close');
 			_nodeDBSpy = jest.spyOn((app as any)._nodeDB, 'close');
@@ -412,6 +414,7 @@ describe('Application', () => {
 			expect(blockChainDBSpy).toHaveBeenCalledTimes(1);
 			expect(forgerDBSpy).toHaveBeenCalledTimes(1);
 			expect(_nodeDBSpy).toHaveBeenCalledTimes(1);
+			expect(controllerCleanupSpy).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call clearControllerPidFileSpy method with correct pid file location', async () => {
