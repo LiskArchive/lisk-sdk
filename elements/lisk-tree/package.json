@@ -37,7 +37,7 @@
 	},
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "^3.0.0-alpha.0",
-		"@liskhq/lisk-utils": "^0.1.0-alpha.0"
+		"@liskhq/lisk-utils": "^0.1.0-alpha.1"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.13",

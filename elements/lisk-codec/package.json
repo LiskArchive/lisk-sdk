@@ -36,7 +36,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-utils": "^0.1.0-alpha.0",
+		"@liskhq/lisk-utils": "^0.1.0-alpha.1",
 		"@liskhq/lisk-validator": "^0.5.0-alpha.0"
 	},
 	"devDependencies": {
