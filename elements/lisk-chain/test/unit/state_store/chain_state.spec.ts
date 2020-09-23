@@ -131,8 +131,21 @@ describe('state store / chain_state', () => {
 		});
 
 		it('should return state diff with created and updated values after finalize', () => {
+			const originalValue = Buffer.from('original-value');
+			(stateStore.chain as any)['_initialValue'] = { existing: originalValue };
+			// Act
+			stateStore.chain.set('existing', Buffer.from('value-new'));
+			stateStore.chain.set('key3', Buffer.from('value3'));
+			stateStore.chain.set('key3', Buffer.from('value4'));
+			stateStore.chain.set('key4', Buffer.from('value5'));
+			stateDiff = stateStore.chain.finalize(batchStub);
 			expect(stateDiff).toStrictEqual({
-				updated: [],
+				updated: [
+					{
+						key: 'chain:existing',
+						value: originalValue,
+					},
+				],
 				created: ['chain:key3', 'chain:key4'],
 				deleted: [],
 			});
