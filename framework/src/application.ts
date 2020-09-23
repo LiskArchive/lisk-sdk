@@ -255,13 +255,10 @@ export class Application {
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
 		this.logger.info({ errorCode, message }, 'Application shutdown started');
 
-		if (this._controller) {
-			this._channel.publish('app:shutdown');
-			await this._controller.cleanup(errorCode, message);
-		}
-
 		try {
+			this._channel.publish('app:shutdown');
 			await this._node.cleanup();
+			await this._controller.cleanup(errorCode, message);
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
 			await this._nodeDB.close();

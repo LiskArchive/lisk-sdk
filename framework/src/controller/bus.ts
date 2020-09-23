@@ -208,7 +208,14 @@ export class Bus {
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
-			this._pubSocket.send(eventName, eventValue);
+			try {
+				this._pubSocket.send(eventName, eventValue);
+			} catch (error) {
+				this.logger.debug(
+					{ err: error as Error },
+					`Failed to publish event: ${eventName} to socket.`,
+				);
+			}
 		}
 	}
 
