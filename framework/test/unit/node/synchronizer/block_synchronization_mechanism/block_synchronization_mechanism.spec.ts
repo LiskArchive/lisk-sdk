@@ -324,13 +324,6 @@ describe('block_synchronization_mechanism', () => {
 			);
 		};
 
-		afterEach(() => {
-			// Independently of the correct execution of the mechanisms, `active` property should be always
-			// set to false upon finishing the execution
-			// eslint-disable-next-line jest/no-standalone-expect
-			expect(blockSynchronizationMechanism.active).toBeFalsy();
-		});
-
 		describe('compute the best peer', () => {
 			it('should compute the best peer out of a list of connected peers and return it', async () => {
 				jest.spyOn(bftModule, 'forkChoice');
@@ -620,7 +613,7 @@ describe('block_synchronization_mechanism', () => {
 					const receivedBlock = createValidDefaultBlock({
 						header: {
 							height: lastBlock.header.height + 304,
-							reward: chainModule.calculateReward(lastBlock.header.height + 304),
+							reward: chainModule.calculateDefaultReward(lastBlock.header.height + 304),
 						},
 					});
 

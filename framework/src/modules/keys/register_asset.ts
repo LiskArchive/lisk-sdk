@@ -41,7 +41,7 @@ export const RegisterAssetID = 0;
 export const MAX_KEYS_COUNT = 64;
 
 export class RegisterAsset extends BaseAsset {
-	public name = 'register';
+	public name = 'registerMultisignatureGroup';
 	public id = RegisterAssetID;
 	public schema = keysSchema;
 

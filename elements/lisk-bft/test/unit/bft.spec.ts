@@ -20,6 +20,7 @@ import {
 	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 	CONSENSUS_STATE_VALIDATORS_KEY,
 	validatorsSchema,
+	StateStore,
 } from '@liskhq/lisk-chain';
 import { createFakeBlockHeader } from '../fixtures/blocks';
 import {
@@ -59,7 +60,7 @@ describe('bft', () => {
 		beforeEach(() => {
 			lastBlock = createFakeBlockHeader({ height: 1, version: 2 });
 			chainStub = ({
-				calculateReward: jest.fn(),
+				calculateExpectedReward: jest.fn(),
 				slots: {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
@@ -96,7 +97,7 @@ describe('bft', () => {
 
 		describe('#init', () => {
 			it('should initialize finality manager', async () => {
-				const stateStore = new StateStoreMock();
+				const stateStore = (new StateStoreMock() as unknown) as StateStore;
 				const bft = new BFT(bftParams);
 
 				await bft.init(stateStore);
@@ -106,7 +107,7 @@ describe('bft', () => {
 
 			it('should set the finality height to the value from chain state', async () => {
 				const finalizedHeight = 5;
-				const stateStore = new StateStoreMock(
+				const stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
@@ -119,7 +120,7 @@ describe('bft', () => {
 						}),
 					},
 					{ lastBlockHeaders: [lastBlock] },
-				);
+				) as unknown) as StateStore;
 				const bft = new BFT(bftParams);
 
 				await bft.init(stateStore);
@@ -131,7 +132,7 @@ describe('bft', () => {
 		describe('#verifyBlockHeader', () => {
 			let bft: BFT;
 			let blocks: BlockHeader[];
-			let stateStore: StateStoreMock;
+			let stateStore: StateStore;
 
 			beforeEach(async () => {
 				// Arrange
@@ -143,7 +144,7 @@ describe('bft', () => {
 				});
 
 				bft = new BFT(bftParams);
-				stateStore = new StateStoreMock(
+				stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
@@ -158,13 +159,13 @@ describe('bft', () => {
 						}),
 					},
 					{ lastBlockHeaders: blocks },
-				);
+				) as unknown) as StateStore;
 				await bft.init(stateStore);
 			});
 
 			describe('when BFT protocol is followed', () => {
 				it('should resolve without error', async () => {
-					(chainStub.calculateReward as jest.Mock).mockReturnValue(BigInt(500000000));
+					(chainStub.calculateExpectedReward as jest.Mock).mockReturnValue(BigInt(500000000));
 					const blockHeader = {
 						height: 102,
 						reward: BigInt(500000000),
@@ -183,7 +184,7 @@ describe('bft', () => {
 
 			describe('when BFT protocol is not followed', () => {
 				it('should throw an error if reward is not deducted', async () => {
-					(chainStub.calculateReward as jest.Mock).mockReturnValue(BigInt(500000000));
+					(chainStub.calculateExpectedReward as jest.Mock).mockReturnValue(BigInt(500000000));
 					const blockHeader = {
 						height: 203,
 						reward: BigInt(500000000),
@@ -222,10 +223,10 @@ describe('bft', () => {
 			};
 
 			let bft: BFT;
-			let stateStore: StateStoreMock;
+			let stateStore: StateStore;
 
 			beforeEach(async () => {
-				stateStore = new StateStoreMock(
+				stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
@@ -246,7 +247,7 @@ describe('bft', () => {
 						}),
 					},
 					{ lastBlockHeaders: [lastBlock] },
-				);
+				) as unknown) as StateStore;
 
 				bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -272,7 +273,7 @@ describe('bft', () => {
 		describe('#isBFTProtocolCompliant', () => {
 			let bft: BFT;
 			let blocks: BlockHeader[];
-			let stateStore: StateStoreMock;
+			let stateStore: StateStore;
 
 			beforeEach(async () => {
 				// Arrange
@@ -284,7 +285,7 @@ describe('bft', () => {
 				});
 
 				bft = new BFT(bftParams);
-				stateStore = new StateStoreMock(
+				stateStore = (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
@@ -299,7 +300,7 @@ describe('bft', () => {
 						}),
 					},
 					{ lastBlockHeaders: blocks },
-				);
+				) as unknown) as StateStore;
 				await bft.init(stateStore);
 			});
 

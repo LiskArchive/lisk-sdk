@@ -66,6 +66,7 @@ import { Bus } from '../controller/bus';
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK, EVENT_VALIDATORS_CHANGED } = chainEvents;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
+const MINIMUM_MODULE_ID = 2;
 
 export type NodeOptions = Omit<ApplicationConfig, 'plugins'>;
 
@@ -162,6 +163,9 @@ export class Node {
 		const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 		if (exist) {
 			throw new Error(`Custom module with type ${customModule.id} already exists`);
+		}
+		if (customModule.id < MINIMUM_MODULE_ID) {
+			throw new Error(`Custom module must have id greater than ${MINIMUM_MODULE_ID}`);
 		}
 		if (customModule.accountSchema) {
 			this._registeredAccountSchemas[customModule.name] = {
@@ -545,23 +549,23 @@ export class Node {
 			networkModule: this._networkModule,
 		});
 
-		blockSyncMechanism.events.on(EVENT_SYNCHRONIZER_SYNC_REQUIRED, ({ block, peerId }) => {
-			this._synchronizer.run(block, peerId).catch(err => {
-				this._logger.error(
-					{ err: err as Error },
-					'Error occurred during block synchronization mechanism.',
-				);
-			});
-		});
+		blockSyncMechanism.events.on(
+			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
+			({ block, peerId }: { block: Block; peerId: string }) => {
+				this._synchronizer.run(block, peerId).catch(err => {
+					this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
+				});
+			},
+		);
 
-		fastChainSwitchMechanism.events.on(EVENT_SYNCHRONIZER_SYNC_REQUIRED, ({ block, peerId }) => {
-			this._synchronizer.run(block, peerId).catch(err => {
-				this._logger.error(
-					{ err: err as Error },
-					'Error occurred during fast chain synchronization mechanism.',
-				);
-			});
-		});
+		fastChainSwitchMechanism.events.on(
+			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
+			({ block, peerId }: { block: Block; peerId: string }) => {
+				this._synchronizer.run(block, peerId).catch(err => {
+					this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
+				});
+			},
+		);
 
 		this._forger = new Forger({
 			logger: this._logger,
@@ -732,11 +736,14 @@ export class Node {
 			},
 		);
 
-		this._processor.events.on(EVENT_PROCESSOR_SYNC_REQUIRED, ({ block, peerId }) => {
-			this._synchronizer.run(block, peerId).catch(err => {
-				this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
-			});
-		});
+		this._processor.events.on(
+			EVENT_PROCESSOR_SYNC_REQUIRED,
+			({ block, peerId }: { block: Block; peerId: string }) => {
+				this._synchronizer.run(block, peerId).catch(err => {
+					this._logger.error({ err: err as Error }, 'Error occurred during synchronization.');
+				});
+			},
+		);
 
 		this._transactionPool.events.on(EVENT_TRANSACTION_REMOVED, event => {
 			this._logger.debug(event, 'Transaction was removed from the pool.');

@@ -94,7 +94,7 @@ describe('processor', () => {
 	describe('constructor', () => {
 		describe('when the instance is created', () => {
 			it('should initialize the sequence', () => {
-				expect(processor['_jobQueue']).toBeInstanceOf(jobHandlers.JobQueue);
+				expect(processor['_mutex']).toBeInstanceOf(jobHandlers.Mutex);
 			});
 
 			it('should assign channel to its context', () => {

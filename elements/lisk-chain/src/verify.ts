@@ -72,9 +72,12 @@ export const verifyBlockGenerator = async (
 	const expectedValidator = validators[currentSlot % validators.length];
 
 	// Verify if forger exists and matches the generatorPublicKey on block
-	if (!getAddressFromPublicKey(header.generatorPublicKey).equals(expectedValidator.address)) {
+	const generatorAddress = getAddressFromPublicKey(header.generatorPublicKey);
+	if (!generatorAddress.equals(expectedValidator.address)) {
 		throw new Error(
-			`Failed to verify generator: ${currentSlot.toString()}. Block Height: ${header.height.toString()}`,
+			`Failed to verify generator: ${generatorAddress.toString(
+				'hex',
+			)} Expected: ${expectedValidator.address.toString('hex')}. Block Height: ${header.height}`,
 		);
 	}
 };

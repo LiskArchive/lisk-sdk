@@ -14,14 +14,13 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { BlockHeader, Chain, getValidators } from '@liskhq/lisk-chain';
+import { BlockHeader, Chain, getValidators, StateStore } from '@liskhq/lisk-chain';
 import * as assert from 'assert';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BFT_ROUND_THRESHOLD } from './constant';
 import {
-	StateStore,
 	BFTChainDisjointError,
 	BFTForkChoiceRuleError,
 	BFTInvalidAttributeError,
@@ -318,16 +317,20 @@ export class FinalityManager extends EventEmitter {
 			.reverse()
 			.find(key => ledger[key].preCommits >= this.preCommitThreshold);
 
+		if (!highestHeightPreCommitted) {
+			return false;
+		}
+
 		// Store current finalizedHeight
 		const previouslyFinalizedHeight = this.finalizedHeight;
-
-		if (highestHeightPreCommitted) {
-			this.finalizedHeight = parseInt(highestHeightPreCommitted, 10);
+		const nextFinalizedHeight = parseInt(highestHeightPreCommitted, 10);
+		// If finalized height is lower or equal, do not set
+		if (nextFinalizedHeight <= previouslyFinalizedHeight) {
+			return false;
 		}
 
-		if (previouslyFinalizedHeight !== this.finalizedHeight) {
-			this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, this.finalizedHeight);
-		}
+		this.finalizedHeight = nextFinalizedHeight;
+		this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, this.finalizedHeight);
 
 		return true;
 	}

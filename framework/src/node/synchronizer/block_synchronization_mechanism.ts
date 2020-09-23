@@ -15,7 +15,7 @@
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { BaseSynchronizer, EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './base_synchronizer';
+import { BaseSynchronizer } from './base_synchronizer';
 import {
 	computeLargestSubsetMaxBy,
 	computeBlockHeightsList,
@@ -86,7 +86,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 	// eslint-disable-next-line consistent-return
 	public async run(receivedBlock: Block): Promise<void> {
-		this.active = true;
 		try {
 			const bestPeer = this._computeBestPeer();
 			await this._requestAndValidateLastBlock(bestPeer.peerId);
@@ -96,21 +95,20 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				lastCommonBlock,
 				bestPeer.peerId,
 			);
-			this.active = false;
 		} catch (error) {
-			this.active = false;
 			if (error instanceof ApplyPenaltyAndRestartError) {
 				this._applyPenaltyAndRestartSync(error.peerId, receivedBlock, error.reason);
+				return;
 			}
 
 			if (error instanceof RestartError) {
-				this.events.emit(EVENT_SYNCHRONIZER_SYNC_REQUIRED, {
-					block: receivedBlock,
-				});
+				this._restartSync(receivedBlock, error.reason);
+				return;
 			}
 
 			if (error instanceof AbortError) {
 				this._logger.info({ error, reason: error.reason }, 'Aborting synchronization mechanism');
+				return;
 			}
 
 			throw error; // If the error is none of the mentioned above, throw.

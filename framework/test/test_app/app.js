@@ -28,15 +28,11 @@ const {
 process.env.NODE_ENV = 'test';
 
 let app;
-const dummyLastCommitId = 'a4adbfb7651874c5746dbc389b281a111af79e96';
-const dummyBuildVersion = '#buildVersion';
 
 const appConfig = {
 	version: '3.0.0',
 	networkVersion: '2.0',
 	label: 'lisk-devnet',
-	lastCommitId: dummyLastCommitId,
-	buildVersion: dummyBuildVersion,
 	ipc: {
 		enabled: true,
 	},

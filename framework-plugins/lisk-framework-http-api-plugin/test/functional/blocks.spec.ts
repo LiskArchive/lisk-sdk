@@ -96,7 +96,18 @@ describe('Blocks endpoints', () => {
 
 			expect(status).toBe(400);
 			expect(response).toEqual({
-				errors: [{ message: 'The block height query parameter should be a number.' }],
+				errors: [{ message: 'The block height query parameter should be a number within uint32.' }],
+			});
+		});
+
+		it('should respond with 400 and error message when height is bigger than uint32', async () => {
+			const { response, status } = await callNetwork(
+				axios.get(getURL('/api/blocks/?height=-2394890238432')),
+			);
+
+			expect(status).toBe(400);
+			expect(response).toEqual({
+				errors: [{ message: 'The block height query parameter should be a number within uint32.' }],
 			});
 		});
 	});

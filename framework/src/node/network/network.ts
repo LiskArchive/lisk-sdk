@@ -54,6 +54,8 @@ const REMOTE_ACTIONS_WHITE_LIST = [
 	'getHighestCommonBlock',
 ];
 
+const REMOTE_EVENTS_WHITE_LIST = ['postTransactionsAnnouncement', 'postBlock', 'postNodeInfo'];
+
 interface NodeInfoOptions {
 	[key: string]: unknown;
 	readonly lastBlockID: Buffer;
@@ -347,6 +349,17 @@ export class Network {
 		this._p2p.on(
 			EVENT_MESSAGE_RECEIVED,
 			(packet: { readonly peerId: string; readonly event: string }) => {
+				if (!REMOTE_EVENTS_WHITE_LIST.includes(packet.event)) {
+					const error = new Error(`Sent event "${packet.event}" is not permitted.`);
+					this._logger.error(
+						{ err: error, event: packet.event },
+						'Peer request not fulfilled. Sent event is not permitted.',
+					);
+					// Ban peer on if non-permitted procedure is requested
+					this._p2p.applyPenalty({ peerId: packet.peerId, penalty: 100 });
+
+					return;
+				}
 				this._logger.trace(
 					{
 						peerId: packet.peerId,
