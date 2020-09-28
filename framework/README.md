@@ -6,7 +6,7 @@
 
 ## What is Lisk Framework
 
-Lisk Framework is an application framework to create a blockchain application compatible with Lisk protocol.
+Lisk Framework is an application framework to create a blockchain application compatible with the Lisk protocol.
 It provides an application where off-chain and on-chain logic can be extended with user defined plugins and modules.
 
 ### Architecture Overview
@@ -17,7 +17,7 @@ The diagram below provides a high-level overview of the architecture:
 
 The framework consists of 3 main parts, an application, a controller and a node.
 
-The application is an entry point and manages the controller and the node. The node is responsible for blockchain protocol logic using user defined modules, while the controller is responsible for maintaining plugins and managing interaction between plugins and the application.
+The application is an entry point and manages the controller and the node. The node is responsible for blockchain protocol logic using user defined modules, while the controller is responsible for maintaining plugins and managing the interaction between plugins and the application.
 
 ## Installation
 
