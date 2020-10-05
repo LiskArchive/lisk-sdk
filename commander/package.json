@@ -53,9 +53,6 @@
 			"account": {
 				"description": "Commands relating to Lisk accounts."
 			},
-			"copyright": {
-				"description": "Displays copyright notice."
-			},
 			"help": {
 				"description": "Displays help."
 			},
@@ -64,9 +61,6 @@
 			},
 			"passphrase": {
 				"description": "Commands relating to Lisk passphrases."
-			},
-			"warranty": {
-				"description": "Displays warranty notice."
 			}
 		}
 	},
