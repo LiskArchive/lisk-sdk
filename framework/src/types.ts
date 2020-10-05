@@ -228,7 +228,6 @@ export interface AfterBlockApplyContext extends BeforeBlockApplyContext {
 }
 
 export interface ApplyAssetContext<T> {
-	senderAddress: Buffer;
 	asset: T;
 	stateStore: StateStore;
 	reducerHandler: ReducerHandler;

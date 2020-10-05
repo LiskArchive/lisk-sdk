@@ -68,7 +68,6 @@ describe('Transfer asset', () => {
 			expect(async () =>
 				transferAsset.apply({
 					asset: validTransaction.asset,
-					senderAddress: validTransaction.address,
 					stateStore,
 					reducerHandler,
 					transaction: validTransaction,
@@ -79,12 +78,11 @@ describe('Transfer asset', () => {
 		it('should call state store with a valid transfer asset', async () => {
 			await transferAsset.apply({
 				asset: validTransaction.asset,
-				senderAddress: validTransaction.address,
 				stateStore,
 				reducerHandler,
 				transaction: validTransaction,
 			});
-			expect(stateStore.account.get).toHaveBeenCalledWith(validTransaction.address);
+			expect(stateStore.account.get).toHaveBeenCalledWith(validTransaction.senderAddress);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(
 				sender.address,
 				expect.objectContaining({
@@ -113,7 +111,6 @@ describe('Transfer asset', () => {
 			return expect(async () =>
 				transferAsset.apply({
 					asset: validTransaction.asset,
-					senderAddress: validTransaction.address,
 					stateStore,
 					reducerHandler,
 					transaction: validTransaction,
@@ -136,7 +133,6 @@ describe('Transfer asset', () => {
 			return expect(async () =>
 				transferAsset.apply({
 					asset: { ...validTransaction.asset, amount: BigInt(0) },
-					senderAddress: validTransaction.address,
 					stateStore,
 					reducerHandler,
 					transaction: validTransaction,

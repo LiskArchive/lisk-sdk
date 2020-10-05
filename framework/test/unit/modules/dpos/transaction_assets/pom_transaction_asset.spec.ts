@@ -70,7 +70,9 @@ describe('PomTransactionAsset', () => {
 		);
 		transactionAsset = new PomTransactionAsset();
 		applyContext = ({
-			senderAddress: sender.address,
+			transaction: {
+				senderAddress: sender.address,
+			},
 			asset: {
 				header1: {},
 				header2: {},
@@ -333,7 +335,7 @@ describe('PomTransactionAsset', () => {
 			await transactionAsset.apply(applyContext);
 
 			expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
-				address: applyContext.senderAddress,
+				address: applyContext.transaction.senderAddress,
 				amount: lastBlockReward,
 			});
 		});
@@ -352,7 +354,7 @@ describe('PomTransactionAsset', () => {
 			await transactionAsset.apply(applyContext);
 
 			expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
-				address: applyContext.senderAddress,
+				address: applyContext.transaction.senderAddress,
 				amount: BigInt(0),
 			});
 		});
@@ -371,7 +373,7 @@ describe('PomTransactionAsset', () => {
 			await transactionAsset.apply(applyContext);
 
 			expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
-				address: applyContext.senderAddress,
+				address: applyContext.transaction.senderAddress,
 				amount: remainingBalance - minRemainingBalance,
 			});
 		});
@@ -408,7 +410,7 @@ describe('PomTransactionAsset', () => {
 		});
 
 		it('should not return balance if sender and delegate account are same', async () => {
-			applyContext.senderAddress = misBehavingDelegate.address;
+			(applyContext.transaction as any).senderAddress = misBehavingDelegate.address;
 
 			await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
 		});
