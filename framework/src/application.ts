@@ -286,7 +286,9 @@ export class Application {
 		const InstantiableModule = Module as InstantiableBaseModule;
 		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
 		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
-			throw new Error(`Custom module must have id greater than ${MINIMUM_EXTERNAL_MODULE_ID}`);
+			throw new Error(
+				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
+			);
 		}
 		this._node.registerModule(moduleInstance);
 	}
