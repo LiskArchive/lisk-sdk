@@ -309,7 +309,6 @@ export class Processor {
 				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler: this._createReducerHandler(stateStore),
-					senderAddress: transaction.senderAddress,
 					stateStore: this._createScopedStateStore(stateStore, moduleName),
 					transaction,
 				});
@@ -382,7 +381,6 @@ export class Processor {
 				await customAsset.apply({
 					asset: decodedAsset,
 					reducerHandler,
-					senderAddress: transaction.senderAddress,
 					stateStore: this._createScopedStateStore(stateStore, moduleName),
 					transaction,
 				});
