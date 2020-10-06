@@ -684,14 +684,13 @@ describe('Transport', () => {
 
 	describe('Handle rate limiting', () => {
 		const defaultPeerId = 'peer-id';
-		const DEFAULT_BLOCK_RATE_LIMIT_FREQUENCY = {
-			getBlocksFromId: 100,
-			getLastBlock: 10,
-			getHighestCommonBlock: 10,
-		};
-		describe(`when getLastBlock is called more than ${DEFAULT_BLOCK_RATE_LIMIT_FREQUENCY.getLastBlock} times within 10 sec`, () => {
+		const DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY = 10;
+		const DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY = 10;
+		const DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY = 100;
+
+		describe(`when getLastBlock is called more than ${DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY} times within 10 sec`, () => {
 			it('should apply penalty', () => {
-				[...new Array(DEFAULT_BLOCK_RATE_LIMIT_FREQUENCY.getLastBlock + 1)].map(() =>
+				[...new Array(DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY + 1)].map(() =>
 					transport.handleRPCGetLastBlock(defaultPeerId),
 				);
 
@@ -703,9 +702,9 @@ describe('Transport', () => {
 			});
 		});
 
-		describe(`when getBlocksFromId is called more than ${DEFAULT_BLOCK_RATE_LIMIT_FREQUENCY.getBlocksFromId} times within 10 sec`, () => {
+		describe(`when getBlocksFromId is called more than ${DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY} times within 10 sec`, () => {
 			it('should apply penalty', () => {
-				[...new Array(DEFAULT_BLOCK_RATE_LIMIT_FREQUENCY.getBlocksFromId + 1)].map(async () =>
+				[...new Array(DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY + 1)].map(async () =>
 					transport.handleRPCGetBlocksFromId({ blockId: '123' }, defaultPeerId),
 				);
 
@@ -717,13 +716,13 @@ describe('Transport', () => {
 			});
 		});
 
-		describe(`when getHighestCommonBlock is called more than ${DEFAULT_BLOCK_RATE_LIMIT_FREQUENCY.getHighestCommonBlock} times within 10 sec`, () => {
+		describe(`when getHighestCommonBlock is called more than ${DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY} times within 10 sec`, () => {
 			const validData = {
 				ids: ['15196562876801949910'],
 			};
 
 			it('should apply penalty when called ', async () => {
-				[...new Array(DEFAULT_BLOCK_RATE_LIMIT_FREQUENCY.getHighestCommonBlock + 1)].map(async () =>
+				[...new Array(DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY + 1)].map(async () =>
 					transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId),
 				);
 
