@@ -176,7 +176,7 @@ export class Transport {
 		return blocks.map(block => this._chainModule.dataAccess.encode(block).toString('hex'));
 	}
 
-	public async handleRPCGetGetHighestCommonBlock(
+	public async handleRPCGetHighestCommonBlock(
 		data: unknown,
 		peerId: string,
 	): Promise<string | undefined> {

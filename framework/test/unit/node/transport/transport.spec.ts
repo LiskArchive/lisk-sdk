@@ -24,6 +24,7 @@ describe('Transport', () => {
 	const defaultReleaseLimit = 100;
 	const encodedBlock = Buffer.from('encodedBlock');
 	const networkIdentifier = '93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
+	const defaultRateLimit = 10000;
 
 	let transport: any;
 	let transactionPoolStub: any;
@@ -64,8 +65,11 @@ describe('Transport', () => {
 				getTransactionByID: jest.fn(),
 				getTransactionsByIDs: jest.fn(),
 				getHighestCommonBlockHeader: jest.fn(),
+				getBlockHeaderByID: jest.fn().mockReturnValue({ height: 123 }),
+				getBlocksByHeightBetween: jest.fn().mockReturnValue([{ height: 123 }]),
 				decodeTransaction: jest.fn(),
 				encodeBlockHeader: jest.fn().mockReturnValue(encodedBlock),
+				encode: jest.fn().mockReturnValue(encodedBlock),
 			},
 		};
 		processorStub = {
@@ -263,7 +267,7 @@ describe('Transport', () => {
 		});
 	});
 
-	describe('handleRPCGetGetHighestCommonBlock', () => {
+	describe('handleRPCGetHighestCommonBlock', () => {
 		const defaultPeerId = 'peer-id';
 
 		describe('when schema validation fails', () => {
@@ -272,7 +276,7 @@ describe('Transport', () => {
 					noKey: ['random', 'string'],
 				};
 				await expect(
-					transport.handleRPCGetGetHighestCommonBlock(invalidData, defaultPeerId),
+					transport.handleRPCGetHighestCommonBlock(invalidData, defaultPeerId),
 				).rejects.toMatchObject(
 					expect.objectContaining({
 						message: expect.stringContaining('should have required property'),
@@ -295,7 +299,7 @@ describe('Transport', () => {
 					ids: [Buffer.from('15196562876801949910').toString('hex')],
 				};
 
-				const result = await transport.handleRPCGetGetHighestCommonBlock(validData, defaultPeerId);
+				const result = await transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId);
 				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(
 					validData.ids.map(id => Buffer.from(id, 'hex')),
 				);
@@ -317,7 +321,7 @@ describe('Transport', () => {
 					ids: ['15196562876801949910'],
 				};
 
-				const result = await transport.handleRPCGetGetHighestCommonBlock(validData, defaultPeerId);
+				const result = await transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId);
 				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(
 					validData.ids.map(id => Buffer.from(id, 'hex')),
 				);
@@ -329,8 +333,6 @@ describe('Transport', () => {
 	describe('handleRPCGetTransactions', () => {
 		const defaultPeerId = 'peer-id';
 		describe('when it is called more than 3 times within 10 sec', () => {
-			const defaultRateLimit = 10000;
-
 			it('should apply penalty', async () => {
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
@@ -532,8 +534,6 @@ describe('Transport', () => {
 		});
 
 		describe('when it is called more than 3 times within 10 sec', () => {
-			const defaultRateLimit = 10000;
-
 			it('should apply penalty', async () => {
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
@@ -678,6 +678,58 @@ describe('Transport', () => {
 				expect(processorStub.validateTransaction).toHaveBeenCalledTimes(1);
 				expect(transactionPoolStub.contains).toHaveBeenCalledTimes(3);
 				expect(transactionPoolStub.add).toHaveBeenCalledTimes(1);
+			});
+		});
+	});
+
+	describe('Handle rate limiting', () => {
+		const defaultPeerId = 'peer-id';
+		describe('when getLastBlock is called more than 3 times within 10 sec', () => {
+			it('should apply penalty', () => {
+				transport.handleRPCGetLastBlock(defaultPeerId);
+				transport.handleRPCGetLastBlock(defaultPeerId);
+				transport.handleRPCGetLastBlock(defaultPeerId);
+				transport.handleRPCGetLastBlock(defaultPeerId);
+
+				jest.advanceTimersByTime(defaultRateLimit);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 10,
+				});
+			});
+		});
+
+		describe('when getBlocksFromId is called more than 3 times within 10 sec', () => {
+			it('should apply penalty', async () => {
+				await transport.handleRPCGetBlocksFromId({ blockId: '123' }, defaultPeerId);
+				await transport.handleRPCGetBlocksFromId({ blockId: '123' }, defaultPeerId);
+				await transport.handleRPCGetBlocksFromId({ blockId: '123' }, defaultPeerId);
+				await transport.handleRPCGetBlocksFromId({ blockId: '123' }, defaultPeerId);
+
+				jest.advanceTimersByTime(defaultRateLimit);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 10,
+				});
+			});
+		});
+
+		describe('when getHighestCommonBlock is called more than 3 times within 10 sec', () => {
+			const validData = {
+				ids: ['15196562876801949910'],
+			};
+
+			it('should apply penalty when called ', async () => {
+				await transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId);
+				await transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId);
+				await transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId);
+				await transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId);
+
+				jest.advanceTimersByTime(defaultRateLimit);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 10,
+				});
 			});
 		});
 	});

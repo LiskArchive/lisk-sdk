@@ -431,7 +431,7 @@ export class Node {
 				data: unknown;
 				peerId: string;
 			}): Promise<string | undefined> =>
-				this._transport.handleRPCGetGetHighestCommonBlock(params.data, params.peerId),
+				this._transport.handleRPCGetHighestCommonBlock(params.data, params.peerId),
 			getSchema: () => this.getSchema(),
 			getRegisteredModules: () => this.getRegisteredModules(),
 			getNodeInfo: () => ({
