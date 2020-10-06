@@ -132,7 +132,13 @@ export class Transport {
 		});
 	}
 
+	public handleRPCGetLastBlock(peerId: string): string {
+		this._addRateLimit('getLastBlock', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
+		return this._chainModule.dataAccess.encode(this._chainModule.lastBlock).toString('hex');
+	}
+
 	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<string[]> {
+		this._addRateLimit('getBlocksFromId', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		const errors = validator.validate(schemas.getBlocksFromIdRequest, data as object);
 
 		if (errors.length) {
@@ -174,6 +180,7 @@ export class Transport {
 		data: unknown,
 		peerId: string,
 	): Promise<string | undefined> {
+		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		const errors = validator.validate(schemas.getHighestCommonBlockRequest, data as object);
 
 		if (errors.length) {
