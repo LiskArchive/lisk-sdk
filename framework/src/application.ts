@@ -367,7 +367,8 @@ export class Application {
 						this._node.actions.postTransaction(action.params as EventPostTransactionData),
 				},
 				getLastBlock: {
-					handler: async (_action: ActionInfoObject) => this._node.actions.getLastBlock(),
+					handler: (action: ActionInfoObject) =>
+						this._node.actions.getLastBlock(action.params as { peerId: string }),
 				},
 				getBlocksFromId: {
 					handler: async (action: ActionInfoObject) =>
