@@ -51,14 +51,12 @@ export class TransferAsset extends BaseAsset {
 		this._minRemainingBalance = minRemainingBalance;
 	}
 
-	public async apply({
-		asset,
-		senderAddress,
-		stateStore,
-	}: ApplyAssetContext<Asset>): Promise<void> {
-		const sender = await stateStore.account.get<TokenAccount>(senderAddress);
+	public async apply({ asset, transaction, stateStore }: ApplyAssetContext<Asset>): Promise<void> {
+		const sender = await stateStore.account.get<TokenAccount>(transaction.senderAddress);
 		if (!sender) {
-			throw new Error(`Account does not exist for senderAddress: ${senderAddress.toString('hex')}`);
+			throw new Error(
+				`Account does not exist for senderAddress: ${transaction.senderAddress.toString('hex')}`,
+			);
 		}
 		sender.token.balance -= asset.amount;
 		await stateStore.account.set(sender.address, sender);
