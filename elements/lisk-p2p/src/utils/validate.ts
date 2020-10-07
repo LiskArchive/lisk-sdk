@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { isIP, isPort } from '@liskhq/lisk-validator';
+import { isIP, isPort, validator } from '@liskhq/lisk-validator';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -194,4 +194,30 @@ export const validateProtocolMessage = (message: unknown): P2PMessagePacket => {
 	}
 
 	return protocolMessage;
+};
+
+const messageSchema = {
+	type: 'object',
+	additionalProperties: false,
+	properties: {
+		event: {
+			type: 'string',
+		},
+		cid: {
+			type: 'integer',
+		},
+		rid: {
+			type: 'integer',
+		},
+		data: {
+			type: ['object', 'string'],
+		},
+	},
+};
+
+export const validateMessage = (message: P2PMessagePacket): void => {
+	const errors = validator.validate(messageSchema, message);
+	if (errors.length) {
+		throw new Error('Invalid message schema');
+	}
 };
