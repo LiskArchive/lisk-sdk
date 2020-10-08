@@ -399,7 +399,6 @@ describe('register asset', () => {
 				registerAsset.apply({
 					stateStore,
 					asset: validTestTransaction.asset,
-					senderAddress: validTestTransaction.address,
 					reducerHandler,
 					transaction: validTestTransaction,
 				}),
@@ -410,12 +409,11 @@ describe('register asset', () => {
 			await registerAsset.apply({
 				stateStore,
 				asset: validTestTransaction.asset,
-				senderAddress: validTestTransaction.address,
 				reducerHandler,
 				transaction: validTestTransaction,
 			});
 
-			expect(storeAccountGetStub).toHaveBeenCalledWith(validTestTransaction.senderId);
+			expect(storeAccountGetStub).toHaveBeenCalledWith(validTestTransaction.senderAddress);
 
 			expect(storeAccountSetStub).toHaveBeenCalledWith(
 				multisignatureSender.address,
@@ -430,7 +428,6 @@ describe('register asset', () => {
 				registerAsset.apply({
 					stateStore,
 					asset: validTestTransaction.asset,
-					senderAddress: validTestTransaction.address,
 					reducerHandler,
 					transaction: validTestTransaction,
 				}),

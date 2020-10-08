@@ -286,7 +286,9 @@ export class Application {
 		const InstantiableModule = Module as InstantiableBaseModule;
 		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
 		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
-			throw new Error(`Custom module must have id greater than ${MINIMUM_EXTERNAL_MODULE_ID}`);
+			throw new Error(
+				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
+			);
 		}
 		this._node.registerModule(moduleInstance);
 	}
@@ -365,7 +367,8 @@ export class Application {
 						this._node.actions.postTransaction(action.params as EventPostTransactionData),
 				},
 				getLastBlock: {
-					handler: async (_action: ActionInfoObject) => this._node.actions.getLastBlock(),
+					handler: (action: ActionInfoObject) =>
+						this._node.actions.getLastBlock(action.params as { peerId: string }),
 				},
 				getBlocksFromId: {
 					handler: async (action: ActionInfoObject) =>

@@ -35,7 +35,9 @@ describe('RegisterTransactionAsset', () => {
 		});
 		transactionAsset = new RegisterTransactionAsset();
 		context = {
-			senderAddress: sender.address,
+			transaction: {
+				senderAddress: sender.address,
+			},
 			asset: {
 				username: 'delegate',
 			},
@@ -166,7 +168,7 @@ describe('RegisterTransactionAsset', () => {
 			await transactionAsset.apply(context);
 
 			// Assert
-			expect(stateStoreMock.account.get).toHaveBeenCalledWith(context.senderAddress);
+			expect(stateStoreMock.account.get).toHaveBeenCalledWith(context.transaction.senderAddress);
 			expect(stateStoreMock.account.set).toHaveBeenCalledWith(sender.address, {
 				...sender,
 				dpos: {
