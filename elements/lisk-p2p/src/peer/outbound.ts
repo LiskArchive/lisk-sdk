@@ -128,7 +128,7 @@ export class OutboundPeer extends Peer {
 			connectTimeout,
 			ackTimeout,
 			multiplex: false,
-			autoConnect: false,
+			autoConnect: true,
 			autoReconnect: false,
 			maxPayload: this._peerConfig.wsMaxPayload,
 		};
@@ -194,6 +194,15 @@ export class OutboundPeer extends Peer {
 		// Bind RPC and remote event handlers
 		outboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+		const transportSocket = (outboundSocket as any).transport;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		if (transportSocket?.socket && transportSocket.socket.on) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+			transportSocket.socket.on(REMOTE_EVENT_PING, () => this.applyPenalty(100));
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+			transportSocket.socket.on(REMOTE_EVENT_PONG, () => this.applyPenalty(100));
+		}
 	}
 
 	// All event handlers for the outbound socket should be unbound in this method.
