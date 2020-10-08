@@ -209,6 +209,7 @@ export class Peer extends EventEmitter {
 				}
 			}
 
+			// Discovery requests are only allowed once per second. If it exceeds that, we prevent the request from propagating.
 			if (
 				PROTOCOL_EVENTS_TO_RATE_LIMIT.has(rawRequest.procedure) &&
 				this._peerInfo.internalState.rpcCounter.has(rawRequest.procedure)

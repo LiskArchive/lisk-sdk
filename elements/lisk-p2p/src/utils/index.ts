@@ -13,7 +13,7 @@
  *
  */
 /* eslint-disable import/no-cycle */
-export * from './misc';
+export * from './network';
 export * from './sanitize';
 export * from './select';
 export * from './validate';

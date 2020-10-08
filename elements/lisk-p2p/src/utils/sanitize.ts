@@ -29,7 +29,7 @@ import {
 } from '../types';
 
 // eslint-disable-next-line import/no-cycle
-import { constructPeerId, getNetgroup } from './misc';
+import { constructPeerId, getNetgroup } from './network';
 
 export const assignInternalInfo = (peerInfo: P2PPeerInfo, secret: number): P2PInternalState =>
 	peerInfo.internalState
