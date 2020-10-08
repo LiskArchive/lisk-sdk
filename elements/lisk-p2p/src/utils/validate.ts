@@ -233,9 +233,8 @@ export const isEmptyMessage = (data: unknown): boolean => {
 
 	if (
 		typeof data === 'object' &&
-		data !== null &&
 		!Array.isArray(data) &&
-		Object.keys(data).length === 0
+		Object.keys(data as Record<string, unknown>).length === 0
 	) {
 		return true;
 	}
