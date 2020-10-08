@@ -196,11 +196,14 @@ export const validateProtocolMessage = (message: unknown): P2PMessagePacket => {
 	return protocolMessage;
 };
 
-const messageSchema = {
+const packetSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
 		event: {
+			type: 'string',
+		},
+		procedure: {
 			type: 'string',
 		},
 		cid: {
@@ -215,9 +218,31 @@ const messageSchema = {
 	},
 };
 
-export const validateMessage = (message: P2PMessagePacket): void => {
-	const errors = validator.validate(messageSchema, message);
+export const validatePacket = (packet: unknown): void => {
+	const errors = validator.validate(packetSchema, packet as P2PMessagePacket | P2PRequestPacket);
+
 	if (errors.length) {
-		throw new Error('Invalid message schema');
+		throw new Error('Packet format is invalid.');
 	}
+};
+
+export const isEmptyMessage = (data: unknown): boolean => {
+	if (data === undefined || data === null) {
+		return true;
+	}
+
+	if (
+		typeof data === 'object' &&
+		data !== null &&
+		!Array.isArray(data) &&
+		Object.keys(data).length === 0
+	) {
+		return true;
+	}
+
+	if (Array.isArray(data) && data.length === 0) {
+		return true;
+	}
+
+	return false;
 };
