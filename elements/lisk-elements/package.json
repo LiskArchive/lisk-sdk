@@ -42,7 +42,7 @@
 		"@liskhq/lisk-cryptography": "^3.0.0-alpha.0",
 		"@liskhq/lisk-db": "^0.1.0-alpha.0",
 		"@liskhq/lisk-genesis": "^0.1.0-alpha.1",
-		"@liskhq/lisk-p2p": "^0.6.0-alpha.1",
+		"@liskhq/lisk-p2p": "^0.6.0-alpha.2",
 		"@liskhq/lisk-passphrase": "^3.0.1-alpha.0",
 		"@liskhq/lisk-transaction-pool": "^0.4.0-alpha.1",
 		"@liskhq/lisk-transactions": "^5.0.0-alpha.0",
