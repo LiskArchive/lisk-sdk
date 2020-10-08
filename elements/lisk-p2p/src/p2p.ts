@@ -105,6 +105,7 @@ import {
 } from './utils';
 import { nodeInfoSchema, mergeCustomSchema, defaultRPCSchemas, peerInfoSchema } from './schema';
 import { encodeNodeInfo, encodePeerInfo } from './utils/codec';
+import { isEmptyMessage } from './utils/validate';
 
 const createPeerPoolConfig = (config: P2PConfig, peerBook: PeerBook): PeerPoolConfig => ({
 	hostPort: config.port,
@@ -668,6 +669,15 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
+		if (!isEmptyMessage(request.data)) {
+			this.applyPenalty({
+				peerId: request.peerId,
+				penalty: 100,
+			});
+			request.error(new Error('Invalid request.'));
+
+			return;
+		}
 		const encodedNodeInfo = encodeNodeInfo(this._rpcSchemas.nodeInfo, this._nodeInfo).toString(
 			'hex',
 		);
@@ -740,6 +750,16 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
+		if (!isEmptyMessage(request.data)) {
+			this.applyPenalty({
+				peerId: request.peerId,
+				penalty: 100,
+			});
+			request.error(new Error('Invalid request.'));
+
+			return;
+		}
+
 		const minimumPeerDiscoveryThreshold = this._config.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;

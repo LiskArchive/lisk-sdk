@@ -171,6 +171,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 					if (this._stop) {
 						return;
 					}
+					this.processorModule.validate(block);
 					await this.processorModule.processValidated(block);
 				}
 			} catch (err) {

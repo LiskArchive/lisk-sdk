@@ -36,6 +36,9 @@ import { ApplyPenaltyError } from '../../errors';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
+const DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY = 10;
+const DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY = 10;
+const DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY = 100;
 const DEFAULT_RELEASE_LIMIT = 100;
 const DEFAULT_RELEASE_INTERVAL = 5000;
 
@@ -132,7 +135,13 @@ export class Transport {
 		});
 	}
 
+	public handleRPCGetLastBlock(peerId: string): string {
+		this._addRateLimit('getLastBlock', peerId, DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY);
+		return this._chainModule.dataAccess.encode(this._chainModule.lastBlock).toString('hex');
+	}
+
 	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<string[]> {
+		this._addRateLimit('getBlocksFromId', peerId, DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY);
 		const errors = validator.validate(schemas.getBlocksFromIdRequest, data as object);
 
 		if (errors.length) {
@@ -170,10 +179,11 @@ export class Transport {
 		return blocks.map(block => this._chainModule.dataAccess.encode(block).toString('hex'));
 	}
 
-	public async handleRPCGetGetHighestCommonBlock(
+	public async handleRPCGetHighestCommonBlock(
 		data: unknown,
 		peerId: string,
 	): Promise<string | undefined> {
+		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY);
 		const errors = validator.validate(schemas.getHighestCommonBlockRequest, data as object);
 
 		if (errors.length) {

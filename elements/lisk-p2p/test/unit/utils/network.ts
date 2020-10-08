@@ -25,7 +25,7 @@ import {
 } from '../../../src/utils';
 import { DEFAULT_RANDOM_SECRET } from '../../../src/constants';
 
-describe('utils/misc', () => {
+describe('utils/network', () => {
 	const MAX_GROUP_NUM = 255;
 	const MAX_NEW_BUCKETS = 128;
 	const MAX_TRIED_BUCKETS = 64;
@@ -243,7 +243,7 @@ describe('utils/misc', () => {
 			expect(firstBucket).toEqual(secondBucket);
 		});
 
-		it('should return ifferent buckets for local and private target addresses', () => {
+		it('should return different buckets for local and private target addresses', () => {
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: localAddress,

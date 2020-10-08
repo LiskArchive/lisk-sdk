@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { isIP, isPort } from '@liskhq/lisk-validator';
+import { isIP, isPort, validator } from '@liskhq/lisk-validator';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -194,4 +194,54 @@ export const validateProtocolMessage = (message: unknown): P2PMessagePacket => {
 	}
 
 	return protocolMessage;
+};
+
+const packetSchema = {
+	type: 'object',
+	additionalProperties: false,
+	properties: {
+		event: {
+			type: 'string',
+		},
+		procedure: {
+			type: 'string',
+		},
+		cid: {
+			type: 'integer',
+		},
+		rid: {
+			type: 'integer',
+		},
+		data: {
+			type: ['object', 'string'],
+		},
+	},
+};
+
+export const validatePacket = (packet: unknown): void => {
+	const errors = validator.validate(packetSchema, packet as P2PMessagePacket | P2PRequestPacket);
+
+	if (errors.length) {
+		throw new Error('Packet format is invalid.');
+	}
+};
+
+export const isEmptyMessage = (data: unknown): boolean => {
+	if (data === undefined || data === null) {
+		return true;
+	}
+
+	if (
+		typeof data === 'object' &&
+		!Array.isArray(data) &&
+		Object.keys(data as Record<string, unknown>).length === 0
+	) {
+		return true;
+	}
+
+	if (Array.isArray(data) && data.length === 0) {
+		return true;
+	}
+
+	return false;
 };

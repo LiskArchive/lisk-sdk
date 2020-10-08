@@ -857,12 +857,16 @@ describe('block_synchronization_mechanism', () => {
 					requestedBlocks.findIndex(block => block.header.id.equals(aBlock.header.id)) + 1,
 				);
 
+				// Lastblock is also validated
+				expect(processorModule.validate).toHaveBeenCalledTimes(blocksToApply.length + 1);
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(blocksToApply.length);
 				for (const requestedBlock of blocksToApply) {
+					expect(processorModule.validate).toHaveBeenCalledWith(requestedBlock);
 					expect(processorModule.processValidated).toHaveBeenCalledWith(requestedBlock);
 				}
 
 				for (const requestedBlock of blocksToNotApply) {
+					expect(processorModule.validate).not.toHaveBeenCalledWith(requestedBlock);
 					expect(processorModule.processValidated).not.toHaveBeenCalledWith(requestedBlock);
 				}
 			});
@@ -898,6 +902,8 @@ describe('block_synchronization_mechanism', () => {
 				expect(networkMock.getConnectedPeers).toHaveBeenCalledTimes(1);
 				expect(networkMock.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 
+				// Only called for last block validation
+				expect(processorModule.validate).toHaveBeenCalledTimes(1);
 				expect(processorModule.processValidated).not.toHaveBeenCalled();
 
 				expectApplyPenaltyAndRestartIsCalled(

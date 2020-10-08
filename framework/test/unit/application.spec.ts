@@ -238,7 +238,7 @@ describe('Application', () => {
 			}
 			// Assert
 			expect(() => app.registerModule(SampleModule)).toThrow(
-				'Custom module must have id greater than 1000',
+				'Custom module must have id greater than or equal to 1000',
 			);
 		});
 

@@ -423,15 +423,15 @@ export class Node {
 				params: EventPostTransactionData,
 			): Promise<handlePostTransactionReturn> => this._transport.handleEventPostTransaction(params),
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getLastBlock: async (): Promise<string> =>
-				this._chain.dataAccess.encode(this._chain.lastBlock).toString('hex'),
+			getLastBlock: (params: { peerId: string }): string =>
+				this._transport.handleRPCGetLastBlock(params.peerId),
 			getBlocksFromId: async (params: { data: unknown; peerId: string }): Promise<string[]> =>
 				this._transport.handleRPCGetBlocksFromId(params.data, params.peerId),
 			getHighestCommonBlock: async (params: {
 				data: unknown;
 				peerId: string;
 			}): Promise<string | undefined> =>
-				this._transport.handleRPCGetGetHighestCommonBlock(params.data, params.peerId),
+				this._transport.handleRPCGetHighestCommonBlock(params.data, params.peerId),
 			getSchema: () => this.getSchema(),
 			getRegisteredModules: () => this.getRegisteredModules(),
 			getNodeInfo: () => ({

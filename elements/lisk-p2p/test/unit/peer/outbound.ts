@@ -198,7 +198,7 @@ describe('peer/outbound', () => {
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,
 					multiplex: false,
-					autoConnect: false,
+					autoConnect: true,
 					autoReconnect: false,
 					maxPayload: defaultOutboundPeerConfig.wsMaxPayload,
 				};
