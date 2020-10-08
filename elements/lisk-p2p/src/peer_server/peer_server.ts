@@ -56,7 +56,7 @@ import {
 	P2PPeerInfo,
 	PeerServerConfig,
 } from '../types';
-import { assignInternalInfo, constructPeerId, validateMessage, validatePeerInfo } from '../utils';
+import { assignInternalInfo, constructPeerId, validatePacket, validatePeerInfo } from '../utils';
 
 interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
@@ -415,7 +415,7 @@ export class PeerServer extends EventEmitter {
 			try {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				const parsed = JSON.parse(message);
-				validateMessage(parsed);
+				validatePacket(parsed);
 
 				const invalidEvents: Set<string> = new Set([
 					'#authenticate',

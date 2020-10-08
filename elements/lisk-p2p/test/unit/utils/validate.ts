@@ -19,6 +19,7 @@ import {
 	validateProtocolMessage,
 	validateNodeInfo,
 	sanitizeIncomingPeerInfo,
+	validatePacket,
 	validatePeerInfoList,
 } from '../../../src/utils';
 import {
@@ -334,6 +335,30 @@ describe('utils/validate', () => {
 				data: expect.any(Object),
 				event: 'newPeer',
 			});
+		});
+	});
+
+	describe('#validatePacket', () => {
+		it('should not throw an error if the packet is valid', () => {
+			expect(() => validatePacket({ rid: 2, data: {} })).not.toThrow('Packet format is invalid.');
+		});
+
+		it('should not throw an error if the packet is message', () => {
+			expect(() => validatePacket({ event: 'EVENT_NEW_BLOCK', rid: 2, data: {} })).not.toThrow(
+				'Packet format is invalid.',
+			);
+		});
+
+		it('should not throw an error if the packet is request', () => {
+			expect(() => validatePacket({ procedure: 'getNodeInfo', rid: 2, data: {} })).not.toThrow(
+				'Packet format is invalid.',
+			);
+		});
+
+		it('should throw an error if the mssage contains additional keywords', () => {
+			expect(() => validatePacket({ cid: 4, invalidProperty: { something: 'invalid' } })).toThrow(
+				'Packet format is invalid.',
+			);
 		});
 	});
 });
