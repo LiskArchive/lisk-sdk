@@ -199,9 +199,17 @@ export class OutboundPeer extends Peer {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if (transportSocket?.socket && transportSocket.socket.on) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
-			transportSocket.socket.on(REMOTE_EVENT_PING, () => this.applyPenalty(100));
+			transportSocket.socket.on(REMOTE_EVENT_PING, () => {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+				transportSocket.socket.terminate();
+				this.applyPenalty(100);
+			});
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
-			transportSocket.socket.on(REMOTE_EVENT_PONG, () => this.applyPenalty(100));
+			transportSocket.socket.on(REMOTE_EVENT_PONG, () => {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+				transportSocket.socket.terminate();
+				this.applyPenalty(100);
+			});
 		}
 	}
 
