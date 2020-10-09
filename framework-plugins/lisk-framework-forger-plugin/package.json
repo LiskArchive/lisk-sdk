@@ -52,7 +52,7 @@
 		"express-rate-limit": "5.1.3",
 		"fs-extra": "9.0.0",
 		"ip": "1.1.5",
-		"lisk-framework": "^0.7.0-alpha.2"
+		"lisk-framework": "^0.7.0-alpha.3"
 	},
 	"devDependencies": {
 		"@liskhq/lisk-genesis": "^0.1.0-alpha.1",
