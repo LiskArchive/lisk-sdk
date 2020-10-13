@@ -38,7 +38,7 @@ describe('Blocks endpoints', () => {
 			const result = await axios.get(getURL('/api/blocks/?height=1'));
 
 			const returnedBlocks = result.data.data;
-
+			expect(result.data).toEqual({ data: returnedBlocks, meta: {} });
 			expect(returnedBlocks).toBeArrayOfSize(1);
 
 			const [returnedBlock] = returnedBlocks;
