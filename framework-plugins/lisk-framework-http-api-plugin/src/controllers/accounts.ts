@@ -33,7 +33,7 @@ export const getAccount = (channel: BaseChannel, codec: PluginCodec) => async (
 		const account: Buffer = await channel.invoke('app:getAccount', {
 			address: accountAddress,
 		});
-		res.status(200).send({ data: codec.decodeAccount(account) });
+		res.status(200).send({ data: codec.decodeAccount(account), meta: {} });
 	} catch (err) {
 		if ((err as Error).message.startsWith('Specified key accounts:address')) {
 			res.status(404).send({
