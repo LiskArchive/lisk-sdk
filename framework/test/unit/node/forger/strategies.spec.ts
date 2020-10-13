@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { BufferMap } from '@liskhq/lisk-transaction-pool';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { HighFeeForgingStrategy } from '../../../../src/node/forger/strategies';
 import {
 	allValidCase,
@@ -71,7 +71,7 @@ const buildProcessableTxMock = (input: any, processorMock: jest.Mock) => {
 			res.set(senderId, txs);
 
 			return res;
-		}, new BufferMap());
+		}, new dataStructures.BufferMap());
 
 	for (const txs of result.values()) {
 		// Ascending sort by nonce
@@ -85,7 +85,7 @@ describe('strategies', () => {
 	describe('HighFeeForgingStrategy', () => {
 		const maxPayloadLength = 1000;
 		const mockTxPool = {
-			getProcessableTransactions: jest.fn().mockReturnValue(new BufferMap()),
+			getProcessableTransactions: jest.fn().mockReturnValue(new dataStructures.BufferMap()),
 		} as any;
 		const mockChainModule = {
 			newStateStore: jest.fn().mockResolvedValue({

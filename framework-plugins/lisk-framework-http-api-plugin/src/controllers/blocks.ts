@@ -31,7 +31,7 @@ export const getBlockById = (channel: BaseChannel, codec: PluginCodec) => async 
 
 	try {
 		const block = await channel.invoke<string>('app:getBlockByID', { id: blockId });
-		res.status(200).send({ data: codec.decodeBlock(block) });
+		res.status(200).send({ data: codec.decodeBlock(block), meta: {} });
 	} catch (err) {
 		if ((err as Error).message.startsWith('Specified key blocks:id')) {
 			res.status(404).send({
@@ -61,7 +61,7 @@ export const getBlockByHeight = (channel: BaseChannel, codec: PluginCodec) => as
 		const block = await channel.invoke<string>('app:getBlockByHeight', {
 			height: parseInt(height as string, 10),
 		});
-		res.status(200).send({ data: [codec.decodeBlock(block)] });
+		res.status(200).send({ data: [codec.decodeBlock(block)], meta: {} });
 	} catch (err) {
 		if ((err as Error).message.startsWith('Specified key blocks:height')) {
 			res.status(404).send({
