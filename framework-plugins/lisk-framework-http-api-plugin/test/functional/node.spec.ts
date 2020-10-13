@@ -13,19 +13,12 @@
  */
 import { Application } from 'lisk-framework';
 import axios from 'axios';
-import {
-	callNetwork,
-	createApplication,
-	closeApplication,
-	getURL,
-	waitNBlocks,
-} from './utils/application';
+import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
 import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
 
 describe('Node', () => {
 	let app: Application;
-	let accountNonce = 0;
 
 	beforeAll(async () => {
 		app = await createApplication('node_http_functional');
@@ -59,17 +52,7 @@ describe('Node', () => {
 	});
 
 	describe('GET /api/node/transactions/', () => {
-		describe('200 - Success', () => {
-			let account: any;
-
-			beforeEach(() => {
-				account = getRandomAccount();
-			});
-
-			afterEach(async () => {
-				await waitNBlocks(app, 2);
-			});
-
+		describe('No transactions in pool', () => {
 			it('should be ok with no transactions in pool', async () => {
 				// Act
 				const { response, status } = await callNetwork(axios.get(getURL('/api/node/transactions')));
@@ -78,47 +61,47 @@ describe('Node', () => {
 				expect(status).toEqual(200);
 				expect(response).toEqual({ data: [], meta: { limit: 10, offset: 0, total: 0 } });
 			});
+		});
 
-			it('should be ok with transactions in pool', async () => {
-				const transaction = createTransferTransaction({
+		describe('Transactions in pool', () => {
+			let account: any;
+			let transaction1: any;
+			let transaction2: any;
+
+			beforeAll(async () => {
+				account = getRandomAccount();
+				transaction1 = createTransferTransaction({
 					amount: '2',
 					recipientAddress: account.address,
 					fee: '0.3',
-					nonce: 0,
+					nonce: 100,
 				});
-				accountNonce += 1;
-				const { id: txID, ...input } = transaction;
-				await axios.post(getURL('/api/transactions'), input);
+				const { id: txID1, ...input1 } = transaction1;
+				await axios.post(getURL('/api/transactions'), input1);
 
+				transaction2 = createTransferTransaction({
+					amount: '2',
+					recipientAddress: account.address,
+					fee: '0.3',
+					nonce: 200,
+				});
+				const { id: txID2, ...input2 } = transaction2;
+				await axios.post(getURL('/api/transactions'), input2);
+			});
+
+			it('should be ok with transactions in pool', async () => {
 				// Act
 				const { response, status } = await callNetwork(axios.get(getURL('/api/node/transactions')));
 
 				// Assert
 				expect(status).toEqual(200);
-				expect(response).toEqual({ data: [transaction], meta: { limit: 10, offset: 0, total: 1 } });
+				expect(response).toEqual({
+					data: [transaction1, transaction2],
+					meta: { limit: 10, offset: 0, total: 2 },
+				});
 			});
 
 			it('should be ok with limit', async () => {
-				const transaction = createTransferTransaction({
-					amount: '2',
-					recipientAddress: account.address,
-					fee: '0.3',
-					nonce: accountNonce,
-				});
-				accountNonce += 1;
-				const { id: txID, ...input1 } = transaction;
-				await axios.post(getURL('/api/transactions'), input1);
-				const transaction2 = createTransferTransaction({
-					amount: '2',
-					recipientAddress: account.address,
-					fee: '0.3',
-					nonce: accountNonce,
-				});
-				accountNonce += 1;
-
-				const { id, ...input2 } = transaction2;
-				await axios.post(getURL('/api/transactions'), input2);
-
 				// Act
 				const { response, status } = await callNetwork(
 					axios.get(getURL('/api/node/transactions/?limit=1')),
@@ -126,29 +109,10 @@ describe('Node', () => {
 
 				// Assert
 				expect(status).toEqual(200);
-				expect(response).toEqual({ data: [transaction], meta: { limit: 1, offset: 0, total: 2 } });
+				expect(response).toEqual({ data: [transaction1], meta: { limit: 1, offset: 0, total: 2 } });
 			});
 
 			it('should be ok with offset', async () => {
-				const transaction = createTransferTransaction({
-					amount: '2',
-					recipientAddress: account.address,
-					fee: '0.3',
-					nonce: accountNonce,
-				});
-				accountNonce += 1;
-				const { id: txID, ...input1 } = transaction;
-				await axios.post(getURL('/api/transactions'), input1);
-				const transaction2 = createTransferTransaction({
-					amount: '2',
-					recipientAddress: account.address,
-					fee: '0.3',
-					nonce: 5,
-				});
-
-				const { id, ...input2 } = transaction2;
-				await axios.post(getURL('/api/transactions'), input2);
-
 				// Act
 				const { response, status } = await callNetwork(
 					axios.get(getURL('/api/node/transactions/?offset=1')),
