@@ -53,7 +53,7 @@ describe('Node Info endpoint', () => {
 
 			const result = await axios.get(getURL('/api/node/info'));
 
-			expect(result.data).toEqual({ data: nodeStatusAndConstantFixture });
+			expect(result.data).toEqual({ data: nodeStatusAndConstantFixture, meta: {} });
 			expect(result.status).toBe(200);
 		});
 	});

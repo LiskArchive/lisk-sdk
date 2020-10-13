@@ -58,7 +58,7 @@ describe('Account endpoint', () => {
 			const result = await axios.get(
 				getURL('/api/accounts/9d0149b0962d44bfc08a9f64d5afceb6281d7fb5'),
 			);
-			expect(result.data).toEqual({ data: accountFixture });
+			expect(result.data).toEqual({ data: accountFixture, meta: {} });
 			expect(result.status).toBe(200);
 		});
 
