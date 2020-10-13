@@ -22,6 +22,9 @@ export class BufferMap<V> {
 	public constructor(data?: { [key: string]: V | undefined }) {
 		this._data = data ?? {};
 	}
+	public get size(): number {
+		return Object.keys(this._data).length;
+	}
 
 	public get(key: Buffer): V | undefined {
 		return this._data[keyString(key)];
