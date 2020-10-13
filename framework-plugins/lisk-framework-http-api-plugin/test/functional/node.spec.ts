@@ -23,7 +23,7 @@ import {
 import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
 
-describe('Node Info endpoint', () => {
+describe('Node', () => {
 	let app: Application;
 	let accountNonce = 0;
 
@@ -67,7 +67,7 @@ describe('Node Info endpoint', () => {
 			});
 
 			afterEach(async () => {
-				await waitNBlocks(app, 2);
+				await waitNBlocks(app, 1);
 			});
 
 			it('should be ok with no transactions in pool', async () => {
