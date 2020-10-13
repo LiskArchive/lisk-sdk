@@ -13,7 +13,7 @@
  *
  */
 
-import { MinHeap } from './min_heap';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { Transaction } from './types';
 
 export interface TransactionListOptions {
@@ -34,14 +34,14 @@ export class TransactionList {
 	private _processable: Array<bigint>;
 	private readonly _transactions: { [nonce: string]: Transaction };
 	// Value is not needed here because it is stored separately in the _transactions
-	private readonly _nonceHeap: MinHeap<undefined, bigint>;
+	private readonly _nonceHeap: dataStructures.MinHeap<undefined, bigint>;
 	private readonly _maxSize: number;
 	private readonly _minReplacementFeeDifference: bigint;
 
 	public constructor(address: Buffer, options?: TransactionListOptions) {
 		this.address = address;
 		this._transactions = {};
-		this._nonceHeap = new MinHeap<undefined, bigint>();
+		this._nonceHeap = new dataStructures.MinHeap<undefined, bigint>();
 		this._processable = [];
 		this._maxSize = options?.maxSize ?? DEFAULT_MAX_SIZE;
 		this._minReplacementFeeDifference =
