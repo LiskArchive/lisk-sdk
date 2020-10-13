@@ -67,7 +67,7 @@ describe('Node', () => {
 			});
 
 			afterEach(async () => {
-				await waitNBlocks(app, 1);
+				await waitNBlocks(app, 2);
 			});
 
 			it('should be ok with no transactions in pool', async () => {

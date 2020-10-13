@@ -118,58 +118,6 @@
 			],
 			"accounts": [
 				{
-					"address": "8789de4316d79d22",
-					"token": {
-						"balance": "12300000000"
-					},
-					"sequence": {
-						"nonce": "0"
-					},
-					"keys": {
-						"mandatoryKeys": [],
-						"optionalKeys": [],
-						"numberOfSignatures": 0
-					},
-					"dpos": {
-						"delegate": {
-							"username": "",
-							"pomHeights": [],
-							"consecutiveMissedBlocks": 0,
-							"lastForgedHeight": 0,
-							"isBanned": false,
-							"totalVotesReceived": "0"
-						},
-						"sentVotes": [],
-						"unlocking": []
-					}
-				},
-				{
-					"address": "bdf994ff9c884ffa",
-					"token": {
-						"balance": "10"
-					},
-					"sequence": {
-						"nonce": "0"
-					},
-					"keys": {
-						"mandatoryKeys": [],
-						"optionalKeys": [],
-						"numberOfSignatures": 0
-					},
-					"dpos": {
-						"delegate": {
-							"username": "",
-							"pomHeights": [],
-							"consecutiveMissedBlocks": 0,
-							"lastForgedHeight": 0,
-							"isBanned": false,
-							"totalVotesReceived": "0"
-						},
-						"sentVotes": [],
-						"unlocking": []
-					}
-				},
-				{
 					"address": "03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f",
 					"token": {
 						"balance": "0"
