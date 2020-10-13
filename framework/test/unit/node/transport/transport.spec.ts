@@ -13,7 +13,7 @@
  */
 
 import { when } from 'jest-when';
-import { BufferMap } from '@liskhq/lisk-transaction-pool';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { Transaction } from '@liskhq/lisk-chain';
 import { Transport } from '../../../../src/node/transport';
 import { genesis } from '../../../fixtures';
@@ -50,7 +50,7 @@ describe('Transport', () => {
 		transactionPoolStub = {
 			contains: jest.fn().mockReturnValue(true),
 			get: jest.fn(),
-			getProcessableTransactions: jest.fn().mockReturnValue(new BufferMap()),
+			getProcessableTransactions: jest.fn().mockReturnValue(new dataStructures.BufferMap()),
 			add: jest.fn(),
 		};
 		networkStub = {
@@ -358,7 +358,7 @@ describe('Transport', () => {
 					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 					passphrase: genesis.passphrase,
 				});
-				const processableTransactions = new BufferMap();
+				const processableTransactions = new dataStructures.BufferMap();
 				processableTransactions.set(tx.id, tx);
 				transactionPoolStub.getProcessableTransactions.mockReturnValue(processableTransactions);
 			});
@@ -382,7 +382,7 @@ describe('Transport', () => {
 					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 					passphrase: genesis.passphrase,
 				});
-				const processableTransactions = new BufferMap();
+				const processableTransactions = new dataStructures.BufferMap();
 				processableTransactions.set(tx.id, [tx]);
 				transactionPoolStub.getProcessableTransactions.mockReturnValue(processableTransactions);
 			});
