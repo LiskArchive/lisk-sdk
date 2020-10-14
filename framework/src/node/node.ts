@@ -164,6 +164,13 @@ export class Node {
 		if (exist) {
 			throw new Error(`Custom module with type ${customModule.id} already exists`);
 		}
+
+		if (!customModule.name || !customModule.id) {
+			throw new Error(
+				`Custom module '${customModule.constructor.name}' is missing either one or both of the required properties: 'id', 'name'.`,
+			);
+		}
+
 		if (customModule.id < MINIMUM_MODULE_ID) {
 			throw new Error(`Custom module must have id greater than ${MINIMUM_MODULE_ID}`);
 		}

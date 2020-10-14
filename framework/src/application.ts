@@ -285,13 +285,6 @@ export class Application {
 		assert(Module, 'Module implementation is required');
 		const InstantiableModule = Module as InstantiableBaseModule;
 		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
-
-		if (!moduleInstance.name || !moduleInstance.id) {
-			throw new Error(
-				`Custom module '${moduleInstance.constructor.name}' is missing either one or both of the required properties: 'id', 'name'.`,
-			);
-		}
-
 		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
