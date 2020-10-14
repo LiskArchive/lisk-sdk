@@ -126,11 +126,20 @@ describe('forger', () => {
 
 	describe('Forger', () => {
 		describe('updateForgingStatus', () => {
+			beforeEach(() => {
+				const previouslyForgedMap = Buffer.from(JSON.stringify({}));
+				when(dbStub.get)
+					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
+					.mockResolvedValue(previouslyForgedMap as never);
+			});
+
 			it('should return error with invalid password', async () => {
 				await expect(
 					forgeModule.updateForgingStatus(
 						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
 						'Invalid password',
+						true,
+						200,
 						true,
 					),
 				).rejects.toThrow('Invalid password and public key combination');
@@ -143,14 +152,14 @@ describe('forger', () => {
 				const invalidAddress = getAddressFromPublicKey(invalidPublicKey);
 
 				await expect(
-					forgeModule.updateForgingStatus(invalidAddress, defaultPassword, true),
+					forgeModule.updateForgingStatus(invalidAddress, defaultPassword, true, 200, true),
 				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('hex')} not found`);
 			});
 
 			it('should return error with non delegate account', async () => {
 				const invalidAddress = getAddressFromPublicKey(genesis.publicKey);
 				await expect(
-					forgeModule.updateForgingStatus(invalidAddress, genesis.password, true),
+					forgeModule.updateForgingStatus(invalidAddress, genesis.password, true, 200, true),
 				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('hex')} not found`);
 			});
 
@@ -169,6 +178,8 @@ describe('forger', () => {
 					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
 					testDelegate.password,
 					false,
+					200,
+					true,
 				);
 
 				// Assert
@@ -182,6 +193,8 @@ describe('forger', () => {
 				const data = await forgeModule.updateForgingStatus(
 					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
 					testDelegate.password,
+					true,
+					200,
 					true,
 				);
 
