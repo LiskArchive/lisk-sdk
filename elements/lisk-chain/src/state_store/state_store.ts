@@ -46,10 +46,8 @@ const saveDiff = (
 		diffToEncode.deleted = diffToEncode.deleted.concat(diff.deleted);
 	}
 
-	if (diffToEncode.created.length || diffToEncode.updated.length || diffToEncode.deleted.length) {
-		const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
-		batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
-	}
+	const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
+	batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
 };
 
 export class StateStore {
