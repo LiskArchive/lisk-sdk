@@ -42,6 +42,8 @@ interface ForgingResponseData {
 
 interface ForgingRequestData extends ForgingResponseData {
 	readonly password: string;
+	readonly maxHeightPreviouslyForged: number;
+	readonly force?: boolean;
 }
 
 export const updateForging = (channel: BaseChannel, db: KVStore) => async (
@@ -57,11 +59,33 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 		});
 		return;
 	}
-	const { address, password, forging } = req.body as ForgingRequestData;
+	const {
+		address,
+		password,
+		forging,
+		maxHeightPreviouslyForged,
+		force,
+	} = req.body as ForgingRequestData;
 
 	if (!isHexString(address)) {
 		res.status(400).send({
-			errors: [{ message: 'The Address parameter should be a hex string.' }],
+			errors: [{ message: 'The address parameter should be a hex string.' }],
+		});
+		return;
+	}
+
+	if (
+		maxHeightPreviouslyForged === null ||
+		maxHeightPreviouslyForged === undefined ||
+		maxHeightPreviouslyForged < 0
+	) {
+		res.status(400).send({
+			errors: [
+				{
+					message:
+						'The maxHeightPreviouslyForged parameter must be specified and greater than or equal to 0.',
+				},
+			],
 		});
 		return;
 	}
@@ -71,6 +95,8 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 			address,
 			password,
 			forging,
+			maxHeightPreviouslyForged,
+			force,
 		});
 
 		const {
@@ -89,6 +115,7 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 				votesReceived,
 				totalReceivedFees: totalReceivedFees.toString(),
 				totalReceivedRewards: totalReceivedRewards.toString(),
+				maxHeightPreviouslyForged,
 			},
 		});
 	} catch (err) {

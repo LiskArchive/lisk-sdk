@@ -29,6 +29,7 @@ describe('api/forging', () => {
 		votesReceived: [],
 		totalReceivedFees: '0',
 		totalReceivedRewards: '0',
+		maxHeightPreviouslyForged: 100,
 	};
 	const sampleForgerPassword = 'elephant tree paris dragon chair galaxy';
 
@@ -45,12 +46,62 @@ describe('api/forging', () => {
 
 	describe('/api/forging', () => {
 		describe('200 - Success', () => {
+			describe('when force is false and maxHeightPreviouslyForged match', () => {
+				it('it should enable forging', async () => {
+					// Arrange
+					const forgerParams = {
+						address: sampleForgerInfo.address,
+						password: sampleForgerPassword,
+						forging: true,
+						maxHeightPreviouslyForged: 0,
+						force: false,
+					};
+
+					// Act
+					const { response, status } = await callNetwork(
+						axios.patch(getURL('/api/forging'), forgerParams),
+					);
+
+					// Assert
+					expect(status).toEqual(200);
+					expect(response).toEqual({
+						meta: { count: 1 },
+						data: { ...sampleForgerInfo, maxHeightPreviouslyForged: 0, forging: true },
+					});
+				});
+			});
+			describe('when force is true', () => {
+				it('it should overwrite the maxHeightPreviouslyForged to the input value and enable forging', async () => {
+					// Arrange
+					const forgerParams = {
+						address: sampleForgerInfo.address,
+						password: sampleForgerPassword,
+						forging: false,
+						maxHeightPreviouslyForged: 100,
+						force: false,
+					};
+
+					// Act
+					const { response, status } = await callNetwork(
+						axios.patch(getURL('/api/forging'), forgerParams),
+					);
+
+					// Assert
+					expect(status).toEqual(200);
+					expect(response).toEqual({
+						meta: { count: 1 },
+						data: { ...sampleForgerInfo, forging: false },
+					});
+				});
+			});
 			it('should respond with forging status and info and disable forging when param forging=false', async () => {
 				// Arrange
 				const forgerParams = {
 					address: sampleForgerInfo.address,
 					password: sampleForgerPassword,
 					forging: false,
+					maxHeightPreviouslyForged: 100,
+					force: true,
 				};
 
 				// Act
@@ -72,6 +123,8 @@ describe('api/forging', () => {
 					address: sampleForgerInfo.address,
 					password: sampleForgerPassword,
 					forging: true,
+					maxHeightPreviouslyForged: 100,
+					force: true,
 				};
 
 				// Act
@@ -84,7 +137,37 @@ describe('api/forging', () => {
 				expect(response).toEqual({ meta: { count: 1 }, data: sampleForgerInfo });
 			});
 		});
+
 		describe('400 - Invalid param values', () => {
+			describe('when force is false and maxHeightPreviouslyForged does not match', () => {
+				it('it should fail to enable forging', async () => {
+					// Arrange
+					const forgerParams = {
+						address: sampleForgerInfo.address,
+						password: sampleForgerPassword,
+						forging: true,
+						maxHeightPreviouslyForged: 300,
+						force: false,
+					};
+
+					// Act
+					const { response, status } = await callNetwork(
+						axios.patch(getURL('/api/forging'), forgerParams),
+					);
+
+					// Assert
+					expect(status).toEqual(500);
+					expect(response).toEqual({
+						errors: [
+							{
+								message:
+									'Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: 300, expected: 100',
+							},
+						],
+					});
+				});
+			});
+
 			it('should respond with 400 and error message when address is not hex format', async () => {
 				// Arrange
 				const forgerParams = {
@@ -101,7 +184,7 @@ describe('api/forging', () => {
 				// Assert
 				expect(status).toEqual(400);
 				expect(response).toEqual({
-					errors: [{ message: 'The Address parameter should be a hex string.' }],
+					errors: [{ message: 'The address parameter should be a hex string.' }],
 				});
 			});
 
@@ -150,6 +233,57 @@ describe('api/forging', () => {
 						{
 							message:
 								"Lisk validator found 1 error[s]:\nProperty '.forging' should be of type 'boolean'",
+						},
+					],
+				});
+			});
+
+			it('should respond with 400 and error message when param maxHeightPreviouslyForged is not specified', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(400);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'The maxHeightPreviouslyForged parameter must be specified and greater than or equal to 0.',
+						},
+					],
+				});
+			});
+
+			it('should respond with 400 and error message when param maxHeightPreviouslyForged is less than 0', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+					maxHeightPreviouslyForged: -1,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(400);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'The maxHeightPreviouslyForged parameter must be specified and greater than or equal to 0.',
 						},
 					],
 				});
