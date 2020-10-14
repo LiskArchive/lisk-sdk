@@ -428,10 +428,12 @@ export class Storage {
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
 		}
+		stateStore.finalize(heightStr, batch);
+
 		// Delete stored diff at particular height
 		batch.del(diffKey);
 
-		stateStore.finalize(heightStr, batch);
+		// Persist the whole batch
 		await batch.write();
 		return {
 			deleted: deletedStates,

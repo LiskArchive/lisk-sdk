@@ -119,6 +119,9 @@ describe('Delete block', () => {
 				await expect(
 					node['_chain'].dataAccess.getAccountByAddress(recipientAccount.address),
 				).rejects.toBeInstanceOf(NotFoundError);
+			});
+
+			it('should not persist the state diff for that block height', async () => {
 				await expect(
 					blockchainDB.get(`diff:${formatInt(newBlock.header.height)}`),
 				).rejects.toBeInstanceOf(NotFoundError);
