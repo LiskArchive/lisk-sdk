@@ -468,7 +468,7 @@ describe('dataAccess.blocks', () => {
 			).toEqual(BigInt(200));
 		});
 
-		it('should the error when there is no diff', async () => {
+		it('should throw an error when there is no diff', async () => {
 			// Deleting temp blocks to test the saving
 			await db.del(`diff:${formatInt(blocks[2].header.height)}`);
 			await dataAccess.clearTempBlocks();
