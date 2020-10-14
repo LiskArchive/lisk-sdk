@@ -35,22 +35,19 @@ import { Logger } from '../../logger';
 import {
 	getRegisteredHashOnionSeeds,
 	getUsedHashOnions,
+	getPreviouslyForgedMap,
 	setRegisteredHashOnionSeeds,
 	setUsedHashOnions,
-	UsedHashOnion,
+	savePreviouslyForgedMap,
 	saveMaxHeightPreviouslyForged,
-	getPreviouslyForgedMap,
+	UsedHashOnion,
 } from './data_access';
+import { ForgingStatus } from '../../types';
 
 interface HashOnionConfig {
 	readonly count: number;
 	readonly distance: number;
 	readonly hashes: Buffer[];
-}
-
-export interface ForgingStatus {
-	readonly address: Buffer;
-	readonly forging: boolean;
 }
 
 interface Keypair {
@@ -161,9 +158,25 @@ export class Forger {
 		forgerAddress: Buffer,
 		password: string,
 		forging: boolean,
+		maxHeightPreviouslyForged: number,
+		force?: boolean,
 	): Promise<ForgingStatus> {
 		const encryptedList = this._config.forging.delegates;
 		const encryptedItem = encryptedList?.find(item => item.address.equals(forgerAddress));
+		const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
+
+		if (
+			previouslyForgedMap.has(forgerAddress) &&
+			previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged !==
+				maxHeightPreviouslyForged &&
+			!force
+		) {
+			const maxPreviouslyForgedHeight =
+				previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged ?? 0;
+			throw new Error(
+				`Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: ${maxHeightPreviouslyForged}, expected: ${maxPreviouslyForgedHeight}`,
+			);
+		}
 
 		let keypair: Keypair;
 		let passphrase: string;
@@ -194,6 +207,14 @@ export class Forger {
 		const account = await this._chainModule.dataAccess.getAccountByAddress(forgerAddress);
 
 		if (forging) {
+			if (force) {
+				previouslyForgedMap.set(forgerAddress, {
+					height: maxHeightPreviouslyForged,
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged,
+				});
+				await savePreviouslyForgedMap(this._db, previouslyForgedMap);
+			}
 			this._keypairs.set(forgerAddress, keypair);
 			this._logger.info(`Forging enabled on account: ${account.address.toString('hex')}`);
 		} else {
@@ -204,6 +225,7 @@ export class Forger {
 		return {
 			address: forgerAddress,
 			forging,
+			maxHeightPreviouslyForged,
 		};
 	}
 
@@ -415,8 +437,7 @@ export class Forger {
 		return this._keypairs;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	public getForgingStatusOfAllDelegates(): ForgingStatus[] | undefined {
+	public async getForgingStatusOfAllDelegates(): Promise<ForgingStatus[] | undefined> {
 		const forgingDelegates = this._config.forging.delegates;
 		const forgersAddress = new dataStructures.BufferSet();
 
@@ -424,9 +445,11 @@ export class Forger {
 			forgersAddress.add(getAddressFromPublicKey(keypair.publicKey));
 		}
 
+		const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
 		const fullList = forgingDelegates?.map(forger => ({
 			forging: forgersAddress.has(forger.address),
 			address: forger.address,
+			...(previouslyForgedMap.has(forger.address) ? previouslyForgedMap.get(forger.address) : {}),
 		}));
 
 		return fullList;

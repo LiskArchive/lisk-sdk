@@ -282,3 +282,19 @@ export interface RegisteredSchema {
 		schema: Schema;
 	}[];
 }
+
+export interface ForgingStatus {
+	readonly address: Buffer;
+	readonly forging: boolean;
+	readonly height?: number;
+	readonly maxHeightPrevoted?: number;
+	readonly maxHeightPreviouslyForged?: number;
+}
+
+export interface UpdateForgingStatusInput {
+	readonly address: string;
+	readonly password: string;
+	readonly forging: boolean;
+	readonly maxHeightPreviouslyForged: number;
+	readonly force?: boolean;
+}

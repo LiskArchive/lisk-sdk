@@ -196,6 +196,19 @@ export const getPreviouslyForgedMap = async (
 	}
 };
 
+export const savePreviouslyForgedMap = async (
+	db: KVStore,
+	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
+): Promise<void> => {
+	const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
+	for (const [key, value] of previouslyForgedMap.entries()) {
+		parsedPreviouslyForgedMap[key.toString('binary')] = value;
+	}
+
+	const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
+	await db.put(DB_KEY_FORGER_PREVIOUSLY_FORGED, Buffer.from(previouslyForgedStr, 'utf8'));
+};
+
 /**
  * Saving a height which delegate last forged. this needs to be saved before broadcasting
  * so it needs to be outside of the DB transaction
@@ -219,11 +232,5 @@ export const saveMaxHeightPreviouslyForged = async (
 		maxHeightPreviouslyForged: header.asset.maxHeightPreviouslyForged,
 	});
 
-	const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
-	for (const [key, value] of previouslyForgedMap.entries()) {
-		parsedPreviouslyForgedMap[key.toString('binary')] = value;
-	}
-
-	const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
-	await db.put(DB_KEY_FORGER_PREVIOUSLY_FORGED, Buffer.from(previouslyForgedStr, 'utf8'));
+	await savePreviouslyForgedMap(db, previouslyForgedMap);
 };
