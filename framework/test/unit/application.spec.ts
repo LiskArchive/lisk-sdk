@@ -23,7 +23,7 @@ import * as networkConfig from '../fixtures/config/devnet/config.json';
 import { systemDirs } from '../../src/system_dirs';
 import { createLogger } from '../../src/logger';
 import { genesisBlock } from '../fixtures/blocks';
-import { ApplyAssetContext, BaseModule, BaseAsset } from '../../src';
+import { BaseModule, BaseAsset } from '../../src';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -289,13 +289,7 @@ describe('Application', () => {
 					properties: {},
 				};
 				// eslint-disable-next-line class-methods-use-this
-				public async apply({ asset }: ApplyAssetContext<object>): Promise<boolean> {
-					if (asset) {
-						return true;
-					}
-
-					return false;
-				}
+				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
@@ -323,13 +317,7 @@ describe('Application', () => {
 					properties: {},
 				};
 				// eslint-disable-next-line class-methods-use-this
-				public async apply({ asset }: ApplyAssetContext<object>): Promise<boolean> {
-					if (asset) {
-						return true;
-					}
-
-					return false;
-				}
+				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
@@ -357,13 +345,7 @@ describe('Application', () => {
 					properties: {},
 				};
 				// eslint-disable-next-line class-methods-use-this
-				public async apply({ asset }: ApplyAssetContext<object>): Promise<boolean> {
-					if (asset) {
-						return true;
-					}
-
-					return false;
-				}
+				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
@@ -387,13 +369,7 @@ describe('Application', () => {
 				public id = 0;
 				public schema = undefined as any;
 				// eslint-disable-next-line class-methods-use-this
-				public async apply({ asset }: ApplyAssetContext<object>): Promise<boolean> {
-					if (asset) {
-						return true;
-					}
-
-					return false;
-				}
+				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
