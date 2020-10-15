@@ -218,11 +218,43 @@ describe('Application', () => {
 			// Act
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
-				public id = 0;
+				public id = 1;
 			}
 			// Assert
 			expect(() => app['_registerModule'](SampleModule)).toThrow(
 				'Custom module must have id greater than 2',
+			);
+		});
+
+		it('should throw an error if id is missing', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 0;
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				"Custom module 'SampleModule' is missing either one or both of the required properties: 'id', 'name'.",
+			);
+		});
+
+		it('should throw an error if name is missing', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleModule extends BaseModule {
+				public name = '';
+				public id = 1000;
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				"Custom module 'SampleModule' is missing either one or both of the required properties: 'id', 'name'.",
 			);
 		});
 
