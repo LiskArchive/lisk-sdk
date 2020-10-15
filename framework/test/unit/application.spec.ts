@@ -342,6 +342,40 @@ describe('Application', () => {
 			);
 		});
 
+		it('should throw an error if asset name is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = '';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				// eslint-disable-next-line class-methods-use-this
+				public async apply({ asset }: ApplyAssetContext<object>): Promise<boolean> {
+					if (asset) {
+						return true;
+					}
+
+					return false;
+				}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `name` property.',
+			);
+		});
+
 		it('should add custom module to collection.', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
