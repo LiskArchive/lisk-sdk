@@ -162,7 +162,7 @@ export class Node {
 	public registerModule(customModule: BaseModule): void {
 		const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 		if (exist) {
-			throw new Error(`Custom module with type ${customModule.id} already exists`);
+			throw new Error(`Custom module with id ${customModule.id} already exists`);
 		}
 
 		if (!customModule.name || !customModule.id) {
