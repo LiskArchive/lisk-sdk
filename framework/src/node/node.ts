@@ -184,7 +184,7 @@ export class Node {
 		if (customModule.transactionAssets.length > 0) {
 			for (const asset of customModule.transactionAssets) {
 				if (!(asset instanceof BaseAsset)) {
-					throw new Error('Custom module contains asset which does not extend `BaseAsset`.');
+					throw new Error('Custom module contains asset which does not extend `BaseAsset` class.');
 				}
 
 				if (typeof asset.name !== 'string' || asset.name === '') {
@@ -197,6 +197,10 @@ export class Node {
 
 				if (typeof asset.schema !== 'object') {
 					throw new Error('Custom module contains asset with invalid `schema` property.');
+				}
+
+				if (typeof asset.apply !== 'function') {
+					throw new Error('Custom module contains asset with invalid `apply` property.');
 				}
 			}
 		}
