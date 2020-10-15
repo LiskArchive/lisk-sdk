@@ -38,7 +38,7 @@ import {
 	getPreviouslyForgedMap,
 	setRegisteredHashOnionSeeds,
 	setUsedHashOnions,
-	savePreviouslyForgedMap,
+	setPreviouslyForgedMap,
 	saveMaxHeightPreviouslyForged,
 	UsedHashOnion,
 } from './data_access';
@@ -163,20 +163,6 @@ export class Forger {
 	): Promise<ForgingStatus> {
 		const encryptedList = this._config.forging.delegates;
 		const encryptedItem = encryptedList?.find(item => item.address.equals(forgerAddress));
-		const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
-
-		if (
-			previouslyForgedMap.has(forgerAddress) &&
-			previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged !==
-				maxHeightPreviouslyForged &&
-			!force
-		) {
-			const maxPreviouslyForgedHeight =
-				previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged ?? 0;
-			throw new Error(
-				`Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: ${maxHeightPreviouslyForged}, expected: ${maxPreviouslyForgedHeight}`,
-			);
-		}
 
 		let keypair: Keypair;
 		let passphrase: string;
@@ -207,13 +193,35 @@ export class Forger {
 		const account = await this._chainModule.dataAccess.getAccountByAddress(forgerAddress);
 
 		if (forging) {
+			const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
+
+			if (!previouslyForgedMap.has(forgerAddress) && maxHeightPreviouslyForged !== 0 && !force) {
+				throw new Error(
+					`Failed to enable forging due to missing forger info and specifying invalid maxHeightPreviouslyForged: ${maxHeightPreviouslyForged}`,
+				);
+			}
+
+			if (
+				previouslyForgedMap.has(forgerAddress) &&
+				previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged !==
+					maxHeightPreviouslyForged &&
+				!force
+			) {
+				const maxPreviouslyForgedHeight =
+					previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged ?? 0;
+				throw new Error(
+					`Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: ${maxHeightPreviouslyForged}, expected: ${maxPreviouslyForgedHeight}`,
+				);
+			}
+
 			if (force) {
 				previouslyForgedMap.set(forgerAddress, {
 					height: maxHeightPreviouslyForged,
 					maxHeightPrevoted: 0,
 					maxHeightPreviouslyForged,
 				});
-				await savePreviouslyForgedMap(this._db, previouslyForgedMap);
+				await setPreviouslyForgedMap(this._db, previouslyForgedMap);
+				this._logger.info(`Updated maxHeightPreviouslyForged to: ${maxHeightPreviouslyForged}`);
 			}
 			this._keypairs.set(forgerAddress, keypair);
 			this._logger.info(`Forging enabled on account: ${account.address.toString('hex')}`);

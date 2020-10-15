@@ -196,7 +196,7 @@ export const getPreviouslyForgedMap = async (
 	}
 };
 
-export const savePreviouslyForgedMap = async (
+export const setPreviouslyForgedMap = async (
 	db: KVStore,
 	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
 ): Promise<void> => {
@@ -232,5 +232,5 @@ export const saveMaxHeightPreviouslyForged = async (
 		maxHeightPreviouslyForged: header.asset.maxHeightPreviouslyForged,
 	});
 
-	await savePreviouslyForgedMap(db, previouslyForgedMap);
+	await setPreviouslyForgedMap(db, previouslyForgedMap);
 };

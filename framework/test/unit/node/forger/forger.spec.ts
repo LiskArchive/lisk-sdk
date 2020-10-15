@@ -20,6 +20,7 @@ import { NotFoundError } from '@liskhq/lisk-db';
 import { Block } from '@liskhq/lisk-chain';
 import { Forger } from '../../../../src/node/forger';
 import {
+	ForgedInfo,
 	registeredHashOnionsStoreSchema,
 	UsedHashOnionStoreObject,
 	usedHashOnionsStoreSchema,
@@ -127,10 +128,16 @@ describe('forger', () => {
 	describe('Forger', () => {
 		describe('updateForgingStatus', () => {
 			beforeEach(() => {
-				const previouslyForgedMap = Buffer.from(JSON.stringify({}));
+				const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
+				parsedPreviouslyForgedMap[Buffer.from(testDelegate.address, 'hex').toString('binary')] = {
+					height: 100,
+					maxHeightPrevoted: 1,
+					maxHeightPreviouslyForged: 10,
+				};
+				const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
-					.mockResolvedValue(previouslyForgedMap as never);
+					.mockResolvedValue(Buffer.from(previouslyForgedStr, 'utf8') as never);
 			});
 
 			it('should return error with invalid password', async () => {
@@ -202,6 +209,76 @@ describe('forger', () => {
 					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
 				).not.toBeUndefined();
 				expect(data.address.toString('hex')).toEqual(testDelegate.address);
+			});
+
+			it('should fail to enable forging when force false and not matched maxHeightPreviouslyForged', async () => {
+				await expect(
+					forgeModule.updateForgingStatus(
+						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+						testDelegate.password,
+						true,
+						999,
+						false,
+					),
+				).rejects.toThrow(
+					'Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: 999, expected: 10',
+				);
+			});
+
+			it('should fail to enable forging when force false and forger info does not exist', async () => {
+				when(dbStub.get)
+					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
+					.mockResolvedValue(Buffer.from(JSON.stringify({}), 'utf8') as never);
+
+				await expect(
+					forgeModule.updateForgingStatus(
+						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+						testDelegate.password,
+						true,
+						100,
+						false,
+					),
+				).rejects.toThrow(
+					'Failed to enable forging due to missing forger info and specifying invalid maxHeightPreviouslyForged',
+				);
+			});
+
+			it('should enable forging when force false and matched maxHeightPreviouslyForged', async () => {
+				const data = await forgeModule.updateForgingStatus(
+					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+					testDelegate.password,
+					true,
+					10,
+					false,
+				);
+
+				expect(
+					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
+				).not.toBeUndefined();
+				expect(data.address.toString('hex')).toEqual(testDelegate.address);
+			});
+
+			it('should enable forging when force true', async () => {
+				const data = await forgeModule.updateForgingStatus(
+					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+					testDelegate.password,
+					true,
+					200,
+					true,
+				);
+
+				expect(
+					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
+				).not.toBeUndefined();
+				expect(data.address.toString('hex')).toEqual(testDelegate.address);
+
+				expect(loggerStub.info).toHaveBeenCalledTimes(2);
+				expect(loggerStub.info).toHaveBeenCalledWith(
+					expect.stringContaining('Updated maxHeightPreviouslyForged to'),
+				);
+				expect(loggerStub.info).toHaveBeenLastCalledWith(
+					expect.stringContaining('Forging enabled on account'),
+				);
 			});
 		});
 
