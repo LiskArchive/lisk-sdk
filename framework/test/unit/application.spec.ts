@@ -406,6 +406,33 @@ describe('Application', () => {
 			);
 		});
 
+		it('should throw an error if asset apply is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = 'asset';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				public apply = {} as any;
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `apply` property.',
+			);
+		});
+
 		it('should add custom module to collection.', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
