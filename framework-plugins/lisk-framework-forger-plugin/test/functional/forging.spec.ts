@@ -46,54 +46,52 @@ describe('api/forging', () => {
 
 	describe('/api/forging', () => {
 		describe('200 - Success', () => {
-			describe('when force is false and maxHeightPreviouslyForged match', () => {
-				it('it should enable forging', async () => {
-					// Arrange
-					const forgerParams = {
-						address: sampleForgerInfo.address,
-						password: sampleForgerPassword,
-						forging: true,
-						maxHeightPreviouslyForged: 0,
-						force: false,
-					};
+			it('should enable forging when force is false and maxHeightPreviouslyForged match', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+					maxHeightPreviouslyForged: 0,
+					force: false,
+				};
 
-					// Act
-					const { response, status } = await callNetwork(
-						axios.patch(getURL('/api/forging'), forgerParams),
-					);
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
 
-					// Assert
-					expect(status).toEqual(200);
-					expect(response).toEqual({
-						meta: { count: 1 },
-						data: { ...sampleForgerInfo, maxHeightPreviouslyForged: 0, forging: true },
-					});
+				// Assert
+				expect(status).toEqual(200);
+				expect(response).toEqual({
+					meta: { count: 1 },
+					data: { ...sampleForgerInfo, maxHeightPreviouslyForged: 0, forging: true },
 				});
 			});
-			describe('when force is true', () => {
-				it('it should overwrite the maxHeightPreviouslyForged to the input value and enable forging', async () => {
-					// Arrange
-					const forgerParams = {
-						address: sampleForgerInfo.address,
-						password: sampleForgerPassword,
-						forging: false,
-						maxHeightPreviouslyForged: 100,
-						force: false,
-					};
 
-					// Act
-					const { response, status } = await callNetwork(
-						axios.patch(getURL('/api/forging'), forgerParams),
-					);
+			it('should overwrite the maxHeightPreviouslyForged to the input value and enable forging when force is true', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: false,
+					maxHeightPreviouslyForged: 100,
+					force: false,
+				};
 
-					// Assert
-					expect(status).toEqual(200);
-					expect(response).toEqual({
-						meta: { count: 1 },
-						data: { ...sampleForgerInfo, forging: false },
-					});
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(200);
+				expect(response).toEqual({
+					meta: { count: 1 },
+					data: { ...sampleForgerInfo, forging: false },
 				});
 			});
+
 			it('should respond with forging status and info and disable forging when param forging=false', async () => {
 				// Arrange
 				const forgerParams = {
@@ -139,32 +137,61 @@ describe('api/forging', () => {
 		});
 
 		describe('400 - Invalid param values', () => {
-			describe('when force is false and maxHeightPreviouslyForged does not match', () => {
-				it('it should fail to enable forging', async () => {
-					// Arrange
-					const forgerParams = {
-						address: sampleForgerInfo.address,
-						password: sampleForgerPassword,
-						forging: true,
-						maxHeightPreviouslyForged: 300,
-						force: false,
-					};
+			it('should fail to enable forging when force is false and maxHeightPreviouslyForged does not match', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+					maxHeightPreviouslyForged: 300,
+					force: false,
+				};
 
-					// Act
-					const { response, status } = await callNetwork(
-						axios.patch(getURL('/api/forging'), forgerParams),
-					);
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
 
-					// Assert
-					expect(status).toEqual(500);
-					expect(response).toEqual({
-						errors: [
-							{
-								message:
-									'Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: 300, expected: 100',
-							},
-						],
-					});
+				// Assert
+				expect(status).toEqual(500);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: 300, expected: 100',
+						},
+					],
+				});
+			});
+
+			it('should fail to enable forging when force=false, maxHeightPreviouslyForged!=0 and forger info does not exists', async () => {
+				// Arrange
+				const { data: forgingInfo } = await axios.get(getURL('/api/forging/info'));
+				const delegate = forgingInfo.data.filter(
+					(info: { maxHeightPreviouslyForged: number }) => !info.maxHeightPreviouslyForged,
+				);
+				const forgerParams = {
+					address: delegate[0].address,
+					password: sampleForgerPassword,
+					forging: true,
+					maxHeightPreviouslyForged: 999,
+					force: false,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(500);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'Failed to enable forging due to missing forger info and specifying invalid maxHeightPreviouslyForged: 999',
+						},
+					],
 				});
 			});
 
