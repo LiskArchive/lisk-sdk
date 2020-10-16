@@ -23,7 +23,7 @@ import * as networkConfig from '../fixtures/config/devnet/config.json';
 import { systemDirs } from '../../src/system_dirs';
 import { createLogger } from '../../src/logger';
 import { genesisBlock } from '../fixtures/blocks';
-import { BaseModule } from '../../src';
+import { BaseModule, BaseAsset } from '../../src';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -226,7 +226,7 @@ describe('Application', () => {
 			);
 		});
 
-		it('should throw an error if id is missing', () => {
+		it('should throw an error if module id is missing', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(app['_node'], 'registerModule');
@@ -242,7 +242,7 @@ describe('Application', () => {
 			);
 		});
 
-		it('should throw an error if name is missing', () => {
+		it('should throw an error if module name is missing', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(app['_node'], 'registerModule');
@@ -271,6 +271,141 @@ describe('Application', () => {
 			// Assert
 			expect(() => app.registerModule(SampleModule)).toThrow(
 				'Custom module must have id greater than or equal to 1000',
+			);
+		});
+
+		it('should throw an error if asset does not extend BaseAsset', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset {
+				public name = 'asset';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				// eslint-disable-next-line class-methods-use-this
+				public async apply(): Promise<void> {}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset which does not extend `BaseAsset` class.',
+			);
+		});
+
+		it('should throw an error if asset id is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = 'asset';
+				public id = null as any;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				// eslint-disable-next-line class-methods-use-this
+				public async apply(): Promise<void> {}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `id` property.',
+			);
+		});
+
+		it('should throw an error if asset name is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = '';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				// eslint-disable-next-line class-methods-use-this
+				public async apply(): Promise<void> {}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `name` property.',
+			);
+		});
+
+		it('should throw an error if asset schema is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = 'asset';
+				public id = 0;
+				public schema = undefined as any;
+				// eslint-disable-next-line class-methods-use-this
+				public async apply(): Promise<void> {}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `schema` property.',
+			);
+		});
+
+		it('should throw an error if asset apply is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = 'asset';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				public apply = {} as any;
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `apply` property.',
 			);
 		});
 

@@ -60,7 +60,7 @@ import {
 } from './processor/processor';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchronizer';
 import { Network } from './network';
-import { BaseModule } from '../modules';
+import { BaseAsset, BaseModule } from '../modules';
 import { Bus } from '../controller/bus';
 
 const forgeInterval = 1000;
@@ -162,7 +162,7 @@ export class Node {
 	public registerModule(customModule: BaseModule): void {
 		const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 		if (exist) {
-			throw new Error(`Custom module with id ${customModule.id} already exists`);
+			throw new Error(`Custom module with id ${customModule.id} already exists.`);
 		}
 
 		if (!customModule.name || !customModule.id) {
@@ -172,7 +172,7 @@ export class Node {
 		}
 
 		if (customModule.id < MINIMUM_MODULE_ID) {
-			throw new Error(`Custom module must have id greater than ${MINIMUM_MODULE_ID}`);
+			throw new Error(`Custom module must have id greater than ${MINIMUM_MODULE_ID}.`);
 		}
 		if (customModule.accountSchema) {
 			this._registeredAccountSchemas[customModule.name] = {
@@ -180,6 +180,29 @@ export class Node {
 				fieldNumber: customModule.id,
 			};
 		}
+
+		for (const asset of customModule.transactionAssets) {
+			if (!(asset instanceof BaseAsset)) {
+				throw new Error('Custom module contains asset which does not extend `BaseAsset` class.');
+			}
+
+			if (typeof asset.name !== 'string' || asset.name === '') {
+				throw new Error('Custom module contains asset with invalid `name` property.');
+			}
+
+			if (typeof asset.id !== 'number') {
+				throw new Error('Custom module contains asset with invalid `id` property.');
+			}
+
+			if (typeof asset.schema !== 'object') {
+				throw new Error('Custom module contains asset with invalid `schema` property.');
+			}
+
+			if (typeof asset.apply !== 'function') {
+				throw new Error('Custom module contains asset with invalid `apply` property.');
+			}
+		}
+
 		this._registeredModules.push(customModule);
 	}
 
