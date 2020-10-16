@@ -108,6 +108,8 @@ paths:
               - password
               - address
               - forging
+              - maxHeightPreviouslyForged
+              - force
             properties:
               forging:
                 type: boolean
@@ -123,6 +125,14 @@ paths:
                 example: '0903f4c5cb599a7928aef27e294e98293d1e3888'
                 format: hex
                 description: Address of the delegate.
+              maxHeightPreviouslyForged:
+                type: number
+                example: 100
+                description: Delegates previously forged height.
+              force:
+                type: boolean
+                example: true
+                description: Override delegates previously forged height.
       responses:
         200:
           description: Delegate forging toggled on or off.
