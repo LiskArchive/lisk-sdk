@@ -105,11 +105,11 @@ p2p.on(EVENT_REQUEST_RECEIVED, async (request: P2PRequest) => {
 
 ### Examples
 
-Check [examples](examples/) folder for a few examples to demonstrate P2P library usage with some use cases.
+Check [examples](examples/) folder for a few examples to demonstrate P2P library usage with some use cases. Please make sure you run `npm run build` before running any example.
 
-- [echo](examples/echo): This example will run 3 nodes that will connect to each other and will say "`hi`" to each other that will be responded by peers when they receive.
-- [find-city-game](examples/find-city-game): It will run 3 nodes that will change their city randomly and also tell the other nodes in which city they are, if they find out that they are in the same city then they stop changing their city. The app will stop when all 3 nodes are in the same city.
-- [Connect to Lisk networks](examples/lisk-networks): Example to create a lightweight p2p client that can connect to lisk networks like [testnet](examples/lisk-networks/connect_to_testnet.ts), [mainnet](examples/lisk-networks/connect_to_mainnet.ts) and [devnet](examples/lisk-networks/connect_to_devnet.ts) and listen to various events and request data on connect event.
+- [echo](examples/echo): This example will run nodes that will connect to each other and will say "`hi`" to each other that will be responded by peers when they receive, network will shut down on its own after reaching 10 greetings. Run `node examples/echo`.
+- [find-city-game](examples/find-city-game): It will run nodes that will change their city randomly and also tell the other nodes in which city they are, if any two nodes finds out that they are in the same city they will broadcast it to others and shutdown. Run `node examples/find-city-game`.
+- [Connect to Lisk networks](examples/lisk-networks): Example to create a lightweight p2p client that can connect to lisk networks. Listen to various events and request data from the network. Run `node examples/lisk-network {NETWORK_NAME}` where `NETWORK_NAME` can be testnet, devnet and mainnet.
 
 ## License
 
