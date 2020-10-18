@@ -364,7 +364,8 @@ export class Node {
 					params.password,
 					params.forging,
 					params.maxHeightPreviouslyForged,
-					params.force,
+					params.maxHeightPrevoted,
+					params.overwrite,
 				);
 
 				return {

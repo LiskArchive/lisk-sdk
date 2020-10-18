@@ -32,6 +32,20 @@ const updateForgingParams = {
 			type: 'boolean',
 			description: 'Boolean flag to enable or disable forging',
 		},
+		maxHeightPreviouslyForged: {
+			type: 'string',
+			format: 'uint32',
+			description: 'Delegates previously forged height',
+		},
+		maxHeightPrevoted: {
+			type: 'string',
+			format: 'uint32',
+			description: 'Delegates Largest prevoted height for a block',
+		},
+		overwrite: {
+			type: 'boolean',
+			description: 'Boolean flag to overwrite forger info',
+		},
 	},
 };
 
@@ -43,7 +57,8 @@ interface ForgingResponseData {
 interface ForgingRequestData extends ForgingResponseData {
 	readonly password: string;
 	readonly maxHeightPreviouslyForged: number;
-	readonly force?: boolean;
+	readonly maxHeightPrevoted: number;
+	readonly overwrite?: boolean;
 }
 
 export const updateForging = (channel: BaseChannel, db: KVStore) => async (
@@ -64,7 +79,8 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 		password,
 		forging,
 		maxHeightPreviouslyForged,
-		force,
+		maxHeightPrevoted,
+		overwrite,
 	} = req.body as ForgingRequestData;
 
 	if (!isHexString(address)) {
@@ -90,13 +106,26 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 		return;
 	}
 
+	if (maxHeightPrevoted === null || maxHeightPrevoted === undefined || maxHeightPrevoted < 0) {
+		res.status(400).send({
+			errors: [
+				{
+					message:
+						'The maxHeightPrevoted parameter must be specified and greater than or equal to 0.',
+				},
+			],
+		});
+		return;
+	}
+
 	try {
 		const result: ForgingResponseData = await channel.invoke('app:updateForgingStatus', {
 			address,
 			password,
 			forging,
 			maxHeightPreviouslyForged,
-			force,
+			maxHeightPrevoted,
+			overwrite,
 		});
 
 		const {
@@ -116,6 +145,7 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 				totalReceivedFees: totalReceivedFees.toString(),
 				totalReceivedRewards: totalReceivedRewards.toString(),
 				maxHeightPreviouslyForged,
+				maxHeightPrevoted,
 			},
 		});
 	} catch (err) {

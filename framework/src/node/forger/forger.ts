@@ -159,7 +159,8 @@ export class Forger {
 		password: string,
 		forging: boolean,
 		maxHeightPreviouslyForged: number,
-		force?: boolean,
+		maxHeightPrevoted: number,
+		overwrite?: boolean,
 	): Promise<ForgingStatus> {
 		const encryptedList = this._config.forging.delegates;
 		const encryptedItem = encryptedList?.find(item => item.address.equals(forgerAddress));
@@ -195,9 +196,14 @@ export class Forger {
 		if (forging) {
 			const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
 
-			if (!previouslyForgedMap.has(forgerAddress) && maxHeightPreviouslyForged !== 0 && !force) {
+			if (
+				!previouslyForgedMap.has(forgerAddress) &&
+				maxHeightPreviouslyForged !== 0 &&
+				maxHeightPrevoted !== 0 &&
+				!overwrite
+			) {
 				throw new Error(
-					`Failed to enable forging due to missing forger info and specifying invalid maxHeightPreviouslyForged: ${maxHeightPreviouslyForged}`,
+					`Failed to enable forging due to missing forger info and specifying invalid maxHeightPreviouslyForged: ${maxHeightPreviouslyForged} and maxHeightPrevoted: ${maxHeightPrevoted}`,
 				);
 			}
 
@@ -205,16 +211,33 @@ export class Forger {
 				previouslyForgedMap.has(forgerAddress) &&
 				previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged !==
 					maxHeightPreviouslyForged &&
-				!force
+				previouslyForgedMap.get(forgerAddress)?.maxHeightPrevoted !== maxHeightPrevoted &&
+				!overwrite
 			) {
 				const maxPreviouslyForgedHeight =
 					previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged ?? 0;
+				const maxPreviouslyPrevotedHeight =
+					previouslyForgedMap.get(forgerAddress)?.maxHeightPrevoted ?? 0;
 				throw new Error(
-					`Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: ${maxHeightPreviouslyForged}, expected: ${maxPreviouslyForgedHeight}`,
+					`Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: ${maxHeightPreviouslyForged}, expected: ${maxPreviouslyForgedHeight}, and maxHeightPrevoted, actual: ${maxHeightPrevoted}, expected: ${maxPreviouslyPrevotedHeight}`,
 				);
 			}
 
-			if (force) {
+			const forgerInfo = previouslyForgedMap.get(forgerAddress);
+			const { asset: B, height: lastBlockHeight } = this._chainModule.lastBlock.header;
+
+			if (
+				!(
+					maxHeightPrevoted < B.maxHeightPrevoted ||
+					(maxHeightPrevoted === B.maxHeightPrevoted &&
+						forgerInfo &&
+						forgerInfo.height < lastBlockHeight)
+				)
+			) {
+				throw new Error('Failed to enable forging as the node is not at the tip of the chain');
+			}
+
+			if (overwrite) {
 				previouslyForgedMap.set(forgerAddress, {
 					height: maxHeightPreviouslyForged,
 					maxHeightPrevoted: 0,

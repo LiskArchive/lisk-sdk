@@ -109,7 +109,8 @@ paths:
               - address
               - forging
               - maxHeightPreviouslyForged
-              - force
+              - maxHeightPrevoted
+              - overwrite
             properties:
               forging:
                 type: boolean
@@ -129,10 +130,14 @@ paths:
                 type: number
                 example: 100
                 description: Delegates previously forged height.
-              force:
+              maxHeightPrevoted:
+                  type: number
+                  example: 10
+                  description: Delegates Largest prevoted height for a block.
+              overwrite:
                 type: boolean
                 example: true
-                description: Override delegates previously forged height.
+                description: Boolean flag to overwrite forger info.
       responses:
         200:
           description: Delegate forging toggled on or off.

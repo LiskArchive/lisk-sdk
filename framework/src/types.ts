@@ -296,5 +296,6 @@ export interface UpdateForgingStatusInput {
 	readonly password: string;
 	readonly forging: boolean;
 	readonly maxHeightPreviouslyForged: number;
-	readonly force?: boolean;
+	readonly maxHeightPrevoted: number;
+	readonly overwrite?: boolean;
 }

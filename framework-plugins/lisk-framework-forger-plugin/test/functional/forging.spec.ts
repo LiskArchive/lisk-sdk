@@ -30,6 +30,7 @@ describe('api/forging', () => {
 		totalReceivedFees: '0',
 		totalReceivedRewards: '0',
 		maxHeightPreviouslyForged: 100,
+		maxHeightPrevoted: 10,
 	};
 	const sampleForgerPassword = 'elephant tree paris dragon chair galaxy';
 
@@ -53,7 +54,8 @@ describe('api/forging', () => {
 					password: sampleForgerPassword,
 					forging: true,
 					maxHeightPreviouslyForged: 0,
-					force: false,
+					maxHeightPrevoted: 0,
+					overwrite: false,
 				};
 
 				// Act
@@ -65,7 +67,12 @@ describe('api/forging', () => {
 				expect(status).toEqual(200);
 				expect(response).toEqual({
 					meta: { count: 1 },
-					data: { ...sampleForgerInfo, maxHeightPreviouslyForged: 0, forging: true },
+					data: {
+						...sampleForgerInfo,
+						maxHeightPreviouslyForged: 0,
+						maxHeightPrevoted: 0,
+						forging: true,
+					},
 				});
 			});
 
@@ -76,7 +83,8 @@ describe('api/forging', () => {
 					password: sampleForgerPassword,
 					forging: false,
 					maxHeightPreviouslyForged: 100,
-					force: false,
+					maxHeightPrevoted: 10,
+					overwrite: false,
 				};
 
 				// Act
@@ -99,7 +107,8 @@ describe('api/forging', () => {
 					password: sampleForgerPassword,
 					forging: false,
 					maxHeightPreviouslyForged: 100,
-					force: true,
+					maxHeightPrevoted: 10,
+					overwrite: true,
 				};
 
 				// Act
@@ -122,7 +131,8 @@ describe('api/forging', () => {
 					password: sampleForgerPassword,
 					forging: true,
 					maxHeightPreviouslyForged: 100,
-					force: true,
+					maxHeightPrevoted: 10,
+					overwrite: true,
 				};
 
 				// Act
@@ -144,7 +154,7 @@ describe('api/forging', () => {
 					password: sampleForgerPassword,
 					forging: true,
 					maxHeightPreviouslyForged: 300,
-					force: false,
+					overwrite: false,
 				};
 
 				// Act
@@ -175,7 +185,7 @@ describe('api/forging', () => {
 					password: sampleForgerPassword,
 					forging: true,
 					maxHeightPreviouslyForged: 999,
-					force: false,
+					overwrite: false,
 				};
 
 				// Act
