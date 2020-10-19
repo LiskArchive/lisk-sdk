@@ -68,10 +68,7 @@ export class DPoSModule extends BaseModule {
 
 	public constructor(config: GenesisConfig) {
 		super(config);
-		const mergedDposConfig = objectsUtils.mergeDeep(
-			dposModuleParamsDefault,
-			this.config,
-		) as GenesisConfig;
+		const mergedDposConfig = objectsUtils.mergeDeep(dposModuleParamsDefault, this.config);
 
 		// Set actions
 		this.actions = {
