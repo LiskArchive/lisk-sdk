@@ -34,7 +34,7 @@ Object {
       },
       "label": "alpha-sdk-app",
       "logger": Object {
-        "consoleLogLevel": "debug",
+        "consoleLogLevel": "none",
         "fileLogLevel": "info",
         "logFileName": "lisk.log",
       },
