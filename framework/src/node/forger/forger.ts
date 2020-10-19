@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as assert from 'assert';
 import {
 	decryptPassphraseWithPassword,
 	generateHashOnionSeed,
@@ -33,6 +34,7 @@ import { HighFeeForgingStrategy } from './strategies';
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
 import {
+	ForgedInfo,
 	getRegisteredHashOnionSeeds,
 	getUsedHashOnions,
 	getPreviouslyForgedMap,
@@ -88,6 +90,35 @@ interface CreateBlockInput {
 }
 
 const BLOCK_VERSION = 2;
+const forgerInfoMissing = (
+	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
+	forgerAddress: Buffer,
+	{ height, maxHeightPreviouslyForged, maxHeightPrevoted }: ForgedInfo,
+	overwrite?: boolean,
+) =>
+	!overwrite &&
+	!previouslyForgedMap.has(forgerAddress) &&
+	maxHeightPreviouslyForged !== 0 &&
+	maxHeightPrevoted !== 0 &&
+	height !== 0;
+
+const isContradictingForgerInfo = (
+	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
+	forgerAddress: Buffer,
+	{ height, maxHeightPreviouslyForged, maxHeightPrevoted }: ForgedInfo,
+	overwrite?: boolean,
+) =>
+	!overwrite &&
+	previouslyForgedMap.has(forgerAddress) &&
+	(previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged !==
+		maxHeightPreviouslyForged ||
+		previouslyForgedMap.get(forgerAddress)?.maxHeightPrevoted !== maxHeightPrevoted ||
+		previouslyForgedMap.get(forgerAddress)?.height !== height);
+
+const isSyncedWithNetwork = (lastBlockHeader: BlockHeader, forgingInput: ForgedInfo) =>
+	forgingInput.maxHeightPrevoted < lastBlockHeader.asset.maxHeightPrevoted ||
+	(forgingInput.maxHeightPrevoted === lastBlockHeader.asset.maxHeightPrevoted &&
+		forgingInput.height < lastBlockHeader.height);
 
 export class Forger {
 	private readonly _logger: Logger;
@@ -158,20 +189,21 @@ export class Forger {
 		forgerAddress: Buffer,
 		password: string,
 		forging: boolean,
+		height: number,
 		maxHeightPreviouslyForged: number,
 		maxHeightPrevoted: number,
 		overwrite?: boolean,
 	): Promise<ForgingStatus> {
-		const encryptedList = this._config.forging.delegates;
-		const encryptedItem = encryptedList?.find(item => item.address.equals(forgerAddress));
+		const encryptedForgers = this._config.forging.delegates;
+		const encryptedForger = encryptedForgers?.find(item => item.address.equals(forgerAddress));
 
 		let keypair: Keypair;
 		let passphrase: string;
 
-		if (encryptedItem) {
+		if (encryptedForger) {
 			try {
 				passphrase = decryptPassphraseWithPassword(
-					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
+					parseEncryptedPassphrase(encryptedForger.encryptedPassphrase),
 					password,
 				);
 			} catch (e) {
@@ -191,72 +223,56 @@ export class Forger {
 			);
 		}
 
-		const account = await this._chainModule.dataAccess.getAccountByAddress(forgerAddress);
-
-		if (forging) {
-			const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
-
-			if (
-				!previouslyForgedMap.has(forgerAddress) &&
-				maxHeightPreviouslyForged !== 0 &&
-				maxHeightPrevoted !== 0 &&
-				!overwrite
-			) {
-				throw new Error(
-					`Failed to enable forging due to missing forger info and specifying invalid maxHeightPreviouslyForged: ${maxHeightPreviouslyForged} and maxHeightPrevoted: ${maxHeightPrevoted}`,
-				);
-			}
-
-			if (
-				previouslyForgedMap.has(forgerAddress) &&
-				previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged !==
-					maxHeightPreviouslyForged &&
-				previouslyForgedMap.get(forgerAddress)?.maxHeightPrevoted !== maxHeightPrevoted &&
-				!overwrite
-			) {
-				const maxPreviouslyForgedHeight =
-					previouslyForgedMap.get(forgerAddress)?.maxHeightPreviouslyForged ?? 0;
-				const maxPreviouslyPrevotedHeight =
-					previouslyForgedMap.get(forgerAddress)?.maxHeightPrevoted ?? 0;
-				throw new Error(
-					`Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: ${maxHeightPreviouslyForged}, expected: ${maxPreviouslyForgedHeight}, and maxHeightPrevoted, actual: ${maxHeightPrevoted}, expected: ${maxPreviouslyPrevotedHeight}`,
-				);
-			}
-
-			const forgerInfo = previouslyForgedMap.get(forgerAddress);
-			const { asset: B, height: lastBlockHeight } = this._chainModule.lastBlock.header;
-
-			if (
-				!(
-					maxHeightPrevoted < B.maxHeightPrevoted ||
-					(maxHeightPrevoted === B.maxHeightPrevoted &&
-						forgerInfo &&
-						forgerInfo.height < lastBlockHeight)
-				)
-			) {
-				throw new Error('Failed to enable forging as the node is not at the tip of the chain');
-			}
-
-			if (overwrite) {
-				previouslyForgedMap.set(forgerAddress, {
-					height: maxHeightPreviouslyForged,
-					maxHeightPrevoted: 0,
-					maxHeightPreviouslyForged,
-				});
-				await setPreviouslyForgedMap(this._db, previouslyForgedMap);
-				this._logger.info(`Updated maxHeightPreviouslyForged to: ${maxHeightPreviouslyForged}`);
-			}
-			this._keypairs.set(forgerAddress, keypair);
-			this._logger.info(`Forging enabled on account: ${account.address.toString('hex')}`);
-		} else {
+		if (!forging) {
+			// Disable delegate by removing keypairs corresponding to address
 			this._keypairs.delete(forgerAddress);
-			this._logger.info(`Forging disabled on account: ${account.address.toString('hex')}`);
+			this._logger.info(`Forging disabled on account: ${forgerAddress.toString('hex')}`);
+			return {
+				address: forgerAddress,
+				forging,
+			};
 		}
+
+		const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
+		const forgingInput = { height, maxHeightPreviouslyForged, maxHeightPrevoted };
+		if (forgerInfoMissing(previouslyForgedMap, forgerAddress, forgingInput, overwrite)) {
+			throw new Error('Failed to enable forging due to missing forger info.');
+		}
+
+		if (isContradictingForgerInfo(previouslyForgedMap, forgerAddress, forgingInput, overwrite)) {
+			const expectedForgerInfo = previouslyForgedMap.get(forgerAddress) ?? {
+				height: 0,
+				maxHeightPreviouslyForged: 0,
+				maxHeightPrevoted: 0,
+			};
+			assert(
+				Object.entries(expectedForgerInfo).toString() === Object.entries(forgingInput).toString(),
+				'Failed to enable forging due to contradicting forger info.',
+			);
+		}
+
+		const lastBlockHeader = this._chainModule.lastBlock.header;
+
+		if (!isSyncedWithNetwork(lastBlockHeader, forgingInput)) {
+			throw new Error('Failed to enable forging as the node is not synced to the network.');
+		}
+
+		if (overwrite) {
+			previouslyForgedMap.set(forgerAddress, {
+				height,
+				maxHeightPrevoted,
+				maxHeightPreviouslyForged,
+			});
+			await setPreviouslyForgedMap(this._db, previouslyForgedMap);
+			this._logger.info(forgingInput, 'Updated forgerInfo');
+		}
+		// Enable delegate to forge by adding keypairs corresponding to address
+		this._keypairs.set(forgerAddress, keypair);
+		this._logger.info(`Forging enabled on account: ${forgerAddress.toString('hex')}`);
 
 		return {
 			address: forgerAddress,
 			forging,
-			maxHeightPreviouslyForged,
 		};
 	}
 

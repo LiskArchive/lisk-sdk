@@ -126,14 +126,18 @@ paths:
                 example: '0903f4c5cb599a7928aef27e294e98293d1e3888'
                 format: hex
                 description: Address of the delegate.
+              height:
+                type: number
+                example: 100
+                description: Last forged block height.
               maxHeightPreviouslyForged:
                 type: number
                 example: 100
-                description: Delegates previously forged height.
+                description: Delegates largest previously forged height.
               maxHeightPrevoted:
-                  type: number
-                  example: 10
-                  description: Delegates Largest prevoted height for a block.
+                type: number
+                example: 10
+                description: Delegates largest prevoted height for a block.
               overwrite:
                 type: boolean
                 example: true

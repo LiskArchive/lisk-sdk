@@ -363,6 +363,7 @@ export class Node {
 					Buffer.from(params.address, 'hex'),
 					params.password,
 					params.forging,
+					params.height,
 					params.maxHeightPreviouslyForged,
 					params.maxHeightPrevoted,
 					params.overwrite,

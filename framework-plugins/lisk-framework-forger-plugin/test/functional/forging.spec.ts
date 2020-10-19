@@ -39,6 +39,13 @@ describe('api/forging', () => {
 	beforeAll(async () => {
 		app = await createApplication('forging');
 		await waitNBlocks(app, 1);
+		const { data } = await axios.get(getURL('/api/forging/info'));
+		const forgedDelegateInfo = data.data.filter(
+			(forger: { maxHeightPreviouslyForged: number }) => forger.maxHeightPreviouslyForged >= 0,
+		);
+		sampleForgerInfo.address = forgedDelegateInfo[0].address;
+		sampleForgerInfo.maxHeightPreviouslyForged = forgedDelegateInfo[0].maxHeightPreviouslyForged;
+		sampleForgerInfo.maxHeightPrevoted = forgedDelegateInfo[0].maxHeightPrevoted;
 	});
 
 	afterAll(async () => {
@@ -47,15 +54,16 @@ describe('api/forging', () => {
 
 	describe('/api/forging', () => {
 		describe('200 - Success', () => {
-			it('should enable forging when force is false and maxHeightPreviouslyForged match', async () => {
+			it('should overwrite the maxHeightPreviouslyForged to the input value and enable forging when overwrite is true', async () => {
 				// Arrange
 				const forgerParams = {
 					address: sampleForgerInfo.address,
 					password: sampleForgerPassword,
 					forging: true,
+					height: 1,
 					maxHeightPreviouslyForged: 0,
 					maxHeightPrevoted: 0,
-					overwrite: false,
+					overwrite: true,
 				};
 
 				// Act
@@ -67,36 +75,7 @@ describe('api/forging', () => {
 				expect(status).toEqual(200);
 				expect(response).toEqual({
 					meta: { count: 1 },
-					data: {
-						...sampleForgerInfo,
-						maxHeightPreviouslyForged: 0,
-						maxHeightPrevoted: 0,
-						forging: true,
-					},
-				});
-			});
-
-			it('should overwrite the maxHeightPreviouslyForged to the input value and enable forging when force is true', async () => {
-				// Arrange
-				const forgerParams = {
-					address: sampleForgerInfo.address,
-					password: sampleForgerPassword,
-					forging: false,
-					maxHeightPreviouslyForged: 100,
-					maxHeightPrevoted: 10,
-					overwrite: false,
-				};
-
-				// Act
-				const { response, status } = await callNetwork(
-					axios.patch(getURL('/api/forging'), forgerParams),
-				);
-
-				// Assert
-				expect(status).toEqual(200);
-				expect(response).toEqual({
-					meta: { count: 1 },
-					data: { ...sampleForgerInfo, forging: false },
+					data: { ...sampleForgerInfo, forging: true },
 				});
 			});
 
@@ -106,9 +85,10 @@ describe('api/forging', () => {
 					address: sampleForgerInfo.address,
 					password: sampleForgerPassword,
 					forging: false,
-					maxHeightPreviouslyForged: 100,
-					maxHeightPrevoted: 10,
-					overwrite: true,
+					height: 1,
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: 0,
+					overwrite: false,
 				};
 
 				// Act
@@ -130,8 +110,9 @@ describe('api/forging', () => {
 					address: sampleForgerInfo.address,
 					password: sampleForgerPassword,
 					forging: true,
-					maxHeightPreviouslyForged: 100,
-					maxHeightPrevoted: 10,
+					height: 1,
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: 0,
 					overwrite: true,
 				};
 
@@ -147,13 +128,43 @@ describe('api/forging', () => {
 		});
 
 		describe('400 - Invalid param values', () => {
-			it('should fail to enable forging when force is false and maxHeightPreviouslyForged does not match', async () => {
+			it('should fail to enable forging when node is not synced with network', async () => {
 				// Arrange
 				const forgerParams = {
 					address: sampleForgerInfo.address,
 					password: sampleForgerPassword,
 					forging: true,
+					height: 200,
+					maxHeightPreviouslyForged: 200,
+					maxHeightPrevoted: 10,
+					overwrite: true,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(500);
+				expect(response).toEqual({
+					errors: [
+						{
+							message: 'Failed to enable forging as the node is not synced to the network.',
+						},
+					],
+				});
+			});
+
+			it('should fail to enable forging when overwrite is false and maxHeightPreviouslyForged does not match', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+					height: 0,
 					maxHeightPreviouslyForged: 300,
+					maxHeightPrevoted: 60,
 					overwrite: false,
 				};
 
@@ -167,14 +178,18 @@ describe('api/forging', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message:
-								'Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: 300, expected: 100',
+							actual: false,
+							code: 'ERR_ASSERTION',
+							expected: true,
+							generatedMessage: false,
+							message: 'Failed to enable forging due to contradicting forger info.',
+							operator: '==',
 						},
 					],
 				});
 			});
 
-			it('should fail to enable forging when force=false, maxHeightPreviouslyForged!=0 and forger info does not exists', async () => {
+			it('should fail to enable forging when overwrite=false, maxHeightPreviouslyForged!=0 and forger info does not exists', async () => {
 				// Arrange
 				const { data: forgingInfo } = await axios.get(getURL('/api/forging/info'));
 				const delegate = forgingInfo.data.filter(
@@ -184,7 +199,9 @@ describe('api/forging', () => {
 					address: delegate[0].address,
 					password: sampleForgerPassword,
 					forging: true,
+					height: 1,
 					maxHeightPreviouslyForged: 999,
+					maxHeightPrevoted: 60,
 					overwrite: false,
 				};
 
@@ -198,8 +215,7 @@ describe('api/forging', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message:
-								'Failed to enable forging due to missing forger info and specifying invalid maxHeightPreviouslyForged: 999',
+							message: 'Failed to enable forging due to missing forger info.',
 						},
 					],
 				});
@@ -294,7 +310,7 @@ describe('api/forging', () => {
 					errors: [
 						{
 							message:
-								'The maxHeightPreviouslyForged parameter must be specified and greater than or equal to 0.',
+								'The maxHeightPreviouslyForged, maxHeightPrevoted, height parameter must be specified and greater than or equal to 0.',
 						},
 					],
 				});
@@ -320,7 +336,7 @@ describe('api/forging', () => {
 					errors: [
 						{
 							message:
-								'The maxHeightPreviouslyForged parameter must be specified and greater than or equal to 0.',
+								'The maxHeightPreviouslyForged, maxHeightPrevoted, height parameter must be specified and greater than or equal to 0.',
 						},
 					],
 				});

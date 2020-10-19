@@ -131,11 +131,12 @@ describe('forger', () => {
 				const lastBlock = {
 					header: {
 						id: Buffer.from('6846255774763267134'),
-						height: 9187702,
+						height: 200,
 						timestamp: 93716450,
 						asset: {
-							maxHeightPrevoted: 1,
-							maxHeightPreviouslyForged: 10,
+							height: 200,
+							maxHeightPreviouslyForged: 200,
+							maxHeightPrevoted: 10,
 						},
 					},
 					payload: [],
@@ -143,9 +144,9 @@ describe('forger', () => {
 				chainModuleStub.lastBlock = lastBlock;
 				const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
 				parsedPreviouslyForgedMap[Buffer.from(testDelegate.address, 'hex').toString('binary')] = {
-					height: 100,
-					maxHeightPrevoted: 1,
-					maxHeightPreviouslyForged: 10,
+					height: 200,
+					maxHeightPreviouslyForged: 200,
+					maxHeightPrevoted: 10,
 				};
 				const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
 				when(dbStub.get)
@@ -160,7 +161,8 @@ describe('forger', () => {
 						'Invalid password',
 						true,
 						200,
-						60,
+						200,
+						10,
 						true,
 					),
 				).rejects.toThrow('Invalid password and public key combination');
@@ -173,129 +175,167 @@ describe('forger', () => {
 				const invalidAddress = getAddressFromPublicKey(invalidPublicKey);
 
 				await expect(
-					forgeModule.updateForgingStatus(invalidAddress, defaultPassword, true, 200, 10, true),
+					forgeModule.updateForgingStatus(
+						invalidAddress,
+						defaultPassword,
+						true,
+						200,
+						200,
+						10,
+						true,
+					),
 				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('hex')} not found`);
 			});
 
 			it('should return error with non delegate account', async () => {
 				const invalidAddress = getAddressFromPublicKey(genesis.publicKey);
 				await expect(
-					forgeModule.updateForgingStatus(invalidAddress, genesis.password, true, 200, 10, true),
-				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('hex')} not found`);
-			});
-
-			it('should update forging from enabled to disabled', async () => {
-				// Arrange
-				chainModuleStub.dataAccess.getAccountByAddress.mockResolvedValue({
-					address: testDelegate.address,
-				});
-				(forgeModule as any)._keypairs.set(
-					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-					Buffer.from('privateKey', 'utf8'),
-				);
-
-				// Act
-				const data = await forgeModule.updateForgingStatus(
-					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-					testDelegate.password,
-					false,
-					200,
-					10,
-					true,
-				);
-
-				// Assert
-				expect(
-					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
-				).toBeUndefined();
-				expect(data.address.toString('hex')).toEqual(testDelegate.address);
-			});
-
-			it('should fail to enable forging when overwrite false and not matched maxHeightPreviouslyForged', async () => {
-				await expect(
 					forgeModule.updateForgingStatus(
-						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-						testDelegate.password,
+						invalidAddress,
+						genesis.password,
 						true,
-						999,
-						60,
-						false,
-					),
-				).rejects.toThrow(
-					'Failed to enable forging due to contradicting maxHeightPreviouslyForged, actual: 999, expected: 10, and maxHeightPrevoted, actual: 60, expected: 1',
-				);
-			});
-
-			it('should fail to enable forging when overwrite false and forger info does not exist', async () => {
-				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
-					.mockResolvedValue(Buffer.from(JSON.stringify({}), 'utf8') as never);
-
-				await expect(
-					forgeModule.updateForgingStatus(
-						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-						testDelegate.password,
-						true,
-						100,
-						60,
-						false,
-					),
-				).rejects.toThrow(
-					'Failed to enable forging due to missing forger info and specifying invalid maxHeightPreviouslyForged',
-				);
-			});
-
-			it('should enable forging when overwrite false and matched maxHeightPreviouslyForged and maxHeightPrevoted', async () => {
-				const data = await forgeModule.updateForgingStatus(
-					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-					testDelegate.password,
-					true,
-					10,
-					0,
-					false,
-				);
-
-				expect(
-					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
-				).not.toBeUndefined();
-				expect(data.address.toString('hex')).toEqual(testDelegate.address);
-			});
-
-			it('should fail to enable forging when node not synced to tip of chain', async () => {
-				await expect(
-					forgeModule.updateForgingStatus(
-						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-						testDelegate.password,
-						true,
+						200,
 						200,
 						10,
 						true,
 					),
-				).rejects.toThrow('Failed to enable forging as the node is not at the tip of the chain');
+				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('hex')} not found`);
 			});
 
-			it('should enable forging when node synced to tip of chain and overwrite true', async () => {
-				const data = await forgeModule.updateForgingStatus(
-					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-					testDelegate.password,
-					true,
-					10,
-					1,
-					true,
-				);
+			describe('disable', () => {
+				it('should update forging from enabled to disabled', async () => {
+					// Arrange
+					chainModuleStub.dataAccess.getAccountByAddress.mockResolvedValue({
+						address: testDelegate.address,
+					});
+					(forgeModule as any)._keypairs.set(
+						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+						Buffer.from('privateKey', 'utf8'),
+					);
 
-				expect(
-					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
-				).not.toBeUndefined();
-				expect(data.address.toString('hex')).toEqual(testDelegate.address);
+					// Act
+					const data = await forgeModule.updateForgingStatus(
+						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+						testDelegate.password,
+						false,
+						0,
+						0,
+						0,
+						false,
+					);
 
-				expect(loggerStub.info).toHaveBeenCalledTimes(2);
-				expect(loggerStub.info).toHaveBeenCalledWith(
-					expect.stringContaining('Updated maxHeightPreviouslyForged to'),
-				);
-				expect(loggerStub.info).toHaveBeenLastCalledWith(
-					expect.stringContaining('Forging enabled on account'),
-				);
+					// Assert
+					expect(
+						(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
+					).toBeUndefined();
+					expect(data.address.toString('hex')).toEqual(testDelegate.address);
+				});
+			});
+
+			describe('enable', () => {
+				describe('overwrite=false', () => {
+					it('should fail when forger info does not exist', async () => {
+						when(dbStub.get)
+							.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
+							.mockResolvedValue(Buffer.from(JSON.stringify({}), 'utf8') as never);
+
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								200,
+								200,
+								10,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to missing forger info');
+					});
+
+					it('should fail when height input is contradicting with saved forger info', async () => {
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								100,
+								200,
+								10,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to contradicting forger info.');
+					});
+
+					it('should fail when maxHeightPreviouslyForged input is contradicting with saved forger info', async () => {
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								200,
+								999,
+								10,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to contradicting forger info.');
+					});
+
+					it('should fail when maxHeightPrevoted input is contradicting with saved forger info', async () => {
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								200,
+								200,
+								60,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to contradicting forger info.');
+					});
+				});
+
+				describe('overwrite=true', () => {
+					it('should fail to enable forging when node not synced with network', async () => {
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								200,
+								200,
+								60,
+								true,
+							),
+						).rejects.toThrow('Failed to enable forging as the node is not synced to the network.');
+					});
+
+					it('should enable forging and overwrite forger info when node is synced with network', async () => {
+						const data = await forgeModule.updateForgingStatus(
+							getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+							testDelegate.password,
+							true,
+							200,
+							200,
+							0,
+							true,
+						);
+
+						expect(
+							(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
+						).not.toBeUndefined();
+						expect(data.address.toString('hex')).toEqual(testDelegate.address);
+
+						expect(loggerStub.info).toHaveBeenCalledTimes(2);
+						expect(loggerStub.info).toHaveBeenCalledWith(
+							{ height: 200, maxHeightPreviouslyForged: 200, maxHeightPrevoted: 0 },
+							'Updated forgerInfo',
+						);
+						expect(loggerStub.info).toHaveBeenLastCalledWith(
+							expect.stringContaining('Forging enabled on account'),
+						);
+					});
+				});
 			});
 		});
 
