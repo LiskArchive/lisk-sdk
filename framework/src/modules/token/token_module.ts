@@ -94,7 +94,9 @@ export class TokenModule extends BaseModule {
 
 	public constructor(genesisConfig: GenesisConfig) {
 		super(genesisConfig);
-		const { minRemainingBalance } = this.config;
+		const minRemainingBalance = this.config.minRemainingBalance
+			? this.config.minRemainingBalance
+			: '5000000';
 		if (typeof minRemainingBalance !== 'string') {
 			throw new Error('minRemainingBalance in genesisConfig must be a string.');
 		}
