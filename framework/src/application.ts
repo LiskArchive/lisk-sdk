@@ -36,9 +36,11 @@ import {
 	PluginOptions,
 	RegisteredSchema,
 	RegisteredModule,
+	Defer,
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
+const RUN_WAIT_TIMEOUT = 3000;
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const rm = promisify(fs.unlink);
@@ -93,6 +95,26 @@ const registerProcessHooks = (app: Application): void => {
 
 type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
 
+export const defer = <T>(timeout?: number): Defer<T> => {
+	let resolve!: (status?: T) => void;
+	let reject!: (status?: T) => void;
+
+	const promise = new Promise<T>((_resolve, _reject) => {
+		resolve = _resolve;
+		reject = _reject;
+	});
+
+	if (timeout) {
+		setTimeout(() => reject(), timeout);
+	}
+
+	return {
+		resolve,
+		reject,
+		promise,
+	};
+};
+
 export class Application {
 	public config: ApplicationConfig;
 	public logger!: Logger;
@@ -101,6 +123,7 @@ export class Application {
 	private _controller!: Controller;
 	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
 	private _channel!: InMemoryChannel;
+	private _loadingProcess!: Defer<boolean>;
 
 	private readonly _genesisBlock: Record<string, unknown>;
 	private _blockchainDB!: KVStore;
@@ -161,9 +184,9 @@ export class Application {
 		},
 		alias?: string,
 	): void {
-		assert(pluginKlass, 'ModuleSpec is required');
-		assert(typeof options === 'object', 'Module options must be provided or set to empty object.');
-		assert(alias ?? pluginKlass.alias, 'Module alias must be provided.');
+		assert(pluginKlass, 'Plugin implementation is required');
+		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
+		assert(alias ?? pluginKlass.alias, 'Plugin alias must be provided.');
 		const pluginAlias = alias ?? pluginKlass.alias;
 		assert(
 			!Object.keys(this._plugins).includes(pluginAlias),
@@ -199,6 +222,7 @@ export class Application {
 	}
 
 	public async run(): Promise<void> {
+		this._loadingProcess = defer<boolean>(RUN_WAIT_TIMEOUT);
 		// Freeze every plugin and configuration so it would not interrupt the app execution
 		this._compileAndValidateConfigurations();
 
@@ -245,6 +269,8 @@ export class Application {
 			logger: this.logger,
 		});
 
+		this._loadingProcess.resolve(true);
+
 		await this._controller.loadPlugins(this._plugins, this.config.plugins);
 		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
 		this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
@@ -254,6 +280,11 @@ export class Application {
 
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
 		this.logger.info({ errorCode, message }, 'Application shutdown started');
+
+		// Wait if the loading process still in progress
+		if (this._loadingProcess) {
+			await this._loadingProcess.promise;
+		}
 
 		try {
 			this._channel.publish('app:shutdown');

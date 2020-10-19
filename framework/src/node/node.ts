@@ -276,7 +276,11 @@ export class Node {
 			blockVersion: this._chain.lastBlock.header.version,
 		});
 
+		await this._transactionPool.start();
+		await this._startForging();
+
 		this._logger.info('Node ready and launched');
+
 		this._channel.subscribe(
 			'app:network:ready',
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -284,12 +288,6 @@ export class Node {
 				await this._startLoader();
 			},
 		);
-
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:ready', async (_event: EventInfoObject) => {
-			await this._transactionPool.start();
-			await this._startForging();
-		});
 
 		// Avoid receiving blocks/transactions from the network during snapshotting process
 		this._channel.subscribe(
