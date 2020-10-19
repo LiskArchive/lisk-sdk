@@ -107,9 +107,9 @@ p2p.on(EVENT_REQUEST_RECEIVED, async (request: P2PRequest) => {
 
 Check [examples](examples/) folder for a few examples to demonstrate P2P library usage with some use cases. Please make sure you run `npm run build` before running any example.
 
-- [echo](examples/echo): This example will run nodes that will connect to each other and will say "`hi`" to each other that will be responded by peers when they receive, network will shut down on its own after reaching 10 greetings. Run `node examples/echo`.
-- [find-city-game](examples/find-city-game): It will run nodes that will change their city randomly and also tell the other nodes in which city they are, if any two nodes finds out that they are in the same city they will broadcast it to others and shutdown. Run `node examples/find-city-game`.
-- [Connect to Lisk networks](examples/lisk-networks): Example to create a lightweight p2p client that can connect to lisk networks. Listen to various events and request data from the network. Run `node examples/lisk-network {NETWORK_NAME}` where `NETWORK_NAME` can be testnet, devnet and mainnet.
+- [echo](examples/echo): This example will run nodes that will connect to each other and say "`hi`" to each other that will be responded by peers when they receive the message. The network will shut down on its own after reaching 10 greetings. Run `node examples/echo`.
+- [find-city-game](examples/find-city-game): Each node will assign themselves a city and change their city randomly and they will update other nodes which city they are currently in. If any two nodes find out that they are in the same city they will broadcast it to others and shutdown. Run `node examples/find-city-game`.
+- [Connect to Lisk networks](examples/lisk-networks): Example to create a lightweight p2p client that can connect to the lisk network, listen to various events and request data from the network. Run `node examples/lisk-network {NETWORK_NAME}` where `NETWORK_NAME` can be testnet, devnet and mainnet.
 
 ## License
 

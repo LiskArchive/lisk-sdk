@@ -18,7 +18,7 @@ const {
 const { run } = require('./node');
 
 /**
- * @description Nodes will simply say hi to each other and they will get a response back until someone get 10 hi's in total.
+ * @description Nodes will greet each other and they will get a response back until someone get 10 hi's in total.
  */
 const greetModule = p2pNode => {
 	let greetTimeout;
