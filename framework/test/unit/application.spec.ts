@@ -58,6 +58,12 @@ describe('Application', () => {
 	});
 
 	describe('#constructor', () => {
+		it('should be able to start the application with default parameters if config is not provided', () => {
+			const app = Application.defaultApplication(genesisBlockJSON);
+
+			expect(app.config).toBeDefined();
+		});
+
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			const label = `lisk-${config.genesisConfig.communityIdentifier}`;
