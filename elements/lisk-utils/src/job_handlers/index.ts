@@ -14,3 +14,4 @@
 
 export * from './mutex';
 export * from './scheduler';
+export * from './defer';
