@@ -233,6 +233,20 @@ describe('forger', () => {
 			});
 
 			describe('enable', () => {
+				it('should fail to enable forging when node not synced with network', async () => {
+					await expect(
+						forgeModule.updateForgingStatus(
+							getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+							testDelegate.password,
+							true,
+							200,
+							200,
+							60,
+							true,
+						),
+					).rejects.toThrow('Failed to enable forging as the node is not synced to the network.');
+				});
+
 				describe('overwrite=false', () => {
 					it('should fail when forger info does not exist', async () => {
 						when(dbStub.get)
@@ -246,7 +260,7 @@ describe('forger', () => {
 								true,
 								200,
 								200,
-								10,
+								0,
 								false,
 							),
 						).rejects.toThrow('Failed to enable forging due to missing forger info');
@@ -272,7 +286,7 @@ describe('forger', () => {
 								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
 								testDelegate.password,
 								true,
-								200,
+								100,
 								999,
 								10,
 								false,
@@ -288,7 +302,7 @@ describe('forger', () => {
 								true,
 								200,
 								200,
-								60,
+								5,
 								false,
 							),
 						).rejects.toThrow('Failed to enable forging due to contradicting forger info.');
@@ -296,20 +310,6 @@ describe('forger', () => {
 				});
 
 				describe('overwrite=true', () => {
-					it('should fail to enable forging when node not synced with network', async () => {
-						await expect(
-							forgeModule.updateForgingStatus(
-								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-								testDelegate.password,
-								true,
-								200,
-								200,
-								60,
-								true,
-							),
-						).rejects.toThrow('Failed to enable forging as the node is not synced to the network.');
-					});
-
 					it('should enable forging and overwrite forger info when node is synced with network', async () => {
 						const data = await forgeModule.updateForgingStatus(
 							getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),

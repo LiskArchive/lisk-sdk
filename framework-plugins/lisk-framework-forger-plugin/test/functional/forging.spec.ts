@@ -29,6 +29,7 @@ describe('api/forging', () => {
 		votesReceived: [],
 		totalReceivedFees: '0',
 		totalReceivedRewards: '0',
+		height: 1,
 		maxHeightPreviouslyForged: 100,
 		maxHeightPrevoted: 10,
 	};
@@ -178,44 +179,7 @@ describe('api/forging', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							actual: false,
-							code: 'ERR_ASSERTION',
-							expected: true,
-							generatedMessage: false,
-							message: 'Failed to enable forging due to contradicting forger info.',
-							operator: '==',
-						},
-					],
-				});
-			});
-
-			it('should fail to enable forging when overwrite=false, maxHeightPreviouslyForged!=0 and forger info does not exists', async () => {
-				// Arrange
-				const { data: forgingInfo } = await axios.get(getURL('/api/forging/info'));
-				const delegate = forgingInfo.data.filter(
-					(info: { maxHeightPreviouslyForged: number }) => !info.maxHeightPreviouslyForged,
-				);
-				const forgerParams = {
-					address: delegate[0].address,
-					password: sampleForgerPassword,
-					forging: true,
-					height: 1,
-					maxHeightPreviouslyForged: 999,
-					maxHeightPrevoted: 60,
-					overwrite: false,
-				};
-
-				// Act
-				const { response, status } = await callNetwork(
-					axios.patch(getURL('/api/forging'), forgerParams),
-				);
-
-				// Assert
-				expect(status).toEqual(500);
-				expect(response).toEqual({
-					errors: [
-						{
-							message: 'Failed to enable forging due to missing forger info.',
+							message: 'Failed to enable forging as the node is not synced to the network.',
 						},
 					],
 				});

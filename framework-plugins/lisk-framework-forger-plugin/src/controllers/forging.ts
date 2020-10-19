@@ -19,6 +19,7 @@ import { getForgerInfo } from '../db';
 
 const updateForgingParams = {
 	type: 'object',
+	required: ['address', 'password', 'forging'],
 	properties: {
 		address: {
 			type: 'string',
@@ -64,7 +65,8 @@ interface ForgingRequestData extends ForgingResponseData {
 	readonly overwrite?: boolean;
 }
 
-const isGreaterThanZero = (value: number) => value === null || value === undefined || value < 0;
+const isLessThanZero = (value: number | undefined | null) =>
+	value === null || value === undefined || value < 0;
 
 export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 	req: Request,
@@ -97,9 +99,9 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 	}
 
 	if (
-		isGreaterThanZero(maxHeightPreviouslyForged) &&
-		isGreaterThanZero(maxHeightPrevoted) &&
-		isGreaterThanZero(height)
+		isLessThanZero(maxHeightPreviouslyForged) ||
+		isLessThanZero(maxHeightPrevoted) ||
+		isLessThanZero(height)
 	) {
 		res.status(400).send({
 			errors: [
@@ -139,6 +141,7 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 				votesReceived,
 				totalReceivedFees: totalReceivedFees.toString(),
 				totalReceivedRewards: totalReceivedRewards.toString(),
+				height,
 				maxHeightPreviouslyForged,
 				maxHeightPrevoted,
 			},
