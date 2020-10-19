@@ -282,9 +282,3 @@ export interface RegisteredSchema {
 		schema: Schema;
 	}[];
 }
-
-export interface Defer<T> {
-	promise: Promise<T>;
-	resolve: (status: T) => void;
-	reject: (status: T) => void;
-}

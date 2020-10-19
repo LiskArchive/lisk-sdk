@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+/* eslint-disable max-classes-per-file */
+
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
@@ -20,7 +22,7 @@ import * as assert from 'assert';
 import { promisify } from 'util';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { objects } from '@liskhq/lisk-utils';
+import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -36,7 +38,6 @@ import {
 	PluginOptions,
 	RegisteredSchema,
 	RegisteredModule,
-	Defer,
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
@@ -95,26 +96,6 @@ const registerProcessHooks = (app: Application): void => {
 
 type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
 
-export const defer = <T>(timeout?: number): Defer<T> => {
-	let resolve!: (status?: T) => void;
-	let reject!: (status?: T) => void;
-
-	const promise = new Promise<T>((_resolve, _reject) => {
-		resolve = _resolve;
-		reject = _reject;
-	});
-
-	if (timeout) {
-		setTimeout(() => reject(), timeout);
-	}
-
-	return {
-		resolve,
-		reject,
-		promise,
-	};
-};
-
 export class Application {
 	public config: ApplicationConfig;
 	public logger!: Logger;
@@ -123,7 +104,7 @@ export class Application {
 	private _controller!: Controller;
 	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
 	private _channel!: InMemoryChannel;
-	private _loadingProcess!: Defer<boolean>;
+	private _loadingProcess!: jobHandlers.Defer<boolean>;
 
 	private readonly _genesisBlock: Record<string, unknown>;
 	private _blockchainDB!: KVStore;
@@ -222,7 +203,6 @@ export class Application {
 	}
 
 	public async run(): Promise<void> {
-		this._loadingProcess = defer<boolean>(RUN_WAIT_TIMEOUT);
 		// Freeze every plugin and configuration so it would not interrupt the app execution
 		this._compileAndValidateConfigurations();
 
@@ -254,6 +234,11 @@ export class Application {
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
 		// Initialize all objects
+		this._loadingProcess = new jobHandlers.Defer<boolean>(
+			RUN_WAIT_TIMEOUT,
+			`Application could not started in ${RUN_WAIT_TIMEOUT}ms`,
+		);
+
 		this._channel = this._initChannel();
 
 		this._controller = this._initController();
