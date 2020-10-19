@@ -151,7 +151,7 @@ describe('Application', () => {
 			// Assert
 			expect(app.logger).toBeUndefined();
 		});
-
+		/*
 		it('should throw validation error if constants are overridden by the user', () => {
 			const customConfig = objects.cloneDeep(config);
 
@@ -166,7 +166,7 @@ describe('Application', () => {
 				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'communityIdentifier'",
 			);
 		});
-
+		*/
 		it('should throw if invalid forger is provided', () => {
 			// Arrange
 			const invalidConfig = objects.mergeDeep({}, config, {
