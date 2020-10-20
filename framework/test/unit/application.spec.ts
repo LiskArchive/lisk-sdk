@@ -157,22 +157,7 @@ describe('Application', () => {
 			// Assert
 			expect(app.logger).toBeUndefined();
 		});
-		/*
-		it('should throw validation error if constants are overridden by the user', () => {
-			const customConfig = objects.cloneDeep(config);
 
-			customConfig.genesisConfig = {
-				CONSTANT: 'aConstant',
-			};
-
-			expect(() => {
-				// eslint-disable-next-line no-new
-				Application.defaultApplication(genesisBlockJSON, customConfig);
-			}).toThrow(
-				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'communityIdentifier'",
-			);
-		});
-		*/
 		it('should throw if invalid forger is provided', () => {
 			// Arrange
 			const invalidConfig = objects.mergeDeep({}, config, {
