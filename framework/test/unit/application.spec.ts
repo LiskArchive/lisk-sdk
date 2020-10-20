@@ -546,14 +546,11 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			try {
-				await app.run();
-			} catch (error) {
-				// Expected error
-			}
+			jest.spyOn(app['_node'], 'init').mockResolvedValue();
+			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			jest.spyOn(process, 'exit').mockReturnValue(0 as never);
-			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup');
+			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup').mockResolvedValue(true);
 			controllerCleanupSpy = jest.spyOn((app as any)._controller, 'cleanup');
 			blockChainDBSpy = jest.spyOn((app as any)._blockchainDB, 'close');
 			forgerDBSpy = jest.spyOn((app as any)._forgerDB, 'close');

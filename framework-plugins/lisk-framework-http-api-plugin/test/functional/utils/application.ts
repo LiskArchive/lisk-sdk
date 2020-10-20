@@ -54,7 +54,6 @@ export const createApplication = async (
 			}, 10000);
 		}),
 	]);
-
 	return app;
 };
 
