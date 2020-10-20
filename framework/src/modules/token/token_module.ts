@@ -25,6 +25,8 @@ import {
 	GenesisConfig,
 } from '../../types';
 
+const DEFAULT_MIN_REMAINING_BALANCE = '5000000';
+
 export class TokenModule extends BaseModule {
 	public name = 'token';
 	public id = 2;
@@ -94,7 +96,9 @@ export class TokenModule extends BaseModule {
 
 	public constructor(genesisConfig: GenesisConfig) {
 		super(genesisConfig);
-		const { minRemainingBalance } = this.config;
+		const minRemainingBalance = this.config.minRemainingBalance
+			? this.config.minRemainingBalance
+			: DEFAULT_MIN_REMAINING_BALANCE;
 		if (typeof minRemainingBalance !== 'string') {
 			throw new Error('minRemainingBalance in genesisConfig must be a string.');
 		}
