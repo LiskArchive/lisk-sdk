@@ -29,6 +29,9 @@ describe('api/forging', () => {
 		votesReceived: [],
 		totalReceivedFees: '0',
 		totalReceivedRewards: '0',
+		height: 1,
+		maxHeightPreviouslyForged: 100,
+		maxHeightPrevoted: 10,
 	};
 	const sampleForgerPassword = 'elephant tree paris dragon chair galaxy';
 
@@ -37,6 +40,13 @@ describe('api/forging', () => {
 	beforeAll(async () => {
 		app = await createApplication('forging');
 		await waitNBlocks(app, 1);
+		const { data } = await axios.get(getURL('/api/forging/info'));
+		const forgedDelegateInfo = data.data.filter(
+			(forger: { maxHeightPreviouslyForged: number }) => forger.maxHeightPreviouslyForged >= 0,
+		);
+		sampleForgerInfo.address = forgedDelegateInfo[0].address;
+		sampleForgerInfo.maxHeightPreviouslyForged = forgedDelegateInfo[0].maxHeightPreviouslyForged;
+		sampleForgerInfo.maxHeightPrevoted = forgedDelegateInfo[0].maxHeightPrevoted;
 	});
 
 	afterAll(async () => {
@@ -45,12 +55,41 @@ describe('api/forging', () => {
 
 	describe('/api/forging', () => {
 		describe('200 - Success', () => {
+			it('should overwrite the maxHeightPreviouslyForged to the input value and enable forging when overwrite is true', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+					height: 1,
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: 0,
+					overwrite: true,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(200);
+				expect(response).toEqual({
+					meta: { count: 1 },
+					data: { ...sampleForgerInfo, forging: true },
+				});
+			});
+
 			it('should respond with forging status and info and disable forging when param forging=false', async () => {
 				// Arrange
 				const forgerParams = {
 					address: sampleForgerInfo.address,
 					password: sampleForgerPassword,
 					forging: false,
+					height: 1,
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: 0,
+					overwrite: false,
 				};
 
 				// Act
@@ -72,6 +111,10 @@ describe('api/forging', () => {
 					address: sampleForgerInfo.address,
 					password: sampleForgerPassword,
 					forging: true,
+					height: 1,
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: 0,
+					overwrite: true,
 				};
 
 				// Act
@@ -84,7 +127,64 @@ describe('api/forging', () => {
 				expect(response).toEqual({ meta: { count: 1 }, data: sampleForgerInfo });
 			});
 		});
+
 		describe('400 - Invalid param values', () => {
+			it('should fail to enable forging when node is not synced with network', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+					height: 200,
+					maxHeightPreviouslyForged: 200,
+					maxHeightPrevoted: 10,
+					overwrite: true,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(500);
+				expect(response).toEqual({
+					errors: [
+						{
+							message: 'Failed to enable forging as the node is not synced to the network.',
+						},
+					],
+				});
+			});
+
+			it('should fail to enable forging when overwrite is false and maxHeightPreviouslyForged does not match', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+					height: 0,
+					maxHeightPreviouslyForged: 300,
+					maxHeightPrevoted: 60,
+					overwrite: false,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(500);
+				expect(response).toEqual({
+					errors: [
+						{
+							message: 'Failed to enable forging as the node is not synced to the network.',
+						},
+					],
+				});
+			});
+
 			it('should respond with 400 and error message when address is not hex format', async () => {
 				// Arrange
 				const forgerParams = {
@@ -101,7 +201,7 @@ describe('api/forging', () => {
 				// Assert
 				expect(status).toEqual(400);
 				expect(response).toEqual({
-					errors: [{ message: 'The Address parameter should be a hex string.' }],
+					errors: [{ message: 'The address parameter should be a hex string.' }],
 				});
 			});
 
@@ -150,6 +250,57 @@ describe('api/forging', () => {
 						{
 							message:
 								"Lisk validator found 1 error[s]:\nProperty '.forging' should be of type 'boolean'",
+						},
+					],
+				});
+			});
+
+			it('should respond with 400 and error message when param maxHeightPreviouslyForged is not specified', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(400);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'The maxHeightPreviouslyForged, maxHeightPrevoted, height parameter must be specified and greater than or equal to 0.',
+						},
+					],
+				});
+			});
+
+			it('should respond with 400 and error message when param maxHeightPreviouslyForged is less than 0', async () => {
+				// Arrange
+				const forgerParams = {
+					address: sampleForgerInfo.address,
+					password: sampleForgerPassword,
+					forging: true,
+					maxHeightPreviouslyForged: -1,
+				};
+
+				// Act
+				const { response, status } = await callNetwork(
+					axios.patch(getURL('/api/forging'), forgerParams),
+				);
+
+				// Assert
+				expect(status).toEqual(400);
+				expect(response).toEqual({
+					errors: [
+						{
+							message:
+								'The maxHeightPreviouslyForged, maxHeightPrevoted, height parameter must be specified and greater than or equal to 0.',
 						},
 					],
 				});

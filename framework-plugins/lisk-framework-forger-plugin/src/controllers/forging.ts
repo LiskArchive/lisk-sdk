@@ -19,6 +19,7 @@ import { getForgerInfo } from '../db';
 
 const updateForgingParams = {
 	type: 'object',
+	required: ['address', 'password', 'forging'],
 	properties: {
 		address: {
 			type: 'string',
@@ -32,6 +33,22 @@ const updateForgingParams = {
 			type: 'boolean',
 			description: 'Boolean flag to enable or disable forging',
 		},
+		height: {
+			type: 'number',
+			description: 'Delegates previously forged height',
+		},
+		maxHeightPreviouslyForged: {
+			type: 'number',
+			description: 'Delegates previously forged height',
+		},
+		maxHeightPrevoted: {
+			type: 'number',
+			description: 'Delegates largest prevoted height for a block',
+		},
+		overwrite: {
+			type: 'boolean',
+			description: 'Boolean flag to overwrite forger info',
+		},
 	},
 };
 
@@ -42,7 +59,14 @@ interface ForgingResponseData {
 
 interface ForgingRequestData extends ForgingResponseData {
 	readonly password: string;
+	readonly height: number;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+	readonly overwrite?: boolean;
 }
+
+const isLessThanZero = (value: number | undefined | null) =>
+	value === null || value === undefined || value < 0;
 
 export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 	req: Request,
@@ -57,11 +81,35 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 		});
 		return;
 	}
-	const { address, password, forging } = req.body as ForgingRequestData;
+	const {
+		address,
+		password,
+		forging,
+		height,
+		maxHeightPreviouslyForged,
+		maxHeightPrevoted,
+		overwrite,
+	} = req.body as ForgingRequestData;
 
 	if (!isHexString(address)) {
 		res.status(400).send({
-			errors: [{ message: 'The Address parameter should be a hex string.' }],
+			errors: [{ message: 'The address parameter should be a hex string.' }],
+		});
+		return;
+	}
+
+	if (
+		isLessThanZero(maxHeightPreviouslyForged) ||
+		isLessThanZero(maxHeightPrevoted) ||
+		isLessThanZero(height)
+	) {
+		res.status(400).send({
+			errors: [
+				{
+					message:
+						'The maxHeightPreviouslyForged, maxHeightPrevoted, height parameter must be specified and greater than or equal to 0.',
+				},
+			],
 		});
 		return;
 	}
@@ -71,6 +119,10 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 			address,
 			password,
 			forging,
+			height,
+			maxHeightPreviouslyForged,
+			maxHeightPrevoted,
+			overwrite,
 		});
 
 		const {
@@ -89,6 +141,9 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 				votesReceived,
 				totalReceivedFees: totalReceivedFees.toString(),
 				totalReceivedRewards: totalReceivedRewards.toString(),
+				height,
+				maxHeightPreviouslyForged,
+				maxHeightPrevoted,
 			},
 		});
 	} catch (err) {

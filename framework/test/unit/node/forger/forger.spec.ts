@@ -20,6 +20,7 @@ import { NotFoundError } from '@liskhq/lisk-db';
 import { Block } from '@liskhq/lisk-chain';
 import { Forger } from '../../../../src/node/forger';
 import {
+	ForgedInfo,
 	registeredHashOnionsStoreSchema,
 	UsedHashOnionStoreObject,
 	usedHashOnionsStoreSchema,
@@ -126,11 +127,42 @@ describe('forger', () => {
 
 	describe('Forger', () => {
 		describe('updateForgingStatus', () => {
+			beforeEach(() => {
+				const lastBlock = {
+					header: {
+						id: Buffer.from('6846255774763267134'),
+						height: 200,
+						timestamp: 93716450,
+						asset: {
+							height: 200,
+							maxHeightPreviouslyForged: 200,
+							maxHeightPrevoted: 10,
+						},
+					},
+					payload: [],
+				};
+				chainModuleStub.lastBlock = lastBlock;
+				const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
+				parsedPreviouslyForgedMap[Buffer.from(testDelegate.address, 'hex').toString('binary')] = {
+					height: 200,
+					maxHeightPreviouslyForged: 200,
+					maxHeightPrevoted: 10,
+				};
+				const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
+				when(dbStub.get)
+					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
+					.mockResolvedValue(Buffer.from(previouslyForgedStr, 'utf8') as never);
+			});
+
 			it('should return error with invalid password', async () => {
 				await expect(
 					forgeModule.updateForgingStatus(
 						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
 						'Invalid password',
+						true,
+						200,
+						200,
+						10,
 						true,
 					),
 				).rejects.toThrow('Invalid password and public key combination');
@@ -143,52 +175,167 @@ describe('forger', () => {
 				const invalidAddress = getAddressFromPublicKey(invalidPublicKey);
 
 				await expect(
-					forgeModule.updateForgingStatus(invalidAddress, defaultPassword, true),
+					forgeModule.updateForgingStatus(
+						invalidAddress,
+						defaultPassword,
+						true,
+						200,
+						200,
+						10,
+						true,
+					),
 				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('hex')} not found`);
 			});
 
 			it('should return error with non delegate account', async () => {
 				const invalidAddress = getAddressFromPublicKey(genesis.publicKey);
 				await expect(
-					forgeModule.updateForgingStatus(invalidAddress, genesis.password, true),
+					forgeModule.updateForgingStatus(
+						invalidAddress,
+						genesis.password,
+						true,
+						200,
+						200,
+						10,
+						true,
+					),
 				).rejects.toThrow(`Delegate with address: ${invalidAddress.toString('hex')} not found`);
 			});
 
-			it('should update forging from enabled to disabled', async () => {
-				// Arrange
-				chainModuleStub.dataAccess.getAccountByAddress.mockResolvedValue({
-					address: testDelegate.address,
+			describe('disable', () => {
+				it('should update forging from enabled to disabled', async () => {
+					// Arrange
+					chainModuleStub.dataAccess.getAccountByAddress.mockResolvedValue({
+						address: testDelegate.address,
+					});
+					(forgeModule as any)._keypairs.set(
+						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+						Buffer.from('privateKey', 'utf8'),
+					);
+
+					// Act
+					const data = await forgeModule.updateForgingStatus(
+						getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+						testDelegate.password,
+						false,
+						0,
+						0,
+						0,
+						false,
+					);
+
+					// Assert
+					expect(
+						(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
+					).toBeUndefined();
+					expect(data.address.toString('hex')).toEqual(testDelegate.address);
 				});
-				(forgeModule as any)._keypairs.set(
-					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-					Buffer.from('privateKey', 'utf8'),
-				);
-
-				// Act
-				const data = await forgeModule.updateForgingStatus(
-					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-					testDelegate.password,
-					false,
-				);
-
-				// Assert
-				expect(
-					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
-				).toBeUndefined();
-				expect(data.address.toString('hex')).toEqual(testDelegate.address);
 			});
 
-			it('should update forging from disabled to enabled', async () => {
-				const data = await forgeModule.updateForgingStatus(
-					getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
-					testDelegate.password,
-					true,
-				);
+			describe('enable', () => {
+				it('should fail to enable forging when node not synced with network', async () => {
+					await expect(
+						forgeModule.updateForgingStatus(
+							getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+							testDelegate.password,
+							true,
+							200,
+							200,
+							60,
+							true,
+						),
+					).rejects.toThrow('Failed to enable forging as the node is not synced to the network.');
+				});
 
-				expect(
-					(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
-				).not.toBeUndefined();
-				expect(data.address.toString('hex')).toEqual(testDelegate.address);
+				describe('overwrite=false', () => {
+					it('should fail when forger info does not exist', async () => {
+						when(dbStub.get)
+							.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
+							.mockResolvedValue(Buffer.from(JSON.stringify({}), 'utf8') as never);
+
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								200,
+								200,
+								0,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to missing forger info');
+					});
+
+					it('should fail when height input is contradicting with saved forger info', async () => {
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								100,
+								200,
+								10,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to contradicting forger info.');
+					});
+
+					it('should fail when maxHeightPreviouslyForged input is contradicting with saved forger info', async () => {
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								100,
+								999,
+								10,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to contradicting forger info.');
+					});
+
+					it('should fail when maxHeightPrevoted input is contradicting with saved forger info', async () => {
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								200,
+								200,
+								5,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to contradicting forger info.');
+					});
+				});
+
+				describe('overwrite=true', () => {
+					it('should enable forging and overwrite forger info when node is synced with network', async () => {
+						const data = await forgeModule.updateForgingStatus(
+							getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+							testDelegate.password,
+							true,
+							200,
+							200,
+							0,
+							true,
+						);
+
+						expect(
+							(forgeModule as any)._keypairs.get(Buffer.from(testDelegate.address, 'hex')),
+						).not.toBeUndefined();
+						expect(data.address.toString('hex')).toEqual(testDelegate.address);
+
+						expect(loggerStub.info).toHaveBeenCalledTimes(2);
+						expect(loggerStub.info).toHaveBeenCalledWith(
+							{ height: 200, maxHeightPreviouslyForged: 200, maxHeightPrevoted: 0 },
+							'Updated forgerInfo',
+						);
+						expect(loggerStub.info).toHaveBeenLastCalledWith(
+							expect.stringContaining('Forging enabled on account'),
+						);
+					});
+				});
 			});
 		});
 
