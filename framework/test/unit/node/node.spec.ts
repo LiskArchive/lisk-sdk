@@ -12,19 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { when } from 'jest-when';
-import { KVStore } from '@liskhq/lisk-db';
 import { BFT } from '@liskhq/lisk-bft';
-import { Node } from '../../../src/node/node';
-import { Synchronizer } from '../../../src/node/synchronizer/synchronizer';
-import { Processor } from '../../../src/node/processor';
-import { Forger, HighFeeForgingStrategy } from '../../../src/node/forger';
-import { cacheConfig, nodeOptions } from '../../fixtures/node';
-import { genesisBlock } from '../../fixtures';
+import { KVStore } from '@liskhq/lisk-db';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { when } from 'jest-when';
 import { TokenModule } from '../../../src/modules';
-import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
-import { createMockBus } from '../../utils/channel';
+import { Forger, HighFeeForgingStrategy } from '../../../src/node/forger';
 import { Network } from '../../../src/node/network';
+import { Node } from '../../../src/node/node';
+import { Processor } from '../../../src/node/processor';
+import { Synchronizer } from '../../../src/node/synchronizer/synchronizer';
+import { genesisBlock } from '../../fixtures';
+import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
+import { cacheConfig, nodeOptions } from '../../fixtures/node';
+import { createMockBus } from '../../utils/channel';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -131,6 +132,8 @@ describe('Node', () => {
 	describe('init', () => {
 		beforeEach(async () => {
 			jest.spyOn(Network.prototype, 'applyNodeInfo');
+			jest.spyOn(TransactionPool.prototype, 'start');
+			jest.spyOn(node as any, '_startForging');
 			// Act
 			await node.init({
 				bus: createMockBus() as any,
@@ -176,17 +179,26 @@ describe('Node', () => {
 			});
 		});
 
-		it('should subscribe to "network:subscribe" event', () => {
+		it('should start transaction pool', () => {
+			return expect(node['_transactionPool'].start).toHaveBeenCalled();
+		});
+
+		it('should start forging', () => {
+			return expect(node['_startForging']).toHaveBeenCalled();
+		});
+
+		it('should subscribe to "app:network:ready" event', () => {
 			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
-				'app:network:event',
+				'app:network:ready',
 				expect.any(Function),
 			);
 		});
 
-		it('should start transaction pool', () => {
-			jest.spyOn(node['_transactionPool'], 'start');
-			subscribedEvents['app:ready']();
-			return expect(node['_transactionPool'].start).toHaveBeenCalled();
+		it('should subscribe to "app:network:event" event', () => {
+			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
+				'app:network:event',
+				expect.any(Function),
+			);
 		});
 	});
 

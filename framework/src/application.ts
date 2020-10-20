@@ -20,7 +20,7 @@ import * as assert from 'assert';
 import { promisify } from 'util';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { objects } from '@liskhq/lisk-utils';
+import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -108,6 +108,8 @@ export class Application {
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
 
+	private readonly _mutex = new jobHandlers.Mutex();
+
 	public constructor(
 		genesisBlock: Record<string, unknown>,
 		config: Partial<ApplicationConfig> = {},
@@ -162,9 +164,9 @@ export class Application {
 		},
 		alias?: string,
 	): void {
-		assert(pluginKlass, 'ModuleSpec is required');
-		assert(typeof options === 'object', 'Module options must be provided or set to empty object.');
-		assert(alias ?? pluginKlass.alias, 'Module alias must be provided.');
+		assert(pluginKlass, 'Plugin implementation is required');
+		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
+		assert(alias ?? pluginKlass.alias, 'Plugin alias must be provided.');
 		const pluginAlias = alias ?? pluginKlass.alias;
 		assert(
 			!Object.keys(this._plugins).includes(pluginAlias),
@@ -230,31 +232,35 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
-		// Initialize all objects
-		this._channel = this._initChannel();
+		await this._mutex.runExclusive<void>(async () => {
+			// Initialize all objects
+			this._channel = this._initChannel();
 
-		this._controller = this._initController();
+			this._controller = this._initController();
 
-		await this._controller.load();
+			await this._controller.load();
 
-		await this._node.init({
-			bus: this._controller.bus,
-			channel: this._channel,
-			forgerDB: this._forgerDB,
-			blockchainDB: this._blockchainDB,
-			nodeDB: this._nodeDB,
-			logger: this.logger,
+			await this._node.init({
+				bus: this._controller.bus,
+				channel: this._channel,
+				forgerDB: this._forgerDB,
+				blockchainDB: this._blockchainDB,
+				nodeDB: this._nodeDB,
+				logger: this.logger,
+			});
+
+			await this._controller.loadPlugins(this._plugins, this.config.plugins);
+			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
+			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
+
+			this._channel.publish('app:ready');
 		});
-
-		await this._controller.loadPlugins(this._plugins, this.config.plugins);
-		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
-		this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
-
-		this._channel.publish('app:ready');
 	}
 
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
 		this.logger.info({ errorCode, message }, 'Application shutdown started');
+		// See if we can acquire mutex meant app is still loading or not
+		const release = await this._mutex.acquire();
 
 		try {
 			this._channel.publish('app:shutdown');
@@ -271,6 +277,7 @@ export class Application {
 		} finally {
 			// Unfreeze the configuration
 			this.config = objects.mergeDeep({}, this.config) as ApplicationConfig;
+			release();
 
 			// To avoid redundant shutdown call
 			process.removeAllListeners('exit');

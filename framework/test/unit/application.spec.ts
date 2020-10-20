@@ -58,6 +58,12 @@ describe('Application', () => {
 	});
 
 	describe('#constructor', () => {
+		it('should be able to start the application with default parameters if config is not provided', () => {
+			const app = Application.defaultApplication(genesisBlockJSON);
+
+			expect(app.config).toBeDefined();
+		});
+
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			const label = `lisk-${config.genesisConfig.communityIdentifier}`;
@@ -150,21 +156,6 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.logger).toBeUndefined();
-		});
-
-		it('should throw validation error if constants are overridden by the user', () => {
-			const customConfig = objects.cloneDeep(config);
-
-			customConfig.genesisConfig = {
-				CONSTANT: 'aConstant',
-			};
-
-			expect(() => {
-				// eslint-disable-next-line no-new
-				Application.defaultApplication(genesisBlockJSON, customConfig);
-			}).toThrow(
-				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'communityIdentifier'",
-			);
 		});
 
 		it('should throw if invalid forger is provided', () => {
@@ -555,14 +546,11 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			try {
-				await app.run();
-			} catch (error) {
-				// Expected error
-			}
+			jest.spyOn(app['_node'], 'init').mockResolvedValue();
+			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			jest.spyOn(process, 'exit').mockReturnValue(0 as never);
-			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup');
+			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup').mockResolvedValue(true);
 			controllerCleanupSpy = jest.spyOn((app as any)._controller, 'cleanup');
 			blockChainDBSpy = jest.spyOn((app as any)._blockchainDB, 'close');
 			forgerDBSpy = jest.spyOn((app as any)._forgerDB, 'close');

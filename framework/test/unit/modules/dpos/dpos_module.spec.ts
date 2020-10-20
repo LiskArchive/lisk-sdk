@@ -90,18 +90,6 @@ describe('DPoSModule', () => {
 			expect(dposModule.accountSchema).toMatchSnapshot();
 		});
 
-		it('should throw error if "activeDelegates" is not available in genesis config', () => {
-			delete genesisConfig.activeDelegates;
-
-			expect(() => {
-				// eslint-disable-next-line no-new
-				new DPoSModule(genesisConfig);
-			}).toThrow(
-				'Lisk validator found 1 error[s]:\n' +
-					"Missing property, should have required property 'activeDelegates'",
-			);
-		});
-
 		it('should throw error if "activeDelegates" is zero in genesis config', () => {
 			genesisConfig.activeDelegates = 0;
 
@@ -119,30 +107,6 @@ describe('DPoSModule', () => {
 				// eslint-disable-next-line no-new
 				new DPoSModule(genesisConfig);
 			}).toThrow('Active delegates must be greater or equal to standby delegates');
-		});
-
-		it('should throw error if "standbyDelegates" is not available in genesis config', () => {
-			delete genesisConfig.standbyDelegates;
-
-			expect(() => {
-				// eslint-disable-next-line no-new
-				new DPoSModule(genesisConfig);
-			}).toThrow(
-				'Lisk validator found 1 error[s]:\n' +
-					"Missing property, should have required property 'standbyDelegates'",
-			);
-		});
-
-		it('should throw error if "delegateListRoundOffset" is not available in genesis config', () => {
-			delete genesisConfig.delegateListRoundOffset;
-
-			expect(() => {
-				// eslint-disable-next-line no-new
-				new DPoSModule(genesisConfig);
-			}).toThrow(
-				'Lisk validator found 1 error[s]:\n' +
-					"Missing property, should have required property 'delegateListRoundOffset'",
-			);
 		});
 
 		it('should create rounds object', () => {
