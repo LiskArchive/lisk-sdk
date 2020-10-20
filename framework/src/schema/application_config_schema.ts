@@ -361,6 +361,7 @@ export const applicationConfigSchema = {
 		},
 		genesisConfig: {
 			blockTime: 10,
+			communityIdentifier: 'sdk',
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxPayloadLength: 15 * 1024, // Kilo Bytes
 			bftThreshold: 68,

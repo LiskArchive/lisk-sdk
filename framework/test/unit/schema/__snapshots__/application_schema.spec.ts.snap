@@ -14,6 +14,7 @@ Object {
         "baseFees": Array [],
         "bftThreshold": 68,
         "blockTime": 10,
+        "communityIdentifier": "sdk",
         "maxPayloadLength": 15360,
         "minFeePerByte": 1000,
         "rewards": Object {
