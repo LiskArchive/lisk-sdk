@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { Forger, ForgingStatus, RegisteredDelegate } from './forger';
+export { Forger, RegisteredDelegate } from './forger';
 export { HighFeeForgingStrategy } from './strategies';

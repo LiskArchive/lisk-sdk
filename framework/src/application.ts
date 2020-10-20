@@ -36,6 +36,7 @@ import {
 	PluginOptions,
 	RegisteredSchema,
 	RegisteredModule,
+	UpdateForgingStatusInput,
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
@@ -351,16 +352,10 @@ export class Application {
 				},
 				updateForgingStatus: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.updateForgingStatus(
-							action.params as {
-								address: string;
-								password: string;
-								forging: boolean;
-							},
-						),
+						this._node.actions.updateForgingStatus(action.params as UpdateForgingStatusInput),
 				},
 				getForgingStatus: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getForgingStatus(),
+					handler: async (_action: ActionInfoObject) => this._node.actions.getForgingStatus(),
 				},
 				getTransactionsFromPool: {
 					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFromPool(),

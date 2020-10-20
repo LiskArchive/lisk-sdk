@@ -46,10 +46,12 @@ import {
 import { Processor } from './processor';
 import { Logger } from '../logger';
 import {
-	EventPostTransactionData,
 	ApplicationConfig,
+	EventPostTransactionData,
+	ForgingStatus,
 	RegisteredModule,
 	RegisteredSchema,
+	UpdateForgingStatusInput,
 } from '../types';
 import { InMemoryChannel } from '../controller/channels';
 import { EventInfoObject } from '../controller/event';
@@ -82,6 +84,10 @@ interface NodeInitInput {
 	readonly blockchainDB: KVStore;
 	readonly nodeDB: KVStore;
 	readonly bus: Bus;
+}
+
+interface ForgingStatusResponse extends Omit<ForgingStatus, 'address'> {
+	readonly address: string;
 }
 
 export class Node {
@@ -348,15 +354,17 @@ export class Node {
 
 				return forgersInfo;
 			},
-			updateForgingStatus: async (params: {
-				address: string;
-				password: string;
-				forging: boolean;
-			}): Promise<{ address: string; forging: boolean }> => {
+			updateForgingStatus: async (
+				params: UpdateForgingStatusInput,
+			): Promise<ForgingStatusResponse> => {
 				const result = await this._forger.updateForgingStatus(
 					Buffer.from(params.address, 'hex'),
 					params.password,
 					params.forging,
+					params.height,
+					params.maxHeightPreviouslyForged,
+					params.maxHeightPrevoted,
+					params.overwrite,
 				);
 
 				return {
@@ -440,11 +448,16 @@ export class Node {
 				peerId: string;
 			}): Promise<HandleRPCGetTransactionsReturn> =>
 				this._transport.handleRPCGetTransactions(params.data, params.peerId),
-			getForgingStatus: (): { address: string; forging: boolean }[] | undefined =>
-				this._forger.getForgingStatusOfAllDelegates()?.map(({ address, forging }) => ({
-					address: address.toString('hex'),
-					forging,
-				})),
+			getForgingStatus: async (): Promise<ForgingStatusResponse[] | undefined> => {
+				const forgingStatus = await this._forger.getForgingStatusOfAllDelegates();
+				if (forgingStatus) {
+					return forgingStatus.map(({ address, ...forgingStatusWithoutAddress }) => ({
+						address: address.toString('hex'),
+						...forgingStatusWithoutAddress,
+					}));
+				}
+				return undefined;
+			},
 			getTransactionsFromPool: (): string[] =>
 				this._transactionPool.getAll().map(tx => tx.getBytes().toString('hex')),
 			postTransaction: async (
