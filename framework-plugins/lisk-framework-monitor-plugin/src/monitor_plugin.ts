@@ -21,7 +21,7 @@ import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
 import * as middlewares from './middlewares';
 import * as config from './defaults';
-import { Options } from './types';
+import { Options, SharedState } from './types';
 
 // eslint-disable-next-line
 const pJSON = require('../package.json');
@@ -30,6 +30,7 @@ export class MonitorPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
 	private _channel!: BaseChannel;
+	private _state!: SharedState;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -68,6 +69,50 @@ export class MonitorPlugin extends BasePlugin {
 		this._app = express();
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
+		this._state = {
+			network: {
+				outgoing: {
+					count: 0,
+					networkHeight: {
+						majorityHeight: 0,
+						numberOfPeers: 0,
+					},
+				},
+				incoming: {
+					count: 0,
+					networkHeight: {
+						majorityHeight: 0,
+						numberOfPeers: 0,
+					},
+					connectStats: {
+						connects: 0,
+						disconnects: 0,
+					},
+					totalPeers: {
+						connected: 0,
+						disconnected: 0,
+					},
+					banning: {
+						totalBannedPeers: 0,
+						bannedPeers: {},
+					},
+				},
+			},
+			forks: {
+				forkEventCount: 0,
+				blockHeaders: {},
+			},
+			transactions: {
+				transactions: {},
+				averageReceivedTransactions: 0,
+				connectedPeers: 0,
+			},
+			blocks: {
+				blocks: {},
+				averageReceivedBlock: 0,
+				connectedPeers: 0,
+			},
+		};
 
 		this._channel.once('app:ready', () => {
 			this._registerMiddlewares(options);

@@ -28,3 +28,65 @@ export interface Options {
 		readonly serverSetTimeout: number;
 	};
 }
+
+interface BannedPeer {
+	timeUntilUnBan: Date;
+	Reason: string;
+	banCount: number;
+}
+
+interface BlockHeader {
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	blockHeader: object;
+	timeReceived: Date;
+}
+
+interface TransactionPropagationStats {
+	count: number;
+	timeReceived: Date;
+}
+
+export interface SharedState {
+	network: {
+		outgoing: {
+			count: number;
+			networkHeight: {
+				majorityHeight: number;
+				numberOfPeers: number;
+			};
+		};
+		incoming: {
+			count: number;
+			networkHeight: {
+				majorityHeight: number;
+				numberOfPeers: number;
+			};
+			connectStats: {
+				connects: number;
+				disconnects: number;
+			};
+			totalPeers: {
+				connected: number;
+				disconnected: number;
+			};
+			banning: {
+				totalBannedPeers: number;
+				bannedPeers: Record<string, BannedPeer>;
+			};
+		};
+	};
+	forks: {
+		forkEventCount: number;
+		blockHeaders: Record<string, BlockHeader>;
+	};
+	transactions: {
+		transactions: Record<string, TransactionPropagationStats>;
+		averageReceivedTransactions: number;
+		connectedPeers: number;
+	};
+	blocks: {
+		blocks: Record<string, number>;
+		averageReceivedBlock: number;
+		connectedPeers: number;
+	};
+}
