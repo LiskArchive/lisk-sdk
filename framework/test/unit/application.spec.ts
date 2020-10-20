@@ -58,6 +58,12 @@ describe('Application', () => {
 	});
 
 	describe('#constructor', () => {
+		it('should be able to start the application with default parameters if config is not provided', () => {
+			const app = Application.defaultApplication(genesisBlockJSON);
+
+			expect(app.config).toBeDefined();
+		});
+
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			const label = `lisk-${config.genesisConfig.communityIdentifier}`;
@@ -150,21 +156,6 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.logger).toBeUndefined();
-		});
-
-		it('should throw validation error if constants are overridden by the user', () => {
-			const customConfig = objects.cloneDeep(config);
-
-			customConfig.genesisConfig = {
-				CONSTANT: 'aConstant',
-			};
-
-			expect(() => {
-				// eslint-disable-next-line no-new
-				Application.defaultApplication(genesisBlockJSON, customConfig);
-			}).toThrow(
-				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'communityIdentifier'",
-			);
 		});
 
 		it('should throw if invalid forger is provided', () => {
