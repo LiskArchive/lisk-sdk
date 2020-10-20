@@ -24,6 +24,14 @@ const {
 	ForgerPlugin,
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
 } = require('../../../framework-plugins/lisk-framework-forger-plugin/dist-node');
+const {
+	MonitorPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-monitor-plugin/dist-node');
+const {
+	ReportMisbehaviorPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-report-misbehavior-plugin/dist-node');
 
 process.env.NODE_ENV = 'test';
 
@@ -58,6 +66,8 @@ try {
 
 	app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
 	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(MonitorPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: true });
 } catch (e) {
 	console.error('Application start error.', e);
 	process.exit();
