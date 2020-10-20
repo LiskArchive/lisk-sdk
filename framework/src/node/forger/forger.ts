@@ -90,10 +90,19 @@ interface CreateBlockInput {
 
 const BLOCK_VERSION = 2;
 
-const isSyncedWithNetwork = (lastBlockHeader: BlockHeader, forgingInput: ForgedInfo) =>
-	forgingInput.maxHeightPrevoted < lastBlockHeader.asset.maxHeightPrevoted ||
-	(forgingInput.maxHeightPrevoted === lastBlockHeader.asset.maxHeightPrevoted &&
-		forgingInput.height < lastBlockHeader.height);
+const isSyncedWithNetwork = (lastBlockHeader: BlockHeader, forgingInput: ForgedInfo) => {
+	if (lastBlockHeader.version === 0) {
+		return (
+			forgingInput.height <= lastBlockHeader.height &&
+			forgingInput.maxHeightPrevoted <= lastBlockHeader.height
+		);
+	}
+	return (
+		forgingInput.maxHeightPrevoted < lastBlockHeader.asset.maxHeightPrevoted ||
+		(forgingInput.maxHeightPrevoted === lastBlockHeader.asset.maxHeightPrevoted &&
+			forgingInput.height < lastBlockHeader.height)
+	);
+};
 
 export class Forger {
 	private readonly _logger: Logger;
@@ -172,23 +181,22 @@ export class Forger {
 		const encryptedForgers = this._config.forging.delegates;
 		const encryptedForger = encryptedForgers?.find(item => item.address.equals(forgerAddress));
 
-		let keypair: Keypair;
 		let passphrase: string;
 
-		if (encryptedForger) {
-			try {
-				passphrase = decryptPassphraseWithPassword(
-					parseEncryptedPassphrase(encryptedForger.encryptedPassphrase),
-					password,
-				);
-			} catch (e) {
-				throw new Error('Invalid password and public key combination');
-			}
-
-			keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
-		} else {
+		if (!encryptedForger) {
 			throw new Error(`Delegate with address: ${forgerAddress.toString('hex')} not found`);
 		}
+
+		try {
+			passphrase = decryptPassphraseWithPassword(
+				parseEncryptedPassphrase(encryptedForger.encryptedPassphrase),
+				password,
+			);
+		} catch (e) {
+			throw new Error('Invalid password and public key combination');
+		}
+
+		const keypair: Keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 		if (!getAddressFromPublicKey(keypair.publicKey).equals(forgerAddress)) {
 			throw new Error(
@@ -216,7 +224,10 @@ export class Forger {
 			throw new Error('Failed to enable forging as the node is not synced to the network.');
 		}
 
-		if (!overwrite) {
+		if (
+			!overwrite &&
+			(height !== 0 || maxHeightPrevoted !== 0 || maxHeightPreviouslyForged !== 0)
+		) {
 			// check if forger info exists
 			if (!previouslyForgedMap.has(forgerAddress)) {
 				throw new Error('Failed to enable forging due to missing forger info.');
