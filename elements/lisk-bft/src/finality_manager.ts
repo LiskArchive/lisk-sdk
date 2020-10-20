@@ -417,11 +417,11 @@ export class FinalityManager extends EventEmitter {
 	private _calculateMaxHeightPrevoted(ledger: LedgerMap): number {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
-		const highestHeightPreVoted = Object.keys(ledger)
+		const maxHeightPreVoted = Object.keys(ledger)
 			.reverse()
 			.find(key => ledger[key].preVotes >= this.preVoteThreshold);
 
-		return highestHeightPreVoted ? parseInt(highestHeightPreVoted, 10) : this.finalizedHeight;
+		return maxHeightPreVoted ? parseInt(maxHeightPreVoted, 10) : this.finalizedHeight;
 	}
 
 	/**
