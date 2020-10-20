@@ -9,7 +9,7 @@
 		"blockchain",
 		"forging"
 	],
-	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/framework-plugin/lisk-framework-forger-plugin#readme",
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/framework-plugins/lisk-framework-forger-plugin#readme",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
