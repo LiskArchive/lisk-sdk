@@ -49,10 +49,9 @@ export class Mutex {
 
 		const timeoutPromise = new Promise<T>((_, reject) => {
 			setTimeout(() => {
-				if (this.isLocked()) {
-					release();
-					reject(Error(timeoutMessage ?? 'Mutex run exclusive timeout'));
-				}
+				reject(
+					Error(timeoutMessage ?? `Mutex run exclusive had been timeout for given ${timeout}ms`),
+				);
 			}, timeout);
 		});
 

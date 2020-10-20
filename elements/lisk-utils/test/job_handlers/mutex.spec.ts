@@ -90,4 +90,78 @@ describe('Mutex', () => {
 			expect(firstFn).toHaveBeenCalledBefore(secondFn);
 		});
 	});
+
+	describe('#runExclusiveWithTimeout', () => {
+		it('should resolve to the result of the first function', async () => {
+			const expectedResult = 'result';
+			const resultPromise = mutex.runExclusiveWithTimeout(async () => {
+				return new Promise(resolve => {
+					setTimeout(() => {
+						return resolve(expectedResult);
+					}, 10);
+				});
+			}, 500);
+			const result = await resultPromise;
+			expect(result).toEqual(expectedResult);
+		});
+
+		it('should resolve to the result of in sequence', async () => {
+			const expectedResult1 = 'result1';
+			const expectedResult2 = 'result2';
+			const firstFn = jest.fn();
+			const secondFn = jest.fn();
+			const result1Promise = mutex.runExclusiveWithTimeout(async () => {
+				return new Promise(resolve => {
+					setTimeout(() => {
+						firstFn();
+						return resolve(expectedResult1);
+					}, 10);
+				});
+			}, 500);
+			const result2Promise = mutex.runExclusiveWithTimeout(async () => {
+				return new Promise(resolve => {
+					setTimeout(() => {
+						secondFn();
+						return resolve(expectedResult2);
+					}, 2);
+				});
+			}, 500);
+
+			const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
+
+			expect(result1).toEqual(expectedResult1);
+			expect(result2).toEqual(expectedResult2);
+			expect(firstFn).toHaveBeenCalledBefore(secondFn);
+		});
+
+		it('should reject with error if function not completed in given time', async () => {
+			const expectedResult = 'result';
+			const resultPromise = mutex.runExclusiveWithTimeout(async () => {
+				return new Promise(resolve => {
+					setTimeout(() => {
+						return resolve(expectedResult);
+					}, 1000);
+				});
+			}, 500);
+			await expect(resultPromise).rejects.toThrow(
+				'Mutex run exclusive had been timeout for given 500ms',
+			);
+		});
+
+		it('should reject with given error if function not completed in given time', async () => {
+			const expectedResult = 'result';
+			const resultPromise = mutex.runExclusiveWithTimeout(
+				async () => {
+					return new Promise(resolve => {
+						setTimeout(() => {
+							return resolve(expectedResult);
+						}, 1000);
+					});
+				},
+				500,
+				'My Custom Error',
+			);
+			await expect(resultPromise).rejects.toThrow('My Custom Error');
+		});
+	});
 });
