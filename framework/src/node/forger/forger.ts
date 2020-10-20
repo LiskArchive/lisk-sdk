@@ -230,15 +230,15 @@ export class Forger {
 			) {
 				throw new Error('Failed to enable forging due to contradicting forger info.');
 			}
+		} else {
+			previouslyForgedMap.set(forgerAddress, {
+				height,
+				maxHeightPrevoted,
+				maxHeightPreviouslyForged,
+			});
+			await setPreviouslyForgedMap(this._db, previouslyForgedMap);
+			this._logger.info(forgingInput, 'Updated forgerInfo');
 		}
-
-		previouslyForgedMap.set(forgerAddress, {
-			height,
-			maxHeightPrevoted,
-			maxHeightPreviouslyForged,
-		});
-		await setPreviouslyForgedMap(this._db, previouslyForgedMap);
-		this._logger.info(forgingInput, 'Updated forgerInfo');
 
 		// Enable delegate to forge by adding keypairs corresponding to address
 		this._keypairs.set(forgerAddress, keypair);
