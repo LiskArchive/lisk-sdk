@@ -102,7 +102,6 @@ export class Application {
 	private _controller!: Controller;
 	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
 	private _channel!: InMemoryChannel;
-	private _runMutexReleaseHandler!: () => void;
 
 	private readonly _genesisBlock: Record<string, unknown>;
 	private _blockchainDB!: KVStore;
@@ -233,52 +232,39 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
-		// Acquire mutex for loading process
-		this._runMutexReleaseHandler = await this._mutex.acquire();
+		await this._mutex.runExclusiveWithTimeout<void>(
+			async () => {
+				// Initialize all objects
+				this._channel = this._initChannel();
 
-		// Wait for RUN_WAIT_TIMEOUT to finish
-		setTimeout(() => {
-			// If mutex is still locked
-			if (this._mutex.isLocked()) {
-				// Release mutex
-				this._runMutexReleaseHandler();
+				this._controller = this._initController();
 
-				// Throw exception so it can shutdown application
-				throw new Error(`Application could not started in ${RUN_TIMEOUT}ms`);
-			}
-		}, RUN_TIMEOUT);
+				await this._controller.load();
 
-		// Initialize all objects
-		this._channel = this._initChannel();
+				await this._node.init({
+					bus: this._controller.bus,
+					channel: this._channel,
+					forgerDB: this._forgerDB,
+					blockchainDB: this._blockchainDB,
+					nodeDB: this._nodeDB,
+					logger: this.logger,
+				});
 
-		this._controller = this._initController();
+				await this._controller.loadPlugins(this._plugins, this.config.plugins);
+				this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
+				this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
-		await this._controller.load();
-
-		await this._node.init({
-			bus: this._controller.bus,
-			channel: this._channel,
-			forgerDB: this._forgerDB,
-			blockchainDB: this._blockchainDB,
-			nodeDB: this._nodeDB,
-			logger: this.logger,
-		});
-
-		// Release mutex
-		this._runMutexReleaseHandler();
-
-		await this._controller.loadPlugins(this._plugins, this.config.plugins);
-		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
-		this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
-
-		this._channel.publish('app:ready');
+				this._channel.publish('app:ready');
+			},
+			RUN_TIMEOUT,
+			`Application could not be started in ${RUN_TIMEOUT}ms`,
+		);
 	}
 
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
 		this.logger.info({ errorCode, message }, 'Application shutdown started');
-
 		// See if we can acquire mutex meant app is still loading or not
-		await this._mutex.acquire();
+		const release = await this._mutex.acquire();
 
 		try {
 			this._channel.publish('app:shutdown');
@@ -295,6 +281,7 @@ export class Application {
 		} finally {
 			// Unfreeze the configuration
 			this.config = objects.mergeDeep({}, this.config) as ApplicationConfig;
+			release();
 
 			// To avoid redundant shutdown call
 			process.removeAllListeners('exit');

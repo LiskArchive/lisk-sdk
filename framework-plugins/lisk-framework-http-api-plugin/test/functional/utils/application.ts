@@ -45,16 +45,7 @@ export const createApplication = async (
 	// Remove pre-existing data
 	fs.removeSync(path.join(rootPath, label));
 
-	await Promise.race([
-		app.run(),
-		new Promise((_resolve, reject) => {
-			const id = setTimeout(() => {
-				clearTimeout(id);
-				reject(new Error('App can not started in time.'));
-			}, 10000);
-		}),
-	]);
-
+	await app.run();
 	return app;
 };
 

@@ -33,7 +33,7 @@ export const startApplication = async (app: Application): Promise<void> => {
 	// FIXME: Remove with #5572
 	validator.removeSchema('/block/header');
 
-	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
+	await app.run();
 	await new Promise(resolve => {
 		app['_channel'].subscribe('app:block:new', () => {
 			if (app['_node']['_chain'].lastBlock.header.height > 1) {

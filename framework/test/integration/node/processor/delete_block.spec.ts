@@ -42,7 +42,9 @@ describe('Delete block', () => {
 	beforeAll(async () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
 		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
-		await node['_forger'].loadDelegates();
+		// Since node start the forging so we have to stop the job
+		// Our test make use of manual forging of blocks
+		node['_forgingJob'].stop();
 		// FIXME: Remove with #5572
 		validator['_validator']._opts.addUsedSchema = false;
 	});

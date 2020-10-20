@@ -40,6 +40,29 @@ export class Mutex {
 		}
 	}
 
+	public async runExclusiveWithTimeout<T>(
+		worker: () => Promise<T>,
+		timeout: number,
+		timeoutMessage?: string,
+	): Promise<T> {
+		const release = await this.acquire();
+
+		const timeoutPromise = new Promise<T>((_, reject) => {
+			setTimeout(() => {
+				if (this.isLocked()) {
+					release();
+					reject(Error(timeoutMessage ?? 'Mutex run exclusive timeout'));
+				}
+			}, timeout);
+		});
+
+		try {
+			return await Promise.race([worker(), timeoutPromise]);
+		} finally {
+			release();
+		}
+	}
+
 	private _tick(): void {
 		const releaseFunc = this._queue.shift();
 		if (!releaseFunc) {
