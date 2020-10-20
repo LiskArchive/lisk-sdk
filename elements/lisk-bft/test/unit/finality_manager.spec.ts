@@ -28,11 +28,7 @@ import {
 	CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 	BFTVotingLedgerSchema,
 } from '../../src/finality_manager';
-import {
-	BFTChainDisjointError,
-	BFTForkChoiceRuleError,
-	BFTLowerChainBranchError,
-} from '../../src/types';
+import { BFTError } from '../../src/types';
 import { createFakeBlockHeader } from '../fixtures/blocks';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { BFTFinalizedHeightCodecSchema } from '../../src';
@@ -202,7 +198,7 @@ describe('finality_manager', () => {
 				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
-					BFTForkChoiceRuleError,
+					BFTError,
 				);
 			});
 
@@ -230,7 +226,7 @@ describe('finality_manager', () => {
 				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
-					BFTForkChoiceRuleError,
+					BFTError,
 				);
 			});
 
@@ -254,7 +250,7 @@ describe('finality_manager', () => {
 				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
-					BFTChainDisjointError,
+					BFTError,
 				);
 			});
 
@@ -283,7 +279,7 @@ describe('finality_manager', () => {
 				) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
-					BFTLowerChainBranchError,
+					BFTError,
 				);
 			});
 
