@@ -137,7 +137,7 @@ pipeline {
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:ci --ignore lisk-{framework,commander}'
+							sh 'npx lerna run test:ci --ignore lisk-{framework,commander,@liskhq/lisk-framework-*}'
 						}
 					}
 					post {
