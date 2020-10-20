@@ -36,6 +36,11 @@ import { PomTransactionAsset } from './transaction_assets/pom_transaction_asset'
 import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
 
 const { bufferArrayContains } = objectsUtils;
+const dposModuleParamsDefault = {
+	activeDelegates: 101,
+	standbyDelegates: 2,
+	delegateListRoundOffset: 2,
+};
 
 // eslint-disable-next-line new-cap
 const debug = Debug('dpos');
@@ -63,6 +68,7 @@ export class DPoSModule extends BaseModule {
 
 	public constructor(config: GenesisConfig) {
 		super(config);
+		const mergedDposConfig = objectsUtils.mergeDeep(dposModuleParamsDefault, this.config);
 
 		// Set actions
 		this.actions = {
@@ -87,22 +93,24 @@ export class DPoSModule extends BaseModule {
 			},
 		};
 
-		const errors = validator.validate(dposModuleParamsSchema, this.config);
+		const errors = validator.validate(dposModuleParamsSchema, mergedDposConfig);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
 		}
 
-		if ((this.config.activeDelegates as number) < 1) {
+		if ((mergedDposConfig.activeDelegates as number) < 1) {
 			throw new Error('Active delegates must have minimum 1');
 		}
 
-		if ((this.config.activeDelegates as number) < (this.config.standbyDelegates as number)) {
+		if (
+			(mergedDposConfig.activeDelegates as number) < (mergedDposConfig.standbyDelegates as number)
+		) {
 			throw new Error('Active delegates must be greater or equal to standby delegates');
 		}
 
-		this._activeDelegates = this.config.activeDelegates as number;
-		this._standbyDelegates = this.config.standbyDelegates as number;
-		this._delegateListRoundOffset = this.config.delegateListRoundOffset as number;
+		this._activeDelegates = mergedDposConfig.activeDelegates as number;
+		this._standbyDelegates = mergedDposConfig.standbyDelegates as number;
+		this._delegateListRoundOffset = mergedDposConfig.delegateListRoundOffset as number;
 		this._blocksPerRound = this._activeDelegates + this._standbyDelegates;
 		this._blockTime = config.blockTime;
 		this._delegateActiveRoundLimit = 3;
