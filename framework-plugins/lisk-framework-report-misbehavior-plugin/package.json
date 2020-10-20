@@ -8,7 +8,7 @@
 		"lisk",
 		"blockchain"
 	],
-	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-framework-report-misbehavior-plugin#readme",
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/framework-plugins/lisk-framework-report-misbehavior-plugin#readme",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
