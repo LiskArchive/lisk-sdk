@@ -100,6 +100,18 @@ describe('finality_manager', () => {
 						}),
 				).toThrow('Invalid number of validators for BFT property');
 			});
+
+			it('should inititialize maxHeightPrevoted to the finalizedHeight', async () => {
+				const nonZeroFinalizedHeight = 10000000;
+				finalityManager = new FinalityManager({
+					chain: chainStub,
+					finalizedHeight: nonZeroFinalizedHeight,
+					threshold,
+				});
+				await expect(finalityManager.getMaxHeightPrevoted()).resolves.toEqual(
+					nonZeroFinalizedHeight,
+				);
+			});
 		});
 
 		describe('verifyBlockHeaders', () => {

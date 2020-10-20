@@ -167,7 +167,7 @@ describe('FinalityManager', () => {
 							CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 						);
 						const { ledger } = finalityManager['_decodeVotingLedger'](updatedBftLedgers);
-						const { preVoted } = finalityManager['_getChainMaxHeightStatus'](ledger);
+						const preVoted = finalityManager['_calculateMaxHeightPrevoted'](ledger);
 						expect(preVoted).toEqual(testCase.output.preVotedConfirmedHeight);
 					});
 				}

@@ -344,7 +344,7 @@ export class FinalityManager extends EventEmitter {
 
 		const bftBlockHeaders = stateStore.chain.lastBlockHeaders;
 		const { ledger } = await this._getVotingLedger(stateStore);
-		const { preVoted: chainMaxHeightPrevoted } = this._getChainMaxHeightStatus(ledger);
+		const chainMaxHeightPrevoted = this._calculateMaxHeightPrevoted(ledger);
 		// We need minimum processingThreshold to decide
 		// If maxHeightPrevoted is correct
 		if (
@@ -411,27 +411,17 @@ export class FinalityManager extends EventEmitter {
 			CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 		);
 		const { ledger } = this._decodeVotingLedger(bftState);
-		const { preVoted } = this._getChainMaxHeightStatus(ledger);
-
-		return preVoted;
+		return this._calculateMaxHeightPrevoted(ledger);
 	}
 
-	private _getChainMaxHeightStatus(ledger: LedgerMap): { preVoted: number; preCommitted: number } {
+	private _calculateMaxHeightPrevoted(ledger: LedgerMap): number {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
 		const highestHeightPreVoted = Object.keys(ledger)
 			.reverse()
 			.find(key => ledger[key].preVotes >= this.preVoteThreshold);
 
-		const preVoted = highestHeightPreVoted ? parseInt(highestHeightPreVoted, 10) : 0;
-
-		const highestHeightPreCommitted = Object.keys(ledger)
-			.reverse()
-			.find(key => ledger[key].preCommits >= this.preCommitThreshold);
-
-		const preCommitted = highestHeightPreCommitted ? parseInt(highestHeightPreCommitted, 10) : 0;
-
-		return { preVoted, preCommitted };
+		return highestHeightPreVoted ? parseInt(highestHeightPreVoted, 10) : this.finalizedHeight;
 	}
 
 	/**
