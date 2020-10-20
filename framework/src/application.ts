@@ -39,7 +39,6 @@ import {
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
-const RUN_TIMEOUT = 3000;
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const rm = promisify(fs.unlink);
@@ -232,33 +231,29 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
-		await this._mutex.runExclusiveWithTimeout<void>(
-			async () => {
-				// Initialize all objects
-				this._channel = this._initChannel();
+		await this._mutex.runExclusive<void>(async () => {
+			// Initialize all objects
+			this._channel = this._initChannel();
 
-				this._controller = this._initController();
+			this._controller = this._initController();
 
-				await this._controller.load();
+			await this._controller.load();
 
-				await this._node.init({
-					bus: this._controller.bus,
-					channel: this._channel,
-					forgerDB: this._forgerDB,
-					blockchainDB: this._blockchainDB,
-					nodeDB: this._nodeDB,
-					logger: this.logger,
-				});
+			await this._node.init({
+				bus: this._controller.bus,
+				channel: this._channel,
+				forgerDB: this._forgerDB,
+				blockchainDB: this._blockchainDB,
+				nodeDB: this._nodeDB,
+				logger: this.logger,
+			});
 
-				await this._controller.loadPlugins(this._plugins, this.config.plugins);
-				this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
-				this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
+			await this._controller.loadPlugins(this._plugins, this.config.plugins);
+			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
+			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
-				this._channel.publish('app:ready');
-			},
-			RUN_TIMEOUT,
-			`Application could not be started in ${RUN_TIMEOUT}ms`,
-		);
+			this._channel.publish('app:ready');
+		});
 	}
 
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
