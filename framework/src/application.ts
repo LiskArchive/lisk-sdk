@@ -39,7 +39,7 @@ import {
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
-const RUN_WAIT_TIMEOUT = 3000;
+const RUN_TIMEOUT = 3000;
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const rm = promisify(fs.unlink);
@@ -102,12 +102,14 @@ export class Application {
 	private _controller!: Controller;
 	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
 	private _channel!: InMemoryChannel;
-	private _loadingProcess!: jobHandlers.Defer<boolean>;
+	private _runMutexReleaseHandler!: () => void;
 
 	private readonly _genesisBlock: Record<string, unknown>;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
+
+	private readonly _mutex = new jobHandlers.Mutex();
 
 	public constructor(
 		genesisBlock: Record<string, unknown>,
@@ -231,12 +233,22 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
-		// Initialize all objects
-		this._loadingProcess = new jobHandlers.Defer<boolean>(
-			RUN_WAIT_TIMEOUT,
-			`Application could not started in ${RUN_WAIT_TIMEOUT}ms`,
-		);
+		// Acquire mutex for loading process
+		this._runMutexReleaseHandler = await this._mutex.acquire();
 
+		// Wait for RUN_WAIT_TIMEOUT to finish
+		setTimeout(() => {
+			// If mutex is still locked
+			if (this._mutex.isLocked()) {
+				// Release mutex
+				this._runMutexReleaseHandler();
+
+				// Throw exception so it can shutdown application
+				throw new Error(`Application could not started in ${RUN_TIMEOUT}ms`);
+			}
+		}, RUN_TIMEOUT);
+
+		// Initialize all objects
 		this._channel = this._initChannel();
 
 		this._controller = this._initController();
@@ -252,7 +264,8 @@ export class Application {
 			logger: this.logger,
 		});
 
-		this._loadingProcess.resolve(true);
+		// Release mutex
+		this._runMutexReleaseHandler();
 
 		await this._controller.loadPlugins(this._plugins, this.config.plugins);
 		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
@@ -264,10 +277,8 @@ export class Application {
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
 		this.logger.info({ errorCode, message }, 'Application shutdown started');
 
-		// Wait if the loading process still in progress
-		if (this._loadingProcess) {
-			await this._loadingProcess.promise;
-		}
+		// See if we can acquire mutex meant app is still loading or not
+		await this._mutex.acquire();
 
 		try {
 			this._channel.publish('app:shutdown');
