@@ -19,7 +19,7 @@ export const defaultConfig = {
 			type: 'integer',
 			minimum: 1,
 			maximum: 65535,
-			description: 'The http server port for forger plugin.',
+			description: 'The http server port for report misbehavior plugin.',
 		},
 		cleanupFrequency: {
 			type: 'integer',
@@ -38,7 +38,7 @@ export const defaultConfig = {
 				type: 'string',
 			},
 			description:
-				'Explicitly allowing some identified entities access to forger plugin endpoints.',
+				'Explicitly allowing some identified entities access to repost misbehavior plugin endpoints.',
 		},
 		cors: {
 			type: 'object',
