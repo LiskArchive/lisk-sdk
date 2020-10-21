@@ -29,7 +29,8 @@ import * as rateLimit from 'express-rate-limit';
 import { getDBInstance } from './db';
 import * as config from './defaults';
 import * as middlewares from './middlewares';
-import { Options } from './types';
+import { Options, States } from './types';
+import * as controllers from './controllers';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
@@ -38,6 +39,8 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _pluginDB!: KVStore;
 	private _server!: Server;
 	private _app!: Express;
+	private _options!: Options;
+	private readonly _states: States = {};
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -74,15 +77,15 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(_channel: BaseChannel): Promise<void> {
 		this._app = express();
-		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
+		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 
-		this._pluginDB = await getDBInstance(options.dataPath);
+		this._pluginDB = await getDBInstance(this._options.dataPath);
 
 		// Start http server
-		this._registerMiddlewares(options);
+		this._registerMiddlewares(this._options);
 		this._registerControllers();
-		this._registerAfterMiddlewares(options);
-		this._server = this._app.listen(options.port, '0.0.0.0');
+		this._registerAfterMiddlewares(this._options);
+		this._server = this._app.listen(this._options.port, '0.0.0.0');
 	}
 
 	public async unload(): Promise<void> {
@@ -103,7 +106,9 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line
-	private _registerControllers(): void {}
+	private _registerControllers(): void {
+		this._app.patch('/api/auth', controllers.auth(this._options, this._states));
+	}
 
 	private _registerMiddlewares(options: Options): void {
 		// Register middlewares

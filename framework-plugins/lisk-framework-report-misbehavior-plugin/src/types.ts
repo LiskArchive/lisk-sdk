@@ -32,3 +32,8 @@ export interface Options {
 		readonly serverSetTimeout: number;
 	};
 }
+
+export interface States {
+	publicKey?: Buffer;
+	passphrase?: string;
+}
