@@ -109,7 +109,7 @@ export class MonitorPlugin extends BasePlugin {
 			},
 			blocks: {
 				blocks: {},
-				averageReceivedBlock: 0,
+				averageReceivedBlocks: 0,
 				connectedPeers: 0,
 			},
 		};

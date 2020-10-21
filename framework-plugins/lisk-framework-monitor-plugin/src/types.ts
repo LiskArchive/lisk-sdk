@@ -31,7 +31,7 @@ export interface Options {
 
 interface BannedPeer {
 	timeUntilUnBan: Date;
-	Reason: string;
+	reason: string;
 	banCount: number;
 }
 
@@ -86,7 +86,7 @@ export interface SharedState {
 	};
 	blocks: {
 		blocks: Record<string, number>;
-		averageReceivedBlock: number;
+		averageReceivedBlocks: number;
 		connectedPeers: number;
 	};
 }
