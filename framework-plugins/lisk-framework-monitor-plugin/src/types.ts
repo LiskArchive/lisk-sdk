@@ -54,6 +54,10 @@ export interface SharedState {
 				majorityHeight: number;
 				numberOfPeers: number;
 			};
+			connectStats: {
+				connects: number;
+				disconnects: number;
+			};
 		};
 		incoming: {
 			count: number;
@@ -65,14 +69,14 @@ export interface SharedState {
 				connects: number;
 				disconnects: number;
 			};
-			totalPeers: {
-				connected: number;
-				disconnected: number;
-			};
-			banning: {
-				totalBannedPeers: number;
-				bannedPeers: Record<string, BannedPeer>;
-			};
+		};
+		totalPeers: {
+			connected: number;
+			disconnected: number;
+		};
+		banning: {
+			totalBannedPeers: number;
+			bannedPeers: Record<string, BannedPeer>;
 		};
 	};
 	forks: {

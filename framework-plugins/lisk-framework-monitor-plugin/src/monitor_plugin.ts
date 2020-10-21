@@ -77,6 +77,10 @@ export class MonitorPlugin extends BasePlugin {
 						majorityHeight: 0,
 						numberOfPeers: 0,
 					},
+					connectStats: {
+						connects: 0,
+						disconnects: 0,
+					},
 				},
 				incoming: {
 					count: 0,
@@ -88,14 +92,14 @@ export class MonitorPlugin extends BasePlugin {
 						connects: 0,
 						disconnects: 0,
 					},
-					totalPeers: {
-						connected: 0,
-						disconnected: 0,
-					},
-					banning: {
-						totalBannedPeers: 0,
-						bannedPeers: {},
-					},
+				},
+				totalPeers: {
+					connected: 0,
+					disconnected: 0,
+				},
+				banning: {
+					totalBannedPeers: 0,
+					bannedPeers: {},
 				},
 			},
 			forks: {
