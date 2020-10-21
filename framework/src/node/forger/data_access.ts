@@ -271,8 +271,8 @@ export const saveMaxHeightPreviouslyForged = async (
 		previouslyForgedStoreObject.previouslyForgedInfo.push({ generatorAddress: key, ...value });
 	}
 
-	previouslyForgedStoreObject.previouslyForgedInfo = previouslyForgedStoreObject.previouslyForgedInfo.sort(
-		(a, b) => a.generatorAddress.compare(b.generatorAddress),
+	previouslyForgedStoreObject.previouslyForgedInfo.sort((a, b) =>
+		a.generatorAddress.compare(b.generatorAddress),
 	);
 
 	await db.put(
