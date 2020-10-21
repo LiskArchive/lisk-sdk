@@ -19,7 +19,7 @@ import {
 	parseEncryptedPassphrase,
 	getAddressAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { Options, States } from '../types';
+import { Options, State } from '../types';
 
 const requestSchema = {
 	$id: 'lisk/report_misbehavior/auth',
@@ -40,7 +40,7 @@ interface RequestBody {
 	readonly enable: boolean;
 }
 
-export const auth = (options: Options, states: States) => async (
+export const auth = (options: Options, states: State) => async (
 	req: Request,
 	res: Response,
 	// eslint-disable-next-line @typescript-eslint/require-await

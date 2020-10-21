@@ -33,7 +33,7 @@ export interface Options {
 	};
 }
 
-export interface States {
+export interface State {
 	publicKey?: Buffer;
 	passphrase?: string;
 }

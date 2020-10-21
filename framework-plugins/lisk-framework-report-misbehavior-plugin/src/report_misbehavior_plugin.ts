@@ -29,7 +29,7 @@ import * as rateLimit from 'express-rate-limit';
 import { getDBInstance } from './db';
 import * as config from './defaults';
 import * as middlewares from './middlewares';
-import { Options, States } from './types';
+import { Options, State } from './types';
 import * as controllers from './controllers';
 
 // eslint-disable-next-line
@@ -40,7 +40,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
 	private _options!: Options;
-	private readonly _states: States = {};
+	private readonly _state: State = {};
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -107,7 +107,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 
 	// eslint-disable-next-line
 	private _registerControllers(): void {
-		this._app.patch('/api/auth', controllers.auth(this._options, this._states));
+		this._app.patch('/api/auth', controllers.auth(this._options, this._state));
 	}
 
 	private _registerMiddlewares(options: Options): void {
