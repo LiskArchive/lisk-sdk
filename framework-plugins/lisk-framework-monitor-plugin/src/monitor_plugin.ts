@@ -134,6 +134,10 @@ export class MonitorPlugin extends BasePlugin {
 		});
 	}
 
+	public get state(): SharedState {
+		return this._state;
+	}
+
 	private _registerMiddlewares(options: Options): void {
 		// Register middlewares
 		this._app.use(cors(options.cors));
