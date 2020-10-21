@@ -14,6 +14,7 @@
 
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { areHeadersContradicting } from '@liskhq/lisk-bft';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseAsset } from '../../base_asset';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
@@ -109,34 +110,8 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 			throw new Error('BlockHeaders are identical. No contradiction detected.');
 		}
 
-		/*
-			Check for BFT violations:
-					1. Double forging
-					2. Disjointedness
-					3. Branch is not the one with largest maxHeightPrevoted
-		*/
-
-		let b1 = asset.header1;
-		let b2 = asset.header2;
-
-		// Order the two block headers such that b1 must be forged first
-		if (
-			b1.asset.maxHeightPreviouslyForged > b2.asset.maxHeightPreviouslyForged ||
-			(b1.asset.maxHeightPreviouslyForged === b2.asset.maxHeightPreviouslyForged &&
-				b1.asset.maxHeightPrevoted > b2.asset.maxHeightPrevoted) ||
-			(b1.asset.maxHeightPreviouslyForged === b2.asset.maxHeightPreviouslyForged &&
-				b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted &&
-				b1.height > b2.height)
-		) {
-			b1 = asset.header2;
-			b2 = asset.header1;
-		}
-
-		if (
-			!(b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted && b1.height >= b2.height) &&
-			!(b1.height > b2.asset.maxHeightPreviouslyForged) &&
-			!(b1.asset.maxHeightPrevoted > b2.asset.maxHeightPrevoted)
-		) {
+		// Check for BFT violations:
+		if (!areHeadersContradicting(asset.header1, asset.header2)) {
 			throw new Error('BlockHeaders are not contradicting as per BFT violation rules.');
 		}
 	}
