@@ -27,6 +27,8 @@ export * as genesis from '@liskhq/lisk-genesis';
 export { codec, Schema } from '@liskhq/lisk-codec';
 export * from '@liskhq/lisk-framework-http-api-plugin';
 export * from '@liskhq/lisk-framework-forger-plugin';
+export * from '@liskhq/lisk-framework-monitor-plugin';
+export * from '@liskhq/lisk-framework-report-misbehavior-plugin';
 export * from 'lisk-framework';
 
 export { genesisBlockDevnet, configDevnet } from './samples';
