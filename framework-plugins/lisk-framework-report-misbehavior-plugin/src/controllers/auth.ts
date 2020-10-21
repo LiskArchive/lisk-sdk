@@ -75,7 +75,7 @@ export const auth = (options: Options, states: States) => async (
 		});
 	} catch (error) {
 		res.status(400).send({
-			errors: [{ message: (error as Error).message ?? 'Pasword given is not valid.' }],
+			errors: [{ message: (error as Error).message ?? 'Password given is not valid.' }],
 		});
 	}
 };

@@ -22,7 +22,7 @@ import {
 } from '../utils/application';
 import { defaultAccount } from '../fixtures/devnet';
 
-describe('api/forging', () => {
+describe('Auth', () => {
 	let app: Application;
 
 	beforeAll(async () => {

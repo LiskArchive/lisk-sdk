@@ -57,7 +57,7 @@ export const defaultConfig = {
 			format: 'path',
 			example: '~/.lisk/report-misbehavior',
 			description:
-				'The data path for storing forging related information captured from application.',
+				'The data path for storing misbehavior related information captured from application.',
 		},
 		limits: {
 			type: 'object',

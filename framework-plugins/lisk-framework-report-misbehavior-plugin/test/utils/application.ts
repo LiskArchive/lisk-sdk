@@ -46,11 +46,11 @@ export const createApplication = async (
 	options: {
 		consoleLogLevel?: string;
 		clearDB?: boolean;
-		appConfig?: { plugins: { forger: object } };
+		appConfig?: { plugins: { reportMisbehavior: object } };
 	} = {
 		clearDB: true,
 		consoleLogLevel: 'fatal',
-		appConfig: { plugins: { forger: {} } },
+		appConfig: { plugins: { reportMisbehavior: {} } },
 	},
 ): Promise<Application> => {
 	const rootPath = '~/.lisk/report-misbehavior-plugin';
