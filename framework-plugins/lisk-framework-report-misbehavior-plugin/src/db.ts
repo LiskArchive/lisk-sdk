@@ -21,7 +21,7 @@ import { ensureDir } from 'fs-extra';
 import { RegisteredSchema } from 'lisk-framework';
 import { hash } from '@liskhq/lisk-cryptography';
 
-const blockHeadersSchema = {
+export const blockHeadersSchema = {
 	$id: 'lisk/reportMisbehavior/blockHeaders',
 	type: 'object',
 	required: ['blockHeaders'],
@@ -62,30 +62,24 @@ export const getBlockHeaders = async (
 	}
 };
 
-export const encodeBlockHeaders = (
-	schemas: RegisteredSchema,
-	blockHeaders: Buffer[],
-	blockHeaderObject: Record<string, unknown>,
-): Buffer => {
-	const encodedBlockHeader = codec.encode(schemas.blockHeader, blockHeaderObject);
-	return codec.encode(blockHeadersSchema, {
-		blockHeaders: [...blockHeaders, encodedBlockHeader],
-	});
-};
-
 export const saveBlockHeaders = async (
 	db: KVStore,
 	schemas: RegisteredSchema,
-	blockHeader: Buffer,
-): Promise<void> => {
-	const blockHeaderObject = codec.decode<RawBlockHeader>(schemas.blockHeader, blockHeader);
-	const { generatorPublicKey, height, id } = blockHeaderObject;
-	const dbKey = `${generatorPublicKey.toString('hex')}:${formatInt(height)}`;
+	header: Buffer,
+): Promise<boolean> => {
+	const blockId = hash(header);
+	const { generatorPublicKey, height } = codec.decode<RawBlockHeader>(schemas.blockHeader, header);
+	const dbKey = `${generatorPublicKey.toString('binary')}:${formatInt(height)}`;
 	const { blockHeaders } = await getBlockHeaders(db, dbKey);
 
-	if (!blockHeaders.find(aBlockHeader => hash(aBlockHeader).equals(id))) {
-		const { id: blockId, ...blockHeaderWithoutId } = blockHeaderObject;
-		const updatedBlockHeaders = encodeBlockHeaders(schemas, blockHeaders, blockHeaderWithoutId as unknown as Record<string, unknown>);
-		await db.put(dbKey, updatedBlockHeaders);
+	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(blockId))) {
+		await db.put(
+			dbKey,
+			codec.encode(blockHeadersSchema, {
+				blockHeaders: [...blockHeaders, header],
+			}),
+		);
+		return true;
 	}
+	return false;
 };
