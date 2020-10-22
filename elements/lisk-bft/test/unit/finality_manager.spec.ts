@@ -100,6 +100,18 @@ describe('finality_manager', () => {
 						}),
 				).toThrow('Invalid number of validators for BFT property');
 			});
+
+			it('should inititialize maxHeightPrevoted to the finalizedHeight', async () => {
+				const nonZeroFinalizedHeight = 10000000;
+				finalityManager = new FinalityManager({
+					chain: chainStub,
+					finalizedHeight: nonZeroFinalizedHeight,
+					threshold,
+				});
+				await expect(finalityManager.getMaxHeightPrevoted()).resolves.toEqual(
+					nonZeroFinalizedHeight,
+				);
+			});
 		});
 
 		describe('verifyBlockHeaders', () => {
@@ -145,8 +157,8 @@ describe('finality_manager', () => {
 					ledger: [
 						{
 							height: 10,
-							preVotes: 69,
-							preCommits: 0,
+							prevotes: 69,
+							precommits: 0,
 						},
 					],
 				};
@@ -348,7 +360,7 @@ describe('finality_manager', () => {
 				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledWith(header1, stateStore);
 			});
 
-			it('should call updatePreVotesPreCommits with the provided header', async () => {
+			it('should call updatePrevotesPrecommits with the provided header', async () => {
 				const header1 = createFakeBlockHeader({
 					height: 2,
 					asset: {
@@ -356,11 +368,11 @@ describe('finality_manager', () => {
 					},
 					generatorPublicKey: bftHeaders[102].generatorPublicKey,
 				});
-				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
+				jest.spyOn(finalityManager, 'updatePrevotesPrecommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(1);
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledTimes(1);
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledWith(
 					header1,
 					stateStore,
 					bftHeaders,
@@ -390,11 +402,11 @@ describe('finality_manager', () => {
 					{ lastBlockHeaders: bftHeaders },
 				) as unknown) as StateStore;
 
-				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
+				jest.spyOn(finalityManager, 'updatePrevotesPrecommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(1);
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledTimes(1);
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledWith(
 					header1,
 					stateStore,
 					bftHeaders,
@@ -402,7 +414,7 @@ describe('finality_manager', () => {
 
 				// Ignores a standby validator from prevotes and precommit calculations
 				await expect(
-					finalityManager.updatePreVotesPreCommits(header1, stateStore, bftHeaders),
+					finalityManager.updatePrevotesPrecommits(header1, stateStore, bftHeaders),
 				).resolves.toEqual(false);
 			});
 
@@ -429,11 +441,11 @@ describe('finality_manager', () => {
 					{ lastBlockHeaders: bftHeaders },
 				) as unknown) as StateStore;
 
-				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
+				jest.spyOn(finalityManager, 'updatePrevotesPrecommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(1);
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledTimes(1);
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledWith(
 					header1,
 					stateStore,
 					bftHeaders,
@@ -441,7 +453,7 @@ describe('finality_manager', () => {
 
 				// Ignores a standby validator from prevotes and precommit calculations
 				await expect(
-					finalityManager.updatePreVotesPreCommits(header1, stateStore, bftHeaders),
+					finalityManager.updatePrevotesPrecommits(header1, stateStore, bftHeaders),
 				).resolves.toEqual(false);
 			});
 
@@ -528,8 +540,8 @@ describe('finality_manager', () => {
 							ledger: [
 								{
 									height: 200,
-									preVotes: 99,
-									preCommits: 99,
+									prevotes: 99,
+									precommits: 99,
 								},
 							],
 						}),
