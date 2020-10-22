@@ -29,7 +29,13 @@ import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
-import { getDBInstance, saveBlockHeaders } from './db';
+import * as debug from 'debug';
+import {
+	getDBInstance,
+	saveBlockHeaders,
+	getContradictingBlockHeader,
+	decodeBlockHeader,
+} from './db';
 import * as config from './defaults';
 import * as middlewares from './middlewares';
 import { Options, State } from './types';
@@ -37,6 +43,7 @@ import * as controllers from './controllers';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
+const logger = debug('plugin:resport-misbehavior');
 
 export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _pluginDB!: KVStore;
@@ -142,7 +149,23 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 					this.schemas.block,
 					Buffer.from(data.block, 'hex'),
 				);
-				await saveBlockHeaders(this._pluginDB, this.schemas, header);
+				try {
+					const saved = await saveBlockHeaders(this._pluginDB, this.schemas, header);
+					if (!saved) {
+						return;
+					}
+					const decodedBlockHeader = decodeBlockHeader(header, this.schemas);
+					const contradictingBlock = await getContradictingBlockHeader(
+						this._pluginDB,
+						decodedBlockHeader,
+						this.schemas,
+					);
+					if (contradictingBlock) {
+						// create pom transaction and send
+					}
+				} catch (error) {
+					logger(error);
+				}
 			}
 		});
 	}
