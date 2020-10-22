@@ -224,3 +224,33 @@ export interface PeerLists {
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
 	readonly previousPeers: ReadonlyArray<P2PPeerInfo>;
 }
+
+export interface NetworkStats {
+	readonly outgoing: {
+		connects: number;
+		disconnects: number;
+	};
+	readonly incoming: {
+		connects: number;
+		disconnects: number;
+	};
+	readonly banning: {
+		totalBannedPeers: number;
+		bannedPeers: {
+			[key: string]: {
+				lastBanTime: number;
+				banCount: number;
+			};
+		};
+	};
+	totalErrors: number;
+	totalRemovedPeers: number;
+	totalMessagesReceived: {
+		[key: string]: number;
+	};
+	totalRequestsReceived: {
+		[key: string]: number;
+	};
+	totalPeersDiscovered: number;
+	readonly startTime: number;
+}

@@ -458,6 +458,10 @@ export class Network {
 		});
 	}
 
+	public getNetworkStats(): liskP2P.p2pTypes.NetworkStats {
+		return this._p2p.getNetworkStats();
+	}
+
 	public getDisconnectedPeers(): ReadonlyArray<liskP2P.p2pTypes.PeerInfo> {
 		const peers = this._p2p.getDisconnectedPeers();
 		return peers.map(peer => {

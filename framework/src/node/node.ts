@@ -491,6 +491,7 @@ export class Node {
 			}),
 			getConnectedPeers: () => this._networkModule.getConnectedPeers(),
 			getDisconnectedPeers: () => this._networkModule.getDisconnectedPeers(),
+			getNetworkStats: () => this._networkModule.getNetworkStats(),
 		};
 	}
 
