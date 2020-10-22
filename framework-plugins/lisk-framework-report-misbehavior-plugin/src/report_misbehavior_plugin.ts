@@ -14,6 +14,8 @@
 
 import { Server } from 'http';
 import { KVStore } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
+import { RawBlock } from '@liskhq/lisk-chain';
 import {
 	ActionsDefinition,
 	BasePlugin,
@@ -136,7 +138,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			};
 
 			if (event === 'postBlock') {
-				const { header } = this.codec.decodeBlock(data.block);
+				const { header } = codec.decode<RawBlock>(this.schemas.block, Buffer.from(data.block, 'hex'));
 				await saveBlockHeaders(this._pluginDB, this.schemas, header);
 			}
 		});

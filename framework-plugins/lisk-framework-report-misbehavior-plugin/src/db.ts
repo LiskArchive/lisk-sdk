@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { formatInt, KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { RawBlockHeader } from '@liskhq/lisk-chain';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { BlockHeaderJSON, blockHeaderSchema, RegisteredSchema } from 'lisk-framework';
+import { RegisteredSchema } from 'lisk-framework';
+import { hash } from '@liskhq/lisk-cryptography';
 
 const blockHeadersSchema = {
 	$id: 'lisk/reportMisbehavior/blockHeaders',
@@ -29,14 +30,14 @@ const blockHeadersSchema = {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
-				...blockHeaderSchema,
+				dataType: 'bytes',
 			},
 		},
 	},
 };
 
 interface BlockHeaders {
-	readonly blockHeaders: RawBlockHeader[];
+	readonly blockHeaders: Buffer[];
 }
 
 export const getDBInstance = async (
@@ -55,46 +56,36 @@ export const getBlockHeaders = async (
 ): Promise<BlockHeaders> => {
 	try {
 		const encodedBlockHeaders = await db.get(dbKeyBlockHeader);
-		return codec.decode(blockHeadersSchema, encodedBlockHeaders);
+		return codec.decode<BlockHeaders>(blockHeadersSchema, encodedBlockHeaders);
 	} catch (error) {
-		return { blockHeaders: [] };
+		return { blockHeaders: [] as Buffer[] };
 	}
 };
 
-export const getBlockHeaderObject = (
-	schemas: RegisteredSchema,
-	blockHeaderJSON: BlockHeaderJSON,
-): Record<string, unknown> => {
-	const { id, ...blockHeaderJSONWithoutID } = blockHeaderJSON;
-	const assetSchema = schemas.blockHeadersAssets[blockHeaderJSON.version];
-	const assetObject = codec.fromJSON(assetSchema, blockHeaderJSONWithoutID.asset);
-	const encodedAsset = codec.encode(assetSchema, assetObject);
-	const blockHeaderObject = codec.fromJSON<Record<string, unknown>>(schemas.blockHeader, {
-		...blockHeaderJSONWithoutID,
-		asset: encodedAsset,
-	});
-
-	return blockHeaderObject;
-};
-
 export const encodeBlockHeaders = (
-	blockHeaders: RawBlockHeader[],
+	schemas: RegisteredSchema,
+	blockHeaders: Buffer[],
 	blockHeaderObject: Record<string, unknown>,
-): Buffer =>
-	codec.encode(blockHeadersSchema, {
-		blockHeaders: [...blockHeaders, blockHeaderObject],
+): Buffer => {
+	const encodedBlockHeader = codec.encode(schemas.blockHeader, blockHeaderObject);
+	return codec.encode(blockHeadersSchema, {
+		blockHeaders: [...blockHeaders, encodedBlockHeader],
 	});
+};
 
 export const saveBlockHeaders = async (
 	db: KVStore,
 	schemas: RegisteredSchema,
-	blockHeaderJSON: BlockHeaderJSON,
+	blockHeader: Buffer,
 ): Promise<void> => {
-	const { generatorPublicKey, height, signature } = blockHeaderJSON;
-	const dbKeyBlockHeader = `${generatorPublicKey}:${height}`;
-	const { blockHeaders } = await getBlockHeaders(db, dbKeyBlockHeader);
-	if (!blockHeaders.find(b => b.signature.equals(Buffer.from(signature, 'hex')))) {
-		const encodedBlockHeaders = getBlockHeaderObject(schemas, blockHeaderJSON);
-		await db.put(dbKeyBlockHeader, encodeBlockHeaders(blockHeaders, encodedBlockHeaders));
+	const blockHeaderObject = codec.decode<RawBlockHeader>(schemas.blockHeader, blockHeader);
+	const { generatorPublicKey, height, id } = blockHeaderObject;
+	const dbKey = `${generatorPublicKey.toString('hex')}:${formatInt(height)}`;
+	const { blockHeaders } = await getBlockHeaders(db, dbKey);
+
+	if (!blockHeaders.find(aBlockHeader => hash(aBlockHeader).equals(id))) {
+		const { id: blockId, ...blockHeaderWithoutId } = blockHeaderObject;
+		const updatedBlockHeaders = encodeBlockHeaders(schemas, blockHeaders, blockHeaderWithoutId as unknown as Record<string, unknown>);
+		await db.put(dbKey, updatedBlockHeaders);
 	}
 };
