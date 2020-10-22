@@ -138,7 +138,10 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			};
 
 			if (event === 'postBlock') {
-				const { header } = codec.decode<RawBlock>(this.schemas.block, Buffer.from(data.block, 'hex'));
+				const { header } = codec.decode<RawBlock>(
+					this.schemas.block,
+					Buffer.from(data.block, 'hex'),
+				);
 				await saveBlockHeaders(this._pluginDB, this.schemas, header);
 			}
 		});
