@@ -23,6 +23,7 @@ import { BlockHeaderJSON, blockHeaderSchema, RegisteredSchema } from 'lisk-frame
 const blockHeadersSchema = {
 	$id: 'lisk/reportMisbehavior/blockHeaders',
 	type: 'object',
+	required: ['blockHeaders'],
 	properties: {
 		blockHeaders: {
 			type: 'array',
@@ -60,28 +61,40 @@ export const getBlockHeaders = async (
 	}
 };
 
-const encodeBlockHeader = (schemas: RegisteredSchema, blockHeaderJSON: BlockHeaderJSON) => {
+export const getBlockHeaderObject = (
+	schemas: RegisteredSchema,
+	blockHeaderJSON: BlockHeaderJSON,
+): Record<string, unknown> => {
 	const { id, ...blockHeaderJSONWithoutID } = blockHeaderJSON;
 	const assetSchema = schemas.blockHeadersAssets[blockHeaderJSON.version];
 	const assetObject = codec.fromJSON(assetSchema, blockHeaderJSONWithoutID.asset);
 	const encodedAsset = codec.encode(assetSchema, assetObject);
-	const blockHeaderObject = codec.fromJSON(schemas.blockHeader, {
+	const blockHeaderObject = codec.fromJSON<Record<string, unknown>>(schemas.blockHeader, {
 		...blockHeaderJSONWithoutID,
 		asset: encodedAsset,
 	});
-	return codec.encode(schemas.blockHeader, blockHeaderObject);
+
+	return blockHeaderObject;
 };
+
+export const encodeBlockHeaders = (
+	blockHeaders: RawBlockHeader[],
+	blockHeaderObject: Record<string, unknown>,
+): Buffer =>
+	codec.encode(blockHeadersSchema, {
+		blockHeaders: [...blockHeaders, blockHeaderObject],
+	});
 
 export const saveBlockHeaders = async (
 	db: KVStore,
 	schemas: RegisteredSchema,
 	blockHeaderJSON: BlockHeaderJSON,
 ): Promise<void> => {
-	const { generatorPublicKey, height } = blockHeaderJSON;
+	const { generatorPublicKey, height, signature } = blockHeaderJSON;
 	const dbKeyBlockHeader = `${generatorPublicKey}:${height}`;
 	const { blockHeaders } = await getBlockHeaders(db, dbKeyBlockHeader);
-	const encodedBlockHeader = codec.encode(blockHeadersSchema, {
-		blockHeaders: [...blockHeaders, encodeBlockHeader(schemas, blockHeaderJSON)],
-	});
-	await db.put(dbKeyBlockHeader, encodedBlockHeader);
+	if (!blockHeaders.find(b => b.signature.equals(Buffer.from(signature, 'hex')))) {
+		const encodedBlockHeaders = getBlockHeaderObject(schemas, blockHeaderJSON);
+		await db.put(dbKeyBlockHeader, encodeBlockHeaders(blockHeaders, encodedBlockHeaders));
+	}
 };

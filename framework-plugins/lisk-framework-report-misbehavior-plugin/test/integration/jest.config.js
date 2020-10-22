@@ -11,3 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+const base = require('../../jest.config');
+
+module.exports = {
+	...base,
+	rootDir: '../../',
+	setupFilesAfterEnv: ['<rootDir>/test/integration/setup.js'],
+	testMatch: ['<rootDir>/test/integration/**/*.(spec|test).ts'],
+};

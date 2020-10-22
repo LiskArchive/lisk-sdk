@@ -142,3 +142,8 @@ export const callNetwork = async (
 
 	return { status, response };
 };
+
+export const publishEvent = (app: Application, block: string): void => {
+	const eventInfo = { event: 'postBlock', data: { block } };
+	app['_channel'].publish('app:network:event', eventInfo);
+};
