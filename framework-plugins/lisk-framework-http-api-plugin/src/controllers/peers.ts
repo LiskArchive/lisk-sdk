@@ -41,7 +41,7 @@ enum PeerState {
 	disconnected = 'disconnected',
 }
 
-interface PeerInfo {
+export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly port: number;
 	readonly networkIdentifier: string;
