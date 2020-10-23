@@ -43,7 +43,7 @@ interface BlockHeader {
 
 interface TransactionPropagationStats {
 	count: number;
-	timeReceived: Date;
+	timeReceived: number;
 }
 
 export interface SharedState {
