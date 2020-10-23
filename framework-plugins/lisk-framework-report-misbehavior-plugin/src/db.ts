@@ -103,6 +103,8 @@ export const saveBlockHeaders = async (
 	return false;
 };
 
+type IteratableStream = NodeJS.ReadableStream & { destroy: (err?: Error) => void };
+
 export const getContradictingBlockHeader = async (
 	db: KVStore,
 	blockHeader: BlockHeader,
@@ -112,16 +114,15 @@ export const getContradictingBlockHeader = async (
 		const stream = db.createReadStream({
 			gte: getFirstPrefix(blockHeader.generatorPublicKey.toString('binary')),
 			lte: getLastPrefix(blockHeader.generatorPublicKey.toString('binary')),
-		});
-		let conflictingHeader: BlockHeader | undefined;
+		}) as IteratableStream;
 		stream
 			.on('data', ({ value }: { value: Buffer }) => {
 				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
 				for (const encodedHeader of blockHeaders) {
 					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
-					// If there are multiple contradicting blocks, it will report the one with highest height
 					if (areHeadersContradicting(blockHeader, decodedBlockHeader)) {
-						conflictingHeader = decodedBlockHeader;
+						stream.destroy();
+						resolve(decodedBlockHeader);
 					}
 				}
 			})
@@ -129,6 +130,6 @@ export const getContradictingBlockHeader = async (
 				reject(error);
 			})
 			.on('end', () => {
-				resolve(conflictingHeader);
+				resolve(undefined);
 			});
 	});
