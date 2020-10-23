@@ -41,7 +41,7 @@ export const startApplication = async (app: Application): Promise<void> => {
 	});
 };
 
-export const createApplication = async (
+export const getApplication = (
 	label: string,
 	options: {
 		consoleLogLevel?: string;
@@ -52,7 +52,7 @@ export const createApplication = async (
 		consoleLogLevel: 'fatal',
 		appConfig: { plugins: { reportMisbehavior: {} } },
 	},
-): Promise<Application> => {
+): Application => {
 	const rootPath = '~/.lisk/report-misbehavior-plugin';
 	const config = {
 		...configJSON,
@@ -77,10 +77,25 @@ export const createApplication = async (
 
 	const app = Application.defaultApplication(genesisBlock, config);
 	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: false });
+	return app;
+};
 
+export const createApplication = async (
+	label: string,
+	options: {
+		consoleLogLevel?: string;
+		clearDB?: boolean;
+		appConfig?: { plugins: { reportMisbehavior: object } };
+	} = {
+		clearDB: true,
+		consoleLogLevel: 'fatal',
+		appConfig: { plugins: { reportMisbehavior: {} } },
+	},
+): Promise<Application> => {
+	const app = getApplication(label, options);
 	if (options.clearDB) {
 		// Remove pre-existing data
-		fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
+		fs.removeSync(path.join(app.config.rootPath, label).replace('~', os.homedir()));
 	}
 
 	await startApplication(app);
