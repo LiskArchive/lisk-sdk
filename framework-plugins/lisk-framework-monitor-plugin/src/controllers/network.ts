@@ -11,8 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as blocks from './blocks';
-import * as transactions from './transactions';
-import * as network from './network';
+import { Request, Response, NextFunction } from 'express';
+import { BaseChannel } from 'lisk-framework';
 
-export { blocks, transactions, network };
+export const getNetworkStats = (channel: BaseChannel) => async (
+	_req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const networkStats = await channel.invoke('app:getNetworkStats');
+
+		res.status(200).send({ data: networkStats, meta: {} });
+	} catch (err) {
+		next(err);
+	}
+};
