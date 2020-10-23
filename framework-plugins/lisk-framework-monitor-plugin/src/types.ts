@@ -94,3 +94,12 @@ export interface SharedState {
 		connectedPeers: number;
 	};
 }
+
+export interface PeerInfo {
+	readonly ipAddress: string;
+	readonly port: number;
+	readonly networkIdentifier: string;
+	readonly networkVersion: string;
+	readonly nonce: string;
+	readonly options: { [key: string]: unknown };
+}

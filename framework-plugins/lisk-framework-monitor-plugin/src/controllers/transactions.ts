@@ -13,16 +13,7 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { BaseChannel } from 'lisk-framework';
-import { SharedState } from '../types';
-
-interface PeerInfo {
-	readonly ipAddress: string;
-	readonly port: number;
-	readonly networkIdentifier: string;
-	readonly networkVersion: string;
-	readonly nonce: string;
-	readonly options: { [key: string]: unknown };
-}
+import { PeerInfo, SharedState } from '../types';
 
 const getAverage = (
 	transactionsStats: Pick<SharedState['transactions'], 'transactions'>,
