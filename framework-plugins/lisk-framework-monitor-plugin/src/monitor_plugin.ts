@@ -187,6 +187,19 @@ export class MonitorPlugin extends BasePlugin {
 					count: 1,
 					timeReceived: new Date().getTime(),
 				};
+				this._cleanUpTransactionStats();
+			}
+		}
+	}
+
+	private _cleanUpTransactionStats() {
+		const expiryTime = 600000;
+		for (const transactionID of Object.keys(this._state.transactions.transactions)) {
+			if (
+				new Date().getTime() - this._state.transactions.transactions[transactionID].timeReceived >
+				expiryTime
+			) {
+				delete this._state.transactions.transactions[transactionID];
 			}
 		}
 	}
