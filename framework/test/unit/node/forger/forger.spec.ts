@@ -11,28 +11,27 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import { when } from 'jest-when';
-
-import { getAddressFromPublicKey, hashOnion, getRandomBytes } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
-import { NotFoundError } from '@liskhq/lisk-db';
 import { Block } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import { getAddressFromPublicKey, getRandomBytes, hashOnion } from '@liskhq/lisk-cryptography';
+import { NotFoundError } from '@liskhq/lisk-db';
 import { Forger } from '../../../../src/node/forger';
 import {
-	ForgedInfo,
-	registeredHashOnionsStoreSchema,
-	UsedHashOnionStoreObject,
-	usedHashOnionsStoreSchema,
-} from '../../../../src/node/forger/data_access';
-import {
+	DB_KEY_FORGER_PREVIOUSLY_FORGED,
 	DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 	DB_KEY_FORGER_USED_HASH_ONION,
-	DB_KEY_FORGER_PREVIOUSLY_FORGED,
 } from '../../../../src/node/forger/constant';
-import * as genesisDelegates from './genesis_delegates.json';
-import { genesis } from '../../../fixtures/accounts';
+import {
+	registeredHashOnionsStoreSchema,
+	usedHashOnionsStoreSchema,
+	UsedHashOnionStoreObject,
+	previouslyForgedInfoSchema,
+	PreviouslyForgedInfoStoreObject,
+} from '../../../../src/node/forger/data_access';
 import { defaultNetworkIdentifier } from '../../../fixtures';
+import { genesis } from '../../../fixtures/accounts';
+import * as genesisDelegates from './genesis_delegates.json';
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 	delegates.map(delegate => ({
@@ -142,16 +141,20 @@ describe('forger', () => {
 					payload: [],
 				};
 				chainModuleStub.lastBlock = lastBlock;
-				const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
-				parsedPreviouslyForgedMap[Buffer.from(testDelegate.address, 'hex').toString('binary')] = {
+				const previouslyForgedStoreObject: PreviouslyForgedInfoStoreObject = {
+					previouslyForgedInfo: [],
+				};
+				previouslyForgedStoreObject.previouslyForgedInfo.push({
+					generatorAddress: Buffer.from(testDelegate.address, 'hex'),
 					height: 200,
 					maxHeightPreviouslyForged: 200,
 					maxHeightPrevoted: 10,
-				};
-				const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
+				});
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
-					.mockResolvedValue(Buffer.from(previouslyForgedStr, 'utf8') as never);
+					.mockResolvedValue(
+						codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject) as never,
+					);
 			});
 
 			it('should return error with invalid password', async () => {
@@ -251,7 +254,7 @@ describe('forger', () => {
 					it('should fail when forger info does not exist', async () => {
 						when(dbStub.get)
 							.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
-							.mockResolvedValue(Buffer.from(JSON.stringify({}), 'utf8') as never);
+							.mockRejectedValue(new NotFoundError('data not found') as never);
 
 						await expect(
 							forgeModule.updateForgingStatus(
@@ -1332,7 +1335,9 @@ describe('forger', () => {
 
 			it('should set maxPreviouslyForgedHeight to zero when the delegate did not forge before', async () => {
 				// Arrange
-				const maxHeightResult = Buffer.from(JSON.stringify({}));
+				const maxHeightResult = codec.encode(previouslyForgedInfoSchema, {
+					previouslyForgedInfo: [],
+				});
 				dbStub.get.mockResolvedValue(maxHeightResult);
 				// Act
 				block = await forgeModule['_create']({
@@ -1354,11 +1359,9 @@ describe('forger', () => {
 			it('should save maxPreviouslyForgedHeight as the block height created', async () => {
 				const previouslyForgedHeight = 100;
 				// Arrange
-				const maxHeightResult = Buffer.from(
-					JSON.stringify({
-						[defaultAddress.toString('binary')]: { height: 100 },
-					}),
-				);
+				const maxHeightResult = codec.encode(previouslyForgedInfoSchema, {
+					previouslyForgedInfo: [{ generatorAddress: defaultAddress, height: 100 }],
+				});
 				dbStub.get.mockResolvedValue(maxHeightResult);
 				// Act
 				block = await forgeModule['_create']({
@@ -1377,14 +1380,43 @@ describe('forger', () => {
 
 			it('should update maxPreviouslyForgedHeight to the next higher one but not change for other delegates', async () => {
 				// Arrange
-				const list = {
-					[defaultAddress.toString('binary')]: { height: 5 },
-					[Buffer.from('a').toString('binary')]: { height: 4 },
-					[Buffer.from('b').toString('binary')]: { height: 6 },
-					[Buffer.from('c').toString('binary')]: { height: 7 },
-					[Buffer.from('x').toString('binary')]: { height: 8 },
+				const defaultGenerator = {
+					generatorAddress: defaultAddress,
+					height: 5,
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
 				};
-				dbStub.get.mockResolvedValue(Buffer.from(JSON.stringify(list)));
+				const list = [
+					{
+						generatorAddress: Buffer.from('a'),
+						height: 4,
+						maxHeightPrevoted: 0,
+						maxHeightPreviouslyForged: 0,
+					},
+					{
+						generatorAddress: Buffer.from('b'),
+						height: 6,
+						maxHeightPrevoted: 0,
+						maxHeightPreviouslyForged: 0,
+					},
+					{
+						generatorAddress: Buffer.from('c'),
+						height: 7,
+						maxHeightPrevoted: 0,
+						maxHeightPreviouslyForged: 0,
+					},
+					{
+						generatorAddress: Buffer.from('x'),
+						height: 8,
+						maxHeightPrevoted: 0,
+						maxHeightPreviouslyForged: 0,
+					},
+				];
+				dbStub.get.mockResolvedValue(
+					codec.encode(previouslyForgedInfoSchema, {
+						previouslyForgedInfo: [...list, { ...defaultGenerator }],
+					}),
+				);
 				// Act
 				block = await forgeModule['_create']({
 					keypair: defaultKeyPair,
@@ -1395,16 +1427,17 @@ describe('forger', () => {
 						header: { height: 10 },
 					} as Block,
 				});
-				const maxHeightResult = Buffer.from(
-					JSON.stringify({
+				const maxHeightResult = codec.encode(previouslyForgedInfoSchema, {
+					previouslyForgedInfo: [
 						...list,
-						[defaultAddress.toString('binary')]: {
+						{
+							generatorAddress: defaultAddress,
 							height: 11,
 							maxHeightPrevoted: 0,
 							maxHeightPreviouslyForged: 5,
 						},
-					}),
-				);
+					],
+				});
 				expect(dbStub.put).toHaveBeenCalledWith('forger:previouslyForged', maxHeightResult);
 			});
 
@@ -1420,26 +1453,32 @@ describe('forger', () => {
 						header: { height: 10 },
 					} as Block,
 				});
-				const maxHeightResult = Buffer.from(
-					JSON.stringify({
-						[defaultAddress.toString('binary')]: {
+				const maxHeightResult = codec.encode(previouslyForgedInfoSchema, {
+					previouslyForgedInfo: [
+						{
+							generatorAddress: defaultAddress,
 							height: 11,
 							maxHeightPrevoted: 0,
 							maxHeightPreviouslyForged: 0,
 						},
-					}),
-				);
+					],
+				});
 				expect(dbStub.put).toHaveBeenCalledWith('forger:previouslyForged', maxHeightResult);
 			});
 
 			it('should not set maxPreviouslyForgedHeight to next height if lower', async () => {
 				// Arrange
 				dbStub.get.mockResolvedValue(
-					Buffer.from(
-						JSON.stringify({
-							[defaultAddress.toString('binary')]: { height: 15 },
-						}),
-					),
+					codec.encode(previouslyForgedInfoSchema, {
+						previouslyForgedInfo: [
+							{
+								generatorAddress: defaultAddress,
+								height: 15,
+								maxHeightPrevoted: 0,
+								maxHeightPreviouslyForged: 0,
+							},
+						],
+					}),
 				);
 				// Act
 				block = await forgeModule['_create']({

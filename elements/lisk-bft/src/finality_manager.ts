@@ -62,17 +62,17 @@ export const BFTVotingLedgerSchema = {
 			fieldNumber: 2,
 			items: {
 				type: 'object',
-				required: ['height', 'preVotes', 'preCommits'],
+				required: ['height', 'prevotes', 'precommits'],
 				properties: {
 					height: {
 						dataType: 'uint32',
 						fieldNumber: 1,
 					},
-					preVotes: {
+					prevotes: {
 						dataType: 'uint32',
 						fieldNumber: 2,
 					},
-					preCommits: {
+					precommits: {
 						dataType: 'uint32',
 						fieldNumber: 3,
 					},
@@ -92,12 +92,12 @@ interface ValidatorsState {
 
 interface LedgerState {
 	height: number;
-	preVotes: number;
-	preCommits: number;
+	prevotes: number;
+	precommits: number;
 }
 
 interface LedgerMap {
-	[key: string]: { preVotes: number; preCommits: number };
+	[key: string]: { prevotes: number; precommits: number };
 }
 
 interface ValidatorState {
@@ -170,7 +170,7 @@ export class FinalityManager extends EventEmitter {
 		await this.verifyBlockHeaders(blockHeader, stateStore);
 
 		// Update the pre-votes and pre-commits
-		await this.updatePreVotesPreCommits(blockHeader, stateStore, lastBlockHeaders);
+		await this.updatePrevotesPrecommits(blockHeader, stateStore, lastBlockHeaders);
 
 		// Update the pre-voted confirmed and finalized height
 		await this.updateFinalizedHeight(stateStore);
@@ -182,12 +182,12 @@ export class FinalityManager extends EventEmitter {
 		return this;
 	}
 
-	public async updatePreVotesPreCommits(
+	public async updatePrevotesPrecommits(
 		header: BlockHeader,
 		stateStore: StateStore,
 		bftBlockHeaders: ReadonlyArray<BlockHeader>,
 	): Promise<boolean> {
-		debug('updatePreVotesPreCommits invoked');
+		debug('updatePrevotesPrecommits invoked');
 		// If validator forged a block with higher or same height previously
 		// That means he is forging on other chain and we don't count any
 		// Pre-votes and pre-commits from him
@@ -240,13 +240,13 @@ export class FinalityManager extends EventEmitter {
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			const ledgerState = ledgerMap[j] || {
-				preVotes: 0,
-				preCommits: 0,
+				prevotes: 0,
+				precommits: 0,
 			};
 
-			if (ledgerState.preVotes >= this.preVoteThreshold) {
+			if (ledgerState.prevotes >= this.preVoteThreshold) {
 				// Increase the pre-commit for particular height
-				ledgerState.preCommits += 1;
+				ledgerState.precommits += 1;
 
 				// Keep track of the last pre-commit point
 				validatorState.maxPreCommitHeight = j;
@@ -274,11 +274,11 @@ export class FinalityManager extends EventEmitter {
 		for (let j = minPreVoteHeight; j <= maxPreVoteHeight; j += 1) {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			const ledgerState = ledgerMap[j] || {
-				preVotes: 0,
-				preCommits: 0,
+				prevotes: 0,
+				precommits: 0,
 			};
 
-			ledgerState.preVotes += 1;
+			ledgerState.prevotes += 1;
 
 			// Update ledger map
 			ledgerMap[j] = ledgerState;
@@ -311,7 +311,7 @@ export class FinalityManager extends EventEmitter {
 
 		const highestHeightPreCommitted = Object.keys(ledger)
 			.reverse()
-			.find(key => ledger[key].preCommits >= this.preCommitThreshold);
+			.find(key => ledger[key].precommits >= this.preCommitThreshold);
 
 		if (!highestHeightPreCommitted) {
 			return false;
@@ -340,7 +340,7 @@ export class FinalityManager extends EventEmitter {
 
 		const bftBlockHeaders = stateStore.chain.lastBlockHeaders;
 		const { ledger } = await this._getVotingLedger(stateStore);
-		const { preVoted: chainMaxHeightPrevoted } = this._getChainMaxHeightStatus(ledger);
+		const chainMaxHeightPrevoted = this._calculateMaxHeightPrevoted(ledger);
 		// We need minimum processingThreshold to decide
 		// If maxHeightPrevoted is correct
 		if (
@@ -373,27 +373,17 @@ export class FinalityManager extends EventEmitter {
 			CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 		);
 		const { ledger } = this._decodeVotingLedger(bftState);
-		const { preVoted } = this._getChainMaxHeightStatus(ledger);
-
-		return preVoted;
+		return this._calculateMaxHeightPrevoted(ledger);
 	}
 
-	private _getChainMaxHeightStatus(ledger: LedgerMap): { preVoted: number; preCommitted: number } {
+	private _calculateMaxHeightPrevoted(ledger: LedgerMap): number {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
-		const highestHeightPreVoted = Object.keys(ledger)
+		const maxHeightPreVoted = Object.keys(ledger)
 			.reverse()
-			.find(key => ledger[key].preVotes >= this.preVoteThreshold);
+			.find(key => ledger[key].prevotes >= this.preVoteThreshold);
 
-		const preVoted = highestHeightPreVoted ? parseInt(highestHeightPreVoted, 10) : 0;
-
-		const highestHeightPreCommitted = Object.keys(ledger)
-			.reverse()
-			.find(key => ledger[key].preCommits >= this.preCommitThreshold);
-
-		const preCommitted = highestHeightPreCommitted ? parseInt(highestHeightPreCommitted, 10) : 0;
-
-		return { preVoted, preCommitted };
+		return maxHeightPreVoted ? parseInt(maxHeightPreVoted, 10) : this.finalizedHeight;
 	}
 
 	/**
@@ -468,8 +458,8 @@ export class FinalityManager extends EventEmitter {
 		const ledger = votingLedger.ledger.reduce((prev: LedgerMap, curr) => {
 			// eslint-disable-next-line no-param-reassign
 			prev[curr.height] = {
-				preVotes: curr.preVotes,
-				preCommits: curr.preCommits,
+				prevotes: curr.prevotes,
+				precommits: curr.precommits,
 			};
 
 			return prev;
