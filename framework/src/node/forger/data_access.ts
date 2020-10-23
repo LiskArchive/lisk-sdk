@@ -12,15 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
-import { dataStructures } from '@liskhq/lisk-utils';
 import { BlockHeader } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { dataStructures } from '@liskhq/lisk-utils';
 import {
-	DB_KEY_FORGER_USED_HASH_ONION,
-	DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 	DB_KEY_FORGER_PREVIOUSLY_FORGED,
+	DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
+	DB_KEY_FORGER_USED_HASH_ONION,
 } from './constant';
 
 export const registeredHashOnionsStoreSchema = {
@@ -81,9 +81,46 @@ export const usedHashOnionsStoreSchema = {
 	},
 };
 
+export const previouslyForgedInfoSchema = {
+	title: 'Previously Forged Info',
+	$id: '/node/forger/previously_forged_info',
+	type: 'object',
+	required: ['previouslyForgedInfo'],
+	properties: {
+		previouslyForgedInfo: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['generatorAddress', 'height', 'maxHeightPrevoted', 'maxHeightPreviouslyForged'],
+				properties: {
+					generatorAddress: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					height: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+					maxHeightPrevoted: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+					maxHeightPreviouslyForged: {
+						dataType: 'uint32',
+						fieldNumber: 4,
+					},
+				},
+			},
+		},
+	},
+};
+
 codec.addSchema(registeredHashOnionsStoreSchema);
 
 codec.addSchema(usedHashOnionsStoreSchema);
+
+codec.addSchema(previouslyForgedInfoSchema);
 
 export interface RegisteredHash {
 	[key: string]: Buffer;
@@ -111,6 +148,14 @@ export interface ForgedInfo {
 	height: number;
 	maxHeightPrevoted: number;
 	maxHeightPreviouslyForged: number;
+}
+
+export interface ForgedInfoWithAddress extends ForgedInfo {
+	generatorAddress: Buffer;
+}
+
+export interface PreviouslyForgedInfoStoreObject {
+	previouslyForgedInfo: ForgedInfoWithAddress[];
 }
 
 export const getRegisteredHashOnionSeeds = async (
@@ -180,12 +225,14 @@ export const getPreviouslyForgedMap = async (
 ): Promise<dataStructures.BufferMap<ForgedInfo>> => {
 	try {
 		const previouslyForgedBuffer = await db.get(DB_KEY_FORGER_PREVIOUSLY_FORGED);
-		const parsedMap = JSON.parse(previouslyForgedBuffer.toString('utf8')) as {
-			[address: string]: ForgedInfo;
-		};
+		const parsedMap = codec.decode<PreviouslyForgedInfoStoreObject>(
+			previouslyForgedInfoSchema,
+			previouslyForgedBuffer,
+		);
 		const result = new dataStructures.BufferMap<ForgedInfo>();
-		for (const address of Object.keys(parsedMap)) {
-			result.set(Buffer.from(address, 'binary'), parsedMap[address]);
+		for (const object of parsedMap.previouslyForgedInfo) {
+			const { generatorAddress, ...forgedInfo } = object;
+			result.set(generatorAddress, forgedInfo);
 		}
 		return result;
 	} catch (error) {
@@ -200,13 +247,19 @@ export const setPreviouslyForgedMap = async (
 	db: KVStore,
 	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
 ): Promise<void> => {
-	const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
+	const previouslyForgedStoreObject: PreviouslyForgedInfoStoreObject = { previouslyForgedInfo: [] };
 	for (const [key, value] of previouslyForgedMap.entries()) {
-		parsedPreviouslyForgedMap[key.toString('binary')] = value;
+		previouslyForgedStoreObject.previouslyForgedInfo.push({ generatorAddress: key, ...value });
 	}
 
-	const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
-	await db.put(DB_KEY_FORGER_PREVIOUSLY_FORGED, Buffer.from(previouslyForgedStr, 'utf8'));
+	previouslyForgedStoreObject.previouslyForgedInfo.sort((a, b) =>
+		a.generatorAddress.compare(b.generatorAddress),
+	);
+
+	await db.put(
+		DB_KEY_FORGER_PREVIOUSLY_FORGED,
+		codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject),
+	);
 };
 
 /**

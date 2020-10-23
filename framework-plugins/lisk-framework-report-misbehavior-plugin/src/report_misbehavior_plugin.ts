@@ -14,11 +14,14 @@
 
 import { Server } from 'http';
 import { KVStore } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
+import { RawBlock } from '@liskhq/lisk-chain';
 import {
 	ActionsDefinition,
 	BasePlugin,
 	BaseChannel,
 	EventsArray,
+	EventInfoObject,
 	PluginInfo,
 } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
@@ -26,7 +29,7 @@ import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
-import { getDBInstance } from './db';
+import { getDBInstance, saveBlockHeaders } from './db';
 import * as config from './defaults';
 import * as middlewares from './middlewares';
 import { Options, State } from './types';
@@ -41,6 +44,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _app!: Express;
 	private _options!: Options;
 	private readonly _state: State = {};
+	private _channel!: BaseChannel;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -75,8 +79,9 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(_channel: BaseChannel): Promise<void> {
+	public async load(channel: BaseChannel): Promise<void> {
 		this._app = express();
+		this._channel = channel;
 		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 
 		this._pluginDB = await getDBInstance(this._options.dataPath);
@@ -85,6 +90,8 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		this._registerMiddlewares(this._options);
 		this._registerControllers();
 		this._registerAfterMiddlewares(this._options);
+		// Listen to new block and delete block events
+		this._subscribeToChannel();
 		this._server = this._app.listen(this._options.port, '0.0.0.0');
 	}
 
@@ -120,5 +127,23 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 
 	private _registerAfterMiddlewares(_options: Options): void {
 		this._app.use(middlewares.errorMiddleware());
+	}
+
+	private _subscribeToChannel(): void {
+		this._channel.subscribe('app:network:event', async (info: EventInfoObject) => {
+			const {
+				data: { event, data },
+			} = info as {
+				data: { event: string; data: { block: string } };
+			};
+
+			if (event === 'postBlock') {
+				const { header } = codec.decode<RawBlock>(
+					this.schemas.block,
+					Buffer.from(data.block, 'hex'),
+				);
+				await saveBlockHeaders(this._pluginDB, this.schemas, header);
+			}
+		});
 	}
 }
