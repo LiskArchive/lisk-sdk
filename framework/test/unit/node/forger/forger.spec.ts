@@ -23,15 +23,14 @@ import {
 	DB_KEY_FORGER_USED_HASH_ONION,
 } from '../../../../src/node/forger/constant';
 import {
-	ForgedInfo,
 	registeredHashOnionsStoreSchema,
 	usedHashOnionsStoreSchema,
 	UsedHashOnionStoreObject,
 	previouslyForgedInfoSchema,
+	PreviouslyForgedInfoStoreObject,
 } from '../../../../src/node/forger/data_access';
 import { defaultNetworkIdentifier } from '../../../fixtures';
 import { genesis } from '../../../fixtures/accounts';
-
 import * as genesisDelegates from './genesis_delegates.json';
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
@@ -142,16 +141,20 @@ describe('forger', () => {
 					payload: [],
 				};
 				chainModuleStub.lastBlock = lastBlock;
-				const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
-				parsedPreviouslyForgedMap[Buffer.from(testDelegate.address, 'hex').toString('binary')] = {
+				const previouslyForgedStoreObject: PreviouslyForgedInfoStoreObject = {
+					previouslyForgedInfo: [],
+				};
+				previouslyForgedStoreObject.previouslyForgedInfo.push({
+					generatorAddress: Buffer.from(testDelegate.address, 'hex'),
 					height: 200,
 					maxHeightPreviouslyForged: 200,
 					maxHeightPrevoted: 10,
-				};
-				const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
+				});
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
-					.mockResolvedValue(Buffer.from(previouslyForgedStr, 'utf8') as never);
+					.mockResolvedValue(
+						codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject) as never,
+					);
 			});
 
 			it('should return error with invalid password', async () => {
@@ -251,7 +254,7 @@ describe('forger', () => {
 					it('should fail when forger info does not exist', async () => {
 						when(dbStub.get)
 							.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
-							.mockResolvedValue(Buffer.from(JSON.stringify({}), 'utf8') as never);
+							.mockRejectedValue(new NotFoundError('data not found') as never);
 
 						await expect(
 							forgeModule.updateForgingStatus(
