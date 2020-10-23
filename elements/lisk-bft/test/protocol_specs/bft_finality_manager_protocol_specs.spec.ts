@@ -45,7 +45,7 @@ const bftScenarios = [
 	scenario11DelegatesPartialSwitch,
 ];
 
-const preVotesAndCommits = async (stateStore: StateStore) => {
+const prevotesAndCommits = async (stateStore: StateStore) => {
 	const delegateLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATOR_LEDGER_KEY);
 
 	const delegateLedger = codec.decode<VotingLedger>(
@@ -53,21 +53,21 @@ const preVotesAndCommits = async (stateStore: StateStore) => {
 		(delegateLedgerBuffer as unknown) as Buffer,
 	);
 
-	const preCommits = delegateLedger.ledger.reduce((acc: any, curr) => {
-		if (curr.preCommits > 0) {
-			acc[curr.height] = curr.preCommits;
+	const precommits = delegateLedger.ledger.reduce((acc: any, curr) => {
+		if (curr.precommits > 0) {
+			acc[curr.height] = curr.precommits;
 		}
 		return acc;
 	}, {});
 
-	const preVotes = delegateLedger.ledger.reduce((acc: any, curr) => {
-		if (curr.preVotes > 0) {
-			acc[curr.height] = curr.preVotes;
+	const prevotes = delegateLedger.ledger.reduce((acc: any, curr) => {
+		if (curr.prevotes > 0) {
+			acc[curr.height] = curr.prevotes;
 		}
 		return acc;
 	}, {});
 
-	return { preCommits, preVotes };
+	return { precommits, prevotes };
 };
 
 describe('FinalityManager', () => {
@@ -144,7 +144,7 @@ describe('FinalityManager', () => {
 						);
 
 						// Arrange &  Assert
-						const { preCommits, preVotes } = await preVotesAndCommits(stateStore);
+						const { precommits, prevotes } = await prevotesAndCommits(stateStore);
 						const expectedPreCommits: any = { ...testCase.output.preCommits };
 
 						Object.keys(expectedPreCommits)
@@ -157,9 +157,9 @@ describe('FinalityManager', () => {
 								delete expectedPreCommits[key];
 							});
 
-						expect(preCommits).toEqual(expectedPreCommits);
+						expect(precommits).toEqual(expectedPreCommits);
 
-						expect(preVotes).toEqual(testCase.output.preVotes);
+						expect(prevotes).toEqual(testCase.output.preVotes);
 
 						expect(finalityManager.finalizedHeight).toEqual(testCase.output.finalizedHeight);
 
@@ -167,7 +167,7 @@ describe('FinalityManager', () => {
 							CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 						);
 						const { ledger } = finalityManager['_decodeVotingLedger'](updatedBftLedgers);
-						const { preVoted } = finalityManager['_getChainMaxHeightStatus'](ledger);
+						const preVoted = finalityManager['_calculateMaxHeightPrevoted'](ledger);
 						expect(preVoted).toEqual(testCase.output.preVotedConfirmedHeight);
 					});
 				}

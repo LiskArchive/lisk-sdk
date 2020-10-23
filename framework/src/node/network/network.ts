@@ -96,7 +96,7 @@ export class Network {
 	private readonly _nodeDB: KVStore;
 	private readonly _networkVersion: string;
 	private _networkID!: string;
-	private _secret: number | null;
+	private _secret: number | undefined;
 	private _p2p!: liskP2P.P2P;
 
 	public constructor({ options, channel, logger, nodeDB, networkVersion }: NetworkConstructor) {
@@ -105,7 +105,7 @@ export class Network {
 		this._logger = logger;
 		this._nodeDB = nodeDB;
 		this._networkVersion = networkVersion;
-		this._secret = null;
+		this._secret = undefined;
 	}
 
 	public async bootstrap(networkIdentifier: Buffer): Promise<void> {
@@ -123,24 +123,21 @@ export class Network {
 		}
 
 		// Get previous secret if exists
-		let secret: string | undefined;
+		let secret: Buffer | undefined;
 		try {
-			const secretBuffer = await this._nodeDB.get(DB_KEY_NETWORK_NODE_SECRET);
-			secret = JSON.parse(secretBuffer.toString('utf8')) as string;
+			secret = await this._nodeDB.get(DB_KEY_NETWORK_NODE_SECRET);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				this._logger.error({ err: error as Error }, 'Error while querying nodeDB');
 			}
 		}
+
 		if (!secret) {
-			this._secret = getRandomBytes(4).readUInt32BE(0);
-			await this._nodeDB.put(
-				DB_KEY_NETWORK_NODE_SECRET,
-				Buffer.from(JSON.stringify(this._secret.toString())),
-			);
-		} else {
-			this._secret = Number(secret);
+			secret = getRandomBytes(4);
+			await this._nodeDB.put(DB_KEY_NETWORK_NODE_SECRET, secret);
 		}
+
+		this._secret = secret?.readUInt32BE(0);
 
 		const initialNodeInfo = {
 			networkIdentifier: this._networkID,
