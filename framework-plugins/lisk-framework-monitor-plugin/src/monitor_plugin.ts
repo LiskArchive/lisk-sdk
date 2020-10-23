@@ -169,11 +169,11 @@ export class MonitorPlugin extends BasePlugin {
 			const {
 				data: { event, data },
 			} = info as {
-				data: { event: string; data: { transactionIds: string[] } };
+				data: { event: string; data: unknown };
 			};
 
 			if (event === 'postTransactionsAnnouncement') {
-				this._handlePostTransactionAnnounce(data);
+				this._handlePostTransactionAnnounce(data as { transactionIds: string[] });
 			}
 		});
 	}
