@@ -26,14 +26,6 @@ import {
 	waitTill,
 } from '../utils/application';
 
-const encodeBlockHeaders = (blockHeaders: Buffer[], blockHeader: Buffer) =>
-	codec.encode(blockHeadersSchema, {
-		blockHeaders: [...blockHeaders, blockHeader],
-	});
-
-const encodeBlockHeader = (schemas: RegisteredSchema, blockHeader: BlockHeader) =>
-	codec.encode(schemas.blockHeader, blockHeader);
-
 describe('save block header', () => {
 	let app: Application;
 	let codecSpy: jest.SpyInstance;
@@ -48,6 +40,13 @@ describe('save block header', () => {
 	const encodedBlock =
 		'0acd01080210c38ec1fc0518a2012220c736b8cfb669ff453118230c71d7dc433797b5b30da6b9d89a14457f1b56faa12a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85532209bcf519c9e0a8e66b3939f9d592b5a1728141ea3253b7d3a2424a44575c5f4e738004216087410001a1060fce85c0ca51ca1c72c589c9f651f574a40396edc8e940c5f5829d382c10cae3c2f7f24a5a9bb42ef8c545439e1a2e83951f87bc894816d7b90958b411a37b816c9e2d597dd52d7847d5a73f411ded65303';
 	const encodedBlockBuffer = Buffer.from(encodedBlock, 'hex');
+	const encodeBlockHeaders = (blockHeaders: Buffer[], newHeader: Buffer) =>
+		codec.encode(blockHeadersSchema, {
+			blockHeaders: [...blockHeaders, newHeader],
+		});
+
+	const encodeBlockHeader = (schemas: RegisteredSchema, newHeader: BlockHeader) =>
+		codec.encode(schemas.blockHeader, newHeader);
 
 	beforeAll(async () => {
 		app = await createApplication('reportMisbehavior');
@@ -61,12 +60,6 @@ describe('save block header', () => {
 		codecSpy = jest.spyOn(codec, 'decode');
 		pluginDBGetSpy = jest.spyOn(pluginInstance['_pluginDB'], 'get');
 		pluginDBPutSpy = jest.spyOn(pluginInstance['_pluginDB'], 'put');
-	});
-
-	afterEach(() => {
-		codecSpy.mockClear();
-		pluginDBPutSpy.mockClear();
-		pluginDBGetSpy.mockClear();
 	});
 
 	afterAll(async () => {
