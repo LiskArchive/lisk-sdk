@@ -255,15 +255,20 @@ export abstract class BasePlugin {
 	public abstract async unload(): Promise<void>;
 }
 
+// TODO: Once the issue fixed we can use require.resolve to rewrite the logic
+//  https://github.com/facebook/jest/issues/9543
 export const getPluginExportPath = (
 	pluginKlass: typeof BasePlugin,
 	strict = true,
 ): string | undefined => {
-	let nodeModule: NodeModule | undefined;
+	let nodeModule: Record<string, unknown> | undefined;
+	let nodeModulePath: string | undefined;
 
 	try {
 		// Check if plugin name is an npm package
-		nodeModule = require.cache[require.resolve(pluginKlass.info.name)];
+		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+		nodeModule = require(pluginKlass.info.name);
+		nodeModulePath = pluginKlass.info.name;
 	} catch (error) {
 		/* Plugin info.name is not an npm package */
 	}
@@ -271,28 +276,25 @@ export const getPluginExportPath = (
 	if (!nodeModule && pluginKlass.info.exportPath) {
 		try {
 			// Check if plugin name is an npm package
-			nodeModule = require.cache[require.resolve(pluginKlass.info.exportPath)];
+			// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			nodeModule = require(pluginKlass.info.exportPath);
+			nodeModulePath = pluginKlass.info.exportPath;
 		} catch (error) {
 			/* Plugin info.exportPath is not an npm package */
 		}
 	}
 
-	if (!nodeModule) {
+	if (!nodeModule || !nodeModule[pluginKlass.name]) {
 		return;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	if (!nodeModule.exports[pluginKlass.name]) {
-		return;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	if (strict && nodeModule.exports[pluginKlass.name] !== pluginKlass) {
+	if (strict && nodeModule[pluginKlass.name] !== pluginKlass) {
 		return;
 	}
 
 	// eslint-disable-next-line consistent-return
-	return nodeModule.filename;
+	return nodeModulePath;
 };
 
 export const validatePluginSpec = (PluginKlass: InstantiablePlugin<BasePlugin>): void => {
