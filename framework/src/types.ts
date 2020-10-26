@@ -135,6 +135,10 @@ export interface TransactionPoolConfig {
 	readonly minReplacementFeeDifference?: string;
 }
 
+type RecursivePartial<T> = {
+	[P in keyof T]?: RecursivePartial<T[P]>;
+};
+
 export interface ApplicationConfig {
 	label: string;
 	version: string;
@@ -159,6 +163,8 @@ export interface ApplicationConfig {
 	plugins: PluginsOptions;
 	transactionPool: TransactionPoolConfig;
 }
+
+export type PartialApplicationConfig = RecursivePartial<ApplicationConfig>;
 
 export interface ActionInfoForBus {
 	readonly module: string;
