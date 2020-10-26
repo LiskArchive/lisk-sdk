@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as assert from 'assert';
 import { RawBlock } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
@@ -255,22 +256,22 @@ export abstract class BasePlugin {
 }
 
 export const getPluginExportPath = (
-	plugin: typeof BasePlugin,
+	pluginKlass: typeof BasePlugin,
 	strict = true,
 ): string | undefined => {
 	let nodeModule: NodeModule | undefined;
 
 	try {
 		// Check if plugin name is an npm package
-		nodeModule = require.cache[require.resolve(plugin.info.name)];
+		nodeModule = require.cache[require.resolve(pluginKlass.info.name)];
 	} catch (error) {
 		/* Plugin info.name is not an npm package */
 	}
 
-	if (!nodeModule && plugin.info.exportPath) {
+	if (!nodeModule && pluginKlass.info.exportPath) {
 		try {
 			// Check if plugin name is an npm package
-			nodeModule = require.cache[require.resolve(plugin.info.exportPath)];
+			nodeModule = require.cache[require.resolve(pluginKlass.info.exportPath)];
 		} catch (error) {
 			/* Plugin info.exportPath is not an npm package */
 		}
@@ -281,15 +282,31 @@ export const getPluginExportPath = (
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	if (!nodeModule.exports[plugin.name]) {
+	if (!nodeModule.exports[pluginKlass.name]) {
 		return;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	if (strict && nodeModule.exports[plugin.name] !== plugin) {
+	if (strict && nodeModule.exports[pluginKlass.name] !== pluginKlass) {
 		return;
 	}
 
 	// eslint-disable-next-line consistent-return
 	return nodeModule.filename;
+};
+
+export const validatePluginSpec = (PluginKlass: InstantiablePlugin<BasePlugin>): void => {
+	const pluginObject = new PluginKlass();
+
+	assert(PluginKlass.alias, 'Plugin alias is required.');
+	assert(PluginKlass.info.name, 'Plugin name is required.');
+	assert(PluginKlass.info.author, 'Plugin author is required.');
+	assert(PluginKlass.info.version, 'Plugin version is required.');
+	assert(pluginObject.defaults, 'Plugin default options are required.');
+	assert(pluginObject.events, 'Plugin events are required.');
+	assert(pluginObject.actions, 'Plugin actions are required.');
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	assert(pluginObject.load, 'Plugin load action is required.');
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	assert(pluginObject.unload, 'Plugin unload actions is required.');
 };

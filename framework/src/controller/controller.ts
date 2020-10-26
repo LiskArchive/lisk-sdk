@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
@@ -56,18 +55,6 @@ interface ControllerConfig {
 interface PluginsObject {
 	readonly [key: string]: InstantiablePlugin<BasePlugin>;
 }
-
-export const validatePluginSpec = (pluginSpec: Partial<BasePlugin>): void => {
-	assert((pluginSpec.constructor as typeof BasePlugin).alias, 'Plugin alias is required.');
-	assert((pluginSpec.constructor as typeof BasePlugin).info.name, 'Plugin name is required.');
-	assert((pluginSpec.constructor as typeof BasePlugin).info.author, 'Plugin author is required.');
-	assert((pluginSpec.constructor as typeof BasePlugin).info.version, 'Plugin version is required.');
-	assert(pluginSpec.defaults, 'Plugin default options are required.');
-	assert(pluginSpec.events, 'Plugin events are required.');
-	assert(pluginSpec.actions, 'Plugin actions are required.');
-	assert(pluginSpec.load, 'Plugin load action is required.');
-	assert(pluginSpec.unload, 'Plugin unload actions is required.');
-};
 
 export class Controller {
 	public readonly logger: Logger;
@@ -210,7 +197,6 @@ export class Controller {
 		const { name, version } = Klass.info;
 
 		const plugin: BasePlugin = new Klass(options);
-		validatePluginSpec(plugin);
 
 		this.logger.info({ name, version, alias: pluginAlias }, 'Loading in-memory plugin');
 
@@ -238,9 +224,6 @@ export class Controller {
 	): Promise<void> {
 		const pluginAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
-
-		const plugin: BasePlugin = new Klass(options);
-		validatePluginSpec(plugin);
 
 		this.logger.info({ name, version, alias: pluginAlias }, 'Loading child-process plugin');
 

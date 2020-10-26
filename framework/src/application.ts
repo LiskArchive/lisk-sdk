@@ -21,7 +21,12 @@ import { promisify } from 'util';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
-import { getPluginExportPath, BasePlugin, InstantiablePlugin } from './plugins/base_plugin';
+import {
+	getPluginExportPath,
+	BasePlugin,
+	InstantiablePlugin,
+	validatePluginSpec,
+} from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -159,16 +164,15 @@ export class Application {
 	}
 
 	public registerPlugin(
-		pluginKlass: typeof BasePlugin,
-		options: PluginOptions = {
-			loadAsChildProcess: false,
-		},
-		alias?: string,
+		pluginKlass: InstantiablePlugin<BasePlugin>,
+		options: PluginOptions = { loadAsChildProcess: false },
 	): void {
 		assert(pluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		assert(alias ?? pluginKlass.alias, 'Plugin alias must be provided.');
-		const pluginAlias = alias ?? pluginKlass.alias;
+		validatePluginSpec(pluginKlass);
+
+		const pluginAlias = options?.alias ?? pluginKlass.alias;
+
 		assert(
 			!Object.keys(this._plugins).includes(pluginAlias),
 			`A plugin with alias "${pluginAlias}" already registered.`,
@@ -187,7 +191,7 @@ export class Application {
 			this.config.plugins[pluginAlias] ?? {},
 			options,
 		);
-		this._plugins[pluginAlias] = pluginKlass as InstantiablePlugin<BasePlugin>;
+		this._plugins[pluginAlias] = pluginKlass;
 	}
 
 	public overridePluginOptions(alias: string, options?: PluginOptions): void {
