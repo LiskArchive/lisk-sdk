@@ -37,6 +37,7 @@ import {
 	RegisteredSchema,
 	RegisteredModule,
 	UpdateForgingStatusInput,
+	PartialApplicationConfig,
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
@@ -93,9 +94,6 @@ const registerProcessHooks = (app: Application): void => {
 };
 
 type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
-type RecursivePartial<T> = {
-	[P in keyof T]?: RecursivePartial<T[P]>;
-};
 
 export class Application {
 	public config: ApplicationConfig;
@@ -113,10 +111,7 @@ export class Application {
 
 	private readonly _mutex = new jobHandlers.Mutex();
 
-	public constructor(
-		genesisBlock: Record<string, unknown>,
-		config: RecursivePartial<ApplicationConfig> = {},
-	) {
+	public constructor(genesisBlock: Record<string, unknown>, config: PartialApplicationConfig = {}) {
 		// Don't change the object parameters provided
 		this._genesisBlock = genesisBlock;
 		const appConfig = objects.cloneDeep(applicationConfigSchema.default);
@@ -149,7 +144,7 @@ export class Application {
 
 	public static defaultApplication(
 		genesisBlock: Record<string, unknown>,
-		config: RecursivePartial<ApplicationConfig> = {},
+		config: PartialApplicationConfig = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
 		application._registerModule(TokenModule);
