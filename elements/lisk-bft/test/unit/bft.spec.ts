@@ -216,8 +216,8 @@ describe('bft', () => {
 				ledger: [
 					{
 						height: block1.height,
-						preVotes: 1,
-						preCommits: 0,
+						prevotes: 1,
+						precommits: 0,
 					},
 				],
 			};

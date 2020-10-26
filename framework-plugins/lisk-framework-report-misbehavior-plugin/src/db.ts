@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { formatInt, KVStore } from '@liskhq/lisk-db';
+import { formatInt, KVStore, getFirstPrefix, getLastPrefix } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { RawBlockHeader } from '@liskhq/lisk-chain';
+import { RawBlockHeader, BlockHeader } from '@liskhq/lisk-chain';
+import { areHeadersContradicting } from '@liskhq/lisk-bft';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
@@ -35,6 +36,12 @@ export const blockHeadersSchema = {
 		},
 	},
 };
+
+export interface BlockHeaderAsset {
+	readonly seedReveal: Buffer;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+}
 
 interface BlockHeaders {
 	readonly blockHeaders: Buffer[];
@@ -62,6 +69,18 @@ export const getBlockHeaders = async (
 	}
 };
 
+export const decodeBlockHeader = (encodedheader: Buffer, schema: RegisteredSchema): BlockHeader => {
+	const id = hash(encodedheader);
+	const blockHeader = codec.decode<RawBlockHeader>(schema.blockHeader, encodedheader);
+	const assetSchema = schema.blockHeadersAssets[blockHeader.version];
+	const asset = codec.decode<BlockHeaderAsset>(assetSchema, blockHeader.asset);
+	return {
+		...blockHeader,
+		asset,
+		id,
+	};
+};
+
 export const saveBlockHeaders = async (
 	db: KVStore,
 	schemas: RegisteredSchema,
@@ -83,3 +102,34 @@ export const saveBlockHeaders = async (
 	}
 	return false;
 };
+
+type IteratableStream = NodeJS.ReadableStream & { destroy: (err?: Error) => void };
+
+export const getContradictingBlockHeader = async (
+	db: KVStore,
+	blockHeader: BlockHeader,
+	schemas: RegisteredSchema,
+): Promise<BlockHeader | undefined> =>
+	new Promise((resolve, reject) => {
+		const stream = db.createReadStream({
+			gte: getFirstPrefix(blockHeader.generatorPublicKey.toString('binary')),
+			lte: getLastPrefix(blockHeader.generatorPublicKey.toString('binary')),
+		}) as IteratableStream;
+		stream
+			.on('data', ({ value }: { value: Buffer }) => {
+				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
+				for (const encodedHeader of blockHeaders) {
+					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
+					if (areHeadersContradicting(blockHeader, decodedBlockHeader)) {
+						stream.destroy();
+						resolve(decodedBlockHeader);
+					}
+				}
+			})
+			.on('error', error => {
+				reject(error);
+			})
+			.on('end', () => {
+				resolve(undefined);
+			});
+	});
