@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
-import { codec, Schema } from '@liskhq/lisk-codec';
 import { RawBlock } from '@liskhq/lisk-chain';
-import { ImplementationMissingError } from '../errors';
-import { EventsArray } from '../controller/event';
+import { codec, Schema } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
-import { TransactionJSON, RegisteredSchema } from '../types';
+import { EventsArray } from '../controller/event';
+import { ImplementationMissingError } from '../errors';
+import { RegisteredSchema, TransactionJSON } from '../types';
 
 interface DefaultAccountJSON {
 	[name: string]: { [key: string]: unknown } | undefined;
@@ -254,23 +254,42 @@ export abstract class BasePlugin {
 	public abstract async unload(): Promise<void>;
 }
 
-export const isPluginNpmPackage = (plugin: typeof BasePlugin): boolean => {
+export const getPluginExportPath = (
+	plugin: typeof BasePlugin,
+	strict = true,
+): string | undefined => {
+	let nodeModule: NodeModule | undefined;
+
 	try {
-		require.resolve(plugin.info.name);
+		// Check if plugin name is an npm package
+		nodeModule = require.cache[require.resolve(plugin.info.name)];
 	} catch (error) {
-		const err = error as { code?: string };
-		if (err.code && err.code === 'MODULE_NOT_FOUND') {
-			return false;
+		/* Plugin info.name is not an npm package */
+	}
+
+	if (!nodeModule && plugin.info.exportPath) {
+		try {
+			// Check if plugin name is an npm package
+			nodeModule = require.cache[require.resolve(plugin.info.exportPath)];
+		} catch (error) {
+			/* Plugin info.exportPath is not an npm package */
 		}
 	}
-	return true;
-};
 
-export const isPluginExported = (plugin: typeof BasePlugin): boolean => {
-	if (!plugin.info.exportPath) {
-		return false;
+	if (!nodeModule) {
+		return;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	return require.cache[require.resolve(plugin.info.exportPath)].exports[plugin.name] === plugin;
+	if (!nodeModule.exports[plugin.name]) {
+		return;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (strict && nodeModule.exports[plugin.name] !== plugin) {
+		return;
+	}
+
+	// eslint-disable-next-line consistent-return
+	return nodeModule.filename;
 };

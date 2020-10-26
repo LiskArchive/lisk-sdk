@@ -21,12 +21,7 @@ import { promisify } from 'util';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
-import {
-	isPluginExported,
-	BasePlugin,
-	InstantiablePlugin,
-	isPluginNpmPackage,
-} from './plugins/base_plugin';
+import { getPluginExportPath, BasePlugin, InstantiablePlugin } from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel, ActionInfoObject } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -180,9 +175,9 @@ export class Application {
 		);
 
 		if (options.loadAsChildProcess) {
-			if (!isPluginNpmPackage(pluginKlass) && !isPluginExported(pluginKlass)) {
+			if (!getPluginExportPath(pluginKlass)) {
 				throw new Error(
-					`Plugin with alias "${pluginAlias}" must have "info.name" to be a npm package or provide "info.exportPath" to load as child process. \n To fix this issue you can simply assign __filename to info.exportPath in your plugin.`,
+					`Unable to register plugin "${pluginAlias}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.`,
 				);
 			}
 		}

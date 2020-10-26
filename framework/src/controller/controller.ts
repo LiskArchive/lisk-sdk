@@ -16,8 +16,8 @@ import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
+import { getPluginExportPath, BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import { Logger } from '../logger';
-import { BasePlugin, InstantiablePlugin, isPluginNpmPackage } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
 import { PluginOptions, PluginsOptions, SocketPaths } from '../types';
 import { Bus } from './bus';
@@ -246,10 +246,7 @@ export class Controller {
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [
-			isPluginNpmPackage(Klass) ? Klass.info.name : (Klass.info.exportPath as string),
-			Klass.name,
-		];
+		const parameters = [getPluginExportPath(Klass) as string, Klass.name];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions: { execArgv: string[] | undefined } = {
