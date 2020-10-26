@@ -265,10 +265,12 @@ export class P2P extends EventEmitter {
 		this._networkStats = {
 			startTime: Date.now(),
 			incoming: {
+				count: 0,
 				connects: 0,
 				disconnects: 0,
 			},
 			outgoing: {
+				count: 0,
 				connects: 0,
 				disconnects: 0,
 			},
@@ -643,6 +645,10 @@ export class P2P extends EventEmitter {
 	}
 
 	public getNetworkStats(): NetworkStats {
+		const { inboundCount, outboundCount } = this._peerPool.getPeersCountPerKind();
+		this._networkStats.outgoing.count = outboundCount;
+		this._networkStats.incoming.count = inboundCount;
+
 		return this._networkStats;
 	}
 

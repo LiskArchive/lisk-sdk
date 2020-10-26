@@ -227,10 +227,12 @@ export interface PeerLists {
 
 export interface NetworkStats {
 	readonly outgoing: {
+		count: number;
 		connects: number;
 		disconnects: number;
 	};
 	readonly incoming: {
+		count: number;
 		connects: number;
 		disconnects: number;
 	};
