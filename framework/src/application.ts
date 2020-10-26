@@ -93,6 +93,9 @@ const registerProcessHooks = (app: Application): void => {
 };
 
 type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
+type RecursivePartial<T> = {
+	[P in keyof T]?: RecursivePartial<T[P]>;
+};
 
 export class Application {
 	public config: ApplicationConfig;
@@ -112,7 +115,7 @@ export class Application {
 
 	public constructor(
 		genesisBlock: Record<string, unknown>,
-		config: Partial<ApplicationConfig> = {},
+		config: RecursivePartial<ApplicationConfig> = {},
 	) {
 		// Don't change the object parameters provided
 		this._genesisBlock = genesisBlock;
@@ -146,7 +149,7 @@ export class Application {
 
 	public static defaultApplication(
 		genesisBlock: Record<string, unknown>,
-		config: Partial<ApplicationConfig> = {},
+		config: RecursivePartial<ApplicationConfig> = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
 		application._registerModule(TokenModule);
