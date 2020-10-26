@@ -12,19 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as path from 'path';
 import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
-import { systemDirs } from '../system_dirs';
-import { InMemoryChannel } from './channels/in_memory_channel';
-import { Bus } from './bus';
+import * as path from 'path';
 import { Logger } from '../logger';
-import { SocketPaths, PluginsOptions, PluginOptions } from '../types';
-
-import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
-import { EventInfoObject } from './event';
+import { BasePlugin, InstantiablePlugin, isPluginNpmPackage } from '../plugins/base_plugin';
+import { systemDirs } from '../system_dirs';
+import { PluginOptions, PluginsOptions, SocketPaths } from '../types';
+import { Bus } from './bus';
 import { BaseChannel } from './channels';
+import { InMemoryChannel } from './channels/in_memory_channel';
+import { EventInfoObject } from './event';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -247,7 +246,10 @@ export class Controller {
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [Klass.info.name, Klass.name];
+		const parameters = [
+			isPluginNpmPackage(Klass) ? Klass.info.name : (Klass.info.exportPath as string),
+			Klass.name,
+		];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions: { execArgv: string[] | undefined } = {

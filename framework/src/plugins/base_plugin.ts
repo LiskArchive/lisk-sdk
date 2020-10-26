@@ -67,6 +67,7 @@ export interface PluginInfo {
 	readonly author: string;
 	readonly version: string;
 	readonly name: string;
+	readonly exportPath?: string;
 }
 
 export interface InstantiablePlugin<T, U = object> {
@@ -252,3 +253,24 @@ export abstract class BasePlugin {
 	public abstract async load(channel: BaseChannel): Promise<void>;
 	public abstract async unload(): Promise<void>;
 }
+
+export const isPluginNpmPackage = (plugin: typeof BasePlugin): boolean => {
+	try {
+		require.resolve(plugin.info.name);
+	} catch (error) {
+		const err = error as { code?: string };
+		if (err.code && err.code === 'MODULE_NOT_FOUND') {
+			return false;
+		}
+	}
+	return true;
+};
+
+export const isPluginExported = (plugin: typeof BasePlugin): boolean => {
+	if (!plugin.info.exportPath) {
+		return false;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	return require.cache[require.resolve(plugin.info.exportPath)].exports[plugin.name] === plugin;
+};
