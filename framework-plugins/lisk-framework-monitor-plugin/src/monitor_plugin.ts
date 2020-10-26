@@ -185,7 +185,7 @@ export class MonitorPlugin extends BasePlugin {
 			} else {
 				this._state.transactions.transactions[aTransactionId] = {
 					count: 1,
-					timeReceived: new Date().getTime(),
+					timeReceived: Date.now(),
 				};
 				this._cleanUpTransactionStats();
 			}
@@ -196,7 +196,7 @@ export class MonitorPlugin extends BasePlugin {
 		const expiryTime = 600000;
 		for (const transactionID of Object.keys(this._state.transactions.transactions)) {
 			if (
-				new Date().getTime() - this._state.transactions.transactions[transactionID].timeReceived >
+				Date.now() - this._state.transactions.transactions[transactionID].timeReceived >
 				expiryTime
 			) {
 				delete this._state.transactions.transactions[transactionID];
