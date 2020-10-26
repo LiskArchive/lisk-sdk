@@ -58,3 +58,46 @@ describe('_handlePostTransactionAnnounce', () => {
 		expect(MonitorInstance._state.transactions.transactions[transactionIds[0]].count).toBe(2);
 	});
 });
+
+describe('_cleanUpTransactionStats', () => {
+	let MonitorPluginInstance: MonitorPlugin;
+	const channelMock = {
+		registerToBus: jest.fn(),
+		once: jest.fn(),
+		publish: jest.fn(),
+		subscribe: jest.fn(),
+		isValidEventName: jest.fn(),
+		isValidActionName: jest.fn(),
+		invoke: jest.fn(),
+		eventsList: [],
+		actionsList: [],
+		actions: {},
+		moduleAlias: '',
+		options: {},
+	} as any;
+
+	beforeEach(async () => {
+		MonitorPluginInstance = new (MonitorPlugin as any)();
+		await MonitorPluginInstance.load(channelMock);
+	});
+
+	it('should remove transaction stats that are more than 10 minutes old', () => {
+		// Arrange
+		const transactionIds = [...Array(4).keys()].map(() => randomBytes(64).toString('hex'));
+		const MonitorInstance = MonitorPluginInstance as any;
+		const now = Date.now();
+		Date.now = jest.fn(() => now);
+		// Act
+		MonitorInstance._handlePostTransactionAnnounce({ transactionIds });
+		// Assert
+		expect(Object.keys(MonitorInstance._state.transactions.transactions)).toEqual(transactionIds);
+
+		Date.now = jest.fn(() => now + 600001);
+
+		const newTransactions = [randomBytes(64).toString('hex'), randomBytes(64).toString('hex')];
+
+		MonitorInstance._handlePostTransactionAnnounce({ transactionIds: newTransactions });
+
+		expect(Object.keys(MonitorInstance._state.transactions.transactions)).toEqual(newTransactions);
+	});
+});
