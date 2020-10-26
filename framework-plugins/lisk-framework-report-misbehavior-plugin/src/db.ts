@@ -69,9 +69,9 @@ export const getBlockHeaders = async (
 	}
 };
 
-export const decodeBlockHeader = (encodedheader: Buffer, schema: RegisteredSchema): BlockHeader => {
-	const id = hash(encodedheader);
-	const blockHeader = codec.decode<RawBlockHeader>(schema.blockHeader, encodedheader);
+export const decodeBlockHeader = (encodedHeader: Buffer, schema: RegisteredSchema): BlockHeader => {
+	const id = hash(encodedHeader);
+	const blockHeader = codec.decode<RawBlockHeader>(schema.blockHeader, encodedHeader);
 	const assetSchema = schema.blockHeadersAssets[blockHeader.version];
 	const asset = codec.decode<BlockHeaderAsset>(assetSchema, blockHeader.asset);
 	return {

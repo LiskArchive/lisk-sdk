@@ -15,7 +15,7 @@
 import { Server } from 'http';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { RawBlock } from '@liskhq/lisk-chain';
+import { BlockHeader, RawBlock } from '@liskhq/lisk-chain';
 import {
 	ActionsDefinition,
 	BasePlugin,
@@ -24,6 +24,7 @@ import {
 	EventInfoObject,
 	PluginInfo,
 } from 'lisk-framework';
+import { signTransaction } from '@liskhq/lisk-transactions';
 import { objects } from '@liskhq/lisk-utils';
 import * as express from 'express';
 import type { Express } from 'express';
@@ -43,7 +44,7 @@ import * as controllers from './controllers';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
-const logger = debug('plugin:resport-misbehavior');
+const logger = debug('plugin:report-misbehavior');
 
 export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _pluginDB!: KVStore;
@@ -161,12 +162,53 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 						this.schemas,
 					);
 					if (contradictingBlock) {
-						// create pom transaction and send
+						const encodedTransaction = await this._createPoMTransaction(
+							decodedBlockHeader,
+							contradictingBlock,
+						);
+						const result = await this._channel.invoke<{
+							transactionId?: string;
+						}>('app:postTransaction', {
+							transaction: encodedTransaction,
+						});
+
+						logger('Reported misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
 					logger(error);
 				}
 			}
 		});
+	}
+
+	private async _createPoMTransaction(
+		contradictingBlock: BlockHeader,
+		decodedBlockHeader: BlockHeader,
+	): Promise<Buffer> {
+		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
+		const pomSchema = this.schemas.transactionsAssets.filter(
+			({ moduleID, assetID }) => moduleID === 5 && assetID === 3,
+		);
+		if (!pomSchema.length) {
+			throw new Error('PoM asset schema is not registered in the application.');
+		}
+		const pomTransaction = {
+			header1: decodedBlockHeader,
+			header2: contradictingBlock,
+		};
+		const { networkIdentifier } = await this._channel.invoke<{ networkIdentifier: string }>(
+			'app:getNodeInfo',
+		);
+		if (!this._state.passphrase) {
+			throw new Error('Encrypted passphrase is not set in the config.');
+		}
+		const transaction = signTransaction(
+			pomSchema[0].schema,
+			pomTransaction,
+			Buffer.from(networkIdentifier, 'hex'),
+			this._state.passphrase,
+		);
+
+		return codec.encode(pomSchema[0].schema, transaction);
 	}
 }
