@@ -224,20 +224,21 @@ export class MonitorPlugin extends BasePlugin {
 
 	private _handlePostBlock(data: EventPostBlockData) {
 		const blockBytes = Buffer.from(data.block, 'hex');
-		const blockId = hash(blockBytes);
 		const decodedBlock = codec.decode<RawBlock>(this.schemas.block, blockBytes);
 		const decodedBlockHeader = codec.decode<RawBlockHeader>(
 			this.schemas.blockHeader,
 			decodedBlock.header,
 		);
-		if (!this._state.blocks.blocks[blockId.toString('binary')]) {
-			this._state.blocks.blocks[blockId.toString('binary')] = {
+		const blockId = hash(decodedBlock.header);
+
+		if (!this._state.blocks.blocks[blockId.toString('hex')]) {
+			this._state.blocks.blocks[blockId.toString('hex')] = {
 				count: 0,
 				height: decodedBlockHeader.height,
 			};
 		}
 
-		this._state.blocks.blocks[blockId.toString('binary')].count += 1;
+		this._state.blocks.blocks[blockId.toString('hex')].count += 1;
 
 		// Clean up blocks older than current height minus 300 blocks
 		for (const id of Object.keys(this._state.blocks.blocks)) {
