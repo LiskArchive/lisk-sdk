@@ -61,7 +61,7 @@ export class MonitorPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get defaults(): object {
+	public get defaults(): Record<string, unknown> {
 		return config.defaultConfig;
 	}
 
@@ -173,7 +173,7 @@ export class MonitorPlugin extends BasePlugin {
 			controllers.transactions.getTransactionStats(this._channel, this._state),
 		);
 		this._app.get(
-		'/api/stats/blocks',
+			'/api/stats/blocks',
 			controllers.blocks.getBlockStats(this._channel, this._state),
 		);
 	}
