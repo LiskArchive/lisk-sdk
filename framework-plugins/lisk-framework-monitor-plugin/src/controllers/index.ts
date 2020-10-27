@@ -13,5 +13,7 @@
  */
 
 import * as transactions from './transactions';
+import * as forks from './forks';
 
 export { transactions };
+export { forks };
