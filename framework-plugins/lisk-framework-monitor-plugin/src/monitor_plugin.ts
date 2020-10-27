@@ -27,6 +27,10 @@ import * as controllers from './controllers';
 // eslint-disable-next-line
 const pJSON = require('../package.json');
 
+interface Data {
+	readonly block: string;
+}
+
 export class MonitorPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
@@ -176,6 +180,11 @@ export class MonitorPlugin extends BasePlugin {
 				this._handlePostTransactionAnnounce(data as { transactionIds: string[] });
 			}
 		});
+
+		this._channel.subscribe('app:chain:fork', (eventInfo: EventInfoObject) => {
+			const { block } = eventInfo.data as Data;
+			this._handleFork(block);
+		});
 	}
 
 	private _handlePostTransactionAnnounce(data: { transactionIds: string[] }) {
@@ -202,5 +211,14 @@ export class MonitorPlugin extends BasePlugin {
 				delete this._state.transactions.transactions[transactionID];
 			}
 		}
+	}
+
+	private _handleFork(block: string) {
+		const { header } = this.codec.decodeBlock(block);
+		this._state.forks.forkEventCount += 1;
+		this._state.forks.blockHeaders[header.id] = {
+			blockHeader: header,
+			timeReceived: Date.now(),
+		};
 	}
 }
