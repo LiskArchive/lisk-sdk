@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import * as blocks from './blocks';
 import * as transactions from './transactions';
 
-export { transactions };
+export { blocks, transactions };
