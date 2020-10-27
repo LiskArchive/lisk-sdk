@@ -166,6 +166,7 @@ export class MonitorPlugin extends BasePlugin {
 			'/api/stats/transactions',
 			controllers.transactions.getTransactionStats(this._channel, this._state),
 		);
+		this._app.get('/api/stats/forks', controllers.forks.getForkStats(this._state));
 	}
 
 	private _subscribeToEvents(): void {
