@@ -13,6 +13,9 @@
  */
 import { Server } from 'http';
 import { BasePlugin, PluginInfo } from 'lisk-framework';
+import { RawBlock, RawBlockHeader } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import type { ActionsDefinition, BaseChannel, EventsArray, EventInfoObject } from 'lisk-framework';
 import * as express from 'express';
@@ -215,10 +218,12 @@ export class MonitorPlugin extends BasePlugin {
 	}
 
 	private _handleFork(block: string) {
-		const { header } = this.codec.decodeBlock(block);
+		const { header } = codec.decode<RawBlock>(this.schemas.block, Buffer.from(block, 'hex'));
+		const decodedHeader = codec.decode<RawBlockHeader>(this.schemas.blockHeader, header);
+		const blockId = hash(header).toString('hex');
 		this._state.forks.forkEventCount += 1;
-		this._state.forks.blockHeaders[header.id] = {
-			blockHeader: header,
+		this._state.forks.blockHeaders[blockId] = {
+			blockHeader: decodedHeader,
 			timeReceived: Date.now(),
 		};
 	}
