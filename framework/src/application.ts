@@ -162,12 +162,12 @@ export class Application {
 	}
 
 	public registerPlugin(
-		pluginKlass: InstantiablePlugin<BasePlugin>,
+		pluginKlass: typeof BasePlugin,
 		options: PluginOptions = { loadAsChildProcess: false },
 	): void {
 		assert(pluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		validatePluginSpec(pluginKlass);
+		validatePluginSpec(pluginKlass as InstantiablePlugin<BasePlugin>);
 
 		const pluginAlias = options?.alias ?? pluginKlass.alias;
 
@@ -189,7 +189,7 @@ export class Application {
 			this.config.plugins[pluginAlias] ?? {},
 			options,
 		);
-		this._plugins[pluginAlias] = pluginKlass;
+		this._plugins[pluginAlias] = pluginKlass as InstantiablePlugin<BasePlugin>;
 	}
 
 	public overridePluginOptions(alias: string, options?: PluginOptions): void {
