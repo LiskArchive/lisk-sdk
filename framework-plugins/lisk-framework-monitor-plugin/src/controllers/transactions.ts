@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { BaseChannel } from 'lisk-framework';
 import { PeerInfo, SharedState } from '../types';
 
@@ -32,7 +32,6 @@ const getAverage = (
 export const getTransactionStats = (channel: BaseChannel, state: SharedState) => async (
 	_req: Request,
 	res: Response,
-	next: NextFunction,
 ): Promise<void> => {
 	const { transactions } = state;
 	res.json({
@@ -44,5 +43,4 @@ export const getTransactionStats = (channel: BaseChannel, state: SharedState) =>
 		},
 		meta: {},
 	});
-	next();
 };
