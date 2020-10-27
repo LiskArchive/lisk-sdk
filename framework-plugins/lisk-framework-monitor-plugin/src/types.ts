@@ -43,7 +43,7 @@ interface BlockHeader {
 
 interface TransactionPropagationStats {
 	count: number;
-	timeReceived: Date;
+	timeReceived: number;
 }
 
 export interface SharedState {
@@ -93,4 +93,13 @@ export interface SharedState {
 		averageReceivedBlocks: number;
 		connectedPeers: number;
 	};
+}
+
+export interface PeerInfo {
+	readonly ipAddress: string;
+	readonly port: number;
+	readonly networkIdentifier: string;
+	readonly networkVersion: string;
+	readonly nonce: string;
+	readonly options: { [key: string]: unknown };
 }

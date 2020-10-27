@@ -14,7 +14,7 @@
 import { Server } from 'http';
 import { BasePlugin, PluginInfo } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
-import type { BaseChannel, EventsArray, ActionsDefinition } from 'lisk-framework';
+import type { ActionsDefinition, BaseChannel, EventsArray, EventInfoObject } from 'lisk-framework';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -22,6 +22,7 @@ import * as rateLimit from 'express-rate-limit';
 import * as middlewares from './middlewares';
 import * as config from './defaults';
 import { Options, SharedState } from './types';
+import * as controllers from './controllers';
 
 // eslint-disable-next-line
 const pJSON = require('../package.json');
@@ -69,6 +70,7 @@ export class MonitorPlugin extends BasePlugin {
 		this._app = express();
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
+
 		this._state = {
 			network: {
 				outgoing: {
@@ -122,6 +124,7 @@ export class MonitorPlugin extends BasePlugin {
 			this._registerMiddlewares(options);
 			this._registerControllers();
 			this._registerAfterMiddlewares(options);
+			this._subscribeToEvents();
 			this._server = this._app.listen(options.port, '0.0.0.0');
 		});
 	}
@@ -154,6 +157,50 @@ export class MonitorPlugin extends BasePlugin {
 		this._app.use(middlewares.errorMiddleware());
 	}
 
-	// eslint-disable-next-line
-	private _registerControllers(): void {}
+	private _registerControllers(): void {
+		this._app.get(
+			'/api/stats/transactions',
+			controllers.transactions.getTransactionStats(this._channel, this._state),
+		);
+	}
+
+	private _subscribeToEvents(): void {
+		this._channel.subscribe('app:network:event', (info: EventInfoObject) => {
+			const {
+				data: { event, data },
+			} = info as {
+				data: { event: string; data: unknown };
+			};
+
+			if (event === 'postTransactionsAnnouncement') {
+				this._handlePostTransactionAnnounce(data as { transactionIds: string[] });
+			}
+		});
+	}
+
+	private _handlePostTransactionAnnounce(data: { transactionIds: string[] }) {
+		for (const aTransactionId of data.transactionIds) {
+			if (this._state.transactions.transactions[aTransactionId]) {
+				this._state.transactions.transactions[aTransactionId].count += 1;
+			} else {
+				this._state.transactions.transactions[aTransactionId] = {
+					count: 1,
+					timeReceived: Date.now(),
+				};
+				this._cleanUpTransactionStats();
+			}
+		}
+	}
+
+	private _cleanUpTransactionStats() {
+		const expiryTime = 600000;
+		for (const transactionID of Object.keys(this._state.transactions.transactions)) {
+			if (
+				Date.now() - this._state.transactions.transactions[transactionID].timeReceived >
+				expiryTime
+			) {
+				delete this._state.transactions.transactions[transactionID];
+			}
+		}
+	}
 }
