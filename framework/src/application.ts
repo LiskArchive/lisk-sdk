@@ -345,6 +345,9 @@ export class Application {
 				getDisconnectedPeers: {
 					handler: (_action: ActionInfoObject) => this._node.actions.getDisconnectedPeers(),
 				},
+				getNetworkStats: {
+					handler: (_action: ActionInfoObject) => this._node.actions.getNetworkStats(),
+				},
 				getForgers: {
 					handler: async (_action: ActionInfoObject) => this._node.actions.getValidators(),
 				},
