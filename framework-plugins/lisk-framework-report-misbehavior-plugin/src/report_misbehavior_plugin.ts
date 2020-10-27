@@ -16,6 +16,7 @@ import { Server } from 'http';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockHeader, RawBlock } from '@liskhq/lisk-chain';
+import { getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
 import {
 	ActionsDefinition,
 	BasePlugin,
@@ -172,7 +173,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 							transaction: encodedTransaction,
 						});
 
-						logger('Reported misbehavior transaction', result.transactionId);
+						logger('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
 					logger(error);
@@ -186,29 +187,52 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		decodedBlockHeader: BlockHeader,
 	): Promise<Buffer> {
 		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
-		const pomSchema = this.schemas.transactionsAssets.filter(
+		const pomAsset = this.schemas.transactionsAssets.filter(
 			({ moduleID, assetID }) => moduleID === 5 && assetID === 3,
 		);
-		if (!pomSchema.length) {
+
+		if (!pomAsset.length) {
 			throw new Error('PoM asset schema is not registered in the application.');
 		}
-		const pomTransaction = {
-			header1: decodedBlockHeader,
-			header2: contradictingBlock,
-		};
-		const { networkIdentifier } = await this._channel.invoke<{ networkIdentifier: string }>(
-			'app:getNodeInfo',
-		);
+
 		if (!this._state.passphrase) {
 			throw new Error('Encrypted passphrase is not set in the config.');
 		}
-		const transaction = signTransaction(
-			pomSchema[0].schema,
-			pomTransaction,
+
+		const encodedAccount = await this._channel.invoke<string>('app:getAccount', {
+			address: getAddressFromPassphrase(this._state.passphrase).toString('hex'),
+		});
+
+		const { nonce } = codec.decode<{ nonce: number }>(
+			this.schemas.account,
+			Buffer.from(encodedAccount, 'hex'),
+		);
+
+		const pomTransactionAsset = {
+			header1: decodedBlockHeader,
+			header2: contradictingBlock,
+		};
+		const transaction = {
+			moduleID: pomAsset[0].moduleID,
+			assetID: pomAsset[0].assetID,
+			nonce,
+			fee: this._options.fee, // TODO: The static fee should be replaced by fee estimation calculation
+			senderPublicKey: this._state.publicKey,
+			asset: pomTransactionAsset,
+			signatures: [],
+		};
+
+		const { networkIdentifier } = await this._channel.invoke<{ networkIdentifier: string }>(
+			'app:getNodeInfo',
+		);
+
+		const signedTransaction = signTransaction(
+			pomAsset[0].schema,
+			transaction,
 			Buffer.from(networkIdentifier, 'hex'),
 			this._state.passphrase,
 		);
 
-		return codec.encode(pomSchema[0].schema, transaction);
+		return codec.encode(pomAsset[0].schema, signedTransaction);
 	}
 }
