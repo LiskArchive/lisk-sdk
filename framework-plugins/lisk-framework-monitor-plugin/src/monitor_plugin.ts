@@ -12,9 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { BasePlugin, PluginInfo } from 'lisk-framework';
+import { RawBlock, RawBlockHeader } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
-import type { ActionsDefinition, BaseChannel, EventsArray, EventInfoObject } from 'lisk-framework';
+import {
+	ActionsDefinition,
+	BaseChannel,
+	BasePlugin,
+	EventInfoObject,
+	EventPostBlockData,
+	EventsArray,
+	PluginInfo,
+} from 'lisk-framework';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -51,7 +61,7 @@ export class MonitorPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get defaults(): object {
+	public get defaults(): Record<string, unknown> {
 		return config.defaultConfig;
 	}
 
@@ -162,6 +172,10 @@ export class MonitorPlugin extends BasePlugin {
 			'/api/stats/transactions',
 			controllers.transactions.getTransactionStats(this._channel, this._state),
 		);
+		this._app.get(
+			'/api/stats/blocks',
+			controllers.blocks.getBlockStats(this._channel, this._state),
+		);
 	}
 
 	private _subscribeToEvents(): void {
@@ -174,6 +188,10 @@ export class MonitorPlugin extends BasePlugin {
 
 			if (event === 'postTransactionsAnnouncement') {
 				this._handlePostTransactionAnnounce(data as { transactionIds: string[] });
+			}
+
+			if (event === 'postBlock') {
+				this._handlePostBlock(data as EventPostBlockData);
 			}
 		});
 	}
@@ -200,6 +218,33 @@ export class MonitorPlugin extends BasePlugin {
 				expiryTime
 			) {
 				delete this._state.transactions.transactions[transactionID];
+			}
+		}
+	}
+
+	private _handlePostBlock(data: EventPostBlockData) {
+		const blockBytes = Buffer.from(data.block, 'hex');
+		const decodedBlock = codec.decode<RawBlock>(this.schemas.block, blockBytes);
+		const decodedBlockHeader = codec.decode<RawBlockHeader>(
+			this.schemas.blockHeader,
+			decodedBlock.header,
+		);
+		const blockId = hash(decodedBlock.header);
+
+		if (!this._state.blocks.blocks[blockId.toString('hex')]) {
+			this._state.blocks.blocks[blockId.toString('hex')] = {
+				count: 0,
+				height: decodedBlockHeader.height,
+			};
+		}
+
+		this._state.blocks.blocks[blockId.toString('hex')].count += 1;
+
+		// Clean up blocks older than current height minus 300 blocks
+		for (const id of Object.keys(this._state.blocks.blocks)) {
+			const blockInfo = this._state.blocks.blocks[id];
+			if (blockInfo.height < decodedBlockHeader.height - 300) {
+				delete this._state.blocks.blocks[id];
 			}
 		}
 	}
