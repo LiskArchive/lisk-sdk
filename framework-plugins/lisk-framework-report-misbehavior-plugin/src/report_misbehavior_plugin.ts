@@ -187,11 +187,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		decodedBlockHeader: BlockHeader,
 	): Promise<Buffer> {
 		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
-		const pomAsset = this.schemas.transactionsAssets.filter(
+		const pomAsset = this.schemas.transactionsAssets.find(
 			({ moduleID, assetID }) => moduleID === 5 && assetID === 3,
 		);
 
-		if (!pomAsset.length) {
+		if (!pomAsset) {
 			throw new Error('PoM asset schema is not registered in the application.');
 		}
 
@@ -203,7 +203,9 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			address: getAddressFromPassphrase(this._state.passphrase).toString('hex'),
 		});
 
-		const { nonce } = codec.decode<{ nonce: number }>(
+		const {
+			sequence: { nonce },
+		} = codec.decode<{ sequence: { nonce: number } }>(
 			this.schemas.account,
 			Buffer.from(encodedAccount, 'hex'),
 		);
@@ -213,8 +215,8 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			header2: contradictingBlock,
 		};
 		const transaction = {
-			moduleID: pomAsset[0].moduleID,
-			assetID: pomAsset[0].assetID,
+			moduleID: pomAsset.moduleID,
+			assetID: pomAsset.assetID,
 			nonce,
 			fee: this._options.fee, // TODO: The static fee should be replaced by fee estimation calculation
 			senderPublicKey: this._state.publicKey,
@@ -227,12 +229,12 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		);
 
 		const signedTransaction = signTransaction(
-			pomAsset[0].schema,
+			pomAsset.schema,
 			transaction,
 			Buffer.from(networkIdentifier, 'hex'),
 			this._state.passphrase,
 		);
 
-		return codec.encode(pomAsset[0].schema, signedTransaction);
+		return codec.encode(pomAsset.schema, signedTransaction);
 	}
 }
