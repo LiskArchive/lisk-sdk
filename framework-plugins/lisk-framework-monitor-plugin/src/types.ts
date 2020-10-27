@@ -38,7 +38,7 @@ interface BannedPeer {
 interface BlockHeader {
 	// eslint-disable-next-line @typescript-eslint/ban-types
 	blockHeader: object;
-	timeReceived: Date;
+	timeReceived: number;
 }
 
 interface TransactionPropagationStats {
