@@ -72,6 +72,7 @@ export interface RPCHighestCommonBlockData {
 
 export interface PluginOptions extends Record<string, unknown> {
 	readonly loadAsChildProcess?: boolean;
+	readonly alias?: string;
 }
 
 export interface PluginsOptions {
