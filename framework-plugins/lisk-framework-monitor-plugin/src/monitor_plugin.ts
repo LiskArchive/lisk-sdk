@@ -176,6 +176,7 @@ export class MonitorPlugin extends BasePlugin {
 			'/api/stats/blocks',
 			controllers.blocks.getBlockStats(this._channel, this._state),
 		);
+		this._app.get('/api/stats/network', controllers.network.getNetworkStats(this._channel));
 	}
 
 	private _subscribeToEvents(): void {

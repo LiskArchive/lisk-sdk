@@ -13,5 +13,6 @@
  */
 import * as blocks from './blocks';
 import * as transactions from './transactions';
+import * as network from './network';
 
-export { blocks, transactions };
+export { blocks, transactions, network };
