@@ -23,7 +23,7 @@ const getMajorityHeight = (peers: PeerInfo[]): { height: number; count: number }
 	};
 	for (const { options } of peers) {
 		const height = options.height as number;
-		heightHistogram[height] = heightHistogram[height] ? heightHistogram[height] + 1 : 1;
+		heightHistogram[height] = heightHistogram[height] + 1 || 1;
 		if (heightHistogram[height] > majority.count) {
 			majority.count = heightHistogram[height];
 			majority.height = height;

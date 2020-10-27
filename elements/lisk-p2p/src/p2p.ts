@@ -287,11 +287,8 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest): void => {
-			if (!this._networkStats.totalRequestsReceived[request.procedure]) {
-				this._networkStats.totalRequestsReceived[request.procedure] = 0;
-			}
-
-			this._networkStats.totalRequestsReceived[request.procedure] += 1;
+			this._networkStats.totalRequestsReceived[request.procedure] =
+				this._networkStats.totalRequestsReceived[request.procedure] + 1 || 1;
 			// Process protocol messages
 			switch (request.procedure) {
 				case REMOTE_EVENT_RPC_GET_PEERS_LIST:
@@ -309,11 +306,8 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolMessage = (message: P2PMessagePacket): void => {
-			if (!this._networkStats.totalMessagesReceived[message.event]) {
-				this._networkStats.totalMessagesReceived[message.event] = 0;
-			}
-
-			this._networkStats.totalMessagesReceived[message.event] += 1;
+			this._networkStats.totalMessagesReceived[message.event] =
+				this._networkStats.totalMessagesReceived[message.event] + 1 || 1;
 			// Re-emit the message for external use.
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				// This 'decode' only happens with the successful case after decoding in "peer"
