@@ -11,9 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as blocks from './blocks';
-import * as transactions from './transactions';
-import * as network from './network';
-import * as forks from './forks';
+import { Request, Response } from 'express';
+import { SharedState } from '../types';
 
-export { blocks, transactions, network, forks };
+export const getForkStats = (state: SharedState) => async (
+	_req: Request,
+	res: Response,
+	// eslint-disable-next-line @typescript-eslint/require-await
+): Promise<void> => {
+	const { forks } = state;
+	res.json({
+		data: {
+			forkEventCount: forks.forkEventCount,
+			blockHeaders: forks.blockHeaders,
+		},
+		meta: {},
+	});
+};
