@@ -31,6 +31,7 @@ export interface Options {
 		readonly headersTimeout: number;
 		readonly serverSetTimeout: number;
 	};
+	readonly fee: number;
 }
 
 export interface State {

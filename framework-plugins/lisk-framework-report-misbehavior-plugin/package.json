@@ -45,6 +45,7 @@
 		"@liskhq/lisk-db": "^0.1.0-alpha.0",
 		"@liskhq/lisk-codec": "^0.1.0-alpha.0",
 		"@liskhq/lisk-chain": "^0.2.0-alpha.2",
+		"@liskhq/lisk-transactions": "^5.0.0-alpha.0",
 		"cors": "2.8.5",
 		"debug": "4.1.1",
 		"express": "4.17.1",

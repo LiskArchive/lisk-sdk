@@ -40,6 +40,7 @@ export const defaultConfig = {
 			description:
 				'Explicitly allowing some identified entities access to repost misbehavior plugin endpoints.',
 		},
+
 		cors: {
 			type: 'object',
 			properties: {
@@ -87,6 +88,10 @@ export const defaultConfig = {
 			},
 			required: ['max', 'delayMs', 'delayAfter', 'windowMs', 'headersTimeout', 'serverSetTimeout'],
 		},
+		fee: {
+			type: 'integer',
+			description: 'The fee required to report misbehavior transaction.',
+		},
 	},
 	required: ['port', 'whiteList', 'dataPath', 'cors', 'limits'],
 	default: {
@@ -107,5 +112,6 @@ export const defaultConfig = {
 			headersTimeout: 5000,
 			serverSetTimeout: 20000,
 		},
+		fee: 100000000,
 	},
 };

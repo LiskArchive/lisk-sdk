@@ -15,7 +15,12 @@
 import { Server } from 'http';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { RawBlock } from '@liskhq/lisk-chain';
+import { BlockHeader, RawBlock, Transaction } from '@liskhq/lisk-chain';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	getAddressFromPassphrase,
+	signData,
+} from '@liskhq/lisk-cryptography';
 import {
 	ActionsDefinition,
 	BasePlugin,
@@ -29,7 +34,7 @@ import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
-import * as debug from 'debug';
+import * as Debug from 'debug';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -43,7 +48,8 @@ import * as controllers from './controllers';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
-const logger = debug('plugin:resport-misbehavior');
+// eslint-disable-next-line new-cap
+const debug = Debug('plugin:report-misbehavior');
 
 export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _pluginDB!: KVStore;
@@ -161,12 +167,86 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 						this.schemas,
 					);
 					if (contradictingBlock) {
-						// create pom transaction and send
+						const encodedTransaction = await this._createPoMTransaction(
+							decodedBlockHeader,
+							contradictingBlock,
+						);
+						const result = await this._channel.invoke<{
+							transactionId?: string;
+						}>('app:postTransaction', {
+							transaction: encodedTransaction,
+						});
+
+						debug('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
-					logger(error);
+					debug(error);
 				}
 			}
 		});
+	}
+
+	private async _createPoMTransaction(
+		contradictingBlock: BlockHeader,
+		decodedBlockHeader: BlockHeader,
+	): Promise<string> {
+		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
+		const pomAssetInfo = this.schemas.transactionsAssets.find(
+			({ moduleID, assetID }) => moduleID === 5 && assetID === 3,
+		);
+
+		if (!pomAssetInfo) {
+			throw new Error('PoM asset schema is not registered in the application.');
+		}
+
+		if (!this._state.passphrase) {
+			throw new Error('Encrypted passphrase is not set in the config.');
+		}
+
+		const encodedAccount = await this._channel.invoke<string>('app:getAccount', {
+			address: getAddressFromPassphrase(this._state.passphrase).toString('hex'),
+		});
+
+		const {
+			sequence: { nonce },
+		} = codec.decode<{ sequence: { nonce: bigint } }>(
+			this.schemas.account,
+			Buffer.from(encodedAccount, 'hex'),
+		);
+
+		const pomTransactionAsset = {
+			header1: decodedBlockHeader,
+			header2: contradictingBlock,
+		};
+
+		const { networkIdentifier } = await this._channel.invoke<{ networkIdentifier: string }>(
+			'app:getNodeInfo',
+		);
+
+		const encodedAsset = codec.encode(
+			pomAssetInfo.schema,
+			codec.fromJSON(pomAssetInfo.schema, pomTransactionAsset),
+		);
+
+		const tx = new Transaction({
+			moduleID: pomAssetInfo.moduleID,
+			assetID: pomAssetInfo.assetID,
+			nonce,
+			senderPublicKey:
+				this._state.publicKey ??
+				getAddressAndPublicKeyFromPassphrase(this._state.passphrase).publicKey,
+			fee: BigInt(this._options.fee), // TODO: The static fee should be replaced by fee estimation calculation
+			asset: encodedAsset,
+			signatures: [],
+		});
+
+		(tx.signatures as Buffer[]).push(
+			signData(
+				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), tx.getSigningBytes()]),
+				this._state.passphrase,
+			),
+		);
+
+		return tx.getBytes().toString('hex');
 	}
 }
