@@ -14,7 +14,7 @@
  */
 
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { getMinFee } from '../src';
+import * as Fee from '../src/fee';
 
 const validAssetSchema = {
 	$id: 'lisk/transfer-transaction',
@@ -53,12 +53,121 @@ const validTransaction = {
 		data: '',
 	},
 };
+const baseFees = [
+	{
+		moduleID: 2,
+		assetID: 0,
+		baseFee: '10000000',
+	},
+	{
+		moduleID: 5,
+		assetID: 0,
+		baseFee: '1',
+	},
+	{
+		moduleID: 3,
+		assetID: 0,
+		baseFee: '1',
+	},
+];
 
 describe('fee', () => {
+	beforeEach(() => {
+		jest.spyOn(Fee, 'calculateMinFee');
+	});
+
 	describe('getMinFee', () => {
 		it('should return minimum fee required to send to network', () => {
-			const fee = getMinFee(validAssetSchema, validTransaction);
-			expect(fee).toMatchSnapshot();
+			// Arrange & Assert
+			const minFee = Fee.getMinFee(validAssetSchema, validTransaction);
+
+			expect(minFee).not.toBeUndefined();
+			expect(minFee).toMatchSnapshot();
+			expect(Fee.calculateMinFee).toHaveBeenCalledTimes(3);
+
+			// Arrange & Assert
+			const computedMinFee = Fee.calculateMinFee(validAssetSchema, {
+				...validTransaction,
+				fee: minFee,
+			});
+			expect(minFee).toEqual(computedMinFee);
+		});
+
+		it('should calculate minimum fee for given minFeePerByte', () => {
+			// Arrange & Assert
+			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 1 };
+			const minFee = Fee.getMinFee(validAssetSchema, validTransaction, options);
+
+			expect(minFee).not.toBeUndefined();
+			expect(minFee).toMatchSnapshot();
+			expect(Fee.calculateMinFee).toHaveBeenCalledTimes(3);
+
+			// Arrange & Assert
+			const computedMinFee = Fee.calculateMinFee(
+				validAssetSchema,
+				{ ...validTransaction, fee: minFee },
+				options,
+			);
+			expect(minFee).toEqual(computedMinFee);
+		});
+
+		it('should calculate minimum fee for transaction from multisignature account', () => {
+			// Arrange & Assert
+			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 64 };
+			const minFee = Fee.getMinFee(validAssetSchema, validTransaction, options);
+
+			expect(minFee).not.toBeUndefined();
+			expect(minFee).toMatchSnapshot();
+			expect(Fee.calculateMinFee).toHaveBeenCalledTimes(3);
+
+			// Arrange & Assert
+			const computedMinFee = Fee.calculateMinFee(
+				validAssetSchema,
+				{ ...validTransaction, fee: minFee },
+				options,
+			);
+			expect(minFee).toEqual(computedMinFee);
+		});
+
+		it('should calculate minimum fee for delegate registration transaction', () => {
+			// Arrange & Assert
+			const delegateRegisterTransaction = {
+				...validTransaction,
+				moduleID: 5,
+				assetID: 0,
+				asset: { username: 'delegate1' },
+			};
+			const options = { minFeePerByte: 1000, baseFees, numberOfSignatures: 1 };
+			const delegateRegisterAssetSchema = {
+				$id: 'lisk/dpos/register',
+				type: 'object',
+				required: ['username'],
+				properties: {
+					username: {
+						dataType: 'string',
+						fieldNumber: 1,
+						minLength: 1,
+						maxLength: 20,
+					},
+				},
+			};
+			const minFee = Fee.getMinFee(
+				delegateRegisterAssetSchema,
+				delegateRegisterTransaction,
+				options,
+			);
+
+			expect(minFee).not.toBeUndefined();
+			expect(minFee).toMatchSnapshot();
+			expect(Fee.calculateMinFee).toHaveBeenCalledTimes(3);
+
+			// Arrange & Assert
+			const computedMinFee = Fee.calculateMinFee(
+				delegateRegisterAssetSchema,
+				{ ...delegateRegisterTransaction, fee: minFee },
+				options,
+			);
+			expect(minFee).toEqual(computedMinFee);
 		});
 	});
 });
