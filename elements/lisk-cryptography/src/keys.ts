@@ -98,17 +98,18 @@ export const createChecksum = (uint5Array: number[]): number[] => {
 export const verifyChecksum = (integerSequence: number[]): boolean =>
 	polymod(integerSequence) === 1;
 
-export const getBase32AddressFromPublicKey = (publicKey: Buffer, prefix: string): string => {
-	const binaryAddress = getAddressFromPublicKey(publicKey);
+const addressToBase32 = (address: Buffer): string => {
 	const byteSequence = [];
-	for (const b of binaryAddress) {
+	for (const b of address) {
 		byteSequence.push(b);
 	}
 	const uint5Address = convertUIntArray(byteSequence, 8, 5);
 	const uint5Checksum = createChecksum(uint5Address);
-
-	return `${prefix}${convertUInt5ToBase32(uint5Address.concat(uint5Checksum))}`;
+	return convertUInt5ToBase32(uint5Address.concat(uint5Checksum));
 };
+
+export const getBase32AddressFromPublicKey = (publicKey: Buffer, prefix: string): string =>
+	`${prefix}${addressToBase32(getAddressFromPublicKey(publicKey))}`;
 
 const BASE32_ADDRESS_LENGTH = 41;
 const BASE32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
@@ -155,13 +156,5 @@ export const getAddressFromBase32Address = (base32Address: string, prefix = 'lsk
 	return Buffer.from(integerSequence8);
 };
 
-export const getBase32AddressFromAddress = (address: Buffer, prefix = 'lsk'): string => {
-	const byteSequence = [];
-	for (const b of address) {
-		byteSequence.push(b);
-	}
-	const uint5Address = convertUIntArray(byteSequence, 8, 5);
-	const uint5Checksum = createChecksum(uint5Address);
-
-	return `${prefix}${convertUInt5ToBase32(uint5Address.concat(uint5Checksum))}`;
-};
+export const getBase32AddressFromAddress = (address: Buffer, prefix = 'lsk'): string =>
+	`${prefix}${addressToBase32(address)}`;
