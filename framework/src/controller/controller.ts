@@ -12,19 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as path from 'path';
-import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
-import { systemDirs } from '../system_dirs';
-import { InMemoryChannel } from './channels/in_memory_channel';
-import { Bus } from './bus';
+import * as path from 'path';
+import { getPluginExportPath, BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import { Logger } from '../logger';
-import { SocketPaths, PluginsOptions, PluginOptions } from '../types';
-
-import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
-import { EventInfoObject } from './event';
+import { systemDirs } from '../system_dirs';
+import { PluginOptions, PluginsOptions, SocketPaths } from '../types';
+import { Bus } from './bus';
 import { BaseChannel } from './channels';
+import { InMemoryChannel } from './channels/in_memory_channel';
+import { EventInfoObject } from './event';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -57,18 +55,6 @@ interface ControllerConfig {
 interface PluginsObject {
 	readonly [key: string]: InstantiablePlugin<BasePlugin>;
 }
-
-export const validatePluginSpec = (pluginSpec: Partial<BasePlugin>): void => {
-	assert((pluginSpec.constructor as typeof BasePlugin).alias, 'Plugin alias is required.');
-	assert((pluginSpec.constructor as typeof BasePlugin).info.name, 'Plugin name is required.');
-	assert((pluginSpec.constructor as typeof BasePlugin).info.author, 'Plugin author is required.');
-	assert((pluginSpec.constructor as typeof BasePlugin).info.version, 'Plugin version is required.');
-	assert(pluginSpec.defaults, 'Plugin default options are required.');
-	assert(pluginSpec.events, 'Plugin events are required.');
-	assert(pluginSpec.actions, 'Plugin actions are required.');
-	assert(pluginSpec.load, 'Plugin load action is required.');
-	assert(pluginSpec.unload, 'Plugin unload actions is required.');
-};
 
 export class Controller {
 	public readonly logger: Logger;
@@ -211,7 +197,6 @@ export class Controller {
 		const { name, version } = Klass.info;
 
 		const plugin: BasePlugin = new Klass(options);
-		validatePluginSpec(plugin);
 
 		this.logger.info({ name, version, alias: pluginAlias }, 'Loading in-memory plugin');
 
@@ -240,14 +225,11 @@ export class Controller {
 		const pluginAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
 
-		const plugin: BasePlugin = new Klass(options);
-		validatePluginSpec(plugin);
-
 		this.logger.info({ name, version, alias: pluginAlias }, 'Loading child-process plugin');
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [Klass.info.name, Klass.name];
+		const parameters = [getPluginExportPath(Klass) as string, Klass.name];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions: { execArgv: string[] | undefined } = {

@@ -13,6 +13,7 @@
  */
 
 import * as childProcess from 'child_process';
+import { when } from 'jest-when';
 import { BasePlugin } from '../../../src';
 
 jest.mock('../../../src/controller/bus');
@@ -24,6 +25,7 @@ import * as controllerModule from '../../../src/controller/controller';
 import { Controller } from '../../../src/controller/controller';
 import { Bus } from '../../../src/controller/bus';
 import { InMemoryChannel } from '../../../src/controller/channels';
+import * as basePluginModule from '../../../src/plugins/base_plugin';
 
 const createMockPlugin = ({
 	alias,
@@ -249,20 +251,6 @@ describe('Controller Class', () => {
 				);
 			});
 
-			it('should call validatePluginSpec function', async () => {
-				// Arrange
-				const validateMock = jest.fn().mockReturnValue(true);
-				jest.spyOn(controllerModule, 'validatePluginSpec').mockImplementation(validateMock);
-
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
-
-				// Assert
-				expect(validateMock).toHaveBeenCalledTimes(2);
-				expect(validateMock).toHaveBeenCalledWith(expect.any(Plugin1));
-				expect(validateMock).toHaveBeenCalledWith(expect.any(Plugin2));
-			});
-
 			it('should create instance of in-memory channel', async () => {
 				// Act
 				await controller.loadPlugins(plugins, pluginOptions);
@@ -363,6 +351,16 @@ describe('Controller Class', () => {
 				pluginOptions.plugin1.loadAsChildProcess = true;
 				pluginOptions.plugin2.loadAsChildProcess = true;
 
+				jest.spyOn(basePluginModule, 'getPluginExportPath');
+
+				when(basePluginModule.getPluginExportPath as any)
+					.calledWith(plugins.plugin1)
+					.mockReturnValue('plugin1');
+
+				when(basePluginModule.getPluginExportPath as any)
+					.calledWith(plugins.plugin2)
+					.mockReturnValue('plugin2');
+
 				controller = new Controller(updatedParams);
 				await controller.load();
 
@@ -383,20 +381,6 @@ describe('Controller Class', () => {
 					{ name: Plugin2.info.name, version: Plugin2.info.version, alias: Plugin2.alias },
 					'Loading child-process plugin',
 				);
-			});
-
-			it('should call validatePluginSpec function', async () => {
-				// Arrange
-				const validateMock = jest.fn().mockReturnValue(true);
-				jest.spyOn(controllerModule, 'validatePluginSpec').mockImplementation(validateMock);
-
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
-
-				// Assert
-				expect(validateMock).toHaveBeenCalledTimes(2);
-				expect(validateMock.mock.calls[0][0]).toBeInstanceOf(Plugin1);
-				expect(validateMock.mock.calls[1][0]).toBeInstanceOf(Plugin2);
 			});
 
 			it('should load child process with childProcess.fork', async () => {

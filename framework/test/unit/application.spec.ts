@@ -23,12 +23,44 @@ import * as networkConfig from '../fixtures/config/devnet/config.json';
 import { systemDirs } from '../../src/system_dirs';
 import { createLogger } from '../../src/logger';
 import { genesisBlock } from '../fixtures/blocks';
-import { BaseModule, BaseAsset } from '../../src';
+import { BaseModule, BaseAsset, BasePlugin, BaseChannel } from '../../src';
+import * as basePluginModule from '../../src/plugins/base_plugin';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
 jest.mock('@liskhq/lisk-p2p');
 jest.mock('../../src/logger');
+
+class TestPlugin extends BasePlugin {
+	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+	public static get alias() {
+		return 'test-plugin';
+	}
+
+	public static get info() {
+		return {
+			name: '@lisk/test-plugin',
+			author: 'Nazar',
+			version: '1.0.0',
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public get events() {
+		return [];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public get actions() {
+		return {};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public async load(_channel: BaseChannel): Promise<void> {}
+
+	// eslint-disable-next-line class-methods-use-this
+	public async unload(): Promise<void> {}
+}
 
 const config: any = {
 	...networkConfig,
@@ -414,6 +446,91 @@ describe('Application', () => {
 
 			// Assert
 			expect(app['_node'].registerModule).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('#registerPlugin', () => {
+		it('should throw error when plugin class is missing', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+
+			// Act && Assert
+			expect(() => (app as any).registerPlugin()).toThrow('Plugin implementation is required');
+		});
+
+		it('should throw error when plugin alias is missing', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			class MyPlugin extends TestPlugin {
+				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+				public static get alias() {
+					return '';
+				}
+			}
+
+			// Act && Assert
+			expect(() => (app as any).registerPlugin(MyPlugin)).toThrow('Plugin alias is required.');
+		});
+
+		it('should throw error when plugin with same alias is already registered', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			class MyPlugin extends TestPlugin {
+				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+				public static get alias() {
+					return 'my-plugin';
+				}
+			}
+			(app as any).registerPlugin(MyPlugin);
+
+			// Act && Assert
+			expect(() => (app as any).registerPlugin(MyPlugin)).toThrow(
+				'A plugin with alias "my-plugin" already registered.',
+			);
+		});
+
+		it('should call validatePluginSpec function', async () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(basePluginModule, 'validatePluginSpec').mockReturnValue();
+
+			// Act
+			(app as any).registerPlugin(TestPlugin);
+
+			// Assert
+			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledTimes(1);
+			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin);
+		});
+
+		it('should throw error when plugin is required to load as child process and not exported', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(basePluginModule, 'getPluginExportPath').mockReturnValue(undefined);
+
+			// Act && Assert
+			expect(() => (app as any).registerPlugin(TestPlugin, { loadAsChildProcess: true })).toThrow(
+				'Unable to register plugin "test-plugin" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.',
+			);
+			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledTimes(1);
+			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledWith(TestPlugin);
+		});
+
+		it('should add plugin to the collection', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			(app as any).registerPlugin(TestPlugin);
+
+			// Act && Assert
+			expect(app['_plugins']['test-plugin']).toBe(TestPlugin);
+		});
+
+		it('should add plugin to the collection with custom alias', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			(app as any).registerPlugin(TestPlugin, { alias: 'my-custom-plugin' });
+
+			// Act && Assert
+			expect(app['_plugins']['my-custom-plugin']).toBe(TestPlugin);
 		});
 	});
 

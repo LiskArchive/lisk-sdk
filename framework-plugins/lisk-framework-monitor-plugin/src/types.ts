@@ -46,6 +46,11 @@ interface TransactionPropagationStats {
 	timeReceived: number;
 }
 
+export interface BlockPropagationStats {
+	count: number;
+	height: number;
+}
+
 export interface SharedState {
 	network: {
 		outgoing: {
@@ -89,7 +94,7 @@ export interface SharedState {
 		connectedPeers: number;
 	};
 	blocks: {
-		blocks: Record<string, number>;
+		blocks: { [key: string]: BlockPropagationStats };
 		averageReceivedBlocks: number;
 		connectedPeers: number;
 	};

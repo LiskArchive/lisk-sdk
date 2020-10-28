@@ -11,9 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import * as blocks from './blocks';
 import * as transactions from './transactions';
+import * as network from './network';
 import * as forks from './forks';
 
-export { transactions };
-export { forks };
+export { blocks, transactions, network, forks };
