@@ -86,38 +86,6 @@ export class MonitorPlugin extends BasePlugin {
 		this._channel = channel;
 
 		this._state = {
-			network: {
-				outgoing: {
-					count: 0,
-					networkHeight: {
-						majorityHeight: 0,
-						numberOfPeers: 0,
-					},
-					connectStats: {
-						connects: 0,
-						disconnects: 0,
-					},
-				},
-				incoming: {
-					count: 0,
-					networkHeight: {
-						majorityHeight: 0,
-						numberOfPeers: 0,
-					},
-					connectStats: {
-						connects: 0,
-						disconnects: 0,
-					},
-				},
-				totalPeers: {
-					connected: 0,
-					disconnected: 0,
-				},
-				banning: {
-					totalBannedPeers: 0,
-					bannedPeers: {},
-				},
-			},
 			forks: {
 				forkEventCount: 0,
 				blockHeaders: {},
@@ -182,6 +150,10 @@ export class MonitorPlugin extends BasePlugin {
 		);
 		this._app.get('/api/stats/network', controllers.network.getNetworkStats(this._channel));
 		this._app.get('/api/stats/forks', controllers.forks.getForkStats(this._state));
+		this._app.get(
+			'/api/prometheus/metrics',
+			controllers.prometheusExport.getData(this._channel, this._state),
+		);
 	}
 
 	private _subscribeToEvents(): void {

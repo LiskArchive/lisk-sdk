@@ -29,12 +29,6 @@ export interface Options {
 	};
 }
 
-interface BannedPeer {
-	timeUntilUnBan: Date;
-	reason: string;
-	banCount: number;
-}
-
 interface BlockHeader {
 	// eslint-disable-next-line @typescript-eslint/ban-types
 	blockHeader: object;
@@ -52,38 +46,6 @@ export interface BlockPropagationStats {
 }
 
 export interface SharedState {
-	network: {
-		outgoing: {
-			count: number;
-			networkHeight: {
-				majorityHeight: number;
-				numberOfPeers: number;
-			};
-			connectStats: {
-				connects: number;
-				disconnects: number;
-			};
-		};
-		incoming: {
-			count: number;
-			networkHeight: {
-				majorityHeight: number;
-				numberOfPeers: number;
-			};
-			connectStats: {
-				connects: number;
-				disconnects: number;
-			};
-		};
-		totalPeers: {
-			connected: number;
-			disconnected: number;
-		};
-		banning: {
-			totalBannedPeers: number;
-			bannedPeers: Record<string, BannedPeer>;
-		};
-	};
 	forks: {
 		forkEventCount: number;
 		blockHeaders: Record<string, BlockHeader>;
