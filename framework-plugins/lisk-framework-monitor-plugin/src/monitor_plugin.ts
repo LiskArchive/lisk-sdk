@@ -234,14 +234,18 @@ export class MonitorPlugin extends BasePlugin {
 	}
 
 	private _handleFork(block: string) {
-		const { header } = codec.decode<RawBlock>(this.schemas.block, Buffer.from(block, 'hex'));
-		const decodedHeader = codec.decode<RawBlockHeader>(this.schemas.blockHeader, header);
-		const blockId = hash(header).toString('hex');
 		this._state.forks.forkEventCount += 1;
-		this._state.forks.blockHeaders[blockId] = {
-			blockHeader: decodedHeader,
-			timeReceived: Date.now(),
-		};
+		const { header } = codec.decode<RawBlock>(this.schemas.block, Buffer.from(block, 'hex'));
+		const blockId = hash(header).toString('hex');
+		if (this._state.forks.blockHeaders[blockId]) {
+			this._state.forks.blockHeaders[blockId].timeReceived = Date.now();
+		} else {
+			const decodedHeader = codec.decode<RawBlockHeader>(this.schemas.blockHeader, header);
+			this._state.forks.blockHeaders[blockId] = {
+				blockHeader: decodedHeader,
+				timeReceived: Date.now(),
+			};
+		}
 	}
 
 	private _handlePostBlock(data: EventPostBlockData) {
