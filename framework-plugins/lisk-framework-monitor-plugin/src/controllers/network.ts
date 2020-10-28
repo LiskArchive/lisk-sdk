@@ -40,9 +40,15 @@ export const getNetworkStats = (channel: BaseChannel) => async (
 ): Promise<void> => {
 	try {
 		const networkStats: { [key: string]: unknown } = await channel.invoke('app:getNetworkStats');
-		const connectedPeers = await channel.invoke('app:getConnectedPeers');
-		const majorityHeight = getMajorityHeight(connectedPeers as PeerInfo[]);
-		const data = { ...networkStats, majorityHeight };
+		const connectedPeers: PeerInfo[] = await channel.invoke('app:getConnectedPeers');
+		const disconnectedPeers: PeerInfo[] = await channel.invoke('app:getDisconnectedPeers');
+		const majorityHeight = getMajorityHeight(connectedPeers);
+		const totalPeers = {
+			connected: connectedPeers.length,
+			disconnected: disconnectedPeers.length,
+		};
+
+		const data = { ...networkStats, majorityHeight, totalPeers };
 
 		res.status(200).json({ data, meta: {} });
 	} catch (err) {

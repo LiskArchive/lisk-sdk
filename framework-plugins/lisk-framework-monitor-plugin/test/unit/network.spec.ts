@@ -18,7 +18,7 @@ import { PeerInfo } from '../../src/types';
 import { network as networkController } from '../../src/controllers';
 
 describe('networkStats', () => {
-	const peers: Partial<PeerInfo>[] = [
+	const connectedPeers: Partial<PeerInfo>[] = [
 		{ options: { height: 51 } },
 		{ options: { height: 52 } },
 		{ options: { height: 52 } },
@@ -39,6 +39,24 @@ describe('networkStats', () => {
 		{ options: { height: 53 } },
 		{ options: { height: 53 } },
 	]; // Majority is of 7 peers with height 52
+
+	const disconnectedPeers: Partial<PeerInfo>[] = [
+		{
+			ipAddress: '127.0.0.1',
+			port: 5004,
+			options: { height: 2 },
+		},
+		{
+			ipAddress: '127.0.0.1',
+			port: 5005,
+			options: { height: 34 },
+		},
+		{
+			ipAddress: '127.0.0.1',
+			port: 5006,
+			options: { height: 51 },
+		},
+	];
 
 	const defaultNetworkStats = {
 		startTime: Date.now(),
@@ -62,6 +80,10 @@ describe('networkStats', () => {
 		totalMessagesReceived: {},
 		totalRequestsReceived: {},
 		majorityHeight: { height: 52, count: 7 },
+		totalPeers: {
+			connected: connectedPeers.length,
+			disconnected: disconnectedPeers.length,
+		},
 	};
 
 	const channelMock = {
@@ -74,7 +96,9 @@ describe('networkStats', () => {
 			.calledWith('app:getNetworkStats')
 			.mockResolvedValue(defaultNetworkStats)
 			.calledWith('app:getConnectedPeers')
-			.mockResolvedValue(peers);
+			.mockResolvedValue(connectedPeers)
+			.calledWith('app:getDisconnectedPeers')
+			.mockResolvedValue(disconnectedPeers);
 	});
 
 	it('should add new transactions to state', async () => {
