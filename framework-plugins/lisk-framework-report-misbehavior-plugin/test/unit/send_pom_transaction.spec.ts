@@ -64,13 +64,10 @@ describe('Send PoM transaction', () => {
 	const header1 = codec.decode(blockHeaderSchema, blockHeader1);
 	const header2 = codec.decode(blockHeaderSchema, blockHeader2);
 
-	beforeAll(() => {
+	beforeEach(() => {
 		reportMisbehaviorPlugin = new (ReportMisbehaviorPlugin as any)();
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		(reportMisbehaviorPlugin as any)._options = { fee: '100000000' };
-	});
-
-	beforeEach(() => {
 		reportMisbehaviorPlugin.schemas = {
 			block: blockSchema,
 			blockHeader: blockHeaderSchema,
