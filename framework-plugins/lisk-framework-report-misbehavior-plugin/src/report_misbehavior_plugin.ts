@@ -34,7 +34,7 @@ import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
-import * as debug from 'debug';
+import * as Debug from 'debug';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -48,7 +48,8 @@ import * as controllers from './controllers';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
-const logger = debug('plugin:report-misbehavior');
+// eslint-disable-next-line new-cap
+const debug = Debug('plugin:report-misbehavior');
 
 export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _pluginDB!: KVStore;
@@ -176,10 +177,10 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 							transaction: encodedTransaction,
 						});
 
-						logger('Sent Report misbehavior transaction', result.transactionId);
+						debug('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
-					logger(error);
+					debug(error);
 				}
 			}
 		});
