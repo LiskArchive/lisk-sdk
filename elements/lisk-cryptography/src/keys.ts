@@ -140,3 +140,25 @@ export const validateBase32Address = (address: string, prefix = 'lsk'): boolean 
 
 	return true;
 };
+
+export const getAddressFromBase32Address = (base32Address: string): Buffer => {
+	// Ignore lsk prefix and checksum
+	const base32AddressNoPrefixNoChecksum = base32Address.substring(3, base32Address.length - 6);
+
+	const addressArray = base32AddressNoPrefixNoChecksum.split('');
+	const integerSequence = addressArray.map(char => BASE32_CHARSET.indexOf(char));
+	const integerSequence8 = convertUIntArray(integerSequence, 5, 8);
+
+	return Buffer.from(integerSequence8);
+};
+
+export const getBase32AddressFromAddress = (address: Buffer): string => {
+	const byteSequence = [];
+	for (const b of address) {
+		byteSequence.push(b);
+	}
+	const uint5Address = convertUIntArray(byteSequence, 8, 5);
+	const uint5Checksum = createChecksum(uint5Address);
+
+	return `lsk${convertUInt5ToBase32(uint5Address.concat(uint5Checksum))}`;
+};
