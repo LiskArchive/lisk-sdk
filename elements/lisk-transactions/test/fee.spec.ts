@@ -16,62 +16,62 @@
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { calculateMinFee, getMinFee } from '../src/fee';
 
-const validAssetSchema = {
-	$id: 'lisk/transfer-transaction',
-	title: 'Transfer transaction asset',
-	type: 'object',
-	required: ['amount', 'recipientAddress', 'data'],
-	properties: {
-		amount: {
-			dataType: 'uint64',
-			fieldNumber: 1,
+describe('fee', () => {
+	const validAssetSchema = {
+		$id: 'lisk/transfer-transaction',
+		title: 'Transfer transaction asset',
+		type: 'object',
+		required: ['amount', 'recipientAddress', 'data'],
+		properties: {
+			amount: {
+				dataType: 'uint64',
+				fieldNumber: 1,
+			},
+			recipientAddress: {
+				dataType: 'bytes',
+				fieldNumber: 2,
+				minLength: 20,
+				maxLength: 20,
+			},
+			data: {
+				dataType: 'string',
+				fieldNumber: 3,
+				minLength: 0,
+				maxLength: 64,
+			},
 		},
-		recipientAddress: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-			minLength: 20,
-			maxLength: 20,
-		},
-		data: {
-			dataType: 'string',
-			fieldNumber: 3,
-			minLength: 0,
-			maxLength: 64,
-		},
-	},
-};
-const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
-const validTransaction = {
-	moduleID: 2,
-	assetID: 0,
-	nonce: BigInt('1'),
-	senderPublicKey: publicKey1,
-	asset: {
-		recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
-		amount: BigInt('4008489300000000'),
-		data: '',
-	},
-};
-const baseFees = [
-	{
+	};
+	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
+	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const validTransaction = {
 		moduleID: 2,
 		assetID: 0,
-		baseFee: '10000000',
-	},
-	{
-		moduleID: 5,
-		assetID: 0,
-		baseFee: '1',
-	},
-	{
-		moduleID: 3,
-		assetID: 0,
-		baseFee: '1',
-	},
-];
+		nonce: BigInt('1'),
+		senderPublicKey: publicKey1,
+		asset: {
+			recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
+			amount: BigInt('4008489300000000'),
+			data: '',
+		},
+	};
+	const baseFees = [
+		{
+			moduleID: 2,
+			assetID: 0,
+			baseFee: '10000000',
+		},
+		{
+			moduleID: 5,
+			assetID: 0,
+			baseFee: '1',
+		},
+		{
+			moduleID: 3,
+			assetID: 0,
+			baseFee: '1',
+		},
+	];
 
-describe('fee', () => {
 	describe('getMinFee', () => {
 		it('should return minimum fee required to send to network', () => {
 			// Arrange & Assert
