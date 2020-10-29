@@ -43,22 +43,41 @@ export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
 	});
 };
 
+export const getMinPunishedHeight = (
+	sender: Account<DPOSAccountProps>,
+	delegate: Account<DPOSAccountProps>,
+): number => {
+	if (delegate.dpos.delegate.pomHeights.length === 0) {
+		return 0;
+	}
+
+	const lastPomHeight = Math.max(...delegate.dpos.delegate.pomHeights);
+
+	// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0024.md#update-to-validity-of-unlock-transaction
+	return sender.address.equals(delegate.address)
+		? lastPomHeight + SELF_VOTE_PUNISH_TIME
+		: lastPomHeight + VOTER_PUNISH_TIME;
+};
+
 export const getPunishmentPeriod = (
 	sender: Account<DPOSAccountProps>,
 	delegateAccount: Account<DPOSAccountProps>,
 	lastBlockHeight: number,
 ): number => {
-	if (delegateAccount.dpos.delegate.pomHeights.length === 0) {
-		return 0;
-	}
-	const lastPomHeight = Math.max(...delegateAccount.dpos.delegate.pomHeights);
 	const currentHeight = lastBlockHeight + 1;
-	const punishTime = sender.address.equals(delegateAccount.address)
-		? SELF_VOTE_PUNISH_TIME
-		: VOTER_PUNISH_TIME;
+	const minPunishedHeight = getMinPunishedHeight(sender, delegateAccount);
+	const remainingBlocks = minPunishedHeight - currentHeight;
 
-	return punishTime - (currentHeight - lastPomHeight);
+	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
+
+export const getMinWaitingHeight = (
+	senderAddress: Buffer,
+	delegateAddress: Buffer,
+	unlockObject: UnlockingAccountAsset,
+): number =>
+	unlockObject.unvoteHeight +
+	(senderAddress.equals(delegateAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE);
 
 export const getWaitingPeriod = (
 	senderAddress: Buffer,
@@ -67,9 +86,10 @@ export const getWaitingPeriod = (
 	unlockObject: UnlockingAccountAsset,
 ): number => {
 	const currentHeight = lastBlockHeight + 1;
-	const waitTime = senderAddress.equals(delegateAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE;
+	const minWaitingHeight = getMinWaitingHeight(senderAddress, delegateAddress, unlockObject);
+	const remainingBlocks = minWaitingHeight - currentHeight;
 
-	return waitTime - (currentHeight - unlockObject.unvoteHeight);
+	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
 
 export const isNullCharacterIncluded = (input: string): boolean =>

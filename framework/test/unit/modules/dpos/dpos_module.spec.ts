@@ -12,21 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { GenesisBlock, Account, testing } from '@liskhq/lisk-chain';
-import { DPOSAccountProps, DPoSModule } from '../../../../src/modules/dpos';
-import * as dataAccess from '../../../../src/modules/dpos/data_access';
-import * as delegates from '../../../../src/modules/dpos/delegates';
-import * as randomSeed from '../../../../src/modules/dpos/random_seed';
+import { Account, GenesisBlock, testing } from '@liskhq/lisk-chain';
+import { when } from 'jest-when';
 import {
 	AfterBlockApplyContext,
 	AfterGenesisBlockApplyContext,
 	GenesisConfig,
 } from '../../../../src';
+import { DPOSAccountProps, DPoSModule } from '../../../../src/modules/dpos';
+import * as dataAccess from '../../../../src/modules/dpos/data_access';
+import * as delegates from '../../../../src/modules/dpos/delegates';
+import * as randomSeed from '../../../../src/modules/dpos/random_seed';
 import { Rounds } from '../../../../src/modules/dpos/rounds';
 import {
 	createValidDefaultBlock,
 	genesisBlock as createGenesisBlock,
 } from '../../../fixtures/blocks';
+import { createFakeDefaultAccount } from '../../../utils/node';
+
 import Mock = jest.Mock;
 
 jest.mock('../../../../src/modules/dpos/data_access');
@@ -36,9 +39,15 @@ jest.mock('../../../../src/modules/dpos/random_seed');
 const { StateStoreMock } = testing;
 
 describe('DPoSModule', () => {
-	let dposModule: DPoSModule;
+	let dposModule!: DPoSModule;
 	let genesisConfig: GenesisConfig;
 	const reducerHandlerMock = { invoke: jest.fn() };
+	const dataAccessMock = {
+		getAccountByAddress: jest.fn(),
+	};
+	const channelMock = {
+		publish: jest.fn(),
+	};
 
 	beforeEach(() => {
 		genesisConfig = {
@@ -261,6 +270,190 @@ describe('DPoSModule', () => {
 			it('should not update validators', () => {
 				expect(randomSeed.generateRandomSeeds).not.toHaveBeenCalled();
 				expect(delegates.updateDelegateList).not.toHaveBeenCalled();
+			});
+		});
+	});
+
+	describe('actions', () => {
+		let unvoteHeight: number;
+		let account: any;
+		let delegate: any;
+		let unlockObj;
+
+		beforeEach(() => {
+			dposModule = new DPoSModule(genesisConfig);
+			dposModule.init({ channel: channelMock, dataAccess: dataAccessMock as any });
+
+			unvoteHeight = 50059;
+			account = createFakeDefaultAccount({});
+			delegate = createFakeDefaultAccount({});
+
+			when(dataAccessMock.getAccountByAddress)
+				.calledWith(account.address)
+				.mockResolvedValue(account as never);
+
+			when(dataAccessMock.getAccountByAddress)
+				.calledWith(delegate.address)
+				.mockResolvedValue(delegate as never);
+		});
+
+		describe('getUnlockings', () => {
+			it('should throw error if address is not string', async () => {
+				await expect(
+					dposModule.actions.getUnlockings({
+						address: account.address,
+					}),
+				).rejects.toThrow('Address must be a string');
+			});
+
+			describe('self vote', () => {
+				it('should return minUnlockHeight = unvoteHeight + 260000 if delegate is not punished', async () => {
+					const minUnlockHeight = unvoteHeight + 260000;
+					unlockObj = {
+						delegateAddress: account.address,
+						amount: BigInt('20000'),
+						unvoteHeight,
+					};
+					account.dpos.unlocking.push(unlockObj);
+
+					const result = await dposModule.actions.getUnlockings({
+						address: account.address.toString('hex'),
+					});
+
+					expect(result).toEqual([
+						{
+							delegateAddress: unlockObj.delegateAddress.toString('hex'),
+							amount: unlockObj.amount.toString(),
+							unvoteHeight: unlockObj.unvoteHeight,
+							minUnlockHeight,
+						},
+					]);
+				});
+
+				it('should return minUnlockHeight = lastPomHeight + 780000 if delegate is punished', async () => {
+					const punishedHeight = unvoteHeight + 102;
+					const minUnlockHeight = punishedHeight + 780000;
+					unlockObj = {
+						delegateAddress: account.address,
+						amount: BigInt('20000'),
+						unvoteHeight,
+					};
+					account.dpos.unlocking.push(unlockObj);
+					account.dpos.delegate.pomHeights = [punishedHeight];
+
+					const result = await dposModule.actions.getUnlockings({
+						address: account.address.toString('hex'),
+					});
+
+					expect(result).toEqual([
+						{
+							delegateAddress: unlockObj.delegateAddress.toString('hex'),
+							amount: unlockObj.amount.toString(),
+							unvoteHeight: unlockObj.unvoteHeight,
+							minUnlockHeight,
+						},
+					]);
+				});
+
+				it('should return minUnlockHeight = lastPomHeight + 780000 if delegate is punished for maximum punished height', async () => {
+					const punishedHeight = unvoteHeight + 102;
+					const minUnlockHeight = punishedHeight + 780000;
+					unlockObj = {
+						delegateAddress: account.address,
+						amount: BigInt('20000'),
+						unvoteHeight,
+					};
+					account.dpos.unlocking.push(unlockObj);
+					account.dpos.delegate.pomHeights = [punishedHeight, unvoteHeight - 100];
+
+					const result = await dposModule.actions.getUnlockings({
+						address: account.address.toString('hex'),
+					});
+
+					expect(result).toEqual([
+						{
+							delegateAddress: unlockObj.delegateAddress.toString('hex'),
+							amount: unlockObj.amount.toString(),
+							unvoteHeight: unlockObj.unvoteHeight,
+							minUnlockHeight,
+						},
+					]);
+				});
+			});
+
+			describe('other delegate vote', () => {
+				it('should return minUnlockHeight = unvoteHeight + 2000 if delegate is not punished', async () => {
+					const minUnlockHeight = unvoteHeight + 2000;
+					unlockObj = {
+						delegateAddress: delegate.address,
+						amount: BigInt('20000'),
+						unvoteHeight,
+					};
+					account.dpos.unlocking.push(unlockObj);
+
+					const result = await dposModule.actions.getUnlockings({
+						address: account.address.toString('hex'),
+					});
+
+					expect(result).toEqual([
+						{
+							delegateAddress: unlockObj.delegateAddress.toString('hex'),
+							amount: unlockObj.amount.toString(),
+							unvoteHeight: unlockObj.unvoteHeight,
+							minUnlockHeight,
+						},
+					]);
+				});
+
+				it('should return minUnlockHeight = lastPomHeight + 260000 if delegate is punished', async () => {
+					const punishedHeight = unvoteHeight + 102;
+					const minUnlockHeight = punishedHeight + 260000;
+					unlockObj = {
+						delegateAddress: delegate.address,
+						amount: BigInt('20000'),
+						unvoteHeight,
+					};
+					account.dpos.unlocking.push(unlockObj);
+					delegate.dpos.delegate.pomHeights = [punishedHeight];
+
+					const result = await dposModule.actions.getUnlockings({
+						address: account.address.toString('hex'),
+					});
+
+					expect(result).toEqual([
+						{
+							delegateAddress: unlockObj.delegateAddress.toString('hex'),
+							amount: unlockObj.amount.toString(),
+							unvoteHeight: unlockObj.unvoteHeight,
+							minUnlockHeight,
+						},
+					]);
+				});
+
+				it('should return minUnlockHeight = lastPomHeight + 260000 if delegate is punished for maximum punished height', async () => {
+					const punishedHeight = unvoteHeight + 102;
+					const minUnlockHeight = punishedHeight + 260000;
+					unlockObj = {
+						delegateAddress: delegate.address,
+						amount: BigInt('20000'),
+						unvoteHeight,
+					};
+					account.dpos.unlocking.push(unlockObj);
+					delegate.dpos.delegate.pomHeights = [punishedHeight, unvoteHeight - 49];
+
+					const result = await dposModule.actions.getUnlockings({
+						address: account.address.toString('hex'),
+					});
+
+					expect(result).toEqual([
+						{
+							delegateAddress: unlockObj.delegateAddress.toString('hex'),
+							amount: unlockObj.amount.toString(),
+							unvoteHeight: unlockObj.unvoteHeight,
+							minUnlockHeight,
+						},
+					]);
+				});
 			});
 		});
 	});
