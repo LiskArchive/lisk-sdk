@@ -143,6 +143,7 @@ export const validateBase32Address = (address: string, prefix = 'lsk'): boolean 
 };
 
 export const getAddressFromBase32Address = (base32Address: string, prefix = 'lsk'): Buffer => {
+	validateBase32Address(base32Address);
 	// Ignore lsk prefix and checksum
 	const base32AddressNoPrefixNoChecksum = base32Address.substring(
 		prefix.length,
