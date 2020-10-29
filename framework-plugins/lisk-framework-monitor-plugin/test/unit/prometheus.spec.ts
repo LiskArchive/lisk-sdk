@@ -125,7 +125,7 @@ describe('networkStats', () => {
 
 		const res = {
 			status: jest.fn().mockImplementation(_code => res),
-			json: jest.fn().mockImplementation(_param => res),
+			send: jest.fn().mockImplementation(_param => res),
 		} as any;
 
 		// Act
@@ -133,7 +133,7 @@ describe('networkStats', () => {
 
 		// Assert
 		expect(res.status).toHaveBeenCalledWith(200);
-		expect(res.json).toHaveBeenCalledWith({ data: expectedExportData, meta: {} });
+		expect(res.send).toHaveBeenCalledWith(expectedExportData);
 	});
 
 	it('should throw error when any channel action fails', async () => {
@@ -141,7 +141,7 @@ describe('networkStats', () => {
 		const next = jest.fn();
 		const res = {
 			status: jest.fn().mockImplementation(_code => res),
-			json: jest.fn().mockImplementation(_param => res),
+			send: jest.fn().mockImplementation(_param => res),
 		} as any;
 
 		const error = new Error('Something went wrong');

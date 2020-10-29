@@ -104,7 +104,7 @@ export const getData = (channel: BaseChannel, state: SharedState) => async (
 			},
 		];
 
-		res.status(200).json({ data: prometheusExporter(data), meta: {} });
+		res.status(200).send(prometheusExporter(data));
 	} catch (err) {
 		next(err);
 	}
