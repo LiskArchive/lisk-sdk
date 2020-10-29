@@ -55,7 +55,7 @@ describe('APIClient module', () => {
 	});
 
 	describe('when invoke is called', () => {
-		it('should disconnect from the channel', async () => {
+		it('should call the invoke of the channel', async () => {
 			const param = {
 				random: '123',
 			};

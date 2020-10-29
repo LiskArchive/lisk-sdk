@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Channel } from './types';
+import { Channel, NodeInfo } from './types';
 
 export class Node {
 	private readonly _channel: Channel;
@@ -21,7 +21,7 @@ export class Node {
 		this._channel = channel;
 	}
 
-	public async info(): Promise<Record<string, unknown>> {
+	public async info(): Promise<NodeInfo> {
 		return this._channel.invoke('app:getNodeInfo');
 	}
 }
