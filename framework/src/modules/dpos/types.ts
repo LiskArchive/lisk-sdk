@@ -32,6 +32,14 @@ export interface UnlockingAccountAsset {
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
 }
+
+export interface UnlockingInfoJSON {
+	readonly delegateAddress: string;
+	readonly amount: string;
+	readonly unvoteHeight: number;
+	readonly minUnlockHeight: number;
+}
+
 export interface VoteAccountAsset {
 	readonly delegateAddress: Buffer;
 	// Amount for some delegate can be updated
