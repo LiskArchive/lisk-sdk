@@ -85,28 +85,28 @@ describe('networkStats', () => {
 
 	const expectedExportData =
 		'# HELP Block Propagation\n' +
-		'# TYPE avg_times_block_received guage\n' +
+		'# TYPE avg_times_block_received gauge\n' +
 		'avg_times_block_received 6\n\n' +
 		'# HELP Transaction Propagation\n' +
-		'# TYPE avg_times_transaction_received guage\n' +
+		'# TYPE avg_times_transaction_received gauge\n' +
 		'avg_times_transaction_received 9\n\n' +
 		'# HELP Node Height\n' +
-		'# TYPE node_height guage\n' +
+		'# TYPE node_height gauge\n' +
 		'node_height 102\n\n' +
 		'# HELP Finalized Height\n' +
-		'# TYPE finalized_height guage\n' +
+		'# TYPE finalized_height gauge\n' +
 		'finalized_height 80\n\n' +
 		'# HELP Unconfirmed transactions\n' +
-		'# TYPE unconfirmed_transactions guage\n' +
+		'# TYPE unconfirmed_transactions gauge\n' +
 		'unconfirmed_transactions 17\n\n' +
 		'# HELP Connected peers\n' +
-		'# TYPE connected_peers guage\n' +
+		'# TYPE connected_peers gauge\n' +
 		'connected_peers 3\n\n' +
 		'# HELP Disconnected peers\n' +
-		'# TYPE disconnected_peers guage\n' +
+		'# TYPE disconnected_peers gauge\n' +
 		'disconnected_peers 3\n\n' +
 		'# HELP Fork events\n' +
-		'# TYPE fork_events guage\n' +
+		'# TYPE fork_events gauge\n' +
 		'fork_events 3\n\n';
 
 	beforeEach(() => {

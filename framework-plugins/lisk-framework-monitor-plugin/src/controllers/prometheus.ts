@@ -23,7 +23,7 @@ interface PrometheusData {
 }
 
 enum PROMETHEUS_TYPE {
-	guage = 'guage',
+	gauge = 'gauge',
 	counter = 'counter',
 	histogram = 'histogram',
 }
@@ -56,49 +56,49 @@ export const getData = (channel: BaseChannel, state: SharedState) => async (
 		const data: PrometheusData[] = [
 			{
 				help: 'Block Propagation',
-				type: PROMETHEUS_TYPE.guage,
+				type: PROMETHEUS_TYPE.gauge,
 				value: state.blocks.averageReceivedBlocks,
 				varName: 'avg_times_block_received',
 			},
 			{
 				help: 'Transaction Propagation',
-				type: PROMETHEUS_TYPE.guage,
+				type: PROMETHEUS_TYPE.gauge,
 				value: state.transactions.averageReceivedTransactions,
 				varName: 'avg_times_transaction_received',
 			},
 			{
 				help: 'Node Height',
-				type: PROMETHEUS_TYPE.guage,
+				type: PROMETHEUS_TYPE.gauge,
 				value: nodeInfo.height,
 				varName: 'node_height',
 			},
 			{
 				help: 'Finalized Height',
-				type: PROMETHEUS_TYPE.guage,
+				type: PROMETHEUS_TYPE.gauge,
 				value: nodeInfo.finalizedHeight,
 				varName: 'finalized_height',
 			},
 			{
 				help: 'Unconfirmed transactions',
-				type: PROMETHEUS_TYPE.guage,
+				type: PROMETHEUS_TYPE.gauge,
 				value: nodeInfo.unconfirmedTransactions,
 				varName: 'unconfirmed_transactions',
 			},
 			{
 				help: 'Connected peers',
-				type: PROMETHEUS_TYPE.guage,
+				type: PROMETHEUS_TYPE.gauge,
 				value: connectedPeers.length,
 				varName: 'connected_peers',
 			},
 			{
 				help: 'Disconnected peers',
-				type: PROMETHEUS_TYPE.guage,
+				type: PROMETHEUS_TYPE.gauge,
 				value: disconnectedPeers.length,
 				varName: 'disconnected_peers',
 			},
 			{
 				help: 'Fork events',
-				type: PROMETHEUS_TYPE.guage,
+				type: PROMETHEUS_TYPE.gauge,
 				value: state.forks.forkEventCount,
 				varName: 'fork_events',
 			},
