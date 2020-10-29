@@ -21,7 +21,7 @@ export const createIPCClient = async (url: string): Promise<APIClient> => {
 	const channel = ({ url } as unknown) as Channel;
 	await channel.connect();
 	const client = new APIClient(channel);
-	await client.connect();
+	await client.init();
 
 	return client;
 };

@@ -29,9 +29,9 @@ describe('APIClient module', () => {
 		client = new APIClient(channel);
 	});
 
-	describe('when connect is called', () => {
+	describe('when init is called', () => {
 		beforeEach(async () => {
-			await client.connect();
+			await client.init();
 		});
 
 		it('should get the registered schema', () => {

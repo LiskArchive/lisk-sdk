@@ -18,7 +18,7 @@ import { Channel } from './types';
 
 export const createClient = async (channel: Channel): Promise<APIClient> => {
 	const client = new APIClient(channel);
-	await client.connect();
+	await client.init();
 
 	return client;
 };

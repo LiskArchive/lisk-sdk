@@ -29,7 +29,7 @@ export interface Channel {
 	subscribe: <T>(eventName: string, cb: EventCallback<T>) => void;
 }
 
-export interface RegisteredSchema {
+export interface RegisteredSchemas {
 	account: Schema;
 	block: Schema;
 	blockHeader: Schema;

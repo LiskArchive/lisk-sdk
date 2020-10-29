@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { EventCallback, Channel, RegisteredSchema, NodeInfo } from './types';
+import { EventCallback, Channel, RegisteredSchemas, NodeInfo } from './types';
 import { Node } from './node';
 
 export class APIClient {
 	private readonly _channel: Channel;
-	private _schemas!: RegisteredSchema;
+	private _schemas!: RegisteredSchemas;
 	private _nodeInfo!: NodeInfo;
 	private _node!: Node;
 
@@ -25,8 +25,8 @@ export class APIClient {
 		this._channel = channel;
 	}
 
-	public async connect(): Promise<void> {
-		this._schemas = await this._channel.invoke<RegisteredSchema>('app:getSchema');
+	public async init(): Promise<void> {
+		this._schemas = await this._channel.invoke<RegisteredSchemas>('app:getSchema');
 		this._nodeInfo = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
 		this._node = new Node(this._channel);
 	}
