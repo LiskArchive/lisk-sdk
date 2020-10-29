@@ -54,14 +54,14 @@ export const getMinFee = (
 	trx: Record<string, unknown>,
 	options?: Options,
 ): bigint => {
-	// eslint-disable-next-line no-param-reassign
-	trx.fee = BigInt(0);
-	let minFee = calculateMinFee(assetSchema, trx, options);
+	const { fee, ...trxWithoutFee } = trx;
+	trxWithoutFee.fee = BigInt(0);
+	let minFee = calculateMinFee(assetSchema, trxWithoutFee, options);
 
-	while (minFee > BigInt(trx.fee)) {
+	while (minFee > BigInt(trxWithoutFee.fee)) {
 		// eslint-disable-next-line no-param-reassign
-		trx.fee = minFee;
-		minFee = calculateMinFee(assetSchema, trx, options);
+		trxWithoutFee.fee = minFee;
+		minFee = calculateMinFee(assetSchema, trxWithoutFee, options);
 	}
 	return minFee;
 };
