@@ -26,7 +26,7 @@ import {
 } from '../types';
 import { BaseAsset } from './base_asset';
 
-export interface BaseModuleChannel {
+interface BaseModuleChannel {
 	publish(name: string, data?: object): void;
 }
 
