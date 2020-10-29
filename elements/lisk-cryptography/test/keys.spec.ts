@@ -21,6 +21,8 @@ import {
 	getAddressFromPassphrase,
 	getAddressFromPrivateKey,
 	validateBase32Address,
+	getAddressFromBase32Address,
+	getBase32AddressFromAddress,
 } from '../src/keys';
 import { Keypair } from '../src/types';
 // Require is used for stubbing
@@ -190,6 +192,46 @@ describe('keys', () => {
 					'Invalid checksum for address.',
 				);
 			});
+		});
+	});
+
+	describe('getAddressFromBase32Address', () => {
+		const account = {
+			passphrase:
+				'boil typical oyster traffic ethics timber envelope undo lecture poverty space keep',
+			privateKey:
+				'b02cd384aae38021bc025522aca7a015b64ff1ac2e47426b5bc749951273fdbc81d0db4fba38f3ce334e6c0f3192dd62366f43daa46a94bfc55ebf6205ea2453',
+			publicKey: '81d0db4fba38f3ce334e6c0f3192dd62366f43daa46a94bfc55ebf6205ea2453',
+			binaryAddress: '4762070a641cf689f765d43ad792e1970e6bb863',
+			address: 'lsk3hyz7vtpcts3thsmduh98pwxrjnbw7ccoxchxu',
+		};
+
+		it('should throw error for invalid address', () => {
+			return expect(getAddressFromBase32Address.bind(null, 'invalid')).toThrow();
+		});
+
+		it('should return an address given a base32 address', () => {
+			expect(getAddressFromBase32Address(account.address).toString('hex')).toBe(
+				account.binaryAddress,
+			);
+		});
+	});
+
+	describe('getBase32AddressFromAddress', () => {
+		const account = {
+			passphrase:
+				'boil typical oyster traffic ethics timber envelope undo lecture poverty space keep',
+			privateKey:
+				'b02cd384aae38021bc025522aca7a015b64ff1ac2e47426b5bc749951273fdbc81d0db4fba38f3ce334e6c0f3192dd62366f43daa46a94bfc55ebf6205ea2453',
+			publicKey: '81d0db4fba38f3ce334e6c0f3192dd62366f43daa46a94bfc55ebf6205ea2453',
+			binaryAddress: '4762070a641cf689f765d43ad792e1970e6bb863',
+			address: 'lsk3hyz7vtpcts3thsmduh98pwxrjnbw7ccoxchxu',
+		};
+
+		it('should return base32 address given an address', () => {
+			expect(getBase32AddressFromAddress(Buffer.from(account.binaryAddress, 'hex'))).toBe(
+				account.address,
+			);
 		});
 	});
 });
