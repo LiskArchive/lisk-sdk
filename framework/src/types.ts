@@ -260,7 +260,10 @@ export interface Consensus {
 // Base Module
 export interface BaseModuleDataAccess {
 	getChainState(key: string): Promise<Buffer | undefined>;
+	/** @deprecated */
 	getAccount(address: Buffer): Promise<Account>;
+	getAccountByAddress<T>(address: Buffer): Promise<Account<T>>;
+	getLastBlockHeader(): Promise<BlockHeader>;
 }
 
 export interface RegisteredModule {

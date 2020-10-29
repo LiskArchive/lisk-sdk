@@ -12,28 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as Debug from 'debug';
-import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { Account } from '@liskhq/lisk-chain';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { BaseModule } from '../base_module';
+import { objects as objectsUtils } from '@liskhq/lisk-utils';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import * as Debug from 'debug';
+import { getMinWaitingHeight, getMinPunishedHeight } from './utils';
 import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
-import { Rounds } from './rounds';
-import { DPOSAccountProps, RegisteredDelegate, RegisteredDelegates } from './types';
-import { dposAccountSchema, dposModuleParamsSchema, delegatesUserNamesSchema } from './schema';
-import { generateRandomSeeds } from './random_seed';
+import { BaseModule } from '../base_module';
+import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
+import { deleteVoteWeightsUntilRound, setRegisteredDelegates } from './data_access';
 import {
 	createVoteWeightsSnapshot,
 	updateDelegateList,
 	updateDelegateProductivity,
 } from './delegates';
-import { deleteVoteWeightsUntilRound, setRegisteredDelegates } from './data_access';
-import { RegisterTransactionAsset } from './transaction_assets/register_transaction_asset';
-import { VoteTransactionAsset } from './transaction_assets/vote_transaction_asset';
-import { UnlockTransactionAsset } from './transaction_assets/unlock_transaction_asset';
+import { generateRandomSeeds } from './random_seed';
+import { Rounds } from './rounds';
+import { delegatesUserNamesSchema, dposAccountSchema, dposModuleParamsSchema } from './schema';
 import { PomTransactionAsset } from './transaction_assets/pom_transaction_asset';
-import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
+import { RegisterTransactionAsset } from './transaction_assets/register_transaction_asset';
+import { UnlockTransactionAsset } from './transaction_assets/unlock_transaction_asset';
+import { VoteTransactionAsset } from './transaction_assets/vote_transaction_asset';
+import {
+	DPOSAccountProps,
+	RegisteredDelegate,
+	RegisteredDelegates,
+	UnlockingInfoJSON,
+} from './types';
 
 const { bufferArrayContains } = objectsUtils;
 const dposModuleParamsDefault = {
@@ -90,6 +96,38 @@ export class DPoSModule extends BaseModule {
 					username: delegate.username,
 					address: delegate.address.toString('hex'),
 				}));
+			},
+
+			getUnlockings: async (params: Record<string, unknown>): Promise<UnlockingInfoJSON[]> => {
+				if (typeof params.address !== 'string') {
+					throw new Error('Address must be a string');
+				}
+				const address = Buffer.from(params.address, 'hex');
+
+				const account = await this._dataAccess.getAccountByAddress<DPOSAccountProps>(address);
+				const result: UnlockingInfoJSON[] = [];
+
+				for (const unlocking of account.dpos.unlocking) {
+					const delegate = await this._dataAccess.getAccountByAddress<DPOSAccountProps>(
+						unlocking.delegateAddress,
+					);
+
+					const minWaitingHeight = getMinWaitingHeight(
+						account.address,
+						delegate.address,
+						unlocking,
+					);
+					const minPunishedHeight = getMinPunishedHeight(account, delegate);
+
+					result.push({
+						delegateAddress: unlocking.delegateAddress.toString('hex'),
+						amount: unlocking.amount.toString(),
+						unvoteHeight: unlocking.unvoteHeight,
+						minUnlockHeight: Math.max(minWaitingHeight, minPunishedHeight),
+					});
+				}
+
+				return result;
 			},
 		};
 
