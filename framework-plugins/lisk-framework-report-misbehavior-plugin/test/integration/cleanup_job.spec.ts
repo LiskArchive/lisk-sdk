@@ -111,7 +111,7 @@ describe('Clean up old blocks', () => {
 	});
 
 	afterEach(async () => {
-		await (reportMisbehaviorPlugin as any).unload();
+		await reportMisbehaviorPlugin.unload();
 	});
 
 	it('should clear old blockheaders', async () => {
