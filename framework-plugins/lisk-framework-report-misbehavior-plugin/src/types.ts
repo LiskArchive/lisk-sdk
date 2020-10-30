@@ -32,9 +32,11 @@ export interface Options {
 		readonly serverSetTimeout: number;
 	};
 	readonly fee: number;
+	readonly clearBlockHeadersInterval: number;
 }
 
 export interface State {
 	publicKey?: Buffer;
 	passphrase?: string;
+	currentHeight: number;
 }
