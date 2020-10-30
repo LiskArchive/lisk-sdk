@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+export { findRequiredMinFee } from './fee';
+export { convertBeddowsToLSK, convertLSKToBeddows } from './format';
 export { getSigningBytes, signTransaction, signMultiSignatureTransaction } from './sign';
 export { validateTransaction } from './validate';
-export { convertBeddowsToLSK, convertLSKToBeddows } from './format';
