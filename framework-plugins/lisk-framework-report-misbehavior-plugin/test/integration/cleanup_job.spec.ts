@@ -13,7 +13,6 @@
  */
 import * as os from 'os';
 import * as path from 'path';
-import { when } from 'jest-when';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import {
 	blockHeaderAssetSchema,
@@ -28,8 +27,6 @@ import { defaultAccount } from '../fixtures/devnet';
 
 describe('Clean up old blocks', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
-	const defaultNetworkIdentifier =
-		'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 	const accountSchema = {
 		$id: 'accountSchema',
 		type: 'object',
