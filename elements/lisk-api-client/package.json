@@ -36,10 +36,10 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@types/node": "12.12.11",
-		"axios": "0.19.2"
+		"@liskhq/lisk-codec": "^0.1.0-alpha.0"
 	},
 	"devDependencies": {
+		"@types/node": "12.12.11",
 		"@types/jest": "26.0.13",
 		"@types/jest-when": "2.7.1",
 		"@typescript-eslint/eslint-plugin": "3.10.1",

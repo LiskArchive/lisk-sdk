@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,6 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { createWSClient } from './ws_client';
-export { createClient } from './client';
-export { createIPCClient } from './ipc_client';
+
+import { APIClient } from './api_client';
+import { Channel } from './types';
+
+export const createWSClient = async (url: string): Promise<APIClient> => {
+	// FIXME: requires real implementation
+	const channel = ({ url } as unknown) as Channel;
+	await channel.connect();
+	const client = new APIClient(channel);
+	await client.init();
+
+	return client;
+};
