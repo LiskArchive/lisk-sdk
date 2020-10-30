@@ -56,7 +56,7 @@ describe('Clean up old blocks', () => {
 		actions: {},
 		moduleAlias: '',
 		options: {},
-	} as any;
+	};
 	const blockHeader1 = Buffer.from(
 		'08021080897a18a0f73622209696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b2a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553220addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca93880c8afa025421a08d08e2a10e0dc2a1a10c8c557b5dba8527c0e760124128fd15c4a4056b412aa25c49e5c3cc97257972249fd0ad65f8e431264d9c04b639b46b0839b01ae8d239a354798bae1873c8318a25ef61a8dc9c7a0982da17afb24fbe15c05',
 		'hex',
@@ -115,7 +115,7 @@ describe('Clean up old blocks', () => {
 	});
 
 	it('should clear old blockheaders', async () => {
-		await (reportMisbehaviorPlugin as any).load(channelMock);
+		await reportMisbehaviorPlugin.load(channelMock);
 		await (reportMisbehaviorPlugin as any)._pluginDB.put(
 			dbKey,
 			codec.encode(blockHeadersSchema, {
@@ -123,11 +123,8 @@ describe('Clean up old blocks', () => {
 			}),
 		);
 		await new Promise(resolve => setTimeout(resolve, 100));
-		try {
-			await (reportMisbehaviorPlugin as any)._pluginDB.get(dbKey);
-		} catch (err) {
-			// eslint-disable-next-line jest/no-try-expect
-			expect(err.message).toBe(`Specified key ${dbKey} does not exist`);
-		}
+		await expect((reportMisbehaviorPlugin as any)._pluginDB.get(dbKey)).rejects.toThrow(
+			`Specified key ${dbKey} does not exist`,
+		);
 	});
 });
