@@ -111,12 +111,6 @@ describe('Clean up old blocks', () => {
 			publicKey: getAddressAndPublicKeyFromPassphrase(defaultAccount.passphrase).publicKey,
 			currentHeight: 1000000000,
 		};
-		when(channelMock.invoke)
-			.calledWith('app:getAccount')
-			.mockResolvedValue('1a020801' as never);
-		when(channelMock.invoke)
-			.calledWith('app:getNodeInfo')
-			.mockResolvedValue({ networkIdentifier: defaultNetworkIdentifier } as never);
 	});
 
 	afterEach(async () => {

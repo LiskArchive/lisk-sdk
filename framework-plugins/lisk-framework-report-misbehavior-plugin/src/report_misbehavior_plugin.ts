@@ -111,7 +111,6 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		this._server = this._app.listen(this._options.port, '0.0.0.0');
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._clearBlockHeadersIntervalId = setInterval(async () => {
-			// Get current height
 			await clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight);
 		}, this._clearBlockHeadersInterval);
 	}
