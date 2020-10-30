@@ -14,7 +14,7 @@
  */
 
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { calculateMinFee, getMinFee } from '../src/fee';
+import { calculateMinFee, findRequiredMinFee } from '../src/fee';
 
 describe('fee', () => {
 	const validAssetSchema = {
@@ -72,10 +72,10 @@ describe('fee', () => {
 		},
 	];
 
-	describe('getMinFee', () => {
+	describe('findRequiredMinFee', () => {
 		it('should return minimum fee required to send to network', () => {
 			// Arrange & Assert
-			const minFee = getMinFee(validAssetSchema, validTransaction);
+			const minFee = findRequiredMinFee(validAssetSchema, validTransaction);
 
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();
@@ -91,7 +91,7 @@ describe('fee', () => {
 		it('should calculate minimum fee for given minFeePerByte', () => {
 			// Arrange & Assert
 			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 1 };
-			const minFee = getMinFee(validAssetSchema, validTransaction, options);
+			const minFee = findRequiredMinFee(validAssetSchema, validTransaction, options);
 
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();
@@ -108,7 +108,7 @@ describe('fee', () => {
 		it('should calculate minimum fee for transaction from multisignature account', () => {
 			// Arrange & Assert
 			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 64 };
-			const minFee = getMinFee(validAssetSchema, validTransaction, options);
+			const minFee = findRequiredMinFee(validAssetSchema, validTransaction, options);
 
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();
@@ -144,7 +144,11 @@ describe('fee', () => {
 					},
 				},
 			};
-			const minFee = getMinFee(delegateRegisterAssetSchema, delegateRegisterTransaction, options);
+			const minFee = findRequiredMinFee(
+				delegateRegisterAssetSchema,
+				delegateRegisterTransaction,
+				options,
+			);
 
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();

@@ -49,7 +49,7 @@ export const calculateMinFee = (
 	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE)) + BigInt(baseFee);
 };
 
-export const getMinFee = (
+export const findRequiredMinFee = (
 	assetSchema: object,
 	trx: Record<string, unknown>,
 	options?: Options,
