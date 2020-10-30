@@ -139,16 +139,16 @@ export const clearBlockHeaders = async (
 	schemas: RegisteredSchema,
 	currentHeight: number,
 ): Promise<void> => {
-	const batch = db.batch();
-	await new Promise((resolve, reject) => {
+	const keys = await new Promise<string[]>((resolve, reject) => {
 		const stream = db.createReadStream() as IteratableStream;
+		const res: string[] = [];
 		stream
 			.on('data', ({ key, value }: { key: string; value: Buffer }) => {
 				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
 				for (const encodedHeader of blockHeaders) {
 					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
 					if (decodedBlockHeader.height < currentHeight - 260000) {
-						batch.del(key);
+						res.push(key);
 					}
 				}
 			})
@@ -156,8 +156,12 @@ export const clearBlockHeaders = async (
 				reject(error);
 			})
 			.on('end', () => {
-				resolve(undefined);
+				resolve(res);
 			});
 	});
+	const batch = db.batch();
+	for (const k of keys) {
+		batch.del(k);
+	}
 	await batch.write();
 };
