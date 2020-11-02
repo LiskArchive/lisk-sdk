@@ -76,7 +76,7 @@ export class WSServer {
 			for (const socket of this.server.clients) {
 				const aClient = socket as WebSocketWithTracking;
 				if (aClient.isAlive === false) {
-				  return socket.terminate();
+					return socket.terminate();
 				}
 
 				aClient.isAlive = false;
