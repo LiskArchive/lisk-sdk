@@ -44,8 +44,48 @@ export interface RegisteredSchemas {
 	}[];
 }
 
+export interface RegisteredModule {
+	id: number;
+	name: string;
+	actions: string[];
+	events: string[];
+	reducers: string[];
+	transactionAssets: {
+		id: number;
+		name: string;
+	}[];
+}
+
+export interface GenesisConfig {
+	[key: string]: unknown;
+	bftThreshold: number;
+	communityIdentifier: string;
+	blockTime: number;
+	maxPayloadLength: number;
+	rewards: {
+		milestones: string[];
+		offset: number;
+		distance: number;
+	};
+	minFeePerByte: number;
+	baseFees: {
+		moduleID: number;
+		assetID: number;
+		baseFee: string;
+	}[];
+}
+
 export interface NodeInfo {
+	version: string;
+	networkVersion: string;
 	networkIdentifier: string;
+	lastBlockID: string;
+	height: number;
+	finalizedHeight: number;
+	syncing: boolean;
+	unconfirmedTransactions: number;
+	genesisConfig: GenesisConfig;
+	registeredModules: RegisteredModule[];
 }
 
 export interface MultiSignatureKeys {

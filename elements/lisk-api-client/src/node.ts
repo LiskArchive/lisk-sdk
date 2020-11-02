@@ -21,7 +21,7 @@ export class Node {
 		this._channel = channel;
 	}
 
-	public async info(): Promise<NodeInfo> {
+	public async getNodeInfo(): Promise<NodeInfo> {
 		return this._channel.invoke('app:getNodeInfo');
 	}
 }
