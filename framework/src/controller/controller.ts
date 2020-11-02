@@ -31,6 +31,11 @@ export interface ControllerOptions {
 		readonly ipc: {
 			readonly enabled: boolean;
 		};
+		readonly rpc: {
+			readonly enable: boolean;
+			readonly mode: string;
+			readonly port?: number;
+		};
 	};
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
@@ -49,6 +54,11 @@ interface ControllerConfig {
 	};
 	readonly ipc: {
 		readonly enabled: boolean;
+	};
+	rpc: {
+		readonly enable: boolean;
+		readonly mode: string;
+		readonly port?: number;
 	};
 }
 
@@ -87,6 +97,7 @@ export class Controller {
 				sub: `unix://${dirs.sockets}/lisk_sub.sock`,
 				rpc: `unix://${dirs.sockets}/lisk_rpc.sock`,
 			},
+			rpc: options.config.rpc,
 		};
 
 		this._inMemoryPlugins = {};

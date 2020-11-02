@@ -22,12 +22,18 @@ import { BaseChannel } from './channels/base_channel';
 import { EventInfoObject, EventsArray } from './event';
 import { IPCServer } from './ipc/ipc_server';
 import { ActionInfoForBus, SocketPaths } from '../types';
+import { WSServer } from './ws/ws_server';
 
 interface BusConfiguration {
 	ipc: {
 		readonly enabled: boolean;
 	};
 	socketsPath: SocketPaths;
+	rpc: {
+		readonly enable: boolean;
+		readonly mode: string;
+		readonly port?: number;
+	};
 }
 
 interface RegisterChannelOptions {
@@ -68,6 +74,8 @@ export class Bus {
 	private readonly _ipcServer: IPCServer;
 	private readonly _emitter: EventEmitter2;
 
+	private readonly _WSServer!: WSServer;
+
 	public constructor(logger: Logger, config: BusConfiguration) {
 		this.logger = logger;
 		this.config = config;
@@ -88,6 +96,15 @@ export class Bus {
 			socketsDir: this.config.socketsPath.root,
 			name: 'bus',
 		});
+
+		if (config.rpc.enable && config.rpc.mode === 'ws') {
+			this._WSServer = new WSServer({
+				path: '/ws',
+				port: config.rpc.port ?? 8080,
+				logger: this.logger,
+			});
+			this._WSServer.start();
+		}
 	}
 
 	public async setup(): Promise<boolean> {
