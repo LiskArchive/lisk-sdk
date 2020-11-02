@@ -171,6 +171,12 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 						return;
 					}
 					const decodedBlockHeader = decodeBlockHeader(header, this.schemas);
+
+					// Set new currentHeight
+					if (decodedBlockHeader.height > this._state.currentHeight) {
+						this._state.currentHeight = decodedBlockHeader.height;
+					}
+
 					const contradictingBlock = await getContradictingBlockHeader(
 						this._pluginDB,
 						decodedBlockHeader,
@@ -187,10 +193,6 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 							transaction: encodedTransaction,
 						});
 
-						// Set new currentHeight
-						if (decodedBlockHeader.height > this._state.currentHeight) {
-							this._state.currentHeight = decodedBlockHeader.height;
-						}
 						debug('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
