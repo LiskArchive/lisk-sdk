@@ -58,34 +58,34 @@ export interface RegisteredModule {
 
 export interface GenesisConfig {
 	[key: string]: unknown;
-	bftThreshold: number;
-	communityIdentifier: string;
-	blockTime: number;
-	maxPayloadLength: number;
-	rewards: {
-		milestones: string[];
-		offset: number;
-		distance: number;
+	readonly bftThreshold: number;
+	readonly communityIdentifier: string;
+	readonly blockTime: number;
+	readonly maxPayloadLength: number;
+	readonly rewards: {
+		readonly milestones: string[];
+		readonly offset: number;
+		readonly distance: number;
 	};
-	minFeePerByte: number;
-	baseFees: {
-		moduleID: number;
-		assetID: number;
-		baseFee: string;
+	readonly minFeePerByte: number;
+	readonly baseFees: {
+		readonly moduleID: number;
+		readonly assetID: number;
+		readonly baseFee: string;
 	}[];
 }
 
 export interface NodeInfo {
-	version: string;
-	networkVersion: string;
-	networkIdentifier: string;
-	lastBlockID: string;
-	height: number;
-	finalizedHeight: number;
-	syncing: boolean;
-	unconfirmedTransactions: number;
-	genesisConfig: GenesisConfig;
-	registeredModules: RegisteredModule[];
+	readonly version: string;
+	readonly networkVersion: string;
+	readonly networkIdentifier: string;
+	readonly lastBlockID: string;
+	readonly height: number;
+	readonly finalizedHeight: number;
+	readonly syncing: boolean;
+	readonly unconfirmedTransactions: number;
+	readonly genesisConfig: GenesisConfig;
+	readonly registeredModules: RegisteredModule[];
 }
 
 export interface MultiSignatureKeys {
@@ -115,14 +115,23 @@ export interface NetworkStats {
 			};
 		};
 	};
-	totalErrors: number;
-	totalRemovedPeers: number;
-	totalMessagesReceived: {
+	readonly totalErrors: number;
+	readonly totalRemovedPeers: number;
+	readonly totalMessagesReceived: {
 		[key: string]: number;
 	};
-	totalRequestsReceived: {
+	readonly totalRequestsReceived: {
 		[key: string]: number;
 	};
-	totalPeersDiscovered: number;
+	readonly totalPeersDiscovered: number;
 	readonly startTime: number;
+}
+
+export interface PeerInfo {
+	readonly ipAddress: string;
+	readonly port: number;
+	readonly networkIdentifier?: string;
+	readonly networkVersion?: string;
+	readonly nonce?: string;
+	readonly options?: { [key: string]: unknown };
 }

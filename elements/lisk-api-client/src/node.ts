@@ -1,4 +1,3 @@
-import { NetworkStats } from '../../lisk-p2p/src/types';
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -13,7 +12,7 @@ import { NetworkStats } from '../../lisk-p2p/src/types';
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Channel, NodeInfo } from './types';
+import { Channel, NodeInfo, NetworkStats, PeerInfo } from './types';
 
 export class Node {
 	private readonly _channel: Channel;
@@ -28,5 +27,9 @@ export class Node {
 
 	public async getNetworkStats(): Promise<NetworkStats> {
 		return this._channel.invoke('app:getNetworkStats');
+	}
+
+	public async getConnectedPeers(): Promise<PeerInfo[]> {
+		return this._channel.invoke('app:getConnectedPeers');
 	}
 }
