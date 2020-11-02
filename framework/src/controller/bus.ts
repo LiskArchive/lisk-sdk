@@ -32,7 +32,7 @@ interface BusConfiguration {
 	rpc: {
 		readonly enable: boolean;
 		readonly mode: string;
-		readonly port?: number;
+		readonly port: number;
 	};
 }
 
@@ -100,7 +100,7 @@ export class Bus {
 		if (config.rpc.enable && config.rpc.mode === 'ws') {
 			this._WSServer = new WSServer({
 				path: '/ws',
-				port: config.rpc.port ?? 8080,
+				port: config.rpc.port,
 				logger: this.logger,
 			});
 			this._WSServer.start();

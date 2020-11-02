@@ -34,7 +34,7 @@ export interface ControllerOptions {
 		readonly rpc: {
 			readonly enable: boolean;
 			readonly mode: string;
-			readonly port?: number;
+			readonly port: number;
 		};
 	};
 	readonly logger: Logger;
@@ -58,7 +58,7 @@ interface ControllerConfig {
 	rpc: {
 		readonly enable: boolean;
 		readonly mode: string;
-		readonly port?: number;
+		readonly port: number;
 	};
 }
 

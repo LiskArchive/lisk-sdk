@@ -143,7 +143,7 @@ type RecursivePartial<T> = {
 interface RPCConfig {
 	enable: boolean;
 	mode: 'ipc' | 'ws';
-	port?: number;
+	port: number;
 }
 
 export interface ApplicationConfig {
