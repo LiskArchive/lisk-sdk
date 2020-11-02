@@ -28,7 +28,7 @@ export class APIClient {
 	public async init(): Promise<void> {
 		this._node = new Node(this._channel);
 		this._schemas = await this._channel.invoke<RegisteredSchemas>('app:getSchema');
-		this._nodeInfo = await this._node.info();
+		this._nodeInfo = await this._node.getNodeInfo();
 	}
 
 	public async disconnect(): Promise<void> {
