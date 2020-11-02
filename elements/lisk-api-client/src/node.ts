@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Channel, NodeInfo } from './types';
+import { Channel, NodeInfo, NetworkStats, PeerInfo } from './types';
 
 export class Node {
 	private readonly _channel: Channel;
@@ -21,7 +21,19 @@ export class Node {
 		this._channel = channel;
 	}
 
-	public async info(): Promise<NodeInfo> {
+	public async getNodeInfo(): Promise<NodeInfo> {
 		return this._channel.invoke('app:getNodeInfo');
+	}
+
+	public async getNetworkStats(): Promise<NetworkStats> {
+		return this._channel.invoke('app:getNetworkStats');
+	}
+
+	public async getConnectedPeers(): Promise<PeerInfo[]> {
+		return this._channel.invoke('app:getConnectedPeers');
+	}
+
+	public async getDisconnectedPeers(): Promise<PeerInfo[]> {
+		return this._channel.invoke('app:getDisconnectedPeers');
 	}
 }
