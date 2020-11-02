@@ -93,3 +93,36 @@ export interface MultiSignatureKeys {
 	readonly optionalKeys: Buffer[];
 	readonly numberOfSignatures: number;
 }
+
+export interface NetworkStats {
+	[key: string]: unknown;
+	readonly outgoing: {
+		count: number;
+		connects: number;
+		disconnects: number;
+	};
+	readonly incoming: {
+		count: number;
+		connects: number;
+		disconnects: number;
+	};
+	readonly banning: {
+		totalBannedPeers: number;
+		bannedPeers: {
+			[key: string]: {
+				lastBanTime: number;
+				banCount: number;
+			};
+		};
+	};
+	totalErrors: number;
+	totalRemovedPeers: number;
+	totalMessagesReceived: {
+		[key: string]: number;
+	};
+	totalRequestsReceived: {
+		[key: string]: number;
+	};
+	totalPeersDiscovered: number;
+	readonly startTime: number;
+}
