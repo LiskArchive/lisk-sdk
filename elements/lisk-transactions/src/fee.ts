@@ -32,7 +32,7 @@ const DEFAULT_NUMBER_OF_SIGNATURES = 1;
 const DEFAULT_BASE_FEE = '0';
 const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
 
-export const calculateMinFee = (
+const computeTransactionMinFee = (
 	assetSchema: object,
 	trx: Record<string, unknown>,
 	options?: Options,
@@ -49,19 +49,19 @@ export const calculateMinFee = (
 	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE)) + BigInt(baseFee);
 };
 
-export const findRequiredMinFee = (
+export const computeMinFee = (
 	assetSchema: object,
 	trx: Record<string, unknown>,
 	options?: Options,
 ): bigint => {
 	const { fee, ...trxWithoutFee } = trx;
 	trxWithoutFee.fee = BigInt(0);
-	let minFee = calculateMinFee(assetSchema, trxWithoutFee, options);
+	let minFee = computeTransactionMinFee(assetSchema, trxWithoutFee, options);
 
 	while (minFee > BigInt(trxWithoutFee.fee)) {
 		// eslint-disable-next-line no-param-reassign
 		trxWithoutFee.fee = minFee;
-		minFee = calculateMinFee(assetSchema, trxWithoutFee, options);
+		minFee = computeTransactionMinFee(assetSchema, trxWithoutFee, options);
 	}
 	return minFee;
 };

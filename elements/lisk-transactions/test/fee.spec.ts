@@ -14,7 +14,7 @@
  */
 
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { calculateMinFee, findRequiredMinFee } from '../src/fee';
+import { computeMinFee } from '../src';
 
 describe('fee', () => {
 	const validAssetSchema = {
@@ -72,58 +72,38 @@ describe('fee', () => {
 		},
 	];
 
-	describe('findRequiredMinFee', () => {
+	describe('computeMinFee', () => {
 		it('should return minimum fee required to send to network', () => {
-			// Arrange & Assert
-			const minFee = findRequiredMinFee(validAssetSchema, validTransaction);
+			// Arrange
+			const minFee = computeMinFee(validAssetSchema, validTransaction);
 
+			// Assert
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();
-
-			// Arrange & Assert
-			const computedMinFee = calculateMinFee(validAssetSchema, {
-				...validTransaction,
-				fee: minFee,
-			});
-			expect(minFee).toEqual(computedMinFee);
 		});
 
 		it('should calculate minimum fee for given minFeePerByte', () => {
-			// Arrange & Assert
+			// Arrange
 			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 1 };
-			const minFee = findRequiredMinFee(validAssetSchema, validTransaction, options);
+			const minFee = computeMinFee(validAssetSchema, validTransaction, options);
 
+			// Assert
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();
-
-			// Arrange & Assert
-			const computedMinFee = calculateMinFee(
-				validAssetSchema,
-				{ ...validTransaction, fee: minFee },
-				options,
-			);
-			expect(minFee).toEqual(computedMinFee);
 		});
 
 		it('should calculate minimum fee for transaction from multisignature account', () => {
-			// Arrange & Assert
+			// Arrange
 			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 64 };
-			const minFee = findRequiredMinFee(validAssetSchema, validTransaction, options);
+			const minFee = computeMinFee(validAssetSchema, validTransaction, options);
 
+			// Assert
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();
-
-			// Arrange & Assert
-			const computedMinFee = calculateMinFee(
-				validAssetSchema,
-				{ ...validTransaction, fee: minFee },
-				options,
-			);
-			expect(minFee).toEqual(computedMinFee);
 		});
 
 		it('should calculate minimum fee for delegate registration transaction', () => {
-			// Arrange & Assert
+			// Arrange
 			const delegateRegisterTransaction = {
 				...validTransaction,
 				moduleID: 5,
@@ -144,22 +124,15 @@ describe('fee', () => {
 					},
 				},
 			};
-			const minFee = findRequiredMinFee(
+			const minFee = computeMinFee(
 				delegateRegisterAssetSchema,
 				delegateRegisterTransaction,
 				options,
 			);
 
+			// Assert
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();
-
-			// Arrange & Assert
-			const computedMinFee = calculateMinFee(
-				delegateRegisterAssetSchema,
-				{ ...delegateRegisterTransaction, fee: minFee },
-				options,
-			);
-			expect(minFee).toEqual(computedMinFee);
 		});
 	});
 });
