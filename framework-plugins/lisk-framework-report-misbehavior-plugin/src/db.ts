@@ -133,3 +133,35 @@ export const getContradictingBlockHeader = async (
 				resolve(undefined);
 			});
 	});
+
+export const clearBlockHeaders = async (
+	db: KVStore,
+	schemas: RegisteredSchema,
+	currentHeight: number,
+): Promise<void> => {
+	const keys = await new Promise<string[]>((resolve, reject) => {
+		const stream = db.createReadStream() as IteratableStream;
+		const res: string[] = [];
+		stream
+			.on('data', ({ key, value }: { key: string; value: Buffer }) => {
+				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
+				for (const encodedHeader of blockHeaders) {
+					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
+					if (decodedBlockHeader.height < currentHeight - 260000) {
+						res.push(key);
+					}
+				}
+			})
+			.on('error', error => {
+				reject(error);
+			})
+			.on('end', () => {
+				resolve(res);
+			});
+	});
+	const batch = db.batch();
+	for (const k of keys) {
+		batch.del(k);
+	}
+	await batch.write();
+};
