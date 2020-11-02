@@ -78,6 +78,11 @@ describe('Controller Class', () => {
 		ipc: {
 			enabled: false,
 		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
+		},
 	};
 	const childProcessMock = {
 		send: jest.fn(),
@@ -104,6 +109,11 @@ describe('Controller Class', () => {
 			pub: `unix://${systemDirs.sockets}/lisk_pub.sock`,
 			sub: `unix://${systemDirs.sockets}/lisk_sub.sock`,
 			rpc: `unix://${systemDirs.sockets}/lisk_rpc.sock`,
+		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
 		},
 	};
 

@@ -31,6 +31,11 @@ describe('Bus', () => {
 		socketsPath: {
 			root: '',
 		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
+		},
 	};
 
 	const channelMock: any = {};
