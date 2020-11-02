@@ -45,6 +45,11 @@ Object {
       "networkVersion": "1.1",
       "plugins": Object {},
       "rootPath": "~/.lisk",
+      "rpc": Object {
+        "enable": false,
+        "mode": "ipc",
+        "port": 8080,
+      },
       "transactionPool": Object {
         "maxTransactions": 4096,
         "maxTransactionsPerAccount": 64,
@@ -389,6 +394,26 @@ Object {
         "maxLength": 50,
         "minLength": 1,
         "type": "string",
+      },
+      "rpc": Object {
+        "properties": Object {
+          "enable": Object {
+            "type": "boolean",
+          },
+          "mode": Object {
+            "enum": Array [
+              "ipc",
+              "ws",
+            ],
+            "type": "string",
+          },
+          "port": Object {
+            "maximum": 65535,
+            "minimum": 1024,
+            "type": "number",
+          },
+        },
+        "type": "object",
       },
       "transactionPool": Object {
         "properties": Object {

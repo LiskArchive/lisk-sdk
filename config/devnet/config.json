@@ -2211,5 +2211,10 @@
 		],
 		"defaultPassword": "elephant tree paris dragon chair galaxy"
 	},
-	"plugins": {}
+	"plugins": {},
+	"rpc": {
+		"enable": false,
+		"mode": "ws",
+		"port": 19000
+	}
 }

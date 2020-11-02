@@ -2214,7 +2214,7 @@ Object {
     "port": 5000,
     "seedPeers": Array [
       Object {
-        "ip": "127.0.0.1",
+        "ip": "82.196.7.233",
         "port": 5000,
       },
     ],
@@ -2222,6 +2222,11 @@ Object {
   "networkVersion": "1.1",
   "plugins": Object {},
   "rootPath": "~/.lisk",
+  "rpc": Object {
+    "enable": false,
+    "mode": "ws",
+    "port": 19000,
+  },
   "transactionPool": Object {
     "maxTransactions": 4096,
     "maxTransactionsPerAccount": 64,
