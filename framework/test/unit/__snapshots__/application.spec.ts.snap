@@ -2214,7 +2214,7 @@ Object {
     "port": 5000,
     "seedPeers": Array [
       Object {
-        "ip": "82.196.7.233",
+        "ip": "127.0.0.1",
         "port": 5000,
       },
     ],
