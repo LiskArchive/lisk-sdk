@@ -75,7 +75,9 @@ export class WSServer {
 		return setInterval(() => {
 			for (const socket of this.server.clients) {
 				const aClient = socket as WebSocketWithTracking;
-				if (aClient.isAlive === false) return socket.terminate();
+				if (aClient.isAlive === false) {
+				  return socket.terminate();
+				}
 
 				aClient.isAlive = false;
 				// eslint-disable-next-line @typescript-eslint/no-empty-function
