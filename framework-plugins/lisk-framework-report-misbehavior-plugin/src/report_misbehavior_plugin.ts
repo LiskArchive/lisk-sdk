@@ -40,6 +40,7 @@ import {
 	saveBlockHeaders,
 	getContradictingBlockHeader,
 	decodeBlockHeader,
+	clearBlockHeaders,
 } from './db';
 import * as config from './defaults';
 import * as middlewares from './middlewares';
@@ -56,8 +57,10 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
 	private _options!: Options;
-	private readonly _state: State = {};
+	private readonly _state: State = { currentHeight: 0 };
 	private _channel!: BaseChannel;
+	private _clearBlockHeadersInterval!: number;
+	private _clearBlockHeadersIntervalId!: NodeJS.Timer | undefined;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -96,7 +99,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		this._app = express();
 		this._channel = channel;
 		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
-
+		this._clearBlockHeadersInterval = this._options.clearBlockHeadersInterval || 60000;
 		this._pluginDB = await getDBInstance(this._options.dataPath);
 
 		// Start http server
@@ -106,6 +109,12 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		// Listen to new block and delete block events
 		this._subscribeToChannel();
 		this._server = this._app.listen(this._options.port, '0.0.0.0');
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		this._clearBlockHeadersIntervalId = setInterval(() => {
+			clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight).catch(error =>
+				debug(error),
+			);
+		}, this._clearBlockHeadersInterval);
 	}
 
 	public async unload(): Promise<void> {
@@ -117,6 +126,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 						reject(err);
 						return;
 					}
+					clearInterval(this._clearBlockHeadersIntervalId as NodeJS.Timer);
 					resolve();
 				});
 			});
@@ -161,6 +171,12 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 						return;
 					}
 					const decodedBlockHeader = decodeBlockHeader(header, this.schemas);
+
+					// Set new currentHeight
+					if (decodedBlockHeader.height > this._state.currentHeight) {
+						this._state.currentHeight = decodedBlockHeader.height;
+					}
+
 					const contradictingBlock = await getContradictingBlockHeader(
 						this._pluginDB,
 						decodedBlockHeader,
