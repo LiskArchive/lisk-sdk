@@ -32,4 +32,8 @@ export class Node {
 	public async getConnectedPeers(): Promise<PeerInfo[]> {
 		return this._channel.invoke('app:getConnectedPeers');
 	}
+
+	public async getDisconnectedPeers(): Promise<PeerInfo[]> {
+		return this._channel.invoke('app:getDisconnectedPeers');
+	}
 }
