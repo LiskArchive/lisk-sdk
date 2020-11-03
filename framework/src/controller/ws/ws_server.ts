@@ -50,6 +50,10 @@ export class WSServer {
 		return this.server;
 	}
 
+	public stop(): void {
+		this.server.close();
+	}
+
 	private _handleConnection(socket: WebSocketWithTracking) {
 		// eslint-disable-next-line no-param-reassign
 		socket.isAlive = true;
