@@ -97,7 +97,7 @@ export class Bus {
 			name: 'bus',
 		});
 
-		if (config.rpc.enable && config.rpc.mode === 'ws') {
+		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
 			this._WSServer = new WSServer({
 				path: '/ws',
 				port: config.rpc.port,
@@ -268,6 +268,10 @@ export class Bus {
 	public async cleanup(): Promise<void> {
 		this._emitter.removeAllListeners();
 		this._ipcServer.stop();
+
+		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
+			this._WSServer.stop();
+		}
 	}
 
 	private get _rpcServer(): RPCServer {
