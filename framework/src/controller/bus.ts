@@ -16,7 +16,8 @@ import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket, PushSocket, ReqSocket, SubSocket } from 'pm2-axon';
 import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
-import { Action, ActionInfoObject, ActionsObject } from './action';
+import { Action, ActionsObject, ActionInfoObject } from './action';
+import * as JSONRPC from './jsonrpc';
 import { Logger } from '../logger';
 import { BaseChannel } from './channels/base_channel';
 import { EventInfoObject, EventsArray } from './event';
@@ -42,7 +43,7 @@ interface RegisterChannelOptions {
 	readonly rpcSocketPath?: string;
 }
 
-type NodeCallback = (error: Error | null, result?: unknown) => void;
+type NodeCallback = (error: JSONRPC.ErrorObject | Error | null, result?: unknown) => void;
 
 enum ChannelType {
 	InMemory,
@@ -124,12 +125,19 @@ export class Bus {
 		);
 
 		this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
+			const parsedAction = Action.deserialize(action);
+			try {
+				JSONRPC.validateJSONRPC(parsedAction);
+			} catch (error) {
+				cb(JSONRPC.errorObject(parsedAction.id, JSONRPC.invalidRequest()));
+			}
+
 			this.invoke(action)
 				.then(data => {
-					cb(null, data);
+					cb(null, JSONRPC.successObject(parsedAction.id, data as JSONRPC.Result));
 				})
 				.catch(error => {
-					cb(error);
+					cb(JSONRPC.errorObject(parsedAction.id, JSONRPC.internalError(error)));
 				});
 		});
 
@@ -189,12 +197,12 @@ export class Bus {
 	public async invoke<T>(actionData: string | ActionInfoObject): Promise<T> {
 		const action = Action.deserialize(actionData);
 		const actionFullName = action.key();
-		const actionParams = action.params;
 
 		if (this.actions[actionFullName] === undefined) {
-			throw new Error(`Action '${action.key()}' is not registered to bus.`);
+			throw new Error(`Action '${actionFullName}' is not registered to bus.`);
 		}
 
+		const actionParams = action.params;
 		const channelInfo = this.channels[action.module];
 		if (channelInfo.type === ChannelType.InMemory) {
 			return (channelInfo.channel as BaseChannel).invoke<T>(actionFullName, actionParams);

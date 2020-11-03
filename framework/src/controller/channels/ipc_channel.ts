@@ -25,6 +25,7 @@ import { Event, EventInfoObject } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
 import { IPCClient } from '../ipc/ipc_client';
 import { ActionInfoForBus, SocketPaths } from '../../types';
+import * as JSONRPC from '../jsonrpc';
 
 type NodeCallback = (error: Error | null, result?: unknown) => void;
 
@@ -131,7 +132,7 @@ export class IPCChannel extends BaseChannel {
 	}
 
 	public async invoke<T>(actionName: string, params?: object): Promise<T> {
-		const action = new Action(actionName, params, this.moduleAlias);
+		const action = new Action(null, actionName, params);
 
 		if (action.module === this.moduleAlias) {
 			const handler = this.actions[action.name]?.handler;
@@ -145,12 +146,12 @@ export class IPCChannel extends BaseChannel {
 			this._rpcClient.call(
 				'invoke',
 				action.serialize(),
-				(err: Error | undefined, data: T | PromiseLike<T>) => {
+				(err: JSONRPC.ErrorObject, data: JSONRPC.SuccessObject) => {
 					if (err) {
-						return reject(err);
+						return reject(err.error.data);
 					}
 
-					return resolve(data);
+					return resolve((data.result as unknown) as T);
 				},
 			);
 		});
