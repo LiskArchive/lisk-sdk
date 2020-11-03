@@ -140,6 +140,12 @@ type RecursivePartial<T> = {
 	[P in keyof T]?: RecursivePartial<T[P]>;
 };
 
+interface RPCConfig {
+	enable: boolean;
+	mode: 'ipc' | 'ws';
+	port: number;
+}
+
 export interface ApplicationConfig {
 	label: string;
 	version: string;
@@ -163,6 +169,7 @@ export interface ApplicationConfig {
 	genesisConfig: GenesisConfig;
 	plugins: PluginsOptions;
 	transactionPool: TransactionPoolConfig;
+	rpc: RPCConfig;
 }
 
 export type PartialApplicationConfig = RecursivePartial<ApplicationConfig>;

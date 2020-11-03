@@ -344,6 +344,23 @@ export const applicationConfigSchema = {
 				},
 			},
 		},
+		rpc: {
+			type: 'object',
+			properties: {
+				enable: {
+					type: 'boolean',
+				},
+				mode: {
+					type: 'string',
+					enum: ['ipc', 'ws'],
+				},
+				port: {
+					type: 'number',
+					minimum: 1024,
+					maximum: 65535,
+				},
+			},
+		},
 	},
 	additionalProperties: false,
 	default: {
@@ -395,6 +412,11 @@ export const applicationConfigSchema = {
 			transactionExpiryTime: 3 * 60 * 60 * 1000,
 			minEntranceFeePriority: '0',
 			minReplacementFeeDifference: '10',
+		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
 		},
 	},
 };

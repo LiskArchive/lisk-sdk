@@ -31,6 +31,11 @@ const config: any = {
 	socketsPath: {
 		root: socketsDir,
 	},
+	rpc: {
+		enable: false,
+		mode: 'ipc',
+		port: 8080,
+	},
 };
 
 const alpha = {

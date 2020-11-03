@@ -452,6 +452,7 @@ export class Application {
 			config: {
 				ipc: this.config.ipc,
 				rootPath: this.config.rootPath,
+				rpc: this.config.rpc,
 			},
 			logger: this.logger,
 			channel: this._channel,
