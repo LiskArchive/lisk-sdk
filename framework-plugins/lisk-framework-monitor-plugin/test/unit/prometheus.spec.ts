@@ -84,30 +84,28 @@ describe('networkStats', () => {
 	const prometheus = prometheusExport.getData(channelMock as any, sharedState);
 
 	const expectedExportData =
-		'# HELP Block Propagation\n' +
-		'# TYPE avg_times_block_received gauge\n' +
-		'avg_times_block_received 6\n\n' +
-		'# HELP Transaction Propagation\n' +
-		'# TYPE avg_times_transaction_received gauge\n' +
-		'avg_times_transaction_received 9\n\n' +
-		'# HELP Node Height\n' +
-		'# TYPE node_height gauge\n' +
-		'node_height 102\n\n' +
-		'# HELP Finalized Height\n' +
-		'# TYPE finalized_height gauge\n' +
-		'finalized_height 80\n\n' +
-		'# HELP Unconfirmed transactions\n' +
-		'# TYPE unconfirmed_transactions gauge\n' +
-		'unconfirmed_transactions 17\n\n' +
-		'# HELP Connected peers\n' +
-		'# TYPE connected_peers gauge\n' +
-		'connected_peers 3\n\n' +
-		'# HELP Disconnected peers\n' +
-		'# TYPE disconnected_peers gauge\n' +
-		'disconnected_peers 3\n\n' +
-		'# HELP Fork events\n' +
-		'# TYPE fork_events gauge\n' +
-		'fork_events 3\n\n';
+		'# HELP lisk_avg_times_blocks_received_info Average number of times blocks received\n' +
+		'# TYPE lisk_avg_times_blocks_received_info gauge\n' +
+		`lisk_avg_times_blocks_received_info ${sharedState.blocks.averageReceivedBlocks}\n\n` +
+		'# HELP lisk_avg_times_transactions_received_info Average number of times transactions received\n' +
+		'# TYPE lisk_avg_times_transactions_received_info gauge\n' +
+		`lisk_avg_times_transactions_received_info ${sharedState.transactions.averageReceivedTransactions}\n\n` +
+		'# HELP lisk_node_height_total Node Height\n' +
+		'# TYPE lisk_node_height_total gauge\n' +
+		`lisk_node_height_total ${nodeInfo.height}\n\n` +
+		'# HELP lisk_finalized_height_total Finalized Height\n' +
+		'# TYPE lisk_finalized_height_total gauge\n' +
+		`lisk_finalized_height_total ${nodeInfo.finalizedHeight}\n\n` +
+		'# HELP lisk_unconfirmed_transactions_total Unconfirmed transactions\n' +
+		'# TYPE lisk_unconfirmed_transactions_total gauge\n' +
+		`lisk_unconfirmed_transactions_total ${nodeInfo.unconfirmedTransactions}\n\n` +
+		'# HELP lisk_peers_total Total number of peers\n' +
+		'# TYPE lisk_peers_total gauge\n' +
+		`lisk_peers_total{state="connected"} ${connectedPeers.length}\n` +
+		`lisk_peers_total{state="disconnected"} ${disconnectedPeers.length}\n\n` +
+		'# HELP lisk_fork_events_total Fork events\n' +
+		'# TYPE lisk_fork_events_total gauge\n' +
+		`lisk_fork_events_total ${sharedState.forks.forkEventCount}\n\n`;
 
 	beforeEach(() => {
 		when(channelMock.invoke)
@@ -124,6 +122,7 @@ describe('networkStats', () => {
 		const next = jest.fn();
 
 		const res = {
+			set: jest.fn(),
 			status: jest.fn().mockImplementation(_code => res),
 			send: jest.fn().mockImplementation(_param => res),
 		} as any;
@@ -132,6 +131,7 @@ describe('networkStats', () => {
 		await prometheus({} as Request, res, next);
 
 		// Assert
+		expect(res.set).toHaveBeenCalledWith('Content-Type', 'text/plain');
 		expect(res.status).toHaveBeenCalledWith(200);
 		expect(res.send).toHaveBeenCalledWith(expectedExportData);
 	});
@@ -140,6 +140,7 @@ describe('networkStats', () => {
 		// Arrange
 		const next = jest.fn();
 		const res = {
+			set: jest.fn(),
 			status: jest.fn().mockImplementation(_code => res),
 			send: jest.fn().mockImplementation(_param => res),
 		} as any;

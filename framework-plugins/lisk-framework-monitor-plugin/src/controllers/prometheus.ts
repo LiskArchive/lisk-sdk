@@ -16,10 +16,13 @@ import { BaseChannel } from 'lisk-framework';
 import { SharedState, PeerInfo } from '../types';
 
 interface PrometheusData {
-	varName: string;
-	help: string;
-	type: string;
-	value: number;
+	readonly metric: string;
+	readonly label: string;
+	readonly type: string;
+	readonly values: ReadonlyArray<{
+		readonly value: number;
+		readonly key: string;
+	}>;
 }
 
 enum PROMETHEUS_TYPE {
@@ -37,7 +40,14 @@ interface NodeInfo {
 const prometheusExporter = (data: PrometheusData[]) => {
 	let exportData = '';
 	for (const param of data) {
-		exportData += `# HELP ${param.help}\n# TYPE ${param.varName} ${param.type}\n${param.varName} ${param.value}\n\n`;
+		exportData += `# HELP ${param.metric} ${param.label}\n# TYPE ${param.metric} ${
+			param.type
+		}\n${param.values.reduce((val, el) => {
+			// eslint-disable-next-line no-param-reassign
+			val += `${param.metric}${el.key} ${el.value}\n`;
+
+			return val;
+		}, '')}\n`;
 	}
 
 	return exportData;
@@ -55,55 +65,89 @@ export const getData = (channel: BaseChannel, state: SharedState) => async (
 
 		const data: PrometheusData[] = [
 			{
-				help: 'Block Propagation',
+				label: 'Average number of times blocks received',
 				type: PROMETHEUS_TYPE.gauge,
-				value: state.blocks.averageReceivedBlocks,
-				varName: 'avg_times_block_received',
+				metric: 'lisk_avg_times_blocks_received_info',
+				values: [
+					{
+						key: '',
+						value: state.blocks.averageReceivedBlocks,
+					},
+				],
 			},
 			{
-				help: 'Transaction Propagation',
+				label: 'Average number of times transactions received',
 				type: PROMETHEUS_TYPE.gauge,
-				value: state.transactions.averageReceivedTransactions,
-				varName: 'avg_times_transaction_received',
+				metric: 'lisk_avg_times_transactions_received_info',
+				values: [
+					{
+						key: '',
+						value: state.transactions.averageReceivedTransactions,
+					},
+				],
 			},
 			{
-				help: 'Node Height',
+				label: 'Node Height',
 				type: PROMETHEUS_TYPE.gauge,
-				value: nodeInfo.height,
-				varName: 'node_height',
+				metric: 'lisk_node_height_total',
+				values: [
+					{
+						key: '',
+						value: nodeInfo.height,
+					},
+				],
 			},
 			{
-				help: 'Finalized Height',
+				label: 'Finalized Height',
 				type: PROMETHEUS_TYPE.gauge,
-				value: nodeInfo.finalizedHeight,
-				varName: 'finalized_height',
+				metric: 'lisk_finalized_height_total',
+				values: [
+					{
+						key: '',
+						value: nodeInfo.finalizedHeight,
+					},
+				],
 			},
 			{
-				help: 'Unconfirmed transactions',
+				label: 'Unconfirmed transactions',
 				type: PROMETHEUS_TYPE.gauge,
-				value: nodeInfo.unconfirmedTransactions,
-				varName: 'unconfirmed_transactions',
+				metric: 'lisk_unconfirmed_transactions_total',
+				values: [
+					{
+						key: '',
+						value: nodeInfo.unconfirmedTransactions,
+					},
+				],
 			},
 			{
-				help: 'Connected peers',
+				label: 'Total number of peers',
 				type: PROMETHEUS_TYPE.gauge,
-				value: connectedPeers.length,
-				varName: 'connected_peers',
+				metric: 'lisk_peers_total',
+				values: [
+					{
+						key: '{state="connected"}',
+						value: connectedPeers.length,
+					},
+					{
+						key: '{state="disconnected"}',
+						value: disconnectedPeers.length,
+					},
+				],
 			},
 			{
-				help: 'Disconnected peers',
+				label: 'Fork events',
 				type: PROMETHEUS_TYPE.gauge,
-				value: disconnectedPeers.length,
-				varName: 'disconnected_peers',
-			},
-			{
-				help: 'Fork events',
-				type: PROMETHEUS_TYPE.gauge,
-				value: state.forks.forkEventCount,
-				varName: 'fork_events',
+				metric: 'lisk_fork_events_total',
+				values: [
+					{
+						key: '',
+						value: state.forks.forkEventCount,
+					},
+				],
 			},
 		];
 
+		res.set('Content-Type', 'text/plain');
 		res.status(200).send(prometheusExporter(data));
 	} catch (err) {
 		next(err);
