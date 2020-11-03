@@ -17,7 +17,7 @@ import * as path from 'path';
 import { Transaction } from '@liskhq/lisk-chain';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as configJSON from '../../fixtures/config/devnet/config.json';
-import { Application } from '../../../src';
+import { Application, PartialApplicationConfig } from '../../../src';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
 import { createTransferTransaction } from '../../utils/node/transaction';
@@ -36,7 +36,12 @@ export const createApplication = async (
 			fileLogLevel: 'fatal',
 			logFileName: 'functional-test.log',
 		},
-	};
+		rpc: {
+			enable: true,
+			port: 8080,
+			mode: 'ws',
+		},
+	} as PartialApplicationConfig;
 
 	const app = Application.defaultApplication(genesisBlockJSON, config);
 
