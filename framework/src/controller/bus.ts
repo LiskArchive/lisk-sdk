@@ -74,7 +74,7 @@ export class Bus {
 	private readonly _ipcServer: IPCServer;
 	private readonly _emitter: EventEmitter2;
 
-	private readonly _WSServer!: WSServer;
+	private readonly _wsServer!: WSServer;
 
 	public constructor(logger: Logger, config: BusConfiguration) {
 		this.logger = logger;
@@ -98,12 +98,12 @@ export class Bus {
 		});
 
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
-			this._WSServer = new WSServer({
+			this._wsServer = new WSServer({
 				path: '/ws',
 				port: config.rpc.port,
 				logger: this.logger,
 			});
-			this._WSServer.start();
+			this._wsServer.start();
 		}
 	}
 
@@ -269,8 +269,8 @@ export class Bus {
 		this._emitter.removeAllListeners();
 		this._ipcServer.stop();
 
-		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
-			this._WSServer.stop();
+		if (this._wsServer) {
+			this._wsServer.stop();
 		}
 	}
 

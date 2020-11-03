@@ -58,7 +58,7 @@ describe('Bus', () => {
 	});
 
 	afterEach(() => {
-		bus['_WSServer'].stop();
+		bus['_wsServer'].stop();
 	});
 
 	describe('#constructor', () => {
@@ -66,7 +66,7 @@ describe('Bus', () => {
 			// Assert
 			expect(bus['actions']).toEqual({});
 			expect(bus['events']).toEqual({});
-			expect(bus['_WSServer']).toBeInstanceOf(WSServer);
+			expect(bus['_wsServer']).toBeInstanceOf(WSServer);
 		});
 	});
 
