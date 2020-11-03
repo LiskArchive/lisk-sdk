@@ -22,6 +22,8 @@ import { EventEmitter2 } from 'eventemitter2';
 import { Bus } from '../../../src/controller/bus';
 // eslint-disable-next-line import/first
 import { Action, ActionInfoObject } from '../../../src/controller/action';
+// eslint-disable-next-line import/first
+import { WSServer } from '../../../src/controller/ws/ws_server';
 
 describe('Bus', () => {
 	const config: any = {
@@ -32,8 +34,8 @@ describe('Bus', () => {
 			root: '',
 		},
 		rpc: {
-			enable: false,
-			mode: 'ipc',
+			enable: true,
+			mode: 'ws',
 			port: 8080,
 		},
 	};
@@ -46,6 +48,7 @@ describe('Bus', () => {
 	};
 	const logger: any = {
 		info: jest.fn(),
+		error: jest.fn(),
 	};
 
 	let bus: Bus;
@@ -54,11 +57,16 @@ describe('Bus', () => {
 		bus = new Bus(logger, config);
 	});
 
+	afterEach(() => {
+		bus['_WSServer'].stop();
+	});
+
 	describe('#constructor', () => {
 		it('should create the Bus instance with given arguments.', () => {
 			// Assert
 			expect(bus['actions']).toEqual({});
 			expect(bus['events']).toEqual({});
+			expect(bus['_WSServer']).toBeInstanceOf(WSServer);
 		});
 	});
 

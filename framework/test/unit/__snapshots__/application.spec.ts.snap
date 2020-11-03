@@ -2224,8 +2224,8 @@ Object {
   "rootPath": "~/.lisk",
   "rpc": Object {
     "enable": false,
-    "mode": "ws",
-    "port": 19000,
+    "mode": "ipc",
+    "port": 8080,
   },
   "transactionPool": Object {
     "maxTransactions": 4096,
