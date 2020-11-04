@@ -125,6 +125,7 @@ export class Bus {
 		);
 
 		this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
+			// Parse and validate incoming jsonrpc request
 			const parsedAction = Action.fromJSONRPC(action);
 			try {
 				JSONRPC.validateJSONRPC(parsedAction);

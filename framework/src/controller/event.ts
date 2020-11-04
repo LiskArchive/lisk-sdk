@@ -14,7 +14,7 @@
 
 import { strict as assert } from 'assert';
 import { eventWithModuleNameReg } from '../constants';
-import * as JSONRPC from './jsonrpc';
+import { NotificationObject, Result, VERSION } from './jsonrpc';
 
 export interface EventInfoObject {
 	readonly module: string;
@@ -27,11 +27,11 @@ export type EventCallback = (action: EventInfoObject) => void | Promise<void>;
 export type EventsArray = ReadonlyArray<string>;
 
 export class Event {
-	public jsonrpc = JSONRPC.VERSION;
+	public jsonrpc = VERSION;
 	public method: string;
-	public result!: JSONRPC.Result;
+	public result!: Result;
 
-	public constructor(method: string, result?: JSONRPC.Result) {
+	public constructor(method: string, result?: Result) {
 		assert(
 			eventWithModuleNameReg.test(method),
 			`Event name "${method}" must be a valid name with module name and action name.`,
@@ -43,14 +43,14 @@ export class Event {
 		}
 	}
 
-	public static fromJSONRPC(data: JSONRPC.NotificationObject | string): Event {
-		const parsedEvent =
-			typeof data === 'string' ? (JSON.parse(data) as JSONRPC.NotificationObject) : data;
+	public static fromJSONRPC(data: NotificationObject | string): Event {
+		const { method, result } =
+			typeof data === 'string' ? (JSON.parse(data) as NotificationObject) : data;
 
-		return new Event(parsedEvent.method, parsedEvent.result);
+		return new Event(method, result);
 	}
 
-	public toJSONRPC(): JSONRPC.NotificationObject {
+	public toJSONRPC(): NotificationObject {
 		if (this.result) {
 			return {
 				jsonrpc: this.jsonrpc,

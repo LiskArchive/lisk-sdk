@@ -114,15 +114,15 @@ export class IPCChannel extends BaseChannel {
 
 	public subscribe(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.on(event.key(), (jsonrpcSuccessObject: JSONRPC.SuccessObject) =>
-			setImmediate(cb, { data: jsonrpcSuccessObject.result }),
+		this._emitter.on(event.key(), (notificationObject: JSONRPC.NotificationObject) =>
+			setImmediate(cb, { data: notificationObject.result }),
 		);
 	}
 
 	public once(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.once(event.key(), (jsonrpcSuccessObject: JSONRPC.SuccessObject) =>
-			setImmediate(cb, { data: jsonrpcSuccessObject.result }),
+		this._emitter.once(event.key(), (notificationObject: JSONRPC.NotificationObject) =>
+			setImmediate(cb, { data: notificationObject.result }),
 		);
 	}
 

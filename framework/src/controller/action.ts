@@ -14,7 +14,7 @@
 
 import { strict as assert } from 'assert';
 import { actionWithModuleNameReg, moduleNameReg } from '../constants';
-import * as JSONRPC from './jsonrpc';
+import { RequestObject, VERSION } from './jsonrpc';
 
 export interface ActionInfoObject {
 	readonly module: string;
@@ -36,7 +36,7 @@ export interface ActionsObject {
 type ID = string | number | null;
 
 export class Action {
-	public jsonrpc = '2.0';
+	public jsonrpc = VERSION;
 	public id: ID;
 	public method: string;
 	public params: object;
@@ -65,16 +65,14 @@ export class Action {
 		this.handler = handler;
 	}
 
-	public static fromJSONRPC(data: JSONRPC.RequestObject | string): Action {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const { id, method, params } = (typeof data === 'string'
-			? JSON.parse(data)
-			: data) as JSONRPC.RequestObject;
+	public static fromJSONRPC(data: RequestObject | string): Action {
+		const { id, method, params } =
+			typeof data === 'string' ? (JSON.parse(data) as RequestObject) : data;
 
 		return new Action(id, method, params);
 	}
 
-	public toJSONRPC(): JSONRPC.RequestObject {
+	public toJSONRPC(): RequestObject {
 		return {
 			jsonrpc: this.jsonrpc,
 			id: this.id,

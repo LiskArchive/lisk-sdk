@@ -31,16 +31,16 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	public subscribe(eventName: string, cb: EventCallback): void {
-		this.bus.subscribe(eventName, (jsonrpcSuccessObject: JSONRPC.SuccessObject) =>
+		this.bus.subscribe(eventName, (notificationObject: JSONRPC.NotificationObject) =>
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			setImmediate(cb, { data: jsonrpcSuccessObject.result }),
+			setImmediate(cb, { data: notificationObject.result }),
 		);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
-		this.bus.once(eventName, (jsonrpcSuccessObject: JSONRPC.SuccessObject) =>
+		this.bus.once(eventName, (notificationObject: JSONRPC.NotificationObject) =>
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			setImmediate(cb, { data: jsonrpcSuccessObject.result }),
+			setImmediate(cb, { data: notificationObject.result }),
 		);
 	}
 
