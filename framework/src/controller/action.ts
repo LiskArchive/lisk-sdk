@@ -52,7 +52,7 @@ export class Action {
 	) {
 		assert(
 			actionWithModuleNameReg.test(method),
-			`Action method "${method}" must be a valid name with module name and action name.`,
+			`Action method "${method}" must be a valid method with module name and action name.`,
 		);
 		if (source) {
 			assert(moduleNameReg.test(source), `Source name "${source}" must be a valid module name.`);

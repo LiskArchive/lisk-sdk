@@ -17,6 +17,7 @@ import { homedir } from 'os';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 import { Event } from '../../../src/controller/event';
+import * as JSONRPC from '../../../src/controller/jsonrpc';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
@@ -91,7 +92,9 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toBe(betaEventData);
+						const eventData = (Event.fromJSONRPC(JSONRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toBe(betaEventData);
 						resolve();
 					});
 				});
@@ -109,7 +112,9 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toBe(betaEventData);
+						const eventData = (Event.fromJSONRPC(JSONRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toBe(betaEventData);
 						resolve();
 					});
 				});
@@ -130,7 +135,9 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toBe(dummyData);
+						const eventData = (Event.fromJSONRPC(JSONRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toBe(dummyData);
 						resolve();
 					});
 				});
@@ -153,7 +160,9 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toBe(alphaEventData);
+						const eventData = (Event.fromJSONRPC(JSONRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toBe(alphaEventData);
 						done();
 					});
 				});
@@ -197,7 +206,7 @@ describe('InMemoryChannel', () => {
 				await expect(
 					inMemoryChannelAlpha.invoke(`${beta.moduleAlias}:${invalidActionName}`),
 				).rejects.toThrow(
-					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name.`,
+					`Action method "${beta.moduleAlias}:${invalidActionName}" must be a valid method with module name and action name.`,
 				);
 			});
 		});

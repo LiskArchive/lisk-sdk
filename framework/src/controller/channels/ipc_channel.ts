@@ -115,20 +115,21 @@ export class IPCChannel extends BaseChannel {
 	public subscribe(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
 		this._emitter.on(event.key(), (notificationObject: JSONRPC.NotificationObject) =>
-			setImmediate(cb, { data: notificationObject.result }),
+			// When IPC channel used without bus the data will not contain result
+			setImmediate(cb, { data: notificationObject.result ?? notificationObject }),
 		);
 	}
 
 	public once(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.once(event.key(), (notificationObject: JSONRPC.NotificationObject) =>
-			setImmediate(cb, { data: notificationObject.result }),
-		);
+		this._emitter.once(event.key(), (notificationObject: JSONRPC.NotificationObject) => {
+			// When IPC channel used without bus the data will not contain result
+			setImmediate(cb, { data: notificationObject.result ?? notificationObject });
+		});
 	}
 
 	public publish(eventName: string, data?: object): void {
 		const event = new Event(eventName, data);
-
 		if (event.module !== this.moduleAlias || !this.eventsList.includes(event.name)) {
 			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
 		}

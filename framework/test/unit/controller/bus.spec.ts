@@ -21,7 +21,7 @@ import { EventEmitter2 } from 'eventemitter2';
 // eslint-disable-next-line import/first
 import { Bus } from '../../../src/controller/bus';
 // eslint-disable-next-line import/first
-import { Action, ActionInfoObject } from '../../../src/controller/action';
+import { Action } from '../../../src/controller/action';
 // eslint-disable-next-line import/first
 import { WSServer } from '../../../src/controller/ws/ws_server';
 
@@ -107,8 +107,8 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions: any = {
-				action1: new Action('alias:action1', {}, '', jest.fn()),
-				action2: new Action('alias:action2', {}, '', jest.fn()),
+				action1: new Action(null, 'alias:action1', {}, '', jest.fn()),
+				action2: new Action(null, 'alias:action2', {}, '', jest.fn()),
 			};
 
 			// Act
@@ -125,7 +125,7 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions = {
-				action1: new Action('alias:action1', {}, '', jest.fn()),
+				action1: new Action(null, 'alias:action1', {}, '', jest.fn()),
 			};
 
 			// Act && Assert
@@ -142,31 +142,31 @@ describe('Bus', () => {
 
 		it('should throw error if action was not registered', async () => {
 			// Arrange
-			const actionData: ActionInfoObject = {
-				name: 'nonExistentAction',
-				module: 'app',
-				source: 'chain',
-				params: {},
+			const jsonrpcRequest = {
+				id: 1,
+				jsonrpc: '2.0',
+				method: 'app:nonExistentAction',
 			};
+			const action = Action.fromJSONRPC(jsonrpcRequest);
 
 			// Act && Assert
-			await expect(bus.invoke(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
+			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
+				`Action '${action.module}:${action.name}' is not registered to bus.`,
 			);
 		});
 
 		it('should throw error if module does not exist', async () => {
 			// Arrange
-			const actionData: ActionInfoObject = {
-				name: 'getComponentConfig',
-				module: 'invalidModule',
-				source: 'chain',
-				params: {},
+			const jsonrpcRequest = {
+				id: 1,
+				jsonrpc: '2.0',
+				method: 'invalidModule:getComponentConfig',
 			};
+			const action = Action.fromJSONRPC(jsonrpcRequest);
 
 			// Act && Assert
-			await expect(bus.invoke(actionData)).rejects.toThrow(
-				`Action '${actionData.module}:${actionData.name}' is not registered to bus.`,
+			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
+				`Action '${action.module}:${action.name}' is not registered to bus.`,
 			);
 		});
 	});
@@ -178,6 +178,7 @@ describe('Bus', () => {
 			const events = ['registeredEvent'];
 			const eventName = `${moduleAlias}:${events[0]}`;
 			const eventData = '#DATA';
+			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', result: eventData };
 
 			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
@@ -185,7 +186,7 @@ describe('Bus', () => {
 			bus.publish(eventName, eventData as any);
 
 			// Assert
-			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(eventName, eventData);
+			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(eventName, JSONRPCData);
 		});
 	});
 
@@ -194,8 +195,8 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions: any = {
-				action1: new Action('alias:action1', {}, '', jest.fn()),
-				action2: new Action('alias:action2', {}, '', jest.fn()),
+				action1: new Action(null, 'alias:action1', {}, '', jest.fn()),
+				action2: new Action(null, 'alias:action2', {}, '', jest.fn()),
 			};
 			const expectedActions = Object.keys(actions).map(
 				actionName => `${moduleAlias}:${actionName}`,
