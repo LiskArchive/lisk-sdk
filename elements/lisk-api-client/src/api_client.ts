@@ -14,12 +14,14 @@
  */
 import { EventCallback, Channel, RegisteredSchemas, NodeInfo } from './types';
 import { Node } from './node';
+import { Account } from './account';
 
 export class APIClient {
 	private readonly _channel: Channel;
 	private _schemas!: RegisteredSchemas;
 	private _nodeInfo!: NodeInfo;
 	private _node!: Node;
+	private _account!: Account;
 
 	public constructor(channel: Channel) {
 		this._channel = channel;
@@ -27,6 +29,7 @@ export class APIClient {
 
 	public async init(): Promise<void> {
 		this._node = new Node(this._channel);
+		this._account = new Account(this._channel, this._schemas);
 		this._schemas = await this._channel.invoke<RegisteredSchemas>('app:getSchema');
 		this._nodeInfo = await this._node.getNodeInfo();
 	}
@@ -51,5 +54,9 @@ export class APIClient {
 		// eslint-disable-next-line no-console
 		console.log(this._schemas, this._nodeInfo);
 		return this._node;
+	}
+
+	public get account(): Account {
+		return this._account;
 	}
 }
