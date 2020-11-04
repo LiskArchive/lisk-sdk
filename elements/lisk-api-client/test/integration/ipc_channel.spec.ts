@@ -20,7 +20,7 @@ import { IPCServer } from '../ipc_server_util';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_client`);
 
-describe('IPCClient', () => {
+describe('IPC Channel', () => {
 	let server: IPCServer;
 	let client: IPCChannel;
 
