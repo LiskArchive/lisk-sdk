@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { mkdirSync, rmdirSync } from 'fs';
+import { mkdirSync } from 'fs';
 import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { IPCClient } from '../../src/ipc_client';
 import { IPCServer } from '../ipc_server_util';
 
-const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_client/sockets`);
+const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_client`);
 
 describe('IPCClient', () => {
 	let server: IPCServer;
@@ -34,14 +34,13 @@ describe('IPCClient', () => {
 		await client.connect();
 
 		server.subSocket.on('message', (eventName: string, eventValue: any) => {
-			(server as any).pubSocket.publish(eventName, eventValue);
+			(server as any).pubSocket.send(eventName, eventValue);
 		});
 	});
 
 	afterEach(async () => {
 		await (client as any).disconnect();
 		server.stop();
-		rmdirSync(socketsDir);
 	});
 
 	describe('connect', () => {
@@ -155,7 +154,7 @@ describe('IPCClient', () => {
 	describe('actions', () => {
 		it('client should be able to call server exposed actions', async () => {
 			// Arrange
-			(server as any).rpcClient.expose('myAction', (cb: any) => {
+			server.rpcServer.expose('myAction', (cb: any) => {
 				cb(null, 'myData');
 			});
 
