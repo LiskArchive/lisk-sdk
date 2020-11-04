@@ -33,14 +33,14 @@ describe('IPCClient', () => {
 		await server.start();
 		await client.connect();
 
-		(server as any)._subSocket.on('message', (eventName: string, eventValue: any) => {
-			(server as any)._pubSocket.publish(eventName, eventValue);
+		server.subSocket.on('message', (eventName: string, eventValue: any) => {
+			(server as any).pubSocket.publish(eventName, eventValue);
 		});
 	});
 
 	afterEach(async () => {
 		await (client as any).disconnect();
-		await (server as any).stop();
+		server.stop();
 		rmdirSync(socketsDir);
 	});
 
@@ -56,7 +56,7 @@ describe('IPCClient', () => {
 		it('should timeout if server is not running', async () => {
 			// Arrange
 			await client.disconnect();
-			await server.stop();
+			server.stop();
 
 			// Act & Assert
 			await expect(client.connect()).rejects.toThrow(
@@ -89,7 +89,7 @@ describe('IPCClient', () => {
 					expect(data).toEqual('myData');
 					resolve();
 				});
-				(server as any)._pubSocket.send('myData');
+				server.pubSocket.send('myData');
 			});
 		});
 
@@ -101,14 +101,14 @@ describe('IPCClient', () => {
 			(server as any).pubSocket.send('myData');
 			await Promise.all([
 				new Promise(resolve => {
-					(client as any).subSocket.on('message', (data: any) => {
+					(client as any)._subSocket.on('message', (data: any) => {
 						expect(data).toEqual('myData');
 						resolve();
 					});
 				}),
 
 				await new Promise(resolve => {
-					(client2 as any).subSocket.on('message', (data: any) => {
+					(client2 as any)._subSocket.on('message', (data: any) => {
 						expect(data).toEqual('myData');
 						resolve();
 					});
@@ -155,7 +155,7 @@ describe('IPCClient', () => {
 	describe('actions', () => {
 		it('client should be able to call server exposed actions', async () => {
 			// Arrange
-			(server as any)._rpcClient.expose('myAction', (cb: any) => {
+			(server as any).rpcClient.expose('myAction', (cb: any) => {
 				cb(null, 'myData');
 			});
 
