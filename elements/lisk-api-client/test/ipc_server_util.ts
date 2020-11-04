@@ -69,9 +69,6 @@ export class IPCServer {
 		await new Promise((resolve, reject) => {
 			this.subSocket.on('bind', resolve);
 			this.subSocket.on('error', reject);
-
-			// We switched the path here to establish communication
-			// The socket on which server is publishing clients will observer
 			this.subSocket.bind(this.eventSubSocketPath);
 		}).finally(() => {
 			this.subSocket.removeAllListeners('bind');
