@@ -16,6 +16,7 @@ import { Event, EventCallback } from '../event';
 import { Action } from '../action';
 import { BaseChannel } from './base_channel';
 import { Bus } from '../bus';
+import * as JSONRPC from '../jsonrpc';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
@@ -30,15 +31,17 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	public subscribe(eventName: string, cb: EventCallback): void {
-		this.bus.subscribe(eventName, data =>
+		this.bus.subscribe(eventName, (jsonrpcSuccessObject: JSONRPC.SuccessObject) =>
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			setImmediate(cb, Event.deserialize(data)),
+			setImmediate(cb, { data: jsonrpcSuccessObject.result }),
 		);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.bus.once(eventName, data => setImmediate(cb, Event.deserialize(data)));
+		this.bus.once(eventName, (jsonrpcSuccessObject: JSONRPC.SuccessObject) =>
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			setImmediate(cb, { data: jsonrpcSuccessObject.result }),
+		);
 	}
 
 	public publish(eventName: string, data?: object): void {
@@ -47,7 +50,7 @@ export class InMemoryChannel extends BaseChannel {
 		if (event.module !== this.moduleAlias) {
 			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
 		}
-		this.bus.publish(event.key(), event.serialize());
+		this.bus.publish(event.key(), data);
 	}
 
 	public async invoke<T>(actionName: string, params?: object): Promise<T> {
@@ -65,9 +68,9 @@ export class InMemoryChannel extends BaseChannel {
 				throw new Error('Handler does not exist.');
 			}
 
-			return handler(action.serialize()) as T;
+			return handler(action.toObject()) as T;
 		}
 
-		return this.bus.invoke(action.serialize());
+		return this.bus.invoke(action.toJSONRPC());
 	}
 }

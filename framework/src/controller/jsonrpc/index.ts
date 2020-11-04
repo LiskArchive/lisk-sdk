@@ -14,13 +14,36 @@
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 
-export type ID = string | number | null;
+type ID = string | number | null;
 export type Result = string | number | boolean | object;
-export type SuccessObject = { jsonrpc: string; id: ID; result: Result };
-export type JsonRpcError = { code: number; message: string; data?: Result };
-export type ErrorObject = { jsonrpc: string; id: ID; error: JsonRpcError };
+export interface SuccessObject {
+	jsonrpc: string;
+	id: ID;
+	result: Result;
+}
+export interface NotificationObject {
+	jsonrpc: string;
+	method: string;
+	result?: Result;
+}
+export interface JsonRpcError {
+	code: number;
+	message: string;
+	data?: Result;
+}
+export interface ErrorObject {
+	jsonrpc: string;
+	id: ID;
+	error: JsonRpcError;
+}
+export interface RequestObject {
+	readonly id: string | number | null;
+	readonly jsonrpc: string;
+	readonly method: string;
+	readonly params?: object;
+}
 
-const VERSION = '2.0';
+export const VERSION = '2.0';
 
 const RequestSchema = {
 	id: 'jsonRPCRequestSchema',
@@ -52,6 +75,12 @@ export const validateJSONRPC = (data: object): void => {
 export const successObject = (id: ID, result: Result): SuccessObject => ({
 	jsonrpc: VERSION,
 	id,
+	result,
+});
+
+export const notificationObject = (method: string, result?: Result): NotificationObject => ({
+	jsonrpc: VERSION,
+	method,
 	result,
 });
 

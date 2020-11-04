@@ -13,8 +13,8 @@
  */
 
 import { strict as assert } from 'assert';
-
 import { eventWithModuleNameReg } from '../constants';
+import * as JSONRPC from './jsonrpc';
 
 export interface EventInfoObject {
 	readonly module: string;
@@ -27,39 +27,52 @@ export type EventCallback = (action: EventInfoObject) => void | Promise<void>;
 export type EventsArray = ReadonlyArray<string>;
 
 export class Event {
-	public module: string;
-	public name: string;
-	public data: object;
+	public jsonrpc = JSONRPC.VERSION;
+	public method: string;
+	public result!: JSONRPC.Result;
 
-	public constructor(name: string, data?: object) {
+	public constructor(method: string, result?: JSONRPC.Result) {
 		assert(
-			eventWithModuleNameReg.test(name),
-			`Event name "${name}" must be a valid name with module name.`,
+			eventWithModuleNameReg.test(method),
+			`Event name "${method}" must be a valid name with module name and action name.`,
 		);
 
-		const [moduleName, ...eventName] = name.split(':');
-		this.module = moduleName;
-		this.name = eventName.join(':');
-		this.data = data ?? {};
+		this.method = method;
+		if (result) {
+			this.result = result;
+		}
 	}
 
-	public static deserialize(data: EventInfoObject | string): Event {
-		const parsedEvent: EventInfoObject =
-			typeof data === 'string' ? (JSON.parse(data) as EventInfoObject) : data;
+	public static fromJSONRPC(data: JSONRPC.NotificationObject | string): Event {
+		const parsedEvent =
+			typeof data === 'string' ? (JSON.parse(data) as JSONRPC.NotificationObject) : data;
 
-		return new Event(`${parsedEvent.module}:${parsedEvent.name}`, parsedEvent.data);
+		return new Event(parsedEvent.method, parsedEvent.result);
 	}
 
-	public serialize(): EventInfoObject {
+	public toJSONRPC(): JSONRPC.NotificationObject {
+		if (this.result) {
+			return {
+				jsonrpc: this.jsonrpc,
+				method: this.method,
+				result: this.result,
+			};
+		}
 		return {
-			name: this.name,
-			module: this.module,
-			data: this.data,
+			jsonrpc: this.jsonrpc,
+			method: this.method,
 		};
 	}
 
-	public toString(): string {
-		return `${this.module}:${this.name}`;
+	public get module(): string {
+		const [moduleName] = this.method.split(':');
+		return moduleName;
+	}
+
+	public get name(): string {
+		const [, ...eventName] = this.method.split(':');
+
+		return eventName.join(':');
 	}
 
 	public key(): string {

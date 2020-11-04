@@ -16,7 +16,7 @@ import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket, PushSocket, ReqSocket, SubSocket } from 'pm2-axon';
 import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
-import { Action, ActionsObject, ActionInfoObject } from './action';
+import { Action, ActionsObject } from './action';
 import * as JSONRPC from './jsonrpc';
 import { Logger } from '../logger';
 import { BaseChannel } from './channels/base_channel';
@@ -125,7 +125,7 @@ export class Bus {
 		);
 
 		this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
-			const parsedAction = Action.deserialize(action);
+			const parsedAction = Action.fromJSONRPC(action);
 			try {
 				JSONRPC.validateJSONRPC(parsedAction);
 			} catch (error) {
@@ -194,8 +194,8 @@ export class Bus {
 		}
 	}
 
-	public async invoke<T>(actionData: string | ActionInfoObject): Promise<T> {
-		const action = Action.deserialize(actionData);
+	public async invoke<T>(actionData: string | JSONRPC.RequestObject): Promise<T> {
+		const action = Action.fromJSONRPC(actionData);
 		const actionFullName = action.key();
 
 		if (this.actions[actionFullName] === undefined) {
@@ -212,7 +212,7 @@ export class Bus {
 		return new Promise((resolve, reject) => {
 			(channelInfo.rpcClient as RPCClient).call(
 				'invoke',
-				action.serialize(),
+				action.toJSONRPC(),
 				(err: Error | undefined, data: T) => {
 					if (err) {
 						return reject(err);
@@ -224,17 +224,18 @@ export class Bus {
 		});
 	}
 
-	public publish(eventName: string, eventValue: object): void {
+	public publish(eventName: string, eventValue?: object): void {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
 		// Communicate through event emitter
-		this._emitter.emit(eventName, eventValue);
+		const response = JSONRPC.notificationObject(eventName, eventValue);
+		this._emitter.emit(eventName, response);
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
 			try {
-				this._pubSocket.send(eventName, eventValue);
+				this._pubSocket.send(eventName, response);
 			} catch (error) {
 				this.logger.debug(
 					{ err: error as Error },
