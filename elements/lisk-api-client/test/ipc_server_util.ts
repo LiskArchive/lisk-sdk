@@ -17,6 +17,7 @@
 // eslint-disable-next-line
 /// <reference path="../external_types/pm2-axon-rpc/index.d.ts" />
 
+import { mkdirSync } from 'fs';
 import * as path from 'path';
 import * as axon from 'pm2-axon';
 import { PushSocket, PubSocket, PullSocket, SubSocket, RepSocket } from 'pm2-axon';
@@ -26,8 +27,8 @@ const getSocketsPath = (dataPath: string) => {
 	const socketDir = path.join(dataPath, 'tmp', 'sockets');
 	return {
 		root: `unix://${socketDir}`,
-		pub: `unix://${socketDir}/lisk_pub.sock`,
-		sub: `unix://${socketDir}/lisk_sub.sock`,
+		pub: `unix://${socketDir}/pub_socket.sock`,
+		sub: `unix://${socketDir}/sub_socket.sock`,
 		rpc: `unix://${socketDir}/bus_rpc_socket.sock`,
 	};
 };
@@ -43,22 +44,19 @@ export class IPCServer {
 
 	public constructor(dataPath: string) {
 		const socketsDir = getSocketsPath(dataPath);
-		this.eventPubSocketPath = `unix://${path.join(socketsDir.root, 'pub_socket.sock')}`;
-		this.eventSubSocketPath = `unix://${path.join(socketsDir.root, 'sub_socket.sock')}`;
-		this.rpcServerSocketPath = socketsDir.rpc;
 
-		this.rpcServer = new RPCServer(axon.socket('rep') as RepSocket);
+		mkdirSync(path.join(dataPath, 'tmp', 'sockets'), { recursive: true });
+		this.eventPubSocketPath = path.join(socketsDir.root, 'pub_socket.sock');
+		this.eventSubSocketPath = path.join(socketsDir.root, 'sub_socket.sock');
+		this.rpcServerSocketPath = path.join(socketsDir.root, 'bus_rpc_socket.sock');
 
 		this.pubSocket = axon.socket('pub', {}) as PubSocket;
 		this.subSocket = axon.socket('pull', {}) as PullSocket;
+		this.rpcServer = new RPCServer(axon.socket('rep') as RepSocket);
 	}
 
 	public async start(): Promise<void> {
 		await new Promise((resolve, reject) => {
-			this.rpcServer.sock.on('bind', resolve);
-			this.rpcServer.sock.on('error', reject);
-
-			this.rpcServer.sock.bind((this as any).rpcServerSocketPath);
 			this.pubSocket.on('bind', resolve);
 			this.pubSocket.on('error', reject);
 
@@ -78,6 +76,15 @@ export class IPCServer {
 		}).finally(() => {
 			this.subSocket.removeAllListeners('bind');
 			this.subSocket.removeAllListeners('error');
+		});
+
+		await new Promise((resolve, reject) => {
+			this.rpcServer.sock.on('bind', resolve);
+			this.rpcServer.sock.on('error', reject);
+			this.rpcServer.sock.bind(this.rpcServerSocketPath);
+		}).finally(() => {
+			this.rpcServer.sock.removeAllListeners('bind');
+			this.rpcServer.sock.removeAllListeners('error');
 		});
 	}
 
