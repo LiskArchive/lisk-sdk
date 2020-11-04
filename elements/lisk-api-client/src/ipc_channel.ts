@@ -36,7 +36,7 @@ const getSocketsPath = (dataPath: string) => {
 	};
 };
 
-export class IPCClient implements Channel {
+export class IPCChannel implements Channel {
 	private readonly _events: EventEmitter;
 	private readonly _rpcClient!: RPCClient;
 	private readonly _pubSocket!: PushSocket | PubSocket;

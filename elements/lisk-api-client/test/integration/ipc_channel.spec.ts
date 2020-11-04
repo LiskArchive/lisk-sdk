@@ -15,20 +15,20 @@
 import { mkdirSync } from 'fs';
 import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
-import { IPCClient } from '../../src/ipc_client';
+import { IPCChannel } from '../../src/ipc_channel';
 import { IPCServer } from '../ipc_server_util';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_client`);
 
 describe('IPCClient', () => {
 	let server: IPCServer;
-	let client: IPCClient;
+	let client: IPCChannel;
 
 	beforeEach(async () => {
 		mkdirSync(socketsDir, { recursive: true });
 
 		server = new IPCServer(socketsDir);
-		client = new IPCClient(socketsDir);
+		client = new IPCChannel(socketsDir);
 
 		await server.start();
 		await client.connect();
@@ -65,14 +65,14 @@ describe('IPCClient', () => {
 	});
 
 	describe('events', () => {
-		let client1: IPCClient;
-		let client2: IPCClient;
-		let client3: IPCClient;
+		let client1: IPCChannel;
+		let client2: IPCChannel;
+		let client3: IPCChannel;
 
 		beforeEach(() => {
-			client1 = new IPCClient(socketsDir);
-			client2 = new IPCClient(socketsDir);
-			client3 = new IPCClient(socketsDir);
+			client1 = new IPCChannel(socketsDir);
+			client2 = new IPCChannel(socketsDir);
+			client3 = new IPCChannel(socketsDir);
 		});
 
 		afterEach(async () => {

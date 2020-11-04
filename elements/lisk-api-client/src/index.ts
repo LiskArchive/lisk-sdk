@@ -14,4 +14,5 @@
  */
 export { createWSClient } from './ws_client';
 export { createClient } from './client';
-export { IPCClient } from './ipc_client';
+export { createAPIClient } from './create_api_client';
+export { IPCChannel } from './ipc_channel';

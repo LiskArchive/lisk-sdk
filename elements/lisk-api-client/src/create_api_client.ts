@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { APIClient } from './api_client';
+import { IPCChannel } from './ipc_channel';
 
-import { IPCClient } from './ipc_client';
-
-export const createIPCClient = async (dataPath: string): Promise<IPCClient> => {
-	const client = new IPCClient(dataPath);
-	await client.connect();
+export const createAPIClient = async (dataPath: string): Promise<APIClient> => {
+	const ipcChannel = new IPCChannel(dataPath);
+	await ipcChannel.connect();
+	const client = new APIClient(ipcChannel);
 	return client;
 };
