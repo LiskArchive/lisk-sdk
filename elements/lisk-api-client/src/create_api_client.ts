@@ -19,5 +19,6 @@ export const createAPIClient = async (dataPath: string): Promise<APIClient> => {
 	const ipcChannel = new IPCChannel(dataPath);
 	await ipcChannel.connect();
 	const client = new APIClient(ipcChannel);
+	await client.init();
 	return client;
 };

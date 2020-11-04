@@ -18,9 +18,8 @@ import { homedir } from 'os';
 import { IPCChannel } from '../../src/ipc_channel';
 import { IPCServer } from '../ipc_server_util';
 
-const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_client`);
-
 describe('IPC Channel', () => {
+	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_client`);
 	let server: IPCServer;
 	let client: IPCChannel;
 
