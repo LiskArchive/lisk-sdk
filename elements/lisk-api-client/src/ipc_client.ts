@@ -17,7 +17,6 @@
 /// <reference path="../external_types/pm2-axon/index.d.ts" />
 // eslint-disable-next-line
 /// <reference path="../external_types/pm2-axon-rpc/index.d.ts" />
-
 import * as path from 'path';
 import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket, PushSocket, SubSocket, ReqSocket } from 'pm2-axon';
@@ -31,8 +30,8 @@ const getSocketsPath = (dataPath: string) => {
 	const socketDir = path.join(dataPath, 'tmp', 'sockets');
 	return {
 		root: `unix://${socketDir}`,
-		pub: `unix://${socketDir}/lisk_pub.sock`,
-		sub: `unix://${socketDir}/lisk_sub.sock`,
+		pub: `unix://${socketDir}/pub_socket.sock`,
+		sub: `unix://${socketDir}/sub_socket.sock`,
 		rpc: `unix://${socketDir}/bus_rpc_socket.sock`,
 	};
 };
@@ -50,9 +49,10 @@ export class IPCClient implements Channel {
 	public constructor(dataPath: string) {
 		const socketsDir = getSocketsPath(dataPath);
 
+		this._eventPubSocketPath = socketsDir.pub;
+		this._eventSubSocketPath = socketsDir.sub;
 		this._rpcServerSocketPath = socketsDir.rpc;
-		this._eventPubSocketPath = `unix://${path.join(socketsDir.root, 'pub_socket.sock')}`;
-		this._eventSubSocketPath = `unix://${path.join(socketsDir.root, 'sub_socket.sock')}`;
+
 		this._pubSocket = axon.socket('push', {}) as PushSocket;
 		this._subSocket = axon.socket('sub', {}) as SubSocket;
 		this._rpcClient = new RPCClient(axon.socket('req') as ReqSocket);
@@ -71,9 +71,6 @@ export class IPCClient implements Channel {
 				resolve();
 			});
 			this._pubSocket.on('error', reject);
-
-			// We switched the path here to establish communication
-			// The socket on which server is observing clients will publish
 			this._pubSocket.connect(this._eventSubSocketPath);
 		}).finally(() => {
 			this._pubSocket.removeAllListeners('connect');
@@ -91,9 +88,6 @@ export class IPCClient implements Channel {
 				resolve();
 			});
 			this._subSocket.on('error', reject);
-
-			// We switched the path here to establish communication
-			// The socket on which server is publishing clients will observer
 			this._subSocket.connect(this._eventPubSocketPath);
 		}).finally(() => {
 			this._subSocket.removeAllListeners('connect');
