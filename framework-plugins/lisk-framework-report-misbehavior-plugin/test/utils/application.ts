@@ -14,7 +14,7 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Application } from 'lisk-framework';
+import { Application, PartialApplicationConfig } from 'lisk-framework';
 import { validator } from '@liskhq/lisk-validator';
 import * as configJSON from '../fixtures/config.json';
 import * as genesisBlock from '../fixtures/genesis_block.json';
@@ -73,7 +73,12 @@ export const getApplication = (
 				encryptedPassphrase: defaultAccount.encryptedPassphrase,
 			},
 		},
-	};
+		rpc: {
+			enable: false,
+			port: 8080,
+			mode: 'ws',
+		},
+	} as PartialApplicationConfig;
 
 	const app = Application.defaultApplication(genesisBlock, config);
 	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: false });
