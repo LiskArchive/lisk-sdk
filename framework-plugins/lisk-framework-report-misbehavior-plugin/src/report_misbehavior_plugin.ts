@@ -215,12 +215,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			throw new Error('PoM asset schema is not registered in the application.');
 		}
 
-		if (!this._state.passphrase) {
-			throw new Error('Encrypted passphrase is not set in the config.');
-		}
+		// Assume passphrase is checked before calling this function
+		const passphrase = this._state.passphrase as string;
 
 		const encodedAccount = await this._channel.invoke<string>('app:getAccount', {
-			address: getAddressFromPassphrase(this._state.passphrase).toString('hex'),
+			address: getAddressFromPassphrase(passphrase).toString('hex'),
 		});
 
 		const {
@@ -246,8 +245,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			assetID: pomAssetInfo.assetID,
 			nonce,
 			senderPublicKey:
-				this._state.publicKey ??
-				getAddressAndPublicKeyFromPassphrase(this._state.passphrase).publicKey,
+				this._state.publicKey ?? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,
 			fee: BigInt(this._options.fee), // TODO: The static fee should be replaced by fee estimation calculation
 			asset: encodedAsset,
 			signatures: [],
@@ -256,7 +254,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		(tx.signatures as Buffer[]).push(
 			signData(
 				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), tx.getSigningBytes()]),
-				this._state.passphrase,
+				passphrase,
 			),
 		);
 
