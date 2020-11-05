@@ -58,7 +58,7 @@ try {
 		...appConfig,
 		...config,
 		ipc: {
-			enabled: true,
+			enabled: false,
 		},
 	};
 	// To run multiple applications for same network for integration tests

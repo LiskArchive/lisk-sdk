@@ -17,7 +17,7 @@ import { homedir } from 'os';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 import { Event } from '../../../src/controller/event';
-import * as JSONRPC from '../../../src/controller/jsonrpc';
+import * as jsonRPC from '../../../src/controller/jsonrpc';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
@@ -92,7 +92,7 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(JSONRPC.notificationObject('app:new:block', data))
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
 							.result as { data: object }).data;
 						expect(eventData).toBe(betaEventData);
 						resolve();
@@ -112,7 +112,7 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(JSONRPC.notificationObject('app:new:block', data))
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
 							.result as { data: object }).data;
 						expect(eventData).toBe(betaEventData);
 						resolve();
@@ -135,7 +135,7 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(JSONRPC.notificationObject('app:new:block', data))
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
 							.result as { data: object }).data;
 						expect(eventData).toBe(dummyData);
 						resolve();
@@ -160,7 +160,7 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(JSONRPC.notificationObject('app:new:block', data))
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
 							.result as { data: object }).data;
 						expect(eventData).toBe(alphaEventData);
 						done();

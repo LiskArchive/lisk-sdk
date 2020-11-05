@@ -59,7 +59,7 @@ describe('Event Class', () => {
 		});
 
 		describe('#toJSONRPC', () => {
-			it('should serialize the instance with given data.', () => {
+			it('should return jsonrpc object.', () => {
 				// Arrange
 				const expectedResult = {
 					jsonrpc: '2.0',
@@ -77,21 +77,8 @@ describe('Event Class', () => {
 			});
 		});
 
-		describe('#key', () => {
-			it('should return key as string.', () => {
-				// Arrange
-				const expectedResult = `${MODULE_NAME}:${EVENT_NAME}`;
-
-				// Act
-				const key = event.key();
-
-				// Assert
-				expect(key).toBe(expectedResult);
-			});
-		});
-
 		describe('static #fromJSONRPC', () => {
-			it('should return event instance for given stringified JSONRPC request.', () => {
+			it('should return action instance for given jsonrpc string.', () => {
 				// Arrange
 				const jsonData = {
 					jsonrpc: '2.0',
@@ -111,7 +98,7 @@ describe('Event Class', () => {
 				expect(event.result).toStrictEqual(DATA);
 			});
 
-			it('should return event instance with given object config.', () => {
+			it('should return action instance for given jsonrpc request object.', () => {
 				// Arrange
 				const config = {
 					jsonrpc: '2.0',
@@ -128,6 +115,19 @@ describe('Event Class', () => {
 				expect(event.module).toBe(MODULE_NAME);
 				expect(event.name).toBe(EVENT_NAME);
 				expect(event.result).toBe(DATA);
+			});
+		});
+
+		describe('#key', () => {
+			it('should return method name.', () => {
+				// Arrange
+				const expectedResult = `${MODULE_NAME}:${EVENT_NAME}`;
+
+				// Act
+				const key = event.key();
+
+				// Assert
+				expect(key).toBe(expectedResult);
 			});
 		});
 	});

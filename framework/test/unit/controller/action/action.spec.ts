@@ -66,8 +66,21 @@ describe('Action class', () => {
 			action = new Action(null, VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
 		});
 
+		describe('#toObject', () => {
+			it('should return action info object.', () => {
+				// Assert
+				expect(action).toBeInstanceOf(Action);
+				expect(action.toObject()).toEqual({
+					module: MODULE_NAME,
+					name: ACTION_NAME,
+					params: PARAMS,
+					source: VALID_ACTION_SOURCE_ARG,
+				});
+			});
+		});
+
 		describe('#toJSONRPC', () => {
-			it('should serialize the instance with given data.', () => {
+			it('should return jsonrpc object.', () => {
 				// Arrange
 				const expectedResult = {
 					id: null,
@@ -84,21 +97,8 @@ describe('Action class', () => {
 			});
 		});
 
-		describe('#key', () => {
-			it('should return key as string.', () => {
-				// Arrange
-				const expectedResult = `${MODULE_NAME}:${ACTION_NAME}`;
-
-				// Act
-				const key = action.key();
-
-				// Assert
-				expect(key).toBe(expectedResult);
-			});
-		});
-
 		describe('static #fromJSONRPC', () => {
-			it('should return action instance with given stringified JSON config.', () => {
+			it('should return action instance for given jsonrpc string.', () => {
 				// Arrange
 				const requestObject = {
 					jsonrpc: '2.0',
@@ -119,7 +119,7 @@ describe('Action class', () => {
 				expect(action.params).toEqual(PARAMS);
 			});
 
-			it('should return action instance with given jsonrpc request.', () => {
+			it('should return action instance for given jsonrpc request object.', () => {
 				// Arrange
 				const requestObject = {
 					jsonrpc: '2.0',
@@ -137,6 +137,19 @@ describe('Action class', () => {
 				expect(action.module).toBe(MODULE_NAME);
 				expect(action.name).toBe(ACTION_NAME);
 				expect(action.params).toEqual(PARAMS);
+			});
+		});
+
+		describe('#key', () => {
+			it('should return method name.', () => {
+				// Arrange
+				const expectedResult = `${MODULE_NAME}:${ACTION_NAME}`;
+
+				// Act
+				const key = action.key();
+
+				// Assert
+				expect(key).toBe(expectedResult);
 			});
 		});
 	});
