@@ -12,16 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { APIClient } from './api_client';
-import { Channel } from './types';
+import { IPCChannel } from './ipc_channel';
 
-export const createIPCClient = async (url: string): Promise<APIClient> => {
-	// FIXME: requires real implementation
-	const channel = ({ url } as unknown) as Channel;
-	await channel.connect();
-	const client = new APIClient(channel);
+export const createAPIClient = async (dataPath: string): Promise<APIClient> => {
+	const ipcChannel = new IPCChannel(dataPath);
+	await ipcChannel.connect();
+	const client = new APIClient(ipcChannel);
 	await client.init();
-
 	return client;
 };
