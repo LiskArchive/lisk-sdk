@@ -14,7 +14,7 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Application } from 'lisk-framework';
+import { Application, PartialApplicationConfig } from 'lisk-framework';
 import * as genesisBlockJSON from '../fixtures/genesis_block.json';
 import * as configJSON from '../fixtures/config.json';
 import { HTTPAPIPlugin } from '../../../src';
@@ -37,7 +37,7 @@ export const createApplication = async (
 			...configJSON.network,
 			maxInboundConnections: 0,
 		},
-	};
+	} as PartialApplicationConfig;
 
 	const app = Application.defaultApplication(genesisBlockJSON, config);
 	app.registerPlugin(HTTPAPIPlugin);
