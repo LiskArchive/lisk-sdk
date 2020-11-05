@@ -42,6 +42,7 @@
 		"pm2-axon-rpc": "0.6.0"
 	},
 	"devDependencies": {
+		"@liskhq/lisk-chain": "^0.2.0-alpha.2",
 		"@types/node": "12.12.11",
 		"@types/jest": "26.0.13",
 		"@types/jest-when": "2.7.1",
