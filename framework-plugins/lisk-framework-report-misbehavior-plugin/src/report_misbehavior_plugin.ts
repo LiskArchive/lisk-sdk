@@ -182,7 +182,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 						decodedBlockHeader,
 						this.schemas,
 					);
-					if (contradictingBlock) {
+					if (contradictingBlock && this._state.passphrase) {
 						const encodedTransaction = await this._createPoMTransaction(
 							decodedBlockHeader,
 							contradictingBlock,
@@ -239,10 +239,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			'app:getNodeInfo',
 		);
 
-		const encodedAsset = codec.encode(
-			pomAssetInfo.schema,
-			codec.fromJSON(pomAssetInfo.schema, pomTransactionAsset),
-		);
+		const encodedAsset = codec.encode(pomAssetInfo.schema, pomTransactionAsset);
 
 		const tx = new Transaction({
 			moduleID: pomAssetInfo.moduleID,

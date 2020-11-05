@@ -57,9 +57,15 @@ describe('PomTransactionAsset', () => {
 		normalDelegate = createFakeDefaultAccount({
 			dpos: { delegate: { username: 'normalDelegate' } },
 		});
+		const { id: id1, ...fakeBlockHeader1 } = createFakeBlockHeader({
+			generatorPublicKey: delegate1PublicKey,
+		});
+		const { id: id2, ...fakeBlockHeader2 } = createFakeBlockHeader({
+			generatorPublicKey: delegate1PublicKey,
+		});
 
-		header1 = createFakeBlockHeader({ generatorPublicKey: delegate1PublicKey });
-		header2 = createFakeBlockHeader({ generatorPublicKey: delegate1PublicKey });
+		header1 = fakeBlockHeader1 as BlockHeader;
+		header2 = fakeBlockHeader2 as BlockHeader;
 
 		stateStoreMock = new StateStoreMock(
 			objects.cloneDeep([sender, misBehavingDelegate, normalDelegate]),
@@ -114,7 +120,7 @@ describe('PomTransactionAsset', () => {
 			};
 
 			expect(() => transactionAsset.validate(validateContext)).toThrow(
-				'GeneratorPublicKey of each BlockHeader should match.',
+				'BlockHeaders are not contradicting as per BFT violation rules.',
 			);
 		});
 
@@ -127,7 +133,7 @@ describe('PomTransactionAsset', () => {
 			};
 
 			expect(() => transactionAsset.validate(validateContext)).toThrow(
-				'BlockHeaders are identical. No contradiction detected.',
+				'BlockHeaders are not contradicting as per BFT violation rules.',
 			);
 		});
 
@@ -195,7 +201,7 @@ describe('PomTransactionAsset', () => {
 			};
 
 			expect(() => transactionAsset.validate(validateContext)).toThrow(
-				'BlockHeaders are identical. No contradiction detected.',
+				'BlockHeaders are not contradicting as per BFT violation rules.',
 			);
 		});
 	});
