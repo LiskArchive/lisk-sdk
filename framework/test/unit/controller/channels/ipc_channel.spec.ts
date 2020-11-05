@@ -23,6 +23,7 @@ const getMockedCallback = (error: unknown, result: unknown) =>
 		args[args.length - 1](error, result);
 	});
 
+const jsonrpcRequest = { id: 1, jsonrpc: '2.0', method: 'moduleAlias:action1' };
 const ipcClientMock = {
 	stop: jest.fn(),
 	start: jest.fn(),
@@ -31,18 +32,11 @@ const ipcClientMock = {
 	},
 	rpcServer: {
 		expose: jest.fn().mockImplementation((_name, cb) => {
-			cb(
-				{
-					handler: jest.fn(),
-					module: 'moduleAlias',
-					name: 'action1',
-				},
-				jest.fn(),
-			);
+			cb(jsonrpcRequest, jest.fn());
 		}),
 	},
 	subSocket: {
-		on: getMockedCallback('message', getMockedCallback(undefined, true)),
+		on: getMockedCallback('module:event', { module: 'module', name: 'event', data: true }),
 	},
 	pubSocket: {
 		send: jest.fn(),
@@ -258,7 +252,7 @@ describe('IPCChannel Channel', () => {
 			ipcChannel.publish(validEventName, data);
 
 			// Assert
-			expect(ipcClientMock.pubSocket.send).toHaveBeenCalledWith(event.key(), event.serialize());
+			expect(ipcClientMock.pubSocket.send).toHaveBeenCalledWith(event.key(), data);
 		});
 	});
 
@@ -278,13 +272,13 @@ describe('IPCChannel Channel', () => {
 		it('should execute the action straight away if the plugins are the same and action is an Action object', async () => {
 			// Act
 			await ipcChannel.registerToBus();
-			const action = new Action(actionName, actionParams);
+			const action = new Action(null, actionName, actionParams);
 			await ipcChannel.invoke(action.key(), actionParams);
 
 			// Assert
 			expect(params.actions.action1.handler).toHaveBeenCalledWith({
-				...action.serialize(),
-				source: ipcChannel.moduleAlias,
+				...action.toObject(),
+				source: undefined,
 			});
 		});
 	});

@@ -18,6 +18,7 @@ import { resolve as pathResolve } from 'path';
 import { IPCChannel } from '../../../src/controller/channels';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 import { Event } from '../../../src/controller/event';
+import * as jsonRPC from '../../../src/controller/jsonrpc';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel_without_bus/sockets`);
 
@@ -106,7 +107,9 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -124,7 +127,9 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -145,7 +150,9 @@ describe('IPCChannel', () => {
 					// Act
 					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(alphaEventData);
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toEqual(alphaEventData);
 						done();
 					});
 				});

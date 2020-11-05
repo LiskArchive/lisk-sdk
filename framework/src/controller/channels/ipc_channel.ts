@@ -25,6 +25,7 @@ import { Event, EventInfoObject } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
 import { IPCClient } from '../ipc/ipc_client';
 import { ActionInfoForBus, SocketPaths } from '../../types';
+import * as JSONRPC from '../jsonrpc';
 
 type NodeCallback = (error: Error | null, result?: unknown) => void;
 
@@ -61,7 +62,8 @@ export class IPCChannel extends BaseChannel {
 		await this._ipcClient.start();
 		// Listen to messages
 		this._subSocket.on('message', (eventName: string, eventData: EventInfoObject) => {
-			if (eventData.module !== this.moduleAlias) {
+			const event = new Event(eventName, eventData);
+			if (event.module !== this.moduleAlias) {
 				this._emitter.emit(eventName, eventData);
 			}
 		});
@@ -102,7 +104,7 @@ export class IPCChannel extends BaseChannel {
 		// Channel RPC Server is only required if the module has actions
 		if (this.actionsList.length > 0) {
 			this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
-				const actionObject = Action.deserialize(action);
+				const actionObject = Action.fromJSONRPC(action);
 				this.invoke(`${actionObject.module}:${actionObject.name}`, actionObject.params)
 					.then(data => cb(null, data))
 					.catch(error => cb(error));
@@ -112,45 +114,51 @@ export class IPCChannel extends BaseChannel {
 
 	public subscribe(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.on(event.key(), cb);
+		this._emitter.on(event.key(), (notificationObject: JSONRPC.NotificationObject) =>
+			// When IPC channel used without bus the data will not contain result
+			setImmediate(cb, { data: notificationObject.result ?? notificationObject }),
+		);
 	}
 
 	public once(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.once(event.key(), cb);
+		this._emitter.once(event.key(), (notificationObject: JSONRPC.NotificationObject) => {
+			// When IPC channel used without bus the data will not contain result
+			setImmediate(cb, { data: notificationObject.result ?? notificationObject });
+		});
 	}
 
 	public publish(eventName: string, data?: object): void {
 		const event = new Event(eventName, data);
-
 		if (event.module !== this.moduleAlias || !this.eventsList.includes(event.name)) {
 			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
 		}
 
-		this._pubSocket.send(event.key(), event.serialize());
+		this._pubSocket.send(event.key(), data);
 	}
 
 	public async invoke<T>(actionName: string, params?: object): Promise<T> {
-		const action = new Action(actionName, params, this.moduleAlias);
+		const action = new Action(null, actionName, params);
 
 		if (action.module === this.moduleAlias) {
 			const handler = this.actions[action.name]?.handler;
 			if (!handler) {
 				throw new Error('Handler does not exist.');
 			}
-			return handler(action.serialize()) as T;
+			// change this to lisk format
+			return handler(action.toObject()) as T;
 		}
 
 		return new Promise((resolve, reject) => {
 			this._rpcClient.call(
 				'invoke',
-				action.serialize(),
-				(err: Error | undefined, data: T | PromiseLike<T>) => {
+				action.toJSONRPC(),
+				(err: JSONRPC.ErrorObject, data: JSONRPC.SuccessObject) => {
 					if (err) {
-						return reject(err);
+						return reject(err.error.data);
 					}
 
-					return resolve(data);
+					return resolve((data.result as unknown) as T);
 				},
 			);
 		});

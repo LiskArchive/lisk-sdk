@@ -131,7 +131,7 @@ describe('InMemoryChannel Channel', () => {
 		it('should throw TypeError when eventName was not provided', () => {
 			// Assert
 			expect(inMemoryChannel.publish).toThrow(
-				'Event name "undefined" must be a valid name with module name.',
+				'Event name "undefined" must be a valid name with module name and action name.',
 			);
 		});
 
@@ -154,7 +154,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.publish(eventFullName);
 
 			// Assert
-			expect(inMemoryChannel['bus'].publish).toHaveBeenCalledWith(event.key(), event.serialize());
+			expect(inMemoryChannel['bus'].publish).toHaveBeenCalledWith(event.key(), undefined);
 		});
 
 		it.todo('write integration test to check if event is being published');
