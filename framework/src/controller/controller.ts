@@ -22,7 +22,7 @@ import { PluginOptions, PluginsOptions, SocketPaths } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
-import { EventInfoObject } from './event';
+import * as JSONRPC from './jsonrpc';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -191,12 +191,9 @@ export class Controller {
 
 		await this.channel.registerToBus(this.bus);
 
-		// If log level is greater than info
-		if (this.logger.level !== undefined && this.logger.level() < 30) {
-			this.bus.subscribe('*', (event: EventInfoObject) => {
-				this.logger.trace(`eventName: ${event.name},`, 'Monitor Bus Channel');
-			});
-		}
+		this.bus.subscribe('*', (event: JSONRPC.NotificationObject) => {
+			this.logger.error(`eventName: ${event.method},`, 'Monitor Bus Channel');
+		});
 	}
 
 	private async _loadInMemoryPlugin(
@@ -327,7 +324,7 @@ export class Controller {
 			new Promise((_, reject) => {
 				this.channel.once(`${alias}:unloading:error`, event => {
 					this.logger.info(`Child process plugin "${alias}" unloaded with error`);
-					this.logger.error(event.data || {}, 'Unloading plugin error.');
+					this.logger.error(event.data ?? {}, 'Unloading plugin error.');
 					delete this._childProcesses[alias];
 					reject(event.data);
 				});

@@ -27,7 +27,7 @@ describe('Event Class', () => {
 		it('should throw error when invalid name argument was provided.', () => {
 			// Act & Assert
 			expect(() => new Event(INVALID_EVENT_NAME_ARG)).toThrow(
-				`Event name "${INVALID_EVENT_NAME_ARG}" must be a valid name with module name.`,
+				`Event name "${INVALID_EVENT_NAME_ARG}" must be a valid name with module name and action name.`,
 			);
 		});
 
@@ -38,7 +38,7 @@ describe('Event Class', () => {
 			// Assert
 			expect(event.module).toBe(MODULE_NAME);
 			expect(event.name).toBe(EVENT_NAME);
-			expect(event.data).toBe(DATA);
+			expect(event.result).toEqual(DATA);
 		});
 
 		it('should not set source property when source is not provided.', () => {
@@ -58,38 +58,68 @@ describe('Event Class', () => {
 			event = new Event(VALID_EVENT_NAME_ARG, DATA);
 		});
 
-		describe('#serialize', () => {
-			it('should serialize the instance with given data.', () => {
+		describe('#toJSONRPC', () => {
+			it('should return jsonrpc object.', () => {
 				// Arrange
 				const expectedResult = {
-					name: EVENT_NAME,
-					module: MODULE_NAME,
-					data: DATA,
+					jsonrpc: '2.0',
+					method: 'module:event',
+					result: {
+						data: '#data',
+					},
 				};
 
 				// Act
-				const serializedEvent = event.serialize();
+				const serializedEvent = event.toJSONRPC();
 
 				// Assert
 				expect(serializedEvent).toEqual(expectedResult);
 			});
 		});
 
-		describe('#toString', () => {
-			it('should return Event as string.', () => {
+		describe('static #fromJSONRPC', () => {
+			it('should return action instance for given jsonrpc string.', () => {
 				// Arrange
-				const expectedResult = `${MODULE_NAME}:${EVENT_NAME}`;
+				const jsonData = {
+					jsonrpc: '2.0',
+					method: `${MODULE_NAME}:${EVENT_NAME}`,
+					result: DATA,
+				};
+				const config = JSON.stringify(jsonData);
 
 				// Act
-				const stringifiedEvent = event.toString();
+				// eslint-disable-next-line no-shadow
+				const event = Event.fromJSONRPC(config);
 
 				// Assert
-				expect(stringifiedEvent).toBe(expectedResult);
+				expect(event).toBeInstanceOf(Event);
+				expect(event.module).toBe(MODULE_NAME);
+				expect(event.name).toBe(EVENT_NAME);
+				expect(event.result).toStrictEqual(DATA);
+			});
+
+			it('should return action instance for given jsonrpc request object.', () => {
+				// Arrange
+				const config = {
+					jsonrpc: '2.0',
+					method: `${MODULE_NAME}:${EVENT_NAME}`,
+					result: DATA,
+				};
+
+				// Act
+				// eslint-disable-next-line no-shadow
+				const event = Event.fromJSONRPC(config);
+
+				// Assert
+				expect(event).toBeInstanceOf(Event);
+				expect(event.module).toBe(MODULE_NAME);
+				expect(event.name).toBe(EVENT_NAME);
+				expect(event.result).toBe(DATA);
 			});
 		});
 
 		describe('#key', () => {
-			it('should return key as string.', () => {
+			it('should return method name.', () => {
 				// Arrange
 				const expectedResult = `${MODULE_NAME}:${EVENT_NAME}`;
 
@@ -98,47 +128,6 @@ describe('Event Class', () => {
 
 				// Assert
 				expect(key).toBe(expectedResult);
-			});
-		});
-
-		describe('static #deserialize', () => {
-			it('should return event instance with given stringified JSON config.', () => {
-				// Arrange
-				const jsonData = {
-					name: EVENT_NAME,
-					module: MODULE_NAME,
-					data: DATA,
-				};
-				const config = JSON.stringify(jsonData);
-
-				// Act
-				// eslint-disable-next-line no-shadow
-				const event = Event.deserialize(config);
-
-				// Assert
-				expect(event).toBeInstanceOf(Event);
-				expect(event.module).toBe(MODULE_NAME);
-				expect(event.name).toBe(EVENT_NAME);
-				expect(event.data).toStrictEqual(DATA);
-			});
-
-			it('should return event instance with given object config.', () => {
-				// Arrange
-				const config = {
-					name: EVENT_NAME,
-					module: MODULE_NAME,
-					data: DATA,
-				};
-
-				// Act
-				// eslint-disable-next-line no-shadow
-				const event = Event.deserialize(config);
-
-				// Assert
-				expect(event).toBeInstanceOf(Event);
-				expect(event.module).toBe(MODULE_NAME);
-				expect(event.name).toBe(EVENT_NAME);
-				expect(event.data).toBe(DATA);
 			});
 		});
 	});

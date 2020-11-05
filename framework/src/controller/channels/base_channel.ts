@@ -44,13 +44,8 @@ export abstract class BaseChannel {
 			const actionData = actions[actionName];
 
 			const handler = typeof actionData === 'object' ? actionData.handler : actionData;
-
-			this.actions[actionName] = new Action(
-				`${this.moduleAlias}:${actionName}`,
-				undefined,
-				undefined,
-				handler,
-			);
+			const method = `${this.moduleAlias}:${actionName}`;
+			this.actions[actionName] = new Action(null, method, undefined, undefined, handler);
 		}
 		this.actionsList = Object.keys(this.actions);
 	}

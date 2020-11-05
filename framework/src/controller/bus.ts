@@ -16,7 +16,8 @@ import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket, PushSocket, ReqSocket, SubSocket } from 'pm2-axon';
 import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
-import { Action, ActionInfoObject, ActionsObject } from './action';
+import { Action, ActionsObject } from './action';
+import * as JSONRPC from './jsonrpc';
 import { Logger } from '../logger';
 import { BaseChannel } from './channels/base_channel';
 import { EventInfoObject, EventsArray } from './event';
@@ -42,7 +43,7 @@ interface RegisterChannelOptions {
 	readonly rpcSocketPath?: string;
 }
 
-type NodeCallback = (error: Error | null, result?: unknown) => void;
+type NodeCallback = (error: JSONRPC.ErrorObject | Error | null, result?: unknown) => void;
 
 enum ChannelType {
 	InMemory,
@@ -124,12 +125,20 @@ export class Bus {
 		);
 
 		this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
+			// Parse and validate incoming jsonrpc request
+			const parsedAction = Action.fromJSONRPC(action);
+			try {
+				JSONRPC.validateJSONRPC(parsedAction);
+			} catch (error) {
+				cb(JSONRPC.errorObject(parsedAction.id, JSONRPC.invalidRequest()));
+			}
+
 			this.invoke(action)
 				.then(data => {
-					cb(null, data);
+					cb(null, JSONRPC.successObject(parsedAction.id, data as JSONRPC.Result));
 				})
 				.catch(error => {
-					cb(error);
+					cb(JSONRPC.errorObject(parsedAction.id, JSONRPC.internalError(error)));
 				});
 		});
 
@@ -186,15 +195,15 @@ export class Bus {
 		}
 	}
 
-	public async invoke<T>(actionData: string | ActionInfoObject): Promise<T> {
-		const action = Action.deserialize(actionData);
+	public async invoke<T>(actionData: string | JSONRPC.RequestObject): Promise<T> {
+		const action = Action.fromJSONRPC(actionData);
 		const actionFullName = action.key();
-		const actionParams = action.params;
 
 		if (this.actions[actionFullName] === undefined) {
-			throw new Error(`Action '${action.key()}' is not registered to bus.`);
+			throw new Error(`Action '${actionFullName}' is not registered to bus.`);
 		}
 
+		const actionParams = action.params;
 		const channelInfo = this.channels[action.module];
 		if (channelInfo.type === ChannelType.InMemory) {
 			return (channelInfo.channel as BaseChannel).invoke<T>(actionFullName, actionParams);
@@ -204,7 +213,7 @@ export class Bus {
 		return new Promise((resolve, reject) => {
 			(channelInfo.rpcClient as RPCClient).call(
 				'invoke',
-				action.serialize(),
+				action.toJSONRPC(),
 				(err: Error | undefined, data: T) => {
 					if (err) {
 						return reject(err);
@@ -216,17 +225,18 @@ export class Bus {
 		});
 	}
 
-	public publish(eventName: string, eventValue: object): void {
+	public publish(eventName: string, eventValue?: object): void {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
 		// Communicate through event emitter
-		this._emitter.emit(eventName, eventValue);
+		const response = JSONRPC.notificationObject(eventName, eventValue);
+		this._emitter.emit(eventName, response);
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
 			try {
-				this._pubSocket.send(eventName, eventValue);
+				this._pubSocket.send(eventName, response);
 			} catch (error) {
 				this.logger.debug(
 					{ err: error as Error },

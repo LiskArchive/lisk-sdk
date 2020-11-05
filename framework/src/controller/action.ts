@@ -14,6 +14,7 @@
 
 import { strict as assert } from 'assert';
 import { actionWithModuleNameReg, moduleNameReg } from '../constants';
+import { RequestObject, VERSION } from './jsonrpc';
 
 export interface ActionInfoObject {
 	readonly module: string;
@@ -32,56 +33,64 @@ export interface ActionsObject {
 	[key: string]: Action;
 }
 
+type ID = string | number | null;
+
 export class Action {
+	public jsonrpc = VERSION;
+	public id: ID;
+	public method: string;
+	public params: object;
 	public module: string;
 	public name: string;
-	public handler?: (action: ActionInfoObject) => unknown;
 	public source?: string;
-	public params: object;
+	public handler?: (action: ActionInfoObject) => unknown;
 
 	public constructor(
-		name: string,
+		id: ID,
+		method: string,
 		params?: object,
 		source?: string,
 		handler?: (action: ActionInfoObject) => unknown,
 	) {
 		assert(
-			actionWithModuleNameReg.test(name),
-			`Action name "${name}" must be a valid name with module name.`,
+			actionWithModuleNameReg.test(method),
+			`Action method "${method}" must be a valid method with module name and action name.`,
 		);
-		[this.module, this.name] = name.split(':');
-		this.params = params ?? {};
-
 		if (source) {
 			assert(moduleNameReg.test(source), `Source name "${source}" must be a valid module name.`);
 			this.source = source;
 		}
 
+		this.id = id;
+		this.method = method;
+		[this.module, this.name] = this.method.split(':');
+		this.params = params ?? {};
 		this.handler = handler;
 	}
 
-	public static deserialize(data: ActionInfoObject | string): Action {
-		const parsedAction: ActionInfoObject =
-			typeof data === 'string' ? (JSON.parse(data) as ActionInfoObject) : data;
+	public static fromJSONRPC(data: RequestObject | string): Action {
+		const { id, method, params } =
+			typeof data === 'string' ? (JSON.parse(data) as RequestObject) : data;
 
-		return new Action(
-			`${parsedAction.module}:${parsedAction.name}`,
-			parsedAction.params,
-			parsedAction.source,
-		);
+		return new Action(id, method, params);
 	}
 
-	public serialize(): ActionInfoObject {
+	public toJSONRPC(): RequestObject {
 		return {
-			name: this.name,
-			module: this.module,
-			source: this.source,
+			jsonrpc: this.jsonrpc,
+			id: this.id,
+			method: this.method,
 			params: this.params,
 		};
 	}
 
-	public toString(): string {
-		return `${this.source ?? 'undefined'} -> ${this.module}:${this.name}`;
+	public toObject(): ActionInfoObject {
+		return {
+			module: this.module,
+			name: this.name,
+			source: this.source,
+			params: this.params,
+		};
 	}
 
 	public key(): string {

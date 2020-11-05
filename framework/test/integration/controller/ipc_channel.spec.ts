@@ -18,6 +18,7 @@ import { resolve as pathResolve } from 'path';
 import { IPCChannel, InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 import { Event } from '../../../src/controller/event';
+import * as jsonRPC from '../../../src/controller/jsonrpc';
 
 const logger: any = {
 	info: jest.fn(),
@@ -104,7 +105,9 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -122,7 +125,9 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -143,7 +148,9 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(dummyData);
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toEqual(dummyData);
 						resolve();
 					});
 				});
@@ -166,7 +173,9 @@ describe('IPCChannel', () => {
 					// Act
 					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(alphaEventData);
+						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
+							.result as { data: object }).data;
+						expect(eventData).toEqual(alphaEventData);
 						done();
 					});
 				});
@@ -216,7 +225,7 @@ describe('IPCChannel', () => {
 				await expect(
 					alphaChannel.invoke(`${beta.moduleAlias}:${invalidActionName}`),
 				).rejects.toThrow(
-					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name.`,
+					`Action method "${beta.moduleAlias}:${invalidActionName}" must be a valid method with module name and action name.`,
 				);
 			});
 		});
