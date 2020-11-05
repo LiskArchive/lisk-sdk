@@ -40,6 +40,8 @@ export class Action {
 	public id: ID;
 	public method: string;
 	public params: object;
+	public module: string;
+	public name: string;
 	public source?: string;
 	public handler?: (action: ActionInfoObject) => unknown;
 
@@ -61,6 +63,7 @@ export class Action {
 
 		this.id = id;
 		this.method = method;
+		[this.module, this.name] = this.method.split(':');
 		this.params = params ?? {};
 		this.handler = handler;
 	}
@@ -88,17 +91,6 @@ export class Action {
 			source: this.source,
 			params: this.params,
 		};
-	}
-
-	public get module(): string {
-		const [moduleName] = this.method.split(':');
-		return moduleName;
-	}
-
-	public get name(): string {
-		const [, eventName] = this.method.split(':');
-
-		return eventName;
 	}
 
 	public key(): string {

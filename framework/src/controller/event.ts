@@ -30,6 +30,8 @@ export class Event {
 	public jsonrpc = VERSION;
 	public method: string;
 	public result!: Result;
+	public module: string;
+	public name: string;
 
 	public constructor(method: string, result?: Result) {
 		assert(
@@ -41,6 +43,9 @@ export class Event {
 		if (result) {
 			this.result = result;
 		}
+		const [moduleName, ...eventName] = this.method.split(':');
+		this.module = moduleName;
+		this.name = eventName.join(':');
 	}
 
 	public static fromJSONRPC(data: NotificationObject | string): Event {
@@ -62,17 +67,6 @@ export class Event {
 			jsonrpc: this.jsonrpc,
 			method: this.method,
 		};
-	}
-
-	public get module(): string {
-		const [moduleName] = this.method.split(':');
-		return moduleName;
-	}
-
-	public get name(): string {
-		const [, ...eventName] = this.method.split(':');
-
-		return eventName.join(':');
 	}
 
 	public key(): string {
