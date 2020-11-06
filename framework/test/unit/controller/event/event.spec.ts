@@ -27,7 +27,7 @@ describe('Event Class', () => {
 		it('should throw error when invalid name argument was provided.', () => {
 			// Act & Assert
 			expect(() => new Event(INVALID_EVENT_NAME_ARG)).toThrow(
-				`Event name "${INVALID_EVENT_NAME_ARG}" must be a valid name with module name and action name.`,
+				`Event name "${INVALID_EVENT_NAME_ARG}" must be a valid name with module name and event name.`,
 			);
 		});
 
@@ -38,7 +38,7 @@ describe('Event Class', () => {
 			// Assert
 			expect(event.module).toBe(MODULE_NAME);
 			expect(event.name).toBe(EVENT_NAME);
-			expect(event.result).toEqual(DATA);
+			expect(event.data).toEqual(DATA);
 		});
 
 		it('should not set source property when source is not provided.', () => {
@@ -58,44 +58,44 @@ describe('Event Class', () => {
 			event = new Event(VALID_EVENT_NAME_ARG, DATA);
 		});
 
-		describe('#toJSONRPC', () => {
+		describe('#toJSONRPCNotification', () => {
 			it('should return jsonrpc object.', () => {
 				// Arrange
 				const expectedResult = {
 					jsonrpc: '2.0',
 					method: 'module:event',
-					result: {
+					params: {
 						data: '#data',
 					},
 				};
 
 				// Act
-				const serializedEvent = event.toJSONRPC();
+				const serializedEvent = event.toJSONRPCNotification();
 
 				// Assert
 				expect(serializedEvent).toEqual(expectedResult);
 			});
 		});
 
-		describe('static #fromJSONRPC', () => {
+		describe('static #fromJSONRPCNotification', () => {
 			it('should return action instance for given jsonrpc string.', () => {
 				// Arrange
 				const jsonData = {
 					jsonrpc: '2.0',
 					method: `${MODULE_NAME}:${EVENT_NAME}`,
-					result: DATA,
+					params: DATA,
 				};
 				const config = JSON.stringify(jsonData);
 
 				// Act
 				// eslint-disable-next-line no-shadow
-				const event = Event.fromJSONRPC(config);
+				const event = Event.fromJSONRPCNotification(config);
 
 				// Assert
 				expect(event).toBeInstanceOf(Event);
 				expect(event.module).toBe(MODULE_NAME);
 				expect(event.name).toBe(EVENT_NAME);
-				expect(event.result).toStrictEqual(DATA);
+				expect(event.data).toStrictEqual(DATA);
 			});
 
 			it('should return action instance for given jsonrpc request object.', () => {
@@ -103,18 +103,18 @@ describe('Event Class', () => {
 				const config = {
 					jsonrpc: '2.0',
 					method: `${MODULE_NAME}:${EVENT_NAME}`,
-					result: DATA,
+					params: DATA,
 				};
 
 				// Act
 				// eslint-disable-next-line no-shadow
-				const event = Event.fromJSONRPC(config);
+				const event = Event.fromJSONRPCNotification(config);
 
 				// Assert
 				expect(event).toBeInstanceOf(Event);
 				expect(event.module).toBe(MODULE_NAME);
 				expect(event.name).toBe(EVENT_NAME);
-				expect(event.result).toBe(DATA);
+				expect(event.data).toBe(DATA);
 			});
 		});
 
