@@ -116,13 +116,6 @@ describe('Send PoM transaction', () => {
 		).rejects.toThrow('PoM asset schema is not registered in the application.');
 	});
 
-	it('should throw error when encrypted passphrase is not set in the config', async () => {
-		(reportMisbehaviorPlugin as any)._state = {};
-		await expect(
-			(reportMisbehaviorPlugin as any)._createPoMTransaction(header1, header2),
-		).rejects.toThrow('Encrypted passphrase is not set in the config.');
-	});
-
 	it('should create pom transaction for given block headers', async () => {
 		const pomTransaction = await (reportMisbehaviorPlugin as any)._createPoMTransaction(
 			header1,
