@@ -17,8 +17,6 @@ import { mkdirSync, rmdirSync } from 'fs';
 import { resolve as pathResolve } from 'path';
 import { IPCChannel } from '../../../src/controller/channels';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
-import { Event } from '../../../src/controller/event';
-import * as jsonRPC from '../../../src/controller/jsonrpc';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel_without_bus/sockets`);
 
@@ -105,11 +103,9 @@ describe('IPCChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
+					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, event => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
-							.result as { data: object }).data;
-						expect(eventData).toEqual(betaEventData);
+						expect(event.data).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -125,11 +121,9 @@ describe('IPCChannel', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise(resolve => {
 					// Act
-					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
+					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, event => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
-							.result as { data: object }).data;
-						expect(eventData).toEqual(betaEventData);
+						expect(event.data).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -148,11 +142,9 @@ describe('IPCChannel', () => {
 
 				const donePromise = new Promise(done => {
 					// Act
-					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
+					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, event => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
-							.result as { data: object }).data;
-						expect(eventData).toEqual(alphaEventData);
+						expect(event.data).toEqual(alphaEventData);
 						done();
 					});
 				});
