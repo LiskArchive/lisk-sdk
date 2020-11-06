@@ -17,13 +17,14 @@ import { PubSocket, PullSocket, PushSocket, ReqSocket, SubSocket } from 'pm2-axo
 import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
 import { Action, ActionsObject } from './action';
+import { Event, EventsArray } from './event';
 import * as JSONRPC from './jsonrpc';
 import { Logger } from '../logger';
 import { BaseChannel } from './channels/base_channel';
-import { EventInfoObject, EventsArray } from './event';
 import { IPCServer } from './ipc/ipc_server';
 import { ActionInfoForBus, SocketPaths } from '../types';
 import { WSServer } from './ws/ws_server';
+import { ResponseObjectWithError, ResponseObjectWithResult } from './jsonrpc';
 
 interface BusConfiguration {
 	ipc: {
@@ -43,7 +44,10 @@ interface RegisterChannelOptions {
 	readonly rpcSocketPath?: string;
 }
 
-type NodeCallback = (error: JSONRPC.ErrorObject | Error | null, result?: unknown) => void;
+type NodeCallback = (
+	error: JSONRPC.ResponseObjectWithError | Error | null,
+	result?: JSONRPC.ResponseObject,
+) => void;
 
 enum ChannelType {
 	InMemory,
@@ -124,26 +128,18 @@ export class Bus {
 			},
 		);
 
-		this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
-			// Parse and validate incoming jsonrpc request
-			const parsedAction = Action.fromJSONRPC(action);
-			try {
-				JSONRPC.validateJSONRPC(parsedAction);
-			} catch (error) {
-				cb(JSONRPC.errorObject(parsedAction.id, JSONRPC.invalidRequest()));
-			}
-
+		this._rpcServer.expose('invoke', (action: string | JSONRPC.RequestObject, cb: NodeCallback) => {
 			this.invoke(action)
 				.then(data => {
-					cb(null, JSONRPC.successObject(parsedAction.id, data as JSONRPC.Result));
+					cb(null, data as ResponseObjectWithResult);
 				})
 				.catch(error => {
-					cb(JSONRPC.errorObject(parsedAction.id, JSONRPC.internalError(error)));
+					cb(error as ResponseObjectWithError);
 				});
 		});
 
-		this._subSocket.on('message', (eventName: string, eventValue: EventInfoObject) => {
-			this.publish(eventName, eventValue);
+		this._subSocket.on('message', (eventValue: string | JSONRPC.NotificationRequest) => {
+			this.publish(eventValue);
 		});
 
 		return true;
@@ -195,26 +191,41 @@ export class Bus {
 		}
 	}
 
-	public async invoke<T>(actionData: string | JSONRPC.RequestObject): Promise<T> {
-		const action = Action.fromJSONRPC(actionData);
-		const actionFullName = action.key();
+	public async invoke<T>(
+		actionData: string | JSONRPC.RequestObject,
+	): Promise<JSONRPC.ResponseObjectWithResult<T>> {
+		const parsedAction = Action.fromJSONRPCRequest(actionData);
+
+		try {
+			JSONRPC.validateJSONRPCRequest(parsedAction.toJSONRPCRequest() as never);
+		} catch (error) {
+			throw JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest());
+		}
+
+		const actionFullName = parsedAction.key();
 
 		if (this.actions[actionFullName] === undefined) {
 			throw new Error(`Action '${actionFullName}' is not registered to bus.`);
 		}
 
-		const actionParams = action.params;
-		const channelInfo = this.channels[action.module];
+		const actionParams = parsedAction.params;
+		const channelInfo = this.channels[parsedAction.module];
 		if (channelInfo.type === ChannelType.InMemory) {
-			return (channelInfo.channel as BaseChannel).invoke<T>(actionFullName, actionParams);
+			const result = await (channelInfo.channel as BaseChannel).invoke<T>(
+				actionFullName,
+				actionParams,
+			);
+			return parsedAction.buildJSONRPCResponse({
+				result,
+			}) as ResponseObjectWithResult<T>;
 		}
 
 		// For child process channel
 		return new Promise((resolve, reject) => {
 			(channelInfo.rpcClient as RPCClient).call(
 				'invoke',
-				action.toJSONRPC(),
-				(err: Error | undefined, data: T) => {
+				parsedAction.toJSONRPCRequest(),
+				(err: Error | undefined, data: JSONRPC.ResponseObjectWithResult<T>) => {
 					if (err) {
 						return reject(err);
 					}
@@ -225,18 +236,29 @@ export class Bus {
 		});
 	}
 
-	public publish(eventName: string, eventValue?: object): void {
+	public publish(eventData: string | JSONRPC.NotificationRequest): void {
+		const parsedEvent = Event.fromJSONRPCNotification(eventData);
+
+		try {
+			JSONRPC.validateJSONRPCRequest(parsedEvent.toJSONRPCNotification() as never);
+		} catch (error) {
+			throw JSONRPC.errorResponse(null, JSONRPC.invalidRequest());
+		}
+
+		const eventName = parsedEvent.key();
+		const notification = parsedEvent.toJSONRPCNotification();
+
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
+
 		// Communicate through event emitter
-		const response = JSONRPC.notificationObject(eventName, eventValue);
-		this._emitter.emit(eventName, response);
+		this._emitter.emit(eventName, notification);
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
 			try {
-				this._pubSocket.send(eventName, response);
+				this._pubSocket.send(notification);
 			} catch (error) {
 				this.logger.debug(
 					{ err: error as Error },

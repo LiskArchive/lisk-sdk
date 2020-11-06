@@ -13,14 +13,21 @@
  */
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { ErrorObject, JsonRpcError, ID, NotificationObject, Result, SuccessObject } from './types';
+import {
+	JsonRpcError,
+	ID,
+	NotificationRequest,
+	JsonRpcResult,
+	ResponseObjectWithResult,
+	ResponseObjectWithError,
+} from './types';
 
 export const VERSION = '2.0';
 
 const RequestSchema = {
 	id: 'jsonRPCRequestSchema',
 	type: 'object',
-	required: ['jsonrpc', 'method', 'id'],
+	required: ['jsonrpc', 'method'],
 	properties: {
 		jsonrpc: {
 			type: 'string',
@@ -37,26 +44,29 @@ const RequestSchema = {
 	},
 };
 
-export const validateJSONRPC = (data: object): void => {
+export const validateJSONRPCRequest = (data: Record<string, unknown>): void => {
 	const errors = validator.validate(RequestSchema, data);
 	if (errors.length) {
 		throw new LiskValidationError(errors);
 	}
 };
 
-export const successObject = (id: ID, result: Result): SuccessObject => ({
+export const notificationRequest = (
+	method: string,
+	params?: Record<string, unknown>,
+): NotificationRequest => ({
+	jsonrpc: VERSION,
+	method,
+	params,
+});
+
+export const successResponse = (id: ID, result: JsonRpcResult): ResponseObjectWithResult => ({
 	jsonrpc: VERSION,
 	id,
 	result,
 });
 
-export const notificationObject = (method: string, result?: Result): NotificationObject => ({
-	jsonrpc: VERSION,
-	method,
-	result,
-});
-
-export const errorObject = (id: ID, error: JsonRpcError): ErrorObject => ({
+export const errorResponse = (id: ID, error: JsonRpcError): ResponseObjectWithError => ({
 	jsonrpc: VERSION,
 	id,
 	error,
@@ -68,7 +78,7 @@ export const methodNotFound = (): JsonRpcError => ({ message: 'Method not found'
 
 export const invalidParams = (): JsonRpcError => ({ message: 'Invalid params', code: -32602 });
 
-export const internalError = (data?: Result): JsonRpcError => {
+export const internalError = (data?: JsonRpcResult): JsonRpcError => {
 	if (data) {
 		return { message: 'Internal error', code: -32603, data };
 	}

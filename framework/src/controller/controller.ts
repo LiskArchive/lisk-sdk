@@ -191,7 +191,7 @@ export class Controller {
 
 		await this.channel.registerToBus(this.bus);
 
-		this.bus.subscribe('*', (event: JSONRPC.NotificationObject) => {
+		this.bus.subscribe('*', (event: JSONRPC.NotificationRequest) => {
 			this.logger.error(`eventName: ${event.method},`, 'Monitor Bus Channel');
 		});
 	}
@@ -285,7 +285,7 @@ export class Controller {
 			new Promise((_, reject) => {
 				setTimeout(() => {
 					reject(new Error('Child process plugin loading timeout'));
-				}, 2000);
+				}, 3000);
 			}),
 		]);
 	}
