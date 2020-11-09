@@ -199,7 +199,10 @@ export class Bus {
 		try {
 			JSONRPC.validateJSONRPCRequest(parsedAction.toJSONRPCRequest() as never);
 		} catch (error) {
-			throw JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest());
+			// TODO: Improve the error by creating custom error constructor
+			throw new Error(
+				JSON.stringify(JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest())),
+			);
 		}
 
 		const actionFullName = parsedAction.key();
