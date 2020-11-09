@@ -15,12 +15,13 @@
 import { strict as assert } from 'assert';
 import { actionWithModuleNameReg, moduleNameReg } from '../constants';
 import { RequestObject, VERSION } from './jsonrpc';
+import { ResponseObject, JSONRPCResult, ID, JSONRPCError } from './jsonrpc/types';
 
 export interface ActionInfoObject {
 	readonly module: string;
 	readonly name: string;
 	readonly source?: string;
-	readonly params: object;
+	readonly params?: object;
 }
 
 export type ActionHandler = (action: ActionInfoObject) => unknown;
@@ -33,28 +34,24 @@ export interface ActionsObject {
 	[key: string]: Action;
 }
 
-type ID = string | number | null;
-
 export class Action {
-	public jsonrpc = VERSION;
-	public id: ID;
-	public method: string;
-	public params: object;
-	public module: string;
-	public name: string;
-	public source?: string;
+	public readonly id: ID;
+	public readonly module: string;
+	public readonly name: string;
+	public readonly source?: string;
+	public readonly params?: object;
 	public handler?: (action: ActionInfoObject) => unknown;
 
 	public constructor(
 		id: ID,
-		method: string,
+		name: string,
 		params?: object,
 		source?: string,
 		handler?: (action: ActionInfoObject) => unknown,
 	) {
 		assert(
-			actionWithModuleNameReg.test(method),
-			`Action method "${method}" must be a valid method with module name and action name.`,
+			actionWithModuleNameReg.test(name),
+			`Action name "${name}" must be a valid name with module name and action name.`,
 		);
 		if (source) {
 			assert(moduleNameReg.test(source), `Source name "${source}" must be a valid module name.`);
@@ -62,35 +59,53 @@ export class Action {
 		}
 
 		this.id = id;
-		this.method = method;
-		[this.module, this.name] = this.method.split(':');
+		[this.module, this.name] = name.split(':');
 		this.params = params ?? {};
 		this.handler = handler;
 	}
 
-	public static fromJSONRPC(data: RequestObject | string): Action {
+	public static fromJSONRPCRequest(data: RequestObject | string): Action {
 		const { id, method, params } =
 			typeof data === 'string' ? (JSON.parse(data) as RequestObject) : data;
+
+		if (params) {
+			const { source, ...rest } = params;
+
+			return new Action(id, method, rest, source);
+		}
 
 		return new Action(id, method, params);
 	}
 
-	public toJSONRPC(): RequestObject {
+	public toJSONRPCRequest(): RequestObject {
 		return {
-			jsonrpc: this.jsonrpc,
+			jsonrpc: VERSION,
 			id: this.id,
-			method: this.method,
-			params: this.params,
+			method: `${this.module}:${this.name}`,
+			params: { ...this.params, source: this.source },
 		};
 	}
 
+	public buildJSONRPCResponse<T = JSONRPCResult>({
+		error,
+		result,
+	}: {
+		error?: JSONRPCError;
+		result?: T;
+	}): ResponseObject<T> {
+		if (error) {
+			return { id: this.id, jsonrpc: VERSION, error };
+		}
+
+		if (result) {
+			return { id: this.id, jsonrpc: VERSION, result };
+		}
+
+		throw new Error('Response must be sent with result or error');
+	}
+
 	public toObject(): ActionInfoObject {
-		return {
-			module: this.module,
-			name: this.name,
-			source: this.source,
-			params: this.params,
-		};
+		return { module: this.module, name: this.name, source: this.source, params: this.params };
 	}
 
 	public key(): string {
