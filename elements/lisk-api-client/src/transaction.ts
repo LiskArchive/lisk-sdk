@@ -139,7 +139,7 @@ export class Transaction {
 	}
 
 	public async get(id: Buffer): Promise<Record<string, unknown>> {
-		const transactionHex = await this._channel.invoke<string>('app:TransactionByID', {
+		const transactionHex = await this._channel.invoke<string>('app:getTransactionByID', {
 			id: id.toString('hex'),
 		});
 		return decodeTransaction(Buffer.from(transactionHex, 'hex'), this._schema);

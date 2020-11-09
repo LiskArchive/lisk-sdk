@@ -51,7 +51,7 @@ export const decodeTransaction = (
 	}>(registeredSchema.transaction, encodedTransaction);
 	const assetSchema = getTransactionAssetSchema(transaction, registeredSchema);
 	const asset = codec.decode(assetSchema, transaction.asset);
-	const id = hash(encodedTransaction);
+	const id = hash(encodedTransaction).toString('hex');
 	return {
 		...transaction,
 		asset,
