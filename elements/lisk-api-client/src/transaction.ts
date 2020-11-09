@@ -92,8 +92,8 @@ export class Transaction {
 				txInput.moduleID = registeredModule?.id ? registeredModule.id : txInput.moduleID;
 			}
 		}
-		if (!input.assetID) {
-			if (!input.assetName) {
+		if (txInput.assetID === undefined) {
+			if (!txInput.assetName) {
 				throw new Error('Missing assetId and assetName');
 			} else {
 				const registeredAsset = this._nodeInfo.registeredModules.find(
