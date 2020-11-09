@@ -285,7 +285,7 @@ export class Controller {
 			new Promise((_, reject) => {
 				setTimeout(() => {
 					reject(new Error('Child process plugin loading timeout'));
-				}, 3000);
+				}, 2000);
 			}),
 		]);
 	}
