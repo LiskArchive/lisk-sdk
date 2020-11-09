@@ -13,12 +13,12 @@
  *
  */
 
+import { when } from 'jest-when';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { Channel } from '../../src/types';
 import { Transaction } from '../../src/transaction';
 
 describe('transaction', () => {
-	let channel: Channel;
+	let channelMock: any;
 	let transaction: Transaction;
 	const passphrases = ['trim elegant oven term access apple obtain error grain excite lawn neck'];
 	const nodeInfo = {
@@ -96,6 +96,8 @@ describe('transaction', () => {
 	};
 	const txHex =
 		'0802100018362080ade2042a20dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a321d0880ade2041214654087c2df870402ab0b1996616fd3355d61f62c1a003a4079cb29dca7bb9fce73a1e8ca28264f779074d259c341b536bae9a54c0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700';
+	const accountHex =
+		'0a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581512050880c2d72f1a020800220208002a3b0a1a0a0a67656e657369735f3834180020850528003080a094a58d1d121d0a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151080a094a58d1d';
 	const encodedTx = Buffer.from(txHex, 'hex');
 	const tx = {
 		moduleID: 2,
@@ -598,19 +600,28 @@ describe('transaction', () => {
 	};
 
 	beforeEach(() => {
-		channel = {
+		channelMock = {
 			connect: jest.fn(),
 			disconnect: jest.fn(),
-			invoke: jest.fn().mockResolvedValue(txHex),
+			invoke: jest.fn(),
 			subscribe: jest.fn(),
 		};
-		transaction = new Transaction(channel, schema, nodeInfo);
+
+		when(channelMock.invoke)
+			.calledWith('app:getAccount')
+			.mockResolvedValue(accountHex as never)
+			.calledWith('app:getTransactionByID')
+			.mockResolvedValue(txHex as never)
+			.calledWith('app:getTransactionsFromPool')
+			.mockResolvedValue(txHex as never);
+
+		transaction = new Transaction(channelMock, schema, nodeInfo);
 	});
 
 	describe('Transaction', () => {
 		describe('constructor', () => {
 			it('should initialize with channel', () => {
-				expect(transaction['_channel']).toBe(channel);
+				expect(transaction['_channel']).toBe(channelMock);
 			});
 		});
 
@@ -620,8 +631,8 @@ describe('transaction', () => {
 				await transaction.get(txId);
 
 				// Assert
-				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
+				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+				expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
 					id: txId.toString('hex'),
 				});
 			});
@@ -633,18 +644,19 @@ describe('transaction', () => {
 				await transaction.getFromPool();
 
 				// Assert
-				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getTransactionsFromPool');
+				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+				expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionsFromPool');
 			});
 		});
 
 		describe('create', () => {
-			it('should return created tx', () => {
+			it('should return created tx', async () => {
 				// Act
-				const returnedTx = transaction.create(validTransaction, passphrase1);
+				const returnedTx = await transaction.create(validTransaction, passphrase1);
 
 				// Assert
-				expect(returnedTx).toEqual(encodedTx);
+				expect(returnedTx.signatures).toHaveLength(1);
+				expect(returnedTx.signatures).toMatchSnapshot();
 			});
 		});
 
@@ -664,8 +676,10 @@ describe('transaction', () => {
 				await transaction.send(tx);
 
 				// Assert
-				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:postTransaction', { transaction: txHex });
+				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+				expect(channelMock.invoke).toHaveBeenCalledWith('app:postTransaction', {
+					transaction: txHex,
+				});
 			});
 		});
 
