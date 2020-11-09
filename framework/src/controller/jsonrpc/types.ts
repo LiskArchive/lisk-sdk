@@ -15,7 +15,7 @@
 export type ID = string | number | null;
 export type JSONRPCResult = string | number | boolean | object;
 
-export interface JSONRPCError {
+export interface JSONRPCErrorObject {
 	code: number;
 	message: string;
 	data?: JSONRPCResult;
@@ -33,7 +33,7 @@ export type NotificationRequest = Omit<RequestObject, 'id'>;
 export interface ResponseObjectWithError {
 	readonly id: ID;
 	readonly jsonrpc: string;
-	readonly error: JSONRPCError;
+	readonly error: JSONRPCErrorObject;
 	readonly result?: never;
 }
 

@@ -14,7 +14,7 @@
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
-	JSONRPCError,
+	JSONRPCErrorObject,
 	ID,
 	NotificationRequest,
 	JSONRPCResult,
@@ -24,13 +24,14 @@ import {
 
 export const VERSION = '2.0';
 
-const RequestSchema = {
+const requestSchema = {
 	id: 'jsonRPCRequestSchema',
 	type: 'object',
-	required: ['jsonrpc', 'method'],
+	required: ['jsonrpc', 'method', 'id'],
 	properties: {
 		jsonrpc: {
 			type: 'string',
+			const: '2.0',
 		},
 		method: {
 			type: 'string',
@@ -42,10 +43,37 @@ const RequestSchema = {
 			type: 'object',
 		},
 	},
+	additionalProperties: false,
+};
+
+const notificationSchema = {
+	id: 'jsonRPCRequestSchema',
+	type: 'object',
+	required: ['jsonrpc', 'method'],
+	properties: {
+		jsonrpc: {
+			type: 'string',
+			const: '2.0',
+		},
+		method: {
+			type: 'string',
+		},
+		params: {
+			type: 'object',
+		},
+	},
+	additionalProperties: false,
 };
 
 export const validateJSONRPCRequest = (data: Record<string, unknown>): void => {
-	const errors = validator.validate(RequestSchema, data);
+	const errors = validator.validate(requestSchema, data);
+	if (errors.length) {
+		throw new LiskValidationError(errors);
+	}
+};
+
+export const validateJSONRPCNotification = (data: Record<string, unknown>): void => {
+	const errors = validator.validate(notificationSchema, data);
 	if (errors.length) {
 		throw new LiskValidationError(errors);
 	}
@@ -66,23 +94,32 @@ export const successResponse = (id: ID, result: JSONRPCResult): ResponseObjectWi
 	result,
 });
 
-export const errorResponse = (id: ID, error: JSONRPCError): ResponseObjectWithError => ({
+export const errorResponse = (id: ID, error: JSONRPCErrorObject): ResponseObjectWithError => ({
 	jsonrpc: VERSION,
 	id,
 	error,
 });
 
-export const invalidRequest = (): JSONRPCError => ({ message: 'Invalid request', code: -32600 });
+export const invalidRequest = (): JSONRPCErrorObject => ({ message: 'Invalid request', code: -32600 });
 
-export const methodNotFound = (): JSONRPCError => ({ message: 'Method not found', code: -32601 });
+export const methodNotFound = (): JSONRPCErrorObject => ({ message: 'Method not found', code: -32601 });
 
-export const invalidParams = (): JSONRPCError => ({ message: 'Invalid params', code: -32602 });
+export const invalidParams = (): JSONRPCErrorObject => ({ message: 'Invalid params', code: -32602 });
 
-export const internalError = (data?: JSONRPCResult): JSONRPCError => {
+export const internalError = (data?: JSONRPCResult): JSONRPCErrorObject => {
 	if (data) {
 		return { message: 'Internal error', code: -32603, data };
 	}
 	return { message: 'Internal error', code: -32603 };
 };
 
-export const parseError = (): JSONRPCError => ({ message: 'Parse error', code: -32700 });
+export const parseError = (): JSONRPCErrorObject => ({ message: 'Parse error', code: -32700 });
+
+export class JSONRPCError extends Error {
+	public response: ResponseObjectWithError;
+
+	public constructor(message: string, error: ResponseObjectWithError) {
+		super(message);
+		this.response = error;
+	}
+}

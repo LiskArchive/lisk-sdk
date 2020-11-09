@@ -13,9 +13,10 @@
  */
 
 import * as axon from 'pm2-axon';
-import { PubSocket, PullSocket, PushSocket, ReqSocket, SubSocket } from 'pm2-axon';
-import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
+import { ReqSocket } from 'pm2-axon';
+import { Client as RPCClient } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
+import { LiskValidationError } from '../../../elements/lisk-validator/src/errors';
 import { Action, ActionsObject } from './action';
 import { Event, EventsArray } from './event';
 import * as JSONRPC from './jsonrpc';
@@ -107,39 +108,17 @@ export class Bus {
 				port: config.rpc.port,
 				logger: this.logger,
 			});
-			this._wsServer.start();
 		}
 	}
 
 	public async setup(): Promise<boolean> {
-		if (!this.config.ipc.enabled) {
-			return true;
+		if (this.config.ipc.enabled) {
+			await this._setupIPCServer();
 		}
 
-		await this._ipcServer.start();
-
-		this._rpcServer.expose(
-			'registerChannel',
-			(moduleAlias, events, actions, options, cb: NodeCallback) => {
-				this.registerChannel(moduleAlias, events, actions, options)
-					.then(() => cb(null))
-					.catch(error => cb(error));
-			},
-		);
-
-		this._rpcServer.expose('invoke', (action: string | JSONRPC.RequestObject, cb: NodeCallback) => {
-			this.invoke(action)
-				.then(data => {
-					cb(null, data as JSONRPC.ResponseObjectWithResult);
-				})
-				.catch(error => {
-					cb(error as JSONRPC.ResponseObjectWithError);
-				});
-		});
-
-		this._subSocket.on('message', (eventValue: string | JSONRPC.NotificationRequest) => {
-			this.publish(eventValue);
-		});
+		if (this.config.rpc.enable) {
+			await this._setupWSServer();
+		}
 
 		return true;
 	}
@@ -198,11 +177,11 @@ export class Bus {
 		try {
 			JSONRPC.validateJSONRPCRequest(parsedAction.toJSONRPCRequest() as never);
 		} catch (error) {
-			this.logger.error(
-				JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest()),
+			this.logger.error((error as LiskValidationError).errors, 'Invalid invoke request');
+			throw new JSONRPC.JSONRPCError(
 				'Invalid invoke request',
+				JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest()),
 			);
-			throw new Error(`Invalid invoke request with id: ${parsedAction.id ?? ''}`);
 		}
 
 		const actionFullName = parsedAction.key();
@@ -243,13 +222,13 @@ export class Bus {
 		const parsedEvent = Event.fromJSONRPCNotification(eventData);
 
 		try {
-			JSONRPC.validateJSONRPCRequest(parsedEvent.toJSONRPCNotification() as never);
+			JSONRPC.validateJSONRPCNotification(parsedEvent.toJSONRPCNotification() as never);
 		} catch (error) {
-			this.logger.error(
-				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+			this.logger.error((error as LiskValidationError).errors, 'Invalid publish request');
+			throw new JSONRPC.JSONRPCError(
 				'Invalid publish request',
+				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
 			);
-			throw new Error('Invalid publish request');
 		}
 
 		const eventName = parsedEvent.key();
@@ -265,11 +244,22 @@ export class Bus {
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
 			try {
-				this._pubSocket.send(notification);
+				this._ipcServer.pubSocket.send(notification);
 			} catch (error) {
 				this.logger.debug(
 					{ err: error as Error },
-					`Failed to publish event: ${eventName} to socket.`,
+					`Failed to publish event: ${eventName} to ipc server.`,
+				);
+			}
+		}
+
+		if (this.config.rpc.enable) {
+			try {
+				this._wsServer.broadcast(JSON.stringify(notification));
+			} catch (error) {
+				this.logger.debug(
+					{ err: error as Error },
+					`Failed to publish event: ${eventName} to ws server.`,
 				);
 			}
 		}
@@ -313,15 +303,54 @@ export class Bus {
 		}
 	}
 
-	private get _rpcServer(): RPCServer {
-		return this._ipcServer.rpcServer;
+	private async _setupIPCServer(): Promise<void> {
+		await this._ipcServer.start();
+
+		this._ipcServer.rpcServer.expose(
+			'registerChannel',
+			(moduleAlias, events, actions, options, cb: NodeCallback) => {
+				this.registerChannel(moduleAlias, events, actions, options)
+					.then(() => cb(null))
+					.catch(error => cb(error));
+			},
+		);
+
+		this._ipcServer.rpcServer.expose(
+			'invoke',
+			(action: string | JSONRPC.RequestObject, cb: NodeCallback) => {
+				this.invoke(action)
+					.then(data => {
+						cb(null, data as JSONRPC.ResponseObjectWithResult);
+					})
+					.catch(error => {
+						cb(error as JSONRPC.ResponseObjectWithError);
+					});
+			},
+		);
+
+		this._ipcServer.subSocket.on('message', (eventValue: string | JSONRPC.NotificationRequest) => {
+			this.publish(eventValue);
+		});
 	}
 
-	private get _pubSocket(): PubSocket | PushSocket {
-		return this._ipcServer.pubSocket;
-	}
+	// eslint-disable-next-line @typescript-eslint/require-await
+	private async _setupWSServer(): Promise<void> {
+		this._wsServer.start((socket, message) => {
+			this.invoke(message)
+				.then(data => {
+					socket.send(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));
+				})
+				.catch(error => {
+					if (error instanceof JSONRPC.JSONRPCError) {
+						return socket.send(JSON.stringify(error.response));
+					}
 
-	private get _subSocket(): PullSocket | SubSocket {
-		return this._ipcServer.subSocket;
+					return socket.send(
+						JSON.stringify(
+							JSONRPC.errorResponse(null, JSONRPC.internalError((error as Error).message)),
+						),
+					);
+				});
+		});
 	}
 }

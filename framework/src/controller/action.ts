@@ -15,7 +15,7 @@
 import { strict as assert } from 'assert';
 import { actionWithModuleNameReg, moduleNameReg } from '../constants';
 import { RequestObject, VERSION } from './jsonrpc';
-import { ResponseObject, JSONRPCResult, ID, JSONRPCError } from './jsonrpc/types';
+import { ResponseObject, JSONRPCResult, ID, JSONRPCErrorObject } from './jsonrpc/types';
 
 export interface ActionInfoObject {
 	readonly module: string;
@@ -90,7 +90,7 @@ export class Action {
 		error,
 		result,
 	}: {
-		error?: JSONRPCError;
+		error?: JSONRPCErrorObject;
 		result?: T;
 	}): ResponseObject<T> {
 		if (error) {
