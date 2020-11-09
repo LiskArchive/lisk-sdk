@@ -76,7 +76,13 @@ export class MonitorPlugin extends BasePlugin {
 
 	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
-		return {};
+		return {
+			getTransactionStats: async () =>
+				controllers.transactions.getTransactionStats(this._channel, this._state),
+			getBlockStats: async () => controllers.blocks.getBlockStats(this._channel, this._state),
+			getNetworkStats: async () => controllers.network.getNetworkStats(this._channel),
+			getForkStats: async () => controllers.forks.getForkStats(this._state),
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -90,16 +96,8 @@ export class MonitorPlugin extends BasePlugin {
 				forkEventCount: 0,
 				blockHeaders: {},
 			},
-			transactions: {
-				transactions: {},
-				averageReceivedTransactions: 0,
-				connectedPeers: 0,
-			},
-			blocks: {
-				blocks: {},
-				averageReceivedBlocks: 0,
-				connectedPeers: 0,
-			},
+			transactions: {},
+			blocks: {},
 		};
 
 		this._channel.once('app:ready', () => {
@@ -141,16 +139,6 @@ export class MonitorPlugin extends BasePlugin {
 
 	private _registerControllers(): void {
 		this._app.get(
-			'/api/stats/transactions',
-			controllers.transactions.getTransactionStats(this._channel, this._state),
-		);
-		this._app.get(
-			'/api/stats/blocks',
-			controllers.blocks.getBlockStats(this._channel, this._state),
-		);
-		this._app.get('/api/stats/network', controllers.network.getNetworkStats(this._channel));
-		this._app.get('/api/stats/forks', controllers.forks.getForkStats(this._state));
-		this._app.get(
 			'/api/prometheus/metrics',
 			controllers.prometheusExport.getData(this._channel, this._state),
 		);
@@ -181,10 +169,10 @@ export class MonitorPlugin extends BasePlugin {
 
 	private _handlePostTransactionAnnounce(data: { transactionIds: string[] }) {
 		for (const aTransactionId of data.transactionIds) {
-			if (this._state.transactions.transactions[aTransactionId]) {
-				this._state.transactions.transactions[aTransactionId].count += 1;
+			if (this._state.transactions[aTransactionId]) {
+				this._state.transactions[aTransactionId].count += 1;
 			} else {
-				this._state.transactions.transactions[aTransactionId] = {
+				this._state.transactions[aTransactionId] = {
 					count: 1,
 					timeReceived: Date.now(),
 				};
@@ -195,12 +183,9 @@ export class MonitorPlugin extends BasePlugin {
 
 	private _cleanUpTransactionStats() {
 		const expiryTime = 600000;
-		for (const transactionID of Object.keys(this._state.transactions.transactions)) {
-			if (
-				Date.now() - this._state.transactions.transactions[transactionID].timeReceived >
-				expiryTime
-			) {
-				delete this._state.transactions.transactions[transactionID];
+		for (const transactionID of Object.keys(this._state.transactions)) {
+			if (Date.now() - this._state.transactions[transactionID].timeReceived > expiryTime) {
+				delete this._state.transactions[transactionID];
 			}
 		}
 	}
@@ -229,20 +214,20 @@ export class MonitorPlugin extends BasePlugin {
 		);
 		const blockId = hash(decodedBlock.header);
 
-		if (!this._state.blocks.blocks[blockId.toString('hex')]) {
-			this._state.blocks.blocks[blockId.toString('hex')] = {
+		if (!this._state.blocks[blockId.toString('hex')]) {
+			this._state.blocks[blockId.toString('hex')] = {
 				count: 0,
 				height: decodedBlockHeader.height,
 			};
 		}
 
-		this._state.blocks.blocks[blockId.toString('hex')].count += 1;
+		this._state.blocks[blockId.toString('hex')].count += 1;
 
 		// Clean up blocks older than current height minus 300 blocks
-		for (const id of Object.keys(this._state.blocks.blocks)) {
-			const blockInfo = this._state.blocks.blocks[id];
+		for (const id of Object.keys(this._state.blocks)) {
+			const blockInfo = this._state.blocks[id];
 			if (blockInfo.height < decodedBlockHeader.height - 300) {
-				delete this._state.blocks.blocks[id];
+				delete this._state.blocks[id];
 			}
 		}
 	}
