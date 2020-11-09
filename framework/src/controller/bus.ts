@@ -24,7 +24,6 @@ import { BaseChannel } from './channels/base_channel';
 import { IPCServer } from './ipc/ipc_server';
 import { ActionInfoForBus, SocketPaths } from '../types';
 import { WSServer } from './ws/ws_server';
-import { ResponseObjectWithError, ResponseObjectWithResult } from './jsonrpc';
 
 interface BusConfiguration {
 	ipc: {
@@ -131,10 +130,10 @@ export class Bus {
 		this._rpcServer.expose('invoke', (action: string | JSONRPC.RequestObject, cb: NodeCallback) => {
 			this.invoke(action)
 				.then(data => {
-					cb(null, data as ResponseObjectWithResult);
+					cb(null, data as JSONRPC.ResponseObjectWithResult);
 				})
 				.catch(error => {
-					cb(error as ResponseObjectWithError);
+					cb(error as JSONRPC.ResponseObjectWithError);
 				});
 		});
 
@@ -221,7 +220,7 @@ export class Bus {
 			);
 			return parsedAction.buildJSONRPCResponse({
 				result,
-			}) as ResponseObjectWithResult<T>;
+			}) as JSONRPC.ResponseObjectWithResult<T>;
 		}
 
 		// For child process channel
