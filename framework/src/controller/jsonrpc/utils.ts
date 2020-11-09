@@ -14,10 +14,10 @@
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
-	JsonRpcError,
+	JSONRPCError,
 	ID,
 	NotificationRequest,
-	JsonRpcResult,
+	JSONRPCResult,
 	ResponseObjectWithResult,
 	ResponseObjectWithError,
 } from './types';
@@ -60,29 +60,29 @@ export const notificationRequest = (
 	params,
 });
 
-export const successResponse = (id: ID, result: JsonRpcResult): ResponseObjectWithResult => ({
+export const successResponse = (id: ID, result: JSONRPCResult): ResponseObjectWithResult => ({
 	jsonrpc: VERSION,
 	id,
 	result,
 });
 
-export const errorResponse = (id: ID, error: JsonRpcError): ResponseObjectWithError => ({
+export const errorResponse = (id: ID, error: JSONRPCError): ResponseObjectWithError => ({
 	jsonrpc: VERSION,
 	id,
 	error,
 });
 
-export const invalidRequest = (): JsonRpcError => ({ message: 'Invalid request', code: -32600 });
+export const invalidRequest = (): JSONRPCError => ({ message: 'Invalid request', code: -32600 });
 
-export const methodNotFound = (): JsonRpcError => ({ message: 'Method not found', code: -32601 });
+export const methodNotFound = (): JSONRPCError => ({ message: 'Method not found', code: -32601 });
 
-export const invalidParams = (): JsonRpcError => ({ message: 'Invalid params', code: -32602 });
+export const invalidParams = (): JSONRPCError => ({ message: 'Invalid params', code: -32602 });
 
-export const internalError = (data?: JsonRpcResult): JsonRpcError => {
+export const internalError = (data?: JSONRPCResult): JSONRPCError => {
 	if (data) {
 		return { message: 'Internal error', code: -32603, data };
 	}
 	return { message: 'Internal error', code: -32603 };
 };
 
-export const parseError = (): JsonRpcError => ({ message: 'Parse error', code: -32700 });
+export const parseError = (): JSONRPCError => ({ message: 'Parse error', code: -32700 });
