@@ -199,10 +199,11 @@ export class Bus {
 		try {
 			JSONRPC.validateJSONRPCRequest(parsedAction.toJSONRPCRequest() as never);
 		} catch (error) {
-			// TODO: Improve the error by creating custom error constructor
-			throw new Error(
-				JSON.stringify(JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest())),
+			this.logger.error(
+				JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest()),
+				'Invalid invoke request',
 			);
+			throw new Error(`Invalid invoke request with id: ${parsedAction.id ?? ''}`);
 		}
 
 		const actionFullName = parsedAction.key();
@@ -245,7 +246,11 @@ export class Bus {
 		try {
 			JSONRPC.validateJSONRPCRequest(parsedEvent.toJSONRPCNotification() as never);
 		} catch (error) {
-			throw JSONRPC.errorResponse(null, JSONRPC.invalidRequest());
+			this.logger.error(
+				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+				'Invalid publish request',
+			);
+			throw new Error('Invalid publish request');
 		}
 
 		const eventName = parsedEvent.key();
