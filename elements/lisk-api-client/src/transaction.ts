@@ -56,9 +56,9 @@ export class Transaction {
 	public async create(
 		input: {
 			moduleID?: number; // id takes priority
-			moduleName?: number;
+			moduleName?: string;
 			assetID?: number; // id takes priority
-			assetName?: number;
+			assetName?: string;
 			fee: bigint;
 			nonce: bigint;
 			senderPublicKey: Buffer;
@@ -77,25 +77,31 @@ export class Transaction {
 	): Promise<Record<string, unknown>> {
 		const txInput = input;
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
-		// const registeredModules = this._nodeInfo.registeredModules;
 		const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(passphrase);
 		const accountHex = await this._channel.invoke<string>('app:getAccount', {
 			address: address.toString('hex'),
 		});
 		const account = decodeAccount(Buffer.from(accountHex, 'hex'), this._schema);
-		if (!input.moduleID) {
-			if (!input.moduleName) {
+		if (!txInput.moduleID) {
+			if (!txInput.moduleName) {
 				throw new Error('Missing moduleId and moduleName');
+			} else {
+				const registeredModule = this._nodeInfo.registeredModules.find(
+					module => module.name === input.moduleName,
+				);
+				txInput.moduleID = registeredModule?.id ? registeredModule.id : txInput.moduleID;
 			}
-			// map moduleName to moduleId from registeredModules;
 		}
 		if (!input.assetID) {
 			if (!input.assetName) {
-				throw new Error('Missing moduleId and moduleName');
+				throw new Error('Missing assetId and assetName');
+			} else {
+				const registeredAsset = this._nodeInfo.registeredModules.find(
+					asset => asset.name === input.assetName,
+				);
+				txInput.assetID = registeredAsset?.id ? registeredAsset.id : txInput.assetID;
 			}
-			// map assetName to assetId from registeredModules;
 		}
-
 		if (!options?.nonce && !txInput.nonce) {
 			if (
 				typeof account.sequence !== 'object' ||
