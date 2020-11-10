@@ -16,7 +16,7 @@ import * as axon from 'pm2-axon';
 import { ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
-import { LiskValidationError } from '../../../elements/lisk-validator/src/errors';
+import { LiskValidationError } from '@liskhq/lisk-validator';
 import { Action, ActionsObject } from './action';
 import { Event, EventsArray } from './event';
 import * as JSONRPC from './jsonrpc';
