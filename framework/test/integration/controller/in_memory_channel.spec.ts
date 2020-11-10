@@ -16,8 +16,6 @@ import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
-import { Event } from '../../../src/controller/event';
-import * as jsonRPC from '../../../src/controller/jsonrpc';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
@@ -90,11 +88,9 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
+					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, event => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
-							.result as { data: object }).data;
-						expect(eventData).toBe(betaEventData);
+						expect(event.data).toBe(betaEventData);
 						resolve();
 					});
 				});
@@ -110,11 +106,9 @@ describe('InMemoryChannel', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
+					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, event => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
-							.result as { data: object }).data;
-						expect(eventData).toBe(betaEventData);
+						expect(event.data).toBe(betaEventData);
 						resolve();
 					});
 				});
@@ -133,11 +127,9 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
+					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, event => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
-							.result as { data: object }).data;
-						expect(eventData).toBe(dummyData);
+						expect(event.data).toBe(dummyData);
 						resolve();
 					});
 				});
@@ -158,11 +150,9 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(done => {
 					// Act
-					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {
+					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, event => {
 						// Assert
-						const eventData = (Event.fromJSONRPC(jsonRPC.notificationObject('app:new:block', data))
-							.result as { data: object }).data;
-						expect(eventData).toBe(alphaEventData);
+						expect(event.data).toBe(alphaEventData);
 						done();
 					});
 				});
@@ -206,7 +196,7 @@ describe('InMemoryChannel', () => {
 				await expect(
 					inMemoryChannelAlpha.invoke(`${beta.moduleAlias}:${invalidActionName}`),
 				).rejects.toThrow(
-					`Action method "${beta.moduleAlias}:${invalidActionName}" must be a valid method with module name and action name.`,
+					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name and action name.`,
 				);
 			});
 		});

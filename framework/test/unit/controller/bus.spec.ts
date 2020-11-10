@@ -147,7 +147,7 @@ describe('Bus', () => {
 				jsonrpc: '2.0',
 				method: 'app:nonExistentAction',
 			};
-			const action = Action.fromJSONRPC(jsonrpcRequest);
+			const action = Action.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
 			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
@@ -162,7 +162,7 @@ describe('Bus', () => {
 				jsonrpc: '2.0',
 				method: 'invalidModule:getComponentConfig',
 			};
-			const action = Action.fromJSONRPC(jsonrpcRequest);
+			const action = Action.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
 			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
@@ -177,13 +177,13 @@ describe('Bus', () => {
 			const moduleAlias = 'alias';
 			const events = ['registeredEvent'];
 			const eventName = `${moduleAlias}:${events[0]}`;
-			const eventData = '#DATA';
-			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', result: eventData };
+			const eventData = { data: '#DATA' };
+			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', params: eventData };
 
 			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act
-			bus.publish(eventName, eventData as any);
+			bus.publish(JSONRPCData);
 
 			// Assert
 			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(eventName, JSONRPCData);

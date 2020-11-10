@@ -27,21 +27,21 @@ describe('Action class', () => {
 	describe('#constructor', () => {
 		it('should throw an error when invalid name was provided.', () => {
 			// Act & Assert
-			expect(() => new Action(null, INVALID_ACTION_NAME_ARG)).toThrow(
-				`Action method "${INVALID_ACTION_NAME_ARG}" must be a valid method with module name and action name.`,
+			expect(() => new Action(0, INVALID_ACTION_NAME_ARG)).toThrow(
+				`Action name "${INVALID_ACTION_NAME_ARG}" must be a valid name with module name and action name.`,
 			);
 		});
 
 		it('should throw an error when invalid source was provided.', () => {
 			// Act & Assert
-			expect(() => new Action(null, VALID_ACTION_NAME_ARG, {}, INVALID_ACTION_SOURCE_ARG)).toThrow(
+			expect(() => new Action(0, VALID_ACTION_NAME_ARG, {}, INVALID_ACTION_SOURCE_ARG)).toThrow(
 				`Source name "${INVALID_ACTION_SOURCE_ARG}" must be a valid module name.`,
 			);
 		});
 
 		it('should initialize the instance correctly when valid arguments were provided.', () => {
 			// Act
-			const action = new Action(null, VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
+			const action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
 
 			// Assert
 			expect(action.module).toBe(MODULE_NAME);
@@ -52,7 +52,7 @@ describe('Action class', () => {
 
 		it('should not set source property when source is not provided.', () => {
 			// Act
-			const action = new Action(null, VALID_ACTION_NAME_ARG, PARAMS);
+			const action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS);
 
 			// Assert
 			expect(action).not.toHaveProperty('source');
@@ -63,7 +63,7 @@ describe('Action class', () => {
 		let action: Action;
 		beforeEach(() => {
 			// Arrange
-			action = new Action(null, VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
+			action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
 		});
 
 		describe('#toObject', () => {
@@ -79,25 +79,25 @@ describe('Action class', () => {
 			});
 		});
 
-		describe('#toJSONRPC', () => {
+		describe('#toJSONRPCRequest', () => {
 			it('should return jsonrpc object.', () => {
 				// Arrange
 				const expectedResult = {
-					id: null,
+					id: 0,
 					jsonrpc: '2.0',
 					method: `${MODULE_NAME}:${ACTION_NAME}`,
-					params: PARAMS,
+					params: { ...PARAMS, source: VALID_ACTION_SOURCE_ARG },
 				};
 
 				// Act
-				const serializedAction = action.toJSONRPC();
+				const serializedAction = action.toJSONRPCRequest();
 
 				// Assert
 				expect(serializedAction).toEqual(expectedResult);
 			});
 		});
 
-		describe('static #fromJSONRPC', () => {
+		describe('static #fromJSONRPCRequest', () => {
 			it('should return action instance for given jsonrpc string.', () => {
 				// Arrange
 				const requestObject = {
@@ -110,7 +110,7 @@ describe('Action class', () => {
 
 				// Act
 				// eslint-disable-next-line no-shadow
-				const action = Action.fromJSONRPC(requestStr);
+				const action = Action.fromJSONRPCRequest(requestStr);
 
 				// Assert
 				expect(action).toBeInstanceOf(Action);
@@ -130,7 +130,7 @@ describe('Action class', () => {
 
 				// Act
 				// eslint-disable-next-line no-shadow
-				const action = Action.fromJSONRPC(requestObject);
+				const action = Action.fromJSONRPCRequest(requestObject);
 
 				// Assert
 				expect(action).toBeInstanceOf(Action);
