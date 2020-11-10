@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,6 +13,14 @@
  *
  */
 
-export { createClient } from './client';
-export { createAPIClient } from './create_api_client';
-export { createWSClient } from './create_ws_client';
+import { WSClient } from './ws_client';
+
+export const createWSClient = async (url: string, autoConnect = true): Promise<WSClient> => {
+	const client = new WSClient(url);
+
+	if (autoConnect) {
+		await client.connect();
+	}
+
+	return client;
+};
