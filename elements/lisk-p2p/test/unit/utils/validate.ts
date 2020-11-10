@@ -26,7 +26,7 @@ import {
 	P2PRequestPacket,
 	P2PMessagePacket,
 	P2PNodeInfo,
-} from '../../../src/p2p_types';
+} from '../../../src/types';
 import { constants } from '../../../src';
 
 const {

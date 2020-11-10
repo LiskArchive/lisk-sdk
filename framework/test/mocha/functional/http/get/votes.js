@@ -18,10 +18,10 @@ require('../../functional');
 const randomstring = require('randomstring');
 const {
 	transfer,
+
 	registerDelegate,
 	castVotes,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
@@ -35,7 +35,7 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { FEES, MAX_VOTES_PER_ACCOUNT } = global.constants;
+const maxVotesPerAccount = 10;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/votes', () => {
@@ -46,7 +46,7 @@ describe('GET /api/votes', () => {
 
 	function expectValidVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.least(res.body.data.votes.length);
-		expect(MAX_VOTES_PER_ACCOUNT).to.be.equal(
+		expect(maxVotesPerAccount).to.be.equal(
 			res.body.data.votesUsed + res.body.data.votesAvailable,
 		);
 	}
@@ -54,7 +54,7 @@ describe('GET /api/votes', () => {
 	function expectValidNonVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.equal(0);
 		expect(res.body.data.votes).to.be.empty;
-		expect(MAX_VOTES_PER_ACCOUNT).to.be.equal(
+		expect(maxVotesPerAccount).to.be.equal(
 			res.body.data.votesUsed + res.body.data.votesAvailable,
 		);
 	}
@@ -64,11 +64,10 @@ describe('GET /api/votes', () => {
 			describe('when params are not defined', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votesEndpoint.makeRequest({}, 400).then(res => {
-						expect(res.body.errors).to.have.length(4);
+						expect(res.body.errors).to.have.length(3);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
 					});
 				});
 			});
@@ -78,11 +77,10 @@ describe('GET /api/votes', () => {
 					return votesEndpoint
 						.makeRequest({ sort: 'username:asc' }, 400)
 						.then(res => {
-							expect(res.body.errors).to.have.length(4);
+							expect(res.body.errors).to.have.length(3);
 							expectSwaggerParamError(res, 'username');
 							expectSwaggerParamError(res, 'address');
 							expectSwaggerParamError(res, 'publicKey');
-							expectSwaggerParamError(res, 'secondPublicKey');
 						});
 				});
 			});
@@ -90,11 +88,10 @@ describe('GET /api/votes', () => {
 			describe('when only offset param provided', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votesEndpoint.makeRequest({ offset: 1 }, 400).then(res => {
-						expect(res.body.errors).to.have.length(4);
+						expect(res.body.errors).to.have.length(3);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
 					});
 				});
 			});
@@ -104,11 +101,10 @@ describe('GET /api/votes', () => {
 					return votesEndpoint
 						.makeRequest({ sort: 'username:asc' }, 400)
 						.then(res => {
-							expect(res.body.errors).to.have.length(4);
+							expect(res.body.errors).to.have.length(3);
 							expectSwaggerParamError(res, 'username');
 							expectSwaggerParamError(res, 'address');
 							expectSwaggerParamError(res, 'publicKey');
-							expectSwaggerParamError(res, 'secondPublicKey');
 						});
 				});
 			});
@@ -141,11 +137,10 @@ describe('GET /api/votes', () => {
 						400,
 					)
 					.then(res => {
-						expect(res.body.errors).to.have.length(4);
+						expect(res.body.errors).to.have.length(3);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
 					});
 			});
 
@@ -158,11 +153,10 @@ describe('GET /api/votes', () => {
 						400,
 					)
 					.then(res => {
-						expect(res.body.errors).to.have.length(4);
+						expect(res.body.errors).to.have.length(3);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
 					});
 			});
 
@@ -216,34 +210,6 @@ describe('GET /api/votes', () => {
 				return votesEndpoint.makeRequest(
 					{
 						publicKey:
-							'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8',
-					},
-					404,
-				);
-			});
-		});
-
-		describe('secondPublicKey', () => {
-			it('using no secondPublicKey should fail', async () => {
-				return votesEndpoint
-					.makeRequest({ secondPublicKey: '' }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'secondPublicKey');
-					});
-			});
-
-			it('using invalid secondPublicKey should fail', async () => {
-				return votesEndpoint
-					.makeRequest({ secondPublicKey: 'invalidSecondPublicKey' }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'secondPublicKey');
-					});
-			});
-
-			it('using valid inexistent secondPublicKey should return empty response and code = 404', async () => {
-				return votesEndpoint.makeRequest(
-					{
-						secondPublicKey:
 							'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8',
 					},
 					404,
@@ -438,14 +404,25 @@ describe('GET /api/votes', () => {
 		describe('increased votes numbers after posting vote transaction', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				const account = randomUtil.account();
+				// To validate minimum remaining balance check
+				const minRemainingBalance = BigInt('5000000');
+
 				const creditTransaction = transfer({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
-					amount: new BigNum(FEES.DELEGATE).plus(FEES.VOTE).toString(),
+					amount: (
+						BigInt('200000000') +
+						BigInt('20000000') +
+						minRemainingBalance
+					).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});
 
 				const delegateTransaction = registerDelegate({
+					nonce: '0',
+					fee: '2500000000',
 					networkIdentifier,
 					passphrase: account.passphrase,
 					username: randomstring.generate({
@@ -456,6 +433,8 @@ describe('GET /api/votes', () => {
 				});
 
 				const voteTransaction = castVotes({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
 					passphrase: account.passphrase,
 					votes: [`${nonVoterDelegate.publicKey}`],
@@ -480,7 +459,7 @@ describe('GET /api/votes', () => {
 						expect(res.body.data.address).to.be.equal(account.address);
 						expect(res.body.data.votesUsed).to.be.equal(0);
 						expect(res.body.data.votesAvailable).to.be.equal(
-							MAX_VOTES_PER_ACCOUNT,
+							maxVotesPerAccount,
 						);
 					})
 					.then(() => {

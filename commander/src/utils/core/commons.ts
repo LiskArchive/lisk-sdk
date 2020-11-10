@@ -160,7 +160,7 @@ export const upgradeLisk = async (
 	fsExtra.mkdirSync(LISK_PG, MODE);
 	fsExtra.copySync(LISK_OLD_PG, LISK_PG);
 
-	// TODO: Use latest 2.0.0 config utils to get config insted of scripts/update_config.js
+	// TODO: Use latest 2.0.0 config utils to get config instead of scripts/update_config.js
 	const { stderr }: ExecResult = await exec(
 		`${installDir}/bin/node ${installDir}/scripts/update_config.js --network ${network} --output ${installDir}/config.json ${LISK_BACKUP}/config.json ${currentVersion}`,
 	);

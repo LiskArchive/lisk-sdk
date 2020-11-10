@@ -52,8 +52,7 @@ export class NodeResource extends APIResource {
 
 		this.getTransactions = apiMethod({
 			method: GET,
-			path: '/transactions/{state}',
-			urlParams: ['state'],
+			path: '/transactions',
 		}).bind(this);
 	}
 }

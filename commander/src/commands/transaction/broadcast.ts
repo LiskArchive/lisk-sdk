@@ -16,17 +16,17 @@
 import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { ValidationError } from '../../utils/error';
-import { getStdIn } from '../../utils/input/utils';
+import { readStdIn } from '../../utils/reader';
 import { parseTransactionString } from '../../utils/transactions';
 
 const getTransactionInput = async (): Promise<string> => {
 	try {
-		const { data } = await getStdIn({ dataIsRequired: true });
-		if (!data) {
+		const lines = await readStdIn();
+		if (!lines.length) {
 			throw new ValidationError('No transaction was provided.');
 		}
 
-		return data;
+		return lines[0];
 	} catch (e) {
 		throw new ValidationError('No transaction was provided.');
 	}

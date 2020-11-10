@@ -15,7 +15,6 @@
 'use strict';
 
 const path = require('path');
-const Promise = require('bluebird');
 const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');
 const { QueryFile } = require('pg-promise');
@@ -23,7 +22,6 @@ const BaseAdapter = require('./base_adapter');
 
 const pgpOptions = {
 	capSQL: true,
-	promiseLib: Promise,
 	noLocking: false,
 };
 
@@ -164,7 +162,7 @@ class PgpAdapter extends BaseAdapter {
 
 		if (qf.error) {
 			this.logger.error({ err: qf.error }, 'SQL query file error'); // Something is wrong with our query file
-			throw qf.error; // throw pg-promisse QueryFileError error
+			throw qf.error; // throw pg-promise QueryFileError error
 		}
 
 		_private.queryFiles[fullPath] = qf;

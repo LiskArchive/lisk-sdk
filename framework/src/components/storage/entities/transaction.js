@@ -58,9 +58,9 @@ class Transaction extends BaseEntity {
 			filter: filterTypes.NUMBER,
 		});
 
-		this.addField('timestamp', 'number', {
-			filter: filterTypes.NUMBER,
-			fieldName: 'trs.timestamp',
+		this.addField('nonce', 'string', {
+			filter: filterTypes.TEXT,
+			fieldName: 'nonce',
 		});
 
 		this.addField(
@@ -88,10 +88,6 @@ class Transaction extends BaseEntity {
 		this.addField('fee', 'string', {
 			filter: filterTypes.NUMBER,
 		});
-
-		this.addField('signature', 'string', {}, stringToByte);
-
-		this.addField('signSignature', 'string', {}, stringToByte);
 
 		this.addField('signatures', 'string');
 

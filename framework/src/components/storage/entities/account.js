@@ -40,66 +40,19 @@ class Account extends BaseEntity {
 			},
 			stringToByte,
 		);
-		this.addField(
-			'secondPublicKey',
-			'string',
-			{
-				format: 'publicKey',
-				filter: ft.BINARY,
-			},
-			stringToByte,
-		);
 		this.addField('username', 'string', { filter: ft.TEXT });
-		this.addField(
-			'isDelegate',
-			'boolean',
-			{ filter: ft.BOOLEAN },
-			booleanToInt,
-		);
-		this.addField(
-			'secondSignature',
-			'boolean',
-			{ filter: ft.BOOLEAN },
-			booleanToInt,
-		);
+
 		this.addField('balance', 'string', { filter: ft.NUMBER });
-		this.addField('multiMin', 'number', {
-			filter: ft.NUMBER,
-			fieldName: 'multimin',
-		});
-		this.addField('multiLifetime', 'number', {
-			filter: ft.NUMBER,
-			fieldName: 'multilifetime',
-		});
-		this.addField(
-			'nameExist',
-			'boolean',
-			{
-				filter: ft.BOOLEAN,
-				fieldName: 'nameexist',
-			},
-			booleanToInt,
-		);
+		this.addField('nonce', 'string', { filter: ft.BOOLEAN });
 		this.addField('fees', 'string', { filter: ft.NUMBER });
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
 		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
-		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
-		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
+		this.addField('totalVotesReceived', 'string', { filter: ft.NUMBER });
+		this.addField('delegate', 'string');
+		this.addField('votes', 'string');
+		this.addField('unlocking', 'string');
 		this.addField('asset', 'string');
-		this.addField('votedDelegatesPublicKeys', 'string');
-		this.addField('membersPublicKeys', 'string');
-
-		this.addFilter('votedDelegatesPublicKeys', ft.CUSTOM, {
-			condition:
-				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts."votedDelegatesPublicKeys" @> ${votedDelegatesPublicKeys}',
-		});
-
-		this.addFilter('membersPublicKeys', ft.CUSTOM, {
-			condition:
-				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts."membersPublicKeys" @> ${membersPublicKeys}',
-		});
+		this.addField('keys', 'string');
 
 		this.addFilter('asset_contains', ft.CUSTOM, {
 			condition:
@@ -112,6 +65,21 @@ class Account extends BaseEntity {
 				// eslint-disable-next-line no-template-curly-in-string
 				"asset ? '${asset_exists:value}'",
 		});
+
+		this.addFilter('votes_for_delegate', ft.CUSTOM, {
+			condition:
+				// eslint-disable-next-line no-template-curly-in-string
+				'votes @> \'[{"delegateAddress":"${votes_for_delegate:value}"}]\'::jsonb',
+		});
+		// TODO: Remove once new DPoS implementation is done
+		this.addField(
+			'isDelegate',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt,
+		);
+		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
+		// //TODO: Remove until here
 
 		const defaultSort = { sort: 'balance:asc' };
 		this.extendDefaultOptions(defaultSort);

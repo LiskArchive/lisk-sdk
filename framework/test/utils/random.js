@@ -15,16 +15,11 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const {
-	transfer,
-	createDapp,
-	createSignatureObject,
-} = require('@liskhq/lisk-transactions');
+const { transfer } = require('@liskhq/lisk-transactions');
 const {
 	getKeys,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../fixtures/accounts');
 const {
 	getNetworkIdentifier,
@@ -123,23 +118,22 @@ random.account = function(nonDelegate) {
 
 	account.passphrase = random.password();
 	account.keypair = getKeys(account.passphrase);
-	account.secondPassphrase = random.password();
 	account.username = nonDelegate ? '' : random.delegateName();
 	account.publicKey = getKeys(account.passphrase).publicKey;
 	account.address = getAddressFromPublicKey(account.publicKey);
-	account.secondPublicKey = getKeys(account.secondPassphrase).publicKey;
 
 	return account;
 };
 
 // Returns an random basic transfer transaction to send 1 LSK from genesis account to a random account
-random.transaction = function(offset) {
+random.transaction = function(nonce = '0') {
 	return transfer({
 		networkIdentifier,
-		amount: '1',
+		nonce,
+		fee: '10000000',
+		amount: '10000000',
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
-		timeOffset: offset,
 	});
 };
 
@@ -150,66 +144,12 @@ random.password = function() {
 		.substring(7);
 };
 
-random.multisigDappRegistrationMaxiumData = function(
-	account,
-	members,
-	charset,
-) {
-	charset =
-		charset || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-	const dappName = randomstring.generate({
-		length: 32,
-		charset,
-	});
-
-	const string160 = randomstring.generate({
-		length: 160,
-		charset,
-	});
-
-	const string1KB = randomstring.generate({
-		length: 20,
-		charset,
-	});
-
-	const application = {
-		category: random.number(0, 9),
-		name: dappName,
-		description: string160,
-		tags: string160,
-		type: 0,
-		link: `https://${string1KB}.zip`,
-		icon: `https://${string1KB}.png`,
-	};
-
-	const dappTransaction = createDapp({
-		passphrase: account.passphrase,
-		options: application,
-	});
-
-	const signatures = members
-		.map(aMember => aMember.passphrase)
-		.map(memberPassphrase => {
-			const sigObj = createSignatureObject({
-				transaction: dappTransaction,
-				passphrase: memberPassphrase,
-				networkIdentifier,
-			}).signature;
-			return sigObj;
-		});
-
-	dappTransaction.signatures = signatures;
-
-	return dappTransaction;
-};
-
-const convertToBigNum = transactions =>
+const convertToBigInt = transactions =>
 	transactions.forEach(transaction => {
-		transaction.amount = new BigNum(transaction.amount);
-		transaction.fee = new BigNum(transaction.fee);
+		transaction.amount = BigInt(transaction.amount);
+		transaction.fee = BigInt(transaction.fee);
 	});
 
-random.convertToBigNum = convertToBigNum;
+random.convertToBigInt = convertToBigInt;
 
 module.exports = random;

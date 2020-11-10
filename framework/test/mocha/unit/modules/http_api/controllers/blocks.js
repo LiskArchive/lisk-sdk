@@ -38,6 +38,7 @@ describe('blocks/api', () => {
 				'68680ca0bcd4676489976837edeac305c34f652e970386013ef26e67589a2516',
 			blockSignature:
 				'51356c69d94762ef355a95a960002aabc80d331da136cc07082bf98856e57ea9d13d2c74dd923c412221b36f4c3e276b2d83d9019521ddf003d0b39698d4ae0a',
+			seedReveal: 'c26fa00cf52c227e4224aa79f87e5972',
 			height: 1860,
 			totalFee: '0',
 			reward: '0',
@@ -124,6 +125,7 @@ describe('blocks/api', () => {
 				expect(block).to.have.property('timestamp');
 				expect(block).to.have.property('height');
 				expect(block).to.have.property('previousBlockId');
+				expect(block).to.have.property('seedReveal');
 				expect(block).to.have.property('numberOfTransactions');
 				expect(block).to.have.property('totalAmount');
 				expect(block).to.have.property('totalFee');
@@ -182,7 +184,7 @@ describe('blocks/api', () => {
 
 				it('should query storage with generatorPublicKey filter when params.generatorPublicKey exists', done => {
 					const generatorPublicKey =
-						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca';
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a';
 					blockRequest.request.swagger.params.generatorPublicKey.value = generatorPublicKey;
 					BlocksController.getBlocks(blockRequest, () => {
 						expect(

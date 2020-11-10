@@ -32,7 +32,7 @@ const filters = {};
 const options = { sort: 'height:desc', limit: 1 };
 const lastBlock = await storage.entities.Block.get(filters, options);
 
-// Uptading an account
+// Updating an account
 const filter = { address: '123L' };
 const data = { publicKey: '0123456789ABCDEF' };
 await storage.entities.Account.update(filter, data);
@@ -104,7 +104,7 @@ You can register a `CUSTOM` filter, by defining your own key and a function whic
 
 ## How to create entity?
 
-This storage implementation was designed to be flexible and extensible. In order to achive that, a `BaseEntity` was implemented with some common methods and attributes that provides a generic structure to manage the entity.
+This storage implementation was designed to be flexible and extensible. In order to achieve that, a `BaseEntity` was implemented with some common methods and attributes that provides a generic structure to manage the entity.
 New entities are created by extending the `BaseEntity` and implementing the required interfaces.
 
 ## Conventions

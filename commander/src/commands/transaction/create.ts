@@ -20,11 +20,10 @@ import { flags as commonFlags } from '../../utils/flags';
 
 import DelegateCommand from './create/delegate';
 import MultisignatureCommand from './create/multisignature';
-import SecondPassphraseCommand from './create/second-passphrase';
+import PoMCommand from './create/pom';
 import TransferCommand from './create/transfer';
+import UnlockCommand from './create/unlock';
 import VoteCommand from './create/vote';
-
-const MAX_ARG_NUM = 3;
 
 interface TypeNumberMap {
 	readonly [key: string]: string;
@@ -32,10 +31,11 @@ interface TypeNumberMap {
 
 const typeNumberMap: TypeNumberMap = {
 	'8': 'transfer',
-	'9': 'second-passphrase',
 	'10': 'delegate',
-	'11': 'vote',
 	'12': 'multisignature',
+	'13': 'vote',
+	'14': 'unlock',
+	'15': 'pom',
 };
 
 const options = Object.entries(typeNumberMap).reduce(
@@ -53,10 +53,11 @@ interface TypeClassMap {
 
 const typeClassMap: TypeClassMap = {
 	transfer: TransferCommand,
-	'second-passphrase': SecondPassphraseCommand,
 	vote: VoteCommand,
 	delegate: DelegateCommand,
 	multisignature: MultisignatureCommand,
+	unlock: UnlockCommand,
+	pom: PoMCommand,
 };
 
 const resolveFlags = (
@@ -66,26 +67,25 @@ const resolveFlags = (
 	if (key === 'type') {
 		return accumulated;
 	}
+
 	if (typeof value === 'string') {
 		return [...accumulated, `--${key}`, value];
 	}
+
 	const boolKey = value === false ? `--no-${key}` : `--${key}`;
 
 	return [...accumulated, boolKey];
 };
 
 export default class CreateCommand extends BaseCommand {
-	static args = new Array(MAX_ARG_NUM).fill(0).map(i => ({
-		name: `${i}_arg`,
-	}));
+	static strict = false;
 
 	static description = `
 	Creates a transaction object.
 	`;
 
 	static examples = [
-		'transaction:create --type=0 100 13356260975429434553L',
-		'transaction:create --type=delegate lightcurve',
+		'transaction:create --type=8 1 100 100 13356260975429434553L',
 	];
 
 	static flags = {
@@ -97,10 +97,7 @@ export default class CreateCommand extends BaseCommand {
 			options,
 		}),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
-		votes: flagParser.string(commonFlags.votes),
-		unvotes: flagParser.string(commonFlags.unvotes),
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 	};
 

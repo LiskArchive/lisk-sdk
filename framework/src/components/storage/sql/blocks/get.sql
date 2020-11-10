@@ -17,6 +17,7 @@ SELECT
 	ENCODE("payloadHash", 'hex') as "payloadHash",
 	ENCODE("generatorPublicKey", 'hex') as "generatorPublicKey",
 	ENCODE("blockSignature", 'hex') as "blockSignature",
+	ENCODE("seedReveal", 'hex') as "seedReveal",
 	"height",
 	"totalFee",
 	"reward",

@@ -17,10 +17,4 @@ import {
 	TestTransaction,
 	TestTransactionBasicImpl,
 } from './test_transaction_class';
-import { MockStateStore } from './state_store';
-export {
-	addTransactionFields,
-	MockStateStore,
-	TestTransaction,
-	TestTransactionBasicImpl,
-};
+export { addTransactionFields, TestTransaction, TestTransactionBasicImpl };

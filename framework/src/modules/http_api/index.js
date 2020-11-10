@@ -59,7 +59,7 @@ class HttpAPIModule extends BaseModule {
 	}
 
 	async unload() {
-		return this.httpApi ? this.httpApi.cleanup(0) : true;
+		return this.httpApi ? this.httpApi.cleanup() : true;
 	}
 }
 

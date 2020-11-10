@@ -28,18 +28,15 @@ const dummyLastCommitId = 'a4adbfb7651874c5746dbc389b281a111af79e96';
 const dummyBuildVersion = '#buildVersion';
 
 const appConfig = {
-	app: {
-		version: '3.0.0',
-		minVersion: '1.0.0',
-		protocolVersion: '2.0',
-		lastCommitId: dummyLastCommitId,
-		buildVersion: dummyBuildVersion,
-	},
+	version: '3.0.0',
+	protocolVersion: '2.0',
+	lastCommitId: dummyLastCommitId,
+	buildVersion: dummyBuildVersion,
 };
 
 // Support for PROTOCOL_VERSION only for tests
 if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
-	appConfig.app.protocolVersion = process.env.PROTOCOL_VERSION;
+	appConfig.protocolVersion = process.env.PROTOCOL_VERSION;
 }
 
 const network = process.env.LISK_NETWORK || 'devnet';
@@ -61,11 +58,11 @@ try {
 
 	// Support for PROTOCOL_VERSION only for tests
 	if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
-		config.app.protocolVersion = process.env.PROTOCOL_VERSION;
+		config.protocolVersion = process.env.PROTOCOL_VERSION;
 	}
 
 	// To run multiple applications for same network for integration tests
-	config.app.label = `lisk-devnet-${config.modules.http_api.httpPort}`;
+	config.label = `lisk-devnet-${config.modules.http_api.httpPort}`;
 
 	app = new Application(genesisBlock, config);
 } catch (e) {

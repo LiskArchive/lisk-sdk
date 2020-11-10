@@ -25,16 +25,14 @@ const Transaction = stampit({
 		height: 276,
 		blockId: '',
 		type: 0,
-		timestamp: 40080841,
+		nonce: '3',
 		senderPublicKey:
 			'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
 		senderId: '2525786814299543383L',
 		fee: '20000000',
-		signature:
+		signatures: [
 			'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
-		signSignature:
-			'ab94afee7ec0c50ebee32918455e089f6e1a604a83bcaa760293c61e0f18ab6a',
-		signatures: [],
+		],
 		confirmations: 12,
 		asset: null,
 	},
@@ -48,14 +46,14 @@ const Transaction = stampit({
 		this.type = type || 8;
 
 		switch (this.type) {
-			// SEND
+			// send
 			case 8:
 				this.asset.data = randomstring.generate({ length: 64 });
 				this.asset.amount = '112340000';
-				this.asset.recipientId = '11237980039345381032L';
+				this.asset.recipientId = '5059876081639179984L';
 				break;
 
-			// SIGNATURE
+			// signature
 			case 9:
 				this.asset = {
 					publicKey: randomstring.generate({
@@ -66,7 +64,7 @@ const Transaction = stampit({
 				};
 				break;
 
-			// DELEGATE
+			// delegate
 			case 10:
 				this.asset = {
 					username:
@@ -75,7 +73,7 @@ const Transaction = stampit({
 				};
 				break;
 
-			// VOTE
+			// vote
 			case 11:
 				this.asset.votes = votes || [
 					randomstring.generate({
@@ -90,10 +88,10 @@ const Transaction = stampit({
 					}),
 				];
 				this.asset.amount = '112340000';
-				this.asset.recipientId = '11237980039345381032L';
+				this.asset.recipientId = '5059876081639179984L';
 				break;
 
-			// MULTI
+			// multi
 			case 12:
 				this.asset = {
 					min: faker.random.number({ min: 2 }),
@@ -113,12 +111,12 @@ const Transaction = stampit({
 				};
 				break;
 
-			// DAPP
+			// dapp
 			case 5:
 				this.asset.dapp = new Dapps.Dapp({ transactionId: this.id });
 				break;
 
-			// IN_TRANSFER
+			// inTransfer
 			case 6:
 				this.asset.inTransfer = new Dapps.OutTransfer({
 					dappId: dapp
@@ -128,7 +126,7 @@ const Transaction = stampit({
 				});
 				break;
 
-			// OUT_TRANSFER
+			// outTransfer
 			case 7:
 				this.asset.outTransfer = new Dapps.OutTransfer({
 					dappId: dapp

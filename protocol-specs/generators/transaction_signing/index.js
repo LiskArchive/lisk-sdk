@@ -43,20 +43,27 @@ const BASIC_TRANSFER = {
 	type: 0,
 };
 
-const generateTestCasesForValidSignature = () => ({
-	input: {
-		transferTransaction: BASIC_TRANSFER,
-		senderPassphrase: SENDER_ACCOUNT.passphrase,
+const generateTestCasesForValidSignature = () => [
+	{
+		description: 'Test case for valid transaction signature',
+		input: {
+			transferTransaction: BASIC_TRANSFER,
+			senderPassphrase: SENDER_ACCOUNT.passphrase,
+		},
+		output: {
+			signature:
+				'579164b3045a612823b2b9ec667374417565229a4028f905b8452bf91048633f9a679d49fc46169659f3f3329ad414e8c6e17e1c2f9866a6e1bee9efa2a60a0a',
+		},
 	},
-	output:
-		'579164b3045a612823b2b9ec667374417565229a4028f905b8452bf91048633f9a679d49fc46169659f3f3329ad414e8c6e17e1c2f9866a6e1bee9efa2a60a0a',
-});
+];
 
 const validSignatureSuite = () => ({
 	title: 'Valid signature generation',
 	summary:
 		'based on a valid transfer transaction generate a signature an id for it',
-	config: 'mainnet',
+	config: {
+		network: 'mainnet',
+	},
 	runner: 'transaction_signing',
 	handler: 'valid_transaction_signing',
 	testCases: generateTestCasesForValidSignature(),

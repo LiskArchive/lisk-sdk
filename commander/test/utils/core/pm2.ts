@@ -1,3 +1,4 @@
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import pm2 from 'pm2';
 import fsExtra from 'fs-extra';
@@ -47,7 +48,7 @@ describe('pm2 node utils', () => {
 			sandbox.stub(pm2, 'stop').yields(null, 'stopped');
 			sandbox
 				.stub(fsExtra, 'readJson')
-				.resolves({ apps: [{ script: 'src/index.js' }] });
+				.resolves({ apps: [{ script: 'src/index.js' }] } as any);
 		});
 
 		it('should register an application', async () => {

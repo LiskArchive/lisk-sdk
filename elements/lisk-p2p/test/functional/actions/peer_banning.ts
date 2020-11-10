@@ -20,7 +20,7 @@ import {
 } from '../../utils/network_setup';
 import { P2P, events, p2p_types } from '../../../src/index';
 
-const { EVENT_BAN_PEER, EVENT_UNBAN_PEER, EVENT_CLOSE_INBOUND } = events;
+const { EVENT_BAN_PEER, EVENT_CLOSE_INBOUND } = events;
 
 describe('Peer banning mechanism', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -63,9 +63,6 @@ describe('Peer banning mechanism', () => {
 			firstNode.on(EVENT_BAN_PEER, peerId => {
 				collectedEvents.set('EVENT_BAN_PEER', peerId);
 			});
-			firstNode.on(EVENT_UNBAN_PEER, peerId => {
-				collectedEvents.set('EVENT_UNBAN_PEER', peerId);
-			});
 			firstNode.on(EVENT_CLOSE_INBOUND, packet => {
 				collectedEvents.set('EVENT_CLOSE_INBOUND', packet);
 			});
@@ -94,6 +91,16 @@ describe('Peer banning mechanism', () => {
 			);
 		});
 
+		it(`should add Peer IP address into PeerBook BannedIPs`, async () => {
+			expect((p2pNodeList[0] as any)._peerBook.bannedIPs).toEqual(
+				new Set([badPeer.ipAddress]),
+			);
+		});
+
+		it(`should unbanTimer into PeerBook `, async () => {
+			expect((p2pNodeList[0] as any)._peerBook._unbanTimers).toHaveLength(1);
+		});
+
 		it(`should fire ${EVENT_CLOSE_INBOUND} event`, async () => {
 			expect(collectedEvents.get('EVENT_CLOSE_INBOUND')).toBeDefined();
 		});
@@ -107,7 +114,6 @@ describe('Peer banning mechanism', () => {
 			expect(updatedConnectedPeers.map(peer => peer.wsPort)).toEqual(
 				expect.arrayContaining([badPeer.wsPort]),
 			);
-			expect(collectedEvents.get('EVENT_UNBAN_PEER')).toBeDefined();
 		});
 	});
 });

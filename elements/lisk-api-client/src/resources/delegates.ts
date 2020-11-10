@@ -31,15 +31,15 @@ export class DelegatesResource extends APIResource {
 
 		this.get = apiMethod({
 			defaultData: {
-				sort: 'voteWeight:desc',
+				sort: 'totalVotesReceived:desc',
 			},
 			method: GET,
 		}).bind(this);
 
 		this.getStandby = apiMethod({
 			defaultData: {
-				offset: 101,
-				sort: 'voteWeight:desc',
+				offset: 103,
+				sort: 'totalVotesReceived:desc',
 			},
 			method: GET,
 		}).bind(this);

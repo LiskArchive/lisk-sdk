@@ -14,25 +14,23 @@
  */
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
-import { DEFAULT_WS_MAX_PAYLOAD, DEFAULT_HTTP_PATH } from '../../src/constants';
 
 describe('p2p', () => {
-	describe('#constructor', () => {
-		const generatedPeers = [...Array(10)].map((_e, i) => {
-			return {
-				ipAddress: '120.0.0.' + i,
-				wsPort: 5000 + i,
-			};
-		});
+	let P2PNode: P2P;
 
-		const P2PNode = new P2P({
+	const generatedPeers = [...Array(10).keys()].map(i => ({
+		ipAddress: '120.0.0.' + i,
+		wsPort: 5000 + i,
+	}));
+
+	beforeEach(async () => {
+		P2PNode = new P2P({
 			seedPeers: [],
 			blacklistedIPs: generatedPeers.slice(6).map(peer => peer.ipAddress),
 			fixedPeers: generatedPeers.slice(0, 6),
 			whitelistedPeers: generatedPeers.slice(2, 3),
 			previousPeers: generatedPeers.slice(4, 5),
 			connectTimeout: 5000,
-			wsMaxPayload: DEFAULT_WS_MAX_PAYLOAD / 2,
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
@@ -49,17 +47,21 @@ describe('p2p', () => {
 			},
 		});
 
+		await P2PNode.start();
+	});
+
+	afterEach(async () => {
+		try {
+			await P2PNode.stop();
+		} catch (e) {}
+	});
+
+	describe('#constructor', () => {
 		it('should be an object', () => {
 			return expect(P2PNode).toEqual(expect.any(Object));
 		});
 
-		it('should set the path to the default http path', () => {
-			return expect((P2PNode as any)._scServer.options.path).toEqual(
-				DEFAULT_HTTP_PATH,
-			);
-		});
-
-		it('should be an instance of P2P blockchain', () => {
+		it('should be an instance of P2P', () => {
 			return expect(P2PNode).toBeInstanceOf(P2P);
 		});
 
@@ -75,23 +77,12 @@ describe('p2p', () => {
 			);
 		});
 
-		it('should configure Websocket options', async () => {
-			const websocketOptions = (P2PNode as any)._scServer.wsServer.options;
-
-			expect(websocketOptions).toMatchObject({
-				maxPayload: DEFAULT_WS_MAX_PAYLOAD / 2,
-			});
-		});
-
 		it('should reject at multiple start attempt', async () => {
-			await P2PNode.start();
-
 			expect(P2PNode.start()).rejects.toThrow();
 		});
 
 		it('should reject at multiple stop attempt', async () => {
 			await P2PNode.stop();
-
 			expect(P2PNode.stop()).rejects.toThrow();
 		});
 	});

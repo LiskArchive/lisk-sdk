@@ -14,8 +14,6 @@
 
 'use strict';
 
-const mocha = require('mocha');
-const coMocha = require('co-mocha');
 const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
@@ -27,7 +25,6 @@ const app = require('../test_app/app');
 app._compileAndValidateConfigurations();
 
 process.env.NODE_ENV = 'test';
-coMocha(mocha);
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -56,9 +53,9 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 
 testContext.config = config;
 testContext.config.constants = _.cloneDeep(app.constants);
-// Set DELEGATE_LIST_ROUND_OFFSET to 0 because the mocha tests were written before this implementation
+// Set delegateListRoundOffset to 0 because the mocha tests were written before this implementation
 // and expect no offset for delegate list
-testContext.config.constants.DELEGATE_LIST_ROUND_OFFSET = 0;
+testContext.config.constants.delegateListRoundOffset = 0;
 testContext.config.NORMALIZER = '100000000';
 testContext.config.ADDITIONAL_DATA = {
 	MIN_LENGTH: 1,
@@ -165,5 +162,4 @@ global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;
 global.constants = _.cloneDeep(app.constants);
-global.exceptions = _.cloneDeep(config.modules.chain.exceptions);
 global._ = _;

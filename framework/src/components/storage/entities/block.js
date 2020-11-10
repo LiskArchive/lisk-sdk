@@ -49,6 +49,12 @@ class Block extends BaseEntity {
 			stringToByte,
 		);
 		this.addField(
+			'seedReveal',
+			'string',
+			{ filter: filterType.TEXT },
+			stringToByte,
+		);
+		this.addField(
 			'generatorPublicKey',
 			'string',
 			{

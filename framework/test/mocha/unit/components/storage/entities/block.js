@@ -149,6 +149,11 @@ describe('Block', () => {
 			'reward_in',
 			'reward_lt',
 			'reward_lte',
+			'seedReveal',
+			'seedReveal_eql',
+			'seedReveal_ne',
+			'seedReveal_in',
+			'seedReveal_like',
 			'reward_ne',
 			'timestamp',
 			'timestamp_eql',
@@ -196,6 +201,7 @@ describe('Block', () => {
 		validBlock = {
 			id: '7807109686729042739',
 			height: 1,
+			seedReveal: '248d8f43312f1b73cc11141dfa8228a1',
 			blockSignature:
 				'a47d07d3a8d8024eb44672bc6d07cdcd1cd03803d9612b7b10c10d5a844fb8f6ed11fab5159b6d9826b7302c3d3f5d7d29d13b40e6fe59c9374f4ec94af4eb0f',
 			generatorPublicKey:
@@ -328,7 +334,7 @@ describe('Block', () => {
 			const _getResultsStub = sinonSandbox
 				.stub(block, '_getResults')
 				.returns(validBlock);
-			block.getOne(validFilter, validOptions, null);
+			await block.getOne(validFilter, validOptions, null);
 			const _getResultsCall = _getResultsStub.firstCall.args;
 			expect(_getResultsCall).to.be.eql([validFilter, validOptions, null, 1]);
 		});
@@ -369,7 +375,7 @@ describe('Block', () => {
 			const _getResultsStub = sinonSandbox
 				.stub(block, '_getResults')
 				.returns([validBlock]);
-			block.get(validFilter, validOptions, null);
+			await block.get(validFilter, validOptions, null);
 			const _getResultsCall = _getResultsStub.firstCall.args;
 			expect(_getResultsCall).to.be.eql([validFilter, validOptions, null]);
 		});
@@ -427,30 +433,34 @@ describe('Block', () => {
 	describe('_getResults()', () => {
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
-			return expect(
+
+			await expect(
 				block.get(validFilter),
 			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const block = new Block(adapter);
-			return expect(block.get(invalidFilter)).to.eventually.be.rejectedWith(
+
+			await expect(block.get(invalidFilter)).to.eventually.be.rejectedWith(
 				NonSupportedFilterTypeError,
 			);
 		});
 
 		it('should accept only valid options', async () => {
 			const block = new Block(adapter);
-			return expect(
+
+			await expect(
 				block.get({}, validOptions),
 			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid options', async () => {
 			const block = new Block(adapter);
-			return expect(
-				block.get({}, invalidOptions),
-			).to.eventually.be.rejectedWith(NonSupportedOptionError);
+
+			await expect(block.get({}, invalidOptions)).to.eventually.be.rejectedWith(
+				NonSupportedOptionError,
+			);
 		});
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
@@ -502,14 +512,14 @@ describe('Block', () => {
 
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
-			expect(() => {
+			await expect(() => {
 				block.isPersisted(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const block = new Block(adapter);
-			expect(() => {
+			await expect(() => {
 				block.isPersisted(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
@@ -518,7 +528,9 @@ describe('Block', () => {
 			const block = new Block(localAdapter);
 			block.mergeFilters = sinonSandbox.stub();
 			block.parseFilters = sinonSandbox.stub();
-			block.isPersisted(validFilter);
+
+			await block.isPersisted(validFilter);
+
 			expect(block.mergeFilters.calledWith(validFilter)).to.be.true;
 		});
 
@@ -526,7 +538,9 @@ describe('Block', () => {
 			const block = new Block(localAdapter);
 			block.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			block.parseFilters = sinonSandbox.stub();
-			block.isPersisted(validFilter);
+
+			await block.isPersisted(validFilter);
+
 			expect(block.parseFilters.calledWith(validFilter)).to.be.true;
 		});
 
@@ -536,7 +550,9 @@ describe('Block', () => {
 			block.parseFilters = sinonSandbox
 				.stub()
 				.returns('parsedFilters response');
-			block.isPersisted(validFilter);
+
+			await block.isPersisted(validFilter);
+
 			expect(
 				localAdapter.executeFile.calledWith(
 					isPersistedSqlFile,
@@ -575,14 +591,16 @@ describe('Block', () => {
 
 		it('should accept valid filters', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
-			expect(() => {
+
+			await expect(() => {
 				block.count(filters);
 			}).to.not.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const filters = [{ invalid_filter: 1 }, { timestamp_gte: 1234567890 }];
-			expect(() => {
+
+			await expect(() => {
 				block.count(filters);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
@@ -598,7 +616,8 @@ describe('Block', () => {
 		it('should accept filters as single object', async () => {
 			const block = new Block(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(block, 'mergeFilters');
-			expect(() => {
+
+			await expect(() => {
 				block.get(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 			expect(mergeFiltersSpy.calledWith(validFilter)).to.be.true;

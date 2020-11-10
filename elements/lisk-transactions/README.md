@@ -40,7 +40,7 @@ The lifecycle of a transaction in Lisk SDK can be summarized as follows:
    6a. Based on workflow executing `apply` and `applyAsset` functions, the state in memory is either saved to the blockchain or discarded. For instance, if the transaction is being executed within the process of saving new a block in the blockchain, the changes in the memory are saved in the database. In the other case, when the transaction is executed within the domain of the transaction pool, the changes of state in memory are discarded.
 7. It is probable, especially shortly after a block is applied, that due to the decentralized network conditions a node does the `undo` step and the block containing all of the included transactions get reverted in favour of a competing block.
 
-While implementing a custom transaction, it is necessary to implement some of the mentioned steps. For most of them, a base transaction implements a default behaviour. As you feel more confident in using Lisk SDK, it is more likely for developers to override most of the base transaction methods, so the implementation is well-tailored and implemented with the best possible performance to the application's use case.
+While implementing a custom transaction, it is necessary to implement some of the mentioned steps. For most of them, a base transaction implements a default behavior. As you feel more confident in using Lisk SDK, it is more likely for developers to override most of the base transaction methods, so the implementation is well-tailored and implemented with the best possible performance to the application's use case.
 
 ### Interface
 
@@ -112,18 +112,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
----
-
-Copyright © 2016-2019 Lisk Foundation
-
-Copyright © 2015 Crypti
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [lisk core github]: https://github.com/LiskHQ/lisk
 [lisk documentation site]: https://lisk.io/documentation/lisk-elements

@@ -1,85 +1,90 @@
 {
 	"title": "Invalid block processing",
 	"summary": "An invalid block with transfers valid on their own but invalid in the context of same block",
-	"config": "mainnet",
+	"config": {
+		"network": "mainnet"
+	},
 	"runner": "block_processing_transfers",
 	"handler": "invalid_block_processing_funding_and_transfer_same_block",
-	"testCases": {
-		"initialState": {
-			"chain": [
-				{
-					"version": 1,
-					"totalAmount": "5000000000",
-					"totalFee": "10000000",
-					"reward": "0",
-					"timestamp": 10,
-					"numberOfTransactions": 1,
-					"payloadLength": 117,
-					"previousBlock": "6524861224470851795",
-					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"transactions": [
+	"testCases": [
+		{
+			"config": {
+				"initialState": {
+					"chain": [
 						{
-							"id": "13770683072257473810",
-							"amount": "5000000000",
-							"type": 0,
-							"timestamp": 102702700,
-							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-							"senderId": "16313739661670634666L",
-							"recipientId": "10881167371402274308L",
-							"fee": "10000000",
-							"signature": "464abe544bea2f536475c9f8408fba6084df10c4700019a99c3ded11953df78396891f32b92b4e8454d5fbe2758cf971f9bce594e40f5b0cdd78b5e70e876e0d",
-							"signatures": [],
-							"asset": {}
+							"version": 1,
+							"totalAmount": "5000000000",
+							"totalFee": "10000000",
+							"reward": "0",
+							"timestamp": 10,
+							"numberOfTransactions": 1,
+							"payloadLength": 117,
+							"previousBlock": "6524861224470851795",
+							"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"transactions": [
+								{
+									"id": "13770683072257473810",
+									"amount": "5000000000",
+									"type": 0,
+									"timestamp": 102702700,
+									"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+									"senderId": "16313739661670634666L",
+									"recipientId": "10881167371402274308L",
+									"fee": "10000000",
+									"signature": "464abe544bea2f536475c9f8408fba6084df10c4700019a99c3ded11953df78396891f32b92b4e8454d5fbe2758cf971f9bce594e40f5b0cdd78b5e70e876e0d",
+									"signatures": [],
+									"asset": {}
+								}
+							],
+							"payloadHash": "123d64444b4b1bbfba75b499238cee9341f82e87047df78a2b414629a03e0e63",
+							"blockSignature": "298092da8fd4cf4c9d03a9c717bcb81274bbf34e0e6e7039cce162ca266551160d4566e509143c2f109c3bf7fd43edf4551565039e3ed73e474e511ac23ddc04",
+							"height": 2
 						}
 					],
-					"payloadHash": "123d64444b4b1bbfba75b499238cee9341f82e87047df78a2b414629a03e0e63",
-					"blockSignature": "298092da8fd4cf4c9d03a9c717bcb81274bbf34e0e6e7039cce162ca266551160d4566e509143c2f109c3bf7fd43edf4551565039e3ed73e474e511ac23ddc04",
-					"height": 2
+					"accounts": [
+						{
+							"address": "16313739661670634666L",
+							"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+							"secondPublicKey": null,
+							"username": null,
+							"isDelegate": false,
+							"secondSignature": false,
+							"balance": 9999899990000000,
+							"multiMin": 0,
+							"multiLifetime": 0,
+							"nameExist": false,
+							"missedBlocks": 0,
+							"producedBlocks": 0,
+							"rank": null,
+							"fees": 0,
+							"rewards": 0,
+							"vote": 0,
+							"productivity": 0
+						},
+						{
+							"address": "10881167371402274308L",
+							"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"secondPublicKey": null,
+							"username": "genesis_100",
+							"isDelegate": true,
+							"secondSignature": false,
+							"balance": 0,
+							"multiMin": 0,
+							"multiLifetime": 0,
+							"nameExist": false,
+							"missedBlocks": 1,
+							"producedBlocks": 0,
+							"rank": 70,
+							"fees": 0,
+							"rewards": 0,
+							"vote": 9999899990000000,
+							"productivity": 0
+						}
+					]
 				}
-			],
-			"accounts": [
-				{
-					"address": "16313739661670634666L",
-					"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-					"secondPublicKey": null,
-					"username": null,
-					"isDelegate": false,
-					"secondSignature": false,
-					"balance": 9999899990000000,
-					"multiMin": 0,
-					"multiLifetime": 0,
-					"nameExist": false,
-					"missedBlocks": 0,
-					"producedBlocks": 0,
-					"rank": null,
-					"fees": 0,
-					"rewards": 0,
-					"vote": 0,
-					"productivity": 0
-				},
-				{
-					"address": "10881167371402274308L",
-					"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"secondPublicKey": null,
-					"username": "genesis_100",
-					"isDelegate": true,
-					"secondSignature": false,
-					"balance": 0,
-					"multiMin": 0,
-					"multiLifetime": 0,
-					"nameExist": false,
-					"missedBlocks": 1,
-					"producedBlocks": 0,
-					"rank": 70,
-					"fees": 0,
-					"rewards": 0,
-					"vote": 9999899990000000,
-					"productivity": 0
-				}
-			]
-		},
-		"input": [
-			{
+			},
+			"description": "An invalid block with transfers valid on their own but invalid in the context of same block",
+			"input": {
 				"version": 1,
 				"totalAmount": "6000000000",
 				"totalFee": "20000000",
@@ -119,82 +124,82 @@
 				"payloadHash": "95e78f713ed6cacfabfdd5ad2f02a21234359d56f6c7292ac6dd0d44edcd166f",
 				"blockSignature": "4cbc62273fe8057dfff9256b0f3e9ea19f9164801c2da9abf3e6c5c2350c670adac68b8ed471173d2097a82c69004c92257710a8108fdd6e461861750a205a06",
 				"height": 3
-			}
-		],
-		"output": {
-			"chain": [
-				{
-					"version": 1,
-					"totalAmount": "5000000000",
-					"totalFee": "10000000",
-					"reward": "0",
-					"timestamp": 10,
-					"numberOfTransactions": 1,
-					"payloadLength": 117,
-					"previousBlock": "6524861224470851795",
-					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"transactions": [
-						{
-							"id": "13770683072257473810",
-							"amount": "5000000000",
-							"type": 0,
-							"timestamp": 102702700,
-							"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-							"senderId": "16313739661670634666L",
-							"recipientId": "10881167371402274308L",
-							"fee": "10000000",
-							"signature": "464abe544bea2f536475c9f8408fba6084df10c4700019a99c3ded11953df78396891f32b92b4e8454d5fbe2758cf971f9bce594e40f5b0cdd78b5e70e876e0d",
-							"signatures": [],
-							"asset": {}
-						}
-					],
-					"payloadHash": "123d64444b4b1bbfba75b499238cee9341f82e87047df78a2b414629a03e0e63",
-					"blockSignature": "298092da8fd4cf4c9d03a9c717bcb81274bbf34e0e6e7039cce162ca266551160d4566e509143c2f109c3bf7fd43edf4551565039e3ed73e474e511ac23ddc04",
-					"height": 2
-				}
-			],
-			"accounts": [
-				[
+			},
+			"output": {
+				"chain": [
 					{
-						"address": "16313739661670634666L",
-						"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-						"secondPublicKey": null,
-						"username": null,
-						"isDelegate": false,
-						"secondSignature": false,
-						"balance": "9999894980000000",
-						"multiMin": 0,
-						"multiLifetime": 0,
-						"nameExist": false,
-						"missedBlocks": 0,
-						"producedBlocks": 0,
-						"rank": null,
-						"fees": 0,
-						"rewards": 0,
-						"vote": 0,
-						"productivity": 0
-					},
-					{
-						"address": "10881167371402274308L",
-						"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-						"secondPublicKey": null,
-						"username": "genesis_100",
-						"isDelegate": true,
-						"secondSignature": false,
-						"balance": "5000000000",
-						"multiMin": 0,
-						"multiLifetime": 0,
-						"nameExist": false,
-						"missedBlocks": 1,
-						"producedBlocks": 0,
-						"rank": 70,
-						"fees": 0,
-						"rewards": 0,
-						"vote": 9999899990000000,
-						"productivity": 0
+						"version": 1,
+						"totalAmount": "5000000000",
+						"totalFee": "10000000",
+						"reward": "0",
+						"timestamp": 10,
+						"numberOfTransactions": 1,
+						"payloadLength": 117,
+						"previousBlock": "6524861224470851795",
+						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+						"transactions": [
+							{
+								"id": "13770683072257473810",
+								"amount": "5000000000",
+								"type": 0,
+								"timestamp": 102702700,
+								"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+								"senderId": "16313739661670634666L",
+								"recipientId": "10881167371402274308L",
+								"fee": "10000000",
+								"signature": "464abe544bea2f536475c9f8408fba6084df10c4700019a99c3ded11953df78396891f32b92b4e8454d5fbe2758cf971f9bce594e40f5b0cdd78b5e70e876e0d",
+								"signatures": [],
+								"asset": {}
+							}
+						],
+						"payloadHash": "123d64444b4b1bbfba75b499238cee9341f82e87047df78a2b414629a03e0e63",
+						"blockSignature": "298092da8fd4cf4c9d03a9c717bcb81274bbf34e0e6e7039cce162ca266551160d4566e509143c2f109c3bf7fd43edf4551565039e3ed73e474e511ac23ddc04",
+						"height": 2
 					}
+				],
+				"accounts": [
+					[
+						{
+							"address": "16313739661670634666L",
+							"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+							"secondPublicKey": null,
+							"username": null,
+							"isDelegate": false,
+							"secondSignature": false,
+							"balance": "9999894980000000",
+							"multiMin": 0,
+							"multiLifetime": 0,
+							"nameExist": false,
+							"missedBlocks": 0,
+							"producedBlocks": 0,
+							"rank": null,
+							"fees": 0,
+							"rewards": 0,
+							"vote": 0,
+							"productivity": 0
+						},
+						{
+							"address": "10881167371402274308L",
+							"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+							"secondPublicKey": null,
+							"username": "genesis_100",
+							"isDelegate": true,
+							"secondSignature": false,
+							"balance": "5000000000",
+							"multiMin": 0,
+							"multiLifetime": 0,
+							"nameExist": false,
+							"missedBlocks": 1,
+							"producedBlocks": 0,
+							"rank": 70,
+							"fees": 0,
+							"rewards": 0,
+							"vote": 9999899990000000,
+							"productivity": 0
+						}
+					]
 				]
-			]
+			}
 		}
-	}
+	]
 }

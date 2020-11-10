@@ -29,7 +29,6 @@ describe('node/api', () => {
 	let cacheStub;
 	let loggerStub;
 	let storageStub;
-	let configStub;
 	let getStatus;
 
 	before(async () => {
@@ -62,7 +61,11 @@ describe('node/api', () => {
 				cache: cacheStub,
 				logger: loggerStub,
 			},
-			config: configStub,
+			config: {
+				constants: {
+					epochTime: '2016-05-24T17:00:00.000Z',
+				},
+			},
 			channel: channelStub,
 			applicationState: {},
 		};
@@ -118,13 +121,7 @@ describe('node/api', () => {
 				height: 1187,
 			},
 			syncing: false,
-			unconfirmedTransactions: {
-				ready: 0,
-				verified: 0,
-				pending: 0,
-				validated: 0,
-				received: 0,
-			},
+			unconfirmedTransactions: 0,
 			chainMaxHeightFinalized: 1010,
 		};
 		const now = Date.now();
@@ -135,15 +132,16 @@ describe('node/api', () => {
 			syncing: false,
 			currentTime: now,
 			chainMaxHeightFinalized: 1010,
+			unconfirmedTransactions: 0,
 		};
 
 		beforeEach(async () => {
 			sinonSandbox.stub(Date, 'now').returns(now);
 		});
 
-		describe('when chain:getNodeStatus answers with all parameters', () => {
+		describe('when app:getNodeStatus answers with all parameters', () => {
 			beforeEach(async () => {
-				channelStub.invoke.withArgs('chain:getNodeStatus').returns(status);
+				channelStub.invoke.withArgs('app:getNodeStatus').returns(status);
 			});
 
 			it('should return an object status with all properties', async () =>
@@ -153,7 +151,7 @@ describe('node/api', () => {
 				}));
 		});
 
-		describe('when chain:getNodeStatus answers without some parameters', () => {
+		describe('when app:getNodeStatus answers without some parameters', () => {
 			let statusWithoutSomeParameters;
 			let expectedStatusWithoutSomeParameters;
 
@@ -163,7 +161,7 @@ describe('node/api', () => {
 				expectedStatusWithoutSomeParameters = _.cloneDeep(expectedStatus);
 				expectedStatusWithoutSomeParameters.height = 0;
 				channelStub.invoke
-					.withArgs('chain:getNodeStatus')
+					.withArgs('app:getNodeStatus')
 					.returns(statusWithoutSomeParameters);
 			});
 

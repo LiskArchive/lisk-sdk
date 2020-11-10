@@ -111,6 +111,7 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 		};
 
 		steps.push({
+			description: `When block with height ${height} is forged`,
 			input,
 			output,
 		});
@@ -157,10 +158,15 @@ const invalidMaxHeightPrevoted = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid max height prevoted',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: {
+			blockHeaders,
+		},
 	};
 };
 
@@ -190,10 +196,13 @@ const invalidSameHeightBlock = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid same height block',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: { blockHeaders },
 	};
 };
 
@@ -224,10 +233,13 @@ const invalidLowerHeightBlock = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid lower height block',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: { blockHeaders },
 	};
 };
 
@@ -257,10 +269,13 @@ const invalidPreviouslyForgedHeight = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid previously forged height',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: { blockHeaders },
 	};
 };
 
@@ -288,10 +303,13 @@ const invalidLowerMaxHeightPrevoted = activeDelegates => {
 	};
 
 	return {
-		initialState: blockHeaders,
+		description: 'Invalid lower max height prevoted',
+		config: {
+			blockHeaders,
+		},
 		input: invalidBlockHeader,
 		// input will not be added to list, hence output will be same as initial state
-		output: blockHeaders,
+		output: { blockHeaders },
 	};
 };
 
@@ -364,6 +382,7 @@ const bftForkChoiceTestSuiteGenerator = () => {
 		title: 'BFT processing generation',
 		summary: 'Generate set of blocks to verify fork choice rules',
 		config: {
+			...initialState,
 			forkStatuses: {
 				FORK_STATUS_IDENTICAL_BLOCK,
 				FORK_STATUS_VALID_BLOCK,
@@ -379,7 +398,6 @@ const bftForkChoiceTestSuiteGenerator = () => {
 			{
 				description:
 					'IDENTICAL_BLOCK: Received identical block, as described as "Case 1" in the LIP',
-				initialState,
 				input: {
 					// Block id is the only check to match identical blocks
 					receivedBlock: { ...lastBlock },
@@ -391,7 +409,6 @@ const bftForkChoiceTestSuiteGenerator = () => {
 			{
 				description:
 					'VALID_BLOCK: Received valid block, as described as "Case 2" in the LIP',
-				initialState,
 				input: {
 					// Valid blocks are always one step ahead and linked to previous block
 					receivedBlock,
@@ -403,7 +420,6 @@ const bftForkChoiceTestSuiteGenerator = () => {
 			{
 				description:
 					'DISCARD: Received invalid block for current state of chain',
-				initialState,
 				input: {
 					// Any block with lower height than last block is invalid to current
 					// state of chain if maxHeightPrevoted is less or same
@@ -420,7 +436,6 @@ const bftForkChoiceTestSuiteGenerator = () => {
 			{
 				description:
 					'DOUBLE_FORGING: Received double forging block, as described as "Case 3" in the LIP',
-				initialState,
 				input: {
 					// Double forging block identified when following conditions meet
 					// when compared with last block in chain
@@ -447,7 +462,7 @@ const bftForkChoiceTestSuiteGenerator = () => {
 			{
 				description:
 					'TIE_BREAK: Received a block turn to a tie break with last block, as described as "Case 4" in the LIP',
-				initialState: {
+				config: {
 					lastBlock: {
 						...lastBlock,
 						...{ timestamp: lastBlock.timestamp - 5 }, // last block received in earlier slot
@@ -485,7 +500,6 @@ const bftForkChoiceTestSuiteGenerator = () => {
 			{
 				description:
 					'DIFFERENT_CHAIN: Received a block from a different chain, as described as "Case 5" in the LIP',
-				initialState,
 				input: {
 					// Block identified from different chain if following conditions meet
 					// when compared with last block in chain
@@ -508,7 +522,6 @@ const bftForkChoiceTestSuiteGenerator = () => {
 			{
 				description:
 					'DIFFERENT_CHAIN: Received a block from a different chain, as described as "Case 5" in the LIP',
-				initialState,
 				input: {
 					// Block identified from different chain if following conditions meet
 					// when compared with last block in chain

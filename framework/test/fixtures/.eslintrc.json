@@ -1,4 +1,11 @@
 {
 	"extends": ["../../.eslintrc.json"],
-	"rules": {}
+	"rules": {
+		"import/no-extraneous-dependencies": [
+			"error",
+			{
+				"devDependencies": ["./**"]
+			}
+		]
+	}
 }

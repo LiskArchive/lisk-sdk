@@ -13,10 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
-import * as inputUtils from '../../../src/utils/input/utils';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('transaction:verify', () => {
 	const defaultTransaction = {
@@ -29,22 +30,15 @@ describe('transaction:verify', () => {
 			amount: '1234567890',
 			data: 'random data',
 		},
+		nonce: '0',
 		fee: '10000000',
 		senderId: '2129300327344985743L',
-		signatures: [],
-		signature:
-			'b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d',
-		id: '3436168030012755419',
+		signatures: [
+			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+		],
+		id: '6721820474838816958',
 	};
 
-	const defaultSecondSignedTransaction = {
-		...defaultTransaction,
-		id: '1856045075247127242',
-		signSignature:
-			'c4b0ca84aa4596401c3041a1638e670d6278e0e18949f027b3d7ede4f2f0a1685df7aec768b1a3c49acfe7ded9e7f5230998f06b0d58371bcba5a00695fb6901',
-	};
-	const defaultSecondPublicKey =
-		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
 	const invalidTransaction = 'invalid transaction';
 
 	const defaultVerifyTransactionResult = {
@@ -60,18 +54,13 @@ describe('transaction:verify', () => {
 				'getConfig',
 				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
-			.stub(
-				inputUtils,
-				'getData',
-				sandbox.stub().resolves(defaultSecondPublicKey),
-			)
 			.stdout();
 
 	describe('transaction:verify', () => {
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
+				readerUtils,
+				'readStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:verify'])
@@ -100,43 +89,9 @@ describe('transaction:verify', () => {
 			});
 	});
 
-	describe('transaction:verify transaction --second-public-key=xxx', () => {
-		setupTest()
-			.command([
-				'transaction:verify',
-				JSON.stringify(defaultSecondSignedTransaction),
-				'--second-public-key=file:key.txt',
-			])
-			.it(
-				'should verify transaction from arg and second public key from an external source',
-				() => {
-					expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultVerifyTransactionResult,
-					);
-				},
-			);
-
-		setupTest()
-			.command([
-				'transaction:verify',
-				JSON.stringify(defaultSecondSignedTransaction),
-				`--second-public-key=${defaultSecondPublicKey}`,
-			])
-			.it(
-				'should verify transaction from arg and second public key from the flag',
-				() => {
-					expect(inputUtils.getData).not.to.be.called;
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultVerifyTransactionResult,
-					);
-				},
-			);
-	});
-
 	describe('transaction | transaction:verify', () => {
 		setupTest()
-			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves([]))
 			.command(['transaction:verify'])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -145,9 +100,9 @@ describe('transaction:verify', () => {
 
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox.stub().resolves({ data: invalidTransaction }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([invalidTransaction]),
 			)
 			.command(['transaction:verify'])
 			.catch((error: Error) => {
@@ -159,9 +114,9 @@ describe('transaction:verify', () => {
 
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
 			.command(['transaction:verify'])
 			.it('should verify transaction from stdin', () => {
@@ -169,26 +124,5 @@ describe('transaction:verify', () => {
 					defaultVerifyTransactionResult,
 				);
 			});
-	});
-
-	describe('transaction | transaction:verify --second-public-key=xxx', () => {
-		setupTest()
-			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox
-					.stub()
-					.resolves({ data: JSON.stringify(defaultSecondSignedTransaction) }),
-			)
-			.command(['transaction:verify', '--second-public-key=file:key.txt'])
-			.it(
-				'should verify transaction from stdin and the second public key flag',
-				() => {
-					expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultVerifyTransactionResult,
-					);
-				},
-			);
 	});
 });

@@ -16,10 +16,8 @@
 
 require('../../functional');
 const {
-	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
-	createDapp,
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 const typesRepresentatives = require('../../../../fixtures/types_representatives');
@@ -41,15 +39,10 @@ function invalidAssets(option, badTransactions) {
 
 		beforeEach(done => {
 			switch (option) {
-				case 'publicKey':
-					transaction = registerSecondPassphrase({
-						networkIdentifier,
-						passphrase: accountFixtures.genesis.passphrase,
-						secondPassphrase: randomUtil.password(),
-					});
-					break;
 				case 'username':
 					transaction = registerDelegate({
+						nonce: '0',
+						fee: '1000133000',
 						networkIdentifier,
 						passphrase: accountFixtures.genesis.passphrase,
 						username: randomUtil.delegateName(),
@@ -57,6 +50,8 @@ function invalidAssets(option, badTransactions) {
 					break;
 				case 'votes':
 					transaction = castVotes({
+						nonce: '0',
+						fee: '1000133000',
 						networkIdentifier,
 						passphrase: accountFixtures.genesis.passphrase,
 						votes: [],
@@ -66,6 +61,8 @@ function invalidAssets(option, badTransactions) {
 				case 'multisignature': {
 					// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
 					const tx = new MultisignatureTransaction({
+						nonce: '0',
+						fee: '1000133000',
 						networkIdentifier,
 						asset: {
 							keysgroup: [`+${accountFixtures.existingDelegate.publicKey}`],
@@ -77,12 +74,6 @@ function invalidAssets(option, badTransactions) {
 					transaction = tx.toJSON();
 					break;
 				}
-				case 'dapp':
-					transaction = createDapp({
-						passphrase: accountFixtures.genesis.passphrase,
-						options: randomUtil.guestbookDapp,
-					});
-					break;
 				// no default
 			}
 			done();

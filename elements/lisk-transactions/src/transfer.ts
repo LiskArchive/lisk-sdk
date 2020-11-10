@@ -14,6 +14,8 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
+	isValidFee,
+	isValidNonce,
 	isValidTransferAmount,
 	validateAddress,
 	validateNetworkIdentifier,
@@ -27,13 +29,19 @@ import { createBaseTransaction } from './utils';
 
 export interface TransferInputs {
 	readonly amount: string;
+	readonly fee: string;
+	readonly nonce: string;
 	readonly networkIdentifier: string;
 	readonly data?: string;
-	readonly passphrase?: string;
 	readonly recipientId?: string;
 	readonly recipientPublicKey?: string;
-	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
+	readonly senderPublicKey?: string;
+	readonly passphrase?: string;
+	readonly passphrases?: ReadonlyArray<string>;
+	readonly keys?: {
+		readonly mandatoryKeys: Array<Readonly<string>>;
+		readonly optionalKeys: Array<Readonly<string>>;
+	};
 }
 
 const validateInputs = ({
@@ -42,7 +50,17 @@ const validateInputs = ({
 	recipientPublicKey,
 	data,
 	networkIdentifier,
+	fee,
+	nonce,
 }: TransferInputs): void => {
+	if (!isValidNonce(nonce)) {
+		throw new Error('Nonce must be a valid number in string format.');
+	}
+
+	if (!isValidFee(fee)) {
+		throw new Error('Fee must be a valid number in string format.');
+	}
+
 	if (!isValidTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
 	}
@@ -90,8 +108,10 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		amount,
 		recipientPublicKey,
 		passphrase,
-		secondPassphrase,
 		networkIdentifier,
+		passphrases,
+		keys,
+		senderPublicKey,
 	} = inputs;
 
 	const recipientIdFromPublicKey = recipientPublicKey
@@ -104,6 +124,8 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 8,
+		// For txs from multisig senderPublicKey must be set before attempting signing
+		senderPublicKey,
 		asset: {
 			amount,
 			recipientId: recipientId as string,
@@ -111,13 +133,12 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		},
 	};
 
-	if (!passphrase) {
+	if (!passphrase && !passphrases?.length) {
 		return transaction;
 	}
 
 	const transactionWithSenderInfo = {
 		...transaction,
-		networkIdentifier,
 		senderPublicKey: transaction.senderPublicKey as string,
 		asset: {
 			...transaction.asset,
@@ -129,7 +150,17 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		transactionWithSenderInfo,
 	);
 
-	transferTransaction.sign(passphrase, secondPassphrase);
+	if (passphrase) {
+		transferTransaction.sign(networkIdentifier, passphrase);
 
-	return transferTransaction.toJSON();
+		return transferTransaction.toJSON();
+	}
+
+	if (passphrases && keys) {
+		transferTransaction.sign(networkIdentifier, undefined, passphrases, keys);
+
+		return transferTransaction.toJSON();
+	}
+
+	return transactionWithSenderInfo;
 };

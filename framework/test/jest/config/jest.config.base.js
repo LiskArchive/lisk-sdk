@@ -18,8 +18,8 @@ module.exports = {
 	verbose: true,
 	collectCoverage: true,
 	coverageReporters: ['json', 'lcov', 'cobertura'],
-	rootDir: '../../../../',
-	setupFilesAfterEnv: ['<rootDir>/framework/test/jest/config/setup.js'],
+	rootDir: '../../../',
+	setupFilesAfterEnv: ['<rootDir>/test/jest/config/setup.js'],
 	/**
 		coverageThreshold: {
 			global: {

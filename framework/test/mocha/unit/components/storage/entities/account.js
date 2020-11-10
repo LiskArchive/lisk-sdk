@@ -15,7 +15,6 @@
 
 'use strict';
 
-const randomstring = require('randomstring');
 const {
 	entities: { BaseEntity, Account },
 	errors: {
@@ -57,43 +56,38 @@ describe('Account', () => {
 		validAccountFields = [
 			'address',
 			'publicKey',
-			'secondPublicKey',
 			'username',
 			'isDelegate',
-			'secondSignature',
 			'balance',
-			'multiMin',
-			'multiLifetime',
-			'nameExist',
+			'totalVotesReceived',
+			'delegate',
+			'votes',
+			'unlocking',
 			'fees',
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'voteWeight',
-			'votedDelegatesPublicKeys',
-			'membersPublicKeys',
+			'keys',
 		];
 
 		validSimpleObjectFields = [
 			'address',
 			'publicKey',
-			'secondPublicKey',
 			'username',
 			'isDelegate',
-			'secondSignature',
 			'balance',
+			'totalVotesReceived',
+			'delegate',
+			'votes',
+			'unlocking',
+			'nonce',
 			'asset',
-			'multiMin',
-			'multiLifetime',
-			'nameExist',
 			'missedBlocks',
 			'producedBlocks',
 			'fees',
 			'rewards',
-			'voteWeight',
 			'productivity',
-			'votedDelegatesPublicKeys',
-			'membersPublicKeys',
+			'keys',
 		];
 
 		validFilters = [
@@ -107,22 +101,11 @@ describe('Account', () => {
 			'publicKey_ne',
 			'publicKey_in',
 			'publicKey_like',
-			'secondPublicKey',
-			'secondPublicKey_eql',
-			'secondPublicKey_ne',
-			'secondPublicKey_in',
-			'secondPublicKey_like',
 			'username',
 			'username_eql',
 			'username_ne',
 			'username_in',
 			'username_like',
-			'isDelegate',
-			'isDelegate_eql',
-			'isDelegate_ne',
-			'secondSignature',
-			'secondSignature_eql',
-			'secondSignature_ne',
 			'balance',
 			'balance_eql',
 			'balance_ne',
@@ -131,25 +114,9 @@ describe('Account', () => {
 			'balance_lt',
 			'balance_lte',
 			'balance_in',
-			'multiMin',
-			'multiMin_eql',
-			'multiMin_ne',
-			'multiMin_gt',
-			'multiMin_gte',
-			'multiMin_lt',
-			'multiMin_lte',
-			'multiMin_in',
-			'multiLifetime',
-			'multiLifetime_eql',
-			'multiLifetime_ne',
-			'multiLifetime_gt',
-			'multiLifetime_gte',
-			'multiLifetime_lt',
-			'multiLifetime_lte',
-			'multiLifetime_in',
-			'nameExist',
-			'nameExist_eql',
-			'nameExist_ne',
+			'nonce',
+			'nonce_eql',
+			'nonce_ne',
 			'fees',
 			'fees_eql',
 			'fees_ne',
@@ -174,6 +141,20 @@ describe('Account', () => {
 			'producedBlocks_lt',
 			'producedBlocks_lte',
 			'producedBlocks_in',
+			'totalVotesReceived',
+			'totalVotesReceived_eql',
+			'totalVotesReceived_ne',
+			'totalVotesReceived_gt',
+			'totalVotesReceived_gte',
+			'totalVotesReceived_lt',
+			'totalVotesReceived_lte',
+			'totalVotesReceived_in',
+			'asset_contains',
+			'asset_exists',
+			'votes_for_delegate',
+			'isDelegate',
+			'isDelegate_eql',
+			'isDelegate_ne',
 			'missedBlocks',
 			'missedBlocks_eql',
 			'missedBlocks_ne',
@@ -182,18 +163,6 @@ describe('Account', () => {
 			'missedBlocks_lt',
 			'missedBlocks_lte',
 			'missedBlocks_in',
-			'voteWeight',
-			'voteWeight_eql',
-			'voteWeight_ne',
-			'voteWeight_gt',
-			'voteWeight_gte',
-			'voteWeight_lt',
-			'voteWeight_lte',
-			'voteWeight_in',
-			'votedDelegatesPublicKeys',
-			'membersPublicKeys',
-			'asset_contains',
-			'asset_exists',
 		];
 
 		validOptions = {
@@ -206,7 +175,9 @@ describe('Account', () => {
 		};
 	});
 
-	beforeEach(() => seeder.seed(storage));
+	beforeEach(async () => {
+		await seeder.seed(storage);
+	});
 
 	afterEach(async () => {
 		sinonSandbox.restore();
@@ -338,7 +309,7 @@ describe('Account', () => {
 		});
 
 		it('should reject with error if matched with multiple records for provided filters', async () => {
-			return expect(AccountEntity.getOne({})).to.eventually.be.rejectedWith(
+			await expect(AccountEntity.getOne({})).to.eventually.be.rejectedWith(
 				'Multiple rows were not expected.',
 			);
 		});
@@ -469,11 +440,6 @@ describe('Account', () => {
 				expect(data[0].isDelegate).to.be.a('boolean');
 			});
 
-			it('should return "secondSignature" as "boolean"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].secondSignature).to.be.a('boolean');
-			});
-
 			it('should return "fees" as "bigint"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].fees).to.be.a('string');
@@ -482,11 +448,6 @@ describe('Account', () => {
 			it('should return "rewards" as "bigint"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].rewards).to.be.a('string');
-			});
-
-			it('should return "voteWeight" as "bigint"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].voteWeight).to.be.a('string');
 			});
 
 			it('should return "producedBlocks" as "number"', async () => {
@@ -506,11 +467,7 @@ describe('Account', () => {
 			let validAccount = null;
 
 			beforeEach(async () => {
-				validAccount = new accountFixtures.Account({
-					secondPublicKey: randomstring
-						.generate({ charset: '0123456789ABCDEF', length: 64 })
-						.toLowerCase(),
-				});
+				validAccount = new accountFixtures.Account();
 				await AccountEntity.create(validAccount);
 				filters = { address: validAccount.address };
 			});
@@ -523,17 +480,6 @@ describe('Account', () => {
 
 				expect(accounts[0].publicKey).to.be.eql(
 					rawKey[0].publicKey.toString('hex'),
-				);
-			});
-
-			it('should always return "secondPublicKey" as "encode(secondPublicKey, \'hex\')"', async () => {
-				const accounts = await AccountEntity.get(filters, options);
-				const rawKey = await adapter.execute(
-					`SELECT "secondPublicKey" FROM mem_accounts WHERE "address" = '${validAccount.address}'`,
-				);
-
-				expect(accounts[0].secondPublicKey).to.be.eql(
-					rawKey[0].secondPublicKey.toString('hex'),
 				);
 			});
 		});
@@ -686,6 +632,59 @@ describe('Account', () => {
 				});
 			});
 
+			describe('votes_for_delegate', () => {
+				let delegateAccount = null;
+				let voterA = null;
+				let voterB = null;
+				let delegateAddress = null;
+				let voters = null;
+
+				beforeEach(async () => {
+					delegateAccount = new accountFixtures.Account({
+						username: 'OneDelegate',
+					});
+
+					await AccountEntity.create([delegateAccount]);
+					const delegate = await AccountEntity.getOne({
+						username: 'OneDelegate',
+					});
+
+					delegateAddress = delegate.address;
+
+					voterA = new accountFixtures.Account({
+						votes: [
+							{
+								amount: '10000000000',
+								delegateAddress,
+							},
+						],
+						asset: {
+							voted: true,
+						},
+					});
+
+					voterB = new accountFixtures.Account({
+						votes: [
+							{
+								amount: '10000000000',
+								delegateAddress,
+							},
+						],
+						asset: {
+							voted: true,
+						},
+					});
+					await AccountEntity.create([voterA, voterB]);
+					voters = await AccountEntity.get({ asset_exists: 'voted' });
+				});
+
+				it('should return accounts that voted for a delegate', async () => {
+					const filters = { votes_for_delegate: delegateAddress };
+					const votersFound = await AccountEntity.get(filters);
+					expect(votersFound).to.eql(voters);
+				});
+			});
+
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				expect(AccountEntity.getFilters()).to.eql(validFilters);
@@ -806,34 +805,32 @@ describe('Account', () => {
 				address: accounts[0].address,
 			};
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				AccountEntity.getOne(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const account = new Account(adapter);
-			try {
+
+			await expect(() => {
 				account.get({ invalid_filter: true });
-			} catch (err) {
-				expect(err.message).to.equal('One or more filters are not supported.');
-			}
+			}).to.throw('One or more filters are not supported.');
 		});
 
 		it('should accept only valid options', async () => {
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				AccountEntity.get({}, validOptions);
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
 		it('should throw error for invalid options', async () => {
 			const account = new Account(adapter);
-			try {
+
+			await expect(() => {
 				account.get({}, invalidOptions);
-			} catch (err) {
-				expect(err.message).to.equal('One or more options are not supported.');
-			}
+			}).to.throw('One or more options are not supported.');
 		});
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
@@ -867,7 +864,7 @@ describe('Account', () => {
 				foo: 'bar',
 			};
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				AccountEntity.isPersisted(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
@@ -889,7 +886,7 @@ describe('Account', () => {
 			account.mergeFilters = sinonSandbox.stub();
 			account.parseFilters = sinonSandbox.stub();
 			// Act
-			account.isPersisted(validFilter);
+			await account.isPersisted(validFilter);
 			// Assert
 			expect(account.mergeFilters.calledWith(validFilter)).to.be.true;
 		});
@@ -911,7 +908,7 @@ describe('Account', () => {
 			account.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			account.parseFilters = sinonSandbox.stub();
 			// Act
-			account.isPersisted(validFilter);
+			await account.isPersisted(validFilter);
 			// Assert
 			expect(account.parseFilters.calledWith(validFilter)).to.be.true;
 		});
@@ -920,8 +917,10 @@ describe('Account', () => {
 			// Arrange
 			sinonSandbox.spy(adapter, 'executeFile');
 			const account = new accountFixtures.Account();
+
 			// Act
 			await AccountEntity.isPersisted({ address: account.address });
+
 			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.isPersisted);
@@ -931,7 +930,9 @@ describe('Account', () => {
 			// Arrange
 			const account = new accountFixtures.Account();
 			await AccountEntity.create(account);
+
 			const res = await AccountEntity.isPersisted({ address: account.address });
+
 			expect(res).to.be.true;
 		});
 
@@ -939,7 +940,9 @@ describe('Account', () => {
 			// Arrange
 			const account = new accountFixtures.Account();
 			await AccountEntity.create(account);
+
 			const res = await AccountEntity.isPersisted({ address: 'ABFFFF' });
+
 			expect(res).to.be.false;
 		});
 	});

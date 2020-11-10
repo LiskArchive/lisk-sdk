@@ -18,49 +18,27 @@ const messageDescription = `Specifies a source for providing a message to the co
 	Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
 	Examples:
 	- --message=file:/path/to/my/message.txt
-	- --message=stdin
+	- --message="hello world"
 `;
 
 const passphraseDescription = `Specifies a source for your secret passphrase. Lisk Commander will prompt you for input if this option is not set.
-	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
 	Examples:
-	- --passphrase=prompt (default behaviour)
-	- --passphrase='pass:my secret passphrase' (should only be used where security is not important)
-	- --passphrase=env:SECRET_PASSPHRASE
-	- --passphrase=file:/path/to/my/passphrase.txt (takes the first line only)
-	- --passphrase=stdin (takes one line only)
-`;
-
-const secondPassphraseDescription = `Specifies a source for your second secret passphrase. For certain commands a second passphrase is necessary, in which case Lisk Commander will prompt you for it if this option is not set. Otherwise, Lisk Commander will assume you want to use one passphrase only.
-	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
-	Examples:
-	- --second-passphrase=prompt (to force a prompt even when a second passphrase is not always necessary)
-	- --second-passphrase='pass:my second secret passphrase' (should only be used where security is not important)
-	- --second-passphrase=env:SECOND_SECRET_PASSPHRASE
-	- --second-passphrase=file:/path/to/my/secondPassphrase.txt (takes the first line only)
-	- --second-passphrase=stdin (takes one line only)
+	- --passphrase='my secret passphrase' (should only be used where security is not important)
 `;
 
 const passwordDescription = `Specifies a source for your secret password. Lisk Commander will prompt you for input if this option is not set.
-	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
 	Examples:
-	- --password=prompt (default behaviour)
 	- --password=pass:password123 (should only be used where security is not important)
-	- --password=env:PASSWORD
-	- --password=file:/path/to/my/password.txt (takes the first line only)
-	- --password=stdin (takes the first line only)
 `;
 
-const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
+const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes a string of public keys separated by commas.
 	Examples:
 	- --votes=publickey1,publickey2
-	- --votes=file:/path/to/my/votes.txt (every public key should be on a new line)
 `;
 
-const unvotesDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
+const unlockDescription = `Specifies the unlock objects for the delegate candidates to unlock from. Takes a string of address amount unvoteHeight separated by commas.
 	Examples:
-	- --unvotes=publickey1,publickey2
-	- --unvotes=file:/path/to/my/unvotes.txt (every public key should be on a new line)
+	- --unlock=123L,1000000,500
 `;
 
 const noSignatureDescription =
@@ -78,7 +56,14 @@ const networkIdentifierDescription =
 	'Network identifier defined for the network or main | test for the Lisk Network.';
 const communityIdentifierDescription =
 	'Unique community identifier for network.';
-
+const mandatoryKeyDescription =
+	'Mandatory publicKey required for multi signature transaction.';
+const optionalKeyDescription =
+	'Optional publicKey for multi signature transaction.';
+const numberOfSignaturesDescription =
+	'Number of signatures required to approve the transaction from multi signature account';
+const numberOfPassphrasesDescription =
+	'Number of times you require the passphrase prompt to appear';
 export type AlphabetLowercase =
 	| 'a'
 	| 'b'
@@ -126,19 +111,15 @@ export const flags: FlagMap = {
 		char: 'p',
 		description: passphraseDescription,
 	},
-	secondPassphrase: {
-		char: 's',
-		description: secondPassphraseDescription,
-	},
 	password: {
 		char: 'w',
 		description: passwordDescription,
 	},
-	unvotes: {
-		description: unvotesDescription,
-	},
 	votes: {
 		description: votesDescription,
+	},
+	unlock: {
+		description: unlockDescription,
 	},
 	networkIdentifier: {
 		description: networkIdentifierDescription,
@@ -170,5 +151,19 @@ export const flags: FlagMap = {
 	},
 	noStart: {
 		description: noStartDescription,
+	},
+	mandatoryKey: {
+		char: 'm',
+		description: mandatoryKeyDescription,
+	},
+	optionalKey: {
+		char: 'o',
+		description: optionalKeyDescription,
+	},
+	numberOfSignatures: {
+		description: numberOfSignaturesDescription,
+	},
+	numberOfPassphrases: {
+		description: numberOfPassphrasesDescription,
 	},
 };

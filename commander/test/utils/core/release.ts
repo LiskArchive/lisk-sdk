@@ -1,4 +1,5 @@
 import * as axios from 'axios';
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import {
 	getLatestVersion,

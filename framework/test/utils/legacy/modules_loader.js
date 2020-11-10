@@ -16,19 +16,26 @@
 
 const express = require('express');
 const async = require('async');
-const { Sequence } = require('../../../src/modules/chain/utils/sequence');
+const { Sequence } = require('../../../src/application/node/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
+const jobsQueue = require('../../../src/application/node/utils/jobs_queue');
 
 // TODO: Remove this file
 const modulesLoader = new (function() {
 	this.storage = null;
 	this.logger = createLoggerComponent(__testContext.config.components.logger);
 
+	const {
+		conpoments,
+		modules: moduleConfig,
+		...rootConfigs
+	} = __testContext.config;
+	const { network, ...nodeConfigs } = rootConfigs;
+
 	this.scope = {
 		lastCommit: '',
 		build: '',
-		config: __testContext.config.modules.chain,
+		config: nodeConfigs,
 		genesisBlock: { block: __testContext.config.genesisBlock },
 		components: {
 			logger: this.logger,
@@ -175,10 +182,9 @@ const modulesLoader = new (function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ blocks: require('../../../src/modules/chain/blocks/blocks') },
-				{ loader: require('../../../src/modules/chain/loader') },
+				{ chain: require('@liskhq/lisk-chain') },
 				{
-					transport: require('../../../src/modules/chain/transport'),
+					transport: require('../../../src/application/node/transport'),
 				},
 			],
 			[],

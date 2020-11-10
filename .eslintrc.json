@@ -4,5 +4,8 @@
 		"implicit-arrow-linebreak": "off",
 		"no-mixed-spaces-and-tabs": "off",
 		"operator-linebreak": "off"
+	},
+	"globals": {
+		"BigInt": true
 	}
 }

@@ -50,6 +50,8 @@ describe('GET /api/node', () => {
 				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
 						transfer({
+							nonce: '0',
+							fee: '146000',
 							networkIdentifier,
 							amount: randomUtil.number(100000000, 1000000000).toString(),
 							passphrase: accountFixtures.genesis.passphrase,
@@ -442,38 +444,6 @@ describe('GET /api/node', () => {
 									.map('type')
 									.sortNumbers('desc'),
 							).to.be.eql(_.map(res.body.data, 'type'));
-						});
-					});
-				});
-
-				describe('timestamp', () => {
-					it('sorted by timestamp:asc should be ok', async () => {
-						return VerifiedEndpoint.makeRequest(
-							{ sort: 'timestamp:asc' },
-							200,
-						).then(res => {
-							expect(res.body.data).to.not.be.empty;
-
-							expect(
-								_(res.body.data)
-									.map('timestamp')
-									.sortNumbers('asc'),
-							).to.be.eql(_.map(res.body.data, 'timestamp'));
-						});
-					});
-
-					it('sorted by timestamp:desc should be ok', async () => {
-						return VerifiedEndpoint.makeRequest(
-							{ sort: 'timestamp:desc' },
-							200,
-						).then(res => {
-							expect(res.body.data).to.not.be.empty;
-
-							expect(
-								_(res.body.data)
-									.map('timestamp')
-									.sortNumbers('desc'),
-							).to.be.eql(_.map(res.body.data, 'timestamp'));
 						});
 					});
 				});

@@ -34,8 +34,8 @@ import {
 	EVENT_BAN_PEER,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_PEER_INFO_UPDATE,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_INVALID_MESSAGE_RECEIVED,
 	EVENT_INVALID_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
@@ -56,7 +56,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from '../p2p_types';
+} from '../types';
 import {
 	assignInternalInfo,
 	sanitizeIncomingPeerInfo,
@@ -289,6 +289,7 @@ export class Peer extends EventEmitter {
 	): void {
 		clearInterval(this._counterResetInterval);
 		clearInterval(this._productivityResetInterval);
+
 		if (this._socket) {
 			this._socket.destroy(code, reason);
 		}

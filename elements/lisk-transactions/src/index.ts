@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 
 import { DelegateTransaction } from './10_delegate_transaction';
-import { VoteTransaction } from './11_vote_transaction';
 import { MultisignatureTransaction } from './12_multisignature_transaction';
+import { VoteTransaction } from './13_vote_transaction';
+import { UnlockTransaction } from './14_unlock_transaction';
+import { ProofOfMisbehaviorTransaction } from './15_proof_of_misbehavior_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
-import { SecondSignatureTransaction } from './9_second_signature_transaction';
 import {
 	BaseTransaction,
 	StateStore,
@@ -27,54 +27,44 @@ import {
 import { castVotes } from './cast_votes';
 import * as constants from './constants';
 import {
-	createSignatureObject,
-	SignatureObject,
-} from './create_signature_object';
-import {
 	convertToAssetError,
 	convertToTransactionError,
 	TransactionError,
-	TransactionPendingError,
 } from './errors';
 import { registerDelegate } from './register_delegate';
 import { registerMultisignature } from './register_multisignature_account';
-import { registerSecondPassphrase } from './register_second_passphrase';
+import { reportMisbehavior } from './report_misbehavior';
 import { createResponse, Status, TransactionResponse } from './response';
 import { transactionInterface } from './schema';
+import { signMultiSignatureTransaction } from './sign_multi_signature_transaction';
 import { Account, TransactionJSON } from './transaction_types';
 import { transfer } from './transfer';
+import { unlockToken } from './unlock_token';
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	getId,
-	getTimeFromBlockchainEpoch,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validateMultisignatures,
 	validateSenderIdAndPublicKey,
 	validateSignature,
-	verifyAmountBalance,
-	verifyBalance,
-	verifyMultiSignatures,
-	verifySecondSignature,
+	verifyMinRemainingBalance,
+	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 } from './utils';
 
 const exposedUtils = {
-	BigNum,
 	convertBeddowsToLSK,
 	getId,
-	getTimeFromBlockchainEpoch,
 	convertLSKToBeddows,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validateMultisignatures,
 	validateSignature,
-	verifyAmountBalance,
+	verifyMinRemainingBalance,
 	validateSenderIdAndPublicKey,
-	verifyBalance,
-	verifyMultiSignatures,
-	verifySecondSignature,
+	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 };
 
@@ -85,22 +75,22 @@ export {
 	StateStorePrepare,
 	TransferTransaction,
 	transfer,
-	SecondSignatureTransaction,
-	registerSecondPassphrase,
 	DelegateTransaction,
 	registerDelegate,
 	VoteTransaction,
 	castVotes,
 	MultisignatureTransaction,
+	UnlockTransaction,
+	unlockToken,
+	reportMisbehavior,
 	createResponse,
+	ProofOfMisbehaviorTransaction,
 	registerMultisignature,
-	createSignatureObject,
-	SignatureObject,
+	signMultiSignatureTransaction,
 	Status,
 	TransactionResponse,
 	TransactionJSON,
 	TransactionError,
-	TransactionPendingError,
 	transactionInterface,
 	convertToAssetError,
 	convertToTransactionError,

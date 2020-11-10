@@ -135,20 +135,20 @@ class PgHelper {
 			`SELECT
 			"address",
 			ENCODE("publicKey", 'hex') as "publicKey",
-			ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 			"username",
 			"isDelegate",
-			"secondSignature",
 			"balance",
+			"nonce",
+			"votes",
+			"unlocking",
+			"totalVotesReceived",
+			"delegate",
 			"asset",
-			"multimin" as "multiMin",
-			"multilifetime" as "multiLifetime",
-			"nameexist" as "nameExist",
+			"keys",
 			"missedBlocks",
 			"producedBlocks",
 			"fees",
 			"rewards",
-			"voteWeight",
 			case
 			when
 				"producedBlocks" + "missedBlocks" = 0 then 0

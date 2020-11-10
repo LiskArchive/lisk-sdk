@@ -23,14 +23,15 @@ const PUBLIC_KEY =
 // TODO: Possibly add more public keys
 
 const generateTestCasesForAddressFromPubKey = () => ({
-	input: PUBLIC_KEY,
-	output: getAddressFromPublicKey(PUBLIC_KEY), // 12668885769632475474L
+	description: 'Generate valid address from a valid public key',
+	input: { publicKey: PUBLIC_KEY },
+	output: { address: getAddressFromPublicKey(PUBLIC_KEY) }, // 12668885769632475474L
 });
 
 const addressFromPubKeySuite = () => ({
 	title: 'Address generation',
 	summary: 'Address generation from a public key',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'address_generation',
 	handler: 'address_from_pub_key',
 	testCases: [generateTestCasesForAddressFromPubKey()],

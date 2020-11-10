@@ -29,8 +29,6 @@ const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');
 
-const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
-
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
@@ -146,8 +144,10 @@ describe('WS transport', () => {
 			beforeEach(async () => {
 				const accountAdditionalData = randomUtil.account();
 				transaction = transfer({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
-					amount: '1',
+					amount: '10000000',
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: accountAdditionalData.address,
 				});
@@ -174,11 +174,13 @@ describe('WS transport', () => {
 			before(async () => {
 				let accountAdditionalData;
 				transactionInQueues = [];
-				for (let i = 0; i < MAX_TRANSACTIONS_PER_BLOCK * 2; i++) {
+				for (let i = 0; i < 50; i++) {
 					accountAdditionalData = randomUtil.account();
 					transaction = transfer({
+						nonce: '0',
+						fee: '100000000',
 						networkIdentifier,
-						amount: '1',
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 					});
@@ -259,25 +261,6 @@ describe('WS transport', () => {
 				}
 			});
 			await p2p.send({ event: 'postBlock', data: { block: testBlock } });
-		});
-	});
-
-	describe('postSignatures', () => {
-		it('should not crash the application when sending the correct signatures', async () => {
-			await p2p.send({
-				event: 'postSignatures',
-				data: {
-					signatures: [
-						{
-							signature:
-								'60d28cfbb67ee0dd7f4cc5c5b686445bf66883276f05136f605d77f7b1c6316587b752624379e26fa2a4e247cc49a60fce57fa7c43a28afb8152262364e00d01',
-							transactionId: '15778222267241153095',
-							publicKey:
-								'633698916662935403780f04fd01119f32f9cd180a3b104b67c5ae5ebb6d5593',
-						},
-					],
-				},
-			});
 		});
 	});
 });

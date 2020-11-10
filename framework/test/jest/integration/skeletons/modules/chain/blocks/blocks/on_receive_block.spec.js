@@ -44,12 +44,12 @@ describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 					it.todo('should generate valid fork stats');
 				});
 
-				describe('when received block is from same round and BLOCK_SLOT_WINDOW - 1 slots in the past', () => {
+				describe('when received block is from same round and blockSlotWindow - 1 slots in the past', () => {
 					it.todo('should reject received block');
 					it.todo('should generate valid fork stats');
 				});
 
-				describe('when received block is from same round and greater than BLOCK_SLOT_WINDOW slots in the past', () => {
+				describe('when received block is from same round and greater than blockSlotWindow slots in the past', () => {
 					it.todo('should reject received block');
 					it.todo('should generate valid fork stats');
 				});

@@ -1,26 +1,11 @@
 {
 	"app": {
 		"genesisConfig": {
-			"REWARDS": {
-				"OFFSET": 1451520
+			"rewards": {
+				"offset": 1451520
 			}
-		}
-	},
-	"components": {
-		"logger": {
-			"logFileName": "logs/mainnet/lisk.log"
 		},
-		"storage": {
-			"database": "lisk_main",
-			"logFileName": "logs/mainnet/lisk_db.log"
-		},
-		"cache": {}
-	},
-	"modules": {
-		"http_api": {
-			"httpPort": 8000
-		},
-		"chain": {
+		"node": {
 			"exceptions": {
 				"rounds": {
 					"27040": {
@@ -52,7 +37,6 @@
 					"5384302058030309746",
 					"9352922026980330230"
 				],
-				"signSignature": ["7708475706877354541", "8340539534878295232"],
 				"transactionWithNullByte": ["11815860355204320743"],
 				"multisignatures": ["14122550998639658526"],
 				"votes": [
@@ -185,6 +169,21 @@
 				}
 			],
 			"wsPort": 8001
+		}
+	},
+	"components": {
+		"logger": {
+			"logFileName": "logs/mainnet/lisk.log"
+		},
+		"storage": {
+			"database": "lisk_main",
+			"logFileName": "logs/mainnet/lisk_db.log"
+		},
+		"cache": {}
+	},
+	"modules": {
+		"http_api": {
+			"httpPort": 8000
 		}
 	}
 }

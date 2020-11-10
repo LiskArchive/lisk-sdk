@@ -14,11 +14,7 @@
  */
 import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_PEER_COUNT,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 describe('P2P.broadcast', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -54,10 +50,14 @@ describe('P2P.broadcast', () => {
 
 		// Act
 		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
-		await wait(100);
+		const numOfConnectedPeers = firstP2PNode.getConnectedPeers().length;
+		await wait(200);
 
 		// Assert
-		expect(Object.keys(collectedMessages)).toHaveLength(NETWORK_PEER_COUNT - 1);
+		expect(Object.keys(collectedMessages).length).toBeGreaterThanOrEqual(
+			numOfConnectedPeers - 1,
+		);
+
 		for (let receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -67,8 +67,8 @@ describe('P2P.broadcast', () => {
 			);
 		}
 
-		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
-			NETWORK_PEER_COUNT - 1,
+		expect(Object.keys(nodePortToMessagesMap).length).toBeGreaterThanOrEqual(
+			numOfConnectedPeers - 1,
 		);
 		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 			expect(receivedMessages).toEqual(expect.any(Array));
@@ -82,11 +82,14 @@ describe('P2P.broadcast', () => {
 
 		// Act
 		firstP2PNode.broadcast({ event: BROADCAST_EVENT, data: BROADCAST_DATA });
-		await wait(100);
+		const numOfConnectedPeers = firstP2PNode.getConnectedPeers().length;
+		await wait(200);
 
 		// Assert
 		expect(collectedMessages).toEqual(expect.any(Array));
-		expect(collectedMessages).toHaveLength(NETWORK_PEER_COUNT - 1);
+		expect(collectedMessages.length).toBeGreaterThanOrEqual(
+			numOfConnectedPeers,
+		);
 
 		expect(collectedMessages[0]).toMatchObject({
 			message: {

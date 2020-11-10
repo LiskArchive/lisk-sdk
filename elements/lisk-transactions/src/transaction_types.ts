@@ -13,25 +13,67 @@
  *
  */
 import { TransactionError } from './errors';
-
+export interface AccountVote {
+	readonly delegateAddress: string;
+	// tslint:disable-next-line readonly-keyword
+	amount: bigint;
+}
+export interface AccountUnlocking {
+	readonly delegateAddress: string;
+	readonly amount: bigint;
+	readonly unvoteHeight: number;
+}
+// tslint:disable readonly-keyword
 export interface Account {
 	readonly address: string;
-	readonly balance: string;
-	readonly delegate?: Delegate;
-	readonly publicKey?: string;
-	readonly secondPublicKey?: string | null;
-	readonly secondSignature?: number;
-	readonly membersPublicKeys?: ReadonlyArray<string>;
-	readonly multiMin?: number;
-	readonly multiLifetime?: number;
-	readonly username?: string | null;
-	readonly votedDelegatesPublicKeys?: ReadonlyArray<string>;
-	readonly isDelegate?: number;
-	readonly vote?: number;
+	balance: bigint;
+	nonce: bigint;
+	missedBlocks: number;
+	producedBlocks: number;
+	publicKey: string | undefined;
+	username: string | null;
+	isDelegate: number;
+	fees: bigint;
+	rewards: bigint;
+	asset: object;
+	keys: {
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+		numberOfSignatures: number;
+	};
+	delegate: {
+		lastForgedHeight: number;
+		consecutiveMissedBlocks: number;
+		isBanned: boolean;
+		pomHeights: number[];
+	};
+	votes: AccountVote[];
+	unlocking: AccountUnlocking[];
+	totalVotesReceived: bigint;
+	// tslint:disable-next-line:no-mixed-interface
+	readonly toJSON: () => object;
 }
-
+// tslint:enable readonly-keyword
 export interface Delegate {
 	readonly username: string;
+}
+
+export interface BlockHeader {
+	readonly height: number;
+	readonly version: number;
+	readonly timestamp: number;
+	readonly previousBlockId?: string | null;
+	readonly blockSignature: string;
+	readonly generatorPublicKey: string;
+	readonly numberOfTransactions: number;
+	readonly payloadLength: number;
+	readonly payloadHash: string;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+	readonly totalAmount: bigint;
+	readonly totalFee: bigint;
+	readonly reward: bigint;
+	readonly seedReveal: string;
 }
 
 export interface TransactionJSON {
@@ -41,13 +83,12 @@ export interface TransactionJSON {
 	readonly height?: number;
 	readonly confirmations?: number;
 	readonly senderPublicKey: string;
-	readonly signature?: string;
 	readonly signatures?: ReadonlyArray<string>;
-	readonly signSignature?: string;
-	readonly timestamp: number;
 	readonly type: number;
 	readonly receivedAt?: string;
 	readonly networkIdentifier?: string;
+	readonly nonce: string;
+	readonly fee: string;
 }
 
 export interface IsValidResponse {

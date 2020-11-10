@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
+import { P2PEnhancedPeerInfo } from '../../../src/types';
 import { TriedList, TriedListConfig } from '../../../src/peer_book/tried_list';
 import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';

@@ -15,31 +15,21 @@
 export const transactionInterface = {
 	required: [
 		'toJSON',
-		'isReady',
 		'getBytes',
 		'validate',
-		'verifyAgainstOtherTransactions',
 		'apply',
 		'undo',
 		'prepare',
-		'addMultisignature',
-		'addVerifiedMultisignature',
-		'isExpired',
+		'verifySignatures',
 	],
 	properties: {
 		toJSON: {
-			typeof: 'function',
-		},
-		isReady: {
 			typeof: 'function',
 		},
 		getBytes: {
 			typeof: 'function',
 		},
 		validate: {
-			typeof: 'function',
-		},
-		verifyAgainstOtherTransactions: {
 			typeof: 'function',
 		},
 		apply: {
@@ -51,16 +41,7 @@ export const transactionInterface = {
 		prepare: {
 			typeof: 'function',
 		},
-		addMultisignature: {
-			typeof: 'function',
-		},
-		addVerifiedMultisignature: {
-			typeof: 'function',
-		},
-		processMultisignatures: {
-			typeof: 'function',
-		},
-		isExpired: {
+		verifySignatures: {
 			typeof: 'function',
 		},
 	},
@@ -70,12 +51,8 @@ export const transactionInterface = {
 export const baseTransaction = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['type', 'senderPublicKey', 'timestamp', 'asset', 'signature'],
+	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signatures'],
 	properties: {
-		id: {
-			type: 'string',
-			format: 'id',
-		},
 		blockId: {
 			type: 'string',
 			format: 'id',
@@ -92,36 +69,28 @@ export const baseTransaction = {
 			type: 'integer',
 			minimum: 0,
 		},
-		timestamp: {
-			type: 'integer',
-			minimum: -2147483648,
-			maximum: 2147483647,
+		nonce: {
+			type: 'string',
+			format: 'nonce',
+		},
+		fee: {
+			type: 'string',
+			format: 'fee',
 		},
 		senderPublicKey: {
 			type: 'string',
 			format: 'publicKey',
 		},
-		senderSecondPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
-		signature: {
-			type: 'string',
-			format: 'signature',
-		},
-		signSignature: {
-			type: 'string',
-			format: 'signature',
-		},
 		signatures: {
 			type: 'array',
-			uniqueItems: true,
 			items: {
-				type: 'string',
-				format: 'signature',
+				oneOf: [
+					{ type: 'string', format: 'signature' },
+					{ type: 'string', format: 'emptyString' },
+				],
 			},
-			minItems: 0,
-			maxItems: 15,
+			minItems: 1,
+			maxItems: 64,
 		},
 		asset: {
 			type: 'object',

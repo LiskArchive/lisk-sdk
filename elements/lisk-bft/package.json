@@ -1,0 +1,66 @@
+{
+	"name": "@liskhq/lisk-bft",
+	"version": "0.1.0-alpha.0",
+	"description": "Byzantine fault tolerance implementation according to the Lisk protocol",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "Apache-2.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-bft#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
+	},
+	"engines": {
+		"node": ">=12.13.0 <=12",
+		"npm": ">=6.12.0"
+	},
+	"main": "dist-node/index.js",
+	"scripts": {
+		"clean": "./scripts/clean.sh",
+		"format": "prettier --write '**/*'",
+		"lint": "tslint --format verbose --project .",
+		"lint:fix": "npm run lint -- --fix",
+		"test": "jest",
+		"test:watch": "npm test -- --watch",
+		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
+		"build": "tsc",
+		"build:check": "node -e \"require('./dist-node')\"",
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+	},
+	"dependencies": {
+		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
+		"@liskhq/lisk-validator": "0.4.0-alpha.0",
+		"@types/node": "12.12.11",
+		"debug": "4.1.1"
+	},
+	"devDependencies": {
+		"@liskhq/lisk-chain": "0.1.0-alpha.0",
+		"@liskhq/lisk-dpos": "0.1.0-alpha.0",
+		"@types/debug": "4.1.5",
+		"@types/faker": "4.1.10",
+		"@types/jest": "25.1.3",
+		"@types/jest-when": "2.7.0",
+		"@types/jquery": "3.3.33",
+		"faker": "4.1.0",
+		"jest": "25.1.0",
+		"jest-extended": "0.11.5",
+		"jest-when": "2.7.0",
+		"prettier": "1.19.1",
+		"randomstring": "1.1.5",
+		"source-map-support": "0.5.16",
+		"stampit": "4.3.1",
+		"ts-jest": "25.2.1",
+		"ts-node": "8.6.2",
+		"tsconfig-paths": "3.9.0",
+		"tslint": "6.0.0",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-immutable": "6.0.1",
+		"typescript": "3.8.3"
+	}
+}

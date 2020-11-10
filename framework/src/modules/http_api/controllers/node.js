@@ -15,17 +15,87 @@
 'use strict';
 
 const _ = require('lodash');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
-const { EPOCH_TIME, FEES } = global.constants;
-
 let library;
+let epochTime;
+
+function _filterTransactions(transactions, filters) {
+	const { limit, offset, sort } = filters;
+	let filteredTransactions = transactions;
+	if (filters.id) {
+		filteredTransactions = filteredTransactions.filter(
+			transaction => transaction.id === filters.id,
+		);
+	}
+	if (filters.senderId || filters.senderPublicKey) {
+		filteredTransactions = filteredTransactions.filter(transaction => {
+			if (filters.senderId) {
+				return (
+					getAddressFromPublicKey(transaction.senderPublicKey) ===
+					filters.senderId
+				);
+			}
+			return transaction.senderPublicKey === filters.senderPublicKey;
+		});
+	}
+	if (filters.type !== null && filters.type !== undefined) {
+		filteredTransactions = filteredTransactions.filter(
+			transaction => transaction.type === filters.type,
+		);
+	}
+	if (sort) {
+		const [key, order] = sort.split(':');
+		if (key === 'fee') {
+			filteredTransactions.sort((a, b) => {
+				let left = a;
+				let right = b;
+				if (order === 'desc') {
+					left = b;
+					right = a;
+				}
+				return BigInt(left.fee) - BigInt(right.fee) > BigInt(0) ? 1 : -1;
+			});
+		}
+		if (key === 'type') {
+			filteredTransactions.sort((a, b) => {
+				let left = a;
+				let right = b;
+				if (order === 'desc') {
+					left = b;
+					right = a;
+				}
+				return left.type - right.type;
+			});
+		}
+		if (key === 'nonce') {
+			filteredTransactions.sort((a, b) => {
+				let left = a;
+				let right = b;
+				if (order === 'desc') {
+					left = b;
+					right = a;
+				}
+				const diff = BigInt(left.nonce) - BigInt(right.nonce);
+				if (diff > BigInt(0)) {
+					return 1;
+				}
+				if (diff < BigInt(0)) {
+					return -1;
+				}
+				return 0;
+			});
+		}
+	}
+	return filteredTransactions.slice(offset, limit + offset);
+}
 
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
-		'chain:getForgingStatusForAllDelegates',
+		'app:getForgingStatusOfAllDelegates',
 	);
 
 	if (publicKey && !_.find(fullList, { publicKey })) {
@@ -53,6 +123,7 @@ function NodeController(scope) {
 		lastCommitId: scope.lastCommitId,
 		buildVersion: scope.buildVersion,
 	};
+	({ epochTime } = scope.config.constants);
 }
 
 NodeController.getConstants = async (context, next) => {
@@ -63,14 +134,14 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const lastBlock = await library.channel.invoke('chain:getLastBlock');
-		const milestone = await library.channel.invoke('chain:calculateMilestone', {
+		const lastBlock = await library.channel.invoke('app:getLastBlock');
+		const milestone = await library.channel.invoke('app:calculateMilestone', {
 			height: lastBlock.height,
 		});
-		const reward = await library.channel.invoke('chain:calculateReward', {
+		const reward = await library.channel.invoke('app:calculateReward', {
 			height: lastBlock.height,
 		});
-		const supply = await library.channel.invoke('chain:calculateSupply', {
+		const supply = await library.channel.invoke('app:calculateSupply', {
 			height: lastBlock.height,
 		});
 
@@ -79,17 +150,7 @@ NodeController.getConstants = async (context, next) => {
 		return next(null, {
 			build,
 			commit,
-			epoch: new Date(EPOCH_TIME),
-			fees: {
-				send: FEES.SEND.toString(),
-				vote: FEES.VOTE.toString(),
-				secondSignature: FEES.SECOND_SIGNATURE.toString(),
-				delegate: FEES.DELEGATE.toString(),
-				multisignature: FEES.MULTISIGNATURE.toString(),
-				dappRegistration: FEES.DAPP_REGISTRATION.toString(),
-				dappWithdrawal: FEES.DAPP_WITHDRAWAL.toString(),
-				dappDeposit: FEES.DAPP_DEPOSIT.toString(),
-			},
+			epoch: new Date(epochTime),
 			networkId: library.config.networkId,
 			milestone: milestone.toString(),
 			reward: reward.toString(),
@@ -109,13 +170,15 @@ NodeController.getStatus = async (context, next) => {
 			syncing,
 			lastBlock,
 			chainMaxHeightFinalized,
-		} = await library.channel.invoke('chain:getNodeStatus');
+			unconfirmedTransactions,
+		} = await library.channel.invoke('app:getNodeStatus');
 
 		const data = {
 			currentTime: Date.now(),
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,
 			chainMaxHeightFinalized,
+			unconfirmedTransactions,
 			syncing,
 		};
 
@@ -161,7 +224,7 @@ NodeController.updateForgingStatus = async (context, next) => {
 	const { forging } = context.request.swagger.params.data.value;
 
 	try {
-		const data = await library.channel.invoke('chain:updateForgingStatus', {
+		const data = await library.channel.invoke('app:updateForgingStatus', {
 			publicKey,
 			password,
 			forging,
@@ -182,11 +245,8 @@ NodeController.getPooledTransactions = async (context, next) => {
 
 	const { params } = context.request.swagger;
 
-	const state = context.request.swagger.params.state.value;
-
 	let filters = {
 		id: params.id.value,
-		recipientId: params.recipientId.value,
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
@@ -199,19 +259,17 @@ NodeController.getPooledTransactions = async (context, next) => {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await library.channel.invoke('chain:getTransactionsFromPool', {
-			type: state,
-			filters: _.clone(filters),
-		});
-
-		const transactions = data.transactions.map(tx => tx.toJSON());
+		const transactions = await library.channel.invoke(
+			'app:getTransactionsFromPool',
+		);
+		const filteredTransactions = _filterTransactions(transactions, filters);
 
 		return next(null, {
-			data: transactions,
+			data: filteredTransactions,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-				count: parseInt(data.count, 10),
+				count: parseInt(transactions.length, 10),
 			},
 		});
 	} catch (err) {

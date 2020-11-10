@@ -1,5 +1,6 @@
 import os from 'os';
 import path from 'path';
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fsExtra from 'fs-extra';
 import {

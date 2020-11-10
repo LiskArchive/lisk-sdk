@@ -17,16 +17,11 @@ import { wait } from '../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
-	NETWORK_START_PORT,
-	NETWORK_PEER_COUNT,
 	DEFAULT_CONNECTION_TIMEOUT,
 } from '../utils/network_setup';
 
 describe('Cleanup unresponsive peers', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	const ALL_NODE_PORTS: ReadonlyArray<number> = [
-		...new Array(NETWORK_PEER_COUNT).keys(),
-	].map(index => NETWORK_START_PORT + index);
 
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork();
@@ -37,24 +32,18 @@ describe('Cleanup unresponsive peers', () => {
 	});
 
 	it('should remove crashed nodes from network status of other nodes', async () => {
-		const initialPeerPorts = p2pNodeList[0]
-			.getConnectedPeers()
-			.map(peerInfo => peerInfo.wsPort)
-			.sort();
-
-		expect(initialPeerPorts).toEqual(
-			ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
-		);
-
+		// Arrange
 		const peerPortsbeforePeerCrash = p2pNodeList[2]
 			.getConnectedPeers()
 			.map(peerInfo => peerInfo.wsPort)
 			.sort();
 
+		// Act
 		await p2pNodeList[0].stop();
 		await p2pNodeList[1].stop();
 		await wait(DEFAULT_CONNECTION_TIMEOUT);
 
+		// Assert
 		const peerPortsAfterPeerCrash = p2pNodeList[2]
 			.getConnectedPeers()
 			.map(peerInfo => peerInfo.wsPort)
@@ -64,8 +53,7 @@ describe('Cleanup unresponsive peers', () => {
 			port => {
 				return (
 					port !== p2pNodeList[0].nodeInfo.wsPort &&
-					port !== p2pNodeList[1].nodeInfo.wsPort &&
-					port !== p2pNodeList[2].nodeInfo.wsPort
+					port !== p2pNodeList[1].nodeInfo.wsPort
 				);
 			},
 		);

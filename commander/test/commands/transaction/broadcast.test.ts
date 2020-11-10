@@ -13,11 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as apiUtils from '../../../src/utils/api';
-import * as inputUtils from '../../../src/utils/input/utils';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('transaction:broadcast', () => {
 	const apiConfig = {
@@ -34,8 +35,9 @@ describe('transaction:broadcast', () => {
 		fee: '10000000',
 		recipientPublicKey: null,
 		asset: {},
-		signature:
+		signatures: [
 			'96738e173a750998f4c2cdcdf7538b71854bcffd6c0dc72b3c28081ca6946322bea7ba5d8f8974fc97950014347ce379671a6eddc0d41ea6cdfb9bb7ff76be0a',
+		],
 		id: '1297455432474089551',
 	};
 
@@ -63,8 +65,8 @@ describe('transaction:broadcast', () => {
 	describe('transaction:broadcast', () => {
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
+				readerUtils,
+				'readStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:broadcast'])
@@ -99,7 +101,7 @@ describe('transaction:broadcast', () => {
 
 	describe('transaction | transaction:broadcast', () => {
 		setupTest()
-			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves([]))
 			.command(['transaction:broadcast'])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -108,9 +110,9 @@ describe('transaction:broadcast', () => {
 
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox.stub().resolves({ data: wrongTransaction }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([wrongTransaction]),
 			)
 			.command(['transaction:broadcast'])
 			.catch(error => {
@@ -122,9 +124,9 @@ describe('transaction:broadcast', () => {
 
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
 			.command(['transaction:broadcast'])
 			.it('should broadcast the transaction', () => {

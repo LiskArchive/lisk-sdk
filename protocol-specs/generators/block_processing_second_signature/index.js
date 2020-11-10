@@ -197,10 +197,14 @@ const generateTestCasesValidBlockSecondSignatureTx = () => {
 	);
 
 	return {
-		initialState: {
-			chain: [block],
-			accounts: resultingAccountState,
+		config: {
+			initialState: {
+				chain: [block],
+				accounts: resultingAccountState,
+			},
 		},
+		description:
+			'A valid block with a second signature registration transaction is processed',
 		input: {
 			blockWithSecondSignatureRegistered,
 		},
@@ -252,10 +256,14 @@ const generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite = () => {
 	);
 
 	return {
-		initialState: {
-			chain: [],
-			accounts: initialAccountState,
+		config: {
+			initialState: {
+				chain: [],
+				accounts: initialAccountState,
+			},
 		},
+		description:
+			'An invalid block with a second signature registration transaction and funds for the account in same block',
 		input: {
 			block,
 		},
@@ -377,10 +385,14 @@ const generateTestCasesInvalidBlockSecondSignatureTxSecondTime = () => {
 	);
 
 	return {
-		initialState: {
-			chain: [block, blockWithSecondSignatureRegistered],
-			accounts: secondSignatureAccountState,
+		config: {
+			initialState: {
+				chain: [block, blockWithSecondSignatureRegistered],
+				accounts: secondSignatureAccountState,
+			},
 		},
+		description:
+			'An invalid block with a second signature registration transaction for an already second signature account',
 		input: {
 			blockWithNewSecondSignatureNewRegistration,
 		},
@@ -395,30 +407,32 @@ const validBlockWithSecondSignatureTxSuite = () => ({
 	title: 'Valid block processing',
 	summary:
 		'A valid block with a second signature registration transaction is processed',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_second_signature',
 	handler: 'valid_block_processing_one_second_signature_tx',
-	testCases: generateTestCasesValidBlockSecondSignatureTx(),
+	testCases: [generateTestCasesValidBlockSecondSignatureTx()],
 });
 
 const invalidBlockWithSecondSignatureAndFundsTxSuite = () => ({
 	title: 'Invalid block processing',
 	summary:
 		'An invalid block with a second signature registration transaction and funds for the account in same block',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_second_signature',
 	handler: 'invalid_block_processing_second_signature_and_funds_tx',
-	testCases: generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite(),
+	testCases: [
+		generateTestCasesinvalidBlockWithSecondSignatureAndFundsTxSuite(),
+	],
 });
 
 const invalidBlockWithNewSecondSignatureSuite = () => ({
 	title: 'Invalid block processing',
 	summary:
 		'An invalid block with a second signature registration transaction for an already second signature account',
-	config: 'mainnet',
+	config: { network: 'mainnet' },
 	runner: 'block_processing_second_signature',
 	handler: 'invalid_block_processing_second_signature_for_already_registered',
-	testCases: generateTestCasesInvalidBlockSecondSignatureTxSecondTime(),
+	testCases: [generateTestCasesInvalidBlockSecondSignatureTxSecondTime()],
 });
 
 module.exports = BaseGenerator.runGenerator(

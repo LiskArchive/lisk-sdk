@@ -51,6 +51,8 @@ describe('GET /api/node', () => {
 				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
 						transfer({
+							nonce: '0',
+							fee: '146000',
 							networkIdentifier,
 							amount: ((i + 1) * NORMALIZER).toString(),
 							passphrase: accountFixtures.genesis.passphrase,
@@ -316,23 +318,21 @@ describe('GET /api/node', () => {
 					});
 				});
 
-				describe('timestamp', () => {
-					it('sorted by timestamp:asc should be ok', async () => {
-						return ReadyEndpoint.makeRequest(
-							{ sort: 'timestamp:asc' },
-							200,
-						).then(res => {
-							expect(res.body).to.not.be.empty;
-						});
+				describe('nonce', () => {
+					it('sorted by nonce:asc should be ok', async () => {
+						return ReadyEndpoint.makeRequest({ sort: 'nonce:asc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							},
+						);
 					});
 
-					it('sorted by timestamp:desc should be ok', async () => {
-						return ReadyEndpoint.makeRequest(
-							{ sort: 'timestamp:desc' },
-							200,
-						).then(res => {
-							expect(res.body).to.not.be.empty;
-						});
+					it('sorted by nonce:desc should be ok', async () => {
+						return ReadyEndpoint.makeRequest({ sort: 'nonce:desc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							},
+						);
 					});
 				});
 

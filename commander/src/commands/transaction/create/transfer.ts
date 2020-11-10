@@ -14,18 +14,22 @@
  *
  */
 import { transfer, utils as transactionUtils } from '@liskhq/lisk-transactions';
-import { validateAddress } from '@liskhq/lisk-validator';
+import {
+	isValidFee,
+	isValidNonce,
+	validateAddress,
+} from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
+import { ValidationError } from '../../../utils/error';
 import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
-import {
-	getInputsFromSources,
-	InputFromSourceOutput,
-} from '../../../utils/input';
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
+import { getPassphraseFromPrompt } from '../../../utils/reader';
 
 interface Args {
+	readonly nonce: string;
+	readonly fee: string;
 	readonly address: string;
 	readonly amount: string;
 }
@@ -39,22 +43,36 @@ const dataFlag = {
 };
 
 const processInputs = (
+	nonce: string,
+	fee: string,
 	networkIdentifier: string,
 	amount: string,
 	address: string,
 	data?: string,
-) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
+	passphrase?: string,
+) =>
 	transfer({
+		nonce,
+		fee,
 		networkIdentifier,
 		recipientId: address,
 		amount,
 		data,
 		passphrase,
-		secondPassphrase,
 	});
 
 export default class TransferCommand extends BaseCommand {
 	static args = [
+		{
+			name: 'nonce',
+			required: true,
+			description: 'Nonce of the transaction.',
+		},
+		{
+			name: 'fee',
+			required: true,
+			description: 'Transaction fee in LSK.',
+		},
 		{
 			name: 'amount',
 			required: true,
@@ -71,13 +89,14 @@ export default class TransferCommand extends BaseCommand {
 	Creates a transaction which will transfer the specified amount to an address if broadcast to the network.
 		`;
 
-	static examples = ['transaction:create:transfer 100 13356260975429434553L'];
+	static examples = [
+		'transaction:create:transfer 1 100 100 13356260975429434553L',
+	];
 
 	static flags = {
 		...BaseCommand.flags,
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 		data: flagParser.string(dataFlag),
 	};
@@ -88,51 +107,59 @@ export default class TransferCommand extends BaseCommand {
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
-				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
 				data: dataString,
 			},
 		} = this.parse(TransferCommand);
 
-		const { amount, address }: Args = args;
+		const { nonce, fee, amount, address } = args as Args;
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
 			this.userConfig.api.network,
 		);
 
+		if (!isValidNonce(nonce)) {
+			throw new ValidationError('Enter a valid nonce in number string format.');
+		}
+
+		if (Number.isNaN(Number(fee))) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
+		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
+
+		if (!isValidFee(normalizedFee)) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
 		validateAddress(address);
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
-		const processFunction = processInputs(
-			networkIdentifier,
-			normalizedAmount,
-			address,
-			dataString,
-		);
-
 		if (noSignature) {
-			const noSignatureResult = processFunction({
-				passphrase: undefined,
-				secondPassphrase: undefined,
-			});
+			const noSignatureResult = processInputs(
+				nonce,
+				normalizedFee,
+				networkIdentifier,
+				normalizedAmount,
+				address,
+				dataString,
+			);
 			this.print(noSignatureResult);
 
 			return;
 		}
+		const passphrase =
+			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
-		const inputs = await getInputsFromSources({
-			passphrase: {
-				source: passphraseSource,
-				repeatPrompt: true,
-			},
-			secondPassphrase: !secondPassphraseSource
-				? undefined
-				: {
-						source: secondPassphraseSource,
-						repeatPrompt: true,
-				  },
-		});
-		const result = processFunction(inputs);
+		const result = processInputs(
+			nonce,
+			normalizedFee,
+			networkIdentifier,
+			normalizedAmount,
+			address,
+			dataString,
+			passphrase,
+		);
 		this.print(result);
 	}
 }

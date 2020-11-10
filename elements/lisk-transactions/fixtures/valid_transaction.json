@@ -1,10 +1,11 @@
 {
 	"id": "5746965060498095971",
 	"type": 0,
+	"nonce": "1",
+	"fee": "10000000",
 	"confirmations": 123,
 	"height": 2,
 	"blockId": "13115894772963772254",
-	"timestamp": 0,
 	"senderPublicKey": "5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09",
 	"signature": "fd8b1931b63c95285eac83d21fc280b0c064e03187934ec3548499ab277334b0be7689c6d14c587abb43e990c9af1553d3b0476489ebed067bacb324b682c80b",
 	"signatures": [],

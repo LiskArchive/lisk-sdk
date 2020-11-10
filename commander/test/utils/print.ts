@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import { print, StringMap } from '../../src/utils/print';
 import { SinonStub } from 'sinon';
@@ -41,7 +42,7 @@ describe('print utils', () => {
 	type Printer = (result: ReadonlyArray<StringMap> | StringMap) => void;
 
 	beforeEach(() => {
-		sandbox.stub(tablifyUtil, 'tablify').returns(tablifyResult);
+		sandbox.stub(tablifyUtil, 'tablify').returns(tablifyResult as any);
 		sandbox.stub(JSON, 'stringify').returns(stringifyResult);
 		return Promise.resolve();
 	});

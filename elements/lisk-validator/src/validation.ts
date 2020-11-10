@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	gte as isVersionGte,
@@ -21,12 +20,17 @@ import {
 	valid as isValidVersion,
 	validRange as isValidRangeVersion,
 } from 'semver';
-import * as validator from 'validator';
+import validator from 'validator';
 
 import {
 	MAX_EIGHT_BYTE_NUMBER,
+	MAX_INT32,
 	MAX_INT64,
 	MAX_PUBLIC_KEY_LENGTH,
+	MAX_UINT32,
+	MAX_UINT64,
+	MIN_INT32,
+	MIN_INT64,
 } from './constants';
 
 export const isNullCharacterIncluded = (input: string): boolean =>
@@ -55,13 +59,17 @@ export const isUsername = (username: string): boolean => {
 export const isSignature = (signature: string): boolean =>
 	/^[a-f0-9]{128}$/i.test(signature);
 
-export const isGreaterThanZero = (amount: BigNum): boolean => amount.cmp(0) > 0;
+export const isGreaterThanZero = (amount: bigint): boolean =>
+	amount > BigInt(0);
 
-export const isGreaterThanMaxTransactionAmount = (amount: BigNum): boolean =>
-	amount.cmp(MAX_INT64) > 0;
+export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
+	amount > MAX_INT64;
 
-export const isGreaterThanMaxTransactionId = (id: BigNum): boolean =>
-	id.cmp(MAX_EIGHT_BYTE_NUMBER) > 0;
+export const isGreaterThanMaxUInt64 = (amount: bigint): boolean =>
+	amount > MAX_UINT64;
+
+export const isGreaterThanMaxTransactionId = (id: bigint): boolean =>
+	id > BigInt(MAX_EIGHT_BYTE_NUMBER);
 
 export const isNumberString = (num: unknown): boolean => {
 	if (typeof num !== 'string') {
@@ -134,8 +142,8 @@ export const isGreaterThanRangedVersion = isGreaterThanVersionInRange;
 export const isProtocolString = (data: string) =>
 	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
 
-const IPV4_NUMBER = 4;
-const IPV6_NUMBER = 6;
+const IPV4_NUMBER = '4';
+const IPV6_NUMBER = '6';
 
 export const isIPV4 = (data: string): boolean =>
 	validator.isIP(data, IPV4_NUMBER);
@@ -182,20 +190,6 @@ export const validatePublicKeys = (
 	publicKeys.every(validatePublicKey) &&
 	validatePublicKeysForDuplicates(publicKeys);
 
-export const validateKeysgroup = (
-	keysgroup: ReadonlyArray<string>,
-	min: number,
-	max: number,
-): boolean => {
-	if (keysgroup.length < min || keysgroup.length > max) {
-		throw new Error(
-			`Expected between ${min} and ${max} public keys in the keysgroup.`,
-		);
-	}
-
-	return validatePublicKeys(keysgroup);
-};
-
 const MIN_ADDRESS_LENGTH = 2;
 const MAX_ADDRESS_LENGTH = 22;
 const BASE_TEN = 10;
@@ -222,9 +216,16 @@ export const validateAddress = (address: string): boolean => {
 	}
 
 	const addressString = address.slice(0, -1);
-	const addressNumber = new BigNum(addressString);
 
-	if (addressNumber.cmp(new BigNum(MAX_EIGHT_BYTE_NUMBER)) > 0) {
+	if (!isNumberString(addressString)) {
+		throw new Error(
+			'Address format does not match requirements. Address includes non-numeric characters.',
+		);
+	}
+
+	const addressNumber = BigInt(addressString);
+
+	if (addressNumber > BigInt(MAX_EIGHT_BYTE_NUMBER)) {
 		throw new Error(
 			'Address format does not match requirements. Address out of maximum range.',
 		);
@@ -244,13 +245,16 @@ export const isValidNonTransferAmount = (data: string): boolean =>
 
 export const isValidTransferAmount = (data: string): boolean =>
 	isNumberString(data) &&
-	isGreaterThanZero(new BigNum(data)) &&
-	!isGreaterThanMaxTransactionAmount(new BigNum(data));
+	isGreaterThanZero(BigInt(data)) &&
+	!isGreaterThanMaxTransactionAmount(BigInt(data));
 
 export const isValidFee = (data: string): boolean =>
 	isNumberString(data) &&
-	isGreaterThanZero(new BigNum(data)) &&
-	!isGreaterThanMaxTransactionAmount(new BigNum(data));
+	isGreaterThanZero(BigInt(data)) &&
+	!isGreaterThanMaxUInt64(BigInt(data));
+
+export const isValidNonce = (data: string): boolean =>
+	isNumberString(data) && !isGreaterThanMaxUInt64(BigInt(data));
 
 export const isCsv = (data: string): boolean => {
 	if (typeof data !== 'string') {
@@ -283,3 +287,25 @@ export const validateNetworkIdentifier = (networkIdentifier: string) => {
 
 	return true;
 };
+
+export const isInt32 = (num: bigint | number): boolean => {
+	if (typeof num === 'number') {
+		return num <= MAX_INT32 && num >= MIN_INT32;
+	}
+
+	return num <= BigInt(MAX_INT32) && num >= BigInt(MIN_INT32);
+};
+
+export const isUint32 = (num: bigint | number): boolean => {
+	if (typeof num === 'number') {
+		return num <= MAX_UINT32 && num >= 0;
+	}
+
+	return num <= BigInt(MAX_UINT32) && num >= BigInt(0);
+};
+
+export const isInt64 = (num: bigint): boolean =>
+	num <= MAX_INT64 && num >= MIN_INT64;
+
+export const isUint64 = (num: bigint): boolean =>
+	num <= MAX_UINT64 && num >= BigInt(0);

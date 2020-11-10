@@ -18,7 +18,6 @@ export { DappsResource } from './dapps';
 export { DelegatesResource } from './delegates';
 export { NodeResource } from './node';
 export { PeersResource } from './peers';
-export { SignaturesResource } from './signatures';
 export { TransactionsResource } from './transactions';
 export { VotersResource } from './voters';
 export { VotesResource } from './votes';

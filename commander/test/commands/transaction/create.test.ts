@@ -13,14 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import TransferCommand from '../../../src/commands/transaction/create/transfer';
-import SecondPassphraseCommand from '../../../src/commands/transaction/create/second-passphrase';
+import MultisignatureCommand from '../../../src/commands/transaction/create/multisignature';
 import DelegateCommand from '../../../src/commands/transaction/create/delegate';
 import VoteCommand from '../../../src/commands/transaction/create/vote';
-import MultisignatureCommand from '../../../src/commands/transaction/create/multisignature';
+import UnlockCommand from '../../../src/commands/transaction/create/unlock';
 
 describe('transaction:create', () => {
 	const printMethodStub = sandbox.stub();
@@ -33,10 +34,10 @@ describe('transaction:create', () => {
 				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(TransferCommand, 'run', sandbox.stub())
-			.stub(SecondPassphraseCommand, 'run', sandbox.stub())
 			.stub(DelegateCommand, 'run', sandbox.stub())
 			.stub(VoteCommand, 'run', sandbox.stub())
-			.stub(MultisignatureCommand, 'run', sandbox.stub());
+			.stub(MultisignatureCommand, 'run', sandbox.stub())
+			.stub(UnlockCommand, 'run', sandbox.stub());
 
 	describe('transaction:create', () => {
 		setupTest()
@@ -59,33 +60,19 @@ describe('transaction:create', () => {
 
 		setupTest()
 			.command(['transaction:create', '--type=8'])
-			.it('should call type 0 command with flag type=9', () => {
+			.it('should call type 8 command with flag type=8', () => {
 				return expect(TransferCommand.run).to.be.calledWithExactly([]);
 			});
 
 		setupTest()
 			.command(['transaction:create', '--type=transfer'])
-			.it('should call type 0 command with flag type=transfer', () => {
+			.it('should call type 8 transfer with flag type=transfer', () => {
 				return expect(TransferCommand.run).to.be.calledWithExactly([]);
 			});
 
 		setupTest()
-			.command(['transaction:create', '--type=9'])
-			.it('should call type 1 command with flag type=9', () => {
-				return expect(SecondPassphraseCommand.run).to.be.calledWithExactly([]);
-			});
-
-		setupTest()
-			.command(['transaction:create', '-t=second-passphrase', '--no-json'])
-			.it('should call type 1 command with flag type=second-passphrase', () => {
-				return expect(SecondPassphraseCommand.run).to.be.calledWithExactly([
-					'--no-json',
-				]);
-			});
-
-		setupTest()
 			.command(['transaction:create', '--type=10', 'username'])
-			.it('should call type 2 command with flag type=10', () => {
+			.it('should call type 10 command with flag type=10', () => {
 				return expect(DelegateCommand.run).to.be.calledWithExactly([
 					'username',
 				]);
@@ -93,7 +80,7 @@ describe('transaction:create', () => {
 
 		setupTest()
 			.command(['transaction:create', '-t=delegate', '--json', 'username'])
-			.it('should call type 2 command with flag type=delegate', () => {
+			.it('should call type 10 command with flag type=delegate', () => {
 				return expect(DelegateCommand.run).to.be.calledWithExactly([
 					'username',
 					'--json',
@@ -101,40 +88,92 @@ describe('transaction:create', () => {
 			});
 
 		setupTest()
-			.command(['transaction:create', '--type=11', '--votes=xxx,yyy'])
-			.it('should call type 3 command with flag type=11', () => {
+			.command([
+				'transaction:create',
+				'--type=13',
+				'--votes=18070133408355683425L,15000000000',
+			])
+			.it('should call type 13 command with flag type=13', () => {
 				return expect(VoteCommand.run).to.be.calledWithExactly([
-					'--votes',
-					'xxx,yyy',
+					'--votes=18070133408355683425L,15000000000',
 				]);
 			});
 
 		setupTest()
-			.command(['transaction:create', '-t=vote', '--votes=xxx,xxx'])
-			.it('should call type 3 command with flag type=vote', () => {
+			.command([
+				'transaction:create',
+				'-t=vote',
+				'--votes=18070133408355683425L,15000000000',
+			])
+			.it('should call type 13 command with flag type=vote', () => {
 				return expect(VoteCommand.run).to.be.calledWithExactly([
-					'--votes',
-					'xxx,xxx',
+					'--votes=18070133408355683425L,15000000000',
 				]);
 			});
 
 		setupTest()
-			.command(['transaction:create', '--type=12', '24', '2', 'itshouldbe,hex'])
-			.it('should call type 4 command with flag type=4', () => {
+			.command([
+				'transaction:create',
+				'--type=12',
+				'--mandatory-key=xxx',
+				'--optional-key=yyy',
+			])
+			.it('should call type 12 command with flag type=12', () => {
 				return expect(MultisignatureCommand.run).to.be.calledWithExactly([
-					'24',
-					'2',
-					'itshouldbe,hex',
+					'--mandatory-key=xxx',
+					'--optional-key=yyy',
 				]);
 			});
 
 		setupTest()
-			.command(['transaction:create', '-t=12', '24', '2', 'itshouldbe,hex'])
-			.it('should call type 4 command', () => {
+			.command([
+				'transaction:create',
+				'-t=multisignature',
+				'--mandatory-key=xxx',
+				'--optional-key=yyy',
+			])
+			.it('should call type 12 command with flag type=multisignature', () => {
 				return expect(MultisignatureCommand.run).to.be.calledWithExactly([
-					'24',
-					'2',
-					'itshouldbe,hex',
+					'--mandatory-key=xxx',
+					'--optional-key=yyy',
+				]);
+			});
+
+		setupTest()
+			.command(['transaction:create', '--type=14', '--unlock=xxx,yyy,zzz'])
+			.it('should call type 14 command with flag type=14', () => {
+				return expect(UnlockCommand.run).to.be.calledWithExactly([
+					'--unlock=xxx,yyy,zzz',
+				]);
+			});
+
+		setupTest()
+			.command(['transaction:create', '--type=unlock', '--unlock=xxx,yyy,zzz'])
+			.it('should call type 14 command with flag type=unlock', () => {
+				return expect(UnlockCommand.run).to.be.calledWithExactly([
+					'--unlock=xxx,yyy,zzz',
+				]);
+			});
+
+		setupTest()
+			.command([
+				'transaction:create',
+				'--type=unlock',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+			])
+			.it('should allow to use more flags and arguments', () => {
+				return expect(UnlockCommand.run).to.be.calledWithExactly([
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
 				]);
 			});
 	});

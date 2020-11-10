@@ -45,7 +45,7 @@ export default class GetCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { args } = this.parse(GetCommand);
-		const { addresses: addressesStr }: Args = args;
+		const { addresses: addressesStr } = args as Args;
 		const addresses = addressesStr.split(',').filter(Boolean);
 		const req = addresses.map((address: string) => ({
 			query: {

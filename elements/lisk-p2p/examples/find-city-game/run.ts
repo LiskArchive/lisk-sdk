@@ -28,8 +28,7 @@ const runP2PScenario = async () => {
 		);
 		if (
 			firstP2P.nodeInfo.city === secondP2P.nodeInfo.city &&
-			secondP2P.nodeInfo.city === thirdP2P.nodeInfo.city &&
-			thirdP2P.nodeInfo.city === firstP2P.nodeInfo.city
+			secondP2P.nodeInfo.city === thirdP2P.nodeInfo.city
 		) {
 			console.log(
 				`All 3 nodes are in the same city "${firstP2P.nodeInfo.city}". Shutting down the nodes.`,

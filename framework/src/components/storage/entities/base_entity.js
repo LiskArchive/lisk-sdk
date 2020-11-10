@@ -250,7 +250,7 @@ class BaseEntity {
 			(attributes || Object.keys(data))
 				.map(key => {
 					if (options.useRawObject) {
-						return defaultInput.call(this, data[key], 'insert', key, key);
+						return defaultInput(data[key], 'insert', key, key);
 					}
 					return this.fields[key].serializeValue(data[key], 'insert');
 				})

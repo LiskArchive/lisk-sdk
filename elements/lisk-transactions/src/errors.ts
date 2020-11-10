@@ -48,25 +48,6 @@ export class TransactionError extends Error {
 	}
 }
 
-export class TransactionPendingError extends TransactionError {
-	public id: string;
-	public dataPath: string;
-	public constructor(
-		message: string = '',
-		id: string = '',
-		dataPath: string = '',
-	) {
-		super(message);
-		this.name = 'TransactionPendingError';
-		this.id = id;
-		this.dataPath = dataPath;
-	}
-
-	public toString(): string {
-		return `Transaction: ${this.id} failed at ${this.dataPath}: ${this.message} `;
-	}
-}
-
 interface ErrorObject {
 	readonly dataPath: string;
 	readonly message?: string;

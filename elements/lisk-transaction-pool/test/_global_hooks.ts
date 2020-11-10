@@ -1,3 +1,0 @@
-afterEach(() => {
-	return sandbox.restore();
-});

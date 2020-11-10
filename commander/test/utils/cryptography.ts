@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import * as cryptographyModule from '@liskhq/lisk-cryptography';
 import * as cryptography from '../../src/utils/cryptography';
@@ -31,7 +32,7 @@ describe('crypto utils', () => {
 		beforeEach(() => {
 			sandbox
 				.stub(cryptographyModule, 'encryptMessageWithPassphrase')
-				.returns(result);
+				.returns(result as any);
 			return Promise.resolve();
 		});
 
@@ -223,7 +224,7 @@ describe('crypto utils', () => {
 		beforeEach(() => {
 			return sandbox
 				.stub(cryptographyModule, 'signMessageWithPassphrase')
-				.returns(result);
+				.returns(result as any);
 		});
 
 		it('singed message should equal to the result of signMessageWithPassphrase', () => {

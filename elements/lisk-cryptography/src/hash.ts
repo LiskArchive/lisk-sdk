@@ -41,7 +41,7 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 	}
 
 	throw new Error(
-		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
+		`Unsupported data:${data} and format:${format}. Currently only Buffers or hex and utf8 strings are supported.`,
 	);
 };
 

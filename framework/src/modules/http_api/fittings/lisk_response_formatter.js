@@ -41,15 +41,11 @@ module.exports = function create() {
 				links: {},
 			};
 		} else if (_.isObject(context.input)) {
-			if (Object.keys(context.input).sort() === ['data', 'links', 'meta']) {
-				output = context.input;
-			} else {
-				output = {
-					meta: context.input.meta || {},
-					data: context.input.data || context.input,
-					links: context.input.links || {},
-				};
-			}
+			output = {
+				meta: context.input.meta || {},
+				data: context.input.data || context.input,
+				links: context.input.links || {},
+			};
 		}
 
 		debug("setting headers: 'content-type': 'application/json'");

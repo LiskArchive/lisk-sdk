@@ -21,7 +21,7 @@ function bind(scope) {
 	__private = {
 		config: scope.config,
 		cache: scope.components ? scope.components.cache : undefined,
-		logger: scope.components.logger,
+		logger: scope.components ? scope.components.logger : undefined,
 	};
 }
 

@@ -13,27 +13,47 @@
  *
  */
 
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-
-import { getTimeWithOffset } from './time';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 
 export interface CreateBaseTransactionInput {
+	readonly nonce: string;
+	readonly fee: string;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 }
 
 export const createBaseTransaction = ({
 	passphrase,
-	timeOffset,
+	nonce,
+	fee,
 }: CreateBaseTransactionInput) => {
 	const { publicKey: senderPublicKey } = passphrase
 		? getAddressAndPublicKeyFromPassphrase(passphrase)
 		: { publicKey: undefined };
-	const timestamp = getTimeWithOffset(timeOffset);
 
 	return {
+		nonce,
+		fee,
 		senderPublicKey,
-		timestamp,
 	};
+};
+
+export const SIGNATURE_NOT_PRESENT = Buffer.from('00', 'hex');
+export const SIGNATURE_PRESENT = Buffer.from('01', 'hex');
+
+export const serializeSignatures = (signatures: ReadonlyArray<string>) => {
+	const signaturesBuffer = signatures.map(signature => {
+		// If signature is empty append 0x00 to byteBuffer
+		if (signature.length === 0) {
+			return SIGNATURE_NOT_PRESENT;
+		}
+
+		// If signature is not empty append 0x01 to byteBuffer
+		return Buffer.concat([SIGNATURE_PRESENT, hexToBuffer(signature)]);
+	});
+
+	return Buffer.concat(signaturesBuffer);
 };

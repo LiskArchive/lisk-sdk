@@ -216,7 +216,7 @@ export default class SetCommand extends BaseCommand {
 	// tslint:disable-next-line no-async-without-await
 	async run(): Promise<void> {
 		const { args } = this.parse(SetCommand);
-		const { variable, values: valuesStr = '' }: Args = args;
+		const { variable, values: valuesStr = '' } = args as Args;
 		const values = valuesStr.split(',').filter(Boolean);
 		const safeValues = values || [];
 		const safeValue = safeValues[0] || '';

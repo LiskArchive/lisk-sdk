@@ -15,28 +15,26 @@
 SELECT
 	"address",
 	ENCODE("publicKey", 'hex') as "publicKey",
-	ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 	"username",
 	"isDelegate"::int::boolean,
-	"secondSignature"::int::boolean,
+	"nonce",
 	"balance",
+	"votes",
+	"unlocking",
+	"totalVotesReceived",
+	"delegate",
 	"asset",
-	"multimin" as "multiMin",
-	"multilifetime" as "multiLifetime",
-	"nameexist"::int::boolean as "nameExist",
 	"missedBlocks",
 	"producedBlocks",
 	"fees",
 	"rewards",
-	"voteWeight",
 	case
 	when
 		"producedBlocks" + "missedBlocks" = 0 then 0
 	else
 		ROUND((("producedBlocks"::float / ("producedBlocks" + "missedBlocks")) * 100.0)::numeric, 2)::float
 	end AS productivity,
-	"votedDelegatesPublicKeys",
-	"membersPublicKeys"
+	"keys"
 FROM
 	mem_accounts
 

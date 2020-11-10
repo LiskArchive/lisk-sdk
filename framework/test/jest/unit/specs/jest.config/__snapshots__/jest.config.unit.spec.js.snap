@@ -5,8 +5,8 @@ Object {
   "clearMocks": true,
   "collectCoverage": true,
   "collectCoverageFrom": Array [
-    "framework/src/controller/**",
-    "framework/src/modules/chain/**",
+    "src/controller/**",
+    "src/application/**",
   ],
   "coverageDirectory": ".coverage/unit",
   "coverageReporters": Array [
@@ -16,12 +16,12 @@ Object {
   ],
   "resetModules": true,
   "restoreMocks": true,
-  "rootDir": "../../../../",
+  "rootDir": "../../../",
   "setupFilesAfterEnv": Array [
-    "<rootDir>/framework/test/jest/config/setup.js",
+    "<rootDir>/test/jest/config/setup.js",
   ],
   "testMatch": Array [
-    "<rootDir>/framework/test/jest/unit/specs/**/*.(spec|test).js",
+    "<rootDir>/test/jest/unit/specs/**/*.(spec|test).js",
   ],
   "verbose": true,
 }

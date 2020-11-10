@@ -21,24 +21,17 @@ import {
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
-import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import { getInputsFromSources, InputFromSourceOutput } from '../../utils/input';
+import { getPassphraseFromPrompt } from '../../utils/reader';
 
 const outputPublicKeyOptionDescription =
 	'Includes the public key in the output. This option is provided for the convenience of node operators.';
 
-const processInputs = (outputPublicKey: boolean) => ({
-	passphrase,
-	password,
-}: InputFromSourceOutput) => {
-	if (!passphrase) {
-		throw new ValidationError('No passphrase was provided');
-	}
-	if (!password) {
-		throw new ValidationError('No password was provided');
-	}
-
+const processInputs = (
+	passphrase: string,
+	password: string,
+	outputPublicKey: boolean,
+) => {
 	const encryptedPassphraseObject = encryptPassphraseWithPassword(
 		passphrase,
 		password,
@@ -79,17 +72,12 @@ export default class EncryptCommand extends BaseCommand {
 				outputPublicKey,
 			},
 		} = this.parse(EncryptCommand);
-		const inputs = await getInputsFromSources({
-			passphrase: {
-				source: passphraseSource,
-				repeatPrompt: true,
-			},
-			password: {
-				source: passwordSource,
-				repeatPrompt: true,
-			},
-		});
-		const result = processInputs(outputPublicKey)(inputs);
+
+		const passphrase =
+			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const password =
+			passwordSource ?? (await getPassphraseFromPrompt('password', true));
+		const result = processInputs(passphrase, password, outputPublicKey);
 		this.print(result);
 	}
 }

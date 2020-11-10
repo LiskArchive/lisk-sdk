@@ -21,7 +21,7 @@ import {
 	P2PPeerSelectionForSendInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
-} from '../../src/p2p_types';
+} from '../../src/types';
 
 const { ConnectionKind } = constants;
 

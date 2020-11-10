@@ -21,7 +21,7 @@ import {
 	selectPeersForRequest,
 	selectPeersForSend,
 } from '../../../src/utils/select';
-import { P2PNodeInfo, P2PPeerInfo } from '../../../src/p2p_types';
+import { P2PNodeInfo, P2PPeerInfo } from '../../../src/types';
 import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {

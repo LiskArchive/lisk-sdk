@@ -17,6 +17,7 @@ import { NaclInterface } from './nacl_types';
 // tslint:disable-next-line no-let no-require-imports no-var-requires
 let lib: NaclInterface = require('./slow');
 
+// Use try/catch for browser fallback support
 try {
 	if (process.env.NACL_FAST !== 'disable') {
 		// tslint:disable-next-line no-var-requires no-require-imports

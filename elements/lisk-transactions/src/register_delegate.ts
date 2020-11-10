@@ -15,16 +15,23 @@
 import { validateNetworkIdentifier } from '@liskhq/lisk-validator';
 
 import { DelegateTransaction } from './10_delegate_transaction';
-import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
+import { USERNAME_MAX_LENGTH } from './constants';
 import { TransactionJSON } from './transaction_types';
 import { createBaseTransaction } from './utils';
 
 export interface RegisterDelegateInputs {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 	readonly username: string;
 	readonly networkIdentifier: string;
+	readonly nonce: string;
+	readonly fee: string;
+	readonly senderPublicKey?: string;
+	readonly passphrases?: ReadonlyArray<string>;
+	readonly keys?: {
+		readonly mandatoryKeys: Array<Readonly<string>>;
+		readonly optionalKeys: Array<Readonly<string>>;
+	};
 }
 
 const validateInputs = ({
@@ -48,22 +55,40 @@ export const registerDelegate = (
 	inputs: RegisterDelegateInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { username, passphrase, secondPassphrase, networkIdentifier } = inputs;
+	const {
+		username,
+		passphrase,
+		networkIdentifier,
+		passphrases,
+		keys,
+		senderPublicKey,
+	} = inputs;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 10,
-		fee: DELEGATE_FEE.toString(),
+		// For txs from multisig senderPublicKey must be set before attempting signing
+		senderPublicKey,
 		asset: { username },
-		networkIdentifier,
 	};
 
-	if (!passphrase) {
+	if (!passphrase && !passphrases?.length) {
 		return transaction;
 	}
 
 	const delegateTransaction = new DelegateTransaction(transaction);
-	delegateTransaction.sign(passphrase, secondPassphrase);
 
-	return delegateTransaction.toJSON();
+	if (passphrase) {
+		delegateTransaction.sign(networkIdentifier, passphrase);
+
+		return delegateTransaction.toJSON();
+	}
+
+	if (passphrases && keys) {
+		delegateTransaction.sign(networkIdentifier, undefined, passphrases, keys);
+
+		return delegateTransaction.toJSON();
+	}
+
+	return transaction;
 };

@@ -17,7 +17,6 @@
 require('../../functional');
 const crypto = require('crypto');
 const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const typesRepresentatives = require('../../../../fixtures/types_representatives');
 const phases = require('../../../../utils/legacy/transaction_confirmation');
@@ -47,7 +46,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 	const cloneGoodTransaction = JSON.parse(JSON.stringify(goodTransaction));
 
 	const account = randomUtil.account();
-	const accountOffset = randomUtil.account();
 
 	describe('schema validations', () => {
 		typesRepresentatives.allTypes.forEach(test => {
@@ -61,7 +59,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('with lowercase recipientId should fail', async () => {
 			transaction = randomUtil.transaction();
 			transaction.asset.recipientId = transaction.asset.recipientId.toLowerCase();
-			transaction.signature = crypto.randomBytes(64).toString('hex');
+			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
 			return sendTransactionPromise(transaction, 400).then(res => {
 				expect(res.body.message).to.be.equal('Validation errors');
@@ -73,7 +71,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 	describe('transaction processing', () => {
 		it('with invalid signature should fail', async () => {
 			transaction = randomUtil.transaction();
-			transaction.signature = crypto.randomBytes(64).toString('hex');
+			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
 			return sendTransactionPromise(
 				transaction,
@@ -84,7 +82,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Failed to validate signature ${transaction.signature}`,
+					`Failed to validate signature ${transaction.signatures}`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -92,7 +90,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('mutating data used to build the transaction id should fail', async () => {
 			transaction = randomUtil.transaction();
-			transaction.timestamp += 1;
+			transaction.nonce += 1;
 
 			return sendTransactionPromise(
 				transaction,
@@ -109,6 +107,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
 			transaction = new TransferTransaction({
 				networkIdentifier,
+				nonce: '0',
+				fee: BigInt(10000000).toString(),
 				asset: {
 					amount: '0',
 					recipientId: account.address,
@@ -134,7 +134,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('when sender has no funds should fail', async () => {
 			transaction = transfer({
 				networkIdentifier,
-				amount: '1',
+				nonce: '0',
+				fee: BigInt(10000000).toString(),
+				amount: '10000000',
 				passphrase: account.passphrase,
 				recipientId: '1L',
 			});
@@ -147,8 +149,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0].message).to.be.equal(
-					`Account does not have enough LSK: ${account.address}, balance: 0`,
+				expect(res.body.errors[0].message).to.include(
+					'Account does not have enough minimum remaining',
 				);
 				badTransactions.push(transaction);
 			});
@@ -157,6 +159,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('using entire balance should fail', async () => {
 			transaction = transfer({
 				networkIdentifier,
+				nonce: '0',
+				fee: BigInt(10000000).toString(),
 				amount: accountFixtures.genesis.balance,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -171,41 +175,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.include(
-					'Account does not have enough LSK: 11237980039345381032L, balance: ',
+					'Account does not have enough minimum remaining',
 				);
 				badTransactions.push(transaction);
-			});
-		});
-
-		// Skipping this test because this signature cannot be recreated with this genesis address
-		// eslint-disable-next-line mocha/no-skipped-tests
-		it.skip('from the genesis account should fail', async () => {
-			const signedTransactionFromGenesis = {
-				senderPublicKey:
-					'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
-				timestamp: 24259352,
-				type: 8,
-				asset: {
-					amount: new BigNum('1000').toString(),
-					recipientId: accountFixtures.existingDelegate.address,
-				},
-				signature:
-					'f56a09b2f448f6371ffbe54fd9ac87b1be29fe29f27f001479e044a65e7e42fb1fa48dce6227282ad2a11145691421c4eea5d33ac7f83c6a42e1dcaa44572101',
-				id: '15307587316657110485',
-			};
-
-			return sendTransactionPromise(
-				signedTransactionFromGenesis,
-				apiCodes.PROCESSING_ERROR,
-			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors',
-				);
-				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0].message).to.include(
-					'Account does not have enough LSK: 1276152240083265771L, balance: -',
-				);
-				badTransactions.push(signedTransactionFromGenesis);
 			});
 		});
 
@@ -214,8 +186,10 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
 			const transactionFromDifferentNetwork = new TransferTransaction({
 				networkIdentifier: networkIdentifierOtherNetwork,
+				nonce: '0',
+				fee: BigInt(10000000).toString(),
 				asset: {
-					amount: '1',
+					amount: '10000000',
 					recipientId: account.address,
 				},
 			});
@@ -231,7 +205,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.include(
-					`Failed to validate signature ${transactionFromDifferentNetwork.signature}`,
+					`Failed to validate signature ${transactionFromDifferentNetwork.signatures}`,
 				);
 				badTransactions.push(transactionFromDifferentNetwork);
 			});
@@ -259,23 +233,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 		});
 
-		it('sending transaction with same id twice but newer timestamp should fail', async () => {
-			cloneGoodTransaction.timestamp += 1;
-
-			return sendTransactionPromise(
-				cloneGoodTransaction,
-				apiCodes.PROCESSING_ERROR,
-			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors',
-				);
-				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0].message).to.be.equal(
-					`Failed to validate signature ${cloneGoodTransaction.signature}`,
-				);
-			});
-		});
-
 		it('sending transaction with same id twice but older timestamp should fail', async () => {
 			cloneGoodTransaction.timestamp -= 1;
 
@@ -293,46 +250,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 		});
 
-		describe('with offset', () => {
-			it('using -10000 should be ok', async () => {
-				transaction = transfer({
-					networkIdentifier,
-					amount: '1',
-					passphrase: accountFixtures.genesis.passphrase,
-					recipientId: accountOffset.address,
-					timeOffset: -10000,
-				});
-
-				return sendTransactionPromise(transaction).then(res => {
-					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
-					goodTransactions.push(transaction);
-				});
-			});
-
-			it('using future timestamp should fail', async () => {
-				transaction = transfer({
-					networkIdentifier,
-					amount: '1',
-					passphrase: accountFixtures.genesis.passphrase,
-					recipientId: accountOffset.address,
-					timeOffset: 10000,
-				});
-
-				return sendTransactionPromise(
-					transaction,
-					apiCodes.PROCESSING_ERROR,
-				).then(res => {
-					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors',
-					);
-					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-					expect(res.body.errors[0].message).to.be.equal(
-						'Invalid transaction timestamp. Timestamp is in the future',
-					);
-				});
-			});
-		});
-
 		describe('with additional data field', () => {
 			describe('invalid cases', () => {
 				const invalidCases = typesRepresentatives.additionalDataInvalidCases.concat(
@@ -344,7 +261,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						const accountAdditionalData = randomUtil.account();
 						transaction = transfer({
 							networkIdentifier,
-							amount: '1',
+							nonce: '1',
+							fee: BigInt(10000000).toString(),
+							amount: '10000000',
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
 						});
@@ -369,12 +288,14 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					typesRepresentatives.strings,
 				);
 
-				validCases.forEach(test => {
+				validCases.forEach((test, i) => {
 					it(`using ${test.description} should be ok`, async () => {
 						const accountAdditionalData = randomUtil.account();
 						transaction = transfer({
 							networkIdentifier,
-							amount: '1',
+							nonce: (i + 2).toString(),
+							fee: BigInt(10000000).toString(),
+							amount: '10000000',
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
 							data: test.input,
@@ -394,7 +315,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					const accountAdditionalData = randomUtil.account();
 					transaction = transfer({
 						networkIdentifier,
-						amount: '1',
+						nonce: '11',
+						fee: BigInt(10000000).toString(),
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -415,7 +338,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					const accountAdditionalData = randomUtil.account();
 					transaction = transfer({
 						networkIdentifier,
-						amount: '1',
+						nonce: '12',
+						fee: BigInt(10000000).toString(),
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -434,7 +359,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					const accountAdditionalData = randomUtil.account();
 					transaction = transfer({
 						networkIdentifier,
-						amount: '1',
+						nonce: '13',
+						fee: BigInt(10000000).toString(),
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -460,7 +387,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					const accountAdditionalData = randomUtil.account();
 					transaction = transfer({
 						networkIdentifier,
-						amount: '1',
+						nonce: '14',
+						fee: BigInt(10000000).toString(),
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additionalData,
@@ -486,7 +415,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					const accountAdditionalData = randomUtil.account();
 					transaction = transfer({
 						networkIdentifier,
-						amount: '1',
+						nonce: '15',
+						fee: BigInt(10000000).toString(),
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,

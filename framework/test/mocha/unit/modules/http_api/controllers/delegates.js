@@ -15,7 +15,6 @@
 'use strict';
 
 const rewire = require('rewire');
-const BigNum = require('@liskhq/bignum');
 
 const DelegatesController = rewire(
 	'../../../../../../src/modules/http_api/controllers/delegates',
@@ -38,9 +37,10 @@ describe('delegates/api', () => {
 	const expectedForgingStatisticsResult = {
 		...blocksRewardReturnStub,
 		...{
-			forged: new BigNum(blocksRewardReturnStub.fees)
-				.plus(new BigNum(blocksRewardReturnStub.rewards))
-				.toString(),
+			forged: (
+				BigInt(blocksRewardReturnStub.fees) +
+				BigInt(blocksRewardReturnStub.rewards)
+			).toString(),
 		},
 	};
 	let aggregateBlocksRewardStub;
@@ -110,6 +110,12 @@ describe('delegates/api', () => {
 				storage: storageStub,
 			},
 			channel: channelStub,
+			config: {
+				constants: {
+					epochTime: '2016-05-24T17:00:00.000Z',
+					activeDelegates: 101,
+				},
+			},
 		});
 
 		restoreAggregateBlocksReward = DelegatesController.__set__(
@@ -156,8 +162,8 @@ describe('delegates/api', () => {
 		};
 
 		beforeEach(async () => {
-			channelStub.invoke.withArgs('chain:calculateSupply').resolves('supply');
-			channelStub.invoke.withArgs('chain:getLastBlock').resolves(lastBlock);
+			channelStub.invoke.withArgs('app:calculateSupply').resolves('supply');
+			channelStub.invoke.withArgs('app:getLastBlock').resolves(lastBlock);
 			await __private.getDelegates(filters, options);
 		});
 
@@ -173,9 +179,9 @@ describe('delegates/api', () => {
 			);
 		});
 
-		it('should call channel.invoke with chain:calculateSupply action if lastBlock.height is not 0', async () => {
+		it('should call channel.invoke with app:calculateSupply action if lastBlock.height is not 0', async () => {
 			expect(channelStub.invoke).to.be.calledWithExactly(
-				'chain:calculateSupply',
+				'app:calculateSupply',
 				{
 					height: dummyBlock.height,
 				},
@@ -183,7 +189,7 @@ describe('delegates/api', () => {
 		});
 
 		it('should assign 0 to supply if lastBlock.height is 0', async () => {
-			channelStub.invoke.withArgs('chain:getLastBlock').resolves({
+			channelStub.invoke.withArgs('app:getLastBlock').resolves({
 				height: 0,
 			});
 			await __private.getDelegates();
@@ -198,6 +204,46 @@ describe('delegates/api', () => {
 			sinonSandbox.stub(Array.prototype, 'map').returns(dummyDelegates);
 			const result = await __private.getDelegates();
 			expect(result).to.equal(dummyDelegates);
+		});
+
+		it('should have correct propertiees', async () => {
+			const aDelegate = {
+				username: 'genesis_31',
+				totalVotesReceived: '10100000000000000',
+				rewards: '0',
+				producedBlocks: 15,
+				missedBlocks: 1,
+				productivity: 93.75,
+				address: '10016685355739180605L',
+				publicKey:
+					'c678d19210ebf71914652d6644da5ee42e0c80948c4b520dba9f3d4514b213b2',
+				balance: '0',
+				nonce: '2',
+				asset: {},
+				keys: {
+					optionalKeys: [],
+					mandatoryKeys: [],
+					numberOfSignatures: 0,
+				},
+				votes: [
+					{
+						amount: '1000000000000',
+						delegateAddress: '10016685355739180605L',
+					},
+				],
+				delegate: {
+					isBanned: false,
+					pomHeights: [],
+					lastForgedHeight: 0,
+					registeredHeight: 0,
+					consecutiveMissedBlocks: 0,
+				},
+				unlocking: [],
+				approval: 0,
+			};
+			sinonSandbox.stub(Array.prototype, 'map').returns([aDelegate]);
+			const result = await __private.getDelegates();
+			expect(result).to.eql([aDelegate]);
 		});
 	});
 
@@ -291,10 +337,10 @@ describe('delegates/api', () => {
 			expect(data).to.deep.equal({
 				rewards: getAccountResponse.rewards,
 				fees: getAccountResponse.fees,
-				count: new BigNum(getAccountResponse.producedBlocks).toString(),
-				forged: new BigNum(getAccountResponse.rewards)
-					.plus(new BigNum(getAccountResponse.fees))
-					.toString(),
+				count: BigInt(getAccountResponse.producedBlocks).toString(),
+				forged: (
+					BigInt(getAccountResponse.rewards) + BigInt(getAccountResponse.fees)
+				).toString(),
 			});
 			expect(aggregateBlocksRewardStub).to.not.have.been.called;
 		});
@@ -357,19 +403,19 @@ describe('delegates/api', () => {
 
 		beforeEach(() => {
 			channelStub.invoke.resolves(dummyDelegates);
-			channelStub.invoke.withArgs('chain:getLastBlock').resolves(lastBlock);
+			channelStub.invoke.withArgs('app:getLastBlock').resolves(lastBlock);
 			return __private.getForgers(filters);
 		});
 
-		it('should call channel.invoke with chain:getLastBlock action', async () => {
+		it('should call channel.invoke with app:getLastBlock action', async () => {
 			expect(channelStub.invoke.getCall(0)).to.be.calledWith(
-				'chain:getLastBlock',
+				'app:getLastBlock',
 			);
 		});
 
-		it('should call channel.invoke with chain:getForgerPublicKeysForRound action', async () => {
+		it('should call channel.invoke with app:getForgerAddressesForRound action', async () => {
 			expect(channelStub.invoke.getCall(4)).to.be.calledWith(
-				'chain:getForgerPublicKeysForRound',
+				'app:getForgerAddressesForRound',
 			);
 		});
 

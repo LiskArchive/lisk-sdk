@@ -20,12 +20,12 @@ const randomInt = (low, high) => Math.round(Math.random() * (high - low) + low);
 
 const storageUtils = require('./storage');
 const configUtils = require('./configs');
-const chainUtils = require('./chain');
+const nodeUtils = require('./node');
 
 module.exports = {
 	constants,
 	randomInt,
 	storageUtils,
 	configUtils,
-	chainUtils,
+	nodeUtils,
 };

@@ -19,7 +19,7 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { DELEGATE_FEE } from './constants';
+import { DELEGATE_NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
 
@@ -42,9 +42,8 @@ export const delegateAssetFormatSchema = {
 
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
-	public readonly containsUniqueData: boolean;
 	public static TYPE = 10;
-	public static FEE = DELEGATE_FEE.toString();
+	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -52,7 +51,6 @@ export class DelegateTransaction extends BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset || { delegate: {} }) as DelegateAsset;
-		this.containsUniqueData = true;
 	}
 
 	protected assetToBytes(): Buffer {
@@ -103,9 +101,11 @@ export class DelegateTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 
 		const usernameExists = store.account.find(
 			(account: Account) => account.username === this.asset.username,
@@ -129,28 +129,21 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const updatedSender = {
-			...sender,
-			username: this.asset.username,
-			vote: 0,
-			isDelegate: 1,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.username = this.asset.username;
+		sender.isDelegate = 1;
+		store.account.set(sender.address, sender);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get(this.senderId);
-		const { username, ...strippedSender } = sender;
-		const resetSender = {
-			...sender,
-			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
-			username: null,
-			vote: 0,
-			isDelegate: 0,
-		};
-		store.account.set(strippedSender.address, resetSender);
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const sender = await store.account.get(this.senderId);
+		// tslint:disable-next-line:no-null-keyword
+		sender.username = null;
+		sender.isDelegate = 0;
+		store.account.set(sender.address, sender);
 
 		return [];
 	}

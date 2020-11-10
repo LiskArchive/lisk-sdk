@@ -266,11 +266,11 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		// To be used in test cases or getting configuration runtime
 		app.swaggerRunner = runner;
 
-		// Managing all the queries which were not caught by previous middlewares.
+		// Managing all the queries which were not caught by previous middleware.
 		app.use((req, res, next) => {
-			// We need to check if the response is already handled by some other middlewares/fittings/controllers
+			// We need to check if the response is already handled by some other middleware/fittings/controllers
 			// In case not, we consider it as 404 and send default response
-			// res.headersSent is a patch, and only works if above middlewares set some header no matter the status code
+			// res.headersSent is a patch, and only works if above middleware set some header no matter the status code
 			// Another possible workaround would be res.bodySize === 0
 			if (!res.headersSent) {
 				res.status(404);

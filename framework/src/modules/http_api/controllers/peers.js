@@ -51,10 +51,8 @@ PeersController.getPeers = async (context, next) => {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const connectedPeers = await channel.invoke('network:getConnectedPeers');
-		const disconnectedPeers = await channel.invoke(
-			'network:getDisconnectedPeers',
-		);
+		const connectedPeers = await channel.invoke('app:getConnectedPeers');
+		const disconnectedPeers = await channel.invoke('app:getDisconnectedPeers');
 
 		const peersByFilters = filterByParams(
 			consolidatePeers(connectedPeers, disconnectedPeers),

@@ -15,25 +15,11 @@
 'use strict';
 
 require('../../../functional');
-const {
-	transfer,
-	registerSecondPassphrase,
-} = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const SwaggerEndpoint = require('../../../../../utils/http/swagger_spec');
 const randomUtil = require('../../../../../utils/random');
-const waitFor = require('../../../../../utils/legacy/wait_for');
 const apiHelpers = require('../../../../../utils/http/api');
-const {
-	getNetworkIdentifier,
-} = require('../../../../../utils/network_identifier');
 
-const networkIdentifier = getNetworkIdentifier(
-	__testContext.config.genesisBlock,
-);
-
-const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /accounts', () => {
@@ -199,66 +185,6 @@ describe('GET /accounts', () => {
 			});
 		});
 
-		describe('secondPublicKey', () => {
-			const secondPublicKeyAccount = randomUtil.account();
-			const creditTransaction = transfer({
-				networkIdentifier,
-				amount: FEES.SECOND_SIGNATURE,
-				passphrase: accountFixtures.genesis.passphrase,
-				recipientId: secondPublicKeyAccount.address,
-			});
-			const signatureTransaction = registerSecondPassphrase({
-				networkIdentifier,
-				passphrase: secondPublicKeyAccount.passphrase,
-				secondPassphrase: secondPublicKeyAccount.secondPassphrase,
-			});
-
-			before(() => {
-				return apiHelpers
-					.sendTransactionPromise(creditTransaction)
-					.then(res => {
-						expect(res.statusCode).to.be.eql(200);
-						return waitFor.confirmations([creditTransaction.id]);
-					})
-					.then(() => {
-						return apiHelpers.sendTransactionPromise(signatureTransaction);
-					})
-					.then(res => {
-						expect(res.statusCode).to.be.eql(200);
-						return waitFor.confirmations([signatureTransaction.id]);
-					});
-			});
-
-			it('using known secondPublicKey should be ok', async () => {
-				return accountsEndpoint
-					.makeRequest(
-						{ secondPublicKey: secondPublicKeyAccount.secondPublicKey },
-						200,
-					)
-					.then(res => {
-						expect(res.body.data[0].secondPublicKey).to.be.eql(
-							secondPublicKeyAccount.secondPublicKey,
-						);
-					});
-			});
-
-			it('using unknown secondPublicKey should return empty result', async () => {
-				return accountsEndpoint
-					.makeRequest({ secondPublicKey: account.secondPublicKey }, 200)
-					.then(res => {
-						expect(res.body.data).to.have.length(0);
-					});
-			});
-
-			it('using invalid secondPublicKey should fail', async () => {
-				return accountsEndpoint
-					.makeRequest({ secondPublicKey: 'invalidPublicKey' }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'secondPublicKey');
-					});
-			});
-		});
-
 		describe('username', () => {
 			it('using empty username name should fail', async () => {
 				return accountsEndpoint.makeRequest({ username: '' }, 400).then(res => {
@@ -325,12 +251,12 @@ describe('GET /accounts', () => {
 					const balances = _.cloneDeep(res.body.data);
 					expect(
 						balances.sort((a, b) => {
-							const aBignumBalance = new BigNum(a.balance);
+							const aBigIntBalance = BigInt(a.balance);
 
-							if (aBignumBalance.gt(b.balance)) {
+							if (aBigIntBalance > BigInt(b.balance)) {
 								return 1;
 							}
-							if (aBignumBalance.lt(b.balance)) {
+							if (aBigIntBalance < BigInt(b.balance)) {
 								return -1;
 							}
 
@@ -347,12 +273,12 @@ describe('GET /accounts', () => {
 						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const aBignumBalance = new BigNum(a.balance);
+								const aBigIntBalance = BigInt(a.balance);
 
-								if (aBignumBalance.gt(b.balance)) {
+								if (aBigIntBalance > BigInt(b.balance)) {
 									return 1;
 								}
-								if (aBignumBalance.lt(b.balance)) {
+								if (aBigIntBalance < BigInt(b.balance)) {
 									return -1;
 								}
 
@@ -369,12 +295,12 @@ describe('GET /accounts', () => {
 						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const aBignumBalance = new BigNum(a.balance);
+								const aBigIntBalance = BigInt(a.balance);
 
-								if (aBignumBalance.gt(b.balance)) {
+								if (aBigIntBalance > BigInt(b.balance)) {
 									return -1;
 								}
-								if (aBignumBalance.lt(b.balance)) {
+								if (aBigIntBalance < BigInt(b.balance)) {
 									return 1;
 								}
 

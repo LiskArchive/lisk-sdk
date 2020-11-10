@@ -19,7 +19,6 @@ const {
 	VoteTransaction,
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 
 const redoSignature = (transaction, passphrase) => {
 	const { signature: discarded, ...transactionWithoutSignature } = transaction;
@@ -85,7 +84,7 @@ const createInvalidRegisterMultisignatureTransaction = ({
 	const tx = new MultisignatureTransaction({
 		networkIdentifier,
 		type: 12,
-		fee: new BigNum(baseFee).times(keysgroup.length + 1).toString(),
+		fee: (BigInt(baseFee) * BigInt(keysgroup.length + 1)).toString(),
 		asset: {
 			keysgroup: keysgroup.map(key => `+${key}`),
 			lifetime,

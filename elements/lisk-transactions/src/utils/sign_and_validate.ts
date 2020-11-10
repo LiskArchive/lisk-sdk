@@ -14,7 +14,7 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 
-import { TransactionError, TransactionPendingError } from '../errors';
+import { TransactionError } from '../errors';
 import {
 	IsValidResponse,
 	IsValidResponseWithError,
@@ -23,12 +23,12 @@ import {
 export const validateSignature = (
 	publicKey: string,
 	signature: string,
-	transactionBytes: Buffer,
+	bytes: Buffer,
 	id?: string,
 ): IsValidResponseWithError => {
-	const transactionHash = cryptography.hash(transactionBytes);
+	const hashedBytes = cryptography.hash(bytes);
 
-	const valid = cryptography.verifyData(transactionHash, signature, publicKey);
+	const valid = cryptography.verifyData(hashedBytes, signature, publicKey);
 
 	return {
 		valid,
@@ -36,7 +36,7 @@ export const validateSignature = (
 			? new TransactionError(
 					`Failed to validate signature ${signature}`,
 					id,
-					'.signature',
+					'.signatures',
 			  )
 			: undefined,
 	};
@@ -118,16 +118,6 @@ export const validateMultisignatures = (
 	const invalidTransactionSignatures = signatures.filter(
 		signature => !validSignatures.has(signature),
 	);
-
-	// Transaction is waiting for more signatures
-	if (signatures.length < minimumValidations) {
-		return {
-			valid: false,
-			errors: [
-				new TransactionPendingError(`Missing signatures`, id, '.signatures'),
-			],
-		};
-	}
 
 	return {
 		valid:

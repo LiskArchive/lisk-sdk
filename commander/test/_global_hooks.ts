@@ -1,4 +1,5 @@
 import lockfile from 'lockfile';
+import * as sandbox from 'sinon';
 
 afterEach(() => sandbox.restore());
 

@@ -13,18 +13,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
-import * as inputModule from '../../../src/utils/input/utils';
-import * as inputUtils from '../../../src/utils/input';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('transaction:sign', () => {
 	const defaultTransaction = {
 		type: 8,
+		nonce: '0',
+		fee: '10000000',
 		senderPublicKey:
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
-		timestamp: 54316325,
 		asset: {
 			recipientId: '18141291412139607230L',
 			amount: '1234567890',
@@ -33,33 +34,64 @@ describe('transaction:sign', () => {
 	};
 
 	const invalidTransaction = 'invalid transaction';
-	const defaultInputs = {
-		passphrase:
-			'wear protect skill sentence lift enter wild sting lottery power floor neglect',
-	};
-
-	const defaultInputsWithSecondPassphrase = {
-		...defaultInputs,
-		secondPassphrase:
-			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-	};
+	const firstPassphrase =
+		'wear protect skill sentence lift enter wild sting lottery power floor neglect';
+	const anotherUserPassphrase =
+		'inherit moon normal relief spring bargain hobby join baby flash fog blood';
+	const KeyOne =
+		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
+	const KeyTwo =
+		'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba';
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
-		fee: '10000000',
 		senderId: '2129300327344985743L',
-		signatures: [],
-		signature:
-			'b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d',
-		id: '3436168030012755419',
+		signatures: [
+			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+		],
+		id: '10364209962572784824',
 	};
 
-	const defaultSecondSignedTransaction = {
-		...defaultSignedTransaction,
-		id: '1856045075247127242',
-		signSignature:
-			'c4b0ca84aa4596401c3041a1638e670d6278e0e18949f027b3d7ede4f2f0a1685df7aec768b1a3c49acfe7ded9e7f5230998f06b0d58371bcba5a00695fb6901',
+	const signedTransaction = {
+		id: '17223119605214098703',
+		type: 8,
+		senderPublicKey:
+			'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
+		nonce: '1',
+		fee: '100000000',
+		signatures: [
+			'a3cc97079e17bdd15852695faf8af7bbcb167f5ddd9f96c129f60afa252911a30c8db42d5d2a60648947082097c79cb966c7f0b267842b27397b59a92af11c05',
+		],
+		asset: {
+			data: '{"lisk":"zug"}',
+			amount: '100000000000',
+			recipientId: '5553317242494141914L',
+		},
 	};
+
+	const expectedMultiSignedTransaction = {
+		id: '13203830993805353722',
+		type: 8,
+		senderPublicKey:
+			'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
+		senderId: '5553317242494141914L',
+		nonce: '1',
+		fee: '100000000',
+		signatures: [
+			'a3cc97079e17bdd15852695faf8af7bbcb167f5ddd9f96c129f60afa252911a30c8db42d5d2a60648947082097c79cb966c7f0b267842b27397b59a92af11c05',
+			'984c703b9766c9c72a4d68a54d24c14e75b682dc0a8f31fc0b7aa49a876a91abd265d46d7e8dc25219f3dc9e7c3c0cc015639067093b5a2db48f311cb1e0bf06',
+		],
+		asset: {
+			data: '{"lisk":"zug"}',
+			amount: '100000000000',
+			recipientId: '5553317242494141914L',
+		},
+	};
+
+	const mandatoryKey =
+		'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba';
+	const optionalKey =
+		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
@@ -71,17 +103,21 @@ describe('transaction:sign', () => {
 				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
-				sandbox.stub().resolves(defaultInputs),
+				readerUtils,
+				'getPassphraseFromPrompt',
+				sandbox
+					.stub()
+					.resolves(firstPassphrase)
+					.onSecondCall()
+					.resolves(anotherUserPassphrase),
 			)
 			.stdout();
 
 	describe('transaction:sign', () => {
 		setupTest()
 			.stub(
-				inputModule,
-				'getStdIn',
+				readerUtils,
+				'readStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:sign'])
@@ -111,7 +147,7 @@ describe('transaction:sign', () => {
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Transaction: 6662515125650388309 failed at .asset.amount',
+					'Transaction: 2690216869766549278 failed at .asset.amount',
 				);
 			})
 			.it('should throw an error when transaction is invalid');
@@ -119,36 +155,27 @@ describe('transaction:sign', () => {
 		setupTest()
 			.command(['transaction:sign', JSON.stringify(defaultTransaction)])
 			.it('should take transaction from arg to sign', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-					secondPassphrase: undefined,
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedTransaction,
 				);
 			});
 	});
 
-	describe('transaction:sign transaction --passphrase=pass:xxx', () => {
+	describe('transaction:sign transaction --passphrase=xxx', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
 				JSON.stringify(defaultTransaction),
-				'--passphrase=pass:123',
+				`--passphrase=${firstPassphrase}`,
 			])
 			.it(
 				'should take transaction from arg and passphrase from flag to sign',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-						secondPassphrase: undefined,
-					});
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignedTransaction,
 					);
@@ -156,135 +183,94 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction:sign transaction --passphrase=pass:xxx --second-passphrase=pass:xxx', () => {
+	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --mandatory-key=bbb --number-of-passphrases=2', () => {
 		setupTest()
-			.stub(
-				inputUtils,
-				'getInputsFromSources',
-				sandbox.stub().resolves(defaultInputsWithSecondPassphrase),
-			)
 			.command([
 				'transaction:sign',
 				JSON.stringify(defaultTransaction),
-				`--passphrase=pass:${defaultInputs.passphrase}`,
-				`--second-passphrase=pass:${defaultInputsWithSecondPassphrase.secondPassphrase}`,
+				`--passphrase=${firstPassphrase}`,
+				`--passphrase=${anotherUserPassphrase}`,
+				`--mandatory-key=${KeyOne}`,
+				`--mandatory-key=${KeyTwo}`,
+				`--number-of-passphrases=2`,
 			])
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'--passphrase= cannot also be provided when using --number-of-passphrases=',
+				);
+			})
 			.it(
-				'should take transaction from arg and passphrase and second passphrase from flag to sign',
-				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: `pass:${defaultInputs.passphrase}`,
-							repeatPrompt: true,
-						},
-						secondPassphrase: {
-							source: `pass:${defaultInputsWithSecondPassphrase.secondPassphrase}`,
-							repeatPrompt: true,
-						},
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultSecondSignedTransaction,
-					);
-				},
+				'should throw error when --number-of-passphrases flag is used in combination with --passphrase flag',
 			);
 	});
 
-	describe('transaction | transaction:sign', () => {
+	describe('transaction:sign transaction --passphrase=xxx --mandatory-key=aaa', () => {
 		setupTest()
-			.stub(inputModule, 'getStdIn', sandbox.stub().resolves({}))
-			.command(['transaction:sign'])
-			.catch(error => {
-				return expect(error.message).to.contain('No transaction was provided.');
-			})
-			.it('should throw an error when stdin is empty');
-
-		setupTest()
-			.stub(
-				inputModule,
-				'getStdIn',
-				sandbox.stub().resolves({ data: invalidTransaction }),
-			)
-			.command(['transaction:sign'])
-			.catch(error => {
-				return expect(error.message).to.contain(
-					'Could not parse transaction JSON.',
-				);
-			})
-			.it('should throw an error when std is an invalid JSON format');
-
-		setupTest()
-			.stub(
-				inputModule,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
-			)
-			.command(['transaction:sign'])
-			.it('should take transaction from stdin and sign', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-					secondPassphrase: undefined,
-				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultSignedTransaction,
-				);
+			.command([
+				'transaction:sign',
+				JSON.stringify(signedTransaction),
+				`--passphrase=${anotherUserPassphrase}`,
+				`--mandatory-key=${KeyOne}`,
+			])
+			.it('should output the signed transaction', () => {
+				const transaction = printMethodStub.getCall(0).lastArg;
+				return expect(transaction.signatures).to.have.lengthOf(1);
 			});
 	});
 
-	describe('transaction | transaction:sign --passphrase=pass:xxx', () => {
+	describe('transaction:sign transaction --passphrase=xxx --optional-key=aaa', () => {
 		setupTest()
-			.stub(
-				inputModule,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
-			)
-			.command(['transaction:sign', '--passphrase=pass:123'])
+			.command([
+				'transaction:sign',
+				JSON.stringify(signedTransaction),
+				`--passphrase=${anotherUserPassphrase}`,
+				`--optional-key=${KeyOne}`,
+			])
+			.it('should output the signed transaction', () => {
+				const transaction = printMethodStub.getCall(0).lastArg;
+				return expect(transaction.signatures).to.have.lengthOf(1);
+			});
+	});
+
+	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb', () => {
+		setupTest()
+			.command([
+				'transaction:sign',
+				JSON.stringify(signedTransaction),
+				`--passphrase=${anotherUserPassphrase}`,
+				`--mandatory-key=${mandatoryKey}`,
+				`--optional-key=${optionalKey}`,
+			])
 			.it(
-				'should take transaction from stdin and sign with passphrase from flag',
+				'should take transaction from arg to and passphrase, mandatoryKey, optionalKey and numberOfSignature to sign',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-						secondPassphrase: undefined,
-					});
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultSignedTransaction,
+						expectedMultiSignedTransaction,
 					);
 				},
 			);
 	});
 
-	describe('transaction | transaction:sign --passphrase=pass:xxx --second-passphrase=pass:xxx', () => {
+	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb', () => {
 		setupTest()
-			.stub(
-				inputModule,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
-			)
 			.command([
 				'transaction:sign',
-				'--passphrase=pass:abc',
-				'--second-passphrase=pass:def',
+				JSON.stringify(signedTransaction),
+				`--mandatory-key=${mandatoryKey}`,
+				`--optional-key=${optionalKey}`,
+				`--number-of-passphrases=2`,
 			])
 			.it(
-				'should take transaction from stdin and sign with passphrase and second passphrase from flag',
+				'should take transaction from arg, passphrase from prompt and rest of of the flags mandatoryKey, optionalKey and numberOfSignature to sign',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:abc',
-							repeatPrompt: true,
-						},
-						secondPassphrase: {
-							source: 'pass:def',
-							repeatPrompt: true,
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+						'passphrase',
+						true,
+					);
+					expect(readerUtils.getPassphraseFromPrompt).to.be.callCount(2);
 					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultSignedTransaction,
+						expectedMultiSignedTransaction,
 					);
 				},
 			);

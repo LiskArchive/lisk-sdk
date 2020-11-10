@@ -1,3 +1,4 @@
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fs from 'fs-extra';
 import * as axios from 'axios';

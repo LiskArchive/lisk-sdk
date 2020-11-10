@@ -79,10 +79,25 @@ class BaseChannel {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 
+	// Publish to the network by invoking send/broadcast actions in the network
+	// Specified as actionName for send or broadcast available on the network
+	// If its related to your own moduleAlias specify as :eventName
+	// eslint-disable-next-line no-unused-vars, class-methods-use-this
+	publishToNetwork(actionName, data) {
+		throw new TypeError('This method must be implemented in child classes. ');
+	}
+
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
 	// eslint-disable-next-line no-unused-vars, class-methods-use-this
 	async invoke(actionName, params) {
+		throw new TypeError('This method must be implemented in child classes. ');
+	}
+
+	// Call action network module when requesting from the network or a specific peer
+	// Specified as actionName for request available on the network
+	// eslint-disable-next-line no-unused-vars, class-methods-use-this
+	async invokeFromNetwork(actionName, params) {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 

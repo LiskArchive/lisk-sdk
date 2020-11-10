@@ -12,38 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
+	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
+import { isValidFee, isValidNonce, validator } from '@liskhq/lisk-validator';
 
 import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
-	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
-	UNCONFIRMED_TRANSACTION_TIMEOUT,
+	MIN_FEE_PER_BYTE,
 } from './constants';
-import { SignatureObject } from './create_signature_object';
-import {
-	convertToTransactionError,
-	TransactionError,
-	TransactionPendingError,
-} from './errors';
+import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
 import * as schemas from './schema';
-import { Account, TransactionJSON } from './transaction_types';
+import { Account, BlockHeader, TransactionJSON } from './transaction_types';
 import {
+	buildPublicKeyPassphraseDict,
 	getId,
+	isMultisignatureAccount,
+	serializeSignatures,
+	sortKeysAscending,
 	validateSenderIdAndPublicKey,
 	validateSignature,
-	verifyBalance,
-	verifyMultiSignatures,
-	verifySecondSignature,
+	verifyAccountNonce,
+	verifyMinRemainingBalance,
+	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 } from './utils';
 
@@ -53,43 +51,33 @@ export interface TransactionResponse {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
-export interface StateStoreGetter<T> {
-	get(key: string): T;
-	find(func: (item: T) => boolean): T | undefined;
+export interface StateStorePrepare {
+	readonly account: {
+		cache(
+			filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+		): Promise<ReadonlyArray<Account>>;
+	};
 }
 
-export interface StateStoreDefaultGetter<T> {
-	getOrDefault(key: string): T;
+export interface AccountState {
+	cache(
+		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+	): Promise<ReadonlyArray<Account>>;
+	get(key: string): Promise<Account>;
+	getOrDefault(key: string): Promise<Account>;
+	find(func: (item: Account) => boolean): Account | undefined;
+	set(key: string, value: Account): void;
 }
 
-export interface StateStoreSetter<T> {
-	set(key: string, value: T): void;
+export interface ChainState {
+	readonly lastBlockHeader: BlockHeader;
+	readonly lastBlockReward: bigint;
+	readonly networkIdentifier: string;
 }
 
 export interface StateStore {
-	readonly account: StateStoreGetter<Account> &
-		StateStoreDefaultGetter<Account> &
-		StateStoreSetter<Account>;
-	readonly transaction: StateStoreGetter<TransactionJSON>;
-}
-
-export interface StateStoreCache<T> {
-	cache(
-		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-	): Promise<ReadonlyArray<T>>;
-}
-
-export interface StateStorePrepare {
-	readonly account: StateStoreCache<Account>;
-	readonly transaction: StateStoreCache<TransactionJSON>;
-}
-
-export enum MultisignatureStatus {
-	UNKNOWN = 0,
-	NONMULTISIGNATURE = 1,
-	PENDING = 2,
-	READY = 3,
-	FAIL = 4,
+	readonly account: AccountState;
+	readonly chain: ChainState;
 }
 
 export const ENTITY_ACCOUNT = 'account';
@@ -99,53 +87,46 @@ export abstract class BaseTransaction {
 	public readonly blockId?: string;
 	public readonly height?: number;
 	public readonly confirmations?: number;
-	public readonly signatures: string[];
-	public readonly timestamp: number;
 	public readonly type: number;
-	public readonly containsUniqueData?: boolean;
 	public readonly asset: object;
-	public fee: BigNum;
+	public nonce: bigint;
+	public fee: bigint;
 	public receivedAt?: Date;
+	public senderPublicKey: string;
+	public signatures: string[];
 
 	public static TYPE: number;
-	public static FEE = '0';
+	// Minimum remaining balance requirement for any account to perform a transaction
+	public static MIN_REMAINING_BALANCE = BigInt('5000000'); // 0.05 LSK
+	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
+	public static NAME_FEE = BigInt(0);
 
 	protected _id?: string;
-	protected _senderPublicKey?: string;
-	protected _signature?: string;
-	protected _signSignature?: string;
-	protected _multisignatureStatus: MultisignatureStatus =
-		MultisignatureStatus.UNKNOWN;
-	protected _networkIdentifier: string;
+	protected _minFee?: bigint;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
-	): ReadonlyArray<TransactionError>;
+	): Promise<ReadonlyArray<TransactionError>>;
 	protected abstract undoAsset(
 		store: StateStore,
-	): ReadonlyArray<TransactionError>;
+	): Promise<ReadonlyArray<TransactionError>>;
 
 	public constructor(rawTransaction: unknown) {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-
-		this.fee = new BigNum((this.constructor as typeof BaseTransaction).FEE);
+		this.senderPublicKey = tx.senderPublicKey || '';
+		this.signatures = (tx.signatures as string[]) || [];
+		this.nonce =
+			tx.nonce && isValidNonce(tx.nonce) ? BigInt(tx.nonce) : BigInt(0);
+		this.fee = tx.fee && isValidFee(tx.fee) ? BigInt(tx.fee) : BigInt(0);
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
 				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		this._id = tx.id;
-		this._senderPublicKey = tx.senderPublicKey || '';
-
-		this._signature = tx.signature;
-		this.signatures = (tx.signatures as string[]) || [];
-		this._signSignature = tx.signSignature;
-		this._networkIdentifier = tx.networkIdentifier || '';
-
-		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
 
 		// Additional data not related to the protocol
 		this.confirmations = tx.confirmations;
@@ -159,28 +140,20 @@ export abstract class BaseTransaction {
 		return this._id || 'incalculable-id';
 	}
 
+	public get minFee(): bigint {
+		if (!this._minFee) {
+			// Include nameFee in minFee for delegate registration transactions
+			this._minFee =
+				(this.constructor as typeof BaseTransaction).NAME_FEE +
+				BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
+					BigInt(this.getBytes().length);
+		}
+
+		return this._minFee;
+	}
+
 	public get senderId(): string {
 		return getAddressFromPublicKey(this.senderPublicKey);
-	}
-
-	public get senderPublicKey(): string {
-		if (!this._senderPublicKey) {
-			throw new Error('senderPublicKey is required to be set before use');
-		}
-
-		return this._senderPublicKey;
-	}
-
-	public get signature(): string {
-		if (!this._signature) {
-			throw new Error('signature is required to be set before use');
-		}
-
-		return this._signature;
-	}
-
-	public get signSignature(): string | undefined {
-		return this._signSignature;
 	}
 
 	/**
@@ -195,12 +168,10 @@ export abstract class BaseTransaction {
 			height: this.height,
 			confirmations: this.confirmations,
 			type: this.type,
-			timestamp: this.timestamp,
-			senderPublicKey: this._senderPublicKey || '',
-			senderId: this._senderPublicKey ? this.senderId : '',
+			senderPublicKey: this.senderPublicKey,
+			senderId: this.senderPublicKey ? this.senderId : '',
+			nonce: this.nonce.toString(),
 			fee: this.fee.toString(),
-			signature: this._signature,
-			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
 			receivedAt: this.receivedAt ? this.receivedAt.toISOString() : undefined,
@@ -213,18 +184,10 @@ export abstract class BaseTransaction {
 		return JSON.stringify(this.toJSON());
 	}
 
-	public isReady(): boolean {
-		return (
-			this._multisignatureStatus === MultisignatureStatus.READY ||
-			this._multisignatureStatus === MultisignatureStatus.NONMULTISIGNATURE
-		);
-	}
-
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			this._signature ? hexToBuffer(this._signature) : Buffer.alloc(0),
-			this._signSignature ? hexToBuffer(this._signSignature) : Buffer.alloc(0),
+			serializeSignatures(this.signatures),
 		]);
 
 		return transactionBytes;
@@ -236,41 +199,12 @@ export abstract class BaseTransaction {
 			return createResponse(this.id, errors);
 		}
 
-		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error(
-				'Network identifier is required to validate a transaction ',
-			);
-		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			transactionBytes,
-		]);
-
 		this._id = getId(this.getBytes());
-
-		const {
-			valid: signatureValid,
-			error: verificationError,
-		} = validateSignature(
-			this.senderPublicKey,
-			this.signature,
-			transactionWithNetworkIdentifierBytes,
-			this.id,
-		);
-
-		if (!signatureValid && verificationError) {
-			errors.push(verificationError);
-		}
 
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
 			errors.push(
 				new TransactionError(
-					`Invalid type`,
+					`Invalid transaction type`,
 					this.id,
 					'.type',
 					this.type,
@@ -279,81 +213,97 @@ export abstract class BaseTransaction {
 			);
 		}
 
-		return createResponse(this.id, errors);
-	}
-
-	// tslint:disable-next-line prefer-function-over-method
-	protected verifyAgainstTransactions(
-		_: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		return [];
-	}
-
-	public verifyAgainstOtherTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
-		const errors = this.verifyAgainstTransactions(transactions);
-
-		return createResponse(this.id, errors);
-	}
-
-	public apply(store: StateStore): TransactionResponse {
-		const sender = store.account.getOrDefault(this.senderId);
-		const errors = this._verify(sender) as TransactionError[];
-
-		// Verify MultiSignature
-		const { errors: multiSigError } = this.processMultisignatures(store);
-		if (multiSigError) {
-			errors.push(...multiSigError);
+		if (this.fee < this.minFee) {
+			errors.push(
+				new TransactionError(
+					`Insufficient transaction fee. Minimum required fee is: ${this.minFee.toString()}`,
+					this.id,
+					'.fee',
+					this.fee.toString(),
+				),
+			);
 		}
 
-		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
-		const updatedSender = {
-			...sender,
-			balance: updatedBalance.toString(),
-			publicKey: sender.publicKey || this.senderPublicKey,
-		};
-		store.account.set(updatedSender.address, updatedSender);
-		const assetErrors = this.applyAsset(store);
+		return createResponse(this.id, errors);
+	}
 
+	public async apply(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.account.getOrDefault(this.senderId);
+		const errors = [];
+		const senderPublicKeyError = verifySenderPublicKey(
+			this.id,
+			sender,
+			this.senderPublicKey,
+		);
+		if (senderPublicKeyError) {
+			errors.push(senderPublicKeyError);
+		}
+
+		// Verify Account Nonce
+		const accountNonceError = verifyAccountNonce(this.id, sender, this.nonce);
+		if (accountNonceError) {
+			errors.push(accountNonceError);
+		}
+
+		// Verify Signatures
+		const { errors: signaturesErr } = await this.verifySignatures(store);
+		if (signaturesErr) {
+			errors.push(...signaturesErr);
+		}
+
+		// Update sender balance
+		sender.balance -= this.fee;
+		sender.publicKey = sender.publicKey || this.senderPublicKey;
+
+		// Increment sender nonce
+		sender.nonce += BigInt(1);
+
+		// Update account state
+		store.account.set(sender.address, sender);
+
+		const assetErrors = await this.applyAsset(store);
 		errors.push(...assetErrors);
 
-		if (
-			this._multisignatureStatus === MultisignatureStatus.PENDING &&
-			errors.length === 1 &&
-			errors[0] instanceof TransactionPendingError
-		) {
-			return {
-				id: this.id,
-				status: Status.PENDING,
-				errors,
-			};
+		// Get updated state for sender account, which may be modified in last step
+		const updatedSender = await store.account.get(this.senderId);
+
+		// Validate minimum remaining balance
+		const minRemainingBalanceError = verifyMinRemainingBalance(
+			this.id,
+			updatedSender,
+			(this.constructor as typeof BaseTransaction).MIN_REMAINING_BALANCE,
+		);
+		if (minRemainingBalanceError) {
+			errors.push(minRemainingBalanceError);
 		}
 
 		return createResponse(this.id, errors);
 	}
 
-	public undo(store: StateStore): TransactionResponse {
-		const sender = store.account.getOrDefault(this.senderId);
-		const updatedBalance = new BigNum(sender.balance).add(this.fee);
-		const updatedAccount = {
-			...sender,
-			balance: updatedBalance.toString(),
-			publicKey: sender.publicKey || this.senderPublicKey,
-		};
-		const errors = updatedBalance.lte(MAX_TRANSACTION_AMOUNT)
-			? []
-			: [
-					new TransactionError(
-						'Invalid balance amount',
-						this.id,
-						'.balance',
-						sender.balance,
-						updatedBalance.toString(),
-					),
-			  ];
-		store.account.set(updatedAccount.address, updatedAccount);
-		const assetErrors = this.undoAsset(store);
+	public async undo(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.account.getOrDefault(this.senderId);
+		const updatedBalance = sender.balance + this.fee;
+		sender.balance = updatedBalance;
+		sender.publicKey = sender.publicKey || this.senderPublicKey;
+		const errors =
+			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
+				? []
+				: [
+						new TransactionError(
+							'Invalid balance amount',
+							this.id,
+							'.balance',
+							sender.balance.toString(),
+							updatedBalance.toString(),
+						),
+				  ];
+
+		// Decrement account nonce
+		sender.nonce -= BigInt(1);
+
+		store.account.set(sender.address, sender);
+
+		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 
 		return createResponse(this.id, errors);
@@ -367,200 +317,144 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public addMultisignature(
+	public async verifySignatures(
 		store: StateStore,
-		signatureObject: SignatureObject,
-	): TransactionResponse {
-		// Get the account
-		const account = store.account.get(this.senderId);
-		// Validate signature key belongs to account's multisignature group
-		if (
-			account.membersPublicKeys &&
-			!account.membersPublicKeys.includes(signatureObject.publicKey)
-		) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Public Key '${signatureObject.publicKey}' is not a member for account '${account.address}'.`,
-					this.id,
-				),
-			]);
-		}
-
-		// Check if signature is not already there
-		if (this.signatures.includes(signatureObject.signature)) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Signature '${signatureObject.signature}' already present in transaction.`,
-					this.id,
-				),
-			]);
-		}
-
+	): Promise<TransactionResponse> {
+		const sender = await store.account.get(this.senderId);
+		const { networkIdentifier } = store.chain;
 		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
+		if (networkIdentifier === undefined || networkIdentifier === '') {
 			throw new Error(
 				'Network identifier is required to validate a transaction ',
 			);
 		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
 		]);
 
-		// Validate the signature using the signature sender and transaction details
-		const { valid } = validateSignature(
-			signatureObject.publicKey,
-			signatureObject.signature,
-			transactionWithNetworkIdentifierBytes,
-			this.id,
-		);
-		// If the signature is valid for the sender push it to the signatures array
-		if (valid) {
-			this.signatures.push(signatureObject.signature);
+		if (!isMultisignatureAccount(sender)) {
+			const { error } = validateSignature(
+				this.senderPublicKey,
+				this.signatures[0],
+				transactionWithNetworkIdentifierBytes,
+				this.id,
+			);
 
-			return this.processMultisignatures(store);
-		}
-
-		// Else populate errors
-		const errors = valid
-			? []
-			: [
-					new TransactionError(
-						`Failed to add signature '${signatureObject.signature}'.`,
-						this.id,
-						'.signatures',
-					),
-			  ];
-
-		return createResponse(this.id, errors);
-	}
-
-	public addVerifiedMultisignature(signature: string): TransactionResponse {
-		if (!this.signatures.includes(signature)) {
-			this.signatures.push(signature);
+			if (error) {
+				return createResponse(this.id, [error]);
+			}
 
 			return createResponse(this.id, []);
 		}
 
-		return createResponse(this.id, [
-			new TransactionError('Failed to add signature.', this.id, '.signatures'),
-		]);
-	}
-
-	public processMultisignatures(store: StateStore): TransactionResponse {
-		const sender = store.account.get(this.senderId);
-		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error(
-				'Network identifier is required to validate a transaction ',
-			);
-		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			transactionBytes,
-		]);
-
-		const { status, errors } = verifyMultiSignatures(
+		const errors = verifyMultiSignatureTransaction(
 			this.id,
 			sender,
 			this.signatures,
 			transactionWithNetworkIdentifierBytes,
 		);
-		this._multisignatureStatus = status;
-		if (this._multisignatureStatus === MultisignatureStatus.PENDING) {
-			return {
-				id: this.id,
-				status: Status.PENDING,
-				errors,
-			};
-		}
 
 		return createResponse(this.id, errors);
 	}
 
-	public isExpired(date: Date = new Date()): boolean {
-		if (!this.receivedAt) {
-			this.receivedAt = new Date();
+	public sign(
+		networkIdentifier: string,
+		senderPassphrase?: string,
+		passphrases?: ReadonlyArray<string>,
+		keys?: {
+			readonly mandatoryKeys: Array<Readonly<string>>;
+			readonly optionalKeys: Array<Readonly<string>>;
+		},
+	): void {
+		if (!networkIdentifier) {
+			throw new Error('Network identifier is required to sign a transaction');
 		}
-		// tslint:disable-next-line no-magic-numbers
-		const timeNow = Math.floor(date.getTime() / 1000);
-		const timeOut =
-			this._multisignatureStatus === MultisignatureStatus.PENDING ||
-			this._multisignatureStatus === MultisignatureStatus.READY
-				? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
-				: UNCONFIRMED_TRANSACTION_TIMEOUT;
-		const timeElapsed =
-			// tslint:disable-next-line no-magic-numbers
-			timeNow - Math.floor(this.receivedAt.getTime() / 1000);
 
-		return timeElapsed > timeOut;
+		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
+
+		// If senderPassphrase is passed in assume only one signature required
+		if (senderPassphrase) {
+			const { publicKey } = getAddressAndPublicKeyFromPassphrase(
+				senderPassphrase,
+			);
+
+			if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
+				throw new Error(
+					'Transaction senderPublicKey does not match public key from passphrase',
+				);
+			}
+
+			this.senderPublicKey = publicKey;
+
+			const transactionWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifierBytes,
+				this.getBasicBytes(),
+			]);
+
+			const signature = signData(
+				hash(transactionWithNetworkIdentifierBytes),
+				senderPassphrase,
+			);
+			// Reset signatures when only one passphrase is provided
+			this.signatures = [];
+			this.signatures.push(signature);
+			this._id = getId(this.getBytes());
+
+			return;
+		}
+
+		if (passphrases && keys) {
+			if (!this.senderPublicKey) {
+				throw new Error(
+					'Transaction senderPublicKey needs to be set before signing',
+				);
+			}
+
+			const transactionWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifierBytes,
+				this.getBasicBytes(),
+			]);
+
+			const keysAndPassphrases = buildPublicKeyPassphraseDict(passphrases);
+			sortKeysAscending(keys.mandatoryKeys);
+			sortKeysAscending(keys.optionalKeys);
+			// Sign with all keys
+			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
+				if (keysAndPassphrases[aKey]) {
+					const { passphrase } = keysAndPassphrases[aKey];
+					this.signatures.push(
+						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+					);
+				} else {
+					// Push an empty signature if a passphrase is missing
+					this.signatures.push('');
+				}
+			}
+			this._id = getId(this.getBytes());
+
+			return;
+		}
+
+		return;
 	}
 
-	public sign(passphrase: string, secondPassphrase?: string): void {
-		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-
-		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
-			throw new Error(
-				'Transaction senderPublicKey does not match public key from passphrase',
-			);
-		}
-
-		this._senderPublicKey = publicKey;
-
-		this._signature = undefined;
-		this._signSignature = undefined;
-
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error('Network identifier is required to sign a transaction ');
-		}
-
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			this.getBytes(),
-		]);
-
-		this._signature = signData(
-			hash(transactionWithNetworkIdentifierBytes),
-			passphrase,
+	public getBasicBytes(): Buffer {
+		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
+		const transactionNonce = intToBuffer(
+			this.nonce.toString(),
+			BYTESIZES.NONCE,
 		);
 
-		if (secondPassphrase) {
-			this._signSignature = signData(
-				hash(
-					Buffer.concat([
-						transactionWithNetworkIdentifierBytes,
-						hexToBuffer(this._signature),
-					]),
-				),
-				secondPassphrase,
-			);
-		}
-
-		this._id = getId(this.getBytes());
-	}
-
-	protected getBasicBytes(): Buffer {
-		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
-		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntBE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
+		const transactionFee = intToBuffer(this.fee.toString(), BYTESIZES.FEE);
 
 		return Buffer.concat([
 			transactionType,
-			transactionTimestamp,
+			transactionNonce,
 			transactionSenderPublicKey,
+			transactionFee,
 			this.assetToBytes(),
 		]);
 	}
@@ -579,39 +473,6 @@ export abstract class BaseTransaction {
 		 */
 
 		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
-	}
-
-	private _verify(sender: Account): ReadonlyArray<TransactionError> {
-		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error(
-				'Network identifier is required to verify a transaction ',
-			);
-		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			transactionBytes,
-		]);
-		const secondSignatureTxBytes = Buffer.concat([
-			transactionWithNetworkIdentifierBytes,
-			hexToBuffer(this.signature),
-		]);
-
-		// Verify Basic state
-		return [
-			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
-			verifyBalance(this.id, sender, this.fee),
-			verifySecondSignature(
-				this.id,
-				sender,
-				this.signSignature,
-				secondSignatureTxBytes,
-			),
-		].filter(Boolean) as ReadonlyArray<TransactionError>;
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {

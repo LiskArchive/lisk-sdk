@@ -1,0 +1,67 @@
+{
+	"title": "Valid multi-signature registration",
+	"summary": "A valid multi-signature registration equivalent to 2nd signature",
+	"config": "devnet",
+	"runner": "multisignature_registration_transaction",
+	"handler": "multisignature_registration_2nd_sig_equivalent_transaction",
+	"testCases": {
+		"input": {
+			"account": {
+				"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+				"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+				"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+				"address": "18141291412139607230L"
+			},
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+			"members": {
+				"mandatoryOne": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"address": "18141291412139607230L"
+				},
+				"mandatoryTwo": {
+					"passphrase": "oyster observe cinnamon elder rose judge baby length again subway pill plate",
+					"privateKey": "ffa879f56c04b9293bc830ef29c53c8871fb892717be9d7e75fc89b507eba279ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d",
+					"publicKey": "ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d",
+					"address": "1180031571206036491L"
+				}
+			},
+			"transaction": {
+				"senderPublicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+				"nonce": "1",
+				"fee": "1500000000",
+				"type": 12,
+				"asset": {
+					"mandatoryKeys": [
+						"0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+						"ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d"
+					],
+					"optionalKeys": [],
+					"numberOfSignatures": 2
+				},
+				"signatures": []
+			}
+		},
+		"output": {
+			"senderPublicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+			"nonce": "1",
+			"fee": "1500000000",
+			"type": 12,
+			"asset": {
+				"mandatoryKeys": [
+					"0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d"
+				],
+				"optionalKeys": [],
+				"numberOfSignatures": 2
+			},
+			"signatures": [
+				"e8d3195c278ad36ecf8cff1c6feeca500a975a50802f6e9a94b4755e7faebeb923390739f4df289dc29aeb179c01153bfda0d7e9373f5c31e42f82773f410607",
+				"e8d3195c278ad36ecf8cff1c6feeca500a975a50802f6e9a94b4755e7faebeb923390739f4df289dc29aeb179c01153bfda0d7e9373f5c31e42f82773f410607",
+				"4decf92301416b114a1cfe962e62258a1db065d52645f04468446068e201b82dec80cd53fc07d8883b532159e5d9d64d92f2ddafc3f8471d8d9a609aaf862a02"
+			],
+			"id": "6267499774623566363"
+		}
+	}
+}

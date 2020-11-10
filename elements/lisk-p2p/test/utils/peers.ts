@@ -18,7 +18,7 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 } from '../../src/constants';
 import { Peer } from '../../src/peer';
-import { P2PPeerInfo } from '../../src/p2p_types';
+import { P2PPeerInfo } from '../../src/types';
 import { assignInternalInfo } from '../../src/utils';
 
 export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
@@ -90,7 +90,7 @@ export const initPeerInfoListWithSuffix = (
 	qty: number,
 ): ReadonlyArray<P2PPeerInfo> => {
 	let peerInfos = [];
-	for (let i = 0; i < qty; i++) {
+	for (let i = 1; i <= qty; i++) {
 		peerInfos.push({
 			peerId: `${i % 255}.${ipSuffix}:${5000 + (i % 40000)}`,
 			ipAddress: `${i % 255}.${ipSuffix}`,

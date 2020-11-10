@@ -1,3 +1,19 @@
+/*
+ * LiskHQ/lisk-commander
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fsExtra from 'fs-extra';
 import {
@@ -49,9 +65,7 @@ describe('cache node utils', () => {
 
 			return expect(
 				isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET),
-			).to.rejectedWith(
-				"TypeError: Cannot destructure property `cache` of 'undefined' or 'null'.",
-			);
+			).to.rejectedWith('Cache config is not found.');
 		});
 	});
 
@@ -141,7 +155,9 @@ describe('cache node utils', () => {
 		describe('when installation exists', () => {
 			let workerProcessStub: SinonStub;
 			beforeEach(() => {
-				workerProcessStub = sandbox.stub(workerProcess, 'exec');
+				workerProcessStub = sandbox
+					.stub(workerProcess, 'exec')
+					.resolves({} as any);
 			});
 
 			it('should stop successfully when password is empty', async () => {
@@ -189,11 +205,11 @@ describe('cache node utils', () => {
 			});
 
 			it('should throw error when failed get cache config', () => {
-				configStub.resolves({});
+				configStub.rejects(new Error('Fail to get config.'));
 
 				return expect(
 					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
-				).to.rejectedWith('Error: TypeError: Cannot destructure property');
+				).to.rejectedWith('Fail to get config.');
 			});
 		});
 	});

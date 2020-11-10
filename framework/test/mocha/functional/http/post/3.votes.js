@@ -37,7 +37,7 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { FEES, ACTIVE_DELEGATES } = global.constants;
+const { activeDelegates } = global.constants;
 const { NORMALIZER, MAX_VOTES_PER_TRANSACTION } = global.__testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -72,34 +72,46 @@ describe('POST /api/transactions (type 3) votes', () => {
 	// Second Scenario
 	const accountMaxVotesPerAccount = randomUtil.account();
 	const delegatesMaxVotesPerAccount = [];
+	// To validate minimum remaining balance check
+	const minRemainingBalance = BigInt('5000000');
 
 	before(() => {
 		const transactions = [];
 		const transaction1 = transfer({
+			fee: '129001',
+			nonce: '0',
 			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: delegateAccount.address,
 		});
 		const transaction2 = transfer({
+			fee: '129001',
+			nonce: '0',
 			networkIdentifier,
-			amount: FEES.VOTE,
+			amount: (BigInt('200000000') + minRemainingBalance).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		const transaction3 = transfer({
+			fee: '129001',
+			nonce: '0',
 			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFixtures.existingDelegate.address,
 		});
 		const transaction4 = transfer({
+			nonce: '0',
+			fee: '129001',
 			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerTransaction.address,
 		});
 		const transaction5 = transfer({
+			nonce: '0',
+			fee: '129001',
 			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
@@ -133,8 +145,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 					const tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
 					const transfer1 = transfer({
+						nonce: '0',
+						fee: '129001',
 						networkIdentifier,
-						amount: FEES.DELEGATE,
+						amount: (BigInt('2000000000') + minRemainingBalance).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -160,12 +174,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				const transactionsCreditMaxVotesPerAccount = [];
 				const promisesCreditsMaxVotesPerAccount = [];
-				for (let i = 0; i < ACTIVE_DELEGATES; i++) {
+				for (let i = 0; i < activeDelegates; i++) {
 					const tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					const transfer2 = transfer({
+						nonce: '0',
+						fee: '129001',
 						networkIdentifier,
-						amount: FEES.DELEGATE,
+						amount: (BigInt('2000000000') + minRemainingBalance).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -192,6 +208,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				transactionsToWaitFor = [];
 				const delegateRegistration = registerDelegate({
+					nonce: '0',
+					fee: '2500000000',
 					networkIdentifier,
 					passphrase: delegateAccount.passphrase,
 					username: delegateAccount.username,
@@ -206,6 +224,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 				const transactionsDelegateMaxForPerTransaction = [];
 				for (let i = 0; i < MAX_VOTES_PER_TRANSACTION; i++) {
 					const delegateRegistration = registerDelegate({
+						nonce: '0',
+						fee: '2500000000',
 						networkIdentifier,
 						passphrase: delegatesMaxVotesPerTransaction[i].passphrase,
 						username: delegatesMaxVotesPerTransaction[i].username,
@@ -232,8 +252,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				const transactionsDelegateMaxVotesPerAccount = [];
 				const promisesDelegatesMaxVotesPerAccount = [];
-				for (let i = 0; i < ACTIVE_DELEGATES; i++) {
+				for (let i = 0; i < activeDelegates; i++) {
 					const delegateRegistration = registerDelegate({
+						nonce: '0',
+						fee: '2500000000',
 						networkIdentifier,
 						passphrase: delegatesMaxVotesPerAccount[i].passphrase,
 						username: delegatesMaxVotesPerAccount[i].username,
@@ -269,6 +291,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 	describe('transactions processing', () => {
 		it('using invalid publicKey should fail', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -301,6 +325,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('using invalid vote length (1 extra character) should fail', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -329,6 +355,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('using invalid vote operator "x" should fail', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -357,6 +385,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('using no vote operator should fail', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -385,6 +415,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('using a null publicKey inside votes should fail', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -414,6 +446,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 		it('upvoting with no funds should fail', async () => {
 			accountNoFunds = randomUtil.account();
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountNoFunds.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -427,8 +461,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0].message).to.be.equal(
-					`Account does not have enough LSK: ${accountNoFunds.address}, balance: 0`,
+				expect(res.body.errors[0].message).to.include(
+					'Account does not have enough minimum remaining LSK',
 				);
 				badTransactions.push(transaction);
 			});
@@ -436,6 +470,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('upvoting non delegate should be fail', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMinimalFunds.passphrase,
 				votes: [`${accountMinimalFunds.publicKey}`],
@@ -460,6 +496,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 			const networkIdentifierOtherNetwork =
 				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
 			const transactionFromDifferentNetwork = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier: networkIdentifierOtherNetwork,
 				passphrase: accountMinimalFunds.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -470,7 +508,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.errors[0].message).to.include(
-					`Failed to validate signature ${transactionFromDifferentNetwork.signature}`,
+					`Failed to validate signature ${transactionFromDifferentNetwork.signatures}`,
 				);
 				badTransactions.push(transactionFromDifferentNetwork);
 			});
@@ -478,6 +516,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('upvoting with minimal required amount of funds should be ok', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMinimalFunds.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -491,6 +531,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('downvoting not voted delegate should fail', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -513,6 +555,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('upvoting with valid params should be ok', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -526,6 +570,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('self upvoting with valid params should be ok', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${delegateAccount.publicKey}`],
@@ -539,6 +585,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it(`upvoting ${MAX_VOTES_PER_TRANSACTION} delegates (maximum votes per transaction) at once should be ok`, async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerTransaction.passphrase,
 				votes: delegatesMaxVotesPerTransaction.map(delegate => {
@@ -555,6 +603,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 		it(`upvoting ${MAX_VOTES_PER_TRANSACTION +
 			1} delegates (maximum votes per transaction + 1) at once should fail`, async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount
@@ -579,8 +629,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`upvoting ${ACTIVE_DELEGATES} delegates (number of actived delegates) separately should be ok`, async () => {
+		it(`upvoting ${activeDelegates} delegates (number of actived delegates) separately should be ok`, async () => {
 			const transaction1 = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(0, 33).map(delegate => {
@@ -588,6 +640,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 				}),
 			});
 			const transaction2 = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(33, 66).map(delegate => {
@@ -595,6 +649,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 				}),
 			});
 			const transaction3 = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(66, 99).map(delegate => {
@@ -602,6 +658,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 				}),
 			});
 			const transaction4 = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(99, 102).map(delegate => {
@@ -636,6 +694,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 	describe('validation', () => {
 		it('upvoting same delegate twice should fail', async () => {
 			transaction = castVotes({
+				nonce: '1',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -658,6 +718,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('downvoting voted delegate should be ok', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -671,6 +733,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it('self downvoting should be ok', async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: delegateAccount.passphrase,
 				unvotes: [`${delegateAccount.publicKey}`],
@@ -682,8 +746,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`exceeding maximum of ${ACTIVE_DELEGATES} votes (number of actived delegates + 1) should fail`, async () => {
+		it(`exceeding maximum of ${activeDelegates} votes (number of actived delegates + 1) should fail`, async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -706,6 +772,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 		it(`downvoting ${MAX_VOTES_PER_TRANSACTION} delegates (maximum votes per transaction) at once should be ok`, async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerTransaction.passphrase,
 				unvotes: delegatesMaxVotesPerTransaction.map(delegate => {
@@ -722,6 +790,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 		it(`downvoting ${MAX_VOTES_PER_TRANSACTION +
 			1} delegates (maximum votes per transaction + 1) at once should fail`, async () => {
 			transaction = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(0, 34).map(delegate => {
@@ -744,8 +814,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`downvoting ${ACTIVE_DELEGATES} delegates (number of actived delegates) separately should be ok`, async () => {
+		it(`downvoting ${activeDelegates} delegates (number of actived delegates) separately should be ok`, async () => {
 			const transaction1 = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(0, 33).map(delegate => {
@@ -753,6 +825,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 				}),
 			});
 			const transaction2 = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(33, 66).map(delegate => {
@@ -760,6 +834,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 				}),
 			});
 			const transaction3 = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(66, 99).map(delegate => {
@@ -767,6 +843,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 				}),
 			});
 			const transaction4 = castVotes({
+				nonce: '0',
+				fee: '100000000',
 				networkIdentifier,
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(99, 102).map(delegate => {

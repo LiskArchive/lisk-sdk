@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const BigNum = require('@liskhq/bignum');
 const ApiError = require('../api_error');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
@@ -38,13 +37,14 @@ const _parseBlock = raw => {
 		totalAmount: raw.totalAmount,
 		totalFee: raw.totalFee,
 		reward: raw.reward,
+		seedReveal: raw.seedReveal,
 		payloadLength: parseInt(raw.payloadLength, 10),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
 		generatorAddress: getAddressFromPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
 		confirmations: parseInt(raw.confirmations, 10),
-		totalForged: new BigNum(raw.totalFee).plus(raw.reward).toString(),
+		totalForged: (BigInt(raw.totalFee) + BigInt(raw.reward)).toString(),
 		maxHeightPrevoted: raw.maxHeightPrevoted,
 		maxHeightPreviouslyForged: raw.maxHeightPreviouslyForged,
 	};

@@ -15,11 +15,9 @@
 import { BaseTransaction } from '../../src/base_transaction';
 import { TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
-import { TRANSFER_FEE } from '../../src/constants';
 
 export class TestTransaction extends BaseTransaction {
-	public static TYPE = 0;
-	public static FEE = TRANSFER_FEE.toString();
+	public static TYPE = 8;
 
 	public assetToJSON(): object {
 		return this.asset;
@@ -37,11 +35,11 @@ export class TestTransaction extends BaseTransaction {
 		return [];
 	}
 
-	public applyAsset() {
+	public async applyAsset() {
 		return [];
 	}
 
-	public undoAsset() {
+	public async undoAsset() {
 		return [];
 	}
 
@@ -61,11 +59,11 @@ export class TestTransactionBasicImpl extends BaseTransaction {
 		return [];
 	}
 
-	public applyAsset() {
+	public async applyAsset() {
 		return [];
 	}
 
-	public undoAsset() {
+	public async undoAsset() {
 		return [];
 	}
 }

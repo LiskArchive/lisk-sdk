@@ -21,7 +21,6 @@ const {
 	castVotes,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
@@ -35,7 +34,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/voters', () => {
@@ -58,11 +56,10 @@ describe('GET /api/voters', () => {
 			describe('when params are not defined', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votersEndpoint.makeRequest({}, 400).then(res => {
-						expect(res.body.errors).to.have.length(4);
+						expect(res.body.errors).to.have.length(3);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
 					});
 				});
 			});
@@ -72,11 +69,10 @@ describe('GET /api/voters', () => {
 					return votersEndpoint
 						.makeRequest({ sort: 'publicKey:asc' }, 400)
 						.then(res => {
-							expect(res.body.errors).to.have.length(4);
+							expect(res.body.errors).to.have.length(3);
 							expectSwaggerParamError(res, 'username');
 							expectSwaggerParamError(res, 'address');
 							expectSwaggerParamError(res, 'publicKey');
-							expectSwaggerParamError(res, 'secondPublicKey');
 						});
 				});
 			});
@@ -84,11 +80,10 @@ describe('GET /api/voters', () => {
 			describe('when only offset param provided', () => {
 				it('should fail with error message requiring any of param', async () => {
 					return votersEndpoint.makeRequest({ offset: 1 }, 400).then(res => {
-						expect(res.body.errors).to.have.length(4);
+						expect(res.body.errors).to.have.length(3);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
 					});
 				});
 			});
@@ -98,11 +93,10 @@ describe('GET /api/voters', () => {
 					return votersEndpoint
 						.makeRequest({ sort: 'publicKey:asc' }, 400)
 						.then(res => {
-							expect(res.body.errors).to.have.length(4);
+							expect(res.body.errors).to.have.length(3);
 							expectSwaggerParamError(res, 'username');
 							expectSwaggerParamError(res, 'address');
 							expectSwaggerParamError(res, 'publicKey');
-							expectSwaggerParamError(res, 'secondPublicKey');
 						});
 				});
 			});
@@ -148,11 +142,10 @@ describe('GET /api/voters', () => {
 						400,
 					)
 					.then(res => {
-						expect(res.body.errors).to.have.length(4);
+						expect(res.body.errors).to.have.length(3);
 						expectSwaggerParamError(res, 'username');
 						expectSwaggerParamError(res, 'address');
 						expectSwaggerParamError(res, 'publicKey');
-						expectSwaggerParamError(res, 'secondPublicKey');
 					});
 			});
 
@@ -206,34 +199,6 @@ describe('GET /api/voters', () => {
 				return votersEndpoint.makeRequest(
 					{
 						publicKey:
-							'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8',
-					},
-					404,
-				);
-			});
-		});
-
-		describe('secondPublicKey', () => {
-			it('using no secondPublicKey should fail', async () => {
-				return votersEndpoint
-					.makeRequest({ secondPublicKey: '' }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'secondPublicKey');
-					});
-			});
-
-			it('using invalid secondPublicKey should fail', async () => {
-				return votersEndpoint
-					.makeRequest({ secondPublicKey: 'invalidSecondPublicKey' }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'secondPublicKey');
-					});
-			});
-
-			it('using valid inexistent secondPublicKey should return empty response and code = 404', async () => {
-				return votersEndpoint.makeRequest(
-					{
-						secondPublicKey:
 							'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8',
 					},
 					404,
@@ -328,11 +293,16 @@ describe('GET /api/voters', () => {
 			const validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				const amount = new BigNum(FEES.DELEGATE)
-					.plus(FEES.VOTE)
-					.plus(FEES.SECOND_SIGNATURE)
-					.toString();
+				// To by-pass minimum remaining balance limit
+				const minRemainingBalance = BigInt('5000000');
+				const amount = (
+					BigInt('500000000') +
+					BigInt('100000000') +
+					minRemainingBalance
+				).toString();
 				const enrichExtraDelegateVoterTransaction = transfer({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
 					amount,
 					passphrase: accountFixtures.genesis.passphrase,
@@ -340,6 +310,8 @@ describe('GET /api/voters', () => {
 				});
 
 				const registerExtraVoterAsADelegateTransaction = registerDelegate({
+					nonce: '0',
+					fee: '2500000000',
 					networkIdentifier,
 					passphrase: validExtraDelegateVoter.passphrase,
 					username: randomstring.generate({
@@ -350,6 +322,8 @@ describe('GET /api/voters', () => {
 				});
 
 				const voteByExtraDelegateVoterTransaction = castVotes({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
 					passphrase: validExtraDelegateVoter.passphrase,
 					votes: [`${validVotedDelegate.publicKey}`],
@@ -451,7 +425,7 @@ describe('GET /api/voters', () => {
 								);
 								expect(
 									_.map(res.body.data.voters, 'balance').sort((a, b) =>
-										new BigNum(a).minus(b).toNumber(),
+										Number(BigInt(a) - BigInt(b)),
 									),
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
@@ -474,7 +448,7 @@ describe('GET /api/voters', () => {
 
 								expect(
 									_.map(res.body.data.voters, 'balance')
-										.sort((a, b) => new BigNum(a).minus(b).toNumber())
+										.sort((a, b) => Number(BigInt(a) - BigInt(b)))
 										.reverse(),
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});

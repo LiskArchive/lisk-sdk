@@ -29,9 +29,7 @@ const createHeader = (text: string): string => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
 const messageHeader = createHeader('MESSAGE');
 const publicKeyHeader = createHeader('PUBLIC KEY');
-const secondPublicKeyHeader = createHeader('SECOND PUBLIC KEY');
 const signatureHeader = createHeader('SIGNATURE');
-const secondSignatureHeader = createHeader('SECOND SIGNATURE');
 const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 
 const SIGNED_MESSAGE_PREFIX_BYTES = Buffer.from(SIGNED_MESSAGE_PREFIX, 'utf8');
@@ -97,90 +95,9 @@ export const verifyMessageWithPublicKey = ({
 	return verifyDetached(msgBytes, signatureBytes, publicKeyBytes);
 };
 
-export interface SignedMessageWithTwoPassphrases {
+export interface SignedMessage {
 	readonly message: string;
 	readonly publicKey: string;
-	readonly secondPublicKey: string;
-	readonly secondSignature: string;
-	readonly signature: string;
-}
-
-export const signMessageWithTwoPassphrases = (
-	message: string,
-	passphrase: string,
-	secondPassphrase: string,
-): SignedMessageWithTwoPassphrases => {
-	const msgBytes = digestMessage(message);
-	const keypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	const secondKeypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(
-		secondPassphrase,
-	);
-
-	const signature = signDetached(msgBytes, keypairBytes.privateKeyBytes);
-	const secondSignature = signDetached(
-		msgBytes,
-		secondKeypairBytes.privateKeyBytes,
-	);
-
-	return {
-		message,
-		publicKey: bufferToHex(keypairBytes.publicKeyBytes),
-		secondPublicKey: bufferToHex(secondKeypairBytes.publicKeyBytes),
-		signature: bufferToHex(signature),
-		secondSignature: bufferToHex(secondSignature),
-	};
-};
-
-export const verifyMessageWithTwoPublicKeys = ({
-	message,
-	signature,
-	secondSignature,
-	publicKey,
-	secondPublicKey,
-}: SignedMessageWithTwoPassphrases) => {
-	const messageBytes = digestMessage(message);
-	const signatureBytes = hexToBuffer(signature);
-	const secondSignatureBytes = hexToBuffer(secondSignature);
-	const publicKeyBytes = hexToBuffer(publicKey);
-	const secondPublicKeyBytes = hexToBuffer(secondPublicKey);
-
-	if (signatureBytes.length !== NACL_SIGN_SIGNATURE_LENGTH) {
-		throw new Error(
-			`Invalid first signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH}-byte signature`,
-		);
-	}
-
-	if (secondSignatureBytes.length !== NACL_SIGN_SIGNATURE_LENGTH) {
-		throw new Error(
-			`Invalid second signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH}-byte signature`,
-		);
-	}
-
-	if (publicKeyBytes.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
-		throw new Error(
-			`Invalid first publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH}-byte publicKey`,
-		);
-	}
-
-	if (secondPublicKeyBytes.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
-		throw new Error(
-			`Invalid second publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH}-byte publicKey`,
-		);
-	}
-
-	const verifyFirstSignature = () =>
-		verifyDetached(messageBytes, signatureBytes, publicKeyBytes);
-	const verifySecondSignature = () =>
-		verifyDetached(messageBytes, secondSignatureBytes, secondPublicKeyBytes);
-
-	return verifyFirstSignature() && verifySecondSignature();
-};
-
-export interface SingleOrDoubleSignedMessage {
-	readonly message: string;
-	readonly publicKey: string;
-	readonly secondPublicKey?: string;
-	readonly secondSignature?: string;
 	readonly signature: string;
 }
 
@@ -188,21 +105,15 @@ export const printSignedMessage = ({
 	message,
 	signature,
 	publicKey,
-	secondSignature,
-	secondPublicKey,
-}: SingleOrDoubleSignedMessage): string =>
+}: SignedMessage): string =>
 	[
 		signedMessageHeader,
 		messageHeader,
 		message,
 		publicKeyHeader,
 		publicKey,
-		secondPublicKey ? secondPublicKeyHeader : undefined,
-		secondPublicKey,
 		signatureHeader,
 		signature,
-		secondSignature ? secondSignatureHeader : undefined,
-		secondSignature,
 		signatureFooter,
 	]
 		.filter(Boolean)
@@ -211,13 +122,8 @@ export const printSignedMessage = ({
 export const signAndPrintMessage = (
 	message: string,
 	passphrase: string,
-	secondPassphrase?: string,
 ): string => {
-	const signedMessage:
-		| SignedMessageWithOnePassphrase
-		| SignedMessageWithTwoPassphrases = secondPassphrase
-		? signMessageWithTwoPassphrases(message, passphrase, secondPassphrase)
-		: signMessageWithPassphrase(message, passphrase);
+	const signedMessage = signMessageWithPassphrase(message, passphrase);
 
 	return printSignedMessage(signedMessage);
 };

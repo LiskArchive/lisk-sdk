@@ -34,7 +34,6 @@ function TransactionsController(scope) {
 function transactionFormatter(transaction) {
 	const result = transaction;
 	result.senderId = result.senderId || '';
-	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
 	if (TRANSACTION_TYPES_DELEGATE.includes(transaction.type)) {
 		result.asset.publicKey = result.senderPublicKey;
@@ -61,8 +60,6 @@ TransactionsController.getTransactions = async (context, next) => {
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
 		blockHeight: params.height.value,
-		timestamp_gte: params.fromTimestamp.value,
-		timestamp_lte: params.toTimestamp.value,
 		amount_gte: params.minAmount.value,
 		amount_lte: params.maxAmount.value,
 		data_like: params.data.value,
@@ -110,7 +107,7 @@ TransactionsController.postTransaction = async (context, next) => {
 	let error;
 
 	try {
-		const data = await channel.invoke('chain:postTransaction', { transaction });
+		const data = await channel.invoke('app:postTransaction', { transaction });
 		if (!data.errors) {
 			return next(null, {
 				data: { message: 'Transaction(s) accepted' },

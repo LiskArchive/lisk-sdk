@@ -24,7 +24,7 @@ describe('GET /node', () => {
 	describe('/constants', () => {
 		const endPoint = new SwaggerEndpoint('GET /node/constants 200');
 		const devnetNetworkId =
-			'11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7';
+			'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 
 		let constantsResponse;
 
@@ -34,7 +34,7 @@ describe('GET /node', () => {
 			});
 		});
 
-		it('should return a result containing networkId = "11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7"', async () => {
+		it('should return a result containing networkId = "93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e"', async () => {
 			return expect(constantsResponse.networkId).to.be.equal(devnetNetworkId);
 		});
 
@@ -67,46 +67,6 @@ describe('GET /node', () => {
 				.to.have.property('protocolVersion')
 				.to.match(/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/);
 		});
-
-		it('should return a result containing fees.send = 10000000', async () => {
-			return expect(constantsResponse.fees.send).to.be.equal('10000000');
-		});
-
-		it('should return a result containing fees.vote = 100000000', async () => {
-			return expect(constantsResponse.fees.vote).to.be.equal('100000000');
-		});
-
-		it('should return a result containing fees.secondSignature = 500000000', async () => {
-			return expect(constantsResponse.fees.secondSignature).to.be.equal(
-				'500000000',
-			);
-		});
-
-		it('should return a result containing fees.delegate = 2500000000', async () => {
-			return expect(constantsResponse.fees.delegate).to.be.equal('2500000000');
-		});
-
-		it('should return a result containing fees.multisignature = 500000000', async () => {
-			return expect(constantsResponse.fees.multisignature).to.be.equal(
-				'500000000',
-			);
-		});
-
-		it('should return a result containing fees.dappRegistration = 2500000000', async () => {
-			return expect(constantsResponse.fees.dappRegistration).to.be.equal(
-				'2500000000',
-			);
-		});
-
-		it('should return a result containing fees.dappWithdrawal = 10000000', async () => {
-			return expect(constantsResponse.fees.dappWithdrawal).to.be.equal(
-				'10000000',
-			);
-		});
-
-		it('should return a result containing fees.dappDeposit = 10000000', async () => {
-			return expect(constantsResponse.fees.dappDeposit).to.be.equal('10000000');
-		});
 	});
 
 	describe('/status', () => {
@@ -127,7 +87,7 @@ describe('GET /node', () => {
 			it('using no params should return full list of internal forgers', async () => {
 				return forgingEndpoint.makeRequest({}, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(
-						__testContext.config.modules.chain.forging.delegates.length,
+						__testContext.config.forging.delegates.length,
 					);
 				});
 			});
@@ -149,8 +109,7 @@ describe('GET /node', () => {
 			});
 
 			it('using existing publicKey should be ok', async () => {
-				const publicKey =
-					__testContext.config.modules.chain.forging.delegates[0].publicKey;
+				const publicKey = __testContext.config.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
 					expect(res.body.data).to.have.length(1);
@@ -159,8 +118,7 @@ describe('GET /node', () => {
 			});
 
 			it('using available publicKey should be ok', async () => {
-				const publicKey =
-					__testContext.config.modules.chain.forging.delegates[0].publicKey;
+				const publicKey = __testContext.config.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
 					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
@@ -177,7 +135,7 @@ describe('GET /node', () => {
 			it('should return only forging delegates', async () => {
 				return forgingEndpoint.makeRequest({ forging: true }, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(
-						__testContext.config.modules.chain.forging.delegates.length,
+						__testContext.config.forging.delegates.length,
 					);
 					expect(
 						res.body.data.filter(d => d.forging === false).length,

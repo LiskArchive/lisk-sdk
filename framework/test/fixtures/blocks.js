@@ -25,6 +25,7 @@ const Block = stampit({
 		blockSignature:
 			'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
 		generatorPublicKey: '',
+		seedReveal: '00000000000000000000000000000000',
 		numberOfTransactions: 2,
 		payloadHash:
 			'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
@@ -91,6 +92,7 @@ const BlockHeader = stampit({
 	props: {
 		blockId: '',
 		height: 0,
+		seedReveal: '00000000000000000000000000000000',
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
 		delegateMinHeightActive: 203,

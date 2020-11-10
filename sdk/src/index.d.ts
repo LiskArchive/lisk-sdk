@@ -13,7 +13,6 @@
  */
 
 /* tslint:disable */
-import * as BigNum from '@liskhq/bignum';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import * as validator from '@liskhq/lisk-validator';
@@ -60,7 +59,6 @@ export {
 	version,
 	systemDirs,
 	configurator,
-	BigNum,
 	cryptography,
 	transactions,
 	validator,

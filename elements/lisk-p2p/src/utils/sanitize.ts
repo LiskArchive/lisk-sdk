@@ -24,7 +24,7 @@ import {
 	P2PPeerInfo,
 	PeerLists,
 	ProtocolPeerInfo,
-} from '../p2p_types';
+} from '../types';
 
 import { constructPeerId, getNetgroup } from './misc';
 

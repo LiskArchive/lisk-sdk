@@ -75,6 +75,14 @@ class InMemoryChannel extends BaseChannel {
 		return this.bus.invoke(action.serialize());
 	}
 
+	async invokeFromNetwork(remoteMethod, params) {
+		return this.invoke(`app:${remoteMethod}`, params);
+	}
+
+	async publishToNetwork(actionName, data) {
+		return this.invoke(`app:${actionName}`, data);
+	}
+
 	async invokePublic(actionName, params) {
 		const action =
 			typeof actionName === 'string'

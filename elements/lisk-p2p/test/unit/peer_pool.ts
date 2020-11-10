@@ -24,7 +24,7 @@ import {
 	selectPeersForSend,
 } from '../../src/utils';
 // For stubbing
-import { P2PPeerInfo, P2PNodeInfo } from '../../src/p2p_types';
+import { P2PPeerInfo, P2PNodeInfo } from '../../src/types';
 import { initPeerList } from '../utils/peers';
 import {
 	Peer,
@@ -52,10 +52,22 @@ import {
 } from '../../src/constants';
 import { constructPeerId } from '../../src/utils';
 import { errors } from '../../src';
+import { PeerBookConfig, PeerBook } from '../../src/peer_book/peer_book';
 
 const { RequestFailError, SendFailError } = errors;
 
 describe('peerPool', () => {
+	const peerBookConfig: PeerBookConfig = {
+		sanitizedPeerLists: {
+			blacklistedIPs: [],
+			seedPeers: [],
+			fixedPeers: [],
+			whitelisted: [],
+			previousPeers: [],
+		},
+		secret: DEFAULT_RANDOM_SECRET,
+	};
+
 	const peerPoolConfig = {
 		connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 		ackTimeout: DEFAULT_ACK_TIMEOUT,
@@ -78,18 +90,7 @@ describe('peerPool', () => {
 		maxPeerInfoSize: 10000,
 		maxPeerDiscoveryResponseLength: 1000,
 		secret: DEFAULT_RANDOM_SECRET,
-		peerLists: {
-			blacklistedIPs: [],
-			fixedPeers: [],
-			previousPeers: [],
-			seedPeers: [
-				{
-					ipAddress: '127.0.0.1',
-					wsPort: 5000,
-				},
-			] as Array<P2PPeerInfo>,
-			whitelisted: [],
-		},
+		peerBook: new PeerBook(peerBookConfig),
 	};
 	let peerPool: PeerPool;
 	let peerInfo: P2PPeerInfo;
@@ -144,6 +145,7 @@ describe('peerPool', () => {
 	});
 
 	afterEach(async () => {
+		peerPool.removeAllPeers();
 		jest.clearAllTimers();
 	});
 
@@ -806,6 +808,26 @@ describe('peerPool', () => {
 		});
 	});
 
+	describe('#Ban Peer', () => {
+		beforeEach(async () => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+		});
+
+		it('should call _banPeer on peer', async () => {
+			const penalty = 100;
+			peerPool.applyPenalty({ peerId, penalty });
+
+			expect((peerObject as any)._banPeer).toBeCalled;
+		});
+
+		it('should re-emit _handleBanPeer on PeerPool', async () => {
+			const penalty = 100;
+			peerPool.applyPenalty({ peerId, penalty });
+
+			expect((peerPool as any)._handleBanPeer).toBeCalled;
+		});
+	});
+
 	describe('#getFreeOutboundSlots', () => {
 		beforeEach(async () => {
 			(peerPool as any)._addOutboundPeer(peerObject as any);
@@ -1078,8 +1100,6 @@ describe('peerPool', () => {
 		];
 
 		beforeEach(async () => {
-			(peerPool as any)._peerLists.whitelisted = whitelistedPeers;
-			(peerPool as any)._peerLists.fixedPeers = fixedPeers;
 			(peerPool as any)._peerPoolConfig = {
 				netgroupProtectionRatio: 0,
 				latencyProtectionRatio: 0,

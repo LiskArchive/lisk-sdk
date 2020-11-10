@@ -1,14 +1,16 @@
-import * as BigNum from '@liskhq/bignum';
-
 import {
-	isCsv,
 	isGreaterThanMaxTransactionId,
 	isHexString,
+	isInt32,
+	isInt64,
 	isNullCharacterIncluded,
 	isNumberString,
 	isSignature,
+	isUint32,
+	isUint64,
 	isUsername,
 	isValidFee,
+	isValidNonce,
 	isValidNonTransferAmount,
 	isValidTransferAmount,
 	isValidTransferData,
@@ -43,7 +45,7 @@ export const additionPublicKey = (data: string): boolean => {
 
 export const amount = isNumberString;
 
-export const csv = isCsv;
+export const emptyString = (data: string): boolean => data === '';
 
 export const emptyOrPublicKey = (data: string): boolean => {
 	if (data === null || data === '') {
@@ -61,10 +63,12 @@ export const emptyOrPublicKey = (data: string): boolean => {
 
 export const fee = isValidFee;
 
+export const nonce = isValidNonce;
+
 export const hex = isHexString;
 
 export const id = (data: string): boolean =>
-	isNumberString(data) && !isGreaterThanMaxTransactionId(new BigNum(data));
+	isNumberString(data) && !isGreaterThanMaxTransactionId(BigInt(data));
 
 export const nonTransferAmount = isValidNonTransferAmount;
 
@@ -106,3 +110,15 @@ export const username = isUsername;
 
 export const transferData = (data: string): boolean =>
 	!isNullCharacterIncluded(data) && isValidTransferData(data);
+
+export const int64 = (data: string): boolean =>
+	isNumberString(data) && isInt64(BigInt(data));
+
+export const uint64 = (data: string): boolean =>
+	isNumberString(data) && isUint64(BigInt(data));
+
+export const uint32 = (data: string): boolean =>
+	isNumberString(data) && isUint32(BigInt(data));
+
+export const int32 = (data: string): boolean =>
+	isNumberString(data) && isInt32(BigInt(data));

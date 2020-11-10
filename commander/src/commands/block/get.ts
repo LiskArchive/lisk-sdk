@@ -45,7 +45,7 @@ export default class GetCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { args } = this.parse(GetCommand);
-		const { blockIds: blockIdsStr }: Args = args;
+		const { blockIds: blockIdsStr } = args as Args;
 		const blockIds = blockIdsStr.split(',').filter(Boolean);
 		const req = blockIds.map((blockId: string) => ({
 			query: {

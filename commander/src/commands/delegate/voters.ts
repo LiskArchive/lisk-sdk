@@ -107,7 +107,7 @@ export default class VotersCommand extends BaseCommand {
 			args,
 			flags: { limit: limitStr, offset: offsetStr, sort: sortStr },
 		} = this.parse(VotersCommand);
-		const { usernames: usernamesStr }: Args = args;
+		const { usernames: usernamesStr } = args as Args;
 
 		const usernames = usernamesStr.split(',').filter(Boolean);
 

@@ -14,10 +14,10 @@
 
 'use strict';
 
-const Application = require('./controller/application');
+const Application = require('./application/application');
 const version = require('./version');
-const defaultConfigurator = require('./controller/default_configurator');
-const systemDirs = require('./controller/system_dirs');
+const defaultConfigurator = require('./application/default_configurator');
+const systemDirs = require('./application/system_dirs');
 const BaseModule = require('./modules/base_module');
 
 module.exports = {

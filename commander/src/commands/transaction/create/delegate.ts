@@ -13,34 +13,52 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { registerDelegate } from '@liskhq/lisk-transactions';
+import {
+	registerDelegate,
+	utils as transactionUtils,
+} from '@liskhq/lisk-transactions';
+import { isValidFee, isValidNonce } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
+import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
-import {
-	getInputsFromSources,
-	InputFromSourceOutput,
-} from '../../../utils/input';
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
+import { getPassphraseFromPrompt } from '../../../utils/reader';
 
 interface Args {
+	readonly nonce: string;
+	readonly fee: string;
 	readonly username: string;
 }
 
-const processInputs = (networkIdentifier: string, username: string) => ({
-	passphrase,
-	secondPassphrase,
-}: InputFromSourceOutput) =>
+const processInputs = (
+	nonce: string,
+	fee: string,
+	networkIdentifier: string,
+	username: string,
+	passphrase?: string,
+) =>
 	registerDelegate({
+		nonce,
+		fee,
 		networkIdentifier,
 		passphrase,
-		secondPassphrase,
 		username,
 	});
 
 export default class DelegateCommand extends BaseCommand {
 	static args = [
+		{
+			name: 'nonce',
+			required: true,
+			description: 'Nonce of the transaction.',
+		},
+		{
+			name: 'fee',
+			required: true,
+			description: 'Transaction fee in LSK.',
+		},
 		{
 			name: 'username',
 			required: true,
@@ -52,13 +70,12 @@ export default class DelegateCommand extends BaseCommand {
 	Creates a transaction which will register the account as a delegate candidate if broadcast to the network.
 	`;
 
-	static examples = ['transaction:create:delegate lightcurve'];
+	static examples = ['transaction:create:delegate 1 100 lightcurve'];
 
 	static flags = {
 		...BaseCommand.flags,
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 	};
 
@@ -68,41 +85,51 @@ export default class DelegateCommand extends BaseCommand {
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
-				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
 			},
 		} = this.parse(DelegateCommand);
 
-		const { username }: Args = args;
+		const { nonce, fee, username } = args as Args;
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
 			this.userConfig.api.network,
 		);
-		const processFunction = processInputs(networkIdentifier, username);
+
+		if (!isValidNonce(nonce)) {
+			throw new ValidationError('Enter a valid nonce in number string format.');
+		}
+
+		if (Number.isNaN(Number(fee))) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
+		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
+
+		if (!isValidFee(normalizedFee)) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
 
 		if (noSignature) {
-			const noSignatureResult = processFunction({
-				passphrase: undefined,
-				secondPassphrase: undefined,
-			});
+			const noSignatureResult = processInputs(
+				nonce,
+				normalizedFee,
+				networkIdentifier,
+				username,
+			);
 			this.print(noSignatureResult);
 
 			return;
 		}
+		const passphrase =
+			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
-		const inputs = await getInputsFromSources({
-			passphrase: {
-				source: passphraseSource,
-				repeatPrompt: true,
-			},
-			secondPassphrase: !secondPassphraseSource
-				? undefined
-				: {
-						source: secondPassphraseSource,
-						repeatPrompt: true,
-				  },
-		});
-		const result = processFunction(inputs);
+		const result = processInputs(
+			nonce,
+			normalizedFee,
+			networkIdentifier,
+			username,
+			passphrase,
+		);
 		this.print(result);
 	}
 }

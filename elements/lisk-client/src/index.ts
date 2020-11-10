@@ -17,6 +17,13 @@ import * as constantsModule from '@liskhq/lisk-constants';
 import * as cryptographyModule from '@liskhq/lisk-cryptography';
 import * as passphraseModule from '@liskhq/lisk-passphrase';
 import * as transactionsModule from '@liskhq/lisk-transactions';
+import { Buffer as BrowserBuffer } from 'buffer';
+
+if (!global.Buffer) {
+	global.Buffer = BrowserBuffer;
+}
+
+export const { Buffer } = global;
 
 // tslint:disable-next-line variable-name
 export const APIClient = APIClientModule;
@@ -24,7 +31,7 @@ export const constants = constantsModule;
 export const cryptography = cryptographyModule;
 export const passphrase = passphraseModule;
 export const transactions = transactionsModule;
-// Also export as `transacation` for backward compatibility.
+// Also export as `transaction` for backward compatibility.
 // See https://github.com/LiskHQ/lisk-sdk/issues/3925#issuecomment-508664703
 export const transaction = transactionsModule;
 
@@ -35,7 +42,8 @@ export default {
 	cryptography,
 	passphrase,
 	transactions,
-	// Also export as `transacation` for backward compatibility.
+	Buffer,
+	// Also export as `transaction` for backward compatibility.
 	// See https://github.com/LiskHQ/lisk-sdk/issues/3925#issuecomment-508664703
 	transaction: transactions,
 };
