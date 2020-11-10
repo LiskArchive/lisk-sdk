@@ -11,12 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { Server } from 'http';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockHeader, RawBlock, Transaction } from '@liskhq/lisk-chain';
 import {
+	decryptPassphraseWithPassword,
+	parseEncryptedPassphrase,
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPassphrase,
 	signData,
@@ -30,11 +31,8 @@ import {
 	PluginInfo,
 } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
-import * as express from 'express';
-import type { Express } from 'express';
-import * as cors from 'cors';
-import * as rateLimit from 'express-rate-limit';
 import * as Debug from 'debug';
+import { ActionInfoObject } from 'lisk-framework/dist-node/controller/action';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -43,19 +41,29 @@ import {
 	clearBlockHeaders,
 } from './db';
 import * as config from './defaults';
-import * as middlewares from './middlewares';
 import { Options, State } from './types';
-import * as controllers from './controllers';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
 // eslint-disable-next-line new-cap
 const debug = Debug('plugin:report-misbehavior');
 
+const actionParamsSchema = {
+	$id: 'lisk/report_misbehavior/auth',
+	type: 'object',
+	required: ['password', 'enable'],
+	properties: {
+		password: {
+			type: 'string',
+		},
+		enable: {
+			type: 'boolean',
+		},
+	},
+};
+
 export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _pluginDB!: KVStore;
-	private _server!: Server;
-	private _app!: Express;
 	private _options!: Options;
 	private readonly _state: State = { currentHeight: 0 };
 	private _channel!: BaseChannel;
@@ -80,7 +88,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get defaults(): object {
+	public get defaults(): Record<string, unknown> {
 		return config.defaultConfig;
 	}
 
@@ -91,24 +99,60 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 
 	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
-		return {};
+		return {
+			authorize: (action: ActionInfoObject): { result: string } => {
+				const errors = validator.validate(
+					actionParamsSchema,
+					action.params as Record<string, unknown>,
+				);
+
+				if (errors.length) {
+					throw new LiskValidationError([...errors]);
+				}
+
+				if (
+					!this._options.encryptedPassphrase ||
+					typeof this._options.encryptedPassphrase !== 'string'
+				) {
+					throw new Error('Encrypted passphrase string must be set in the config.');
+				}
+
+				const { enable, password } = action.params as Record<string, unknown>;
+
+				try {
+					const parsedEncryptedPassphrase = parseEncryptedPassphrase(
+						this._options.encryptedPassphrase,
+					);
+
+					const passphrase = decryptPassphraseWithPassword(
+						parsedEncryptedPassphrase,
+						password as string,
+					);
+
+					const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
+
+					this._state.publicKey = enable ? publicKey : undefined;
+					this._state.passphrase = enable ? passphrase : undefined;
+					const changedState = enable ? 'enabled' : 'disabled';
+
+					return {
+						result: `Successfully ${changedState} the reporting of misbehavior.`,
+					};
+				} catch (error) {
+					throw new Error('Password given is not valid.');
+				}
+			},
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
-		this._app = express();
 		this._channel = channel;
 		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._clearBlockHeadersInterval = this._options.clearBlockHeadersInterval || 60000;
 		this._pluginDB = await getDBInstance(this._options.dataPath);
-
-		// Start http server
-		this._registerMiddlewares(this._options);
-		this._registerControllers();
-		this._registerAfterMiddlewares(this._options);
 		// Listen to new block and delete block events
 		this._subscribeToChannel();
-		this._server = this._app.listen(this._options.port, '0.0.0.0');
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._clearBlockHeadersIntervalId = setInterval(() => {
 			clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight).catch(error =>
@@ -118,38 +162,9 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	}
 
 	public async unload(): Promise<void> {
-		// eslint-disable-next-line consistent-return
-		if (this._server !== undefined) {
-			await new Promise((resolve, reject) => {
-				this._server.close(err => {
-					if (err) {
-						reject(err);
-						return;
-					}
-					clearInterval(this._clearBlockHeadersIntervalId as NodeJS.Timer);
-					resolve();
-				});
-			});
-		}
+		clearInterval(this._clearBlockHeadersIntervalId as NodeJS.Timer);
 
 		await this._pluginDB.close();
-	}
-
-	// eslint-disable-next-line
-	private _registerControllers(): void {
-		this._app.patch('/api/auth', controllers.auth(this._options, this._state));
-	}
-
-	private _registerMiddlewares(options: Options): void {
-		// Register middlewares
-		this._app.use(cors(options.cors));
-		this._app.use(express.json());
-		this._app.use(rateLimit(options.limits));
-		this._app.use(middlewares.whiteListMiddleware(options));
-	}
-
-	private _registerAfterMiddlewares(_options: Options): void {
-		this._app.use(middlewares.errorMiddleware());
 	}
 
 	private _subscribeToChannel(): void {
@@ -176,7 +191,6 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 					if (decodedBlockHeader.height > this._state.currentHeight) {
 						this._state.currentHeight = decodedBlockHeader.height;
 					}
-
 					const contradictingBlock = await getContradictingBlockHeader(
 						this._pluginDB,
 						decodedBlockHeader,
