@@ -27,31 +27,31 @@ describe('auth action', () => {
 		authorizeAction = reportMisbehaviorPlugin.actions.authorize;
 	});
 
-	it('should disable the reporting when enable=false', async () => {
+	it('should disable the reporting when enable=false', () => {
 		const actionInfoObject = {
 			params: {
 				enable: false,
 				password: '123',
 			},
 		};
-		const response = await authorizeAction(actionInfoObject);
+		const response = authorizeAction(actionInfoObject);
 
 		expect(response.result).toContain('Successfully disabled the reporting of misbehavior.');
 	});
 
-	it('should enable the reporting when enable=true', async () => {
+	it('should enable the reporting when enable=true', () => {
 		const actionInfoObject = {
 			params: {
 				enable: true,
 				password: '123',
 			},
 		};
-		const response = await authorizeAction(actionInfoObject);
+		const response = authorizeAction(actionInfoObject);
 
 		expect(response.result).toContain('Successfully enabled the reporting of misbehavior.');
 	});
 
-	it('should fail when encrypted passphrase is not set', async () => {
+	it('should fail when encrypted passphrase is not set', () => {
 		(reportMisbehaviorPlugin as any)._options.encryptedPassphrase = undefined;
 		const actionInfoObject = {
 			params: {
@@ -60,12 +60,12 @@ describe('auth action', () => {
 			},
 		};
 
-		await expect(authorizeAction(actionInfoObject)).rejects.toThrow(
+		expect(() => authorizeAction(actionInfoObject)).toThrow(
 			'Encrypted passphrase string must be set in the config.',
 		);
 	});
 
-	it('should fail when encrypted passphrase does not match with password given', async () => {
+	it('should fail when encrypted passphrase does not match with password given', () => {
 		const actionInfoObject = {
 			params: {
 				enable: true,
@@ -73,6 +73,6 @@ describe('auth action', () => {
 			},
 		};
 
-		await expect(authorizeAction(actionInfoObject)).rejects.toThrow('Password given is not valid.');
+		expect(() => authorizeAction(actionInfoObject)).toThrow('Password given is not valid.');
 	});
 });
