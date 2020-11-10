@@ -102,7 +102,10 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		return {
 			// eslint-disable-next-line @typescript-eslint/require-await
 			authorize: async (action: ActionInfoObject): Promise<{ result: string }> => {
-				const errors = validator.validate(actionParamsSchema, action.params);
+				const errors = validator.validate(
+					actionParamsSchema,
+					action.params as Record<string, unknown>,
+				);
 
 				if (errors.length) {
 					throw new Error(new LiskValidationError([...errors]).message);
