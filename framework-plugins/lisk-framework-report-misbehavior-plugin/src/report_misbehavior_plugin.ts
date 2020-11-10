@@ -100,8 +100,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {
-			// eslint-disable-next-line @typescript-eslint/require-await
-			authorize: async (action: ActionInfoObject): Promise<{ result: string }> => {
+			authorize: (action: ActionInfoObject): { result: string } => {
 				const errors = validator.validate(
 					actionParamsSchema,
 					action.params as Record<string, unknown>,
