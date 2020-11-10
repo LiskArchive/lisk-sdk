@@ -11,9 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Request, Response } from 'express';
 import { BaseChannel } from 'lisk-framework';
 import { BlockPropagationStats, PeerInfo, SharedState } from '../types';
+
+interface BlockStats {
+	readonly blocks: Record<string, BlockPropagationStats>;
+	readonly averageReceivedBlocks: number;
+	readonly connectedPeers: number;
+}
 
 const getAverageReceivedBlocks = (blocks: { [key: string]: BlockPropagationStats }) => {
 	let totalCount = 0;
@@ -22,20 +27,18 @@ const getAverageReceivedBlocks = (blocks: { [key: string]: BlockPropagationStats
 		totalCount += blockStat.count;
 	}
 
-	return totalCount / Object.keys(blocks).length;
+	return Object.keys(blocks).length ? totalCount / Object.keys(blocks).length : 0;
 };
 
-export const getBlockStats = (channel: BaseChannel, state: SharedState) => async (
-	_req: Request,
-	res: Response,
-): Promise<void> => {
+export const getBlockStats = async (
+	channel: BaseChannel,
+	state: SharedState,
+): Promise<BlockStats> => {
 	const connectedPeers = await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers');
-	res.status(200).json({
-		meta: {},
-		data: {
-			...state.blocks,
-			averageReceivedBlocks: getAverageReceivedBlocks(state.blocks.blocks),
-			connectedPeers: connectedPeers.length,
-		},
-	});
+
+	return {
+		blocks: state.blocks,
+		averageReceivedBlocks: getAverageReceivedBlocks(state.blocks),
+		connectedPeers: connectedPeers.length,
+	};
 };

@@ -11,20 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Request, Response } from 'express';
 import { SharedState } from '../types';
 
-export const getForkStats = (state: SharedState) => async (
-	_req: Request,
-	res: Response,
-	// eslint-disable-next-line @typescript-eslint/require-await
-): Promise<void> => {
-	const { forks } = state;
-	res.json({
-		data: {
-			forkEventCount: forks.forkEventCount,
-			blockHeaders: forks.blockHeaders,
-		},
-		meta: {},
-	});
-};
+interface BlockHeader {
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	blockHeader: object;
+	timeReceived: number;
+}
+
+interface ForkStats {
+	readonly forkEventCount: number;
+	blockHeaders: Record<string, BlockHeader>;
+}
+
+export const getForkStats = (state: SharedState): ForkStats => ({
+	forkEventCount: state.forks.forkEventCount,
+	blockHeaders: state.forks.blockHeaders,
+});
