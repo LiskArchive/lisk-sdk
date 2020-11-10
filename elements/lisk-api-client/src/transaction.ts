@@ -132,7 +132,7 @@ export class Transaction {
 				networkIdentifier,
 				passphrase,
 				options.multisignatureKeys,
-				options?.includeSenderSignature,
+				options.includeSenderSignature,
 			);
 		}
 		return signTransaction(assetSchema, txInput, networkIdentifier, passphrase);
