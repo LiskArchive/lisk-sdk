@@ -187,7 +187,13 @@ export class Bus {
 		const actionFullName = parsedAction.key();
 
 		if (this.actions[actionFullName] === undefined) {
-			throw new Error(`Action '${actionFullName}' is not registered to bus.`);
+			throw new JSONRPC.JSONRPCError(
+				`Action '${actionFullName}' is not registered to bus.`,
+				JSONRPC.errorResponse(
+					parsedAction.id,
+					JSONRPC.internalError(`Action '${actionFullName}' is not registered to bus.`),
+				),
+			);
 		}
 
 		const actionParams = parsedAction.params;
@@ -235,7 +241,13 @@ export class Bus {
 		const notification = parsedEvent.toJSONRPCNotification();
 
 		if (!this.getEvents().includes(eventName)) {
-			throw new Error(`Event ${eventName} is not registered to bus.`);
+			throw new JSONRPC.JSONRPCError(
+				`Event ${eventName} is not registered to bus.`,
+				JSONRPC.errorResponse(
+					null,
+					JSONRPC.internalError(`Event ${eventName} is not registered to bus.`),
+				),
+			);
 		}
 
 		// Communicate through event emitter
@@ -296,7 +308,10 @@ export class Bus {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async cleanup(): Promise<void> {
 		this._emitter.removeAllListeners();
-		this._ipcServer.stop();
+
+		if (this._ipcServer) {
+			this._ipcServer.stop();
+		}
 
 		if (this._wsServer) {
 			this._wsServer.stop();

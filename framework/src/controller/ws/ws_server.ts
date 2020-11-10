@@ -53,7 +53,9 @@ export class WSServer {
 	}
 
 	public stop(): void {
-		this.server.close();
+		if (this.server) {
+			this.server.close();
+		}
 	}
 
 	public broadcast(message: string): void {
