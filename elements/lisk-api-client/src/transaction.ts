@@ -18,7 +18,10 @@ import {
 	signMultiSignatureTransaction,
 	computeMinFee,
 } from '@liskhq/lisk-transactions';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	getAddressFromPublicKey,
+} from '@liskhq/lisk-cryptography';
 import {
 	decodeTransaction,
 	encodeTransaction,
@@ -85,29 +88,27 @@ export class Transaction {
 		if (!txInput.moduleID) {
 			if (!txInput.moduleName) {
 				throw new Error('Missing moduleId and moduleName');
-			} else {
-				const registeredModule = this._nodeInfo.registeredModules.find(
-					module => module.name === input.moduleName,
-				);
-				txInput.moduleID = registeredModule?.id ? registeredModule.id : txInput.moduleID;
 			}
+			const registeredModule = this._nodeInfo.registeredModules.find(
+				module => module.name === input.moduleName,
+			);
+			txInput.moduleID = registeredModule?.id ? registeredModule.id : txInput.moduleID;
 		}
-		if (txInput.assetID === undefined || null) {
+		if (typeof txInput.assetID !== 'number') {
 			if (!txInput.assetName) {
 				throw new Error('Missing assetId and assetName');
-			} else {
-				const registeredAsset = this._nodeInfo.registeredModules.find(
-					asset => asset.name === input.assetName,
-				);
-				txInput.assetID = registeredAsset?.id ? registeredAsset.id : txInput.assetID;
 			}
+			const registeredAsset = this._nodeInfo.registeredModules.find(
+				asset => asset.name === input.assetName,
+			);
+			txInput.assetID = registeredAsset?.id ? registeredAsset.id : txInput.assetID;
 		}
 		if (!options?.nonce && !txInput.nonce) {
 			if (
 				typeof account.sequence !== 'object' ||
 				!(account.sequence as Record<string, unknown>).nonce
 			) {
-				throw new Error('Unspported account type.');
+				throw new Error('Unsupported account type.');
 			}
 			txInput.nonce = (account.sequence as { nonce: bigint }).nonce;
 		}
@@ -146,15 +147,56 @@ export class Transaction {
 	}
 
 	public async getFromPool(): Promise<Record<string, unknown>[]> {
-		return this._channel.invoke('app:getTransactionsFromPool');
+		const transactionsHex = await this._channel.invoke<string[]>('app:getTransactionsFromPool');
+		const decodedTransactions: Record<string, unknown>[] = [];
+		transactionsHex.forEach(transactionHex => {
+			decodedTransactions.push(decodeTransaction(Buffer.from(transactionHex, 'hex'), this._schema));
+		});
+		return decodedTransactions;
 	}
 
-	public sign(
+	public async sign(
 		transaction: Record<string, unknown>,
 		passphrases: string[],
-	): Record<string, unknown> {
+		options?: {
+			includeSenderSignature?: boolean;
+			multisignatureKeys?: {
+				mandatoryKeys: Buffer[];
+				optionalKeys: Buffer[];
+			};
+		},
+	): Promise<Record<string, unknown>> {
 		const assetSchema = getTransactionAssetSchema(transaction, this._schema);
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
+		const address = getAddressFromPublicKey(transaction.senderPublicKey as Buffer);
+		const accountHex = await this._channel.invoke<string>('app:getAccount', {
+			address: address.toString('hex'),
+		});
+		const account = decodeAccount(Buffer.from(accountHex, 'hex'), this._schema);
+		if (account.keys && (account.keys as MultiSignatureKeys).numberOfSignatures > 0) {
+			passphrases.forEach(passphrase =>
+				signMultiSignatureTransaction(
+					assetSchema,
+					transaction,
+					networkIdentifier,
+					passphrase,
+					account.keys as MultiSignatureKeys,
+					options?.includeSenderSignature,
+				),
+			);
+		}
+		if (options?.multisignatureKeys && options?.includeSenderSignature) {
+			passphrases.forEach(passphrase =>
+				signMultiSignatureTransaction(
+					assetSchema,
+					transaction,
+					networkIdentifier,
+					passphrase,
+					options.multisignatureKeys as MultiSignatureKeys,
+					options.includeSenderSignature,
+				),
+			);
+		}
 		return signTransaction(assetSchema, transaction, networkIdentifier, passphrases[0]);
 	}
 
@@ -171,7 +213,7 @@ export class Transaction {
 		return encodeTransaction(transaction, this._schema);
 	}
 
-	public getMinFee(transaction: Record<string, unknown>): bigint {
+	public computeMinFee(transaction: Record<string, unknown>): bigint {
 		const assetSchema = getTransactionAssetSchema(transaction, this._schema);
 		return computeMinFee(assetSchema, transaction);
 	}

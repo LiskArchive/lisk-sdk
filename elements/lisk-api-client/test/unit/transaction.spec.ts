@@ -613,7 +613,7 @@ describe('transaction', () => {
 			.calledWith('app:getTransactionByID')
 			.mockResolvedValue(txHex as never)
 			.calledWith('app:getTransactionsFromPool')
-			.mockResolvedValue(txHex as never);
+			.mockResolvedValue([txHex] as never);
 
 		transaction = new Transaction(channelMock, schema, nodeInfo);
 	});
@@ -689,7 +689,7 @@ describe('transaction', () => {
 				const decodedTx = transaction.decode(encodedTx);
 
 				// Assert
-				expect(decodedTx).toEqual(tx);
+				expect(decodedTx).toMatchSnapshot();
 			});
 		});
 
@@ -703,10 +703,10 @@ describe('transaction', () => {
 			});
 		});
 
-		describe('getMinFee', () => {
+		describe('computeMinFee', () => {
 			it('should return some value', () => {
 				// Act
-				const fee = transaction.getMinFee(tx);
+				const fee = transaction.computeMinFee(tx);
 
 				// Assert
 				expect(fee).toBeDefined();
