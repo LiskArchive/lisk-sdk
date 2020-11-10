@@ -30,16 +30,7 @@ import {
 } from './codec';
 import { Channel, RegisteredSchemas, NodeInfo } from './types';
 
-export interface CreateTransactionOptions {
-	nonce?: bigint;
-	includeSenderSignature?: boolean;
-	multisignatureKeys?: {
-		mandatoryKeys: Buffer[];
-		optionalKeys: Buffer[];
-	};
-}
-
-export interface MultiSignatureKeys {
+interface MultiSignatureKeys {
 	readonly mandatoryKeys: Buffer[];
 	readonly optionalKeys: Buffer[];
 	readonly numberOfSignatures: number;
@@ -87,7 +78,7 @@ export class Transaction {
 		const account = decodeAccount(Buffer.from(accountHex, 'hex'), this._schema);
 		if (!txInput.moduleID) {
 			if (!txInput.moduleName) {
-				throw new Error('Missing moduleId and moduleName');
+				throw new Error('Missing moduleID and moduleName');
 			}
 			const registeredModule = this._nodeInfo.registeredModules.find(
 				module => module.name === input.moduleName,
@@ -96,7 +87,7 @@ export class Transaction {
 		}
 		if (typeof txInput.assetID !== 'number') {
 			if (!txInput.assetName) {
-				throw new Error('Missing assetId and assetName');
+				throw new Error('Missing assetID and assetName');
 			}
 			const registeredAsset = this._nodeInfo.registeredModules.find(
 				asset => asset.name === input.assetName,
@@ -149,9 +140,9 @@ export class Transaction {
 	public async getFromPool(): Promise<Record<string, unknown>[]> {
 		const transactionsHex = await this._channel.invoke<string[]>('app:getTransactionsFromPool');
 		const decodedTransactions: Record<string, unknown>[] = [];
-		transactionsHex.forEach(transactionHex => {
+		for (const transactionHex of transactionsHex) {
 			decodedTransactions.push(decodeTransaction(Buffer.from(transactionHex, 'hex'), this._schema));
-		});
+		}
 		return decodedTransactions;
 	}
 
@@ -174,7 +165,7 @@ export class Transaction {
 		});
 		const account = decodeAccount(Buffer.from(accountHex, 'hex'), this._schema);
 		if (account.keys && (account.keys as MultiSignatureKeys).numberOfSignatures > 0) {
-			passphrases.forEach(passphrase =>
+			for (const passphrase of passphrases) {
 				signMultiSignatureTransaction(
 					assetSchema,
 					transaction,
@@ -182,11 +173,12 @@ export class Transaction {
 					passphrase,
 					account.keys as MultiSignatureKeys,
 					options?.includeSenderSignature,
-				),
-			);
+				);
+			}
+			return transaction;
 		}
 		if (options?.multisignatureKeys && options?.includeSenderSignature) {
-			passphrases.forEach(passphrase =>
+			for (const passphrase of passphrases) {
 				signMultiSignatureTransaction(
 					assetSchema,
 					transaction,
@@ -194,8 +186,9 @@ export class Transaction {
 					passphrase,
 					options.multisignatureKeys as MultiSignatureKeys,
 					options.includeSenderSignature,
-				),
-			);
+				);
+			}
+			return transaction;
 		}
 		return signTransaction(assetSchema, transaction, networkIdentifier, passphrases[0]);
 	}
