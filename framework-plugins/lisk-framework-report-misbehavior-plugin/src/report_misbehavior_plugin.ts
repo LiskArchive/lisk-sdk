@@ -108,7 +108,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 				);
 
 				if (errors.length) {
-					throw new Error(new LiskValidationError([...errors]).message);
+					throw new LiskValidationError([...errors]);
 				}
 
 				if (
