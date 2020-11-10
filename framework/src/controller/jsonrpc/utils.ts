@@ -100,11 +100,20 @@ export const errorResponse = (id: ID, error: JSONRPCErrorObject): ResponseObject
 	error,
 });
 
-export const invalidRequest = (): JSONRPCErrorObject => ({ message: 'Invalid request', code: -32600 });
+export const invalidRequest = (): JSONRPCErrorObject => ({
+	message: 'Invalid request',
+	code: -32600,
+});
 
-export const methodNotFound = (): JSONRPCErrorObject => ({ message: 'Method not found', code: -32601 });
+export const methodNotFound = (): JSONRPCErrorObject => ({
+	message: 'Method not found',
+	code: -32601,
+});
 
-export const invalidParams = (): JSONRPCErrorObject => ({ message: 'Invalid params', code: -32602 });
+export const invalidParams = (): JSONRPCErrorObject => ({
+	message: 'Invalid params',
+	code: -32602,
+});
 
 export const internalError = (data?: JSONRPCResult): JSONRPCErrorObject => {
 	if (data) {
