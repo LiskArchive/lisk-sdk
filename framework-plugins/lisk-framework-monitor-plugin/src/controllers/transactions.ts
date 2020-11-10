@@ -11,36 +11,32 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Request, Response } from 'express';
 import { BaseChannel } from 'lisk-framework';
-import { PeerInfo, SharedState } from '../types';
+import { PeerInfo, SharedState, TransactionPropagationStats } from '../types';
 
-const getAverage = (
-	transactionsStats: Pick<SharedState['transactions'], 'transactions'>,
-): number => {
+interface TransactionStats {
+	transactions: Record<string, TransactionPropagationStats>;
+	connectedPeers: number;
+	averageReceivedTransactions: number;
+}
+
+const getAverage = (transactions: Record<string, TransactionPropagationStats>): number => {
 	let transactionCount = 0;
 	let total = 0;
 
-	for (const transactionStats of Object.values(transactionsStats.transactions)) {
+	for (const transactionStats of Object.values(transactions)) {
 		transactionCount += 1;
 		total += transactionStats.count;
 	}
 
-	return total / transactionCount;
+	return transactionCount ? total / transactionCount : 0;
 };
 
-export const getTransactionStats = (channel: BaseChannel, state: SharedState) => async (
-	_req: Request,
-	res: Response,
-): Promise<void> => {
-	const { transactions } = state;
-	res.json({
-		data: {
-			transactions: transactions.transactions,
-			connectedPeers: (await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers'))
-				.length,
-			averageReceivedTransactions: getAverage(transactions),
-		},
-		meta: {},
-	});
-};
+export const getTransactionStats = async (
+	channel: BaseChannel,
+	state: SharedState,
+): Promise<TransactionStats> => ({
+	transactions: state.transactions,
+	connectedPeers: (await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers')).length,
+	averageReceivedTransactions: getAverage(state.transactions),
+});

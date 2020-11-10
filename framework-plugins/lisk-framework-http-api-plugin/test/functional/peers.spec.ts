@@ -31,7 +31,9 @@ describe('Peers endpoint', () => {
 
 	describe('/api/peers', () => {
 		describe('200 - Success', () => {
-			it('should respond with 100 connected peers as limit has 100 default value', async () => {
+			// TODO: https://github.com/LiskHQ/lisk-sdk/issues/5958
+			// eslint-disable-next-line jest/no-disabled-tests
+			it.skip('should respond with 100 connected peers as limit has 100 default value', async () => {
 				// Arrange
 				app['_channel'].invoke = jest.fn();
 				// Mock channel invoke only when app:getConnectedPeers is called
@@ -48,7 +50,9 @@ describe('Peers endpoint', () => {
 				expect(status).toBe(200);
 			});
 
-			it('should respond with all disconnected peers when all query parameters are passed', async () => {
+			// TODO: https://github.com/LiskHQ/lisk-sdk/issues/5958
+			// eslint-disable-next-line jest/no-disabled-tests
+			it.skip('should respond with all disconnected peers when all query parameters are passed', async () => {
 				// Arrange
 				app['_channel'].invoke = jest.fn();
 				// Mock channel invoke only when app:getDisconnectedPeers is called

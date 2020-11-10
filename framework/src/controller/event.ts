@@ -14,58 +14,55 @@
 
 import { strict as assert } from 'assert';
 import { eventWithModuleNameReg } from '../constants';
-import { NotificationObject, Result, VERSION } from './jsonrpc';
+import { NotificationRequest, VERSION } from './jsonrpc';
 
 export interface EventInfoObject {
 	readonly module: string;
 	readonly name: string;
-	readonly data: object;
+	readonly data?: object;
 }
 
-export type EventCallback = (action: EventInfoObject) => void | Promise<void>;
+export type EventCallback = (event: EventInfoObject) => void | Promise<void>;
 
 export type EventsArray = ReadonlyArray<string>;
 
 export class Event {
-	public jsonrpc = VERSION;
-	public method: string;
-	public result!: Result;
-	public module: string;
-	public name: string;
+	public readonly module: string;
+	public readonly name: string;
+	public readonly data?: object;
 
-	public constructor(method: string, result?: Result) {
+	public constructor(name: string, data?: object) {
 		assert(
-			eventWithModuleNameReg.test(method),
-			`Event name "${method}" must be a valid name with module name and action name.`,
+			eventWithModuleNameReg.test(name),
+			`Event name "${name}" must be a valid name with module name and event name.`,
 		);
 
-		this.method = method;
-		if (result) {
-			this.result = result;
-		}
-		const [moduleName, ...eventName] = this.method.split(':');
+		const [moduleName, ...eventName] = name.split(':');
 		this.module = moduleName;
 		this.name = eventName.join(':');
+		this.data = data;
 	}
 
-	public static fromJSONRPC(data: NotificationObject | string): Event {
-		const { method, result } =
-			typeof data === 'string' ? (JSON.parse(data) as NotificationObject) : data;
+	public static fromJSONRPCNotification(data: NotificationRequest | string): Event {
+		const { method, params } =
+			typeof data === 'string' ? (JSON.parse(data) as NotificationRequest) : data;
 
-		return new Event(method, result);
+		return new Event(method, params);
 	}
 
-	public toJSONRPC(): NotificationObject {
-		if (this.result) {
-			return {
-				jsonrpc: this.jsonrpc,
-				method: this.method,
-				result: this.result,
-			};
-		}
+	public toJSONRPCNotification(): NotificationRequest {
 		return {
-			jsonrpc: this.jsonrpc,
-			method: this.method,
+			jsonrpc: VERSION,
+			method: `${this.module}:${this.name}`,
+			params: this.data,
+		};
+	}
+
+	public toObject(): EventInfoObject {
+		return {
+			module: this.module,
+			name: this.name,
+			data: this.data,
 		};
 	}
 
