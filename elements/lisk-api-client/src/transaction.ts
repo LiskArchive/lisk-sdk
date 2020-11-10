@@ -92,7 +92,7 @@ export class Transaction {
 				txInput.moduleID = registeredModule?.id ? registeredModule.id : txInput.moduleID;
 			}
 		}
-		if (txInput.assetID === undefined) {
+		if (txInput.assetID === undefined || null) {
 			if (!txInput.assetName) {
 				throw new Error('Missing assetId and assetName');
 			} else {
@@ -125,7 +125,7 @@ export class Transaction {
 				options?.includeSenderSignature,
 			);
 		}
-		if (options?.multisignatureKeys) {
+		if (options?.multisignatureKeys && options?.includeSenderSignature) {
 			return signMultiSignatureTransaction(
 				assetSchema,
 				txInput,
