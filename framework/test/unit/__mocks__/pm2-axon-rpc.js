@@ -12,27 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-const pm2Axon = jest.createMockFromModule('pm2-axon');
+const rpc = jest.createMockFromModule('pm2-axon-rpc');
 
-pm2Axon.socket = jest.fn().mockReturnValue({
-	connect: jest.fn(),
-	close: jest.fn(),
-	on: jest.fn(),
-	once: jest.fn((event, callback) => {
-		callback();
-	}),
-	bind: jest.fn(),
-	emit: jest.fn(),
-	removeAllListeners: jest.fn(),
-	sock: {
-		once: jest.fn((event, callback) => {
-			callback('#MOCKED_ONCE');
-		}),
-		on: jest.fn((event, callback) => {
-			callback('#MOCKED_ON');
-		}),
+class MockServer {
+	sock = {
 		removeAllListeners: jest.fn(),
-	},
-});
+		on: jest.fn(),
+		bind: jest.fn(),
+		close: jest.fn(),
+	};
 
-module.exports = pm2Axon;
+	expose = jest.fn();
+
+	constructor() {}
+}
+
+rpc.Server = MockServer;
+
+module.exports = rpc;

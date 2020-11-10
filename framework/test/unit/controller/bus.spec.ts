@@ -12,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-jest.mock('eventemitter2');
-jest.mock('pm2-axon');
-jest.mock('pm2-axon-rpc');
-
 // eslint-disable-next-line import/first
 import { EventEmitter2 } from 'eventemitter2';
 // eslint-disable-next-line import/first
@@ -24,6 +20,12 @@ import { Bus } from '../../../src/controller/bus';
 import { Action } from '../../../src/controller/action';
 // eslint-disable-next-line import/first
 import { WSServer } from '../../../src/controller/ws/ws_server';
+import { IPCServer } from '../../../src/controller/ipc/ipc_server';
+
+jest.mock('eventemitter2');
+jest.mock('pm2-axon');
+jest.mock('pm2-axon-rpc');
+jest.mock('ws');
 
 describe('Bus', () => {
 	const config: any = {
@@ -46,19 +48,23 @@ describe('Bus', () => {
 		type: 'inMemory',
 		channel: channelMock,
 	};
-	const logger: any = {
+
+	const loggerMock: any = {
 		info: jest.fn(),
 		error: jest.fn(),
+		debug: jest.fn(),
 	};
 
 	let bus: Bus;
 
 	beforeEach(() => {
-		bus = new Bus(logger, config);
+		bus = new Bus(loggerMock, config);
 	});
 
-	afterEach(() => {
-		bus['_wsServer'].stop();
+	afterEach(async () => {
+		if (bus) {
+			await bus.cleanup();
+		}
 	});
 
 	describe('#constructor', () => {
@@ -66,13 +72,73 @@ describe('Bus', () => {
 			// Assert
 			expect(bus['actions']).toEqual({});
 			expect(bus['events']).toEqual({});
+			expect(bus['_ipcServer']).toBeInstanceOf(IPCServer);
 			expect(bus['_wsServer']).toBeInstanceOf(WSServer);
 		});
 	});
 
 	describe('#setup', () => {
+		beforeEach(() => {
+			jest.spyOn(IPCServer.prototype, 'start');
+			jest.spyOn(WSServer.prototype, 'start');
+		});
+
 		it('should resolve with true.', async () => {
 			return expect(bus.setup()).resolves.toBe(true);
+		});
+
+		// TODO: Should be tested in integration tests as the mock is complex to handle here
+		// eslint-disable-next-line jest/no-disabled-tests
+		it.skip('should setup ipc server if ipc is enabled', async () => {
+			// Arrange
+			const updatedConfig = { ...config };
+			updatedConfig.ipc.enabled = true;
+			bus = new Bus(loggerMock, updatedConfig);
+
+			// Act
+			await bus.setup();
+
+			// Assert
+			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should not setup ipc server if ipc is not enabled', async () => {
+			// Arrange
+			const updatedConfig = { ...config };
+			updatedConfig.ipc.enabled = false;
+			bus = new Bus(loggerMock, updatedConfig);
+
+			// Act
+			await bus.setup();
+
+			// Assert
+			return expect(IPCServer.prototype.start).not.toHaveBeenCalled();
+		});
+
+		it('should setup ws server if rpc is enabled', async () => {
+			// Arrange
+			const updatedConfig = { ...config };
+			updatedConfig.rpc.enable = true;
+			bus = new Bus(loggerMock, updatedConfig);
+
+			// Act
+			await bus.setup();
+
+			// Assert
+			return expect(WSServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should not setup ws server if rpc is not enabled', async () => {
+			// Arrange
+			const updatedConfig = { ...config };
+			updatedConfig.rpc.enable = false;
+			bus = new Bus(loggerMock, updatedConfig);
+
+			// Act
+			await bus.setup();
+
+			// Assert
+			return expect(WSServer.prototype.start).not.toHaveBeenCalled();
 		});
 	});
 
