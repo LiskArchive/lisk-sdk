@@ -81,7 +81,7 @@ export class MonitorPlugin extends BasePlugin {
 				controllers.transactions.getTransactionStats(this._channel, this._state),
 			getBlockStats: async () => controllers.blocks.getBlockStats(this._channel, this._state),
 			getNetworkStats: async () => controllers.network.getNetworkStats(this._channel),
-			getForkStats: async () => controllers.forks.getForkStats(this._state),
+			getForkStats: () => controllers.forks.getForkStats(this._state),
 		};
 	}
 
