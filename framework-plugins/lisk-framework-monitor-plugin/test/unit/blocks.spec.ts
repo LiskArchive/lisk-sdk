@@ -13,6 +13,7 @@
  */
 import { blockHeaderSchema, blockSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { when } from 'jest-when';
 import { MonitorPlugin } from '../../src';
 
 describe('_handlePostBlock', () => {
@@ -43,11 +44,15 @@ describe('_handlePostBlock', () => {
 		encodedBlock = codec
 			.encode(blockSchema, { header: Buffer.from(blockHeaderString, 'hex'), payload: [] })
 			.toString('hex');
+		when(channelMock.invoke)
+			.calledWith('app:getConnectedPeers')
+			.mockResolvedValue([] as never);
 	});
 
-	it('should update the plugin state with new block info', () => {
+	it('should update the plugin state with new block info', async () => {
+		// Arrange
 		const expectedState = {
-			averageReceivedBlocks: 0,
+			averageReceivedBlocks: 1,
 			blocks: {
 				'706a8b678f1d4a9ad585f50ba06ef242c5598d22c03f13eacc230e041014dbb7': {
 					count: 1,
@@ -56,15 +61,22 @@ describe('_handlePostBlock', () => {
 			},
 			connectedPeers: 0,
 		};
+
+		// Act
 		(monitorPlugin as any)._handlePostBlock({ block: encodedBlock });
 
-		expect((monitorPlugin as any)._state.blocks).toEqual(expectedState);
+		// Assert
+		expect(await (monitorPlugin.actions as any).getBlockStats()).toEqual(expectedState);
 	});
 
 	it('should remove blocks in state older than 300 blocks', () => {
-		(monitorPlugin as any)._state.blocks.blocks = { oldBlockId: { count: 1, height: 0 } };
+		// Arrange
+		(monitorPlugin as any)._state.blocks = { oldBlockId: { count: 1, height: 0 } };
+
+		// Act
 		(monitorPlugin as any)._handlePostBlock({ block: encodedBlock });
 
-		expect((monitorPlugin as any)._state.blocks.blocks['oldBlockId']).toBeUndefined();
+		// Assert
+		expect((monitorPlugin as any)._state.blocks['oldBlockId']).toBeUndefined();
 	});
 });

@@ -13,11 +13,27 @@
  */
 
 import { when } from 'jest-when';
-import { Request } from 'express';
 import { PeerInfo } from '../../src/types';
-import { network as networkController } from '../../src/controllers';
+import { MonitorPlugin } from '../../src';
 
 describe('networkStats', () => {
+	let monitorPlugin: MonitorPlugin;
+
+	const channelMock = {
+		registerToBus: jest.fn(),
+		once: jest.fn(),
+		publish: jest.fn(),
+		subscribe: jest.fn(),
+		isValidEventName: jest.fn(),
+		isValidActionName: jest.fn(),
+		invoke: jest.fn(),
+		eventsList: [],
+		actionsList: [],
+		actions: {},
+		moduleAlias: '',
+		options: {},
+	} as any;
+
 	const connectedPeers: Partial<PeerInfo>[] = [
 		{ options: { height: 51 } },
 		{ options: { height: 52 } },
@@ -86,53 +102,32 @@ describe('networkStats', () => {
 		},
 	};
 
-	const channelMock = {
-		invoke: jest.fn(),
-	};
-	const network = networkController.getNetworkStats(channelMock as any);
+	beforeEach(async () => {
+		monitorPlugin = new (MonitorPlugin as any)();
+		await monitorPlugin.load(channelMock);
 
-	beforeEach(() => {
 		when(channelMock.invoke)
 			.calledWith('app:getNetworkStats')
-			.mockResolvedValue(defaultNetworkStats)
+			.mockResolvedValue(defaultNetworkStats as never)
 			.calledWith('app:getConnectedPeers')
-			.mockResolvedValue(connectedPeers)
+			.mockResolvedValue(connectedPeers as never)
 			.calledWith('app:getDisconnectedPeers')
-			.mockResolvedValue(disconnectedPeers);
+			.mockResolvedValue(disconnectedPeers as never);
 	});
 
 	it('should add new transactions to state', async () => {
-		// Arrange
-		const next = jest.fn();
-
-		const res = {
-			status: jest.fn().mockImplementation(_code => res),
-			json: jest.fn().mockImplementation(_param => res),
-		} as any;
-
 		// Act
-		await network({} as Request, res, next);
-
+		const networkStats = await (monitorPlugin.actions as any).getNetworkStats();
 		// Assert
-		expect(res.status).toHaveBeenCalledWith(200);
-		expect(res.json).toHaveBeenCalledWith({ data: defaultNetworkStats, meta: {} });
+		expect(networkStats).toEqual(defaultNetworkStats);
 	});
 
 	it('should throw error when any channel action fails', async () => {
 		// Arrange
-		const next = jest.fn();
-		const res = {
-			status: jest.fn().mockImplementation(_code => res),
-			json: jest.fn().mockImplementation(_param => res),
-		} as any;
-
 		const error = new Error('Something went wrong');
 		channelMock.invoke.mockRejectedValue(error);
 
-		// Act
-		await network({} as Request, res, next);
-
 		// Assert
-		expect(next).toHaveBeenCalledWith(error);
+		await expect((monitorPlugin.actions as any).getNetworkStats()).rejects.toThrow(error.message);
 	});
 });
