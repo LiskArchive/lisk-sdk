@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { Account } from '@liskhq/lisk-chain';
 import { Consensus, StateStore } from '../../types';
@@ -28,8 +28,7 @@ import {
 } from './constants';
 import { isCurrentlyPunished } from './utils';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('dpos:delegates');
+const debug = createDebug('dpos:delegates');
 
 export const shuffleDelegateList = (
 	previousRoundSeed1: Buffer,
