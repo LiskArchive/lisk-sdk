@@ -59,12 +59,11 @@ export class WSServer {
 	}
 
 	public broadcast(message: string): void {
-		this.server.clients.forEach(client => {
-			// if (client !== this.server && client.readyState === WebSocket.OPEN) {
+		for (const client of this.server.clients) {
 			if (client.readyState === WebSocket.OPEN) {
 				client.send(message);
 			}
-		});
+		}
 	}
 
 	private _handleConnection(socket: WebSocketWithTracking, messageHandler: WSMessageHandler) {

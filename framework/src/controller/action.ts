@@ -14,8 +14,14 @@
 
 import { strict as assert } from 'assert';
 import { actionWithModuleNameReg, moduleNameReg } from '../constants';
-import { RequestObject, VERSION } from './jsonrpc';
-import { ResponseObject, JSONRPCResult, ID, JSONRPCErrorObject } from './jsonrpc/types';
+import {
+	ID,
+	JSONRPCErrorObject,
+	JSONRPCResult,
+	RequestObject,
+	ResponseObject,
+	VERSION,
+} from './jsonrpc';
 
 export interface ActionInfoObject {
 	readonly module: string;

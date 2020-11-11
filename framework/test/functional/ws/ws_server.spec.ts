@@ -59,8 +59,6 @@ describe('WebSocket server', () => {
 
 	describe('connection', () => {
 		it('should be able to connect to WS server without error', async () => {
-			wsClient = new WebSocket(`ws://localhost:${app.config.rpc.port}/ws`);
-
 			await expect(
 				new Promise(resolve => {
 					wsClient.on('open', resolve);
@@ -69,8 +67,6 @@ describe('WebSocket server', () => {
 		});
 
 		it('should be able to ping server', async () => {
-			wsClient = new WebSocket(`ws://localhost:${app.config.rpc.port}/ws`);
-
 			await expect(
 				new Promise(resolve => {
 					wsClient.on('open', () => {
@@ -81,8 +77,6 @@ describe('WebSocket server', () => {
 		});
 
 		it('should ping back the clients', async () => {
-			wsClient = new WebSocket(`ws://localhost:${app.config.rpc.port}/ws`);
-
 			const result = await new Promise(resolve => {
 				wsClient.on('ping', resolve);
 			});

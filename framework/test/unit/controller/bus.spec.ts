@@ -79,17 +79,15 @@ describe('Bus', () => {
 
 	describe('#setup', () => {
 		beforeEach(() => {
-			jest.spyOn(IPCServer.prototype, 'start');
-			jest.spyOn(WSServer.prototype, 'start');
+			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 		});
 
 		it('should resolve with true.', async () => {
 			return expect(bus.setup()).resolves.toBe(true);
 		});
 
-		// TODO: Should be tested in integration tests as the mock is complex to handle here
-		// eslint-disable-next-line jest/no-disabled-tests
-		it.skip('should setup ipc server if ipc is enabled', async () => {
+		it('should setup ipc server', async () => {
 			// Arrange
 			const updatedConfig = { ...config };
 			updatedConfig.ipc.enabled = true;
@@ -100,19 +98,6 @@ describe('Bus', () => {
 
 			// Assert
 			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
-		});
-
-		it('should not setup ipc server if ipc is not enabled', async () => {
-			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.ipc.enabled = false;
-			bus = new Bus(loggerMock, updatedConfig);
-
-			// Act
-			await bus.setup();
-
-			// Assert
-			return expect(IPCServer.prototype.start).not.toHaveBeenCalled();
 		});
 
 		it('should setup ws server if rpc is enabled', async () => {

@@ -12,18 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { LiskValidationError } from '@liskhq/lisk-validator';
+import { EventEmitter2, Listener } from 'eventemitter2';
 import * as axon from 'pm2-axon';
 import { ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
-import { EventEmitter2, Listener } from 'eventemitter2';
-import { LiskValidationError } from '@liskhq/lisk-validator';
-import { Action, ActionsObject } from './action';
-import { Event, EventsArray } from './event';
-import * as JSONRPC from './jsonrpc';
 import { Logger } from '../logger';
-import { BaseChannel } from './channels/base_channel';
-import { IPCServer } from './ipc/ipc_server';
 import { ActionInfoForBus, SocketPaths } from '../types';
+import { Action, ActionsObject } from './action';
+import { BaseChannel } from './channels/base_channel';
+import { Event, EventsArray } from './event';
+import { IPCServer } from './ipc/ipc_server';
+import * as JSONRPC from './jsonrpc';
 import { WSServer } from './ws/ws_server';
 
 interface BusConfiguration {
@@ -112,11 +112,9 @@ export class Bus {
 	}
 
 	public async setup(): Promise<boolean> {
-		if (this.config.ipc.enabled) {
-			await this._setupIPCServer();
-		}
+		await this._setupIPCServer();
 
-		if (this.config.rpc.enable) {
+		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
 			await this._setupWSServer();
 		}
 
@@ -177,9 +175,9 @@ export class Bus {
 		try {
 			JSONRPC.validateJSONRPCRequest(parsedAction.toJSONRPCRequest() as never);
 		} catch (error) {
-			this.logger.error((error as LiskValidationError).errors, 'Invalid invoke request');
+			this.logger.error({ err: error as LiskValidationError }, 'Invalid invoke request.');
 			throw new JSONRPC.JSONRPCError(
-				'Invalid invoke request',
+				'Invalid invoke request.',
 				JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest()),
 			);
 		}
@@ -230,9 +228,9 @@ export class Bus {
 		try {
 			JSONRPC.validateJSONRPCNotification(parsedEvent.toJSONRPCNotification() as never);
 		} catch (error) {
-			this.logger.error((error as LiskValidationError).errors, 'Invalid publish request');
+			this.logger.error({ err: error as LiskValidationError }, 'Invalid publish request.');
 			throw new JSONRPC.JSONRPCError(
-				'Invalid publish request',
+				'Invalid publish request.',
 				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
 			);
 		}
@@ -265,7 +263,7 @@ export class Bus {
 			}
 		}
 
-		if (this.config.rpc.enable) {
+		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
 			try {
 				this._wsServer.broadcast(JSON.stringify(notification));
 			} catch (error) {
