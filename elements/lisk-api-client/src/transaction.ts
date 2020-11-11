@@ -99,11 +99,11 @@ export class Transaction {
 				typeof account.sequence !== 'object' ||
 				!(account.sequence as Record<string, unknown>).nonce
 			) {
-				throw new Error('Unsupported account type.');
+				throw new Error('Unsupported account type');
 			}
 			txInput.nonce = (account.sequence as { nonce: bigint }).nonce;
 		}
-		if (txInput.senderPublicKey) {
+		if (!txInput.senderPublicKey) {
 			txInput.senderPublicKey = publicKey;
 		}
 		const assetSchema = getTransactionAssetSchema(txInput, this._schema);
