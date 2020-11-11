@@ -15,27 +15,29 @@
 
 import { when } from 'jest-when';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '../../src/transaction';
-import { nodeInfo, schema, tx } from '../utils/transaction';
-import { decodeAccount } from '../../src/codec'
-
-jest.mock('../../src/codec');
+import { nodeInfo, schema, tx, accountSchema } from '../utils/transaction';
 
 describe('transaction', () => {
 	let channelMock: any;
 	let transaction: Transaction;
-	let multisigAccount: any;
-	const passphrases = ['trim elegant oven term access apple obtain error grain excite lawn neck'];
+	const passphrases = [
+		'trim elegant oven term access apple obtain error grain excite lawn neck',
+		'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
+	];
+	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
+	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const publicKey2 = Buffer.from(
+		'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+		'hex',
+	);
 	const txHex =
 		'0802100018362080ade2042a20dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a321d0880ade2041214654087c2df870402ab0b1996616fd3355d61f62c1a003a4079cb29dca7bb9fce73a1e8ca28264f779074d259c341b536bae9a54c0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700';
 	const accountHex =
 		'0a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581512050880c2d72f1a020800220208002a3b0a1a0a0a67656e657369735f3834180020850528003080a094a58d1d121d0a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151080a094a58d1d';
-	multisigAccount = decodeAccount(Buffer.from(accountHex, 'hex'), schema);
-	multisigAccount.keys.mandatoryKeys = [];
-	multisigAccount.keys.numberOfSignatures = 1;
 	const encodedTx = Buffer.from(txHex, 'hex');
-	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
+
 	const validTransaction = {
 		moduleID: 2,
 		assetID: 0,
@@ -105,37 +107,34 @@ describe('transaction', () => {
 
 			describe('when called without module id and module name in input', () => {
 				it('should throw error', async () => {
-				try {
-					await transaction.create({ ...validTransaction, moduleID: undefined }, passphrase1);
-				} catch (error) {
-					expect(error).toMatchObject(new Error('Missing moduleID and moduleName'));
-				}
+					await expect(
+						transaction.create({ ...validTransaction, moduleID: undefined }, passphrase1),
+					).rejects.toThrow('Missing moduleID and moduleName');
 				});
 			});
 
 			describe('when called without asset id and asset name in input', () => {
 				it('should throw error', async () => {
-					try {
-						await transaction.create({ ...validTransaction, assetID: undefined }, passphrase1);
-					} catch (error) {
-						expect(error).toMatchObject(new Error('Missing assetID and assetName'));
-					}
+					await expect(
+						transaction.create({ ...validTransaction, assetID: undefined }, passphrase1),
+					).rejects.toThrow('Missing assetID and assetName');
 				});
 			});
 
 			describe('when called without nonce in input', () => {
 				it('should throw error', async () => {
-					try {
-						await transaction.create({ ...validTransaction, nonce: undefined! }, passphrase1);
-					} catch (error) {
-						expect(error).toMatchObject(new Error('Unsupported account type'));
-					}
+					await expect(
+						transaction.create({ ...validTransaction, nonce: undefined! }, passphrase1),
+					).rejects.toThrow('Unsupported account type');
 				});
 			});
 
 			describe('when called without sender public key in input', () => {
 				it('should return created tx', async () => {
-					const returnedTx = await transaction.create({ ...validTransaction, senderPublicKey: undefined!}, passphrase1);
+					const returnedTx = await transaction.create(
+						{ ...validTransaction, senderPublicKey: undefined! },
+						passphrase1,
+					);
 					expect(returnedTx.signatures).toHaveLength(1);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
@@ -143,10 +142,21 @@ describe('transaction', () => {
 
 			describe('when called with multi-signature account in input', () => {
 				it('should return created tx', async () => {
-					jest.mock('codec', () => ({
-						// eslint-disable-next-line camelcase
-						decodeAccount: {multisigAccount},
-					}));
+					const multisigAccount = {
+						address: Buffer.from('ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815', 'hex'),
+						token: { balance: BigInt('100000000') },
+						sequence: { nonce: BigInt('0') },
+						keys: {
+							numberOfSignatures: 1,
+							mandatoryKeys: [publicKey1],
+							optionalKeys: [publicKey2],
+						},
+						dpos: { delegate: {}, sentVotes: [], unlocking: [] },
+					};
+					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
+					when(channelMock.invoke)
+						.calledWith('app:getAccount')
+						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
 					const returnedTx = await transaction.create(validTransaction, passphrase1);
 					expect(returnedTx.signatures).toHaveLength(1);
 					expect(returnedTx.signatures).toMatchSnapshot();
@@ -155,18 +165,41 @@ describe('transaction', () => {
 
 			describe('when called with optional keys in input', () => {
 				it('should return created tx', async () => {
-					const returnedTx = await transaction.create(validTransaction, passphrase1);
+					const options = {
+						includeSenderSignature: true,
+						multisignatureKeys: {
+							mandatoryKeys: [],
+							optionalKeys: [],
+						},
+					};
+					const returnedTx = await transaction.create(validTransaction, passphrase1, options);
 					expect(returnedTx.signatures).toHaveLength(1);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
 			});
-
 		});
 
 		describe('sign', () => {
-			it('should return some signed transaction', () => {
-				const returnedTx = transaction.sign(validTransaction, passphrases);
-				expect(returnedTx).toBeDefined();
+			describe('when called with a valid transation', () => {
+				it('should return some signed transaction', () => {
+					const returnedTx = transaction.sign(validTransaction, passphrases);
+					expect(returnedTx).toBeDefined();
+				});
+			});
+
+			describe('when called with optional keys in input', () => {
+				it('should return created tx', async () => {
+					const options = {
+						includeSenderSignature: true,
+						multisignatureKeys: {
+							mandatoryKeys: [],
+							optionalKeys: [],
+						},
+					};
+					const returnedTx = await transaction.sign(validTransaction, passphrases, options);
+					expect(returnedTx.signatures).toHaveLength(1);
+					expect(returnedTx.signatures).toMatchSnapshot();
+				});
 			});
 		});
 
