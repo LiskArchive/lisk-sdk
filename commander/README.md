@@ -20,7 +20,7 @@ Upon successful completion, NPM will add the `lisk-commander` executable `lisk` 
 $ lisk COMMAND
 running command...
 $ lisk (-v|--version|version)
-lisk-commander/2.0.0 darwin-x64 node-v8.12.0
+lisk-commander/4.0.0 darwin-x64 node-v12.18.3
 $ lisk --help [COMMAND]
 A command line interface for Lisk
 
@@ -31,19 +31,26 @@ USAGE
   $ lisk [COMMAND]
 
 COMMANDS
-  account      Commands relating to Lisk accounts.
-  block        Commands relating to Lisk blocks.
-  config       Manages Lisk Commander configuration.
-  core         Install and Manages Lisk Core instances.
-  copyright    Displays copyright notice.
-  delegate     Commands relating to Lisk delegates.
-  help         Displays help.
-  message      Commands relating to user messages.
-  node         Commands relating to Lisk node.
-  passphrase   Commands relating to Lisk passphrases.
-  signature    Commands relating to signatures for Lisk transactions from multisignature accounts.
-  transaction  Commands relating to Lisk transactions.
-  warranty     Displays warranty notice.
+  account             Commands relating to Lisk Core accounts.
+  block               Commands relating to Lisk Core blocks.
+  blockchain          Commands relating to Lisk Core blockchain data.
+  config              Commands relating to Lisk Core node configuration.
+  copyright           Displays copyright notice.
+  core                Install an instance of Lisk Core.
+  delegate            Commands relating to Lisk delegates.
+  forger-info         Commands relating to Lisk Core forger-info data.
+  forging             Commands relating to Lisk Core forging.
+  hash-onion
+  help                Displays help.
+  message             Commands relating to user messages.
+  network-identifier
+  node                Commands relating to Lisk Core node.
+  passphrase          Commands relating to Lisk Core passphrases.
+  sdk                 Commands relating to Lisk SDK development.
+  signature           Commands relating to signatures for Lisk transactions from multisignature accounts.
+  start               Start Lisk Core Node.
+  transaction         Commands relating to Lisk Core transactions.
+  warranty            Displays warranty notice.
 ```
 
 ### Running Tests
