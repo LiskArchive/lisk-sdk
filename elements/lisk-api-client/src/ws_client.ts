@@ -24,7 +24,7 @@ const timeout = async <T = void>(ms: number, message?: string): Promise<T> =>
 	new Promise((_, reject) => {
 		const id = setTimeout(() => {
 			clearTimeout(id);
-			reject(message ?? `Timed out in ${ms}ms.`);
+			reject(new Error(message ?? `Timed out in ${ms}ms.`));
 		}, ms);
 	});
 
@@ -32,8 +32,8 @@ type EventCallback = (...args: any[]) => void;
 
 interface WSResponse {
 	id?: number | string | null;
-	method?: string;
-	params?: any;
+	method: string;
+	params?: object;
 	result?: any;
 	error?: any;
 }
@@ -81,8 +81,16 @@ export class WSClient {
 			});
 		});
 
+		const error = new Promise<void>((_, reject) => {
+			this._ws?.on('error', err => {
+				this.isAlive = false;
+				reject(err);
+			});
+		});
+
 		await Promise.race([
 			connect,
+			error,
 			timeout(CONNECTION_TIMEOUT, `Could not connect in ${CONNECTION_TIMEOUT}ms`),
 		]);
 
@@ -105,6 +113,7 @@ export class WSClient {
 
 		return new Promise<void>(resolve => {
 			this._ws?.on('close', () => {
+				this._ws?.terminate();
 				this.isAlive = false;
 				this._ws = undefined;
 				resolve();
@@ -115,7 +124,7 @@ export class WSClient {
 
 	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
 		const request = {
-			jsonrpc: '2.9',
+			jsonrpc: '2.0',
 			id: this._requestCounter,
 			method: actionName,
 			params: params ?? {},
@@ -155,7 +164,7 @@ export class WSClient {
 
 		// Its an event
 		if ((res.id === undefined || res.id === null) && res.method) {
-			this._emitter.emit(res.method, res.params);
+			this._emitter.emit(res.method, this._prepareEventInfo(res));
 
 			// Its a response for a request
 		} else {
@@ -171,5 +180,16 @@ export class WSClient {
 				delete this._pendingRequests[id];
 			}
 		}
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _prepareEventInfo(res: WSResponse): { module: string; name: string; data: object } {
+		const { method } = res;
+		const [moduleName, ...eventName] = method.split(':');
+		const module = moduleName;
+		const name = eventName.join(':');
+		const data = res.params ?? {};
+
+		return { module, name, data };
 	}
 }
