@@ -18,6 +18,8 @@ interface WebSocketWithTracking extends WebSocket {
 	isAlive?: boolean;
 }
 
+export type WSMessageHandler = (socket: WebSocketWithTracking, message: string) => void;
+
 export class WSServer {
 	public server!: WebSocket.Server;
 	private pingTimer!: NodeJS.Timeout;
@@ -31,9 +33,9 @@ export class WSServer {
 		this.logger = options.logger;
 	}
 
-	public start(): WebSocket.Server {
+	public start(messageHandler: WSMessageHandler): WebSocket.Server {
 		this.server = new WebSocket.Server({ path: this.path, port: this.port, clientTracking: true });
-		this.server.on('connection', socket => this._handleConnection(socket));
+		this.server.on('connection', socket => this._handleConnection(socket, messageHandler));
 		this.server.on('error', error => {
 			this.logger.error(error);
 		});
@@ -51,15 +53,23 @@ export class WSServer {
 	}
 
 	public stop(): void {
-		this.server.close();
+		if (this.server) {
+			this.server.close();
+		}
 	}
 
-	private _handleConnection(socket: WebSocketWithTracking) {
+	public broadcast(message: string): void {
+		for (const client of this.server.clients) {
+			if (client.readyState === WebSocket.OPEN) {
+				client.send(message);
+			}
+		}
+	}
+
+	private _handleConnection(socket: WebSocketWithTracking, messageHandler: WSMessageHandler) {
 		// eslint-disable-next-line no-param-reassign
 		socket.isAlive = true;
-		socket.on('message', (message: Record<string, unknown>) =>
-			this._handleMessage(socket, message),
-		);
+		socket.on('message', (message: string) => messageHandler(socket, message));
 		socket.on('pong', () => this._handleHeartbeat(socket));
 		this.logger.info('New web socket client connected');
 	}
@@ -68,11 +78,6 @@ export class WSServer {
 	private _handleHeartbeat(socket: WebSocketWithTracking) {
 		// eslint-disable-next-line no-param-reassign
 		socket.isAlive = true;
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	private _handleMessage(socket: WebSocketWithTracking, message: Record<string, unknown>) {
-		socket.send(JSON.stringify({ data: message }));
 	}
 
 	private _setUpPing() {
