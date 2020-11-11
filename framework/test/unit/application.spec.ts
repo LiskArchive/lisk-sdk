@@ -13,18 +13,21 @@
  */
 /* eslint-disable max-classes-per-file */
 
+import { objects } from '@liskhq/lisk-utils';
+import { validator } from '@liskhq/lisk-validator';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import { objects } from '@liskhq/lisk-utils';
-import { validator } from '@liskhq/lisk-validator';
+import { BaseAsset, BaseChannel, BaseModule, BasePlugin } from '../../src';
 import { Application } from '../../src/application';
-import * as networkConfig from '../fixtures/config/devnet/config.json';
-import { systemDirs } from '../../src/system_dirs';
+import { IPCServer } from '../../src/controller/ipc/ipc_server';
+import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
-import { genesisBlock } from '../fixtures/blocks';
-import { BaseModule, BaseAsset, BasePlugin, BaseChannel } from '../../src';
+import { Node } from '../../src/node';
 import * as basePluginModule from '../../src/plugins/base_plugin';
+import { systemDirs } from '../../src/system_dirs';
+import { genesisBlock } from '../fixtures/blocks';
+import * as networkConfig from '../fixtures/config/devnet/config.json';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -82,6 +85,10 @@ describe('Application', () => {
 
 	beforeEach(() => {
 		jest.spyOn(os, 'homedir').mockReturnValue('~');
+		jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+		jest.spyOn(Node.prototype, 'init').mockResolvedValue();
+		jest.spyOn(process, 'exit').mockReturnValue(0 as never);
 	});
 
 	afterEach(() => {
@@ -589,16 +596,18 @@ describe('Application', () => {
 	describe('#_setupDirectories', () => {
 		let app: Application;
 		let dirs: any;
+
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			try {
-				await app.run();
-			} catch (error) {
-				// Expected error
-			}
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+
+			await app.run();
+
 			dirs = systemDirs(app.config.label, app.config.rootPath);
 		});
+
 		it('should ensure directory exists', () => {
 			// Arrange
 			jest.spyOn(fs, 'ensureDir');
@@ -628,12 +637,10 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			try {
-				await app.run();
-			} catch (error) {
-				// Expected error
-			}
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
+
+			await app.run();
+			await app.shutdown();
 		});
 
 		it('should delete all files in ~/.lisk/tmp/sockets', () => {
@@ -663,10 +670,8 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			jest.spyOn(app['_node'], 'init').mockResolvedValue();
 			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
-			jest.spyOn(process, 'exit').mockReturnValue(0 as never);
 			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup').mockResolvedValue(true);
 			controllerCleanupSpy = jest.spyOn((app as any)._controller, 'cleanup');
 			blockChainDBSpy = jest.spyOn((app as any)._blockchainDB, 'close');
