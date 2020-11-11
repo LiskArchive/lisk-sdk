@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,8 +11,22 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-require('../config/setup');
 
-jest.setTimeout(15000);
-jest.unmock('pm2-axon');
-jest.unmock('pm2-axon-rpc');
+const rpc = jest.createMockFromModule('pm2-axon-rpc');
+
+class MockServer {
+	sock = {
+		removeAllListeners: jest.fn(),
+		on: jest.fn(),
+		bind: jest.fn(),
+		close: jest.fn(),
+	};
+
+	expose = jest.fn();
+
+	constructor() {}
+}
+
+rpc.Server = MockServer;
+
+module.exports = rpc;

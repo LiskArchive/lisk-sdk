@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-const pm2Axon = jest.genMockFromModule('pm2-axon');
+const pm2Axon = jest.createMockFromModule('pm2-axon');
 
 pm2Axon.socket = jest.fn().mockReturnValue({
 	connect: jest.fn(),
