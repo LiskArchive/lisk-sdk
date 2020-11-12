@@ -255,5 +255,22 @@ describe('transaction', () => {
 				expect(fee).toBeDefined();
 			});
 		});
+
+		describe('toJSON', () => {
+			it('should return decoded transaction in JSON', () => {
+				const txAsJSON = transaction.toJSON(tx);
+				expect(() => JSON.parse(JSON.stringify(txAsJSON))).not.toThrow();
+			});
+		});
+
+		describe('fromJSON', () => {
+			it('should return decoded transaction in JSON', () => {
+				const txAsJSON = transaction.toJSON(tx);
+				const txAsObject = transaction.fromJSON(txAsJSON);
+				const { id, ...txWithoutId } = tx;
+
+				expect(txAsObject).toEqual(txWithoutId);
+			});
+		});
 	});
 });
