@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { DataAccess } from './data_access';
@@ -21,8 +21,7 @@ import { Slots } from './slots';
 import { CONSENSUS_STATE_VALIDATORS_KEY } from './constants';
 import { validatorsSchema } from './schema';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('lisk:chain:verify');
+const debug = createDebug('lisk:chain:verify');
 
 export const verifyBlockNotExists = async (dataAccess: DataAccess, block: Block): Promise<void> => {
 	const isPersisted = await dataAccess.isBlockPersisted(block.header.id);

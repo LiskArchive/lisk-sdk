@@ -12,6 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { createWSClient } from './ws_client';
-export { createClient } from './client';
-export { createAPIClient } from './create_api_client';
+
+export { createIPCClient, createWSClient, createClient } from './create_clients';
