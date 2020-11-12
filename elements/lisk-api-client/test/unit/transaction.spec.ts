@@ -255,5 +255,23 @@ describe('transaction', () => {
 				expect(fee).toBeDefined();
 			});
 		});
+
+		describe('toJSON', () => {
+			it('should return decoded transaction in JSON', () => {
+				const txAsJSON = transaction.toJSON(tx);
+				expect(() => JSON.parse(JSON.stringify(txAsJSON))).not.toThrow();
+			});
+		});
+
+		describe('fromJSON', () => {
+			it('should return decoded transaction in JSON', () => {
+				const txCopy = { ...tx };
+				(txCopy as any).id = txId;
+				const txAsJSON = transaction.toJSON(txCopy);
+				const txAsObject = transaction.fromJSON(txAsJSON);
+
+				expect(txAsObject).toEqual(txCopy);
+			});
+		});
 	});
 });

@@ -135,3 +135,16 @@ export interface PeerInfo {
 	readonly nonce?: string;
 	readonly options?: { [key: string]: unknown };
 }
+
+export interface Block<T = Buffer | string> {
+	header: {
+		[key: string]: unknown;
+		id?: T;
+		version: number;
+		asset: Record<string, unknown>;
+	};
+	payload: {
+		[key: string]: unknown;
+		id?: T;
+	}[];
+}
