@@ -18,12 +18,13 @@ import { convertHeader } from '../fixtures/blocks';
 
 import forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
-const constants = {
-	ACTIVE_DELEGATES: 101,
-	BLOCK_TIME: 10,
-};
-
 describe('bft', () => {
+	// Arrange
+	const constants = {
+		ACTIVE_DELEGATES: 101,
+		BLOCK_TIME: 10,
+	};
+
 	describe('forkChoice', () => {
 		let threshold;
 		let genesisHeight;
