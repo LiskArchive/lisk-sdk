@@ -361,8 +361,6 @@ export class Node {
 						...validator,
 						address: validator.address.toString('hex'),
 						nextForgingTime,
-						minActiveHeight: validator.minActiveHeight,
-						isConsensusParticipant: validator.isConsensusParticipant,
 					});
 					nextForgingTime += blockTime;
 				}
