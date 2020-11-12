@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import axios, { AxiosError } from 'axios';
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 
 import { Webhook } from './types';
-// eslint-disable-next-line new-cap
-const debug = Debug('plugin:forger:webhooks');
+
+const debug = createDebug('plugin:forger:webhooks');
 
 interface HttpHeaders {
 	[key: string]: string;

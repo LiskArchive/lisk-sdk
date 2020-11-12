@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import * as os from 'os';
@@ -22,8 +22,7 @@ import { DB_KEY_FORGER_INFO, DB_KEY_FORGER_SYNC_INFO } from './constants';
 import { forgerInfoSchema, forgerSyncSchema } from './schema';
 import { ForgerInfo, ForgetSyncInfo } from './types';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('plugin:forger:db');
+const debug = createDebug('plugin:forger:db');
 
 export const getDBInstance = async (
 	dataPath: string,
