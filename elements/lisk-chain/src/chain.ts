@@ -14,7 +14,7 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { EventEmitter } from 'events';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { calculateDefaultReward } from './block_reward';
@@ -83,8 +83,7 @@ interface ChainConstructor {
 	readonly maxBlockHeaderCache?: number;
 }
 
-// eslint-disable-next-line new-cap
-const debug = Debug('lisk:chain');
+const debug = createDebug('lisk:chain');
 
 export class Chain {
 	public readonly dataAccess: DataAccess;

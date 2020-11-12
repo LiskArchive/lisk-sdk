@@ -31,7 +31,7 @@ import {
 	PluginInfo,
 } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { ActionInfoObject } from 'lisk-framework/dist-node/controller/action';
 import {
 	getDBInstance,
@@ -45,8 +45,7 @@ import { Options, State } from './types';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
-// eslint-disable-next-line new-cap
-const debug = Debug('plugin:report-misbehavior');
+const debug = createDebug('plugin:report-misbehavior');
 
 const actionParamsSchema = {
 	$id: 'lisk/report_misbehavior/auth',
