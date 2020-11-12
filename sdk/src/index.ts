@@ -15,6 +15,7 @@
 export * as cryptography from '@liskhq/lisk-cryptography';
 export * as p2p from '@liskhq/lisk-p2p';
 export * as passphrase from '@liskhq/lisk-passphrase';
+export * as apiClient from '@liskhq/lisk-api-client';
 export * as transactionPool from '@liskhq/lisk-transaction-pool';
 export * as transactions from '@liskhq/lisk-transactions';
 export * as utils from '@liskhq/lisk-utils';
