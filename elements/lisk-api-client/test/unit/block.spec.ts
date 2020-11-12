@@ -21,6 +21,7 @@ import {
 } from '@liskhq/lisk-chain';
 import { Channel } from '../../src/types';
 import { Block } from '../../src/block';
+import { schema as schemas } from '../utils/transaction';
 
 describe('block', () => {
 	let channel: Channel;
@@ -85,7 +86,7 @@ describe('block', () => {
 			2: blockHeaderAssetSchema,
 		},
 		transaction: transactionSchema,
-		transactionAssets: [
+		transactionsAssets: [
 			{
 				moduleID: 5,
 				moduleName: 'dpos',
@@ -107,6 +108,7 @@ describe('block', () => {
 					},
 				},
 			},
+			...schemas.transactionsAssets,
 		],
 	} as any;
 
@@ -170,6 +172,83 @@ describe('block', () => {
 
 				// Assert
 				expect(decodedBlock).toEqual(sampleBlock);
+			});
+		});
+
+		describe('toJSON', () => {
+			it('should return decoded block in JSON', () => {
+				// Arrange
+				const tx = {
+					moduleID: 2,
+					assetID: 0,
+					nonce: BigInt('54'),
+					fee: BigInt('10000000'),
+					senderPublicKey: Buffer.from(
+						'dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a',
+						'hex',
+					),
+					asset: {
+						amount: BigInt('10000000'),
+						recipientAddress: Buffer.from('654087c2df870402ab0b1996616fd3355d61f62c', 'hex'),
+						data: '',
+					},
+					signatures: [
+						Buffer.from(
+							'79cb29dca7bb9fce73a1e8ca28264f779074d259c341b536bae9a54c0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700',
+							'hex',
+						),
+					],
+					id: 'dd93e4ca5b48d0b604e7cf2e57ce21be43a3163f853c83d88d383032fd830bbf',
+				};
+				const decodedBlock = block.decode(encodedBlockBuffer);
+				(decodedBlock as any).payload.push(tx);
+				// Act
+				const decodedBlockJSON = block.toJSON(decodedBlock as any);
+				// Assert
+				expect(() => JSON.parse(JSON.stringify(decodedBlockJSON))).not.toThrow();
+			});
+		});
+
+		describe('fromJSON', () => {
+			it('should return object from JSON block', () => {
+				// Arrange
+				const tx = {
+					moduleID: 2,
+					assetID: 0,
+					nonce: BigInt('54'),
+					fee: BigInt('10000000'),
+					senderPublicKey: Buffer.from(
+						'dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a',
+						'hex',
+					),
+					asset: {
+						amount: BigInt('10000000'),
+						recipientAddress: Buffer.from('654087c2df870402ab0b1996616fd3355d61f62c', 'hex'),
+						data: '',
+					},
+					signatures: [
+						Buffer.from(
+							'79cb29dca7bb9fce73a1e8ca28264f779074d259c341b536bae9a54c0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700',
+							'hex',
+						),
+					],
+					id: 'dd93e4ca5b48d0b604e7cf2e57ce21be43a3163f853c83d88d383032fd830bbf',
+				};
+				const decodedBlock = block.decode(encodedBlockBuffer);
+				(decodedBlock as any).payload.push(tx);
+				const decodedBlockJSON = block.toJSON(decodedBlock as any);
+				// Act
+				const decodedBlockFromJSON = block.fromJSON(decodedBlockJSON as any);
+
+				// Remove ids in test too as ids are not present in schemas
+				delete (decodedBlock as any).header.id;
+
+				for (const aTx of (decodedBlock as any).payload) {
+					delete aTx.id;
+				}
+
+				// Assert
+				expect(decodedBlockFromJSON).toEqual(decodedBlock);
 			});
 		});
 	});

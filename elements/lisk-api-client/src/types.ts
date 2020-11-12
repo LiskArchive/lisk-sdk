@@ -14,6 +14,7 @@
  */
 
 import { Schema } from '@liskhq/lisk-codec';
+import { Block } from './block';
 
 export interface EventInfoObject<T> {
 	readonly module: string;
@@ -134,4 +135,17 @@ export interface PeerInfo {
 	readonly networkVersion?: string;
 	readonly nonce?: string;
 	readonly options?: { [key: string]: unknown };
+}
+
+export interface Block {
+	header: {
+		[key: string]: unknown;
+		id?: Buffer;
+		version: number;
+		asset: Record<string, unknown>;
+	};
+	payload: {
+		[key: string]: unknown;
+		id?: Buffer;
+	}[];
 }
