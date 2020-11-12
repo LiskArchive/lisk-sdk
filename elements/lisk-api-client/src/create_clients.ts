@@ -25,7 +25,7 @@ export const createClient = async (channel: Channel): Promise<APIClient> => {
 	return client;
 };
 
-export const createAPIClient = async (dataPath: string): Promise<APIClient> => {
+export const createIPCClient = async (dataPath: string): Promise<APIClient> => {
 	const ipcChannel = new IPCChannel(dataPath);
 	await ipcChannel.connect();
 
