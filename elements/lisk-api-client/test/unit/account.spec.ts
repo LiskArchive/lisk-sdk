@@ -97,8 +97,30 @@ describe('account', () => {
 			it('should return decoded account', () => {
 				// Act
 				const accountDecoded = account.decode(encodedAccountBuffer);
-				// // Assert
+				// Assert
 				expect(accountDecoded).toEqual(sampleAccount);
+			});
+		});
+
+		describe('toJSON', () => {
+			it('should return decoded account in JSON', () => {
+				// Act
+				const accountDecoded = account.decode(encodedAccountBuffer);
+				const jsonAccount = account.toJSON(accountDecoded);
+				// Assert
+				expect(() => JSON.parse(JSON.stringify(jsonAccount))).not.toThrow();
+			});
+		});
+
+		describe('fromJSON', () => {
+			it('should return object from JSON account', () => {
+				// Act
+				const accountDecoded = account.decode(encodedAccountBuffer);
+				const jsonAccount = account.toJSON(accountDecoded);
+				const accountAsObject = account.fromJSON(jsonAccount);
+				// Assert
+				expect(Buffer.isBuffer(accountAsObject.address)).toBeTrue();
+				expect(typeof (accountAsObject as any).token.balance).toBe('bigint');
 			});
 		});
 	});
