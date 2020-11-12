@@ -151,14 +151,13 @@ describe('transaction', () => {
 							mandatoryKeys: [publicKey1],
 							optionalKeys: [publicKey2],
 						},
-						dpos: { delegate: {}, sentVotes: [], unlocking: [] },
 					};
 					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
 					when(channelMock.invoke)
 						.calledWith('app:getAccount')
 						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
 					const returnedTx = await transaction.create(validTransaction, passphrase1);
-					expect(returnedTx.signatures).toHaveLength(1);
+					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
 			});
@@ -169,11 +168,11 @@ describe('transaction', () => {
 						includeSenderSignature: true,
 						multisignatureKeys: {
 							mandatoryKeys: [],
-							optionalKeys: [],
+							optionalKeys: [publicKey2],
 						},
 					};
 					const returnedTx = await transaction.create(validTransaction, passphrase1, options);
-					expect(returnedTx.signatures).toHaveLength(1);
+					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
 			});
@@ -187,17 +186,39 @@ describe('transaction', () => {
 				});
 			});
 
+			describe('when called with multi-signature account in input', () => {
+				it('should return created tx', async () => {
+					const multisigAccount = {
+						address: Buffer.from('ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815', 'hex'),
+						token: { balance: BigInt('100000000') },
+						sequence: { nonce: BigInt('0') },
+						keys: {
+							numberOfSignatures: 1,
+							mandatoryKeys: [publicKey1],
+							optionalKeys: [publicKey2],
+						},
+					};
+					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
+					when(channelMock.invoke)
+						.calledWith('app:getAccount')
+						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
+					const returnedTx = await transaction.sign(validTransaction, passphrases);
+					expect(returnedTx.signatures).toHaveLength(2);
+					expect(returnedTx.signatures).toMatchSnapshot();
+				});
+			});
+
 			describe('when called with optional keys in input', () => {
 				it('should return created tx', async () => {
 					const options = {
 						includeSenderSignature: true,
 						multisignatureKeys: {
 							mandatoryKeys: [],
-							optionalKeys: [],
+							optionalKeys: [publicKey2],
 						},
 					};
 					const returnedTx = await transaction.sign(validTransaction, passphrases, options);
-					expect(returnedTx.signatures).toHaveLength(1);
+					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
 			});
