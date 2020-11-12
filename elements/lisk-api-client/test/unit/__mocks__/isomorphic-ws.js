@@ -10,15 +10,20 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import { APIClient } from './api_client';
-import { IPCChannel } from './ipc_channel';
 
-export const createAPIClient = async (dataPath: string): Promise<APIClient> => {
-	const ipcChannel = new IPCChannel(dataPath);
-	await ipcChannel.connect();
-	const client = new APIClient(ipcChannel);
-	await client.init();
-	return client;
-};
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { EventEmitter } = require('events');
+
+class WebSocket extends EventEmitter {
+	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+	send(message, cb) {
+		const data = JSON.parse(message);
+		cb();
+		setTimeout(() => {
+			this.emit('message', JSON.stringify({ ...data, result: message }));
+		}, 100);
+	}
+}
+
+module.exports = WebSocket;

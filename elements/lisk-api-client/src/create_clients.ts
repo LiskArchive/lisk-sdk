@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { APIClient } from './api_client';
+import { IPCChannel } from './ipc_channel';
+import { WSChannel } from './ws_channel';
+
 import { Channel } from './types';
 
 export const createClient = async (channel: Channel): Promise<APIClient> => {
@@ -21,4 +23,18 @@ export const createClient = async (channel: Channel): Promise<APIClient> => {
 	await client.init();
 
 	return client;
+};
+
+export const createIPCClient = async (dataPath: string): Promise<APIClient> => {
+	const ipcChannel = new IPCChannel(dataPath);
+	await ipcChannel.connect();
+
+	return createClient(ipcChannel);
+};
+
+export const createWSClient = async (url: string): Promise<APIClient> => {
+	const wsChannel = new WSChannel(url);
+	await wsChannel.connect();
+
+	return createClient(wsChannel);
 };
