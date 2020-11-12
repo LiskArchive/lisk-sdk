@@ -65,13 +65,12 @@ class TestPlugin extends BasePlugin {
 	public async unload(): Promise<void> {}
 }
 
-const config: any = {
-	...networkConfig,
-};
-
 // eslint-disable-next-line
 describe('Application', () => {
 	// Arrange
+	const config: any = {
+		...networkConfig,
+	};
 	const loggerMock = {
 		info: jest.fn(),
 		error: jest.fn(),

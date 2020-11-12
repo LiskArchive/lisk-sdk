@@ -23,50 +23,49 @@ const getMockedCallback = (error: unknown, result: unknown) =>
 		args[args.length - 1](error, result);
 	});
 
-const jsonrpcRequest = { id: 1, jsonrpc: '2.0', method: 'moduleAlias:action1' };
-const ipcClientMock = {
-	stop: jest.fn(),
-	start: jest.fn(),
-	rpcClient: {
-		call: getMockedCallback(undefined, true),
-	},
-	rpcServer: {
-		expose: jest.fn().mockImplementation((_name, cb) => {
-			cb(jsonrpcRequest, jest.fn());
-		}),
-	},
-	subSocket: {
-		on: getMockedCallback({ jsonrpc: '2.0', method: 'module:event', params: {} }, {}),
-	},
-	pubSocket: {
-		send: jest.fn(),
-	},
-};
-
-jest.mock('../../../../src/controller/ipc/ipc_client', () => {
-	return {
-		IPCClient: jest.fn().mockImplementation(() => {
-			return ipcClientMock;
-		}),
-	};
-});
-
-const emitterMock = {
-	on: jest.fn(),
-	once: jest.fn(),
-	emit: jest.fn(),
-};
-
-jest.mock('eventemitter2', () => {
-	return {
-		EventEmitter2: jest.fn().mockImplementation(() => {
-			return emitterMock;
-		}),
-	};
-});
-
 describe('IPCChannel Channel', () => {
 	// Arrange
+	const emitterMock = {
+		on: jest.fn(),
+		once: jest.fn(),
+		emit: jest.fn(),
+	};
+	const jsonrpcRequest = { id: 1, jsonrpc: '2.0', method: 'moduleAlias:action1' };
+	const ipcClientMock = {
+		stop: jest.fn(),
+		start: jest.fn(),
+		rpcClient: {
+			call: getMockedCallback(undefined, true),
+		},
+		rpcServer: {
+			expose: jest.fn().mockImplementation((_name, cb) => {
+				cb(jsonrpcRequest, jest.fn());
+			}),
+		},
+		subSocket: {
+			on: getMockedCallback({ jsonrpc: '2.0', method: 'module:event', params: {} }, {}),
+		},
+		pubSocket: {
+			send: jest.fn(),
+		},
+	};
+
+	jest.mock('../../../../src/controller/ipc/ipc_client', () => {
+		return {
+			IPCClient: jest.fn().mockImplementation(() => {
+				return ipcClientMock;
+			}),
+		};
+	});
+
+	jest.mock('eventemitter2', () => {
+		return {
+			EventEmitter2: jest.fn().mockImplementation(() => {
+				return emitterMock;
+			}),
+		};
+	});
+
 	const socketsPath = {
 		root: 'root',
 		sub: 'sub',
