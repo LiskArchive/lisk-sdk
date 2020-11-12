@@ -106,6 +106,8 @@ export class Transaction {
 		if (!txInput.senderPublicKey) {
 			txInput.senderPublicKey = publicKey;
 		}
+		// If signature is not set, assign empty array
+		txInput.signatures = txInput.signatures ?? [];
 		const assetSchema = getTransactionAssetSchema(txInput, this._schema);
 		if (account.keys && (account.keys as MultiSignatureKeys).numberOfSignatures > 0) {
 			return signMultiSignatureTransaction(
