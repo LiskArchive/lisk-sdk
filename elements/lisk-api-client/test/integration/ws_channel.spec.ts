@@ -13,18 +13,18 @@
  */
 
 import * as WebSocket from 'isomorphic-ws';
-import { WSClient } from '../../src/ws_client';
+import { WSChannel } from '../../src/ws_channel';
 
 jest.unmock('isomorphic-ws');
 
-describe('WSClient', () => {
+describe('WSChannel', () => {
 	describe('connect', () => {
 		it('should be connect to ws server', async () => {
 			const server = new WebSocket.Server({ path: '/my-path', port: 65535 });
-			const client = new WSClient('ws://localhost:65535/my-path');
+			const channel = new WSChannel('ws://localhost:65535/my-path');
 
 			try {
-				await expect(client.connect()).resolves.toBeUndefined();
+				await expect(channel.connect()).resolves.toBeUndefined();
 				expect(server.clients.size).toEqual(1);
 				expect([...server.clients][0].readyState).toEqual(WebSocket.OPEN);
 			} finally {
@@ -41,36 +41,36 @@ describe('WSClient', () => {
 				}, 3000);
 			};
 			const server = new WebSocket.Server({ path: '/my-path', port: 65535, verifyClient });
-			const client = new WSClient('ws://localhost:65535/my-path');
+			const channel = new WSChannel('ws://localhost:65535/my-path');
 
 			try {
-				await expect(client.connect()).rejects.toThrow('Could not connect in 2000ms');
+				await expect(channel.connect()).rejects.toThrow('Could not connect in 2000ms');
 				expect(server.clients.size).toEqual(0);
 			} finally {
-				// TODO: Found that unless we disconnect client, sever.close keep open handles.
-				await client.disconnect();
+				// TODO: Found that unless we disconnect channel, sever.close keep open handles.
+				await channel.disconnect();
 				server.close();
 			}
 			expect.assertions(2);
 		}, 5000);
 
 		it('should throw error if server is not running', async () => {
-			const client = new WSClient('ws://localhost:65535/my-path');
+			const channel = new WSChannel('ws://localhost:65535/my-path');
 
-			await expect(client.connect()).rejects.toThrow('connect ECONNREFUSED 127.0.0.1:65535');
+			await expect(channel.connect()).rejects.toThrow('connect ECONNREFUSED 127.0.0.1:65535');
 		});
 	});
 
 	describe('disconnect', () => {
 		it('should close ws connection', async () => {
 			const server = new WebSocket.Server({ path: '/my-path', port: 65535 });
-			const client = new WSClient('ws://localhost:65535/my-path');
+			const channel = new WSChannel('ws://localhost:65535/my-path');
 
-			await client.connect();
+			await channel.connect();
 
 			try {
-				await expect(client.disconnect()).resolves.toBeUndefined();
-				// WebSocket.Server.clients are not cleaned immediately
+				await expect(channel.disconnect()).resolves.toBeUndefined();
+				// WebSocket.Server.channels are not cleaned immediately
 				expect(server.clients.size).toEqual(1);
 				expect([...server.clients][0].readyState).toEqual(WebSocket.CLOSING);
 			} finally {

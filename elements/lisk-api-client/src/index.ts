@@ -13,6 +13,4 @@
  *
  */
 
-export { createClient } from './client';
-export { createAPIClient } from './create_api_client';
-export { createWSClient } from './create_ws_client';
+export { createAPIClient, createWSClient, createClient } from './create_clients';

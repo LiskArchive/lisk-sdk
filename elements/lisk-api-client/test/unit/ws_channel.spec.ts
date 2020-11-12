@@ -15,17 +15,17 @@
 
 import { EventEmitter } from 'events';
 import * as WebSocket from 'isomorphic-ws';
-import { WSClient } from '../../src/ws_client';
+import { WSChannel } from '../../src/ws_channel';
 
 jest.mock('isomorphic-ws');
 
-describe('WSClient', () => {
-	let client: WSClient;
+describe('WSChannel', () => {
+	let client: WSChannel;
 	// let wsMock: WSMock;
 	const url = 'ws://localhost:8000/ws';
 
 	beforeEach(async () => {
-		client = new WSClient(url);
+		client = new WSChannel(url);
 
 		jest.spyOn(WebSocket.prototype, 'send');
 

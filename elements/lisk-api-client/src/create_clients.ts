@@ -14,11 +14,27 @@
  */
 import { APIClient } from './api_client';
 import { IPCChannel } from './ipc_channel';
+import { WSChannel } from './ws_channel';
+
+import { Channel } from './types';
+
+export const createClient = async (channel: Channel): Promise<APIClient> => {
+	const client = new APIClient(channel);
+	await client.init();
+
+	return client;
+};
 
 export const createAPIClient = async (dataPath: string): Promise<APIClient> => {
 	const ipcChannel = new IPCChannel(dataPath);
 	await ipcChannel.connect();
-	const client = new APIClient(ipcChannel);
-	await client.init();
-	return client;
+
+	return createClient(ipcChannel);
+};
+
+export const createWSClient = async (url: string): Promise<APIClient> => {
+	const wsChannel = new WSChannel(url);
+	await wsChannel.connect();
+
+	return createClient(wsChannel);
 };

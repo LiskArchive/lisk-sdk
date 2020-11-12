@@ -56,7 +56,7 @@ const defer = <T>(): Defer<T> => {
 	return { promise, resolve, reject };
 };
 
-export class WSClient {
+export class WSChannel {
 	public isAlive = false;
 	private readonly _url: string;
 	private _ws?: WebSocket;
