@@ -14,7 +14,6 @@
  */
 
 import { Schema } from '@liskhq/lisk-codec';
-import { Block } from './block';
 
 export interface EventInfoObject<T> {
 	readonly module: string;
