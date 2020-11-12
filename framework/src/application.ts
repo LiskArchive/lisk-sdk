@@ -22,6 +22,19 @@ import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import {
+	APP_EVENT_BLOCK_NEW,
+	APP_EVENT_CHAIN_FORK,
+	APP_EVENT_SHUTDOWN,
+	APP_EVENT_READY,
+	APP_IDENTIFIER,
+	APP_EVENT_NETWORK_EVENT,
+	APP_EVENT_TRANSACTION_NEW,
+	APP_EVENT_BLOCK_DELETE,
+	APP_EVENT_CHAIN_VALIDATORS_CHANGE,
+	APP_EVENT_NETWORK_READY,
+} from './constants';
+
+import {
 	getPluginExportPath,
 	BasePlugin,
 	InstantiablePlugin,
@@ -264,7 +277,7 @@ export class Application {
 			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
 			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
-			this._channel.publish('app:ready');
+			this._channel.publish(APP_EVENT_READY);
 		});
 	}
 
@@ -274,7 +287,7 @@ export class Application {
 		const release = await this._mutex.acquire();
 
 		try {
-			this._channel.publish('app:shutdown');
+			this._channel.publish(APP_EVENT_SHUTDOWN);
 			await this._node.cleanup();
 			await this._controller.cleanup(errorCode, message);
 			await this._blockchainDB.close();
@@ -337,19 +350,17 @@ export class Application {
 		/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 		/* eslint-disable @typescript-eslint/explicit-function-return-type */
 		return new InMemoryChannel(
-			'app',
+			APP_IDENTIFIER,
 			[
-				'ready',
-				'shutdown',
-				'network:event',
-				'network:ready',
-				'transaction:new',
-				'chain:sync',
-				'chain:fork',
-				'chain:validators:change',
-				'block:new',
-				'block:broadcast',
-				'block:delete',
+				APP_EVENT_READY.replace('app:', ''),
+				APP_EVENT_SHUTDOWN.replace('app:', ''),
+				APP_EVENT_NETWORK_EVENT.replace('app:', ''),
+				APP_EVENT_NETWORK_READY.replace('app:', ''),
+				APP_EVENT_TRANSACTION_NEW.replace('app:', ''),
+				APP_EVENT_CHAIN_FORK.replace('app:', ''),
+				APP_EVENT_CHAIN_VALIDATORS_CHANGE.replace('app:', ''),
+				APP_EVENT_BLOCK_NEW.replace('app:', ''),
+				APP_EVENT_BLOCK_DELETE.replace('app:', ''),
 			],
 			{
 				getConnectedPeers: {
