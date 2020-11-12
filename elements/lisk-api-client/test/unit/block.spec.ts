@@ -232,20 +232,16 @@ describe('block', () => {
 							'hex',
 						),
 					],
-					id: 'dd93e4ca5b48d0b604e7cf2e57ce21be43a3163f853c83d88d383032fd830bbf',
+					id: Buffer.from(
+						'dd93e4ca5b48d0b604e7cf2e57ce21be43a3163f853c83d88d383032fd830bbf',
+						'hex',
+					),
 				};
 				const decodedBlock = block.decode(encodedBlockBuffer);
 				(decodedBlock as any).payload.push(tx);
 				const decodedBlockJSON = block.toJSON(decodedBlock as any);
 				// Act
 				const decodedBlockFromJSON = block.fromJSON(decodedBlockJSON as any);
-
-				// Remove ids in test too as ids are not present in schemas
-				delete (decodedBlock as any).header.id;
-
-				for (const aTx of (decodedBlock as any).payload) {
-					delete aTx.id;
-				}
 
 				// Assert
 				expect(decodedBlockFromJSON).toEqual(decodedBlock);

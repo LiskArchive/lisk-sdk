@@ -265,11 +265,12 @@ describe('transaction', () => {
 
 		describe('fromJSON', () => {
 			it('should return decoded transaction in JSON', () => {
-				const txAsJSON = transaction.toJSON(tx);
+				const txCopy = { ...tx };
+				(txCopy as any).id = txId;
+				const txAsJSON = transaction.toJSON(txCopy);
 				const txAsObject = transaction.fromJSON(txAsJSON);
-				const { id, ...txWithoutId } = tx;
 
-				expect(txAsObject).toEqual(txWithoutId);
+				expect(txAsObject).toEqual(txCopy);
 			});
 		});
 	});

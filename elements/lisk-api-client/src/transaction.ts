@@ -216,6 +216,8 @@ export class Transaction {
 
 	public toJSON(transaction: Record<string, unknown>): Record<string, unknown> {
 		const { asset: txAsset, ...txRoot } = transaction;
+		// We need to do this as our schemas do not include the ID. Keep this.
+		const tmpId = txRoot.id;
 		delete txRoot.id;
 
 		const schemaAsset = getTransactionAssetSchema(txRoot, this._schema);
@@ -225,6 +227,7 @@ export class Transaction {
 		const jsonTx = {
 			...jsonTxRoot,
 			asset: jsonTxAsset,
+			id: tmpId,
 		};
 
 		return jsonTx;
@@ -232,6 +235,8 @@ export class Transaction {
 
 	public fromJSON(transaction: Record<string, unknown>): Record<string, unknown> {
 		const { asset: txAsset, ...txRoot } = transaction;
+		// We need to do this as our schemas do not include the ID. Keep this.
+		const tmpId = txRoot.id;
 		delete txRoot.id;
 
 		const schemaAsset = getTransactionAssetSchema(txRoot, this._schema);
@@ -241,6 +246,7 @@ export class Transaction {
 		const txObject = {
 			...txRootObject,
 			asset: txAssetObject,
+			id: tmpId ? Buffer.from(tmpId as string, 'hex') : Buffer.alloc(0),
 		};
 
 		return txObject;

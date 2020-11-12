@@ -56,30 +56,33 @@ export class Block {
 		header: Record<string, unknown>;
 		payload: Record<string, unknown>[];
 	} {
-		const json = {
-			header: {
-				asset: {},
-			},
-			payload: [],
-		};
 		const { asset, ...headerRoot } = block.header;
 
-		// We need to remove this 'cos schema does not have id
+		// We need to do this as our schemas do not include the ID. Keep this.
+		const tmpBlockId = headerRoot.id;
 		delete headerRoot.id;
 
 		// decode header
-		json.header = { ...codec.toJSON(this._schemas.blockHeader, headerRoot), asset: {} };
+		const header = {
+			...codec.toJSON(this._schemas.blockHeader, headerRoot),
+			asset: {},
+			id: tmpBlockId?.toString('hex'),
+		};
 
 		// decode header's asset
 		const headerAssetJson = codec.toJSON(
 			this._schemas.blockHeadersAssets[block.header.version],
 			asset,
 		);
-		json.header.asset = headerAssetJson;
+		header.asset = headerAssetJson;
+
+		const payload: Record<string, unknown>[] = [];
 
 		// decode transactions
 		for (const tx of block.payload) {
 			const { asset: txAsset, ...txRoot } = tx;
+			// We need to do this as our schemas do not include the ID. Keep this.
+			const tmpId = txRoot.id;
 			delete txRoot.id;
 
 			const schemaAsset = getTransactionAssetSchema(tx, this._schemas);
@@ -88,45 +91,48 @@ export class Block {
 
 			const jsonTx = {
 				...jsonTxRoot,
+				id: tmpId?.toString('hex'),
 				asset: jsonTxAsset,
 			};
 
-			json.payload.push(jsonTx as never);
+			payload.push(jsonTx);
 		}
 
-		return json;
+		return { header, payload };
 	}
 
 	public fromJSON(
-		block: BlockType,
+		block: BlockType<string>,
 	): {
 		header: Record<string, unknown>;
 		payload: Record<string, unknown>[];
 	} {
-		const object = {
-			header: {
-				asset: {},
-			},
-			payload: [],
-		};
 		const { asset, ...headerRoot } = block.header;
 
-		// We need to remove this 'cos schema does not have id
+		// We need to do this as our schemas do not include the ID. Keep this.
+		const tmpBlockId = headerRoot.id ? Buffer.from(headerRoot.id, 'hex') : Buffer.alloc(0);
 		delete headerRoot.id;
 
 		// decode header
-		object.header = { ...codec.fromJSON(this._schemas.blockHeader, headerRoot), asset: {} };
+		const header = {
+			...codec.fromJSON(this._schemas.blockHeader, headerRoot),
+			asset: {},
+			id: tmpBlockId,
+		};
 
 		// decode header's asset
 		const headerAssetJson = codec.fromJSON(
 			this._schemas.blockHeadersAssets[block.header.version],
 			asset,
 		);
-		object.header.asset = headerAssetJson;
+		header.asset = headerAssetJson;
 
+		const payload: Record<string, unknown>[] = [];
 		// decode transactions
 		for (const tx of block.payload) {
 			const { asset: txAsset, ...txRoot } = tx;
+			// We need to do this as our schemas do not include the ID. Keep this.
+			const tmpId = txRoot.id ? Buffer.from(txRoot.id, 'hex') : Buffer.alloc(0);
 			delete txRoot.id;
 
 			const schemaAsset = getTransactionAssetSchema(tx, this._schemas);
@@ -135,12 +141,13 @@ export class Block {
 
 			const txObject = {
 				...txRootObject,
+				id: tmpId,
 				asset: txAssetObject,
 			};
 
-			object.payload.push(txObject as never);
+			payload.push(txObject);
 		}
 
-		return object;
+		return { header, payload };
 	}
 }
