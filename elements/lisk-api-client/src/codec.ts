@@ -34,6 +34,11 @@ export const getTransactionAssetSchema = (
 	return txAssetSchema.schema;
 };
 
+export const decodeAccount = (
+	encodedAccount: Buffer,
+	registeredSchema: RegisteredSchemas,
+): Record<string, unknown> => codec.decode(registeredSchema.account, encodedAccount);
+
 export const decodeTransaction = (
 	encodedTransaction: Buffer,
 	registeredSchema: RegisteredSchemas,

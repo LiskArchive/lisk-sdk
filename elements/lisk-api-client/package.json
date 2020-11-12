@@ -38,6 +38,7 @@
 	"dependencies": {
 		"@liskhq/lisk-codec": "^0.1.0-alpha.0",
 		"@liskhq/lisk-cryptography": "^3.0.0-alpha.0",
+		"@liskhq/lisk-transactions": "^5.0.0-alpha.0",
 		"pm2-axon": "4.0.0",
 		"pm2-axon-rpc": "0.6.0"
 	},
