@@ -14,6 +14,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { BaseChannel } from 'lisk-framework';
 import { SharedState, PeerInfo } from '../types';
+import { getBlockStats } from './blocks';
+import { getTransactionStats } from './transactions';
 
 interface PrometheusData {
 	readonly metric: string;
@@ -62,6 +64,8 @@ export const getData = (channel: BaseChannel, state: SharedState) => async (
 		const connectedPeers: PeerInfo[] = await channel.invoke('app:getConnectedPeers');
 		const disconnectedPeers: PeerInfo[] = await channel.invoke('app:getDisconnectedPeers');
 		const nodeInfo: NodeInfo = await channel.invoke('app:getNodeInfo');
+		const blockStats = await getBlockStats(channel, state);
+		const transactionStats = await getTransactionStats(channel, state);
 
 		const data: PrometheusData[] = [
 			{
@@ -71,7 +75,7 @@ export const getData = (channel: BaseChannel, state: SharedState) => async (
 				values: [
 					{
 						key: '',
-						value: state.blocks.averageReceivedBlocks,
+						value: blockStats.averageReceivedBlocks,
 					},
 				],
 			},
@@ -82,7 +86,7 @@ export const getData = (channel: BaseChannel, state: SharedState) => async (
 				values: [
 					{
 						key: '',
-						value: state.transactions.averageReceivedTransactions,
+						value: transactionStats.averageReceivedTransactions,
 					},
 				],
 			},

@@ -13,30 +13,37 @@
  */
 
 export type ID = string | number | null;
-export type Result = string | number | boolean | object;
-export interface SuccessObject {
-	jsonrpc: string;
-	id: ID;
-	result: Result;
-}
-export interface NotificationObject {
-	jsonrpc: string;
-	method: string;
-	result?: Result;
-}
-export interface JsonRpcError {
+export type JSONRPCResult = string | number | boolean | object;
+
+export interface JSONRPCErrorObject {
 	code: number;
 	message: string;
-	data?: Result;
+	data?: JSONRPCResult;
 }
-export interface ErrorObject {
-	jsonrpc: string;
-	id: ID;
-	error: JsonRpcError;
-}
+
 export interface RequestObject {
-	readonly id: string | number | null;
+	readonly id: ID;
 	readonly jsonrpc: string;
 	readonly method: string;
-	readonly params?: object;
+	readonly params?: object & { source?: string };
 }
+
+export type NotificationRequest = Omit<RequestObject, 'id'>;
+
+export interface ResponseObjectWithError {
+	readonly id: ID;
+	readonly jsonrpc: string;
+	readonly error: JSONRPCErrorObject;
+	readonly result?: never;
+}
+
+export interface ResponseObjectWithResult<T = JSONRPCResult> {
+	readonly id: ID;
+	readonly jsonrpc: string;
+	readonly error?: never;
+	readonly result: T;
+}
+
+export type ResponseObject<T = JSONRPCResult> =
+	| ResponseObjectWithError
+	| ResponseObjectWithResult<T>;

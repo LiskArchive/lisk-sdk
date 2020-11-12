@@ -44,7 +44,7 @@ describe('_handlePostTransactionAnnounce', () => {
 		// Act
 		MonitorInstance._handlePostTransactionAnnounce({ transactionIds });
 		// Assert
-		expect(Object.keys(MonitorInstance._state.transactions.transactions)).toEqual(transactionIds);
+		expect(Object.keys(MonitorInstance._state.transactions)).toEqual(transactionIds);
 	});
 
 	it('should increment count for existing transaction id', () => {
@@ -55,7 +55,7 @@ describe('_handlePostTransactionAnnounce', () => {
 		MonitorInstance._handlePostTransactionAnnounce({ transactionIds });
 		MonitorInstance._handlePostTransactionAnnounce({ transactionIds: [transactionIds[0]] });
 		// Assert
-		expect(MonitorInstance._state.transactions.transactions[transactionIds[0]].count).toBe(2);
+		expect(MonitorInstance._state.transactions[transactionIds[0]].count).toBe(2);
 	});
 });
 
@@ -90,7 +90,7 @@ describe('_cleanUpTransactionStats', () => {
 		// Act
 		MonitorInstance._handlePostTransactionAnnounce({ transactionIds });
 		// Assert
-		expect(Object.keys(MonitorInstance._state.transactions.transactions)).toEqual(transactionIds);
+		expect(Object.keys(MonitorInstance._state.transactions)).toEqual(transactionIds);
 
 		Date.now = jest.fn(() => now + 600001);
 
@@ -98,6 +98,6 @@ describe('_cleanUpTransactionStats', () => {
 
 		MonitorInstance._handlePostTransactionAnnounce({ transactionIds: newTransactions });
 
-		expect(Object.keys(MonitorInstance._state.transactions.transactions)).toEqual(newTransactions);
+		expect(Object.keys(MonitorInstance._state.transactions)).toEqual(newTransactions);
 	});
 });

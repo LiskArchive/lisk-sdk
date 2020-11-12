@@ -29,10 +29,12 @@ describe('WSServer', () => {
 			level: jest.fn(),
 		},
 	};
+	let wsServerInstance: WSServer;
+	const wsMessageHandler = jest.fn();
 
 	describe('constructor()', () => {
 		it('should setup class properties based on config', () => {
-			const wsServerInstance = new WSServer(config);
+			wsServerInstance = new WSServer(config);
 			expect(wsServerInstance['port']).toBe(config.port);
 			expect(wsServerInstance['path']).toBe(config.path);
 			expect(wsServerInstance['logger']).toBe(config.logger);
@@ -40,10 +42,12 @@ describe('WSServer', () => {
 	});
 
 	describe('start()', () => {
-		let wsServerInstance: WSServer;
 		beforeEach(() => {
 			wsServerInstance = new WSServer(config);
-			wsServerInstance.start();
+
+			jest.spyOn(WebSocket.Server.prototype, 'on');
+
+			wsServerInstance.start(wsMessageHandler);
 		});
 
 		afterEach(() => {
@@ -68,8 +72,8 @@ describe('WSServer', () => {
 
 	describe('stop()', () => {
 		it('should call stop on the WS server', () => {
-			const wsServerInstance = new WSServer(config);
-			wsServerInstance.start();
+			wsServerInstance = new WSServer(config);
+			wsServerInstance.start(wsMessageHandler);
 			const stopSpy = jest.spyOn(wsServerInstance.server, 'close');
 			wsServerInstance.stop();
 			expect(stopSpy).toHaveBeenCalled();

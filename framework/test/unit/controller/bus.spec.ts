@@ -12,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-jest.mock('eventemitter2');
-jest.mock('pm2-axon');
-jest.mock('pm2-axon-rpc');
-
 // eslint-disable-next-line import/first
 import { EventEmitter2 } from 'eventemitter2';
 // eslint-disable-next-line import/first
@@ -24,6 +20,12 @@ import { Bus } from '../../../src/controller/bus';
 import { Action } from '../../../src/controller/action';
 // eslint-disable-next-line import/first
 import { WSServer } from '../../../src/controller/ws/ws_server';
+import { IPCServer } from '../../../src/controller/ipc/ipc_server';
+
+jest.mock('eventemitter2');
+jest.mock('pm2-axon');
+jest.mock('pm2-axon-rpc');
+jest.mock('ws');
 
 describe('Bus', () => {
 	const config: any = {
@@ -46,19 +48,23 @@ describe('Bus', () => {
 		type: 'inMemory',
 		channel: channelMock,
 	};
-	const logger: any = {
+
+	const loggerMock: any = {
 		info: jest.fn(),
 		error: jest.fn(),
+		debug: jest.fn(),
 	};
 
 	let bus: Bus;
 
 	beforeEach(() => {
-		bus = new Bus(logger, config);
+		bus = new Bus(loggerMock, config);
 	});
 
-	afterEach(() => {
-		bus['_wsServer'].stop();
+	afterEach(async () => {
+		if (bus) {
+			await bus.cleanup();
+		}
 	});
 
 	describe('#constructor', () => {
@@ -66,13 +72,58 @@ describe('Bus', () => {
 			// Assert
 			expect(bus['actions']).toEqual({});
 			expect(bus['events']).toEqual({});
+			expect(bus['_ipcServer']).toBeInstanceOf(IPCServer);
 			expect(bus['_wsServer']).toBeInstanceOf(WSServer);
 		});
 	});
 
 	describe('#setup', () => {
+		beforeEach(() => {
+			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+		});
+
 		it('should resolve with true.', async () => {
 			return expect(bus.setup()).resolves.toBe(true);
+		});
+
+		it('should setup ipc server', async () => {
+			// Arrange
+			const updatedConfig = { ...config };
+			updatedConfig.ipc.enabled = true;
+			bus = new Bus(loggerMock, updatedConfig);
+
+			// Act
+			await bus.setup();
+
+			// Assert
+			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should setup ws server if rpc is enabled', async () => {
+			// Arrange
+			const updatedConfig = { ...config };
+			updatedConfig.rpc.enable = true;
+			bus = new Bus(loggerMock, updatedConfig);
+
+			// Act
+			await bus.setup();
+
+			// Assert
+			return expect(WSServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should not setup ws server if rpc is not enabled', async () => {
+			// Arrange
+			const updatedConfig = { ...config };
+			updatedConfig.rpc.enable = false;
+			bus = new Bus(loggerMock, updatedConfig);
+
+			// Act
+			await bus.setup();
+
+			// Assert
+			return expect(WSServer.prototype.start).not.toHaveBeenCalled();
 		});
 	});
 
@@ -147,7 +198,7 @@ describe('Bus', () => {
 				jsonrpc: '2.0',
 				method: 'app:nonExistentAction',
 			};
-			const action = Action.fromJSONRPC(jsonrpcRequest);
+			const action = Action.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
 			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
@@ -162,7 +213,7 @@ describe('Bus', () => {
 				jsonrpc: '2.0',
 				method: 'invalidModule:getComponentConfig',
 			};
-			const action = Action.fromJSONRPC(jsonrpcRequest);
+			const action = Action.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
 			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
@@ -177,13 +228,13 @@ describe('Bus', () => {
 			const moduleAlias = 'alias';
 			const events = ['registeredEvent'];
 			const eventName = `${moduleAlias}:${events[0]}`;
-			const eventData = '#DATA';
-			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', result: eventData };
+			const eventData = { data: '#DATA' };
+			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', params: eventData };
 
 			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act
-			bus.publish(eventName, eventData as any);
+			bus.publish(JSONRPCData);
 
 			// Assert
 			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(eventName, JSONRPCData);

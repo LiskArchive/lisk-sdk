@@ -35,7 +35,7 @@ interface BlockHeader {
 	timeReceived: number;
 }
 
-interface TransactionPropagationStats {
+export interface TransactionPropagationStats {
 	count: number;
 	timeReceived: number;
 }
@@ -50,16 +50,8 @@ export interface SharedState {
 		forkEventCount: number;
 		blockHeaders: Record<string, BlockHeader>;
 	};
-	transactions: {
-		transactions: Record<string, TransactionPropagationStats>;
-		averageReceivedTransactions: number;
-		connectedPeers: number;
-	};
-	blocks: {
-		blocks: { [key: string]: BlockPropagationStats };
-		averageReceivedBlocks: number;
-		connectedPeers: number;
-	};
+	transactions: Record<string, TransactionPropagationStats>;
+	blocks: { [key: string]: BlockPropagationStats };
 }
 
 export interface PeerInfo {

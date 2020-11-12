@@ -27,7 +27,10 @@ import { IPCClient } from '../ipc/ipc_client';
 import { ActionInfoForBus, SocketPaths } from '../../types';
 import * as JSONRPC from '../jsonrpc';
 
-type NodeCallback = (error: Error | null, result?: unknown) => void;
+type NodeCallback = (
+	error: JSONRPC.ResponseObject | Error | null,
+	result?: JSONRPC.ResponseObject,
+) => void;
 
 interface ChildProcessOptions extends BaseChannelOptions {
 	socketsPath: SocketPaths;
@@ -61,10 +64,10 @@ export class IPCChannel extends BaseChannel {
 	public async startAndListen(): Promise<void> {
 		await this._ipcClient.start();
 		// Listen to messages
-		this._subSocket.on('message', (eventName: string, eventData: EventInfoObject) => {
-			const event = new Event(eventName, eventData);
+		this._subSocket.on('message', (eventData: string | JSONRPC.NotificationRequest) => {
+			const event = Event.fromJSONRPCNotification(eventData);
 			if (event.module !== this.moduleAlias) {
-				this._emitter.emit(eventName, eventData);
+				this._emitter.emit(event.key(), event.toObject());
 			}
 		});
 	}
@@ -103,28 +106,32 @@ export class IPCChannel extends BaseChannel {
 
 		// Channel RPC Server is only required if the module has actions
 		if (this.actionsList.length > 0) {
-			this._rpcServer.expose('invoke', (action, cb: NodeCallback) => {
-				const actionObject = Action.fromJSONRPC(action);
-				this.invoke(`${actionObject.module}:${actionObject.name}`, actionObject.params)
-					.then(data => cb(null, data))
-					.catch(error => cb(error));
-			});
+			this._rpcServer.expose(
+				'invoke',
+				(action: string | JSONRPC.RequestObject, cb: NodeCallback) => {
+					const parsedAction = Action.fromJSONRPCRequest(action);
+
+					this.invoke(parsedAction.key(), parsedAction.params)
+						.then(data => cb(null, parsedAction.buildJSONRPCResponse({ result: data as object })))
+						.catch(error => cb(error));
+				},
+			);
 		}
 	}
 
 	public subscribe(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.on(event.key(), (notificationObject: JSONRPC.NotificationObject) =>
+		this._emitter.on(event.key(), (eventInfo: EventInfoObject) =>
 			// When IPC channel used without bus the data will not contain result
-			setImmediate(cb, { data: notificationObject.result ?? notificationObject }),
+			setImmediate(cb, eventInfo),
 		);
 	}
 
 	public once(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.once(event.key(), (notificationObject: JSONRPC.NotificationObject) => {
+		this._emitter.once(event.key(), (eventInfo: EventInfoObject) => {
 			// When IPC channel used without bus the data will not contain result
-			setImmediate(cb, { data: notificationObject.result ?? notificationObject });
+			setImmediate(cb, eventInfo);
 		});
 	}
 
@@ -134,17 +141,18 @@ export class IPCChannel extends BaseChannel {
 			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
 		}
 
-		this._pubSocket.send(event.key(), data);
+		this._pubSocket.send(event.toJSONRPCNotification());
 	}
 
 	public async invoke<T>(actionName: string, params?: object): Promise<T> {
-		const action = new Action(null, actionName, params);
+		const action = new Action(null, actionName, params, this.moduleAlias);
 
 		if (action.module === this.moduleAlias) {
 			const handler = this.actions[action.name]?.handler;
 			if (!handler) {
 				throw new Error('Handler does not exist.');
 			}
+
 			// change this to lisk format
 			return handler(action.toObject()) as T;
 		}
@@ -152,13 +160,16 @@ export class IPCChannel extends BaseChannel {
 		return new Promise((resolve, reject) => {
 			this._rpcClient.call(
 				'invoke',
-				action.toJSONRPC(),
-				(err: JSONRPC.ErrorObject, data: JSONRPC.SuccessObject) => {
+				action.toJSONRPCRequest(),
+				(
+					err: JSONRPC.ResponseObjectWithError | undefined,
+					res: JSONRPC.ResponseObjectWithResult<T>,
+				) => {
 					if (err) {
-						return reject(err.error.data);
+						return reject(res.error ?? err);
 					}
 
-					return resolve((data.result as unknown) as T);
+					return resolve(res.result);
 				},
 			);
 		});

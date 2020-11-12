@@ -191,7 +191,7 @@ export class Controller {
 
 		await this.channel.registerToBus(this.bus);
 
-		this.bus.subscribe('*', (event: JSONRPC.NotificationObject) => {
+		this.bus.subscribe('*', (event: JSONRPC.NotificationRequest) => {
 			this.logger.error(`eventName: ${event.method},`, 'Monitor Bus Channel');
 		});
 	}

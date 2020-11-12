@@ -11,9 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Request, Response, NextFunction } from 'express';
 import { BaseChannel } from 'lisk-framework';
 import { PeerInfo } from '../types';
+
+interface NetworkStats {
+	[key: string]: unknown;
+}
 
 const getMajorityHeight = (peers: PeerInfo[]): { height: number; count: number } => {
 	const heightHistogram = {} as { [key: number]: number };
@@ -33,25 +36,15 @@ const getMajorityHeight = (peers: PeerInfo[]): { height: number; count: number }
 	return majority;
 };
 
-export const getNetworkStats = (channel: BaseChannel) => async (
-	_req: Request,
-	res: Response,
-	next: NextFunction,
-): Promise<void> => {
-	try {
-		const networkStats: { [key: string]: unknown } = await channel.invoke('app:getNetworkStats');
-		const connectedPeers: PeerInfo[] = await channel.invoke('app:getConnectedPeers');
-		const disconnectedPeers: PeerInfo[] = await channel.invoke('app:getDisconnectedPeers');
-		const majorityHeight = getMajorityHeight(connectedPeers);
-		const totalPeers = {
-			connected: connectedPeers.length,
-			disconnected: disconnectedPeers.length,
-		};
+export const getNetworkStats = async (channel: BaseChannel): Promise<NetworkStats> => {
+	const networkStats = await channel.invoke<Record<string, unknown>>('app:getNetworkStats');
+	const connectedPeers = await channel.invoke<PeerInfo[]>('app:getConnectedPeers');
+	const disconnectedPeers = await channel.invoke<PeerInfo[]>('app:getDisconnectedPeers');
+	const majorityHeight = getMajorityHeight(connectedPeers);
+	const totalPeers = {
+		connected: connectedPeers.length,
+		disconnected: disconnectedPeers.length,
+	};
 
-		const data = { ...networkStats, majorityHeight, totalPeers };
-
-		res.status(200).json({ data, meta: {} });
-	} catch (err) {
-		next(err);
-	}
+	return { ...networkStats, majorityHeight, totalPeers };
 };

@@ -13,17 +13,25 @@
  */
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { ErrorObject, JsonRpcError, ID, NotificationObject, Result, SuccessObject } from './types';
+import {
+	JSONRPCErrorObject,
+	ID,
+	NotificationRequest,
+	JSONRPCResult,
+	ResponseObjectWithResult,
+	ResponseObjectWithError,
+} from './types';
 
 export const VERSION = '2.0';
 
-const RequestSchema = {
+const requestSchema = {
 	id: 'jsonRPCRequestSchema',
 	type: 'object',
 	required: ['jsonrpc', 'method', 'id'],
 	properties: {
 		jsonrpc: {
 			type: 'string',
+			const: '2.0',
 		},
 		method: {
 			type: 'string',
@@ -35,44 +43,92 @@ const RequestSchema = {
 			type: 'object',
 		},
 	},
+	additionalProperties: false,
 };
 
-export const validateJSONRPC = (data: object): void => {
-	const errors = validator.validate(RequestSchema, data);
+const notificationSchema = {
+	id: 'jsonRPCRequestSchema',
+	type: 'object',
+	required: ['jsonrpc', 'method'],
+	properties: {
+		jsonrpc: {
+			type: 'string',
+			const: '2.0',
+		},
+		method: {
+			type: 'string',
+		},
+		params: {
+			type: 'object',
+		},
+	},
+	additionalProperties: false,
+};
+
+export const validateJSONRPCRequest = (data: Record<string, unknown>): void => {
+	const errors = validator.validate(requestSchema, data);
 	if (errors.length) {
 		throw new LiskValidationError(errors);
 	}
 };
 
-export const successObject = (id: ID, result: Result): SuccessObject => ({
+export const validateJSONRPCNotification = (data: Record<string, unknown>): void => {
+	const errors = validator.validate(notificationSchema, data);
+	if (errors.length) {
+		throw new LiskValidationError(errors);
+	}
+};
+
+export const notificationRequest = (
+	method: string,
+	params?: Record<string, unknown>,
+): NotificationRequest => ({
+	jsonrpc: VERSION,
+	method,
+	params,
+});
+
+export const successResponse = (id: ID, result: JSONRPCResult): ResponseObjectWithResult => ({
 	jsonrpc: VERSION,
 	id,
 	result,
 });
 
-export const notificationObject = (method: string, result?: Result): NotificationObject => ({
-	jsonrpc: VERSION,
-	method,
-	result,
-});
-
-export const errorObject = (id: ID, error: JsonRpcError): ErrorObject => ({
+export const errorResponse = (id: ID, error: JSONRPCErrorObject): ResponseObjectWithError => ({
 	jsonrpc: VERSION,
 	id,
 	error,
 });
 
-export const invalidRequest = (): JsonRpcError => ({ message: 'Invalid request', code: -32600 });
+export const invalidRequest = (): JSONRPCErrorObject => ({
+	message: 'Invalid request',
+	code: -32600,
+});
 
-export const methodNotFound = (): JsonRpcError => ({ message: 'Method not found', code: -32601 });
+export const methodNotFound = (): JSONRPCErrorObject => ({
+	message: 'Method not found',
+	code: -32601,
+});
 
-export const invalidParams = (): JsonRpcError => ({ message: 'Invalid params', code: -32602 });
+export const invalidParams = (): JSONRPCErrorObject => ({
+	message: 'Invalid params',
+	code: -32602,
+});
 
-export const internalError = (data?: Result): JsonRpcError => {
+export const internalError = (data?: JSONRPCResult): JSONRPCErrorObject => {
 	if (data) {
 		return { message: 'Internal error', code: -32603, data };
 	}
 	return { message: 'Internal error', code: -32603 };
 };
 
-export const parseError = (): JsonRpcError => ({ message: 'Parse error', code: -32700 });
+export const parseError = (): JSONRPCErrorObject => ({ message: 'Parse error', code: -32700 });
+
+export class JSONRPCError extends Error {
+	public response: ResponseObjectWithError;
+
+	public constructor(message: string, error: ResponseObjectWithError) {
+		super(message);
+		this.response = error;
+	}
+}

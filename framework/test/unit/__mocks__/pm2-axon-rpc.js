@@ -12,18 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Request, Response, NextFunction } from 'express';
+const rpc = jest.createMockFromModule('pm2-axon-rpc');
 
-export const errorMiddleware = () => (
-	err: Error | Error[],
-	_req: Request,
-	res: Response,
-	_next: NextFunction,
-): void => {
-	const errors = Array.isArray(err) ? err : [err];
-	for (const error of errors) {
-		// Include message property in response
-		Object.defineProperty(error, 'message', { enumerable: true });
-	}
-	res.status(500).send({ errors });
-};
+class MockServer {
+	sock = {
+		removeAllListeners: jest.fn(),
+		on: jest.fn(),
+		bind: jest.fn(),
+		close: jest.fn(),
+	};
+
+	expose = jest.fn();
+
+	constructor() {}
+}
+
+rpc.Server = MockServer;
+
+module.exports = rpc;

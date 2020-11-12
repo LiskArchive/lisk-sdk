@@ -15,9 +15,15 @@
 import { when } from 'jest-when';
 import { Request } from 'express';
 import { PeerInfo, SharedState } from '../../src/types';
-import { prometheusExport } from '../../src/controllers';
+import { prometheusExport, blocks, transactions } from '../../src/controllers';
 
 describe('networkStats', () => {
+	const blocksMock = jest.fn();
+	const transactionsMock = jest.fn();
+
+	(blocks.getBlockStats as any) = blocksMock;
+	(transactions.getTransactionStats as any) = transactionsMock;
+
 	const connectedPeers: Partial<PeerInfo>[] = [
 		{
 			ipAddress: '127.0.0.1',
@@ -60,21 +66,25 @@ describe('networkStats', () => {
 		unconfirmedTransactions: 17,
 	};
 
+	const blockStats = {
+		connectedPeer: connectedPeers.length,
+		blocks: {},
+		averageReceivedBlocks: 6,
+	};
+
+	const transactionStats = {
+		connectedPeer: connectedPeers.length,
+		transactions: {},
+		averageReceivedTransactions: 9,
+	};
+
 	const channelMock = {
 		invoke: jest.fn(),
 	};
 
 	const sharedState: SharedState = {
-		blocks: {
-			averageReceivedBlocks: 6,
-			blocks: {},
-			connectedPeers: connectedPeers.length,
-		},
-		transactions: {
-			averageReceivedTransactions: 9,
-			transactions: {},
-			connectedPeers: connectedPeers.length,
-		},
+		blocks: {},
+		transactions: {},
 		forks: {
 			blockHeaders: {},
 			forkEventCount: 3,
@@ -86,10 +96,10 @@ describe('networkStats', () => {
 	const expectedExportData =
 		'# HELP lisk_avg_times_blocks_received_info Average number of times blocks received\n' +
 		'# TYPE lisk_avg_times_blocks_received_info gauge\n' +
-		`lisk_avg_times_blocks_received_info ${sharedState.blocks.averageReceivedBlocks}\n\n` +
+		`lisk_avg_times_blocks_received_info ${blockStats.averageReceivedBlocks}\n\n` +
 		'# HELP lisk_avg_times_transactions_received_info Average number of times transactions received\n' +
 		'# TYPE lisk_avg_times_transactions_received_info gauge\n' +
-		`lisk_avg_times_transactions_received_info ${sharedState.transactions.averageReceivedTransactions}\n\n` +
+		`lisk_avg_times_transactions_received_info ${transactionStats.averageReceivedTransactions}\n\n` +
 		'# HELP lisk_node_height_total Node Height\n' +
 		'# TYPE lisk_node_height_total gauge\n' +
 		`lisk_node_height_total ${nodeInfo.height}\n\n` +
@@ -108,6 +118,9 @@ describe('networkStats', () => {
 		`lisk_fork_events_total ${sharedState.forks.forkEventCount}\n\n`;
 
 	beforeEach(() => {
+		blocksMock.mockResolvedValue(blockStats);
+		transactionsMock.mockResolvedValue(transactionStats);
+
 		when(channelMock.invoke)
 			.calledWith('app:getConnectedPeers')
 			.mockResolvedValue(connectedPeers)
