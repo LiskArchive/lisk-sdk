@@ -49,4 +49,18 @@ describe('Application related actions', () => {
 			);
 		});
 	});
+
+	describe('getForgers', () => {
+		it('should return forgers info with all properties', async () => {
+			const forgersInfo = await app['_channel'].invoke('app:getForgers');
+			expect(forgersInfo).toEqual(
+				expect.objectContaining({
+					address: expect.any(String),
+					nextForgingTime: expect.any(Number),
+					minActiveHeight: expect.any(Number),
+					isConsensusParticipant: expect.any(Boolean),
+				}),
+			);
+		});
+	});
 });
