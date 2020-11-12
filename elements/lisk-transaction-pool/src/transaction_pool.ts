@@ -13,7 +13,7 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { EventEmitter } from 'events';
 import { dataStructures } from '@liskhq/lisk-utils';
 
@@ -22,8 +22,7 @@ import { Job } from './job';
 import { TransactionList } from './transaction_list';
 import { Status, Transaction, TransactionStatus } from './types';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('lisk:transaction_pool');
+const debug = createDebug('lisk:transaction_pool');
 
 type ApplyFunction = (transactions: ReadonlyArray<Transaction>) => Promise<void>;
 

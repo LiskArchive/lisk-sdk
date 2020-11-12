@@ -14,13 +14,12 @@
 
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 
 import { Rounds } from './rounds';
 import { FixedLengthArray, RandomSeed } from './types';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('lisk:dpos:random_seed');
+const debug = createDebug('lisk:dpos:random_seed');
 
 interface HeadersMap {
 	[key: number]: BlockHeader;

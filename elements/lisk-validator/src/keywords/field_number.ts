@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { LiskValidationError } from '../errors';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('codec:keyword:fieldNumber');
+const debug = createDebug('codec:keyword:fieldNumber');
 
 export const metaSchema = {
 	title: 'Lisk Codec Field Number',
