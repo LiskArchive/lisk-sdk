@@ -16,6 +16,7 @@ import { EventCallback, Channel, RegisteredSchemas, NodeInfo } from './types';
 import { Node } from './node';
 import { Account } from './account';
 import { Block } from './block';
+import { Transaction } from './transaction';
 
 export class APIClient {
 	private readonly _channel: Channel;
@@ -24,6 +25,7 @@ export class APIClient {
 	private _node!: Node;
 	private _account!: Account;
 	private _block!: Block;
+	private _transaction!: Transaction;
 
 	public constructor(channel: Channel) {
 		this._channel = channel;
@@ -35,6 +37,7 @@ export class APIClient {
 		this._block = new Block(this._channel, this._schemas);
 		this._schemas = await this._channel.invoke<RegisteredSchemas>('app:getSchema');
 		this._nodeInfo = await this._node.getNodeInfo();
+		this._transaction = new Transaction(this._channel, this._schemas, this._nodeInfo);
 	}
 
 	public async disconnect(): Promise<void> {
@@ -65,5 +68,9 @@ export class APIClient {
 
 	public get block(): Block {
 		return this._block;
+	}
+
+	public get transaction(): Transaction {
+		return this._transaction;
 	}
 }
