@@ -348,9 +348,6 @@ export class Node {
 				}>
 			> => {
 				const validators = await this._chain.getValidators();
-				const validatorAddresses = validators.map(v => v.address);
-				const validatorminActiveHeights = validators.map(v => v.minActiveHeight);
-				const validatorisConsensusParticipants = validators.map(v => v.isConsensusParticipant);
 				const slot = this._chain.slots.getSlotNumber();
 				const startTime = this._chain.slots.getSlotTime(slot);
 
@@ -359,12 +356,13 @@ export class Node {
 				const blockTime = this._chain.slots.blockTime();
 				const forgersInfo = [];
 				for (let i = slotInRound; i < slotInRound + this._chain.numberOfValidators; i += 1) {
+					const validator = validators[i % validators.length];
 					forgersInfo.push({
-						address: validatorAddresses[i % validatorAddresses.length].toString('hex'),
+						...validator,
+						address: validator.address.toString('hex'),
 						nextForgingTime,
-						minActiveHeight: validatorminActiveHeights[i % validatorminActiveHeights.length],
-						isConsensusParticipant:
-							validatorisConsensusParticipants[i % validatorisConsensusParticipants.length],
+						minActiveHeight: validator.minActiveHeight,
+						isConsensusParticipant: validator.isConsensusParticipant,
 					});
 					nextForgingTime += blockTime;
 				}
