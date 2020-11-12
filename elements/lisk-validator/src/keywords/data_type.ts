@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { LiskValidationError, ErrorObject } from '../errors';
 import {
 	isBoolean,
@@ -24,8 +24,7 @@ import {
 	isUInt64,
 } from '../validation';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('codec:keyword:dataType');
+const debug = createDebug('codec:keyword:dataType');
 
 export const metaSchema = {
 	title: 'Lisk Codec Data Type',

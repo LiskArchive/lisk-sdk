@@ -16,7 +16,7 @@ import { Account } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { getMinWaitingHeight, getMinPunishedHeight } from './utils';
 import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
 import { BaseModule } from '../base_module';
@@ -48,8 +48,7 @@ const dposModuleParamsDefault = {
 	delegateListRoundOffset: 2,
 };
 
-// eslint-disable-next-line new-cap
-const debug = Debug('dpos');
+const debug = createDebug('dpos');
 
 export class DPoSModule extends BaseModule {
 	public name = 'dpos';
