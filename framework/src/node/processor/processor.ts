@@ -27,6 +27,7 @@ import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { EventEmitter } from 'events';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { APP_EVENT_CHAIN_FORK } from '../../constants';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { BaseModule, BaseAsset } from '../../modules';
@@ -143,7 +144,7 @@ export class Processor {
 					'Discarding block',
 				);
 				const encodedBlock = this._chain.dataAccess.encode(block);
-				this._channel.publish('app:chain:fork', {
+				this._channel.publish(APP_EVENT_CHAIN_FORK, {
 					block: encodedBlock.toString('hex'),
 				});
 				return;
@@ -164,7 +165,7 @@ export class Processor {
 					'Discarding block due to double forging',
 				);
 				const encodedBlock = this._chain.dataAccess.encode(block);
-				this._channel.publish('app:chain:fork', {
+				this._channel.publish(APP_EVENT_CHAIN_FORK, {
 					block: encodedBlock.toString('hex'),
 				});
 				return;
@@ -181,7 +182,7 @@ export class Processor {
 					block,
 					peerId,
 				});
-				this._channel.publish('app:chain:fork', {
+				this._channel.publish(APP_EVENT_CHAIN_FORK, {
 					block: encodedBlock.toString('hex'),
 				});
 				return;
@@ -193,7 +194,7 @@ export class Processor {
 					'Received tie breaking block',
 				);
 				const encodedBlock = this._chain.dataAccess.encode(block);
-				this._channel.publish('app:chain:fork', {
+				this._channel.publish(APP_EVENT_CHAIN_FORK, {
 					block: encodedBlock.toString('hex'),
 				});
 

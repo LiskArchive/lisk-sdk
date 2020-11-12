@@ -33,6 +33,7 @@ import { Broadcaster } from './broadcaster';
 import { InMemoryChannel } from '../../controller/channels';
 import { Network } from '../network';
 import { ApplyPenaltyError } from '../../errors';
+import { APP_EVENT_TRANSACTION_NEW } from '../../constants';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
@@ -113,7 +114,7 @@ export class Transport {
 
 	public handleBroadcastTransaction(transaction: Transaction): void {
 		this._broadcaster.enqueueTransactionId(transaction.id);
-		this._channel.publish('app:transaction:new', {
+		this._channel.publish(APP_EVENT_TRANSACTION_NEW, {
 			transaction: transaction.getBytes().toString('hex'),
 		});
 	}
