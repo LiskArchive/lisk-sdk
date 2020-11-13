@@ -22,12 +22,18 @@ import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket, PushSocket, SubSocket, ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
 import { EventEmitter } from 'events';
-import { Channel, EventCallback, EventInfoObject } from './types';
+import {
+	Channel,
+	EventCallback,
+	EventInfoObject,
+	JSONRPCNotification,
+	JSONRPCResponse,
+} from './types';
 
 const CONNECTION_TIME_OUT = 2000;
 
 const getSocketsPath = (dataPath: string) => {
-	const socketDir = path.join(dataPath, 'tmp', 'sockets');
+	const socketDir = path.join(path.resolve(dataPath), 'tmp', 'sockets');
 	return {
 		root: `unix://${socketDir}`,
 		pub: `unix://${socketDir}/pub_socket.sock`,
@@ -45,6 +51,7 @@ export class IPCChannel implements Channel {
 	private readonly _eventPubSocketPath: string;
 	private readonly _eventSubSocketPath: string;
 	private readonly _rpcServerSocketPath: string;
+	private _id: number;
 
 	public constructor(dataPath: string) {
 		const socketsDir = getSocketsPath(dataPath);
@@ -57,6 +64,7 @@ export class IPCChannel implements Channel {
 		this._subSocket = axon.socket('sub', {}) as SubSocket;
 		this._rpcClient = new RPCClient(axon.socket('req') as ReqSocket);
 		this._events = new EventEmitter();
+		this._id = 0;
 	}
 
 	public async connect(): Promise<void> {
@@ -112,8 +120,13 @@ export class IPCChannel implements Channel {
 			this._rpcClient.sock.removeAllListeners('error');
 		});
 
-		this._subSocket.on('message', (eventName: string, eventData: EventInfoObject<void>) => {
-			this._events.emit(eventName, eventData);
+		this._subSocket.on('message', (eventData: JSONRPCNotification<unknown>) => {
+			const [module, ...name] = eventData.method.split(':');
+			this._events.emit(eventData.method, {
+				data: eventData.params,
+				module,
+				name: name.join(':'),
+			} as EventInfoObject<unknown>);
 		});
 	}
 
@@ -126,25 +139,29 @@ export class IPCChannel implements Channel {
 	}
 
 	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
-		const [moduleName, funcName] = actionName.split(':');
+		this._id += 1;
 		const action = {
-			name: funcName,
-			module: moduleName,
-			source: 'IPCClient',
+			id: this._id,
+			jsonrpc: '2.0',
+			method: actionName,
 			params: params ?? {},
 		};
 		return new Promise((resolve, reject) => {
-			this._rpcClient.call('invoke', action, (err: Error | undefined, data: T | PromiseLike<T>) => {
+			this._rpcClient.call('invoke', action, (err: Error | undefined, data: JSONRPCResponse<T>) => {
 				if (err) {
-					return reject(err);
+					reject(err);
+					return;
 				}
-
-				return resolve(data);
+				if (data.error) {
+					reject(err);
+					return;
+				}
+				resolve(data.result);
 			});
 		});
 	}
 
-	public subscribe(eventName: string, cb: EventCallback<never>): void {
+	public subscribe<T = unknown>(eventName: string, cb: EventCallback<T>): void {
 		this._events.on(eventName, cb as never);
 	}
 }
