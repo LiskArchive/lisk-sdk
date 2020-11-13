@@ -29,20 +29,6 @@ describe('Peers endpoint', () => {
 
 	describe('/api/peers', () => {
 		describe('400 - Invalid query values', () => {
-			it('should respond with 400 and error message when passed incorrect state value', async () => {
-				const { response, status } = await callNetwork(axios.get(getURL('/api/peers?state=xxx')));
-				// Assert
-				expect(status).toBe(400);
-				expect(response).toEqual({
-					errors: [
-						{
-							message:
-								'Lisk validator found 1 error[s]:\nshould be equal to one of the allowed values',
-						},
-					],
-				});
-			});
-
 			it('should respond with 400 and error message when passed incorrect limit value', async () => {
 				const { response, status } = await callNetwork(axios.get(getURL('/api/peers?limit=123xy')));
 				// Assert
