@@ -17,6 +17,7 @@ import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { IPCChannel } from '../../src/ipc_channel';
 import { IPCServer } from '../ipc_server_util';
+import { JSONRPCNotification } from '../../src/types';
 
 describe('IPC Channel', () => {
 	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_client`);
@@ -83,11 +84,15 @@ describe('IPC Channel', () => {
 		it('should be able to subscribe and receive event', async () => {
 			// Act & Assert
 			await new Promise(resolve => {
-				(client as any)._subSocket.on('message', (data: any) => {
-					expect(data).toEqual('myData');
+				client.subscribe('app:new:block', event => {
+					expect(event.data).toEqual('myData');
 					resolve();
 				});
-				server.pubSocket.send('myData');
+				server.pubSocket.send({
+					jsonrpc: '2.0',
+					method: 'app:new:block',
+					params: 'myData',
+				} as JSONRPCNotification<unknown>);
 			});
 		});
 
@@ -96,18 +101,22 @@ describe('IPC Channel', () => {
 			await client2.connect();
 
 			// Act & Assert
-			(server as any).pubSocket.send('myData');
+			server.pubSocket.send({
+				jsonrpc: '2.0',
+				method: 'app:new:block',
+				params: 'myData',
+			} as JSONRPCNotification<unknown>);
 			await Promise.all([
 				new Promise(resolve => {
-					(client as any)._subSocket.on('message', (data: any) => {
-						expect(data).toEqual('myData');
+					client.subscribe('app:new:block', event => {
+						expect(event.data).toEqual('myData');
 						resolve();
 					});
 				}),
 
 				await new Promise(resolve => {
-					(client2 as any)._subSocket.on('message', (data: any) => {
-						expect(data).toEqual('myData');
+					client2.subscribe('app:new:block', event => {
+						expect(event.data).toEqual('myData');
 						resolve();
 					});
 				}),
@@ -120,18 +129,22 @@ describe('IPC Channel', () => {
 			await client3.connect();
 
 			// Act & Assert
-			(client as any)._pubSocket.send('myData');
+			(client as any)._pubSocket.send({
+				jsonrpc: '2.0',
+				method: 'app:new:block',
+				params: 'myData',
+			} as JSONRPCNotification<unknown>);
 			await Promise.all([
 				new Promise(resolve => {
-					(client2 as any)._subSocket.on('message', (data: any) => {
-						expect(data).toEqual('myData');
+					client2.subscribe('app:new:block', event => {
+						expect(event.data).toEqual('myData');
 						resolve();
 					});
 				}),
 
 				await new Promise(resolve => {
-					(client3 as any)._subSocket.on('message', (data: any) => {
-						expect(data).toEqual('myData');
+					client2.subscribe('app:new:block', event => {
+						expect(event.data).toEqual('myData');
 						resolve();
 					});
 				}),
@@ -140,10 +153,14 @@ describe('IPC Channel', () => {
 
 		it('should be able to subscribe and receive events from same client', async () => {
 			// Act & Assert
-			(client as any)._pubSocket.send('myData');
+			client['_pubSocket'].send({
+				jsonrpc: '2.0',
+				method: 'app:new:block',
+				params: 'myData',
+			} as JSONRPCNotification<unknown>);
 			await new Promise(resolve => {
-				(client as any)._subSocket.on('message', (data: any) => {
-					expect(data).toEqual('myData');
+				client.subscribe('app:new:block', event => {
+					expect(event.data).toEqual('myData');
 					resolve();
 				});
 			});
