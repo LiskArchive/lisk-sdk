@@ -37,14 +37,6 @@ import {
 import { StateStoreMock } from '../utils/state_store_mock';
 import { convertHeader } from '../fixtures/blocks';
 
-const bftScenarios = [
-	scenario4DelegatesMissedSlots,
-	scenario4DelegatesSimple,
-	scenario5DelegatesSwitchedCompletely,
-	scenario7DelegatesPartialSwitch,
-	scenario11DelegatesPartialSwitch,
-];
-
 const prevotesAndCommits = async (stateStore: StateStore) => {
 	const delegateLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATOR_LEDGER_KEY);
 
@@ -71,6 +63,14 @@ const prevotesAndCommits = async (stateStore: StateStore) => {
 };
 
 describe('FinalityManager', () => {
+	// Arrange
+	const bftScenarios = [
+		scenario4DelegatesMissedSlots,
+		scenario4DelegatesSimple,
+		scenario5DelegatesSwitchedCompletely,
+		scenario7DelegatesPartialSwitch,
+		scenario11DelegatesPartialSwitch,
+	];
 	let chainStub: Chain;
 	let stateStore: StateStore;
 

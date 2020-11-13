@@ -17,9 +17,8 @@ import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { IPCServer } from '../../../../src/controller/ipc/ipc_server';
 
-const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_server/sockets`);
-
 describe('IPCServer', () => {
+	const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_server/sockets`);
 	let server: IPCServer;
 
 	beforeEach(() => {

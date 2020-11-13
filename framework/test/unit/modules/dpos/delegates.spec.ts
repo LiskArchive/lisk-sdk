@@ -36,9 +36,9 @@ import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/dpos
 import { voteWeightsSchema } from '../../../../src/modules/dpos/schema';
 import { CHAIN_STATE_DELEGATE_VOTE_WEIGHTS } from '../../../../src/modules/dpos/constants';
 
-const { StateStoreMock } = testing;
-
 describe('delegates', () => {
+	const { StateStoreMock } = testing;
+
 	describe('shuffleDelegateList', () => {
 		const { previousRoundSeed1 } = delegateShufflingScenario.testCases.input;
 		const addressList = [...delegateShufflingScenario.testCases.input.delegateList].map(address =>
