@@ -50,6 +50,7 @@ Or minified:
 
 | Package                                           |                            Version                             | Description                                                               |
 | ------------------------------------------------- | :------------------------------------------------------------: | ------------------------------------------------------------------------- |
+| [@liskhq/lisk-api-client](../lisk-api-client)     |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-api-client)  | An API client for the Lisk network                                        |
 | [@liskhq/lisk-codec](../lisk-codec)               |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-codec)     | Decoder and encoder using Lisk JSON schema according to the Lisk protocol |
 | [@liskhq/lisk-cryptography](../lisk-cryptography) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software        |
 | [@liskhq/lisk-passphrase](../lisk-passphrase)     |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software            |
