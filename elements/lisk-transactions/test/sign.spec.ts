@@ -19,50 +19,6 @@ import { getSigningBytes, signTransaction, signMultiSignatureTransaction } from 
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { baseTransactionSchema } from '../src/schema';
 
-const validAssetSchema = {
-	$id: 'lisk/transfer-transaction',
-	title: 'Transfer transaction asset',
-	type: 'object',
-	required: ['amount', 'recipientAddress', 'data'],
-	properties: {
-		amount: {
-			dataType: 'uint64',
-			fieldNumber: 1,
-		},
-		recipientAddress: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-			minLength: 20,
-			maxLength: 20,
-		},
-		data: {
-			dataType: 'string',
-			fieldNumber: 3,
-			minLength: 0,
-			maxLength: 64,
-		},
-	},
-};
-
-const multisigRegAsset = {
-	$id: '/multisignature/registrationAsset',
-	type: 'object',
-	properties: {
-		numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
-		mandatoryKeys: {
-			type: 'array',
-			items: { dataType: 'bytes' },
-			fieldNumber: 2,
-		},
-		optionalKeys: {
-			type: 'array',
-			items: { dataType: 'bytes' },
-			fieldNumber: 3,
-		},
-	},
-	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
-};
-
 interface Transaction {
 	asset: Buffer;
 	signatures: Buffer[];
@@ -74,38 +30,84 @@ interface MultiSignatureAsset {
 	numberOfSignatures: number;
 }
 
-const networkIdentifier = Buffer.from(
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'hex',
-);
-const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-const passphrase2 = 'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic';
-const passphrase3 =
-	'sugar object slender confirm clock peanut auto spice carbon knife increase estate';
-const passphrase4 = 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb';
-const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
-const { publicKey: publicKey2 } = getAddressAndPublicKeyFromPassphrase(passphrase2);
-const { publicKey: publicKey3 } = getAddressAndPublicKeyFromPassphrase(passphrase3);
-const { publicKey: publicKey4 } = getAddressAndPublicKeyFromPassphrase(passphrase4);
-const keys = {
-	mandatoryKeys: [publicKey1, publicKey2],
-	optionalKeys: [publicKey3, publicKey4],
-};
-
-const validTransaction = {
-	moduleID: 2,
-	assetID: 0,
-	nonce: BigInt('1'),
-	fee: BigInt('10000000'),
-	senderPublicKey: publicKey1,
-	asset: {
-		recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
-		amount: BigInt('4008489300000000'),
-		data: '',
-	},
-};
-
 describe('sign', () => {
+	// Arrange
+	const validAssetSchema = {
+		$id: 'lisk/transfer-transaction',
+		title: 'Transfer transaction asset',
+		type: 'object',
+		required: ['amount', 'recipientAddress', 'data'],
+		properties: {
+			amount: {
+				dataType: 'uint64',
+				fieldNumber: 1,
+			},
+			recipientAddress: {
+				dataType: 'bytes',
+				fieldNumber: 2,
+				minLength: 20,
+				maxLength: 20,
+			},
+			data: {
+				dataType: 'string',
+				fieldNumber: 3,
+				minLength: 0,
+				maxLength: 64,
+			},
+		},
+	};
+
+	const multisigRegAsset = {
+		$id: '/multisignature/registrationAsset',
+		type: 'object',
+		properties: {
+			numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
+			mandatoryKeys: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 2,
+			},
+			optionalKeys: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 3,
+			},
+		},
+		required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+	};
+
+	const networkIdentifier = Buffer.from(
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+		'hex',
+	);
+	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
+	const passphrase2 =
+		'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic';
+	const passphrase3 =
+		'sugar object slender confirm clock peanut auto spice carbon knife increase estate';
+	const passphrase4 = 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb';
+	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const { publicKey: publicKey2 } = getAddressAndPublicKeyFromPassphrase(passphrase2);
+	const { publicKey: publicKey3 } = getAddressAndPublicKeyFromPassphrase(passphrase3);
+	const { publicKey: publicKey4 } = getAddressAndPublicKeyFromPassphrase(passphrase4);
+	const keys = {
+		mandatoryKeys: [publicKey1, publicKey2],
+		optionalKeys: [publicKey3, publicKey4],
+	};
+
+	const validTransaction = {
+		moduleID: 2,
+		assetID: 0,
+		nonce: BigInt('1'),
+		fee: BigInt('10000000'),
+		senderPublicKey: publicKey1,
+		asset: {
+			recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
+			amount: BigInt('4008489300000000'),
+			data: '',
+		},
+	};
+
 	describe('getSigningBytes', () => {
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [

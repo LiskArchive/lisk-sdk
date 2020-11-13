@@ -23,7 +23,14 @@ const getMockedCallback = (error: unknown, result: unknown) =>
 		args[args.length - 1](error, result);
 	});
 
+// Need to keep this here as jest mock requires it
+const emitterMock = {
+	on: jest.fn(),
+	once: jest.fn(),
+	emit: jest.fn(),
+};
 const jsonrpcRequest = { id: 1, jsonrpc: '2.0', method: 'moduleAlias:action1' };
+
 const ipcClientMock = {
 	stop: jest.fn(),
 	start: jest.fn(),
@@ -50,12 +57,6 @@ jest.mock('../../../../src/controller/ipc/ipc_client', () => {
 		}),
 	};
 });
-
-const emitterMock = {
-	on: jest.fn(),
-	once: jest.fn(),
-	emit: jest.fn(),
-};
 
 jest.mock('eventemitter2', () => {
 	return {

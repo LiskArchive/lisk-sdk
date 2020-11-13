@@ -17,9 +17,10 @@
 import { testCases as objectTestCases } from '../fixtures/objects_encodings.json';
 import { codec } from '../src/codec';
 
-const objectFixtureInput = objectTestCases[0].input;
-
 describe('addSchema', () => {
+	// Arrange
+	const objectFixtureInput = objectTestCases[0].input;
+
 	it('should add schema and keep it in cache', () => {
 		const message = objectFixtureInput.object;
 		// Replace the JSON representation of buffer with an actual buffer

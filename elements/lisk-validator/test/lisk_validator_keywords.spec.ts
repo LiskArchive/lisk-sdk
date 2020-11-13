@@ -17,24 +17,25 @@ import { LiskValidationError, validator } from '../src';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cloneDeep = require('lodash.clonedeep');
 
-const validSchema = {
-	$id: '/my-schema',
-	$schema: 'http://lisk.io/lisk-schema/schema#',
-	type: 'object',
-	properties: {
-		myProp: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-	},
-	required: ['myProp'],
-};
-
 // TODO: Due to an issue Ajv, we have to use compile instead of validateSchema
 // Validator don't validate keyword meta schema with validateSchema
 // https://github.com/ajv-validator/ajv/issues/1221
 
 describe('validator keywords', () => {
+	// Arrange
+	const validSchema = {
+		$id: '/my-schema',
+		$schema: 'http://lisk.io/lisk-schema/schema#',
+		type: 'object',
+		properties: {
+			myProp: {
+				dataType: 'string',
+				fieldNumber: 1,
+			},
+		},
+		required: ['myProp'],
+	};
+
 	beforeEach(() => {
 		// As compile cache the schema
 		validator.removeSchema(validSchema.$id);
