@@ -17,53 +17,54 @@ import { homedir } from 'os';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 
-const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
-
-const logger: any = {
-	info: jest.fn(),
-};
-
-const config: any = {
-	ipc: {
-		enabled: false,
-	},
-	socketsPath: {
-		root: socketsDir,
-	},
-	rpc: {
-		enable: false,
-		mode: 'ipc',
-		port: 8080,
-	},
-};
-
-const alpha = {
-	moduleAlias: 'alphaAlias',
-	events: ['alpha1', 'alpha2'],
-	actions: {
-		multiplyByTwo: {
-			handler: (action: any) => action.params.val * 2,
-		},
-		multiplyByThree: {
-			handler: (action: any) => action.params.val * 3,
-		},
-	},
-};
-
-const beta = {
-	moduleAlias: 'betaAlias',
-	events: ['beta1', 'beta2'],
-	actions: {
-		divideByTwo: {
-			handler: (action: any) => action.params.val / 2,
-		},
-		divideByThree: {
-			handler: (action: any) => action.params.val / 3,
-		},
-	},
-};
-
 describe('InMemoryChannel', () => {
+	// Arrange
+	const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
+
+	const logger: any = {
+		info: jest.fn(),
+	};
+
+	const config: any = {
+		ipc: {
+			enabled: false,
+		},
+		socketsPath: {
+			root: socketsDir,
+		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
+		},
+	};
+
+	const alpha = {
+		moduleAlias: 'alphaAlias',
+		events: ['alpha1', 'alpha2'],
+		actions: {
+			multiplyByTwo: {
+				handler: (action: any) => action.params.val * 2,
+			},
+			multiplyByThree: {
+				handler: (action: any) => action.params.val * 3,
+			},
+		},
+	};
+
+	const beta = {
+		moduleAlias: 'betaAlias',
+		events: ['beta1', 'beta2'],
+		actions: {
+			divideByTwo: {
+				handler: (action: any) => action.params.val / 2,
+			},
+			divideByThree: {
+				handler: (action: any) => action.params.val / 3,
+			},
+		},
+	};
+
 	describe('after registering itself to the bus', () => {
 		let inMemoryChannelAlpha: InMemoryChannel;
 		let inMemoryChannelBeta: InMemoryChannel;
