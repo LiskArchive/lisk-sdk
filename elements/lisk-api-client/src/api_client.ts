@@ -32,10 +32,10 @@ export class APIClient {
 	}
 
 	public async init(): Promise<void> {
+		this._schemas = await this._channel.invoke<RegisteredSchemas>('app:getSchema');
 		this._node = new Node(this._channel);
 		this._account = new Account(this._channel, this._schemas);
 		this._block = new Block(this._channel, this._schemas);
-		this._schemas = await this._channel.invoke<RegisteredSchemas>('app:getSchema');
 		this._nodeInfo = await this._node.getNodeInfo();
 		this._transaction = new Transaction(this._channel, this._schemas, this._nodeInfo);
 	}
@@ -55,10 +55,11 @@ export class APIClient {
 		this._channel.subscribe(eventName, cb);
 	}
 
+	public get schemas(): RegisteredSchemas {
+		return this._schemas;
+	}
+
 	public get node(): Node {
-		// FIXME: remove unnecessary code
-		// eslint-disable-next-line no-console
-		console.log(this._schemas, this._nodeInfo);
 		return this._node;
 	}
 

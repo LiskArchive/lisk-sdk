@@ -227,7 +227,7 @@ export class Transaction {
 		const jsonTx = {
 			...jsonTxRoot,
 			asset: jsonTxAsset,
-			id: tmpId,
+			id: Buffer.isBuffer(tmpId) ? tmpId.toString('hex') : tmpId,
 		};
 
 		return jsonTx;
@@ -246,7 +246,7 @@ export class Transaction {
 		const txObject = {
 			...txRootObject,
 			asset: txAssetObject,
-			id: tmpId ? Buffer.from(tmpId as string, 'hex') : Buffer.alloc(0),
+			id: typeof tmpId === 'string' ? Buffer.from(tmpId, 'hex') : Buffer.alloc(0),
 		};
 
 		return txObject;
