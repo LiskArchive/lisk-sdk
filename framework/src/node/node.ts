@@ -348,10 +348,14 @@ export class Node {
 	public get actions() {
 		return {
 			getValidators: async (): Promise<
-				ReadonlyArray<{ address: string; nextForgingTime: number }>
+				ReadonlyArray<{
+					address: string;
+					nextForgingTime: number;
+					minActiveHeight: number;
+					isConsensusParticipant: boolean;
+				}>
 			> => {
 				const validators = await this._chain.getValidators();
-				const validatorAddresses = validators.map(v => v.address);
 				const slot = this._chain.slots.getSlotNumber();
 				const startTime = this._chain.slots.getSlotTime(slot);
 
@@ -360,8 +364,10 @@ export class Node {
 				const blockTime = this._chain.slots.blockTime();
 				const forgersInfo = [];
 				for (let i = slotInRound; i < slotInRound + this._chain.numberOfValidators; i += 1) {
+					const validator = validators[i % validators.length];
 					forgersInfo.push({
-						address: validatorAddresses[i % validatorAddresses.length].toString('hex'),
+						...validator,
+						address: validator.address.toString('hex'),
 						nextForgingTime,
 					});
 					nextForgingTime += blockTime;

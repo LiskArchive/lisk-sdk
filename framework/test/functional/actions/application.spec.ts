@@ -49,4 +49,17 @@ describe('Application related actions', () => {
 			);
 		});
 	});
+
+	describe('getForgers', () => {
+		it('should return a list of forgers', async () => {
+			const forgersInfo = await app['_channel'].invoke<{ [key: string]: any }[]>('app:getForgers');
+			expect(forgersInfo).toBeArray();
+			forgersInfo.map(forgerInfo => {
+				expect(forgerInfo.address).toBeString();
+				expect(forgerInfo.nextForgingTime).toBeNumber();
+				expect(forgerInfo.minActiveHeight).toBeNumber();
+				return expect(forgerInfo.isConsensusParticipant).toBeBoolean();
+			});
+		});
+	});
 });
