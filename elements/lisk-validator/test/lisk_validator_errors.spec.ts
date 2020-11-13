@@ -17,19 +17,20 @@ import { LiskValidationError, validator } from '../src';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cloneDeep = require('lodash.clonedeep');
 
-const validSchema = {
-	$id: '/my-schema',
-	$schema: 'http://lisk.io/lisk-schema/schema#',
-	type: 'object',
-	properties: {
-		myProp: {
-			type: 'string',
-		},
-	},
-	required: ['myProp'],
-};
-
 describe('LiskValidationError formatter', () => {
+	// Arrange
+	const validSchema = {
+		$id: '/my-schema',
+		$schema: 'http://lisk.io/lisk-schema/schema#',
+		type: 'object',
+		properties: {
+			myProp: {
+				type: 'string',
+			},
+		},
+		required: ['myProp'],
+	};
+
 	beforeEach(() => {
 		// As compile cache the schema
 		validator.removeSchema(validSchema.$id);

@@ -36,9 +36,8 @@ jest.mock('../../../../src/modules/dpos/data_access');
 jest.mock('../../../../src/modules/dpos/delegates');
 jest.mock('../../../../src/modules/dpos/random_seed');
 
-const { StateStoreMock } = testing;
-
 describe('DPoSModule', () => {
+	const { StateStoreMock } = testing;
 	let dposModule!: DPoSModule;
 	let genesisConfig: GenesisConfig;
 	const reducerHandlerMock = { invoke: jest.fn() };

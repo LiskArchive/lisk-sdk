@@ -18,53 +18,54 @@ import { resolve as pathResolve } from 'path';
 import { IPCChannel, InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 
-const logger: any = {
-	info: jest.fn(),
-};
-
-const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel/sockets`);
-
-const config: any = {
-	ipc: {
-		enabled: true,
-	},
-	socketsPath: {
-		root: socketsDir,
-	},
-	rpc: {
-		enable: false,
-		mode: 'ipc',
-		port: 8080,
-	},
-};
-
-const alpha = {
-	moduleAlias: 'alphaAlias',
-	events: ['alpha1', 'alpha2'],
-	actions: {
-		multiplyByTwo: {
-			handler: (action: any) => action.params.val * 2,
-		},
-		multiplyByThree: {
-			handler: (action: any) => action.params.val * 3,
-		},
-	},
-};
-
-const beta = {
-	moduleAlias: 'betaAlias',
-	events: ['beta1', 'beta2'],
-	actions: {
-		divideByTwo: {
-			handler: (action: any) => action.params.val / 2,
-		},
-		divideByThree: {
-			handler: (action: any) => action.params.val / 3,
-		},
-	},
-};
-
 describe('IPCChannel', () => {
+	// Arrange
+	const logger: any = {
+		info: jest.fn(),
+	};
+
+	const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel/sockets`);
+
+	const config: any = {
+		ipc: {
+			enabled: true,
+		},
+		socketsPath: {
+			root: socketsDir,
+		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
+		},
+	};
+
+	const alpha = {
+		moduleAlias: 'alphaAlias',
+		events: ['alpha1', 'alpha2'],
+		actions: {
+			multiplyByTwo: {
+				handler: (action: any) => action.params.val * 2,
+			},
+			multiplyByThree: {
+				handler: (action: any) => action.params.val * 3,
+			},
+		},
+	};
+
+	const beta = {
+		moduleAlias: 'betaAlias',
+		events: ['beta1', 'beta2'],
+		actions: {
+			divideByTwo: {
+				handler: (action: any) => action.params.val / 2,
+			},
+			divideByThree: {
+				handler: (action: any) => action.params.val / 3,
+			},
+		},
+	};
+
 	describe('after registering itself to the bus', () => {
 		let alphaChannel: IPCChannel;
 		let betaChannel: IPCChannel;
