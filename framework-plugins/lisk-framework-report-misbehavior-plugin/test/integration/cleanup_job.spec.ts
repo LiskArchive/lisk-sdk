@@ -122,7 +122,7 @@ describe('Clean up old blocks', () => {
 				blockHeaders: [blockHeader1],
 			}),
 		);
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await new Promise(resolve => setTimeout(resolve, 1000));
 		await expect((reportMisbehaviorPlugin as any)._pluginDB.get(dbKey)).rejects.toThrow(
 			`Specified key ${dbKey} does not exist`,
 		);
