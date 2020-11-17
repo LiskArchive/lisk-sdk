@@ -15,6 +15,24 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 
+export interface JSONRPCNotification<T> {
+	readonly id: never;
+	readonly jsonrpc: string;
+	readonly method: string;
+	readonly params?: T;
+}
+
+export interface JSONRPCResponse<T> {
+	readonly id: number;
+	readonly jsonrpc: string;
+	readonly method: never;
+	readonly params: never;
+	readonly error?: Error;
+	readonly result?: T;
+}
+
+export type JSONRPCMessage<T> = JSONRPCNotification<T> | JSONRPCResponse<T>;
+
 export interface EventInfoObject<T> {
 	readonly module: string;
 	readonly name: string;
@@ -134,4 +152,17 @@ export interface PeerInfo {
 	readonly networkVersion?: string;
 	readonly nonce?: string;
 	readonly options?: { [key: string]: unknown };
+}
+
+export interface Block<T = Buffer | string> {
+	header: {
+		[key: string]: unknown;
+		id?: T;
+		version: number;
+		asset: Record<string, unknown>;
+	};
+	payload: {
+		[key: string]: unknown;
+		id?: T;
+	}[];
 }

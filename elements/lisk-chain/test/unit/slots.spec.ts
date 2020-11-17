@@ -14,9 +14,9 @@
 
 import { Slots } from '../../src/slots';
 
-const MS_IN_A_SEC = 1000;
-
 describe('Slots', () => {
+	// Arrange
+	const MS_IN_A_SEC = 1000;
 	const DEFAULT_BLOCK_TIME = 10;
 	const GENESIS_BLOCK_TIMESTAMP =
 		new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+export * as apiClient from '@liskhq/lisk-api-client';
 export * as cryptography from '@liskhq/lisk-cryptography';
 export * as p2p from '@liskhq/lisk-p2p';
 export * as passphrase from '@liskhq/lisk-passphrase';

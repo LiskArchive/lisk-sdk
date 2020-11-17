@@ -26,12 +26,12 @@ import {
 import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
 
-const invalidHexString = '69db1f75ab1f76c69f7dxxxxxxxxxx';
-
-let accountNonce = 0;
-
 describe('Hello endpoint', () => {
+	// Arrange
+	const invalidHexString = '69db1f75ab1f76c69f7dxxxxxxxxxx';
 	let app: Application;
+	let accountNonce = 0;
+
 	beforeAll(async () => {
 		app = await createApplication('transactions');
 	});

@@ -15,6 +15,7 @@
 
 import * as WebSocket from 'isomorphic-ws';
 import { EventEmitter } from 'events';
+import { EventInfoObject, JSONRPCMessage, JSONRPCNotification, EventCallback } from './types';
 
 const CONNECTION_TIMEOUT = 2000;
 const ACKNOWLEDGMENT_TIMEOUT = 2000;
@@ -27,16 +28,6 @@ const timeout = async <T = void>(ms: number, message?: string): Promise<T> =>
 			reject(new Error(message ?? `Timed out in ${ms}ms.`));
 		}, ms);
 	});
-
-type EventCallback = (...args: any[]) => void;
-
-interface WSResponse {
-	id?: number | string | null;
-	method: string;
-	params?: object;
-	result?: any;
-	error?: any;
-}
 
 interface Defer<T> {
 	promise: Promise<T>;
@@ -55,6 +46,11 @@ const defer = <T>(): Defer<T> => {
 
 	return { promise, resolve, reject };
 };
+
+const messageIsNotification = <T = unknown>(
+	input: JSONRPCMessage<T>,
+): input is JSONRPCNotification<T> =>
+	!!((input.id === undefined || input.id === null) && input.method);
 
 export class WSChannel {
 	public isAlive = false;
@@ -155,15 +151,16 @@ export class WSChannel {
 		]);
 	}
 
-	public subscribe(eventName: string, cb: EventCallback): void {
+	public subscribe<T>(eventName: string, cb: EventCallback<T>): void {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._emitter.on(eventName, cb);
 	}
 
 	private _handleMessage(message: string): void {
-		const res = JSON.parse(message) as WSResponse;
+		const res = JSON.parse(message) as JSONRPCMessage<unknown>;
 
 		// Its an event
-		if ((res.id === undefined || res.id === null) && res.method) {
+		if (messageIsNotification(res)) {
 			this._emitter.emit(res.method, this._prepareEventInfo(res));
 
 			// Its a response for a request
@@ -183,7 +180,7 @@ export class WSChannel {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _prepareEventInfo(res: WSResponse): { module: string; name: string; data: object } {
+	private _prepareEventInfo(res: JSONRPCNotification<unknown>): EventInfoObject<unknown> {
 		const { method } = res;
 		const [moduleName, ...eventName] = method.split(':');
 		const module = moduleName;

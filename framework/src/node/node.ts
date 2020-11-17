@@ -34,6 +34,14 @@ import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transactio
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { jobHandlers } from '@liskhq/lisk-utils';
 import { deprecate } from 'util';
+import {
+	APP_EVENT_BLOCK_DELETE,
+	APP_EVENT_BLOCK_NEW,
+	APP_EVENT_CHAIN_VALIDATORS_CHANGE,
+	APP_EVENT_NETWORK_EVENT,
+	APP_EVENT_NETWORK_READY,
+} from '../constants';
+
 import { Forger } from './forger';
 import {
 	Transport,
@@ -295,7 +303,7 @@ export class Node {
 		this._logger.info('Node ready and launched');
 
 		this._channel.subscribe(
-			'app:network:ready',
+			APP_EVENT_NETWORK_READY,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			async (_event: EventInfoObject) => {
 				await this._startLoader();
@@ -304,7 +312,7 @@ export class Node {
 
 		// Avoid receiving blocks/transactions from the network during snapshotting process
 		this._channel.subscribe(
-			'app:network:event',
+			APP_EVENT_NETWORK_EVENT,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			async (info: EventInfoObject) => {
 				const {
@@ -340,10 +348,14 @@ export class Node {
 	public get actions() {
 		return {
 			getValidators: async (): Promise<
-				ReadonlyArray<{ address: string; nextForgingTime: number }>
+				ReadonlyArray<{
+					address: string;
+					nextForgingTime: number;
+					minActiveHeight: number;
+					isConsensusParticipant: boolean;
+				}>
 			> => {
 				const validators = await this._chain.getValidators();
-				const validatorAddresses = validators.map(v => v.address);
 				const slot = this._chain.slots.getSlotNumber();
 				const startTime = this._chain.slots.getSlotTime(slot);
 
@@ -352,8 +364,10 @@ export class Node {
 				const blockTime = this._chain.slots.blockTime();
 				const forgersInfo = [];
 				for (let i = slotInRound; i < slotInRound + this._chain.numberOfValidators; i += 1) {
+					const validator = validators[i % validators.length];
 					forgersInfo.push({
-						address: validatorAddresses[i % validatorAddresses.length].toString('hex'),
+						...validator,
+						address: validator.address.toString('hex'),
 						nextForgingTime,
 					});
 					nextForgingTime += blockTime;
@@ -690,7 +704,7 @@ export class Node {
 			}): Promise<void> => {
 				const { block } = eventData;
 				// Publish to the outside
-				this._channel.publish('app:block:new', {
+				this._channel.publish(APP_EVENT_BLOCK_NEW, {
 					block: this._chain.dataAccess.encode(block).toString('hex'),
 					accounts: eventData.accounts.map(acc =>
 						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
@@ -732,7 +746,7 @@ export class Node {
 			async (eventData: { block: Block; accounts: Account[] }) => {
 				const { block } = eventData;
 				// Publish to the outside
-				this._channel.publish('app:block:delete', {
+				this._channel.publish(APP_EVENT_BLOCK_DELETE, {
 					block: this._chain.dataAccess.encode(block).toString('hex'),
 					accounts: eventData.accounts.map(acc =>
 						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
@@ -773,7 +787,9 @@ export class Node {
 					...aValidator,
 					address: aValidator.address.toString('hex'),
 				}));
-				this._channel.publish('app:chain:validators:change', { validators: updatedValidatorsList });
+				this._channel.publish(APP_EVENT_CHAIN_VALIDATORS_CHANGE, {
+					validators: updatedValidatorsList,
+				});
 			},
 		);
 

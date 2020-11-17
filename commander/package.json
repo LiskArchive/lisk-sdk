@@ -72,9 +72,9 @@
 		"/docs"
 	],
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^3.0.0-alpha.0",
+		"@liskhq/lisk-cryptography": "^3.0.0-debug.3",
 		"@liskhq/lisk-passphrase": "^3.0.1-alpha.0",
-		"@liskhq/lisk-validator": "^0.5.0-alpha.0",
+		"@liskhq/lisk-validator": "^0.5.0-debug.3",
 		"@oclif/command": "1.5.19",
 		"@oclif/config": "1.14.0",
 		"@oclif/errors": "1.2.2",

@@ -2,6 +2,7 @@
 
 exports[`lisk-elements should not export unexpected libraries 1`] = `
 Array [
+  "apiClient",
   "cryptography",
   "p2p",
   "passphrase",

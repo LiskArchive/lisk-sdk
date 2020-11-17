@@ -40,4 +40,12 @@ export class Account {
 	public decode(input: Buffer): Record<string, unknown> {
 		return codec.decode(this._schemas.account, input);
 	}
+
+	public toJSON(account: Record<string, unknown>): Record<string, unknown> {
+		return codec.toJSON(this._schemas.account, account);
+	}
+
+	public fromJSON(account: Record<string, unknown>): Record<string, unknown> {
+		return codec.fromJSON(this._schemas.account, account);
+	}
 }

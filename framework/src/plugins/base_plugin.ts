@@ -16,6 +16,7 @@ import * as assert from 'assert';
 import { RawBlock } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
+import { APP_EVENT_READY } from '../constants';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
 import { EventsArray } from '../controller/event';
@@ -230,7 +231,7 @@ export abstract class BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(channel: BaseChannel): Promise<void> {
-		channel.once('app:ready', async () => {
+		channel.once(APP_EVENT_READY, async () => {
 			this.schemas = await channel.invoke('app:getSchema');
 		});
 	}

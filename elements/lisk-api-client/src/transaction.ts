@@ -22,6 +22,7 @@ import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import {
 	decodeTransaction,
 	encodeTransaction,
@@ -211,5 +212,43 @@ export class Transaction {
 	public computeMinFee(transaction: Record<string, unknown>): bigint {
 		const assetSchema = getTransactionAssetSchema(transaction, this._schema);
 		return computeMinFee(assetSchema, transaction);
+	}
+
+	public toJSON(transaction: Record<string, unknown>): Record<string, unknown> {
+		const { asset: txAsset, ...txRoot } = transaction;
+		// We need to do this as our schemas do not include the ID. Keep this.
+		const tmpId = txRoot.id;
+		delete txRoot.id;
+
+		const schemaAsset = getTransactionAssetSchema(txRoot, this._schema);
+		const jsonTxAsset = codec.toJSON(schemaAsset, txAsset as object);
+		const jsonTxRoot = codec.toJSON(this._schema.transaction, txRoot);
+
+		const jsonTx = {
+			...jsonTxRoot,
+			asset: jsonTxAsset,
+			id: Buffer.isBuffer(tmpId) ? tmpId.toString('hex') : tmpId,
+		};
+
+		return jsonTx;
+	}
+
+	public fromJSON(transaction: Record<string, unknown>): Record<string, unknown> {
+		const { asset: txAsset, ...txRoot } = transaction;
+		// We need to do this as our schemas do not include the ID. Keep this.
+		const tmpId = txRoot.id;
+		delete txRoot.id;
+
+		const schemaAsset = getTransactionAssetSchema(txRoot, this._schema);
+		const txAssetObject = codec.fromJSON(schemaAsset, txAsset as object);
+		const txRootObject = codec.fromJSON(this._schema.transaction, txRoot);
+
+		const txObject = {
+			...txRootObject,
+			asset: txAssetObject,
+			id: typeof tmpId === 'string' ? Buffer.from(tmpId, 'hex') : Buffer.alloc(0),
+		};
+
+		return txObject;
 	}
 }
