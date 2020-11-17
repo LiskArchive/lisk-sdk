@@ -266,6 +266,16 @@ pipeline {
 						}
 					}
 				}
+
+				stage('Lisk Client End-to-End') {
+					agent { node { label 'lisk-framework' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							sh 'npx lerna run test:e2e --scope=@liskhq/lisk-client'
+						}
+					}
+				}
 			}
 		}
 	}
