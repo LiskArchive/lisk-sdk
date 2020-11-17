@@ -130,7 +130,7 @@ describe('keys', () => {
 
 			it('should return true', () => {
 				return addresses.forEach(address => {
-					return expect(validateBase32Address(address)).toBeTrue();
+					return expect(validateBase32Address(address)).toBeTruthy();
 				});
 			});
 		});

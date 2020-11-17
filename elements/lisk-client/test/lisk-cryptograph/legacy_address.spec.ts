@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 /*
  * Copyright © 2020 Lisk Foundation
  *

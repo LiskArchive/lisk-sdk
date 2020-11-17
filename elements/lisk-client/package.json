@@ -32,7 +32,8 @@
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"test": "jest",
 		"test:e2e": "npm run test:e2e:electron",
-		"test:e2e:electron": "npx cypress run --browser electron",
+		"test:e2e:electron": "npm run patch-cypress && npx cypress run --browser electron",
+		"patch-cypress": "bash cypress/scripts/patch_buffer_package.sh",
 		"test:coverage": "jest --coverage=true --coverage-reporters=text",
 		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
 		"test:watch": "npm test -- --watch",
@@ -78,7 +79,7 @@
 		"ts-node": "8.6.2",
 		"tsconfig-paths": "3.9.0",
 		"typescript": "3.8.3",
-		"cypress": "5.2.0",
+		"cypress": "5.6.0",
 		"cypress-jest-adapter": "0.1.1"
 	}
 }
