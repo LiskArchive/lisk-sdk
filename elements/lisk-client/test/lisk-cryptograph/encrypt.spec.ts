@@ -21,8 +21,8 @@ const {
 	decryptPassphraseWithPassword,
 } = cryptography;
 
-type EncryptedMessageWithNonce = ReturnType<typeof encryptMessageWithPassphrase>
-type EncryptedPassphraseObject = ReturnType<typeof encryptPassphraseWithPassword>
+type EncryptedMessageWithNonce = ReturnType<typeof encryptMessageWithPassphrase>;
+type EncryptedPassphraseObject = ReturnType<typeof encryptPassphraseWithPassword>;
 
 describe('encrypt', () => {
 	const regHexadecimal = /[0-9A-Za-z]/g;
