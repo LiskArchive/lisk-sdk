@@ -95,7 +95,8 @@ export class Transaction {
 			);
 			txInput.assetID = registeredAsset?.id ? registeredAsset.id : txInput.assetID;
 		}
-		if (!options?.nonce && !txInput.nonce) {
+		// eslint-disable-next-line eqeqeq
+		if (options?.nonce == null && txInput.nonce == null) {
 			if (
 				typeof account.sequence !== 'object' ||
 				!(account.sequence as Record<string, unknown>).nonce
