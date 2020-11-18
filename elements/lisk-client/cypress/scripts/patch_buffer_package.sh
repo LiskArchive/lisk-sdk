@@ -18,6 +18,8 @@
 CYPRESS_VERSION=5.6.0
 CACHE_PATH=`npx cypress cache path`
 
+SOURCE=`dirname ${BASH_SOURCE[0]}`
+
 if [[ "$OSTYPE" == "darwin"* ]]; then
   PACKAGES_PATH="$CACHE_PATH/$CYPRESS_VERSION/Cypress.app/Contents/Resources/app/packages"
 else
@@ -25,5 +27,7 @@ else
 fi
 
 BUFFER_PACKAGE_PATH="$PACKAGES_PATH/server/node_modules/node-libs-browser/node_modules/buffer"
-LOCAL_BUFFER_PATH=`realpath ../../node_modules/buffer`
+LOCAL_BUFFER_PATH=`realpath $SOURCE/../../node_modules/buffer`
+
+rm -r $BUFFER_PACKAGE_PATH
 cp -r $LOCAL_BUFFER_PATH $BUFFER_PACKAGE_PATH
