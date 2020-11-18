@@ -129,6 +129,17 @@ describe('transaction', () => {
 				});
 			});
 
+			describe('when called with nonce equal to zero in input', () => {
+				it('should return created tx', async () => {
+					const returnedTx = await transaction.create(
+						{ ...validTransaction, nonce: BigInt(0) },
+						passphrase1,
+					);
+					expect(returnedTx.signatures).toHaveLength(1);
+					expect(returnedTx.signatures).toMatchSnapshot();
+				});
+			});
+
 			describe('when called without sender public key in input', () => {
 				it('should return created tx', async () => {
 					const returnedTx = await transaction.create(
