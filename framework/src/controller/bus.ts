@@ -252,15 +252,13 @@ export class Bus {
 		this._emitter.emit(eventName, notification);
 
 		// Communicate through unix socket
-		if (this.config.ipc.enabled) {
-			try {
-				this._ipcServer.pubSocket.send(notification);
-			} catch (error) {
-				this.logger.debug(
-					{ err: error as Error },
-					`Failed to publish event: ${eventName} to ipc server.`,
-				);
-			}
+		try {
+			this._ipcServer.pubSocket.send(notification);
+		} catch (error) {
+			this.logger.debug(
+				{ err: error as Error },
+				`Failed to publish event: ${eventName} to ipc server.`,
+			);
 		}
 
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
