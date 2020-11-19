@@ -22,6 +22,7 @@ import { Application, PartialApplicationConfig } from '../../../src';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
 import { createTransferTransaction } from '../../utils/node/transaction';
+import { HelloPlugin } from './hello_plugin';
 
 export const createApplication = async (
 	label: string,
@@ -58,6 +59,52 @@ export const createApplication = async (
 			}
 		});
 	});
+	return app;
+};
+
+export const createApplicationWithPlugin = async ({
+	label,
+	pluginChildProcess = false,
+	rpcConfig = { mode: 'ws', enable: true, port: 8080 },
+	consoleLogLevel,
+}: {
+	label: string;
+	pluginChildProcess?: boolean;
+	rpcConfig?: { mode: string; enable: boolean; port: number };
+	consoleLogLevel?: string;
+}): Promise<Application> => {
+	const rootPath = path.join(os.homedir(), '.lisk/functional-with-plugin');
+	const config = {
+		...configJSON,
+		rootPath,
+		label,
+		logger: {
+			consoleLogLevel: consoleLogLevel ?? 'fatal',
+			fileLogLevel: 'fatal',
+			logFileName: 'lisk.log',
+		},
+		network: {
+			...configJSON.network,
+			maxInboundConnections: 0,
+		},
+		rpc: rpcConfig,
+	} as PartialApplicationConfig;
+
+	const app = Application.defaultApplication(genesisBlockJSON, config);
+	app.registerPlugin(HelloPlugin, { loadAsChildProcess: pluginChildProcess });
+
+	// Remove pre-existing data
+	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
+
+	await Promise.race([
+		app.run(),
+		new Promise((_resolve, reject) => {
+			const id = setTimeout(() => {
+				clearTimeout(id);
+				reject(new Error('App can not started in time.'));
+			}, 10000);
+		}),
+	]);
 	return app;
 };
 
