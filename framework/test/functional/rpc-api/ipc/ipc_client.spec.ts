@@ -88,6 +88,20 @@ describe('api client ipc mode', () => {
 			// Assert
 			expect(block.header.height).toEqual(1);
 		});
+
+		it('should throw an error when action fails due to missing argument', async () => {
+			// Assert
+			await expect(client.invoke('app:getBlocksFromId')).rejects.toThrow(
+				'Peer not found: undefined',
+			);
+		});
+
+		it('should throw an error on invalid action fails due to invalid argument', async () => {
+			// Assert
+			await expect(
+				client.invoke('app:getAccount', { address: 'randomString*&&^%^' }),
+			).rejects.toThrow('Specified key accounts:address: does not exist');
+		});
 	});
 
 	describe('application events', () => {
@@ -109,6 +123,13 @@ describe('api client ipc mode', () => {
 			const delegates = await client.invoke('dpos:getAllDelegates');
 			// Assert
 			expect(delegates).toHaveLength(103);
+		});
+
+		it('should throw an error on invalid action', async () => {
+			// Assert
+			await expect(client.invoke('token:getAllDelegates')).rejects.toThrow(
+				"Action 'token:getAllDelegates' is not registered to bus",
+			);
 		});
 	});
 
@@ -132,6 +153,13 @@ describe('api client ipc mode', () => {
 			expect(helloMessage.data).toEqual({ message: 'hello event' });
 			expect(helloMessage.module).toEqual('hello');
 			expect(helloMessage.name).toEqual('greet');
+		});
+
+		it('should throw an error on invalid action `hello:randomEventName`', async () => {
+			// Assert
+			await expect(client.invoke('hello:randomEventName')).rejects.toThrow(
+				"Action 'hello:randomEventName' is not registered to bus",
+			);
 		});
 	});
 });

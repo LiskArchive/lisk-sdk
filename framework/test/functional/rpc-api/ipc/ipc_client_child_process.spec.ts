@@ -49,6 +49,18 @@ describe('plugin in child process', () => {
 		});
 	});
 
+	it('should throw an error when action fails due to missing argument', async () => {
+		// Assert
+		await expect(client.invoke('app:getBlocksFromId')).rejects.toThrow('Peer not found: undefined');
+	});
+
+	it('should throw an error on invalid action fails due to invalid argument', async () => {
+		// Assert
+		await expect(
+			client.invoke('app:getAccount', { address: 'randomString*&&^%^' }),
+		).rejects.toThrow('Specified key accounts:address: does not exist');
+	});
+
 	it('should be able to get data from plugin `hello:greet` event', async () => {
 		// Act
 		const data = await client.invoke('hello:publishGreetEvent');
@@ -57,5 +69,12 @@ describe('plugin in child process', () => {
 		expect(helloMessage.data).toEqual({ message: 'hello event' });
 		expect(helloMessage.module).toEqual('hello');
 		expect(helloMessage.name).toEqual('greet');
+	});
+
+	it('should throw an error on invalid action `hello:greetings`', async () => {
+		// Assert
+		await expect(client.invoke('hello:greetings')).rejects.toThrow(
+			"Action 'hello:greetings' is not registered to bus",
+		);
 	});
 });

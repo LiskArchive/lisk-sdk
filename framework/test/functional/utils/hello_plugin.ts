@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { ActionsDefinition, BaseChannel, BasePlugin, EventsArray, PluginInfo } from '../../../src';
+import { ActionInfoObject } from '../../../src/controller';
 
 export class HelloPlugin extends BasePlugin {
 	private _channel!: BaseChannel;
@@ -58,6 +59,9 @@ export class HelloPlugin extends BasePlugin {
 				this._channel.publish('hello:greet', { message: 'hello event' });
 
 				return 'invoked';
+			},
+			greetByName: (action: ActionInfoObject) => {
+				return `Hi ${(action.params as { firstName: string }).firstName}, how are you?`;
 			},
 		};
 	}
