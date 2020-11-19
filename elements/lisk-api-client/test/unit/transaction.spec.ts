@@ -121,7 +121,7 @@ describe('transaction', () => {
 				});
 			});
 
-			describe('when called without nonce in input and account is not supporting nonce', () => {
+			describe('when called without nonce in input and account does not support nonce either', () => {
 				beforeEach(() => {
 					(codec as any)['_compileSchemas'] = [];
 				});
