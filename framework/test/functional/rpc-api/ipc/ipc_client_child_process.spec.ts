@@ -12,35 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createWSClient } from '@liskhq/lisk-api-client';
+import { createIPCClient } from '@liskhq/lisk-api-client';
 import { Application } from '../../../../src';
-import { closeApplication, createApplicationWithPlugin } from '../../utils/application';
+import { closeApplication, createApplicationWithHelloPlugin } from '../../utils/application';
 
 describe('plugin in child process', () => {
-	let appWithPlugin: Application;
-	let clientForPlugin: any;
+	const label = 'ipc-child-process';
+	let app: Application;
+	let client: any;
 	let helloMessage: any;
 
 	beforeAll(async () => {
 		// Load plugin in child process
-		appWithPlugin = await createApplicationWithPlugin({
-			label: 'client-plugin-child-process',
+		app = await createApplicationWithHelloPlugin({
+			label,
 			pluginChildProcess: true,
+			rpcConfig: { enable: false, mode: 'ipc', port: 8080 },
 		});
-		clientForPlugin = await createWSClient('ws://localhost:8080/ws');
-		clientForPlugin.subscribe('hello:greet', (message: any) => {
+		client = await createIPCClient(`${app.config.rootPath}/${label}/`);
+		client.subscribe('hello:greet', (message: any) => {
 			helloMessage = message;
 		});
 	});
 
 	afterAll(async () => {
-		await clientForPlugin.disconnect();
-		await closeApplication(appWithPlugin);
+		await client.disconnect();
+		await closeApplication(app);
 	});
 
 	it('should be able to get data from plugin action `hello:callGreet`', async () => {
 		// Act
-		const data = await clientForPlugin.invoke('hello:callGreet');
+		const data = await client.invoke('hello:callGreet');
 		// Assert
 		expect(data).toEqual({
 			greet: 'hi, how are you?',
@@ -49,7 +51,7 @@ describe('plugin in child process', () => {
 
 	it('should be able to get data from plugin `hello:greet` event', async () => {
 		// Act
-		const data = await clientForPlugin.invoke('hello:invokeGreetEvent');
+		const data = await client.invoke('hello:publishGreetEvent');
 		// Assert
 		expect(data).toEqual('invoked');
 		expect(helloMessage.data).toEqual({ message: 'hello event' });

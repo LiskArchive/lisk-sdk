@@ -16,7 +16,7 @@ import { createWSClient } from '@liskhq/lisk-api-client';
 import {
 	closeApplication,
 	waitNBlocks,
-	createApplicationWithPlugin,
+	createApplicationWithHelloPlugin,
 } from '../../utils/application';
 import { Application } from '../../../../src';
 import { APP_EVENT_BLOCK_NEW } from '../../../../src/constants';
@@ -30,7 +30,7 @@ describe('api client ws mode', () => {
 
 	beforeAll(async () => {
 		newBlockEvent = [];
-		app = await createApplicationWithPlugin({ label: 'client-ws' });
+		app = await createApplicationWithHelloPlugin({ label: 'client-ws' });
 		client = await createWSClient(url);
 
 		client.subscribe(APP_EVENT_BLOCK_NEW, (blockEvent: any) => {
@@ -115,7 +115,7 @@ describe('api client ws mode', () => {
 
 		it('should be able to get data from plugin greet event', async () => {
 			// Act
-			const data = await client.invoke('hello:invokeGreetEvent');
+			const data = await client.invoke('hello:publishGreetEvent');
 			// Assert
 			expect(data).toEqual('invoked');
 			expect(helloMessage.data).toEqual({ message: 'hello event' });

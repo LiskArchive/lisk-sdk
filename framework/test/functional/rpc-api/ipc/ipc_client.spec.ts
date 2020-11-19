@@ -15,7 +15,7 @@ import { createIPCClient } from '@liskhq/lisk-api-client';
 import {
 	closeApplication,
 	waitNBlocks,
-	createApplicationWithPlugin,
+	createApplicationWithHelloPlugin,
 } from '../../utils/application';
 import { Application } from '../../../../src';
 import { APP_EVENT_BLOCK_NEW } from '../../../../src/constants';
@@ -29,11 +29,13 @@ describe('api client ipc mode', () => {
 
 	beforeAll(async () => {
 		newBlockEvent = [];
-		app = await createApplicationWithPlugin({
+		app = await createApplicationWithHelloPlugin({
 			label,
-			rpcConfig: { enable: false, mode: 'ipc', port: 8080 },
+			rpcConfig: { enable: true, mode: 'ipc', port: 8080 },
 		});
-		const dataPath = `${app.config.rootPath}/${label}/`;
+
+		const dataPath = `${app.config.rootPath}/${label}`;
+
 		client = await createIPCClient(dataPath);
 
 		client.subscribe(APP_EVENT_BLOCK_NEW, (blockEvent: any) => {
@@ -88,8 +90,12 @@ describe('api client ipc mode', () => {
 		});
 	});
 
-	describe.skip('application events', () => {
-		it('should listen to new block events', () => {
+	describe('application events', () => {
+		it('should listen to new block events', async () => {
+			// We need to wait for 1 extra block
+			// 	as the event handler of subscribe need to finish before we go for expectations
+			await waitNBlocks(app, 2);
+
 			// Assert
 			expect(newBlockEvent.length).toBeGreaterThan(0);
 			expect(newBlockEvent[0].module).toEqual('app');
@@ -110,15 +116,17 @@ describe('api client ipc mode', () => {
 		it('should be able to get data from plugin action', async () => {
 			// Act
 			const data = await client.invoke('hello:callGreet');
+
 			// Assert
 			expect(data).toEqual({
 				greet: 'hi, how are you?',
 			});
 		});
 
-		it.skip('should be able to get data from plugin greet event', async () => {
+		it('should be able to get data from plugin greet event', async () => {
 			// Act
-			const data = await client.invoke('hello:invokeGreetEvent');
+			const data = await client.invoke('hello:publishGreetEvent');
+
 			// Assert
 			expect(data).toEqual('invoked');
 			expect(helloMessage.data).toEqual({ message: 'hello event' });

@@ -54,7 +54,7 @@ export class HelloPlugin extends BasePlugin {
 			callGreet: () => {
 				return { greet: 'hi, how are you?' };
 			},
-			invokeGreetEvent: async () => {
+			publishGreetEvent: async () => {
 				this._channel.publish('hello:greet', { message: 'hello event' });
 
 				return 'invoked';

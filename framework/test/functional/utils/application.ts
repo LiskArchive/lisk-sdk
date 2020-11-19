@@ -62,7 +62,7 @@ export const createApplication = async (
 	return app;
 };
 
-export const createApplicationWithPlugin = async ({
+export const createApplicationWithHelloPlugin = async ({
 	label,
 	pluginChildProcess = false,
 	rpcConfig = { mode: 'ws', enable: true, port: 8080 },
