@@ -55,14 +55,13 @@ export class Transaction {
 			assetID?: number; // id takes priority
 			assetName?: string;
 			fee: bigint;
-			nonce: bigint;
-			senderPublicKey: Buffer;
+			nonce?: bigint;
+			senderPublicKey?: Buffer;
 			asset: Record<string, unknown>;
 			signatures?: Buffer[];
 		},
 		passphrase: string,
 		options?: {
-			nonce?: bigint;
 			includeSenderSignature?: boolean;
 			multisignatureKeys?: {
 				mandatoryKeys: Buffer[];
@@ -95,15 +94,17 @@ export class Transaction {
 			);
 			txInput.assetID = registeredAsset?.id ? registeredAsset.id : txInput.assetID;
 		}
-		// eslint-disable-next-line eqeqeq
-		if (options?.nonce == null && txInput.nonce == null) {
+		if (typeof txInput.nonce !== 'bigint') {
 			if (
 				typeof account.sequence !== 'object' ||
-				!(account.sequence as Record<string, unknown>).nonce
+				typeof (account.sequence as Record<string, unknown>).nonce !== 'bigint'
 			) {
 				throw new Error('Unsupported account type');
 			}
 			txInput.nonce = (account.sequence as { nonce: bigint }).nonce;
+		}
+		if (txInput.nonce < BigInt(0)) {
+			throw new Error('Nonce must be greater or equal to zero');
 		}
 		if (!txInput.senderPublicKey) {
 			txInput.senderPublicKey = publicKey;
