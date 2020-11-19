@@ -268,7 +268,7 @@ pipeline {
 				}
 
 				stage('Lisk Client End-to-End') {
-					agent { node { label 'lisk-framework' }}
+					agent { node { label 'lisk-client' }}
 					steps {
 						setup()
 						wrap([$class: 'Xvfb', parallelBuild: true, autoDisplayName: true]) {
