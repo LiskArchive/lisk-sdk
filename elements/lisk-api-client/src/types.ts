@@ -27,7 +27,7 @@ export interface JSONRPCResponse<T> {
 	readonly jsonrpc: string;
 	readonly method: never;
 	readonly params: never;
-	readonly error?: Error;
+	readonly error?: { code: number; message: string; data?: string };
 	readonly result?: T;
 }
 

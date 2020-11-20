@@ -355,10 +355,14 @@ export class Bus {
 					if (error instanceof JSONRPC.JSONRPCError) {
 						return socket.send(JSON.stringify(error.response));
 					}
+					const parsedAction = Action.fromJSONRPCRequest(message);
 
 					return socket.send(
 						JSON.stringify(
-							JSONRPC.errorResponse(null, JSONRPC.internalError((error as Error).message)),
+							JSONRPC.errorResponse(
+								parsedAction.id,
+								JSONRPC.internalError((error as Error).message),
+							),
 						),
 					);
 				});
