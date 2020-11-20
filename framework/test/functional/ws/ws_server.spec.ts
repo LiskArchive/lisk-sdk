@@ -108,9 +108,6 @@ describe('WebSocket server', () => {
 			});
 		});
 
-		// TODO: Improve particular error case
-		// 	Due to nature of parsing action object it throws the error first in the call stack
-		// 	So error turned out to be Internal error instead Invalid request
 		it('should respond with Internal error if "method" is missing', async () => {
 			const request = { jsonrpc: '2.0', id: 1234 };
 
@@ -119,11 +116,10 @@ describe('WebSocket server', () => {
 			expect(result).toEqual({
 				jsonrpc: '2.0',
 				error: {
-					message: 'Internal error',
-					code: -32603,
-					data: 'Action name "undefined" must be a valid name with module name and action name.',
+					message: 'Invalid request',
+					code: -32600,
 				},
-				id: null,
+				id: 1234,
 			});
 		});
 
