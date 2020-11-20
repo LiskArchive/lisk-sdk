@@ -121,11 +121,47 @@ describe('transaction', () => {
 				});
 			});
 
-			describe('when called without nonce in input', () => {
+			describe('when called without nonce in input and account does not support nonce either', () => {
+				beforeEach(() => {
+					(codec as any)['_compileSchemas'] = [];
+				});
+				afterEach(() => {
+					(codec as any)['_compileSchemas'] = [];
+				});
+				it('should throw error', async () => {
+					const updatedSchema = {
+						...schema,
+						account: {
+							...schema.account,
+							properties: {
+								address: schema.account.properties.address,
+								keys: schema.account.properties.keys,
+							},
+						},
+					};
+					transaction = new Transaction(channelMock, updatedSchema, nodeInfo);
+					await expect(
+						transaction.create({ ...validTransaction, nonce: undefined }, passphrase1),
+					).rejects.toThrow('Unsupported account type');
+				});
+			});
+
+			describe('when called with negative nonce in input', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create({ ...validTransaction, nonce: undefined! }, passphrase1),
-					).rejects.toThrow('Unsupported account type');
+						transaction.create({ ...validTransaction, nonce: BigInt(-2452) }, passphrase1),
+					).rejects.toThrow('Nonce must be greater or equal to zero');
+				});
+			});
+
+			describe('when called with nonce equal to zero in input', () => {
+				it('should return created tx', async () => {
+					const returnedTx = await transaction.create(
+						{ ...validTransaction, nonce: BigInt(0) },
+						passphrase1,
+					);
+					expect(returnedTx.signatures).toHaveLength(1);
+					expect(returnedTx.signatures).toMatchSnapshot();
 				});
 			});
 
