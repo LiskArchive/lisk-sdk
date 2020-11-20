@@ -103,11 +103,7 @@ export class Action {
 			return { id: this.id, jsonrpc: VERSION, error };
 		}
 
-		if (result) {
-			return { id: this.id, jsonrpc: VERSION, result };
-		}
-
-		throw new Error('Response must be sent with result or error');
+		return { id: this.id, jsonrpc: VERSION, result: result as T };
 	}
 
 	public toObject(): ActionInfoObject {
