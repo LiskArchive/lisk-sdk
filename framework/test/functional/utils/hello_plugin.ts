@@ -58,11 +58,12 @@ export class HelloPlugin extends BasePlugin {
 			publishGreetEvent: async () => {
 				this._channel.publish('hello:greet', { message: 'hello event' });
 
-				return 'invoked';
+				return undefined;
 			},
 			greetByName: (action: ActionInfoObject) => {
 				return `Hi ${(action.params as { firstName: string }).firstName}, how are you?`;
 			},
+			blankAction: () => {},
 		};
 	}
 }

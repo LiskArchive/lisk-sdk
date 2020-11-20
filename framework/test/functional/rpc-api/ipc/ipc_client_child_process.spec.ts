@@ -61,14 +61,22 @@ describe('plugin in child process', () => {
 		).rejects.toThrow('Specified key accounts:address: does not exist');
 	});
 
-	it('should be able to get data from plugin `hello:greet` event', async () => {
+	it('should be able to get data from plugin `hello:greet` event by calling action that returns undefined', async () => {
 		// Act
 		const data = await client.invoke('hello:publishGreetEvent');
 		// Assert
-		expect(data).toEqual('invoked');
+		expect(data).toBeUndefined();
 		expect(helloMessage.data).toEqual({ message: 'hello event' });
 		expect(helloMessage.module).toEqual('hello');
 		expect(helloMessage.name).toEqual('greet');
+	});
+
+	it('should return undefined when void action `hello:blankAction` is called', async () => {
+		// Act
+		const data = await client.invoke('hello:publishGreetEvent');
+
+		// Assert
+		expect(data).toBeUndefined();
 	});
 
 	it('should throw an error on invalid action `hello:greetings`', async () => {
