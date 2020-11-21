@@ -62,6 +62,7 @@
 		"ws": "7.3.1"
 	},
 	"devDependencies": {
+		"@liskhq/lisk-api-client": "5.0.0-debug.3",
 		"@liskhq/lisk-passphrase": "^3.0.1-alpha.0",
 		"@liskhq/lisk-transactions": "^5.0.0-debug.3",
 		"@types/bunyan": "1.8.6",

@@ -168,40 +168,45 @@ export class Bus {
 	}
 
 	public async invoke<T>(
-		actionData: string | JSONRPC.RequestObject,
+		rawRequest: string | JSONRPC.RequestObject,
 	): Promise<JSONRPC.ResponseObjectWithResult<T>> {
-		const parsedAction = Action.fromJSONRPCRequest(actionData);
+		const request =
+			typeof rawRequest === 'string'
+				? (JSON.parse(rawRequest) as JSONRPC.RequestObject)
+				: rawRequest;
 
 		try {
-			JSONRPC.validateJSONRPCRequest(parsedAction.toJSONRPCRequest() as never);
+			JSONRPC.validateJSONRPCRequest(request as never);
 		} catch (error) {
 			this.logger.error({ err: error as LiskValidationError }, 'Invalid invoke request.');
 			throw new JSONRPC.JSONRPCError(
 				'Invalid invoke request.',
-				JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(request.id, JSONRPC.invalidRequest()),
 			);
 		}
 
-		const actionFullName = parsedAction.key();
+		const action = Action.fromJSONRPCRequest(request);
+
+		const actionFullName = action.key();
 
 		if (this.actions[actionFullName] === undefined) {
 			throw new JSONRPC.JSONRPCError(
 				`Action '${actionFullName}' is not registered to bus.`,
 				JSONRPC.errorResponse(
-					parsedAction.id,
+					action.id,
 					JSONRPC.internalError(`Action '${actionFullName}' is not registered to bus.`),
 				),
 			);
 		}
 
-		const actionParams = parsedAction.params;
-		const channelInfo = this.channels[parsedAction.module];
+		const actionParams = action.params;
+		const channelInfo = this.channels[action.module];
 		if (channelInfo.type === ChannelType.InMemory) {
 			const result = await (channelInfo.channel as BaseChannel).invoke<T>(
 				actionFullName,
 				actionParams,
 			);
-			return parsedAction.buildJSONRPCResponse({
+			return action.buildJSONRPCResponse({
 				result,
 			}) as JSONRPC.ResponseObjectWithResult<T>;
 		}
@@ -210,7 +215,7 @@ export class Bus {
 		return new Promise((resolve, reject) => {
 			(channelInfo.rpcClient as RPCClient).call(
 				'invoke',
-				parsedAction.toJSONRPCRequest(),
+				action.toJSONRPCRequest(),
 				(err: Error | undefined, data: JSONRPC.ResponseObjectWithResult<T>) => {
 					if (err) {
 						return reject(err);
@@ -222,11 +227,14 @@ export class Bus {
 		});
 	}
 
-	public publish(eventData: string | JSONRPC.NotificationRequest): void {
-		const parsedEvent = Event.fromJSONRPCNotification(eventData);
+	public publish(rawRequest: string | JSONRPC.NotificationRequest): void {
+		const request =
+			typeof rawRequest === 'string'
+				? (JSON.parse(rawRequest) as JSONRPC.NotificationRequest)
+				: rawRequest;
 
 		try {
-			JSONRPC.validateJSONRPCNotification(parsedEvent.toJSONRPCNotification() as never);
+			JSONRPC.validateJSONRPCNotification(request as never);
 		} catch (error) {
 			this.logger.error({ err: error as LiskValidationError }, 'Invalid publish request.');
 			throw new JSONRPC.JSONRPCError(
@@ -235,8 +243,9 @@ export class Bus {
 			);
 		}
 
-		const eventName = parsedEvent.key();
-		const notification = parsedEvent.toJSONRPCNotification();
+		const event = Event.fromJSONRPCNotification(rawRequest);
+		const eventName = event.key();
+		const notification = event.toJSONRPCNotification();
 
 		if (!this.getEvents().includes(eventName)) {
 			throw new JSONRPC.JSONRPCError(
@@ -252,15 +261,13 @@ export class Bus {
 		this._emitter.emit(eventName, notification);
 
 		// Communicate through unix socket
-		if (this.config.ipc.enabled) {
-			try {
-				this._ipcServer.pubSocket.send(notification);
-			} catch (error) {
-				this.logger.debug(
-					{ err: error as Error },
-					`Failed to publish event: ${eventName} to ipc server.`,
-				);
-			}
+		try {
+			this._ipcServer.pubSocket.send(notification);
+		} catch (error) {
+			this.logger.debug(
+				{ err: error as Error },
+				`Failed to publish event: ${eventName} to ipc server.`,
+			);
 		}
 
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
@@ -357,10 +364,14 @@ export class Bus {
 					if (error instanceof JSONRPC.JSONRPCError) {
 						return socket.send(JSON.stringify(error.response));
 					}
+					const parsedAction = Action.fromJSONRPCRequest(message);
 
 					return socket.send(
 						JSON.stringify(
-							JSONRPC.errorResponse(null, JSONRPC.internalError((error as Error).message)),
+							JSONRPC.errorResponse(
+								parsedAction.id,
+								JSONRPC.internalError((error as Error).message),
+							),
 						),
 					);
 				});
