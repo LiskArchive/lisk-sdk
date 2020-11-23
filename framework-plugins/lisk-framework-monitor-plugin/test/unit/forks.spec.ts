@@ -57,7 +57,7 @@ describe('_handleFork', () => {
 			monitorInstance.schemas.block,
 			Buffer.from(encodedBlock, 'hex'),
 		);
-		const expectedDecodedHeader = codec.decodeJSON<RawBlockHeader>(
+		const expectedDecodedHeader = codec.decodeJSON<Record<string, unknown>>(
 			monitorInstance.schemas.blockHeader,
 			header,
 		);
