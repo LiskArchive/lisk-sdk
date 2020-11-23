@@ -1,6 +1,6 @@
 # @liskhq/lisk-transactions
 
-@liskhq/lisk-transactions is containing utility functions related to transactions according to the Lisk protocol
+@liskhq/lisk-transactions contain utility functions related to transactions according to the Lisk protocol
 
 ## Installation
 
