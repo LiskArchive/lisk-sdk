@@ -150,9 +150,6 @@ export interface ApplicationConfig {
 	label: string;
 	version: string;
 	networkVersion: string;
-	ipc: {
-		enabled: boolean;
-	};
 	rootPath: string;
 	forging: {
 		waitThreshold: number;

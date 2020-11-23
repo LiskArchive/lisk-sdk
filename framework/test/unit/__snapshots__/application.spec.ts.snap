@@ -2201,9 +2201,6 @@ Object {
     },
     "standbyDelegates": 2,
   },
-  "ipc": Object {
-    "enabled": false,
-  },
   "label": "devnet",
   "logger": Object {
     "consoleLogLevel": "info",

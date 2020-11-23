@@ -29,9 +29,6 @@ jest.mock('ws');
 
 describe('Bus', () => {
 	const config: any = {
-		ipc: {
-			enabled: false,
-		},
 		socketsPath: {
 			root: '',
 		},
@@ -90,7 +87,6 @@ describe('Bus', () => {
 		it('should setup ipc server', async () => {
 			// Arrange
 			const updatedConfig = { ...config };
-			updatedConfig.ipc.enabled = true;
 			bus = new Bus(loggerMock, updatedConfig);
 
 			// Act

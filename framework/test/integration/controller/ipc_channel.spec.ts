@@ -27,9 +27,6 @@ describe('IPCChannel', () => {
 	const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel/sockets`);
 
 	const config: any = {
-		ipc: {
-			enabled: true,
-		},
 		socketsPath: {
 			root: socketsDir,
 		},

@@ -75,9 +75,6 @@ describe('Controller Class', () => {
 	};
 	const config = {
 		rootPath: '~/.lisk',
-		ipc: {
-			enabled: false,
-		},
 		rpc: {
 			enable: false,
 			mode: 'ipc',
@@ -100,9 +97,6 @@ describe('Controller Class', () => {
 	};
 	const configController = {
 		dataPath: '~/.lisk/#LABEL',
-		ipc: {
-			enabled: false,
-		},
 		dirs: systemDirs,
 		socketsPath: {
 			root: `unix://${systemDirs.sockets}`,
@@ -238,29 +232,6 @@ describe('Controller Class', () => {
 				);
 			});
 
-			it('should load plugin in-memory if "loadAsChildProcess" is set to true but ipc is disabled', async () => {
-				// Arrange
-				const updatedParams = { ...params };
-				updatedParams.config.ipc.enabled = false;
-				controller = new Controller(updatedParams);
-				pluginOptions.plugin1.loadAsChildProcess = true;
-				pluginOptions.plugin2.loadAsChildProcess = true;
-				await controller.load();
-
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
-
-				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith(
-					{ name: Plugin1.info.name, version: Plugin1.info.version, alias: Plugin1.alias },
-					'Loading in-memory plugin',
-				);
-				expect(loggerMock.info).toHaveBeenCalledWith(
-					{ name: Plugin2.info.name, version: Plugin2.info.version, alias: Plugin2.alias },
-					'Loading in-memory plugin',
-				);
-			});
-
 			it('should create instance of in-memory channel', async () => {
 				// Act
 				await controller.loadPlugins(plugins, pluginOptions);
@@ -356,7 +327,6 @@ describe('Controller Class', () => {
 		describe('child-process plugin', () => {
 			beforeEach(async () => {
 				const updatedParams = { ...params };
-				updatedParams.config.ipc.enabled = true;
 
 				pluginOptions.plugin1.loadAsChildProcess = true;
 				pluginOptions.plugin2.loadAsChildProcess = true;
@@ -400,12 +370,12 @@ describe('Controller Class', () => {
 				// Assert
 				expect(childProcess.fork).toHaveBeenCalledTimes(2);
 				expect(childProcess.fork).toHaveBeenCalledWith(
-					expect.stringContaining('child_process_loader.js'),
+					expect.stringContaining('child_process_loader'),
 					['plugin1', 'Plugin'],
 					{ execArgv: undefined },
 				);
 				expect(childProcess.fork).toHaveBeenCalledWith(
-					expect.stringContaining('child_process_loader.js'),
+					expect.stringContaining('child_process_loader'),
 					['plugin2', 'Plugin'],
 					{ execArgv: undefined },
 				);
@@ -440,7 +410,6 @@ describe('Controller Class', () => {
 
 		beforeEach(async () => {
 			updatedParams = { ...params };
-			updatedParams.config.ipc.enabled = true;
 			controller = new Controller(updatedParams);
 
 			loadStubs = {

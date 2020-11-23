@@ -26,9 +26,6 @@ describe('InMemoryChannel', () => {
 	};
 
 	const config: any = {
-		ipc: {
-			enabled: false,
-		},
 		socketsPath: {
 			root: socketsDir,
 		},
