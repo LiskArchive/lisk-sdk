@@ -139,7 +139,7 @@ describe('transaction', () => {
 							{ ...validTransaction, assetID: undefined, assetName: 'newAsset' },
 							passphrase1,
 						),
-					).rejects.toThrow('Asset corresponding to name newAsset not found.');
+					).rejects.toThrow('Asset corresponding to name newAsset not registered.');
 				});
 			});
 
