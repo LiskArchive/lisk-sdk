@@ -169,7 +169,7 @@ export class WSChannel {
 
 			if (this._pendingRequests[id]) {
 				if (res.error) {
-					this._pendingRequests[id].reject(res.error);
+					this._pendingRequests[id].reject(new Error(res.error.data ?? res.error.data));
 				} else {
 					this._pendingRequests[id].resolve(res.result);
 				}

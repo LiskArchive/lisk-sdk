@@ -166,7 +166,10 @@ export class IPCChannel extends BaseChannel {
 					res: JSONRPC.ResponseObjectWithResult<T>,
 				) => {
 					if (err) {
-						return reject(res.error ?? err);
+						return reject(err);
+					}
+					if (res.error) {
+						return reject(res.error);
 					}
 
 					return resolve(res.result);
