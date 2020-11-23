@@ -1,10 +1,12 @@
 {
-	"ipc": {
-		"enabled": false
-	},
 	"version": "2.1.0",
 	"networkVersion": "1.1",
 	"label": "devnet",
+	"rpc": {
+		"enable": false,
+		"mode": "ipc",
+		"port": 8080
+	},
 	"genesisConfig": {
 		"blockTime": 10,
 		"communityIdentifier": "Lisk",
