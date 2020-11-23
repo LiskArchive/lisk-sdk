@@ -41,9 +41,6 @@ const appConfig = {
 	version: '3.0.0',
 	networkVersion: '2.0',
 	label: 'lisk-devnet',
-	ipc: {
-		enabled: true,
-	},
 };
 
 const network = process.env.LISK_NETWORK || 'devnet';
@@ -57,9 +54,6 @@ try {
 	const mergedConfig = {
 		...appConfig,
 		...config,
-		ipc: {
-			enabled: false,
-		},
 	};
 	// To run multiple applications for same network for integration tests
 	app = Application.defaultApplication(genesisBlock, mergedConfig);
