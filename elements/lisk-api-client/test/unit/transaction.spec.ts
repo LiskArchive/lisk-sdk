@@ -128,7 +128,7 @@ describe('transaction', () => {
 							{ ...validTransaction, moduleID: undefined, moduleName: 'newModule' },
 							passphrase1,
 						),
-					).rejects.toThrow('Module corresponding to name newModule not found.');
+					).rejects.toThrow('Module corresponding to name newModule not registered.');
 				});
 			});
 

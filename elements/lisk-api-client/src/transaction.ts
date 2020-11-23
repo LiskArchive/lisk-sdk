@@ -84,7 +84,7 @@ export class Transaction {
 				module => module.name === input.moduleName,
 			);
 			if (!registeredModule) {
-				throw new Error(`Module corresponding to name ${txInput.moduleName} not found.`);
+				throw new Error(`Module corresponding to name ${txInput.moduleName} not registered.`);
 			}
 			txInput.moduleID = registeredModule.id;
 		}
@@ -96,13 +96,13 @@ export class Transaction {
 				m => m.id === txInput.moduleID,
 			);
 			if (!registeredModule) {
-				throw new Error(`Module corresponding to id ${txInput.moduleID} not found.`);
+				throw new Error(`Module corresponding to id ${txInput.moduleID} not registered.`);
 			}
 			const registeredAsset = registeredModule.transactionAssets.find(
 				asset => asset.name === txInput.assetName,
 			);
 			if (!registeredAsset) {
-				throw new Error(`Asset corresponding to name ${txInput.assetName} not found.`);
+				throw new Error(`Asset corresponding to name ${txInput.assetName} not registered.`);
 			}
 			txInput.assetID = registeredAsset.id;
 		}
