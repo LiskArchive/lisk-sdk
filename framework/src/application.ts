@@ -461,7 +461,6 @@ export class Application {
 		return new Controller({
 			appLabel: this.config.label,
 			config: {
-				ipc: this.config.ipc,
 				rootPath: this.config.rootPath,
 				rpc: this.config.rpc,
 			},
