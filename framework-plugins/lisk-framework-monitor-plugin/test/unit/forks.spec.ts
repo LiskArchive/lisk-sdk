@@ -15,7 +15,7 @@
 import { blockHeaderSchema, blockSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
-import { RawBlock, RawBlockHeader } from '@liskhq/lisk-chain';
+import { RawBlock } from '@liskhq/lisk-chain';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 
 describe('_handleFork', () => {
