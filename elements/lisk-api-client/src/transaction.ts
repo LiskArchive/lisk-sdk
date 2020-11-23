@@ -83,16 +83,28 @@ export class Transaction {
 			const registeredModule = this._nodeInfo.registeredModules.find(
 				module => module.name === input.moduleName,
 			);
-			txInput.moduleID = registeredModule?.id ? registeredModule.id : txInput.moduleID;
+			if (!registeredModule) {
+				throw new Error(`Module corresponding to name ${txInput.moduleName} not found.`);
+			}
+			txInput.moduleID = registeredModule.id;
 		}
 		if (typeof txInput.assetID !== 'number') {
 			if (!txInput.assetName) {
 				throw new Error('Missing assetID and assetName');
 			}
-			const registeredAsset = this._nodeInfo.registeredModules.find(
-				asset => asset.name === input.assetName,
+			const registeredModule = this._nodeInfo.registeredModules.find(
+				m => m.id === txInput.moduleID,
 			);
-			txInput.assetID = registeredAsset?.id ? registeredAsset.id : txInput.assetID;
+			if (!registeredModule) {
+				throw new Error(`Module corresponding to id ${txInput.moduleID} not found.`);
+			}
+			const registeredAsset = registeredModule.transactionAssets.find(
+				asset => asset.name === txInput.assetName,
+			);
+			if (!registeredAsset) {
+				throw new Error(`Asset corresponding to name ${txInput.assetName} not found.`);
+			}
+			txInput.assetID = registeredAsset.id;
 		}
 		if (typeof txInput.nonce !== 'bigint') {
 			if (
