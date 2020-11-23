@@ -33,7 +33,6 @@ import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { jobHandlers } from '@liskhq/lisk-utils';
-import { deprecate } from 'util';
 import {
 	APP_EVENT_BLOCK_DELETE,
 	APP_EVENT_BLOCK_NEW,
@@ -265,10 +264,6 @@ export class Node {
 						customModuleChannel.publish(name, data),
 				},
 				dataAccess: {
-					getAccount: deprecate(
-						async (address: Buffer) => this._chain.dataAccess.getAccountByAddress(address),
-						'This function will be removed in next release. Please use `getAccountByAddress` instead.',
-					),
 					getChainState: async (key: string) => this._chain.dataAccess.getChainState(key),
 					getAccountByAddress: async <T = AccountDefaultProps>(address: Buffer) =>
 						this._chain.dataAccess.getAccountByAddress<T>(address),
