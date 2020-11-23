@@ -28,9 +28,6 @@ export interface ControllerOptions {
 	readonly appLabel: string;
 	readonly config: {
 		readonly rootPath: string;
-		readonly ipc: {
-			readonly enabled: boolean;
-		};
 		readonly rpc: {
 			readonly enable: boolean;
 			readonly mode: string;
@@ -51,9 +48,6 @@ interface ControllerConfig {
 		readonly logs: string;
 		readonly sockets: string;
 		readonly pids: string;
-	};
-	readonly ipc: {
-		readonly enabled: boolean;
 	};
 	rpc: {
 		readonly enable: boolean;
@@ -85,9 +79,6 @@ export class Controller {
 		const dirs = systemDirs(this.appLabel, options.config.rootPath);
 		this.config = {
 			dataPath: dirs.dataPath,
-			ipc: {
-				enabled: options.config.ipc.enabled,
-			},
 			dirs: {
 				...dirs,
 			},
@@ -119,12 +110,7 @@ export class Controller {
 			const options = { dataPath: this.config.dataPath, ...pluginOptions[alias] };
 
 			if (options.loadAsChildProcess) {
-				if (this.config.ipc.enabled) {
-					await this._loadChildProcessPlugin(alias, klass, options);
-				} else {
-					this.logger.warn(`IPC is disabled. ${alias} will be loaded in-memory.`);
-					await this._loadInMemoryPlugin(alias, klass, options);
-				}
+				await this._loadChildProcessPlugin(alias, klass, options);
 			} else {
 				await this._loadInMemoryPlugin(alias, klass, options);
 			}
@@ -235,7 +221,7 @@ export class Controller {
 
 		this.logger.info({ name, version, alias: pluginAlias }, 'Loading child-process plugin');
 
-		const program = path.resolve(__dirname, 'child_process_loader.js');
+		const program = path.resolve(__dirname, 'child_process_loader');
 
 		const parameters = [getPluginExportPath(Klass) as string, Klass.name];
 

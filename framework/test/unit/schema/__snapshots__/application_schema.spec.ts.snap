@@ -29,9 +29,6 @@ Object {
           "offset": 2160,
         },
       },
-      "ipc": Object {
-        "enabled": false,
-      },
       "label": "alpha-sdk-app",
       "logger": Object {
         "consoleLogLevel": "none",
@@ -215,14 +212,6 @@ Object {
           "maxPayloadLength",
           "rewards",
         ],
-        "type": "object",
-      },
-      "ipc": Object {
-        "properties": Object {
-          "enabled": Object {
-            "type": "boolean",
-          },
-        },
         "type": "object",
       },
       "label": Object {
@@ -448,7 +437,7 @@ Object {
     "required": Array [
       "version",
       "networkVersion",
-      "ipc",
+      "rpc",
       "genesisConfig",
       "forging",
       "network",
