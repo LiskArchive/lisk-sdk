@@ -60,6 +60,14 @@ describe('IPCChannel', () => {
 			divideByThree: {
 				handler: (action: any) => action.params.val / 3,
 			},
+			withError: {
+				handler: (action: any) => {
+					if (action.params.val === 1) {
+						throw new Error('Invalid request');
+					}
+					return 0;
+				},
+			},
 		},
 	};
 
@@ -215,6 +223,12 @@ describe('IPCChannel', () => {
 				).rejects.toThrow(
 					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name and action name.`,
 				);
+			});
+
+			it('should be rejected with error', async () => {
+				await expect(
+					alphaChannel.invoke(`${beta.moduleAlias}:withError`, { val: 1 }),
+				).rejects.toThrow('Invalid request');
 			});
 		});
 	});
