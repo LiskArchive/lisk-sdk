@@ -197,7 +197,10 @@ export class MonitorPlugin extends BasePlugin {
 		if (this._state.forks.blockHeaders[blockId]) {
 			this._state.forks.blockHeaders[blockId].timeReceived = Date.now();
 		} else {
-			const decodedHeader = codec.decode<RawBlockHeader>(this.schemas.blockHeader, header);
+			const decodedHeader = codec.decodeJSON<Record<string, unknown>>(
+				this.schemas.blockHeader,
+				header,
+			);
 			this._state.forks.blockHeaders[blockId] = {
 				blockHeader: decodedHeader,
 				timeReceived: Date.now(),

@@ -27,9 +27,6 @@ import * as JSONRPC from './jsonrpc';
 import { WSServer } from './ws/ws_server';
 
 interface BusConfiguration {
-	ipc: {
-		readonly enabled: boolean;
-	};
 	socketsPath: SocketPaths;
 	rpc: {
 		readonly enable: boolean;
