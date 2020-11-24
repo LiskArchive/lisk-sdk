@@ -18,7 +18,7 @@ import { NotificationRequest, VERSION } from './jsonrpc';
 
 export type EventCallback = (data?: Record<string, unknown>) => void | Promise<void>;
 
-export type EventsArray = ReadonlyArray<string>;
+export type EventsDefinition = ReadonlyArray<string>;
 
 export class Event {
 	public readonly module: string;

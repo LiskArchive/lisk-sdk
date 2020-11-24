@@ -19,7 +19,7 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { APP_EVENT_READY } from '../constants';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
-import { EventsArray } from '../controller/event';
+import { EventsDefinition } from '../controller/event';
 import { ImplementationMissingError } from '../errors';
 import { RegisteredSchema, TransactionJSON } from '../types';
 
@@ -249,7 +249,7 @@ export abstract class BasePlugin {
 	public get defaults(): object {
 		return {};
 	}
-	public abstract get events(): EventsArray;
+	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
 
 	public abstract async load(channel: BaseChannel): Promise<void>;

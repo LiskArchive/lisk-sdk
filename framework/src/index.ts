@@ -43,6 +43,6 @@ export { systemDirs } from './system_dirs';
 export { BasePlugin, BlockHeaderJSON, PluginInfo, PluginCodec } from './plugins/base_plugin';
 export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';
-export type { EventsArray, EventInfoObject } from './controller/event';
-export type { ActionsDefinition } from './controller/action';
+export type { EventsDefinition, EventCallback } from './controller/event';
+export type { ActionsDefinition, ActionHandler } from './controller/action';
 export * from './types';

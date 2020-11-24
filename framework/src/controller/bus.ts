@@ -21,7 +21,7 @@ import { Logger } from '../logger';
 import { ActionInfoForBus, SocketPaths } from '../types';
 import { Action } from './action';
 import { BaseChannel } from './channels/base_channel';
-import { Event, EventsArray } from './event';
+import { Event, EventsDefinition } from './event';
 import { IPCServer } from './ipc/ipc_server';
 import * as JSONRPC from './jsonrpc';
 import { WSServer } from './ws/ws_server';
@@ -57,7 +57,7 @@ interface ChannelInfo {
 	readonly actions: {
 		[key: string]: ActionInfoForBus;
 	};
-	readonly events: EventsArray;
+	readonly events: EventsDefinition;
 	readonly type: ChannelType;
 }
 
@@ -122,7 +122,7 @@ export class Bus {
 	public async registerChannel(
 		moduleAlias: string,
 		// Events should also include the module alias
-		events: EventsArray,
+		events: EventsDefinition,
 		actions: { [key: string]: Action },
 		options: RegisterChannelOptions,
 	): Promise<void> {
