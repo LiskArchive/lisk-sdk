@@ -41,7 +41,7 @@ import {
 	validatePluginSpec,
 } from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
-import { Controller, InMemoryChannel, ActionInfoObject } from './controller';
+import { Controller, InMemoryChannel } from './controller';
 import { applicationConfigSchema } from './schema';
 import { Node } from './node';
 import { Logger, createLogger } from './logger';
@@ -364,82 +364,78 @@ export class Application {
 			],
 			{
 				getConnectedPeers: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getConnectedPeers(),
+					handler: () => this._node.actions.getConnectedPeers(),
 				},
 				getDisconnectedPeers: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getDisconnectedPeers(),
+					handler: () => this._node.actions.getDisconnectedPeers(),
 				},
 				getNetworkStats: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getNetworkStats(),
+					handler: () => this._node.actions.getNetworkStats(),
 				},
 				getForgers: {
-					handler: async (_action: ActionInfoObject) => this._node.actions.getValidators(),
+					handler: async () => this._node.actions.getValidators(),
 				},
 				updateForgingStatus: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.updateForgingStatus(action.params as UpdateForgingStatusInput),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.updateForgingStatus((params as unknown) as UpdateForgingStatusInput),
 				},
 				getForgingStatus: {
-					handler: async (_action: ActionInfoObject) => this._node.actions.getForgingStatus(),
+					handler: async () => this._node.actions.getForgingStatus(),
 				},
 				getTransactionsFromPool: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFromPool(),
+					handler: () => this._node.actions.getTransactionsFromPool(),
 				},
 				getTransactions: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactions(action.params as { data: unknown; peerId: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getTransactions(params as { data: unknown; peerId: string }),
 				},
 				postTransaction: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.postTransaction(action.params as EventPostTransactionData),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.postTransaction((params as unknown) as EventPostTransactionData),
 				},
 				getLastBlock: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.getLastBlock(action.params as { peerId: string }),
+					handler: (params?: Record<string, unknown>) =>
+						this._node.actions.getLastBlock(params as { peerId: string }),
 				},
 				getBlocksFromId: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksFromId(action.params as { data: unknown; peerId: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlocksFromId(params as { data: unknown; peerId: string }),
 				},
 				getHighestCommonBlock: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getHighestCommonBlock(
-							action.params as { data: unknown; peerId: string },
-						),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getHighestCommonBlock(params as { data: unknown; peerId: string }),
 				},
 				getAccount: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccount(action.params as { address: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getAccount(params as { address: string }),
 				},
 				getAccounts: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccounts(action.params as { address: readonly string[] }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getAccounts(params as { address: readonly string[] }),
 				},
 				getBlockByID: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByID(action.params as { id: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlockByID(params as { id: string }),
 				},
 				getBlocksByIDs: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByIDs(action.params as { ids: readonly string[] }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlocksByIDs(params as { ids: readonly string[] }),
 				},
 				getBlockByHeight: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByHeight(action.params as { height: number }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlockByHeight(params as { height: number }),
 				},
 				getBlocksByHeightBetween: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByHeightBetween(
-							action.params as { from: number; to: number },
-						),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlocksByHeightBetween(params as { from: number; to: number }),
 				},
 				getTransactionByID: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionByID(action.params as { id: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getTransactionByID(params as { id: string }),
 				},
 				getTransactionsByIDs: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionsByIDs(action.params as { ids: readonly string[] }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getTransactionsByIDs(params as { ids: readonly string[] }),
 				},
 				getSchema: {
 					handler: () => this._node.actions.getSchema(),
