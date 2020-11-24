@@ -12,98 +12,77 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Application } from 'lisk-framework';
-import axios from 'axios';
-import {
-	createApplication,
-	closeApplication,
-	getURL,
-	callNetwork,
-	waitNBlocks,
-	waitTill,
-} from '../utils/application';
+import { createIPCClient } from '@liskhq/lisk-api-client';
+import { createApplication, closeApplication, waitNBlocks, waitTill } from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
 
-describe('Voters endpoint', () => {
+describe('forger:getVoters action', () => {
 	let app: Application;
 	let accountNonce = 0;
 	let networkIdentifier: Buffer;
+	let liskClient: any;
 
 	beforeAll(async () => {
 		app = await createApplication('forger_functional_voters');
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
 		networkIdentifier = app['_node'].networkIdentifier;
+		liskClient = await createIPCClient(`${app.config.rootPath}/${app.config.label}`);
 	});
 
 	afterAll(async () => {
 		await closeApplication(app);
 	});
 
-	describe('GET /api/voters/', () => {
-		describe('200', () => {
-			it('should return valid response', async () => {
-				// Arrange & Act
-				const { response, status } = await callNetwork(axios.get(getURL('/api/voters')));
+	describe('action forger:getVoters', () => {
+		it('should return valid format', async () => {
+			// Arrange & Act
+			const voters = await liskClient.invoke('forger:getVoters');
 
-				// Assert
-				expect(status).toEqual(200);
-				expect(response).toMatchSnapshot();
+			// Assert
+			expect(voters).toMatchSnapshot();
+			expect(voters).toBeInstanceOf(Array);
+			expect(voters).toHaveLength(103);
+			expect(voters[0]).toMatchObject(
+				expect.objectContaining({
+					address: expect.any(String),
+					username: expect.any(String),
+					totalVotesReceived: expect.any(String),
+					voters: expect.any(Array),
+				}),
+			);
+		});
+
+		it('should return valid voters', async () => {
+			// Arrange
+			const initialVoters = await liskClient.invoke('forger:getVoters');
+			const forgingDelegateAddress = initialVoters[0].address;
+			const transaction = createVoteTransaction({
+				amount: '10',
+				recipientAddress: forgingDelegateAddress,
+				fee: '0.3',
+				nonce: accountNonce,
+				networkIdentifier,
 			});
+			accountNonce += 1;
 
-			it('should return valid format', async () => {
-				// Arrange & Act
-				const { response, status } = await callNetwork(axios.get(getURL('/api/voters')));
-				const forgerInfo = response.data[0];
-
-				// Assert
-				expect(status).toEqual(200);
-				expect(response).toHaveProperty('data');
-				expect(response).toHaveProperty('meta');
-				expect(response.data).toBeInstanceOf(Array);
-				expect(forgerInfo).toMatchObject(
-					expect.objectContaining({
-						address: expect.any(String),
-						username: expect.any(String),
-						totalVotesReceived: expect.any(String),
-						voters: expect.any(Array),
-					}),
-				);
+			await app['_channel'].invoke('app:postTransaction', {
+				transaction: transaction.getBytes().toString('hex'),
 			});
+			await waitNBlocks(app, 1);
+			// Wait a bit to give plugin a time to calculate forger info
+			await waitTill(2000);
 
-			it('should return valid voters', async () => {
-				// Arrange
-				const { response: delegateResponse } = await callNetwork(axios.get(getURL('/api/voters')));
-				const forgingDelegateAddress = delegateResponse.data[0].address;
-				const transaction = createVoteTransaction({
-					amount: '10',
-					recipientAddress: forgingDelegateAddress,
-					fee: '0.3',
-					nonce: accountNonce,
-					networkIdentifier,
-				});
-				accountNonce += 1;
+			// Act
+			const voters = await liskClient.invoke('forger:getVoters');
+			const forgerInfo = voters.find((forger: any) => forger.address === forgingDelegateAddress);
 
-				await app['_channel'].invoke('app:postTransaction', {
-					transaction: transaction.getBytes().toString('hex'),
-				});
-				await waitNBlocks(app, 1);
-				// Wait a bit to give plugin a time to calculate forger info
-				await waitTill(2000);
-
-				// Act
-				const { response, status } = await callNetwork(axios.get(getURL('/api/voters')));
-				const forgerInfo = response.data.find(
-					(forger: any) => forger.address === forgingDelegateAddress,
-				);
-
-				// Assert
-				expect(status).toEqual(200);
-				expect(forgerInfo.voters[0]).toMatchObject(
-					expect.objectContaining({
-						address: transaction.senderAddress.toString('hex'),
-						amount: '1000000000',
-					}),
-				);
-			});
+			// Assert
+			expect(forgerInfo.voters[0]).toMatchObject(
+				expect.objectContaining({
+					address: transaction.senderAddress.toString('hex'),
+					amount: '1000000000',
+				}),
+			);
 		});
 	});
 });

@@ -55,6 +55,7 @@
 		"lisk-framework": "^0.7.0-debug.3"
 	},
 	"devDependencies": {
+		"@liskhq/lisk-api-client": "5.0.0-debug.3",
 		"@liskhq/lisk-genesis": "^0.1.0-alpha.1",
 		"@types/cors": "2.8.6",
 		"@types/debug": "4.1.5",

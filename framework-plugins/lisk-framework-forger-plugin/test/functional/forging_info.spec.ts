@@ -13,50 +13,49 @@
  */
 
 import { Application } from 'lisk-framework';
-import axios from 'axios';
+import { createIPCClient } from '@liskhq/lisk-api-client';
 import {
 	createApplication,
 	closeApplication,
 	getForgerInfoByAddress,
 	waitNBlocks,
-	getURL,
 	getForgerPlugin,
 } from '../utils/application';
 
-describe('Forger endpoint', () => {
+describe('forger:getForgingInfo action', () => {
 	let app: Application;
+	let liskClient: any;
 
 	beforeAll(async () => {
 		app = await createApplication('forging_info_spec');
 		await waitNBlocks(app, 1);
+		liskClient = await createIPCClient(`${app.config.rootPath}/${app.config.label}`);
 	});
 
 	afterAll(async () => {
 		await closeApplication(app);
 	});
 
-	describe('GET /api/forging/info', () => {
-		it('should return list of all forgers info', async () => {
-			// Arrange
-			const forgerPluginInstance = getForgerPlugin(app);
-			const forgersList = forgerPluginInstance['_forgersList'].entries() as ReadonlyArray<
-				[Buffer, boolean]
-			>;
-			const forgersInfo = await Promise.all(
-				forgersList.map(async ([forgerAddress, _]) =>
-					getForgerInfoByAddress(forgerPluginInstance, forgerAddress.toString('binary')),
-				),
-			);
-			const { data: resultData } = await axios.get(getURL('/api/forging/info'));
+	it('should return list of all forgers info', async () => {
+		// Arrange
+		const forgerPluginInstance = getForgerPlugin(app);
+		const forgersList = forgerPluginInstance['_forgersList'].entries() as ReadonlyArray<
+			[Buffer, boolean]
+		>;
+		const forgersInfo = await Promise.all(
+			forgersList.map(async ([forgerAddress, _]) =>
+				getForgerInfoByAddress(forgerPluginInstance, forgerAddress.toString('binary')),
+			),
+		);
+		const forgersInfoList = await liskClient.invoke('forger:getForgingInfo');
 
-			// Assert
-			expect(resultData.meta.count).toEqual(forgersInfo.length);
-			expect(resultData.data).toMatchSnapshot();
-			expect(
-				resultData.data.filter(
-					(forger: { totalProducedBlocks: number }) => forger.totalProducedBlocks > 0,
-				).length,
-			).toBeGreaterThan(1);
-		});
+		// Assert
+		expect(forgersInfoList).toHaveLength(forgersInfo.length);
+		expect(forgersInfoList).toMatchSnapshot();
+		expect(
+			forgersInfoList.filter(
+				(forger: { totalProducedBlocks: number }) => forger.totalProducedBlocks > 0,
+			).length,
+		).toBeGreaterThan(1);
 	});
 });
