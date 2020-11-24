@@ -121,6 +121,28 @@ describe('transaction', () => {
 				});
 			});
 
+			describe('when called with module name which does not exist', () => {
+				it('should throw error', async () => {
+					await expect(
+						transaction.create(
+							{ ...validTransaction, moduleID: undefined, moduleName: 'newModule' },
+							passphrase1,
+						),
+					).rejects.toThrow('Module corresponding to name newModule not registered.');
+				});
+			});
+
+			describe('when called with asset name which does not exist', () => {
+				it('should throw error', async () => {
+					await expect(
+						transaction.create(
+							{ ...validTransaction, assetID: undefined, assetName: 'newAsset' },
+							passphrase1,
+						),
+					).rejects.toThrow('Asset corresponding to name newAsset not registered.');
+				});
+			});
+
 			describe('when called without nonce in input and account does not support nonce either', () => {
 				beforeEach(() => {
 					(codec as any)['_compileSchemas'] = [];
@@ -168,7 +190,7 @@ describe('transaction', () => {
 			describe('when called without sender public key in input', () => {
 				it('should return created tx', async () => {
 					const returnedTx = await transaction.create(
-						{ ...validTransaction, senderPublicKey: undefined! },
+						{ ...validTransaction, senderPublicKey: undefined },
 						passphrase1,
 					);
 					expect(returnedTx.signatures).toHaveLength(1);
