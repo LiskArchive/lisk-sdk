@@ -17,9 +17,7 @@ import {
 	ACTION_NAME,
 	MODULE_NAME,
 	INVALID_ACTION_NAME_ARG,
-	INVALID_ACTION_SOURCE_ARG,
 	VALID_ACTION_NAME_ARG,
-	VALID_ACTION_SOURCE_ARG,
 	PARAMS,
 } from './constants';
 
@@ -57,7 +55,7 @@ describe('Action class', () => {
 					id: 0,
 					jsonrpc: '2.0',
 					method: `${MODULE_NAME}:${ACTION_NAME}`,
-					params: { ...PARAMS, source: VALID_ACTION_SOURCE_ARG },
+					params: { ...PARAMS },
 				};
 
 				// Act

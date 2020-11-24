@@ -14,4 +14,3 @@
 
 export { Controller } from './controller';
 export { InMemoryChannel, IPCChannel } from './channels';
-export { ActionInfoObject } from './action';

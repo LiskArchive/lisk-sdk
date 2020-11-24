@@ -154,8 +154,8 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions: any = {
-				action1: new Action(null, 'alias:action1', {}, '', jest.fn()),
-				action2: new Action(null, 'alias:action2', {}, '', jest.fn()),
+				action1: new Action(null, 'alias:action1', {}, jest.fn()),
+				action2: new Action(null, 'alias:action2', {}, jest.fn()),
 			};
 
 			// Act
@@ -172,7 +172,7 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions = {
-				action1: new Action(null, 'alias:action1', {}, '', jest.fn()),
+				action1: new Action(null, 'alias:action1', {}, jest.fn()),
 			};
 
 			// Act && Assert
@@ -242,8 +242,8 @@ describe('Bus', () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions: any = {
-				action1: new Action(null, 'alias:action1', {}, '', jest.fn()),
-				action2: new Action(null, 'alias:action2', {}, '', jest.fn()),
+				action1: new Action(null, 'alias:action1', {}, jest.fn()),
+				action2: new Action(null, 'alias:action2', {}, jest.fn()),
 			};
 			const expectedActions = Object.keys(actions).map(
 				actionName => `${moduleAlias}:${actionName}`,

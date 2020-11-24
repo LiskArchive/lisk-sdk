@@ -19,7 +19,7 @@ import { ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
 import { Logger } from '../logger';
 import { ActionInfoForBus, SocketPaths } from '../types';
-import { Action, ActionsObject } from './action';
+import { Action } from './action';
 import { BaseChannel } from './channels/base_channel';
 import { Event, EventsArray } from './event';
 import { IPCServer } from './ipc/ipc_server';
@@ -123,7 +123,7 @@ export class Bus {
 		moduleAlias: string,
 		// Events should also include the module alias
 		events: EventsArray,
-		actions: ActionsObject,
+		actions: { [key: string]: Action },
 		options: RegisterChannelOptions,
 	): Promise<void> {
 		events.forEach(eventName => {

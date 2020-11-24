@@ -259,7 +259,7 @@ describe('IPCChannel Channel', () => {
 
 	describe('#invoke', () => {
 		const actionName = 'moduleAlias:action1';
-		const actionParams = ['param1', 'param2'];
+		const actionParams = { myParams: ['param1', 'param2'] };
 
 		it('should execute the action straight away if the plugins are the same and action is a string', async () => {
 			// Act
@@ -277,10 +277,7 @@ describe('IPCChannel Channel', () => {
 			await ipcChannel.invoke(action.key(), actionParams);
 
 			// Assert
-			expect(params.actions.action1.handler).toHaveBeenCalledWith({
-				...action.toObject(),
-				source: 'moduleAlias',
-			});
+			expect(params.actions.action1.handler).toHaveBeenCalledWith(action.params);
 		});
 	});
 

@@ -69,7 +69,6 @@ describe('Base Channel', () => {
 					null,
 					`${params.moduleAlias}:${action}`,
 					undefined,
-					undefined,
 					actionHandler,
 				);
 			});

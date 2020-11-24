@@ -33,18 +33,18 @@ export class InMemoryChannel extends BaseChannel {
 	public subscribe(eventName: string, cb: EventCallback): void {
 		this.bus.subscribe(eventName, (notificationObject: JSONRPC.NotificationRequest) =>
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			setImmediate(cb, Event.fromJSONRPCNotification(notificationObject).toObject()),
+			setImmediate(cb, Event.fromJSONRPCNotification(notificationObject).data),
 		);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
 		this.bus.once(eventName, (notificationObject: JSONRPC.NotificationRequest) =>
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			setImmediate(cb, Event.fromJSONRPCNotification(notificationObject).toObject()),
+			setImmediate(cb, Event.fromJSONRPCNotification(notificationObject).data),
 		);
 	}
 
-	public publish(eventName: string, data?: object): void {
+	public publish(eventName: string, data?: Record<string, unknown>): void {
 		const event = new Event(eventName, data);
 
 		if (event.module !== this.moduleAlias) {
@@ -54,8 +54,8 @@ export class InMemoryChannel extends BaseChannel {
 		this.bus.publish(event.toJSONRPCNotification());
 	}
 
-	public async invoke<T>(actionName: string, params?: object): Promise<T> {
-		const action = new Action(null, actionName, params, this.moduleAlias);
+	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
+		const action = new Action(null, actionName, params);
 
 		if (action.module === this.moduleAlias) {
 			if (this.actions[action.name] === undefined) {
@@ -69,7 +69,7 @@ export class InMemoryChannel extends BaseChannel {
 				throw new Error('Handler does not exist.');
 			}
 
-			return handler(action.toObject()) as T;
+			return handler(action.params) as T;
 		}
 
 		return (await this.bus.invoke<T>(action.toJSONRPCRequest())).result;

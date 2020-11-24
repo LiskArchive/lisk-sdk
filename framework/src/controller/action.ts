@@ -29,10 +29,6 @@ export interface ActionsDefinition {
 	[key: string]: ActionHandler | { handler: ActionHandler };
 }
 
-export interface ActionsObject {
-	[key: string]: Action;
-}
-
 export class Action {
 	public readonly id: ID;
 	public readonly module: string;
