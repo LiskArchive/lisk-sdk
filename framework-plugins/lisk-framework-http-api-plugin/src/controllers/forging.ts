@@ -14,8 +14,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { BaseChannel } from 'lisk-framework';
 import { validator, LiskValidationError, isHexString } from '@liskhq/lisk-validator';
-import { KVStore } from '@liskhq/lisk-db';
-import { getForgerInfo } from '../db';
 
 const updateForgingParams = {
 	type: 'object',
@@ -68,7 +66,18 @@ interface ForgingRequestData extends ForgingResponseData {
 const isLessThanZero = (value: number | undefined | null) =>
 	value === null || value === undefined || value < 0;
 
-export const updateForging = (channel: BaseChannel, db: KVStore) => async (
+export const getForgingStatus = (channel: BaseChannel) => async (
+	_req: Request,
+	res: Response,
+): Promise<void> => {
+	const forgingDelegates = await channel.invoke<Record<string, unknown>[]>('app:getForgingStatus');
+	res.status(200).json({
+		meta: { count: forgingDelegates.length },
+		data: forgingDelegates,
+	});
+};
+
+export const updateForging = (channel: BaseChannel) => async (
 	req: Request,
 	res: Response,
 	next: NextFunction,
@@ -125,22 +134,11 @@ export const updateForging = (channel: BaseChannel, db: KVStore) => async (
 			overwrite,
 		});
 
-		const {
-			totalReceivedFees,
-			totalReceivedRewards,
-			votesReceived,
-			totalProducedBlocks,
-		} = await getForgerInfo(db, address);
-
 		res.status(200).json({
 			meta: { count: 1 },
 			data: {
 				address: result.address,
 				forging: result.forging,
-				totalProducedBlocks,
-				votesReceived,
-				totalReceivedFees: totalReceivedFees.toString(),
-				totalReceivedRewards: totalReceivedRewards.toString(),
 				height,
 				maxHeightPreviouslyForged,
 				maxHeightPrevoted,

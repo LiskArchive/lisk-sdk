@@ -389,6 +389,101 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
+  /forging:
+    patch:
+      tags:
+        - Node
+      summary: Toggles the forging status of a delegate.
+      description: |
+        Upon passing the correct password and address, forging will be enabled or disabled for the delegate of this particular node.
+        The password can be generated locally by encrypting your passphrase, either by using Lisk Commander or with Lisk Elements.
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: Password for decrypting passphrase of delegate for its corresponding address.
+          required: true
+          schema:
+            type: object
+            required:
+              - password
+              - address
+              - forging
+              - maxHeightPreviouslyForged
+              - maxHeightPrevoted
+              - overwrite
+            properties:
+              forging:
+                type: boolean
+                example: true
+                description: Forging status of the delegate.
+              password:
+                type: string
+                example: 'happy tree friends elephant tree'
+                minLength: 5
+                description: Password for decrypting passphrase of delegate.
+              address:
+                type: string
+                example: '0903f4c5cb599a7928aef27e294e98293d1e3888'
+                format: hex
+                description: Address of the delegate.
+              height:
+                type: number
+                example: 100
+                description: Last forged block height.
+              maxHeightPreviouslyForged:
+                type: number
+                example: 100
+                description: Delegates largest previously forged height.
+              maxHeightPrevoted:
+                type: number
+                example: 10
+                description: Delegates largest prevoted height for a block.
+              overwrite:
+                type: boolean
+                example: true
+                description: Boolean flag to overwrite forger info.
+      responses:
+        200:
+          description: Delegate forging toggled on or off.
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /forging/info:
+    get:
+      tags:
+        - Forging
+      summary: Request forging status of forgers.
+      description: Gives a list of all forgers and their info.
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of forgers.
+          schema:
+            $ref: '#/definitions/ForgersResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 parameters:
   limit:
     in: query
@@ -458,6 +553,24 @@ definitions:
           $ref: '#/definitions/Forger'
       meta:
         type: object
+
+  ForgingStatusResponse:
+    type: object
+    required:
+      - data
+      - meta
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ForgingStatus'
+      meta:
+        type: object
+        properties:
+          count:
+            description: Number of records returned in response.
+            type: integer
+            minimum: 0
 
   BlockResponse:
     type: object
@@ -559,6 +672,37 @@ definitions:
         $ref: '#/definitions/NodeInfo'
       meta:
         type: object
+
+  ForgingStatus:
+    type: object
+    required:
+      - address
+      - forging
+      - height
+      - maxHeightPreviouslyForged
+      - maxHeightPrevoted
+    properties:
+      address:
+        type: string
+        example: '0903f4c5cb599a7928aef27e294e98293d1e3888'
+        format: hex
+        description: Address of the delegate.
+      forging:
+        type: boolean
+        example: true
+        description: True if the delegate enabled forging.
+      height:
+        type: number
+        example: '234577'
+        description: Height of the forger.
+      maxHeightPreviouslyForged:
+        type: number
+        example: '234534'
+        description: The largest height of any block previously forged by the forging delegate.
+      maxHeightPrevoted:
+        type: number
+        example: 10
+        description: The largest height of any block previously prevoted by the forging delegate.
 
   Meta:
     type: object

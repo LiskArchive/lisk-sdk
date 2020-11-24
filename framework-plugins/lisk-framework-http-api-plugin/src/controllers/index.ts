@@ -19,5 +19,6 @@ import * as blocks from './blocks';
 import * as peers from './peers';
 import * as delegates from './delegates';
 import * as forgers from './forgers';
+import * as forging from './forging';
 
-export { accounts, blocks, node, transactions, peers, delegates, forgers };
+export { accounts, blocks, node, transactions, peers, delegates, forgers, forging };

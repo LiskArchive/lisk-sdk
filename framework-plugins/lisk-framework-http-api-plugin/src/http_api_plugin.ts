@@ -125,5 +125,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		this._app.get('/api/peers', controllers.peers.getPeers(this._channel));
 		this._app.get('/api/delegates', controllers.delegates.getDelegates(this._channel, this.codec));
 		this._app.get('/api/forgers', controllers.forgers.getForgers(this._channel, this.codec));
+		this._app.get('/api/forging/info', controllers.forging.getForgingStatus(this._channel));
+		this._app.patch('/api/forging', controllers.forging.updateForging(this._channel));
 	}
 }

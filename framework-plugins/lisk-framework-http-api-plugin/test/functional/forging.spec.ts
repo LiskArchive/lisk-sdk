@@ -19,16 +19,12 @@ import {
 	waitNBlocks,
 	getURL,
 	callNetwork,
-} from '../utils/application';
+} from './utils/application';
 
 describe('api/forging', () => {
 	const sampleForgerInfo = {
 		address: '0903f4c5cb599a7928aef27e314e98291d1e3888',
 		forging: true,
-		totalProducedBlocks: 0,
-		votesReceived: [],
-		totalReceivedFees: '0',
-		totalReceivedRewards: '0',
 		height: 1,
 		maxHeightPreviouslyForged: 100,
 		maxHeightPrevoted: 10,
@@ -39,7 +35,7 @@ describe('api/forging', () => {
 
 	beforeAll(async () => {
 		app = await createApplication('forging');
-		await waitNBlocks(app, 1);
+		await waitNBlocks(app, 2);
 		const { data } = await axios.get(getURL('/api/forging/info'));
 		const forgedDelegateInfo = data.data.filter(
 			(forger: { maxHeightPreviouslyForged: number }) => forger.maxHeightPreviouslyForged >= 0,

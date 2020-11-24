@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Forger endpoint GET /api/forging/info should return list of all forgers info 1`] = `
+exports[`forger:getForgingInfo action should return list of all forgers info 1`] = `
 Array [
   Object {
     "address": "9cabee3d27426676b852ce6b804cb2fdff7cd0b5",
