@@ -11,8 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { ActionsDefinition, BaseChannel, BasePlugin, EventsArray, PluginInfo } from '../../../src';
-import { ActionInfoObject } from '../../../src/controller';
+import {
+	ActionsDefinition,
+	BaseChannel,
+	BasePlugin,
+	EventsDefinition,
+	PluginInfo,
+} from '../../../src';
 
 export class HelloPlugin extends BasePlugin {
 	private _channel!: BaseChannel;
@@ -45,7 +50,7 @@ export class HelloPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get events(): EventsArray {
+	public get events(): EventsDefinition {
 		return ['greet'];
 	}
 
@@ -60,8 +65,8 @@ export class HelloPlugin extends BasePlugin {
 
 				return undefined;
 			},
-			greetByName: (action: ActionInfoObject) => {
-				return `Hi ${(action.params as { firstName: string }).firstName}, how are you?`;
+			greetByName: (params?: Record<string, unknown>) => {
+				return `Hi ${(params as { firstName: string }).firstName}, how are you?`;
 			},
 			blankAction: () => {},
 		};

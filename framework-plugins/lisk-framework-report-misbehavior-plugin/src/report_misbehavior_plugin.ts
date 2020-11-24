@@ -26,13 +26,11 @@ import {
 	ActionsDefinition,
 	BasePlugin,
 	BaseChannel,
-	EventsArray,
-	EventInfoObject,
+	EventsDefinition,
 	PluginInfo,
 } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
 import * as createDebug from 'debug';
-import { ActionInfoObject } from 'lisk-framework/dist-node/controller/action';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -92,18 +90,15 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get events(): EventsArray {
+	public get events(): EventsDefinition {
 		return [];
 	}
 
 	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {
-			authorize: (action: ActionInfoObject): { result: string } => {
-				const errors = validator.validate(
-					actionParamsSchema,
-					action.params as Record<string, unknown>,
-				);
+			authorize: (params?: Record<string, unknown>): { result: string } => {
+				const errors = validator.validate(actionParamsSchema, params as Record<string, unknown>);
 
 				if (errors.length) {
 					throw new LiskValidationError([...errors]);
@@ -116,7 +111,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 					throw new Error('Encrypted passphrase string must be set in the config.');
 				}
 
-				const { enable, password } = action.params as Record<string, unknown>;
+				const { enable, password } = params as Record<string, unknown>;
 
 				try {
 					const parsedEncryptedPassphrase = parseEncryptedPassphrase(
@@ -167,12 +162,8 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	}
 
 	private _subscribeToChannel(): void {
-		this._channel.subscribe('app:network:event', async (info: EventInfoObject) => {
-			const {
-				data: { event, data },
-			} = info as {
-				data: { event: string; data: { block: string } };
-			};
+		this._channel.subscribe('app:network:event', async (eventData?: Record<string, unknown>) => {
+			const { event, data } = eventData as { event: string; data: { block: string } };
 
 			if (event === 'postBlock') {
 				const { header } = codec.decode<RawBlock>(

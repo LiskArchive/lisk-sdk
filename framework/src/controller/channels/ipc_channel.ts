@@ -21,7 +21,7 @@ import { EventEmitter2, Listener } from 'eventemitter2';
 import { Server as RPCServer, Client as RPCClient } from 'pm2-axon-rpc';
 import { PubSocket, PullSocket, PushSocket, SubSocket } from 'pm2-axon';
 import { Action, ActionsDefinition } from '../action';
-import { Event, EventInfoObject } from '../event';
+import { Event } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
 import { IPCClient } from '../ipc/ipc_client';
 import { ActionInfoForBus, SocketPaths } from '../../types';
@@ -67,7 +67,7 @@ export class IPCChannel extends BaseChannel {
 		this._subSocket.on('message', (eventData: string | JSONRPC.NotificationRequest) => {
 			const event = Event.fromJSONRPCNotification(eventData);
 			if (event.module !== this.moduleAlias) {
-				this._emitter.emit(event.key(), event.toObject());
+				this._emitter.emit(event.key(), event.toJSONRPCNotification());
 			}
 		});
 	}
@@ -95,7 +95,7 @@ export class IPCChannel extends BaseChannel {
 					type: 'ipcSocket',
 					rpcSocketPath: this._ipcClient.rpcServerSocketPath,
 				},
-				(err: Error, result: object) => {
+				(err: Error, result: Record<string, unknown>) => {
 					if (err !== undefined && err !== null) {
 						reject(err);
 					}
@@ -112,7 +112,12 @@ export class IPCChannel extends BaseChannel {
 					const parsedAction = Action.fromJSONRPCRequest(action);
 
 					this.invoke(parsedAction.key(), parsedAction.params)
-						.then(data => cb(null, parsedAction.buildJSONRPCResponse({ result: data as object })))
+						.then(data =>
+							cb(
+								null,
+								parsedAction.buildJSONRPCResponse({ result: data as Record<string, unknown> }),
+							),
+						)
 						.catch(error => cb(error));
 				},
 			);
@@ -121,21 +126,21 @@ export class IPCChannel extends BaseChannel {
 
 	public subscribe(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.on(event.key(), (eventInfo: EventInfoObject) =>
+		this._emitter.on(event.key(), (notification: JSONRPC.NotificationRequest) =>
 			// When IPC channel used without bus the data will not contain result
-			setImmediate(cb, eventInfo),
+			setImmediate(cb, Event.fromJSONRPCNotification(notification).data),
 		);
 	}
 
 	public once(eventName: string, cb: Listener): void {
 		const event = new Event(eventName);
-		this._emitter.once(event.key(), (eventInfo: EventInfoObject) => {
+		this._emitter.once(event.key(), (notification: JSONRPC.NotificationRequest) => {
 			// When IPC channel used without bus the data will not contain result
-			setImmediate(cb, eventInfo);
+			setImmediate(cb, Event.fromJSONRPCNotification(notification).data);
 		});
 	}
 
-	public publish(eventName: string, data?: object): void {
+	public publish(eventName: string, data?: Record<string, unknown>): void {
 		const event = new Event(eventName, data);
 		if (event.module !== this.moduleAlias || !this.eventsList.includes(event.name)) {
 			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
@@ -144,8 +149,8 @@ export class IPCChannel extends BaseChannel {
 		this._pubSocket.send(event.toJSONRPCNotification());
 	}
 
-	public async invoke<T>(actionName: string, params?: object): Promise<T> {
-		const action = new Action(null, actionName, params, this.moduleAlias);
+	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
+		const action = new Action(null, actionName, params);
 
 		if (action.module === this.moduleAlias) {
 			const handler = this.actions[action.name]?.handler;
@@ -154,7 +159,7 @@ export class IPCChannel extends BaseChannel {
 			}
 
 			// change this to lisk format
-			return handler(action.toObject()) as T;
+			return handler(action.params) as T;
 		}
 
 		return new Promise((resolve, reject) => {

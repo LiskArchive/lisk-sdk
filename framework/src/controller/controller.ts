@@ -308,11 +308,11 @@ export class Controller {
 				});
 			}),
 			new Promise((_, reject) => {
-				this.channel.once(`${alias}:unloading:error`, event => {
+				this.channel.once(`${alias}:unloading:error`, data => {
 					this.logger.info(`Child process plugin "${alias}" unloaded with error`);
-					this.logger.error(event.data ?? {}, 'Unloading plugin error.');
+					this.logger.error(data ?? {}, 'Unloading plugin error.');
 					delete this._childProcesses[alias];
-					reject(event.data);
+					reject(data);
 				});
 			}),
 			new Promise((_, reject) => {

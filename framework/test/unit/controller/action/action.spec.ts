@@ -17,9 +17,7 @@ import {
 	ACTION_NAME,
 	MODULE_NAME,
 	INVALID_ACTION_NAME_ARG,
-	INVALID_ACTION_SOURCE_ARG,
 	VALID_ACTION_NAME_ARG,
-	VALID_ACTION_SOURCE_ARG,
 	PARAMS,
 } from './constants';
 
@@ -32,30 +30,14 @@ describe('Action class', () => {
 			);
 		});
 
-		it('should throw an error when invalid source was provided.', () => {
-			// Act & Assert
-			expect(() => new Action(0, VALID_ACTION_NAME_ARG, {}, INVALID_ACTION_SOURCE_ARG)).toThrow(
-				`Source name "${INVALID_ACTION_SOURCE_ARG}" must be a valid module name.`,
-			);
-		});
-
 		it('should initialize the instance correctly when valid arguments were provided.', () => {
 			// Act
-			const action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
+			const action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS);
 
 			// Assert
 			expect(action.module).toBe(MODULE_NAME);
 			expect(action.name).toBe(ACTION_NAME);
 			expect(action.params).toBe(PARAMS);
-			expect(action.source).toBe(VALID_ACTION_SOURCE_ARG);
-		});
-
-		it('should not set source property when source is not provided.', () => {
-			// Act
-			const action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS);
-
-			// Assert
-			expect(action).not.toHaveProperty('source');
 		});
 	});
 
@@ -63,20 +45,7 @@ describe('Action class', () => {
 		let action: Action;
 		beforeEach(() => {
 			// Arrange
-			action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS, VALID_ACTION_SOURCE_ARG);
-		});
-
-		describe('#toObject', () => {
-			it('should return action info object.', () => {
-				// Assert
-				expect(action).toBeInstanceOf(Action);
-				expect(action.toObject()).toEqual({
-					module: MODULE_NAME,
-					name: ACTION_NAME,
-					params: PARAMS,
-					source: VALID_ACTION_SOURCE_ARG,
-				});
-			});
+			action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS);
 		});
 
 		describe('#toJSONRPCRequest', () => {
@@ -86,7 +55,7 @@ describe('Action class', () => {
 					id: 0,
 					jsonrpc: '2.0',
 					method: `${MODULE_NAME}:${ACTION_NAME}`,
-					params: { ...PARAMS, source: VALID_ACTION_SOURCE_ARG },
+					params: { ...PARAMS },
 				};
 
 				// Act

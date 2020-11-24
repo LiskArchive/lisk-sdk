@@ -14,7 +14,7 @@
 import { Server } from 'http';
 import { BasePlugin, PluginInfo } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
-import type { BaseChannel, EventsArray, ActionsDefinition } from 'lisk-framework';
+import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-framework';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -55,7 +55,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get events(): EventsArray {
+	public get events(): EventsDefinition {
 		return [];
 	}
 

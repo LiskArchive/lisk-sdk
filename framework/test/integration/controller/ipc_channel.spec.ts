@@ -42,10 +42,10 @@ describe('IPCChannel', () => {
 		events: ['alpha1', 'alpha2'],
 		actions: {
 			multiplyByTwo: {
-				handler: (action: any) => action.params.val * 2,
+				handler: (params: any) => params.val * 2,
 			},
 			multiplyByThree: {
-				handler: (action: any) => action.params.val * 3,
+				handler: (params: any) => params.val * 3,
 			},
 		},
 	};
@@ -55,14 +55,14 @@ describe('IPCChannel', () => {
 		events: ['beta1', 'beta2'],
 		actions: {
 			divideByTwo: {
-				handler: (action: any) => action.params.val / 2,
+				handler: (params: any) => params.val / 2,
 			},
 			divideByThree: {
-				handler: (action: any) => action.params.val / 3,
+				handler: (params: any) => params.val / 3,
 			},
 			withError: {
-				handler: (action: any) => {
-					if (action.params.val === 1) {
+				handler: (params: any) => {
+					if (params.val === 1) {
 						throw new Error('Invalid request');
 					}
 					return 0;
@@ -107,9 +107,9 @@ describe('IPCChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, event => {
+					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(event.data).toEqual(betaEventData);
+						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -125,9 +125,9 @@ describe('IPCChannel', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise(resolve => {
 					// Act
-					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, event => {
+					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(event.data).toEqual(betaEventData);
+						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -146,9 +146,9 @@ describe('IPCChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					alphaChannel.subscribe(`${omegaAlias}:${omegaEventName}`, event => {
+					alphaChannel.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
 						// Assert
-						expect(event.data).toEqual(dummyData);
+						expect(data).toEqual(dummyData);
 						resolve();
 					});
 				});
@@ -169,9 +169,9 @@ describe('IPCChannel', () => {
 
 				const donePromise = new Promise(done => {
 					// Act
-					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, event => {
+					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(event.data).toEqual(alphaEventData);
+						expect(data).toEqual(alphaEventData);
 						done();
 					});
 				});

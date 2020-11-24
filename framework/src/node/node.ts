@@ -63,7 +63,6 @@ import {
 	UpdateForgingStatusInput,
 } from '../types';
 import { InMemoryChannel } from '../controller/channels';
-import { EventInfoObject } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
 import {
 	EVENT_PROCESSOR_BROADCAST_BLOCK,
@@ -260,7 +259,7 @@ export class Node {
 			// Give limited access of channel to custom module to publish events
 			customModule.init({
 				channel: {
-					publish: (name: string, data?: object | undefined) =>
+					publish: (name: string, data?: Record<string, unknown>) =>
 						customModuleChannel.publish(name, data),
 				},
 				dataAccess: {
@@ -300,7 +299,7 @@ export class Node {
 		this._channel.subscribe(
 			APP_EVENT_NETWORK_READY,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (_event: EventInfoObject) => {
+			async () => {
 				await this._startLoader();
 			},
 		);
@@ -309,12 +308,13 @@ export class Node {
 		this._channel.subscribe(
 			APP_EVENT_NETWORK_EVENT,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (info: EventInfoObject) => {
-				const {
-					data: { event, data, peerId },
-				} = info as {
-					data: { event: string; data: unknown; peerId: string };
+			async (eventData?: Record<string, unknown>) => {
+				const { event, data, peerId } = eventData as {
+					event: string;
+					data: unknown;
+					peerId: string;
 				};
+
 				try {
 					if (event === 'postTransactionsAnnouncement') {
 						await this._transport.handleEventPostTransactionsAnnouncement(data, peerId);

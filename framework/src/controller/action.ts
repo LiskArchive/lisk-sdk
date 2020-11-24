@@ -13,7 +13,7 @@
  */
 
 import { strict as assert } from 'assert';
-import { actionWithModuleNameReg, moduleNameReg } from '../constants';
+import { actionWithModuleNameReg } from '../constants';
 import {
 	ID,
 	JSONRPCErrorObject,
@@ -23,46 +23,29 @@ import {
 	VERSION,
 } from './jsonrpc';
 
-export interface ActionInfoObject {
-	readonly module: string;
-	readonly name: string;
-	readonly source?: string;
-	readonly params?: object;
-}
-
-export type ActionHandler = (action: ActionInfoObject) => unknown;
+export type ActionHandler = (params?: Record<string, unknown>) => unknown;
 
 export interface ActionsDefinition {
 	[key: string]: ActionHandler | { handler: ActionHandler };
-}
-
-export interface ActionsObject {
-	[key: string]: Action;
 }
 
 export class Action {
 	public readonly id: ID;
 	public readonly module: string;
 	public readonly name: string;
-	public readonly source?: string;
-	public readonly params?: object;
-	public handler?: (action: ActionInfoObject) => unknown;
+	public readonly params?: Record<string, unknown>;
+	public handler?: ActionHandler;
 
 	public constructor(
 		id: ID,
 		name: string,
-		params?: object,
-		source?: string,
-		handler?: (action: ActionInfoObject) => unknown,
+		params?: Record<string, unknown>,
+		handler?: ActionHandler,
 	) {
 		assert(
 			actionWithModuleNameReg.test(name),
 			`Action name "${name}" must be a valid name with module name and action name.`,
 		);
-		if (source) {
-			assert(moduleNameReg.test(source), `Source name "${source}" must be a valid module name.`);
-			this.source = source;
-		}
 
 		this.id = id;
 		[this.module, this.name] = name.split(':');
@@ -74,12 +57,6 @@ export class Action {
 		const { id, method, params } =
 			typeof data === 'string' ? (JSON.parse(data) as RequestObject) : data;
 
-		if (params) {
-			const { source, ...rest } = params;
-
-			return new Action(id, method, rest, source);
-		}
-
 		return new Action(id, method, params);
 	}
 
@@ -88,7 +65,7 @@ export class Action {
 			jsonrpc: VERSION,
 			id: this.id,
 			method: `${this.module}:${this.name}`,
-			params: { ...this.params, source: this.source },
+			params: this.params,
 		};
 	}
 
@@ -104,10 +81,6 @@ export class Action {
 		}
 
 		return { id: this.id, jsonrpc: VERSION, result: result as T };
-	}
-
-	public toObject(): ActionInfoObject {
-		return { module: this.module, name: this.name, source: this.source, params: this.params };
 	}
 
 	public key(): string {

@@ -77,7 +77,7 @@ export class DPoSModule extends BaseModule {
 
 		// Set actions
 		this.actions = {
-			getAllDelegates: async _ => {
+			getAllDelegates: async () => {
 				const validatorsBuffer = await this._dataAccess.getChainState(
 					CHAIN_STATE_DELEGATE_USERNAMES,
 				);

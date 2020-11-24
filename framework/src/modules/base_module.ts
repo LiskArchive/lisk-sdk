@@ -27,7 +27,7 @@ import {
 import { BaseAsset } from './base_asset';
 
 interface BaseModuleChannel {
-	publish(name: string, data?: object): void;
+	publish(name: string, data?: Record<string, unknown>): void;
 }
 
 export abstract class BaseModule {
