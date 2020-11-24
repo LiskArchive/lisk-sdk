@@ -404,7 +404,7 @@ paths:
       parameters:
         - in: body
           name: data
-          description: Password for decrypting passphrase of delegate with corresponding delegate address.
+          description: Password for decrypting passphrase of delegate for its corresponding address.
           required: true
           schema:
             type: object
@@ -463,7 +463,27 @@ paths:
           description: Unexpected error.
           schema:
             $ref: '#/definitions/ErrorResponse'
-
+  /forging/info:
+    get:
+      tags:
+        - Forging
+      summary: Request forging status of forgers.
+      description: Gives a list of all forgers and their info.
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of forgers.
+          schema:
+            $ref: '#/definitions/ForgersResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 parameters:
   limit:
     in: query
@@ -652,6 +672,37 @@ definitions:
         $ref: '#/definitions/NodeInfo'
       meta:
         type: object
+
+  ForgingStatus:
+    type: object
+    required:
+      - address
+      - forging
+      - height
+      - maxHeightPreviouslyForged
+      - maxHeightPrevoted
+    properties:
+      address:
+        type: string
+        example: '0903f4c5cb599a7928aef27e294e98293d1e3888'
+        format: hex
+        description: Address of the delegate.
+      forging:
+        type: boolean
+        example: true
+        description: True if the delegate enabled forging.
+      height:
+        type: number
+        example: '234577'
+        description: Height of the forger.
+      maxHeightPreviouslyForged:
+        type: number
+        example: '234534'
+        description: The largest height of any block previously forged by the forging delegate.
+      maxHeightPrevoted:
+        type: number
+        example: 10
+        description: The largest height of any block previously prevoted by the forging delegate.
 
   Meta:
     type: object
