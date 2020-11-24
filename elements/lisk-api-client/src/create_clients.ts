@@ -18,8 +18,10 @@ import { WSChannel } from './ws_channel';
 
 import { Channel } from './types';
 
-export const createClient = async (channel: Channel): Promise<APIClient> => {
-	const client = new APIClient(channel);
+export const createClient = async (
+	channel: Omit<Channel, 'connect' | 'disconnect'>,
+): Promise<APIClient> => {
+	const client = new APIClient(channel as Channel);
 	await client.init();
 
 	return client;

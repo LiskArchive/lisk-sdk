@@ -46,8 +46,8 @@ export class Block {
 		return encodeBlock(input, this._schemas);
 	}
 
-	public decode(input: Buffer): Record<string, unknown> {
-		return decodeBlock(input, this._schemas);
+	public decode<T = Record<string, unknown>>(input: Buffer): T {
+		return decodeBlock(input, this._schemas) as T;
 	}
 
 	public toJSON(

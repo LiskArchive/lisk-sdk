@@ -85,7 +85,7 @@ describe('IPC Channel', () => {
 			// Act & Assert
 			await new Promise(resolve => {
 				client.subscribe('app:new:block', event => {
-					expect(event.data).toEqual('myData');
+					expect(event).toEqual('myData');
 					resolve();
 				});
 				server.pubSocket.send({
@@ -109,14 +109,14 @@ describe('IPC Channel', () => {
 			await Promise.all([
 				new Promise(resolve => {
 					client.subscribe('app:new:block', event => {
-						expect(event.data).toEqual('myData');
+						expect(event).toEqual('myData');
 						resolve();
 					});
 				}),
 
 				await new Promise(resolve => {
 					client2.subscribe('app:new:block', event => {
-						expect(event.data).toEqual('myData');
+						expect(event).toEqual('myData');
 						resolve();
 					});
 				}),
@@ -137,14 +137,14 @@ describe('IPC Channel', () => {
 			await Promise.all([
 				new Promise(resolve => {
 					client2.subscribe('app:new:block', event => {
-						expect(event.data).toEqual('myData');
+						expect(event).toEqual('myData');
 						resolve();
 					});
 				}),
 
 				await new Promise(resolve => {
 					client2.subscribe('app:new:block', event => {
-						expect(event.data).toEqual('myData');
+						expect(event).toEqual('myData');
 						resolve();
 					});
 				}),
@@ -160,7 +160,7 @@ describe('IPC Channel', () => {
 			} as JSONRPCNotification<unknown>);
 			await new Promise(resolve => {
 				client.subscribe('app:new:block', event => {
-					expect(event.data).toEqual('myData');
+					expect(event).toEqual('myData');
 					resolve();
 				});
 			});

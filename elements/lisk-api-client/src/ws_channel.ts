@@ -15,7 +15,7 @@
 
 import * as WebSocket from 'isomorphic-ws';
 import { EventEmitter } from 'events';
-import { EventInfoObject, JSONRPCMessage, JSONRPCNotification, EventCallback } from './types';
+import { JSONRPCMessage, JSONRPCNotification, EventCallback } from './types';
 
 const CONNECTION_TIMEOUT = 2000;
 const ACKNOWLEDGMENT_TIMEOUT = 2000;
@@ -151,7 +151,7 @@ export class WSChannel {
 		]);
 	}
 
-	public subscribe<T>(eventName: string, cb: EventCallback<T>): void {
+	public subscribe(eventName: string, cb: EventCallback): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._emitter.on(eventName, cb);
 	}
@@ -161,7 +161,7 @@ export class WSChannel {
 
 		// Its an event
 		if (messageIsNotification(res)) {
-			this._emitter.emit(res.method, this._prepareEventInfo(res));
+			this._emitter.emit(res.method, res.params);
 
 			// Its a response for a request
 		} else {
@@ -177,16 +177,5 @@ export class WSChannel {
 				delete this._pendingRequests[id];
 			}
 		}
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	private _prepareEventInfo(res: JSONRPCNotification<unknown>): EventInfoObject<unknown> {
-		const { method } = res;
-		const [moduleName, ...eventName] = method.split(':');
-		const module = moduleName;
-		const name = eventName.join(':');
-		const data = res.params ?? {};
-
-		return { module, name, data };
 	}
 }

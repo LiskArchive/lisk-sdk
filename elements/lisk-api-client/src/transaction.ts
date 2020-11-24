@@ -215,8 +215,8 @@ export class Transaction {
 		return this._channel.invoke('app:postTransaction', { transaction: encodedTx.toString('hex') });
 	}
 
-	public decode(transaction: Buffer): Record<string, unknown> {
-		return decodeTransaction(transaction, this._schema);
+	public decode<T = Record<string, unknown>>(transaction: Buffer): T {
+		return decodeTransaction(transaction, this._schema) as T;
 	}
 
 	public encode(transaction: Record<string, unknown>): Buffer {
@@ -235,7 +235,7 @@ export class Transaction {
 		delete txRoot.id;
 
 		const schemaAsset = getTransactionAssetSchema(txRoot, this._schema);
-		const jsonTxAsset = codec.toJSON(schemaAsset, txAsset as object);
+		const jsonTxAsset = codec.toJSON(schemaAsset, txAsset as Record<string, unknown>);
 		const jsonTxRoot = codec.toJSON(this._schema.transaction, txRoot);
 
 		const jsonTx = {
@@ -254,7 +254,7 @@ export class Transaction {
 		delete txRoot.id;
 
 		const schemaAsset = getTransactionAssetSchema(txRoot, this._schema);
-		const txAssetObject = codec.fromJSON(schemaAsset, txAsset as object);
+		const txAssetObject = codec.fromJSON(schemaAsset, txAsset as Record<string, unknown>);
 		const txRootObject = codec.fromJSON(this._schema.transaction, txRoot);
 
 		const txObject = {

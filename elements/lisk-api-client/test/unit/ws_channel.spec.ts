@@ -101,7 +101,7 @@ describe('WSChannel', () => {
 			await expect(
 				new Promise(resolve => {
 					client.subscribe('module1:my:Event', event => {
-						expect(event).toEqual(eventInfo);
+						expect(event).toEqual(eventInfo.data);
 						resolve();
 					});
 					client['_ws']?.emit('message', JSON.stringify(message));
