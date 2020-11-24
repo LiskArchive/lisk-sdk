@@ -66,6 +66,17 @@ interface ForgingRequestData extends ForgingResponseData {
 const isLessThanZero = (value: number | undefined | null) =>
 	value === null || value === undefined || value < 0;
 
+export const getForgingStatus = (channel: BaseChannel) => async (
+	_req: Request,
+	res: Response,
+): Promise<void> => {
+	const forgingDelegates = await channel.invoke<Record<string, unknown>[]>('app:getForgingStatus');
+	res.status(200).json({
+		meta: { count: forgingDelegates.length },
+		data: forgingDelegates,
+	});
+};
+
 export const updateForging = (channel: BaseChannel) => async (
 	req: Request,
 	res: Response,
