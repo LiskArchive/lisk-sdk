@@ -41,10 +41,10 @@ describe('InMemoryChannel', () => {
 		events: ['alpha1', 'alpha2'],
 		actions: {
 			multiplyByTwo: {
-				handler: (action: any) => action.params.val * 2,
+				handler: (params: any) => params.val * 2,
 			},
 			multiplyByThree: {
-				handler: (action: any) => action.params.val * 3,
+				handler: (params: any) => params.val * 3,
 			},
 		},
 	};
@@ -54,10 +54,10 @@ describe('InMemoryChannel', () => {
 		events: ['beta1', 'beta2'],
 		actions: {
 			divideByTwo: {
-				handler: (action: any) => action.params.val / 2,
+				handler: (params: any) => params.val / 2,
 			},
 			divideByThree: {
-				handler: (action: any) => action.params.val / 3,
+				handler: (params: any) => params.val / 3,
 			},
 		},
 	};
@@ -86,9 +86,9 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, event => {
+					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(event.data).toBe(betaEventData);
+						expect(data).toBe(betaEventData);
 						resolve();
 					});
 				});
@@ -104,9 +104,9 @@ describe('InMemoryChannel', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, event => {
+					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(event.data).toBe(betaEventData);
+						expect(data).toBe(betaEventData);
 						resolve();
 					});
 				});
@@ -125,9 +125,9 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(resolve => {
 					// Act
-					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, event => {
+					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
 						// Assert
-						expect(event.data).toBe(dummyData);
+						expect(data).toBe(dummyData);
 						resolve();
 					});
 				});
@@ -148,9 +148,9 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise(done => {
 					// Act
-					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, event => {
+					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(event.data).toBe(alphaEventData);
+						expect(data).toBe(alphaEventData);
 						done();
 					});
 				});
