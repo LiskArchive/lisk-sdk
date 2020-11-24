@@ -23,6 +23,7 @@ import {
 	validateBase32Address,
 	getAddressFromBase32Address,
 	getBase32AddressFromAddress,
+	getBase32AddressFromPassphrase,
 } from '../src/keys';
 import { Keypair } from '../src/types';
 // Require is used for stubbing
@@ -129,6 +130,16 @@ describe('keys', () => {
 			const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
 
 			expect(address).toBe(expectedBase32Address);
+		});
+	});
+
+	describe('#getBase32AddressFromPassphrase', () => {
+		it('should generate valid base32 address from passphrase', () => {
+			const passphrase =
+				'garden mass universe joke disorder fish reveal state course lottery near virus';
+			const address = getBase32AddressFromPassphrase(passphrase);
+
+			expect(validateBase32Address(address)).toBeTrue();
 		});
 	});
 
