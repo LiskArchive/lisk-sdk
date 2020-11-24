@@ -18,8 +18,7 @@ import {
 	ActionsDefinition,
 	BasePlugin,
 	BaseChannel,
-	EventsArray,
-	EventInfoObject,
+	EventsDefinition,
 	PluginInfo,
 	TransactionJSON,
 	BlockHeaderJSON,
@@ -108,7 +107,7 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get events(): EventsArray {
+	public get events(): EventsDefinition {
 		return ['block:created', 'block:missed'];
 	}
 
@@ -236,8 +235,8 @@ export class ForgerPlugin extends BasePlugin {
 
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:block:new', async (eventInfo: EventInfoObject) => {
-			const { block } = eventInfo.data as Data;
+		this._channel.subscribe('app:block:new', async (data?: Record<string, unknown>) => {
+			const { block } = (data as unknown) as Data;
 			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
 			const {
 				header: { height },
@@ -248,8 +247,8 @@ export class ForgerPlugin extends BasePlugin {
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:block:delete', async (eventInfo: EventInfoObject) => {
-			const { block } = eventInfo.data as Data;
+		this._channel.subscribe('app:block:delete', async (data?: Record<string, unknown>) => {
+			const { block } = (data as unknown) as Data;
 			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
 			const {
 				header: { height },

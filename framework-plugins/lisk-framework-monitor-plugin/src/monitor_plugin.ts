@@ -20,9 +20,8 @@ import {
 	ActionsDefinition,
 	BaseChannel,
 	BasePlugin,
-	EventInfoObject,
+	EventsDefinition,
 	EventPostBlockData,
-	EventsArray,
 	PluginInfo,
 } from 'lisk-framework';
 import * as express from 'express';
@@ -70,7 +69,7 @@ export class MonitorPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get events(): EventsArray {
+	public get events(): EventsDefinition {
 		return [];
 	}
 
@@ -145,12 +144,8 @@ export class MonitorPlugin extends BasePlugin {
 	}
 
 	private _subscribeToEvents(): void {
-		this._channel.subscribe('app:network:event', (info: EventInfoObject) => {
-			const {
-				data: { event, data },
-			} = info as {
-				data: { event: string; data: unknown };
-			};
+		this._channel.subscribe('app:network:event', (eventData?: Record<string, unknown>) => {
+			const { event, data } = eventData as { event: string; data: unknown };
 
 			if (event === 'postTransactionsAnnouncement') {
 				this._handlePostTransactionAnnounce(data as { transactionIds: string[] });
@@ -161,8 +156,8 @@ export class MonitorPlugin extends BasePlugin {
 			}
 		});
 
-		this._channel.subscribe('app:chain:fork', (eventInfo: EventInfoObject) => {
-			const { block } = eventInfo.data as Data;
+		this._channel.subscribe('app:chain:fork', (data?: Record<string, unknown>) => {
+			const { block } = (data as unknown) as Data;
 			this._handleFork(block);
 		});
 	}

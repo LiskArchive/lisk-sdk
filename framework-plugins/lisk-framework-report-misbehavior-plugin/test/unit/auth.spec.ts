@@ -28,51 +28,43 @@ describe('auth action', () => {
 	});
 
 	it('should disable the reporting when enable=false', () => {
-		const actionInfoObject = {
-			params: {
-				enable: false,
-				password: '123',
-			},
+		const params = {
+			enable: false,
+			password: '123',
 		};
-		const response = authorizeAction(actionInfoObject);
+		const response = authorizeAction(params);
 
 		expect(response.result).toContain('Successfully disabled the reporting of misbehavior.');
 	});
 
 	it('should enable the reporting when enable=true', () => {
-		const actionInfoObject = {
-			params: {
-				enable: true,
-				password: '123',
-			},
+		const params = {
+			enable: true,
+			password: '123',
 		};
-		const response = authorizeAction(actionInfoObject);
+		const response = authorizeAction(params);
 
 		expect(response.result).toContain('Successfully enabled the reporting of misbehavior.');
 	});
 
 	it('should fail when encrypted passphrase is not set', () => {
 		(reportMisbehaviorPlugin as any)._options.encryptedPassphrase = undefined;
-		const actionInfoObject = {
-			params: {
-				enable: true,
-				password: '123',
-			},
+		const params = {
+			enable: true,
+			password: '123',
 		};
 
-		expect(() => authorizeAction(actionInfoObject)).toThrow(
+		expect(() => authorizeAction(params)).toThrow(
 			'Encrypted passphrase string must be set in the config.',
 		);
 	});
 
 	it('should fail when encrypted passphrase does not match with password given', () => {
-		const actionInfoObject = {
-			params: {
-				enable: true,
-				password: '1234',
-			},
+		const params = {
+			enable: true,
+			password: '1234',
 		};
 
-		expect(() => authorizeAction(actionInfoObject)).toThrow('Password given is not valid.');
+		expect(() => authorizeAction(params)).toThrow('Password given is not valid.');
 	});
 });
