@@ -22,13 +22,7 @@ import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket, PushSocket, SubSocket, ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
 import { EventEmitter } from 'events';
-import {
-	Channel,
-	EventCallback,
-	EventInfoObject,
-	JSONRPCNotification,
-	JSONRPCResponse,
-} from './types';
+import { Channel, EventCallback, JSONRPCNotification, JSONRPCResponse } from './types';
 
 const CONNECTION_TIME_OUT = 2000;
 
@@ -121,12 +115,7 @@ export class IPCChannel implements Channel {
 		});
 
 		this._subSocket.on('message', (eventData: JSONRPCNotification<unknown>) => {
-			const [module, ...name] = eventData.method.split(':');
-			this._events.emit(eventData.method, {
-				data: eventData.params,
-				module,
-				name: name.join(':'),
-			} as EventInfoObject<unknown>);
+			this._events.emit(eventData.method, eventData.params);
 		});
 	}
 
@@ -138,7 +127,10 @@ export class IPCChannel implements Channel {
 		this._rpcClient.sock.close();
 	}
 
-	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
+	public async invoke<T = Record<string, unknown>>(
+		actionName: string,
+		params?: Record<string, unknown>,
+	): Promise<T> {
 		this._id += 1;
 		const action = {
 			id: this._id,
@@ -161,7 +153,7 @@ export class IPCChannel implements Channel {
 		});
 	}
 
-	public subscribe<T = unknown>(eventName: string, cb: EventCallback<T>): void {
+	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
 		this._events.on(eventName, cb as never);
 	}
 }
