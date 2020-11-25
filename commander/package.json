@@ -37,9 +37,8 @@
 		"test:ci": "TS_NODE_TRANSPILE_ONLY=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha",
 		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
-		"prebuild": "if test -d dist; then rm -r dist; fi",
+		"prebuild": "if test -d dist; then rm -r dist; fi; rm -f tsconfig.tsbuildinfo",
 		"build": "tsc",
-		"postpack": "rm -f oclif.manifest.json",
 		"prepack": "oclif-dev manifest && npm shrinkwrap",
 		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm run build"
 	},
@@ -72,9 +71,9 @@
 		"/docs"
 	],
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^3.0.0-debug.3",
+		"@liskhq/lisk-cryptography": "^3.0.0-alpha.4",
 		"@liskhq/lisk-passphrase": "^3.0.1-alpha.0",
-		"@liskhq/lisk-validator": "^0.5.0-debug.3",
+		"@liskhq/lisk-validator": "^0.5.0-alpha.4",
 		"@oclif/command": "1.5.19",
 		"@oclif/config": "1.14.0",
 		"@oclif/errors": "1.2.2",

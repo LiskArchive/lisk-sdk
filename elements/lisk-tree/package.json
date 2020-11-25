@@ -36,8 +36,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^3.0.0-debug.3",
-		"@liskhq/lisk-utils": "^0.1.0-debug.3"
+		"@liskhq/lisk-cryptography": "^3.0.0-alpha.4",
+		"@liskhq/lisk-utils": "^0.1.0-alpha.4"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.13",
