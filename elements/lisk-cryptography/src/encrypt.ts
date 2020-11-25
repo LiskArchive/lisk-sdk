@@ -89,9 +89,7 @@ export const decryptMessageWithPassphrase = (
 	} catch (error) {
 		if (
 			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-			(error as Error).message.match(
-				/bad nonce size|nonce must be a buffer of size crypto_box_NONCEBYTES/,
-			)
+			(error as Error).message.match(/bad nonce size|"n" must be crypto_box_NONCEBYTES bytes long/)
 		) {
 			throw new Error('Expected nonce to be 24 bytes.');
 		}

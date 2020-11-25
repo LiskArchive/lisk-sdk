@@ -57,7 +57,7 @@
 		"@liskhq/lisk-tree": "^0.1.0-alpha.0",
 		"@liskhq/lisk-utils": "^0.1.0-debug.3",
 		"@liskhq/lisk-validator": "^0.5.0-debug.3",
-		"buffer": "liskHQ/buffer#4d498e6"
+		"buffer": "6.0.3"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.13",
