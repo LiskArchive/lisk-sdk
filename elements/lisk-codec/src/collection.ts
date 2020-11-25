@@ -221,8 +221,6 @@ export const readArray = (
 				// for object, length is not used
 				index += objectSizeLength;
 				if (objectSize === 0) {
-					// Add default value
-					result.push({});
 					continue;
 				}
 				// If array of object, it also gives the terminating index of the particular object

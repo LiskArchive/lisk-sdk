@@ -284,16 +284,23 @@ describe('stateStore.finalize.saveDiff', () => {
 			expect(decodedDiff).toMatchSnapshot();
 		});
 
-		it('should not save any diff if state was not changed', async () => {
+		it('should save empty diff if state was not changed', async () => {
 			// Arrange
-			// Create
-			const fakeHeight = '7';
+			const fakeHeight = '3';
 			const batch = db.batch();
+
+			// Act
 			stateStore.finalize(fakeHeight, batch);
 			await batch.write();
+			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
-			await expect(db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`)).toReject();
+			expect(decodedDiff).toStrictEqual({
+				updated: [],
+				created: [],
+				deleted: [],
+			});
 		});
 	});
 });

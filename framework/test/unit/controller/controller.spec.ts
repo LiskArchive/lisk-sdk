@@ -13,6 +13,7 @@
  */
 
 import * as childProcess from 'child_process';
+import { when } from 'jest-when';
 import { BasePlugin } from '../../../src';
 
 jest.mock('../../../src/controller/bus');
@@ -24,6 +25,7 @@ import * as controllerModule from '../../../src/controller/controller';
 import { Controller } from '../../../src/controller/controller';
 import { Bus } from '../../../src/controller/bus';
 import { InMemoryChannel } from '../../../src/controller/channels';
+import * as basePluginModule from '../../../src/plugins/base_plugin';
 
 const createMockPlugin = ({
 	alias,
@@ -73,8 +75,10 @@ describe('Controller Class', () => {
 	};
 	const config = {
 		rootPath: '~/.lisk',
-		ipc: {
-			enabled: false,
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
 		},
 	};
 	const childProcessMock = {
@@ -93,15 +97,17 @@ describe('Controller Class', () => {
 	};
 	const configController = {
 		dataPath: '~/.lisk/#LABEL',
-		ipc: {
-			enabled: false,
-		},
 		dirs: systemDirs,
 		socketsPath: {
 			root: `unix://${systemDirs.sockets}`,
 			pub: `unix://${systemDirs.sockets}/lisk_pub.sock`,
 			sub: `unix://${systemDirs.sockets}/lisk_sub.sock`,
 			rpc: `unix://${systemDirs.sockets}/lisk_rpc.sock`,
+		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
 		},
 	};
 
@@ -226,43 +232,6 @@ describe('Controller Class', () => {
 				);
 			});
 
-			it('should load plugin in-memory if "loadAsChildProcess" is set to true but ipc is disabled', async () => {
-				// Arrange
-				const updatedParams = { ...params };
-				updatedParams.config.ipc.enabled = false;
-				controller = new Controller(updatedParams);
-				pluginOptions.plugin1.loadAsChildProcess = true;
-				pluginOptions.plugin2.loadAsChildProcess = true;
-				await controller.load();
-
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
-
-				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith(
-					{ name: Plugin1.info.name, version: Plugin1.info.version, alias: Plugin1.alias },
-					'Loading in-memory plugin',
-				);
-				expect(loggerMock.info).toHaveBeenCalledWith(
-					{ name: Plugin2.info.name, version: Plugin2.info.version, alias: Plugin2.alias },
-					'Loading in-memory plugin',
-				);
-			});
-
-			it('should call validatePluginSpec function', async () => {
-				// Arrange
-				const validateMock = jest.fn().mockReturnValue(true);
-				jest.spyOn(controllerModule, 'validatePluginSpec').mockImplementation(validateMock);
-
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
-
-				// Assert
-				expect(validateMock).toHaveBeenCalledTimes(2);
-				expect(validateMock).toHaveBeenCalledWith(expect.any(Plugin1));
-				expect(validateMock).toHaveBeenCalledWith(expect.any(Plugin2));
-			});
-
 			it('should create instance of in-memory channel', async () => {
 				// Act
 				await controller.loadPlugins(plugins, pluginOptions);
@@ -358,10 +327,19 @@ describe('Controller Class', () => {
 		describe('child-process plugin', () => {
 			beforeEach(async () => {
 				const updatedParams = { ...params };
-				updatedParams.config.ipc.enabled = true;
 
 				pluginOptions.plugin1.loadAsChildProcess = true;
 				pluginOptions.plugin2.loadAsChildProcess = true;
+
+				jest.spyOn(basePluginModule, 'getPluginExportPath');
+
+				when(basePluginModule.getPluginExportPath as any)
+					.calledWith(plugins.plugin1)
+					.mockReturnValue('plugin1');
+
+				when(basePluginModule.getPluginExportPath as any)
+					.calledWith(plugins.plugin2)
+					.mockReturnValue('plugin2');
 
 				controller = new Controller(updatedParams);
 				await controller.load();
@@ -385,20 +363,6 @@ describe('Controller Class', () => {
 				);
 			});
 
-			it('should call validatePluginSpec function', async () => {
-				// Arrange
-				const validateMock = jest.fn().mockReturnValue(true);
-				jest.spyOn(controllerModule, 'validatePluginSpec').mockImplementation(validateMock);
-
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
-
-				// Assert
-				expect(validateMock).toHaveBeenCalledTimes(2);
-				expect(validateMock.mock.calls[0][0]).toBeInstanceOf(Plugin1);
-				expect(validateMock.mock.calls[1][0]).toBeInstanceOf(Plugin2);
-			});
-
 			it('should load child process with childProcess.fork', async () => {
 				// Arrange & Act
 				await controller.loadPlugins(plugins, pluginOptions);
@@ -406,12 +370,12 @@ describe('Controller Class', () => {
 				// Assert
 				expect(childProcess.fork).toHaveBeenCalledTimes(2);
 				expect(childProcess.fork).toHaveBeenCalledWith(
-					expect.stringContaining('child_process_loader.js'),
+					expect.stringContaining('child_process_loader'),
 					['plugin1', 'Plugin'],
 					{ execArgv: undefined },
 				);
 				expect(childProcess.fork).toHaveBeenCalledWith(
-					expect.stringContaining('child_process_loader.js'),
+					expect.stringContaining('child_process_loader'),
 					['plugin2', 'Plugin'],
 					{ execArgv: undefined },
 				);
@@ -446,7 +410,6 @@ describe('Controller Class', () => {
 
 		beforeEach(async () => {
 			updatedParams = { ...params };
-			updatedParams.config.ipc.enabled = true;
 			controller = new Controller(updatedParams);
 
 			loadStubs = {

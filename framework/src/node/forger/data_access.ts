@@ -243,6 +243,25 @@ export const getPreviouslyForgedMap = async (
 	}
 };
 
+export const setPreviouslyForgedMap = async (
+	db: KVStore,
+	previouslyForgedMap: dataStructures.BufferMap<ForgedInfo>,
+): Promise<void> => {
+	const previouslyForgedStoreObject: PreviouslyForgedInfoStoreObject = { previouslyForgedInfo: [] };
+	for (const [key, value] of previouslyForgedMap.entries()) {
+		previouslyForgedStoreObject.previouslyForgedInfo.push({ generatorAddress: key, ...value });
+	}
+
+	previouslyForgedStoreObject.previouslyForgedInfo.sort((a, b) =>
+		a.generatorAddress.compare(b.generatorAddress),
+	);
+
+	await db.put(
+		DB_KEY_FORGER_PREVIOUSLY_FORGED,
+		codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject),
+	);
+};
+
 /**
  * Saving a height which delegate last forged. this needs to be saved before broadcasting
  * so it needs to be outside of the DB transaction
@@ -266,17 +285,5 @@ export const saveMaxHeightPreviouslyForged = async (
 		maxHeightPreviouslyForged: header.asset.maxHeightPreviouslyForged,
 	});
 
-	const previouslyForgedStoreObject: PreviouslyForgedInfoStoreObject = { previouslyForgedInfo: [] };
-	for (const [key, value] of previouslyForgedMap.entries()) {
-		previouslyForgedStoreObject.previouslyForgedInfo.push({ generatorAddress: key, ...value });
-	}
-
-	previouslyForgedStoreObject.previouslyForgedInfo.sort((a, b) =>
-		a.generatorAddress.compare(b.generatorAddress),
-	);
-
-	await db.put(
-		DB_KEY_FORGER_PREVIOUSLY_FORGED,
-		codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject),
-	);
+	await setPreviouslyForgedMap(db, previouslyForgedMap);
 };

@@ -16,50 +16,52 @@ import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
-import { Event } from '../../../src/controller/event';
-
-const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
-
-const logger: any = {
-	info: jest.fn(),
-};
-
-const config: any = {
-	ipc: {
-		enabled: false,
-	},
-	socketsPath: {
-		root: socketsDir,
-	},
-};
-
-const alpha = {
-	moduleAlias: 'alphaAlias',
-	events: ['alpha1', 'alpha2'],
-	actions: {
-		multiplyByTwo: {
-			handler: (action: any) => action.params.val * 2,
-		},
-		multiplyByThree: {
-			handler: (action: any) => action.params.val * 3,
-		},
-	},
-};
-
-const beta = {
-	moduleAlias: 'betaAlias',
-	events: ['beta1', 'beta2'],
-	actions: {
-		divideByTwo: {
-			handler: (action: any) => action.params.val / 2,
-		},
-		divideByThree: {
-			handler: (action: any) => action.params.val / 3,
-		},
-	},
-};
 
 describe('InMemoryChannel', () => {
+	// Arrange
+	const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
+
+	const logger: any = {
+		info: jest.fn(),
+	};
+
+	const config: any = {
+		socketsPath: {
+			root: socketsDir,
+		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
+		},
+	};
+
+	const alpha = {
+		moduleAlias: 'alphaAlias',
+		events: ['alpha1', 'alpha2'],
+		actions: {
+			multiplyByTwo: {
+				handler: (params: any) => params.val * 2,
+			},
+			multiplyByThree: {
+				handler: (params: any) => params.val * 3,
+			},
+		},
+	};
+
+	const beta = {
+		moduleAlias: 'betaAlias',
+		events: ['beta1', 'beta2'],
+		actions: {
+			divideByTwo: {
+				handler: (params: any) => params.val / 2,
+			},
+			divideByThree: {
+				handler: (params: any) => params.val / 3,
+			},
+		},
+	};
+
 	describe('after registering itself to the bus', () => {
 		let inMemoryChannelAlpha: InMemoryChannel;
 		let inMemoryChannelBeta: InMemoryChannel;
@@ -86,7 +88,7 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toBe(betaEventData);
+						expect(data).toBe(betaEventData);
 						resolve();
 					});
 				});
@@ -104,7 +106,7 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toBe(betaEventData);
+						expect(data).toBe(betaEventData);
 						resolve();
 					});
 				});
@@ -125,7 +127,7 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toBe(dummyData);
+						expect(data).toBe(dummyData);
 						resolve();
 					});
 				});
@@ -148,7 +150,7 @@ describe('InMemoryChannel', () => {
 					// Act
 					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toBe(alphaEventData);
+						expect(data).toBe(alphaEventData);
 						done();
 					});
 				});
@@ -192,7 +194,7 @@ describe('InMemoryChannel', () => {
 				await expect(
 					inMemoryChannelAlpha.invoke(`${beta.moduleAlias}:${invalidActionName}`),
 				).rejects.toThrow(
-					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name.`,
+					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name and action name.`,
 				);
 			});
 		});

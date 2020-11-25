@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import * as assert from 'assert';
 import { RawBlock } from '@liskhq/lisk-chain';
-import { ImplementationMissingError } from '../errors';
-import { EventsArray } from '../controller/event';
+import { codec, Schema } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
+import { APP_EVENT_READY } from '../constants';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
-import { TransactionJSON, RegisteredSchema } from '../types';
+import { EventsDefinition } from '../controller/event';
+import { ImplementationMissingError } from '../errors';
+import { RegisteredSchema, TransactionJSON } from '../types';
 
 interface DefaultAccountJSON {
 	[name: string]: { [key: string]: unknown } | undefined;
@@ -67,6 +69,7 @@ export interface PluginInfo {
 	readonly author: string;
 	readonly version: string;
 	readonly name: string;
+	readonly exportPath?: string;
 }
 
 export interface InstantiablePlugin<T, U = object> {
@@ -228,7 +231,7 @@ export abstract class BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(channel: BaseChannel): Promise<void> {
-		channel.once('app:ready', async () => {
+		channel.once(APP_EVENT_READY, async () => {
 			this.schemas = await channel.invoke('app:getSchema');
 		});
 	}
@@ -246,9 +249,67 @@ export abstract class BasePlugin {
 	public get defaults(): object {
 		return {};
 	}
-	public abstract get events(): EventsArray;
+	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
 
 	public abstract async load(channel: BaseChannel): Promise<void>;
 	public abstract async unload(): Promise<void>;
 }
+
+// TODO: Once the issue fixed we can use require.resolve to rewrite the logic
+//  https://github.com/facebook/jest/issues/9543
+export const getPluginExportPath = (
+	pluginKlass: typeof BasePlugin,
+	strict = true,
+): string | undefined => {
+	let nodeModule: Record<string, unknown> | undefined;
+	let nodeModulePath: string | undefined;
+
+	try {
+		// Check if plugin name is an npm package
+		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+		nodeModule = require(pluginKlass.info.name);
+		nodeModulePath = pluginKlass.info.name;
+	} catch (error) {
+		/* Plugin info.name is not an npm package */
+	}
+
+	if (!nodeModule && pluginKlass.info.exportPath) {
+		try {
+			// Check if plugin name is an npm package
+			// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			nodeModule = require(pluginKlass.info.exportPath);
+			nodeModulePath = pluginKlass.info.exportPath;
+		} catch (error) {
+			/* Plugin info.exportPath is not an npm package */
+		}
+	}
+
+	if (!nodeModule || !nodeModule[pluginKlass.name]) {
+		return;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (strict && nodeModule[pluginKlass.name] !== pluginKlass) {
+		return;
+	}
+
+	// eslint-disable-next-line consistent-return
+	return nodeModulePath;
+};
+
+export const validatePluginSpec = (PluginKlass: InstantiablePlugin<BasePlugin>): void => {
+	const pluginObject = new PluginKlass();
+
+	assert(PluginKlass.alias, 'Plugin alias is required.');
+	assert(PluginKlass.info.name, 'Plugin name is required.');
+	assert(PluginKlass.info.author, 'Plugin author is required.');
+	assert(PluginKlass.info.version, 'Plugin version is required.');
+	assert(pluginObject.defaults, 'Plugin default options are required.');
+	assert(pluginObject.events, 'Plugin events are required.');
+	assert(pluginObject.actions, 'Plugin actions are required.');
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	assert(pluginObject.load, 'Plugin load action is required.');
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	assert(pluginObject.unload, 'Plugin unload actions is required.');
+};

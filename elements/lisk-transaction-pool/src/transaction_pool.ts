@@ -13,18 +13,16 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { EventEmitter } from 'events';
+import { dataStructures } from '@liskhq/lisk-utils';
 
 import { TransactionPoolError } from './errors';
 import { Job } from './job';
-import { MinHeap } from './min_heap';
 import { TransactionList } from './transaction_list';
 import { Status, Transaction, TransactionStatus } from './types';
-import { BufferMap } from './buffer_map';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('lisk:transaction_pool');
+const debug = createDebug('lisk:transaction_pool');
 
 type ApplyFunction = (transactions: ReadonlyArray<Transaction>) => Promise<void>;
 
@@ -72,8 +70,8 @@ const ERR_TRANSACTION_VERIFICATION_FAIL = 'ERR_TRANSACTION_VERIFICATION_FAIL';
 export class TransactionPool {
 	public events: EventEmitter;
 
-	private readonly _allTransactions: BufferMap<Transaction>;
-	private readonly _transactionList: BufferMap<TransactionList>;
+	private readonly _allTransactions: dataStructures.BufferMap<Transaction>;
+	private readonly _transactionList: dataStructures.BufferMap<TransactionList>;
 	private readonly _applyFunction: ApplyFunction;
 	private readonly _maxTransactions: number;
 	private readonly _maxTransactionsPerAccount: number;
@@ -84,14 +82,14 @@ export class TransactionPool {
 	private readonly _minFeePerByte: number;
 	private readonly _baseFees: BaseFee[];
 	private readonly _reorganizeJob: Job<void>;
-	private readonly _feePriorityQueue: MinHeap<Buffer, bigint>;
+	private readonly _feePriorityQueue: dataStructures.MinHeap<Buffer, bigint>;
 	private readonly _expireJob: Job<void>;
 
 	public constructor(config: TransactionPoolConfig) {
 		this.events = new EventEmitter();
-		this._feePriorityQueue = new MinHeap<Buffer, bigint>();
-		this._allTransactions = new BufferMap<Transaction>();
-		this._transactionList = new BufferMap<TransactionList>();
+		this._feePriorityQueue = new dataStructures.MinHeap<Buffer, bigint>();
+		this._allTransactions = new dataStructures.BufferMap<Transaction>();
+		this._transactionList = new dataStructures.BufferMap<TransactionList>();
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this._applyFunction = config.applyTransactions;
 		this._maxTransactions = config.maxTransactions ?? DEFAULT_MAX_TRANSACTIONS;
@@ -294,8 +292,8 @@ export class TransactionPool {
 		return true;
 	}
 
-	public getProcessableTransactions(): BufferMap<Transaction[]> {
-		const processableTransactions = new BufferMap<Transaction[]>();
+	public getProcessableTransactions(): dataStructures.BufferMap<Transaction[]> {
+		const processableTransactions = new dataStructures.BufferMap<Transaction[]>();
 		for (const list of this._transactionList.values()) {
 			const transactions = list.getProcessable();
 			if (transactions.length !== 0) {
@@ -338,7 +336,7 @@ export class TransactionPool {
 	}
 
 	private _evictUnprocessable(): boolean {
-		const unprocessableFeePriorityHeap = new MinHeap<Transaction>();
+		const unprocessableFeePriorityHeap = new dataStructures.MinHeap<Transaction>();
 		// Loop through tx lists and push unprocessable tx to fee priority heap
 		for (const txList of this._transactionList.values()) {
 			const unprocessableTransactions = txList.getUnprocessable();
@@ -368,7 +366,7 @@ export class TransactionPool {
 	}
 
 	private _evictProcessable(): boolean {
-		const processableFeePriorityHeap = new MinHeap<Transaction>();
+		const processableFeePriorityHeap = new dataStructures.MinHeap<Transaction>();
 		// Loop through tx lists and push processable tx to fee priority heap
 		for (const txList of this._transactionList.values()) {
 			// Push highest nonce tx to processable fee priority heap

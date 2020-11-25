@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-api-client",
-	"version": "4.0.0-alpha.0",
+	"version": "5.0.0-debug.3",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,12 +36,19 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@types/node": "12.12.11",
-		"axios": "0.19.2"
+		"@liskhq/lisk-codec": "^0.1.0-debug.3",
+		"@liskhq/lisk-cryptography": "^3.0.0-debug.3",
+		"@liskhq/lisk-transactions": "^5.0.0-debug.3",
+		"isomorphic-ws": "4.0.1",
+		"pm2-axon": "4.0.0",
+		"pm2-axon-rpc": "0.6.0",
+		"ws": "7.4.0"
 	},
 	"devDependencies": {
+		"@liskhq/lisk-chain": "^0.2.0-debug.3",
 		"@types/jest": "26.0.13",
 		"@types/jest-when": "2.7.1",
+		"@types/node": "12.12.11",
 		"@typescript-eslint/eslint-plugin": "3.10.1",
 		"@typescript-eslint/parser": "3.10.1",
 		"eslint": "7.8.1",

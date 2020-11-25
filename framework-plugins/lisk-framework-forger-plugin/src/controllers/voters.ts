@@ -12,45 +12,50 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NextFunction, Request, Response } from 'express';
 import { BaseChannel, PluginCodec } from 'lisk-framework';
 import { KVStore } from '@liskhq/lisk-db';
 import { Forger, DPoSAccountJSON } from '../types';
 import { getForgerInfo } from '../db';
 
-export const getVoters = (channel: BaseChannel, codec: PluginCodec, db: KVStore) => async (
-	_req: Request,
-	res: Response,
-	next: NextFunction,
-): Promise<void> => {
-	try {
-		const forgersList = await channel.invoke<Forger[]>('app:getForgingStatus');
-		const forgerAccounts = (
-			await channel.invoke<string[]>('app:getAccounts', {
-				address: forgersList.map(forger => forger.address),
-			})
-		).map(encodedAccount => codec.decodeAccount<DPoSAccountJSON>(encodedAccount));
+interface Voter {
+	readonly address: string;
+	readonly username: string;
+	readonly totalVotesReceived: string;
+	readonly voters: {
+		readonly address: string;
+		readonly amount: string;
+	}[];
+}
 
-		const result = [];
-		for (const account of forgerAccounts) {
-			const forgerInfo = await getForgerInfo(
-				db,
-				Buffer.from(account.address, 'hex').toString('binary'),
-			);
+export const getVoters = async (
+	channel: BaseChannel,
+	codec: PluginCodec,
+	db: KVStore,
+): Promise<Voter[]> => {
+	const forgersList = await channel.invoke<Forger[]>('app:getForgingStatus');
+	const forgerAccounts = (
+		await channel.invoke<string[]>('app:getAccounts', {
+			address: forgersList.map(forger => forger.address),
+		})
+	).map(encodedAccount => codec.decodeAccount<DPoSAccountJSON>(encodedAccount));
 
-			result.push({
-				address: account.address,
-				username: account.dpos.delegate.username,
-				totalVotesReceived: account.dpos.delegate.totalVotesReceived,
-				voters: forgerInfo.votesReceived.map(vote => ({
-					address: vote.address.toString('hex'),
-					amount: vote.amount.toString(),
-				})),
-			});
-		}
+	const result: Voter[] = [];
+	for (const account of forgerAccounts) {
+		const forgerInfo = await getForgerInfo(
+			db,
+			Buffer.from(account.address, 'hex').toString('binary'),
+		);
 
-		res.status(200).json({ data: result, meta: { count: result.length } });
-	} catch (error) {
-		next(error);
+		result.push({
+			address: account.address,
+			username: account.dpos.delegate.username,
+			totalVotesReceived: account.dpos.delegate.totalVotesReceived,
+			voters: forgerInfo.votesReceived.map(vote => ({
+				address: vote.address.toString('hex'),
+				amount: vote.amount.toString(),
+			})),
+		});
 	}
+
+	return result;
 };

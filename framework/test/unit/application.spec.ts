@@ -13,30 +13,64 @@
  */
 /* eslint-disable max-classes-per-file */
 
+import { objects } from '@liskhq/lisk-utils';
+import { validator } from '@liskhq/lisk-validator';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import { objects } from '@liskhq/lisk-utils';
-import { validator } from '@liskhq/lisk-validator';
+import { BaseAsset, BaseChannel, BaseModule, BasePlugin } from '../../src';
 import { Application } from '../../src/application';
-import * as networkConfig from '../fixtures/config/devnet/config.json';
-import { systemDirs } from '../../src/system_dirs';
+import { IPCServer } from '../../src/controller/ipc/ipc_server';
+import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
+import { Node } from '../../src/node';
+import * as basePluginModule from '../../src/plugins/base_plugin';
+import { systemDirs } from '../../src/system_dirs';
 import { genesisBlock } from '../fixtures/blocks';
-import { BaseModule } from '../../src';
+import * as networkConfig from '../fixtures/config/devnet/config.json';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
 jest.mock('@liskhq/lisk-p2p');
 jest.mock('../../src/logger');
 
-const config: any = {
-	...networkConfig,
-};
+class TestPlugin extends BasePlugin {
+	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+	public static get alias() {
+		return 'test-plugin';
+	}
+
+	public static get info() {
+		return {
+			name: '@lisk/test-plugin',
+			author: 'Nazar',
+			version: '1.0.0',
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public get events() {
+		return [];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public get actions() {
+		return {};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public async load(_channel: BaseChannel): Promise<void> {}
+
+	// eslint-disable-next-line class-methods-use-this
+	public async unload(): Promise<void> {}
+}
 
 // eslint-disable-next-line
 describe('Application', () => {
 	// Arrange
+	const config: any = {
+		...networkConfig,
+	};
 	const loggerMock = {
 		info: jest.fn(),
 		error: jest.fn(),
@@ -50,6 +84,10 @@ describe('Application', () => {
 
 	beforeEach(() => {
 		jest.spyOn(os, 'homedir').mockReturnValue('~');
+		jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+		jest.spyOn(Node.prototype, 'init').mockResolvedValue();
+		jest.spyOn(process, 'exit').mockReturnValue(0 as never);
 	});
 
 	afterEach(() => {
@@ -58,6 +96,12 @@ describe('Application', () => {
 	});
 
 	describe('#constructor', () => {
+		it('should be able to start the application with default parameters if config is not provided', () => {
+			const app = Application.defaultApplication(genesisBlockJSON);
+
+			expect(app.config).toBeDefined();
+		});
+
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			const label = `lisk-${config.genesisConfig.communityIdentifier}`;
@@ -152,21 +196,6 @@ describe('Application', () => {
 			expect(app.logger).toBeUndefined();
 		});
 
-		it('should throw validation error if constants are overridden by the user', () => {
-			const customConfig = objects.cloneDeep(config);
-
-			customConfig.genesisConfig = {
-				CONSTANT: 'aConstant',
-			};
-
-			expect(() => {
-				// eslint-disable-next-line no-new
-				Application.defaultApplication(genesisBlockJSON, customConfig);
-			}).toThrow(
-				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'communityIdentifier'",
-			);
-		});
-
 		it('should throw if invalid forger is provided', () => {
 			// Arrange
 			const invalidConfig = objects.mergeDeep({}, config, {
@@ -218,11 +247,43 @@ describe('Application', () => {
 			// Act
 			class SampleModule extends BaseModule {
 				public name = 'SampleModule';
-				public id = 0;
+				public id = 1;
 			}
 			// Assert
 			expect(() => app['_registerModule'](SampleModule)).toThrow(
 				'Custom module must have id greater than 2',
+			);
+		});
+
+		it('should throw an error if module id is missing', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 0;
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				"Custom module 'SampleModule' is missing either one or both of the required properties: 'id', 'name'.",
+			);
+		});
+
+		it('should throw an error if module name is missing', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleModule extends BaseModule {
+				public name = '';
+				public id = 1000;
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				"Custom module 'SampleModule' is missing either one or both of the required properties: 'id', 'name'.",
 			);
 		});
 
@@ -242,6 +303,141 @@ describe('Application', () => {
 			);
 		});
 
+		it('should throw an error if asset does not extend BaseAsset', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset {
+				public name = 'asset';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				// eslint-disable-next-line class-methods-use-this
+				public async apply(): Promise<void> {}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset which does not extend `BaseAsset` class.',
+			);
+		});
+
+		it('should throw an error if asset id is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = 'asset';
+				public id = null as any;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				// eslint-disable-next-line class-methods-use-this
+				public async apply(): Promise<void> {}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `id` property.',
+			);
+		});
+
+		it('should throw an error if asset name is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = '';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				// eslint-disable-next-line class-methods-use-this
+				public async apply(): Promise<void> {}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `name` property.',
+			);
+		});
+
+		it('should throw an error if asset schema is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = 'asset';
+				public id = 0;
+				public schema = undefined as any;
+				// eslint-disable-next-line class-methods-use-this
+				public async apply(): Promise<void> {}
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `schema` property.',
+			);
+		});
+
+		it('should throw an error if asset apply is invalid', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(app['_node'], 'registerModule');
+
+			// Act
+			class SampleAsset extends BaseAsset {
+				public name = 'asset';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				public apply = {} as any;
+			}
+			class SampleModule extends BaseModule {
+				public name = 'SampleModule';
+				public id = 999999;
+				public transactionAssets = [new SampleAsset()];
+			}
+			// Assert
+			expect(() => app['_registerModule'](SampleModule)).toThrow(
+				'Custom module contains asset with invalid `apply` property.',
+			);
+		});
+
 		it('should add custom module to collection.', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
@@ -256,6 +452,91 @@ describe('Application', () => {
 
 			// Assert
 			expect(app['_node'].registerModule).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('#registerPlugin', () => {
+		it('should throw error when plugin class is missing', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+
+			// Act && Assert
+			expect(() => (app as any).registerPlugin()).toThrow('Plugin implementation is required');
+		});
+
+		it('should throw error when plugin alias is missing', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			class MyPlugin extends TestPlugin {
+				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+				public static get alias() {
+					return '';
+				}
+			}
+
+			// Act && Assert
+			expect(() => (app as any).registerPlugin(MyPlugin)).toThrow('Plugin alias is required.');
+		});
+
+		it('should throw error when plugin with same alias is already registered', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			class MyPlugin extends TestPlugin {
+				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+				public static get alias() {
+					return 'my-plugin';
+				}
+			}
+			(app as any).registerPlugin(MyPlugin);
+
+			// Act && Assert
+			expect(() => (app as any).registerPlugin(MyPlugin)).toThrow(
+				'A plugin with alias "my-plugin" already registered.',
+			);
+		});
+
+		it('should call validatePluginSpec function', async () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(basePluginModule, 'validatePluginSpec').mockReturnValue();
+
+			// Act
+			(app as any).registerPlugin(TestPlugin);
+
+			// Assert
+			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledTimes(1);
+			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin);
+		});
+
+		it('should throw error when plugin is required to load as child process and not exported', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(basePluginModule, 'getPluginExportPath').mockReturnValue(undefined);
+
+			// Act && Assert
+			expect(() => (app as any).registerPlugin(TestPlugin, { loadAsChildProcess: true })).toThrow(
+				'Unable to register plugin "test-plugin" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.',
+			);
+			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledTimes(1);
+			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledWith(TestPlugin);
+		});
+
+		it('should add plugin to the collection', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			(app as any).registerPlugin(TestPlugin);
+
+			// Act && Assert
+			expect(app['_plugins']['test-plugin']).toBe(TestPlugin);
+		});
+
+		it('should add plugin to the collection with custom alias', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			(app as any).registerPlugin(TestPlugin, { alias: 'my-custom-plugin' });
+
+			// Act && Assert
+			expect(app['_plugins']['my-custom-plugin']).toBe(TestPlugin);
 		});
 	});
 
@@ -314,16 +595,18 @@ describe('Application', () => {
 	describe('#_setupDirectories', () => {
 		let app: Application;
 		let dirs: any;
+
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			try {
-				await app.run();
-			} catch (error) {
-				// Expected error
-			}
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+
+			await app.run();
+
 			dirs = systemDirs(app.config.label, app.config.rootPath);
 		});
+
 		it('should ensure directory exists', () => {
 			// Arrange
 			jest.spyOn(fs, 'ensureDir');
@@ -353,12 +636,10 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			try {
-				await app.run();
-			} catch (error) {
-				// Expected error
-			}
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
+
+			await app.run();
+			await app.shutdown();
 		});
 
 		it('should delete all files in ~/.lisk/tmp/sockets', () => {
@@ -388,14 +669,9 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			try {
-				await app.run();
-			} catch (error) {
-				// Expected error
-			}
+			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
-			jest.spyOn(process, 'exit').mockReturnValue(0 as never);
-			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup');
+			nodeCleanupSpy = jest.spyOn((app as any)._node, 'cleanup').mockResolvedValue(true);
 			controllerCleanupSpy = jest.spyOn((app as any)._controller, 'cleanup');
 			blockChainDBSpy = jest.spyOn((app as any)._blockchainDB, 'close');
 			forgerDBSpy = jest.spyOn((app as any)._forgerDB, 'close');

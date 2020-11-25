@@ -13,53 +13,43 @@
  */
 
 import { strict as assert } from 'assert';
-
 import { eventWithModuleNameReg } from '../constants';
+import { NotificationRequest, VERSION } from './jsonrpc';
 
-export interface EventInfoObject {
-	readonly module: string;
-	readonly name: string;
-	readonly data: object;
-}
+export type EventCallback = (data?: Record<string, unknown>) => void | Promise<void>;
 
-export type EventCallback = (action: EventInfoObject) => void | Promise<void>;
-
-export type EventsArray = ReadonlyArray<string>;
+export type EventsDefinition = ReadonlyArray<string>;
 
 export class Event {
-	public module: string;
-	public name: string;
-	public data: object;
+	public readonly module: string;
+	public readonly name: string;
+	public readonly data?: Record<string, unknown>;
 
-	public constructor(name: string, data?: object) {
+	public constructor(name: string, data?: Record<string, unknown>) {
 		assert(
 			eventWithModuleNameReg.test(name),
-			`Event name "${name}" must be a valid name with module name.`,
+			`Event name "${name}" must be a valid name with module name and event name.`,
 		);
 
 		const [moduleName, ...eventName] = name.split(':');
 		this.module = moduleName;
 		this.name = eventName.join(':');
-		this.data = data ?? {};
+		this.data = data;
 	}
 
-	public static deserialize(data: EventInfoObject | string): Event {
-		const parsedEvent: EventInfoObject =
-			typeof data === 'string' ? (JSON.parse(data) as EventInfoObject) : data;
+	public static fromJSONRPCNotification(data: NotificationRequest | string): Event {
+		const { method, params } =
+			typeof data === 'string' ? (JSON.parse(data) as NotificationRequest) : data;
 
-		return new Event(`${parsedEvent.module}:${parsedEvent.name}`, parsedEvent.data);
+		return new Event(method, params);
 	}
 
-	public serialize(): EventInfoObject {
+	public toJSONRPCNotification(): NotificationRequest {
 		return {
-			name: this.name,
-			module: this.module,
-			data: this.data,
+			jsonrpc: VERSION,
+			method: `${this.module}:${this.name}`,
+			params: this.data,
 		};
-	}
-
-	public toString(): string {
-		return `${this.module}:${this.name}`;
 	}
 
 	public key(): string {

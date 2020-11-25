@@ -26,12 +26,21 @@ import {
 	transactionSchema,
 	getAccountSchemaWithDefault,
 	getRegisteredBlockAssetSchema,
+	AccountDefaultProps,
 } from '@liskhq/lisk-chain';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { jobHandlers } from '@liskhq/lisk-utils';
+import {
+	APP_EVENT_BLOCK_DELETE,
+	APP_EVENT_BLOCK_NEW,
+	APP_EVENT_CHAIN_VALIDATORS_CHANGE,
+	APP_EVENT_NETWORK_EVENT,
+	APP_EVENT_NETWORK_READY,
+} from '../constants';
+
 import { Forger } from './forger';
 import {
 	Transport,
@@ -46,13 +55,14 @@ import {
 import { Processor } from './processor';
 import { Logger } from '../logger';
 import {
-	EventPostTransactionData,
 	ApplicationConfig,
+	EventPostTransactionData,
+	ForgingStatus,
 	RegisteredModule,
 	RegisteredSchema,
+	UpdateForgingStatusInput,
 } from '../types';
 import { InMemoryChannel } from '../controller/channels';
-import { EventInfoObject } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
 import {
 	EVENT_PROCESSOR_BROADCAST_BLOCK,
@@ -60,7 +70,7 @@ import {
 } from './processor/processor';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchronizer';
 import { Network } from './network';
-import { BaseModule } from '../modules';
+import { BaseAsset, BaseModule } from '../modules';
 import { Bus } from '../controller/bus';
 
 const forgeInterval = 1000;
@@ -82,6 +92,10 @@ interface NodeInitInput {
 	readonly blockchainDB: KVStore;
 	readonly nodeDB: KVStore;
 	readonly bus: Bus;
+}
+
+interface ForgingStatusResponse extends Omit<ForgingStatus, 'address'> {
+	readonly address: string;
 }
 
 export class Node {
@@ -162,10 +176,17 @@ export class Node {
 	public registerModule(customModule: BaseModule): void {
 		const exist = this._registeredModules.find(rm => rm.id === customModule.id);
 		if (exist) {
-			throw new Error(`Custom module with type ${customModule.id} already exists`);
+			throw new Error(`Custom module with id ${customModule.id} already exists.`);
 		}
+
+		if (!customModule.name || !customModule.id) {
+			throw new Error(
+				`Custom module '${customModule.constructor.name}' is missing either one or both of the required properties: 'id', 'name'.`,
+			);
+		}
+
 		if (customModule.id < MINIMUM_MODULE_ID) {
-			throw new Error(`Custom module must have id greater than ${MINIMUM_MODULE_ID}`);
+			throw new Error(`Custom module must have id greater than ${MINIMUM_MODULE_ID}.`);
 		}
 		if (customModule.accountSchema) {
 			this._registeredAccountSchemas[customModule.name] = {
@@ -173,6 +194,29 @@ export class Node {
 				fieldNumber: customModule.id,
 			};
 		}
+
+		for (const asset of customModule.transactionAssets) {
+			if (!(asset instanceof BaseAsset)) {
+				throw new Error('Custom module contains asset which does not extend `BaseAsset` class.');
+			}
+
+			if (typeof asset.name !== 'string' || asset.name === '') {
+				throw new Error('Custom module contains asset with invalid `name` property.');
+			}
+
+			if (typeof asset.id !== 'number') {
+				throw new Error('Custom module contains asset with invalid `id` property.');
+			}
+
+			if (typeof asset.schema !== 'object') {
+				throw new Error('Custom module contains asset with invalid `schema` property.');
+			}
+
+			if (typeof asset.apply !== 'function') {
+				throw new Error('Custom module contains asset with invalid `apply` property.');
+			}
+		}
+
 		this._registeredModules.push(customModule);
 	}
 
@@ -215,13 +259,14 @@ export class Node {
 			// Give limited access of channel to custom module to publish events
 			customModule.init({
 				channel: {
-					publish: (name: string, data?: object | undefined) =>
+					publish: (name: string, data?: Record<string, unknown>) =>
 						customModuleChannel.publish(name, data),
 				},
 				dataAccess: {
-					getAccount: async (address: Buffer) =>
-						this._chain.dataAccess.getAccountByAddress(address),
 					getChainState: async (key: string) => this._chain.dataAccess.getChainState(key),
+					getAccountByAddress: async <T = AccountDefaultProps>(address: Buffer) =>
+						this._chain.dataAccess.getAccountByAddress<T>(address),
+					getLastBlockHeader: async () => this._chain.dataAccess.getLastBlockHeader(),
 				},
 			});
 		}
@@ -246,31 +291,30 @@ export class Node {
 			blockVersion: this._chain.lastBlock.header.version,
 		});
 
+		await this._transactionPool.start();
+		await this._startForging();
+
 		this._logger.info('Node ready and launched');
+
 		this._channel.subscribe(
-			'app:network:ready',
+			APP_EVENT_NETWORK_READY,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (_event: EventInfoObject) => {
+			async () => {
 				await this._startLoader();
 			},
 		);
 
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:ready', async (_event: EventInfoObject) => {
-			await this._transactionPool.start();
-			await this._startForging();
-		});
-
 		// Avoid receiving blocks/transactions from the network during snapshotting process
 		this._channel.subscribe(
-			'app:network:event',
+			APP_EVENT_NETWORK_EVENT,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (info: EventInfoObject) => {
-				const {
-					data: { event, data, peerId },
-				} = info as {
-					data: { event: string; data: unknown; peerId: string };
+			async (eventData?: Record<string, unknown>) => {
+				const { event, data, peerId } = eventData as {
+					event: string;
+					data: unknown;
+					peerId: string;
 				};
+
 				try {
 					if (event === 'postTransactionsAnnouncement') {
 						await this._transport.handleEventPostTransactionsAnnouncement(data, peerId);
@@ -299,10 +343,14 @@ export class Node {
 	public get actions() {
 		return {
 			getValidators: async (): Promise<
-				ReadonlyArray<{ address: string; nextForgingTime: number }>
+				ReadonlyArray<{
+					address: string;
+					nextForgingTime: number;
+					minActiveHeight: number;
+					isConsensusParticipant: boolean;
+				}>
 			> => {
 				const validators = await this._chain.getValidators();
-				const validatorAddresses = validators.map(v => v.address);
 				const slot = this._chain.slots.getSlotNumber();
 				const startTime = this._chain.slots.getSlotTime(slot);
 
@@ -311,8 +359,10 @@ export class Node {
 				const blockTime = this._chain.slots.blockTime();
 				const forgersInfo = [];
 				for (let i = slotInRound; i < slotInRound + this._chain.numberOfValidators; i += 1) {
+					const validator = validators[i % validators.length];
 					forgersInfo.push({
-						address: validatorAddresses[i % validatorAddresses.length].toString('hex'),
+						...validator,
+						address: validator.address.toString('hex'),
 						nextForgingTime,
 					});
 					nextForgingTime += blockTime;
@@ -320,15 +370,17 @@ export class Node {
 
 				return forgersInfo;
 			},
-			updateForgingStatus: async (params: {
-				address: string;
-				password: string;
-				forging: boolean;
-			}): Promise<{ address: string; forging: boolean }> => {
+			updateForgingStatus: async (
+				params: UpdateForgingStatusInput,
+			): Promise<ForgingStatusResponse> => {
 				const result = await this._forger.updateForgingStatus(
 					Buffer.from(params.address, 'hex'),
 					params.password,
 					params.forging,
+					params.height,
+					params.maxHeightPreviouslyForged,
+					params.maxHeightPrevoted,
+					params.overwrite,
 				);
 
 				return {
@@ -412,11 +464,16 @@ export class Node {
 				peerId: string;
 			}): Promise<HandleRPCGetTransactionsReturn> =>
 				this._transport.handleRPCGetTransactions(params.data, params.peerId),
-			getForgingStatus: (): { address: string; forging: boolean }[] | undefined =>
-				this._forger.getForgingStatusOfAllDelegates()?.map(({ address, forging }) => ({
-					address: address.toString('hex'),
-					forging,
-				})),
+			getForgingStatus: async (): Promise<ForgingStatusResponse[] | undefined> => {
+				const forgingStatus = await this._forger.getForgingStatusOfAllDelegates();
+				if (forgingStatus) {
+					return forgingStatus.map(({ address, ...forgingStatusWithoutAddress }) => ({
+						address: address.toString('hex'),
+						...forgingStatusWithoutAddress,
+					}));
+				}
+				return undefined;
+			},
 			getTransactionsFromPool: (): string[] =>
 				this._transactionPool.getAll().map(tx => tx.getBytes().toString('hex')),
 			postTransaction: async (
@@ -450,6 +507,7 @@ export class Node {
 			}),
 			getConnectedPeers: () => this._networkModule.getConnectedPeers(),
 			getDisconnectedPeers: () => this._networkModule.getDisconnectedPeers(),
+			getNetworkStats: () => this._networkModule.getNetworkStats(),
 		};
 	}
 
@@ -641,7 +699,7 @@ export class Node {
 			}): Promise<void> => {
 				const { block } = eventData;
 				// Publish to the outside
-				this._channel.publish('app:block:new', {
+				this._channel.publish(APP_EVENT_BLOCK_NEW, {
 					block: this._chain.dataAccess.encode(block).toString('hex'),
 					accounts: eventData.accounts.map(acc =>
 						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
@@ -683,7 +741,7 @@ export class Node {
 			async (eventData: { block: Block; accounts: Account[] }) => {
 				const { block } = eventData;
 				// Publish to the outside
-				this._channel.publish('app:block:delete', {
+				this._channel.publish(APP_EVENT_BLOCK_DELETE, {
 					block: this._chain.dataAccess.encode(block).toString('hex'),
 					accounts: eventData.accounts.map(acc =>
 						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
@@ -724,7 +782,9 @@ export class Node {
 					...aValidator,
 					address: aValidator.address.toString('hex'),
 				}));
-				this._channel.publish('app:chain:validators:change', { validators: updatedValidatorsList });
+				this._channel.publish(APP_EVENT_CHAIN_VALIDATORS_CHANGE, {
+					validators: updatedValidatorsList,
+				});
 			},
 		);
 

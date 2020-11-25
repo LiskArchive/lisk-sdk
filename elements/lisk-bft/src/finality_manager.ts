@@ -16,19 +16,14 @@ import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BlockHeader, Chain, getValidators, StateStore } from '@liskhq/lisk-chain';
 import * as assert from 'assert';
-import * as Debug from 'debug';
+import * as createDebug from 'debug';
 import { EventEmitter } from 'events';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BFT_ROUND_THRESHOLD } from './constant';
-import {
-	BFTChainDisjointError,
-	BFTForkChoiceRuleError,
-	BFTInvalidAttributeError,
-	BFTLowerChainBranchError,
-} from './types';
+import { BFTInvalidAttributeError, BFTError } from './types';
+import { areHeadersContradicting } from './header_contradicting';
 
-// eslint-disable-next-line new-cap
-const debug = Debug('lisk:bft:consensus_manager');
+const debug = createDebug('lisk:bft:consensus_manager');
 
 export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED = 'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
 export const CONSENSUS_STATE_VALIDATOR_LEDGER_KEY = 'bft:votingLedger';
@@ -365,42 +360,8 @@ export class FinalityManager extends EventEmitter {
 			return true;
 		}
 
-		// Order the two block headers such that earlierBlock must be forged first
-		let earlierBlock = validatorLastBlock;
-		let laterBlock = blockHeader;
-		const higherMaxHeightPreviouslyForged =
-			earlierBlock.asset.maxHeightPreviouslyForged > laterBlock.asset.maxHeightPreviouslyForged;
-		const sameMaxHeightPreviouslyForged =
-			earlierBlock.asset.maxHeightPreviouslyForged === laterBlock.asset.maxHeightPreviouslyForged;
-		const higherMaxHeightPrevoted =
-			earlierBlock.asset.maxHeightPrevoted > laterBlock.asset.maxHeightPrevoted;
-		const sameMaxHeightPrevoted =
-			earlierBlock.asset.maxHeightPrevoted === laterBlock.asset.maxHeightPrevoted;
-		const higherHeight = earlierBlock.height > laterBlock.height;
-		if (
-			higherMaxHeightPreviouslyForged ||
-			(sameMaxHeightPreviouslyForged && higherMaxHeightPrevoted) ||
-			(sameMaxHeightPreviouslyForged && sameMaxHeightPrevoted && higherHeight)
-		) {
-			[earlierBlock, laterBlock] = [laterBlock, earlierBlock];
-		}
-
-		if (
-			earlierBlock.asset.maxHeightPrevoted === laterBlock.asset.maxHeightPrevoted &&
-			earlierBlock.height >= laterBlock.height
-		) {
-			/* Violation of the fork choice rule as validator moved to different chain
-			 without strictly larger maxHeightPreviouslyForged or larger height as
-			 justification. This in particular happens, if a validator is double forging. */
-			throw new BFTForkChoiceRuleError();
-		}
-
-		if (earlierBlock.height > laterBlock.asset.maxHeightPreviouslyForged) {
-			throw new BFTChainDisjointError();
-		}
-
-		if (earlierBlock.asset.maxHeightPrevoted > laterBlock.asset.maxHeightPrevoted) {
-			throw new BFTLowerChainBranchError();
+		if (areHeadersContradicting(validatorLastBlock, blockHeader)) {
+			throw new BFTError();
 		}
 
 		return true;

@@ -2201,9 +2201,6 @@ Object {
     },
     "standbyDelegates": 2,
   },
-  "ipc": Object {
-    "enabled": false,
-  },
   "label": "devnet",
   "logger": Object {
     "consoleLogLevel": "info",
@@ -2222,6 +2219,11 @@ Object {
   "networkVersion": "1.1",
   "plugins": Object {},
   "rootPath": "~/.lisk",
+  "rpc": Object {
+    "enable": false,
+    "mode": "ipc",
+    "port": 8080,
+  },
   "transactionPool": Object {
     "maxTransactions": 4096,
     "maxTransactionsPerAccount": 64,

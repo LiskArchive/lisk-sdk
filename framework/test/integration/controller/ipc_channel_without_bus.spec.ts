@@ -17,46 +17,43 @@ import { mkdirSync, rmdirSync } from 'fs';
 import { resolve as pathResolve } from 'path';
 import { IPCChannel } from '../../../src/controller/channels';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
-import { Event } from '../../../src/controller/event';
-
-const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel_without_bus/sockets`);
-
-const config: any = {
-	ipc: {
-		enabled: true,
-	},
-	socketsPath: {
-		root: socketsDir,
-	},
-};
-
-const alpha = {
-	moduleAlias: 'alphaAlias',
-	events: ['alpha1', 'alpha2'],
-	actions: {
-		multiplyByTwo: {
-			handler: (action: any) => action.params.val * 2,
-		},
-		multiplyByThree: {
-			handler: (action: any) => action.params.val * 3,
-		},
-	},
-};
-
-const beta = {
-	moduleAlias: 'betaAlias',
-	events: ['beta1', 'beta2'],
-	actions: {
-		divideByTwo: {
-			handler: (action: any) => action.params.val / 2,
-		},
-		divideByThree: {
-			handler: (action: any) => action.params.val / 3,
-		},
-	},
-};
 
 describe('IPCChannel', () => {
+	// Arrange
+	const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel_without_bus/sockets`);
+
+	const config: any = {
+		socketsPath: {
+			root: socketsDir,
+		},
+	};
+
+	const alpha = {
+		moduleAlias: 'alphaAlias',
+		events: ['alpha1', 'alpha2'],
+		actions: {
+			multiplyByTwo: {
+				handler: (params: any) => params.val * 2,
+			},
+			multiplyByThree: {
+				handler: (params: any) => params.val * 3,
+			},
+		},
+	};
+
+	const beta = {
+		moduleAlias: 'betaAlias',
+		events: ['beta1', 'beta2'],
+		actions: {
+			divideByTwo: {
+				handler: (params: any) => params.val / 2,
+			},
+			divideByThree: {
+				handler: (params: any) => params.val / 3,
+			},
+		},
+	};
+
 	describe('Communication without registering to bus', () => {
 		let alphaChannel: IPCChannel;
 		let betaChannel: IPCChannel;
@@ -106,7 +103,7 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -124,7 +121,7 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -145,7 +142,7 @@ describe('IPCChannel', () => {
 					// Act
 					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(alphaEventData);
+						expect(data).toEqual(alphaEventData);
 						done();
 					});
 				});

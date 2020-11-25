@@ -14,7 +14,7 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Application } from 'lisk-framework';
+import { Application, PartialApplicationConfig } from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import * as configJSON from '../fixtures/config.json';
@@ -75,7 +75,12 @@ export const createApplication = async (
 				...options.appConfig?.plugins.forger,
 			},
 		},
-	};
+		rpc: {
+			enable: false,
+			port: 8080,
+			mode: 'ws',
+		},
+	} as PartialApplicationConfig;
 
 	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
 	const genesisBlock = getGenesisBlockJSON({

@@ -33,24 +33,22 @@ import { HighFeeForgingStrategy } from './strategies';
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
 import {
+	ForgedInfo,
 	getRegisteredHashOnionSeeds,
 	getUsedHashOnions,
+	getPreviouslyForgedMap,
 	setRegisteredHashOnionSeeds,
 	setUsedHashOnions,
-	UsedHashOnion,
+	setPreviouslyForgedMap,
 	saveMaxHeightPreviouslyForged,
-	getPreviouslyForgedMap,
+	UsedHashOnion,
 } from './data_access';
+import { ForgingStatus } from '../../types';
 
 interface HashOnionConfig {
 	readonly count: number;
 	readonly distance: number;
 	readonly hashes: Buffer[];
-}
-
-export interface ForgingStatus {
-	readonly address: Buffer;
-	readonly forging: boolean;
 }
 
 interface Keypair {
@@ -91,6 +89,20 @@ interface CreateBlockInput {
 }
 
 const BLOCK_VERSION = 2;
+
+const isSyncedWithNetwork = (lastBlockHeader: BlockHeader, forgingInput: ForgedInfo) => {
+	if (lastBlockHeader.version === 0) {
+		return (
+			forgingInput.height <= lastBlockHeader.height &&
+			forgingInput.maxHeightPrevoted <= lastBlockHeader.height
+		);
+	}
+	return (
+		forgingInput.maxHeightPrevoted < lastBlockHeader.asset.maxHeightPrevoted ||
+		(forgingInput.maxHeightPrevoted === lastBlockHeader.asset.maxHeightPrevoted &&
+			forgingInput.height < lastBlockHeader.height)
+	);
+};
 
 export class Forger {
 	private readonly _logger: Logger;
@@ -161,27 +173,30 @@ export class Forger {
 		forgerAddress: Buffer,
 		password: string,
 		forging: boolean,
+		height: number,
+		maxHeightPreviouslyForged: number,
+		maxHeightPrevoted: number,
+		overwrite?: boolean,
 	): Promise<ForgingStatus> {
-		const encryptedList = this._config.forging.delegates;
-		const encryptedItem = encryptedList?.find(item => item.address.equals(forgerAddress));
+		const encryptedForgers = this._config.forging.delegates;
+		const encryptedForger = encryptedForgers?.find(item => item.address.equals(forgerAddress));
 
-		let keypair: Keypair;
 		let passphrase: string;
 
-		if (encryptedItem) {
-			try {
-				passphrase = decryptPassphraseWithPassword(
-					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
-					password,
-				);
-			} catch (e) {
-				throw new Error('Invalid password and public key combination');
-			}
-
-			keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
-		} else {
+		if (!encryptedForger) {
 			throw new Error(`Delegate with address: ${forgerAddress.toString('hex')} not found`);
 		}
+
+		try {
+			passphrase = decryptPassphraseWithPassword(
+				parseEncryptedPassphrase(encryptedForger.encryptedPassphrase),
+				password,
+			);
+		} catch (e) {
+			throw new Error('Invalid password and public key combination');
+		}
+
+		const keypair: Keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 		if (!getAddressFromPublicKey(keypair.publicKey).equals(forgerAddress)) {
 			throw new Error(
@@ -191,15 +206,54 @@ export class Forger {
 			);
 		}
 
-		const account = await this._chainModule.dataAccess.getAccountByAddress(forgerAddress);
-
-		if (forging) {
-			this._keypairs.set(forgerAddress, keypair);
-			this._logger.info(`Forging enabled on account: ${account.address.toString('hex')}`);
-		} else {
+		if (!forging) {
+			// Disable delegate by removing keypairs corresponding to address
 			this._keypairs.delete(forgerAddress);
-			this._logger.info(`Forging disabled on account: ${account.address.toString('hex')}`);
+			this._logger.info(`Forging disabled on account: ${forgerAddress.toString('hex')}`);
+			return {
+				address: forgerAddress,
+				forging,
+			};
 		}
+
+		const lastBlockHeader = this._chainModule.lastBlock.header;
+		const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
+		const forgingInput = { height, maxHeightPreviouslyForged, maxHeightPrevoted };
+
+		if (!isSyncedWithNetwork(lastBlockHeader, forgingInput)) {
+			throw new Error('Failed to enable forging as the node is not synced to the network.');
+		}
+
+		if (
+			!overwrite &&
+			(height !== 0 || maxHeightPrevoted !== 0 || maxHeightPreviouslyForged !== 0)
+		) {
+			// check if forger info exists
+			if (!previouslyForgedMap.has(forgerAddress)) {
+				throw new Error('Failed to enable forging due to missing forger info.');
+			}
+			// check if forger info matches input
+			const forgerInfo = previouslyForgedMap.get(forgerAddress);
+			if (
+				forgerInfo?.height !== height ||
+				forgerInfo?.maxHeightPrevoted !== maxHeightPrevoted ||
+				forgerInfo?.maxHeightPreviouslyForged !== maxHeightPreviouslyForged
+			) {
+				throw new Error('Failed to enable forging due to contradicting forger info.');
+			}
+		} else {
+			previouslyForgedMap.set(forgerAddress, {
+				height,
+				maxHeightPrevoted,
+				maxHeightPreviouslyForged,
+			});
+			await setPreviouslyForgedMap(this._db, previouslyForgedMap);
+			this._logger.info(forgingInput, 'Updated forgerInfo');
+		}
+
+		// Enable delegate to forge by adding keypairs corresponding to address
+		this._keypairs.set(forgerAddress, keypair);
+		this._logger.info(`Forging enabled on account: ${forgerAddress.toString('hex')}`);
 
 		return {
 			address: forgerAddress,
@@ -415,8 +469,7 @@ export class Forger {
 		return this._keypairs;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	public getForgingStatusOfAllDelegates(): ForgingStatus[] | undefined {
+	public async getForgingStatusOfAllDelegates(): Promise<ForgingStatus[] | undefined> {
 		const forgingDelegates = this._config.forging.delegates;
 		const forgersAddress = new dataStructures.BufferSet();
 
@@ -424,9 +477,11 @@ export class Forger {
 			forgersAddress.add(getAddressFromPublicKey(keypair.publicKey));
 		}
 
+		const previouslyForgedMap = await getPreviouslyForgedMap(this._db);
 		const fullList = forgingDelegates?.map(forger => ({
 			forging: forgersAddress.has(forger.address),
 			address: forger.address,
+			...(previouslyForgedMap.has(forger.address) ? previouslyForgedMap.get(forger.address) : {}),
 		}));
 
 		return fullList;

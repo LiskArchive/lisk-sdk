@@ -16,6 +16,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as liskP2P from '@liskhq/lisk-p2p';
 import { codec } from '@liskhq/lisk-codec';
+import { APP_EVENT_NETWORK_READY } from '../../constants';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../controller/channels';
@@ -201,7 +202,7 @@ export class Network {
 		// ---- START: Bind event handlers ----
 		this._p2p.on(EVENT_NETWORK_READY, () => {
 			this._logger.debug('Node connected to the network');
-			this._channel.publish('app:network:ready');
+			this._channel.publish(APP_EVENT_NETWORK_READY);
 		});
 
 		this._p2p.on(
@@ -456,6 +457,10 @@ export class Network {
 			}
 			return parsedPeer;
 		});
+	}
+
+	public getNetworkStats(): liskP2P.p2pTypes.NetworkStats {
+		return this._p2p.getNetworkStats();
 	}
 
 	public getDisconnectedPeers(): ReadonlyArray<liskP2P.p2pTypes.PeerInfo> {

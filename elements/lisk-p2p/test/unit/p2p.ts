@@ -93,6 +93,69 @@ describe('p2p', () => {
 		});
 	});
 
+	describe('p2p without peers', () => {
+		let p2pNodeWithoutPeers: P2P;
+
+		beforeEach(async () => {
+			p2pNodeWithoutPeers = new P2P({
+				port: 5001,
+				nodeInfo: {
+					networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					networkVersion: '1.1',
+					options: {},
+					nonce: 'nonce',
+					advertiseAddress: true,
+				},
+			});
+
+			await p2pNodeWithoutPeers.start();
+		});
+
+		afterEach(async () => {
+			await p2pNodeWithoutPeers.stop();
+		});
+
+		it('should return no peers', () => {
+			expect(p2pNodeWithoutPeers.getConnectedPeers()).toEqual([]);
+			expect(p2pNodeWithoutPeers.getDisconnectedPeers()).toEqual([]);
+			expect(p2pNodeWithoutPeers.getTriedPeers()).toEqual([]);
+		});
+
+		it('should fail on request', async () => {
+			await expect(p2pNodeWithoutPeers.request({ procedure: 'getlastBlock' })).rejects.toThrow(
+				'Request failed due to no peers found in peer selection',
+			);
+		});
+
+		it('should fail on requestFromPeer', async () => {
+			await expect(
+				p2pNodeWithoutPeers.requestFromPeer({ procedure: 'getlastBlock' }, '127.0.0.1:5000'),
+			).rejects.toThrow('Request failed because a peer with id 127.0.0.1:5000 could not be found');
+		});
+
+		it('should return network stats', () => {
+			const connectStats = {
+				count: 0,
+				connects: 0,
+				disconnects: 0,
+			};
+
+			const banningStats = {
+				totalBannedPeers: 0,
+				bannedPeers: {},
+			};
+
+			expect(p2pNodeWithoutPeers.getNetworkStats().incoming).toEqual(connectStats);
+			expect(p2pNodeWithoutPeers.getNetworkStats().outgoing).toEqual(connectStats);
+			expect(p2pNodeWithoutPeers.getNetworkStats().banning).toEqual(banningStats);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalMessagesReceived).toEqual({});
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalRequestsReceived).toEqual({});
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalErrors).toEqual(0);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalPeersDiscovered).toEqual(0);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalRemovedPeers).toEqual(0);
+		});
+	});
+
 	describe('when custom schema is passed', () => {
 		let firstNode: P2P;
 

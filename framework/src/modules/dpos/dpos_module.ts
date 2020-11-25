@@ -12,33 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as Debug from 'debug';
-import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { Account } from '@liskhq/lisk-chain';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { BaseModule } from '../base_module';
+import { objects as objectsUtils } from '@liskhq/lisk-utils';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import * as createDebug from 'debug';
+import { getMinWaitingHeight, getMinPunishedHeight } from './utils';
 import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
-import { Rounds } from './rounds';
-import { DPOSAccountProps, RegisteredDelegate, RegisteredDelegates } from './types';
-import { dposAccountSchema, dposModuleParamsSchema, delegatesUserNamesSchema } from './schema';
-import { generateRandomSeeds } from './random_seed';
+import { BaseModule } from '../base_module';
+import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
+import { deleteVoteWeightsUntilRound, setRegisteredDelegates } from './data_access';
 import {
 	createVoteWeightsSnapshot,
 	updateDelegateList,
 	updateDelegateProductivity,
 } from './delegates';
-import { deleteVoteWeightsUntilRound, setRegisteredDelegates } from './data_access';
-import { RegisterTransactionAsset } from './transaction_assets/register_transaction_asset';
-import { VoteTransactionAsset } from './transaction_assets/vote_transaction_asset';
-import { UnlockTransactionAsset } from './transaction_assets/unlock_transaction_asset';
+import { generateRandomSeeds } from './random_seed';
+import { Rounds } from './rounds';
+import { delegatesUserNamesSchema, dposAccountSchema, dposModuleParamsSchema } from './schema';
 import { PomTransactionAsset } from './transaction_assets/pom_transaction_asset';
-import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
+import { RegisterTransactionAsset } from './transaction_assets/register_transaction_asset';
+import { UnlockTransactionAsset } from './transaction_assets/unlock_transaction_asset';
+import { VoteTransactionAsset } from './transaction_assets/vote_transaction_asset';
+import {
+	DPOSAccountProps,
+	RegisteredDelegate,
+	RegisteredDelegates,
+	UnlockingInfoJSON,
+} from './types';
 
 const { bufferArrayContains } = objectsUtils;
+const dposModuleParamsDefault = {
+	activeDelegates: 101,
+	standbyDelegates: 2,
+	delegateListRoundOffset: 2,
+};
 
-// eslint-disable-next-line new-cap
-const debug = Debug('dpos');
+const debug = createDebug('dpos');
 
 export class DPoSModule extends BaseModule {
 	public name = 'dpos';
@@ -63,10 +73,11 @@ export class DPoSModule extends BaseModule {
 
 	public constructor(config: GenesisConfig) {
 		super(config);
+		const mergedDposConfig = objectsUtils.mergeDeep(dposModuleParamsDefault, this.config);
 
 		// Set actions
 		this.actions = {
-			getAllDelegates: async _ => {
+			getAllDelegates: async () => {
 				const validatorsBuffer = await this._dataAccess.getChainState(
 					CHAIN_STATE_DELEGATE_USERNAMES,
 				);
@@ -85,24 +96,58 @@ export class DPoSModule extends BaseModule {
 					address: delegate.address.toString('hex'),
 				}));
 			},
+
+			getUnlockings: async (params: Record<string, unknown>): Promise<UnlockingInfoJSON[]> => {
+				if (typeof params.address !== 'string') {
+					throw new Error('Address must be a string');
+				}
+				const address = Buffer.from(params.address, 'hex');
+
+				const account = await this._dataAccess.getAccountByAddress<DPOSAccountProps>(address);
+				const result: UnlockingInfoJSON[] = [];
+
+				for (const unlocking of account.dpos.unlocking) {
+					const delegate = await this._dataAccess.getAccountByAddress<DPOSAccountProps>(
+						unlocking.delegateAddress,
+					);
+
+					const minWaitingHeight = getMinWaitingHeight(
+						account.address,
+						delegate.address,
+						unlocking,
+					);
+					const minPunishedHeight = getMinPunishedHeight(account, delegate);
+
+					result.push({
+						delegateAddress: unlocking.delegateAddress.toString('hex'),
+						amount: unlocking.amount.toString(),
+						unvoteHeight: unlocking.unvoteHeight,
+						minUnlockHeight: Math.max(minWaitingHeight, minPunishedHeight),
+					});
+				}
+
+				return result;
+			},
 		};
 
-		const errors = validator.validate(dposModuleParamsSchema, this.config);
+		const errors = validator.validate(dposModuleParamsSchema, mergedDposConfig);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
 		}
 
-		if ((this.config.activeDelegates as number) < 1) {
+		if ((mergedDposConfig.activeDelegates as number) < 1) {
 			throw new Error('Active delegates must have minimum 1');
 		}
 
-		if ((this.config.activeDelegates as number) < (this.config.standbyDelegates as number)) {
+		if (
+			(mergedDposConfig.activeDelegates as number) < (mergedDposConfig.standbyDelegates as number)
+		) {
 			throw new Error('Active delegates must be greater or equal to standby delegates');
 		}
 
-		this._activeDelegates = this.config.activeDelegates as number;
-		this._standbyDelegates = this.config.standbyDelegates as number;
-		this._delegateListRoundOffset = this.config.delegateListRoundOffset as number;
+		this._activeDelegates = mergedDposConfig.activeDelegates as number;
+		this._standbyDelegates = mergedDposConfig.standbyDelegates as number;
+		this._delegateListRoundOffset = mergedDposConfig.delegateListRoundOffset as number;
 		this._blocksPerRound = this._activeDelegates + this._standbyDelegates;
 		this._blockTime = config.blockTime;
 		this._delegateActiveRoundLimit = 3;

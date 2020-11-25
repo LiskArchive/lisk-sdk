@@ -14,6 +14,7 @@ Object {
         "baseFees": Array [],
         "bftThreshold": 68,
         "blockTime": 10,
+        "communityIdentifier": "sdk",
         "maxPayloadLength": 15360,
         "minFeePerByte": 1000,
         "rewards": Object {
@@ -28,9 +29,6 @@ Object {
           "offset": 2160,
         },
       },
-      "ipc": Object {
-        "enabled": false,
-      },
       "label": "alpha-sdk-app",
       "logger": Object {
         "consoleLogLevel": "none",
@@ -44,6 +42,11 @@ Object {
       "networkVersion": "1.1",
       "plugins": Object {},
       "rootPath": "~/.lisk",
+      "rpc": Object {
+        "enable": false,
+        "mode": "ipc",
+        "port": 8080,
+      },
       "transactionPool": Object {
         "maxTransactions": 4096,
         "maxTransactionsPerAccount": 64,
@@ -209,14 +212,6 @@ Object {
           "maxPayloadLength",
           "rewards",
         ],
-        "type": "object",
-      },
-      "ipc": Object {
-        "properties": Object {
-          "enabled": Object {
-            "type": "boolean",
-          },
-        },
         "type": "object",
       },
       "label": Object {
@@ -389,6 +384,26 @@ Object {
         "minLength": 1,
         "type": "string",
       },
+      "rpc": Object {
+        "properties": Object {
+          "enable": Object {
+            "type": "boolean",
+          },
+          "mode": Object {
+            "enum": Array [
+              "ipc",
+              "ws",
+            ],
+            "type": "string",
+          },
+          "port": Object {
+            "maximum": 65535,
+            "minimum": 1024,
+            "type": "number",
+          },
+        },
+        "type": "object",
+      },
       "transactionPool": Object {
         "properties": Object {
           "maxTransactions": Object {
@@ -422,7 +437,7 @@ Object {
     "required": Array [
       "version",
       "networkVersion",
-      "ipc",
+      "rpc",
       "genesisConfig",
       "forging",
       "network",

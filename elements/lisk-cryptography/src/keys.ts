@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { BINARY_ADDRESS_LENGTH } from './constants';
+import { BINARY_ADDRESS_LENGTH, DEFAULT_BASE32_ADDRESS_PREFIX } from './constants';
 // eslint-disable-next-line import/no-cycle
 import { convertUInt5ToBase32, convertUIntArray } from './convert';
 import { hash } from './hash';
@@ -98,22 +98,36 @@ export const createChecksum = (uint5Array: number[]): number[] => {
 export const verifyChecksum = (integerSequence: number[]): boolean =>
 	polymod(integerSequence) === 1;
 
-export const getBase32AddressFromPublicKey = (publicKey: Buffer, prefix: string): string => {
-	const binaryAddress = getAddressFromPublicKey(publicKey);
+const addressToBase32 = (address: Buffer): string => {
 	const byteSequence = [];
-	for (const b of binaryAddress) {
+	for (const b of address) {
 		byteSequence.push(b);
 	}
 	const uint5Address = convertUIntArray(byteSequence, 8, 5);
 	const uint5Checksum = createChecksum(uint5Address);
+	return convertUInt5ToBase32(uint5Address.concat(uint5Checksum));
+};
 
-	return `${prefix}${convertUInt5ToBase32(uint5Address.concat(uint5Checksum))}`;
+export const getBase32AddressFromPublicKey = (
+	publicKey: Buffer,
+	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
+): string => `${prefix}${addressToBase32(getAddressFromPublicKey(publicKey))}`;
+
+export const getBase32AddressFromPassphrase = (
+	passphrase: string,
+	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
+): string => {
+	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
+	return getBase32AddressFromPublicKey(publicKey, prefix);
 };
 
 const BASE32_ADDRESS_LENGTH = 41;
 const BASE32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 
-export const validateBase32Address = (address: string, prefix = 'lsk'): boolean => {
+export const validateBase32Address = (
+	address: string,
+	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
+): boolean => {
 	if (address.length !== BASE32_ADDRESS_LENGTH) {
 		throw new Error('Address length does not match requirements. Expected 41 characters.');
 	}
@@ -140,3 +154,26 @@ export const validateBase32Address = (address: string, prefix = 'lsk'): boolean 
 
 	return true;
 };
+
+export const getAddressFromBase32Address = (
+	base32Address: string,
+	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
+): Buffer => {
+	validateBase32Address(base32Address);
+	// Ignore lsk prefix and checksum
+	const base32AddressNoPrefixNoChecksum = base32Address.substring(
+		prefix.length,
+		base32Address.length - 6,
+	);
+
+	const addressArray = base32AddressNoPrefixNoChecksum.split('');
+	const integerSequence = addressArray.map(char => BASE32_CHARSET.indexOf(char));
+	const integerSequence8 = convertUIntArray(integerSequence, 5, 8);
+
+	return Buffer.from(integerSequence8);
+};
+
+export const getBase32AddressFromAddress = (
+	address: Buffer,
+	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
+): string => `${prefix}${addressToBase32(address)}`;

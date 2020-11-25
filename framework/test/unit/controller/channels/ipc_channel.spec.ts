@@ -23,6 +23,14 @@ const getMockedCallback = (error: unknown, result: unknown) =>
 		args[args.length - 1](error, result);
 	});
 
+// Need to keep this here as jest mock requires it
+const emitterMock = {
+	on: jest.fn(),
+	once: jest.fn(),
+	emit: jest.fn(),
+};
+const jsonrpcRequest = { id: 1, jsonrpc: '2.0', method: 'moduleAlias:action1' };
+
 const ipcClientMock = {
 	stop: jest.fn(),
 	start: jest.fn(),
@@ -31,18 +39,11 @@ const ipcClientMock = {
 	},
 	rpcServer: {
 		expose: jest.fn().mockImplementation((_name, cb) => {
-			cb(
-				{
-					handler: jest.fn(),
-					module: 'moduleAlias',
-					name: 'action1',
-				},
-				jest.fn(),
-			);
+			cb(jsonrpcRequest, jest.fn());
 		}),
 	},
 	subSocket: {
-		on: getMockedCallback('message', getMockedCallback(undefined, true)),
+		on: getMockedCallback({ jsonrpc: '2.0', method: 'module:event', params: {} }, {}),
 	},
 	pubSocket: {
 		send: jest.fn(),
@@ -56,12 +57,6 @@ jest.mock('../../../../src/controller/ipc/ipc_client', () => {
 		}),
 	};
 });
-
-const emitterMock = {
-	on: jest.fn(),
-	once: jest.fn(),
-	emit: jest.fn(),
-};
 
 jest.mock('eventemitter2', () => {
 	return {
@@ -236,7 +231,7 @@ describe('IPCChannel Channel', () => {
 		it('should throw new Error when the module is not the same', () => {
 			const invalidEventName = `invalidModule:${params.events[0]}`;
 
-			expect(() => ipcChannel.publish(invalidEventName, () => {})).toThrow(
+			expect(() => ipcChannel.publish(invalidEventName, {})).toThrow(
 				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
 			);
 		});
@@ -244,7 +239,7 @@ describe('IPCChannel Channel', () => {
 		it('should throw new Error when the event name not registered', () => {
 			const invalidEventName = `${params.moduleAlias}:invalidEvent`;
 
-			expect(() => ipcChannel.publish(invalidEventName, () => {})).toThrow(
+			expect(() => ipcChannel.publish(invalidEventName, {})).toThrow(
 				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
 			);
 		});
@@ -258,13 +253,13 @@ describe('IPCChannel Channel', () => {
 			ipcChannel.publish(validEventName, data);
 
 			// Assert
-			expect(ipcClientMock.pubSocket.send).toHaveBeenCalledWith(event.key(), event.serialize());
+			expect(ipcClientMock.pubSocket.send).toHaveBeenCalledWith(event.toJSONRPCNotification());
 		});
 	});
 
 	describe('#invoke', () => {
 		const actionName = 'moduleAlias:action1';
-		const actionParams = ['param1', 'param2'];
+		const actionParams = { myParams: ['param1', 'param2'] };
 
 		it('should execute the action straight away if the plugins are the same and action is a string', async () => {
 			// Act
@@ -278,14 +273,11 @@ describe('IPCChannel Channel', () => {
 		it('should execute the action straight away if the plugins are the same and action is an Action object', async () => {
 			// Act
 			await ipcChannel.registerToBus();
-			const action = new Action(actionName, actionParams);
+			const action = new Action(null, actionName, actionParams);
 			await ipcChannel.invoke(action.key(), actionParams);
 
 			// Assert
-			expect(params.actions.action1.handler).toHaveBeenCalledWith({
-				...action.serialize(),
-				source: ipcChannel.moduleAlias,
-			});
+			expect(params.actions.action1.handler).toHaveBeenCalledWith(action.params);
 		});
 	});
 

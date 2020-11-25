@@ -91,6 +91,7 @@ import {
 	ProtocolPeerInfo,
 	RPCSchemas,
 	PeerInfo,
+	NetworkStats,
 } from './types';
 import {
 	assignInternalInfo,
@@ -197,6 +198,7 @@ export class P2P extends EventEmitter {
 	private readonly _secret: number;
 	private readonly _rpcSchemas: RPCSchemas;
 	private _peerServer?: PeerServer;
+	private readonly _networkStats: NetworkStats;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
@@ -260,8 +262,33 @@ export class P2P extends EventEmitter {
 		codec.addSchema(this._rpcSchemas.peerInfo);
 		codec.addSchema(this._rpcSchemas.nodeInfo);
 
+		this._networkStats = {
+			startTime: Date.now(),
+			incoming: {
+				count: 0,
+				connects: 0,
+				disconnects: 0,
+			},
+			outgoing: {
+				count: 0,
+				connects: 0,
+				disconnects: 0,
+			},
+			banning: {
+				bannedPeers: {},
+				totalBannedPeers: 0,
+			},
+			totalErrors: 0,
+			totalPeersDiscovered: 0,
+			totalRemovedPeers: 0,
+			totalMessagesReceived: {},
+			totalRequestsReceived: {},
+		};
+
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest): void => {
+			this._networkStats.totalRequestsReceived[request.procedure] =
+				this._networkStats.totalRequestsReceived[request.procedure] + 1 || 1;
 			// Process protocol messages
 			switch (request.procedure) {
 				case REMOTE_EVENT_RPC_GET_PEERS_LIST:
@@ -279,6 +306,8 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolMessage = (message: P2PMessagePacket): void => {
+			this._networkStats.totalMessagesReceived[message.event] =
+				this._networkStats.totalMessagesReceived[message.event] + 1 || 1;
 			// Re-emit the message for external use.
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				// This 'decode' only happens with the successful case after decoding in "peer"
@@ -299,6 +328,8 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo): void => {
+			this._networkStats.outgoing.connects += 1;
+
 			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(peerInfo);
 			}
@@ -322,6 +353,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket): void => {
+			this._networkStats.outgoing.disconnects += 1;
 			const { peerInfo } = closePacket;
 			// Update connection kind when closing connection
 			if (this._peerBook.getPeer(closePacket.peerInfo)) {
@@ -337,6 +369,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket): void => {
+			this._networkStats.incoming.disconnects += 1;
 			const { peerInfo } = closePacket;
 			// Update connection kind when closing connection
 			if (this._peerBook.getPeer(closePacket.peerInfo)) {
@@ -352,6 +385,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleFailedInboundPeerConnect = (err: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
 		};
@@ -370,6 +404,7 @@ export class P2P extends EventEmitter {
 					});
 				}
 
+				this._networkStats.incoming.connects += 1;
 				// Re-emit the message to allow it to bubble up the class hierarchy.
 				this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerConnection.peerInfo);
 
@@ -396,6 +431,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleRemovePeer = (peerId: string): void => {
+			this._networkStats.totalRemovedPeers += 1;
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_REMOVE_PEER, peerId);
 		};
@@ -415,21 +451,25 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleFailedPeerInfoUpdate = (error: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 		};
 
 		this._handleFailedToFetchPeerInfo = (error: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 		};
 
 		this._handleFailedToFetchPeers = (error: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 		};
 
 		this._handleFailedToCollectPeerDetails = (error: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 		};
@@ -443,6 +483,18 @@ export class P2P extends EventEmitter {
 
 			this._peerBook.addBannedPeer(peerId, banTime);
 
+			this._networkStats.banning.totalBannedPeers += 1;
+
+			if (!this._networkStats.banning.bannedPeers[peerId]) {
+				this._networkStats.banning.bannedPeers[peerId] = {
+					banCount: 1,
+					lastBanTime: Date.now(),
+				};
+			} else {
+				this._networkStats.banning.bannedPeers[peerId].banCount += 1;
+				this._networkStats.banning.bannedPeers[peerId].lastBanTime = Date.now();
+			}
+
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
@@ -454,6 +506,7 @@ export class P2P extends EventEmitter {
 			}
 
 			if (this._peerBook.addPeer(detailedPeerInfo)) {
+				this._networkStats.totalPeersDiscovered += 1;
 				// Re-emit the message to allow it to bubble up the class hierarchy.
 				// Only emit event when a peer is discovered for the first time.
 				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
@@ -461,21 +514,25 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleFailedToPushNodeInfo = (error: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		};
 
 		this._handleFailedToSendMessage = (error: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_SEND_MESSAGE, error);
 		};
 
 		this._handleOutboundSocketError = (error: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
 		};
 
 		this._handleInboundSocketError = (error: Error): void => {
+			this._networkStats.totalErrors += 1;
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
@@ -579,6 +636,14 @@ export class P2P extends EventEmitter {
 				port: peer.port,
 				peerId: peer.peerId,
 			}));
+	}
+
+	public getNetworkStats(): NetworkStats {
+		const { inboundCount, outboundCount } = this._peerPool.getPeersCountPerKind();
+		this._networkStats.outgoing.count = outboundCount;
+		this._networkStats.incoming.count = inboundCount;
+
+		return this._networkStats;
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {

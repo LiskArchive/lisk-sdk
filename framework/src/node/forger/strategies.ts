@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MaxHeap, TransactionPool, PooledTransaction } from '@liskhq/lisk-transaction-pool';
+import { TransactionPool, PooledTransaction } from '@liskhq/lisk-transaction-pool';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { Chain, Transaction } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Processor } from '../processor';
@@ -57,7 +58,7 @@ export class HighFeeForgingStrategy {
 
 		// Initialize block size with 0
 		let blockPayloadSize = 0;
-		const feePriorityHeap = new MaxHeap();
+		const feePriorityHeap = new dataStructures.MaxHeap();
 		for (const transactions of transactionsBySender.values()) {
 			const lowestNonceTrx = transactions[0];
 			feePriorityHeap.push(lowestNonceTrx.feePriority as bigint, lowestNonceTrx);

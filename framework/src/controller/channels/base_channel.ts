@@ -13,10 +13,11 @@
  */
 
 import { EventCallback } from '../event';
-import { Action, ActionsDefinition, ActionsObject } from '../action';
+import { Action, ActionsDefinition } from '../action';
 import { eventWithModuleNameReg, INTERNAL_EVENTS } from '../../constants';
 
 export interface BaseChannelOptions {
+	[key: string]: unknown;
 	readonly skipInternalEvents?: boolean;
 }
 
@@ -25,8 +26,8 @@ export abstract class BaseChannel {
 	public readonly actionsList: ReadonlyArray<string>;
 	public readonly moduleAlias: string;
 
-	protected readonly actions: ActionsObject;
-	protected readonly options: object;
+	protected readonly actions: { [key: string]: Action };
+	protected readonly options: Record<string, unknown>;
 
 	public constructor(
 		moduleAlias: string,
@@ -44,13 +45,8 @@ export abstract class BaseChannel {
 			const actionData = actions[actionName];
 
 			const handler = typeof actionData === 'object' ? actionData.handler : actionData;
-
-			this.actions[actionName] = new Action(
-				`${this.moduleAlias}:${actionName}`,
-				undefined,
-				undefined,
-				handler,
-			);
+			const method = `${this.moduleAlias}:${actionName}`;
+			this.actions[actionName] = new Action(null, method, undefined, handler);
 		}
 		this.actionsList = Object.keys(this.actions);
 	}

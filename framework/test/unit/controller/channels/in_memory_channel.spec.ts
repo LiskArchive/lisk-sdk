@@ -131,7 +131,7 @@ describe('InMemoryChannel Channel', () => {
 		it('should throw TypeError when eventName was not provided', () => {
 			// Assert
 			expect(inMemoryChannel.publish).toThrow(
-				'Event name "undefined" must be a valid name with module name.',
+				'Event name "undefined" must be a valid name with module name and event name.',
 			);
 		});
 
@@ -154,7 +154,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.publish(eventFullName);
 
 			// Assert
-			expect(inMemoryChannel['bus'].publish).toHaveBeenCalledWith(event.key(), event.serialize());
+			expect(inMemoryChannel['bus'].publish).toHaveBeenCalledWith(event.toJSONRPCNotification());
 		});
 
 		it.todo('write integration test to check if event is being published');
@@ -180,6 +180,8 @@ describe('InMemoryChannel Channel', () => {
 
 			// Act
 			await inMemoryChannel.registerToBus(bus);
+			jest.spyOn(bus, 'invoke').mockResolvedValue({ result: {} } as never);
+
 			await inMemoryChannel.invoke(actionFullName);
 
 			// Assert

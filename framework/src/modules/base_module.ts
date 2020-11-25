@@ -26,8 +26,8 @@ import {
 } from '../types';
 import { BaseAsset } from './base_asset';
 
-interface Channel {
-	publish(name: string, data?: object): void;
+interface BaseModuleChannel {
+	publish(name: string, data?: Record<string, unknown>): void;
 }
 
 export abstract class BaseModule {
@@ -37,7 +37,7 @@ export abstract class BaseModule {
 	public actions: Actions = {};
 	public events: string[] = [];
 	public accountSchema?: AccountSchema;
-	protected _channel!: Channel;
+	protected _channel!: BaseModuleChannel;
 	protected _dataAccess!: BaseModuleDataAccess;
 	public abstract name: string;
 	public abstract id: number;
@@ -46,7 +46,7 @@ export abstract class BaseModule {
 		this.config = genesisConfig;
 	}
 
-	public init(input: { channel: Channel; dataAccess: BaseModuleDataAccess }): void {
+	public init(input: { channel: BaseModuleChannel; dataAccess: BaseModuleDataAccess }): void {
 		this._channel = input.channel;
 		this._dataAccess = input.dataAccess;
 	}

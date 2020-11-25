@@ -15,12 +15,14 @@ import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { Transaction } from '@liskhq/lisk-chain';
+import { APP_EVENT_BLOCK_NEW } from '../../../src/constants';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as configJSON from '../../fixtures/config/devnet/config.json';
-import { Application } from '../../../src';
+import { Application, PartialApplicationConfig } from '../../../src';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
 import { createTransferTransaction } from '../../utils/node/transaction';
+import { HelloPlugin } from './hello_plugin';
 
 export const createApplication = async (
 	label: string,
@@ -36,7 +38,12 @@ export const createApplication = async (
 			fileLogLevel: 'fatal',
 			logFileName: 'functional-test.log',
 		},
-	};
+		rpc: {
+			enable: true,
+			port: 8080,
+			mode: 'ws',
+		},
+	} as PartialApplicationConfig;
 
 	const app = Application.defaultApplication(genesisBlockJSON, config);
 
@@ -46,12 +53,58 @@ export const createApplication = async (
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
 	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
 	await new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
+		app['_channel'].subscribe(APP_EVENT_BLOCK_NEW, () => {
 			if (app['_node']['_chain'].lastBlock.header.height === 2) {
 				resolve();
 			}
 		});
 	});
+	return app;
+};
+
+export const createApplicationWithHelloPlugin = async ({
+	label,
+	pluginChildProcess = false,
+	rpcConfig = { mode: 'ws', enable: true, port: 8080 },
+	consoleLogLevel,
+}: {
+	label: string;
+	pluginChildProcess?: boolean;
+	rpcConfig?: { mode: string; enable: boolean; port: number };
+	consoleLogLevel?: string;
+}): Promise<Application> => {
+	const rootPath = path.join(os.homedir(), '.lisk/functional-with-plugin');
+	const config = {
+		...configJSON,
+		rootPath,
+		label,
+		logger: {
+			consoleLogLevel: consoleLogLevel ?? 'fatal',
+			fileLogLevel: 'fatal',
+			logFileName: 'lisk.log',
+		},
+		network: {
+			...configJSON.network,
+			maxInboundConnections: 0,
+		},
+		rpc: rpcConfig,
+	} as PartialApplicationConfig;
+
+	const app = Application.defaultApplication(genesisBlockJSON, config);
+	app.registerPlugin(HelloPlugin, { loadAsChildProcess: pluginChildProcess });
+
+	// Remove pre-existing data
+	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
+
+	await Promise.race([
+		app.run(),
+		new Promise((_resolve, reject) => {
+			const id = setTimeout(() => {
+				clearTimeout(id);
+				reject(new Error('App can not started in time.'));
+			}, 10000);
+		}),
+	]);
 	return app;
 };
 
@@ -68,7 +121,7 @@ export const getPeerID = (app: Application): string => `127.0.0.1:${app.config.n
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	const height = app['_node']['_chain'].lastBlock.header.height + n;
 	return new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
+		app['_channel'].subscribe(APP_EVENT_BLOCK_NEW, () => {
 			if (app['_node']['_chain'].lastBlock.header.height >= height) {
 				resolve();
 			}

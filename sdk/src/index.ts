@@ -15,6 +15,7 @@
 export * as cryptography from '@liskhq/lisk-cryptography';
 export * as p2p from '@liskhq/lisk-p2p';
 export * as passphrase from '@liskhq/lisk-passphrase';
+export * as apiClient from '@liskhq/lisk-api-client';
 export * as transactionPool from '@liskhq/lisk-transaction-pool';
 export * as transactions from '@liskhq/lisk-transactions';
 export * as utils from '@liskhq/lisk-utils';
@@ -27,6 +28,8 @@ export * as genesis from '@liskhq/lisk-genesis';
 export { codec, Schema } from '@liskhq/lisk-codec';
 export * from '@liskhq/lisk-framework-http-api-plugin';
 export * from '@liskhq/lisk-framework-forger-plugin';
+export * from '@liskhq/lisk-framework-monitor-plugin';
+export * from '@liskhq/lisk-framework-report-misbehavior-plugin';
 export * from 'lisk-framework';
 
 export { genesisBlockDevnet, configDevnet } from './samples';

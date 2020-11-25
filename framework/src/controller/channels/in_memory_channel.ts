@@ -16,6 +16,7 @@ import { Event, EventCallback } from '../event';
 import { Action } from '../action';
 import { BaseChannel } from './base_channel';
 import { Bus } from '../bus';
+import * as JSONRPC from '../jsonrpc/types';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
@@ -30,28 +31,31 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	public subscribe(eventName: string, cb: EventCallback): void {
-		this.bus.subscribe(eventName, data =>
+		this.bus.subscribe(eventName, (notificationObject: JSONRPC.NotificationRequest) =>
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			setImmediate(cb, Event.deserialize(data)),
+			setImmediate(cb, Event.fromJSONRPCNotification(notificationObject).data),
 		);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.bus.once(eventName, data => setImmediate(cb, Event.deserialize(data)));
+		this.bus.once(eventName, (notificationObject: JSONRPC.NotificationRequest) =>
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			setImmediate(cb, Event.fromJSONRPCNotification(notificationObject).data),
+		);
 	}
 
-	public publish(eventName: string, data?: object): void {
+	public publish(eventName: string, data?: Record<string, unknown>): void {
 		const event = new Event(eventName, data);
 
 		if (event.module !== this.moduleAlias) {
 			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
 		}
-		this.bus.publish(event.key(), event.serialize());
+
+		this.bus.publish(event.toJSONRPCNotification());
 	}
 
-	public async invoke<T>(actionName: string, params?: object): Promise<T> {
-		const action = new Action(actionName, params, this.moduleAlias);
+	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
+		const action = new Action(null, actionName, params);
 
 		if (action.module === this.moduleAlias) {
 			if (this.actions[action.name] === undefined) {
@@ -65,9 +69,9 @@ export class InMemoryChannel extends BaseChannel {
 				throw new Error('Handler does not exist.');
 			}
 
-			return handler(action.serialize()) as T;
+			return handler(action.params) as T;
 		}
 
-		return this.bus.invoke(action.serialize());
+		return (await this.bus.invoke<T>(action.toJSONRPCRequest())).result;
 	}
 }

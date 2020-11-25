@@ -137,7 +137,7 @@ pipeline {
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:ci --ignore lisk-{framework,commander}'
+							sh 'npx lerna run test:ci --ignore lisk-{framework,commander,@liskhq/lisk-framework-*}'
 						}
 					}
 					post {
@@ -247,12 +247,34 @@ pipeline {
 					}
 				}
 
+				stage('Lisk Framework Plugins Integration') {
+					agent { node { label 'lisk-framework' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							sh 'npx lerna run test:integration --scope=@liskhq/lisk-framework-*'
+						}
+					}
+				}
+
 				stage('Lisk Framework Plugins Functional') {
 					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
 							sh 'npx lerna run test:functional --scope=@liskhq/lisk-framework-*'
+						}
+					}
+				}
+
+				stage('Lisk Client End-to-End') {
+					agent { node { label 'lisk-client' }}
+					steps {
+						setup()
+						wrap([$class: 'Xvfb', parallelBuild: true, autoDisplayName: true]) {
+							nvm(getNodejsVersion()) {
+								sh 'npx lerna run test:e2e --scope=@liskhq/lisk-client'
+							}
 						}
 					}
 				}

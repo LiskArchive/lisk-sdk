@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-client",
-	"version": "5.0.0-alpha.0",
+	"version": "5.0.0-debug.3",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -31,6 +31,10 @@
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"test": "jest",
+		"test:e2e": "npm run test:e2e:electron",
+		"test:e2e:electron": "npm run cypress:install && npm run cypress:patch && npx cypress run --browser electron",
+		"cypress:patch": "bash cypress/scripts/patch_buffer_package.sh",
+		"cypress:install": "npx cypress install && npx cypress verify",
 		"test:coverage": "jest --coverage=true --coverage-reporters=text",
 		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
 		"test:watch": "npm test -- --watch",
@@ -45,13 +49,14 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.1.0-alpha.0",
-		"@liskhq/lisk-cryptography": "^3.0.0-alpha.0",
+		"@liskhq/lisk-api-client": "^5.0.0-debug.3",
+		"@liskhq/lisk-codec": "^0.1.0-debug.3",
+		"@liskhq/lisk-cryptography": "^3.0.0-debug.3",
 		"@liskhq/lisk-passphrase": "^3.0.1-alpha.0",
-		"@liskhq/lisk-transactions": "^5.0.0-alpha.0",
+		"@liskhq/lisk-transactions": "^5.0.0-debug.3",
 		"@liskhq/lisk-tree": "^0.1.0-alpha.0",
-		"@liskhq/lisk-utils": "^0.1.0-alpha.1",
-		"@liskhq/lisk-validator": "^0.5.0-alpha.0",
+		"@liskhq/lisk-utils": "^0.1.0-debug.3",
+		"@liskhq/lisk-validator": "^0.5.0-debug.3",
 		"buffer": "liskHQ/buffer#4d498e6"
 	},
 	"devDependencies": {
@@ -75,6 +80,8 @@
 		"ts-jest": "26.3.0",
 		"ts-node": "8.6.2",
 		"tsconfig-paths": "3.9.0",
-		"typescript": "3.8.3"
+		"typescript": "3.8.3",
+		"cypress": "5.6.0",
+		"cypress-jest-adapter": "0.1.1"
 	}
 }

@@ -66,8 +66,8 @@ describe('Base Channel', () => {
 
 			Object.keys(params.actions).forEach(action => {
 				expect(Action).toHaveBeenCalledWith(
+					null,
 					`${params.moduleAlias}:${action}`,
-					undefined,
 					undefined,
 					actionHandler,
 				);

@@ -20,15 +20,34 @@ import * as assert from 'assert';
 import { promisify } from 'util';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { objects } from '@liskhq/lisk-utils';
+import { objects, jobHandlers } from '@liskhq/lisk-utils';
+import {
+	APP_EVENT_BLOCK_NEW,
+	APP_EVENT_CHAIN_FORK,
+	APP_EVENT_SHUTDOWN,
+	APP_EVENT_READY,
+	APP_IDENTIFIER,
+	APP_EVENT_NETWORK_EVENT,
+	APP_EVENT_TRANSACTION_NEW,
+	APP_EVENT_BLOCK_DELETE,
+	APP_EVENT_CHAIN_VALIDATORS_CHANGE,
+	APP_EVENT_NETWORK_READY,
+} from './constants';
+
+import {
+	getPluginExportPath,
+	BasePlugin,
+	InstantiablePlugin,
+	validatePluginSpec,
+} from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
-import { Controller, InMemoryChannel, ActionInfoObject } from './controller';
+import { Controller, InMemoryChannel } from './controller';
 import { applicationConfigSchema } from './schema';
 import { Node } from './node';
 import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
-import { BasePlugin, InstantiablePlugin } from './plugins/base_plugin';
+
 import {
 	ApplicationConfig,
 	GenesisConfig,
@@ -36,6 +55,8 @@ import {
 	PluginOptions,
 	RegisteredSchema,
 	RegisteredModule,
+	UpdateForgingStatusInput,
+	PartialApplicationConfig,
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
@@ -107,10 +128,9 @@ export class Application {
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
 
-	public constructor(
-		genesisBlock: Record<string, unknown>,
-		config: Partial<ApplicationConfig> = {},
-	) {
+	private readonly _mutex = new jobHandlers.Mutex();
+
+	public constructor(genesisBlock: Record<string, unknown>, config: PartialApplicationConfig = {}) {
 		// Don't change the object parameters provided
 		this._genesisBlock = genesisBlock;
 		const appConfig = objects.cloneDeep(applicationConfigSchema.default);
@@ -143,7 +163,7 @@ export class Application {
 
 	public static defaultApplication(
 		genesisBlock: Record<string, unknown>,
-		config: Partial<ApplicationConfig> = {},
+		config: PartialApplicationConfig = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
 		application._registerModule(TokenModule);
@@ -156,19 +176,26 @@ export class Application {
 
 	public registerPlugin(
 		pluginKlass: typeof BasePlugin,
-		options: PluginOptions = {
-			loadAsChildProcess: false,
-		},
-		alias?: string,
+		options: PluginOptions = { loadAsChildProcess: false },
 	): void {
-		assert(pluginKlass, 'ModuleSpec is required');
-		assert(typeof options === 'object', 'Module options must be provided or set to empty object.');
-		assert(alias ?? pluginKlass.alias, 'Module alias must be provided.');
-		const pluginAlias = alias ?? pluginKlass.alias;
+		assert(pluginKlass, 'Plugin implementation is required');
+		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
+		validatePluginSpec(pluginKlass as InstantiablePlugin<BasePlugin>);
+
+		const pluginAlias = options?.alias ?? pluginKlass.alias;
+
 		assert(
 			!Object.keys(this._plugins).includes(pluginAlias),
 			`A plugin with alias "${pluginAlias}" already registered.`,
 		);
+
+		if (options.loadAsChildProcess) {
+			if (!getPluginExportPath(pluginKlass)) {
+				throw new Error(
+					`Unable to register plugin "${pluginAlias}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.`,
+				);
+			}
+		}
 
 		this.config.plugins[pluginAlias] = Object.assign(
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -229,34 +256,38 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
-		// Initialize all objects
-		this._channel = this._initChannel();
+		await this._mutex.runExclusive<void>(async () => {
+			// Initialize all objects
+			this._channel = this._initChannel();
 
-		this._controller = this._initController();
+			this._controller = this._initController();
 
-		await this._controller.load();
+			await this._controller.load();
 
-		await this._node.init({
-			bus: this._controller.bus,
-			channel: this._channel,
-			forgerDB: this._forgerDB,
-			blockchainDB: this._blockchainDB,
-			nodeDB: this._nodeDB,
-			logger: this.logger,
+			await this._node.init({
+				bus: this._controller.bus,
+				channel: this._channel,
+				forgerDB: this._forgerDB,
+				blockchainDB: this._blockchainDB,
+				nodeDB: this._nodeDB,
+				logger: this.logger,
+			});
+
+			await this._controller.loadPlugins(this._plugins, this.config.plugins);
+			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
+			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
+
+			this._channel.publish(APP_EVENT_READY);
 		});
-
-		await this._controller.loadPlugins(this._plugins, this.config.plugins);
-		this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
-		this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
-
-		this._channel.publish('app:ready');
 	}
 
 	public async shutdown(errorCode = 0, message = ''): Promise<void> {
 		this.logger.info({ errorCode, message }, 'Application shutdown started');
+		// See if we can acquire mutex meant app is still loading or not
+		const release = await this._mutex.acquire();
 
 		try {
-			this._channel.publish('app:shutdown');
+			this._channel.publish(APP_EVENT_SHUTDOWN);
 			await this._node.cleanup();
 			await this._controller.cleanup(errorCode, message);
 			await this._blockchainDB.close();
@@ -270,6 +301,7 @@ export class Application {
 		} finally {
 			// Unfreeze the configuration
 			this.config = objects.mergeDeep({}, this.config) as ApplicationConfig;
+			release();
 
 			// To avoid redundant shutdown call
 			process.removeAllListeners('exit');
@@ -318,101 +350,92 @@ export class Application {
 		/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 		/* eslint-disable @typescript-eslint/explicit-function-return-type */
 		return new InMemoryChannel(
-			'app',
+			APP_IDENTIFIER,
 			[
-				'ready',
-				'shutdown',
-				'network:event',
-				'network:ready',
-				'transaction:new',
-				'chain:sync',
-				'chain:fork',
-				'chain:validators:change',
-				'block:new',
-				'block:broadcast',
-				'block:delete',
+				APP_EVENT_READY.replace('app:', ''),
+				APP_EVENT_SHUTDOWN.replace('app:', ''),
+				APP_EVENT_NETWORK_EVENT.replace('app:', ''),
+				APP_EVENT_NETWORK_READY.replace('app:', ''),
+				APP_EVENT_TRANSACTION_NEW.replace('app:', ''),
+				APP_EVENT_CHAIN_FORK.replace('app:', ''),
+				APP_EVENT_CHAIN_VALIDATORS_CHANGE.replace('app:', ''),
+				APP_EVENT_BLOCK_NEW.replace('app:', ''),
+				APP_EVENT_BLOCK_DELETE.replace('app:', ''),
 			],
 			{
 				getConnectedPeers: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getConnectedPeers(),
+					handler: () => this._node.actions.getConnectedPeers(),
 				},
 				getDisconnectedPeers: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getDisconnectedPeers(),
+					handler: () => this._node.actions.getDisconnectedPeers(),
+				},
+				getNetworkStats: {
+					handler: () => this._node.actions.getNetworkStats(),
 				},
 				getForgers: {
-					handler: async (_action: ActionInfoObject) => this._node.actions.getValidators(),
+					handler: async () => this._node.actions.getValidators(),
 				},
 				updateForgingStatus: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.updateForgingStatus(
-							action.params as {
-								address: string;
-								password: string;
-								forging: boolean;
-							},
-						),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.updateForgingStatus((params as unknown) as UpdateForgingStatusInput),
 				},
 				getForgingStatus: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getForgingStatus(),
+					handler: async () => this._node.actions.getForgingStatus(),
 				},
 				getTransactionsFromPool: {
-					handler: (_action: ActionInfoObject) => this._node.actions.getTransactionsFromPool(),
+					handler: () => this._node.actions.getTransactionsFromPool(),
 				},
 				getTransactions: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactions(action.params as { data: unknown; peerId: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getTransactions(params as { data: unknown; peerId: string }),
 				},
 				postTransaction: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.postTransaction(action.params as EventPostTransactionData),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.postTransaction((params as unknown) as EventPostTransactionData),
 				},
 				getLastBlock: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.getLastBlock(action.params as { peerId: string }),
+					handler: (params?: Record<string, unknown>) =>
+						this._node.actions.getLastBlock(params as { peerId: string }),
 				},
 				getBlocksFromId: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksFromId(action.params as { data: unknown; peerId: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlocksFromId(params as { data: unknown; peerId: string }),
 				},
 				getHighestCommonBlock: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getHighestCommonBlock(
-							action.params as { data: unknown; peerId: string },
-						),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getHighestCommonBlock(params as { data: unknown; peerId: string }),
 				},
 				getAccount: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccount(action.params as { address: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getAccount(params as { address: string }),
 				},
 				getAccounts: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccounts(action.params as { address: readonly string[] }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getAccounts(params as { address: readonly string[] }),
 				},
 				getBlockByID: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByID(action.params as { id: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlockByID(params as { id: string }),
 				},
 				getBlocksByIDs: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByIDs(action.params as { ids: readonly string[] }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlocksByIDs(params as { ids: readonly string[] }),
 				},
 				getBlockByHeight: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByHeight(action.params as { height: number }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlockByHeight(params as { height: number }),
 				},
 				getBlocksByHeightBetween: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByHeightBetween(
-							action.params as { from: number; to: number },
-						),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getBlocksByHeightBetween(params as { from: number; to: number }),
 				},
 				getTransactionByID: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionByID(action.params as { id: string }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getTransactionByID(params as { id: string }),
 				},
 				getTransactionsByIDs: {
-					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionsByIDs(action.params as { ids: readonly string[] }),
+					handler: async (params?: Record<string, unknown>) =>
+						this._node.actions.getTransactionsByIDs(params as { ids: readonly string[] }),
 				},
 				getSchema: {
 					handler: () => this._node.actions.getSchema(),
@@ -434,8 +457,8 @@ export class Application {
 		return new Controller({
 			appLabel: this.config.label,
 			config: {
-				ipc: this.config.ipc,
 				rootPath: this.config.rootPath,
+				rpc: this.config.rpc,
 			},
 			logger: this.logger,
 			channel: this._channel,

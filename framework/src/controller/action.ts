@@ -13,75 +13,74 @@
  */
 
 import { strict as assert } from 'assert';
-import { actionWithModuleNameReg, moduleNameReg } from '../constants';
+import { actionWithModuleNameReg } from '../constants';
+import {
+	ID,
+	JSONRPCErrorObject,
+	JSONRPCResult,
+	RequestObject,
+	ResponseObject,
+	VERSION,
+} from './jsonrpc';
 
-export interface ActionInfoObject {
-	readonly module: string;
-	readonly name: string;
-	readonly source?: string;
-	readonly params: object;
-}
-
-export type ActionHandler = (action: ActionInfoObject) => unknown;
+export type ActionHandler = (params?: Record<string, unknown>) => unknown;
 
 export interface ActionsDefinition {
 	[key: string]: ActionHandler | { handler: ActionHandler };
 }
 
-export interface ActionsObject {
-	[key: string]: Action;
-}
-
 export class Action {
-	public module: string;
-	public name: string;
-	public handler?: (action: ActionInfoObject) => unknown;
-	public source?: string;
-	public params: object;
+	public readonly id: ID;
+	public readonly module: string;
+	public readonly name: string;
+	public readonly params?: Record<string, unknown>;
+	public handler?: ActionHandler;
 
 	public constructor(
+		id: ID,
 		name: string,
-		params?: object,
-		source?: string,
-		handler?: (action: ActionInfoObject) => unknown,
+		params?: Record<string, unknown>,
+		handler?: ActionHandler,
 	) {
 		assert(
 			actionWithModuleNameReg.test(name),
-			`Action name "${name}" must be a valid name with module name.`,
+			`Action name "${name}" must be a valid name with module name and action name.`,
 		);
+
+		this.id = id;
 		[this.module, this.name] = name.split(':');
 		this.params = params ?? {};
-
-		if (source) {
-			assert(moduleNameReg.test(source), `Source name "${source}" must be a valid module name.`);
-			this.source = source;
-		}
-
 		this.handler = handler;
 	}
 
-	public static deserialize(data: ActionInfoObject | string): Action {
-		const parsedAction: ActionInfoObject =
-			typeof data === 'string' ? (JSON.parse(data) as ActionInfoObject) : data;
+	public static fromJSONRPCRequest(data: RequestObject | string): Action {
+		const { id, method, params } =
+			typeof data === 'string' ? (JSON.parse(data) as RequestObject) : data;
 
-		return new Action(
-			`${parsedAction.module}:${parsedAction.name}`,
-			parsedAction.params,
-			parsedAction.source,
-		);
+		return new Action(id, method, params);
 	}
 
-	public serialize(): ActionInfoObject {
+	public toJSONRPCRequest(): RequestObject {
 		return {
-			name: this.name,
-			module: this.module,
-			source: this.source,
+			jsonrpc: VERSION,
+			id: this.id,
+			method: `${this.module}:${this.name}`,
 			params: this.params,
 		};
 	}
 
-	public toString(): string {
-		return `${this.source ?? 'undefined'} -> ${this.module}:${this.name}`;
+	public buildJSONRPCResponse<T = JSONRPCResult>({
+		error,
+		result,
+	}: {
+		error?: JSONRPCErrorObject;
+		result?: T;
+	}): ResponseObject<T> {
+		if (error) {
+			return { id: this.id, jsonrpc: VERSION, error };
+		}
+
+		return { id: this.id, jsonrpc: VERSION, result: result as T };
 	}
 
 	public key(): string {

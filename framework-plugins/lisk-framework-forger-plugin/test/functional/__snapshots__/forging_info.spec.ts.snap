@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Forger endpoint GET /api/forging/info should return list of all forgers info 1`] = `
+exports[`forger:getForgingInfo action should return list of all forgers info 1`] = `
 Array [
   Object {
     "address": "9cabee3d27426676b852ce6b804cb2fdff7cd0b5",
@@ -496,6 +496,9 @@ Array [
     "address": "0f33a5033b750e6c4dca47e38ba020e912df143e",
     "consecutiveMissedBlocks": 0,
     "forging": true,
+    "height": 3,
+    "maxHeightPreviouslyForged": 0,
+    "maxHeightPrevoted": 0,
     "totalProducedBlocks": 1,
     "totalReceivedFees": "0",
     "totalReceivedRewards": "0",
@@ -536,6 +539,9 @@ Array [
     "address": "0d2c377e936b68c70066613b10c0fdad537f90da",
     "consecutiveMissedBlocks": 0,
     "forging": true,
+    "height": 2,
+    "maxHeightPreviouslyForged": 0,
+    "maxHeightPrevoted": 0,
     "totalProducedBlocks": 1,
     "totalReceivedFees": "0",
     "totalReceivedRewards": "0",
@@ -826,6 +832,9 @@ Array [
     "address": "0bc3bec2fdb565996fd316e368e66e5d8e830808",
     "consecutiveMissedBlocks": 0,
     "forging": true,
+    "height": 1,
+    "maxHeightPreviouslyForged": 0,
+    "maxHeightPrevoted": 0,
     "totalProducedBlocks": 1,
     "totalReceivedFees": "0",
     "totalReceivedRewards": "0",

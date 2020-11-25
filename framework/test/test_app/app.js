@@ -24,6 +24,14 @@ const {
 	ForgerPlugin,
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
 } = require('../../../framework-plugins/lisk-framework-forger-plugin/dist-node');
+const {
+	MonitorPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-monitor-plugin/dist-node');
+const {
+	ReportMisbehaviorPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-report-misbehavior-plugin/dist-node');
 
 process.env.NODE_ENV = 'test';
 
@@ -33,9 +41,6 @@ const appConfig = {
 	version: '3.0.0',
 	networkVersion: '2.0',
 	label: 'lisk-devnet',
-	ipc: {
-		enabled: true,
-	},
 };
 
 const network = process.env.LISK_NETWORK || 'devnet';
@@ -49,15 +54,14 @@ try {
 	const mergedConfig = {
 		...appConfig,
 		...config,
-		ipc: {
-			enabled: true,
-		},
 	};
 	// To run multiple applications for same network for integration tests
 	app = Application.defaultApplication(genesisBlock, mergedConfig);
 
 	app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
 	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(MonitorPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: true });
 } catch (e) {
 	console.error('Application start error.', e);
 	process.exit();

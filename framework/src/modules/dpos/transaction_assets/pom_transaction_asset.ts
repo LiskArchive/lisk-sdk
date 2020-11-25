@@ -13,11 +13,11 @@
  */
 
 import { BlockHeader } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
+import { areHeadersContradicting } from '@liskhq/lisk-bft';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseAsset } from '../../base_asset';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
-import { ValidationError } from '../../../errors';
 import { MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE, MAX_POM_HEIGHTS } from '../constants';
 import { DPOSAccountProps, PomTransactionAssetContext } from '../types';
 import { getPunishmentPeriod, validateSignature } from '../utils';
@@ -98,45 +98,18 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 
 	// eslint-disable-next-line class-methods-use-this
 	public validate({ asset }: ValidateAssetContext<PomTransactionAssetContext>): void {
-		if (!asset.header1.generatorPublicKey.equals(asset.header2.generatorPublicKey)) {
-			throw new ValidationError(
-				'GeneratorPublicKey of each BlockHeader should match.',
-				asset.header1.generatorPublicKey.toString('hex'),
-			);
-		}
-
-		if (getBlockHeaderBytes(asset.header1).equals(getBlockHeaderBytes(asset.header2))) {
-			throw new Error('BlockHeaders are identical. No contradiction detected.');
-		}
-
-		/*
-			Check for BFT violations:
-					1. Double forging
-					2. Disjointedness
-					3. Branch is not the one with largest maxHeightPrevoted
-		*/
-
-		let b1 = asset.header1;
-		let b2 = asset.header2;
-
-		// Order the two block headers such that b1 must be forged first
-		if (
-			b1.asset.maxHeightPreviouslyForged > b2.asset.maxHeightPreviouslyForged ||
-			(b1.asset.maxHeightPreviouslyForged === b2.asset.maxHeightPreviouslyForged &&
-				b1.asset.maxHeightPrevoted > b2.asset.maxHeightPrevoted) ||
-			(b1.asset.maxHeightPreviouslyForged === b2.asset.maxHeightPreviouslyForged &&
-				b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted &&
-				b1.height > b2.height)
-		) {
-			b1 = asset.header2;
-			b2 = asset.header1;
-		}
-
-		if (
-			!(b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted && b1.height >= b2.height) &&
-			!(b1.height > b2.asset.maxHeightPreviouslyForged) &&
-			!(b1.asset.maxHeightPrevoted > b2.asset.maxHeightPrevoted)
-		) {
+		const header1ID = hash(getBlockHeaderBytes(asset.header1));
+		const header1 = {
+			...asset.header1,
+			id: header1ID,
+		};
+		const header2ID = hash(getBlockHeaderBytes(asset.header2));
+		const header2 = {
+			...asset.header2,
+			id: header2ID,
+		};
+		// Check for BFT violations:
+		if (!areHeadersContradicting(header1, header2)) {
 			throw new Error('BlockHeaders are not contradicting as per BFT violation rules.');
 		}
 	}

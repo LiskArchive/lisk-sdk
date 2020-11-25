@@ -17,50 +17,60 @@ import { mkdirSync, rmdirSync } from 'fs';
 import { resolve as pathResolve } from 'path';
 import { IPCChannel, InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
-import { Event } from '../../../src/controller/event';
-
-const logger: any = {
-	info: jest.fn(),
-};
-
-const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel/sockets`);
-
-const config: any = {
-	ipc: {
-		enabled: true,
-	},
-	socketsPath: {
-		root: socketsDir,
-	},
-};
-
-const alpha = {
-	moduleAlias: 'alphaAlias',
-	events: ['alpha1', 'alpha2'],
-	actions: {
-		multiplyByTwo: {
-			handler: (action: any) => action.params.val * 2,
-		},
-		multiplyByThree: {
-			handler: (action: any) => action.params.val * 3,
-		},
-	},
-};
-
-const beta = {
-	moduleAlias: 'betaAlias',
-	events: ['beta1', 'beta2'],
-	actions: {
-		divideByTwo: {
-			handler: (action: any) => action.params.val / 2,
-		},
-		divideByThree: {
-			handler: (action: any) => action.params.val / 3,
-		},
-	},
-};
 
 describe('IPCChannel', () => {
+	// Arrange
+	const logger: any = {
+		info: jest.fn(),
+	};
+
+	const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel/sockets`);
+
+	const config: any = {
+		socketsPath: {
+			root: socketsDir,
+		},
+		rpc: {
+			enable: false,
+			mode: 'ipc',
+			port: 8080,
+		},
+	};
+
+	const alpha = {
+		moduleAlias: 'alphaAlias',
+		events: ['alpha1', 'alpha2'],
+		actions: {
+			multiplyByTwo: {
+				handler: (params: any) => params.val * 2,
+			},
+			multiplyByThree: {
+				handler: (params: any) => params.val * 3,
+			},
+		},
+	};
+
+	const beta = {
+		moduleAlias: 'betaAlias',
+		events: ['beta1', 'beta2'],
+		actions: {
+			divideByTwo: {
+				handler: (params: any) => params.val / 2,
+			},
+			divideByThree: {
+				handler: (params: any) => params.val / 3,
+			},
+			withError: {
+				handler: (params: any) => {
+					if (params.val === 1) {
+						throw new Error('Invalid request');
+					}
+					return 0;
+				},
+			},
+		},
+	};
+
 	describe('after registering itself to the bus', () => {
 		let alphaChannel: IPCChannel;
 		let betaChannel: IPCChannel;
@@ -99,7 +109,7 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -117,7 +127,7 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(betaEventData);
+						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
@@ -138,7 +148,7 @@ describe('IPCChannel', () => {
 					// Act
 					alphaChannel.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(dummyData);
+						expect(data).toEqual(dummyData);
 						resolve();
 					});
 				});
@@ -161,7 +171,7 @@ describe('IPCChannel', () => {
 					// Act
 					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
-						expect(Event.deserialize(data).data).toEqual(alphaEventData);
+						expect(data).toEqual(alphaEventData);
 						done();
 					});
 				});
@@ -211,8 +221,14 @@ describe('IPCChannel', () => {
 				await expect(
 					alphaChannel.invoke(`${beta.moduleAlias}:${invalidActionName}`),
 				).rejects.toThrow(
-					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name.`,
+					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name and action name.`,
 				);
+			});
+
+			it('should be rejected with error', async () => {
+				await expect(
+					alphaChannel.invoke(`${beta.moduleAlias}:withError`, { val: 1 }),
+				).rejects.toThrow('Invalid request');
 			});
 		});
 	});

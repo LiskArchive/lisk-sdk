@@ -72,6 +72,7 @@ export interface RPCHighestCommonBlockData {
 
 export interface PluginOptions extends Record<string, unknown> {
 	readonly loadAsChildProcess?: boolean;
+	readonly alias?: string;
 }
 
 export interface PluginsOptions {
@@ -135,13 +136,20 @@ export interface TransactionPoolConfig {
 	readonly minReplacementFeeDifference?: string;
 }
 
+type RecursivePartial<T> = {
+	[P in keyof T]?: RecursivePartial<T[P]>;
+};
+
+interface RPCConfig {
+	enable: boolean;
+	mode: 'ipc' | 'ws';
+	port: number;
+}
+
 export interface ApplicationConfig {
 	label: string;
 	version: string;
 	networkVersion: string;
-	ipc: {
-		enabled: boolean;
-	};
 	rootPath: string;
 	forging: {
 		waitThreshold: number;
@@ -158,7 +166,10 @@ export interface ApplicationConfig {
 	genesisConfig: GenesisConfig;
 	plugins: PluginsOptions;
 	transactionPool: TransactionPoolConfig;
+	rpc: RPCConfig;
 }
+
+export type PartialApplicationConfig = RecursivePartial<ApplicationConfig>;
 
 export interface ActionInfoForBus {
 	readonly module: string;
@@ -253,7 +264,8 @@ export interface Consensus {
 // Base Module
 export interface BaseModuleDataAccess {
 	getChainState(key: string): Promise<Buffer | undefined>;
-	getAccount(address: Buffer): Promise<Account>;
+	getAccountByAddress<T>(address: Buffer): Promise<Account<T>>;
+	getLastBlockHeader(): Promise<BlockHeader>;
 }
 
 export interface RegisteredModule {
@@ -281,4 +293,22 @@ export interface RegisteredSchema {
 		assetName: string;
 		schema: Schema;
 	}[];
+}
+
+export interface ForgingStatus {
+	readonly address: Buffer;
+	readonly forging: boolean;
+	readonly height?: number;
+	readonly maxHeightPrevoted?: number;
+	readonly maxHeightPreviouslyForged?: number;
+}
+
+export interface UpdateForgingStatusInput {
+	readonly address: string;
+	readonly password: string;
+	readonly forging: boolean;
+	readonly height: number;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+	readonly overwrite?: boolean;
 }
