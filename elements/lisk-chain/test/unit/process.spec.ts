@@ -228,7 +228,7 @@ describe('chain/process block', () => {
 				block = createValidDefaultBlock({ header: { generatorPublicKey: Buffer.alloc(0) } });
 				// Act & assert
 				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
-					'public_key must be a buffer of size',
+					'"pk" must be crypto_sign_PUBLICKEYBYTES bytes long',
 				);
 			});
 		});
@@ -240,7 +240,7 @@ describe('chain/process block', () => {
 				(block.header as any).signature = Buffer.alloc(0);
 				// Act & assert
 				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
-					'signature must be a buffer of size',
+					'"sig" must be at least crypto_sign_BYTES bytes long',
 				);
 			});
 		});
