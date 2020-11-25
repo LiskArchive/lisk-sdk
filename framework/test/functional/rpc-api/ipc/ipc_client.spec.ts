@@ -112,8 +112,7 @@ describe('api client ipc mode', () => {
 
 			// Assert
 			expect(newBlockEvent.length).toBeGreaterThan(0);
-			expect(newBlockEvent[0].module).toEqual('app');
-			expect(newBlockEvent[0].name).toEqual('block:new');
+			expect(newBlockEvent[0]).toHaveProperty('block');
 		});
 	});
 
@@ -150,9 +149,7 @@ describe('api client ipc mode', () => {
 
 			// Assert
 			expect(data).toBeUndefined();
-			expect(helloMessage.data).toEqual({ message: 'hello event' });
-			expect(helloMessage.module).toEqual('hello');
-			expect(helloMessage.name).toEqual('greet');
+			expect(helloMessage).toEqual({ message: 'hello event' });
 		});
 
 		it('should return undefined when void action `hello:blankAction` is called', async () => {
