@@ -16,7 +16,7 @@ import { randomBytes } from 'crypto';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 
 describe('_handlePostTransactionAnnounce', () => {
-	let MonitorPluginInstance: MonitorPlugin;
+	let monitorPluginInstance: MonitorPlugin;
 	const channelMock = {
 		registerToBus: jest.fn(),
 		once: jest.fn(),
@@ -33,24 +33,24 @@ describe('_handlePostTransactionAnnounce', () => {
 	} as any;
 
 	beforeEach(async () => {
-		MonitorPluginInstance = new (MonitorPlugin as any)();
-		await MonitorPluginInstance.load(channelMock);
+		monitorPluginInstance = new (MonitorPlugin as any)();
+		await monitorPluginInstance.load(channelMock);
 	});
 
 	it('should add new transactions to state', () => {
 		// Arrange
 		const transactionIds = [...Array(4).keys()].map(() => randomBytes(64).toString('hex'));
-		const MonitorInstance = MonitorPluginInstance as any;
+		const monitorInstance = monitorPluginInstance as any;
 		// Act
-		MonitorInstance._handlePostTransactionAnnounce({ transactionIds });
+		monitorInstance._handlePostTransactionAnnounce({ transactionIds });
 		// Assert
-		expect(Object.keys(MonitorInstance._state.transactions)).toEqual(transactionIds);
+		expect(Object.keys(monitorInstance._state.transactions)).toEqual(transactionIds);
 	});
 
 	it('should increment count for existing transaction id', () => {
 		// Arrange
 		const transactionIds = [...Array(4).keys()].map(() => randomBytes(64).toString('hex'));
-		const MonitorInstance = MonitorPluginInstance as any;
+		const MonitorInstance = monitorPluginInstance as any;
 		// Act
 		MonitorInstance._handlePostTransactionAnnounce({ transactionIds });
 		MonitorInstance._handlePostTransactionAnnounce({ transactionIds: [transactionIds[0]] });
@@ -60,7 +60,7 @@ describe('_handlePostTransactionAnnounce', () => {
 });
 
 describe('_cleanUpTransactionStats', () => {
-	let MonitorPluginInstance: MonitorPlugin;
+	let monitorPluginInstance: MonitorPlugin;
 	const channelMock = {
 		registerToBus: jest.fn(),
 		once: jest.fn(),
@@ -77,27 +77,27 @@ describe('_cleanUpTransactionStats', () => {
 	} as any;
 
 	beforeEach(async () => {
-		MonitorPluginInstance = new (MonitorPlugin as any)();
-		await MonitorPluginInstance.load(channelMock);
+		monitorPluginInstance = new (MonitorPlugin as any)();
+		await monitorPluginInstance.load(channelMock);
 	});
 
 	it('should remove transaction stats that are more than 10 minutes old', () => {
 		// Arrange
 		const transactionIds = [...Array(4).keys()].map(() => randomBytes(64).toString('hex'));
-		const MonitorInstance = MonitorPluginInstance as any;
+		const monitorInstance = monitorPluginInstance as any;
 		const now = Date.now();
 		Date.now = jest.fn(() => now);
 		// Act
-		MonitorInstance._handlePostTransactionAnnounce({ transactionIds });
+		monitorInstance._handlePostTransactionAnnounce({ transactionIds });
 		// Assert
-		expect(Object.keys(MonitorInstance._state.transactions)).toEqual(transactionIds);
+		expect(Object.keys(monitorInstance._state.transactions)).toEqual(transactionIds);
 
 		Date.now = jest.fn(() => now + 600001);
 
 		const newTransactions = [randomBytes(64).toString('hex'), randomBytes(64).toString('hex')];
 
-		MonitorInstance._handlePostTransactionAnnounce({ transactionIds: newTransactions });
+		monitorInstance._handlePostTransactionAnnounce({ transactionIds: newTransactions });
 
-		expect(Object.keys(MonitorInstance._state.transactions)).toEqual(newTransactions);
+		expect(Object.keys(monitorInstance._state.transactions)).toEqual(newTransactions);
 	});
 });

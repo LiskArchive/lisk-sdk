@@ -15,6 +15,7 @@ import { Server } from 'http';
 import { RawBlock, RawBlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
 import {
 	ActionsDefinition,
@@ -32,6 +33,7 @@ import * as middlewares from './middlewares';
 import * as config from './defaults';
 import { Options, SharedState } from './types';
 import * as controllers from './controllers';
+import { transactionAnnouncementSchema, postBlockEventSchema } from './schema';
 
 // eslint-disable-next-line
 const pJSON = require('../package.json');
@@ -148,10 +150,21 @@ export class MonitorPlugin extends BasePlugin {
 			const { event, data } = eventData as { event: string; data: unknown };
 
 			if (event === 'postTransactionsAnnouncement') {
+				const errors = validator.validate(
+					transactionAnnouncementSchema,
+					data as Record<string, unknown>,
+				);
+				if (errors.length > 0) {
+					return;
+				}
 				this._handlePostTransactionAnnounce(data as { transactionIds: string[] });
 			}
 
 			if (event === 'postBlock') {
+				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
+				if (errors.length > 0) {
+					return;
+				}
 				this._handlePostBlock(data as EventPostBlockData);
 			}
 		});
