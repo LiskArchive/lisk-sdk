@@ -40,6 +40,7 @@ import {
 } from './db';
 import * as config from './defaults';
 import { Options, State } from './types';
+import { postBlockEventSchema } from './schema';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
@@ -163,12 +164,18 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 
 	private _subscribeToChannel(): void {
 		this._channel.subscribe('app:network:event', async (eventData?: Record<string, unknown>) => {
-			const { event, data } = eventData as { event: string; data: { block: string } };
+			const { event, data } = eventData as { event: string; data: unknown };
 
 			if (event === 'postBlock') {
+				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
+				if (errors.length > 0) {
+					debug('Invalid block data', errors);
+					return;
+				}
+				const blockData = data as { block: string };
 				const { header } = codec.decode<RawBlock>(
 					this.schemas.block,
-					Buffer.from(data.block, 'hex'),
+					Buffer.from(blockData.block, 'hex'),
 				);
 				try {
 					const saved = await saveBlockHeaders(this._pluginDB, this.schemas, header);
