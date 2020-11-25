@@ -24,6 +24,7 @@ declare module 'sodium-native' {
 		publicKey: Buffer,
 	): boolean;
 	export function randombytes_buf(buffer: Buffer): void;
+	export function crypto_sign_ed25519_sk_to_pk(publicKey: Buffer, privateKey: Buffer): void;
 	export function crypto_sign_seed_keypair(
 		publicKey: Buffer,
 		privateKey: Buffer,

@@ -42,7 +42,7 @@
 		"varuint-bitcoin": "1.1.2"
 	},
 	"optionalDependencies": {
-		"sodium-native": "2.4.6"
+		"sodium-native": "3.2.0"
 	},
 	"devDependencies": {
 		"@types/ed2curve": "0.2.2",
