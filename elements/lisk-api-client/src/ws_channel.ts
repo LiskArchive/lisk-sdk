@@ -118,7 +118,10 @@ export class WSChannel {
 		});
 	}
 
-	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
+	public async invoke<T = Record<string, unknown>>(
+		actionName: string,
+		params?: Record<string, unknown>,
+	): Promise<T> {
 		const request = {
 			jsonrpc: '2.0',
 			id: this._requestCounter,
@@ -151,7 +154,7 @@ export class WSChannel {
 		]);
 	}
 
-	public subscribe(eventName: string, cb: EventCallback): void {
+	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._emitter.on(eventName, cb);
 	}

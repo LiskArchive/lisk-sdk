@@ -127,7 +127,10 @@ export class IPCChannel implements Channel {
 		this._rpcClient.sock.close();
 	}
 
-	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
+	public async invoke<T = Record<string, unknown>>(
+		actionName: string,
+		params?: Record<string, unknown>,
+	): Promise<T> {
 		this._id += 1;
 		const action = {
 			id: this._id,
@@ -150,7 +153,7 @@ export class IPCChannel implements Channel {
 		});
 	}
 
-	public subscribe(eventName: string, cb: EventCallback): void {
+	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
 		this._events.on(eventName, cb as never);
 	}
 }

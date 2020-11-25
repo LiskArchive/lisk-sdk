@@ -33,13 +33,13 @@ export interface JSONRPCResponse<T> {
 
 export type JSONRPCMessage<T> = JSONRPCNotification<T> | JSONRPCResponse<T>;
 
-export type EventCallback = (event?: Record<string, unknown>) => void | Promise<void>;
+export type EventCallback<T = Record<string, unknown>> = (event?: T) => void | Promise<void>;
 
 export interface Channel {
 	connect: () => Promise<void>;
 	disconnect: () => Promise<void>;
 	invoke: <T>(actionName: string, params?: Record<string, unknown>) => Promise<T>;
-	subscribe: (eventName: string, cb: EventCallback) => void;
+	subscribe: <T>(eventName: string, cb: EventCallback<T>) => void;
 }
 
 export interface RegisteredSchemas {
