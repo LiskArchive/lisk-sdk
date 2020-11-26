@@ -52,7 +52,7 @@ export class TokenModule extends BaseModule {
 				throw new Error('Amount must be a bigint');
 			}
 			if (amount <= BigInt(0)) {
-				throw new Error('Amount must be a positive bigint');
+				throw new Error('Amount must be a positive bigint.');
 			}
 			const account = await stateStore.account.getOrDefault<TokenAccount>(address);
 			account.token.balance += amount;
@@ -72,7 +72,7 @@ export class TokenModule extends BaseModule {
 				throw new Error('Amount must be a bigint');
 			}
 			if (amount <= BigInt(0)) {
-				throw new Error('Amount must be a positive bigint');
+				throw new Error('Amount must be a positive bigint.');
 			}
 			const account = await stateStore.account.getOrDefault<TokenAccount>(address);
 			account.token.balance -= amount;

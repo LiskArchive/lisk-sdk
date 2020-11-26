@@ -111,7 +111,7 @@ describe('token module', () => {
 					{ address: senderAccount.address, amount: BigInt('0') },
 					stateStore,
 				),
-			).rejects.toThrow('Amount must be a positive bigint');
+			).rejects.toThrow('Amount must be a positive bigint.');
 		});
 
 		it('should throw error if amount is less than zero', async () => {
@@ -122,7 +122,7 @@ describe('token module', () => {
 					{ address: senderAccount.address, amount: BigInt(-10) },
 					stateStore,
 				),
-			).rejects.toThrow('Amount must be a positive bigint');
+			).rejects.toThrow('Amount must be a positive bigint.');
 		});
 
 		it('should throw error if account does not have sufficient balance', async () => {
