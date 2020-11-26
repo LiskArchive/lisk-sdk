@@ -359,7 +359,12 @@ describe('PomTransactionAsset', () => {
 
 			await transactionAsset.apply(applyContext);
 
-			expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+			// If amount is zero, it should not call the credit
+			expect(applyContext.reducerHandler.invoke).not.toHaveBeenCalledWith('token:credit', {
+				address: applyContext.transaction.senderAddress,
+				amount: BigInt(0),
+			});
+			expect(applyContext.reducerHandler.invoke).not.toHaveBeenCalledWith('token:debit', {
 				address: applyContext.transaction.senderAddress,
 				amount: BigInt(0),
 			});

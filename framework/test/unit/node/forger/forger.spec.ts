@@ -31,7 +31,7 @@ import {
 } from '../../../../src/node/forger/data_access';
 import { defaultNetworkIdentifier } from '../../../fixtures';
 import { genesis } from '../../../fixtures/accounts';
-import * as genesisDelegates from './genesis_delegates.json';
+import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 	delegates.map(delegate => ({
