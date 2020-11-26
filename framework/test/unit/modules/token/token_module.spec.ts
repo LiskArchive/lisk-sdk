@@ -34,7 +34,7 @@ describe('token module', () => {
 	let genesisBlock: any;
 	let reducerHandler: any;
 	const defaultTestCase = fixtures.testCases[0];
-	const minRemainingBalance = '1';
+	const minRemainingBalance = '10';
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
 			{
