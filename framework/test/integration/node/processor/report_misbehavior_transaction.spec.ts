@@ -26,7 +26,7 @@ import {
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 
 describe('Transaction order', () => {
-	const dbName = 'transaction_order';
+	const dbName = 'report_delegate_transaction';
 	let node: Node;
 	let blockchainDB: KVStore;
 	let forgerDB: KVStore;
