@@ -34,7 +34,7 @@ describe('token module', () => {
 	let genesisBlock: any;
 	let reducerHandler: any;
 	const defaultTestCase = fixtures.testCases[0];
-	const minRemainingBalance = '1';
+	const minRemainingBalance = '10';
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
 			{
@@ -103,12 +103,34 @@ describe('token module', () => {
 			).rejects.toStrictEqual(new Error('Amount must be a bigint'));
 		});
 
-		it('should throw error if account does not have sufficient balance', async () => {
+		it('should throw error if amount is zero', async () => {
 			senderAccount.token.balance = BigInt(0);
 
 			return expect(
 				tokenModule.reducers.credit(
 					{ address: senderAccount.address, amount: BigInt('0') },
+					stateStore,
+				),
+			).rejects.toThrow('Amount must be a positive bigint.');
+		});
+
+		it('should throw error if amount is less than zero', async () => {
+			senderAccount.token.balance = BigInt(0);
+
+			return expect(
+				tokenModule.reducers.credit(
+					{ address: senderAccount.address, amount: BigInt(-10) },
+					stateStore,
+				),
+			).rejects.toThrow('Amount must be a positive bigint.');
+		});
+
+		it('should throw error if account does not have sufficient balance', async () => {
+			senderAccount.token.balance = BigInt(0);
+
+			return expect(
+				tokenModule.reducers.credit(
+					{ address: senderAccount.address, amount: BigInt('1') },
 					stateStore,
 				),
 			).rejects.toStrictEqual(

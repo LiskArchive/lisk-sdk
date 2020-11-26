@@ -215,10 +215,12 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 				? delegateSubtractableBalance
 				: store.chain.lastBlockReward;
 
-		await reducerHandler.invoke('token:credit', {
-			address: transaction.senderAddress,
-			amount: reward,
-		});
+		if (reward > BigInt(0)) {
+			await reducerHandler.invoke('token:credit', {
+				address: transaction.senderAddress,
+				amount: reward,
+			});
+		}
 
 		/*
 			Update delegate account
@@ -234,9 +236,11 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		}
 		await store.account.set(updatedDelegateAccount.address, updatedDelegateAccount);
 
-		await reducerHandler.invoke('token:debit', {
-			address: updatedDelegateAccount.address,
-			amount: reward,
-		});
+		if (reward > BigInt(0)) {
+			await reducerHandler.invoke('token:debit', {
+				address: updatedDelegateAccount.address,
+				amount: reward,
+			});
+		}
 	}
 }
