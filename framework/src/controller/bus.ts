@@ -180,9 +180,9 @@ export class Bus {
 
 		try {
 			request =
-			typeof rawRequest === 'string'
-				? (JSON.parse(rawRequest) as JSONRPC.RequestObject)
-				: rawRequest;
+				typeof rawRequest === 'string'
+					? (JSON.parse(rawRequest) as JSONRPC.RequestObject)
+					: rawRequest;
 		} catch (error) {
 			throw new JSONRPC.JSONRPCError(
 				'Invalid invoke request.',
@@ -256,9 +256,9 @@ export class Bus {
 
 		try {
 			request =
-			typeof rawRequest === 'string'
-				? (JSON.parse(rawRequest) as JSONRPC.RequestObject)
-				: rawRequest;
+				typeof rawRequest === 'string'
+					? (JSON.parse(rawRequest) as JSONRPC.RequestObject)
+					: rawRequest;
 		} catch (error) {
 			throw new JSONRPC.JSONRPCError(
 				'Invalid publish request.',

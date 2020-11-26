@@ -219,23 +219,17 @@ describe('Bus', () => {
 
 		it('should throw error if invoked without request', async () => {
 			// Act && Assert
-			await expect(bus.invoke(undefined as never)).rejects.toThrow(
-				'Invalid invoke request.',
-			);
+			await expect(bus.invoke(undefined as never)).rejects.toThrow('Invalid invoke request.');
 		});
 
 		it('should throw error if invoked with invalid json', async () => {
 			// Act && Assert
-			await expect(bus.invoke('\n')).rejects.toThrow(
-				'Invalid invoke request.',
-			);
+			await expect(bus.invoke('\n')).rejects.toThrow('Invalid invoke request.');
 		});
 
 		it('should throw error if invoked with empty string', async () => {
 			// Act && Assert
-			await expect(bus.invoke('')).rejects.toThrow(
-				'Invalid invoke request.',
-			);
+			await expect(bus.invoke('')).rejects.toThrow('Invalid invoke request.');
 		});
 
 		it('should throw error if invoked without method', async () => {
@@ -246,9 +240,7 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await expect(bus.invoke(jsonrpcRequest as never)).rejects.toThrow(
-				'Invalid invoke request.',
-			);
+			await expect(bus.invoke(jsonrpcRequest as never)).rejects.toThrow('Invalid invoke request.');
 		});
 
 		it('should throw error if invoked without id', async () => {
@@ -259,9 +251,7 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await expect(bus.invoke(jsonrpcRequest as never)).rejects.toThrow(
-				'Invalid invoke request.',
-			);
+			await expect(bus.invoke(jsonrpcRequest as never)).rejects.toThrow('Invalid invoke request.');
 		});
 	});
 
@@ -285,23 +275,17 @@ describe('Bus', () => {
 
 		it('should throw error if called without notification', () => {
 			// Act && Assert
-			expect(() => bus.publish(undefined as never)).toThrow(
-				'Invalid publish request.',
-			);
+			expect(() => bus.publish(undefined as never)).toThrow('Invalid publish request.');
 		});
 
 		it('should throw error if called with invalid json', () => {
 			// Act && Assert
-			expect(() => bus.publish('\n')).toThrow(
-				'Invalid publish request.',
-			);
+			expect(() => bus.publish('\n')).toThrow('Invalid publish request.');
 		});
 
 		it('should throw error if called with empty string', () => {
 			// Act && Assert
-			expect(() => bus.publish('')).toThrow(
-				'Invalid publish request.',
-			);
+			expect(() => bus.publish('')).toThrow('Invalid publish request.');
 		});
 
 		it('should throw error if called with id', () => {
@@ -313,9 +297,7 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			expect(() => bus.publish(jsonrpcRequest as never)).toThrow(
-				'Invalid publish request.',
-			);
+			expect(() => bus.publish(jsonrpcRequest as never)).toThrow('Invalid publish request.');
 		});
 
 		it('should throw error if called without method', () => {
@@ -325,9 +307,7 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			expect(() => bus.publish(jsonrpcRequest as never)).toThrow(
-				'Invalid publish request.',
-			);
+			expect(() => bus.publish(jsonrpcRequest as never)).toThrow('Invalid publish request.');
 		});
 	});
 
