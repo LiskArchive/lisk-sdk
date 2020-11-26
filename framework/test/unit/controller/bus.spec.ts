@@ -216,6 +216,43 @@ describe('Bus', () => {
 				`Action '${action.module}:${action.name}' is not registered to bus.`,
 			);
 		});
+
+		it('should throw error if invoked without request', async () => {
+			// Act && Assert
+			await expect(bus.invoke(undefined as never)).rejects.toThrow('Invalid invoke request.');
+		});
+
+		it('should throw error if invoked with invalid json', async () => {
+			// Act && Assert
+			await expect(bus.invoke('\n')).rejects.toThrow('Invalid invoke request.');
+		});
+
+		it('should throw error if invoked with empty string', async () => {
+			// Act && Assert
+			await expect(bus.invoke('')).rejects.toThrow('Invalid invoke request.');
+		});
+
+		it('should throw error if invoked without method', async () => {
+			// Arrange
+			const jsonrpcRequest = {
+				id: 1,
+				jsonrpc: '2.0',
+			};
+
+			// Act && Assert
+			await expect(bus.invoke(jsonrpcRequest as never)).rejects.toThrow('Invalid invoke request.');
+		});
+
+		it('should throw error if invoked without id', async () => {
+			// Arrange
+			const jsonrpcRequest = {
+				jsonrpc: '2.0',
+				method: 'module:action',
+			};
+
+			// Act && Assert
+			await expect(bus.invoke(jsonrpcRequest as never)).rejects.toThrow('Invalid invoke request.');
+		});
 	});
 
 	describe('#publish', () => {
@@ -234,6 +271,43 @@ describe('Bus', () => {
 
 			// Assert
 			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(eventName, JSONRPCData);
+		});
+
+		it('should throw error if called without notification', () => {
+			// Act && Assert
+			expect(() => bus.publish(undefined as never)).toThrow('Invalid publish request.');
+		});
+
+		it('should throw error if called with invalid json', () => {
+			// Act && Assert
+			expect(() => bus.publish('\n')).toThrow('Invalid publish request.');
+		});
+
+		it('should throw error if called with empty string', () => {
+			// Act && Assert
+			expect(() => bus.publish('')).toThrow('Invalid publish request.');
+		});
+
+		it('should throw error if called with id', () => {
+			// Arrange
+			const jsonrpcRequest = {
+				id: 1,
+				jsonrpc: '2.0',
+				method: 'module:event',
+			};
+
+			// Act && Assert
+			expect(() => bus.publish(jsonrpcRequest as never)).toThrow('Invalid publish request.');
+		});
+
+		it('should throw error if called without method', () => {
+			// Arrange
+			const jsonrpcRequest = {
+				jsonrpc: '2.0',
+			};
+
+			// Act && Assert
+			expect(() => bus.publish(jsonrpcRequest as never)).toThrow('Invalid publish request.');
 		});
 	});
 
