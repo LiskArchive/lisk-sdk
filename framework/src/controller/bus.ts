@@ -167,10 +167,28 @@ export class Bus {
 	public async invoke<T>(
 		rawRequest: string | JSONRPC.RequestObject,
 	): Promise<JSONRPC.ResponseObjectWithResult<T>> {
-		const request =
+		let request!: JSONRPC.RequestObject;
+
+		// As the request can be invoked from external source, so we should validate if it exists and valid JSON object
+		if (!rawRequest) {
+			this.logger.error('Empty invoke request.');
+			throw new JSONRPC.JSONRPCError(
+				'Invalid invoke request.',
+				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+			);
+		}
+
+		try {
+			request =
 			typeof rawRequest === 'string'
 				? (JSON.parse(rawRequest) as JSONRPC.RequestObject)
 				: rawRequest;
+		} catch (error) {
+			throw new JSONRPC.JSONRPCError(
+				'Invalid invoke request.',
+				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+			);
+		}
 
 		try {
 			JSONRPC.validateJSONRPCRequest(request as never);
@@ -225,10 +243,28 @@ export class Bus {
 	}
 
 	public publish(rawRequest: string | JSONRPC.NotificationRequest): void {
-		const request =
+		let request!: JSONRPC.NotificationRequest;
+
+		// As the request can be invoked from external source, so we should validate if it exists and valid JSON object
+		if (!rawRequest) {
+			this.logger.error('Empty publish request.');
+			throw new JSONRPC.JSONRPCError(
+				'Invalid publish request.',
+				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+			);
+		}
+
+		try {
+			request =
 			typeof rawRequest === 'string'
-				? (JSON.parse(rawRequest) as JSONRPC.NotificationRequest)
+				? (JSON.parse(rawRequest) as JSONRPC.RequestObject)
 				: rawRequest;
+		} catch (error) {
+			throw new JSONRPC.JSONRPCError(
+				'Invalid publish request.',
+				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+			);
+		}
 
 		try {
 			JSONRPC.validateJSONRPCNotification(request as never);
