@@ -12,13 +12,13 @@ $ npm install --save @liskhq/lisk-framework-monitor-plugin
 
 ```
 {
-	port: number,
-	whiteList: string[],
-	cors: {
+	port?: number,
+	whiteList?: string[],
+	cors?: {
 		origin: string,
 		methods: string,
 	},
-	limits: {
+	limits?: {
 		max: number,
 		delayMs: number,
 		delayAfter: number,
