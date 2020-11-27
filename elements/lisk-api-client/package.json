@@ -45,7 +45,7 @@
 		"ws": "7.4.0"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-chain": "^0.2.0-alpha.4",
+		"@liskhq/lisk-chain": "^0.2.0-alpha.5",
 		"@types/jest": "26.0.13",
 		"@types/jest-when": "2.7.1",
 		"@types/node": "12.12.11",
