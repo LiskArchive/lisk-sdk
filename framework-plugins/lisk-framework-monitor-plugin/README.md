@@ -14,7 +14,6 @@ $ npm install --save @liskhq/lisk-framework-monitor-plugin
 {
 	port?: number,
 	whiteList?: string[],
-	webhook?: string[],
 	cors?: {
 		origin: string,
 		methods: string,
@@ -27,7 +26,6 @@ $ npm install --save @liskhq/lisk-framework-monitor-plugin
 		headersTimeout: number,
 		serverSetTimeout: number,
 	},
-	dataPath?: string,
 }
 ```
 

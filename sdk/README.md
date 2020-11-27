@@ -42,10 +42,10 @@ You can find further details on installing these dependencies in our [pre-instal
 
 ### Installation
 
-The installation of Lisk Alpha SDK is straightforward and limited to getting a single NPM package, `lisk-sdk`, to your Node.js project:
+The installation of Lisk Beta SDK is straightforward and limited to getting a single NPM package, `lisk-sdk`, to your Node.js project:
 
 ```
-npm install lisk-sdk@alpha
+npm install lisk-sdk@beta
 ```
 
 Lisk SDK is all-in-one package that provides you with tools to create, run and maintain blockchain applications in JavaScript.
@@ -89,9 +89,9 @@ const app = Application.defaultApplication(genesisBlockDevnet, {
         blockTime: 5,
         maxPayloadLength: 100 * 1024,
         minRemainingBalance: "5000000",
-		activeDelegates: 101,
-		standbyDelegates: 2,
-		delegateListRoundOffset: 2
+	activeDelegates: 101,
+	standbyDelegates: 2,
+	delegateListRoundOffset: 2
     },
     ...
 });
@@ -194,7 +194,7 @@ By using the Alpha release of the Lisk SDK, you acknowledge and agree that you h
 
 ## License
 
-Copyright 2016-2019 Lisk Foundation
+Copyright 2016-2020 Lisk Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
