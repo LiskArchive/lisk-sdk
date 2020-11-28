@@ -37,9 +37,9 @@
 		"test:ci": "TS_NODE_TRANSPILE_ONLY=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha",
 		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
-		"prebuild": "if test -d dist; then rm -r dist; fi; rm -f tsconfig.tsbuildinfo",
+		"prebuild": "if test -d dist; then rm -r dist; fi; rm -f tsconfig.tsbuildinfo; rm -f npm-shrinkwrap.json",
 		"build": "tsc",
-		"prepack": "oclif-dev manifest && npm shrinkwrap --production",
+		"prepack": "oclif-dev manifest && npm shrinkwrap && npm prune --production && npm shrinkwrap",
 		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm run build"
 	},
 	"oclif": {
