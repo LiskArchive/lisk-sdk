@@ -30,6 +30,10 @@ The Lisk SDK aims to provide an easy and reliable software development kit for b
 
 ## Usage
 
+### Documentation
+
+For more detailed documentation, see the [official Lisk SDK documentation](https://lisk.io/documentation/lisk-sdk).
+
 #### Dependencies
 
 Before running Lisk SDK, the following dependencies need to be installed in order to run applications created with the Lisk SDK:
@@ -37,8 +41,6 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 | Dependencies | Version |
 | ------------ | ------- |
 | NodeJS       | 12+     |
-
-You can find further details on installing these dependencies in our [pre-installation setup guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
 
 ### Installation
 
@@ -85,26 +87,22 @@ You can also define your blockchain application parameters such as `blockTime`, 
 ```js
 const app = Application.defaultApplication(genesisBlockDevnet, {
     genesisConfig: {
-        communityIdentifier: 'newChain',
-        blockTime: 5,
-        maxPayloadLength: 100 * 1024,
-        minRemainingBalance: "5000000",
-	activeDelegates: 101,
-	standbyDelegates: 2,
-	delegateListRoundOffset: 2
+      communityIdentifier: 'newChain',
+      blockTime: 5,
+      maxPayloadLength: 100 * 1024,
+      minRemainingBalance: "5000000",
+	  activeDelegates: 101,
+	  standbyDelegates: 2,
+	  delegateListRoundOffset: 2
     },
     ...
 });
 ```
 
-For a complete list of configuration options see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/lisk-sdk/configuration.md).
-
 ### Register a custom module or a custom plugin
 
 A custom module is a logic to define state changes that will be executed on-chain meaning that it will be a part of the blockchain protocol.
 On the other hand, a custom plugin is a logic to define an off-chain logic which is not part of the blockchain protocol but to enhance the application features.
-
-You can define [your own module](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) and [your own plugin](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) with Lisk-SDK.
 
 Add your custom module and custom plugin to your blockchain application by registering it to the application instance:
 
@@ -127,8 +125,6 @@ app
 		process.exit(1);
 	});
 ```
-
-For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
 
 ## Architecture Overview
 

@@ -20,12 +20,12 @@ Upon successful completion, NPM will add the `lisk-commander` executable `lisk` 
 $ lisk COMMAND
 running command...
 $ lisk (-v|--version|version)
-lisk-commander/5.0.0 darwin-x64 node-v12.18.3
+lisk-commander/5.0.0 darwin-x64 node-v12.20.0
 $ lisk --help [COMMAND]
 A command line interface for Lisk
 
 VERSION
-  lisk-commander/5.0.0 darwin-x64 node-v12.18.3
+  lisk-commander/5.0.0 darwin-x64 node-v12.20.0
 
 USAGE
   $ lisk [COMMAND]
