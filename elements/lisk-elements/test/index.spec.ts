@@ -12,47 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	APIClient,
-	constants,
-	cryptography,
-	p2p,
-	passphrase,
-	transactionPool,
-	transactions,
-	validator,
-} from '../src';
+// eslint-disable-next-line import/namespace
+import * as elements from '../src';
 
 describe('lisk-elements', () => {
-	it('APIClient should be a function', () => {
-		return expect(APIClient).toBeFunction();
-	});
-
-	it('constants should be an object', () => {
-		return expect(constants).toBeObject();
-	});
-
-	it('cryptography should be an object', () => {
-		return expect(cryptography).toBeObject();
-	});
-
-	it('p2p should be an object', () => {
-		return expect(p2p).toBeObject();
-	});
-
-	it('passphrase should be an object', () => {
-		return expect(passphrase).toBeObject();
-	});
-
-	it('transactionPool should be an object', () => {
-		return expect(transactionPool).toBeObject();
-	});
-
-	it('transactions should be an object', () => {
-		return expect(transactions).toBeObject();
-	});
-
-	it('validator should be an object', () => {
-		return expect(validator).toBeObject();
+	it('should not export unexpected libraries', () => {
+		return expect(Object.keys(elements)).toMatchSnapshot();
 	});
 });

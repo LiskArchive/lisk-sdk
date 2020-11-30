@@ -18,12 +18,12 @@ describe('job', () => {
 	let jobStub: jest.Mock;
 	const interval = 100000;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		jobStub = jest.fn().mockReturnValue(1);
 	});
 
 	describe('#constructor', () => {
-		it('should return a job instance', async () => {
+		it('should return a job instance', () => {
 			expect(new Job(jobStub, interval)).toBeInstanceOf(Job);
 		});
 	});
@@ -31,31 +31,34 @@ describe('job', () => {
 	describe('#start', () => {
 		let job: Job<number>;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			job = new Job(jobStub, interval);
 			jest.useFakeTimers();
 		});
 
-		it('should call the job stub', async () => {
+		it('should call the job stub', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			job.start();
 			jest.advanceTimersByTime(interval + 1);
-			expect(jobStub).toBeCalledTimes(1);
+			expect(jobStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should run twice when interval is passed two times', async () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			job.start();
 			jest.advanceTimersByTime(interval + 1);
 			return new Promise(resolve => {
 				// need to use nextTick because jest.advanceTimersByTime calls the callbacks in setTimeout but does not resolve the wrapping promises.
 				process.nextTick(() => {
 					jest.advanceTimersByTime(interval + 1);
-					expect(jobStub).toBeCalledTimes(2);
+					expect(jobStub).toHaveBeenCalledTimes(2);
 					resolve();
 				});
 			});
 		});
 
-		it('should set the id of the job', async () => {
+		it('should set the id of the job', () => {
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			job.start();
 			jest.advanceTimersByTime(interval + 1);
 			expect((job as any)._id).toBeDefined();
@@ -63,31 +66,33 @@ describe('job', () => {
 
 		it('should call this.run function only once on multiple start calls', () => {
 			const runStub = jest.spyOn(job as any, 'run');
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			job.start();
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			job.start();
-			expect(runStub).toBeCalledTimes(1);
+			expect(runStub).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('#end', () => {
 		let job: Job<number>;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			job = new Job(jobStub, interval);
 			jest.useFakeTimers();
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			job.start();
 		});
 
-		it('should not run the job after stop is called', async () => {
+		it('should not run the job after stop is called', () => {
 			job.stop();
 			jest.advanceTimersByTime(220000);
-			expect(jobStub).not.toBeCalled;
+			expect(jobStub).not.toHaveBeenCalled();
 		});
 
-		it('should set the id of the job to undefined', async () => {
+		it('should set the id of the job to undefined', () => {
 			job.stop();
 			expect((job as any)._id).toBeFalsy();
-			return;
 		});
 	});
 });

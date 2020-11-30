@@ -13,10 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	decryptPassphraseWithPassword,
-	parseEncryptedPassphrase,
-} from '@liskhq/lisk-cryptography';
+import { decryptPassphraseWithPassword, parseEncryptedPassphrase } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -28,13 +25,8 @@ interface Args {
 }
 
 const processInputs = (password: string, encryptedPassphrase: string) => {
-	const encryptedPassphraseObject = parseEncryptedPassphrase(
-		encryptedPassphrase,
-	);
-	const passphrase = decryptPassphraseWithPassword(
-		encryptedPassphraseObject,
-		password,
-	);
+	const encryptedPassphraseObject = parseEncryptedPassphrase(encryptedPassphrase);
+	const passphrase = decryptPassphraseWithPassword(encryptedPassphraseObject, password);
 
 	return { passphrase };
 };
@@ -69,8 +61,7 @@ export default class DecryptCommand extends BaseCommand {
 
 		const { encryptedPassphrase }: Args = args;
 
-		const password =
-			passwordSource ?? (await getPassphraseFromPrompt('password', true));
+		const password = passwordSource ?? (await getPassphraseFromPrompt('password', true));
 
 		const result = processInputs(password, encryptedPassphrase as string);
 		this.print(result);

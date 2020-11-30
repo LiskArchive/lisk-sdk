@@ -6,96 +6,29 @@
 
 ## What is Lisk Framework
 
-Lisk Framework is an application framework responsible for establishing and maintaining the interactions between the modules of a Lisk blockchain application.
-
-Lisk Framework aims to provide a consistent and intuitive interface between each module and component. Currently, Lisk Framework establishes interactions between the `chain`, `api` and `network` modules.
+Lisk Framework is an application framework to create a blockchain application compatible with the Lisk protocol.
+It provides an application where off-chain and on-chain logic can be extended with user defined plugins and modules.
 
 ### Architecture Overview
 
-The architecture of Lisk Framework follows the research documented in [LIP0005](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0005.md). The diagram below provides a high-level overview of the architecture:
+The diagram below provides a high-level overview of the architecture:
 
 ![Logo](./docs/assets/diagram_framework.png)
 
-## Installation and usage
+The framework consists of 3 main parts, an application, a controller and a node.
 
-To install and use Lisk Framework follow the steps described in the [Lisk SDK installation](https://github.com/LiskHQ/lisk-sdk#installation) and [usage](https://github.com/LiskHQ/lisk-sdk#usage) sections.
+The application is an entry point and manages the controller and the node. The node is responsible for blockchain protocol logic using user defined modules, while the controller is responsible for maintaining plugins and managing the interaction between plugins and the application.
+
+## Installation
+
+```sh
+$ npm install --save lisk-framework
+```
 
 ## Tests
 
-### Preparing Node
-
-1. Recreate the database to run the tests against a new blockchain:
-
 ```
-dropdb lisk_dev
-createdb lisk_dev
-```
-
-2. Launch Lisk (runs on port 4000):
-
-```
-NODE_ENV=test npm start
-```
-
-### Running Tests
-
-Starting from version `1.6.0`, Lisk Framework will be using [Jest](https://jestjs.io) as its main test runner with gradual deprecation of [mocha](https://mochajs.org). Since rewriting all existing mocha tests is not feasible at the moment, we have two test runners in our code base:
-
-- Modules (all source code under `framework/src/modules` folder) will be tested using `mocha` and test files should be located under `framework/test/mocha`.
-- Framework (all of the source files but `framework/src/modules`) will be tested using `jest` and test files should be located under `framework/test/jest`.
-- Functional and Network tests suites will be using `mocha` and test files should be located under `framework/test/mocha`.
-
-#### Running Mocha Tests
-
-Tests are run using the following command:
-
-```
-npm run mocha:<testType> -- [testPathPattern] [mochaCliOptions]
-```
-
-- Where **testType** can be one of `unit`, `integration`, `functional:ws`, `functional:get`, `functional:post`, `functional:put`, `functional`, `network` (required).
-- Where **testPathPattern** is a regexp pattern string that is matched against all tests paths before executing the test (optional).
-- Where **mochaCliOptions** can be any of mocha's [`command line options`](https://mochajs.org/#command-line-usage) (optional).
-
-Examples:
-
-```
-# Running unit tests
-npm run mocha:unit
-npm run mocha:unit -- --grep @slow
-npm run mocha:unit -- --grep @unstable
-### extensive
-npm run mocha:unit -- --grep="@unstable" --invert
-
-# Running functional tests
-npm run mocha:functional:ws
-npm run mocha:functional:get
-npm run mocha:functional:post
-npm run mocha:functional:put
-```
-
-Individual test files can be run using the following commands:
-
-```bash
-npm run mocha:unit -- <testPathPattern> [mochaCliOptions]
-```
-
-or
-
-```bash
-npm run mocha <filepath> [mochaCliOptions]
-```
-
-or
-
-```bash
-npx mocha <filepath> [mochaCliOptions]
-```
-
-#### Running Jest Tests
-
-```
-npm run jest:<testType>
+npm run test:<testType>
 ```
 
 `testType` can be `unit`|`integration`|`functional`
@@ -103,25 +36,14 @@ npm run jest:<testType>
 ##### Executing the tests per file:
 
 ```
-npm run jest:<testType> -- [testPathPattern] [jestCliOptions]
-```
-
-### API Performance and APM
-
-To access the API Performance of your Lisk Instance, navigate to `http://localhost:4000/http-stats/ui`. The APM doesn't store any of the performance metrics, neither it forwards to any external services. The stats are served from the point on the instance is up and running, once the instance is restarted it will not hold any stats.
-
-To access the stats, follow the steps below:
-
-```
-node test/test_app | npx bunyan
-Access: http://localhost:4000/http-stats/ui
+npm run test:<testType> -- [testPathPattern] [jestCliOptions]
 ```
 
 ## Contribution
 
 To test the changes in framework you can run,
 
-`node test/test_app` or `node test/test_app | npx bunyan`
+`node test/test_app`
 
 If you want to test the changes in `lisk-sdk/elements` to reflect in `lisk-sdk/framework`, please make sure you run `npm run build` at `lisk-sdk` after making any changes in elements library and run `node test/test_app`.
 
@@ -137,7 +59,7 @@ If you want to test the changes in `lisk-sdk/elements` to reflect in `lisk-sdk/f
 
 ## License
 
-Copyright 2016-2019 Lisk Foundation
+Copyright 2016-2020 Lisk Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

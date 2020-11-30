@@ -11,330 +11,166 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { codec } from '@liskhq/lisk-codec';
+import { dataStructures } from '@liskhq/lisk-utils';
+import {
+	Chain,
+	CONSENSUS_STATE_VALIDATORS_KEY,
+	validatorsSchema,
+	Validator,
+	BlockHeader,
+	StateStore,
+} from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
 import * as scenario4DelegatesSimple from '../bft_specs/4_delegates_simple.json';
 import * as scenario5DelegatesSwitchedCompletely from '../bft_specs/5_delegates_switched_completely.json';
 import * as scenario7DelegatesPartialSwitch from '../bft_specs/7_delegates_partial_switch.json';
 import * as scenario11DelegatesPartialSwitch from '../bft_specs/11_delegates_partial_switch.json';
+import {
+	FinalityManager,
+	CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
+	VotingLedger,
+	BFTVotingLedgerSchema,
+} from '../../src/finality_manager';
+import { StateStoreMock } from '../utils/state_store_mock';
+import { convertHeader } from '../fixtures/blocks';
 
-const bftScenarios = [
-	scenario4DelegatesMissedSlots,
-	scenario4DelegatesSimple,
-	scenario5DelegatesSwitchedCompletely,
-	scenario7DelegatesPartialSwitch,
-	scenario11DelegatesPartialSwitch,
-];
+const prevotesAndCommits = async (stateStore: StateStore) => {
+	const delegateLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATOR_LEDGER_KEY);
 
-import { FinalityManager } from '../../src/finality_manager';
-import { StateStoreMock } from '../unit/state_store_mock';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+	const delegateLedger = codec.decode<VotingLedger>(
+		BFTVotingLedgerSchema,
+		(delegateLedgerBuffer as unknown) as Buffer,
+	);
 
-const pick = (calcKeyPair: { [key: string]: number }, minHeight: number) =>
-	Object.keys(calcKeyPair).reduce((prev, key) => {
-		if (parseInt(key) >= minHeight) {
-			prev[key] = calcKeyPair[key];
+	const precommits = delegateLedger.ledger.reduce((acc: any, curr) => {
+		if (curr.precommits > 0) {
+			acc[curr.height] = curr.precommits;
 		}
-		return prev;
-	}, {} as { [key: string]: number });
+		return acc;
+	}, {});
+
+	const prevotes = delegateLedger.ledger.reduce((acc: any, curr) => {
+		if (curr.prevotes > 0) {
+			acc[curr.height] = curr.prevotes;
+		}
+		return acc;
+	}, {});
+
+	return { precommits, prevotes };
+};
 
 describe('FinalityManager', () => {
-	let chainStub: {
-		dataAccess: {
-			getBlockHeadersByHeightBetween: jest.Mock;
-			getLastBlockHeader: jest.Mock;
-		};
-		slots: {
-			getSlotNumber: jest.Mock;
-			isWithinTimeslot: jest.Mock;
-			getEpochTime: jest.Mock;
-		};
-	};
-	let dposStub: {
-		getMinActiveHeight: jest.Mock;
-		isStandbyDelegate: jest.Mock;
-	};
-	let stateStore: StateStoreMock;
+	// Arrange
+	const bftScenarios = [
+		scenario4DelegatesMissedSlots,
+		scenario4DelegatesSimple,
+		scenario5DelegatesSwitchedCompletely,
+		scenario7DelegatesPartialSwitch,
+		scenario11DelegatesPartialSwitch,
+	];
+	let chainStub: Chain;
+	let stateStore: StateStore;
 
 	describe('addBlockHeader', () => {
 		for (const scenario of bftScenarios) {
+			// eslint-disable-next-line no-loop-func
 			describe(`when running scenario "${scenario.handler}"`, () => {
 				let finalityManager: FinalityManager;
 
-				beforeAll(async () => {
-					chainStub = {
-						dataAccess: {
-							getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
-							getLastBlockHeader: jest.fn().mockResolvedValue([]),
-						},
+				beforeAll(() => {
+					chainStub = ({
 						slots: {
 							getSlotNumber: jest.fn(),
 							isWithinTimeslot: jest.fn(),
-							getEpochTime: jest.fn(),
+							timeSinceGenesis: jest.fn(),
 						},
-					};
-					dposStub = {
-						getMinActiveHeight: jest.fn(),
-						isStandbyDelegate: jest.fn(),
-					};
-					stateStore = new StateStoreMock();
+						dataAccess: {
+							getConsensusState: jest.fn(),
+						},
+						numberOfValidators: scenario.config.activeDelegates,
+					} as unknown) as Chain;
+
 					finalityManager = new FinalityManager({
 						chain: chainStub,
-						dpos: dposStub,
 						finalizedHeight: scenario.config.finalizedHeight,
-						activeDelegates: scenario.config.activeDelegates,
+						threshold: Math.floor((scenario.config.activeDelegates * 2) / 3) + 1,
 					});
 
-					const blockHeaders = (scenario.testCases as any).map(
-						(tc: any) => tc.input.blockHeader,
+					stateStore = (new StateStoreMock() as unknown) as StateStore;
+
+					const blockHeaders = (scenario.testCases as any).map((tc: any) =>
+						convertHeader(tc.input.blockHeader),
 					);
-					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
-						(from: number, to: number) => {
-							const headers = blockHeaders.filter(
-								(bf: any) => bf.height >= from && bf.height <= to,
-							);
-							headers.sort((a: any, b: any) => b.height - a.height);
-							return Promise.resolve(headers);
-						},
-					);
-					dposStub.getMinActiveHeight.mockImplementation(
-						(height: number, address: string) => {
-							const header = blockHeaders.find(
-								(bh: any) =>
-									bh.height === height &&
-									getAddressFromPublicKey(bh.generatorPublicKey) === address,
-							);
-							return Promise.resolve(header.delegateMinHeightActive);
-						},
-					);
+					blockHeaders.sort((a: any, b: any) => b.height - a.height);
 				});
 
 				for (const testCase of scenario.testCases) {
+					// eslint-disable-next-line no-loop-func
 					it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
+						// Arrange
+						const blockHeaders: BlockHeader[] = [];
+						const validatorsMap = new dataStructures.BufferMap<Validator>();
+						for (const tc of scenario.testCases) {
+							blockHeaders.push(convertHeader(tc.input.blockHeader));
+							if (tc.input.blockHeader.height <= testCase.input.blockHeader.height) {
+								const addr = getAddressFromPublicKey(
+									Buffer.from(tc.input.blockHeader.generatorPublicKey, 'hex'),
+								);
+								validatorsMap.set(addr, {
+									address: addr,
+									isConsensusParticipant: true,
+									minActiveHeight: tc.input.blockHeader.delegateMinHeightActive,
+								});
+							}
+						}
+						blockHeaders.sort((a: any, b: any) => b.height - a.height);
+						const filteredBlockHeaders = blockHeaders.filter(
+							(bh: any) => bh.height < testCase.input.blockHeader.height,
+						);
+
+						stateStore.consensus.set(
+							CONSENSUS_STATE_VALIDATORS_KEY,
+							codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
+						);
+						(stateStore.chain as any).lastBlockHeaders = filteredBlockHeaders;
+
+						// Act
 						await finalityManager.addBlockHeader(
-							testCase.input.blockHeader as any,
+							convertHeader(testCase.input.blockHeader),
 							stateStore,
 						);
 
-						expect((finalityManager as any).preCommits).toEqual(
-							testCase.output.preCommits,
-						);
+						// Arrange &  Assert
+						const { precommits, prevotes } = await prevotesAndCommits(stateStore);
+						const expectedPreCommits: any = { ...testCase.output.preCommits };
 
-						expect((finalityManager as any).preVotes).toEqual(
-							testCase.output.preVotes,
-						);
+						Object.keys(expectedPreCommits)
+							.filter(
+								height =>
+									parseInt(height, 10) <=
+									testCase.input.blockHeader.height - finalityManager.maxHeaders,
+							)
+							.forEach(key => {
+								delete expectedPreCommits[key];
+							});
 
-						expect(finalityManager.finalizedHeight).toEqual(
-							testCase.output.finalizedHeight,
-						);
+						expect(precommits).toEqual(expectedPreCommits);
 
-						expect(finalityManager.chainMaxHeightPrevoted).toEqual(
-							testCase.output.preVotedConfirmedHeight,
+						expect(prevotes).toEqual(testCase.output.preVotes);
+
+						expect(finalityManager.finalizedHeight).toEqual(testCase.output.finalizedHeight);
+
+						const updatedBftLedgers = await stateStore.consensus.get(
+							CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 						);
+						const { ledger } = finalityManager['_decodeVotingLedger'](updatedBftLedgers);
+						const preVoted = finalityManager['_calculateMaxHeightPrevoted'](ledger);
+						expect(preVoted).toEqual(testCase.output.preVotedConfirmedHeight);
 					});
 				}
-			});
-		}
-	});
-
-	describe('recompute', () => {
-		for (const scenario of bftScenarios) {
-			let finalityManager: FinalityManager;
-
-			beforeAll(async () => {
-				chainStub = {
-					dataAccess: {
-						getBlockHeadersByHeightBetween: jest.fn(),
-						getLastBlockHeader: jest.fn(),
-					},
-					slots: {
-						getSlotNumber: jest.fn(),
-						isWithinTimeslot: jest.fn(),
-						getEpochTime: jest.fn(),
-					},
-				};
-				dposStub = {
-					getMinActiveHeight: jest.fn(),
-					isStandbyDelegate: jest.fn(),
-				};
-				stateStore = new StateStoreMock();
-				finalityManager = new FinalityManager({
-					chain: chainStub,
-					dpos: dposStub,
-					finalizedHeight: scenario.config.finalizedHeight,
-					activeDelegates: scenario.config.activeDelegates,
-				});
-				const blockHeaders = (scenario.testCases as any).map(
-					(tc: any) => tc.input.blockHeader,
-				);
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
-					(from: number, to: number) => {
-						const headers = blockHeaders.filter(
-							(bf: any) => bf.height >= from && bf.height <= to,
-						);
-						headers.sort((a: any, b: any) => b.height - a.height);
-						return Promise.resolve(headers);
-					},
-				);
-				dposStub.getMinActiveHeight.mockImplementation(
-					(height: number, address: string) => {
-						const header = blockHeaders.find(
-							(bh: any) =>
-								bh.height === height &&
-								getAddressFromPublicKey(bh.generatorPublicKey) === address,
-						);
-						return Promise.resolve(header.delegateMinHeightActive);
-					},
-				);
-			});
-
-			describe(`when running scenario "${scenario.handler}"`, () => {
-				it('should have accurate information after recompute', async () => {
-					// Let's first compute in proper way
-					for (const testCase of scenario.testCases) {
-						await finalityManager.addBlockHeader(
-							testCase.input.blockHeader as any,
-							stateStore,
-						);
-					}
-
-					const lastTestCaseOutput =
-						scenario.testCases[scenario.testCases.length - 1].output;
-
-					// Values should match with expectations
-					expect((finalityManager as any).preCommits).toEqual(
-						lastTestCaseOutput.preCommits,
-					);
-					expect((finalityManager as any).preVotes).toEqual(
-						lastTestCaseOutput.preVotes,
-					);
-					expect(finalityManager.finalizedHeight).toEqual(
-						lastTestCaseOutput.finalizedHeight,
-					);
-					expect(finalityManager.chainMaxHeightPrevoted).toEqual(
-						lastTestCaseOutput.preVotedConfirmedHeight,
-					);
-
-					const heightMax = (scenario.testCases as any).reduce(
-						(prev: number, current: any) => {
-							if (current.input.blockHeader.height > prev) {
-								return current.input.blockHeader.height;
-							}
-							return prev;
-						},
-						0,
-					);
-
-					// Now recompute all information again
-					await finalityManager.recompute(heightMax, stateStore);
-
-					// Values should match with expectations
-					expect(finalityManager.finalizedHeight).toEqual(
-						lastTestCaseOutput.finalizedHeight,
-					);
-					expect(finalityManager.chainMaxHeightPrevoted).toEqual(
-						lastTestCaseOutput.preVotedConfirmedHeight,
-					);
-
-					// While re-compute we don't have full list of block headers
-					// due to max limit on the block headers we can store (5 rounds).
-					// Due to this we don't have pre-votes and pre-commits fo every
-					// height we had before re-compute.
-					// Although this does not impact the computation of finalizedHeight
-					// or preVotedConfirmedHeight
-					expect(lastTestCaseOutput.preCommits).toEqual(
-						expect.objectContaining((finalityManager as any).preCommits),
-					);
-
-					const minHeight = heightMax - finalityManager.processingThreshold;
-					expect(pick((finalityManager as any).preVotes, minHeight)).toEqual(
-						pick(lastTestCaseOutput.preVotes as any, minHeight),
-					);
-				});
-			});
-		}
-	});
-
-	describe('removeBlockHeaders', () => {
-		for (const scenario of bftScenarios) {
-			let finalityManager: FinalityManager;
-
-			beforeAll(async () => {
-				chainStub = {
-					dataAccess: {
-						getBlockHeadersByHeightBetween: jest.fn(),
-						getLastBlockHeader: jest.fn(),
-					},
-					slots: {
-						getSlotNumber: jest.fn(),
-						isWithinTimeslot: jest.fn(),
-						getEpochTime: jest.fn(),
-					},
-				};
-				dposStub = {
-					getMinActiveHeight: jest.fn(),
-					isStandbyDelegate: jest.fn(),
-				};
-				stateStore = new StateStoreMock();
-				finalityManager = new FinalityManager({
-					chain: chainStub,
-					dpos: dposStub,
-					finalizedHeight: scenario.config.finalizedHeight,
-					activeDelegates: scenario.config.activeDelegates,
-				});
-				const blockHeaders = (scenario.testCases as any).map(
-					(tc: any) => tc.input.blockHeader,
-				);
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
-					(from: number, to: number) => {
-						const headers = blockHeaders.filter(
-							(bf: any) => bf.height >= from && bf.height <= to,
-						);
-						headers.sort((a: any, b: any) => b.height - a.height);
-						return Promise.resolve(headers);
-					},
-				);
-				dposStub.getMinActiveHeight.mockImplementation(
-					(height: number, address: string) => {
-						const header = blockHeaders.find(
-							(bh: any) =>
-								bh.height === height &&
-								getAddressFromPublicKey(bh.generatorPublicKey) === address,
-						);
-						return Promise.resolve(header.delegateMinHeightActive);
-					},
-				);
-			});
-
-			describe(`when running scenario "${scenario.handler}"`, () => {
-				it('should have accurate information after recompute', async () => {
-					// Arrange - Let's first compute in proper way
-					for (const testCase of scenario.testCases) {
-						await finalityManager.addBlockHeader(
-							testCase.input.blockHeader as any,
-							stateStore,
-						);
-					}
-					const testCaseInMiddle =
-						scenario.testCases[Math.ceil(scenario.testCases.length / 2)];
-					const {
-						input: testCaseInput,
-						output: testCaseOutput,
-					} = testCaseInMiddle;
-
-					// Act - Now all headers above that step
-					await finalityManager.recompute(
-						testCaseInput.blockHeader.height,
-						stateStore,
-					);
-
-					// Assert - Values should match with out of that step
-					expect(finalityManager.finalizedHeight).toEqual(
-						testCaseOutput.finalizedHeight,
-					);
-					expect(finalityManager.chainMaxHeightPrevoted).toEqual(
-						testCaseOutput.preVotedConfirmedHeight,
-					);
-				});
 			});
 		}
 	});

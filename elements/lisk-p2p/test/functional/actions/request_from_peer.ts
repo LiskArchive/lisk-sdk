@@ -24,21 +24,21 @@ describe('P2P.requestFromPeer', () => {
 
 		collectedMessages = [];
 
-		for (let p2p of p2pNodeList) {
-			p2p.on('requestReceived', request => {
+		for (const p2p of p2pNodeList) {
+			// eslint-disable-next-line no-loop-func
+			p2p.on('EVENT_REQUEST_RECEIVED', request => {
 				if (request.procedure === 'foo') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						request,
 					});
 				}
 
 				if (request.procedure === 'getGreeting') {
-					request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`);
-				} else {
-					if (!request.wasResponseSent) {
-						request.end(456);
-					}
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					request.end(`Hello ${request.data} from peer ${p2p.config.port}`);
+				} else if (!request.wasResponseSent) {
+					request.end(456);
 				}
 			});
 		}
@@ -58,10 +58,10 @@ describe('P2P.requestFromPeer', () => {
 				procedure: 'foo',
 				data: 123456,
 			},
-			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
+			`${targetPeer.ipAddress}:${targetPeer.port}`,
 		);
 
-		expect(collectedMessages.length).toBe(1);
+		expect(collectedMessages).toHaveLength(1);
 		expect(collectedMessages[0]).toHaveProperty('request');
 		expect(collectedMessages[0].request.procedure).toBe('foo');
 		expect(collectedMessages[0].request.data).toBe(123456);
@@ -77,10 +77,10 @@ describe('P2P.requestFromPeer', () => {
 				procedure: 'getGreeting',
 				data: 'world',
 			},
-			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
+			`${targetPeer.ipAddress}:${targetPeer.port}`,
 		);
 
 		expect(response).toHaveProperty('data');
-		expect(response.data).toBe(`Hello world from peer ${targetPeer.wsPort}`);
+		expect(response.data).toBe(`Hello world from peer ${targetPeer.port}`);
 	});
 });

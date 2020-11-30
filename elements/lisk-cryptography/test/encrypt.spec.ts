@@ -20,20 +20,26 @@ import {
 	decryptPassphraseWithPassword,
 } from '../src/encrypt';
 // Require is used for stubbing
+// eslint-disable-next-line
 const convert = require('../src/convert');
+// eslint-disable-next-line
 const keys = require('../src/keys');
+// eslint-disable-next-line
 const hashModule = require('../src/hash');
 
 describe('encrypt', () => {
-	const regHexadecimal: RegExp = /[0-9A-Za-z]/g;
+	const regHexadecimal = /[0-9A-Za-z]/g;
 	const PBKDF2_ITERATIONS = 1e6;
 	const ENCRYPTION_VERSION = '1';
-	const defaultPassphrase =
-		'minute omit local rare sword knee banner pair rib museum shadow juice';
-	const defaultPrivateKey =
-		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
-	const defaultPublicKey =
-		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
+	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
+	const defaultPrivateKey = Buffer.from(
+		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588',
+		'hex',
+	);
+	const defaultPublicKey = Buffer.from(
+		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588',
+		'hex',
+	);
 	const defaultMessage = 'Some default text.';
 	const defaultPassword = 'myTotal53cr3t%&';
 	const customIterations = 12;
@@ -42,45 +48,33 @@ describe('encrypt', () => {
 
 	let hashStub: any;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		defaultEncryptedMessageWithNonce = {
-			encryptedMessage:
-				'299390b9cbb92fe6a43daece2ceaecbacd01c7c03cfdba51d693b5c0e2b65c634115',
+			encryptedMessage: '299390b9cbb92fe6a43daece2ceaecbacd01c7c03cfdba51d693b5c0e2b65c634115',
 			nonce: 'df4c8b09e270d2cb3f7b3d53dfa8a6f3441ad3b14a13fb66',
 		};
 		jest
 			.spyOn(convert, 'convertPrivateKeyEd2Curve')
 			.mockReturnValue(
-				Buffer.from(
-					'd8be8cacb03fb02f34e85030f902b635f364d6c23f090c7640e9dc9c568e7d5e',
-					'hex',
-				),
+				Buffer.from('d8be8cacb03fb02f34e85030f902b635f364d6c23f090c7640e9dc9c568e7d5e', 'hex'),
 			);
 		jest
 			.spyOn(convert, 'convertPublicKeyEd2Curve')
 			.mockReturnValue(
-				Buffer.from(
-					'f245e78c83196d73452e55581ef924a1b792d352c142257aa3af13cded2e7905',
-					'hex',
-				),
+				Buffer.from('f245e78c83196d73452e55581ef924a1b792d352c142257aa3af13cded2e7905', 'hex'),
 			);
 
-		jest
-			.spyOn(keys, 'getPrivateAndPublicKeyBytesFromPassphrase')
-			.mockImplementation(() => {
-				return {
-					privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-					publicKey: Buffer.from(defaultPublicKey, 'hex'),
-				};
-			});
+		jest.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
+			return {
+				privateKey: defaultPrivateKey,
+				publicKey: defaultPublicKey,
+			};
+		});
 
 		hashStub = jest
 			.spyOn(hashModule, 'hash')
 			.mockReturnValue(
-				Buffer.from(
-					'd43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760',
-					'hex',
-				),
+				Buffer.from('d43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760', 'hex'),
 			);
 		return Promise.resolve();
 	});
@@ -88,7 +82,7 @@ describe('encrypt', () => {
 	describe('#encryptMessageWithPassphrase', () => {
 		let encryptedMessage: EncryptedMessageWithNonce;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			encryptedMessage = encryptMessageWithPassphrase(
 				defaultMessage,
 				defaultPassphrase,
@@ -103,7 +97,7 @@ describe('encrypt', () => {
 		});
 
 		it('should output the nonce', () => {
-			expect(encryptedMessage);
+			expect(encryptedMessage).not.toBeUndefined();
 			expect(encryptedMessage).toHaveProperty('nonce');
 			expect(regHexadecimal.test(encryptedMessage.nonce)).toBe(true);
 		});
@@ -130,7 +124,7 @@ describe('encrypt', () => {
 					defaultPassphrase,
 					defaultPublicKey,
 				),
-			).toThrowError('Expected nonce to be 24 bytes.');
+			).toThrow('Expected nonce to be 24 bytes.');
 		});
 
 		it('should inform the user if something goes wrong during decryption', () => {
@@ -142,30 +136,22 @@ describe('encrypt', () => {
 					defaultPassphrase,
 					defaultPublicKey,
 				),
-			).toThrowError(
-				'Something went wrong during decryption. Is this the full encrypted message?',
-			);
+			).toThrow('Something went wrong during decryption. Is this the full encrypted message?');
 		});
 	});
 
 	describe('encrypt and decrypt passphrase with password', () => {
 		beforeEach(() => {
 			hashStub.mockReturnValue(
-				Buffer.from(
-					'e09dfc943d65d63f4f31e444c81afc6d5cf442c988fb87180165dd7119d3ae61',
-					'hex',
-				),
+				Buffer.from('e09dfc943d65d63f4f31e444c81afc6d5cf442c988fb87180165dd7119d3ae61', 'hex'),
 			);
 		});
 
 		describe('#encryptPassphraseWithPassword', () => {
 			let encryptedPassphrase: EncryptedPassphraseObject;
 
-			beforeEach(() => {
-				encryptedPassphrase = encryptPassphraseWithPassword(
-					defaultPassphrase,
-					defaultPassword,
-				);
+			beforeEach(async () => {
+				encryptedPassphrase = encryptPassphraseWithPassword(defaultPassphrase, defaultPassword);
 				return Promise.resolve();
 			});
 
@@ -193,17 +179,11 @@ describe('encrypt', () => {
 			});
 
 			it('should output the current version of Lisk Elements', () => {
-				expect(encryptedPassphrase).toHaveProperty(
-					'version',
-					ENCRYPTION_VERSION,
-				);
+				expect(encryptedPassphrase).toHaveProperty('version', ENCRYPTION_VERSION);
 			});
 
 			it('should output the default number of iterations', () => {
-				expect(encryptedPassphrase).toHaveProperty(
-					'iterations',
-					PBKDF2_ITERATIONS,
-				);
+				expect(encryptedPassphrase).toHaveProperty('iterations', PBKDF2_ITERATIONS);
 			});
 
 			it('should accept and output a custom number of iterations', () => {
@@ -220,7 +200,7 @@ describe('encrypt', () => {
 		});
 
 		describe('#decryptPassphraseWithPassword', () => {
-			let encryptedPassphrase = {
+			const encryptedPassphrase = {
 				iterations: undefined,
 				cipherText:
 					'5cfd7bcc13022a482e7c8bd250cd73ef3eb7c49c849d5e761ce717608293f777cca8e0e18587ee307beab65bcc1b273caeb23d4985010b675391b354c38f8e84e342c1e7aa',
@@ -231,25 +211,19 @@ describe('encrypt', () => {
 			};
 
 			it('should decrypt a passphrase with a password', () => {
-				const decrypted = decryptPassphraseWithPassword(
-					encryptedPassphrase,
-					defaultPassword,
-				);
+				const decrypted = decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword);
 				expect(decrypted).toBe(defaultPassphrase);
 			});
 
 			it('should inform the user if cipherText is missing', () => {
-				const {
-					cipherText,
-					...encryptedPassphraseWithoutCipherText
-				} = encryptedPassphrase;
+				const { cipherText, ...encryptedPassphraseWithoutCipherText } = encryptedPassphrase;
 				expect(
 					decryptPassphraseWithPassword.bind(
 						null,
 						encryptedPassphraseWithoutCipherText as any,
 						defaultPassword,
 					),
-				).toThrowError('Cipher text must be a string.');
+				).toThrow('Cipher text must be a string.');
 			});
 
 			it('should inform the user if iv is missing', () => {
@@ -260,7 +234,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithoutIv as any,
 						defaultPassword,
 					),
-				).toThrowError('IV must be a string.');
+				).toThrow('IV must be a string.');
 			});
 
 			it('should inform the user if salt is missing', () => {
@@ -271,7 +245,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithoutSalt as any,
 						defaultPassword,
 					),
-				).toThrowError('Salt must be a string.');
+				).toThrow('Salt must be a string.');
 			});
 
 			it('should inform the user if tag is missing', () => {
@@ -282,7 +256,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithoutTag as any,
 						defaultPassword,
 					),
-				).toThrowError('Tag must be a string.');
+				).toThrow('Tag must be a string.');
 			});
 
 			it('should inform the user if the salt has been altered', () => {
@@ -297,7 +271,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithAlteredSalt,
 						defaultPassword,
 					),
-				).toThrowError('Unsupported state or unable to authenticate data');
+				).toThrow('Unsupported state or unable to authenticate data');
 			});
 
 			it('should inform the user if the tag has been shortened', () => {
@@ -312,7 +286,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithAlteredTag,
 						defaultPassword,
 					),
-				).toThrowError('Tag must be 16 bytes.');
+				).toThrow('Tag must be 16 bytes.');
 			});
 
 			it('should inform the user if the tag is not a hex string', () => {
@@ -327,7 +301,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithAlteredTag,
 						defaultPassword,
 					),
-				).toThrowError('Tag must be a valid hex string.');
+				).toThrow('Tag must be a valid hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {
@@ -342,7 +316,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithAlteredTag,
 						defaultPassword,
 					),
-				).toThrowError('Unsupported state or unable to authenticate data');
+				).toThrow('Unsupported state or unable to authenticate data');
 			});
 
 			it('should decrypt a passphrase with a password and a custom number of iterations', () => {
@@ -369,10 +343,7 @@ describe('encrypt', () => {
 					defaultPassphrase,
 					defaultPassword,
 				);
-				const decryptedString = decryptPassphraseWithPassword(
-					encryptedPassphrase,
-					defaultPassword,
-				);
+				const decryptedString = decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword);
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 
@@ -382,10 +353,7 @@ describe('encrypt', () => {
 					defaultPassword,
 					customIterations,
 				);
-				const decryptedString = decryptPassphraseWithPassword(
-					encryptedPassphrase,
-					defaultPassword,
-				);
+				const decryptedString = decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword);
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 		});

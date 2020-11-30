@@ -13,11 +13,7 @@
  *
  */
 import { P2P } from '../../../src/index';
-import {
-	createNetwork,
-	destroyNetwork,
-	SEED_PEER_IP,
-} from '../../utils/network_setup';
+import { createNetwork, destroyNetwork, SEED_PEER_IP } from '../../utils/network_setup';
 import { constructPeerId } from '../../../src/utils';
 
 describe('P2P.sendToPeer', () => {
@@ -31,7 +27,7 @@ describe('P2P.sendToPeer', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should send message to a specific peer within the network', async () => {
+	it('should send message to a specific peer within the network', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		const targetPeer = firstP2PNode.getConnectedPeers()[0];
@@ -41,12 +37,12 @@ describe('P2P.sendToPeer', () => {
 				event: 'foo',
 				data: 123,
 			},
-			constructPeerId(targetPeer.ipAddress, targetPeer.wsPort),
+			constructPeerId(targetPeer.ipAddress, targetPeer.port),
 		);
 
-		p2pNodeList[1].on('messageReceived', msg => {
+		p2pNodeList[1].on('EVENT_MESSAGE_RECEIVED', msg => {
 			expect(msg).toMatchObject({
-				peerId: constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort),
+				peerId: constructPeerId(SEED_PEER_IP, firstP2PNode.config.port),
 				event: 'foo',
 				data: 123,
 			});

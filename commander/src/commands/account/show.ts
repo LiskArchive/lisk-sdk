@@ -13,21 +13,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey, getKeys } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	getKeys,
+	getBase32AddressFromPublicKey,
+} from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
 import { flags as commonFlags } from '../../utils/flags';
 import { getPassphraseFromPrompt } from '../../utils/reader';
 
-const processInput = (passphrase: string) => {
+const processInput = (
+	passphrase: string,
+): {
+	privateKey: string;
+	publicKey: string;
+	address: string;
+	binaryAddress: string;
+} => {
 	const { privateKey, publicKey } = getKeys(passphrase);
-	const address = getAddressFromPublicKey(publicKey);
+	const binaryAddress = getAddressFromPublicKey(publicKey);
+	const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
 
 	return {
-		privateKey,
-		publicKey,
+		privateKey: privateKey.toString('hex'),
+		publicKey: publicKey.toString('hex'),
 		address,
+		binaryAddress: binaryAddress.toString('hex'),
 	};
 };
 
@@ -47,8 +60,7 @@ export default class ShowCommand extends BaseCommand {
 		const {
 			flags: { passphrase: passphraseSource },
 		} = this.parse(ShowCommand);
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
 		this.print(processInput(passphrase));
 	}

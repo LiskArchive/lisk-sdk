@@ -16,35 +16,20 @@
 import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as readerUtils from '../../../src/utils/reader';
 
 describe('account:show', () => {
-	const defaultKeys = {
-		publicKey: 'somePublicKey',
-		privateKey: 'somePrivateKey',
-	};
-	const defaultAddress = 'someAddress';
 	const passphraseInput =
 		'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry';
+	const secondDefaultMnemonic =
+		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(cryptography, 'getKeys', sandbox.stub().returns(defaultKeys))
-			.stub(
-				cryptography,
-				'getAddressFromPublicKey',
-				sandbox.stub().returns(defaultAddress),
-			)
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(passphraseInput),
-			);
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(passphraseInput));
 
 	describe('account:show', () => {
 		setupTest()
@@ -52,25 +37,34 @@ describe('account:show', () => {
 			.command(['account:show'])
 			.it('should show account with prompt', () => {
 				expect(printUtils.print).to.be.called;
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				return expect(printMethodStub).to.be.calledWithExactly({
-					...defaultKeys,
-					address: defaultAddress,
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase', true);
+				return expect(printMethodStub).to.be.calledWith({
+					privateKey: cryptography.getKeys(passphraseInput).privateKey.toString('hex'),
+					publicKey: cryptography.getKeys(passphraseInput).publicKey.toString('hex'),
+					address: cryptography.getBase32AddressFromPublicKey(
+						cryptography.getKeys(passphraseInput).publicKey,
+						'lsk',
+					),
+					binaryAddress: cryptography.getAddressFromPassphrase(passphraseInput).toString('hex'),
 				});
 			});
 
 		setupTest()
 			.stdout()
-			.command(['account:show', '--passphrase=123'])
+			.command(['account:show', `--passphrase=${secondDefaultMnemonic}`])
 			.it('should show account with pass', () => {
 				expect(printUtils.print).to.be.called;
 				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 				return expect(printMethodStub).to.be.calledWith({
-					...defaultKeys,
-					address: defaultAddress,
+					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
+					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
+					address: cryptography.getBase32AddressFromPublicKey(
+						cryptography.getKeys(secondDefaultMnemonic).publicKey,
+						'lsk',
+					),
+					binaryAddress: cryptography
+						.getAddressFromPassphrase(secondDefaultMnemonic)
+						.toString('hex'),
 				});
 			});
 	});

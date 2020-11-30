@@ -35,9 +35,7 @@ const generateBlockHeader = ({
 	const generatorPublicKey = getKeys(delegateName).publicKey;
 
 	// Generate a deterministic block id from a block height
-	const id = BigNum.fromBuffer(
-		hash(height.toString(), 'utf8').slice(0, 8),
-	).toString();
+	const id = BigNum.fromBuffer(hash(height.toString(), 'utf8').slice(0, 8)).toString();
 
 	return {
 		id,
@@ -60,8 +58,7 @@ const generateBlockHeadersSeries = ({ activeDelegates, count }) => {
 		return generateBlockHeader({
 			delegateName: `D${height % activeDelegates}`,
 			height,
-			maxHeightPreviouslyForged:
-				maxHeightPreviouslyForged < 0 ? 0 : maxHeightPreviouslyForged,
+			maxHeightPreviouslyForged: maxHeightPreviouslyForged < 0 ? 0 : maxHeightPreviouslyForged,
 			maxHeightPrevoted: maxHeightPrevoted < 0 ? 0 : maxHeightPrevoted,
 			delegateMinHeightActive: 1,
 		});

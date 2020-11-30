@@ -12,44 +12,45 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	sanitizeIncomingPeerInfo,
-	sanitizeInitialPeerInfo,
-} from '../../../src/utils';
+import { sanitizeIncomingPeerInfo, sanitizeInitialPeerInfo } from '../../../src/utils';
 import { initPeerInfoList } from '../../utils/peers';
 
 describe('utils/sanitize', () => {
 	describe('#sanitizeIncomingPeerInfo', () => {
 		describe('when rawPeerInfo is valid', () => {
-			it('should return the peerInfo with peerId', async () => {
+			it('should return the peerInfo with peerId', () => {
 				const samplePeers = initPeerInfoList();
-				const { ipAddress, wsPort, sharedState } = samplePeers[0];
+				const { ipAddress, port, sharedState, peerId } = samplePeers[0];
+				const samplePeerWithoutInternalState = {
+					ipAddress,
+					port,
+					sharedState,
+					peerId,
+				};
 				const protocolPeerInfo = {
 					ipAddress,
-					wsPort,
+					port,
 					...sharedState,
 				};
 
-				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
-					samplePeers[0],
-				);
+				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(samplePeerWithoutInternalState);
 			});
 		});
 		describe('when rawPeerInfo is falsy', () => {
-			it('should return undefined', async () => {
+			it('should return undefined', () => {
 				const undefinedPeerInfo = undefined;
 				const nullPeerInfo = null;
 
-				expect(sanitizeIncomingPeerInfo(undefinedPeerInfo)).toEqual(undefined);
-				expect(sanitizeIncomingPeerInfo(nullPeerInfo)).toEqual(undefined);
+				expect(sanitizeIncomingPeerInfo(undefinedPeerInfo)).toBeUndefined();
+				expect(sanitizeIncomingPeerInfo(nullPeerInfo)).toBeUndefined();
 			});
 		});
 	});
 
 	describe('#sanitizeInitialPeerInfo', () => {
-		it('should return only sanitized fields', async () => {
+		it('should return only sanitized fields', () => {
 			const samplePeers = initPeerInfoList();
-			const { peerId, ipAddress, wsPort } = samplePeers[0];
+			const { peerId, ipAddress, port } = samplePeers[0];
 
 			const protocolPeerInfo = {
 				...samplePeers[0],
@@ -58,26 +59,30 @@ describe('utils/sanitize', () => {
 			expect(sanitizeInitialPeerInfo(protocolPeerInfo)).toEqual({
 				peerId,
 				ipAddress,
-				wsPort,
+				port,
 			});
 		});
 
-		it('should remove ', async () => {
+		it('should remove', () => {
 			const samplePeers = initPeerInfoList();
-			const { ipAddress, wsPort, sharedState } = samplePeers[0];
+			const { ipAddress, port, sharedState, peerId } = samplePeers[0];
+			const samplePeerWithoutInternalState = {
+				ipAddress,
+				port,
+				sharedState,
+				peerId,
+			};
 			const protocolPeerInfo = {
 				ipAddress,
-				wsPort,
+				port,
 				...sharedState,
 			};
 
-			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(
-				samplePeers[0],
-			);
+			expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(samplePeerWithoutInternalState);
 		});
 	});
 
-	describe.skip('#sanitizePeerLists', () => {
-		it('should return an object with several peer lists');
+	describe('#sanitizePeerLists', () => {
+		it.todo('should return an object with several peer lists');
 	});
 });

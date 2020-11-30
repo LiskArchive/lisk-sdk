@@ -16,24 +16,18 @@
 export type Transaction = TransactionObject & TransactionFunctions;
 
 export interface TransactionObject {
-	readonly id: string;
+	readonly id: Buffer;
+	readonly moduleID: number;
+	readonly assetID: number;
 	readonly nonce: bigint;
 	readonly fee: bigint;
-	readonly minFee: bigint;
+	readonly senderPublicKey: Buffer;
 	receivedAt?: Date;
-	// TODO: Remove unnecessary properties
-	readonly senderPublicKey: string;
-	readonly asset: {
-		[key: string]: string | number | ReadonlyArray<string> | undefined;
-	};
-	signatures?: ReadonlyArray<string>;
-	readonly type: number;
-	verifiedOnce?: boolean;
 	feePriority?: bigint;
 }
 
 export interface TransactionFunctions {
-	getBytes(): Buffer;
+	getBytes: () => Buffer;
 }
 
 export enum Status {
@@ -45,18 +39,4 @@ export enum TransactionStatus {
 	INVALID = 0,
 	UNPROCESSABLE,
 	PROCESSABLE,
-}
-
-export interface TransactionError {
-	readonly message: string;
-	readonly id: string;
-	readonly dataPath: string;
-	readonly actual?: string | number;
-	readonly expected?: string | number;
-}
-
-export interface TransactionResponse {
-	readonly errors: ReadonlyArray<TransactionError>;
-	readonly id: string;
-	readonly status: Status;
 }

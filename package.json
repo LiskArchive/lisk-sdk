@@ -24,9 +24,11 @@
 	"workspaces": {
 		"packages": [
 			"framework",
+			"framework-plugins/*",
 			"elements/*",
 			"commander",
-			"sdk"
+			"sdk",
+			"protocol-specs"
 		],
 		"nohoist": [
 			"**@types/mocha",
@@ -39,12 +41,14 @@
 		"bootstrap": "lerna bootstrap",
 		"clean": "lerna run clean",
 		"clean:node_modules": "lerna clean --yes",
-		"format": "npm run format:root && lerna run format",
-		"format:root": "prettier --write types/**/*.ts",
-		"lint": "npm run lint:root && lerna run lint",
-		"lint:fix": "npm run lint:root -- --fix && lerna run lint:fix",
-		"lint:root": "tslint -p tsconfig.json types/**/*.ts",
+		"format": "lerna run format",
+		"lint": "lerna run lint",
+		"lint:fix": "lerna run lint:fix",
 		"test": "lerna run test",
+		"test:elements": "lerna run test --ignore=lisk-commander --ignore=lisk-framework --ignore=lisk-sdk --ignore=@liskhq/lisk-framework*",
+		"test:framework": "lerna run test --scope=lisk-framework",
+		"test:framework-plugins": "lerna run test --scope=@liskhq/lisk-framework-*",
+		"test:commander": "lerna run test --scope=lisk-commander",
 		"build": "lerna run build",
 		"init": "./scripts/init.sh"
 	},
@@ -55,25 +59,24 @@
 	},
 	"devDependencies": {
 		"@types/node": "12.12.11",
-		"ansi-regex": "5.0.0",
-		"eslint": "6.8.0",
-		"eslint-config-airbnb-base": "14.0.0",
+		"@typescript-eslint/eslint-plugin": "3.10.1",
+		"@typescript-eslint/parser": "3.10.1",
+		"eslint": "7.8.1",
+		"eslint-config-airbnb-base": "14.2.0",
 		"eslint-config-lisk-base": "1.2.2",
+		"eslint-config-prettier": "6.11.0",
 		"eslint-plugin-chai-expect": "2.1.0",
-		"eslint-plugin-import": "2.20.1",
-		"eslint-plugin-jest": "23.8.2",
-		"eslint-plugin-mocha": "6.3.0",
-		"husky": "4.2.3",
+		"eslint-plugin-import": "2.22.0",
+		"eslint-plugin-jest": "24.0.0",
+		"eslint-plugin-mocha": "7.0.1",
+		"husky": "4.2.5",
 		"istanbul-lib-coverage": "3.0.0",
 		"istanbul-lib-report": "3.0.0",
 		"istanbul-reports": "3.0.0",
-		"lerna": "3.20.2",
-		"lint-staged": "10.0.8",
-		"prettier": "1.19.1",
-		"tslint": "6.0.0",
-		"tslint-config-prettier": "1.18.0",
-		"tslint-immutable": "6.0.1",
+		"lerna": "3.22.1",
+		"lint-staged": "10.2.11",
+		"prettier": "2.0.5",
 		"typescript": "3.8.3",
-		"yarn": "1.22.0"
+		"yarn": "1.22.4"
 	}
 }

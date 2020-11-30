@@ -1,0 +1,63 @@
+{
+	"name": "@liskhq/lisk-utils",
+	"version": "0.1.0-alpha.4",
+	"description": "Library containing generic utility functions for use with Lisk-related software",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "Apache-2.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-utils#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
+	},
+	"engines": {
+		"node": ">=12.13.0 <=12",
+		"npm": ">=6.12.0"
+	},
+	"main": "dist-node/index.js",
+	"scripts": {
+		"clean": "./scripts/clean.sh",
+		"format": "prettier --write '**/*'",
+		"lint": "eslint --ext .js,.ts .",
+		"lint:fix": "eslint --fix --ext .js,.ts .",
+		"test": "jest",
+		"test:coverage": "jest --coverage=true --coverage-reporters=text",
+		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
+		"test:watch": "npm test -- --watch",
+		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
+		"build": "tsc",
+		"build:check": "node -e \"require('./dist-node')\"",
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+	},
+	"dependencies": {
+		"lodash.clonedeep": "4.5.0"
+	},
+	"devDependencies": {
+		"@types/jest": "26.0.13",
+		"@types/jest-when": "2.7.1",
+		"@types/lodash.clonedeep": "4.5.6",
+		"@types/node": "12.12.11",
+		"@typescript-eslint/eslint-plugin": "3.10.1",
+		"@typescript-eslint/parser": "3.10.1",
+		"eslint": "7.8.1",
+		"eslint-config-lisk-base": "1.2.2",
+		"eslint-config-prettier": "6.11.0",
+		"eslint-plugin-import": "2.22.0",
+		"eslint-plugin-jest": "24.0.0",
+		"jest": "26.4.2",
+		"jest-extended": "0.11.5",
+		"jest-when": "2.7.2",
+		"prettier": "2.0.5",
+		"source-map-support": "0.5.19",
+		"ts-jest": "26.3.0",
+		"ts-node": "8.6.2",
+		"tsconfig-paths": "3.9.0",
+		"typescript": "3.8.3"
+	}
+}

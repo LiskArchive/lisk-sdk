@@ -26,17 +26,16 @@ import {
 	digestMessage,
 } from '../src/sign';
 // Require is used for stubbing
+// eslint-disable-next-line
 const keys = require('../src/keys');
 
-const changeLength = (str: string): string => `00${str}`;
+const changeLength = (buffer: Buffer): Buffer => Buffer.concat([Buffer.from('00', 'hex'), buffer]);
 
 describe('sign', () => {
-	const defaultPassphrase =
-		'minute omit local rare sword knee banner pair rib museum shadow juice';
+	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPrivateKey =
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
-	const defaultPublicKey =
-		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
+	const defaultPublicKey = '7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultMessage = 'Some default text.';
 	const defaultSignature =
 		'68937004b6720d7e1902ef05a577e6d9f9ab2756286b1f2ae918f8a0e5153c15e4f410916076f750b708f8979be2430e4cfc7ebb523ae1905d2ea1f5d24ce700';
@@ -60,18 +59,16 @@ ${defaultSignature}
 	beforeEach(() => {
 		defaultSignedMessage = {
 			message: defaultMessage,
-			publicKey: defaultPublicKey,
-			signature: defaultSignature,
+			publicKey: Buffer.from(defaultPublicKey, 'hex'),
+			signature: Buffer.from(defaultSignature, 'hex'),
 		};
 
-		jest
-			.spyOn(keys, 'getPrivateAndPublicKeyBytesFromPassphrase')
-			.mockImplementation(() => {
-				return {
-					privateKeyBytes: Buffer.from(defaultPrivateKey, 'hex'),
-					publicKeyBytes: Buffer.from(defaultPublicKey, 'hex'),
-				};
-			});
+		jest.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
+			return {
+				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
+				publicKey: Buffer.from(defaultPublicKey, 'hex'),
+			};
+		});
 	});
 
 	describe('#digestMessage', () => {
@@ -109,16 +106,13 @@ ${defaultSignature}
 			);
 			expect(msgBytes).toEqual(expectedMessageBytes);
 		});
-		// higest range (length > 4294967296) is not practical to test
+		// highest range (length > 4294967296) is not practical to test
 		// but it is covered by `varuint-bitcoin` library
 	});
 
 	describe('#signMessageWithPassphrase', () => {
 		it('should create a signed message using a secret passphrase', () => {
-			const signedMessage = signMessageWithPassphrase(
-				defaultMessage,
-				defaultPassphrase,
-			);
+			const signedMessage = signMessageWithPassphrase(defaultMessage, defaultPassphrase);
 			expect(signedMessage).toEqual(defaultSignedMessage);
 		});
 	});
@@ -128,27 +122,27 @@ ${defaultSignature}
 			expect(
 				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
-					signature: defaultSignature,
-					publicKey: changeLength(defaultPublicKey),
+					signature: Buffer.from(defaultSignature, 'hex'),
+					publicKey: changeLength(Buffer.from(defaultPublicKey, 'hex')),
 				}),
-			).toThrowError('Invalid publicKey, expected 32-byte publicKey');
+			).toThrow('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect invalid signatures', () => {
 			expect(
 				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
-					signature: changeLength(defaultSignature),
-					publicKey: defaultPublicKey,
+					signature: changeLength(Buffer.from(defaultSignature, 'hex')),
+					publicKey: Buffer.from(defaultPublicKey, 'hex'),
 				}),
-			).toThrowError('Invalid signature length, expected 64-byte signature');
+			).toThrow('Invalid signature length, expected 64-byte signature');
 		});
 
 		it('should return false if the signature is invalid', () => {
 			const verification = verifyMessageWithPublicKey({
 				message: defaultMessage,
-				signature: makeInvalid(defaultSignature),
-				publicKey: defaultPublicKey,
+				signature: makeInvalid(Buffer.from(defaultSignature, 'hex')),
+				publicKey: Buffer.from(defaultPublicKey, 'hex'),
 			});
 			expect(verification).toBe(false);
 		});
@@ -163,8 +157,8 @@ ${defaultSignature}
 		it('should wrap a single signed message into a printed Lisk template', () => {
 			const printedMessage = printSignedMessage({
 				message: defaultMessage,
-				signature: defaultSignature,
-				publicKey: defaultPublicKey,
+				signature: Buffer.from(defaultSignature, 'hex'),
+				publicKey: Buffer.from(defaultPublicKey, 'hex'),
 			});
 			expect(printedMessage).toBe(defaultPrintedMessage);
 		});
@@ -172,53 +166,47 @@ ${defaultSignature}
 
 	describe('#signAndPrintMessage', () => {
 		it('should sign the message once and wrap it into a printed Lisk template', () => {
-			const signedAndPrintedMessage = signAndPrintMessage(
-				defaultMessage,
-				defaultPassphrase,
-			);
+			const signedAndPrintedMessage = signAndPrintMessage(defaultMessage, defaultPassphrase);
 			expect(signedAndPrintedMessage).toBe(defaultPrintedMessage);
 		});
 	});
 
 	describe('#signData', () => {
-		let signature: string;
+		let signature: Buffer;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			signature = signData(defaultData, defaultPassphrase);
 			return Promise.resolve();
 		});
 
 		it('should sign a transaction', () => {
-			expect(signature).toBe(defaultDataSignature);
+			expect(signature).toEqual(Buffer.from(defaultDataSignature, 'hex'));
 		});
 	});
 
 	describe('#signDataWithPassphrase', () => {
-		let signature: string;
+		let signature: Buffer;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			signature = signDataWithPassphrase(defaultData, defaultPassphrase);
 			return Promise.resolve();
 		});
 
 		it('should sign a transaction', () => {
-			expect(signature).toBe(defaultDataSignature);
+			expect(signature).toEqual(Buffer.from(defaultDataSignature, 'hex'));
 		});
 	});
 
 	describe('#signDataWithPrivateKey', () => {
-		let signature: string;
+		let signature: Buffer;
 
-		beforeEach(() => {
-			signature = signDataWithPrivateKey(
-				defaultData,
-				Buffer.from(defaultPrivateKey, 'hex'),
-			);
+		beforeEach(async () => {
+			signature = signDataWithPrivateKey(defaultData, Buffer.from(defaultPrivateKey, 'hex'));
 			return Promise.resolve();
 		});
 
 		it('should sign a transaction', () => {
-			expect(signature).toBe(defaultDataSignature);
+			expect(signature).toEqual(Buffer.from(defaultDataSignature, 'hex'));
 		});
 	});
 
@@ -226,8 +214,8 @@ ${defaultSignature}
 		it('should return false for an invalid signature', () => {
 			const verification = verifyData(
 				defaultData,
-				makeInvalid(defaultDataSignature),
-				defaultPublicKey,
+				makeInvalid(Buffer.from(defaultDataSignature, 'hex')),
+				Buffer.from(defaultPublicKey, 'hex'),
 			);
 			expect(verification).toBe(false);
 		});
@@ -235,8 +223,8 @@ ${defaultSignature}
 		it('should return true for a valid signature', () => {
 			const verification = verifyData(
 				defaultData,
-				defaultDataSignature,
-				defaultPublicKey,
+				Buffer.from(defaultDataSignature, 'hex'),
+				Buffer.from(defaultPublicKey, 'hex'),
 			);
 			expect(verification).toBe(true);
 		});

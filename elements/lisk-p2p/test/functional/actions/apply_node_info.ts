@@ -15,24 +15,49 @@
 import { P2P, events } from '../../../src/index';
 import { InvalidNodeInfoError } from '../../../src/errors';
 import { wait } from '../../utils/helpers';
-import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
+import { P2PConfig } from '../../../src/types';
 
 const { EVENT_MESSAGE_RECEIVED, REMOTE_EVENT_POST_NODE_INFO } = events;
+
+const customNodeInfoSchema = {
+	$id: '/junk',
+	type: 'object',
+	properties: {
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		junk: {
+			dataType: 'string',
+			fieldNumber: 2,
+		},
+	},
+};
 
 describe('P2P.applyNodeInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	let collectedMessages: Array<any> = [];
 
 	beforeAll(async () => {
-		p2pNodeList = await createNetwork();
+		const customConfig = (): Partial<P2PConfig> => ({
+			customNodeInfoSchema,
+			nodeInfo: {
+				options: {
+					height: 1,
+				},
+			} as any,
+		});
+
+		p2pNodeList = await createNetwork({ customConfig, networkSize: 4 });
 
 		collectedMessages = [];
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
+			// eslint-disable-next-line no-loop-func
 			p2p.on(EVENT_MESSAGE_RECEIVED, request => {
-				if (request.event === REMOTE_EVENT_POST_NODE_INFO) {
+				if (request.event === REMOTE_EVENT_POST_NODE_INFO && request.peerId === '127.0.0.1:5000') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						request,
 					});
 				}
@@ -42,16 +67,12 @@ describe('P2P.applyNodeInfo', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		firstP2PNode.applyNodeInfo({
-			os: platform(),
-			networkId:
-				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			version: firstP2PNode.nodeInfo.version,
-			protocolVersion: '1.1',
-			wsPort: firstP2PNode.nodeInfo.wsPort,
-			height: 10,
-			options: firstP2PNode.nodeInfo.options,
-			nonce: 'nonce',
+			networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			networkVersion: '1.1',
 			advertiseAddress: true,
+			options: {
+				height: 10,
+			},
 		});
 
 		await wait(200);
@@ -61,103 +82,94 @@ describe('P2P.applyNodeInfo', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should throw error when applying too large NodeInfo', async () => {
+	it('should throw error when applying too large NodeInfo', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		expect(() =>
 			firstP2PNode.applyNodeInfo({
-				os: platform(),
-				networkId:
-					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				version: firstP2PNode.nodeInfo.version,
-				protocolVersion: '1.1',
-				wsPort: firstP2PNode.nodeInfo.wsPort,
-				options: firstP2PNode.nodeInfo.options,
-				junk: '1.'.repeat(13000),
-				nonce: 'nonce',
+				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				networkVersion: '1.1',
 				advertiseAddress: true,
+				options: {
+					junk: '1.'.repeat(130000),
+				},
 			}),
-		).toThrowError(InvalidNodeInfoError);
+		).toThrow(InvalidNodeInfoError);
 	});
 
-	it('should send the node info to peers', async () => {
+	it('should send the node info to peers', () => {
 		const firstP2PNode = p2pNodeList[0];
 		const nodePortToMessagesMap: any = {};
 
 		const connectedPeerCount = firstP2PNode.getConnectedPeers().length;
-
 		// Each peer of firstP2PNode should receive a message.
-		expect(collectedMessages.length).toBe(connectedPeerCount);
+		expect(collectedMessages).toHaveLength(connectedPeerCount);
 
-		for (let receivedMessageData of collectedMessages) {
+		for (const receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
-			nodePortToMessagesMap[receivedMessageData.nodePort].push(
-				receivedMessageData,
-			);
+			nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 		}
 
 		// Check that each message contains the updated P2PNodeInfo.
 		Object.values(nodePortToMessagesMap)
 			.filter(
 				(receivedMessages: any) =>
-					receivedMessages &&
-					receivedMessages[0] &&
-					receivedMessages[0].nodePort !== firstP2PNode.nodeInfo.wsPort,
+					receivedMessages?.[0] && receivedMessages[0].nodePort !== firstP2PNode.config.port,
 			)
 			.forEach((receivedMessages: any) => {
-				expect(receivedMessages.length).toBe(1);
+				expect(receivedMessages).toHaveLength(1);
 
 				expect(receivedMessages[0].request).toMatchObject({
-					data: { height: 10 },
+					data: {
+						networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						networkVersion: '1.1',
+						nonce: firstP2PNode.nodeInfo.nonce,
+						advertiseAddress: true,
+					},
 				});
 			});
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
-		for (let p2pNode of p2pNodeList.slice(1)) {
+		for (const p2pNode of p2pNodeList.slice(1)) {
 			const firstP2PNodePeerInfo = p2pNode
 				.getConnectedPeers()
-				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
+				.find(peerInfo => peerInfo.port === firstP2PNode.config.port);
 			expect(firstP2PNodePeerInfo).toMatchObject({
-				advertiseAddress: true,
-				height: 10,
+				options: {},
 				ipAddress: '127.0.0.1',
-				networkId:
-					'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				peerId: '127.0.0.1:5000',
-				wsPort: 5000,
+				port: 5000,
 			});
 		}
 	});
 
-	it('should update itself and reflect new node info', async () => {
+	it('should update itself and reflect new node info', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
-		for (let p2pNode of p2pNodeList.slice(1)) {
+		for (const p2pNode of p2pNodeList.slice(1)) {
 			const firstNodeInConnectedPeer = p2pNode
 				.getConnectedPeers()
-				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
+				.find(peerInfo => peerInfo.port === firstP2PNode.config.port);
 
 			const allPeersList = p2pNode['_peerBook'].allPeers;
 
 			const firstNodeInAllPeersList = allPeersList.find(
-				peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+				peerInfo => peerInfo.port === firstP2PNode.config.port,
 			);
 
 			// Check if the peerinfo is updated in new peer list
 			if (firstNodeInAllPeersList) {
 				expect(firstNodeInAllPeersList).toMatchObject({
 					sharedState: {
-						height: 10,
-						networkId:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						nonce: expect.any(String),
-						advertiseAddress: true,
 					},
 					ipAddress: '127.0.0.1',
-					wsPort: 5000,
+					port: 5000,
 					peerId: '127.0.0.1:5000',
 				});
 			}
@@ -165,13 +177,10 @@ describe('P2P.applyNodeInfo', () => {
 			// Check if the peerinfo is updated in connected peer list
 			if (firstNodeInConnectedPeer) {
 				expect(firstNodeInConnectedPeer).toMatchObject({
-					height: 10,
-					networkId:
-						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					nonce: expect.any(String),
-					advertiseAddress: true,
 					ipAddress: '127.0.0.1',
-					wsPort: 5000,
+					port: 5000,
 					peerId: '127.0.0.1:5000',
 				});
 			}

@@ -32,9 +32,7 @@ const passphraseRegularExpression: PassphraseRegularExpression = {
 };
 
 export const countPassphraseWhitespaces = (passphrase: string): number => {
-	const whitespaceMatches = passphrase.match(
-		passphraseRegularExpression.whitespaceRegExp,
-	);
+	const whitespaceMatches = passphrase.match(passphraseRegularExpression.whitespaceRegExp);
 
 	return whitespaceMatches !== null ? whitespaceMatches.length : 0;
 };
@@ -43,81 +41,53 @@ export const countPassphraseWords = (passphrase: string): number =>
 	passphrase.split(' ').filter(Boolean).length;
 
 export const countUppercaseCharacters = (passphrase: string): number => {
-	const uppercaseCharacterMatches = passphrase.match(
-		passphraseRegularExpression.uppercaseRegExp,
-	);
+	const uppercaseCharacterMatches = passphrase.match(passphraseRegularExpression.uppercaseRegExp);
 
-	return uppercaseCharacterMatches !== null
-		? uppercaseCharacterMatches.length
-		: 0;
+	return uppercaseCharacterMatches !== null ? uppercaseCharacterMatches.length : 0;
 };
 
-export const locateUppercaseCharacters = (
-	passphrase: string,
-): ReadonlyArray<number> =>
+export const locateUppercaseCharacters = (passphrase: string): ReadonlyArray<number> =>
 	passphrase
 		.split('')
-		.reduce(
-			(
-				upperCaseIndexes: ReadonlyArray<number>,
-				character: string,
-				index: number,
-			) => {
-				if (
-					character.match(passphraseRegularExpression.uppercaseRegExp) !== null
-				) {
-					return [...upperCaseIndexes, index];
-				}
+		.reduce((upperCaseIndexes: ReadonlyArray<number>, character: string, index: number) => {
+			if (character.match(passphraseRegularExpression.uppercaseRegExp) !== null) {
+				return [...upperCaseIndexes, index];
+			}
 
-				return upperCaseIndexes;
-			},
-			[],
-		);
+			return upperCaseIndexes;
+		}, []);
 
-export const locateConsecutiveWhitespaces = (
-	passphrase: string,
-): ReadonlyArray<number> =>
+export const locateConsecutiveWhitespaces = (passphrase: string): ReadonlyArray<number> =>
 	passphrase
 		.split('')
-		.reduce(
-			(
-				whitespaceIndexes: ReadonlyArray<number>,
-				character: string,
-				index: number,
-			) => {
-				if (
-					index === 0 &&
-					character.match(passphraseRegularExpression.whitespaceRegExp) !== null
-				) {
-					return [...whitespaceIndexes, index];
-				}
-				if (
-					index !== passphrase.length - 1 &&
-					character.match(passphraseRegularExpression.whitespaceRegExp) !==
-						null &&
-					passphrase
-						.split('')
-						[index - 1].match(passphraseRegularExpression.whitespaceRegExp) !==
-						null
-				) {
-					return [...whitespaceIndexes, index];
-				}
-				if (
-					index === passphrase.length - 1 &&
-					character.match(passphraseRegularExpression.whitespaceRegExp) !== null
-				) {
-					return [...whitespaceIndexes, index];
-				}
+		.reduce((whitespaceIndexes: ReadonlyArray<number>, character: string, index: number) => {
+			if (index === 0 && character.match(passphraseRegularExpression.whitespaceRegExp) !== null) {
+				return [...whitespaceIndexes, index];
+			}
+			if (
+				index !== passphrase.length - 1 &&
+				character.match(passphraseRegularExpression.whitespaceRegExp) !== null &&
+				passphrase.split('')[
+					// eslint-disable-next-line no-unexpected-multiline
+					index - 1
+				].match(passphraseRegularExpression.whitespaceRegExp) !== null
+			) {
+				return [...whitespaceIndexes, index];
+			}
+			if (
+				index === passphrase.length - 1 &&
+				character.match(passphraseRegularExpression.whitespaceRegExp) !== null
+			) {
+				return [...whitespaceIndexes, index];
+			}
 
-				return whitespaceIndexes;
-			},
-			[],
-		);
+			return whitespaceIndexes;
+		}, []);
 
 export const getPassphraseValidationErrors = (
 	passphrase: string,
 	wordlists?: ReadonlyArray<string>,
-	expectedWords: number = 12,
+	expectedWords = 12,
 ): ReadonlyArray<PassphraseError> => {
 	const expectedWhitespaces = expectedWords - 1;
 	const expectedUppercaseCharacterCount = 0;
@@ -128,50 +98,37 @@ export const getPassphraseValidationErrors = (
 		actual: wordsInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WORDS',
 		expected: expectedWords,
-		message: `Passphrase contains ${wordsInPassphrase} words instead of expected ${expectedWords}. Please check the passphrase.`,
+		message: `Passphrase contains ${wordsInPassphrase.toString()} words instead of expected ${expectedWords.toString()}. Please check the passphrase.`,
 	};
 	const whiteSpaceError: PassphraseError = {
 		actual: whiteSpacesInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WHITESPACES',
 		expected: expectedWhitespaces,
 		location: locateConsecutiveWhitespaces(passphrase),
-		message: `Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
+		message: `Passphrase contains ${whiteSpacesInPassphrase.toString()} whitespaces instead of expected ${expectedWhitespaces.toString()}. Please check the passphrase.`,
 	};
 	const uppercaseCharacterError: PassphraseError = {
 		actual: uppercaseCharacterInPassphrase,
 		code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
 		expected: expectedUppercaseCharacterCount,
 		location: locateUppercaseCharacters(passphrase),
-		message: `Passphrase contains ${uppercaseCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacterCount}. Please check the passphrase.`,
+		message: `Passphrase contains ${uppercaseCharacterInPassphrase.toString()} uppercase character instead of expected ${expectedUppercaseCharacterCount.toString()}. Please check the passphrase.`,
 	};
 	const validationError: PassphraseError = {
 		actual: false,
 		code: 'INVALID_MNEMONIC',
 		expected: true,
-		message:
-			'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+		message: 'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 	};
 
-	const finalWordList =
-		wordlists !== undefined ? [...wordlists] : Mnemonic.wordlists.english;
+	const finalWordList = wordlists !== undefined ? [...wordlists] : Mnemonic.wordlists.english;
 
-	return [
-		passphraseWordError,
-		whiteSpaceError,
-		uppercaseCharacterError,
-		validationError,
-	].reduce(
+	return [passphraseWordError, whiteSpaceError, uppercaseCharacterError, validationError].reduce(
 		(errorArray: ReadonlyArray<PassphraseError>, error: PassphraseError) => {
-			if (
-				error.code === passphraseWordError.code &&
-				wordsInPassphrase !== expectedWords
-			) {
+			if (error.code === passphraseWordError.code && wordsInPassphrase !== expectedWords) {
 				return [...errorArray, error];
 			}
-			if (
-				error.code === whiteSpaceError.code &&
-				whiteSpacesInPassphrase !== expectedWhitespaces
-			) {
+			if (error.code === whiteSpaceError.code && whiteSpacesInPassphrase !== expectedWhitespaces) {
 				return [...errorArray, error];
 			}
 			if (

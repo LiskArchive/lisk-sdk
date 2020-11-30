@@ -16,17 +16,17 @@
 import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as readerUtils from '../../../src/utils/reader';
 
 describe('message:decrypt', () => {
 	const message = 'Hello World';
-	const defaultSenderPublicKey =
-		'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
+	const defaultSenderPublicKey = Buffer.from(
+		'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0',
+		'hex',
+	);
 	const defaultNonce = '0ec64b2146336a62c9938475308411f00688f9d12c5d33a0';
-	const defaultEncryptedMessage =
-		'c9d369291997bf34abe505d48ac394175b68fc90f8f1d16fd1351e';
+	const defaultEncryptedMessage = 'c9d369291997bf34abe505d48ac394175b68fc90f8f1d16fd1351e';
 
 	const defaultInputs =
 		'card earn shift valley learn scorpion cage select help title control satoshi';
@@ -36,17 +36,8 @@ describe('message:decrypt', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(
-				cryptography,
-				'decryptMessageWithPassphrase',
-				sandbox.stub().returns(message),
-			)
-			.stub(
-				readerUtils,
-				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
-			)
+			.stub(cryptography, 'decryptMessageWithPassphrase', sandbox.stub().returns(message))
+			.stub(readerUtils, 'getPassphraseFromPrompt', sandbox.stub().resolves(defaultInputs))
 			.stub(readerUtils, 'readFileSource', sandbox.stub().resolves(defaultData))
 			.stdout();
 
@@ -61,7 +52,7 @@ describe('message:decrypt', () => {
 
 	describe('message:decrypt senderPublicKey', () => {
 		setupTest()
-			.command(['message:decrypt', defaultSenderPublicKey])
+			.command(['message:decrypt', defaultSenderPublicKey.toString('hex')])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 1 required arg');
 			})
@@ -70,7 +61,7 @@ describe('message:decrypt', () => {
 
 	describe('message:decrypt senderPublicKey nonce', () => {
 		setupTest()
-			.command(['message:decrypt', defaultSenderPublicKey, defaultNonce])
+			.command(['message:decrypt', defaultSenderPublicKey.toString('hex'), defaultNonce])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No message was provided.');
 			})
@@ -81,17 +72,13 @@ describe('message:decrypt', () => {
 		setupTest()
 			.command([
 				'message:decrypt',
-				defaultSenderPublicKey,
+				defaultSenderPublicKey.toString('hex'),
 				defaultNonce,
 				defaultEncryptedMessage,
 			])
 			.it('should decrypt the message with the arg', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-				);
-				expect(
-					cryptography.decryptMessageWithPassphrase,
-				).to.be.calledWithExactly(
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase');
+				expect(cryptography.decryptMessageWithPassphrase).to.be.calledWithExactly(
 					defaultEncryptedMessage,
 					defaultNonce,
 					defaultInputs,
@@ -105,62 +92,44 @@ describe('message:decrypt', () => {
 		setupTest()
 			.command([
 				'message:decrypt',
-				defaultSenderPublicKey,
+				defaultSenderPublicKey.toString('hex'),
 				defaultNonce,
 				'--message=file:./message.txt',
 			])
-			.it(
-				'should decrypt the message with the arg and the message flag',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-						'passphrase',
-					);
-					expect(readerUtils.readFileSource).to.be.calledWithExactly(
-						'file:./message.txt',
-					);
+			.it('should decrypt the message with the arg and the message flag', () => {
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly('passphrase');
+				expect(readerUtils.readFileSource).to.be.calledWithExactly('file:./message.txt');
 
-					expect(
-						cryptography.decryptMessageWithPassphrase,
-					).to.be.calledWithExactly(
-						defaultData,
-						defaultNonce,
-						defaultInputs,
-						defaultSenderPublicKey,
-					);
-					return expect(printMethodStub).to.be.calledWithExactly({ message });
-				},
-			);
+				expect(cryptography.decryptMessageWithPassphrase).to.be.calledWithExactly(
+					defaultData,
+					defaultNonce,
+					defaultInputs,
+					defaultSenderPublicKey,
+				);
+				return expect(printMethodStub).to.be.calledWithExactly({ message });
+			});
 	});
 
 	describe('message:decrypt senderPublicKey nonce --message=file:./message.txt --passphrase=card earn shift valley learn scorpion cage select help title control satoshi', () => {
 		setupTest()
 			.command([
 				'message:decrypt',
-				defaultSenderPublicKey,
+				defaultSenderPublicKey.toString('hex'),
 				defaultNonce,
 				'--message=file:./message.txt',
 				'--passphrase=card earn shift valley learn scorpion cage select help title control satoshi',
 			])
-			.it(
-				'should decrypt the message with the arg and the message flag',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith(
-						'passphrase',
-					);
-					expect(readerUtils.readFileSource).to.be.calledWithExactly(
-						'file:./message.txt',
-					);
+			.it('should decrypt the message with the arg and the message flag', () => {
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith('passphrase');
+				expect(readerUtils.readFileSource).to.be.calledWithExactly('file:./message.txt');
 
-					expect(
-						cryptography.decryptMessageWithPassphrase,
-					).to.be.calledWithExactly(
-						defaultData,
-						defaultNonce,
-						defaultInputs,
-						defaultSenderPublicKey,
-					);
-					return expect(printMethodStub).to.be.calledWithExactly({ message });
-				},
-			);
+				expect(cryptography.decryptMessageWithPassphrase).to.be.calledWithExactly(
+					defaultData,
+					defaultNonce,
+					defaultInputs,
+					defaultSenderPublicKey,
+				);
+				return expect(printMethodStub).to.be.calledWithExactly({ message });
+			});
 	});
 });

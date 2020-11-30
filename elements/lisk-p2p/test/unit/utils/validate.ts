@@ -19,6 +19,7 @@ import {
 	validateProtocolMessage,
 	validateNodeInfo,
 	sanitizeIncomingPeerInfo,
+	validatePacket,
 	validatePeerInfoList,
 } from '../../../src/utils';
 import {
@@ -41,114 +42,70 @@ describe('utils/validate', () => {
 		describe('for valid peer response object', () => {
 			const peer: ProtocolPeerInfo = {
 				ipAddress: '12.23.54.3',
-				wsPort: 5393,
-				os: 'darwin',
-				height: 23232,
-				version: '1.1.2',
-				protocolVersion: '1.1',
-				httpPort: 2000,
+				port: 5393,
 			};
 
 			const peerWithInvalidHeightValue: unknown = {
 				ipAddress: '12.23.54.3',
-				wsPort: 5393,
-				os: '778',
-				height: '2323wqdqd2',
-				version: '3.4.5-alpha.9',
-				protocolVersion: '1.1',
-				httpPort: 2000,
+				port: 5393,
 			};
 
-			it('should return P2PPeerInfo object', async () => {
-				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000)).toEqual(
-					{
-						peerId: '12.23.54.3:5393',
-						ipAddress: '12.23.54.3',
-						wsPort: 5393,
-						sharedState: {
-							height: 23232,
-							os: 'darwin',
-							version: '1.1.2',
-							protocolVersion: '1.1',
-							httpPort: 2000,
-						},
-					},
-				);
+			it('should return P2PPeerInfo object', () => {
+				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000)).toEqual({
+					peerId: '12.23.54.3:5393',
+					ipAddress: '12.23.54.3',
+					port: 5393,
+					sharedState: {},
+				});
 			});
 
-			it('should return P2PPeerInfo object with height value set to 0', async () => {
+			it('should return P2PPeerInfo object with height value set to 0', () => {
 				expect(
-					validatePeerInfo(
-						sanitizeIncomingPeerInfo(peerWithInvalidHeightValue),
-						10000,
-					),
+					validatePeerInfo(sanitizeIncomingPeerInfo(peerWithInvalidHeightValue), 10000),
 				).toEqual({
 					peerId: '12.23.54.3:5393',
 					ipAddress: '12.23.54.3',
-					wsPort: 5393,
-					sharedState: {
-						height: 0,
-						os: '778',
-						version: '3.4.5-alpha.9',
-						protocolVersion: '1.1',
-						httpPort: 2000,
-					},
+					port: 5393,
+					sharedState: {},
 				});
 			});
 		});
 
 		describe('for invalid peer response object', () => {
-			it('should throw an InvalidPeer error for invalid peer', async () => {
+			it('should throw an InvalidPeer error for invalid peer', () => {
 				const peerInvalid: unknown = null;
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peerInvalid),
-						10000,
-					),
-				).toThrowError('Invalid peer object');
+				expect(validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peerInvalid), 10000)).toThrow(
+					'Invalid peer object',
+				);
 			});
 
-			it('should throw if PeerInfo is too big', async () => {
+			it('should throw if PeerInfo is too big', () => {
 				const maximumPeerInfoSizeInBytes = 10;
 				const peer: ProtocolPeerInfo = {
 					ipAddress: '12.23.54.3',
-					wsPort: 5393,
-					os: 'darwin',
-					height: 23232,
-					version: '1.1.2',
-					protocolVersion: '1.1',
-					httpPort: 2000,
+					port: 5393,
 				};
 
 				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peer),
-						maximumPeerInfoSizeInBytes,
-					),
-				).toThrowError(
+					validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peer), maximumPeerInfoSizeInBytes),
+				).toThrow(
 					`PeerInfo is larger than the maximum allowed size ${maximumPeerInfoSizeInBytes} bytes`,
 				);
 			});
 
-			it('should throw InvalidPeer error for invalid peer ipAddress or port', async () => {
+			it('should throw InvalidPeer error for invalid peer ipAddress or port', () => {
 				const peerInvalid: unknown = {
-					wsPort: 53937888,
+					port: 53937888,
 					height: '23232',
 					discoveredInfo: {
 						os: 'darwin',
 					},
 				};
 
-				expect(
-					validatePeerInfo.bind(
-						null,
-						sanitizeIncomingPeerInfo(peerInvalid),
-						10000,
-					),
-				).toThrowError('Invalid peer ipAddress or port');
+				expect(validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peerInvalid), 10000)).toThrow(
+					'Invalid peer ipAddress or port',
+				);
 			});
 		});
 	});
@@ -164,24 +121,24 @@ describe('utils/validate', () => {
 
 			generatePeerInfoResponse.peers = [...Array(3)].map(() => ({
 				ipAddress: '128.127.126.125',
-				wsPort: 5000,
+				port: 5000,
 			}));
 		});
 
 		describe('when PeerInfo list is valid', () => {
-			it('should return P2PPeerInfo array', async () => {
+			it('should return P2PPeerInfo array', () => {
 				expect(
 					validatePeerInfoList(
 						generatePeerInfoResponse,
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
-					).length,
-				).toEqual(generatePeerInfoResponse.peers.length);
+					),
+				).toHaveLength(generatePeerInfoResponse.peers.length);
 			});
 		});
 
 		describe('when rawBasicPeerInfoList list is falsy', () => {
-			it('should throw an Error', async () => {
+			it('should throw an Error', () => {
 				generatePeerInfoResponse = undefined;
 
 				expect(
@@ -191,12 +148,12 @@ describe('utils/validate', () => {
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).toThrowError(INVALID_PEER_INFO_LIST_REASON);
+				).toThrow(INVALID_PEER_INFO_LIST_REASON);
 			});
 		});
 
 		describe('when PeerInfo list is not an array', () => {
-			it('should throw an Error', async () => {
+			it('should throw an Error', () => {
 				generatePeerInfoResponse.peers = 'fizzBuzz';
 
 				expect(
@@ -206,12 +163,12 @@ describe('utils/validate', () => {
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).toThrowError(INVALID_PEER_INFO_LIST_REASON);
+				).toThrow(INVALID_PEER_INFO_LIST_REASON);
 			});
 		});
 
 		describe('when PeerInfo list os too long', () => {
-			it('should throw an Error', async () => {
+			it('should throw an Error', () => {
 				expect(
 					validatePeerInfoList.bind(
 						null,
@@ -219,12 +176,12 @@ describe('utils/validate', () => {
 						generatePeerInfoResponse.peers.length - 1,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).toThrowError(PEER_INFO_LIST_TOO_LONG_REASON);
+				).toThrow(PEER_INFO_LIST_TOO_LONG_REASON);
 			});
 		});
 
 		describe('when PeerInfo list has falsy PeerInfo', () => {
-			it('should return P2PPeerInfo array', async () => {
+			it('should return P2PPeerInfo array', () => {
 				generatePeerInfoResponse.peers.push(undefined);
 
 				expect(
@@ -234,21 +191,18 @@ describe('utils/validate', () => {
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).toThrowError('Invalid peer object');
+				).toThrow('Invalid peer object');
 			});
 		});
 	});
 
 	describe('#validateNodeInfo', () => {
 		describe('when NodeInfo is larger than maximum allowed size', () => {
-			const maximum_size = 10;
+			const maximumSize = 10;
 
-			const NodeInfo: P2PNodeInfo = {
-				os: '12.23.54.3',
-				networkId: '12.23.54.3',
-				wsPort: 5393,
-				version: '1.1.2',
-				protocolVersion: '1.1',
+			const nodeInfo: P2PNodeInfo = {
+				networkIdentifier: '12.23.54.3',
+				networkVersion: '1.1',
 				options: {
 					foo: 'bar',
 					fizz: 'buzz',
@@ -257,61 +211,53 @@ describe('utils/validate', () => {
 				advertiseAddress: true,
 			};
 
-			it('should throw Invalid NodeInfo maximum allowed size error', async () => {
+			it('should throw Invalid NodeInfo maximum allowed size error', () => {
 				expect(
-					validateNodeInfo.bind(null, NodeInfo, maximum_size),
-				).toThrowError(
-					`Invalid NodeInfo was larger than the maximum allowed ${maximum_size} bytes`,
-				);
+					validateNodeInfo.bind(null, Buffer.from(JSON.stringify(nodeInfo)), maximumSize),
+				).toThrow(`Invalid NodeInfo was larger than the maximum allowed ${maximumSize} bytes`);
 			});
 		});
 	});
 
 	describe('#validatePeerAddress', () => {
-		it('should return true for correct IPv4', async () => {
+		it('should return true for correct IPv4', () => {
 			const peer = {
 				ipAddress: '12.12.12.12',
-				wsPort: 4001,
+				port: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).toBe(true);
+			expect(validatePeerAddress(peer.ipAddress, peer.port)).toBe(true);
 		});
 
-		it('should return true for correct IPv6', async () => {
+		it('should return true for correct IPv6', () => {
 			const peer = {
 				ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
-				wsPort: 4001,
+				port: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).toBe(true);
+			expect(validatePeerAddress(peer.ipAddress, peer.port)).toBe(true);
 		});
 
-		it('should return false for incorrect ipAddress', async () => {
+		it('should return false for incorrect ipAddress', () => {
 			const peerWithIncorrectIp = {
 				ipAddress: '12.12.hh12.12',
-				wsPort: 4001,
+				port: 4001,
 			};
 
-			expect(
-				validatePeerAddress(
-					peerWithIncorrectIp.ipAddress,
-					peerWithIncorrectIp.wsPort,
-				),
-			).toBe(false);
+			expect(validatePeerAddress(peerWithIncorrectIp.ipAddress, peerWithIncorrectIp.port)).toBe(
+				false,
+			);
 		});
 
-		it('should return false for incorrect port', async () => {
+		it('should return false for incorrect port', () => {
 			const peerWithIncorrectPort = {
 				ipAddress: '12.12.12.12',
-				wsPort: NaN,
+				port: NaN,
 			};
 
-			expect(
-				validatePeerAddress(
-					peerWithIncorrectPort.ipAddress,
-					peerWithIncorrectPort.wsPort,
-				),
-			).toBe(false);
+			expect(validatePeerAddress(peerWithIncorrectPort.ipAddress, peerWithIncorrectPort.port)).toBe(
+				false,
+			);
 		});
 	});
 
@@ -322,32 +268,30 @@ describe('utils/validate', () => {
 		};
 		let validatedRPCRequest: P2PRequestPacket;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			validatedRPCRequest = validateRPCRequest(validRPCRequest);
 		});
 
-		it('should throw an error for an invalid procedure value', async () => {
-			expect(
-				validateRPCRequest.bind(validateRPCRequest, undefined),
-			).toThrowError('Invalid request');
+		it('should throw an error for an invalid procedure value', () => {
+			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).toThrow('Invalid request');
 		});
 
-		it('should throw an error for an invalid procedure value', async () => {
+		it('should throw an error for an invalid procedure value with object', () => {
 			const inValidRequest: unknown = {
 				data: {},
 				procedure: {},
 			};
 
-			expect(
-				validateRPCRequest.bind(validateRPCRequest, inValidRequest),
-			).toThrowError('Request procedure name is not a string');
+			expect(validateRPCRequest.bind(validateRPCRequest, inValidRequest)).toThrow(
+				'Request procedure name is not a string',
+			);
 		});
 
-		it('should pass and return an object', async () => {
+		it('should pass and return an object', () => {
 			expect(validatedRPCRequest).toEqual(expect.any(Object));
 		});
 
-		it('should return a valid rpc request', async () => {
+		it('should return a valid rpc request', () => {
 			expect(validatedRPCRequest).toMatchObject({
 				procedure: expect.any(String),
 				data: expect.any(Object),
@@ -362,35 +306,59 @@ describe('utils/validate', () => {
 		};
 		let returnedValidatedMessage: P2PMessagePacket;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			returnedValidatedMessage = validateProtocolMessage(validProtocolMessage);
 		});
 
-		it('should throw an error for an invalid event value type', async () => {
-			expect(
-				validateProtocolMessage.bind(validateProtocolMessage, undefined),
-			).toThrowError('Invalid message');
+		it('should throw an error for an invalid event value type', () => {
+			expect(validateProtocolMessage.bind(validateProtocolMessage, undefined)).toThrow(
+				'Invalid message',
+			);
 		});
 
-		it('should throw an error for an invalid event value type', async () => {
+		it('should throw an error for an invalid event value type with number', () => {
 			const inValidMessage: unknown = {
 				data: {},
 				event: 6788,
 			};
-			expect(
-				validateProtocolMessage.bind(validateProtocolMessage, inValidMessage),
-			).toThrowError('Protocol message is not a string');
+			expect(validateProtocolMessage.bind(validateProtocolMessage, inValidMessage)).toThrow(
+				'Protocol message is not a string',
+			);
 		});
 
-		it('should return an object', async () => {
+		it('should return an object', () => {
 			expect(returnedValidatedMessage).toEqual(expect.any(Object));
 		});
 
-		it('should return a valid protocol message object', async () => {
+		it('should return a valid protocol message object', () => {
 			expect(returnedValidatedMessage).toMatchObject({
 				data: expect.any(Object),
 				event: 'newPeer',
 			});
+		});
+	});
+
+	describe('#validatePacket', () => {
+		it('should not throw an error if the packet is valid', () => {
+			expect(() => validatePacket({ rid: 2, data: {} })).not.toThrow('Packet format is invalid.');
+		});
+
+		it('should not throw an error if the packet is message', () => {
+			expect(() => validatePacket({ event: 'EVENT_NEW_BLOCK', rid: 2, data: {} })).not.toThrow(
+				'Packet format is invalid.',
+			);
+		});
+
+		it('should not throw an error if the packet is request', () => {
+			expect(() => validatePacket({ procedure: 'getNodeInfo', rid: 2, data: {} })).not.toThrow(
+				'Packet format is invalid.',
+			);
+		});
+
+		it('should throw an error if the mssage contains additional keywords', () => {
+			expect(() => validatePacket({ cid: 4, invalidProperty: { something: 'invalid' } })).toThrow(
+				'Packet format is invalid.',
+			);
 		});
 	});
 });

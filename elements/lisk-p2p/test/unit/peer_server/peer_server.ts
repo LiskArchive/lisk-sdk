@@ -25,14 +25,11 @@ import {
 
 describe('peerServer', () => {
 	const nodeInfo: P2PNodeInfo = {
-		height: 545777,
-		networkId: '73458irc3yb7rg37r7326dbt7236',
-		os: 'linux',
-		version: '1.1.1',
-		protocolVersion: '1.1',
-		wsPort: 5000,
+		networkIdentifier: '73458irc3yb7rg37r7326dbt7236',
+		networkVersion: '1.1',
 		nonce: 'nonce',
 		advertiseAddress: true,
+		options: {},
 	};
 
 	const peerBookConfig: PeerBookConfig = {
@@ -47,7 +44,8 @@ describe('peerServer', () => {
 	};
 
 	const peerServerConfig = {
-		nodeInfo: nodeInfo,
+		port: 5000,
+		nodeInfo,
 		hostIp: '0.0.0.0',
 		secret: DEFAULT_RANDOM_SECRET,
 		peerBook: new PeerBook(peerBookConfig),

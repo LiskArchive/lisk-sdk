@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Slots } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
 	isDifferentChain,
 	isDoubleForging,
@@ -20,46 +22,48 @@ import {
 	isTieBreak,
 	isValidBlock,
 } from '../../src/fork_choice_rule';
-import { BlockHeader } from '../../src/types';
+import { BlockHeaderWithReceivedAt as BlockHeader } from '../../src/types';
 
-import { Slots } from '@liskhq/lisk-chain';
-
-const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
+const GENESIS_BLOCK_TIME_STAMP = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).getTime() / 1000;
 const BLOCK_TIME = 10;
 
-const createBlock = (data: object): BlockHeader =>
-	({
-		...{
-			height: 0,
-			id: '',
-			generatorPublicKey: '',
-			previousBlockId: 'null',
-			maxHeightPrevoted: 0,
-			timestamp: 0,
-			version: 2,
-		},
-		...data,
-	} as BlockHeader);
+const createBlock = (data?: Partial<BlockHeader>): BlockHeader => ({
+	height: data?.height ?? 0,
+	timestamp: data?.timestamp ?? 0,
+	version: 2,
+	id: data?.id ?? Buffer.from('id'),
+	generatorPublicKey: Buffer.from('generator'),
+	previousBlockID: data?.previousBlockID ?? Buffer.from('previous block'),
+	transactionRoot: getRandomBytes(32),
+	signature: getRandomBytes(64),
+	receivedAt: data?.receivedAt ?? 0,
+	reward: BigInt(0),
+	asset: {
+		seedReveal: Buffer.alloc(0),
+		maxHeightPrevoted: data?.asset?.maxHeightPrevoted ?? 0,
+		maxHeightPreviouslyForged: data?.asset?.maxHeightPreviouslyForged ?? 0,
+	},
+});
 
 describe('Fork Choice Rule', () => {
 	let slots: Slots;
 
 	beforeEach(() => {
 		slots = new Slots({
-			epochTime: EPOCH_TIME,
+			genesisBlockTimestamp: GENESIS_BLOCK_TIME_STAMP,
 			interval: BLOCK_TIME,
 		});
 	});
 
 	describe('_isValidBlock', () => {
-		it('should return true if last.height + 1 === current.height && last.id === current.previousBlockId', async () => {
+		it('should return true if last.height + 1 === current.height && last.id === current.previousBlockID', () => {
 			const last = createBlock({
 				height: 1,
-				id: '1',
+				id: Buffer.from('1'),
 			});
 			const current = createBlock({
 				height: last.height + 1,
-				previousBlockId: last.id,
+				previousBlockID: last.id,
 			});
 
 			expect(isValidBlock(last, current)).toBeTruthy();
@@ -67,47 +71,63 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isDuplicateBlock', () => {
-		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlockId === current.previousBlockId', async () => {
+		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlockID === current.previousBlockID', () => {
 			const last = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
 			});
 			const current = createBlock({
 				height: last.height,
-				maxHeightPrevoted: last.maxHeightPrevoted,
-				previousBlockId: last.previousBlockId,
-				id: '2',
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPrevoted: last.asset.maxHeightPrevoted,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: last.previousBlockID,
+				id: Buffer.from('2'),
 			});
 			expect(isDuplicateBlock(last, current)).toBeTruthy();
 		});
 	});
 
 	describe('_isIdenticalBlock', () => {
-		it('should return true if last.id === current.id', async () => {
+		it('should return true if last.id === current.id', () => {
 			const last = createBlock({
 				height: 1,
-				id: '1',
+				id: Buffer.from('1'),
 			});
 			expect(isIdenticalBlock(last, last)).toBeTruthy();
 		});
 	});
 
 	describe('_isDoubleForging', () => {
-		it('should return true if _isDuplicateBlock(last, current) && last.generatorPublicKey === current.generatorPublicKey', async () => {
+		it('should return true if _isDuplicateBlock(last, current) && last.generatorPublicKey === current.generatorPublicKey', () => {
 			const last = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
-				generatorPublicKey: 'abc',
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
+				generatorPublicKey: Buffer.from('abc'),
 			});
 			const current = createBlock({
 				height: last.height,
-				maxHeightPrevoted: last.maxHeightPrevoted,
-				previousBlockId: last.previousBlockId,
-				id: '2',
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPrevoted: last.asset.maxHeightPrevoted,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: last.previousBlockID,
+				id: Buffer.from('2'),
 				generatorPublicKey: last.generatorPublicKey,
 			});
 
@@ -137,25 +157,29 @@ describe('Fork Choice Rule', () => {
 		 * - The the last block that was received from the network and then applied
 		 *   was not received within its designated forging slot but the new received block is.
 		 */
-		it('should return true if it matches the conditions described in _isTieBreak', async () => {
+		it('should return true if it matches the conditions described in _isTieBreak', () => {
 			const lastReceivedAndAppliedBlock = {
 				receivedTime: 100000,
-				id: '1',
+				id: Buffer.from('1'),
 			};
 
 			const lastAppliedBlock = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
 				timestamp: lastReceivedAndAppliedBlock.receivedTime,
-				generatorPublicKey: 'abc',
+				generatorPublicKey: Buffer.from('abc'),
 				receivedAt: 300000,
 			});
 
 			const receivedBlock = createBlock({
 				...lastAppliedBlock,
-				id: '2',
+				id: Buffer.from('2'),
 				timestamp: 200000,
 				receivedAt: 200000,
 			});
@@ -171,20 +195,28 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isDifferentChain', () => {
-		it('should return true if last.heightPrevoted < current.heightPrevoted', async () => {
+		it('should return true if last.heightPrevoted < current.heightPrevoted', () => {
 			const last = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
 				timestamp: Date.now(),
-				generatorPublicKey: 'abc',
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
+				generatorPublicKey: Buffer.from('abc'),
 			});
 			const current = createBlock({
 				height: last.height,
-				maxHeightPrevoted: last.maxHeightPrevoted + 1,
-				previousBlockId: last.previousBlockId,
-				id: '2',
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPrevoted: last.asset.maxHeightPrevoted + 1,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: last.previousBlockID,
+				id: Buffer.from('2'),
 				timestamp: Date.now() + 1000,
 				generatorPublicKey: last.generatorPublicKey,
 			});
@@ -192,20 +224,28 @@ describe('Fork Choice Rule', () => {
 			expect(isDifferentChain(last, current)).toBeTruthy();
 		});
 
-		it('OR should return true if (last.height < current.height && last.heightPrevoted === current.heightPrevoted)', async () => {
+		it('OR should return true if (last.height < current.height && last.heightPrevoted === current.heightPrevoted)', () => {
 			const last = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
 				timestamp: Date.now(),
-				generatorPublicKey: 'abc',
+				generatorPublicKey: Buffer.from('abc'),
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: 0,
+				},
 			});
 			const current = createBlock({
 				height: last.height + 1,
-				maxHeightPrevoted: last.maxHeightPrevoted,
-				previousBlockId: last.previousBlockId,
-				id: '2',
+				asset: {
+					seedReveal: Buffer.alloc(0),
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: last.asset.maxHeightPrevoted,
+				},
+				previousBlockID: last.previousBlockID,
+				id: Buffer.from('2'),
 				timestamp: Date.now() + 1000,
 				generatorPublicKey: last.generatorPublicKey,
 			});

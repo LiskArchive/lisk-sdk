@@ -20,13 +20,11 @@ const MAX_NUMBER_BYTE_LENGTH = 6;
 export const intToBuffer = (
 	value: number | string,
 	byteLength: number,
-	endianness: string = BIG_ENDIAN,
-	signed: boolean = false,
-) => {
+	endianness = BIG_ENDIAN,
+	signed = false,
+): Buffer => {
 	if (![BIG_ENDIAN, LITTLE_ENDIAN].includes(endianness)) {
-		throw new Error(
-			`Endianness must be either ${BIG_ENDIAN} or ${LITTLE_ENDIAN}`,
-		);
+		throw new Error(`Endianness must be either ${BIG_ENDIAN} or ${LITTLE_ENDIAN}`);
 	}
 	const buffer = Buffer.alloc(byteLength);
 	if (endianness === 'big') {
@@ -37,6 +35,7 @@ export const intToBuffer = (
 				buffer.writeUIntBE(Number(value), 0, byteLength);
 			}
 		} else {
+			// eslint-disable-next-line no-lonely-if
 			if (signed) {
 				buffer.writeBigInt64BE(BigInt(value));
 			} else {
@@ -44,6 +43,7 @@ export const intToBuffer = (
 			}
 		}
 	} else {
+		// eslint-disable-next-line no-lonely-if
 		if (byteLength <= MAX_NUMBER_BYTE_LENGTH) {
 			if (signed) {
 				buffer.writeIntLE(Number(value), 0, byteLength);
@@ -51,6 +51,7 @@ export const intToBuffer = (
 				buffer.writeUIntLE(Number(value), 0, byteLength);
 			}
 		} else {
+			// eslint-disable-next-line no-lonely-if
 			if (signed) {
 				buffer.writeBigInt64LE(BigInt(value));
 			} else {
@@ -62,28 +63,20 @@ export const intToBuffer = (
 	return buffer;
 };
 
-export const bufferToIntAsString = (buffer: Buffer): string =>
-	buffer.length <= MAX_NUMBER_BYTE_LENGTH
-		? buffer.readIntBE(0, buffer.length).toString()
-		: buffer.readBigUInt64BE().toString();
-
-export const bufferToHex = (buffer: Buffer): string =>
-	Buffer.from(buffer).toString('hex');
+export const bufferToHex = (buffer: Buffer): string => Buffer.from(buffer).toString('hex');
 
 const hexRegex = /^[0-9a-f]+/i;
 export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
 	if (typeof hex !== 'string') {
 		throw new TypeError(`${argumentName} must be a string.`);
 	}
-	const matchedHex = (hex.match(hexRegex) || [])[0];
+	// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+	const matchedHex = (hex.match(hexRegex) ?? [])[0];
 	if (!matchedHex || matchedHex.length !== hex.length) {
 		throw new TypeError(`${argumentName} must be a valid hex string.`);
 	}
-	// tslint:disable-next-line no-magic-numbers
 	if (matchedHex.length % 2 !== 0) {
-		throw new TypeError(
-			`${argumentName} must have a valid length of hex string.`,
-		);
+		throw new TypeError(`${argumentName} must have a valid length of hex string.`);
 	}
 
 	return Buffer.from(matchedHex, 'hex');

@@ -12,22 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { FinalityManager } from '../../src/finality_manager';
+import { codec } from '@liskhq/lisk-codec';
+import { dataStructures } from '@liskhq/lisk-utils';
+import { getRandomBytes, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
-	BFTChainDisjointError,
-	BFTForkChoiceRuleError,
-	BFTLowerChainBranchError,
 	BlockHeader,
-} from '../../src/types';
-import { Account as accountFixture } from '../fixtures/accounts';
-import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
-import { StateStoreMock } from './state_store_mock';
+	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+	Chain,
+	CONSENSUS_STATE_VALIDATORS_KEY,
+	validatorsSchema,
+	StateStore,
+} from '@liskhq/lisk-chain';
+import {
+	FinalityManager,
+	CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
+	BFTVotingLedgerSchema,
+} from '../../src/finality_manager';
+import { BFTError } from '../../src/types';
+import { createFakeBlockHeader } from '../fixtures/blocks';
+import { StateStoreMock } from '../utils/state_store_mock';
+import { BFTFinalizedHeightCodecSchema } from '../../src';
 
-const generateValidHeaders = (count: number) => {
+const generateValidHeaders = (count: number): any[] => {
 	return [...Array(count)].map((_, index) => {
-		return blockHeaderFixture({
+		return createFakeBlockHeader({
 			height: index + 1,
-			maxHeightPreviouslyForged: index,
+			asset: {
+				maxHeightPreviouslyForged: index,
+			},
 		});
 	});
 };
@@ -35,320 +47,513 @@ const generateValidHeaders = (count: number) => {
 describe('finality_manager', () => {
 	describe('FinalityManager', () => {
 		const finalizedHeight = 0;
-		const activeDelegates = 101;
-		const preVoteThreshold = 68;
-		const preCommitThreshold = 68;
-		const processingThreshold = 302;
-		const maxHeaders = 505;
+		const threshold = 68;
+		const preVoteThreshold = threshold;
+		const preCommitThreshold = threshold;
+		const processingThreshold = 308;
+		const maxHeaders = 515;
 
 		let finalityManager: FinalityManager;
-		let chainStub: {
-			dataAccess: {
-				getBlockHeadersByHeightBetween: jest.Mock;
-				getLastBlockHeader: jest.Mock;
-			};
-			slots: {
-				getSlotNumber: jest.Mock;
-				isWithinTimeslot: jest.Mock;
-				getEpochTime: jest.Mock;
-			};
-		};
-		let dposStub: {
-			getMinActiveHeight: jest.Mock;
-			isStandbyDelegate: jest.Mock;
-		};
+		let chainStub: Chain;
 
-		beforeEach(async () => {
-			chainStub = {
-				dataAccess: {
-					getBlockHeadersByHeightBetween: jest.fn(),
-					getLastBlockHeader: jest.fn(),
-				},
+		beforeEach(() => {
+			chainStub = ({
 				slots: {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
-					getEpochTime: jest.fn(),
+					timeSinceGenesis: jest.fn(),
 				},
-			};
-
-			dposStub = {
-				getMinActiveHeight: jest.fn(),
-				isStandbyDelegate: jest.fn(),
-			};
+				dataAccess: {
+					getConsensusState: jest.fn(),
+				},
+				numberOfValidators: 103,
+			} as unknown) as Chain;
 
 			finalityManager = new FinalityManager({
 				chain: chainStub,
-				dpos: dposStub,
 				finalizedHeight,
-				activeDelegates,
+				threshold,
 			});
 		});
 
 		describe('constructor', () => {
-			it('should initialize the object correctly', async () => {
+			it('should initialize the object correctly', () => {
 				expect(finalityManager).toBeInstanceOf(FinalityManager);
-				expect(finalityManager.activeDelegates).toEqual(activeDelegates);
 				expect(finalityManager.preVoteThreshold).toEqual(preVoteThreshold);
 				expect(finalityManager.preCommitThreshold).toEqual(preCommitThreshold);
-				expect(finalityManager.processingThreshold).toEqual(
-					processingThreshold,
-				);
+				expect(finalityManager.processingThreshold).toEqual(processingThreshold);
 				expect(finalityManager.maxHeaders).toEqual(maxHeaders);
 			});
 
-			it('should throw error if activeDelegates is not positive', async () => {
+			it('should throw error if number of validator is not positive', () => {
+				(chainStub as any).numberOfValidators = -3;
 				expect(
 					() =>
 						new FinalityManager({
 							chain: chainStub,
-							dpos: dposStub,
 							finalizedHeight,
-							activeDelegates: 0,
+							threshold,
 						}),
-				).toThrow('Must provide a positive activeDelegates');
+				).toThrow('Invalid number of validators for BFT property');
+			});
+
+			it('should inititialize maxHeightPrevoted to the finalizedHeight', async () => {
+				const nonZeroFinalizedHeight = 10000000;
+				finalityManager = new FinalityManager({
+					chain: chainStub,
+					finalizedHeight: nonZeroFinalizedHeight,
+					threshold,
+				});
+				await expect(finalityManager.getMaxHeightPrevoted()).resolves.toEqual(
+					nonZeroFinalizedHeight,
+				);
 			});
 		});
 
 		describe('verifyBlockHeaders', () => {
+			let stateStore: StateStore;
+
 			it('should throw error if maxHeightPrevoted is not accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
-				const bftHeaders = generateValidHeaders(
-					finalityManager.processingThreshold + 1,
-				);
+				const bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
 
-				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
+
+				const header = createFakeBlockHeader({
+					asset: { maxHeightPrevoted: 10 },
+				});
 
 				expect.assertions(1);
 				try {
-					finalityManager.verifyBlockHeaders(header, bftHeaders);
+					await finalityManager.verifyBlockHeaders(header, stateStore);
 				} catch (error) {
-					expect(error.message).toContain(
-						'Wrong maxHeightPrevoted in blockHeader.',
-					);
+					// eslint-disable-next-line jest/no-try-expect
+					expect(error.message).toContain('Wrong maxHeightPrevoted in blockHeader.');
 				}
 			});
 
 			it('should not throw error if maxHeightPrevoted is accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
-				const bftHeaders = generateValidHeaders(
-					finalityManager.processingThreshold + 1,
-				);
-				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
-				finalityManager.chainMaxHeightPrevoted = 10;
+				const bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
+				const header = createFakeBlockHeader({
+					asset: { maxHeightPrevoted: 10 },
+				});
+				const validatorLedger = {
+					validators: [
+						{
+							address: getAddressFromPublicKey(header.generatorPublicKey),
+							maxPreVoteHeight: 1,
+							maxPreCommitHeight: 0,
+						},
+					],
+					ledger: [
+						{
+							height: 10,
+							prevotes: 69,
+							precommits: 0,
+						},
+					],
+				};
+				stateStore = (new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
+							BFTVotingLedgerSchema,
+							validatorLedger,
+						),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(header, bftHeaders),
-				).not.toThrow();
+				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTrue();
 			});
 
-			it("should return true if delegate didn't forge any block previously", async () => {
-				const header = blockHeaderFixture();
+			it("should return true if validator didn't forge any block previously", async () => {
+				const header = createFakeBlockHeader();
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [] },
+				) as unknown) as StateStore;
 
-				expect(finalityManager.verifyBlockHeaders(header, [])).toBeTruthy();
+				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTruthy();
 			});
 
-			it('should throw error if same delegate forged block on different height', async () => {
+			it('should throw error if same validator forged block on different height', async () => {
 				const maxHeightPrevoted = 10;
-				const delegateAccount = accountFixture();
-				const lastBlock = blockHeaderFixture({
-					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged: 5,
-					maxHeightPrevoted,
+				const generatorPublicKey = getRandomBytes(32);
+				const lastBlock = createFakeBlockHeader({
+					generatorPublicKey,
+					asset: {
+						maxHeightPreviouslyForged: 5,
+						maxHeightPrevoted,
+					},
 					height: 10,
 				});
-				const currentBlock = blockHeaderFixture({
-					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPrevoted,
-					maxHeightPreviouslyForged: 6,
+				const currentBlock = createFakeBlockHeader({
+					generatorPublicKey,
+					asset: {
+						maxHeightPrevoted,
+						maxHeightPreviouslyForged: 6,
+					},
 					height: 9,
 				});
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toThrow(BFTForkChoiceRuleError);
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
+
+				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
+					BFTError,
+				);
 			});
 
-			it('should throw error if delegate forged block on same height', async () => {
+			it('should throw error if validator forged block on same height', async () => {
 				const maxHeightPreviouslyForged = 10;
-				const delegateAccount = accountFixture();
-				const lastBlock = blockHeaderFixture({
-					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+				const generatorPublicKey = getRandomBytes(32);
+				const lastBlock = createFakeBlockHeader({
+					generatorPublicKey,
+					asset: {
+						maxHeightPreviouslyForged,
+					},
 					height: 10,
 				});
-				const currentBlock = blockHeaderFixture({
-					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+				const currentBlock = createFakeBlockHeader({
+					generatorPublicKey,
+					asset: {
+						maxHeightPreviouslyForged,
+					},
 					height: 10,
 				});
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toThrow(BFTForkChoiceRuleError);
+				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
+					BFTError,
+				);
 			});
 
 			it('should throw error if maxHeightPreviouslyForged has wrong value', async () => {
-				const delegateAccount = accountFixture();
-				const lastBlock = blockHeaderFixture({
-					generatorPublicKey: delegateAccount.publicKey,
+				const generatorPublicKey = getRandomBytes(32);
+				const lastBlock = createFakeBlockHeader({
+					generatorPublicKey,
 					height: 10,
 				});
-				const currentBlock = blockHeaderFixture({
-					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged: 9,
+				const currentBlock = createFakeBlockHeader({
+					generatorPublicKey,
+					asset: {
+						maxHeightPreviouslyForged: 9,
+					},
 				});
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toThrow(BFTChainDisjointError);
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
+
+				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
+					BFTError,
+				);
 			});
 
 			it('should throw error if maxHeightPrevoted has wrong value', async () => {
-				const delegateAccount = accountFixture();
-				const lastBlock = blockHeaderFixture({
-					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPrevoted: 10,
+				const generatorPublicKey = getRandomBytes(32);
+				const lastBlock = createFakeBlockHeader({
+					generatorPublicKey,
 					height: 9,
+					asset: {
+						maxHeightPrevoted: 10,
+					},
 				});
-				const currentBlock = blockHeaderFixture({
-					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPrevoted: 9,
-					maxHeightPreviouslyForged: 9,
+				const currentBlock = createFakeBlockHeader({
+					generatorPublicKey,
 					height: 10,
+					asset: {
+						maxHeightPreviouslyForged: 9,
+						maxHeightPrevoted: 9,
+					},
 				});
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toThrow(BFTLowerChainBranchError);
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
+
+				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
+					BFTError,
+				);
 			});
 
 			it('should return true if headers are valid', async () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
+				stateStore = (new StateStoreMock(
+					[],
+					{},
+					{ lastBlockHeaders: [lastBlock] },
+				) as unknown) as StateStore;
 
-				expect(
-					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
-				).toBeTruthy();
+				await expect(
+					finalityManager.verifyBlockHeaders(currentBlock, stateStore),
+				).resolves.toBeTruthy();
 			});
 		});
 
 		describe('addBlockHeader', () => {
-			let stateStore: StateStoreMock;
+			const validatorLedger = {
+				validators: [],
+				ledger: [],
+			};
+			let stateStore: StateStore;
 			let bftHeaders: ReadonlyArray<BlockHeader>;
 
-			beforeEach(async () => {
-				stateStore = new StateStoreMock();
-				bftHeaders = generateValidHeaders(
-					finalityManager.processingThreshold + 1,
-				);
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-					bftHeaders,
-				);
-			});
-
-			it('should call validateBlockHeader with the provided header', async () => {
-				await expect(
-					finalityManager.addBlockHeader({} as BlockHeader, stateStore),
-				).rejects.toThrow('should have required property');
+			beforeEach(() => {
+				bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
+				stateStore = (new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
+							finalizedHeight: 5,
+						}),
+						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
+							BFTVotingLedgerSchema,
+							validatorLedger,
+						),
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: bftHeaders.slice(0, 103).map(h => ({
+								address: getAddressFromPublicKey(h.generatorPublicKey),
+								isConsensusParticipant: true,
+								minActiveHeight: 0,
+							})),
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
-				const header1 = blockHeaderFixture({
+				const header1 = createFakeBlockHeader({
 					height: 2,
-					maxHeightPreviouslyForged: 0,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
+					generatorPublicKey: bftHeaders[102].generatorPublicKey,
 				});
 				jest.spyOn(finalityManager, 'verifyBlockHeaders');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
 				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledTimes(1);
-				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledWith(
-					header1,
-					bftHeaders,
-				);
+				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledWith(header1, stateStore);
 			});
 
-			it('should call updatePreVotesPreCommits with the provided header', async () => {
-				const header1 = blockHeaderFixture({
+			it('should call updatePrevotesPrecommits with the provided header', async () => {
+				const header1 = createFakeBlockHeader({
 					height: 2,
-					maxHeightPreviouslyForged: 0,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
+					generatorPublicKey: bftHeaders[102].generatorPublicKey,
 				});
-				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
+				jest.spyOn(finalityManager, 'updatePrevotesPrecommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(
-					1,
-				);
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledTimes(1);
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledWith(
 					header1,
 					stateStore,
 					bftHeaders,
 				);
 			});
 
-			it('should not update prevotes and precommits in case of a standby delegate', async () => {
-				const header1 = blockHeaderFixture({
+			it('should not update prevotes and precommits if validator does not have voting power', async () => {
+				const header1 = createFakeBlockHeader({
 					height: 2,
-					maxHeightPreviouslyForged: 0,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
 				});
+				stateStore = (new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: [
+								{
+									address: getAddressFromPublicKey(header1.generatorPublicKey),
+									isConsensusParticipant: false,
+									minActiveHeight: 104,
+								},
+							],
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
 
-				dposStub.isStandbyDelegate.mockResolvedValue(true);
-				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
+				jest.spyOn(finalityManager, 'updatePrevotesPrecommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
 
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(
-					1,
-				);
-				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledTimes(1);
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledWith(
 					header1,
 					stateStore,
 					bftHeaders,
 				);
 
-				// Ignores a standby delegate from prevotes and precommit calculations
-				expect(
-					finalityManager.updatePreVotesPreCommits(
-						header1,
-						stateStore,
-						bftHeaders,
-					),
+				// Ignores a standby validator from prevotes and precommit calculations
+				await expect(
+					finalityManager.updatePrevotesPrecommits(header1, stateStore, bftHeaders),
+				).resolves.toEqual(false);
+			});
+
+			it('should not update prevotes and precommits in case of a standby validator', async () => {
+				const header1 = createFakeBlockHeader({
+					height: 2,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
+				});
+				stateStore = (new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: [
+								{
+									address: getAddressFromPublicKey(header1.generatorPublicKey),
+									isConsensusParticipant: false,
+									minActiveHeight: 104,
+								},
+							],
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
+
+				jest.spyOn(finalityManager, 'updatePrevotesPrecommits');
+				await finalityManager.addBlockHeader(header1, stateStore);
+
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledTimes(1);
+				expect(finalityManager.updatePrevotesPrecommits).toHaveBeenCalledWith(
+					header1,
+					stateStore,
+					bftHeaders,
+				);
+
+				// Ignores a standby validator from prevotes and precommit calculations
+				await expect(
+					finalityManager.updatePrevotesPrecommits(header1, stateStore, bftHeaders),
 				).resolves.toEqual(false);
 			});
 
 			it('should throw error if blockheader has conflict (Violates disjointness condition)', async () => {
-				const header1 = blockHeaderFixture({
+				const header1 = createFakeBlockHeader({
 					height: 34624,
-					maxHeightPreviouslyForged: 34501,
+					asset: {
+						maxHeightPreviouslyForged: 34501,
+					},
 				});
-				const header2 = blockHeaderFixture({
+				const header2 = createFakeBlockHeader({
 					height: 34666,
-					maxHeightPreviouslyForged: 34501,
 					generatorPublicKey: header1.generatorPublicKey,
+					asset: {
+						maxHeightPreviouslyForged: 34501,
+					},
 				});
+
 				const headers = [header1];
 				for (
+					// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 					let height = header1.height + 1;
 					height < header2.height;
 					height += 1
 				) {
-					const header = blockHeaderFixture({
+					const header = createFakeBlockHeader({
 						height,
-						maxHeightPreviouslyForged: height - 129,
+						asset: {
+							maxHeightPreviouslyForged: height - 129,
+						},
 					});
 					headers.push(header);
 				}
 				headers.push(header2);
+				const addressMap = new dataStructures.BufferMap<Buffer>();
+				for (const header of headers) {
+					const addr = getAddressFromPublicKey(header.generatorPublicKey);
+					addressMap.set(addr, addr);
+				}
+				stateStore = (new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: addressMap
+								.values()
+								.map(addr => ({ address: addr, isConsensusParticipant: true, minActiveHeight: 0 })),
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
 
 				try {
 					for (const header of headers) {
 						await finalityManager.addBlockHeader(header, stateStore);
 					}
 				} catch (error) {
-					expect(error.message).toContain(
-						'Violation of disjointedness condition.',
-					);
+					// eslint-disable-next-line jest/no-try-expect
+					expect(error.message).toContain('Violation of disjointedness condition.');
 				}
 			});
-		});
 
-		describe('recompute', () => {});
+			it('should not update finalized height if calculated value is lower', async () => {
+				const header1 = createFakeBlockHeader({
+					height: 2,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+						maxHeightPrevoted: 200,
+					},
+				});
+				stateStore = (new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+							validators: [
+								{
+									address: getAddressFromPublicKey(header1.generatorPublicKey),
+									isConsensusParticipant: false,
+									minActiveHeight: 104,
+								},
+							],
+						}),
+						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(BFTVotingLedgerSchema, {
+							...validatorLedger,
+							ledger: [
+								{
+									height: 200,
+									prevotes: 99,
+									precommits: 99,
+								},
+							],
+						}),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				) as unknown) as StateStore;
+
+				const originalFinalizedHeight = 999;
+				finalityManager.finalizedHeight = originalFinalizedHeight;
+				jest.spyOn(finalityManager, 'updateFinalizedHeight');
+				await finalityManager.addBlockHeader(header1, stateStore);
+
+				// Ignores a standby validator from prevotes and precommit calculations
+				expect(finalityManager.updateFinalizedHeight).toHaveBeenCalledTimes(1);
+				expect(finalityManager.finalizedHeight).toEqual(originalFinalizedHeight);
+			});
+		});
 	});
 });

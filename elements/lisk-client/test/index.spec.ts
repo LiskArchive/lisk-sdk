@@ -12,37 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	APIClient,
-	constants,
-	cryptography,
-	passphrase,
-	transactions,
-	transaction,
-} from '../src';
+import * as client from '../src';
 
 describe('lisk-client', () => {
-	it('APIClient should be a function', () => {
-		return expect(APIClient).toBeFunction();
-	});
-
-	it('constants should be an object', () => {
-		return expect(constants).toBeObject();
-	});
-
-	it('cryptography should be an object', () => {
-		return expect(cryptography).toBeObject();
-	});
-
-	it('passphrase should be an object', () => {
-		return expect(passphrase).toBeObject();
-	});
-
-	it('transactions should be an object', () => {
-		return expect(transactions).toBeObject();
-	});
-
-	it('transaction should be an object', () => {
-		return expect(transaction).toBeObject();
+	it('should not export unexpected libraries', () => {
+		return expect(Object.keys(client)).toMatchSnapshot();
 	});
 });

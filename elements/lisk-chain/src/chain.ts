@@ -12,359 +12,467 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BaseTransaction,
-	Status as TransactionStatus,
-	TransactionJSON,
-	TransactionResponse,
-} from '@liskhq/lisk-transactions';
-import * as Debug from 'debug';
+import { codec, Schema } from '@liskhq/lisk-codec';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import * as createDebug from 'debug';
 import { EventEmitter } from 'events';
-
-import {
-	applyFeeAndRewards,
-	calculateMilestone,
-	calculateReward,
-	calculateSupply,
-	getTotalFees,
-	undoFeeAndRewards,
-} from './block_reward';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { calculateDefaultReward } from './block_reward';
 import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
-	DEFAULT_STATE_BLOCK_SIZE,
 	EVENT_DELETE_BLOCK,
 	EVENT_NEW_BLOCK,
+	EVENT_VALIDATORS_CHANGED,
+	CONSENSUS_STATE_VALIDATORS_KEY,
 } from './constants';
 import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
 import {
-	applyGenesisTransactions,
-	applyTransactions,
-	checkAllowedTransactions,
-	checkPersistedTransactions,
-	composeTransactionSteps,
-	undoTransactions,
-	validateTransactions,
-} from './transactions';
-import {
+	Block,
 	BlockHeader,
-	BlockHeaderJSON,
-	BlockInstance,
-	BlockJSON,
 	BlockRewardOptions,
-	Contexter,
-	MatcherTransaction,
-	Storage,
-	StorageTransaction,
+	GenesisBlock,
+	AccountSchema,
+	Validator,
 } from './types';
-import * as blocksUtils from './utils';
+import { getAccountSchemaWithDefault } from './utils/account';
 import {
 	validateBlockSlot,
-	validatePayload,
-	validatePreviousBlockProperty,
+	validateBlockProperties,
 	validateReward,
 	validateSignature,
+	validateGenesisBlockHeader,
 } from './validate';
 import {
-	BlocksVerify,
-	verifyBlockNotExists,
 	verifyPreviousBlockId,
+	verifyBlockGenerator,
+	isValidSeedReveal,
+	verifyReward,
 } from './verify';
+import {
+	blockSchema,
+	signingBlockHeaderSchema,
+	blockHeaderSchema,
+	stateDiffSchema,
+	getRegisteredBlockAssetSchema,
+	validatorsSchema,
+} from './schema';
+import { Transaction } from './transaction';
 
 interface ChainConstructor {
-	// Components
-	readonly storage: Storage;
+	readonly db: KVStore;
 	// Unique requirements
-	readonly genesisBlock: BlockJSON;
-	readonly slots: Slots;
-	// Modules
-	readonly registeredTransactions: {
-		readonly [key: number]: typeof BaseTransaction;
-	};
+	readonly genesisBlock: GenesisBlock;
+	readonly accountSchemas: { [name: string]: AccountSchema };
 	// Constants
-	readonly epochTime: string;
+	readonly networkIdentifier: Buffer;
 	readonly blockTime: number;
-	readonly networkIdentifier: string;
 	readonly maxPayloadLength: number;
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
-	readonly rewardMilestones: ReadonlyArray<string>;
-	readonly totalAmount: string;
-	readonly stateBlockSize?: number;
+	readonly minFeePerByte: number;
+	readonly baseFees: {
+		readonly moduleID: number;
+		readonly assetID: number;
+		readonly baseFee: string;
+	}[];
+	readonly rewardMilestones: ReadonlyArray<bigint>;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
 }
 
-// tslint:disable-next-line no-magic-numbers
-const TRANSACTION_TYPES_VOTE = [3, 11];
-
-const saveBlock = async (
-	storage: Storage,
-	blockJSON: BlockJSON,
-	tx: StorageTransaction,
-): Promise<void> => {
-	if (!tx) {
-		throw new Error('Block should only be saved in a database tx');
-	}
-	// If there is already a running transaction use it
-	const promises = [storage.entities.Block.create(blockJSON, {}, tx)];
-
-	if (blockJSON.transactions.length) {
-		promises.push(
-			storage.entities.Transaction.create(blockJSON.transactions, {}, tx),
-		);
-	}
-
-	return tx.batch(promises);
-};
-
-const applyConfirmedStep = async (
-	blockInstance: BlockInstance,
-	stateStore: StateStore,
-) => {
-	if (blockInstance.transactions.length <= 0) {
-		return;
-	}
-
-	const transactionsResponses = await applyTransactions()(
-		blockInstance.transactions,
-		stateStore,
-	);
-
-	const unappliableTransactionsResponse = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
-	);
-
-	if (unappliableTransactionsResponse.length > 0) {
-		throw unappliableTransactionsResponse[0].errors;
-	}
-};
-
-const applyConfirmedGenesisStep = async (
-	blockInstance: BlockInstance,
-	stateStore: StateStore,
-): Promise<BlockInstance> => {
-	blockInstance.transactions.sort(a => {
-		if (TRANSACTION_TYPES_VOTE.includes(a.type)) {
-			return 1;
-		}
-
-		return 0;
-	});
-	const sortedTransactionInstances = [...blockInstance.transactions];
-	await applyGenesisTransactions()(sortedTransactionInstances, stateStore);
-
-	return blockInstance;
-};
-
-const undoConfirmedStep = async (
-	blockInstance: BlockInstance,
-	stateStore: StateStore,
-): Promise<void> => {
-	if (blockInstance.transactions.length === 0) {
-		return;
-	}
-
-	const transactionsResponses = await undoTransactions()(
-		blockInstance.transactions,
-		stateStore,
-	);
-
-	const unappliedTransactionResponse = transactionsResponses.find(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
-	);
-
-	if (unappliedTransactionResponse) {
-		throw unappliedTransactionResponse.errors;
-	}
-};
-
-const debug = Debug('lisk:chain');
+const debug = createDebug('lisk:chain');
 
 export class Chain {
 	public readonly dataAccess: DataAccess;
+	public readonly events: EventEmitter;
 	public readonly slots: Slots;
-	public readonly blockReward: {
-		readonly calculateMilestone: (height: number) => number;
-		readonly calculateReward: (height: number) => bigint;
-		readonly calculateSupply: (height: number) => bigint;
-	};
-
-	private _lastBlock: BlockInstance;
-	private readonly blocksVerify: BlocksVerify;
-	private readonly storage: Storage;
-	private readonly _networkIdentifier: string;
-	private readonly blockRewardArgs: BlockRewardOptions;
-	private readonly genesisBlock: BlockInstance;
-	private readonly constants: {
-		readonly stateBlockSize: number;
-		readonly epochTime: string;
+	public readonly constants: {
 		readonly blockTime: number;
 		readonly maxPayloadLength: number;
+		readonly rewardDistance: number;
+		readonly rewardOffset: number;
+		readonly rewardMilestones: ReadonlyArray<bigint>;
+		readonly networkIdentifier: Buffer;
+		readonly minFeePerByte: number;
+		readonly baseFees: {
+			readonly moduleID: number;
+			readonly assetID: number;
+			readonly baseFee: string;
+		}[];
 	};
-	private readonly events: EventEmitter;
+
+	private _lastBlock: Block;
+	private readonly _networkIdentifier: Buffer;
+	private readonly _blockRewardArgs: BlockRewardOptions;
+	private readonly _genesisBlock: GenesisBlock;
+	private readonly _accountSchema: Schema;
+	private readonly _blockAssetSchema: {
+		readonly [key: number]: Schema;
+	};
+	private readonly _defaultAccount: Record<string, unknown>;
+	private _numberOfValidators: number;
 
 	public constructor({
-		// Components
-		storage,
+		db,
 		// Unique requirements
 		genesisBlock,
-		// Modules
-		registeredTransactions,
+		// schemas
+		accountSchemas,
 		// Constants
-		epochTime,
 		blockTime,
 		networkIdentifier,
 		maxPayloadLength,
 		rewardDistance,
 		rewardOffset,
 		rewardMilestones,
-		totalAmount,
-		stateBlockSize = DEFAULT_STATE_BLOCK_SIZE,
+		minFeePerByte,
+		baseFees,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
+		this._numberOfValidators = -1;
 		this.events = new EventEmitter();
 
-		this.storage = storage;
+		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(accountSchemas);
+		this._defaultAccount = defaultAccount;
+		this._accountSchema = schema;
+		this._blockAssetSchema = getRegisteredBlockAssetSchema(this._accountSchema);
+
+		// Register codec schema
+		// Add block header schemas
+		codec.addSchema(blockSchema);
+		codec.addSchema(blockHeaderSchema);
+		codec.addSchema(signingBlockHeaderSchema);
+		for (const assetSchema of Object.values(this._blockAssetSchema)) {
+			codec.addSchema(assetSchema);
+		}
+		// Add account schema
+		codec.addSchema(this._accountSchema);
+		codec.addSchema(stateDiffSchema);
+
 		this.dataAccess = new DataAccess({
-			dbStorage: storage,
-			registeredTransactions,
+			db,
+			registeredBlockHeaders: this._blockAssetSchema,
+			accountSchema: this._accountSchema,
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
 		});
 
-		const genesisInstance = this.dataAccess.deserialize(genesisBlock);
-		this._lastBlock = genesisInstance;
+		this._lastBlock = (genesisBlock as unknown) as Block;
 		this._networkIdentifier = networkIdentifier;
-		this.genesisBlock = genesisInstance;
-		this.slots = new Slots({ epochTime, interval: blockTime });
-		this.blockRewardArgs = {
+		this._genesisBlock = genesisBlock;
+		this.slots = new Slots({
+			genesisBlockTimestamp: genesisBlock.header.timestamp,
+			interval: blockTime,
+		});
+		this._blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
 			milestones: rewardMilestones,
-			totalAmount,
-		};
-		this.blockReward = {
-			calculateMilestone: height =>
-				calculateMilestone(height, this.blockRewardArgs),
-			calculateReward: height => calculateReward(height, this.blockRewardArgs),
-			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
-			stateBlockSize,
-			epochTime,
 			blockTime,
 			maxPayloadLength,
+			rewardDistance,
+			rewardOffset,
+			rewardMilestones,
+			networkIdentifier,
+			minFeePerByte,
+			baseFees,
 		};
-
-		this.blocksVerify = new BlocksVerify({
-			dataAccess: this.dataAccess,
-			genesisBlock: this.genesisBlock,
-		});
 	}
 
-	public get lastBlock(): BlockInstance {
-		// Remove receivedAt property..
-		const { receivedAt, ...block } = this._lastBlock;
-
-		return block;
+	public get lastBlock(): Block {
+		return this._lastBlock;
 	}
 
-	public deserialize(blockJSON: BlockJSON): BlockInstance {
-		return this.dataAccess.deserialize(blockJSON);
+	public get numberOfValidators(): number {
+		return this._numberOfValidators;
 	}
 
-	public serialize(blockJSON: BlockInstance): BlockJSON {
-		return this.dataAccess.serialize(blockJSON);
+	public get genesisBlock(): GenesisBlock {
+		return this._genesisBlock;
 	}
 
-	public serializeBlockHeader(blockHeader: BlockHeader): BlockHeaderJSON {
-		return this.dataAccess.serializeBlockHeader(blockHeader);
+	public get accountSchema(): Schema {
+		return this._accountSchema;
 	}
 
-	public deserializeBlockHeader(blockJSON: BlockHeaderJSON): BlockHeader {
-		return this.dataAccess.deserializeBlockHeader(blockJSON);
-	}
-
-	public deserializeTransaction(
-		transactionJSON: TransactionJSON,
-	): BaseTransaction {
-		return this.dataAccess.deserializeTransaction(transactionJSON);
+	public get blockAssetSchema(): { [key: number]: Schema } {
+		return this._blockAssetSchema;
 	}
 
 	public async init(): Promise<void> {
-		// Check mem tables
-		const genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
-
-		if (!genesisBlock) {
-			throw new Error('Failed to load genesis block');
-		}
-
-		const genesisBlockMatch = this.blocksVerify.matchGenesisBlock(genesisBlock);
-
-		if (!genesisBlockMatch) {
-			throw new Error('Genesis block does not match');
-		}
-
-		const storageLastBlock = await this.dataAccess.getLastBlock();
-		if (!storageLastBlock) {
+		let storageLastBlock: Block;
+		try {
+			storageLastBlock = await this.dataAccess.getLastBlock();
+		} catch (error) {
 			throw new Error('Failed to load last block');
 		}
 
-		if (storageLastBlock.height !== genesisBlock.height) {
+		if (storageLastBlock.header.height !== this.genesisBlock.header.height) {
 			await this._cacheBlockHeaders(storageLastBlock);
 		}
 
+		const validators = await this.getValidators();
+		this._numberOfValidators = validators.length;
+
 		this._lastBlock = storageLastBlock;
+	}
+
+	public calculateDefaultReward(height: number): bigint {
+		return calculateDefaultReward(height, this._blockRewardArgs);
+	}
+
+	public calculateExpectedReward(blockHeader: BlockHeader, stateStore: StateStore): bigint {
+		const defaultReward = this.calculateDefaultReward(blockHeader.height);
+		const isValid = this.isValidSeedReveal(blockHeader, stateStore);
+		return isValid ? defaultReward : BigInt(0);
 	}
 
 	public resetBlockHeaderCache(): void {
 		this.dataAccess.resetBlockHeaderCache();
 	}
 
-	public async newStateStore(skipLastHeights: number = 0): Promise<StateStore> {
+	public async newStateStore(skipLastHeights = 0): Promise<StateStore> {
 		const fromHeight = Math.max(
-			1,
-			this._lastBlock.height - this.constants.stateBlockSize - skipLastHeights,
+			0,
+			this._lastBlock.header.height - this.numberOfValidators * 3 - skipLastHeights,
 		);
-		const toHeight = Math.max(this._lastBlock.height - skipLastHeights, 1);
+		const toHeight = Math.max(this._lastBlock.header.height - skipLastHeights, 1);
 		const lastBlockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
 			fromHeight,
 			toHeight,
 		);
 
-		const lastBlockReward = this.blockReward.calculateReward(
+		const lastBlockReward = this.calculateDefaultReward(
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			lastBlockHeaders[0]?.height ?? 1,
 		);
 
-		return new StateStore(this.storage, {
+		return new StateStore(this.dataAccess, {
 			networkIdentifier: this._networkIdentifier,
 			lastBlockHeaders,
 			lastBlockReward,
+			defaultAccount: this._defaultAccount,
 		});
 	}
 
-	private async _cacheBlockHeaders(
-		storageLastBlock: BlockInstance,
-	): Promise<void> {
-		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)
-		const fromHeight = Math.max(
-			storageLastBlock.height - DEFAULT_MAX_BLOCK_HEADER_CACHE,
-			1,
+	public async genesisBlockExist(genesisBlock: GenesisBlock): Promise<boolean> {
+		let matchingGenesisBlock: BlockHeader | undefined;
+		try {
+			matchingGenesisBlock = await this.dataAccess.getBlockHeaderByID(genesisBlock.header.id);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+		}
+		let lastBlockHeader: BlockHeader | undefined;
+		try {
+			lastBlockHeader = await this.dataAccess.getLastBlockHeader();
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+		}
+		if (lastBlockHeader && !matchingGenesisBlock) {
+			throw new Error('Genesis block does not match');
+		}
+		if (!lastBlockHeader && !matchingGenesisBlock) {
+			return false;
+		}
+		return true;
+	}
+
+	public isValidSeedReveal(blockHeader: BlockHeader, stateStore: StateStore): boolean {
+		return isValidSeedReveal(blockHeader, stateStore, this.numberOfValidators);
+	}
+
+	public validateGenesisBlockHeader(block: GenesisBlock): void {
+		validateGenesisBlockHeader(block, this._accountSchema);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public applyGenesisBlock(block: GenesisBlock, stateStore: StateStore): void {
+		for (const account of block.header.asset.accounts) {
+			stateStore.account.set(account.address, account);
+		}
+		const initialValidators = block.header.asset.initDelegates.map(address => ({
+			address,
+			// MinActiveHeight must be genesis block height + 1
+			minActiveHeight: block.header.height + 1,
+			isConsensusParticipant: false,
+		}));
+		stateStore.consensus.set(
+			CONSENSUS_STATE_VALIDATORS_KEY,
+			codec.encode(validatorsSchema, { validators: initialValidators }),
 		);
-		const toHeight = storageLastBlock.height;
+		this._numberOfValidators = block.header.asset.initDelegates.length;
+	}
+
+	public validateTransaction(transaction: Transaction): void {
+		transaction.validate({
+			minFeePerByte: this.constants.minFeePerByte,
+			baseFees: this.constants.baseFees,
+		});
+	}
+
+	public validateBlockHeader(block: Block): void {
+		const headerWithoutAsset = {
+			...block.header,
+			asset: Buffer.alloc(0),
+		};
+		// Validate block header
+		const errors = validator.validate(blockHeaderSchema, headerWithoutAsset);
+		if (errors.length) {
+			throw new LiskValidationError(errors);
+		}
+		// Validate block header asset
+		const assetSchema = this.dataAccess.getBlockHeaderAssetSchema(block.header.version);
+		const assetErrors = validator.validate(assetSchema, block.header.asset);
+		if (assetErrors.length) {
+			throw new LiskValidationError(assetErrors);
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
+		const encodedBlockHeaderWithoutSignature = this.dataAccess.encodeBlockHeader(
+			block.header,
+			true,
+		);
+		validateSignature(
+			block.header.generatorPublicKey,
+			encodedBlockHeaderWithoutSignature,
+			block.header.signature,
+			this._networkIdentifier,
+		);
+		validateReward(block, this.calculateDefaultReward(block.header.height));
+
+		const encodedPayload = Buffer.concat(
+			block.payload.map(tx => this.dataAccess.encodeTransaction(tx)),
+		);
+		validateBlockProperties(block, encodedPayload, this.constants.maxPayloadLength);
+	}
+
+	public async verifyBlockHeader(block: Block, stateStore: StateStore): Promise<void> {
+		verifyPreviousBlockId(block, this._lastBlock);
+		validateBlockSlot(block, this._lastBlock, this.slots);
+		verifyReward(block.header, stateStore, this.numberOfValidators);
+		await verifyBlockGenerator(block.header, this.slots, stateStore);
+	}
+
+	public async saveBlock(
+		block: Block,
+		stateStore: StateStore,
+		finalizedHeight: number,
+		{ removeFromTempTable } = {
+			removeFromTempTable: false,
+		},
+	): Promise<void> {
+		await this.dataAccess.saveBlock(block, stateStore, finalizedHeight, removeFromTempTable);
+		this.dataAccess.addBlockHeader(block.header);
+		this._lastBlock = block;
+
+		this.events.emit(EVENT_NEW_BLOCK, {
+			block,
+			accounts: stateStore.account.getUpdated(),
+		});
+	}
+
+	public async removeBlock(
+		block: Block,
+		stateStore: StateStore,
+		{ saveTempBlock } = { saveTempBlock: false },
+	): Promise<void> {
+		if (block.header.version === this.genesisBlock.header.version) {
+			throw new Error('Cannot delete genesis block');
+		}
+		let secondLastBlock: Block;
+		try {
+			secondLastBlock = await this.dataAccess.getBlockByID(block.header.previousBlockID);
+		} catch (error) {
+			throw new Error('PreviousBlock is null');
+		}
+
+		const updatedAccounts = await this.dataAccess.deleteBlock(block, stateStore, saveTempBlock);
+		await this.dataAccess.removeBlockHeader(block.header.id);
+		this._lastBlock = secondLastBlock;
+
+		this.events.emit(EVENT_DELETE_BLOCK, {
+			block,
+			accounts: updatedAccounts,
+		});
+	}
+
+	public async getValidator(timestamp: number): Promise<Validator> {
+		const validators = await this.getValidators();
+		const currentSlot = this.slots.getSlotNumber(timestamp);
+		return validators[currentSlot % validators.length];
+	}
+
+	public async getValidators(): Promise<Validator[]> {
+		const validatorsBuffer = await this.dataAccess.getConsensusState(
+			CONSENSUS_STATE_VALIDATORS_KEY,
+		);
+		if (!validatorsBuffer) {
+			return [];
+		}
+		const { validators } = codec.decode<{ validators: Validator[] }>(
+			validatorsSchema,
+			validatorsBuffer,
+		);
+
+		return validators;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public async setValidators(
+		validators: { address: Buffer; isConsensusParticipant: boolean }[],
+		stateStore: StateStore,
+		blockHeader: BlockHeader,
+	): Promise<void> {
+		if (this._getLastBootstrapHeight() > blockHeader.height) {
+			debug(
+				`Skipping updating validator since current height ${
+					blockHeader.height
+				} is lower than last bootstrap height ${this._getLastBootstrapHeight()}`,
+			);
+			return;
+		}
+		const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);
+		if (!validatorsBuffer) {
+			throw new Error('Previous validator set must exist');
+		}
+		const { validators: previousValidators } = codec.decode<{ validators: Validator[] }>(
+			validatorsSchema,
+			validatorsBuffer,
+		);
+		const nextValidatorSet = [];
+		for (const nextValidator of validators) {
+			const previousInfo = previousValidators.find(pv => pv.address.equals(nextValidator.address));
+			nextValidatorSet.push({
+				...nextValidator,
+				minActiveHeight:
+					previousInfo !== undefined ? previousInfo.minActiveHeight : blockHeader.height + 1,
+			});
+		}
+		const encodedValidators = codec.encode(validatorsSchema, { validators: nextValidatorSet });
+		stateStore.consensus.set(CONSENSUS_STATE_VALIDATORS_KEY, encodedValidators);
+		this.events.emit(EVENT_VALIDATORS_CHANGED, { validators: nextValidatorSet });
+	}
+
+	private async _cacheBlockHeaders(storageLastBlock: Block): Promise<void> {
+		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)
+		const fromHeight = Math.max(storageLastBlock.header.height - DEFAULT_MAX_BLOCK_HEADER_CACHE, 0);
+		const toHeight = storageLastBlock.header.height;
 
 		debug(
-			{ h: storageLastBlock.height, fromHeight, toHeight },
+			{ h: storageLastBlock.header.height, fromHeight, toHeight },
 			'Cache block headers during chain init',
 		);
-		const blockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
-			fromHeight,
-			toHeight,
-		);
+		const blockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(fromHeight, toHeight);
 		const sortedBlockHeaders = [...blockHeaders].sort(
 			(a: BlockHeader, b: BlockHeader) => a.height - b.height,
 		);
@@ -375,281 +483,10 @@ export class Chain {
 		}
 	}
 
-	public validateBlockHeader(block: BlockInstance, blockBytes: Buffer): void {
-		validatePreviousBlockProperty(block, this.genesisBlock);
-		validateSignature(block, blockBytes, this._networkIdentifier);
-		validateReward(block, this.blockReward.calculateReward(block.height));
-
-		// Validate transactions
-		const transactionsResponses = validateTransactions()(block.transactions);
-		const invalidTransactionResponse = transactionsResponses.find(
-			transactionResponse =>
-				transactionResponse.status !== TransactionStatus.OK,
+	private _getLastBootstrapHeight(): number {
+		return (
+			this._numberOfValidators * this._genesisBlock.header.asset.initRounds +
+			this._genesisBlock.header.height
 		);
-
-		if (invalidTransactionResponse) {
-			throw invalidTransactionResponse.errors;
-		}
-
-		validatePayload(block, this.constants.maxPayloadLength);
-
-		// Update id
-		block.id = blocksUtils.getId(blockBytes);
-	}
-
-	public async resetState(): Promise<void> {
-		await this.storage.entities.Account.resetMemTables();
-		await this.storage.entities.ConsensusState.delete();
-		this.dataAccess.resetBlockHeaderCache();
-	}
-
-	public async verify(
-		blockInstance: BlockInstance,
-		_: StateStore,
-		{ skipExistingCheck }: { readonly skipExistingCheck: boolean },
-	): Promise<void> {
-		verifyPreviousBlockId(blockInstance, this._lastBlock, this.genesisBlock);
-		validateBlockSlot(blockInstance, this._lastBlock, this.slots);
-		if (!skipExistingCheck) {
-			await verifyBlockNotExists(this.storage, blockInstance);
-			const transactionsResponses = await checkPersistedTransactions(
-				this.dataAccess,
-			)(blockInstance.transactions);
-			const invalidPersistedResponse = transactionsResponses.find(
-				transactionResponse =>
-					transactionResponse.status !== TransactionStatus.OK,
-			);
-			if (invalidPersistedResponse) {
-				throw invalidPersistedResponse.errors;
-			}
-		}
-		await this.blocksVerify.checkTransactions(blockInstance);
-	}
-
-	// tslint:disable-next-line prefer-function-over-method
-	public async apply(
-		blockInstance: BlockInstance,
-		stateStore: StateStore,
-	): Promise<void> {
-		await applyConfirmedStep(blockInstance, stateStore);
-		await applyFeeAndRewards(blockInstance, stateStore);
-	}
-
-	// tslint:disable-next-line prefer-function-over-method
-	public async applyGenesis(
-		blockInstance: BlockInstance,
-		stateStore: StateStore,
-	): Promise<void> {
-		await applyConfirmedGenesisStep(blockInstance, stateStore);
-		await applyFeeAndRewards(blockInstance, stateStore);
-	}
-
-	public async save(
-		blockInstance: BlockInstance,
-		stateStore: StateStore,
-		{ saveOnlyState, removeFromTempTable } = {
-			saveOnlyState: false,
-			removeFromTempTable: false,
-		},
-	): Promise<void> {
-		return this.storage.entities.Block.begin('saveBlock', async tx => {
-			await stateStore.finalize(tx);
-			if (!saveOnlyState) {
-				const blockJSON = this.serialize(blockInstance);
-				await saveBlock(this.storage, blockJSON, tx);
-			}
-			if (removeFromTempTable) {
-				await this.removeBlockFromTempTable(blockInstance.id, tx);
-			}
-			this.dataAccess.addBlockHeader(blockInstance);
-			this._lastBlock = blockInstance;
-
-			const accounts = stateStore.account
-				.getUpdated()
-				.map(anAccount => anAccount.toJSON());
-
-			this.events.emit(EVENT_NEW_BLOCK, {
-				block: this.serialize(blockInstance),
-				accounts,
-			});
-		});
-	}
-
-	// tslint:disable-next-line prefer-function-over-method
-	public async undo(
-		blockInstance: BlockInstance,
-		stateStore: StateStore,
-	): Promise<void> {
-		await undoFeeAndRewards(blockInstance, stateStore);
-		await undoConfirmedStep(blockInstance, stateStore);
-	}
-
-	private async _deleteLastBlock(
-		lastBlock: BlockInstance,
-		tx?: StorageTransaction,
-	): Promise<BlockInstance> {
-		if (lastBlock.height === 1) {
-			throw new Error('Cannot delete genesis block');
-		}
-		const block = await this.dataAccess.getBlockByID(
-			lastBlock.previousBlockId as string,
-		);
-
-		if (!block) {
-			throw new Error('PreviousBlock is null');
-		}
-
-		await this.storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
-
-		return block;
-	}
-
-	public async remove(
-		block: BlockInstance,
-		stateStore: StateStore,
-		{ saveTempBlock } = { saveTempBlock: false },
-	): Promise<void> {
-		await this.storage.entities.Block.begin('revertBlock', async tx => {
-			const secondLastBlock = await this._deleteLastBlock(block, tx);
-
-			if (saveTempBlock) {
-				const blockJSON = this.serialize(block);
-				const blockTempEntry = {
-					id: blockJSON.id,
-					height: blockJSON.height,
-					fullBlock: blockJSON,
-				};
-				await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
-			}
-			await stateStore.finalize(tx);
-			await this.dataAccess.removeBlockHeader(block.id);
-			this._lastBlock = secondLastBlock;
-
-			const accounts = stateStore.account
-				.getUpdated()
-				.map(anAccount => anAccount.toJSON());
-
-			this.events.emit(EVENT_DELETE_BLOCK, {
-				block: this.serialize(block),
-				accounts,
-			});
-		});
-	}
-
-	public async removeBlockFromTempTable(
-		blockId: string,
-		tx: StorageTransaction,
-	): Promise<void> {
-		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
-	}
-
-	public async exists(block: BlockInstance): Promise<boolean> {
-		try {
-			await verifyBlockNotExists(this.storage, block);
-
-			return false;
-		} catch (err) {
-			return true;
-		}
-	}
-
-	public async getHighestCommonBlock(
-		ids: string[],
-	): Promise<BlockHeader | undefined> {
-		const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
-		const sortedBlocks = [...blocks].sort(
-			(a: BlockHeader, b: BlockHeader) => b.height - a.height,
-		);
-		const highestCommonBlock = sortedBlocks.shift();
-
-		return highestCommonBlock;
-	}
-
-	public async filterReadyTransactions(
-		transactions: BaseTransaction[],
-		context: Contexter,
-	): Promise<BaseTransaction[]> {
-		const stateStore = await this.newStateStore();
-		const allowedTransactionsIds = checkAllowedTransactions(context)(
-			transactions as MatcherTransaction[],
-		)
-			.filter(
-				transactionResponse =>
-					transactionResponse.status === TransactionStatus.OK,
-			)
-			.map(transactionResponse => transactionResponse.id);
-
-		const allowedTransactions = transactions.filter(transaction =>
-			allowedTransactionsIds.includes(transaction.id),
-		);
-		const transactionsResponses = await applyTransactions()(
-			allowedTransactions,
-			stateStore,
-		);
-		const readyTransactions = allowedTransactions.filter(transaction =>
-			transactionsResponses
-				.filter(response => response.status === TransactionStatus.OK)
-				.map(response => response.id)
-				.includes(transaction.id),
-		);
-
-		return readyTransactions;
-	}
-
-	public async validateTransactions(
-		transactions: BaseTransaction[],
-	): Promise<ReadonlyArray<TransactionResponse>> {
-		return composeTransactionSteps(
-			checkAllowedTransactions({
-				blockVersion: this.lastBlock.version,
-				blockHeight: this.lastBlock.height,
-				blockTimestamp: this.lastBlock.timestamp,
-			}),
-			validateTransactions(),
-			// Composed transaction checks are all static, so it does not need state store
-		)(transactions);
-	}
-
-	public async applyTransactions(
-		transactions: BaseTransaction[],
-	): Promise<ReadonlyArray<TransactionResponse>> {
-		const stateStore = await this.newStateStore();
-
-		return composeTransactionSteps(
-			checkAllowedTransactions(() => {
-				const { version, height, timestamp } = this._lastBlock;
-
-				return {
-					blockVersion: version,
-					blockHeight: height,
-					blockTimestamp: timestamp,
-				};
-			}),
-			checkPersistedTransactions(this.dataAccess),
-			applyTransactions(),
-		)(transactions, stateStore);
-	}
-
-	public async applyTransactionsWithStateStore(
-		transactions: BaseTransaction[],
-		stateStore: StateStore,
-	): Promise<ReadonlyArray<TransactionResponse>> {
-		return composeTransactionSteps(
-			checkPersistedTransactions(this.dataAccess),
-			applyTransactions(),
-		)(transactions, stateStore);
-	}
-
-	// Temporally added because DPoS uses totalEarning to calculate the vote weight change
-	// tslint:disable-next-line prefer-function-over-method
-	public getTotalEarningAndBurnt(
-		blockInstance: BlockInstance,
-	): { readonly totalEarning: bigint; readonly totalBurnt: bigint } {
-		const { totalFee, totalMinFee } = getTotalFees(blockInstance);
-
-		return {
-			totalEarning: blockInstance.reward + totalFee - totalMinFee,
-			totalBurnt: totalMinFee,
-		};
 	}
 }

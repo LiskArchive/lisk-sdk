@@ -1,86 +1,186 @@
 {
 	"title": "Valid multi-signature registration",
 	"summary": "A valid multi-signature registration",
-	"config": "devnet",
+	"config": {
+		"network": "devnet"
+	},
 	"runner": "multisignature_registration_transaction",
 	"handler": "multisignature_registration_transaction",
-	"testCases": {
-		"input": {
-			"account": {
-				"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
-				"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
-				"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
-				"address": "18141291412139607230L"
-			},
-			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
-			"members": {
-				"mandatoryOne": {
-					"passphrase": "trim elegant oven term access apple obtain error grain excite lawn neck",
-					"privateKey": "8a138c0dd8efe597c8b9c519af69e9821bd1e769cf0fb3490e22209e9cabfb8df1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
-					"publicKey": "f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
-					"address": "10481548956627905381L"
+	"testCases": [
+		{
+			"description": "Both mandatory and optional member group",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"address": "be046d336cd0c2fbde62bc47e20199395d2eeadc"
 				},
-				"mandatoryTwo": {
-					"passphrase": "desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic",
-					"privateKey": "ddc8e19d6697d6e5c1dacf6576a7169752810999918212afe14d3978b354f8aa4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
-					"publicKey": "4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
-					"address": "3372320078773139180L"
-				},
-				"optionalOne": {
-					"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
-					"privateKey": "69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
-					"publicKey": "57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
-					"address": "7745870967079479156L"
-				},
-				"optionalTwo": {
-					"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
-					"privateKey": "ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
-					"publicKey": "fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
-					"address": "7086965981385941478L"
+				"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+				"members": {
+					"mandatoryOne": {
+						"passphrase": "trim elegant oven term access apple obtain error grain excite lawn neck",
+						"privateKey": "8a138c0dd8efe597c8b9c519af69e9821bd1e769cf0fb3490e22209e9cabfb8df1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
+						"publicKey": "f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
+						"address": "652bac0f3ef175917844a85c4a0a484fbe2395e4"
+					},
+					"mandatoryTwo": {
+						"passphrase": "desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic",
+						"privateKey": "ddc8e19d6697d6e5c1dacf6576a7169752810999918212afe14d3978b354f8aa4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
+						"publicKey": "4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
+						"address": "ecb6308c3ee3cc2ed1fa266b85ba127d63a4ee1c"
+					},
+					"optionalOne": {
+						"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
+						"privateKey": "69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+						"publicKey": "57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+						"address": "74a7c8ec9adc7e6ba5c1cf9410d5c6c6bf6aba7d"
+					},
+					"optionalTwo": {
+						"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
+						"privateKey": "ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
+						"publicKey": "fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
+						"address": "e661c9ff02f65962ac08bc79a2f5c0d44b312fbc"
+					}
 				}
 			},
-			"transaction": {
-				"senderPublicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
-				"nonce": "1",
-				"fee": "1500000000",
-				"type": 12,
-				"asset": {
-					"mandatoryKeys": [
-						"4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
-						"f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3"
-					],
-					"optionalKeys": [
-						"57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
-						"fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6"
-					],
-					"numberOfSignatures": 4
-				}
+			"output": {
+				"transaction": "0804100018012080dea0cb052a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a401ce26ed21774e4fba8142690cec0c00a0ef7d3d970b6e8bc4d4aec089bb24e6a11b47eb4a3fcd54047eadbfaa01fe07acab50442fa30dc1bc655e5284a60ed0e3a40de6caeeffe15062fe6fe05ff5759d71533bcd1af67759fbb98cd25bfd9bcd427e62625a778d9c9e665646847c37002bb83429f906733c144ca9f36fb5a5c3e053a40a99b7e99b7a0427f9da21ad9b157e65484a45fec7757b9f8f990979b28b1a7013acf17a20c87d416281ed96a5df662e6cebb7f64a639c4b27aa5710a0483210b3a401c106815d159bac122fa12910d10911c96b9535d3391fe2573ac2175aaaa6279f5c23664b9cf66cc86229ec44414adf4abc315a5017dd473a1effcdc6a8d6c0f3a40db938aaf2719a80017844f1968e35ce927124dcf7c04a0b0d9268aa7c9ad1ce50e61905c1bb8a902b982e25343c232fae5f06cd828b7d11ca53f18820ead8c08"
 			}
 		},
-		"output": {
-			"senderPublicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
-			"nonce": "1",
-			"fee": "1500000000",
-			"type": 12,
-			"asset": {
-				"mandatoryKeys": [
-					"4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
-					"f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3"
-				],
-				"optionalKeys": [
-					"57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
-					"fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6"
-				],
-				"numberOfSignatures": 4
+		{
+			"description": "Sender is a member of the group",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"address": "be046d336cd0c2fbde62bc47e20199395d2eeadc"
+				},
+				"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+				"members": {
+					"targetAccount": {
+						"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+						"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+						"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+						"address": "be046d336cd0c2fbde62bc47e20199395d2eeadc"
+					},
+					"mandatoryOne": {
+						"passphrase": "trim elegant oven term access apple obtain error grain excite lawn neck",
+						"privateKey": "8a138c0dd8efe597c8b9c519af69e9821bd1e769cf0fb3490e22209e9cabfb8df1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
+						"publicKey": "f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
+						"address": "652bac0f3ef175917844a85c4a0a484fbe2395e4"
+					},
+					"mandatoryTwo": {
+						"passphrase": "desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic",
+						"privateKey": "ddc8e19d6697d6e5c1dacf6576a7169752810999918212afe14d3978b354f8aa4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
+						"publicKey": "4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
+						"address": "ecb6308c3ee3cc2ed1fa266b85ba127d63a4ee1c"
+					},
+					"optionalOne": {
+						"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
+						"privateKey": "69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+						"publicKey": "57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+						"address": "74a7c8ec9adc7e6ba5c1cf9410d5c6c6bf6aba7d"
+					},
+					"optionalTwo": {
+						"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
+						"privateKey": "ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
+						"publicKey": "fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
+						"address": "e661c9ff02f65962ac08bc79a2f5c0d44b312fbc"
+					}
+				}
 			},
-			"signatures": [
-				"13d7ea4e8de9ccb4e5a3de1ec373b397bf26be8b2f304758650b75d8e1c8a1fbd2def69d2eb39675918bfb4e14b1fd9c50b3efc4c956fe7fe473058631f52e09",
-				"6061e18476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06",
-				"c4bbd807a7c55eae57fd6ad6d461e85d32039ba08dd4520f9dd3b2643aa53a2ad833a99aaeecaf53301cb2033e0084e59c92dbfa34710744e8c7db6ae0ed550c",
-				"b6b2f45cd76907e48f237599c82eb60341ceca0ce36a0e92853156639002e2df22548ca98988c6560d7dd25de732ac48c2a5da7e35cfaa064c9759d9b0e71b01",
-				"cbfe57dbd9712f60220242eb697ee509874897fef688a6281e9ccdcdfdd3ed3725547d68272bef2056e3c73503298d11b21955c10ec2f24cf81e77c40cccef0b"
-			],
-			"id": "13012911749059365405"
+			"output": {
+				"transaction": "0804100018012080dea0cb052a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe32ac01080412200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe12204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40d2f94402dfb2fe2322296d06fc1a9ffe40d964c01c58e49c0354724570c6b05eaa39d6507d75caaddd96e1448bd90d367c1ddee934469b3b251cc5a3ad310c073a40d2f94402dfb2fe2322296d06fc1a9ffe40d964c01c58e49c0354724570c6b05eaa39d6507d75caaddd96e1448bd90d367c1ddee934469b3b251cc5a3ad310c073a407b30090ef1259f3f8dd5125c158d3b2c53bd7d1bf65679535cd2c0ba024ffcc265b0c139e6a950ccecad3aa305404c67d81da0f518a23bb630ad643d0e1510023a40909e5a6c779e42bfd5699df7048a6b9375d7e224647f7147c04914a11197d7f1cdf39c1a74b6337edc60a5f3b579194d22811f6df916ac6fcbb67271f3b5b2073a401704d16cbae4a817317fadf700592c68cdc0222b4daf7b8aee0ebdb25ed6d64840ed91b7bf56f47092a33ad64ba7a1a6c29de81870da072e6056c7d7927a120e3a4040a5020f7d0c8eeeac7412d8d048966081551ccf2059b03559b4cad275355d5a707927c8033b436e1f439ba8f15931cacc98e35f2cddf6e1dc204fb318549e08"
+			}
+		},
+		{
+			"description": "Only optional members",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"address": "be046d336cd0c2fbde62bc47e20199395d2eeadc"
+				},
+				"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+				"members": {
+					"optionalOne": {
+						"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
+						"privateKey": "69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+						"publicKey": "57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+						"address": "74a7c8ec9adc7e6ba5c1cf9410d5c6c6bf6aba7d"
+					},
+					"optionalTwo": {
+						"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
+						"privateKey": "ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
+						"publicKey": "fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
+						"address": "e661c9ff02f65962ac08bc79a2f5c0d44b312fbc"
+					}
+				}
+			},
+			"output": {
+				"transaction": "0804100018012080dea0cb052a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe324608011a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40a1267def343a55b5e0eb3532843d318b2022cc74af7e13bbeb0106ba0a959a36ff21cda88d2c35f9f14e24da3403ea7eb8ec47035da2b800d5cefd79447f76023a4068855ff5559c55e951841466ad6d7acf02f2fbf03a7add535906b64c56e752db2796d8e9b5aa316333b482720ffa7ef54ad2c41c1e14b6f30256af61f97489083a40af0f78cc17b836443075f858a707dda8396515a57e2a7f00c530f21306f13b75534ec17ff1664b6cfed4a235848be57ecf75698ff3311db39f4a23e23446bd06"
+			}
+		},
+		{
+			"description": "Only mandatory members",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"address": "be046d336cd0c2fbde62bc47e20199395d2eeadc"
+				},
+				"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+				"members": {
+					"mandatoryOne": {
+						"passphrase": "trim elegant oven term access apple obtain error grain excite lawn neck",
+						"privateKey": "8a138c0dd8efe597c8b9c519af69e9821bd1e769cf0fb3490e22209e9cabfb8df1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
+						"publicKey": "f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
+						"address": "652bac0f3ef175917844a85c4a0a484fbe2395e4"
+					},
+					"mandatoryTwo": {
+						"passphrase": "desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic",
+						"privateKey": "ddc8e19d6697d6e5c1dacf6576a7169752810999918212afe14d3978b354f8aa4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
+						"publicKey": "4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
+						"address": "ecb6308c3ee3cc2ed1fa266b85ba127d63a4ee1c"
+					}
+				}
+			},
+			"output": {
+				"transaction": "0804100018012080dea0cb052a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe3246080212204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba33a4095bcd51cc0024e7833fb3b8bbef2e99dc8abd471dd67c83d0c07e5359267cbab85b9795974c924cae15319488d62763d8b805b80f1c63c05c175b10dd3a649063a40328779b0f6d4e223a86df790660c84dd4462d49c03e6c5eac67f93166db665844053b5f5ddb7b9d80169bf10d68aeadb0ecc41414661b91951aac19b7a51e3043a4065b723136caf98d31184363a4de92b6cde54ed3303ad7f3264a98922ffadbf3ccdb65d28dd0998a9970452f3b36929a54c2accbb864aa1ab797835dafc434604"
+			}
+		},
+		{
+			"description": "Second signature case",
+			"input": {
+				"account": {
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"address": "be046d336cd0c2fbde62bc47e20199395d2eeadc"
+				},
+				"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+				"members": {
+					"mandatoryOne": {
+						"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+						"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+						"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+						"address": "be046d336cd0c2fbde62bc47e20199395d2eeadc"
+					},
+					"mandatoryTwo": {
+						"passphrase": "oyster observe cinnamon elder rose judge baby length again subway pill plate",
+						"privateKey": "ffa879f56c04b9293bc830ef29c53c8871fb892717be9d7e75fc89b507eba279ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d",
+						"publicKey": "ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d",
+						"address": "0b5c7b4176506010434b80b3207ac965c2649a23"
+					}
+				}
+			},
+			"output": {
+				"transaction": "0804100018012080dea0cb052a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe3246080212200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe1220ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d3a4051d6ab3016eb18446f954664b56067fde009e6784e2f16c622e87cbc9951b90e00b2fd0b9127c9750cf675f8d9b3fe44c9aae26a2d873a76d908185b149dc90a3a4051d6ab3016eb18446f954664b56067fde009e6784e2f16c622e87cbc9951b90e00b2fd0b9127c9750cf675f8d9b3fe44c9aae26a2d873a76d908185b149dc90a3a4014bad50d0828fbbe35ecd01271b45e95b864ff43e8c3f1ce006397c50f899d9d15fb9b7f86d1c572462cefda2848ceb7fb91620d81145362ebc2fa58412a8107"
+			}
 		}
-	}
+	]
 }

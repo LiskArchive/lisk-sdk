@@ -13,28 +13,38 @@
  *
  */
 import {
-	Keypair,
-	KeypairBytes,
+	getAddressFromPublicKey,
+	getBase32AddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
-	getPrivateAndPublicKeyBytesFromPassphrase,
 	getKeys,
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPassphrase,
 	getAddressFromPrivateKey,
+	validateBase32Address,
+	getAddressFromBase32Address,
+	getBase32AddressFromAddress,
+	getBase32AddressFromPassphrase,
 } from '../src/keys';
+import { Keypair } from '../src/types';
 // Require is used for stubbing
+// eslint-disable-next-line
 const buffer = require('../src/buffer');
+// eslint-disable-next-line
 const hashModule = require('../src/hash');
 
 describe('keys', () => {
 	const defaultPassphrase = 'secret';
-	const defaultPassphraseHash =
-		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b';
-	const defaultPrivateKey =
-		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const defaultPublicKey =
-		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const defaultAddress = '16402986683325069355L';
+	const defaultPassphraseHash = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b';
+	const defaultPrivateKey = Buffer.from(
+		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		'hex',
+	);
+	const defaultPublicKey = Buffer.from(
+		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		'hex',
+	);
+	const defaultAddress = Buffer.from('2bb80d537b1da3e38bd30361aa855686bde0eacd', 'hex');
+
 	const defaultAddressAndPublicKey = {
 		publicKey: defaultPublicKey,
 		address: defaultAddress,
@@ -43,29 +53,7 @@ describe('keys', () => {
 	beforeEach(() => {
 		jest.spyOn(buffer, 'bufferToHex');
 
-		jest
-			.spyOn(hashModule, 'hash')
-			.mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
-	});
-
-	describe('#getPrivateAndPublicKeyBytesFromPassphrase', () => {
-		let keyPair: KeypairBytes;
-
-		beforeEach(() => {
-			keyPair = getPrivateAndPublicKeyBytesFromPassphrase(defaultPassphrase);
-		});
-
-		it('should create buffer publicKey', () => {
-			expect(Buffer.from(keyPair.publicKeyBytes).toString('hex')).toBe(
-				defaultPublicKey,
-			);
-		});
-
-		it('should create buffer privateKey', () => {
-			expect(Buffer.from(keyPair.privateKeyBytes).toString('hex')).toBe(
-				defaultPrivateKey,
-			);
-		});
+		jest.spyOn(hashModule, 'hash').mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
 	});
 
 	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
@@ -110,14 +98,150 @@ describe('keys', () => {
 
 	describe('#getAddressFromPassphrase', () => {
 		it('should create correct address', () => {
-			expect(getAddressFromPassphrase(defaultPassphrase)).toBe(defaultAddress);
+			expect(getAddressFromPassphrase(defaultPassphrase)).toEqual(defaultAddress);
 		});
 	});
 
 	describe('#getAddressFromPrivateKey', () => {
 		it('should create correct address', () => {
-			expect(getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64))).toBe(
-				defaultAddress,
+			expect(getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64))).toEqual(defaultAddress);
+		});
+	});
+
+	describe('#getAddressFromPublicKey', () => {
+		it('should generate address from publicKey', () => {
+			const address = getAddressFromPublicKey(defaultPublicKey);
+			expect(address).toEqual(defaultAddress);
+		});
+	});
+
+	describe('#getBase32AddressFromPublicKey', () => {
+		const publicKey = Buffer.from(
+			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',
+			'hex',
+		);
+		const hash = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
+		const expectedBase32Address = 'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
+		beforeEach(() => {
+			return jest.spyOn(hashModule, 'hash').mockReturnValue(Buffer.from(hash, 'hex'));
+		});
+
+		it('should generate base32 address from publicKey', () => {
+			const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
+
+			expect(address).toBe(expectedBase32Address);
+		});
+	});
+
+	describe('#getBase32AddressFromPassphrase', () => {
+		it('should generate valid base32 address from passphrase', () => {
+			const passphrase =
+				'garden mass universe joke disorder fish reveal state course lottery near virus';
+			const address = getBase32AddressFromPassphrase(passphrase);
+
+			expect(validateBase32Address(address)).toBeTrue();
+		});
+	});
+
+	describe('#validateBase32Address', () => {
+		describe('Given valid addresses', () => {
+			const addresses = [
+				'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu',
+				'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g',
+				'lskqf5xbhu874yqg89k449zk2fctj46fona9bafgr',
+				'lskamc9kfzenupkgexyxsf4qz9fv8mo9432of9p5j',
+				'lsk6xevdsz3dpqfsx2u6mg3jx9zk8xqdozvn7x5ur',
+			];
+
+			it('should return true', () => {
+				return addresses.forEach(address => {
+					return expect(validateBase32Address(address)).toBeTrue();
+				});
+			});
+		});
+
+		describe('Given an address that is too short', () => {
+			const address = 'lsk1';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					'Address length does not match requirements. Expected 41 characters.',
+				);
+			});
+		});
+
+		describe('Given an address that is too long', () => {
+			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2ga';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					'Address length does not match requirements. Expected 41 characters.',
+				);
+			});
+		});
+
+		describe('Given an address that is not prefixed with `lsk`', () => {
+			const address = 'LSK24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					'Invalid prefix. Expected prefix: lsk',
+				);
+			});
+		});
+
+		describe('Given an address containing non-base32 characters', () => {
+			const address = 'lsk1aknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					"Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.",
+				);
+			});
+		});
+
+		describe('Given an address with invalid checksum', () => {
+			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmuxgg';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					'Invalid checksum for address.',
+				);
+			});
+		});
+	});
+
+	describe('getAddressFromBase32Address', () => {
+		const account = {
+			passphrase:
+				'boil typical oyster traffic ethics timber envelope undo lecture poverty space keep',
+			privateKey:
+				'b02cd384aae38021bc025522aca7a015b64ff1ac2e47426b5bc749951273fdbc81d0db4fba38f3ce334e6c0f3192dd62366f43daa46a94bfc55ebf6205ea2453',
+			publicKey: '81d0db4fba38f3ce334e6c0f3192dd62366f43daa46a94bfc55ebf6205ea2453',
+			binaryAddress: '4762070a641cf689f765d43ad792e1970e6bb863',
+			address: 'lsk3hyz7vtpcts3thsmduh98pwxrjnbw7ccoxchxu',
+		};
+
+		it('should throw error for invalid address', () => {
+			return expect(getAddressFromBase32Address.bind(null, 'invalid')).toThrow();
+		});
+
+		it('should return an address given a base32 address', () => {
+			expect(getAddressFromBase32Address(account.address).toString('hex')).toBe(
+				account.binaryAddress,
+			);
+		});
+	});
+
+	describe('getBase32AddressFromAddress', () => {
+		const account = {
+			passphrase:
+				'boil typical oyster traffic ethics timber envelope undo lecture poverty space keep',
+			privateKey:
+				'b02cd384aae38021bc025522aca7a015b64ff1ac2e47426b5bc749951273fdbc81d0db4fba38f3ce334e6c0f3192dd62366f43daa46a94bfc55ebf6205ea2453',
+			publicKey: '81d0db4fba38f3ce334e6c0f3192dd62366f43daa46a94bfc55ebf6205ea2453',
+			binaryAddress: '4762070a641cf689f765d43ad792e1970e6bb863',
+			address: 'lsk3hyz7vtpcts3thsmduh98pwxrjnbw7ccoxchxu',
+		};
+
+		it('should return base32 address given an address', () => {
+			expect(getBase32AddressFromAddress(Buffer.from(account.binaryAddress, 'hex'))).toBe(
+				account.address,
 			);
 		});
 	});

@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import validator from 'validator';
-
+import { isIP, isPort, validator } from '@liskhq/lisk-validator';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
 	INVALID_PEER_INFO_LIST_REASON,
 	PEER_INFO_LIST_TOO_LONG_REASON,
 } from '../constants';
+// eslint-disable-next-line import/no-cycle
 import {
 	InvalidNodeInfoError,
 	InvalidPeerInfoError,
@@ -27,6 +27,7 @@ import {
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
 } from '../errors';
+// eslint-disable-next-line import/no-cycle
 import {
 	P2PCompatibilityCheckReturnType,
 	P2PMessagePacket,
@@ -35,6 +36,7 @@ import {
 	P2PRequestPacket,
 } from '../types';
 
+// eslint-disable-next-line import/no-cycle
 import { getByteSize, sanitizeIncomingPeerInfo } from '.';
 
 interface RPCPeerListResponse {
@@ -42,25 +44,19 @@ interface RPCPeerListResponse {
 	readonly success?: boolean; // Could be used in future
 }
 
-const IPV4_NUMBER = '4';
-const IPV6_NUMBER = '6';
-
-const validateNetworkCompatibility = (
-	peerInfo: P2PPeerInfo,
-	nodeInfo: P2PNodeInfo,
-): boolean => {
+const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeInfo): boolean => {
 	if (!peerInfo.sharedState) {
 		return false;
 	}
 
-	if (!peerInfo.sharedState.networkId) {
+	if (!peerInfo.sharedState.networkIdentifier) {
 		return false;
 	}
 
-	return (peerInfo.sharedState.networkId as string) === nodeInfo.networkId;
+	return peerInfo.sharedState.networkIdentifier === nodeInfo.networkIdentifier;
 };
 
-const validateProtocolVersionCompatibility = (
+const validateNetworkVersionCompatibility = (
 	peerInfo: P2PPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
@@ -68,15 +64,12 @@ const validateProtocolVersionCompatibility = (
 		return false;
 	}
 
-	if (typeof peerInfo.sharedState.protocolVersion !== 'string') {
+	if (typeof peerInfo.sharedState.networkVersion !== 'string') {
 		return false;
 	}
 
-	const peerHardForks = parseInt(
-		peerInfo.sharedState.protocolVersion.split('.')[0],
-		10,
-	);
-	const systemHardForks = parseInt(nodeInfo.protocolVersion.split('.')[0], 10);
+	const peerHardForks = parseInt(peerInfo.sharedState.networkVersion.split('.')[0], 10);
+	const systemHardForks = parseInt(nodeInfo.networkVersion.split('.')[0], 10);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };
@@ -92,7 +85,7 @@ export const validatePeerCompatibility = (
 		};
 	}
 
-	if (!validateProtocolVersionCompatibility(peerInfo, nodeInfo)) {
+	if (!validateNetworkVersionCompatibility(peerInfo, nodeInfo)) {
 		return {
 			success: false,
 			error: INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -104,15 +97,8 @@ export const validatePeerCompatibility = (
 	};
 };
 
-export const validatePeerAddress = (
-	ipAddress: string,
-	wsPort: number,
-): boolean => {
-	if (
-		(!validator.isIP(ipAddress, IPV4_NUMBER) &&
-			!validator.isIP(ipAddress, IPV6_NUMBER)) ||
-		!validator.isPort(wsPort.toString())
-	) {
+export const validatePeerAddress = (ipAddress: string, port: number): boolean => {
+	if (!isIP(ipAddress) || !isPort(port.toString())) {
 		return false;
 	}
 
@@ -124,16 +110,16 @@ export const validatePeerInfo = (
 	maxByteSize: number,
 ): P2PPeerInfo => {
 	if (!peerInfo) {
-		throw new InvalidPeerInfoError(`Invalid peer object`);
+		throw new InvalidPeerInfoError('Invalid peer object');
 	}
 
 	if (
 		!peerInfo.ipAddress ||
-		!peerInfo.wsPort ||
-		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
+		!peerInfo.port ||
+		!validatePeerAddress(peerInfo.ipAddress, peerInfo.port)
 	) {
 		throw new InvalidPeerInfoError(
-			`Invalid peer ipAddress or port for peer with ip: ${peerInfo.ipAddress} and wsPort ${peerInfo.wsPort}`,
+			`Invalid peer ipAddress or port for peer with ip: ${peerInfo.ipAddress} and port ${peerInfo.port}`,
 		);
 	}
 
@@ -147,10 +133,7 @@ export const validatePeerInfo = (
 	return peerInfo;
 };
 
-export const validateNodeInfo = (
-	nodeInfo: P2PNodeInfo,
-	maxByteSize: number,
-): void => {
+export const validateNodeInfo = (nodeInfo: Buffer, maxByteSize: number): void => {
 	const byteSize = getByteSize(nodeInfo);
 
 	if (byteSize > maxByteSize) {
@@ -158,8 +141,6 @@ export const validateNodeInfo = (
 			`Invalid NodeInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
 	}
-
-	return;
 };
 
 export const validatePeerInfoList = (
@@ -213,4 +194,54 @@ export const validateProtocolMessage = (message: unknown): P2PMessagePacket => {
 	}
 
 	return protocolMessage;
+};
+
+const packetSchema = {
+	type: 'object',
+	additionalProperties: false,
+	properties: {
+		event: {
+			type: 'string',
+		},
+		procedure: {
+			type: 'string',
+		},
+		cid: {
+			type: 'integer',
+		},
+		rid: {
+			type: 'integer',
+		},
+		data: {
+			type: ['object', 'string'],
+		},
+	},
+};
+
+export const validatePacket = (packet: unknown): void => {
+	const errors = validator.validate(packetSchema, packet as P2PMessagePacket | P2PRequestPacket);
+
+	if (errors.length) {
+		throw new Error('Packet format is invalid.');
+	}
+};
+
+export const isEmptyMessage = (data: unknown): boolean => {
+	if (data === undefined || data === null) {
+		return true;
+	}
+
+	if (
+		typeof data === 'object' &&
+		!Array.isArray(data) &&
+		Object.keys(data as Record<string, unknown>).length === 0
+	) {
+		return true;
+	}
+
+	if (Array.isArray(data) && data.length === 0) {
+		return true;
+	}
+
+	return false;
 };

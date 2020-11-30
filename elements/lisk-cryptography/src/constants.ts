@@ -13,3 +13,5 @@
  *
  */
 export const SIGNED_MESSAGE_PREFIX = 'Lisk Signed Message:\n';
+export const BINARY_ADDRESS_LENGTH = 20;
+export const DEFAULT_BASE32_ADDRESS_PREFIX = 'lsk';

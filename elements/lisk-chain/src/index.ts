@@ -11,13 +11,38 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Chain } from './chain';
-import { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK } from './constants';
-const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK };
+import { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK, EVENT_VALIDATORS_CHANGED } from './constants';
 
-export { Account } from './account';
-export * from './block_reward';
-export { Chain, events };
-export { baseBlockSchema } from './schema';
-export { StateStore } from './state_store';
+const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK, EVENT_VALIDATORS_CHANGED };
+
+export { events };
+export { Chain } from './chain';
+export { Transaction, transactionSchema, calculateMinFee } from './transaction';
+export {
+	blockHeaderAssetSchema,
+	blockHeaderSchema,
+	blockSchema,
+	signingBlockHeaderSchema,
+	validatorsSchema,
+	getGenesisBlockHeaderAssetSchema,
+	stateDiffSchema,
+	getRegisteredBlockAssetSchema,
+} from './schema';
+export { CONSENSUS_STATE_VALIDATORS_KEY, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from './constants';
+export type {
+	Account,
+	AccountDefaultProps,
+	RawBlock,
+	RawBlockHeader,
+	GenesisBlock,
+	GenesisBlockHeader,
+	Block,
+	BlockHeader,
+	Validator,
+	AccountSchema,
+} from './types';
 export { Slots } from './slots';
+export { readGenesisBlockJSON, getValidators, getAccountSchemaWithDefault } from './utils';
+export * as testing from './testing';
+
+export type { StateStore } from './state_store';

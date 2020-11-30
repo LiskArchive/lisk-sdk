@@ -12,33 +12,56 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, Storage, StorageTransaction } from '../types';
-
+import { codec } from '@liskhq/lisk-codec';
+import { BatchChain } from '@liskhq/lisk-db';
+import { BlockHeader, StateDiff, UpdatedDiff } from '../types';
 import { AccountStore } from './account_store';
 import { ChainStateStore } from './chain_state_store';
 import { ConsensusStateStore } from './consensus_state_store';
+import { DataAccess } from '../data_access';
+import { DB_KEY_DIFF_STATE } from '../data_access/constants';
+import { stateDiffSchema } from '../schema';
 
 interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
-	readonly networkIdentifier: string;
+	readonly networkIdentifier: Buffer;
 	readonly lastBlockReward: bigint;
+	readonly defaultAccount: Record<string, unknown>;
 }
+
+const saveDiff = (
+	height: string,
+	stateDiffs: Array<Readonly<StateDiff>>,
+	batch: BatchChain,
+): void => {
+	const diffToEncode: { updated: UpdatedDiff[]; created: string[]; deleted: UpdatedDiff[] } = {
+		updated: [],
+		created: [],
+		deleted: [],
+	};
+
+	for (const diff of stateDiffs) {
+		diffToEncode.updated = diffToEncode.updated.concat(diff.updated);
+		diffToEncode.created = diffToEncode.created.concat(diff.created);
+		diffToEncode.deleted = diffToEncode.deleted.concat(diff.deleted);
+	}
+
+	const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
+	batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
+};
 
 export class StateStore {
 	public readonly account: AccountStore;
 	public readonly chain: ChainStateStore;
 	public readonly consensus: ConsensusStateStore;
 
-	public constructor(
-		storage: Storage,
-		additionalInformation: AdditionalInformation,
-	) {
-		this.account = new AccountStore(storage.entities.Account);
-		this.consensus = new ConsensusStateStore(storage.entities.ConsensusState, {
-			lastBlockHeaders: additionalInformation.lastBlockHeaders,
+	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
+		this.account = new AccountStore(dataAccess, {
+			defaultAccount: additionalInformation.defaultAccount,
 		});
-		this.chain = new ChainStateStore(storage.entities.ChainState, {
-			lastBlockHeader: additionalInformation.lastBlockHeaders[0],
+		this.consensus = new ConsensusStateStore(dataAccess);
+		this.chain = new ChainStateStore(dataAccess, {
+			lastBlockHeaders: additionalInformation.lastBlockHeaders,
 			networkIdentifier: additionalInformation.networkIdentifier,
 			lastBlockReward: additionalInformation.lastBlockReward,
 		});
@@ -56,11 +79,10 @@ export class StateStore {
 		this.chain.restoreSnapshot();
 	}
 
-	public async finalize(tx: StorageTransaction): Promise<void> {
-		await Promise.all([
-			this.account.finalize(tx),
-			this.chain.finalize(tx),
-			this.consensus.finalize(tx),
-		]);
+	public finalize(height: string, batch: BatchChain): void {
+		const accountStateDiff = this.account.finalize(batch);
+		const chainStateDiff = this.chain.finalize(batch);
+		const consensusStateDiff = this.consensus.finalize(batch);
+		saveDiff(height, [accountStateDiff, chainStateDiff, consensusStateDiff], batch);
 	}
 }

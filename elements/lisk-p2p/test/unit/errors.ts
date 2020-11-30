@@ -24,7 +24,7 @@ import {
 	ExistingPeerError,
 	InvalidNodeInfoError,
 } from '../../src/errors';
-import { p2p_types } from '../../src';
+import { p2pTypes } from '../../src';
 import { constructPeerId } from '../../src/utils';
 
 describe('errors', () => {
@@ -34,23 +34,19 @@ describe('errors', () => {
 		const defaultMessage = `Received inbound connection from peer ${remoteAddress} which is already in our triedPeers map.`;
 		let peerTransportError: PeerInboundHandshakeError;
 
-		beforeEach(async () => {
-			peerTransportError = new PeerInboundHandshakeError(
-				defaultMessage,
-				statusCode,
-				remoteAddress,
-			);
+		beforeEach(() => {
+			peerTransportError = new PeerInboundHandshakeError(defaultMessage, statusCode, remoteAddress);
 		});
 
-		it('should create a new instance of PeerInboundHandshakeError', async () => {
+		it('should create a new instance of PeerInboundHandshakeError', () => {
 			expect(peerTransportError).toBeInstanceOf(PeerInboundHandshakeError);
 		});
 
-		it('should set error name to `PeerInboundHandshakeError`', async () => {
+		it('should set error name to `PeerInboundHandshakeError`', () => {
 			expect(peerTransportError.name).toEqual('PeerInboundHandshakeError');
 		});
 
-		it('should set error property remoteAddress when passed as an argument', async () => {
+		it('should set error property remoteAddress when passed as an argument', () => {
 			expect(peerTransportError.remoteAddress).toEqual(remoteAddress);
 		});
 	});
@@ -60,19 +56,19 @@ describe('errors', () => {
 		const defaultMessage = `Error when fetching peerlist of peer with peer Id ${peerId}`;
 		let rpcGetPeersFailed: RPCResponseError;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			rpcGetPeersFailed = new RPCResponseError(defaultMessage, peerId);
 		});
 
-		it('should create a new instance of RPCResponseError', async () => {
+		it('should create a new instance of RPCResponseError', () => {
 			expect(rpcGetPeersFailed).toBeInstanceOf(RPCResponseError);
 		});
 
-		it('should set error name to `RPCResponseError`', async () => {
+		it('should set error name to `RPCResponseError`', () => {
 			expect(rpcGetPeersFailed.name).toEqual('RPCResponseError');
 		});
 
-		it('should set error property peer Id when passed as an argument', async () => {
+		it('should set error property peer Id when passed as an argument', () => {
 			expect(rpcGetPeersFailed).toMatchObject({
 				name: 'RPCResponseError',
 				peerId: constructPeerId('127.0.0.1', 5001),
@@ -84,49 +80,49 @@ describe('errors', () => {
 		const defaultMessage = 'Invalid peer ipAddress or port';
 		let invalidPeer: InvalidPeerInfoError;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			invalidPeer = new InvalidPeerInfoError(defaultMessage);
 		});
 
-		it('should create a new instance of InvalidPeerInfoError', async () => {
+		it('should create a new instance of InvalidPeerInfoError', () => {
 			expect(invalidPeer).toBeInstanceOf(InvalidPeerInfoError);
 		});
 
-		it('should set error name to `InvalidPeerInfoError`', async () => {
+		it('should set error name to `InvalidPeerInfoError`', () => {
 			expect(invalidPeer.name).toEqual('InvalidPeerInfoError');
 		});
 
-		it('should set error message when passed an argument', async () => {
+		it('should set error message when passed an argument', () => {
 			expect(invalidPeer.message).toEqual(defaultMessage);
 		});
 	});
 
 	describe('#ExistingPeerError', () => {
 		const existingPeerErrorMessagge = 'Peer already exists';
-		const peerInfo: p2p_types.P2PPeerInfo = {
+		const peerInfo: p2pTypes.P2PPeerInfo = {
 			ipAddress: '0.0.0.0',
-			wsPort: 5000,
+			port: 5000,
 			peerId: constructPeerId('0.0.0.0', 5000),
 		};
 		let existingPeer: ExistingPeerError;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			existingPeer = new ExistingPeerError(peerInfo);
 		});
 
-		it('should create a new instance of ExistingPeerError', async () => {
+		it('should create a new instance of ExistingPeerError', () => {
 			expect(existingPeer).toBeInstanceOf(ExistingPeerError);
 		});
 
-		it('should set error name to `ExistingPeerError`', async () => {
+		it('should set error name to `ExistingPeerError`', () => {
 			expect(existingPeer.name).toEqual('ExistingPeerError');
 		});
 
-		it(`should set error message to ${existingPeerErrorMessagge}`, async () => {
+		it(`should set error message to ${existingPeerErrorMessagge}`, () => {
 			expect(existingPeer.message).toEqual(existingPeerErrorMessagge);
 		});
 
-		it(`should set peerInfo parameter when passing an argument`, async () => {
+		it('should set peerInfo parameter when passing an argument', () => {
 			expect(existingPeer.peerInfo).toEqual(peerInfo);
 		});
 	});
@@ -135,19 +131,20 @@ describe('errors', () => {
 		const InvalidNodeInfoErrorMessagge = 'Invalid NodeInfo version';
 		let invalidNodeInfo: InvalidNodeInfoError;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			invalidNodeInfo = new InvalidNodeInfoError(InvalidNodeInfoErrorMessagge);
 		});
 
-		it('should create a new instance of InvalidNodeInfoError', async () => {
+		it('should create a new instance of InvalidNodeInfoError', () => {
 			expect(invalidNodeInfo).toBeInstanceOf(InvalidNodeInfoError);
 		});
 
-		it('should set error name to `InvalidNodeInfoError`', async () => {
+		it('should set error name to `InvalidNodeInfoError`', () => {
 			expect(invalidNodeInfo.name).toEqual('InvalidNodeInfoError');
 		});
 
-		it(`should set error message to ${InvalidNodeInfoError}`, async () => {
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+		it(`should set error message to ${InvalidNodeInfoError}`, () => {
 			expect(invalidNodeInfo.message).toEqual(InvalidNodeInfoErrorMessagge);
 		});
 	});
@@ -156,19 +153,19 @@ describe('errors', () => {
 		const defaultMessage = 'Invalid response type';
 		let invalidRPCResponse: InvalidRPCResponseError;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			invalidRPCResponse = new InvalidRPCResponseError(defaultMessage);
 		});
 
-		it('should create a new instance of InvalidRPCResponse', async () => {
+		it('should create a new instance of InvalidRPCResponse', () => {
 			expect(invalidRPCResponse).toBeInstanceOf(InvalidRPCResponseError);
 		});
 
-		it('should set error name to `InvalidRPCResponseError`', async () => {
+		it('should set error name to `InvalidRPCResponseError`', () => {
 			expect(invalidRPCResponse.name).toEqual('InvalidRPCResponseError');
 		});
 
-		it('should set error message when passed an argument', async () => {
+		it('should set error message when passed an argument', () => {
 			expect(invalidRPCResponse.message).toEqual(defaultMessage);
 		});
 	});
@@ -177,25 +174,19 @@ describe('errors', () => {
 		const defaultMessage = 'Invalid protocol message';
 		let invalidProtocolMessageError: InvalidProtocolMessageError;
 
-		beforeEach(async () => {
-			invalidProtocolMessageError = new InvalidProtocolMessageError(
-				defaultMessage,
-			);
+		beforeEach(() => {
+			invalidProtocolMessageError = new InvalidProtocolMessageError(defaultMessage);
 		});
 
-		it('should create a new instance of InvalidProtocolMessageError', async () => {
-			expect(invalidProtocolMessageError).toBeInstanceOf(
-				InvalidProtocolMessageError,
-			);
+		it('should create a new instance of InvalidProtocolMessageError', () => {
+			expect(invalidProtocolMessageError).toBeInstanceOf(InvalidProtocolMessageError);
 		});
 
-		it('should set error name to `InvalidProtocolMessageError`', async () => {
-			expect(invalidProtocolMessageError.name).toEqual(
-				'InvalidProtocolMessageError',
-			);
+		it('should set error name to `InvalidProtocolMessageError`', () => {
+			expect(invalidProtocolMessageError.name).toEqual('InvalidProtocolMessageError');
 		});
 
-		it('should set error message when passed an argument', async () => {
+		it('should set error message when passed an argument', () => {
 			expect(invalidProtocolMessageError.message).toEqual(defaultMessage);
 		});
 	});
@@ -204,19 +195,19 @@ describe('errors', () => {
 		let invalidRPCRequestError: InvalidRPCRequestError;
 		const defaultMessage = 'Invalid RPC request error';
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			invalidRPCRequestError = new InvalidRPCRequestError(defaultMessage);
 		});
 
-		it('should create a new instance of InvalidRPCRequestError', async () => {
+		it('should create a new instance of InvalidRPCRequestError', () => {
 			expect(invalidRPCRequestError).toBeInstanceOf(InvalidRPCRequestError);
 		});
 
-		it('should set error name to `InvalidRPCRequestError`', async () => {
+		it('should set error name to `InvalidRPCRequestError`', () => {
 			expect(invalidRPCRequestError.name).toEqual('InvalidRPCRequestError');
 		});
 
-		it('should set error message when passed an argument', async () => {
+		it('should set error message when passed an argument', () => {
 			expect(invalidRPCRequestError.message).toEqual(defaultMessage);
 		});
 	});
@@ -225,32 +216,25 @@ describe('errors', () => {
 		const defaultMessage = 'Response was already sent';
 		let rpcResponseAlreadySentError: RPCResponseAlreadySentError;
 
-		beforeEach(async () => {
-			rpcResponseAlreadySentError = new RPCResponseAlreadySentError(
-				defaultMessage,
-			);
+		beforeEach(() => {
+			rpcResponseAlreadySentError = new RPCResponseAlreadySentError(defaultMessage);
 		});
 
-		it('should create a new instance of RPCResponseAlreadySentError', async () => {
-			expect(rpcResponseAlreadySentError).toBeInstanceOf(
-				RPCResponseAlreadySentError,
-			);
+		it('should create a new instance of RPCResponseAlreadySentError', () => {
+			expect(rpcResponseAlreadySentError).toBeInstanceOf(RPCResponseAlreadySentError);
 		});
 
-		it('should set error name to `RPCResponseAlreadySentError`', async () => {
-			expect(rpcResponseAlreadySentError.name).toEqual(
-				'ResponseAlreadySentError',
-			);
+		it('should set error name to `RPCResponseAlreadySentError`', () => {
+			expect(rpcResponseAlreadySentError.name).toEqual('ResponseAlreadySentError');
 		});
 
-		it('should set error message when passed an argument', async () => {
+		it('should set error message when passed an argument', () => {
 			expect(rpcResponseAlreadySentError.message).toEqual(defaultMessage);
 		});
 	});
 
 	describe('#RequestFailError', () => {
-		const defaultMessage =
-			'Request failed due to no peers found in peer selection';
+		const defaultMessage = 'Request failed due to no peers found in peer selection';
 		const errorResponseMessage = 'Invalid block id';
 		const response = new Error(errorResponseMessage);
 		const peerId = '127.0.0.1:4000';
@@ -258,30 +242,25 @@ describe('errors', () => {
 
 		let requestFailError: RequestFailError;
 
-		beforeEach(async () => {
-			requestFailError = new RequestFailError(
-				defaultMessage,
-				response,
-				peerId,
-				peerVersion,
-			);
+		beforeEach(() => {
+			requestFailError = new RequestFailError(defaultMessage, response, peerId, peerVersion);
 		});
 
-		it('should create a new instance of RequestFailError', async () => {
+		it('should create a new instance of RequestFailError', () => {
 			expect(requestFailError).toBeInstanceOf(RequestFailError);
 		});
 
-		it('should set error name to `RequestFailError`', async () => {
+		it('should set error name to `RequestFailError`', () => {
 			expect(requestFailError.name).toEqual('RequestFailError');
 		});
 
-		it('should set error message when passed an argument', async () => {
+		it('should set error message when passed an argument', () => {
 			expect(requestFailError.message).toEqual(
 				`${defaultMessage}: Peer Id: ${peerId}: Peer Version: ${peerVersion}`,
 			);
 		});
 
-		it('should set response object within this custom error', async () => {
+		it('should set response object within this custom error', () => {
 			expect(requestFailError.response).toMatchObject({
 				message: errorResponseMessage,
 			});

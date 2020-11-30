@@ -2,12 +2,10 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"composite": true,
-		"declaration": true,
 		"esModuleInterop": true,
 		"importHelpers": true,
 		"rootDir": "src",
 		"outDir": "dist"
 	},
-	"include": ["src/**/*"],
-	"files": ["./src/default_config.json"]
+	"include": ["src/**/*"]
 }

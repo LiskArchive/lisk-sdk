@@ -13,7 +13,6 @@
 			"receivedAt": 92,
 			"previousBlockId": "10639113266773617352"
 		},
-		"epochTime": 1464109200000,
 		"forkStatuses": {
 			"FORK_STATUS_IDENTICAL_BLOCK": 1,
 			"FORK_STATUS_VALID_BLOCK": 2,
@@ -111,7 +110,6 @@
 					"receivedAt": 92,
 					"previousBlockId": "10639113266773617352"
 				},
-				"epochTime": 1464109200000,
 				"blockInterval": 10
 			},
 			"input": {

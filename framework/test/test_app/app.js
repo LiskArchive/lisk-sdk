@@ -11,60 +11,57 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
-const path = require('path');
 const {
 	Application,
-	configurator,
-	/* eslint-disable import/no-unresolved */
-} = require('../../src');
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../dist-node');
+
+const {
+	HTTPAPIPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-http-api-plugin/dist-node');
+const {
+	ForgerPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-forger-plugin/dist-node');
+const {
+	MonitorPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-monitor-plugin/dist-node');
+const {
+	ReportMisbehaviorPlugin,
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../../framework-plugins/lisk-framework-report-misbehavior-plugin/dist-node');
 
 process.env.NODE_ENV = 'test';
 
 let app;
-const dummyLastCommitId = 'a4adbfb7651874c5746dbc389b281a111af79e96';
-const dummyBuildVersion = '#buildVersion';
 
 const appConfig = {
 	version: '3.0.0',
-	protocolVersion: '2.0',
-	lastCommitId: dummyLastCommitId,
-	buildVersion: dummyBuildVersion,
+	networkVersion: '2.0',
+	label: 'lisk-devnet',
 };
-
-// Support for PROTOCOL_VERSION only for tests
-if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
-	appConfig.protocolVersion = process.env.PROTOCOL_VERSION;
-}
 
 const network = process.env.LISK_NETWORK || 'devnet';
 
 try {
-	// TODO: I would convert config.json to .JS
-	configurator.loadConfig(appConfig);
-	configurator.loadConfigFile(
-		path.resolve(__dirname, `../fixtures/config/${network}/config`),
-	);
-	// eslint-disable-next-line import/no-dynamic-require,global-require
+	// eslint-disable-next-line import/no-dynamic-require,global-require, @typescript-eslint/no-var-requires
+	const config = require(`../fixtures/config/${network}/config`);
+	// eslint-disable-next-line import/no-dynamic-require,global-require, @typescript-eslint/no-var-requires
 	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
 
-	if (process.env.CUSTOM_CONFIG_FILE) {
-		configurator.loadConfigFile(path.resolve(process.env.CUSTOM_CONFIG_FILE));
-	}
-
-	const config = configurator.getConfig(appConfig, { failOnInvalidArg: false });
-
-	// Support for PROTOCOL_VERSION only for tests
-	if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
-		config.protocolVersion = process.env.PROTOCOL_VERSION;
-	}
-
+	const mergedConfig = {
+		...appConfig,
+		...config,
+	};
 	// To run multiple applications for same network for integration tests
-	config.label = `lisk-devnet-${config.modules.http_api.httpPort}`;
+	app = Application.defaultApplication(genesisBlock, mergedConfig);
 
-	app = new Application(genesisBlock, config);
+	app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(MonitorPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: true });
 } catch (e) {
 	console.error('Application start error.', e);
 	process.exit();

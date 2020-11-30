@@ -16,7 +16,6 @@
 import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as mnemonic from '../../../src/utils/mnemonic';
 
@@ -26,19 +25,17 @@ describe('account:create', () => {
 	const secondDefaultMnemonic =
 		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
 	const defaultKeys = {
-		publicKey:
-			'88b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
+		publicKey: '88b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
 		privateKey:
 			'1a8ea0ceed1b85c9cff5eb12ae8d9ccdac93b5d5c668775e12b86dd63a8cefa688b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
 	};
 	const secondDefaultKeys = {
-		publicKey:
-			'90215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
+		publicKey: '90215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
 		privateKey:
 			'bec5ac9d074d1684f9dd184fc44c4b37fb73ca9d013b6ddf5a92578a98f8848990215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
 	};
-	const defaultAddress = '14389576228799148035L';
-	const secondDefaultAddress = '10498496668550693658L';
+	const defaultAddress = 'lskz928ku6wx7ao89y9c4c24cqdduasdvquzvqksj';
+	const secondDefaultAddress = 'lskc3xa98z2pfa4c67anmanuporca2t3tdd6523kk';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () => {
@@ -47,16 +44,11 @@ describe('account:create', () => {
 		getKeysStub.withArgs(secondDefaultMnemonic).returns(secondDefaultKeys);
 
 		const getAddressFromPublicKeyStub = sandbox.stub();
-		getAddressFromPublicKeyStub
-			.withArgs(defaultKeys.publicKey)
-			.returns(defaultAddress);
-		getAddressFromPublicKeyStub
-			.withArgs(secondDefaultKeys.publicKey)
-			.returns(secondDefaultAddress);
+		getAddressFromPublicKeyStub.withArgs(defaultKeys.publicKey).returns(defaultAddress);
+		getAddressFromPublicKeyStub.withArgs(secondDefaultKeys.publicKey).returns(secondDefaultAddress);
 
 		return test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				mnemonic,
 				'createMnemonicPassphrase',
@@ -67,12 +59,6 @@ describe('account:create', () => {
 					.onSecondCall()
 					.returns(secondDefaultMnemonic),
 			)
-			.stub(cryptography, 'getKeys', getKeysStub)
-			.stub(
-				cryptography,
-				'getAddressFromPublicKey',
-				getAddressFromPublicKeyStub,
-			)
 			.stdout();
 	};
 
@@ -81,14 +67,15 @@ describe('account:create', () => {
 			.command(['account:create'])
 			.it('should create account', () => {
 				expect(printUtils.print).to.be.called;
-				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
-				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
-					defaultKeys.publicKey,
-				);
 				return expect(printMethodStub).to.be.calledWith([
 					{
-						...defaultKeys,
-						address: defaultAddress,
+						publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
+						privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
+						address: cryptography.getBase32AddressFromPublicKey(
+							cryptography.getKeys(defaultMnemonic).publicKey,
+							'lsk',
+						),
+						binaryAddress: cryptography.getAddressFromPassphrase(defaultMnemonic).toString('hex'),
 						passphrase: defaultMnemonic,
 					},
 				]);
@@ -101,19 +88,27 @@ describe('account:create', () => {
 			.command(['account:create', `--number=${defaultNumber}`])
 			.it('should create account', () => {
 				expect(printUtils.print).to.be.calledOnce;
-				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
-				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
-					defaultKeys.publicKey,
-				);
 				const result = [
 					{
-						...defaultKeys,
-						address: defaultAddress,
+						publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
+						privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
+						address: cryptography.getBase32AddressFromPublicKey(
+							cryptography.getKeys(defaultMnemonic).publicKey,
+							'lsk',
+						),
+						binaryAddress: cryptography.getAddressFromPassphrase(defaultMnemonic).toString('hex'),
 						passphrase: defaultMnemonic,
 					},
 					{
-						...secondDefaultKeys,
-						address: secondDefaultAddress,
+						publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
+						privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
+						address: cryptography.getBase32AddressFromPublicKey(
+							cryptography.getKeys(secondDefaultMnemonic).publicKey,
+							'lsk',
+						),
+						binaryAddress: cryptography
+							.getAddressFromPassphrase(secondDefaultMnemonic)
+							.toString('hex'),
 						passphrase: secondDefaultMnemonic,
 					},
 				];
@@ -145,8 +140,6 @@ describe('account:create', () => {
 					'Number flag must be an integer and greater than 0',
 				);
 			})
-			.it(
-				'should throw an error if the number flag contains non-number characters',
-			);
+			.it('should throw an error if the number flag contains non-number characters');
 	});
 });

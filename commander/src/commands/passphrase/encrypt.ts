@@ -27,23 +27,14 @@ import { getPassphraseFromPrompt } from '../../utils/reader';
 const outputPublicKeyOptionDescription =
 	'Includes the public key in the output. This option is provided for the convenience of node operators.';
 
-const processInputs = (
-	passphrase: string,
-	password: string,
-	outputPublicKey: boolean,
-) => {
-	const encryptedPassphraseObject = encryptPassphraseWithPassword(
-		passphrase,
-		password,
-	);
-	const encryptedPassphrase = stringifyEncryptedPassphrase(
-		encryptedPassphraseObject,
-	);
+const processInputs = (passphrase: string, password: string, outputPublicKey: boolean) => {
+	const encryptedPassphraseObject = encryptPassphraseWithPassword(passphrase, password);
+	const encryptedPassphrase = stringifyEncryptedPassphrase(encryptedPassphraseObject);
 
 	return outputPublicKey
 		? {
 				encryptedPassphrase,
-				publicKey: getKeys(passphrase).publicKey,
+				publicKey: getKeys(passphrase).publicKey.toString('base64'),
 		  }
 		: { encryptedPassphrase };
 };
@@ -66,17 +57,11 @@ export default class EncryptCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const {
-			flags: {
-				passphrase: passphraseSource,
-				password: passwordSource,
-				outputPublicKey,
-			},
+			flags: { passphrase: passphraseSource, password: passwordSource, outputPublicKey },
 		} = this.parse(EncryptCommand);
 
-		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
-		const password =
-			passwordSource ?? (await getPassphraseFromPrompt('password', true));
+		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		const password = passwordSource ?? (await getPassphraseFromPrompt('password', true));
 		const result = processInputs(passphrase, password, outputPublicKey);
 		this.print(result);
 	}

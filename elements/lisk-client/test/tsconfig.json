@@ -1,1 +1,8 @@
-../../../templates/test/tsconfig.json.tmpl
+{
+	"extends": "../tsconfig",
+	"compilerOptions": {
+		"declaration": false,
+		"sourceMap": false
+	},
+	"include": ["./**/*", "../node_modules/jest-extended/types/**/*.ts"]
+}

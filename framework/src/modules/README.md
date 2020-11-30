@@ -3,160 +3,128 @@
 ### Table of contents
 
 - [Description](#description)
-  - [Core Modules](#core-modules)
-  - [Custom Modules](#custom-modules)
-- [Module Configuration](#module-configuration)
-- [Module Communication](#module-communication)
-  - [InMemory Channel](#inmemory-channel)
-  - [ChildProcess Channel](#childprocess-channel)
-- [Module Lifecycle](#module-life-cycle)
+- [Custom Modules](#custom-modules)
+- [Custom Assets](#custom-assets)
 
 ## Description
 
-Modules are individual building blocks for Lisk Core.
-
-### Core Modules
-
-Core Modules are shipped along with the Lisk Core distribution itself. These modules constitute the minimum requirements to run a functional Lisk Core instance.
-
-#### List of Core Modules
-
-- **HTTP API Module:** provides API endpoints, that enable users and other programs to communicate with the Lisk blockchain through the API.
+Modules are logic which define state changes that are executed on-chain, meaning that it will be a part of the blockchain protocol.
 
 ### Custom Modules
 
-> The implementation of each module is up-to user but it must inherit from `BaseModule` class and implement its methods.
+> The implementation of each module is up to the user, but it must inherit from the `BaseModule` class and implement its methods.
 
-Custom Modules can be plugged into Lisk Core and may offer new features/capabilities for the application, or replace Core modules functionalities.
-They extend the existing instance with a specific (and circumscribed) set of features.
+Custom Modules can be plugged into the Lisk Framework and implement a new protocol for the application.
 
 ```js
 // Exported as main file to javascript package
-export default class MyModule extends BaseModule {
+export class MyModule extends BaseModule {
     /**
-    * Constructor of the module.
-    *
-     * @param {Object} options - An object of module options
-    */
-    constructor(options) {
-     super(options);
-    }
-
-    /**
-    * Required.
-    *
-    * A unique module identifier, that can be accessed through out the system.
-    * If some module already registered with the same alias, it will throw an error.
-    *
-    * @return {string} alias - Return the module alias as string.
-    * */
-    static get alias(){ return 'moduleAlias'; },
-
-    /**
-    * Required.
-    *
-    * Package meta information.
-    *
-    * @return {Object} info - JSON object referring the version, module name, and module author.
-    */
-    static get info(){
-        return {
-            author: '',
-            version: '',
-            name: '',
-        };
-    },
-
-    /**
-    * Required.
-    *
-    * Method which will be invoked by controller to load the module.
-    * Make sure all loading logic get completed during the life cycle of load.
-    * Controller emit an event `app:ready` which you can use to perform
-    * some activities which you want to perform when every other module is loaded.
-    *
-    * @param {Channel} channel - An instance of a communication channel.
-    * @return {Promise<void>}
-    */
-    async load(channel) {},
-
-
-    /**
-     * Supported configurations for the module with default values.
-     *
-     * @return {Object} defaults - JSON object with default options for the module.
+     * ID of this module, which must be greater than 1000 for non-default modules and unique across the application.
+     * This property is used for routing transaction asset and account schema field number.
      */
-    get defaults() { return {}; },
+    public abstract id: number;
 
     /**
-     * List of valid events which this module wants to register with the controller.
-     * Each event name will be prefixed by module alias, e.g. moduleName:event1.
-     * Listing an event means to register the event in the application.
-     * Any module can subscribe or publish that event in the application.
-     *
-     * @return {Array} events - String Array of events.
+     * Name of this module.
+     * This property is used for the namespace of account property defined in this module.
      */
-    get events() { return []; },
+    public abstract name: string;
+
+    // Optional
+    /**
+     * Reducers are functions that can be called during block processing from other modules.
+     */
+    public reducers: Reducers = {};
 
     /**
-     * Object of valid actions which this module want to register with the controller.
-     * Each action name will be prefixed by module alias, e.g. moduleName:action1.
-     * Source module can define the action while others can invoke that action.
-     *
-     * @return {Object} actions - Contains all available action names as key, and the corresponding function as value.
+     * Actions are functions registered to the framework and will be callable from the plugins.
      */
-    get actions() {
-        return {
-            action1: action => {},
-        }
-    },
+    public actions: Actions = {};
 
     /**
-     * Method to be invoked by controller to perform the cleanup.
-     *
-     * @return {Promise<void>}
+     * Events are functions registered to the framework and will be subscribable from the plugins.
      */
-    async unload() {},
-};
+    public events: string[] = [];
+
+    /**
+     * Account schema is a definition of account data properties and types, that is intended to
+     * be used within the scope of the module. This information is stored in a blockchain database.
+     */
+    public accountSchema?: AccountSchema;
+
+    /**
+     * Transaction assets are a set of instantiated custom assets described below.
+     */
+    public transactionAssets: BaseAsset[] = [];
+
+    /**
+     * beforeTransactionApply is a function which is called for all the transactions before applying
+     * asset whether it is registered to the particular module or not.
+     */
+    public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
+
+    /**
+     * afterTransactionApply is a function which is called for all the transactions after applying asset
+     * whether it is registered to the particular module or not.
+     */
+    public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;
+
+    /**
+     * afterGenesisBlockApply is a function which is called once when starting a blockchain.
+     */
+    public async afterGenesisBlockApply?(context: AfterGenesisBlockApplyContext): Promise<void>;
+
+    /**
+     * beforeBlockApply is a function which is called once per module before starting the state changes
+     * on each block processing.
+     */
+    public async beforeBlockApply?(context: BeforeBlockApplyContext): Promise<void>;
+
+    /**
+     * afterBlockApply is a function which is called once per module after all the state changes
+     * on each block processing.
+     */
+	public async afterBlockApply?(context: AfterBlockApplyContext): Promise<void>;
+}
 ```
 
-## Module Configuration
+### Custom Assets
 
-Configuration options for each module are located in `framework/src/modules/<module-name>/defaults/config.js`.
+Custom Asset must be instantiated and added to `transactionAssets` property of a Custom Module.
 
-Each `config.js` file consists of 2 parts:
+```js
+// Exported as main file to javascript package
+export class MyAsset extends BaseAsset<T = unknown> {
+    /**
+     * ID of this asset, which must be unique within a registering module.
+     * This property is used for routing transaction asset.
+     */
+    public abstract id: number;
 
-1. JSON-schema specification for all available config options
-2. Default values for the available config options for this specific module.
+    /**
+     * Name of this asset.
+     */
+    public abstract name: string;
 
-Please don't change the default values in these files directly as they will be overwritten on software updates, instead define the custom configuration options inside your blockchain application.
+    /**
+     * Schema is a definition of transaction asset data.
+     * This information is stored in a blockchain database as part of a transaction.
+     */
+	public abstract schema: Schema;
 
-## Module Communication
+    /**
+     * Apply is a function which is called for a transaction which contains this asset.
+     * It should implement any state change introduced by this asset.
+     */
+    public abstract async apply(context: ApplyAssetContext<T>): Promise<void>;
 
-Modules communicate with each other through event-based channels.
-Modules running in different processes communicate with each other over IPC channels.
+    // Optional
+    /**
+     * Validate is a function which is called for a transaction which contains this asset.
+     * It should implement additional conditions which cannot be represented by the schema.
+     */
+	public validate?(context: ValidateAssetContext<T>): void;
 
-### InMemory Channel
-
-Communicates with modules which reside in the same process as the [controller](../controller/README.md).
-
-By default, modules will load in the same process as the controller.
-
-### Child Process Channel
-
-Communicates with modules which do not reside in the same process as the Controller.
-
-To load a module as a child process, make sure you have `ipc` enabled in the config file and set the option `loadAsChildProcess: true` when registering the module using the Application method `registerModule`.
-
-Currently, the only Lisk native module supported is HTTP API module which will be loaded as child process if you have `ipc` enabled.
-
-## Module Life Cycle
-
-The controller will load/unload each module one after another.
-A modules' life cycle consists of following events in the right order:
-
-**Loading**
-
-- _module_:registeredToBus
-- _module_:loading:started
-- _module_:loading:finished
+}
+```

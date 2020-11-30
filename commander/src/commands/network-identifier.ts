@@ -21,7 +21,7 @@ import { flags as commonFlags } from '../utils/flags';
 
 export default class NetworkIdentifierCommand extends BaseCommand {
 	static description = `
-  Creates Network identifier for the given genesis payload hash and community identifier.
+  Creates Network identifier for the given genesis block id and community identifier.
 	`;
 
 	static examples = [
@@ -30,8 +30,8 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 
 	static args = [
 		{
-			name: 'genesisPayloadHash',
-			description: 'Payload hash of genesis block from the network.',
+			name: 'genesisBlockID',
+			description: 'ID of genesis block from the network.',
 			required: true,
 		},
 	];
@@ -44,16 +44,17 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 		}),
 	};
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const {
 			flags: { 'community-identifier': communityIdentifier },
-			args: { genesisPayloadHash },
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			args: { genesisBlockID },
 		} = this.parse(NetworkIdentifierCommand);
 		const networkIdentifier = getNetworkIdentifier(
-			genesisPayloadHash as string,
-			communityIdentifier as string,
+			Buffer.from(genesisBlockID, 'hex'),
+			communityIdentifier,
 		);
-		this.print({ networkIdentifier });
+		this.print({ networkIdentifier: networkIdentifier.toString('hex') });
 	}
 }

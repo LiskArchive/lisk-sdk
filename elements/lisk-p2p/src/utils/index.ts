@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './misc';
+/* eslint-disable import/no-cycle */
+export * from './network';
 export * from './sanitize';
 export * from './select';
 export * from './validate';

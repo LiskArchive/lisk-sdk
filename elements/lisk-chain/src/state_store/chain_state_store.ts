@@ -12,17 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, ChainStateEntity, StorageTransaction } from '../types';
+import { BatchChain } from '@liskhq/lisk-db';
+import { DataAccess } from '../data_access';
+import { BlockHeader, StateDiff } from '../types';
+import { DB_KEY_CHAIN_STATE } from '../data_access/constants';
 
 interface AdditionalInformation {
-	readonly lastBlockHeader: BlockHeader;
-	readonly networkIdentifier: string;
+	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	readonly networkIdentifier: Buffer;
 	readonly lastBlockReward: bigint;
 }
 
 interface KeyValuePair {
-	// tslint:disable-next-line readonly-keyword
-	[key: string]: string;
+	[key: string]: Buffer | undefined;
 }
 
 export class ChainStateStore {
@@ -31,38 +33,30 @@ export class ChainStateStore {
 	private _originalData: KeyValuePair;
 	private _updatedKeys: Set<string>;
 	private _originalUpdatedKeys: Set<string>;
-	private readonly _chainState: ChainStateEntity;
-	private readonly _lastBlockHeader: BlockHeader;
-	private readonly _networkIdentifier: string;
+	private readonly _dataAccess: DataAccess;
+	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	private readonly _networkIdentifier: Buffer;
 	private readonly _lastBlockReward: bigint;
+	private readonly _initialValue: KeyValuePair;
 
-	public constructor(
-		chainStateEntity: ChainStateEntity,
-		additionalInformation: AdditionalInformation,
-	) {
-		this._chainState = chainStateEntity;
-		this._lastBlockHeader = additionalInformation.lastBlockHeader;
+	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
+		this._dataAccess = dataAccess;
+		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
 		this._networkIdentifier = additionalInformation.networkIdentifier;
 		this._lastBlockReward = additionalInformation.lastBlockReward;
 		this._data = {};
 		this._originalData = {};
+		this._initialValue = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
 	}
 
-	public async cache(): Promise<void> {
-		const results = await this._chainState.get();
-		for (const { key, value } of results) {
-			this._data[key] = value;
-		}
-	}
-
-	public get networkIdentifier(): string {
+	public get networkIdentifier(): Buffer {
 		return this._networkIdentifier;
 	}
 
-	public get lastBlockHeader(): BlockHeader {
-		return this._lastBlockHeader;
+	public get lastBlockHeaders(): ReadonlyArray<BlockHeader> {
+		return this._lastBlockHeaders;
 	}
 
 	public get lastBlockReward(): bigint {
@@ -79,18 +73,19 @@ export class ChainStateStore {
 		this._updatedKeys = new Set(this._originalUpdatedKeys);
 	}
 
-	public async get(key: string): Promise<string | undefined> {
+	public async get(key: string): Promise<Buffer | undefined> {
 		const value = this._data[key];
 
 		if (value) {
 			return value;
 		}
 
-		const dbValue = await this._chainState.getKey(key);
+		const dbValue = await this._dataAccess.getChainState(key);
 		// If it doesn't exist in the database, return undefined without caching
 		if (dbValue === undefined) {
 			return dbValue;
 		}
+		this._initialValue[key] = dbValue;
 		this._data[key] = dbValue;
 
 		return this._data[key];
@@ -104,20 +99,34 @@ export class ChainStateStore {
 		throw new Error(`getOrDefault cannot be called for ${this._name}`);
 	}
 
-	public set(key: string, value: string): void {
+	public set(key: string, value: Buffer): void {
 		this._data[key] = value;
 		this._updatedKeys.add(key);
 	}
 
-	public async finalize(tx: StorageTransaction): Promise<void> {
+	public finalize(batch: BatchChain): StateDiff {
+		const stateDiff = { updated: [], created: [], deleted: [] } as StateDiff;
+
 		if (this._updatedKeys.size === 0) {
-			return;
+			return stateDiff;
 		}
 
-		await Promise.all(
-			Array.from(this._updatedKeys).map(key =>
-				this._chainState.setKey(key, this._data[key], tx),
-			),
-		);
+		for (const key of Array.from(this._updatedKeys)) {
+			const dbKey = `${DB_KEY_CHAIN_STATE}:${key}`;
+			const updatedValue = this._data[key] as Buffer;
+			batch.put(dbKey, updatedValue);
+
+			const initialValue = this._initialValue[key];
+			if (initialValue !== undefined && !initialValue.equals(updatedValue)) {
+				stateDiff.updated.push({
+					key: dbKey,
+					value: initialValue,
+				});
+			} else if (initialValue === undefined) {
+				stateDiff.created.push(dbKey);
+			}
+		}
+
+		return stateDiff;
 	}
 }

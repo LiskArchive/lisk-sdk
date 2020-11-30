@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable-next-line match-default-export-name
+// eslint-disable-next-line camelcase
 import strip_ansi from 'strip-ansi';
 
 import { tablify } from './tablify';
@@ -28,8 +28,7 @@ interface PrintInput {
 }
 
 interface Printer {
-	// tslint:disable-next-line readonly-array
-	log(message?: string, ...args: unknown[]): void;
+	log: (message?: string, ...args: unknown[]) => void;
 }
 
 const removeANSIFromObject = (object: StringMap) =>
@@ -46,21 +45,17 @@ const isStringMapArray = (
 ): result is ReadonlyArray<StringMap> => Array.isArray(result);
 
 const removeANSI = (result: ReadonlyArray<StringMap> | StringMap) =>
-	isStringMapArray(result)
-		? result.map(removeANSIFromObject)
-		: removeANSIFromObject(result);
+	isStringMapArray(result) ? result.map(removeANSIFromObject) : removeANSIFromObject(result);
 
 export const print = ({ json, pretty }: PrintInput = {}) =>
-	function printResult(
-		this: Printer,
-		result: ReadonlyArray<StringMap> | StringMap,
-	): void {
+	function printResult(this: Printer, result: ReadonlyArray<StringMap> | StringMap): void {
 		const resultToPrint = json ? removeANSI(result) : result;
 
 		const output = json
 			? JSON.stringify(resultToPrint, undefined, pretty ? '\t' : undefined)
 			: tablify(resultToPrint).toString();
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const logger = this && this.log ? this : console;
 		logger.log(output);
 	};

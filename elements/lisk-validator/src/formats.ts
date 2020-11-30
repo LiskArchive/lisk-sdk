@@ -1,124 +1,63 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import {
-	isGreaterThanMaxTransactionId,
 	isHexString,
-	isInt32,
-	isInt64,
-	isNullCharacterIncluded,
 	isNumberString,
-	isSignature,
-	isUint32,
-	isUint64,
-	isUsername,
-	isValidFee,
-	isValidNonce,
-	isValidNonTransferAmount,
-	isValidTransferAmount,
-	isValidTransferData,
-	validateAddress,
-	validatePublicKey,
+	isSInt64,
+	isUInt64,
+	isUInt32,
+	isSInt32,
+	isIP,
+	isIPV4,
+	isEncryptedPassphrase,
+	isSemVer,
 } from './validation';
-
-export const address = (data: string): boolean => {
-	try {
-		validateAddress(data);
-
-		return true;
-	} catch (error) {
-		return false;
-	}
-};
-
-export const additionPublicKey = (data: string): boolean => {
-	const action = data[0];
-	if (action !== '+') {
-		return false;
-	}
-	try {
-		const publicKeyString = data.slice(1);
-		validatePublicKey(publicKeyString);
-
-		return true;
-	} catch (error) {
-		return false;
-	}
-};
-
-export const amount = isNumberString;
-
-export const emptyString = (data: string): boolean => data === '';
-
-export const emptyOrPublicKey = (data: string): boolean => {
-	if (data === null || data === '') {
-		return true;
-	}
-
-	try {
-		validatePublicKey(data);
-
-		return true;
-	} catch (error) {
-		return false;
-	}
-};
-
-export const fee = isValidFee;
-
-export const nonce = isValidNonce;
 
 export const hex = isHexString;
 
-export const id = (data: string): boolean =>
-	isNumberString(data) && !isGreaterThanMaxTransactionId(BigInt(data));
+export const int64 = (data: string): boolean => isNumberString(data) && isSInt64(BigInt(data));
 
-export const nonTransferAmount = isValidNonTransferAmount;
+export const uint64 = (data: string): boolean => isNumberString(data) && isUInt64(BigInt(data));
 
-export const noNullCharacter = (data: string): boolean =>
-	!isNullCharacterIncluded(data);
+export const uint32 = (data: string): boolean => isNumberString(data) && isUInt32(Number(data));
 
-export const noNullByte = noNullCharacter;
+export const int32 = (data: string): boolean => isNumberString(data) && isSInt32(Number(data));
 
-export const publicKey = (data: string): boolean => {
-	try {
-		validatePublicKey(data);
+const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
 
-		return true;
-	} catch (error) {
-		return false;
-	}
+export const camelCase = (data: string): boolean => camelCaseRegex.exec(data) !== null;
+
+export const version = isSemVer;
+
+export const networkVersion = (data: string): boolean =>
+	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
+
+export const path = (data: string): boolean => /^(.?)(\/[^/]+)+(\/?)$/.test(data);
+
+export const encryptedPassphrase = isEncryptedPassphrase;
+
+export const ip = isIP;
+
+export const ipOrFQDN = (data: string): boolean => {
+	const hostnameRegex = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
+	return isIPV4(data) || hostnameRegex.test(data);
 };
 
-export const signature = isSignature;
-
-export const signedPublicKey = (data: string): boolean => {
-	try {
-		const action = data[0];
-		if (action !== '+' && action !== '-') {
-			return false;
-		}
-		const publicKeyString = data.slice(1);
-		validatePublicKey(publicKeyString);
-
-		return true;
-	} catch (error) {
-		return false;
+export const oddInteger = (data: string | number): boolean => {
+	if (typeof data === 'number') {
+		return Number.isInteger(data) && data % 2 === 1;
 	}
+	return /^\d*[13579]$/.test(data);
 };
-
-export const transferAmount = isValidTransferAmount;
-
-export const username = isUsername;
-
-export const transferData = (data: string): boolean =>
-	!isNullCharacterIncluded(data) && isValidTransferData(data);
-
-export const int64 = (data: string): boolean =>
-	isNumberString(data) && isInt64(BigInt(data));
-
-export const uint64 = (data: string): boolean =>
-	isNumberString(data) && isUint64(BigInt(data));
-
-export const uint32 = (data: string): boolean =>
-	isNumberString(data) && isUint32(BigInt(data));
-
-export const int32 = (data: string): boolean =>
-	isNumberString(data) && isInt32(BigInt(data));

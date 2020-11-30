@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`lisk-client should not export unexpected libraries 1`] = `
+Array [
+  "apiClient",
+  "cryptography",
+  "passphrase",
+  "transactions",
+  "utils",
+  "tree",
+  "validator",
+  "codec",
+  "Buffer",
+]
+`;

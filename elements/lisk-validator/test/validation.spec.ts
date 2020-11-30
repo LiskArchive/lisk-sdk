@@ -13,19 +13,8 @@
  *
  */
 import {
-	validatePublicKeysForDuplicates,
-	validatePublicKey,
-	validatePublicKeys,
-	validateAddress,
-	isValidNonTransferAmount,
-	isValidTransferAmount,
-	isValidFee,
-	isGreaterThanMaxTransactionAmount,
-	isGreaterThanZero,
-	isGreaterThanMaxTransactionId,
 	isNumberString,
 	isValidInteger,
-	isNullCharacterIncluded,
 	isIPV6,
 	isIPV4,
 	isIP,
@@ -35,286 +24,17 @@ import {
 	isRangedSemVer,
 	isEncryptedPassphrase,
 	isHexString,
-	isStringBufferLessThan,
-	hasNoDuplicate,
-	isUsername,
 	isCsv,
-	isSignature,
-	isValidTransferData,
+	isString,
+	isBoolean,
+	isSInt32,
+	isBytes,
+	isUInt32,
+	isSInt64,
+	isUInt64,
 } from '../src/validation';
 
 describe('validation', () => {
-	describe('#validatePublicKey', () => {
-		describe('Given a hex string with odd length', () => {
-			const invalidHexPublicKey =
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc';
-			it('should throw an error', () => {
-				return expect(
-					validatePublicKey.bind(null, invalidHexPublicKey),
-				).toThrow('Argument must have a valid length of hex string.');
-			});
-		});
-
-		describe('Given a hex string with additional non-hex characters', () => {
-			const invalidHexPublicKey =
-				'12345678123456781234567812345678123456781234567812345678123456gg';
-			it('should throw an error', () => {
-				return expect(
-					validatePublicKey.bind(null, invalidHexPublicKey),
-				).toThrow('Argument must be a valid hex string.');
-			});
-		});
-
-		describe('Given a too long public key', () => {
-			const tooLongPublicKey =
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca12';
-			it('should throw an error', () => {
-				return expect(validatePublicKey.bind(null, tooLongPublicKey)).toThrow(
-					'Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca12 length differs from the expected 32 bytes for a public key.',
-				);
-			});
-		});
-
-		describe('Given a too short public key', () => {
-			const tooShortPublicKey =
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b';
-			it('should throw an error', () => {
-				return expect(validatePublicKey.bind(null, tooShortPublicKey)).toThrow(
-					'Public key 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b length differs from the expected 32 bytes for a public key.',
-				);
-			});
-		});
-
-		describe('Given a valid public key', () => {
-			const publicKey =
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca';
-			it('should return true', () => {
-				return expect(validatePublicKey(publicKey)).toBeTrue();
-			});
-		});
-
-		describe('Given a valid public key with only numeric characters', () => {
-			const publicKey =
-				'1234567812345678123456781234567812345678123456781234567812345678';
-			it('should return true', () => {
-				return expect(validatePublicKey(publicKey)).toBeTrue();
-			});
-		});
-	});
-
-	describe('#validatePublicKeys', () => {
-		describe('Given an array of public keys with one invalid public key', () => {
-			const publicKeys = [
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
-			];
-			it('should throw an error', () => {
-				return expect(validatePublicKeys.bind(null, publicKeys)).toThrow(
-					'Argument must have a valid length of hex string.',
-				);
-			});
-		});
-
-		describe('Given an array of valid public keys', () => {
-			const publicKeys = [
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-				'1234567812345678123456781234567812345678123456781234567812345678',
-			];
-			it('should return true', () => {
-				return expect(validatePublicKeys(publicKeys)).toBeTrue();
-			});
-		});
-	});
-
-	describe('#checkPublicKeysForDuplicates', () => {
-		describe('Given an array of public keys without duplication', () => {
-			const publicKeys = [
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-				'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-			];
-			it('should return true', () => {
-				return expect(validatePublicKeysForDuplicates(publicKeys)).toBeTrue();
-			});
-		});
-
-		describe('Given an array of public keys with duplication', () => {
-			const publicKeys = [
-				'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-				'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-			];
-			it('should throw an error', () => {
-				return expect(
-					validatePublicKeysForDuplicates.bind(null, publicKeys),
-				).toThrow(
-					'Duplicated public key: 922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa.',
-				);
-			});
-		});
-	});
-
-	describe('#validateAddress', () => {
-		describe('Given valid addresses', () => {
-			const addresses = [
-				'13133549779353512613L',
-				'18446744073709551615L',
-				'1L',
-				'0L',
-			];
-
-			it('should return true', () => {
-				return addresses.forEach(address => {
-					return expect(validateAddress(address)).toBeTrue();
-				});
-			});
-		});
-
-		describe('Given an address that is too short', () => {
-			const address = 'L';
-			it('should throw an error', () => {
-				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address length does not match requirements. Expected between 2 and 22 characters.',
-				);
-			});
-		});
-
-		describe('Given an address that is too long', () => {
-			const address = '12345678901234567890123L';
-			it('should throw an error', () => {
-				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address length does not match requirements. Expected between 2 and 22 characters.',
-				);
-			});
-		});
-
-		describe('Given an address containing non-numeric letters', () => {
-			const address = '123aL';
-			it('should throw an error', () => {
-				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address format does not match requirements. Address includes non-numeric characters.',
-				);
-			});
-		});
-
-		describe('Given an address without L at the end', () => {
-			const address = '1234567890';
-			it('should throw an error', () => {
-				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address format does not match requirements. Expected "L" at the end.',
-				);
-			});
-		});
-
-		describe('Given an address that includes `.`', () => {
-			const address = '14.15133512790761431L';
-			it('should throw an error', () => {
-				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address format does not match requirements. Address includes invalid character: `.`.',
-				);
-			});
-		});
-
-		describe('Given an address that is out of range', () => {
-			const address = '18446744073709551616L';
-			it('should throw an error', () => {
-				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address format does not match requirements. Address out of maximum range.',
-				);
-			});
-		});
-
-		describe('Given an address that has leading zeros', () => {
-			const address = '00015133512790761431L';
-			it('should throw an error', () => {
-				return expect(validateAddress.bind(null, address)).toThrow(
-					"Address string format does not match it's number representation.",
-				);
-			});
-		});
-	});
-
-	describe('#isValidNonTransferAmount', () => {
-		it('should return true when amount is 0', () => {
-			return expect(isValidNonTransferAmount('0')).toBeTrue();
-		});
-
-		it('should return false when amount is greater than 0', () => {
-			return expect(isValidNonTransferAmount('1')).toBeFalse();
-		});
-
-		it('should return false when amount is less than 0', () => {
-			return expect(isValidNonTransferAmount('-1')).toBeFalse();
-		});
-	});
-
-	describe('#isValidTransferAmount', () => {
-		it('should return false is amount is 0', () => {
-			return expect(isValidTransferAmount('0')).toBeFalse();
-		});
-
-		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
-			return expect(isValidTransferAmount('100')).toBeTrue();
-		});
-	});
-
-	describe('#isValidFee', () => {
-		it('should return false is amount is 0', () => {
-			return expect(isValidFee('0')).toBeFalse();
-		});
-
-		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
-			return expect(isValidFee('100')).toBeTrue();
-		});
-	});
-
-	describe('#isGreaterThanZero', () => {
-		it('should return false when amount is 0', () => {
-			return expect(isGreaterThanZero(BigInt('0'))).toBeFalse();
-		});
-
-		it('should return true when amount is greater than 0', () => {
-			return expect(
-				isGreaterThanZero(BigInt('9223372036854775808987234289782357')),
-			).toBeTrue();
-		});
-	});
-
-	describe('#isGreaterThanMaxTransactionAmount', () => {
-		it('should return false when amount is less than maximum transaction amount', () => {
-			return expect(
-				isGreaterThanMaxTransactionAmount(BigInt('9223372036854775807')),
-			).toBeFalse();
-		});
-
-		it('should return true when amount is more than maximum transaction amount', () => {
-			return expect(
-				isGreaterThanMaxTransactionAmount(BigInt('9223372036854775808')),
-			).toBeTrue();
-		});
-	});
-
-	describe('#isGreaterThanMaxTransactionId', () => {
-		it('should return false when id is negative', () => {
-			return expect(isGreaterThanMaxTransactionId(BigInt('-1'))).toBeFalse();
-		});
-
-		it('should return false when id is less than 8 bytes integer maximum', () => {
-			return expect(
-				isGreaterThanMaxTransactionId(BigInt('18446744073709551615')),
-			).toBeFalse();
-		});
-
-		it('should return true when id is more than 8 bytes integer maximum', () => {
-			return expect(
-				isGreaterThanMaxTransactionId(BigInt('18446744073709551616')),
-			).toBeTrue();
-		});
-	});
-
 	describe('#isNumberString', () => {
 		it('should return false when number is not string', () => {
 			const invalidFunction = isNumberString as (input: any) => boolean;
@@ -356,63 +76,10 @@ describe('validation', () => {
 		});
 	});
 
-	describe('#isUsername', () => {
-		it('should return true when valid username is provided', () => {
-			expect(isUsername('4miners.net')).toBeTrue();
-			expect(isUsername('hello111_lisk!')).toBeTrue();
-		});
-
-		it('should return false when username includes capirtal', () => {
-			return expect(isUsername('4miners.Net')).toBeFalse();
-		});
-
-		it('should return false when username is like address', () => {
-			return expect(isUsername('17670127987160191762l')).toBeFalse();
-		});
-
-		it('should return false when username includes forbidden character', () => {
-			return expect(isUsername('4miners^net')).toBeFalse();
-		});
-
-		it('should return false when username includes forbidden character', () => {
-			return expect(isUsername('4miners\0net')).toBeFalse();
-		});
-	});
-
-	describe('#hasNoDuplicate', () => {
-		it('should return true when string array is unique', () => {
-			return expect(hasNoDuplicate(['1234', '4567'])).toBeTrue();
-		});
-
-		it('should return false when array contains duplicate', () => {
-			return expect(hasNoDuplicate(['1234', 'a', '1234'])).toBeFalse();
-		});
-	});
-
-	describe('#isStringBufferLessThan', () => {
-		it('should return true when 32 character is provided with max 64', () => {
-			return expect(
-				isStringBufferLessThan('abcdefghijklmnopqrstuwxyzabcdefg', 32),
-			).toBeTrue();
-		});
-
-		it('should return false when 33 character is provided with max 64', () => {
-			return expect(
-				isStringBufferLessThan('abcdefghijklmnopqrstuwxyzabcdefgh', 32),
-			).toBeFalse();
-		});
-
-		it('should return false when number was provided', () => {
-			return expect(isStringBufferLessThan(123, 3)).toBeFalse();
-		});
-	});
-
 	describe('#isHexString', () => {
 		it('should return true when valid hex was provided', () => {
 			return expect(
-				isHexString(
-					'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
-				),
+				isHexString('215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc'),
 			).toBeTrue();
 		});
 
@@ -422,9 +89,7 @@ describe('validation', () => {
 
 		it('should return false when non hex string was provided', () => {
 			return expect(
-				isHexString(
-					'zzzzzzza32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc',
-				),
+				isHexString('zzzzzzza32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc'),
 			).toBeFalse();
 		});
 	});
@@ -438,16 +103,22 @@ describe('validation', () => {
 			).toBeTrue();
 		});
 
-		it('should return false when value includes invalud query', () => {
+		it('should return false when value includes invalid query', () => {
 			return expect(
-				isEncryptedPassphrase(
-					'cipherText=abcd1234&&iterations=10000&iv=ef012345',
-				),
+				isEncryptedPassphrase('cipherText=abcd1234&&iterations=10000&iv=ef012345'),
 			).toBeFalse();
 		});
 
 		it('should return false when value is empty', () => {
 			return expect(isEncryptedPassphrase('')).toBeFalse();
+		});
+
+		it('should return true when 24 words bip39 Mnemonic was encrypted', () => {
+			return expect(
+				isEncryptedPassphrase(
+					'iterations=1000000&cipherText=d8d8bd8a883cd5a8a5b0c0a5ee7221f5fcd93bad0ab7675d156bec831f2aee8c10c683eb472188dd28e6caa1e9ed3d3f2769b9265c5a11e28428775cd0697ad023dc6f4b780f37f18ac03a2c14b51def04ec0391e7d258c0c65e3910b65812c61aebb8b098537a4240111a8c1509cffdc970b7cd0885c32811a0d5e7cd4539740fad661dd4c8a131a0438e7d17ed54e8d5127a81a663a0af127b01&iv=87a17399fe06332c2775dd75&salt=3503a17ea682784b490f22cf9d728563&tag=23be4e96c71d31eae005b29502179862&version=1',
+				),
+			).toBeTrue();
 		});
 	});
 
@@ -477,17 +148,13 @@ describe('validation', () => {
 		});
 
 		it('should return false when the value is not IPV4', () => {
-			return expect(
-				isIPV4('FE80:0000:0000:0000:0202:B3FF:FE1E:8329'),
-			).toBeFalse();
+			return expect(isIPV4('FE80:0000:0000:0000:0202:B3FF:FE1E:8329')).toBeFalse();
 		});
 	});
 
 	describe('#isIPV6', () => {
 		it('should return true when the value is IPV6', () => {
-			return expect(
-				isIPV6('FE80:0000:0000:0000:0202:B3FF:FE1E:8329'),
-			).toBeTrue();
+			return expect(isIPV6('FE80:0000:0000:0000:0202:B3FF:FE1E:8329')).toBeTrue();
 		});
 
 		it('should return false when the value is not IPV6', () => {
@@ -533,49 +200,6 @@ describe('validation', () => {
 		});
 	});
 
-	describe('#isNullByteIncluded', () => {
-		const validStrings = [
-			'lorem ipsum',
-			'lorem\u0001 ipsum',
-			'loremU00000001 ipsum',
-			'\u0001',
-			'\x01',
-			'l©rem',
-			'❤',
-			'\\U00000000',
-			'\\U00000000lorem',
-			'ipsum\\U00000000',
-			'lorem\\U00000000 ipsum',
-		];
-
-		const invalidStrings = [
-			'\0',
-			'\0lorem',
-			'ipsum\0',
-			'lorem\0 ipsum',
-			'\x00',
-			'\x00lorem',
-			'ipsum\x00',
-			'lorem\x00 ipsum',
-			'\u0000',
-			'\u0000lorem',
-			'ipsum\u0000',
-			'lorem\u0000 ipsum',
-		];
-
-		it('should return false when valid string was provided', () => {
-			validStrings.forEach(input => {
-				expect(isNullCharacterIncluded(input)).toBeFalse();
-			});
-		});
-
-		it('should return true using unicode null characters', () => {
-			invalidStrings.forEach(input => {
-				expect(isNullCharacterIncluded(input)).toBeTrue();
-			});
-		});
-	});
-
 	describe('#isCsv', () => {
 		it('should return true when the value is a CSV string', () => {
 			const csvString = '64,9,77,23,12,26,29,28,2008';
@@ -603,58 +227,195 @@ describe('validation', () => {
 		});
 	});
 
-	describe('#isSignature', () => {
-		it('should return false if value is not in hex format', function() {
-			const invalidSignature =
-				'zxcdec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
-			return expect(isSignature(invalidSignature)).toBeFalse();
+	describe('#isBytes', () => {
+		it('should return false when number was provided', () => {
+			return expect(isBytes(1234)).toBeFalse();
 		});
 
-		it('should return false for empty string values', function() {
-			const invalidSignature = '';
-			return expect(isSignature(invalidSignature)).toBeFalse();
+		it('should return false when boolean was provided', () => {
+			return expect(isBytes(false)).toBeFalse();
 		});
 
-		it('should return false if value < 128', function() {
-			const invalidLengthSignature =
-				'3d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
-			return expect(isSignature(invalidLengthSignature)).toBeFalse();
+		it('should return false when bigint was provided', () => {
+			return expect(isBytes(BigInt(9))).toBeFalse();
 		});
 
-		it('should return false if value > 128', function() {
-			const invalidLengthSignature =
-				'1231d8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
-			return expect(isSignature(invalidLengthSignature)).toBeFalse();
+		it('should return false when string was provided', () => {
+			return expect(isBytes('lisk test 12345')).toBeFalse();
 		});
 
-		it('should return true for valid signature', function() {
-			const validSignature =
-				'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
-			return expect(isSignature(validSignature)).toBeTrue();
+		it('should return true when buffer was provided', () => {
+			return expect(isBytes(Buffer.from('lisk', 'utf8'))).toBeTrue();
 		});
 	});
 
-	describe('#isValidTransferData', () => {
-		it('should return false if string is longer than maxLength in characters', function() {
-			// Generate string of length 65
-			const invalidDataMaxLength = `1${Array(64 + 1).join('1')}`;
-
-			return expect(isValidTransferData(invalidDataMaxLength)).toBeFalse();
+	describe('#isString', () => {
+		it('should return false when number was provided', () => {
+			return expect(isString(1234)).toBeFalse();
 		});
 
-		it('should return false if string is longer than maxLength in bytes', function() {
-			// Generate string of length 64 but byte size 65
-			const invalidDataWith2ByteUnicode = `1${Array(64 - 1).join('1')}现`;
-
-			expect(isValidTransferData(invalidDataWith2ByteUnicode)).toBeFalse();
+		it('should return false when boolean was provided', () => {
+			return expect(isString(false)).toBeFalse();
 		});
 
-		it('should return true if string is between minLength and maxLength', function() {
-			const validDataMinimum = `1`;
-			const validDataMaximum = `1${Array(64).join('1')}`;
+		it('should return false when bigint was provided', () => {
+			return expect(isString(BigInt(9))).toBeFalse();
+		});
 
-			expect(isValidTransferData(validDataMinimum)).toBeTrue();
-			expect(isValidTransferData(validDataMaximum)).toBeTrue();
+		it('should return false when buffer was provided', () => {
+			return expect(isString(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return true when string was provided', () => {
+			return expect(isString('lisk test 12345')).toBeTrue();
+		});
+	});
+
+	describe('#isBoolean', () => {
+		it('should return false when number was provided', () => {
+			return expect(isBoolean(1234)).toBeFalse();
+		});
+
+		it('should return false when bigint was provided', () => {
+			return expect(isBoolean(BigInt(9))).toBeFalse();
+		});
+
+		it('should return false when buffer was provided', () => {
+			return expect(isBoolean(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return false when string was provided', () => {
+			return expect(isBoolean('lisk test 12345')).toBeFalse();
+		});
+
+		it('should return true when boolean was provided', () => {
+			expect(isBoolean(false)).toBeTrue();
+
+			return expect(isBoolean(true)).toBeTrue();
+		});
+	});
+
+	describe('#isSInt32', () => {
+		it('should return false when string was provided', () => {
+			return expect(isSInt32('1234')).toBeFalse();
+		});
+
+		it('should return false when bigint was provided', () => {
+			return expect(isSInt32(BigInt(9))).toBeFalse();
+		});
+
+		it('should return false when buffer was provided', () => {
+			return expect(isSInt32(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return false when a boolean was provided', () => {
+			return expect(isSInt32(true)).toBeFalse();
+		});
+
+		it('should return false when the number is just over the limit of sint32', () => {
+			return expect(isSInt32(2147483648)).toBeFalse();
+		});
+
+		it('should return false when a number "-2147483648" which is just below the limit of sint32', () => {
+			return expect(isSInt32(-2147483648)).toBeFalse();
+		});
+
+		it('should return true when a valid number was provided', () => {
+			return expect(isSInt32(2147483647)).toBeTrue();
+		});
+
+		it('should return true when a valid negative number is provided "-2147483644"', () => {
+			return expect(isSInt32(-2147483644)).toBeTrue();
+		});
+	});
+
+	describe('#isUInt32', () => {
+		it('should return false when string was provided', () => {
+			return expect(isUInt32('1234')).toBeFalse();
+		});
+
+		it('should return false when bigint was provided', () => {
+			return expect(isUInt32(BigInt(9))).toBeFalse();
+		});
+
+		it('should return false when buffer was provided', () => {
+			return expect(isUInt32(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return false when a boolean was provided', () => {
+			return expect(isUInt32(true)).toBeFalse();
+		});
+
+		it('should return false when a negative number was provided', () => {
+			return expect(isUInt32(-12)).toBeFalse();
+		});
+
+		it('should return false when the number is just over the limit of isUInt32 "4294967295"', () => {
+			return expect(isUInt32(4294967296)).toBeFalse();
+		});
+
+		it('should return true when a valid number was provided', () => {
+			return expect(isUInt32(4294967294)).toBeTrue();
+		});
+	});
+
+	describe('#isSInt64', () => {
+		it('should return false when string was provided', () => {
+			return expect(isSInt64('1234')).toBeFalse();
+		});
+
+		it('should return false when buffer was provided', () => {
+			return expect(isSInt64(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return false when a boolean was provided', () => {
+			return expect(isSInt64(true)).toBeFalse();
+		});
+
+		it('should return false when a bigint was provided over the limit "BigInt(9223372036854775807)"', () => {
+			return expect(isSInt64(BigInt(9223372036854775810))).toBeFalse();
+		});
+
+		it('should return false when a bigint was provided below the limit "BigInt(-92233720368547758102)"', () => {
+			return expect(isSInt64(BigInt(-92233720368547758102))).toBeFalse();
+		});
+
+		it('should return true when a valid bigint was provided', () => {
+			return expect(isSInt64(BigInt(98986))).toBeTrue();
+		});
+
+		it('should return true when a valid negative bigint was provided', () => {
+			return expect(isSInt64(BigInt(-100))).toBeTrue();
+		});
+	});
+
+	describe('#isUInt64', () => {
+		it('should return false when string was provided', () => {
+			return expect(isUInt64('1234')).toBeFalse();
+		});
+
+		it('should return false when buffer was provided', () => {
+			return expect(isUInt64(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return false when a number was provided', () => {
+			return expect(isUInt64(4294967294)).toBeFalse();
+		});
+
+		it('should return false when a boolean was provided', () => {
+			return expect(isUInt64(true)).toBeFalse();
+		});
+
+		it('should return false when a negative number was provided', () => {
+			return expect(isUInt64(-12)).toBeFalse();
+		});
+
+		it('should return false when a bigint was provided over the limit "BigInt(18446744073709551620)"', () => {
+			return expect(isSInt64(BigInt(18446744073709551620))).toBeFalse();
+		});
+
+		it('should return true when a valid bigint was provided', () => {
+			return expect(isUInt64(BigInt(98986))).toBeTrue();
 		});
 	});
 });

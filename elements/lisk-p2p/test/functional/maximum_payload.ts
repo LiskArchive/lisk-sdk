@@ -14,21 +14,17 @@
  */
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_START_PORT,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork, NETWORK_START_PORT } from '../utils/network_setup';
 
 describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
-	let disconnectReasons: Array<any> = [];
+	const disconnectReasons: Array<any> = [];
 	let dataLargerThanMaxPayload: Array<string>;
 
 	beforeEach(async () => {
 		dataLargerThanMaxPayload = [];
-		for (let i = 0; i < 1000; i++) {
+		for (let i = 0; i < 1000; i += 1) {
 			dataLargerThanMaxPayload.push(`message${i}`);
 		}
 
@@ -40,26 +36,26 @@ describe('Maximum payload', () => {
 		collectedMessages = [];
 
 		p2pNodeList.forEach(p2p => {
-			p2p.on('messageReceived', message => {
+			p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 				if (message.event === 'maxPayload') {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						message,
 					});
 				}
 			});
 
-			p2p.on('closeInbound', packet => {
+			p2p.on('EVENT_CLOSE_INBOUND', packet => {
 				disconnectReasons.push({
-					peerPort: packet.peerInfo.wsPort,
+					peerPort: packet.peerInfo.port,
 					code: packet.code,
 					reason: packet.reason,
 				});
 			});
 
-			p2p.on('closeOutbound', packet => {
+			p2p.on('EVENT_CLOSE_OUTBOUND', packet => {
 				disconnectReasons.push({
-					peerPort: packet.peerInfo.wsPort,
+					peerPort: packet.peerInfo.port,
 					code: packet.code,
 					reason: packet.reason,
 				});

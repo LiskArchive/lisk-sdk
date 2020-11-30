@@ -2,7 +2,7 @@
 
 # Lisk Commander
 
-Lisk Commander is a command line tool which allows you to manage a Lisk node instance and interact with a Lisk compatible network.
+Lisk Commander is a command line tool to help developers to build a blockchain application using Lisk Framework.
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
@@ -20,37 +20,24 @@ Upon successful completion, NPM will add the `lisk-commander` executable `lisk` 
 $ lisk COMMAND
 running command...
 $ lisk (-v|--version|version)
-lisk-commander/4.0.0 darwin-x64 node-v12.18.3
+lisk-commander/5.0.0 darwin-x64 node-v12.18.3
 $ lisk --help [COMMAND]
 A command line interface for Lisk
 
 VERSION
-  lisk-commander/2.0.0 darwin-x64 node-v8.12.0
+  lisk-commander/5.0.0 darwin-x64 node-v12.18.3
 
 USAGE
   $ lisk [COMMAND]
 
 COMMANDS
-  account             Commands relating to Lisk Core accounts.
-  block               Commands relating to Lisk Core blocks.
-  blockchain          Commands relating to Lisk Core blockchain data.
-  config              Commands relating to Lisk Core node configuration.
-  copyright           Displays copyright notice.
-  core                Install an instance of Lisk Core.
-  delegate            Commands relating to Lisk delegates.
-  forger-info         Commands relating to Lisk Core forger-info data.
-  forging             Commands relating to Lisk Core forging.
-  hash-onion
-  help                Displays help.
-  message             Commands relating to user messages.
-  network-identifier
-  node                Commands relating to Lisk Core node.
-  passphrase          Commands relating to Lisk Core passphrases.
-  sdk                 Commands relating to Lisk SDK development.
-  signature           Commands relating to signatures for Lisk transactions from multisignature accounts.
-  start               Start Lisk Core Node.
-  transaction         Commands relating to Lisk Core transactions.
-  warranty            Displays warranty notice.
+  account              Commands relating to Lisk accounts.
+  copyright            Displays copyright notice.
+  help                 Displays help.
+  message              Commands relating to user messages.
+  passphrase           Commands relating to Lisk passphrases.
+  network-identifier   Creates network identifier of Lisk network.
+  warranty             Displays warranty notice.
 ```
 
 ### Running Tests
@@ -73,7 +60,7 @@ $ npm test
 
 ## License
 
-Copyright 2016-2019 Lisk Foundation
+Copyright 2016-2020 Lisk Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

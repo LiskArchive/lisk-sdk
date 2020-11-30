@@ -35,8 +35,8 @@ const {
 	INVALID_CONNECTION_SELF_REASON,
 } = constants;
 
-describe(`Connection Create`, () => {
-	describe(`Events`, () => {
+describe('Connection Create', () => {
+	describe('Events', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
 
@@ -64,7 +64,7 @@ describe(`Connection Create`, () => {
 				collectedEvents.set(EVENT_UPDATED_PEER_INFO, res);
 			});
 
-			await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+			await Promise.all(p2pNodeList.map(async p2p => p2p.start()));
 
 			await wait(1000);
 		});
@@ -73,47 +73,47 @@ describe(`Connection Create`, () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and payload`, async () => {
+		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and payload`, () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
 			expect(payload).toMatchObject({
-				wsPort: secondNode.nodeInfo.wsPort,
+				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, async () => {
+		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, () => {
 			const firstNode = p2pNodeList[0];
 			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
 			expect(payload).toMatchObject({
-				wsPort: firstNode.nodeInfo.wsPort,
+				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, async () => {
+		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, () => {
 			const firstNode = p2pNodeList[0];
 			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
 			expect(payload).toMatchObject({
-				wsPort: firstNode.nodeInfo.wsPort,
+				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
+		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
 			expect(payload).toMatchObject({
-				wsPort: secondNode.nodeInfo.wsPort,
+				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should update peerBook with connected peer`, async () => {
+		it('should update peerBook with connected peer', () => {
 			const firstNode = p2pNodeList[0];
 			const disconnectedPeers = firstNode.getDisconnectedPeers();
 
@@ -121,22 +121,17 @@ describe(`Connection Create`, () => {
 		});
 	});
 
-	describe(`Errors`, () => {
+	describe('Errors', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedErrors: Array<any> = [];
 
 		beforeEach(async () => {
 			const customNodeInfo = (index: number) => ({
-				networkId:
+				networkIdentifier:
 					index === 1
 						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
 						: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-				version: '1.0.1',
-				protocolVersion: index === 2 ? '1.1' : 'BAD',
-				minVersion: '1.0.0',
-				os: 'darwin',
-				height: 0,
-				httpPort: 0,
+				networkVersion: index === 2 ? '1.1' : 'BAD',
 				nonce: `O2wTkjqplHII500${index}`,
 			});
 
@@ -145,7 +140,7 @@ describe(`Connection Create`, () => {
 				seedPeers: [
 					{
 						ipAddress: SEED_PEER_IP,
-						wsPort: NETWORK_START_PORT,
+						port: NETWORK_START_PORT,
 					},
 				],
 			});
@@ -168,13 +163,9 @@ describe(`Connection Create`, () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, async () => {
-			expect(collectedErrors).toEqual(
-				expect.arrayContaining([INVALID_CONNECTION_SELF_REASON]),
-			);
-			expect(collectedErrors).toEqual(
-				expect.arrayContaining([INCOMPATIBLE_NETWORK_REASON]),
-			);
+		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, () => {
+			expect(collectedErrors).toEqual(expect.arrayContaining([INVALID_CONNECTION_SELF_REASON]));
+			expect(collectedErrors).toEqual(expect.arrayContaining([INCOMPATIBLE_NETWORK_REASON]));
 			expect(collectedErrors).toEqual(
 				expect.arrayContaining([INCOMPATIBLE_PROTOCOL_VERSION_REASON]),
 			);

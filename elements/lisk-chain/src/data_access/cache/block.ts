@@ -12,25 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as assert from 'assert';
-
 import { BlockHeader } from '../../types';
-
 import { Base } from './base';
 
 export class BlockCache extends Base<BlockHeader> {
-	public constructor(minCachedItems: number, maxCachedItems: number) {
-		super(minCachedItems, maxCachedItems);
-	}
-
 	public add(blockHeader: BlockHeader): BlockHeader[] {
 		if (this.items.length) {
 			assert(
 				blockHeader.height === this.last.height + 1,
-				`Block header with height ${this.last.height +
-					1} can only be added, instead received height ${blockHeader.height}`,
+				`Block header with height ${(
+					this.last.height + 1
+				).toString()} can only be added, instead received height ${blockHeader.height.toString()}`,
 			);
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (this.first && blockHeader.height === this.last.height + 1) {
 			this.items.push(blockHeader);
 		} else {
@@ -53,11 +49,12 @@ export class BlockCache extends Base<BlockHeader> {
 		return this.items;
 	}
 
-	public remove(id: string): BlockHeader[] {
-		if (this.items.length && this.last.id !== id) {
-			assert(
-				this.last.id === id,
-				`Failed to remove the block id: ${id} which is not the last block header cached`,
+	public remove(id: Buffer): BlockHeader[] {
+		if (this.items.length && !this.last.id.equals(id)) {
+			throw new Error(
+				`Failed to remove the block id: ${id.toString(
+					'hex',
+				)} which is not the last block header cached`,
 			);
 		}
 		this.items.pop();
@@ -69,12 +66,12 @@ export class BlockCache extends Base<BlockHeader> {
 		return this.items;
 	}
 
-	public getByID(id: string): BlockHeader | undefined {
-		return this.items.find(block => block.id === id);
+	public getByID(id: Buffer): BlockHeader | undefined {
+		return this.items.find(block => block.id.equals(id));
 	}
 
-	public getByIDs(ids: ReadonlyArray<string>): BlockHeader[] {
-		const blocks = this.items.filter(block => ids.includes(block.id));
+	public getByIDs(ids: ReadonlyArray<Buffer>): BlockHeader[] {
+		const blocks = this.items.filter(block => ids.find(id => id.equals(block.id)) !== undefined);
 
 		if (blocks.length === ids.length) {
 			return blocks.reverse();
@@ -88,9 +85,7 @@ export class BlockCache extends Base<BlockHeader> {
 	}
 
 	public getByHeights(heightList: ReadonlyArray<number>): BlockHeader[] {
-		const blocks = this.items.filter(block =>
-			heightList.includes(block.height),
-		);
+		const blocks = this.items.filter(block => heightList.includes(block.height));
 
 		// Only return results if complete match to avoid inconsistencies
 		if (blocks.length === heightList.length) {
@@ -100,10 +95,7 @@ export class BlockCache extends Base<BlockHeader> {
 		return [];
 	}
 
-	public getByHeightBetween(
-		fromHeight: number,
-		toHeight: number,
-	): BlockHeader[] {
+	public getByHeightBetween(fromHeight: number, toHeight: number): BlockHeader[] {
 		if (
 			toHeight >= fromHeight &&
 			this.items.length &&

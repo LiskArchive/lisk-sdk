@@ -20,22 +20,14 @@ describe('Peer inbound eviction for connection time', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
-		const customSeedPeers = (
-			index: number,
-			networkStartPort: number,
-			networkSize: number,
-		) => [
+		const customSeedPeers = (index: number, networkStartPort: number, networkSize: number) => [
 			{
 				ipAddress: '127.0.0.1',
-				wsPort: networkStartPort + ((index - 1 + networkSize) % networkSize),
+				port: networkStartPort + ((index - 1 + networkSize) % networkSize),
 			},
 		];
 
-		const customConfig = (
-			index: number,
-			networkStartPort: number,
-			networkSize: number,
-		) => ({
+		const customConfig = (index: number, networkStartPort: number, networkSize: number) => ({
 			latencyProtectionRatio: 0,
 			productivityProtectionRatio: 0,
 			longevityProtectionRatio: 0.5,
@@ -52,13 +44,9 @@ describe('Peer inbound eviction for connection time', () => {
 
 	// Due to randomization from shuffling and timing of the nodes
 	// This test may experience some instability and not always evict.
-	it('should not evict earliest connected peers', async () => {
+	it('should not evict earliest connected peers', () => {
 		const firstNode = p2pNodeList[0];
-		const inboundPeers = firstNode['_peerPool']
-			.getPeers(InboundPeer)
-			.map(peer => peer.wsPort);
-		expect(inboundPeers).toSatisfy(
-			(n: Number[]) => n.includes(5001) || n.includes(5002),
-		);
+		const inboundPeers = firstNode['_peerPool'].getPeers(InboundPeer).map(peer => peer.port);
+		expect(inboundPeers).toSatisfy((n: number[]) => n.includes(5001) || n.includes(5002));
 	});
 });

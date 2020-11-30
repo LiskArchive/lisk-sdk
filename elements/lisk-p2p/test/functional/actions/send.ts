@@ -32,11 +32,12 @@ describe('P2P.send', () => {
 		p2pNodeList = await createNetwork();
 		randomP2PNode = p2pNodeList[randomPeerIndex];
 
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
+			// eslint-disable-next-line no-loop-func
 			p2p.on(events.EVENT_MESSAGE_RECEIVED, message => {
 				if (message.event === messageEvent) {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						message,
 					});
 				}
@@ -64,7 +65,7 @@ describe('P2P.send', () => {
 		const expectedMessageCount = TOTAL_SENDS * numOfConnectedPeers;
 
 		// Act
-		for (let i = 0; i < TOTAL_SENDS; i++) {
+		for (let i = 0; i < TOTAL_SENDS; i += 1) {
 			firstP2PNode.send({ event: messageEvent, data: 'test' });
 		}
 		await wait(100);
@@ -72,25 +73,19 @@ describe('P2P.send', () => {
 		// Assert
 		expect(Object.keys(collectedMessages)).toHaveLength(expectedMessageCount);
 
-		for (let receivedMessageData of collectedMessages) {
+		for (const receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
-			nodePortToMessagesMap[receivedMessageData.nodePort].push(
-				receivedMessageData,
-			);
+			nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 		}
 
-		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
-			numOfConnectedPeers,
-		);
+		expect(Object.keys(nodePortToMessagesMap)).toHaveLength(numOfConnectedPeers);
 
-		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
+		for (const receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 			expect(receivedMessages).toEqual(expect.any(Array));
 
-			expect(receivedMessages.length).toBeGreaterThan(
-				expectedMessagesLowerBound,
-			);
+			expect(receivedMessages.length).toBeGreaterThan(expectedMessagesLowerBound);
 			expect(receivedMessages.length).toBeLessThan(expectedMessagesUpperBound);
 		}
 	});
@@ -106,7 +101,7 @@ describe('P2P.send', () => {
 
 		// Assert
 		expect(collectedMessages).toEqual(expect.any(Array));
-		expect(collectedMessages.length).toEqual(numOfConnectedPeers);
+		expect(collectedMessages).toHaveLength(numOfConnectedPeers);
 		expect(collectedMessages[0]).toHaveProperty('message');
 		expect(collectedMessages[0].message).toMatchObject({
 			event: 'bar',
@@ -115,7 +110,6 @@ describe('P2P.send', () => {
 		});
 	});
 
-	// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 	it('should reach multiple peers with even distribution', async () => {
 		// Arrange
 		const TOTAL_SENDS = 1000;
@@ -125,31 +119,27 @@ describe('P2P.send', () => {
 		const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
 
 		// Act
-		for (let i = 0; i < TOTAL_SENDS; i++) {
+		for (let i = 0; i < TOTAL_SENDS; i += 1) {
 			randomP2PNode.send({ event: messageEvent, data: 'test' });
 		}
 		await wait(100);
 
 		// Assert
-		expect(Object.keys(collectedMessages)).not.toBeEmpty;
+		expect(Object.keys(collectedMessages)).not.toBeEmpty();
 
-		for (let receivedMessageData of collectedMessages) {
+		for (const receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
-			nodePortToMessagesMap[receivedMessageData.nodePort].push(
-				receivedMessageData,
-			);
+			nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 		}
 
-		expect(Object.keys(nodePortToMessagesMap)).not.toBeEmpty;
+		expect(Object.keys(nodePortToMessagesMap)).not.toBeEmpty();
 
-		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
+		for (const receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 			expect(receivedMessages).toEqual(expect.any(Array));
 
-			expect(receivedMessages.length).toBeGreaterThan(
-				expectedMessagesLowerBound,
-			);
+			expect(receivedMessages.length).toBeGreaterThan(expectedMessagesLowerBound);
 			expect(receivedMessages.length).toBeLessThan(expectedMessagesUpperBound);
 		}
 	});

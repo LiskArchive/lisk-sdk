@@ -3,7 +3,7 @@
 # Lisk SDK
 
 [![Build Status](https://jenkins.lisk.io/job/lisk-sdk/job/development/badge/icon)](https://jenkins.lisk.io/job/lisk-sdk/job/development/)
-![npm](https://img.shields.io/npm/v/lisk-sdk?style=plastic)
+![npm](https://img.shields.io/npm/v/lisk-sdk)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-sdk)
 ![GitHub repo size](https://img.shields.io/github/repo-size/liskhq/lisk-sdk)
 [![DeepScan grade](https://deepscan.io/api/teams/6759/projects/8869/branches/113509/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=6759&pid=8869&bid=113509)
@@ -12,17 +12,17 @@
 ![Jenkins Coverage](https://img.shields.io/jenkins/coverage/cobertura?jobUrl=https%3A%2F%2Fjenkins.lisk.io%2Fjob%2Flisk-sdk%2Fjob%2Fdevelopment)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-## Alpha phase
+## Beta phase
 
-Please read this carefully. With this repository we have opened access to the alpha release of the Lisk SDK. We have released the Lisk SDK in its current form in order for us to improve the development experience through community feedback and contributions.
+Please read this carefully. With this repository we have opened access to the beta release of the Lisk SDK. We have released the Lisk SDK in its current form in order for us to improve the development experience through community feedback and contributions.
 
-We strictly discourage anyone from using the alpha release of the Lisk SDK for any production-based blockchain applications, i.e. a blockchain operating on a real mainnet. Over the course of the alpha phase there will be significant changes in the Lisk protocol and implementation, which will eventually bring the accessibility and reliability to a level which is feasible for production-based blockchain applications. At this time we only recommend the Lisk SDK for proof-of-concept blockchain applications, i.e. a blockchain operating on a fake testnet.
+We strictly discourage anyone from using the beta release of the Lisk SDK for any production-based blockchain applications, i.e. a blockchain operating on a real mainnet. Throughout the beta phase, there will be significant changes in the Lisk protocol and implementation, which will eventually bring accessibility and reliability to a level that is feasible for production-based blockchain applications. At this time we only recommend the Lisk SDK for proof-of-concept blockchain applications, i.e. a blockchain operating on a fake testnet.
 
 The only application built using the Lisk SDK currently feasible for production usage is [Lisk Core](https://github.com/liskhq/lisk-core), the client of the Lisk network itself.
 
-Please be advised we cannot guarantee blockchains created with the alpha release of the Lisk SDK will remain compatible with our planned (beta/rc) releases.
+Please be advised, although we have stabilised the architecture of SDK, we cannot guarantee blockchains created with the beta release of the Lisk SDK will remain compatible with our planned release candidates.
 
-We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the alpha phase.
+We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the beta phase.
 
 ## What is the Lisk SDK?
 
@@ -34,22 +34,18 @@ The Lisk SDK aims to provide an easy and reliable software development kit for b
 
 Before running Lisk SDK, the following dependencies need to be installed in order to run applications created with the Lisk SDK:
 
-| Dependencies     | Version |
-| ---------------- | ------- |
-| NodeJS           | 12+     |
-| PostgreSQL       | 10+     |
-| Redis (optional) | 5+      |
+| Dependencies | Version |
+| ------------ | ------- |
+| NodeJS       | 12+     |
 
 You can find further details on installing these dependencies in our [pre-installation setup guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
 
-Mind, that you need to create a database before. The default database name is `lisk_dev`, so for the development purposes, a command `createdb lisk_dev` will set you up.
-
 ### Installation
 
-The installation of Lisk Alpha SDK is straightforward and limited to getting a single NPM package, `lisk-sdk`, to your Node.js project:
+The installation of Lisk Beta SDK is straightforward and limited to getting a single NPM package, `lisk-sdk`, to your Node.js project:
 
 ```
-npm install lisk-sdk@alpha
+npm install lisk-sdk@beta
 ```
 
 Lisk SDK is all-in-one package that provides you with tools to create, run and maintain blockchain applications in JavaScript.
@@ -65,12 +61,12 @@ It is quite simple to have a working blockchain application, mirroring the confi
 ```js
 const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
-const app = new Application(genesisBlockDevnet, configDevnet);
+const app = Application.defaultApplication(genesisBlockDevnet, configDevnet);
 
 app
 	.run()
 	.then(() => app.logger.info('App started...'))
-	.catch(error => {
+	.catch((error) => {
 		console.error('Faced error in application', error);
 		process.exit(1);
 	});
@@ -84,42 +80,49 @@ node index.js
 
 ### Configure your blockchain parameters
 
-You can also define your blockchain application parameters such as `BLOCK_TIME`, `EPOCH_TIME`, `MAX_TRANSACTIONS_PER_BLOCK` and more with an optional configurations object.
+You can also define your blockchain application parameters such as `blockTime`, `maxPayloadLength` and more with an optional configurations object.
 
 ```js
-const app = new Application(genesisBlockDevnet, {
-    app: {
-        label: 'my-blockchain-application',
-        genesisConfig: {
-            EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
-            BLOCK_TIME: 10,
-            MAX_TRANSACTIONS_PER_BLOCK: 25,
-        },
-        ...
+const app = Application.defaultApplication(genesisBlockDevnet, {
+    genesisConfig: {
+        communityIdentifier: 'newChain',
+        blockTime: 5,
+        maxPayloadLength: 100 * 1024,
+        minRemainingBalance: "5000000",
+	activeDelegates: 101,
+	standbyDelegates: 2,
+	delegateListRoundOffset: 2
+    },
+    ...
 });
 ```
 
 For a complete list of configuration options see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/lisk-sdk/configuration.md).
 
-### Register a custom transaction
+### Register a custom module or a custom plugin
 
-You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
+A custom module is a logic to define state changes that will be executed on-chain meaning that it will be a part of the blockchain protocol.
+On the other hand, a custom plugin is a logic to define an off-chain logic which is not part of the blockchain protocol but to enhance the application features.
 
-Add your custom transaction type to your blockchain application by registering it to the application instance:
+You can define [your own module](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) and [your own plugin](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) with Lisk-SDK.
+
+Add your custom module and custom plugin to your blockchain application by registering it to the application instance:
 
 ```js
 const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
-const MyTransaction = require('./my_transaction');
+const MyModule = require('./my_module');
+const MyPlugin = require('./my_plugin');
 
-const app = new Application(genesisBlockDevnet, configDevnet);
+const app = Application.defaultApplication(genesisBlockDevnet, configDevnet);
 
-app.registerTransaction(MyTransaction); // register the custom transaction
+app.registerModule(MyModule); // register the custom module
+app.registerPlugin(MyPlugin); // register the custom plugin
 
 app
 	.run()
 	.then(() => app.logger.info('App started...'))
-	.catch(error => {
+	.catch((error) => {
 		console.error('Faced error in application', error);
 		process.exit(1);
 	});
@@ -129,7 +132,7 @@ For information on creating your own custom transaction, see the [lisk-docs repo
 
 ## Architecture Overview
 
-The Lisk SDK operates on the NodeJS runtime and consists primarily of an application framework (Lisk Framework), a collection of libraries providing blockchain application functionalities (Lisk Elements), and a powerful command-line tool (Lisk Commander) allowing developers to manage a Lisk node instance and interact with a Lisk compatible network. The diagram below provides a high-level overview of the architecture:
+The Lisk SDK operates on the NodeJS runtime and consists primarily of an application framework (Lisk Framework), a collection of libraries providing blockchain application functionalities (Lisk Elements), and a powerful command-line tool (Lisk Commander) helping developers to build a blockchain application using Lisk Framework. The diagram below provides a high-level overview of the architecture:
 
 ![Diagram](./docs/assets/diagram_sdk.png)
 
@@ -139,7 +142,7 @@ The Lisk SDK operates on the NodeJS runtime and consists primarily of an applica
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Framework](./framework) | An application framework responsible for establishing and maintaining the interactions between the modules of a Lisk blockchain application.         |
 | [Elements](./elements)   | A collection of libraries, each of them implementing some form of blockchain application functionality such as cryptography, transactions, p2p, etc. |
-| [Commander](./commander) | A command line tool allowing developers to manage a Lisk node instance and interact with a Lisk compatible network.                                  |
+| [Commander](./commander) | A command line tool to help developers to build a blockchain application using Lisk Framework.                                                       |
 
 ## Get Involved
 
@@ -191,7 +194,7 @@ By using the Alpha release of the Lisk SDK, you acknowledge and agree that you h
 
 ## License
 
-Copyright 2016-2019 Lisk Foundation
+Copyright 2016-2020 Lisk Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

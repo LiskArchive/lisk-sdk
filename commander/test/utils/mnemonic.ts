@@ -35,8 +35,7 @@ describe('mnemonic utils', () => {
 
 	describe('#isValidMnemonicPassphrase', () => {
 		it('should return true when the mnemonic passphrase is valid', () => {
-			const validMnemonic =
-				'minute omit local rare sword knee banner pair rib museum shadow juice';
+			const validMnemonic = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 			const valid = mnemonic.isValidMnemonicPassphrase(validMnemonic);
 			return expect(valid).to.be.true;
 		});

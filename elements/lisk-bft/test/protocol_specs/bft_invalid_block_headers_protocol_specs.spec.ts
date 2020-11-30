@@ -11,71 +11,67 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { when } from 'jest-when';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { dataStructures } from '@liskhq/lisk-utils';
+import {
+	Chain,
+	Validator,
+	CONSENSUS_STATE_VALIDATORS_KEY,
+	validatorsSchema,
+	StateStore,
+} from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
 
 import { FinalityManager } from '../../src/finality_manager';
-import { StateStoreMock } from '../unit/state_store_mock';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { StateStoreMock } from '../utils/state_store_mock';
+import { convertHeader } from '../fixtures/blocks';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {
-		let chainStub: {
-			dataAccess: {
-				getBlockHeadersByHeightBetween: jest.Mock;
-				getLastBlockHeader: jest.Mock;
-			};
-			slots: {
-				getSlotNumber: jest.Mock;
-				isWithinTimeslot: jest.Mock;
-				getEpochTime: jest.Mock;
-			};
-		};
-		let dposStub: {
-			getMinActiveHeight: jest.Mock;
-			isStandbyDelegate: jest.Mock;
-		};
-		let stateStore: StateStoreMock;
+		let stateStore: StateStore;
+		let chainStub: Chain;
 
-		beforeEach(async () => {
-			chainStub = {
-				dataAccess: {
-					getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
-					getLastBlockHeader: jest.fn().mockResolvedValue([]),
-				},
+		beforeEach(() => {
+			chainStub = ({
 				slots: {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
-					getEpochTime: jest.fn(),
+					timeSinceGenesis: jest.fn(),
 				},
-			};
-			dposStub = {
-				getMinActiveHeight: jest.fn(),
-				isStandbyDelegate: jest.fn(),
-			};
-			stateStore = new StateStoreMock();
+				dataAccess: {
+					getConsensusState: jest.fn(),
+				},
+				numberOfValidators: 103,
+			} as unknown) as Chain;
+			stateStore = (new StateStoreMock() as unknown) as StateStore;
 		});
 
 		invalidBlockHeaderSpec.testCases.forEach(testCase => {
 			it('should fail adding invalid block header', async () => {
+				const validatorsMap = new dataStructures.BufferMap<Validator>();
+				for (const blockHeader of testCase.config.blockHeaders) {
+					const addr = getAddressFromPublicKey(Buffer.from(blockHeader.generatorPublicKey, 'hex'));
+					validatorsMap.set(addr, {
+						address: addr,
+						isConsensusParticipant: true,
+						minActiveHeight: blockHeader.delegateMinHeightActive,
+					});
+				}
+				stateStore.consensus.set(
+					CONSENSUS_STATE_VALIDATORS_KEY,
+					codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
+				);
 				// Arrange
+				(stateStore.chain as any).lastBlockHeaders = testCase.config.blockHeaders.map(bh =>
+					convertHeader(bh),
+				);
+
 				const finalityManager = new FinalityManager({
 					chain: chainStub,
-					dpos: dposStub,
 					finalizedHeight: invalidBlockHeaderSpec.config.finalizedHeight,
-					activeDelegates: invalidBlockHeaderSpec.config.activeDelegates,
+					threshold: invalidBlockHeaderSpec.config.activeDelegates,
 				});
-				for (const blockHeader of testCase.config.blockHeaders) {
-					when(dposStub.getMinActiveHeight)
-						.calledWith(
-							blockHeader.height,
-							getAddressFromPublicKey(blockHeader.generatorPublicKey),
-						)
-						.mockResolvedValue(blockHeader.delegateMinHeightActive);
-				}
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-					testCase.config.blockHeaders,
-				);
 
 				// Act & Assert
 				await expect(

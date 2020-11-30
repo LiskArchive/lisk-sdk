@@ -12,19 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BlockHeader,
-	ConsensusStateEntity,
-	StorageTransaction,
-} from '../types';
+import { BatchChain } from '@liskhq/lisk-db';
+import { StateDiff } from '../types';
+import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
+import { DataAccess } from '../data_access';
+import { CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '../constants';
 
 interface KeyValuePair {
-	// tslint:disable-next-line readonly-keyword
-	[key: string]: string;
-}
-
-interface AdditionalInformation {
-	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	[key: string]: Buffer | undefined;
 }
 
 export class ConsensusStateStore {
@@ -33,30 +28,16 @@ export class ConsensusStateStore {
 	private _originalData: KeyValuePair;
 	private _updatedKeys: Set<string>;
 	private _originalUpdatedKeys: Set<string>;
-	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
-	private readonly _consensusState: ConsensusStateEntity;
+	private readonly _dataAccess: DataAccess;
+	private _initialValue: KeyValuePair;
 
-	public constructor(
-		consensusStateEntity: ConsensusStateEntity,
-		additionalInformation: AdditionalInformation,
-	) {
-		this._consensusState = consensusStateEntity;
-		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
+	public constructor(dataAccess: DataAccess) {
+		this._dataAccess = dataAccess;
 		this._data = {};
 		this._originalData = {};
+		this._initialValue = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
-	}
-
-	public get lastBlockHeaders(): ReadonlyArray<BlockHeader> {
-		return this._lastBlockHeaders;
-	}
-
-	public async cache(): Promise<void> {
-		const results = await this._consensusState.get();
-		for (const { key, value } of results) {
-			this._data[key] = value;
-		}
 	}
 
 	public createSnapshot(): void {
@@ -69,17 +50,21 @@ export class ConsensusStateStore {
 		this._updatedKeys = new Set(this._originalUpdatedKeys);
 	}
 
-	public async get(key: string): Promise<string | undefined> {
+	public async get(key: string): Promise<Buffer | undefined> {
 		const value = this._data[key];
 
 		if (value) {
 			return value;
 		}
 
-		const dbValue = await this._consensusState.getKey(key);
+		const dbValue = await this._dataAccess.getConsensusState(key);
 		// If it doesn't exist in the database, return undefined without caching
 		if (dbValue === undefined) {
 			return dbValue;
+		}
+		// Finalized height should not be stored as part of this diff because it cannot be undo
+		if (key !== CONSENSUS_STATE_FINALIZED_HEIGHT_KEY) {
+			this._initialValue[key] = dbValue;
 		}
 		this._data[key] = dbValue;
 
@@ -94,20 +79,40 @@ export class ConsensusStateStore {
 		throw new Error(`getOrDefault cannot be called for ${this._name}`);
 	}
 
-	public set(key: string, value: string): void {
+	public set(key: string, value: Buffer): void {
 		this._data[key] = value;
 		this._updatedKeys.add(key);
 	}
 
-	public async finalize(tx: StorageTransaction): Promise<void> {
+	public finalize(batch: BatchChain): StateDiff {
+		const stateDiff = { updated: [], created: [], deleted: [] } as StateDiff;
+
 		if (this._updatedKeys.size === 0) {
-			return;
+			return stateDiff;
 		}
 
-		await Promise.all(
-			Array.from(this._updatedKeys).map(key =>
-				this._consensusState.setKey(key, this._data[key], tx),
-			),
-		);
+		for (const key of Array.from(this._updatedKeys)) {
+			const dbKey = `${DB_KEY_CONSENSUS_STATE}:${key}`;
+			const updatedValue = this._data[key] as Buffer;
+			batch.put(dbKey, updatedValue);
+
+			// finalized height should never be saved to diff, since it will not changed
+			if (key === CONSENSUS_STATE_FINALIZED_HEIGHT_KEY) {
+				continue;
+			}
+
+			// Save diff of changed state
+			const initialValue = this._initialValue[key];
+			if (initialValue !== undefined && !initialValue.equals(updatedValue)) {
+				stateDiff.updated.push({
+					key: dbKey,
+					value: initialValue,
+				});
+			} else if (initialValue === undefined) {
+				stateDiff.created.push(dbKey);
+			}
+		}
+
+		return stateDiff;
 	}
 }

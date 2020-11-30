@@ -21,7 +21,7 @@ const SOCKET_HUNG_UP_CODE = 1006;
 const { EVENT_CLOSE_INBOUND, EVENT_CLOSE_OUTBOUND } = events;
 const { INTENTIONAL_DISCONNECT_CODE } = constants;
 
-describe(`Events on Connection Close`, () => {
+describe('Events on Connection Close', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Map();
 
@@ -60,7 +60,7 @@ describe(`Events on Connection Close`, () => {
 		expect(payload).toMatchObject({
 			code: INTENTIONAL_DISCONNECT_CODE,
 			peerInfo: {
-				wsPort: secondNode.nodeInfo.wsPort,
+				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			},
 		});
@@ -77,7 +77,7 @@ describe(`Events on Connection Close`, () => {
 		expect(payload).toMatchObject({
 			code: SOCKET_HUNG_UP_CODE,
 			peerInfo: {
-				wsPort: firstNode.nodeInfo.wsPort,
+				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			},
 		});

@@ -18,8 +18,7 @@ import * as slow from '../src/nacl/slow';
 
 Benchmark.options.minSamples = 100;
 
-const defaultPublicKey =
-	'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
+const defaultPublicKey = '7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 const defaultPrivateKey =
 	'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 const defaultMessage = 'Some default text.';
@@ -28,10 +27,8 @@ const defaultSignature =
 const defaultEncryptedMessage =
 	'a232e5ea10e18249efc5a0aa8ed68271fc494d02245c52277ee2e14cddd960144a65';
 const defaultNonce = 'df4c8b09e270d2cb3f7b3d53dfa8a6f3441ad3b14a13fb66';
-const defaultHash =
-	'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d97';
-const defaultDigest =
-	'aba8462bb7a1460f1e36c36a71f0b7f67d1606562001907c1b2dad08a8ce74ae';
+const defaultHash = '314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d97';
+const defaultDigest = 'aba8462bb7a1460f1e36c36a71f0b7f67d1606562001907c1b2dad08a8ce74ae';
 const defaultConvertedPublicKeyEd2Curve =
 	'b8c0eecfd16c1cc4f057a6fc6d8dd3d46e4aa9625408d4bd0ba00e991326fe00';
 const defaultConvertedPrivateKeyEd2Curve =
@@ -75,16 +72,10 @@ const openBoxBenchmark = new Benchmark.Suite('openBox')
 
 const signDetachedBenchmark = new Benchmark.Suite('signDetached')
 	.add('fast.signDetached', () => {
-		fast.signDetached(
-			Buffer.from(defaultDigest, 'hex'),
-			Buffer.from(defaultPrivateKey, 'hex'),
-		);
+		fast.signDetached(Buffer.from(defaultDigest, 'hex'), Buffer.from(defaultPrivateKey, 'hex'));
 	})
 	.add('slow.signDetached', () => {
-		slow.signDetached(
-			Buffer.from(defaultDigest, 'hex'),
-			Buffer.from(defaultPrivateKey, 'hex'),
-		);
+		slow.signDetached(Buffer.from(defaultDigest, 'hex'), Buffer.from(defaultPrivateKey, 'hex'));
 	});
 
 const verifyDetachedBenchmark = new Benchmark.Suite('verifyDetached')

@@ -25,10 +25,7 @@ const getFilesFromDir = (dir, fileTypes) => {
 		// eslint-disable-next-line no-restricted-syntax, guard-for-in
 		for (const i in files) {
 			const curFile = path.join(currentPath, files[i]);
-			if (
-				fs.statSync(curFile).isFile() &&
-				fileTypes.indexOf(path.extname(curFile)) !== -1
-			) {
+			if (fs.statSync(curFile).isFile() && fileTypes.indexOf(path.extname(curFile)) !== -1) {
 				filesToReturn.push(curFile.replace(dir, ''));
 			} else if (fs.statSync(curFile).isDirectory()) {
 				walkDir(curFile);

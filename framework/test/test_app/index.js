@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const app = require('./app');
 
 app

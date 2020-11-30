@@ -27,19 +27,15 @@ interface Args {
 	readonly signature: string;
 }
 
-const processInputs = (
-	publicKey: string,
-	signature: string,
-	message?: string,
-) => {
+const processInputs = (publicKey: string, signature: string, message?: string) => {
 	if (!message) {
 		throw new ValidationError('No message was provided.');
 	}
 
 	return {
 		verified: verifyMessageWithPublicKey({
-			publicKey,
-			signature,
+			publicKey: Buffer.from(publicKey, 'hex'),
+			signature: Buffer.from(signature, 'hex'),
 			message,
 		}),
 	};
@@ -93,11 +89,7 @@ export default class VerifyCommand extends BaseCommand {
 				? await readFileSource(messageSource)
 				: messageSource;
 
-		const result = processInputs(
-			publicKey,
-			signature,
-			message || dataFromSource,
-		);
+		const result = processInputs(publicKey, signature, message ?? dataFromSource);
 		this.print(result);
 	}
 }

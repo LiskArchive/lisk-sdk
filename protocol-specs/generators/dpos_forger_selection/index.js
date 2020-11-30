@@ -22,25 +22,26 @@ const delegateWeightsWith0EligibleStandBy = require('./delegate_weight_0_eligibl
 const delegateWeightsLessThan103 = require('./delegate_weight_less_than_103.json');
 
 const copyAndSort = list => {
-	const copiedList = [...list.map(content => ({ ...content }))];
+	const copiedList = [...list.map(content => ({ ...content }))].map(l => ({
+		voteWeight: BigInt(l.voteWeight),
+		address: Buffer.from(l.address, 'hex'),
+	}));
 	copiedList.sort((a, b) => {
-		const diff = BigInt(b.voteWeight) - BigInt(a.voteWeight);
+		const diff = b.voteWeight - a.voteWeight;
 		if (diff > BigInt(0)) {
 			return 1;
 		}
 		if (diff < BigInt(0)) {
 			return -1;
 		}
-		return a.address.localeCompare(b.address, 'en');
+		return a.address.compare(b.address);
 	});
 	return copiedList;
 };
 
 const generateForgerSelectionWithMoreThan2EligibleStandBy = () => {
 	const randomSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
-	const sortedList = copyAndSort(
-		delegateWeightsWithMoreThan2EligibleStandBy.list,
-	);
+	const sortedList = copyAndSort(delegateWeightsWithMoreThan2EligibleStandBy.list);
 	// Select active delegate first
 	const result = sortedList.slice(0, 101);
 	const candidates = sortedList.slice(101);
@@ -93,7 +94,7 @@ const generateForgerSelectionWithMoreThan2EligibleStandBy = () => {
 			voteWeights: delegateWeightsWithMoreThan2EligibleStandBy.list,
 		},
 		output: {
-			selectedForgers: result.map(vw => vw.address),
+			selectedForgers: result.map(vw => vw.address.toString('hex')),
 		},
 	};
 };
@@ -108,10 +109,8 @@ const generateForgerSelectionWithExactly1EligibleStandBy = () => {
 			voteWeights: delegateWeightsWithExactly1EligibleStandBy.list,
 		},
 		output: {
-			selectedForgers: copyAndSort(
-				delegateWeightsWithExactly1EligibleStandBy.list,
-			)
-				.map(dw => dw.address)
+			selectedForgers: copyAndSort(delegateWeightsWithExactly1EligibleStandBy.list)
+				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
 	};
@@ -127,10 +126,8 @@ const generateForgerSelectionWithExactly2EligibleStandBy = () => {
 			voteWeights: delegateWeightsWithExactly2EligibleStandBy.list,
 		},
 		output: {
-			selectedForgers: copyAndSort(
-				delegateWeightsWithExactly2EligibleStandBy.list,
-			)
-				.map(dw => dw.address)
+			selectedForgers: copyAndSort(delegateWeightsWithExactly2EligibleStandBy.list)
+				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
 	};
@@ -147,7 +144,7 @@ const generateForgerSelectionWithLessThan103Delegates = () => {
 		},
 		output: {
 			selectedForgers: copyAndSort(delegateWeightsLessThan103.list)
-				.map(dw => dw.address)
+				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
 	};
@@ -164,7 +161,7 @@ const generateForgerSelectionWithExactly0EligibleStandBy = () => {
 		},
 		output: {
 			selectedForgers: copyAndSort(delegateWeightsWith0EligibleStandBy.list)
-				.map(dw => dw.address)
+				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
 	};
@@ -172,8 +169,7 @@ const generateForgerSelectionWithExactly0EligibleStandBy = () => {
 
 const forgerSelectionWithMoreThan2EligibleStandBy = () => ({
 	title: 'Forger selection with more than 2 standby delegates',
-	summary:
-		'A set of voteWeights which include more than 2 eligible standby delegates',
+	summary: 'A set of voteWeights which include more than 2 eligible standby delegates',
 	config: 'devnet',
 	runner: 'dpos_forger_selection',
 	handler: 'dpos_forger_selection_more_than_2_standby',

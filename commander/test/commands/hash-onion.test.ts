@@ -16,9 +16,8 @@
 import * as sandbox from 'sinon';
 import fs from 'fs-extra';
 import { expect, test } from '@oclif/test';
-import * as config from '../../src/utils/config';
-import * as printUtils from '../../src/utils/print';
 import { hash } from '@liskhq/lisk-cryptography';
+import * as printUtils from '../../src/utils/print';
 
 describe('hash-onion command', () => {
 	const printMethodStub = sandbox.stub();
@@ -26,7 +25,6 @@ describe('hash-onion command', () => {
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(fs, 'ensureDirSync', sandbox.stub().returns({}))
 			.stub(fs, 'writeJSONSync', sandbox.stub().returns({}))
 			.stdout();
@@ -34,7 +32,7 @@ describe('hash-onion command', () => {
 	describe('hash-onion --count=1000 --distance=200', () => {
 		setupTest()
 			.command(['hash-onion', '--count=1000', '--distance=200'])
-			.it('should generate valid hash onion', async () => {
+			.it('should generate valid hash onion', () => {
 				const { lastArg: result } = printMethodStub.getCall(0);
 				for (let i = 0; i < result.hashes.length - 1; i += 1) {
 					let nextHash = Buffer.from(result.hashes[i + 1], 'hex');
@@ -48,13 +46,8 @@ describe('hash-onion command', () => {
 
 	describe('hash-onion --count=1000 --distance=200 --output=./test/sample.json', () => {
 		setupTest()
-			.command([
-				'hash-onion',
-				'--count=1000',
-				'--distance=200',
-				'--output=./test/sample.json',
-			])
-			.it('should write to file', async () => {
+			.command(['hash-onion', '--count=1000', '--distance=200', '--output=./test/sample.json'])
+			.it('should write to file', () => {
 				expect(fs.ensureDirSync).to.be.calledWith('./test');
 				expect(fs.writeJSONSync).to.be.calledWith('./test/sample.json');
 			});
@@ -86,9 +79,7 @@ describe('hash-onion command', () => {
 		setupTest()
 			.command(['hash-onion', '--count=-1', '--distance=200'])
 			.catch(error => {
-				return expect(error.message).to.contain(
-					'Invalid count. Count has to be positive integer',
-				);
+				return expect(error.message).to.contain('Invalid count. Count has to be positive integer');
 			})
 			.it('should throw an error');
 	});

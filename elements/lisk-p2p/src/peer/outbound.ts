@@ -38,14 +38,10 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	P2PNodeInfo,
 } from '../types';
 
-import {
-	Peer,
-	PeerConfig,
-	SCClientSocket,
-	socketErrorStatusCodes,
-} from './base';
+import { Peer, PeerConfig, SCClientSocket, socketErrorStatusCodes } from './base';
 
 interface ClientOptionsUpdated {
 	readonly hostname: string;
@@ -83,10 +79,7 @@ export class OutboundPeer extends Peer {
 		this._socket.connect();
 	}
 
-	public disconnect(
-		code: number = INTENTIONAL_DISCONNECT_CODE,
-		reason?: string,
-	): void {
+	public disconnect(code: number = INTENTIONAL_DISCONNECT_CODE, reason?: string): void {
 		super.disconnect(code, reason);
 		if (this._socket) {
 			this._unbindHandlersFromOutboundSocket(this._socket);
@@ -116,19 +109,26 @@ export class OutboundPeer extends Peer {
 		const ackTimeout = this._peerConfig.ackTimeout
 			? this._peerConfig.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
+		// Isolating options that has custom property part
+		const { options, ...nodeInfo } = this._serverNodeInfo as P2PNodeInfo;
+		const queryObject = {
+			networkVersion: nodeInfo.networkVersion,
+			networkIdentifier: nodeInfo.networkIdentifier,
+			nonce: nodeInfo.nonce,
+			advertiseAddress: nodeInfo.advertiseAddress,
+			port: this._peerConfig.hostPort,
+		};
+
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this.ipAddress,
 			path: DEFAULT_HTTP_PATH,
-			port: this.wsPort,
-			query: querystring.stringify({
-				...this._serverNodeInfo,
-				options: JSON.stringify(this._serverNodeInfo),
-			}),
+			port: this.port,
+			query: querystring.stringify(queryObject as querystring.ParsedUrlQueryInput),
 			connectTimeout,
 			ackTimeout,
 			multiplex: false,
-			autoConnect: false,
+			autoConnect: true,
 			autoReconnect: false,
 			maxPayload: this._peerConfig.wsMaxPayload,
 		};
@@ -146,6 +146,7 @@ export class OutboundPeer extends Peer {
 			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		outboundSocket.on('connect', async () => {
 			try {
 				await this.fetchAndUpdateStatus();
@@ -168,19 +169,18 @@ export class OutboundPeer extends Peer {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
 		});
 
-		outboundSocket.on(
-			'close',
-			(code: number, reasonMessage: string | undefined) => {
-				const reason = reasonMessage
+		outboundSocket.on('close', (code: number, reasonMessage: string | undefined) => {
+			const reason: string =
+				reasonMessage !== undefined && reasonMessage !== ''
 					? reasonMessage
-					: socketErrorStatusCodes[code] || 'Unknown reason';
-				this.emit(EVENT_CLOSE_OUTBOUND, {
-					peerInfo: this._peerInfo,
-					code,
-					reason,
-				});
-			},
-		);
+					: socketErrorStatusCodes[code] ?? 'Unknown reason';
+			this.emit(EVENT_CLOSE_OUTBOUND, {
+				peerInfo: this._peerInfo,
+				code,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				reason,
+			});
+		});
 
 		outboundSocket.on('message', this._handleWSMessage);
 
@@ -194,12 +194,27 @@ export class OutboundPeer extends Peer {
 		// Bind RPC and remote event handlers
 		outboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+		const transportSocket = (outboundSocket as any).transport;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		if (transportSocket?.socket && transportSocket.socket.on) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+			transportSocket.socket.on(REMOTE_EVENT_PING, () => {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+				transportSocket.socket.terminate();
+				this.applyPenalty(100);
+			});
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+			transportSocket.socket.on(REMOTE_EVENT_PONG, () => {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+				transportSocket.socket.terminate();
+				this.applyPenalty(100);
+			});
+		}
 	}
 
 	// All event handlers for the outbound socket should be unbound in this method.
-	private _unbindHandlersFromOutboundSocket(
-		outboundSocket: SCClientSocket,
-	): void {
+	private _unbindHandlersFromOutboundSocket(outboundSocket: SCClientSocket): void {
 		// Do not unbind the error handler because error could still throw after disconnect.
 		// We don't want to have uncaught errors.
 		outboundSocket.off('connect');

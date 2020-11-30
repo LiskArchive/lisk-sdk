@@ -21,17 +21,33 @@ import {
 	P2PPeerSelectionForSendInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
+	P2PConfig,
 } from '../../src/types';
+
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 const { ConnectionKind } = constants;
 
-import {
-	createNetwork,
-	destroyNetwork,
-	NETWORK_PEER_COUNT,
-} from '../utils/network_setup';
+const customNodeInfoSchema = {
+	$id: '/custom',
+	type: 'object',
+	properties: {
+		modules: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'string',
+			},
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+};
 
 describe('Custom peer selection', () => {
+	const networkSize = 4;
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	// Custom selection function that finds peers having common values for modules field for example.
@@ -48,25 +64,19 @@ describe('Custom peer selection', () => {
 				peerInfo.internalState.connectionKind !== ConnectionKind.INBOUND &&
 				peerInfo.internalState.connectionKind !== ConnectionKind.OUTBOUND
 			) {
-				throw new Error(
-					`Invalid peer kind: ${peerInfo.internalState.connectionKind}`,
-				);
+				throw new Error(`Invalid peer kind: ${peerInfo.internalState.connectionKind}`);
 			}
 		});
 
 		const filteredPeers = peersList.filter(peer => {
 			const { sharedState } = peer;
-			const peerHeight = sharedState ? (sharedState.height as number) : 0;
-			if (
-				nodeInfo &&
-				peer.sharedState &&
-				(nodeInfo.height as number) <= peerHeight
-			) {
-				const nodesModules = nodeInfo.modules
-					? (nodeInfo.modules as ReadonlyArray<string>)
+			const peerHeight = sharedState ? (sharedState.options?.height as number) : 0;
+			if (nodeInfo && peer.sharedState && (nodeInfo.options?.height as number) <= peerHeight) {
+				const nodesModules = nodeInfo.options?.modules
+					? (nodeInfo.options?.modules as ReadonlyArray<string>)
 					: undefined;
-				const peerModules = peer.sharedState.modules
-					? (peer.sharedState.modules as ReadonlyArray<string>)
+				const peerModules = peer.sharedState.options?.modules
+					? (peer.sharedState.options?.modules as ReadonlyArray<string>)
 					: undefined;
 
 				if (
@@ -82,15 +92,12 @@ describe('Custom peer selection', () => {
 		});
 
 		// In case there are no peers with same modules or less than 30% of the peers are selected then use only height to select peers
-		if (
-			filteredPeers.length === 0 ||
-			(filteredPeers.length / peersList.length) * 100 < 30
-		) {
+		if (filteredPeers.length === 0 || (filteredPeers.length / peersList.length) * 100 < 30) {
 			return peersList.filter(
 				peer =>
 					peer.sharedState &&
-					(peer.sharedState.height as number) >=
-						(nodeInfo ? (nodeInfo.height as number) : 0),
+					(peer.sharedState.options?.height as number) >=
+						(nodeInfo ? (nodeInfo.options?.height as number) : 0),
 			);
 		}
 
@@ -103,19 +110,23 @@ describe('Custom peer selection', () => {
 
 	beforeEach(async () => {
 		const customNodeInfo = (index: number) => ({
-			modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
-			height: 1000 + (index % 2),
+			options: {
+				modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
+				height: 1000 + (index % 2),
+			},
 		});
 
-		const customConfig = (index: number) => ({
+		const customConfig = (index: number): Partial<P2PConfig> => ({
 			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
 			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
-			peerSelectionForConnection: peerSelectionForConnection as P2PPeerSelectionForConnectionFunction,
-			nodeInfo: customNodeInfo(index),
+			peerSelectionForConnection,
+			nodeInfo: customNodeInfo(index) as any,
+			customNodeInfoSchema,
 		});
 
 		p2pNodeList = await createNetwork({
 			customConfig,
+			networkSize,
 		});
 	});
 
@@ -123,15 +134,15 @@ describe('Custom peer selection', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should start all the nodes with custom selection functions without fail', async () => {
-		for (let p2p of p2pNodeList) {
+	it('should start all the nodes with custom selection functions without fail', () => {
+		for (const p2p of p2pNodeList) {
 			expect(p2p).toHaveProperty('isActive', true);
 		}
 	});
 
 	describe('Peer Discovery', () => {
-		it('should run peer discovery successfully', async () => {
-			for (let p2p of p2pNodeList) {
+		it('should run peer discovery successfully', () => {
+			for (const p2p of p2pNodeList) {
 				expect(p2p.isActive).toBe(true);
 				expect(p2p.getConnectedPeers().length).toBeGreaterThan(1);
 			}
@@ -140,12 +151,12 @@ describe('Custom peer selection', () => {
 
 	describe('P2P.request', () => {
 		beforeEach(() => {
-			for (let p2p of p2pNodeList) {
+			for (const p2p of p2pNodeList) {
 				// Collect port numbers to check which peer handled which request.
-				p2p.on('requestReceived', request => {
+				p2p.on('EVENT_REQUEST_RECEIVED', request => {
 					if (!request.wasResponseSent) {
 						request.end({
-							nodePort: p2p.nodeInfo.wsPort,
+							nodePort: p2p.config.port,
 							requestProcedure: request.procedure,
 							requestData: request.data,
 						});
@@ -155,7 +166,7 @@ describe('Custom peer selection', () => {
 		});
 
 		it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
-			const middleP2PNode = p2pNodeList[NETWORK_PEER_COUNT / 2];
+			const middleP2PNode = p2pNodeList[networkSize / 2];
 			const response = await middleP2PNode.request({
 				procedure: 'foo',
 				data: 'bar',
@@ -178,55 +189,45 @@ describe('Custom peer selection', () => {
 
 		beforeEach(() => {
 			collectedMessages = [];
-			for (let p2p of p2pNodeList) {
-				p2p.on('messageReceived', message => {
+			for (const p2p of p2pNodeList) {
+				// eslint-disable-next-line no-loop-func
+				p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 					collectedMessages.push({
-						nodePort: p2p.nodeInfo.wsPort,
+						nodePort: p2p.config.port,
 						message,
 					});
 				});
 			}
 		});
 
-		// TODO: #3389 Improve network test to be fast and stable, it can fail randomly depend on network shuffle
 		it('should send a message to peers; should reach multiple peers with even distribution', async () => {
 			const TOTAL_SENDS = 100;
-			const middleP2PNode = p2pNodeList[NETWORK_PEER_COUNT / 2];
+			const middleP2PNode = p2pNodeList[networkSize / 2];
 			const nodePortToMessagesMap: any = {};
 
 			const expectedAverageMessagesPerNode = TOTAL_SENDS;
 			const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
 			const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
 
-			for (let i = 0; i < TOTAL_SENDS; i++) {
+			for (let i = 0; i < TOTAL_SENDS; i += 1) {
 				middleP2PNode.send({ event: 'bar', data: i });
 			}
 
 			await wait(100);
 
-			expect(Object.keys(collectedMessages)).not.toBeEmpty;
-			for (let receivedMessageData of collectedMessages) {
+			expect(Object.keys(collectedMessages)).not.toBeEmpty();
+			for (const receivedMessageData of collectedMessages) {
 				if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 					nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 				}
-				nodePortToMessagesMap[receivedMessageData.nodePort].push(
-					receivedMessageData,
-				);
+				nodePortToMessagesMap[receivedMessageData.nodePort].push(receivedMessageData);
 			}
 
-			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
-				NETWORK_PEER_COUNT / 2 - 1,
-			);
-			for (let receivedMessages of Object.values(
-				nodePortToMessagesMap,
-			) as any) {
+			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(networkSize / 2 - 1);
+			for (const receivedMessages of Object.values(nodePortToMessagesMap) as any) {
 				expect(receivedMessages).toEqual(expect.any(Array));
-				expect(receivedMessages.length).toBeGreaterThan(
-					expectedMessagesLowerBound,
-				);
-				expect(receivedMessages.length).toBeLessThan(
-					expectedMessagesUpperBound,
-				);
+				expect(receivedMessages.length).toBeGreaterThan(expectedMessagesLowerBound);
+				expect(receivedMessages.length).toBeLessThan(expectedMessagesUpperBound);
 			}
 		});
 	});

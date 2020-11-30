@@ -11,4 +11,5 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// eslint-disable-next-line import/no-cycle
 export * from './peer_book';

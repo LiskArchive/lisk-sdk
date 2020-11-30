@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { codec } from '@liskhq/lisk-codec';
+import { SCServerSocket } from 'socketcluster-server';
 import { Peer, PeerConfig } from '../../../src/peer';
 import {
 	DEFAULT_REPUTATION_SCORE,
@@ -36,19 +38,20 @@ import {
 	PROTOCOL_EVENTS_TO_RATE_LIMIT,
 } from '../../../src/events';
 import { RPCResponseError } from '../../../src/errors';
-import { SCServerSocket } from 'socketcluster-server';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
-import { p2p_types } from '../../../src';
+import { p2pTypes } from '../../../src';
+import { peerInfoSchema, nodeInfoSchema } from '../../../src/schema';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const createSocketStubInstance = () => <SCServerSocket>({
 		emit: jest.fn(),
 		destroy: jest.fn(),
 	} as any);
 
 describe('peer/base', () => {
-	let defaultPeerInfo: p2p_types.P2PPeerInfo;
+	let defaultPeerInfo: p2pTypes.P2PPeerInfo;
 	let peerConfig: PeerConfig;
-	let p2pDiscoveredPeerInfo: p2p_types.P2PPeerInfo;
+	let p2pDiscoveredPeerInfo: p2pTypes.P2PPeerInfo;
 	let defaultPeer: Peer;
 
 	beforeEach(() => {
@@ -56,44 +59,44 @@ describe('peer/base', () => {
 		defaultPeerInfo = {
 			peerId: constructPeerId('12.12.12.12', 5001),
 			ipAddress: '12.12.12.12',
-			wsPort: 5001,
+			port: 5001,
 			sharedState: {
-				height: 545776,
-				isDiscoveredPeer: true,
-				version: '1.1.1',
-				protocolVersion: '1.1',
+				networkVersion: '1.1',
+				networkIdentifier: 'networkId',
+				nonce: 'nonce',
+				options: {},
 			},
 		};
 		peerConfig = {
+			hostPort: 6001,
 			rateCalculationInterval: DEFAULT_RATE_CALCULATION_INTERVAL,
 			wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 			wsMaxMessageRatePenalty: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
+			peerStatusMessageRate: 4,
 			serverNodeInfo: {
-				os: 'os',
-				networkId: 'networkId',
-				version: '1.2.0',
-				protocolVersion: '1.2',
-				wsPort: 6001,
+				networkIdentifier: 'networkId',
+				networkVersion: '1.2',
 				nonce: 'nonce',
 				advertiseAddress: true,
+				options: {},
+			},
+			rpcSchemas: {
+				nodeInfo: nodeInfoSchema,
+				peerInfo: peerInfoSchema,
 			},
 		};
 		p2pDiscoveredPeerInfo = {
-			peerId: constructPeerId(
-				defaultPeerInfo.ipAddress,
-				defaultPeerInfo.wsPort,
-			),
+			peerId: constructPeerId(defaultPeerInfo.ipAddress, defaultPeerInfo.port),
 			ipAddress: defaultPeerInfo.ipAddress,
-			wsPort: defaultPeerInfo.wsPort,
+			port: defaultPeerInfo.port,
 			sharedState: {
-				height: 1000,
-				updatedAt: new Date(),
-				os: 'MYOS',
-				version: '1.3.0',
-				protocolVersion: '1.3',
+				networkVersion: '1.3',
+				networkIdentifier: 'networkId',
+				nonce: 'nonce',
+				options: {},
 			},
 			internalState: undefined,
 		};
@@ -108,29 +111,23 @@ describe('peer/base', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should be an instance of Peer class', () =>
-			expect(defaultPeer).toBeInstanceOf(Peer));
+		it('should be an instance of Peer class', () => expect(defaultPeer).toBeInstanceOf(Peer));
 
-		it('should have a function named _handleRawRPC ', () => {
+		it('should have a function named _handleRawRPC', () => {
 			expect((defaultPeer as any)._handleRawRPC).toEqual(expect.any(Function));
 		});
 
 		it('should have a function named _handleWSMessage', () => {
-			expect((defaultPeer as any)._handleWSMessage).toEqual(
-				expect.any(Function),
-			);
+			expect((defaultPeer as any)._handleWSMessage).toEqual(expect.any(Function));
 		});
 
 		it('should have a function named _handleRawMessage', () => {
-			expect((defaultPeer as any)._handleRawMessage).toEqual(
-				expect.any(Function),
-			);
+			expect((defaultPeer as any)._handleRawMessage).toEqual(expect.any(Function));
 		});
 	});
 
 	describe('#id', () => {
-		it('should get id property', () =>
-			expect(defaultPeer.id).toEqual(defaultPeerInfo.peerId));
+		it('should get id property', () => expect(defaultPeer.id).toEqual(defaultPeerInfo.peerId));
 	});
 
 	describe('#ipAddress', () => {
@@ -138,9 +135,8 @@ describe('peer/base', () => {
 			expect(defaultPeer.ipAddress).toEqual(defaultPeerInfo.ipAddress));
 	});
 
-	describe('#wsPort', () => {
-		it('should get wsPort property', () =>
-			expect(defaultPeer.wsPort).toEqual(defaultPeerInfo.wsPort));
+	describe('#port', () => {
+		it('should get port property', () => expect(defaultPeer.port).toEqual(defaultPeerInfo.port));
 	});
 
 	describe('#netgroup', () => {
@@ -152,14 +148,11 @@ describe('peer/base', () => {
 
 	describe('#reputation', () => {
 		it('should get reputation property', () =>
-			expect(defaultPeer.internalState.reputation).toEqual(
-				DEFAULT_REPUTATION_SCORE,
-			));
+			expect(defaultPeer.internalState.reputation).toEqual(DEFAULT_REPUTATION_SCORE));
 	});
 
 	describe('#latency', () => {
-		it('should get latency property', () =>
-			expect(defaultPeer.internalState.latency).toEqual(0));
+		it('should get latency property', () => expect(defaultPeer.internalState.latency).toEqual(0));
 	});
 
 	describe('#connectTime', () => {
@@ -191,24 +184,19 @@ describe('peer/base', () => {
 	});
 
 	describe('#state', () => {
-		it('should get state property', () =>
-			expect(defaultPeer.state).toEqual('closed'));
+		it('should get state property', () => expect(defaultPeer.state).toEqual('closed'));
 	});
 
 	describe('#peerInfo', () => {
 		it('should get peerInfo property', () =>
-			expect(defaultPeer.peerInfo.sharedState).toEqual(
-				defaultPeerInfo.sharedState,
-			));
+			expect(defaultPeer.peerInfo.sharedState).toEqual(defaultPeerInfo.sharedState));
 	});
 
 	describe('#updatePeerInfo', () => {
 		it('should update peer info', () => {
 			defaultPeer.updatePeerInfo(p2pDiscoveredPeerInfo);
 
-			expect(defaultPeer.peerInfo.sharedState).toEqual(
-				p2pDiscoveredPeerInfo.sharedState,
-			);
+			expect(defaultPeer.peerInfo.sharedState).toEqual(p2pDiscoveredPeerInfo.sharedState);
 		});
 	});
 
@@ -217,7 +205,7 @@ describe('peer/base', () => {
 			defaultPeer.disconnect();
 			expect(() => {
 				defaultPeer.connect();
-			}).toThrowError('Peer socket does not exist');
+			}).toThrow('Peer socket does not exist');
 		});
 
 		it('should not throw error if socket exists', () => {
@@ -235,29 +223,23 @@ describe('peer/base', () => {
 
 			jest.advanceTimersByTime(peerConfig.rateCalculationInterval + 1);
 
-			expect(_resetCounters).not.toHaveBeenCalled;
+			expect(_resetCounters).not.toHaveBeenCalled();
 		});
 
 		it('should clear _productivityResetInterval', () => {
-			const _resetProductivity = jest.spyOn(
-				defaultPeer as any,
-				'_resetProductivity',
-			);
+			const _resetProductivity = jest.spyOn(defaultPeer as any, '_resetProductivity');
 
 			defaultPeer.disconnect();
 
 			jest.advanceTimersByTime(DEFAULT_PRODUCTIVITY_RESET_INTERVAL + 1);
 
-			expect(_resetProductivity).not.toHaveBeenCalled;
+			expect(_resetProductivity).not.toHaveBeenCalled();
 		});
 
 		it('should destroy socket if it exists', () => {
 			(defaultPeer as any)._socket = createSocketStubInstance();
 			defaultPeer.disconnect();
-			expect((defaultPeer as any)._socket.destroy).toHaveBeenCalledWith(
-				1000,
-				undefined,
-			);
+			expect((defaultPeer as any)._socket.destroy).toHaveBeenCalledWith(1000, undefined);
 		});
 	});
 
@@ -269,7 +251,7 @@ describe('peer/base', () => {
 			};
 			expect(() => {
 				defaultPeer.send(p2pPacket);
-			}).toThrowError('Peer socket does not exist');
+			}).toThrow('Peer socket does not exist');
 		});
 
 		it(`should emit for event ${REMOTE_SC_EVENT_MESSAGE}`, () => {
@@ -284,13 +266,10 @@ describe('peer/base', () => {
 			defaultPeer.send(p2pPacket);
 
 			// Assert
-			expect((defaultPeer as any)._socket.emit).toHaveBeenCalledWith(
-				REMOTE_SC_EVENT_MESSAGE,
-				{
-					event: p2pPacket.event,
-					data: p2pPacket.data,
-				},
-			);
+			expect((defaultPeer as any)._socket.emit).toHaveBeenCalledWith(REMOTE_SC_EVENT_MESSAGE, {
+				event: p2pPacket.event,
+				data: p2pPacket.data,
+			});
 		});
 	});
 
@@ -301,9 +280,7 @@ describe('peer/base', () => {
 				procedure: 'myProcedure',
 			};
 
-			return expect(defaultPeer.request(p2pPacket)).rejects.toThrow(
-				'Peer socket does not exist',
-			);
+			return expect(defaultPeer.request(p2pPacket)).rejects.toThrow('Peer socket does not exist');
 		});
 
 		it('should emit if socket exists', () => {
@@ -315,11 +292,12 @@ describe('peer/base', () => {
 			(defaultPeer as any)._socket = createSocketStubInstance();
 
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			defaultPeer.request(p2pPacket);
 
 			// Assert
 			expect((defaultPeer as any)._socket.emit).toHaveBeenCalledTimes(1);
-			expect((defaultPeer as any)._socket.emit).toBeCalledWith(
+			expect((defaultPeer as any)._socket.emit).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_RPC_REQUEST,
 				{
 					procedure: p2pPacket.procedure,
@@ -332,14 +310,12 @@ describe('peer/base', () => {
 
 	describe('#fetchPeers', () => {
 		it('should call request', async () => {
-			const peerRequest = jest
-				.spyOn(defaultPeer as any, 'request')
-				.mockResolvedValue({
-					data: {
-						peers: [],
-						success: true,
-					},
-				});
+			const peerRequest = jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
+				data: {
+					success: true,
+					peers: [],
+				},
+			});
 
 			await defaultPeer.fetchPeers();
 
@@ -351,9 +327,7 @@ describe('peer/base', () => {
 
 		describe('when request() fails', () => {
 			beforeEach(() => {
-				jest
-					.spyOn(defaultPeer, 'request')
-					.mockRejectedValue(EVENT_FAILED_TO_FETCH_PEERS);
+				jest.spyOn(defaultPeer, 'request').mockRejectedValue(EVENT_FAILED_TO_FETCH_PEERS);
 
 				(defaultPeer as any).emit = jest.fn();
 			});
@@ -365,7 +339,9 @@ describe('peer/base', () => {
 					expect('never').toBe('called');
 				} catch (e) {
 					// Assert
+					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.emit).toHaveBeenCalledTimes(1);
+					// eslint-disable-next-line jest/no-try-expect
 					expect((defaultPeer as any).emit).toHaveBeenCalledWith(
 						EVENT_FAILED_TO_FETCH_PEERS,
 						EVENT_FAILED_TO_FETCH_PEERS,
@@ -374,9 +350,7 @@ describe('peer/base', () => {
 			});
 
 			it('should throw an error', async () => {
-				return expect(defaultPeer.fetchPeers()).rejects.toThrow(
-					RPCResponseError,
-				);
+				return expect(defaultPeer.fetchPeers()).rejects.toThrow(RPCResponseError);
 			});
 		});
 
@@ -390,19 +364,15 @@ describe('peer/base', () => {
 						peerId: constructPeerId('1.1.1.1', 1111),
 						ipAddress: '1.1.1.1',
 						sourceAddress: '12.12.12.12',
-						wsPort: 1111,
-						sharedState: {
-							version: '1.1.1',
-						},
+						port: 1111,
+						sharedState: {},
 					},
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
 						sourceAddress: '12.12.12.12',
-						wsPort: 2222,
-						sharedState: {
-							version: '2.2.2',
-						},
+						port: 2222,
+						sharedState: {},
 					},
 				];
 				const sanitizedPeers = [
@@ -410,32 +380,35 @@ describe('peer/base', () => {
 						peerId: constructPeerId('1.1.1.1', 1111),
 						ipAddress: '1.1.1.1',
 						sourceAddress: '12.12.12.12',
-						wsPort: 1111,
-						sharedState: {
-							version: '1.1.1',
-							height: 0,
-						},
+						port: 1111,
+						sharedState: {},
 					},
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
 						sourceAddress: '12.12.12.12',
-						wsPort: 2222,
-						sharedState: {
-							version: '2.2.2',
-							height: 0,
-						},
+						port: 2222,
+						sharedState: {},
 					},
 				];
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-					data: {
-						peers: peers.map(peer => ({
-							...peer.sharedState,
+				codec.addSchema(peerInfoSchema);
+
+				const encodedPeers = peers.map(peer =>
+					codec
+						.encode(peerInfoSchema, {
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-						})),
-						success: true,
-					},
+							port: peer.port,
+						})
+						.toString('hex'),
+				);
+
+				const responseData = {
+					peers: encodedPeers,
+					success: true,
+				};
+
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
+					data: responseData,
 				});
 				const response = await defaultPeer.fetchPeers();
 				expect(response).toEqual(sanitizedPeers);
@@ -445,28 +418,35 @@ describe('peer/base', () => {
 				const malformedPeerList = [...new Array(1001).keys()].map(index => ({
 					peerId: `'1.1.1.1:${1 + index}`,
 					ipAddress: '1.1.1.1',
-					wsPort: 1 + index,
-					sharedState: {
-						version: '1.1.1',
-					},
+					port: 1 + index,
+					sharedState: {},
 				}));
 
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-					data: {
-						peers: malformedPeerList.map(peer => ({
-							...peer.sharedState,
+				const encodedMalformedPeersList = malformedPeerList.map(peer =>
+					codec
+						.encode(peerInfoSchema, {
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-						})),
+							port: peer.port,
+						})
+						.toString('hex'),
+				);
+
+				const peerListResponse = {
+					data: {
+						peers: encodedMalformedPeersList,
 						success: true,
 					},
-				});
+				};
 
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(peerListResponse);
+
+				expect.assertions(2);
 				try {
 					await defaultPeer.fetchPeers();
-					expect('never').toBe('called');
 				} catch (e) {
+					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
+					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledWith(100);
 				}
 			});
@@ -474,9 +454,9 @@ describe('peer/base', () => {
 			it('should throw apply penalty on malformed Peer', async () => {
 				const malformedPeerList = [
 					{
-						peerId: `'1.1.1.1:5000`,
+						peerId: "'1.1.1.1:5000",
 						ipAddress: '1.1.1.1',
-						wsPort: 1111,
+						port: 1111,
 						sharedState: {
 							version: '1.1.1',
 							junkData: [...new Array(10000).keys()].map(() => 'a'),
@@ -489,17 +469,19 @@ describe('peer/base', () => {
 						peers: malformedPeerList.map(peer => ({
 							...peer.sharedState,
 							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
+							port: peer.port,
 						})),
 						success: true,
 					},
 				});
 
+				expect.assertions(2);
 				try {
 					await defaultPeer.fetchPeers();
-					expect('never').toBe('called');
 				} catch (e) {
+					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
+					// eslint-disable-next-line jest/no-try-expect
 					expect(defaultPeer.applyPenalty).toHaveBeenCalledWith(100);
 				}
 			});
@@ -507,36 +489,34 @@ describe('peer/base', () => {
 	});
 
 	describe('#discoverPeers', () => {
-		let discoveredPeers: ReadonlyArray<p2p_types.P2PPeerInfo>;
+		let discoveredPeers: ReadonlyArray<p2pTypes.P2PPeerInfo>;
 
 		beforeEach(() => {
 			discoveredPeers = [
 				{
 					peerId: constructPeerId('1.1.1.1', 1111),
 					ipAddress: '1.1.1.1',
-					wsPort: 1111,
+					port: 1111,
 					sharedState: {
-						version: '1.1.1',
-						height: 0,
-						protocolVersion: '',
-						os: '',
+						networkIdentifier: 'networkId',
+						nonce: 'nonce',
+						networkVersion: '',
+						options: {},
 					},
 				},
 				{
 					peerId: constructPeerId('2.2.2.2', 2222),
 					ipAddress: '2.2.2.2',
-					wsPort: 2222,
+					port: 2222,
 					sharedState: {
-						version: '2.2.2',
-						height: 0,
-						protocolVersion: '',
-						os: '',
+						networkIdentifier: 'networkId',
+						nonce: 'nonce',
+						networkVersion: '',
+						options: {},
 					},
 				},
 			];
-			jest
-				.spyOn(defaultPeer as any, 'fetchPeers')
-				.mockResolvedValue(discoveredPeers);
+			jest.spyOn(defaultPeer as any, 'fetchPeers').mockResolvedValue(discoveredPeers);
 			jest.spyOn(defaultPeer, 'emit');
 		});
 
@@ -561,7 +541,7 @@ describe('peer/base', () => {
 			});
 		});
 
-		it(`should return discoveredPeerInfoList`, async () => {
+		it('should return discoveredPeerInfoList', async () => {
 			const discoveredPeerInfoList = await defaultPeer.discoverPeers();
 			expect(discoveredPeerInfoList).toEqual(discoveredPeers);
 		});
@@ -570,9 +550,7 @@ describe('peer/base', () => {
 	describe('#fetchAndUpdateStatus', () => {
 		describe('when request() fails', () => {
 			beforeEach(() => {
-				jest
-					.spyOn(defaultPeer, 'request')
-					.mockRejectedValue(EVENT_FAILED_TO_FETCH_PEER_INFO);
+				jest.spyOn(defaultPeer, 'request').mockRejectedValue(EVENT_FAILED_TO_FETCH_PEER_INFO);
 				jest.spyOn(defaultPeer, 'emit');
 			});
 
@@ -581,7 +559,9 @@ describe('peer/base', () => {
 					await defaultPeer.fetchAndUpdateStatus();
 					expect('never').toBe('called');
 				} catch (e) {
+					// eslint-disable-next-line jest/no-try-expect
 					expect((defaultPeer as any).emit).toHaveBeenCalledTimes(1);
+					// eslint-disable-next-line jest/no-try-expect
 					expect((defaultPeer as any).emit).toHaveBeenCalledWith(
 						EVENT_FAILED_TO_FETCH_PEER_INFO,
 						EVENT_FAILED_TO_FETCH_PEER_INFO,
@@ -590,25 +570,49 @@ describe('peer/base', () => {
 			});
 
 			it('should throw error', async () => {
-				return expect(defaultPeer.fetchAndUpdateStatus()).rejects.toThrow(
-					RPCResponseError,
-				);
+				return expect(defaultPeer.fetchAndUpdateStatus()).rejects.toThrow(RPCResponseError);
 			});
 		});
 
 		describe('when request() succeeds', () => {
-			describe('when _updateFromProtocolPeerInfo() fails', () => {
-				const peer = {
-					ip: '1.1.1.1',
-					wsPort: 1111,
-					version: '1.1.2',
-					protocolVersion: '9.2',
-					networkId: 'networkId',
+			describe('when nodeInfo contains malformed information', () => {
+				const invalidData = {
+					data:
+						'0b4bfc826a027f228c21da9e4ce2eef156f0742719b6b2466ec706b15441025f638f748b22adfab873561587be7285be3e3888cd9acdce226e342cf196fbc2c5',
 				};
 				beforeEach(() => {
-					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-						data: peer,
-					});
+					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(invalidData);
+					jest.spyOn(defaultPeer, 'emit');
+					jest.spyOn(defaultPeer, 'applyPenalty');
+				});
+
+				it('should apply penalty', async () => {
+					expect.assertions(2);
+					try {
+						await defaultPeer.fetchAndUpdateStatus();
+					} catch (error) {
+						// eslint-disable-next-line jest/no-try-expect
+						expect(defaultPeer.applyPenalty).toHaveBeenCalledTimes(1);
+						// eslint-disable-next-line jest/no-try-expect
+						expect(defaultPeer.applyPenalty).toHaveBeenCalledWith(100);
+					}
+				});
+
+				it('should throw error', async () => {
+					return expect(defaultPeer.fetchAndUpdateStatus()).rejects.toThrow(RPCResponseError);
+				});
+			});
+
+			describe('when _updateFromProtocolPeerInfo() fails', () => {
+				const nodeInfo = {
+					ipAddress: '1.1.1.1',
+					port: 1111,
+					networkVersion: '9.2',
+					networkIdentifier: 'networkId',
+				};
+				beforeEach(() => {
+					const encodedResponse = codec.encode(nodeInfoSchema, nodeInfo).toString('hex');
+					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'emit');
 				});
 
@@ -617,7 +621,9 @@ describe('peer/base', () => {
 						await defaultPeer.fetchAndUpdateStatus();
 						expect('never').toBe('called');
 					} catch (error) {
+						// eslint-disable-next-line jest/no-try-expect
 						expect((defaultPeer as any).emit).toHaveBeenCalledTimes(1);
+						// eslint-disable-next-line jest/no-try-expect
 						expect((defaultPeer as any).emit).toHaveBeenCalledWith(
 							EVENT_FAILED_PEER_INFO_UPDATE,
 							expect.any(Error),
@@ -626,43 +632,38 @@ describe('peer/base', () => {
 				});
 
 				it('should throw error', async () => {
-					return expect(defaultPeer.fetchAndUpdateStatus()).rejects.toThrow(
-						RPCResponseError,
-					);
+					return expect(defaultPeer.fetchAndUpdateStatus()).rejects.toThrow(RPCResponseError);
 				});
 			});
 
 			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
 				const peerSharedState = {
 					ipAddress: '1.1.1.1',
-					wsPort: 1111,
-					version: '1.1.2',
-					protocolVersion: '1.2',
-					networkId: 'networkId',
+					port: 1111,
+					networkVersion: '1.2',
+					networkIdentifier: 'networkId',
 				};
 
 				beforeEach(() => {
-					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-						data: peerSharedState,
-					});
+					codec.addSchema(peerInfoSchema);
+					const encodedResponse = codec.encode(nodeInfoSchema, peerSharedState).toString('hex');
+
+					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'updatePeerInfo');
 					jest.spyOn(defaultPeer, 'emit');
 				});
 
-				it(`should call updatePeerInfo()`, async () => {
+				it('should call updatePeerInfo()', async () => {
 					// Arrange
 					const defaultProtocolPeerInfo = {
-						peerId: constructPeerId(
-							defaultPeerInfo.ipAddress,
-							defaultPeerInfo.wsPort,
-						),
+						peerId: constructPeerId(defaultPeerInfo.ipAddress, defaultPeerInfo.port),
 						ipAddress: defaultPeerInfo.ipAddress,
-						wsPort: defaultPeerInfo.wsPort,
+						port: defaultPeerInfo.port,
 						sharedState: {
-							version: peerSharedState.version,
-							height: 0,
-							protocolVersion: '1.2',
-							networkId: 'networkId',
+							advertiseAddress: false,
+							networkVersion: '1.2',
+							networkIdentifier: 'networkId',
+							nonce: '',
 						},
 					};
 
@@ -670,26 +671,19 @@ describe('peer/base', () => {
 					await defaultPeer.fetchAndUpdateStatus();
 
 					// Assert
-					expect(defaultPeer.updatePeerInfo).toHaveBeenCalledWith(
-						defaultProtocolPeerInfo,
-					);
+					expect(defaultPeer.updatePeerInfo).toHaveBeenCalledWith(defaultProtocolPeerInfo);
 				});
 
 				it(`should emit ${EVENT_UPDATED_PEER_INFO} event with fetched peer info`, async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
-					expect((defaultPeer as any).emit).toHaveBeenCalledWith(
-						EVENT_UPDATED_PEER_INFO,
-						peerInfo,
-					);
+					expect((defaultPeer as any).emit).toHaveBeenCalledWith(EVENT_UPDATED_PEER_INFO, peerInfo);
 				});
 
 				it('should return fetched peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(peerInfo.sharedState).toMatchObject({
-						height: 0,
-						networkId: 'networkId',
-						protocolVersion: '1.2',
-						version: '1.1.2',
+						networkIdentifier: 'networkId',
+						networkVersion: '1.2',
 					});
 				});
 			});
@@ -699,12 +693,10 @@ describe('peer/base', () => {
 	describe('#applyPenalty', () => {
 		describe('when reputation does not go below 0', () => {
 			it('should apply penalty', () => {
-				const reputation = defaultPeer.internalState.reputation;
+				const { reputation } = defaultPeer.internalState;
 				const penalty = DEFAULT_REPUTATION_SCORE / 10;
 				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.internalState.reputation).toEqual(
-					reputation - penalty,
-				);
+				expect(defaultPeer.internalState.reputation).toEqual(reputation - penalty);
 			});
 
 			it('should not ban peer', () => {
@@ -714,7 +706,7 @@ describe('peer/base', () => {
 
 				defaultPeer.applyPenalty(penalty);
 
-				expect(banPeerSpy).not.toBeCalled();
+				expect(banPeerSpy).not.toHaveBeenCalled();
 			});
 		});
 
@@ -725,21 +717,16 @@ describe('peer/base', () => {
 			});
 
 			it('should apply penalty', () => {
-				const reputation = defaultPeer.internalState.reputation;
+				const { reputation } = defaultPeer.internalState;
 				const penalty = DEFAULT_REPUTATION_SCORE;
 				defaultPeer.applyPenalty(penalty);
-				expect(defaultPeer.internalState.reputation).toEqual(
-					reputation - penalty,
-				);
+				expect(defaultPeer.internalState.reputation).toEqual(reputation - penalty);
 			});
 
 			it(`should emit ${EVENT_BAN_PEER} event`, () => {
 				const penalty = DEFAULT_REPUTATION_SCORE;
 				defaultPeer.applyPenalty(penalty);
-				expect((defaultPeer as any).emit).toHaveBeenCalledWith(
-					EVENT_BAN_PEER,
-					defaultPeer.id,
-				);
+				expect((defaultPeer as any).emit).toHaveBeenCalledWith(EVENT_BAN_PEER, defaultPeer.id);
 			});
 
 			it('should disconnect peer', () => {
@@ -762,52 +749,81 @@ describe('peer/base', () => {
 
 			it('should not apply penalty inside rate limit', () => {
 				// Arrange
-				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const { reputation } = defaultPeer.peerInfo.internalState;
 
-				//Act
+				// Act
 				[...PROTOCOL_EVENTS_TO_RATE_LIMIT.keys()].forEach(procedure => {
+					// eslint-disable-next-line @typescript-eslint/no-empty-function
 					(defaultPeer as any)._handleRawRPC({ procedure }, () => {});
 				});
 
 				jest.advanceTimersByTime(peerConfig.rateCalculationInterval + 1);
 
-				//Assert
+				// Assert
 				expect(defaultPeer.peerInfo.internalState.reputation).toBe(reputation);
 			});
 
 			it('should apply penalty for getPeers flood', () => {
 				// Arrange
-				const rawMessageRCP = {
+				const rawMessageRPC = {
 					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 				};
-				const reputation = defaultPeer.peerInfo.internalState.reputation;
-				const requestCount = 10;
+				const { reputation } = defaultPeer.peerInfo.internalState;
+				const requestCount = 9;
 
-				//Act
-				for (let i = 0; i < requestCount; i++) {
-					(defaultPeer as any)._handleRawRPC(rawMessageRCP, () => {});
+				// Act
+				for (let i = 0; i < requestCount; i += 1) {
+					// eslint-disable-next-line @typescript-eslint/no-empty-function
+					(defaultPeer as any)._handleRawRPC(rawMessageRPC, () => {});
 				}
 				jest.advanceTimersByTime(peerConfig.rateCalculationInterval + 1);
 
-				//Assert
+				// Assert
+				// ((requestCount - 1) * 10) is the penalty added for every getPeers RPC request after the first request
 				expect(defaultPeer.peerInfo.internalState.reputation).toBe(
-					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY - (requestCount - 1) * 10,
 				);
+			});
+
+			it('should not apply any penalty for second getPeers after 10 secs', () => {
+				// Arrange
+				const rawMessageRPC = {
+					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
+				};
+
+				// Act
+				// eslint-disable-next-line @typescript-eslint/no-empty-function
+				(defaultPeer as any)._handleRawRPC(rawMessageRPC, () => {});
+
+				// Assert
+				expect(defaultPeer['_discoveryMessageCounter'].getPeers).toBe(1);
+				expect(defaultPeer.peerInfo.internalState.reputation).toBe(100);
+
+				// Act
+				jest.advanceTimersByTime(10000);
+
+				// eslint-disable-next-line @typescript-eslint/no-empty-function
+				(defaultPeer as any)._handleRawRPC(rawMessageRPC, () => {});
+
+				// Assert
+				expect(defaultPeer['_discoveryMessageCounter'].getPeers).toBe(1);
+				expect(defaultPeer.peerInfo.internalState.reputation).toBe(100);
 			});
 
 			it('should silent the request events after limit exceed', () => {
 				// Arrange
-				const rawMessageRCP = {
+				const rawMessageRPC = {
 					procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 				};
 				const requestCount = 10;
 
-				//Act
-				for (let i = 0; i < requestCount; i++) {
-					(defaultPeer as any)._handleRawRPC(rawMessageRCP, () => {});
+				// Act
+				for (let i = 0; i < requestCount; i += 1) {
+					// eslint-disable-next-line @typescript-eslint/no-empty-function
+					(defaultPeer as any)._handleRawRPC(rawMessageRPC, () => {});
 				}
 
-				//Assert
+				// Assert
 				expect((defaultPeer as any).emit).toHaveBeenCalledTimes(1);
 			});
 		});
@@ -819,16 +835,16 @@ describe('peer/base', () => {
 
 			it('should apply penalty for messagesRate exceeded', () => {
 				// Arrange
-				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const { reputation } = defaultPeer.peerInfo.internalState;
 				const messageCount = 101;
 
-				//Act
-				for (let i = 0; i < messageCount; i++) {
+				// Act
+				for (let i = 0; i < messageCount; i += 1) {
 					(defaultPeer as any)._handleWSMessage();
 				}
 				jest.advanceTimersByTime(peerConfig.rateCalculationInterval + 1);
 
-				//Assert
+				// Assert
 				expect(defaultPeer.peerInfo.internalState.reputation).toBe(
 					reputation - DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 				);
@@ -836,22 +852,20 @@ describe('peer/base', () => {
 
 			it('should increase penalty based on rate limit exceeded', () => {
 				// Arrange
-				const reputation = defaultPeer.peerInfo.internalState.reputation;
+				const { reputation } = defaultPeer.peerInfo.internalState;
 				const messageCount = 201;
 				const expectedPenalty =
 					DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY *
 					Math.floor(messageCount / DEFAULT_WS_MAX_MESSAGE_RATE);
 
-				//Act
-				for (let i = 0; i < messageCount; i++) {
+				// Act
+				for (let i = 0; i < messageCount; i += 1) {
 					(defaultPeer as any)._handleWSMessage();
 				}
 				jest.advanceTimersByTime(peerConfig.rateCalculationInterval + 1);
 
-				//Assert
-				expect(defaultPeer.peerInfo.internalState.reputation).toBe(
-					reputation - expectedPenalty,
-				);
+				// Assert
+				expect(defaultPeer.peerInfo.internalState.reputation).toBe(reputation - expectedPenalty);
 			});
 		});
 	});

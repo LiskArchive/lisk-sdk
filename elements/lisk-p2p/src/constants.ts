@@ -29,9 +29,7 @@ export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
 export const DEFAULT_WS_MAX_PAYLOAD = 3048576; // Size in bytes
 export const DEFAULT_NONCE_LENGTH_BYTES = 8;
 const SECRET_BYTE_LENGTH = 4;
-export const DEFAULT_RANDOM_SECRET = getRandomBytes(
-	SECRET_BYTE_LENGTH,
-).readUInt32BE(0);
+export const DEFAULT_RANDOM_SECRET = getRandomBytes(SECRET_BYTE_LENGTH).readUInt32BE(0);
 
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
@@ -41,7 +39,7 @@ export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
-export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
+export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 200;
 export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
 export const DEFAULT_MIN_TRIED_PEER_COUNT = 100;
 
@@ -50,6 +48,7 @@ export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
 export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 20000;
+export const DEFAULT_PEER_STATUS_MESSAGE_RATE = 4; // Number of messages per 10 seconds
 export const DEFAULT_PRODUCTIVITY = {
 	requestCounter: 0,
 	responseCounter: 0,
@@ -77,8 +76,7 @@ export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 // Disconnect statuses
 export const INTENTIONAL_DISCONNECT_CODE = 1000;
-export const SEED_PEER_DISCONNECTION_REASON =
-	'Disconnect from SeedPeer after discovery';
+export const SEED_PEER_DISCONNECTION_REASON = 'Disconnect from SeedPeer after discovery';
 export const INVALID_CONNECTION_URL_CODE = 4501;
 export const INVALID_CONNECTION_URL_REASON =
 	'Peer did not provide a valid URL as part of the WebSocket connection';
@@ -88,11 +86,9 @@ export const INVALID_CONNECTION_QUERY_REASON =
 export const INVALID_CONNECTION_SELF_CODE = 4101;
 export const INVALID_CONNECTION_SELF_REASON = 'Peer cannot connect to itself';
 export const INCOMPATIBLE_NETWORK_CODE = 4102;
-export const INCOMPATIBLE_NETWORK_REASON =
-	'Peer networkId did not match our own';
+export const INCOMPATIBLE_NETWORK_REASON = 'Peer networkIdentifier did not match our own';
 export const INCOMPATIBLE_PROTOCOL_VERSION_CODE = 4103;
-export const INCOMPATIBLE_PROTOCOL_VERSION_REASON =
-	'Peer has incompatible protocol version';
+export const INCOMPATIBLE_PROTOCOL_VERSION_REASON = 'Peer has incompatible protocol version';
 export const INCOMPATIBLE_PEER_CODE = 4104;
 export const INCOMPATIBLE_PEER_UNKNOWN_REASON =
 	'Peer is incompatible with the node for unknown reasons';

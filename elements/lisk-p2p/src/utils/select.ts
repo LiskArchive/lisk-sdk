@@ -12,16 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable-next-line no-require-imports
-import shuffle = require('lodash.shuffle');
-
 import { ConnectionKind } from '../constants';
+// eslint-disable-next-line import/no-cycle
 import {
 	P2PPeerInfo,
 	P2PPeerSelectionForConnectionInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForSendInput,
 } from '../types';
+// eslint-disable-next-line import/order
+import shuffle = require('lodash.shuffle');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 
 const _removeCommonIPsFromLists = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
@@ -29,19 +30,15 @@ const _removeCommonIPsFromLists = (
 	const peerMap = new Map<string, P2PPeerInfo>();
 
 	for (const peer of peerList) {
-		const { sharedState } = peer;
-		const peerHeight =
-			sharedState && sharedState.height ? (sharedState.height as number) : 0;
+		const { internalState } = peer;
+		const peerReputation = internalState ? internalState.reputation : 0;
 
 		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
-			const { sharedState: tempSharedState } = tempPeer;
-			const tempPeerHeight =
-				tempSharedState && tempSharedState.height
-					? (tempSharedState.height as number)
-					: 0;
+			const { internalState: tempInternalState } = tempPeer;
+			const tempPeerReputation = tempInternalState ? tempInternalState.reputation : 0;
 
-			if (peerHeight > tempPeerHeight) {
+			if (peerReputation > tempPeerReputation) {
 				peerMap.set(peer.ipAddress, peer);
 			}
 		} else {
@@ -56,7 +53,7 @@ export const selectPeersForRequest = (
 	input: P2PPeerSelectionForRequestInput,
 ): ReadonlyArray<P2PPeerInfo> => {
 	const { peers } = input;
-	const peerLimit = input.peerLimit;
+	const { peerLimit } = input;
 
 	if (peers.length === 0) {
 		return [];
@@ -74,7 +71,6 @@ export const selectPeersForSend = (
 ): ReadonlyArray<P2PPeerInfo> => {
 	const shuffledPeers = shuffle(input.peers);
 	const peerLimit = input.peerLimit as number;
-	// tslint:disable: no-magic-numbers
 	const halfPeerLimit = Math.round(peerLimit / 2);
 
 	const outboundPeers = shuffledPeers.filter((peerInfo: P2PPeerInfo) =>
@@ -89,9 +85,7 @@ export const selectPeersForSend = (
 			: false,
 	);
 
-	// tslint:disable: no-let
 	let shortestPeersList;
-	// tslint:disable: no-let
 	let longestPeersList;
 
 	if (outboundPeers.length < inboundPeers.length) {
@@ -131,14 +125,14 @@ export const selectPeersForConnection = (
 	const x =
 		input.triedPeers.length < 100
 			? minimumProbability
-			: input.triedPeers.length /
-			  (input.triedPeers.length + input.newPeers.length);
+			: input.triedPeers.length / (input.triedPeers.length + input.newPeers.length);
 	const r = Math.max(x, minimumProbability);
 
 	const shuffledTriedPeers = shuffle(input.triedPeers);
 	const shuffledNewPeers = shuffle(input.newPeers);
 
-	const peerList = [...Array(input.peerLimit)].map(() => {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const peerList = [...new Array(input.peerLimit)].map(() => {
 		if (shuffledTriedPeers.length !== 0) {
 			if (Math.random() < r) {
 				// With probability r
@@ -154,6 +148,5 @@ export const selectPeersForConnection = (
 		return shuffledTriedPeers.pop() as P2PPeerInfo;
 	});
 
-	// TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
 	return _removeCommonIPsFromLists(peerList);
 };

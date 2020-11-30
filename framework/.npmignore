@@ -1,5 +1,1 @@
-*
-
-!src/**/*
-!docs/**/*
-!README.md
+../templates/.npmignore.tmpl

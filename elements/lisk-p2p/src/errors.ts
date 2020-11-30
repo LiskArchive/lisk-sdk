@@ -1,5 +1,3 @@
-import { P2PPeerInfo } from './types';
-
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -14,7 +12,10 @@ import { P2PPeerInfo } from './types';
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable: max-classes-per-file */
+/* eslint-disable max-classes-per-file */
+// eslint-disable-next-line import/no-cycle
+import { P2PPeerInfo } from './types';
+
 export class PeerInboundHandshakeError extends Error {
 	public statusCode: number;
 	public remoteAddress: string;
@@ -103,18 +104,13 @@ export class RequestFailError extends Error {
 	public peerId: string;
 	public peerVersion: string;
 	public response: Error;
-	public constructor(
-		message: string,
-		response?: Error,
-		peerId?: string,
-		peerVersion?: string,
-	) {
+	public constructor(message: string, response?: Error, peerId?: string, peerVersion?: string) {
 		super(message);
 		this.name = 'RequestFailError';
 		// The request was made and the peer responded with error
-		this.response = response || new Error(message);
-		this.peerId = peerId || '';
-		this.peerVersion = peerVersion || '';
+		this.response = response ?? new Error(message);
+		this.peerId = peerId ?? '';
+		this.peerVersion = peerVersion ?? '';
 		this.message = peerId
 			? `${this.message}: Peer Id: ${this.peerId}: Peer Version: ${this.peerVersion}`
 			: message;

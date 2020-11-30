@@ -13,7 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createFakeInterface = (value: any) => ({
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	on: (type: string, callback: Function) => {
 		if (type === 'line') {
 			value.split('\n').forEach(callback);
@@ -25,12 +27,16 @@ export const createFakeInterface = (value: any) => ({
 	},
 });
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createStreamStub = (on: Function) => ({
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/no-empty-function
 	resume: () => {},
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/no-empty-function
 	close: () => {},
 	on,
 });
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const objectToKeyValueString = (value: object) =>
 	Object.entries(value)
 		.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`)

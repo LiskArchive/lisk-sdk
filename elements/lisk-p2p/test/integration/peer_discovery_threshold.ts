@@ -22,7 +22,7 @@ describe('Peer discovery threshold', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const MINIMUM_PEER_DISCOVERY_THRESHOLD = 10;
 	const MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 100;
-	let listOfPeers: any[] = [];
+	const listOfPeers: any[] = [];
 
 	beforeEach(async () => {
 		const customConfig = () => ({
@@ -38,21 +38,20 @@ describe('Peer discovery threshold', () => {
 			customConfig,
 		});
 
-		for (let i = 0; i < 1000; i++) {
-			const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${Math.floor(
-				Math.random() * 254,
-			) + 1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
-				Math.random() * 254,
-			) + 1}`;
+		for (let i = 0; i < 1000; i += 1) {
+			const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${
+				Math.floor(Math.random() * 254) + 1
+			}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}`;
 
 			p2pNodeList[0]['_peerBook'].addPeer({
 				peerId: `${generatedIP}:5000`,
 				ipAddress: generatedIP,
-				wsPort: 1000,
+				port: 1000,
 				sharedState: {
-					height: 0,
-					protocolVersion: '1.1',
-					version: '1.1',
+					networkVersion: '1.1',
+					networkIdentifier: 'networkId',
+					nonce: 'nonce',
+					options: {},
 				},
 			});
 		}
@@ -68,7 +67,7 @@ describe('Peer discovery threshold', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it(`should return list of peers with size between ${MINIMUM_PEER_DISCOVERY_THRESHOLD} - ${MAX_PEER_DISCOVERY_RESPONSE_LENGTH}`, async () => {
+	it(`should return list of peers with size between ${MINIMUM_PEER_DISCOVERY_THRESHOLD} - ${MAX_PEER_DISCOVERY_RESPONSE_LENGTH}`, () => {
 		expect(
 			listOfPeers.length >= MINIMUM_PEER_DISCOVERY_THRESHOLD &&
 				listOfPeers.length <= MAX_PEER_DISCOVERY_RESPONSE_LENGTH,

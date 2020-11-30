@@ -15,28 +15,17 @@
  */
 import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
-import * as config from '../../src/utils/config';
 import * as printUtils from '../../src/utils/print';
-import NetworkIdentifierCommand from '../../src/commands/network-identifier';
 
 describe('network-identifier command', () => {
 	const networkIdentifier = {
-		networkIdentifier:
-			'7dbdc2b4694bd5ab6663c4d078aa628ae032cb91ce0fe03a5077d7ef3ba2e8bc',
+		networkIdentifier: '03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
 	};
 
-	const networkIdentifierStub = sandbox.stub();
 	const printMethodStub = sandbox.stub();
 
 	const setupTest = () =>
-		test
-			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(
-				NetworkIdentifierCommand,
-				sandbox.stub().returns(networkIdentifierStub),
-			)
-			.stdout();
+		test.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub)).stdout();
 
 	describe('network-identifier', () => {
 		setupTest()
@@ -60,9 +49,7 @@ describe('network-identifier command', () => {
 		setupTest()
 			.command(['network-identifier', '123'])
 			.it('should show networkIdentifier', () => {
-				return expect(printMethodStub).to.be.calledWithExactly(
-					networkIdentifier,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly(networkIdentifier);
 			});
 	});
 });

@@ -14,12 +14,10 @@
  */
 import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { platform } from 'os';
 import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_START_PORT,
-	NETWORK_PEER_COUNT,
 	SEED_PEER_IP,
 	NETWORK_CREATION_WAIT_TIME,
 } from '../utils/network_setup';
@@ -38,10 +36,7 @@ const {
 	EVENT_REQUEST_RECEIVED,
 } = events;
 
-const {
-	INTENTIONAL_DISCONNECT_CODE,
-	SEED_PEER_DISCONNECTION_REASON,
-} = constants;
+const { INTENTIONAL_DISCONNECT_CODE, SEED_PEER_DISCONNECTION_REASON } = constants;
 
 describe('Network discovery', () => {
 	const CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL = 400;
@@ -49,9 +44,9 @@ describe('Network discovery', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		let disconnectedNode: P2P;
 		const collectedEvents = new Map();
-		const ALL_NODE_PORTS: ReadonlyArray<number> = [
-			...new Array(NETWORK_PEER_COUNT).keys(),
-		].map(index => NETWORK_START_PORT + index);
+		const ALL_NODE_PORTS: ReadonlyArray<number> = [...new Array(4).keys()].map(
+			index => NETWORK_START_PORT + index,
+		);
 
 		beforeAll(async () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
@@ -63,6 +58,7 @@ describe('Network discovery', () => {
 			p2pNodeList = await createNetwork({
 				networkDiscoveryWaitTime: 0,
 				customConfig,
+				networkSize: 4,
 			});
 			const firstNode = p2pNodeList[0];
 
@@ -73,12 +69,9 @@ describe('Network discovery', () => {
 				collectedEvents.set('EVENT_FAILED_TO_ADD_INBOUND_PEER', true);
 			});
 			// We monitor last node to ensure outbound connection
-			p2pNodeList[p2pNodeList.length - 1].on(
-				EVENT_FAILED_TO_FETCH_PEERS,
-				() => {
-					collectedEvents.set('EVENT_FAILED_TO_FETCH_PEERS', true);
-				},
-			);
+			p2pNodeList[p2pNodeList.length - 1].on(EVENT_FAILED_TO_FETCH_PEERS, () => {
+				collectedEvents.set('EVENT_FAILED_TO_FETCH_PEERS', true);
+			});
 			p2pNodeList[p2pNodeList.length - 1].on(EVENT_BAN_PEER, () => {
 				collectedEvents.set('EVENT_BAN_PEER', true);
 			});
@@ -95,7 +88,7 @@ describe('Network discovery', () => {
 				collectedEvents.set('EVENT_UPDATED_PEER_INFO', true);
 			});
 
-			await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+			await Promise.all(p2pNodeList.map(async p2p => p2p.start()));
 
 			await wait(1000);
 		});
@@ -106,89 +99,92 @@ describe('Network discovery', () => {
 			await wait(200);
 		});
 
-		it('should discover all peers and add them to the connectedPeers list within each node', async () => {
-			for (let p2p of p2pNodeList) {
+		it('should discover all peers and add them to the connectedPeers list within each node', () => {
+			for (const p2p of p2pNodeList) {
+				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				const peerPorts = p2p
 					.getConnectedPeers()
-					.map(peerInfo => peerInfo.wsPort)
+					.map(peerInfo => peerInfo.port)
 					.sort();
 
 				// The current node should not be in its own peer list.
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-					return port !== p2p.nodeInfo.wsPort;
+					return port !== p2p.config.port;
 				});
 
 				expect(peerPorts).toEqual(expectedPeerPorts);
 			}
 		});
 
-		it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', async () => {
-			for (let p2p of p2pNodeList) {
-				const newPeers = p2p['_peerBook'].newPeers;
+		it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', () => {
+			for (const p2p of p2pNodeList) {
+				const { newPeers } = p2p['_peerBook'];
 
-				const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
+				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
+				const peerPorts = newPeers.map(peerInfo => peerInfo.port).sort();
 
 				expect(ALL_NODE_PORTS).toIncludeAllMembers(peerPorts);
 			}
 		});
 
 		it('should discover all peers and add them to the triedPeers list within each node', () => {
-			for (let p2p of p2pNodeList) {
+			for (const p2p of p2pNodeList) {
 				const triedPeers = [...p2p['_peerBook'].triedPeers];
+				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				const peerPorts = triedPeers
-					.map(peerInfo => peerInfo.wsPort)
+					.map(peerInfo => peerInfo.port)
 					.filter(port => {
-						return port !== p2p.nodeInfo.wsPort;
+						return port !== p2p.config.port;
 					})
 					.sort();
 				// The current node should not be in its own peer list.
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-					return port !== p2p.nodeInfo.wsPort;
+					return port !== p2p.config.port;
 				});
 				expect(expectedPeerPorts).toEqual(peerPorts);
 			}
 		});
 
-		it('should not contain itself in any of its peer list', async () => {
-			for (let p2p of p2pNodeList) {
-				const allPeers = p2p['_peerBook'].allPeers;
+		it('should not contain itself in any of its peer list', () => {
+			for (const p2p of p2pNodeList) {
+				const { allPeers } = p2p['_peerBook'];
 
+				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				const allPeersPorts = allPeers.map(peerInfo => peerInfo.peerId).sort();
+				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				const connectedPeerPorts = p2p
 					.getConnectedPeers()
-					.map(peerInfo => constructPeerId(peerInfo.ipAddress, peerInfo.wsPort))
+					.map(peerInfo => constructPeerId(peerInfo.ipAddress, peerInfo.port))
 					.sort();
 
 				expect([...allPeersPorts, ...connectedPeerPorts]).not.toEqual(
-					expect.arrayContaining([p2p.nodeInfo.peerId]),
+					expect.arrayContaining([p2p.config.port]),
 				);
 			}
 		});
 
-		it('should not apply penalty or throw error Peerlist at peer discovery', async () => {
-			expect(
-				collectedEvents.get('EVENT_FAILED_TO_FETCH_PEERS'),
-			).toBeUndefined();
+		it('should not apply penalty or throw error Peerlist at peer discovery', () => {
+			expect(collectedEvents.get('EVENT_FAILED_TO_FETCH_PEERS')).toBeUndefined();
 			expect(collectedEvents.get('EVENT_BAN_PEER')).toBeUndefined();
 		});
 
-		it(`should fire ${EVENT_NETWORK_READY} event`, async () => {
+		it(`should fire ${EVENT_NETWORK_READY} event`, () => {
 			expect(collectedEvents.get('EVENT_NETWORK_READY')).toBeDefined();
 		});
 
-		it(`should fire ${EVENT_NEW_INBOUND_PEER} event`, async () => {
+		it(`should fire ${EVENT_NEW_INBOUND_PEER} event`, () => {
 			expect(collectedEvents.get('EVENT_NEW_INBOUND_PEER')).toBeDefined();
 		});
 
-		it(`should fire ${EVENT_CONNECT_OUTBOUND} event`, async () => {
+		it(`should fire ${EVENT_CONNECT_OUTBOUND} event`, () => {
 			expect(collectedEvents.get('EVENT_CONNECT_OUTBOUND')).toBeDefined();
 		});
 
-		it(`should fire ${EVENT_UPDATED_PEER_INFO} event`, async () => {
+		it(`should fire ${EVENT_UPDATED_PEER_INFO} event`, () => {
 			expect(collectedEvents.get('EVENT_UPDATED_PEER_INFO')).toBeDefined();
 		});
 
-		it(`should fire ${EVENT_DISCOVERED_PEER} event`, async () => {
+		it(`should fire ${EVENT_DISCOVERED_PEER} event`, () => {
 			expect(collectedEvents.get('EVENT_DISCOVERED_PEER')).toBeDefined();
 		});
 
@@ -199,40 +195,35 @@ describe('Network discovery', () => {
 				seedPeers: [
 					{
 						ipAddress: '127.0.0.1',
-						wsPort: 5000,
+						port: 5000,
 					},
 				],
 				fixedPeers: [
 					{
 						ipAddress: '127.0.0.1',
-						wsPort: 5000,
+						port: 5000,
 					},
 				],
 				maxOutboundConnections: 1,
 				maxInboundConnections: 0,
+				port: 5020,
 				nodeInfo: {
-					wsPort: 5020,
-					networkId: 'aaa',
-					version: '9.9.9',
-					protocolVersion: '9.9',
-					minVersion: '9.9.9',
-					os: platform(),
-					height: 10000,
-					nonce: `404`,
+					networkIdentifier: 'aaa',
+					networkVersion: '9.9',
+					nonce: '404',
 					advertiseAddress: true,
+					options: {},
 				},
 			});
 			await disconnectedNode.start();
 			await wait(200);
-			expect(
-				collectedEvents.get('EVENT_FAILED_TO_ADD_INBOUND_PEER'),
-			).toBeDefined();
+			expect(collectedEvents.get('EVENT_FAILED_TO_ADD_INBOUND_PEER')).toBeDefined();
 		});
 	});
 
 	describe('Initial seed peer discovery', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
-		const collectedEvents = new Array();
+		const collectedEvents: any[] = [];
 
 		beforeEach(async () => {
 			const customConfig = (index: number) => ({
@@ -252,7 +243,7 @@ describe('Network discovery', () => {
 				});
 			});
 
-			await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+			await Promise.all(p2pNodeList.map(async p2p => p2p.start()));
 
 			await wait(1000);
 		});
@@ -261,7 +252,7 @@ describe('Network discovery', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it('should disconnecting from seed peers', async () => {
+		it('should disconnecting from seed peers', () => {
 			// Every peer should reach the Outbound Connection limit and disconnect from discoverySeedPeers
 			expect(Object.keys(collectedEvents)).not.toHaveLength(0);
 
@@ -273,15 +264,14 @@ describe('Network discovery', () => {
 
 	describe('Fallback Seed Peer Discovery', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
-		const collectedEvents = new Array();
+		const collectedEvents: any[] = [];
 
 		beforeEach(async () => {
 			const customConfig = (index: number) => ({
 				maxOutboundConnections: index % 2 === 1 ? 3 : 20,
 				fallbackSeedPeerDiscoveryInterval: index === 2 ? 100 : 10000,
 				rateCalculationInterval: 100,
-				populatorInterval:
-					index === 2 ? CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL : 10000,
+				populatorInterval: index === 2 ? CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL : 10000,
 			});
 
 			p2pNodeList = await createNetwork({
@@ -293,14 +283,14 @@ describe('Network discovery', () => {
 
 			secondP2PNode.on(EVENT_REQUEST_RECEIVED, msg => {
 				if (
-					msg._procedure == 'getPeers' &&
-					msg._peerId == constructPeerId(SEED_PEER_IP, NETWORK_START_PORT + 2)
+					msg._procedure === 'getPeers' &&
+					msg._peerId === constructPeerId(SEED_PEER_IP, NETWORK_START_PORT + 2)
 				) {
 					collectedEvents.push(msg);
 				}
 			});
 
-			await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+			await Promise.all(p2pNodeList.map(async p2p => p2p.start()));
 
 			await wait(NETWORK_CREATION_WAIT_TIME);
 		});
@@ -309,13 +299,12 @@ describe('Network discovery', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should receive getPeers multiple times`, async () => {
+		it('should receive getPeers multiple times', () => {
 			// thirdP2PNode should send getPeers request 3 times (1 initial discovery + 2 fallback)
-			expect(collectedEvents.length).toBe(
+			expect(collectedEvents).toHaveLength(
 				1 +
-					~~(
-						NETWORK_CREATION_WAIT_TIME / CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL
-					),
+					// eslint-disable-next-line no-bitwise
+					~~(NETWORK_CREATION_WAIT_TIME / CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL),
 			);
 		});
 	});

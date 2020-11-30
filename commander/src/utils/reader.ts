@@ -25,8 +25,7 @@ interface MnemonicError {
 	readonly message: string;
 }
 
-const capitalise = (text: string): string =>
-	`${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+const capitalise = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
 const getPassphraseVerificationFailError = (displayName: string): string =>
 	`${capitalise(displayName)} was not successfully repeated.`;
@@ -47,8 +46,8 @@ const splitSource = (source: string): SplitSource => {
 };
 
 export const getPassphraseFromPrompt = async (
-	displayName: string = 'passphrase',
-	shouldConfirm: boolean = false,
+	displayName = 'passphrase',
+	shouldConfirm = false,
 ): Promise<string> => {
 	const questions = [
 		{
@@ -65,9 +64,8 @@ export const getPassphraseFromPrompt = async (
 		});
 	}
 
-	const { passphrase, passphraseRepeat } = (await inquirer.prompt(
-		questions,
-	)) as { readonly passphrase?: string; readonly passphraseRepeat?: string };
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const { passphrase, passphraseRepeat } = await inquirer.prompt(questions);
 
 	if (!passphrase || (shouldConfirm && passphrase !== passphraseRepeat)) {
 		throw new ValidationError(getPassphraseVerificationFailError(displayName));
@@ -87,23 +85,19 @@ export const getPassphraseFromPrompt = async (
 				.filter((error: MnemonicError) => error.code !== 'INVALID_MNEMONIC')
 				.reduce(
 					(accumulator: string, error: MnemonicError) =>
-						accumulator.concat(
-							`${error.message.replace(' Please check the passphrase.', '')} `,
-						),
+						accumulator.concat(`${error.message.replace(' Please check the passphrase.', '')} `),
 					'Warning: ',
 				);
-			// tslint:disable-next-line no-console
 			console.warn(passphraseWarning);
 		}
 	});
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return passphrase;
 };
 
-const getFileDoesNotExistError = (path: string): string =>
-	`File at ${path} does not exist.`;
-const getFileUnreadableError = (path: string): string =>
-	`File at ${path} could not be read.`;
+const getFileDoesNotExistError = (path: string): string => `File at ${path} does not exist.`;
+const getFileUnreadableError = (path: string): string => `File at ${path} could not be read.`;
 
 const getDataFromFile = (path: string) => fs.readFileSync(path, 'utf8');
 
@@ -116,7 +110,6 @@ export const isFileSource = (source?: string): boolean => {
 	}
 	const delimiter = ':';
 	const sourceParts = source.split(delimiter);
-	// tslint:disable-next-line no-magic-numbers
 	if (sourceParts.length === 2 && sourceParts[0] === 'file') {
 		return true;
 	}
@@ -124,6 +117,7 @@ export const isFileSource = (source?: string): boolean => {
 	return false;
 };
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export const readFileSource = async (source?: string): Promise<string> => {
 	if (!source) {
 		throw new ValidationError(ERROR_DATA_MISSING);
@@ -137,10 +131,13 @@ export const readFileSource = async (source?: string): Promise<string> => {
 	try {
 		return getDataFromFile(path);
 	} catch (error) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const { message } = error;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 		if (message.match(/ENOENT/)) {
 			throw new FileSystemError(getFileDoesNotExistError(path));
 		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 		if (message.match(/EACCES/)) {
 			throw new FileSystemError(getFileUnreadableError(path));
 		}
@@ -152,7 +149,6 @@ const DEFAULT_TIMEOUT = 100;
 
 export const readStdIn = async (): Promise<string[]> => {
 	const readFromStd = new Promise<string[]>((resolve, reject) => {
-		// tslint:disable readonly-array
 		const lines: string[] = [];
 		const rl = readline.createInterface({ input: process.stdin });
 

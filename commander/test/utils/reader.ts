@@ -18,6 +18,7 @@ import { expect } from 'chai';
 import fs from 'fs';
 import readline from 'readline';
 import inquirer from 'inquirer';
+import { SinonStub } from 'sinon';
 import { createFakeInterface } from '../helpers/utils';
 import {
 	readStdIn,
@@ -26,7 +27,6 @@ import {
 	readFileSource,
 } from '../../src/utils/reader';
 import { FileSystemError, ValidationError } from '../../src/utils/error';
-import { SinonStub } from 'sinon';
 
 describe('reader', () => {
 	describe('readPassphraseFromPrompt', () => {
@@ -78,9 +78,7 @@ describe('reader', () => {
 		it('should reject with error when repeated passphrase does not match', async () => {
 			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
 			promptStub.resolves(promptResult);
-			await expect(
-				getPassphraseFromPrompt(displayName, true),
-			).to.be.rejectedWith(
+			await expect(getPassphraseFromPrompt(displayName, true)).to.be.rejectedWith(
 				ValidationError,
 				'Password was not successfully repeated.',
 			);
@@ -88,15 +86,15 @@ describe('reader', () => {
 	});
 
 	describe('isFileSource', () => {
-		it('should return false when input is undefined', async () => {
+		it('should return false when input is undefined', () => {
 			expect(isFileSource()).to.be.false;
 		});
 
-		it('should return false when there is no source identifier', async () => {
+		it('should return false when there is no source identifier', () => {
 			expect(isFileSource('random string')).to.be.false;
 		});
 
-		it('should return true when it has correct source identifier', async () => {
+		it('should return true when it has correct source identifier', () => {
 			expect(isFileSource('file:path/to/file')).to.be.true;
 		});
 	});
@@ -106,7 +104,7 @@ describe('reader', () => {
 		const source = `file:${path}`;
 		const resultFileData = 'file data';
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			sandbox.stub(fs, 'readFileSync').returns(resultFileData);
 		});
 
@@ -121,10 +119,7 @@ describe('reader', () => {
 		});
 
 		it('should throw error when source is empty', async () => {
-			await expect(readFileSource()).to.be.rejectedWith(
-				ValidationError,
-				'No data was provided.',
-			);
+			await expect(readFileSource()).to.be.rejectedWith(ValidationError, 'No data was provided.');
 		});
 
 		it('should throw error when source is not file', async () => {
@@ -152,8 +147,8 @@ describe('reader', () => {
 	});
 
 	describe('readStdIn', () => {
-		describe('when string without linebreak is given', () => {
-			it('should resolve to a signle element string array', async () => {
+		describe('when string without line break is given', () => {
+			it('should resolve to a single element string array', async () => {
 				const stdInContents = 'some contents';
 
 				sandbox
@@ -164,8 +159,8 @@ describe('reader', () => {
 			});
 		});
 
-		describe('when string with linebreak is given', () => {
-			it('should resolve to a signle element string array', async () => {
+		describe('when string with line break is given', () => {
+			it('should resolve to a single element string array', async () => {
 				const multilineStdContents = 'passphrase\npassword\ndata';
 
 				sandbox

@@ -14,15 +14,7 @@
  *
  */
 import { Command, flags as flagParser } from '@oclif/command';
-import os from 'os';
-
-import { ConfigOptions, getConfig } from './utils/config';
-import { defaultLiskPm2Path } from './utils/core/config';
-import { handleEPIPE } from './utils/helpers';
 import { print, StringMap } from './utils/print';
-
-// Set PM2_HOME to ensure PM2 is isolated from system wide installation
-process.env.PM2_HOME = defaultLiskPm2Path;
 
 export const defaultConfigFolder = '.lisk';
 
@@ -51,46 +43,32 @@ export default abstract class BaseCommand extends Command {
 	};
 
 	public printFlags: PrintFlags = {};
-	public userConfig: ConfigOptions = {
-		api: {
-			network: 'main',
-			nodes: [],
-		},
-		json: true,
-		pretty: true,
-	};
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async finally(error?: Error | string): Promise<void> {
 		if (error) {
 			this.error(error instanceof Error ? error.message : error);
 		}
 	}
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async init(): Promise<void> {
 		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
 		const { flags } = this.parse(
-			// tslint:disable-next-line no-any
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(this.constructor as unknown) as flagParser.Input<any>,
 		);
 		this.printFlags = flags as PrintFlags;
 
-		process.stdout.on('error', handleEPIPE);
-
-		process.env.XDG_CONFIG_HOME =
-			process.env.LISK_COMMANDER_CONFIG_DIR ||
-			`${os.homedir()}/${defaultConfigFolder}`;
-		this.userConfig = getConfig(process.env.XDG_CONFIG_HOME);
+		process.stdout.on('error', (err: { errno: string }): void => {
+			if (err.errno !== 'EPIPE') {
+				throw err;
+			}
+		});
 	}
 
-	print(result: unknown, readAgain = false): void {
-		if (readAgain) {
-			this.userConfig = getConfig(process.env.XDG_CONFIG_HOME as string);
-		}
+	print(result: unknown): void {
 		print({
-			json: this.userConfig.json,
-			pretty: this.userConfig.pretty,
 			...this.printFlags,
 		}).call(this, result as StringMap);
 	}

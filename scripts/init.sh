@@ -5,7 +5,8 @@ set -euo pipefail
 IFS=$'\n\t'
 
 packageName=${1:-}
-port=${2:-}
+projectName=${2:-}
+port=${3:-}
 browserPackageName=${packageName}
 
 ROOT_PACKAGE_NAME=$(jq --raw-output '.name' package.json)
@@ -19,7 +20,7 @@ if [ -z "$packageName" ] || [[ "$packageName" =~ [^a-zA-Z0-9-] ]]; then
 	exit 1
 fi
 
-packageDir="./elements/$packageName"
+packageDir="./$projectName/$packageName"
 # Just in case package folder doesn't exist yet.
 mkdir -p "$packageDir"
 mkdir -p "$packageDir/src"
@@ -31,23 +32,38 @@ sed -i '' -e "s/{PORT}/${port}/g" "$packageDir/package.json"
 sed -i '' -e "s/{BROWSER_PACKAGE}/${browserPackageName}/g" "$packageDir/package.json"
 cp "./templates/README.md.tmpl" "$packageDir/README.md"
 
-templates=(
+copy_templates=(
+	".eslintrc.js"
+	".eslintignore"
+)
+
+link_templates=(
 	"scripts"
 	".npmignore"
 	".npmrc"
 	".prettierignore"
 	".prettierrc.json"
-	"tslint.json"
 	"jest.config.js"
 	"tsconfig.json"
 )
 
-test_templates=(
-	"tslint.json"
+copy_test_templates=(
+	".eslintrc.js"
+)
+
+link_test_templates=(
 	"tsconfig.json"
 )
 
-for i in "${templates[@]}"
+for i in "${copy_templates[@]}"
+do
+	echo ${i}
+	if [ ! -e "$packageDir/${i}" ];	then
+		cp "./templates/$i.tmpl" "$packageDir/$i"
+	fi
+done
+
+for i in "${link_templates[@]}"
 do
 	echo ${i}
 	if [ ! -e "$packageDir/${i}" ];	then
@@ -55,7 +71,15 @@ do
 	fi
 done
 
-for i in "${test_templates[@]}"
+for i in "${copy_test_templates[@]}"
+do
+	echo ${i}
+	if [ ! -e "$packageDir/test/${i}" ];	then
+		cp "./templates/test/$i.tmpl" "$packageDir/test/$i"
+	fi
+done
+
+for i in "${link_test_templates[@]}"
 do
 	echo ${i}
 	if [ ! -e "$packageDir/test/${i}" ];	then

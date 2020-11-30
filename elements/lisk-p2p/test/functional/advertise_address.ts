@@ -24,21 +24,22 @@ import { wait } from '../utils/helpers';
 describe('Advertise Address', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	const p2pConfig = (wsPort: number, advertiseAddress: boolean = true) => ({
+	const p2pConfig = (port: number, advertiseAddress = true) => ({
 		connectTimeout: 100,
 		ackTimeout: 200,
 		seedPeers: [
 			{
 				ipAddress: '127.0.0.1',
-				wsPort: 5003,
+				port: 5003,
 			},
 		],
 		populatorInterval: POPULATOR_INTERVAL + 15,
 		maxOutboundConnections: 20,
 		maxInboundConnections: 100,
+		port,
 		nodeInfo: {
+			options: {},
 			...nodeInfoConstants,
-			wsPort,
 			advertiseAddress,
 		},
 	});
@@ -61,12 +62,10 @@ describe('Advertise Address', () => {
 		await p2pNode.start();
 		await wait(400);
 
-		for (let p2p of p2pNodeList) {
-			const connectedPeers = p2p
-				.getConnectedPeers()
-				.filter(p => p.wsPort === advertisePeerPort);
+		for (const p2p of p2pNodeList) {
+			const connectedPeers = p2p.getConnectedPeers().filter(p => p.port === advertisePeerPort);
 
-			expect(connectedPeers[0].wsPort).toEqual(advertisePeerPort);
+			expect(connectedPeers[0].port).toEqual(advertisePeerPort);
 		}
 		await p2pNode.stop();
 	});
@@ -77,13 +76,11 @@ describe('Advertise Address', () => {
 		await p2pNode.start();
 		await wait(400);
 
-		for (let p2p of p2pNodeList) {
-			const connectedPeers = p2p
-				.getConnectedPeers()
-				.filter(p => p.wsPort === advertisePeerPort);
+		for (const p2p of p2pNodeList) {
+			const connectedPeers = p2p.getConnectedPeers().filter(p => p.port === advertisePeerPort);
 			const disConnectedPeers = p2p
 				.getDisconnectedPeers()
-				.filter(p => p.wsPort === advertisePeerPort);
+				.filter(p => p.port === advertisePeerPort);
 			expect(Object.keys(connectedPeers)).toHaveLength(0);
 			expect(Object.keys(disConnectedPeers)).toHaveLength(0);
 		}

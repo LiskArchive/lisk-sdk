@@ -11,50 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable max-classes-per-file */
 
-export interface BlockHeader {
-	readonly height: number;
-	readonly id: string;
-	readonly generatorPublicKey: string;
-	readonly previousBlockId: string;
-	readonly timestamp: number;
-	readonly receivedAt?: number;
-	readonly maxHeightPrevoted: number;
-	readonly maxHeightPreviouslyForged: number;
-	readonly version: number;
-}
-
-export interface DPoS {
-	readonly getMinActiveHeight: (
-		height: number,
-		address: string,
-		stateStore: StateStore,
-		delegateActiveRoundLimit?: number,
-	) => Promise<number>;
-	readonly isStandbyDelegate: (
-		address: string,
-		height: number,
-		stateStore: StateStore,
-	) => Promise<boolean>;
-}
-
-export interface Chain {
-	readonly dataAccess: {
-		readonly getBlockHeadersByHeightBetween: (
-			from: number,
-			to: number,
-		) => Promise<ReadonlyArray<BlockHeader>>;
-		readonly getLastBlockHeader: () => Promise<BlockHeader>;
-	};
-	readonly slots: {
-		readonly getSlotNumber: (timestamp: number) => number;
-		readonly isWithinTimeslot: (
-			slotNumber: number,
-			receivedAt: number | undefined,
-		) => boolean;
-		readonly getEpochTime: (time?: number) => number;
-	};
-}
+import { BlockHeader } from '@liskhq/lisk-chain';
 
 export enum ForkStatus {
 	IDENTICAL_BLOCK = 1,
@@ -65,37 +24,12 @@ export enum ForkStatus {
 	DISCARD = 6,
 }
 
-export interface StateStore {
-	readonly consensus: {
-		readonly set: (key: string, value: string) => void;
-		readonly get: (key: string) => Promise<string | undefined>;
-	};
-}
-
 export class BFTError extends Error {}
 
-/* tslint:disable:max-classes-per-file */
-
-export class BFTChainDisjointError extends BFTError {
-	public constructor() {
-		super(
-			'Violation of disjointedness condition. If delegate forged a block of higher height earlier and later the block with lower height',
-		);
-	}
-}
-
-export class BFTLowerChainBranchError extends BFTError {
-	public constructor() {
-		super(
-			'Violation of the condition that delegate must choose the branch with largest maxHeightPrevoted',
-		);
-	}
-}
-
-export class BFTForkChoiceRuleError extends BFTError {
-	public constructor() {
-		super('Violation of fork choice rule, delegate moved to a different chain');
-	}
-}
-
 export class BFTInvalidAttributeError extends BFTError {}
+
+export interface BFTPersistedValues {
+	readonly finalizedHeight: number;
+}
+
+export type BlockHeaderWithReceivedAt = BlockHeader & { receivedAt?: number };

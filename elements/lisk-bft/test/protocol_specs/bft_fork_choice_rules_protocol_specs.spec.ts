@@ -12,61 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Slots, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '../../src/bft';
-import { Slots } from '@liskhq/lisk-chain';
+import { convertHeader } from '../fixtures/blocks';
 
-const forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
-
-const constants = {
-	ACTIVE_DELEGATES: 101,
-	EPOCH_TIME: '2016-05-24T17:00:00.000Z',
-	BLOCK_TIME: 10,
-};
+import forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
 describe('bft', () => {
+	// Arrange
+	const constants = {
+		ACTIVE_DELEGATES: 101,
+		BLOCK_TIME: 10,
+	};
+
 	describe('forkChoice', () => {
-		let activeDelegates;
-		let startingHeight;
+		let threshold;
+		let genesisHeight;
 		let bftParams;
 		let bftInstance: BFT;
 
-		let chainStub: {
-			dataAccess: {
-				getBlockHeadersByHeightBetween: jest.Mock;
-				getLastBlockHeader: jest.Mock;
-			};
-			slots: Slots;
-		};
-		let dposStub: {
-			getMinActiveHeight: jest.Mock;
-			isStandbyDelegate: jest.Mock;
-		};
+		let chainStub: Chain;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			const slots = new Slots({
-				epochTime: constants.EPOCH_TIME,
+				genesisBlockTimestamp: 0,
 				interval: constants.BLOCK_TIME,
 			});
-			chainStub = {
-				dataAccess: {
-					getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
-					getLastBlockHeader: jest.fn().mockResolvedValue([]),
-				},
+			chainStub = ({
 				slots,
-			};
-			dposStub = {
-				getMinActiveHeight: jest.fn(),
-				isStandbyDelegate: jest.fn(),
-			};
+				dataAccess: {
+					getConsensusState: jest.fn(),
+				},
+				numberOfValidators: 103,
+			} as unknown) as Chain;
 
-			activeDelegates = 101;
-			startingHeight = 0;
+			threshold = 68;
+			genesisHeight = 0;
 
 			bftParams = {
 				chain: chainStub,
-				dpos: dposStub,
-				activeDelegates,
-				startingHeight,
+				threshold,
+				genesisHeight,
 			};
 
 			bftInstance = new BFT(bftParams);
@@ -75,10 +61,8 @@ describe('bft', () => {
 		describe(`when running scenario "${forkChoiceSpecs.handler}"`, () => {
 			forkChoiceSpecs.testCases.forEach((testCase: any) => {
 				describe(testCase.description, () => {
-					it('should have accurate fork status', async () => {
-						const epochTime = testCase.config
-							? testCase.config.epochTime
-							: forkChoiceSpecs.config.epochTime;
+					it('should have accurate fork status', () => {
+						const genesisBlockTimestamp = 0;
 						const interval = testCase.config
 							? testCase.config.blockInterval
 							: forkChoiceSpecs.config.blockInterval;
@@ -86,11 +70,12 @@ describe('bft', () => {
 							? testCase.config.lastBlock
 							: forkChoiceSpecs.config.lastBlock;
 
-						(chainStub.slots as any)._epochTime = new Date(epochTime);
+						(chainStub.slots as any)._genesisTime = new Date(genesisBlockTimestamp);
 						(chainStub.slots as any)._interval = interval;
 
 						Date.now = jest.fn(
-							() => epochTime + testCase.input.receivedBlock.receivedAt * 1000,
+							// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+							() => genesisBlockTimestamp + testCase.input.receivedBlock.receivedAt * 1000,
 						);
 
 						const {
@@ -98,7 +83,10 @@ describe('bft', () => {
 							output: { forkStatus: expectedForkStatus },
 						} = testCase;
 
-						const result = bftInstance.forkChoice(receivedBlock, lastBlock);
+						const result = bftInstance.forkChoice(
+							convertHeader(receivedBlock),
+							convertHeader(lastBlock),
+						);
 
 						expect(result).toEqual(expectedForkStatus);
 					});

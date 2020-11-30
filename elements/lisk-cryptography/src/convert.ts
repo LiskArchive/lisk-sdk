@@ -13,14 +13,51 @@
  *
  */
 // Required because first level function export
-// tslint:disable-next-line no-require-imports
-import reverse = require('buffer-reverse');
 import * as ed2curve from 'ed2curve';
 import * as querystring from 'querystring';
 
-import { bufferToIntAsString } from './buffer';
+// eslint-disable-next-line import/no-cycle
 import { EncryptedPassphraseObject } from './encrypt';
-import { hash } from './hash';
+
+// eslint-disable-next-line import/order
+import reverse = require('buffer-reverse');
+
+const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+
+export const convertUIntArray = (
+	uintArray: number[],
+	fromBits: number,
+	toBits: number,
+): number[] => {
+	// eslint-disable-next-line no-bitwise
+	const maxValue = (1 << toBits) - 1;
+	let accumulator = 0;
+	let bits = 0;
+	const result = [];
+	// eslint-disable-next-line
+	for (let p = 0; p < uintArray.length; p += 1) {
+		const byte = uintArray[p];
+		// check that the entry is a value between 0 and 2^frombits-1
+		// eslint-disable-next-line no-bitwise
+		if (byte < 0 || byte >> fromBits !== 0) {
+			return [];
+		}
+
+		// eslint-disable-next-line no-bitwise
+		accumulator = (accumulator << fromBits) | byte;
+		bits += fromBits;
+		while (bits >= toBits) {
+			bits -= toBits;
+			// eslint-disable-next-line no-bitwise
+			result.push((accumulator >> bits) & maxValue);
+		}
+	}
+
+	return result;
+};
+
+export const convertUInt5ToBase32 = (uint5Array: number[]): string =>
+	uint5Array.map((val: number) => CHARSET[val]).join('');
 
 export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	const BUFFER_SIZE = 8;
@@ -31,30 +68,6 @@ export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	}
 
 	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
-};
-
-export const toAddress = (buffer: Buffer): string => {
-	const BUFFER_SIZE = 8;
-	if (
-		!Buffer.from(buffer)
-			.slice(0, BUFFER_SIZE)
-			.equals(buffer)
-	) {
-		throw new Error(
-			'The buffer for Lisk addresses must not have more than 8 bytes',
-		);
-	}
-
-	return `${bufferToIntAsString(buffer)}L`;
-};
-
-export const getAddressFromPublicKey = (publicKey: string): string => {
-	const publicKeyHash = hash(publicKey, 'hex');
-
-	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
-	const address = toAddress(publicKeyTransform);
-
-	return address;
 };
 
 export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
@@ -81,8 +94,7 @@ export const stringifyEncryptedPassphrase = (
 };
 
 const parseIterations = (iterationsString?: string): number | undefined => {
-	const iterations =
-		iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
+	const iterations = iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
 
 	if (typeof iterations !== 'undefined' && Number.isNaN(iterations)) {
 		throw new Error('Could not parse iterations.');
@@ -110,9 +122,7 @@ export const parseEncryptedPassphrase = (
 		typeof tag !== 'string' ||
 		typeof version !== 'string'
 	) {
-		throw new Error(
-			'Encrypted passphrase to parse must have only one value per key.',
-		);
+		throw new Error('Encrypted passphrase to parse must have only one value per key.');
 	}
 
 	return {

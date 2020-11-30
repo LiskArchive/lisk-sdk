@@ -12,92 +12,41 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const transactionInterface = {
-	required: [
-		'toJSON',
-		'getBytes',
-		'validate',
-		'apply',
-		'undo',
-		'prepare',
-		'verifySignatures',
-	],
-	properties: {
-		toJSON: {
-			typeof: 'function',
-		},
-		getBytes: {
-			typeof: 'function',
-		},
-		validate: {
-			typeof: 'function',
-		},
-		apply: {
-			typeof: 'function',
-		},
-		undo: {
-			typeof: 'function',
-		},
-		prepare: {
-			typeof: 'function',
-		},
-		verifySignatures: {
-			typeof: 'function',
-		},
-	},
-};
-
-// TODO: Add senderId and recipientId to required once deprecated functions relying on this schema are removed
-export const baseTransaction = {
+export const baseTransactionSchema = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signatures'],
+	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
 	properties: {
-		blockId: {
-			type: 'string',
-			format: 'id',
+		moduleID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
 		},
-		height: {
-			type: 'integer',
-			minimum: 0,
-		},
-		confirmations: {
-			type: 'integer',
-			minimum: 0,
-		},
-		type: {
-			type: 'integer',
-			minimum: 0,
+		assetID: {
+			dataType: 'uint32',
+			fieldNumber: 2,
 		},
 		nonce: {
-			type: 'string',
-			format: 'nonce',
+			dataType: 'uint64',
+			fieldNumber: 3,
 		},
 		fee: {
-			type: 'string',
-			format: 'fee',
+			dataType: 'uint64',
+			fieldNumber: 4,
 		},
 		senderPublicKey: {
-			type: 'string',
-			format: 'publicKey',
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+		asset: {
+			dataType: 'bytes',
+			fieldNumber: 6,
 		},
 		signatures: {
 			type: 'array',
 			items: {
-				oneOf: [
-					{ type: 'string', format: 'signature' },
-					{ type: 'string', format: 'emptyString' },
-				],
+				dataType: 'bytes',
 			},
-			minItems: 1,
-			maxItems: 64,
-		},
-		asset: {
-			type: 'object',
-		},
-		receivedAt: {
-			type: 'string',
-			format: 'date-time',
+			fieldNumber: 7,
 		},
 	},
 };

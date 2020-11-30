@@ -15,8 +15,11 @@
 import * as crypto from 'crypto';
 
 import { bufferToHex, hexToBuffer } from './buffer';
+// eslint-disable-next-line import/no-cycle
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
-import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
+// eslint-disable-next-line import/no-cycle
+import { getPrivateAndPublicKeyFromPassphrase } from './keys';
+// eslint-disable-next-line import/no-cycle
 import { box, getRandomBytes, openBox } from './nacl';
 
 const PBKDF2_ITERATIONS = 1e6;
@@ -32,19 +35,14 @@ export interface EncryptedMessageWithNonce {
 export const encryptMessageWithPassphrase = (
 	message: string,
 	passphrase: string,
-	recipientPublicKey: string,
+	recipientPublicKey: Buffer,
 ): EncryptedMessageWithNonce => {
-	const {
-		privateKeyBytes: senderPrivateKeyBytes,
-	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(
-		convertPrivateKeyEd2Curve(senderPrivateKeyBytes),
-	);
-	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
+	const { privateKey: senderPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const convertedPrivateKey = Buffer.from(convertPrivateKeyEd2Curve(senderPrivateKeyBytes));
 	const messageInBytes = Buffer.from(message, 'utf8');
 	const nonceSize = 24;
 	const nonce = getRandomBytes(nonceSize);
-	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
+	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKey);
 
 	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {
@@ -53,12 +51,7 @@ export const encryptMessageWithPassphrase = (
 
 	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
 
-	const cipherBytes = box(
-		messageInBytes,
-		nonce,
-		convertedPublicKey,
-		convertedPrivateKey,
-	);
+	const cipherBytes = box(messageInBytes, nonce, convertedPublicKey, convertedPrivateKey);
 
 	const nonceHex = bufferToHex(nonce);
 	const encryptedMessage = bufferToHex(cipherBytes);
@@ -73,19 +66,14 @@ export const decryptMessageWithPassphrase = (
 	cipherHex: string,
 	nonce: string,
 	passphrase: string,
-	senderPublicKey: string,
+	senderPublicKey: Buffer,
 ): string => {
-	const {
-		privateKeyBytes: recipientPrivateKeyBytes,
-	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(
-		convertPrivateKeyEd2Curve(recipientPrivateKeyBytes),
-	);
-	const senderPublicKeyBytes = hexToBuffer(senderPublicKey);
+	const { privateKey: recipientPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const convertedPrivateKey = Buffer.from(convertPrivateKeyEd2Curve(recipientPrivateKeyBytes));
 	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
 
-	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKeyBytes);
+	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKey);
 
 	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {
@@ -95,50 +83,31 @@ export const decryptMessageWithPassphrase = (
 	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
 
 	try {
-		const decoded = openBox(
-			cipherBytes,
-			nonceBytes,
-			convertedPublicKey,
-			convertedPrivateKey,
-		);
+		const decoded = openBox(cipherBytes, nonceBytes, convertedPublicKey, convertedPrivateKey);
 
 		return Buffer.from(decoded).toString();
 	} catch (error) {
 		if (
-			error.message.match(
-				/bad nonce size|nonce must be a buffer of size crypto_box_NONCEBYTES/,
-			)
+			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+			(error as Error).message.match(/bad nonce size|"n" must be crypto_box_NONCEBYTES bytes long/)
 		) {
 			throw new Error('Expected nonce to be 24 bytes.');
 		}
-		throw new Error(
-			'Something went wrong during decryption. Is this the full encrypted message?',
-		);
+		throw new Error('Something went wrong during decryption. Is this the full encrypted message?');
 	}
 };
 
-const getKeyFromPassword = (
-	password: string,
-	salt: Buffer,
-	iterations: number,
-): Buffer =>
-	crypto.pbkdf2Sync(
-		password,
-		salt,
-		iterations,
-		PBKDF2_KEYLEN,
-		PBKDF2_HASH_FUNCTION,
-	);
+const getKeyFromPassword = (password: string, salt: Buffer, iterations: number): Buffer =>
+	crypto.pbkdf2Sync(password, salt, iterations, PBKDF2_KEYLEN, PBKDF2_HASH_FUNCTION);
 
 export interface EncryptedPassphraseObject {
+	readonly [key: string]: string | number | undefined;
 	readonly cipherText: string;
 	readonly iterations?: number;
 	readonly iv: string;
 	readonly salt: string;
 	readonly tag: string;
 	readonly version: string;
-	// tslint:disable-next-line no-mixed-interface
-	readonly [key: string]: string | number | undefined;
 }
 
 const encryptAES256GCMWithPassword = (
@@ -181,26 +150,12 @@ const decryptAES256GCMWithPassword = (
 	encryptedPassphrase: EncryptedPassphraseObject,
 	password: string,
 ): string => {
-	const {
-		iterations = PBKDF2_ITERATIONS,
-		cipherText,
-		iv,
-		salt,
-		tag,
-	} = encryptedPassphrase;
+	const { iterations = PBKDF2_ITERATIONS, cipherText, iv, salt, tag } = encryptedPassphrase;
 
 	const tagBuffer = getTagBuffer(tag);
-	const key = getKeyFromPassword(
-		password,
-		hexToBuffer(salt, 'Salt'),
-		iterations,
-	);
+	const key = getKeyFromPassword(password, hexToBuffer(salt, 'Salt'), iterations);
 
-	const decipher = crypto.createDecipheriv(
-		'aes-256-gcm',
-		key,
-		hexToBuffer(iv, 'IV'),
-	);
+	const decipher = crypto.createDecipheriv('aes-256-gcm', key, hexToBuffer(iv, 'IV'));
 	decipher.setAuthTag(tagBuffer);
 	const firstBlock = decipher.update(hexToBuffer(cipherText, 'Cipher text'));
 	const decrypted = Buffer.concat([firstBlock, decipher.final()]);

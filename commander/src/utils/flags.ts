@@ -30,40 +30,9 @@ const passwordDescription = `Specifies a source for your secret password. Lisk C
 	Examples:
 	- --password=pass:password123 (should only be used where security is not important)
 `;
-
-const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes a string of public keys separated by commas.
-	Examples:
-	- --votes=publickey1,publickey2
-`;
-
-const unlockDescription = `Specifies the unlock objects for the delegate candidates to unlock from. Takes a string of address amount unvoteHeight separated by commas.
-	Examples:
-	- --unlock=123L,1000000,500
-`;
-
-const noSignatureDescription =
-	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
-
-const networkDescription = 'Lisk Core network name.';
-const installationPathDescription = 'Lisk Core installation path.';
-const releaseUrlDescription = 'Lisk Core download URL.';
-const snapshotUrlDescription = 'Lisk Core blockchain snapshot URL.';
-const noSnapshotDescription =
-	'Install Lisk Core without a blockchain snapshot.';
-const liskVersionDescription = 'Lisk Core version.';
-const noStartDescription = 'Install Lisk Core without starting.';
 const networkIdentifierDescription =
 	'Network identifier defined for the network or main | test for the Lisk Network.';
-const communityIdentifierDescription =
-	'Unique community identifier for network.';
-const mandatoryKeyDescription =
-	'Mandatory publicKey required for multi signature transaction.';
-const optionalKeyDescription =
-	'Optional publicKey for multi signature transaction.';
-const numberOfSignaturesDescription =
-	'Number of signatures required to approve the transaction from multi signature account';
-const numberOfPassphrasesDescription =
-	'Number of times you require the passphrase prompt to appear';
+const communityIdentifierDescription = 'Unique community identifier for network.';
 export type AlphabetLowercase =
 	| 'a'
 	| 'b'
@@ -104,9 +73,6 @@ export const flags: FlagMap = {
 		char: 'm',
 		description: messageDescription,
 	},
-	noSignature: {
-		description: noSignatureDescription,
-	},
 	passphrase: {
 		char: 'p',
 		description: passphraseDescription,
@@ -115,55 +81,10 @@ export const flags: FlagMap = {
 		char: 'w',
 		description: passwordDescription,
 	},
-	votes: {
-		description: votesDescription,
-	},
-	unlock: {
-		description: unlockDescription,
-	},
 	networkIdentifier: {
 		description: networkIdentifierDescription,
 	},
 	communityIdentifier: {
 		description: communityIdentifierDescription,
-	},
-	network: {
-		char: 'n',
-		description: networkDescription,
-	},
-	installationPath: {
-		char: 'p',
-		description: installationPathDescription,
-	},
-	releaseUrl: {
-		char: 'r',
-		description: releaseUrlDescription,
-	},
-	snapshotUrl: {
-		char: 's',
-		description: snapshotUrlDescription,
-	},
-	noSnapshot: {
-		description: noSnapshotDescription,
-	},
-	liskVersion: {
-		description: liskVersionDescription,
-	},
-	noStart: {
-		description: noStartDescription,
-	},
-	mandatoryKey: {
-		char: 'm',
-		description: mandatoryKeyDescription,
-	},
-	optionalKey: {
-		char: 'o',
-		description: optionalKeyDescription,
-	},
-	numberOfSignatures: {
-		description: numberOfSignaturesDescription,
-	},
-	numberOfPassphrases: {
-		description: numberOfPassphrasesDescription,
 	},
 };

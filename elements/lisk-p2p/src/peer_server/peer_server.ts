@@ -56,11 +56,7 @@ import {
 	P2PPeerInfo,
 	PeerServerConfig,
 } from '../types';
-import {
-	assignInternalInfo,
-	constructPeerId,
-	validatePeerInfo,
-} from '../utils';
+import { assignInternalInfo, constructPeerId, validatePacket, validatePeerInfo } from '../utils';
 
 interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
@@ -69,21 +65,24 @@ interface SCServerUpdated extends SCServer {
 const BASE_10_RADIX = 10;
 
 export class PeerServer extends EventEmitter {
+	protected _invalidMessageInterval?: NodeJS.Timer;
+	protected _invalidMessageCounter: Map<string, number>;
+
 	private readonly _nodeInfo: P2PNodeInfo;
 	private readonly _hostIp: string;
+	private readonly _port: number;
 	private readonly _secret: number;
 	private readonly _maxPeerInfoSize: number;
 	private readonly _peerBook: PeerBook;
 	private readonly _httpServer: http.Server;
 	private readonly _scServer: SCServerUpdated;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
-	protected _invalidMessageInterval?: NodeJS.Timer;
-	protected _invalidMessageCounter: Map<string, number>;
 
 	public constructor(config: PeerServerConfig) {
 		super();
 		this._nodeInfo = config.nodeInfo;
 		this._hostIp = config.hostIp;
+		this._port = config.port;
 		this._secret = config.secret;
 		this._peerBook = config.peerBook;
 		this._httpServer = http.createServer();
@@ -95,7 +94,7 @@ export class PeerServer extends EventEmitter {
 		}) as SCServerUpdated;
 		this._maxPeerInfoSize = config.maxPeerInfoSize;
 		this._peerHandshakeCheck = config.peerHandshakeCheck;
-		this._invalidMessageCounter = new Map();
+		this._invalidMessageCounter = new Map<string, number>();
 	}
 
 	public async stop(): Promise<void> {
@@ -109,15 +108,12 @@ export class PeerServer extends EventEmitter {
 
 	public async start(): Promise<void> {
 		this._invalidMessageInterval = setInterval(() => {
-			this._invalidMessageCounter = new Map();
+			this._invalidMessageCounter = new Map<string, number>();
 		}, DEFAULT_RATE_CALCULATION_INTERVAL);
 
 		this._scServer.addMiddleware(
 			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
-			(
-				req: http.IncomingMessage,
-				next: SCServer.nextMiddlewareFunction,
-			): void => {
+			(req: http.IncomingMessage, next: SCServer.nextMiddlewareFunction): void => {
 				// Decline connections from banned IPs
 				if (this._peerBook.bannedIPs.has(req.socket.remoteAddress as string)) {
 					next(
@@ -132,14 +128,14 @@ export class PeerServer extends EventEmitter {
 				}
 
 				next();
-
-				return;
 			},
 		);
 
 		this._scServer.on('handshake', (socket: SCServerSocket): void => {
 			if (this._peerBook.bannedIPs.has(socket.remoteAddress)) {
+				// eslint-disable-next-line
 				if ((socket as any).socket) {
+					// eslint-disable-next-line
 					(socket as any).socket.terminate();
 				}
 			}
@@ -148,6 +144,7 @@ export class PeerServer extends EventEmitter {
 		});
 
 		// Handle incoming invalid payload
+		// eslint-disable-next-line
 		(this._scServer as any).wsServer.on('connection', (ws: any, req: any) => {
 			this._handleIncomingPayload(ws, req);
 		});
@@ -157,7 +154,8 @@ export class PeerServer extends EventEmitter {
 		});
 
 		this._httpServer.listen(
-			this._nodeInfo.wsPort,
+			this._port,
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this._hostIp || DEFAULT_NODE_HOST_IP,
 		);
 
@@ -165,6 +163,7 @@ export class PeerServer extends EventEmitter {
 			return;
 		}
 
+		// eslint-disable-next-line consistent-return
 		return new Promise<void>(resolve => {
 			this._scServer.once('ready', () => {
 				resolve();
@@ -177,7 +176,9 @@ export class PeerServer extends EventEmitter {
 		error: Error | string,
 		addToBannedPeers?: boolean,
 	): void {
+		// eslint-disable-next-line
 		if ((socket as any).socket) {
+			// eslint-disable-next-line
 			(socket as any).socket.terminate();
 		}
 		// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -209,9 +210,7 @@ export class PeerServer extends EventEmitter {
 		);
 	}
 
-	private _validateQueryObject(
-		socket: SCServerSocket,
-	): ParsedUrlQuery | undefined {
+	private _validateQueryObject(socket: SCServerSocket): ParsedUrlQuery | undefined {
 		if (!socket.request.url) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
@@ -223,6 +222,7 @@ export class PeerServer extends EventEmitter {
 		}
 		const { query: queryObject } = url.parse(socket.request.url, true);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!queryObject) {
 			return undefined;
 		}
@@ -234,24 +234,21 @@ export class PeerServer extends EventEmitter {
 				INVALID_CONNECTION_SELF_REASON,
 			);
 
-			const selfWSPort = queryObject.wsPort
-				? +queryObject.wsPort
-				: this._nodeInfo.wsPort;
+			const selfport = queryObject.port ? +queryObject.port : this._port;
 
 			// Delete you peerInfo from both the lists
 			this._peerBook.removePeer({
-				peerId: constructPeerId(socket.remoteAddress, selfWSPort),
+				peerId: constructPeerId(socket.remoteAddress, selfport),
 				ipAddress: socket.remoteAddress,
-				wsPort: selfWSPort,
+				port: selfport,
 			});
 
 			return undefined;
 		}
 
 		if (
-			typeof queryObject.wsPort !== 'string' ||
-			typeof queryObject.version !== 'string' ||
-			typeof queryObject.networkId !== 'string'
+			typeof queryObject.networkVersion !== 'string' ||
+			typeof queryObject.networkIdentifier !== 'string'
 		) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
@@ -265,51 +262,20 @@ export class PeerServer extends EventEmitter {
 		return queryObject;
 	}
 
-	private _checkQueryParameters(
-		queryObject: ParsedUrlQuery,
-		socket: SCServerSocket,
-	): object | undefined {
-		try {
-			const queryParam =
-				typeof queryObject.options === 'string'
-					? JSON.parse(queryObject.options)
-					: {};
-
-			return queryParam;
-		} catch (error) {
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				INVALID_CONNECTION_QUERY_CODE,
-				INVALID_CONNECTION_QUERY_REASON,
-			);
-
-			return undefined;
-		}
-	}
-
 	private _constructPeerInfoForInboundConnection(
 		queryObject: ParsedUrlQuery,
-		queryOptions: object,
 		socket: SCServerSocket,
 	): P2PPeerInfo | undefined {
-		const remoteWSPort: number = parseInt(
-			queryObject.wsPort as string,
-			BASE_10_RADIX,
-		);
-		const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
+		const remoteport: number = parseInt(queryObject.port as string, BASE_10_RADIX);
+		const peerId = constructPeerId(socket.remoteAddress, remoteport);
 
-		// Remove these wsPort and ip from the query object
-		const {
-			wsPort,
-			ipAddress,
-			advertiseAddress,
-			...restOfQueryObject
-		} = queryObject;
+		// Remove these port and ip from the query object
+		const { advertiseAddress, nonce, networkIdentifier, networkVersion } = queryObject;
 
 		const peerInPeerBook = this._peerBook.getPeer({
 			peerId,
 			ipAddress: socket.remoteAddress,
-			wsPort: remoteWSPort,
+			port: remoteport,
 		});
 
 		const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
@@ -317,10 +283,10 @@ export class PeerServer extends EventEmitter {
 					...peerInPeerBook,
 					sharedState: {
 						...peerInPeerBook.sharedState,
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
+						nonce: nonce as string,
+						networkVersion: networkVersion as string,
+						networkIdentifier: networkIdentifier as string,
+						options: { ...peerInPeerBook.sharedState?.options },
 					},
 					internalState: {
 						...(peerInPeerBook.internalState
@@ -332,17 +298,17 @@ export class PeerServer extends EventEmitter {
 			  }
 			: {
 					sharedState: {
-						...restOfQueryObject,
-						...queryOptions,
-						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-						protocolVersion: queryObject.protocolVersion,
+						networkIdentifier: networkIdentifier as string,
+						nonce: nonce as string,
+						networkVersion: networkVersion as string,
+						options: {},
 					},
 					internalState: {
 						...assignInternalInfo(
 							{
 								peerId,
 								ipAddress: socket.remoteAddress,
-								wsPort: remoteWSPort,
+								port: remoteport,
 							},
 							this._secret,
 						),
@@ -351,46 +317,30 @@ export class PeerServer extends EventEmitter {
 					},
 					peerId,
 					ipAddress: socket.remoteAddress,
-					wsPort: remoteWSPort,
+					port: remoteport,
 			  };
 
 		try {
 			const validPeerInfo = validatePeerInfo(
 				incomingPeerInfo,
-				this._maxPeerInfoSize
-					? this._maxPeerInfoSize
-					: DEFAULT_MAX_PEER_INFO_SIZE,
+				this._maxPeerInfoSize ? this._maxPeerInfoSize : DEFAULT_MAX_PEER_INFO_SIZE,
 			);
 
 			return validPeerInfo;
 		} catch (error) {
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				INCOMPATIBLE_PEER_INFO_CODE,
-				error,
-			);
+			this._disconnectSocketDueToFailedHandshake(socket, INCOMPATIBLE_PEER_INFO_CODE, error);
 
 			return undefined;
 		}
 	}
 
-	private _checkPeerCompatibility(
-		peerInfo: P2PPeerInfo,
-		socket: SCServerSocket,
-	): boolean {
-		const { success, error } = this._peerHandshakeCheck(
-			peerInfo,
-			this._nodeInfo,
-		);
+	private _checkPeerCompatibility(peerInfo: P2PPeerInfo, socket: SCServerSocket): boolean {
+		const { success, error } = this._peerHandshakeCheck(peerInfo, this._nodeInfo);
 
 		if (!success) {
-			const errorReason = error || INCOMPATIBLE_PEER_UNKNOWN_REASON;
+			const errorReason = error ?? INCOMPATIBLE_PEER_UNKNOWN_REASON;
 
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				INCOMPATIBLE_PEER_CODE,
-				errorReason,
-			);
+			this._disconnectSocketDueToFailedHandshake(socket, INCOMPATIBLE_PEER_CODE, errorReason);
 		}
 
 		return success;
@@ -402,18 +352,8 @@ export class PeerServer extends EventEmitter {
 		if (!queryObject) {
 			return;
 		}
-		// Check if the query object has valid query parameters
-		const queryOptions = this._checkQueryParameters(queryObject, socket);
-
-		if (!queryOptions) {
-			return;
-		}
 		// Validate and construct peerInfo object for the incoming connection
-		const incomingPeerInfo = this._constructPeerInfoForInboundConnection(
-			queryObject,
-			queryOptions,
-			socket,
-		);
+		const incomingPeerInfo = this._constructPeerInfoForInboundConnection(queryObject, socket);
 
 		if (!incomingPeerInfo) {
 			return;
@@ -433,6 +373,7 @@ export class PeerServer extends EventEmitter {
 
 	private _bindInvalidControlFrameEvents(socket: SCServerSocket): void {
 		// Terminate the connection the moment it receive ping frame
+		// eslint-disable-next-line
 		(socket as any).socket.on('ping', () => {
 			this._terminateIncomingSocket(
 				socket,
@@ -441,6 +382,7 @@ export class PeerServer extends EventEmitter {
 			);
 		});
 		// Terminate the connection the moment it receive pong frame
+		// eslint-disable-next-line
 		(socket as any).socket.on('pong', () => {
 			this._terminateIncomingSocket(
 				socket,
@@ -450,7 +392,9 @@ export class PeerServer extends EventEmitter {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _handleIncomingPayload(ws: any, _req: any): void {
+		// eslint-disable-next-line
 		ws.on('message', (message: any) => {
 			// Pong message
 			if (message === '#2') {
@@ -459,15 +403,19 @@ export class PeerServer extends EventEmitter {
 
 			const MAX_EVENT_NAME_LENGTH = 128;
 
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const {
 				address: peerIpAddress,
-				port: wsPort,
+				port,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			} = ws._socket._peername;
 
-			const peerId = constructPeerId(peerIpAddress, wsPort);
+			const peerId = constructPeerId(peerIpAddress, port);
 
 			try {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				const parsed = JSON.parse(message);
+				validatePacket(parsed);
 
 				const invalidEvents: Set<string> = new Set([
 					'#authenticate',
@@ -478,16 +426,19 @@ export class PeerServer extends EventEmitter {
 				]);
 
 				if (
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					(parsed.event && typeof parsed.event !== 'string') ||
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					invalidEvents.has(parsed.event) ||
-					(parsed.event?.length > MAX_EVENT_NAME_LENGTH)
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+					parsed.event?.length > MAX_EVENT_NAME_LENGTH
 				) {
 					throw new InvalidPayloadError('Received invalid payload', parsed);
 				}
 
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				if (parsed.event === '#disconnect') {
-					const count =
-						(this._invalidMessageCounter.get(peerIpAddress) || 0) + 1;
+					const count = (this._invalidMessageCounter.get(peerIpAddress) ?? 0) + 1;
 					this._invalidMessageCounter.set(peerIpAddress, count);
 
 					if (count > DEFAULT_CONTROL_MESSAGE_LIMIT) {
@@ -497,11 +448,13 @@ export class PeerServer extends EventEmitter {
 					}
 				}
 			} catch (error) {
+				// eslint-disable-next-line
 				ws.terminate();
 
 				this.emit(EVENT_BAN_PEER, peerId);
 				this.emit(
 					EVENT_INBOUND_SOCKET_ERROR,
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					`Banned peer with Ip: ${peerIpAddress}, reason: ${error}, message: ${message}`,
 				);
 			}

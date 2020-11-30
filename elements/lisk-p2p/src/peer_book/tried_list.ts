@@ -13,9 +13,11 @@
  *
  */
 import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
+// eslint-disable-next-line import/no-cycle
 import { P2PPeerInfo } from '../types';
+// eslint-disable-next-line import/no-cycle
 import { PEER_TYPE } from '../utils';
-
+// eslint-disable-next-line import/no-cycle
 import { BaseList, PeerListConfig } from './base_list';
 
 export interface TriedListConfig extends PeerListConfig {
@@ -39,9 +41,7 @@ export class TriedList extends BaseList {
 			peerType,
 		});
 		this.type = PEER_TYPE.TRIED_PEER;
-		this._maxReconnectTries = maxReconnectTries
-			? maxReconnectTries
-			: DEFAULT_MAX_RECONNECT_TRIES;
+		this._maxReconnectTries = maxReconnectTries ?? DEFAULT_MAX_RECONNECT_TRIES;
 	}
 
 	public get triedPeerConfig(): TriedListConfig {
@@ -63,9 +63,7 @@ export class TriedList extends BaseList {
 
 		if ((numOfConnectionFailures as number) + 1 >= this._maxReconnectTries) {
 			const removedFromBucket = bucket.delete(incomingPeerId);
-			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(
-				incomingPeerId,
-			);
+			const removedFromPeerLookup = this.peerIdToPeerInfo.delete(incomingPeerId);
 
 			return removedFromBucket && removedFromPeerLookup;
 		}

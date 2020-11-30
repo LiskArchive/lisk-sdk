@@ -11,202 +11,171 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// tslint:disable-next-line no-require-imports
-import cloneDeep = require('lodash.clonedeep');
-// tslint:disable-next-line no-require-imports
-import isEqual = require('lodash.isequal');
+import { NotFoundError, BatchChain } from '@liskhq/lisk-db';
+import { objects, dataStructures } from '@liskhq/lisk-utils';
+import { DataAccess } from '../data_access';
+import { StateDiff, Account, AccountDefaultProps } from '../types';
+import { DB_KEY_ACCOUNTS_ADDRESS } from '../data_access/constants';
+import { keyString } from '../utils';
 
-import { Account } from '../account';
-import {
-	AccountJSON,
-	IndexableAccount,
-	StorageEntity,
-	StorageFilters,
-	StorageTransaction,
-} from '../types';
-import { uniqBy } from '../utils';
+interface AdditionalInformation {
+	readonly defaultAccount: Record<string, unknown>;
+}
 
+// FIXME: A lot of type casting
+// It is necessary to support generic account asset for the custom transactions now, but with the better type definition, it can be avoided
 export class AccountStore {
-	private readonly _account: StorageEntity<AccountJSON>;
-	private _data: Account[];
-	private _originalData: Account[];
-	private _updatedKeys: { [key: number]: string[] } = {};
-	private _originalUpdatedKeys: { [key: number]: string[] } = {};
-	private readonly _primaryKey = 'address';
-	private readonly _name = 'Account';
+	private _data: dataStructures.BufferMap<Account>;
+	private _originalData: dataStructures.BufferMap<Account>;
+	private _updatedKeys: dataStructures.BufferSet;
+	private _deletedKeys: dataStructures.BufferSet;
+	private _originalUpdatedKeys: dataStructures.BufferSet;
+	private _originalDeletedKeys: dataStructures.BufferSet;
+	private readonly _dataAccess: DataAccess;
+	private readonly _defaultAccount: Record<string, unknown>;
+	private readonly _initialAccountValue: dataStructures.BufferMap<Buffer>;
 
-	public constructor(accountEntity: StorageEntity<AccountJSON>) {
-		this._account = accountEntity;
-		this._data = [];
-		this._updatedKeys = {};
-		this._primaryKey = 'address';
-		this._name = 'Account';
-		this._originalData = [];
-		this._originalUpdatedKeys = {};
-	}
-
-	public async cache(filter: StorageFilters): Promise<ReadonlyArray<Account>> {
-		// tslint:disable-next-line no-null-keyword
-		const result = await this._account.get(filter, { limit: null });
-		const resultAccountObjects = result.map(
-			accountJSON => new Account(accountJSON),
-		);
-
-		this._data = uniqBy(
-			[...this._data, ...resultAccountObjects] as IndexableAccount[],
-			this._primaryKey,
-		);
-
-		return resultAccountObjects;
+	public constructor(dataAccess: DataAccess, additionalInformation: AdditionalInformation) {
+		this._dataAccess = dataAccess;
+		this._data = new dataStructures.BufferMap<Account>();
+		this._updatedKeys = new dataStructures.BufferSet();
+		this._deletedKeys = new dataStructures.BufferSet();
+		this._originalData = new dataStructures.BufferMap();
+		this._originalUpdatedKeys = new dataStructures.BufferSet();
+		this._originalDeletedKeys = new dataStructures.BufferSet();
+		this._defaultAccount = additionalInformation.defaultAccount;
+		this._initialAccountValue = new dataStructures.BufferMap<Buffer>();
 	}
 
 	public createSnapshot(): void {
-		this._originalData = cloneDeep(this._data);
-		this._updatedKeys = cloneDeep(this._updatedKeys);
+		this._originalData = this._data.clone();
+		this._originalUpdatedKeys = this._updatedKeys.clone();
+		this._originalDeletedKeys = this._deletedKeys.clone();
 	}
 
 	public restoreSnapshot(): void {
 		this._data = this._originalData;
 		this._updatedKeys = this._originalUpdatedKeys;
-		this._originalData = [];
-		this._originalUpdatedKeys = {};
+		this._deletedKeys = this._originalDeletedKeys;
+		this._originalData = new dataStructures.BufferMap();
+		this._originalUpdatedKeys = new dataStructures.BufferSet();
+		this._originalDeletedKeys = new dataStructures.BufferSet();
 	}
 
-	public async get(primaryValue: string): Promise<Account> {
+	public async get<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
-		const element = this._data.find(
-			item => item[this._primaryKey] === primaryValue,
-		);
+		const cachedAccount = this._data.get(address);
 
-		if (element) {
-			return new Account(element.toJSON());
+		if (cachedAccount) {
+			return (objects.cloneDeep(cachedAccount) as unknown) as Account<T>;
+		}
+
+		if (this._deletedKeys.has(address)) {
+			throw new NotFoundError(`Account ${address.toString('hex')} has been deleted`);
 		}
 
 		// Account was not cached previously so we try to fetch it from db
-		// tslint:disable-next-line no-null-keyword
-		const [elementFromDB] = await this._account.get(
-			{ [this._primaryKey]: primaryValue },
-			// tslint:disable-next-line no-null-keyword
-			{ limit: null },
-		);
+		const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(address);
+		const account = this._getAccountInstance(encodedAccount);
 
-		if (elementFromDB) {
-			this._data.push(new Account(elementFromDB));
-
-			return new Account(elementFromDB);
-		}
-
-		// Account does not exist we can not continue
-		throw new Error(
-			`${this._name} with ${this._primaryKey} = ${primaryValue} does not exist`,
-		);
+		this._data.set(address, account as Account);
+		this._initialAccountValue.set(address, encodedAccount);
+		return (account as unknown) as Account<T>;
 	}
 
-	public async getOrDefault(primaryValue: string): Promise<Account> {
+	public async getOrDefault<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
-		const element = this._data.find(
-			item => item[this._primaryKey] === primaryValue,
-		);
-		if (element) {
-			return new Account(element.toJSON());
+		const cachedAccount = this._data.get(address);
+		if (cachedAccount) {
+			return (objects.cloneDeep(cachedAccount) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
-		// tslint:disable-next-line no-null-keyword
-		const [elementFromDB] = await this._account.get(
-			{ [this._primaryKey]: primaryValue },
-			// tslint:disable-next-line no-null-keyword
-			{ limit: null },
-		);
+		try {
+			const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(address);
+			const account = this._getAccountInstance(encodedAccount);
 
-		if (elementFromDB) {
-			this._data.push(new Account(elementFromDB));
-
-			return new Account(elementFromDB);
+			this._data.set(address, account as Account);
+			this._initialAccountValue.set(address, encodedAccount);
+			return (account as unknown) as Account<T>;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
 		}
 
-		const defaultElement: Account = Account.getDefaultAccount(primaryValue);
+		// If account does not exists, return default account
+		const defaultAccount = ({
+			address,
+			...objects.cloneDeep<T>((this._defaultAccount as unknown) as T),
+		} as unknown) as Account<T>;
+		this._data.set(address, (defaultAccount as unknown) as Account);
 
-		const newElementIndex = this._data.push(defaultElement) - 1;
-		this._updatedKeys[newElementIndex] = Object.keys(defaultElement);
-
-		return new Account(defaultElement.toJSON());
+		return defaultAccount;
 	}
 
-	public getUpdated(): ReadonlyArray<Account> {
-		return [...this._data];
+	public getUpdated<T = AccountDefaultProps>(): ReadonlyArray<Account<T>> {
+		return ([...this._data.values()] as unknown) as ReadonlyArray<Account<T>>;
 	}
 
-	public find(
-		fn: (value: Account, index: number, obj: Account[]) => unknown,
-	): Account | undefined {
-		const foundAccount = this._data.find(fn);
-		if (!foundAccount) {
-			return undefined;
+	public set<T = AccountDefaultProps>(address: Buffer, updatedElement: Account<T>): void {
+		this._data.set(address, (updatedElement as unknown) as Account);
+		this._updatedKeys.add(address);
+		// Updating deleted key will make it not deleted
+		this._deletedKeys.delete(address);
+	}
+
+	public async del(address: Buffer): Promise<void> {
+		// If account is neither in memory nor DB, it should not be able to delete
+		await this.get(address);
+		const initialAccount = this._initialAccountValue.get(address);
+		// If initial account is not undefined, it means account exists in DB
+		// Potentially only existed in the DB before this call, but "get" will cache to memory
+		if (initialAccount !== undefined) {
+			this._deletedKeys.add(address);
 		}
-
-		return new Account(foundAccount.toJSON());
+		this._updatedKeys.delete(address);
+		this._data.delete(address);
 	}
 
-	public set(primaryValue: string, updatedElement: Account): void {
-		const elementIndex = this._data.findIndex(
-			item => item[this._primaryKey] === primaryValue,
-		);
+	public finalize(batch: BatchChain): StateDiff {
+		const stateDiff = { updated: [], created: [], deleted: [] } as StateDiff;
 
-		if (elementIndex === -1) {
-			throw new Error(
-				`${this._name} with ${this._primaryKey} = ${primaryValue} does not exist`,
-			);
-		}
+		for (const updatedAccount of this._data.values()) {
+			if (this._updatedKeys.has(updatedAccount.address)) {
+				const encodedAccount = this._dataAccess.encodeAccount(updatedAccount);
+				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(updatedAccount.address)}`;
+				batch.put(dbKey, encodedAccount);
 
-		const updatedKeys = Object.entries(updatedElement).reduce(
-			(existingUpdatedKeys, [key, value]) => {
-				const account = this._data[elementIndex];
-				// tslint:disable-next-line:no-any
-				if (!isEqual(value, (account as any)[key])) {
-					existingUpdatedKeys.push(key);
+				const initialAccount = this._initialAccountValue.get(updatedAccount.address);
+				if (initialAccount !== undefined && !initialAccount.equals(encodedAccount)) {
+					stateDiff.updated.push({
+						key: dbKey,
+						value: initialAccount,
+					});
+				} else if (initialAccount === undefined) {
+					stateDiff.created.push(dbKey);
 				}
+			}
+		}
+		for (const deletedAddress of this._deletedKeys) {
+			const initialAccount = this._initialAccountValue.get(deletedAddress);
+			if (!initialAccount) {
+				throw new Error('Deleting account should have initial account');
+			}
+			const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(deletedAddress)}`;
+			batch.del(dbKey);
+			stateDiff.deleted.push({
+				key: dbKey,
+				value: initialAccount,
+			});
+		}
 
-				return existingUpdatedKeys;
-			},
-			[] as string[],
-		);
-
-		this._data[elementIndex] = updatedElement;
-		this._updatedKeys[elementIndex] = this._updatedKeys[elementIndex]
-			? [...new Set([...this._updatedKeys[elementIndex], ...updatedKeys])]
-			: updatedKeys;
+		return stateDiff;
 	}
 
-	public async finalize(tx: StorageTransaction): Promise<void> {
-		const affectedAccounts = Object.entries(this._updatedKeys).map(
-			([index, updatedKeys]) => ({
-				updatedItem: this._data[parseInt(index, 10)].toJSON(),
-				updatedKeys,
-			}),
-		);
-
-		const updateToAccounts = affectedAccounts.map(
-			async ({ updatedItem, updatedKeys }) => {
-				const filter = { [this._primaryKey]: updatedItem[this._primaryKey] };
-				const updatedData = updatedKeys.reduce((data, key) => {
-					// tslint:disable-next-line:no-any
-					(data as any)[key] = (updatedItem as any)[key];
-
-					return data;
-					// tslint:disable-next-line readonly-keyword no-object-literal-type-assertion
-				}, {} as Partial<AccountJSON>);
-
-				return this._account.upsert(
-					filter,
-					updatedData,
-					// tslint:disable-next-line:no-null-keyword
-					null,
-					tx,
-				);
-			},
-		);
-
-		await Promise.all(updateToAccounts);
+	private _getAccountInstance<T>(encodedAccount: Buffer): Account<T> {
+		const decodedAccount = this._dataAccess.decodeAccount<T>(encodedAccount);
+		return (objects.cloneDeep(decodedAccount) as unknown) as Account<T>;
 	}
 }

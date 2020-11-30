@@ -20,65 +20,106 @@ import {
 import { Peer } from '../../src/peer';
 import { P2PPeerInfo } from '../../src/types';
 import { assignInternalInfo } from '../../src/utils';
+import { peerInfoSchema, nodeInfoSchema } from '../../src/schema';
 
 export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption1: P2PPeerInfo = {
 		peerId: '204.120.0.15:5001',
 		ipAddress: '204.120.0.15',
-		wsPort: 5001,
+		port: 5001,
 		sharedState: {
-			height: 545776,
-			isDiscoveredPeer: false,
-			version: '1.1.1',
-			protocolVersion: '1.1',
+			networkVersion: '1.1',
+			nonce: 'nonce',
+			networkIdentifier: 'networkId',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				11,
+			),
 		},
 	};
 
 	const peerOption2: P2PPeerInfo = {
 		peerId: '204.120.0.16:5002',
 		ipAddress: '204.120.0.16',
-		wsPort: 5002,
+		port: 5002,
 		sharedState: {
-			height: 545981,
-			isDiscoveredPeer: false,
-			version: '1.1.1',
-			protocolVersion: '1.1',
+			nonce: 'nonce',
+			networkIdentifier: 'networkId',
+			networkVersion: '1.1',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				22,
+			),
 		},
 	};
 
 	const peerOption3: P2PPeerInfo = {
 		peerId: '204.120.0.17:5008',
 		ipAddress: '204.120.0.17',
-		wsPort: 5008,
+		port: 5008,
 		sharedState: {
-			height: 645980,
-			isDiscoveredPeer: false,
-			version: '1.3.1',
-			protocolVersion: '1.1',
+			nonce: 'nonce',
+			networkIdentifier: 'networkId',
+			networkVersion: '1.1',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				33,
+			),
 		},
 	};
 
 	const peerOption4: P2PPeerInfo = {
 		peerId: '204.120.0.18:5006',
 		ipAddress: '204.120.0.18',
-		wsPort: 5006,
+		port: 5006,
 		sharedState: {
-			height: 645982,
-			isDiscoveredPeer: false,
-			version: '1.2.1',
-			protocolVersion: '1.1',
+			nonce: 'nonce',
+			networkIdentifier: 'networkId',
+			networkVersion: '1.1',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				44,
+			),
 		},
 	};
 
 	const peerOption5: P2PPeerInfo = {
 		peerId: '204.120.0.19:5001',
 		ipAddress: '204.120.0.19',
-		wsPort: 5001,
+		port: 5001,
 		sharedState: {
-			height: 645980,
-			isDiscoveredPeer: false,
-			version: '1.1.1',
-			protocolVersion: '1.1',
+			nonce: 'nonce',
+			networkIdentifier: 'networkId',
+			networkVersion: '1.1',
+			options: {
+				height: 1,
+			},
+		},
+		internalState: {
+			...assignInternalInfo(
+				{ peerId: '204.120.0.15:5001', ipAddress: '204.120.0.15', port: 5001 },
+				55,
+			),
 		},
 	};
 
@@ -89,29 +130,29 @@ export const initPeerInfoListWithSuffix = (
 	ipSuffix: string,
 	qty: number,
 ): ReadonlyArray<P2PPeerInfo> => {
-	let peerInfos = [];
-	for (let i = 1; i <= qty; i++) {
+	const peerInfos = [];
+	for (let i = 1; i <= qty; i += 1) {
 		peerInfos.push({
 			peerId: `${i % 255}.${ipSuffix}:${5000 + (i % 40000)}`,
 			ipAddress: `${i % 255}.${ipSuffix}`,
-			wsPort: 5000 + (i % 40000),
+			port: 5000 + (i % 40000),
 			sharedState: {
-				height: 645980,
-				isDiscoveredPeer: false,
-				version: '1.1.1',
-				protocolVersion: '1.1',
+				nonce: 'nonce',
+				networkIdentifier: 'networkId',
+				networkVersion: '1.1',
+				options: {},
 			},
 			internalState: {
 				...assignInternalInfo(
 					{
 						peerId: `${i % 255}.${ipSuffix}:${5000 + (i % 40000)}`,
 						ipAddress: `${i % 255}.${ipSuffix}`,
-						wsPort: 5000 + (i % 40000),
+						port: 5000 + (i % 40000),
 					},
 					123456,
 				),
-				connectionKind:
-					i % 4 === 0 ? ConnectionKind.OUTBOUND : ConnectionKind.INBOUND,
+				reputation: 10 + i,
+				connectionKind: i % 4 === 0 ? ConnectionKind.OUTBOUND : ConnectionKind.INBOUND,
 			},
 		});
 	}
@@ -123,11 +164,17 @@ export const initPeerList = (): ReadonlyArray<Peer> =>
 	initPeerInfoList().map(
 		(peerInfo: P2PPeerInfo) =>
 			new Peer(peerInfo, {
+				hostPort: 5000,
 				rateCalculationInterval: 1000,
 				wsMaxMessageRate: DEFAULT_WS_MAX_MESSAGE_RATE,
 				wsMaxMessageRatePenalty: 10,
 				secret: DEFAULT_RANDOM_SECRET,
 				maxPeerInfoSize: 10000,
 				maxPeerDiscoveryResponseLength: 1000,
+				peerStatusMessageRate: 4,
+				rpcSchemas: {
+					peerInfo: peerInfoSchema,
+					nodeInfo: nodeInfoSchema,
+				},
 			}),
 	);

@@ -14,30 +14,13 @@
 					"passphrase": "wear protect skill sentence lift enter wild sting lottery power floor neglect",
 					"privateKey": "8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
 					"publicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-					"address": "2129300327344985743L",
+					"address": "8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17",
 					"nonce": "2"
 				},
-				"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
-				"transaction": {
-					"type": 10,
-					"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-					"nonce": "2",
-					"fee": "100000000",
-					"asset": {
-						"username": "new_delegate"
-					}
-				}
+				"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255"
 			},
 			"output": {
-				"type": 10,
-				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-				"nonce": "2",
-				"fee": "100000000",
-				"asset": {
-					"username": "new_delegate"
-				},
-				"signature": "daf5eb6609a504423c8835f6c525bf1a3377a8c49afa1e2a274b302a6ac7626e806243ec99e836ca67a19f87274e2f1ef4620dd356379b761a08500d5e14ad06",
-				"id": "3092148165180181318"
+				"transaction": "0805100018022080c2d72f2a20efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d320e0a0c6e65775f64656c65676174653a407c1143d95cdc499c8f392917a06c62cea74ba310631802aa1137c88dfa0a8268cbd5fb6e7f012af885355d53589683d88afe220e1cc44c62fb29a5de1dd4610f"
 			}
 		}
 	]

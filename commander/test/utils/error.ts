@@ -24,7 +24,6 @@ describe('error utils', () => {
 		let error: Error;
 		beforeEach(() => {
 			error = new FileSystemError(errorMessage);
-			return Promise.resolve();
 		});
 
 		it('should print the error message in red', () => {
@@ -44,7 +43,6 @@ describe('error utils', () => {
 		let error: Error;
 		beforeEach(() => {
 			error = new ValidationError(errorMessage);
-			return Promise.resolve();
 		});
 
 		it('should print the error message in red', () => {

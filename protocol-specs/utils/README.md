@@ -23,20 +23,13 @@ Examples:
 Transfer Lisk:
 
 ```javascript
-chainStateBuilder
-	.transfer('50')
-	.from('16313739661670634666L')
-	.to('10881167371402274308L')
-	.forge();
+chainStateBuilder.transfer('50').from('16313739661670634666L').to('10881167371402274308L').forge();
 ```
 
 Register Delegate:
 
 ```javascript
-chainStateBuilder
-	.registerDelegate('ADelegateName')
-	.for('2222471382442610527L')
-	.forge();
+chainStateBuilder.registerDelegate('ADelegateName').for('2222471382442610527L').forge();
 ```
 
 Cast Votes
@@ -76,10 +69,7 @@ chainStateBuilder
 	.finish()
 	.forge();
 
-chainStateBuilder
-	.transfer('7')
-	.from('2222471382442610527L')
-	.to('10881167371402274308L');
+chainStateBuilder.transfer('7').from('2222471382442610527L').to('10881167371402274308L');
 
 // Attention! You need to sign the transactions inmmediatly after generating them
 chainStateBuilder

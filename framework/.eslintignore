@@ -6,3 +6,8 @@ release
 ssl
 stacktrace*
 tmp
+dist-node
+jest.config*
+test/test_app/
+__mocks__
+.eslintrc.js

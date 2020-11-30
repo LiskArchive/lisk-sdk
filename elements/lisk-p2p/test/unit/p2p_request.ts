@@ -15,7 +15,7 @@
 import { P2PRequest, RequestOptions } from '../../src/p2p_request';
 import { RPCResponseAlreadySentError } from '../../src/errors';
 
-describe('p2p_request', () => {
+describe('p2pRequest', () => {
 	let requestOptions: RequestOptions;
 	let respondCallback: (responseError?: Error, responseData?: unknown) => void;
 	let request: P2PRequest;
@@ -43,6 +43,7 @@ describe('p2p_request', () => {
 
 		it('should increment the productivity.requestCounter by 2 if a second P2PRequest instance is created with the same productivity tracker', () => {
 			// P2PRequest instance can mutate the productivity tracker object.
+			// eslint-disable-next-line no-new
 			new P2PRequest(requestOptions, respondCallback);
 			expect(requestOptions.productivity.requestCounter).toBe(2);
 		});
@@ -122,9 +123,7 @@ describe('p2p_request', () => {
 		});
 
 		it('should throw error when sending another request', () =>
-			expect(() => request.end('hello')).toThrowError(
-				RPCResponseAlreadySentError,
-			));
+			expect(() => request.end('hello')).toThrow(RPCResponseAlreadySentError));
 	});
 
 	describe('#error', () => {
@@ -148,10 +147,7 @@ describe('p2p_request', () => {
 		describe('when there was a previous success', () => {
 			it('should have a productivity.responseRate of 0.5; this indicates a success rate of 50%', () => {
 				request.end('hello');
-				const secondP2PRequest = new P2PRequest(
-					requestOptions,
-					respondCallback,
-				);
+				const secondP2PRequest = new P2PRequest(requestOptions, respondCallback);
 				secondP2PRequest.error(err);
 
 				expect(requestOptions.productivity.responseRate).toBe(0.5);

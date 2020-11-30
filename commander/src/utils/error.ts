@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable max-classes-per-file
+// eslint-disable-next-line max-classes-per-file
 import chalk from 'chalk';
 
 export class FileSystemError extends Error {
