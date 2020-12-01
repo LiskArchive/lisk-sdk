@@ -13,7 +13,7 @@
  *
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
+import { Transaction, BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
@@ -21,6 +21,7 @@ import { TransferAsset } from '../../../src/modules/token/transfer_asset';
 import { RegisterTransactionAsset } from '../../../src/modules/dpos/transaction_assets/register_transaction_asset';
 import { RegisterAsset as MultisignatureRegisterAsset } from '../../../src/modules/keys/register_asset';
 import { VoteTransactionAsset } from '../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
+import { PomTransactionAsset } from '../../../src/modules/dpos';
 
 export const createTransferTransaction = (input: {
 	recipientAddress: Buffer;
@@ -193,5 +194,34 @@ export const createMultisignatureTransferTransaction = (input: {
 	);
 
 	const tx = new Transaction({ ...transaction, asset: encodedAsset } as any);
+	return tx;
+};
+
+export const createReportMisbehaviorTransaction = (input: {
+	nonce: bigint;
+	networkIdentifier: Buffer;
+	passphrase: string;
+	header1: BlockHeader;
+	header2: BlockHeader;
+	fee?: bigint;
+}): Transaction => {
+	const encodedAsset = codec.encode(new PomTransactionAsset().schema, {
+		header1: input.header1,
+		header2: input.header2,
+	});
+	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
+
+	const tx = new Transaction({
+		moduleID: 5,
+		assetID: 3,
+		nonce: input.nonce,
+		senderPublicKey: publicKey,
+		fee: input.fee ?? BigInt('50000000'),
+		asset: encodedAsset,
+		signatures: [],
+	});
+	(tx.signatures as Buffer[]).push(
+		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+	);
 	return tx;
 };

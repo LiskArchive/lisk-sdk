@@ -1,6 +1,6 @@
 # @liskhq/lisk-framework-forger-plugin
 
-@liskhq/lisk-framework-forger-plugin is a plugin for lisk-framework that provides forging HTTP API endpoints to manage forging and enables monitoring capabilities.
+@liskhq/lisk-framework-forger-plugin is a plugin for lisk-framework that monitors configured delegates forging activity and voters information.
 
 ## Installation
 
@@ -12,22 +12,7 @@ $ npm install --save @liskhq/lisk-framework-forger-plugin
 
 ```
 {
-	port?: number,
-	whiteList?: string[],
-	webhook?: string[],
-	cors?: {
-		origin: string,
-		methods: string,
-	},
-	limits?: {
-		max: number,
-		delayMs: number,
-		delayAfter: number,
-		windowMs: number,
-		headersTimeout: number,
-		serverSetTimeout: number,
-	},
-	dataPath?: string,
+	dataPath: string,
 }
 ```
 

@@ -14,22 +14,7 @@ $ npm install --save @liskhq/lisk-framework-report-misbehavior-plugin
 {
 	encryptedPassphrase?: string,
 	defaultPassword?: string,
-	port?: number,
-	whiteList?: string[],
-	webhook?: string[],
-	cors?: {
-		origin: string,
-		methods: string,
-	},
-	limits?: {
-		max: number,
-		delayMs: number,
-		delayAfter: number,
-		windowMs: number,
-		headersTimeout: number,
-		serverSetTimeout: number,
-	},
-	dataPath?: string,
+	dataPath: string,
 	cleanupFrequency?: number,
 }
 ```
