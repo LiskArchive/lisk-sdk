@@ -376,7 +376,17 @@ export class Bus {
 						cb(null, data as JSONRPC.ResponseObjectWithResult);
 					})
 					.catch(error => {
-						cb(error as JSONRPC.ResponseObjectWithError);
+						if (error instanceof JSONRPC.JSONRPCError) {
+							cb(error);
+							return;
+						}
+						const parsedAction = Action.fromJSONRPCRequest(action);
+						cb(
+							new JSONRPC.JSONRPCError(
+								(error as Error).message,
+								JSONRPC.errorResponse(parsedAction.id, JSONRPC.invalidRequest()),
+							),
+						);
 					});
 			},
 		);
