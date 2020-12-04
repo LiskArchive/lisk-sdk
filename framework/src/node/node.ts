@@ -42,11 +42,7 @@ import {
 } from '../constants';
 
 import { Forger } from './forger';
-import {
-	Transport,
-	HandleRPCGetTransactionsReturn,
-	handlePostTransactionReturn,
-} from './transport';
+import { Transport, handlePostTransactionReturn } from './transport';
 import {
 	Synchronizer,
 	BlockSynchronizationMechanism,
@@ -270,6 +266,19 @@ export class Node {
 				},
 			});
 		}
+		// Initialize callable P2P endpoints
+		this._networkModule.registerEndpoint('getTransactions', async ({ data, peerId }) =>
+			this._transport.handleRPCGetTransactions(data, peerId),
+		);
+		this._networkModule.registerEndpoint('getLastBlock', ({ peerId }) =>
+			this._transport.handleRPCGetLastBlock(peerId),
+		);
+		this._networkModule.registerEndpoint('getBlocksFromId', async ({ data, peerId }) =>
+			this._transport.handleRPCGetBlocksFromId(data, peerId),
+		);
+		this._networkModule.registerEndpoint('getHighestCommonBlock', async ({ data, peerId }) =>
+			this._transport.handleRPCGetHighestCommonBlock(data, peerId),
+		);
 
 		// Network needs to be initialized first to call events
 		await this._networkModule.bootstrap(this.networkIdentifier);
@@ -459,11 +468,6 @@ export class Node {
 				}
 				return transactions.map(tx => tx.getBytes().toString('hex'));
 			},
-			getTransactions: async (params: {
-				data: unknown;
-				peerId: string;
-			}): Promise<HandleRPCGetTransactionsReturn> =>
-				this._transport.handleRPCGetTransactions(params.data, params.peerId),
 			getForgingStatus: async (): Promise<ForgingStatusResponse[] | undefined> => {
 				const forgingStatus = await this._forger.getForgingStatusOfAllDelegates();
 				if (forgingStatus) {
@@ -480,15 +484,8 @@ export class Node {
 				params: EventPostTransactionData,
 			): Promise<handlePostTransactionReturn> => this._transport.handleEventPostTransaction(params),
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getLastBlock: (params: { peerId: string }): string =>
-				this._transport.handleRPCGetLastBlock(params.peerId),
-			getBlocksFromId: async (params: { data: unknown; peerId: string }): Promise<string[]> =>
-				this._transport.handleRPCGetBlocksFromId(params.data, params.peerId),
-			getHighestCommonBlock: async (params: {
-				data: unknown;
-				peerId: string;
-			}): Promise<string | undefined> =>
-				this._transport.handleRPCGetHighestCommonBlock(params.data, params.peerId),
+			getLastBlock: (): string =>
+				this._chain.dataAccess.encode(this._chain.lastBlock).toString('hex'),
 			getSchema: () => this.getSchema(),
 			getRegisteredModules: () => this.getRegisteredModules(),
 			getNodeInfo: () => ({
