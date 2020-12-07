@@ -21,6 +21,8 @@ const CONNECTION_TIMEOUT = 2000;
 const ACKNOWLEDGMENT_TIMEOUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
 
+const isNode = typeof window === 'undefined';
+
 const timeout = async <T = void>(ms: number, message?: string): Promise<T> =>
 	new Promise((_, reject) => {
 		const id = setTimeout(() => {
@@ -69,34 +71,35 @@ export class WSChannel {
 
 	public async connect(): Promise<void> {
 		this._ws = new WebSocket(this._url);
+		this._ws.onopen = this._handleOpen.bind(this);
+		this._ws.onclose = this._handleClose.bind(this);
+		this._ws.onmessage = this._handleMessage.bind(this);
+		this._ws.addEventListener('ping', this._handlePing.bind(this));
 
 		const connect = new Promise<void>(resolve => {
-			this._ws?.on('open', () => {
-				this.isAlive = true;
-				resolve();
-			});
+			const retry = () => {
+				const id = setTimeout(() => {
+					clearTimeout(id);
+					if (this.isAlive && this._ws?.readyState === WebSocket.OPEN) {
+						return resolve();
+					}
+					return retry();
+				}, 100);
+			};
+
+			retry();
 		});
 
-		const error = new Promise<void>((_, reject) => {
-			this._ws?.on('error', err => {
-				this.isAlive = false;
-				reject(err);
-			});
-		});
+		try {
+			await Promise.race([
+				connect,
+				timeout(CONNECTION_TIMEOUT, `Could not connect in ${CONNECTION_TIMEOUT}ms`),
+			]);
+		} catch (err) {
+			this._ws.close();
 
-		await Promise.race([
-			connect,
-			error,
-			timeout(CONNECTION_TIMEOUT, `Could not connect in ${CONNECTION_TIMEOUT}ms`),
-		]);
-
-		this._ws.on('ping', () => {
-			this.isAlive = true;
-		});
-
-		this._ws.on('message', data => {
-			this._handleMessage(data as string);
-		});
+			throw err;
+		}
 	}
 
 	public async disconnect(): Promise<void> {
@@ -107,15 +110,33 @@ export class WSChannel {
 			return Promise.resolve();
 		}
 
-		return new Promise<void>(resolve => {
-			this._ws?.on('close', () => {
-				this._ws?.terminate();
-				this.isAlive = false;
-				this._ws = undefined;
-				resolve();
-			});
-			this._ws?.close();
+		if (this._ws.readyState === WebSocket.CLOSED) {
+			this.isAlive = false;
+			this._ws = undefined;
+			return Promise.resolve();
+		}
+
+		const disconnect = new Promise<void>(resolve => {
+			const retry = () => {
+				const id = setTimeout(() => {
+					clearTimeout(id);
+					if (!this.isAlive) {
+						return resolve();
+					}
+					return retry();
+				}, 100);
+			};
+
+			retry();
 		});
+
+		this._ws.close();
+		await Promise.race([
+			disconnect,
+			timeout(CONNECTION_TIMEOUT, `Could not disconnect in ${CONNECTION_TIMEOUT}ms`),
+		]);
+
+		return Promise.resolve();
 	}
 
 	public async invoke<T = Record<string, unknown>>(
@@ -130,6 +151,12 @@ export class WSChannel {
 		};
 
 		const send = new Promise((resolve, reject) => {
+			if (!isNode) {
+				this._ws?.send(JSON.stringify(request));
+				resolve();
+				return;
+			}
+
 			this._ws?.send(JSON.stringify(request), (err): void => {
 				if (err) {
 					return reject(err);
@@ -159,8 +186,20 @@ export class WSChannel {
 		this._emitter.on(eventName, cb);
 	}
 
-	private _handleMessage(message: string): void {
-		const res = JSON.parse(message) as JSONRPCMessage<unknown>;
+	private _handleOpen(): void {
+		this.isAlive = true;
+	}
+
+	private _handleClose(): void {
+		this.isAlive = false;
+	}
+
+	private _handlePing(): void {
+		this.isAlive = true;
+	}
+
+	private _handleMessage(event: WebSocket.MessageEvent): void {
+		const res = JSON.parse(event.data as string) as JSONRPCMessage<unknown>;
 
 		// Its an event
 		if (messageIsNotification(res)) {
