@@ -12,10 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { createServer, Server } from 'http';
 import * as WebSocket from 'isomorphic-ws';
 import { WSChannel } from '../../src/ws_channel';
 
 jest.unmock('isomorphic-ws');
+
+const closeServer = async (server: WebSocket.Server | Server): Promise<void> => {
+	return new Promise((resolve, reject) => {
+		server.close(error => {
+			if (error) {
+				return reject(error);
+			}
+
+			return resolve();
+		});
+	});
+};
 
 describe('WSChannel', () => {
 	describe('connect', () => {
@@ -28,28 +41,34 @@ describe('WSChannel', () => {
 				expect(server.clients.size).toEqual(1);
 				expect([...server.clients][0].readyState).toEqual(WebSocket.OPEN);
 			} finally {
-				server.close();
+				await closeServer(server);
 			}
 			expect.assertions(3);
 		});
 
 		it('should timeout if ws server not responding', async () => {
-			const verifyClient = (_: any, done: (result: boolean) => void) => {
-				// Take more time to accept connection
+			const http = createServer();
+			const server = new WebSocket.Server({ path: '/my-path', noServer: true });
+
+			// https://github.com/websockets/ws/issues/377#issuecomment-462152231
+			http.on('upgrade', (request, socket, head) => {
 				setTimeout(() => {
-					done(true);
+					server.handleUpgrade(request, socket, head, ws => {
+						server.emit('connection', ws, request);
+					});
 				}, 3000);
-			};
-			const server = new WebSocket.Server({ path: '/my-path', port: 65535, verifyClient });
+			});
+
+			http.listen(65535);
+
 			const channel = new WSChannel('ws://localhost:65535/my-path');
 
 			try {
 				await expect(channel.connect()).rejects.toThrow('Could not connect in 2000ms');
 				expect(server.clients.size).toEqual(0);
 			} finally {
-				// TODO: Found that unless we disconnect channel, sever.close keep open handles.
-				await channel.disconnect();
-				server.close();
+				await closeServer(server);
+				await closeServer(http);
 			}
 			expect.assertions(2);
 		}, 5000);
@@ -74,7 +93,7 @@ describe('WSChannel', () => {
 				expect(server.clients.size).toEqual(1);
 				expect([...server.clients][0].readyState).toEqual(WebSocket.CLOSING);
 			} finally {
-				server.close();
+				await closeServer(server);
 			}
 			expect.assertions(3);
 		});
