@@ -18,7 +18,7 @@ describe('systemDirs', () => {
 	it('Should return directories configuration with given app label.', () => {
 		// Arrange
 		const appLabel = 'LABEL';
-		const rootPath = '~/.lisk';
+		const rootPath = '/lisk';
 
 		// Act
 		const dirsObj = systemDirs(appLabel, rootPath);

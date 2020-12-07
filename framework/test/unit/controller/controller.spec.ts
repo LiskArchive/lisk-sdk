@@ -74,7 +74,7 @@ describe('Controller Class', () => {
 		publish: jest.fn(),
 	};
 	const config = {
-		rootPath: '~/.lisk',
+		rootPath: '/lisk',
 		rpc: {
 			enable: false,
 			mode: 'ipc',
@@ -96,7 +96,7 @@ describe('Controller Class', () => {
 		pids: `${config.rootPath}/${appLabel}/tmp/pids`,
 	};
 	const configController = {
-		dataPath: '~/.lisk/#LABEL',
+		dataPath: '/lisk/#LABEL',
 		dirs: systemDirs,
 		socketsPath: {
 			root: `unix://${systemDirs.sockets}`,
