@@ -24,15 +24,16 @@
 	"scripts": {
 		"prestart": "./scripts/prestart.sh",
 		"start": "./scripts/start.sh",
+		"start:ws_server": "node cypress/ws_server.js",
 		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk",
 		"uglify": "terser -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
-		"test": "jest",
-		"test:e2e": "npm run test:e2e:electron",
-		"test:e2e:electron": "npm run cypress:install && npm run cypress:patch && npx cypress run --browser electron",
+		"test": "npx start-server-and-test start:ws_server http://localhost:8081 'jest'",
+		"test:e2e": "npx start-server-and-test start:ws_server http://localhost:8081 'npm run test:e2e:electron'",
+		"test:e2e:electron": "npm run cypress:install && npm run cypress:patch && npx cypress open --browser electron",
 		"cypress:patch": "bash cypress/scripts/patch_buffer_package.sh",
 		"cypress:install": "npx cypress install && npx cypress verify",
 		"test:coverage": "jest --coverage=true --coverage-reporters=text",
@@ -82,6 +83,8 @@
 		"ts-jest": "26.3.0",
 		"ts-node": "8.6.2",
 		"tsconfig-paths": "3.9.0",
-		"typescript": "3.8.3"
+		"typescript": "3.8.3",
+		"start-server-and-test": "1.11.6",
+		"ws": "7.4.0"
 	}
 }
