@@ -385,25 +385,12 @@ export class Application {
 				getTransactionsFromPool: {
 					handler: () => this._node.actions.getTransactionsFromPool(),
 				},
-				getTransactions: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getTransactions(params as { data: unknown; peerId: string }),
-				},
 				postTransaction: {
 					handler: async (params?: Record<string, unknown>) =>
 						this._node.actions.postTransaction((params as unknown) as EventPostTransactionData),
 				},
 				getLastBlock: {
-					handler: (params?: Record<string, unknown>) =>
-						this._node.actions.getLastBlock(params as { peerId: string }),
-				},
-				getBlocksFromId: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlocksFromId(params as { data: unknown; peerId: string }),
-				},
-				getHighestCommonBlock: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getHighestCommonBlock(params as { data: unknown; peerId: string }),
+					handler: () => this._node.actions.getLastBlock(),
 				},
 				getAccount: {
 					handler: async (params?: Record<string, unknown>) =>
