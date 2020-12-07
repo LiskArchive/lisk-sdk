@@ -389,8 +389,8 @@ export class Bus {
 					.then(data => {
 						cb(null, data as JSONRPC.ResponseObjectWithResult);
 					})
-					.catch(error => {
-						cb(error);
+					.catch((error: JSONRPC.JSONRPCError) => {
+						cb(error, error.response);
 					});
 			},
 		);
@@ -407,8 +407,8 @@ export class Bus {
 				.then(data => {
 					socket.send(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));
 				})
-				.catch(error => {
-					socket.send(JSON.stringify((error as JSONRPC.JSONRPCError).response));
+				.catch((error: JSONRPC.JSONRPCError) => {
+					socket.send(JSON.stringify(error.response));
 				});
 		});
 	}

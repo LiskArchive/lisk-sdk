@@ -22,12 +22,18 @@ export interface JSONRPCNotification<T> {
 	readonly params?: T;
 }
 
+export interface JSONRPCError {
+	code: number;
+	message: string;
+	data?: string | number | boolean | Record<string, unknown>;
+}
+
 export interface JSONRPCResponse<T> {
 	readonly id: number;
 	readonly jsonrpc: string;
 	readonly method: never;
 	readonly params: never;
-	readonly error?: { code: number; message: string; data?: string };
+	readonly error?: JSONRPCError;
 	readonly result?: T;
 }
 
