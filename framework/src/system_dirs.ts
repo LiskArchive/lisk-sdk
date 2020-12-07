@@ -16,10 +16,10 @@ import * as path from 'path';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
 export const systemDirs = (appLabel: string, rootPath: string) => ({
-	dataPath: path.join(rootPath, appLabel),
-	data: path.join(rootPath, appLabel, 'data'),
-	tmp: path.join(rootPath, appLabel, 'tmp'),
-	logs: path.join(rootPath, appLabel, 'logs'),
-	sockets: path.join(rootPath, appLabel, 'tmp', 'sockets'),
-	pids: path.join(rootPath, appLabel, 'tmp', 'pids'),
+	dataPath: path.resolve(rootPath, appLabel),
+	data: path.resolve(rootPath, appLabel, 'data'),
+	tmp: path.resolve(rootPath, appLabel, 'tmp'),
+	logs: path.resolve(rootPath, appLabel, 'logs'),
+	sockets: path.resolve(rootPath, appLabel, 'tmp', 'sockets'),
+	pids: path.resolve(rootPath, appLabel, 'tmp', 'pids'),
 });
