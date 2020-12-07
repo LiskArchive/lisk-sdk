@@ -48,13 +48,6 @@ const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
-const REMOTE_ACTIONS_WHITE_LIST = [
-	'getTransactions',
-	'getLastBlock',
-	'getBlocksFromId',
-	'getHighestCommonBlock',
-];
-
 const REMOTE_EVENTS_WHITE_LIST = ['postTransactionsAnnouncement', 'postBlock', 'postNodeInfo'];
 
 interface NodeInfoOptions {
@@ -90,6 +83,12 @@ interface P2PRequest {
 	readonly error: (result: object) => void;
 }
 
+type P2PRPCEndpointHandler = (input: { data: unknown; peerId: string }) => unknown;
+
+interface P2PRPCEndpoints {
+	[key: string]: P2PRPCEndpointHandler;
+}
+
 export class Network {
 	private readonly _options: NetworkConfig;
 	private readonly _channel: InMemoryChannel;
@@ -99,6 +98,7 @@ export class Network {
 	private _networkID!: string;
 	private _secret: number | undefined;
 	private _p2p!: liskP2P.P2P;
+	private _endpoints: P2PRPCEndpoints;
 
 	public constructor({ options, channel, logger, nodeDB, networkVersion }: NetworkConstructor) {
 		this._options = options;
@@ -106,6 +106,7 @@ export class Network {
 		this._logger = logger;
 		this._nodeDB = nodeDB;
 		this._networkVersion = networkVersion;
+		this._endpoints = {};
 		this._secret = undefined;
 	}
 
@@ -307,7 +308,7 @@ export class Network {
 				return;
 			}
 
-			if (!REMOTE_ACTIONS_WHITE_LIST.includes(request.procedure)) {
+			if (!Object.keys(this._endpoints).includes(request.procedure)) {
 				const error = new Error(`Requested procedure "${request.procedure}" is not permitted.`);
 				this._logger.error(
 					{ err: error, procedure: request.procedure },
@@ -323,18 +324,15 @@ export class Network {
 			}
 
 			try {
-				const result = await this._channel.invoke<liskP2P.p2pTypes.P2PNodeInfo>(
-					`app:${request.procedure}`,
-					{
-						data: request.data,
-						peerId: request.peerId,
-					},
-				);
+				const result = await this._endpoints[request.procedure]({
+					data: request.data,
+					peerId: request.peerId,
+				});
 				this._logger.trace(
 					{ procedure: request.procedure },
 					'Peer request fulfilled event: Responded to peer request',
 				);
-				request.end(result); // Send the response back to the peer.
+				request.end(result as object); // Send the response back to the peer.
 			} catch (error) {
 				this._logger.error(
 					{ err: error as Error, procedure: request.procedure },
@@ -398,6 +396,13 @@ export class Network {
 			);
 			throw error;
 		}
+	}
+
+	public registerEndpoint(endpoint: string, handler: P2PRPCEndpointHandler): void {
+		if (this._endpoints[endpoint]) {
+			throw new Error(`Endpoint ${endpoint} has already been registered.`);
+		}
+		this._endpoints[endpoint] = handler;
 	}
 
 	public async request(

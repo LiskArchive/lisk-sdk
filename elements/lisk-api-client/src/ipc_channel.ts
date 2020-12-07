@@ -22,7 +22,14 @@ import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket, PushSocket, SubSocket, ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
 import { EventEmitter } from 'events';
-import { Channel, EventCallback, JSONRPCNotification, JSONRPCResponse } from './types';
+import {
+	Channel,
+	EventCallback,
+	JSONRPCNotification,
+	JSONRPCResponse,
+	JSONRPCError,
+} from './types';
+import { convertRPCError } from './utils';
 
 const CONNECTION_TIME_OUT = 2000;
 
@@ -139,17 +146,21 @@ export class IPCChannel implements Channel {
 			params: params ?? {},
 		};
 		return new Promise((resolve, reject) => {
-			this._rpcClient.call('invoke', action, (err: Error | undefined, data: JSONRPCResponse<T>) => {
-				if (err) {
-					reject(err);
-					return;
-				}
-				if (data.error) {
-					reject(err);
-					return;
-				}
-				resolve(data.result);
-			});
+			this._rpcClient.call(
+				'invoke',
+				action,
+				(err: JSONRPCError | undefined, data: JSONRPCResponse<T>) => {
+					if (err) {
+						reject(convertRPCError(err));
+						return;
+					}
+					if (data.error) {
+						reject(convertRPCError(data.error));
+						return;
+					}
+					resolve(data.result);
+				},
+			);
 		});
 	}
 

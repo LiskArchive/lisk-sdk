@@ -144,13 +144,10 @@ describe('api/forging', () => {
 
 				// Assert
 				expect(status).toEqual(500);
-				expect(response).toEqual({
-					errors: [
-						{
-							message: 'Failed to enable forging as the node is not synced to the network.',
-						},
-					],
-				});
+				expect(response.errors).toHaveLength(1);
+				expect(response.errors[0].message).toEqual(
+					'Failed to enable forging as the node is not synced to the network.',
+				);
 			});
 
 			it('should fail to enable forging when overwrite is false and maxHeightPreviouslyForged does not match', async () => {
@@ -172,13 +169,10 @@ describe('api/forging', () => {
 
 				// Assert
 				expect(status).toEqual(500);
-				expect(response).toEqual({
-					errors: [
-						{
-							message: 'Failed to enable forging as the node is not synced to the network.',
-						},
-					],
-				});
+				expect(response.errors).toHaveLength(1);
+				expect(response.errors[0].message).toEqual(
+					'Failed to enable forging as the node is not synced to the network.',
+				);
 			});
 
 			it('should respond with 400 and error message when address is not hex format', async () => {

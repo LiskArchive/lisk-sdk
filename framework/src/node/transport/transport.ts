@@ -58,7 +58,8 @@ export interface handlePostTransactionReturn {
 	message?: string;
 	errors?: Error[] | Error;
 }
-export interface HandleRPCGetTransactionsReturn {
+
+interface HandleRPCGetTransactionsReturn {
 	transactions: string[];
 }
 

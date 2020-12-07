@@ -61,6 +61,16 @@ interface ChannelInfo {
 	readonly type: ChannelType;
 }
 
+const parseError = (id: JSONRPC.ID, err: Error | JSONRPC.JSONRPCError): JSONRPC.JSONRPCError => {
+	if (err instanceof JSONRPC.JSONRPCError) {
+		return err;
+	}
+	return new JSONRPC.JSONRPCError(
+		err.message,
+		JSONRPC.errorResponse(id, JSONRPC.internalError(err.message)),
+	);
+};
+
 export class Bus {
 	public logger: Logger;
 
@@ -217,13 +227,17 @@ export class Bus {
 		const actionParams = action.params;
 		const channelInfo = this.channels[action.module];
 		if (channelInfo.type === ChannelType.InMemory) {
-			const result = await (channelInfo.channel as BaseChannel).invoke<T>(
-				actionFullName,
-				actionParams,
-			);
-			return action.buildJSONRPCResponse({
-				result,
-			}) as JSONRPC.ResponseObjectWithResult<T>;
+			try {
+				const result = await (channelInfo.channel as BaseChannel).invoke<T>(
+					actionFullName,
+					actionParams,
+				);
+				return action.buildJSONRPCResponse({
+					result,
+				}) as JSONRPC.ResponseObjectWithResult<T>;
+			} catch (error) {
+				throw parseError(action.id, error);
+			}
 		}
 
 		// For child process channel
@@ -233,7 +247,7 @@ export class Bus {
 				action.toJSONRPCRequest(),
 				(err: Error | undefined, data: JSONRPC.ResponseObjectWithResult<T>) => {
 					if (err) {
-						return reject(err);
+						return reject(parseError(action.id, err));
 					}
 
 					return resolve(data);
@@ -370,13 +384,13 @@ export class Bus {
 
 		this._ipcServer.rpcServer.expose(
 			'invoke',
-			(action: string | JSONRPC.RequestObject, cb: NodeCallback) => {
-				this.invoke(action)
+			(message: string | JSONRPC.RequestObject, cb: NodeCallback) => {
+				this.invoke(message)
 					.then(data => {
 						cb(null, data as JSONRPC.ResponseObjectWithResult);
 					})
-					.catch(error => {
-						cb(error as JSONRPC.ResponseObjectWithError);
+					.catch((error: JSONRPC.JSONRPCError) => {
+						cb(error, error.response);
 					});
 			},
 		);
@@ -393,20 +407,8 @@ export class Bus {
 				.then(data => {
 					socket.send(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));
 				})
-				.catch(error => {
-					if (error instanceof JSONRPC.JSONRPCError) {
-						return socket.send(JSON.stringify(error.response));
-					}
-					const parsedAction = Action.fromJSONRPCRequest(message);
-
-					return socket.send(
-						JSON.stringify(
-							JSONRPC.errorResponse(
-								parsedAction.id,
-								JSONRPC.internalError((error as Error).message),
-							),
-						),
-					);
+				.catch((error: JSONRPC.JSONRPCError) => {
+					socket.send(JSON.stringify(error.response));
 				});
 		});
 	}
