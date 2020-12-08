@@ -29,7 +29,7 @@ const handleConnection = socket => {
 		);
 	}, 1000);
 };
-const ws = new WebSocket.Server({ path: '/ws', port: 8080 });
+const ws = new WebSocket.Server({ path: '/ws', port: 8989 });
 ws.on('connection', handleConnection);
 
 ws.on('listening', () => {
@@ -39,5 +39,5 @@ ws.on('listening', () => {
 		res.end('OK!');
 	};
 	const http = createServer(requestListener);
-	http.listen(8081);
+	http.listen(8990);
 });

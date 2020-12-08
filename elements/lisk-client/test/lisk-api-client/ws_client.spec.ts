@@ -19,21 +19,21 @@ const { createWSClient } = apiClient;
 
 describe('createWSClient', () => {
 	it('should connect to ws server', async () => {
-		const client = await createWSClient('ws://localhost:8080/ws');
+		const client = await createWSClient('ws://localhost:8989/ws');
 		expect(client).not.toBeUndefined();
 
 		await client.disconnect();
 	});
 
 	it('should disconnect from ws server', async () => {
-		const client = await createWSClient('ws://localhost:8080/ws');
+		const client = await createWSClient('ws://localhost:8989/ws');
 
 		await expect(client.disconnect()).resolves.toBeUndefined();
 	});
 
 	describe('invoke', () => {
 		it('should able to invoke any action', async () => {
-			const client = await createWSClient('ws://localhost:8080/ws');
+			const client = await createWSClient('ws://localhost:8989/ws');
 
 			const result = await client.invoke('myAction', { prop1: 'prop1' });
 
@@ -52,7 +52,7 @@ describe('createWSClient', () => {
 
 	describe('subscribe', () => {
 		it('should able to subscribe to an event', async () => {
-			const client = await createWSClient('ws://localhost:8080/ws');
+			const client = await createWSClient('ws://localhost:8989/ws');
 
 			await new Promise(resolve => {
 				client.subscribe('myEvent', data => {
