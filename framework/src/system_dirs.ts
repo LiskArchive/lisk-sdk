@@ -12,14 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as os from 'os';
 import * as path from 'path';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
-export const systemDirs = (appLabel: string, rootPath: string) => ({
-	dataPath: path.resolve(path.join(rootPath, appLabel)),
-	data: path.resolve(path.join(rootPath, appLabel, 'data')),
-	tmp: path.resolve(path.join(rootPath, appLabel, 'tmp')),
-	logs: path.resolve(path.join(rootPath, appLabel, 'logs')),
-	sockets: path.resolve(path.join(rootPath, appLabel, 'tmp', 'sockets')),
-	pids: path.resolve(path.join(rootPath, appLabel, 'tmp', 'pids')),
-});
+export const systemDirs = (appLabel: string, rootPath: string) => {
+	const rootPathWithoutTilde = rootPath.replace('~', os.homedir());
+	return {
+		dataPath: path.resolve(path.join(rootPathWithoutTilde, appLabel)),
+		data: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'data')),
+		tmp: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'tmp')),
+		logs: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'logs')),
+		sockets: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'tmp', 'sockets')),
+		pids: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'tmp', 'pids')),
+	};
+};

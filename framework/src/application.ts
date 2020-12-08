@@ -13,7 +13,6 @@
  */
 
 import * as fs from 'fs-extra';
-import * as os from 'os';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
@@ -140,7 +139,6 @@ export class Application {
 			config.label ?? `lisk-${config.genesisConfig?.communityIdentifier}`;
 
 		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
-		mergedConfig.rootPath = mergedConfig.rootPath.replace('~', os.homedir());
 		const applicationConfigErrors = validator.validate(applicationConfigSchema, mergedConfig);
 		if (applicationConfigErrors.length) {
 			throw new LiskValidationError(applicationConfigErrors);
