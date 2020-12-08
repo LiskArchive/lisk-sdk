@@ -21,8 +21,6 @@ const CONNECTION_TIMEOUT = 2000;
 const ACKNOWLEDGMENT_TIMEOUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
 
-const isNode = typeof window === 'undefined';
-
 const timeout = async <T = void>(ms: number, message?: string): Promise<T> =>
 	new Promise((_, reject) => {
 		const id = setTimeout(() => {
@@ -71,28 +69,34 @@ export class WSChannel {
 
 	public async connect(): Promise<void> {
 		this._ws = new WebSocket(this._url);
-		this._ws.onopen = this._handleOpen.bind(this);
-		this._ws.onclose = this._handleClose.bind(this);
+		// this._ws.onclose = this._handleClose.bind(this);
 		this._ws.onmessage = this._handleMessage.bind(this);
 		this._ws.addEventListener('ping', this._handlePing.bind(this));
 
-		const connect = new Promise<void>(resolve => {
-			const retry = () => {
-				const id = setTimeout(() => {
-					clearTimeout(id);
-					if (this.isAlive && this._ws?.readyState === WebSocket.OPEN) {
-						return resolve();
-					}
-					return retry();
-				}, 100);
+		const connectHandler = new Promise<void>(resolve => {
+			const onOpen = () => {
+				this.isAlive = true;
+				this._ws?.removeEventListener('open', onOpen);
+				resolve();
 			};
 
-			retry();
+			this._ws?.addEventListener('open', onOpen);
+		});
+
+		const errorHandler = new Promise<void>((_, reject) => {
+			const onError = (error: WebSocket.ErrorEvent) => {
+				this.isAlive = false;
+				this._ws?.removeEventListener('error', onError);
+				reject(error.error);
+			};
+
+			this._ws?.addEventListener('error', onError);
 		});
 
 		try {
 			await Promise.race([
-				connect,
+				connectHandler,
+				errorHandler,
 				timeout(CONNECTION_TIMEOUT, `Could not connect in ${CONNECTION_TIMEOUT}ms`),
 			]);
 		} catch (err) {
@@ -116,23 +120,19 @@ export class WSChannel {
 			return Promise.resolve();
 		}
 
-		const disconnect = new Promise<void>(resolve => {
-			const retry = () => {
-				const id = setTimeout(() => {
-					clearTimeout(id);
-					if (!this.isAlive) {
-						return resolve();
-					}
-					return retry();
-				}, 100);
+		const closeHandler = new Promise<void>(resolve => {
+			const onClose = () => {
+				this.isAlive = false;
+				this._ws?.removeEventListener('close', onClose);
+				resolve();
 			};
 
-			retry();
+			this._ws?.addEventListener('close', onClose);
 		});
 
 		this._ws.close();
 		await Promise.race([
-			disconnect,
+			closeHandler,
 			timeout(CONNECTION_TIMEOUT, `Could not disconnect in ${CONNECTION_TIMEOUT}ms`),
 		]);
 
@@ -150,20 +150,9 @@ export class WSChannel {
 			params: params ?? {},
 		};
 
-		const send = new Promise((resolve, reject) => {
-			if (!isNode) {
-				this._ws?.send(JSON.stringify(request));
-				resolve();
-				return;
-			}
-
-			this._ws?.send(JSON.stringify(request), (err): void => {
-				if (err) {
-					return reject(err);
-				}
-
-				return resolve();
-			});
+		const send = new Promise(resolve => {
+			this._ws?.send(JSON.stringify(request));
+			resolve();
 		});
 
 		await Promise.race([
@@ -186,13 +175,9 @@ export class WSChannel {
 		this._emitter.on(eventName, cb);
 	}
 
-	private _handleOpen(): void {
-		this.isAlive = true;
-	}
-
-	private _handleClose(): void {
-		this.isAlive = false;
-	}
+	// private _handleClose(): void {
+	// 	this.isAlive = false;
+	// }
 
 	private _handlePing(): void {
 		this.isAlive = true;
