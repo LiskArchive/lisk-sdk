@@ -83,7 +83,7 @@ describe('Application', () => {
 	(createLogger as jest.Mock).mockReturnValue(loggerMock);
 
 	beforeEach(() => {
-		jest.spyOn(os, 'homedir').mockReturnValue('~');
+		jest.spyOn(os, 'homedir').mockReturnValue('/user');
 		jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 		jest.spyOn(Node.prototype, 'init').mockResolvedValue();
@@ -134,7 +134,7 @@ describe('Application', () => {
 
 		it('should set rootPath if provided', () => {
 			// Arrange
-			const customRootPath = './my-lisk-folder';
+			const customRootPath = '/my-lisk-folder';
 			const configWithCustomRootPath = objects.cloneDeep(config);
 			configWithCustomRootPath.rootPath = customRootPath;
 
@@ -668,7 +668,6 @@ describe('Application', () => {
 		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
 
 		beforeEach(async () => {
-			config.rootPath = '/lisk';
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
@@ -697,7 +696,7 @@ describe('Application', () => {
 		it('should call clearControllerPidFileSpy method with correct pid file location', async () => {
 			const unlinkSyncSpy = jest.spyOn(fs, 'unlinkSync').mockReturnValue();
 			await app.shutdown();
-			expect(unlinkSyncSpy).toHaveBeenCalledWith('/lisk/devnet/tmp/pids/controller.pid');
+			expect(unlinkSyncSpy).toHaveBeenCalledWith('/user/.lisk/devnet/tmp/pids/controller.pid');
 		});
 	});
 });

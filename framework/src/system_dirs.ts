@@ -12,18 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as os from 'os';
-import * as path from 'path';
+import { homedir } from 'os';
+import { join, resolve } from 'path';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
 export const systemDirs = (appLabel: string, rootPath: string) => {
-	const rootPathWithoutTilde = rootPath.replace('~', os.homedir());
+	const rootPathWithoutTilde = rootPath.replace('~', homedir());
 	return {
-		dataPath: path.resolve(path.join(rootPathWithoutTilde, appLabel)),
-		data: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'data')),
-		tmp: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'tmp')),
-		logs: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'logs')),
-		sockets: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'tmp', 'sockets')),
-		pids: path.resolve(path.join(rootPathWithoutTilde, appLabel, 'tmp', 'pids')),
+		dataPath: resolve(join(rootPathWithoutTilde, appLabel)),
+		data: resolve(join(rootPathWithoutTilde, appLabel, 'data')),
+		tmp: resolve(join(rootPathWithoutTilde, appLabel, 'tmp')),
+		logs: resolve(join(rootPathWithoutTilde, appLabel, 'logs')),
+		sockets: resolve(join(rootPathWithoutTilde, appLabel, 'tmp', 'sockets')),
+		pids: resolve(join(rootPathWithoutTilde, appLabel, 'tmp', 'pids')),
 	};
 };

@@ -13,6 +13,7 @@
  */
 
 import * as childProcess from 'child_process';
+import * as os from 'os';
 import { when } from 'jest-when';
 import { BasePlugin } from '../../../src';
 
@@ -74,7 +75,7 @@ describe('Controller Class', () => {
 		publish: jest.fn(),
 	};
 	const config = {
-		rootPath: '/lisk',
+		rootPath: '/user/.lisk',
 		rpc: {
 			enable: false,
 			mode: 'ipc',
@@ -96,7 +97,7 @@ describe('Controller Class', () => {
 		pids: `${config.rootPath}/${appLabel}/tmp/pids`,
 	};
 	const configController = {
-		dataPath: '/lisk/#LABEL',
+		dataPath: '/user/.lisk/#LABEL',
 		dirs: systemDirs,
 		socketsPath: {
 			root: `unix://${systemDirs.sockets}`,
@@ -126,6 +127,7 @@ describe('Controller Class', () => {
 		jest
 			.spyOn(childProcess, 'fork')
 			.mockReturnValue((childProcessMock as unknown) as childProcess.ChildProcess);
+		jest.spyOn(os, 'homedir').mockReturnValue('/user');
 	});
 
 	afterEach(async () => {
