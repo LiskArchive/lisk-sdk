@@ -19,7 +19,6 @@ import { JSONRPCMessage, JSONRPCNotification, EventCallback } from './types';
 import { convertRPCError } from './utils';
 
 const CONNECTION_TIMEOUT = 2000;
-const ACKNOWLEDGMENT_TIMEOUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
 
 const timeout = async <T = void>(ms: number, message?: string): Promise<T> =>
@@ -70,7 +69,7 @@ export class WSChannel {
 
 	public async connect(): Promise<void> {
 		this._ws = new WebSocket(this._url);
-		// this._ws.onclose = this._handleClose.bind(this);
+		this._ws.onclose = this._handleClose.bind(this);
 		this._ws.onmessage = this._handleMessage.bind(this);
 		this._ws.addEventListener('ping', this._handlePing.bind(this));
 
@@ -142,6 +141,10 @@ export class WSChannel {
 		actionName: string,
 		params?: Record<string, unknown>,
 	): Promise<T> {
+		if (!this.isAlive) {
+			throw new Error('Websocket client is not connected.');
+		}
+
 		const request = {
 			jsonrpc: '2.0',
 			id: this._requestCounter,
@@ -149,15 +152,7 @@ export class WSChannel {
 			params: params ?? {},
 		};
 
-		const send = new Promise(resolve => {
-			this._ws?.send(JSON.stringify(request));
-			resolve();
-		});
-
-		await Promise.race([
-			send,
-			timeout(ACKNOWLEDGMENT_TIMEOUT, `Request is not acknowledged in ${ACKNOWLEDGMENT_TIMEOUT}ms`),
-		]);
+		this._ws?.send(JSON.stringify(request));
 
 		const response = defer<T>();
 		this._pendingRequests[this._requestCounter] = response;
@@ -172,6 +167,10 @@ export class WSChannel {
 	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._emitter.on(eventName, cb);
+	}
+
+	private _handleClose(): void {
+		this.isAlive = false;
 	}
 
 	private _handlePing(): void {
