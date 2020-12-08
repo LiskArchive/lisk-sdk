@@ -28,6 +28,11 @@ class WebSocket extends EventEmitter {
 	addEventListener(event, cb) {
 		this.prependListener(event, cb);
 	}
+
+	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+	removeEventListener(event, cb) {
+		this.removeListener(event, cb);
+	}
 }
 
 module.exports = WebSocket;
