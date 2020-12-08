@@ -112,13 +112,13 @@ export class WSChannel {
 		this._pendingRequests = {};
 
 		if (!this._ws) {
-			return Promise.resolve();
+			return;
 		}
 
 		if (this._ws.readyState === WebSocket.CLOSED) {
 			this.isAlive = false;
 			this._ws = undefined;
-			return Promise.resolve();
+			return;
 		}
 
 		const closeHandler = new Promise<void>(resolve => {
@@ -136,8 +136,6 @@ export class WSChannel {
 			closeHandler,
 			timeout(CONNECTION_TIMEOUT, `Could not disconnect in ${CONNECTION_TIMEOUT}ms`),
 		]);
-
-		return Promise.resolve();
 	}
 
 	public async invoke<T = Record<string, unknown>>(
