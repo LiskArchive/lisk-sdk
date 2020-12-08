@@ -174,10 +174,6 @@ export class WSChannel {
 		this._emitter.on(eventName, cb);
 	}
 
-	// private _handleClose(): void {
-	// 	this.isAlive = false;
-	// }
-
 	private _handlePing(): void {
 		this.isAlive = true;
 	}

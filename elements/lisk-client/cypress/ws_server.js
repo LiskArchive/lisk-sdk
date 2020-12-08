@@ -32,10 +32,12 @@ const handleConnection = socket => {
 const ws = new WebSocket.Server({ path: '/ws', port: 8080 });
 ws.on('connection', handleConnection);
 
-// To use with "start-server-and-test" package we need an http endpoint returning 2xx code
-const requestListener = function (_, res) {
-	res.writeHead(200);
-	res.end('OK!');
-};
-const http = createServer(requestListener);
-http.listen(8081);
+ws.on('listening', () => {
+	// To use with "start-server-and-test" package we need an http endpoint returning 2xx code
+	const requestListener = function (_, res) {
+		res.writeHead(200);
+		res.end('OK!');
+	};
+	const http = createServer(requestListener);
+	http.listen(8081);
+});
