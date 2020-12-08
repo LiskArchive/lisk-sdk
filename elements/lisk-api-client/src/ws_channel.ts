@@ -16,6 +16,7 @@
 import * as WebSocket from 'isomorphic-ws';
 import { EventEmitter } from 'events';
 import { JSONRPCMessage, JSONRPCNotification, EventCallback } from './types';
+import { convertRPCError } from './utils';
 
 const CONNECTION_TIMEOUT = 2000;
 const ACKNOWLEDGMENT_TIMEOUT = 2000;
@@ -196,7 +197,7 @@ export class WSChannel {
 
 			if (this._pendingRequests[id]) {
 				if (res.error) {
-					this._pendingRequests[id].reject(new Error(res.error.data ?? res.error.data));
+					this._pendingRequests[id].reject(convertRPCError(res.error));
 				} else {
 					this._pendingRequests[id].resolve(res.result);
 				}
