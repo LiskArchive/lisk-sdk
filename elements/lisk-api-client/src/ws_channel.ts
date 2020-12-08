@@ -19,7 +19,6 @@ import { JSONRPCMessage, JSONRPCNotification, EventCallback } from './types';
 import { convertRPCError } from './utils';
 
 const CONNECTION_TIMEOUT = 2000;
-const ACKNOWLEDGMENT_TIMEOUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
 
 const timeout = async <T = void>(ms: number, message?: string): Promise<T> =>
@@ -70,34 +69,41 @@ export class WSChannel {
 
 	public async connect(): Promise<void> {
 		this._ws = new WebSocket(this._url);
+		this._ws.onclose = this._handleClose.bind(this);
+		this._ws.onmessage = this._handleMessage.bind(this);
+		this._ws.addEventListener('ping', this._handlePing.bind(this));
 
-		const connect = new Promise<void>(resolve => {
-			this._ws?.on('open', () => {
+		const connectHandler = new Promise<void>(resolve => {
+			const onOpen = () => {
 				this.isAlive = true;
+				this._ws?.removeEventListener('open', onOpen);
 				resolve();
-			});
+			};
+
+			this._ws?.addEventListener('open', onOpen);
 		});
 
-		const error = new Promise<void>((_, reject) => {
-			this._ws?.on('error', err => {
+		const errorHandler = new Promise<void>((_, reject) => {
+			const onError = (error: WebSocket.ErrorEvent) => {
 				this.isAlive = false;
-				reject(err);
-			});
+				this._ws?.removeEventListener('error', onError);
+				reject(error.error);
+			};
+
+			this._ws?.addEventListener('error', onError);
 		});
 
-		await Promise.race([
-			connect,
-			error,
-			timeout(CONNECTION_TIMEOUT, `Could not connect in ${CONNECTION_TIMEOUT}ms`),
-		]);
+		try {
+			await Promise.race([
+				connectHandler,
+				errorHandler,
+				timeout(CONNECTION_TIMEOUT, `Could not connect in ${CONNECTION_TIMEOUT}ms`),
+			]);
+		} catch (err) {
+			this._ws.close();
 
-		this._ws.on('ping', () => {
-			this.isAlive = true;
-		});
-
-		this._ws.on('message', data => {
-			this._handleMessage(data as string);
-		});
+			throw err;
+		}
 	}
 
 	public async disconnect(): Promise<void> {
@@ -105,24 +111,40 @@ export class WSChannel {
 		this._pendingRequests = {};
 
 		if (!this._ws) {
-			return Promise.resolve();
+			return;
 		}
 
-		return new Promise<void>(resolve => {
-			this._ws?.on('close', () => {
-				this._ws?.terminate();
+		if (this._ws.readyState === WebSocket.CLOSED) {
+			this.isAlive = false;
+			this._ws = undefined;
+			return;
+		}
+
+		const closeHandler = new Promise<void>(resolve => {
+			const onClose = () => {
 				this.isAlive = false;
-				this._ws = undefined;
+				this._ws?.removeEventListener('close', onClose);
 				resolve();
-			});
-			this._ws?.close();
+			};
+
+			this._ws?.addEventListener('close', onClose);
 		});
+
+		this._ws.close();
+		await Promise.race([
+			closeHandler,
+			timeout(CONNECTION_TIMEOUT, `Could not disconnect in ${CONNECTION_TIMEOUT}ms`),
+		]);
 	}
 
 	public async invoke<T = Record<string, unknown>>(
 		actionName: string,
 		params?: Record<string, unknown>,
 	): Promise<T> {
+		if (!this.isAlive) {
+			throw new Error('Websocket client is not connected.');
+		}
+
 		const request = {
 			jsonrpc: '2.0',
 			id: this._requestCounter,
@@ -130,20 +152,7 @@ export class WSChannel {
 			params: params ?? {},
 		};
 
-		const send = new Promise((resolve, reject) => {
-			this._ws?.send(JSON.stringify(request), (err): void => {
-				if (err) {
-					return reject(err);
-				}
-
-				return resolve();
-			});
-		});
-
-		await Promise.race([
-			send,
-			timeout(ACKNOWLEDGMENT_TIMEOUT, `Request is not acknowledged in ${ACKNOWLEDGMENT_TIMEOUT}ms`),
-		]);
+		this._ws?.send(JSON.stringify(request));
 
 		const response = defer<T>();
 		this._pendingRequests[this._requestCounter] = response;
@@ -160,8 +169,16 @@ export class WSChannel {
 		this._emitter.on(eventName, cb);
 	}
 
-	private _handleMessage(message: string): void {
-		const res = JSON.parse(message) as JSONRPCMessage<unknown>;
+	private _handleClose(): void {
+		this.isAlive = false;
+	}
+
+	private _handlePing(): void {
+		this.isAlive = true;
+	}
+
+	private _handleMessage(event: WebSocket.MessageEvent): void {
+		const res = JSON.parse(event.data as string) as JSONRPCMessage<unknown>;
 
 		// Its an event
 		if (messageIsNotification(res)) {
