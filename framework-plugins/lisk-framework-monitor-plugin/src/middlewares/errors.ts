@@ -13,6 +13,14 @@
  */
 import { Request, Response, NextFunction } from 'express';
 
+export class ErrorWithStatus extends Error {
+	public statusCode: number;
+	public constructor(message: string, statusCode: number) {
+		super(message);
+		this.statusCode = statusCode;
+	}
+}
+
 interface ErrorWithDetails extends Error {
 	errors: Error[];
 }
@@ -38,11 +46,9 @@ export const errorMiddleware = () => (
 		Object.defineProperty(error, 'message', { enumerable: true });
 	}
 
-	for (const error of errors) {
-		if (error.message === 'Access Denied') {
-			res.status(401).send({ errors });
-		}
-	}
+	const statusCode = (err as ErrorWithStatus).statusCode
+		? (err as ErrorWithStatus).statusCode
+		: 500;
 
-	res.status(500).send({ errors });
+	res.status(statusCode).send({ errors });
 };
