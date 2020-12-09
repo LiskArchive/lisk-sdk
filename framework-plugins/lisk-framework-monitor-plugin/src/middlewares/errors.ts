@@ -38,5 +38,11 @@ export const errorMiddleware = () => (
 		Object.defineProperty(error, 'message', { enumerable: true });
 	}
 
+	for (const error of errors) {
+		if (error.message === 'Access Denied') {
+			res.status(401).send({ errors });
+		}
+	}
+
 	res.status(500).send({ errors });
 };
