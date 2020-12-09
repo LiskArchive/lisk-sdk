@@ -72,13 +72,8 @@ describe('Peers endpoint', () => {
 				const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));
 				// Assert
 				expect(status).toBe(500);
-				expect(response).toEqual({
-					errors: [
-						{
-							message: 'test',
-						},
-					],
-				});
+				expect(response.errors).toHaveLength(1);
+				expect(response.errors[0].message).toEqual('test');
 			});
 		});
 	});

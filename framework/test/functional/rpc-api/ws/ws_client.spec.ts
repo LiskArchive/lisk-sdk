@@ -86,8 +86,8 @@ describe('api client ws mode', () => {
 
 		it('should throw an error when action fails due to missing argument', async () => {
 			// Assert
-			await expect(client.invoke('app:getBlocksFromId')).rejects.toThrow(
-				'Peer not found: undefined',
+			await expect(client.invoke('app:getAccount')).rejects.toThrow(
+				'The first argument must be of type string or an instance of Buffer',
 			);
 		});
 

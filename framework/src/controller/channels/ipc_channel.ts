@@ -166,17 +166,10 @@ export class IPCChannel extends BaseChannel {
 			this._rpcClient.call(
 				'invoke',
 				action.toJSONRPCRequest(),
-				(
-					err: JSONRPC.ResponseObjectWithError | undefined,
-					res: JSONRPC.ResponseObjectWithResult<T>,
-				) => {
+				(err: JSONRPC.JSONRPCError | undefined, res: JSONRPC.ResponseObjectWithResult<T>) => {
 					if (err) {
 						return reject(err);
 					}
-					if (res.error) {
-						return reject(res.error);
-					}
-
 					return resolve(res.result);
 				},
 			);

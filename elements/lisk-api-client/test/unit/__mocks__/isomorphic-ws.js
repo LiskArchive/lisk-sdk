@@ -17,12 +17,21 @@ const { EventEmitter } = require('events');
 
 class WebSocket extends EventEmitter {
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-	send(message, cb) {
+	send(message) {
 		const data = JSON.parse(message);
-		cb();
 		setTimeout(() => {
-			this.emit('message', JSON.stringify({ ...data, result: message }));
+			this.onmessage({ data: JSON.stringify({ ...data, result: message }) });
 		}, 100);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+	addEventListener(event, cb) {
+		this.prependListener(event, cb);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+	removeEventListener(event, cb) {
+		this.removeListener(event, cb);
 	}
 }
 
