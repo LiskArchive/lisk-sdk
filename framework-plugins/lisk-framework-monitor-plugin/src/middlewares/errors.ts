@@ -46,9 +46,7 @@ export const errorMiddleware = () => (
 		Object.defineProperty(error, 'message', { enumerable: true });
 	}
 
-	const statusCode = (err as ErrorWithStatus).statusCode
-		? (err as ErrorWithStatus).statusCode
-		: 500;
+	const statusCode = err instanceof ErrorWithStatus ? err.statusCode : 500;
 
 	res.status(statusCode).send({ errors });
 };
