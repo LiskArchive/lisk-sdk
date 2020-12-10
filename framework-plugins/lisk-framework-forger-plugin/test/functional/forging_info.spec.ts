@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Application } from 'lisk-framework';
+import { Application, systemDirs } from 'lisk-framework';
 import { createIPCClient } from '@liskhq/lisk-api-client';
 import {
 	createApplication,
@@ -29,7 +29,7 @@ describe('forger:getForgingInfo action', () => {
 	beforeAll(async () => {
 		app = await createApplication('forging_info_spec');
 		await waitNBlocks(app, 1);
-		liskClient = await createIPCClient(`${app.config.rootPath}/${app.config.label}`);
+		liskClient = await createIPCClient(systemDirs(app.config.label, app.config.rootPath).dataPath);
 	});
 
 	afterAll(async () => {
