@@ -32,6 +32,7 @@ export const errorMiddleware = () => (
 	_next: NextFunction,
 ): void => {
 	let errors;
+	let responseCode = 500;
 
 	if (Array.isArray(err)) {
 		errors = err;
@@ -46,7 +47,11 @@ export const errorMiddleware = () => (
 		Object.defineProperty(error, 'message', { enumerable: true });
 	}
 
-	const statusCode = err instanceof ErrorWithStatus ? err.statusCode : 500;
+	if (err instanceof ErrorWithStatus) {
+		const { statusCode, ...message } = err;
+		errors = message;
+		responseCode = statusCode;
+	}
 
-	res.status(statusCode).send({ errors });
+	res.status(responseCode).send({ errors });
 };
