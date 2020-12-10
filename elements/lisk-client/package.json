@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-client",
-	"version": "5.0.0",
+	"version": "5.0.1-alpha.0",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -50,7 +50,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.0.0",
+		"@liskhq/lisk-api-client": "^5.0.1-alpha.0",
 		"@liskhq/lisk-codec": "^0.1.0",
 		"@liskhq/lisk-cryptography": "^3.0.0",
 		"@liskhq/lisk-passphrase": "^3.0.1",
@@ -79,12 +79,12 @@
 		"jest-when": "2.7.2",
 		"prettier": "2.0.5",
 		"source-map-support": "0.5.19",
+		"start-server-and-test": "1.11.6",
 		"terser": "4.7.0",
 		"ts-jest": "26.3.0",
 		"ts-node": "8.6.2",
 		"tsconfig-paths": "3.9.0",
 		"typescript": "3.8.3",
-		"start-server-and-test": "1.11.6",
 		"ws": "7.4.0"
 	}
 }
