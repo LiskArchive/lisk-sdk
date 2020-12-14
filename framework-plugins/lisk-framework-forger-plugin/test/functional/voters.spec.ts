@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { Application, systemDirs } from 'lisk-framework';
 import { createIPCClient } from '@liskhq/lisk-api-client';
 import { createApplication, closeApplication, waitNBlocks, waitTill } from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
@@ -26,7 +26,7 @@ describe('forger:getVoters action', () => {
 		app = await createApplication('forger_functional_voters');
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
 		networkIdentifier = app['_node'].networkIdentifier;
-		liskClient = await createIPCClient(`${app.config.rootPath}/${app.config.label}`);
+		liskClient = await createIPCClient(systemDirs(app.config.label, app.config.rootPath).dataPath);
 	});
 
 	afterAll(async () => {
