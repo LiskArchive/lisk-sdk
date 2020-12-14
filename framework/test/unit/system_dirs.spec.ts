@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as os from 'os';
 import { systemDirs } from '../../src/system_dirs';
+
+beforeEach(() => {
+	jest.spyOn(os, 'homedir').mockReturnValue('/user');
+});
 
 describe('systemDirs', () => {
 	it('Should return directories configuration with given app label.', () => {
@@ -25,12 +30,69 @@ describe('systemDirs', () => {
 
 		// Assert
 		expect(dirsObj).toEqual({
-			dataPath: `${rootPath}/${appLabel}`,
-			data: `${rootPath}/${appLabel}/data`,
-			tmp: `${rootPath}/${appLabel}/tmp`,
-			logs: `${rootPath}/${appLabel}/logs`,
-			sockets: `${rootPath}/${appLabel}/tmp/sockets`,
-			pids: `${rootPath}/${appLabel}/tmp/pids`,
+			dataPath: `/user/.lisk/${appLabel}`,
+			data: `/user/.lisk/${appLabel}/data`,
+			tmp: `/user/.lisk/${appLabel}/tmp`,
+			logs: `/user/.lisk/${appLabel}/logs`,
+			sockets: `/user/.lisk/${appLabel}/tmp/sockets`,
+			pids: `/user/.lisk/${appLabel}/tmp/pids`,
+		});
+	});
+
+	it('Should be able to resolve relative path correctly.', () => {
+		// Arrange
+		const appLabel = 'LABEL';
+		const rootPath = '/user/../.lisk';
+
+		// Act
+		const dirsObj = systemDirs(appLabel, rootPath);
+
+		// Assert
+		expect(dirsObj).toEqual({
+			dataPath: `/.lisk/${appLabel}`,
+			data: `/.lisk/${appLabel}/data`,
+			tmp: `/.lisk/${appLabel}/tmp`,
+			logs: `/.lisk/${appLabel}/logs`,
+			sockets: `/.lisk/${appLabel}/tmp/sockets`,
+			pids: `/.lisk/${appLabel}/tmp/pids`,
+		});
+	});
+
+	it('Should be able to resolve absolute path correctly.', () => {
+		// Arrange
+		const appLabel = 'LABEL';
+		const rootPath = '/customPath/.lisk';
+
+		// Act
+		const dirsObj = systemDirs(appLabel, rootPath);
+
+		// Assert
+		expect(dirsObj).toEqual({
+			dataPath: `/customPath/.lisk/${appLabel}`,
+			data: `/customPath/.lisk/${appLabel}/data`,
+			tmp: `/customPath/.lisk/${appLabel}/tmp`,
+			logs: `/customPath/.lisk/${appLabel}/logs`,
+			sockets: `/customPath/.lisk/${appLabel}/tmp/sockets`,
+			pids: `/customPath/.lisk/${appLabel}/tmp/pids`,
+		});
+	});
+
+	it('Should be able to resolve home path correctly.', () => {
+		// Arrange
+		const appLabel = 'LABEL';
+		const rootPath = '~/.lisk';
+
+		// Act
+		const dirsObj = systemDirs(appLabel, rootPath);
+
+		// Assert
+		expect(dirsObj).toEqual({
+			dataPath: `/user/.lisk/${appLabel}`,
+			data: `/user/.lisk/${appLabel}/data`,
+			tmp: `/user/.lisk/${appLabel}/tmp`,
+			logs: `/user/.lisk/${appLabel}/logs`,
+			sockets: `/user/.lisk/${appLabel}/tmp/sockets`,
+			pids: `/user/.lisk/${appLabel}/tmp/pids`,
 		});
 	});
 });

@@ -13,7 +13,6 @@
  */
 
 import * as fs from 'fs-extra';
-import * as os from 'os';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
@@ -140,7 +139,6 @@ export class Application {
 			config.label ?? `lisk-${config.genesisConfig?.communityIdentifier}`;
 
 		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
-		mergedConfig.rootPath = mergedConfig.rootPath.replace('~', os.homedir());
 		const applicationConfigErrors = validator.validate(applicationConfigSchema, mergedConfig);
 		if (applicationConfigErrors.length) {
 			throw new LiskValidationError(applicationConfigErrors);
@@ -385,25 +383,12 @@ export class Application {
 				getTransactionsFromPool: {
 					handler: () => this._node.actions.getTransactionsFromPool(),
 				},
-				getTransactions: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getTransactions(params as { data: unknown; peerId: string }),
-				},
 				postTransaction: {
 					handler: async (params?: Record<string, unknown>) =>
 						this._node.actions.postTransaction((params as unknown) as EventPostTransactionData),
 				},
 				getLastBlock: {
-					handler: (params?: Record<string, unknown>) =>
-						this._node.actions.getLastBlock(params as { peerId: string }),
-				},
-				getBlocksFromId: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlocksFromId(params as { data: unknown; peerId: string }),
-				},
-				getHighestCommonBlock: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getHighestCommonBlock(params as { data: unknown; peerId: string }),
+					handler: () => this._node.actions.getLastBlock(),
 				},
 				getAccount: {
 					handler: async (params?: Record<string, unknown>) =>

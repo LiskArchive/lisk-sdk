@@ -20,24 +20,24 @@ import { WSChannel } from '../../src/ws_channel';
 jest.mock('isomorphic-ws');
 
 describe('WSChannel', () => {
-	let client: WSChannel;
+	let channel: WSChannel;
 	// let wsMock: WSMock;
 	const url = 'ws://localhost:8000/ws';
 
 	beforeEach(async () => {
-		client = new WSChannel(url);
+		channel = new WSChannel(url);
 
 		jest.spyOn(WebSocket.prototype, 'send');
 
-		await Promise.race([client.connect(), client['_ws']?.emit('open')]);
+		await Promise.race([channel.connect(), channel['_ws']?.emit('open')]);
 	});
 
 	describe('constructor', () => {
 		it('should set url', () => {
-			expect(client['_url']).toEqual(url);
+			expect(channel['_url']).toEqual(url);
 		});
 		it('should create local emitter', () => {
-			expect(client['_emitter']).toBeInstanceOf(EventEmitter);
+			expect(channel['_emitter']).toBeInstanceOf(EventEmitter);
 		});
 	});
 
@@ -46,7 +46,7 @@ describe('WSChannel', () => {
 			jest.spyOn(EventEmitter.prototype, 'on');
 			const cb = jest.fn();
 
-			client.subscribe('myEvent', cb);
+			channel.subscribe('myEvent', cb);
 
 			expect(EventEmitter.prototype.on).toHaveBeenCalledWith('myEvent', cb);
 		});
@@ -56,40 +56,37 @@ describe('WSChannel', () => {
 		it('should send jsonrpc request to ws server', async () => {
 			const request = {
 				jsonrpc: '2.0',
-				id: client['_requestCounter'],
+				id: channel['_requestCounter'],
 				method: 'myAction',
 				params: {},
 			};
 
-			await client.invoke('myAction');
+			await channel.invoke('myAction');
 
-			expect(WebSocket.prototype.send).toHaveBeenCalledWith(
-				JSON.stringify(request),
-				expect.any(Function),
-			);
+			expect(WebSocket.prototype.send).toHaveBeenCalledWith(JSON.stringify(request));
 		});
 
 		it('should wait for the jsonrpc response from ws server', async () => {
 			const request = {
 				jsonrpc: '2.0',
-				id: client['_requestCounter'],
+				id: channel['_requestCounter'],
 				method: 'myAction',
 				params: {},
 			};
 
-			const result = await client.invoke('myAction');
+			const result = await channel.invoke('myAction');
 
 			// Mock implementation send request as response
 			expect(result).toEqual(JSON.stringify(request));
 		});
 
 		it('should increment request counter', async () => {
-			const counter = client['_requestCounter'];
+			const counter = channel['_requestCounter'];
 
-			await client.invoke('myAction');
+			await channel.invoke('myAction');
 
 			// Mock implementation send request as response
-			expect(client['_requestCounter']).toEqual(counter + 1);
+			expect(channel['_requestCounter']).toEqual(counter + 1);
 		});
 	});
 
@@ -100,11 +97,11 @@ describe('WSChannel', () => {
 
 			await expect(
 				new Promise(resolve => {
-					client.subscribe('module1:my:Event', event => {
+					channel.subscribe('module1:my:Event', event => {
 						expect(event).toEqual(eventInfo.data);
 						resolve();
 					});
-					client['_ws']?.emit('message', JSON.stringify(message));
+					channel['_ws']?.onmessage({ data: JSON.stringify(message) } as never);
 				}),
 			).resolves.toBeUndefined();
 		});

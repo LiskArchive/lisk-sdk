@@ -1,6 +1,6 @@
 {
 	"name": "lisk-framework",
-	"version": "0.7.0",
+	"version": "0.7.1-alpha.0",
 	"description": "Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -62,7 +62,7 @@
 		"ws": "7.3.1"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-api-client": "^5.0.0",
+		"@liskhq/lisk-api-client": "^5.0.1-alpha.0",
 		"@liskhq/lisk-passphrase": "^3.0.1",
 		"@liskhq/lisk-transactions": "^5.0.0",
 		"@types/bunyan": "1.8.6",

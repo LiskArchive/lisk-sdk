@@ -13,6 +13,14 @@
  */
 import { Request, Response, NextFunction } from 'express';
 
+export class ErrorWithStatus extends Error {
+	public statusCode: number;
+	public constructor(message: string, statusCode: number) {
+		super(message);
+		this.statusCode = statusCode;
+	}
+}
+
 interface ErrorWithDetails extends Error {
 	errors: Error[];
 }
@@ -24,6 +32,7 @@ export const errorMiddleware = () => (
 	_next: NextFunction,
 ): void => {
 	let errors;
+	let responseCode = 500;
 
 	if (Array.isArray(err)) {
 		errors = err;
@@ -38,5 +47,11 @@ export const errorMiddleware = () => (
 		Object.defineProperty(error, 'message', { enumerable: true });
 	}
 
-	res.status(500).send({ errors });
+	if (err instanceof ErrorWithStatus) {
+		const { statusCode, ...message } = err;
+		errors = message;
+		responseCode = statusCode;
+	}
+
+	res.status(responseCode).send({ errors });
 };

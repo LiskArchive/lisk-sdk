@@ -12,14 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as path from 'path';
+import { homedir } from 'os';
+import { join, resolve } from 'path';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
-export const systemDirs = (appLabel: string, rootPath: string) => ({
-	dataPath: path.join(rootPath, appLabel),
-	data: path.join(rootPath, appLabel, 'data'),
-	tmp: path.join(rootPath, appLabel, 'tmp'),
-	logs: path.join(rootPath, appLabel, 'logs'),
-	sockets: path.join(rootPath, appLabel, 'tmp', 'sockets'),
-	pids: path.join(rootPath, appLabel, 'tmp', 'pids'),
-});
+export const systemDirs = (appLabel: string, rootPath: string) => {
+	const rootPathWithoutTilde = rootPath.replace('~', homedir());
+	return {
+		dataPath: resolve(join(rootPathWithoutTilde, appLabel)),
+		data: resolve(join(rootPathWithoutTilde, appLabel, 'data')),
+		tmp: resolve(join(rootPathWithoutTilde, appLabel, 'tmp')),
+		logs: resolve(join(rootPathWithoutTilde, appLabel, 'logs')),
+		sockets: resolve(join(rootPathWithoutTilde, appLabel, 'tmp', 'sockets')),
+		pids: resolve(join(rootPathWithoutTilde, appLabel, 'tmp', 'pids')),
+	};
+};

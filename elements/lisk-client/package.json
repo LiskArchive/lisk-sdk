@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-client",
-	"version": "5.0.0",
+	"version": "5.0.1-alpha.0",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -24,19 +24,20 @@
 	"scripts": {
 		"prestart": "./scripts/prestart.sh",
 		"start": "./scripts/start.sh",
+		"start:ws_server": "node cypress/ws_server.js",
 		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk",
 		"uglify": "terser -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
-		"test": "jest",
-		"test:e2e": "npm run test:e2e:electron",
+		"test": "npx start-server-and-test start:ws_server http://localhost:8990 'jest'",
+		"test:e2e": "npx start-server-and-test start:ws_server http://localhost:8990 'npm run test:e2e:electron'",
 		"test:e2e:electron": "npm run cypress:install && npm run cypress:patch && npx cypress run --browser electron",
 		"cypress:patch": "bash cypress/scripts/patch_buffer_package.sh",
 		"cypress:install": "npx cypress install && npx cypress verify",
 		"test:coverage": "jest --coverage=true --coverage-reporters=text",
-		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
+		"test:ci": "npx start-server-and-test start:ws_server http://localhost:8990 'jest --coverage=true --coverage-reporters=json --verbose'",
 		"test:watch": "npm test -- --watch",
 		"test:node": "npm run build:check",
 		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
@@ -49,7 +50,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.0.0",
+		"@liskhq/lisk-api-client": "^5.0.1-alpha.0",
 		"@liskhq/lisk-codec": "^0.1.0",
 		"@liskhq/lisk-cryptography": "^3.0.0",
 		"@liskhq/lisk-passphrase": "^3.0.1",
@@ -78,10 +79,12 @@
 		"jest-when": "2.7.2",
 		"prettier": "2.0.5",
 		"source-map-support": "0.5.19",
+		"start-server-and-test": "1.11.6",
 		"terser": "4.7.0",
 		"ts-jest": "26.3.0",
 		"ts-node": "8.6.2",
 		"tsconfig-paths": "3.9.0",
-		"typescript": "3.8.3"
+		"typescript": "3.8.3",
+		"ws": "7.4.0"
 	}
 }

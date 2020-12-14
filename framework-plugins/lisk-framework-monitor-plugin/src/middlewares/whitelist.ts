@@ -13,6 +13,7 @@
  */
 import * as ip from 'ip';
 import { Request, Response, NextFunction } from 'express';
+import { ErrorWithStatus } from './errors';
 
 const defualtOption = { whiteList: [] };
 
@@ -49,5 +50,5 @@ export const whiteListMiddleware = ({
 		return;
 	}
 
-	next(new Error('Access Denied'));
+	next(new ErrorWithStatus('Access Denied', 401));
 };
