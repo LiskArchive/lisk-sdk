@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-client",
-	"version": "5.0.1-alpha.0",
+	"version": "5.0.1",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -50,7 +50,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.0.1-alpha.0",
+		"@liskhq/lisk-api-client": "^5.0.1",
 		"@liskhq/lisk-codec": "^0.1.0",
 		"@liskhq/lisk-cryptography": "^3.0.0",
 		"@liskhq/lisk-passphrase": "^3.0.1",
