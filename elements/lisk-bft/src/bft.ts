@@ -179,19 +179,22 @@ export class BFT extends EventEmitter {
 			return false;
 		}
 
+		// If maxHeightPreviouslyForged is not in threshold, it is BFT compliant
+		if (blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged > heightThreshold) {
+			return true;
+		}
+
 		const maxHeightPreviouslyForgedBlock = stateStore.chain.lastBlockHeaders.find(
 			bftHeader => bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
 
-		// If maxHeightPreviouslyForgedBlock is not in the last blocks (default 309), it is BFT complient
-		if (maxHeightPreviouslyForgedBlock === undefined) {
-			return true;
+		if (!maxHeightPreviouslyForgedBlock) {
+			throw new Error(
+				`Block at height ${blockHeader.asset.maxHeightPreviouslyForged} must be in the lastBlockHeaders.`,
+			);
 		}
 
-		if (
-			blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <= heightThreshold &&
-			!blockHeader.generatorPublicKey.equals(maxHeightPreviouslyForgedBlock.generatorPublicKey)
-		) {
+		if (!blockHeader.generatorPublicKey.equals(maxHeightPreviouslyForgedBlock.generatorPublicKey)) {
 			return false;
 		}
 
