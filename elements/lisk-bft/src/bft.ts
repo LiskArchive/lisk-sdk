@@ -25,6 +25,7 @@ import {
 import { EVENT_BFT_FINALIZED_HEIGHT_CHANGED, FinalityManager } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
 import { BFTPersistedValues, ForkStatus } from './types';
+import { BFT_ROUND_THRESHOLD } from './constant';
 
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
@@ -162,13 +163,12 @@ export class BFT extends EventEmitter {
 	): Promise<boolean> {
 		assert(blockHeader, 'No block was provided to be verified');
 
-		const roundsThreshold = 3;
 		const validators = await getValidators(stateStore);
 		const numberOfVotingValidators = validators.filter(
 			validator => validator.isConsensusParticipant,
 		).length;
 
-		const heightThreshold = numberOfVotingValidators * roundsThreshold;
+		const heightThreshold = numberOfVotingValidators * BFT_ROUND_THRESHOLD;
 
 		// Special case to avoid reducing the reward of delegates forging for the first time before the `heightThreshold` height
 		if (blockHeader.asset.maxHeightPreviouslyForged === 0) {
