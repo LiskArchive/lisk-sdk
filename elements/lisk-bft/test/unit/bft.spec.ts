@@ -275,17 +275,8 @@ describe('bft', () => {
 			let blocks: BlockHeader[];
 			let stateStore: StateStore;
 
-			beforeEach(async () => {
-				// Arrange
-				// Setup BFT module with blocks
-				const numberOfBlocks = 101;
-				blocks = generateBlocks({
-					startHeight: 1,
-					numberOfBlocks,
-				});
-
-				bft = new BFT(bftParams);
-				stateStore = (new StateStoreMock(
+			const getNewStateStore = (minHeight = 0) => {
+				return (new StateStoreMock(
 					[],
 					{
 						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
@@ -299,8 +290,21 @@ describe('bft', () => {
 							})),
 						}),
 					},
-					{ lastBlockHeaders: blocks },
+					{ lastBlockHeaders: blocks.filter(b => b.height >= minHeight) },
 				) as unknown) as StateStore;
+			};
+
+			beforeEach(async () => {
+				// Arrange
+				// Setup BFT module with blocks
+				const numberOfBlocks = 101;
+				blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+
+				bft = new BFT(bftParams);
+				stateStore = getNewStateStore();
 				await bft.init(stateStore);
 			});
 
@@ -426,6 +430,11 @@ describe('bft', () => {
 			});
 
 			describe('when B.height - B.maxHeightPreviouslyForged is greater than 303', () => {
+				beforeEach(async () => {
+					stateStore = getNewStateStore(405 - 309);
+					await bft.init(stateStore);
+				});
+
 				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
 					// Arrange
 					const block = {
@@ -449,6 +458,45 @@ describe('bft', () => {
 						generatorPublicKey: blocks[100].generatorPublicKey,
 						asset: {
 							maxHeightPreviouslyForged: 101,
+						},
+					};
+
+					// Act & Assert
+					await expect(
+						bft.isBFTProtocolCompliant(block as BlockHeader, stateStore),
+					).resolves.toBeTrue();
+				});
+			});
+
+			describe('when B.height - B.maxHeightPreviouslyForged is greater than 309', () => {
+				beforeEach(async () => {
+					stateStore = getNewStateStore(405 - 309);
+					await bft.init(stateStore);
+				});
+
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was NOT forged by B.generatorPublicKey', async () => {
+					// Arrange
+					const block = {
+						height: 405,
+						generatorPublicKey: Buffer.from('zxc'),
+						asset: {
+							maxHeightPreviouslyForged: 10,
+						},
+					};
+
+					// Act & Assert
+					await expect(
+						bft.isBFTProtocolCompliant(block as BlockHeader, stateStore),
+					).resolves.toBeTrue();
+				});
+
+				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', async () => {
+					// Arrange
+					const block = {
+						height: 405,
+						generatorPublicKey: blocks[100].generatorPublicKey,
+						asset: {
+							maxHeightPreviouslyForged: 10,
 						},
 					};
 

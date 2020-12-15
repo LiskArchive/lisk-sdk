@@ -175,15 +175,22 @@ export class BFT extends EventEmitter {
 			return true;
 		}
 
+		if (blockHeader.height <= blockHeader.asset.maxHeightPreviouslyForged) {
+			return false;
+		}
+
 		const maxHeightPreviouslyForgedBlock = stateStore.chain.lastBlockHeaders.find(
 			bftHeader => bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
 
+		// If maxHeightPreviouslyForgedBlock is not in the last blocks (default 309), it is BFT complient
+		if (maxHeightPreviouslyForgedBlock === undefined) {
+			return true;
+		}
+
 		if (
-			!maxHeightPreviouslyForgedBlock ||
-			blockHeader.asset.maxHeightPreviouslyForged >= blockHeader.height ||
-			(blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <= heightThreshold &&
-				!blockHeader.generatorPublicKey.equals(maxHeightPreviouslyForgedBlock.generatorPublicKey))
+			blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <= heightThreshold &&
+			!blockHeader.generatorPublicKey.equals(maxHeightPreviouslyForgedBlock.generatorPublicKey)
 		) {
 			return false;
 		}
