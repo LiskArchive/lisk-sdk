@@ -31,13 +31,21 @@ USAGE
   $ lisk [COMMAND]
 
 COMMANDS
-  account              Commands relating to Lisk accounts.
-  copyright            Displays copyright notice.
-  help                 Displays help.
-  message              Commands relating to user messages.
-  passphrase           Commands relating to Lisk passphrases.
-  network-identifier   Creates network identifier of Lisk network.
-  warranty             Displays warranty notice.
+  account             Commands relating to Lisk accounts.
+  autocomplete        display autocomplete installation instructions
+  hash-onion
+  help                Displays help.
+  message             Commands relating to user messages.
+  network-identifier
+  passphrase          Commands relating to Lisk passphrases.
+```
+
+## Autocomplete
+
+To use autocomplete feature for commands & flags enable it by following instructions after running
+
+```sh
+$ lisk autocomplete
 ```
 
 ### Running Tests
