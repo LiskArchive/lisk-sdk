@@ -42,7 +42,7 @@ COMMANDS
 
 ## Autocomplete
 
-To use autocomplete feature for commands & flags enable it by following instructions after running
+To use autocomplete feature for commands & flags follow the instructions after running
 
 ```sh
 $ lisk autocomplete
