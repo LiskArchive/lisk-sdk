@@ -46,7 +46,8 @@
 		"commands": "./dist/commands",
 		"bin": "lisk",
 		"plugins": [
-			"@oclif/plugin-help"
+			"@oclif/plugin-help",
+			"@oclif/plugin-autocomplete"
 		],
 		"topics": {
 			"account": {
@@ -77,6 +78,7 @@
 		"@oclif/command": "1.5.19",
 		"@oclif/config": "1.14.0",
 		"@oclif/errors": "1.2.2",
+		"@oclif/plugin-autocomplete": "0.2.1",
 		"@oclif/plugin-help": "2.2.3",
 		"bip39": "3.0.2",
 		"chalk": "3.0.0",
