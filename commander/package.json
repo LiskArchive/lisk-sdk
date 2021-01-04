@@ -63,7 +63,7 @@
 				"description": "Commands relating to user messages."
 			},
 			"network-identifier": {
-				"description": "Creates network identifier for the given genesis block id and community identifier."
+				"description": "Create network identifier for a given genesis block id and community identifier."
 			},
 			"passphrase": {
 				"description": "Commands relating to Lisk passphrases."
