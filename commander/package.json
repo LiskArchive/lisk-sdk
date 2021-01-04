@@ -53,11 +53,17 @@
 			"account": {
 				"description": "Commands relating to Lisk accounts."
 			},
+			"hash-onion": {
+				"description": "Create hash onions to be used by the forger."
+			},
 			"help": {
 				"description": "Displays help."
 			},
 			"message": {
 				"description": "Commands relating to user messages."
+			},
+			"network-identifier": {
+				"description": "Creates network identifier for the given genesis block id and community identifier."
 			},
 			"passphrase": {
 				"description": "Commands relating to Lisk passphrases."
