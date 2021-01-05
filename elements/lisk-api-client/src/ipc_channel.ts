@@ -19,6 +19,7 @@
 /// <reference path="../external_types/pm2-axon-rpc/index.d.ts" />
 import * as path from 'path';
 import * as axon from 'pm2-axon';
+import { homedir } from 'os';
 import { PubSocket, PullSocket, PushSocket, SubSocket, ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
 import { EventEmitter } from 'events';
@@ -34,7 +35,8 @@ import { convertRPCError } from './utils';
 const CONNECTION_TIME_OUT = 2000;
 
 const getSocketsPath = (dataPath: string) => {
-	const socketDir = path.join(path.resolve(dataPath), 'tmp', 'sockets');
+	const dataPathWithoutTilde = dataPath.replace('~', homedir());
+	const socketDir = path.join(path.resolve(dataPathWithoutTilde), 'tmp', 'sockets');
 	return {
 		root: `unix://${socketDir}`,
 		pub: `unix://${socketDir}/pub_socket.sock`,
