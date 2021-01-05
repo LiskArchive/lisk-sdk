@@ -54,9 +54,7 @@ export interface TransportConstructor {
 }
 
 export interface handlePostTransactionReturn {
-	transactionId?: string;
-	message?: string;
-	errors?: Error[] | Error;
+	transactionId: string;
 }
 
 interface HandleRPCGetTransactionsReturn {
