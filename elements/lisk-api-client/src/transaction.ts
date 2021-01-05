@@ -210,9 +210,15 @@ export class Transaction {
 		return signTransaction(assetSchema, transaction, networkIdentifier, passphrases[0]);
 	}
 
-	public async send(transaction: Record<string, unknown>): Promise<void> {
+	public async send(
+		transaction: Record<string, unknown>,
+	): Promise<{
+		transactionId: string;
+	}> {
 		const encodedTx = encodeTransaction(transaction, this._schema);
-		return this._channel.invoke('app:postTransaction', { transaction: encodedTx.toString('hex') });
+		return this._channel.invoke<{
+			transactionId: string;
+		}>('app:postTransaction', { transaction: encodedTx.toString('hex') });
 	}
 
 	public decode<T = Record<string, unknown>>(transaction: Buffer): T {
