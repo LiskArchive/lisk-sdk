@@ -66,7 +66,9 @@ describe('transaction', () => {
 			.calledWith('app:getTransactionByID')
 			.mockResolvedValue(txHex as never)
 			.calledWith('app:getTransactionsFromPool')
-			.mockResolvedValue([txHex] as never);
+			.mockResolvedValue([txHex] as never)
+			.calledWith('app:postTransaction')
+			.mockResolvedValue(txHex as never);
 
 		transaction = new Transaction(channelMock, schema, nodeInfo);
 	});
@@ -284,12 +286,13 @@ describe('transaction', () => {
 
 		describe('send', () => {
 			it('should invoke app:postTransaction', async () => {
-				await transaction.send(tx);
+				const trxId = await transaction.send(tx);
 
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				expect(channelMock.invoke).toHaveBeenCalledWith('app:postTransaction', {
 					transaction: txHex,
 				});
+				expect(trxId).toEqual(txHex);
 			});
 		});
 
