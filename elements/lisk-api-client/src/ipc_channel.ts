@@ -35,8 +35,7 @@ import { convertRPCError } from './utils';
 const CONNECTION_TIME_OUT = 2000;
 
 const getSocketsPath = (dataPath: string) => {
-	const dataPathWithoutTilde = dataPath.replace('~', homedir());
-	const socketDir = path.join(path.resolve(dataPathWithoutTilde), 'tmp', 'sockets');
+	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())), 'tmp', 'sockets');
 	return {
 		root: `unix://${socketDir}`,
 		pub: `unix://${socketDir}/pub_socket.sock`,
