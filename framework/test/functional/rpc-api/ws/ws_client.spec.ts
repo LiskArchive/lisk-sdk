@@ -69,7 +69,7 @@ describe('api client ws mode', () => {
 		it('should invoke getNodeInfo action', async () => {
 			// Act
 			const nodeInfo = await client.invoke('app:getNodeInfo');
-			// console.log(await client.invoke('app:getNodeInfo'))
+
 			// Assert
 			expect(nodeInfo.version).toEqual(app.config.version);
 			expect(nodeInfo.networkVersion).toEqual(app.config.networkVersion);
@@ -87,7 +87,7 @@ describe('api client ws mode', () => {
 		it('should throw an error when action fails due to missing argument', async () => {
 			// Assert
 			await expect(client.invoke('app:getAccount')).rejects.toThrow(
-				'The first argument must be of type string or an instance of Buffer',
+				'The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type undefined',
 			);
 		});
 
