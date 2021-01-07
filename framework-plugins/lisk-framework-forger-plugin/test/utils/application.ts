@@ -76,7 +76,7 @@ export const createApplication = async (
 			},
 		},
 		rpc: {
-			enable: false,
+			enable: true,
 			port: 8080,
 			mode: 'ws',
 		},
