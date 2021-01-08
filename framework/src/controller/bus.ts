@@ -104,7 +104,7 @@ export class Bus {
 		this.channels = {};
 		this.rpcClients = {};
 
-		if (this.config.rpc.enable && this.config.rpc.mode === 'ipc') {
+		if (this.config.rpc.enable) {
 			this._ipcServer = new IPCServer({
 				socketsDir: this.config.socketsPath.root,
 				name: 'bus',
