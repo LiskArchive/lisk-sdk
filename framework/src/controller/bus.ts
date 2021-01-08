@@ -121,7 +121,7 @@ export class Bus {
 	}
 
 	public async setup(): Promise<boolean> {
-		if (this.config.rpc.enable && this.config.rpc.mode === 'ipc') {
+		if (this.config.rpc.enable) {
 			await this._setupIPCServer();
 		}
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
