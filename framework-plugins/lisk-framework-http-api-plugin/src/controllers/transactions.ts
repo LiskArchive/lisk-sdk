@@ -118,9 +118,7 @@ export const postTransaction = (channel: BaseChannel, codec: PluginCodec) => asy
 		const encodedTransaction = codec.encodeTransaction(req.body as TransactionInput);
 
 		const result = await channel.invoke<{
-			transactionId?: string;
-			message?: string;
-			errors?: Error[] | Error;
+			transactionId: string;
 		}>('app:postTransaction', {
 			transaction: encodedTransaction,
 		});
