@@ -109,7 +109,7 @@ export class Controller {
 			const klass = plugins[alias];
 			const options = { dataPath: this.config.dataPath, ...pluginOptions[alias] };
 
-			if (options.loadAsChildProcess) {
+			if (options.loadAsChildProcess && this.config.rpc.enable) {
 				await this._loadChildProcessPlugin(alias, klass, options);
 			} else {
 				await this._loadInMemoryPlugin(alias, klass, options);

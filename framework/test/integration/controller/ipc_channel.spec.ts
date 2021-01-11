@@ -24,14 +24,14 @@ describe('IPCChannel', () => {
 		info: jest.fn(),
 	};
 
-	const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel/sockets`);
+	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_channel/sockets`);
 
 	const config: any = {
 		socketsPath: {
 			root: socketsDir,
 		},
 		rpc: {
-			enable: false,
+			enable: true,
 			mode: 'ipc',
 			port: 8080,
 		},

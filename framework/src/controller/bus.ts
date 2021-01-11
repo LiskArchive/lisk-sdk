@@ -83,7 +83,7 @@ export class Bus {
 		[key: string]: ChannelInfo;
 	};
 	private readonly rpcClients: { [key: string]: ReqSocket };
-	private readonly _ipcServer: IPCServer;
+	private readonly _ipcServer!: IPCServer;
 	private readonly _emitter: EventEmitter2;
 
 	private readonly _wsServer!: WSServer;
@@ -104,10 +104,12 @@ export class Bus {
 		this.channels = {};
 		this.rpcClients = {};
 
-		this._ipcServer = new IPCServer({
-			socketsDir: this.config.socketsPath.root,
-			name: 'bus',
-		});
+		if (this.config.rpc.enable) {
+			this._ipcServer = new IPCServer({
+				socketsDir: this.config.socketsPath.root,
+				name: 'bus',
+			});
+		}
 
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
 			this._wsServer = new WSServer({
@@ -119,8 +121,9 @@ export class Bus {
 	}
 
 	public async setup(): Promise<boolean> {
-		await this._setupIPCServer();
-
+		if (this.config.rpc.enable) {
+			await this._setupIPCServer();
+		}
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
 			await this._setupWSServer();
 		}

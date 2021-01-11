@@ -21,7 +21,7 @@ import { Application } from '../../../../src';
 import { APP_EVENT_BLOCK_NEW } from '../../../../src/constants';
 
 describe('api client ipc mode', () => {
-	const label = 'client-ipc';
+	const label = 'client-ipc-in-memory';
 	let app: Application;
 	let client: any;
 	let helloMessage: any;
@@ -31,6 +31,7 @@ describe('api client ipc mode', () => {
 		newBlockEvent = [];
 		app = await createApplicationWithHelloPlugin({
 			label,
+			pluginChildProcess: false,
 			rpcConfig: { enable: true, mode: 'ipc', port: 8080 },
 		});
 
@@ -74,7 +75,7 @@ describe('api client ipc mode', () => {
 		it('should invoke getNodeInfo action', async () => {
 			// Act
 			const nodeInfo = await client.invoke('app:getNodeInfo');
-			// console.log(await client.invoke('app:getNodeInfo'))
+
 			// Assert
 			expect(nodeInfo.version).toEqual(app.config.version);
 			expect(nodeInfo.networkVersion).toEqual(app.config.networkVersion);
@@ -92,7 +93,7 @@ describe('api client ipc mode', () => {
 		it('should throw an error when action fails due to missing argument', async () => {
 			// Assert
 			await expect(client.invoke('app:getAccount')).rejects.toThrow(
-				'The first argument must be of type string or an instance of Buffer',
+				'The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined',
 			);
 		});
 
@@ -132,7 +133,7 @@ describe('api client ipc mode', () => {
 		});
 	});
 
-	describe('plugin in-memory', () => {
+	describe('plugin actions', () => {
 		it('should be able to get data from plugin action', async () => {
 			// Act
 			const data = await client.invoke('hello:callGreet');

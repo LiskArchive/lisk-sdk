@@ -12,23 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { resolve as pathResolve } from 'path';
-import { homedir } from 'os';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 
 describe('InMemoryChannel', () => {
-	// Arrange
-	const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
-
 	const logger: any = {
 		info: jest.fn(),
+		debug: jest.fn(),
 	};
 
 	const config: any = {
-		socketsPath: {
-			root: socketsDir,
-		},
 		rpc: {
 			enable: false,
 			mode: 'ipc',
