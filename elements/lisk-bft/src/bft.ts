@@ -25,6 +25,7 @@ import {
 import { EVENT_BFT_FINALIZED_HEIGHT_CHANGED, FinalityManager } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
 import { BFTPersistedValues, ForkStatus } from './types';
+import { BFT_ROUND_THRESHOLD } from './constant';
 
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
@@ -162,16 +163,24 @@ export class BFT extends EventEmitter {
 	): Promise<boolean> {
 		assert(blockHeader, 'No block was provided to be verified');
 
-		const roundsThreshold = 3;
 		const validators = await getValidators(stateStore);
 		const numberOfVotingValidators = validators.filter(
 			validator => validator.isConsensusParticipant,
 		).length;
 
-		const heightThreshold = numberOfVotingValidators * roundsThreshold;
+		const heightThreshold = numberOfVotingValidators * BFT_ROUND_THRESHOLD;
 
 		// Special case to avoid reducing the reward of delegates forging for the first time before the `heightThreshold` height
 		if (blockHeader.asset.maxHeightPreviouslyForged === 0) {
+			return true;
+		}
+
+		if (blockHeader.height <= blockHeader.asset.maxHeightPreviouslyForged) {
+			return false;
+		}
+
+		// If maxHeightPreviouslyForged is not in threshold, it is BFT compliant
+		if (blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged > heightThreshold) {
 			return true;
 		}
 
@@ -179,12 +188,13 @@ export class BFT extends EventEmitter {
 			bftHeader => bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
 
-		if (
-			!maxHeightPreviouslyForgedBlock ||
-			blockHeader.asset.maxHeightPreviouslyForged >= blockHeader.height ||
-			(blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <= heightThreshold &&
-				!blockHeader.generatorPublicKey.equals(maxHeightPreviouslyForgedBlock.generatorPublicKey))
-		) {
+		if (!maxHeightPreviouslyForgedBlock) {
+			throw new Error(
+				`Block at height ${blockHeader.asset.maxHeightPreviouslyForged} must be in the lastBlockHeaders.`,
+			);
+		}
+
+		if (!blockHeader.generatorPublicKey.equals(maxHeightPreviouslyForgedBlock.generatorPublicKey)) {
 			return false;
 		}
 
