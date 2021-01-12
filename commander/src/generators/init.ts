@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * LiskHQ/lisk-commander
  * Copyright © 2020 Lisk Foundation
@@ -15,27 +14,63 @@
  *
  */
 
-import Generator, { GeneratorOptions } from 'yeoman-generator';
+import { userInfo } from 'os';
+import { basename } from 'path';
+import BaseGenerator from './base_generator';
+import { InitPrompts } from '../types';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const npmGenerator = require('generator-npm');
+export default class InitGenerator extends BaseGenerator {
+	private answers!: InitPrompts;
 
-export default class extends Generator {
-	public constructor(args: string | string[], opts: GeneratorOptions) {
-    super(args, opts);
+	async prompting() {
+		this.answers = (await this.prompt([
+			{
+				type: 'input',
+				name: 'name',
+				message: 'Your app name',
+				default: basename(this.destinationRoot()),
+			},
+			{
+				type: 'input',
+				name: 'description',
+				message: 'Your app description',
+				default: '',
+			},
+			{
+				type: 'input',
+				name: 'author',
+				message: 'Author',
+				default: userInfo().username,
+			},
+			{
+				type: 'input',
+				name: 'license',
+				message: 'License',
+				default: 'ISC',
+			},
+		])) as InitPrompts;
+	}
 
-    this.composeWith(npmGenerator);
-  }
+	public createSkeleton(): void {
+		this.fs.copyTpl(
+			`${this._liskTemplatePath}/templates/app/**/*`,
+			this.destinationRoot(),
+			{
+				appName: this.answers.name,
+				appDescription: this.answers.description,
+				author: this.answers.author,
+				license: this.answers.license,
+			},
+			{},
+			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
+		);
+	}
 
-  public createSourceDirectories(): void {
-    this.log('Creating directories...');
-  }
+	public updateRCFile(): void {
+		this._liskRC.setPath('template', this._liskTemplateName);
+	}
 
-  public createTestDirectories(): void {
-    this.log('Creating directories...');
-  }
-
-  public createRCFile(): void {
-    this.log('Creating directories...');
-  }
+	public installPackages(): void {
+		this.installDependencies();
+	}
 }

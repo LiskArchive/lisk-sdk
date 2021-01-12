@@ -1,0 +1,97 @@
+{
+	"name": "<%= appName %>",
+	"version": "0.1.0",
+	"description": "<%= appDescription %>",
+	"author": "<%= author %>",
+	"license": "<%= license %>",
+	"keywords": [
+		"blockchain",
+		"lisk",
+		"nodejs",
+		"javascript",
+		"typescript"
+	],
+	"homepage": "",
+	"repository": {},
+	"engines": {
+		"node": ">=12.20.0",
+		"npm": ">=6.14.8"
+	},
+	"main": "dist/index.js",
+	"scripts": {
+		"lint": "eslint --ext .js,.ts .",
+		"lint:fix": "eslint --fix --ext .js,.ts .",
+		"format": "prettier --write '**/*'",
+		"prepack": "oclif-dev manifest && oclif-dev readme --multi --dir=docs/commands && npm shrinkwrap && npm prune --production && npm shrinkwrap",
+		"prebuild": "if test -d dist; then rm -r dist; fi; rm -f tsconfig.tsbuildinfo; rm -f npm-shrinkwrap.json",
+		"build": "tsc",
+		"test": "jest",
+		"test:coverage": "jest --coverage=true --coverage-reporters=text",
+		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
+		"test:stress": "npx ts-node test/scripts/stress_test.ts",
+		"version": "oclif-dev readme --multi --dir=docs/commands && git add README.md docs",
+		"prepublishOnly": "npm ci && npm run lint && npm run build"
+	},
+	"bin": {
+		"<%= appName %>": "./bin/run"
+	},
+	"oclif": {
+		"bin": "<%= appName %>",
+		"commands": "./dist/commands",
+		"plugins": [
+			"@oclif/plugin-autocomplete",
+			"@oclif/plugin-help"
+		]
+	},
+	"files": [
+		"/bin",
+		"/npm-shrinkwrap.json",
+		"/oclif.manifest.json",
+		"/dist",
+		"/config",
+		"/docs"
+	],
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"dependencies": {
+		"@oclif/command": "1.6.1",
+		"@oclif/config": "1.15.1",
+		"@oclif/plugin-autocomplete": "0.2.1",
+		"@oclif/plugin-help": "3.1.0",
+		"fs-extra": "9.0.1",
+		"inquirer": "7.3.2",
+		"lisk-sdk": "5.0.0",
+		"tar": "6.0.2",
+		"tslib": "1.13.0",
+		"axios": "0.21.1"
+	},
+	"devDependencies": {
+		"@oclif/dev-cli": "1.22.2",
+		"@types/fs-extra": "9.0.1",
+		"@types/node": "12.12.11",
+		"@types/tar": "4.0.3",
+		"@types/jest": "26.0.3",
+		"@types/jest-when": "2.7.1",
+		"@typescript-eslint/eslint-plugin": "2.28.0",
+		"@typescript-eslint/parser": "2.28.0",
+		"eslint": "6.8.0",
+		"eslint-config-airbnb-base": "14.0.0",
+		"eslint-config-lisk-base": "1.2.2",
+		"eslint-config-prettier": "6.10.0",
+		"eslint-plugin-import": "2.20.1",
+		"eslint-plugin-jest": "24.0.0",
+		"globby": "10.0.2",
+		"husky": "4.2.5",
+		"jest": "26.1.0",
+		"jest-extended": "0.11.5",
+		"jest-when": "2.7.2",
+		"lint-staged": "10.2.11",
+		"prettier": "2.0.5",
+		"ts-jest": "26.1.1",
+		"ts-node": "8.6.2",
+		"typescript": "3.8.3"
+	}
+}

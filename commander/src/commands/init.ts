@@ -14,21 +14,29 @@
  *
  */
 
-import { Command } from '@oclif/command';
-import { env } from '../generators';
+import BaseBootstrapCommand from '../base_bootstrap_command';
+import { env } from '../generators/env';
 
-export default class InitCommand extends Command {
-	// eslint-disable-next-line class-methods-use-this
+export default class InitCommand extends BaseBootstrapCommand {
+	static flags = {
+		...BaseBootstrapCommand.flags,
+	};
+
 	async run(): Promise<void> {
 		return new Promise((resolve, reject) => {
-			env.run('lisk:init', (err): void => {
-				if (err) {
-					console.error(err);
-					return reject(err);
-				}
+			env.run(
+				'lisk:init',
+				// TODO: Pass the commander version
+				{ template: this.bootstrapFlags.template, version: '0.1.0' },
+				(err): void => {
+					if (err) {
+						console.error(err);
+						return reject(err);
+					}
 
-				return resolve();
-			});
+					return resolve();
+				},
+			);
 		});
 	}
 }
