@@ -9496,11 +9496,6 @@ mz@^2.5.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-n@7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/n/-/n-7.0.0.tgz#193aa6a09be53811321547cfa3134dff72e41e6a"
-  integrity sha512-OOfwnaMCToX3zRwhrNGMZNOdSyprPzhmdiunLjui+7NWDG9SDLp4KszqqwHOLq7+HZJ8NLdUvJ0pzrfGJ9FDVg==
-
 nan@^2.14.0:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
