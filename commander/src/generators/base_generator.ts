@@ -19,7 +19,7 @@ import Storage from 'yeoman-generator/lib/util/storage';
 import { join, dirname } from 'path';
 import { BootstrapGeneratorOptions } from '../types';
 
-const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
+// const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
 
 export default abstract class BaseGenerator extends Generator {
 	protected readonly _liskTemplatePath: string;
@@ -34,14 +34,15 @@ export default abstract class BaseGenerator extends Generator {
 		this._commanderVersion = opts.version;
 		this._liskRC = this.createStorage('.liskrc.json');
 
-		// TODO: Check if template does not provided then load from `.liskrc.json`
+		// TODO: Use dynamic template. Also check if template does not provided then load from `.liskrc.json`
+		//
+		// if (this._liskTemplateName === DEFAULT_TEMPLATE_NAME) {
+		// 	this._liskTemplatePath = join(dirname(__filename), 'templates', 'lisk-template-ts');
+		// } else {
+		// 	this._liskTemplatePath = require.resolve(this._liskTemplateName);
+		// }
 
-		if (this._liskTemplateName === DEFAULT_TEMPLATE_NAME) {
-			this._liskTemplatePath = join(dirname(__filename), 'templates', 'lisk-template-ts');
-		} else {
-			// TODO: Use the dynamic to load template from global npm package
-			this._liskTemplatePath = join(dirname(__filename), 'templates', 'lisk-template-ts');
-		}
+		this._liskTemplatePath = join(dirname(__filename), 'templates', 'lisk-template-ts');
 
 		this.sourceRoot(this._liskTemplatePath);
 		this._liskRC.setPath('commander.version', this._commanderVersion);
