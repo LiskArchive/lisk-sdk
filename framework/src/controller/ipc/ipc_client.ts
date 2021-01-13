@@ -17,15 +17,14 @@
 // eslint-disable-next-line
 /// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
 
-import * as axon from 'pm2-axon';
-import { PushSocket, ReqSocket, SubSocket } from 'pm2-axon';
-import { Client as RPCClient } from 'pm2-axon-rpc';
+import { Axon } from 'pm2-axon';
+import { AxonRpc } from 'pm2-axon-rpc';
 import { IPCSocket } from './ipc_socket';
 
 const CONNECTION_TIME_OUT = 2000;
 
 export class IPCClient extends IPCSocket {
-	public rpcClient!: RPCClient;
+	public rpcClient!: AxonRpc.Client;
 	protected readonly _actionRPCConnectingServerSocketPath: string;
 
 	public constructor(options: { socketsDir: string; name: string; rpcServerSocketPath: string }) {
@@ -33,9 +32,9 @@ export class IPCClient extends IPCSocket {
 
 		this._actionRPCConnectingServerSocketPath = options.rpcServerSocketPath;
 
-		this.pubSocket = axon.socket('push', {}) as PushSocket;
-		this.subSocket = axon.socket('sub', {}) as SubSocket;
-		this.rpcClient = new RPCClient(axon.socket('req') as ReqSocket);
+		this.pubSocket = Axon.socket('push', {}) as Axon.PushSocket;
+		this.subSocket = Axon.socket('sub', {}) as Axon.SubSocket;
+		this.rpcClient = new AxonRpc.Client(Axon.socket('req') as Axon.ReqSocket);
 	}
 
 	public async start(): Promise<void> {

@@ -18,8 +18,8 @@
 /// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
 
 import { EventEmitter2, Listener } from 'eventemitter2';
-import { Server as RPCServer, Client as RPCClient } from 'pm2-axon-rpc';
-import { PubSocket, PullSocket, PushSocket, SubSocket } from 'pm2-axon';
+import { AxonRpc } from 'pm2-axon-rpc';
+import { Axon } from 'pm2-axon';
 import { Action, ActionsDefinition } from '../action';
 import { Event } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
@@ -180,19 +180,19 @@ export class IPCChannel extends BaseChannel {
 		this._ipcClient.stop();
 	}
 
-	private get _rpcServer(): RPCServer {
+	private get _rpcServer(): AxonRpc.Server {
 		return this._ipcClient.rpcServer;
 	}
 
-	private get _rpcClient(): RPCClient {
+	private get _rpcClient(): AxonRpc.Client {
 		return this._ipcClient.rpcClient;
 	}
 
-	private get _pubSocket(): PubSocket | PushSocket {
+	private get _pubSocket(): Axon.PubSocket | Axon.PushSocket {
 		return this._ipcClient.pubSocket;
 	}
 
-	private get _subSocket(): PullSocket | SubSocket {
+	private get _subSocket(): Axon.PullSocket | Axon.SubSocket {
 		return this._ipcClient.subSocket;
 	}
 }

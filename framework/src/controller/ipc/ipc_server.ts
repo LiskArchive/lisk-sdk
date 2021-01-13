@@ -17,16 +17,15 @@
 // eslint-disable-next-line
 /// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
 
-import * as axon from 'pm2-axon';
-import { PubSocket, PullSocket } from 'pm2-axon';
+import { Axon } from 'pm2-axon';
 import { IPCSocket } from './ipc_socket';
 
 export class IPCServer extends IPCSocket {
 	public constructor(options: { socketsDir: string; name: string }) {
 		super(options);
 
-		this.pubSocket = axon.socket('pub', {}) as PubSocket;
-		this.subSocket = axon.socket('pull', {}) as PullSocket;
+		this.pubSocket = Axon.socket('pub', {}) as Axon.PubSocket;
+		this.subSocket = Axon.socket('pull', {}) as Axon.PullSocket;
 	}
 
 	public async start(): Promise<void> {

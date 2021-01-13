@@ -17,15 +17,14 @@
 // eslint-disable-next-line
 /// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
 
-import * as axon from 'pm2-axon';
-import { PubSocket, PullSocket, PushSocket, RepSocket, SubSocket } from 'pm2-axon';
+import { Axon } from 'pm2-axon';
 import { join } from 'path';
-import { Server as RPCServer } from 'pm2-axon-rpc';
+import { AxonRpc } from 'pm2-axon-rpc';
 
 export abstract class IPCSocket {
-	public pubSocket!: PushSocket | PubSocket;
-	public subSocket!: PullSocket | SubSocket;
-	public rpcServer: RPCServer;
+	public pubSocket!: Axon.PushSocket | Axon.PubSocket;
+	public subSocket!: Axon.PullSocket | Axon.SubSocket;
+	public rpcServer: AxonRpc.Server;
 
 	protected readonly _eventPubSocketPath: string;
 	protected readonly _eventSubSocketPath: string;
@@ -39,7 +38,7 @@ export abstract class IPCSocket {
 			`${options.name}_rpc_socket.sock`,
 		)}`;
 
-		this.rpcServer = new RPCServer(axon.socket('rep') as RepSocket);
+		this.rpcServer = new AxonRpc.Server(Axon.socket('rep') as Axon.RepSocket);
 	}
 
 	public get rpcServerSocketPath(): string {

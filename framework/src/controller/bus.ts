@@ -14,9 +14,8 @@
 
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { EventEmitter2, Listener } from 'eventemitter2';
-import * as axon from 'pm2-axon';
-import { ReqSocket } from 'pm2-axon';
-import { Client as RPCClient } from 'pm2-axon-rpc';
+import { Axon } from 'pm2-axon';
+import { AxonRpc } from 'pm2-axon-rpc';
 import { Logger } from '../logger';
 import { ActionInfoForBus, SocketPaths } from '../types';
 import { Action } from './action';
@@ -53,7 +52,7 @@ enum ChannelType {
 
 interface ChannelInfo {
 	readonly channel?: BaseChannel;
-	readonly rpcClient?: RPCClient;
+	readonly rpcClient?: AxonRpc.Client;
 	readonly actions: {
 		[key: string]: ActionInfoForBus;
 	};
@@ -82,7 +81,7 @@ export class Bus {
 	private readonly channels: {
 		[key: string]: ChannelInfo;
 	};
-	private readonly rpcClients: { [key: string]: ReqSocket };
+	private readonly rpcClients: { [key: string]: Axon.ReqSocket };
 	private readonly _ipcServer!: IPCServer;
 	private readonly _emitter: EventEmitter2;
 
@@ -155,10 +154,10 @@ export class Bus {
 		});
 
 		if (options.rpcSocketPath) {
-			const rpcSocket = axon.socket('req') as ReqSocket;
+			const rpcSocket = Axon.socket('req') as Axon.ReqSocket;
 			rpcSocket.connect(options.rpcSocketPath);
 
-			const rpcClient = new RPCClient(rpcSocket);
+			const rpcClient = new AxonRpc.Client(rpcSocket);
 			this.rpcClients[moduleAlias] = rpcSocket;
 
 			this.channels[moduleAlias] = {
@@ -245,7 +244,7 @@ export class Bus {
 
 		// For child process channel
 		return new Promise((resolve, reject) => {
-			(channelInfo.rpcClient as RPCClient).call(
+			(channelInfo.rpcClient as AxonRpc.Client).call(
 				'invoke',
 				action.toJSONRPCRequest(),
 				(err: Error | undefined, data: JSONRPC.ResponseObjectWithResult<T>) => {
