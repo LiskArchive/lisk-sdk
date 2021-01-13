@@ -16,10 +16,17 @@
 
 import { userInfo } from 'os';
 import { basename } from 'path';
-import BaseGenerator from './base_generator';
-import { InitPrompts } from '../types';
+import { join } from 'path';
+import Generator from 'yeoman-generator';
 
-export default class InitGenerator extends BaseGenerator {
+interface InitPrompts {
+	name: string;
+	description: string;
+	author: string;
+	license: string;
+}
+
+export default class InitGenerator extends Generator {
 	private answers!: InitPrompts;
 
 	async prompting() {
@@ -52,8 +59,9 @@ export default class InitGenerator extends BaseGenerator {
 	}
 
 	public createSkeleton(): void {
+		const templatePath = join(__dirname, '..', 'templates');
 		this.fs.copyTpl(
-			`${this._liskTemplatePath}/templates/app/**/*`,
+			`${templatePath}/app/**/*`,
 			this.destinationRoot(),
 			{
 				appName: this.answers.name,
@@ -64,13 +72,5 @@ export default class InitGenerator extends BaseGenerator {
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
-	}
-
-	public updateRCFile(): void {
-		this._liskRC.setPath('template', this._liskTemplateName);
-	}
-
-	public installPackages(): void {
-		this.installDependencies();
 	}
 }
