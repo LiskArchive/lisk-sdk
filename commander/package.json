@@ -95,7 +95,9 @@
 		"semver": "7.1.3",
 		"strip-ansi": "6.0.0",
 		"tar": "6.0.1",
-		"tslib": "1.11.1"
+		"tslib": "1.11.1",
+		"yeoman-environment": "2.10.3",
+		"yeoman-generator": "4.12.0"
 	},
 	"devDependencies": {
 		"@oclif/dev-cli": "1.22.2",
@@ -115,6 +117,8 @@
 		"@types/sinon-chai": "3.2.3",
 		"@types/strip-ansi": "5.2.1",
 		"@types/tar": "4.0.3",
+		"@types/yeoman-environment": "2.10.2",
+		"@types/yeoman-generator": "4.11.3",
 		"@typescript-eslint/eslint-plugin": "3.10.1",
 		"@typescript-eslint/parser": "3.10.1",
 		"chai": "4.2.0",
