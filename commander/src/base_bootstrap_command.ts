@@ -15,16 +15,12 @@
  */
 import { Command, flags as flagParser } from '@oclif/command';
 import { env } from './bootstrapping/env';
-// eslint-disable-next-line
-const packageJSON = require('../package.json');
 
 interface BootstrapFlags {
 	readonly template?: string;
 }
 
 export default abstract class BaseBootstrapCommand extends Command {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-	static version: string = packageJSON.version;
 	static flags = {
 		template: flagParser.string({
 			char: 't',
@@ -62,7 +58,7 @@ export default abstract class BaseBootstrapCommand extends Command {
 		return new Promise((resolve, reject) => {
 			env.run(
 				command,
-				{ template: this.bootstrapFlags.template, version: BaseBootstrapCommand.version },
+				{ template: this.bootstrapFlags.template, version: this.config.version },
 				(err): void => {
 					if (err) {
 						this.error(err);
