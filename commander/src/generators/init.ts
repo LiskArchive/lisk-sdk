@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -27,13 +27,13 @@ export default class InitGenerator extends BaseGenerator {
 			{
 				type: 'input',
 				name: 'name',
-				message: 'Your app name',
+				message: 'Application name',
 				default: basename(this.destinationRoot()),
 			},
 			{
 				type: 'input',
 				name: 'description',
-				message: 'Your app description',
+				message: 'Application description',
 				default: '',
 			},
 			{

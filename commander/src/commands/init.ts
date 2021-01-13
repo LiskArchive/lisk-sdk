@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -30,7 +30,7 @@ export default class InitCommand extends BaseBootstrapCommand {
 				{ template: this.bootstrapFlags.template, version: '0.1.0' },
 				(err): void => {
 					if (err) {
-						console.error(err);
+						this.error(err);
 						return reject(err);
 					}
 

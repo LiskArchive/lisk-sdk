@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,14 +14,14 @@
  *
  */
 
-import Generator from 'yeoman-generator';
+import YeomanGenerator from 'yeoman-generator';
 import Storage from 'yeoman-generator/lib/util/storage';
 import { join, dirname } from 'path';
 import { BootstrapGeneratorOptions } from '../types';
 
 // const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
 
-export default abstract class BaseGenerator extends Generator {
+export default abstract class BaseGenerator extends YeomanGenerator {
 	protected readonly _liskTemplatePath: string;
 	protected readonly _liskTemplateName: string;
 	protected readonly _liskRC: Storage;
