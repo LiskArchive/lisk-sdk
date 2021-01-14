@@ -17,35 +17,49 @@
 import YeomanGenerator from 'yeoman-generator';
 import Storage from 'yeoman-generator/lib/util/storage';
 import { join, dirname } from 'path';
-import { BootstrapGeneratorOptions } from '../types';
+import assert from 'assert';
+import { BootstrapGeneratorOptions, LiskTemplate } from '../../types';
 
-// const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
+const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
 
 export default abstract class BaseGenerator extends YeomanGenerator {
 	protected readonly _liskTemplatePath: string;
 	protected readonly _liskTemplateName: string;
 	protected readonly _liskRC: Storage;
 	protected readonly _commanderVersion: string;
+	protected _liskTemplate!: LiskTemplate;
 
 	public constructor(args: string | string[], opts: BootstrapGeneratorOptions) {
 		super(args, opts);
 
-		this._liskTemplateName = opts.template;
-		this._commanderVersion = opts.version;
 		this._liskRC = this.createStorage('.liskrc.json');
+		this._liskTemplateName = opts.template ?? this._liskRC.getPath('template') ?? 'lisk-ts';
+		this._commanderVersion = opts.version;
 
-		// TODO: Use dynamic template. Also check if template does not provided then load from `.liskrc.json`
-		//
-		// if (this._liskTemplateName === DEFAULT_TEMPLATE_NAME) {
-		// 	this._liskTemplatePath = join(dirname(__filename), 'templates', 'lisk-template-ts');
-		// } else {
-		// 	this._liskTemplatePath = require.resolve(this._liskTemplateName);
-		// }
+		if (this._liskTemplateName === DEFAULT_TEMPLATE_NAME) {
+			this._liskTemplatePath = join(dirname(__filename), '..', 'templates', 'lisk-template-ts');
+		} else {
+			this._liskTemplatePath = require.resolve(this._liskTemplateName);
+		}
 
-		this._liskTemplatePath = join(dirname(__filename), 'templates', 'lisk-template-ts');
-
-		this.sourceRoot(this._liskTemplatePath);
+		this.log(`Using template "${this._liskTemplateName}"`);
 		this._liskRC.setPath('commander.version', this._commanderVersion);
 		this._liskRC.setPath('template', this._liskTemplateName);
+
+		this.sourceRoot(this._liskTemplatePath);
+	}
+
+	protected async _loadAndValidateTemplate(): Promise<void> {
+		this._liskTemplate = (await import(this._liskTemplatePath)) as LiskTemplate;
+
+		assert(
+			this._liskTemplate.generators,
+			`Template "${this._liskTemplateName}" does not have any generators`,
+		);
+
+		assert(
+			this._liskTemplate.generators.init,
+			`Template "${this._liskTemplateName}" does not have "init" generators`,
+		);
 	}
 }

@@ -14,14 +14,10 @@
  *
  */
 
-import BaseBootstrapCommand from '../base_bootstrap_command';
+import yeoman from 'yeoman-environment';
 
-export default class InitCommand extends BaseBootstrapCommand {
-	static flags = {
-		...BaseBootstrapCommand.flags,
-	};
+const env = yeoman.createEnv();
 
-	async run(): Promise<void> {
-		return this._runBootstrapCommand('lisk:init');
-	}
-}
+env.register(require.resolve('./generators/init'), 'lisk:init');
+
+export { env };

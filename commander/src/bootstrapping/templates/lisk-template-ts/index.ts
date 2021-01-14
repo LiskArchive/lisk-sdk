@@ -14,10 +14,6 @@
  *
  */
 
-import yeoman from 'yeoman-environment';
+import InitGenerator from './generators/init_generator';
 
-const env = yeoman.createEnv();
-
-env.register(require.resolve('./init'), 'lisk:init');
-
-export { env };
+export const generators = { init: InitGenerator };

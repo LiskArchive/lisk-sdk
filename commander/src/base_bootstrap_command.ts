@@ -14,17 +14,18 @@
  *
  */
 import { Command, flags as flagParser } from '@oclif/command';
+import { env } from './bootstrapping/env';
 
 interface BootstrapFlags {
-	readonly template: string;
+	readonly template?: string;
 }
 
 export default abstract class BaseBootstrapCommand extends Command {
 	static flags = {
 		template: flagParser.string({
 			char: 't',
-			description: 'Template to bootstrap the application',
-			default: 'lisk-ts',
+			description:
+				'Template to bootstrap the application. It will read from `.liskrc.json` or use `lisk-ts` if not found.',
 		}),
 	};
 
@@ -50,6 +51,23 @@ export default abstract class BaseBootstrapCommand extends Command {
 			if (err.errno !== 'EPIPE') {
 				throw err;
 			}
+		});
+	}
+
+	protected async _runBootstrapCommand(command: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			env.run(
+				command,
+				{ template: this.bootstrapFlags.template, version: this.config.version },
+				(err): void => {
+					if (err) {
+						this.error(err);
+						return reject(err);
+					}
+
+					return resolve();
+				},
+			);
 		});
 	}
 }

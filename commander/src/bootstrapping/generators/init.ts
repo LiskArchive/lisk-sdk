@@ -14,14 +14,23 @@
  *
  */
 
-import BaseBootstrapCommand from '../base_bootstrap_command';
+import BaseGenerator from './base_generator';
 
-export default class InitCommand extends BaseBootstrapCommand {
-	static flags = {
-		...BaseBootstrapCommand.flags,
-	};
+export default class InitGenerator extends BaseGenerator {
+	public async runInitTemplate(): Promise<void> {
+		await this._loadAndValidateTemplate();
 
-	async run(): Promise<void> {
-		return this._runBootstrapCommand('lisk:init');
+		this.composeWith({
+			Generator: this._liskTemplate.generators.init,
+			path: this._liskTemplatePath,
+		});
+	}
+
+	public updateRCFile(): void {
+		this._liskRC.setPath('template', this._liskTemplateName);
+	}
+
+	public installPackages(): void {
+		this.installDependencies();
 	}
 }

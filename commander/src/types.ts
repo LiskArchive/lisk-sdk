@@ -1,13 +1,15 @@
-import { GeneratorOptions } from 'yeoman-generator';
-
-export interface InitPrompts {
-	name: string;
-	description: string;
-	author: string;
-	license: string;
-}
+import { GeneratorConstructor, GeneratorOptions } from 'yeoman-generator';
 
 export interface BootstrapGeneratorOptions extends GeneratorOptions {
 	template: string;
 	version: string;
+}
+
+export interface LiskTemplate {
+	generators: {
+		init: GeneratorConstructor;
+		module: GeneratorConstructor;
+		asset: GeneratorConstructor;
+		plugin: GeneratorConstructor;
+	};
 }
