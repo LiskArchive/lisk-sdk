@@ -25,7 +25,7 @@ export default abstract class BaseBootstrapCommand extends Command {
 		template: flagParser.string({
 			char: 't',
 			description:
-				'Template to bootstrap the application. It will try to detect from `.liskrc.json` or use `lisk-ts` if not found.',
+				'Template to bootstrap the application. It will read from `.liskrc.json` or use `lisk-ts` if not found.',
 		}),
 	};
 
