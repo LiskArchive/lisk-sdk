@@ -1,0 +1,9 @@
+{
+	"diff": true,
+	"extension": ["ts"],
+	"recursive": true,
+	"spec": "test/**/*.ts",
+	"require": ["ts-node/register", "./test/setup.js"],
+	"timeout": 10000,
+	"watch-files": ["src/**/*.ts"]
+}
