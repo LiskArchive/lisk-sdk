@@ -24,11 +24,11 @@ export default class NetworkConfigCommand extends Command {
 	static examples = [
 		'generate:network-config mydir',
 		'generate:network-config mydir --label alpha-sdk-app',
-		'generate:network-config mydir --label alpha-sdk-app --identifier Lisk',
+		'generate:network-config mydir --label alpha-sdk-app --community-identifier sdk',
 	];
 	static args = [
 		{
-			name: 'dirName',
+			name: 'networkName',
 			description: 'Directory where the config file is saved.',
 			required: true,
 		},
@@ -40,7 +40,7 @@ export default class NetworkConfigCommand extends Command {
 			description: 'App Label',
 			default: 'alpha-sdk-app',
 		}),
-		identifier: flagParser.string({
+		'community-identifier': flagParser.string({
 			char: 'i',
 			description: 'Community Identifier',
 			default: 'sdk',
@@ -49,35 +49,34 @@ export default class NetworkConfigCommand extends Command {
 
 	async run(): Promise<void> {
 		const {
-			flags: { label, identifier },
+			flags: { label, 'community-identifier': communityIdentifier },
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			args: { dirName },
+			args: { networkName },
 		} = this.parse(NetworkConfigCommand);
 
-		// validate dirName to not include camelcase or whitespace
+		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
 		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
-		if (regexCamelCase.test(dirName) || regexWhitespace.test(dirName)) {
+		if (regexCamelCase.test(networkName) || regexWhitespace.test(networkName)) {
 			this.error('Invalid name');
 		}
 
 		// determine proper path
-		const configPath = join(__dirname, '../../config', dirName);
+		const configPath = join(__dirname, '../../config', networkName);
 
 		defaultConfig.label = label;
-		defaultConfig.genesisConfig.communityIdentifier = identifier;
-		// defaultConfig.version = get label from package.json of the app created
+		defaultConfig.genesisConfig.communityIdentifier = communityIdentifier;
+		// defaultConfig.version = get version from package.json of the app created
 
-		// check for existing file at dirName & warn the user of overwriting
+		// check for existing file at networkName & ask the user before overwriting
 		if (fs.existsSync(configPath)) {
 			const userResponse = await inquirer.prompt({
 				type: 'confirm',
 				name: 'confirm',
-				message:
-					'A config file already exists at the given location. Do you want to overwrite it ?',
+				message: 'A config file already exists at the given location. Do you want to overwrite it?',
 			});
 			if (!userResponse.confirm) {
-				this.error('Aborting');
+				this.error('Operation cancelled, config file already present at the desired location');
 			} else {
 				fs.writeJSONSync(resolve(configPath, 'config.json'), JSON.stringify(defaultConfig));
 			}

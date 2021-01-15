@@ -16,7 +16,6 @@
 import * as sandbox from 'sinon';
 import fs from 'fs-extra';
 import { expect, test } from '@oclif/test';
-// import * as printUtils from '../../../src/utils/print';
 
 describe('generate:network-config command', () => {
 	const setupTest = () => test.stub(fs, 'writeJSONSync', sandbox.stub().returns({})).stdout();

@@ -69,7 +69,7 @@
 				"description": "Commands relating to Lisk passphrases."
 			},
 			"generate": {
-				"description": "Commands relating to Lisk bootstrap generator."
+				"description": "Commands relating to Lisk generator."
 			}
 		}
 	},
