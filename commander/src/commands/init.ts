@@ -17,11 +17,35 @@
 import BaseBootstrapCommand from '../base_bootstrap_command';
 
 export default class InitCommand extends BaseBootstrapCommand {
+	static description = 'Bootstrap a lisk-sdk project.';
+
+	static examples = [
+		'init',
+		'init --template lisk-ts',
+		'init --template @some-global-npm-package',
+		'init /project/path',
+		'init /project/path --template lisk-ts',
+	];
+
 	static flags = {
 		...BaseBootstrapCommand.flags,
 	};
 
+	static args = [
+		{
+			name: 'projectPath',
+			description: 'Path to create the project.',
+			default: process.env.INIT_CWD ?? process.cwd(),
+		},
+	];
+
 	async run(): Promise<void> {
-		return this._runBootstrapCommand('lisk:init');
+		const {
+			args: { projectPath },
+		} = this.parse(InitCommand) as { args: { projectPath: string } };
+
+		return this._runBootstrapCommand('lisk:init', {
+			projectPath: projectPath ?? process.env.INIT_CWD ?? process.cwd(),
+		});
 	}
 }
