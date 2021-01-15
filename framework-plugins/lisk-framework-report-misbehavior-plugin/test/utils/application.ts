@@ -80,7 +80,11 @@ export const getApplication = (
 		},
 	} as PartialApplicationConfig;
 
-	const app = Application.defaultApplication(genesisBlock, config);
+	const genesis = {
+		...genesisBlock,
+		header: { ...genesisBlock.header, timestamp: Math.floor(Date.now() / 1000) },
+	};
+	const app = Application.defaultApplication(genesis, config);
 	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: false });
 	return app;
 };
