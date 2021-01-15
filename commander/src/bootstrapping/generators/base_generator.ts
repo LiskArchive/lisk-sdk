@@ -22,7 +22,7 @@ import { BootstrapGeneratorOptions, LiskTemplate } from '../../types';
 
 const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
 
-export default abstract class BaseGenerator extends YeomanGenerator {
+export default abstract class BootstrapGenerator extends YeomanGenerator {
 	protected readonly _liskTemplatePath: string;
 	protected readonly _liskTemplateName: string;
 	protected readonly _liskRC: Storage;
@@ -31,6 +31,10 @@ export default abstract class BaseGenerator extends YeomanGenerator {
 
 	public constructor(args: string | string[], opts: BootstrapGeneratorOptions) {
 		super(args, opts);
+
+		if (opts.projectPath) {
+			this.destinationRoot(opts.projectPath);
+		}
 
 		this._liskRC = this.createStorage('.liskrc.json');
 		this._liskTemplateName = opts.template ?? this._liskRC.getPath('template') ?? 'lisk-ts';
