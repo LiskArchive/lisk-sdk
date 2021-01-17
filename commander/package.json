@@ -43,6 +43,9 @@
 		"prepack": "oclif-dev manifest && npm shrinkwrap && npm prune --production && npm shrinkwrap",
 		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm run build"
 	},
+	"lisk": {
+		"addressPrefix": "lsk"
+	},
 	"oclif": {
 		"commands": "./dist/commands",
 		"bin": "lisk",
@@ -82,6 +85,7 @@
 		"/docs"
 	],
 	"dependencies": {
+		"lisk-sdk": "5.0.3",
 		"@liskhq/lisk-cryptography": "^3.0.0",
 		"@liskhq/lisk-passphrase": "^3.0.1",
 		"@liskhq/lisk-validator": "^0.5.0",
@@ -90,6 +94,7 @@
 		"@oclif/errors": "1.2.2",
 		"@oclif/plugin-autocomplete": "0.2.1",
 		"@oclif/plugin-help": "2.2.3",
+		"axios": "0.21.1",
 		"bip39": "3.0.2",
 		"chalk": "3.0.0",
 		"cli-table3": "0.5.1",
