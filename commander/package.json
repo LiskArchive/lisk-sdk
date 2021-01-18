@@ -68,6 +68,9 @@
 			},
 			"passphrase": {
 				"description": "Commands relating to Lisk passphrases."
+			},
+			"generate": {
+				"description": "Commands relating to Lisk generator."
 			}
 		}
 	},
