@@ -8,5 +8,5 @@
 		"outDir": "dist"
 	},
 	"include": ["src/**/*"],
-	"exclude": ["src/bootstrapping/templates/lisk-template-ts/templates/**/*"],
+	"exclude": ["src/bootstrapping/templates/lisk-template-ts/templates/**/*"]
 }
