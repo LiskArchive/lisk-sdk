@@ -1,5 +1,6 @@
-import { HTTPAPIPlugin, ForgerPlugin } from 'lisk-sdk';
-import app from './app';
+import { HTTPAPIPlugin, ForgerPlugin, Application } from 'lisk-sdk';
 
-app.registerPlugin(HTTPAPIPlugin);
-app.registerPlugin(ForgerPlugin);
+export const registerPlugins = (app: Application) => {
+	app.registerPlugin(HTTPAPIPlugin);
+	app.registerPlugin(ForgerPlugin);
+};

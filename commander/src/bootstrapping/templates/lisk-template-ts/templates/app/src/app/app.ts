@@ -1,8 +1,13 @@
-import { Application, genesisBlockDevnet, configDevnet, utils } from 'lisk-sdk';
+import { Application, PartialApplicationConfig, utils } from 'lisk-sdk';
 
-const app = Application.defaultApplication(
-	genesisBlockDevnet,
-	utils.objects.mergeDeep(configDevnet, { label: '<%= appName %>' }),
-);
+export const getApplication = (
+	genesisBlock: Record<string, unknown>,
+	config: PartialApplicationConfig,
+): Application => {
+	const app = Application.defaultApplication(
+		genesisBlock,
+		utils.objects.mergeDeep(config, { label: '<%= appName %>' }),
+	);
 
-export default app;
+	return app;
+};
