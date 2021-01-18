@@ -7,6 +7,5 @@ benchmark
 dist
 tmp
 build
-qa
 scripts
 config
