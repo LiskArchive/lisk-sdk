@@ -1,24 +1,14 @@
-import { cryptography, passphrase } from 'lisk-sdk';
 import * as Config from '@oclif/config';
 import { AccountCreateCommand } from '../../../src/commands/account/create';
 import { getConfig } from '../../utils/config';
 
 describe('account:create', () => {
-	const defaultMnemonic =
-		'lab mirror fetch tuna village sell sphere truly excite manual planet capable';
-	const secondDefaultMnemonic =
-		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
-	let results: any;
 	let config: Config.IConfig;
-
+	let results: any;
 	beforeEach(async () => {
 		results = [];
-		jest
-			.spyOn(passphrase.Mnemonic, 'generateMnemonic')
-			.mockReturnValueOnce(defaultMnemonic)
-			.mockReturnValueOnce(secondDefaultMnemonic);
-		jest.spyOn(process.stdout, 'write').mockImplementation(val => results.push(val));
 		config = await getConfig();
+		jest.spyOn(process.stdout, 'write').mockImplementation(val => results.push(val));
 	});
 
 	it('should throw an error if the flag is invalid number', async () => {
@@ -42,17 +32,12 @@ describe('account:create', () => {
 	describe('account:create', () => {
 		it('should create an account', async () => {
 			await AccountCreateCommand.run([], config);
-			expect(JSON.parse(results[0])).toEqual([
-				{
-					publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
-					address: cryptography.getBase32AddressFromPublicKey(
-						cryptography.getKeys(defaultMnemonic).publicKey,
-						'lsk',
-					),
-					binaryAddress: cryptography.getAddressFromPassphrase(defaultMnemonic).toString('hex'),
-					passphrase: defaultMnemonic,
-				},
+			expect(Object.keys(JSON.parse(results[0])[0])).toEqual([
+				'passphrase',
+				'privateKey',
+				'publicKey',
+				'binaryAddress',
+				'address',
 			]);
 		});
 	});
@@ -61,31 +46,7 @@ describe('account:create', () => {
 		const defaultNumber = 2;
 		it('should create multiple accounts', async () => {
 			await AccountCreateCommand.run(['--count', defaultNumber.toString()], config);
-			const result = [
-				{
-					publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
-					address: cryptography.getBase32AddressFromPublicKey(
-						cryptography.getKeys(defaultMnemonic).publicKey,
-						'lsk',
-					),
-					binaryAddress: cryptography.getAddressFromPassphrase(defaultMnemonic).toString('hex'),
-					passphrase: defaultMnemonic,
-				},
-				{
-					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
-					address: cryptography.getBase32AddressFromPublicKey(
-						cryptography.getKeys(secondDefaultMnemonic).publicKey,
-						'lsk',
-					),
-					binaryAddress: cryptography
-						.getAddressFromPassphrase(secondDefaultMnemonic)
-						.toString('hex'),
-					passphrase: secondDefaultMnemonic,
-				},
-			];
-			expect(JSON.parse(results[0])).toEqual(result);
+			expect(JSON.parse(results[0])).toHaveLength(defaultNumber);
 		});
 	});
 });
