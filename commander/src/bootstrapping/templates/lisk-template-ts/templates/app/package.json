@@ -14,8 +14,8 @@
 	"homepage": "",
 	"repository": {},
 	"engines": {
-		"node": ">=12.20.0",
-		"npm": ">=6.14.8"
+		"node": ">=12.20.1",
+		"npm": ">=6.14.10"
 	},
 	"main": "dist/index.js",
 	"scripts": {
@@ -24,11 +24,11 @@
 		"format": "prettier --write '**/*'",
 		"prepack": "oclif-dev manifest && oclif-dev readme --multi --dir=docs/commands && npm shrinkwrap && npm prune --production && npm shrinkwrap",
 		"prebuild": "if test -d dist; then rm -r dist; fi; rm -f tsconfig.tsbuildinfo; rm -f npm-shrinkwrap.json",
+		"start": "npx ts-node src/app",
 		"build": "tsc",
-		"test": "jest",
-		"test:coverage": "jest --coverage=true --coverage-reporters=text",
-		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
-		"test:stress": "npx ts-node test/scripts/stress_test.ts",
+		"test": "jest --passWithNoTests",
+		"test:coverage": "jest --passWithNoTests --coverage=true --coverage-reporters=text",
+		"test:ci": "jest --passWithNoTests --coverage=true --coverage-reporters=json --verbose",
 		"version": "oclif-dev readme --multi --dir=docs/commands && git add README.md docs",
 		"prepublishOnly": "npm ci && npm run lint && npm run build"
 	},
@@ -59,11 +59,10 @@
 	"dependencies": {
 		"@oclif/command": "1.6.1",
 		"@oclif/config": "1.15.1",
-		"@oclif/plugin-autocomplete": "0.2.1",
 		"@oclif/plugin-help": "3.1.0",
 		"fs-extra": "9.0.1",
 		"inquirer": "7.3.2",
-		"lisk-sdk": "5.0.0",
+		"lisk-sdk": "5.0.3",
 		"tar": "6.0.2",
 		"tslib": "1.13.0",
 		"axios": "0.21.1"

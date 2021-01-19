@@ -14,23 +14,37 @@
  *
  */
 
-import BaseGenerator from './base_generator';
+import BootstrapGenerator from './base_generator';
 
-export default class InitGenerator extends BaseGenerator {
-	public async runInitTemplate(): Promise<void> {
+export default class InitGenerator extends BootstrapGenerator {
+	public async initializing(): Promise<void> {
 		await this._loadAndValidateTemplate();
+	}
 
+	public configuring(): void {
+		this.log('Updating .liskrc.json file');
+		this._liskRC.setPath('template', this._liskTemplateName);
+	}
+
+	public writing(): void {
+		this.log('Creating project structure');
 		this.composeWith({
 			Generator: this._liskTemplate.generators.init,
 			path: this._liskTemplatePath,
 		});
 	}
 
-	public updateRCFile(): void {
-		this._liskRC.setPath('template', this._liskTemplateName);
+	public install(): void {
+		this.log('Initializing git repository');
+		this.composeWith(require.resolve('generator-git-init'));
+
+		this.log('Installing npm packages');
+		this.npmInstall();
 	}
 
-	public installPackages(): void {
-		this.installDependencies();
+	public end(): void {
+		this.log('\n\n');
+		this.log('All set! Run below command to start your blockchain app.\n');
+		this.log(`cd ${this.destinationRoot()}; npm start`);
 	}
 }

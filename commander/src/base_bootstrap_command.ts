@@ -54,15 +54,17 @@ export default abstract class BaseBootstrapCommand extends Command {
 		});
 	}
 
-	protected async _runBootstrapCommand(command: string): Promise<void> {
-		return new Promise((resolve, reject) => {
+	protected async _runBootstrapCommand(
+		command: string,
+		opts?: Record<string, unknown>,
+	): Promise<void> {
+		return new Promise(resolve => {
 			env.run(
 				command,
-				{ template: this.bootstrapFlags.template, version: this.config.version },
+				{ ...opts, template: this.bootstrapFlags.template, version: this.config.version },
 				(err): void => {
 					if (err) {
 						this.error(err);
-						return reject(err);
 					}
 
 					return resolve();

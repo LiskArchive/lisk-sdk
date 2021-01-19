@@ -15,8 +15,8 @@
  */
 
 import { userInfo } from 'os';
-import { basename } from 'path';
-import { join } from 'path';
+import { basename, join } from 'path';
+
 import Generator from 'yeoman-generator';
 
 interface InitPrompts {
