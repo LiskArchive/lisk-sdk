@@ -19,7 +19,7 @@ import { Command, flags as flagParser } from '@oclif/command';
 import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils/path';
 import { extract } from '../../../utils/download';
 
-export default class ImportCommand extends Command {
+export class ImportCommand extends Command {
 	static description = 'Import from <FILE>.';
 
 	static args = [

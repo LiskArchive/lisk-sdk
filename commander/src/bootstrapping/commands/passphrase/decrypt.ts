@@ -32,7 +32,7 @@ const processInputs = (password: string, encryptedPassphrase: string): Record<st
 	return { passphrase };
 };
 
-export default class DecryptCommand extends Command {
+export class DecryptCommand extends Command {
 	static args = [
 		{
 			name: 'encryptedPassphrase',

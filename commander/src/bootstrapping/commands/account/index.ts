@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { default as AccountCreateCommand } from './create';
+export { CreateCommand as AccountCreateCommand } from './create';
 export { GetCommand as AccountGetCommand } from './get';
-export { default as AccountShowCommand } from './show';
-export { default as AccountValidateCommand } from './validate';
+export { ShowCommand as AccountShowCommand } from './show';
+export { ValidateCommand as AccountValidateCommand } from './validate';

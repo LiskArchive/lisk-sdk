@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BaseIPCCommand from '../base_ipc';
+import { BaseIPCCommand } from '../base_ipc';
 
 interface Args {
 	readonly input: string;

@@ -19,7 +19,7 @@ import { getFullPath } from '../../../utils/path';
 import { downloadAndValidate, getChecksum } from '../../../utils/download';
 import { flags as commonFlags } from '../../../utils/flags';
 
-export default class DownloadCommand extends Command {
+export class DownloadCommand extends Command {
 	static description = 'Download snapshot from <URL>.';
 
 	static examples = [

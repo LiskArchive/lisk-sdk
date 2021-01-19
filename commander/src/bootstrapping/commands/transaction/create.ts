@@ -16,7 +16,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { flags as flagParser } from '@oclif/command';
 import { codec, cryptography, transactions, validator } from 'lisk-sdk';
-import BaseIPCCommand from '../base_ipc';
+import { BaseIPCCommand } from '../base_ipc';
 import { flags as commonFlags } from '../../../utils/flags';
 import { getAssetFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
 import { DEFAULT_NETWORK } from '../../../constants';

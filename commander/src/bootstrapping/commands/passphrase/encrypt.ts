@@ -21,7 +21,7 @@ import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/r
 const outputPublicKeyOptionDescription =
 	'Includes the public key in the output. This option is provided for the convenience of node operators.';
 
-export default class EncryptCommand extends Command {
+export class EncryptCommand extends Command {
 	static description = 'Encrypt secret passphrase using password.';
 
 	static examples = [

@@ -53,7 +53,7 @@ export interface Codec {
 
 const prettyDescription = 'Prints JSON in pretty format rather than condensed.';
 
-export default abstract class BaseIPCCommand extends Command {
+export abstract class BaseIPCCommand extends Command {
 	static flags = {
 		pretty: flagParser.boolean({
 			description: prettyDescription,

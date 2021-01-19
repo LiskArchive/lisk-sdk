@@ -18,7 +18,7 @@ import Command, { flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
-export abstract class HashOnionCommand extends Command {
+export class HashOnionCommand extends Command {
 	static description = 'Create hash onions to be used by the forger.';
 
 	static examples = [

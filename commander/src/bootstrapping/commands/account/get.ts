@@ -14,7 +14,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import BaseIPCCommand from '../base_ipc';
+import { BaseIPCCommand } from '../base_ipc';
 
 interface Args {
 	readonly address: string;

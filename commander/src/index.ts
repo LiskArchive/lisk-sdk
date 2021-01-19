@@ -51,5 +51,4 @@ export {
 	TransactionSignCommand,
 } from './bootstrapping/commands/transaction';
 export { HashOnionCommand } from './bootstrapping/commands/hash-onion';
-export {} from './bootstrapping/commands/base_ipc';
 export { StartCommand as BaseStartCommand } from './bootstrapping/commands/start';

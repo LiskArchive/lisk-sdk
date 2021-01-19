@@ -13,7 +13,7 @@
  *
  */
 import { validator } from 'lisk-sdk';
-import BaseIPCCommand from '../base_ipc';
+import { BaseIPCCommand } from '../base_ipc';
 
 interface Args {
 	readonly transaction: string;

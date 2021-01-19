@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { default as PassphraseDecryptCommand } from './decrypt';
-export { default as PassphraseEncryptCommand } from './encrypt';
+export { DecryptCommand as PassphraseDecryptCommand } from './decrypt';
+export { EncryptCommand as PassphraseEncryptCommand } from './encrypt';

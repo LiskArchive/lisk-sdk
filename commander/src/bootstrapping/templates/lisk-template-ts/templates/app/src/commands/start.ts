@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { flags as flagParser } from '@oclif/command';
-import { StartCommand as BaseStartCommand } from 'lisk-commander';
+import { BaseStartCommand } from 'lisk-commander';
 import {
 	Application,
 	ApplicationConfig,
@@ -51,7 +51,7 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 	}
 };
 
-export default class StartCommand extends BaseStartCommand {
+export class StartCommand extends BaseStartCommand {
 	static flags = {
 		...BaseStartCommand.flags,
 		'enable-http-api-plugin': flagParser.boolean({

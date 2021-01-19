@@ -19,7 +19,7 @@ import { flags as commonFlags } from '../../../utils/flags';
 import { getPid, isApplicationRunning } from '../../../utils/application';
 import { getBlockchainDB } from '../../../utils/db';
 
-export default class ResetCommand extends Command {
+export class ResetCommand extends Command {
 	static description = 'Reset the blockchain data.';
 
 	static examples = [

@@ -21,7 +21,7 @@ import { encryptPassphrase } from '../../../utils/commons';
 import { flags as commonFlags } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
 
-export default class ConfigCommand extends Command {
+export class ConfigCommand extends Command {
 	static description = 'Generate delegate forging config for given passphrase and password.';
 
 	static examples = [

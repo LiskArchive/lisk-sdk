@@ -12,4 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { default as SDKLinkCommand } from './link';
+export { LinkCommand as SDKLinkCommand } from './link';

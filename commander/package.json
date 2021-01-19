@@ -43,9 +43,6 @@
 		"prepack": "oclif-dev manifest && npm shrinkwrap && npm prune --production && npm shrinkwrap",
 		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm run build"
 	},
-	"lisk": {
-		"addressPrefix": "lsk"
-	},
 	"oclif": {
 		"commands": "./dist/commands",
 		"bin": "lisk",

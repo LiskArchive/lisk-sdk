@@ -15,7 +15,7 @@
 
 import { flags as flagParser } from '@oclif/command';
 import { transactions, cryptography } from 'lisk-sdk';
-import BaseIPCCommand from '../base_ipc';
+import { BaseIPCCommand } from '../base_ipc';
 import { flags as commonFlags } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 import { DEFAULT_NETWORK } from '../../../constants';

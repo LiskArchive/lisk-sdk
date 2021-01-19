@@ -17,7 +17,7 @@ import * as inquirer from 'inquirer';
 import { flags as flagParser } from '@oclif/command';
 
 import { flags as commonFlags } from '../../utils/flags';
-import BaseIPCCommand from './base_ipc';
+import { BaseIPCCommand } from './base_ipc';
 
 interface Args {
 	readonly address: string;

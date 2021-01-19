@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BaseIPCCommand from '../base_ipc';
+import { BaseIPCCommand } from '../base_ipc';
 
 export abstract class StatusCommand extends BaseIPCCommand {
 	static description = 'Get forging information for the locally running node.';

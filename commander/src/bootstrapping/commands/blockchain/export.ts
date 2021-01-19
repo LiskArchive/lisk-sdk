@@ -18,7 +18,7 @@ import { join } from 'path';
 import { Command, flags as flagParser } from '@oclif/command';
 import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils/path';
 
-export default class ExportCommand extends Command {
+export class ExportCommand extends Command {
 	static description = 'Export to <FILE>.';
 
 	static examples = [

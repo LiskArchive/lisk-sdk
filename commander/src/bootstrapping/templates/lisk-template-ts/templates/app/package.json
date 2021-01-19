@@ -35,13 +35,48 @@
 	"bin": {
 		"<%= appName %>": "./bin/run"
 	},
+	"lisk": {
+		"addressPrefix": "lsk"
+	},
 	"oclif": {
 		"bin": "<%= appName %>",
 		"commands": "./dist/commands",
 		"plugins": [
 			"@oclif/plugin-autocomplete",
 			"@oclif/plugin-help"
-		]
+		],
+		"topics": {
+			"account": {
+				"description": "Commands relating to Lisk Core accounts."
+			},
+			"block": {
+				"description": "Commands relating to Lisk Core blocks."
+			},
+			"blockchain": {
+				"description": "Commands relating to Lisk Core blockchain data."
+			},
+			"forger-info": {
+				"description": "Commands relating to Lisk Core forger-info data."
+			},
+			"forging": {
+				"description": "Commands relating to Lisk Core forging."
+			},
+			"node": {
+				"description": "Commands relating to Lisk Core node."
+			},
+			"config": {
+				"description": "Commands relating to Lisk Core node configuration."
+			},
+			"passphrase": {
+				"description": "Commands relating to Lisk Core passphrases."
+			},
+			"sdk": {
+				"description": "Commands relating to Lisk SDK development."
+			},
+			"transaction": {
+				"description": "Commands relating to Lisk Core transactions."
+			}
+		}
 	},
 	"files": [
 		"/bin",
@@ -58,7 +93,7 @@
 	},
 	"dependencies": {
 		"@oclif/command": "1.6.1",
-		"@oclif/config": "1.15.1",
+		"@oclif/plugin-autocomplete": "0.2.1",
 		"@oclif/plugin-help": "3.1.0",
 		"fs-extra": "9.0.1",
 		"inquirer": "7.3.2",
@@ -70,6 +105,7 @@
 	},
 	"devDependencies": {
 		"@oclif/dev-cli": "1.22.2",
+		"@oclif/config": "1.15.1",
 		"@types/fs-extra": "9.0.1",
 		"@types/node": "12.12.11",
 		"@types/tar": "4.0.3",

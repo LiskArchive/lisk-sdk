@@ -40,7 +40,7 @@ const createAccount = (prefix: string): AccountInfo => {
 	};
 };
 
-export default class CreateCommand extends Command {
+export class CreateCommand extends Command {
 	static description =
 		'Return randomly-generated mnemonic passphrase with its corresponding public/private key pair and Lisk address.';
 

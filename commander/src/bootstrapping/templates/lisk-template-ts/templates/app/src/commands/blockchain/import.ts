@@ -1,1 +1,1 @@
-import { BlockchainImportCommand } from 'lisk-commander';
+export { BlockchainImportCommand } from 'lisk-commander';
