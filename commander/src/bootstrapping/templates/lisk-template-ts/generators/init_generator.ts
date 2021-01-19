@@ -29,7 +29,7 @@ interface InitPrompts {
 export default class InitGenerator extends Generator {
 	private answers!: InitPrompts;
 
-	async prompting() {
+	async prompting(): Promise<void> {
 		this.answers = (await this.prompt([
 			{
 				type: 'input',

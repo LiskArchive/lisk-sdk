@@ -18,7 +18,7 @@ import { Command } from '@oclif/command';
 import { symlink, pathExistsSync, removeSync } from 'fs-extra';
 import { join, isAbsolute } from 'path';
 
-export abstract class LinkCommand extends Command {
+export default class LinkCommand extends Command {
 	static description = 'Symlink specific SDK folder during development.';
 
 	static examples = ['sdk:link /path/to/lisk-sdk/sdk'];

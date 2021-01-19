@@ -29,7 +29,7 @@ interface Args {
 const isLessThanZero = (value: number | undefined | null): boolean =>
 	value === null || value === undefined || value < 0;
 
-export class BaseForgingCommand extends BaseIPCCommand {
+export abstract class BaseForgingCommand extends BaseIPCCommand {
 	static args = [
 		{
 			name: 'address',

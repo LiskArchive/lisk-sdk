@@ -105,12 +105,7 @@ export default abstract class BaseIPCCommand extends Command {
 		if (this.baseIPCFlags.offline) {
 			// Read network genesis block and config from the folder
 			const { genesisBlock, config } = await getGenesisBlockAndConfig(this.baseIPCFlags.network);
-			const app = this.getApplication(genesisBlock, config, {
-				enableHTTPAPIPlugin: false,
-				enableForgerPlugin: false,
-				enableMonitorPlugin: false,
-				enableReportMisbehaviorPlugin: false,
-			});
+			const app = this.getApplication(genesisBlock, config);
 			this._schema = app.getSchema();
 			return;
 		}
@@ -195,6 +190,5 @@ export default abstract class BaseIPCCommand extends Command {
 	abstract getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,
-		options: Record<string, unknown>,
 	): Application;
 }

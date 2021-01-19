@@ -38,3 +38,7 @@ export interface Schema {
 	readonly type: string;
 	readonly properties: Record<string, unknown>;
 }
+
+export type RecursivePartial<T> = {
+	[P in keyof T]?: RecursivePartial<T[P]>;
+};

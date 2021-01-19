@@ -40,7 +40,7 @@ const processInput = (
 	};
 };
 
-export abstract class ShowCommand extends Command {
+export default class ShowCommand extends Command {
 	static description = 'Show account information for a given passphrase.';
 
 	static examples = ['account:show'];

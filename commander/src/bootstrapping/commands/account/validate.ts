@@ -20,7 +20,7 @@ interface Args {
 	readonly address: string;
 }
 
-export abstract class ValidateCommand extends Command {
+export default class ValidateCommand extends Command {
 	static description = 'Validate base32 address.';
 
 	static examples = ['account:validate lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g'];

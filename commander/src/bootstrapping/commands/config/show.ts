@@ -23,7 +23,7 @@ import {
 } from '../../../utils/path';
 import { flags as commonFlags } from '../../../utils/flags';
 
-export abstract class ShowCommand extends Command {
+export default class ShowCommand extends Command {
 	static description = 'Show application config.';
 
 	static examples = [

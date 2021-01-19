@@ -17,14 +17,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
-import {
-	ApplicationConfig,
-	Application,
-	HTTPAPIPlugin,
-	MonitorPlugin,
-	PartialApplicationConfig,
-	utils,
-} from 'lisk-sdk';
+import { ApplicationConfig, Application, PartialApplicationConfig, utils } from 'lisk-sdk';
 import {
 	getDefaultPath,
 	splitPath,
@@ -39,45 +32,7 @@ import {
 import { flags as commonFlags } from '../../utils/flags';
 import { DEFAULT_NETWORK } from '../../constants';
 
-interface Flags {
-	[key: string]: string | number | boolean | undefined;
-}
-
 const LOG_OPTIONS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
-
-const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
-	if (flags['http-api-plugin-port'] !== undefined) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		config.plugins[HTTPAPIPlugin.alias] = config.plugins[HTTPAPIPlugin.alias] ?? {};
-		config.plugins[HTTPAPIPlugin.alias].port = flags['http-api-plugin-port'];
-	}
-	if (
-		flags['http-api-plugin-whitelist'] !== undefined &&
-		typeof flags['http-api-plugin-whitelist'] === 'string'
-	) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		config.plugins[HTTPAPIPlugin.alias] = config.plugins[HTTPAPIPlugin.alias] ?? {};
-		config.plugins[HTTPAPIPlugin.alias].whiteList = flags['http-api-plugin-whitelist']
-			.split(',')
-			.filter(Boolean);
-	}
-	if (flags['monitor-plugin-port'] !== undefined) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		config.plugins[MonitorPlugin.alias] = config.plugins[MonitorPlugin.alias] ?? {};
-		config.plugins[MonitorPlugin.alias].port = flags['monitor-plugin-port'];
-	}
-	if (
-		flags['monitor-plugin-whitelist'] !== undefined &&
-		typeof flags['monitor-plugin-whitelist'] === 'string'
-	) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		config.plugins[MonitorPlugin.alias] = config.plugins[MonitorPlugin.alias] ?? {};
-		config.plugins[MonitorPlugin.alias].whiteList = flags['monitor-plugin-whitelist']
-			.split(',')
-			.filter(Boolean);
-	}
-};
-
 export abstract class StartCommand extends Command {
 	static description = 'Start Lisk Core Node.';
 
@@ -120,7 +75,7 @@ export abstract class StartCommand extends Command {
 		}),
 		'api-ipc': flagParser.boolean({
 			description:
-				'Enable IPC communication. This will also load up plugins in child process and communicate over IPC.',
+				'Enable IPC communication. This will load plugins as a child process and communicate over IPC.',
 			default: false,
 			exclusive: ['api-ws'],
 		}),
@@ -149,54 +104,6 @@ export abstract class StartCommand extends Command {
 			env: 'LISK_SEED_PEERS',
 			description:
 				'Seed peers to initially connect to in format of comma separated "ip:port". IP can be DNS name or IPV4 format. Environment variable "LISK_SEED_PEERS" can also be used.',
-		}),
-		'enable-http-api-plugin': flagParser.boolean({
-			description:
-				'Enable HTTP API Plugin. Environment variable "LISK_ENABLE_HTTP_API_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_HTTP_API_PLUGIN',
-			default: false,
-		}),
-		'http-api-plugin-port': flagParser.integer({
-			description:
-				'Port to be used for HTTP API Plugin. Environment variable "LISK_HTTP_API_PLUGIN_PORT" can also be used.',
-			env: 'LISK_HTTP_API_PLUGIN_PORT',
-			dependsOn: ['enable-http-api-plugin'],
-		}),
-		'http-api-plugin-whitelist': flagParser.string({
-			description:
-				'List of IPs in comma separated value to allow the connection. Environment variable "LISK_HTTP_API_PLUGIN_WHITELIST" can also be used.',
-			env: 'LISK_HTTP_API_PLUGIN_WHITELIST',
-			dependsOn: ['enable-http-api-plugin'],
-		}),
-		'enable-forger-plugin': flagParser.boolean({
-			description:
-				'Enable Forger Plugin. Environment variable "LISK_ENABLE_FORGER_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_FORGER_PLUGIN',
-			default: false,
-		}),
-		'enable-monitor-plugin': flagParser.boolean({
-			description:
-				'Enable Monitor Plugin. Environment variable "LISK_ENABLE_MONITOR_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_MONITOR_PLUGIN',
-			default: false,
-		}),
-		'monitor-plugin-port': flagParser.integer({
-			description:
-				'Port to be used for Monitor Plugin. Environment variable "LISK_MONITOR_PLUGIN_PORT" can also be used.',
-			env: 'LISK_MONITOR_PLUGIN_PORT',
-			dependsOn: ['enable-monitor-plugin'],
-		}),
-		'monitor-plugin-whitelist': flagParser.string({
-			description:
-				'List of IPs in comma separated value to allow the connection. Environment variable "LISK_MONITOR_PLUGIN_WHITELIST" can also be used.',
-			env: 'LISK_MONITOR_PLUGIN_WHITELIST',
-			dependsOn: ['enable-monitor-plugin'],
-		}),
-		'enable-report-misbehavior-plugin': flagParser.boolean({
-			description:
-				'Enable ReportMisbehavior Plugin. Environment variable "LISK_ENABLE_REPORT_MISBEHAVIOR_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_MONITOR_PLUGIN',
-			default: false,
 		}),
 	};
 
@@ -309,17 +216,10 @@ export abstract class StartCommand extends Command {
 				config.network.seedPeers.push({ ip, port: Number(port) });
 			}
 		}
-		// Plugin configs
-		setPluginConfig(config, flags);
 
 		// Get application and start
 		try {
-			const app = this.getApplication(genesisBlock, config, {
-				enableHTTPAPIPlugin: flags['enable-http-api-plugin'],
-				enableForgerPlugin: flags['enable-forger-plugin'],
-				enableMonitorPlugin: flags['enable-monitor-plugin'],
-				enableReportMisbehaviorPlugin: flags['enable-report-misbehavior-plugin'],
-			});
+			const app = this.getApplication(genesisBlock, config);
 			await app.run();
 		} catch (errors) {
 			this.error(
@@ -331,6 +231,5 @@ export abstract class StartCommand extends Command {
 	abstract getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,
-		options: Record<string, unknown>,
 	): Application;
 }

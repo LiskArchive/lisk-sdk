@@ -12,4 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { ShowCommand as ConfigShowCommand } from './show';
+export { default as ConfigShowCommand } from './show';

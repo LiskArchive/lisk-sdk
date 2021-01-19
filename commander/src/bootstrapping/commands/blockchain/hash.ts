@@ -19,7 +19,7 @@ import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils
 import { getPid, isApplicationRunning } from '../../../utils/application';
 import { getBlockchainDB } from '../../../utils/db';
 
-export abstract class HashCommand extends Command {
+export default class HashCommand extends Command {
 	static description = 'Generate SHA256 hash from <PATH>.';
 
 	static examples = ['blockchain:hash', 'blockchain:hash --data-path ./data'];
