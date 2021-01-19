@@ -47,34 +47,34 @@
 		],
 		"topics": {
 			"account": {
-				"description": "Commands relating to Lisk Core accounts."
+				"description": "Commands relating to <%= appName %> accounts."
 			},
 			"block": {
-				"description": "Commands relating to Lisk Core blocks."
+				"description": "Commands relating to <%= appName %> blocks."
 			},
 			"blockchain": {
-				"description": "Commands relating to Lisk Core blockchain data."
+				"description": "Commands relating to <%= appName %> blockchain data."
 			},
 			"forger-info": {
-				"description": "Commands relating to Lisk Core forger-info data."
+				"description": "Commands relating to <%= appName %> forger-info data."
 			},
 			"forging": {
-				"description": "Commands relating to Lisk Core forging."
+				"description": "Commands relating to <%= appName %> forging."
 			},
 			"node": {
-				"description": "Commands relating to Lisk Core node."
+				"description": "Commands relating to <%= appName %> node."
 			},
 			"config": {
-				"description": "Commands relating to Lisk Core node configuration."
+				"description": "Commands relating to <%= appName %> node configuration."
 			},
 			"passphrase": {
-				"description": "Commands relating to Lisk Core passphrases."
+				"description": "Commands relating to <%= appName %> passphrases."
 			},
 			"sdk": {
 				"description": "Commands relating to Lisk SDK development."
 			},
 			"transaction": {
-				"description": "Commands relating to Lisk Core transactions."
+				"description": "Commands relating to <%= appName %> transactions."
 			}
 		}
 	},
