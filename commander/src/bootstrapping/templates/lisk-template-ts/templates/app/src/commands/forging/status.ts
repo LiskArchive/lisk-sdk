@@ -3,7 +3,7 @@ import { ForgingStatusCommand } from 'lisk-commander';
 import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
-export default class StatusCommand extends ForgingStatusCommand {
+export class StatusCommand extends ForgingStatusCommand {
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

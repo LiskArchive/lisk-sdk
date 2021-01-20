@@ -3,7 +3,7 @@ import { NodeInfoCommand } from 'lisk-commander';
 import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
-export default class InfoCommand extends NodeInfoCommand {
+export class InfoCommand extends NodeInfoCommand {
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

@@ -3,7 +3,7 @@ import { TransactionCreateCommand } from 'lisk-commander';
 import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
-export default class CreateCommand extends TransactionCreateCommand {
+export class CreateCommand extends TransactionCreateCommand {
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

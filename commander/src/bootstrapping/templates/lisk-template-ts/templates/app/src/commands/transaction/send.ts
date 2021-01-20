@@ -3,7 +3,7 @@ import { TransactionSendCommand } from 'lisk-commander';
 import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
-export default class SendCommand extends TransactionSendCommand {
+export class SendCommand extends TransactionSendCommand {
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

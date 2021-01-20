@@ -3,7 +3,7 @@ import { TransactionSignCommand } from 'lisk-commander';
 import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
-export default class SignCommand extends TransactionSignCommand {
+export class SignCommand extends TransactionSignCommand {
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

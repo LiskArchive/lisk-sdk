@@ -3,7 +3,7 @@ import { ForgingDisableCommand } from 'lisk-commander';
 import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
-export default class DisableCommand extends ForgingDisableCommand {
+export class DisableCommand extends ForgingDisableCommand {
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,
