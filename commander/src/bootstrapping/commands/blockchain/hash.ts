@@ -36,7 +36,9 @@ export class HashCommand extends Command {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const { flags } = this.parse(HashCommand);
-		const dataPath = flags['data-path'] ? flags['data-path'] : getDefaultPath();
+		const dataPath = flags['data-path']
+			? flags['data-path']
+			: getDefaultPath(this.config.pjson.name);
 		const blockchainPath = getBlockchainDBPath(dataPath);
 
 		if (isApplicationRunning(dataPath)) {

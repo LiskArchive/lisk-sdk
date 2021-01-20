@@ -53,7 +53,9 @@ export class ImportCommand extends Command {
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(ImportCommand);
 		const { filepath } = args;
-		const dataPath = flags['data-path'] ? flags['data-path'] : getDefaultPath();
+		const dataPath = flags['data-path']
+			? flags['data-path']
+			: getDefaultPath(this.config.pjson.name);
 		const blockchainDBPath = getBlockchainDBPath(dataPath);
 
 		if (path.extname(filepath) !== '.gz') {

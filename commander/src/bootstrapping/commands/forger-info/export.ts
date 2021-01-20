@@ -41,7 +41,9 @@ export abstract class ExportCommand extends Command {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(ExportCommand);
-		const dataPath = flags['data-path'] ? flags['data-path'] : getDefaultPath();
+		const dataPath = flags['data-path']
+			? flags['data-path']
+			: getDefaultPath(this.config.pjson.name);
 		const forgerDataPath = getForgerDBPath(dataPath);
 		const exportPath = flags.output ? flags.output : process.cwd();
 

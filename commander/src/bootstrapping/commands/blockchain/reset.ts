@@ -41,7 +41,9 @@ export class ResetCommand extends Command {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(ResetCommand);
-		const dataPath = flags['data-path'] ? flags['data-path'] : getDefaultPath();
+		const dataPath = flags['data-path']
+			? flags['data-path']
+			: getDefaultPath(this.config.pjson.name);
 		const skipPrompt = flags.yes ?? false;
 
 		if (isApplicationRunning(dataPath)) {

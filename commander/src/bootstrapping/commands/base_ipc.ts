@@ -100,7 +100,7 @@ export abstract class BaseIPCCommand extends Command {
 		this.baseIPCFlags = flags;
 		const dataPath = this.baseIPCFlags['data-path']
 			? this.baseIPCFlags['data-path']
-			: getDefaultPath();
+			: getDefaultPath(this.config.pjson.name);
 
 		if (this.baseIPCFlags.offline) {
 			// Read network genesis block and config from the folder

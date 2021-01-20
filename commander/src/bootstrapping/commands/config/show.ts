@@ -50,7 +50,9 @@ export class ShowCommand extends Command {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(ShowCommand);
-		const dataPath = flags['data-path'] ? flags['data-path'] : getDefaultPath();
+		const dataPath = flags['data-path']
+			? flags['data-path']
+			: getDefaultPath(this.config.pjson.name);
 		const pathConfig = splitPath(dataPath);
 
 		// Validate dataPath/config if config for other network exists, throw error and exit unless overwrite-config is specified
