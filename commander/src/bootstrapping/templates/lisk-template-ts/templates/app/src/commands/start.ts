@@ -52,7 +52,7 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 };
 
 export class StartCommand extends BaseStartCommand {
-	static flags = {
+	static flags: any = {
 		...BaseStartCommand.flags,
 		'enable-http-api-plugin': flagParser.boolean({
 			description:
