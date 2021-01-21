@@ -87,11 +87,11 @@ export abstract class BaseIPCCommand extends Command {
 		if (error) {
 			// TODO: replace this logic with isApplicationRunning util and log the error accordingly
 			if (/^IPC Socket client connection timeout./.test((error as Error).message)) {
-				super.error(
+				this.error(
 					'Please ensure the app is up and running with ipc enabled before using the command!',
 				);
 			}
-			super.error(error instanceof Error ? error.message : error);
+			this.error(error instanceof Error ? error.message : error);
 		}
 		if (this._client) {
 			await this._client.disconnect();
@@ -122,9 +122,9 @@ export abstract class BaseIPCCommand extends Command {
 
 	printJSON(message?: Record<string, unknown>): void {
 		if (this.baseIPCFlags.pretty) {
-			super.log(JSON.stringify(message, undefined, '  '));
+			this.log(JSON.stringify(message, undefined, '  '));
 		} else {
-			super.log(JSON.stringify(message));
+			this.log(JSON.stringify(message));
 		}
 	}
 
