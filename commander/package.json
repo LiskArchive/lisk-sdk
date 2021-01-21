@@ -87,6 +87,7 @@
 		"@liskhq/lisk-passphrase": "^3.0.1",
 		"@liskhq/lisk-validator": "^0.5.0",
 		"@oclif/command": "1.5.19",
+		"@oclif/parser": "3.8.5",
 		"@oclif/config": "1.14.0",
 		"@oclif/errors": "1.2.2",
 		"@oclif/plugin-autocomplete": "0.2.1",

@@ -14,6 +14,7 @@
  */
 
 import { Command, flags as flagParser } from '@oclif/command';
+import * as Parser from '@oclif/parser';
 import {
 	Application,
 	RegisteredSchema,
@@ -75,6 +76,8 @@ export abstract class BaseIPCCommand extends Command {
 		}),
 	};
 
+	static args = [] as Parser.args.Input;
+
 	public baseIPCFlags!: BaseIPCFlags;
 	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
@@ -84,11 +87,11 @@ export abstract class BaseIPCCommand extends Command {
 		if (error) {
 			// TODO: replace this logic with isApplicationRunning util and log the error accordingly
 			if (/^IPC Socket client connection timeout./.test((error as Error).message)) {
-				this.error(
+				super.error(
 					'Please ensure the app is up and running with ipc enabled before using the command!',
 				);
 			}
-			this.error(error instanceof Error ? error.message : error);
+			super.error(error instanceof Error ? error.message : error);
 		}
 		if (this._client) {
 			await this._client.disconnect();
@@ -119,9 +122,9 @@ export abstract class BaseIPCCommand extends Command {
 
 	printJSON(message?: unknown): void {
 		if (this.baseIPCFlags.pretty) {
-			this.log(JSON.stringify(message, undefined, '  '));
+			super.log(JSON.stringify(message, undefined, '  '));
 		} else {
-			this.log(JSON.stringify(message));
+			super.log(JSON.stringify(message));
 		}
 	}
 
