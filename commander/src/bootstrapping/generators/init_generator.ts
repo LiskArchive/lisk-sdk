@@ -35,16 +35,18 @@ export default class InitGenerator extends BootstrapGenerator {
 	}
 
 	public install(): void {
+		this.log('\n');
 		this.log('Initializing git repository');
 		this.composeWith(require.resolve('generator-git-init'));
 
-		this.log('Installing npm packages');
-		this.npmInstall();
+		this.log('\n');
+		this.log(
+			'After completion of npm installation run below command to start your blockchain app.\n',
+		);
+		this.log(`cd ${this.destinationRoot()}; npm start`);
 	}
 
 	public end(): void {
-		this.log('\n\n');
-		this.log('All set! Run below command to start your blockchain app.\n');
-		this.log(`cd ${this.destinationRoot()}; npm start`);
+		this.installDependencies({ npm: true, bower: false, yarn: false, skipMessage: false });
 	}
 }
