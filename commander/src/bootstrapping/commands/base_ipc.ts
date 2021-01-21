@@ -78,7 +78,7 @@ export abstract class BaseIPCCommand extends Command {
 
 	static args = [] as Parser.args.Input;
 
-	public baseIPCFlags!: BaseIPCFlags;
+	protected baseIPCFlags!: BaseIPCFlags;
 	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
 
@@ -120,7 +120,7 @@ export abstract class BaseIPCCommand extends Command {
 		this._schema = this._client.schemas;
 	}
 
-	printJSON(message?: unknown): void {
+	printJSON(message?: Record<string, unknown>): void {
 		if (this.baseIPCFlags.pretty) {
 			super.log(JSON.stringify(message, undefined, '  '));
 		} else {

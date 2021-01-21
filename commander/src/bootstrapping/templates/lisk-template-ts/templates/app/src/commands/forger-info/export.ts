@@ -4,6 +4,10 @@ import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
 export class ExportCommand extends ForgerInfoExportCommand {
+	static flags = {
+		...ForgerInfoExportCommand.flags,
+	};
+
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

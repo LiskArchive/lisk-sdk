@@ -4,6 +4,12 @@ import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
 export class GetCommand extends TransactionGetCommand {
+	static flags = {
+		...TransactionGetCommand.flags,
+	};
+
+	static args = [...TransactionGetCommand.args];
+
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

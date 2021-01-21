@@ -4,6 +4,12 @@ import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
 export class GetCommand extends BlockGetCommand {
+	static flags = {
+		...BlockGetCommand.flags,
+	};
+
+	static args = [...BlockGetCommand.args];
+
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

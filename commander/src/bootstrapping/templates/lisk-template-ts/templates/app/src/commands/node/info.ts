@@ -4,6 +4,12 @@ import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
 export class InfoCommand extends NodeInfoCommand {
+	static flags = {
+		...NodeInfoCommand.flags,
+	};
+
+	static args = [...NodeInfoCommand.args];
+
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

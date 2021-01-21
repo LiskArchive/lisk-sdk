@@ -4,6 +4,12 @@ import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
 export class SignCommand extends TransactionSignCommand {
+	static flags = {
+		...TransactionSignCommand.flags,
+	};
+
+	static args = [...TransactionSignCommand.args];
+
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

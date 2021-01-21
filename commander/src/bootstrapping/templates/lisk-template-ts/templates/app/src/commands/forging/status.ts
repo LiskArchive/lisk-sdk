@@ -4,6 +4,12 @@ import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
 export class StatusCommand extends ForgingStatusCommand {
+	static flags = {
+		...ForgingStatusCommand.flags,
+	};
+
+	static args = [...ForgingStatusCommand.args];
+
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

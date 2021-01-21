@@ -4,6 +4,12 @@ import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
 export class EnableCommand extends ForgingEnableCommand {
+	static flags = {
+		...ForgingEnableCommand.flags,
+	};
+
+	static args = [...ForgingEnableCommand.args];
+
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,
