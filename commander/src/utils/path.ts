@@ -16,7 +16,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
-import { PartialApplicationConfig } from 'lisk-sdk';
+import { PartialApplicationConfig } from 'lisk-framework';
 
 const defaultDir = '.lisk';
 const getConfigPath = (dataPath: string): string => path.join(dataPath, 'config');

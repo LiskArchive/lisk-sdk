@@ -15,7 +15,8 @@
  */
 import { Command, flags as flagParser } from '@oclif/command';
 
-import { passphrase, cryptography } from 'lisk-sdk';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import * as passphrase from '@liskhq/lisk-passphrase';
 
 interface AccountInfo {
 	readonly address: string;

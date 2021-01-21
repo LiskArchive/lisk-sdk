@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { cryptography } from 'lisk-sdk';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import Command, { flags as flagParser } from '@oclif/command';
 
 import { flags as commonFlags } from '../../../utils/flags';

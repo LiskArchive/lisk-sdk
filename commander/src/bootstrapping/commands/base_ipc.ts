@@ -15,15 +15,16 @@
 
 import { Command, flags as flagParser } from '@oclif/command';
 import * as Parser from '@oclif/parser';
+import * as apiClient from '@liskhq/lisk-api-client';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import {
 	Application,
 	RegisteredSchema,
-	apiClient,
-	codec,
 	PartialApplicationConfig,
 	Transaction,
-	cryptography,
-} from 'lisk-sdk';
+} from 'lisk-framework';
+
 import { getDefaultPath, getGenesisBlockAndConfig } from '../../utils/path';
 import { flags as commonFlags } from '../../utils/flags';
 import { DEFAULT_NETWORK } from '../../constants';

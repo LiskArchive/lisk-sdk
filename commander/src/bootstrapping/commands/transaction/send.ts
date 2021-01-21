@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { validator } from 'lisk-sdk';
+import * as validator from '@liskhq/lisk-validator';
 import { BaseIPCCommand } from '../base_ipc';
 
 interface Args {

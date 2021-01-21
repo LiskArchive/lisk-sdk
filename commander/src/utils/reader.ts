@@ -13,7 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { passphrase as liskPassphrase, Schema } from 'lisk-sdk';
+import { Schema } from '@liskhq/lisk-codec';
+import * as liskPassphrase from '@liskhq/lisk-passphrase';
+
 import fs from 'fs';
 import inquirer from 'inquirer';
 import readline from 'readline';

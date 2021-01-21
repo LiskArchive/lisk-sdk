@@ -13,10 +13,11 @@
  *
  */
 
-import { cryptography, validator } from 'lisk-sdk';
 import Command, { flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import * as validator from '@liskhq/lisk-validator';
 
 export class HashOnionCommand extends Command {
 	static description = 'Create hash onions to be used by the forger.';

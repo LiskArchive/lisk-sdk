@@ -15,7 +15,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { flags as flagParser } from '@oclif/command';
-import { codec, cryptography, transactions, validator } from 'lisk-sdk';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import * as validator from '@liskhq/lisk-validator';
+import * as transactions from '@liskhq/lisk-transactions';
+import { codec } from '@liskhq/lisk-codec';
 import { BaseIPCCommand } from '../base_ipc';
 import { flags as commonFlags } from '../../../utils/flags';
 import { getAssetFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';

@@ -14,7 +14,7 @@
  *
  */
 import { Command } from '@oclif/command';
-import { cryptography } from 'lisk-sdk';
+import * as cryptography from '@liskhq/lisk-cryptography';
 
 interface Args {
 	readonly address: string;

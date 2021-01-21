@@ -17,7 +17,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
-import { ApplicationConfig, Application, PartialApplicationConfig, utils } from 'lisk-sdk';
+import { ApplicationConfig, Application, PartialApplicationConfig } from 'lisk-framework';
+import * as utils from '@liskhq/lisk-utils';
+
 import {
 	getDefaultPath,
 	splitPath,

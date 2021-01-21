@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { cryptography } from 'lisk-sdk';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { NETWORK, RELEASE_URL } from '../constants';
 
 export const liskSnapshotUrl = (url: string, network: NETWORK): string => {

@@ -14,7 +14,8 @@
  */
 import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
-import { ApplicationConfig, utils } from 'lisk-sdk';
+import { ApplicationConfig } from 'lisk-framework';
+import * as utils from '@liskhq/lisk-utils';
 import {
 	getDefaultPath,
 	splitPath,

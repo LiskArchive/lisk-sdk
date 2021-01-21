@@ -16,7 +16,8 @@
 import { flags as flagParser, Command } from '@oclif/command';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { cryptography, validator } from 'lisk-sdk';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import * as validator from '@liskhq/lisk-validator';
 import { encryptPassphrase } from '../../../utils/commons';
 import { flags as commonFlags } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';

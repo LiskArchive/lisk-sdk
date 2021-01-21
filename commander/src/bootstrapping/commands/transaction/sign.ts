@@ -14,7 +14,9 @@
  */
 
 import { flags as flagParser } from '@oclif/command';
-import { transactions, cryptography } from 'lisk-sdk';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import * as transactions from '@liskhq/lisk-transactions';
+
 import { BaseIPCCommand } from '../base_ipc';
 import { flags as commonFlags } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
