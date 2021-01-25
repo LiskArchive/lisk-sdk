@@ -28,6 +28,10 @@ export default abstract class BootstrapGenerator extends YeomanGenerator {
 	protected readonly _liskRC: Storage;
 	protected readonly _commanderVersion: string;
 	protected _liskTemplate!: LiskTemplate;
+	protected _liskModuleArgs: {
+		moduleName: string;
+		moduleID: string;
+	};
 
 	public constructor(args: string | string[], opts: BootstrapGeneratorOptions) {
 		super(args, opts);
@@ -35,6 +39,11 @@ export default abstract class BootstrapGenerator extends YeomanGenerator {
 		if (opts.projectPath) {
 			this.destinationRoot(opts.projectPath);
 		}
+
+		this._liskModuleArgs = {
+			moduleName: opts.moduleName,
+			moduleID: opts.moduleID,
+		};
 
 		this._liskRC = this.createStorage('.liskrc.json');
 		this._liskTemplateName = opts.template ?? this._liskRC.getPath('template') ?? 'lisk-ts';
