@@ -15,7 +15,7 @@
 import { Command, flags as flagParser } from '@oclif/command';
 import * as inquirer from 'inquirer';
 import { getDefaultPath } from '../../../utils/path';
-import { flags as commonFlags } from '../../../utils/flags';
+import { flagsWithParser } from '../../../utils/flags';
 import { getPid, isApplicationRunning } from '../../../utils/application';
 import { getBlockchainDB } from '../../../utils/db';
 
@@ -29,10 +29,7 @@ export class ResetCommand extends Command {
 	];
 
 	static flags = {
-		'data-path': flagParser.string({
-			...commonFlags.dataPath,
-			env: 'LISK_DATA_PATH',
-		}),
+		'data-path': flagsWithParser.dataPath,
 		yes: flagParser.boolean({
 			char: 'y',
 			description: 'Skip confirmation prompt.',

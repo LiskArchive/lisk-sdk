@@ -1,3 +1,4 @@
+import { Command, flags as flagParser } from '@oclif/command';
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -12,10 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser, Command } from '@oclif/command';
-
 import { encryptPassphrase } from '../../../utils/commons';
-import { flags as commonFlags } from '../../../utils/flags';
+import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
 
 const outputPublicKeyOptionDescription =
@@ -33,14 +32,12 @@ export class EncryptCommand extends Command {
 	];
 
 	static flags = {
-		password: flagParser.string(commonFlags.password),
-		passphrase: flagParser.string(commonFlags.passphrase),
+		password: flagsWithParser.password,
+		passphrase: flagsWithParser.passphrase,
 		'output-public-key': flagParser.boolean({
 			description: outputPublicKeyOptionDescription,
 		}),
-		pretty: flagParser.boolean({
-			description: 'Prints JSON in pretty format rather than condensed.',
-		}),
+		pretty: flagsWithParser.pretty,
 	};
 
 	async run(): Promise<void> {

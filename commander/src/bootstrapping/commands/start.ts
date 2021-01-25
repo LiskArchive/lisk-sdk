@@ -19,6 +19,7 @@ import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
 import { ApplicationConfig, Application, PartialApplicationConfig } from 'lisk-framework';
 import * as utils from '@liskhq/lisk-utils';
+import { flagsWithParser } from '../../utils/flags';
 
 import {
 	getDefaultPath,
@@ -31,8 +32,6 @@ import {
 	getNetworkConfigFilesPath,
 	getDefaultNetworkConfigFilesPath,
 } from '../../utils/path';
-import { flags as commonFlags } from '../../utils/flags';
-import { DEFAULT_NETWORK } from '../../constants';
 
 const LOG_OPTIONS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
 export abstract class StartCommand extends Command {
@@ -50,21 +49,9 @@ export abstract class StartCommand extends Command {
 	];
 
 	static flags = {
-		'data-path': flagParser.string({
-			...commonFlags.dataPath,
-			env: 'LISK_DATA_PATH',
-		}),
-		network: flagParser.string({
-			...commonFlags.network,
-			env: 'LISK_NETWORK',
-			default: DEFAULT_NETWORK,
-		}),
-		config: flagParser.string({
-			char: 'c',
-			description:
-				'File path to a custom config. Environment variable "LISK_CONFIG_FILE" can also be used.',
-			env: 'LISK_CONFIG_FILE',
-		}),
+		'data-path': flagsWithParser.dataPath,
+		network: flagsWithParser.network,
+		config: flagsWithParser.config,
 		'overwrite-config': flagParser.boolean({
 			description: 'Overwrite network configs if they exist already',
 			default: false,

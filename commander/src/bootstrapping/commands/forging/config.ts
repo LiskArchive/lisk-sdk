@@ -13,13 +13,13 @@
  *
  */
 
-import { flags as flagParser, Command } from '@oclif/command';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as validator from '@liskhq/lisk-validator';
+import { Command, flags as flagParser } from '@oclif/command';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { encryptPassphrase } from '../../../utils/commons';
-import { flags as commonFlags } from '../../../utils/flags';
+import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
 
 export class ConfigCommand extends Command {
@@ -33,8 +33,8 @@ export class ConfigCommand extends Command {
 	];
 
 	static flags = {
-		password: flagParser.string({ ...commonFlags.password }),
-		passphrase: flagParser.string({ ...commonFlags.passphrase }),
+		password: flagsWithParser.password,
+		passphrase: flagsWithParser.passphrase,
 		count: flagParser.integer({
 			char: 'c',
 			description: 'Total number of hashes to produce',
@@ -45,13 +45,8 @@ export class ConfigCommand extends Command {
 			description: 'Distance between each hashes',
 			default: 1000,
 		}),
-		output: flagParser.string({
-			char: 'o',
-			description: 'Output file path',
-		}),
-		pretty: flagParser.boolean({
-			description: 'Prints JSON in pretty format rather than condensed.',
-		}),
+		output: flagsWithParser.output,
+		pretty: flagsWithParser.pretty,
 	};
 
 	async run(): Promise<void> {
