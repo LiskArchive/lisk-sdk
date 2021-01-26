@@ -47,29 +47,6 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 			this.error('Invalid name');
 		}
 
-		// determine proper path
-		const modulePath = join(process.cwd(), './src/modules', moduleName);
-
-		// check for existing file at moduleName & ask the user before overwriting
-		if (fs.existsSync(modulePath)) {
-			const userResponse = await inquirer.prompt({
-				type: 'confirm',
-				name: 'confirm',
-				message:
-					'A module file with the given name already exists at the given location. Do you want to overwrite it?',
-			});
-			if (!userResponse.confirm) {
-				return this.error(
-					'Operation cancelled, module file with the given name already present at the desired location',
-				);
-			}
-
-			return this._runBootstrapCommand('lisk:generate:module', {
-				moduleName: moduleName as string,
-				moduleID: moduleID as string,
-			});
-		}
-
 		return this._runBootstrapCommand('lisk:generate:module', {
 			moduleName: moduleName as string,
 			moduleID: moduleID as string,
