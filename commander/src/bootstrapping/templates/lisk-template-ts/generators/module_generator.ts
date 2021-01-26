@@ -15,6 +15,7 @@
  */
 
 import { join } from 'path';
+import { Project, SyntaxKind } from 'ts-morph';
 import Generator, { GeneratorOptions } from 'yeoman-generator';
 
 interface ModuleGeneratorOptions extends GeneratorOptions {
@@ -37,7 +38,7 @@ export default class ModuleGenerator extends Generator {
 		this._moduleClass = this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1);
 	}
 
-	public createModule(): void {
+	public writing(): void {
 		this.fs.copyTpl(
 			`${this._templatePath}/modules/module.ts`,
 			join(
@@ -55,8 +56,28 @@ export default class ModuleGenerator extends Generator {
 		);
 	}
 
-	public registerModule() {
+	public async registerModule() {
+		this.log('Registering module...');
 
+		const project = new Project();
+		project.addSourceFilesAtPaths('src/app/**/*.ts');
+
+		const modulesFile = project.getSourceFileOrThrow('src/app/modules.ts');
+
+		modulesFile.addImportDeclaration({
+			defaultImport: this._moduleClass,
+			moduleSpecifier: `./modules/${this._moduleName}/${this._moduleName}`,
+		});
+		const registerFunction = modulesFile
+			.getVariableDeclarationOrThrow('registerModules')
+			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
+
+		registerFunction.setBodyText(
+			`${registerFunction.getBodyText()}\n _app.registerModule(${this._moduleClass});`,
+		);
+
+		modulesFile.organizeImports();
+		await modulesFile.save();
 	}
 
 	public createModuleUnitTest() {

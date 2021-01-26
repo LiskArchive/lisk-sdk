@@ -18,7 +18,7 @@
 
 import { BaseModule, AfterBlockApplyContext, TransactionApplyContext, BeforeBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from 'lisk-sdk';
 
-module.exports = class <%= moduleClass %> extends BaseModule {
+export default class <%= moduleClass %> extends BaseModule {
     public actions = {
         // Example below
         // getBalance: async (params) => this._dataAccess.account.get(params.address).token.balance,
@@ -38,7 +38,7 @@ module.exports = class <%= moduleClass %> extends BaseModule {
 		// 	return account.token.balance;
 		// },
     };
-    public name = "<%= moduleName %>";
+    public name = '<%= moduleName %>';
     public transactionAssets = [];
     public events = [
         // Example below
