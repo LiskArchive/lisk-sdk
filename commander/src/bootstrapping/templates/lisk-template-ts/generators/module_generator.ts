@@ -15,38 +15,63 @@
  */
 
 import { join } from 'path';
+import Generator, { GeneratorOptions } from 'yeoman-generator';
 
-import Generator from 'yeoman-generator';
-import { BootstrapGeneratorOptions } from '../../../../types';
+interface ModuleGeneratorOptions extends GeneratorOptions {
+	moduleName: string;
+	moduleID: string;
+}
 
 export default class ModuleGenerator extends Generator {
-	public createSkeleton(): void {
-		const templatePath = join(__dirname, '..', 'templates');
-		const { moduleName, moduleID } = this.options as BootstrapGeneratorOptions;
-		const moduleClass = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
+	protected _moduleName: string;
+	protected _moduleClass: string;
+	protected _moduleID: string;
+	protected _templatePath: string;
 
+	public constructor(args: string | string[], opts: ModuleGeneratorOptions) {
+		super(args, opts);
+
+		this._templatePath = join(__dirname, '..', 'templates');
+		this._moduleName = (this.options as ModuleGeneratorOptions).moduleName;
+		this._moduleID = (this.options as ModuleGeneratorOptions).moduleID;
+		this._moduleClass = this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1);
+	}
+
+	public createModule(): void {
 		this.fs.copyTpl(
-			`${templatePath}/modules/module.ts`,
-			join(this.destinationRoot(), `src/app/modules/${moduleName}/`, `${moduleName}.ts`),
+			`${this._templatePath}/modules/module.ts`,
+			join(
+				this.destinationRoot(),
+				`src/app/modules/${this._moduleName}/`,
+				`${this._moduleName}.ts`,
+			),
 			{
-				moduleName,
-				moduleID,
-				moduleClass,
+				moduleName: this._moduleName,
+				moduleID: this._moduleID,
+				moduleClass: this._moduleClass,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
+	}
 
+	public registerModule() {
+
+	}
+
+	public createModuleUnitTest() {
 		this.fs.copyTpl(
-			`${templatePath}/app/test/unit/modules/module.ts`,
-			join(this.destinationRoot(), `test/unit/modules/${moduleName}/`, `${moduleName}.ts`),
+			`${this._templatePath}/app/test/unit/modules/module.ts`,
+			join(
+				this.destinationRoot(),
+				`test/unit/modules/${this._moduleName}/`,
+				`${this._moduleName}.ts`,
+			),
 			{
-				moduleClass,
+				moduleClass: this._moduleClass,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
-
-		// this.fs.append(join(this.destinationRoot(), `src/app/modules.ts`), `app.registerModule(${this.options.moduleName.charAt(0).toUpperCase() + this.options.moduleName.slice(1)})`)
 	}
 }

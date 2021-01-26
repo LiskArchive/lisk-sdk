@@ -14,16 +14,31 @@
  *
  */
 
-import BootstrapGenerator from '../base_generator';
+import { BootstrapGeneratorOptions } from '../../types';
+import BootstrapGenerator from './base_generator';
+
+interface ModuleGeneratorOptions extends BootstrapGeneratorOptions {
+	moduleName: string;
+	moduleID: string;
+}
 
 export default class ModuleGenerator extends BootstrapGenerator {
-	public async initializing(): Promise<void> {
-		await this._loadAndValidateTemplate();
+	protected _liskModuleArgs: {
+		moduleName: string;
+		moduleID: string;
+	};
+
+	public constructor(args: string | string[], opts: ModuleGeneratorOptions) {
+		super(args, opts);
+
+		this._liskModuleArgs = {
+			moduleName: opts.moduleName,
+			moduleID: opts.moduleID,
+		};
 	}
 
-	public configuring(): void {
-		this.log('Updating .liskrc.json file');
-		this._liskRC.setPath('template', this._liskTemplateName);
+	public async initializing(): Promise<void> {
+		await this._loadAndValidateTemplate();
 	}
 
 	public writing(): void {
@@ -37,14 +52,8 @@ export default class ModuleGenerator extends BootstrapGenerator {
 		);
 	}
 
-	public install(): void {
-		this.log('Installing npm packages');
-		this.npmInstall();
-	}
-
 	public end(): void {
 		this.log('\n\n');
-		this.log('All set! Run below command to start your blockchain app.\n');
-		this.log(`cd ${this.destinationRoot()}; npm start`);
+		this.log('Your module is created and ready to use.\n');
 	}
 }

@@ -13,10 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import fs from 'fs-extra';
-import { join } from 'path';
-import inquirer from 'inquirer';
-import BaseBootstrapCommand from '../../base_bootstrap_command';
+
+ import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class ModuleCommand extends BaseBootstrapCommand {
 	static description = 'Creates a module skeleton for the given name and id.';
@@ -43,8 +41,9 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
 		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
+
 		if (regexCamelCase.test(moduleName) || regexWhitespace.test(moduleName)) {
-			this.error('Invalid name');
+			this.error('Invalid module name');
 		}
 
 		return this._runBootstrapCommand('lisk:generate:module', {
