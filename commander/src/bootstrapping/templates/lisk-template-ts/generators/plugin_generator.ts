@@ -46,29 +46,31 @@ export default class PluginGenerator extends Generator {
 		// Check for existing package.json in root directory to use existing info
 		try {
 			// eslint-disable-next-line
-			this._packageJSON = (await import(`${this.destinationRoot()}/src/app/package.json`));
+			this._packageJSON = await import(`${this.destinationRoot()}/src/app/package.json`);
 		} catch (err) {
 			this._packageJSON = undefined;
 		}
 
-		this._answers = this._packageJSON ? undefined : (await this.prompt([
-			{
-				type: 'input',
-				name: 'author',
-				message: 'Author of plugin',
-			},
-			{
-				type: 'input',
-				name: 'version',
-				message: 'Version of plugin',
-				default: '0.1.0',
-			},
-			{
-				type: 'input',
-				name: 'name',
-				message: 'Name of plugin',
-			},
-		])) as PluginPrompts;
+		this._answers = this._packageJSON
+			? undefined
+			: ((await this.prompt([
+					{
+						type: 'input',
+						name: 'author',
+						message: 'Author of plugin',
+					},
+					{
+						type: 'input',
+						name: 'version',
+						message: 'Version of plugin',
+						default: '0.1.0',
+					},
+					{
+						type: 'input',
+						name: 'name',
+						message: 'Name of plugin',
+					},
+			  ])) as PluginPrompts);
 	}
 
 	public writing(): void {
@@ -102,7 +104,11 @@ export default class PluginGenerator extends Generator {
 		// Create unit tests
 		this.fs.copyTpl(
 			`${this._path}/plugin/test/unit/plugins/plugin.ts`,
-			join(this.destinationRoot(), `test/unit/plugins/${this._className}/`, `${this._alias}.spec.ts`),
+			join(
+				this.destinationRoot(),
+				`test/unit/plugins/${this._className}/`,
+				`${this._alias}.spec.ts`,
+			),
 			{
 				alias: this._alias,
 				className: this._className,

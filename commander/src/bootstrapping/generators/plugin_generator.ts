@@ -35,11 +35,13 @@ export default class PluginGenerator extends BaseGenerator {
 
 	public writing(): void {
 		this.log('Generating plugin skeleton');
-		this.composeWith({
-			Generator: this._liskTemplate.generators.plugin,
-			path: this._liskTemplatePath,
-		},
-		this._liskPluginArgs);
+		this.composeWith(
+			{
+				Generator: this._liskTemplate.generators.plugin,
+				path: this._liskTemplatePath,
+			},
+			this._liskPluginArgs,
+		);
 	}
 
 	public end(): void {

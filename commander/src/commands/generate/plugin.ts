@@ -18,26 +18,24 @@ import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class PluginCommand extends BaseBootstrapCommand {
 	static description = 'Creates custom plugin.';
-	static examples = [
-		'generate:plugin my-plugin',
-    ];
+	static examples = ['generate:plugin my-plugin'];
 
-    static args = [
+	static args = [
 		{
 			name: 'alias',
 			description: 'Alias of the plugin.',
 			required: true,
-        },
-    ];
+		},
+	];
 
-    static flags = {
-        ...BaseBootstrapCommand.flags,
+	static flags = {
+		...BaseBootstrapCommand.flags,
 	};
 
 	async run(): Promise<void> {
 		const {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            args: { alias },
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			args: { alias },
 		} = this.parse(PluginCommand);
 
 		// validate folder name to not include camelcase or whitespace

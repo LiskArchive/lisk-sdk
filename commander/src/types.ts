@@ -20,7 +20,7 @@ export interface BootstrapGeneratorOptions extends GeneratorOptions {
 	template: string;
 	version: string;
 	projectPath?: string;
-};
+}
 
 export interface LiskTemplate {
 	generators: {
