@@ -65,8 +65,8 @@ export default class PluginGenerator extends Generator {
 		const className = this.options.alias.charAt(0).toUpperCase() + this.options.alias.slice(1) + 'Plugin';
 
 		this.fs.copyTpl(
-			`${this._path}/app/src/app/plugins/plugin.ts`,
-			join(this.destinationRoot(), `src/app/plugins/${this.options.alias}/`, `${this.options.alias}.ts`),			
+			`${this._path}/plugin/src/app/plugins/plugin.ts`,
+			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, `${this.options.alias}.ts`),			
 			{
 				alias: this.options.alias,
 				className,
@@ -79,8 +79,8 @@ export default class PluginGenerator extends Generator {
 		);
 
 		this.fs.copyTpl(
-			`${this._path}/app/test/unit/plugins/plugin.ts`,
-			join(this.destinationRoot(), `test/unit/plugins/${className}/`, `${className}.ts`),
+			`${this._path}/plugin/test/unit/plugins/plugin.ts`,
+			join(this.destinationRoot(), `app/test/unit/plugins/${className}/`, `${className}.ts`),
 			{
 				className,
 			},
@@ -89,8 +89,8 @@ export default class PluginGenerator extends Generator {
 		);
 
 		this.fs.copyTpl(
-			`${this._path}/app/src/app/plugins/index.ts`,
-			join(this.destinationRoot(), `src/app/plugins/${this.options.alias}/`, `index.ts`),			
+			`${this._path}/plugin/src/app/plugins/index.ts`,
+			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, `index.ts`),			
 			{},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
