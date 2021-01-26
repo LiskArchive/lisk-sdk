@@ -17,16 +17,12 @@
 import { BootstrapGeneratorOptions } from '../../types';
 import BaseGenerator from './base_generator';
 
-interface PluginGeneratorOptions extends BootstrapGeneratorOptions {
-	alias: string;
-}
-
 export default class PluginGenerator extends BaseGenerator {
 	protected _liskPluginArgs: {
 		alias: string;
 	};
 
-	public constructor(args: string | string[], opts: PluginGeneratorOptions) {
+	public constructor(args: string | string[], opts: { alias: string } & BootstrapGeneratorOptions) {
 		super(args, opts);
 		this._liskPluginArgs = {
 			alias: opts.alias,
@@ -38,7 +34,7 @@ export default class PluginGenerator extends BaseGenerator {
 	}
 
 	public writing(): void {
-		this.log('Creating plugin structure');
+		this.log('Generating plugin skeleton');
 		this.composeWith({
 			Generator: this._liskTemplate.generators.plugin,
 			path: this._liskTemplatePath,

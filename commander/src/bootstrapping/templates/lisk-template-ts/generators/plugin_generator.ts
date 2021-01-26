@@ -15,6 +15,7 @@
  */
 
 import { join } from 'path';
+import { Project, SyntaxKind } from 'ts-morph';
 import Generator from 'yeoman-generator';
 
 interface PluginPrompts {
@@ -23,16 +24,28 @@ interface PluginPrompts {
 	name: string;
 }
 
+interface PluginGeneratorOptions {
+	alias: string;
+}
+
 export default class PluginGenerator extends Generator {
-	private _answers!: PluginPrompts | undefined;
-	private _path!: string;
-	private _packageJSON!: Record<string, unknown> | undefined;
+	protected _answers: PluginPrompts | undefined;
+	protected _path: string;
+	protected _packageJSON: Record<string, unknown> | undefined;
+	protected _className: string;
+	protected _alias: string;
+
+	public constructor(_: string | string[], __: PluginGeneratorOptions) {
+		super(_, __);
+		this._path = join(__dirname, '..', 'templates');
+		this._alias = (this.options as PluginGeneratorOptions).alias;
+		this._className = `${this._alias.charAt(0).toUpperCase() + this._alias.slice(1)}Plugin`;
+	}
 
 	async prompting() {
-		this._path = join(__dirname, '..', 'templates');
-
 		// Check for existing package.json in root directory to use existing info
 		try {
+			// eslint-disable-next-line
 			this._packageJSON = (await import(`${this.destinationRoot()}/src/app/package.json`));
 		} catch (err) {
 			this._packageJSON = undefined;
@@ -58,15 +71,14 @@ export default class PluginGenerator extends Generator {
 		])) as PluginPrompts;
 	}
 
-	public createSkeleton(): void {
-		const className = `${this.options.alias.charAt(0).toUpperCase() + this.options.alias.slice(1)}Plugin`;
-
+	public writing(): void {
+		// Create plugin
 		this.fs.copyTpl(
 			`${this._path}/plugin/src/app/plugins/plugin.ts`,
-			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, `${this.options.alias}.ts`),
+			join(this.destinationRoot(), `src/app/plugins/${this._alias}/`, `${this._alias}.ts`),
 			{
-				alias: this.options.alias,
-				className,
+				alias: this._alias,
+				className: this._className,
 				author: this._packageJSON?.author ?? this._answers?.author,
 				version: this._packageJSON?.version ?? this._answers?.version,
 				name: this._packageJSON?.name ?? this._answers?.name,
@@ -75,25 +87,52 @@ export default class PluginGenerator extends Generator {
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
 
+		// Create index
 		this.fs.copyTpl(
-			`${this._path}/plugin/test/unit/plugins/plugin.ts`,
-			join(this.destinationRoot(), `app/test/unit/plugins/${className}/`, `${this.options.alias}.spec.ts`),
+			`${this._path}/plugin/src/app/plugins/index.ts`,
+			join(this.destinationRoot(), `src/app/plugins/${this._alias}/`, 'index.ts'),
 			{
-				className,
+				alias: this._alias,
+				className: this._className,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
 
+		// Create unit tests
 		this.fs.copyTpl(
-			`${this._path}/plugin/src/app/plugins/index.ts`,
-			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, 'index.ts'),
+			`${this._path}/plugin/test/unit/plugins/plugin.ts`,
+			join(this.destinationRoot(), `test/unit/plugins/${this._className}/`, `${this._alias}.spec.ts`),
 			{
-				alias: this.options.alias,
-				className,
+				alias: this._alias,
+				className: this._className,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
+	}
+
+	public async registerPlugin() {
+		this.log('Registering plugin...');
+
+		const project = new Project();
+		project.addSourceFilesAtPaths('src/app/**/*.ts');
+
+		const pluginsFile = project.getSourceFileOrThrow('src/app/plugins.ts');
+
+		pluginsFile.addImportDeclaration({
+			namedImports: [`${this._className}`],
+			moduleSpecifier: `./plugins/${this._alias}`,
+		});
+		const registerFunction = pluginsFile
+			.getVariableDeclarationOrThrow('registerPlugins')
+			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
+
+		registerFunction.setBodyText(
+			`${registerFunction.getBodyText()}\napp.registerPlugin(${this._className});`,
+		);
+
+		pluginsFile.organizeImports();
+		await pluginsFile.save();
 	}
 }

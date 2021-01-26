@@ -14,7 +14,7 @@
  *
  */
 
-// import * as plugins from '../../../src/app/plugins'
+// import * as plugins from '../../../src/app/plugins/<%= alias %>';
 
 describe('<%= className %>Plugin', () => {
     beforeEach(() => {});
