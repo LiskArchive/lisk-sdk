@@ -15,5 +15,6 @@
  */
 
 import InitGenerator from './generators/init_generator';
+import PluginGenerator from './generators/plugin_generator';
 
-export const generators = { init: InitGenerator };
+export const generators = { init: InitGenerator, plugin: PluginGenerator };
