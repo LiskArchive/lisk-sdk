@@ -13,8 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import { basename } from 'path';
 import { join } from 'path';
 import Generator from 'yeoman-generator';
 
@@ -32,10 +30,10 @@ export default class PluginGenerator extends Generator {
 	async prompting() {
 		this._path = join(__dirname, '..', 'templates');
 
-		// Check for existing package.json in root directory to use existing info 
-		try { 
+		// Check for existing package.json in root directory to use existing info
+		try {
 			this._packageJSON = (await import(`${this.destinationRoot()}/src/app/package.json`));
-		} catch(err) {
+		} catch (err) {
 			this._packageJSON = undefined;
 		}
 
@@ -44,29 +42,29 @@ export default class PluginGenerator extends Generator {
 				type: 'input',
 				name: 'author',
 				message: 'Author of plugin',
-				default: basename(this.destinationRoot()),
+				default: 'author',
 			},
 			{
 				type: 'input',
 				name: 'version',
 				message: 'Version of plugin',
-				default: basename(this.destinationRoot()),
+				default: '0.1.0',
 			},
 			{
 				type: 'input',
 				name: 'name',
 				message: 'Name of plugin',
-				default: basename(this.destinationRoot()),
+				default: 'plugin',
 			},
 		])) as PluginPrompts;
 	}
 
 	public createSkeleton(): void {
-		const className = this.options.alias.charAt(0).toUpperCase() + this.options.alias.slice(1) + 'Plugin';
+		const className = `${this.options.alias.charAt(0).toUpperCase() + this.options.alias.slice(1)}Plugin`;
 
 		this.fs.copyTpl(
 			`${this._path}/plugin/src/app/plugins/plugin.ts`,
-			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, `${this.options.alias}.ts`),			
+			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, `${this.options.alias}.ts`),
 			{
 				alias: this.options.alias,
 				className,
@@ -75,12 +73,12 @@ export default class PluginGenerator extends Generator {
 				name: this._packageJSON?.name ?? this._answers?.name,
 			},
 			{},
-			{ globOptions: { dot: true, ignore: ['.DS_Store']}},
+			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
 
 		this.fs.copyTpl(
 			`${this._path}/plugin/test/unit/plugins/plugin.ts`,
-			join(this.destinationRoot(), `app/test/unit/plugins/${className}/`, `${className}.ts`),
+			join(this.destinationRoot(), `app/test/unit/plugins/${className}/`, `${this.options.alias}.spec.ts`),
 			{
 				className,
 			},
@@ -90,7 +88,7 @@ export default class PluginGenerator extends Generator {
 
 		this.fs.copyTpl(
 			`${this._path}/plugin/src/app/plugins/index.ts`,
-			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, `index.ts`),			
+			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, 'index.ts'),
 			{},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },

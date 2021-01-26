@@ -13,16 +13,27 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { BootstrapGeneratorOptions } from '../../types';
 import BaseGenerator from './base_generator';
 
+interface PluginGeneratorOptions extends BootstrapGeneratorOptions {
+	alias: string;
+}
+
 export default class PluginGenerator extends BaseGenerator {
-	public async initializing(): Promise<void> {
-		await this._loadAndValidateTemplate();
+	protected _liskPluginArgs: {
+		alias: string;
+	};
+
+	public constructor(args: string | string[], opts: PluginGeneratorOptions) {
+		super(args, opts);
+		this._liskPluginArgs = {
+			alias: opts.alias,
+		};
 	}
 
-	public configuring(): void {
-		this.log('Updating .liskrc.json file');
-		this._liskRC.setPath('template', this._liskTemplateName);
+	public async initializing(): Promise<void> {
+		await this._loadAndValidateTemplate();
 	}
 
 	public writing(): void {
