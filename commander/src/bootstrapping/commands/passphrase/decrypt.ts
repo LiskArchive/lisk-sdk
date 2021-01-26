@@ -13,9 +13,8 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import Command, { flags as flagParser } from '@oclif/command';
-
-import { flags as commonFlags } from '../../../utils/flags';
+import Command from '@oclif/command';
+import { flagsWithParser } from '../../../utils/flags';
 import { getPasswordFromPrompt } from '../../../utils/reader';
 
 interface Args {
@@ -50,10 +49,8 @@ export class DecryptCommand extends Command {
 	];
 
 	static flags = {
-		password: flagParser.string(commonFlags.password),
-		pretty: flagParser.boolean({
-			description: 'Prints JSON in pretty format rather than condensed.',
-		}),
+		password: flagsWithParser.password,
+		pretty: flagsWithParser.pretty,
 	};
 
 	async run(): Promise<void> {
