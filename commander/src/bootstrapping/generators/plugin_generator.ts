@@ -36,6 +36,6 @@ export default class PluginGenerator extends BaseGenerator {
 
 	public end(): void {
 		this.log('\n\n');
-		this.log('Finished creating plugin\n');
+		this.log('Finished creating plugin');
 	}
 }

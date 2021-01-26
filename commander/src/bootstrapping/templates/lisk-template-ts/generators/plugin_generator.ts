@@ -33,7 +33,7 @@ export default class PluginGenerator extends Generator {
 		this._path = join(__dirname, '..', 'templates');
 
 		try { 
-			this._packageJSON = (await import(`${this.destinationRoot()}/plugin/package.json`));
+			this._packageJSON = (await import(`${this.destinationRoot()}/src/app/package.json`));
 		} catch(err) {
 			this._packageJSON = undefined;
 		}
