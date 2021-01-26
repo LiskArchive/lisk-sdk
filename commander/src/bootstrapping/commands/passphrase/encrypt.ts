@@ -1,4 +1,3 @@
-import { Command, flags as flagParser } from '@oclif/command';
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -13,6 +12,8 @@ import { Command, flags as flagParser } from '@oclif/command';
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import { Command, flags as flagParser } from '@oclif/command';
 import { encryptPassphrase } from '../../../utils/commons';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
