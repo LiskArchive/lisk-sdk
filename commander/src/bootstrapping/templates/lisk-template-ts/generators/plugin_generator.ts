@@ -87,5 +87,13 @@ export default class PluginGenerator extends Generator {
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
+
+		this.fs.copyTpl(
+			`${this._path}/app/src/app/plugins/index.ts`,
+			join(this.destinationRoot(), `src/app/plugins/${this.options.alias}/`, `index.ts`),			
+			{},
+			{},
+			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
+		);
 	}
 }
