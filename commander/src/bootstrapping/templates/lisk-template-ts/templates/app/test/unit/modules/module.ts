@@ -17,16 +17,16 @@
 // import * as modules from '../../../src/app/modules'
 
 describe('<%= moduleClass %>Module', () => {
-    beforeEach(() => {});
+	beforeEach(() => {});
 
-    describe('constructor', () => {
+	describe('constructor', () => {
 		it.todo('should have valid id');
 		it.todo('should have valid name');
-    });
+	});
 
-    describe('beforeBlockApply', () => {});
-    describe('afterBlockApply', () => {});
-    describe('beforeTransactionApply', () => {});
-    describe('afterTransactionApply', () => {});
-    describe('afterGenesisBlockApply', () => {});
+	describe('beforeBlockApply', () => {});
+	describe('afterBlockApply', () => {});
+	describe('beforeTransactionApply', () => {});
+	describe('afterTransactionApply', () => {});
+	describe('afterGenesisBlockApply', () => {});
 });
