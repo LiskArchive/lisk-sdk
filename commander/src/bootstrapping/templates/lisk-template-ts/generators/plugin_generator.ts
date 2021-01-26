@@ -42,7 +42,6 @@ export default class PluginGenerator extends Generator {
 				type: 'input',
 				name: 'author',
 				message: 'Author of plugin',
-				default: 'author',
 			},
 			{
 				type: 'input',
@@ -54,7 +53,6 @@ export default class PluginGenerator extends Generator {
 				type: 'input',
 				name: 'name',
 				message: 'Name of plugin',
-				default: 'plugin',
 			},
 		])) as PluginPrompts;
 	}
