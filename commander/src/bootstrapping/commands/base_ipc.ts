@@ -13,23 +13,22 @@
  *
  */
 
+import * as apiClient from '@liskhq/lisk-api-client';
+import { codec } from '@liskhq/lisk-codec';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { Command, flags as flagParser } from '@oclif/command';
 import * as Parser from '@oclif/parser';
-import * as apiClient from '@liskhq/lisk-api-client';
-import * as cryptography from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import {
 	Application,
-	RegisteredSchema,
 	PartialApplicationConfig,
+	RegisteredSchema,
 	Transaction,
 } from 'lisk-framework';
-
-import { getDefaultPath, getGenesisBlockAndConfig } from '../../utils/path';
-import { flags as commonFlags } from '../../utils/flags';
 import { DEFAULT_NETWORK } from '../../constants';
 import { PromiseResolvedType, Schema } from '../../types';
 import { isApplicationRunning } from '../../utils/application';
+import { flags as commonFlags, flagsWithParser } from '../../utils/flags';
+import { getDefaultPath, getGenesisBlockAndConfig } from '../../utils/path';
 
 interface BaseIPCFlags {
 	readonly 'data-path'?: string;
@@ -53,17 +52,10 @@ export interface Codec {
 	) => Record<string, unknown>;
 }
 
-const prettyDescription = 'Prints JSON in pretty format rather than condensed.';
-
 export abstract class BaseIPCCommand extends Command {
 	static flags = {
-		pretty: flagParser.boolean({
-			description: prettyDescription,
-		}),
-		'data-path': flagParser.string({
-			...commonFlags.dataPath,
-			env: 'LISK_DATA_PATH',
-		}),
+		pretty: flagsWithParser.pretty,
+		'data-path': flagsWithParser.dataPath,
 		offline: flagParser.boolean({
 			...commonFlags.offline,
 			default: false,

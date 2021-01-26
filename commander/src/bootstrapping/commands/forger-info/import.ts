@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { getDefaultPath, getFullPath, getForgerDBPath } from '../../../utils/path';
 import * as downloadUtils from '../../../utils/download';
+import { flagsWithParser } from '../../../utils/flags';
 
 interface Args {
 	readonly sourcePath: string;
@@ -39,12 +40,7 @@ export abstract class ImportCommand extends Command {
 	];
 
 	static flags = {
-		'data-path': flagParser.string({
-			char: 'd',
-			description:
-				'Directory path to specify where node data is stored. Environment variable "LISK_DATA_PATH" can also be used.',
-			env: 'LISK_DATA_PATH',
-		}),
+		'data-path': flagsWithParser.dataPath,
 		force: flagParser.boolean({
 			char: 'f',
 			description: 'To overwrite the existing data if present.',

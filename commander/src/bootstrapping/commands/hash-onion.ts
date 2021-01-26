@@ -18,6 +18,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as validator from '@liskhq/lisk-validator';
+import { flagsWithParser } from '../../utils/flags';
 
 export class HashOnionCommand extends Command {
 	static description = 'Create hash onions to be used by the forger.';
@@ -42,9 +43,7 @@ export class HashOnionCommand extends Command {
 			description: 'Distance between each hashes',
 			default: 1000,
 		}),
-		pretty: flagParser.boolean({
-			description: 'Prints JSON in pretty format rather than condensed.',
-		}),
+		pretty: flagsWithParser.pretty,
 	};
 
 	// eslint-disable-next-line @typescript-eslint/require-await

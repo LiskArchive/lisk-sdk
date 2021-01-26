@@ -14,10 +14,11 @@
  */
 
 import * as crypto from 'crypto';
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command } from '@oclif/command';
 import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils/path';
 import { getPid, isApplicationRunning } from '../../../utils/application';
 import { getBlockchainDB } from '../../../utils/db';
+import { flagsWithParser } from '../../../utils/flags';
 
 export class HashCommand extends Command {
 	static description = 'Generate SHA256 hash from <PATH>.';
@@ -25,12 +26,7 @@ export class HashCommand extends Command {
 	static examples = ['blockchain:hash', 'blockchain:hash --data-path ./data'];
 
 	static flags = {
-		'data-path': flagParser.string({
-			char: 'd',
-			description:
-				'Directory path to specify where node data is stored. Environment variable "LISK_DATA_PATH" can also be used.',
-			env: 'LISK_DATA_PATH',
-		}),
+		'data-path': flagsWithParser.dataPath,
 	};
 
 	// eslint-disable-next-line @typescript-eslint/require-await

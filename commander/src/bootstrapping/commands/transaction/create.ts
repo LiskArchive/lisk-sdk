@@ -14,15 +14,14 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { flags as flagParser } from '@oclif/command';
-import * as cryptography from '@liskhq/lisk-cryptography';
-import * as validator from '@liskhq/lisk-validator';
-import * as transactions from '@liskhq/lisk-transactions';
 import { codec } from '@liskhq/lisk-codec';
-import { BaseIPCCommand } from '../base_ipc';
-import { flags as commonFlags } from '../../../utils/flags';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import * as transactions from '@liskhq/lisk-transactions';
+import * as validator from '@liskhq/lisk-validator';
+import { flags as flagParser } from '@oclif/command';
+import { flags as commonFlags, flagsWithParser } from '../../../utils/flags';
 import { getAssetFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
-import { DEFAULT_NETWORK } from '../../../constants';
+import { BaseIPCCommand } from '../base_ipc';
 
 interface Args {
 	readonly moduleID: number;
@@ -84,7 +83,7 @@ export abstract class CreateCommand extends BaseIPCCommand {
 			description:
 				'Creates the transaction without a signature. Your passphrase will therefore not be required',
 		}),
-		passphrase: flagParser.string(commonFlags.passphrase),
+		passphrase: flagsWithParser.passphrase,
 		'sender-public-key': flagParser.string({
 			char: 's',
 			description:
@@ -103,11 +102,7 @@ export abstract class CreateCommand extends BaseIPCCommand {
 			hidden: false,
 			default: false,
 		}),
-		network: flagParser.string({
-			...commonFlags.network,
-			default: DEFAULT_NETWORK,
-			hidden: false,
-		}),
+		network: flagsWithParser.network,
 	};
 
 	async run(): Promise<void> {
