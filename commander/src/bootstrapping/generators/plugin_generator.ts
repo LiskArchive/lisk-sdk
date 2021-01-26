@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { BootstrapGeneratorOptions } from '../../types';
 import BaseGenerator from './base_generator';
 

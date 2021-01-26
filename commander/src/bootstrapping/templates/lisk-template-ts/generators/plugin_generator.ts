@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { join } from 'path';
 import Generator from 'yeoman-generator';
 
@@ -87,7 +88,10 @@ export default class PluginGenerator extends Generator {
 		this.fs.copyTpl(
 			`${this._path}/plugin/src/app/plugins/index.ts`,
 			join(this.destinationRoot(), `app/src/app/plugins/${this.options.alias}/`, 'index.ts'),
-			{},
+			{
+				alias: this.options.alias,
+				className,
+			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);

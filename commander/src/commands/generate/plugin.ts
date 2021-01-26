@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class PluginCommand extends BaseBootstrapCommand {

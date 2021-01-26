@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { BasePlugin, PluginInfo } from 'lisk-framework';
 import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-framework';
 
