@@ -17,7 +17,6 @@ import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-fram
 export class <%= className %> extends BasePlugin {
 	private _channel!: BaseChannel;
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
 		return '<%= alias %>';
 	}
@@ -25,11 +24,8 @@ export class <%= className %> extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get info(): PluginInfo {
 		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 			author: '<%= author %>',
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 			version: '<%= version %>',
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 			name: '<%= name %>',
 		};
 	}
@@ -56,6 +52,5 @@ export class <%= className %> extends BasePlugin {
 		});
 	}
 
-	public async unload(): Promise<void> {
-	}
+	public async unload(): Promise<void> {}
 }
