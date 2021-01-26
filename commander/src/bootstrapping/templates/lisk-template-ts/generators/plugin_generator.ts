@@ -27,7 +27,7 @@ interface PluginPrompts {
 export default class PluginGenerator extends Generator {
 	private _answers!: PluginPrompts | undefined;
 	private _path!: string;
-	private _packageJSON: any;
+	private _packageJSON!: Record<string, unknown> | undefined;
 
 	async prompting() {
 		this._path = join(__dirname, '..', 'templates');
