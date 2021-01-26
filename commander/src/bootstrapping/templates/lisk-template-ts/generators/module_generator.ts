@@ -17,11 +17,12 @@
 import { join } from 'path';
 
 import Generator from 'yeoman-generator';
+import { BootstrapGeneratorOptions } from '../../../../types';
 
 export default class ModuleGenerator extends Generator {
 	public createSkeleton(): void {
 		const templatePath = join(__dirname, '..', 'templates');
-		const { moduleName, moduleID } = this.options;
+		const { moduleName, moduleID } = this.options as BootstrapGeneratorOptions;
 		const moduleClass = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
 
 		this.fs.copyTpl(
