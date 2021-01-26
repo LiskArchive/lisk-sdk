@@ -40,6 +40,7 @@ export default abstract class BootstrapGenerator extends YeomanGenerator {
 		}
 
 		this._liskPluginArgs = {
+			// alias is already properly validated in generate command
 			alias: opts.alias as string,
 		};
 
