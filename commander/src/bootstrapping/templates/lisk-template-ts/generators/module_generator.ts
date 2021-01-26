@@ -84,7 +84,7 @@ export default class ModuleGenerator extends Generator {
 			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
 
 		registerFunction.setBodyText(
-			`${registerFunction.getBodyText()}\n _app.registerModule(${this._moduleClass});`,
+			`${registerFunction.getBodyText()} _app.registerModule(${this._moduleClass});`,
 		);
 
 		modulesFile.organizeImports();
@@ -93,11 +93,11 @@ export default class ModuleGenerator extends Generator {
 
 	public createModuleUnitTest() {
 		this.fs.copyTpl(
-			`${this._templatePath}/app/test/unit/modules/module.ts`,
+			`${this._templatePath}/modules/test/module.spec.ts`,
 			join(
 				this.destinationRoot(),
 				`test/unit/modules/${this._moduleName}/`,
-				`${this._moduleName}.ts`,
+				`${this._moduleName}.spec.ts`,
 			),
 			{
 				moduleClass: this._moduleClass,

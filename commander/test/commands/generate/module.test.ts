@@ -36,7 +36,7 @@ describe('generate:module command', () => {
 
 	describe('generate:module invalidModuleName invalidModuleID', () => {
 		setupTest()
-			.command(['generate:module', 'nft$5', '5'])
+			.command(['generate:module', 'nft$5', '1001'])
 			.catch(error => {
 				return expect(error.message).to.contain('Invalid module name');
 			})

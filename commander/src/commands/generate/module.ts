@@ -16,6 +16,8 @@
 
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
+const MINIMUM_EXTERNAL_MODULE_ID = 1000;
+
 export default class ModuleCommand extends BaseBootstrapCommand {
 	static description = 'Creates a module skeleton for the given name and id.';
 	static examples = ['generate:module moduleName moduleID', 'generate:module nft 5'];
@@ -51,7 +53,7 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 			this.error('Invalid module name');
 		}
 
-		if (Number.isNaN(Number(moduleID))) {
+		if (Number.isNaN(Number(moduleID)) || +moduleID < MINIMUM_EXTERNAL_MODULE_ID) {
 			this.error('Invalid module ID');
 		}
 
