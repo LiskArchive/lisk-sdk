@@ -14,13 +14,13 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { BaseIPCCommand } from '../base_ipc';
+import { BaseIPCClientCommand } from '../base_ipc_client';
 
 interface Args {
 	readonly id: string;
 }
 
-export abstract class GetCommand extends BaseIPCCommand {
+export abstract class GetCommand extends BaseIPCClientCommand {
 	static description = 'Get transaction from local node by ID.';
 
 	static args = [
@@ -36,7 +36,7 @@ export abstract class GetCommand extends BaseIPCCommand {
 	];
 
 	static flags = {
-		...BaseIPCCommand.flags,
+		...BaseIPCClientCommand.flags,
 	};
 
 	async run(): Promise<void> {

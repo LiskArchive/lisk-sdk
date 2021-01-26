@@ -13,17 +13,17 @@
  *
  */
 import * as validator from '@liskhq/lisk-validator';
-import { BaseIPCCommand } from '../base_ipc';
+import { BaseIPCClientCommand } from '../base_ipc_client';
 
 interface Args {
 	readonly transaction: string;
 }
 
-export abstract class SendCommand extends BaseIPCCommand {
+export abstract class SendCommand extends BaseIPCClientCommand {
 	static description = 'Send transaction to the local node.';
 
 	static flags = {
-		...BaseIPCCommand.flags,
+		...BaseIPCClientCommand.flags,
 	};
 
 	static args = [

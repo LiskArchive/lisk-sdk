@@ -12,15 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { BaseIPCCommand } from '../base_ipc';
+import { BaseIPCClientCommand } from '../base_ipc_client';
 
-export abstract class InfoCommand extends BaseIPCCommand {
+export abstract class InfoCommand extends BaseIPCClientCommand {
 	static description = 'Get node information from a running application.';
 
 	static examples = ['node:info', 'node:info --data-path ./lisk'];
 
 	static flags = {
-		...BaseIPCCommand.flags,
+		...BaseIPCClientCommand.flags,
 	};
 
 	async run(): Promise<void> {

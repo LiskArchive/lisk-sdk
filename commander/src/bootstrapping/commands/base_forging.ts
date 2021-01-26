@@ -16,7 +16,7 @@
 import { flags as flagParser } from '@oclif/command';
 import * as inquirer from 'inquirer';
 import { flagsWithParser } from '../../utils/flags';
-import { BaseIPCCommand } from './base_ipc';
+import { BaseIPCClientCommand } from './base_ipc_client';
 
 interface Args {
 	readonly address: string;
@@ -28,7 +28,7 @@ interface Args {
 const isLessThanZero = (value: number | undefined | null): boolean =>
 	value === null || value === undefined || value < 0;
 
-export abstract class BaseForgingCommand extends BaseIPCCommand {
+export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 	static args = [
 		{
 			name: 'address',
@@ -38,7 +38,7 @@ export abstract class BaseForgingCommand extends BaseIPCCommand {
 	];
 
 	static flags = {
-		...BaseIPCCommand.flags,
+		...BaseIPCClientCommand.flags,
 		password: flagsWithParser.password,
 		overwrite: flagParser.boolean({
 			description: 'Overwrites the forger info',

@@ -14,14 +14,18 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { flags as flagParser } from '@oclif/command';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { Application, PartialApplicationConfig } from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
 import * as validator from '@liskhq/lisk-validator';
-import { flags as flagParser } from '@oclif/command';
-import { flags as commonFlags, flagsWithParser } from '../../../utils/flags';
+
+import { BaseIPCClientCommand } from '../base_ipc_client';
+import { flagsWithParser } from '../../../utils/flags';
 import { getAssetFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
-import { BaseIPCCommand } from '../base_ipc';
+import { encodeTransaction, transactionToJSON } from '../../../utils/transaction';
+import { getGenesisBlockAndConfig } from '../../../utils/path';
 
 interface Args {
 	readonly moduleID: number;
@@ -44,12 +48,13 @@ const isSequenceObject = (
 	return true;
 };
 
-export abstract class CreateCommand extends BaseIPCCommand {
+export abstract class CreateCommand extends BaseIPCClientCommand {
 	static strict = false;
 	static description =
 		'Create transaction which can be broadcasted to the network. Note: fee and amount should be in Beddows!!';
 
 	static args = [
+		...BaseIPCClientCommand.args,
 		{
 			name: 'moduleID',
 			required: true,
@@ -74,35 +79,28 @@ export abstract class CreateCommand extends BaseIPCCommand {
 	];
 
 	static flags = {
-		...BaseIPCCommand.flags,
-		'network-identifier': flagParser.string(commonFlags.networkIdentifier),
-		nonce: flagParser.string({
-			description: 'Nonce of the transaction.',
+		...BaseIPCClientCommand.flags,
+		network: flagsWithParser.network,
+		passphrase: flagsWithParser.passphrase,
+		asset: flagParser.string({
+			char: 'a',
+			description: 'Creates transaction with specific asset information',
 		}),
+		json: flagsWithParser.json,
+		offline: flagsWithParser.offline,
 		'no-signature': flagParser.boolean({
 			description:
 				'Creates the transaction without a signature. Your passphrase will therefore not be required',
 		}),
-		passphrase: flagsWithParser.passphrase,
+		'network-identifier': flagsWithParser.networkIdentifier,
+		nonce: flagParser.string({
+			description: 'Nonce of the transaction.',
+		}),
 		'sender-public-key': flagParser.string({
 			char: 's',
 			description:
 				'Creates the transaction with provided sender publickey, when passphrase is not provided',
 		}),
-		asset: flagParser.string({
-			char: 'a',
-			description: 'Creates transaction with specific asset information',
-		}),
-		json: flagParser.boolean({
-			char: 'j',
-			description: 'Print the transaction in JSON format',
-		}),
-		offline: flagParser.boolean({
-			...commonFlags.offline,
-			hidden: false,
-			default: false,
-		}),
-		network: flagsWithParser.network,
 	};
 
 	async run(): Promise<void> {
@@ -118,6 +116,7 @@ export abstract class CreateCommand extends BaseIPCCommand {
 				'network-identifier': networkIdentifierSource,
 				nonce: nonceSource,
 				offline,
+				network,
 			},
 		} = this.parse(CreateCommand);
 		const { fee, moduleID, assetID } = args as Args;
@@ -140,6 +139,13 @@ export abstract class CreateCommand extends BaseIPCCommand {
 
 		if (offline && !nonceSource) {
 			throw new Error('Flag: --nonce must be specified while creating transaction offline.');
+		}
+
+		if (offline) {
+			// Read network genesis block and config from the folder
+			const { genesisBlock, config } = await getGenesisBlockAndConfig(network);
+			const app = this.getApplication(genesisBlock, config);
+			this._schema = app.getSchema();
 		}
 
 		const assetSchema = this._schema.transactionsAssets.find(
@@ -242,15 +248,24 @@ export abstract class CreateCommand extends BaseIPCCommand {
 
 		if (json) {
 			this.printJSON({
-				transaction: this.encodeTransaction(transactionObject).toString('hex'),
+				transaction: encodeTransaction(this._client, this._schema, transactionObject).toString(
+					'hex',
+				),
 			});
 			this.printJSON({
-				transaction: this.transactionToJSON(transactionObject),
+				transaction: transactionToJSON(this._client, this._schema, transactionObject),
 			});
 		} else {
 			this.printJSON({
-				transaction: this.encodeTransaction(transactionObject).toString('hex'),
+				transaction: encodeTransaction(this._client, this._schema, transactionObject).toString(
+					'hex',
+				),
 			});
 		}
 	}
+
+	abstract getApplication(
+		genesisBlock: Record<string, unknown>,
+		config: PartialApplicationConfig,
+	): Application;
 }

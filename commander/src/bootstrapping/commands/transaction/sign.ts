@@ -12,22 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import * as cryptography from '@liskhq/lisk-cryptography';
-import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
-import { flags as commonFlags, flagsWithParser } from '../../../utils/flags';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import { Application, PartialApplicationConfig } from 'lisk-framework';
+import * as transactions from '@liskhq/lisk-transactions';
+
+import { BaseIPCClientCommand } from '../base_ipc_client';
+import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
-import { BaseIPCCommand } from '../base_ipc';
+import {
+	decodeTransaction,
+	encodeTransaction,
+	getAssetSchema,
+	transactionToJSON,
+} from '../../../utils/transaction';
+import { Schema } from '../../../types';
+import { getGenesisBlockAndConfig } from '../../../utils/path';
 
 interface KeysAsset {
 	mandatoryKeys: Array<Readonly<string>>;
 	optionalKeys: Array<Readonly<string>>;
 }
-export abstract class SignCommand extends BaseIPCCommand {
+export abstract class SignCommand extends BaseIPCClientCommand {
 	static description = 'Sign encoded transaction.';
 
 	static args = [
+		...BaseIPCClientCommand.args,
 		{
 			name: 'transaction',
 			required: true,
@@ -36,8 +46,11 @@ export abstract class SignCommand extends BaseIPCCommand {
 	];
 
 	static flags = {
-		...BaseIPCCommand.flags,
+		...BaseIPCClientCommand.flags,
+		network: flagsWithParser.network,
 		passphrase: flagsWithParser.passphrase,
+		json: flagsWithParser.json,
+		offline: flagsWithParser.offline,
 		'include-sender': flagParser.boolean({
 			description: 'Include sender signature in transaction.',
 			default: false,
@@ -50,22 +63,8 @@ export abstract class SignCommand extends BaseIPCCommand {
 			multiple: true,
 			description: 'Optional publicKey string in hex format.',
 		}),
-		'network-identifier': flagParser.string(commonFlags.networkIdentifier),
-		json: flagParser.boolean({
-			char: 'j',
-			description: 'Print the transaction in JSON format.',
-		}),
-		'sender-public-key': flagParser.string({
-			char: 's',
-			description:
-				'Sign the transaction with provided sender public key, when passphrase is not provided',
-		}),
-		offline: flagParser.boolean({
-			...commonFlags.offline,
-			hidden: false,
-			default: false,
-		}),
-		network: flagsWithParser.network,
+		'network-identifier': flagsWithParser.networkIdentifier,
+		'sender-public-key': flagsWithParser.senderPublicKey,
 	};
 
 	static examples = [
@@ -87,6 +86,7 @@ export abstract class SignCommand extends BaseIPCCommand {
 				passphrase: passphraseSource,
 				offline,
 				'network-identifier': networkIdentifierSource,
+				network,
 			},
 		} = this.parse(SignCommand);
 
@@ -113,10 +113,18 @@ export abstract class SignCommand extends BaseIPCCommand {
 			);
 		}
 
+		if (offline) {
+			// Read network genesis block and config from the folder
+			const { genesisBlock, config } = await getGenesisBlockAndConfig(network);
+			const app = this.getApplication(genesisBlock, config);
+			this._schema = app.getSchema();
+		}
+
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const networkIdentifierBuffer = Buffer.from(networkIdentifier, 'hex');
-		const transactionObject = this.decodeTransaction(transaction);
-		const assetSchema = this.getAssetSchema(
+		const transactionObject = decodeTransaction(this._client, this._schema, transaction);
+		const assetSchema = getAssetSchema(
+			this._schema,
 			transactionObject.moduleID as number,
 			transactionObject.assetID as number,
 		);
@@ -125,7 +133,7 @@ export abstract class SignCommand extends BaseIPCCommand {
 		// sign from multi sig account offline using input keys
 		if (!includeSender && !senderPublicKey) {
 			signedTransaction = transactions.signTransaction(
-				assetSchema.schema,
+				assetSchema as Schema,
 				transactionObject,
 				networkIdentifierBuffer,
 				passphrase,
@@ -142,7 +150,7 @@ export abstract class SignCommand extends BaseIPCCommand {
 			};
 
 			signedTransaction = transactions.signMultiSignatureTransaction(
-				assetSchema.schema,
+				assetSchema as Schema,
 				transactionObject,
 				networkIdentifierBuffer,
 				passphrase,
@@ -170,7 +178,7 @@ export abstract class SignCommand extends BaseIPCCommand {
 			};
 
 			signedTransaction = transactions.signMultiSignatureTransaction(
-				assetSchema.schema,
+				assetSchema as Schema,
 				transactionObject,
 				networkIdentifierBuffer,
 				passphrase,
@@ -181,15 +189,24 @@ export abstract class SignCommand extends BaseIPCCommand {
 
 		if (json) {
 			this.printJSON({
-				transaction: this.encodeTransaction(signedTransaction).toString('hex'),
+				transaction: encodeTransaction(this._client, this._schema, signedTransaction).toString(
+					'hex',
+				),
 			});
 			this.printJSON({
-				transaction: this.transactionToJSON(signedTransaction),
+				transaction: transactionToJSON(this._client, this._schema, signedTransaction),
 			});
 		} else {
 			this.printJSON({
-				transaction: this.encodeTransaction(signedTransaction).toString('hex'),
+				transaction: encodeTransaction(this._client, this._schema, signedTransaction).toString(
+					'hex',
+				),
 			});
 		}
 	}
+
+	abstract getApplication(
+		genesisBlock: Record<string, unknown>,
+		config: PartialApplicationConfig,
+	): Application;
 }
