@@ -41,11 +41,25 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
 		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
+		const regexAlphabets = /[^A-Za-z]/;
 
-		if (regexCamelCase.test(moduleName) || regexWhitespace.test(moduleName)) {
+		if (
+			regexCamelCase.test(moduleName) ||
+			regexWhitespace.test(moduleName) ||
+			regexAlphabets.test(moduleName)
+		) {
 			this.error('Invalid module name');
 		}
 
+		if (Number.isNaN(Number(moduleID))) {
+			this.error('Invalid module ID');
+		}
+
+		this.log(
+			`Creating module skeleton with module name "${moduleName as string}" and module ID "${
+				moduleID as string
+			}"`,
+		);
 		return this._runBootstrapCommand('lisk:generate:module', {
 			moduleName: moduleName as string,
 			moduleID: moduleID as string,
