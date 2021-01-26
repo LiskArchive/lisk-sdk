@@ -19,7 +19,6 @@ import yeoman from 'yeoman-environment';
 const env = yeoman.createEnv();
 
 env.register(require.resolve('./generators/init_generator'), 'lisk:init');
-env.register(require.resolve('./generators/init'), 'lisk:init');
 env.register(require.resolve('./generators/generate/modules'), 'lisk:generate:module');
 
 export { env };
