@@ -14,7 +14,7 @@
  *
  */
 
- import BaseBootstrapCommand from '../../base_bootstrap_command';
+import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class ModuleCommand extends BaseBootstrapCommand {
 	static description = 'Creates a module skeleton for the given name and id.';

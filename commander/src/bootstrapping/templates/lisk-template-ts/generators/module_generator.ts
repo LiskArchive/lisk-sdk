@@ -54,6 +54,17 @@ export default class ModuleGenerator extends Generator {
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
+
+		this.fs.copyTpl(
+			`${this._templatePath}/modules/index.ts`,
+			join(this.destinationRoot(), `src/app/modules/${this._moduleName}/`, 'index.ts'),
+			{
+				moduleName: this._moduleName,
+				moduleClass: this._moduleClass,
+			},
+			{},
+			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
+		);
 	}
 
 	public async registerModule() {
@@ -65,8 +76,8 @@ export default class ModuleGenerator extends Generator {
 		const modulesFile = project.getSourceFileOrThrow('src/app/modules.ts');
 
 		modulesFile.addImportDeclaration({
-			defaultImport: this._moduleClass,
-			moduleSpecifier: `./modules/${this._moduleName}/${this._moduleName}`,
+			namedImports: [`${this._moduleClass}`],
+			moduleSpecifier: `./modules/${this._moduleName}`,
 		});
 		const registerFunction = modulesFile
 			.getVariableDeclarationOrThrow('registerModules')

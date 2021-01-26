@@ -18,7 +18,7 @@
 
 import { BaseModule, AfterBlockApplyContext, TransactionApplyContext, BeforeBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from 'lisk-sdk';
 
-export default class <%= moduleClass %> extends BaseModule {
+export class <%= moduleClass %> extends BaseModule {
     public actions = {
         // Example below
         // getBalance: async (params) => this._dataAccess.account.get(params.address).token.balance,
@@ -51,29 +51,29 @@ export default class <%= moduleClass %> extends BaseModule {
     }
 
     // Lifecycle hooks
-    public async beforeBlockApply(input: BeforeBlockApplyContext) {
+    public async beforeBlockApply(_input: BeforeBlockApplyContext) {
         // Get any data from stateStore using block info, below is an example getting a generator
-        // const generatorAddress = getAddressFromPublicKey(input.block.header.generatorPublicKey);
-		// const generator = await input.stateStore.account.get<TokenAccount>(generatorAddress);
+        // const generatorAddress = getAddressFromPublicKey(_input.block.header.generatorPublicKey);
+		// const generator = await _input.stateStore.account.get<TokenAccount>(generatorAddress);
     }
 
-    public async afterBlockApply(input: AfterBlockApplyContext) {
+    public async afterBlockApply(_input: AfterBlockApplyContext) {
         // Get any data from stateStore using block info, below is an example getting a generator
-        // const generatorAddress = getAddressFromPublicKey(input.block.header.generatorPublicKey);
-		// const generator = await input.stateStore.account.get<TokenAccount>(generatorAddress);
+        // const generatorAddress = getAddressFromPublicKey(_input.block.header.generatorPublicKey);
+		// const generator = await _input.stateStore.account.get<TokenAccount>(generatorAddress);
     }
 
-    public async beforeTransactionApply(input: TransactionApplyContext) {
+    public async beforeTransactionApply(_input: TransactionApplyContext) {
         // Get any data from stateStore using transaction info, below is an example
-        // const sender = await input.stateStore.account.getOrDefault<TokenAccount>(input.transaction.senderAddress);
+        // const sender = await _input.stateStore.account.getOrDefault<TokenAccount>(_input.transaction.senderAddress);
     }
 
-    public async afterTransactionApply(input: TransactionApplyContext) {
+    public async afterTransactionApply(_input: TransactionApplyContext) {
         // Get any data from stateStore using transaction info, below is an example
-        // const sender = await input.stateStore.account.getOrDefault<TokenAccount>(input.transaction.senderAddress);
+        // const sender = await _input.stateStore.account.getOrDefault<TokenAccount>(_input.transaction.senderAddress);
     }
 
-    public async afterGenesisBlockApply(input: AfterGenesisBlockApplyContext) {
+    public async afterGenesisBlockApply(_input: AfterGenesisBlockApplyContext) {
         // Get any data from genesis block, for example get all genesis accounts
         // const genesisAccoounts = genesisBlock.header.asset.accounts;
     }

@@ -42,7 +42,7 @@ export default class ModuleGenerator extends BootstrapGenerator {
 	}
 
 	public writing(): void {
-		this.log('Creating module skelton.');
+		this.log('Generating module skeleton.');
 		this.composeWith(
 			{
 				Generator: this._liskTemplate.generators.module,
