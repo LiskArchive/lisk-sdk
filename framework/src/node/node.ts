@@ -154,6 +154,11 @@ export class Node {
 		};
 	}
 
+	public getDefaultAccount(): Record<string, unknown> {
+		const { default: defaultAccount } = getAccountSchemaWithDefault(this._registeredAccountSchemas);
+		return defaultAccount;
+	}
+
 	public getRegisteredModules(): RegisteredModule[] {
 		return this._registeredModules.reduce<RegisteredModule[]>((prev, current) => {
 			const assets = current.transactionAssets.map(asset => ({ id: asset.id, name: asset.name }));

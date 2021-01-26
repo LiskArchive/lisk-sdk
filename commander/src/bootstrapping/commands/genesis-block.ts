@@ -18,6 +18,7 @@ import { createGenesisBlock, getGenesisBlockJSON, accountAssetSchemas } from '@l
 import { Account } from '@liskhq/lisk-chain';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { Application, PartialApplicationConfig } from 'lisk-framework';
+import { objects } from '@liskhq/lisk-utils';
 import { Command, flags as flagParser } from '@oclif/command';
 import fs from 'fs-extra';
 import { join, resolve } from 'path';
@@ -88,21 +89,6 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			data.map(acc => ({
 				address: Buffer.from(acc.address, 'hex'),
 				token: { balance: BigInt(tokenDistribution) },
-				sequence: { nonce: BigInt(0) },
-				keys: { numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] },
-				dpos: {
-					delegate: {
-						username: '',
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-						lastForgedHeight: 0,
-						isBanned: false,
-						totalVotesReceived: BigInt(0),
-					},
-					sentVotes: [],
-					unlocking: [],
-					pomHeights: [],
-				},
 			}));
 
 		// add self votes to validator accounts
@@ -116,15 +102,8 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			data.map(acc => ({
 				address: Buffer.from(acc.address, 'hex'),
 				token: { balance: BigInt(tokenDistribution) },
-				sequence: { nonce: BigInt(0) },
-				keys: { numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] },
 				dpos: {
 					delegate: {
-						username: acc.username,
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-						lastForgedHeight: 0,
-						isBanned: false,
 						totalVotesReceived: BigInt(1000000000000),
 					},
 					sentVotes: [
@@ -133,8 +112,6 @@ export abstract class BaseGenesisBlockCommand extends Command {
 							amount: BigInt(1000000000000),
 						},
 					],
-					unlocking: [],
-					pomHeights: [],
 				},
 			}));
 
@@ -170,16 +147,26 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		const app = this.getApplication({}, defaultConfig as PartialApplicationConfig);
 		const schema = app.getSchema();
 		const accountSchemas = schema.account.properties;
+		const defaultAccount = app.getDefaultAccount();
+		const defaultAccountAssetSchema = Object.fromEntries(
+			Object.entries(defaultAccount).map(([k, v]) => [k, { default: v }]),
+		);
+
+		const accountSchemasWithDefaults = objects.mergeDeep(
+			{},
+			accountSchemas,
+			defaultAccountAssetSchema,
+		);
 
 		const updatedGenesisBlock = createGenesisBlock({
 			initDelegates: validDelegateAccounts.map(a => a.address),
 			accounts: [...validAccounts, ...validDelegateAccounts] as Account[],
-			accountAssetSchemas: accountSchemas as accountAssetSchemas,
+			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
 		});
 
 		const genesisBlock = getGenesisBlockJSON({
 			genesisBlock: updatedGenesisBlock,
-			accountAssetSchemas: accountSchemas as accountAssetSchemas,
+			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
 		});
 
 		// validate folder name to not include camelcase or whitespace
