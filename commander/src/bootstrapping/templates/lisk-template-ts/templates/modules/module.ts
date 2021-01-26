@@ -42,7 +42,7 @@ export class <%= moduleClass %> extends BaseModule {
     public transactionAssets = [];
     public events = [
         // Example below
-        //'<%= moduleName %>:newBlock',
+        // '<%= moduleName %>:newBlock',
     ];
     public id = <%= moduleID %>;
 
