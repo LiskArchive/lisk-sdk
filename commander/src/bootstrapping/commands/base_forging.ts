@@ -13,10 +13,9 @@
  *
  */
 
-import * as inquirer from 'inquirer';
 import { flags as flagParser } from '@oclif/command';
-
-import { flags as commonFlags } from '../../utils/flags';
+import * as inquirer from 'inquirer';
+import { flagsWithParser } from '../../utils/flags';
 import { BaseIPCCommand } from './base_ipc';
 
 interface Args {
@@ -40,7 +39,7 @@ export abstract class BaseForgingCommand extends BaseIPCCommand {
 
 	static flags = {
 		...BaseIPCCommand.flags,
-		password: flagParser.string(commonFlags.password),
+		password: flagsWithParser.password,
 		overwrite: flagParser.boolean({
 			description: 'Overwrites the forger info',
 			default: false,

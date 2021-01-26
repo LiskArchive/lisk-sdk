@@ -13,10 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
 import * as cryptography from '@liskhq/lisk-cryptography';
-
-import { flags as commonFlags } from '../../../utils/flags';
+import { Command } from '@oclif/command';
+import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 
 const processInput = (
@@ -46,7 +45,7 @@ export class ShowCommand extends Command {
 	static examples = ['account:show'];
 
 	static flags = {
-		passphrase: flagParser.string(commonFlags.passphrase),
+		passphrase: flagsWithParser.passphrase,
 	};
 
 	async run(): Promise<void> {

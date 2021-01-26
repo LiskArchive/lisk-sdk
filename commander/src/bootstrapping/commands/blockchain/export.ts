@@ -13,9 +13,10 @@
  *
  */
 
-import * as tar from 'tar';
+import { Command } from '@oclif/command';
 import { join } from 'path';
-import { Command, flags as flagParser } from '@oclif/command';
+import * as tar from 'tar';
+import { flagsWithParser } from '../../../utils/flags';
 import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils/path';
 
 export class ExportCommand extends Command {
@@ -27,16 +28,8 @@ export class ExportCommand extends Command {
 	];
 
 	static flags = {
-		'data-path': flagParser.string({
-			char: 'd',
-			description:
-				'Directory path to specify where node data is stored. Environment variable "LISK_DATA_PATH" can also be used.',
-			env: 'LISK_DATA_PATH',
-		}),
-		output: flagParser.string({
-			char: 'o',
-			description: 'The output directory. Default will set to current working directory.',
-		}),
+		'data-path': flagsWithParser.dataPath,
+		output: flagsWithParser.output,
 	};
 
 	async run(): Promise<void> {

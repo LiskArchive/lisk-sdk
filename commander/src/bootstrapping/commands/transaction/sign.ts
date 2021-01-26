@@ -13,14 +13,12 @@
  *
  */
 
-import { flags as flagParser } from '@oclif/command';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
-
-import { BaseIPCCommand } from '../base_ipc';
-import { flags as commonFlags } from '../../../utils/flags';
+import { flags as flagParser } from '@oclif/command';
+import { flags as commonFlags, flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
-import { DEFAULT_NETWORK } from '../../../constants';
+import { BaseIPCCommand } from '../base_ipc';
 
 interface KeysAsset {
 	mandatoryKeys: Array<Readonly<string>>;
@@ -39,7 +37,7 @@ export abstract class SignCommand extends BaseIPCCommand {
 
 	static flags = {
 		...BaseIPCCommand.flags,
-		passphrase: flagParser.string(commonFlags.passphrase),
+		passphrase: flagsWithParser.passphrase,
 		'include-sender': flagParser.boolean({
 			description: 'Include sender signature in transaction.',
 			default: false,
@@ -67,11 +65,7 @@ export abstract class SignCommand extends BaseIPCCommand {
 			hidden: false,
 			default: false,
 		}),
-		network: flagParser.string({
-			...commonFlags.network,
-			default: DEFAULT_NETWORK,
-			hidden: false,
-		}),
+		network: flagsWithParser.network,
 	};
 
 	static examples = [
