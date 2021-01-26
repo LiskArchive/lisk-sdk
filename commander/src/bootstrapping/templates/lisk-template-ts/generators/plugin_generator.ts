@@ -32,6 +32,7 @@ export default class PluginGenerator extends Generator {
 	async prompting() {
 		this._path = join(__dirname, '..', 'templates');
 
+		// Check for existing package.json in root directory to use existing info 
 		try { 
 			this._packageJSON = (await import(`${this.destinationRoot()}/src/app/package.json`));
 		} catch(err) {
