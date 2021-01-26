@@ -26,8 +26,16 @@ describe('<%= className %>Plugin', () => {
         it.todo('should have name');
         it.todo('should have version');
     });
-    describe('events', () => {});
-    describe('actions', () => {});
-    describe('load', () => {});
-    describe('unload', () => {});
+    describe('events', () => {
+      it.todo('should fire an event');
+    });
+    describe('actions', () => {
+      it.todo('should have an action');
+    });
+    describe('load', () => {
+      it.todo('should load plugin');
+    });
+    describe('unload', () => {
+      it.todo('should uload plugin');
+    });
 });
