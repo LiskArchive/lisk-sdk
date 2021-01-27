@@ -31,7 +31,9 @@ import {
 	getAssetSchema,
 	transactionToJSON,
 } from '../../../utils/transaction';
-import { getGenesisBlockAndConfig } from '../../../utils/path';
+import { getDefaultPath, getGenesisBlockAndConfig } from '../../../utils/path';
+import { isApplicationRunning } from '../../../utils/application';
+import { PromiseResolvedType } from '../../../types';
 
 interface Args {
 	readonly moduleID: number;
@@ -48,6 +50,7 @@ interface CreateFlags {
 	offline: boolean;
 	'data-path': string | undefined;
 	'no-signature': boolean;
+	'sender-public-key': string | undefined;
 	nonce: string | undefined;
 }
 
@@ -142,6 +145,10 @@ const createTransactionOffline = async (
 	registeredSchema: RegisteredSchema,
 	transaction: Transaction,
 ) => {
+	if (!flags['sender-public-key'] && flags['no-signature']) {
+		throw new Error('Sender public key must be specified when no-signature flags is used.');
+	}
+
 	if (flags['data-path']) {
 		throw new Error(
 			'Flag: --data-path should not be specified while creating transaction offline.',
@@ -181,6 +188,9 @@ const createTransactionOnline = async (
 	transaction: Transaction,
 ) => {
 	const nodeInfo = await client.node.getNodeInfo();
+	const { address, passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
+	const account = await client.account.get(address);
+	const asset = (await getAssetObject(registeredSchema, flags, args)) as Record<string, unknown>;
 
 	if (flags['network-identifier'] && flags['network-identifier'] !== nodeInfo.networkIdentifier) {
 		throw new Error(
@@ -188,8 +198,6 @@ const createTransactionOnline = async (
 		);
 	}
 
-	const { address, passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
-	const account = await client.account.get(address);
 	if (!isSequenceObject(account, 'sequence')) {
 		throw new Error('Account does not have sequence property.');
 	}
@@ -200,19 +208,19 @@ const createTransactionOnline = async (
 			}, expected: ${account.sequence.nonce.toString()}`,
 		);
 	}
-	const asset = await getAssetObject(registeredSchema, flags, args);
 
-	transaction.asset = asset;
-	transaction.senderPublicKey = publicKey;
-	transaction.nonce = BigInt(account.sequence.nonce);
+	let transactionObject = {
+		...transaction,
+		nonce: BigInt(account.sequence.nonce),
+		senderPublicKey: publicKey,
+		asset,
+	} as Record<string, unknown>;
 
-	return validateAndSignTransaction(
-		transaction,
-		registeredSchema,
-		nodeInfo.networkIdentifier,
-		passphrase,
-		flags['no-signature'],
-	);
+	if (!flags['no-signature']) {
+		transactionObject = await client.transaction.sign(transactionObject, [passphrase]);
+	}
+
+	return transactionObject;
 };
 
 export abstract class CreateCommand extends Command {
@@ -270,11 +278,12 @@ export abstract class CreateCommand extends Command {
 		pretty: flagsWithParser.pretty,
 	};
 
+	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
+	protected _schema!: RegisteredSchema;
+	protected _dataPath!: string;
+
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(CreateCommand);
-		if (!flags['sender-public-key'] && flags['no-signature']) {
-			throw new Error('Sender public key must be specified when no-signature flags is used.');
-		}
 
 		const incompleteTransaction = {
 			moduleID: Number(args.moduleID),
@@ -286,42 +295,45 @@ export abstract class CreateCommand extends Command {
 			signatures: [],
 		};
 
-		let client!: apiClient.APIClient;
-		let schema!: RegisteredSchema;
 		let transactionObject!: Record<string, unknown>;
+		this._dataPath = flags['data-path'] ?? getDefaultPath(this.config.pjson.name);
 
 		if (flags.offline) {
 			const { genesisBlock, config } = await getGenesisBlockAndConfig(flags.network);
 			const app = this.getApplication(genesisBlock, config);
-			schema = app.getSchema();
+			this._schema = app.getSchema();
 			transactionObject = await createTransactionOffline(
 				args as Args,
 				flags,
-				schema,
+				this._schema,
 				incompleteTransaction,
 			);
 		} else {
-			client = await getApiClient(flags['data-path'], this.config.pjson.name);
-			schema = client.schemas;
+			this._client = await getApiClient(flags['data-path'] as string, this.config.pjson.name);
+			this._schema = this._client.schemas;
 			transactionObject = await createTransactionOnline(
 				args as Args,
 				flags,
-				client,
-				schema,
+				this._client,
+				this._schema,
 				incompleteTransaction,
 			);
 		}
 
 		if (flags.json) {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(schema, transactionObject, client).toString('hex'),
+				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
+					'hex',
+				),
 			});
 			this.printJSON(flags.pretty, {
-				transaction: transactionToJSON(schema, transactionObject, client),
+				transaction: transactionToJSON(this._schema, transactionObject, this._client),
 			});
 		} else {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(schema, transactionObject, client).toString('hex'),
+				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
+					'hex',
+				),
 			});
 		}
 	}
@@ -331,6 +343,18 @@ export abstract class CreateCommand extends Command {
 			this.log(JSON.stringify(message, undefined, '  '));
 		} else {
 			this.log(JSON.stringify(message));
+		}
+	}
+
+	async finally(error?: Error | string): Promise<void> {
+		if (error) {
+			if (!isApplicationRunning(this._dataPath)) {
+				throw new Error(`Application at data path ${this._dataPath} is not running.`);
+			}
+			this.error(error instanceof Error ? error.message : error);
+		}
+		if (this._client) {
+			await this._client.disconnect();
 		}
 	}
 

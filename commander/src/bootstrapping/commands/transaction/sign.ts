@@ -26,7 +26,9 @@ import {
 	getApiClient,
 	transactionToJSON,
 } from '../../../utils/transaction';
-import { getGenesisBlockAndConfig } from '../../../utils/path';
+import { getDefaultPath, getGenesisBlockAndConfig } from '../../../utils/path';
+import { isApplicationRunning } from '../../../utils/application';
+import { PromiseResolvedType } from '../../../types';
 
 interface KeysAsset {
 	mandatoryKeys: Array<Readonly<string>>;
@@ -135,38 +137,20 @@ const signTransactionOnline = async (
 	registeredSchema: RegisteredSchema,
 	transactionHexStr: string,
 ) => {
-	const nodeInfo = await client.node.getNodeInfo();
-	if (flags['network-identifier'] && flags['network-identifier'] !== nodeInfo.networkIdentifier) {
-		throw new Error(
-			`Invalid networkIdentifier specified, actual: ${flags['network-identifier']}, expected: ${nodeInfo.networkIdentifier}.`,
-		);
-	}
-
-	if (!flags['sender-public-key']) {
-		throw new Error(
-			'Sender publickey must be specified for signing transactions from multi signature account.',
-		);
-	}
-
-	const address = cryptography.getAddressFromPublicKey(
-		Buffer.from(flags['sender-public-key'], 'hex'),
-	);
-	const account = (await client.account.get(address)) as { keys: KeysAsset };
+	// Sign non multi-sig transaction
 	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
+	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+	const address = cryptography.getAddressFromPassphrase(passphrase);
 
 	let signedTransaction: Record<string, unknown>;
 
-	if (!flags['include-sender'] && !flags['sender-public-key']) {
-		signedTransaction = await signTransaction(
-			flags,
-			registeredSchema,
-			transactionHexStr,
-			nodeInfo.networkIdentifier,
-			{} as Keys,
-		);
+	if (!flags['include-sender']) {
+		signedTransaction = await client.transaction.sign(transactionObject, [passphrase]);
 		return signedTransaction;
 	}
 
+	// Sign multi-sig transaction
+	const account = (await client.account.get(address)) as { keys: KeysAsset };
 	let keysAsset: KeysAsset;
 	if (account.keys?.mandatoryKeys.length === 0 && account.keys?.optionalKeys.length === 0) {
 		keysAsset = transactionObject.asset as KeysAsset;
@@ -178,13 +162,10 @@ const signTransactionOnline = async (
 		optionalKeys: keysAsset.optionalKeys.map(k => Buffer.from(k, 'hex')),
 	};
 
-	signedTransaction = await signTransaction(
-		flags,
-		registeredSchema,
-		transactionHexStr,
-		nodeInfo.networkIdentifier,
-		keys,
-	);
+	signedTransaction = await client.transaction.sign(transactionObject, [passphrase], {
+		includeSenderSignature: flags['include-sender'],
+		multisignatureKeys: keys,
+	});
 	return signedTransaction;
 };
 
@@ -227,6 +208,10 @@ export abstract class SignCommand extends Command {
 		'transaction:sign <hex-encoded-binary-transaction> --network testnet',
 	];
 
+	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
+	protected _schema!: RegisteredSchema;
+	protected _dataPath!: string;
+
 	async run(): Promise<void> {
 		const {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -234,32 +219,40 @@ export abstract class SignCommand extends Command {
 			flags,
 		} = this.parse(SignCommand);
 		const { offline, network, 'data-path': dataPath } = flags;
+		this._dataPath = dataPath ?? getDefaultPath(this.config.pjson.name);
 
-		let client!: apiClient.APIClient;
-		let schema!: RegisteredSchema;
 		let signedTransaction: Record<string, unknown>;
 
 		if (offline) {
 			const { genesisBlock, config } = await getGenesisBlockAndConfig(network);
 			const app = this.getApplication(genesisBlock, config);
-			schema = app.getSchema();
-			signedTransaction = await signTransactionOffline(flags, schema, transaction);
+			this._schema = app.getSchema();
+			signedTransaction = await signTransactionOffline(flags, this._schema, transaction);
 		} else {
-			client = await getApiClient(dataPath, this.config.pjson.name);
-			schema = client.schemas;
-			signedTransaction = await signTransactionOnline(flags, client, schema, transaction);
+			this._client = await getApiClient(dataPath, this.config.pjson.name);
+			this._schema = this._client.schemas;
+			signedTransaction = await signTransactionOnline(
+				flags,
+				this._client,
+				this._schema,
+				transaction,
+			);
 		}
 
 		if (flags.json) {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(schema, signedTransaction, client).toString('hex'),
+				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
+					'hex',
+				),
 			});
 			this.printJSON(flags.pretty, {
-				transaction: transactionToJSON(schema, signedTransaction, client),
+				transaction: transactionToJSON(this._schema, signedTransaction, this._client),
 			});
 		} else {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(schema, signedTransaction, client).toString('hex'),
+				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
+					'hex',
+				),
 			});
 		}
 	}
@@ -269,6 +262,18 @@ export abstract class SignCommand extends Command {
 			this.log(JSON.stringify(message, undefined, '  '));
 		} else {
 			this.log(JSON.stringify(message));
+		}
+	}
+
+	async finally(error?: Error | string): Promise<void> {
+		if (error) {
+			if (!isApplicationRunning(this._dataPath)) {
+				throw new Error(`Application at data path ${this._dataPath} is not running.`);
+			}
+			this.error(error instanceof Error ? error.message : error);
+		}
+		if (this._client) {
+			await this._client.disconnect();
 		}
 	}
 
