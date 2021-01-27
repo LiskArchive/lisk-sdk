@@ -18,6 +18,7 @@ import * as path from 'path';
 import { Command, flags as flagParser } from '@oclif/command';
 import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils/path';
 import { extract } from '../../../utils/download';
+import { flagsWithParser } from '../../../utils/flags';
 
 export class ImportCommand extends Command {
 	static description = 'Import from <FILE>.';
@@ -37,12 +38,7 @@ export class ImportCommand extends Command {
 	];
 
 	static flags = {
-		'data-path': flagParser.string({
-			char: 'd',
-			description:
-				'Specifies which data path the application should use. Environment variable "LISK_DATA_PATH" can also be used.',
-			env: 'LISK_DATA_PATH',
-		}),
+		'data-path': flagsWithParser.dataPath,
 		force: flagParser.boolean({
 			char: 'f',
 			description: 'Delete and overwrite existing blockchain data',

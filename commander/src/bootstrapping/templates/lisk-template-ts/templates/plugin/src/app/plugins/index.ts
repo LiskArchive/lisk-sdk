@@ -1,5 +1,4 @@
 /*
- * LiskHQ/lisk-commander
  * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
@@ -11,11 +10,6 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-import InitGenerator from './generators/init_generator';
-import PluginGenerator from './generators/plugin_generator';
-import ModuleGenerator from './generators/module_generator';
-
-export const generators = { init: InitGenerator, plugin: PluginGenerator, module: ModuleGenerator };
+export { <%= className %> } from './<%= alias %>';

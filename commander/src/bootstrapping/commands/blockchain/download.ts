@@ -17,7 +17,7 @@ import { NETWORK, RELEASE_URL, DEFAULT_NETWORK } from '../../../constants';
 import { liskSnapshotUrl } from '../../../utils/commons';
 import { getFullPath } from '../../../utils/path';
 import { downloadAndValidate, getChecksum } from '../../../utils/download';
-import { flags as commonFlags } from '../../../utils/flags';
+import { flagsWithParser } from '../../../utils/flags';
 
 export class DownloadCommand extends Command {
 	static description = 'Download snapshot from <URL>.';
@@ -29,16 +29,8 @@ export class DownloadCommand extends Command {
 	];
 
 	static flags = {
-		network: flagParser.string({
-			...commonFlags.network,
-			env: 'LISK_NETWORK',
-			default: DEFAULT_NETWORK,
-		}),
-		output: flagParser.string({
-			char: 'o',
-			description:
-				'Directory path to specify where snapshot is downloaded. By default outputs the files to current working directory.',
-		}),
+		network: flagsWithParser.network,
+		output: flagsWithParser.output,
 		url: flagParser.string({
 			char: 'u',
 			description: 'The url to the snapshot.',

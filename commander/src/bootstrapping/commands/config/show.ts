@@ -12,17 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
+import * as utils from '@liskhq/lisk-utils';
+import { Command } from '@oclif/command';
 import * as fs from 'fs-extra';
 import { ApplicationConfig } from 'lisk-framework';
-import * as utils from '@liskhq/lisk-utils';
+import { flagsWithParser } from '../../../utils/flags';
 import {
-	getDefaultPath,
-	splitPath,
 	getConfigDirs,
+	getDefaultPath,
 	getNetworkConfigFilesPath,
+	splitPath,
 } from '../../../utils/path';
-import { flags as commonFlags } from '../../../utils/flags';
 
 export class ShowCommand extends Command {
 	static description = 'Show application config.';
@@ -34,19 +34,9 @@ export class ShowCommand extends Command {
 	];
 
 	static flags = {
-		'data-path': flagParser.string({
-			...commonFlags.dataPath,
-			env: 'LISK_DATA_PATH',
-		}),
-		config: flagParser.string({
-			char: 'c',
-			description:
-				'File path to a custom config. Environment variable "LISK_CONFIG_FILE" can also be used.',
-			env: 'LISK_CONFIG_FILE',
-		}),
-		pretty: flagParser.boolean({
-			description: 'Prints JSON in pretty format rather than condensed.',
-		}),
+		'data-path': flagsWithParser.dataPath,
+		config: flagsWithParser.config,
+		pretty: flagsWithParser.pretty,
 	};
 
 	async run(): Promise<void> {
