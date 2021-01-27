@@ -104,11 +104,7 @@ export default class PluginGenerator extends Generator {
 		// Create unit tests
 		this.fs.copyTpl(
 			`${this._path}/plugin/test/unit/plugins/plugin.ts`,
-			join(
-				this.destinationRoot(),
-				`test/unit/plugins/${this._alias}/`,
-				`${this._alias}.spec.ts`,
-			),
+			join(this.destinationRoot(), `test/unit/plugins/${this._alias}/`, `${this._alias}.spec.ts`),
 			{
 				alias: this._alias,
 				className: this._className,
