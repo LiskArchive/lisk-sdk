@@ -23,8 +23,7 @@ import { Command, flags as flagParser } from '@oclif/command';
 import fs from 'fs-extra';
 import { join, resolve } from 'path';
 import inquirer from 'inquirer';
-import { createMnemonicPassphrase } from '../../utils/mnemonic';
-import { defaultConfig } from '../../utils/config';
+import { createMnemonicPassphrase } from '../../../utils/mnemonic';
 
 interface AccountInfo {
 	readonly address: string;
@@ -34,12 +33,39 @@ interface AccountInfo {
 const createAccount = (): AccountInfo => {
 	const passphrase = createMnemonicPassphrase();
 	const address = getAddressFromPassphrase(passphrase).toString('hex');
-
 	return {
 		passphrase,
 		address,
 	};
 };
+
+const prepareNormalAccounts = (
+	data: {
+		address: string;
+	}[],
+	tokenBalance: number,
+): Account[] =>
+	data.map(acc => ({
+		address: Buffer.from(acc.address, 'hex'),
+		token: { balance: BigInt(tokenBalance) },
+	}));
+
+const prepareValidatorAccounts = (
+	data: {
+		username: string;
+		address: string;
+	}[],
+	tokenBalance: number,
+): Account[] =>
+	data.map(acc => ({
+		address: Buffer.from(acc.address, 'hex'),
+		token: { balance: BigInt(tokenBalance) },
+		dpos: {
+			delegate: {
+				username: acc.username,
+			},
+		},
+	}));
 
 export abstract class BaseGenesisBlockCommand extends Command {
 	static description = 'Creates genesis block file.';
@@ -54,7 +80,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		output: flagParser.string({
 			char: 'o',
 			description: 'Output folder path of the generated genesis block',
-			default: '',
+			default: 'config',
 		}),
 		accounts: flagParser.integer({
 			char: 'a',
@@ -69,7 +95,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		'token-distribution': flagParser.integer({
 			char: 't',
 			description: 'Amount of tokens distributed to each account',
-			default: 500,
+			default: 10000000,
 		}),
 	};
 
@@ -79,61 +105,25 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		} = this.parse(BaseGenesisBlockCommand);
 
-		const prepareNormalAccounts = (
-			data: {
-				username: string;
-				passphrase: string;
-				address: string;
-			}[],
-		): Account[] =>
-			data.map(acc => ({
-				address: Buffer.from(acc.address, 'hex'),
-				token: { balance: BigInt(tokenDistribution) },
-			}));
+		const accountList = new Array(accounts).fill(0).map(_x => createAccount());
 
-		// add self votes to validator accounts
-		const prepareValidatorAccounts = (
-			data: {
-				username: string;
-				passphrase: string;
-				address: string;
-			}[],
-		): Account[] =>
-			data.map(acc => ({
-				address: Buffer.from(acc.address, 'hex'),
-				token: { balance: BigInt(tokenDistribution) },
-				dpos: {
-					delegate: {
-						totalVotesReceived: BigInt(1000000000000),
-					},
-					sentVotes: [
-						{
-							delegateAddress: Buffer.from(acc.address, 'hex'),
-							amount: BigInt(1000000000000),
-						},
-					],
-				},
-			}));
-
-		const accountList = new Array(accounts)
-			.fill(0)
-			.map((_x, index) => ({ ...{ username: `account_${index}` }, ...createAccount() }));
-
-		const delegateList = new Array(validators)
-			.fill(0)
-			.map((_x, index) => ({ ...{ username: `delegate_${index}` }, ...createAccount() }));
+		const delegateList = new Array(validators).fill(0).map((_x, index) => ({
+			...{ username: `delegate_${index}` },
+			...createAccount(),
+			...{ password: createMnemonicPassphrase() },
+		}));
 
 		const onionSeed = cryptography.generateHashOnionSeed();
-		const onionCount = 1000;
+		const onionCount = 10000; // These parameters can be configurable using relevant flags
 		const onionDistance = 1000;
 
 		const delegateForgingInfo = delegateList.map(del => ({
 			// ToDo: use a better password, user sourced using flag
 			encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(
-				cryptography.encryptPassphraseWithPassword(del.passphrase, del.username),
-			), // password is the username
+				cryptography.encryptPassphraseWithPassword(del.passphrase, del.password),
+			),
 			hashOnion: {
-				count: onionCount, // These parameters can be configurable using relevant flags
+				count: onionCount,
 				distance: onionDistance,
 				hashes: cryptography
 					.hashOnion(onionSeed, onionCount, onionDistance)
@@ -142,12 +132,18 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			address: del.address,
 		}));
 
-		const validAccounts = prepareNormalAccounts(accountList);
-		const validDelegateAccounts = prepareValidatorAccounts(delegateList);
-		const app = this.getApplication({}, defaultConfig as PartialApplicationConfig);
+		const validAccounts = prepareNormalAccounts(accountList, tokenDistribution);
+		const validDelegateAccounts = prepareValidatorAccounts(delegateList, tokenDistribution);
+		const app = this.getApplication({}, {});
 		const schema = app.getSchema();
-		const accountSchemas = schema.account.properties;
 		const defaultAccount = app.getDefaultAccount();
+		if (!('token' in defaultAccount)) {
+			throw new Error('Token module must be registered to use this command');
+		}
+		if (!('dpos' in defaultAccount)) {
+			throw new Error('Dpos module must be registered to use this command');
+		}
+		const accountSchemas = schema.account.properties;
 		const defaultAccountAssetSchema = Object.fromEntries(
 			Object.entries(defaultAccount).map(([k, v]) => [k, { default: v }]),
 		);
@@ -194,35 +190,27 @@ export abstract class BaseGenesisBlockCommand extends Command {
 					'Operation cancelled, genesis_block file already present at the desired location',
 				);
 			} else {
-				fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), JSON.stringify(genesisBlock), {
+				fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), genesisBlock, {
 					spaces: ' ',
 				});
-				fs.writeJSONSync(
-					resolve(configPath, 'accounts.json'),
-					JSON.stringify([...accountList, ...delegateList]),
-					{ spaces: ' ' },
-				); // add to gitignore
-				fs.writeJSONSync(
-					resolve(configPath, 'forging_info.json'),
-					JSON.stringify(delegateForgingInfo),
-					{ spaces: ' ' },
-				);
+				fs.writeJSONSync(resolve(configPath, 'accounts.json'), [...accountList, ...delegateList], {
+					spaces: ' ',
+				}); // add to gitignore
+				fs.writeJSONSync(resolve(configPath, 'forging_info.json'), delegateForgingInfo, {
+					spaces: ' ',
+				});
 			}
 		} else {
 			fs.mkdirSync(configPath, { recursive: true });
-			fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), JSON.stringify(genesisBlock), {
+			fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), genesisBlock, {
 				spaces: ' ',
 			});
-			fs.writeJSONSync(
-				resolve(configPath, 'accounts.json'),
-				JSON.stringify([...accountList, ...delegateList]),
-				{ spaces: ' ' },
-			); // add to gitignore
-			fs.writeJSONSync(
-				resolve(configPath, 'forging_info.json'),
-				JSON.stringify(delegateForgingInfo),
-				{ spaces: ' ' },
-			);
+			fs.writeJSONSync(resolve(configPath, 'accounts.json'), [...accountList, ...delegateList], {
+				spaces: ' ',
+			}); // add to gitignore
+			fs.writeJSONSync(resolve(configPath, 'forging_info.json'), delegateForgingInfo, {
+				spaces: ' ',
+			});
 		}
 	}
 

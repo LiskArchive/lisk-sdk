@@ -1,5 +1,5 @@
 import { BaseGenesisBlockCommand } from 'lisk-commander';
-import { Application, PartialApplicationConfig } from 'lisk-framework';
+import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 import { registerModules } from '../../app/modules';
 
