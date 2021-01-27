@@ -106,7 +106,7 @@ export default class PluginGenerator extends Generator {
 			`${this._path}/plugin/test/unit/plugins/plugin.ts`,
 			join(
 				this.destinationRoot(),
-				`test/unit/plugins/${this._className}/`,
+				`test/unit/plugins/${this._alias}/`,
 				`${this._alias}.spec.ts`,
 			),
 			{

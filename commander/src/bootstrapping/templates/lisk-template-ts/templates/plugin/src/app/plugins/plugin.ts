@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePlugin, PluginInfo } from 'lisk-framework';
+import { BasePlugin, PluginInfo } from 'lisk-sdk';
 import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-framework';
 
 export class <%= className %> extends BasePlugin {
