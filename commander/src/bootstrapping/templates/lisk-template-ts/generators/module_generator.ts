@@ -39,6 +39,7 @@ export default class ModuleGenerator extends Generator {
 	}
 
 	public writing(): void {
+		// Writing module file
 		this.fs.copyTpl(
 			`${this._templatePath}/modules/module.ts`,
 			join(
@@ -55,12 +56,29 @@ export default class ModuleGenerator extends Generator {
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
 
+		// Writing index file
 		this.fs.copyTpl(
 			`${this._templatePath}/modules/index.ts`,
 			join(this.destinationRoot(), `src/app/modules/${this._moduleName}/`, 'index.ts'),
 			{
 				moduleName: this._moduleName,
 				moduleClass: this._moduleClass,
+			},
+			{},
+			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
+		);
+
+		// Writing test file for the generated module
+		this.fs.copyTpl(
+			`${this._templatePath}/modules/test/module.spec.ts`,
+			join(
+				this.destinationRoot(),
+				`test/unit/modules/${this._moduleName}/`,
+				`${this._moduleName}.spec.ts`,
+			),
+			{
+				moduleClass: this._moduleClass,
+				moduleName: this._moduleName,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
@@ -89,22 +107,5 @@ export default class ModuleGenerator extends Generator {
 
 		modulesFile.organizeImports();
 		await modulesFile.save();
-	}
-
-	public createModuleUnitTest() {
-		this.fs.copyTpl(
-			`${this._templatePath}/modules/test/module.spec.ts`,
-			join(
-				this.destinationRoot(),
-				`test/unit/modules/${this._moduleName}/`,
-				`${this._moduleName}.spec.ts`,
-			),
-			{
-				moduleClass: this._moduleClass,
-				moduleName: this._moduleName,
-			},
-			{},
-			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
-		);
 	}
 }
