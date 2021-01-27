@@ -1,1 +1,0 @@
-export { <%= moduleClass %> } from './<%= moduleName %>';

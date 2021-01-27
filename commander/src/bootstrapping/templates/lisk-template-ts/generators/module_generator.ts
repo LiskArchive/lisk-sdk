@@ -32,7 +32,7 @@ export default class ModuleGenerator extends Generator {
 	public constructor(args: string | string[], opts: ModuleGeneratorOptions) {
 		super(args, opts);
 
-		this._templatePath = join(__dirname, '..', 'templates');
+		this._templatePath = join(__dirname, '..', 'templates', 'module');
 		this._moduleName = (this.options as ModuleGeneratorOptions).moduleName;
 		this._moduleID = (this.options as ModuleGeneratorOptions).moduleID;
 		this._moduleClass = this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1);
@@ -41,12 +41,8 @@ export default class ModuleGenerator extends Generator {
 	public writing(): void {
 		// Writing module file
 		this.fs.copyTpl(
-			`${this._templatePath}/modules/module.ts`,
-			join(
-				this.destinationRoot(),
-				`src/app/modules/${this._moduleName}/`,
-				`${this._moduleName}.ts`,
-			),
+			`${this._templatePath}/src/app/modules/module.ts`,
+			this.destinationPath(`src/app/modules/${this._moduleName}/${this._moduleName}.ts`),
 			{
 				moduleName: this._moduleName,
 				moduleID: this._moduleID,
@@ -56,26 +52,10 @@ export default class ModuleGenerator extends Generator {
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
 
-		// Writing index file
-		this.fs.copyTpl(
-			`${this._templatePath}/modules/index.ts`,
-			join(this.destinationRoot(), `src/app/modules/${this._moduleName}/`, 'index.ts'),
-			{
-				moduleName: this._moduleName,
-				moduleClass: this._moduleClass,
-			},
-			{},
-			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
-		);
-
 		// Writing test file for the generated module
 		this.fs.copyTpl(
-			`${this._templatePath}/modules/test/module.spec.ts`,
-			join(
-				this.destinationRoot(),
-				`test/unit/modules/${this._moduleName}/`,
-				`${this._moduleName}.spec.ts`,
-			),
+			`${this._templatePath}/test/unit/modules/module.spec.ts`,
+			this.destinationPath(`test/unit/modules/${this._moduleName}/${this._moduleName}.spec.ts`),
 			{
 				moduleClass: this._moduleClass,
 				moduleName: this._moduleName,
@@ -94,9 +74,10 @@ export default class ModuleGenerator extends Generator {
 		const modulesFile = project.getSourceFileOrThrow('src/app/modules.ts');
 
 		modulesFile.addImportDeclaration({
-			namedImports: [`${this._moduleClass}`],
-			moduleSpecifier: `./modules/${this._moduleName}`,
+			namedImports: [this._moduleClass],
+			moduleSpecifier: `./modules/${this._moduleName}/${this._moduleName}`,
 		});
+
 		const registerFunction = modulesFile
 			.getVariableDeclarationOrThrow('registerModules')
 			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
