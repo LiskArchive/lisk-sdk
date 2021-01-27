@@ -15,5 +15,6 @@
  */
 
 import InitGenerator from './generators/init_generator';
+import ModuleGenerator from './generators/module_generator';
 
-export const generators = { init: InitGenerator };
+export const generators = { init: InitGenerator, module: ModuleGenerator };
