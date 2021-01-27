@@ -15,7 +15,9 @@
 import { BasePlugin, PluginInfo } from 'lisk-sdk';
 import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-framework';
 
-export class <%= className %> extends BasePlugin {
+ /* eslint-disable class-methods-use-this */
+ /* eslint-disable  @typescript-eslint/no-empty-function */
+ export class <%= className %> extends BasePlugin {
 	private _channel!: BaseChannel;
 
 	public static get alias(): string {
@@ -31,26 +33,25 @@ export class <%= className %> extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events(): EventsDefinition {
 		return [
-			// 'block:created', 
+			// 'block:created',
 			// 'block:missed'
 		];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
-		return {
-			hello: async () => { return { hello: 'world' }; },
-		};
+		return {};
+		// return {
+		// 	// eslint-disable-next-line @typescript-eslint/require-await
+		// 	hello: async () => { hello: 'world' },
+		// };
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
-		this._channel.once('app:ready', () => {
-		});
+		// this._channel.once('app:ready', () => {});
 	}
 
 	public async unload(): Promise<void> {}
