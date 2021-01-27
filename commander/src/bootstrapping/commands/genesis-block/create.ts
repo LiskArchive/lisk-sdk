@@ -105,16 +105,55 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		} = this.parse(BaseGenesisBlockCommand);
 
-		const accountList = new Array(accounts).fill(0).map(_x => createAccount());
+		// validate folder name to not include camelcase or whitespace
+		const regexWhitespace = /\s/g;
+		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
+		if (regexCamelCase.test(output) || regexWhitespace.test(output)) {
+			this.error('Invalid name');
+		}
 
+		const app = this.getApplication({}, {});
+		const registeredModules = app.getRegisteredModules();
+		if (!registeredModules.some(module => module.name === 'token')) {
+			throw new Error('Token module must be registered to use this command');
+		}
+		if (!registeredModules.some(module => module.name === 'dpos')) {
+			throw new Error('Dpos module must be registered to use this command');
+		}
+		const schema = app.getSchema();
+		const defaultAccount = app.getDefaultAccount();
+		const accountSchemas = schema.account.properties;
+		const defaultAccountAssetSchema = Object.fromEntries(
+			Object.entries(defaultAccount).map(([k, v]) => [k, { default: v }]),
+		);
+		const accountSchemasWithDefaults = objects.mergeDeep(
+			{},
+			accountSchemas,
+			defaultAccountAssetSchema,
+		);
+
+		const accountList = new Array(accounts).fill(0).map(_x => createAccount());
 		const delegateList = new Array(validators).fill(0).map((_x, index) => ({
 			...{ username: `delegate_${index}` },
 			...createAccount(),
 			...{ password: createMnemonicPassphrase() },
 		}));
 
+		const validAccounts = prepareNormalAccounts(accountList, tokenDistribution);
+		const validDelegateAccounts = prepareValidatorAccounts(delegateList, tokenDistribution);
+
+		const updatedGenesisBlock = createGenesisBlock({
+			initDelegates: validDelegateAccounts.map(a => a.address),
+			accounts: [...validAccounts, ...validDelegateAccounts] as Account[],
+			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
+		});
+		const genesisBlock = getGenesisBlockJSON({
+			genesisBlock: updatedGenesisBlock,
+			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
+		});
+
 		const onionSeed = cryptography.generateHashOnionSeed();
-		const onionCount = 10000; // These parameters can be configurable using relevant flags
+		const onionCount = 10000;
 		const onionDistance = 1000;
 
 		const delegateForgingInfo = delegateList.map(del => ({
@@ -131,46 +170,6 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			},
 			address: del.address,
 		}));
-
-		const validAccounts = prepareNormalAccounts(accountList, tokenDistribution);
-		const validDelegateAccounts = prepareValidatorAccounts(delegateList, tokenDistribution);
-		const app = this.getApplication({}, {});
-		const schema = app.getSchema();
-		const defaultAccount = app.getDefaultAccount();
-		if (!('token' in defaultAccount)) {
-			throw new Error('Token module must be registered to use this command');
-		}
-		if (!('dpos' in defaultAccount)) {
-			throw new Error('Dpos module must be registered to use this command');
-		}
-		const accountSchemas = schema.account.properties;
-		const defaultAccountAssetSchema = Object.fromEntries(
-			Object.entries(defaultAccount).map(([k, v]) => [k, { default: v }]),
-		);
-
-		const accountSchemasWithDefaults = objects.mergeDeep(
-			{},
-			accountSchemas,
-			defaultAccountAssetSchema,
-		);
-
-		const updatedGenesisBlock = createGenesisBlock({
-			initDelegates: validDelegateAccounts.map(a => a.address),
-			accounts: [...validAccounts, ...validDelegateAccounts] as Account[],
-			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
-		});
-
-		const genesisBlock = getGenesisBlockJSON({
-			genesisBlock: updatedGenesisBlock,
-			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
-		});
-
-		// validate folder name to not include camelcase or whitespace
-		const regexWhitespace = /\s/g;
-		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
-		if (regexCamelCase.test(output) || regexWhitespace.test(output)) {
-			this.error('Invalid name');
-		}
 
 		// determine proper path
 		const configPath = join(process.cwd(), output);
