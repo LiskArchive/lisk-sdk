@@ -54,7 +54,9 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 		}
 
 		if (Number.isNaN(Number(moduleID)) || +moduleID < MINIMUM_EXTERNAL_MODULE_ID) {
-			this.error('Invalid module ID');
+			this.error(
+				`Invalid module ID, only integers are allowed and it should be greater than and equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
+			);
 		}
 
 		this.log(

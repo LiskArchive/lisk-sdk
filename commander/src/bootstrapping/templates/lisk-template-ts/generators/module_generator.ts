@@ -101,6 +101,7 @@ export default class ModuleGenerator extends Generator {
 			),
 			{
 				moduleClass: this._moduleClass,
+				moduleName: this._moduleName,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
