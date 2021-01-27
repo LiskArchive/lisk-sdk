@@ -12,32 +12,186 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
+import Command, { flags as flagParser } from '@oclif/command';
+import * as apiClient from '@liskhq/lisk-api-client';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { Application, PartialApplicationConfig } from 'lisk-framework';
+import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
 
-import { BaseIPCClientCommand } from '../base_ipc_client';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 import {
 	decodeTransaction,
 	encodeTransaction,
-	getAssetSchema,
+	getApiClient,
 	transactionToJSON,
 } from '../../../utils/transaction';
-import { Schema } from '../../../types';
 import { getGenesisBlockAndConfig } from '../../../utils/path';
 
 interface KeysAsset {
 	mandatoryKeys: Array<Readonly<string>>;
 	optionalKeys: Array<Readonly<string>>;
 }
-export abstract class SignCommand extends BaseIPCClientCommand {
+
+interface Keys {
+	mandatoryKeys: Buffer[];
+	optionalKeys: Buffer[];
+}
+
+interface SignFlags {
+	network: string;
+	'network-identifier': string | undefined;
+	passphrase: string | undefined;
+	'include-sender': boolean;
+	offline: boolean;
+	'data-path': string | undefined;
+	'sender-public-key': string | undefined;
+	'mandatory-keys': string[];
+	'optional-keys': string[];
+}
+
+const signTransaction = async (
+	flags: SignFlags,
+	registeredSchema: RegisteredSchema,
+	transactionHexStr: string,
+	networkIdentifier: string | undefined,
+	keys: Keys,
+) => {
+	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
+	const networkIdentifierBuffer = Buffer.from(networkIdentifier as string, 'hex');
+	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+
+	// sign from multi sig account offline using input keys
+	if (!flags['include-sender'] && !flags['sender-public-key']) {
+		return transactions.signTransaction(
+			registeredSchema,
+			transactionObject,
+			networkIdentifierBuffer,
+			passphrase,
+		);
+	}
+
+	return transactions.signMultiSignatureTransaction(
+		registeredSchema,
+		transactionObject,
+		networkIdentifierBuffer,
+		passphrase,
+		keys,
+		flags['include-sender'],
+	);
+};
+
+const signTransactionOffline = async (
+	flags: SignFlags,
+	registeredSchema: RegisteredSchema,
+	transactionHexStr: string,
+): Promise<Record<string, unknown>> => {
+	if (flags['data-path']) {
+		throw new Error('Flag: --data-path should not be specified while signing offline.');
+	}
+
+	if (!flags['network-identifier']) {
+		throw new Error('Flag: --network-identifier must be specified while signing offline.');
+	}
+
+	let signedTransaction: Record<string, unknown>;
+
+	if (!flags['include-sender'] && !flags['sender-public-key']) {
+		signedTransaction = await signTransaction(
+			flags,
+			registeredSchema,
+			transactionHexStr,
+			flags['network-identifier'],
+			{} as Keys,
+		);
+		return signedTransaction;
+	}
+
+	const mandatoryKeys = flags['mandatory-keys'];
+	const optionalKeys = flags['optional-keys'];
+	if (!mandatoryKeys.length && !optionalKeys.length) {
+		throw new Error(
+			'--mandatory-keys or --optional-keys flag must be specified to sign transaction from multi signature account.',
+		);
+	}
+	const keys = {
+		mandatoryKeys: mandatoryKeys ? mandatoryKeys.map(k => Buffer.from(k, 'hex')) : [],
+		optionalKeys: optionalKeys ? optionalKeys.map(k => Buffer.from(k, 'hex')) : [],
+	};
+
+	signedTransaction = await signTransaction(
+		flags,
+		registeredSchema,
+		transactionHexStr,
+		flags['network-identifier'],
+		keys,
+	);
+	return signedTransaction;
+};
+
+const signTransactionOnline = async (
+	flags: SignFlags,
+	client: apiClient.APIClient,
+	registeredSchema: RegisteredSchema,
+	transactionHexStr: string,
+) => {
+	const nodeInfo = await client.node.getNodeInfo();
+	if (flags['network-identifier'] && flags['network-identifier'] !== nodeInfo.networkIdentifier) {
+		throw new Error(
+			`Invalid networkIdentifier specified, actual: ${flags['network-identifier']}, expected: ${nodeInfo.networkIdentifier}.`,
+		);
+	}
+
+	if (!flags['sender-public-key']) {
+		throw new Error(
+			'Sender publickey must be specified for signing transactions from multi signature account.',
+		);
+	}
+
+	const address = cryptography.getAddressFromPublicKey(
+		Buffer.from(flags['sender-public-key'], 'hex'),
+	);
+	const account = (await client.account.get(address)) as { keys: KeysAsset };
+	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
+
+	let signedTransaction: Record<string, unknown>;
+
+	if (!flags['include-sender'] && !flags['sender-public-key']) {
+		signedTransaction = await signTransaction(
+			flags,
+			registeredSchema,
+			transactionHexStr,
+			nodeInfo.networkIdentifier,
+			{} as Keys,
+		);
+		return signedTransaction;
+	}
+
+	let keysAsset: KeysAsset;
+	if (account.keys?.mandatoryKeys.length === 0 && account.keys?.optionalKeys.length === 0) {
+		keysAsset = transactionObject.asset as KeysAsset;
+	} else {
+		keysAsset = account.keys;
+	}
+	const keys = {
+		mandatoryKeys: keysAsset.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
+		optionalKeys: keysAsset.optionalKeys.map(k => Buffer.from(k, 'hex')),
+	};
+
+	signedTransaction = await signTransaction(
+		flags,
+		registeredSchema,
+		transactionHexStr,
+		nodeInfo.networkIdentifier,
+		keys,
+	);
+	return signedTransaction;
+};
+
+export abstract class SignCommand extends Command {
 	static description = 'Sign encoded transaction.';
 
 	static args = [
-		...BaseIPCClientCommand.args,
 		{
 			name: 'transaction',
 			required: true,
@@ -46,7 +200,6 @@ export abstract class SignCommand extends BaseIPCClientCommand {
 	];
 
 	static flags = {
-		...BaseIPCClientCommand.flags,
 		network: flagsWithParser.network,
 		passphrase: flagsWithParser.passphrase,
 		json: flagsWithParser.json,
@@ -65,6 +218,8 @@ export abstract class SignCommand extends BaseIPCClientCommand {
 		}),
 		'network-identifier': flagsWithParser.networkIdentifier,
 		'sender-public-key': flagsWithParser.senderPublicKey,
+		'data-path': flagsWithParser.dataPath,
+		pretty: flagsWithParser.pretty,
 	};
 
 	static examples = [
@@ -76,132 +231,44 @@ export abstract class SignCommand extends BaseIPCClientCommand {
 		const {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { transaction },
-			flags: {
-				'data-path': dataPath,
-				'include-sender': includeSender,
-				'sender-public-key': senderPublicKey,
-				'mandatory-keys': mandatoryKeys,
-				'optional-keys': optionalKeys,
-				json,
-				passphrase: passphraseSource,
-				offline,
-				'network-identifier': networkIdentifierSource,
-				network,
-			},
+			flags,
 		} = this.parse(SignCommand);
+		const { offline, network, 'data-path': dataPath } = flags;
 
-		if (offline && dataPath) {
-			throw new Error('Flag: --data-path should not be specified while signing offline.');
-		}
-
-		if (offline && !networkIdentifierSource) {
-			throw new Error('Flag: --network-identifier must be specified while signing offline.');
-		}
-
-		let networkIdentifier = networkIdentifierSource as string;
-		if (!offline) {
-			if (!this._client) {
-				this.error('APIClient is not initialized.');
-			}
-			const nodeInfo = await this._client.node.getNodeInfo();
-			networkIdentifier = nodeInfo.networkIdentifier;
-		}
-
-		if (!offline && networkIdentifierSource && networkIdentifier !== networkIdentifierSource) {
-			throw new Error(
-				`Invalid networkIdentifier specified, actual: ${networkIdentifierSource}, expected: ${networkIdentifier}.`,
-			);
-		}
-
-		if (offline) {
-			// Read network genesis block and config from the folder
-			const { genesisBlock, config } = await getGenesisBlockAndConfig(network);
-			const app = this.getApplication(genesisBlock, config);
-			this._schema = app.getSchema();
-		}
-
-		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
-		const networkIdentifierBuffer = Buffer.from(networkIdentifier, 'hex');
-		const transactionObject = decodeTransaction(this._client, this._schema, transaction);
-		const assetSchema = getAssetSchema(
-			this._schema,
-			transactionObject.moduleID as number,
-			transactionObject.assetID as number,
-		);
+		let client!: apiClient.APIClient;
+		let schema!: RegisteredSchema;
 		let signedTransaction: Record<string, unknown>;
 
-		// sign from multi sig account offline using input keys
-		if (!includeSender && !senderPublicKey) {
-			signedTransaction = transactions.signTransaction(
-				assetSchema as Schema,
-				transactionObject,
-				networkIdentifierBuffer,
-				passphrase,
-			);
-		} else if (offline) {
-			if (!mandatoryKeys.length && !optionalKeys.length) {
-				throw new Error(
-					'--mandatory-keys or --optional-keys flag must be specified to sign transaction from multi signature account.',
-				);
-			}
-			const keys = {
-				mandatoryKeys: mandatoryKeys ? mandatoryKeys.map(k => Buffer.from(k, 'hex')) : [],
-				optionalKeys: optionalKeys ? optionalKeys.map(k => Buffer.from(k, 'hex')) : [],
-			};
-
-			signedTransaction = transactions.signMultiSignatureTransaction(
-				assetSchema as Schema,
-				transactionObject,
-				networkIdentifierBuffer,
-				passphrase,
-				keys,
-				includeSender,
-			);
+		if (offline) {
+			const { genesisBlock, config } = await getGenesisBlockAndConfig(network);
+			const app = this.getApplication(genesisBlock, config);
+			schema = app.getSchema();
+			signedTransaction = await signTransactionOffline(flags, schema, transaction);
 		} else {
-			// sign from multi sig account online using account keys
-			if (!senderPublicKey) {
-				throw new Error(
-					'Sender publickey must be specified for signing transactions from multi signature account.',
-				);
-			}
-			const address = cryptography.getAddressFromPublicKey(Buffer.from(senderPublicKey, 'hex'));
-			const account = (await this._client?.account.get(address)) as { keys: KeysAsset };
-			let keysAsset: KeysAsset;
-			if (account.keys?.mandatoryKeys.length === 0 && account.keys?.optionalKeys.length === 0) {
-				keysAsset = transactionObject.asset as KeysAsset;
-			} else {
-				keysAsset = account.keys;
-			}
-			const keys = {
-				mandatoryKeys: keysAsset.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
-				optionalKeys: keysAsset.optionalKeys.map(k => Buffer.from(k, 'hex')),
-			};
-
-			signedTransaction = transactions.signMultiSignatureTransaction(
-				assetSchema as Schema,
-				transactionObject,
-				networkIdentifierBuffer,
-				passphrase,
-				keys,
-				includeSender,
-			);
+			client = await getApiClient(dataPath, this.config.pjson.name);
+			schema = client.schemas;
+			signedTransaction = await signTransactionOnline(flags, client, schema, transaction);
 		}
 
-		if (json) {
-			this.printJSON({
-				transaction: encodeTransaction(this._client, this._schema, signedTransaction).toString(
-					'hex',
-				),
+		if (flags.json) {
+			this.printJSON(flags.pretty, {
+				transaction: encodeTransaction(schema, signedTransaction, client).toString('hex'),
 			});
-			this.printJSON({
-				transaction: transactionToJSON(this._client, this._schema, signedTransaction),
+			this.printJSON(flags.pretty, {
+				transaction: transactionToJSON(schema, signedTransaction, client),
 			});
 		} else {
-			this.printJSON({
-				transaction: encodeTransaction(this._client, this._schema, signedTransaction).toString(
-					'hex',
-				),
+			this.printJSON(flags.pretty, {
+				transaction: encodeTransaction(schema, signedTransaction, client).toString('hex'),
 			});
+		}
+	}
+
+	printJSON(pretty: boolean, message?: Record<string, unknown>): void {
+		if (pretty) {
+			this.log(JSON.stringify(message, undefined, '  '));
+		} else {
+			this.log(JSON.stringify(message));
 		}
 	}
 

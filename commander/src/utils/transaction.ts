@@ -18,6 +18,8 @@ import { codec } from '@liskhq/lisk-codec';
 import { RegisteredSchema, Transaction } from 'lisk-framework';
 
 import { Schema } from '../types';
+import { getDefaultPath } from './path';
+import { isApplicationRunning } from './application';
 
 export const getAssetSchema = (
 	registeredSchema: RegisteredSchema,
@@ -25,7 +27,7 @@ export const getAssetSchema = (
 	assetID: number,
 ): Schema | undefined => {
 	const transactionsAsset = registeredSchema.transactionsAssets.find(
-		schema => schema.moduleID === moduleID && schema.assetID === assetID,
+		schema => schema.moduleID === Number(moduleID) && schema.assetID === Number(assetID),
 	);
 	if (!transactionsAsset) {
 		throw new Error(
@@ -36,9 +38,9 @@ export const getAssetSchema = (
 };
 
 export const decodeTransaction = (
-	apiClient: liskApiClient.APIClient | undefined,
 	schema: RegisteredSchema,
 	transactionHexStr: string,
+	apiClient?: liskApiClient.APIClient,
 ): Record<string, unknown> => {
 	const transactionBytes = Buffer.from(transactionHexStr, 'hex');
 	if (apiClient) {
@@ -56,9 +58,9 @@ export const decodeTransaction = (
 };
 
 export const encodeTransaction = (
-	apiClient: liskApiClient.APIClient | undefined,
 	schema: RegisteredSchema,
 	transaction: Record<string, unknown>,
+	apiClient?: liskApiClient.APIClient,
 ): Buffer => {
 	if (apiClient) {
 		return apiClient.transaction.encode(transaction);
@@ -74,9 +76,9 @@ export const encodeTransaction = (
 };
 
 export const transactionToJSON = (
-	apiClient: liskApiClient.APIClient | undefined,
 	schema: RegisteredSchema,
 	transaction: Record<string, unknown>,
+	apiClient?: liskApiClient.APIClient,
 ): Record<string, unknown> => {
 	if (apiClient) {
 		return apiClient.transaction.toJSON(transaction);
@@ -94,4 +96,17 @@ export const transactionToJSON = (
 		asset: assetJSON,
 		id: Buffer.isBuffer(id) ? id.toString('hex') : undefined,
 	};
+};
+
+export const getApiClient = async (
+	appDataPath: string | undefined,
+	name: string,
+): Promise<liskApiClient.APIClient> => {
+	const dataPath = appDataPath ?? getDefaultPath(name);
+
+	if (!isApplicationRunning(dataPath)) {
+		throw new Error(`Application at data path ${dataPath} is not running.`);
+	}
+	const client = await liskApiClient.createIPCClient(dataPath);
+	return client;
 };
