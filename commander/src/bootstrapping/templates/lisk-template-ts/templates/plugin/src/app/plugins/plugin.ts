@@ -41,11 +41,9 @@ import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-fram
 	}
 
 	public get actions(): ActionsDefinition {
-		return {};
-		// return {
-		// 	// eslint-disable-next-line @typescript-eslint/require-await
+		return {
 		// 	hello: async () => { hello: 'world' },
-		// };
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
