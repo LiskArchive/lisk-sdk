@@ -52,3 +52,4 @@ export {
 } from './bootstrapping/commands/transaction';
 export { HashOnionCommand } from './bootstrapping/commands/hash-onion';
 export { StartCommand as BaseStartCommand } from './bootstrapping/commands/start';
+export { BaseGenesisBlockCommand } from './bootstrapping/commands/genesis-block/create';

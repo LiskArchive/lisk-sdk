@@ -219,6 +219,10 @@ export class Application {
 		return this._node.getSchema();
 	}
 
+	public getDefaultAccount(): Record<string, unknown> {
+		return this._node.getDefaultAccount();
+	}
+
 	public getRegisteredModules(): RegisteredModule[] {
 		return this._node.getRegisteredModules();
 	}
