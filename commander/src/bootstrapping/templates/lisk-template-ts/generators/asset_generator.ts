@@ -39,7 +39,7 @@ export default class AssetGenerator extends Generator {
 		this._assetName = opts.assetName;
 		this._assetID = opts.assetID;
 		this._templatePath = join(__dirname, '..', 'templates', 'asset');
-		this._assetClass = this._assetName.charAt(0).toUpperCase() + this._assetName.slice(1) + 'Asset';
+		this._assetClass = `${this._assetName.charAt(0).toUpperCase() + this._assetName.slice(1)}Asset`;
 		this._moduleClass = this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1);
 	}
 
