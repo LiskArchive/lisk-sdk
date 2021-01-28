@@ -17,24 +17,22 @@ import { Command, flags as flagParser } from '@oclif/command';
 import fs from 'fs-extra';
 import { join, resolve } from 'path';
 import inquirer from 'inquirer';
-import { defaultConfig } from '../../utils/config';
+import { defaultConfig } from '../../../utils/config';
 
-export default class NetworkConfigCommand extends Command {
+export class CreateCommand extends Command {
 	static description = 'Creates network configuration file.';
 	static examples = [
-		'generate:network-config mydir',
-		'generate:network-config mydir --label alpha-sdk-app',
-		'generate:network-config mydir --label alpha-sdk-app --community-identifier sdk',
-	];
-	static args = [
-		{
-			name: 'networkName',
-			description: 'Directory where the config file is saved.',
-			required: true,
-		},
+		'generate:network-config --networkName mydir',
+		'generate:network-config --networkName mydir --label alpha-sdk-app',
+		'generate:network-config --networkName mydir --label alpha-sdk-app --community-identifier sdk',
 	];
 
 	static flags = {
+		networkName: flagParser.string({
+			char: 'n',
+			description: 'Directory where the config file is saved',
+			default: '',
+		}),
 		label: flagParser.string({
 			char: 'l',
 			description: 'App Label',
@@ -49,10 +47,9 @@ export default class NetworkConfigCommand extends Command {
 
 	async run(): Promise<void> {
 		const {
-			flags: { label, 'community-identifier': communityIdentifier },
+			flags: { networkName, label, 'community-identifier': communityIdentifier },
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			args: { networkName },
-		} = this.parse(NetworkConfigCommand);
+		} = this.parse(CreateCommand);
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
@@ -62,14 +59,14 @@ export default class NetworkConfigCommand extends Command {
 		}
 
 		// determine proper path
-		const configPath = join(__dirname, '../../config', networkName);
+		const configPath = join(process.cwd(), networkName);
+		const filePath = join(configPath, 'config');
 
 		defaultConfig.label = label;
 		defaultConfig.genesisConfig.communityIdentifier = communityIdentifier;
-		// defaultConfig.version = get version from package.json of the app created
 
-		// check for existing file at networkName & ask the user before overwriting
-		if (fs.existsSync(configPath)) {
+		// check for existing file at given location & ask the user before overwriting
+		if (fs.existsSync(filePath)) {
 			const userResponse = await inquirer.prompt({
 				type: 'confirm',
 				name: 'confirm',
@@ -78,12 +75,11 @@ export default class NetworkConfigCommand extends Command {
 			if (!userResponse.confirm) {
 				this.error('Operation cancelled, config file already present at the desired location');
 			} else {
-				fs.writeJSONSync(resolve(configPath, 'config.json'), JSON.stringify(defaultConfig));
+				fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, { spaces: '' });
 			}
 		} else {
 			fs.mkdirSync(configPath, { recursive: true });
-			// write config in config.json at the proper path
-			fs.writeJSONSync(resolve(configPath, 'config.json'), JSON.stringify(defaultConfig));
+			fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, { spaces: '' });
 		}
 	}
 }

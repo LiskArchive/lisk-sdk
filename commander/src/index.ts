@@ -27,7 +27,7 @@ export {
 	BlockchainImportCommand,
 	BlockchainResetCommand,
 } from './bootstrapping/commands/blockchain';
-export { ConfigShowCommand } from './bootstrapping/commands/config';
+export { ConfigShowCommand, ConfigCreateCommand } from './bootstrapping/commands/config';
 export {
 	ForgerInfoExportCommand,
 	ForgerInfoImportCommand,
