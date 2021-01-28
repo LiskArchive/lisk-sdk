@@ -59,10 +59,11 @@ export abstract class BaseIPCClientCommand extends Command {
 			? this.baseIPCClientFlags['data-path']
 			: getDefaultPath(this.config.pjson.name);
 
-		if (isApplicationRunning(this._dataPath)) {
-			this._client = await apiClient.createIPCClient(this._dataPath);
-			this._schema = this._client.schemas;
+		if (!isApplicationRunning(this._dataPath)) {
+			throw new Error(`Application at data path ${this._dataPath} is not running.`);
 		}
+		this._client = await apiClient.createIPCClient(this._dataPath);
+		this._schema = this._client.schemas;
 	}
 
 	printJSON(message?: Record<string, unknown>): void {
