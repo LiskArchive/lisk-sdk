@@ -17,5 +17,11 @@
 import InitGenerator from './generators/init_generator';
 import PluginGenerator from './generators/plugin_generator';
 import ModuleGenerator from './generators/module_generator';
+import AssetGenerator from './generators/asset_generator';
 
-export const generators = { init: InitGenerator, plugin: PluginGenerator, module: ModuleGenerator };
+export const generators = {
+	init: InitGenerator,
+	plugin: PluginGenerator,
+	module: ModuleGenerator,
+	asset: AssetGenerator,
+};
