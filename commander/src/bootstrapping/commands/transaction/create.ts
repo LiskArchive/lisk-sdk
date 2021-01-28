@@ -14,19 +14,54 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { codec } from '@liskhq/lisk-codec';
+/* eslint-disable no-param-reassign */
+import Command, { flags as flagParser } from '@oclif/command';
+import * as apiClient from '@liskhq/lisk-api-client';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
 import * as validator from '@liskhq/lisk-validator';
-import { flags as flagParser } from '@oclif/command';
-import { flags as commonFlags, flagsWithParser } from '../../../utils/flags';
+
+import { flagsWithParser } from '../../../utils/flags';
 import { getAssetFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
-import { BaseIPCCommand } from '../base_ipc';
+import {
+	encodeTransaction,
+	getApiClient,
+	getAssetSchema,
+	transactionToJSON,
+} from '../../../utils/transaction';
+import { getDefaultPath, getGenesisBlockAndConfig } from '../../../utils/path';
+import { isApplicationRunning } from '../../../utils/application';
+import { PromiseResolvedType } from '../../../types';
 
 interface Args {
 	readonly moduleID: number;
 	readonly assetID: number;
 	readonly fee: string;
+}
+
+interface CreateFlags {
+	network: string;
+	'network-identifier': string | undefined;
+	passphrase: string | undefined;
+	asset: string | undefined;
+	pretty: boolean;
+	offline: boolean;
+	'data-path': string | undefined;
+	'no-signature': boolean;
+	'sender-public-key': string | undefined;
+	nonce: string | undefined;
+}
+
+interface Transaction {
+	moduleID: number;
+	assetID: number;
+	nonce: bigint;
+	fee: bigint;
+	senderPublicKey: Buffer;
+	asset: object;
+	signatures: never[];
 }
 
 const isSequenceObject = (
@@ -44,7 +79,151 @@ const isSequenceObject = (
 	return true;
 };
 
-export abstract class CreateCommand extends BaseIPCCommand {
+const getAssetObject = async (
+	registeredSchema: RegisteredSchema,
+	flags: CreateFlags,
+	args: Args,
+) => {
+	const assetSchema = getAssetSchema(registeredSchema, args.moduleID, args.assetID) as Schema;
+	const rawAsset = flags.asset ? JSON.parse(flags.asset) : await getAssetFromPrompt(assetSchema);
+	const assetObject = codec.fromJSON(assetSchema, rawAsset);
+
+	const assetErrors = validator.validator.validate(assetSchema, assetObject);
+	if (assetErrors.length) {
+		throw new validator.LiskValidationError([...assetErrors]);
+	}
+
+	return assetObject;
+};
+
+const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
+	let passphrase!: string;
+	let publicKey!: Buffer;
+	let address!: Buffer;
+	if (flags.passphrase || !flags['no-signature']) {
+		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+		const result = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
+		publicKey = result.publicKey;
+		address = result.address;
+	}
+	return { address, passphrase, publicKey };
+};
+
+const validateAndSignTransaction = (
+	transaction: Transaction,
+	schema: RegisteredSchema,
+	networkIdentifier: string,
+	passphrase: string,
+	noSignature: boolean,
+) => {
+	const { asset, ...transactionWithoutAsset } = transaction;
+	const assetSchema = getAssetSchema(schema, transaction.moduleID, transaction.assetID) as Schema;
+
+	const transactionErrors = validator.validator.validate(schema.transaction, {
+		...transactionWithoutAsset,
+		asset: Buffer.alloc(0),
+	});
+	if (transactionErrors.length) {
+		throw new validator.LiskValidationError([...transactionErrors]);
+	}
+
+	if (!noSignature) {
+		return transactions.signTransaction(
+			assetSchema,
+			(transaction as unknown) as Record<string, unknown>,
+			Buffer.from(networkIdentifier, 'hex'),
+			passphrase,
+		);
+	}
+
+	return (transaction as unknown) as Record<string, unknown>;
+};
+
+const createTransactionOffline = async (
+	args: Args,
+	flags: CreateFlags,
+	registeredSchema: RegisteredSchema,
+	transaction: Transaction,
+) => {
+	if (!flags['sender-public-key'] && flags['no-signature']) {
+		throw new Error('Sender public key must be specified when no-signature flags is used.');
+	}
+
+	if (flags['data-path']) {
+		throw new Error(
+			'Flag: --data-path should not be specified while creating transaction offline.',
+		);
+	}
+
+	if (!flags['network-identifier']) {
+		throw new Error(
+			'Flag: --network-identifier must be specified while creating transaction offline.',
+		);
+	}
+
+	if (!flags.nonce) {
+		throw new Error('Flag: --nonce must be specified while creating transaction offline.');
+	}
+
+	const asset = await getAssetObject(registeredSchema, flags, args);
+	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
+	transaction.nonce = BigInt(flags.nonce);
+	transaction.asset = asset;
+	transaction.senderPublicKey = publicKey;
+
+	return validateAndSignTransaction(
+		transaction,
+		registeredSchema,
+		flags['network-identifier'],
+		passphrase,
+		flags['no-signature'],
+	);
+};
+
+const createTransactionOnline = async (
+	args: Args,
+	flags: CreateFlags,
+	client: apiClient.APIClient,
+	registeredSchema: RegisteredSchema,
+	transaction: Transaction,
+) => {
+	const nodeInfo = await client.node.getNodeInfo();
+	const { address, passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
+	const account = await client.account.get(address);
+	const asset = (await getAssetObject(registeredSchema, flags, args)) as Record<string, unknown>;
+
+	if (flags['network-identifier'] && flags['network-identifier'] !== nodeInfo.networkIdentifier) {
+		throw new Error(
+			`Invalid networkIdentifier specified, actual: ${flags['network-identifier']}, expected: ${nodeInfo.networkIdentifier}.`,
+		);
+	}
+
+	if (!isSequenceObject(account, 'sequence')) {
+		throw new Error('Account does not have sequence property.');
+	}
+	if (flags.nonce && BigInt(account.sequence.nonce) > BigInt(flags.nonce)) {
+		throw new Error(
+			`Invalid nonce specified, actual: ${
+				flags.nonce
+			}, expected: ${account.sequence.nonce.toString()}`,
+		);
+	}
+
+	let transactionObject = {
+		...transaction,
+		nonce: BigInt(account.sequence.nonce),
+		senderPublicKey: publicKey,
+		asset,
+	} as Record<string, unknown>;
+
+	if (!flags['no-signature']) {
+		transactionObject = await client.transaction.sign(transactionObject, [passphrase]);
+	}
+
+	return transactionObject;
+};
+
+export abstract class CreateCommand extends Command {
 	static strict = false;
 	static description =
 		'Create transaction which can be broadcasted to the network. Note: fee and amount should be in Beddows!!';
@@ -74,183 +253,113 @@ export abstract class CreateCommand extends BaseIPCCommand {
 	];
 
 	static flags = {
-		...BaseIPCCommand.flags,
-		'network-identifier': flagParser.string(commonFlags.networkIdentifier),
-		nonce: flagParser.string({
-			description: 'Nonce of the transaction.',
+		network: flagsWithParser.network,
+		passphrase: flagsWithParser.passphrase,
+		asset: flagParser.string({
+			char: 'a',
+			description: 'Creates transaction with specific asset information',
 		}),
+		json: flagsWithParser.json,
+		offline: flagsWithParser.offline,
 		'no-signature': flagParser.boolean({
 			description:
 				'Creates the transaction without a signature. Your passphrase will therefore not be required',
 		}),
-		passphrase: flagsWithParser.passphrase,
+		'network-identifier': flagsWithParser.networkIdentifier,
+		nonce: flagParser.string({
+			description: 'Nonce of the transaction.',
+		}),
 		'sender-public-key': flagParser.string({
 			char: 's',
 			description:
 				'Creates the transaction with provided sender publickey, when passphrase is not provided',
 		}),
-		asset: flagParser.string({
-			char: 'a',
-			description: 'Creates transaction with specific asset information',
-		}),
-		json: flagParser.boolean({
-			char: 'j',
-			description: 'Print the transaction in JSON format',
-		}),
-		offline: flagParser.boolean({
-			...commonFlags.offline,
-			hidden: false,
-			default: false,
-		}),
-		network: flagsWithParser.network,
+		'data-path': flagsWithParser.dataPath,
+		pretty: flagsWithParser.pretty,
 	};
 
+	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
+	protected _schema!: RegisteredSchema;
+	protected _dataPath!: string;
+
 	async run(): Promise<void> {
-		const {
-			args,
-			flags: {
-				'data-path': dataPath,
-				passphrase: passphraseSource,
-				'no-signature': noSignature,
-				'sender-public-key': senderPublicKeySource,
-				asset: assetSource,
-				json,
-				'network-identifier': networkIdentifierSource,
-				nonce: nonceSource,
-				offline,
-			},
-		} = this.parse(CreateCommand);
-		const { fee, moduleID, assetID } = args as Args;
-
-		if (offline && dataPath) {
-			throw new Error(
-				'Flag: --data-path should not be specified while creating transaction offline.',
-			);
-		}
-
-		if (!senderPublicKeySource && noSignature) {
-			throw new Error('Sender public key must be specified when no-signature flags is used.');
-		}
-
-		if (offline && !networkIdentifierSource) {
-			throw new Error(
-				'Flag: --network-identifier must be specified while creating transaction offline.',
-			);
-		}
-
-		if (offline && !nonceSource) {
-			throw new Error('Flag: --nonce must be specified while creating transaction offline.');
-		}
-
-		const assetSchema = this._schema.transactionsAssets.find(
-			as => as.moduleID === Number(moduleID) && as.assetID === Number(assetID),
-		);
-
-		if (!assetSchema) {
-			throw new Error(
-				`Transaction moduleID:${moduleID} with assetID:${assetID} is not registered in the application.`,
-			);
-		}
-
-		const rawAsset = assetSource
-			? JSON.parse(assetSource)
-			: await getAssetFromPrompt(assetSchema.schema);
-		const assetObject = codec.fromJSON(assetSchema.schema, rawAsset);
-
-		const assetErrors = validator.validator.validate(assetSchema.schema, assetObject);
-		if (assetErrors.length) {
-			throw new validator.LiskValidationError([...assetErrors]);
-		}
-
-		let networkIdentifier = networkIdentifierSource as string;
-		if (!offline) {
-			if (!this._client) {
-				this.error('APIClient is not initialized.');
-			}
-			const nodeInfo = await this._client.node.getNodeInfo();
-			networkIdentifier = nodeInfo.networkIdentifier;
-		}
-
-		if (!offline && networkIdentifierSource && networkIdentifier !== networkIdentifierSource) {
-			throw new Error(
-				`Invalid networkIdentifier specified, actual: ${networkIdentifierSource}, expected: ${networkIdentifier}.`,
-			);
-		}
+		const { args, flags } = this.parse(CreateCommand);
 
 		const incompleteTransaction = {
-			moduleID: Number(moduleID),
-			assetID: Number(assetID),
-			nonce: nonceSource ? BigInt(nonceSource) : undefined,
-			fee: BigInt(fee),
-			senderPublicKey: senderPublicKeySource
-				? Buffer.from(senderPublicKeySource, 'hex')
-				: undefined,
-			asset: assetObject,
+			moduleID: Number(args.moduleID),
+			assetID: Number(args.assetID),
+			fee: BigInt(args.fee),
+			nonce: BigInt(0),
+			senderPublicKey: Buffer.alloc(0),
+			asset: {},
 			signatures: [],
 		};
-		let passphrase = '';
 
-		if (passphraseSource || !noSignature) {
-			passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
-			const { publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
-			incompleteTransaction.senderPublicKey = publicKey;
-		}
+		let transactionObject!: Record<string, unknown>;
+		this._dataPath = flags['data-path'] ?? getDefaultPath(this.config.pjson.name);
 
-		if (!offline) {
-			if (!this._client) {
-				this.error('APIClient is not initialized.');
-			}
-			const address = cryptography.getAddressFromPublicKey(
-				incompleteTransaction.senderPublicKey as Buffer,
+		if (flags.offline) {
+			const { genesisBlock, config } = await getGenesisBlockAndConfig(flags.network);
+			const app = this.getApplication(genesisBlock, config);
+			this._schema = app.getSchema();
+			transactionObject = await createTransactionOffline(
+				args as Args,
+				flags,
+				this._schema,
+				incompleteTransaction,
 			);
-			const account = await this._client.account.get(address);
-			if (!isSequenceObject(account, 'sequence')) {
-				this.error('Account does not have sequence property.');
-			}
-			incompleteTransaction.nonce = account.sequence.nonce;
-		}
-
-		if (!offline && nonceSource && BigInt(incompleteTransaction.nonce) > BigInt(nonceSource)) {
-			throw new Error(
-				`Invalid nonce specified, actual: ${nonceSource}, expected: ${(incompleteTransaction.nonce as bigint).toString()}`,
+		} else {
+			this._client = await getApiClient(flags['data-path'] as string, this.config.pjson.name);
+			this._schema = this._client.schemas;
+			transactionObject = await createTransactionOnline(
+				args as Args,
+				flags,
+				this._client,
+				this._schema,
+				incompleteTransaction,
 			);
 		}
 
-		const { asset, ...transactionWithoutAsset } = incompleteTransaction;
-
-		const transactionErrors = validator.validator.validate(this._schema.transaction, {
-			...transactionWithoutAsset,
-			asset: Buffer.alloc(0),
-		});
-		if (transactionErrors.length) {
-			throw new validator.LiskValidationError([...transactionErrors]);
-		}
-
-		const transactionObject = {
-			...transactionWithoutAsset,
-			asset: assetObject,
-		};
-
-		if (!noSignature) {
-			transactions.signTransaction(
-				assetSchema.schema,
-				transactionObject,
-				Buffer.from(networkIdentifier, 'hex'),
-				passphrase,
-			);
-		}
-
-		if (json) {
-			this.printJSON({
-				transaction: this.encodeTransaction(transactionObject).toString('hex'),
+		if (flags.json) {
+			this.printJSON(flags.pretty, {
+				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
+					'hex',
+				),
 			});
-			this.printJSON({
-				transaction: this.transactionToJSON(transactionObject),
+			this.printJSON(flags.pretty, {
+				transaction: transactionToJSON(this._schema, transactionObject, this._client),
 			});
 		} else {
-			this.printJSON({
-				transaction: this.encodeTransaction(transactionObject).toString('hex'),
+			this.printJSON(flags.pretty, {
+				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
+					'hex',
+				),
 			});
 		}
 	}
+
+	printJSON(pretty: boolean, message?: Record<string, unknown>): void {
+		if (pretty) {
+			this.log(JSON.stringify(message, undefined, '  '));
+		} else {
+			this.log(JSON.stringify(message));
+		}
+	}
+
+	async finally(error?: Error | string): Promise<void> {
+		if (error) {
+			if (!isApplicationRunning(this._dataPath)) {
+				throw new Error(`Application at data path ${this._dataPath} is not running.`);
+			}
+			this.error(error instanceof Error ? error.message : error);
+		}
+		if (this._client) {
+			await this._client.disconnect();
+		}
+	}
+
+	abstract getApplication(
+		genesisBlock: Record<string, unknown>,
+		config: PartialApplicationConfig,
+	): Application;
 }

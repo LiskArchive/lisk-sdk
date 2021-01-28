@@ -12,15 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { BaseIPCCommand } from '../base_ipc';
+import { BaseIPCClientCommand } from '../base_ipc_client';
 
-export abstract class StatusCommand extends BaseIPCCommand {
+export abstract class StatusCommand extends BaseIPCClientCommand {
 	static description = 'Get forging information for the locally running node.';
 
 	static examples = ['forging:status', 'forging:status --data-path ./sample --pretty'];
 
 	static flags = {
-		...BaseIPCCommand.flags,
+		...BaseIPCClientCommand.flags,
 	};
 
 	async run(): Promise<void> {

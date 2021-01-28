@@ -123,12 +123,20 @@ export const flags: FlagMap = {
 		description: configDescription,
 	},
 	pretty: {
-		char: 'p',
 		description: prettyDescription,
 	},
 	output: {
 		char: 'o',
 		description: outputDescription,
+	},
+	json: {
+		char: 'j',
+		description: 'Print the transaction in JSON format.',
+	},
+	senderPublicKey: {
+		char: 's',
+		description:
+			'Sign the transaction with provided sender public key, when passphrase is not provided',
 	},
 };
 
@@ -149,5 +157,12 @@ export const flagsWithParser = {
 	pretty: flagParser.boolean(flags.pretty),
 	passphrase: flagParser.string(flags.passphrase),
 	output: flagParser.string(flags.output),
-	password: flagParser.string({ ...flags.password }),
+	password: flagParser.string(flags.password),
+	offline: flagParser.boolean({
+		...flags.offline,
+		default: false,
+	}),
+	json: flagParser.boolean(flags.json),
+	senderPublicKey: flagParser.string(flags.senderPublicKey),
+	networkIdentifier: flagParser.string(flags.networkIdentifier),
 };

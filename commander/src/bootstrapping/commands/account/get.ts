@@ -14,13 +14,13 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { BaseIPCCommand } from '../base_ipc';
+import { BaseIPCClientCommand } from '../base_ipc_client';
 
 interface Args {
 	readonly address: string;
 }
 
-export abstract class GetCommand extends BaseIPCCommand {
+export abstract class GetCommand extends BaseIPCClientCommand {
 	static description = 'Get account information for a given address.';
 
 	static args = [
@@ -34,7 +34,7 @@ export abstract class GetCommand extends BaseIPCCommand {
 	static examples = ['account:get ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815'];
 
 	static flags = {
-		...BaseIPCCommand.flags,
+		...BaseIPCClientCommand.flags,
 	};
 
 	async run(): Promise<void> {
