@@ -1,5 +1,5 @@
 export const defaultConfig = {
-	label: 'alpha-sdk-app',
+	label: 'beta-sdk-app',
 	version: '0.0.0',
 	networkVersion: '1.0',
 	rootPath: '~/.lisk',
