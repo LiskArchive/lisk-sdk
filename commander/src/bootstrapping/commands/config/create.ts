@@ -22,15 +22,15 @@ import { defaultConfig } from '../../../utils/config';
 export class CreateCommand extends Command {
 	static description = 'Creates network configuration file.';
 	static examples = [
-		'generate:network-config --networkName mydir',
-		'generate:network-config --networkName mydir --label alpha-sdk-app',
-		'generate:network-config --networkName mydir --label alpha-sdk-app --community-identifier sdk',
+		'generate:network-config --network-name mydir',
+		'generate:network-config --network-name mydir --label alpha-sdk-app',
+		'generate:network-config --network-name mydir --label alpha-sdk-app --community-identifier sdk',
 	];
 
 	static flags = {
-		networkName: flagParser.string({
+		'network-name': flagParser.string({
 			char: 'n',
-			description: 'Directory where the config file is saved',
+			description: 'Name of the network directory where the config file is saved',
 			default: '',
 		}),
 		label: flagParser.string({
@@ -47,7 +47,7 @@ export class CreateCommand extends Command {
 
 	async run(): Promise<void> {
 		const {
-			flags: { networkName, label, 'community-identifier': communityIdentifier },
+			flags: { 'network-name': networkName, label, 'community-identifier': communityIdentifier },
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		} = this.parse(CreateCommand);
 
