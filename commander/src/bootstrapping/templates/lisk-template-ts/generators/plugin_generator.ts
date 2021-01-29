@@ -30,14 +30,14 @@ interface PluginGeneratorOptions {
 
 export default class PluginGenerator extends Generator {
 	protected _answers: PluginPrompts | undefined;
-	protected _path: string;
+	protected _templatePath: string;
 	protected _packageJSON: Record<string, unknown> | undefined;
 	protected _className: string;
 	protected _alias: string;
 
-	public constructor(_: string | string[], __: PluginGeneratorOptions) {
-		super(_, __);
-		this._path = join(__dirname, '..', 'templates');
+	public constructor(args: string | string[], opts: PluginGeneratorOptions) {
+		super(args, opts);
+		this._templatePath = join(__dirname, '..', 'templates', 'plugin');
 		this._alias = (this.options as PluginGeneratorOptions).alias;
 		this._className = `${this._alias.charAt(0).toUpperCase() + this._alias.slice(1)}Plugin`;
 	}
@@ -76,8 +76,8 @@ export default class PluginGenerator extends Generator {
 	public writing(): void {
 		// Create plugin
 		this.fs.copyTpl(
-			`${this._path}/plugin/src/app/plugins/plugin.ts`,
-			join(this.destinationRoot(), `src/app/plugins/${this._alias}/`, `${this._alias}.ts`),
+			`${this._templatePath}/src/app/plugins/plugin.ts`,
+			this.destinationPath(`src/app/plugins/${this._alias}/${this._alias}.ts`),
 			{
 				alias: this._alias,
 				className: this._className,
@@ -89,22 +89,10 @@ export default class PluginGenerator extends Generator {
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
 
-		// Create index
-		this.fs.copyTpl(
-			`${this._path}/plugin/src/app/plugins/index.ts`,
-			join(this.destinationRoot(), `src/app/plugins/${this._alias}/`, 'index.ts'),
-			{
-				alias: this._alias,
-				className: this._className,
-			},
-			{},
-			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
-		);
-
 		// Create unit tests
 		this.fs.copyTpl(
-			`${this._path}/plugin/test/unit/plugins/plugin.ts`,
-			join(this.destinationRoot(), `test/unit/plugins/${this._alias}/`, `${this._alias}.spec.ts`),
+			`${this._templatePath}/test/unit/plugins/plugin.spec.ts`,
+			this.destinationPath(`test/unit/plugins/${this._alias}/${this._alias}.spec.ts`),
 			{
 				alias: this._alias,
 				className: this._className,
@@ -124,8 +112,9 @@ export default class PluginGenerator extends Generator {
 
 		pluginsFile.addImportDeclaration({
 			namedImports: [`${this._className}`],
-			moduleSpecifier: `./plugins/${this._alias}`,
+			moduleSpecifier: `./plugins/${this._alias}/${this._alias}`,
 		});
+
 		const registerFunction = pluginsFile
 			.getVariableDeclarationOrThrow('registerPlugins')
 			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
