@@ -44,7 +44,7 @@ export default class AssetGenerator extends Generator {
 	}
 
 	public writing(): void {
-		// Writing module file
+		// Writing asset file
 		this.fs.copyTpl(
 			`${this._templatePath}/src/app/modules/assets/asset.ts`,
 			this.destinationPath(`src/app/modules/${this._moduleName}/assets/${this._assetName}.ts`),
@@ -58,7 +58,7 @@ export default class AssetGenerator extends Generator {
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
 
-		// Writing test file for the generated module
+		// Writing test file for the generated asset
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/modules/assets/asset.spec.ts`,
 			this.destinationPath(
