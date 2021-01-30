@@ -29,7 +29,7 @@ Object {
           "offset": 2160,
         },
       },
-      "label": "alpha-sdk-app",
+      "label": "beta-sdk-app",
       "logger": Object {
         "consoleLogLevel": "none",
         "fileLogLevel": "info",

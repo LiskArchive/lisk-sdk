@@ -17,28 +17,26 @@ import { Command, flags as flagParser } from '@oclif/command';
 import fs from 'fs-extra';
 import { join, resolve } from 'path';
 import inquirer from 'inquirer';
-import { defaultConfig } from '../../utils/config';
+import { defaultConfig } from '../../../utils/config';
 
-export default class NetworkConfigCommand extends Command {
+export class CreateCommand extends Command {
 	static description = 'Creates network configuration file.';
 	static examples = [
-		'generate:network-config mydir',
-		'generate:network-config mydir --label alpha-sdk-app',
-		'generate:network-config mydir --label alpha-sdk-app --community-identifier sdk',
-	];
-	static args = [
-		{
-			name: 'networkName',
-			description: 'Directory where the config file is saved.',
-			required: true,
-		},
+		'config:create --output mydir',
+		'config:create --output mydir --label beta-sdk-app',
+		'config:create --output mydir --label beta-sdk-app --community-identifier sdk',
 	];
 
 	static flags = {
+		output: flagParser.string({
+			char: 'o',
+			description: 'Directory where the config file is saved',
+			default: process.cwd(),
+		}),
 		label: flagParser.string({
 			char: 'l',
 			description: 'App Label',
-			default: 'alpha-sdk-app',
+			default: 'beta-sdk-app',
 		}),
 		'community-identifier': flagParser.string({
 			char: 'i',
@@ -49,27 +47,26 @@ export default class NetworkConfigCommand extends Command {
 
 	async run(): Promise<void> {
 		const {
-			flags: { label, 'community-identifier': communityIdentifier },
+			flags: { output, label, 'community-identifier': communityIdentifier },
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			args: { networkName },
-		} = this.parse(NetworkConfigCommand);
+		} = this.parse(CreateCommand);
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
 		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
-		if (regexCamelCase.test(networkName) || regexWhitespace.test(networkName)) {
+		if (regexCamelCase.test(output) || regexWhitespace.test(output)) {
 			this.error('Invalid name');
 		}
 
 		// determine proper path
-		const configPath = join(__dirname, '../../config', networkName);
+		const configPath = resolve(output);
+		const filePath = join(configPath, 'config');
 
 		defaultConfig.label = label;
 		defaultConfig.genesisConfig.communityIdentifier = communityIdentifier;
-		// defaultConfig.version = get version from package.json of the app created
 
-		// check for existing file at networkName & ask the user before overwriting
-		if (fs.existsSync(configPath)) {
+		// check for existing file at given location & ask the user before overwriting
+		if (fs.existsSync(filePath)) {
 			const userResponse = await inquirer.prompt({
 				type: 'confirm',
 				name: 'confirm',
@@ -78,12 +75,11 @@ export default class NetworkConfigCommand extends Command {
 			if (!userResponse.confirm) {
 				this.error('Operation cancelled, config file already present at the desired location');
 			} else {
-				fs.writeJSONSync(resolve(configPath, 'config.json'), JSON.stringify(defaultConfig));
+				fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, { spaces: '\t' });
 			}
 		} else {
 			fs.mkdirSync(configPath, { recursive: true });
-			// write config in config.json at the proper path
-			fs.writeJSONSync(resolve(configPath, 'config.json'), JSON.stringify(defaultConfig));
+			fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, { spaces: '\t' });
 		}
 	}
 }
