@@ -23,6 +23,7 @@ import { Command, flags as flagParser } from '@oclif/command';
 import fs from 'fs-extra';
 import { join, resolve } from 'path';
 import inquirer from 'inquirer';
+import ProgressBar from 'progress';
 import { createMnemonicPassphrase } from '../../../utils/mnemonic';
 
 interface AccountInfo {
@@ -66,6 +67,24 @@ const prepareValidatorAccounts = (
 			},
 		},
 	}));
+
+const saveFiles = (
+	configPath: string,
+	genesisBlock: Record<string, unknown>,
+	accountList: AccountInfo[],
+	delegateList: Record<string, unknown>[],
+	delegateForgingInfo: Record<string, unknown>[],
+) => {
+	fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), genesisBlock, {
+		spaces: ' ',
+	});
+	fs.writeJSONSync(resolve(configPath, 'accounts.json'), [...accountList, ...delegateList], {
+		spaces: ' ',
+	}); // add to gitignore
+	fs.writeJSONSync(resolve(configPath, 'forging_info.json'), delegateForgingInfo, {
+		spaces: ' ',
+	});
+};
 
 export abstract class BaseGenesisBlockCommand extends Command {
 	static description = 'Creates genesis block file.';
@@ -152,31 +171,47 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
 		});
 
+		const bar = new ProgressBar('  Creating genesis block [:bar] :percent :etas', {
+			complete: '=',
+			incomplete: ' ',
+			width: 20,
+			total: validators - 1,
+		});
 		const onionSeed = cryptography.generateHashOnionSeed();
 		const onionCount = 10000;
 		const onionDistance = 1000;
 
-		const delegateForgingInfo = delegateList.map(del => ({
-			// ToDo: use a better password, user sourced using flag
-			encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(
-				cryptography.encryptPassphraseWithPassword(del.passphrase, del.password),
-			),
-			hashOnion: {
-				count: onionCount,
-				distance: onionDistance,
-				hashes: cryptography
-					.hashOnion(onionSeed, onionCount, onionDistance)
-					.map(buf => buf.toString('hex')),
-			},
-			address: del.address,
-		}));
+		const delegateForgingInfo = delegateList.map((delegate, index) => {
+			const info = {
+				// ToDo: use a better password, user sourced using flag
+				encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(
+					cryptography.encryptPassphraseWithPassword(delegate.passphrase, delegate.password),
+				),
+				hashOnion: {
+					count: onionCount,
+					distance: onionDistance,
+					hashes: cryptography
+						.hashOnion(onionSeed, onionCount, onionDistance)
+						.map(buf => buf.toString('hex')),
+				},
+				address: delegate.address,
+			};
+
+			if (index + 1 === validators) {
+				bar.terminate();
+			} else {
+				bar.tick();
+			}
+
+			return info;
+		});
 
 		// determine proper path
 		const configPath = join(process.cwd(), output);
-		const filePath = join(configPath, 'genesis_block');
+		const filePath = join(configPath, 'genesis_block.json');
 
 		// check for existing file at given location & ask the user before overwriting
-		// ToDo: check for individual files
+		// TODO: check for individual files
 		if (fs.existsSync(filePath)) {
 			const userResponse = await inquirer.prompt({
 				type: 'confirm',
@@ -185,31 +220,16 @@ export abstract class BaseGenesisBlockCommand extends Command {
 					'A genesis_block file already exists at the given location. Do you want to overwrite it?',
 			});
 			if (!userResponse.confirm) {
-				this.error(
-					'Operation cancelled, genesis_block file already present at the desired location',
-				);
+				this.error(`Operation cancelled, genesis_block.json file already present at ${configPath}`);
 			} else {
-				fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), genesisBlock, {
-					spaces: ' ',
-				});
-				fs.writeJSONSync(resolve(configPath, 'accounts.json'), [...accountList, ...delegateList], {
-					spaces: ' ',
-				}); // add to gitignore
-				fs.writeJSONSync(resolve(configPath, 'forging_info.json'), delegateForgingInfo, {
-					spaces: ' ',
-				});
+				saveFiles(configPath, genesisBlock, accountList, delegateList, delegateForgingInfo);
+				this.log('\n');
+				this.log(`  Configuration files saved at: ${configPath}.`);
 			}
 		} else {
 			fs.mkdirSync(configPath, { recursive: true });
-			fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), genesisBlock, {
-				spaces: ' ',
-			});
-			fs.writeJSONSync(resolve(configPath, 'accounts.json'), [...accountList, ...delegateList], {
-				spaces: ' ',
-			}); // add to gitignore
-			fs.writeJSONSync(resolve(configPath, 'forging_info.json'), delegateForgingInfo, {
-				spaces: ' ',
-			});
+			saveFiles(configPath, genesisBlock, accountList, delegateList, delegateForgingInfo);
+			this.log(`  Configuration files saved at: ${configPath}`);
 		}
 	}
 
