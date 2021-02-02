@@ -129,28 +129,30 @@ describe('block', () => {
 			});
 		});
 
-		describe('get from id as buffer', () => {
-			it('should invoke app:getBlockByID', async () => {
-				// Act
-				await block.get(blockId);
+		describe('get', () => {
+			describe('block by id as buffer', () => {
+				it('should invoke app:getBlockByID', async () => {
+					// Act
+					await block.get(blockId);
 
-				// Assert
-				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getBlockByID', {
-					id: blockId.toString('hex'),
+					// Assert
+					expect(channel.invoke).toHaveBeenCalledTimes(1);
+					expect(channel.invoke).toHaveBeenCalledWith('app:getBlockByID', {
+						id: blockId.toString('hex'),
+					});
 				});
 			});
-		});
 
-		describe('get from id as hex', () => {
-			it('should invoke app:getBlockByID', async () => {
-				// Act
-				await block.get(blockId.toString('hex'));
+			describe('block by id as hex', () => {
+				it('should invoke app:getBlockByID', async () => {
+					// Act
+					await block.get(blockId.toString('hex'));
 
-				// Assert
-				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getBlockByID', {
-					id: blockId.toString('hex'),
+					// Assert
+					expect(channel.invoke).toHaveBeenCalledTimes(1);
+					expect(channel.invoke).toHaveBeenCalledWith('app:getBlockByID', {
+						id: blockId.toString('hex'),
+					});
 				});
 			});
 		});
@@ -178,23 +180,25 @@ describe('block', () => {
 			});
 		});
 
-		describe('decode from input as buffer', () => {
-			it('should return decoded block', () => {
-				// Act
-				const decodedBlock = block.decode(encodedBlockBuffer);
+		describe('decode', () => {
+			describe('block from input as buffer', () => {
+				it('should return decoded block', () => {
+					// Act
+					const decodedBlock = block.decode(encodedBlockBuffer);
 
-				// Assert
-				expect(decodedBlock).toEqual(sampleBlock);
+					// Assert
+					expect(decodedBlock).toEqual(sampleBlock);
+				});
 			});
-		});
 
-		describe('decode from input as hex', () => {
-			it('should return decoded block', () => {
-				// Act
-				const decodedBlock = block.decode(encodedBlockBuffer.toString('hex'));
+			describe('block from input as hex', () => {
+				it('should return decoded block', () => {
+					// Act
+					const decodedBlock = block.decode(encodedBlockBuffer.toString('hex'));
 
-				// Assert
-				expect(decodedBlock).toEqual(sampleBlock);
+					// Assert
+					expect(decodedBlock).toEqual(sampleBlock);
+				});
 			});
 		});
 

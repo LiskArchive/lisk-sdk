@@ -378,7 +378,7 @@ Array [
 ]
 `;
 
-exports[`transaction Transaction decode from input as buffer should return decoded transaction 1`] = `
+exports[`transaction Transaction decode transaction from input as buffer should return decoded transaction 1`] = `
 Object {
   "asset": Object {
     "amount": 10000000n,
@@ -561,7 +561,7 @@ Object {
 }
 `;
 
-exports[`transaction Transaction decode from input as hex should return decoded transaction 1`] = `
+exports[`transaction Transaction decode transaction from input as hex should return decoded transaction 1`] = `
 Object {
   "asset": Object {
     "amount": 10000000n,
