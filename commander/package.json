@@ -27,6 +27,9 @@
 	"bin": {
 		"lisk": "./bin/run"
 	},
+	"lisk": {
+		"addressPrefix": "lsk"
+	},
 	"scripts": {
 		"start": "ts-node src/index.js",
 		"format": "prettier --write '**/*'",
