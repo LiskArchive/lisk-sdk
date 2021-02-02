@@ -65,7 +65,7 @@ describe('account', () => {
 			});
 		});
 
-		describe('get', () => {
+		describe('get from address as buffer', () => {
 			it('should invoke app:getAccount', async () => {
 				// Arrange
 				when(channel.invoke as any)
@@ -84,6 +84,24 @@ describe('account', () => {
 			});
 		});
 
+		describe('get from address as hex', () => {
+			it('should invoke app:getAccount', async () => {
+				// Arrange
+				when(channel.invoke as any)
+					.calledWith('app:getAccount', { address: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5' })
+					.mockResolvedValue(encodedAccountHex as never);
+
+				// Act
+				const receivedAccount = await account.get(sampleAccount.address.toString('hex'));
+
+				// Assert
+				expect(channel.invoke).toHaveBeenCalledTimes(1);
+				expect(channel.invoke).toHaveBeenCalledWith('app:getAccount', {
+					address: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5',
+				});
+				expect(receivedAccount).toEqual(sampleAccount);
+			});
+		});
 		describe('encode', () => {
 			it('should return encoded account', () => {
 				// Act
@@ -93,10 +111,19 @@ describe('account', () => {
 			});
 		});
 
-		describe('decode', () => {
+		describe('decode from input as buffer', () => {
 			it('should return decoded account', () => {
 				// Act
 				const accountDecoded = account.decode(encodedAccountBuffer);
+				// Assert
+				expect(accountDecoded).toEqual(sampleAccount);
+			});
+		});
+
+		describe('decode from input as hex', () => {
+			it('should return decoded account', () => {
+				// Act
+				const accountDecoded = account.decode(encodedAccountBuffer.toString('hex'));
 				// Assert
 				expect(accountDecoded).toEqual(sampleAccount);
 			});
