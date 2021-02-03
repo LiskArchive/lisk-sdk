@@ -19,18 +19,18 @@ import * as YeomanGenerator from 'yeoman-generator';
 import * as Storage from 'yeoman-generator/lib/util/storage';
 import { join, dirname } from 'path';
 import * as assert from 'assert';
-import { BootstrapGeneratorOptions, LiskTemplate } from '../../types';
+import { BaseGeneratorOptions, LiskTemplate } from '../../types';
 
 const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
 
-export default abstract class BootstrapGenerator extends YeomanGenerator {
+export default abstract class BaseGenerator extends YeomanGenerator {
 	protected readonly _liskTemplatePath: string;
 	protected readonly _liskTemplateName: string;
 	protected readonly _liskRC: Storage;
 	protected readonly _commanderVersion: string;
 	protected _liskTemplate!: LiskTemplate;
 
-	public constructor(args: string | string[], opts: BootstrapGeneratorOptions) {
+	public constructor(args: string | string[], opts: BaseGeneratorOptions) {
 		super(args, opts);
 
 		if (opts.projectPath) {
