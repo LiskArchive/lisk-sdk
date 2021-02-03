@@ -13,4 +13,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { PassphraseEncryptCommand } from '../../index';
+export { EncryptCommand } from '../../bootstrapping/commands/passphrase/encrypt';

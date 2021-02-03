@@ -13,4 +13,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { AccountCreateCommand } from '../../index';
+export { CreateCommand } from '../../bootstrapping/commands/account/create';

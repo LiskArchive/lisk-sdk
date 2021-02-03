@@ -3,5 +3,5 @@
 	"compilerOptions": {
 		"rootDir": "../"
 	},
-	"include": ["../src/**/*", "./**/*", "../package.json", "../config/**/*.json"]
+	"include": ["../src/**/*", "./**/*", "../package.json"]
 }
