@@ -16,7 +16,8 @@ import { BFT } from '@liskhq/lisk-bft';
 import { KVStore } from '@liskhq/lisk-db';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { when } from 'jest-when';
-import { TokenModule } from '../../../src/modules';
+import { InMemoryChannel } from '../../../src/controller/channels';
+import { BaseModule, TokenModule } from '../../../src/modules';
 import { Forger, HighFeeForgingStrategy } from '../../../src/node/forger';
 import { Network } from '../../../src/node/network';
 import { Node } from '../../../src/node/node';
@@ -37,6 +38,7 @@ describe('Node', () => {
 	let blockchainDB: KVStore;
 	let forgerDB: KVStore;
 	let nodeDB: KVStore;
+	let tokenModule: BaseModule;
 
 	beforeEach(() => {
 		// Arrange
@@ -48,6 +50,7 @@ describe('Node', () => {
 		blockchainDB = new KVStore('blockchain.db');
 		forgerDB = new KVStore('forger.db');
 		nodeDB = new KVStore('node.db');
+		tokenModule = new TokenModule(nodeOptions.genesisConfig);
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -82,7 +85,7 @@ describe('Node', () => {
 			options: nodeOptions,
 			genesisBlockJSON,
 		});
-		node.registerModule(new TokenModule(nodeOptions.genesisConfig));
+		node.registerModule(tokenModule);
 	});
 
 	describe('constructor', () => {
@@ -134,6 +137,10 @@ describe('Node', () => {
 			jest.spyOn(Network.prototype, 'applyNodeInfo');
 			jest.spyOn(TransactionPool.prototype, 'start');
 			jest.spyOn(node as any, '_startForging');
+			jest.spyOn(Processor.prototype, 'register');
+			jest.spyOn(InMemoryChannel.prototype, 'registerToBus');
+			jest.spyOn(tokenModule, 'init');
+
 			// Act
 			await node.init({
 				bus: createMockBus() as any,
@@ -162,6 +169,33 @@ describe('Node', () => {
 
 			it('should initialize forger module with high fee strategy', () => {
 				expect(node['_forger']['_forgingStrategy']).toBeInstanceOf(HighFeeForgingStrategy);
+			});
+		});
+
+		describe('on-chain modules', () => {
+			it('should register custom module with processor', () => {
+				expect(node['_processor'].register).toHaveBeenCalledTimes(1);
+				expect(node['_processor'].register).toHaveBeenCalledWith(tokenModule);
+			});
+
+			it('should register in-memory channel to bus', () => {
+				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledTimes(1);
+				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledWith(node['_bus']);
+			});
+
+			it('should init custom module', () => {
+				expect(tokenModule.init).toHaveBeenCalledTimes(1);
+				expect(tokenModule.init).toHaveBeenCalledWith(
+					expect.objectContaining({
+						channel: { publish: expect.any(Function) },
+						dataAccess: {
+							getChainState: expect.any(Function),
+							getAccountByAddress: expect.any(Function),
+							getLastBlockHeader: expect.any(Function),
+						},
+						logger: stubs.logger,
+					}),
+				);
 			});
 		});
 
