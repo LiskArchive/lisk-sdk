@@ -39,6 +39,7 @@ sftp-config.json
 framework/test/mocha/network/pm2.network.json
 framework/test/mocha/network/configs/
 framework/test/mocha/network/networkTestsLogger.logs
+.secrets
 
 # Coverage directory used by tools like istanbul
 .coverage-unit/
