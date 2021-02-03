@@ -19,6 +19,9 @@ import BootstrapGenerator from './base_generator';
 export default class InitGenerator extends BootstrapGenerator {
 	public async initializing(): Promise<void> {
 		await this._loadAndValidateTemplate();
+
+		this.log('Initializing git repository');
+		this.spawnCommandSync('git', ['init', '--quiet']);
 	}
 
 	public configuring(): void {
@@ -35,10 +38,6 @@ export default class InitGenerator extends BootstrapGenerator {
 	}
 
 	public install(): void {
-		this.log('\n');
-		this.log('Initializing git repository');
-		this.composeWith(require.resolve('generator-git-init'));
-
 		this.log('\n');
 		this.log(
 			'After completion of npm installation run below command to start your blockchain app.\n',

@@ -41,7 +41,7 @@ export default class InitGenerator extends Generator {
 				type: 'input',
 				name: 'description',
 				message: 'Application description',
-				default: '',
+				default: 'Lisk-SDK Application',
 			},
 			{
 				type: 'input',
@@ -61,7 +61,7 @@ export default class InitGenerator extends Generator {
 	public createSkeleton(): void {
 		const templatePath = join(__dirname, '..', 'templates');
 		this.fs.copyTpl(
-			`${templatePath}/app/**/*`,
+			`${templatePath}/init/**/*`,
 			this.destinationRoot(),
 			{
 				appName: this.answers.name,
