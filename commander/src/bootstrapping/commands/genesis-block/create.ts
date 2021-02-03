@@ -14,12 +14,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
-import { createGenesisBlock, getGenesisBlockJSON, accountAssetSchemas } from '@liskhq/lisk-genesis';
-import { Account } from '@liskhq/lisk-chain';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { Application, PartialApplicationConfig } from 'lisk-framework';
-import { objects } from '@liskhq/lisk-utils';
 import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
@@ -31,43 +27,6 @@ interface AccountInfo {
 	readonly address: string;
 	readonly passphrase: string;
 }
-
-const createAccount = (): AccountInfo => {
-	const passphrase = createMnemonicPassphrase();
-	const address = getAddressFromPassphrase(passphrase).toString('hex');
-	return {
-		passphrase,
-		address,
-	};
-};
-
-const prepareNormalAccounts = (
-	data: {
-		address: string;
-	}[],
-	tokenBalance: number,
-): Account[] =>
-	data.map(acc => ({
-		address: Buffer.from(acc.address, 'hex'),
-		token: { balance: BigInt(tokenBalance) },
-	}));
-
-const prepareValidatorAccounts = (
-	data: {
-		username: string;
-		address: string;
-	}[],
-	tokenBalance: number,
-): Account[] =>
-	data.map(acc => ({
-		address: Buffer.from(acc.address, 'hex'),
-		token: { balance: BigInt(tokenBalance) },
-		dpos: {
-			delegate: {
-				username: acc.username,
-			},
-		},
-	}));
 
 const saveFiles = (
 	configPath: string,
@@ -142,34 +101,12 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		}
 		const schema = app.getSchema();
 		const defaultAccount = app.getDefaultAccount();
-		const accountSchemas = schema.account.properties;
-		const defaultAccountAssetSchema = Object.fromEntries(
-			Object.entries(defaultAccount).map(([k, v]) => [k, { default: v }]),
-		);
-		const accountSchemasWithDefaults = objects.mergeDeep(
-			{},
-			accountSchemas,
-			defaultAccountAssetSchema,
-		);
-
-		const accountList = new Array(accounts).fill(0).map(_x => createAccount());
-		const delegateList = new Array(validators).fill(0).map((_x, index) => ({
-			...{ username: `delegate_${index}` },
-			...createAccount(),
-			...{ password: createMnemonicPassphrase() },
-		}));
-
-		const validAccounts = prepareNormalAccounts(accountList, tokenDistribution);
-		const validDelegateAccounts = prepareValidatorAccounts(delegateList, tokenDistribution);
-
-		const updatedGenesisBlock = createGenesisBlock({
-			initDelegates: validDelegateAccounts.map(a => a.address),
-			accounts: [...validAccounts, ...validDelegateAccounts] as Account[],
-			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
-		});
-		const genesisBlock = getGenesisBlockJSON({
-			genesisBlock: updatedGenesisBlock,
-			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
+		const { accountList, delegateList, genesisBlock } = generateGenesisBlock({
+			tokenDistribution,
+			numOfValidators: validators,
+			numOfAccounts: accounts,
+			defaultAccount,
+			schema,
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
