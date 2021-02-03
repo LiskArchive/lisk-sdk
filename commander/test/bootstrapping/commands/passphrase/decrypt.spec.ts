@@ -19,6 +19,10 @@ import * as readerUtils from '../../../../src/utils/reader';
 import { DecryptCommand } from '../../../../src/bootstrapping/commands/passphrase/decrypt';
 import { getConfig } from '../../../helpers/config';
 
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
+
 describe('passphrase:decrypt', () => {
 	const defaultEncryptedPassphrase =
 		'salt=d3887df959ed2bfe5961a6831da6e177&cipherText=1c08a1&iv=096ede534df9092fd4523ec7&tag=2a055e1c860b3ef76084a6c9aca68ce9&version=1';

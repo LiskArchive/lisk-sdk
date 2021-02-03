@@ -20,6 +20,10 @@ import { ConfigCommand } from '../../../../src/bootstrapping/commands/forging/co
 import { getConfig } from '../../../helpers/config';
 import * as readerUtils from '../../../../src/utils/reader';
 
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
+
 describe('forging:config command', () => {
 	const address = '67f7c759b8533acf4f25b6892dbda04323507b32';
 	const encryptedPassphraseString =

@@ -25,7 +25,7 @@ export const formatInt = (num: number | bigint): string => {
 			throw new Error('Negative number cannot be formatted');
 		}
 		buf = Buffer.alloc(4);
-		buf.writeUInt32BE(num);
+		buf.writeUInt32BE(num, 0);
 	}
 	return buf.toString('binary');
 };

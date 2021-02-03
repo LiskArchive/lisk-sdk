@@ -34,7 +34,7 @@ export const startApplication = async (app: Application): Promise<void> => {
 	validator.removeSchema('/block/header');
 
 	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
-	await new Promise(resolve => {
+	await new Promise<void>(resolve => {
 		app['_channel'].subscribe('app:block:new', () => {
 			if (app['_node']['_chain'].lastBlock.header.height > 1) {
 				resolve();
@@ -132,7 +132,7 @@ export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 };
 
 export const waitTill = async (ms: number) =>
-	new Promise(r =>
+	new Promise<void>(r =>
 		setTimeout(() => {
 			r();
 		}, ms),

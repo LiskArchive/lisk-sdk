@@ -52,7 +52,7 @@ export const createApplication = async (
 
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
 	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
-	await new Promise(resolve => {
+	await new Promise<void>(resolve => {
 		app['_channel'].subscribe(APP_EVENT_BLOCK_NEW, () => {
 			if (app['_node']['_chain'].lastBlock.header.height === 2) {
 				resolve();

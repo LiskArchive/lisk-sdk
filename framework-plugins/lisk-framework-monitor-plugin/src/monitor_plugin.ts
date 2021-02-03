@@ -111,7 +111,7 @@ export class MonitorPlugin extends BasePlugin {
 	}
 
 	public async unload(): Promise<void> {
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			this._server.close(err => {
 				if (err) {
 					reject(err);
