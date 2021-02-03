@@ -1,8 +1,5 @@
 module.exports = {
-	extends: ['../.eslintrc.js', 'lisk-base/mocha'],
-	env: {
-		mocha: true,
-	},
+	extends: ['../.eslintrc.js', 'lisk-base/jest'],
 	parserOptions: {
 		project: './tsconfig.json',
 		tsconfigRootDir: __dirname,
@@ -10,7 +7,6 @@ module.exports = {
 	rules: {
 		'arrow-body-style': 'off',
 		'dot-notation': 'off',
-		'mocha/no-synchronous-tests': 'off',
 		'no-unused-expressions': 'off',
 		'@typescript-eslint/no-unused-expressions': 'off',
 		'@typescript-eslint/no-magic-numbers': 'off',

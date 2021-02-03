@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { tablify } from '../../src/utils/tablify';
 import { objectToKeyValueString } from '../helpers/utils';
 
@@ -25,7 +24,7 @@ describe('tablify utils', () => {
 		it('should have 0 length', () => {
 			const printValue = {};
 			const returnValue = tablify(printValue);
-			return expect(returnValue).to.have.length(0);
+			return expect(returnValue).toHaveLength(0);
 		});
 	});
 
@@ -37,7 +36,7 @@ describe('tablify utils', () => {
 			};
 			const returnValue = tablify(printValue);
 			return Object.entries(printValue).forEach(([key, value], arrayKey) => {
-				expect({ [key]: value }).to.eql(returnValue[arrayKey]);
+				expect({ [key]: value }).toEqual(returnValue[arrayKey]);
 			});
 		});
 	});
@@ -59,7 +58,7 @@ describe('tablify utils', () => {
 			return Object.entries(printValue).forEach(([key, value], arrayKey) => {
 				const strValue =
 					typeof value === 'object' && value !== null ? objectToKeyValueString(value) : value;
-				expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
+				expect({ [key]: strValue }).toEqual(returnValue[arrayKey]);
 			});
 		});
 	});
@@ -89,7 +88,7 @@ describe('tablify utils', () => {
 								.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`)
 								.join('\n')
 						: value;
-				expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
+				expect({ [key]: strValue }).toEqual(returnValue[arrayKey]);
 			});
 		});
 	});
@@ -105,8 +104,7 @@ describe('tablify utils', () => {
 				},
 			};
 			printValue.circular = printValue;
-			return expect(tablify.bind(null, printValue)).to.throw(
-				TypeError,
+			return expect(tablify.bind(null, printValue)).toThrow(
 				'Converting circular structure to JSON',
 			);
 		});
@@ -131,7 +129,7 @@ describe('tablify utils', () => {
 			const returnValue = tablify(printValue);
 			return printValue.forEach((values, i) => {
 				Object.keys(values).forEach((key, keyIndex) => {
-					expect(returnValue[i * printValue.length + 1 + keyIndex]).eql({
+					expect(returnValue[i * printValue.length + 1 + keyIndex]).toEqual({
 						[key]: values[key],
 					});
 				});
@@ -158,7 +156,7 @@ describe('tablify utils', () => {
 			const returnValue = tablify(printValue);
 			return printValue.forEach((values, i) => {
 				Object.keys(values).forEach((key, keyIndex) => {
-					expect(returnValue[i * printValue.length + 1 + keyIndex]).eql({
+					expect(returnValue[i * printValue.length + 1 + keyIndex]).toEqual({
 						[key]: values[key],
 					});
 				});
@@ -181,7 +179,7 @@ describe('tablify utils', () => {
 					return val;
 				};
 				const strValue = parseValue(value);
-				expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
+				expect({ [key]: strValue }).toEqual(returnValue[arrayKey]);
 			});
 		});
 	});
@@ -228,7 +226,7 @@ describe('tablify utils', () => {
 							.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`)
 							.join('\n');
 					}
-					expect(returnValue[i * (innerObjectKeys.length + 1) + keyIndex + 1]).eql({
+					expect(returnValue[i * (innerObjectKeys.length + 1) + keyIndex + 1]).toEqual({
 						[key]: strValue,
 					});
 				});

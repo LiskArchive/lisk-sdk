@@ -1,4 +1,5 @@
 /*
+ * LiskHQ/lisk-commander
  * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
@@ -10,9 +11,16 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
+import * as Config from '@oclif/config';
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-require('jest-extended');
+import pJSON = require('../../package.json');
 
-process.env.NODE_ENV = 'test';
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const getConfig = async () => {
+	const config = await Config.load();
+	config.pjson.lisk = { addressPrefix: 'lsk' };
+	config.pjson.version = pJSON.version;
+	return config;
+};

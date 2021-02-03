@@ -13,9 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as sandbox from 'sinon';
-import { expect } from 'chai';
-import { SinonStub } from 'sinon';
 import { print, StringMap } from '../../src/utils/print';
 import * as tablifyUtil from '../../src/utils/tablify';
 
@@ -36,10 +33,12 @@ describe('print utils', () => {
 	const stringifyResult = '[{"lisk":"Some prefix: JS"},{"lisk":"Some suffix: awesome"}]';
 
 	type Printer = (result: ReadonlyArray<StringMap> | StringMap) => void;
+	let log: jest.Mock;
 
 	beforeEach(() => {
-		sandbox.stub(tablifyUtil, 'tablify').returns(tablifyResult as any);
-		sandbox.stub(JSON, 'stringify').returns(stringifyResult);
+		jest.spyOn(tablifyUtil, 'tablify').mockReturnValue(tablifyResult as any);
+		jest.spyOn(JSON, 'stringify').mockReturnValue(stringifyResult);
+		log = jest.fn();
 	});
 
 	describe('when json and pretty are false', () => {
@@ -51,30 +50,27 @@ describe('print utils', () => {
 		describe('when result is array', () => {
 			it('should call tablify with the ANSI', () => {
 				printer(arrayToPrint);
-				return expect(tablifyUtil.tablify).to.be.calledWithExactly(arrayToPrint);
+				return expect(tablifyUtil.tablify).toHaveBeenCalledWith(arrayToPrint);
 			});
 		});
 
 		describe('when there is log on the context', () => {
 			it('should call tablify with the result and call the log of the context', () => {
-				const log = sandbox.stub();
 				printer.call({ log }, arrayToPrint);
-				expect(tablifyUtil.tablify).to.be.calledWithExactly(arrayToPrint);
-				return expect(log).to.be.calledWithExactly(tablifyResult);
+				expect(tablifyUtil.tablify).toHaveBeenCalledWith(arrayToPrint);
+				return expect(log).toHaveBeenCalledWith(tablifyResult);
 			});
 		});
 	});
 
 	describe('when json is true and pretty is false and the context has a log method', () => {
 		describe('when result is array', () => {
-			let log: SinonStub;
 			beforeEach(() => {
-				log = sandbox.stub();
 				print({ json: true }).call({ log }, arrayToPrint);
 			});
 
 			it('should call JSON.stringify without the ANSI', () => {
-				return expect(JSON.stringify).to.be.calledWithExactly(
+				return expect(JSON.stringify).toHaveBeenCalledWith(
 					arrayToPrintWithoutANSI,
 					undefined,
 					undefined,
@@ -82,19 +78,17 @@ describe('print utils', () => {
 			});
 
 			it('should call the log of the context with result of stringify', () => {
-				return expect(log).to.be.calledWithExactly(stringifyResult);
+				return expect(log).toHaveBeenCalledWith(stringifyResult);
 			});
 		});
 
 		describe('when result is object', () => {
-			let log: SinonStub;
 			beforeEach(() => {
-				log = sandbox.stub();
 				print({ json: true }).call({ log }, objectToPrint);
 			});
 
 			it('should call JSON.stringify without the ANSI', () => {
-				return expect(JSON.stringify).to.be.calledWithExactly(
+				return expect(JSON.stringify).toHaveBeenCalledWith(
 					objectToPrintWithoutANSI,
 					undefined,
 					undefined,
@@ -102,23 +96,19 @@ describe('print utils', () => {
 			});
 
 			it('should call the log of the context with result of stringify', () => {
-				return expect(log).to.be.calledWithExactly(stringifyResult);
+				return expect(log).toHaveBeenCalledWith(stringifyResult);
 			});
 		});
 	});
 
 	describe('when json and pretty are true and the context has a log method', () => {
-		let log: SinonStub;
-		beforeEach(() => {
-			log = sandbox.stub();
-		});
 		describe('when result is array', () => {
 			beforeEach(() => {
 				print({ json: true, pretty: true }).call({ log }, arrayToPrint);
 			});
 
 			it('should call JSON.stringify without the ANSI', () => {
-				return expect(JSON.stringify).to.be.calledWithExactly(
+				return expect(JSON.stringify).toHaveBeenCalledWith(
 					arrayToPrintWithoutANSI,
 					undefined,
 					'\t',
@@ -126,7 +116,7 @@ describe('print utils', () => {
 			});
 
 			it('should call the log of the context with result of stringify', () => {
-				return expect(log).to.be.calledWithExactly(stringifyResult);
+				return expect(log).toHaveBeenCalledWith(stringifyResult);
 			});
 		});
 
@@ -136,7 +126,7 @@ describe('print utils', () => {
 			});
 
 			it('should call JSON.stringify without the ANSI', () => {
-				return expect(JSON.stringify).to.be.calledWithExactly(
+				return expect(JSON.stringify).toHaveBeenCalledWith(
 					objectToPrintWithoutANSI,
 					undefined,
 					'\t',
@@ -144,7 +134,7 @@ describe('print utils', () => {
 			});
 
 			it('should call the log of the context with result of stringify', () => {
-				return expect(log).to.be.calledWithExactly(stringifyResult);
+				return expect(log).toHaveBeenCalledWith(stringifyResult);
 			});
 		});
 	});
