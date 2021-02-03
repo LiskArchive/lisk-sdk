@@ -14,7 +14,7 @@
  *
  */
 
-import { BootstrapGeneratorOptions } from '../../types';
+import { BaseGeneratorOptions } from '../../types';
 import BaseGenerator from './base_generator';
 
 export default class PluginGenerator extends BaseGenerator {
@@ -22,7 +22,7 @@ export default class PluginGenerator extends BaseGenerator {
 		alias: string;
 	};
 
-	public constructor(args: string | string[], opts: { alias: string } & BootstrapGeneratorOptions) {
+	public constructor(args: string | string[], opts: { alias: string } & BaseGeneratorOptions) {
 		super(args, opts);
 		this._liskPluginArgs = {
 			alias: opts.alias,
