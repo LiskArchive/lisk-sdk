@@ -14,9 +14,9 @@
  *
  */
 
-import BootstrapGenerator from './base_generator';
+import BaseGenerator from './base_generator';
 
-export default class InitGenerator extends BootstrapGenerator {
+export default class InitGenerator extends BaseGenerator {
 	public async initializing(): Promise<void> {
 		await this._loadAndValidateTemplate();
 
