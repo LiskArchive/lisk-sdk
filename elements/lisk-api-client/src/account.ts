@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { codec } from '@liskhq/lisk-codec';
 import { Channel, RegisteredSchemas } from './types';
 
@@ -25,9 +24,10 @@ export class Account {
 		this._schemas = schemas;
 	}
 
-	public async get(address: Buffer): Promise<Record<string, unknown>> {
+	public async get(address: Buffer | string): Promise<Record<string, unknown>> {
+		const addressString: string = Buffer.isBuffer(address) ? address.toString('hex') : address;
 		const accountHex: string = await this._channel.invoke('app:getAccount', {
-			address: address.toString('hex'),
+			address: addressString,
 		});
 
 		return this.decode(Buffer.from(accountHex, 'hex'));
@@ -37,8 +37,9 @@ export class Account {
 		return codec.encode(this._schemas.account, input);
 	}
 
-	public decode(input: Buffer): Record<string, unknown> {
-		return codec.decode(this._schemas.account, input);
+	public decode(input: Buffer | string): Record<string, unknown> {
+		const inputBuffer: Buffer = Buffer.isBuffer(input) ? input : Buffer.from(input, 'hex');
+		return codec.decode(this._schemas.account, inputBuffer);
 	}
 
 	public toJSON(account: Record<string, unknown>): Record<string, unknown> {
