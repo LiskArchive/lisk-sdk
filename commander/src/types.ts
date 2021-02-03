@@ -16,7 +16,7 @@
 
 import { GeneratorConstructor, GeneratorOptions } from 'yeoman-generator';
 
-export interface BootstrapGeneratorOptions extends GeneratorOptions {
+export interface BaseGeneratorOptions extends GeneratorOptions {
 	template: string;
 	version: string;
 	projectPath?: string;
@@ -25,6 +25,7 @@ export interface BootstrapGeneratorOptions extends GeneratorOptions {
 export interface LiskTemplate {
 	generators: {
 		init: GeneratorConstructor;
+		initPlugin: GeneratorConstructor;
 		module: GeneratorConstructor;
 		asset: GeneratorConstructor;
 		plugin: GeneratorConstructor;
