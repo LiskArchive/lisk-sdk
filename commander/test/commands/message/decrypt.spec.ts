@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import inquirer from 'inquirer';
+import * as inquirer from 'inquirer';
 import * as Config from '@oclif/config';
 import { getConfig } from '../../helpers/config';
 import DecryptCommand from '../../../src/commands/message/decrypt';

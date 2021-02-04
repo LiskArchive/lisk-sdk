@@ -25,6 +25,7 @@ import {
 	encodeTransaction,
 	getApiClient,
 	transactionToJSON,
+	getAssetSchema,
 } from '../../../utils/transaction';
 import { getDefaultPath, getGenesisBlockAndConfig } from '../../../utils/path';
 import { isApplicationRunning } from '../../../utils/application';
@@ -60,13 +61,19 @@ const signTransaction = async (
 	keys: Keys,
 ) => {
 	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	const assetSchema = getAssetSchema(
+		registeredSchema,
+		transactionObject.moduleID as number,
+		transactionObject.assetID as number,
+	) as object;
 	const networkIdentifierBuffer = Buffer.from(networkIdentifier as string, 'hex');
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 
 	// sign from multi sig account offline using input keys
 	if (!flags['include-sender'] && !flags['sender-public-key']) {
 		return transactions.signTransaction(
-			registeredSchema,
+			assetSchema,
 			transactionObject,
 			networkIdentifierBuffer,
 			passphrase,
@@ -74,7 +81,7 @@ const signTransaction = async (
 	}
 
 	return transactions.signMultiSignatureTransaction(
-		registeredSchema,
+		assetSchema,
 		transactionObject,
 		networkIdentifierBuffer,
 		passphrase,

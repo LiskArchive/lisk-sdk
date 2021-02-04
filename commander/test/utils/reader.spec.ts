@@ -13,9 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import fs from 'fs';
-import readline from 'readline';
-import inquirer from 'inquirer';
+import * as fs from 'fs';
+import * as readline from 'readline';
+import * as inquirer from 'inquirer';
 import { createFakeInterface } from '../helpers/utils';
 import {
 	readStdIn,

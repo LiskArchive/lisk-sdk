@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 /*
  * LiskHQ/lisk-commander
  * Copyright © 2021 Lisk Foundation
@@ -14,7 +15,7 @@
  *
  */
 
-import yeoman from 'yeoman-environment';
+import * as yeoman from 'yeoman-environment';
 
 const env = yeoman.createEnv();
 

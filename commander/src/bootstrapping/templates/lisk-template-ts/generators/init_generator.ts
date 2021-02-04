@@ -17,7 +17,7 @@
 import { userInfo } from 'os';
 import { basename, join } from 'path';
 
-import Generator from 'yeoman-generator';
+import * as Generator from 'yeoman-generator';
 
 interface InitPrompts {
 	name: string;

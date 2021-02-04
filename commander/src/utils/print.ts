@@ -14,8 +14,9 @@
  *
  */
 // eslint-disable-next-line camelcase
-import strip_ansi from 'strip-ansi';
+import strip_ansi = require('strip-ansi');
 
+// eslint-disable-next-line import/first
 import { tablify } from './tablify';
 
 export interface StringMap {

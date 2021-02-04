@@ -14,7 +14,7 @@
  *
  */
 // eslint-disable-next-line max-classes-per-file
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 
 export class FileSystemError extends Error {
 	public constructor(message: string) {

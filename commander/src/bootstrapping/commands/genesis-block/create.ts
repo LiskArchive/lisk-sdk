@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 /*
  * LiskHQ/lisk-commander
  * Copyright © 2021 Lisk Foundation
@@ -20,10 +21,10 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { Application, PartialApplicationConfig } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
 import { Command, flags as flagParser } from '@oclif/command';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
-import inquirer from 'inquirer';
-import ProgressBar from 'progress';
+import * as inquirer from 'inquirer';
+import * as ProgressBar from 'progress';
 import { createMnemonicPassphrase } from '../../../utils/mnemonic';
 
 interface AccountInfo {
@@ -171,6 +172,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const bar = new ProgressBar('  Creating genesis block [:bar] :percent :etas', {
 			complete: '=',
 			incomplete: ' ',

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import CliTable3, { Cell, HorizontalTable } from 'cli-table3';
+import * as CliTable3 from 'cli-table3';
 
 const chars = {
 	top: '═',
@@ -64,11 +64,11 @@ export const tablify = (data: ReadonlyArray<object> | object) => {
 			head: [],
 			border: [],
 		},
-	}) as HorizontalTable;
+	}) as CliTable3.HorizontalTable;
 
 	if (Array.isArray(data)) {
 		data.forEach((value, key) => {
-			const cell: Cell[] = [
+			const cell: CliTable3.Cell[] = [
 				{
 					colSpan: 2,
 					content: `data ${key + 1}`,

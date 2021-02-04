@@ -16,9 +16,9 @@
 import { Schema } from '@liskhq/lisk-codec';
 import * as liskPassphrase from '@liskhq/lisk-passphrase';
 
-import fs from 'fs';
-import inquirer from 'inquirer';
-import readline from 'readline';
+import * as fs from 'fs';
+import * as inquirer from 'inquirer';
+import * as readline from 'readline';
 
 import { FileSystemError, ValidationError } from './error';
 
@@ -265,11 +265,11 @@ export const transformNestedAsset = (
 ): NestedAsset => {
 	const template = getNestedPropertyTemplate(schema);
 	const result = {} as NestedAsset;
-	const initData = {} as Record<string, unknown>;
 	const items: Array<Record<string, unknown>> = [];
 	for (const assetData of data) {
 		const [[key, val]] = Object.entries(assetData);
 		const templateValues = template[key];
+		const initData = {} as Record<string, unknown>;
 		const valObject = val.split(',').reduce((acc, curr, index) => {
 			acc[templateValues[index]] = Number.isInteger(Number(curr)) ? Number(curr) : curr;
 			return acc;

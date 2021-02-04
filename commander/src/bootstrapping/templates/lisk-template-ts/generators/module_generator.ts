@@ -16,9 +16,9 @@
 
 import { join } from 'path';
 import { Project, SyntaxKind } from 'ts-morph';
-import Generator, { GeneratorOptions } from 'yeoman-generator';
+import * as Generator from 'yeoman-generator';
 
-interface ModuleGeneratorOptions extends GeneratorOptions {
+interface ModuleGeneratorOptions extends Generator.GeneratorOptions {
 	moduleName: string;
 	moduleID: string;
 }

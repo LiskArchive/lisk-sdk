@@ -16,9 +16,9 @@
 
 import { join } from 'path';
 import { Project } from 'ts-morph';
-import Generator, { GeneratorOptions } from 'yeoman-generator';
+import * as Generator from 'yeoman-generator';
 
-interface AssetGeneratorOptions extends GeneratorOptions {
+interface AssetGeneratorOptions extends Generator.GeneratorOptions {
 	moduleName: string;
 	assetName: string;
 	assetID: number;
