@@ -41,32 +41,4 @@ export default class InitGenerator extends BootstrapGenerator {
 		this.log('\n');
 		this.installDependencies({ npm: true, bower: false, yarn: false, skipMessage: false });
 	}
-
-	public end(): void {
-		this.log('\n Generating genesis block and config.');
-
-		this.spawnCommandSync(`${this.destinationRoot()}/bin/run`, [
-			'genesis-block:create',
-			'--output',
-			'config/mainnet',
-		]);
-		this.spawnCommandSync(`${this.destinationRoot()}/bin/run`, [
-			'config:create',
-			'--output',
-			'config/mainnet',
-		]);
-		this.fs.move(
-			`${this.destinationRoot()}/config/mainnet/accounts.json`,
-			`${this.destinationRoot()}/.secrets/mainnet/accounts.json`,
-			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
-		);
-		this.fs.move(
-			`${this.destinationRoot()}/config/mainnet/forging_info.json`,
-			`${this.destinationRoot()}/.secrets/mainnet/forging_info.json`,
-			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
-		);
-
-		this.log('Run below command to start your blockchain app.\n');
-		this.log(`cd ${this.destinationRoot()}; npm start`);
-	}
 }

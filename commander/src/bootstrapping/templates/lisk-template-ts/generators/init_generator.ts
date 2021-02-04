@@ -16,6 +16,7 @@
 
 import { userInfo } from 'os';
 import { basename, join } from 'path';
+import fs from 'fs';
 
 import * as Generator from 'yeoman-generator';
 
@@ -72,5 +73,34 @@ export default class InitGenerator extends Generator {
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
+	}
+
+	public end(): void {
+		this.log('Generating genesis block and config.');
+		this.spawnCommandSync(`${this.destinationRoot()}/bin/run`, [
+			'genesis-block:create',
+			'--output',
+			'config/mainnet',
+		]);
+		this.spawnCommandSync(`${this.destinationRoot()}/bin/run`, [
+			'config:create',
+			'--output',
+			'config/mainnet',
+		]);
+
+		fs.mkdirSync(`${this.destinationRoot()}/.secrets/mainnet`, { recursive: true });
+
+		fs.renameSync(
+			`${this.destinationRoot()}/config/mainnet/accounts.json`,
+			`${this.destinationRoot()}/.secrets/mainnet/accounts.json`,
+		);
+
+		fs.renameSync(
+			`${this.destinationRoot()}/config/mainnet/forging_info.json`,
+			`${this.destinationRoot()}/.secrets/mainnet/forging_info.json`,
+		);
+
+		this.log('\nRun below command to start your blockchain app.\n');
+		this.log(`cd ${this.destinationRoot()}; npm start`);
 	}
 }
