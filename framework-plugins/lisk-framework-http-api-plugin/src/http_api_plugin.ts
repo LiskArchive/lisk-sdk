@@ -74,7 +74,8 @@ export class HTTPAPIPlugin extends BasePlugin {
 			this._registerMiddlewares(options);
 			this._registerControllers();
 			this._registerAfterMiddlewares(options);
-			this._server = this._app.listen(options.port, '0.0.0.0');
+			// default bind to port only at localhost instead of INADDR_ANY
+			this._server = this._app.listen(options.port, options.host ?? '127.0.0.1');
 		});
 	}
 
