@@ -31,7 +31,10 @@ export default class InitPluginGenerator extends BaseGenerator {
 
 	public async initializing(): Promise<void> {
 		await this._loadAndValidateTemplate();
-    }
+		this.log('\n');
+		this.log('Initializing git repository');
+		this.spawnCommandSync('git', ['init', '--quiet']);
+	}
 
     public configuring(): void {
 		this.log('Updating .liskrc.json file');
@@ -51,14 +54,9 @@ export default class InitPluginGenerator extends BaseGenerator {
 
 	public install(): void {
 		this.log('\n');
-		this.log('Initializing git repository');
-		this.composeWith(require.resolve('generator-git-init'));
-
-		this.log('\n');
 		this.log(
-			'After completion of npm installation run below command to start your blockchain app.\n',
+			'After completion of npm installation, customize your plugin to use with your blockchain application.\n',
 		);
-		this.log(`cd ${this.destinationRoot()}; npm start`);
 	}
 
 	public end(): void {
