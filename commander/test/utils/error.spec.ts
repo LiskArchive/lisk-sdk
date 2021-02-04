@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import chalk from 'chalk';
 import { FileSystemError, ValidationError } from '../../src/utils/error';
 
@@ -27,15 +26,15 @@ describe('error utils', () => {
 		});
 
 		it('should print the error message in red', () => {
-			return expect(error.message).to.equal(chalk.red(errorMessage));
+			return expect(error.message).toEqual(chalk.red(errorMessage));
 		});
 
 		it('the error should have the name "FileSystemError"', () => {
-			return expect(error.name).to.be.equal('FileSystemError');
+			return expect(error.name).toEqual('FileSystemError');
 		});
 
 		it('the error should be an instance of Node’s built-in Error', () => {
-			return expect(error).to.be.an('Error');
+			return expect(error).toBeInstanceOf(Error);
 		});
 	});
 
@@ -46,15 +45,15 @@ describe('error utils', () => {
 		});
 
 		it('should print the error message in red', () => {
-			return expect(error.message).to.equal(chalk.red(errorMessage));
+			return expect(error.message).toEqual(chalk.red(errorMessage));
 		});
 
 		it('the error should have the name "ValidationError"', () => {
-			return expect(error.name).to.be.equal('ValidationError');
+			return expect(error.name).toEqual('ValidationError');
 		});
 
 		it('the error should be an instance of Node’s built-in Error', () => {
-			return expect(error).to.be.an('Error');
+			return expect(error).toBeInstanceOf(Error);
 		});
 	});
 });

@@ -30,7 +30,12 @@ const processInputs = (passphrase: string, message?: string) => {
 		throw new ValidationError('No message was provided.');
 	}
 
-	return signMessageWithPassphrase(message, passphrase);
+	const signedMessageWithOnePassphrase = signMessageWithPassphrase(message, passphrase);
+	return {
+		...signedMessageWithOnePassphrase,
+		publicKey: signedMessageWithOnePassphrase.publicKey.toString('hex'),
+		signature: signedMessageWithOnePassphrase.signature.toString('hex'),
+	};
 };
 
 export default class SignCommand extends BaseCommand {

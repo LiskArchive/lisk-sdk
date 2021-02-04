@@ -13,12 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as sandbox from 'sinon';
-import { expect } from 'chai';
 import fs from 'fs';
 import readline from 'readline';
 import inquirer from 'inquirer';
-import { SinonStub } from 'sinon';
 import { createFakeInterface } from '../helpers/utils';
 import {
 	readStdIn,
@@ -26,29 +23,30 @@ import {
 	isFileSource,
 	readFileSource,
 } from '../../src/utils/reader';
-import { FileSystemError, ValidationError } from '../../src/utils/error';
 
 describe('reader', () => {
 	describe('readPassphraseFromPrompt', () => {
 		const displayName = 'password';
-		let promptStub: SinonStub;
+		const defaultInputs =
+			'tiny decrease photo key change abuse forward penalty twin foot wish expose';
+		let promptStub: jest.SpyInstance;
 
 		beforeEach(() => {
-			promptStub = sandbox.stub(inquirer, 'prompt');
+			promptStub = jest.spyOn(inquirer, 'prompt');
 		});
 
 		it('passphrase should equal to the result of the prompt', async () => {
-			const promptResult = { passphrase: '123' };
-			promptStub.resolves(promptResult);
+			const promptResult = { passphrase: defaultInputs };
+			promptStub.mockResolvedValue(promptResult);
 			const passphrase = await getPassphraseFromPrompt(displayName);
-			expect(passphrase).to.equal(promptResult.passphrase);
+			expect(passphrase).toEqual(promptResult.passphrase);
 		});
 
 		it('should prompt once with shouldRepeat false', async () => {
-			const promptResult = { passphrase: '123' };
-			promptStub.resolves(promptResult);
+			const promptResult = { passphrase: defaultInputs };
+			promptStub.mockResolvedValue(promptResult);
 			await getPassphraseFromPrompt(displayName);
-			return expect(inquirer.prompt).to.be.calledWithExactly([
+			return expect(inquirer.prompt).toHaveBeenCalledWith([
 				{
 					name: 'passphrase',
 					type: 'password',
@@ -58,10 +56,10 @@ describe('reader', () => {
 		});
 
 		it('should prompt twice with shouldRepeat true', async () => {
-			const promptResult = { passphrase: '123', passphraseRepeat: '123' };
-			promptStub.resolves(promptResult);
+			const promptResult = { passphrase: defaultInputs, passphraseRepeat: defaultInputs };
+			promptStub.mockResolvedValue(promptResult);
 			await getPassphraseFromPrompt(displayName, true);
-			expect(inquirer.prompt).to.be.calledWithExactly([
+			expect(inquirer.prompt).toHaveBeenCalledWith([
 				{
 					name: 'passphrase',
 					type: 'password',
@@ -76,10 +74,9 @@ describe('reader', () => {
 		});
 
 		it('should reject with error when repeated passphrase does not match', async () => {
-			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
-			promptStub.resolves(promptResult);
-			await expect(getPassphraseFromPrompt(displayName, true)).to.be.rejectedWith(
-				ValidationError,
+			const promptResult = { passphrase: defaultInputs, passphraseRepeat: '456' };
+			promptStub.mockResolvedValue(promptResult);
+			await expect(getPassphraseFromPrompt(displayName, true)).rejects.toThrow(
 				'Password was not successfully repeated.',
 			);
 		});
@@ -87,15 +84,15 @@ describe('reader', () => {
 
 	describe('isFileSource', () => {
 		it('should return false when input is undefined', () => {
-			expect(isFileSource()).to.be.false;
+			expect(isFileSource()).toBe(false);
 		});
 
 		it('should return false when there is no source identifier', () => {
-			expect(isFileSource('random string')).to.be.false;
+			expect(isFileSource('random string')).toBe(false);
 		});
 
 		it('should return true when it has correct source identifier', () => {
-			expect(isFileSource('file:path/to/file')).to.be.true;
+			expect(isFileSource('file:path/to/file')).toBe(true);
 		});
 	});
 
@@ -105,44 +102,39 @@ describe('reader', () => {
 		const resultFileData = 'file data';
 
 		beforeEach(() => {
-			sandbox.stub(fs, 'readFileSync').returns(resultFileData);
+			jest.spyOn(fs, 'readFileSync').mockReturnValue(resultFileData);
 		});
 
 		it('should read from file', async () => {
 			await readFileSource(source);
-			return expect(fs.readFileSync).to.be.calledWithExactly(path, 'utf8');
+			return expect(fs.readFileSync).toHaveBeenCalledWith(path, 'utf8');
 		});
 
 		it('should return the result from readFileSync', async () => {
 			const data = await readFileSource(source);
-			return expect(data).to.equal(resultFileData);
+			return expect(data).toEqual(resultFileData);
 		});
 
 		it('should throw error when source is empty', async () => {
-			await expect(readFileSource()).to.be.rejectedWith(ValidationError, 'No data was provided.');
+			await expect(readFileSource()).rejects.toThrow('No data was provided.');
 		});
 
 		it('should throw error when source is not file', async () => {
-			await expect(readFileSource('random string')).to.be.rejectedWith(
-				ValidationError,
-				'Unknown data source type.',
-			);
+			await expect(readFileSource('random string')).rejects.toThrow('Unknown data source type.');
 		});
 
 		it('should throw error when readFile throws ENOENT error', async () => {
-			(fs.readFileSync as SinonStub).throws(new Error('ENOENT'));
-			await expect(readFileSource(source)).to.be.rejectedWith(
-				FileSystemError,
-				`File at ${path} does not exist.`,
-			);
+			jest.spyOn(fs, 'readFileSync').mockImplementation(() => {
+				throw new Error('ENOENT');
+			});
+			await expect(readFileSource(source)).rejects.toThrow(`File at ${path} does not exist.`);
 		});
 
 		it('should throw error when readFile throws EACCES error', async () => {
-			(fs.readFileSync as SinonStub).throws(new Error('EACCES'));
-			await expect(readFileSource(source)).to.be.rejectedWith(
-				FileSystemError,
-				`File at ${path} could not be read.`,
-			);
+			jest.spyOn(fs, 'readFileSync').mockImplementation(() => {
+				throw new Error('EACCES');
+			});
+			await expect(readFileSource(source)).rejects.toThrow(`File at ${path} could not be read.`);
 		});
 	});
 
@@ -151,11 +143,11 @@ describe('reader', () => {
 			it('should resolve to a single element string array', async () => {
 				const stdInContents = 'some contents';
 
-				sandbox
-					.stub(readline, 'createInterface')
-					.returns(createFakeInterface(stdInContents) as any);
+				jest
+					.spyOn(readline, 'createInterface')
+					.mockReturnValue(createFakeInterface(stdInContents) as any);
 				const result = await readStdIn();
-				return expect(result).to.eql([stdInContents]);
+				return expect(result).toEqual([stdInContents]);
 			});
 		});
 
@@ -163,11 +155,11 @@ describe('reader', () => {
 			it('should resolve to a single element string array', async () => {
 				const multilineStdContents = 'passphrase\npassword\ndata';
 
-				sandbox
-					.stub(readline, 'createInterface')
-					.returns(createFakeInterface(multilineStdContents) as any);
+				jest
+					.spyOn(readline, 'createInterface')
+					.mockReturnValue(createFakeInterface(multilineStdContents) as any);
 				const result = await readStdIn();
-				return expect(result).to.eql(['passphrase', 'password', 'data']);
+				return expect(result).toEqual(['passphrase', 'password', 'data']);
 			});
 		});
 	});
