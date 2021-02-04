@@ -21,6 +21,8 @@ interface InitPluginPrompts {
 	author: string;
 	version: string;
 	name: string;
+	description: string;
+	license: string;
 }
 
 interface InitPluginGeneratorOptions {
@@ -35,7 +37,7 @@ export default class InitPluginGenerator extends Generator {
 
 	public constructor(args: string | string[], opts: InitPluginGeneratorOptions) {
 		super(args, opts);
-		this._templatePath = join(__dirname, '..', 'templates', 'plugin');
+		this._templatePath = join(__dirname, '..', 'templates', 'init_plugin');
 		this._alias = (this.options as InitPluginGeneratorOptions).alias;
 		this._className = `${this._alias.charAt(0).toUpperCase() + this._alias.slice(1)}Plugin`;
 	}
@@ -58,13 +60,22 @@ export default class InitPluginGenerator extends Generator {
 						name: 'name',
 						message: 'Name of plugin',
 					},
+					{
+						type: 'input',
+						name: 'description',
+						message: 'Description of plugin',
+					},
+					{
+						type: 'input',
+						name: 'license',
+						message: 'License of plugin',
+					},
 			  ])) as InitPluginPrompts;
 	}
 
 	public createSkeleton(): void {
-		// Create plugin
 		this.fs.copyTpl(
-			`${this._templatePath}/src/app/plugins/plugin.ts`,
+			`${this._templatePath}/**/*`,
 			this.destinationRoot(),
 			{
 				alias: this._alias,
@@ -72,18 +83,8 @@ export default class InitPluginGenerator extends Generator {
 				author: this._answers?.author,
 				version: this._answers?.version,
 				name: this._answers?.name,
-			},
-			{},
-			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
-		);
-
-		// Create unit tests
-		this.fs.copyTpl(
-			`${this._templatePath}/test/unit/plugins/plugin.spec.ts`,
-			this.destinationRoot(),
-			{
-				alias: this._alias,
-				className: this._className,
+				description: this._answers?.description,
+				license: this._answers?.license,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
