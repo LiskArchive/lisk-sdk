@@ -56,6 +56,8 @@ import {
 	RegisteredModule,
 	UpdateForgingStatusInput,
 	PartialApplicationConfig,
+	PluginOptionsWithAppConfig,
+	AppConfigForPlugin,
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
@@ -224,9 +226,6 @@ export class Application {
 	}
 
 	public async run(): Promise<void> {
-		// Freeze every plugin and configuration so it would not interrupt the app execution
-		this._compileAndValidateConfigurations();
-
 		Object.freeze(this._genesisBlock);
 		Object.freeze(this.config);
 
@@ -271,7 +270,7 @@ export class Application {
 				logger: this.logger,
 			});
 
-			await this._controller.loadPlugins(this._plugins, this.config.plugins);
+			await this._loadPlugins();
 			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
 			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
@@ -323,16 +322,33 @@ export class Application {
 		this._node.registerModule(moduleInstance);
 	}
 
-	private _compileAndValidateConfigurations(): void {
-		const appConfigToShareWithPlugin = {
+	private async _loadPlugins(): Promise<void> {
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		const pluginOptions: { [key: string]: PluginOptionsWithAppConfig } = {};
+
+		const appConfigForPlugin: AppConfigForPlugin = {
 			version: this.config.version,
 			networkVersion: this.config.networkVersion,
 			genesisConfig: this.config.genesisConfig,
+			logger: {
+				consoleLogLevel: this.config.logger.consoleLogLevel,
+				fileLogLevel: this.config.logger.fileLogLevel,
+			},
+			dataPath: dirs.dataPath,
+			rootPath: this.config.rootPath,
+			label: this.config.label,
 		};
 
 		Object.keys(this._plugins).forEach(alias => {
-			this.overridePluginOptions(alias, appConfigToShareWithPlugin);
+			pluginOptions[alias] = {
+				...this.config.plugins[alias],
+				// TODO: Remove data path from here and use from appConfig later on
+				dataPath: dirs.dataPath,
+				appConfig: appConfigForPlugin,
+			};
 		});
+
+		await this._controller.loadPlugins(this._plugins, pluginOptions);
 	}
 
 	private _initLogger(): Logger {

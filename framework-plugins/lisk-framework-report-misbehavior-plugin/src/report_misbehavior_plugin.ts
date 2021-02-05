@@ -30,7 +30,6 @@ import {
 	PluginInfo,
 } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
-import * as createDebug from 'debug';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -44,7 +43,6 @@ import { postBlockEventSchema } from './schema';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
-const debug = createDebug('plugin:report-misbehavior');
 
 const actionParamsSchema = {
 	$id: 'lisk/report_misbehavior/auth',
@@ -151,7 +149,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._clearBlockHeadersIntervalId = setInterval(() => {
 			clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight).catch(error =>
-				debug(error),
+				this._logger.debug(error),
 			);
 		}, this._clearBlockHeadersInterval);
 	}
@@ -169,7 +167,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			if (event === 'postBlock') {
 				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
 				if (errors.length > 0) {
-					debug('Invalid block data', errors);
+					this._logger.debug(errors, 'Invalid block data');
 					return;
 				}
 				const blockData = data as { block: string };
@@ -204,10 +202,10 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 							transaction: encodedTransaction,
 						});
 
-						debug('Sent Report misbehavior transaction', result.transactionId);
+						this._logger.debug('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
-					debug(error);
+					this._logger.debug(error);
 				}
 			}
 		});
