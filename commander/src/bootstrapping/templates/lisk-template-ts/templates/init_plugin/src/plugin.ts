@@ -34,7 +34,7 @@ import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-fram
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
-		this._channel = channel;
+		// this._channel = channel;
 		// this._channel.once('app:ready', () => {});
 	}
 
