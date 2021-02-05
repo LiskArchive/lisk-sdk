@@ -235,10 +235,10 @@ export abstract class BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(channel: BaseChannel): Promise<void> {
-		const dirs = systemDirs(this.options.appConfig?.label, this.options.appConfig?.rootPath);
+		const dirs = systemDirs(this.options.appConfig.label, this.options.appConfig.rootPath);
 		this._logger = createLogger({
-			consoleLogLevel: this.options.appConfig?.logger.consoleLogLevel,
-			fileLogLevel: this.options.appConfig?.logger.fileLogLevel,
+			consoleLogLevel: this.options.appConfig.logger.consoleLogLevel,
+			fileLogLevel: this.options.appConfig.logger.fileLogLevel,
 			logFilePath: join(
 				dirs.logs,
 				`plugin-${((this.constructor as unknown) as typeof BasePlugin).alias}.log`,
