@@ -76,7 +76,6 @@ export interface PluginOptions extends Record<string, unknown> {
 }
 
 export interface AppConfigForPlugin {
-	readonly dataPath: string;
 	readonly rootPath: string;
 	readonly version: string;
 	readonly networkVersion: string;

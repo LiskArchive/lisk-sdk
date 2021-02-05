@@ -334,7 +334,6 @@ export class Application {
 				consoleLogLevel: this.config.logger.consoleLogLevel,
 				fileLogLevel: this.config.logger.fileLogLevel,
 			},
-			dataPath: dirs.dataPath,
 			rootPath: this.config.rootPath,
 			label: this.config.label,
 		};

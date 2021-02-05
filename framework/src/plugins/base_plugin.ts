@@ -22,7 +22,7 @@ import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
 import { EventsDefinition } from '../controller/event';
 import { ImplementationMissingError } from '../errors';
-import { createLogger, Logger } from '../logger/logger';
+import { createLogger, Logger } from '../logger';
 import { systemDirs } from '../system_dirs';
 import { PluginOptionsWithAppConfig, RegisteredSchema, TransactionJSON } from '../types';
 
