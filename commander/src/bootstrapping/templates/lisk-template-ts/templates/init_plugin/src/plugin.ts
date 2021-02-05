@@ -4,7 +4,7 @@ import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-fram
  /* eslint-disable class-methods-use-this */
  /* eslint-disable  @typescript-eslint/no-empty-function */
  export class <%= className %> extends BasePlugin {
-	private _channel!: BaseChannel;
+	// private _channel!: BaseChannel;
 
 	public static get alias(): string {
 		return '<%= alias %>';
