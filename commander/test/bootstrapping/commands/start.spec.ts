@@ -19,14 +19,24 @@ import * as os from 'os';
 import * as path from 'path';
 import { Application } from 'lisk-framework';
 
-import * as devnetGenesisBlock from '../../../../config/devnet/genesis_block.json';
 import { StartCommand } from '../../../src/bootstrapping/commands/start';
 import { getConfig } from '../../helpers/config';
 import * as application from '../../helpers/application';
+import * as devnetGenesisBlock from '../../fixtures/devnet/genesis_block.json';
 
 import pJSON = require('../../../package.json');
 
-describe.skip('start', () => {
+// In order to test the command we need to extended the base crete command and provide application implementation
+class StartCommandExtended extends StartCommand {
+	// eslint-disable-next-line class-methods-use-this
+	public getApplication(): Application {
+		const app = application.getApplication();
+		jest.spyOn(app, 'run').mockResolvedValue();
+		return app;
+	}
+}
+
+describe('start', () => {
 	let stdout: string[];
 	let stderr: string[];
 	let config: Config.IConfig;
@@ -35,6 +45,9 @@ describe.skip('start', () => {
 		stdout = [];
 		stderr = [];
 		config = await getConfig();
+		const app = application.getApplication();
+		jest.spyOn(app, 'run').mockResolvedValue();
+		jest.spyOn(StartCommandExtended.prototype, 'getApplication').mockReturnValue(app);
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(application, 'getApplication').mockReturnValue({
@@ -73,11 +86,6 @@ describe.skip('start', () => {
 		jest.spyOn(os, 'homedir').mockReturnValue('~');
 	});
 
-	// In order to test the command we need to extended the base crete command and provide application implementation
-	class StartCommandExtended extends StartCommand {
-		getApplication = () => application.getApplication();
-	}
-
 	describe('when starting without flag', () => {
 		it('should start with default mainnet config', async () => {
 			await StartCommandExtended.run([], config);
@@ -89,19 +97,10 @@ describe.skip('start', () => {
 		});
 	});
 
-	describe('when config already exist in the folder', () => {
-		it('should fail with already existing config', async () => {
-			await expect(StartCommandExtended.run(['-n', 'devnet'], config)).rejects.toThrow(
-				'Datapath ~/.lisk/lisk-core already contains configs for mainnet.',
-			);
-		});
-	});
-
 	describe('when config already exist in the folder and called with --overwrite-config', () => {
 		it('should delete the mainnet config and save the devnet config', async () => {
-			await StartCommandExtended.run(['-n', 'devnet', '--overwrite-config'], config);
+			await StartCommandExtended.run(['-n', 'mainnet', '--overwrite-config'], config);
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('~/.lisk/lisk-core/config');
-			expect(fs.removeSync).toHaveBeenCalledTimes(1);
 			expect(fs.copyFileSync).toHaveBeenCalledTimes(2);
 		});
 	});
@@ -109,7 +108,7 @@ describe.skip('start', () => {
 	describe('when unknown network is specified', () => {
 		it('should throw an error', async () => {
 			await expect(StartCommandExtended.run(['-n', 'unknown'], config)).rejects.toThrow(
-				'Network must be one of mainnet,devnet but received unknown',
+				'Network must be one of mainnet but received unknown.',
 			);
 		});
 	});
@@ -140,122 +139,6 @@ describe.skip('start', () => {
 			const [, usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.rpc.port).toBe(8888);
-		});
-	});
-
-	describe('when --enable-http-api-plugin is specified', () => {
-		it('should pass this value to configuration', async () => {
-			await StartCommandExtended.run(['--enable-http-api-plugin'], config);
-			const [, , options] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(options.enableHTTPAPIPlugin).toBe(true);
-		});
-	});
-
-	describe('when custom port with --http-api-plugin-port is specified along with --enable-http-api-plugin', () => {
-		it('should update the config value', async () => {
-			await StartCommandExtended.run(
-				['--enable-http-api-plugin', '--http-api-plugin-port', '8888'],
-				config,
-			);
-			const [, usedConfig] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.plugins.httpApi.port).toBe(8888);
-		});
-	});
-
-	describe('when custom white list with --http-api-plugin-whitelist is specified along with --enable-http-api-plugin', () => {
-		it('should update the config value', async () => {
-			await StartCommandExtended.run(
-				[
-					'--enable-http-api-plugin',
-					'--http-api-plugin-whitelist',
-					'192.08.0.1:8888,192.08.0.2:8888',
-				],
-				config,
-			);
-			const [, usedConfig] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.plugins.httpApi.whiteList).toEqual(['192.08.0.1:8888', '192.08.0.2:8888']);
-		});
-	});
-
-	describe('when empty white list with --http-api-plugin-whitelist is specified along with --enable-http-api-plugin', () => {
-		it('should update the config value', async () => {
-			await StartCommandExtended.run(
-				['--enable-http-api-plugin', '--http-api-plugin-whitelist', ''],
-				config,
-			);
-			const [, usedConfig] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.plugins.httpApi.whiteList).toEqual([]);
-		});
-	});
-
-	describe('when --enable-forger-plugin is specified', () => {
-		it('should pass this value to configuration', async () => {
-			await StartCommandExtended.run(['--enable-forger-plugin'], config);
-			const [, , options] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(options.enableForgerPlugin).toBe(true);
-		});
-	});
-
-	describe('when --enable-monitor-plugin is specified', () => {
-		it('should pass this value to configuration', async () => {
-			await StartCommandExtended.run(['--enable-monitor-plugin'], config);
-			const [, , options] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(options.enableMonitorPlugin).toBe(true);
-		});
-	});
-
-	describe('when custom port with --monitor-plugin-port is specified along with --enable-monitor-plugin', () => {
-		it('should update the config value', async () => {
-			await StartCommandExtended.run(
-				['--enable-monitor-plugin', '--monitor-plugin-port', '8888'],
-				config,
-			);
-			const [, usedConfig] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.plugins.monitor.port).toBe(8888);
-		});
-	});
-
-	describe('when custom white list with --monitor-plugin-whitelist is specified along with --enable-monitor-plugin', () => {
-		it('should update the config value', async () => {
-			await StartCommandExtended.run(
-				[
-					'--enable-monitor-plugin',
-					'--monitor-plugin-whitelist',
-					'192.08.0.1:8888,192.08.0.2:8888',
-				],
-				config,
-			);
-			const [, usedConfig] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.plugins.monitor.whiteList).toEqual(['192.08.0.1:8888', '192.08.0.2:8888']);
-		});
-	});
-
-	describe('when empty white list with --monitor-plugin-whitelist is specified along with --enable-monitor-plugin', () => {
-		it('should update the config value', async () => {
-			await StartCommandExtended.run(
-				['--enable-monitor-plugin', '--monitor-plugin-whitelist', ''],
-				config,
-			);
-			const [, usedConfig] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.plugins.monitor.whiteList).toEqual([]);
-		});
-	});
-
-	describe('when --enable-report-misbehavior-plugin is specified', () => {
-		it('should pass this value to configuration', async () => {
-			await StartCommandExtended.run(['--enable-report-misbehavior-plugin'], config);
-			const [, , options] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(options.enableReportMisbehaviorPlugin).toBe(true);
 		});
 	});
 
