@@ -20,6 +20,10 @@ export const defaultConfig = {
 			minimum: 1,
 			maximum: 65535,
 		},
+		host: {
+			type: 'string',
+			format: 'ip',
+		},
 		whiteList: {
 			type: 'array',
 			items: {
@@ -70,6 +74,7 @@ export const defaultConfig = {
 	required: ['port', 'whiteList', 'cors', 'limits'],
 	default: {
 		port: 4000,
+		host: '127.0.0.1',
 		whiteList: ['127.0.0.1'],
 		cors: {
 			origin: '*',

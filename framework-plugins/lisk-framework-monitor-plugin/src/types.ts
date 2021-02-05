@@ -14,7 +14,7 @@
 
 export interface Options {
 	readonly port: number;
-	readonly host?: string;
+	readonly host: string;
 	readonly whiteList: ReadonlyArray<string>;
 	readonly cors: {
 		readonly origin: string;

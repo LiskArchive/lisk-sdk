@@ -106,7 +106,7 @@ export class MonitorPlugin extends BasePlugin {
 			this._registerControllers();
 			this._registerAfterMiddlewares(options);
 			this._subscribeToEvents();
-			this._server = this._app.listen(options.port, options.host ?? '127.0.0.1');
+			this._server = this._app.listen(options.port, options.host);
 		});
 	}
 
