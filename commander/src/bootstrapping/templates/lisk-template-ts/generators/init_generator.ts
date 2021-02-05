@@ -77,27 +77,27 @@ export default class InitGenerator extends Generator {
 
 	public end(): void {
 		this.log('Generating genesis block and config.');
-		this.spawnCommandSync(`${this.destinationRoot()}/bin/run`, [
+		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'genesis-block:create',
 			'--output',
 			'config/mainnet',
 		]);
-		this.spawnCommandSync(`${this.destinationRoot()}/bin/run`, [
+		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'config:create',
 			'--output',
 			'config/mainnet',
 		]);
 
-		fs.mkdirSync(`${this.destinationRoot()}/.secrets/mainnet`, { recursive: true });
+		fs.mkdirSync(`${this.destinationPath('.secrets/mainnet')}`, { recursive: true });
 
 		fs.renameSync(
-			`${this.destinationRoot()}/config/mainnet/accounts.json`,
-			`${this.destinationRoot()}/.secrets/mainnet/accounts.json`,
+			`${this.destinationPath('config/mainnet/accounts.json')}`,
+			`${this.destinationPath('.secrets/mainnet/accounts.json')}`,
 		);
 
 		fs.renameSync(
-			`${this.destinationRoot()}/config/mainnet/forging_info.json`,
-			`${this.destinationRoot()}/.secrets/mainnet/forging_info.json`,
+			`${this.destinationPath('config/mainnet/forging_info.json')}`,
+			`${this.destinationPath('.secrets/mainnet/forging_info.json')}`,
 		);
 
 		this.log('\nRun below command to start your blockchain app.\n');
