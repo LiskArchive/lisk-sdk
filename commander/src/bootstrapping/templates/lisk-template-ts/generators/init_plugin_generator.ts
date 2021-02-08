@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { userInfo } from 'os';
 import { join } from 'path';
 import Generator from 'yeoman-generator';
 
@@ -48,7 +48,7 @@ export default class InitPluginGenerator extends Generator {
 				type: 'input',
 				name: 'author',
 				message: 'Author of plugin',
-				default: '',
+				default: userInfo().username,
 			},
 			{
 				type: 'input',
@@ -60,19 +60,19 @@ export default class InitPluginGenerator extends Generator {
 				type: 'input',
 				name: 'name',
 				message: 'Name of plugin',
-				default: '',
+				default: this._alias,
 			},
 			{
 				type: 'input',
 				name: 'description',
 				message: 'Description of plugin',
-				default: '',
+				default: 'Lisk-SDK Application',
 			},
 			{
 				type: 'input',
 				name: 'license',
 				message: 'License of plugin',
-				default: '',
+				default: 'ISC',
 			},
 		])) as InitPluginPrompts;
 	}
