@@ -16,7 +16,7 @@
 
 import { join } from 'path';
 import { Project, SyntaxKind } from 'ts-morph';
-import Generator from 'yeoman-generator';
+import * as Generator from 'yeoman-generator';
 
 interface PluginPrompts {
 	author: string;

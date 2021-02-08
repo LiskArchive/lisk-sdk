@@ -13,15 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Config from '@oclif/config';
+import { Application } from 'lisk-framework';
 
-import pJSON = require('../../package.json');
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const getConfig = async (name = 'lisk-core') => {
-	const config = await Config.load();
-	config.pjson.lisk = { addressPrefix: 'lsk' };
-	config.pjson.version = pJSON.version;
-	config.pjson.name = name;
-	return config;
+export const getApplication = (): Application => {
+	const app = Application.defaultApplication({}, {});
+	return app;
 };

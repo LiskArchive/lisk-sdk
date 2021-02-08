@@ -37,7 +37,7 @@ export class LinkCommand extends Command {
 			throw new Error(`Path '${targetSDKFolder as string}' does not exist or access denied.`);
 		}
 
-		const sdkLocalPath = join(__dirname, '../../../', 'node_modules', 'lisk-sdk');
+		const sdkLocalPath = join(__dirname, '../../../../', 'node_modules', 'lisk-sdk');
 
 		// If targetSDK folder is relative path, it should be relative from the node_module
 		const targetSDKFolderFromNodeModule = isAbsolute(targetSDKFolder)

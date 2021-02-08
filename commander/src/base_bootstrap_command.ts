@@ -59,6 +59,7 @@ export default abstract class BaseBootstrapCommand extends Command {
 		opts?: Record<string, unknown>,
 	): Promise<void> {
 		return new Promise(resolve => {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 			env.run(
 				command,
 				{ ...opts, template: this.bootstrapFlags.template, version: this.config.version },

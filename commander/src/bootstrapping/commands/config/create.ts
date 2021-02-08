@@ -14,9 +14,9 @@
  *
  */
 import { Command, flags as flagParser } from '@oclif/command';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
-import inquirer from 'inquirer';
+import * as inquirer from 'inquirer';
 import { defaultConfig } from '../../../utils/config';
 
 export class CreateCommand extends Command {

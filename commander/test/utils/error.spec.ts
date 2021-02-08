@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import { FileSystemError, ValidationError } from '../../src/utils/error';
 
 describe('error utils', () => {

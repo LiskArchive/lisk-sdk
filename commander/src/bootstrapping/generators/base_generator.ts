@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
 /*
  * LiskHQ/lisk-commander
  * Copyright © 2021 Lisk Foundation
@@ -14,10 +15,10 @@
  *
  */
 
-import YeomanGenerator from 'yeoman-generator';
-import Storage from 'yeoman-generator/lib/util/storage';
+import * as YeomanGenerator from 'yeoman-generator';
+import * as Storage from 'yeoman-generator/lib/util/storage';
 import { join, dirname } from 'path';
-import assert from 'assert';
+import * as assert from 'assert';
 import { BootstrapGeneratorOptions, LiskTemplate } from '../../types';
 
 const DEFAULT_TEMPLATE_NAME = 'lisk-ts';

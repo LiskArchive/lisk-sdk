@@ -169,7 +169,8 @@ const createTransactionOffline = async (
 	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
 	transaction.nonce = BigInt(flags.nonce);
 	transaction.asset = asset;
-	transaction.senderPublicKey = publicKey;
+	transaction.senderPublicKey =
+		publicKey || Buffer.from(flags['sender-public-key'] as string, 'hex');
 
 	return validateAndSignTransaction(
 		transaction,
