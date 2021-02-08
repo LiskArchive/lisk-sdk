@@ -99,8 +99,11 @@ export default class InitGenerator extends Generator {
 			`${this.destinationPath('config/mainnet/forging_info.json')}`,
 			`${this.destinationPath('.secrets/mainnet/forging_info.json')}`,
 		);
+		this.log(
+			`  The files, "forging_info.json" and "accounts.json" have been moved to "./.secrets/mainnet"`,
+		);
 
 		this.log('\nRun below command to start your blockchain app.\n');
-		this.log(`cd ${this.destinationRoot()}; npm start`);
+		this.log(`cd ${this.destinationRoot()}; ./bin/run start`);
 	}
 }
