@@ -1,0 +1,39 @@
+# Files
+Jenkinsfile*
+Makefile
+Dockerfile
+LICENSE
+.DS_Store
+data/
+.idea
+logs/
+
+.gitkeep
+mocha.opts
+
+# rc files
+.*rc
+## ignore files
+.*ignore
+
+# Ignore extensions
+*.png
+*.sql
+## jest snapshot
+*.snap
+*.tsbuildinfo
+
+# project specific paths
+test/.coverage-unit/
+helm
+build/
+dist/
+docker/.env*
+qa/
+bin
+tmp/
+
+*.pid
+*.gz
+
+docker/*
