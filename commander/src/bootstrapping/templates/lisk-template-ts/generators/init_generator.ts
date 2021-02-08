@@ -16,7 +16,7 @@
 
 import { userInfo } from 'os';
 import { basename, join } from 'path';
-import fs from 'fs';
+import * as fs from 'fs';
 
 import * as Generator from 'yeoman-generator';
 
@@ -100,7 +100,7 @@ export default class InitGenerator extends Generator {
 			`${this.destinationPath('.secrets/mainnet/forging_info.json')}`,
 		);
 		this.log(
-			`  The files, "forging_info.json" and "accounts.json" have been moved to "./.secrets/mainnet"`,
+			'  The files, "forging_info.json" and "accounts.json" have been moved to "./.secrets/mainnet"',
 		);
 
 		this.log('\nRun below command to start your blockchain app.\n');

@@ -21,7 +21,7 @@ import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
 import * as inquirer from 'inquirer';
 import * as ProgressBar from 'progress';
-import { createMnemonicPassphrase } from '../../../utils/mnemonic';
+import { generateGenesisBlock } from '../../../utils/genesis_creation';
 
 interface AccountInfo {
 	readonly address: string;
