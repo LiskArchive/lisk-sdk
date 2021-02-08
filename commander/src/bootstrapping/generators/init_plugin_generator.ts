@@ -31,7 +31,6 @@ export default class InitPluginGenerator extends BaseGenerator {
 
 	public async initializing(): Promise<void> {
 		await this._loadAndValidateTemplate();
-		this.log('\n');
 		this.log('Initializing git repository');
 		this.spawnCommandSync('git', ['init', '--quiet']);
 	}
@@ -42,7 +41,7 @@ export default class InitPluginGenerator extends BaseGenerator {
 	}
 
 	public writing(): void {
-		this.log('Generating plugin skeleton');
+		this.log('Creating plugin project structure');
 		this.composeWith(
 			{
 				Generator: this._liskTemplate.generators.initPlugin,
