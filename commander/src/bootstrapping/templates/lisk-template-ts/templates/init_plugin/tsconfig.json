@@ -1,5 +1,7 @@
 {
+	"include": ["src/**/*"],
 	"compilerOptions": {
+		"outDir": "dist-node",
 		"forceConsistentCasingInFileNames": true,
 		"target": "es2019",
 		"module": "commonjs",
