@@ -76,6 +76,8 @@ export default class InitPluginGenerator extends Generator {
 	public createSkeleton(): void {
 		this.fs.copyTpl(
 			`${this._templatePath}/**/*`,
+			// Instead of using `destinationPath`, we use `destinationRoot` due to the large number of files for convenience
+			// The generated file names can be updated manually by the user to their liking e.g. "myPluginName.ts"
 			this.destinationRoot(),
 			{
 				alias: this._alias,
