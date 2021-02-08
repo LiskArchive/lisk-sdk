@@ -17,8 +17,8 @@
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class PluginCommand extends BaseBootstrapCommand {
-	static description = 'Creates custom plugin.';
-	static examples = ['generate:plugin my-plugin', 'generate:plugin my-plugin ./path'];
+	static description = 'Creates custom plugin as a standalone package with dependencies.';
+	static examples = ['init:plugin my-plugin', 'init:plugin my-plugin ./path'];
 
 	static args = [
 		{
