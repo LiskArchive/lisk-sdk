@@ -48,6 +48,7 @@ export default class InitPluginGenerator extends Generator {
 				type: 'input',
 				name: 'author',
 				message: 'Author of plugin',
+				default: '',
 			},
 			{
 				type: 'input',
@@ -59,16 +60,19 @@ export default class InitPluginGenerator extends Generator {
 				type: 'input',
 				name: 'name',
 				message: 'Name of plugin',
+				default: '',
 			},
 			{
 				type: 'input',
 				name: 'description',
 				message: 'Description of plugin',
+				default: '',
 			},
 			{
 				type: 'input',
 				name: 'license',
 				message: 'License of plugin',
+				default: '',
 			},
 		])) as InitPluginPrompts;
 	}
