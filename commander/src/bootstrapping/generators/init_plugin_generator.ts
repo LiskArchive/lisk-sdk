@@ -1,4 +1,4 @@
- /*
+/*
  * LiskHQ/lisk-commander
  * Copyright © 2021 Lisk Foundation
  *
@@ -36,7 +36,7 @@ export default class InitPluginGenerator extends BaseGenerator {
 		this.spawnCommandSync('git', ['init', '--quiet']);
 	}
 
-    public configuring(): void {
+	public configuring(): void {
 		this.log('Updating .liskrc.json file');
 		this._liskRC.setPath('template', this._liskTemplateName);
 	}
@@ -50,7 +50,7 @@ export default class InitPluginGenerator extends BaseGenerator {
 			},
 			this._liskInitPluginArgs,
 		);
-    }
+	}
 
 	public install(): void {
 		this.log('\n');

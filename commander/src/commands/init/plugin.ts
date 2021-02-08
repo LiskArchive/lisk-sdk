@@ -25,8 +25,8 @@ export default class PluginCommand extends BaseBootstrapCommand {
 			name: 'alias',
 			description: 'Alias of the plugin.',
 			required: true,
-        },
-        {
+		},
+		{
 			name: 'path',
 			description: 'Path to create the plugin.',
 			default: process.env.INIT_CWD ?? process.cwd(),
@@ -35,7 +35,7 @@ export default class PluginCommand extends BaseBootstrapCommand {
 
 	static flags = {
 		...BaseBootstrapCommand.flags,
-    };
+	};
 
 	async run(): Promise<void> {
 		const {
@@ -48,12 +48,12 @@ export default class PluginCommand extends BaseBootstrapCommand {
 		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
 		if (regexCamelCase.test(alias) || regexWhitespace.test(alias)) {
 			this.error('Invalid plugin alias');
-        }
+		}
 
 		return this._runBootstrapCommand('lisk:init:plugin', {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            alias,
-            projectPath: path ?? process.env.INIT_CWD ?? process.cwd(),
+			alias,
+			projectPath: path ?? process.env.INIT_CWD ?? process.cwd(),
 		});
 	}
 }

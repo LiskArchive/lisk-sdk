@@ -44,33 +44,33 @@ export default class InitPluginGenerator extends Generator {
 
 	async prompting(): Promise<void> {
 		this._answers = (await this.prompt([
-					{
-						type: 'input',
-						name: 'author',
-						message: 'Author of plugin',
-					},
-					{
-						type: 'input',
-						name: 'version',
-						message: 'Version of plugin',
-						default: '0.1.0',
-					},
-					{
-						type: 'input',
-						name: 'name',
-						message: 'Name of plugin',
-					},
-					{
-						type: 'input',
-						name: 'description',
-						message: 'Description of plugin',
-					},
-					{
-						type: 'input',
-						name: 'license',
-						message: 'License of plugin',
-					},
-			  ])) as InitPluginPrompts;
+			{
+				type: 'input',
+				name: 'author',
+				message: 'Author of plugin',
+			},
+			{
+				type: 'input',
+				name: 'version',
+				message: 'Version of plugin',
+				default: '0.1.0',
+			},
+			{
+				type: 'input',
+				name: 'name',
+				message: 'Name of plugin',
+			},
+			{
+				type: 'input',
+				name: 'description',
+				message: 'Description of plugin',
+			},
+			{
+				type: 'input',
+				name: 'license',
+				message: 'License of plugin',
+			},
+		])) as InitPluginPrompts;
 	}
 
 	public createSkeleton(): void {
@@ -89,5 +89,5 @@ export default class InitPluginGenerator extends Generator {
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
-    }
-};
+	}
+}
