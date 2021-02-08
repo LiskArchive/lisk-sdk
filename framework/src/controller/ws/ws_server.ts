@@ -24,17 +24,24 @@ export class WSServer {
 	public server!: WebSocket.Server;
 	private pingTimer!: NodeJS.Timeout;
 	private readonly port: number;
+	private readonly host?: string;
 	private readonly path: string;
 	private readonly logger: Logger;
 
-	public constructor(options: { port: number; path: string; logger: Logger }) {
+	public constructor(options: { port: number; host?: string; path: string; logger: Logger }) {
 		this.port = options.port;
+		this.host = options.host;
 		this.path = options.path;
 		this.logger = options.logger;
 	}
 
 	public start(messageHandler: WSMessageHandler): WebSocket.Server {
-		this.server = new WebSocket.Server({ path: this.path, port: this.port, clientTracking: true });
+		this.server = new WebSocket.Server({
+			path: this.path,
+			port: this.port,
+			host: this.host,
+			clientTracking: true,
+		});
 		this.server.on('connection', socket => this._handleConnection(socket, messageHandler));
 		this.server.on('error', error => {
 			this.logger.error(error);
