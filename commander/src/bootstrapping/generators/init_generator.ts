@@ -39,13 +39,6 @@ export default class InitGenerator extends BaseGenerator {
 
 	public install(): void {
 		this.log('\n');
-		this.log(
-			'After completion of npm installation run below command to start your blockchain app.\n',
-		);
-		this.log(`cd ${this.destinationRoot()}; npm start`);
-	}
-
-	public end(): void {
 		this.installDependencies({ npm: true, bower: false, yarn: false, skipMessage: false });
 	}
 }

@@ -24,7 +24,7 @@
 		"format": "prettier --write '**/*'",
 		"prepack": "oclif-dev manifest && oclif-dev readme --multi --dir=docs/commands && npm shrinkwrap && npm prune --production && npm shrinkwrap",
 		"prebuild": "if test -d dist; then rm -r dist; fi; rm -f tsconfig.tsbuildinfo; rm -f npm-shrinkwrap.json",
-		"start": "npx ts-node src/app",
+		"start": "echo Run \"./bin/run start\" to start the app",
 		"build": "tsc",
 		"test": "jest --passWithNoTests",
 		"test:coverage": "jest --passWithNoTests --coverage=true --coverage-reporters=text",

@@ -28,9 +28,7 @@ import {
 	getConfigDirs,
 	removeConfigDir,
 	ensureConfigDir,
-	getDefaultConfigDir,
 	getNetworkConfigFilesPath,
-	getDefaultNetworkConfigFilesPath,
 } from '../../utils/path';
 
 const LOG_OPTIONS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
@@ -105,8 +103,7 @@ export abstract class StartCommand extends Command {
 		this.log(`Starting Lisk ${this.config.pjson.name} at ${getFullPath(dataPath)}.`);
 		const pathConfig = splitPath(dataPath);
 
-		const defaultNetworkConfigs = getDefaultConfigDir();
-		const defaultNetworkConfigDir = getConfigDirs(defaultNetworkConfigs);
+		const defaultNetworkConfigDir = getConfigDirs(process.cwd());
 		if (!defaultNetworkConfigDir.includes(flags.network)) {
 			this.error(
 				`Network must be one of ${defaultNetworkConfigDir.join(',')} but received ${
@@ -144,7 +141,8 @@ export abstract class StartCommand extends Command {
 		const {
 			genesisBlockFilePath: defaultGenesisBlockFilePath,
 			configFilePath: defaultConfigFilepath,
-		} = getDefaultNetworkConfigFilesPath(flags.network);
+		} = getNetworkConfigFilesPath(process.cwd(), flags.network);
+
 		if (
 			!fs.existsSync(genesisBlockFilePath) ||
 			(fs.existsSync(genesisBlockFilePath) && flags['overwrite-config'])
