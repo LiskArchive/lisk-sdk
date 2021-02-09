@@ -16,6 +16,7 @@
 
 import { userInfo } from 'os';
 import { basename, join } from 'path';
+import * as fs from 'fs';
 
 import * as Generator from 'yeoman-generator';
 
@@ -72,5 +73,37 @@ export default class InitGenerator extends Generator {
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
+	}
+
+	public end(): void {
+		this.log('Generating genesis block and config.');
+		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
+			'genesis-block:create',
+			'--output',
+			'config/mainnet',
+		]);
+		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
+			'config:create',
+			'--output',
+			'config/mainnet',
+		]);
+
+		fs.mkdirSync(`${this.destinationPath('.secrets/mainnet')}`, { recursive: true });
+
+		fs.renameSync(
+			`${this.destinationPath('config/mainnet/accounts.json')}`,
+			`${this.destinationPath('.secrets/mainnet/accounts.json')}`,
+		);
+
+		fs.renameSync(
+			`${this.destinationPath('config/mainnet/forging_info.json')}`,
+			`${this.destinationPath('.secrets/mainnet/forging_info.json')}`,
+		);
+		this.log(
+			'  The files, "forging_info.json" and "accounts.json" have been moved to "./.secrets/mainnet"',
+		);
+
+		this.log('\nRun below command to start your blockchain app.\n');
+		this.log(`cd ${this.destinationRoot()}; ./bin/run start`);
 	}
 }
