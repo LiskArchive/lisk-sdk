@@ -1,4 +1,4 @@
-// import * as plugins from '../../../src/app/plugins/<%= alias %>';
+// import * as plugins from '../../src/plugin';
 
 describe('<%= className %>', () => {
 	describe('alias', () => {

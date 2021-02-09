@@ -14,12 +14,23 @@
  *
  */
 
+import { BaseGeneratorOptions } from '../../types';
 import BaseGenerator from './base_generator';
 
-export default class InitGenerator extends BaseGenerator {
+export default class InitPluginGenerator extends BaseGenerator {
+	protected _liskInitPluginArgs: {
+		alias: string;
+	};
+
+	public constructor(args: string | string[], opts: { alias: string } & BaseGeneratorOptions) {
+		super(args, opts);
+		this._liskInitPluginArgs = {
+			alias: opts.alias,
+		};
+	}
+
 	public async initializing(): Promise<void> {
 		await this._loadAndValidateTemplate();
-
 		this.log('Initializing git repository');
 		this.spawnCommandSync('git', ['init', '--quiet']);
 	}
@@ -30,15 +41,24 @@ export default class InitGenerator extends BaseGenerator {
 	}
 
 	public writing(): void {
-		this.log('Creating project structure');
-		this.composeWith({
-			Generator: this._liskTemplate.generators.init,
-			path: this._liskTemplatePath,
-		});
+		this.log('Creating plugin project structure');
+		this.composeWith(
+			{
+				Generator: this._liskTemplate.generators.initPlugin,
+				path: this._liskTemplatePath,
+			},
+			this._liskInitPluginArgs,
+		);
 	}
 
 	public install(): void {
 		this.log('\n');
+		this.log(
+			'After completion of npm installation, customize your plugin to use with your blockchain application.\n',
+		);
+	}
+
+	public end(): void {
 		this.installDependencies({ npm: true, bower: false, yarn: false, skipMessage: false });
 	}
 }

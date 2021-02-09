@@ -14,16 +14,16 @@
  *
  */
 
-import { BootstrapGeneratorOptions } from '../../types';
-import BootstrapGenerator from './base_generator';
+import { BaseGeneratorOptions } from '../../types';
+import BaseGenerator from './base_generator';
 
-interface AssetGeneratorOptions extends BootstrapGeneratorOptions {
+interface AssetGeneratorOptions extends BaseGeneratorOptions {
 	moduleName: string;
 	assetName: string;
 	assetID: number;
 }
 
-export default class AssetGenerator extends BootstrapGenerator {
+export default class AssetGenerator extends BaseGenerator {
 	protected _liskAssetArgs: {
 		moduleName: string;
 		assetName: string;
