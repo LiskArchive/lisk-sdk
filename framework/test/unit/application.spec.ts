@@ -20,6 +20,7 @@ import * as os from 'os';
 import { join } from 'path';
 import { BaseAsset, BaseChannel, BaseModule, BasePlugin } from '../../src';
 import { Application } from '../../src/application';
+import { Controller } from '../../src/controller';
 import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
@@ -589,6 +590,52 @@ describe('Application', () => {
 		it('should create getTransactionsByIDs action', () => {
 			// Assert
 			expect(actionsList).toContain('getTransactionsByIDs');
+		});
+	});
+
+	describe('#_loadPlugins', () => {
+		let app: Application;
+		let dirs: ReturnType<typeof systemDirs>;
+
+		beforeEach(async () => {
+			app = Application.defaultApplication(genesisBlockJSON, config);
+			app.registerPlugin(TestPlugin);
+			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+			jest.spyOn(Controller.prototype, 'loadPlugins').mockResolvedValue(jest.fn() as never);
+
+			await app.run();
+
+			dirs = systemDirs(app.config.label, app.config.rootPath);
+		});
+
+		it('should compile config and load plugins', () => {
+			// Arrange
+			const plugins = {
+				[TestPlugin.alias]: TestPlugin,
+			};
+			const pluginsOptions = {
+				[TestPlugin.alias]: {
+					loadAsChildProcess: false,
+					dataPath: dirs.dataPath,
+					appConfig: {
+						rootPath: app.config.rootPath,
+						label: app.config.label,
+						version: app.config.version,
+						networkVersion: app.config.networkVersion,
+						genesisConfig: app.config.genesisConfig,
+						logger: {
+							consoleLogLevel: app.config.logger.consoleLogLevel,
+							fileLogLevel: app.config.logger.fileLogLevel,
+						},
+					},
+				},
+			};
+
+			// Assert
+			expect(app['_controller'].loadPlugins).toHaveBeenCalledTimes(1);
+			expect(app['_controller'].loadPlugins).toHaveBeenCalledWith(plugins, pluginsOptions);
 		});
 	});
 

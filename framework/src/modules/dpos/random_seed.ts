@@ -14,12 +14,10 @@
 
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
-import * as createDebug from 'debug';
+import { Logger } from '../../logger/logger';
 
 import { Rounds } from './rounds';
 import { FixedLengthArray, RandomSeed } from './types';
-
-const debug = createDebug('lisk:dpos:random_seed');
 
 interface HeadersMap {
 	[key: number]: BlockHeader;
@@ -116,11 +114,17 @@ const selectSeedReveals = ({
 	return selected;
 };
 
-export const generateRandomSeeds = (
-	round: number,
-	rounds: Rounds,
-	headers: ReadonlyArray<BlockHeader>,
-): FixedLengthArray<RandomSeed, 2> => {
+export const generateRandomSeeds = ({
+	round,
+	rounds,
+	headers,
+	logger,
+}: {
+	round: number;
+	rounds: Rounds;
+	headers: ReadonlyArray<BlockHeader>;
+	logger: Logger;
+}): FixedLengthArray<RandomSeed, 2> => {
 	// Middle range of a round to validate
 	const middleThreshold = Math.floor(rounds.blocksPerRound / 2);
 	const lastBlockHeight = headers[0].height;
@@ -137,7 +141,7 @@ export const generateRandomSeeds = (
 	}
 
 	if (round === 1) {
-		debug('Returning static value because current round is 1');
+		logger.debug('Returning static value because current round is 1');
 		const randomSeed1ForFirstRound = strippedHash(
 			intToBuffer(middleThreshold + 1, NUMBER_BYTE_SIZE),
 		);
@@ -160,10 +164,13 @@ export const generateRandomSeeds = (
 	}, {});
 
 	// From middle of current round to middle of last round
-	debug('Fetching seed reveals for random seed 1', {
-		fromHeight: startOfRound + middleThreshold,
-		toHeight: startOfRound - middleThreshold,
-	});
+	logger.debug(
+		{
+			fromHeight: startOfRound + middleThreshold,
+			toHeight: startOfRound - middleThreshold,
+		},
+		'Fetching seed reveals for random seed 1',
+	);
 	const seedRevealsForRandomSeed1 = selectSeedReveals({
 		fromHeight: startOfRound + middleThreshold,
 		toHeight: startOfRound - middleThreshold,
@@ -172,10 +179,13 @@ export const generateRandomSeeds = (
 	});
 
 	// From middle of current round to middle of last round
-	debug('Fetching seed reveals for random seed 2', {
-		fromHeight: endOfLastRound,
-		toHeight: startOfLastRound,
-	});
+	logger.debug(
+		{
+			fromHeight: endOfLastRound,
+			toHeight: startOfLastRound,
+		},
+		'Fetching seed reveals for random seed 2',
+	);
 	const seedRevealsForRandomSeed2 = selectSeedReveals({
 		fromHeight: endOfLastRound,
 		toHeight: startOfLastRound,

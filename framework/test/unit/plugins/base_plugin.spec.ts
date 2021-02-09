@@ -13,15 +13,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { when } from 'jest-when';
 import { transactionSchema } from '@liskhq/lisk-chain';
-import { getPluginExportPath, PluginInfo } from '../../../src/plugins/base_plugin';
+import { when } from 'jest-when';
 import { BaseChannel, BasePlugin } from '../../../src';
+import * as loggerModule from '../../../src/logger';
 import { TransferAsset } from '../../../src/modules/token/transfer_asset';
+import { getPluginExportPath, PluginInfo } from '../../../src/plugins/base_plugin';
+
+const appConfigForPlugin = {
+	rootPath: '/my/path',
+	label: 'my-app',
+	logger: { consoleLogLevel: 'debug', fileLogLevel: '123' },
+};
 
 class MyPlugin extends BasePlugin {
-	public constructor(options: object = {}) {
-		super(options);
+	public constructor(options: object = { appConfig: appConfigForPlugin }) {
+		super(options as never);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -63,6 +70,11 @@ const channelMock = {
 	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
 };
 
+const loggerMock = {
+	debug: jest.fn(),
+	info: jest.fn(),
+};
+
 const schemas = {
 	accountSchema: {},
 	transactionSchema,
@@ -84,6 +96,7 @@ describe('base_plugin', () => {
 		beforeEach(() => {
 			plugin = new MyPlugin();
 
+			jest.spyOn(loggerModule, 'createLogger').mockReturnValue(loggerMock as never);
 			when(channelMock.invoke).calledWith('app:getSchema').mockResolvedValue(schemas);
 		});
 
@@ -98,6 +111,20 @@ describe('base_plugin', () => {
 		});
 
 		describe('init', () => {
+			it('should create logger instance', async () => {
+				// Act
+				await plugin.init((channelMock as unknown) as BaseChannel);
+
+				// Assert
+				expect(loggerModule.createLogger).toHaveBeenCalledTimes(1);
+				expect(loggerModule.createLogger).toHaveBeenCalledWith({
+					...appConfigForPlugin.logger,
+					logFilePath: `${appConfigForPlugin.rootPath}/${appConfigForPlugin.label}/logs/plugin-${MyPlugin.alias}.log`,
+					module: `plugin:${MyPlugin.alias}`,
+				});
+				expect(plugin['_logger']).toBe(loggerMock);
+			});
+
 			it('should fetch schemas and assign to instance', async () => {
 				// Act
 				await plugin.init((channelMock as unknown) as BaseChannel);

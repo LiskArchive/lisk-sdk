@@ -264,6 +264,7 @@ export class Node {
 						this._chain.dataAccess.getAccountByAddress<T>(address),
 					getLastBlockHeader: async () => this._chain.dataAccess.getLastBlockHeader(),
 				},
+				logger: this._logger,
 			});
 		}
 		// Initialize callable P2P endpoints

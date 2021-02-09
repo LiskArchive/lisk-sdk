@@ -40,6 +40,7 @@ const generateHeadersFromTest = (blocks: any): BlockHeader[] =>
 describe('random_seed', () => {
 	let rounds: Rounds;
 	let randomSeeds: Buffer[];
+	let logger: any;
 
 	const testCases = [
 		...randomSeedFirstRound.testCases,
@@ -47,6 +48,10 @@ describe('random_seed', () => {
 		...randomSeedsInvalidSeedReveal.testCases,
 		...randomSeedsNotForgedEarlier.testCases,
 	];
+
+	beforeEach(() => {
+		logger = { debug: jest.fn() };
+	});
 
 	describe('generateRandomSeeds', () => {
 		it('should throw error if called before middle of the round', () => {
@@ -59,7 +64,7 @@ describe('random_seed', () => {
 			const headers = generateHeadersFromTest(input.blocks);
 
 			// Act & Assert
-			expect(() => generateRandomSeeds(round, rounds, headers)).toThrow(
+			expect(() => generateRandomSeeds({ round, rounds, headers, logger })).toThrow(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height: ${input.blocks.length}`,
 			);
@@ -79,7 +84,7 @@ describe('random_seed', () => {
 					const headers = generateHeadersFromTest(input.blocks);
 
 					// Act
-					randomSeeds = generateRandomSeeds(round, rounds, headers);
+					randomSeeds = generateRandomSeeds({ round, rounds, headers, logger });
 
 					// Assert
 					expect(randomSeeds[0].toString('hex')).toEqual(output.randomSeed1);
