@@ -1,6 +1,6 @@
 // import * as plugins from '../../src/plugin';
 
-describe('<%= className %>Plugin', () => {
+describe('<%= className %>', () => {
 	describe('alias', () => {
 		it.todo('should have valid alias');
 	});
