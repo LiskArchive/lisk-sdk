@@ -17,8 +17,7 @@
 import BaseBootstrapCommand from '../base_bootstrap_command';
 
 export default class InitCommand extends BaseBootstrapCommand {
-	static description =
-		'Commands relating to bootstrapping a blockchain application or plugin using lisk-sdk.';
+	static description = 'Bootstrap a blockchain application using Lisk SDK.';
 
 	static examples = [
 		'init',
