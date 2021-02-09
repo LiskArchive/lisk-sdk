@@ -149,7 +149,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._clearBlockHeadersIntervalId = setInterval(() => {
 			clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight).catch(error =>
-				this._logger.debug(error),
+				this._logger.error(error),
 			);
 		}, this._clearBlockHeadersInterval);
 	}
@@ -167,7 +167,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			if (event === 'postBlock') {
 				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
 				if (errors.length > 0) {
-					this._logger.debug(errors, 'Invalid block data');
+					this._logger.error(errors, 'Invalid block data');
 					return;
 				}
 				const blockData = data as { block: string };
@@ -205,7 +205,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 						this._logger.debug('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
-					this._logger.debug(error);
+					this._logger.error(error);
 				}
 			}
 		});
