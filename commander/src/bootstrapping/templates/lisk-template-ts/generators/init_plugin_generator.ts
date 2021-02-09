@@ -15,7 +15,7 @@
  */
 import { userInfo } from 'os';
 import { join } from 'path';
-import Generator from 'yeoman-generator';
+import * as Generator from 'yeoman-generator';
 
 interface InitPluginPrompts {
 	author: string;
