@@ -2221,6 +2221,7 @@ Object {
   "rootPath": "~/.lisk",
   "rpc": Object {
     "enable": false,
+    "host": "127.0.0.1",
     "mode": "ipc",
     "port": 8080,
   },
