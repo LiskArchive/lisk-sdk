@@ -66,7 +66,7 @@ export default class InitPluginGenerator extends Generator {
 				type: 'input',
 				name: 'description',
 				message: 'Description of plugin',
-				default: 'Lisk-SDK Application',
+				default: 'A plugin for an application created by Lisk SDK',
 			},
 			{
 				type: 'input',
