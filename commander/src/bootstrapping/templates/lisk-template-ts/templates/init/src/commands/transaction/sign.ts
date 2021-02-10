@@ -4,7 +4,7 @@ import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
 export class SignCommand extends TransactionSignCommand {
-	static flags = {
+	static flags: any = {
 		...TransactionSignCommand.flags,
 	};
 
