@@ -63,6 +63,9 @@
 			"help": {
 				"description": "Displays help."
 			},
+			"init": {
+				"description": "Commands relating to bootstrapping a blockchain application or plugin using Lisk SDK."
+			},
 			"message": {
 				"description": "Commands relating to user messages."
 			},
