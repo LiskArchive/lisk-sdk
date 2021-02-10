@@ -3,8 +3,10 @@ import { TransactionSignCommand } from 'lisk-commander';
 import { Application, PartialApplicationConfig } from 'lisk-sdk';
 import { getApplication } from '../../app/app';
 
+type SignFlags = typeof TransactionSignCommand.flags & { [key: string]: Record<string, unknown> };
+
 export class SignCommand extends TransactionSignCommand {
-	static flags = {
+	static flags: SignFlags = {
 		...TransactionSignCommand.flags,
 	};
 
