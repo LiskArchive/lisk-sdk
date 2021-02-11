@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { DownloadCommand as BlockchainDownloadCommand } from './download';
 export { ExportCommand as BlockchainExportCommand } from './export';
 export { HashCommand as BlockchainHashCommand } from './hash';
 export { ImportCommand as BlockchainImportCommand } from './import';
