@@ -25,9 +25,10 @@ export class Block {
 		this._schemas = registeredSchema;
 	}
 
-	public async get(id: Buffer): Promise<Record<string, unknown>> {
+	public async get(id: Buffer | string): Promise<Record<string, unknown>> {
+		const idString: string = Buffer.isBuffer(id) ? id.toString('hex') : id;
 		const blockHex = await this._channel.invoke<string>('app:getBlockByID', {
-			id: id.toString('hex'),
+			id: idString,
 		});
 		const blockBytes = Buffer.from(blockHex, 'hex');
 		return decodeBlock(blockBytes, this._schemas);
@@ -46,8 +47,9 @@ export class Block {
 		return encodeBlock(input, this._schemas);
 	}
 
-	public decode<T = Record<string, unknown>>(input: Buffer): T {
-		return decodeBlock(input, this._schemas) as T;
+	public decode<T = Record<string, unknown>>(input: Buffer | string): T {
+		const inputBuffer: Buffer = Buffer.isBuffer(input) ? input : Buffer.from(input, 'hex');
+		return decodeBlock(inputBuffer, this._schemas) as T;
 	}
 
 	public toJSON(

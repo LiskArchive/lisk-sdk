@@ -32,6 +32,7 @@ interface BusConfiguration {
 		readonly enable: boolean;
 		readonly mode: string;
 		readonly port: number;
+		readonly host?: string;
 	};
 }
 
@@ -115,6 +116,7 @@ export class Bus {
 			this._wsServer = new WSServer({
 				path: '/ws',
 				port: config.rpc.port,
+				host: config.rpc.host,
 				logger: this.logger,
 			});
 		}

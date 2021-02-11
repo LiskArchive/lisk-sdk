@@ -20,7 +20,7 @@ const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 
 export default class ModuleCommand extends BaseBootstrapCommand {
 	static description = 'Creates a module skeleton for the given name and id.';
-	static examples = ['generate:module moduleName moduleID', 'generate:module nft 5'];
+	static examples = ['generate:module nft 5000'];
 	static args = [
 		{
 			name: 'moduleName',
@@ -29,7 +29,7 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 		},
 		{
 			name: 'moduleID',
-			description: 'Module Id.',
+			description: 'Module Id, should be atleast 1000 or more',
 			required: true,
 		},
 	];

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import {
 	signTransaction,
 	signMultiSignatureTransaction,
@@ -147,9 +146,10 @@ export class Transaction {
 		return signTransaction(assetSchema, txInput, networkIdentifier, passphrase);
 	}
 
-	public async get(id: Buffer): Promise<Record<string, unknown>> {
+	public async get(id: Buffer | string): Promise<Record<string, unknown>> {
+		const idString: string = Buffer.isBuffer(id) ? id.toString('hex') : id;
 		const transactionHex = await this._channel.invoke<string>('app:getTransactionByID', {
-			id: id.toString('hex'),
+			id: idString,
 		});
 		return decodeTransaction(Buffer.from(transactionHex, 'hex'), this._schema);
 	}
@@ -221,8 +221,11 @@ export class Transaction {
 		}>('app:postTransaction', { transaction: encodedTx.toString('hex') });
 	}
 
-	public decode<T = Record<string, unknown>>(transaction: Buffer): T {
-		return decodeTransaction(transaction, this._schema) as T;
+	public decode<T = Record<string, unknown>>(transaction: Buffer | string): T {
+		const transactionBuffer: Buffer = Buffer.isBuffer(transaction)
+			? transaction
+			: Buffer.from(transaction, 'hex');
+		return decodeTransaction(transactionBuffer, this._schema) as T;
 	}
 
 	public encode(transaction: Record<string, unknown>): Buffer {

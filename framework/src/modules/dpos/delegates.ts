@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as createDebug from 'debug';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { Account } from '@liskhq/lisk-chain';
+import { Logger } from '../../logger/logger';
 import { Consensus, StateStore } from '../../types';
 import { DelegateWeight, DPOSAccountProps } from './types';
 import { getRegisteredDelegates, getVoteWeights, setVoteWeights } from './data_access';
@@ -27,8 +27,6 @@ import {
 	MAX_LAST_FORGED_HEIGHT_DIFF,
 } from './constants';
 import { isCurrentlyPunished } from './utils';
-
-const debug = createDebug('dpos:delegates');
 
 export const shuffleDelegateList = (
 	previousRoundSeed1: Buffer,
@@ -151,6 +149,7 @@ export const createVoteWeightsSnapshot = async ({
 	height,
 	stateStore,
 	round,
+	logger,
 	voteWeightCapRate = DEFAULT_VOTE_WEIGHT_CAP_RATE,
 	activeDelegates = DEFAULT_ACTIVE_DELEGATE,
 	standbyDelegates = DEFAULT_STANDBY_DELEGATE,
@@ -163,8 +162,9 @@ export const createVoteWeightsSnapshot = async ({
 	activeDelegates?: number;
 	standbyDelegates?: number;
 	standbyThreshold?: bigint;
+	logger: Logger;
 }): Promise<void> => {
-	debug(`Creating vote weight snapshot for round: ${round.toString()}`);
+	logger.debug(`Creating vote weight snapshot for round: ${round.toString()}`);
 
 	const delegateUserNames = await getRegisteredDelegates(stateStore);
 
