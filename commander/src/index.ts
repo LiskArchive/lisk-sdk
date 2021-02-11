@@ -43,7 +43,6 @@ export {
 	PassphraseDecryptCommand,
 	PassphraseEncryptCommand,
 } from './bootstrapping/commands/passphrase';
-export { SDKLinkCommand } from './bootstrapping/commands/sdk';
 export {
 	TransactionCreateCommand,
 	TransactionGetCommand,
