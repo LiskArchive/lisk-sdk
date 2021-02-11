@@ -47,6 +47,9 @@ describe('DPoSModule', () => {
 	const channelMock = {
 		publish: jest.fn(),
 	};
+	const loggerMock = {
+		debug: jest.fn(),
+	};
 
 	beforeEach(() => {
 		genesisConfig = {
@@ -199,6 +202,11 @@ describe('DPoSModule', () => {
 			};
 
 			dposModule = new DPoSModule(genesisConfig);
+			dposModule.init({
+				channel: channelMock,
+				dataAccess: dataAccessMock as any,
+				logger: loggerMock as any,
+			});
 		});
 
 		describe('when finalized height changed', () => {
@@ -244,6 +252,7 @@ describe('DPoSModule', () => {
 					height: blockRound * 103 + 1,
 					stateStore: context.stateStore,
 					round: blockRound + (genesisConfig.delegateListRoundOffset as number) + 1,
+					logger: loggerMock,
 				});
 			});
 
@@ -281,7 +290,11 @@ describe('DPoSModule', () => {
 
 		beforeEach(() => {
 			dposModule = new DPoSModule(genesisConfig);
-			dposModule.init({ channel: channelMock, dataAccess: dataAccessMock as any });
+			dposModule.init({
+				channel: channelMock,
+				dataAccess: dataAccessMock as any,
+				logger: loggerMock as any,
+			});
 
 			unvoteHeight = 50059;
 			account = createFakeDefaultAccount({});

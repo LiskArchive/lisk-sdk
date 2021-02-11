@@ -351,6 +351,10 @@ export const applicationConfigSchema = {
 					minimum: 1024,
 					maximum: 65535,
 				},
+				host: {
+					type: 'string',
+					format: 'ip',
+				},
 			},
 		},
 	},
@@ -369,6 +373,7 @@ export const applicationConfigSchema = {
 			enable: false,
 			mode: 'ipc',
 			port: 8080,
+			host: '127.0.0.1',
 		},
 		genesisConfig: {
 			blockTime: 10,

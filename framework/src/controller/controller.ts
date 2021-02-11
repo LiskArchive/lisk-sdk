@@ -15,10 +15,10 @@
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
-import { getPluginExportPath, BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import { Logger } from '../logger';
+import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { PluginOptions, PluginsOptions, SocketPaths } from '../types';
+import { PluginOptions, PluginOptionsWithAppConfig, SocketPaths } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
@@ -100,14 +100,17 @@ export class Controller {
 		await this._setupBus();
 	}
 
-	public async loadPlugins(plugins: PluginsObject, pluginOptions: PluginsOptions): Promise<void> {
+	public async loadPlugins(
+		plugins: PluginsObject,
+		pluginOptions: { [key: string]: PluginOptionsWithAppConfig },
+	): Promise<void> {
 		if (!this.bus) {
 			throw new Error('Controller bus is not initialized. Plugins can not be loaded.');
 		}
 
 		for (const alias of Object.keys(plugins)) {
 			const klass = plugins[alias];
-			const options = { dataPath: this.config.dataPath, ...pluginOptions[alias] };
+			const options = pluginOptions[alias];
 
 			if (options.loadAsChildProcess && this.config.rpc.enable) {
 				await this._loadChildProcessPlugin(alias, klass, options);

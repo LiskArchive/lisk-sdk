@@ -74,7 +74,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 			this._registerMiddlewares(options);
 			this._registerControllers();
 			this._registerAfterMiddlewares(options);
-			this._server = this._app.listen(options.port, '0.0.0.0');
+			this._server = this._app.listen(options.port, options.host);
 		});
 	}
 

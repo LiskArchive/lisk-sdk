@@ -81,11 +81,23 @@ describe('transaction', () => {
 		});
 
 		describe('get', () => {
-			it('should invoke app:getTransactionByID', async () => {
-				await transaction.get(txId);
-				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-				expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
-					id: txId.toString('hex'),
+			describe('transaction by id as buffer', () => {
+				it('should invoke app:getTransactionByID', async () => {
+					await transaction.get(txId);
+					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+					expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
+						id: txId.toString('hex'),
+					});
+				});
+			});
+
+			describe('transaction by id as hex', () => {
+				it('should invoke app:getTransactionByID', async () => {
+					await transaction.get(txId.toString('hex'));
+					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+					expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
+						id: txId.toString('hex'),
+					});
 				});
 			});
 		});
@@ -297,9 +309,18 @@ describe('transaction', () => {
 		});
 
 		describe('decode', () => {
-			it('should return decoded transaction', () => {
-				const decodedTx = transaction.decode(encodedTx);
-				expect(decodedTx).toMatchSnapshot();
+			describe('transaction from input as buffer', () => {
+				it('should return decoded transaction', () => {
+					const decodedTx = transaction.decode(encodedTx);
+					expect(decodedTx).toMatchSnapshot();
+				});
+			});
+
+			describe('transaction from input as hex', () => {
+				it('should return decoded transaction', () => {
+					const decodedTx = transaction.decode(encodedTx.toString('hex'));
+					expect(decodedTx).toMatchSnapshot();
+				});
 			});
 		});
 
