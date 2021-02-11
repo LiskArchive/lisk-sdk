@@ -170,10 +170,17 @@ export abstract class StartCommand extends Command {
 		config.version = this.config.pjson.version;
 		// Inject other properties specified
 		if (flags['api-ipc']) {
-			config.rpc = { enable: flags['api-ipc'], mode: 'ipc' };
+			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
+				enable: flags['api-ipc'],
+				mode: 'ipc',
+			});
 		}
 		if (flags['api-ws']) {
-			config.rpc = { enable: flags['api-ws'], mode: 'ws', port: flags['api-ws-port'] };
+			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
+				enable: flags['api-ws'],
+				mode: 'ws',
+				port: flags['api-ws-port'],
+			});
 		}
 		if (flags['console-log']) {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
