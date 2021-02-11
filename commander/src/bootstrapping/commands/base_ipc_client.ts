@@ -15,7 +15,6 @@
 
 import * as apiClient from '@liskhq/lisk-api-client';
 import { Command } from '@oclif/command';
-import * as Parser from '@oclif/parser';
 import { RegisteredSchema } from 'lisk-framework';
 import { PromiseResolvedType } from '../../types';
 import { isApplicationRunning } from '../../utils/application';
@@ -33,20 +32,12 @@ export abstract class BaseIPCClientCommand extends Command {
 		pretty: flagsWithParser.pretty,
 	};
 
-	static args = [] as Parser.args.Input;
-
 	protected baseIPCClientFlags!: BaseIPCClientFlags;
-	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
+	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
 	protected _dataPath!: string;
 
-	async finally(error?: Error | string): Promise<void> {
-		if (error) {
-			if (!isApplicationRunning(this._dataPath)) {
-				throw new Error(`Application at data path ${this._dataPath} is not running.`);
-			}
-			this.error(error instanceof Error ? error.message : error);
-		}
+	async finally(): Promise<void> {
 		if (this._client) {
 			await this._client.disconnect();
 		}
