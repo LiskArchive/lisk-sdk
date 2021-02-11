@@ -73,7 +73,7 @@ describe('sdk:link command', () => {
 
 	describe('sdk:link ../lisk-sdk/sdk', () => {
 		const fakeSDKPath = '../lisk-sdk/sdk';
-		const targetSDKPath = join(__dirname, '../../../../', 'node_modules', 'lisk-sdk');
+		const targetSDKPath = join(process.cwd(), 'node_modules', 'lisk-sdk');
 
 		it('should call file system functions with correct parameters', async () => {
 			jest.spyOn(fs, 'pathExistsSync').mockReturnValue(true);
