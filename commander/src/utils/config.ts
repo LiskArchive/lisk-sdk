@@ -5,7 +5,7 @@ export const defaultConfig = {
 	rootPath: '~/.lisk',
 	logger: {
 		fileLogLevel: 'info',
-		consoleLogLevel: 'none',
+		consoleLogLevel: 'info',
 		logFileName: 'lisk.log',
 	},
 	rpc: {

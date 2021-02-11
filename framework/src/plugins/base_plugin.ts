@@ -12,16 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as assert from 'assert';
 import { RawBlock } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
+import * as assert from 'assert';
+import { join } from 'path';
 import { APP_EVENT_READY } from '../constants';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
 import { EventsDefinition } from '../controller/event';
 import { ImplementationMissingError } from '../errors';
-import { RegisteredSchema, TransactionJSON } from '../types';
+import { createLogger, Logger } from '../logger';
+import { systemDirs } from '../system_dirs';
+import { PluginOptionsWithAppConfig, RegisteredSchema, TransactionJSON } from '../types';
 
 interface DefaultAccountJSON {
 	[name: string]: { [key: string]: unknown } | undefined;
@@ -187,12 +190,13 @@ export interface PluginCodec {
 }
 
 export abstract class BasePlugin {
-	public readonly options: object;
+	public readonly options: PluginOptionsWithAppConfig;
 	public schemas!: RegisteredSchema;
 
 	public codec: PluginCodec;
+	protected _logger!: Logger;
 
-	protected constructor(options: object) {
+	protected constructor(options: PluginOptionsWithAppConfig) {
 		this.options = options;
 
 		this.codec = {
@@ -231,6 +235,17 @@ export abstract class BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(channel: BaseChannel): Promise<void> {
+		const dirs = systemDirs(this.options.appConfig.label, this.options.appConfig.rootPath);
+		this._logger = createLogger({
+			consoleLogLevel: this.options.appConfig.logger.consoleLogLevel,
+			fileLogLevel: this.options.appConfig.logger.fileLogLevel,
+			logFilePath: join(
+				dirs.logs,
+				`plugin-${((this.constructor as unknown) as typeof BasePlugin).alias}.log`,
+			),
+			module: `plugin:${((this.constructor as unknown) as typeof BasePlugin).alias}`,
+		});
+
 		channel.once(APP_EVENT_READY, async () => {
 			this.schemas = await channel.invoke('app:getSchema');
 		});

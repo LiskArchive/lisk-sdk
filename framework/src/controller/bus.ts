@@ -32,6 +32,7 @@ interface BusConfiguration {
 		readonly enable: boolean;
 		readonly mode: string;
 		readonly port: number;
+		readonly host?: string;
 	};
 }
 
@@ -115,6 +116,7 @@ export class Bus {
 			this._wsServer = new WSServer({
 				path: '/ws',
 				port: config.rpc.port,
+				host: config.rpc.host,
 				logger: this.logger,
 			});
 		}
@@ -311,13 +313,15 @@ export class Bus {
 		this._emitter.emit(eventName, notification);
 
 		// Communicate through unix socket
-		try {
-			this._ipcServer.pubSocket.send(notification);
-		} catch (error) {
-			this.logger.debug(
-				{ err: error as Error },
-				`Failed to publish event: ${eventName} to ipc server.`,
-			);
+		if (this.config.rpc.enable) {
+			try {
+				this._ipcServer.pubSocket.send(notification);
+			} catch (error) {
+				this.logger.debug(
+					{ err: error as Error },
+					`Failed to publish event: ${eventName} to ipc server.`,
+				);
+			}
 		}
 
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
