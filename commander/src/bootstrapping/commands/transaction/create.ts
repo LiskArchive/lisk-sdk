@@ -43,15 +43,15 @@ interface Args {
 
 interface CreateFlags {
 	network: string;
-	'network-identifier': string | undefined;
-	passphrase: string | undefined;
-	asset: string | undefined;
+	'network-identifier'?: string;
+	passphrase?: string;
+	asset?: string;
 	pretty: boolean;
 	offline: boolean;
-	'data-path': string | undefined;
+	'data-path'?: string;
 	'no-signature': boolean;
-	'sender-public-key': string | undefined;
-	nonce: string | undefined;
+	'sender-public-key'?: string;
+	nonce?: string;
 }
 
 interface Transaction {
@@ -100,12 +100,18 @@ const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
 	let passphrase!: string;
 	let publicKey!: Buffer;
 	let address!: Buffer;
-	if (flags.passphrase || !flags['no-signature']) {
+
+	if (flags['no-signature']) {
+		publicKey = Buffer.from(flags['sender-public-key'] as string, 'hex');
+		address = cryptography.getAddressFromPublicKey(publicKey);
+		passphrase = '';
+	} else {
 		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 		const result = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
 		publicKey = result.publicKey;
 		address = result.address;
 	}
+
 	return { address, passphrase, publicKey };
 };
 
@@ -145,26 +151,6 @@ const createTransactionOffline = async (
 	registeredSchema: RegisteredSchema,
 	transaction: Transaction,
 ) => {
-	if (!flags['sender-public-key'] && flags['no-signature']) {
-		throw new Error('Sender public key must be specified when no-signature flags is used.');
-	}
-
-	if (flags['data-path']) {
-		throw new Error(
-			'Flag: --data-path should not be specified while creating transaction offline.',
-		);
-	}
-
-	if (!flags['network-identifier']) {
-		throw new Error(
-			'Flag: --network-identifier must be specified while creating transaction offline.',
-		);
-	}
-
-	if (!flags.nonce) {
-		throw new Error('Flag: --nonce must be specified while creating transaction offline.');
-	}
-
 	const asset = await getAssetObject(registeredSchema, flags, args);
 	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
 	transaction.nonce = BigInt(flags.nonce);
@@ -175,7 +161,7 @@ const createTransactionOffline = async (
 	return validateAndSignTransaction(
 		transaction,
 		registeredSchema,
-		flags['network-identifier'],
+		flags['network-identifier'] as string,
 		passphrase,
 		flags['no-signature'],
 	);
@@ -191,7 +177,7 @@ const createTransactionOnline = async (
 	const nodeInfo = await client.node.getNodeInfo();
 	const { address, passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
 	const account = await client.account.get(address);
-	const asset = (await getAssetObject(registeredSchema, flags, args)) as Record<string, unknown>;
+	const asset = await getAssetObject(registeredSchema, flags, args);
 
 	if (flags['network-identifier'] && flags['network-identifier'] !== nodeInfo.networkIdentifier) {
 		throw new Error(
@@ -202,6 +188,7 @@ const createTransactionOnline = async (
 	if (!isSequenceObject(account, 'sequence')) {
 		throw new Error('Account does not have sequence property.');
 	}
+
 	if (flags.nonce && BigInt(account.sequence.nonce) > BigInt(flags.nonce)) {
 		throw new Error(
 			`Invalid nonce specified, actual: ${
@@ -210,18 +197,18 @@ const createTransactionOnline = async (
 		);
 	}
 
-	let transactionObject = {
-		...transaction,
-		nonce: BigInt(account.sequence.nonce),
-		senderPublicKey: publicKey,
-		asset,
-	} as Record<string, unknown>;
+	transaction.nonce = flags.nonce ? BigInt(flags.nonce) : account.sequence.nonce;
+	transaction.asset = asset;
+	transaction.senderPublicKey =
+		publicKey || Buffer.from(flags['sender-public-key'] as string, 'hex');
 
-	if (!flags['no-signature']) {
-		transactionObject = await client.transaction.sign(transactionObject, [passphrase]);
-	}
-
-	return transactionObject;
+	return validateAndSignTransaction(
+		transaction,
+		registeredSchema,
+		nodeInfo.networkIdentifier,
+		passphrase,
+		flags['no-signature'],
+	);
 };
 
 export abstract class CreateCommand extends Command {
@@ -261,10 +248,16 @@ export abstract class CreateCommand extends Command {
 			description: 'Creates transaction with specific asset information',
 		}),
 		json: flagsWithParser.json,
-		offline: flagsWithParser.offline,
+		// We can't specify default value with `dependsOn` https://github.com/oclif/oclif/issues/211
+		offline: flagParser.boolean({
+			...flagsWithParser.offline,
+			dependsOn: ['network-identifier', 'nonce'],
+			exclusive: ['data-path'],
+		}),
 		'no-signature': flagParser.boolean({
 			description:
 				'Creates the transaction without a signature. Your passphrase will therefore not be required',
+			dependsOn: ['sender-public-key'],
 		}),
 		'network-identifier': flagsWithParser.networkIdentifier,
 		nonce: flagParser.string({
@@ -279,7 +272,7 @@ export abstract class CreateCommand extends Command {
 		pretty: flagsWithParser.pretty,
 	};
 
-	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
+	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
 	protected _dataPath!: string;
 
@@ -303,6 +296,7 @@ export abstract class CreateCommand extends Command {
 			const { genesisBlock, config } = await getGenesisBlockAndConfig(flags.network);
 			const app = this.getApplication(genesisBlock, config);
 			this._schema = app.getSchema();
+
 			transactionObject = await createTransactionOffline(
 				args as Args,
 				flags,
@@ -310,8 +304,13 @@ export abstract class CreateCommand extends Command {
 				incompleteTransaction,
 			);
 		} else {
-			this._client = await getApiClient(flags['data-path'] as string, this.config.pjson.name);
+			if (!isApplicationRunning(this._dataPath)) {
+				throw new Error(`Application at data path ${this._dataPath} is not running.`);
+			}
+
+			this._client = await getApiClient(this._dataPath, this.config.pjson.name);
 			this._schema = this._client.schemas;
+
 			transactionObject = await createTransactionOnline(
 				args as Args,
 				flags,
@@ -347,13 +346,7 @@ export abstract class CreateCommand extends Command {
 		}
 	}
 
-	async finally(error?: Error | string): Promise<void> {
-		if (error) {
-			if (!isApplicationRunning(this._dataPath)) {
-				throw new Error(`Application at data path ${this._dataPath} is not running.`);
-			}
-			this.error(error instanceof Error ? error.message : error);
-		}
+	async finally(): Promise<void> {
 		if (this._client) {
 			await this._client.disconnect();
 		}

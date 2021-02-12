@@ -34,7 +34,7 @@ export const splitPath = (dataPath: string): { rootPath: string; label: string }
 	};
 };
 
-export const getDefaultConfigDir = (): string => path.join(__dirname, '../../../');
+export const getDefaultConfigDir = (): string => process.cwd();
 
 export const getNetworkConfigFilesPath = (
 	dataPath: string,
