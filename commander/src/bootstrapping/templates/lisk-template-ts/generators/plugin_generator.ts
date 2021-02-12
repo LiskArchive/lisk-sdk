@@ -46,7 +46,7 @@ export default class PluginGenerator extends Generator {
 		// Check for existing package.json in root directory to use existing info
 		try {
 			// eslint-disable-next-line
-			this._packageJSON = await import(`${this.destinationRoot()}/package.json`);
+			this._packageJSON = await import(this.destinationPath('package.json'));
 		} catch (err) {
 			this._packageJSON = undefined;
 		}
