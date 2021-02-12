@@ -46,7 +46,7 @@ export default class PluginGenerator extends Generator {
 		// Check for existing package.json in root directory to use existing info
 		try {
 			// eslint-disable-next-line
-			this._packageJSON = await import(`${this.destinationRoot()}/src/app/package.json`);
+			this._packageJSON = await import(`${this.destinationRoot()}/package.json`);
 		} catch (err) {
 			this._packageJSON = undefined;
 		}
@@ -83,7 +83,7 @@ export default class PluginGenerator extends Generator {
 				className: this._className,
 				author: this._packageJSON?.author ?? this._answers?.author,
 				version: this._packageJSON?.version ?? this._answers?.version,
-				name: this._packageJSON?.name ?? this._answers?.name,
+				name: this._alias,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
