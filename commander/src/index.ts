@@ -21,7 +21,6 @@ export {
 } from './bootstrapping/commands/account';
 export { BlockGetCommand } from './bootstrapping/commands/block';
 export {
-	BlockchainDownloadCommand,
 	BlockchainExportCommand,
 	BlockchainHashCommand,
 	BlockchainImportCommand,
