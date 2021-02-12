@@ -250,6 +250,29 @@ describe('transaction:create command', () => {
 			});
 
 			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --passphrase=${passphrase}`, () => {
+				it('should throw error when transfer asset data is empty.', async () => {
+					await expect(
+						CreateCommandExtended.run(
+							[
+								'2',
+								'0',
+								'100000000',
+								'--asset={"amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815"}',
+								`--passphrase=${passphrase}`,
+								'--offline',
+								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--nonce=1',
+								'--network=devnet',
+							],
+							config,
+						),
+					).rejects.toThrow(
+						"Lisk validator found 1 error[s]:\nMissing property, should have required property 'data'",
+					);
+				});
+			});
+
+			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[

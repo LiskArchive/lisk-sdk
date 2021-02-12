@@ -236,14 +236,20 @@ const getNestedPropertyTemplate = (schema: Schema): NestedPropertyTemplate => {
 };
 
 const castValue = (
-	strVal: string,
+	val: string,
 	schemaType: string,
-): number | string | Record<string, unknown> => {
+): number | bigint | string | string[] | Record<string, unknown> => {
 	if (schemaType === 'object') {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return JSON.parse(strVal);
+		return JSON.parse(val);
 	}
-	return Number.isInteger(Number(strVal)) ? Number(strVal) : strVal;
+	if (schemaType === 'array') {
+		return val.split(',');
+	}
+	if (Number.isInteger(Number(val))) {
+		return schemaType === 'uint64' ? BigInt(val) : Number(val);
+	}
+	return val;
 };
 
 export const transformAsset = (
@@ -253,8 +259,10 @@ export const transformAsset = (
 	const propertySchema = Object.values(schema.properties);
 	const assetData = {} as Record<string, unknown>;
 	return Object.entries(data).reduce((acc, curr, index) => {
-		const schemaType = (propertySchema[index] as { type: string }).type;
-		acc[curr[0]] = schemaType === 'array' ? curr[1].split(',') : castValue(curr[1], schemaType);
+		const propSchema = propertySchema[index] as { type: string; dataType: string };
+		// Property schema type can be scalar(string, bool, etc..) or structural(object, array)
+		const schemaType = propSchema.type || propSchema.dataType;
+		acc[curr[0]] = castValue(curr[1], schemaType);
 		return acc;
 	}, assetData);
 };
