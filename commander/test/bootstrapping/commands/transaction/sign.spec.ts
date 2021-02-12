@@ -100,7 +100,6 @@ describe('transaction:sign command', () => {
 			`--optional-keys=${optionalKeys[1]}`,
 			`--network-identifier=${networkIdentifierStr}`,
 			'--offline',
-			'--network=devnet',
 			'--sender-public-key=f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 		];
 	};
@@ -207,13 +206,12 @@ describe('transaction:sign command', () => {
 							unsignedTransaction,
 							`--passphrase=${senderPassphrase}`,
 							`--network-identifier=${networkIdentifierStr}`,
-							'--network=devnet',
 							'--offline',
 							'--data-path=/tmp',
 						],
 						config,
 					),
-				).rejects.toThrow('Flag: --data-path should not be specified while signing offline.');
+				).rejects.toThrow('--data-path= cannot also be provided when using --offline=');
 			});
 		});
 
@@ -221,15 +219,10 @@ describe('transaction:sign command', () => {
 			it('should throw an error when missing network identifier flag.', async () => {
 				await expect(
 					SignCommandExtended.run(
-						[
-							unsignedTransaction,
-							`--passphrase=${senderPassphrase}`,
-							'--network=devnet',
-							'--offline',
-						],
+						[unsignedTransaction, `--passphrase=${senderPassphrase}`, '--offline'],
 						config,
 					),
-				).rejects.toThrow('Flag: --network-identifier must be specified while signing offline.');
+				).rejects.toThrow('--network-identifier= must also be provided when using --offline=');
 			});
 		});
 
@@ -241,7 +234,6 @@ describe('transaction:sign command', () => {
 						`--passphrase=${senderPassphrase}`,
 						`--network-identifier=${networkIdentifierStr}`,
 						'--offline',
-						'--network=devnet',
 					],
 					config,
 				);
@@ -260,7 +252,6 @@ describe('transaction:sign command', () => {
 						`--network-identifier=${networkIdentifierStr}`,
 						'--json',
 						'--offline',
-						'--network=devnet',
 					],
 					config,
 				);
