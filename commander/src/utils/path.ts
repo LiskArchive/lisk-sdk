@@ -16,7 +16,6 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
-import { PartialApplicationConfig } from 'lisk-framework';
 
 const defaultDir = '.lisk';
 const getConfigPath = (dataPath: string): string => path.join(dataPath, 'config');
@@ -34,8 +33,6 @@ export const splitPath = (dataPath: string): { rootPath: string; label: string }
 	};
 };
 
-export const getDefaultConfigDir = (): string => process.cwd();
-
 export const getNetworkConfigFilesPath = (
 	dataPath: string,
 	network: string,
@@ -47,41 +44,11 @@ export const getNetworkConfigFilesPath = (
 	};
 };
 
-export const getDefaultNetworkConfigFilesPath = (
-	network: string,
-): { genesisBlockFilePath: string; configFilePath: string } => {
-	const basePath = path.join(getDefaultConfigDir(), 'config', network);
-	return {
-		genesisBlockFilePath: path.join(basePath, 'genesis_block.json'),
-		configFilePath: path.join(basePath, 'config.json'),
-	};
-};
-
 export const getConfigDirs = (dataPath: string): string[] => {
 	const configPath = getConfigPath(dataPath);
 	fs.ensureDirSync(configPath);
 	const files = fs.readdirSync(configPath);
 	return files.filter(file => fs.statSync(path.join(configPath, file)).isDirectory());
-};
-
-export const getGenesisBlockAndConfig = async (
-	network: string,
-): Promise<{
-	genesisBlock: Record<string, unknown>;
-	config: PartialApplicationConfig;
-}> => {
-	const {
-		genesisBlockFilePath: defaultGenesisBlockFilePath,
-		configFilePath: defaultConfigFilepath,
-	} = getDefaultNetworkConfigFilesPath(network);
-
-	// Get config from network config or config specified
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	const genesisBlock: Record<string, unknown> = await fs.readJSON(defaultGenesisBlockFilePath);
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	const config: PartialApplicationConfig = await fs.readJSON(defaultConfigFilepath);
-
-	return { genesisBlock, config };
 };
 
 export const removeConfigDir = (dataPath: string, network: string): void =>

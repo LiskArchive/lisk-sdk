@@ -31,7 +31,7 @@ import {
 	getAssetSchema,
 	transactionToJSON,
 } from '../../../utils/transaction';
-import { getDefaultPath, getGenesisBlockAndConfig } from '../../../utils/path';
+import { getDefaultPath } from '../../../utils/path';
 import { isApplicationRunning } from '../../../utils/application';
 import { PromiseResolvedType } from '../../../types';
 
@@ -42,7 +42,6 @@ interface Args {
 }
 
 interface CreateFlags {
-	network: string;
 	'network-identifier'?: string;
 	passphrase?: string;
 	asset?: string;
@@ -241,7 +240,6 @@ export abstract class CreateCommand extends Command {
 	];
 
 	static flags = {
-		network: flagsWithParser.network,
 		passphrase: flagsWithParser.passphrase,
 		asset: flagParser.string({
 			char: 'a',
@@ -293,8 +291,7 @@ export abstract class CreateCommand extends Command {
 		this._dataPath = flags['data-path'] ?? getDefaultPath(this.config.pjson.name);
 
 		if (flags.offline) {
-			const { genesisBlock, config } = await getGenesisBlockAndConfig(flags.network);
-			const app = this.getApplication(genesisBlock, config);
+			const app = this.getApplication({}, {});
 			this._schema = app.getSchema();
 
 			transactionObject = await createTransactionOffline(
