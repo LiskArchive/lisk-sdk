@@ -55,7 +55,7 @@ describe('start', () => {
 		} as Application);
 		jest.spyOn(fs, 'readJSON');
 		when(fs.readJSON as jest.Mock)
-			.calledWith('~/.lisk/lisk-core/config/mainnet/config.json')
+			.calledWith('~/.lisk/lisk-core/config/default/config.json')
 			.mockResolvedValue({
 				logger: {
 					consoleLogLevel: 'error',
@@ -69,15 +69,15 @@ describe('start', () => {
 				},
 				plugins: {},
 			})
-			.calledWith('~/.lisk/lisk-core/config/mainnet/genesis_block.json')
+			.calledWith('~/.lisk/lisk-core/config/default/genesis_block.json')
 			.mockResolvedValue(devnetGenesisBlock)
 			.calledWith('~/.lisk/lisk-core/config/devnet/genesis_block.json')
 			.mockResolvedValue(devnetGenesisBlock);
 		jest.spyOn(fs, 'readdirSync');
 		when(fs.readdirSync as jest.Mock)
-			.mockReturnValue(['mainnet'])
+			.mockReturnValue(['default'])
 			.calledWith(path.join(__dirname, '../../config'))
-			.mockReturnValue(['mainnet', 'devnet']);
+			.mockReturnValue(['default', 'devnet']);
 
 		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(fs, 'removeSync').mockReturnValue();
@@ -87,7 +87,7 @@ describe('start', () => {
 	});
 
 	describe('when starting without flag', () => {
-		it('should start with default mainnet config', async () => {
+		it('should start with default config', async () => {
 			await StartCommandExtended.run([], config);
 			const [usedGenesisBlock, usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
@@ -98,8 +98,8 @@ describe('start', () => {
 	});
 
 	describe('when config already exist in the folder and called with --overwrite-config', () => {
-		it('should delete the mainnet config and save the devnet config', async () => {
-			await StartCommandExtended.run(['-n', 'mainnet', '--overwrite-config'], config);
+		it('should delete the default config and save the devnet config', async () => {
+			await StartCommandExtended.run(['-n', 'default', '--overwrite-config'], config);
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('~/.lisk/lisk-core/config');
 			expect(fs.copyFileSync).toHaveBeenCalledTimes(2);
 		});
@@ -108,7 +108,7 @@ describe('start', () => {
 	describe('when unknown network is specified', () => {
 		it('should throw an error', async () => {
 			await expect(StartCommandExtended.run(['-n', 'unknown'], config)).rejects.toThrow(
-				'Network must be one of mainnet but received unknown.',
+				'Network must be one of default but received unknown.',
 			);
 		});
 	});
