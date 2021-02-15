@@ -15,15 +15,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable no-param-reassign */
-import Command, { flags as flagParser } from '@oclif/command';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
 import * as validator from '@liskhq/lisk-validator';
-
+import Command, { flags as flagParser } from '@oclif/command';
+import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
+import { PromiseResolvedType } from '../../../types';
 import { flagsWithParser } from '../../../utils/flags';
+import { getDefaultPath } from '../../../utils/path';
 import { getAssetFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
 import {
 	encodeTransaction,
@@ -31,9 +32,6 @@ import {
 	getAssetSchema,
 	transactionToJSON,
 } from '../../../utils/transaction';
-import { getDefaultPath } from '../../../utils/path';
-import { isApplicationRunning } from '../../../utils/application';
-import { PromiseResolvedType } from '../../../types';
 
 interface Args {
 	readonly moduleID: number;
@@ -301,10 +299,6 @@ export abstract class CreateCommand extends Command {
 				incompleteTransaction,
 			);
 		} else {
-			if (!isApplicationRunning(this._dataPath)) {
-				throw new Error(`Application at data path ${this._dataPath} is not running.`);
-			}
-
 			this._client = await getApiClient(this._dataPath, this.config.pjson.name);
 			this._schema = this._client.schemas;
 
