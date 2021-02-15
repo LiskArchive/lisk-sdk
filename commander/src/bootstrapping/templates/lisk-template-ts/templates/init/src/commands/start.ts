@@ -12,6 +12,7 @@ import {
 	MonitorPlugin,
 	ReportMisbehaviorPlugin,
 } from 'lisk-sdk';
+import { join } from 'path';
 import { getApplication } from '../app/app';
 
 interface Flags {
@@ -130,5 +131,9 @@ export class StartCommand extends BaseStartCommand {
 		}
 
 		return app;
+	}
+
+	public getApplicationConfigDir(): string {
+		return join(__dirname, '../../config');
 	}
 }
