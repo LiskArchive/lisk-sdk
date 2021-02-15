@@ -2,3 +2,5 @@ dist
 tmp
 coverage
 .eslintrc.js
+src/bootstrapping/templates/lisk-template-ts/templates/**/*
+jest.config.js

@@ -1,0 +1,133 @@
+{
+	"name": "<%= appName %>",
+	"version": "0.1.0",
+	"description": "<%= appDescription %>",
+	"author": "<%= author %>",
+	"license": "<%= license %>",
+	"keywords": [
+		"blockchain",
+		"lisk",
+		"nodejs",
+		"javascript",
+		"typescript"
+	],
+	"homepage": "",
+	"repository": {},
+	"engines": {
+		"node": ">=12.13.0 <=12",
+		"npm": ">=6.12.0"
+	},
+	"main": "dist/index.js",
+	"scripts": {
+		"lint": "eslint --ext .js,.ts .",
+		"lint:fix": "eslint --fix --ext .js,.ts .",
+		"format": "prettier --write '**/*'",
+		"prepack": "oclif-dev manifest && oclif-dev readme --multi --dir=docs/commands && npm shrinkwrap && npm prune --production && npm shrinkwrap",
+		"prebuild": "if test -d dist; then rm -r dist; fi; rm -f tsconfig.tsbuildinfo; rm -f npm-shrinkwrap.json",
+		"start": "echo Run \"./bin/run start\" to start the app",
+		"build": "tsc",
+		"test": "jest --passWithNoTests",
+		"test:coverage": "jest --passWithNoTests --coverage=true --coverage-reporters=text",
+		"test:ci": "jest --passWithNoTests --coverage=true --coverage-reporters=json --verbose",
+		"version": "oclif-dev readme --multi --dir=docs/commands && git add README.md docs",
+		"prepublishOnly": "npm ci && npm run lint && npm run build"
+	},
+	"bin": {
+		"<%= appName %>": "./bin/run"
+	},
+	"lisk": {
+		"addressPrefix": "lsk"
+	},
+	"oclif": {
+		"bin": "<%= appName %>",
+		"commands": "./dist/commands",
+		"plugins": [
+			"@oclif/plugin-autocomplete",
+			"@oclif/plugin-help"
+		],
+		"topics": {
+			"account": {
+				"description": "Commands relating to <%= appName %> accounts."
+			},
+			"block": {
+				"description": "Commands relating to <%= appName %> blocks."
+			},
+			"blockchain": {
+				"description": "Commands relating to <%= appName %> blockchain data."
+			},
+			"forger-info": {
+				"description": "Commands relating to <%= appName %> forger-info data."
+			},
+			"forging": {
+				"description": "Commands relating to <%= appName %> forging."
+			},
+			"node": {
+				"description": "Commands relating to <%= appName %> node."
+			},
+			"config": {
+				"description": "Commands relating to <%= appName %> node configuration."
+			},
+			"passphrase": {
+				"description": "Commands relating to <%= appName %> passphrases."
+			},
+			"sdk": {
+				"description": "Commands relating to Lisk SDK development."
+			},
+			"transaction": {
+				"description": "Commands relating to <%= appName %> transactions."
+			}
+		}
+	},
+	"files": [
+		"/bin",
+		"/npm-shrinkwrap.json",
+		"/oclif.manifest.json",
+		"/dist",
+		"/config",
+		"/docs"
+	],
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"dependencies": {
+		"@oclif/command": "1.6.1",
+		"@oclif/plugin-autocomplete": "0.3.0",
+		"@oclif/plugin-help": "3.1.0",
+		"fs-extra": "9.0.1",
+		"inquirer": "7.3.2",
+		"lisk-sdk": "5.0.3",
+		"lisk-commander": "5.0.0",
+		"tar": "6.0.2",
+		"tslib": "1.13.0",
+		"axios": "0.21.1"
+	},
+	"devDependencies": {
+		"@oclif/dev-cli": "1.22.2",
+		"@oclif/config": "1.15.1",
+		"@types/fs-extra": "9.0.1",
+		"@types/node": "12.12.11",
+		"@types/tar": "4.0.3",
+		"@types/jest": "26.0.20",
+		"@types/jest-when": "2.7.2",
+		"@typescript-eslint/eslint-plugin": "2.28.0",
+		"@typescript-eslint/parser": "2.28.0",
+		"eslint": "6.8.0",
+		"eslint-config-airbnb-base": "14.0.0",
+		"eslint-config-lisk-base": "1.2.2",
+		"eslint-config-prettier": "6.10.0",
+		"eslint-plugin-import": "2.20.1",
+		"eslint-plugin-jest": "24.0.0",
+		"globby": "10.0.2",
+		"husky": "4.2.5",
+		"jest": "26.6.3",
+		"jest-extended": "0.11.5",
+		"jest-when": "3.1.0",
+		"lint-staged": "10.2.11",
+		"prettier": "2.2.1",
+		"ts-jest": "26.5.0",
+		"ts-node": "8.6.2",
+		"typescript": "3.8.3"
+	}
+}
