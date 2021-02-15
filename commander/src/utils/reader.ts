@@ -246,8 +246,11 @@ const castValue = (
 	if (schemaType === 'array') {
 		return val.split(',');
 	}
-	if (Number.isInteger(Number(val))) {
-		return schemaType === 'uint64' ? BigInt(val) : Number(val);
+	if (schemaType === 'uint64' || schemaType === 'sint64') {
+		return BigInt(val);
+	}
+	if (schemaType === 'uint32' || schemaType === 'sint32') {
+		return Number(val);
 	}
 	return val;
 };
