@@ -91,13 +91,13 @@ export default class InitGenerator extends Generator {
 
 		const password = JSON.parse(
 			fs.readFileSync(`${this.destinationPath('config/default/password.json')}`, 'utf8'),
-		);
+		) as Record<string, unknown>;
 		const forgingInfo = JSON.parse(
 			fs.readFileSync(`${this.destinationPath('config/default/forging_info.json')}`, 'utf8'),
-		);
-		let config = JSON.parse(
+		) as [];
+		const config = JSON.parse(
 			fs.readFileSync(`${this.destinationPath('config/default/config.json')}`, 'utf8'),
-		);
+		) as ApplicationConfig;
 		config.forging.force = true;
 		config.forging.delegates = forgingInfo;
 		config.forging.defaultPassword = password.defaultPassword as string;
@@ -116,7 +116,7 @@ export default class InitGenerator extends Generator {
 			`${this.destinationPath('.secrets/default/accounts.json')}`,
 		);
 
-		this.log('"accounts.json" file saved at "./.secrets/mainnet"');
+		this.log('"accounts.json" file saved at "./.secrets/default"');
 
 		this.log('\nRun below command to start your blockchain app.\n');
 		this.log(`cd ${this.destinationRoot()}; ./bin/run start`);
