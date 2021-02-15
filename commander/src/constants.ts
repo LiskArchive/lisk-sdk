@@ -15,11 +15,12 @@
  */
 
 export enum NETWORK {
+	DEFAULT = 'default',
 	MAINNET = 'mainnet',
 	TESTNET = 'testnet',
 	BETANET = 'betanet',
 	ALPHANET = 'alphanet',
 	DEVNET = 'devnet',
 }
-export const DEFAULT_NETWORK = NETWORK.MAINNET;
+export const DEFAULT_NETWORK = NETWORK.DEFAULT;
 export const RELEASE_URL = 'https://downloads.lisk.io/lisk';
