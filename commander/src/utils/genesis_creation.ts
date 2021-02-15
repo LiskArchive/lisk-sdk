@@ -32,7 +32,6 @@ interface generateGenesisBlockOutput {
 	readonly genesisBlock: Record<string, unknown>;
 	readonly accountList: AccountInfo[];
 	readonly delegateList: {
-		readonly password: string;
 		readonly address: string;
 		readonly passphrase: string;
 		readonly username: string;
@@ -100,7 +99,6 @@ export const generateGenesisBlock = ({
 	const delegateList = new Array(numOfValidators).fill(0).map((_x, index) => ({
 		...{ username: `delegate_${index}` },
 		...createAccount(),
-		...{ password: createMnemonicPassphrase() },
 	}));
 	const validAccounts = prepareNormalAccounts(accountList, tokenDistribution);
 	const validDelegateAccounts = prepareValidatorAccounts(delegateList, tokenDistribution);
