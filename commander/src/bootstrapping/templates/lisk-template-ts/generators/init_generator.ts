@@ -17,6 +17,7 @@
 import { userInfo } from 'os';
 import { basename, join } from 'path';
 import * as fs from 'fs-extra';
+import { ApplicationConfig } from 'lisk-framework';
 
 import * as Generator from 'yeoman-generator';
 
@@ -99,7 +100,7 @@ export default class InitGenerator extends Generator {
 		);
 		config.forging.force = true;
 		config.forging.delegates = forgingInfo;
-		config.forging.defaultPassword = password.defaultPassword;
+		config.forging.defaultPassword = password.defaultPassword as string;
 
 		fs.writeJSONSync(`${this.destinationPath('config/default/config.json')}`, config, {
 			spaces: '\t',
