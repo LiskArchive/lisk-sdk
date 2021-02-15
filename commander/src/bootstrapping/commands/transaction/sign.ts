@@ -27,7 +27,7 @@ import {
 	transactionToJSON,
 	getAssetSchema,
 } from '../../../utils/transaction';
-import { getDefaultPath, getGenesisBlockAndConfig } from '../../../utils/path';
+import { getDefaultPath } from '../../../utils/path';
 import { isApplicationRunning } from '../../../utils/application';
 import { PromiseResolvedType } from '../../../types';
 
@@ -42,7 +42,6 @@ interface Keys {
 }
 
 interface SignFlags {
-	network: string;
 	'network-identifier': string | undefined;
 	passphrase: string | undefined;
 	'include-sender': boolean;
@@ -95,14 +94,6 @@ const signTransactionOffline = async (
 	registeredSchema: RegisteredSchema,
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
-	if (flags['data-path']) {
-		throw new Error('Flag: --data-path should not be specified while signing offline.');
-	}
-
-	if (!flags['network-identifier']) {
-		throw new Error('Flag: --network-identifier must be specified while signing offline.');
-	}
-
 	let signedTransaction: Record<string, unknown>;
 
 	if (!flags['include-sender'] && !flags['sender-public-key']) {
@@ -188,10 +179,13 @@ export abstract class SignCommand extends Command {
 	];
 
 	static flags = {
-		network: flagsWithParser.network,
 		passphrase: flagsWithParser.passphrase,
 		json: flagsWithParser.json,
-		offline: flagsWithParser.offline,
+		offline: {
+			...flagsWithParser.offline,
+			dependsOn: ['network-identifier'],
+			exclusive: ['data-path'],
+		},
 		'include-sender': flagParser.boolean({
 			description: 'Include sender signature in transaction.',
 			default: false,
@@ -225,14 +219,13 @@ export abstract class SignCommand extends Command {
 			args: { transaction },
 			flags,
 		} = this.parse(SignCommand);
-		const { offline, network, 'data-path': dataPath } = flags;
+		const { offline, 'data-path': dataPath } = flags;
 		this._dataPath = dataPath ?? getDefaultPath(this.config.pjson.name);
 
 		let signedTransaction: Record<string, unknown>;
 
 		if (offline) {
-			const { genesisBlock, config } = await getGenesisBlockAndConfig(network);
-			const app = this.getApplication(genesisBlock, config);
+			const app = this.getApplication({}, {});
 			this._schema = app.getSchema();
 			signedTransaction = await signTransactionOffline(flags, this._schema, transaction);
 		} else {

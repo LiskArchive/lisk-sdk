@@ -160,7 +160,6 @@ export const flagsWithParser = {
 	password: flagParser.string(flags.password),
 	offline: flagParser.boolean({
 		...flags.offline,
-		default: false,
 	}),
 	json: flagParser.boolean(flags.json),
 	senderPublicKey: flagParser.string(flags.senderPublicKey),

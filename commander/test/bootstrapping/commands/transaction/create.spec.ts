@@ -180,14 +180,13 @@ describe('transaction:create command', () => {
 								'--asset={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
+								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--nonce=1',
 								'--data-path=/tmp',
-								'--network=devnet',
 							],
 							config,
 						),
-					).rejects.toThrow(
-						'Flag: --data-path should not be specified while creating transaction offline',
-					);
+					).rejects.toThrow('--data-path= cannot also be provided when using --offline=');
 				});
 			});
 
@@ -202,13 +201,10 @@ describe('transaction:create command', () => {
 								'--asset={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
-								'--network=devnet',
 							],
 							config,
 						),
-					).rejects.toThrow(
-						'Flag: --network-identifier must be specified while creating transaction offline',
-					);
+					).rejects.toThrow('--network-identifier= must also be provided when using --offline=');
 				});
 			});
 
@@ -223,12 +219,11 @@ describe('transaction:create command', () => {
 								'--asset={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
-								'--network=devnet',
 								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							],
 							config,
 						),
-					).rejects.toThrow('Flag: --nonce must be specified while creating transaction offline');
+					).rejects.toThrow('--nonce= must also be provided when using --offline=');
 				});
 			});
 
@@ -245,11 +240,12 @@ describe('transaction:create command', () => {
 								'--offline',
 								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 								'--nonce=1',
-								'--network=devnet',
 							],
 							config,
 						),
-					).rejects.toThrow('Sender public key must be specified when no-signature flags is used');
+					).rejects.toThrow(
+						'--sender-public-key= must also be provided when using --no-signature=',
+					);
 				});
 			});
 
@@ -265,7 +261,6 @@ describe('transaction:create command', () => {
 							`--passphrase=${passphrase}`,
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
-							'--network=devnet',
 						],
 						config,
 					);
@@ -290,7 +285,6 @@ describe('transaction:create command', () => {
 							`--sender-public-key=${senderPublicKey}`,
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
-							'--network=devnet',
 						],
 						config,
 					);
@@ -314,7 +308,6 @@ describe('transaction:create command', () => {
 							`--passphrase=${passphrase}`,
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
-							'--network=devnet',
 						],
 						config,
 					);
@@ -338,7 +331,6 @@ describe('transaction:create command', () => {
 							`--passphrase=${passphrase}`,
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
-							'--network=devnet',
 						],
 						config,
 					);
@@ -361,7 +353,6 @@ describe('transaction:create command', () => {
 							'100000000',
 							`--passphrase=${passphrase}`,
 							'--offline',
-							'--network=devnet',
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
@@ -393,7 +384,6 @@ describe('transaction:create command', () => {
 							'0',
 							'100000000',
 							'--offline',
-							'--network=devnet',
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
@@ -430,7 +420,6 @@ describe('transaction:create command', () => {
 							`--sender-public-key=${senderPublicKey}`,
 							'--json',
 							'--offline',
-							'--network=devnet',
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
@@ -470,7 +459,6 @@ describe('transaction:create command', () => {
 							`--passphrase=${passphrase}`,
 							'--json',
 							'--offline',
-							'--network=devnet',
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
