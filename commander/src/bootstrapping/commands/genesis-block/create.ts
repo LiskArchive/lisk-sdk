@@ -22,6 +22,7 @@ import { join, resolve } from 'path';
 import * as inquirer from 'inquirer';
 import * as ProgressBar from 'progress';
 import { generateGenesisBlock } from '../../../utils/genesis_creation';
+import { createMnemonicPassphrase } from '../../../utils/mnemonic';
 
 interface AccountInfo {
 	readonly address: string;
@@ -34,14 +35,18 @@ const saveFiles = (
 	accountList: AccountInfo[],
 	delegateList: Record<string, unknown>[],
 	delegateForgingInfo: Record<string, unknown>[],
+	passwordList: Record<string, unknown>,
 ) => {
 	fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), genesisBlock, {
 		spaces: ' ',
 	});
 	fs.writeJSONSync(resolve(configPath, 'accounts.json'), [...accountList, ...delegateList], {
 		spaces: ' ',
-	}); // add to gitignore
+	});
 	fs.writeJSONSync(resolve(configPath, 'forging_info.json'), delegateForgingInfo, {
+		spaces: ' ',
+	});
+	fs.writeJSONSync(resolve(configPath, 'password.json'), passwordList, {
 		spaces: ' ',
 	});
 };
@@ -119,12 +124,14 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		const onionSeed = cryptography.generateHashOnionSeed();
 		const onionCount = 10000;
 		const onionDistance = 1000;
+		const password = createMnemonicPassphrase();
+		const passwordList = { defaultPassword: password };
 
 		const delegateForgingInfo = delegateList.map((delegate, index) => {
 			const info = {
-				// ToDo: use a better password, user sourced using flag
+				// TODO: use a better password, user sourced using flag
 				encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(
-					cryptography.encryptPassphraseWithPassword(delegate.passphrase, delegate.password),
+					cryptography.encryptPassphraseWithPassword(delegate.passphrase, password),
 				),
 				hashOnion: {
 					count: onionCount,
@@ -161,14 +168,28 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			if (!userResponse.confirm) {
 				this.error(`Operation cancelled, genesis_block.json file already present at ${configPath}`);
 			} else {
-				saveFiles(configPath, genesisBlock, accountList, delegateList, delegateForgingInfo);
+				saveFiles(
+					configPath,
+					genesisBlock,
+					accountList,
+					delegateList,
+					delegateForgingInfo,
+					passwordList,
+				);
 				this.log('\n');
-				this.log(`  Configuration files saved at: ${configPath}.`);
+				this.log(`Configuration files saved at: ${configPath}.`);
 			}
 		} else {
 			fs.mkdirSync(configPath, { recursive: true });
-			saveFiles(configPath, genesisBlock, accountList, delegateList, delegateForgingInfo);
-			this.log(`  Configuration files saved at: ${configPath}`);
+			saveFiles(
+				configPath,
+				genesisBlock,
+				accountList,
+				delegateList,
+				delegateForgingInfo,
+				passwordList,
+			);
+			this.log(`Configuration files saved at: ${configPath}`);
 		}
 	}
 

@@ -16,7 +16,7 @@
 
 import { userInfo } from 'os';
 import { basename, join } from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 
 import * as Generator from 'yeoman-generator';
 
@@ -88,6 +88,26 @@ export default class InitGenerator extends Generator {
 			'config/default',
 		]);
 
+		const password = JSON.parse(
+			fs.readFileSync(`${this.destinationPath('config/default/password.json')}`, 'utf8'),
+		);
+		const forgingInfo = JSON.parse(
+			fs.readFileSync(`${this.destinationPath('config/default/forging_info.json')}`, 'utf8'),
+		);
+		let config = JSON.parse(
+			fs.readFileSync(`${this.destinationPath('config/default/config.json')}`, 'utf8'),
+		);
+		config.forging.force = true;
+		config.forging.delegates = forgingInfo;
+		config.forging.defaultPassword = password.defaultPassword;
+
+		fs.writeJSONSync(`${this.destinationPath('config/default/config.json')}`, config, {
+			spaces: '\t',
+		});
+
+		fs.unlinkSync(`${this.destinationPath('config/default/password.json')}`);
+		fs.unlinkSync(`${this.destinationPath('config/default/forging_info.json')}`);
+
 		fs.mkdirSync(`${this.destinationPath('.secrets/default')}`, { recursive: true });
 
 		fs.renameSync(
@@ -95,11 +115,7 @@ export default class InitGenerator extends Generator {
 			`${this.destinationPath('.secrets/default/accounts.json')}`,
 		);
 
-		fs.renameSync(
-			`${this.destinationPath('config/default/forging_info.json')}`,
-			`${this.destinationPath('.secrets/default/forging_info.json')}`,
-		);
-		this.log('  "forging_info.json" and "accounts.json" files saved at "./.secrets/default"');
+		this.log('"accounts.json" file saved at "./.secrets/mainnet"');
 
 		this.log('\nRun below command to start your blockchain app.\n');
 		this.log(`cd ${this.destinationRoot()}; ./bin/run start`);
