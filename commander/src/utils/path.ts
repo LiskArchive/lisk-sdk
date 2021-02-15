@@ -36,16 +36,19 @@ export const splitPath = (dataPath: string): { rootPath: string; label: string }
 export const getNetworkConfigFilesPath = (
 	dataPath: string,
 	network: string,
+	configDirIncluded = false,
 ): { genesisBlockFilePath: string; configFilePath: string } => {
-	const basePath = path.join(dataPath, 'config', network);
+	const basePath = configDirIncluded
+		? path.join(dataPath, network)
+		: path.join(dataPath, 'config', network);
 	return {
 		genesisBlockFilePath: path.join(basePath, 'genesis_block.json'),
 		configFilePath: path.join(basePath, 'config.json'),
 	};
 };
 
-export const getConfigDirs = (dataPath: string): string[] => {
-	const configPath = getConfigPath(dataPath);
+export const getConfigDirs = (dataPath: string, configDirIncluded = false): string[] => {
+	const configPath = configDirIncluded ? dataPath : getConfigPath(dataPath);
 	fs.ensureDirSync(configPath);
 	const files = fs.readdirSync(configPath);
 	return files.filter(file => fs.statSync(path.join(configPath, file)).isDirectory());
