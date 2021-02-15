@@ -103,7 +103,7 @@ export abstract class StartCommand extends Command {
 		this.log(`Starting Lisk ${this.config.pjson.name} at ${getFullPath(dataPath)}.`);
 		const pathConfig = splitPath(dataPath);
 
-		const defaultNetworkConfigDir = getConfigDirs(process.cwd());
+		const defaultNetworkConfigDir = getConfigDirs(this.getApplicationConfigDir(), true);
 		if (!defaultNetworkConfigDir.includes(flags.network)) {
 			this.error(
 				`Network must be one of ${defaultNetworkConfigDir.join(',')} but received ${
@@ -141,7 +141,7 @@ export abstract class StartCommand extends Command {
 		const {
 			genesisBlockFilePath: defaultGenesisBlockFilePath,
 			configFilePath: defaultConfigFilepath,
-		} = getNetworkConfigFilesPath(process.cwd(), flags.network);
+		} = getNetworkConfigFilesPath(this.getApplicationConfigDir(), flags.network, true);
 
 		if (
 			!fs.existsSync(genesisBlockFilePath) ||
@@ -228,4 +228,6 @@ export abstract class StartCommand extends Command {
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,
 	): Application;
+
+	abstract getApplicationConfigDir(): string;
 }

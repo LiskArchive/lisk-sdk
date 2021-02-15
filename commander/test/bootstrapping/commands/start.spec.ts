@@ -34,6 +34,11 @@ class StartCommandExtended extends StartCommand {
 		jest.spyOn(app, 'run').mockResolvedValue();
 		return app;
 	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public getApplicationConfigDir(): string {
+		return '/my/custom/app';
+	}
 }
 
 describe('start', () => {
