@@ -17,7 +17,6 @@ import { createTransaction } from '../../../src/testing';
 
 describe('Create Transaction', () => {
 	const asset = {
-		id: 0,
 		amount: BigInt('1000000000000'),
 		recipientAddress: Buffer.from('ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815', 'hex'),
 		data: 'moon',
