@@ -12,7 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { AccountSchema, Account, GenesisBlockHeader, GenesisBlock } from '@liskhq/lisk-chain';
+import {
+	AccountSchema,
+	Account,
+	GenesisBlockHeader,
+	GenesisBlock,
+	AccountDefaultProps,
+} from '@liskhq/lisk-chain';
 
 export type PartialReq<T, Keys extends keyof T = keyof T> = Pick<
 	Partial<T>,
@@ -31,7 +37,7 @@ export interface GenesisBlockJSONParams {
 	readonly accountAssetSchemas: accountAssetSchemas;
 }
 
-export interface GenesisBlockParams<T> {
+export interface GenesisBlockParams<T = AccountDefaultProps> {
 	// List of accounts in the genesis
 	readonly accounts: ReadonlyArray<Partial<Account<T>> & { address: Buffer }>;
 	// List fo initial delegate addresses used during the bootstrap period to forge blocks
