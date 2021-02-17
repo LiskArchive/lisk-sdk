@@ -27,7 +27,7 @@ describe('Create Block', () => {
 	it('should return a valid default block', () => {
 		const block = createBlock({
 			passphrase: genesis.passphrase,
-			networkIdentifier,
+			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 			header: {},
 			payload: [],
 		});
@@ -80,7 +80,7 @@ describe('Create Block', () => {
 
 		const block = createBlock({
 			passphrase: genesis.passphrase,
-			networkIdentifier,
+			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 			header: {
 				asset: { ...expectedAsset },
 				generatorPublicKey: genesis.publicKey,

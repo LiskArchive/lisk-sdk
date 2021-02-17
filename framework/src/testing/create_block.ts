@@ -33,7 +33,7 @@ import { MerkleTree } from '@liskhq/lisk-tree';
 
 interface CreateBlock<T = BlockHeaderAsset> {
 	passphrase: string;
-	networkIdentifier: string;
+	networkIdentifier: Buffer;
 	payload?: Transaction[];
 	header?: Partial<BlockHeader<T>>;
 }
@@ -91,7 +91,7 @@ export const createBlock = ({
 
 	const headerBytesWithoutSignature = encodeBlockHeader(blockHeader as BlockHeader, true);
 	const signature = signDataWithPrivateKey(
-		Buffer.concat([Buffer.from(networkIdentifier, 'hex'), headerBytesWithoutSignature]),
+		Buffer.concat([networkIdentifier, headerBytesWithoutSignature]),
 		privateKey,
 	);
 	const headerBytes = encodeBlockHeader({
