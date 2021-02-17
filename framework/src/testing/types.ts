@@ -12,5 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { createBlock } from './create_block';
-export { createGenesisBlock } from './create_genesis_block';
+
+import { Account, AccountDefaultProps } from '@liskhq/lisk-chain';
+import { GenesisConfig } from '..';
+import { BaseModule } from '../modules';
+
+export type ModuleClass = new (genesisConfig: GenesisConfig) => BaseModule;
+export type PartialAccount<T = AccountDefaultProps> = Partial<Account<T>> & { address: Buffer };
