@@ -38,6 +38,7 @@ export type {
 	GenesisBlockHeader,
 	Block,
 	BlockHeader,
+	BlockHeaderAsset,
 	Validator,
 	AccountSchema,
 } from './types';
