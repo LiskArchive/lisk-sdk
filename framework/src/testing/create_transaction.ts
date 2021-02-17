@@ -47,7 +47,7 @@ export const createTransaction = ({
 		moduleID,
 		assetID: assetInstance.id,
 		nonce: nonce ?? BigInt(0),
-		fee: fee ?? BigInt('0'),
+		fee: fee ?? BigInt(0),
 		senderPublicKey: publicKey,
 		asset: assetBytes,
 		signatures: [],

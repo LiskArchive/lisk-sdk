@@ -22,6 +22,7 @@ describe('Create Transaction', () => {
 		recipientAddress: Buffer.from('ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815', 'hex'),
 		data: 'moon',
 	};
+
 	it('should return a valid transaction', () => {
 		expect(
 			createTransaction({ moduleID: 2, assetClass: TransferAsset as any, asset }),
