@@ -46,7 +46,7 @@ const encodeBlockHeader = (header: BlockHeader, skipSignature = false): Buffer =
 	return codec.encode(schema, rawHeader);
 };
 
-const createDefaultBlockHeader = <T = unknown>(
+const createBlockHeaderWithDefaults = <T = unknown>(
 	header?: Partial<BlockHeader<T>>,
 ): Partial<BlockHeader<T>> => ({
 	version: header?.version ?? 2,
@@ -78,7 +78,7 @@ export const createBlock = ({
 	// TODO: Once createGenesisBlock utils is ready use the values accordingly
 	// const genesisBlock = createGenesisBlock();
 
-	const blockHeader = createDefaultBlockHeader({
+	const blockHeader = createBlockHeaderWithDefaults({
 		// TODO: Once createGenesisBlock utils is ready use the values accordingly
 		// previousBlockID: genesisBlock.header.id,
 		// TODO: Once createGenesisBlock utils is ready use the values accordingly
