@@ -17,7 +17,7 @@ const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK, EVENT_VALIDATORS_CHANGED }
 
 export { events };
 export { Chain } from './chain';
-export { Transaction, TransactionInput, transactionSchema, calculateMinFee } from './transaction';
+export { Transaction, transactionSchema, calculateMinFee } from './transaction';
 export {
 	blockHeaderAssetSchema,
 	blockHeaderSchema,
