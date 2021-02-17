@@ -15,3 +15,4 @@
 
 export { createBlock } from './create_block';
 export { createTransaction } from './create_transaction';
+export { createGenesisBlock } from './create_genesis_block';

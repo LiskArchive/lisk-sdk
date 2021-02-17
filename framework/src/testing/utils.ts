@@ -12,10 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Account, AccountDefaultProps } from '@liskhq/lisk-chain';
-import { GenesisConfig } from '..';
-import { BaseAsset, BaseModule } from '../modules';
 
-export type AssetClass = new () => BaseAsset;
-export type ModuleClass = new (genesisConfig: GenesisConfig) => BaseModule;
-export type PartialAccount<T = AccountDefaultProps> = Partial<Account<T>> & { address: Buffer };
+import { AccountSchema } from '@liskhq/lisk-chain';
+import { GenesisConfig } from '..';
+import { ModuleClass } from './types';
+
+export const getAccountSchemaFromModules = (
+	modules: ModuleClass[],
+	genesisConfig?: GenesisConfig,
+): { [key: string]: AccountSchema } => {
+	const accountSchemas: { [key: string]: AccountSchema } = {};
+
+	for (const Klass of modules) {
+		const m = new Klass(genesisConfig ?? ({} as never));
+		if (m.accountSchema) {
+			accountSchemas[m.name] = m.accountSchema as AccountSchema;
+		}
+	}
+
+	return accountSchemas;
+};
