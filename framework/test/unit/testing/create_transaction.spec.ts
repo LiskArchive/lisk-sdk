@@ -29,7 +29,7 @@ describe('Create Transaction', () => {
 	it('should return valid signed transaction with passphrase', () => {
 		const transaction = createTransaction({
 			moduleID: 2,
-			assetClass: TransferAsset as any,
+			assetClass: TransferAsset,
 			asset,
 			passphrase: 'pass',
 		});
