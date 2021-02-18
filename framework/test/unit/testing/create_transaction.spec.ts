@@ -32,6 +32,7 @@ describe('Create Transaction', () => {
 			assetClass: TransferAsset,
 			asset,
 			passphrase: 'pass',
+			networkIdentifier: Buffer.alloc(1),
 		});
 
 		expect(transaction.signatures).toHaveLength(1);
