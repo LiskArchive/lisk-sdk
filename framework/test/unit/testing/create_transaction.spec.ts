@@ -23,9 +23,7 @@ describe('Create Transaction', () => {
 	};
 
 	it('should return a valid transaction', () => {
-		expect(
-			createTransaction({ moduleID: 2, assetClass: TransferAsset as any, asset }),
-		).toMatchSnapshot();
+		expect(createTransaction({ moduleID: 2, assetClass: TransferAsset, asset })).toMatchSnapshot();
 	});
 
 	it('should return valid signed transaction with passphrase', () => {
