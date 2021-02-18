@@ -13,7 +13,7 @@
  *
  */
 
-export { createBlock } from './create_block';
-export { createTransaction } from './create_transaction';
-export { createGenesisBlock } from './create_genesis_block';
-export { getModuleInstance, getAccountSchemaFromModules } from './utils';
+export const moduleChannelMock = {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	publish: (_name: string, _data?: Record<string, unknown>): void => {},
+};
