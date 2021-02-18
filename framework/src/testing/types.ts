@@ -16,6 +16,7 @@ import { Account, AccountDefaultProps } from '@liskhq/lisk-chain';
 import { GenesisConfig } from '..';
 import { BaseAsset, BaseModule } from '../modules';
 
-export type AssetClass = new () => BaseAsset;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AssetClass<T = any> = new (args?: T) => BaseAsset;
 export type ModuleClass = new (genesisConfig: GenesisConfig) => BaseModule;
 export type PartialAccount<T = AccountDefaultProps> = Partial<Account<T>> & { address: Buffer };
