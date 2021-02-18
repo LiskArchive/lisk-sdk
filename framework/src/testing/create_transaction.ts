@@ -62,10 +62,14 @@ export const createTransaction = ({
 		return transaction;
 	}
 
+	if (!networkIdentifier) {
+		throw new Error('Network identifier is required to sign a transaction');
+	}
+
 	return (signTransaction(
 		assetInstance.schema,
 		{ ...transaction, asset },
-		networkIdentifier ?? Buffer.alloc(1),
+		networkIdentifier,
 		passphrase,
 	) as unknown) as Transaction;
 };
