@@ -17,3 +17,4 @@ export { createBlock } from './create_block';
 export { createTransaction } from './create_transaction';
 export { createGenesisBlock } from './create_genesis_block';
 export { getModuleInstance, getAccountSchemaFromModules } from './utils';
+export { getApplicationEnv } from './get_app_env';

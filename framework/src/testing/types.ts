@@ -16,6 +16,7 @@ import { APIClient } from '@liskhq/lisk-api-client';
 import { Account, AccountDefaultProps } from '@liskhq/lisk-chain';
 import { GenesisConfig } from '..';
 import { BaseAsset, BaseModule } from '../modules';
+import { BasePlugin } from '../plugins/base_plugin';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AssetClass<T = any> = new (args?: T) => BaseAsset;
@@ -29,3 +30,4 @@ export interface WaitUntilBlockHeightOptions {
 	height: number;
 	timeout?: number;
 }
+export type PluginClass = typeof BasePlugin;
