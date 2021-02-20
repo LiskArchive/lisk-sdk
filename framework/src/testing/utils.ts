@@ -41,24 +41,19 @@ export const getAccountSchemaFromModules = (
 
 export const getModuleInstance = <T1 = AccountDefaultProps, T2 = BlockHeaderAsset>(
 	Module: ModuleClass,
-	{
-		genesisConfig,
-		dataAccess,
-		channel,
-		logger,
-	}: {
+	opts?: {
 		genesisConfig?: GenesisConfig;
 		dataAccess?: BaseModuleDataAccess;
 		channel?: BaseModuleChannel;
 		logger?: Logger;
 	},
 ): BaseModule => {
-	const module = new Module(genesisConfig ?? ({} as never));
+	const module = new Module(opts?.genesisConfig ?? ({} as never));
 
 	module.init({
-		channel: channel ?? moduleChannelMock,
-		logger: logger ?? loggerMock,
-		dataAccess: dataAccess ?? (new DataAccessMock<T1, T2>() as never),
+		channel: opts?.channel ?? moduleChannelMock,
+		logger: opts?.logger ?? loggerMock,
+		dataAccess: opts?.dataAccess ?? (new DataAccessMock<T1, T2>() as never),
 	});
 
 	return module;
