@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`utils getAccountSchemaFromModules() should get schema object for modules 1`] = `
+Object {
+  "sequence": Object {
+    "default": Object {
+      "nonce": 0n,
+    },
+    "properties": Object {
+      "nonce": Object {
+        "dataType": "uint64",
+        "fieldNumber": 1,
+      },
+    },
+    "type": "object",
+  },
+  "token": Object {
+    "default": Object {
+      "balance": 0n,
+    },
+    "properties": Object {
+      "balance": Object {
+        "dataType": "uint64",
+        "fieldNumber": 1,
+      },
+    },
+    "type": "object",
+  },
+}
+`;

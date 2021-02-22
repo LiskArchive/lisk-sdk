@@ -13,8 +13,14 @@
  *
  */
 
-import { AccountSchema } from '@liskhq/lisk-chain';
-import { GenesisConfig } from '..';
+import { AccountDefaultProps, AccountSchema, BlockHeaderAsset } from '@liskhq/lisk-chain';
+import { BaseModule, GenesisConfig } from '..';
+import { Logger } from '../logger';
+import { BaseModuleChannel } from '../modules';
+import { BaseModuleDataAccess } from '../types';
+import { moduleChannelMock } from './mocks/channel_mock';
+import { DataAccessMock } from './mocks/data_access_mock';
+import { loggerMock } from './mocks/logger_mock';
 import { ModuleClass } from './types';
 
 export const getAccountSchemaFromModules = (
@@ -31,4 +37,24 @@ export const getAccountSchemaFromModules = (
 	}
 
 	return accountSchemas;
+};
+
+export const getModuleInstance = <T1 = AccountDefaultProps, T2 = BlockHeaderAsset>(
+	Module: ModuleClass,
+	opts?: {
+		genesisConfig?: GenesisConfig;
+		dataAccess?: BaseModuleDataAccess;
+		channel?: BaseModuleChannel;
+		logger?: Logger;
+	},
+): BaseModule => {
+	const module = new Module(opts?.genesisConfig ?? ({} as never));
+
+	module.init({
+		channel: opts?.channel ?? moduleChannelMock,
+		logger: opts?.logger ?? loggerMock,
+		dataAccess: opts?.dataAccess ?? (new DataAccessMock<T1, T2>() as never),
+	});
+
+	return module;
 };
