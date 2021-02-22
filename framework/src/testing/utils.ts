@@ -13,7 +13,7 @@
  *
  */
 
-import { AccountDefaultProps, AccountSchema, BlockHeaderAsset } from '@liskhq/lisk-chain';
+import { AccountDefaultProps, AccountSchema, Block, BlockHeaderAsset } from '@liskhq/lisk-chain';
 import { BaseModule, GenesisConfig } from '..';
 import { Logger } from '../logger';
 import { BaseModuleChannel } from '../modules';
@@ -21,7 +21,8 @@ import { BaseModuleDataAccess } from '../types';
 import { moduleChannelMock } from './mocks/channel_mock';
 import { DataAccessMock } from './mocks/data_access_mock';
 import { loggerMock } from './mocks/logger_mock';
-import { ModuleClass } from './types';
+import { APP_EVENT_BLOCK_NEW } from '../constants';
+import { Data, ModuleClass, WaitOptions } from './types';
 
 export const getAccountSchemaFromModules = (
 	modules: ModuleClass[],
@@ -58,3 +59,24 @@ export const getModuleInstance = <T1 = AccountDefaultProps, T2 = BlockHeaderAsse
 
 	return module;
 };
+
+export const waitUntilBlockHeight = async ({
+	apiClient,
+	height,
+	timeout = 15,
+}: WaitOptions): Promise<void> =>
+	new Promise((resolve, reject) => {
+		setTimeout(() => {
+			reject(new Error(`'waitUntilBlockHeight' timed out after ${timeout} ms`));
+		}, timeout);
+
+		// eslint-disable-next-line @typescript-eslint/require-await
+		apiClient.subscribe(APP_EVENT_BLOCK_NEW, async (data?: Record<string, unknown>) => {
+			const { block } = (data as unknown) as Data;
+			const { header } = apiClient.block.decode<Block>(block);
+
+			if (header.height >= height) {
+				resolve();
+			}
+		});
+	});
