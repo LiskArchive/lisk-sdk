@@ -11,5 +11,4 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-export * from './default_config';
+export { FaucetPlugin } from './plugin/faucet_plugin';
