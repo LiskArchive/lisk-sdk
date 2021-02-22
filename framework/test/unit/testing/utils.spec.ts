@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { APIClient } from '@liskhq/lisk-api-client';
 import { SequenceModule, TokenModule } from '../../../src';
 import {
 	getAccountSchemaFromModules,
@@ -72,22 +74,27 @@ describe('utils', () => {
 	});
 
 	describe('waitUntilBlockHeight', () => {
-		const apiClient = {
-			// eslint-disable-next-line @typescript-eslint/require-await
-			subscribe: jest.fn(async (_, callback) => callback({ block: 'blockdata' })),
-			block: {
-				decode: jest.fn().mockReturnValue({ header: { height: 2 } }),
-			},
-		} as any;
+		let apiClient: APIClient;
+		beforeEach(() => {
+			apiClient = {
+				// eslint-disable-next-line @typescript-eslint/require-await
+				subscribe: jest.fn(async (_, callback) => callback({ block: 'blockdata' })),
+				block: {
+					decode: jest.fn().mockReturnValue({ header: { height: 2 } }),
+				},
+			} as any;
+		});
 
 		it('should resolve after input height', async () => {
 			await expect(waitUntilBlockHeight({ apiClient, height: 1 })).resolves.toBeUndefined();
 		});
 
 		it('should timeout', async () => {
-			await expect(
-				waitUntilBlockHeight({ apiClient, height: 1, timeout: 0 }),
-			).resolves.toBeUndefined();
+			// eslint-disable-next-line @typescript-eslint/require-await
+			apiClient.subscribe = jest.fn(async () => setTimeout(() => undefined, 2));
+			await expect(waitUntilBlockHeight({ apiClient, height: 1, timeout: 1 })).rejects.toThrow(
+				"'waitUntilBlockHeight' timed out after 1 ms",
+			);
 		});
 	});
 });
