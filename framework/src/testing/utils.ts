@@ -33,7 +33,7 @@ export const getAccountSchemaFromModules = (
 	for (const Klass of modules) {
 		const m = new Klass(genesisConfig ?? ({} as never));
 		if (m.accountSchema) {
-			accountSchemas[m.name] = m.accountSchema as AccountSchema;
+			accountSchemas[m.name] = { ...m.accountSchema, fieldNumber: m.id } as AccountSchema;
 		}
 	}
 
@@ -151,8 +151,18 @@ export const defaultConfig = {
 	plugins: {},
 };
 
+export const defaultDelegates = [
+	{
+		address: '03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
+		dpos: {
+			delegate: {
+				username: 'delegate_1',
+			},
+		},
+	},
+];
+
 export const defaultAccounts = [
-	'03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
 	'0903f4c5cb599a7928aef27e314e98291d1e3888',
 	'0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf',
 	'0bc3bec2fdb565996fd316e368e66e5d8e830808',
@@ -256,3 +266,136 @@ export const defaultAccounts = [
 	'fa526a1611ccc66dec815cb963174118074b736e',
 	'ffce8ce225c5d80098f50e877125b655aef6d101',
 ];
+
+export const defaultAccountSchema = {
+	token: {
+		type: 'object',
+		fieldNumber: 2,
+		properties: {
+			balance: {
+				fieldNumber: 1,
+				dataType: 'uint64',
+			},
+		},
+		default: {
+			balance: BigInt(0),
+		},
+	},
+	sequence: {
+		type: 'object',
+		fieldNumber: 3,
+		properties: {
+			nonce: {
+				fieldNumber: 1,
+				dataType: 'uint64',
+			},
+		},
+		default: {
+			nonce: BigInt(0),
+		},
+	},
+	keys: {
+		type: 'object',
+		fieldNumber: 4,
+		properties: {
+			numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
+			mandatoryKeys: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 2,
+			},
+			optionalKeys: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 3,
+			},
+		},
+		default: {
+			numberOfSignatures: 0,
+			mandatoryKeys: [],
+			optionalKeys: [],
+		},
+	},
+	dpos: {
+		type: 'object',
+		fieldNumber: 5,
+		properties: {
+			delegate: {
+				type: 'object',
+				fieldNumber: 1,
+				properties: {
+					username: { dataType: 'string', fieldNumber: 1 },
+					pomHeights: {
+						type: 'array',
+						items: { dataType: 'uint32' },
+						fieldNumber: 2,
+					},
+					consecutiveMissedBlocks: { dataType: 'uint32', fieldNumber: 3 },
+					lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
+					isBanned: { dataType: 'boolean', fieldNumber: 5 },
+					totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
+				},
+				required: [
+					'username',
+					'pomHeights',
+					'consecutiveMissedBlocks',
+					'lastForgedHeight',
+					'isBanned',
+					'totalVotesReceived',
+				],
+			},
+			sentVotes: {
+				type: 'array',
+				fieldNumber: 2,
+				items: {
+					type: 'object',
+					properties: {
+						delegateAddress: {
+							dataType: 'bytes',
+							fieldNumber: 1,
+						},
+						amount: {
+							dataType: 'uint64',
+							fieldNumber: 2,
+						},
+					},
+					required: ['delegateAddress', 'amount'],
+				},
+			},
+			unlocking: {
+				type: 'array',
+				fieldNumber: 3,
+				items: {
+					type: 'object',
+					properties: {
+						delegateAddress: {
+							dataType: 'bytes',
+							fieldNumber: 1,
+						},
+						amount: {
+							dataType: 'uint64',
+							fieldNumber: 2,
+						},
+						unvoteHeight: {
+							dataType: 'uint32',
+							fieldNumber: 3,
+						},
+					},
+					required: ['delegateAddress', 'amount', 'unvoteHeight'],
+				},
+			},
+		},
+		default: {
+			delegate: {
+				username: '',
+				pomHeights: [],
+				consecutiveMissedBlocks: 0,
+				lastForgedHeight: 0,
+				isBanned: false,
+				totalVotesReceived: BigInt(0),
+			},
+			sentVotes: [],
+			unlocking: [],
+		},
+	},
+};
