@@ -22,7 +22,7 @@ import { moduleChannelMock } from './mocks/channel_mock';
 import { DataAccessMock } from './mocks/data_access_mock';
 import { loggerMock } from './mocks/logger_mock';
 import { APP_EVENT_BLOCK_NEW } from '../constants';
-import { Data, ModuleClass, WaitOptions } from './types';
+import { Data, ModuleClass, WaitUntilBlockHeightOptions } from './types';
 
 export const getAccountSchemaFromModules = (
 	modules: ModuleClass[],
@@ -64,7 +64,7 @@ export const waitUntilBlockHeight = async ({
 	apiClient,
 	height,
 	timeout,
-}: WaitOptions): Promise<void> =>
+}: WaitUntilBlockHeightOptions): Promise<void> =>
 	new Promise((resolve, reject) => {
 		if (timeout) {
 			setTimeout(() => {

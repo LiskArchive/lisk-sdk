@@ -24,7 +24,7 @@ export type PartialAccount<T = AccountDefaultProps> = Partial<Account<T>> & { ad
 export interface Data {
 	readonly block: string;
 }
-export interface WaitOptions {
+export interface WaitUntilBlockHeightOptions {
 	apiClient: APIClient;
 	height: number;
 	timeout?: number;
