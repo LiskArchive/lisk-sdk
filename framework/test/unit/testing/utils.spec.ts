@@ -21,7 +21,7 @@ import {
 } from '../../../src/testing/utils';
 
 describe('utils', () => {
-	describe('getAccountSchemaFromModules()', () => {
+	describe('getAccountSchemaFromModules', () => {
 		it('should get schema object for modules', () => {
 			expect(getAccountSchemaFromModules([TokenModule, SequenceModule])).toMatchSnapshot();
 		});
