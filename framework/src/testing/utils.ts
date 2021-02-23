@@ -63,12 +63,14 @@ export const getModuleInstance = <T1 = AccountDefaultProps, T2 = BlockHeaderAsse
 export const waitUntilBlockHeight = async ({
 	apiClient,
 	height,
-	timeout = 15,
+	timeout,
 }: WaitOptions): Promise<void> =>
 	new Promise((resolve, reject) => {
-		setTimeout(() => {
-			reject(new Error(`'waitUntilBlockHeight' timed out after ${timeout} ms`));
-		}, timeout);
+		if (timeout) {
+			setTimeout(() => {
+				reject(new Error(`'waitUntilBlockHeight' timed out after ${timeout} ms`));
+			}, timeout);
+		}
 
 		// eslint-disable-next-line @typescript-eslint/require-await
 		apiClient.subscribe(APP_EVENT_BLOCK_NEW, async (data?: Data) => {
