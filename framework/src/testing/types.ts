@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { APIClient } from '@liskhq/lisk-api-client';
 import { Account, AccountDefaultProps } from '@liskhq/lisk-chain';
 import { GenesisConfig } from '..';
 import { BaseAsset, BaseModule } from '../modules';
@@ -20,3 +21,11 @@ import { BaseAsset, BaseModule } from '../modules';
 export type AssetClass<T = any> = new (args?: T) => BaseAsset;
 export type ModuleClass = new (genesisConfig: GenesisConfig) => BaseModule;
 export type PartialAccount<T = AccountDefaultProps> = Partial<Account<T>> & { address: Buffer };
+export interface Data {
+	readonly block: string;
+}
+export interface WaitUntilBlockHeightOptions {
+	apiClient: APIClient;
+	height: number;
+	timeout?: number;
+}

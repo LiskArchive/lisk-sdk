@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`utils getAccountSchemaFromModules() should get schema object for modules 1`] = `
+exports[`utils getAccountSchemaFromModules should get schema object for modules 1`] = `
 Object {
   "sequence": Object {
     "default": Object {

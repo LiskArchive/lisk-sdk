@@ -12,17 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { APIClient } from '@liskhq/lisk-api-client';
 import { SequenceModule, TokenModule } from '../../../src';
-import { getAccountSchemaFromModules, getModuleInstance } from '../../../src/testing/utils';
+import {
+	getAccountSchemaFromModules,
+	getModuleInstance,
+	waitUntilBlockHeight,
+} from '../../../src/testing/utils';
 
 describe('utils', () => {
-	describe('getAccountSchemaFromModules()', () => {
+	describe('getAccountSchemaFromModules', () => {
 		it('should get schema object for modules', () => {
 			expect(getAccountSchemaFromModules([TokenModule, SequenceModule])).toMatchSnapshot();
 		});
 	});
 
-	describe('getModuleInstance()', () => {
+	describe('getModuleInstance', () => {
 		it('should create module instance with default mocks', () => {
 			const module = getModuleInstance(TokenModule);
 
@@ -65,6 +70,31 @@ describe('utils', () => {
 
 			expect(module).toBeInstanceOf(TokenModule);
 			expect(module['_channel']).toBe(channel);
+		});
+	});
+
+	describe('waitUntilBlockHeight', () => {
+		let apiClient: APIClient;
+		beforeEach(() => {
+			apiClient = {
+				// eslint-disable-next-line @typescript-eslint/require-await
+				subscribe: jest.fn(async (_, callback) => callback({ block: 'blockdata' })),
+				block: {
+					decode: jest.fn().mockReturnValue({ header: { height: 2 } }),
+				},
+			} as any;
+		});
+
+		it('should resolve after input height', async () => {
+			await expect(waitUntilBlockHeight({ apiClient, height: 1 })).resolves.toBeUndefined();
+		});
+
+		it('should timeout', async () => {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			apiClient.subscribe = jest.fn(async () => setTimeout(() => undefined, 2));
+			await expect(waitUntilBlockHeight({ apiClient, height: 1, timeout: 1 })).rejects.toThrow(
+				"'waitUntilBlockHeight' timed out after 1 ms",
+			);
 		});
 	});
 });
