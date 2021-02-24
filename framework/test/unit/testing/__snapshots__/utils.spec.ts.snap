@@ -6,6 +6,7 @@ Object {
     "default": Object {
       "nonce": 0n,
     },
+    "fieldNumber": 3,
     "properties": Object {
       "nonce": Object {
         "dataType": "uint64",
@@ -18,6 +19,7 @@ Object {
     "default": Object {
       "balance": 0n,
     },
+    "fieldNumber": 2,
     "properties": Object {
       "balance": Object {
         "dataType": "uint64",

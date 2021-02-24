@@ -36,6 +36,7 @@ export const createGenesisBlockJSON = (modules: ModuleClass[]): Record<string, u
 };
 
 export const getApplicationEnv = async (params: GetApplicationEnv): Promise<ApplicationEnv> => {
+	// TODO: Remove this dependency in future
 	if (!params.modules.includes(DPoSModule)) {
 		params.modules.push(DPoSModule);
 	}
