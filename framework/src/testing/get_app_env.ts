@@ -1,11 +1,17 @@
 import { createIPCClient, APIClient } from '@liskhq/lisk-api-client';
 import { getGenesisBlockJSON } from '@liskhq/lisk-genesis';
+import { codec } from '@liskhq/lisk-codec';
 import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { createGenesisBlock } from './create_genesis_block';
 import { Application, PartialApplicationConfig, DPoSModule } from '..';
 import { ModuleClass, PluginClass, PartialAccount } from './types';
-import { defaultConfig, defaultAccounts, defaultDelegates, defaultAccountSchema } from './utils';
+import {
+	defaultConfig,
+	defaultAccounts,
+	defaultDelegates,
+	getAccountSchemaFromModules,
+} from './utils';
 
 interface GetApplicationEnv {
 	modules: ModuleClass[];
@@ -31,11 +37,15 @@ export const createGenesisBlockJSON = (modules: ModuleClass[]): Record<string, u
 
 	return getGenesisBlockJSON({
 		genesisBlock,
-		accountAssetSchemas: defaultAccountSchema,
+		accountAssetSchemas: getAccountSchemaFromModules(modules),
 	});
 };
 
 export const getApplicationEnv = async (params: GetApplicationEnv): Promise<ApplicationEnv> => {
+	// TODO: Due to compiled schema cache we need to clear readonly attribute forcefully
+	// @ts-expect-error
+	codec._compileSchemas = {};
+
 	// TODO: Remove this dependency in future
 	if (!params.modules.includes(DPoSModule)) {
 		params.modules.push(DPoSModule);
@@ -57,4 +67,11 @@ export const getApplicationEnv = async (params: GetApplicationEnv): Promise<Appl
 		apiClient,
 		application,
 	};
+};
+
+export const clearApplicationEnv = async (appEnv: ApplicationEnv): Promise<void> => {
+	await appEnv.application._forgerDB.clear();
+	await appEnv.application._blockchainDB.clear();
+	await appEnv.application._nodeDB.clear();
+	await appEnv.application.shutdown();
 };
