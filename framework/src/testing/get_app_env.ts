@@ -43,7 +43,7 @@ export const createGenesisBlockJSON = (modules: ModuleClass[]): Record<string, u
 
 export const getApplicationEnv = async (params: GetApplicationEnv): Promise<ApplicationEnv> => {
 	// TODO: Due to compiled schema cache we need to clear readonly attribute forcefully
-	// @ts-expect-error
+	// @ts-ignore
 	codec._compileSchemas = {};
 
 	// TODO: Remove this dependency in future
@@ -70,8 +70,11 @@ export const getApplicationEnv = async (params: GetApplicationEnv): Promise<Appl
 };
 
 export const clearApplicationEnv = async (appEnv: ApplicationEnv): Promise<void> => {
+	// @ts-ignore
 	await appEnv.application._forgerDB.clear();
+	// @ts-ignore
 	await appEnv.application._blockchainDB.clear();
+	// @ts-ignore
 	await appEnv.application._nodeDB.clear();
 	await appEnv.application.shutdown();
 };
