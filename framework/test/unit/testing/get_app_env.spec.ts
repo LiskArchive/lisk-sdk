@@ -100,9 +100,6 @@ describe('Application Environment', () => {
 
 	beforeEach(() => {
 		exitMock = jest.spyOn(process, 'exit').mockImplementation(jest.fn() as never);
-		if (existsSync(dataPath)) {
-			rmdirSync(dataPath, { recursive: true });
-		}
 	});
 
 	afterEach(async () => {
@@ -111,6 +108,9 @@ describe('Application Environment', () => {
 		await appEnv.application['_nodeDB'].clear();
 		await appEnv.application.shutdown();
 		exitMock.mockRestore();
+		if (existsSync(dataPath)) {
+			rmdirSync(dataPath, { recursive: true });
+		}
 	});
 
 	describe('Get Application Environment', () => {

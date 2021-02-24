@@ -324,14 +324,11 @@ export class Application {
 
 		if (Application.getDefaultModules().includes(Module)) {
 			this._node.registerModule(moduleInstance);
-		}
-
-		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
+		} else if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);
-		}
-		this._node.registerModule(moduleInstance);
+		} else this._node.registerModule(moduleInstance);
 	}
 
 	private async _loadPlugins(): Promise<void> {

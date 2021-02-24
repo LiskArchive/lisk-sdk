@@ -5,7 +5,12 @@ import { homedir } from 'os';
 import { createGenesisBlock } from './create_genesis_block';
 import { Application, PartialApplicationConfig, DPoSModule } from '..';
 import { ModuleClass, PluginClass, PartialAccount } from './types';
-import { defaultConfig, defaultAccounts, defaultDelegates, defaultAccountSchema } from './utils';
+import {
+	defaultConfig,
+	defaultAccounts,
+	defaultDelegates,
+	getAccountSchemaFromModules,
+} from './utils';
 
 interface GetApplicationEnv {
 	modules: ModuleClass[];
@@ -31,11 +36,12 @@ export const createGenesisBlockJSON = (modules: ModuleClass[]): Record<string, u
 
 	return getGenesisBlockJSON({
 		genesisBlock,
-		accountAssetSchemas: defaultAccountSchema,
+		accountAssetSchemas: getAccountSchemaFromModules(modules),
 	});
 };
 
 export const getApplicationEnv = async (params: GetApplicationEnv): Promise<ApplicationEnv> => {
+	// TODO: Remove this dependency in future
 	if (!params.modules.includes(DPoSModule)) {
 		params.modules.push(DPoSModule);
 	}
