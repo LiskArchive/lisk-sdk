@@ -27,9 +27,7 @@ export const readGenesisBlockJSON = <T = AccountDefaultProps>(
 	genesisBlockJSON: Record<string, unknown>,
 	accountSchemas: { [name: string]: AccountSchema },
 ): GenesisBlock<T> => {
-	const accountSchema = {
-		...baseAccountSchema,
-	} as Schema;
+	const accountSchema = objects.cloneDeep(baseAccountSchema) as Schema;
 	for (const [name, schema] of Object.entries(accountSchemas)) {
 		const { default: defaultProps, ...others } = schema;
 		accountSchema.properties[name] = others;
