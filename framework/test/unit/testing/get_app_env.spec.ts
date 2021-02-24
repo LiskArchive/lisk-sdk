@@ -16,7 +16,8 @@ import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { getApplicationEnv } from '../../../src/testing';
-import { Application, PartialApplicationConfig, DPoSModule } from '../../../src';
+import { Application, PartialApplicationConfig, TokenModule, DPoSModule } from '../../../src';
+import { clearApplicationEnv } from '../../../src/testing/get_app_env';
 
 const defaultConfig = {
 	label: 'beta-sdk-app',
@@ -106,10 +107,7 @@ describe('Application Environment', () => {
 	});
 
 	afterEach(async () => {
-		await appEnv.application['_forgerDB'].clear();
-		await appEnv.application['_blockchainDB'].clear();
-		await appEnv.application['_nodeDB'].clear();
-		await appEnv.application.shutdown();
+		await clearApplicationEnv(appEnv);
 		exitMock.mockRestore();
 	});
 
@@ -122,7 +120,7 @@ describe('Application Environment', () => {
 		});
 
 		it('should return valid environment with custom module', async () => {
-			appEnv = await getApplicationEnv({ modules: [DPoSModule] });
+			appEnv = await getApplicationEnv({ modules: [TokenModule, DPoSModule] });
 
 			expect(appEnv.application).toBeDefined();
 			expect(appEnv.apiClient).toBeDefined();
