@@ -161,15 +161,18 @@ export class Application {
 		return this._node.networkIdentifier;
 	}
 
+	public static getDefaultModules(): typeof BaseModule[] {
+		return [TokenModule, SequenceModule, KeysModule, DPoSModule];
+	}
+
 	public static defaultApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
-		application._registerModule(TokenModule);
-		application._registerModule(SequenceModule);
-		application._registerModule(KeysModule);
-		application._registerModule(DPoSModule);
+		for (const Module of Application.getDefaultModules()) {
+			application._registerModule(Module);
+		}
 
 		return application;
 	}
@@ -318,12 +321,16 @@ export class Application {
 		assert(Module, 'Module implementation is required');
 		const InstantiableModule = Module as InstantiableBaseModule;
 		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
-		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
+
+		if (Application.getDefaultModules().includes(Module)) {
+			this._node.registerModule(moduleInstance);
+		} else if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);
+		} else {
+			this._node.registerModule(moduleInstance);
 		}
-		this._node.registerModule(moduleInstance);
 	}
 
 	private async _loadPlugins(): Promise<void> {
