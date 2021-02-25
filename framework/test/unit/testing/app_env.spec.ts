@@ -17,7 +17,7 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { getApplicationEnv } from '../../../src/testing';
 import { Application, PartialApplicationConfig, TokenModule, DPoSModule } from '../../../src';
-import { clearApplicationEnv } from '../../../src/testing/get_app_env';
+import { clearApplicationEnv } from '../../../src/testing/app_env';
 
 const defaultConfig = {
 	label: 'beta-sdk-app',

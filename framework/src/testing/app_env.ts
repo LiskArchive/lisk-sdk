@@ -1,17 +1,26 @@
-import { createIPCClient, APIClient } from '@liskhq/lisk-api-client';
-import { getGenesisBlockJSON } from '@liskhq/lisk-genesis';
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
+import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
-import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
-import { createGenesisBlock } from './create_genesis_block';
-import { Application, PartialApplicationConfig, DPoSModule } from '..';
-import { ModuleClass, PluginClass, PartialAccount } from './types';
-import {
-	defaultConfig,
-	defaultAccounts,
-	defaultDelegates,
-	getAccountSchemaFromModules,
-} from './utils';
+import { resolve as pathResolve } from 'path';
+import { Application, DPoSModule, PartialApplicationConfig } from '..';
+import { ModuleClass, PluginClass } from './types';
+import { defaultConfig } from './utils';
+import { createGenesisBlockWithAccounts } from './fixtures/genesis_block';
 
 interface GetApplicationEnv {
 	modules: ModuleClass[];
@@ -24,33 +33,16 @@ interface ApplicationEnv {
 	application: Application;
 }
 
-export const createGenesisBlockJSON = (modules: ModuleClass[]): Record<string, unknown> => {
-	const accounts = defaultAccounts.map(i => ({ address: Buffer.from(i, 'hex') } as PartialAccount));
-	const delegates = defaultDelegates.map(
-		d => ({ ...d, address: Buffer.from(d.address, 'hex') } as PartialAccount),
-	);
-	const genesisBlock = createGenesisBlock({
-		modules,
-		accounts: [...accounts, ...delegates] as PartialAccount[],
-		initDelegates: delegates.map(d => d.address),
-	});
-
-	return getGenesisBlockJSON({
-		genesisBlock,
-		accountAssetSchemas: getAccountSchemaFromModules(modules),
-	});
-};
-
 export const getApplicationEnv = async (params: GetApplicationEnv): Promise<ApplicationEnv> => {
-	// TODO: Due to compiled schema cache we need to clear readonly attribute forcefully
-	// @ts-ignore
-	codec._compileSchemas = {};
+	// As we can call this function with different configuration
+	// so we need to make sure existing schemas are already clear
+	codec.clearCache();
 
 	// TODO: Remove this dependency in future
 	if (!params.modules.includes(DPoSModule)) {
 		params.modules.push(DPoSModule);
 	}
-	const genesisBlockJSON = createGenesisBlockJSON(params.modules);
+	const { genesisBlockJSON } = createGenesisBlockWithAccounts(params.modules);
 	const config = params.config ?? (defaultConfig as PartialApplicationConfig);
 	const { label } = params.config ?? defaultConfig;
 
@@ -68,6 +60,9 @@ export const getApplicationEnv = async (params: GetApplicationEnv): Promise<Appl
 		application,
 	};
 };
+
+/* eslint-disable @typescript-eslint/prefer-ts-expect-error */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 
 export const clearApplicationEnv = async (appEnv: ApplicationEnv): Promise<void> => {
 	// @ts-ignore
