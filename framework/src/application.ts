@@ -328,7 +328,9 @@ export class Application {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);
-		} else this._node.registerModule(moduleInstance);
+		} else {
+			this._node.registerModule(moduleInstance);
+		}
 	}
 
 	private async _loadPlugins(): Promise<void> {

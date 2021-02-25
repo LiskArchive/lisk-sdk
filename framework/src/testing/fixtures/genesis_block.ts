@@ -29,16 +29,20 @@ export const createGenesisBlockWithAccounts = <T = AccountDefaultProps>(
 	}
 
 	const accounts = defaultAccountsAddresses.map(
-		i => ({ address: Buffer.from(i, 'hex') } as PartialAccount<T>),
+		accountAddress => ({ address: Buffer.from(accountAddress, 'hex') } as PartialAccount<T>),
 	);
 	const delegates = defaultDelegates.map(
-		d => (({ ...d, address: Buffer.from(d.address, 'hex') } as unknown) as PartialAccount<T>),
+		delegate =>
+			(({
+				...delegate,
+				address: Buffer.from(delegate.address, 'hex'),
+			} as unknown) as PartialAccount<T>),
 	);
 
 	const genesisBlock = createGenesisBlock<T>({
 		modules,
 		accounts: [...accounts, ...delegates] as PartialAccount<T>[],
-		initDelegates: delegates.map(d => d.address),
+		initDelegates: delegates.map(delegate => delegate.address),
 	});
 
 	const genesisBlockJSON = getGenesisBlockJSON({

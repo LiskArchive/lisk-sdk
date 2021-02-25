@@ -53,7 +53,6 @@
 		"@liskhq/lisk-tree": "^0.1.0",
 		"@liskhq/lisk-utils": "^0.1.0",
 		"@liskhq/lisk-validator": "^0.5.0",
-		"@liskhq/lisk-api-client": "^5.0.2",
 		"bunyan": "1.8.14",
 		"debug": "4.3.1",
 		"eventemitter2": "6.0.0",

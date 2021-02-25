@@ -47,8 +47,8 @@ export const getApplicationEnv = async (params: GetApplicationEnv): Promise<Appl
 	const { label } = params.config ?? defaultConfig;
 
 	const application = new Application(genesisBlockJSON, config);
-	params.modules.map(i => application.registerModule(i));
-	params.plugins?.map(i => application.registerPlugin(i));
+	params.modules.map(module => application.registerModule(module));
+	params.plugins?.map(plugin => application.registerPlugin(plugin));
 	await Promise.race([application.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
 
 	// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
