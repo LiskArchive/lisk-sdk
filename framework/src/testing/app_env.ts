@@ -19,7 +19,7 @@ import { homedir } from 'os';
 import { resolve as pathResolve } from 'path';
 import { Application, DPoSModule, PartialApplicationConfig } from '..';
 import { ModuleClass, PluginClass } from './types';
-import { defaultConfig } from './utils';
+import { defaultConfig } from './fixtures';
 import { createGenesisBlockWithAccounts } from './fixtures/genesis_block';
 
 interface GetApplicationEnv {
@@ -44,7 +44,7 @@ export const getApplicationEnv = async (params: GetApplicationEnv): Promise<Appl
 	}
 	const { genesisBlockJSON } = createGenesisBlockWithAccounts(params.modules);
 	const config = params.config ?? (defaultConfig as PartialApplicationConfig);
-	const { label } = params.config ?? defaultConfig;
+	const { label } = config;
 
 	const application = new Application(genesisBlockJSON, config);
 	params.modules.map(module => application.registerModule(module));
