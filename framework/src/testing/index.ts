@@ -13,9 +13,11 @@
  *
  */
 
+import * as fixtures from './fixtures';
+
 export { createBlock } from './create_block';
 export { createTransaction } from './create_transaction';
 export { createGenesisBlock } from './create_genesis_block';
 export { getModuleInstance, getAccountSchemaFromModules } from './utils';
 export * from './app_env';
-export * as fixtures from './fixtures';
+export { fixtures };
