@@ -62,14 +62,11 @@ export const getApplicationEnv = async (params: GetApplicationEnv): Promise<Appl
 };
 
 /* eslint-disable @typescript-eslint/prefer-ts-expect-error */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable dot-notation */
 
 export const clearApplicationEnv = async (appEnv: ApplicationEnv): Promise<void> => {
-	// @ts-ignore
-	await appEnv.application._forgerDB.clear();
-	// @ts-ignore
-	await appEnv.application._blockchainDB.clear();
-	// @ts-ignore
-	await appEnv.application._nodeDB.clear();
+	await appEnv.application['_forgerDB'].clear();
+	await appEnv.application['_blockchainDB'].clear();
+	await appEnv.application['_nodeDB'].clear();
 	await appEnv.application.shutdown();
 };
