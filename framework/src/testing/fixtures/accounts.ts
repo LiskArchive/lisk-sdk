@@ -12,6 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { Account, AccountDefaultProps, getAccountSchemaWithDefault } from '@liskhq/lisk-chain';
+import { objects } from '@liskhq/lisk-utils';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { ModuleClass } from '../types';
+import { getAccountSchemaFromModules } from '../utils';
 
 export const defaultAccountsAddresses = [
 	'0903f4c5cb599a7928aef27e314e98291d1e3888',
@@ -128,3 +133,17 @@ export const defaultDelegates = [
 		},
 	},
 ];
+
+export const createDefaultAccount = <T = AccountDefaultProps>(
+	modules: ModuleClass[] = [],
+	data: Record<string, unknown> = {},
+): Account<T> => {
+	const { default: defaultAccount } = getAccountSchemaWithDefault(
+		getAccountSchemaFromModules(modules),
+	);
+
+	const account = objects.mergeDeep({}, defaultAccount, data) as Account<T>;
+	account.address = account.address ?? getRandomBytes(20);
+
+	return objects.cloneDeep(account);
+};

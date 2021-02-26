@@ -17,17 +17,18 @@ import { BlockHeader, Account } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import { getAddressAndPublicKeyFromPassphrase, getRandomBytes } from '@liskhq/lisk-cryptography';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../../../src';
-import { createFakeDefaultAccount } from '../../../../utils/node';
-import { StateStoreMock } from '../../../../utils/node/state_store_mock';
 import {
 	BlockHeaderAssetForDPOS,
 	DPOSAccountProps,
 	PomTransactionAssetContext,
+	DPoSModule,
 } from '../../../../../src/modules/dpos';
 import { PomTransactionAsset } from '../../../../../src/modules/dpos/transaction_assets/pom_transaction_asset';
 import * as dposUtils from '../../../../../src/modules/dpos/utils';
-import { createFakeBlockHeader } from '../../../../fixtures';
 import { liskToBeddows } from '../../../../utils/assets';
+import * as testing from '../../../../../src/testing';
+
+const { StateStoreMock } = testing.mocks;
 
 describe('PomTransactionAsset', () => {
 	const lastBlockHeight = 8760000;
@@ -36,61 +37,64 @@ describe('PomTransactionAsset', () => {
 	let applyContext: ApplyAssetContext<PomTransactionAssetContext>;
 	let validateContext: ValidateAssetContext<PomTransactionAssetContext>;
 	let sender: any;
-	let stateStoreMock: StateStoreMock;
+	let stateStoreMock: testing.mocks.StateStoreMock;
 	let misBehavingDelegate: Account<DPOSAccountProps>;
 	let normalDelegate: Account<DPOSAccountProps>;
 	let header1: BlockHeader<BlockHeaderAssetForDPOS>;
 	let header2: BlockHeader<BlockHeaderAssetForDPOS>;
 
 	beforeEach(() => {
-		sender = createFakeDefaultAccount({});
+		sender = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {});
 
 		const {
 			address: delegate1Address,
 			publicKey: delegate1PublicKey,
 		} = getAddressAndPublicKeyFromPassphrase(getRandomBytes(20).toString('utf8'));
 
-		misBehavingDelegate = createFakeDefaultAccount({
+		misBehavingDelegate = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
 			address: delegate1Address,
 			dpos: { delegate: { username: 'misBehavingDelegate' } },
 		});
-		normalDelegate = createFakeDefaultAccount({
+		normalDelegate = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
 			dpos: { delegate: { username: 'normalDelegate' } },
 		});
-		const { id: id1, ...fakeBlockHeader1 } = createFakeBlockHeader({
+		const { id: id1, ...fakeBlockHeader1 } = testing.createFakeBlockHeader({
 			generatorPublicKey: delegate1PublicKey,
 		});
-		const { id: id2, ...fakeBlockHeader2 } = createFakeBlockHeader({
+		const { id: id2, ...fakeBlockHeader2 } = testing.createFakeBlockHeader({
 			generatorPublicKey: delegate1PublicKey,
 		});
 
 		header1 = fakeBlockHeader1 as BlockHeader;
 		header2 = fakeBlockHeader2 as BlockHeader;
 
-		stateStoreMock = new StateStoreMock(
-			objects.cloneDeep([sender, misBehavingDelegate, normalDelegate]),
-			{
-				lastBlockHeaders: [{ height: lastBlockHeight }] as any,
-				lastBlockReward,
-			},
-		);
+		stateStoreMock = new StateStoreMock({
+			accounts: objects.cloneDeep([sender, misBehavingDelegate, normalDelegate]),
+			lastBlockHeaders: [{ height: lastBlockHeight }] as any,
+			lastBlockReward,
+		});
+
 		transactionAsset = new PomTransactionAsset();
-		applyContext = ({
-			transaction: {
-				senderAddress: sender.address,
-			},
-			asset: {
-				header1: {},
-				header2: {},
-			},
+
+		const transaction = {
+			senderAddress: sender.address,
+		} as any;
+
+		const asset = {
+			header1: {} as any,
+			header2: {} as any,
+		};
+
+		applyContext = testing.createApplyAssetContext<PomTransactionAssetContext>({
+			transaction,
+			asset,
 			stateStore: stateStoreMock as any,
 			reducerHandler: {
 				invoke: jest.fn(),
 			},
-		} as unknown) as ApplyAssetContext<PomTransactionAssetContext>;
-		validateContext = ({ asset: { header1: {}, header2: {} } } as unknown) as ValidateAssetContext<
-			PomTransactionAssetContext
-		>;
+		});
+
+		validateContext = testing.createValidateAssetContext({ asset, transaction });
 
 		jest.spyOn(stateStoreMock.account, 'get');
 		jest.spyOn(stateStoreMock.account, 'set');

@@ -16,15 +16,17 @@ import { Account } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../../../src';
-import { createFakeDefaultAccount } from '../../../../utils/node';
-import { StateStoreMock } from '../../../../utils/node/state_store_mock';
 import { UnlockTransactionAsset } from '../../../../../src/modules/dpos/transaction_assets/unlock_transaction_asset';
 import {
 	DPOSAccountProps,
 	UnlockingAccountAsset,
 	UnlockTransactionAssetContext,
+	DPoSModule,
 } from '../../../../../src/modules/dpos';
 import { liskToBeddows } from '../../../../utils/assets';
+import * as testing from '../../../../../src/testing';
+
+const { StateStoreMock } = testing.mocks;
 
 const setupUnlocks = ({
 	unVoteHeight,
@@ -46,7 +48,8 @@ const setupUnlocks = ({
 		amount: liskToBeddows(120),
 		unvoteHeight: unVoteHeight,
 	};
-	const stateStore = new StateStoreMock([] as any, {
+	const stateStore = new StateStoreMock({
+		accounts: [] as any,
 		lastBlockHeaders: [{ height: lastBlockHeight }] as any,
 	});
 
@@ -84,37 +87,41 @@ describe('UnlockTransactionAsset', () => {
 	let applyContext: ApplyAssetContext<UnlockTransactionAssetContext>;
 	let validateContext: ValidateAssetContext<UnlockTransactionAssetContext>;
 	let sender: any;
-	let stateStoreMock: StateStoreMock;
-	const delegate1 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate1' } } });
-	const delegate2 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate2' } } });
-	const delegate3 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate3' } } });
+	let stateStoreMock: testing.mocks.StateStoreMock;
+	const delegate1 = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+		dpos: { delegate: { username: 'delegate1' } },
+	});
+	const delegate2 = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+		dpos: { delegate: { username: 'delegate2' } },
+	});
+	const delegate3 = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+		dpos: { delegate: { username: 'delegate3' } },
+	});
 	const unlockAmount1 = liskToBeddows(100);
 	const unlockAmount2 = liskToBeddows(120);
 	const unlockAmount3 = liskToBeddows(80);
 
 	beforeEach(() => {
-		sender = createFakeDefaultAccount({});
-		stateStoreMock = new StateStoreMock(
-			objects.cloneDeep([sender, delegate1, delegate2, delegate3]),
-			{
-				lastBlockHeaders: [{ height: lastBlockHeight }] as any,
-			},
-		);
+		sender = testing.fixtures.createDefaultAccount([DPoSModule], {});
+		stateStoreMock = new StateStoreMock({
+			accounts: objects.cloneDeep([sender, delegate1, delegate2, delegate3]),
+			lastBlockHeaders: [{ height: lastBlockHeight }] as any,
+		});
 		transactionAsset = new UnlockTransactionAsset();
-		applyContext = {
-			transaction: {
-				senderAddress: sender.address,
-			},
-			asset: {
-				unlockObjects: [],
-			},
-			stateStore: stateStoreMock as any,
-			reducerHandler: {
-				invoke: jest.fn(),
-			},
+		const transaction = {
+			senderAddress: sender.address,
 		} as any;
-		validateContext = { asset: { unlockObjects: [] } } as any;
+		const asset = {
+			unlockObjects: [],
+		};
+		applyContext = testing.createApplyAssetContext({
+			transaction,
+			asset,
+			stateStore: stateStoreMock,
+		});
+		validateContext = testing.createValidateAssetContext({ asset, transaction });
 
+		jest.spyOn(applyContext.reducerHandler, 'invoke');
 		jest.spyOn(stateStoreMock.account, 'get');
 		jest.spyOn(stateStoreMock.account, 'set');
 	});
@@ -348,7 +355,8 @@ describe('UnlockTransactionAsset', () => {
 
 				describe('when asset.unlockObjects contain valid entries, and voter account has not waited 2000 blocks', () => {
 					it('should throw error', async () => {
-						stateStoreMock = new StateStoreMock(objects.cloneDeep(stateStoreMock.accountData), {
+						stateStoreMock = new StateStoreMock({
+							accounts: objects.cloneDeep(stateStoreMock.accountData),
 							lastBlockHeaders: [{ height: 4000 }] as any,
 						});
 						applyContext = {
@@ -430,7 +438,8 @@ describe('UnlockTransactionAsset', () => {
 
 				describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited 260,000 blocks', () => {
 					it('should throw error', async () => {
-						stateStoreMock = new StateStoreMock([...stateStoreMock.accountData], {
+						stateStoreMock = new StateStoreMock({
+							accounts: [...stateStoreMock.accountData],
 							lastBlockHeaders: [{ height: lastBlockHeight - 5000 }] as any,
 						});
 						applyContext = {
@@ -448,7 +457,7 @@ describe('UnlockTransactionAsset', () => {
 
 		describe('given the delegate is currently being punished', () => {
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 and unvoteHeight + 260,000 blocks', () => {
-				beforeEach(async () => {
+				beforeEach(() => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 780000 + 10;
 

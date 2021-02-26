@@ -29,6 +29,7 @@ import {
 	signDataWithPrivateKey,
 } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
+import { objects } from '@liskhq/lisk-utils';
 import { MerkleTree } from '@liskhq/lisk-tree';
 
 interface CreateBlock<T = BlockHeaderAsset> {
@@ -38,7 +39,7 @@ interface CreateBlock<T = BlockHeaderAsset> {
 	header?: Partial<BlockHeader<T>>;
 }
 
-const encodeBlockHeader = (header: BlockHeader, skipSignature = false): Buffer => {
+export const encodeBlockHeader = (header: BlockHeader, skipSignature = false): Buffer => {
 	const encodedAsset = codec.encode(blockHeaderAssetSchema, header.asset);
 	const rawHeader = { ...header, asset: encodedAsset };
 	const schema = skipSignature ? signingBlockHeaderSchema : blockHeaderSchema;
@@ -46,7 +47,7 @@ const encodeBlockHeader = (header: BlockHeader, skipSignature = false): Buffer =
 	return codec.encode(schema, rawHeader);
 };
 
-const createBlockHeaderWithDefaults = <T = unknown>(
+export const createBlockHeaderWithDefaults = <T = unknown>(
 	header?: Partial<BlockHeader<T>>,
 ): Partial<BlockHeader<T>> => ({
 	version: header?.version ?? 2,
@@ -56,15 +57,34 @@ const createBlockHeaderWithDefaults = <T = unknown>(
 	transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
 	generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
 	reward: header?.reward ?? BigInt(500000000),
-	asset: header?.asset ?? ({} as T),
+	asset: (header?.asset ?? {
+		maxHeightPreviouslyForged: 0,
+		maxHeightPrevoted: 0,
+		seedReveal: getRandomBytes(16),
+	}) as T,
 });
 
-export const createBlock = ({
+export const createFakeBlockHeader = <T = unknown>(
+	header?: Partial<BlockHeader<T>>,
+): BlockHeader<T> => {
+	const headerWithDefault = createBlockHeaderWithDefaults(header);
+	const headerWithSignature = objects.mergeDeep({}, headerWithDefault, {
+		signature: getRandomBytes(64),
+	}) as BlockHeader;
+	const id = hash(encodeBlockHeader(headerWithSignature));
+
+	return ({
+		...headerWithSignature,
+		id,
+	} as unknown) as BlockHeader<T>;
+};
+
+export const createBlock = <T = BlockHeaderAsset>({
 	passphrase,
 	networkIdentifier,
 	payload,
 	header,
-}: CreateBlock): Block => {
+}: CreateBlock<T>): Block<T> => {
 	const { publicKey, privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const txTree = new MerkleTree(payload?.map(tx => tx.id));
 
@@ -109,5 +129,5 @@ export const createBlock = ({
 		payload,
 	};
 
-	return block as Block;
+	return (block as unknown) as Block<T>;
 };

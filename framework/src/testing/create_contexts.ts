@@ -23,12 +23,13 @@ import {
 	ReducerHandler,
 	StateStore,
 	TransactionApplyContext,
+	ValidateAssetContext,
 } from '../types';
-import { createGenesisBlock } from './create_genesis_block';
 import { ModuleClass } from './types';
 import { StateStoreMock } from './mocks/state_store_mock';
 import { reducerHandlerMock } from './mocks/reducer_handler_mock';
 import { consensusMock } from './mocks/consensus_mock';
+import * as fixtures from './fixtures';
 
 export const createAfterGenesisBlockApplyContext = <T = unknown>(params: {
 	modules?: ModuleClass[];
@@ -37,7 +38,8 @@ export const createAfterGenesisBlockApplyContext = <T = unknown>(params: {
 	stateStore?: StateStore;
 }): AfterGenesisBlockApplyContext<T> => {
 	const modules = params.modules ?? [];
-	const genesisBlock = params.genesisBlock ?? createGenesisBlock<T>({ modules, accounts: [] });
+	const genesisBlock =
+		params.genesisBlock ?? fixtures.createGenesisBlockWithAccounts<T>(modules).genesisBlock;
 	const stateStore = params.stateStore ?? new StateStoreMock();
 	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
 
@@ -90,3 +92,8 @@ export const createApplyAssetContext = <T>(params: {
 
 	return { transaction: params.transaction, stateStore, reducerHandler, asset: params.asset };
 };
+
+export const createValidateAssetContext = <T>(params: {
+	transaction: Transaction;
+	asset: T;
+}): ValidateAssetContext<T> => ({ transaction: params.transaction, asset: params.asset });
