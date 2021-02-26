@@ -131,7 +131,7 @@ describe('FinalityManager', () => {
 							(bh: any) => bh.height < testCase.input.blockHeader.height,
 						);
 
-						stateStore.consensus.set(
+						await stateStore.consensus.set(
 							CONSENSUS_STATE_VALIDATORS_KEY,
 							codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
 						);

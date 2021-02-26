@@ -16,11 +16,11 @@ import { objects } from '@liskhq/lisk-utils';
 import { BlockHeader, Account, AccountDefaultProps } from '@liskhq/lisk-chain';
 
 interface AccountState {
-	get(address: Buffer): Promise<Account<any>>;
-	getOrDefault(address: Buffer): Promise<Account<any>>;
-	set(address: Buffer, account: any): Promise<void>;
+	get<T = any>(address: Buffer): Promise<Account<T>>;
+	getOrDefault<T = any>(address: Buffer): Promise<Account<T>>;
+	set<T = any>(address: Buffer, account: T): Promise<void>;
 	del(address: Buffer): Promise<void>;
-	getUpdated(): Account[];
+	getUpdated<T = any>(): Account<T>[];
 }
 
 interface ChainState {
@@ -33,7 +33,7 @@ interface ChainState {
 
 interface ConsensusState {
 	get(key: string): Promise<Buffer | undefined>;
-	set(address: string, value: Buffer): void;
+	set(address: string, value: Buffer): Promise<void>;
 }
 
 export interface MockInput {
@@ -91,7 +91,7 @@ export class StateStoreMock {
 				}
 				return objects.cloneDeep(account) as Account<T>;
 			},
-			getUpdated: () => this.accountData,
+			getUpdated: <T = any>() => this.accountData as Account<T>[],
 			// eslint-disable-next-line @typescript-eslint/require-await
 			set: async <T = any>(address: Buffer, account: Account<T>): Promise<void> => {
 				const index = this.accountData.findIndex(acc => acc.address.equals(address));
@@ -126,7 +126,8 @@ export class StateStoreMock {
 		this.consensus = {
 			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(objects.cloneDeep(this.consensusData[key])),
-			set: (key: string, value: Buffer): void => {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			set: async (key: string, value: Buffer): Promise<void> => {
 				this.consensusData[key] = value;
 			},
 		};

@@ -14,9 +14,9 @@
  */
 
 import { dataStructures } from '@liskhq/lisk-utils';
-import { BlockHeader, Account } from '@liskhq/lisk-chain';
+import { BlockHeader, Account, BlockHeaderAsset, AccountDefaultProps } from '@liskhq/lisk-chain';
 
-export class DataAccessMock<T1, T2> {
+export class DataAccessMock<T1 = AccountDefaultProps, T2 = BlockHeaderAsset> {
 	protected _blockHeaders: BlockHeader<T2>[];
 	protected _accounts: dataStructures.BufferMap<Account<T1>>;
 	protected _chainState: Record<string, Buffer>;
@@ -39,12 +39,12 @@ export class DataAccessMock<T1, T2> {
 		return Promise.resolve(this._chainState[key]);
 	}
 
-	public async getAccountByAddress(address: Buffer): Promise<Account<T1>> {
+	public async getAccountByAddress<T3 = T1>(address: Buffer): Promise<Account<T3>> {
 		if (!this._accounts.has(address)) {
 			throw new Error(`Account with address ${address.toString('hex')} does not exists`);
 		}
 
-		return Promise.resolve(this._accounts.get(address) as Account<T1>);
+		return Promise.resolve((this._accounts.get(address) as unknown) as Account<T3>);
 	}
 
 	public async getLastBlockHeader(): Promise<BlockHeader<T2>> {

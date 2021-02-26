@@ -295,7 +295,7 @@ export class FinalityManager extends EventEmitter {
 			});
 
 		// Update state to save the bft votes
-		this._setVotingLedger(stateStore, {
+		await this._setVotingLedger(stateStore, {
 			validators: validatorsMap,
 			ledger: ledgerMap,
 		});
@@ -479,7 +479,10 @@ export class FinalityManager extends EventEmitter {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _setVotingLedger(stateStore: StateStore, votingLedgerMap: VotingLedgerMap): void {
+	private async _setVotingLedger(
+		stateStore: StateStore,
+		votingLedgerMap: VotingLedgerMap,
+	): Promise<void> {
 		const ledgerState = [];
 		for (const height of Object.keys(votingLedgerMap.ledger)) {
 			const intHeight = parseInt(height, 10);
@@ -497,7 +500,7 @@ export class FinalityManager extends EventEmitter {
 			});
 		}
 
-		stateStore.consensus.set(
+		await stateStore.consensus.set(
 			CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 			codec.encode(BFTVotingLedgerSchema, {
 				validators: validatorsState,

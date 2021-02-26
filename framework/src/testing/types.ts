@@ -20,7 +20,7 @@ import { BasePlugin } from '../plugins/base_plugin';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AssetClass<T = any> = new (args?: T) => BaseAsset;
-export type ModuleClass = new (genesisConfig: GenesisConfig) => BaseModule;
+export type ModuleClass<T = BaseModule> = new (genesisConfig: GenesisConfig) => T;
 export type PartialAccount<T = AccountDefaultProps> = Partial<Account<T>> & { address: Buffer };
 export interface Data {
 	readonly block: string;

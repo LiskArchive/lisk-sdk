@@ -10,17 +10,11 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-import * as fixtures from './fixtures';
-import * as mocks from './mocks';
-
-export { createTransaction } from './create_transaction';
-export { createGenesisBlock } from './create_genesis_block';
-export { getModuleInstance, getAccountSchemaFromModules } from './utils';
-export * from './create_block';
-export * from './app_env';
-export * from './create_contexts';
-
-export { fixtures, mocks };
+export * from './channel_mock';
+export * from './consensus_mock';
+export * from './data_access_mock';
+export * from './logger_mock';
+export * from './reducer_handler_mock';
+export * from './state_store_mock';

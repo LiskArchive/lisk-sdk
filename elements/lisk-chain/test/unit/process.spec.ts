@@ -1081,16 +1081,16 @@ describe('chain/process block', () => {
 			stateStore = createStateStore(db);
 		});
 
-		it('should store init delegates to the validators', () => {
+		it('should store init delegates to the validators', async () => {
 			jest.spyOn(stateStore.account, 'set');
-			chainInstance.applyGenesisBlock(genesisBlock, stateStore);
+			await chainInstance.applyGenesisBlock(genesisBlock, stateStore);
 			expect(stateStore.account.set).toHaveBeenCalledTimes(
 				genesisBlock.header.asset.accounts.length,
 			);
 		});
 
 		it('should store all the accounts in the genesis block', async () => {
-			chainInstance.applyGenesisBlock(genesisBlock, stateStore);
+			await chainInstance.applyGenesisBlock(genesisBlock, stateStore);
 			const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);
 			const { validators } = codec.decode<{ validators: Validator[] }>(
 				validatorsSchema,
