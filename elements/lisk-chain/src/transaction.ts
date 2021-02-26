@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { hash, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 
-interface TransactionInput {
+export interface TransactionInput {
 	readonly moduleID: number;
 	readonly assetID: number;
 	readonly senderPublicKey: Buffer;

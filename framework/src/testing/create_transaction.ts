@@ -13,7 +13,7 @@
  *
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
+import { Transaction, TransactionInput } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { signTransaction, validateTransaction } from '@liskhq/lisk-transactions';
@@ -41,35 +41,39 @@ export const createTransaction = ({
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase ?? '');
 	// eslint-disable-next-line new-cap
 	const assetInstance = new assetClass();
+	const assetID = assetInstance.id;
 	const assetBytes = codec.encode(assetInstance.schema, asset);
 
-	const transaction = new Transaction({
+	const transaction = {
 		moduleID,
-		assetID: assetInstance.id,
+		assetID,
 		nonce: nonce ?? BigInt(0),
 		fee: fee ?? BigInt(0),
 		senderPublicKey: publicKey,
-		asset: assetBytes,
+		asset,
 		signatures: [],
-	});
+	};
 
-	const validationErrors = validateTransaction(assetInstance.schema, { ...transaction, asset });
+	const validationErrors = validateTransaction(assetInstance.schema, transaction);
 	if (validationErrors) {
 		throw validationErrors;
 	}
 
 	if (!passphrase) {
-		return transaction;
+		return new Transaction({ ...transaction, asset: assetBytes });
 	}
 
 	if (!networkIdentifier) {
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	return (signTransaction(
+	const signedTransaction = signTransaction(
 		assetInstance.schema,
-		{ ...transaction, asset },
+		transaction,
 		networkIdentifier,
 		passphrase,
-	) as unknown) as Transaction;
+	);
+
+	// signTransaction returns type Record<string, unknown> so it must be cast to TransactionInput
+	return new Transaction({ ...signedTransaction, asset: assetBytes } as TransactionInput);
 };
