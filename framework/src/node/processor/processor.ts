@@ -95,7 +95,7 @@ export class Processor {
 		const stateStore = await this._chain.newStateStore();
 		if (!genesisExist) {
 			this._chain.validateGenesisBlockHeader(genesisBlock);
-			this._chain.applyGenesisBlock(genesisBlock, stateStore);
+			await this._chain.applyGenesisBlock(genesisBlock, stateStore);
 			for (const customModule of this._modules) {
 				if (customModule.afterGenesisBlockApply) {
 					await customModule.afterGenesisBlockApply({

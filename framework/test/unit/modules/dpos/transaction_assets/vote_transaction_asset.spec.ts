@@ -626,7 +626,7 @@ describe('VoteTransactionAsset', () => {
 					const nonRegisteredDelegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 						dpos: { delegate: { username: '' } },
 					});
-					stateStoreMock.account.set(nonRegisteredDelegate.address, nonRegisteredDelegate);
+					await stateStoreMock.account.set(nonRegisteredDelegate.address, nonRegisteredDelegate);
 					applyContext.asset = {
 						votes: [
 							...applyContext.asset.votes,
@@ -650,7 +650,7 @@ describe('VoteTransactionAsset', () => {
 						const delegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 							dpos: { delegate: { username: `newdelegate${i}` } },
 						});
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 						votes.push({
 							delegateAddress: delegate.address,
 							amount: liskToBeddows(10),
@@ -676,14 +676,14 @@ describe('VoteTransactionAsset', () => {
 							dpos: { delegate: { username: `existingdelegate${i}` } },
 						});
 
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 
 						updatedSender.dpos.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: liskToBeddows(20),
 						});
 					}
-					stateStoreMock.account.set(sender.address, updatedSender);
+					await stateStoreMock.account.set(sender.address, updatedSender);
 
 					// We have 2 negative votes
 					const votes = [
@@ -702,7 +702,7 @@ describe('VoteTransactionAsset', () => {
 						const delegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 							dpos: { delegate: { username: `newdelegate${i}` } },
 						});
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 						votes.push({
 							delegateAddress: delegate.address,
 							amount: liskToBeddows(10),
@@ -731,7 +731,7 @@ describe('VoteTransactionAsset', () => {
 							dpos: { delegate: { username: `existingdelegate${i}` } },
 						});
 
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 
 						updatedSender.dpos.unlocking.push({
 							delegateAddress: delegate.address,
@@ -745,14 +745,14 @@ describe('VoteTransactionAsset', () => {
 							dpos: { delegate: { username: `existingdelegate${i}` } },
 						});
 
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 
 						updatedSender.dpos.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: liskToBeddows(20),
 						});
 					}
-					stateStoreMock.account.set(sender.address, updatedSender);
+					await stateStoreMock.account.set(sender.address, updatedSender);
 
 					// We have 2 negative votes
 					const votes = [
@@ -786,7 +786,7 @@ describe('VoteTransactionAsset', () => {
 						delegateAddress: delegate1.address,
 						amount: liskToBeddows(70),
 					});
-					stateStoreMock.account.set(sender.address, updatedSender);
+					await stateStoreMock.account.set(sender.address, updatedSender);
 
 					applyContext.asset = {
 						// Negative vote for more than what was earlier voted
@@ -808,11 +808,11 @@ describe('VoteTransactionAsset', () => {
 		describe('when asset.votes contains self-vote', () => {
 			const senderVoteAmount = liskToBeddows(80);
 
-			beforeEach(() => {
+			beforeEach(async () => {
 				// Make sender a delegate
 				const updatedSender = objects.cloneDeep(sender);
 				updatedSender.dpos.delegate.username = 'sender_delegate';
-				stateStoreMock.account.set(sender.address, updatedSender);
+				await stateStoreMock.account.set(sender.address, updatedSender);
 
 				applyContext.asset = {
 					votes: [{ delegateAddress: sender.address, amount: senderVoteAmount }],
@@ -838,7 +838,7 @@ describe('VoteTransactionAsset', () => {
 			const senderUpVoteAmount = liskToBeddows(80);
 			const senderDownVoteAmount = liskToBeddows(30);
 
-			beforeEach(() => {
+			beforeEach(async () => {
 				// Make sender a delegate and make it sure it have a self vote already
 				const updatedSender = objects.cloneDeep(sender);
 				updatedSender.dpos.delegate.username = 'sender_delegate';
@@ -846,7 +846,7 @@ describe('VoteTransactionAsset', () => {
 				updatedSender.dpos.sentVotes = [
 					{ delegateAddress: updatedSender.address, amount: senderUpVoteAmount },
 				];
-				stateStoreMock.account.set(sender.address, updatedSender);
+				await stateStoreMock.account.set(sender.address, updatedSender);
 
 				applyContext.asset = {
 					votes: [{ delegateAddress: sender.address, amount: BigInt(-1) * senderDownVoteAmount }],

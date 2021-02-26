@@ -195,7 +195,7 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should not throw errors', async () => {
 			// Act
-			stateStoreMock.account.set(
+			await stateStoreMock.account.set(
 				sender.address,
 				testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
 					address: sender.address,
@@ -235,10 +235,10 @@ describe('RegisterTransactionAsset', () => {
 			const secondAccount = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
 				dpos: { delegate: { username: 'myuser' } },
 			});
-			stateStoreMock.account.set(secondAccount.address, secondAccount);
+			await stateStoreMock.account.set(secondAccount.address, secondAccount);
 			context.asset = { username: 'myuser' };
 
-			stateStoreMock.chain.set(
+			await stateStoreMock.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
 				codec.encode(delegatesUserNamesSchema, {
 					registeredDelegates: [
@@ -257,7 +257,7 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should throw error when account is already delegate', async () => {
 			const defaultVal = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {});
-			stateStoreMock.account.set(
+			await stateStoreMock.account.set(
 				sender.address,
 				testing.fixtures.createDefaultAccount([DPoSModule], {
 					address: sender.address,
@@ -277,7 +277,7 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should set lastForgedHeight to the lastBlock height + 1', async () => {
 			// Arrange
-			stateStoreMock.account.set(
+			await stateStoreMock.account.set(
 				sender.address,
 				testing.fixtures.createDefaultAccount([DPoSModule], { address: sender.address }),
 			);

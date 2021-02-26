@@ -304,7 +304,7 @@ describe('PomTransactionAsset', () => {
 		it('should throw error if misbehaving account is not a delegate', async () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.dpos.delegate.username = '';
-			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
+			await stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
 			await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 				'Account is not a delegate',
@@ -314,7 +314,7 @@ describe('PomTransactionAsset', () => {
 		it('should throw error if misbehaving account is already banned', async () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.dpos.delegate.isBanned = true;
-			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
+			await stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
 			await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 				'Cannot apply proof-of-misbehavior. Delegate is already banned.',
@@ -324,7 +324,7 @@ describe('PomTransactionAsset', () => {
 		it('should throw error if misbehaving account is already punished at height h', async () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.dpos.delegate.pomHeights = [applyContext.asset.header1.height + 10];
-			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
+			await stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
 			await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
 				'Cannot apply proof-of-misbehavior. Delegate is already punished.',
@@ -408,7 +408,7 @@ describe('PomTransactionAsset', () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.dpos.delegate.pomHeights = objects.cloneDeep(pomHeights);
 			updatedDelegateAccount.dpos.delegate.isBanned = false;
-			stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
+			await stateStoreMock.account.set(misBehavingDelegate.address, updatedDelegateAccount);
 
 			await transactionAsset.apply(applyContext);
 

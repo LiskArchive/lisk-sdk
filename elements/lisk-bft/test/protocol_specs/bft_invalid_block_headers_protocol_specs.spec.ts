@@ -58,7 +58,7 @@ describe('FinalityManager', () => {
 						minActiveHeight: blockHeader.delegateMinHeightActive,
 					});
 				}
-				stateStore.consensus.set(
+				await stateStore.consensus.set(
 					CONSENSUS_STATE_VALIDATORS_KEY,
 					codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
 				);

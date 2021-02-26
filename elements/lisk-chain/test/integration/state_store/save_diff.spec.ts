@@ -91,7 +91,9 @@ describe('stateStore.finalize.saveDiff', () => {
 	describe('finalize', () => {
 		it('should save only account state changes diff', async () => {
 			// Arrange
-			accounts.forEach(account => stateStore.account.set(account.address, account));
+			for (const account of accounts) {
+				await stateStore.account.set(account.address, account);
+			}
 			const fakeHeight = '1';
 			const batch = db.batch();
 
@@ -114,7 +116,9 @@ describe('stateStore.finalize.saveDiff', () => {
 
 		it('should not save deleted account from memory', async () => {
 			// Arrange
-			accounts.forEach(account => stateStore.account.set(account.address, account));
+			for (const account of accounts) {
+				await stateStore.account.set(account.address, account);
+			}
 			const fakeHeight = '1';
 			const batch = db.batch();
 			// Act
@@ -134,7 +138,9 @@ describe('stateStore.finalize.saveDiff', () => {
 
 		it('should save original value as deleted for deleted existed account', async () => {
 			// Arrange
-			accounts.forEach(account => stateStore.account.set(account.address, account));
+			for (const account of accounts) {
+				await stateStore.account.set(account.address, account);
+			}
 			const fakeHeight = '1';
 			const batch = db.batch();
 			stateStore.finalize(fakeHeight, batch);
@@ -153,7 +159,7 @@ describe('stateStore.finalize.saveDiff', () => {
 			);
 			const originalBuffer = encodeDefaultAccount(originalAccount);
 			originalAccount.token.balance = BigInt(777);
-			newStateStore.account.set(accounts[0].address, originalAccount);
+			await newStateStore.account.set(accounts[0].address, originalAccount);
 			const nextBatch = db.batch();
 			await newStateStore.account.del(accounts[0].address);
 			newStateStore.finalize(nextHeight, nextBatch);
@@ -177,8 +183,8 @@ describe('stateStore.finalize.saveDiff', () => {
 
 		it('should save only chain state changes diff', async () => {
 			// Arrange
-			stateStore.chain.set('key1', Buffer.from('value1'));
-			stateStore.chain.set('key2', Buffer.from('value2'));
+			await stateStore.chain.set('key1', Buffer.from('value1'));
+			await stateStore.chain.set('key2', Buffer.from('value2'));
 			const fakeHeight = '2';
 			const batch = db.batch();
 
@@ -198,8 +204,8 @@ describe('stateStore.finalize.saveDiff', () => {
 
 		it('should save only consensus state changes diff', async () => {
 			// Arrange
-			stateStore.consensus.set('key3', Buffer.from('value3'));
-			stateStore.consensus.set('key4', Buffer.from('value4'));
+			await stateStore.consensus.set('key3', Buffer.from('value3'));
+			await stateStore.consensus.set('key4', Buffer.from('value4'));
 			const fakeHeight = '3';
 			const batch = db.batch();
 
@@ -219,11 +225,13 @@ describe('stateStore.finalize.saveDiff', () => {
 
 		it('should save all state changes as diff', async () => {
 			// Arrange
-			accounts.map(account => stateStore.account.set(account.address, account));
-			stateStore.chain.set('key1', Buffer.from('value1'));
-			stateStore.chain.set('key2', Buffer.from('value2'));
-			stateStore.consensus.set('key3', Buffer.from('value3'));
-			stateStore.consensus.set('key4', Buffer.from('value4'));
+			for (const account of accounts) {
+				await stateStore.account.set(account.address, account);
+			}
+			await stateStore.chain.set('key1', Buffer.from('value1'));
+			await stateStore.chain.set('key2', Buffer.from('value2'));
+			await stateStore.consensus.set('key3', Buffer.from('value3'));
+			await stateStore.consensus.set('key4', Buffer.from('value4'));
 			const fakeHeight = '4';
 			const batch = db.batch();
 
@@ -251,8 +259,8 @@ describe('stateStore.finalize.saveDiff', () => {
 		it('should save updated changes as diff', async () => {
 			// Arrange
 			// Create
-			stateStore.consensus.set('key1', Buffer.from('value1'));
-			stateStore.consensus.set('key2', Buffer.from('value2'));
+			await stateStore.consensus.set('key1', Buffer.from('value1'));
+			await stateStore.consensus.set('key2', Buffer.from('value2'));
 			const fakeHeight = '5';
 			const batch = db.batch();
 			stateStore.finalize(fakeHeight, batch);
@@ -271,8 +279,8 @@ describe('stateStore.finalize.saveDiff', () => {
 			const updatedVal2 = Buffer.concat([val2 as Buffer, val1 as Buffer]);
 
 			// Act
-			stateStore.consensus.set('key1', updatedVal1);
-			stateStore.consensus.set('key2', updatedVal2);
+			await stateStore.consensus.set('key1', updatedVal1);
+			await stateStore.consensus.set('key2', updatedVal2);
 			const updatedFakeHeight = '6';
 			const updateBatch = db.batch();
 			stateStore.finalize(updatedFakeHeight, updateBatch);
