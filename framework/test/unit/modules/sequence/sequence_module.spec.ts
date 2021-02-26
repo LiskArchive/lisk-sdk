@@ -74,7 +74,11 @@ describe('sequence module', () => {
 	describe('incompatible nonce', () => {
 		it('should throw NonceOutOfBoundsError error for tx nonce lower than account nonce', async () => {
 			// Arrange
-			const transaction = ({ ...sampleTx, nonce: BigInt(0) } as unknown) as Transaction;
+			const transaction = ({
+				...sampleTx,
+				nonce: BigInt(0),
+				id: sampleTx.id,
+			} as unknown) as Transaction;
 			const context = testing.createTransactionApplyContext({ transaction });
 			jest.spyOn(context.stateStore.account, 'get');
 			when(context.stateStore.account.get as any)
@@ -100,7 +104,11 @@ describe('sequence module', () => {
 
 		it('should throw NonceOutOfBoundsError error for tx nonce not equal to account nonce', async () => {
 			// Arrange
-			const transaction = ({ ...sampleTx, nonce: BigInt(4) } as unknown) as Transaction;
+			const transaction = ({
+				...sampleTx,
+				nonce: BigInt(4),
+				id: sampleTx.id,
+			} as unknown) as Transaction;
 			const context = testing.createTransactionApplyContext({ transaction });
 			jest.spyOn(context.stateStore.account, 'get');
 			when(context.stateStore.account.get as any)
