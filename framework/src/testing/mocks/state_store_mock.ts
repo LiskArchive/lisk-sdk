@@ -18,7 +18,7 @@ import { BlockHeader, Account, AccountDefaultProps } from '@liskhq/lisk-chain';
 interface AccountState {
 	get<T = any>(address: Buffer): Promise<Account<T>>;
 	getOrDefault<T = any>(address: Buffer): Promise<Account<T>>;
-	set<T = any>(address: Buffer, account: T): void;
+	set<T = any>(address: Buffer, account: T): Promise<void>;
 	del(address: Buffer): Promise<void>;
 	getUpdated<T = any>(): Account<T>[];
 }
@@ -28,12 +28,12 @@ interface ChainState {
 	lastBlockReward: bigint;
 	networkIdentifier: Buffer;
 	get(key: string): Promise<Buffer | undefined>;
-	set(address: string, value: Buffer): void;
+	set(address: string, value: Buffer): Promise<void>;
 }
 
 interface ConsensusState {
 	get(key: string): Promise<Buffer | undefined>;
-	set(address: string, value: Buffer): void;
+	set(address: string, value: Buffer): Promise<void>;
 }
 
 export interface MockInput {
@@ -93,7 +93,7 @@ export class StateStoreMock {
 			},
 			getUpdated: <T = any>() => this.accountData as Account<T>[],
 			// eslint-disable-next-line @typescript-eslint/require-await
-			set: <T = any>(address: Buffer, account: Account<T>): void => {
+			set: async <T = any>(address: Buffer, account: Account<T>): Promise<void> => {
 				const index = this.accountData.findIndex(acc => acc.address.equals(address));
 				if (index > -1) {
 					this.accountData[index] = account;
@@ -117,7 +117,8 @@ export class StateStoreMock {
 			lastBlockReward: lastBlockReward ?? BigInt(0),
 			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(objects.cloneDeep(this.chainData[key])),
-			set: (key: string, value: Buffer): void => {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			set: async (key: string, value: Buffer): Promise<void> => {
 				this.chainData[key] = value;
 			},
 		};
@@ -125,7 +126,8 @@ export class StateStoreMock {
 		this.consensus = {
 			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(objects.cloneDeep(this.consensusData[key])),
-			set: (key: string, value: Buffer): void => {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			set: async (key: string, value: Buffer): Promise<void> => {
 				this.consensusData[key] = value;
 			},
 		};

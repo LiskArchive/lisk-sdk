@@ -208,7 +208,7 @@ export interface StateStore {
 	readonly account: {
 		get<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>>;
 		getOrDefault<T = AccountDefaultProps>(address: Buffer): Promise<Account<T>>;
-		set<T = AccountDefaultProps>(address: Buffer, updatedElement: Account<T>): void;
+		set<T = AccountDefaultProps>(address: Buffer, updatedElement: Account<T>): Promise<void>;
 		del(address: Buffer): Promise<void>;
 	};
 	readonly chain: {
@@ -216,7 +216,7 @@ export interface StateStore {
 		lastBlockReward: bigint;
 		networkIdentifier: Buffer;
 		get(key: string): Promise<Buffer | undefined>;
-		set(key: string, value: Buffer): void;
+		set(key: string, value: Buffer): Promise<void>;
 	};
 }
 
