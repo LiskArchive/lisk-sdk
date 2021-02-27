@@ -35,6 +35,8 @@ import { MerkleTree } from '@liskhq/lisk-tree';
 interface CreateBlock<T = BlockHeaderAsset> {
 	passphrase: string;
 	networkIdentifier: Buffer;
+	timestamp: number;
+	previousBlockID: Buffer;
 	payload?: Transaction[];
 	header?: Partial<BlockHeader<T>>;
 }
@@ -56,7 +58,7 @@ export const createBlockHeaderWithDefaults = <T = unknown>(
 	previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
 	transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
 	generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
-	reward: header?.reward ?? BigInt(500000000),
+	reward: header?.reward ?? BigInt(0),
 	asset: (header?.asset ?? {
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
@@ -82,6 +84,8 @@ export const createFakeBlockHeader = <T = unknown>(
 export const createBlock = <T = BlockHeaderAsset>({
 	passphrase,
 	networkIdentifier,
+	timestamp,
+	previousBlockID,
 	payload,
 	header,
 }: CreateBlock<T>): Block<T> => {
@@ -95,15 +99,10 @@ export const createBlock = <T = BlockHeaderAsset>({
 		...header?.asset,
 	};
 
-	// TODO: Once createGenesisBlock utils is ready use the values accordingly
-	// const genesisBlock = createGenesisBlock();
-
 	const blockHeader = createBlockHeaderWithDefaults({
-		// TODO: Once createGenesisBlock utils is ready use the values accordingly
-		// previousBlockID: genesisBlock.header.id,
-		// TODO: Once createGenesisBlock utils is ready use the values accordingly
-		// timestamp: genesisBlock.header.timestamp + 10,
-		transactionRoot: txTree.root,
+		previousBlockID,
+		timestamp: timestamp + 10,
+		transactionRoot: header?.transactionRoot ?? txTree.root,
 		generatorPublicKey: publicKey,
 		...header,
 		asset,

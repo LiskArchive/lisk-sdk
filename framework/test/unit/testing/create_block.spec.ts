@@ -11,23 +11,37 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { GenesisBlock } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { createBlock } from '../../../src/testing/create_block';
 
 import * as devnetConfig from '../../fixtures/config/devnet/config.json';
 import * as devnetGenesisBlock from '../../fixtures/config/devnet/genesis_block.json';
 import { genesis } from '../../fixtures/accounts';
+import { createGenesisBlock } from '../../../src/testing';
+import { TokenModule } from '../../../src/modules/token/token_module';
 
 describe('Create Block', () => {
 	const networkIdentifier = getNetworkIdentifier(
 		Buffer.from(devnetGenesisBlock.header.id, 'hex'),
 		devnetConfig.genesisConfig.communityIdentifier,
 	).toString('hex');
+	let genesisBlock: GenesisBlock;
+
+	beforeAll(() => {
+		const accounts = [{ address: genesis.address }];
+		const initDelegates = [genesis.address];
+		const modules = [TokenModule];
+
+		genesisBlock = createGenesisBlock({ modules, accounts, initDelegates, timestamp: 0 });
+	});
 
 	it('should return a valid default block', () => {
 		const block = createBlock({
 			passphrase: genesis.passphrase,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+			timestamp: genesisBlock.header.timestamp,
+			previousBlockID: genesisBlock.header.id,
 			header: {},
 			payload: [],
 		});
@@ -68,7 +82,7 @@ describe('Create Block', () => {
 				generatorPublicKey: genesis.publicKey,
 				height: 200,
 				id: expect.any(Buffer),
-				previousBlockID: Buffer.from('previous block'),
+				previousBlockID: genesisBlock.header.id,
 				reward: BigInt(5),
 				signature: expect.any(Buffer),
 				timestamp: expect.any(Number),
@@ -81,11 +95,12 @@ describe('Create Block', () => {
 		const block = createBlock({
 			passphrase: genesis.passphrase,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+			timestamp: genesisBlock.header.timestamp,
+			previousBlockID: genesisBlock.header.id,
 			header: {
 				asset: { ...expectedAsset },
 				generatorPublicKey: genesis.publicKey,
 				height: 200,
-				previousBlockID: Buffer.from('previous block'),
 				version: 0,
 				reward: BigInt(5),
 			},
@@ -95,6 +110,17 @@ describe('Create Block', () => {
 		expect(block).toEqual(expect.objectContaining(expectedBlock));
 	});
 
-	it.todo('should return a valid previous block detail when genesis block properties given');
-	it.todo('should return a valid block detail when given valid payload and transaction root');
+	it('should return a valid previous block id and timestamp from genesis block', () => {
+		const block = createBlock({
+			passphrase: genesis.passphrase,
+			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+			timestamp: genesisBlock.header.timestamp,
+			previousBlockID: genesisBlock.header.id,
+			header: {},
+			payload: [],
+		});
+
+		expect(block.header.previousBlockID).toEqual(genesisBlock.header.id);
+		expect(block.header.timestamp).toEqual(genesisBlock.header.timestamp + 10);
+	});
 });

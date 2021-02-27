@@ -13,7 +13,10 @@
  *
  */
 
+import * as fs from 'fs-extra';
 import { AccountDefaultProps, AccountSchema, Block, BlockHeaderAsset } from '@liskhq/lisk-chain';
+import { KVStore } from '@liskhq/lisk-db';
+
 import { BaseModule, GenesisConfig } from '..';
 import { Logger } from '../logger';
 import { BaseModuleChannel } from '../modules';
@@ -219,3 +222,17 @@ export const defaultAccountSchema = {
 		},
 	},
 };
+
+// Database utils
+const defaultDatabasePath = '/tmp/lisk-framework/test';
+export const getDBPath = (name: string, dbPath = defaultDatabasePath): string =>
+	`${dbPath}/${name}.db`;
+
+export const createDB = (name: string, dbPath = defaultDatabasePath): KVStore => {
+	fs.ensureDirSync(dbPath);
+	const filePath = getDBPath(name, dbPath);
+	return new KVStore(filePath);
+};
+
+export const removeDB = (dbPath = defaultDatabasePath): void =>
+	['forger', 'blockchain', 'node'].forEach(name => fs.removeSync(getDBPath(name, dbPath)));
