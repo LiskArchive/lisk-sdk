@@ -236,3 +236,8 @@ export const createDB = (name: string, dbPath = defaultDatabasePath): KVStore =>
 
 export const removeDB = (dbPath = defaultDatabasePath): void =>
 	['forger', 'blockchain', 'node'].forEach(name => fs.removeSync(getDBPath(name, dbPath)));
+
+export const getTimestampMonthsAgo = (month = 2): number => {
+	const expectedTimestamp = new Date();
+	return expectedTimestamp.setDate(expectedTimestamp.getMonth() - month);
+};

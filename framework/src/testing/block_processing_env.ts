@@ -14,112 +14,117 @@
  *
  */
 
-import { AccountDefaultProps, Block, GenesisBlock } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { BFT } from '@liskhq/lisk-bft';
+import { Block, Chain, DataAccess, GenesisBlock } from '@liskhq/lisk-chain';
+import { getRandomBytes, getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { KVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 
-import { applicationConfigSchema } from '../schema/application_config_schema';
-import { ApplicationConfig, GenesisConfig, StateStore } from '../types';
-import { ModuleClass } from './types';
-import { Node } from '../node/node';
-import { loggerMock } from './mocks/logger_mock';
-import { moduleBusMock, moduleChannelMock } from './mocks/channel_mock';
+import { Processor } from '../node/processor';
 import { InMemoryChannel } from '../controller';
-import { Bus } from '../controller/bus';
+import { loggerMock, moduleChannelMock } from './mocks';
 import { createBlock } from './create_block';
-import { defaultGenesisConfig } from './fixtures';
-import { createDB, removeDB, getModuleInstance } from './utils';
-import { StateStoreMock } from './mocks/state_store_mock';
+import { defaultAccount, defaultConfig, createGenesisBlockWithAccounts } from './fixtures';
+import { createDB, removeDB, getAccountSchemaFromModules } from './utils';
+import { ApplicationConfig, GenesisConfig } from '../types';
+import { ModuleClass } from './types';
 
-type config = {
+type Options = {
 	genesisConfig?: GenesisConfig;
 	databasePath?: string;
 	passphrase?: string;
 };
 
-interface BlockProcessingEnv<T> {
+interface BlockProcessingEnv {
 	modules: ModuleClass[];
-	genesisBlockJSON: GenesisBlock<T>;
-	config?: config;
+	options?: Options;
 }
 
 export interface BlockProcessingEnvResult {
-	process: (block: Block, options?: Record<string, unknown>) => Promise<void>;
+	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
-	getStateStore: () => StateStore;
+	getDataAccess: () => DataAccess;
 	getNetworkId: () => Buffer;
-	cleanup: (config: config) => Promise<void>;
+	cleanup: (config: Options) => Promise<void>;
 }
 
-const getAppConfig = (configPropsToOverride: Partial<ApplicationConfig>): ApplicationConfig => {
+const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 	const mergedConfig = objects.mergeDeep(
 		{},
 		{
-			...applicationConfigSchema.default,
+			...defaultConfig,
 			genesisConfig: {
-				...applicationConfigSchema.default.genesisConfig,
-				...configPropsToOverride.genesisConfig,
+				...defaultConfig.genesisConfig,
+				...(genesisConfig ?? {}),
 			},
-			network: { maxInboundConnections: 0, seedPeers: [] },
 		},
 	) as ApplicationConfig;
 
 	return mergedConfig;
 };
 
-const getNodeInstance = async <T>(params: BlockProcessingEnv<T>): Promise<Node> => {
-	// Node configuration options
-	const overrideConfig = { genesisConfig: params.config?.genesisConfig ?? {} } as Partial<
-		ApplicationConfig
-	>;
-	const appConfig = getAppConfig(overrideConfig);
-	const node = new Node({
-		options: appConfig,
-		genesisBlockJSON: (params.genesisBlockJSON as unknown) as Record<string, unknown>,
+const getProcessor = (
+	db: KVStore,
+	appConfig: ApplicationConfig,
+	genesisBlock: GenesisBlock,
+	networkIdentifier: Buffer,
+	params: BlockProcessingEnv,
+): Processor => {
+	const channel = (moduleChannelMock as unknown) as InMemoryChannel;
+
+	const chainModule = new Chain({
+		db,
+		genesisBlock,
+		networkIdentifier,
+		maxPayloadLength: appConfig.genesisConfig.maxPayloadLength,
+		rewardDistance: appConfig.genesisConfig.rewards.distance,
+		rewardOffset: appConfig.genesisConfig.rewards.offset,
+		rewardMilestones: appConfig.genesisConfig.rewards.milestones.map(s => BigInt(s)),
+		blockTime: appConfig.genesisConfig.blockTime,
+		minFeePerByte: appConfig.genesisConfig.minFeePerByte,
+		baseFees: appConfig.genesisConfig.baseFees,
+		accountSchemas: getAccountSchemaFromModules(params.modules),
 	});
 
-	if (params.modules.length) {
-		for (const moduleClass of params.modules) {
-			const moduleInstance = getModuleInstance(moduleClass, params.config);
-			node.registerModule(moduleInstance);
-		}
-	}
+	const bftModule = new BFT({
+		chain: chainModule,
+		threshold: appConfig.genesisConfig.bftThreshold,
+		genesisHeight: genesisBlock.header.height,
+	});
 
-	// DB instances
-	const blockchainDB = createDB('blockchain', params.config?.databasePath);
-	const forgerDB = createDB('forger', params.config?.databasePath);
-	const nodeDB = createDB('node', params.config?.databasePath);
-
-	await node.init({
-		bus: (moduleBusMock as unknown) as Bus,
-		channel: (moduleChannelMock as unknown) as InMemoryChannel,
+	const processor = new Processor({
+		channel,
 		logger: loggerMock,
-		blockchainDB,
-		forgerDB,
-		nodeDB,
+		chainModule,
+		bftModule,
 	});
 
-	return node;
+	return processor;
 };
 
-export const getBlockProcessingEnv = async <T = AccountDefaultProps>(
-	params: BlockProcessingEnv<T>,
+export const getBlockProcessingEnv = async (
+	params: BlockProcessingEnv,
 ): Promise<BlockProcessingEnvResult> => {
-	const node = await getNodeInstance<T>(params);
+	const appConfig = getAppConfig(params.options?.genesisConfig);
+	const { genesisBlock } = createGenesisBlockWithAccounts(params.modules);
+	const networkIdentifier = getNetworkIdentifier(
+		genesisBlock.header.id,
+		appConfig.genesisConfig.communityIdentifier,
+	);
+	const db = createDB('blockchain', params.options?.databasePath);
+	const processor = getProcessor(db, appConfig, genesisBlock, networkIdentifier, params);
+	await processor.init(genesisBlock);
 
 	return {
-		process: async (block): Promise<void> => node['_processor'].process(block),
+		process: async (block): Promise<void> => processor.process(block),
 		processUntilHeight: async (height): Promise<void> => {
-			const { networkIdentifier } = node;
-			const passphrase = params.config?.passphrase ?? defaultGenesisConfig.passphrase;
-
 			for (let index = 0; index < height; index += 1) {
 				// Get previous block before creating and processing new block
-				const { height: lastBlockHeight, id, timestamp } = node['_chain'].lastBlock.header;
+				const { height: lastBlockHeight, id, timestamp } = processor['_chain'].lastBlock.header;
 
 				const nextBlock = createBlock({
-					passphrase,
+					passphrase: defaultAccount.passphrase,
 					networkIdentifier,
 					timestamp: timestamp + 10,
 					previousBlockID: id,
@@ -133,17 +138,15 @@ export const getBlockProcessingEnv = async <T = AccountDefaultProps>(
 					},
 					payload: [],
 				});
-				await node['_processor'].process(nextBlock);
+				await processor.process(nextBlock);
 			}
 		},
-		getLastBlock: () => node['_chain'].lastBlock,
-		getNetworkId: () => node.networkIdentifier,
-		getStateStore: () => new StateStoreMock(),
+		getLastBlock: () => processor['_chain'].lastBlock,
+		getNetworkId: () => networkIdentifier,
+		getDataAccess: () => processor['_chain'].dataAccess,
 		cleanup: async ({ databasePath }): Promise<void> => {
-			await node.cleanup();
-			await node['_forgerDB'].close();
-			await node['_nodeDB'].close();
-			await node['_blockchainDB'].close();
+			await processor.stop();
+			await db.close();
 			removeDB(databasePath);
 		},
 	};

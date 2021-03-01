@@ -12,35 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { GenesisBlock } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 
 import { TokenModule } from '../../../src/modules/token/token_module';
+import { createBlock } from '../../../src/testing';
 import {
 	getBlockProcessingEnv,
 	BlockProcessingEnvResult,
 } from '../../../src/testing/block_processing_env';
-import { createGenesisBlock, createBlock } from '../../../src/testing';
-import { genesis } from '../../fixtures/accounts';
+import { defaultAccount } from '../../../src/testing/fixtures';
 
 describe('getBlockProcessingEnv', () => {
 	let blockProcessEnv: BlockProcessingEnvResult;
-	let genesisBlockJSON: GenesisBlock;
 	const databasePath = '/tmp/lisk/block_process/test';
-	const accounts = [{ address: genesis.address }];
-	const initDelegates = [genesis.address];
 	const modules = [TokenModule];
-
-	beforeAll(() => {
-		genesisBlockJSON = createGenesisBlock({ modules, accounts, initDelegates, timestamp: 0 });
-	});
 
 	beforeEach(async () => {
 		blockProcessEnv = await getBlockProcessingEnv({
 			modules,
-			genesisBlockJSON,
-			config: {
-				passphrase: genesis.passphrase,
+			options: {
 				databasePath,
 			},
 		});
@@ -53,7 +43,7 @@ describe('getBlockProcessingEnv', () => {
 	it('should be able to process a valid block', async () => {
 		const lastBlockHeader = blockProcessEnv.getLastBlock().header;
 		const block = createBlock({
-			passphrase: genesis.passphrase,
+			passphrase: defaultAccount.passphrase,
 			networkIdentifier: blockProcessEnv.getNetworkId(),
 			timestamp: lastBlockHeader.timestamp + 10,
 			previousBlockID: lastBlockHeader.id,
@@ -69,11 +59,19 @@ describe('getBlockProcessingEnv', () => {
 		expect(blockProcessEnv.getLastBlock().header.height).toEqual(0);
 		await expect(blockProcessEnv.process(block)).toResolve();
 		expect(blockProcessEnv.getLastBlock().header.height).toEqual(block.header.height);
+		expect(blockProcessEnv.getLastBlock().header.id).toEqual(block.header.id);
 	});
 
 	it('should be able to process blocks until given height', async () => {
 		const createBlockUntilHeight = 10;
 		await blockProcessEnv.processUntilHeight(createBlockUntilHeight);
 		expect(blockProcessEnv.getLastBlock().header.height).toEqual(createBlockUntilHeight);
+	});
+
+	it('should enable to use data access', async () => {
+		const account = await blockProcessEnv
+			.getDataAccess()
+			.getAccountByAddress(defaultAccount.address);
+		expect(account.address).toEqual(defaultAccount.address);
 	});
 });

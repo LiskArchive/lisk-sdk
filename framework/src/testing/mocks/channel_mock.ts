@@ -19,12 +19,3 @@ export const moduleChannelMock = {
 	once: (_name: string, _data?: Record<string, unknown>): void => {},
 	invoke: (_name: string, _data?: Record<string, unknown>): void => {},
 };
-
-export const moduleBusMock = {
-	registerChannel: (_name: string, _data?: Record<string, unknown>): void => {},
-	setup: (_name: string, _data?: Record<string, unknown>): void => {},
-	publish: (_name: string, _data?: Record<string, unknown>): void => {},
-	subscribe: (_name: string, _data?: Record<string, unknown>): void => {},
-	once: (_name: string, _data?: Record<string, unknown>): void => {},
-	invoke: (_name: string, _data?: Record<string, unknown>): void => {},
-};
