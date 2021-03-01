@@ -66,7 +66,8 @@ export class StateStoreMock {
 				}
 				return ({ ...account } as unknown) as Account<T>;
 			},
-			set: (address: Buffer, account: Account): void => {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			set: async (address: Buffer, account: Account): Promise<void> => {
 				const index = this.accountData.findIndex(acc => acc.address.equals(address));
 				if (index > -1) {
 					this.accountData[index] = account;
@@ -81,7 +82,8 @@ export class StateStoreMock {
 			lastBlockHeaders: additionalInfo?.lastBlockHeaders ?? ([] as BlockHeader[]),
 			lastBlockReward: additionalInfo?.lastBlockReward ?? BigInt(0),
 			get: async (key: string): Promise<Buffer | undefined> => Promise.resolve(this.chainData[key]),
-			set: (key: string, value: Buffer): void => {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			set: async (key: string, value: Buffer): Promise<void> => {
 				this.chainData[key] = value;
 			},
 		};

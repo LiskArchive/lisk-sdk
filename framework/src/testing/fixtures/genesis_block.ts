@@ -18,12 +18,11 @@ import { getGenesisBlockJSON } from '@liskhq/lisk-genesis';
 import { DPoSModule } from '../../modules';
 import { createGenesisBlock } from '../create_genesis_block';
 import { ModuleClass, PartialAccount } from '../types';
-import { getAccountSchemaFromModules, getTimestampMonthsAgo } from '../utils';
+import { getAccountSchemaFromModules } from '../utils';
 import { defaultAccountsAddresses, defaultDelegates } from './accounts';
 
 export const createGenesisBlockWithAccounts = <T = AccountDefaultProps>(
 	modules: ModuleClass[],
-	timestamp = getTimestampMonthsAgo(),
 ): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
 	if (!modules.includes(DPoSModule)) {
 		modules.push(DPoSModule);
@@ -39,6 +38,8 @@ export const createGenesisBlockWithAccounts = <T = AccountDefaultProps>(
 				address: delegate.address,
 			} as unknown) as PartialAccount<T>),
 	);
+	// Set genesis block timestamp to 2 months in past relative to current date
+	const timestamp = Math.floor(new Date().setMonth(new Date().getMonth() - 2) / 1000);
 
 	const genesisBlock = createGenesisBlock<T>({
 		modules,

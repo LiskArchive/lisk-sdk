@@ -22,5 +22,6 @@ export { getModuleInstance, getAccountSchemaFromModules } from './utils';
 export * from './create_block';
 export * from './app_env';
 export * from './create_contexts';
+export * from './block_processing_env';
 
 export { fixtures, mocks };
