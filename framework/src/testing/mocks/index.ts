@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 export * from './channel_mock';
 export * from './consensus_mock';
 export * from './data_access_mock';

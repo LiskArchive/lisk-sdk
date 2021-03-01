@@ -21,10 +21,11 @@ import { BaseModule, GenesisConfig } from '..';
 import { Logger } from '../logger';
 import { BaseModuleChannel } from '../modules';
 import { BaseModuleDataAccess } from '../types';
-import { moduleChannelMock } from './mocks/channel_mock';
+import { channelMock } from './mocks/channel_mock';
 import { DataAccessMock } from './mocks/data_access_mock';
 import { loggerMock } from './mocks/logger_mock';
 import { APP_EVENT_BLOCK_NEW } from '../constants';
+// eslint-disable-next-line import/no-cycle
 import { Data, ModuleClass, WaitUntilBlockHeightOptions } from './types';
 
 export const getAccountSchemaFromModules = (
@@ -59,7 +60,7 @@ export const getModuleInstance = <
 	const module = new Module(opts?.genesisConfig ?? ({} as never));
 
 	module.init({
-		channel: opts?.channel ?? moduleChannelMock,
+		channel: opts?.channel ?? channelMock,
 		logger: opts?.logger ?? loggerMock,
 		dataAccess: opts?.dataAccess ?? (new DataAccessMock<T2, T3>() as never),
 	});
