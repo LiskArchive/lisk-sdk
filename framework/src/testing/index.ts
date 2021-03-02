@@ -12,16 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// eslint-disable-next-line import/no-cycle
 import * as fixtures from './fixtures';
 import * as mocks from './mocks';
 
-export { createBlock } from './create_block';
-// eslint-disable-next-line import/no-cycle
 export { createTransaction } from './create_transaction';
-// eslint-disable-next-line import/no-cycle
 export { createGenesisBlock } from './create_genesis_block';
-// eslint-disable-next-line import/no-cycle
 export { getModuleInstance, getAccountSchemaFromModules } from './utils';
 export * from './create_block';
 export * from './app_env';

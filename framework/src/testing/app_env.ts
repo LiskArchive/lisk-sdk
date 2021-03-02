@@ -17,10 +17,12 @@ import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
 import { homedir } from 'os';
 import { resolve as pathResolve } from 'path';
-import { Application, DPoSModule, PartialApplicationConfig } from '..';
 import { ModuleClass, PluginClass } from './types';
 import { defaultConfig } from './fixtures';
 import { createGenesisBlockWithAccounts } from './fixtures/genesis_block';
+import { PartialApplicationConfig } from '../types';
+import { Application } from '../application';
+import { DPoSModule } from '../modules/dpos';
 
 interface GetApplicationEnv {
 	modules: ModuleClass[];

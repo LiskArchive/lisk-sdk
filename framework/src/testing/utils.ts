@@ -17,15 +17,13 @@ import * as fs from 'fs-extra';
 import { AccountDefaultProps, AccountSchema, Block, BlockHeaderAsset } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 
-import { BaseModule, GenesisConfig } from '..';
 import { Logger } from '../logger';
-import { BaseModuleChannel } from '../modules';
-import { BaseModuleDataAccess } from '../types';
+import { BaseModule, BaseModuleChannel } from '../modules';
+import { BaseModuleDataAccess, GenesisConfig } from '../types';
 import { channelMock } from './mocks/channel_mock';
 import { DataAccessMock } from './mocks/data_access_mock';
 import { loggerMock } from './mocks/logger_mock';
 import { APP_EVENT_BLOCK_NEW } from '../constants';
-// eslint-disable-next-line import/no-cycle
 import { Data, ModuleClass, WaitUntilBlockHeightOptions } from './types';
 
 export const getAccountSchemaFromModules = (
