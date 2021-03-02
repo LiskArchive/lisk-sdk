@@ -30,7 +30,7 @@ describe('Plugins DB', () => {
 		const rootPath = unresolvedRootPath.replace('~', homedir());
 		const dirPath = join(rootPath, 'plugins/data', dbName);
 
-		expect(mockedFsExtra.ensureDir).toBeCalledWith(dirPath);
+		expect(mockedFsExtra.ensureDir).toHaveBeenCalledWith(dirPath);
 	});
 
 	it('should resolve to default plugin data path', async () => {
@@ -40,6 +40,6 @@ describe('Plugins DB', () => {
 		const rootPath = customUnresolvedRootPath.replace('~', homedir());
 		const dirPath = join(rootPath, 'plugins/data', dbName);
 
-		expect(mockedFsExtra.ensureDir).toBeCalledWith(dirPath);
+		expect(mockedFsExtra.ensureDir).toHaveBeenCalledWith(dirPath);
 	});
 });

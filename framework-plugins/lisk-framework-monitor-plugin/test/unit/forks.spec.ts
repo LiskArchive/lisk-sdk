@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { blockHeaderSchema, blockSchema } from '@liskhq/lisk-chain';
+import { blockHeaderSchema, blockSchema, RawBlock } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
-import { RawBlock } from '@liskhq/lisk-chain';
+
 import { MonitorPlugin } from '../../src/monitor_plugin';
 
 describe('_handleFork', () => {

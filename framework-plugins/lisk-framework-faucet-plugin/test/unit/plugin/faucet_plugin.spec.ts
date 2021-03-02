@@ -36,7 +36,7 @@ describe('FaucetPlugin', () => {
 		});
 
 		it('should throw error if valid options are not passed', () => {
-			expect(() => new FaucetPlugin({} as never)).toThrowError(
+			expect(() => new FaucetPlugin({} as never)).toThrow(
 				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'encryptedPassphrase'",
 			);
 		});
