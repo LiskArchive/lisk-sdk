@@ -1,12 +1,3 @@
-import {
-	ActionsDefinition,
-	BasePlugin,
-	BaseChannel,
-	EventsDefinition,
-	PluginInfo,
-	PluginOptionsWithAppConfig,
-} from 'lisk-framework';
-import { SchemaWithDefault } from '../../../../elements/lisk-chain/src/utils/account';
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -20,6 +11,16 @@ import { SchemaWithDefault } from '../../../../elements/lisk-chain/src/utils/acc
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import {
+	ActionsDefinition,
+	BasePlugin,
+	BaseChannel,
+	EventsDefinition,
+	PluginInfo,
+	PluginOptionsWithAppConfig,
+	SchemaWithDefault,
+} from 'lisk-framework';
 import * as defaults from './defaults';
 // eslint-disable-next-line
 const packageJSON = require('../../package.json');
