@@ -187,8 +187,8 @@ export class Controller {
 
 	private async _loadInMemoryPlugin(
 		alias: string,
-		Klass: InstantiablePlugin<BasePlugin>,
-		options: PluginOptions,
+		Klass: InstantiablePlugin,
+		options: PluginOptionsWithAppConfig,
 	): Promise<void> {
 		const pluginAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
@@ -216,7 +216,7 @@ export class Controller {
 
 	private async _loadChildProcessPlugin(
 		alias: string,
-		Klass: InstantiablePlugin<BasePlugin>,
+		Klass: InstantiablePlugin,
 		options: PluginOptions,
 	): Promise<void> {
 		const pluginAlias = alias || Klass.alias;

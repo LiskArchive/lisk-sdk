@@ -15,13 +15,13 @@
 // Parameters passed by `child_process.fork(_, parameters)`
 
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
-import { PluginOptions, SocketPaths } from '../types';
+import { PluginOptionsWithAppConfig, SocketPaths } from '../types';
 import { IPCChannel } from './channels';
 
 const modulePath: string = process.argv[2];
 const moduleExportName: string = process.argv[3];
 // eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
-const Klass: InstantiablePlugin<BasePlugin> = require(modulePath)[moduleExportName];
+const Klass: InstantiablePlugin = require(modulePath)[moduleExportName];
 let channel: IPCChannel;
 let plugin: BasePlugin;
 
@@ -30,7 +30,7 @@ const _loadPlugin = async (
 		[key: string]: unknown;
 		socketsPath: SocketPaths;
 	},
-	pluginOptions: PluginOptions,
+	pluginOptions: PluginOptionsWithAppConfig,
 ): Promise<void> => {
 	const pluginAlias = Klass.alias;
 	plugin = new Klass(pluginOptions);
@@ -75,7 +75,7 @@ process.on(
 	}: {
 		action: string;
 		config: Record<string, unknown>;
-		options: PluginOptions;
+		options: PluginOptionsWithAppConfig;
 	}) => {
 		const internalWorker = async (): Promise<void> => {
 			if (action === 'load') {
