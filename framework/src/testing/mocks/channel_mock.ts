@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+/* eslint-disable @typescript-eslint/no-empty-function */
 export const moduleChannelMock = {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	publish: (_name: string, _data?: Record<string, unknown>): void => {},
+	subscribe: (_name: string, _data?: Record<string, unknown>): void => {},
+	once: (_name: string, _data?: Record<string, unknown>): void => {},
+	invoke: (_name: string, _data?: Record<string, unknown>): void => {},
 };

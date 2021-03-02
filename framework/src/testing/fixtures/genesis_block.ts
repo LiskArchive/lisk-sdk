@@ -35,14 +35,17 @@ export const createGenesisBlockWithAccounts = <T = AccountDefaultProps>(
 		delegate =>
 			(({
 				...delegate,
-				address: Buffer.from(delegate.address, 'hex'),
+				address: delegate.address,
 			} as unknown) as PartialAccount<T>),
 	);
+	// Set genesis block timestamp to 1 day in past relative to current date
+	const timestamp = Math.floor(new Date().setMonth(new Date().getDay() - 1) / 1000);
 
 	const genesisBlock = createGenesisBlock<T>({
 		modules,
 		accounts: [...accounts, ...delegates] as PartialAccount<T>[],
 		initDelegates: delegates.map(delegate => delegate.address),
+		timestamp,
 	});
 
 	const genesisBlockJSON = getGenesisBlockJSON({

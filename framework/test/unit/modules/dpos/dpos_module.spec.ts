@@ -197,6 +197,8 @@ describe('DPoSModule', () => {
 						header: { height: 10 },
 						passphrase: getRandomBytes(20).toString('hex'),
 						networkIdentifier: getRandomBytes(20),
+						previousBlockID: getRandomBytes(20),
+						timestamp: 0,
 					}).header,
 				],
 			});
@@ -205,6 +207,8 @@ describe('DPoSModule', () => {
 				block: testing.createBlock({
 					passphrase: getRandomBytes(20).toString('hex'),
 					networkIdentifier: getRandomBytes(20),
+					previousBlockID: getRandomBytes(20),
+					timestamp: 0,
 				}),
 				stateStore,
 			});
@@ -256,6 +260,8 @@ describe('DPoSModule', () => {
 					header: { height: blockRound * 103 },
 					passphrase: getRandomBytes(20).toString('hex'),
 					networkIdentifier: getRandomBytes(20),
+					previousBlockID: getRandomBytes(20),
+					timestamp: 0,
 				});
 
 				await dposModule.afterBlockApply(context);
@@ -285,6 +291,8 @@ describe('DPoSModule', () => {
 					header: { height: (bootstrapRound + 1) * 103 + 3 },
 					passphrase: getRandomBytes(20).toString('hex'),
 					networkIdentifier: getRandomBytes(20),
+					previousBlockID: getRandomBytes(20),
+					timestamp: 0,
 				});
 
 				await dposModule.afterBlockApply(context);
