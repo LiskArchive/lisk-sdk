@@ -1,3 +1,4 @@
+import { SchemaWithDefault } from './../../../../elements/lisk-chain/src/utils/account';
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -17,11 +18,23 @@ import {
 	BaseChannel,
 	EventsDefinition,
 	PluginInfo,
+	PluginOptionsWithAppConfig,
 } from 'lisk-framework';
+import * as defaults from './defaults';
 // eslint-disable-next-line
 const packageJSON = require('../../package.json');
 
-export class FaucetPlugin extends BasePlugin {
+export interface FaucetPluginOptions extends PluginOptionsWithAppConfig {
+	encryptedPassphrase: string;
+	applicationUrl: string;
+	fee: string;
+	token: string;
+	tokenPrefix: string;
+	logoURL?: string;
+	captcha?: Record<string, unknown>;
+}
+
+export class FaucetPlugin extends BasePlugin<FaucetPluginOptions> {
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
 		return 'faucet';
@@ -40,8 +53,8 @@ export class FaucetPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public get defaults(): Record<string, unknown> {
-		return {};
+	public get defaults(): SchemaWithDefault {
+		return defaults.config;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
