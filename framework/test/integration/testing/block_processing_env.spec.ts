@@ -18,12 +18,12 @@ import { TokenModule } from '../../../src/modules/token/token_module';
 import { createBlock } from '../../../src/testing';
 import {
 	getBlockProcessingEnv,
-	BlockProcessingEnvResult,
+	BlockProcessingEnv,
 } from '../../../src/testing/block_processing_env';
 import { defaultAccount } from '../../../src/testing/fixtures';
 
 describe('getBlockProcessingEnv', () => {
-	let blockProcessEnv: BlockProcessingEnvResult;
+	let blockProcessEnv: BlockProcessingEnv;
 	const databasePath = '/tmp/lisk/block_process/test';
 	const modules = [TokenModule];
 

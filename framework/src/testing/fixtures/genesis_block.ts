@@ -38,8 +38,8 @@ export const createGenesisBlockWithAccounts = <T = AccountDefaultProps>(
 				address: delegate.address,
 			} as unknown) as PartialAccount<T>),
 	);
-	// Set genesis block timestamp to 2 months in past relative to current date
-	const timestamp = Math.floor(new Date().setMonth(new Date().getMonth() - 2) / 1000);
+	// Set genesis block timestamp to 1 day in past relative to current date
+	const timestamp = Math.floor(new Date().setMonth(new Date().getDay() - 1) / 1000);
 
 	const genesisBlock = createGenesisBlock<T>({
 		modules,

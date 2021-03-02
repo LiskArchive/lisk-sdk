@@ -35,12 +35,12 @@ type Options = {
 	passphrase?: string;
 };
 
-interface BlockProcessingEnv {
+interface BlockProcessingParams {
 	modules: ModuleClass[];
 	options?: Options;
 }
 
-export interface BlockProcessingEnvResult {
+export interface BlockProcessingEnv {
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
@@ -69,7 +69,7 @@ const getProcessor = (
 	appConfig: ApplicationConfig,
 	genesisBlock: GenesisBlock,
 	networkIdentifier: Buffer,
-	params: BlockProcessingEnv,
+	params: BlockProcessingParams,
 ): Processor => {
 	const channel = (moduleChannelMock as unknown) as InMemoryChannel;
 
@@ -104,8 +104,8 @@ const getProcessor = (
 };
 
 export const getBlockProcessingEnv = async (
-	params: BlockProcessingEnv,
-): Promise<BlockProcessingEnvResult> => {
+	params: BlockProcessingParams,
+): Promise<BlockProcessingEnv> => {
 	const appConfig = getAppConfig(params.options?.genesisConfig);
 	const { genesisBlock } = createGenesisBlockWithAccounts(params.modules);
 	const networkIdentifier = getNetworkIdentifier(
