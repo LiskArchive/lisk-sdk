@@ -22,7 +22,7 @@ import { objects } from '@liskhq/lisk-utils';
 
 import { Processor } from '../node/processor';
 import { InMemoryChannel } from '../controller';
-import { loggerMock, moduleChannelMock } from './mocks';
+import { loggerMock, channelMock } from './mocks';
 import { createBlock } from './create_block';
 import { defaultAccount, defaultConfig, createGenesisBlockWithAccounts } from './fixtures';
 import { createDB, removeDB, getAccountSchemaFromModules } from './utils';
@@ -71,7 +71,7 @@ const getProcessor = (
 	networkIdentifier: Buffer,
 	params: BlockProcessingParams,
 ): Processor => {
-	const channel = (moduleChannelMock as unknown) as InMemoryChannel;
+	const channel = (channelMock as unknown) as InMemoryChannel;
 
 	const chainModule = new Chain({
 		db,

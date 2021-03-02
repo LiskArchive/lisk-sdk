@@ -44,6 +44,5 @@ export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';
 export type { EventsDefinition, EventCallback } from './controller/event';
 export type { ActionsDefinition, ActionHandler } from './controller/action';
-// eslint-disable-next-line import/no-cycle
-export * from './testing';
+export * as testing from './testing';
 export * from './types';
