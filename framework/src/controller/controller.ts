@@ -57,7 +57,7 @@ interface ControllerConfig {
 }
 
 interface PluginsObject {
-	readonly [key: string]: InstantiablePlugin<BasePlugin>;
+	readonly [key: string]: InstantiablePlugin;
 }
 
 export class Controller {
