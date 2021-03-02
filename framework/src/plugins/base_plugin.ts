@@ -213,7 +213,7 @@ export abstract class BasePlugin<
 				options,
 			) as T;
 
-			const errors = validator.validate(this.defaults, options);
+			const errors = validator.validate(this.defaults, this.options);
 			if (errors.length) {
 				throw new LiskValidationError([...errors]);
 			}
@@ -336,18 +336,27 @@ export const getPluginExportPath = (
 	return nodeModulePath;
 };
 
-export const validatePluginSpec = (PluginKlass: InstantiablePlugin): void => {
-	const pluginObject = new PluginKlass({} as PluginOptionsWithAppConfig);
+export const validatePluginSpec = (
+	PluginKlass: InstantiablePlugin,
+	options: Record<string, unknown> = {},
+): void => {
+	const pluginObject = new PluginKlass(options as PluginOptionsWithAppConfig);
 
 	assert(PluginKlass.alias, 'Plugin alias is required.');
 	assert(PluginKlass.info.name, 'Plugin name is required.');
 	assert(PluginKlass.info.author, 'Plugin author is required.');
 	assert(PluginKlass.info.version, 'Plugin version is required.');
-	assert(pluginObject.defaults, 'Plugin default options are required.');
 	assert(pluginObject.events, 'Plugin events are required.');
 	assert(pluginObject.actions, 'Plugin actions are required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	assert(pluginObject.load, 'Plugin load action is required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	assert(pluginObject.unload, 'Plugin unload actions is required.');
+
+	if (pluginObject.defaults) {
+		const errors = validator.validateSchema(pluginObject.defaults);
+		if (errors.length) {
+			throw new LiskValidationError([...errors]);
+		}
+	}
 };

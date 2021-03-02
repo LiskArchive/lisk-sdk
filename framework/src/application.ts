@@ -175,7 +175,6 @@ export class Application {
 	): void {
 		assert(pluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		validatePluginSpec(pluginKlass);
 
 		const pluginAlias = options?.alias ?? pluginKlass.alias;
 
@@ -197,6 +196,9 @@ export class Application {
 			this.config.plugins[pluginAlias] ?? {},
 			options,
 		);
+
+		validatePluginSpec(pluginKlass, this.config.plugins[pluginAlias]);
+
 		this._plugins[pluginAlias] = pluginKlass;
 	}
 

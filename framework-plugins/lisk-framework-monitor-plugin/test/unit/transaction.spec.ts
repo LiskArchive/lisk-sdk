@@ -14,6 +14,9 @@
 
 import { randomBytes } from 'crypto';
 import { MonitorPlugin } from '../../src/monitor_plugin';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('_handlePostTransactionAnnounce', () => {
 	let monitorPluginInstance: MonitorPlugin;
@@ -33,7 +36,7 @@ describe('_handlePostTransactionAnnounce', () => {
 	} as any;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new (MonitorPlugin as any)();
+		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
 		await monitorPluginInstance.load(channelMock);
 	});
 
@@ -77,7 +80,7 @@ describe('_cleanUpTransactionStats', () => {
 	} as any;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new (MonitorPlugin as any)();
+		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
 		await monitorPluginInstance.load(channelMock);
 	});
 
