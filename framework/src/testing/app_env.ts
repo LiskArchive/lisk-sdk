@@ -15,8 +15,7 @@
 
 import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
-import { homedir } from 'os';
-import { resolve as pathResolve } from 'path';
+import { join } from 'path';
 import { ModuleClass, PluginClass } from './types';
 import { defaultConfig } from './fixtures';
 import { createGenesisBlockWithAccounts } from './fixtures/genesis_block';
@@ -28,10 +27,11 @@ interface GetApplicationEnv {
 	modules: ModuleClass[];
 	plugins?: PluginClass[];
 	config?: PartialApplicationConfig;
+	genesisBlock?: Record<string, unknown>;
 }
 
 interface ApplicationEnv {
-	apiClient: Promise<APIClient>;
+	apiClient: APIClient;
 	application: Application;
 }
 
@@ -48,14 +48,13 @@ export const getApplicationEnv = async (params: GetApplicationEnv): Promise<Appl
 	const config = params.config ?? (defaultConfig as PartialApplicationConfig);
 	const { label } = config;
 
-	const application = new Application(genesisBlockJSON, config);
+	const application = new Application(params.genesisBlock ?? genesisBlockJSON, config);
 	params.modules.map(module => application.registerModule(module));
 	params.plugins?.map(plugin => application.registerPlugin(plugin));
 	await Promise.race([application.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
 
-	// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-	const dataPath = pathResolve(`${homedir()}/.lisk/${label}`);
-	const apiClient = createIPCClient(dataPath);
+	const dataPath = join(application.config.rootPath, label as string);
+	const apiClient = await createIPCClient(dataPath);
 
 	return {
 		apiClient,

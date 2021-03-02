@@ -11,32 +11,36 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application, systemDirs } from 'lisk-framework';
-import { createIPCClient } from '@liskhq/lisk-api-client';
-import { createApplication, closeApplication, waitNBlocks, waitTill } from '../utils/application';
+
+import {
+	createApplicationEnv,
+	closeApplicationEnv,
+	waitNBlocks,
+	waitTill,
+	ApplicationEnvInterface,
+} from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
 
 describe('forger:getVoters action', () => {
-	let app: Application;
+	let appEnv: ApplicationEnvInterface;
 	let accountNonce = 0;
 	let networkIdentifier: Buffer;
-	let liskClient: any;
 
 	beforeAll(async () => {
-		app = await createApplication('forger_functional_voters');
+		appEnv = await createApplicationEnv('forger_functional_voters');
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = app['_node'].networkIdentifier;
-		liskClient = await createIPCClient(systemDirs(app.config.label, app.config.rootPath).dataPath);
+		networkIdentifier = appEnv.application['_node'].networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await appEnv.apiClient.disconnect();
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('action forger:getVoters', () => {
 		it('should return valid format', async () => {
 			// Arrange & Act
-			const voters = await liskClient.invoke('forger:getVoters');
+			const voters = await appEnv.apiClient.invoke('forger:getVoters');
 
 			// Assert
 			expect(voters).toMatchSnapshot();
@@ -54,8 +58,8 @@ describe('forger:getVoters action', () => {
 
 		it('should return valid voters', async () => {
 			// Arrange
-			const initialVoters = await liskClient.invoke('forger:getVoters');
-			const forgingDelegateAddress = initialVoters[0].address;
+			const initialVoters = await appEnv.apiClient.invoke('forger:getVoters');
+			const forgingDelegateAddress = (initialVoters[0] as any).address;
 			const transaction = createVoteTransaction({
 				amount: '10',
 				recipientAddress: forgingDelegateAddress,
@@ -65,16 +69,18 @@ describe('forger:getVoters action', () => {
 			});
 			accountNonce += 1;
 
-			await app['_channel'].invoke('app:postTransaction', {
+			await appEnv.application['_channel'].invoke('app:postTransaction', {
 				transaction: transaction.getBytes().toString('hex'),
 			});
-			await waitNBlocks(app, 1);
+			await waitNBlocks(appEnv.application, 1);
 			// Wait a bit to give plugin a time to calculate forger info
 			await waitTill(2000);
 
 			// Act
-			const voters = await liskClient.invoke('forger:getVoters');
-			const forgerInfo = voters.find((forger: any) => forger.address === forgingDelegateAddress);
+			const voters = await appEnv.apiClient.invoke('forger:getVoters');
+			const forgerInfo = (voters as any).find(
+				(forger: any) => forger.address === forgingDelegateAddress,
+			);
 
 			// Assert
 			expect(forgerInfo.voters[0]).toMatchObject(

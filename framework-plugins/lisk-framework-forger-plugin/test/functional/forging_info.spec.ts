@@ -12,33 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Application, systemDirs } from 'lisk-framework';
-import { createIPCClient } from '@liskhq/lisk-api-client';
 import {
-	createApplication,
-	closeApplication,
+	createApplicationEnv,
+	closeApplicationEnv,
 	getForgerInfoByAddress,
 	waitNBlocks,
 	getForgerPlugin,
+	ApplicationEnvInterface,
 } from '../utils/application';
 
 describe('forger:getForgingInfo action', () => {
-	let app: Application;
-	let liskClient: any;
+	let appEnv: ApplicationEnvInterface;
 
 	beforeAll(async () => {
-		app = await createApplication('forging_info_spec');
-		await waitNBlocks(app, 1);
-		liskClient = await createIPCClient(systemDirs(app.config.label, app.config.rootPath).dataPath);
+		appEnv = await createApplicationEnv('forging_info_spec');
+		await waitNBlocks(appEnv.application, 2);
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await appEnv.apiClient.disconnect();
+		await closeApplicationEnv(appEnv);
 	});
 
 	it('should return list of all forgers info', async () => {
 		// Arrange
-		const forgerPluginInstance = getForgerPlugin(app);
+		const forgerPluginInstance = getForgerPlugin(appEnv.application);
 		const forgersList = forgerPluginInstance['_forgersList'].entries() as ReadonlyArray<
 			[Buffer, boolean]
 		>;
@@ -47,13 +45,13 @@ describe('forger:getForgingInfo action', () => {
 				getForgerInfoByAddress(forgerPluginInstance, forgerAddress.toString('binary')),
 			),
 		);
-		const forgersInfoList = await liskClient.invoke('forger:getForgingInfo');
+		const forgersInfoList = await appEnv.apiClient.invoke('forger:getForgingInfo');
 
 		// Assert
 		expect(forgersInfoList).toHaveLength(forgersInfo.length);
 		expect(forgersInfoList).toMatchSnapshot();
 		expect(
-			forgersInfoList.filter(
+			(forgersInfoList as any).filter(
 				(forger: { totalProducedBlocks: number }) => forger.totalProducedBlocks > 0,
 			).length,
 		).toBeGreaterThan(1);

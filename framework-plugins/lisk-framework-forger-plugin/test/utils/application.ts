@@ -11,17 +11,27 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as os from 'os';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { Application, PartialApplicationConfig } from 'lisk-framework';
+import {
+	Application,
+	PartialApplicationConfig,
+	testing,
+	TokenModule,
+	SequenceModule,
+	KeysModule,
+} from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
+import { APIClient } from '@liskhq/lisk-api-client';
 import * as configJSON from '../fixtures/config.json';
 import { ForgerPlugin } from '../../src';
 import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
 import { getGenesisBlockJSON } from './genesis_block';
 import { ForgerInfo } from '../../src/types';
+
+export interface ApplicationEnvInterface {
+	readonly apiClient: APIClient;
+	readonly application: Application;
+}
 
 const forgerApiPort = 5001;
 
@@ -43,7 +53,7 @@ export const startApplication = async (app: Application): Promise<void> => {
 	});
 };
 
-export const createApplication = async (
+export const createApplicationEnv = async (
 	label: string,
 	options: {
 		consoleLogLevel?: string;
@@ -54,7 +64,7 @@ export const createApplication = async (
 		consoleLogLevel: 'fatal',
 		appConfig: { plugins: { forger: {} } },
 	},
-): Promise<Application> => {
+): Promise<ApplicationEnvInterface> => {
 	const rootPath = '~/.lisk/forger-plugin';
 	const config = {
 		...configJSON,
@@ -87,16 +97,15 @@ export const createApplication = async (
 		timestamp: Math.floor(Date.now() / 1000) - 30,
 	});
 
-	const app = Application.defaultApplication(genesisBlock, config);
-	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: false });
+	const appEnv = await testing.getApplicationEnv({
+		modules: [TokenModule, KeysModule, SequenceModule],
+		config,
+		plugins: [ForgerPlugin],
+		genesisBlock,
+	});
+	validator.removeSchema('/block/header');
 
-	if (options.clearDB) {
-		// Remove pre-existing data
-		fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
-	}
-
-	await startApplication(app);
-	return app;
+	return appEnv;
 };
 
 export const closeApplication = async (
@@ -105,7 +114,6 @@ export const closeApplication = async (
 ): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-
 	if (options.clearDB) {
 		await app['_forgerDB'].clear();
 		await app['_blockchainDB'].clear();
@@ -114,6 +122,12 @@ export const closeApplication = async (
 	}
 
 	await app.shutdown();
+};
+
+export const closeApplicationEnv = async (appEnv: ApplicationEnvInterface): Promise<void> => {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+	await testing.clearApplicationEnv(appEnv);
 };
 
 export const getURL = (url: string, port = forgerApiPort): string =>
