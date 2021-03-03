@@ -17,6 +17,8 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import * as assert from 'assert';
 import { join } from 'path';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { objects } from '@liskhq/lisk-utils';
 import { APP_EVENT_READY } from '../constants';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
@@ -24,7 +26,12 @@ import { EventsDefinition } from '../controller/event';
 import { ImplementationMissingError } from '../errors';
 import { createLogger, Logger } from '../logger';
 import { systemDirs } from '../system_dirs';
-import { PluginOptionsWithAppConfig, RegisteredSchema, TransactionJSON } from '../types';
+import {
+	PluginOptionsWithAppConfig,
+	RegisteredSchema,
+	SchemaWithDefault,
+	TransactionJSON,
+} from '../types';
 
 interface DefaultAccountJSON {
 	[name: string]: { [key: string]: unknown } | undefined;
@@ -75,13 +82,13 @@ export interface PluginInfo {
 	readonly exportPath?: string;
 }
 
-export interface InstantiablePlugin<T, U = object> {
+export interface InstantiablePlugin<
+	T extends BasePlugin = BasePlugin,
+	U extends PluginOptionsWithAppConfig = PluginOptionsWithAppConfig
+> {
 	alias: string;
 	info: PluginInfo;
-	defaults: object;
-	load: () => Promise<void>;
-	unload: () => Promise<void>;
-	new (...args: U[]): T;
+	new (args: U): T;
 }
 
 const decodeTransactionToJSON = (
@@ -189,15 +196,30 @@ export interface PluginCodec {
 	encodeTransaction: (transaction: TransactionJSON) => string;
 }
 
-export abstract class BasePlugin {
-	public readonly options: PluginOptionsWithAppConfig;
+export abstract class BasePlugin<
+	T extends PluginOptionsWithAppConfig = PluginOptionsWithAppConfig
+> {
+	public readonly options: T;
 	public schemas!: RegisteredSchema;
 
 	public codec: PluginCodec;
 	protected _logger!: Logger;
 
-	protected constructor(options: PluginOptionsWithAppConfig) {
-		this.options = options;
+	public constructor(options: T) {
+		if (this.defaults) {
+			this.options = objects.mergeDeep(
+				{},
+				(this.defaults as SchemaWithDefault).default ?? {},
+				options,
+			) as T;
+
+			const errors = validator.validate(this.defaults, this.options);
+			if (errors.length) {
+				throw new LiskValidationError([...errors]);
+			}
+		} else {
+			this.options = objects.cloneDeep(options);
+		}
 
 		this.codec = {
 			decodeAccount: <T = DefaultAccountJSON>(data: Buffer | string): AccountJSON<T> => {
@@ -260,9 +282,10 @@ export abstract class BasePlugin {
 		throw new ImplementationMissingError();
 	}
 
+	// TODO: To make non-breaking change we have to keep "object" here
 	// eslint-disable-next-line class-methods-use-this
-	public get defaults(): object {
-		return {};
+	public get defaults(): SchemaWithDefault | object | undefined {
+		return undefined;
 	}
 	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
@@ -274,7 +297,7 @@ export abstract class BasePlugin {
 // TODO: Once the issue fixed we can use require.resolve to rewrite the logic
 //  https://github.com/facebook/jest/issues/9543
 export const getPluginExportPath = (
-	pluginKlass: typeof BasePlugin,
+	pluginKlass: InstantiablePlugin,
 	strict = true,
 ): string | undefined => {
 	let nodeModule: Record<string, unknown> | undefined;
@@ -313,18 +336,27 @@ export const getPluginExportPath = (
 	return nodeModulePath;
 };
 
-export const validatePluginSpec = (PluginKlass: InstantiablePlugin<BasePlugin>): void => {
-	const pluginObject = new PluginKlass();
+export const validatePluginSpec = (
+	PluginKlass: InstantiablePlugin,
+	options: Record<string, unknown> = {},
+): void => {
+	const pluginObject = new PluginKlass(options as PluginOptionsWithAppConfig);
 
 	assert(PluginKlass.alias, 'Plugin alias is required.');
 	assert(PluginKlass.info.name, 'Plugin name is required.');
 	assert(PluginKlass.info.author, 'Plugin author is required.');
 	assert(PluginKlass.info.version, 'Plugin version is required.');
-	assert(pluginObject.defaults, 'Plugin default options are required.');
 	assert(pluginObject.events, 'Plugin events are required.');
 	assert(pluginObject.actions, 'Plugin actions are required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	assert(pluginObject.load, 'Plugin load action is required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	assert(pluginObject.unload, 'Plugin unload actions is required.');
+
+	if (pluginObject.defaults) {
+		const errors = validator.validateSchema(pluginObject.defaults);
+		if (errors.length) {
+			throw new LiskValidationError([...errors]);
+		}
+	}
 };

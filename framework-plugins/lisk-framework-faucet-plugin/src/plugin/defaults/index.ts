@@ -11,8 +11,5 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-describe('sample', () => {
-	it('should pass', () => {
-		expect(true).toBeTrue();
-	});
-});
+
+export * from './config';

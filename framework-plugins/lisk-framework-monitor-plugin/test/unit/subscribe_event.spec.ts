@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { MonitorPlugin } from '../../src';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('subscribe to event', () => {
 	let monitorPlugin: MonitorPlugin;
@@ -21,7 +24,7 @@ describe('subscribe to event', () => {
 		const channelMock = {
 			subscribe: subscribeMock,
 		};
-		monitorPlugin = new (MonitorPlugin as any)();
+		monitorPlugin = new MonitorPlugin(validPluginOptions as never);
 		(monitorPlugin as any)._channel = channelMock;
 	});
 

@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FaucetPlugin constructor should load default config 1`] = `
+Object {
+  "applicationUrl": "ws://localhost:8080",
+  "encryptedPassphrase": "salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1",
+  "fee": "10000000",
+  "token": "10000000000",
+  "tokenPrefix": "lsk",
+}
+`;
+
+exports[`FaucetPlugin defaults should return valid config schema with default options 1`] = `
+Object {
+  "$id": "#/plugins/lisk-faucet/config",
+  "default": Object {
+    "applicationUrl": "ws://localhost:8080",
+    "captcha": undefined,
+    "fee": "10000000",
+    "logoURL": undefined,
+    "token": "10000000000",
+    "tokenPrefix": "lsk",
+  },
+  "properties": Object {
+    "applicationUrl": Object {
+      "description": "URL to connect",
+      "format": "uri",
+      "type": "string",
+    },
+    "captcha": Object {
+      "description": "The re-captcha config",
+      "type": "object",
+    },
+    "encryptedPassphrase": Object {
+      "description": "Encrypted passphrase of the genesis account",
+      "format": "encryptedPassphrase",
+      "type": "string",
+    },
+    "fee": Object {
+      "description": "The transaction fee used to faucet an account",
+      "type": "string",
+    },
+    "logoURL": Object {
+      "description": "The URL of the logo used on the UI",
+      "format": "uri",
+      "type": "string",
+    },
+    "token": Object {
+      "description": "Number of tokens to faucet an account in one request",
+      "type": "string",
+    },
+    "tokenPrefix": Object {
+      "description": "The token prefix associated with your application",
+      "type": "string",
+    },
+  },
+  "required": Array [
+    "encryptedPassphrase",
+  ],
+  "type": "object",
+}
+`;
