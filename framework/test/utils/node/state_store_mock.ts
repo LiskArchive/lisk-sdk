@@ -71,9 +71,9 @@ export class StateStoreMock {
 				const index = this.accountData.findIndex(acc => acc.address.equals(address));
 				if (index > -1) {
 					this.accountData[index] = account;
+					return;
 				}
 				this.accountData.push(account);
-				return Promise.resolve();
 			},
 		};
 
@@ -85,7 +85,6 @@ export class StateStoreMock {
 			// eslint-disable-next-line @typescript-eslint/require-await
 			set: async (key: string, value: Buffer): Promise<void> => {
 				this.chainData[key] = value;
-				return Promise.resolve();
 			},
 		};
 	}
