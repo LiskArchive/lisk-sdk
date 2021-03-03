@@ -24,15 +24,27 @@ export interface P2PRequestPacket {
 	readonly procedure: string;
 }
 
+export interface P2PBufferRequestPacket extends P2PRequestPacket {
+	readonly data?: Buffer | undefined;
+}
+
 export interface P2PResponsePacket {
 	readonly peerId?: string;
 	readonly data: unknown;
+}
+
+export interface P2PBufferResponsePacket extends P2PResponsePacket {
+	readonly data: Buffer;
 }
 
 export interface P2PMessagePacket {
 	readonly peerId?: string;
 	readonly data?: unknown;
 	readonly event: string;
+}
+
+export interface P2PBufferMessagePacket extends P2PMessagePacket {
+	readonly data?: Buffer;
 }
 
 export interface P2PClosePacket {

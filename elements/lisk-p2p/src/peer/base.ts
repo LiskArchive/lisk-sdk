@@ -52,6 +52,7 @@ import {
 import { P2PRequest } from '../p2p_request';
 import {
 	P2PInternalState,
+	P2PBufferResponsePacket,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -347,25 +348,36 @@ export class Peer extends EventEmitter {
 			throw new Error('Peer socket does not exist');
 		}
 
+		const data =
+			packet.data instanceof Buffer
+				? packet.data.toString('binary')
+				: Buffer.from(packet.data as never).toString('binary');
 		this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
 			event: packet.event,
-			data: packet.data,
+			data,
 		});
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		return new Promise<P2PResponsePacket>(
-			(resolve: (result: P2PResponsePacket) => void, reject: (result: Error) => void): void => {
+			(
+				resolve: (result: P2PBufferResponsePacket) => void,
+				reject: (result: Error) => void,
+			): void => {
 				if (!this._socket) {
 					throw new Error('Peer socket does not exist');
 				}
+				const data =
+					packet.data instanceof Buffer
+						? packet.data.toString('binary')
+						: Buffer.from(packet.data as never).toString('binary');
 				this._socket.emit(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
 						procedure: packet.procedure,
-						data: packet.data,
+						data,
 					},
-					(error: Error | undefined, responseData: unknown) => {
+					(error: Error | undefined, responseData: P2PBufferResponsePacket | undefined) => {
 						if (error) {
 							reject(error);
 
@@ -373,7 +385,7 @@ export class Peer extends EventEmitter {
 						}
 
 						if (responseData) {
-							resolve(responseData as P2PResponsePacket);
+							resolve(responseData);
 
 							return;
 						}
@@ -564,8 +576,8 @@ export class Peer extends EventEmitter {
 	private _handleUpdateNodeInfo(message: P2PMessagePacket): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			const nodeInfoBuffer = Buffer.from(message.data as string, 'hex');
-			// Check incoming nodeInfo size before deocoding
+			const nodeInfoBuffer = Buffer.from(message.data as string, 'binary');
+			// Check incoming nodeInfo size before decoding
 			validateNodeInfo(nodeInfoBuffer, this._peerConfig.maxPeerInfoSize);
 
 			const decodedNodeInfo = decodeNodeInfo(this._rpcSchemas.nodeInfo, message.data);

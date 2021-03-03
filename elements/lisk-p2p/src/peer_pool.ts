@@ -601,7 +601,7 @@ export class PeerPool extends EventEmitter {
 		try {
 			peer.send({
 				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: encodedNodeInfo.toString('hex'),
+				data: encodedNodeInfo,
 			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);

@@ -313,7 +313,7 @@ export class P2P extends EventEmitter {
 				// This 'decode' only happens with the successful case after decoding in "peer"
 				const decodedNodeInfo = codec.decode(
 					nodeInfoSchema,
-					Buffer.from(message.data as string, 'hex'),
+					Buffer.from(message.data as string, 'binary'),
 				);
 
 				this.emit(EVENT_MESSAGE_RECEIVED, {

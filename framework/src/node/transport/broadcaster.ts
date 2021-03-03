@@ -81,9 +81,7 @@ export class Broadcaster {
 
 			this._networkModule.broadcast({
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,
-				data: {
-					transactionIds: transactionIds.map(id => id.toString('hex')),
-				},
+				data: { transactionIds },
 			});
 
 			this._transactionIdQueue = this._transactionIdQueue.filter(

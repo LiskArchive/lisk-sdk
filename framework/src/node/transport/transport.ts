@@ -60,7 +60,7 @@ export interface handlePostTransactionReturn {
 }
 
 interface HandleRPCGetTransactionsReturn {
-	transactions: string[];
+	transactions: Buffer[];
 }
 
 interface RateTracker {
@@ -131,20 +131,21 @@ export class Transport {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this._networkModule.send({
 			event: 'postBlock',
-			data: {
-				block: this._chainModule.dataAccess.encode(block).toString('hex'),
-			},
+			data: { block: this._chainModule.dataAccess.encode(block) },
 		});
 	}
 
-	public handleRPCGetLastBlock(peerId: string): string {
+	public handleRPCGetLastBlock(peerId: string): Buffer {
 		this._addRateLimit('getLastBlock', peerId, DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY);
-		return this._chainModule.dataAccess.encode(this._chainModule.lastBlock).toString('hex');
+		return this._chainModule.dataAccess.encode(this._chainModule.lastBlock);
 	}
 
-	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<string[]> {
+	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<Buffer[]> {
 		this._addRateLimit('getBlocksFromId', peerId, DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY);
-		const errors = validator.validate(schemas.getBlocksFromIdRequest, data as object);
+		const errors = validator.validate(
+			schemas.getBlocksFromIdRequest,
+			data as Record<string, unknown>,
+		);
 
 		if (errors.length) {
 			const error = new LiskValidationError(errors);
@@ -162,7 +163,7 @@ export class Transport {
 			throw error;
 		}
 
-		const blockID = Buffer.from((data as RPCBlocksByIdData).blockId, 'hex');
+		const blockID = (data as RPCBlocksByIdData).blockId;
 
 		// Get height of block with supplied ID
 		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(blockID);
@@ -178,15 +179,18 @@ export class Transport {
 			fetchUntilHeight,
 		);
 
-		return blocks.map(block => this._chainModule.dataAccess.encode(block).toString('hex'));
+		return blocks.map(block => this._chainModule.dataAccess.encode(block));
 	}
 
 	public async handleRPCGetHighestCommonBlock(
 		data: unknown,
 		peerId: string,
-	): Promise<string | undefined> {
+	): Promise<Buffer | undefined> {
 		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY);
-		const errors = validator.validate(schemas.getHighestCommonBlockRequest, data as object);
+		const errors = validator.validate(
+			schemas.getHighestCommonBlockRequest,
+			data as Record<string, unknown>,
+		);
 
 		if (errors.length) {
 			const error = new LiskValidationError(errors);
@@ -205,14 +209,14 @@ export class Transport {
 			throw error;
 		}
 
-		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id => Buffer.from(id, 'hex'));
+		const blockIDs = (data as RPCHighestCommonBlockData).ids;
 
 		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(
 			blockIDs,
 		);
 
 		return commonBlockHeader
-			? this._chainModule.dataAccess.encodeBlockHeader(commonBlockHeader).toString('hex')
+			? this._chainModule.dataAccess.encodeBlockHeader(commonBlockHeader)
 			: undefined;
 	}
 
@@ -223,7 +227,7 @@ export class Transport {
 			return;
 		}
 
-		const errors = validator.validate(schemas.postBlockEvent, data as object);
+		const errors = validator.validate(schemas.postBlockEvent, data as Record<string, unknown>);
 
 		if (errors.length) {
 			this._logger.warn(
@@ -241,7 +245,7 @@ export class Transport {
 			throw new LiskValidationError(errors);
 		}
 
-		const blockBytes = Buffer.from((data as EventPostBlockData).block, 'hex');
+		const blockBytes = (data as EventPostBlockData).block;
 
 		let block: Block;
 		try {
@@ -289,7 +293,10 @@ export class Transport {
 		peerId: string,
 	): Promise<HandleRPCGetTransactionsReturn> {
 		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
-		const errors = validator.validate(schemas.getTransactionsRequest, data as object);
+		const errors = validator.validate(
+			schemas.getTransactionsRequest,
+			data as Record<string, unknown>,
+		);
 		if (errors.length) {
 			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
 			this._networkModule.applyPenaltyOnPeer({
@@ -307,7 +314,7 @@ export class Transport {
 			const transactions = transactionsBySender
 				.values()
 				.flat()
-				.map(tx => tx.getBytes().toString('hex'));
+				.map(tx => tx.getBytes());
 			transactions.splice(DEFAULT_RELEASE_LIMIT);
 
 			return {
@@ -330,14 +337,13 @@ export class Transport {
 		const transactionsFromQueues = [];
 		const idsNotInPool = [];
 
-		for (const idStr of transactionIds) {
+		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
-			const id = Buffer.from(idStr, 'hex');
 			const transaction = this._transactionPoolModule.get(id);
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
-				transactionsFromQueues.push(transaction.getBytes().toString('hex'));
+				transactionsFromQueues.push(transaction.getBytes());
 			} else {
 				idsNotInPool.push(id);
 			}
@@ -351,7 +357,7 @@ export class Transport {
 
 			return {
 				transactions: transactionsFromQueues.concat(
-					transactionsFromDatabase.map(t => t.getBytes().toString('hex')),
+					transactionsFromDatabase.map(t => t.getBytes()),
 				),
 			};
 		}
@@ -380,7 +386,10 @@ export class Transport {
 		peerId: string,
 	): Promise<null> {
 		this._addRateLimit('postTransactionsAnnouncement', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
-		const errors = validator.validate(schemas.postTransactionsAnnouncementEvent, data as object);
+		const errors = validator.validate(
+			schemas.postTransactionsAnnouncementEvent,
+			data as Record<string, unknown>,
+		);
 
 		if (errors.length) {
 			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
@@ -391,29 +400,21 @@ export class Transport {
 			throw new LiskValidationError(errors);
 		}
 
-		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds.map(idStr =>
-			Buffer.from(idStr, 'hex'),
-		);
+		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds;
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
 		if (unknownTransactionIDs.length > 0) {
 			const { data: result } = (await this._networkModule.requestFromPeer({
 				procedure: 'getTransactions',
-				data: {
-					transactionIds: unknownTransactionIDs.map(id => id.toString('hex')),
-				},
+				data: unknownTransactionIDs,
 				peerId,
 			})) as {
-				data: { transactions: string[] };
+				data: { transactions: Buffer[] };
 			};
 
 			try {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				for (const transaction of result.transactions) {
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-					const tx = this._chainModule.dataAccess.decodeTransaction(
-						Buffer.from(transaction, 'hex'),
-					);
+					const tx = this._chainModule.dataAccess.decodeTransaction(transaction);
 					await this._receiveTransaction(tx);
 				}
 			} catch (err) {

@@ -187,10 +187,10 @@ export class Synchronizer {
 	private async _getUnconfirmedTransactionsFromNetwork(): Promise<void> {
 		this.logger.info('Loading transactions from the network');
 
-		const { data: result } = (await this._networkModule.request({
+		const { data: result } = ((await this._networkModule.request({
 			procedure: 'getTransactions',
-		})) as {
-			data: { transactions: string[] };
+		})) as unknown) as {
+			data: { transactions: Buffer[] };
 		};
 
 		const validatorErrors = validator.validate(definitions.WSTransactionsResponse, result);
@@ -198,8 +198,8 @@ export class Synchronizer {
 			throw new LiskValidationError(validatorErrors);
 		}
 
-		const transactions = result.transactions.map(txStr =>
-			this.chainModule.dataAccess.decodeTransaction(Buffer.from(txStr, 'hex')),
+		const transactions = result.transactions.map(transaction =>
+			this.chainModule.dataAccess.decodeTransaction(transaction),
 		);
 
 		for (const transaction of transactions) {
