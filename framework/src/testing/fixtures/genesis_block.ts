@@ -39,7 +39,7 @@ export const createGenesisBlockWithAccounts = <T = AccountDefaultProps>(
 			} as unknown) as PartialAccount<T>),
 	);
 	// Set genesis block timestamp to 1 day in past relative to current date
-	const timestamp = Math.floor(new Date().setMonth(new Date().getDay() - 1) / 1000);
+	const timestamp = Math.floor(new Date().setDate(new Date().getDay() - 1) / 1000);
 
 	const genesisBlock = createGenesisBlock<T>({
 		modules,

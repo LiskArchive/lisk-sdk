@@ -15,7 +15,7 @@
 
 import { AccountDefaultProps, GenesisBlock } from '@liskhq/lisk-chain';
 import { createGenesisBlock as createGenesis } from '@liskhq/lisk-genesis';
-import { GenesisConfig } from '..';
+import { GenesisConfig } from '../types';
 import { ModuleClass, PartialAccount } from './types';
 import { getAccountSchemaFromModules } from './utils';
 

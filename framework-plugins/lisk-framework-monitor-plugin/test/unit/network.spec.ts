@@ -13,26 +13,16 @@
  */
 
 import { when } from 'jest-when';
+import { testing } from 'lisk-framework';
 import { PeerInfo } from '../../src/types';
 import { MonitorPlugin } from '../../src';
 
 describe('networkStats', () => {
 	let monitorPlugin: MonitorPlugin;
-
-	const channelMock = {
-		registerToBus: jest.fn(),
-		once: jest.fn(),
-		publish: jest.fn(),
-		subscribe: jest.fn(),
-		isValidEventName: jest.fn(),
-		isValidActionName: jest.fn(),
-		invoke: jest.fn(),
-		eventsList: [],
-		actionsList: [],
-		actions: {},
-		moduleAlias: '',
-		options: {},
-	} as any;
+	let channelInvokeMock;
+	const {
+		mocks: { channelMock },
+	} = testing;
 
 	const connectedPeers: Partial<PeerInfo>[] = [
 		{ options: { height: 51 } },
@@ -104,9 +94,11 @@ describe('networkStats', () => {
 
 	beforeEach(async () => {
 		monitorPlugin = new (MonitorPlugin as any)();
-		await monitorPlugin.load(channelMock);
+		await monitorPlugin.load(channelMock as any);
 
-		when(channelMock.invoke)
+		channelInvokeMock = jest.fn();
+		channelMock.invoke = channelInvokeMock;
+		when(channelInvokeMock)
 			.calledWith('app:getNetworkStats')
 			.mockResolvedValue(defaultNetworkStats as never)
 			.calledWith('app:getConnectedPeers')
@@ -125,7 +117,7 @@ describe('networkStats', () => {
 	it('should throw error when any channel action fails', async () => {
 		// Arrange
 		const error = new Error('Something went wrong');
-		channelMock.invoke.mockRejectedValue(error);
+		(channelMock.invoke as any).mockRejectedValue(error);
 
 		// Assert
 		await expect((monitorPlugin.actions as any).getNetworkStats()).rejects.toThrow(error.message);

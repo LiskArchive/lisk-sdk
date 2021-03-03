@@ -12,10 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* eslint-disable @typescript-eslint/no-empty-function */
-export const moduleChannelMock = {
+export const channelMock = {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	publish: (_name: string, _data?: Record<string, unknown>): void => {},
-	subscribe: (_name: string, _data?: Record<string, unknown>): void => {},
-	once: (_name: string, _data?: Record<string, unknown>): void => {},
-	invoke: (_name: string, _data?: Record<string, unknown>): void => {},
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	registerToBus: async (_arg: unknown): Promise<void> => Promise.resolve(),
+	isValidEventName: (_name: string, _throwError = true): boolean | never => true,
+	isValidActionName: (_name: string, _throwError = true): boolean | never => true,
+	eventsList: [],
+	actionsList: [],
+	actions: {},
+	moduleAlias: '',
+	options: {},
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	once: (_event: string): void => {},
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	subscribe: (_event: string): void => {},
+	invoke: async <T = unknown>(_name: string, _params?: Record<string, unknown>): Promise<T> =>
+		Promise.resolve(({} as unknown) as T),
 };

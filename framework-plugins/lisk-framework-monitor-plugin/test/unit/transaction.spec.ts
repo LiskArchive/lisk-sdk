@@ -13,28 +13,18 @@
  */
 
 import { randomBytes } from 'crypto';
+import { testing } from 'lisk-framework';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 
 describe('_handlePostTransactionAnnounce', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	const channelMock = {
-		registerToBus: jest.fn(),
-		once: jest.fn(),
-		publish: jest.fn(),
-		subscribe: jest.fn(),
-		isValidEventName: jest.fn(),
-		isValidActionName: jest.fn(),
-		invoke: jest.fn(),
-		eventsList: [],
-		actionsList: [],
-		actions: {},
-		moduleAlias: '',
-		options: {},
-	} as any;
+	const {
+		mocks: { channelMock },
+	} = testing;
 
 	beforeEach(async () => {
 		monitorPluginInstance = new (MonitorPlugin as any)();
-		await monitorPluginInstance.load(channelMock);
+		await monitorPluginInstance.load(channelMock as any);
 	});
 
 	it('should add new transactions to state', () => {
@@ -61,24 +51,13 @@ describe('_handlePostTransactionAnnounce', () => {
 
 describe('_cleanUpTransactionStats', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	const channelMock = {
-		registerToBus: jest.fn(),
-		once: jest.fn(),
-		publish: jest.fn(),
-		subscribe: jest.fn(),
-		isValidEventName: jest.fn(),
-		isValidActionName: jest.fn(),
-		invoke: jest.fn(),
-		eventsList: [],
-		actionsList: [],
-		actions: {},
-		moduleAlias: '',
-		options: {},
-	} as any;
+	const {
+		mocks: { channelMock },
+	} = testing;
 
 	beforeEach(async () => {
 		monitorPluginInstance = new (MonitorPlugin as any)();
-		await monitorPluginInstance.load(channelMock);
+		await monitorPluginInstance.load(channelMock as any);
 	});
 
 	it('should remove transaction stats that are more than 10 minutes old', () => {

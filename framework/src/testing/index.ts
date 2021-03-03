@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import * as fixtures from './fixtures';
 import * as mocks from './mocks';
 

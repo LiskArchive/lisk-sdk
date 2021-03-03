@@ -33,7 +33,7 @@ jest.mock('../../../../src/modules/dpos/delegates');
 jest.mock('../../../../src/modules/dpos/random_seed');
 
 describe('DPoSModule', () => {
-	const { StateStoreMock, loggerMock, moduleChannelMock, DataAccessMock } = testing.mocks;
+	const { StateStoreMock, loggerMock, channelMock, DataAccessMock } = testing.mocks;
 
 	let dposModule!: DPoSModule;
 	let genesisConfig: GenesisConfig;
@@ -221,7 +221,7 @@ describe('DPoSModule', () => {
 
 			dposModule.init({
 				logger: loggerMock,
-				channel: moduleChannelMock,
+				channel: channelMock,
 				dataAccess: new DataAccessMock<DPOSAccountProps>(),
 			});
 		});
@@ -323,7 +323,7 @@ describe('DPoSModule', () => {
 			});
 
 			dposModule.init({
-				channel: moduleChannelMock,
+				channel: channelMock,
 				dataAccess: new DataAccessMock<DPOSAccountProps>({ accounts: [account, delegate] }),
 				logger: loggerMock as any,
 			});

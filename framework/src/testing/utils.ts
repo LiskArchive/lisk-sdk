@@ -17,11 +17,10 @@ import * as fs from 'fs-extra';
 import { AccountDefaultProps, AccountSchema, Block, BlockHeaderAsset } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 
-import { BaseModule, GenesisConfig } from '..';
 import { Logger } from '../logger';
-import { BaseModuleChannel } from '../modules';
-import { BaseModuleDataAccess } from '../types';
-import { moduleChannelMock } from './mocks/channel_mock';
+import { BaseModule, BaseModuleChannel } from '../modules';
+import { BaseModuleDataAccess, GenesisConfig } from '../types';
+import { channelMock } from './mocks/channel_mock';
 import { DataAccessMock } from './mocks/data_access_mock';
 import { loggerMock } from './mocks/logger_mock';
 import { APP_EVENT_BLOCK_NEW } from '../constants';
@@ -59,7 +58,7 @@ export const getModuleInstance = <
 	const module = new Module(opts?.genesisConfig ?? ({} as never));
 
 	module.init({
-		channel: opts?.channel ?? moduleChannelMock,
+		channel: opts?.channel ?? channelMock,
 		logger: opts?.logger ?? loggerMock,
 		dataAccess: opts?.dataAccess ?? (new DataAccessMock<T2, T3>() as never),
 	});

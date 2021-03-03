@@ -22,7 +22,6 @@ export {
 	getAccountSchemaWithDefault,
 	getGenesisBlockHeaderAssetSchema,
 	blockHeaderAssetSchema,
-	testing,
 } from '@liskhq/lisk-chain';
 export {
 	BaseModule,
@@ -45,4 +44,5 @@ export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';
 export type { EventsDefinition, EventCallback } from './controller/event';
 export type { ActionsDefinition, ActionHandler } from './controller/action';
+export * as testing from './testing';
 export * from './types';
