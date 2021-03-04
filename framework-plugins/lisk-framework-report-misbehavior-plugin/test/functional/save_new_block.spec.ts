@@ -15,19 +15,19 @@
 import { codec } from '@liskhq/lisk-codec';
 import { formatInt } from '@liskhq/lisk-db';
 import { BlockHeader, RawBlock } from '@liskhq/lisk-chain';
-import { Application, RegisteredSchema } from 'lisk-framework';
+import { testing, RegisteredSchema } from 'lisk-framework';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema, getBlockHeaders } from '../../src/db';
 import {
-	closeApplication,
-	createApplication,
+	closeApplicationEnv,
+	createApplicationEnv,
 	getReportMisbehaviorPlugin,
 	publishEvent,
 	waitTill,
 } from '../utils/application';
 
 describe('save block header', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 	let codecSpy: jest.SpyInstance;
 	let pluginDBGetSpy: jest.SpyInstance;
 	let pluginDBPutSpy: jest.SpyInstance;
@@ -49,8 +49,9 @@ describe('save block header', () => {
 		codec.encode(schemas.blockHeader, newHeader);
 
 	beforeAll(async () => {
-		app = await createApplication('reportMisbehavior');
-		pluginInstance = getReportMisbehaviorPlugin(app);
+		appEnv = createApplicationEnv('reportMisbehavior');
+		await appEnv.startApplication();
+		pluginInstance = getReportMisbehaviorPlugin(appEnv.application);
 		const { header } = codec.decode<RawBlock>(pluginInstance.schemas.block, encodedBlockBuffer);
 		blockHeader = codec.decode(pluginInstance.schemas.blockHeader, header);
 		dbKey = `${blockHeader.generatorPublicKey.toString('binary')}:${formatInt(blockHeader.height)}`;
@@ -63,13 +64,13 @@ describe('save block header', () => {
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('from same generator', () => {
 		it('should save block header by height', async () => {
 			// Act
-			publishEvent(app, encodedBlock);
+			publishEvent(appEnv.application, encodedBlock);
 			await waitTill(100);
 
 			// Assert
@@ -93,7 +94,7 @@ describe('save block header', () => {
 				payload: [],
 			});
 			// Act
-			publishEvent(app, newEncodedBlock.toString('hex'));
+			publishEvent(appEnv.application, newEncodedBlock.toString('hex'));
 			await waitTill(200);
 
 			// Assert
@@ -119,7 +120,7 @@ describe('save block header', () => {
 			const { blockHeaders } = await getBlockHeaders(pluginInstance['_pluginDB'], dbKey);
 
 			// Act
-			publishEvent(app, blockBuff.toString('hex'));
+			publishEvent(appEnv.application, blockBuff.toString('hex'));
 			await waitTill(200);
 
 			// Assert
@@ -150,7 +151,7 @@ describe('save block header', () => {
 				payload: [],
 			});
 			// Act
-			publishEvent(app, newEncodedBlock.toString('hex'));
+			publishEvent(appEnv.application, newEncodedBlock.toString('hex'));
 			await waitTill(200);
 
 			// Assert

@@ -11,10 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as os from 'os';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { Application, PartialApplicationConfig } from 'lisk-framework';
+import {
+	Application,
+	KeysModule,
+	PartialApplicationConfig,
+	SequenceModule,
+	testing,
+	TokenModule,
+} from 'lisk-framework';
 import { validator } from '@liskhq/lisk-validator';
 import * as configJSON from '../fixtures/config.json';
 import * as genesisBlock from '../fixtures/genesis_block.json';
@@ -41,7 +45,7 @@ export const startApplication = async (app: Application): Promise<void> => {
 	});
 };
 
-export const getApplication = (
+export const createApplicationEnv = (
 	label: string,
 	options: {
 		consoleLogLevel?: string;
@@ -52,7 +56,7 @@ export const getApplication = (
 		consoleLogLevel: 'fatal',
 		appConfig: { plugins: { reportMisbehavior: {} } },
 	},
-): Application => {
+): testing.ApplicationEnv => {
 	const rootPath = '~/.lisk/report-misbehavior-plugin';
 	const config = {
 		...configJSON,
@@ -84,51 +88,24 @@ export const getApplication = (
 		...genesisBlock,
 		header: { ...genesisBlock.header, timestamp: Math.floor(Date.now() / 1000) },
 	};
-	const app = Application.defaultApplication(genesis, config);
-	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: false });
-	return app;
+	const appEnv = new testing.ApplicationEnv({
+		modules: [TokenModule, SequenceModule, KeysModule],
+		config,
+		plugins: [ReportMisbehaviorPlugin],
+		genesisBlock: genesis,
+	});
+	// app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: false });
+	return appEnv;
 };
 
-export const createApplication = async (
-	label: string,
-	options: {
-		consoleLogLevel?: string;
-		clearDB?: boolean;
-		appConfig?: { plugins: { reportMisbehavior: object } };
-	} = {
-		clearDB: true,
-		consoleLogLevel: 'fatal',
-		appConfig: { plugins: { reportMisbehavior: {} } },
-	},
-): Promise<Application> => {
-	const app = getApplication(label, options);
-	if (options.clearDB) {
-		// Remove pre-existing data
-		fs.removeSync(path.join(app.config.rootPath, label).replace('~', os.homedir()));
-	}
-
-	await startApplication(app);
-	return app;
-};
-
-export const closeApplication = async (
-	app: Application,
+export const closeApplicationEnv = async (
+	appEnv: testing.ApplicationEnv,
 	options: { clearDB: boolean } = { clearDB: true },
 ): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-
-	if (options.clearDB) {
-		await app['_forgerDB'].clear();
-		await app['_blockchainDB'].clear();
-		const pluginInstance = getReportMisbehaviorPlugin(app);
-		await pluginInstance['_pluginDB'].clear();
-	}
-
-	await app.shutdown();
+	await appEnv.stopApplication(options);
 };
-
-export const getURL = (url: string, port = apiPort): string => `http://localhost:${port}${url}`;
 
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
