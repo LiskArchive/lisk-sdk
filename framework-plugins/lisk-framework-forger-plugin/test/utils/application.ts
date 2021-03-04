@@ -13,25 +13,19 @@
  */
 import {
 	Application,
+	KeysModule,
 	PartialApplicationConfig,
+	SequenceModule,
 	testing,
 	TokenModule,
-	SequenceModule,
-	KeysModule,
 } from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { APIClient } from '@liskhq/lisk-api-client';
 import * as configJSON from '../fixtures/config.json';
 import { ForgerPlugin } from '../../src';
 import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
 import { getGenesisBlockJSON } from './genesis_block';
 import { ForgerInfo } from '../../src/types';
-
-export interface ApplicationEnvInterface {
-	readonly apiClient: APIClient;
-	readonly application: Application;
-}
 
 const forgerApiPort = 5001;
 
@@ -39,21 +33,7 @@ export const getForgerPlugin = (app: Application): ForgerPlugin => {
 	return app['_controller']['_inMemoryPlugins'][ForgerPlugin.alias]['plugin'];
 };
 
-export const startApplication = async (app: Application): Promise<void> => {
-	// FIXME: Remove with #5572
-	validator.removeSchema('/block/header');
-
-	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
-	await new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height > 1) {
-				resolve();
-			}
-		});
-	});
-};
-
-export const createApplicationEnv = async (
+export const createApplicationEnv = (
 	label: string,
 	options: {
 		consoleLogLevel?: string;
@@ -64,7 +44,7 @@ export const createApplicationEnv = async (
 		consoleLogLevel: 'fatal',
 		appConfig: { plugins: { forger: {} } },
 	},
-): Promise<ApplicationEnvInterface> => {
+): testing.ApplicationEnv => {
 	const rootPath = '~/.lisk/forger-plugin';
 	const config = {
 		...configJSON,
@@ -97,37 +77,24 @@ export const createApplicationEnv = async (
 		timestamp: Math.floor(Date.now() / 1000) - 30,
 	});
 
-	const appEnv = await testing.getApplicationEnv({
-		modules: [TokenModule, KeysModule, SequenceModule],
+	const appEnv = new testing.ApplicationEnv({
+		modules: [TokenModule, SequenceModule, KeysModule],
 		config,
 		plugins: [ForgerPlugin],
 		genesisBlock,
 	});
+	// const appEnv = await testing.getApplicationEnv();
 	validator.removeSchema('/block/header');
 
 	return appEnv;
 };
-
-export const closeApplication = async (
-	app: Application,
+export const closeApplicationEnv = async (
+	appEnv: testing.ApplicationEnv,
 	options: { clearDB: boolean } = { clearDB: true },
-): Promise<void> => {
+) => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-	if (options.clearDB) {
-		await app['_forgerDB'].clear();
-		await app['_blockchainDB'].clear();
-		const forgerPluginInstance = getForgerPlugin(app);
-		await forgerPluginInstance['_forgerPluginDB'].clear();
-	}
-
-	await app.shutdown();
-};
-
-export const closeApplicationEnv = async (appEnv: ApplicationEnvInterface): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-	await testing.clearApplicationEnv(appEnv);
+	await appEnv.stopApplication(options);
 };
 
 export const getURL = (url: string, port = forgerApiPort): string =>
