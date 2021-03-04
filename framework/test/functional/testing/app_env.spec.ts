@@ -11,23 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { APIClient } from '@liskhq/lisk-api-client';
 import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
-import { getApplicationEnv } from '../../../src/testing';
-import { Application, PartialApplicationConfig, TokenModule, DPoSModule } from '../../../src';
-import { clearApplicationEnv } from '../../../src/testing/app_env';
+import { ApplicationEnv } from '../../../src/testing';
+import { PartialApplicationConfig, TokenModule, DPoSModule } from '../../../src';
 import { defaultConfig } from '../../../src/testing/fixtures';
 
 const appLabel = 'beta-sdk-app';
 const dataPath = join(homedir(), '.lisk', appLabel);
 
 describe('Application Environment', () => {
-	interface ApplicationEnv {
-		apiClient: Promise<APIClient>;
-		application: Application;
-	}
 	let appEnv: ApplicationEnv;
 	let exitMock: jest.SpyInstance;
 
@@ -39,34 +33,50 @@ describe('Application Environment', () => {
 	});
 
 	afterEach(async () => {
-		await clearApplicationEnv(appEnv);
+		await appEnv.stopApplication();
 		exitMock.mockRestore();
 	});
 
 	describe('Get Application Environment', () => {
 		it('should return valid environment for empty modules', async () => {
-			appEnv = await getApplicationEnv({ modules: [] });
+			appEnv = new ApplicationEnv({ modules: [], config: { label: appLabel } });
+			await appEnv.startApplication();
 
 			expect(appEnv.application).toBeDefined();
-			expect(appEnv.apiClient).toBeDefined();
+			expect(appEnv.ipcClient).toBeDefined();
+			expect(appEnv.dataPath).toBeDefined();
+			expect(appEnv.lastBlock).toBeDefined();
+			expect(appEnv.networkIdentifier).toBeDefined();
+			expect(appEnv.application.getRegisteredModules()).toEqual([]);
 		});
 
 		it('should return valid environment with custom module', async () => {
-			appEnv = await getApplicationEnv({ modules: [TokenModule, DPoSModule] });
+			appEnv = new ApplicationEnv({ modules: [TokenModule, DPoSModule] });
+			await appEnv.startApplication();
 
 			expect(appEnv.application).toBeDefined();
-			expect(appEnv.apiClient).toBeDefined();
+			expect(appEnv.ipcClient).toBeDefined();
+			expect(appEnv.dataPath).toBeDefined();
+			expect(appEnv.lastBlock).toBeDefined();
+			expect(appEnv.networkIdentifier).toBeDefined();
+			expect(appEnv.application.getRegisteredModules()).toContain([TokenModule, DPoSModule]);
 		});
 
 		it('should return valid environment with custom config', async () => {
-			appEnv = await getApplicationEnv({
+			appEnv = new ApplicationEnv({
 				modules: [],
 				plugins: [],
 				config: defaultConfig as PartialApplicationConfig,
 			});
 
+			await appEnv.startApplication();
+
 			expect(appEnv.application).toBeDefined();
-			expect(appEnv.apiClient).toBeDefined();
+			expect(appEnv.ipcClient).toBeDefined();
+			expect(appEnv.dataPath).toBeDefined();
+			expect(appEnv.lastBlock).toBeDefined();
+			expect(appEnv.networkIdentifier).toBeDefined();
+			expect(appEnv.application.getRegisteredModules()).toEqual([]);
 		});
 	});
 });
