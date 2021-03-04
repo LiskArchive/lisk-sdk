@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { testing } from 'lisk-framework';
 import {
-	ApplicationEnvInterface,
 	closeApplicationEnv,
 	createApplicationEnv,
 	getForgerInfoByAddress,
@@ -26,18 +26,18 @@ import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
 
 describe('Forger Info', () => {
-	let appEnv: ApplicationEnvInterface;
+	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		appEnv = await createApplicationEnv('event_track');
+		appEnv = createApplicationEnv('event_track');
+		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = appEnv.application['_node'].networkIdentifier;
+		networkIdentifier = appEnv.networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await appEnv.apiClient.disconnect();
 		await closeApplicationEnv(appEnv);
 	});
 

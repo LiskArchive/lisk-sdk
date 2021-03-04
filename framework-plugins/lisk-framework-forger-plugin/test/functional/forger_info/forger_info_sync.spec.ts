@@ -12,14 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { testing } from 'lisk-framework';
 import {
-	ApplicationEnvInterface,
-	closeApplication,
-	closeApplicationEnv,
 	createApplicationEnv,
+	closeApplicationEnv,
 	getForgerInfoByPublicKey,
 	getForgerPlugin,
-	startApplication,
 	waitNBlocks,
 	waitTill,
 } from '../../utils/application';
@@ -27,14 +25,15 @@ import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction } from '../../utils/transactions';
 
 describe('Forger Info Sync', () => {
-	let appEnv: ApplicationEnvInterface;
+	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		appEnv = await createApplicationEnv('sync');
+		appEnv = createApplicationEnv('sync');
+		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = appEnv.application['_node'].networkIdentifier;
+		networkIdentifier = appEnv.networkIdentifier;
 	});
 
 	afterAll(async () => {
@@ -68,10 +67,10 @@ describe('Forger Info Sync', () => {
 		await forgerPluginInstance['_forgerPluginDB'].clear();
 
 		// Close application
-		await closeApplication(appEnv.application, { clearDB: false });
+		await closeApplicationEnv(appEnv, { clearDB: false });
 
 		// Start the application again
-		await startApplication(appEnv.application);
+		await appEnv.startApplication();
 		forgerPluginInstance = getForgerPlugin(appEnv.application);
 
 		await waitTill(2000);

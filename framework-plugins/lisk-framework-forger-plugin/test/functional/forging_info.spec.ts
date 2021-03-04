@@ -12,25 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { testing } from 'lisk-framework';
 import {
 	createApplicationEnv,
-	closeApplicationEnv,
 	getForgerInfoByAddress,
 	waitNBlocks,
 	getForgerPlugin,
-	ApplicationEnvInterface,
+	closeApplicationEnv,
 } from '../utils/application';
 
 describe('forger:getForgingInfo action', () => {
-	let appEnv: ApplicationEnvInterface;
+	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		appEnv = await createApplicationEnv('forging_info_spec');
+		appEnv = createApplicationEnv('forging_info_spec');
+		await appEnv.startApplication();
 		await waitNBlocks(appEnv.application, 2);
 	});
 
 	afterAll(async () => {
-		await appEnv.apiClient.disconnect();
 		await closeApplicationEnv(appEnv);
 	});
 
@@ -45,7 +45,7 @@ describe('forger:getForgingInfo action', () => {
 				getForgerInfoByAddress(forgerPluginInstance, forgerAddress.toString('binary')),
 			),
 		);
-		const forgersInfoList = await appEnv.apiClient.invoke('forger:getForgingInfo');
+		const forgersInfoList = await appEnv.ipcClient.invoke('forger:getForgingInfo');
 
 		// Assert
 		expect(forgersInfoList).toHaveLength(forgersInfo.length);

@@ -12,35 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { testing } from 'lisk-framework';
 import {
-	createApplicationEnv,
 	closeApplicationEnv,
+	createApplicationEnv,
 	waitNBlocks,
 	waitTill,
-	ApplicationEnvInterface,
 } from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
 
 describe('forger:getVoters action', () => {
-	let appEnv: ApplicationEnvInterface;
+	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		appEnv = await createApplicationEnv('forger_functional_voters');
+		appEnv = createApplicationEnv('forger_functional_voters');
+		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
 		networkIdentifier = appEnv.application['_node'].networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await appEnv.apiClient.disconnect();
 		await closeApplicationEnv(appEnv);
 	});
 
 	describe('action forger:getVoters', () => {
 		it('should return valid format', async () => {
 			// Arrange & Act
-			const voters = await appEnv.apiClient.invoke('forger:getVoters');
+			const voters = await appEnv.ipcClient.invoke('forger:getVoters');
 
 			// Assert
 			expect(voters).toMatchSnapshot();
@@ -58,7 +58,7 @@ describe('forger:getVoters action', () => {
 
 		it('should return valid voters', async () => {
 			// Arrange
-			const initialVoters = await appEnv.apiClient.invoke('forger:getVoters');
+			const initialVoters = await appEnv.ipcClient.invoke('forger:getVoters');
 			const forgingDelegateAddress = (initialVoters[0] as any).address;
 			const transaction = createVoteTransaction({
 				amount: '10',
@@ -77,7 +77,7 @@ describe('forger:getVoters action', () => {
 			await waitTill(2000);
 
 			// Act
-			const voters = await appEnv.apiClient.invoke('forger:getVoters');
+			const voters = await appEnv.ipcClient.invoke('forger:getVoters');
 			const forgerInfo = (voters as any).find(
 				(forger: any) => forger.address === forgingDelegateAddress,
 			);
