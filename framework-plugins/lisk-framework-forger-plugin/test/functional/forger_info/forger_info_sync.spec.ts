@@ -80,7 +80,7 @@ describe('Forger Info Sync', () => {
 		// Get forger info
 		const forgerInfoAfterRestart = await getForgerInfoByPublicKey(
 			forgerPluginInstance,
-			generatorPublicKey,
+			generatorPublicKey.toString('hex'),
 		);
 
 		// Assert
