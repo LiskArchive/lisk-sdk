@@ -11,21 +11,27 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
-import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
+import {
+	callNetwork,
+	createApplicationEnv,
+	closeApplicationEnv,
+	getURL,
+} from './utils/application';
 
 describe('Forging info endpoint', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 	let forgingStatusData: any;
 
 	beforeAll(async () => {
-		app = await createApplication('forging_info_http_functional');
-		forgingStatusData = await app['_channel'].invoke('app:getForgingStatus');
+		appEnv = createApplicationEnv('forging_info_http_functional');
+		await appEnv.startApplication();
+		forgingStatusData = await appEnv.application['_channel'].invoke('app:getForgingStatus');
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('/api/forging/info', () => {

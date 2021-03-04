@@ -11,26 +11,27 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
 import {
 	callNetwork,
-	createApplication,
-	closeApplication,
+	createApplicationEnv,
+	closeApplicationEnv,
 	getURL,
 	waitNBlocks,
 } from './utils/application';
 
 describe('Blocks endpoints', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		app = await createApplication('blocks_http_functional');
-		await waitNBlocks(app, 1);
+		appEnv = createApplicationEnv('blocks_http_functional');
+		await appEnv.startApplication();
+		await waitNBlocks(appEnv.application, 1);
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('api/blocks/', () => {
@@ -114,7 +115,7 @@ describe('Blocks endpoints', () => {
 
 	describe('api/blocks/:blockID', () => {
 		it('should respond with block when block found for specified id', async () => {
-			await waitNBlocks(app, 1);
+			await waitNBlocks(appEnv.application, 1);
 			const {
 				data: {
 					data: [
@@ -125,7 +126,7 @@ describe('Blocks endpoints', () => {
 				},
 			} = await axios.get(getURL('/api/blocks/?height=1'));
 
-			await waitNBlocks(app, 1);
+			await waitNBlocks(appEnv.application, 1);
 			const result = await axios.get(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				getURL(`/api/blocks/${encodeURIComponent(id)}`),

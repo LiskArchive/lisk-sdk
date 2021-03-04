@@ -11,12 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
-import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
+import {
+	callNetwork,
+	createApplicationEnv,
+	closeApplicationEnv,
+	getURL,
+} from './utils/application';
 
 describe('Delegates endpoint', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 	const firstDelegateAccount = {
 		address: '03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
 		token: { balance: '0' },
@@ -42,11 +47,12 @@ describe('Delegates endpoint', () => {
 	};
 
 	beforeAll(async () => {
-		app = await createApplication('delegates_http_functional');
+		appEnv = createApplicationEnv('delegates_http_functional');
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('/api/delegates', () => {

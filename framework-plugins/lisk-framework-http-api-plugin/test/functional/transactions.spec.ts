@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-
 import axios from 'axios';
 import {
 	callNetwork,
-	closeApplication,
-	createApplication,
+	closeApplicationEnv,
+	createApplicationEnv,
 	getURL,
 	waitNBlocks,
 } from './utils/application';
@@ -29,15 +28,16 @@ import { createTransferTransaction } from './utils/transactions';
 describe('Hello endpoint', () => {
 	// Arrange
 	const invalidHexString = '69db1f75ab1f76c69f7dxxxxxxxxxx';
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 
 	beforeAll(async () => {
-		app = await createApplication('transactions');
+		appEnv = createApplicationEnv('transactions');
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('GET /api/transactions/:id', () => {
@@ -58,7 +58,7 @@ describe('Hello endpoint', () => {
 				);
 				expect(status).toEqual(200);
 				expect(response).toEqual({ data: { transactionId: id }, meta: {} });
-				await waitNBlocks(app, 1);
+				await waitNBlocks(appEnv.application, 1);
 
 				// Act
 				const { response: getResponse, status: getStatus } = await callNetwork(

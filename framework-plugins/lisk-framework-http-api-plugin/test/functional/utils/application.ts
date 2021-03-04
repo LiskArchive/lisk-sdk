@@ -11,19 +11,23 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as os from 'os';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { Application, PartialApplicationConfig } from 'lisk-framework';
+import {
+	Application,
+	KeysModule,
+	PartialApplicationConfig,
+	SequenceModule,
+	testing,
+	TokenModule,
+} from 'lisk-framework';
 import * as genesisBlockJSON from '../fixtures/genesis_block.json';
 import * as configJSON from '../fixtures/config.json';
 import { HTTPAPIPlugin } from '../../../src';
 
-export const createApplication = async (
+export const createApplicationEnv = (
 	label: string,
 	consoleLogLevel?: string,
-): Promise<Application> => {
-	const rootPath = path.join(os.homedir(), '.lisk/http-plugin');
+): testing.ApplicationEnv => {
+	const rootPath = '~/.lisk/http-plugin';
 	const config = {
 		...configJSON,
 		rootPath,
@@ -39,35 +43,23 @@ export const createApplication = async (
 		},
 	} as PartialApplicationConfig;
 
-	const app = Application.defaultApplication(genesisBlockJSON, config);
-	app.registerPlugin(HTTPAPIPlugin);
+	const appEnv = new testing.ApplicationEnv({
+		modules: [TokenModule, SequenceModule, KeysModule],
+		config,
+		plugins: [HTTPAPIPlugin],
+		genesisBlock: genesisBlockJSON,
+	});
 
-	// Remove pre-existing data
-	fs.removeSync(path.join(rootPath, label));
-
-	await Promise.race([
-		app.run(),
-		new Promise((_resolve, reject) => {
-			const id = setTimeout(() => {
-				clearTimeout(id);
-				reject(new Error('App can not started in time.'));
-			}, 10000);
-		}),
-	]);
-	return app;
+	return appEnv;
 };
 
-export const closeApplication = async (app: Application, removeData = true): Promise<void> => {
+export const closeApplicationEnv = async (
+	appEnv: testing.ApplicationEnv,
+	options: { clearDB: boolean } = { clearDB: true },
+) => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-
-	if (removeData) {
-		await app['_forgerDB'].clear();
-		await app['_blockchainDB'].clear();
-		await app['_nodeDB'].clear();
-	}
-
-	await app.shutdown();
+	await appEnv.stopApplication(options);
 };
 
 export const getURL = (url: string, port = 4000): string => `http://localhost:${port}${url}`;

@@ -11,20 +11,26 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
-import { createApplication, closeApplication, waitNBlocks, getURL } from './utils/application';
+import {
+	createApplicationEnv,
+	closeApplicationEnv,
+	waitNBlocks,
+	getURL,
+} from './utils/application';
 
 describe('Forger endpoint', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		app = await createApplication('forger_functional');
-		await waitNBlocks(app, 1);
+		appEnv = createApplicationEnv('forger_functional');
+		await appEnv.startApplication();
+		await waitNBlocks(appEnv.application, 1);
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('GET /api/forgers/', () => {
