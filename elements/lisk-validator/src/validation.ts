@@ -38,15 +38,57 @@ export const isNumberString = (num: unknown): boolean => {
 	return validator.isInt(num);
 };
 
+export const isString = (data: unknown): boolean => typeof data === 'string';
+
+export const isBoolean = (data: unknown): boolean => typeof data === 'boolean';
+
+export const isSInt32 = (data: unknown): boolean => {
+	if (typeof data === 'number' && Number.isInteger(data)) {
+		return data <= MAX_SINT32 && data >= MIN_SINT32;
+	}
+
+	return false;
+};
+
+export const isUInt32 = (data: unknown): boolean => {
+	if (typeof data === 'number' && Number.isInteger(data)) {
+		return data <= MAX_UINT32 && data >= 0;
+	}
+
+	return false;
+};
+
+export const isSInt64 = (data: unknown): boolean =>
+	typeof data === 'bigint' ? data <= MAX_SINT64 && data >= MIN_SINT64 : false;
+
+export const isUInt64 = (data: unknown): boolean =>
+	typeof data === 'bigint' ? data <= MAX_UINT64 && data >= BigInt(0) : false;
+
+export const isBytes = (data: unknown): boolean => Buffer.isBuffer(data);
+
 export const isValidInteger = (num: unknown): boolean =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
 
 export const isHexString = (data: unknown): boolean => {
-	if (typeof data !== 'string') {
+	if (!isString(data)) {
 		return false;
 	}
 
-	return data === '' || /^[a-f0-9]+$/i.test(data);
+	return data === '' || /^[a-f0-9]+$/i.test(data as string);
+};
+
+export const isBinaryString = (data: unknown): boolean => {
+	if (!isString(data)) {
+		return false;
+	}
+
+	return (
+		data === '' ||
+		(data as string)
+			.split('')
+			.map(c => c.charCodeAt(0))
+			.every(c => c <= 255)
+	);
 };
 
 export const isEncryptedPassphrase = (data: string): boolean => {
@@ -105,31 +147,3 @@ export const isCsv = (data: string): boolean => {
 
 	return false;
 };
-
-export const isString = (data: unknown): boolean => typeof data === 'string';
-
-export const isBoolean = (data: unknown): boolean => typeof data === 'boolean';
-
-export const isSInt32 = (data: unknown): boolean => {
-	if (typeof data === 'number' && Number.isInteger(data)) {
-		return data <= MAX_SINT32 && data >= MIN_SINT32;
-	}
-
-	return false;
-};
-
-export const isUInt32 = (data: unknown): boolean => {
-	if (typeof data === 'number' && Number.isInteger(data)) {
-		return data <= MAX_UINT32 && data >= 0;
-	}
-
-	return false;
-};
-
-export const isSInt64 = (data: unknown): boolean =>
-	typeof data === 'bigint' ? data <= MAX_SINT64 && data >= MIN_SINT64 : false;
-
-export const isUInt64 = (data: unknown): boolean =>
-	typeof data === 'bigint' ? data <= MAX_UINT64 && data >= BigInt(0) : false;
-
-export const isBytes = (data: unknown): boolean => Buffer.isBuffer(data);

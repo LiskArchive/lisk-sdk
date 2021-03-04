@@ -52,7 +52,7 @@ import {
 import { P2PRequest } from '../p2p_request';
 import {
 	P2PInternalState,
-	P2PBufferResponsePacket,
+	P2PResponsePacketBufferData,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -348,10 +348,10 @@ export class Peer extends EventEmitter {
 			throw new Error('Peer socket does not exist');
 		}
 
-		const data =
-			packet.data instanceof Buffer
-				? packet.data.toString('binary')
-				: Buffer.from(packet.data as never).toString('binary');
+		// All the inbound and outbound messages communication to socket
+		// Should be converted to binary string
+		const data = this._getBinaryData(packet?.data);
+
 		this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
 			event: packet.event,
 			data,
@@ -361,23 +361,21 @@ export class Peer extends EventEmitter {
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		return new Promise<P2PResponsePacket>(
 			(
-				resolve: (result: P2PBufferResponsePacket) => void,
+				resolve: (result: P2PResponsePacketBufferData) => void,
 				reject: (result: Error) => void,
 			): void => {
 				if (!this._socket) {
 					throw new Error('Peer socket does not exist');
 				}
-				const data =
-					packet.data instanceof Buffer
-						? packet.data.toString('binary')
-						: Buffer.from(packet.data as never).toString('binary');
+
+				const data = this._getBinaryData(packet?.data);
 				this._socket.emit(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
 						procedure: packet.procedure,
 						data,
 					},
-					(error: Error | undefined, responseData: P2PBufferResponsePacket | undefined) => {
+					(error: Error | undefined, responseData: P2PResponsePacketBufferData | undefined) => {
 						if (error) {
 							reject(error);
 
@@ -640,5 +638,18 @@ export class Peer extends EventEmitter {
 					...peerInfo,
 					internalState: assignInternalInfo(peerInfo, this._peerConfig.secret),
 			  };
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBinaryData(data: unknown): string | undefined {
+		let binaryData: string | undefined;
+
+		if (data instanceof Buffer) {
+			binaryData = data.toString('binary');
+		} else if (data !== undefined) {
+			Buffer.from(data as never).toString('binary');
+		}
+
+		return binaryData;
 	}
 }

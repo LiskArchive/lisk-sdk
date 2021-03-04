@@ -85,7 +85,8 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPenalty,
-	P2PRequestPacket,
+	P2PRequestPacketBufferData,
+	P2PMessagePacketBufferData,
 	P2PResponsePacket,
 	PeerLists,
 	ProtocolPeerInfo,
@@ -646,13 +647,13 @@ export class P2P extends EventEmitter {
 		return this._networkStats;
 	}
 
-	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacket> {
 		const response = await this._peerPool.request(packet);
 
 		return response;
 	}
 
-	public send(message: P2PMessagePacket): void {
+	public send(message: P2PMessagePacketBufferData): void {
 		this._peerPool.send(message);
 	}
 
@@ -661,7 +662,7 @@ export class P2P extends EventEmitter {
 	}
 
 	public async requestFromPeer(
-		packet: P2PRequestPacket,
+		packet: P2PRequestPacketBufferData,
 		peerId: string,
 	): Promise<P2PResponsePacket> {
 		return this._peerPool.requestFromPeer(packet, peerId);
@@ -744,7 +745,7 @@ export class P2P extends EventEmitter {
 			return;
 		}
 		const encodedNodeInfo = encodeNodeInfo(this._rpcSchemas.nodeInfo, this._nodeInfo).toString(
-			'hex',
+			'binary',
 		);
 		request.end(encodedNodeInfo);
 	}
@@ -854,7 +855,7 @@ export class P2P extends EventEmitter {
 			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
-			encodePeerInfo(this._rpcSchemas.peerInfo, peer).toString('hex'),
+			encodePeerInfo(this._rpcSchemas.peerInfo, peer).toString('binary'),
 		);
 		const validatedPeerList =
 			getByteSize(encodedPeersList) < wsMaxPayload

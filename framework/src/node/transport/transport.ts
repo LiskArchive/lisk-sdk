@@ -131,7 +131,7 @@ export class Transport {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this._networkModule.send({
 			event: 'postBlock',
-			data: { block: this._chainModule.dataAccess.encode(block) },
+			data: this._chainModule.dataAccess.encode(block),
 		});
 	}
 
@@ -409,12 +409,14 @@ export class Transport {
 				data: unknownTransactionIDs,
 				peerId,
 			})) as {
-				data: { transactions: Buffer[] };
+				data: { transactions: string[] };
 			};
 
 			try {
 				for (const transaction of result.transactions) {
-					const tx = this._chainModule.dataAccess.decodeTransaction(transaction);
+					const tx = this._chainModule.dataAccess.decodeTransaction(
+						Buffer.from(transaction, 'binary'),
+					);
 					await this._receiveTransaction(tx);
 				}
 			} catch (err) {

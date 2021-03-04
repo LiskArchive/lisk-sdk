@@ -34,7 +34,7 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import {
-	P2PBufferMessagePacket,
+	P2PMessagePacketBufferData,
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -86,7 +86,7 @@ export class OutboundPeer extends Peer {
 		}
 	}
 
-	public send(packet: P2PBufferMessagePacket): void {
+	public send(packet: P2PMessagePacketBufferData): void {
 		if (!this._socket) {
 			this._socket = this._createOutboundSocket();
 		}

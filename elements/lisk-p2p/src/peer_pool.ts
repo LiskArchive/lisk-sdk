@@ -64,9 +64,10 @@ import {
 	P2PPeerSelectionForRequestFunction,
 	P2PPeerSelectionForSendFunction,
 	P2PPenalty,
-	P2PRequestPacket,
 	P2PResponsePacket,
 	RPCSchemas,
+	P2PRequestPacketBufferData,
+	P2PMessagePacketBufferData,
 } from './types';
 import { encodeNodeInfo } from './utils/codec';
 // eslint-disable-next-line import/order
@@ -306,7 +307,7 @@ export class PeerPool extends EventEmitter {
 		return { ...this._peerConfig };
 	}
 
-	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacket> {
 		const outboundPeerInfos = this.getAllConnectedPeerInfos(OutboundPeer);
 
 		const peerInfoForRequest =
@@ -340,7 +341,7 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
-	public send(message: P2PMessagePacket): void {
+	public send(message: P2PMessagePacketBufferData): void {
 		const listOfPeerInfo: ReadonlyArray<P2PPeerInfo> = [...this._peerMap.values()].map(peer => ({
 			...peer.peerInfo,
 			internalState: {
@@ -373,7 +374,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async requestFromPeer(
-		packet: P2PRequestPacket,
+		packet: P2PRequestPacketBufferData,
 		peerId: string,
 	): Promise<P2PResponsePacket> {
 		const peer = this._peerMap.get(peerId);
