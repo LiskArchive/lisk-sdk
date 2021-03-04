@@ -47,8 +47,11 @@ describe('Forger Info', () => {
 			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 
 			// Act
-			const { generatorPublicKey } = appEnv.application['_node']['_chain'].lastBlock.header;
-			const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
+			const { generatorPublicKey } = appEnv.lastBlock.header;
+			const forgerInfo = await getForgerInfoByPublicKey(
+				forgerPluginInstance,
+				generatorPublicKey.toString('hex'),
+			);
 
 			// Assert
 			expect(forgerInfo).toMatchSnapshot();
@@ -74,8 +77,11 @@ describe('Forger Info', () => {
 
 			const {
 				header: { generatorPublicKey },
-			} = appEnv.application['_node']['_chain'].lastBlock;
-			const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
+			} = appEnv.lastBlock;
+			const forgerInfo = await getForgerInfoByPublicKey(
+				forgerPluginInstance,
+				generatorPublicKey.toString('hex'),
+			);
 
 			// Assert
 			expect(forgerInfo).toMatchSnapshot();
@@ -239,13 +245,16 @@ describe('Forger Info', () => {
 	describe('Delete Block', () => {
 		it('should update forger info after delete block', async () => {
 			// Arrange
-			const { generatorPublicKey } = appEnv.application['_node']['_chain'].lastBlock.header;
+			const { generatorPublicKey } = appEnv.lastBlock.header;
 			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 			await appEnv.application['_node']['_processor'].deleteLastBlock();
 
 			// Act
 			await waitTill(50);
-			const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
+			const forgerInfo = await getForgerInfoByPublicKey(
+				forgerPluginInstance,
+				generatorPublicKey.toString('hex'),
+			);
 
 			// Asserts
 			expect(forgerInfo).toMatchSnapshot();

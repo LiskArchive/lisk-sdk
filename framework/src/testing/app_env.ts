@@ -16,6 +16,7 @@
 import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
 import { join } from 'path';
+import { Block } from '@liskhq/lisk-chain';
 import { ModuleClass, PluginClass } from './types';
 import { defaultConfig } from './fixtures';
 import { createGenesisBlockWithAccounts } from './fixtures/genesis_block';
@@ -53,6 +54,11 @@ export class ApplicationEnv {
 
 	public get networkIdentifier(): Buffer {
 		return this._application.networkIdentifier;
+	}
+
+	public get lastBlock(): Block {
+		// eslint-disable-next-line dot-notation
+		return this._application['_node']['_chain'].lastBlock;
 	}
 
 	public async startApplication(): Promise<void> {

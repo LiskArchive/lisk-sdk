@@ -57,8 +57,11 @@ describe('Forger Info Sync', () => {
 		});
 		await waitNBlocks(appEnv.application, 1);
 		await waitTill(2000);
-		const { generatorPublicKey } = appEnv.application['_node']['_chain'].lastBlock.header;
-		const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
+		const { generatorPublicKey } = appEnv.lastBlock.header;
+		const forgerInfo = await getForgerInfoByPublicKey(
+			forgerPluginInstance,
+			generatorPublicKey.toString('hex'),
+		);
 		// Make sure forger info is not changed
 		expect(forgerInfo).toMatchSnapshot();
 
