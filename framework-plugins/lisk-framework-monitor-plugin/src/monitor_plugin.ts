@@ -217,7 +217,7 @@ export class MonitorPlugin extends BasePlugin {
 	}
 
 	private _handlePostBlock(data: EventPostBlockData) {
-		const decodedBlock = codec.decode<RawBlock>(this.schemas.block, data.block);
+		const decodedBlock = codec.decode<RawBlock>(this.schemas.block, Buffer.from(data.block, 'hex'));
 		const decodedBlockHeader = codec.decode<RawBlockHeader>(
 			this.schemas.blockHeader,
 			decodedBlock.header,

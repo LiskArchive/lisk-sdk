@@ -363,6 +363,7 @@ export class Network {
 					},
 					'EVENT_MESSAGE_RECEIVED: Received inbound message',
 				);
+				// TODO: Fix binary to hex converstion
 				this._channel.publish('app:network:event', packet);
 			},
 		);

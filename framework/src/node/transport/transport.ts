@@ -163,7 +163,7 @@ export class Transport {
 			throw error;
 		}
 
-		const blockID = (data as RPCBlocksByIdData).blockId;
+		const blockID = Buffer.from((data as RPCBlocksByIdData).blockId, 'binary');
 
 		// Get height of block with supplied ID
 		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(blockID);
@@ -209,7 +209,7 @@ export class Transport {
 			throw error;
 		}
 
-		const blockIDs = (data as RPCHighestCommonBlockData).ids;
+		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id => Buffer.from(id, 'binary'));
 
 		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(
 			blockIDs,
@@ -245,7 +245,7 @@ export class Transport {
 			throw new LiskValidationError(errors);
 		}
 
-		const blockBytes = (data as EventPostBlockData).block;
+		const blockBytes = Buffer.from((data as EventPostBlockData).block, 'binary');
 
 		let block: Block;
 		try {
@@ -339,13 +339,14 @@ export class Transport {
 
 		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
-			const transaction = this._transactionPoolModule.get(id);
+			const trxId = Buffer.from(id, 'binary');
+			const transaction = this._transactionPoolModule.get(trxId);
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
 				transactionsFromQueues.push(transaction.getBytes());
 			} else {
-				idsNotInPool.push(id);
+				idsNotInPool.push(trxId);
 			}
 		}
 
@@ -400,7 +401,9 @@ export class Transport {
 			throw new LiskValidationError(errors);
 		}
 
-		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds;
+		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds.map(id =>
+			Buffer.from(id, 'binary'),
+		);
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
 		if (unknownTransactionIDs.length > 0) {

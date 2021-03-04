@@ -20,7 +20,7 @@ export const schemas = {
 		properties: {
 			blockId: {
 				type: 'string',
-				format: 'hex',
+				format: 'binary',
 			},
 		},
 	},
@@ -32,7 +32,7 @@ export const schemas = {
 				type: 'array',
 				items: {
 					type: 'string',
-					format: 'hex',
+					format: 'binary',
 				},
 			},
 		},
@@ -44,7 +44,7 @@ export const schemas = {
 		properties: {
 			block: {
 				type: 'string',
-				format: 'hex',
+				format: 'binary',
 			},
 		},
 	},
@@ -57,7 +57,7 @@ export const schemas = {
 				type: 'array',
 				items: {
 					type: 'string',
-					format: 'hex',
+					format: 'binary',
 				},
 				minItems: 1,
 				maxItems: 100,
@@ -73,7 +73,7 @@ export const schemas = {
 				type: 'array',
 				items: {
 					type: 'string',
-					format: 'hex',
+					format: 'binary',
 				},
 				uniqueItems: true,
 				minItems: 1,
