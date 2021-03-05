@@ -20,11 +20,11 @@ export const defaultConfig = {
 	rootPath: '~/.lisk',
 	logger: {
 		fileLogLevel: 'info',
-		consoleLogLevel: 'info',
+		consoleLogLevel: 'none',
 		logFileName: 'lisk.log',
 	},
 	rpc: {
-		enable: false,
+		enable: true,
 		mode: 'ipc',
 		port: 8080,
 	},

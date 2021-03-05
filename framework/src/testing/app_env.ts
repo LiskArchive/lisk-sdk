@@ -15,8 +15,8 @@
 
 import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
-import { homedir } from 'os';
-import { resolve as pathResolve } from 'path';
+import { join } from 'path';
+import { Block } from '@liskhq/lisk-chain';
 import { ModuleClass, PluginClass } from './types';
 import { defaultConfig } from './fixtures';
 import { createGenesisBlockWithAccounts } from './fixtures/genesis_block';
@@ -24,51 +24,103 @@ import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
 import { DPoSModule } from '../modules/dpos';
 
-interface GetApplicationEnv {
+interface ApplicationEnvConfig {
 	modules: ModuleClass[];
 	plugins?: PluginClass[];
 	config?: PartialApplicationConfig;
+	genesisBlock?: Record<string, unknown>;
 }
 
-interface ApplicationEnv {
-	apiClient: Promise<APIClient>;
-	application: Application;
-}
+export class ApplicationEnv {
+	private _application!: Application;
+	private _dataPath!: string;
+	private _ipcClient!: APIClient;
 
-export const getApplicationEnv = async (params: GetApplicationEnv): Promise<ApplicationEnv> => {
-	// As we can call this function with different configuration
-	// so we need to make sure existing schemas are already clear
-	codec.clearCache();
-
-	// TODO: Remove this dependency in future
-	if (!params.modules.includes(DPoSModule)) {
-		params.modules.push(DPoSModule);
+	public constructor(appConfig: ApplicationEnvConfig) {
+		this._initApplication(appConfig);
 	}
-	const { genesisBlockJSON } = createGenesisBlockWithAccounts(params.modules);
-	const config = params.config ?? (defaultConfig as PartialApplicationConfig);
-	const { label } = config;
 
-	const application = new Application(genesisBlockJSON, config);
-	params.modules.map(module => application.registerModule(module));
-	params.plugins?.map(plugin => application.registerPlugin(plugin));
-	await Promise.race([application.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
+	public get application(): Application {
+		return this._application;
+	}
 
-	// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-	const dataPath = pathResolve(`${homedir()}/.lisk/${label}`);
-	const apiClient = createIPCClient(dataPath);
+	public get ipcClient(): APIClient {
+		return this._ipcClient;
+	}
 
-	return {
-		apiClient,
-		application,
-	};
-};
+	public get dataPath(): string {
+		return this._dataPath;
+	}
 
-/* eslint-disable @typescript-eslint/prefer-ts-expect-error */
-/* eslint-disable dot-notation */
+	public get networkIdentifier(): Buffer {
+		return this._application.networkIdentifier;
+	}
 
-export const clearApplicationEnv = async (appEnv: ApplicationEnv): Promise<void> => {
-	await appEnv.application['_forgerDB'].clear();
-	await appEnv.application['_blockchainDB'].clear();
-	await appEnv.application['_nodeDB'].clear();
-	await appEnv.application.shutdown();
-};
+	public get lastBlock(): Block {
+		// eslint-disable-next-line dot-notation
+		return this._application['_node']['_chain'].lastBlock;
+	}
+
+	public async startApplication(): Promise<void> {
+		await Promise.race([
+			this._application.run(),
+			new Promise(resolve => setTimeout(resolve, 3000)),
+		]);
+		// Only start client when ipc is enabled
+		if (this._application.config.rpc.enable && this._application.config.rpc.mode === 'ipc') {
+			this._ipcClient = await createIPCClient(this._dataPath);
+		}
+	}
+
+	public async stopApplication(options: { clearDB: boolean } = { clearDB: true }): Promise<void> {
+		if (options.clearDB) {
+			// eslint-disable-next-line dot-notation
+			await this._application['_forgerDB'].clear();
+			// eslint-disable-next-line dot-notation
+			await this._application['_blockchainDB'].clear();
+			// eslint-disable-next-line dot-notation
+			await this._application['_nodeDB'].clear();
+		}
+		if (this._application.config.rpc.enable && this._application.config.rpc.mode === 'ipc') {
+			await this._ipcClient.disconnect();
+		}
+		await this._application.shutdown();
+	}
+
+	public async waitNBlocks(n = 1): Promise<void> {
+		// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+		const height = this.lastBlock.header.height + n;
+		return new Promise(resolve => {
+			// eslint-disable-next-line dot-notation
+			this._application['_channel'].subscribe('app:block:new', () => {
+				if (this.lastBlock.header.height >= height) {
+					resolve();
+				}
+			});
+		});
+	}
+
+	private _initApplication(appConfig: ApplicationEnvConfig): Application {
+		// As we can call this function with different configuration
+		// so we need to make sure existing schemas are already clear
+		codec.clearCache();
+		// TODO: Remove this dependency in future
+		if (!appConfig.modules.includes(DPoSModule)) {
+			appConfig.modules.push(DPoSModule);
+		}
+		const { genesisBlockJSON } = createGenesisBlockWithAccounts(appConfig.modules);
+		const config = { ...defaultConfig, ...(appConfig.config ?? {}) };
+		const { label } = config;
+
+		const application = new Application(
+			appConfig.genesisBlock ?? genesisBlockJSON,
+			config as PartialApplicationConfig,
+		);
+		appConfig.modules.map(module => application.registerModule(module));
+		appConfig.plugins?.map(plugin => application.registerPlugin(plugin));
+		this._dataPath = join(application.config.rootPath, label);
+
+		this._application = application;
+		return application;
+	}
+}
