@@ -28,11 +28,11 @@ export const nodeInfoSchema = {
 		},
 		nonce: {
 			dataType: 'string',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 		advertiseAddress: {
 			dataType: 'boolean',
-			fieldNumber: 5,
+			fieldNumber: 4,
 		},
 	},
 	required: ['networkIdentifier', 'networkVersion', 'nonce'],
@@ -65,6 +65,7 @@ export const mergeCustomSchema = (baseSchema: Schema, customSchema: Schema): Sch
 		...baseSchema.properties,
 		options: {
 			type: 'object',
+			fieldNumber: 5,
 			properties: { ...customSchema.properties },
 		},
 	},
