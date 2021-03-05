@@ -13,12 +13,7 @@
  */
 
 import { testing } from 'lisk-framework';
-import {
-	closeApplicationEnv,
-	createApplicationEnv,
-	waitNBlocks,
-	waitTill,
-} from '../utils/application';
+import { closeApplicationEnv, createApplicationEnv, waitTill } from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
 
 describe('forger:getVoters action', () => {
@@ -69,10 +64,10 @@ describe('forger:getVoters action', () => {
 			});
 			accountNonce += 1;
 
-			await appEnv.application['_channel'].invoke('app:postTransaction', {
+			await appEnv.ipcClient.invoke('app:postTransaction', {
 				transaction: transaction.getBytes().toString('hex'),
 			});
-			await waitNBlocks(appEnv.application, 1);
+			await appEnv.waitNBlocks(1);
 			// Wait a bit to give plugin a time to calculate forger info
 			await waitTill(2000);
 

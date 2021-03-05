@@ -66,7 +66,10 @@ export class ApplicationEnv {
 			this._application.run(),
 			new Promise(resolve => setTimeout(resolve, 3000)),
 		]);
-		this._ipcClient = await createIPCClient(this._dataPath);
+		// Only start client when ipc is enabled
+		if (this._application.config.rpc.enable && this._application.config.rpc.mode === 'ipc') {
+			this._ipcClient = await createIPCClient(this._dataPath);
+		}
 	}
 
 	public async stopApplication(options: { clearDB: boolean } = { clearDB: true }): Promise<void> {
@@ -78,27 +81,44 @@ export class ApplicationEnv {
 			// eslint-disable-next-line dot-notation
 			await this._application['_nodeDB'].clear();
 		}
-		await this._ipcClient.disconnect();
+		if (this._application.config.rpc.enable && this._application.config.rpc.mode === 'ipc') {
+			await this._ipcClient.disconnect();
+		}
 		await this._application.shutdown();
+	}
+
+	public async waitNBlocks(n = 1): Promise<void> {
+		// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+		const height = this.lastBlock.header.height + n;
+		return new Promise(resolve => {
+			// eslint-disable-next-line dot-notation
+			this._application['_channel'].subscribe('app:block:new', () => {
+				if (this.lastBlock.header.height >= height) {
+					resolve();
+				}
+			});
+		});
 	}
 
 	private _initApplication(appConfig: ApplicationEnvConfig): Application {
 		// As we can call this function with different configuration
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
-
 		// TODO: Remove this dependency in future
 		if (!appConfig.modules.includes(DPoSModule)) {
 			appConfig.modules.push(DPoSModule);
 		}
 		const { genesisBlockJSON } = createGenesisBlockWithAccounts(appConfig.modules);
-		const config = appConfig.config ?? (defaultConfig as PartialApplicationConfig);
+		const config = { ...defaultConfig, ...(appConfig.config ?? {}) };
 		const { label } = config;
 
-		const application = new Application(appConfig.genesisBlock ?? genesisBlockJSON, config);
+		const application = new Application(
+			appConfig.genesisBlock ?? genesisBlockJSON,
+			config as PartialApplicationConfig,
+		);
 		appConfig.modules.map(module => application.registerModule(module));
 		appConfig.plugins?.map(plugin => application.registerPlugin(plugin));
-		this._dataPath = join(application.config.rootPath, label as string);
+		this._dataPath = join(application.config.rootPath, label);
 
 		this._application = application;
 		return application;
