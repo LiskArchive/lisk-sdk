@@ -16,6 +16,9 @@ import { codec } from '@liskhq/lisk-codec';
 import { formatInt } from '@liskhq/lisk-db';
 import { BlockHeader, RawBlock } from '@liskhq/lisk-chain';
 import { testing, RegisteredSchema } from 'lisk-framework';
+import { rmdirSync, existsSync } from 'fs';
+import { homedir } from 'os';
+import { join } from 'path';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema, getBlockHeaders } from '../../src/db';
 import {
@@ -44,11 +47,16 @@ describe('save block header', () => {
 		codec.encode(blockHeadersSchema, {
 			blockHeaders: [...blockHeaders, newHeader],
 		});
+	const appLabel = 'report-misbehavior-plugin';
+	const dataPath = join(homedir(), '.lisk', appLabel);
 
 	const encodeBlockHeader = (schemas: RegisteredSchema, newHeader: BlockHeader) =>
 		codec.encode(schemas.blockHeader, newHeader);
 
 	beforeAll(async () => {
+		if (existsSync(dataPath)) {
+			rmdirSync(dataPath, { recursive: true });
+		}
 		appEnv = createApplicationEnv('reportMisbehavior');
 		await appEnv.startApplication();
 		pluginInstance = getReportMisbehaviorPlugin(appEnv.application);

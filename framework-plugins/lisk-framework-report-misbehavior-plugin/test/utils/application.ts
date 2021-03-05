@@ -19,7 +19,6 @@ import {
 	testing,
 	TokenModule,
 } from 'lisk-framework';
-import { validator } from '@liskhq/lisk-validator';
 import * as configJSON from '../fixtures/config.json';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { ReportMisbehaviorPlugin } from '../../src';
@@ -29,20 +28,6 @@ const apiPort = 5002;
 
 export const getReportMisbehaviorPlugin = (app: Application): ReportMisbehaviorPlugin => {
 	return app['_controller']['_inMemoryPlugins'][ReportMisbehaviorPlugin.alias]['plugin'];
-};
-
-export const startApplication = async (app: Application): Promise<void> => {
-	// FIXME: Remove with #5572
-	validator.removeSchema('/block/header');
-
-	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
-	await new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height > 1) {
-				resolve();
-			}
-		});
-	});
 };
 
 export const createApplicationEnv = (
@@ -84,9 +69,10 @@ export const createApplicationEnv = (
 		},
 	} as PartialApplicationConfig;
 
+	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
 	const genesis = {
 		...genesisBlock,
-		header: { ...genesisBlock.header, timestamp: Math.floor(Date.now() / 1000) },
+		header: { ...genesisBlock.header, timestamp: Math.floor(Date.now() / 1000) - 30 },
 	};
 	const appEnv = new testing.ApplicationEnv({
 		modules: [TokenModule, SequenceModule, KeysModule],
@@ -94,7 +80,9 @@ export const createApplicationEnv = (
 		plugins: [ReportMisbehaviorPlugin],
 		genesisBlock: genesis,
 	});
-	// app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: false });
+	// FIXME: Remove with #5572
+	// validator.removeSchema('/block/header');
+
 	return appEnv;
 };
 
@@ -105,18 +93,6 @@ export const closeApplicationEnv = async (
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 	await appEnv.stopApplication(options);
-};
-
-export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-	const height = app['_node']['_chain'].lastBlock.header.height + n;
-	return new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height >= height) {
-				resolve();
-			}
-		});
-	});
 };
 
 export const waitTill = async (ms: number) =>
