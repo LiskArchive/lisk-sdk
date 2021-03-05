@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { FaucetPlugin, FaucetPluginOptions } from '../../../src/plugin/faucet_plugin';
+import { FaucetPlugin } from '../../../src/plugin';
 
 const validOptions = {
 	encryptedPassphrase:
@@ -48,7 +48,7 @@ describe('FaucetPlugin', () => {
 		});
 
 		it('should load custom config values', () => {
-			const options: FaucetPluginOptions = {
+			const options = {
 				...validOptions,
 				tokenPrefix: 'myToken2',
 				fee: '100000000',
