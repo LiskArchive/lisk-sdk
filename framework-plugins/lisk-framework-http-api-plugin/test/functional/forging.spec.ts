@@ -11,12 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
 import {
-	createApplication,
-	closeApplication,
-	waitNBlocks,
+	createApplicationEnv,
+	closeApplicationEnv,
 	getURL,
 	callNetwork,
 } from './utils/application';
@@ -31,11 +30,12 @@ describe('api/forging', () => {
 	};
 	const sampleForgerPassword = 'elephant tree paris dragon chair galaxy';
 
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		app = await createApplication('forging');
-		await waitNBlocks(app, 2);
+		appEnv = createApplicationEnv('forging');
+		await appEnv.startApplication();
+		await appEnv.waitNBlocks(2);
 		const { data } = await axios.get(getURL('/api/forging/info'));
 		const forgedDelegateInfo = data.data.filter(
 			(forger: { maxHeightPreviouslyForged: number }) => forger.maxHeightPreviouslyForged >= 0,
@@ -46,7 +46,7 @@ describe('api/forging', () => {
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('/api/forging', () => {
