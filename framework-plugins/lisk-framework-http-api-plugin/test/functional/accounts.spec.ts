@@ -11,12 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
-import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
+import {
+	callNetwork,
+	createApplicationEnv,
+	closeApplicationEnv,
+	getURL,
+} from './utils/application';
 
 describe('Account endpoint', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 	const accountFixture = {
 		address: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5',
 		token: { balance: '0' },
@@ -46,11 +51,12 @@ describe('Account endpoint', () => {
 	};
 
 	beforeAll(async () => {
-		app = await createApplication('account_http_functional');
+		appEnv = createApplicationEnv('account_http_functional');
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('/api/accounts', () => {
