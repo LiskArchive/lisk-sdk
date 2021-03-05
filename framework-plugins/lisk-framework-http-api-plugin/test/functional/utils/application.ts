@@ -40,6 +40,11 @@ export const createApplicationEnv = (
 			...configJSON.network,
 			maxInboundConnections: 0,
 		},
+		rpc: {
+			enable: true,
+			port: 8080,
+			mode: 'ipc',
+		},
 	} as PartialApplicationConfig;
 
 	const appEnv = new testing.ApplicationEnv({

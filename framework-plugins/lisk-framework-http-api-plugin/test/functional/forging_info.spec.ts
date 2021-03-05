@@ -27,7 +27,7 @@ describe('Forging info endpoint', () => {
 	beforeAll(async () => {
 		appEnv = createApplicationEnv('forging_info_http_functional');
 		await appEnv.startApplication();
-		forgingStatusData = await appEnv.application['_channel'].invoke('app:getForgingStatus');
+		forgingStatusData = await appEnv.ipcClient.invoke('app:getForgingStatus');
 	});
 
 	afterAll(async () => {
