@@ -20,7 +20,6 @@ import {
 	closeApplicationEnv,
 	createApplicationEnv,
 	getURL,
-	waitNBlocks,
 } from './utils/application';
 import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
@@ -58,7 +57,7 @@ describe('Hello endpoint', () => {
 				);
 				expect(status).toEqual(200);
 				expect(response).toEqual({ data: { transactionId: id }, meta: {} });
-				await waitNBlocks(appEnv.application, 1);
+				await appEnv.waitNBlocks(1);
 
 				// Act
 				const { response: getResponse, status: getStatus } = await callNetwork(

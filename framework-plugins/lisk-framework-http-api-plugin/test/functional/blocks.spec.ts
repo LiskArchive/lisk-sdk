@@ -18,7 +18,6 @@ import {
 	createApplicationEnv,
 	closeApplicationEnv,
 	getURL,
-	waitNBlocks,
 } from './utils/application';
 
 describe('Blocks endpoints', () => {
@@ -27,7 +26,7 @@ describe('Blocks endpoints', () => {
 	beforeAll(async () => {
 		appEnv = createApplicationEnv('blocks_http_functional');
 		await appEnv.startApplication();
-		await waitNBlocks(appEnv.application, 1);
+		await appEnv.waitNBlocks(1);
 	});
 
 	afterAll(async () => {
@@ -115,7 +114,7 @@ describe('Blocks endpoints', () => {
 
 	describe('api/blocks/:blockID', () => {
 		it('should respond with block when block found for specified id', async () => {
-			await waitNBlocks(appEnv.application, 1);
+			await appEnv.waitNBlocks(1);
 			const {
 				data: {
 					data: [
@@ -126,7 +125,7 @@ describe('Blocks endpoints', () => {
 				},
 			} = await axios.get(getURL('/api/blocks/?height=1'));
 
-			await waitNBlocks(appEnv.application, 1);
+			await appEnv.waitNBlocks(1);
 			const result = await axios.get(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				getURL(`/api/blocks/${encodeURIComponent(id)}`),

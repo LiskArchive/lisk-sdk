@@ -13,12 +13,7 @@
  */
 import { testing } from 'lisk-framework';
 import axios from 'axios';
-import {
-	createApplicationEnv,
-	closeApplicationEnv,
-	waitNBlocks,
-	getURL,
-} from './utils/application';
+import { createApplicationEnv, closeApplicationEnv, getURL } from './utils/application';
 
 describe('Forger endpoint', () => {
 	let appEnv: testing.ApplicationEnv;
@@ -26,7 +21,7 @@ describe('Forger endpoint', () => {
 	beforeAll(async () => {
 		appEnv = createApplicationEnv('forger_functional');
 		await appEnv.startApplication();
-		await waitNBlocks(appEnv.application, 1);
+		await appEnv.waitNBlocks(1);
 	});
 
 	afterAll(async () => {

@@ -16,7 +16,6 @@ import axios from 'axios';
 import {
 	createApplicationEnv,
 	closeApplicationEnv,
-	waitNBlocks,
 	getURL,
 	callNetwork,
 } from './utils/application';
@@ -36,7 +35,7 @@ describe('api/forging', () => {
 	beforeAll(async () => {
 		appEnv = createApplicationEnv('forging');
 		await appEnv.startApplication();
-		await waitNBlocks(appEnv.application, 2);
+		await appEnv.waitNBlocks(2);
 		const { data } = await axios.get(getURL('/api/forging/info'));
 		const forgedDelegateInfo = data.data.filter(
 			(forger: { maxHeightPreviouslyForged: number }) => forger.maxHeightPreviouslyForged >= 0,

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
-	Application,
 	KeysModule,
 	PartialApplicationConfig,
 	SequenceModule,
@@ -63,18 +62,6 @@ export const closeApplicationEnv = async (
 };
 
 export const getURL = (url: string, port = 4000): string => `http://localhost:${port}${url}`;
-
-export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-	const height = app['_node']['_chain'].lastBlock.header.height + n;
-	return new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height >= height) {
-				resolve();
-			}
-		});
-	});
-};
 
 export const callNetwork = async (
 	promise: Promise<any>,
