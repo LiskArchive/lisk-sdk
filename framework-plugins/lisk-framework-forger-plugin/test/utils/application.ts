@@ -83,7 +83,6 @@ export const createApplicationEnv = (
 		plugins: [ForgerPlugin],
 		genesisBlock,
 	});
-	// const appEnv = await testing.getApplicationEnv();
 	validator.removeSchema('/block/header');
 
 	return appEnv;
