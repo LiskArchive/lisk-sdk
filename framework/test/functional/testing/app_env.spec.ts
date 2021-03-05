@@ -15,7 +15,7 @@ import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ApplicationEnv } from '../../../src/testing';
-import { PartialApplicationConfig, TokenModule, DPoSModule } from '../../../src';
+import { PartialApplicationConfig, TokenModule } from '../../../src';
 import { defaultConfig } from '../../../src/testing/fixtures';
 
 const appLabel = 'beta-sdk-app';
@@ -47,11 +47,11 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules()).toEqual([]);
+			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['dpos']);
 		});
 
 		it('should return valid environment with custom module', async () => {
-			appEnv = new ApplicationEnv({ modules: [TokenModule, DPoSModule] });
+			appEnv = new ApplicationEnv({ modules: [TokenModule], config: { label: appLabel } });
 			await appEnv.startApplication();
 
 			expect(appEnv.application).toBeDefined();
@@ -59,7 +59,10 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules()).toContain([TokenModule, DPoSModule]);
+			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues([
+				'token',
+				'dpos',
+			]);
 		});
 
 		it('should return valid environment with custom config', async () => {
@@ -76,7 +79,7 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules()).toEqual([]);
+			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['dpos']);
 		});
 	});
 });

@@ -83,7 +83,6 @@ export const createApplicationEnv = (
 		plugins: [ForgerPlugin],
 		genesisBlock,
 	});
-	// const appEnv = await testing.getApplicationEnv();
 	validator.removeSchema('/block/header');
 
 	return appEnv;
@@ -97,22 +96,7 @@ export const closeApplicationEnv = async (
 	await appEnv.stopApplication(options);
 };
 
-export const getURL = (url: string, port = forgerApiPort): string =>
-	`http://localhost:${port}${url}`;
-
-export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-	const height = app['_node']['_chain'].lastBlock.header.height + n;
-	return new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height >= height) {
-				resolve();
-			}
-		});
-	});
-};
-
-export const waitTill = async (ms: number) =>
+export const waitTill = async (ms: number): Promise<void> =>
 	new Promise(r =>
 		setTimeout(() => {
 			r();

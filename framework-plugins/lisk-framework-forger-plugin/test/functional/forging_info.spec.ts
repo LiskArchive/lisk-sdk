@@ -16,7 +16,6 @@ import { testing } from 'lisk-framework';
 import {
 	createApplicationEnv,
 	getForgerInfoByAddress,
-	waitNBlocks,
 	getForgerPlugin,
 	closeApplicationEnv,
 } from '../utils/application';
@@ -27,7 +26,7 @@ describe('forger:getForgingInfo action', () => {
 	beforeAll(async () => {
 		appEnv = createApplicationEnv('forging_info_spec');
 		await appEnv.startApplication();
-		await waitNBlocks(appEnv.application, 2);
+		await appEnv.waitNBlocks(2);
 	});
 
 	afterAll(async () => {
