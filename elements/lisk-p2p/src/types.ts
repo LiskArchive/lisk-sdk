@@ -19,20 +19,13 @@ import { ConnectionKind, PeerKind } from './constants';
 // eslint-disable-next-line import/no-cycle
 import { PeerBook } from './peer_book';
 
-type P2PBufferData =
-	| Record<string, Buffer>
-	| Record<string, Buffer[]>
-	| Buffer[]
-	| Buffer
-	| undefined;
-
 export interface P2PRequestPacket {
 	readonly data?: unknown;
 	readonly procedure: string;
 }
 
 export interface P2PRequestPacketBufferData extends P2PRequestPacket {
-	readonly data?: P2PBufferData;
+	readonly data?: Buffer;
 }
 
 export interface P2PResponsePacket {
@@ -41,7 +34,7 @@ export interface P2PResponsePacket {
 }
 
 export interface P2PResponsePacketBufferData extends P2PResponsePacket {
-	readonly data: P2PBufferData;
+	readonly data: Buffer;
 }
 
 export interface P2PMessagePacket {
@@ -51,7 +44,7 @@ export interface P2PMessagePacket {
 }
 
 export interface P2PMessagePacketBufferData extends P2PMessagePacket {
-	readonly data?: P2PBufferData;
+	readonly data?: Buffer;
 }
 
 export interface P2PClosePacket {
@@ -141,6 +134,7 @@ export interface IncomingPeerConnection {
 
 export interface RPCSchemas {
 	readonly peerInfo: Schema;
+	readonly peerRequestResponse: Schema;
 	readonly nodeInfo: Schema;
 }
 

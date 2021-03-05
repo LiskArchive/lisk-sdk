@@ -60,6 +60,8 @@ import {
 	P2PResponsePacket,
 	RPCSchemas,
 	P2PSharedState,
+	P2PMessagePacketBufferData,
+	P2PRequestPacketBufferData,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -181,7 +183,7 @@ export class Peer extends EventEmitter {
 			packet: unknown,
 			respond: (responseError?: Error, responseData?: unknown) => void,
 		): void => {
-			let rawRequest;
+			let rawRequest: P2PRequestPacket;
 			try {
 				rawRequest = validateRPCRequest(packet);
 			} catch (error) {
@@ -246,7 +248,7 @@ export class Peer extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown): void => {
-			let message;
+			let message: P2PMessagePacket;
 			try {
 				message = validateProtocolMessage(packet);
 			} catch (error) {
@@ -259,12 +261,6 @@ export class Peer extends EventEmitter {
 			}
 
 			this._updateMessageCounter(message);
-			const rate = this._getMessageRate(message);
-			const messageWithRateInfo = {
-				...message,
-				peerId: this._peerInfo.peerId,
-				rate,
-			};
 
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				this._discoveryMessageCounter.postNodeInfo += 1;
@@ -273,6 +269,17 @@ export class Peer extends EventEmitter {
 				}
 				this._handleUpdateNodeInfo(message);
 			}
+			const rate = this._getMessageRate(message);
+			let messageBufferData: Buffer | undefined;
+			if (message?.data && typeof message?.data === 'string') {
+				messageBufferData = Buffer.from(message.data, 'binary');
+			}
+			const messageWithRateInfo = {
+				...message,
+				data: messageBufferData,
+				peerId: this._peerInfo.peerId,
+				rate,
+			};
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
 		};
@@ -343,22 +350,19 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public send(packet: P2PMessagePacket): void {
+	public send(packet: P2PMessagePacketBufferData): void {
 		if (!this._socket) {
 			throw new Error('Peer socket does not exist');
 		}
 
-		// All the inbound and outbound messages communication to socket
-		// Should be converted to binary string
 		const data = this._getBinaryData(packet?.data);
-
 		this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
 			event: packet.event,
 			data,
 		});
 	}
 
-	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacket> {
 		return new Promise<P2PResponsePacket>(
 			(
 				resolve: (result: P2PResponsePacketBufferData) => void,
@@ -640,16 +644,14 @@ export class Peer extends EventEmitter {
 			  };
 	}
 
+	// All the inbound and outbound messages communication to socket
+	// Should be converted to binary string
 	// eslint-disable-next-line class-methods-use-this
-	private _getBinaryData(data: unknown): string | undefined {
-		let binaryData: string | undefined;
-
+	private _getBinaryData(data?: Buffer): string | undefined {
 		if (data instanceof Buffer) {
-			binaryData = data.toString('binary');
-		} else if (data !== undefined) {
-			Buffer.from(data as never).toString('binary');
+			return data.toString('binary');
 		}
 
-		return binaryData;
+		return data;
 	}
 }

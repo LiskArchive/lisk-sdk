@@ -13,7 +13,7 @@
  *
  */
 import { RPCResponseAlreadySentError } from './errors';
-import { P2PResponsePacket } from './types';
+import { P2PResponsePacketBufferData } from './types';
 
 export interface RequestOptions {
 	readonly procedure: string;
@@ -33,7 +33,7 @@ export class P2PRequest {
 	private readonly _data: unknown;
 	private readonly _respondCallback: (
 		responseError?: Error,
-		responseData?: P2PResponsePacket,
+		responseData?: P2PResponsePacketBufferData,
 	) => void;
 	private readonly _peerId: string;
 	private _wasResponseSent: boolean;
@@ -49,7 +49,10 @@ export class P2PRequest {
 		this._rate = options.rate;
 		// eslint-disable-next-line no-param-reassign
 		options.productivity.requestCounter += 1;
-		this._respondCallback = (responseError?: Error, responsePacket?: P2PResponsePacket): void => {
+		this._respondCallback = (
+			responseError?: Error,
+			responsePacket?: P2PResponsePacketBufferData,
+		): void => {
 			if (this._wasResponseSent) {
 				throw new RPCResponseAlreadySentError(
 					`A response has already been sent for the request procedure <<${options.procedure}>>`,
@@ -66,7 +69,12 @@ export class P2PRequest {
 			// eslint-disable-next-line no-param-reassign
 			options.productivity.responseRate =
 				options.productivity.responseCounter / options.productivity.requestCounter;
-			respondCallback(responseError, responsePacket);
+
+			let responsePacketBufferData: Buffer | undefined;
+			if (responsePacket?.data && typeof responsePacket?.data === 'string') {
+				responsePacketBufferData = Buffer.from(responsePacket.data, 'binary');
+			}
+			respondCallback(responseError, responsePacketBufferData);
 		};
 		this._wasResponseSent = false;
 	}
@@ -91,8 +99,8 @@ export class P2PRequest {
 		return this._wasResponseSent;
 	}
 
-	public end(responseData?: unknown): void {
-		const responsePacket: P2PResponsePacket = {
+	public end(responseData: Buffer): void {
+		const responsePacket: P2PResponsePacketBufferData = {
 			data: responseData,
 			peerId: this.peerId,
 		};

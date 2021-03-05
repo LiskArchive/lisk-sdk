@@ -85,8 +85,7 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPenalty,
-	P2PRequestPacketBufferData,
-	P2PMessagePacketBufferData,
+	P2PRequestPacket,
 	P2PResponsePacket,
 	PeerLists,
 	ProtocolPeerInfo,
@@ -105,7 +104,13 @@ import {
 	selectPeersForSend,
 	validatePeerCompatibility,
 } from './utils';
-import { nodeInfoSchema, mergeCustomSchema, defaultRPCSchemas, peerInfoSchema } from './schema';
+import {
+	nodeInfoSchema,
+	mergeCustomSchema,
+	defaultRPCSchemas,
+	peerInfoSchema,
+	peerRequestResponseSchema,
+} from './schema';
 import { encodeNodeInfo, encodePeerInfo } from './utils/codec';
 import { isEmptyMessage } from './utils/validate';
 
@@ -180,6 +185,7 @@ const createPeerPoolConfig = (config: P2PConfig, peerBook: PeerBook): PeerPoolCo
 		? {
 				nodeInfo: mergeCustomSchema(nodeInfoSchema, config.customNodeInfoSchema),
 				peerInfo: peerInfoSchema,
+				peerRequestResponse: peerRequestResponseSchema,
 		  }
 		: defaultRPCSchemas,
 });
@@ -258,10 +264,12 @@ export class P2P extends EventEmitter {
 			? {
 					nodeInfo: mergeCustomSchema(nodeInfoSchema, config.customNodeInfoSchema),
 					peerInfo: peerInfoSchema,
+					peerRequestResponse: peerRequestResponseSchema,
 			  }
 			: defaultRPCSchemas;
 		codec.addSchema(this._rpcSchemas.peerInfo);
 		codec.addSchema(this._rpcSchemas.nodeInfo);
+		codec.addSchema(this._rpcSchemas.peerRequestResponse);
 
 		this._networkStats = {
 			startTime: Date.now(),
@@ -647,29 +655,34 @@ export class P2P extends EventEmitter {
 		return this._networkStats;
 	}
 
-	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacket> {
-		const response = await this._peerPool.request(packet);
+	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+		const bufferData = this._getBufferData(packet.data);
+		const response = await this._peerPool.request({ ...packet, data: bufferData });
 
 		return response;
 	}
 
-	public send(message: P2PMessagePacketBufferData): void {
-		this._peerPool.send(message);
+	public send(packet: P2PMessagePacket): void {
+		const bufferData = this._getBufferData(packet.data);
+		this._peerPool.send({ ...packet, data: bufferData });
 	}
 
-	public broadcast(message: P2PMessagePacket): void {
-		this._peerPool.broadcast(message);
+	public broadcast(packet: P2PMessagePacket): void {
+		const bufferData = this._getBufferData(packet.data);
+		this._peerPool.broadcast({ ...packet, data: bufferData });
 	}
 
 	public async requestFromPeer(
-		packet: P2PRequestPacketBufferData,
+		packet: P2PRequestPacket,
 		peerId: string,
 	): Promise<P2PResponsePacket> {
-		return this._peerPool.requestFromPeer(packet, peerId);
+		const bufferData = this._getBufferData(packet.data);
+		return this._peerPool.requestFromPeer({ ...packet, data: bufferData }, peerId);
 	}
 
-	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
-		this._peerPool.sendToPeer(message, peerId);
+	public sendToPeer(packet: P2PMessagePacket, peerId: string): void {
+		const bufferData = this._getBufferData(packet.data);
+		this._peerPool.sendToPeer({ ...packet, data: bufferData }, peerId);
 	}
 
 	public async start(): Promise<void> {
@@ -744,9 +757,7 @@ export class P2P extends EventEmitter {
 
 			return;
 		}
-		const encodedNodeInfo = encodeNodeInfo(this._rpcSchemas.nodeInfo, this._nodeInfo).toString(
-			'binary',
-		);
+		const encodedNodeInfo = encodeNodeInfo(this._rpcSchemas.nodeInfo, this._nodeInfo);
 		request.end(encodedNodeInfo);
 	}
 
@@ -855,7 +866,7 @@ export class P2P extends EventEmitter {
 			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
-			encodePeerInfo(this._rpcSchemas.peerInfo, peer).toString('binary'),
+			encodePeerInfo(this._rpcSchemas.peerInfo, peer),
 		);
 		const validatedPeerList =
 			getByteSize(encodedPeersList) < wsMaxPayload
@@ -866,8 +877,9 @@ export class P2P extends EventEmitter {
 			success: true,
 			peers: validatedPeerList,
 		};
+		const encodedResponse = codec.encode(this._rpcSchemas.peerRequestResponse, response);
 
-		request.end(response);
+		request.end(encodedResponse);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -875,5 +887,18 @@ export class P2P extends EventEmitter {
 		emitter.eventNames().forEach((eventName: string | symbol) => {
 			emitter.removeAllListeners(eventName);
 		});
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBufferData(data: unknown): Buffer | undefined {
+		let bufferData: Buffer | undefined;
+
+		if (typeof data === 'string') {
+			bufferData = Buffer.from(JSON.stringify(data), 'utf8');
+		} else if (data instanceof Buffer) {
+			bufferData = data;
+		}
+
+		return bufferData;
 	}
 }

@@ -190,7 +190,7 @@ export class Synchronizer {
 		const { data: result } = ((await this._networkModule.request({
 			procedure: 'getTransactions',
 		})) as unknown) as {
-			data: { transactions: string[] };
+			data: { transactions: Buffer[] };
 		};
 
 		const validatorErrors = validator.validate(definitions.WSTransactionsResponse, result);
@@ -199,7 +199,7 @@ export class Synchronizer {
 		}
 
 		const transactions = result.transactions.map(transaction =>
-			this.chainModule.dataAccess.decodeTransaction(Buffer.from(transaction, 'binary')),
+			this.chainModule.dataAccess.decodeTransaction(transaction),
 		);
 
 		for (const transaction of transactions) {

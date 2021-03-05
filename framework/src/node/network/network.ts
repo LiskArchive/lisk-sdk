@@ -66,7 +66,7 @@ interface NetworkConstructor {
 	readonly networkVersion: string;
 }
 
-interface P2PRequestPacket extends liskP2P.p2pTypes.P2PRequestPacketBufferData {
+interface P2PRequestPacket extends liskP2P.p2pTypes.P2PRequestPacket {
 	readonly peerId: string;
 }
 
@@ -407,14 +407,14 @@ export class Network {
 	}
 
 	public async request(
-		requestPacket: liskP2P.p2pTypes.P2PRequestPacketBufferData,
+		requestPacket: liskP2P.p2pTypes.P2PRequestPacket,
 	): Promise<liskP2P.p2pTypes.P2PResponsePacket> {
 		return this._p2p.request({
 			...requestPacket,
 		});
 	}
 
-	public send(sendPacket: liskP2P.p2pTypes.P2PMessagePacketBufferData): void {
+	public send(sendPacket: liskP2P.p2pTypes.P2PMessagePacket): void {
 		return this._p2p.send({
 			...sendPacket,
 		});

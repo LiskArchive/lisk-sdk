@@ -19,8 +19,8 @@ export const schemas = {
 		required: ['blockId'],
 		properties: {
 			blockId: {
-				type: 'string',
-				format: 'binary',
+				type: 'object',
+				format: 'bytes',
 			},
 		},
 	},
@@ -31,8 +31,8 @@ export const schemas = {
 			transactionIds: {
 				type: 'array',
 				items: {
-					type: 'string',
-					format: 'binary',
+					type: 'object',
+					format: 'bytes',
 				},
 			},
 		},
@@ -43,8 +43,8 @@ export const schemas = {
 		required: ['block'],
 		properties: {
 			block: {
-				type: 'string',
-				format: 'binary',
+				type: 'object',
+				format: 'bytes',
 			},
 		},
 	},
@@ -56,8 +56,8 @@ export const schemas = {
 			transactionIds: {
 				type: 'array',
 				items: {
-					type: 'string',
-					format: 'binary',
+					type: 'object',
+					format: 'bytes',
 				},
 				minItems: 1,
 				maxItems: 100,
@@ -72,12 +72,71 @@ export const schemas = {
 			ids: {
 				type: 'array',
 				items: {
-					type: 'string',
-					format: 'binary',
+					type: 'object',
+					format: 'bytes',
 				},
 				uniqueItems: true,
 				minItems: 1,
 			},
+		},
+	},
+};
+
+export const getBlocksFromIdRequestSchema = {
+	$id: 'lisk/getBlocksFromIdRequest',
+	title: 'Get Blocks From Id Request',
+	type: 'object',
+	required: ['blockId'],
+	properties: {
+		ids: {
+			type: 'array',
+			fieldNumber: 1,
+			dataType: 'bytes',
+		},
+	},
+};
+
+export const getHighestCommonBlockRequestSchema = {
+	$id: 'lisk/getHighestCommonBlockRequest',
+	title: 'Get Highest Common Block Request',
+	type: 'object',
+	required: ['ids'],
+	properties: {
+		ids: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+export const transactionIdsSchema = {
+	$id: 'lisk/transactionIds',
+	title: 'Broadcast Transactions',
+	type: 'object',
+	required: ['transactionIds'],
+	properties: {
+		transactionIds: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+export const postBlockEventSchema = {
+	$id: 'lisk/postBlockEvent',
+	title: 'Post Block Event',
+	type: 'object',
+	required: ['block'],
+	properties: {
+		block: {
+			dataType: 'bytes',
+			fieldNumber: 1,
 		},
 	},
 };

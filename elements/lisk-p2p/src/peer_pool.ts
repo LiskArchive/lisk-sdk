@@ -330,7 +330,7 @@ export class PeerPool extends EventEmitter {
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
-	public broadcast(message: P2PMessagePacket): void {
+	public broadcast(message: P2PMessagePacketBufferData): void {
 		[...this._peerMap.values()].forEach(peer => {
 			const selectedPeerId = peer.peerInfo.peerId;
 			try {
@@ -387,7 +387,7 @@ export class PeerPool extends EventEmitter {
 		return peer.request(packet);
 	}
 
-	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
+	public sendToPeer(message: P2PMessagePacketBufferData, peerId: string): void {
 		const peer = this._peerMap.get(peerId);
 		if (!peer) {
 			throw new SendFailError(`Send failed because a peer with id ${peerId} could not be found`);

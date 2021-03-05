@@ -14,10 +14,17 @@
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { Chain, Block, Transaction } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { InvalidTransactionError } from './errors';
-import { schemas } from './schemas';
+import {
+	schemas,
+	transactionIdsSchema,
+	postBlockEventSchema,
+	getHighestCommonBlockRequestSchema,
+	getBlocksFromIdRequestSchema,
+} from './schemas';
 import { Synchronizer } from '../synchronizer';
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
@@ -128,10 +135,13 @@ export class Transport {
 			);
 			return null;
 		}
+		const data = codec.encode(postBlockEventSchema, {
+			block: this._chainModule.dataAccess.encode(block),
+		});
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this._networkModule.send({
 			event: 'postBlock',
-			data: this._chainModule.dataAccess.encode(block),
+			data,
 		});
 	}
 
@@ -142,9 +152,10 @@ export class Transport {
 
 	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<Buffer[]> {
 		this._addRateLimit('getBlocksFromId', peerId, DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY);
+		const decodedData = codec.decode(getBlocksFromIdRequestSchema, data as never);
 		const errors = validator.validate(
 			schemas.getBlocksFromIdRequest,
-			data as Record<string, unknown>,
+			decodedData as Record<string, unknown>,
 		);
 
 		if (errors.length) {
@@ -163,10 +174,10 @@ export class Transport {
 			throw error;
 		}
 
-		const blockID = Buffer.from((data as RPCBlocksByIdData).blockId, 'binary');
+		const { blockId } = decodedData as RPCBlocksByIdData;
 
 		// Get height of block with supplied ID
-		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(blockID);
+		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(blockId);
 
 		const lastBlockHeight = lastBlock.height;
 
@@ -187,9 +198,10 @@ export class Transport {
 		peerId: string,
 	): Promise<Buffer | undefined> {
 		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY);
+		const decodedData = codec.decode(getHighestCommonBlockRequestSchema, data as never);
 		const errors = validator.validate(
 			schemas.getHighestCommonBlockRequest,
-			data as Record<string, unknown>,
+			decodedData as Record<string, unknown>,
 		);
 
 		if (errors.length) {
@@ -209,11 +221,9 @@ export class Transport {
 			throw error;
 		}
 
-		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id => Buffer.from(id, 'binary'));
+		const { ids } = decodedData as RPCHighestCommonBlockData;
 
-		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(
-			blockIDs,
-		);
+		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(ids);
 
 		return commonBlockHeader
 			? this._chainModule.dataAccess.encodeBlockHeader(commonBlockHeader)
@@ -226,8 +236,11 @@ export class Transport {
 			this._logger.debug("Client is syncing. Can't process new block at the moment.");
 			return;
 		}
-
-		const errors = validator.validate(schemas.postBlockEvent, data as Record<string, unknown>);
+		const decodedData = codec.decode(postBlockEventSchema, data as never);
+		const errors = validator.validate(
+			schemas.postBlockEvent,
+			decodedData as Record<string, unknown>,
+		);
 
 		if (errors.length) {
 			this._logger.warn(
@@ -245,7 +258,7 @@ export class Transport {
 			throw new LiskValidationError(errors);
 		}
 
-		const blockBytes = Buffer.from((data as EventPostBlockData).block, 'binary');
+		const { block: blockBytes } = decodedData as EventPostBlockData;
 
 		let block: Block;
 		try {
@@ -293,9 +306,10 @@ export class Transport {
 		peerId: string,
 	): Promise<HandleRPCGetTransactionsReturn> {
 		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
+		const decodedData = codec.decode(transactionIdsSchema, data as never);
 		const errors = validator.validate(
 			schemas.getTransactionsRequest,
-			data as Record<string, unknown>,
+			decodedData as Record<string, unknown>,
 		);
 		if (errors.length) {
 			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
@@ -306,7 +320,7 @@ export class Transport {
 			throw new LiskValidationError(errors);
 		}
 
-		const { transactionIds } = data as RPCTransactionsByIdData;
+		const { transactionIds } = decodedData as RPCTransactionsByIdData;
 		if (!transactionIds?.length) {
 			// Get processable transactions from pool and collect transactions across accounts
 			// Limit the transactions to send based on releaseLimit
@@ -339,14 +353,13 @@ export class Transport {
 
 		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
-			const trxId = Buffer.from(id, 'binary');
-			const transaction = this._transactionPoolModule.get(trxId);
+			const transaction = this._transactionPoolModule.get(id);
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
 				transactionsFromQueues.push(transaction.getBytes());
 			} else {
-				idsNotInPool.push(trxId);
+				idsNotInPool.push(id);
 			}
 		}
 
@@ -387,9 +400,10 @@ export class Transport {
 		peerId: string,
 	): Promise<null> {
 		this._addRateLimit('postTransactionsAnnouncement', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
+		const decodedData = codec.decode(transactionIdsSchema, data as never);
 		const errors = validator.validate(
 			schemas.postTransactionsAnnouncementEvent,
-			data as Record<string, unknown>,
+			decodedData as Record<string, unknown>,
 		);
 
 		if (errors.length) {
@@ -401,25 +415,21 @@ export class Transport {
 			throw new LiskValidationError(errors);
 		}
 
-		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds.map(id =>
-			Buffer.from(id, 'binary'),
-		);
+		const { transactionIds } = decodedData as EventPostTransactionsAnnouncementData;
 
-		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
+		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(transactionIds);
 		if (unknownTransactionIDs.length > 0) {
 			const { data: result } = (await this._networkModule.requestFromPeer({
 				procedure: 'getTransactions',
 				data: unknownTransactionIDs,
 				peerId,
 			})) as {
-				data: { transactions: string[] };
+				data: { transactions: Buffer[] };
 			};
 
 			try {
 				for (const transaction of result.transactions) {
-					const tx = this._chainModule.dataAccess.decodeTransaction(
-						Buffer.from(transaction, 'binary'),
-					);
+					const tx = this._chainModule.dataAccess.decodeTransaction(Buffer.from(transaction));
 					await this._receiveTransaction(tx);
 				}
 			} catch (err) {

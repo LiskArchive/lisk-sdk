@@ -37,8 +37,8 @@ export const WSTransactionsResponse = {
 			uniqueItems: true,
 			maxItems: 100,
 			items: {
-				type: 'string',
-				format: 'hex',
+				type: 'object',
+				format: 'bytes',
 			},
 		},
 	},
