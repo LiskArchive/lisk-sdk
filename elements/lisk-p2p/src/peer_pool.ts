@@ -53,7 +53,7 @@ import {
 import { P2PRequest } from './p2p_request';
 import { ConnectionState, InboundPeer, OutboundPeer, Peer, PeerConfig } from './peer';
 import { PeerBook } from './peer_book/peer_book';
-import { validateNodeInfo } from './utils';
+import { validatePayloadSize } from './utils';
 import {
 	P2PClosePacket,
 	P2PMessagePacket,
@@ -598,7 +598,7 @@ export class PeerPool extends EventEmitter {
 	private _applyNodeInfoOnPeer(peer: Peer): void {
 		const encodedNodeInfo = encodeNodeInfo(this._rpcSchema.nodeInfo, this._nodeInfo as P2PNodeInfo);
 		// Validate nodeInfo before sending to peers
-		validateNodeInfo(encodedNodeInfo, this._peerPoolConfig.maxPeerInfoSize);
+		validatePayloadSize(encodedNodeInfo, this._peerPoolConfig.maxPeerInfoSize);
 		try {
 			peer.send({
 				event: REMOTE_EVENT_POST_NODE_INFO,

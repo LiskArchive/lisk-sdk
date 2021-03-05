@@ -19,11 +19,11 @@ import { p2pTypes } from '@liskhq/lisk-p2p';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { InvalidTransactionError } from './errors';
 import {
-	schemas,
 	transactionIdsSchema,
 	postBlockEventSchema,
 	getHighestCommonBlockRequestSchema,
 	getBlocksFromIdRequestSchema,
+	postTransactionsAnnouncementEventSchema,
 } from './schemas';
 import { Synchronizer } from '../synchronizer';
 import { Processor } from '../processor';
@@ -154,7 +154,7 @@ export class Transport {
 		this._addRateLimit('getBlocksFromId', peerId, DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY);
 		const decodedData = codec.decode(getBlocksFromIdRequestSchema, data as never);
 		const errors = validator.validate(
-			schemas.getBlocksFromIdRequest,
+			getBlocksFromIdRequestSchema,
 			decodedData as Record<string, unknown>,
 		);
 
@@ -200,7 +200,7 @@ export class Transport {
 		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY);
 		const decodedData = codec.decode(getHighestCommonBlockRequestSchema, data as never);
 		const errors = validator.validate(
-			schemas.getHighestCommonBlockRequest,
+			getHighestCommonBlockRequestSchema,
 			decodedData as Record<string, unknown>,
 		);
 
@@ -237,10 +237,7 @@ export class Transport {
 			return;
 		}
 		const decodedData = codec.decode(postBlockEventSchema, data as never);
-		const errors = validator.validate(
-			schemas.postBlockEvent,
-			decodedData as Record<string, unknown>,
-		);
+		const errors = validator.validate(postBlockEventSchema, decodedData as Record<string, unknown>);
 
 		if (errors.length) {
 			this._logger.warn(
@@ -307,10 +304,7 @@ export class Transport {
 	): Promise<HandleRPCGetTransactionsReturn> {
 		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		const decodedData = codec.decode(transactionIdsSchema, data as never);
-		const errors = validator.validate(
-			schemas.getTransactionsRequest,
-			decodedData as Record<string, unknown>,
-		);
+		const errors = validator.validate(transactionIdsSchema, decodedData as Record<string, unknown>);
 		if (errors.length) {
 			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
 			this._networkModule.applyPenaltyOnPeer({
@@ -402,7 +396,7 @@ export class Transport {
 		this._addRateLimit('postTransactionsAnnouncement', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		const decodedData = codec.decode(transactionIdsSchema, data as never);
 		const errors = validator.validate(
-			schemas.postTransactionsAnnouncementEvent,
+			postTransactionsAnnouncementEventSchema,
 			decodedData as Record<string, unknown>,
 		);
 

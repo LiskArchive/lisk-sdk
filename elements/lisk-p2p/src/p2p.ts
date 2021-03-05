@@ -873,11 +873,9 @@ export class P2P extends EventEmitter {
 				? encodedPeersList
 				: encodedPeersList.slice(0, safeMaxPeerInfoLength);
 
-		const response = {
-			success: true,
+		const encodedResponse = codec.encode(this._rpcSchemas.peerRequestResponse, {
 			peers: validatedPeerList,
-		};
-		const encodedResponse = codec.encode(this._rpcSchemas.peerRequestResponse, response);
+		});
 
 		request.end(encodedResponse);
 	}
@@ -891,14 +889,13 @@ export class P2P extends EventEmitter {
 
 	// eslint-disable-next-line class-methods-use-this
 	private _getBufferData(data: unknown): Buffer | undefined {
-		let bufferData: Buffer | undefined;
-
-		if (typeof data === 'string') {
-			bufferData = Buffer.from(JSON.stringify(data), 'utf8');
-		} else if (data instanceof Buffer) {
-			bufferData = data;
+		if (Buffer.isBuffer(data)) {
+			return data;
+		}
+		if (data === undefined) {
+			return undefined;
 		}
 
-		return bufferData;
+		return Buffer.from(JSON.stringify(data), 'utf8');
 	}
 }

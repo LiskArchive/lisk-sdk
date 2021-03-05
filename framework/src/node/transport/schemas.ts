@@ -12,71 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const schemas = {
-	getBlocksFromIdRequest: {
-		id: 'getBlocksFromIdRequest',
-		type: 'object',
-		required: ['blockId'],
-		properties: {
-			blockId: {
-				type: 'object',
-				format: 'bytes',
-			},
-		},
-	},
-	getTransactionsRequest: {
-		id: 'getTransactionsRequest',
-		type: 'object',
-		properties: {
-			transactionIds: {
-				type: 'array',
-				items: {
-					type: 'object',
-					format: 'bytes',
-				},
-			},
-		},
-	},
-	postBlockEvent: {
-		id: 'postBlockEvent',
-		type: 'object',
-		required: ['block'],
-		properties: {
-			block: {
-				type: 'object',
-				format: 'bytes',
-			},
-		},
-	},
-	postTransactionsAnnouncementEvent: {
-		id: 'postTransactionsAnnouncementEvent',
-		type: 'object',
-		required: ['transactionIds'],
-		properties: {
-			transactionIds: {
-				type: 'array',
-				items: {
-					type: 'object',
-					format: 'bytes',
-				},
-				minItems: 1,
-				maxItems: 100,
-			},
-		},
-	},
-	getHighestCommonBlockRequest: {
-		id: 'getHighestCommonBlockRequest',
-		type: 'object',
-		required: ['ids'],
-		properties: {
-			ids: {
-				type: 'array',
-				items: {
-					type: 'object',
-					format: 'bytes',
-				},
-				uniqueItems: true,
-				minItems: 1,
+export const postTransactionsAnnouncementEventSchema = {
+	$id: 'lisk/transactionIds',
+	title: 'Broadcast Transactions',
+	type: 'object',
+	required: ['transactionIds'],
+	properties: {
+		transactionIds: {
+			type: 'array',
+			fieldNumber: 1,
+			minItems: 1,
+			maxItems: 100,
+			items: {
+				dataType: 'bytes',
 			},
 		},
 	},
@@ -105,6 +53,8 @@ export const getHighestCommonBlockRequestSchema = {
 		ids: {
 			type: 'array',
 			fieldNumber: 1,
+			uniqueItems: true,
+			minItems: 1,
 			items: {
 				dataType: 'bytes',
 			},

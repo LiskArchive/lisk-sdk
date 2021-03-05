@@ -133,10 +133,12 @@ export const validatePeerInfo = (
 	return peerInfo;
 };
 
-export const validateNodeInfo = (nodeInfo: Buffer, maxByteSize: number): void => {
-	const byteSize = getByteSize(nodeInfo);
+export const validatePayloadSize = (nodeInfo: Buffer | undefined, maxByteSize: number): void => {
+	if (nodeInfo) {
+		return;
+	}
 
-	if (byteSize > maxByteSize) {
+	if (nodeInfo && getByteSize(nodeInfo) > maxByteSize) {
 		throw new InvalidNodeInfoError(
 			`Invalid NodeInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
@@ -180,20 +182,21 @@ export const validateRPCRequest = (request: unknown): P2PRequestPacket => {
 		throw new InvalidRPCRequestError('Request procedure name is not a string');
 	}
 
+	if (rpcRequest.data !== undefined && typeof rpcRequest.data !== 'string') {
+		throw new InvalidRPCRequestError('Request data is not a string or undefined');
+	}
+
 	return rpcRequest;
 };
 
-export const validateProtocolMessage = (message: unknown): P2PMessagePacket => {
+export const validateProtocolMessage = (message: P2PMessagePacket): void => {
 	if (!message) {
 		throw new InvalidProtocolMessageError('Invalid message');
 	}
 
-	const protocolMessage = message as P2PMessagePacket;
-	if (typeof protocolMessage.event !== 'string') {
-		throw new InvalidProtocolMessageError('Protocol message is not a string');
+	if (typeof message.event !== 'string' || typeof message.data !== undefined) {
+		throw new InvalidProtocolMessageError('Protocol message is not a string or undefined');
 	}
-
-	return protocolMessage;
 };
 
 const packetSchema = {

@@ -13,11 +13,11 @@
  *
  */
 import { RPCResponseAlreadySentError } from './errors';
-import { P2PResponsePacketBufferData } from './types';
+import { P2PResponsePacket } from './types';
 
 export interface RequestOptions {
 	readonly procedure: string;
-	readonly data: unknown;
+	readonly data?: string;
 	readonly id: string;
 	readonly rate: number;
 	productivity: {
@@ -30,10 +30,10 @@ export interface RequestOptions {
 
 export class P2PRequest {
 	private readonly _procedure: string;
-	private readonly _data: unknown;
+	private readonly _data: Buffer | undefined;
 	private readonly _respondCallback: (
 		responseError?: Error,
-		responseData?: P2PResponsePacketBufferData,
+		responseData?: P2PResponsePacket,
 	) => void;
 	private readonly _peerId: string;
 	private _wasResponseSent: boolean;
@@ -44,15 +44,12 @@ export class P2PRequest {
 		respondCallback: (responseError?: Error, responseData?: unknown) => void,
 	) {
 		this._procedure = options.procedure;
-		this._data = options.data;
+		this._data = typeof options.data === 'string' ? Buffer.from(options.data, 'binary') : undefined;
 		this._peerId = options.id;
 		this._rate = options.rate;
 		// eslint-disable-next-line no-param-reassign
 		options.productivity.requestCounter += 1;
-		this._respondCallback = (
-			responseError?: Error,
-			responsePacket?: P2PResponsePacketBufferData,
-		): void => {
+		this._respondCallback = (responseError?: Error, responsePacket?: P2PResponsePacket): void => {
 			if (this._wasResponseSent) {
 				throw new RPCResponseAlreadySentError(
 					`A response has already been sent for the request procedure <<${options.procedure}>>`,
@@ -70,11 +67,7 @@ export class P2PRequest {
 			options.productivity.responseRate =
 				options.productivity.responseCounter / options.productivity.requestCounter;
 
-			let responsePacketBufferData: Buffer | undefined;
-			if (responsePacket?.data && typeof responsePacket?.data === 'string') {
-				responsePacketBufferData = Buffer.from(responsePacket.data, 'binary');
-			}
-			respondCallback(responseError, responsePacketBufferData);
+			respondCallback(responseError, responsePacket);
 		};
 		this._wasResponseSent = false;
 	}
@@ -83,7 +76,7 @@ export class P2PRequest {
 		return this._procedure;
 	}
 
-	public get data(): unknown {
+	public get data(): Buffer | undefined {
 		return this._data;
 	}
 
@@ -99,9 +92,10 @@ export class P2PRequest {
 		return this._wasResponseSent;
 	}
 
-	public end(responseData: Buffer): void {
-		const responsePacket: P2PResponsePacketBufferData = {
-			data: responseData,
+	public end(responseData?: unknown): void {
+		const data = this._getBinaryData(responseData);
+		const responsePacket: P2PResponsePacket = {
+			data,
 			peerId: this.peerId,
 		};
 		this._respondCallback(undefined, responsePacket);
@@ -109,5 +103,18 @@ export class P2PRequest {
 
 	public error(responseError: Error): void {
 		this._respondCallback(responseError);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBinaryData(data: unknown): string | undefined {
+		if (!data) {
+			return undefined;
+		}
+
+		if (Buffer.isBuffer(data)) {
+			return data.toString('binary');
+		}
+
+		return Buffer.from(JSON.stringify(data), 'utf8').toString('binary');
 	}
 }

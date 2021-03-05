@@ -58,19 +58,15 @@ export const peerRequestResponseSchema = {
 	$id: '/protocolPeerRequestResponse',
 	type: 'object',
 	properties: {
-		success: {
-			dataType: 'boolean',
-			fieldNumber: 1,
-		},
 		peers: {
 			type: 'array',
-			fieldNumber: 2,
+			fieldNumber: 1,
 			items: {
 				dataType: 'bytes',
 			},
 		},
 	},
-	required: ['success', 'peers'],
+	required: ['peers'],
 };
 
 export const defaultRPCSchemas = {

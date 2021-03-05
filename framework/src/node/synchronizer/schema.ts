@@ -12,21 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const CommonBlock = {
-	id: 'CommonBlock',
-	type: 'string',
-	format: 'hex',
-};
-
-export const WSBlocksList = {
-	id: 'WSBlocksList',
-	type: 'array',
-	items: {
-		type: 'string',
-		format: 'hex',
-	},
-};
-
 export const WSTransactionsResponse = {
 	id: 'WSTransactionsResponse',
 	type: 'object',
@@ -34,11 +19,11 @@ export const WSTransactionsResponse = {
 	properties: {
 		transactions: {
 			type: 'array',
+			fieldNumber: 1,
 			uniqueItems: true,
 			maxItems: 100,
 			items: {
-				type: 'object',
-				format: 'bytes',
+				dataType: 'bytes',
 			},
 		},
 	},

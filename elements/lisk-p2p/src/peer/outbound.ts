@@ -36,9 +36,9 @@ import {
 import {
 	P2PMessagePacketBufferData,
 	P2PPeerInfo,
-	P2PResponsePacket,
 	P2PNodeInfo,
 	P2PRequestPacketBufferData,
+	P2PResponsePacketBufferData,
 } from '../types';
 
 import { Peer, PeerConfig, SCClientSocket, socketErrorStatusCodes } from './base';
@@ -94,7 +94,7 @@ export class OutboundPeer extends Peer {
 		super.send(packet);
 	}
 
-	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacketBufferData> {
 		if (!this._socket) {
 			this._socket = this._createOutboundSocket();
 		}

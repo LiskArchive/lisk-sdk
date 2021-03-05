@@ -52,7 +52,6 @@ import {
 import { P2PRequest } from '../p2p_request';
 import {
 	P2PInternalState,
-	P2PResponsePacketBufferData,
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -62,6 +61,7 @@ import {
 	P2PSharedState,
 	P2PMessagePacketBufferData,
 	P2PRequestPacketBufferData,
+	P2PResponsePacketBufferData,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -71,9 +71,9 @@ import {
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
-	validateNodeInfo,
+	validatePayloadSize,
 } from '../utils';
-import { decodePeerInfo, decodeNodeInfo } from '../utils/codec';
+import { decodeNodeInfo } from '../utils/codec';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -122,14 +122,6 @@ export interface PeerConfig {
 	readonly rpcSchemas: RPCSchemas;
 	readonly peerStatusMessageRate: number;
 }
-
-interface GetPeersResponseData {
-	readonly data: {
-		readonly success: boolean;
-		readonly peers: ReadonlyArray<string>;
-	};
-}
-
 export class Peer extends EventEmitter {
 	protected readonly _handleRawRPC: (
 		packet: unknown,
@@ -158,6 +150,7 @@ export class Peer extends EventEmitter {
 		this._rpcSchemas = peerConfig.rpcSchemas;
 		codec.addSchema(this._rpcSchemas.peerInfo);
 		codec.addSchema(this._rpcSchemas.nodeInfo);
+		codec.addSchema(this._rpcSchemas.peerRequestResponse);
 
 		this._peerInfo = this._initializeInternalState(peerInfo) as ConnectedPeerInfo;
 		this._rateInterval = this._peerConfig.rateCalculationInterval;
@@ -231,7 +224,7 @@ export class Peer extends EventEmitter {
 			const request = new P2PRequest(
 				{
 					procedure: rawRequest.procedure,
-					data: rawRequest.data,
+					data: rawRequest.data as never,
 					id: this.peerInfo.peerId,
 					rate,
 					productivity: this.internalState.productivity,
@@ -248,9 +241,9 @@ export class Peer extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown): void => {
-			let message: P2PMessagePacket;
+			const message = packet as P2PMessagePacket;
 			try {
-				message = validateProtocolMessage(packet);
+				validateProtocolMessage(message);
 			} catch (error) {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
 					packet,
@@ -261,18 +254,18 @@ export class Peer extends EventEmitter {
 			}
 
 			this._updateMessageCounter(message);
+			const rate = this._getMessageRate(message);
+			let messageBufferData: Buffer | undefined;
+			if (typeof message.data === 'string' && message.data !== 'undefined') {
+				messageBufferData = Buffer.from(message.data, 'binary');
+			}
 
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				this._discoveryMessageCounter.postNodeInfo += 1;
 				if (this._discoveryMessageCounter.postNodeInfo > this._peerStatusMessageRate) {
 					this.applyPenalty(10);
 				}
-				this._handleUpdateNodeInfo(message);
-			}
-			const rate = this._getMessageRate(message);
-			let messageBufferData: Buffer | undefined;
-			if (message?.data && typeof message?.data === 'string') {
-				messageBufferData = Buffer.from(message.data, 'binary');
+				this._handleUpdateNodeInfo({ ...message, data: messageBufferData });
 			}
 			const messageWithRateInfo = {
 				...message,
@@ -362,8 +355,8 @@ export class Peer extends EventEmitter {
 		});
 	}
 
-	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacket> {
-		return new Promise<P2PResponsePacket>(
+	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacketBufferData> {
+		return new Promise<P2PResponsePacketBufferData>(
 			(
 				resolve: (result: P2PResponsePacketBufferData) => void,
 				reject: (result: Error) => void,
@@ -379,15 +372,19 @@ export class Peer extends EventEmitter {
 						procedure: packet.procedure,
 						data,
 					},
-					(error: Error | undefined, responseData: P2PResponsePacketBufferData | undefined) => {
+					(error: Error | undefined, responseData: P2PResponsePacket | undefined) => {
 						if (error) {
 							reject(error);
 
 							return;
 						}
 
-						if (responseData) {
-							resolve(responseData);
+						if (responseData?.data && typeof responseData.data === 'string') {
+							const responseBufferData = {
+								...responseData,
+								data: Buffer.from(responseData.data, 'binary'),
+							};
+							resolve(responseBufferData);
 
 							return;
 						}
@@ -406,17 +403,16 @@ export class Peer extends EventEmitter {
 
 	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
-			const response = (await this.request({
+			const response = await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
-			})) as GetPeersResponseData;
-			const { peers, success } = response.data;
-
-			const decodedPeers = peers.map((peer: string) =>
-				decodePeerInfo(this._rpcSchemas.peerInfo, peer),
+			});
+			const { peers } = codec.decode<{ peers: Buffer[] }>(
+				this._rpcSchemas.peerRequestResponse,
+				response.data,
 			);
 
 			const validatedPeers = validatePeerInfoList(
-				{ peers: decodedPeers, success },
+				{ peers },
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
@@ -446,7 +442,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public async fetchAndUpdateStatus(): Promise<P2PPeerInfo> {
-		let response: P2PResponsePacket;
+		let response: P2PResponsePacketBufferData;
 		try {
 			response = await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_NODE_INFO,
@@ -575,12 +571,11 @@ export class Peer extends EventEmitter {
 		this.updatePeerInfo(peerInfo);
 	}
 
-	private _handleUpdateNodeInfo(message: P2PMessagePacket): void {
+	private _handleUpdateNodeInfo(message: P2PMessagePacketBufferData): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			const nodeInfoBuffer = Buffer.from(message.data as string, 'binary');
 			// Check incoming nodeInfo size before decoding
-			validateNodeInfo(nodeInfoBuffer, this._peerConfig.maxPeerInfoSize);
+			validatePayloadSize(message.data, this._peerConfig.maxPeerInfoSize);
 
 			const decodedNodeInfo = decodeNodeInfo(this._rpcSchemas.nodeInfo, message.data);
 			// Only update options object
@@ -648,7 +643,7 @@ export class Peer extends EventEmitter {
 	// Should be converted to binary string
 	// eslint-disable-next-line class-methods-use-this
 	private _getBinaryData(data?: Buffer): string | undefined {
-		if (data instanceof Buffer) {
+		if (Buffer.isBuffer(data)) {
 			return data.toString('binary');
 		}
 
