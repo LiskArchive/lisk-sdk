@@ -887,12 +887,13 @@ export class P2P extends EventEmitter {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _getBufferData(data: unknown): Buffer | undefined {
-		if (Buffer.isBuffer(data)) {
-			return data;
-		}
+	private _getBufferData(data?: unknown): Buffer | undefined {
 		if (data === undefined) {
 			return undefined;
+		}
+
+		if (Buffer.isBuffer(data)) {
+			return data;
 		}
 
 		return Buffer.from(JSON.stringify(data), 'utf8');

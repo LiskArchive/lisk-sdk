@@ -349,7 +349,7 @@ export class Peer extends EventEmitter {
 			throw new Error('Peer socket does not exist');
 		}
 
-		const data = this._getBinaryData(packet?.data);
+		const data = this._getBinaryData(packet.data);
 		this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
 			event: packet.event,
 			data,
@@ -366,7 +366,7 @@ export class Peer extends EventEmitter {
 					throw new Error('Peer socket does not exist');
 				}
 
-				const data = this._getBinaryData(packet?.data);
+				const data = this._getBinaryData(packet.data);
 				this._socket.emit(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
@@ -647,6 +647,10 @@ export class Peer extends EventEmitter {
 	// Should be converted to binary string
 	// eslint-disable-next-line class-methods-use-this
 	private _getBinaryData(data?: Buffer): string | undefined {
+		if (data === undefined) {
+			return undefined;
+		}
+
 		if (Buffer.isBuffer(data)) {
 			return data.toString('binary');
 		}
