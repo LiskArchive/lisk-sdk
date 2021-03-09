@@ -77,20 +77,6 @@ export const isHexString = (data: unknown): boolean => {
 	return data === '' || /^[a-f0-9]+$/i.test(data as string);
 };
 
-export const isBinaryString = (data: unknown): boolean => {
-	if (!isString(data)) {
-		return false;
-	}
-
-	return (
-		data === '' ||
-		(data as string)
-			.split('')
-			.map(c => c.charCodeAt(0))
-			.every(c => c <= 255)
-	);
-};
-
 export const isEncryptedPassphrase = (data: string): boolean => {
 	// Explanation of regex structure:
 	// - 1 or more 'key=value' pairs delimited with '&'

@@ -23,7 +23,6 @@ import {
 	postBlockEventSchema,
 	getHighestCommonBlockRequestSchema,
 	getBlocksFromIdRequestSchema,
-	postTransactionsAnnouncementEventSchema,
 	getBlocksFromIdResponseSchema,
 	transactionsSchema,
 } from './schemas';
@@ -229,13 +228,31 @@ export class Transport {
 			: undefined;
 	}
 
-	public async handleEventPostBlock(data: unknown, peerId: string): Promise<void> {
+	public async handleEventPostBlock(data: Buffer | undefined, peerId: string): Promise<void> {
 		// Should ignore received block if syncing
 		if (this._synchronizerModule.isActive) {
 			this._logger.debug("Client is syncing. Can't process new block at the moment.");
 			return;
 		}
-		const decodedData = codec.decode<EventPostBlockData>(postBlockEventSchema, data as never);
+
+		if (data === undefined) {
+			const errorMessage = 'Received invalid post block data';
+			this._logger.warn(
+				{
+					errorMessage,
+					module: 'transport',
+					data,
+				},
+				errorMessage,
+			);
+			this._networkModule.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			return;
+		}
+
+		const decodedData = codec.decode<EventPostBlockData>(postBlockEventSchema, data);
 		const errors = validator.validate(postBlockEventSchema, decodedData);
 
 		if (errors.length) {
@@ -393,15 +410,22 @@ export class Transport {
 	 * and finally ask to the emitter the ones that are unknown.
 	 */
 	public async handleEventPostTransactionsAnnouncement(
-		data: unknown,
+		data: Buffer | undefined,
 		peerId: string,
-	): Promise<null> {
+	): Promise<void> {
 		this._addRateLimit('postTransactionsAnnouncement', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
-		const decodedData = codec.decode(transactionIdsSchema, data as never);
-		const errors = validator.validate(
-			postTransactionsAnnouncementEventSchema,
-			decodedData as Record<string, unknown>,
-		);
+		if (data === undefined) {
+			const errorMessage = 'Received invalid transaction announcement data';
+			this._logger.warn({ peerId }, errorMessage);
+			this._networkModule.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			return;
+		}
+
+		const decodedData = codec.decode(transactionIdsSchema, data);
+		const errors = validator.validate(transactionIdsSchema, decodedData as Record<string, unknown>);
 
 		if (errors.length) {
 			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
@@ -447,8 +471,6 @@ export class Transport {
 				}
 			}
 		}
-
-		return null;
 	}
 
 	private async _obtainUnknownTransactionIDs(ids: Buffer[]): Promise<Buffer[]> {

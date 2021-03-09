@@ -14,7 +14,6 @@
  */
 import {
 	isHexString,
-	isBinaryString,
 	isBytes,
 	isNumberString,
 	isSInt64,
@@ -28,7 +27,6 @@ import {
 } from './validation';
 
 export const hex = isHexString;
-export const binary = isBinaryString;
 export const bytes = isBytes;
 
 export const int64 = (data: string): boolean => isNumberString(data) && isSInt64(BigInt(data));

@@ -18,7 +18,7 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import { P2PPeerInfo, P2PNodeInfo, ProtocolPeerInfo } from '../types';
 import { InvalidPeerInfoError, InvalidNodeInfoError } from '../errors';
 
-export const decodePeerInfo = (peerInfoSchema: Schema, data?: Buffer): P2PPeerInfo => {
+export const decodePeerInfo = (peerInfoSchema: Schema, data?: unknown): P2PPeerInfo => {
 	try {
 		if (!Buffer.isBuffer(data)) {
 			throw new Error('Invalid encoded data');
@@ -29,7 +29,7 @@ export const decodePeerInfo = (peerInfoSchema: Schema, data?: Buffer): P2PPeerIn
 	}
 };
 
-export const decodeNodeInfo = (nodeInfoSchema: Schema, data?: Buffer): P2PNodeInfo => {
+export const decodeNodeInfo = (nodeInfoSchema: Schema, data?: unknown): P2PNodeInfo => {
 	try {
 		if (!Buffer.isBuffer(data)) {
 			throw new Error('Invalid encoded data');

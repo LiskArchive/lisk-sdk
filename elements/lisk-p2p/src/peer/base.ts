@@ -62,6 +62,7 @@ import {
 	P2PMessagePacketBufferData,
 	P2PRequestPacketBufferData,
 	P2PResponsePacketBufferData,
+	P2PRawRequestPacket,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -74,6 +75,7 @@ import {
 	validatePayloadSize,
 } from '../utils';
 import { decodeNodeInfo } from '../utils/codec';
+import { peerInfoSchema } from '../schema';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -124,7 +126,7 @@ export interface PeerConfig {
 }
 export class Peer extends EventEmitter {
 	protected readonly _handleRawRPC: (
-		packet: unknown,
+		packet: P2PRawRequestPacket,
 		respond: (responseError?: Error, responseData?: unknown) => void,
 	) => void;
 	protected readonly _handleWSMessage: (message: string) => void;
@@ -173,12 +175,11 @@ export class Peer extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
-			packet: unknown,
+			packet: P2PRawRequestPacket,
 			respond: (responseError?: Error, responseData?: unknown) => void,
 		): void => {
-			let rawRequest: P2PRequestPacket;
 			try {
-				rawRequest = validateRPCRequest(packet);
+				validateRPCRequest(packet);
 			} catch (error) {
 				respond(error);
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
@@ -190,7 +191,7 @@ export class Peer extends EventEmitter {
 			}
 
 			// Apply penalty when you receive getNodeInfo RPC more than once
-			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
+			if (packet.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
 				this._discoveryMessageCounter.getNodeInfo += 1;
 				if (this._discoveryMessageCounter.getNodeInfo > 1) {
 					this.applyPenalty(10);
@@ -198,7 +199,7 @@ export class Peer extends EventEmitter {
 			}
 
 			// Apply penalty when you receive getPeers RPC more than once
-			if (rawRequest.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
+			if (packet.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
 				this._discoveryMessageCounter.getPeers += 1;
 				if (this._discoveryMessageCounter.getPeers > 1) {
 					this.applyPenalty(10);
@@ -207,24 +208,24 @@ export class Peer extends EventEmitter {
 
 			// Discovery requests are only allowed once per second. If it exceeds that, we prevent the request from propagating.
 			if (
-				PROTOCOL_EVENTS_TO_RATE_LIMIT.has(rawRequest.procedure) &&
-				this._peerInfo.internalState.rpcCounter.has(rawRequest.procedure)
+				PROTOCOL_EVENTS_TO_RATE_LIMIT.has(packet.procedure) &&
+				this._peerInfo.internalState.rpcCounter.has(packet.procedure)
 			) {
-				this._updateRPCCounter(rawRequest);
+				this._updateRPCCounter(packet);
 
 				return;
 			}
 
 			// Protocol RCP request limiter LIP-0004
-			this._updateRPCCounter(rawRequest);
-			const rate = this._getRPCRate(rawRequest);
+			this._updateRPCCounter(packet);
+			const rate = this._getRPCRate(packet);
 
 			// Each P2PRequest contributes to the Peer's productivity.
 			// A P2PRequest can mutate this._productivity from the current Peer instance.
 			const request = new P2PRequest(
 				{
-					procedure: rawRequest.procedure,
-					data: rawRequest.data as never,
+					procedure: packet.procedure,
+					data: packet.data,
 					id: this.peerInfo.peerId,
 					rate,
 					productivity: this.internalState.productivity,
@@ -410,15 +411,17 @@ export class Peer extends EventEmitter {
 				this._rpcSchemas.peerRequestResponse,
 				response.data,
 			);
-
-			const validatedPeers = validatePeerInfoList(
-				{ peers },
-				this._peerConfig.maxPeerDiscoveryResponseLength,
-				this._peerConfig.maxPeerInfoSize,
-				this._rpcSchemas.peerInfo,
+			const peersList = peers.map<P2PPeerInfo>((peerInfoBuffer: Buffer) =>
+				codec.decode<P2PPeerInfo>(peerInfoSchema, peerInfoBuffer),
 			);
 
-			return validatedPeers.map(peerInfo => ({
+			validatePeerInfoList(
+				peersList,
+				this._peerConfig.maxPeerDiscoveryResponseLength,
+				this._peerConfig.maxPeerInfoSize,
+			);
+
+			return peersList.map(peerInfo => ({
 				...peerInfo,
 				sourceAddress: this.ipAddress,
 			}));

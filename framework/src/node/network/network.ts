@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
-import { codec } from '@liskhq/lisk-codec';
-import { APP_EVENT_NETWORK_READY } from '../../constants';
+
+import { APP_EVENT_NETWORK_READY, APP_EVENT_NETWORK_EVENT } from '../../constants';
+import { InMemoryChannel } from '../../controller/channels';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
-import { InMemoryChannel } from '../../controller/channels';
 import { NetworkConfig } from '../../types';
 import { customNodeInfoSchema } from './schema';
 
@@ -90,6 +92,7 @@ interface P2PRPCEndpoints {
 }
 
 export class Network {
+	public readonly events: EventEmitter;
 	private readonly _options: NetworkConfig;
 	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
@@ -108,6 +111,7 @@ export class Network {
 		this._networkVersion = networkVersion;
 		this._endpoints = {};
 		this._secret = undefined;
+		this.events = new EventEmitter();
 	}
 
 	public async bootstrap(networkIdentifier: Buffer): Promise<void> {
@@ -203,7 +207,7 @@ export class Network {
 		// ---- START: Bind event handlers ----
 		this._p2p.on(EVENT_NETWORK_READY, () => {
 			this._logger.debug('Node connected to the network');
-			this._channel.publish(APP_EVENT_NETWORK_READY);
+			this.events.emit(APP_EVENT_NETWORK_READY);
 		});
 
 		this._p2p.on(
@@ -367,6 +371,7 @@ export class Network {
 					},
 					'EVENT_MESSAGE_RECEIVED: Received inbound message',
 				);
+				this.events.emit(APP_EVENT_NETWORK_EVENT, packet);
 				const data =
 					packet.data && Buffer.isBuffer(packet.data) ? packet.data.toString('hex') : packet.data;
 				this._channel.publish('app:network:event', { ...packet, data });
@@ -415,13 +420,15 @@ export class Network {
 		requestPacket: liskP2P.p2pTypes.P2PRequestPacket,
 	): Promise<liskP2P.p2pTypes.P2PResponsePacket> {
 		return this._p2p.request({
-			...requestPacket,
+			procedure: requestPacket.procedure,
+			data: requestPacket.data,
 		});
 	}
 
 	public send(sendPacket: liskP2P.p2pTypes.P2PMessagePacket): void {
 		return this._p2p.send({
-			...sendPacket,
+			event: sendPacket.event,
+			data: sendPacket.data,
 		});
 	}
 
@@ -430,7 +437,8 @@ export class Network {
 	): Promise<liskP2P.p2pTypes.P2PResponsePacket> {
 		return this._p2p.requestFromPeer(
 			{
-				...requestPacket,
+				procedure: requestPacket.procedure,
+				data: requestPacket.data,
 			},
 			requestPacket.peerId,
 		);

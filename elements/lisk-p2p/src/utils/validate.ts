@@ -12,22 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { codec, Schema } from '@liskhq/lisk-codec';
 import { isIP, isPort, validator } from '@liskhq/lisk-validator';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
-	INVALID_PEER_INFO_LIST_REASON,
 	PEER_INFO_LIST_TOO_LONG_REASON,
 } from '../constants';
 // eslint-disable-next-line import/no-cycle
-import {
-	InvalidNodeInfoError,
-	InvalidPeerInfoError,
-	InvalidPeerInfoListError,
-	InvalidProtocolMessageError,
-	InvalidRPCRequestError,
-} from '../errors';
+import { InvalidNodeInfoError, InvalidPeerInfoError, InvalidPeerInfoListError } from '../errors';
 // eslint-disable-next-line import/no-cycle
 import {
 	P2PCompatibilityCheckReturnType,
@@ -39,10 +31,7 @@ import {
 
 // eslint-disable-next-line import/no-cycle
 import { getByteSize, sanitizeIncomingPeerInfo } from '.';
-
-interface RPCPeerListResponse {
-	readonly peers: ReadonlyArray<Buffer>;
-}
+import { PacketSchema, RPCRequestSchema, ProtocolMessageSchema } from './schemas';
 
 const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeInfo): boolean => {
 	if (!peerInfo.sharedState) {
@@ -134,11 +123,11 @@ export const validatePeerInfo = (
 };
 
 export const validatePayloadSize = (nodeInfo: Buffer | undefined, maxByteSize: number): void => {
-	if (nodeInfo) {
+	if (nodeInfo === undefined) {
 		return;
 	}
 
-	if (nodeInfo && getByteSize(nodeInfo) > maxByteSize) {
+	if (getByteSize(nodeInfo) > maxByteSize) {
 		throw new InvalidNodeInfoError(
 			`Invalid NodeInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
@@ -146,90 +135,36 @@ export const validatePayloadSize = (nodeInfo: Buffer | undefined, maxByteSize: n
 };
 
 export const validatePeerInfoList = (
-	rawBasicPeerInfoList: unknown,
+	peersList: ReadonlyArray<P2PPeerInfo>,
 	maxPeerInfoListLength: number,
 	maxPeerInfoByteSize: number,
-	peerInfoSchema: Schema,
-): ReadonlyArray<P2PPeerInfo> => {
-	if (!rawBasicPeerInfoList) {
-		throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
+): void => {
+	if (peersList.length > maxPeerInfoListLength) {
+		throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
 	}
-	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
-
-	if (Array.isArray(peers)) {
-		if (peers.length === 0) {
-			return [];
-		}
-		if (peers.length > maxPeerInfoListLength) {
-			throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
-		}
-
-		const sanitizedPeerList = peers.map<P2PPeerInfo>((peerInfoBuffer: Buffer) => {
-			const peerInfo = codec.decode<P2PPeerInfo>(peerInfoSchema, peerInfoBuffer);
-			validatePeerInfo(sanitizeIncomingPeerInfo(peerInfo), maxPeerInfoByteSize);
-			return peerInfo;
-		});
-
-		return sanitizedPeerList;
-	}
-	throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
+	peersList.map<P2PPeerInfo>(peerInfo =>
+		validatePeerInfo(sanitizeIncomingPeerInfo(peerInfo), maxPeerInfoByteSize),
+	);
 };
 
-export const validateRPCRequest = (request: unknown): P2PRequestPacket => {
-	if (!request) {
-		throw new InvalidRPCRequestError('Invalid request');
-	}
+export const validateRPCRequest = (request: unknown): void => {
+	const errors = validator.validate(RPCRequestSchema, request as Record<string, unknown>);
 
-	const rpcRequest = request as P2PRequestPacket;
-	if (typeof rpcRequest.procedure !== 'string') {
-		throw new InvalidRPCRequestError('Request procedure name is not a string');
-	}
-
-	if (rpcRequest.data !== undefined && typeof rpcRequest.data !== 'string') {
-		throw new InvalidRPCRequestError('Request data is not a string or undefined');
-	}
-
-	return rpcRequest;
-};
-
-export const validateProtocolMessage = (message: P2PMessagePacket): void => {
-	if (!message) {
-		throw new InvalidProtocolMessageError('Invalid message');
-	}
-
-	if (typeof message.event !== 'string') {
-		throw new InvalidProtocolMessageError('Protocol message is not a string');
-	}
-
-	if (typeof message.data !== 'string' && message.data !== undefined) {
-		throw new InvalidProtocolMessageError('Protocol message data is not a string or undefined');
+	if (errors.length) {
+		throw new Error('RPC request format is invalid.');
 	}
 };
 
-const packetSchema = {
-	type: 'object',
-	additionalProperties: false,
-	properties: {
-		event: {
-			type: 'string',
-		},
-		procedure: {
-			type: 'string',
-		},
-		cid: {
-			type: 'integer',
-		},
-		rid: {
-			type: 'integer',
-		},
-		data: {
-			type: ['object', 'string'],
-		},
-	},
+export const validateProtocolMessage = (message: unknown): void => {
+	const errors = validator.validate(ProtocolMessageSchema, message as Record<string, unknown>);
+
+	if (errors.length) {
+		throw new Error('Protocol message format is invalid.');
+	}
 };
 
 export const validatePacket = (packet: unknown): void => {
-	const errors = validator.validate(packetSchema, packet as P2PMessagePacket | P2PRequestPacket);
+	const errors = validator.validate(PacketSchema, packet as P2PMessagePacket | P2PRequestPacket);
 
 	if (errors.length) {
 		throw new Error('Packet format is invalid.');

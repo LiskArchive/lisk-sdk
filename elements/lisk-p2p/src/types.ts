@@ -24,6 +24,11 @@ export interface P2PRequestPacket {
 	readonly procedure: string;
 }
 
+export interface P2PRawRequestPacket {
+	readonly data?: string;
+	readonly procedure: string;
+}
+
 export interface P2PRequestPacketBufferData extends P2PRequestPacket {
 	readonly data?: Buffer;
 }

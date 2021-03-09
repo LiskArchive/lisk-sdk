@@ -12,24 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const postTransactionsAnnouncementEventSchema = {
-	$id: 'lisk/transactionIds',
-	title: 'Broadcast Transactions',
-	type: 'object',
-	required: ['transactionIds'],
-	properties: {
-		transactionIds: {
-			type: 'array',
-			fieldNumber: 1,
-			minItems: 1,
-			maxItems: 100,
-			items: {
-				dataType: 'bytes',
-			},
-		},
-	},
-};
-
 export const getBlocksFromIdRequestSchema = {
 	$id: 'lisk/getBlocksFromIdRequest',
 	title: 'Get Blocks From Id Request',
@@ -86,6 +68,8 @@ export const transactionIdsSchema = {
 		transactionIds: {
 			type: 'array',
 			fieldNumber: 1,
+			minItems: 1,
+			maxItems: 100,
 			items: {
 				dataType: 'bytes',
 			},

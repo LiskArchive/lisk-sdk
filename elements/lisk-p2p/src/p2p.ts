@@ -320,10 +320,7 @@ export class P2P extends EventEmitter {
 			// Re-emit the message for external use.
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				// This 'decode' only happens with the successful case after decoding in "peer"
-				const decodedNodeInfo = codec.decode(
-					nodeInfoSchema,
-					Buffer.from(message.data as string, 'binary'),
-				);
+				const decodedNodeInfo = codec.decode(nodeInfoSchema, message.data as Buffer);
 
 				this.emit(EVENT_MESSAGE_RECEIVED, {
 					event: message.event,
@@ -657,8 +654,10 @@ export class P2P extends EventEmitter {
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const bufferData = this._getBufferData(packet.data);
-		const response = await this._peerPool.request({ ...packet, data: bufferData });
-
+		const response = await this._peerPool.request({
+			procedure: packet.procedure,
+			data: bufferData,
+		});
 		return response;
 	}
 
