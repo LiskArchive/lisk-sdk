@@ -20,7 +20,7 @@ import {
 import { Peer } from '../../src/peer';
 import { P2PPeerInfo } from '../../src/types';
 import { assignInternalInfo } from '../../src/utils';
-import { peerInfoSchema, nodeInfoSchema } from '../../src/schema';
+import { defaultRPCSchemas } from '../../src/schema';
 
 export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 	const peerOption1: P2PPeerInfo = {
@@ -173,8 +173,7 @@ export const initPeerList = (): ReadonlyArray<Peer> =>
 				maxPeerDiscoveryResponseLength: 1000,
 				peerStatusMessageRate: 4,
 				rpcSchemas: {
-					peerInfo: peerInfoSchema,
-					nodeInfo: nodeInfoSchema,
+					...defaultRPCSchemas,
 				},
 			}),
 	);

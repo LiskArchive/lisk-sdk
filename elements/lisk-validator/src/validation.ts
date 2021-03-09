@@ -70,11 +70,11 @@ export const isValidInteger = (num: unknown): boolean =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
 
 export const isHexString = (data: unknown): boolean => {
-	if (!isString(data)) {
+	if (typeof data !== 'string') {
 		return false;
 	}
 
-	return data === '' || /^[a-f0-9]+$/i.test(data as string);
+	return data === '' || /^[a-f0-9]+$/i.test(data);
 };
 
 export const isEncryptedPassphrase = (data: string): boolean => {

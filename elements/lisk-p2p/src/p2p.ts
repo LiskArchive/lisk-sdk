@@ -663,12 +663,12 @@ export class P2P extends EventEmitter {
 
 	public send(packet: P2PMessagePacket): void {
 		const bufferData = this._getBufferData(packet.data);
-		this._peerPool.send({ ...packet, data: bufferData });
+		this._peerPool.send({ event: packet.event, data: bufferData });
 	}
 
 	public broadcast(packet: P2PMessagePacket): void {
 		const bufferData = this._getBufferData(packet.data);
-		this._peerPool.broadcast({ ...packet, data: bufferData });
+		this._peerPool.broadcast({ event: packet.event, data: bufferData });
 	}
 
 	public async requestFromPeer(
@@ -676,12 +676,15 @@ export class P2P extends EventEmitter {
 		peerId: string,
 	): Promise<P2PResponsePacket> {
 		const bufferData = this._getBufferData(packet.data);
-		return this._peerPool.requestFromPeer({ ...packet, data: bufferData }, peerId);
+		return this._peerPool.requestFromPeer(
+			{ procedure: packet.procedure, data: bufferData },
+			peerId,
+		);
 	}
 
 	public sendToPeer(packet: P2PMessagePacket, peerId: string): void {
 		const bufferData = this._getBufferData(packet.data);
-		this._peerPool.sendToPeer({ ...packet, data: bufferData }, peerId);
+		this._peerPool.sendToPeer({ event: packet.event, data: bufferData }, peerId);
 	}
 
 	public async start(): Promise<void> {

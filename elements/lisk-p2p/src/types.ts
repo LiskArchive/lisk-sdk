@@ -48,6 +48,12 @@ export interface P2PMessagePacket {
 	readonly event: string;
 }
 
+export interface P2PRawMessagePacket {
+	readonly peerId?: string;
+	readonly data?: string;
+	readonly event: string;
+}
+
 export interface P2PMessagePacketBufferData extends P2PMessagePacket {
 	readonly data?: Buffer;
 }

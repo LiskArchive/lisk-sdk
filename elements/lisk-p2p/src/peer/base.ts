@@ -63,6 +63,7 @@ import {
 	P2PRequestPacketBufferData,
 	P2PResponsePacketBufferData,
 	P2PRawRequestPacket,
+	P2PRawMessagePacket,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -242,9 +243,8 @@ export class Peer extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown): void => {
-			const message = packet as P2PMessagePacket;
 			try {
-				validateProtocolMessage(message);
+				validateProtocolMessage(packet);
 			} catch (error) {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
 					packet,
@@ -253,13 +253,11 @@ export class Peer extends EventEmitter {
 
 				return;
 			}
+			const message = packet as P2PRawMessagePacket;
 
 			this._updateMessageCounter(message);
 			const rate = this._getMessageRate(message);
-			let messageBufferData: Buffer | undefined;
-			if (typeof message.data === 'string') {
-				messageBufferData = Buffer.from(message.data, 'binary');
-			}
+			const messageBufferData = this._getBufferData(message.data);
 
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				this._discoveryMessageCounter.postNodeInfo += 1;
@@ -656,5 +654,14 @@ export class Peer extends EventEmitter {
 		}
 
 		return data;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBufferData(data?: string): Buffer | undefined {
+		if (data === undefined) {
+			return undefined;
+		}
+
+		return Buffer.from(data, 'binary');
 	}
 }

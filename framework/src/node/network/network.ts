@@ -208,6 +208,7 @@ export class Network {
 		this._p2p.on(EVENT_NETWORK_READY, () => {
 			this._logger.debug('Node connected to the network');
 			this.events.emit(APP_EVENT_NETWORK_READY);
+			this._channel.publish(APP_EVENT_NETWORK_READY);
 		});
 
 		this._p2p.on(
@@ -374,7 +375,7 @@ export class Network {
 				this.events.emit(APP_EVENT_NETWORK_EVENT, packet);
 				const data =
 					packet.data && Buffer.isBuffer(packet.data) ? packet.data.toString('hex') : packet.data;
-				this._channel.publish('app:network:event', { ...packet, data });
+				this._channel.publish(APP_EVENT_NETWORK_EVENT, { ...packet, data });
 			},
 		);
 

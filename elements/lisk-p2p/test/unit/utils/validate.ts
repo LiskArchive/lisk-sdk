@@ -17,24 +17,18 @@ import {
 	validatePeerInfo,
 	validateRPCRequest,
 	validateProtocolMessage,
-	validateNodeInfo,
+	validatePayloadSize,
 	sanitizeIncomingPeerInfo,
 	validatePacket,
 	validatePeerInfoList,
 } from '../../../src/utils';
-import {
-	ProtocolPeerInfo,
-	P2PRequestPacket,
-	P2PMessagePacket,
-	P2PNodeInfo,
-} from '../../../src/types';
+import { ProtocolPeerInfo, P2PNodeInfo, P2PPeerInfo } from '../../../src/types';
 import { constants } from '../../../src';
 
 const {
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 	DEFAULT_MAX_PEER_INFO_SIZE,
 	PEER_INFO_LIST_TOO_LONG_REASON,
-	INVALID_PEER_INFO_LIST_REASON,
 } = constants;
 
 describe('utils/validate', () => {
@@ -72,14 +66,6 @@ describe('utils/validate', () => {
 		});
 
 		describe('for invalid peer response object', () => {
-			it('should throw an InvalidPeer error for invalid peer', () => {
-				const peerInvalid: unknown = null;
-
-				expect(validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peerInvalid), 10000)).toThrow(
-					'Invalid peer object',
-				);
-			});
-
 			it('should throw if PeerInfo is too big', () => {
 				const maximumPeerInfoSizeInBytes = 10;
 				const peer: ProtocolPeerInfo = {
@@ -111,59 +97,28 @@ describe('utils/validate', () => {
 	});
 
 	describe('#validatePeerInfoList', () => {
-		let generatePeerInfoResponse: any = {
-			peers: [],
-		};
+		let generatePeerInfoResponse: P2PPeerInfo[];
 		beforeEach(() => {
-			generatePeerInfoResponse = {
-				peers: [],
-			};
+			generatePeerInfoResponse = [];
 
-			generatePeerInfoResponse.peers = [...Array(3)].map(() => ({
-				ipAddress: '128.127.126.125',
-				port: 5000,
-			}));
+			generatePeerInfoResponse = [...Array(3)].map(
+				() =>
+					({
+						ipAddress: '128.127.126.125',
+						port: 5000,
+					} as P2PPeerInfo),
+			);
 		});
 
 		describe('when PeerInfo list is valid', () => {
-			it('should return P2PPeerInfo array', () => {
+			it('should not throw any error', () => {
 				expect(
 					validatePeerInfoList(
 						generatePeerInfoResponse,
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).toHaveLength(generatePeerInfoResponse.peers.length);
-			});
-		});
-
-		describe('when rawBasicPeerInfoList list is falsy', () => {
-			it('should throw an Error', () => {
-				generatePeerInfoResponse = undefined;
-
-				expect(
-					validatePeerInfoList.bind(
-						null,
-						generatePeerInfoResponse,
-						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
-						DEFAULT_MAX_PEER_INFO_SIZE,
-					),
-				).toThrow(INVALID_PEER_INFO_LIST_REASON);
-			});
-		});
-
-		describe('when PeerInfo list is not an array', () => {
-			it('should throw an Error', () => {
-				generatePeerInfoResponse.peers = 'fizzBuzz';
-
-				expect(
-					validatePeerInfoList.bind(
-						null,
-						generatePeerInfoResponse,
-						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
-						DEFAULT_MAX_PEER_INFO_SIZE,
-					),
-				).toThrow(INVALID_PEER_INFO_LIST_REASON);
+				).toBeUndefined();
 			});
 		});
 
@@ -173,7 +128,7 @@ describe('utils/validate', () => {
 					validatePeerInfoList.bind(
 						null,
 						generatePeerInfoResponse,
-						generatePeerInfoResponse.peers.length - 1,
+						generatePeerInfoResponse.length - 1,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
 				).toThrow(PEER_INFO_LIST_TOO_LONG_REASON);
@@ -182,7 +137,7 @@ describe('utils/validate', () => {
 
 		describe('when PeerInfo list has falsy PeerInfo', () => {
 			it('should return P2PPeerInfo array', () => {
-				generatePeerInfoResponse.peers.push(undefined);
+				generatePeerInfoResponse.push({} as P2PPeerInfo);
 
 				expect(
 					validatePeerInfoList.bind(
@@ -191,7 +146,7 @@ describe('utils/validate', () => {
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).toThrow('Invalid peer object');
+				).toThrow('Invalid peer ipAddress or port for peer with ip: undefined and port undefined');
 			});
 		});
 	});
@@ -213,7 +168,7 @@ describe('utils/validate', () => {
 
 			it('should throw Invalid NodeInfo maximum allowed size error', () => {
 				expect(
-					validateNodeInfo.bind(null, Buffer.from(JSON.stringify(nodeInfo)), maximumSize),
+					validatePayloadSize.bind(null, Buffer.from(JSON.stringify(nodeInfo)), maximumSize),
 				).toThrow(`Invalid NodeInfo was larger than the maximum allowed ${maximumSize} bytes`);
 			});
 		});
@@ -262,18 +217,10 @@ describe('utils/validate', () => {
 	});
 
 	describe('#validateRPCRequest', () => {
-		const validRPCRequest: unknown = {
-			data: {},
-			procedure: 'list',
-		};
-		let validatedRPCRequest: P2PRequestPacket;
-
-		beforeEach(() => {
-			validatedRPCRequest = validateRPCRequest(validRPCRequest);
-		});
-
 		it('should throw an error for an invalid procedure value', () => {
-			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).toThrow('Invalid request');
+			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).toThrow(
+				'RPC request format is invalid.',
+			);
 		});
 
 		it('should throw an error for an invalid procedure value with object', () => {
@@ -283,36 +230,15 @@ describe('utils/validate', () => {
 			};
 
 			expect(validateRPCRequest.bind(validateRPCRequest, inValidRequest)).toThrow(
-				'Request procedure name is not a string',
+				'RPC request format is invalid.',
 			);
-		});
-
-		it('should pass and return an object', () => {
-			expect(validatedRPCRequest).toEqual(expect.any(Object));
-		});
-
-		it('should return a valid rpc request', () => {
-			expect(validatedRPCRequest).toMatchObject({
-				procedure: expect.any(String),
-				data: expect.any(Object),
-			});
 		});
 	});
 
 	describe('#validateProtocolMessage', () => {
-		const validProtocolMessage: unknown = {
-			data: {},
-			event: 'newPeer',
-		};
-		let returnedValidatedMessage: P2PMessagePacket;
-
-		beforeEach(() => {
-			returnedValidatedMessage = validateProtocolMessage(validProtocolMessage);
-		});
-
 		it('should throw an error for an invalid event value type', () => {
 			expect(validateProtocolMessage.bind(validateProtocolMessage, undefined)).toThrow(
-				'Invalid message',
+				'Protocol message format is invalid.',
 			);
 		});
 
@@ -322,19 +248,8 @@ describe('utils/validate', () => {
 				event: 6788,
 			};
 			expect(validateProtocolMessage.bind(validateProtocolMessage, inValidMessage)).toThrow(
-				'Protocol message is not a string',
+				'Protocol message format is invalid.',
 			);
-		});
-
-		it('should return an object', () => {
-			expect(returnedValidatedMessage).toEqual(expect.any(Object));
-		});
-
-		it('should return a valid protocol message object', () => {
-			expect(returnedValidatedMessage).toMatchObject({
-				data: expect.any(Object),
-				event: 'newPeer',
-			});
 		});
 	});
 
@@ -355,7 +270,7 @@ describe('utils/validate', () => {
 			);
 		});
 
-		it('should throw an error if the mssage contains additional keywords', () => {
+		it('should throw an error if the message contains additional keywords', () => {
 			expect(() => validatePacket({ cid: 4, invalidProperty: { something: 'invalid' } })).toThrow(
 				'Packet format is invalid.',
 			);
