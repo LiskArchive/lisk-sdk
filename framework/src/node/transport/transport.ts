@@ -235,8 +235,8 @@ export class Transport {
 			this._logger.debug("Client is syncing. Can't process new block at the moment.");
 			return;
 		}
-		const decodedData = codec.decode(postBlockEventSchema, data as never);
-		const errors = validator.validate(postBlockEventSchema, decodedData as Record<string, unknown>);
+		const decodedData = codec.decode<EventPostBlockData>(postBlockEventSchema, data as never);
+		const errors = validator.validate(postBlockEventSchema, decodedData);
 
 		if (errors.length) {
 			this._logger.warn(
@@ -254,7 +254,7 @@ export class Transport {
 			throw new LiskValidationError(errors);
 		}
 
-		const { block: blockBytes } = decodedData as EventPostBlockData;
+		const { block: blockBytes } = decodedData;
 
 		let block: Block;
 		try {
@@ -298,22 +298,26 @@ export class Transport {
 
 	public async handleRPCGetTransactions(
 		// eslint-disable-next-line @typescript-eslint/default-param-last
-		data: unknown = { transactionIds: [] },
+		data: unknown,
 		peerId: string,
 	): Promise<Buffer> {
 		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
-		const decodedData = codec.decode(transactionIdsSchema, data as never);
-		const errors = validator.validate(transactionIdsSchema, decodedData as Record<string, unknown>);
-		if (errors.length) {
-			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
-			this._networkModule.applyPenaltyOnPeer({
-				peerId,
-				penalty: 100,
-			});
-			throw new LiskValidationError(errors);
+		let decodedData: RPCTransactionsByIdData = { transactionIds: [] };
+
+		if (Buffer.isBuffer(data)) {
+			decodedData = codec.decode<RPCTransactionsByIdData>(transactionIdsSchema, data);
+			const errors = validator.validate(transactionIdsSchema, decodedData);
+			if (errors.length) {
+				this._logger.warn({ err: errors, peerId }, 'Received invalid getTransactions body');
+				this._networkModule.applyPenaltyOnPeer({
+					peerId,
+					penalty: 100,
+				});
+				throw new LiskValidationError(errors);
+			}
 		}
 
-		const { transactionIds } = decodedData as RPCTransactionsByIdData;
+		const { transactionIds } = decodedData;
 		if (!transactionIds?.length) {
 			// Get processable transactions from pool and collect transactions across accounts
 			// Limit the transactions to send based on releaseLimit
@@ -412,9 +416,12 @@ export class Transport {
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(transactionIds);
 		if (unknownTransactionIDs.length > 0) {
+			const transactionIdsBuffer = codec.encode(transactionIdsSchema, {
+				transactionIds: unknownTransactionIDs,
+			});
 			const { data: encodedData } = (await this._networkModule.requestFromPeer({
 				procedure: 'getTransactions',
-				data: unknownTransactionIDs,
+				data: transactionIdsBuffer,
 				peerId,
 			})) as {
 				data: Buffer;

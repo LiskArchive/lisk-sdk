@@ -22,7 +22,6 @@ import {
 	BaseChannel,
 	BasePlugin,
 	EventsDefinition,
-	EventPostBlockData,
 	PluginInfo,
 } from 'lisk-framework';
 import * as express from 'express';
@@ -38,7 +37,7 @@ import { transactionAnnouncementSchema, postBlockEventSchema } from './schema';
 // eslint-disable-next-line
 const pJSON = require('../package.json');
 
-interface Data {
+interface BlockData {
 	readonly block: string;
 }
 
@@ -165,12 +164,12 @@ export class MonitorPlugin extends BasePlugin {
 				if (errors.length > 0) {
 					return;
 				}
-				this._handlePostBlock(data as EventPostBlockData);
+				this._handlePostBlock(data as BlockData);
 			}
 		});
 
 		this._channel.subscribe('app:chain:fork', (data?: Record<string, unknown>) => {
-			const { block } = (data as unknown) as Data;
+			const { block } = (data as unknown) as BlockData;
 			this._handleFork(block);
 		});
 	}
@@ -216,7 +215,7 @@ export class MonitorPlugin extends BasePlugin {
 		}
 	}
 
-	private _handlePostBlock(data: EventPostBlockData) {
+	private _handlePostBlock(data: BlockData) {
 		const decodedBlock = codec.decode<RawBlock>(this.schemas.block, Buffer.from(data.block, 'hex'));
 		const decodedBlockHeader = codec.decode<RawBlockHeader>(
 			this.schemas.blockHeader,

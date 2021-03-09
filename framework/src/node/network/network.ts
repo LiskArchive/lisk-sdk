@@ -344,7 +344,11 @@ export class Network {
 
 		this._p2p.on(
 			EVENT_MESSAGE_RECEIVED,
-			(packet: { readonly peerId: string; readonly event: string }) => {
+			(packet: {
+				readonly peerId: string;
+				readonly event: string;
+				readonly data: Buffer | undefined;
+			}) => {
 				if (!REMOTE_EVENTS_WHITE_LIST.includes(packet.event)) {
 					const error = new Error(`Sent event "${packet.event}" is not permitted.`);
 					this._logger.error(
@@ -363,8 +367,9 @@ export class Network {
 					},
 					'EVENT_MESSAGE_RECEIVED: Received inbound message',
 				);
-				// TODO: Fix packet data buffer to hex conversion
-				this._channel.publish('app:network:event', packet);
+				const data =
+					packet.data && Buffer.isBuffer(packet.data) ? packet.data.toString('hex') : packet.data;
+				this._channel.publish('app:network:event', { ...packet, data });
 			},
 		);
 
