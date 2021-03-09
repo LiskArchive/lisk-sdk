@@ -24,6 +24,8 @@ import {
 	getHighestCommonBlockRequestSchema,
 	getBlocksFromIdRequestSchema,
 	postTransactionsAnnouncementEventSchema,
+	getBlocksFromIdResponseSchema,
+	transactionsSchema,
 } from './schemas';
 import { Synchronizer } from '../synchronizer';
 import { Processor } from '../processor';
@@ -64,10 +66,6 @@ export interface handlePostTransactionReturn {
 	transactionId?: string;
 	message?: string;
 	errors?: Error[] | Error;
-}
-
-interface HandleRPCGetTransactionsReturn {
-	transactions: Buffer[];
 }
 
 interface RateTracker {
@@ -150,7 +148,7 @@ export class Transport {
 		return this._chainModule.dataAccess.encode(this._chainModule.lastBlock);
 	}
 
-	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<Buffer[]> {
+	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<Buffer> {
 		this._addRateLimit('getBlocksFromId', peerId, DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY);
 		const decodedData = codec.decode(getBlocksFromIdRequestSchema, data as never);
 		const errors = validator.validate(
@@ -189,8 +187,9 @@ export class Transport {
 			lastBlockHeight + 1,
 			fetchUntilHeight,
 		);
+		const encodedBlocks = blocks.map(block => this._chainModule.dataAccess.encode(block));
 
-		return blocks.map(block => this._chainModule.dataAccess.encode(block));
+		return codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks });
 	}
 
 	public async handleRPCGetHighestCommonBlock(
@@ -198,10 +197,10 @@ export class Transport {
 		peerId: string,
 	): Promise<Buffer | undefined> {
 		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY);
-		const decodedData = codec.decode(getHighestCommonBlockRequestSchema, data as never);
+		const blockIds = codec.decode(getHighestCommonBlockRequestSchema, data as never);
 		const errors = validator.validate(
 			getHighestCommonBlockRequestSchema,
-			decodedData as Record<string, unknown>,
+			blockIds as Record<string, unknown>,
 		);
 
 		if (errors.length) {
@@ -221,7 +220,7 @@ export class Transport {
 			throw error;
 		}
 
-		const { ids } = decodedData as RPCHighestCommonBlockData;
+		const { ids } = blockIds as RPCHighestCommonBlockData;
 
 		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(ids);
 
@@ -301,7 +300,7 @@ export class Transport {
 		// eslint-disable-next-line @typescript-eslint/default-param-last
 		data: unknown = { transactionIds: [] },
 		peerId: string,
-	): Promise<HandleRPCGetTransactionsReturn> {
+	): Promise<Buffer> {
 		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		const decodedData = codec.decode(transactionIdsSchema, data as never);
 		const errors = validator.validate(transactionIdsSchema, decodedData as Record<string, unknown>);
@@ -325,9 +324,9 @@ export class Transport {
 				.map(tx => tx.getBytes());
 			transactions.splice(DEFAULT_RELEASE_LIMIT);
 
-			return {
+			return codec.encode(transactionsSchema, {
 				transactions,
-			};
+			});
 		}
 
 		if (transactionIds.length > DEFAULT_RELEASE_LIMIT) {
@@ -363,16 +362,16 @@ export class Transport {
 				idsNotInPool,
 			);
 
-			return {
+			return codec.encode(transactionsSchema, {
 				transactions: transactionsFromQueues.concat(
 					transactionsFromDatabase.map(t => t.getBytes()),
 				),
-			};
+			});
 		}
 
-		return {
+		return codec.encode(transactionsSchema, {
 			transactions: transactionsFromQueues,
-		};
+		});
 	}
 
 	public async handleEventPostTransaction(
@@ -413,17 +412,21 @@ export class Transport {
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(transactionIds);
 		if (unknownTransactionIDs.length > 0) {
-			const { data: result } = (await this._networkModule.requestFromPeer({
+			const { data: encodedData } = (await this._networkModule.requestFromPeer({
 				procedure: 'getTransactions',
 				data: unknownTransactionIDs,
 				peerId,
 			})) as {
-				data: { transactions: Buffer[] };
+				data: Buffer;
 			};
+			const transactionsData = codec.decode<{ transactions: Buffer[] }>(
+				transactionsSchema,
+				encodedData,
+			);
 
 			try {
-				for (const transaction of result.transactions) {
-					const tx = this._chainModule.dataAccess.decodeTransaction(Buffer.from(transaction));
+				for (const transaction of transactionsData.transactions) {
+					const tx = this._chainModule.dataAccess.decodeTransaction(transaction);
 					await this._receiveTransaction(tx);
 				}
 			} catch (err) {

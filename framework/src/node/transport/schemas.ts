@@ -36,10 +36,25 @@ export const getBlocksFromIdRequestSchema = {
 	type: 'object',
 	required: ['blockId'],
 	properties: {
-		ids: {
-			type: 'array',
+		blockId: {
 			fieldNumber: 1,
 			dataType: 'bytes',
+		},
+	},
+};
+
+export const getBlocksFromIdResponseSchema = {
+	$id: 'lisk/getBlocksFromIdResponse',
+	title: 'Get Blocks From Id Response',
+	type: 'object',
+	required: ['blocks'],
+	properties: {
+		blocks: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
 		},
 	},
 };
@@ -71,6 +86,23 @@ export const transactionIdsSchema = {
 		transactionIds: {
 			type: 'array',
 			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+export const transactionsSchema = {
+	$id: 'lisk/transactions',
+	title: 'Transactions',
+	type: 'object',
+	required: ['transactions'],
+	properties: {
+		transactions: {
+			type: 'array',
+			fieldNumber: 1,
+			minItems: 1,
 			items: {
 				dataType: 'bytes',
 			},

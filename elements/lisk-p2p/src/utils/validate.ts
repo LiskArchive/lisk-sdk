@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { codec, Schema } from '@liskhq/lisk-codec';
 import { isIP, isPort, validator } from '@liskhq/lisk-validator';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
@@ -40,8 +41,7 @@ import {
 import { getByteSize, sanitizeIncomingPeerInfo } from '.';
 
 interface RPCPeerListResponse {
-	readonly peers: ReadonlyArray<object>;
-	readonly success?: boolean; // Could be used in future
+	readonly peers: ReadonlyArray<Buffer>;
 }
 
 const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeInfo): boolean => {
@@ -149,6 +149,7 @@ export const validatePeerInfoList = (
 	rawBasicPeerInfoList: unknown,
 	maxPeerInfoListLength: number,
 	maxPeerInfoByteSize: number,
+	peerInfoSchema: Schema,
 ): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawBasicPeerInfoList) {
 		throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
@@ -163,9 +164,11 @@ export const validatePeerInfoList = (
 			throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
 		}
 
-		const sanitizedPeerList = peers.map<P2PPeerInfo>(peerInfo =>
-			validatePeerInfo(sanitizeIncomingPeerInfo(peerInfo), maxPeerInfoByteSize),
-		);
+		const sanitizedPeerList = peers.map<P2PPeerInfo>((peerInfoBuffer: Buffer) => {
+			const peerInfo = codec.decode<P2PPeerInfo>(peerInfoSchema, peerInfoBuffer);
+			validatePeerInfo(sanitizeIncomingPeerInfo(peerInfo), maxPeerInfoByteSize);
+			return peerInfo;
+		});
 
 		return sanitizedPeerList;
 	}
@@ -194,8 +197,12 @@ export const validateProtocolMessage = (message: P2PMessagePacket): void => {
 		throw new InvalidProtocolMessageError('Invalid message');
 	}
 
-	if (typeof message.event !== 'string' || typeof message.data !== undefined) {
-		throw new InvalidProtocolMessageError('Protocol message is not a string or undefined');
+	if (typeof message.event !== 'string') {
+		throw new InvalidProtocolMessageError('Protocol message is not a string');
+	}
+
+	if (typeof message.data !== 'string' && message.data !== undefined) {
+		throw new InvalidProtocolMessageError('Protocol message data is not a string or undefined');
 	}
 };
 

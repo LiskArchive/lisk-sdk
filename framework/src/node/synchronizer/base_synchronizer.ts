@@ -13,11 +13,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { EventEmitter } from 'events';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { ApplyPenaltyAndRestartError, ApplyPenaltyAndAbortError } from './errors';
 import { Network } from '../network';
+import {
+	getBlocksFromIdRequestSchema,
+	getHighestCommonBlockRequestSchema,
+	getBlocksFromIdResponseSchema,
+} from '../transport/schemas';
 
 export const EVENT_SYNCHRONIZER_SYNC_REQUIRED = 'EVENT_SYNCHRONIZER_SYNC_REQUIRED';
 
@@ -84,12 +90,11 @@ export abstract class BaseSynchronizer {
 		peerId: string,
 		ids: Buffer[],
 	): Promise<BlockHeader> {
+		const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getHighestCommonBlock',
 			peerId,
-			data: {
-				ids,
-			},
+			data: blockIds,
 		})) as {
 			data: Buffer | undefined;
 		};
@@ -101,20 +106,20 @@ export abstract class BaseSynchronizer {
 	}
 
 	protected async _getBlocksFromNetwork(peerId: string, fromID: Buffer): Promise<Block[]> {
+		const blockId = codec.encode(getBlocksFromIdRequestSchema, { blockId: fromID });
 		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getBlocksFromId',
 			peerId,
-			data: {
-				blockId: fromID,
-			},
+			data: blockId,
 		})) as {
-			data: Buffer[] | undefined;
+			data: Buffer;
 		}; // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
 		if (!data || !data.length) {
 			throw new Error('Peer did not respond with block');
 		}
-		return data.map(block => this._chain.dataAccess.decode(block));
+		const encodedData = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
+		return encodedData.blocks.map(block => this._chain.dataAccess.decode(block));
 	}
 
 	public abstract async run(receivedBlock: Block, peerId: string): Promise<void>;

@@ -256,7 +256,7 @@ export class Peer extends EventEmitter {
 			this._updateMessageCounter(message);
 			const rate = this._getMessageRate(message);
 			let messageBufferData: Buffer | undefined;
-			if (typeof message.data === 'string' && message.data !== 'undefined') {
+			if (typeof message.data === 'string') {
 				messageBufferData = Buffer.from(message.data, 'binary');
 			}
 
@@ -415,6 +415,7 @@ export class Peer extends EventEmitter {
 				{ peers },
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
+				this._rpcSchemas.peerInfo,
 			);
 
 			return validatedPeers.map(peerInfo => ({
