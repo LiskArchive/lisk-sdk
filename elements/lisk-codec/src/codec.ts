@@ -67,15 +67,6 @@ export const validateSchema = (schema: {
 		throw new LiskValidationError([...errors]);
 	}
 
-	const { properties } = schemaToValidate as ValidatedSchema;
-	if (properties) {
-		Object.values(properties).forEach(property => {
-			if (!('fieldNumber' in property)) {
-				throw new Error('Invalid schema. Missing "fieldNumber" in properties');
-			}
-		});
-	}
-
 	try {
 		// To validate keyword schema we have to compile it
 		// Ajv `validateSchema` does not validate keyword meta schema
@@ -172,6 +163,11 @@ export class Codec {
 			if (properties === undefined) {
 				throw new Error('Invalid schema. Missing "properties" property');
 			}
+			for (const property of Object.values(properties)) {
+				if (!('fieldNumber' in property)) {
+					throw new Error('Invalid schema. Missing "fieldNumber" in properties');
+				}
+			}
 			const currentDepthSchema = Object.entries(properties).sort(
 				(a, b) => a[1].fieldNumber - b[1].fieldNumber,
 			);
@@ -179,6 +175,9 @@ export class Codec {
 			for (let i = 0; i < currentDepthSchema.length; i += 1) {
 				const [schemaPropertyName, schemaPropertyValue] = currentDepthSchema[i];
 				if (schemaPropertyValue.type === 'object') {
+					if (!('fieldNumber' in schemaPropertyValue)) {
+						throw new Error('Invalid schema. Missing "fieldNumber" in properties');
+					}
 					// Object recursive case
 					dataPath.push(schemaPropertyName);
 					const nestedSchema = [
@@ -199,6 +198,9 @@ export class Codec {
 					// Array recursive case
 					if (schemaPropertyValue.items === undefined) {
 						throw new Error('Invalid schema. Missing "items" property for Array schema');
+					}
+					if (!('fieldNumber' in schemaPropertyValue)) {
+						throw new Error('Invalid schema. Missing "fieldNumber" in properties');
 					}
 					dataPath.push(schemaPropertyName);
 					if (schemaPropertyValue.items.type === 'object') {
