@@ -11,13 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { validator } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
+import { Transaction } from '@liskhq/lisk-chain';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getRandomBytes,
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { Transaction } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
+
 import { Logger } from '../../../../src/logger';
 import { Transport } from '../../../../src/node/transport';
 
@@ -30,6 +32,10 @@ import {
 } from '../../../fixtures/blocks';
 import { InvalidTransactionError } from '../../../../src/node/transport/errors';
 import { InMemoryChannel } from '../../../../src/controller/channels';
+import {
+	postBlockEventSchema,
+	getBlocksFromIdRequestSchema,
+} from '../../../../src/node/transport/schemas';
 
 describe('transport', () => {
 	const encodedBlock = Buffer.from('encoded block');
@@ -475,12 +481,12 @@ describe('transport', () => {
 					});
 
 					it('should call network module to send', () => {
+						const data = codec.encode(postBlockEventSchema, { block: encodedBlock });
+
 						expect(networkStub.send).toHaveBeenCalledTimes(1);
 						return expect(networkStub.send).toHaveBeenCalledWith({
 							event: 'postBlock',
-							data: {
-								block: encodedBlock.toString('hex'),
-							},
+							data,
 						});
 					});
 
@@ -501,33 +507,16 @@ describe('transport', () => {
 
 			describe('Transport.prototype.shared', () => {
 				describe('handleRPCGetBlocksFromId', () => {
-					describe('when query is undefined', () => {
-						it('should throw a validation error', async () => {
-							query = {} as any;
-							const defaultPeerId = 'peer-id';
-
-							await expect(
-								transportModule.handleRPCGetBlocksFromId(query, defaultPeerId),
-							).rejects.toThrow("should have required property 'blockId'");
-
-							expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
-							expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
-								peerId: defaultPeerId,
-								penalty: 100,
-							});
-						});
-					});
-
 					describe('when query is defined', () => {
 						it('should call modules.chain.loadBlocksFromLastBlockId with lastBlockID and limit 34', async () => {
-							query = {
-								blockId: Buffer.from('6258354802676165798').toString('hex'),
-							};
+							const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
+								blockId: Buffer.from('6258354802676165798'),
+							});
 
-							await transportModule.handleRPCGetBlocksFromId(query);
+							await transportModule.handleRPCGetBlocksFromId(blockIds);
 							expect(
 								transportModule['_chainModule'].dataAccess.getBlockHeaderByID,
-							).toHaveBeenCalledWith(Buffer.from(query.blockId, 'hex'));
+							).toHaveBeenCalledWith(Buffer.from('6258354802676165798'));
 							return expect(
 								transportModule['_chainModule'].dataAccess.getBlocksByHeightBetween,
 							).toHaveBeenCalledWith(3, 105);
@@ -555,36 +544,15 @@ describe('transport', () => {
 				});
 
 				describe('handleEventPostBlock', () => {
-					let postBlockQuery: any;
-					const defaultPeerId = 'peer-id';
-
-					beforeEach(() => {
-						postBlockQuery = {
-							block: 'non-hex_string@',
-						};
-					});
-
 					describe('when query is specified', () => {
-						it('should throw an error', async () => {
-							await expect(
-								transportModule.handleEventPostBlock(postBlockQuery, defaultPeerId),
-							).rejects.toThrow('should match format "hex"');
-
-							expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
-							expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
-								peerId: defaultPeerId,
-								penalty: 100,
-							});
-						});
-
 						describe('when it does not throw', () => {
 							const encodedGenesisBlock = encodeValidBlock(getGenesisBlock());
 
 							describe('when query.block is defined', () => {
 								it('should call modules.chain.addBlockProperties with query.block', async () => {
-									await transportModule.handleEventPostBlock({
-										block: encodedGenesisBlock.toString('hex'),
-									});
+									const data = codec.encode(postBlockEventSchema, { block: encodedGenesisBlock });
+
+									await transportModule.handleEventPostBlock(data);
 									expect(transportModule['_chainModule'].dataAccess.decode).toHaveBeenCalledWith(
 										encodedGenesisBlock,
 									);
@@ -592,12 +560,9 @@ describe('transport', () => {
 							});
 
 							it('should call transportModule.processorModule.process with block', async () => {
-								await transportModule.handleEventPostBlock(
-									{
-										block: encodedGenesisBlock.toString('hex'),
-									},
-									'127.0.0.1:5000',
-								);
+								const data = codec.encode(postBlockEventSchema, { block: encodedGenesisBlock });
+
+								await transportModule.handleEventPostBlock(data, '127.0.0.1:5000');
 								expect(transportModule['_processorModule'].process).toHaveBeenCalledWith(
 									genesisBlock(),
 									{

@@ -24,6 +24,7 @@ import {
 	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
+	INVALID_PEER_INFO_LIST_REASON,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -56,7 +57,6 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PRequestPacket,
-	P2PResponsePacket,
 	RPCSchemas,
 	P2PSharedState,
 	P2PMessagePacketBufferData,
@@ -65,6 +65,7 @@ import {
 	P2PRawRequestPacket,
 	P2PRawMessagePacket,
 	ProtocolPeerInfo,
+	BaseRequestResponsePacket,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -371,17 +372,17 @@ export class Peer extends EventEmitter {
 						procedure: packet.procedure,
 						data,
 					},
-					(error: Error | undefined, responseData: P2PResponsePacket | undefined) => {
+					(error: Error | undefined, responseData: BaseRequestResponsePacket | undefined) => {
 						if (error) {
 							reject(error);
 
 							return;
 						}
 
-						if (responseData?.data && typeof responseData.data === 'string') {
+						if (responseData) {
 							const responseBufferData = {
-								...responseData,
-								data: Buffer.from(responseData.data, 'binary'),
+								peerId: responseData.peerId,
+								data: this._getBufferData(responseData.data),
 							};
 							resolve(responseBufferData);
 
@@ -405,6 +406,10 @@ export class Peer extends EventEmitter {
 			const response = await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
+			if (!response.data) {
+				throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
+			}
+
 			const { peers } = codec.decode<{ peers: Buffer[] }>(
 				this._rpcSchemas.peerRequestResponse,
 				response.data,

@@ -38,8 +38,13 @@ export interface P2PResponsePacket {
 	readonly data: unknown;
 }
 
+export interface BaseRequestResponsePacket {
+	readonly peerId?: string;
+	readonly data: string | undefined;
+}
+
 export interface P2PResponsePacketBufferData extends P2PResponsePacket {
-	readonly data: Buffer;
+	readonly data: Buffer | undefined;
 }
 
 export interface P2PMessagePacket {

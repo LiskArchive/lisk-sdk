@@ -186,20 +186,6 @@ describe('Node', () => {
 		it('should start forging', () => {
 			return expect(node['_startForging']).toHaveBeenCalled();
 		});
-
-		it('should subscribe to "app:network:ready" event', () => {
-			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
-				'app:network:ready',
-				expect.any(Function),
-			);
-		});
-
-		it('should subscribe to "app:network:event" event', () => {
-			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
-				'app:network:event',
-				expect.any(Function),
-			);
-		});
 	});
 
 	describe('getSchema', () => {
