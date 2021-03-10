@@ -67,6 +67,15 @@ export const validateSchema = (schema: {
 		throw new LiskValidationError([...errors]);
 	}
 
+	const { properties } = schemaToValidate as ValidatedSchema;
+	if (properties) {
+		Object.values(properties).forEach(property => {
+			if (!('fieldNumber' in property)) {
+				throw new Error('Invalid schema. Missing "fieldNumber" in properties');
+			}
+		});
+	}
+
 	try {
 		// To validate keyword schema we have to compile it
 		// Ajv `validateSchema` does not validate keyword meta schema
