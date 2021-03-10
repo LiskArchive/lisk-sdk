@@ -391,24 +391,19 @@ describe('peer/base', () => {
 					},
 				];
 				codec.addSchema(defaultRPCSchemas.peerInfo);
+				codec.addSchema(defaultRPCSchemas.peerRequestResponse);
 
 				const encodedPeers = peers.map(peer =>
-					codec
-						.encode(defaultRPCSchemas.peerInfo, {
-							ipAddress: peer.ipAddress,
-							port: peer.port,
-						})
-						.toString('hex'),
+					codec.encode(defaultRPCSchemas.peerInfo, {
+						ipAddress: peer.ipAddress,
+						port: peer.port,
+					}),
 				);
-
-				const responseData = {
+				const data = codec.encode(defaultRPCSchemas.peerRequestResponse, {
 					peers: encodedPeers,
-					success: true,
-				};
-
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-					data: responseData,
 				});
+
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data });
 				const response = await defaultPeer.fetchPeers();
 				expect(response).toEqual(sanitizedPeers);
 			});
@@ -422,24 +417,17 @@ describe('peer/base', () => {
 				}));
 
 				const encodedMalformedPeersList = malformedPeerList.map(peer =>
-					codec
-						.encode(defaultRPCSchemas.peerInfo, {
-							ipAddress: peer.ipAddress,
-							port: peer.port,
-						})
-						.toString('hex'),
+					codec.encode(defaultRPCSchemas.peerInfo, {
+						ipAddress: peer.ipAddress,
+						port: peer.port,
+					}),
 				);
+				const data = codec.encode(defaultRPCSchemas.peerRequestResponse, {
+					peers: encodedMalformedPeersList,
+				});
 
-				const peerListResponse = {
-					data: {
-						peers: encodedMalformedPeersList,
-						success: true,
-					},
-				};
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data });
 
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(peerListResponse);
-
-				expect.assertions(2);
 				try {
 					await defaultPeer.fetchPeers();
 				} catch (e) {
@@ -463,18 +451,18 @@ describe('peer/base', () => {
 					},
 				];
 
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-					data: {
-						peers: malformedPeerList.map(peer => ({
-							...peer.sharedState,
-							ipAddress: peer.ipAddress,
-							port: peer.port,
-						})),
-						success: true,
-					},
+				const encodedMalformedPeersList = malformedPeerList.map(peer =>
+					codec.encode(defaultRPCSchemas.peerInfo, {
+						ipAddress: peer.ipAddress,
+						port: peer.port,
+					}),
+				);
+				const data = codec.encode(defaultRPCSchemas.peerRequestResponse, {
+					peers: encodedMalformedPeersList,
 				});
 
-				expect.assertions(2);
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data });
+
 				try {
 					await defaultPeer.fetchPeers();
 				} catch (e) {
@@ -610,9 +598,7 @@ describe('peer/base', () => {
 					networkIdentifier: 'networkId',
 				};
 				beforeEach(() => {
-					const encodedResponse = codec
-						.encode(defaultRPCSchemas.nodeInfo, nodeInfo)
-						.toString('hex');
+					const encodedResponse = codec.encode(defaultRPCSchemas.nodeInfo, nodeInfo);
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'emit');
 				});
@@ -647,9 +633,8 @@ describe('peer/base', () => {
 
 				beforeEach(() => {
 					codec.addSchema(defaultRPCSchemas.peerInfo);
-					const encodedResponse = codec
-						.encode(defaultRPCSchemas.nodeInfo, peerSharedState)
-						.toString('hex');
+					codec.addSchema(defaultRPCSchemas.peerRequestResponse);
+					const encodedResponse = codec.encode(defaultRPCSchemas.nodeInfo, peerSharedState);
 
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'updatePeerInfo');

@@ -30,7 +30,7 @@ import {
 } from '../types';
 
 // eslint-disable-next-line import/no-cycle
-import { getByteSize, sanitizeIncomingPeerInfo } from '.';
+import { getByteSize } from '.';
 import { PacketSchema, RPCRequestSchema, ProtocolMessageSchema } from './schemas';
 
 const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeInfo): boolean => {
@@ -142,9 +142,7 @@ export const validatePeerInfoList = (
 	if (peersList.length > maxPeerInfoListLength) {
 		throw new InvalidPeerInfoListError(PEER_INFO_LIST_TOO_LONG_REASON);
 	}
-	peersList.map<P2PPeerInfo>(peerInfo =>
-		validatePeerInfo(sanitizeIncomingPeerInfo(peerInfo), maxPeerInfoByteSize),
-	);
+	peersList.map<P2PPeerInfo>(peerInfo => validatePeerInfo(peerInfo, maxPeerInfoByteSize));
 };
 
 export const validateRPCRequest = (request: unknown): void => {

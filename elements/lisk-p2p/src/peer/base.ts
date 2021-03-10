@@ -64,6 +64,7 @@ import {
 	P2PResponsePacketBufferData,
 	P2PRawRequestPacket,
 	P2PRawMessagePacket,
+	ProtocolPeerInfo,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -76,7 +77,6 @@ import {
 	validatePayloadSize,
 } from '../utils';
 import { decodeNodeInfo } from '../utils/codec';
-import { peerInfoSchema } from '../schema';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -409,17 +409,20 @@ export class Peer extends EventEmitter {
 				this._rpcSchemas.peerRequestResponse,
 				response.data,
 			);
-			const peersList = peers.map<P2PPeerInfo>((peerInfoBuffer: Buffer) =>
-				codec.decode<P2PPeerInfo>(peerInfoSchema, peerInfoBuffer),
+			const peersList = peers.map<ProtocolPeerInfo>((peerInfoBuffer: Buffer) =>
+				codec.decode<ProtocolPeerInfo>(this._rpcSchemas.peerInfo, peerInfoBuffer),
+			);
+			const sanitizedPeersList = peersList.map<P2PPeerInfo>(peerInfo =>
+				sanitizeIncomingPeerInfo(peerInfo),
 			);
 
 			validatePeerInfoList(
-				peersList,
+				sanitizedPeersList,
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
 
-			return peersList.map(peerInfo => ({
+			return sanitizedPeersList.map(peerInfo => ({
 				...peerInfo,
 				sourceAddress: this.ipAddress,
 			}));
