@@ -21,7 +21,7 @@ describe('P2P.broadcast', () => {
 	let collectedMessages: Array<any> = [];
 
 	const BROADCAST_EVENT = 'foo';
-	const BROADCAST_DATA = 'bar';
+	const BROADCAST_DATA = Buffer.from(JSON.stringify('bar'), 'utf8');
 
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork();

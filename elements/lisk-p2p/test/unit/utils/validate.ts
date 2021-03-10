@@ -39,7 +39,7 @@ describe('utils/validate', () => {
 				port: 5393,
 			};
 
-			const peerWithInvalidHeightValue: unknown = {
+			const peerWithInvalidHeightValue = {
 				ipAddress: '12.23.54.3',
 				port: 5393,
 			};
@@ -81,17 +81,18 @@ describe('utils/validate', () => {
 			});
 
 			it('should throw InvalidPeer error for invalid peer ipAddress or port', () => {
-				const peerInvalid: unknown = {
+				const peerInvalid = {
 					port: 53937888,
-					height: '23232',
-					discoveredInfo: {
-						os: 'darwin',
-					},
+					ipAddress: undefined,
 				};
 
-				expect(validatePeerInfo.bind(null, sanitizeIncomingPeerInfo(peerInvalid), 10000)).toThrow(
-					'Invalid peer ipAddress or port',
-				);
+				expect(
+					validatePeerInfo.bind(
+						null,
+						sanitizeIncomingPeerInfo((peerInvalid as unknown) as ProtocolPeerInfo),
+						10000,
+					),
+				).toThrow('Invalid peer ipAddress or port');
 			});
 		});
 	});
