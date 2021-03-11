@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PRequest, RequestOptions } from '../../src/p2p_request';
+import { P2PRequest } from '../../src/p2p_request';
 import { RPCResponseAlreadySentError } from '../../src/errors';
+import { RequestOptions } from '../../src/types';
 
 describe('p2pRequest', () => {
 	let requestOptions: RequestOptions;

@@ -14,7 +14,7 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { SCServerSocket } from 'socketcluster-server';
-import { Peer, PeerConfig } from '../../../src/peer';
+import { Peer } from '../../../src/peer';
 import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
@@ -41,7 +41,11 @@ import { RPCResponseError } from '../../../src/errors';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
 import { p2pTypes } from '../../../src';
 import { defaultRPCSchemas } from '../../../src/schema';
-import { P2PMessagePacketBufferData, P2PRequestPacketBufferData } from '../../../src/types';
+import {
+	PeerConfig,
+	P2PMessagePacketBufferData,
+	P2PRequestPacketBufferData,
+} from '../../../src/types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const createSocketStubInstance = () => <SCServerSocket>({

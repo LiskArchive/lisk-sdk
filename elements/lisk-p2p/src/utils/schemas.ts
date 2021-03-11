@@ -13,7 +13,7 @@
  *
  */
 
-export const PacketSchema = {
+export const packetSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
@@ -35,7 +35,7 @@ export const PacketSchema = {
 	},
 };
 
-export const ProtocolMessageSchema = {
+export const protocolMessageSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
@@ -48,7 +48,7 @@ export const ProtocolMessageSchema = {
 	},
 };
 
-export const RPCRequestSchema = {
+export const rpcRequestSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {

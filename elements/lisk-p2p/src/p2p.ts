@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 import { codec } from '@liskhq/lisk-codec';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 
 import {
 	DEFAULT_BAN_TIME,
@@ -75,7 +75,7 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import { PeerBook } from './peer_book';
-import { PeerPool, PeerPoolConfig } from './peer_pool';
+import { PeerPool } from './peer_pool';
 import { PeerServer } from './peer_server';
 import {
 	IncomingPeerConnection,
@@ -91,6 +91,7 @@ import {
 	ProtocolPeerInfo,
 	RPCSchemas,
 	PeerInfo,
+	PeerPoolConfig,
 	NetworkStats,
 } from './types';
 import {
@@ -573,6 +574,10 @@ export class P2P extends EventEmitter {
 		return this._isActive;
 	}
 
+	public get nodeInfo(): P2PNodeInfo {
+		return this._nodeInfo;
+	}
+
 	/**
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on Peers to give them our new node status.
@@ -584,10 +589,6 @@ export class P2P extends EventEmitter {
 		};
 
 		this._peerPool.applyNodeInfo(this._nodeInfo);
-	}
-
-	public get nodeInfo(): P2PNodeInfo {
-		return this._nodeInfo;
 	}
 
 	public applyPenalty(peerPenalty: P2PPenalty): void {

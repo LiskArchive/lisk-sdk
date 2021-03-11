@@ -13,7 +13,7 @@
  *
  */
 import { SCServerSocket } from 'socketcluster-server';
-import { InboundPeer, PeerConfig } from '../../../src/peer';
+import { InboundPeer } from '../../../src/peer';
 import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PING_INTERVAL_MAX,
@@ -27,6 +27,7 @@ import {
 } from '../../../src/events';
 import { p2pTypes } from '../../../src';
 import { defaultRPCSchemas } from '../../../src/schema';
+import { PeerConfig } from '../../../src/types';
 
 describe('peer/inbound', () => {
 	let defaultPeerInfo: p2pTypes.P2PPeerInfo;

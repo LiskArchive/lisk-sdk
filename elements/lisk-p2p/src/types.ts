@@ -285,3 +285,60 @@ export interface NetworkStats {
 	totalPeersDiscovered: number;
 	readonly startTime: number;
 }
+
+export interface PeerConfig {
+	readonly hostPort: number;
+	readonly connectTimeout?: number;
+	readonly ackTimeout?: number;
+	readonly rateCalculationInterval: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
+	readonly wsMaxPayload?: number;
+	readonly maxPeerInfoSize: number;
+	readonly maxPeerDiscoveryResponseLength: number;
+	readonly secret: number;
+	readonly serverNodeInfo?: P2PNodeInfo;
+	readonly rpcSchemas: RPCSchemas;
+	readonly peerStatusMessageRate: number;
+}
+
+export interface PeerPoolConfig {
+	readonly hostPort: number;
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly wsMaxPayload?: number;
+	readonly maxPeerInfoSize: number;
+	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
+	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
+	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
+	readonly sendPeerLimit: number;
+	readonly peerBanTime: number;
+	readonly maxOutboundConnections: number;
+	readonly maxInboundConnections: number;
+	readonly maxPeerDiscoveryResponseLength: number;
+	readonly outboundShuffleInterval: number;
+	readonly netgroupProtectionRatio: number;
+	readonly latencyProtectionRatio: number;
+	readonly productivityProtectionRatio: number;
+	readonly longevityProtectionRatio: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
+	readonly rateCalculationInterval: number;
+	readonly peerStatusMessageRate: number;
+	readonly secret: number;
+	readonly peerBook: PeerBook;
+	readonly rpcSchemas: RPCSchemas;
+}
+
+export interface RequestOptions {
+	readonly procedure: string;
+	readonly data?: string;
+	readonly id: string;
+	readonly rate: number;
+	productivity: {
+		requestCounter: number;
+		responseCounter: number;
+		responseRate: number;
+		lastResponded: number;
+	};
+}

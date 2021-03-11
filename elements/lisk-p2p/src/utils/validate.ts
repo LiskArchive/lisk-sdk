@@ -31,7 +31,7 @@ import {
 
 // eslint-disable-next-line import/no-cycle
 import { getByteSize } from '.';
-import { PacketSchema, RPCRequestSchema, ProtocolMessageSchema } from './schemas';
+import { packetSchema, rpcRequestSchema, protocolMessageSchema } from './schemas';
 
 const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeInfo): boolean => {
 	if (!peerInfo.sharedState) {
@@ -146,7 +146,7 @@ export const validatePeerInfoList = (
 };
 
 export const validateRPCRequest = (request: unknown): void => {
-	const errors = validator.validate(RPCRequestSchema, request as Record<string, unknown>);
+	const errors = validator.validate(rpcRequestSchema, request as Record<string, unknown>);
 
 	if (errors.length) {
 		throw new Error('RPC request format is invalid.');
@@ -154,7 +154,7 @@ export const validateRPCRequest = (request: unknown): void => {
 };
 
 export const validateProtocolMessage = (message: unknown): void => {
-	const errors = validator.validate(ProtocolMessageSchema, message as Record<string, unknown>);
+	const errors = validator.validate(protocolMessageSchema, message as Record<string, unknown>);
 
 	if (errors.length) {
 		throw new Error('Protocol message format is invalid.');
@@ -162,7 +162,7 @@ export const validateProtocolMessage = (message: unknown): void => {
 };
 
 export const validatePacket = (packet: unknown): void => {
-	const errors = validator.validate(PacketSchema, packet as P2PMessagePacket | P2PRequestPacket);
+	const errors = validator.validate(packetSchema, packet as P2PMessagePacket | P2PRequestPacket);
 
 	if (errors.length) {
 		throw new Error('Packet format is invalid.');

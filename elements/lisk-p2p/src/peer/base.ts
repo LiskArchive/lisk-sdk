@@ -16,6 +16,7 @@ import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { codec } from '@liskhq/lisk-codec';
+
 import {
 	DEFAULT_PRODUCTIVITY,
 	DEFAULT_PRODUCTIVITY_RESET_INTERVAL,
@@ -66,6 +67,7 @@ import {
 	P2PRawMessagePacket,
 	ProtocolPeerInfo,
 	BaseRequestResponsePacket,
+	PeerConfig,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -111,22 +113,9 @@ export enum ConnectionState {
 export interface ConnectedPeerInfo extends P2PPeerInfo {
 	internalState: P2PInternalState;
 }
-export interface PeerConfig {
-	readonly hostPort: number;
-	readonly connectTimeout?: number;
-	readonly ackTimeout?: number;
-	readonly rateCalculationInterval: number;
-	readonly wsMaxMessageRate: number;
-	readonly wsMaxMessageRatePenalty: number;
-	readonly wsMaxPayload?: number;
-	readonly maxPeerInfoSize: number;
-	readonly maxPeerDiscoveryResponseLength: number;
-	readonly secret: number;
-	readonly serverNodeInfo?: P2PNodeInfo;
-	readonly rpcSchemas: RPCSchemas;
-	readonly peerStatusMessageRate: number;
-}
+
 export class Peer extends EventEmitter {
+	// protected variables & handlers
 	protected readonly _handleRawRPC: (
 		packet: P2PRawRequestPacket,
 		respond: (responseError?: Error, responseData?: unknown) => void,
@@ -138,6 +127,8 @@ export class Peer extends EventEmitter {
 	protected readonly _peerConfig: PeerConfig;
 	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _rateInterval: number;
+
+	// private variables
 	private readonly _rpcSchemas: RPCSchemas;
 	private readonly _discoveryMessageCounter: {
 		getPeers: number;
@@ -148,6 +139,7 @@ export class Peer extends EventEmitter {
 	private readonly _peerStatusRateInterval: NodeJS.Timer;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	private readonly _productivityResetInterval: NodeJS.Timer;
+
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._peerConfig = peerConfig;
@@ -177,7 +169,7 @@ export class Peer extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
-			packet: P2PRawRequestPacket,
+			packet: unknown,
 			respond: (responseError?: Error, responseData?: unknown) => void,
 		): void => {
 			try {
@@ -191,9 +183,10 @@ export class Peer extends EventEmitter {
 
 				return;
 			}
+			const rawRequestPacket = packet as P2PRawRequestPacket;
 
 			// Apply penalty when you receive getNodeInfo RPC more than once
-			if (packet.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
+			if (rawRequestPacket.procedure === REMOTE_EVENT_RPC_GET_NODE_INFO) {
 				this._discoveryMessageCounter.getNodeInfo += 1;
 				if (this._discoveryMessageCounter.getNodeInfo > 1) {
 					this.applyPenalty(10);
@@ -201,7 +194,7 @@ export class Peer extends EventEmitter {
 			}
 
 			// Apply penalty when you receive getPeers RPC more than once
-			if (packet.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
+			if (rawRequestPacket.procedure === REMOTE_EVENT_RPC_GET_PEERS_LIST) {
 				this._discoveryMessageCounter.getPeers += 1;
 				if (this._discoveryMessageCounter.getPeers > 1) {
 					this.applyPenalty(10);
@@ -210,24 +203,24 @@ export class Peer extends EventEmitter {
 
 			// Discovery requests are only allowed once per second. If it exceeds that, we prevent the request from propagating.
 			if (
-				PROTOCOL_EVENTS_TO_RATE_LIMIT.has(packet.procedure) &&
-				this._peerInfo.internalState.rpcCounter.has(packet.procedure)
+				PROTOCOL_EVENTS_TO_RATE_LIMIT.has(rawRequestPacket.procedure) &&
+				this._peerInfo.internalState.rpcCounter.has(rawRequestPacket.procedure)
 			) {
-				this._updateRPCCounter(packet);
+				this._updateRPCCounter(rawRequestPacket);
 
 				return;
 			}
 
 			// Protocol RCP request limiter LIP-0004
-			this._updateRPCCounter(packet);
-			const rate = this._getRPCRate(packet);
+			this._updateRPCCounter(rawRequestPacket);
+			const rate = this._getRPCRate(rawRequestPacket);
 
 			// Each P2PRequest contributes to the Peer's productivity.
 			// A P2PRequest can mutate this._productivity from the current Peer instance.
 			const request = new P2PRequest(
 				{
-					procedure: packet.procedure,
-					data: packet.data,
+					procedure: rawRequestPacket.procedure,
+					data: rawRequestPacket.data,
 					id: this.peerInfo.peerId,
 					rate,
 					productivity: this.internalState.productivity,
@@ -278,6 +271,7 @@ export class Peer extends EventEmitter {
 		};
 	}
 
+	// Getters
 	public get id(): string {
 		return this._peerInfo.peerId;
 	}
@@ -292,6 +286,10 @@ export class Peer extends EventEmitter {
 
 	public get internalState(): P2PInternalState {
 		return this.peerInfo.internalState;
+	}
+
+	public get peerInfo(): ConnectedPeerInfo {
+		return this._peerInfo;
 	}
 
 	public get state(): ConnectionState {
@@ -310,10 +308,6 @@ export class Peer extends EventEmitter {
 			...this._peerInfo,
 			internalState,
 		};
-	}
-
-	public get peerInfo(): ConnectedPeerInfo {
-		return this._peerInfo;
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
@@ -372,17 +366,18 @@ export class Peer extends EventEmitter {
 						procedure: packet.procedure,
 						data,
 					},
-					(error: Error | undefined, responseData: BaseRequestResponsePacket | undefined) => {
+					(error: Error | undefined, responseData: unknown) => {
 						if (error) {
 							reject(error);
 
 							return;
 						}
 
-						if (responseData) {
+						const response = responseData as BaseRequestResponsePacket | undefined;
+						if (response) {
 							const responseBufferData = {
-								peerId: responseData.peerId,
-								data: this._getBufferData(responseData.data),
+								peerId: response.peerId,
+								data: this._getBufferData(response.data),
 							};
 							resolve(responseBufferData);
 
@@ -406,6 +401,7 @@ export class Peer extends EventEmitter {
 			const response = await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
 			});
+
 			if (!response.data) {
 				throw new InvalidPeerInfoListError(INVALID_PEER_INFO_LIST_REASON);
 			}
@@ -414,12 +410,10 @@ export class Peer extends EventEmitter {
 				this._rpcSchemas.peerRequestResponse,
 				response.data,
 			);
-			const peersList = peers.map<ProtocolPeerInfo>((peerInfoBuffer: Buffer) =>
-				codec.decode<ProtocolPeerInfo>(this._rpcSchemas.peerInfo, peerInfoBuffer),
-			);
-			const sanitizedPeersList = peersList.map<P2PPeerInfo>(peerInfo =>
-				sanitizeIncomingPeerInfo(peerInfo),
-			);
+			const sanitizedPeersList = peers.map<P2PPeerInfo>((peerInfoBuffer: Buffer) => {
+				const peerInfo = codec.decode<ProtocolPeerInfo>(this._rpcSchemas.peerInfo, peerInfoBuffer);
+				return sanitizeIncomingPeerInfo(peerInfo);
+			});
 
 			validatePeerInfoList(
 				sanitizedPeersList,
@@ -444,6 +438,7 @@ export class Peer extends EventEmitter {
 
 	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		const discoveredPeerInfoList = await this.fetchPeers();
+
 		discoveredPeerInfoList.forEach(peerInfo => {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		});
@@ -550,6 +545,7 @@ export class Peer extends EventEmitter {
 			this._peerInfo.internalState.productivity = { ...DEFAULT_PRODUCTIVITY };
 		}
 	}
+
 	private _resetStatusMessageRate(): void {
 		// Reset only postNodeInfo counter to zero after every 10 seconds
 		this._discoveryMessageCounter.postNodeInfo = 0;

@@ -35,13 +35,14 @@ import {
 } from '../events';
 import {
 	P2PMessagePacketBufferData,
+	PeerConfig,
 	P2PPeerInfo,
 	P2PNodeInfo,
 	P2PRequestPacketBufferData,
 	P2PResponsePacketBufferData,
 } from '../types';
 
-import { Peer, PeerConfig, SCClientSocket, socketErrorStatusCodes } from './base';
+import { Peer, SCClientSocket, socketErrorStatusCodes } from './base';
 
 interface ClientOptionsUpdated {
 	readonly hostname: string;

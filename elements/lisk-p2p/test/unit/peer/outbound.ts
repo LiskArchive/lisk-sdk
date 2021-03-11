@@ -14,7 +14,8 @@
  */
 import * as socketClusterClient from 'socketcluster-client';
 import { SCClientSocket } from 'socketcluster-client';
-import { OutboundPeer, PeerConfig } from '../../../src/peer';
+import { OutboundPeer } from '../../../src/peer';
+
 import {
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
@@ -31,6 +32,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacketBufferData,
 	P2PMessagePacketBufferData,
+	PeerConfig,
 } from '../../../src/types';
 import { defaultRPCSchemas } from '../../../src/schema';
 

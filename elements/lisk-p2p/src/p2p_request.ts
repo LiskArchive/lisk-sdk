@@ -13,20 +13,7 @@
  *
  */
 import { RPCResponseAlreadySentError } from './errors';
-import { P2PResponsePacket } from './types';
-
-export interface RequestOptions {
-	readonly procedure: string;
-	readonly data?: string;
-	readonly id: string;
-	readonly rate: number;
-	productivity: {
-		requestCounter: number;
-		responseCounter: number;
-		responseRate: number;
-		lastResponded: number;
-	};
-}
+import { P2PResponsePacket, RequestOptions } from './types';
 
 export class P2PRequest {
 	private readonly _procedure: string;
@@ -44,7 +31,7 @@ export class P2PRequest {
 		respondCallback: (responseError?: Error, responseData?: unknown) => void,
 	) {
 		this._procedure = options.procedure;
-		this._data = typeof options.data === 'string' ? Buffer.from(options.data, 'binary') : undefined;
+		this._data = this._getBufferData(options);
 		this._peerId = options.id;
 		this._rate = options.rate;
 		// eslint-disable-next-line no-param-reassign
@@ -116,5 +103,10 @@ export class P2PRequest {
 		}
 
 		return Buffer.from(JSON.stringify(data), 'utf8').toString('binary');
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBufferData(options: RequestOptions): Buffer | undefined {
+		return typeof options.data === 'string' ? Buffer.from(options.data, 'binary') : undefined;
 	}
 }
