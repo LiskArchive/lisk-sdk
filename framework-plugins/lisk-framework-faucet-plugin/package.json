@@ -40,7 +40,6 @@
 	},
 	"dependencies": {
 		"@liskhq/lisk-api-client": "^5.0.2",
-		"@liskhq/lisk-chain": "^0.2.0",
 		"@liskhq/lisk-cryptography": "^3.0.0",
 		"@liskhq/lisk-validator": "^0.5.0",
 		"@liskhq/lisk-utils": "^0.1.0",
