@@ -17,6 +17,9 @@
 import { testCases as objectTestCases } from '../fixtures/objects_encodings.json';
 import { codec } from '../src/codec';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cloneDeep = require('lodash.clonedeep');
+
 describe('addSchema', () => {
 	// Arrange
 	const objectFixtureInput = objectTestCases[0].input;
@@ -33,5 +36,38 @@ describe('addSchema', () => {
 		codec.encode(schema as any, message as any);
 
 		expect((codec as any)._compileSchemas.object11).toMatchSnapshot();
+	});
+
+	it('should throw if schema does not have fieldNumber in properties at root level', () => {
+		const { schema } = objectFixtureInput;
+		const customSchema = cloneDeep(schema);
+		// Remove the field number in properties at root level
+		delete customSchema.properties.asset.fieldNumber;
+
+		expect(() => codec.addSchema(customSchema)).toThrow(
+			'Invalid schema. Missing "fieldNumber" in properties',
+		);
+	});
+
+	it('should throw if schema does not have fieldNumber in properties at nested level 1', () => {
+		const { schema } = objectFixtureInput;
+		const customSchema = cloneDeep(schema);
+		// Remove the field number in properties at nested level 1
+		delete customSchema.properties.asset.properties.fooBar.fieldNumber;
+
+		expect(() => codec.addSchema(customSchema)).toThrow(
+			'Invalid schema. Missing "fieldNumber" in properties',
+		);
+	});
+
+	it('should throw if schema does not have fieldNumber in properties at nested level 2', () => {
+		const { schema } = objectFixtureInput;
+		const customSchema = cloneDeep(schema);
+		// Remove the field number in properties at nested level 2
+		delete customSchema.properties.asset.properties.fooBar.properties.foo.fieldNumber;
+
+		expect(() => codec.addSchema(customSchema)).toThrow(
+			'Invalid schema. Missing "fieldNumber" in properties',
+		);
 	});
 });
