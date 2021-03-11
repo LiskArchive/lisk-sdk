@@ -12,14 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
+import { APIClient, createClient } from '@liskhq/lisk-api-client';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 	getAddressAndPublicKeyFromPassphrase,
-	signData,
 } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import {
@@ -65,6 +63,7 @@ const fundParamsSchema = {
 export class FaucetPlugin extends BasePlugin {
 	private _options!: FaucetPluginOptions;
 	private _channel!: BaseChannel;
+	private _client!: APIClient;
 	private readonly _state: State = { publicKey: undefined, passphrase: undefined };
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -148,12 +147,7 @@ export class FaucetPlugin extends BasePlugin {
 				}
 
 				const { address } = params as Record<string, unknown>;
-				const encodedTransaction = await this._createTransferTransaction(address as string);
-				await this._channel.invoke<{
-					transactionId?: string;
-				}>('app:postTransaction', {
-					transaction: encodedTransaction,
-				});
+				await this._transferFunds(address as string);
 
 				return {
 					result: `Successfully funded account at address: ${address as string}.`,
@@ -165,6 +159,9 @@ export class FaucetPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await, class-methods-use-this
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
+		// TODO: Channel type should be fixed. See issue #6246
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		this._client = await createClient((this._channel as unknown) as any);
 		this._options = objects.mergeDeep(
 			{},
 			defaults.config.default,
@@ -175,56 +172,24 @@ export class FaucetPlugin extends BasePlugin {
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
 	public async unload(): Promise<void> {}
 
-	private async _createTransferTransaction(address: string): Promise<string> {
-		// ModuleID: 2 (Token), AssetID:0 (TransferAsset)
-		const transferAssetInfo = this.schemas.transactionsAssets.find(
-			({ moduleID, assetID }) => moduleID === 2 && assetID === 0,
-		);
-
-		if (!transferAssetInfo) {
-			throw new Error('Transfer asset schema is not registered in the application.');
-		}
-
-		const encodedAccount = await this._channel.invoke<string>('app:getAccount', {
-			address,
-		});
-
-		const {
-			sequence: { nonce },
-		} = codec.decode<{ sequence: { nonce: bigint } }>(
-			this.schemas.account,
-			Buffer.from(encodedAccount, 'hex'),
-		);
-
+	private async _transferFunds(address: string): Promise<void> {
 		const transferTransactionAsset = {
 			amount: BigInt(this._options.amount),
 			recipientAddress: Buffer.from(address, 'hex'),
 			data: '',
 		};
 
-		const { networkIdentifier } = await this._channel.invoke<{ networkIdentifier: string }>(
-			'app:getNodeInfo',
+		const transaction = await this._client.transaction.create(
+			{
+				moduleID: 2,
+				assetID: 0,
+				senderPublicKey: this._state.publicKey as Buffer,
+				fee: BigInt(this._options.fee), // TODO: The static fee should be replaced by fee estimation calculation
+				asset: transferTransactionAsset,
+			},
+			this._state.passphrase as string,
 		);
 
-		const encodedAsset = codec.encode(transferAssetInfo.schema, transferTransactionAsset);
-
-		const tx = new Transaction({
-			moduleID: transferAssetInfo.moduleID,
-			assetID: transferAssetInfo.assetID,
-			nonce,
-			senderPublicKey: this._state.publicKey as Buffer,
-			fee: BigInt(this._options.fee), // TODO: The static fee should be replaced by fee estimation calculation
-			asset: encodedAsset,
-			signatures: [],
-		});
-
-		(tx.signatures as Buffer[]).push(
-			signData(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), tx.getSigningBytes()]),
-				this._state.passphrase as string,
-			),
-		);
-
-		return tx.getBytes().toString('hex');
+		await this._client.transaction.send(transaction);
 	}
 }
