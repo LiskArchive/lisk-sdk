@@ -1,8 +1,8 @@
 /* eslint-disable import/extensions */
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import './index.scss';
+import { App } from './app';
 
 ReactDOM.render(
 	<React.StrictMode>

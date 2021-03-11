@@ -1,0 +1,227 @@
+$color-white: #FFFFFF;
+$color-blue-gray: #8A8CA2;
+$color-fury-red: #FF4557;
+$color-ultramarine-blue: #4070F4;
+$color-background: linear-gradient(180deg, #101C3D 0%, #0C152E 100%);
+
+$font-size-l: 32px;
+$font-size-m: 20px;
+$font-size-s: 18px;
+$font-size-xs: 16px;
+$font-size-xxs: 14px;
+
+$font-weight-bold: bold;
+$font-weight-m: 400;
+$font-weight-l: 600;
+
+@mixin f-header($size, $weight) {
+  font-size: $size;
+	font-weight: $weight;
+	line-height: 130%;
+}
+
+@mixin f-label($size) {
+  font-size: $size;
+	font-family: 'Roboto';
+	line-height: 130%;
+}
+
+// min-width
+$breakpoint-up: (
+  'sm': 'screen and (min-width: 456px)',
+  'md': 'screen and (min-width: 769px)',
+  'lg': 'screen and (min-width: 1000px)',
+  'xl': 'screen and (min-width: 1200px)',
+) !default;
+
+// max-width
+$breakpoint-down: (
+  'sm': 'screen and (max-width: 455px)',
+  'md': 'screen and (max-width: 768px)',
+  'lg': 'screen and (max-width: 999px)',
+  'xl': 'screen and (max-width: 1199px)',
+) !default;
+
+// @mixins
+@mixin mq-up($breakpoint: md) {
+  @media only #{map-get($breakpoint-up, $breakpoint)} {
+    @content;
+  }
+}
+
+@mixin mq-down($breakpoint: md) {
+  @media only #{map-get($breakpoint-down, $breakpoint)} {
+    @content;
+  }
+}
+
+.root {
+	width: 100%;
+	min-height: 100vh;
+	background: $color-background;
+	padding: 30px;
+	display: flex;
+	flex-direction: column;
+
+	header {
+		@include mq-down(lg) {
+			margin-bottom: 80px;
+			text-align: center;
+		};
+	}
+	footer {
+		@include mq-down(lg) {
+			text-align: center;
+		};
+	}
+}
+
+.content {
+	display: flex;
+	flex: 9;
+	justify-content: space-around;
+	align-items: center;
+	@include mq-down(lg) {
+		flex-direction: column-reverse;
+		justify-content: flex-end;
+		text-align: center;
+	};
+
+	h1 {
+		color: $color-white;
+		@include f-header($font-size-l, $font-weight-bold);
+		font-weight: bold;
+		margin: 20px 0;
+	}
+
+	h2 {
+		color: $color-white;
+		opacity: 0.6;
+		margin: 20px 0;
+		@include f-header($font-size-m, $font-weight-m);
+	}
+
+	& .inputArea {
+		margin: 20px 0;
+		display: flex;
+		@include mq-down(lg) {
+			flex-direction: column;
+		}
+
+		.input {
+			width: 100%;
+			margin-right: 10px;
+			position: relative;
+			input {
+				border: 1px solid rgba(223, 230, 242, 0.2);
+				background: $color-background;
+				box-sizing: border-box;
+				width: 100%;
+				border-radius: 3px;
+				height: 48px;
+				color: $color-white;
+				font-size: 18px;
+				padding: 8px 10px;
+				::placeholder {
+					font-family: 'Roboto';
+					font-size: 18px;
+					color: $color-blue-gray;
+				}
+				&:focus {
+					outline: none;
+				}
+				&.error {
+					border-color: $color-fury-red;
+					color: $color-fury-red;
+				}
+			}
+			.errorMsg {
+				border-color: $color-fury-red;
+				color: $color-fury-red;
+				font-size: 12px;
+				font-family: 'Roboto';
+			}
+		}
+
+		button {
+			background-color: $color-ultramarine-blue;
+			color: $color-white;
+			font-weight: 500;
+			font-size: $font-size-xs;
+			border-radius: 3px;
+			border: none;
+			width: 167px;
+			@include mq-down(lg) {
+				margin-top: 15px;
+				width: 100%;
+			};
+			height: 48px;
+			&:hover {
+				box-shadow: 3px 3px 10px 0 rgb(61 113 255 / 36%);
+			}
+			&:focus {
+				outline: none;
+			}
+			&:disabled {
+				box-shadow: none;
+				opacity: 0.58;
+			}
+		}
+	}
+
+	& .capcha {
+		margin: 35px 0;
+	}
+
+	& .addressLabel {
+		opacity: 0.6;
+		color: $color-white;
+		margin-right: 4px;
+		@include f-header($font-size-xs, $font-weight-l);
+	}
+	& .addressValue {
+		@include f-header($font-size-xs, $font-weight-l);
+		color: $color-white;
+	}
+
+	& .illustration {
+		width: 100%;
+	}
+}
+
+.copyright {
+	@include f-header($font-size-xxs, $font-weight-m);
+	color: $color-blue-gray;
+}
+
+.icon {
+	font-family: 'Material Icons';
+	font-weight: normal;
+	font-style: normal;
+	font-size: 24px;  /* Preferred icon size */
+	display: inline-block;
+	line-height: 1;
+	text-transform: none;
+	letter-spacing: normal;
+	word-wrap: normal;
+	white-space: nowrap;
+	direction: ltr;
+
+	/* Support for all WebKit browsers. */
+	-webkit-font-smoothing: antialiased;
+	/* Support for Safari and Chrome. */
+	text-rendering: optimizeLegibility;
+
+	/* Support for Firefox. */
+	-moz-osx-font-smoothing: grayscale;
+
+	/* Support for IE. */
+	font-feature-settings: 'liga';
+}
+
+.warning {
+	color: $color-fury-red;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+}

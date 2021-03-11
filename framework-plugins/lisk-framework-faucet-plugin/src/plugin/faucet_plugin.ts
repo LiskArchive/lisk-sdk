@@ -28,6 +28,9 @@ import {
 	PluginInfo,
 	SchemaWithDefault,
 } from 'lisk-framework';
+import * as express from 'express';
+import { join } from 'path';
+import { Server } from 'http';
 import * as defaults from './defaults';
 import { FaucetPluginOptions, State } from './types';
 
@@ -64,6 +67,7 @@ export class FaucetPlugin extends BasePlugin {
 	private _options!: FaucetPluginOptions;
 	private _channel!: BaseChannel;
 	private _client!: APIClient;
+	private _server!: Server;
 	private readonly _state: State = { publicKey: undefined, passphrase: undefined };
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -167,10 +171,23 @@ export class FaucetPlugin extends BasePlugin {
 			defaults.config.default,
 			this._options,
 		) as FaucetPluginOptions;
+		const app = express();
+		app.use(express.static(join(__dirname, '../../build')));
+		this._server = app.listen(3333, 'localhost');
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
-	public async unload(): Promise<void> {}
+	public async unload(): Promise<void> {
+		await new Promise((resolve, reject) => {
+			this._server.close(err => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				resolve();
+			});
+		});
+	}
 
 	private async _transferFunds(address: string): Promise<void> {
 		const transferTransactionAsset = {
