@@ -165,7 +165,11 @@ export class FaucetPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await, class-methods-use-this
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
-		this._options = objects.mergeDeep({}, defaults.config, this._options) as FaucetPluginOptions;
+		this._options = objects.mergeDeep(
+			{},
+			defaults.config.default,
+			this._options,
+		) as FaucetPluginOptions;
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
