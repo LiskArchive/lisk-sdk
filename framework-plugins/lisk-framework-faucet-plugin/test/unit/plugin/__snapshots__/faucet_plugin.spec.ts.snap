@@ -2,10 +2,10 @@
 
 exports[`FaucetPlugin constructor should load default config 1`] = `
 Object {
+  "amount": "10000000000",
   "applicationUrl": "ws://localhost:8080",
   "encryptedPassphrase": "salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1",
   "fee": "10000000",
-  "token": "10000000000",
   "tokenPrefix": "lsk",
 }
 `;
@@ -14,11 +14,11 @@ exports[`FaucetPlugin defaults should return valid config schema with default op
 Object {
   "$id": "#/plugins/lisk-faucet/config",
   "default": Object {
+    "amount": "10000000000",
     "applicationUrl": "ws://localhost:8080",
     "captcha": undefined,
     "fee": "10000000",
     "logoURL": undefined,
-    "token": "10000000000",
     "tokenPrefix": "lsk",
   },
   "properties": Object {
