@@ -30,9 +30,9 @@ export const config = {
 			type: 'string',
 			description: 'The transaction fee used to faucet an account',
 		},
-		token: {
+		amount: {
 			type: 'string',
-			description: 'Number of tokens to faucet an account in one request',
+			description: 'Number of tokens to fund an account per request',
 		},
 		tokenPrefix: {
 			type: 'string',
