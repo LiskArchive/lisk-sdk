@@ -22,6 +22,10 @@ Object {
     "tokenPrefix": "lsk",
   },
   "properties": Object {
+    "amount": Object {
+      "description": "Number of tokens to fund an account per request",
+      "type": "string",
+    },
     "applicationUrl": Object {
       "description": "URL to connect",
       "format": "uri",
@@ -43,10 +47,6 @@ Object {
     "logoURL": Object {
       "description": "The URL of the logo used on the UI",
       "format": "uri",
-      "type": "string",
-    },
-    "token": Object {
-      "description": "Number of tokens to faucet an account in one request",
       "type": "string",
     },
     "tokenPrefix": Object {
