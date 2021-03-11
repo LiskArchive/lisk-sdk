@@ -72,7 +72,7 @@ describe('fund tokens action', () => {
 		options: {},
 	} as any;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		faucetPlugin = new FaucetPlugin(validPluginOptions as never);
 		faucetPlugin.schemas = {
 			transaction: transactionSchema,
@@ -110,14 +110,6 @@ describe('fund tokens action', () => {
 				},
 			],
 		} as any;
-		(faucetPlugin as any)._options = {
-			encryptedPassphrase:
-				'iterations=1000000&cipherText=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',
-			amount: '10000000000',
-			fee: '100000000',
-		};
-		fundTokensAction = faucetPlugin.actions.fundTokens;
-		(faucetPlugin as any)._channel = channelMock;
 		when(channelMock.invoke)
 			.calledWith('app:postTransaction')
 			.mockResolvedValue({ result: { transactionId: '12345' } } as never);
@@ -127,6 +119,8 @@ describe('fund tokens action', () => {
 		when(channelMock.invoke)
 			.calledWith('app:getNodeInfo')
 			.mockResolvedValue({ networkIdentifier: defaultNetworkIdentifier } as never);
+		fundTokensAction = faucetPlugin.actions.fundTokens;
+		await faucetPlugin.load(channelMock);
 	});
 
 	it('should error if action input is invalid', async () => {
