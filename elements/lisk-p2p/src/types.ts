@@ -24,15 +24,43 @@ export interface P2PRequestPacket {
 	readonly procedure: string;
 }
 
+export interface P2PRawRequestPacket {
+	readonly data?: string;
+	readonly procedure: string;
+}
+
+export interface P2PRequestPacketBufferData extends P2PRequestPacket {
+	readonly data?: Buffer;
+}
+
 export interface P2PResponsePacket {
 	readonly peerId?: string;
 	readonly data: unknown;
+}
+
+export interface BaseRequestResponsePacket {
+	readonly peerId?: string;
+	readonly data: string | undefined;
+}
+
+export interface P2PResponsePacketBufferData extends P2PResponsePacket {
+	readonly data: Buffer | undefined;
 }
 
 export interface P2PMessagePacket {
 	readonly peerId?: string;
 	readonly data?: unknown;
 	readonly event: string;
+}
+
+export interface P2PRawMessagePacket {
+	readonly peerId?: string;
+	readonly data?: string;
+	readonly event: string;
+}
+
+export interface P2PMessagePacketBufferData extends P2PMessagePacket {
+	readonly data?: Buffer;
 }
 
 export interface P2PClosePacket {
@@ -122,6 +150,7 @@ export interface IncomingPeerConnection {
 
 export interface RPCSchemas {
 	readonly peerInfo: Schema;
+	readonly peerRequestResponse: Schema;
 	readonly nodeInfo: Schema;
 }
 
@@ -255,4 +284,61 @@ export interface NetworkStats {
 	};
 	totalPeersDiscovered: number;
 	readonly startTime: number;
+}
+
+export interface PeerConfig {
+	readonly hostPort: number;
+	readonly connectTimeout?: number;
+	readonly ackTimeout?: number;
+	readonly rateCalculationInterval: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
+	readonly wsMaxPayload?: number;
+	readonly maxPeerInfoSize: number;
+	readonly maxPeerDiscoveryResponseLength: number;
+	readonly secret: number;
+	readonly serverNodeInfo?: P2PNodeInfo;
+	readonly rpcSchemas: RPCSchemas;
+	readonly peerStatusMessageRate: number;
+}
+
+export interface PeerPoolConfig {
+	readonly hostPort: number;
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly wsMaxPayload?: number;
+	readonly maxPeerInfoSize: number;
+	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
+	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
+	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
+	readonly sendPeerLimit: number;
+	readonly peerBanTime: number;
+	readonly maxOutboundConnections: number;
+	readonly maxInboundConnections: number;
+	readonly maxPeerDiscoveryResponseLength: number;
+	readonly outboundShuffleInterval: number;
+	readonly netgroupProtectionRatio: number;
+	readonly latencyProtectionRatio: number;
+	readonly productivityProtectionRatio: number;
+	readonly longevityProtectionRatio: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
+	readonly rateCalculationInterval: number;
+	readonly peerStatusMessageRate: number;
+	readonly secret: number;
+	readonly peerBook: PeerBook;
+	readonly rpcSchemas: RPCSchemas;
+}
+
+export interface RequestOptions {
+	readonly procedure: string;
+	readonly data?: string;
+	readonly id: string;
+	readonly rate: number;
+	productivity: {
+		requestCounter: number;
+		responseCounter: number;
+		responseRate: number;
+		lastResponded: number;
+	};
 }

@@ -43,22 +43,28 @@ describe('P2P.request', () => {
 	it('should make request to the network; it should reach a single peer', async () => {
 		// Arrange
 		const secondP2PNode = p2pNodeList[1];
+		const data = Buffer.from(JSON.stringify('bar'), 'utf8');
 
 		// Act
 		const response = await secondP2PNode.request({
 			procedure: 'foo',
-			data: 'bar',
+			data,
 		});
+		const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
+		const result = {
+			...parsedData,
+			requestData: JSON.parse(Buffer.from(parsedData.requestData.data).toString('binary')),
+		};
 
 		// Assert
-		expect(response).toMatchObject({
-			data: {
-				nodePort: 5000,
-				requestData: 'bar',
-				requestPeerId: '127.0.0.1:5001',
-				requestProcedure: 'foo',
-			},
-			peerId: '127.0.0.1:5001',
+		expect(response).toHaveProperty('data');
+		expect(response.data).toBeInstanceOf(Buffer);
+		expect(response.peerId).toEqual('127.0.0.1:5001');
+		expect(result).toMatchObject({
+			nodePort: 5000,
+			requestData: 'bar',
+			requestPeerId: '127.0.0.1:5001',
+			requestProcedure: 'foo',
 		});
 	});
 
@@ -80,11 +86,11 @@ describe('P2P.request', () => {
 				procedure: 'foo',
 				data: i,
 			});
-			const resultData = response.data as any;
-			if (!nodePortToResponsesMap[resultData.nodePort]) {
-				nodePortToResponsesMap[resultData.nodePort] = [];
+			const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
+			if (!nodePortToResponsesMap[parsedData.nodePort]) {
+				nodePortToResponsesMap[parsedData.nodePort] = [];
 			}
-			nodePortToResponsesMap[resultData.nodePort].push(resultData);
+			nodePortToResponsesMap[parsedData.nodePort].push(parsedData);
 		}
 
 		// Assert

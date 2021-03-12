@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PRequest, RequestOptions } from '../../src/p2p_request';
+import { P2PRequest } from '../../src/p2p_request';
 import { RPCResponseAlreadySentError } from '../../src/errors';
+import { RequestOptions } from '../../src/types';
 
 describe('p2pRequest', () => {
 	let requestOptions: RequestOptions;
@@ -23,7 +24,7 @@ describe('p2pRequest', () => {
 	beforeEach(() => {
 		requestOptions = {
 			procedure: 'foo',
-			data: 123,
+			data: 'bar',
 			id: 'abc123',
 			rate: 0,
 			productivity: {
@@ -59,7 +60,7 @@ describe('p2pRequest', () => {
 
 	describe('#data', () => {
 		it('should have a data property which is set to the value specified in the constructor', () =>
-			expect(request.data).toEqual(123));
+			expect(request.data).toEqual(Buffer.from('bar', 'binary')));
 	});
 
 	describe('#rate', () => {
@@ -87,7 +88,7 @@ describe('p2pRequest', () => {
 		it('should send data back to callback in correct format', () => {
 			expect(respondCallback).toHaveBeenCalledTimes(1);
 			expect(respondCallback).toHaveBeenCalledWith(undefined, {
-				data: 'hello',
+				data: request['_getBinaryData']('hello'),
 				peerId: requestOptions.id,
 			});
 		});
@@ -113,7 +114,7 @@ describe('p2pRequest', () => {
 
 		it('should set wasResponseSent property to true', () => {
 			expect(request).toMatchObject({
-				_data: 123,
+				_data: Buffer.from('bar', 'binary'),
 				_peerId: 'abc123',
 				_procedure: 'foo',
 				_rate: 0,

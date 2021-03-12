@@ -305,7 +305,7 @@ export class Node {
 
 		this._logger.info('Node ready and launched');
 
-		this._channel.subscribe(
+		this._networkModule.events.on(
 			APP_EVENT_NETWORK_READY,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			async () => {
@@ -314,13 +314,13 @@ export class Node {
 		);
 
 		// Avoid receiving blocks/transactions from the network during snapshotting process
-		this._channel.subscribe(
+		this._networkModule.events.on(
 			APP_EVENT_NETWORK_EVENT,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			async (eventData?: Record<string, unknown>) => {
 				const { event, data, peerId } = eventData as {
 					event: string;
-					data: unknown;
+					data: Buffer | undefined;
 					peerId: string;
 				};
 

@@ -34,14 +34,15 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
 import {
-	P2PMessagePacket,
+	P2PMessagePacketBufferData,
+	PeerConfig,
 	P2PPeerInfo,
-	P2PRequestPacket,
-	P2PResponsePacket,
 	P2PNodeInfo,
+	P2PRequestPacketBufferData,
+	P2PResponsePacketBufferData,
 } from '../types';
 
-import { Peer, PeerConfig, SCClientSocket, socketErrorStatusCodes } from './base';
+import { Peer, SCClientSocket, socketErrorStatusCodes } from './base';
 
 interface ClientOptionsUpdated {
 	readonly hostname: string;
@@ -86,7 +87,7 @@ export class OutboundPeer extends Peer {
 		}
 	}
 
-	public send(packet: P2PMessagePacket): void {
+	public send(packet: P2PMessagePacketBufferData): void {
 		if (!this._socket) {
 			this._socket = this._createOutboundSocket();
 		}
@@ -94,7 +95,7 @@ export class OutboundPeer extends Peer {
 		super.send(packet);
 	}
 
-	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacketBufferData> {
 		if (!this._socket) {
 			this._socket = this._createOutboundSocket();
 		}

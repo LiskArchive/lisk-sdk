@@ -11,8 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { P2P } from '@liskhq/lisk-p2p';
+import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { P2P } from '@liskhq/lisk-p2p';
+
 import { Application } from '../../../../src';
 import {
 	createApplication,
@@ -21,6 +23,7 @@ import {
 	waitNBlocks,
 } from '../../utils/application';
 import { createProbe } from '../../utils/probe';
+import { postBlockEventSchema } from '../../../../src/node/transport/schemas';
 
 // This test will ban the probe peer. Therefore, only one test will work per application instance
 describe('Public block related P2P endpoints with invalid block property', () => {
@@ -58,10 +61,12 @@ describe('Public block related P2P endpoints with invalid block property', () =>
 			});
 			(block.header as any).transactionRoot = getRandomBytes(32);
 			const invalidEncodedBlock = app['_node']['_chain'].dataAccess.encode(block);
+			const data = codec.encode(postBlockEventSchema, { block: invalidEncodedBlock });
+
 			p2p.sendToPeer(
 				{
 					event: 'postBlock',
-					data: { block: invalidEncodedBlock.toString('hex') },
+					data,
 				},
 				getPeerID(app),
 			);

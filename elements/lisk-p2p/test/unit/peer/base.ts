@@ -14,7 +14,7 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { SCServerSocket } from 'socketcluster-server';
-import { Peer, PeerConfig } from '../../../src/peer';
+import { Peer } from '../../../src/peer';
 import {
 	DEFAULT_REPUTATION_SCORE,
 	FORBIDDEN_CONNECTION,
@@ -40,7 +40,12 @@ import {
 import { RPCResponseError } from '../../../src/errors';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
 import { p2pTypes } from '../../../src';
-import { peerInfoSchema, nodeInfoSchema } from '../../../src/schema';
+import { defaultRPCSchemas } from '../../../src/schema';
+import {
+	PeerConfig,
+	P2PMessagePacketBufferData,
+	P2PRequestPacketBufferData,
+} from '../../../src/types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const createSocketStubInstance = () => <SCServerSocket>({
@@ -84,8 +89,7 @@ describe('peer/base', () => {
 				options: {},
 			},
 			rpcSchemas: {
-				nodeInfo: nodeInfoSchema,
-				peerInfo: peerInfoSchema,
+				...defaultRPCSchemas,
 			},
 		};
 		p2pDiscoveredPeerInfo = {
@@ -244,22 +248,22 @@ describe('peer/base', () => {
 	});
 
 	describe('#send', () => {
-		it('should throw error if socket does not exists', () => {
-			const p2pPacket = {
-				data: 'myData',
+		// Arrange
+		let p2pPacket: P2PMessagePacketBufferData;
+		beforeEach(() => {
+			p2pPacket = {
+				data: Buffer.from('myData'),
 				event: 'myEvent',
 			};
+		});
+
+		it('should throw error if socket does not exists', () => {
 			expect(() => {
 				defaultPeer.send(p2pPacket);
 			}).toThrow('Peer socket does not exist');
 		});
 
 		it(`should emit for event ${REMOTE_SC_EVENT_MESSAGE}`, () => {
-			// Arrange
-			const p2pPacket = {
-				data: 'myData',
-				event: 'myEvent',
-			};
 			(defaultPeer as any)._socket = createSocketStubInstance();
 
 			// Act
@@ -268,27 +272,26 @@ describe('peer/base', () => {
 			// Assert
 			expect((defaultPeer as any)._socket.emit).toHaveBeenCalledWith(REMOTE_SC_EVENT_MESSAGE, {
 				event: p2pPacket.event,
-				data: p2pPacket.data,
+				data: p2pPacket.data?.toString('binary'),
 			});
 		});
 	});
 
 	describe('#request', () => {
-		it('should throw error if socket does not exists', async () => {
-			const p2pPacket = {
-				data: 'myData',
+		// Arrange
+		let p2pPacket: P2PRequestPacketBufferData;
+		beforeEach(() => {
+			p2pPacket = {
+				data: Buffer.from('myData'),
 				procedure: 'myProcedure',
 			};
+		});
 
+		it('should throw error if socket does not exists', async () => {
 			return expect(defaultPeer.request(p2pPacket)).rejects.toThrow('Peer socket does not exist');
 		});
 
 		it('should emit if socket exists', () => {
-			// Arrange
-			const p2pPacket = {
-				data: 'myData',
-				procedure: 'myProcedure',
-			};
 			(defaultPeer as any)._socket = createSocketStubInstance();
 
 			// Act
@@ -301,7 +304,7 @@ describe('peer/base', () => {
 				REMOTE_SC_EVENT_RPC_REQUEST,
 				{
 					procedure: p2pPacket.procedure,
-					data: p2pPacket.data,
+					data: p2pPacket.data?.toString('binary'),
 				},
 				expect.any(Function),
 			);
@@ -391,25 +394,20 @@ describe('peer/base', () => {
 						sharedState: {},
 					},
 				];
-				codec.addSchema(peerInfoSchema);
+				codec.addSchema(defaultRPCSchemas.peerInfo);
+				codec.addSchema(defaultRPCSchemas.peerRequestResponse);
 
 				const encodedPeers = peers.map(peer =>
-					codec
-						.encode(peerInfoSchema, {
-							ipAddress: peer.ipAddress,
-							port: peer.port,
-						})
-						.toString('hex'),
+					codec.encode(defaultRPCSchemas.peerInfo, {
+						ipAddress: peer.ipAddress,
+						port: peer.port,
+					}),
 				);
-
-				const responseData = {
+				const data = codec.encode(defaultRPCSchemas.peerRequestResponse, {
 					peers: encodedPeers,
-					success: true,
-				};
-
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-					data: responseData,
 				});
+
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data });
 				const response = await defaultPeer.fetchPeers();
 				expect(response).toEqual(sanitizedPeers);
 			});
@@ -423,24 +421,17 @@ describe('peer/base', () => {
 				}));
 
 				const encodedMalformedPeersList = malformedPeerList.map(peer =>
-					codec
-						.encode(peerInfoSchema, {
-							ipAddress: peer.ipAddress,
-							port: peer.port,
-						})
-						.toString('hex'),
+					codec.encode(defaultRPCSchemas.peerInfo, {
+						ipAddress: peer.ipAddress,
+						port: peer.port,
+					}),
 				);
+				const data = codec.encode(defaultRPCSchemas.peerRequestResponse, {
+					peers: encodedMalformedPeersList,
+				});
 
-				const peerListResponse = {
-					data: {
-						peers: encodedMalformedPeersList,
-						success: true,
-					},
-				};
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data });
 
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue(peerListResponse);
-
-				expect.assertions(2);
 				try {
 					await defaultPeer.fetchPeers();
 				} catch (e) {
@@ -464,18 +455,18 @@ describe('peer/base', () => {
 					},
 				];
 
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-					data: {
-						peers: malformedPeerList.map(peer => ({
-							...peer.sharedState,
-							ipAddress: peer.ipAddress,
-							port: peer.port,
-						})),
-						success: true,
-					},
+				const encodedMalformedPeersList = malformedPeerList.map(peer =>
+					codec.encode(defaultRPCSchemas.peerInfo, {
+						ipAddress: peer.ipAddress,
+						port: peer.port,
+					}),
+				);
+				const data = codec.encode(defaultRPCSchemas.peerRequestResponse, {
+					peers: encodedMalformedPeersList,
 				});
 
-				expect.assertions(2);
+				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data });
+
 				try {
 					await defaultPeer.fetchPeers();
 				} catch (e) {
@@ -611,7 +602,7 @@ describe('peer/base', () => {
 					networkIdentifier: 'networkId',
 				};
 				beforeEach(() => {
-					const encodedResponse = codec.encode(nodeInfoSchema, nodeInfo).toString('hex');
+					const encodedResponse = codec.encode(defaultRPCSchemas.nodeInfo, nodeInfo);
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'emit');
 				});
@@ -645,8 +636,9 @@ describe('peer/base', () => {
 				};
 
 				beforeEach(() => {
-					codec.addSchema(peerInfoSchema);
-					const encodedResponse = codec.encode(nodeInfoSchema, peerSharedState).toString('hex');
+					codec.addSchema(defaultRPCSchemas.peerInfo);
+					codec.addSchema(defaultRPCSchemas.peerRequestResponse);
+					const encodedResponse = codec.encode(defaultRPCSchemas.nodeInfo, peerSharedState);
 
 					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'updatePeerInfo');

@@ -171,15 +171,18 @@ describe('Custom peer selection', () => {
 				procedure: 'foo',
 				data: 'bar',
 			});
+			const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
+			const result = {
+				...parsedData,
+				requestData: JSON.parse(Buffer.from(parsedData.requestData.data).toString('binary')),
+			};
 
 			expect(response).toHaveProperty('data');
-
-			expect(response).toMatchObject({
-				data: {
-					nodePort: expect.any(Number),
-					requestProcedure: expect.any(String),
-					requestData: 'bar',
-				},
+			expect(response.data).toBeInstanceOf(Buffer);
+			expect(result).toMatchObject({
+				nodePort: expect.any(Number),
+				requestProcedure: expect.any(String),
+				requestData: 'bar',
 			});
 		});
 	});

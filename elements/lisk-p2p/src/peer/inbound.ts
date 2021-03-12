@@ -27,9 +27,8 @@ import {
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
-import { P2PPeerInfo } from '../types';
-
-import { Peer, PeerConfig, SCServerSocketUpdated, socketErrorStatusCodes } from './base';
+import { PeerConfig, P2PPeerInfo } from '../types';
+import { Peer, SCServerSocketUpdated, socketErrorStatusCodes } from './base';
 
 const getRandomPingDelay = (): number =>
 	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +

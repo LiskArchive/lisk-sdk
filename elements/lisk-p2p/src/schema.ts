@@ -54,9 +54,25 @@ export const peerInfoSchema = {
 	required: ['ipAddress', 'port'],
 };
 
+export const peerRequestResponseSchema = {
+	$id: '/protocolPeerRequestResponse',
+	type: 'object',
+	properties: {
+		peers: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+	required: ['peers'],
+};
+
 export const defaultRPCSchemas = {
 	peerInfo: peerInfoSchema,
 	nodeInfo: nodeInfoSchema,
+	peerRequestResponse: peerRequestResponseSchema,
 };
 
 export const mergeCustomSchema = (baseSchema: Schema, customSchema: Schema): Schema => ({
