@@ -255,26 +255,50 @@ describe('utils/validate', () => {
 	});
 
 	describe('#validatePacket', () => {
-		it('should not throw an error if the packet is valid', () => {
-			expect(() => validatePacket({ rid: 2, data: {} })).not.toThrow('Packet format is invalid.');
+		describe('valid packet', () => {
+			const validPackets = [
+				{
+					event: 'remote-message',
+					data: {
+						event: 'postNodeInfo',
+						data:
+							'\n' +
+							'@da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba\u0012\u00031.1\u001a\u001027dce6af38f646c3',
+					},
+				},
+				{ event: '#handshake', data: { authToken: null }, cid: 1 },
+				{ event: 'rpc-request', data: { procedure: 'getPeers' }, cid: 3 },
+				{ event: 'rpc-request', data: { procedure: 'getNodeInfo' }, cid: 2 },
+				{ event: '#handshake', data: { authToken: null }, cid: 1 },
+				{
+					event: '#disconnect',
+					data: { code: 1000, data: 'Intentionally removed peer 127.0.0.1:5006' },
+				},
+			];
+
+			it('should not throw an error if the packet is valid', () => {
+				validPackets.forEach(packet => {
+					expect(() => validatePacket(packet)).not.toThrow('Packet format is invalid.');
+				});
+			});
 		});
 
-		it('should not throw an error if the packet is message', () => {
-			expect(() => validatePacket({ event: 'EVENT_NEW_BLOCK', rid: 2, data: {} })).not.toThrow(
-				'Packet format is invalid.',
-			);
-		});
+		describe('invalid packet', () => {
+			it('should not throw an error if the packet is request', () => {
+				expect(() => validatePacket({ procedure: 'getNodeInfo', rid: 2, data: {} })).toThrow(
+					'Packet format is invalid.',
+				);
+			});
 
-		it('should not throw an error if the packet is request', () => {
-			expect(() => validatePacket({ procedure: 'getNodeInfo', rid: 2, data: {} })).not.toThrow(
-				'Packet format is invalid.',
-			);
-		});
+			it('should throw an error if the message contains additional keywords', () => {
+				expect(() => validatePacket({ cid: 4, invalidProperty: { something: 'invalid' } })).toThrow(
+					'Packet format is invalid.',
+				);
+			});
 
-		it('should throw an error if the message contains additional keywords', () => {
-			expect(() => validatePacket({ cid: 4, invalidProperty: { something: 'invalid' } })).toThrow(
-				'Packet format is invalid.',
-			);
+			it('should not throw an error if the packet is valid', () => {
+				expect(() => validatePacket({ rid: 2, data: {} })).toThrow('Packet format is invalid.');
+			});
 		});
 	});
 });
