@@ -30,9 +30,9 @@ export const config = {
 			type: 'string',
 			description: 'The transaction fee used to faucet an account',
 		},
-		token: {
+		amount: {
 			type: 'string',
-			description: 'Number of tokens to faucet an account in one request',
+			description: 'Number of tokens to fund an account per request',
 		},
 		tokenPrefix: {
 			type: 'string',
@@ -52,7 +52,7 @@ export const config = {
 	default: {
 		applicationUrl: 'ws://localhost:8080',
 		fee: (10 ** 8 * 0.1).toString(), // 0.1 LSK,
-		token: (10 ** 8 * 100).toString(), // 100 LSK,
+		amount: (10 ** 8 * 100).toString(), // 100 LSK,
 		tokenPrefix: 'lsk',
 		logoURL: undefined,
 		captcha: undefined,

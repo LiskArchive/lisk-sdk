@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { APIClient, createClient } from '@liskhq/lisk-api-client';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	decryptPassphraseWithPassword,
@@ -33,7 +34,7 @@ import { FaucetPluginOptions, State } from './types';
 // eslint-disable-next-line
 const packageJSON = require('../../package.json');
 
-const actionParamsSchema = {
+const authorizeParamsSchema = {
 	$id: 'lisk/faucet/auth',
 	type: 'object',
 	required: ['password', 'enable'],
@@ -47,9 +48,23 @@ const actionParamsSchema = {
 	},
 };
 
+const fundParamsSchema = {
+	$id: 'lisk/faucet/fund',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
+
 export class FaucetPlugin extends BasePlugin {
 	private _options!: FaucetPluginOptions;
-	private readonly _state: State = { publicKey: Buffer.alloc(0), passphrase: '' };
+	private _channel!: BaseChannel;
+	private _client!: APIClient;
+	private readonly _state: State = { publicKey: undefined, passphrase: undefined };
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -82,7 +97,7 @@ export class FaucetPlugin extends BasePlugin {
 	public get actions(): ActionsDefinition {
 		return {
 			authorize: (params?: Record<string, unknown>): { result: string } => {
-				const errors = validator.validate(actionParamsSchema, params as Record<string, unknown>);
+				const errors = validator.validate(authorizeParamsSchema, params as Record<string, unknown>);
 
 				if (errors.length) {
 					throw new LiskValidationError([...errors]);
@@ -120,14 +135,61 @@ export class FaucetPlugin extends BasePlugin {
 					throw new Error('Password given is not valid.');
 				}
 			},
+			fundTokens: async (params?: Record<string, unknown>): Promise<{ result: string }> => {
+				const errors = validator.validate(fundParamsSchema, params as Record<string, unknown>);
+
+				if (errors.length) {
+					throw new LiskValidationError([...errors]);
+				}
+
+				if (!this._state.publicKey || !this._state.passphrase) {
+					throw new Error('Faucet is not enabled.');
+				}
+
+				const { address } = params as Record<string, unknown>;
+				await this._transferFunds(address as string);
+
+				return {
+					result: `Successfully funded account at address: ${address as string}.`,
+				};
+			},
 		};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await, class-methods-use-this, @typescript-eslint/no-empty-function
-	public async load(_channel: BaseChannel): Promise<void> {
-		this._options = objects.mergeDeep({}, defaults.config, this._options) as FaucetPluginOptions;
+	// eslint-disable-next-line @typescript-eslint/require-await, class-methods-use-this
+	public async load(channel: BaseChannel): Promise<void> {
+		this._channel = channel;
+		// TODO: Channel type should be fixed. See issue #6246
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		this._client = await createClient((this._channel as unknown) as any);
+		this._options = objects.mergeDeep(
+			{},
+			defaults.config.default,
+			this._options,
+		) as FaucetPluginOptions;
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
 	public async unload(): Promise<void> {}
+
+	private async _transferFunds(address: string): Promise<void> {
+		const transferTransactionAsset = {
+			amount: BigInt(this._options.amount),
+			recipientAddress: Buffer.from(address, 'hex'),
+			data: '',
+		};
+
+		const transaction = await this._client.transaction.create(
+			{
+				moduleID: 2,
+				assetID: 0,
+				senderPublicKey: this._state.publicKey as Buffer,
+				fee: BigInt(this._options.fee), // TODO: The static fee should be replaced by fee estimation calculation
+				asset: transferTransactionAsset,
+			},
+			this._state.passphrase as string,
+		);
+
+		await this._client.transaction.send(transaction);
+	}
 }
