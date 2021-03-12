@@ -50,7 +50,6 @@ export const getHighestCommonBlockRequestSchema = {
 		ids: {
 			type: 'array',
 			fieldNumber: 1,
-			uniqueItems: true,
 			minItems: 1,
 			items: {
 				dataType: 'bytes',

@@ -17,6 +17,8 @@ import { Chain, Block, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { objects as objectUtils } from '@liskhq/lisk-utils';
+
 import { InvalidTransactionError } from './errors';
 import {
 	transactionIdsSchema,
@@ -196,13 +198,13 @@ export class Transport {
 		peerId: string,
 	): Promise<Buffer | undefined> {
 		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY);
-		const blockIds = codec.decode(getHighestCommonBlockRequestSchema, data as never);
-		const errors = validator.validate(
+		const blockIds = codec.decode<RPCHighestCommonBlockData>(
 			getHighestCommonBlockRequestSchema,
-			blockIds as Record<string, unknown>,
+			data as never,
 		);
+		const errors = validator.validate(getHighestCommonBlockRequestSchema, blockIds);
 
-		if (errors.length) {
+		if (errors.length || !objectUtils.bufferArrayUniqueItems(blockIds.ids)) {
 			const error = new LiskValidationError(errors);
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			this._logger.warn(
@@ -219,9 +221,9 @@ export class Transport {
 			throw error;
 		}
 
-		const { ids } = blockIds as RPCHighestCommonBlockData;
-
-		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(ids);
+		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(
+			blockIds.ids,
+		);
 
 		return commonBlockHeader
 			? this._chainModule.dataAccess.encodeBlockHeader(commonBlockHeader)
@@ -324,7 +326,7 @@ export class Transport {
 		if (Buffer.isBuffer(data)) {
 			decodedData = codec.decode<RPCTransactionsByIdData>(transactionIdsSchema, data);
 			const errors = validator.validate(transactionIdsSchema, decodedData);
-			if (errors.length) {
+			if (errors.length || !objectUtils.bufferArrayUniqueItems(decodedData.transactionIds)) {
 				this._logger.warn({ err: errors, peerId }, 'Received invalid getTransactions body');
 				this._networkModule.applyPenaltyOnPeer({
 					peerId,

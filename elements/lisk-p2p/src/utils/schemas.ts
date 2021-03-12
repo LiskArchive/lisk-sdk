@@ -16,11 +16,9 @@
 export const packetSchema = {
 	type: 'object',
 	additionalProperties: false,
+	required: ['event'],
 	properties: {
 		event: {
-			type: 'string',
-		},
-		procedure: {
 			type: 'string',
 		},
 		cid: {
@@ -30,7 +28,10 @@ export const packetSchema = {
 			type: 'integer',
 		},
 		data: {
-			type: ['object', 'string'],
+			type: 'object',
+		},
+		error: {
+			type: 'object',
 		},
 	},
 };
@@ -38,12 +39,13 @@ export const packetSchema = {
 export const protocolMessageSchema = {
 	type: 'object',
 	additionalProperties: false,
+	required: ['event'],
 	properties: {
 		event: {
 			type: 'string',
 		},
 		data: {
-			type: ['object', 'string'],
+			type: 'string',
 		},
 	},
 };
@@ -51,12 +53,13 @@ export const protocolMessageSchema = {
 export const rpcRequestSchema = {
 	type: 'object',
 	additionalProperties: false,
+	required: ['procedure'],
 	properties: {
 		procedure: {
 			type: 'string',
 		},
 		data: {
-			type: ['object', 'string'],
+			type: 'string',
 		},
 	},
 };
