@@ -27,4 +27,5 @@ if (!global.Buffer) {
 	global.Buffer = BrowserBuffer;
 }
 
-export const { Buffer } = global;
+// eslint-disable-next-line
+export const Buffer: typeof BrowserBuffer = global.Buffer;
