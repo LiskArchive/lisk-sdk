@@ -3,26 +3,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins');
 
 #root {
-  font-family: 'Poppins', sans-serif;
+	font-family: 'Poppins', sans-serif;
 }
 
-html, body {
-  margin: 0;
+html,
+body {
+	margin: 0;
 	padding: 0;
 }
 
 * {
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
 dl,
 dt,
 dd,
 div,
 p {
-  margin: 0;
-  padding: 0;
-  white-space: pre-line;
+	margin: 0;
+	padding: 0;
+	white-space: pre-line;
 }
 img {
-  vertical-align: middle;
+	vertical-align: middle;
 }

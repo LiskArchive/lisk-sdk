@@ -16,12 +16,11 @@ const validateAddress = (address: string, prefix: string): boolean => {
 };
 declare global {
 	interface Window {
-			grecaptcha: any;
+		grecaptcha: any;
 	}
 }
 
-const WarningIcon = () =>
-	<span className={`${styles.icon} ${styles.warning}`}>&#xE8B2;</span>;
+const WarningIcon = () => <span className={`${styles.icon} ${styles.warning}`}>&#xE8B2;</span>;
 
 export const App: React.FC = () => {
 	const amount = '100';
@@ -38,14 +37,17 @@ export const App: React.FC = () => {
 		script.defer = true;
 		document.body.appendChild(script);
 		const id = setInterval(() => {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			if (typeof window.grecaptcha !== 'undefined' && typeof window.grecaptcha.render === 'function') {
+			if (
+				typeof window.grecaptcha !== 'undefined' &&
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				typeof window.grecaptcha.render === 'function'
+			) {
 				clearInterval(id);
 				if (recaptchaReady) {
 					return;
 				}
 				// eslint-disable-next-line
-				window.grecaptcha.render('recapcha', {sitekey: recaptchaKey });
+				window.grecaptcha.render('recapcha', { sitekey: recaptchaKey });
 				updateRecaptchaReady(true);
 			}
 		}, 1000);
@@ -61,12 +63,15 @@ export const App: React.FC = () => {
 		}
 	};
 
-	const onSummit = async () => {
+	const onSubmit = async () => {
 		try {
 			// eslint-disable-next-line
-			const token = await window.grecaptcha.execute(recaptchaKey, { action: 'submit'});
+			const token = await window.grecaptcha.execute(recaptchaKey, { action: 'submit' });
 			const client = await apiClient.createWSClient('ws://localhost:8080/ws');
-			await client.invoke('faucet:fundToken', { address: getAddressFromBase32Address(input, prefix), token });
+			await client.invoke('faucet:fundToken', {
+				address: getAddressFromBase32Address(input, prefix),
+				token,
+			});
 			updateErrorMsg('');
 		} catch (error) {
 			updateErrorMsg(error?.message ?? 'Fail to connect to server');
@@ -80,18 +85,34 @@ export const App: React.FC = () => {
 			<section className={styles.content}>
 				<div className={styles.main}>
 					<h1>All tokens are for testing purposes only</h1>
-					<h2>Please enter your address to receive {amount} {prefix.toLocaleUpperCase()} tokens for free</h2>
+					<h2>
+						Please enter your address to receive {amount} {prefix.toLocaleUpperCase()} tokens for
+						free
+					</h2>
 					<div className={styles.inputArea}>
 						<div className={styles.input}>
-							<input className={`${errorMsg !== '' ? styles.error : ''}`} placeholder={faucetAddress} value={input} onChange={e => onChange(e.target.value)} />
+							<input
+								className={`${errorMsg !== '' ? styles.error : ''}`}
+								placeholder={faucetAddress}
+								value={input}
+								onChange={e => onChange(e.target.value)}
+							/>
 							{errorMsg ? <WarningIcon /> : <span />}
 							{errorMsg ? <span className={styles.errorMsg}>{errorMsg}</span> : <span />}
 						</div>
-						<button disabled={!validateAddress(input, prefix) || !recaptchaReady} onClick={onSummit}>Receive</button>
+						<button
+							disabled={!validateAddress(input, prefix) || !recaptchaReady}
+							onClick={onSubmit}
+						>
+							Receive
+						</button>
 					</div>
 					<div id="recapcha" className={styles.capcha}></div>
 					<div className={styles.address}>
-						<p><span className={styles.addressLabel}>Faucet address:</span><span className={styles.addressValue}>{faucetAddress}</span></p>
+						<p>
+							<span className={styles.addressLabel}>Faucet address:</span>
+							<span className={styles.addressValue}>{faucetAddress}</span>
+						</p>
 					</div>
 				</div>
 				<div className={styles.background}>
