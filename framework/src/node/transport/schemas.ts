@@ -85,7 +85,6 @@ export const transactionsSchema = {
 		transactions: {
 			type: 'array',
 			fieldNumber: 1,
-			minItems: 1,
 			items: {
 				dataType: 'bytes',
 			},

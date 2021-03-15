@@ -83,7 +83,7 @@ export class InboundPeer extends Peer {
 
 	private _sendPing(): void {
 		const pingStart = Date.now();
-		this._socket.emit(REMOTE_EVENT_PING, undefined, () => {
+		this.request({ procedure: REMOTE_EVENT_PING }).finally(() => {
 			this._peerInfo.internalState.latency = Date.now() - pingStart;
 			this._pingTimeoutId = setTimeout(() => {
 				this._sendPing();
