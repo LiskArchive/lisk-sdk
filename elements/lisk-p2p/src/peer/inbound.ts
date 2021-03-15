@@ -83,12 +83,15 @@ export class InboundPeer extends Peer {
 
 	private _sendPing(): void {
 		const pingStart = Date.now();
-		this.request({ procedure: REMOTE_EVENT_PING }).finally(() => {
-			this._peerInfo.internalState.latency = Date.now() - pingStart;
-			this._pingTimeoutId = setTimeout(() => {
-				this._sendPing();
-			}, getRandomPingDelay());
-		});
+		this.request({ procedure: REMOTE_EVENT_PING })
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
+			.catch(() => {})
+			.finally(() => {
+				this._peerInfo.internalState.latency = Date.now() - pingStart;
+				this._pingTimeoutId = setTimeout(() => {
+					this._sendPing();
+				}, getRandomPingDelay());
+			});
 	}
 
 	// All event handlers for the inbound socket should be bound in this method.
