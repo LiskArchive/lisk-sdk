@@ -43,7 +43,12 @@ import { Broadcaster } from './broadcaster';
 import { InMemoryChannel } from '../../controller/channels';
 import { Network } from '../network';
 import { ApplyPenaltyError } from '../../errors';
-import { APP_EVENT_TRANSACTION_NEW } from '../../constants';
+import {
+	APP_EVENT_TRANSACTION_NEW,
+	APP_EVENT_NETWORK_EVENT,
+	EVENT_POST_BLOCK,
+	EVENT_POST_TRANSACTION_ANNOUNCEMENT,
+} from '../../constants';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
@@ -274,6 +279,10 @@ export class Transport {
 		}
 
 		const { block: blockBytes } = decodedData;
+		this._channel.publish(APP_EVENT_NETWORK_EVENT, {
+			event: EVENT_POST_BLOCK,
+			data: { block: blockBytes.toString('hex') },
+		});
 
 		let block: Block;
 		try {
@@ -439,6 +448,12 @@ export class Transport {
 		}
 
 		const { transactionIds } = decodedData as EventPostTransactionsAnnouncementData;
+
+		const encodedIds = transactionIds.map(id => id.toString('hex'));
+		this._channel.publish(APP_EVENT_NETWORK_EVENT, {
+			event: EVENT_POST_TRANSACTION_ANNOUNCEMENT,
+			data: { transactionIds: encodedIds },
+		});
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(transactionIds);
 		if (unknownTransactionIDs.length > 0) {

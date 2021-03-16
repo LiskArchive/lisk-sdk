@@ -18,7 +18,13 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
 
-import { APP_EVENT_NETWORK_READY, APP_EVENT_NETWORK_EVENT } from '../../constants';
+import {
+	APP_EVENT_NETWORK_READY,
+	APP_EVENT_NETWORK_EVENT,
+	EVENT_POST_BLOCK,
+	EVENT_POST_NODE_INFO,
+	EVENT_POST_TRANSACTION_ANNOUNCEMENT,
+} from '../../constants';
 import { InMemoryChannel } from '../../controller/channels';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
@@ -50,7 +56,11 @@ const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
-const REMOTE_EVENTS_WHITE_LIST = ['postTransactionsAnnouncement', 'postBlock', 'postNodeInfo'];
+const REMOTE_EVENTS_WHITE_LIST = [
+	EVENT_POST_BLOCK,
+	EVENT_POST_NODE_INFO,
+	EVENT_POST_TRANSACTION_ANNOUNCEMENT,
+];
 
 interface NodeInfoOptions {
 	[key: string]: unknown;
@@ -373,9 +383,6 @@ export class Network {
 					'EVENT_MESSAGE_RECEIVED: Received inbound message',
 				);
 				this.events.emit(APP_EVENT_NETWORK_EVENT, packet);
-				const data =
-					packet.data && Buffer.isBuffer(packet.data) ? packet.data.toString('hex') : packet.data;
-				this._channel.publish(APP_EVENT_NETWORK_EVENT, { ...packet, data });
 			},
 		);
 
