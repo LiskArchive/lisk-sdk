@@ -61,6 +61,7 @@ tmp
 .vscode
 build/
 dist/
+build/
 dist-node/
 dist-browser/
 browsertest.build/
