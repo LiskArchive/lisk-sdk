@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DashboardPlugin constructor should load default config 1`] = `
+Object {
+  "applicationUrl": "ws://localhost:8080",
+  "host": "127.0.0.1",
+  "port": 4000,
+}
+`;
+
+exports[`DashboardPlugin defaults should return valid config schema with default options 1`] = `
+Object {
+  "$id": "#/plugins/lisk-dashboard/config",
+  "default": Object {
+    "applicationUrl": "ws://localhost:8080",
+    "host": "127.0.0.1",
+    "port": 4000,
+  },
+  "properties": Object {
+    "applicationUrl": Object {
+      "description": "URL to connect",
+      "format": "uri",
+      "type": "string",
+    },
+    "host": Object {
+      "format": "ip",
+      "type": "string",
+    },
+    "port": Object {
+      "maximum": 65535,
+      "minimum": 1,
+      "type": "integer",
+    },
+  },
+  "required": Array [],
+  "type": "object",
+}
+`;

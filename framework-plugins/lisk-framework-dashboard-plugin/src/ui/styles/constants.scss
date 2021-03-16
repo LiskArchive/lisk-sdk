@@ -1,0 +1,76 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+$color-white: #ffffff;
+$color-blue-gray: #8a8ca2;
+$color-platinum-gray: #dfe6f2;
+$color-fury-red: #ff4557;
+$color-candy-pink: #ffd0d1;
+$color-ufo-green: #2bd67b;
+$color-yellow-copacabana: #f7e36d;
+$color-ultramarine-blue: #4070f4;
+$color-ink-blue: #254898;
+
+$color-background: linear-gradient(180deg, #101c3d 0%, #0c152e 100%);
+$color-background-darker: rgba(0, 0, 0, 0.2);
+
+$font-size-xl: 26px;
+$font-size-l: 20px;
+$font-size-m: 16px;
+$font-size-s: 13px;
+
+$font-weight-bold: bold;
+$font-weight-m: 400;
+$font-weight-l: 600;
+
+@mixin f-header($size, $weight) {
+	font-size: $size;
+	font-weight: $weight;
+	line-height: 130%;
+}
+
+@mixin f-label($size) {
+	font-size: $size;
+	font-family: 'Roboto';
+	line-height: 130%;
+}
+
+// min-width
+$breakpoint-up: (
+	'sm': 'screen and (min-width: 456px)',
+	'md': 'screen and (min-width: 769px)',
+	'lg': 'screen and (min-width: 1000px)',
+	'xl': 'screen and (min-width: 1200px)',
+) !default;
+
+// max-width
+$breakpoint-down: (
+	'sm': 'screen and (max-width: 455px)',
+	'md': 'screen and (max-width: 768px)',
+	'lg': 'screen and (max-width: 999px)',
+	'xl': 'screen and (max-width: 1199px)',
+) !default;
+
+// @mixins
+@mixin mq-up($breakpoint: md) {
+	@media only #{map-get($breakpoint-up, $breakpoint)} {
+		@content;
+	}
+}
+
+@mixin mq-down($breakpoint: md) {
+	@media only #{map-get($breakpoint-down, $breakpoint)} {
+		@content;
+	}
+}
