@@ -28,7 +28,6 @@ interface FaucetConfig {
 declare global {
 	interface Window {
 		grecaptcha: any;
-		config: any;
 		FAUCET_CONFIG: FaucetConfig;
 	}
 }
