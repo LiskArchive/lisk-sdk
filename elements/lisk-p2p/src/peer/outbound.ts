@@ -40,9 +40,12 @@ import {
 	P2PNodeInfo,
 	P2PRequestPacketBufferData,
 	P2PResponsePacketBufferData,
+	P2PRawRequestPacket,
+	P2PRequestPacket,
 } from '../types';
 
-import { Peer, SCClientSocket, socketErrorStatusCodes } from './base';
+import { Peer, SCClientSocket, socketErrorStatusCodes, RATE_NORMALIZATION_FACTOR } from './base';
+import { P2PRequest } from '../p2p_request';
 
 interface ClientOptionsUpdated {
 	readonly hostname: string;
@@ -185,15 +188,38 @@ export class OutboundPeer extends Peer {
 
 		outboundSocket.on('message', this._handleWSMessage);
 
+		// Bind RPC and remote event handlers
 		outboundSocket.on(
-			REMOTE_EVENT_PING,
-			(_: undefined, res: (_: undefined, data: string) => void) => {
-				res(undefined, REMOTE_EVENT_PONG);
+			REMOTE_SC_EVENT_RPC_REQUEST,
+			(
+				rawRequestPacket: P2PRawRequestPacket,
+				respond: (responseError?: Error, responseData?: unknown) => void,
+			) => {
+				if (rawRequestPacket.procedure === REMOTE_EVENT_PING) {
+					// Protocol RCP request limiter LIP-0004
+					this._updateOutboundRPCCounter(rawRequestPacket);
+					const rate = this._getOutboundRPCRate(rawRequestPacket);
+
+					// Each P2PRequest contributes to the Peer's productivity.
+					// A P2PRequest can mutate this._productivity from the current Peer instance.
+					const request = new P2PRequest(
+						{
+							procedure: rawRequestPacket.procedure,
+							data: rawRequestPacket.data,
+							id: this.peerInfo.peerId,
+							rate,
+							productivity: this.internalState.productivity,
+						},
+						respond,
+					);
+
+					request.end(REMOTE_EVENT_PONG);
+					return;
+				}
+				this._handleRawRPC(rawRequestPacket, respond);
 			},
 		);
 
-		// Bind RPC and remote event handlers
-		outboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.on(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
 		const transportSocket = (outboundSocket as any).transport;
@@ -227,5 +253,17 @@ export class OutboundPeer extends Peer {
 		outboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.off(REMOTE_SC_EVENT_MESSAGE, this._handleRawMessage);
 		outboundSocket.off(REMOTE_EVENT_PING);
+	}
+
+	private _updateOutboundRPCCounter(packet: P2PRequestPacket): void {
+		const key = packet.procedure;
+		const count = (this.internalState.rpcCounter.get(key) ?? 0) + 1;
+		this.peerInfo.internalState.rpcCounter.set(key, count);
+	}
+
+	private _getOutboundRPCRate(packet: P2PRequestPacket): number {
+		const rate = this.peerInfo.internalState.rpcRates.get(packet.procedure) ?? 0;
+
+		return rate * RATE_NORMALIZATION_FACTOR;
 	}
 }

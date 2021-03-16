@@ -16,7 +16,6 @@
 export const packetSchema = {
 	type: 'object',
 	additionalProperties: false,
-	required: ['event'],
 	properties: {
 		event: {
 			type: 'string',

@@ -16,11 +16,7 @@ import * as socketClusterClient from 'socketcluster-client';
 import { SCClientSocket } from 'socketcluster-client';
 import { OutboundPeer } from '../../../src/peer';
 
-import {
-	REMOTE_SC_EVENT_MESSAGE,
-	REMOTE_SC_EVENT_RPC_REQUEST,
-	REMOTE_EVENT_PING,
-} from '../../../src/events';
+import { REMOTE_SC_EVENT_MESSAGE, REMOTE_SC_EVENT_RPC_REQUEST } from '../../../src/events';
 import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_CONNECT_TIMEOUT,
@@ -131,7 +127,7 @@ describe('peer/outbound', () => {
 
 		it('should bind handlers to an outbound socket', () => {
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledTimes(8);
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledTimes(7);
 			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				'error',
 				expect.any(Function),
@@ -153,12 +149,8 @@ describe('peer/outbound', () => {
 				(defaultOutboundPeer as any)._handleWSMessage,
 			);
 			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
-				REMOTE_EVENT_PING,
-				expect.any(Function),
-			);
-			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_RPC_REQUEST,
-				(defaultOutboundPeer as any)._handleRawRPC,
+				expect.any(Function),
 			);
 			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_MESSAGE,

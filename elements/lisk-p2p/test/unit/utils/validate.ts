@@ -284,20 +284,10 @@ describe('utils/validate', () => {
 		});
 
 		describe('invalid packet', () => {
-			it('should not throw an error if the packet is request', () => {
-				expect(() => validatePacket({ procedure: 'getNodeInfo', rid: 2, data: {} })).toThrow(
-					'Packet format is invalid.',
-				);
-			});
-
 			it('should throw an error if the message contains additional keywords', () => {
 				expect(() => validatePacket({ cid: 4, invalidProperty: { something: 'invalid' } })).toThrow(
 					'Packet format is invalid.',
 				);
-			});
-
-			it('should not throw an error if the packet is valid', () => {
-				expect(() => validatePacket({ rid: 2, data: {} })).toThrow('Packet format is invalid.');
 			});
 		});
 	});

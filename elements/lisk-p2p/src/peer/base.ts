@@ -89,7 +89,7 @@ export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
 };
 
 // Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
-const RATE_NORMALIZATION_FACTOR = 1000;
+export const RATE_NORMALIZATION_FACTOR = 1000;
 
 // Peer status message rate to be checked in every 10 seconds and reset
 const PEER_STATUS_MESSAGE_RATE_INTERVAL = 10000;

@@ -107,8 +107,8 @@ describe('peer/inbound', () => {
 
 			expect((defaultInboundPeer as any)._socket.emit).toHaveBeenCalledTimes(1);
 			expect((defaultInboundPeer as any)._socket.emit).toHaveBeenCalledWith(
-				REMOTE_EVENT_PING,
-				undefined,
+				REMOTE_SC_EVENT_RPC_REQUEST,
+				{ procedure: REMOTE_EVENT_PING },
 				expect.any(Function),
 			);
 		});
