@@ -31,6 +31,7 @@ import {
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
+import { writeFileSync } from 'fs';
 import * as defaults from './defaults';
 import { FaucetPluginOptions, State } from './types';
 
@@ -171,6 +172,19 @@ export class FaucetPlugin extends BasePlugin {
 			defaults.config.default,
 			this._options,
 		) as FaucetPluginOptions;
+
+		const config = {
+			applicationUrl: this._options.applicationUrl,
+			amount: (BigInt(this._options.amount) / BigInt(10 ** 8)).toString(),
+			tokenPrefix: this._options.tokenPrefix,
+			captcha: this._options.captcha,
+			logoURL: this._options.logoURL,
+		};
+		// Write config file for faucet
+		writeFileSync(
+			join(__dirname, '../../build', 'config.js'),
+			`window.FAUCET_CONFIG = ${JSON.stringify(config)}`,
+		);
 		const app = express();
 		app.use(express.static(join(__dirname, '../../build')));
 		this._server = app.listen(3333, 'localhost');

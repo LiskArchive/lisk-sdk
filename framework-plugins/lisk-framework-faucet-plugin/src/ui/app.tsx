@@ -14,19 +14,30 @@ const validateAddress = (address: string, prefix: string): boolean => {
 		return false;
 	}
 };
+
+interface FaucetConfig {
+	amount: string;
+	applicationUrl: string;
+	tokenPrefix: string;
+	logoURL: string;
+	captcha: {
+		sitekey: string;
+	};
+}
+
 declare global {
 	interface Window {
 		grecaptcha: any;
+		FAUCET_CONFIG: FaucetConfig;
 	}
 }
 
 const WarningIcon = () => <span className={`${styles.icon} ${styles.warning}`}>&#xE8B2;</span>;
 
 export const App: React.FC = () => {
-	const amount = '100';
-	const prefix = 'lsk';
+	const { amount, tokenPrefix: prefix, captcha, applicationUrl, logoURL } = window.FAUCET_CONFIG;
+	const recaptchaConfig = captcha ?? { sitekey: 'key' };
 	const faucetAddress = 'lskdwsyfmcko6mcd357446yatromr9vzgu7eb8y99';
-	const recaptchaKey = 'key';
 	const [input, updateInput] = React.useState('');
 	const [errorMsg, updateErrorMsg] = React.useState('');
 	const [recaptchaReady, updateRecaptchaReady] = React.useState(false);
@@ -47,7 +58,7 @@ export const App: React.FC = () => {
 					return;
 				}
 				// eslint-disable-next-line
-				window.grecaptcha.render('recapcha', { sitekey: recaptchaKey });
+				window.grecaptcha.render('recapcha', recaptchaConfig);
 				updateRecaptchaReady(true);
 			}
 		}, 1000);
@@ -66,8 +77,8 @@ export const App: React.FC = () => {
 	const onSubmit = async () => {
 		try {
 			// eslint-disable-next-line
-			const token = await window.grecaptcha.execute(recaptchaKey, { action: 'submit' });
-			const client = await apiClient.createWSClient('ws://localhost:8080/ws');
+			const token = await window.grecaptcha.execute(recaptchaConfig.sitekey, { action: 'submit' });
+			const client = await apiClient.createWSClient(applicationUrl);
 			await client.invoke('faucet:fundToken', {
 				address: getAddressFromBase32Address(input, prefix),
 				token,
@@ -80,7 +91,7 @@ export const App: React.FC = () => {
 	return (
 		<div className={styles.root}>
 			<header className={styles.header}>
-				<img src={logo} className={styles.logo} alt="logo" />
+				<img src={logoURL ?? logo} className={styles.logo} alt="logo" />
 			</header>
 			<section className={styles.content}>
 				<div className={styles.main}>

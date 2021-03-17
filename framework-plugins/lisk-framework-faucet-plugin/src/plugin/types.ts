@@ -22,6 +22,7 @@ export interface FaucetPluginOptions extends PluginOptionsWithAppConfig {
 	tokenPrefix: string;
 	logoURL?: string;
 	captcha?: Record<string, unknown>;
+	amount?: string;
 }
 
 export interface State {

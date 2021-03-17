@@ -50,7 +50,7 @@ export const config = {
 	},
 	required: ['encryptedPassphrase'],
 	default: {
-		applicationUrl: 'ws://localhost:8080',
+		applicationUrl: 'ws://localhost:8080/ws',
 		fee: (10 ** 8 * 0.1).toString(), // 0.1 LSK,
 		amount: (10 ** 8 * 100).toString(), // 100 LSK,
 		tokenPrefix: 'lsk',
