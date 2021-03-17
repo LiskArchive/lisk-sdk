@@ -20,6 +20,7 @@ import {
 	getAddressAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
+import axios from 'axios';
 import {
 	ActionsDefinition,
 	BasePlugin,
@@ -60,6 +61,9 @@ const fundParamsSchema = {
 		address: {
 			type: 'string',
 			format: 'hex',
+		},
+		token: {
+			type: 'string',
 		},
 	},
 };
@@ -142,6 +146,7 @@ export class FaucetPlugin extends BasePlugin {
 			},
 			fundTokens: async (params?: Record<string, unknown>): Promise<{ result: string }> => {
 				const errors = validator.validate(fundParamsSchema, params as Record<string, unknown>);
+				const { address, token } = params as Record<string, unknown>;
 
 				if (errors.length) {
 					throw new LiskValidationError([...errors]);
@@ -151,7 +156,19 @@ export class FaucetPlugin extends BasePlugin {
 					throw new Error('Faucet is not enabled.');
 				}
 
-				const { address } = params as Record<string, unknown>;
+				const captchaResult = await axios({
+					method: 'post',
+					url: 'https://www.google.com/recaptcha/api/siteverify',
+					params: {
+						secret: this.options.captchaSecret,
+						response: token,
+					},
+				});
+
+				if (!captchaResult?.data?.success) {
+					throw new Error('Captcha response was invalid.');
+				}
+
 				await this._transferFunds(address as string);
 
 				return {
