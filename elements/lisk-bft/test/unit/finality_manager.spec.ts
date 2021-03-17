@@ -22,6 +22,7 @@ import {
 	CONSENSUS_STATE_VALIDATORS_KEY,
 	validatorsSchema,
 	StateStore,
+	testing,
 } from '@liskhq/lisk-chain';
 import {
 	FinalityManager,
@@ -30,7 +31,6 @@ import {
 } from '../../src/finality_manager';
 import { BFTError } from '../../src/types';
 import { createFakeBlockHeader } from '../fixtures/blocks';
-import { StateStoreMock } from '../utils/state_store_mock';
 import { BFTFinalizedHeightCodecSchema } from '../../src';
 
 const generateValidHeaders = (count: number): any[] => {
@@ -45,6 +45,8 @@ const generateValidHeaders = (count: number): any[] => {
 };
 
 describe('finality_manager', () => {
+	const { StateStoreMock } = testing;
+
 	describe('FinalityManager', () => {
 		const finalizedHeight = 0;
 		const threshold = 68;
@@ -97,7 +99,7 @@ describe('finality_manager', () => {
 				).toThrow('Invalid number of validators for BFT property');
 			});
 
-			it('should inititialize maxHeightPrevoted to the finalizedHeight', async () => {
+			it('should initialize maxHeightPrevoted to the finalizedHeight', async () => {
 				const nonZeroFinalizedHeight = 10000000;
 				finalityManager = new FinalityManager({
 					chain: chainStub,
@@ -117,11 +119,9 @@ describe('finality_manager', () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
 				const bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
 
-				stateStore = (new StateStoreMock(
-					[],
-					{},
-					{ lastBlockHeaders: bftHeaders },
-				) as unknown) as StateStore;
+				stateStore = (new StateStoreMock({
+					lastBlockHeaders: bftHeaders,
+				}) as unknown) as StateStore;
 
 				const header = createFakeBlockHeader({
 					asset: { maxHeightPrevoted: 10 },
@@ -158,27 +158,23 @@ describe('finality_manager', () => {
 						},
 					],
 				};
-				stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
-							BFTVotingLedgerSchema,
-							validatorLedger,
-						),
-					},
-					{ lastBlockHeaders: bftHeaders },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
+						BFTVotingLedgerSchema,
+						validatorLedger,
+					),
+				};
+				stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: bftHeaders,
+				}) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTrue();
 			});
 
 			it("should return true if validator didn't forge any block previously", async () => {
 				const header = createFakeBlockHeader();
-				stateStore = (new StateStoreMock(
-					[],
-					{},
-					{ lastBlockHeaders: [] },
-				) as unknown) as StateStore;
+				stateStore = (new StateStoreMock({ lastBlockHeaders: [] }) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(header, stateStore)).resolves.toBeTruthy();
 			});
@@ -203,11 +199,9 @@ describe('finality_manager', () => {
 					height: 9,
 				});
 
-				stateStore = (new StateStoreMock(
-					[],
-					{},
-					{ lastBlockHeaders: [lastBlock] },
-				) as unknown) as StateStore;
+				stateStore = (new StateStoreMock({
+					lastBlockHeaders: [lastBlock],
+				}) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTError,
@@ -231,11 +225,9 @@ describe('finality_manager', () => {
 					},
 					height: 10,
 				});
-				stateStore = (new StateStoreMock(
-					[],
-					{},
-					{ lastBlockHeaders: [lastBlock] },
-				) as unknown) as StateStore;
+				stateStore = (new StateStoreMock({
+					lastBlockHeaders: [lastBlock],
+				}) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTError,
@@ -255,11 +247,9 @@ describe('finality_manager', () => {
 					},
 				});
 
-				stateStore = (new StateStoreMock(
-					[],
-					{},
-					{ lastBlockHeaders: [lastBlock] },
-				) as unknown) as StateStore;
+				stateStore = (new StateStoreMock({
+					lastBlockHeaders: [lastBlock],
+				}) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTError,
@@ -284,11 +274,9 @@ describe('finality_manager', () => {
 					},
 				});
 
-				stateStore = (new StateStoreMock(
-					[],
-					{},
-					{ lastBlockHeaders: [lastBlock] },
-				) as unknown) as StateStore;
+				stateStore = (new StateStoreMock({
+					lastBlockHeaders: [lastBlock],
+				}) as unknown) as StateStore;
 
 				await expect(finalityManager.verifyBlockHeaders(currentBlock, stateStore)).rejects.toThrow(
 					BFTError,
@@ -297,11 +285,9 @@ describe('finality_manager', () => {
 
 			it('should return true if headers are valid', async () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
-				stateStore = (new StateStoreMock(
-					[],
-					{},
-					{ lastBlockHeaders: [lastBlock] },
-				) as unknown) as StateStore;
+				stateStore = (new StateStoreMock({
+					lastBlockHeaders: [lastBlock],
+				}) as unknown) as StateStore;
 
 				await expect(
 					finalityManager.verifyBlockHeaders(currentBlock, stateStore),
@@ -315,30 +301,30 @@ describe('finality_manager', () => {
 				ledger: [],
 			};
 			let stateStore: StateStore;
-			let bftHeaders: ReadonlyArray<BlockHeader>;
+			let bftHeaders: Array<BlockHeader>;
 
 			beforeEach(() => {
 				bftHeaders = generateValidHeaders(finalityManager.processingThreshold + 1);
-				stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
-							finalizedHeight: 5,
-						}),
-						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
-							BFTVotingLedgerSchema,
-							validatorLedger,
-						),
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: bftHeaders.slice(0, 103).map(h => ({
-								address: getAddressFromPublicKey(h.generatorPublicKey),
-								isConsensusParticipant: true,
-								minActiveHeight: 0,
-							})),
-						}),
-					},
-					{ lastBlockHeaders: bftHeaders },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
+						finalizedHeight: 5,
+					}),
+					[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
+						BFTVotingLedgerSchema,
+						validatorLedger,
+					),
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: bftHeaders.slice(0, 103).map(h => ({
+							address: getAddressFromPublicKey(h.generatorPublicKey),
+							isConsensusParticipant: true,
+							minActiveHeight: 0,
+						})),
+					}),
+				};
+				stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: bftHeaders,
+				}) as unknown) as StateStore;
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
@@ -382,21 +368,21 @@ describe('finality_manager', () => {
 						maxHeightPreviouslyForged: 0,
 					},
 				});
-				stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: [
-								{
-									address: getAddressFromPublicKey(header1.generatorPublicKey),
-									isConsensusParticipant: false,
-									minActiveHeight: 104,
-								},
-							],
-						}),
-					},
-					{ lastBlockHeaders: bftHeaders },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: [
+							{
+								address: getAddressFromPublicKey(header1.generatorPublicKey),
+								isConsensusParticipant: false,
+								minActiveHeight: 104,
+							},
+						],
+					}),
+				};
+				stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: bftHeaders,
+				}) as unknown) as StateStore;
 
 				jest.spyOn(finalityManager, 'updatePrevotesPrecommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
@@ -421,21 +407,21 @@ describe('finality_manager', () => {
 						maxHeightPreviouslyForged: 0,
 					},
 				});
-				stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: [
-								{
-									address: getAddressFromPublicKey(header1.generatorPublicKey),
-									isConsensusParticipant: false,
-									minActiveHeight: 104,
-								},
-							],
-						}),
-					},
-					{ lastBlockHeaders: bftHeaders },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: [
+							{
+								address: getAddressFromPublicKey(header1.generatorPublicKey),
+								isConsensusParticipant: false,
+								minActiveHeight: 104,
+							},
+						],
+					}),
+				};
+				stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: bftHeaders,
+				}) as unknown) as StateStore;
 
 				jest.spyOn(finalityManager, 'updatePrevotesPrecommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
@@ -489,17 +475,17 @@ describe('finality_manager', () => {
 					const addr = getAddressFromPublicKey(header.generatorPublicKey);
 					addressMap.set(addr, addr);
 				}
-				stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: addressMap
-								.values()
-								.map(addr => ({ address: addr, isConsensusParticipant: true, minActiveHeight: 0 })),
-						}),
-					},
-					{ lastBlockHeaders: bftHeaders },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: addressMap
+							.values()
+							.map(addr => ({ address: addr, isConsensusParticipant: true, minActiveHeight: 0 })),
+					}),
+				};
+				stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: bftHeaders,
+				}) as unknown) as StateStore;
 
 				try {
 					for (const header of headers) {
@@ -519,31 +505,31 @@ describe('finality_manager', () => {
 						maxHeightPrevoted: 200,
 					},
 				});
-				stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: [
-								{
-									address: getAddressFromPublicKey(header1.generatorPublicKey),
-									isConsensusParticipant: false,
-									minActiveHeight: 104,
-								},
-							],
-						}),
-						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(BFTVotingLedgerSchema, {
-							...validatorLedger,
-							ledger: [
-								{
-									height: 200,
-									prevotes: 99,
-									precommits: 99,
-								},
-							],
-						}),
-					},
-					{ lastBlockHeaders: bftHeaders },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: [
+							{
+								address: getAddressFromPublicKey(header1.generatorPublicKey),
+								isConsensusParticipant: false,
+								minActiveHeight: 104,
+							},
+						],
+					}),
+					[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(BFTVotingLedgerSchema, {
+						...validatorLedger,
+						ledger: [
+							{
+								height: 200,
+								prevotes: 99,
+								precommits: 99,
+							},
+						],
+					}),
+				};
+				stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: bftHeaders,
+				}) as unknown) as StateStore;
 
 				const originalFinalizedHeight = 999;
 				finalityManager.finalizedHeight = originalFinalizedHeight;
