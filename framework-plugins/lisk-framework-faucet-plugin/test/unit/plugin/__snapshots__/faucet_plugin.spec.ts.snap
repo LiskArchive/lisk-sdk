@@ -16,7 +16,7 @@ Object {
   "default": Object {
     "amount": "10000000000",
     "applicationUrl": "ws://localhost:8080/ws",
-    "captcha": undefined,
+    "captchaSecret": undefined,
     "fee": "10000000",
     "logoURL": undefined,
     "tokenPrefix": "lsk",
@@ -31,9 +31,9 @@ Object {
       "format": "uri",
       "type": "string",
     },
-    "captcha": Object {
-      "description": "The re-captcha config",
-      "type": "object",
+    "captchaSecret": Object {
+      "description": "The re-captcha secret key",
+      "type": "string",
     },
     "encryptedPassphrase": Object {
       "description": "Encrypted passphrase of the genesis account",
