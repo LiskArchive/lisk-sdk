@@ -12,15 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
+import { KeysModule, SequenceModule, TokenModule, testing } from 'lisk-framework';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import axios from 'axios';
-import {
-	callNetwork,
-	closeApplicationEnv,
-	createApplicationEnv,
-	getURL,
-} from './utils/application';
+import { HTTPAPIPlugin } from '../../src';
+import * as genesisBlock from './fixtures/genesis_block.json';
+import { callNetwork, getURL, config } from './utils/application';
 import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
 
@@ -31,12 +28,21 @@ describe('Hello endpoint', () => {
 	let accountNonce = 0;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('transactions');
+		config.label = 'transactions';
+		appEnv = new testing.ApplicationEnv({
+			modules: [TokenModule, SequenceModule, KeysModule],
+			config,
+			plugins: [HTTPAPIPlugin],
+			genesisBlock,
+		});
 		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		const options: { clearDB: boolean } = { clearDB: true };
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication(options);
 	});
 
 	describe('GET /api/transactions/:id', () => {

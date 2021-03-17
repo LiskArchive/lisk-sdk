@@ -12,25 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
-import {
-	createApplicationEnv,
-	getForgerInfoByAddress,
-	getForgerPlugin,
-	closeApplicationEnv,
-} from '../utils/application';
+import { KeysModule, SequenceModule, testing, TokenModule, DPoSModule } from 'lisk-framework';
+import { rmdirSync, existsSync } from 'fs';
+import { ForgerPlugin } from '../../src';
+import { config, getForgerInfoByAddress, getForgerPlugin } from '../utils/application';
+import { getGenesisBlockJSON } from '../utils/genesis_block';
 
 describe('forger:getForgingInfo action', () => {
 	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('forging_info_spec');
+		const dataPath = '~/.lisk/forger-plugin';
+		if (existsSync(dataPath)) {
+			rmdirSync(dataPath, { recursive: true });
+		}
+		const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+		const genesisBlock = getGenesisBlockJSON({
+			timestamp: Math.floor(Date.now() / 1000) - 30,
+		});
+		config.label = 'forging_info_spec';
+		appEnv = new testing.ApplicationEnv({
+			modules,
+			config,
+			plugins: [ForgerPlugin],
+			genesisBlock,
+		});
 		await appEnv.startApplication();
 		await appEnv.waitNBlocks(2);
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		const options: { clearDB: boolean } = { clearDB: true };
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication(options);
 	});
 
 	it('should return list of all forgers info', async () => {

@@ -23,11 +23,21 @@ import {
 	RawBlockHeader,
 	BlockHeader,
 } from '@liskhq/lisk-chain';
-import { RegisteredSchema } from 'lisk-framework';
+import {
+	KeysModule,
+	SequenceModule,
+	testing,
+	TokenModule,
+	RegisteredSchema,
+	DPoSModule,
+} from 'lisk-framework';
+import { ReportMisbehaviorPlugin } from '../../src';
 import { getContradictingBlockHeader, blockHeadersSchema } from '../../src/db';
-import { createApplicationEnv } from '../utils/application';
+import { config } from '../utils/application';
 
 describe('db', () => {
+	let appEnv: testing.ApplicationEnv;
+	let registeredSchemas: RegisteredSchema;
 	const generatorPublicKey = Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -41,10 +51,19 @@ describe('db', () => {
 		'080210c08db7011880ea3022209696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b2a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553220addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca93880c8afa025421a08e0dc2a10e0dc2a1a10c8c557b5dba8527c0e760124128fd15c4a40d90764813046127a50acf4b449fccad057944e7665ab065d7057e56983e42abe55a3cbc1eb35a8c126f54597d0a0b426f2ad9a2d62769185ad8e3b4a5b3af909',
 		'hex',
 	);
-
 	let db: KVStore;
-	let registeredSchemas: RegisteredSchema;
+
 	beforeAll(async () => {
+		const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+		const { genesisBlockJSON } = testing.fixtures.createGenesisBlockWithAccounts(modules);
+		config.label = 'db-integration';
+		appEnv = new testing.ApplicationEnv({
+			modules,
+			config,
+			plugins: [ReportMisbehaviorPlugin],
+			genesisBlock: genesisBlockJSON,
+		});
+		registeredSchemas = appEnv.application.getSchema();
 		const dbPath = path.join(os.homedir(), '~/.lisk/report-misbehavior-plugin/data/integration/db');
 		await fs.ensureDir(dbPath);
 		db = new KVStore(dbPath);
@@ -52,8 +71,6 @@ describe('db', () => {
 			`${generatorPublicKey.toString('binary')}:${formatInt(blockHeader1Height)}`,
 			codec.encode(blockHeadersSchema, { blockHeaders: [blockHeader1] }),
 		);
-		const appEnv = createApplicationEnv('db-integration');
-		registeredSchemas = appEnv.application.getSchema();
 	});
 
 	afterAll(async () => {

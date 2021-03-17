@@ -11,26 +11,32 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing } from 'lisk-framework';
+import { KeysModule, SequenceModule, TokenModule, testing } from 'lisk-framework';
 import axios from 'axios';
-import {
-	callNetwork,
-	createApplicationEnv,
-	closeApplicationEnv,
-	getURL,
-} from './utils/application';
+import { HTTPAPIPlugin } from '../../src';
+import * as genesisBlock from './fixtures/genesis_block.json';
+import { callNetwork, getURL, config } from './utils/application';
 
 describe('Blocks endpoints', () => {
 	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('blocks_http_functional');
+		config.label = 'blocks_http_functional';
+		appEnv = new testing.ApplicationEnv({
+			modules: [TokenModule, SequenceModule, KeysModule],
+			config,
+			plugins: [HTTPAPIPlugin],
+			genesisBlock,
+		});
 		await appEnv.startApplication();
 		await appEnv.waitNBlocks(1);
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		const options: { clearDB: boolean } = { clearDB: true };
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication(options);
 	});
 
 	describe('api/blocks/', () => {

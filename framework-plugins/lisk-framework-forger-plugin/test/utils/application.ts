@@ -11,89 +11,41 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	Application,
-	KeysModule,
-	PartialApplicationConfig,
-	SequenceModule,
-	testing,
-	TokenModule,
-} from 'lisk-framework';
+import { Application, PartialApplicationConfig } from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 import * as configJSON from '../fixtures/config.json';
 import { ForgerPlugin } from '../../src';
 import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
-import { getGenesisBlockJSON } from './genesis_block';
 import { ForgerInfo } from '../../src/types';
 
-const forgerApiPort = 5001;
+const apiPort = 5001;
+const rootPath = '~/.lisk/forger-plugin';
+export const config = {
+	...configJSON,
+	rootPath,
+	logger: {
+		consoleLogLevel: 'fatal',
+		fileLogLevel: 'fatal',
+		logFileName: 'lisk.log',
+	},
+	network: {
+		...configJSON.network,
+		maxInboundConnections: 0,
+	},
+	plugins: {
+		forger: {
+			port: apiPort,
+		},
+	},
+	rpc: {
+		enable: true,
+		port: 8080,
+		mode: 'ipc',
+	},
+} as PartialApplicationConfig;
 
 export const getForgerPlugin = (app: Application): ForgerPlugin => {
 	return app['_controller']['_inMemoryPlugins'][ForgerPlugin.alias]['plugin'];
-};
-
-export const createApplicationEnv = (
-	label: string,
-	options: {
-		consoleLogLevel?: string;
-		clearDB?: boolean;
-		appConfig?: { plugins: { forger: object } };
-	} = {
-		clearDB: true,
-		consoleLogLevel: 'fatal',
-		appConfig: { plugins: { forger: {} } },
-	},
-): testing.ApplicationEnv => {
-	const rootPath = '~/.lisk/forger-plugin';
-	const config = {
-		...configJSON,
-		rootPath,
-		label,
-		logger: {
-			consoleLogLevel: options.consoleLogLevel ?? 'fatal',
-			fileLogLevel: 'fatal',
-			logFileName: 'lisk.log',
-		},
-		network: {
-			...configJSON.network,
-			maxInboundConnections: 0,
-		},
-		plugins: {
-			forger: {
-				port: forgerApiPort,
-				...options.appConfig?.plugins.forger,
-			},
-		},
-		rpc: {
-			enable: true,
-			port: 8080,
-			mode: 'ipc',
-		},
-	} as PartialApplicationConfig;
-
-	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
-	const genesisBlock = getGenesisBlockJSON({
-		timestamp: Math.floor(Date.now() / 1000) - 30,
-	});
-
-	const appEnv = new testing.ApplicationEnv({
-		modules: [TokenModule, SequenceModule, KeysModule],
-		config,
-		plugins: [ForgerPlugin],
-		genesisBlock,
-	});
-	validator.removeSchema('/block/header');
-
-	return appEnv;
-};
-export const closeApplicationEnv = async (
-	appEnv: testing.ApplicationEnv,
-	options: { clearDB: boolean } = { clearDB: true },
-) => {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-	await appEnv.stopApplication(options);
 };
 
 export const waitTill = async (ms: number): Promise<void> =>

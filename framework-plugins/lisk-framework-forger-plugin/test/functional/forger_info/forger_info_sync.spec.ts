@@ -12,16 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
+import { KeysModule, SequenceModule, testing, TokenModule, DPoSModule } from 'lisk-framework';
+import { rmdirSync, existsSync } from 'fs';
+import { ForgerPlugin } from '../../../src';
 import {
-	createApplicationEnv,
-	closeApplicationEnv,
+	config,
 	getForgerInfoByPublicKey,
 	getForgerPlugin,
 	waitTill,
 } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction } from '../../utils/transactions';
+import { getGenesisBlockJSON } from '../../utils/genesis_block';
 
 describe('Forger Info Sync', () => {
 	let appEnv: testing.ApplicationEnv;
@@ -29,14 +31,31 @@ describe('Forger Info Sync', () => {
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('sync');
+		const dataPath = '~/.lisk/forger-plugin';
+		if (existsSync(dataPath)) {
+			rmdirSync(dataPath, { recursive: true });
+		}
+		const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+		const genesisBlock = getGenesisBlockJSON({
+			timestamp: Math.floor(Date.now() / 1000) - 30,
+		});
+		config.label = 'sync';
+		appEnv = new testing.ApplicationEnv({
+			modules,
+			config,
+			plugins: [ForgerPlugin],
+			genesisBlock,
+		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
 		networkIdentifier = appEnv.networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		const options: { clearDB: boolean } = { clearDB: true };
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication(options);
 	});
 
 	it('should sync information from scratch on startup', async () => {
@@ -69,7 +88,9 @@ describe('Forger Info Sync', () => {
 		await forgerPluginInstance['_forgerPluginDB'].clear();
 
 		// Close application
-		await closeApplicationEnv(appEnv, { clearDB: false });
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication({ clearDB: false });
 
 		// Start the application again
 		await appEnv.startApplication();

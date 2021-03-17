@@ -11,91 +11,43 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	Application,
-	KeysModule,
-	PartialApplicationConfig,
-	SequenceModule,
-	testing,
-	TokenModule,
-} from 'lisk-framework';
+import { Application, PartialApplicationConfig } from 'lisk-framework';
 import * as configJSON from '../fixtures/config.json';
-import * as genesisBlock from '../fixtures/genesis_block.json';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { defaultAccount } from '../fixtures/devnet';
 
 const apiPort = 5002;
+const rootPath = '~/.lisk/report-misbehavior-plugin';
+export const config = {
+	...configJSON,
+	rootPath,
+	logger: {
+		consoleLogLevel: 'fatal',
+		fileLogLevel: 'fatal',
+		logFileName: 'lisk.log',
+	},
+	network: {
+		...configJSON.network,
+		maxInboundConnections: 0,
+	},
+	plugins: {
+		reportMisbehavior: {
+			port: apiPort,
+			encryptedPassphrase: defaultAccount.encryptedPassphrase,
+		},
+	},
+	rpc: {
+		enable: true,
+		port: 8080,
+		mode: 'ipc',
+	},
+} as PartialApplicationConfig;
 
 export const getReportMisbehaviorPlugin = (app: Application): ReportMisbehaviorPlugin => {
 	return app['_controller']['_inMemoryPlugins'][ReportMisbehaviorPlugin.alias]['plugin'];
 };
 
-export const createApplicationEnv = (
-	label: string,
-	options: {
-		consoleLogLevel?: string;
-		clearDB?: boolean;
-		appConfig?: { plugins: { reportMisbehavior: object } };
-	} = {
-		clearDB: true,
-		consoleLogLevel: 'fatal',
-		appConfig: { plugins: { reportMisbehavior: {} } },
-	},
-): testing.ApplicationEnv => {
-	const rootPath = '~/.lisk/report-misbehavior-plugin';
-	const config = {
-		...configJSON,
-		rootPath,
-		label,
-		logger: {
-			consoleLogLevel: options.consoleLogLevel ?? 'fatal',
-			fileLogLevel: 'fatal',
-			logFileName: 'lisk.log',
-		},
-		network: {
-			...configJSON.network,
-			maxInboundConnections: 0,
-		},
-		plugins: {
-			reportMisbehavior: {
-				port: apiPort,
-				encryptedPassphrase: defaultAccount.encryptedPassphrase,
-			},
-		},
-		rpc: {
-			enable: true,
-			port: 8080,
-			mode: 'ipc',
-		},
-	} as PartialApplicationConfig;
-
-	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
-	const genesis = {
-		...genesisBlock,
-		header: { ...genesisBlock.header, timestamp: Math.floor(Date.now() / 1000) - 30 },
-	};
-	const appEnv = new testing.ApplicationEnv({
-		modules: [TokenModule, SequenceModule, KeysModule],
-		config,
-		plugins: [ReportMisbehaviorPlugin],
-		genesisBlock: genesis,
-	});
-	// FIXME: Remove with #5572
-	// validator.removeSchema('/block/header');
-
-	return appEnv;
-};
-
-export const closeApplicationEnv = async (
-	appEnv: testing.ApplicationEnv,
-	options: { clearDB: boolean } = { clearDB: true },
-): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-	await appEnv.stopApplication(options);
-};
-
-export const waitTill = async (ms: number) =>
+export const waitTill = async (ms: number): Promise<void> =>
 	new Promise(r =>
 		setTimeout(() => {
 			r();

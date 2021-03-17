@@ -11,26 +11,32 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing } from 'lisk-framework';
+import { KeysModule, SequenceModule, TokenModule, testing } from 'lisk-framework';
 import axios from 'axios';
 import { when } from 'jest-when';
-import {
-	createApplicationEnv,
-	closeApplicationEnv,
-	getURL,
-	callNetwork,
-} from './utils/application';
+import { HTTPAPIPlugin } from '../../src';
+import * as genesisBlock from './fixtures/genesis_block.json';
+import { callNetwork, getURL, config } from './utils/application';
 
 describe('Peers endpoint', () => {
 	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('peers');
+		config.label = 'peers';
+		appEnv = new testing.ApplicationEnv({
+			modules: [TokenModule, SequenceModule, KeysModule],
+			config,
+			plugins: [HTTPAPIPlugin],
+			genesisBlock,
+		});
 		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		const options: { clearDB: boolean } = { clearDB: true };
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication(options);
 	});
 
 	describe('/api/peers', () => {

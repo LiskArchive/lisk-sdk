@@ -12,24 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
-import { closeApplicationEnv, createApplicationEnv, waitTill } from '../utils/application';
+import { KeysModule, SequenceModule, testing, TokenModule, DPoSModule } from 'lisk-framework';
+import { rmdirSync, existsSync } from 'fs';
+import { homedir } from 'os';
+import { join } from 'path';
+import { ForgerPlugin } from '../../src';
+import { waitTill, config } from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
+import { getGenesisBlockJSON } from '../utils/genesis_block';
 
 describe('forger:getVoters action', () => {
 	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 	let networkIdentifier: Buffer;
+	const appLabel = 'forger-plugin';
+	const dataPath = join(homedir(), '.lisk', appLabel);
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('forger_functional_voters');
+		if (existsSync(dataPath)) {
+			rmdirSync(dataPath, { recursive: true });
+		}
+		const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+		const genesisBlock = getGenesisBlockJSON({
+			timestamp: Math.floor(Date.now() / 1000) - 30,
+		});
+		config.label = 'forger_functional_voters';
+		appEnv = new testing.ApplicationEnv({
+			modules,
+			config,
+			plugins: [ForgerPlugin],
+			genesisBlock,
+		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
 		networkIdentifier = appEnv.application['_node'].networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		const options: { clearDB: boolean } = { clearDB: true };
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication(options);
 	});
 
 	describe('action forger:getVoters', () => {

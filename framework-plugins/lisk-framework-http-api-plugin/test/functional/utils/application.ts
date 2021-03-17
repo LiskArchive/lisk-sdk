@@ -11,60 +11,29 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	KeysModule,
-	PartialApplicationConfig,
-	SequenceModule,
-	testing,
-	TokenModule,
-} from 'lisk-framework';
-import * as genesisBlockJSON from '../fixtures/genesis_block.json';
+import { PartialApplicationConfig } from 'lisk-framework';
 import * as configJSON from '../fixtures/config.json';
-import { HTTPAPIPlugin } from '../../../src';
 
-export const createApplicationEnv = (
-	label: string,
-	consoleLogLevel?: string,
-): testing.ApplicationEnv => {
-	const rootPath = '~/.lisk/http-plugin';
-	const config = {
-		...configJSON,
-		rootPath,
-		label,
-		logger: {
-			consoleLogLevel: consoleLogLevel ?? 'fatal',
-			fileLogLevel: 'fatal',
-			logFileName: 'lisk.log',
-		},
-		network: {
-			...configJSON.network,
-			maxInboundConnections: 0,
-		},
-		rpc: {
-			enable: true,
-			port: 8080,
-			mode: 'ipc',
-		},
-	} as PartialApplicationConfig;
+const rootPath = '~/.lisk/http-plugin';
 
-	const appEnv = new testing.ApplicationEnv({
-		modules: [TokenModule, SequenceModule, KeysModule],
-		config,
-		plugins: [HTTPAPIPlugin],
-		genesisBlock: genesisBlockJSON,
-	});
-
-	return appEnv;
-};
-
-export const closeApplicationEnv = async (
-	appEnv: testing.ApplicationEnv,
-	options: { clearDB: boolean } = { clearDB: true },
-) => {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-	await appEnv.stopApplication(options);
-};
+export const config = {
+	...configJSON,
+	rootPath,
+	logger: {
+		consoleLogLevel: 'fatal',
+		fileLogLevel: 'fatal',
+		logFileName: 'lisk.log',
+	},
+	network: {
+		...configJSON.network,
+		maxInboundConnections: 0,
+	},
+	rpc: {
+		enable: true,
+		port: 8080,
+		mode: 'ipc',
+	},
+} as PartialApplicationConfig;
 
 export const getURL = (url: string, port = 4000): string => `http://localhost:${port}${url}`;
 

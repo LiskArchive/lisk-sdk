@@ -11,27 +11,33 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing } from 'lisk-framework';
+import { KeysModule, SequenceModule, TokenModule, testing } from 'lisk-framework';
 import axios from 'axios';
-import {
-	callNetwork,
-	createApplicationEnv,
-	closeApplicationEnv,
-	getURL,
-} from './utils/application';
+import { HTTPAPIPlugin } from '../../src';
+import * as genesisBlock from './fixtures/genesis_block.json';
+import { callNetwork, getURL, config } from './utils/application';
 
 describe('Forging info endpoint', () => {
 	let appEnv: testing.ApplicationEnv;
 	let forgingStatusData: any;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('forging_info_http_functional');
+		config.label = 'forging_info_http_functional';
+		appEnv = new testing.ApplicationEnv({
+			modules: [TokenModule, SequenceModule, KeysModule],
+			config,
+			plugins: [HTTPAPIPlugin],
+			genesisBlock,
+		});
 		await appEnv.startApplication();
 		forgingStatusData = await appEnv.ipcClient.invoke('app:getForgingStatus');
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		const options: { clearDB: boolean } = { clearDB: true };
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication(options);
 	});
 
 	describe('/api/forging/info', () => {
