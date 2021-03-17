@@ -88,7 +88,7 @@ describe('PomTransactionAsset', () => {
 		applyContext = testing.createApplyAssetContext<PomTransactionAssetContext>({
 			transaction,
 			asset,
-			stateStore: stateStoreMock as any,
+			stateStore: stateStoreMock,
 			reducerHandler: {
 				invoke: jest.fn(),
 			},
