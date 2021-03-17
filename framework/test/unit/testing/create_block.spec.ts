@@ -33,7 +33,8 @@ describe('Create Block', () => {
 		const initDelegates = [genesis.address];
 		const modules = [TokenModule];
 
-		genesisBlock = createGenesisBlock({ modules, accounts, initDelegates, timestamp: 0 });
+		genesisBlock = createGenesisBlock({ modules, accounts, initDelegates, timestamp: 0 })
+			.genesisBlock;
 	});
 
 	it('should return a valid default block', () => {

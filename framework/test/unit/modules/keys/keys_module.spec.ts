@@ -29,6 +29,7 @@ import { GenesisConfig, TokenModule } from '../../../../src';
 import { AccountKeys } from '../../../../src/modules/keys/types';
 import * as testing from '../../../../src/testing';
 import { TokenAccount } from '../../../../src/modules/token/types';
+import { createGenesisBlock } from '../../../../src/testing';
 
 const { StateStoreMock } = testing.mocks;
 
@@ -855,9 +856,9 @@ describe('keys module', () => {
 	});
 
 	describe('afterGenesisBlockApply', () => {
-		const { genesisBlock } = testing.fixtures.createGenesisBlockWithAccounts<AccountKeys>([
-			KeysModule,
-		]);
+		const { genesisBlock } = createGenesisBlock<AccountKeys>({
+			modules: [KeysModule],
+		});
 
 		it('should not fail for valid keys property', async () => {
 			// Arrange

@@ -27,7 +27,7 @@ import {
 } from '../types';
 import { ModuleClass } from './types';
 import { consensusMock, reducerHandlerMock, StateStoreMock } from './mocks';
-import * as fixtures from './fixtures';
+import { createGenesisBlock } from './create_genesis_block';
 
 export const createAfterGenesisBlockApplyContext = <T = unknown>(params: {
 	modules?: ModuleClass[];
@@ -36,8 +36,7 @@ export const createAfterGenesisBlockApplyContext = <T = unknown>(params: {
 	stateStore?: StateStore;
 }): AfterGenesisBlockApplyContext<T> => {
 	const modules = params.modules ?? [];
-	const genesisBlock =
-		params.genesisBlock ?? fixtures.createGenesisBlockWithAccounts<T>(modules).genesisBlock;
+	const genesisBlock = params.genesisBlock ?? createGenesisBlock<T>({ modules }).genesisBlock;
 	const stateStore = params.stateStore ?? new StateStoreMock();
 	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
 

@@ -24,10 +24,11 @@ import { Processor } from '../node/processor';
 import { InMemoryChannel } from '../controller';
 import { loggerMock, channelMock } from './mocks';
 import { createBlock } from './create_block';
-import { defaultAccount, defaultConfig, createGenesisBlockWithAccounts } from './fixtures';
+import { defaultAccount, defaultConfig } from './fixtures';
 import { createDB, removeDB, getAccountSchemaFromModules } from './utils';
 import { ApplicationConfig, GenesisConfig } from '../types';
 import { ModuleClass } from './types';
+import { createGenesisBlock } from './create_genesis_block';
 
 type Options = {
 	genesisConfig?: GenesisConfig;
@@ -107,7 +108,7 @@ export const getBlockProcessingEnv = async (
 	params: BlockProcessingParams,
 ): Promise<BlockProcessingEnv> => {
 	const appConfig = getAppConfig(params.options?.genesisConfig);
-	const { genesisBlock } = createGenesisBlockWithAccounts(params.modules);
+	const { genesisBlock } = createGenesisBlock({ modules: params.modules });
 	const networkIdentifier = getNetworkIdentifier(
 		genesisBlock.header.id,
 		appConfig.genesisConfig.communityIdentifier,

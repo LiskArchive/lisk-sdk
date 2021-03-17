@@ -14,14 +14,17 @@
  */
 
 import { AccountDefaultProps, GenesisBlock } from '@liskhq/lisk-chain';
-import { createGenesisBlock as createGenesis } from '@liskhq/lisk-genesis';
-import { GenesisConfig } from '../types';
+import { createGenesisBlock as createGenesis, getGenesisBlockJSON } from '@liskhq/lisk-genesis';
+
 import { ModuleClass, PartialAccount } from './types';
 import { getAccountSchemaFromModules } from './utils';
+import { GenesisConfig } from '../types';
+import { DPoSModule } from '../modules';
+import { defaultAccountsAddresses, defaultDelegates } from './fixtures/accounts';
 
 interface CreateGenesisBlock<T> {
 	modules: ModuleClass[];
-	accounts: PartialAccount<T>[];
+	accounts?: PartialAccount<T>[];
 	genesisConfig?: GenesisConfig;
 	initDelegates?: ReadonlyArray<Buffer>;
 	height?: number;
@@ -32,17 +35,36 @@ interface CreateGenesisBlock<T> {
 
 export const createGenesisBlock = <T = AccountDefaultProps>(
 	params: CreateGenesisBlock<T>,
-): GenesisBlock<T> => {
-	const accountAssetSchemas = getAccountSchemaFromModules(params.modules, params.genesisConfig);
+): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
+	const modules = [...params.modules];
+	if (!params.modules.includes(DPoSModule)) {
+		modules.push(DPoSModule);
+	}
 
-	const initDelegates: ReadonlyArray<Buffer> = params.initDelegates ?? [];
+	const accountAssetSchemas = getAccountSchemaFromModules(modules, params.genesisConfig);
+	const defaultAccounts = defaultAccountsAddresses.map(
+		accountAddress => ({ address: Buffer.from(accountAddress, 'hex') } as PartialAccount<T>),
+	);
+	const defaultIntDelegates = defaultDelegates.map(
+		delegate =>
+			(({
+				...delegate,
+				address: delegate.address,
+			} as unknown) as PartialAccount<T>),
+	);
+	// Set genesis block timestamp to 1 day in past relative to current date
+	const defaultTimestamp = Math.floor(new Date().setDate(new Date().getDay() - 1) / 1000);
+
+	const initDelegates: ReadonlyArray<Buffer> =
+		params.initDelegates ?? defaultIntDelegates.map(delegate => delegate.address);
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
-	const timestamp = params.timestamp ?? Math.floor(Date.now() / 1000);
+	const timestamp = params.timestamp ?? defaultTimestamp;
 	const previousBlockID = params.previousBlockID ?? Buffer.alloc(0);
+	const accounts = params.accounts ?? defaultAccounts;
 
-	return createGenesis<T>({
-		accounts: params.accounts,
+	const genesisBlock = createGenesis<T>({
+		accounts,
 		initDelegates,
 		accountAssetSchemas,
 		initRounds,
@@ -50,4 +72,14 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 		timestamp,
 		previousBlockID,
 	});
+
+	const genesisBlockJSON = getGenesisBlockJSON({
+		genesisBlock: genesisBlock as never,
+		accountAssetSchemas: getAccountSchemaFromModules(modules),
+	});
+
+	return {
+		genesisBlock,
+		genesisBlockJSON,
+	};
 };

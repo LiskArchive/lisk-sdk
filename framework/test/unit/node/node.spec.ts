@@ -24,13 +24,9 @@ import { Network } from '../../../src/node/network';
 import { Node } from '../../../src/node/node';
 import { Processor } from '../../../src/node/processor';
 import { Synchronizer } from '../../../src/node/synchronizer/synchronizer';
-import * as testing from '../../../src/testing';
 import { cacheConfig, nodeOptions } from '../../fixtures/node';
 import { createMockBus } from '../../utils/channel';
-
-const { genesisBlock, genesisBlockJSON } = testing.fixtures.createGenesisBlockWithAccounts([
-	TokenModule,
-]);
+import { createGenesisBlock } from '../../../src/testing/create_genesis_block';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -38,12 +34,16 @@ describe('Node', () => {
 	let node: Node;
 	let subscribedEvents: any;
 	const stubs: any = {};
-	const lastBlock = genesisBlock;
 	let blockchainDB: KVStore;
 	let forgerDB: KVStore;
 	let nodeDB: KVStore;
 	let tokenModule: BaseModule;
 	let dposModule: BaseModule;
+
+	const { genesisBlock, genesisBlockJSON } = createGenesisBlock({
+		modules: [TokenModule],
+	});
+	const lastBlock = genesisBlock;
 
 	beforeEach(() => {
 		// Arrange

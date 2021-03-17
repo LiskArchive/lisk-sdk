@@ -19,7 +19,7 @@ import { join } from 'path';
 import { Block } from '@liskhq/lisk-chain';
 import { ModuleClass } from './types';
 import { defaultConfig } from './fixtures';
-import { createGenesisBlockWithAccounts } from './fixtures/genesis_block';
+import { createGenesisBlock } from './create_genesis_block';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
 import { DPoSModule } from '../modules/dpos';
@@ -109,7 +109,7 @@ export class ApplicationEnv {
 		if (!appConfig.modules.includes(DPoSModule)) {
 			appConfig.modules.push(DPoSModule);
 		}
-		const { genesisBlockJSON } = createGenesisBlockWithAccounts(appConfig.modules);
+		const { genesisBlockJSON } = createGenesisBlock({ modules: appConfig.modules });
 		const config = { ...defaultConfig, ...(appConfig.config ?? {}) };
 		const { label } = config;
 
