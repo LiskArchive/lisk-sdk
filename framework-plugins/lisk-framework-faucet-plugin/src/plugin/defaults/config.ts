@@ -43,9 +43,9 @@ export const config = {
 			format: 'uri',
 			description: 'The URL of the logo used on the UI',
 		},
-		captcha: {
-			type: 'object',
-			description: 'The re-captcha config',
+		captchaSecret: {
+			type: 'string',
+			description: 'The re-captcha secret key',
 		},
 	},
 	required: ['encryptedPassphrase'],
@@ -55,6 +55,6 @@ export const config = {
 		amount: (10 ** 8 * 100).toString(), // 100 LSK,
 		tokenPrefix: 'lsk',
 		logoURL: undefined,
-		captcha: undefined,
+		captchaSecret: undefined,
 	},
 };
