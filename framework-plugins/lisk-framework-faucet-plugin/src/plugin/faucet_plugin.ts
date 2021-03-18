@@ -14,6 +14,7 @@
 
 import { APIClient, createClient } from '@liskhq/lisk-api-client';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
 import {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
@@ -192,7 +193,7 @@ export class FaucetPlugin extends BasePlugin {
 
 		const config = {
 			applicationUrl: this._options.applicationUrl,
-			amount: (BigInt(this._options.amount) / BigInt(10 ** 8)).toString(),
+			amount: this._options.amount,
 			tokenPrefix: this._options.tokenPrefix,
 			captcha: this._options.captcha,
 			logoURL: this._options.logoURL,
@@ -222,7 +223,7 @@ export class FaucetPlugin extends BasePlugin {
 
 	private async _transferFunds(address: string): Promise<void> {
 		const transferTransactionAsset = {
-			amount: BigInt(this._options.amount),
+			amount: BigInt(convertLSKToBeddows(this._options.amount)),
 			recipientAddress: Buffer.from(address, 'hex'),
 			data: '',
 		};
