@@ -13,7 +13,7 @@ $ npm install --save @liskhq/lisk-framework-dashboard-plugin
 ```
 {
 	applicationURL?: string,
-  host?:string,
+	host?: string,
 	port?: number,
 }
 ```

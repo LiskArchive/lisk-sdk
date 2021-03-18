@@ -33,8 +33,8 @@ export const config = {
 	},
 	required: [],
 	default: {
-		applicationUrl: 'ws://localhost:8080',
-		port: 4000,
+		applicationUrl: 'ws://localhost:8080/ws',
+		port: 4005,
 		host: '127.0.0.1',
 	},
 };
