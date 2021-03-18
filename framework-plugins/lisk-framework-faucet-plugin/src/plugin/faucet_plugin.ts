@@ -188,7 +188,7 @@ export class FaucetPlugin extends BasePlugin {
 		this._options = objects.mergeDeep(
 			{},
 			defaults.config.default,
-			this._options,
+			this.options,
 		) as FaucetPluginOptions;
 
 		const config = {
@@ -205,7 +205,7 @@ export class FaucetPlugin extends BasePlugin {
 		);
 		const app = express();
 		app.use(express.static(join(__dirname, '../../build')));
-		this._server = app.listen(3333, 'localhost');
+		this._server = app.listen(this._options.port, this._options.host);
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
