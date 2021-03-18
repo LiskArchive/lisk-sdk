@@ -161,7 +161,7 @@ export class FaucetPlugin extends BasePlugin {
 					method: 'post',
 					url: 'https://www.google.com/recaptcha/api/siteverify',
 					params: {
-						secret: this.options.captchaSecret,
+						secret: this.options.captchaSecretkey,
 						response: token,
 					},
 				});
