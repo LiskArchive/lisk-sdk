@@ -26,9 +26,7 @@ import {
 	ValidateAssetContext,
 } from '../types';
 import { ModuleClass } from './types';
-import { StateStoreMock } from './mocks/state_store_mock';
-import { reducerHandlerMock } from './mocks/reducer_handler_mock';
-import { consensusMock } from './mocks/consensus_mock';
+import { consensusMock, reducerHandlerMock, StateStoreMock } from './mocks';
 import * as fixtures from './fixtures';
 
 export const createAfterGenesisBlockApplyContext = <T = unknown>(params: {

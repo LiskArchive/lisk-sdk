@@ -52,7 +52,7 @@ describe('StateStoreMock', () => {
 			it('should add update the existing account', async () => {
 				const result = await mock.account.get(Buffer.from('accountA'));
 				result.token.balance = BigInt(300);
-				mock.account.set(Buffer.from('accountA'), result);
+				await mock.account.set(Buffer.from('accountA'), result);
 				const updated = await mock.account.get(Buffer.from('accountA'));
 				expect(updated.token.balance).toEqual(BigInt(300));
 			});
@@ -113,7 +113,7 @@ describe('StateStoreMock', () => {
 			it('should update the existing data', async () => {
 				let result = await mock.chain.get('chain:dpos');
 				result = Buffer.from('updated');
-				mock.chain.set('chain:dpos', result);
+				await mock.chain.set('chain:dpos', result);
 				const updated = await mock.chain.get('chain:dpos');
 				expect(updated).toEqual(Buffer.from('updated'));
 			});
@@ -153,7 +153,7 @@ describe('StateStoreMock', () => {
 			it('should update the existing data', async () => {
 				let result = await mock.consensus.get('finality');
 				result = Buffer.from('100');
-				mock.consensus.set('finality', result);
+				await mock.consensus.set('finality', result);
 				const updated = await mock.consensus.get('finality');
 				expect(updated).toEqual(Buffer.from('100'));
 			});
