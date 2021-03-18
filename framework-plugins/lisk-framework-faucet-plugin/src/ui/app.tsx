@@ -20,9 +20,7 @@ interface FaucetConfig {
 	applicationUrl: string;
 	tokenPrefix: string;
 	logoURL: string;
-	captcha: {
-		sitekey: string;
-	};
+	captchaSitekey: string;
 }
 
 declare global {
@@ -35,7 +33,13 @@ declare global {
 const WarningIcon = () => <span className={`${styles.icon} ${styles.warning}`}>&#xE8B2;</span>;
 
 export const App: React.FC = () => {
-	const { amount, tokenPrefix: prefix, captcha, applicationUrl, logoURL } = window.FAUCET_CONFIG;
+	const {
+		amount,
+		tokenPrefix: prefix,
+		captchaSitekey,
+		applicationUrl,
+		logoURL,
+	} = window.FAUCET_CONFIG;
 	const faucetAddress = 'lskdwsyfmcko6mcd357446yatromr9vzgu7eb8y99';
 	const [input, updateInput] = React.useState('');
 	const [errorMsg, updateErrorMsg] = React.useState('');
@@ -59,7 +63,7 @@ export const App: React.FC = () => {
 				}
 				// eslint-disable-next-line
 				window.grecaptcha.render('recapcha', {
-					sitekey: captcha.sitekey,
+					sitekey: captchaSitekey,
 					callback: (newToken: string) => updateToken(newToken),
 				});
 				updateRecaptchaReady(true);
