@@ -15,6 +15,8 @@
 import { PluginOptionsWithAppConfig } from 'lisk-framework';
 
 export interface FaucetPluginOptions extends PluginOptionsWithAppConfig {
+	port: number;
+	host: string;
 	encryptedPassphrase: string;
 	applicationUrl: string;
 	fee: string;
