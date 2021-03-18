@@ -41,7 +41,7 @@ describe('Node', () => {
 	let dposModule: BaseModule;
 
 	const { genesisBlock, genesisBlockJSON } = createGenesisBlock({
-		modules: [TokenModule],
+		modules: [TokenModule, DPoSModule],
 	});
 	const lastBlock = genesisBlock;
 

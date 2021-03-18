@@ -15,11 +15,9 @@
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { createGenesisBlock } from '../../../src/testing';
-import { DPoSModule, TokenModule } from '../../../src';
+import { TokenModule } from '../../../src';
 
 describe('Create Genesis Block', () => {
-	const dposModule = new DPoSModule({} as never);
-
 	it('should return a valid genesis block', () => {
 		expect(
 			createGenesisBlock({ modules: [], accounts: [], timestamp: 123456789 }),
@@ -32,11 +30,7 @@ describe('Create Genesis Block', () => {
 		const { genesisBlock } = createGenesisBlock({ modules: [], accounts });
 
 		expect(genesisBlock.header.asset.accounts).toHaveLength(1);
-		expect(genesisBlock.header.asset.accounts[0]).toEqual(
-			objects.mergeDeep({}, accounts[0], {
-				[dposModule.name]: dposModule.accountSchema.default,
-			}),
-		);
+		expect(genesisBlock.header.asset.accounts).toEqual(accounts);
 	});
 
 	it('should return valid accounts with custom module schema', () => {
@@ -49,7 +43,6 @@ describe('Create Genesis Block', () => {
 		expect(genesisBlock.header.asset.accounts[0]).toEqual(
 			objects.mergeDeep({}, accounts[0], {
 				[tokenModule.name]: tokenModule.accountSchema.default,
-				[dposModule.name]: dposModule.accountSchema.default,
 			}),
 		);
 	});

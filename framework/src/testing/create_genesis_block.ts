@@ -19,7 +19,6 @@ import { createGenesisBlock as createGenesis, getGenesisBlockJSON } from '@liskh
 import { ModuleClass, PartialAccount } from './types';
 import { getAccountSchemaFromModules } from './utils';
 import { GenesisConfig } from '../types';
-import { DPoSModule } from '../modules';
 import { defaultAccountsAddresses, defaultDelegates } from './fixtures/accounts';
 
 interface CreateGenesisBlock<T> {
@@ -36,12 +35,6 @@ interface CreateGenesisBlock<T> {
 export const createGenesisBlock = <T = AccountDefaultProps>(
 	params: CreateGenesisBlock<T>,
 ): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
-	// TODO: Remove this dependency in future
-	const modules = [...params.modules];
-	if (!params.modules.includes(DPoSModule)) {
-		modules.push(DPoSModule);
-	}
-
 	const defaultAccounts = defaultAccountsAddresses.map(
 		accountAddress => ({ address: Buffer.from(accountAddress, 'hex') } as PartialAccount<T>),
 	);
@@ -56,7 +49,7 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 	const accounts = params.accounts ?? [...defaultAccounts, ...defaultIntDelegates];
 	const initDelegates: ReadonlyArray<Buffer> =
 		params.initDelegates ?? defaultIntDelegates.map(delegate => delegate.address);
-	const accountAssetSchemas = getAccountSchemaFromModules(modules, params.genesisConfig);
+	const accountAssetSchemas = getAccountSchemaFromModules(params.modules, params.genesisConfig);
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
 	// Set genesis block timestamp to 1 day in past relative to current date
@@ -76,7 +69,7 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 
 	const genesisBlockJSON = getGenesisBlockJSON({
 		genesisBlock: genesisBlock as never,
-		accountAssetSchemas: getAccountSchemaFromModules(modules),
+		accountAssetSchemas: getAccountSchemaFromModules(params.modules),
 	});
 
 	return {

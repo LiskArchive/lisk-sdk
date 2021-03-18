@@ -14,7 +14,7 @@
 
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 
-import { TokenModule } from '../../../src/modules/token/token_module';
+import { DPoSModule, TokenModule } from '../../../src';
 import { createBlock } from '../../../src/testing';
 import {
 	getBlockProcessingEnv,
@@ -25,7 +25,7 @@ import { defaultAccount } from '../../../src/testing/fixtures';
 describe('getBlockProcessingEnv', () => {
 	let blockProcessEnv: BlockProcessingEnv;
 	const databasePath = '/tmp/lisk/block_process/test';
-	const modules = [TokenModule];
+	const modules = [TokenModule, DPoSModule];
 
 	beforeEach(async () => {
 		blockProcessEnv = await getBlockProcessingEnv({
