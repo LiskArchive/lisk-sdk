@@ -195,7 +195,7 @@ export class FaucetPlugin extends BasePlugin {
 			applicationUrl: this._options.applicationUrl,
 			amount: this._options.amount,
 			tokenPrefix: this._options.tokenPrefix,
-			captcha: this._options.captchaSecret,
+			captchaSitekey: this._options.captchaSitekey,
 			logoURL: this._options.logoURL,
 		};
 		// Write config file for faucet
