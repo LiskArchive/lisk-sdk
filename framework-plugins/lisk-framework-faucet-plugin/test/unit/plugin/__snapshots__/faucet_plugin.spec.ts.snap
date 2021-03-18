@@ -16,7 +16,6 @@ Object {
   "default": Object {
     "amount": "10000000000",
     "applicationUrl": "ws://localhost:8080/ws",
-    "captchaSecret": undefined,
     "fee": "10000000",
     "logoURL": undefined,
     "tokenPrefix": "lsk",
@@ -31,8 +30,12 @@ Object {
       "format": "uri",
       "type": "string",
     },
-    "captchaSecret": Object {
+    "captchaSecretkey": Object {
       "description": "The re-captcha secret key",
+      "type": "string",
+    },
+    "captchaSitekey": Object {
+      "description": "The re-captcha site key",
       "type": "string",
     },
     "encryptedPassphrase": Object {
