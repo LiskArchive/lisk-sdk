@@ -16,6 +16,15 @@ export const config = {
 	$id: '#/plugins/lisk-faucet/config',
 	type: 'object',
 	properties: {
+		port: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 65535,
+		},
+		host: {
+			type: 'string',
+			format: 'ip',
+		},
 		encryptedPassphrase: {
 			type: 'string',
 			format: 'encryptedPassphrase',
@@ -52,12 +61,13 @@ export const config = {
 			description: 'The re-captcha site key',
 		},
 	},
-	required: ['encryptedPassphrase'],
+	required: ['encryptedPassphrase', 'captchaSecretkey', 'captchaSitekey'],
 	default: {
+		port: 4004,
+		host: '127.0.0.1',
 		applicationUrl: 'ws://localhost:8080/ws',
 		fee: (10 ** 8 * 0.1).toString(), // 0.1 LSK,
-		amount: (10 ** 8 * 100).toString(), // 100 LSK,
+		amount: '100', // 100 LSK,
 		tokenPrefix: 'lsk',
-		logoURL: undefined,
 	},
 };
