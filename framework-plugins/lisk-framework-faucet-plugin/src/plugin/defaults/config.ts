@@ -59,7 +59,5 @@ export const config = {
 		amount: (10 ** 8 * 100).toString(), // 100 LSK,
 		tokenPrefix: 'lsk',
 		logoURL: undefined,
-		captchaSitekey: undefined,
-		captchaSecretkey: undefined,
 	},
 };
