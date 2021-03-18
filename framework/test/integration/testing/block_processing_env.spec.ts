@@ -69,6 +69,7 @@ describe('getBlockProcessingEnv', () => {
 	});
 
 	it('should enable to use data access', async () => {
+		await blockProcessEnv.processUntilHeight(2);
 		const account = await blockProcessEnv
 			.getDataAccess()
 			.getAccountByAddress(defaultAccount.address);

@@ -36,12 +36,12 @@ interface CreateGenesisBlock<T> {
 export const createGenesisBlock = <T = AccountDefaultProps>(
 	params: CreateGenesisBlock<T>,
 ): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
+	// TODO: Remove this dependency in future
 	const modules = [...params.modules];
 	if (!params.modules.includes(DPoSModule)) {
 		modules.push(DPoSModule);
 	}
 
-	const accountAssetSchemas = getAccountSchemaFromModules(modules, params.genesisConfig);
 	const defaultAccounts = defaultAccountsAddresses.map(
 		accountAddress => ({ address: Buffer.from(accountAddress, 'hex') } as PartialAccount<T>),
 	);
@@ -52,16 +52,17 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 				address: delegate.address,
 			} as unknown) as PartialAccount<T>),
 	);
-	// Set genesis block timestamp to 1 day in past relative to current date
-	const defaultTimestamp = Math.floor(new Date().setDate(new Date().getDay() - 1) / 1000);
 
+	const accounts = params.accounts ?? [...defaultAccounts, ...defaultIntDelegates];
 	const initDelegates: ReadonlyArray<Buffer> =
 		params.initDelegates ?? defaultIntDelegates.map(delegate => delegate.address);
+	const accountAssetSchemas = getAccountSchemaFromModules(modules, params.genesisConfig);
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
+	// Set genesis block timestamp to 1 day in past relative to current date
+	const defaultTimestamp = Math.floor(new Date().setDate(new Date().getDay() - 1) / 1000);
 	const timestamp = params.timestamp ?? defaultTimestamp;
 	const previousBlockID = params.previousBlockID ?? Buffer.alloc(0);
-	const accounts = params.accounts ?? defaultAccounts;
 
 	const genesisBlock = createGenesis<T>({
 		accounts,
