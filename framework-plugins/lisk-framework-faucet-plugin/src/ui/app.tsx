@@ -89,7 +89,7 @@ export const App: React.FC = () => {
 		try {
 			const client = await apiClient.createWSClient(applicationUrl);
 			await client.invoke('faucet:fundTokens', {
-				address: getAddressFromBase32Address(input, prefix),
+				address: getAddressFromBase32Address(input, prefix).toString('hex'),
 				token,
 			});
 			updateErrorMsg('');
