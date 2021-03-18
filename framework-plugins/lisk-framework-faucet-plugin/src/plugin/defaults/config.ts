@@ -47,6 +47,10 @@ export const config = {
 			type: 'string',
 			description: 'The re-captcha secret key',
 		},
+		captchaSitekey: {
+			type: 'string',
+			description: 'The re-captcha site key',
+		},
 	},
 	required: ['encryptedPassphrase'],
 	default: {
@@ -55,6 +59,7 @@ export const config = {
 		amount: (10 ** 8 * 100).toString(), // 100 LSK,
 		tokenPrefix: 'lsk',
 		logoURL: undefined,
-		captchaSecret: undefined,
+		captchaSiteKey: undefined,
+		captchaSecretKey: undefined,
 	},
 };
