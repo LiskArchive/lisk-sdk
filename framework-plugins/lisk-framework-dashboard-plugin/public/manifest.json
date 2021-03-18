@@ -1,6 +1,6 @@
 {
-	"short_name": "React App",
-	"name": "Create React App Sample",
+	"short_name": "Dashboard Plugin",
+	"name": "Lisk SDK Dashboard Plugin",
 	"icons": [
 		{
 			"src": "favicon.ico",
