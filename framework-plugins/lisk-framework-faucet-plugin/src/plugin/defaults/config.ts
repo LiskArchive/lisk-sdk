@@ -66,8 +66,8 @@ export const config = {
 		port: 4004,
 		host: '127.0.0.1',
 		applicationUrl: 'ws://localhost:8080/ws',
-		fee: (10 ** 8 * 0.1).toString(), // 0.1 LSK,
-		amount: '100', // 100 LSK,
+		fee: '0.1',
+		amount: '100',
 		tokenPrefix: 'lsk',
 	},
 };
