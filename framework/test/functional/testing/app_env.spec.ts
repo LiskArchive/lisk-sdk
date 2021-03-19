@@ -47,7 +47,6 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['dpos']);
 		});
 
 		it('should return valid environment with custom module', async () => {
@@ -59,10 +58,7 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues([
-				'token',
-				'dpos',
-			]);
+			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['token']);
 		});
 
 		it('should return valid environment with custom config', async () => {
@@ -79,7 +75,6 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['dpos']);
 		});
 	});
 });

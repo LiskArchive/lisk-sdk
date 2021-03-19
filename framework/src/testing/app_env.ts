@@ -22,7 +22,6 @@ import { defaultConfig } from './fixtures';
 import { createGenesisBlock } from './create_genesis_block';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
-import { DPoSModule } from '../modules/dpos';
 import { InstantiablePlugin } from '../plugins/base_plugin';
 
 interface ApplicationEnvConfig {
@@ -105,10 +104,6 @@ export class ApplicationEnv {
 		// As we can call this function with different configuration
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
-		// TODO: Remove this dependency in future
-		if (!appConfig.modules.includes(DPoSModule)) {
-			appConfig.modules.push(DPoSModule);
-		}
 		const { genesisBlockJSON } = createGenesisBlock({ modules: appConfig.modules });
 		const config = { ...defaultConfig, ...(appConfig.config ?? {}) };
 		const { label } = config;

@@ -41,20 +41,7 @@ export const defaultAccounts = <T>(): PartialAccount<T>[] =>
 		account => ({ address: Buffer.from(account.address, 'hex') } as PartialAccount<T>),
 	);
 
-export const defaultInitialDelegates = <T>(): PartialAccount<T>[] =>
-	defaultConfig.forging.delegates.map(
-		(account, i) =>
-			(({
-				address: Buffer.from(account.address, 'hex'),
-				dpos: {
-					delegate: {
-						username: `delegate_${i}`,
-					},
-				},
-			} as unknown) as PartialAccount<T>),
-	);
-
-const getDelegateConfig = (address: Buffer) => {
+const getDelegateFromDefaultConfig = (address: Buffer) => {
 	const delegateConfig = defaultConfig.forging.delegates.find(d =>
 		address.equals(Buffer.from(d.address, 'hex')),
 	);
@@ -67,16 +54,16 @@ const getDelegateConfig = (address: Buffer) => {
 	return delegateConfig;
 };
 
-export const getPassphraseByAddress = (address: Buffer): string => {
-	const delegateConfig = getDelegateConfig(address);
+export const getPassphraseFromDefaultConfig = (address: Buffer): string => {
+	const delegateConfig = getDelegateFromDefaultConfig(address);
 	const encryptedPassphraseObject = parseEncryptedPassphrase(delegateConfig.encryptedPassphrase);
 	const passphrase = decryptPassphraseWithPassword(encryptedPassphraseObject, defaultPassword);
 
 	return passphrase;
 };
 
-export const getHashOnionByAddress = (address: Buffer, count: number): Buffer => {
-	const delegateConfig = getDelegateConfig(address);
+export const getHashOnionFromDefaultConfig = (address: Buffer, count: number): Buffer => {
+	const delegateConfig = getDelegateFromDefaultConfig(address);
 	const { distance, hashes } = delegateConfig.hashOnion;
 
 	const nextCheckpointIndex = Math.ceil(count / distance);

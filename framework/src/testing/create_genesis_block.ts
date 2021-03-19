@@ -19,7 +19,7 @@ import { createGenesisBlock as createGenesis, getGenesisBlockJSON } from '@liskh
 import { ModuleClass, PartialAccount } from './types';
 import { getAccountSchemaFromModules } from './utils';
 import { GenesisConfig } from '../types';
-import { defaultAccounts, defaultInitialDelegates } from './fixtures/accounts';
+import { defaultAccounts } from './fixtures/accounts';
 
 interface CreateGenesisBlock<T> {
 	modules: ModuleClass[];
@@ -37,7 +37,7 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 ): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
 	const accounts = params.accounts ?? defaultAccounts<T>();
 	const initDelegates: ReadonlyArray<Buffer> =
-		params.initDelegates ?? defaultInitialDelegates<T>().map(delegate => delegate.address);
+		params.initDelegates ?? accounts.map(delegate => delegate.address);
 	const accountAssetSchemas = getAccountSchemaFromModules(params.modules, params.genesisConfig);
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;

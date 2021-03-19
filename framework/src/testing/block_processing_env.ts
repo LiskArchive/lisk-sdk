@@ -24,7 +24,11 @@ import { Processor } from '../node/processor';
 import { InMemoryChannel } from '../controller';
 import { loggerMock, channelMock } from './mocks';
 import { createBlock } from './create_block';
-import { defaultConfig, getHashOnionByAddress, getPassphraseByAddress } from './fixtures';
+import {
+	defaultConfig,
+	getHashOnionFromDefaultConfig,
+	getPassphraseFromDefaultConfig,
+} from './fixtures';
 import { createDB, removeDB, getAccountSchemaFromModules } from './utils';
 import { ApplicationConfig, GenesisConfig } from '../types';
 import { ModuleClass } from './types';
@@ -45,7 +49,7 @@ export interface BlockProcessingEnv {
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
-	getValidators: (height: number) => Promise<Validator[]>;
+	getValidators: () => Promise<Validator[]>;
 	getNextValidatorPassphrase: (blockHeader: BlockHeader) => Promise<string>;
 	getDataAccess: () => DataAccess;
 	getNetworkId: () => Buffer;
@@ -141,11 +145,11 @@ export const getBlockProcessingEnv = async (
 			for (let index = 0; index < height; index += 1) {
 				// Get previous block before creating and processing new block
 				const previousBlockHeader = processor['_chain'].lastBlock.header;
-				// Get next validator by using previous timestamp info
+				// Get next validatgetPassphraseFromDefaultConfigimestamp info
 				const nextTimestamp = getNextTimestamp(processor, previousBlockHeader);
 				const validator = await getNextValidator(processor, previousBlockHeader);
-				const passphrase = getPassphraseByAddress(validator.address);
-				const seedReveal = getHashOnionByAddress(validator.address, index);
+				const passphrase = getPassphraseFromDefaultConfig(validator.address);
+				const seedReveal = getHashOnionFromDefaultConfig(validator.address, index);
 				const maxHeightPrevoted = await processor['_bft'].getMaxHeightPrevoted();
 
 				const nextBlock = createBlock({
@@ -171,7 +175,7 @@ export const getBlockProcessingEnv = async (
 		getValidators: async (): Promise<Validator[]> => processor['_chain'].getValidators(),
 		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
 			const validator = await getNextValidator(processor, previousBlockHeader);
-			const passphrase = getPassphraseByAddress(validator.address);
+			const passphrase = getPassphraseFromDefaultConfig(validator.address);
 
 			return passphrase;
 		},

@@ -14,7 +14,7 @@
 
 import { getRandomBytes, getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 
-import { DPoSModule, TokenModule } from '../../../src';
+import { TokenModule } from '../../../src';
 import { createBlock } from '../../../src/testing';
 import {
 	getBlockProcessingEnv,
@@ -25,7 +25,7 @@ import { defaultConfig } from '../../../src/testing/fixtures/config';
 describe('getBlockProcessingEnv', () => {
 	let blockProcessEnv: BlockProcessingEnv;
 	const databasePath = '/tmp/lisk/block_process/test';
-	const modules = [TokenModule, DPoSModule];
+	const modules = [TokenModule];
 	const { blockTime } = defaultConfig.genesisConfig;
 
 	beforeEach(async () => {
@@ -39,6 +39,28 @@ describe('getBlockProcessingEnv', () => {
 
 	afterEach(async () => {
 		await blockProcessEnv.cleanup({ databasePath });
+	});
+
+	it('should get genesis block as the last block', () => {
+		// Act & Assert
+		const { height } = blockProcessEnv.getLastBlock().header;
+		expect(height).toEqual(0);
+	});
+
+	it('should return all registered validators', async () => {
+		// Act & Assert
+		const validators = await blockProcessEnv.getValidators();
+		expect(validators).toHaveLength(defaultConfig.forging.delegates.length);
+	});
+
+	it('should return a valid passphrase for next validator', async () => {
+		// Arrange
+		const { header } = blockProcessEnv.getLastBlock();
+
+		// Act & Assert
+		const passphrase = await blockProcessEnv.getNextValidatorPassphrase(header);
+		expect(passphrase).toBeString();
+		expect(passphrase.split(' ')).toHaveLength(12);
 	});
 
 	it('should be able to process a valid block', async () => {
@@ -68,10 +90,12 @@ describe('getBlockProcessingEnv', () => {
 	});
 
 	it('should be able to process blocks until given height', async () => {
-		// Arrange, Act & Assert
-		const createBlockUntilHeight = 10;
-		await blockProcessEnv.processUntilHeight(createBlockUntilHeight);
-		expect(blockProcessEnv.getLastBlock().header.height).toEqual(createBlockUntilHeight);
+		// Arrange
+		const untilHeight = 101;
+
+		// Act & Assert
+		await blockProcessEnv.processUntilHeight(untilHeight);
+		expect(blockProcessEnv.getLastBlock().header.height).toEqual(untilHeight);
 	});
 
 	it('should process block with correct validator', async () => {
