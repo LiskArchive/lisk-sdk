@@ -2,9 +2,9 @@
 
 exports[`DashboardPlugin constructor should load default config 1`] = `
 Object {
-  "applicationUrl": "ws://localhost:8080",
+  "applicationUrl": "ws://localhost:8080/ws",
   "host": "127.0.0.1",
-  "port": 4000,
+  "port": 4005,
 }
 `;
 
@@ -12,9 +12,9 @@ exports[`DashboardPlugin defaults should return valid config schema with default
 Object {
   "$id": "#/plugins/lisk-dashboard/config",
   "default": Object {
-    "applicationUrl": "ws://localhost:8080",
+    "applicationUrl": "ws://localhost:8080/ws",
     "host": "127.0.0.1",
-    "port": 4000,
+    "port": 4005,
   },
   "properties": Object {
     "applicationUrl": Object {
