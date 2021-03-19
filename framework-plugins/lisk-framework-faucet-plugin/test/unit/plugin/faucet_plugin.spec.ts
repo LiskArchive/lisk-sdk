@@ -15,6 +15,8 @@
 import { FaucetPlugin } from '../../../src/plugin';
 
 const validOptions = {
+	captchaSitekey: '123',
+	captchaSecretkey: '123',
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 };
@@ -36,7 +38,9 @@ describe('FaucetPlugin', () => {
 		});
 
 		it('should throw error if valid options are not passed', () => {
-			expect(() => new FaucetPlugin({} as never)).toThrow(
+			expect(
+				() => new FaucetPlugin({ captchaSitekey: '123', captchaSecretkey: '123' } as never),
+			).toThrow(
 				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'encryptedPassphrase'",
 			);
 		});
