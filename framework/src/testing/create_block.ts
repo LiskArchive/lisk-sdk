@@ -101,7 +101,7 @@ export const createBlock = <T = BlockHeaderAsset>({
 
 	const blockHeader = createBlockHeaderWithDefaults({
 		previousBlockID,
-		timestamp: timestamp + 10,
+		timestamp,
 		transactionRoot: header?.transactionRoot ?? txTree.root,
 		generatorPublicKey: publicKey,
 		...header,

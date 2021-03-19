@@ -15,8 +15,8 @@
  */
 
 import { BFT } from '@liskhq/lisk-bft';
-import { Block, Chain, DataAccess, GenesisBlock } from '@liskhq/lisk-chain';
-import { getRandomBytes, getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { Block, Chain, DataAccess, GenesisBlock, Validator, BlockHeader } from '@liskhq/lisk-chain';
+import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 
@@ -24,7 +24,7 @@ import { Processor } from '../node/processor';
 import { InMemoryChannel } from '../controller';
 import { loggerMock, channelMock } from './mocks';
 import { createBlock } from './create_block';
-import { defaultAccount, defaultConfig } from './fixtures';
+import { defaultConfig, getHashOnionByAddress, getPassphraseByAddress } from './fixtures';
 import { createDB, removeDB, getAccountSchemaFromModules } from './utils';
 import { ApplicationConfig, GenesisConfig } from '../types';
 import { ModuleClass } from './types';
@@ -45,6 +45,8 @@ export interface BlockProcessingEnv {
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
+	getValidators: (height: number) => Promise<Validator[]>;
+	getNextValidatorPassphrase: (blockHeader: BlockHeader) => Promise<string>;
 	getDataAccess: () => DataAccess;
 	getNetworkId: () => Buffer;
 	cleanup: (config: Options) => Promise<void>;
@@ -104,6 +106,22 @@ const getProcessor = (
 	return processor;
 };
 
+const getNextTimestamp = (processor: Processor, previousBlock: BlockHeader) => {
+	const previousSlotNumber = processor['_chain'].slots.getSlotNumber(previousBlock.timestamp);
+
+	return processor['_chain'].slots.getSlotTime(previousSlotNumber + 1);
+};
+
+const getNextValidator = async (
+	processor: Processor,
+	previousBlock: BlockHeader,
+): Promise<Validator> => {
+	const nextTimestamp = getNextTimestamp(processor, previousBlock);
+	const validator = await processor['_chain'].getValidator(nextTimestamp);
+
+	return validator;
+};
+
 export const getBlockProcessingEnv = async (
 	params: BlockProcessingParams,
 ): Promise<BlockProcessingEnv> => {
@@ -122,27 +140,41 @@ export const getBlockProcessingEnv = async (
 		processUntilHeight: async (height): Promise<void> => {
 			for (let index = 0; index < height; index += 1) {
 				// Get previous block before creating and processing new block
-				const { height: lastBlockHeight, id, timestamp } = processor['_chain'].lastBlock.header;
+				const previousBlockHeader = processor['_chain'].lastBlock.header;
+				// Get next validator by using previous timestamp info
+				const nextTimestamp = getNextTimestamp(processor, previousBlockHeader);
+				const validator = await getNextValidator(processor, previousBlockHeader);
+				const passphrase = getPassphraseByAddress(validator.address);
+				const seedReveal = getHashOnionByAddress(validator.address, index);
+				const maxHeightPrevoted = await processor['_bft'].getMaxHeightPrevoted();
 
 				const nextBlock = createBlock({
-					passphrase: defaultAccount.passphrase,
+					passphrase,
 					networkIdentifier,
-					timestamp: timestamp + 10,
-					previousBlockID: id,
+					timestamp: nextTimestamp,
+					previousBlockID: previousBlockHeader.id,
 					header: {
-						height: lastBlockHeight + 1,
+						height: previousBlockHeader.height + 1,
 						asset: {
-							maxHeightPreviouslyForged: lastBlockHeight + 1,
-							maxHeightPrevoted: 0,
-							seedReveal: getRandomBytes(16),
+							maxHeightPreviouslyForged: previousBlockHeader.height,
+							maxHeightPrevoted,
+							seedReveal,
 						},
 					},
 					payload: [],
 				});
+
 				await processor.process(nextBlock);
 			}
 		},
 		getLastBlock: () => processor['_chain'].lastBlock,
+		getValidators: async (): Promise<Validator[]> => processor['_chain'].getValidators(),
+		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
+			const validator = await getNextValidator(processor, previousBlockHeader);
+			const passphrase = getPassphraseByAddress(validator.address);
+
+			return passphrase;
+		},
 		getNetworkId: () => networkIdentifier,
 		getDataAccess: () => processor['_chain'].dataAccess,
 		cleanup: async ({ databasePath }): Promise<void> => {

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 
 import { DPoSModule, TokenModule } from '../../../src';
 import { createBlock } from '../../../src/testing';
@@ -20,12 +20,13 @@ import {
 	getBlockProcessingEnv,
 	BlockProcessingEnv,
 } from '../../../src/testing/block_processing_env';
-import { defaultAccount } from '../../../src/testing/fixtures';
+import { defaultConfig } from '../../../src/testing/fixtures/config';
 
 describe('getBlockProcessingEnv', () => {
 	let blockProcessEnv: BlockProcessingEnv;
 	const databasePath = '/tmp/lisk/block_process/test';
 	const modules = [TokenModule, DPoSModule];
+	const { blockTime } = defaultConfig.genesisConfig;
 
 	beforeEach(async () => {
 		blockProcessEnv = await getBlockProcessingEnv({
@@ -41,11 +42,13 @@ describe('getBlockProcessingEnv', () => {
 	});
 
 	it('should be able to process a valid block', async () => {
+		// Arrange
 		const lastBlockHeader = blockProcessEnv.getLastBlock().header;
+		const passphrase = await blockProcessEnv.getNextValidatorPassphrase(lastBlockHeader);
 		const block = createBlock({
-			passphrase: defaultAccount.passphrase,
+			passphrase,
 			networkIdentifier: blockProcessEnv.getNetworkId(),
-			timestamp: lastBlockHeader.timestamp + 10,
+			timestamp: lastBlockHeader.timestamp + blockTime,
 			previousBlockID: lastBlockHeader.id,
 			header: {
 				asset: {
@@ -56,6 +59,8 @@ describe('getBlockProcessingEnv', () => {
 			},
 			payload: [],
 		});
+
+		// Act & Assert
 		expect(blockProcessEnv.getLastBlock().header.height).toEqual(0);
 		await expect(blockProcessEnv.process(block)).toResolve();
 		expect(blockProcessEnv.getLastBlock().header.height).toEqual(block.header.height);
@@ -63,16 +68,20 @@ describe('getBlockProcessingEnv', () => {
 	});
 
 	it('should be able to process blocks until given height', async () => {
+		// Arrange, Act & Assert
 		const createBlockUntilHeight = 10;
 		await blockProcessEnv.processUntilHeight(createBlockUntilHeight);
 		expect(blockProcessEnv.getLastBlock().header.height).toEqual(createBlockUntilHeight);
 	});
 
-	it('should enable to use data access', async () => {
-		await blockProcessEnv.processUntilHeight(2);
-		const account = await blockProcessEnv
-			.getDataAccess()
-			.getAccountByAddress(defaultAccount.address);
-		expect(account.address).toEqual(defaultAccount.address);
+	it('should process block with correct validator', async () => {
+		// Arrange
+		const lastBlockHeader = blockProcessEnv.getLastBlock().header;
+		const passphrase = await blockProcessEnv.getNextValidatorPassphrase(lastBlockHeader);
+		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
+
+		// Act & Assert
+		await blockProcessEnv.processUntilHeight(1);
+		expect(blockProcessEnv.getLastBlock().header.generatorPublicKey).toEqual(publicKey);
 	});
 });

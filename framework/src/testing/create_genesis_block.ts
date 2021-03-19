@@ -19,7 +19,7 @@ import { createGenesisBlock as createGenesis, getGenesisBlockJSON } from '@liskh
 import { ModuleClass, PartialAccount } from './types';
 import { getAccountSchemaFromModules } from './utils';
 import { GenesisConfig } from '../types';
-import { defaultAccountsAddresses, defaultDelegates } from './fixtures/accounts';
+import { defaultAccounts, defaultInitialDelegates } from './fixtures/accounts';
 
 interface CreateGenesisBlock<T> {
 	modules: ModuleClass[];
@@ -35,20 +35,9 @@ interface CreateGenesisBlock<T> {
 export const createGenesisBlock = <T = AccountDefaultProps>(
 	params: CreateGenesisBlock<T>,
 ): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
-	const defaultAccounts = defaultAccountsAddresses.map(
-		accountAddress => ({ address: Buffer.from(accountAddress, 'hex') } as PartialAccount<T>),
-	);
-	const defaultIntDelegates = defaultDelegates.map(
-		delegate =>
-			(({
-				...delegate,
-				address: delegate.address,
-			} as unknown) as PartialAccount<T>),
-	);
-
-	const accounts = params.accounts ?? [...defaultAccounts, ...defaultIntDelegates];
+	const accounts = params.accounts ?? defaultAccounts<T>();
 	const initDelegates: ReadonlyArray<Buffer> =
-		params.initDelegates ?? defaultIntDelegates.map(delegate => delegate.address);
+		params.initDelegates ?? defaultInitialDelegates<T>().map(delegate => delegate.address);
 	const accountAssetSchemas = getAccountSchemaFromModules(params.modules, params.genesisConfig);
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
