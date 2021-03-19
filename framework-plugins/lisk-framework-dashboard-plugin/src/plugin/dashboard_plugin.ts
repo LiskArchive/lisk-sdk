@@ -71,7 +71,7 @@ export class DashboardPlugin extends BasePlugin {
 		this._options = objects.mergeDeep(
 			{},
 			defaults.config.default,
-			this._options,
+			this.options,
 		) as dashboardPluginOptions;
 		const app = express();
 		app.use(express.static(join(__dirname, '../../build')));
