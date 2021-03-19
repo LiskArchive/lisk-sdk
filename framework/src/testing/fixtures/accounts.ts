@@ -13,19 +13,13 @@
  *
  */
 import { Account, AccountDefaultProps, getAccountSchemaWithDefault } from '@liskhq/lisk-chain';
-import {
-	getRandomBytes,
-	decryptPassphraseWithPassword,
-	parseEncryptedPassphrase,
-	hashOnion,
-} from '@liskhq/lisk-cryptography';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 
 import { ModuleClass, PartialAccount } from '../types';
 import { getAccountSchemaFromModules } from '../utils';
-import { defaultConfig } from './config';
+import { defaultConfig, defaultPassword } from './config';
 
-const defaultPassword = 'elephant tree paris dragon chair galaxy';
 export const defaultFaucetAccount = {
 	address: Buffer.from('d04699e57c4a3846c988f3c15306796f8eae5c1c', 'hex'),
 	publicKey: Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
@@ -40,39 +34,6 @@ export const defaultAccounts = <T>(): PartialAccount<T>[] =>
 	defaultConfig.forging.delegates.map(
 		account => ({ address: Buffer.from(account.address, 'hex') } as PartialAccount<T>),
 	);
-
-const getDelegateFromDefaultConfig = (address: Buffer) => {
-	const delegateConfig = defaultConfig.forging.delegates.find(d =>
-		address.equals(Buffer.from(d.address, 'hex')),
-	);
-	if (!delegateConfig) {
-		throw new Error(
-			`Delegate with address: ${address.toString('hex')} does not exists in default config`,
-		);
-	}
-
-	return delegateConfig;
-};
-
-export const getPassphraseFromDefaultConfig = (address: Buffer): string => {
-	const delegateConfig = getDelegateFromDefaultConfig(address);
-	const encryptedPassphraseObject = parseEncryptedPassphrase(delegateConfig.encryptedPassphrase);
-	const passphrase = decryptPassphraseWithPassword(encryptedPassphraseObject, defaultPassword);
-
-	return passphrase;
-};
-
-export const getHashOnionFromDefaultConfig = (address: Buffer, count: number): Buffer => {
-	const delegateConfig = getDelegateFromDefaultConfig(address);
-	const { distance, hashes } = delegateConfig.hashOnion;
-
-	const nextCheckpointIndex = Math.ceil(count / distance);
-	const nextCheckpoint = Buffer.from(hashes[nextCheckpointIndex], 'hex');
-	const usableHashes = hashOnion(nextCheckpoint, distance, 1);
-	const checkpointIndex = count % distance;
-
-	return usableHashes[checkpointIndex];
-};
 
 export const createDefaultAccount = <T = AccountDefaultProps>(
 	modules: ModuleClass[] = [],

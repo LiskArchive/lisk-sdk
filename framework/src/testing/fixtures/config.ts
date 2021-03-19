@@ -12,6 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	decryptPassphraseWithPassword,
+	parseEncryptedPassphrase,
+	hashOnion,
+} from '@liskhq/lisk-cryptography';
 
 export const defaultConfig = {
 	label: 'beta-sdk-app',
@@ -2347,4 +2352,39 @@ export const defaultConfig = {
 		minReplacementFeeDifference: '10',
 	},
 	plugins: {},
+};
+
+export const defaultPassword = 'elephant tree paris dragon chair galaxy';
+
+const getDelegateFromDefaultConfig = (address: Buffer) => {
+	const delegateConfig = defaultConfig.forging.delegates.find(d =>
+		address.equals(Buffer.from(d.address, 'hex')),
+	);
+	if (!delegateConfig) {
+		throw new Error(
+			`Delegate with address: ${address.toString('hex')} does not exists in default config`,
+		);
+	}
+
+	return delegateConfig;
+};
+
+export const getPassphraseFromDefaultConfig = (address: Buffer): string => {
+	const delegateConfig = getDelegateFromDefaultConfig(address);
+	const encryptedPassphraseObject = parseEncryptedPassphrase(delegateConfig.encryptedPassphrase);
+	const passphrase = decryptPassphraseWithPassword(encryptedPassphraseObject, defaultPassword);
+
+	return passphrase;
+};
+
+export const getHashOnionFromDefaultConfig = (address: Buffer, count: number): Buffer => {
+	const delegateConfig = getDelegateFromDefaultConfig(address);
+	const { distance, hashes } = delegateConfig.hashOnion;
+
+	const nextCheckpointIndex = Math.ceil(count / distance);
+	const nextCheckpoint = Buffer.from(hashes[nextCheckpointIndex], 'hex');
+	const usableHashes = hashOnion(nextCheckpoint, distance, 1);
+	const checkpointIndex = count % distance;
+
+	return usableHashes[checkpointIndex];
 };
