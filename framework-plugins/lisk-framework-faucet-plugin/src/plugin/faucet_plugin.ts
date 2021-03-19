@@ -14,12 +14,14 @@
 
 import { APIClient, createClient } from '@liskhq/lisk-api-client';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
 import {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 	getAddressAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
+import axios from 'axios';
 import {
 	ActionsDefinition,
 	BasePlugin,
@@ -60,6 +62,9 @@ const fundParamsSchema = {
 		address: {
 			type: 'string',
 			format: 'hex',
+		},
+		token: {
+			type: 'string',
 		},
 	},
 };
@@ -142,6 +147,7 @@ export class FaucetPlugin extends BasePlugin {
 			},
 			fundTokens: async (params?: Record<string, unknown>): Promise<{ result: string }> => {
 				const errors = validator.validate(fundParamsSchema, params as Record<string, unknown>);
+				const { address, token } = params as Record<string, unknown>;
 
 				if (errors.length) {
 					throw new LiskValidationError([...errors]);
@@ -151,7 +157,19 @@ export class FaucetPlugin extends BasePlugin {
 					throw new Error('Faucet is not enabled.');
 				}
 
-				const { address } = params as Record<string, unknown>;
+				const captchaResult = await axios({
+					method: 'post',
+					url: 'https://www.google.com/recaptcha/api/siteverify',
+					params: {
+						secret: this.options.captchaSecretkey,
+						response: token,
+					},
+				});
+
+				if (!captchaResult?.data?.success) {
+					throw new Error('Captcha response was invalid.');
+				}
+
 				await this._transferFunds(address as string);
 
 				return {
@@ -170,14 +188,14 @@ export class FaucetPlugin extends BasePlugin {
 		this._options = objects.mergeDeep(
 			{},
 			defaults.config.default,
-			this._options,
+			this.options,
 		) as FaucetPluginOptions;
 
 		const config = {
 			applicationUrl: this._options.applicationUrl,
-			amount: (BigInt(this._options.amount) / BigInt(10 ** 8)).toString(),
+			amount: this._options.amount,
 			tokenPrefix: this._options.tokenPrefix,
-			captcha: this._options.captcha,
+			captchaSitekey: this._options.captchaSitekey,
 			logoURL: this._options.logoURL,
 		};
 		// Write config file for faucet
@@ -187,7 +205,7 @@ export class FaucetPlugin extends BasePlugin {
 		);
 		const app = express();
 		app.use(express.static(join(__dirname, '../../build')));
-		this._server = app.listen(3333, 'localhost');
+		this._server = app.listen(this._options.port, this._options.host);
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
@@ -205,7 +223,7 @@ export class FaucetPlugin extends BasePlugin {
 
 	private async _transferFunds(address: string): Promise<void> {
 		const transferTransactionAsset = {
-			amount: BigInt(this._options.amount),
+			amount: BigInt(convertLSKToBeddows(this._options.amount)),
 			recipientAddress: Buffer.from(address, 'hex'),
 			data: '',
 		};

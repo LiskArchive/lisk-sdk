@@ -15,14 +15,15 @@
 import { PluginOptionsWithAppConfig } from 'lisk-framework';
 
 export interface FaucetPluginOptions extends PluginOptionsWithAppConfig {
+	port: number;
+	host: string;
 	encryptedPassphrase: string;
 	applicationUrl: string;
 	fee: string;
-	token: string;
+	amount: string;
 	tokenPrefix: string;
+	captchaSecret: string;
 	logoURL?: string;
-	captcha?: Record<string, unknown>;
-	amount?: string;
 }
 
 export interface State {

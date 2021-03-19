@@ -17,6 +17,8 @@ import { config } from '../../../src/plugin/defaults';
 
 const validPluginOptions = {
 	...config.default,
+	captchaSitekey: '123',
+	captchaSecretkey: '123',
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 	dataPath: '/my/app',

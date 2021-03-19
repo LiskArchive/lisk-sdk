@@ -20,9 +20,7 @@ interface FaucetConfig {
 	applicationUrl: string;
 	tokenPrefix: string;
 	logoURL: string;
-	captcha: {
-		sitekey: string;
-	};
+	captchaSitekey: string;
 }
 
 declare global {
@@ -35,11 +33,17 @@ declare global {
 const WarningIcon = () => <span className={`${styles.icon} ${styles.warning}`}>&#xE8B2;</span>;
 
 export const App: React.FC = () => {
-	const { amount, tokenPrefix: prefix, captcha, applicationUrl, logoURL } = window.FAUCET_CONFIG;
-	const recaptchaConfig = captcha ?? { sitekey: 'key' };
+	const {
+		amount,
+		tokenPrefix: prefix,
+		captchaSitekey,
+		applicationUrl,
+		logoURL,
+	} = window.FAUCET_CONFIG;
 	const faucetAddress = 'lskdwsyfmcko6mcd357446yatromr9vzgu7eb8y99';
 	const [input, updateInput] = React.useState('');
 	const [errorMsg, updateErrorMsg] = React.useState('');
+	const [token, updateToken] = React.useState<string | undefined>();
 	const [recaptchaReady, updateRecaptchaReady] = React.useState(false);
 	React.useEffect(() => {
 		const script = document.createElement('script');
@@ -58,7 +62,10 @@ export const App: React.FC = () => {
 					return;
 				}
 				// eslint-disable-next-line
-				window.grecaptcha.render('recapcha', recaptchaConfig);
+				window.grecaptcha.render('recapcha', {
+					sitekey: captchaSitekey,
+					callback: (newToken: string) => updateToken(newToken),
+				});
 				updateRecaptchaReady(true);
 			}
 		}, 1000);
@@ -75,12 +82,14 @@ export const App: React.FC = () => {
 	};
 
 	const onSubmit = async () => {
+		if (token === undefined) {
+			updateErrorMsg('Recaptcha must be checked.');
+			return;
+		}
 		try {
-			// eslint-disable-next-line
-			const token = await window.grecaptcha.execute(recaptchaConfig.sitekey, { action: 'submit' });
 			const client = await apiClient.createWSClient(applicationUrl);
-			await client.invoke('faucet:fundToken', {
-				address: getAddressFromBase32Address(input, prefix),
+			await client.invoke('faucet:fundTokens', {
+				address: getAddressFromBase32Address(input, prefix).toString('hex'),
 				token,
 			});
 			updateErrorMsg('');
