@@ -182,9 +182,7 @@ export class FaucetPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await, class-methods-use-this
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
-		// TODO: Channel type should be fixed. See issue #6246
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		this._client = await createClient((this._channel as unknown) as any);
+		this._client = await createClient(this._channel);
 		this._options = objects.mergeDeep(
 			{},
 			defaults.config.default,
@@ -210,7 +208,7 @@ export class FaucetPlugin extends BasePlugin {
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
 	public async unload(): Promise<void> {
-		await new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 			this._server.close(err => {
 				if (err) {
 					reject(err);
