@@ -35,9 +35,9 @@ interface CreateGenesisBlock<T> {
 export const createGenesisBlock = <T = AccountDefaultProps>(
 	params: CreateGenesisBlock<T>,
 ): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
-	const accounts = params.accounts ?? defaultAccounts<T>();
+	const accounts = params.accounts ?? defaultAccounts();
 	const initDelegates: ReadonlyArray<Buffer> =
-		params.initDelegates ?? accounts.map(delegate => delegate.address);
+		params.initDelegates ?? defaultAccounts().map(delegate => delegate.address);
 	const accountAssetSchemas = getAccountSchemaFromModules(params.modules, params.genesisConfig);
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
@@ -58,7 +58,7 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 
 	const genesisBlockJSON = getGenesisBlockJSON({
 		genesisBlock: genesisBlock as never,
-		accountAssetSchemas: getAccountSchemaFromModules(params.modules),
+		accountAssetSchemas,
 	});
 
 	return {

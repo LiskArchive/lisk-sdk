@@ -18,6 +18,8 @@ import {
 	hashOnion,
 } from '@liskhq/lisk-cryptography';
 
+export const defaultPassword = 'elephant tree paris dragon chair galaxy';
+
 export const defaultConfig = {
 	label: 'beta-sdk-app',
 	version: '0.0.0',
@@ -2334,6 +2336,7 @@ export const defaultConfig = {
 				address: '5ade564399e670bd1d429583059067f3a6ca2b7f',
 			},
 		],
+		defaultPassword,
 	},
 	network: {
 		seedPeers: [
@@ -2353,8 +2356,6 @@ export const defaultConfig = {
 	},
 	plugins: {},
 };
-
-export const defaultPassword = 'elephant tree paris dragon chair galaxy';
 
 const getDelegateFromDefaultConfig = (address: Buffer) => {
 	const delegateConfig = defaultConfig.forging.delegates.find(d =>

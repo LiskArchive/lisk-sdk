@@ -19,10 +19,7 @@ import {
 	testing,
 	TokenModule,
 } from 'lisk-framework';
-import * as configJSON from '../fixtures/config.json';
-import * as genesisBlock from '../fixtures/genesis_block.json';
 import { ReportMisbehaviorPlugin } from '../../src';
-import { defaultAccount } from '../fixtures/devnet';
 
 const apiPort = 5002;
 
@@ -44,7 +41,7 @@ export const createApplicationEnv = (
 ): testing.ApplicationEnv => {
 	const rootPath = '~/.lisk/report-misbehavior-plugin';
 	const config = {
-		...configJSON,
+		...testing.fixtures.defaultConfig,
 		rootPath,
 		label,
 		logger: {
@@ -53,13 +50,17 @@ export const createApplicationEnv = (
 			logFileName: 'lisk.log',
 		},
 		network: {
-			...configJSON.network,
+			...testing.fixtures.defaultConfig.network,
 			maxInboundConnections: 0,
+		},
+		forging: {
+			...testing.fixtures.defaultConfig.forging,
+			force: true,
 		},
 		plugins: {
 			reportMisbehavior: {
 				port: apiPort,
-				encryptedPassphrase: defaultAccount.encryptedPassphrase,
+				encryptedPassphrase: testing.fixtures.defaultFaucetAccount.encryptedPassphrase,
 			},
 		},
 		rpc: {
@@ -69,16 +70,10 @@ export const createApplicationEnv = (
 		},
 	} as PartialApplicationConfig;
 
-	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
-	const genesis = {
-		...genesisBlock,
-		header: { ...genesisBlock.header, timestamp: Math.floor(Date.now() / 1000) - 30 },
-	};
 	const appEnv = new testing.ApplicationEnv({
 		modules: [TokenModule, SequenceModule, KeysModule],
-		config,
 		plugins: [ReportMisbehaviorPlugin],
-		genesisBlock: genesis,
+		config,
 	});
 	// FIXME: Remove with #5572
 	// validator.removeSchema('/block/header');

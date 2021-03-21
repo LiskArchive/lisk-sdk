@@ -22,33 +22,6 @@ import {
 
 describe('Account endpoint', () => {
 	let appEnv: testing.ApplicationEnv;
-	const accountFixture = {
-		address: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5',
-		token: { balance: '0' },
-		sequence: { nonce: '0' },
-		keys: {
-			numberOfSignatures: 0,
-			mandatoryKeys: [],
-			optionalKeys: [],
-		},
-		dpos: {
-			delegate: {
-				username: 'genesis_5',
-				pomHeights: [],
-				consecutiveMissedBlocks: 0,
-				lastForgedHeight: 0,
-				isBanned: false,
-				totalVotesReceived: '1000000000000',
-			},
-			sentVotes: [
-				{
-					delegateAddress: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5',
-					amount: '1000000000000',
-				},
-			],
-			unlocking: [],
-		},
-	};
 
 	beforeAll(async () => {
 		appEnv = createApplicationEnv('account_http_functional');
@@ -64,7 +37,7 @@ describe('Account endpoint', () => {
 			const result = await axios.get(
 				getURL('/api/accounts/9d0149b0962d44bfc08a9f64d5afceb6281d7fb5'),
 			);
-			expect(result.data).toEqual({ data: accountFixture, meta: {} });
+			expect(result.data).toMatchSnapshot();
 			expect(result.status).toBe(200);
 		});
 

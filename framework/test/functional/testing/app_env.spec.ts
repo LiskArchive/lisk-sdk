@@ -76,5 +76,17 @@ describe('Application Environment', () => {
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
 		});
+
+		it('should start application and forge next block', async () => {
+			appEnv = new ApplicationEnv({
+				modules: [],
+				plugins: [],
+			});
+
+			await appEnv.startApplication();
+			await appEnv.waitNBlocks(1);
+
+			expect(appEnv.lastBlock.header.height).toBeGreaterThan(0);
+		});
 	});
 });

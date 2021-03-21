@@ -48,6 +48,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				accountNonce += 1;
 
@@ -112,6 +113,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				accountNonce += 1;
 
@@ -137,6 +139,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id, ...input } = transaction;
 				input.signatures = [];
@@ -165,6 +168,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id, ...input } = transaction;
 				input.senderPublicKey = invalidHexString;
@@ -194,6 +198,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id, ...input } = transaction;
 				input.signatures = [invalidHexString];
@@ -224,6 +229,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				accountNonce += 1;
 
@@ -257,6 +263,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id, ...input } = transaction;
 				const newSignature = getRandomBytes(64);

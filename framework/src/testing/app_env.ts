@@ -17,6 +17,8 @@ import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
 import { join } from 'path';
 import { Block } from '@liskhq/lisk-chain';
+import { objects } from '@liskhq/lisk-utils';
+
 import { ModuleClass } from './types';
 import { defaultConfig } from './fixtures';
 import { createGenesisBlock } from './create_genesis_block';
@@ -28,7 +30,7 @@ interface ApplicationEnvConfig {
 	modules: ModuleClass[];
 	plugins?: InstantiablePlugin[];
 	config?: PartialApplicationConfig;
-	genesisBlock?: Record<string, unknown>;
+	genesisBlockJSON?: Record<string, unknown>;
 }
 
 export class ApplicationEnv {
@@ -105,11 +107,14 @@ export class ApplicationEnv {
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
 		const { genesisBlockJSON } = createGenesisBlock({ modules: appConfig.modules });
-		const config = { ...defaultConfig, ...(appConfig.config ?? {}) };
+		// In order for application to start forging, update force to true
+		const config = objects.mergeDeep({}, defaultConfig, {
+			...(appConfig.config ?? { forging: { force: true } }),
+		});
 		const { label } = config;
 
 		const application = new Application(
-			appConfig.genesisBlock ?? genesisBlockJSON,
+			appConfig.genesisBlockJSON ?? genesisBlockJSON,
 			config as PartialApplicationConfig,
 		);
 		appConfig.modules.map(module => application.registerModule(module));

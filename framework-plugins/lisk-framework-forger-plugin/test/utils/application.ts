@@ -11,6 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { join } from 'path';
+import { homedir } from 'os';
+import { existsSync, rmdirSync } from 'fs-extra';
 import {
 	Application,
 	KeysModule,
@@ -18,13 +21,13 @@ import {
 	SequenceModule,
 	testing,
 	TokenModule,
+	DPoSModule,
 } from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import * as configJSON from '../fixtures/config.json';
+
 import { ForgerPlugin } from '../../src';
 import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
-import { getGenesisBlockJSON } from './genesis_block';
 import { ForgerInfo } from '../../src/types';
 
 const forgerApiPort = 5001;
@@ -47,7 +50,7 @@ export const createApplicationEnv = (
 ): testing.ApplicationEnv => {
 	const rootPath = '~/.lisk/forger-plugin';
 	const config = {
-		...configJSON,
+		...testing.fixtures.defaultConfig,
 		rootPath,
 		label,
 		logger: {
@@ -56,8 +59,12 @@ export const createApplicationEnv = (
 			logFileName: 'lisk.log',
 		},
 		network: {
-			...configJSON.network,
+			...testing.fixtures.defaultConfig.network,
 			maxInboundConnections: 0,
+		},
+		forging: {
+			...testing.fixtures.defaultConfig.forging,
+			force: true,
 		},
 		plugins: {
 			forger: {
@@ -65,32 +72,54 @@ export const createApplicationEnv = (
 				...options.appConfig?.plugins.forger,
 			},
 		},
-		rpc: {
-			enable: true,
-			port: 8080,
-			mode: 'ipc',
-		},
 	} as PartialApplicationConfig;
 
-	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
-	const genesisBlock = getGenesisBlockJSON({
-		timestamp: Math.floor(Date.now() / 1000) - 30,
+	const dataPath = join(homedir(), rootPath, label);
+	if (existsSync(dataPath)) {
+		rmdirSync(dataPath, { recursive: true });
+	}
+	const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+
+	const defaultFaucetAccount = {
+		address: testing.fixtures.defaultFaucetAccount.address,
+		token: { balance: BigInt(testing.fixtures.defaultFaucetAccount.balance) },
+		dpos: {
+			delegate: {
+				username: 'delegate_1',
+			},
+		},
+	};
+	const accounts = testing.fixtures.defaultAccounts().map((a, i) =>
+		testing.fixtures.createDefaultAccount(modules, {
+			address: a.address,
+			dpos: {
+				delegate: {
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					username: `delegate_${i}`,
+				},
+			},
+		}),
+	);
+	const { genesisBlockJSON } = testing.createGenesisBlock({
+		modules,
+		accounts: [defaultFaucetAccount, ...accounts],
 	});
 
 	const appEnv = new testing.ApplicationEnv({
-		modules: [TokenModule, SequenceModule, KeysModule],
+		modules,
 		config,
 		plugins: [ForgerPlugin],
-		genesisBlock,
+		genesisBlockJSON,
 	});
 	validator.removeSchema('/block/header');
 
 	return appEnv;
 };
+
 export const closeApplicationEnv = async (
 	appEnv: testing.ApplicationEnv,
 	options: { clearDB: boolean } = { clearDB: true },
-) => {
+): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 	await appEnv.stopApplication(options);
