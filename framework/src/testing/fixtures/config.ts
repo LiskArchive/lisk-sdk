@@ -30,11 +30,6 @@ export const defaultConfig = {
 		consoleLogLevel: 'none',
 		logFileName: 'lisk.log',
 	},
-	rpc: {
-		enable: true,
-		mode: 'ipc',
-		port: 8080,
-	},
 	genesisConfig: {
 		blockTime: 10,
 		communityIdentifier: 'sdk',
@@ -66,7 +61,7 @@ export const defaultConfig = {
 		delegateListRoundOffset: 2,
 	},
 	forging: {
-		force: false,
+		force: true,
 		waitThreshold: 2,
 		delegates: [
 			{
@@ -2346,6 +2341,7 @@ export const defaultConfig = {
 			},
 		],
 		port: 5000,
+		maxInboundConnection: 0,
 	},
 	transactionPool: {
 		maxTransactions: 4096,
@@ -2355,6 +2351,11 @@ export const defaultConfig = {
 		minReplacementFeeDifference: '10',
 	},
 	plugins: {},
+	rpc: {
+		enable: true,
+		port: 8080,
+		mode: 'ipc',
+	},
 };
 
 const getDelegateFromDefaultConfig = (address: Buffer) => {

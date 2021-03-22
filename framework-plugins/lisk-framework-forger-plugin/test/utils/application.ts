@@ -58,14 +58,6 @@ export const createApplicationEnv = (
 			fileLogLevel: 'fatal',
 			logFileName: 'lisk.log',
 		},
-		network: {
-			...testing.fixtures.defaultConfig.network,
-			maxInboundConnections: 0,
-		},
-		forging: {
-			...testing.fixtures.defaultConfig.forging,
-			force: true,
-		},
 		plugins: {
 			forger: {
 				port: forgerApiPort,

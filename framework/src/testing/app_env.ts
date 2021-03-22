@@ -108,9 +108,7 @@ export class ApplicationEnv {
 		codec.clearCache();
 		const { genesisBlockJSON } = createGenesisBlock({ modules: appConfig.modules });
 		// In order for application to start forging, update force to true
-		const config = objects.mergeDeep({}, defaultConfig, {
-			...(appConfig.config ?? { forging: { force: true } }),
-		});
+		const config = objects.mergeDeep({}, defaultConfig, appConfig.config ?? {});
 		const { label } = config;
 
 		const application = new Application(

@@ -15,8 +15,7 @@ import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ApplicationEnv } from '../../../src/testing';
-import { PartialApplicationConfig, TokenModule } from '../../../src';
-import { defaultConfig } from '../../../src/testing/fixtures';
+import { TokenModule } from '../../../src';
 
 const appLabel = 'beta-sdk-app';
 const dataPath = join(homedir(), '.lisk', appLabel);
@@ -65,7 +64,6 @@ describe('Application Environment', () => {
 			appEnv = new ApplicationEnv({
 				modules: [],
 				plugins: [],
-				config: defaultConfig as PartialApplicationConfig,
 			});
 
 			await appEnv.startApplication();

@@ -39,19 +39,6 @@ export const createApplicationEnv = (
 			fileLogLevel: 'fatal',
 			logFileName: 'lisk.log',
 		},
-		network: {
-			...testing.fixtures.defaultConfig.network,
-			maxInboundConnections: 0,
-		},
-		forging: {
-			...testing.fixtures.defaultConfig.forging,
-			force: true,
-		},
-		rpc: {
-			enable: true,
-			port: 8080,
-			mode: 'ipc',
-		},
 	} as PartialApplicationConfig;
 
 	const dataPath = join(rootPath.replace('~', homedir()), label);
