@@ -311,6 +311,10 @@ export interface RegisteredSchema {
 	}[];
 }
 
+export interface SchemaWithDefault extends Schema {
+	readonly default?: Record<string, unknown>;
+}
+
 export interface ForgingStatus {
 	readonly address: Buffer;
 	readonly forging: boolean;

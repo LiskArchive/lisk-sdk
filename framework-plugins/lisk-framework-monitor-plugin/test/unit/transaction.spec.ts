@@ -15,6 +15,9 @@
 import { randomBytes } from 'crypto';
 import { testing } from 'lisk-framework';
 import { MonitorPlugin } from '../../src/monitor_plugin';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('_handlePostTransactionAnnounce', () => {
 	let monitorPluginInstance: MonitorPlugin;
@@ -23,8 +26,8 @@ describe('_handlePostTransactionAnnounce', () => {
 	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new (MonitorPlugin as any)();
-		await monitorPluginInstance.load(channelMock as any);
+		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
+		await monitorPluginInstance.load(channelMock);
 	});
 
 	it('should add new transactions to state', () => {
@@ -56,8 +59,8 @@ describe('_cleanUpTransactionStats', () => {
 	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new (MonitorPlugin as any)();
-		await monitorPluginInstance.load(channelMock as any);
+		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
+		await monitorPluginInstance.load(channelMock);
 	});
 
 	it('should remove transaction stats that are more than 10 minutes old', () => {

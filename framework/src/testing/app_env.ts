@@ -17,16 +17,17 @@ import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
 import { join } from 'path';
 import { Block } from '@liskhq/lisk-chain';
-import { ModuleClass, PluginClass } from './types';
+import { ModuleClass } from './types';
 import { defaultConfig } from './fixtures';
 import { createGenesisBlockWithAccounts } from './fixtures/genesis_block';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
 import { DPoSModule } from '../modules/dpos';
+import { InstantiablePlugin } from '../plugins/base_plugin';
 
 interface ApplicationEnvConfig {
 	modules: ModuleClass[];
-	plugins?: PluginClass[];
+	plugins?: InstantiablePlugin[];
 	config?: PartialApplicationConfig;
 	genesisBlock?: Record<string, unknown>;
 }

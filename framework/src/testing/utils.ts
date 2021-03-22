@@ -78,8 +78,7 @@ export const waitUntilBlockHeight = async ({
 			}, timeout);
 		}
 
-		// eslint-disable-next-line @typescript-eslint/require-await
-		apiClient.subscribe(APP_EVENT_BLOCK_NEW, async (data?: Data) => {
+		apiClient.subscribe(APP_EVENT_BLOCK_NEW, data => {
 			const { block } = (data as unknown) as Data;
 			const { header } = apiClient.block.decode<Block>(block);
 

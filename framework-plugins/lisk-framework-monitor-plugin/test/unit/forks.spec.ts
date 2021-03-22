@@ -17,6 +17,9 @@ import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { testing } from 'lisk-framework';
 import { MonitorPlugin } from '../../src/monitor_plugin';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('_handleFork', () => {
 	let monitorPluginInstance: MonitorPlugin;
@@ -26,8 +29,8 @@ describe('_handleFork', () => {
 	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new (MonitorPlugin as any)();
-		await monitorPluginInstance.load(channelMock as any);
+		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
+		await monitorPluginInstance.load(channelMock);
 		monitorPluginInstance.schemas = { block: blockSchema, blockHeader: blockHeaderSchema } as any;
 		encodedBlock =
 			'0acd01080210c38ec1fc0518a2012220c736b8cfb669ff453118230c71d7dc433797b5b30da6b9d89a14457f1b56faa12a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85532209bcf519c9e0a8e66b3939f9d592b5a1728141ea3253b7d3a2424a44575c5f4e738004216087410001a1060fce85c0ca51ca1c72c589c9f651f574a40396edc8e940c5f5829d382c10cae3c2f7f24a5a9bb42ef8c545439e1a2e83951f87bc894816d7b90958b411a37b816c9e2d597dd52d7847d5a73f411ded65303';

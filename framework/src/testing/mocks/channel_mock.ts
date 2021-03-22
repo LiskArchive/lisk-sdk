@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const channelMock = {
+
+import { BaseChannel } from '../../controller/channels';
+
+export const channelMock = ({
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	publish: (_name: string, _data?: Record<string, unknown>): void => {},
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -30,4 +33,4 @@ export const channelMock = {
 	subscribe: (_event: string): void => {},
 	invoke: async <T = unknown>(_name: string, _params?: Record<string, unknown>): Promise<T> =>
 		Promise.resolve(({} as unknown) as T),
-};
+} as unknown) as BaseChannel;

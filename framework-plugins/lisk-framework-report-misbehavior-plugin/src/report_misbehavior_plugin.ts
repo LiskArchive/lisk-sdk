@@ -143,6 +143,8 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		this._channel = channel;
 		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._clearBlockHeadersInterval = this._options.clearBlockHeadersInterval || 60000;
+
+		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		this._pluginDB = await getDBInstance(this._options.dataPath);
 		// Listen to new block and delete block events
 		this._subscribeToChannel();
