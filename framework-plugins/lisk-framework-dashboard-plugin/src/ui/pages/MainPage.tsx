@@ -12,14 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import styles from './main.module.scss';
-import { Text } from '../components/text/text';
+import styles from './MainPage.module.scss';
+import Text from '../components/Text';
+import Icon from '../components/Icon';
 import logo from '../logo.svg';
 
-export const Main: React.FC = () => (
+const MainPage: React.FC = () => (
 	<section className={styles.root}>
 		<img src={logo} alt="logo" />
 		{/* text sample */}
+		<div>
+			<Icon name={'info'} size={'xl'} />
+		</div>
 		<div>
 			<Text color="pink" type="h1">
 				143,160,552
@@ -33,3 +37,5 @@ export const Main: React.FC = () => (
 		</div>
 	</section>
 );
+
+export default MainPage;

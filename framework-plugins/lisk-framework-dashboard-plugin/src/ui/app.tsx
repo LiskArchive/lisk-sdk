@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import { store } from './store';
-import { Main } from './pages/main';
+import MainPage from './pages/MainPage';
 
-export const App: React.FC = () => (
+const App: React.FC = () => (
 	<Provider store={store}>
-		<Main />
+		<MainPage />
 	</Provider>
 );
+
+export default App;
