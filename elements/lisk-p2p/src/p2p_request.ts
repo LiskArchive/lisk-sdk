@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { DEFAULT_MESSAGE_ENCODING_FORMAT } from './constants';
 import { RPCResponseAlreadySentError } from './errors';
 import { P2PResponsePacket, RequestOptions } from './types';
 
@@ -80,7 +81,7 @@ export class P2PRequest {
 	}
 
 	public end(responseData?: unknown): void {
-		const data = this._getBinaryData(responseData);
+		const data = this._getBase64Data(responseData);
 		const responsePacket: P2PResponsePacket = {
 			data,
 			peerId: this.peerId,
@@ -93,20 +94,22 @@ export class P2PRequest {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _getBinaryData(data: unknown): string | undefined {
+	private _getBase64Data(data: unknown): string | undefined {
 		if (!data) {
 			return undefined;
 		}
 
 		if (Buffer.isBuffer(data)) {
-			return data.toString('binary');
+			return data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT);
 		}
 
-		return Buffer.from(JSON.stringify(data), 'utf8').toString('binary');
+		return Buffer.from(JSON.stringify(data), 'utf8').toString(DEFAULT_MESSAGE_ENCODING_FORMAT);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
 	private _getBufferData(options: RequestOptions): Buffer | undefined {
-		return typeof options.data === 'string' ? Buffer.from(options.data, 'binary') : undefined;
+		return typeof options.data === 'string'
+			? Buffer.from(options.data, DEFAULT_MESSAGE_ENCODING_FORMAT)
+			: undefined;
 	}
 }

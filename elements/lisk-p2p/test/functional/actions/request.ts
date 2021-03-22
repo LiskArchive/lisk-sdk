@@ -50,10 +50,10 @@ describe('P2P.request', () => {
 			procedure: 'foo',
 			data,
 		});
-		const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
+		const parsedData = JSON.parse((response.data as Buffer).toString('utf-8'));
 		const result = {
 			...parsedData,
-			requestData: JSON.parse(Buffer.from(parsedData.requestData.data).toString('binary')),
+			requestData: JSON.parse(Buffer.from(parsedData.requestData.data).toString('utf-8')),
 		};
 
 		// Assert
@@ -86,7 +86,7 @@ describe('P2P.request', () => {
 				procedure: 'foo',
 				data: i,
 			});
-			const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
+			const parsedData = JSON.parse((response.data as Buffer).toString('utf-8'));
 			if (!nodePortToResponsesMap[parsedData.nodePort]) {
 				nodePortToResponsesMap[parsedData.nodePort] = [];
 			}

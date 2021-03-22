@@ -26,6 +26,7 @@ import {
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
 	INVALID_PEER_INFO_LIST_REASON,
+	DEFAULT_MESSAGE_ENCODING_FORMAT,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -342,7 +343,7 @@ export class Peer extends EventEmitter {
 			throw new Error('Peer socket does not exist');
 		}
 
-		const data = this._getBinaryData(packet.data);
+		const data = this._getBase64Data(packet.data);
 		this._socket.emit(REMOTE_SC_EVENT_MESSAGE, {
 			event: packet.event,
 			data,
@@ -359,7 +360,7 @@ export class Peer extends EventEmitter {
 					throw new Error('Peer socket does not exist');
 				}
 
-				const data = this._getBinaryData(packet.data);
+				const data = this._getBase64Data(packet.data);
 				this._socket.emit(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
@@ -646,15 +647,15 @@ export class Peer extends EventEmitter {
 	}
 
 	// All the inbound and outbound messages communication to socket
-	// Should be converted to binary string
+	// Should be converted to base64 string
 	// eslint-disable-next-line class-methods-use-this
-	private _getBinaryData(data?: Buffer): string | undefined {
+	private _getBase64Data(data?: Buffer): string | undefined {
 		if (data === undefined) {
 			return undefined;
 		}
 
 		if (Buffer.isBuffer(data)) {
-			return data.toString('binary');
+			return data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT);
 		}
 
 		return data;
@@ -666,6 +667,6 @@ export class Peer extends EventEmitter {
 			return undefined;
 		}
 
-		return Buffer.from(data, 'binary');
+		return Buffer.from(data, DEFAULT_MESSAGE_ENCODING_FORMAT);
 	}
 }

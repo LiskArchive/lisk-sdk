@@ -171,10 +171,10 @@ describe('Custom peer selection', () => {
 				procedure: 'foo',
 				data: 'bar',
 			});
-			const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
+			const parsedData = JSON.parse((response.data as Buffer).toString('utf-8'));
 			const result = {
 				...parsedData,
-				requestData: JSON.parse(Buffer.from(parsedData.requestData.data).toString('binary')),
+				requestData: JSON.parse(Buffer.from(parsedData.requestData.data).toString('utf-8')),
 			};
 
 			expect(response).toHaveProperty('data');
