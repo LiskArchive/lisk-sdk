@@ -23,6 +23,7 @@ import {
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 	DEFAULT_HTTP_PATH,
+	DEFAULT_MESSAGE_ENCODING_FORMAT,
 } from '../../../src/constants';
 import {
 	P2PPeerInfo,
@@ -265,9 +266,10 @@ describe('peer/outbound', () => {
 	describe('#send', () => {
 		// Arrange
 		let p2pPacket: P2PMessagePacketBufferData;
+		const data = Buffer.from('myData', DEFAULT_MESSAGE_ENCODING_FORMAT);
 		beforeEach(() => {
 			p2pPacket = {
-				data: Buffer.from('myData'),
+				data,
 				event: 'myEvent',
 			};
 		});
@@ -297,7 +299,7 @@ describe('peer/outbound', () => {
 
 			expect(outboundSocket.emit).toHaveBeenCalledTimes(1);
 			expect(outboundSocket.emit).toHaveBeenCalledWith(REMOTE_SC_EVENT_MESSAGE, {
-				data: 'myData',
+				data: data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),
 				event: 'myEvent',
 			});
 		});

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { DEFAULT_MESSAGE_ENCODING_FORMAT } from '../../../src/constants';
 import { P2P, events } from '../../../src/index';
 import { createNetwork, destroyNetwork, NETWORK_PEER_COUNT } from '../../utils/network_setup';
 
@@ -28,7 +29,7 @@ describe('P2P.request', () => {
 					request.end({
 						nodePort: p2p.config.port,
 						requestProcedure: request.procedure,
-						requestData: request.data,
+						requestData: request.data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),
 						requestPeerId: request.peerId,
 					});
 				}
@@ -43,26 +44,21 @@ describe('P2P.request', () => {
 	it('should make request to the network; it should reach a single peer', async () => {
 		// Arrange
 		const secondP2PNode = p2pNodeList[1];
-		const data = Buffer.from(JSON.stringify('bar'), 'utf8');
+		const data = Buffer.from('bar');
 
 		// Act
 		const response = await secondP2PNode.request({
 			procedure: 'foo',
 			data,
 		});
-		const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
-		const result = {
-			...parsedData,
-			requestData: JSON.parse(Buffer.from(parsedData.requestData.data).toString('binary')),
-		};
+		const parsedData = JSON.parse((response.data as Buffer).toString('utf8'));
 
 		// Assert
-		expect(response).toHaveProperty('data');
 		expect(response.data).toBeInstanceOf(Buffer);
 		expect(response.peerId).toEqual('127.0.0.1:5001');
-		expect(result).toMatchObject({
+		expect(parsedData).toMatchObject({
 			nodePort: 5000,
-			requestData: 'bar',
+			requestData: data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),
 			requestPeerId: '127.0.0.1:5001',
 			requestProcedure: 'foo',
 		});
@@ -86,7 +82,7 @@ describe('P2P.request', () => {
 				procedure: 'foo',
 				data: i,
 			});
-			const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
+			const parsedData = JSON.parse((response.data as Buffer).toString('utf8'));
 			if (!nodePortToResponsesMap[parsedData.nodePort]) {
 				nodePortToResponsesMap[parsedData.nodePort] = [];
 			}

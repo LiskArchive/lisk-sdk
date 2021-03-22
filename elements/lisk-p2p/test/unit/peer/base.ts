@@ -24,6 +24,7 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 	DEFAULT_RATE_CALCULATION_INTERVAL,
+	DEFAULT_MESSAGE_ENCODING_FORMAT,
 } from '../../../src/constants';
 import {
 	EVENT_BAN_PEER,
@@ -272,7 +273,7 @@ describe('peer/base', () => {
 			// Assert
 			expect((defaultPeer as any)._socket.emit).toHaveBeenCalledWith(REMOTE_SC_EVENT_MESSAGE, {
 				event: p2pPacket.event,
-				data: p2pPacket.data?.toString('binary'),
+				data: p2pPacket.data?.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),
 			});
 		});
 	});
@@ -304,7 +305,7 @@ describe('peer/base', () => {
 				REMOTE_SC_EVENT_RPC_REQUEST,
 				{
 					procedure: p2pPacket.procedure,
-					data: p2pPacket.data?.toString('binary'),
+					data: p2pPacket.data?.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),
 				},
 				expect.any(Function),
 			);

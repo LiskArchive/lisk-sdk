@@ -25,6 +25,7 @@ import {
 } from '../../src/types';
 
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import { DEFAULT_MESSAGE_ENCODING_FORMAT } from '../../src/constants';
 
 const { ConnectionKind } = constants;
 
@@ -158,7 +159,7 @@ describe('Custom peer selection', () => {
 						request.end({
 							nodePort: p2p.config.port,
 							requestProcedure: request.procedure,
-							requestData: request.data,
+							requestData: request.data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),
 						});
 					}
 				});
@@ -167,22 +168,20 @@ describe('Custom peer selection', () => {
 
 		it('should make a request to the network; it should reach a single peer based on custom selection function', async () => {
 			const middleP2PNode = p2pNodeList[networkSize / 2];
+			const data = Buffer.from('bar');
+
 			const response = await middleP2PNode.request({
 				procedure: 'foo',
-				data: 'bar',
+				data,
 			});
-			const parsedData = JSON.parse((response.data as Buffer).toString('binary'));
-			const result = {
-				...parsedData,
-				requestData: JSON.parse(Buffer.from(parsedData.requestData.data).toString('binary')),
-			};
+			const parsedData = JSON.parse((response.data as Buffer).toString('utf8'));
 
 			expect(response).toHaveProperty('data');
 			expect(response.data).toBeInstanceOf(Buffer);
-			expect(result).toMatchObject({
+			expect(parsedData).toMatchObject({
 				nodePort: expect.any(Number),
 				requestProcedure: expect.any(String),
-				requestData: 'bar',
+				requestData: data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),
 			});
 		});
 	});
