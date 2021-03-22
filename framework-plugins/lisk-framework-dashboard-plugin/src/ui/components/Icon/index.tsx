@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import * as styles from './Icon.module.scss';
+import styles from './Icon.module.scss';
 
 interface Props {
 	name: string;
@@ -22,9 +22,7 @@ interface Props {
 const Icon: React.FC<Props> = props => {
 	const { name } = props;
 	const size = props.size ?? 'm';
-	return (
-		<span className={` ${styles.default.icon} ${styles.default[`icon-${size}`]}`}>{name}</span>
-	);
+	return <span className={`${styles.icon} ${styles[`icon-${size}`]}`}>{name}</span>;
 };
 
 export default Icon;
