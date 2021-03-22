@@ -64,7 +64,7 @@ describe('P2P.requestFromPeer', () => {
 		expect(collectedMessages).toHaveLength(1);
 		expect(collectedMessages[0]).toHaveProperty('request');
 		expect(collectedMessages[0].request.procedure).toBe('foo');
-		expect(collectedMessages[0].request.data).toEqual(Buffer.from('123456', 'utf-8'));
+		expect(collectedMessages[0].request.data).toEqual(Buffer.from('123456', 'utf8'));
 	});
 
 	it('should receive response from a specific peer within the network', async () => {
