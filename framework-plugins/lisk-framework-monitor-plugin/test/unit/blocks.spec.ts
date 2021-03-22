@@ -15,6 +15,9 @@ import { blockHeaderSchema, blockSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { MonitorPlugin } from '../../src';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('_handlePostBlock', () => {
 	let monitorPlugin: MonitorPlugin;
@@ -36,7 +39,7 @@ describe('_handlePostBlock', () => {
 	} as any;
 
 	beforeEach(async () => {
-		monitorPlugin = new (MonitorPlugin as any)();
+		monitorPlugin = new MonitorPlugin(validPluginOptions as never);
 		await monitorPlugin.load(channelMock);
 		monitorPlugin.schemas = { block: blockSchema, blockHeader: blockHeaderSchema } as any;
 		blockHeaderString =

@@ -126,6 +126,7 @@ export class ForgerPlugin extends BasePlugin {
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
+		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		// eslint-disable-next-line new-cap
 		this._forgerPluginDB = await getDBInstance(options.dataPath);
 

@@ -26,6 +26,7 @@ export const defaultConfig = {
 		defaultPassword: {
 			type: 'string',
 		},
+		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		dataPath: {
 			type: 'string',
 			format: 'path',
@@ -38,7 +39,7 @@ export const defaultConfig = {
 			description: 'The fee required to report misbehavior transaction.',
 		},
 	},
-	required: ['dataPath'],
+	required: [],
 	default: {
 		cleanupFrequency: 3600,
 		encryptedPassphrase: '',

@@ -1,0 +1,29 @@
+@import-normalize; /* bring in normalize.css styles */
+@import url('https://fonts.googleapis.com/css2?family=Roboto');
+@import url('https://fonts.googleapis.com/css2?family=Poppins');
+
+#root {
+	font-family: 'Poppins', sans-serif;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+* {
+	box-sizing: border-box;
+}
+dl,
+dt,
+dd,
+div,
+p {
+	margin: 0;
+	padding: 0;
+	white-space: pre-line;
+}
+img {
+	vertical-align: middle;
+}

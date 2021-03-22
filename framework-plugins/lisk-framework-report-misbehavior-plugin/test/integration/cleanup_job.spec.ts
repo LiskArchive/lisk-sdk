@@ -26,6 +26,14 @@ import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema } from '../../src/db';
 import { defaultAccount } from '../fixtures/devnet';
 
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = {
+	...config.defaultConfig.default,
+	encryptedPassphrase:
+		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
+};
+
 describe('Clean up old blocks', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
 	const accountSchema = {
@@ -65,7 +73,7 @@ describe('Clean up old blocks', () => {
 	const dbKey = 'the_db_key';
 
 	beforeEach(async () => {
-		reportMisbehaviorPlugin = new (ReportMisbehaviorPlugin as any)();
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
 		await fs.remove(dataPath);

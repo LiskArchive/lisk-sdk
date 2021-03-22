@@ -15,6 +15,9 @@
 import { when } from 'jest-when';
 import { PeerInfo } from '../../src/types';
 import { MonitorPlugin } from '../../src';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('networkStats', () => {
 	let monitorPlugin: MonitorPlugin;
@@ -103,7 +106,7 @@ describe('networkStats', () => {
 	};
 
 	beforeEach(async () => {
-		monitorPlugin = new (MonitorPlugin as any)();
+		monitorPlugin = new MonitorPlugin(validPluginOptions as never);
 		await monitorPlugin.load(channelMock);
 
 		when(channelMock.invoke)

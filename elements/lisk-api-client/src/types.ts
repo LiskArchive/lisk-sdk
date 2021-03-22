@@ -45,7 +45,7 @@ export interface Channel {
 	connect: () => Promise<void>;
 	disconnect: () => Promise<void>;
 	invoke: <T>(actionName: string, params?: Record<string, unknown>) => Promise<T>;
-	subscribe: <T>(eventName: string, cb: EventCallback<T>) => void;
+	subscribe: (eventName: string, cb: EventCallback) => void;
 }
 
 export interface RegisteredSchemas {

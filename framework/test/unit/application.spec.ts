@@ -506,7 +506,9 @@ describe('Application', () => {
 
 			// Assert
 			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledTimes(1);
-			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin);
+			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin, {
+				loadAsChildProcess: false,
+			});
 		});
 
 		it('should throw error when plugin is required to load as child process and not exported', () => {

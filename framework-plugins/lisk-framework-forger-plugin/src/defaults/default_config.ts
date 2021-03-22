@@ -15,6 +15,7 @@
 export const defaultConfig = {
 	type: 'object',
 	properties: {
+		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		dataPath: {
 			type: 'string',
 			format: 'path',
@@ -23,6 +24,6 @@ export const defaultConfig = {
 				'The data path for storing forging related information captured from application.',
 		},
 	},
-	required: ['dataPath'],
+	required: [],
 	default: {},
 };

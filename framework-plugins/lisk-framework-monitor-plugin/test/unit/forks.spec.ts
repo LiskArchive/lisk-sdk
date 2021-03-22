@@ -12,11 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { blockHeaderSchema, blockSchema } from '@liskhq/lisk-chain';
+import { blockHeaderSchema, blockSchema, RawBlock } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
-import { RawBlock } from '@liskhq/lisk-chain';
+
 import { MonitorPlugin } from '../../src/monitor_plugin';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('_handleFork', () => {
 	let monitorPluginInstance: MonitorPlugin;
@@ -37,7 +40,7 @@ describe('_handleFork', () => {
 	} as any;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new (MonitorPlugin as any)();
+		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
 		await monitorPluginInstance.load(channelMock);
 		monitorPluginInstance.schemas = { block: blockSchema, blockHeader: blockHeaderSchema } as any;
 		encodedBlock =

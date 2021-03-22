@@ -59,6 +59,7 @@ tmp
 
 # Distribution directory
 .vscode
+build/
 dist/
 dist-node/
 dist-browser/

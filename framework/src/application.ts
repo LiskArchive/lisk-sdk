@@ -33,12 +33,7 @@ import {
 	APP_EVENT_NETWORK_READY,
 } from './constants';
 
-import {
-	getPluginExportPath,
-	BasePlugin,
-	InstantiablePlugin,
-	validatePluginSpec,
-} from './plugins/base_plugin';
+import { getPluginExportPath, InstantiablePlugin, validatePluginSpec } from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -121,7 +116,7 @@ export class Application {
 
 	private readonly _node: Node;
 	private _controller!: Controller;
-	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
+	private _plugins: { [key: string]: InstantiablePlugin };
 	private _channel!: InMemoryChannel;
 
 	private readonly _genesisBlock: Record<string, unknown>;
@@ -175,12 +170,11 @@ export class Application {
 	}
 
 	public registerPlugin(
-		pluginKlass: typeof BasePlugin,
+		pluginKlass: InstantiablePlugin,
 		options: PluginOptions = { loadAsChildProcess: false },
 	): void {
 		assert(pluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		validatePluginSpec(pluginKlass as InstantiablePlugin<BasePlugin>);
 
 		const pluginAlias = options?.alias ?? pluginKlass.alias;
 
@@ -202,7 +196,10 @@ export class Application {
 			this.config.plugins[pluginAlias] ?? {},
 			options,
 		);
-		this._plugins[pluginAlias] = pluginKlass as InstantiablePlugin<BasePlugin>;
+
+		validatePluginSpec(pluginKlass, this.config.plugins[pluginAlias]);
+
+		this._plugins[pluginAlias] = pluginKlass;
 	}
 
 	public overridePluginOptions(alias: string, options?: PluginOptions): void {
