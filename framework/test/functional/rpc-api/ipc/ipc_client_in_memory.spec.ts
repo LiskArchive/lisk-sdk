@@ -103,6 +103,14 @@ describe('api client ipc mode', () => {
 				client.invoke('app:getAccount', { address: 'randomString*&&^%^' }),
 			).rejects.toThrow('Specified key accounts:address: does not exist');
 		});
+
+		it('should return a list of registered actions', async () => {
+			const actions = await await client.invoke('app:getRegisteredActions');
+			expect(actions).toBeArray();
+			expect(actions).toContain('app:getConnectedPeers');
+			expect(actions).toContain('dpos:getAllDelegates');
+			expect(actions).toContain('hello:callGreet');
+		});
 	});
 
 	describe('application events', () => {
@@ -114,6 +122,13 @@ describe('api client ipc mode', () => {
 			// Assert
 			expect(newBlockEvent.length).toBeGreaterThan(0);
 			expect(newBlockEvent[0]).toHaveProperty('block');
+		});
+		it('should return a list of registered events', async () => {
+			const events = await await client.invoke('app:getRegisteredEvents');
+			expect(events).toBeArray();
+			expect(events).toContain('app:ready');
+			expect(events).toContain('token:registeredToBus');
+			expect(events).toContain('hello:greet');
 		});
 	});
 
