@@ -12,24 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import styles from './main.module.scss';
-import { Text } from '../components/text/text';
-import logo from '../logo.svg';
+import styles from './Icon.module.scss';
 
-export const Main: React.FC = () => (
-	<section className={styles.root}>
-		<img src={logo} alt="logo" />
-		{/* text sample */}
-		<div>
-			<Text color="pink" type="h1">
-				143,160,552
-			</Text>
-			<Text color="white" type="h2">
-				My Accounts
-			</Text>
-			<Text color="white" type="p">
-				bd81020ded87d21bbfedc45ed...5d90
-			</Text>
-		</div>
-	</section>
-);
+interface Props {
+	name: string;
+	size?: 's' | 'm' | 'l' | 'xl';
+}
+
+const Icon: React.FC<Props> = props => {
+	const { name } = props;
+	const size = props.size ?? 'm';
+	return <span className={`${styles.icon} ${styles[`icon-${size}`]}`}>{name}</span>;
+};
+
+export default Icon;
