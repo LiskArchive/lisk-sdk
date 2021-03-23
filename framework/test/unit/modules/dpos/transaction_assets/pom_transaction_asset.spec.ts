@@ -88,9 +88,9 @@ describe('PomTransactionAsset', () => {
 				invoke: jest.fn(),
 			},
 		} as unknown) as ApplyAssetContext<PomTransactionAssetContext>;
-		validateContext = ({ asset: { header1: {}, header2: {} } } as unknown) as ValidateAssetContext<
-			PomTransactionAssetContext
-		>;
+		validateContext = ({
+			asset: { header1: {}, header2: {} },
+		} as unknown) as ValidateAssetContext<PomTransactionAssetContext>;
 
 		jest.spyOn(stateStoreMock.account, 'get');
 		jest.spyOn(stateStoreMock.account, 'set');

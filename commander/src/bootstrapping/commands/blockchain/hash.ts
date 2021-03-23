@@ -29,7 +29,6 @@ export class HashCommand extends Command {
 		'data-path': flagsWithParser.dataPath,
 	};
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const { flags } = this.parse(HashCommand);
 		const dataPath = flags['data-path']

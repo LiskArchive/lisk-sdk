@@ -222,7 +222,7 @@ export abstract class BasePlugin<
 		}
 
 		this.codec = {
-			decodeAccount: <T = DefaultAccountJSON>(data: Buffer | string): AccountJSON<T> => {
+			decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
 				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
 
 				return decodeAccountToJSON(accountBuffer, this.schemas.account);
@@ -283,7 +283,6 @@ export abstract class BasePlugin<
 	}
 
 	// TODO: To make non-breaking change we have to keep "object" here
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): SchemaWithDefault | object | undefined {
 		return undefined;
 	}

@@ -78,7 +78,7 @@ describe('Action class', () => {
 				const requestStr = JSON.stringify(requestObject);
 
 				// Act
-				// eslint-disable-next-line no-shadow
+				// eslint-disable-next-line @typescript-eslint/no-shadow
 				const action = Action.fromJSONRPCRequest(requestStr);
 
 				// Assert
@@ -98,7 +98,7 @@ describe('Action class', () => {
 				};
 
 				// Act
-				// eslint-disable-next-line no-shadow
+				// eslint-disable-next-line @typescript-eslint/no-shadow
 				const action = Action.fromJSONRPCRequest(requestObject);
 
 				// Assert

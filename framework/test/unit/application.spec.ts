@@ -49,20 +49,16 @@ class TestPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events() {
 		return [];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions() {
 		return {};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async load(_channel: BaseChannel): Promise<void> {}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async unload(): Promise<void> {}
 }
 
@@ -318,7 +314,6 @@ describe('Application', () => {
 					type: 'object',
 					properties: {},
 				};
-				// eslint-disable-next-line class-methods-use-this
 				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
@@ -346,7 +341,6 @@ describe('Application', () => {
 					type: 'object',
 					properties: {},
 				};
-				// eslint-disable-next-line class-methods-use-this
 				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
@@ -374,7 +368,6 @@ describe('Application', () => {
 					type: 'object',
 					properties: {},
 				};
-				// eslint-disable-next-line class-methods-use-this
 				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
@@ -398,7 +391,6 @@ describe('Application', () => {
 				public name = 'asset';
 				public id = 0;
 				public schema = undefined as any;
-				// eslint-disable-next-line class-methods-use-this
 				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {

@@ -63,24 +63,18 @@ describe('passphrase:encrypt', () => {
 		jest
 			.spyOn(cryptography, 'stringifyEncryptedPassphrase')
 			.mockReturnValue(encryptedPassphraseString);
-		jest
-			.spyOn(readerUtils, 'getPassphraseFromPrompt')
-			// eslint-disable-next-line @typescript-eslint/require-await
-			.mockImplementation(async (name?: string) => {
-				if (name === 'passphrase') {
-					return defaultInputs.passphrase;
-				}
-				return '';
-			});
-		jest
-			.spyOn(readerUtils, 'getPasswordFromPrompt')
-			// eslint-disable-next-line @typescript-eslint/require-await
-			.mockImplementation(async (name?: string) => {
-				if (name === 'password') {
-					return defaultInputs.password;
-				}
-				return '';
-			});
+		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockImplementation(async (name?: string) => {
+			if (name === 'passphrase') {
+				return defaultInputs.passphrase;
+			}
+			return '';
+		});
+		jest.spyOn(readerUtils, 'getPasswordFromPrompt').mockImplementation(async (name?: string) => {
+			if (name === 'password') {
+				return defaultInputs.password;
+			}
+			return '';
+		});
 	});
 
 	describe('passphrase:encrypt', () => {

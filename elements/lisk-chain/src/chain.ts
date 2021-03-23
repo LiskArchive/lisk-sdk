@@ -295,7 +295,6 @@ export class Chain {
 		validateGenesisBlockHeader(block, this._accountSchema);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public applyGenesisBlock(block: GenesisBlock, stateStore: StateStore): void {
 		for (const account of block.header.asset.accounts) {
 			stateStore.account.set(account.address, account);
@@ -427,7 +426,6 @@ export class Chain {
 		return validators;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async setValidators(
 		validators: { address: Buffer; isConsensusParticipant: boolean }[],
 		stateStore: StateStore,

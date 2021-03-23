@@ -109,9 +109,9 @@ describe('Delete block', () => {
 			});
 
 			it('should match the sender account to the original state', async () => {
-				const genesisAfter = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAfter = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				expect(genesisAfter.token.balance.toString()).toEqual(
 					genesisAccount.token.balance.toString(),
 				);
@@ -135,9 +135,9 @@ describe('Delete block', () => {
 		describe('when the deleteLastBlock is called', () => {
 			it('should rollback all the accounts to the previous state', async () => {
 				// Arrange
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const genesisBalance = genesisAccount.token.balance;
 				const recipientAccount = nodeUtils.createAccount();
 				const transaction1 = createTransferTransaction({
@@ -154,9 +154,9 @@ describe('Delete block', () => {
 				await expect(
 					node['_chain'].dataAccess.getAccountByAddress(recipientAccount.address),
 				).rejects.toThrow('Specified key accounts:address');
-				const revertedGenesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesisAccount.address);
+				const revertedGenesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesisAccount.address);
 				expect(revertedGenesisAccount.token.balance).toEqual(genesisBalance);
 			});
 		});

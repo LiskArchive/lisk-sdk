@@ -28,14 +28,12 @@ import pJSON = require('../../../package.json');
 
 // In order to test the command we need to extended the base crete command and provide application implementation
 class StartCommandExtended extends StartCommand {
-	// eslint-disable-next-line class-methods-use-this
 	public getApplication(): Application {
 		const app = application.getApplication();
 		jest.spyOn(app, 'run').mockResolvedValue();
 		return app;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public getApplicationConfigDir(): string {
 		return '/my/custom/app';
 	}

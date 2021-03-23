@@ -55,9 +55,9 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
@@ -88,9 +88,9 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
@@ -133,9 +133,9 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
 				const fundingTx = createTransferTransaction({
@@ -184,9 +184,9 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
 				const fundingTx = createTransferTransaction({
@@ -231,9 +231,9 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,

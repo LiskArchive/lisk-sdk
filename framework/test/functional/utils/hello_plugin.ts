@@ -41,26 +41,22 @@ export class HelloPlugin extends BasePlugin {
 		this._channel.publish('hello:greet', { message: 'hello event' });
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async unload(): Promise<void> {}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): object {
 		return {};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events(): EventsDefinition {
 		return ['greet'];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {
 			callGreet: () => {
 				return { greet: 'hi, how are you?' };
 			},
-			publishGreetEvent: async () => {
+			publishGreetEvent: () => {
 				this._channel.publish('hello:greet', { message: 'hello event' });
 
 				return undefined;

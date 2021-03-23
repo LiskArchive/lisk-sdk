@@ -94,7 +94,6 @@ export abstract class StartCommand extends Command {
 		}),
 	};
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const { flags } = this.parse(StartCommand);
 		const dataPath = flags['data-path']

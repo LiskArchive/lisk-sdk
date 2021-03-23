@@ -18,7 +18,6 @@ export const defaultPath = '/tmp/lisk-framework/test';
 
 const getPath = (name: string): string => `${defaultPath}/${name}`;
 
-// eslint-disable-next-line
 export const createDB = (name: string) => {
 	const path = getPath(name);
 	fs.ensureDirSync(path);

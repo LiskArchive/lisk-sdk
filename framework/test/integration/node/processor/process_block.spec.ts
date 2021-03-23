@@ -59,9 +59,9 @@ describe('Process block', () => {
 			let transaction: Transaction;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				transaction = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
 					recipientAddress: account.address,
@@ -116,9 +116,9 @@ describe('Process block', () => {
 			let transaction: Transaction;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				transaction = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
 					recipientAddress: account.address,
@@ -209,9 +209,9 @@ describe('Process block', () => {
 		let transaction: Transaction;
 
 		beforeAll(async () => {
-			const targetAccount = await node['_chain'].dataAccess.getAccountByAddress<
-				DefaultAccountProps
-			>(account.address);
+			const targetAccount = await node[
+				'_chain'
+			].dataAccess.getAccountByAddress<DefaultAccountProps>(account.address);
 			transaction = createDelegateRegisterTransaction({
 				nonce: targetAccount.sequence.nonce,
 				fee: BigInt('3000000000'),
@@ -247,9 +247,9 @@ describe('Process block', () => {
 				await node['_processor'].process(block);
 
 				// Assess
-				const updatedSender = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(account.address);
+				const updatedSender = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(account.address);
 				expect(updatedSender.dpos.sentVotes).toHaveLength(1);
 				expect(updatedSender.token.balance).toEqual(
 					sender.token.balance - voteAmount - voteTransaction.fee,

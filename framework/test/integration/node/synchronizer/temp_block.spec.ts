@@ -56,9 +56,9 @@ describe('Temp block', () => {
 				const targetHeight =
 					node['_chain'].lastBlock.header.height + node['_chain'].numberOfValidators * 3;
 				while (node['_chain'].lastBlock.header.height < targetHeight) {
-					const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-						DefaultAccountProps
-					>(genesis.address);
+					const genesisAccount = await node[
+						'_chain'
+					].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 					const accountWithoutBalance = nodeUtils.createAccount();
 					const nextBlock = await nodeUtils.createBlock(node, [
 						createTransferTransaction({
@@ -90,9 +90,9 @@ describe('Temp block', () => {
 				const targetHeight =
 					node['_chain'].lastBlock.header.height + node['_chain'].numberOfValidators * 3;
 				while (node['_chain'].lastBlock.header.height < targetHeight) {
-					const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-						DefaultAccountProps
-					>(genesis.address);
+					const genesisAccount = await node[
+						'_chain'
+					].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 					const accountWithoutBalance = nodeUtils.createAccount();
 					const nextBlock = await nodeUtils.createBlock(node, [
 						createTransferTransaction({
@@ -117,9 +117,9 @@ describe('Temp block', () => {
 
 				// Act
 				while (node['_chain'].lastBlock.header.height < targetHeight) {
-					const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-						DefaultAccountProps
-					>(genesis.address);
+					const genesisAccount = await node[
+						'_chain'
+					].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 					const accountWithoutBalance = nodeUtils.createAccount();
 					const nextBlock = await nodeUtils.createBlock(node, [
 						createTransferTransaction({
