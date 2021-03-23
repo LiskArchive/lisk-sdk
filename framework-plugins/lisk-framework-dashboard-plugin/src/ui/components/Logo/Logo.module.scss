@@ -1,0 +1,25 @@
+@import '../../styles/constants';
+
+.wrapper {
+	display: inline-flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	height: 53px;
+	color: $color-white;
+}
+
+.img {
+	width: auto;
+	height: 100%;
+}
+
+.branding {
+	margin: 14px 10px 1px 11px;
+	flex-direction: column;
+	display: inline-flex;
+	justify-content: space-between;
+}
+
+.brandingText {
+	text-transform: uppercase;
+}
