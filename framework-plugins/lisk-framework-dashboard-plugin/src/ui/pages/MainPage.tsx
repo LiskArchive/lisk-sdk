@@ -17,6 +17,7 @@ import Text from '../components/Text';
 import Icon from '../components/Icon';
 import Logo from '../components/Logo';
 import CopiableText from '../components/CopiableText';
+import Widget from '../components/Widget';
 
 const MainPage: React.FC = () => (
 	<section className={styles.root}>
@@ -39,6 +40,32 @@ const MainPage: React.FC = () => (
 				bd81020ded87d21bbfedc45ed...5d90
 			</Text>
 		</div>
+
+		<Widget header="Widget title" size={'s'}>
+			<h2>Nazar</h2>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
+				ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
+				dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
+				metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero nec
+				quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam, eget
+				semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque posuere.
+				Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue ut, dapibus
+				cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam
+				dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
+			</p>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
+				ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
+				dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
+				metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero nec
+				quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam, eget
+				semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque posuere.
+				Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue ut, dapibus
+				cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam
+				dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
+			</p>
+		</Widget>
 	</section>
 );
 
