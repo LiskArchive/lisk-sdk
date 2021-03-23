@@ -14,14 +14,16 @@
  */
 
 import { AccountDefaultProps, GenesisBlock } from '@liskhq/lisk-chain';
-import { createGenesisBlock as createGenesis } from '@liskhq/lisk-genesis';
-import { GenesisConfig } from '../types';
+import { createGenesisBlock as createGenesis, getGenesisBlockJSON } from '@liskhq/lisk-genesis';
+
 import { ModuleClass, PartialAccount } from './types';
 import { getAccountSchemaFromModules } from './utils';
+import { GenesisConfig } from '../types';
+import { defaultAccounts } from './fixtures/accounts';
 
 interface CreateGenesisBlock<T> {
 	modules: ModuleClass[];
-	accounts: PartialAccount<T>[];
+	accounts?: PartialAccount<T>[];
 	genesisConfig?: GenesisConfig;
 	initDelegates?: ReadonlyArray<Buffer>;
 	height?: number;
@@ -32,17 +34,20 @@ interface CreateGenesisBlock<T> {
 
 export const createGenesisBlock = <T = AccountDefaultProps>(
 	params: CreateGenesisBlock<T>,
-): GenesisBlock<T> => {
+): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
+	const accounts = params.accounts ?? defaultAccounts();
+	const initDelegates: ReadonlyArray<Buffer> =
+		params.initDelegates ?? defaultAccounts().map(delegate => delegate.address);
 	const accountAssetSchemas = getAccountSchemaFromModules(params.modules, params.genesisConfig);
-
-	const initDelegates: ReadonlyArray<Buffer> = params.initDelegates ?? [];
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
-	const timestamp = params.timestamp ?? Math.floor(Date.now() / 1000);
+	// Set genesis block timestamp to 1 day in past relative to current date
+	const defaultTimestamp = Math.floor(new Date().setDate(new Date().getDay() - 1) / 1000);
+	const timestamp = params.timestamp ?? defaultTimestamp;
 	const previousBlockID = params.previousBlockID ?? Buffer.alloc(0);
 
-	return createGenesis<T>({
-		accounts: params.accounts,
+	const genesisBlock = createGenesis<T>({
+		accounts,
 		initDelegates,
 		accountAssetSchemas,
 		initRounds,
@@ -50,4 +55,14 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 		timestamp,
 		previousBlockID,
 	});
+
+	const genesisBlockJSON = getGenesisBlockJSON({
+		genesisBlock: genesisBlock as never,
+		accountAssetSchemas,
+	});
+
+	return {
+		genesisBlock,
+		genesisBlockJSON,
+	};
 };

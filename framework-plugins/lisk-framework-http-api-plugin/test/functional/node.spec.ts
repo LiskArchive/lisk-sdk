@@ -81,6 +81,7 @@ describe('Node', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: 100,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id: txID1, ...input1 } = transaction1;
 				await axios.post(getURL('/api/transactions'), input1);
@@ -90,6 +91,7 @@ describe('Node', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: 200,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id: txID2, ...input2 } = transaction2;
 				await axios.post(getURL('/api/transactions'), input2);

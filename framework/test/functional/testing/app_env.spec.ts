@@ -15,8 +15,7 @@ import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ApplicationEnv } from '../../../src/testing';
-import { PartialApplicationConfig, TokenModule } from '../../../src';
-import { defaultConfig } from '../../../src/testing/fixtures';
+import { TokenModule } from '../../../src';
 
 const appLabel = 'beta-sdk-app';
 const dataPath = join(homedir(), '.lisk', appLabel);
@@ -47,7 +46,6 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['dpos']);
 		});
 
 		it('should return valid environment with custom module', async () => {
@@ -59,17 +57,13 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues([
-				'token',
-				'dpos',
-			]);
+			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['token']);
 		});
 
 		it('should return valid environment with custom config', async () => {
 			appEnv = new ApplicationEnv({
 				modules: [],
 				plugins: [],
-				config: defaultConfig as PartialApplicationConfig,
 			});
 
 			await appEnv.startApplication();
@@ -79,7 +73,18 @@ describe('Application Environment', () => {
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
 			expect(appEnv.networkIdentifier).toBeDefined();
-			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['dpos']);
+		});
+
+		it('should start application and forge next block', async () => {
+			appEnv = new ApplicationEnv({
+				modules: [],
+				plugins: [],
+			});
+
+			await appEnv.startApplication();
+			await appEnv.waitNBlocks(1);
+
+			expect(appEnv.lastBlock.header.height).toBeGreaterThan(0);
 		});
 	});
 });

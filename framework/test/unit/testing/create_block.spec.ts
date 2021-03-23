@@ -20,6 +20,7 @@ import * as devnetGenesisBlock from '../../fixtures/config/devnet/genesis_block.
 import { genesis } from '../../fixtures/accounts';
 import { createGenesisBlock } from '../../../src/testing';
 import { TokenModule } from '../../../src/modules/token/token_module';
+import { defaultConfig } from '../../../src/testing/fixtures/config';
 
 describe('Create Block', () => {
 	const networkIdentifier = getNetworkIdentifier(
@@ -33,7 +34,8 @@ describe('Create Block', () => {
 		const initDelegates = [genesis.address];
 		const modules = [TokenModule];
 
-		genesisBlock = createGenesisBlock({ modules, accounts, initDelegates, timestamp: 0 });
+		genesisBlock = createGenesisBlock({ modules, accounts, initDelegates, timestamp: 0 })
+			.genesisBlock;
 	});
 
 	it('should return a valid default block', () => {
@@ -114,13 +116,15 @@ describe('Create Block', () => {
 		const block = createBlock({
 			passphrase: genesis.passphrase,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
-			timestamp: genesisBlock.header.timestamp,
+			timestamp: genesisBlock.header.timestamp + 10,
 			previousBlockID: genesisBlock.header.id,
 			header: {},
 			payload: [],
 		});
 
 		expect(block.header.previousBlockID).toEqual(genesisBlock.header.id);
-		expect(block.header.timestamp).toEqual(genesisBlock.header.timestamp + 10);
+		expect(block.header.timestamp).toEqual(
+			genesisBlock.header.timestamp + defaultConfig.genesisConfig.blockTime,
+		);
 	});
 });

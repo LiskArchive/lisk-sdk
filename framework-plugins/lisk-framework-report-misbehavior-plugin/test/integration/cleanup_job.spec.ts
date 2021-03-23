@@ -14,7 +14,6 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import {
 	blockHeaderAssetSchema,
 	blockHeaderSchema,
@@ -22,9 +21,10 @@ import {
 	transactionSchema,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { testing } from 'lisk-framework';
+
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema } from '../../src/db';
-import { defaultAccount } from '../fixtures/devnet';
 
 import * as config from '../../src/defaults/default_config';
 
@@ -115,8 +115,8 @@ describe('Clean up old blocks', () => {
 			account: accountSchema,
 		} as any;
 		(reportMisbehaviorPlugin as any)._state = {
-			passphrase: defaultAccount.passphrase,
-			publicKey: getAddressAndPublicKeyFromPassphrase(defaultAccount.passphrase).publicKey,
+			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
+			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,
 			currentHeight: 1000000000,
 		};
 	});
@@ -125,7 +125,7 @@ describe('Clean up old blocks', () => {
 		await reportMisbehaviorPlugin.unload();
 	});
 
-	it('should clear old blockheaders', async () => {
+	it('should clear old block headers', async () => {
 		await reportMisbehaviorPlugin.load(channelMock);
 		await (reportMisbehaviorPlugin as any)._pluginDB.put(
 			dbKey,

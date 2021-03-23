@@ -131,7 +131,7 @@ describe('DPoSModule', () => {
 				);
 			}
 
-			const genesisBlock = testing.createGenesisBlock<DPOSAccountProps>({
+			const { genesisBlock } = testing.createGenesisBlock<DPOSAccountProps>({
 				modules: [DPoSModule],
 				accounts,
 				initDelegates: accounts.map(a => a.address),

@@ -12,20 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 
-import { TokenModule } from '../../../src/modules/token/token_module';
+import { TokenModule } from '../../../src';
 import { createBlock } from '../../../src/testing';
 import {
 	getBlockProcessingEnv,
 	BlockProcessingEnv,
 } from '../../../src/testing/block_processing_env';
-import { defaultAccount } from '../../../src/testing/fixtures';
+import { defaultConfig } from '../../../src/testing/fixtures/config';
 
 describe('getBlockProcessingEnv', () => {
 	let blockProcessEnv: BlockProcessingEnv;
 	const databasePath = '/tmp/lisk/block_process/test';
 	const modules = [TokenModule];
+	const { blockTime } = defaultConfig.genesisConfig;
 
 	beforeEach(async () => {
 		blockProcessEnv = await getBlockProcessingEnv({
@@ -40,12 +41,36 @@ describe('getBlockProcessingEnv', () => {
 		await blockProcessEnv.cleanup({ databasePath });
 	});
 
+	it('should get genesis block as the last block', () => {
+		// Act & Assert
+		const { height } = blockProcessEnv.getLastBlock().header;
+		expect(height).toEqual(0);
+	});
+
+	it('should return all registered validators', async () => {
+		// Act & Assert
+		const validators = await blockProcessEnv.getValidators();
+		expect(validators).toHaveLength(defaultConfig.forging.delegates.length);
+	});
+
+	it('should return a valid passphrase for next validator', async () => {
+		// Arrange
+		const { header } = blockProcessEnv.getLastBlock();
+
+		// Act & Assert
+		const passphrase = await blockProcessEnv.getNextValidatorPassphrase(header);
+		expect(passphrase).toBeString();
+		expect(passphrase.split(' ')).toHaveLength(12);
+	});
+
 	it('should be able to process a valid block', async () => {
+		// Arrange
 		const lastBlockHeader = blockProcessEnv.getLastBlock().header;
+		const passphrase = await blockProcessEnv.getNextValidatorPassphrase(lastBlockHeader);
 		const block = createBlock({
-			passphrase: defaultAccount.passphrase,
+			passphrase,
 			networkIdentifier: blockProcessEnv.getNetworkId(),
-			timestamp: lastBlockHeader.timestamp + 10,
+			timestamp: lastBlockHeader.timestamp + blockTime,
 			previousBlockID: lastBlockHeader.id,
 			header: {
 				asset: {
@@ -56,6 +81,8 @@ describe('getBlockProcessingEnv', () => {
 			},
 			payload: [],
 		});
+
+		// Act & Assert
 		expect(blockProcessEnv.getLastBlock().header.height).toEqual(0);
 		await expect(blockProcessEnv.process(block)).toResolve();
 		expect(blockProcessEnv.getLastBlock().header.height).toEqual(block.header.height);
@@ -63,15 +90,22 @@ describe('getBlockProcessingEnv', () => {
 	});
 
 	it('should be able to process blocks until given height', async () => {
-		const createBlockUntilHeight = 10;
-		await blockProcessEnv.processUntilHeight(createBlockUntilHeight);
-		expect(blockProcessEnv.getLastBlock().header.height).toEqual(createBlockUntilHeight);
+		// Arrange
+		const untilHeight = 101;
+
+		// Act & Assert
+		await blockProcessEnv.processUntilHeight(untilHeight);
+		expect(blockProcessEnv.getLastBlock().header.height).toEqual(untilHeight);
 	});
 
-	it('should enable to use data access', async () => {
-		const account = await blockProcessEnv
-			.getDataAccess()
-			.getAccountByAddress(defaultAccount.address);
-		expect(account.address).toEqual(defaultAccount.address);
+	it('should process block with correct validator', async () => {
+		// Arrange
+		const lastBlockHeader = blockProcessEnv.getLastBlock().header;
+		const passphrase = await blockProcessEnv.getNextValidatorPassphrase(lastBlockHeader);
+		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
+
+		// Act & Assert
+		await blockProcessEnv.processUntilHeight(1);
+		expect(blockProcessEnv.getLastBlock().header.generatorPublicKey).toEqual(publicKey);
 	});
 });

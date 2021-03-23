@@ -11,15 +11,18 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { join } from 'path';
+import { homedir } from 'os';
+import { existsSync, rmdirSync } from 'fs-extra';
 import {
 	KeysModule,
 	PartialApplicationConfig,
 	SequenceModule,
 	testing,
 	TokenModule,
+	DPoSModule,
 } from 'lisk-framework';
-import * as genesisBlockJSON from '../fixtures/genesis_block.json';
-import * as configJSON from '../fixtures/config.json';
+
 import { HTTPAPIPlugin } from '../../../src';
 
 export const createApplicationEnv = (
@@ -28,7 +31,7 @@ export const createApplicationEnv = (
 ): testing.ApplicationEnv => {
 	const rootPath = '~/.lisk/http-plugin';
 	const config = {
-		...configJSON,
+		...testing.fixtures.defaultConfig,
 		rootPath,
 		label,
 		logger: {
@@ -36,22 +39,44 @@ export const createApplicationEnv = (
 			fileLogLevel: 'fatal',
 			logFileName: 'lisk.log',
 		},
-		network: {
-			...configJSON.network,
-			maxInboundConnections: 0,
-		},
-		rpc: {
-			enable: true,
-			port: 8080,
-			mode: 'ipc',
-		},
 	} as PartialApplicationConfig;
 
+	const dataPath = join(rootPath.replace('~', homedir()), label);
+	if (existsSync(dataPath)) {
+		rmdirSync(dataPath, { recursive: true });
+	}
+
+	const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+	const defaultFaucetAccount = {
+		address: testing.fixtures.defaultFaucetAccount.address,
+		token: { balance: BigInt(testing.fixtures.defaultFaucetAccount.balance) },
+		dpos: {
+			delegate: {
+				username: 'faucet_delegate',
+			},
+		},
+	};
+	const accounts = testing.fixtures.defaultAccounts().map((a, i) =>
+		testing.fixtures.createDefaultAccount(modules, {
+			address: a.address,
+			dpos: {
+				delegate: {
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					username: `delegate_${i}`,
+				},
+			},
+		}),
+	);
+	const { genesisBlockJSON } = testing.createGenesisBlock({
+		modules,
+		accounts: [defaultFaucetAccount, ...accounts],
+	});
+
 	const appEnv = new testing.ApplicationEnv({
-		modules: [TokenModule, SequenceModule, KeysModule],
+		modules,
 		config,
+		genesisBlockJSON,
 		plugins: [HTTPAPIPlugin],
-		genesisBlock: genesisBlockJSON,
 	});
 
 	return appEnv;
@@ -60,7 +85,7 @@ export const createApplicationEnv = (
 export const closeApplicationEnv = async (
 	appEnv: testing.ApplicationEnv,
 	options: { clearDB: boolean } = { clearDB: true },
-) => {
+): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 	await appEnv.stopApplication(options);

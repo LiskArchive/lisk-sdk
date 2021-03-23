@@ -13,6 +13,5 @@
  *
  */
 
-export * from './genesis_block';
 export * from './accounts';
 export * from './config';

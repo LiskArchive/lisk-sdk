@@ -25,12 +25,11 @@ import { Account, GenesisBlock, Transaction, transactionSchema } from '@liskhq/l
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { KeysModule } from '../../../../src/modules/keys/keys_module';
 import * as fixtures from './fixtures.json';
-import { GenesisConfig, TokenModule } from '../../../../src';
+import { GenesisConfig, TokenModule, DPoSModule } from '../../../../src';
 import { AccountKeys } from '../../../../src/modules/keys/types';
 import * as testing from '../../../../src/testing';
 import { TokenAccount } from '../../../../src/modules/token/types';
-
-const { StateStoreMock } = testing.mocks;
+import { createGenesisBlock } from '../../../../src/testing';
 
 describe('keys module', () => {
 	let decodedMultiSignature: any;
@@ -45,6 +44,7 @@ describe('keys module', () => {
 	let passphraseDerivedKeys: any;
 
 	const { cloneDeep } = ObjectUtils;
+	const { StateStoreMock } = testing.mocks;
 
 	const defaultTestCase = fixtures.testCases[0];
 	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
@@ -855,9 +855,9 @@ describe('keys module', () => {
 	});
 
 	describe('afterGenesisBlockApply', () => {
-		const { genesisBlock } = testing.fixtures.createGenesisBlockWithAccounts<AccountKeys>([
-			KeysModule,
-		]);
+		const { genesisBlock } = createGenesisBlock<AccountKeys>({
+			modules: [KeysModule, DPoSModule],
+		});
 
 		it('should not fail for valid keys property', async () => {
 			// Arrange

@@ -14,8 +14,8 @@
 
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
-import { TokenModule } from '../../../src/modules/token/token_module';
 import { createGenesisBlock } from '../../../src/testing';
+import { TokenModule } from '../../../src';
 
 describe('Create Genesis Block', () => {
 	it('should return a valid genesis block', () => {
@@ -27,7 +27,7 @@ describe('Create Genesis Block', () => {
 	it('should return valid accounts for empty modules', () => {
 		const accounts = [{ address: getRandomBytes(20) }];
 
-		const genesisBlock = createGenesisBlock({ modules: [], accounts });
+		const { genesisBlock } = createGenesisBlock({ modules: [], accounts });
 
 		expect(genesisBlock.header.asset.accounts).toHaveLength(1);
 		expect(genesisBlock.header.asset.accounts).toEqual(accounts);
@@ -37,7 +37,7 @@ describe('Create Genesis Block', () => {
 		const accounts = [{ address: getRandomBytes(20) }];
 		const tokenModule = new TokenModule({} as never);
 
-		const genesisBlock = createGenesisBlock({ modules: [TokenModule], accounts });
+		const { genesisBlock } = createGenesisBlock({ modules: [TokenModule], accounts });
 
 		expect(genesisBlock.header.asset.accounts).toHaveLength(1);
 		expect(genesisBlock.header.asset.accounts[0]).toEqual(
@@ -51,7 +51,11 @@ describe('Create Genesis Block', () => {
 		const accounts = [{ address: getRandomBytes(20) }];
 		const initDelegates = [getRandomBytes(20)];
 
-		const genesisBlock = createGenesisBlock({ modules: [TokenModule], accounts, initDelegates });
+		const { genesisBlock } = createGenesisBlock({
+			modules: [TokenModule],
+			accounts,
+			initDelegates,
+		});
 
 		expect(genesisBlock.header.asset.accounts).toHaveLength(1);
 		expect(genesisBlock.header.asset.initDelegates).toEqual(initDelegates);
