@@ -1,0 +1,46 @@
+@import '../../styles/constants';
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+.icon {
+	font-family: 'Material Icons';
+	font-weight: normal;
+	font-style: normal;
+	font-size: $font-size-m;
+	display: inline-block;
+	line-height: 1;
+	text-transform: none;
+	letter-spacing: normal;
+	word-wrap: normal;
+	white-space: nowrap;
+	direction: ltr;
+	color: $color-white;
+
+	/* Support for all WebKit browsers. */
+	-webkit-font-smoothing: antialiased;
+	/* Support for Safari and Chrome. */
+	text-rendering: optimizeLegibility;
+
+	/* Support for Firefox. */
+	-moz-osx-font-smoothing: grayscale;
+
+	/* Support for IE. */
+	font-feature-settings: 'liga';
+
+	&.icon {
+		&.icon-s {
+			font-size: $font-size-s;
+		}
+
+		&.icon-m {
+			font-size: $font-size-m;
+		}
+
+		&.icon-l {
+			font-size: $font-size-l;
+		}
+
+		&.icon-xl {
+			font-size: $font-size-xl;
+		}
+	}
+}

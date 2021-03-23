@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import styles from './text.module.scss';
+import styles from './Text.module.scss';
 
 interface Props {
 	color?: 'green' | 'pink' | 'yellow' | 'blue' | 'white' | 'gray' | 'red';
 	type?: 'h1' | 'h2' | 'h3' | 'th' | 'tr' | 'p';
 }
 
-export const Text: React.FC<Props> = props => {
+const Text: React.FC<Props> = props => {
 	const color = props.color ?? 'white';
 	const type = props.type ?? 'p';
 	const styleProps = ['root'];
@@ -28,3 +28,5 @@ export const Text: React.FC<Props> = props => {
 	const Tag = ['h1', 'h2', 'h3', 'p'].includes(type) ? type : 'p';
 	return <Tag className={styleProps.map(prop => styles[prop]).join(' ')}>{props.children}</Tag>;
 };
+
+export default Text;
