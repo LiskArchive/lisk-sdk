@@ -13,44 +13,57 @@
  */
 
 import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
-import { Block, Account, Transaction } from '@liskhq/lisk-chain';
-import { KVStore } from '@liskhq/lisk-db';
+import { Account, Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
 import {
 	getRandomBytes,
 	signDataWithPrivateKey,
 	getAddressFromPublicKey,
+	getPrivateAndPublicKeyFromPassphrase,
+	getAddressAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
-import { createDB, removeDB } from '../../../utils/kv_store';
 import { genesis, DefaultAccountProps } from '../../../fixtures';
-import { Node } from '../../../../src/node';
+import * as testing from '../../../../src/testing';
 import {
 	createDelegateRegisterTransaction,
 	createDelegateVoteTransaction,
 	createTransferTransaction,
 } from '../../../utils/node/transaction';
+import { getPassphraseFromDefaultConfig, defaultConfig } from '../../../../src/testing/fixtures';
+
+const getPrivateKey = (address: Buffer) => {
+	const passphrase = testing.fixtures.getPassphraseFromDefaultConfig(address);
+	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+
+	return privateKey;
+};
+
+const getNextTimeslot = (chain: Chain) => {
+	const currentSlot = chain.slots.getSlotNumber(chain.lastBlock.header.timestamp) + 1;
+	return chain.slots.getSlotTime(currentSlot);
+};
 
 describe('Process block', () => {
-	const dbName = 'process_block';
+	let processEnv: testing.BlockProcessingEnv;
+	let networkIdentifier: Buffer;
+	let chain: Chain;
+	let dataAccess: DataAccess;
+	const databasePath = '/tmp/lisk/process_block/test';
 	const account = nodeUtils.createAccount();
-	let node: Node;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
 
 	beforeAll(async () => {
-		({ blockchainDB, forgerDB } = createDB(dbName));
-		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
-		// Since node start the forging so we have to stop the job
-		// Our test make use of manual forging of blocks
-		node['_forgingJob'].stop();
+		processEnv = await testing.getBlockProcessingEnv({
+			options: {
+				databasePath,
+			},
+		});
+		networkIdentifier = processEnv.getNetworkId();
+		chain = processEnv.getChain();
+		dataAccess = processEnv.getDataAccess();
 	});
 
 	afterAll(async () => {
-		await forgerDB.clear();
-		await node.cleanup();
-		await blockchainDB.close();
-		await forgerDB.close();
-		removeDB(dbName);
+		await processEnv.cleanup({ databasePath });
 	});
 
 	describe('given an account has a balance', () => {
@@ -59,36 +72,34 @@ describe('Process block', () => {
 			let transaction: Transaction;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await dataAccess.getAccountByAddress<DefaultAccountProps>(
+					genesis.address,
+				);
 				transaction = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
 					recipientAddress: account.address,
 					amount: BigInt('100000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
-				newBlock = await nodeUtils.createBlock(node, [transaction]);
-				await node['_processor'].process(newBlock);
+				newBlock = await processEnv.createBlock([transaction]);
+				await processEnv.process(newBlock);
 			});
 
 			it('should save account state changes from the transaction', async () => {
-				const recipient = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
+				const recipient = await dataAccess.getAccountByAddress<DefaultAccountProps>(
 					account.address,
 				);
 				expect(recipient.token.balance.toString()).toEqual(convertLSKToBeddows('1000'));
 			});
 
 			it('should save the block to the database', async () => {
-				const processedBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
+				const processedBlock = await dataAccess.getBlockByID(newBlock.header.id);
 				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
 
 			it('should save the transactions to the database', async () => {
-				const [processedTx] = await node['_chain'].dataAccess.getTransactionsByIDs([
-					transaction.id,
-				]);
+				const [processedTx] = await dataAccess.getTransactionsByIDs([transaction.id]);
 				expect(processedTx.id).toEqual(transaction.id);
 			});
 		});
@@ -99,12 +110,12 @@ describe('Process block', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				newBlock = await nodeUtils.createBlock(node);
-				await node['_processor'].process(newBlock);
+				newBlock = await processEnv.createBlock();
+				await processEnv.process(newBlock);
 			});
 
 			it('should add the block to the chain', async () => {
-				const processedBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
+				const processedBlock = await dataAccess.getBlockByID(newBlock.header.id);
 				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
 		});
@@ -116,23 +127,23 @@ describe('Process block', () => {
 			let transaction: Transaction;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await dataAccess.getAccountByAddress<DefaultAccountProps>(
+					genesis.address,
+				);
 				transaction = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
 					recipientAddress: account.address,
 					amount: BigInt('100000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
-				newBlock = await nodeUtils.createBlock(node, [transaction]);
-				await node['_processor'].process(newBlock);
+				newBlock = await processEnv.createBlock([transaction]);
+				await processEnv.process(newBlock);
 			});
 
 			it('should fail to process the block', async () => {
-				const invalidBlock = await nodeUtils.createBlock(node, [transaction]);
-				await expect(node['_processor'].process(invalidBlock)).rejects.toThrow(
+				const invalidBlock = await processEnv.createBlock([transaction]);
+				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
 					expect.objectContaining({
 						message: expect.stringContaining('nonce is lower than account nonce'),
 					}),
@@ -145,18 +156,28 @@ describe('Process block', () => {
 		describe('when processing the block', () => {
 			let newBlock: Block;
 
-			beforeAll(async () => {
-				newBlock = await nodeUtils.createBlock(node, [], {
-					keypair: {
-						publicKey: account.publicKey,
-						privateKey: account.privateKey,
+			beforeAll(() => {
+				const timestamp = getNextTimeslot(chain);
+				newBlock = testing.createBlock({
+					passphrase: account.passphrase,
+					networkIdentifier,
+					timestamp,
+					previousBlockID: chain.lastBlock.header.id,
+					header: {
+						height: chain.lastBlock.header.height + 1,
+						asset: {
+							maxHeightPreviouslyForged: chain.lastBlock.header.height,
+							maxHeightPrevoted: 0,
+							seedReveal: Buffer.alloc(16),
+						},
 					},
+					payload: [],
 				});
 				(newBlock.header as any).generatorPublicKey = account.publicKey;
 			});
 
 			it('should discard the block', async () => {
-				await expect(node['_processor'].process(newBlock)).rejects.toThrow(
+				await expect(processEnv.process(newBlock)).rejects.toThrow(
 					expect.objectContaining({
 						message: expect.stringContaining('Failed to verify generator'),
 					}),
@@ -170,12 +191,12 @@ describe('Process block', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				newBlock = await nodeUtils.createBlock(node);
-				await node['_processor'].process(newBlock);
+				newBlock = await processEnv.createBlock();
+				await processEnv.process(newBlock);
 			});
 
 			it('should discard the block', async () => {
-				await expect(node['_processor'].process(newBlock)).resolves.toBeUndefined();
+				await expect(processEnv.process(newBlock)).resolves.toBeUndefined();
 			});
 		});
 	});
@@ -184,22 +205,29 @@ describe('Process block', () => {
 		describe('when processing the block', () => {
 			let newBlock: Block;
 
-			beforeAll(async () => {
-				newBlock = await nodeUtils.createBlock(node, [], {
-					lastBlock: {
-						header: {
-							timestamp: Math.floor(new Date().getTime() / 1000),
-							height: 99,
+			beforeAll(() => {
+				const timestamp = getNextTimeslot(chain);
+				newBlock = testing.createBlock({
+					passphrase: genesis.passphrase,
+					networkIdentifier,
+					timestamp,
+					previousBlockID: chain.lastBlock.header.id,
+					header: {
+						height: 99,
+						timestamp: Math.floor(new Date().getTime() / 1000),
+						asset: {
+							maxHeightPreviouslyForged: chain.lastBlock.header.height,
+							maxHeightPrevoted: 0,
+							seedReveal: Buffer.alloc(16),
 						},
-					} as Block,
+					},
+					payload: [],
 				});
 			});
 
 			it('should discard the block', async () => {
-				await expect(node['_processor'].process(newBlock)).resolves.toBeUndefined();
-				await expect(
-					node['_chain'].dataAccess.isBlockPersisted(newBlock.header.id),
-				).resolves.toBeFalse();
+				await expect(processEnv.process(newBlock)).resolves.toBeUndefined();
+				await expect(dataAccess.isBlockPersisted(newBlock.header.id)).resolves.toBeFalse();
 			});
 		});
 	});
@@ -209,30 +237,28 @@ describe('Process block', () => {
 		let transaction: Transaction;
 
 		beforeAll(async () => {
-			const targetAccount = await node['_chain'].dataAccess.getAccountByAddress<
-				DefaultAccountProps
-			>(account.address);
+			const targetAccount = await dataAccess.getAccountByAddress<DefaultAccountProps>(
+				account.address,
+			);
 			transaction = createDelegateRegisterTransaction({
 				nonce: targetAccount.sequence.nonce,
 				fee: BigInt('3000000000'),
 				username: 'number1',
-				networkIdentifier: node['_networkIdentifier'],
+				networkIdentifier,
 				passphrase: account.passphrase,
 			});
-			newBlock = await nodeUtils.createBlock(node, [transaction]);
-			await node['_processor'].process(newBlock);
+			newBlock = await processEnv.createBlock([transaction]);
+			await processEnv.process(newBlock);
 		});
 
 		describe('when processing a block with a transaction which has votes for the delegate', () => {
 			it('should update the sender balance and the vote of the sender', async () => {
 				// Arrange
-				const sender = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
-					account.address,
-				);
+				const sender = await dataAccess.getAccountByAddress<DefaultAccountProps>(account.address);
 				const voteAmount = BigInt('1000000000');
 				const voteTransaction = createDelegateVoteTransaction({
 					nonce: sender.sequence.nonce,
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: account.passphrase,
 					votes: [
 						{
@@ -241,15 +267,15 @@ describe('Process block', () => {
 						},
 					],
 				});
-				const block = await nodeUtils.createBlock(node, [voteTransaction]);
+				const block = await processEnv.createBlock([voteTransaction]);
 
 				// Act
-				await node['_processor'].process(block);
+				await processEnv.process(block);
 
 				// Assess
-				const updatedSender = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(account.address);
+				const updatedSender = await dataAccess.getAccountByAddress<DefaultAccountProps>(
+					account.address,
+				);
 				expect(updatedSender.dpos.sentVotes).toHaveLength(1);
 				expect(updatedSender.token.balance).toEqual(
 					sender.token.balance - voteAmount - voteTransaction.fee,
@@ -263,17 +289,17 @@ describe('Process block', () => {
 			let originalAccount: Account<DefaultAccountProps>;
 
 			beforeAll(async () => {
-				originalAccount = await node['_chain'].dataAccess.getAccountByAddress(account.address);
+				originalAccount = await dataAccess.getAccountByAddress(account.address);
 				invalidTx = createDelegateRegisterTransaction({
 					nonce: originalAccount.sequence.nonce,
 					fee: BigInt('5000000000'),
 					username: 'number1',
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: account.passphrase,
 				});
-				invalidBlock = await nodeUtils.createBlock(node, [invalidTx]);
+				invalidBlock = await processEnv.createBlock([invalidTx]);
 				try {
-					await node['_processor'].process(invalidBlock);
+					await processEnv.process(invalidBlock);
 				} catch (err) {
 					// expected error
 				}
@@ -284,15 +310,11 @@ describe('Process block', () => {
 			});
 
 			it('should not save the block to the database', async () => {
-				await expect(
-					node['_chain'].dataAccess.isBlockPersisted(invalidBlock.header.id),
-				).resolves.toBeFalse();
+				await expect(dataAccess.isBlockPersisted(invalidBlock.header.id)).resolves.toBeFalse();
 			});
 
 			it('should not save the transaction to the database', async () => {
-				await expect(
-					node['_chain'].dataAccess.isTransactionPersisted(invalidTx.id),
-				).resolves.toBeFalse();
+				await expect(dataAccess.isTransactionPersisted(invalidTx.id)).resolves.toBeFalse();
 			});
 		});
 	});
@@ -302,49 +324,60 @@ describe('Process block', () => {
 
 		describe('when block has lower reward than expected', () => {
 			it('should reject the block', async () => {
-				const { lastBlock } = node['_chain'];
-				const currentSlot = node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
-				const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
-				const validator = await node['_chain'].getValidator(timestamp);
+				const timestamp = getNextTimeslot(chain);
+				const validator = await chain.getValidator(timestamp);
+				const passphrase = getPassphraseFromDefaultConfig(validator.address);
 
-				const currentKeypair = node['_forger']['_keypairs'].get(validator.address);
-				invalidBlock = await node['_forger']['_create']({
-					keypair: currentKeypair as { publicKey: Buffer; privateKey: Buffer },
-					previousBlock: lastBlock,
-					seedReveal: getRandomBytes(16),
+				invalidBlock = testing.createBlock({
+					passphrase,
+					networkIdentifier,
 					timestamp,
-					transactions: [],
+					previousBlockID: chain.lastBlock.header.id,
+					header: {
+						height: chain.lastBlock.header.height + 1,
+						asset: {
+							maxHeightPreviouslyForged: chain.lastBlock.header.height,
+							maxHeightPrevoted: 0,
+							seedReveal: Buffer.alloc(16),
+						},
+					},
+					payload: [],
 				});
-				node['_chain']['_blockRewardArgs'].rewardOffset = 1;
+				chain['_blockRewardArgs'].rewardOffset = 1;
 				(invalidBlock.header as any).reward = BigInt(1000);
 				const signature = signDataWithPrivateKey(
 					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(invalidBlock.header, true),
+						networkIdentifier,
+						dataAccess.encodeBlockHeader(invalidBlock.header, true),
 					]),
-					currentKeypair?.privateKey as Buffer,
+					getPrivateKey(validator.address),
 				);
 				(invalidBlock.header as any).signature = signature;
-				await expect(node['_processor'].process(invalidBlock)).rejects.toThrow(
-					'Invalid block reward',
-				);
+				await expect(processEnv.process(invalidBlock)).rejects.toThrow('Invalid block reward');
 			});
 		});
 
 		describe('when block has tie break BFT properties', () => {
 			it('should replace the last block', async () => {
-				const { lastBlock } = node['_chain'];
-				const currentSlot = node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
-				const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
-				const validator = await node['_chain'].getValidator(timestamp);
+				const { lastBlock } = chain;
+				const timestamp = getNextTimeslot(chain);
+				const validator = await chain.getValidator(timestamp);
+				const passphrase = getPassphraseFromDefaultConfig(validator.address);
 
-				const currentKeypair = node['_forger']['_keypairs'].get(validator.address);
-				const tieBreakBlock = await node['_forger']['_create']({
-					keypair: currentKeypair as { publicKey: Buffer; privateKey: Buffer },
-					previousBlock: lastBlock,
-					seedReveal: getRandomBytes(16),
+				const tieBreakBlock = testing.createBlock({
+					passphrase,
+					networkIdentifier,
 					timestamp,
-					transactions: [],
+					previousBlockID: chain.lastBlock.header.id,
+					header: {
+						height: chain.lastBlock.header.height + 1,
+						asset: {
+							maxHeightPreviouslyForged: chain.lastBlock.header.height,
+							maxHeightPrevoted: 0,
+							seedReveal: Buffer.alloc(16),
+						},
+					},
+					payload: [],
 				});
 				(tieBreakBlock.header as any).height = lastBlock.header.height;
 				(tieBreakBlock.header as any).previousBlockID = lastBlock.header.previousBlockID;
@@ -352,210 +385,211 @@ describe('Process block', () => {
 				(tieBreakBlock.header as any).reward = BigInt(500000000);
 				const signature = signDataWithPrivateKey(
 					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(tieBreakBlock.header, true),
+						networkIdentifier,
+						dataAccess.encodeBlockHeader(tieBreakBlock.header, true),
 					]),
-					currentKeypair?.privateKey as Buffer,
+					getPrivateKey(validator.address),
 				);
 				(tieBreakBlock.header as any).signature = signature;
 				(tieBreakBlock.header as any).receivedAt = timestamp;
 				// There is no other way to mutate the time so that the tieBreak block is received at current slot
-				jest.spyOn(node['_chain'].slots, 'timeSinceGenesis').mockReturnValue(timestamp);
-				(node['_chain'].lastBlock.header as any).receivedAt = timestamp + 2;
+				jest.spyOn(chain.slots, 'timeSinceGenesis').mockReturnValue(timestamp);
+				(chain.lastBlock.header as any).receivedAt = timestamp + 2;
 				// mutate the last block so that the last block was not received in the timeslot
 
-				await node['_processor'].process(tieBreakBlock);
+				await processEnv.process(tieBreakBlock);
 
-				expect(node['_chain'].lastBlock.header.id).toEqual(tieBreakBlock.header.id);
+				expect(chain.lastBlock.header.id).toEqual(tieBreakBlock.header.id);
 			});
 		});
 	});
 
 	describe('given a block with protocol violation', () => {
-		beforeEach(() => {
-			node['_chain']['_blockRewardArgs'].rewardOffset = 1;
+		beforeEach(async () => {
+			processEnv = await testing.getBlockProcessingEnv({
+				options: {
+					databasePath,
+					genesisConfig: {
+						...defaultConfig.genesisConfig,
+						rewards: {
+							...defaultConfig.genesisConfig.rewards,
+							offset: 1,
+						},
+					},
+				},
+			});
+			networkIdentifier = processEnv.getNetworkId();
+			chain = processEnv.getChain();
+			dataAccess = processEnv.getDataAccess();
 		});
 
 		describe('when SeedReveal is not preimage of the last block forged', () => {
 			it('should reject a block if reward is not 0', async () => {
-				const { lastBlock } = node['_chain'];
+				const { lastBlock } = chain;
+				const timestamp = getNextTimeslot(chain);
 				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
-				const currentKeypair = node['_forger']['_keypairs'].get(target);
-				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				const passphrase = getPassphraseFromDefaultConfig(target);
+				const nextBlock = testing.createBlock({
+					passphrase,
+					networkIdentifier,
+					timestamp,
+					previousBlockID: chain.lastBlock.header.id,
+					header: {
+						height: chain.lastBlock.header.height + 1,
+						asset: {
+							maxHeightPreviouslyForged: chain.lastBlock.header.height,
+							maxHeightPrevoted: 0,
+							seedReveal: Buffer.alloc(16),
+						},
+					},
+					payload: [],
+				});
 				// Mutate valid block to have reward 500000000 with invalid seed reveal
 				(nextBlock.header as any).reward = BigInt(500000000);
 				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
-					]),
-					currentKeypair?.privateKey as Buffer,
+					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+					getPrivateKey(target),
 				);
 				(nextBlock.header as any).signature = signature;
 
-				await expect(node['_processor'].process(nextBlock)).rejects.toThrow(
+				await expect(processEnv.process(nextBlock)).rejects.toThrow(
 					'Invalid block reward: 500000000 expected: 0',
 				);
-				expect(node['_chain'].lastBlock.header.id).toEqual(lastBlock.header.id);
+				expect(chain.lastBlock.header.id).toEqual(lastBlock.header.id);
 			});
 
 			it('should accept a block if reward is 0', async () => {
-				const { lastBlock } = node['_chain'];
-				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
-				const currentKeypair = node['_forger']['_keypairs'].get(target);
-				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				const { lastBlock } = chain;
+				const passphrase = await processEnv.getNextValidatorPassphrase(lastBlock.header);
+				const { address } = getAddressAndPublicKeyFromPassphrase(passphrase);
+				const nextBlock = await processEnv.createBlock();
 				// Mutate valid block to have reward 0 with invalid seed reveal
 				(nextBlock.header as any).reward = BigInt(0);
 				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
-					]),
-					currentKeypair?.privateKey as Buffer,
+					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+					getPrivateKey(address),
 				);
 				(nextBlock.header as any).signature = signature;
 
-				await node['_processor'].process(nextBlock);
-				expect(node['_chain'].lastBlock.header.id).toEqual(nextBlock.header.id);
+				await processEnv.process(nextBlock);
+				expect(chain.lastBlock.header.id).toEqual(nextBlock.header.id);
 			});
 
 			it('should accept a block if reward is full and forger did not forget last 2 rounds', async () => {
-				const targetHeight =
-					node['_chain'].numberOfValidators * 2 + node['_chain'].lastBlock.header.height;
-				const target = getAddressFromPublicKey(node['_chain'].lastBlock.header.generatorPublicKey);
+				const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
+				const target = getAddressFromPublicKey(chain.lastBlock.header.generatorPublicKey);
 				// Forge 2 rounds of block without generator of the last block
-				while (node['_chain'].lastBlock.header.height !== targetHeight) {
-					const nextBlock = await nodeUtils.createValidBlock(node, [], target, true);
-					await node['_processor'].process(nextBlock);
+				while (chain.lastBlock.header.height !== targetHeight) {
+					const nextBlock = await processEnv.createBlock();
+					await processEnv.process(nextBlock);
 				}
-				const currentKeypair = node['_forger']['_keypairs'].get(target);
-				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				const nextBlock = await processEnv.createBlock();
 				(nextBlock.header as any).reward = BigInt(500000000);
 				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
-					]),
-					currentKeypair?.privateKey as Buffer,
+					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+					getPrivateKey(target),
 				);
 				(nextBlock.header as any).signature = signature;
 
-				await expect(node['_processor'].process(nextBlock)).resolves.toBeUndefined();
-				expect(node['_chain'].lastBlock.header.id).toEqual(nextBlock.header.id);
+				await expect(processEnv.process(nextBlock)).resolves.toBeUndefined();
+				expect(chain.lastBlock.header.id).toEqual(nextBlock.header.id);
 			});
 		});
 
 		describe('when BFT protocol is violated', () => {
 			it('should reject a block if reward is not quarter', async () => {
-				const { lastBlock } = node['_chain'];
-				const targetHeight =
-					node['_chain'].numberOfValidators * 2 + node['_chain'].lastBlock.header.height;
+				const { lastBlock } = chain;
+				const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
 				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
-				while (node['_chain'].lastBlock.header.height !== targetHeight) {
-					const nextBlock = await nodeUtils.createValidBlock(node, [], target, true);
-					await node['_processor'].process(nextBlock);
+				while (chain.lastBlock.header.height !== targetHeight) {
+					const nextBlock = await processEnv.createBlock();
+					await processEnv.process(nextBlock);
 				}
 				// Forge 2 rounds of block without generator of the last block
-				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				const nextBlock = await processEnv.createBlock();
 
-				const currentKeypair = node['_forger']['_keypairs'].get(target);
 				(nextBlock.header as any).reward = BigInt(500000000);
 				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
-					]),
-					currentKeypair?.privateKey as Buffer,
+					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+					getPrivateKey(target),
 				);
 				(nextBlock.header as any).signature = signature;
 
-				await expect(node['_processor'].process(nextBlock)).rejects.toThrow(
+				await expect(processEnv.process(nextBlock)).rejects.toThrow(
 					'Invalid block reward: 500000000 expected: 125000000',
 				);
 			});
 
 			it('should accept a block if reward is quarter', async () => {
-				const { lastBlock } = node['_chain'];
-				const targetHeight =
-					node['_chain'].numberOfValidators * 2 + node['_chain'].lastBlock.header.height;
+				const { lastBlock } = chain;
+				const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
 				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
-				while (node['_chain'].lastBlock.header.height !== targetHeight) {
-					const nextBlock = await nodeUtils.createValidBlock(node, [], target, true);
-					await node['_processor'].process(nextBlock);
+				while (chain.lastBlock.header.height !== targetHeight) {
+					const nextBlock = await processEnv.createBlock();
+					await processEnv.process(nextBlock);
 				}
 				// Forge 2 rounds of block without generator of the last block
-				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				const nextBlock = await processEnv.createBlock();
 
-				const currentKeypair = node['_forger']['_keypairs'].get(target);
 				// Make maxHeightPreviouslyForged to be current height (BFT violation) with quarter reward
 				(nextBlock.header as any).reward = BigInt(125000000);
 				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
-					]),
-					currentKeypair?.privateKey as Buffer,
+					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+					getPrivateKey(target),
 				);
 				(nextBlock.header as any).signature = signature;
 
-				await node['_processor'].process(nextBlock);
-				expect(node['_chain'].lastBlock.header.id).toEqual(nextBlock.header.id);
+				await processEnv.process(nextBlock);
+				expect(chain.lastBlock.header.id).toEqual(nextBlock.header.id);
 			});
 		});
 
 		describe('when BFT protocol is violated and seed reveal is not preimage', () => {
 			it('should reject a block if reward is not 0', async () => {
-				const { lastBlock } = node['_chain'];
+				const { lastBlock } = chain;
 				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
 				// Forge 2 rounds of block without generator of the last block
-				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
+				const nextBlock = await processEnv.createBlock();
 
-				const currentKeypair = node['_forger']['_keypairs'].get(target);
 				// Make maxHeightPreviouslyForged to be current height (BFT violation) with random seedreveal and 0 reward
 				(nextBlock.header as any).reward = BigInt(125000000);
 				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
 				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
-					]),
-					currentKeypair?.privateKey as Buffer,
+					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+					getPrivateKey(target),
 				);
 				(nextBlock.header as any).signature = signature;
 
-				await expect(node['_processor'].process(nextBlock)).rejects.toThrow(
+				await expect(processEnv.process(nextBlock)).rejects.toThrow(
 					'Invalid block reward: 125000000 expected: 0',
 				);
 			});
 
 			it('should accept a block if reward is 0', async () => {
-				const { lastBlock } = node['_chain'];
-				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
+				const { lastBlock } = chain;
+				await processEnv.processUntilHeight(206);
+				const passphrase = await processEnv.getNextValidatorPassphrase(lastBlock.header);
+				const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 				// Forge 2 rounds of block without generator of the last block
-				const nextBlock = await nodeUtils.createValidBlock(node, [], target);
-
-				const currentKeypair = node['_forger']['_keypairs'].get(target);
-				// Make maxHeightPreviouslyForged to be current height (BFT violation) with random seedreveal and 0 reward
+				const nextBlock = await processEnv.createBlock();
+				// Make maxHeightPreviouslyForged to be current height (BFT violation) with random seed reveal and 0 reward
 				(nextBlock.header as any).reward = BigInt(0);
 				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
 				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						node.networkIdentifier,
-						node['_chain'].dataAccess.encodeBlockHeader(nextBlock.header, true),
-					]),
-					currentKeypair?.privateKey as Buffer,
+					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+					privateKey,
 				);
 				(nextBlock.header as any).signature = signature;
 
-				await node['_processor'].process(nextBlock);
-				expect(node['_chain'].lastBlock.header.id).toEqual(nextBlock.header.id);
+				await processEnv.process(nextBlock);
+				expect(chain.lastBlock.header.id).toEqual(nextBlock.header.id);
 			});
 		});
 	});
