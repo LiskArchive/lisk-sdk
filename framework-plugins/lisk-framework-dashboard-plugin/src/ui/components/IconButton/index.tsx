@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
+import Icon from '../Icon';
 import styles from './IconButton.module.scss';
 
 interface Props {
@@ -24,7 +25,7 @@ const onSubmit = (): void => undefined;
 const IconButton: React.FC<Props> = props => {
 	const { name } = props;
 	const size = props.size ?? 'm';
-	return <span className={`${styles.icon} ${styles[`icon-${size}`]}`} onClick={onSubmit}>{name}</span>;
+	return <div className={styles['icon-button']} onClick={onSubmit}><Icon name={name} size={size} /></div>;
 };
 
 export default IconButton;
