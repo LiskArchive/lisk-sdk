@@ -1,6 +1,6 @@
 {
 	"name": "lisk-elements",
-	"version": "5.0.3",
+	"version": "5.0.4-alpha.3",
 	"description": "Elements for building blockchain applications in the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,20 +36,20 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.0.2",
-		"@liskhq/lisk-bft": "^0.2.1",
-		"@liskhq/lisk-chain": "^0.2.0",
-		"@liskhq/lisk-codec": "^0.1.0",
-		"@liskhq/lisk-cryptography": "^3.0.0",
+		"@liskhq/lisk-api-client": "^5.0.3-alpha.3",
+		"@liskhq/lisk-bft": "^0.2.2-alpha.3",
+		"@liskhq/lisk-chain": "^0.2.1-alpha.3",
+		"@liskhq/lisk-codec": "^0.1.1-alpha.3",
+		"@liskhq/lisk-cryptography": "^3.0.1-alpha.3",
 		"@liskhq/lisk-db": "^0.1.0",
-		"@liskhq/lisk-genesis": "^0.1.0",
-		"@liskhq/lisk-p2p": "^0.6.0",
+		"@liskhq/lisk-genesis": "^0.1.1-alpha.3",
+		"@liskhq/lisk-p2p": "^0.6.1-alpha.3",
 		"@liskhq/lisk-passphrase": "^3.0.1",
-		"@liskhq/lisk-transaction-pool": "^0.4.0",
-		"@liskhq/lisk-transactions": "^5.0.1",
-		"@liskhq/lisk-tree": "^0.1.0",
+		"@liskhq/lisk-transaction-pool": "^0.4.1-alpha.3",
+		"@liskhq/lisk-transactions": "^5.0.2-alpha.3",
+		"@liskhq/lisk-tree": "^0.1.1-alpha.3",
 		"@liskhq/lisk-utils": "^0.1.0",
-		"@liskhq/lisk-validator": "^0.5.0"
+		"@liskhq/lisk-validator": "^0.5.1-alpha.3"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.13",

@@ -11,11 +11,25 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { P2P } from '@liskhq/lisk-p2p';
+import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { P2P } from '@liskhq/lisk-p2p';
+
 import { Application } from '../../../src';
 import { createApplication, closeApplication, getPeerID, waitNBlocks } from '../utils/application';
 import { createProbe } from '../utils/probe';
+import {
+	getBlocksFromIdRequestSchema,
+	getBlocksFromIdResponseSchema,
+	getHighestCommonBlockRequestSchema,
+	postBlockEventSchema,
+} from '../../../src/node/transport/schemas';
+
+const encodeBlockId = (blockId: Buffer) => codec.encode(getBlocksFromIdRequestSchema, { blockId });
+const decodeBlocks = (data: Buffer) =>
+	codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
+
+const encodeBlockIds = (ids: Buffer[]) => codec.encode(getHighestCommonBlockRequestSchema, { ids });
 
 describe('Public block related P2P endpoints', () => {
 	let app: Application;
@@ -42,40 +56,39 @@ describe('Public block related P2P endpoints', () => {
 				},
 				getPeerID(app),
 			);
-			const decodedBlock = app['_node']['_chain'].dataAccess.decode(
-				Buffer.from(data as string, 'hex'),
-			);
+			const decodedBlock = app['_node']['_chain'].dataAccess.decode(data as Buffer);
 			expect(decodedBlock.header.height).toBeGreaterThan(1);
 		});
 	});
 
 	describe('getBlocksFromId', () => {
 		it('should return decodable block', async () => {
+			const blockId = encodeBlockId(app['_node']['_chain'].genesisBlock.header.id);
 			const { data } = (await p2p.requestFromPeer(
 				{
 					procedure: 'getBlocksFromId',
-					data: {
-						blockId: app['_node']['_chain'].genesisBlock.header.id.toString('hex'),
-					},
+					data: blockId,
 				},
 				getPeerID(app),
-			)) as { data: string[] };
-			expect.assertions(data.length + 1);
-			expect(data.length).toBeGreaterThan(0);
-			for (const id of data) {
-				const decodedBlock = app['_node']['_chain'].dataAccess.decode(Buffer.from(id, 'hex'));
+			)) as { data: Buffer };
+			const { blocks } = decodeBlocks(data);
+
+			expect.assertions(blocks.length + 1);
+			expect(blocks.length).toBeGreaterThan(0);
+			for (const block of blocks) {
+				const decodedBlock = app['_node']['_chain'].dataAccess.decode(block);
 				expect(decodedBlock.header.height).toBeGreaterThan(0);
 			}
 		});
 
 		it('should be rejected if blockId does not exist', async () => {
+			const blockId = encodeBlockId(getRandomBytes(32));
+
 			await expect(
 				p2p.requestFromPeer(
 					{
 						procedure: 'getBlocksFromId',
-						data: {
-							blockId: getRandomBytes(32).toString('hex'),
-						},
+						data: blockId,
 					},
 					getPeerID(app),
 				),
@@ -85,32 +98,28 @@ describe('Public block related P2P endpoints', () => {
 
 	describe('getHighestCommonBlock', () => {
 		it('should return decodable block', async () => {
+			const ids = [app['_node']['_chain'].genesisBlock.header.id, getRandomBytes(32)];
+			const blockIds = encodeBlockIds(ids);
 			const { data } = await p2p.requestFromPeer(
 				{
 					procedure: 'getHighestCommonBlock',
-					data: {
-						ids: [
-							app['_node']['_chain'].genesisBlock.header.id.toString('hex'),
-							getRandomBytes(32).toString('hex'),
-						],
-					},
+					data: blockIds,
 				},
 				getPeerID(app),
 			);
-			const decodedBlock = app['_node']['_chain'].dataAccess.decodeBlockHeader(
-				Buffer.from(data as string, 'hex'),
-			);
+			const decodedBlock = app['_node']['_chain'].dataAccess.decodeBlockHeader(data as Buffer);
+
 			expect(decodedBlock.version).toEqual(0);
 			expect(decodedBlock.height).toEqual(0);
 		});
 
 		it('should return undefined', async () => {
+			const ids = [getRandomBytes(32)];
+			const blockIds = encodeBlockIds(ids);
 			const { data } = await p2p.requestFromPeer(
 				{
 					procedure: 'getHighestCommonBlock',
-					data: {
-						ids: [getRandomBytes(32).toString('hex')],
-					},
+					data: blockIds,
 				},
 				getPeerID(app),
 			);
@@ -122,10 +131,11 @@ describe('Public block related P2P endpoints', () => {
 		it('should not fail if valid block is sent', async () => {
 			const { lastBlock } = app['_node']['_chain'];
 			const encodedBlock = app['_node']['_chain'].dataAccess.encode(lastBlock);
+			const data = codec.encode(postBlockEventSchema, { block: encodedBlock });
 			p2p.sendToPeer(
 				{
 					event: 'postBlock',
-					data: { block: encodedBlock.toString('hex') },
+					data,
 				},
 				getPeerID(app),
 			);

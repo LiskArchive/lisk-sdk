@@ -135,7 +135,9 @@ export const validateBase32Address = (
 	const addressPrefix = address.substring(0, 3);
 
 	if (addressPrefix !== prefix) {
-		throw new Error(`Invalid prefix. Expected prefix: ${prefix}`);
+		throw new Error(
+			`Invalid address prefix. Actual prefix: ${addressPrefix}, Expected prefix: ${prefix}`,
+		);
 	}
 
 	const addressSubstringArray = address.substring(3).split('');
@@ -159,7 +161,7 @@ export const getAddressFromBase32Address = (
 	base32Address: string,
 	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
 ): Buffer => {
-	validateBase32Address(base32Address);
+	validateBase32Address(base32Address, prefix);
 	// Ignore lsk prefix and checksum
 	const base32AddressNoPrefixNoChecksum = base32Address.substring(
 		prefix.length,

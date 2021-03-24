@@ -36,15 +36,6 @@ describe('utils/sanitize', () => {
 				expect(sanitizeIncomingPeerInfo(protocolPeerInfo)).toEqual(samplePeerWithoutInternalState);
 			});
 		});
-		describe('when rawPeerInfo is falsy', () => {
-			it('should return undefined', () => {
-				const undefinedPeerInfo = undefined;
-				const nullPeerInfo = null;
-
-				expect(sanitizeIncomingPeerInfo(undefinedPeerInfo)).toBeUndefined();
-				expect(sanitizeIncomingPeerInfo(nullPeerInfo)).toBeUndefined();
-			});
-		});
 	});
 
 	describe('#sanitizeInitialPeerInfo', () => {

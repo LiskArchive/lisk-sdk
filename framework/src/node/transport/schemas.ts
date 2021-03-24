@@ -12,72 +12,95 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const schemas = {
-	getBlocksFromIdRequest: {
-		id: 'getBlocksFromIdRequest',
-		type: 'object',
-		required: ['blockId'],
-		properties: {
-			blockId: {
-				type: 'string',
-				format: 'hex',
+export const getBlocksFromIdRequestSchema = {
+	$id: 'lisk/getBlocksFromIdRequest',
+	title: 'Get Blocks From Id Request',
+	type: 'object',
+	required: ['blockId'],
+	properties: {
+		blockId: {
+			fieldNumber: 1,
+			dataType: 'bytes',
+		},
+	},
+};
+
+export const getBlocksFromIdResponseSchema = {
+	$id: 'lisk/getBlocksFromIdResponse',
+	title: 'Get Blocks From Id Response',
+	type: 'object',
+	required: ['blocks'],
+	properties: {
+		blocks: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
 			},
 		},
 	},
-	getTransactionsRequest: {
-		id: 'getTransactionsRequest',
-		type: 'object',
-		properties: {
-			transactionIds: {
-				type: 'array',
-				items: {
-					type: 'string',
-					format: 'hex',
-				},
+};
+
+export const getHighestCommonBlockRequestSchema = {
+	$id: 'lisk/getHighestCommonBlockRequest',
+	title: 'Get Highest Common Block Request',
+	type: 'object',
+	required: ['ids'],
+	properties: {
+		ids: {
+			type: 'array',
+			fieldNumber: 1,
+			minItems: 1,
+			items: {
+				dataType: 'bytes',
 			},
 		},
 	},
-	postBlockEvent: {
-		id: 'postBlockEvent',
-		type: 'object',
-		required: ['block'],
-		properties: {
-			block: {
-				type: 'string',
-				format: 'hex',
+};
+
+export const transactionIdsSchema = {
+	$id: 'lisk/transactionIds',
+	title: 'Broadcast Transactions',
+	type: 'object',
+	required: ['transactionIds'],
+	properties: {
+		transactionIds: {
+			type: 'array',
+			fieldNumber: 1,
+			minItems: 1,
+			maxItems: 100,
+			items: {
+				dataType: 'bytes',
 			},
 		},
 	},
-	postTransactionsAnnouncementEvent: {
-		id: 'postTransactionsAnnouncementEvent',
-		type: 'object',
-		required: ['transactionIds'],
-		properties: {
-			transactionIds: {
-				type: 'array',
-				items: {
-					type: 'string',
-					format: 'hex',
-				},
-				minItems: 1,
-				maxItems: 100,
+};
+
+export const transactionsSchema = {
+	$id: 'lisk/transactions',
+	title: 'Transactions',
+	type: 'object',
+	required: ['transactions'],
+	properties: {
+		transactions: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
 			},
 		},
 	},
-	getHighestCommonBlockRequest: {
-		id: 'getHighestCommonBlockRequest',
-		type: 'object',
-		required: ['ids'],
-		properties: {
-			ids: {
-				type: 'array',
-				items: {
-					type: 'string',
-					format: 'hex',
-				},
-				uniqueItems: true,
-				minItems: 1,
-			},
+};
+
+export const postBlockEventSchema = {
+	$id: 'lisk/postBlockEvent',
+	title: 'Post Block Event',
+	type: 'object',
+	required: ['block'],
+	properties: {
+		block: {
+			dataType: 'bytes',
+			fieldNumber: 1,
 		},
 	},
 };

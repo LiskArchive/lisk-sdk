@@ -13,6 +13,7 @@
  */
 import * as os from 'os';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import {
 	blockHeaderAssetSchema,
@@ -63,13 +64,15 @@ describe('Clean up old blocks', () => {
 	);
 	const dbKey = 'the_db_key';
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		reportMisbehaviorPlugin = new (ReportMisbehaviorPlugin as any)();
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
+		const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
+		await fs.remove(dataPath);
 		(reportMisbehaviorPlugin as any).options = {
 			fee: '100000000',
 			clearBlockHeadersInterval: 1,
-			dataPath: path.join(os.homedir(), '~/.lisk/report-misbehavior-plugin/data/integration/db'),
+			dataPath,
 		};
 		reportMisbehaviorPlugin.schemas = {
 			block: blockSchema,

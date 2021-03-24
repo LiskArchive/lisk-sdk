@@ -14,9 +14,11 @@
 
 import { when } from 'jest-when';
 import { KVStore } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
+
 import { FastChainSwitchingMechanism, Errors } from '../../../../../src/node/synchronizer';
 import { Processor } from '../../../../../src/node/processor';
 import { constants } from '../../../../utils';
@@ -29,6 +31,7 @@ import {
 	defaultAccountSchema,
 } from '../../../../fixtures';
 import { TokenModule } from '../../../../../src/modules';
+import { getHighestCommonBlockRequestSchema } from '../../../../../src/node/transport/schemas';
 
 const { InMemoryChannel: ChannelMock } = jest.createMockFromModule(
 	'../../../../../src/controller/channels/in_memory_channel',
@@ -325,14 +328,15 @@ describe('fast_chain_switching_mechanism', () => {
 						id: chainModule.lastBlock.header.id,
 					},
 				];
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				// Simulate peer not sending back a common block
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({ data: undefined } as never);
 
@@ -364,6 +368,9 @@ describe('fast_chain_switching_mechanism', () => {
 						id: chainModule.lastBlock.header.id,
 					},
 				];
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				// height of the common block is smaller than the finalized height:
 				const highestCommonBlock = createFakeBlockHeader({
 					height: bftModule.finalizedHeight - 1,
@@ -373,12 +380,10 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+						data: encodeValidBlockHeader(highestCommonBlock),
 					} as never);
 
 				// Act
@@ -417,16 +422,17 @@ describe('fast_chain_switching_mechanism', () => {
 				const highestCommonBlock = createFakeBlockHeader({
 					height: chainModule.lastBlock.header.height,
 				});
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: chainModule.dataAccess.encodeBlockHeader(highestCommonBlock).toString('hex'),
+						data: chainModule.dataAccess.encodeBlockHeader(highestCommonBlock),
 					} as never);
 
 				// Act
@@ -504,16 +510,17 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith(heightList)
 					.mockResolvedValue(storageReturnValue as never);
 
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+						data: encodeValidBlockHeader(highestCommonBlock),
 					} as never);
 
 				// Act
@@ -562,16 +569,17 @@ describe('fast_chain_switching_mechanism', () => {
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
 					.mockResolvedValue(storageReturnValue as never);
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+						data: encodeValidBlockHeader(highestCommonBlock),
 					} as never)
 					.calledWith({
 						procedure: 'getBlocksFromId',
@@ -632,16 +640,17 @@ describe('fast_chain_switching_mechanism', () => {
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
 					.mockResolvedValue(storageReturnValue as never);
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+						data: encodeValidBlockHeader(highestCommonBlock),
 					} as never);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
@@ -707,16 +716,17 @@ describe('fast_chain_switching_mechanism', () => {
 					.fn()
 					.mockResolvedValue(requestedBlocks);
 
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+						data: encodeValidBlockHeader(highestCommonBlock),
 					} as never);
 				processorModule.validate.mockImplementation(() => {
 					throw new Error('validation error');
@@ -771,16 +781,17 @@ describe('fast_chain_switching_mechanism', () => {
 					.fn()
 					.mockResolvedValue(requestedBlocks);
 
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+						data: encodeValidBlockHeader(highestCommonBlock),
 					} as never);
 
 				when(processorModule.deleteLastBlock)
@@ -881,16 +892,17 @@ describe('fast_chain_switching_mechanism', () => {
 					.fn()
 					.mockResolvedValue(requestedBlocks);
 
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+					ids: storageReturnValue.map(blocks => blocks.id),
+				});
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
-						data: {
-							ids: storageReturnValue.map(blocks => blocks.id.toString('hex')),
-						},
+						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+						data: encodeValidBlockHeader(highestCommonBlock),
 					} as never);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)

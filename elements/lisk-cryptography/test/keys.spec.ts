@@ -182,7 +182,7 @@ describe('keys', () => {
 			const address = 'LSK24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 			it('should throw an error', () => {
 				return expect(validateBase32Address.bind(null, address)).toThrow(
-					'Invalid prefix. Expected prefix: lsk',
+					'Invalid address prefix. Actual prefix: LSK, Expected prefix: lsk',
 				);
 			});
 		});
@@ -221,10 +221,24 @@ describe('keys', () => {
 			return expect(getAddressFromBase32Address.bind(null, 'invalid')).toThrow();
 		});
 
-		it('should return an address given a base32 address', () => {
+		it('should throw error for invalid prefix', () => {
+			expect(() =>
+				getAddressFromBase32Address('abcvtr2zq9v36vyefjdvhxas92nf438z9ap8wnzav').toString('hex'),
+			).toThrow('Invalid address prefix. Actual prefix: abc, Expected prefix: lsk');
+		});
+
+		it('should return an address given a base32 address with default prefix', () => {
 			expect(getAddressFromBase32Address(account.address).toString('hex')).toBe(
 				account.binaryAddress,
 			);
+		});
+
+		it('should return an address given a base32 address with custom prefix', () => {
+			expect(
+				getAddressFromBase32Address('abcvtr2zq9v36vyefjdvhxas92nf438z9ap8wnzav', 'abc').toString(
+					'hex',
+				),
+			).toBe('14e58055a242851b7b9a17439db707f250f03724');
 		});
 	});
 

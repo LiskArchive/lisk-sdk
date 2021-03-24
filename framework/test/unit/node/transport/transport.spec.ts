@@ -14,10 +14,18 @@
 
 import { when } from 'jest-when';
 import { dataStructures } from '@liskhq/lisk-utils';
+import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
+
 import { Transport } from '../../../../src/node/transport';
 import { genesis } from '../../../fixtures';
 import { createTransferTransaction } from '../../../utils/node/transaction';
+import {
+	transactionIdsSchema,
+	getHighestCommonBlockRequestSchema,
+	transactionsSchema,
+	getBlocksFromIdRequestSchema,
+} from '../../../../src/node/transport/schemas';
 
 describe('Transport', () => {
 	const defaultBroadcastInterval = 5000;
@@ -96,6 +104,7 @@ describe('Transport', () => {
 	describe('handleBroadcastTransaction', () => {
 		describe('when a transaction is given', () => {
 			it('should enqueue to the broadcaster', async () => {
+				// Arrange
 				const tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
@@ -104,13 +113,17 @@ describe('Transport', () => {
 					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 					passphrase: genesis.passphrase,
 				});
-				transport['_broadcaster']._transactionIdQueue = [];
 
+				// Act
+				transport['_broadcaster']._transactionIdQueue = [];
 				await transport.handleBroadcastTransaction(tx);
+
+				// Assert
 				expect(transport._broadcaster._transactionIdQueue).toHaveLength(1);
 			});
 
 			it('should broadcast after 5 sec', async () => {
+				// Arrange
 				const tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
@@ -119,19 +132,25 @@ describe('Transport', () => {
 					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 					passphrase: genesis.passphrase,
 				});
+
+				// Act
 				await transport.handleBroadcastTransaction(tx);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
+				const transactionIdsBuffer = codec.encode(transactionIdsSchema, {
+					transactionIds: [tx.id],
+				});
+
+				// Assert
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
-					data: {
-						transactionIds: [tx.id.toString('hex')],
-					},
+					data: transactionIdsBuffer,
 				});
 			});
 		});
 
 		describe('when a duplicate transaction is given', () => {
 			it('should not enqueue to the broadcaster', async () => {
+				// Arrange
 				const tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
@@ -140,15 +159,20 @@ describe('Transport', () => {
 					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 					passphrase: genesis.passphrase,
 				});
+
+				// Act
 				transport['_broadcaster']._transactionIdQueue = [];
 				await transport.handleBroadcastTransaction(tx);
 				await transport.handleBroadcastTransaction(tx);
+
+				// Assert
 				expect(transport._broadcaster._transactionIdQueue).toHaveLength(1);
 			});
 		});
 
 		describe('when the transaction is not in the pool', () => {
 			it('should not broadcast after 5 sec', async () => {
+				// Arrange
 				const tx = createTransferTransaction({
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
@@ -157,9 +181,13 @@ describe('Transport', () => {
 					networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 					passphrase: genesis.passphrase,
 				});
+
+				// Act
 				await transport.handleBroadcastTransaction(tx);
 				transactionPoolStub.contains.mockReturnValue(false);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
+
+				// Assert
 				expect(networkStub.broadcast).not.toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
 					data: {
@@ -171,6 +199,7 @@ describe('Transport', () => {
 
 		describe('when 25 transactions are given', () => {
 			it('should enqueue to the broadcaster', async () => {
+				// Arrange
 				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(25).fill(0).map((_, v) => {
 					const tx = createTransferTransaction({
@@ -183,13 +212,18 @@ describe('Transport', () => {
 					});
 					return tx;
 				});
+
+				// Act
 				for (const tx of txs) {
 					await transport.handleBroadcastTransaction(tx);
 				}
+
+				// Assert
 				expect(transport._broadcaster._transactionIdQueue).toHaveLength(25);
 			});
 
 			it('should broadcast all after 5 sec', async () => {
+				// Arrange
 				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(25).fill(0).map((_, v) => {
 					const tx = createTransferTransaction({
@@ -202,21 +236,27 @@ describe('Transport', () => {
 					});
 					return tx;
 				});
+				const transactionIdsBuffer = codec.encode(transactionIdsSchema, {
+					transactionIds: txs.map(tx => tx.id),
+				});
+
+				// Act
 				for (const tx of txs) {
 					await transport.handleBroadcastTransaction(tx);
 				}
 				jest.advanceTimersByTime(defaultBroadcastInterval);
+
+				// Assert
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
-					data: {
-						transactionIds: txs.map(tx => tx.id.toString('hex')),
-					},
+					data: transactionIdsBuffer,
 				});
 			});
 		});
 
 		describe('when 50 transactions are given', () => {
 			it('should enqueue to the broadcaster', async () => {
+				// Arrange
 				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(50).fill(0).map((_, v) => {
 					const tx = createTransferTransaction({
@@ -229,13 +269,18 @@ describe('Transport', () => {
 					});
 					return tx;
 				});
+
+				// Act
 				for (const tx of txs) {
 					await transport.handleBroadcastTransaction(tx);
 				}
+
+				// Assert
 				expect(transport._broadcaster._transactionIdQueue).toHaveLength(50);
 			});
 
 			it('should broadcast all after 10 sec', async () => {
+				// Arrange
 				const txs = new Array(50).fill(0).map((_, v) => {
 					const tx = createTransferTransaction({
 						nonce: BigInt('0'),
@@ -247,21 +292,20 @@ describe('Transport', () => {
 					});
 					return tx;
 				});
+				const transactionIdsBuffer = codec.encode(transactionIdsSchema, {
+					transactionIds: txs.map(tx => tx.id).splice(0, defaultReleaseLimit),
+				});
+
+				// Act
 				for (const tx of txs) {
 					await transport.handleBroadcastTransaction(tx);
 				}
 				jest.advanceTimersByTime(defaultBroadcastInterval * 2);
+
+				// Assert
 				expect(networkStub.broadcast).toHaveBeenCalledWith({
 					event: 'postTransactionsAnnouncement',
-					data: {
-						transactionIds: txs.map(tx => tx.id.toString('hex')).splice(0, defaultReleaseLimit),
-					},
-				});
-				expect(networkStub.broadcast).toHaveBeenCalledWith({
-					event: 'postTransactionsAnnouncement',
-					data: {
-						transactionIds: txs.map(tx => tx.id.toString('hex')).splice(0, defaultReleaseLimit),
-					},
+					data: transactionIdsBuffer,
 				});
 			});
 		});
@@ -270,39 +314,21 @@ describe('Transport', () => {
 	describe('handleRPCGetHighestCommonBlock', () => {
 		const defaultPeerId = 'peer-id';
 
-		describe('when schema validation fails', () => {
-			it('should throw an error with wrong ID format', async () => {
-				const invalidData = {
-					noKey: ['random', 'string'],
-				};
-				await expect(
-					transport.handleRPCGetHighestCommonBlock(invalidData, defaultPeerId),
-				).rejects.toMatchObject(
-					expect.objectContaining({
-						message: expect.stringContaining('should have required property'),
-					}),
-				);
-				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
-					peerId: defaultPeerId,
-					penalty: 100,
-				});
-			});
-		});
-
 		describe('when commonBlock has not been found', () => {
 			beforeEach(() => {
 				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(undefined);
 			});
 
 			it('should return null', async () => {
-				const validData = {
-					ids: [Buffer.from('15196562876801949910').toString('hex')],
-				};
+				// Arrange
+				const ids = [Buffer.from('15196562876801949910')];
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 
-				const result = await transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId);
-				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(
-					validData.ids.map(id => Buffer.from(id, 'hex')),
-				);
+				// Act
+				const result = await transport.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId);
+
+				// Assert
+				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(ids);
 				expect(result).toBeUndefined();
 			});
 		});
@@ -317,15 +343,16 @@ describe('Transport', () => {
 			});
 
 			it('should return the result', async () => {
-				const validData = {
-					ids: ['15196562876801949910'],
-				};
+				// Arrange
+				const ids = [Buffer.from('15196562876801949910')];
+				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 
-				const result = await transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId);
-				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(
-					validData.ids.map(id => Buffer.from(id, 'hex')),
-				);
-				expect(result).toBe(encodedBlock.toString('hex'));
+				// Act
+				const result = await transport.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId);
+
+				// Assert
+				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(ids);
+				expect(result).toBe(encodedBlock);
 			});
 		});
 	});
@@ -334,12 +361,14 @@ describe('Transport', () => {
 		const defaultPeerId = 'peer-id';
 		describe('when it is called more than 3 times within 10 sec', () => {
 			it('should apply penalty', async () => {
+				// Arrange & Act
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
-
 				jest.advanceTimersByTime(defaultRateLimit);
+
+				// Assert
 				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
 					penalty: 10,
@@ -364,9 +393,13 @@ describe('Transport', () => {
 			});
 
 			it('should resolve to the transactions which are in the transaction pool', async () => {
+				// Act
 				const result = await transport.handleRPCGetTransactions(undefined, defaultPeerId);
-				expect(result).toEqual({
-					transactions: [tx.getBytes().toString('hex')],
+				const expectedResult = codec.decode(transactionsSchema, result);
+
+				// Assert
+				expect(expectedResult).toEqual({
+					transactions: [tx.getBytes()],
 				});
 			});
 		});
@@ -388,26 +421,34 @@ describe('Transport', () => {
 			});
 
 			it('should return transaction from pool', async () => {
+				// Act
 				const result = await transport.handleRPCGetTransactions({}, defaultPeerId);
-				expect(result.transactions).toEqual([tx.getBytes().toString('hex')]);
+				const expectedResult = codec.decode(transactionsSchema, result);
+
+				// Assert
+				expect(expectedResult).toEqual({
+					transactions: [tx.getBytes()],
+				});
 			});
 		});
 
 		describe('when it is called without ids, but exceeds maximum', () => {
+			// Arrange
 			const ids = new Array(defaultReleaseLimit + 10)
 				.fill(0)
-				.map((_, v) => Buffer.from(`10000000000000000${v}`).toString('hex'));
+				.map((_, v) => Buffer.from(`10000000000000000${v}`));
+			const transactionIds = codec.encode(transactionIdsSchema, { transactionIds: ids });
 
 			it('should throw an error', async () => {
+				// Assert
 				await expect(
-					transport.handleRPCGetTransactions({ transactionIds: ids }, defaultPeerId),
-				).rejects.toThrow('Requested number of transactions 110 exceeds maximum allowed');
+					transport.handleRPCGetTransactions(transactionIds, defaultPeerId),
+				).rejects.toThrow('should NOT have more than 100 items');
 			});
 
 			it('should apply penalty', async () => {
-				await expect(
-					transport.handleRPCGetTransactions({ transactionIds: ids }, defaultPeerId),
-				).toReject();
+				// Assert
+				await expect(transport.handleRPCGetTransactions(transactionIds, defaultPeerId)).toReject();
 				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
 					penalty: 100,
@@ -430,19 +471,26 @@ describe('Transport', () => {
 			});
 
 			it('should call find get with the id', async () => {
-				await transport.handleRPCGetTransactions(
-					{ transactionIds: [tx.id.toString('hex')] },
-					defaultPeerId,
-				);
+				// Arrange
+				const transactionIds = codec.encode(transactionIdsSchema, { transactionIds: [tx.id] });
+
+				// Act
+				await transport.handleRPCGetTransactions(transactionIds, defaultPeerId);
+
+				// Assert
 				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
 			});
 
 			it('should return transaction in the pool', async () => {
-				const result = await transport.handleRPCGetTransactions(
-					{ transactionIds: [tx.id.toString('hex')] },
-					defaultPeerId,
-				);
-				expect(result.transactions).toStrictEqual([tx.getBytes().toString('hex')]);
+				// Arrange
+				const transactionIds = codec.encode(transactionIdsSchema, { transactionIds: [tx.id] });
+
+				// Act
+				const result = await transport.handleRPCGetTransactions(transactionIds, defaultPeerId);
+				const expectedResult = codec.decode(transactionsSchema, result);
+
+				// Assert
+				expect(expectedResult).toStrictEqual({ transactions: [tx.getBytes()] });
 			});
 		});
 
@@ -472,30 +520,34 @@ describe('Transport', () => {
 			});
 
 			it('should call find get with the id', async () => {
-				await transport.handleRPCGetTransactions(
-					{
-						transactionIds: [tx.id.toString('hex'), txDatabase.id.toString('hex')],
-					},
-					defaultPeerId,
-				);
+				// Arrange
+				const transactionIds = codec.encode(transactionIdsSchema, {
+					transactionIds: [tx.id, txDatabase.id],
+				});
+
+				// Act
+				await transport.handleRPCGetTransactions(transactionIds, defaultPeerId);
+
+				// Assert
 				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
 				expect(transactionPoolStub.get).toHaveBeenCalledWith(txDatabase.id);
 			});
 
 			it('should return transaction in the pool', async () => {
+				// Arrange
+				const transactionIds = codec.encode(transactionIdsSchema, {
+					transactionIds: [tx.id, txDatabase.id],
+				});
+
+				// Act
 				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([txDatabase]);
-				const result = await transport.handleRPCGetTransactions(
-					{
-						transactionIds: [tx.id.toString('hex'), txDatabase.id.toString('hex')],
-					},
-					defaultPeerId,
-				);
+				const result = await transport.handleRPCGetTransactions(transactionIds, defaultPeerId);
+				const expectedResult = codec.decode<{ transactions: Buffer[] }>(transactionsSchema, result);
+
+				// Assert
 				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
-				expect(result.transactions).toHaveLength(2);
-				expect(result.transactions).toStrictEqual([
-					tx.getBytes().toString('hex'),
-					txDatabase.getBytes().toString('hex'),
-				]);
+				expect(expectedResult.transactions).toHaveLength(2);
+				expect(expectedResult.transactions).toStrictEqual([tx.getBytes(), txDatabase.getBytes()]);
 			});
 		});
 	});
@@ -503,11 +555,9 @@ describe('Transport', () => {
 	describe('handleEventPostTransactionsAnnouncement', () => {
 		const defaultPeerId = 'peer-id';
 
-		let tx: string;
-		let tx2: string;
 		let txInstance: Transaction;
 		let tx2Instance: Transaction;
-		let validTransactionsRequest: { transactionIds: string[] };
+		let validTransactionsRequest: Buffer;
 
 		beforeEach(() => {
 			txInstance = createTransferTransaction({
@@ -518,7 +568,6 @@ describe('Transport', () => {
 				networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 				passphrase: genesis.passphrase,
 			});
-			tx = txInstance.getBytes().toString('hex');
 			tx2Instance = createTransferTransaction({
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
@@ -527,14 +576,16 @@ describe('Transport', () => {
 				networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 				passphrase: genesis.passphrase,
 			});
-			tx2 = tx2Instance.getBytes().toString('hex');
-			validTransactionsRequest = {
-				transactionIds: [txInstance.id.toString('hex'), tx2Instance.id.toString('hex')],
-			};
+			const decodedData = codec.encode(transactionIdsSchema, {
+				transactionIds: [txInstance.id, tx2Instance.id],
+			});
+
+			validTransactionsRequest = decodedData;
 		});
 
 		describe('when it is called more than 3 times within 10 sec', () => {
 			it('should apply penalty', async () => {
+				// Act
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
@@ -552,6 +603,8 @@ describe('Transport', () => {
 					defaultPeerId,
 				);
 				jest.advanceTimersByTime(defaultRateLimit);
+
+				// Assert
 				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
 					penalty: 10,
@@ -561,6 +614,7 @@ describe('Transport', () => {
 
 		describe('when invalid schema is received', () => {
 			it('should apply penalty', async () => {
+				// Assert
 				await expect(
 					transport.handleEventPostTransactionsAnnouncement({}, defaultPeerId),
 				).toReject();
@@ -569,16 +623,15 @@ describe('Transport', () => {
 					penalty: 100,
 				});
 			});
-
-			it('should throw an error', async () => {
-				await expect(
-					transport.handleEventPostTransactionsAnnouncement({}, defaultPeerId),
-				).rejects.toThrow("should have required property 'transactionIds'");
-			});
 		});
 
 		describe('when none of the transactions ids are known', () => {
 			beforeEach(() => {
+				// Arrange
+				const transactionIds = codec.encode(transactionIdsSchema, {
+					transactionIds: [txInstance.id, tx2Instance.id],
+				});
+
 				transactionPoolStub.contains.mockReturnValue(false);
 				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 				chainStub.dataAccess.decodeTransaction
@@ -587,24 +640,26 @@ describe('Transport', () => {
 				when(networkStub.requestFromPeer)
 					.calledWith(expect.anything())
 					.mockResolvedValue({
-						data: { transactions: [tx, tx2] },
+						data: transactionIds,
 						peerId: defaultPeerId,
 					} as never);
 			});
 
 			it('should request all the transactions', async () => {
+				// Assert
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
 				);
 				expect(networkStub.requestFromPeer).toHaveBeenCalledWith({
 					procedure: 'getTransactions',
-					data: { transactionIds: validTransactionsRequest.transactionIds },
+					data: validTransactionsRequest,
 					peerId: defaultPeerId,
 				});
 			});
 
 			it('should handle the received transactions', async () => {
+				// Assert
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
@@ -616,6 +671,7 @@ describe('Transport', () => {
 			});
 
 			it('should apply penalty when validateTransactions fails', async () => {
+				// Act
 				transactionPoolStub.contains.mockReturnValue(false);
 				const error = new Error('validate error');
 				processorStub.validateTransaction.mockImplementation(() => {
@@ -625,6 +681,8 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
+
+				// Assert
 				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
 					penalty: 100,
@@ -632,8 +690,11 @@ describe('Transport', () => {
 			});
 
 			it('should not apply penalty when add fails', async () => {
+				// Act
 				const error = new Error('validate error');
 				transactionPoolStub.add.mockResolvedValue({ errors: [error] });
+
+				// Assert
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
@@ -644,13 +705,18 @@ describe('Transport', () => {
 				});
 			});
 		});
+
 		describe('when some of the transactions ids are known', () => {
 			beforeEach(() => {
+				const transactionIds = codec.encode(transactionIdsSchema, {
+					transactionIds: [tx2Instance.id],
+				});
+
 				when(transactionPoolStub.contains).calledWith(txInstance.id).mockReturnValue(true);
 				when(networkStub.requestFromPeer)
 					.calledWith(expect.anything())
 					.mockResolvedValue({
-						data: { transactions: [tx2] },
+						data: transactionIds,
 						peerId: defaultPeerId,
 					} as never);
 				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
@@ -658,22 +724,33 @@ describe('Transport', () => {
 			});
 
 			it('should request all the transactions', async () => {
+				// Arrange
+				const transactionIds = codec.encode(transactionIdsSchema, {
+					transactionIds: [tx2Instance.id],
+				});
+
+				// Act
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
 				);
+
+				// Assert
 				expect(networkStub.requestFromPeer).toHaveBeenCalledWith({
 					procedure: 'getTransactions',
-					data: { transactionIds: [tx2Instance.id.toString('hex')] },
+					data: transactionIds,
 					peerId: defaultPeerId,
 				});
 			});
 
 			it('should handle the received transactions', async () => {
+				// Act
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
 				);
+
+				// Assert
 				expect(chainStub.dataAccess.decodeTransaction).toHaveBeenCalledTimes(1);
 				expect(processorStub.validateTransaction).toHaveBeenCalledTimes(1);
 				expect(transactionPoolStub.contains).toHaveBeenCalledTimes(3);
@@ -690,11 +767,13 @@ describe('Transport', () => {
 
 		describe(`when getLastBlock is called more than ${DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY} times within 10 sec`, () => {
 			it('should apply penalty', () => {
+				// Arrange
 				[...new Array(DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY + 1)].map(() =>
 					transport.handleRPCGetLastBlock(defaultPeerId),
 				);
-
 				jest.advanceTimersByTime(defaultRateLimit);
+
+				// Assert
 				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
 					penalty: 10,
@@ -704,11 +783,16 @@ describe('Transport', () => {
 
 		describe(`when getBlocksFromId is called more than ${DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY} times within 10 sec`, () => {
 			it('should apply penalty', () => {
+				// Arrange
+				const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
+					blockId: Buffer.from('123'),
+				});
 				[...new Array(DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY + 1)].map(async () =>
-					transport.handleRPCGetBlocksFromId({ blockId: '123' }, defaultPeerId),
+					transport.handleRPCGetBlocksFromId(blockIds, defaultPeerId),
 				);
-
 				jest.advanceTimersByTime(defaultRateLimit);
+
+				// Assert
 				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
 					penalty: 10,
@@ -718,15 +802,18 @@ describe('Transport', () => {
 
 		describe(`when getHighestCommonBlock is called more than ${DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY} times within 10 sec`, () => {
 			const validData = {
-				ids: ['15196562876801949910'],
+				ids: [Buffer.from('15196562876801949910')],
 			};
+			const blockIds = codec.encode(getHighestCommonBlockRequestSchema, validData);
 
 			it('should apply penalty when called ', async () => {
+				// Arrange
 				[...new Array(DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY + 1)].map(async () =>
-					transport.handleRPCGetHighestCommonBlock(validData, defaultPeerId),
+					transport.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId),
 				);
-
 				jest.advanceTimersByTime(defaultRateLimit);
+
+				// Assert
 				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
 					peerId: defaultPeerId,
 					penalty: 10,
