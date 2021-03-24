@@ -14,7 +14,7 @@
 import * as React from 'react';
 import styles from './Text.module.scss';
 
-interface Props {
+export interface Props {
 	color?: 'green' | 'pink' | 'yellow' | 'blue' | 'white' | 'gray' | 'red';
 	type?: 'h1' | 'h2' | 'h3' | 'th' | 'tr' | 'p';
 }

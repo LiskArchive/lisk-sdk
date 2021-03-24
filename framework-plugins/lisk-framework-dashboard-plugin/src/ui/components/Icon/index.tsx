@@ -14,7 +14,7 @@
 import * as React from 'react';
 import styles from './Icon.module.scss';
 
-interface Props {
+export interface Props {
 	name: string;
 	size?: 's' | 'm' | 'l' | 'xl';
 }

@@ -13,33 +13,33 @@
  */
 import * as React from 'react';
 import styles from './CopyText.module.scss';
-import Icon from '../Icon';
-import Text from '../Text';
+import Icon, { Props as IconProps } from '../Icon';
+import Text, { Props as TextProps } from '../Text';
 
-interface Props {
-	name: string;
-	size?: 's' | 'm' | 'l' | 'xl';
-	color?: 'green' | 'pink' | 'yellow' | 'blue' | 'white' | 'gray' | 'red';
-	type?: 'h1' | 'h2' | 'h3' | 'th' | 'tr' | 'p';
-}
+const COPIED_TEXT = 'Copied';
 
-const CopyText: React.FC<Props> = (props: Props) => {
+const CopyText: React.FC<IconProps & TextProps> = props => {
 	const [hover, setHover] = React.useState(true);
 	const [name, setName] = React.useState(props.name);
+	let copiedTimeout: NodeJS.Timeout;
 
 	const clipToClipboard = async (text: string) => {
-		setHover(false);
-		setName('Copied');
-		setTimeout(() => {
+		setHover(true);
+		setName(COPIED_TEXT);
+		copiedTimeout = setTimeout(() => {
 			setName(text);
 		}, 2000);
 		await navigator.clipboard.writeText(text);
 	};
 
+	React.useEffect(
+		() => clearTimeout(copiedTimeout),
+	);
+
 	return (
 		<div
 			className={styles.clickableContainer}
-			onMouseOver={() => setHover(false)}
+			onMouseOver={() => name === COPIED_TEXT ? setHover(true) : setHover(false)}
 			onMouseOut={() => setHover(true)}
 		>
 			<span className={styles.clickableRow}>
@@ -48,7 +48,7 @@ const CopyText: React.FC<Props> = (props: Props) => {
 				</Text>
 			</span>
 			<span
-				className={styles.clickableRow}
+				className={`${styles.clickableRow} ${styles.clickable}`}
 				hidden={hover}
 				onClick={async () => clipToClipboard(name)}
 			>
