@@ -15,11 +15,11 @@ import * as React from 'react';
 import styles from './MainPage.module.scss';
 import Text from '../components/Text';
 import Icon from '../components/Icon';
-import logo from '../logo.svg';
+import Logo from '../components/Logo';
 
 const MainPage: React.FC = () => (
 	<section className={styles.root}>
-		<img src={logo} alt="logo" />
+		<Logo name={'My Custom Alpha Beta'} />
 		{/* text sample */}
 		<div>
 			<Icon name={'info'} size={'xl'} />
