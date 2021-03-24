@@ -13,6 +13,7 @@
  */
 import * as React from 'react';
 import styles from './Button.module.scss';
+import Text from '../Text';
 
 interface Props {
 	name: string;
@@ -24,7 +25,7 @@ const onSubmit = (): void => undefined;
 const Button: React.FC<Props> = props => {
 	const { name } = props;
 	const size = props.size ?? 'm';
-	return <button className={`${styles.button} ${styles[`button-${size}`]}`} onClick={onSubmit}>{name}</button>;
+	return <button className={`${styles.button} ${styles[`button-${size}`]}`} onClick={onSubmit}><Text>{name}</Text></button>;
 };
 
 export default Button;
