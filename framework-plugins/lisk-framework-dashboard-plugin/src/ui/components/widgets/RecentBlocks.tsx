@@ -23,10 +23,12 @@ const RecentBlocks: React.FC<Props> = props => (
 	<Widget header={'Recent Blocks'}>
 		<table>
 			<thead>
-				<th>Id</th>
-				<th>Created by</th>
-				<th>Height</th>
-				<th>Txs</th>
+				<tr>
+					<th>Id</th>
+					<th>Created by</th>
+					<th>Height</th>
+					<th>Txs</th>
+				</tr>
 			</thead>
 			<tbody>
 				<tr onClick={props.onClick}>
