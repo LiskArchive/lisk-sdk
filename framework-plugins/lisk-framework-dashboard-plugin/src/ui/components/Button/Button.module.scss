@@ -1,0 +1,35 @@
+@import '../../styles/constants';
+
+.button {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 14px 30px;
+	color: $color-white;
+	width: 167px;
+	height: 46px;
+	left: 20px;
+	top: 20px;
+	/* Ultramarine blue */
+	background: #4070F4;
+	border-radius: 3px;
+
+	&.button {
+		&.button-s {
+			font-size: $font-size-s;
+		}
+
+		&.button-m {
+			font-size: $font-size-m;
+		}
+
+		&.button-l {
+			font-size: $font-size-l;
+		}
+
+		&.button-xl {
+			font-size: $font-size-xl;
+		}
+	}
+}
