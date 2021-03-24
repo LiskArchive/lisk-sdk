@@ -290,8 +290,8 @@ export abstract class BasePlugin<
 	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
 
-	public abstract async load(channel: BaseChannel): Promise<void>;
-	public abstract async unload(): Promise<void>;
+	public abstract load(channel: BaseChannel): Promise<void>;
+	public abstract unload(): Promise<void>;
 }
 
 // TODO: Once the issue fixed we can use require.resolve to rewrite the logic

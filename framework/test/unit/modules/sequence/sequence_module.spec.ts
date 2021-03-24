@@ -20,6 +20,10 @@ import { SequenceModule, InvalidNonceError } from '../../../../src/modules/seque
 import { GenesisConfig, Transaction } from '../../../../src';
 import { NonceOutOfBoundsError } from '../../../../src/errors';
 
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
+
 describe('sequence module', () => {
 	let sequenceModule: SequenceModule;
 	const senderAddress = cryptography.getRandomBytes(20);
@@ -68,11 +72,10 @@ describe('sequence module', () => {
 	stateStoreMock.account.set = jest.fn();
 
 	const reducerMock = { invoke: jest.fn() };
-	const getAddressFromPublicKeyMock = jest.fn().mockReturnValue(senderAddress);
 
 	beforeEach(() => {
 		sequenceModule = new SequenceModule(genesisConfig);
-		(cryptography as any).getAddressFromPublicKey = getAddressFromPublicKeyMock;
+		jest.spyOn(cryptography, 'getAddressFromPublicKey').mockReturnValue(senderAddress);
 	});
 
 	describe('incompatible nonce', () => {
@@ -80,7 +83,7 @@ describe('sequence module', () => {
 			// Arrange
 			const transaction = ({ ...sampleTx, nonce: BigInt(0) } as unknown) as Transaction;
 			when(stateStoreMock.account.get as any)
-				.calledWith()
+				.calledWith(senderAddress)
 				.mockResolvedValue(senderAccount as never);
 
 			let receivedError;
@@ -108,7 +111,7 @@ describe('sequence module', () => {
 			// Arrange
 			const transaction = ({ ...sampleTx, nonce: BigInt(4) } as unknown) as Transaction;
 			when(stateStoreMock.account.get as any)
-				.calledWith()
+				.calledWith(senderAddress)
 				.mockResolvedValue(senderAccount as never);
 			let receivedError;
 			try {
@@ -137,7 +140,7 @@ describe('sequence module', () => {
 			// Arrange
 			const updatedAccount = { ...senderAccount, sequence: { ...senderAccount.sequence } };
 			when(stateStoreMock.account.get as any)
-				.calledWith()
+				.calledWith(senderAddress)
 				.mockResolvedValue(updatedAccount as never);
 
 			// Act

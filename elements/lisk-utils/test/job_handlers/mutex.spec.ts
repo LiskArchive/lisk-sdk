@@ -25,7 +25,7 @@ describe('Mutex', () => {
 			const firstFunc = jest.fn();
 			const secondFunc = jest.fn();
 			const release = await mutex.acquire();
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				setTimeout(() => {
 					firstFunc();
 					resolve();
@@ -33,7 +33,7 @@ describe('Mutex', () => {
 			});
 			release();
 			await mutex.acquire();
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				setTimeout(() => {
 					secondFunc();
 					resolve();

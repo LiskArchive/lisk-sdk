@@ -17,7 +17,7 @@ import { WSServer } from '../../../../src/controller/ws/ws_server';
 
 describe('WSServer', () => {
 	const config = {
-		port: 8080,
+		port: 8888,
 		path: '/ws',
 		logger: {
 			info: jest.fn(),

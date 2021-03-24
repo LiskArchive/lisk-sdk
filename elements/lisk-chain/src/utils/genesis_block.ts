@@ -23,6 +23,15 @@ import {
 	blockHeaderSchema,
 } from '../schema';
 
+interface AssetSchema {
+	dataType: undefined;
+	$id: string;
+	type: string;
+	properties: Record<string, unknown>;
+	required?: string[] | undefined;
+	fieldNumber?: number;
+}
+
 export const readGenesisBlockJSON = <T = AccountDefaultProps>(
 	genesisBlockJSON: Record<string, unknown>,
 	accountSchemas: { [name: string]: AccountSchema },
@@ -34,11 +43,12 @@ export const readGenesisBlockJSON = <T = AccountDefaultProps>(
 		const { default: defaultProps, ...others } = schema;
 		accountSchema.properties[name] = others;
 	}
-	const assetSchema = {
+	const assetSchema: AssetSchema = {
 		...blockHeaderSchema.properties.asset,
 		...getGenesisBlockHeaderAssetSchema(accountSchema),
 		dataType: undefined,
 	};
+
 	delete assetSchema.dataType;
 	delete assetSchema.fieldNumber;
 

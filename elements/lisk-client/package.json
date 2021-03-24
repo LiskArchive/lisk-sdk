@@ -66,9 +66,9 @@
 		"buffer": "6.0.3"
 	},
 	"devDependencies": {
-		"@types/jest": "26.0.13",
-		"@types/jest-when": "2.7.1",
-		"@types/node": "12.12.11",
+		"@types/jest": "26.0.21",
+		"@types/jest-when": "2.7.2",
+		"@types/node": "12.20.6",
 		"@typescript-eslint/eslint-plugin": "3.10.1",
 		"@typescript-eslint/parser": "3.10.1",
 		"browserify": "16.5.0",
@@ -79,17 +79,17 @@
 		"eslint-config-prettier": "6.11.0",
 		"eslint-plugin-import": "2.22.0",
 		"eslint-plugin-jest": "24.0.0",
-		"jest": "26.4.2",
+		"jest": "26.6.3",
 		"jest-extended": "0.11.5",
-		"jest-when": "2.7.2",
+		"jest-when": "3.2.1",
 		"prettier": "2.0.5",
 		"source-map-support": "0.5.19",
 		"start-server-and-test": "1.11.6",
 		"terser": "4.7.0",
-		"ts-jest": "26.3.0",
-		"ts-node": "8.6.2",
+		"ts-jest": "26.5.4",
+		"ts-node": "9.1.1",
 		"tsconfig-paths": "3.9.0",
-		"typescript": "3.8.3",
+		"typescript": "4.2.3",
 		"ws": "7.4.0"
 	}
 }

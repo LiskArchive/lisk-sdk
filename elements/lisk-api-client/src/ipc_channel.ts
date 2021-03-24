@@ -78,7 +78,7 @@ export class IPCChannel implements Channel {
 			}, CONNECTION_TIME_OUT);
 			this._pubSocket.on('connect', () => {
 				clearTimeout(timeout);
-				resolve();
+				resolve(undefined);
 			});
 			this._pubSocket.on('error', reject);
 			this._pubSocket.connect(this._eventSubSocketPath);
@@ -87,7 +87,7 @@ export class IPCChannel implements Channel {
 			this._pubSocket.removeAllListeners('error');
 		});
 
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(
 					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
@@ -112,7 +112,7 @@ export class IPCChannel implements Channel {
 			}, CONNECTION_TIME_OUT);
 			this._rpcClient.sock.on('connect', () => {
 				clearTimeout(timeout);
-				resolve();
+				resolve(undefined);
 			});
 			this._rpcClient.sock.on('error', reject);
 
@@ -146,7 +146,7 @@ export class IPCChannel implements Channel {
 			method: actionName,
 			params: params ?? {},
 		};
-		return new Promise((resolve, reject) => {
+		return new Promise<T>((resolve, reject) => {
 			this._rpcClient.call(
 				'invoke',
 				action,
@@ -159,7 +159,7 @@ export class IPCChannel implements Channel {
 						reject(convertRPCError(data.error));
 						return;
 					}
-					resolve(data.result);
+					resolve(data.result as T);
 				},
 			);
 		});

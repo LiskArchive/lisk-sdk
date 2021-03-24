@@ -265,7 +265,7 @@ export class Controller {
 		});
 
 		await Promise.race([
-			new Promise(resolve => {
+			new Promise<void>(resolve => {
 				this.channel.once(`${pluginAlias}:loading:finished`, () => {
 					this.logger.info({ name, version, alias: pluginAlias }, 'Loaded child-process plugin');
 					resolve();
@@ -303,7 +303,7 @@ export class Controller {
 		});
 
 		await Promise.race([
-			new Promise(resolve => {
+			new Promise<void>(resolve => {
 				this.channel.once(`${alias}:unloading:finished`, () => {
 					this.logger.info(`Child process plugin "${alias}" unloaded`);
 					delete this._childProcesses[alias];

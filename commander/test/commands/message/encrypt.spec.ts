@@ -20,6 +20,10 @@ import { getConfig } from '../../helpers/config';
 import EncryptCommand from '../../../src/commands/message/encrypt';
 import * as readerUtils from '../../../src/utils/reader';
 
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
+
 describe('message:encrypt', () => {
 	const message = 'hello';
 	const defaultRecipientPublicKey =

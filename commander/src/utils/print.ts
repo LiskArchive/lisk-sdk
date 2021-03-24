@@ -56,7 +56,6 @@ export const print = ({ json, pretty }: PrintInput = {}) =>
 			? JSON.stringify(resultToPrint, undefined, pretty ? '\t' : undefined)
 			: tablify(resultToPrint).toString();
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		const logger = this && this.log ? this : console;
+		const logger = this && typeof this.log === 'function' ? this : console;
 		logger.log(output);
 	};

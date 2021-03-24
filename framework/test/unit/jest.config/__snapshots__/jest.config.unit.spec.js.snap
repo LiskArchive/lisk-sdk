@@ -14,7 +14,7 @@ Object {
   ],
   "globals": Object {
     "ts-jest": Object {
-      "tsConfig": "<rootDir>/test/tsconfig.json",
+      "tsconfig": "<rootDir>/test/tsconfig.json",
     },
   },
   "resetModules": true,

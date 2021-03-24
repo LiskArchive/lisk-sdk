@@ -117,6 +117,6 @@ export abstract class BaseSynchronizer {
 		return data.map(d => this._chain.dataAccess.decode(Buffer.from(d, 'hex')));
 	}
 
-	public abstract async run(receivedBlock: Block, peerId: string): Promise<void>;
-	public abstract async isValidFor(receivedBlock: Block, peerId: string): Promise<boolean>;
+	public abstract run(receivedBlock: Block, peerId: string): Promise<void>;
+	public abstract isValidFor(receivedBlock: Block, peerId: string): Promise<boolean>;
 }

@@ -102,7 +102,7 @@ describe('IPCClient', () => {
 
 		it('should be able to subscribe and receive event', async () => {
 			// Act & Assert
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				client.subSocket.on('message', data => {
 					expect(data).toEqual('myData');
 					resolve();
@@ -118,14 +118,14 @@ describe('IPCClient', () => {
 			// Act & Assert
 			server.pubSocket.send('myData');
 			await Promise.all([
-				new Promise(resolve => {
+				new Promise<void>(resolve => {
 					client.subSocket.on('message', data => {
 						expect(data).toEqual('myData');
 						resolve();
 					});
 				}),
 
-				await new Promise(resolve => {
+				await new Promise<void>(resolve => {
 					client2.subSocket.on('message', data => {
 						expect(data).toEqual('myData');
 						resolve();
@@ -142,14 +142,14 @@ describe('IPCClient', () => {
 			// Act & Assert
 			client.pubSocket.send('myData');
 			await Promise.all([
-				new Promise(resolve => {
+				new Promise<void>(resolve => {
 					client2.subSocket.on('message', data => {
 						expect(data).toEqual('myData');
 						resolve();
 					});
 				}),
 
-				await new Promise(resolve => {
+				await new Promise<void>(resolve => {
 					client3.subSocket.on('message', data => {
 						expect(data).toEqual('myData');
 						resolve();
@@ -161,7 +161,7 @@ describe('IPCClient', () => {
 		it('should be able to subscribe and receive events from same client', async () => {
 			// Act & Assert
 			client.pubSocket.send('myData');
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				client.subSocket.on('message', data => {
 					expect(data).toEqual('myData');
 					resolve();
@@ -178,7 +178,7 @@ describe('IPCClient', () => {
 			});
 
 			// Act
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				client.rpcClient.call('myAction', (_error: Error, data: string) => {
 					// Assert
 					expect(data).toEqual('myData');
