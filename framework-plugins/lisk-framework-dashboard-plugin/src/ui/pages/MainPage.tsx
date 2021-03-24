@@ -41,7 +41,7 @@ const MainPage: React.FC = () => (
 			</Text>
 		</div>
 
-		<Widget header="Widget title" size={'s'}>
+		<Widget header="Widget title" size={'m'}>
 			<h2>Nazar</h2>
 			<p>
 				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget

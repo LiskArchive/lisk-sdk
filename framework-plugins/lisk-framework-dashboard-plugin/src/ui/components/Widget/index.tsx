@@ -13,10 +13,11 @@
  */
 import * as React from 'react';
 import styles from './Widget.module.scss';
+import Text from '../Text';
 
 interface Props {
 	header?: React.ReactNode | string;
-	size?: 's' | 'm' | 'l' | 'xl';
+	size?: 'm' | 'l';
 }
 
 const Widget: React.FC<Props> = props => {
@@ -25,7 +26,11 @@ const Widget: React.FC<Props> = props => {
 	return (
 		<div className={`${styles.root} ${styles[`widget-${size}`]}`}>
 			<div className={styles.header}>
-				{props.header && typeof props.header === 'string' ? <h1>{props.header}</h1> : props.header}
+				{props.header && typeof props.header === 'string' ? (
+					<Text type={'h2'}>{props.header}</Text>
+				) : (
+					props.header
+				)}
 			</div>
 			<div className={styles.body}>{props.children}</div>
 		</div>
