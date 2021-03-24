@@ -13,7 +13,7 @@
  *
  */
 import { SCServerSocket } from 'socketcluster-server';
-import { InboundPeer, PeerConfig } from '../../../src/peer';
+import { InboundPeer } from '../../../src/peer';
 import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PING_INTERVAL_MAX,
@@ -26,7 +26,8 @@ import {
 	REMOTE_EVENT_PING,
 } from '../../../src/events';
 import { p2pTypes } from '../../../src';
-import { peerInfoSchema, nodeInfoSchema } from '../../../src/schema';
+import { defaultRPCSchemas } from '../../../src/schema';
+import { PeerConfig } from '../../../src/types';
 
 describe('peer/inbound', () => {
 	let defaultPeerInfo: p2pTypes.P2PPeerInfo;
@@ -57,8 +58,7 @@ describe('peer/inbound', () => {
 			maxPeerDiscoveryResponseLength: 1000,
 			peerStatusMessageRate: 4,
 			rpcSchemas: {
-				nodeInfo: nodeInfoSchema,
-				peerInfo: peerInfoSchema,
+				...defaultRPCSchemas,
 			},
 		};
 		// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -107,8 +107,8 @@ describe('peer/inbound', () => {
 
 			expect((defaultInboundPeer as any)._socket.emit).toHaveBeenCalledTimes(1);
 			expect((defaultInboundPeer as any)._socket.emit).toHaveBeenCalledWith(
-				REMOTE_EVENT_PING,
-				undefined,
+				REMOTE_SC_EVENT_RPC_REQUEST,
+				{ procedure: REMOTE_EVENT_PING },
 				expect.any(Function),
 			);
 		});

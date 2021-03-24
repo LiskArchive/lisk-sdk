@@ -27,9 +27,8 @@ import {
 	REMOTE_SC_EVENT_MESSAGE,
 	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
-import { P2PPeerInfo } from '../types';
-
-import { Peer, PeerConfig, SCServerSocketUpdated, socketErrorStatusCodes } from './base';
+import { PeerConfig, P2PPeerInfo } from '../types';
+import { Peer, SCServerSocketUpdated, socketErrorStatusCodes } from './base';
 
 const getRandomPingDelay = (): number =>
 	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +
@@ -84,12 +83,15 @@ export class InboundPeer extends Peer {
 
 	private _sendPing(): void {
 		const pingStart = Date.now();
-		this._socket.emit(REMOTE_EVENT_PING, undefined, () => {
-			this._peerInfo.internalState.latency = Date.now() - pingStart;
-			this._pingTimeoutId = setTimeout(() => {
-				this._sendPing();
-			}, getRandomPingDelay());
-		});
+		this.request({ procedure: REMOTE_EVENT_PING })
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
+			.catch(() => {})
+			.finally(() => {
+				this._peerInfo.internalState.latency = Date.now() - pingStart;
+				this._pingTimeoutId = setTimeout(() => {
+					this._sendPing();
+				}, getRandomPingDelay());
+			});
 	}
 
 	// All event handlers for the inbound socket should be bound in this method.

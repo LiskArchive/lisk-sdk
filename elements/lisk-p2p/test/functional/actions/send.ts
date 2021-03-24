@@ -94,9 +94,10 @@ describe('P2P.send', () => {
 		// Arrange
 		const firstP2PNode = p2pNodeList[0];
 		const numOfConnectedPeers = firstP2PNode.getConnectedPeers().length;
+		const data = Buffer.from(JSON.stringify('test'), 'utf8');
 
 		// Act
-		firstP2PNode.send({ event: messageEvent, data: 'test' });
+		firstP2PNode.send({ event: messageEvent, data });
 		await wait(100);
 
 		// Assert
@@ -105,7 +106,7 @@ describe('P2P.send', () => {
 		expect(collectedMessages[0]).toHaveProperty('message');
 		expect(collectedMessages[0].message).toMatchObject({
 			event: 'bar',
-			data: 'test',
+			data,
 			peerId: `127.0.0.1:${NETWORK_START_PORT}`,
 		});
 	});
@@ -117,10 +118,11 @@ describe('P2P.send', () => {
 		const expectedAverageMessagesPerNode = TOTAL_SENDS;
 		const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
 		const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
+		const data = Buffer.from(JSON.stringify('test'), 'utf8');
 
 		// Act
 		for (let i = 0; i < TOTAL_SENDS; i += 1) {
-			randomP2PNode.send({ event: messageEvent, data: 'test' });
+			randomP2PNode.send({ event: messageEvent, data });
 		}
 		await wait(100);
 
