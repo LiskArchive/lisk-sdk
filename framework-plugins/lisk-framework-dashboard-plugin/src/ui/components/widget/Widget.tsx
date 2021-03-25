@@ -11,30 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import * as React from 'react';
 import styles from './Widget.module.scss';
-import Text from '../Text';
 
-interface Props {
-	header?: React.ReactNode | string;
-	size?: 'm' | 'l';
-}
-
-const Widget: React.FC<Props> = props => {
-	const size = props.size ?? 'm';
-
-	return (
-		<div className={`${styles.root} ${styles[`widget-${size}`]}`}>
-			<div className={styles.header}>
-				{props.header && typeof props.header === 'string' ? (
-					<Text type={'h2'}>{props.header}</Text>
-				) : (
-					props.header
-				)}
-			</div>
-			<div className={styles.body}>{props.children}</div>
-		</div>
-	);
-};
+const Widget: React.FC = props => <div className={styles.root}>{props.children}</div>;
 
 export default Widget;

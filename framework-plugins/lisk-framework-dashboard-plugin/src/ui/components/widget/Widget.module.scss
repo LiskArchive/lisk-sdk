@@ -1,0 +1,50 @@
+@import '../../styles/constants';
+
+.root {
+	display: block;
+	margin: 10px 0;
+}
+
+.header {
+	color: inherit;
+	margin-bottom: 15px;
+	font-family: 'Roboto';
+	font-style: normal;
+	font-weight: 600;
+	font-size: 20px;
+	line-height: 130%;
+	color: $color-white;
+}
+
+.body {
+	background: $color-background-darker;
+	border-radius: 6px;
+	color: $color-white;
+	padding: 20px;
+	width: 100%;
+	box-sizing: border-box;
+	display: block;
+}
+
+.widget-body-scrollbar {
+	overflow-y: scroll;
+	box-sizing: border-box;
+	overflow-y: auto;
+	overflow-x: inherit;
+
+	&.widget-body-m {
+		height: 277px;
+	}
+
+	&.widget-body-l {
+		height: 399px;
+	}
+}
+
+.widget-body-m {
+	min-height: 277px;
+}
+
+.widget-body-l {
+	min-height: 399px;
+}
