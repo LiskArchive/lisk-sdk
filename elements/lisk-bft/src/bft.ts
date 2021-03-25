@@ -156,7 +156,6 @@ export class BFT extends EventEmitter {
 		return ForkStatus.DISCARD;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async isBFTProtocolCompliant(
 		blockHeader: BlockHeader,
 		stateStore: StateStore,

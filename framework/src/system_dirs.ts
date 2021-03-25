@@ -15,7 +15,7 @@
 import { homedir } from 'os';
 import { join, resolve } from 'path';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const systemDirs = (appLabel: string, rootPath: string) => {
 	const rootPathWithoutTilde = rootPath.replace('~', homedir());
 	return {

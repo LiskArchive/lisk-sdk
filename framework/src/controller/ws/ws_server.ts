@@ -81,7 +81,6 @@ export class WSServer {
 		this.logger.info('New web socket client connected');
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _handleHeartbeat(socket: WebSocketWithTracking) {
 		// eslint-disable-next-line no-param-reassign
 		socket.isAlive = true;

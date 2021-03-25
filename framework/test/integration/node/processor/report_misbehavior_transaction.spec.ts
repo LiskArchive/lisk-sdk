@@ -55,9 +55,9 @@ describe('Transaction order', () => {
 			let senderAccount: { address: Buffer; passphrase: string };
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				senderAccount = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
@@ -103,9 +103,11 @@ describe('Transaction order', () => {
 				// create a block and process them
 				const nextBlock = await nodeUtils.createBlock(node, [tx]);
 				await node['_processor'].process(nextBlock);
-				const updatedDelegate = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(Buffer.from(lastBlockGenerator?.address as string, 'hex'));
+				const updatedDelegate = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress<DefaultAccountProps>(
+					Buffer.from(lastBlockGenerator?.address as string, 'hex'),
+				);
 				expect(updatedDelegate.dpos.delegate.pomHeights).toHaveLength(1);
 				expect(updatedDelegate.token.balance).toEqual(BigInt(0));
 			});

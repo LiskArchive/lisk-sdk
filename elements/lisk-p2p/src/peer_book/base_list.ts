@@ -144,7 +144,6 @@ export class BaseList {
 		return false;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public makeSpace(bucket: Bucket): P2PEnhancedPeerInfo | undefined {
 		return evictPeerRandomlyFromBucket(bucket);
 	}

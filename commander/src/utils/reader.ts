@@ -166,7 +166,6 @@ export const isFileSource = (source?: string): boolean => {
 	return false;
 };
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export const readFileSource = async (source?: string): Promise<string> => {
 	if (!source) {
 		throw new ValidationError(ERROR_DATA_MISSING);

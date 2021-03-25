@@ -394,7 +394,7 @@ describe('delegates', () => {
 			const defaultRound = 5;
 
 			for (const scenario of scenarios) {
-				// eslint-disable-next-line no-loop-func
+				// eslint-disable-next-line jest/valid-title,no-loop-func
 				describe(scenario.title, () => {
 					it('should result in the expected forgers list', async () => {
 						// Forger selection relies on vote weight to be sorted
@@ -514,6 +514,7 @@ describe('delegates', () => {
 			});
 
 			it('should have activeDelegates + standbyDelegates delegates in the forgers list', () => {
+				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 				expect(forgersList).toHaveLength(params.activeDelegates + params.standbyDelegates);
 			});
 

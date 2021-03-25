@@ -26,14 +26,10 @@
 		"protobufjs": "6.9.0"
 	},
 	"devDependencies": {
-		"eslint": "7.8.1",
-		"eslint-config-airbnb-base": "14.2.0",
-		"eslint-config-lisk-base": "1.2.2",
-		"eslint-config-prettier": "6.11.0",
-		"eslint-plugin-chai-expect": "2.1.0",
-		"eslint-plugin-import": "2.22.0",
-		"eslint-plugin-jest": "24.0.0",
-		"eslint-plugin-mocha": "8.0.0",
-		"prettier": "2.0.5"
+		"eslint": "7.22.0",
+		"eslint-config-lisk-base": "2.0.0",
+		"eslint-plugin-import": "2.22.1",
+		"eslint-plugin-jest": "24.3.2",
+		"prettier": "2.2.1"
 	}
 }

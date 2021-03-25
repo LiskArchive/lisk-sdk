@@ -147,7 +147,7 @@ describe('token module', () => {
 				...senderAccount,
 				token: {
 					...senderAccount.token,
-					balance: senderAccount.token.balance += BigInt('1000'),
+					balance: (senderAccount.token.balance += BigInt('1000')),
 				},
 			};
 			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);
@@ -189,7 +189,7 @@ describe('token module', () => {
 				...senderAccount,
 				token: {
 					...senderAccount.token,
-					balance: senderAccount.token.balance -= BigInt('1000'),
+					balance: (senderAccount.token.balance -= BigInt('1000')),
 				},
 			};
 			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);

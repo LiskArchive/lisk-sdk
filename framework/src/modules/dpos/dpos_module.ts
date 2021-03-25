@@ -211,7 +211,6 @@ export class DPoSModule extends BaseModule {
 
 		const roundAfterGenesis = this.rounds.calcRound(context.genesisBlock.header.height) + 1;
 		for (
-			// tslint:disable-next-line no-let
 			let i = roundAfterGenesis;
 			i <= roundAfterGenesis + this._delegateListRoundOffset;
 			i += 1

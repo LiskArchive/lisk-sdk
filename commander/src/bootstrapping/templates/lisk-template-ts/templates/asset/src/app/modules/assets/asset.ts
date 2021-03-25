@@ -13,13 +13,11 @@ export class <%= assetClass %> extends BaseAsset {
 		properties: {},
   };
 
-  // eslint-disable-next-line class-methods-use-this
-  public validate({ asset }: ValidateAssetContext<{}>): void {
+    public validate({ asset }: ValidateAssetContext<{}>): void {
     // Validate your asset
   }
 
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
-	public async apply({ asset, transaction, stateStore }: ApplyAssetContext<{}>): Promise<void> {
+  	public async apply({ asset, transaction, stateStore }: ApplyAssetContext<{}>): Promise<void> {
 		throw new Error('Asset "<%= assetName %>" apply hook is not implemented.');
 	}
 }

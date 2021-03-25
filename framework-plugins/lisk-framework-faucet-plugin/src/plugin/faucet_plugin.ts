@@ -93,17 +93,14 @@ export class FaucetPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): SchemaWithDefault {
 		return defaults.config;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events(): EventsDefinition {
 		return [];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {
 			authorize: (params?: Record<string, unknown>): { result: string } => {
@@ -166,6 +163,7 @@ export class FaucetPlugin extends BasePlugin {
 					},
 				});
 
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				if (!captchaResult?.data?.success) {
 					throw new Error('Captcha response was invalid.');
 				}
@@ -206,7 +204,6 @@ export class FaucetPlugin extends BasePlugin {
 		this._server = app.listen(this._options.port, this._options.host);
 	}
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
 	public async unload(): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this._server.close(err => {

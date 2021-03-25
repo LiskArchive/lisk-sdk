@@ -883,7 +883,6 @@ export class P2P extends EventEmitter {
 		request.end(encodedResponse);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _removeListeners(emitter: PeerServer | PeerPool): void {
 		emitter.eventNames().forEach((eventName: string | symbol) => {
 			emitter.removeAllListeners(eventName);

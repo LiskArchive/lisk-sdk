@@ -36,14 +36,12 @@ export class RegisterTransactionAsset extends BaseAsset<RegisterTransactionAsset
 		},
 	};
 
-	// eslint-disable-next-line class-methods-use-this
 	public validate({ asset }: ValidateAssetContext<RegisterTransactionAssetContext>): void {
 		if (!isUsername(asset.username)) {
 			throw new ValidationError('The username is in unsupported format', asset.username);
 		}
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async apply({
 		asset,
 		transaction,

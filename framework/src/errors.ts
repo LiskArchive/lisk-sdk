@@ -86,7 +86,4 @@ export class TransactionApplyError extends Error {
 
 export class ApplyPenaltyError extends FrameworkError {
 	public code = 'ERR_APPLY_PENALTY';
-	public constructor(message: string) {
-		super(message);
-	}
 }
