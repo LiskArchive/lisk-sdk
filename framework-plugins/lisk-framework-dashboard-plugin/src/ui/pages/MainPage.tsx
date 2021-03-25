@@ -42,7 +42,9 @@ const MainPage: React.FC = () => (
 		</div>
 
 		<Widget>
-			<WidgetHeader>Widget title</WidgetHeader>
+			<WidgetHeader>
+				<Text type={'h2'}>Widget title</Text>
+			</WidgetHeader>
 			<WidgetBody size={'m'} scrollbar={true}>
 				<h2>Nazar</h2>
 				<p>
