@@ -25,7 +25,11 @@ const onSubmit = (): void => undefined;
 const Button: React.FC<Props> = props => {
 	const { name } = props;
 	const size = props.size ?? 'm';
-	return <button className={`${styles.button} ${styles[`button-${size}`]}`} onClick={onSubmit}><Text>{name}</Text></button>;
+	return (
+		<button className={`${styles.button} ${styles[`button-${size}`]}`} onClick={onSubmit}>
+			<Text>{name}</Text>
+		</button>
+	);
 };
 
 export default Button;
