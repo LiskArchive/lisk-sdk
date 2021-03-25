@@ -16,18 +16,17 @@ import Icon from '../Icon';
 import styles from './IconButton.module.scss';
 
 interface Props {
-	name: string;
+	icon: string;
+	onClick?: (event: React.MouseEvent | Event) => void;
 	size?: 's' | 'm' | 'l' | 'xl';
 }
 
-const onSubmit = (): void => undefined;
-
 const IconButton: React.FC<Props> = props => {
-	const { name } = props;
+	const { icon, onClick } = props;
 	const size = props.size ?? 'm';
 	return (
-		<div className={styles['icon-button']} onClick={onSubmit}>
-			<Icon name={name} size={size} />
+		<div className={styles['icon-button']} onClick={onClick}>
+			<Icon name={icon} size={size} />
 		</div>
 	);
 };
