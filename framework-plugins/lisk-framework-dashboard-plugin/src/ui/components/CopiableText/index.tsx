@@ -36,14 +36,12 @@ const CopiableText: React.FC<Props> = props => {
 		await navigator.clipboard.writeText(textToCopy);
 	};
 
-	React.useEffect(
-		() => clearTimeout(copiedTimeout),
-	);
+	React.useEffect(() => clearTimeout(copiedTimeout));
 
 	return (
 		<div
 			className={styles.clickableContainer}
-			onMouseOver={() => text === COPIED_TEXT ? setHover(true) : setHover(false)}
+			onMouseOver={() => (text === COPIED_TEXT ? setHover(true) : setHover(false))}
 			onMouseOut={() => setHover(true)}
 		>
 			<span className={styles.clickableRow}>
