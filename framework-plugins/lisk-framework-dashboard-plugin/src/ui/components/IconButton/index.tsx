@@ -25,7 +25,11 @@ const onSubmit = (): void => undefined;
 const IconButton: React.FC<Props> = props => {
 	const { name } = props;
 	const size = props.size ?? 'm';
-	return <div className={styles['icon-button']} onClick={onSubmit}><Icon name={name} size={size} /></div>;
+	return (
+		<div className={styles['icon-button']} onClick={onSubmit}>
+			<Icon name={name} size={size} />
+		</div>
+	);
 };
 
 export default IconButton;
