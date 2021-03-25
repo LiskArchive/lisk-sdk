@@ -16,6 +16,7 @@ import styles from './MainPage.module.scss';
 import Text from '../components/Text';
 import Icon from '../components/Icon';
 import Logo from '../components/Logo';
+import CopiableText from '../components/CopiableText';
 
 const MainPage: React.FC = () => (
 	<section className={styles.root}>
@@ -23,6 +24,9 @@ const MainPage: React.FC = () => (
 		{/* text sample */}
 		<div>
 			<Icon name={'info'} size={'xl'} />
+		</div>
+		<div>
+			<CopiableText text="11111764222293342222L" />
 		</div>
 		<div>
 			<Text color="pink" type="h1">
