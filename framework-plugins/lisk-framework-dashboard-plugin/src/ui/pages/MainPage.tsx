@@ -18,6 +18,8 @@ import Icon from '../components/Icon';
 import Logo from '../components/Logo';
 import CopiableText from '../components/CopiableText';
 import { Widget, WidgetHeader, WidgetBody } from '../components/widget';
+import Button from '../components/Button';
+import IconButton from '../components/IconButton';
 
 const MainPage: React.FC = () => (
 	<section className={styles.root}>
@@ -39,6 +41,8 @@ const MainPage: React.FC = () => (
 			<Text color="white" type="p">
 				bd81020ded87d21bbfedc45ed...5d90
 			</Text>
+			<Button size={'m'}>Button</Button>
+			<IconButton icon={'add'} size={'m'} />
 		</div>
 
 		<Widget>
