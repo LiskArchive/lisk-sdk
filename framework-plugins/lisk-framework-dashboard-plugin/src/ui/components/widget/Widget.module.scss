@@ -25,6 +25,20 @@
 	width: 100%;
 	box-sizing: border-box;
 	display: block;
+
+	scrollbar-width: 14px;
+	scrollbar-color: #c5cfe4;
+
+	&::-webkit-scrollbar {
+		width: 14px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: #c5cfe4;
+		background-clip: content-box;
+		border-radius: 20px;
+		border: 5px solid transparent;
+	}
 }
 
 .widget-body-scrollbar {
