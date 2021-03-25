@@ -40,7 +40,7 @@ const MainPage: React.FC = () => (
 			<Text color="white" type="p">
 				bd81020ded87d21bbfedc45ed...5d90
 			</Text>
-			<Button name={'Button'} size={'m'} />
+			<Button size={'m'} >Button</Button>
 			<IconButton name={'add'} size={'xl'} />
 		</div>
 	</section>
