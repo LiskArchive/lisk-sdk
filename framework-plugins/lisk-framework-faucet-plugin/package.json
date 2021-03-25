@@ -81,7 +81,7 @@
 		"dotenv": "8.2.0",
 		"dotenv-expand": "5.1.0",
 		"eslint": "7.22.0",
-		"eslint-config-lisk-base": "2.0.0-alpha.0",
+		"eslint-config-lisk-base": "2.0.0",
 		"eslint-config-react-app": "^6.0.0",
 		"eslint-plugin-flowtype": "^5.2.0",
 		"eslint-plugin-import": "2.22.1",
