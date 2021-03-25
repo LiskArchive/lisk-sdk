@@ -12,24 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import styles from './CopyText.module.scss';
+import styles from './CopiableText.module.scss';
 import Icon, { Props as IconProps } from '../Icon';
 import Text, { Props as TextProps } from '../Text';
 
 const COPIED_TEXT = 'Copied';
 
-const CopyText: React.FC<IconProps & TextProps> = props => {
+export interface Props extends Partial<IconProps>, TextProps {
+	text: string;
+}
+
+const CopiableText: React.FC<Props> = props => {
 	const [hover, setHover] = React.useState(true);
-	const [name, setName] = React.useState(props.name);
+	const [text, setText] = React.useState(props.text);
 	let copiedTimeout: NodeJS.Timeout;
 
-	const clipToClipboard = async (text: string) => {
+	const clipToClipboard = async (textToCopy: string) => {
 		setHover(true);
-		setName(COPIED_TEXT);
+		setText(COPIED_TEXT);
 		copiedTimeout = setTimeout(() => {
-			setName(text);
+			setText(textToCopy);
 		}, 2000);
-		await navigator.clipboard.writeText(text);
+		await navigator.clipboard.writeText(textToCopy);
 	};
 
 	React.useEffect(
@@ -39,18 +43,18 @@ const CopyText: React.FC<IconProps & TextProps> = props => {
 	return (
 		<div
 			className={styles.clickableContainer}
-			onMouseOver={() => name === COPIED_TEXT ? setHover(true) : setHover(false)}
+			onMouseOver={() => text === COPIED_TEXT ? setHover(true) : setHover(false)}
 			onMouseOut={() => setHover(true)}
 		>
 			<span className={styles.clickableRow}>
 				<Text color={props.color} type={props.type}>
-					{name}
+					{text}
 				</Text>
 			</span>
 			<span
 				className={`${styles.clickableRow} ${styles.clickable}`}
 				hidden={hover}
-				onClick={async () => clipToClipboard(name)}
+				onClick={async () => clipToClipboard(text)}
 			>
 				<Icon name={'content_copy'} size={props.size}></Icon>
 			</span>
@@ -58,4 +62,4 @@ const CopyText: React.FC<IconProps & TextProps> = props => {
 	);
 };
 
-export default CopyText;
+export default CopiableText;
