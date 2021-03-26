@@ -11,16 +11,23 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as os from 'os';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { Application, PartialApplicationConfig } from 'lisk-framework';
+import { join } from 'path';
+import { homedir } from 'os';
+import { existsSync, rmdirSync } from 'fs-extra';
+import {
+	Application,
+	KeysModule,
+	PartialApplicationConfig,
+	SequenceModule,
+	testing,
+	TokenModule,
+	DPoSModule,
+} from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import * as configJSON from '../fixtures/config.json';
+
 import { ForgerPlugin } from '../../src';
 import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
-import { getGenesisBlockJSON } from './genesis_block';
 import { ForgerInfo } from '../../src/types';
 
 const forgerApiPort = 5001;
@@ -29,21 +36,7 @@ export const getForgerPlugin = (app: Application): ForgerPlugin => {
 	return app['_controller']['_inMemoryPlugins'][ForgerPlugin.alias]['plugin'];
 };
 
-export const startApplication = async (app: Application): Promise<void> => {
-	// FIXME: Remove with #5572
-	validator.removeSchema('/block/header');
-
-	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
-	await new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height > 1) {
-				resolve();
-			}
-		});
-	});
-};
-
-export const createApplication = async (
+export const createApplicationEnv = (
 	label: string,
 	options: {
 		consoleLogLevel?: string;
@@ -54,10 +47,10 @@ export const createApplication = async (
 		consoleLogLevel: 'fatal',
 		appConfig: { plugins: { forger: {} } },
 	},
-): Promise<Application> => {
+): testing.ApplicationEnv => {
 	const rootPath = '~/.lisk/forger-plugin';
 	const config = {
-		...configJSON,
+		...testing.fixtures.defaultConfig,
 		rootPath,
 		label,
 		logger: {
@@ -65,73 +58,66 @@ export const createApplication = async (
 			fileLogLevel: 'fatal',
 			logFileName: 'lisk.log',
 		},
-		network: {
-			...configJSON.network,
-			maxInboundConnections: 0,
-		},
 		plugins: {
 			forger: {
 				port: forgerApiPort,
 				...options.appConfig?.plugins.forger,
 			},
 		},
-		rpc: {
-			enable: true,
-			port: 8080,
-			mode: 'ipc',
-		},
 	} as PartialApplicationConfig;
 
-	// Update the genesis block JSON to avoid having very long calculations of missed blocks in tests
-	const genesisBlock = getGenesisBlockJSON({
-		timestamp: Math.floor(Date.now() / 1000) - 30,
+	const dataPath = join(homedir(), rootPath, label);
+	if (existsSync(dataPath)) {
+		rmdirSync(dataPath, { recursive: true });
+	}
+	const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+
+	const defaultFaucetAccount = {
+		address: testing.fixtures.defaultFaucetAccount.address,
+		token: { balance: BigInt(testing.fixtures.defaultFaucetAccount.balance) },
+		dpos: {
+			delegate: {
+				username: 'delegate_1',
+			},
+		},
+	};
+	const accounts = testing.fixtures.defaultAccounts().map((a, i) =>
+		testing.fixtures.createDefaultAccount(modules, {
+			address: a.address,
+			dpos: {
+				delegate: {
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					username: `delegate_${i}`,
+				},
+			},
+		}),
+	);
+	const { genesisBlockJSON } = testing.createGenesisBlock({
+		modules,
+		accounts: [defaultFaucetAccount, ...accounts],
 	});
 
-	const app = Application.defaultApplication(genesisBlock, config);
-	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: false });
+	const appEnv = new testing.ApplicationEnv({
+		modules,
+		config,
+		plugins: [ForgerPlugin],
+		genesisBlockJSON,
+	});
+	validator.removeSchema('/block/header');
 
-	if (options.clearDB) {
-		// Remove pre-existing data
-		fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
-	}
-
-	await startApplication(app);
-	return app;
+	return appEnv;
 };
 
-export const closeApplication = async (
-	app: Application,
+export const closeApplicationEnv = async (
+	appEnv: testing.ApplicationEnv,
 	options: { clearDB: boolean } = { clearDB: true },
 ): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-
-	if (options.clearDB) {
-		await app['_forgerDB'].clear();
-		await app['_blockchainDB'].clear();
-		const forgerPluginInstance = getForgerPlugin(app);
-		await forgerPluginInstance['_forgerPluginDB'].clear();
-	}
-
-	await app.shutdown();
+	await appEnv.stopApplication(options);
 };
 
-export const getURL = (url: string, port = forgerApiPort): string =>
-	`http://localhost:${port}${url}`;
-
-export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-	const height = app['_node']['_chain'].lastBlock.header.height + n;
-	return new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height >= height) {
-				resolve();
-			}
-		});
-	});
-};
-
-export const waitTill = async (ms: number) =>
+export const waitTill = async (ms: number): Promise<void> =>
 	new Promise(r =>
 		setTimeout(() => {
 			r();

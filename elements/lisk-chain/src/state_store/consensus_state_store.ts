@@ -79,7 +79,8 @@ export class ConsensusStateStore {
 		throw new Error(`getOrDefault cannot be called for ${this._name}`);
 	}
 
-	public set(key: string, value: Buffer): void {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async set(key: string, value: Buffer): Promise<void> {
 		this._data[key] = value;
 		this._updatedKeys.add(key);
 	}

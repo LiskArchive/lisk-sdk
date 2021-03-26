@@ -22,7 +22,6 @@ interface Option {
 	keypair?: { publicKey: Buffer; privateKey: Buffer };
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createBlock = async (
 	node: Node,
 	transactions: Transaction[] = [],

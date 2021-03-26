@@ -61,7 +61,7 @@ describe('validator', () => {
 		it('should return error when "type" is not defined', () => {
 			// Arrange
 			const invalidSchema = { ...validSchema };
-			delete invalidSchema.type;
+			delete (invalidSchema as any).type;
 
 			// Act
 			const errors = validator.validateSchema(invalidSchema);
@@ -78,7 +78,7 @@ describe('validator', () => {
 		it('should return error when "$id" is not defined', () => {
 			// Arrange
 			const invalidSchema = { ...validSchema };
-			delete invalidSchema.$id;
+			delete (invalidSchema as any).$id;
 
 			// Act
 			const errors = validator.validateSchema(invalidSchema);

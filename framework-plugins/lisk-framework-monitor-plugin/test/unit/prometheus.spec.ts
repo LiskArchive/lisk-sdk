@@ -14,12 +14,17 @@
 
 import { when } from 'jest-when';
 import { Request } from 'express';
+import { testing } from 'lisk-framework';
 import { PeerInfo, SharedState } from '../../src/types';
 import { prometheusExport, blocks, transactions } from '../../src/controllers';
 
 describe('networkStats', () => {
 	const blocksMock = jest.fn();
 	const transactionsMock = jest.fn();
+	const {
+		mocks: { channelMock },
+	} = testing;
+	let channelInvokeMock;
 
 	(blocks.getBlockStats as any) = blocksMock;
 	(transactions.getTransactionStats as any) = transactionsMock;
@@ -78,10 +83,6 @@ describe('networkStats', () => {
 		averageReceivedTransactions: 9,
 	};
 
-	const channelMock = {
-		invoke: jest.fn(),
-	};
-
 	const sharedState: SharedState = {
 		blocks: {},
 		transactions: {},
@@ -121,7 +122,10 @@ describe('networkStats', () => {
 		blocksMock.mockResolvedValue(blockStats);
 		transactionsMock.mockResolvedValue(transactionStats);
 
-		when(channelMock.invoke)
+		channelInvokeMock = jest.fn();
+		channelMock.invoke = channelInvokeMock;
+
+		when(channelInvokeMock)
 			.calledWith('app:getConnectedPeers')
 			.mockResolvedValue(connectedPeers)
 			.calledWith('app:getDisconnectedPeers')
@@ -159,7 +163,7 @@ describe('networkStats', () => {
 		} as any;
 
 		const error = new Error('Something went wrong');
-		channelMock.invoke.mockRejectedValue(error);
+		(channelMock.invoke as any).mockRejectedValue(error);
 
 		// Act
 		await prometheus({} as Request, res, next);

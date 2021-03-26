@@ -222,7 +222,7 @@ export abstract class BasePlugin<
 		}
 
 		this.codec = {
-			decodeAccount: <T = DefaultAccountJSON>(data: Buffer | string): AccountJSON<T> => {
+			decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
 				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
 
 				return decodeAccountToJSON(accountBuffer, this.schemas.account);
@@ -283,15 +283,14 @@ export abstract class BasePlugin<
 	}
 
 	// TODO: To make non-breaking change we have to keep "object" here
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): SchemaWithDefault | object | undefined {
 		return undefined;
 	}
 	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
 
-	public abstract async load(channel: BaseChannel): Promise<void>;
-	public abstract async unload(): Promise<void>;
+	public abstract load(channel: BaseChannel): Promise<void>;
+	public abstract unload(): Promise<void>;
 }
 
 // TODO: Once the issue fixed we can use require.resolve to rewrite the logic

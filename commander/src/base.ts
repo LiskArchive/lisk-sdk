@@ -44,14 +44,12 @@ export default abstract class BaseCommand extends Command {
 
 	public printFlags: PrintFlags = {};
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async finally(error?: Error | string): Promise<void> {
 		if (error) {
 			this.error(error instanceof Error ? error.message : error);
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async init(): Promise<void> {
 		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
 		const { flags } = this.parse(

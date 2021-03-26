@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Account, GenesisBlock, testing } from '@liskhq/lisk-chain';
-import { when } from 'jest-when';
+import { Account } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
 	AfterBlockApplyContext,
 	AfterGenesisBlockApplyContext,
@@ -24,11 +24,7 @@ import * as dataAccess from '../../../../src/modules/dpos/data_access';
 import * as delegates from '../../../../src/modules/dpos/delegates';
 import * as randomSeed from '../../../../src/modules/dpos/random_seed';
 import { Rounds } from '../../../../src/modules/dpos/rounds';
-import {
-	createValidDefaultBlock,
-	genesisBlock as createGenesisBlock,
-} from '../../../fixtures/blocks';
-import { createFakeDefaultAccount } from '../../../utils/node';
+import * as testing from '../../../../src/testing';
 
 import Mock = jest.Mock;
 
@@ -37,19 +33,10 @@ jest.mock('../../../../src/modules/dpos/delegates');
 jest.mock('../../../../src/modules/dpos/random_seed');
 
 describe('DPoSModule', () => {
-	const { StateStoreMock } = testing;
+	const { StateStoreMock, loggerMock, channelMock, DataAccessMock } = testing.mocks;
+
 	let dposModule!: DPoSModule;
 	let genesisConfig: GenesisConfig;
-	const reducerHandlerMock = { invoke: jest.fn() };
-	const dataAccessMock = {
-		getAccountByAddress: jest.fn(),
-	};
-	const channelMock = {
-		publish: jest.fn(),
-	};
-	const loggerMock = {
-		debug: jest.fn(),
-	};
 
 	beforeEach(() => {
 		genesisConfig = {
@@ -131,21 +118,36 @@ describe('DPoSModule', () => {
 	});
 
 	describe('afterGenesisBlockApply', () => {
-		let context: AfterGenesisBlockApplyContext<Account<DPOSAccountProps>>;
+		let context: AfterGenesisBlockApplyContext<DPOSAccountProps>;
 
 		beforeEach(() => {
-			context = {
-				genesisBlock: (createGenesisBlock() as unknown) as GenesisBlock<Account<DPOSAccountProps>>,
-				stateStore: new StateStoreMock() as any,
-				reducerHandler: reducerHandlerMock,
-			};
+			const accounts: Account<DPOSAccountProps>[] = [];
+
+			for (let i = 0; i < 103; i += 1) {
+				accounts.push(
+					testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+						dpos: { delegate: { username: `delegate_${i}` } },
+					}),
+				);
+			}
+
+			const { genesisBlock } = testing.createGenesisBlock<DPOSAccountProps>({
+				modules: [DPoSModule],
+				accounts,
+				initDelegates: accounts.map(a => a.address),
+			});
+
+			context = testing.createAfterGenesisBlockApplyContext({
+				modules: [DPoSModule],
+				genesisBlock,
+			});
 		});
 
 		it('should throw error if "initDelegates" list size is greater than blocksPerRound', async () => {
 			genesisConfig.activeDelegates = 101;
 			genesisConfig.standbyDelegates = 1;
 			// Genesis block contains 103 init delegates
-			dposModule = new DPoSModule(genesisConfig);
+			dposModule = testing.getModuleInstance(DPoSModule, { genesisConfig });
 
 			expect(context.genesisBlock.header.asset.initDelegates).toHaveLength(103);
 			await expect(dposModule.afterGenesisBlockApply(context)).rejects.toThrow(
@@ -154,7 +156,7 @@ describe('DPoSModule', () => {
 		});
 
 		it('should throw error if "initDelegates" list contains an account which is not a delegate', async () => {
-			dposModule = new DPoSModule(genesisConfig);
+			dposModule = testing.getModuleInstance(DPoSModule, { genesisConfig });
 			const delegateAccount = context.genesisBlock.header.asset.accounts.find(a =>
 				a.address.equals(context.genesisBlock.header.asset.initDelegates[0]),
 			) as Account<DPOSAccountProps>;
@@ -168,7 +170,7 @@ describe('DPoSModule', () => {
 		});
 
 		it('should set all registered delegates usernames', async () => {
-			dposModule = new DPoSModule(genesisConfig);
+			dposModule = testing.getModuleInstance(DPoSModule, { genesisConfig });
 			const allDelegates = context.genesisBlock.header.asset.accounts
 				.filter(a => a.dpos.delegate.username !== '')
 				.map(a => ({ address: a.address, username: a.dpos.delegate.username }));
@@ -188,24 +190,39 @@ describe('DPoSModule', () => {
 
 		beforeEach(() => {
 			(randomSeed.generateRandomSeeds as Mock).mockReturnValue([]);
-			context = {
-				block: createValidDefaultBlock(),
-				stateStore: new StateStoreMock({
-					lastBlockHeaders: [createValidDefaultBlock({ header: { height: 10 } }).header],
-				}) as any,
-				reducerHandler: reducerHandlerMock,
-				consensus: {
-					getFinalizedHeight: jest.fn().mockReturnValue(0),
-					getDelegates: jest.fn(),
-					updateDelegates: jest.fn(),
-				},
-			};
 
-			dposModule = new DPoSModule(genesisConfig);
+			const stateStore = new StateStoreMock({
+				lastBlockHeaders: [
+					testing.createBlock({
+						header: { height: 10 },
+						passphrase: getRandomBytes(20).toString('hex'),
+						networkIdentifier: getRandomBytes(20),
+						previousBlockID: getRandomBytes(20),
+						timestamp: 0,
+					}).header,
+				],
+			});
+
+			context = testing.createAfterBlockApplyContext({
+				block: testing.createBlock({
+					passphrase: getRandomBytes(20).toString('hex'),
+					networkIdentifier: getRandomBytes(20),
+					previousBlockID: getRandomBytes(20),
+					timestamp: 0,
+				}),
+				stateStore,
+			});
+
+			jest.spyOn(context.consensus, 'getFinalizedHeight');
+
+			dposModule = testing.getModuleInstance<DPoSModule, DPOSAccountProps>(DPoSModule, {
+				genesisConfig,
+			});
+
 			dposModule.init({
+				logger: loggerMock,
 				channel: channelMock,
-				dataAccess: dataAccessMock as any,
-				logger: loggerMock as any,
+				dataAccess: new DataAccessMock<DPOSAccountProps>(),
 			});
 		});
 
@@ -239,7 +256,13 @@ describe('DPoSModule', () => {
 			beforeEach(async () => {
 				blockRound = bootstrapRound + 1;
 
-				context.block = createValidDefaultBlock({ header: { height: blockRound * 103 } });
+				context.block = testing.createBlock({
+					header: { height: blockRound * 103 },
+					passphrase: getRandomBytes(20).toString('hex'),
+					networkIdentifier: getRandomBytes(20),
+					previousBlockID: getRandomBytes(20),
+					timestamp: 0,
+				});
 
 				await dposModule.afterBlockApply(context);
 			});
@@ -264,8 +287,12 @@ describe('DPoSModule', () => {
 
 		describe('when its not the last block of round', () => {
 			beforeEach(async () => {
-				context.block = createValidDefaultBlock({
+				context.block = testing.createBlock({
 					header: { height: (bootstrapRound + 1) * 103 + 3 },
+					passphrase: getRandomBytes(20).toString('hex'),
+					networkIdentifier: getRandomBytes(20),
+					previousBlockID: getRandomBytes(20),
+					timestamp: 0,
 				});
 
 				await dposModule.afterBlockApply(context);
@@ -289,24 +316,19 @@ describe('DPoSModule', () => {
 		let unlockObj;
 
 		beforeEach(() => {
-			dposModule = new DPoSModule(genesisConfig);
+			dposModule = testing.getModuleInstance(DPoSModule, { genesisConfig });
+			account = testing.fixtures.createDefaultAccount([DPoSModule]);
+			delegate = testing.fixtures.createDefaultAccount([DPoSModule], {
+				dpos: { delegate: { username: 'delegate_1' } },
+			});
+
 			dposModule.init({
 				channel: channelMock,
-				dataAccess: dataAccessMock as any,
+				dataAccess: new DataAccessMock<DPOSAccountProps>({ accounts: [account, delegate] }),
 				logger: loggerMock as any,
 			});
 
 			unvoteHeight = 50059;
-			account = createFakeDefaultAccount({});
-			delegate = createFakeDefaultAccount({});
-
-			when(dataAccessMock.getAccountByAddress)
-				.calledWith(account.address)
-				.mockResolvedValue(account as never);
-
-			when(dataAccessMock.getAccountByAddress)
-				.calledWith(delegate.address)
-				.mockResolvedValue(delegate as never);
 		});
 
 		describe('getUnlockings', () => {

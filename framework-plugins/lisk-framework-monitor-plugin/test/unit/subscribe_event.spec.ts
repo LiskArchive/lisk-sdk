@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { testing } from 'lisk-framework';
 import { MonitorPlugin } from '../../src';
 import * as config from '../../src/defaults/default_config';
 
@@ -19,11 +20,13 @@ const validPluginOptions = config.defaultConfig.default;
 describe('subscribe to event', () => {
 	let monitorPlugin: MonitorPlugin;
 	let subscribeMock: jest.Mock;
+	const {
+		mocks: { channelMock },
+	} = testing;
+
 	beforeEach(() => {
 		subscribeMock = jest.fn();
-		const channelMock = {
-			subscribe: subscribeMock,
-		};
+		channelMock.subscribe = subscribeMock;
 		monitorPlugin = new MonitorPlugin(validPluginOptions as never);
 		(monitorPlugin as any)._channel = channelMock;
 	});

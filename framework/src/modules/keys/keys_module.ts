@@ -138,7 +138,7 @@ export class KeysModule extends BaseModule {
 		);
 	}
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async afterGenesisBlockApply({
 		genesisBlock,
 	}: AfterGenesisBlockApplyContext<AccountKeys>): Promise<void> {

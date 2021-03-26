@@ -12,38 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Application } from 'lisk-framework';
-
+import { testing } from 'lisk-framework';
 import {
-	closeApplication,
-	createApplication,
+	createApplicationEnv,
+	closeApplicationEnv,
 	getForgerInfoByPublicKey,
 	getForgerPlugin,
-	startApplication,
-	waitNBlocks,
 	waitTill,
 } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction } from '../../utils/transactions';
 
 describe('Forger Info Sync', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		app = await createApplication('sync');
+		appEnv = createApplicationEnv('sync');
+		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = app['_node'].networkIdentifier;
+		networkIdentifier = appEnv.networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	it('should sync information from scratch on startup', async () => {
 		// Arrange
-		let forgerPluginInstance = getForgerPlugin(app);
+		let forgerPluginInstance = getForgerPlugin(appEnv.application);
 		const account = getRandomAccount();
 		const transaction = createTransferTransaction({
 			amount: '2',
@@ -53,13 +51,16 @@ describe('Forger Info Sync', () => {
 			networkIdentifier,
 		});
 		accountNonce += 1;
-		await app['_channel'].invoke('app:postTransaction', {
+		await appEnv.ipcClient.invoke('app:postTransaction', {
 			transaction: transaction.getBytes().toString('hex'),
 		});
-		await waitNBlocks(app, 1);
+		await appEnv.waitNBlocks(1);
 		await waitTill(2000);
-		const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
-		const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
+		const { generatorPublicKey } = appEnv.lastBlock.header;
+		const forgerInfo = await getForgerInfoByPublicKey(
+			forgerPluginInstance,
+			generatorPublicKey.toString('hex'),
+		);
 		// Make sure forger info is not changed
 		expect(forgerInfo).toMatchSnapshot();
 
@@ -68,17 +69,17 @@ describe('Forger Info Sync', () => {
 		await forgerPluginInstance['_forgerPluginDB'].clear();
 
 		// Close application
-		await closeApplication(app, { clearDB: false });
+		await closeApplicationEnv(appEnv, { clearDB: false });
 
 		// Start the application again
-		await startApplication(app);
-		forgerPluginInstance = getForgerPlugin(app);
+		await appEnv.startApplication();
+		forgerPluginInstance = getForgerPlugin(appEnv.application);
 
 		await waitTill(2000);
 		// Get forger info
 		const forgerInfoAfterRestart = await getForgerInfoByPublicKey(
 			forgerPluginInstance,
-			generatorPublicKey,
+			generatorPublicKey.toString('hex'),
 		);
 
 		// Assert

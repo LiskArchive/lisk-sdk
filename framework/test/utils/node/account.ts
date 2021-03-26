@@ -16,7 +16,6 @@
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { getKeys, getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createAccount = () => {
 	const passphrase = Mnemonic.generateMnemonic();
 	const { privateKey, publicKey } = getKeys(passphrase);
@@ -30,7 +29,6 @@ export const createAccount = () => {
 	};
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createAccounts = (numberOfAccounts = 1) => {
 	const accounts = new Array(numberOfAccounts).fill(0).map(createAccount);
 	return accounts;

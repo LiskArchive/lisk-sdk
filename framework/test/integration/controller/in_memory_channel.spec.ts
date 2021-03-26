@@ -77,7 +77,7 @@ describe('InMemoryChannel', () => {
 				const betaEventData = { data: '#DATA' };
 				const eventName = beta.events[0];
 
-				const donePromise = new Promise(resolve => {
+				const donePromise = new Promise<void>(resolve => {
 					// Act
 					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
@@ -95,7 +95,7 @@ describe('InMemoryChannel', () => {
 				// Arrange
 				const betaEventData = { data: '#DATA' };
 				const eventName = beta.events[0];
-				const donePromise = new Promise(resolve => {
+				const donePromise = new Promise<void>(resolve => {
 					// Act
 					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
@@ -116,7 +116,7 @@ describe('InMemoryChannel', () => {
 				const dummyData = { data: '#DATA' };
 				const inMemoryChannelOmega = new InMemoryChannel(omegaAlias, [omegaEventName], {});
 
-				const donePromise = new Promise(resolve => {
+				const donePromise = new Promise<void>(resolve => {
 					// Act
 					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
 						// Assert
@@ -139,7 +139,7 @@ describe('InMemoryChannel', () => {
 				const alphaEventData = { data: '#DATA' };
 				const eventName = alpha.events[0];
 
-				const donePromise = new Promise(done => {
+				const donePromise = new Promise<void>(done => {
 					// Act
 					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert

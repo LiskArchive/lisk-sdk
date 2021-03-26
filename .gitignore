@@ -46,6 +46,7 @@ build/Release
 # Dependency directories
 node_modules
 jspm_packages
+.husky
 
 # Optional npm cache directory
 .npm

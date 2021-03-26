@@ -61,13 +61,13 @@ describe('transaction', () => {
 		};
 
 		when(channelMock.invoke)
-			.calledWith('app:getAccount')
+			.calledWith('app:getAccount', expect.anything())
 			.mockResolvedValue(accountHex as never)
-			.calledWith('app:getTransactionByID')
+			.calledWith('app:getTransactionByID', expect.anything())
 			.mockResolvedValue(txHex as never)
 			.calledWith('app:getTransactionsFromPool')
 			.mockResolvedValue([txHex] as never)
-			.calledWith('app:postTransaction')
+			.calledWith('app:postTransaction', expect.anything())
 			.mockResolvedValue(txHex as never);
 
 		transaction = new Transaction(channelMock, schema, nodeInfo);
@@ -226,7 +226,7 @@ describe('transaction', () => {
 					};
 					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
 					when(channelMock.invoke)
-						.calledWith('app:getAccount')
+						.calledWith('app:getAccount', expect.anything())
 						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
 					const returnedTx = await transaction.create(validTransaction, passphrase1);
 					expect(returnedTx.signatures).toHaveLength(2);
@@ -272,7 +272,7 @@ describe('transaction', () => {
 					};
 					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
 					when(channelMock.invoke)
-						.calledWith('app:getAccount')
+						.calledWith('app:getAccount', expect.anything())
 						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
 					const returnedTx = await transaction.sign(validTransaction, passphrases);
 					expect(returnedTx.signatures).toHaveLength(2);

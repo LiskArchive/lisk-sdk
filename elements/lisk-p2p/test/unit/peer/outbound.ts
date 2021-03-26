@@ -14,21 +14,24 @@
  */
 import * as socketClusterClient from 'socketcluster-client';
 import { SCClientSocket } from 'socketcluster-client';
-import { OutboundPeer, PeerConfig } from '../../../src/peer';
-import {
-	REMOTE_SC_EVENT_MESSAGE,
-	REMOTE_SC_EVENT_RPC_REQUEST,
-	REMOTE_EVENT_PING,
-} from '../../../src/events';
+import { OutboundPeer } from '../../../src/peer';
+
+import { REMOTE_SC_EVENT_MESSAGE, REMOTE_SC_EVENT_RPC_REQUEST } from '../../../src/events';
 import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_CONNECT_TIMEOUT,
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 	DEFAULT_HTTP_PATH,
+	DEFAULT_MESSAGE_ENCODING_FORMAT,
 } from '../../../src/constants';
-import { P2PPeerInfo } from '../../../src/types';
-import { nodeInfoSchema, peerInfoSchema } from '../../../src/schema';
+import {
+	P2PPeerInfo,
+	P2PRequestPacketBufferData,
+	P2PMessagePacketBufferData,
+	PeerConfig,
+} from '../../../src/types';
+import { defaultRPCSchemas } from '../../../src/schema';
 
 describe('peer/outbound', () => {
 	let defaultPeerInfo: P2PPeerInfo;
@@ -59,8 +62,7 @@ describe('peer/outbound', () => {
 			peerStatusMessageRate: 4,
 			wsMaxPayload: 1000,
 			rpcSchemas: {
-				nodeInfo: nodeInfoSchema,
-				peerInfo: peerInfoSchema,
+				...defaultRPCSchemas,
 			},
 			serverNodeInfo: {
 				advertiseAddress: true,
@@ -126,7 +128,7 @@ describe('peer/outbound', () => {
 
 		it('should bind handlers to an outbound socket', () => {
 			defaultOutboundPeer.socket = outboundSocket;
-			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledTimes(8);
+			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledTimes(7);
 			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				'error',
 				expect.any(Function),
@@ -148,12 +150,8 @@ describe('peer/outbound', () => {
 				(defaultOutboundPeer as any)._handleWSMessage,
 			);
 			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
-				REMOTE_EVENT_PING,
-				expect.any(Function),
-			);
-			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_RPC_REQUEST,
-				(defaultOutboundPeer as any)._handleRawRPC,
+				expect.any(Function),
 			);
 			expect((defaultOutboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				REMOTE_SC_EVENT_MESSAGE,
@@ -266,58 +264,63 @@ describe('peer/outbound', () => {
 	});
 
 	describe('#send', () => {
+		// Arrange
+		let p2pPacket: P2PMessagePacketBufferData;
+		const data = Buffer.from('myData', DEFAULT_MESSAGE_ENCODING_FORMAT);
+		beforeEach(() => {
+			p2pPacket = {
+				data,
+				event: 'myEvent',
+			};
+		});
+
 		it('should not create outbound socket if one already exists', () => {
 			(defaultOutboundPeer as any)._socket = outboundSocket;
-			const packet = {
-				data: 'myData',
-				event: 'myEent',
-			};
 			jest.spyOn(defaultOutboundPeer as any, '_createOutboundSocket');
 
-			defaultOutboundPeer.send(packet);
+			defaultOutboundPeer.send(p2pPacket);
 			expect((defaultOutboundPeer as any)._createOutboundSocket).not.toHaveBeenCalled();
 		});
 
 		it('should create outbound socket if it does not exist any', () => {
-			const packet = {
-				data: 'myData',
-				event: 'myEent',
-			};
-
 			jest
 				.spyOn(defaultOutboundPeer as any, '_createOutboundSocket')
 				.mockReturnValue(outboundSocket);
 
 			expect((defaultOutboundPeer as any)._socket).toBeUndefined();
-			defaultOutboundPeer.send(packet);
+			defaultOutboundPeer.send(p2pPacket);
 			expect((defaultOutboundPeer as any)._createOutboundSocket).toHaveBeenCalled();
 			expect((defaultOutboundPeer as any)._socket).toEqual(outboundSocket);
 		});
 
 		it('should emit event', () => {
-			const packet = {
-				data: 'myData',
-				event: 'myEvent',
-			};
 			(defaultOutboundPeer as any)._socket = outboundSocket;
-			defaultOutboundPeer.send(packet);
+			defaultOutboundPeer.send(p2pPacket);
 
 			expect(outboundSocket.emit).toHaveBeenCalledTimes(1);
-			expect(outboundSocket.emit).toHaveBeenCalledWith(REMOTE_SC_EVENT_MESSAGE, packet);
+			expect(outboundSocket.emit).toHaveBeenCalledWith(REMOTE_SC_EVENT_MESSAGE, {
+				data: data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT),
+				event: 'myEvent',
+			});
 		});
 	});
 
 	describe('#request', () => {
-		it('should not create an outbound socket if one exists', () => {
-			const packet = {
-				data: 'myData',
+		// Arrange
+		let p2pPacket: P2PRequestPacketBufferData;
+		beforeEach(() => {
+			p2pPacket = {
+				data: Buffer.from('myData'),
 				procedure: 'myProcedure',
 			};
+		});
+
+		it('should not create an outbound socket if one exists', () => {
 			jest.spyOn(defaultOutboundPeer as any, '_createOutboundSocket');
 
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			defaultOutboundPeer.request(packet);
+			defaultOutboundPeer.request(p2pPacket);
 			expect((defaultOutboundPeer as any)._createOutboundSocket).not.toHaveBeenCalled();
 		});
 
@@ -325,18 +328,13 @@ describe('peer/outbound', () => {
 			// Arrange
 			(defaultOutboundPeer as any)._socket = undefined;
 
-			const packet = {
-				data: 'myData',
-				procedure: 'myProcedure',
-			};
-
 			jest
 				.spyOn(defaultOutboundPeer as any, '_createOutboundSocket')
 				.mockReturnValue(outboundSocket);
 
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			defaultOutboundPeer.request(packet);
+			defaultOutboundPeer.request(p2pPacket);
 
 			// Assert
 			expect((defaultOutboundPeer as any)._createOutboundSocket).toHaveBeenCalled();
@@ -344,14 +342,10 @@ describe('peer/outbound', () => {
 		});
 
 		it('should emit event', () => {
-			const packet = {
-				data: 'myData',
-				procedure: 'myProcedure',
-			};
 			(defaultOutboundPeer as any)._socket = outboundSocket;
 
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			defaultOutboundPeer.request(packet);
+			defaultOutboundPeer.request(p2pPacket);
 			expect(outboundSocket.emit).toHaveBeenCalled();
 		});
 	});

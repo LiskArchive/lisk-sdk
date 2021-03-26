@@ -13,12 +13,16 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { testing as testingUtils } from '@liskhq/lisk-chain';
 import { when } from 'jest-when';
-
-import { SequenceModule, InvalidNonceError } from '../../../../src/modules/sequence';
 import { GenesisConfig, Transaction } from '../../../../src';
 import { NonceOutOfBoundsError } from '../../../../src/errors';
+import { InvalidNonceError, SequenceModule } from '../../../../src/modules/sequence';
+import { TransferAsset } from '../../../../src/modules/token';
+import * as testing from '../../../../src/testing';
+
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
 
 describe('sequence module', () => {
 	let sequenceModule: SequenceModule;
@@ -30,17 +34,19 @@ describe('sequence module', () => {
 		},
 	};
 
-	const sampleTx = {
+	const sampleTx = testing.createTransaction({
 		nonce: BigInt(2),
-		id: cryptography.getRandomBytes(32),
-		assetID: 0,
-		baseFee: BigInt(1),
-		moduleID: 3,
+		assetClass: TransferAsset,
+		moduleID: 2,
 		fee: BigInt(1),
-		senderPublicKey: Buffer.from(''),
-		signatures: [],
-		asset: Buffer.from(''),
-	};
+		passphrase: cryptography.getRandomBytes(20).toString('hex'),
+		networkIdentifier: cryptography.getRandomBytes(20),
+		asset: {
+			amount: BigInt(10),
+			recipientAddress: cryptography.getRandomBytes(20),
+			data: '',
+		},
+	});
 
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
@@ -62,35 +68,31 @@ describe('sequence module', () => {
 		},
 	};
 
-	const stateStoreMock = new testingUtils.StateStoreMock({ accounts: [senderAccount] });
-
-	stateStoreMock.account.get = jest.fn();
-	stateStoreMock.account.set = jest.fn();
-
-	const reducerMock = { invoke: jest.fn() };
 	const getAddressFromPublicKeyMock = jest.fn().mockReturnValue(senderAddress);
 
 	beforeEach(() => {
-		sequenceModule = new SequenceModule(genesisConfig);
+		sequenceModule = testing.getModuleInstance(SequenceModule, { genesisConfig });
 		(cryptography as any).getAddressFromPublicKey = getAddressFromPublicKeyMock;
 	});
 
 	describe('incompatible nonce', () => {
 		it('should throw NonceOutOfBoundsError error for tx nonce lower than account nonce', async () => {
 			// Arrange
-			const transaction = ({ ...sampleTx, nonce: BigInt(0) } as unknown) as Transaction;
-			when(stateStoreMock.account.get as any)
-				.calledWith()
+			const transaction = ({
+				...sampleTx,
+				nonce: BigInt(0),
+				id: sampleTx.id,
+			} as unknown) as Transaction;
+			const context = testing.createTransactionApplyContext({ transaction });
+			jest.spyOn(context.stateStore.account, 'get');
+			when(context.stateStore.account.get as any)
+				.calledWith(senderAddress)
 				.mockResolvedValue(senderAccount as never);
 
 			let receivedError;
 			try {
 				// Act
-				await sequenceModule.beforeTransactionApply({
-					stateStore: stateStoreMock as any,
-					reducerHandler: reducerMock,
-					transaction,
-				});
+				await sequenceModule.beforeTransactionApply(context);
 			} catch (error) {
 				receivedError = error;
 			}
@@ -106,18 +108,21 @@ describe('sequence module', () => {
 
 		it('should throw NonceOutOfBoundsError error for tx nonce not equal to account nonce', async () => {
 			// Arrange
-			const transaction = ({ ...sampleTx, nonce: BigInt(4) } as unknown) as Transaction;
-			when(stateStoreMock.account.get as any)
-				.calledWith()
+			const transaction = ({
+				...sampleTx,
+				nonce: BigInt(4),
+				id: sampleTx.id,
+			} as unknown) as Transaction;
+			const context = testing.createTransactionApplyContext({ transaction });
+			jest.spyOn(context.stateStore.account, 'get');
+			when(context.stateStore.account.get as any)
+				.calledWith(senderAddress)
 				.mockResolvedValue(senderAccount as never);
+
 			let receivedError;
 			try {
 				// Act
-				await sequenceModule.afterTransactionApply({
-					stateStore: stateStoreMock as any,
-					reducerHandler: reducerMock,
-					transaction,
-				});
+				await sequenceModule.afterTransactionApply(context);
 			} catch (error) {
 				receivedError = error;
 			}
@@ -135,22 +140,22 @@ describe('sequence module', () => {
 	describe('valid nonce', () => {
 		it('should increment account nonce', async () => {
 			// Arrange
+			const transaction = (sampleTx as unknown) as Transaction;
+			const context = testing.createTransactionApplyContext({ transaction });
+			jest.spyOn(context.stateStore.account, 'get');
+			jest.spyOn(context.stateStore.account, 'set');
 			const updatedAccount = { ...senderAccount, sequence: { ...senderAccount.sequence } };
-			when(stateStoreMock.account.get as any)
-				.calledWith()
+			when(context.stateStore.account.get as any)
+				.calledWith(senderAddress)
 				.mockResolvedValue(updatedAccount as never);
 
 			// Act
-			await sequenceModule.afterTransactionApply({
-				stateStore: stateStoreMock as any,
-				reducerHandler: reducerMock,
-				transaction: (sampleTx as unknown) as Transaction,
-			});
+			await sequenceModule.afterTransactionApply(context);
 
 			// Assert
 			expect(updatedAccount.sequence.nonce).toEqual(senderAccount.sequence.nonce + BigInt(1));
-			expect(stateStoreMock.account.set).toHaveBeenCalledTimes(1);
-			expect(stateStoreMock.account.set).toHaveBeenCalledWith(senderAddress, updatedAccount);
+			expect(context.stateStore.account.set).toHaveBeenCalledTimes(1);
+			expect(context.stateStore.account.set).toHaveBeenCalledWith(senderAddress, updatedAccount);
 		});
 	});
 });

@@ -13,18 +13,20 @@
  */
 
 import * as assert from 'assert';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { BFT } from '@liskhq/lisk-bft';
+import { codec } from '@liskhq/lisk-codec';
 import { Chain, Block } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { BFT } from '@liskhq/lisk-bft';
 import { jobHandlers } from '@liskhq/lisk-utils';
-import * as definitions from './schema';
-import * as utils from './utils';
-import { Logger } from '../../logger';
-import { Processor } from '../processor';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+
 import { BaseSynchronizer } from './base_synchronizer';
 import { InMemoryChannel } from '../../controller/channels';
+import { Logger } from '../../logger';
 import { Network } from '../network';
+import { Processor } from '../processor';
+import { transactionsSchema } from '../transport/schemas';
+import * as utils from './utils';
 
 interface SynchronizerInput {
 	readonly logger: Logger;
@@ -187,19 +189,20 @@ export class Synchronizer {
 	private async _getUnconfirmedTransactionsFromNetwork(): Promise<void> {
 		this.logger.info('Loading transactions from the network');
 
-		const { data: result } = (await this._networkModule.request({
+		const { data } = ((await this._networkModule.request({
 			procedure: 'getTransactions',
-		})) as {
-			data: { transactions: string[] };
+		})) as unknown) as {
+			data: Buffer;
 		};
+		const encodedData = codec.decode<{ transactions: Buffer[] }>(transactionsSchema, data);
 
-		const validatorErrors = validator.validate(definitions.WSTransactionsResponse, result);
+		const validatorErrors = validator.validate(transactionsSchema, encodedData);
 		if (validatorErrors.length) {
 			throw new LiskValidationError(validatorErrors);
 		}
 
-		const transactions = result.transactions.map(txStr =>
-			this.chainModule.dataAccess.decodeTransaction(Buffer.from(txStr, 'hex')),
+		const transactions = encodedData.transactions.map(transaction =>
+			this.chainModule.dataAccess.decodeTransaction(transaction),
 		);
 
 		for (const transaction of transactions) {

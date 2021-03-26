@@ -13,20 +13,20 @@
  */
 
 import { BFT } from '@liskhq/lisk-bft';
+import { codec } from '@liskhq/lisk-codec';
 import { KVStore } from '@liskhq/lisk-db';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { when } from 'jest-when';
 import { InMemoryChannel } from '../../../src/controller/channels';
-import { BaseModule, TokenModule } from '../../../src/modules';
+import { BaseModule, DPoSModule, TokenModule } from '../../../src/modules';
 import { Forger, HighFeeForgingStrategy } from '../../../src/node/forger';
 import { Network } from '../../../src/node/network';
 import { Node } from '../../../src/node/node';
 import { Processor } from '../../../src/node/processor';
 import { Synchronizer } from '../../../src/node/synchronizer/synchronizer';
-import { genesisBlock } from '../../fixtures';
-import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import { cacheConfig, nodeOptions } from '../../fixtures/node';
 import { createMockBus } from '../../utils/channel';
+import { createGenesisBlock } from '../../../src/testing/create_genesis_block';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -34,11 +34,16 @@ describe('Node', () => {
 	let node: Node;
 	let subscribedEvents: any;
 	const stubs: any = {};
-	const lastBlock = genesisBlock();
 	let blockchainDB: KVStore;
 	let forgerDB: KVStore;
 	let nodeDB: KVStore;
 	let tokenModule: BaseModule;
+	let dposModule: BaseModule;
+
+	const { genesisBlock, genesisBlockJSON } = createGenesisBlock({
+		modules: [TokenModule, DPoSModule],
+	});
+	const lastBlock = genesisBlock;
 
 	beforeEach(() => {
 		// Arrange
@@ -51,6 +56,7 @@ describe('Node', () => {
 		forgerDB = new KVStore('forger.db');
 		nodeDB = new KVStore('node.db');
 		tokenModule = new TokenModule(nodeOptions.genesisConfig);
+		dposModule = new DPoSModule(nodeOptions.genesisConfig);
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -85,7 +91,12 @@ describe('Node', () => {
 			options: nodeOptions,
 			genesisBlockJSON,
 		});
+
+		codec.clearCache();
 		node.registerModule(tokenModule);
+
+		// Because the genesis block contains a delegate, so we must register dpos module to process it
+		node.registerModule(dposModule);
 	});
 
 	describe('constructor', () => {
@@ -174,12 +185,14 @@ describe('Node', () => {
 
 		describe('on-chain modules', () => {
 			it('should register custom module with processor', () => {
-				expect(node['_processor'].register).toHaveBeenCalledTimes(1);
+				expect(node['_processor'].register).toHaveBeenCalledTimes(2);
 				expect(node['_processor'].register).toHaveBeenCalledWith(tokenModule);
+				expect(node['_processor'].register).toHaveBeenCalledWith(dposModule);
 			});
 
 			it('should register in-memory channel to bus', () => {
-				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledTimes(1);
+				// one time for each module
+				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledTimes(2);
 				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledWith(node['_bus']);
 			});
 
@@ -220,20 +233,6 @@ describe('Node', () => {
 		it('should start forging', () => {
 			return expect(node['_startForging']).toHaveBeenCalled();
 		});
-
-		it('should subscribe to "app:network:ready" event', () => {
-			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
-				'app:network:ready',
-				expect.any(Function),
-			);
-		});
-
-		it('should subscribe to "app:network:event" event', () => {
-			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
-				'app:network:event',
-				expect.any(Function),
-			);
-		});
 	});
 
 	describe('getSchema', () => {
@@ -250,8 +249,9 @@ describe('Node', () => {
 	describe('getRegisteredModules', () => {
 		it('should return currently registered modules information', () => {
 			const registeredModules = node.getRegisteredModules();
-			expect(registeredModules).toHaveLength(1);
+			expect(registeredModules).toHaveLength(2);
 			expect(registeredModules[0].name).toEqual('token');
+			expect(registeredModules[1].name).toEqual('dpos');
 		});
 	});
 

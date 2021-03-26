@@ -118,7 +118,11 @@ export class AccountStore {
 		return ([...this._data.values()] as unknown) as ReadonlyArray<Account<T>>;
 	}
 
-	public set<T = AccountDefaultProps>(address: Buffer, updatedElement: Account<T>): void {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async set<T = AccountDefaultProps>(
+		address: Buffer,
+		updatedElement: Account<T>,
+	): Promise<void> {
 		this._data.set(address, (updatedElement as unknown) as Account);
 		this._updatedKeys.add(address);
 		// Updating deleted key will make it not deleted

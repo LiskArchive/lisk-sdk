@@ -11,21 +11,27 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as os from 'os';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { Application, PartialApplicationConfig } from 'lisk-framework';
-import * as genesisBlockJSON from '../fixtures/genesis_block.json';
-import * as configJSON from '../fixtures/config.json';
+import { join } from 'path';
+import { homedir } from 'os';
+import { existsSync, rmdirSync } from 'fs-extra';
+import {
+	KeysModule,
+	PartialApplicationConfig,
+	SequenceModule,
+	testing,
+	TokenModule,
+	DPoSModule,
+} from 'lisk-framework';
+
 import { HTTPAPIPlugin } from '../../../src';
 
-export const createApplication = async (
+export const createApplicationEnv = (
 	label: string,
 	consoleLogLevel?: string,
-): Promise<Application> => {
-	const rootPath = path.join(os.homedir(), '.lisk/http-plugin');
+): testing.ApplicationEnv => {
+	const rootPath = '~/.lisk/http-plugin';
 	const config = {
-		...configJSON,
+		...testing.fixtures.defaultConfig,
 		rootPath,
 		label,
 		logger: {
@@ -33,56 +39,59 @@ export const createApplication = async (
 			fileLogLevel: 'fatal',
 			logFileName: 'lisk.log',
 		},
-		network: {
-			...configJSON.network,
-			maxInboundConnections: 0,
-		},
 	} as PartialApplicationConfig;
 
-	const app = Application.defaultApplication(genesisBlockJSON, config);
-	app.registerPlugin(HTTPAPIPlugin);
-
-	// Remove pre-existing data
-	fs.removeSync(path.join(rootPath, label));
-
-	await Promise.race([
-		app.run(),
-		new Promise((_resolve, reject) => {
-			const id = setTimeout(() => {
-				clearTimeout(id);
-				reject(new Error('App can not started in time.'));
-			}, 10000);
-		}),
-	]);
-	return app;
-};
-
-export const closeApplication = async (app: Application, removeData = true): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-
-	if (removeData) {
-		await app['_forgerDB'].clear();
-		await app['_blockchainDB'].clear();
-		await app['_nodeDB'].clear();
+	const dataPath = join(rootPath.replace('~', homedir()), label);
+	if (existsSync(dataPath)) {
+		rmdirSync(dataPath, { recursive: true });
 	}
 
-	await app.shutdown();
+	const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+	const defaultFaucetAccount = {
+		address: testing.fixtures.defaultFaucetAccount.address,
+		token: { balance: BigInt(testing.fixtures.defaultFaucetAccount.balance) },
+		dpos: {
+			delegate: {
+				username: 'faucet_delegate',
+			},
+		},
+	};
+	const accounts = testing.fixtures.defaultAccounts().map((a, i) =>
+		testing.fixtures.createDefaultAccount(modules, {
+			address: a.address,
+			dpos: {
+				delegate: {
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					username: `delegate_${i}`,
+				},
+			},
+		}),
+	);
+	const { genesisBlockJSON } = testing.createGenesisBlock({
+		modules,
+		accounts: [defaultFaucetAccount, ...accounts],
+	});
+
+	const appEnv = new testing.ApplicationEnv({
+		modules,
+		config,
+		genesisBlockJSON,
+		plugins: [HTTPAPIPlugin],
+	});
+
+	return appEnv;
+};
+
+export const closeApplicationEnv = async (
+	appEnv: testing.ApplicationEnv,
+	options: { clearDB: boolean } = { clearDB: true },
+): Promise<void> => {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+	await appEnv.stopApplication(options);
 };
 
 export const getURL = (url: string, port = 4000): string => `http://localhost:${port}${url}`;
-
-export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-	const height = app['_node']['_chain'].lastBlock.header.height + n;
-	return new Promise(resolve => {
-		app['_channel'].subscribe('app:block:new', () => {
-			if (app['_node']['_chain'].lastBlock.header.height >= height) {
-				resolve();
-			}
-		});
-	});
-};
 
 export const callNetwork = async (
 	promise: Promise<any>,

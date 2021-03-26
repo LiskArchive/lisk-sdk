@@ -14,27 +14,27 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { isHexString } from '@liskhq/lisk-validator';
+
 import { P2PPeerInfo, P2PNodeInfo, ProtocolPeerInfo } from '../types';
 import { InvalidPeerInfoError, InvalidNodeInfoError } from '../errors';
 
-export const decodePeerInfo = (peerInfoSchema: Schema, data: unknown): P2PPeerInfo => {
+export const decodePeerInfo = (peerInfoSchema: Schema, data?: unknown): P2PPeerInfo => {
 	try {
-		if (typeof data !== 'string' || !isHexString(data)) {
+		if (!Buffer.isBuffer(data)) {
 			throw new Error('Invalid encoded data');
 		}
-		return codec.decode<P2PPeerInfo>(peerInfoSchema, Buffer.from(data, 'hex'));
+		return codec.decode<P2PPeerInfo>(peerInfoSchema, data);
 	} catch (error) {
 		throw new InvalidPeerInfoError((error as Error).message);
 	}
 };
 
-export const decodeNodeInfo = (nodeInfoSchema: Schema, data: unknown): P2PNodeInfo => {
+export const decodeNodeInfo = (nodeInfoSchema: Schema, data?: unknown): P2PNodeInfo => {
 	try {
-		if (typeof data !== 'string' || !isHexString(data)) {
+		if (!Buffer.isBuffer(data)) {
 			throw new Error('Invalid encoded data');
 		}
-		return codec.decode<P2PNodeInfo>(nodeInfoSchema, Buffer.from(data, 'hex'));
+		return codec.decode<P2PNodeInfo>(nodeInfoSchema, data);
 	} catch (error) {
 		throw new InvalidNodeInfoError((error as Error).message);
 	}

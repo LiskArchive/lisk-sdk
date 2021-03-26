@@ -50,7 +50,7 @@ import {
 
 import { errors } from '../../src';
 import { PeerBookConfig, PeerBook } from '../../src/peer_book/peer_book';
-import { peerInfoSchema, nodeInfoSchema } from '../../src/schema';
+import { defaultRPCSchemas } from '../../src/schema';
 
 const { RequestFailError, SendFailError } = errors;
 
@@ -94,8 +94,7 @@ describe('peerPool', () => {
 		secret: DEFAULT_RANDOM_SECRET,
 		peerBook: new PeerBook(peerBookConfig),
 		rpcSchemas: {
-			nodeInfo: nodeInfoSchema,
-			peerInfo: peerInfoSchema,
+			...defaultRPCSchemas,
 		},
 	};
 	let peerPool: PeerPool;
@@ -143,8 +142,7 @@ describe('peerPool', () => {
 			emit: jest.fn(),
 			destroy: jest.fn(),
 			_rpcSchemas: {
-				nodeInfo: nodeInfoSchema,
-				peerInfo: peerInfoSchema,
+				...defaultRPCSchemas,
 			},
 		} as any;
 		peerPool.emit = jest.fn();
@@ -182,8 +180,7 @@ describe('peerPool', () => {
 				peerStatusMessageRate: 4,
 				secret: peerPoolConfig.secret,
 				rpcSchemas: {
-					peerInfo: peerInfoSchema,
-					nodeInfo: nodeInfoSchema,
+					...defaultRPCSchemas,
 				},
 			};
 

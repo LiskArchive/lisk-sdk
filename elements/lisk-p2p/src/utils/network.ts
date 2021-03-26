@@ -73,8 +73,7 @@ export enum PEER_TYPE {
 
 export const isPrivate = (address: string): boolean =>
 	getIPGroup(address, 0) === 10 ||
-	(getIPGroup(address, 0) === 172 &&
-		(getIPGroup(address, 1) >= 16 || getIPGroup(address, 1) <= 31));
+	(getIPGroup(address, 0) === 172 && getIPGroup(address, 1) >= 16 && getIPGroup(address, 1) <= 31);
 
 export const isLocal = (address: string): boolean =>
 	getIPGroup(address, 0) === 127 || address === '0.0.0.0';

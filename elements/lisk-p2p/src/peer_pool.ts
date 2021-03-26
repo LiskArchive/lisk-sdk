@@ -17,9 +17,10 @@
  * The purpose of the PeerPool is to provide a simple interface for selecting,
  * interacting with and handling aggregated events from a collection of peers.
  */
-import { codec } from '@liskhq/lisk-codec';
 import { EventEmitter } from 'events';
 import { SCServerSocket } from 'socketcluster-server';
+import { codec } from '@liskhq/lisk-codec';
+
 import {
 	ConnectionKind,
 	DEFAULT_LOCALHOST_IP,
@@ -51,9 +52,9 @@ import {
 	REMOTE_EVENT_POST_NODE_INFO,
 } from './events';
 import { P2PRequest } from './p2p_request';
-import { ConnectionState, InboundPeer, OutboundPeer, Peer, PeerConfig } from './peer';
+import { ConnectionState, InboundPeer, OutboundPeer, Peer } from './peer';
 import { PeerBook } from './peer_book/peer_book';
-import { validateNodeInfo } from './utils';
+import { validatePayloadSize } from './utils';
 import {
 	P2PClosePacket,
 	P2PMessagePacket,
@@ -64,15 +65,16 @@ import {
 	P2PPeerSelectionForRequestFunction,
 	P2PPeerSelectionForSendFunction,
 	P2PPenalty,
-	P2PRequestPacket,
 	P2PResponsePacket,
 	RPCSchemas,
+	P2PRequestPacketBufferData,
+	P2PMessagePacketBufferData,
+	PeerConfig,
+	PeerPoolConfig,
 } from './types';
 import { encodeNodeInfo } from './utils/codec';
 // eslint-disable-next-line import/order
 import shuffle = require('lodash.shuffle');
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -113,34 +115,6 @@ export enum PROTECTION_CATEGORY {
 	LATENCY = 'latency',
 	RESPONSE_RATE = 'responseRate',
 	CONNECT_TIME = 'connectTime',
-}
-
-export interface PeerPoolConfig {
-	readonly hostPort: number;
-	readonly ackTimeout?: number;
-	readonly connectTimeout?: number;
-	readonly wsMaxPayload?: number;
-	readonly maxPeerInfoSize: number;
-	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
-	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
-	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
-	readonly sendPeerLimit: number;
-	readonly peerBanTime: number;
-	readonly maxOutboundConnections: number;
-	readonly maxInboundConnections: number;
-	readonly maxPeerDiscoveryResponseLength: number;
-	readonly outboundShuffleInterval: number;
-	readonly netgroupProtectionRatio: number;
-	readonly latencyProtectionRatio: number;
-	readonly productivityProtectionRatio: number;
-	readonly longevityProtectionRatio: number;
-	readonly wsMaxMessageRate: number;
-	readonly wsMaxMessageRatePenalty: number;
-	readonly rateCalculationInterval: number;
-	readonly peerStatusMessageRate: number;
-	readonly secret: number;
-	readonly peerBook: PeerBook;
-	readonly rpcSchemas: RPCSchemas;
 }
 
 export class PeerPool extends EventEmitter {
@@ -306,7 +280,7 @@ export class PeerPool extends EventEmitter {
 		return { ...this._peerConfig };
 	}
 
-	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacketBufferData): Promise<P2PResponsePacket> {
 		const outboundPeerInfos = this.getAllConnectedPeerInfos(OutboundPeer);
 
 		const peerInfoForRequest =
@@ -329,7 +303,7 @@ export class PeerPool extends EventEmitter {
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
-	public broadcast(message: P2PMessagePacket): void {
+	public broadcast(message: P2PMessagePacketBufferData): void {
 		[...this._peerMap.values()].forEach(peer => {
 			const selectedPeerId = peer.peerInfo.peerId;
 			try {
@@ -340,7 +314,7 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
-	public send(message: P2PMessagePacket): void {
+	public send(message: P2PMessagePacketBufferData): void {
 		const listOfPeerInfo: ReadonlyArray<P2PPeerInfo> = [...this._peerMap.values()].map(peer => ({
 			...peer.peerInfo,
 			internalState: {
@@ -373,7 +347,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public async requestFromPeer(
-		packet: P2PRequestPacket,
+		packet: P2PRequestPacketBufferData,
 		peerId: string,
 	): Promise<P2PResponsePacket> {
 		const peer = this._peerMap.get(peerId);
@@ -386,7 +360,7 @@ export class PeerPool extends EventEmitter {
 		return peer.request(packet);
 	}
 
-	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
+	public sendToPeer(message: P2PMessagePacketBufferData, peerId: string): void {
 		const peer = this._peerMap.get(peerId);
 		if (!peer) {
 			throw new SendFailError(`Send failed because a peer with id ${peerId} could not be found`);
@@ -597,11 +571,11 @@ export class PeerPool extends EventEmitter {
 	private _applyNodeInfoOnPeer(peer: Peer): void {
 		const encodedNodeInfo = encodeNodeInfo(this._rpcSchema.nodeInfo, this._nodeInfo as P2PNodeInfo);
 		// Validate nodeInfo before sending to peers
-		validateNodeInfo(encodedNodeInfo, this._peerPoolConfig.maxPeerInfoSize);
+		validatePayloadSize(encodedNodeInfo, this._peerPoolConfig.maxPeerInfoSize);
 		try {
 			peer.send({
 				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: encodedNodeInfo.toString('hex'),
+				data: encodedNodeInfo,
 			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);

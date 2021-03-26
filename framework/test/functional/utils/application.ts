@@ -14,7 +14,10 @@
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
+import { P2P } from '@liskhq/lisk-p2p';
+
 import { APP_EVENT_BLOCK_NEW } from '../../../src/constants';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as configJSON from '../../fixtures/config/devnet/config.json';
@@ -23,6 +26,7 @@ import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
 import { createTransferTransaction } from '../../utils/node/transaction';
 import { HelloPlugin } from './hello_plugin';
+import { transactionIdsSchema, transactionsSchema } from '../../../src/node/transport/schemas';
 
 export const createApplication = async (
 	label: string,
@@ -52,7 +56,7 @@ export const createApplication = async (
 
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
 	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
-	await new Promise(resolve => {
+	await new Promise<void>(resolve => {
 		app['_channel'].subscribe(APP_EVENT_BLOCK_NEW, () => {
 			if (app['_node']['_chain'].lastBlock.header.height === 2) {
 				resolve();
@@ -147,4 +151,23 @@ export const sendTransaction = async (app: Application): Promise<Transaction> =>
 		transaction: fundingTx.getBytes().toString('hex'),
 	});
 	return fundingTx;
+};
+
+export const getTransactionsFromNetwork = async (
+	app: Application,
+	p2p: P2P,
+	transactionIds: Buffer[],
+): Promise<{ transactions: Buffer[] }> => {
+	const transactionIdsBuffer = codec.encode(transactionIdsSchema, {
+		transactionIds,
+	});
+	const { data } = (await p2p.requestFromPeer(
+		{
+			procedure: 'getTransactions',
+			data: transactionIdsBuffer,
+		},
+		getPeerID(app),
+	)) as { data: Buffer };
+
+	return codec.decode(transactionsSchema, data);
 };

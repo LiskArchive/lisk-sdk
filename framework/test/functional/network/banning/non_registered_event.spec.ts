@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { codec } from '@liskhq/lisk-codec';
 import { P2P } from '@liskhq/lisk-p2p';
+
 import { Application } from '../../../../src';
 import {
 	createApplication,
@@ -20,6 +22,7 @@ import {
 	waitNBlocks,
 } from '../../utils/application';
 import { createProbe } from '../../utils/probe';
+import { postBlockEventSchema } from '../../../../src/node/transport/schemas';
 
 // This test will ban the probe peer. Therefore, only one test will work per application instance
 describe('Event endpoint that is not registered', () => {
@@ -41,10 +44,16 @@ describe('Event endpoint that is not registered', () => {
 
 	describe('Send event which is not registered', () => {
 		it('should ban the peer', async () => {
+			const invalidBytesString = Buffer.from(
+				'17f7ca093a17c174afa4a9ac48e27c6ea08b345d325d54c5433df2a73850c04b3a2b503d04ed37b30deaa3d429dc7e6b159a',
+				'hex',
+			);
+			const data = codec.encode(postBlockEventSchema, { block: invalidBytesString });
+
 			p2p.sendToPeer(
 				{
 					event: 'non-existing-endpoint',
-					data: { invalid: 'data' },
+					data,
 				},
 				getPeerID(app),
 			);

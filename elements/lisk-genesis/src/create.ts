@@ -21,6 +21,7 @@ import {
 	GenesisBlock,
 	blockHeaderSchema,
 	blockSchema,
+	AccountDefaultProps,
 } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import {
@@ -53,7 +54,7 @@ export const getGenesisBlockSchema = (accountSchema: accountAssetSchemas): Schem
 		},
 	}) as Schema;
 
-const getBlockId = (header: GenesisBlockHeaderWithoutId, accountSchema: Schema): Buffer => {
+const getBlockId = <T>(header: GenesisBlockHeaderWithoutId<T>, accountSchema: Schema): Buffer => {
 	// eslint-disable-next-line
 	const genesisBlockAssetBuffer = codec.encode(
 		getGenesisBlockHeaderAssetSchema(accountSchema),
@@ -68,10 +69,14 @@ const getBlockId = (header: GenesisBlockHeaderWithoutId, accountSchema: Schema):
 	return hash(genesisBlockHeaderBuffer);
 };
 
-const createAccount = <T>(account: Account, defaultAccount: Record<string, unknown>): Account =>
-	objects.mergeDeep({}, objects.cloneDeep(defaultAccount), account) as Account<T>;
+const createAccount = <T>(
+	account: Partial<Account<T>> & { address: Buffer },
+	defaultAccount: Record<string, unknown>,
+): Account<T> => objects.mergeDeep({}, objects.cloneDeep(defaultAccount), account) as Account<T>;
 
-export const createGenesisBlock = (params: GenesisBlockParams): GenesisBlock => {
+export const createGenesisBlock = <T = AccountDefaultProps>(
+	params: GenesisBlockParams<T>,
+): GenesisBlock<T> => {
 	// Default values
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
@@ -88,8 +93,8 @@ export const createGenesisBlock = (params: GenesisBlockParams): GenesisBlock => 
 	const signature = GENESIS_BLOCK_SIGNATURE;
 	const transactionRoot = GENESIS_BLOCK_TRANSACTION_ROOT;
 
-	const accounts: ReadonlyArray<Account> = params.accounts
-		.map(account => createAccount(account, defaultAccount))
+	const accounts: ReadonlyArray<Account<T>> = params.accounts
+		.map(account => createAccount<T>(account, defaultAccount))
 		.sort((a, b): number => {
 			if (a.address.length < b.address.length) {
 				return -1;
@@ -104,7 +109,7 @@ export const createGenesisBlock = (params: GenesisBlockParams): GenesisBlock => 
 		a.compare(b),
 	);
 
-	const header: GenesisBlockHeaderWithoutId = {
+	const header: GenesisBlockHeaderWithoutId<T> = {
 		generatorPublicKey,
 		height,
 		previousBlockID,
@@ -120,10 +125,10 @@ export const createGenesisBlock = (params: GenesisBlockParams): GenesisBlock => 
 		},
 	};
 
-	const genesisBlock: GenesisBlock = {
+	const genesisBlock: GenesisBlock<T> = {
 		header: {
 			...header,
-			id: getBlockId(header, accountSchema),
+			id: getBlockId<T>(header, accountSchema),
 		},
 		payload: [],
 	};

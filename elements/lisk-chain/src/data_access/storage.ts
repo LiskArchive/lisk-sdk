@@ -414,9 +414,11 @@ export class Storage {
 		// If there is no diff, the key might not exist
 		const stateDiff = await this._db.get(diffKey);
 
-		const { created: createdStates, updated: updatedStates, deleted: deletedStates } = codec.decode<
-			StateDiff
-		>(stateDiffSchema, stateDiff);
+		const {
+			created: createdStates,
+			updated: updatedStates,
+			deleted: deletedStates,
+		} = codec.decode<StateDiff>(stateDiffSchema, stateDiff);
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);

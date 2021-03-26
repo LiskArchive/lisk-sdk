@@ -11,20 +11,26 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
 import { when } from 'jest-when';
-import { createApplication, closeApplication, getURL, callNetwork } from './utils/application';
+import {
+	createApplicationEnv,
+	closeApplicationEnv,
+	getURL,
+	callNetwork,
+} from './utils/application';
 
 describe('Peers endpoint', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		app = await createApplication('peers');
+		appEnv = createApplicationEnv('peers');
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('/api/peers', () => {
@@ -64,9 +70,14 @@ describe('Peers endpoint', () => {
 		describe('500 - Some internal operation fails to process', () => {
 			it('should throw 500 error when channel.invoke fails', async () => {
 				// Arrange
-				app['_channel'].invoke = jest.fn();
+				appEnv.application['_controller']['_inMemoryPlugins']['httpApi'][
+					'plugin'
+				]._channel.invoke = jest.fn();
 				// Mock channel invoke only when app:getConnectedPeers is called
-				when(app['_channel'].invoke)
+				when(
+					appEnv.application['_controller']['_inMemoryPlugins']['httpApi']['plugin']._channel
+						.invoke,
+				)
 					.calledWith('app:getConnectedPeers')
 					.mockRejectedValue(new Error('test') as never);
 				const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));

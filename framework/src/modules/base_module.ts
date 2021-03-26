@@ -27,7 +27,7 @@ import {
 import { BaseAsset } from './base_asset';
 import { Logger } from '../logger/logger';
 
-interface BaseModuleChannel {
+export interface BaseModuleChannel {
 	publish(name: string, data?: Record<string, unknown>): void;
 }
 

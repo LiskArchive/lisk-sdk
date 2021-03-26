@@ -18,6 +18,7 @@ import { verifyProof } from '../src/verify_proof';
 describe('MerkleTree', () => {
 	describe('constructor', () => {
 		for (const test of fixture.testCases) {
+			// eslint-disable-next-line jest/valid-title
 			describe(test.description, () => {
 				it('should result in correct merkle root', () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
@@ -67,6 +68,7 @@ describe('MerkleTree', () => {
 
 	describe('append', () => {
 		for (const test of fixture.testCases.slice(1)) {
+			// eslint-disable-next-line jest/valid-title
 			describe(test.description, () => {
 				it('should append and have correct root', () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
@@ -81,6 +83,7 @@ describe('MerkleTree', () => {
 
 	describe('generateProof and verifyProof', () => {
 		for (const test of fixture.testCases) {
+			// eslint-disable-next-line jest/valid-title
 			describe(test.description, () => {
 				it('should generate and verify correct proof', () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));

@@ -25,9 +25,10 @@ describe('state store / chain_state', () => {
 	let stateStore: StateStore;
 	let db: any;
 
-	const lastBlockHeaders = ([{ height: 30 }, { height: 20 }] as unknown) as ReadonlyArray<
-		BlockHeader
-	>;
+	const lastBlockHeaders = ([
+		{ height: 30 },
+		{ height: 20 },
+	] as unknown) as ReadonlyArray<BlockHeader>;
 
 	beforeEach(() => {
 		db = new KVStore('temp');
@@ -67,7 +68,7 @@ describe('state store / chain_state', () => {
 	describe('get', () => {
 		it('should get value from cache', async () => {
 			// Arrange
-			stateStore.chain.set('key1', Buffer.from('value1'));
+			await stateStore.chain.set('key1', Buffer.from('value1'));
 			when(db.get)
 				.calledWith('chain:key1')
 				.mockResolvedValue('value5' as never);
@@ -88,7 +89,7 @@ describe('state store / chain_state', () => {
 	describe('set', () => {
 		it('should set value to data and set the updated keys', async () => {
 			// Act
-			stateStore.chain.set('key3', Buffer.from('value3'));
+			await stateStore.chain.set('key3', Buffer.from('value3'));
 			// Assert
 			expect(await stateStore.chain.get('key3')).toEqual(Buffer.from('value3'));
 			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
@@ -96,8 +97,8 @@ describe('state store / chain_state', () => {
 
 		it('should set value to data and set the updated keys only once', async () => {
 			// Act
-			stateStore.chain.set('key3', Buffer.from('value3'));
-			stateStore.chain.set('key3', Buffer.from('value4'));
+			await stateStore.chain.set('key3', Buffer.from('value3'));
+			await stateStore.chain.set('key3', Buffer.from('value4'));
 			// Assert
 			expect(await stateStore.chain.get('key3')).toEqual(Buffer.from('value4'));
 			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
@@ -119,25 +120,25 @@ describe('state store / chain_state', () => {
 			expect(batchStub.put).not.toHaveBeenCalled();
 		});
 
-		it('should call storage for all the updated keys', () => {
+		it('should call storage for all the updated keys', async () => {
 			// Act
-			stateStore.chain.set('key3', Buffer.from('value3'));
-			stateStore.chain.set('key3', Buffer.from('value4'));
-			stateStore.chain.set('key4', Buffer.from('value5'));
+			await stateStore.chain.set('key3', Buffer.from('value3'));
+			await stateStore.chain.set('key3', Buffer.from('value4'));
+			await stateStore.chain.set('key4', Buffer.from('value5'));
 			stateDiff = stateStore.chain.finalize(batchStub);
 			// Assert
 			expect(batchStub.put).toHaveBeenCalledWith('chain:key3', Buffer.from('value4'));
 			expect(batchStub.put).toHaveBeenCalledWith('chain:key4', Buffer.from('value5'));
 		});
 
-		it('should return state diff with created and updated values after finalize', () => {
+		it('should return state diff with created and updated values after finalize', async () => {
 			const originalValue = Buffer.from('original-value');
 			(stateStore.chain as any)['_initialValue'] = { existing: originalValue };
 			// Act
-			stateStore.chain.set('existing', Buffer.from('value-new'));
-			stateStore.chain.set('key3', Buffer.from('value3'));
-			stateStore.chain.set('key3', Buffer.from('value4'));
-			stateStore.chain.set('key4', Buffer.from('value5'));
+			await stateStore.chain.set('existing', Buffer.from('value-new'));
+			await stateStore.chain.set('key3', Buffer.from('value3'));
+			await stateStore.chain.set('key3', Buffer.from('value4'));
+			await stateStore.chain.set('key4', Buffer.from('value5'));
 			stateDiff = stateStore.chain.finalize(batchStub);
 			expect(stateDiff).toStrictEqual({
 				updated: [

@@ -54,7 +54,7 @@ describe('createWSClient', () => {
 		it('should able to subscribe to an event', async () => {
 			const client = await createWSClient('ws://localhost:8989/ws');
 
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				client.subscribe('myEvent', data => {
 					expect(data).toEqual({ eventProp: 'eventProp' });
 					resolve();

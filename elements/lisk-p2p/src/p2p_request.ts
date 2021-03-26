@@ -12,25 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { DEFAULT_MESSAGE_ENCODING_FORMAT } from './constants';
 import { RPCResponseAlreadySentError } from './errors';
-import { P2PResponsePacket } from './types';
-
-export interface RequestOptions {
-	readonly procedure: string;
-	readonly data: unknown;
-	readonly id: string;
-	readonly rate: number;
-	productivity: {
-		requestCounter: number;
-		responseCounter: number;
-		responseRate: number;
-		lastResponded: number;
-	};
-}
+import { P2PResponsePacket, RequestOptions } from './types';
 
 export class P2PRequest {
 	private readonly _procedure: string;
-	private readonly _data: unknown;
+	private readonly _data: Buffer | undefined;
 	private readonly _respondCallback: (
 		responseError?: Error,
 		responseData?: P2PResponsePacket,
@@ -44,7 +32,7 @@ export class P2PRequest {
 		respondCallback: (responseError?: Error, responseData?: unknown) => void,
 	) {
 		this._procedure = options.procedure;
-		this._data = options.data;
+		this._data = this._getBufferData(options);
 		this._peerId = options.id;
 		this._rate = options.rate;
 		// eslint-disable-next-line no-param-reassign
@@ -66,6 +54,7 @@ export class P2PRequest {
 			// eslint-disable-next-line no-param-reassign
 			options.productivity.responseRate =
 				options.productivity.responseCounter / options.productivity.requestCounter;
+
 			respondCallback(responseError, responsePacket);
 		};
 		this._wasResponseSent = false;
@@ -75,7 +64,7 @@ export class P2PRequest {
 		return this._procedure;
 	}
 
-	public get data(): unknown {
+	public get data(): Buffer | undefined {
 		return this._data;
 	}
 
@@ -92,8 +81,9 @@ export class P2PRequest {
 	}
 
 	public end(responseData?: unknown): void {
+		const data = this._getBase64Data(responseData);
 		const responsePacket: P2PResponsePacket = {
-			data: responseData,
+			data,
 			peerId: this.peerId,
 		};
 		this._respondCallback(undefined, responsePacket);
@@ -101,5 +91,25 @@ export class P2PRequest {
 
 	public error(responseError: Error): void {
 		this._respondCallback(responseError);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBase64Data(data: unknown): string | undefined {
+		if (!data) {
+			return undefined;
+		}
+
+		if (Buffer.isBuffer(data)) {
+			return data.toString(DEFAULT_MESSAGE_ENCODING_FORMAT);
+		}
+
+		return Buffer.from(JSON.stringify(data), 'utf8').toString(DEFAULT_MESSAGE_ENCODING_FORMAT);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBufferData(options: RequestOptions): Buffer | undefined {
+		return typeof options.data === 'string'
+			? Buffer.from(options.data, DEFAULT_MESSAGE_ENCODING_FORMAT)
+			: undefined;
 	}
 }

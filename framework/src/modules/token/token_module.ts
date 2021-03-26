@@ -112,7 +112,6 @@ export class TokenModule extends BaseModule {
 		this.transactionAssets = [new TransferAsset(this._minRemainingBalance)];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async beforeTransactionApply({
 		transaction,
 		stateStore,
@@ -167,7 +166,7 @@ export class TokenModule extends BaseModule {
 		await stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
 	}
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async afterGenesisBlockApply({
 		genesisBlock,
 	}: AfterGenesisBlockApplyContext<TokenAccount>): Promise<void> {

@@ -14,6 +14,7 @@
 
 import { KVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
+import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { BFT, ForkStatus } from '@liskhq/lisk-bft';
 import { objects } from '@liskhq/lisk-utils';
@@ -37,6 +38,11 @@ import {
 import { peersList } from './peers';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from '../../../../../src/node/synchronizer/base_synchronizer';
 import { TokenModule } from '../../../../../src/modules';
+import {
+	getHighestCommonBlockRequestSchema,
+	getBlocksFromIdRequestSchema,
+	getBlocksFromIdResponseSchema,
+} from '../../../../../src/node/transport/schemas';
 
 const { InMemoryChannel: ChannelMock } = jest.createMockFromModule(
 	'../../../../../src/controller/channels/in_memory_channel',
@@ -236,16 +242,17 @@ describe('block_synchronization_mechanism', () => {
 
 		for (const expectedPeer of peersList.expectedSelection) {
 			const { peerId } = expectedPeer;
+			const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+				ids: blockIdsList.map(id => id),
+			});
 			when(networkMock.requestFromPeer)
 				.calledWith({
 					procedure: 'getHighestCommonBlock',
 					peerId,
-					data: {
-						ids: blockIdsList.map(id => id.toString('hex')),
-					},
+					data: blockIds,
 				})
 				.mockResolvedValue({
-					data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+					data: encodeValidBlockHeader(highestCommonBlock),
 				} as never);
 
 			when(networkMock.requestFromPeer)
@@ -254,21 +261,17 @@ describe('block_synchronization_mechanism', () => {
 					peerId,
 				})
 				.mockResolvedValue({
-					data: encodeValidBlock(aBlock).toString('hex'),
+					data: encodeValidBlock(aBlock),
 				} as never);
+			const encodedBlocks = requestedBlocks.map(block => encodeValidBlock(block));
 			when(networkMock.requestFromPeer)
 				.calledWith({
 					procedure: 'getBlocksFromId',
 					peerId,
-					data: {
-						blockId: highestCommonBlock.id.toString('hex'),
-					},
+					data: codec.encode(getBlocksFromIdRequestSchema, { blockId: highestCommonBlock.id }),
 				})
 				.mockResolvedValue({
-					data: objects
-						.cloneDeep(requestedBlocks)
-						.reverse()
-						.map(b => encodeValidBlock(b).toString('hex')),
+					data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
 				} as never);
 		}
 		when(chainModule.dataAccess.getBlockHeadersWithHeights)
@@ -327,14 +330,16 @@ describe('block_synchronization_mechanism', () => {
 		describe('compute the best peer', () => {
 			it('should compute the best peer out of a list of connected peers and return it', async () => {
 				jest.spyOn(bftModule, 'forkChoice');
+				const encodedBlocks = [encodeValidBlock(aBlock)];
+
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getBlocksFromId',
 						peerId: expect.any(String),
-						data: { blockId: expect.any(String) },
+						data: codec.encode(getBlocksFromIdRequestSchema, { blockId: highestCommonBlock.id }),
 					})
 					.mockResolvedValue({
-						data: [encodeValidBlock(aBlock).toString('hex')],
+						data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
 					} as never);
 
 				await blockSynchronizationMechanism.run(aBlock);
@@ -619,13 +624,14 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const expectedPeer of peersList.expectedSelection) {
 						const { peerId } = expectedPeer;
+						const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+							ids: blockIdsList.map(id => id),
+						});
 						when(networkMock.requestFromPeer)
 							.calledWith({
 								procedure: 'getHighestCommonBlock',
 								peerId,
-								data: {
-									ids: blockIdsList.map(id => id.toString('hex')),
-								},
+								data: blockIds,
 							})
 							.mockResolvedValue({ data: undefined } as never);
 
@@ -635,21 +641,19 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 							})
 							.mockResolvedValue({
-								data: encodeValidBlock(receivedBlock).toString('hex'),
+								data: encodeValidBlock(receivedBlock),
 							} as never);
+						const encodedBlocks = requestedBlocks.map(block => encodeValidBlock(block));
 						when(networkMock.requestFromPeer)
 							.calledWith({
 								procedure: 'getBlocksFromId',
 								peerId,
-								data: {
-									blockId: highestCommonBlock.id.toString('hex'),
-								},
+								data: codec.encode(getBlocksFromIdRequestSchema, {
+									blockId: highestCommonBlock.id,
+								}),
 							})
 							.mockResolvedValue({
-								data: objects
-									.cloneDeep(requestedBlocks)
-									.reverse()
-									.map(b => encodeValidBlock(b).toString('hex')),
+								data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
 							} as never);
 					}
 
@@ -721,16 +725,17 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const expectedPeer of peersList.expectedSelection) {
 						const { peerId } = expectedPeer;
+						const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
+							ids: blockIdsList.map(id => id),
+						});
 						when(networkMock.requestFromPeer)
 							.calledWith({
 								procedure: 'getHighestCommonBlock',
 								peerId,
-								data: {
-									ids: blockIdsList.map(id => id.toString('hex')),
-								},
+								data: blockIds,
 							})
 							.mockResolvedValue({
-								data: encodeValidBlockHeader(highestCommonBlock).toString('hex'),
+								data: encodeValidBlockHeader(highestCommonBlock),
 							} as never);
 
 						when(networkMock.requestFromPeer)
@@ -739,18 +744,19 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 							})
 							.mockResolvedValue({
-								data: encodeValidBlock(aBlock).toString('hex'),
+								data: encodeValidBlock(aBlock),
 							} as never);
+						const encodedBlocks = requestedBlocks.map(block => encodeValidBlock(block));
 						when(networkMock.requestFromPeer)
 							.calledWith({
 								procedure: 'getBlocksFromId',
 								peerId,
-								data: {
-									blockId: highestCommonBlock.id.toString('hex'),
-								},
+								data: codec.encode(getBlocksFromIdRequestSchema, {
+									blockId: highestCommonBlock.id,
+								}),
 							})
 							.mockResolvedValue({
-								data: requestedBlocks.map(b => encodeValidBlock(b).toString('hex')),
+								data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
 							} as never);
 					}
 
@@ -817,20 +823,17 @@ describe('block_synchronization_mechanism', () => {
 
 				for (const expectedPeer of peersList.expectedSelection) {
 					const { peerId } = expectedPeer;
+					const encodedBlocks = requestedBlocks.map(block => encodeValidBlock(block));
+
 					when(networkMock.requestFromPeer)
 						.calledWith({
 							procedure: 'getBlocksFromId',
 							peerId,
-							data: {
-								blockId: highestCommonBlock.id.toString('hex'),
-							},
+							data: codec.encode(getBlocksFromIdRequestSchema, { blockId: highestCommonBlock.id }),
 						})
 						// getBlocksFromId returns in height desc order
 						.mockResolvedValue({
-							data: objects
-								.cloneDeep(requestedBlocks)
-								.reverse()
-								.map(b => encodeValidBlock(b).toString('hex')),
+							data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
 						} as never);
 				}
 
@@ -839,9 +842,7 @@ describe('block_synchronization_mechanism', () => {
 				expect(networkMock.requestFromPeer).toHaveBeenCalledWith({
 					procedure: 'getBlocksFromId',
 					peerId: expect.any(String),
-					data: {
-						blockId: highestCommonBlock.id.toString('hex'),
-					},
+					data: codec.encode(getBlocksFromIdRequestSchema, { blockId: highestCommonBlock.id }),
 				});
 
 				expect(loggerMock.debug).toHaveBeenCalledWith(
@@ -878,9 +879,7 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith({
 							procedure: 'getBlocksFromId',
 							peerId,
-							data: {
-								blockId: highestCommonBlock.id.toString('hex'),
-							},
+							data: codec.encode(getBlocksFromIdRequestSchema, { blockId: highestCommonBlock.id }),
 						})
 						.mockResolvedValue({ data: undefined } as never);
 				}
@@ -893,9 +892,7 @@ describe('block_synchronization_mechanism', () => {
 				expect(networkMock.requestFromPeer).toHaveBeenCalledWith({
 					procedure: 'getBlocksFromId',
 					peerId: expect.any(String),
-					data: {
-						blockId: highestCommonBlock.id.toString('hex'),
-					},
+					data: codec.encode(getBlocksFromIdRequestSchema, { blockId: highestCommonBlock.id }),
 				});
 
 				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(12);

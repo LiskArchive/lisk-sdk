@@ -11,42 +11,25 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
-import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
+import {
+	callNetwork,
+	createApplicationEnv,
+	closeApplicationEnv,
+	getURL,
+} from './utils/application';
 
 describe('Delegates endpoint', () => {
-	let app: Application;
-	const firstDelegateAccount = {
-		address: '03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
-		token: { balance: '0' },
-		sequence: { nonce: '0' },
-		keys: { numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] },
-		dpos: {
-			delegate: {
-				username: 'genesis_34',
-				pomHeights: [],
-				consecutiveMissedBlocks: 0,
-				lastForgedHeight: 0,
-				isBanned: false,
-				totalVotesReceived: '1000000000000',
-			},
-			sentVotes: [
-				{
-					delegateAddress: '03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
-					amount: '1000000000000',
-				},
-			],
-			unlocking: [],
-		},
-	};
+	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		app = await createApplication('delegates_http_functional');
+		appEnv = createApplicationEnv('delegates_http_functional');
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('/api/delegates', () => {
@@ -58,9 +41,9 @@ describe('Delegates endpoint', () => {
 				);
 				// Assert
 				expect(response.data).toHaveLength(100);
-				expect(response.data[0]).toEqual(firstDelegateAccount);
+				expect(response.data[0]).toMatchSnapshot();
 				expect(response.meta).toEqual({
-					count: 103,
+					count: 104,
 					limit: 100,
 					offset: 0,
 				});
@@ -73,9 +56,9 @@ describe('Delegates endpoint', () => {
 					axios.get(getURL('/api/delegates?limit=100&offset=100')),
 				);
 				// Assert
-				expect(response.data).toHaveLength(3);
+				expect(response.data).toHaveLength(4);
 				expect(response.meta).toEqual({
-					count: 103,
+					count: 104,
 					limit: 100,
 					offset: 100,
 				});
@@ -85,15 +68,15 @@ describe('Delegates endpoint', () => {
 			it('should respond with blank array when no delegates are found', async () => {
 				// Act
 				const { response, status } = await callNetwork(
-					axios.get(getURL('/api/delegates?limit=100&offset=103')),
+					axios.get(getURL('/api/delegates?limit=100&offset=104')),
 				);
 				// Assert
 				expect(response.data).toHaveLength(0);
 				expect(response.data).toEqual([]);
 				expect(response.meta).toEqual({
-					count: 103,
+					count: 104,
 					limit: 100,
-					offset: 103,
+					offset: 104,
 				});
 				expect(status).toBe(200);
 			});

@@ -19,6 +19,10 @@ import * as readerUtils from '../../../../src/utils/reader';
 import { EncryptCommand } from '../../../../src/bootstrapping/commands/passphrase/encrypt';
 import { getConfig } from '../../../helpers/config';
 
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
+
 describe('passphrase:encrypt', () => {
 	const encryptedPassphraseString =
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1';
@@ -59,24 +63,18 @@ describe('passphrase:encrypt', () => {
 		jest
 			.spyOn(cryptography, 'stringifyEncryptedPassphrase')
 			.mockReturnValue(encryptedPassphraseString);
-		jest
-			.spyOn(readerUtils, 'getPassphraseFromPrompt')
-			// eslint-disable-next-line @typescript-eslint/require-await
-			.mockImplementation(async (name?: string) => {
-				if (name === 'passphrase') {
-					return defaultInputs.passphrase;
-				}
-				return '';
-			});
-		jest
-			.spyOn(readerUtils, 'getPasswordFromPrompt')
-			// eslint-disable-next-line @typescript-eslint/require-await
-			.mockImplementation(async (name?: string) => {
-				if (name === 'password') {
-					return defaultInputs.password;
-				}
-				return '';
-			});
+		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockImplementation(async (name?: string) => {
+			if (name === 'passphrase') {
+				return defaultInputs.passphrase;
+			}
+			return '';
+		});
+		jest.spyOn(readerUtils, 'getPasswordFromPrompt').mockImplementation(async (name?: string) => {
+			if (name === 'password') {
+				return defaultInputs.password;
+			}
+			return '';
+		});
 	});
 
 	describe('passphrase:encrypt', () => {

@@ -99,7 +99,7 @@ describe('IPCChannel', () => {
 				const betaEventData = { data: '#DATA' };
 				const eventName = beta.events[0];
 
-				const donePromise = new Promise(resolve => {
+				const donePromise = new Promise<void>(resolve => {
 					// Act
 					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
@@ -117,7 +117,7 @@ describe('IPCChannel', () => {
 				// Arrange
 				const betaEventData = { data: '#DATA' };
 				const eventName = beta.events[0];
-				const donePromise = new Promise(resolve => {
+				const donePromise = new Promise<void>(resolve => {
 					// Act
 					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
 						// Assert
@@ -138,7 +138,7 @@ describe('IPCChannel', () => {
 				const alphaEventData = { data: '#DATA' };
 				const eventName = alpha.events[0];
 
-				const donePromise = new Promise(done => {
+				const donePromise = new Promise<void>(done => {
 					// Act
 					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
 						// Assert
