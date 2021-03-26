@@ -12,11 +12,11 @@
 @keyframes blowUpModalTwo {
 	0% {
 		transform: scale(1);
-		// opacity: 1;
+		opacity: 1;
 	}
 	100% {
 		transform: scale(0);
-		// opacity: 0;
+		opacity: 0;
 	}
 }
 
@@ -34,7 +34,6 @@
 .background {
 	background: rgba(15, 25, 51, 0.85);
 	display: table-cell;
-	vertical-align: middle;
 	text-align: center;
 }
 
@@ -47,30 +46,35 @@
 	padding: 0px;
 	box-sizing: border-box;
 
+	margin: 130px auto;
+
 	max-width: 50%;
 
 	@include mq-down('md') {
 		max-width: 80%;
+		margin: 50px auto;
 	}
 
 	@include mq-down('sm') {
 		width: 100%;
 		max-width: 100%;
+		margin: 0;
 	}
 }
 
 .open {
 	transform: scale(1);
 	display: block;
+	transition: transform 0.3s;
 
 	.modal {
-		animation: blowUpModal 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+		animation: blowUpModal 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 	}
 }
 
 .close {
 	transform: scale(0);
-	animation: blowUpModalTwo 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+	transition: transform 0.3s;
 
 	.modal {
 		animation: blowUpModalTwo 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
@@ -91,4 +95,5 @@
 
 .body {
 	padding: 20px;
+	padding-top: 0;
 }
