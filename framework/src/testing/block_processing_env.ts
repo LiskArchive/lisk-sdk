@@ -25,7 +25,11 @@ import {
 	Transaction,
 	AccountDefaultProps,
 } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import {
+	getNetworkIdentifier,
+	getPrivateAndPublicKeyFromPassphrase,
+	getAddressAndPublicKeyFromPassphrase,
+} from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 
@@ -61,7 +65,7 @@ interface BlockProcessingParams<T = AccountDefaultProps> {
 }
 
 export interface BlockProcessingEnv {
-	createBlock: (payload?: Transaction[]) => Promise<Block>;
+	createBlock: (payload?: Transaction[], timestamp?: number) => Promise<Block>;
 	getProcessor: () => Processor;
 	getChain: () => Chain;
 	getBlockchainDB: () => KVStore;
@@ -145,31 +149,63 @@ const getNextTimestamp = (processor: Processor, previousBlock: BlockHeader) => {
 	return processor['_chain'].slots.getSlotTime(previousSlotNumber + 1);
 };
 
-const getNextValidator = async (
+const getMaxHeightPreviouslyForged = async (
 	processor: Processor,
 	previousBlock: BlockHeader,
-): Promise<Validator> => {
-	const nextTimestamp = getNextTimestamp(processor, previousBlock);
-	const validator = await processor['_chain'].getValidator(nextTimestamp);
+	passphrase: string,
+): Promise<number> => {
+	const NUM_OF_ROUNDS = 3;
+	const NUM_OF_DELEGATES = 103;
+	const fromHeight = Math.max(0, previousBlock.height - NUM_OF_DELEGATES * NUM_OF_ROUNDS);
+	const toHeight = previousBlock.height;
+	const { publicKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const lastBlockHeaders = await processor['_chain'].dataAccess.getBlockHeadersByHeightBetween(
+		fromHeight,
+		toHeight,
+	);
+	const maxHeightPreviouslyForged =
+		lastBlockHeaders.find(h => h.generatorPublicKey.equals(publicKey))?.height ?? 0;
 
-	return validator;
+	return maxHeightPreviouslyForged;
+};
+
+const getHashOnion = async (
+	processor: Processor,
+	previousBlock: BlockHeader,
+	passphrase: string,
+): Promise<Buffer> => {
+	const fromHeight = 0;
+	const toHeight = previousBlock.height;
+	const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(passphrase);
+	const lastBlockHeaders = await processor['_chain'].dataAccess.getBlockHeadersByHeightBetween(
+		fromHeight,
+		toHeight,
+	);
+	const hashCount = lastBlockHeaders.filter(h => h.generatorPublicKey.equals(publicKey)).length;
+
+	return getHashOnionFromDefaultConfig(address, hashCount);
 };
 
 const createProcessableBlock = async (
 	processor: Processor,
 	networkIdentifier: Buffer,
 	payload: Transaction[],
-	hashCount = 0,
+	timestamp?: number,
 ): Promise<Block> => {
 	// Get previous block before creating and processing new block
 	const previousBlockHeader = processor['_chain'].lastBlock.header;
 	// Get next validatgetPassphraseFromDefaultConfigimestamp info
-	const nextTimestamp = getNextTimestamp(processor, previousBlockHeader);
-	const validator = await getNextValidator(processor, previousBlockHeader);
+	const nextTimestamp = timestamp ?? getNextTimestamp(processor, previousBlockHeader);
+	const validator = await processor['_chain'].getValidator(nextTimestamp);
 	const passphrase = getPassphraseFromDefaultConfig(validator.address);
-	const seedReveal = getHashOnionFromDefaultConfig(validator.address, hashCount);
+	const seedReveal = await getHashOnion(processor, previousBlockHeader, passphrase);
 	const maxHeightPrevoted = await processor['_bft'].getMaxHeightPrevoted();
-	const reward = processor['_chain'].calculateDefaultReward(previousBlockHeader.height);
+	const reward = processor['_chain'].calculateDefaultReward(previousBlockHeader.height + 1);
+	const maxHeightPreviouslyForged = await getMaxHeightPreviouslyForged(
+		processor,
+		previousBlockHeader,
+		passphrase,
+	);
 
 	return createBlock({
 		passphrase,
@@ -180,7 +216,7 @@ const createProcessableBlock = async (
 			height: previousBlockHeader.height + 1,
 			reward,
 			asset: {
-				maxHeightPreviouslyForged: previousBlockHeader.height,
+				maxHeightPreviouslyForged,
 				maxHeightPrevoted,
 				seedReveal,
 			},
@@ -225,22 +261,23 @@ export const getBlockProcessingEnv = async (
 	await processor.init(genesisBlock);
 
 	return {
-		createBlock: async (payload: Transaction[] = []): Promise<Block> =>
-			createProcessableBlock(processor, networkIdentifier, payload),
+		createBlock: async (payload: Transaction[] = [], timestamp?: number): Promise<Block> =>
+			createProcessableBlock(processor, networkIdentifier, payload, timestamp),
 		getChain: () => processor['_chain'],
 		getProcessor: () => processor,
 		getBlockchainDB: () => db,
 		process: async (block): Promise<void> => processor.process(block),
 		processUntilHeight: async (height): Promise<void> => {
 			for (let index = 0; index < height; index += 1) {
-				const nextBlock = await createProcessableBlock(processor, networkIdentifier, [], index);
+				const nextBlock = await createProcessableBlock(processor, networkIdentifier, []);
 				await processor.process(nextBlock);
 			}
 		},
 		getLastBlock: () => processor['_chain'].lastBlock,
 		getValidators: async (): Promise<Validator[]> => processor['_chain'].getValidators(),
 		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
-			const validator = await getNextValidator(processor, previousBlockHeader);
+			const nextTimestamp = getNextTimestamp(processor, previousBlockHeader);
+			const validator = await processor['_chain'].getValidator(nextTimestamp);
 			const passphrase = getPassphraseFromDefaultConfig(validator.address);
 
 			return passphrase;

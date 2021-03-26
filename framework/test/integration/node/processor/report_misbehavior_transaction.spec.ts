@@ -28,7 +28,7 @@ describe('Transaction order', () => {
 	let blockGenerator: string;
 	let newBlock: Block;
 	let senderAccount: { address: Buffer; passphrase: string };
-	const databasePath = '/tmp/lisk/block_process/test';
+	const databasePath = '/tmp/lisk/report_misbehavior/test';
 
 	beforeAll(async () => {
 		processEnv = await testing.getBlockProcessingEnv({

@@ -15,21 +15,19 @@
 import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
 import { Account, Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
 import {
-	getRandomBytes,
 	signDataWithPrivateKey,
-	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
-	getAddressAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { nodeUtils } from '../../../utils';
-import { genesis, DefaultAccountProps } from '../../../fixtures';
-import * as testing from '../../../../src/testing';
+
+import { nodeUtils } from '../../../../utils';
+import { genesis, DefaultAccountProps } from '../../../../fixtures';
+import * as testing from '../../../../../src/testing';
 import {
 	createDelegateRegisterTransaction,
 	createDelegateVoteTransaction,
 	createTransferTransaction,
-} from '../../../utils/node/transaction';
-import { getPassphraseFromDefaultConfig, defaultConfig } from '../../../../src/testing/fixtures';
+} from '../../../../utils/node/transaction';
+import { getPassphraseFromDefaultConfig } from '../../../../../src/testing/fixtures';
 
 const getPrivateKey = (address: Buffer) => {
 	const passphrase = testing.fixtures.getPassphraseFromDefaultConfig(address);
@@ -48,7 +46,7 @@ describe('Process block', () => {
 	let networkIdentifier: Buffer;
 	let chain: Chain;
 	let dataAccess: DataAccess;
-	const databasePath = '/tmp/lisk/process_block/test';
+	const databasePath = '/tmp/lisk/protocol_violation/test';
 	const account = nodeUtils.createAccount();
 
 	beforeAll(async () => {
@@ -400,196 +398,6 @@ describe('Process block', () => {
 				await processEnv.process(tieBreakBlock);
 
 				expect(chain.lastBlock.header.id).toEqual(tieBreakBlock.header.id);
-			});
-		});
-	});
-
-	describe('given a block with protocol violation', () => {
-		beforeEach(async () => {
-			processEnv = await testing.getBlockProcessingEnv({
-				options: {
-					databasePath,
-					genesisConfig: {
-						...defaultConfig.genesisConfig,
-						rewards: {
-							...defaultConfig.genesisConfig.rewards,
-							offset: 1,
-						},
-					},
-				},
-			});
-			networkIdentifier = processEnv.getNetworkId();
-			chain = processEnv.getChain();
-			dataAccess = processEnv.getDataAccess();
-		});
-
-		describe('when SeedReveal is not preimage of the last block forged', () => {
-			it('should reject a block if reward is not 0', async () => {
-				const { lastBlock } = chain;
-				const timestamp = getNextTimeslot(chain);
-				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
-				const passphrase = getPassphraseFromDefaultConfig(target);
-				const nextBlock = testing.createBlock({
-					passphrase,
-					networkIdentifier,
-					timestamp,
-					previousBlockID: chain.lastBlock.header.id,
-					header: {
-						height: chain.lastBlock.header.height + 1,
-						asset: {
-							maxHeightPreviouslyForged: chain.lastBlock.header.height,
-							maxHeightPrevoted: 0,
-							seedReveal: Buffer.alloc(16),
-						},
-					},
-					payload: [],
-				});
-				// Mutate valid block to have reward 500000000 with invalid seed reveal
-				(nextBlock.header as any).reward = BigInt(500000000);
-				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
-					getPrivateKey(target),
-				);
-				(nextBlock.header as any).signature = signature;
-
-				await expect(processEnv.process(nextBlock)).rejects.toThrow(
-					'Invalid block reward: 500000000 expected: 0',
-				);
-				expect(chain.lastBlock.header.id).toEqual(lastBlock.header.id);
-			});
-
-			it('should accept a block if reward is 0', async () => {
-				const { lastBlock } = chain;
-				const passphrase = await processEnv.getNextValidatorPassphrase(lastBlock.header);
-				const { address } = getAddressAndPublicKeyFromPassphrase(passphrase);
-				const nextBlock = await processEnv.createBlock();
-				// Mutate valid block to have reward 0 with invalid seed reveal
-				(nextBlock.header as any).reward = BigInt(0);
-				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
-					getPrivateKey(address),
-				);
-				(nextBlock.header as any).signature = signature;
-
-				await processEnv.process(nextBlock);
-				expect(chain.lastBlock.header.id).toEqual(nextBlock.header.id);
-			});
-
-			it('should accept a block if reward is full and forger did not forget last 2 rounds', async () => {
-				const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
-				const target = getAddressFromPublicKey(chain.lastBlock.header.generatorPublicKey);
-				// Forge 2 rounds of block without generator of the last block
-				while (chain.lastBlock.header.height !== targetHeight) {
-					const nextBlock = await processEnv.createBlock();
-					await processEnv.process(nextBlock);
-				}
-				const nextBlock = await processEnv.createBlock();
-				(nextBlock.header as any).reward = BigInt(500000000);
-				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
-					getPrivateKey(target),
-				);
-				(nextBlock.header as any).signature = signature;
-
-				await expect(processEnv.process(nextBlock)).resolves.toBeUndefined();
-				expect(chain.lastBlock.header.id).toEqual(nextBlock.header.id);
-			});
-		});
-
-		describe('when BFT protocol is violated', () => {
-			it('should reject a block if reward is not quarter', async () => {
-				const { lastBlock } = chain;
-				const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
-				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
-				while (chain.lastBlock.header.height !== targetHeight) {
-					const nextBlock = await processEnv.createBlock();
-					await processEnv.process(nextBlock);
-				}
-				// Forge 2 rounds of block without generator of the last block
-				const nextBlock = await processEnv.createBlock();
-
-				(nextBlock.header as any).reward = BigInt(500000000);
-				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
-					getPrivateKey(target),
-				);
-				(nextBlock.header as any).signature = signature;
-
-				await expect(processEnv.process(nextBlock)).rejects.toThrow(
-					'Invalid block reward: 500000000 expected: 125000000',
-				);
-			});
-
-			it('should accept a block if reward is quarter', async () => {
-				const { lastBlock } = chain;
-				const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
-				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
-				while (chain.lastBlock.header.height !== targetHeight) {
-					const nextBlock = await processEnv.createBlock();
-					await processEnv.process(nextBlock);
-				}
-				// Forge 2 rounds of block without generator of the last block
-				const nextBlock = await processEnv.createBlock();
-
-				// Make maxHeightPreviouslyForged to be current height (BFT violation) with quarter reward
-				(nextBlock.header as any).reward = BigInt(125000000);
-				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
-					getPrivateKey(target),
-				);
-				(nextBlock.header as any).signature = signature;
-
-				await processEnv.process(nextBlock);
-				expect(chain.lastBlock.header.id).toEqual(nextBlock.header.id);
-			});
-		});
-
-		describe('when BFT protocol is violated and seed reveal is not preimage', () => {
-			it('should reject a block if reward is not 0', async () => {
-				const { lastBlock } = chain;
-				const target = getAddressFromPublicKey(lastBlock.header.generatorPublicKey);
-				// Forge 2 rounds of block without generator of the last block
-				const nextBlock = await processEnv.createBlock();
-
-				// Make maxHeightPreviouslyForged to be current height (BFT violation) with random seedreveal and 0 reward
-				(nextBlock.header as any).reward = BigInt(125000000);
-				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
-				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
-					getPrivateKey(target),
-				);
-				(nextBlock.header as any).signature = signature;
-
-				await expect(processEnv.process(nextBlock)).rejects.toThrow(
-					'Invalid block reward: 125000000 expected: 0',
-				);
-			});
-
-			it('should accept a block if reward is 0', async () => {
-				const { lastBlock } = chain;
-				await processEnv.processUntilHeight(206);
-				const passphrase = await processEnv.getNextValidatorPassphrase(lastBlock.header);
-				const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-				// Forge 2 rounds of block without generator of the last block
-				const nextBlock = await processEnv.createBlock();
-				// Make maxHeightPreviouslyForged to be current height (BFT violation) with random seed reveal and 0 reward
-				(nextBlock.header as any).reward = BigInt(0);
-				(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
-				(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
-					privateKey,
-				);
-				(nextBlock.header as any).signature = signature;
-
-				await processEnv.process(nextBlock);
-				expect(chain.lastBlock.header.id).toEqual(nextBlock.header.id);
 			});
 		});
 	});

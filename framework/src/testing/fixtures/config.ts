@@ -2382,6 +2382,9 @@ export const getPassphraseFromDefaultConfig = (address: Buffer): string => {
 export const getHashOnionFromDefaultConfig = (address: Buffer, count: number): Buffer => {
 	const delegateConfig = getDelegateFromDefaultConfig(address);
 	const { distance, hashes } = delegateConfig.hashOnion;
+	if (count === 0) {
+		return Buffer.from(hashes[0], 'hex');
+	}
 
 	const nextCheckpointIndex = Math.ceil(count / distance);
 	const nextCheckpoint = Buffer.from(hashes[nextCheckpointIndex], 'hex');
