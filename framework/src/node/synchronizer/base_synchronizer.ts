@@ -13,11 +13,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { EventEmitter } from 'events';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { ApplyPenaltyAndRestartError, ApplyPenaltyAndAbortError } from './errors';
 import { Network } from '../network';
+import {
+	getBlocksFromIdRequestSchema,
+	getHighestCommonBlockRequestSchema,
+	getBlocksFromIdResponseSchema,
+} from '../transport/schemas';
 
 export const EVENT_SYNCHRONIZER_SYNC_REQUIRED = 'EVENT_SYNCHRONIZER_SYNC_REQUIRED';
 
@@ -71,52 +77,51 @@ export abstract class BaseSynchronizer {
 			procedure: 'getLastBlock',
 			peerId,
 		})) as {
-			data: string | undefined;
+			data: Buffer | undefined;
 		};
 
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndRestartError(peerId, 'Peer did not provide its last block');
 		}
-		return this._chain.dataAccess.decode(Buffer.from(data, 'hex'));
+		return this._chain.dataAccess.decode(data);
 	}
 
 	protected async _getHighestCommonBlockFromNetwork(
 		peerId: string,
 		ids: Buffer[],
 	): Promise<BlockHeader> {
+		const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getHighestCommonBlock',
 			peerId,
-			data: {
-				ids: ids.map(id => id.toString('hex')),
-			},
+			data: blockIds,
 		})) as {
-			data: string | undefined;
+			data: Buffer | undefined;
 		};
 
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Peer did not return a common block');
 		}
-		return this._chain.dataAccess.decodeBlockHeader(Buffer.from(data, 'hex'));
+		return this._chain.dataAccess.decodeBlockHeader(data);
 	}
 
 	protected async _getBlocksFromNetwork(peerId: string, fromID: Buffer): Promise<Block[]> {
+		const blockId = codec.encode(getBlocksFromIdRequestSchema, { blockId: fromID });
 		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getBlocksFromId',
 			peerId,
-			data: {
-				blockId: fromID.toString('hex'),
-			},
+			data: blockId,
 		})) as {
-			data: string[] | undefined;
+			data: Buffer;
 		}; // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
 		if (!data || !data.length) {
 			throw new Error('Peer did not respond with block');
 		}
-		return data.map(d => this._chain.dataAccess.decode(Buffer.from(d, 'hex')));
+		const encodedData = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
+		return encodedData.blocks.map(block => this._chain.dataAccess.decode(block));
 	}
 
-	public abstract async run(receivedBlock: Block, peerId: string): Promise<void>;
-	public abstract async isValidFor(receivedBlock: Block, peerId: string): Promise<boolean>;
+	public abstract run(receivedBlock: Block, peerId: string): Promise<void>;
+	public abstract isValidFor(receivedBlock: Block, peerId: string): Promise<boolean>;
 }

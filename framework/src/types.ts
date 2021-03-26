@@ -46,11 +46,11 @@ export interface P2PRequestPeerPacket extends p2pTypes.P2PRequestPacket {
 }
 
 export interface RPCBlocksByIdData {
-	readonly blockId: string;
+	readonly blockId: Buffer;
 }
 
 export interface EventPostBlockData {
-	readonly block: string;
+	readonly block: Buffer;
 }
 
 export interface EventPostTransactionData {
@@ -58,15 +58,15 @@ export interface EventPostTransactionData {
 }
 
 export interface EventPostTransactionsAnnouncementData {
-	readonly transactionIds: string[];
+	readonly transactionIds: Buffer[];
 }
 
 export interface RPCTransactionsByIdData {
-	readonly transactionIds?: string[];
+	readonly transactionIds: Buffer[];
 }
 
 export interface RPCHighestCommonBlockData {
-	readonly ids: string[];
+	readonly ids: Buffer[];
 }
 /* End P2P */
 

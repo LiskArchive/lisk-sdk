@@ -83,7 +83,7 @@ describe('IPC Channel', () => {
 
 		it('should be able to subscribe and receive event', async () => {
 			// Act & Assert
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				client.subscribe('app:new:block', event => {
 					expect(event).toEqual('myData');
 					resolve();
@@ -107,14 +107,14 @@ describe('IPC Channel', () => {
 				params: 'myData',
 			} as JSONRPCNotification<unknown>);
 			await Promise.all([
-				new Promise(resolve => {
+				new Promise<void>(resolve => {
 					client.subscribe('app:new:block', event => {
 						expect(event).toEqual('myData');
 						resolve();
 					});
 				}),
 
-				await new Promise(resolve => {
+				await new Promise<void>(resolve => {
 					client2.subscribe('app:new:block', event => {
 						expect(event).toEqual('myData');
 						resolve();
@@ -135,14 +135,14 @@ describe('IPC Channel', () => {
 				params: 'myData',
 			} as JSONRPCNotification<unknown>);
 			await Promise.all([
-				new Promise(resolve => {
+				new Promise<void>(resolve => {
 					client2.subscribe('app:new:block', event => {
 						expect(event).toEqual('myData');
 						resolve();
 					});
 				}),
 
-				await new Promise(resolve => {
+				await new Promise<void>(resolve => {
 					client2.subscribe('app:new:block', event => {
 						expect(event).toEqual('myData');
 						resolve();
@@ -158,7 +158,7 @@ describe('IPC Channel', () => {
 				method: 'app:new:block',
 				params: 'myData',
 			} as JSONRPCNotification<unknown>);
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				client.subscribe('app:new:block', event => {
 					expect(event).toEqual('myData');
 					resolve();
@@ -175,7 +175,7 @@ describe('IPC Channel', () => {
 			});
 
 			// Act
-			await new Promise(resolve => {
+			await new Promise<void>(resolve => {
 				(client as any)._rpcClient.call('myAction', (_error: Error, data: string) => {
 					// Assert
 					expect(data).toEqual('myData');

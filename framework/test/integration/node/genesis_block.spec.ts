@@ -83,9 +83,9 @@ describe('genesis block', () => {
 		beforeEach(async () => {
 			// FIXME: Remove with #5572
 			validator.removeSchema('/block/header');
-			const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-				DefaultAccountProps
-			>(genesis.address);
+			const genesisAccount = await node[
+				'_chain'
+			].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 			const recipient = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
 				account.address,
 			);

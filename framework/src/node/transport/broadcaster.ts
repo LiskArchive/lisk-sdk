@@ -12,9 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+
 import { Logger } from '../../logger';
 import { Network } from '../network';
+import { transactionIdsSchema } from './schemas';
 
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
 
@@ -78,12 +81,10 @@ export class Broadcaster {
 		);
 		if (this._transactionIdQueue.length > 0) {
 			const transactionIds = this._transactionIdQueue.slice(0, this._config.releaseLimit);
-
+			const data = codec.encode(transactionIdsSchema, { transactionIds });
 			this._networkModule.broadcast({
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,
-				data: {
-					transactionIds: transactionIds.map(id => id.toString('hex')),
-				},
+				data,
 			});
 
 			this._transactionIdQueue = this._transactionIdQueue.filter(

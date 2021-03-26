@@ -366,12 +366,10 @@ export class DataAccess {
 		return codec.encode(this._accountSchema, account as any);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public decodeTransaction(buffer: Buffer): Transaction {
 		return Transaction.decode(buffer);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public encodeTransaction(tx: Transaction): Buffer {
 		return tx.getBytes();
 	}

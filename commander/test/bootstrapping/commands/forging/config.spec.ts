@@ -20,6 +20,10 @@ import { ConfigCommand } from '../../../../src/bootstrapping/commands/forging/co
 import { getConfig } from '../../../helpers/config';
 import * as readerUtils from '../../../../src/utils/reader';
 
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
+
 describe('forging:config command', () => {
 	const address = '67f7c759b8533acf4f25b6892dbda04323507b32';
 	const encryptedPassphraseString =
@@ -63,24 +67,18 @@ describe('forging:config command', () => {
 		jest
 			.spyOn(cryptography, 'stringifyEncryptedPassphrase')
 			.mockReturnValue(encryptedPassphraseString);
-		jest
-			.spyOn(readerUtils, 'getPassphraseFromPrompt')
-			// eslint-disable-next-line @typescript-eslint/require-await
-			.mockImplementation(async (name?: string) => {
-				if (name === 'passphrase') {
-					return defaultInputs.passphrase;
-				}
-				return '';
-			});
-		jest
-			.spyOn(readerUtils, 'getPasswordFromPrompt')
-			// eslint-disable-next-line @typescript-eslint/require-await
-			.mockImplementation(async (name?: string) => {
-				if (name === 'password') {
-					return defaultInputs.password;
-				}
-				return '';
-			});
+		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockImplementation(async (name?: string) => {
+			if (name === 'passphrase') {
+				return defaultInputs.passphrase;
+			}
+			return '';
+		});
+		jest.spyOn(readerUtils, 'getPasswordFromPrompt').mockImplementation(async (name?: string) => {
+			if (name === 'password') {
+				return defaultInputs.password;
+			}
+			return '';
+		});
 	});
 
 	describe('forging:config', () => {

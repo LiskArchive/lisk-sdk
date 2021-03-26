@@ -51,12 +51,8 @@ export const assignInternalInfo = (peerInfo: P2PPeerInfo, secret: number): P2PIn
 				peerKind: PeerKind.NONE,
 		  };
 
-export const sanitizeIncomingPeerInfo = (rawPeerInfo: unknown): P2PPeerInfo | undefined => {
-	if (!rawPeerInfo) {
-		return undefined;
-	}
-
-	const { ipAddress, port, ...restOfPeerInfo } = rawPeerInfo as ProtocolPeerInfo;
+export const sanitizeIncomingPeerInfo = (peerInfo: ProtocolPeerInfo): P2PPeerInfo => {
+	const { ipAddress, port, ...restOfPeerInfo } = peerInfo;
 
 	return {
 		peerId: constructPeerId(ipAddress, port),

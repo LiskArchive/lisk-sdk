@@ -116,18 +116,15 @@ export class MinHeap<T, K = bigint | number> {
 		this._nodes[index] = node;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	protected _parentIndex(index: number): number {
 		// eslint-disable-next-line no-bitwise
 		return (index - 1) >> 1;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	protected _leftChildIndex(index: number): number {
 		return index * 2 + 1;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	protected _rightChildIndex(index: number): number {
 		return index * 2 + 2;
 	}

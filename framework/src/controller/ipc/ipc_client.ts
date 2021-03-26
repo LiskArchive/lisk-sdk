@@ -41,7 +41,7 @@ export class IPCClient extends IPCSocket {
 	public async start(): Promise<void> {
 		await super.start();
 
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(
 					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
@@ -61,7 +61,7 @@ export class IPCClient extends IPCSocket {
 			this.pubSocket.removeAllListeners('error');
 		});
 
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(
 					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
@@ -81,7 +81,7 @@ export class IPCClient extends IPCSocket {
 			this.subSocket.removeAllListeners('error');
 		});
 
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(
 					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),

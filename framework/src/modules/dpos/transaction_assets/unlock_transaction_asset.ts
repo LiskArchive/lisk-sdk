@@ -56,7 +56,6 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 		},
 	};
 
-	// eslint-disable-next-line class-methods-use-this
 	public validate({ asset }: ValidateAssetContext<UnlockTransactionAssetContext>): void {
 		for (const unlock of asset.unlockObjects) {
 			if (unlock.unvoteHeight <= 0) {
@@ -82,7 +81,6 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 		}
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async apply({
 		asset,
 		transaction,

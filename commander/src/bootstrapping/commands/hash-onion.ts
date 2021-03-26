@@ -46,7 +46,6 @@ export class HashOnionCommand extends Command {
 		pretty: flagsWithParser.pretty,
 	};
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const {
 			flags: { output, count, distance, pretty },

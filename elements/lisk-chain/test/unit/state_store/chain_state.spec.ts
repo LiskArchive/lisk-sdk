@@ -25,9 +25,10 @@ describe('state store / chain_state', () => {
 	let stateStore: StateStore;
 	let db: any;
 
-	const lastBlockHeaders = ([{ height: 30 }, { height: 20 }] as unknown) as ReadonlyArray<
-		BlockHeader
-	>;
+	const lastBlockHeaders = ([
+		{ height: 30 },
+		{ height: 20 },
+	] as unknown) as ReadonlyArray<BlockHeader>;
 
 	beforeEach(() => {
 		db = new KVStore('temp');

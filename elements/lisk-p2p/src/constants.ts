@@ -15,6 +15,7 @@
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 
 // General P2P constants
+export const DEFAULT_MESSAGE_ENCODING_FORMAT = 'base64';
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_LOCALHOST_IP = '127.0.0.1';
 export const DEFAULT_BAN_TIME = 86400000; // Milliseconds in a day -> hours*minutes*seconds*milliseconds

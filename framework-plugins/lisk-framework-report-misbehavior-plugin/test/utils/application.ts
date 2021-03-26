@@ -78,7 +78,7 @@ export const closeApplicationEnv = async (
 };
 
 export const waitTill = async (ms: number) =>
-	new Promise(r =>
+	new Promise<void>(r =>
 		setTimeout(() => {
 			r();
 		}, ms),

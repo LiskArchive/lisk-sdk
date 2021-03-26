@@ -438,13 +438,11 @@ export class FinalityManager extends EventEmitter {
 		return Math.max(needleHeight + 1, searchTillHeight);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private async _getVotingLedger(stateStore: StateStore): Promise<VotingLedgerMap> {
 		const votingLedgerBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATOR_LEDGER_KEY);
 		return this._decodeVotingLedger(votingLedgerBuffer);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _decodeVotingLedger(bftVotingLedgerBuffer: Buffer | undefined): VotingLedgerMap {
 		const votingLedger =
 			bftVotingLedgerBuffer === undefined
@@ -478,7 +476,6 @@ export class FinalityManager extends EventEmitter {
 		return { ledger, validators };
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private async _setVotingLedger(
 		stateStore: StateStore,
 		votingLedgerMap: VotingLedgerMap,

@@ -12,14 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
-import { codec } from '@liskhq/lisk-codec';
-import { APP_EVENT_NETWORK_READY } from '../../constants';
+
+import {
+	APP_EVENT_NETWORK_READY,
+	APP_EVENT_NETWORK_EVENT,
+	EVENT_POST_BLOCK,
+	EVENT_POST_NODE_INFO,
+	EVENT_POST_TRANSACTION_ANNOUNCEMENT,
+} from '../../constants';
+import { InMemoryChannel } from '../../controller/channels';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
-import { InMemoryChannel } from '../../controller/channels';
 import { NetworkConfig } from '../../types';
 import { customNodeInfoSchema } from './schema';
 
@@ -48,7 +56,11 @@ const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
-const REMOTE_EVENTS_WHITE_LIST = ['postTransactionsAnnouncement', 'postBlock', 'postNodeInfo'];
+const REMOTE_EVENTS_WHITE_LIST = [
+	EVENT_POST_BLOCK,
+	EVENT_POST_NODE_INFO,
+	EVENT_POST_TRANSACTION_ANNOUNCEMENT,
+];
 
 interface NodeInfoOptions {
 	[key: string]: unknown;
@@ -90,6 +102,7 @@ interface P2PRPCEndpoints {
 }
 
 export class Network {
+	public readonly events: EventEmitter;
 	private readonly _options: NetworkConfig;
 	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
@@ -108,6 +121,7 @@ export class Network {
 		this._networkVersion = networkVersion;
 		this._endpoints = {};
 		this._secret = undefined;
+		this.events = new EventEmitter();
 	}
 
 	public async bootstrap(networkIdentifier: Buffer): Promise<void> {
@@ -203,6 +217,7 @@ export class Network {
 		// ---- START: Bind event handlers ----
 		this._p2p.on(EVENT_NETWORK_READY, () => {
 			this._logger.debug('Node connected to the network');
+			this.events.emit(APP_EVENT_NETWORK_READY);
 			this._channel.publish(APP_EVENT_NETWORK_READY);
 		});
 
@@ -344,7 +359,11 @@ export class Network {
 
 		this._p2p.on(
 			EVENT_MESSAGE_RECEIVED,
-			(packet: { readonly peerId: string; readonly event: string }) => {
+			(packet: {
+				readonly peerId: string;
+				readonly event: string;
+				readonly data: Buffer | undefined;
+			}) => {
 				if (!REMOTE_EVENTS_WHITE_LIST.includes(packet.event)) {
 					const error = new Error(`Sent event "${packet.event}" is not permitted.`);
 					this._logger.error(
@@ -363,7 +382,7 @@ export class Network {
 					},
 					'EVENT_MESSAGE_RECEIVED: Received inbound message',
 				);
-				this._channel.publish('app:network:event', packet);
+				this.events.emit(APP_EVENT_NETWORK_EVENT, packet);
 			},
 		);
 

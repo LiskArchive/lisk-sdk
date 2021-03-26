@@ -304,7 +304,6 @@ export class TransactionPool {
 		return processableTransactions;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _calculateFeePriority(trx: Transaction): bigint {
 		return (trx.fee - this._calculateMinFee(trx)) / BigInt(trx.getBytes().length);
 	}
@@ -320,7 +319,6 @@ export class TransactionPool {
 		);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _getStatus(errorResponse: TransactionFailedResponse): TransactionStatus {
 		if (
 			errorResponse.code === ERR_TRANSACTION_VERIFICATION_FAIL &&

@@ -195,7 +195,6 @@ export class Application {
 		}
 
 		this.config.plugins[pluginAlias] = Object.assign(
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this.config.plugins[pluginAlias] ?? {},
 			options,
 		);
@@ -473,7 +472,6 @@ export class Application {
 		});
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private async _setupDirectories(): Promise<void> {
 		const dirs = systemDirs(this.config.label, this.config.rootPath);
 		await Promise.all(Array.from(Object.values(dirs)).map(async dirPath => fs.ensureDir(dirPath)));

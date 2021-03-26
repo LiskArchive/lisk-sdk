@@ -33,6 +33,9 @@ describe('subscribe to event', () => {
 		};
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
+		reportMisbehaviorPlugin['_logger'] = {
+			error: jest.fn(),
+		} as any;
 	});
 
 	it('should register listener to network:event', () => {

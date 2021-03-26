@@ -31,7 +31,6 @@ class MyPlugin extends BasePlugin {
 		super(options as never);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias() {
 		return 'my_plugin';
 	}
@@ -44,22 +43,18 @@ class MyPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events() {
 		return [];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions() {
 		return {};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async load(_channel: BaseChannel) {
 		return Promise.resolve();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async unload() {
 		return Promise.resolve();
 	}

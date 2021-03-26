@@ -49,17 +49,14 @@ export class HTTPAPIPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): object {
 		return config.defaultConfig;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events(): EventsDefinition {
 		return [];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {};
 	}
@@ -79,7 +76,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 	}
 
 	public async unload(): Promise<void> {
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			this._server.close(err => {
 				if (err) {
 					reject(err);

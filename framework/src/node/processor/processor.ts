@@ -454,7 +454,6 @@ export class Processor {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _createScopedStateStore(stateStore: StateStore, moduleName: string): ModuleStateStore {
 		return {
 			account: {

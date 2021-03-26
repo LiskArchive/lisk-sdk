@@ -11,6 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export { ConnectionState, Peer, PeerConfig } from './base';
+export { ConnectionState, Peer } from './base';
 export * from './inbound';
 export * from './outbound';

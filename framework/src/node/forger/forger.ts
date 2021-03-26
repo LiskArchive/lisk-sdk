@@ -547,7 +547,6 @@ export class Forger {
 		return delegateConfig.hashOnion;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _filterUsedHashOnions(
 		usedHashOnions: UsedHashOnion[],
 		finalizedHeight: number,

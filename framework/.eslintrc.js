@@ -1,5 +1,5 @@
 module.exports = {
-	extends: ['../.eslintrc.js'],
+	extends: ['lisk-base/ts'],
 	parserOptions: {
 		project: './tsconfig.json',
 		tsconfigRootDir: __dirname,

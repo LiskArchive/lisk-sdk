@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 import { codec } from '@liskhq/lisk-codec';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 
 import {
 	DEFAULT_BAN_TIME,
@@ -75,7 +75,7 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import { PeerBook } from './peer_book';
-import { PeerPool, PeerPoolConfig } from './peer_pool';
+import { PeerPool } from './peer_pool';
 import { PeerServer } from './peer_server';
 import {
 	IncomingPeerConnection,
@@ -91,6 +91,7 @@ import {
 	ProtocolPeerInfo,
 	RPCSchemas,
 	PeerInfo,
+	PeerPoolConfig,
 	NetworkStats,
 } from './types';
 import {
@@ -104,7 +105,13 @@ import {
 	selectPeersForSend,
 	validatePeerCompatibility,
 } from './utils';
-import { nodeInfoSchema, mergeCustomSchema, defaultRPCSchemas, peerInfoSchema } from './schema';
+import {
+	nodeInfoSchema,
+	mergeCustomSchema,
+	defaultRPCSchemas,
+	peerInfoSchema,
+	peerRequestResponseSchema,
+} from './schema';
 import { encodeNodeInfo, encodePeerInfo } from './utils/codec';
 import { isEmptyMessage } from './utils/validate';
 
@@ -179,6 +186,7 @@ const createPeerPoolConfig = (config: P2PConfig, peerBook: PeerBook): PeerPoolCo
 		? {
 				nodeInfo: mergeCustomSchema(nodeInfoSchema, config.customNodeInfoSchema),
 				peerInfo: peerInfoSchema,
+				peerRequestResponse: peerRequestResponseSchema,
 		  }
 		: defaultRPCSchemas,
 });
@@ -257,10 +265,12 @@ export class P2P extends EventEmitter {
 			? {
 					nodeInfo: mergeCustomSchema(nodeInfoSchema, config.customNodeInfoSchema),
 					peerInfo: peerInfoSchema,
+					peerRequestResponse: peerRequestResponseSchema,
 			  }
 			: defaultRPCSchemas;
 		codec.addSchema(this._rpcSchemas.peerInfo);
 		codec.addSchema(this._rpcSchemas.nodeInfo);
+		codec.addSchema(this._rpcSchemas.peerRequestResponse);
 
 		this._networkStats = {
 			startTime: Date.now(),
@@ -311,10 +321,7 @@ export class P2P extends EventEmitter {
 			// Re-emit the message for external use.
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				// This 'decode' only happens with the successful case after decoding in "peer"
-				const decodedNodeInfo = codec.decode(
-					nodeInfoSchema,
-					Buffer.from(message.data as string, 'hex'),
-				);
+				const decodedNodeInfo = codec.decode(nodeInfoSchema, message.data as Buffer);
 
 				this.emit(EVENT_MESSAGE_RECEIVED, {
 					event: message.event,
@@ -567,6 +574,10 @@ export class P2P extends EventEmitter {
 		return this._isActive;
 	}
 
+	public get nodeInfo(): P2PNodeInfo {
+		return this._nodeInfo;
+	}
+
 	/**
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on Peers to give them our new node status.
@@ -578,10 +589,6 @@ export class P2P extends EventEmitter {
 		};
 
 		this._peerPool.applyNodeInfo(this._nodeInfo);
-	}
-
-	public get nodeInfo(): P2PNodeInfo {
-		return this._nodeInfo;
 	}
 
 	public applyPenalty(peerPenalty: P2PPenalty): void {
@@ -647,28 +654,38 @@ export class P2P extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const response = await this._peerPool.request(packet);
-
+		const bufferData = this._getBufferData(packet.data);
+		const response = await this._peerPool.request({
+			procedure: packet.procedure,
+			data: bufferData,
+		});
 		return response;
 	}
 
-	public send(message: P2PMessagePacket): void {
-		this._peerPool.send(message);
+	public send(packet: P2PMessagePacket): void {
+		const bufferData = this._getBufferData(packet.data);
+		this._peerPool.send({ event: packet.event, data: bufferData });
 	}
 
-	public broadcast(message: P2PMessagePacket): void {
-		this._peerPool.broadcast(message);
+	public broadcast(packet: P2PMessagePacket): void {
+		const bufferData = this._getBufferData(packet.data);
+		this._peerPool.broadcast({ event: packet.event, data: bufferData });
 	}
 
 	public async requestFromPeer(
 		packet: P2PRequestPacket,
 		peerId: string,
 	): Promise<P2PResponsePacket> {
-		return this._peerPool.requestFromPeer(packet, peerId);
+		const bufferData = this._getBufferData(packet.data);
+		return this._peerPool.requestFromPeer(
+			{ procedure: packet.procedure, data: bufferData },
+			peerId,
+		);
 	}
 
-	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
-		this._peerPool.sendToPeer(message, peerId);
+	public sendToPeer(packet: P2PMessagePacket, peerId: string): void {
+		const bufferData = this._getBufferData(packet.data);
+		this._peerPool.sendToPeer({ event: packet.event, data: bufferData }, peerId);
 	}
 
 	public async start(): Promise<void> {
@@ -743,9 +760,7 @@ export class P2P extends EventEmitter {
 
 			return;
 		}
-		const encodedNodeInfo = encodeNodeInfo(this._rpcSchemas.nodeInfo, this._nodeInfo).toString(
-			'hex',
-		);
+		const encodedNodeInfo = encodeNodeInfo(this._rpcSchemas.nodeInfo, this._nodeInfo);
 		request.end(encodedNodeInfo);
 	}
 
@@ -854,25 +869,36 @@ export class P2P extends EventEmitter {
 			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
-			encodePeerInfo(this._rpcSchemas.peerInfo, peer).toString('hex'),
+			encodePeerInfo(this._rpcSchemas.peerInfo, peer),
 		);
 		const validatedPeerList =
 			getByteSize(encodedPeersList) < wsMaxPayload
 				? encodedPeersList
 				: encodedPeersList.slice(0, safeMaxPeerInfoLength);
 
-		const response = {
-			success: true,
+		const encodedResponse = codec.encode(this._rpcSchemas.peerRequestResponse, {
 			peers: validatedPeerList,
-		};
+		});
 
-		request.end(response);
+		request.end(encodedResponse);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _removeListeners(emitter: PeerServer | PeerPool): void {
 		emitter.eventNames().forEach((eventName: string | symbol) => {
 			emitter.removeAllListeners(eventName);
 		});
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBufferData(data?: unknown): Buffer | undefined {
+		if (data === undefined) {
+			return undefined;
+		}
+
+		if (Buffer.isBuffer(data)) {
+			return data;
+		}
+
+		return Buffer.from(JSON.stringify(data), 'utf8');
 	}
 }

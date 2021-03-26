@@ -96,7 +96,7 @@ describe('WSChannel', () => {
 			const eventInfo = { module: 'module1', name: 'my:Event', data: { prop1: 'prop1' } };
 
 			await expect(
-				new Promise(resolve => {
+				new Promise<void>(resolve => {
 					channel.subscribe('module1:my:Event', event => {
 						expect(event).toEqual(eventInfo.data);
 						resolve();

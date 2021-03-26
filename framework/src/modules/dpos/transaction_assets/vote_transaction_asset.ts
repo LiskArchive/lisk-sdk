@@ -52,7 +52,6 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 		},
 	};
 
-	// eslint-disable-next-line class-methods-use-this
 	public validate({ asset }: ValidateAssetContext<VoteTransactionAssetContext>): void {
 		let upVoteCount = 0;
 		let downVoteCount = 0;
@@ -95,7 +94,6 @@ export class VoteTransactionAsset extends BaseAsset<VoteTransactionAssetContext>
 		}
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async apply({
 		asset,
 		transaction,

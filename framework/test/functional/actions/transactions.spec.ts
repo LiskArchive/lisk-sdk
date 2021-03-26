@@ -45,9 +45,9 @@ describe('Transaction related actions', () => {
 
 	describe('postTransaction', () => {
 		it('should successfully post valid transaction', async () => {
-			const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress<
-				DefaultAccountProps
-			>(genesis.address);
+			const genesisAccount = await app['_node'][
+				'_chain'
+			].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 			const accountWithoutBalance = nodeUtils.createAccount();
 			const fundingTx = createTransferTransaction({
 				nonce: genesisAccount.sequence.nonce,

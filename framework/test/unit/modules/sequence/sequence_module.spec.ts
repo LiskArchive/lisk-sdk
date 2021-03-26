@@ -20,6 +20,10 @@ import { InvalidNonceError, SequenceModule } from '../../../../src/modules/seque
 import { TransferAsset } from '../../../../src/modules/token';
 import * as testing from '../../../../src/testing';
 
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
+
 describe('sequence module', () => {
 	let sequenceModule: SequenceModule;
 	const senderAddress = cryptography.getRandomBytes(20);
@@ -82,7 +86,7 @@ describe('sequence module', () => {
 			const context = testing.createTransactionApplyContext({ transaction });
 			jest.spyOn(context.stateStore.account, 'get');
 			when(context.stateStore.account.get as any)
-				.calledWith()
+				.calledWith(senderAddress)
 				.mockResolvedValue(senderAccount as never);
 
 			let receivedError;
@@ -112,7 +116,7 @@ describe('sequence module', () => {
 			const context = testing.createTransactionApplyContext({ transaction });
 			jest.spyOn(context.stateStore.account, 'get');
 			when(context.stateStore.account.get as any)
-				.calledWith()
+				.calledWith(senderAddress)
 				.mockResolvedValue(senderAccount as never);
 
 			let receivedError;
@@ -142,7 +146,7 @@ describe('sequence module', () => {
 			jest.spyOn(context.stateStore.account, 'set');
 			const updatedAccount = { ...senderAccount, sequence: { ...senderAccount.sequence } };
 			when(context.stateStore.account.get as any)
-				.calledWith()
+				.calledWith(senderAddress)
 				.mockResolvedValue(updatedAccount as never);
 
 			// Act
