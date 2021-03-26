@@ -15,23 +15,40 @@
  */
 
 import { BFT } from '@liskhq/lisk-bft';
-import { Block, Chain, DataAccess, GenesisBlock, Validator, BlockHeader } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import {
+	Block,
+	Chain,
+	DataAccess,
+	GenesisBlock,
+	Validator,
+	BlockHeader,
+	Transaction,
+	AccountDefaultProps,
+} from '@liskhq/lisk-chain';
+import {
+	getNetworkIdentifier,
+	getPrivateAndPublicKeyFromPassphrase,
+	getAddressAndPublicKeyFromPassphrase,
+} from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 
+import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
 import { Processor } from '../node/processor';
 import { InMemoryChannel } from '../controller';
 import { loggerMock, channelMock } from './mocks';
 import { createBlock } from './create_block';
 import {
 	defaultConfig,
+	defaultAccounts,
+	createDefaultAccount,
 	getHashOnionFromDefaultConfig,
 	getPassphraseFromDefaultConfig,
+	defaultFaucetAccount,
 } from './fixtures';
-import { createDB, removeDB, getAccountSchemaFromModules } from './utils';
+import { createDB, removeDB, getAccountSchemaFromModules, getModuleInstance } from './utils';
 import { ApplicationConfig, GenesisConfig } from '../types';
-import { ModuleClass } from './types';
+import { ModuleClass, PartialAccount } from './types';
 import { createGenesisBlock } from './create_genesis_block';
 
 type Options = {
@@ -40,12 +57,18 @@ type Options = {
 	passphrase?: string;
 };
 
-interface BlockProcessingParams {
-	modules: ModuleClass[];
+interface BlockProcessingParams<T = AccountDefaultProps> {
+	modules?: ModuleClass[];
 	options?: Options;
+	accounts?: PartialAccount<T>[];
+	initDelegates?: Buffer[];
 }
 
 export interface BlockProcessingEnv {
+	createBlock: (payload?: Transaction[], timestamp?: number) => Promise<Block>;
+	getProcessor: () => Processor;
+	getChain: () => Chain;
+	getBlockchainDB: () => KVStore;
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
@@ -55,6 +78,8 @@ export interface BlockProcessingEnv {
 	getNetworkId: () => Buffer;
 	cleanup: (config: Options) => Promise<void>;
 }
+
+const defaultModules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
 
 const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 	const mergedConfig = objects.mergeDeep(
@@ -79,6 +104,7 @@ const getProcessor = (
 	params: BlockProcessingParams,
 ): Processor => {
 	const channel = (channelMock as unknown) as InMemoryChannel;
+	const modules = params.modules ?? defaultModules;
 
 	const chainModule = new Chain({
 		db,
@@ -91,7 +117,7 @@ const getProcessor = (
 		blockTime: appConfig.genesisConfig.blockTime,
 		minFeePerByte: appConfig.genesisConfig.minFeePerByte,
 		baseFees: appConfig.genesisConfig.baseFees,
-		accountSchemas: getAccountSchemaFromModules(params.modules),
+		accountSchemas: getAccountSchemaFromModules(modules),
 	});
 
 	const bftModule = new BFT({
@@ -107,6 +133,13 @@ const getProcessor = (
 		bftModule,
 	});
 
+	for (const InstantiableModule of modules) {
+		const module = getModuleInstance(InstantiableModule, {
+			genesisConfig: appConfig.genesisConfig,
+		});
+		processor.register(module);
+	}
+
 	return processor;
 };
 
@@ -116,21 +149,109 @@ const getNextTimestamp = (processor: Processor, previousBlock: BlockHeader) => {
 	return processor['_chain'].slots.getSlotTime(previousSlotNumber + 1);
 };
 
-const getNextValidator = async (
+const getMaxHeightPreviouslyForged = async (
 	processor: Processor,
 	previousBlock: BlockHeader,
-): Promise<Validator> => {
-	const nextTimestamp = getNextTimestamp(processor, previousBlock);
-	const validator = await processor['_chain'].getValidator(nextTimestamp);
+	passphrase: string,
+): Promise<number> => {
+	const NUM_OF_ROUNDS = 3;
+	const NUM_OF_DELEGATES =
+		defaultConfig.genesisConfig.activeDelegates + defaultConfig.genesisConfig.standbyDelegates;
+	const toHeight = previousBlock.height;
+	const fromHeight = Math.max(0, toHeight - NUM_OF_DELEGATES * NUM_OF_ROUNDS);
+	const { publicKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const lastBlockHeaders = await processor['_chain'].dataAccess.getBlockHeadersByHeightBetween(
+		fromHeight,
+		toHeight,
+	);
+	const maxHeightPreviouslyForged =
+		lastBlockHeaders.find(h => h.generatorPublicKey.equals(publicKey))?.height ?? 0;
 
-	return validator;
+	return maxHeightPreviouslyForged;
+};
+
+const getHashOnion = async (
+	processor: Processor,
+	previousBlock: BlockHeader,
+	passphrase: string,
+): Promise<Buffer> => {
+	const fromHeight = 0;
+	const toHeight = previousBlock.height;
+	const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(passphrase);
+	const lastBlockHeaders = await processor['_chain'].dataAccess.getBlockHeadersByHeightBetween(
+		fromHeight,
+		toHeight,
+	);
+	const hashCount = lastBlockHeaders.filter(h => h.generatorPublicKey.equals(publicKey)).length;
+
+	return getHashOnionFromDefaultConfig(address, hashCount);
+};
+
+const createProcessableBlock = async (
+	processor: Processor,
+	networkIdentifier: Buffer,
+	payload: Transaction[],
+	timestamp?: number,
+): Promise<Block> => {
+	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
+	const previousBlockHeader = processor['_chain'].lastBlock.header;
+	const nextTimestamp = timestamp ?? getNextTimestamp(processor, previousBlockHeader);
+	const validator = await processor['_chain'].getValidator(nextTimestamp);
+	const passphrase = getPassphraseFromDefaultConfig(validator.address);
+	const seedReveal = await getHashOnion(processor, previousBlockHeader, passphrase);
+	const maxHeightPrevoted = await processor['_bft'].getMaxHeightPrevoted();
+	const reward = processor['_chain'].calculateDefaultReward(previousBlockHeader.height + 1);
+	const maxHeightPreviouslyForged = await getMaxHeightPreviouslyForged(
+		processor,
+		previousBlockHeader,
+		passphrase,
+	);
+
+	return createBlock({
+		passphrase,
+		networkIdentifier,
+		timestamp: nextTimestamp,
+		previousBlockID: previousBlockHeader.id,
+		header: {
+			height: previousBlockHeader.height + 1,
+			reward,
+			asset: {
+				maxHeightPreviouslyForged,
+				maxHeightPrevoted,
+				seedReveal,
+			},
+		},
+		payload,
+	});
+};
+
+const getDefaultAccountsWithModules = () => {
+	const faucetAccount = {
+		address: defaultFaucetAccount.address,
+		token: { balance: BigInt(defaultFaucetAccount.balance) },
+		sequence: { nonce: BigInt('0') },
+	};
+	const accounts = defaultAccounts().map((a, i) =>
+		createDefaultAccount(defaultModules, {
+			address: a.address,
+			dpos: {
+				delegate: {
+					username: `delegate_${i}`,
+				},
+			},
+		}),
+	);
+
+	return [...accounts, faucetAccount];
 };
 
 export const getBlockProcessingEnv = async (
 	params: BlockProcessingParams,
 ): Promise<BlockProcessingEnv> => {
 	const appConfig = getAppConfig(params.options?.genesisConfig);
-	const { genesisBlock } = createGenesisBlock({ modules: params.modules });
+	const modules = params.modules ?? defaultModules;
+	const accounts = params.accounts ?? getDefaultAccountsWithModules();
+	const { genesisBlock } = createGenesisBlock({ modules, accounts });
 	const networkIdentifier = getNetworkIdentifier(
 		genesisBlock.header.id,
 		appConfig.genesisConfig.communityIdentifier,
@@ -140,41 +261,23 @@ export const getBlockProcessingEnv = async (
 	await processor.init(genesisBlock);
 
 	return {
+		createBlock: async (payload: Transaction[] = [], timestamp?: number): Promise<Block> =>
+			createProcessableBlock(processor, networkIdentifier, payload, timestamp),
+		getChain: () => processor['_chain'],
+		getProcessor: () => processor,
+		getBlockchainDB: () => db,
 		process: async (block): Promise<void> => processor.process(block),
 		processUntilHeight: async (height): Promise<void> => {
 			for (let index = 0; index < height; index += 1) {
-				// Get previous block before creating and processing new block
-				const previousBlockHeader = processor['_chain'].lastBlock.header;
-				// Get next validatgetPassphraseFromDefaultConfigimestamp info
-				const nextTimestamp = getNextTimestamp(processor, previousBlockHeader);
-				const validator = await getNextValidator(processor, previousBlockHeader);
-				const passphrase = getPassphraseFromDefaultConfig(validator.address);
-				const seedReveal = getHashOnionFromDefaultConfig(validator.address, index);
-				const maxHeightPrevoted = await processor['_bft'].getMaxHeightPrevoted();
-
-				const nextBlock = createBlock({
-					passphrase,
-					networkIdentifier,
-					timestamp: nextTimestamp,
-					previousBlockID: previousBlockHeader.id,
-					header: {
-						height: previousBlockHeader.height + 1,
-						asset: {
-							maxHeightPreviouslyForged: previousBlockHeader.height,
-							maxHeightPrevoted,
-							seedReveal,
-						},
-					},
-					payload: [],
-				});
-
+				const nextBlock = await createProcessableBlock(processor, networkIdentifier, []);
 				await processor.process(nextBlock);
 			}
 		},
 		getLastBlock: () => processor['_chain'].lastBlock,
 		getValidators: async (): Promise<Validator[]> => processor['_chain'].getValidators(),
 		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
-			const validator = await getNextValidator(processor, previousBlockHeader);
+			const nextTimestamp = getNextTimestamp(processor, previousBlockHeader);
+			const validator = await processor['_chain'].getValidator(nextTimestamp);
 			const passphrase = getPassphraseFromDefaultConfig(validator.address);
 
 			return passphrase;

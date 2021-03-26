@@ -14,7 +14,6 @@
 
 import { getRandomBytes, getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 
-import { TokenModule } from '../../../src';
 import { createBlock } from '../../../src/testing';
 import {
 	getBlockProcessingEnv,
@@ -25,12 +24,10 @@ import { defaultConfig } from '../../../src/testing/fixtures/config';
 describe('getBlockProcessingEnv', () => {
 	let blockProcessEnv: BlockProcessingEnv;
 	const databasePath = '/tmp/lisk/block_process/test';
-	const modules = [TokenModule];
 	const { blockTime } = defaultConfig.genesisConfig;
 
 	beforeEach(async () => {
 		blockProcessEnv = await getBlockProcessingEnv({
-			modules,
 			options: {
 				databasePath,
 			},
