@@ -70,9 +70,14 @@ describe('Peers endpoint', () => {
 		describe('500 - Some internal operation fails to process', () => {
 			it('should throw 500 error when channel.invoke fails', async () => {
 				// Arrange
-				appEnv.application['_channel'].invoke = jest.fn();
+				appEnv.application['_controller']['_inMemoryPlugins']['httpApi'][
+					'plugin'
+				]._channel.invoke = jest.fn();
 				// Mock channel invoke only when app:getConnectedPeers is called
-				when(appEnv.application['_channel'].invoke)
+				when(
+					appEnv.application['_controller']['_inMemoryPlugins']['httpApi']['plugin']._channel
+						.invoke,
+				)
 					.calledWith('app:getConnectedPeers')
 					.mockRejectedValue(new Error('test') as never);
 				const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));

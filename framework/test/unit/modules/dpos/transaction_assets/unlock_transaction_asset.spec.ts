@@ -457,7 +457,7 @@ describe('UnlockTransactionAsset', () => {
 
 		describe('given the delegate is currently being punished', () => {
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 and unvoteHeight + 260,000 blocks', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 780000 + 10;
 
