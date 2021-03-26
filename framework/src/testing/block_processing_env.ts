@@ -133,12 +133,12 @@ const getProcessor = (
 		bftModule,
 	});
 
-	modules.forEach(InstantiableModule => {
+	for (const InstantiableModule of modules) {
 		const module = getModuleInstance(InstantiableModule, {
 			genesisConfig: appConfig.genesisConfig,
 		});
 		processor.register(module);
-	});
+	}
 
 	return processor;
 };
@@ -155,9 +155,10 @@ const getMaxHeightPreviouslyForged = async (
 	passphrase: string,
 ): Promise<number> => {
 	const NUM_OF_ROUNDS = 3;
-	const NUM_OF_DELEGATES = 103;
-	const fromHeight = Math.max(0, previousBlock.height - NUM_OF_DELEGATES * NUM_OF_ROUNDS);
+	const NUM_OF_DELEGATES =
+		defaultConfig.genesisConfig.activeDelegates + defaultConfig.genesisConfig.standbyDelegates;
 	const toHeight = previousBlock.height;
+	const fromHeight = Math.max(0, toHeight - NUM_OF_DELEGATES * NUM_OF_ROUNDS);
 	const { publicKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const lastBlockHeaders = await processor['_chain'].dataAccess.getBlockHeadersByHeightBetween(
 		fromHeight,
@@ -192,9 +193,8 @@ const createProcessableBlock = async (
 	payload: Transaction[],
 	timestamp?: number,
 ): Promise<Block> => {
-	// Get previous block before creating and processing new block
+	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
 	const previousBlockHeader = processor['_chain'].lastBlock.header;
-	// Get next validatgetPassphraseFromDefaultConfigimestamp info
 	const nextTimestamp = timestamp ?? getNextTimestamp(processor, previousBlockHeader);
 	const validator = await processor['_chain'].getValidator(nextTimestamp);
 	const passphrase = getPassphraseFromDefaultConfig(validator.address);
