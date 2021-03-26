@@ -18,13 +18,21 @@ import { codec } from '@liskhq/lisk-codec';
 import { join } from 'path';
 import { Block } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
+import { homedir } from 'os';
+import { existsSync, rmdirSync } from 'fs-extra';
 
 import { ModuleClass } from './types';
-import { defaultConfig } from './fixtures';
+import {
+	defaultConfig,
+	defaultAccounts,
+	defaultFaucetAccount,
+	createDefaultAccount,
+} from './fixtures';
 import { createGenesisBlock } from './create_genesis_block';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
 import { InstantiablePlugin } from '../plugins/base_plugin';
+import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
 
 interface ApplicationEnvConfig {
 	modules: ModuleClass[];
@@ -123,3 +131,60 @@ export class ApplicationEnv {
 		return application;
 	}
 }
+
+export const createDefaultApplicationEnv = (
+	appEnvConfig: Partial<ApplicationEnvConfig>,
+): ApplicationEnv => {
+	const config = objects.mergeDeep(
+		{},
+		{ ...defaultConfig },
+		{
+			...appEnvConfig.config,
+			logger: {
+				consoleLogLevel: 'fatal',
+				fileLogLevel: 'fatal',
+				logFileName: 'lisk.log',
+			},
+		},
+	) as PartialApplicationConfig;
+	const rootPath = config.rootPath ?? defaultConfig.rootPath;
+	const label = config.label ?? defaultConfig.label;
+
+	// Ensure directory is cleaned for each application env
+	const dataPath = join(rootPath.replace('~', homedir()), label);
+	if (existsSync(dataPath)) {
+		rmdirSync(dataPath, { recursive: true });
+	}
+
+	const defaultModules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
+	const modules = appEnvConfig.modules ?? defaultModules;
+
+	const faucetAccount = {
+		address: defaultFaucetAccount.address,
+		token: { balance: BigInt(defaultFaucetAccount.balance) },
+		sequence: { nonce: BigInt('0') },
+	};
+	const defaultDelegateAccounts = defaultAccounts().map((a, i) =>
+		createDefaultAccount(modules, {
+			address: a.address,
+			dpos: {
+				delegate: {
+					username: `delegate_${i}`,
+				},
+			},
+		}),
+	);
+	const accounts = [faucetAccount, ...defaultDelegateAccounts];
+	const { genesisBlockJSON } = createGenesisBlock({
+		modules,
+		accounts,
+	});
+
+	const appEnv = new ApplicationEnv({
+		...appEnvConfig,
+		modules,
+		genesisBlockJSON,
+	});
+
+	return appEnv;
+};

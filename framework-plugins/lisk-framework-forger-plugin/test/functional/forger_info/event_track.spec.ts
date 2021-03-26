@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import {
-	closeApplicationEnv,
-	createApplicationEnv,
 	getForgerInfoByAddress,
 	getForgerInfoByPublicKey,
 	getForgerPlugin,
@@ -23,6 +21,7 @@ import {
 } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
+import { ForgerPlugin } from '../../../src';
 
 describe('Forger Info', () => {
 	let appEnv: testing.ApplicationEnv;
@@ -30,14 +29,25 @@ describe('Forger Info', () => {
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('event_track');
+		const rootPath = '~/.lisk/forger-plugin';
+		const config = {
+			rootPath,
+			label: 'event_track_functional',
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ForgerPlugin],
+		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
 		networkIdentifier = appEnv.networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('New Block', () => {

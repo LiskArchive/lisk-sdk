@@ -12,25 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
-import {
-	createApplicationEnv,
-	getForgerInfoByAddress,
-	getForgerPlugin,
-	closeApplicationEnv,
-} from '../utils/application';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { getForgerInfoByAddress, getForgerPlugin, waitTill } from '../utils/application';
+import { ForgerPlugin } from '../../src';
 
 describe('forger:getForgingInfo action', () => {
 	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('forging_info_spec');
+		const rootPath = '~/.lisk/forger-plugin';
+		const config = {
+			rootPath,
+			label: 'forging_info_functional',
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ForgerPlugin],
+		});
 		await appEnv.startApplication();
 		await appEnv.waitNBlocks(2);
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	it('should return list of all forgers info', async () => {
@@ -48,6 +55,7 @@ describe('forger:getForgingInfo action', () => {
 
 		// Assert
 		expect(forgersInfoList).toHaveLength(forgersInfo.length);
+		await waitTill(2000);
 		expect(forgersInfoList).toMatchSnapshot();
 		expect(
 			(forgersInfoList as any).filter(

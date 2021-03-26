@@ -11,110 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { join } from 'path';
-import { homedir } from 'os';
-import { existsSync, rmdirSync } from 'fs-extra';
-import {
-	Application,
-	KeysModule,
-	PartialApplicationConfig,
-	SequenceModule,
-	testing,
-	TokenModule,
-	DPoSModule,
-} from 'lisk-framework';
+import { Application } from 'lisk-framework';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 
 import { ForgerPlugin } from '../../src';
 import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
 import { ForgerInfo } from '../../src/types';
 
-const forgerApiPort = 5001;
-
 export const getForgerPlugin = (app: Application): ForgerPlugin => {
 	return app['_controller']['_inMemoryPlugins'][ForgerPlugin.alias]['plugin'];
-};
-
-export const createApplicationEnv = (
-	label: string,
-	options: {
-		consoleLogLevel?: string;
-		clearDB?: boolean;
-		appConfig?: { plugins: { forger: object } };
-	} = {
-		clearDB: true,
-		consoleLogLevel: 'fatal',
-		appConfig: { plugins: { forger: {} } },
-	},
-): testing.ApplicationEnv => {
-	const rootPath = '~/.lisk/forger-plugin';
-	const config = {
-		...testing.fixtures.defaultConfig,
-		rootPath,
-		label,
-		logger: {
-			consoleLogLevel: options.consoleLogLevel ?? 'fatal',
-			fileLogLevel: 'fatal',
-			logFileName: 'lisk.log',
-		},
-		plugins: {
-			forger: {
-				port: forgerApiPort,
-				...options.appConfig?.plugins.forger,
-			},
-		},
-	} as PartialApplicationConfig;
-
-	const dataPath = join(homedir(), rootPath, label);
-	if (existsSync(dataPath)) {
-		rmdirSync(dataPath, { recursive: true });
-	}
-	const modules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
-
-	const defaultFaucetAccount = {
-		address: testing.fixtures.defaultFaucetAccount.address,
-		token: { balance: BigInt(testing.fixtures.defaultFaucetAccount.balance) },
-		dpos: {
-			delegate: {
-				username: 'delegate_1',
-			},
-		},
-	};
-	const accounts = testing.fixtures.defaultAccounts().map((a, i) =>
-		testing.fixtures.createDefaultAccount(modules, {
-			address: a.address,
-			dpos: {
-				delegate: {
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					username: `delegate_${i}`,
-				},
-			},
-		}),
-	);
-	const { genesisBlockJSON } = testing.createGenesisBlock({
-		modules,
-		accounts: [defaultFaucetAccount, ...accounts],
-	});
-
-	const appEnv = new testing.ApplicationEnv({
-		modules,
-		config,
-		plugins: [ForgerPlugin],
-		genesisBlockJSON,
-	});
-	validator.removeSchema('/block/header');
-
-	return appEnv;
-};
-
-export const closeApplicationEnv = async (
-	appEnv: testing.ApplicationEnv,
-	options: { clearDB: boolean } = { clearDB: true },
-): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-	await appEnv.stopApplication(options);
 };
 
 export const waitTill = async (ms: number): Promise<void> =>
