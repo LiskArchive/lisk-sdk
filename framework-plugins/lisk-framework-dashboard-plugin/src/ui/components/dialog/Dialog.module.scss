@@ -1,0 +1,90 @@
+@import '../../styles/constants';
+
+@keyframes blowUpModal {
+	0% {
+		transform: scale(0);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+@keyframes blowUpModalTwo {
+	0% {
+		transform: scale(1);
+		// opacity: 1;
+	}
+	100% {
+		transform: scale(0);
+		// opacity: 0;
+	}
+}
+
+.root {
+	display: none;
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	top: 0;
+	left: 0;
+	transform: scale(1);
+	overflow: auto;
+}
+
+.background {
+	background: rgba(15, 25, 51, 0.85);
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.modal {
+	display: inline-block;
+	position: relative;
+	background: $color-background-darker;
+	backdrop-filter: blur(75px);
+	border-radius: 8px;
+	padding: 0px;
+	box-sizing: border-box;
+
+	max-width: 50%;
+
+	@include mq-down('sm') {
+		width: 100%;
+		max-width: 100%;
+	}
+}
+
+.open {
+	transform: scale(1);
+	display: block;
+
+	.modal {
+		animation: blowUpModal 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+	}
+}
+
+.close {
+	transform: scale(0);
+	animation: blowUpModalTwo 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+
+	.modal {
+		animation: blowUpModalTwo 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+	}
+}
+
+.header {
+	padding: 20px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.headerContent {
+	flex-grow: 1;
+	margin-right: 20px;
+}
+
+.body {
+	padding: 20px;
+}
