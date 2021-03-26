@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +10,83 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-import { createGenesisBlock, getGenesisBlockJSON as getGenesisJSON } from '@liskhq/lisk-genesis';
-import { readGenesisBlockJSON } from '@liskhq/lisk-chain';
-import * as genesisBlockJSON from '../fixtures/genesis_block.json';
+import * as fs from 'fs-extra';
+import { AccountDefaultProps, AccountSchema, Block, BlockHeaderAsset } from '@liskhq/lisk-chain';
+import { KVStore } from '@liskhq/lisk-db';
+
+import { Logger } from '../logger';
+import { BaseModule, BaseModuleChannel } from '../modules';
+import { BaseModuleDataAccess, GenesisConfig } from '../types';
+import { channelMock } from './mocks/channel_mock';
+import { DataAccessMock } from './mocks/data_access_mock';
+import { loggerMock } from './mocks/logger_mock';
+import { APP_EVENT_BLOCK_NEW } from '../constants';
+import { Data, ModuleClass, WaitUntilBlockHeightOptions } from './types';
+
+export const getAccountSchemaFromModules = (
+	modules: ModuleClass[],
+	genesisConfig?: GenesisConfig,
+): { [key: string]: AccountSchema } => {
+	const accountSchemas: { [key: string]: AccountSchema } = {};
+
+	for (const Klass of modules) {
+		const m = new Klass(genesisConfig ?? ({} as never));
+		if (m.accountSchema) {
+			accountSchemas[m.name] = { ...m.accountSchema, fieldNumber: m.id } as AccountSchema;
+		}
+	}
+
+	return accountSchemas;
+};
+
+export const getModuleInstance = <
+	T1 extends BaseModule,
+	T2 = AccountDefaultProps,
+	T3 = BlockHeaderAsset
+>(
+	Module: ModuleClass<T1>,
+	opts?: {
+		genesisConfig?: GenesisConfig;
+		dataAccess?: BaseModuleDataAccess;
+		channel?: BaseModuleChannel;
+		logger?: Logger;
+	},
+): T1 => {
+	const module = new Module(opts?.genesisConfig ?? ({} as never));
+
+	module.init({
+		channel: opts?.channel ?? channelMock,
+		logger: opts?.logger ?? loggerMock,
+		dataAccess: opts?.dataAccess ?? (new DataAccessMock<T2, T3>() as never),
+	});
+
+	return module;
+};
+
+export const waitUntilBlockHeight = async ({
+	apiClient,
+	height,
+	timeout,
+}: WaitUntilBlockHeightOptions): Promise<void> =>
+	new Promise((resolve, reject) => {
+		if (timeout) {
+			setTimeout(() => {
+				reject(new Error(`'waitUntilBlockHeight' timed out after ${timeout} ms`));
+			}, timeout);
+		}
+
+		apiClient.subscribe(APP_EVENT_BLOCK_NEW, data => {
+			const { block } = (data as unknown) as Data;
+			const { header } = apiClient.block.decode<Block>(block);
+
+			if (header.height >= height) {
+				resolve();
+			}
+		});
+	});
 
 export const defaultAccountSchema = {
 	token: {
@@ -149,23 +221,16 @@ export const defaultAccountSchema = {
 	},
 };
 
-export const getGenesisBlockJSON = ({
-	timestamp,
-}: {
-	timestamp: number;
-}): Record<string, unknown> => {
-	const genesisBlock = readGenesisBlockJSON(genesisBlockJSON, defaultAccountSchema);
+// Database utils
+const defaultDatabasePath = '/tmp/lisk-framework/test';
+export const getDBPath = (name: string, dbPath = defaultDatabasePath): string =>
+	`${dbPath}/${name}.db`;
 
-	const updatedGenesisBlock = createGenesisBlock({
-		initDelegates: genesisBlock.header.asset.initDelegates,
-		initRounds: genesisBlock.header.asset.initRounds,
-		timestamp,
-		accounts: genesisBlock.header.asset.accounts,
-		accountAssetSchemas: defaultAccountSchema,
-	});
-
-	return getGenesisJSON({
-		genesisBlock: updatedGenesisBlock,
-		accountAssetSchemas: defaultAccountSchema,
-	});
+export const createDB = (name: string, dbPath = defaultDatabasePath): KVStore => {
+	fs.ensureDirSync(dbPath);
+	const filePath = getDBPath(name, dbPath);
+	return new KVStore(filePath);
 };
+
+export const removeDB = (dbPath = defaultDatabasePath): void =>
+	['forger', 'blockchain', 'node'].forEach(name => fs.removeSync(getDBPath(name, dbPath)));

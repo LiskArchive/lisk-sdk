@@ -295,9 +295,9 @@ export class Chain {
 		validateGenesisBlockHeader(block, this._accountSchema);
 	}
 
-	public applyGenesisBlock(block: GenesisBlock, stateStore: StateStore): void {
+	public async applyGenesisBlock(block: GenesisBlock, stateStore: StateStore): Promise<void> {
 		for (const account of block.header.asset.accounts) {
-			stateStore.account.set(account.address, account);
+			await stateStore.account.set(account.address, account);
 		}
 		const initialValidators = block.header.asset.initDelegates.map(address => ({
 			address,
@@ -305,7 +305,7 @@ export class Chain {
 			minActiveHeight: block.header.height + 1,
 			isConsensusParticipant: false,
 		}));
-		stateStore.consensus.set(
+		await stateStore.consensus.set(
 			CONSENSUS_STATE_VALIDATORS_KEY,
 			codec.encode(validatorsSchema, { validators: initialValidators }),
 		);
@@ -457,7 +457,7 @@ export class Chain {
 			});
 		}
 		const encodedValidators = codec.encode(validatorsSchema, { validators: nextValidatorSet });
-		stateStore.consensus.set(CONSENSUS_STATE_VALIDATORS_KEY, encodedValidators);
+		await stateStore.consensus.set(CONSENSUS_STATE_VALIDATORS_KEY, encodedValidators);
 		this.events.emit(EVENT_VALIDATORS_CHANGED, { validators: nextValidatorSet });
 	}
 

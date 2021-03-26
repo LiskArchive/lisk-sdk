@@ -21,6 +21,7 @@ import {
 	CONSENSUS_STATE_VALIDATORS_KEY,
 	validatorsSchema,
 	StateStore,
+	testing,
 } from '@liskhq/lisk-chain';
 import { createFakeBlockHeader } from '../fixtures/blocks';
 import {
@@ -29,7 +30,6 @@ import {
 	BFTVotingLedgerSchema,
 } from '../../src/finality_manager';
 import { BFT, BFTPersistedValues, BFTFinalizedHeightCodecSchema } from '../../src';
-import { StateStoreMock } from '../utils/state_store_mock';
 
 const generateBlocks = ({
 	startHeight,
@@ -45,6 +45,8 @@ const generateBlocks = ({
 };
 
 describe('bft', () => {
+	const { StateStoreMock } = testing;
+
 	describe('BFT', () => {
 		let threshold: number;
 		let genesisHeight: number;
@@ -107,20 +109,20 @@ describe('bft', () => {
 
 			it('should set the finality height to the value from chain state', async () => {
 				const finalizedHeight = 5;
-				const stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
-							finalizedHeight,
-						}),
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: [
-								{ address: getRandomBytes(20), isConsensusParticipant: true, minActiveHeight: 104 },
-							],
-						}),
-					},
-					{ lastBlockHeaders: [lastBlock] },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
+						finalizedHeight,
+					}),
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: [
+							{ address: getRandomBytes(20), isConsensusParticipant: true, minActiveHeight: 104 },
+						],
+					}),
+				};
+				const stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: [lastBlock],
+				}) as unknown) as StateStore;
 				const bft = new BFT(bftParams);
 
 				await bft.init(stateStore);
@@ -144,22 +146,22 @@ describe('bft', () => {
 				});
 
 				bft = new BFT(bftParams);
-				stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
-							finalizedHeight: 1,
-						}),
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: blocks.map(b => ({
-								address: getAddressFromPublicKey(b.generatorPublicKey),
-								isConsensusParticipant: true,
-								minActiveHeight: 0,
-							})),
-						}),
-					},
-					{ lastBlockHeaders: blocks },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
+						finalizedHeight: 1,
+					}),
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: blocks.map(b => ({
+							address: getAddressFromPublicKey(b.generatorPublicKey),
+							isConsensusParticipant: true,
+							minActiveHeight: 0,
+						})),
+					}),
+				};
+				stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: blocks,
+				}) as unknown) as StateStore;
 				await bft.init(stateStore);
 			});
 
@@ -226,28 +228,28 @@ describe('bft', () => {
 			let stateStore: StateStore;
 
 			beforeEach(async () => {
-				stateStore = (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
-							finalizedHeight: lastFinalizedHeight,
-						}),
-						[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
-							BFTVotingLedgerSchema,
-							validatorLedger,
-						),
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: [
-								{
-									address: getAddressFromPublicKey(block1.generatorPublicKey),
-									isConsensusParticipant: true,
-									minActiveHeight: 104,
-								},
-							],
-						}),
-					},
-					{ lastBlockHeaders: [lastBlock] },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
+						finalizedHeight: lastFinalizedHeight,
+					}),
+					[CONSENSUS_STATE_VALIDATOR_LEDGER_KEY]: codec.encode(
+						BFTVotingLedgerSchema,
+						validatorLedger,
+					),
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: [
+							{
+								address: getAddressFromPublicKey(block1.generatorPublicKey),
+								isConsensusParticipant: true,
+								minActiveHeight: 104,
+							},
+						],
+					}),
+				};
+				stateStore = (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: [lastBlock],
+				}) as unknown) as StateStore;
 
 				bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -276,22 +278,22 @@ describe('bft', () => {
 			let stateStore: StateStore;
 
 			const getNewStateStore = (minHeight = 0) => {
-				return (new StateStoreMock(
-					[],
-					{
-						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
-							finalizedHeight: 1,
-						}),
-						[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
-							validators: blocks.map(b => ({
-								address: getAddressFromPublicKey(b.generatorPublicKey),
-								isConsensusParticipant: true,
-								minActiveHeight: 0,
-							})),
-						}),
-					},
-					{ lastBlockHeaders: blocks.filter(b => b.height >= minHeight) },
-				) as unknown) as StateStore;
+				const consensus = {
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(BFTFinalizedHeightCodecSchema, {
+						finalizedHeight: 1,
+					}),
+					[CONSENSUS_STATE_VALIDATORS_KEY]: codec.encode(validatorsSchema, {
+						validators: blocks.map(b => ({
+							address: getAddressFromPublicKey(b.generatorPublicKey),
+							isConsensusParticipant: true,
+							minActiveHeight: 0,
+						})),
+					}),
+				};
+				return (new StateStoreMock({
+					consensus,
+					lastBlockHeaders: blocks.filter(b => b.height >= minHeight),
+				}) as unknown) as StateStore;
 			};
 
 			beforeEach(async () => {

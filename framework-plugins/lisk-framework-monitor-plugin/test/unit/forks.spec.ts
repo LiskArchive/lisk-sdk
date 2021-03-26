@@ -15,7 +15,7 @@
 import { blockHeaderSchema, blockSchema, RawBlock } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
-
+import { testing } from 'lisk-framework';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 import * as config from '../../src/defaults/default_config';
 
@@ -24,20 +24,9 @@ const validPluginOptions = config.defaultConfig.default;
 describe('_handleFork', () => {
 	let monitorPluginInstance: MonitorPlugin;
 	let encodedBlock: string;
-	const channelMock = {
-		registerToBus: jest.fn(),
-		once: jest.fn(),
-		publish: jest.fn(),
-		subscribe: jest.fn(),
-		isValidEventName: jest.fn(),
-		isValidActionName: jest.fn(),
-		invoke: jest.fn(),
-		eventsList: [],
-		actionsList: [],
-		actions: {},
-		moduleAlias: '',
-		options: {},
-	} as any;
+	const {
+		mocks: { channelMock },
+	} = testing;
 
 	beforeEach(async () => {
 		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);

@@ -13,8 +13,7 @@
  */
 
 import { convertLSKToBeddows, signTransaction } from '@liskhq/lisk-transactions';
-import * as genesisDelegates from '../../fixtures/genesis_delegates.json';
-import { networkIdentifier } from '../../fixtures/devnet';
+import { testing } from 'lisk-framework';
 
 const schema = {
 	$id: 'lisk/transfer-asset',
@@ -47,13 +46,15 @@ export const createTransferTransaction = ({
 	fee,
 	recipientAddress,
 	nonce,
+	networkIdentifier,
 }: {
 	amount: string;
 	fee: string;
 	recipientAddress: string;
 	nonce: number;
+	networkIdentifier: Buffer;
 }) => {
-	const genesisAccount = genesisDelegates.accounts[0];
+	const genesisAccount = testing.fixtures.defaultFaucetAccount;
 	const transaction = signTransaction(
 		schema,
 		{
@@ -61,7 +62,7 @@ export const createTransferTransaction = ({
 			assetID: 0,
 			nonce: BigInt(nonce),
 			fee: BigInt(convertLSKToBeddows(fee)),
-			senderPublicKey: Buffer.from(genesisAccount.publicKey, 'hex'),
+			senderPublicKey: genesisAccount.publicKey,
 			asset: {
 				amount: BigInt(convertLSKToBeddows(amount)),
 				recipientAddress: Buffer.from(recipientAddress, 'hex'),

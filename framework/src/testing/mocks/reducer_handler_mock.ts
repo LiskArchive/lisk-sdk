@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,13 +10,12 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-const base = require('../../jest.config');
+import { ReducerHandler } from '../../types';
 
-module.exports = {
-	...base,
-	rootDir: '../../',
-	setupFilesAfterEnv: ['<rootDir>/test/functional/setup.js'],
-	testMatch: ['<rootDir>/test/functional/**/*.(spec|test).ts'],
+export const reducerHandlerMock: ReducerHandler = {
+	invoke: async <T = unknown>(_name: string, _params?: Record<string, unknown>) =>
+		Promise.resolve(({} as unknown) as T),
 };

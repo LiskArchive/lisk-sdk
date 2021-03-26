@@ -25,7 +25,7 @@ import {
 } from '@liskhq/lisk-chain';
 import { RegisteredSchema } from 'lisk-framework';
 import { getContradictingBlockHeader, blockHeadersSchema } from '../../src/db';
-import { getApplication } from '../utils/application';
+import { createApplicationEnv } from '../utils/application';
 
 describe('db', () => {
 	const generatorPublicKey = Buffer.from(
@@ -52,8 +52,8 @@ describe('db', () => {
 			`${generatorPublicKey.toString('binary')}:${formatInt(blockHeader1Height)}`,
 			codec.encode(blockHeadersSchema, { blockHeaders: [blockHeader1] }),
 		);
-		const app = getApplication('db-integration');
-		registeredSchemas = app.getSchema();
+		const appEnv = createApplicationEnv('db-integration');
+		registeredSchemas = appEnv.application.getSchema();
 	});
 
 	afterAll(async () => {

@@ -80,7 +80,7 @@ export const validateSchema = (schema: {
 };
 
 export class Codec {
-	private readonly _compileSchemas: CompiledSchemas = {};
+	private _compileSchemas: CompiledSchemas = {};
 
 	public addSchema(schema: Schema): boolean {
 		validateSchema(schema);
@@ -149,6 +149,10 @@ export class Codec {
 			[],
 		);
 		return (messageCopy as unknown) as T;
+	}
+
+	public clearCache(): void {
+		this._compileSchemas = {};
 	}
 
 	private _compileSchema(

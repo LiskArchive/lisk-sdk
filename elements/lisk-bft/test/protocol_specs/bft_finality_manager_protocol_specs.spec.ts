@@ -21,6 +21,7 @@ import {
 	Validator,
 	BlockHeader,
 	StateStore,
+	testing,
 } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
@@ -34,7 +35,6 @@ import {
 	VotingLedger,
 	BFTVotingLedgerSchema,
 } from '../../src/finality_manager';
-import { StateStoreMock } from '../utils/state_store_mock';
 import { convertHeader } from '../fixtures/blocks';
 
 const prevotesAndCommits = async (stateStore: StateStore) => {
@@ -64,6 +64,7 @@ const prevotesAndCommits = async (stateStore: StateStore) => {
 
 describe('FinalityManager', () => {
 	// Arrange
+	const { StateStoreMock } = testing;
 	const bftScenarios = [
 		scenario4DelegatesMissedSlots,
 		scenario4DelegatesSimple,
@@ -131,7 +132,7 @@ describe('FinalityManager', () => {
 							(bh: any) => bh.height < testCase.input.blockHeader.height,
 						);
 
-						stateStore.consensus.set(
+						await stateStore.consensus.set(
 							CONSENSUS_STATE_VALIDATORS_KEY,
 							codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
 						);

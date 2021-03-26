@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,6 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-require('../_setup');
+import { testing } from '@liskhq/lisk-chain';
 
-jest.setTimeout(30000);
+export const { StateStoreMock } = testing;
+export declare type StateStoreMock = testing.StateStoreMock;
+export * from './channel_mock';
+export * from './consensus_mock';
+export * from './data_access_mock';
+export * from './logger_mock';
+export * from './reducer_handler_mock';

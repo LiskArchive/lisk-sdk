@@ -11,26 +11,32 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing } from 'lisk-framework';
 import axios from 'axios';
-import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
+import {
+	callNetwork,
+	createApplicationEnv,
+	closeApplicationEnv,
+	getURL,
+} from './utils/application';
 import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
 
 describe('Node', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		app = await createApplication('node_http_functional');
+		appEnv = createApplicationEnv('node_http_functional');
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		await closeApplicationEnv(appEnv);
 	});
 
 	describe('api/node/info', () => {
 		it('should respond node info', async () => {
-			const appInstance = app as any;
+			const appInstance = appEnv.application as any;
 			const nodeStatusAndConstantFixture = {
 				version: appInstance._node._options.version,
 				networkVersion: appInstance._node._options.networkVersion,
@@ -75,6 +81,7 @@ describe('Node', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: 100,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id: txID1, ...input1 } = transaction1;
 				await axios.post(getURL('/api/transactions'), input1);
@@ -84,6 +91,7 @@ describe('Node', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: 200,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id: txID2, ...input2 } = transaction2;
 				await axios.post(getURL('/api/transactions'), input2);

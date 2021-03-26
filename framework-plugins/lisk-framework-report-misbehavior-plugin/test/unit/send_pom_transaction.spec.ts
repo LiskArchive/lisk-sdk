@@ -13,11 +13,11 @@
  */
 
 import { when } from 'jest-when';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { testing } from 'lisk-framework';
+
 import { ReportMisbehaviorPlugin } from '../../src';
-import { defaultAccount } from '../fixtures/devnet';
 import * as config from '../../src/defaults/default_config';
 
 const validPluginOptions = {
@@ -109,8 +109,8 @@ describe('Send PoM transaction', () => {
 			account: accountSchema,
 		} as any;
 		(reportMisbehaviorPlugin as any)._state = {
-			passphrase: defaultAccount.passphrase,
-			publicKey: getAddressAndPublicKeyFromPassphrase(defaultAccount.passphrase).publicKey,
+			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
+			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,
 		};
 		when(channelMock.invoke)
 			.calledWith('app:getAccount', expect.anything())

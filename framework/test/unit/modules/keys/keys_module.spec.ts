@@ -24,15 +24,12 @@ import {
 import { Account, GenesisBlock, Transaction, transactionSchema } from '@liskhq/lisk-chain';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { KeysModule } from '../../../../src/modules/keys/keys_module';
-import {
-	createFakeDefaultAccount,
-	StateStoreMock,
-	defaultNetworkIdentifier,
-} from '../../../utils/node';
 import * as fixtures from './fixtures.json';
-import { GenesisConfig } from '../../../../src';
-import { genesisBlock as createGenesisBlock } from '../../../fixtures/blocks';
+import { GenesisConfig, TokenModule, DPoSModule } from '../../../../src';
 import { AccountKeys } from '../../../../src/modules/keys/types';
+import * as testing from '../../../../src/testing';
+import { TokenAccount } from '../../../../src/modules/token/types';
+import { createGenesisBlock } from '../../../../src/testing';
 
 describe('keys module', () => {
 	let decodedMultiSignature: any;
@@ -47,8 +44,10 @@ describe('keys module', () => {
 	let passphraseDerivedKeys: any;
 
 	const { cloneDeep } = ObjectUtils;
+	const { StateStoreMock } = testing.mocks;
 
-	const defualtTestCase = fixtures.testCases[0];
+	const defaultTestCase = fixtures.testCases[0];
+	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
 
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
@@ -71,8 +70,8 @@ describe('keys module', () => {
 	};
 
 	beforeEach(() => {
-		keysModule = new KeysModule(genesisConfig);
-		const buffer = Buffer.from(defualtTestCase.output.transaction, 'hex');
+		keysModule = testing.getModuleInstance(KeysModule, { genesisConfig });
+		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		const id = hash(buffer);
 		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
 		decodedMultiSignature = {
@@ -81,41 +80,40 @@ describe('keys module', () => {
 		};
 		validTestTransaction = new Transaction(decodedMultiSignature);
 
-		targetMultisigAccount = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
-			balance: BigInt('94378900000'),
+		targetMultisigAccount = testing.fixtures.createDefaultAccount([TokenModule, KeysModule], {
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
+			token: { balance: BigInt('94378900000') },
+		});
+		const senderAccount = testing.fixtures.createDefaultAccount([TokenModule, KeysModule], {
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
 		});
 
 		passphrase = Mnemonic.generateMnemonic();
 		passphraseDerivedKeys = getPrivateAndPublicKeyFromPassphrase(passphrase);
 		const address = getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
 
-		singleSignatureAccount = createFakeDefaultAccount({ address });
+		singleSignatureAccount = testing.fixtures.createDefaultAccount([TokenModule, KeysModule], {
+			address,
+		});
 
-		stateStore = new StateStoreMock();
+		stateStore = new StateStoreMock({
+			accounts: [targetMultisigAccount, senderAccount, singleSignatureAccount],
+			networkIdentifier,
+		});
 
-		stateStore.account = {
-			get: jest.fn().mockResolvedValue(targetMultisigAccount),
-			getOrDefault: jest.fn().mockResolvedValue(
-				createFakeDefaultAccount({
-					address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
-				}) as never,
-			),
-		};
-
-		reducerHandler = {};
+		jest.spyOn(stateStore.account, 'get');
+		jest.spyOn(stateStore.account, 'set');
 	});
 
 	describe('beforeTransactionApply', () => {
 		describe('Multi-signature registration transaction', () => {
 			it('should not throw for valid transaction', async () => {
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction: validTestTransaction,
-						reducerHandler,
-					}),
-				).resolves.toBeUndefined();
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction: validTestTransaction,
+				});
+
+				return expect(keysModule.beforeTransactionApply(context)).resolves.toBeUndefined();
 			});
 
 			it('should throw if number of provided signatures is smaller than number of optional, mandatory and sender keys', async () => {
@@ -129,13 +127,12 @@ describe('keys module', () => {
 
 				const invalidTransactionInstance = new Transaction(invalidTransaction);
 
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction: invalidTransactionInstance as any,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction: invalidTransactionInstance,
+				});
+
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error('There are missing signatures. Expected: 5 signatures but got: 4.'),
 				);
 			});
@@ -150,14 +147,12 @@ describe('keys module', () => {
 				invalidTransaction.signatures.push(getRandomBytes(32));
 
 				const invalidTransactionInstance = new Transaction(invalidTransaction);
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction: invalidTransactionInstance,
+				});
 
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction: invalidTransactionInstance as any,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error('There are missing signatures. Expected: 5 signatures but got: 6.'),
 				);
 			});
@@ -172,14 +167,12 @@ describe('keys module', () => {
 				invalidTransaction.signatures[1] = Buffer.from('');
 
 				const invalidTransactionInstance = new Transaction(invalidTransaction);
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction: invalidTransactionInstance,
+				});
 
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction: invalidTransactionInstance as any,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error('A valid signature is required for each registered key.'),
 				);
 			});
@@ -194,14 +187,12 @@ describe('keys module', () => {
 				invalidTransaction.signatures[1][10] = 10;
 
 				const invalidTransactionInstance = new Transaction(invalidTransaction);
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction: invalidTransactionInstance,
+				});
 
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction: invalidTransactionInstance as any,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
 						"Failed to validate signature 'de6caeeffe15062fe6fe0aff5759d71533bcd1af67759fbb98cd25bfd9bcd427e62625a778d9c9e665646847c37002bb83429f906733c144ca9f36fb5a5c3e05' for transaction with id 'd2e33dd7435b26988adcb8188fa493400374f4cc5f2672868e45d88cc1377118'",
 					),
@@ -218,14 +209,12 @@ describe('keys module', () => {
 				invalidTransaction.signatures[3][10] = 9;
 
 				const invalidTransactionInstance = new Transaction(invalidTransaction);
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction: invalidTransactionInstance,
+				});
 
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction: invalidTransactionInstance as any,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
 						"Failed to validate signature '1c106815d159bac122fa09910d10911c96b9535d3391fe2573ac2175aaaa6279f5c23664b9cf66cc86229ec44414adf4abc315a5017dd473a1effcdc6a8d6c0f' for transaction with id '40604f3690f4b9b4ed66cb3e0a2e713650d29e24b7fc3ecff9b431ab8778ffe0'",
 					),
@@ -245,14 +234,12 @@ describe('keys module', () => {
 				];
 
 				const invalidTransactionInstance = new Transaction(invalidTransaction);
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction: invalidTransactionInstance,
+				});
 
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction: invalidTransactionInstance as any,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
 						"Failed to validate signature 'a99b7e99b7a0427f9da21ad9b157e65484a45fec7757b9f8f990979b28b1a7013acf17a20c87d416281ed96a5df662e6cebb7f64a639c4b27aa5710a0483210b' for transaction with id 'e9fb4bb213b6cea562978cd422a5597f10287907f2d7d007024e092339eda319'",
 					),
@@ -272,14 +259,12 @@ describe('keys module', () => {
 				];
 
 				const invalidTransactionInstance = new Transaction(invalidTransaction);
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction: invalidTransactionInstance,
+				});
 
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction: invalidTransactionInstance as any,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
 						"Failed to validate signature 'db938aaf2719a80017844f1968e35ce927124dcf7c04a0b0d9268aa7c9ad1ce50e61905c1bb8a902b982e25343c232fae5f06cd828b7d11ca53f18820ead8c08' for transaction with id '71b1dbf26b7c0e91bcb1fe9570cc0875aa616de4a3b927fc544045bdf37889bc'",
 					),
@@ -300,20 +285,19 @@ describe('keys module', () => {
 				});
 
 				const signature = signDataWithPassphrase(
-					Buffer.concat([Buffer.from(defaultNetworkIdentifier, 'hex'), transaction.getBytes()]),
+					Buffer.concat([networkIdentifier, transaction.getBytes()]),
 					passphrase,
 				);
 
 				(transaction.signatures as any).push(signature);
+				stateStore.account.set(singleSignatureAccount.address, singleSignatureAccount);
 
-				stateStore.account.get = jest.fn().mockResolvedValue(singleSignatureAccount);
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction,
-						reducerHandler,
-					}),
-				).resolves.toBeUndefined();
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction,
+				});
+
+				return expect(keysModule.beforeTransactionApply(context)).resolves.toBeUndefined();
 			});
 
 			it('should throw if signature is missing', async () => {
@@ -326,15 +310,14 @@ describe('keys module', () => {
 					asset: getRandomBytes(100),
 					signatures: [],
 				});
+				stateStore.account.set(singleSignatureAccount.address, singleSignatureAccount);
 
-				stateStore.account.get = jest.fn().mockResolvedValue(singleSignatureAccount);
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction,
+				});
+
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
 						'Transactions from a single signature account should have exactly one signature. Found 0 signatures.',
 					),
@@ -353,21 +336,21 @@ describe('keys module', () => {
 				});
 
 				const signature = signDataWithPassphrase(
-					Buffer.concat([Buffer.from(defaultNetworkIdentifier, 'hex'), transaction.getBytes()]),
+					Buffer.concat([getRandomBytes(20), transaction.getBytes()]),
 					passphrase,
 				);
 
 				(transaction.signatures as any).push(signature);
 				(transaction.signatures as any).push(signature);
 
-				stateStore.account.get = jest.fn().mockResolvedValue(singleSignatureAccount);
-				return expect(
-					keysModule.beforeTransactionApply({
-						stateStore,
-						transaction,
-						reducerHandler,
-					}),
-				).rejects.toStrictEqual(
+				stateStore.account.set(singleSignatureAccount.address, singleSignatureAccount);
+
+				const context = testing.createTransactionApplyContext({
+					stateStore,
+					transaction,
+				});
+
+				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
 						'Transactions from a single signature account should have exactly one signature. Found 2 signatures.',
 					),
@@ -415,22 +398,25 @@ describe('keys module', () => {
 				aMember.address = getAddressFromPublicKey(aMember.keys.publicKey);
 			}
 
-			const multisigAccount = createFakeDefaultAccount({
-				address: members.mainAccount.address,
-				token: {
-					balance: BigInt(100000000000000),
+			const multisigAccount = testing.fixtures.createDefaultAccount<AccountKeys & TokenAccount>(
+				[TokenModule, KeysModule],
+				{
+					address: members.mainAccount.address,
+					token: {
+						balance: BigInt(100000000000000),
+					},
+					keys: {
+						numberOfSignatures: 3,
+						mandatoryKeys: [members.mandatoryA.keys?.publicKey, members.mandatoryB.keys?.publicKey],
+						optionalKeys: [members.optionalA.keys?.publicKey, members.optionalB.keys?.publicKey],
+					},
 				},
-				keys: {
-					numberOfSignatures: 3,
-					mandatoryKeys: [members.mandatoryA.keys?.publicKey, members.mandatoryB.keys?.publicKey],
-					optionalKeys: [members.optionalA.keys?.publicKey, members.optionalB.keys?.publicKey],
-				},
-			});
+			);
 
 			let transaction: Transaction;
 
 			beforeEach(() => {
-				stateStore.account.get = jest.fn().mockResolvedValue(multisigAccount);
+				stateStore.account.set(multisigAccount.address, multisigAccount);
 
 				transaction = new Transaction({
 					moduleID: 2,
@@ -446,30 +432,21 @@ describe('keys module', () => {
 			it('should not throw for valid transaction', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -494,10 +471,7 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -516,30 +490,21 @@ describe('keys module', () => {
 			it('should not throw for valid transaction when first optional is present', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -558,20 +523,14 @@ describe('keys module', () => {
 			it('should not throw for valid transaction when second optional is present', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
@@ -580,10 +539,7 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -600,30 +556,21 @@ describe('keys module', () => {
 			it('should throw for transaction where non optional absent signature is not empty buffer', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -646,40 +593,28 @@ describe('keys module', () => {
 			it('should throw error if number of provided signatures is bigger than numberOfSignatures in account asset', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -702,20 +637,14 @@ describe('keys module', () => {
 			it('should throw error if number of provided signatures is smaller than numberOfSignatures in account asset', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
@@ -740,10 +669,7 @@ describe('keys module', () => {
 			it('should throw for transaction with valid numberOfSignatures but missing mandatory key signature', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
@@ -752,20 +678,14 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -782,30 +702,21 @@ describe('keys module', () => {
 			it('should throw error if any of the mandatory signatures is not valid', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -824,20 +735,14 @@ describe('keys module', () => {
 			it('should throw error if any of the optional signatures is not valid', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
@@ -846,10 +751,7 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -875,30 +777,21 @@ describe('keys module', () => {
 			it('should throw error if mandatory signatures are not in order', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -923,20 +816,14 @@ describe('keys module', () => {
 			it('should throw error if optional signatures are not in order', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
@@ -945,10 +832,7 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([
-							Buffer.from(defaultNetworkIdentifier, 'hex'),
-							transaction.getSigningBytes(),
-						]),
+						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -971,7 +855,10 @@ describe('keys module', () => {
 	});
 
 	describe('afterGenesisBlockApply', () => {
-		const genesisBlock = (createGenesisBlock() as unknown) as GenesisBlock<Account<AccountKeys>>;
+		const { genesisBlock } = createGenesisBlock<AccountKeys>({
+			modules: [KeysModule, DPoSModule],
+		});
+
 		it('should not fail for valid keys property', async () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
@@ -993,10 +880,12 @@ describe('keys module', () => {
 				},
 			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).resolves.toBeUndefined();
+			return expect(keysModule.afterGenesisBlockApply(context)).resolves.toBeUndefined();
 		});
 
 		it('should not fail for sender not present in groups', async () => {
@@ -1020,10 +909,12 @@ describe('keys module', () => {
 				},
 			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).resolves.toBeUndefined();
+			return expect(keysModule.afterGenesisBlockApply(context)).resolves.toBeUndefined();
 		});
 
 		it('should not fail for sender present in groups', async () => {
@@ -1048,10 +939,12 @@ describe('keys module', () => {
 				},
 			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).resolves.toBeUndefined();
+			return expect(keysModule.afterGenesisBlockApply(context)).resolves.toBeUndefined();
 		});
 
 		it('should not fail for a maximum of 64 keys distributed among "mandatoryKeys" and "optionalKeys"', async () => {
@@ -1077,10 +970,12 @@ describe('keys module', () => {
 				},
 			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).resolves.toBeUndefined();
+			return expect(keysModule.afterGenesisBlockApply(context)).resolves.toBeUndefined();
 		});
 
 		it('should not fail for a maximum of 64 optional keys and number of signatures smaller than 64', async () => {
@@ -1103,10 +998,12 @@ describe('keys module', () => {
 				},
 			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).resolves.toBeUndefined();
+			return expect(keysModule.afterGenesisBlockApply(context)).resolves.toBeUndefined();
 		});
 
 		it('should fail if "mandatoryKeys" are not ordered lexicographically', async () => {
@@ -1133,10 +1030,14 @@ describe('keys module', () => {
 				params: { mandatoryKeys },
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if "optionalKeys" are not ordered lexicographically', async () => {
@@ -1162,10 +1063,14 @@ describe('keys module', () => {
 				params: { optionalKeys },
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if "mandatoryKeys" are not unique', async () => {
@@ -1184,6 +1089,10 @@ describe('keys module', () => {
 				},
 			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			const expectedError = {
 				dataPath: '.accounts[0].keys.mandatoryKeys',
 				keyword: 'uniqueItems',
@@ -1194,9 +1103,9 @@ describe('keys module', () => {
 			};
 
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if "optionalKeys" are not unique', async () => {
@@ -1224,10 +1133,14 @@ describe('keys module', () => {
 					'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if set of "mandatoryKeys" and "optionalKeys" are not unique', async () => {
@@ -1257,10 +1170,14 @@ describe('keys module', () => {
 				schemaPath: '#/properties/accounts/items/properties/keys',
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if set of "mandatoryKeys" and "optionalKeys" is empty', async () => {
@@ -1277,6 +1194,10 @@ describe('keys module', () => {
 				},
 			}) as unknown) as GenesisBlock<Account<AccountKeys>>;
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			const expectedError = {
 				dataPath: '.accounts[0].keys.numberOfSignatures',
 				keyword: 'max',
@@ -1288,9 +1209,9 @@ describe('keys module', () => {
 			};
 
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if set of "mandatoryKeys" and "optionalKeys" contains more than 64 elements', async () => {
@@ -1322,10 +1243,14 @@ describe('keys module', () => {
 				schemaPath: '#/properties/accounts/items/properties/keys',
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if "numberOfSignatures" is less than length of "mandatoryKeys"', async () => {
@@ -1353,10 +1278,14 @@ describe('keys module', () => {
 				schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if "numberOfSignatures" is greater than length of "mandatoryKeys" + "optionalKeys"', async () => {
@@ -1385,10 +1314,14 @@ describe('keys module', () => {
 				schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail if a key is repeated among "mandatoryKeys" and "optionalKeys"', async () => {
@@ -1419,10 +1352,14 @@ describe('keys module', () => {
 				params: {},
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail for a maximum of 64 keys distributed among "mandatoryKeys" and "optionalKeys" and number of signatures bigger than 64', async () => {
@@ -1455,10 +1392,14 @@ describe('keys module', () => {
 				params: {},
 			};
 
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 
 		it('should fail for a maximum of 64 keys and number of signatures smaller than 64', async () => {
@@ -1488,10 +1429,15 @@ describe('keys module', () => {
 				params: {},
 				schemaPath: '#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 			};
+
+			const context = testing.createAfterGenesisBlockApplyContext({
+				genesisBlock: gb,
+			});
+
 			// Act & Assert
-			return expect(
-				keysModule.afterGenesisBlockApply({ genesisBlock: gb } as any),
-			).rejects.toStrictEqual(new LiskValidationError([expectedError]));
+			return expect(keysModule.afterGenesisBlockApply(context)).rejects.toStrictEqual(
+				new LiskValidationError([expectedError]),
+			);
 		});
 	});
 });

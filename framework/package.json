@@ -40,7 +40,9 @@
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand"
 	},
 	"dependencies": {
+		"@liskhq/lisk-api-client": "^5.0.2",
 		"@liskhq/lisk-bft": "^0.2.2",
+		"@liskhq/lisk-transactions": "^5.0.1",
 		"@liskhq/lisk-chain": "^0.2.1",
 		"@liskhq/lisk-codec": "^0.1.1",
 		"@liskhq/lisk-cryptography": "^3.0.1",
@@ -62,9 +64,7 @@
 		"ws": "7.3.1"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-api-client": "^5.0.3",
 		"@liskhq/lisk-passphrase": "^3.0.1",
-		"@liskhq/lisk-transactions": "^5.0.2",
 		"@types/bunyan": "1.8.6",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",

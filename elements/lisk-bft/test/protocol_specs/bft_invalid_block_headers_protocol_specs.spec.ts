@@ -19,15 +19,17 @@ import {
 	CONSENSUS_STATE_VALIDATORS_KEY,
 	validatorsSchema,
 	StateStore,
+	testing,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
 
 import { FinalityManager } from '../../src/finality_manager';
-import { StateStoreMock } from '../utils/state_store_mock';
 import { convertHeader } from '../fixtures/blocks';
 
 describe('FinalityManager', () => {
+	const { StateStoreMock } = testing;
+
 	describe('addBlockHeader', () => {
 		let stateStore: StateStore;
 		let chainStub: Chain;
@@ -58,7 +60,7 @@ describe('FinalityManager', () => {
 						minActiveHeight: blockHeader.delegateMinHeightActive,
 					});
 				}
-				stateStore.consensus.set(
+				await stateStore.consensus.set(
 					CONSENSUS_STATE_VALIDATORS_KEY,
 					codec.encode(validatorsSchema, { validators: validatorsMap.values() }),
 				);

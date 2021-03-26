@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,12 +10,8 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import * as genesisBlock from '../../../../config/devnet/genesis_block.json';
-
-export const genesisBlockID = Buffer.from(genesisBlock.header.id, 'hex');
-export const communityIdentifier = 'Lisk';
-
-export const networkIdentifier = getNetworkIdentifier(genesisBlockID, communityIdentifier);
+export * from './accounts';
+export * from './config';

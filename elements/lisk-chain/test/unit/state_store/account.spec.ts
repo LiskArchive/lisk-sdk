@@ -53,7 +53,7 @@ describe('state store / account', () => {
 	let stateStore: StateStore;
 	let db: any;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		db = new KVStore('temp');
 		const dataAccess = new DataAccess({
 			db,
@@ -78,7 +78,7 @@ describe('state store / account', () => {
 				.mockResolvedValue(data.value as never);
 		}
 		for (const account of stateStoreAccounts) {
-			stateStore.account.set(account.address, account);
+			await stateStore.account.set(account.address, account);
 			stateStore.account['_initialAccountValue'].set(
 				account.address,
 				encodeDefaultAccount(account),
@@ -153,7 +153,7 @@ describe('state store / account', () => {
 			updatedAccount.token = { balance: BigInt(123) };
 			updatedAccount.sequence = { nonce: BigInt(99) };
 
-			stateStore.account.set(accountInDB[0].key, updatedAccount);
+			await stateStore.account.set(accountInDB[0].key, updatedAccount);
 			const updatedAccountAfterSet = await stateStore.account.get(accountInDB[0].key);
 			// Assert
 			expect(updatedAccountAfterSet).toStrictEqual(updatedAccount);
@@ -164,7 +164,7 @@ describe('state store / account', () => {
 			const updatedAccount = objects.cloneDeep(existingAccount);
 			updatedAccount.token = { balance: BigInt(999) };
 
-			stateStore.account.set(accountInDB[0].key, updatedAccount);
+			await stateStore.account.set(accountInDB[0].key, updatedAccount);
 
 			expect(stateStore.account['_updatedKeys'].has(accountInDB[0].key)).toBeTrue();
 		});
@@ -183,7 +183,7 @@ describe('state store / account', () => {
 			when(db.get)
 				.calledWith(`accounts:address:${inmemoryAccount.address.toString('binary')}`)
 				.mockRejectedValue(new NotFoundError('Data not found') as never);
-			stateStore.account.set(inmemoryAccount.address, inmemoryAccount);
+			await stateStore.account.set(inmemoryAccount.address, inmemoryAccount);
 			// Act
 			await stateStore.account.del(inmemoryAccount.address);
 			await expect(stateStore.account.get(inmemoryAccount.address)).rejects.toBeInstanceOf(
@@ -225,7 +225,7 @@ describe('state store / account', () => {
 			updatedAccount = objects.cloneDeep(existingAccount);
 			updatedAccount.token = { balance: BigInt(999) };
 
-			stateStore.account.set(updatedAccount.address, updatedAccount);
+			await stateStore.account.set(updatedAccount.address, updatedAccount);
 		});
 
 		it('should save the account state in the database', () => {
@@ -252,7 +252,7 @@ describe('state store / account', () => {
 			const updatedAccount = objects.cloneDeep(existingAccount);
 			updatedAccount.token = { balance: BigInt(999) };
 
-			stateStore.account.set(updatedAccount.address, updatedAccount);
+			await stateStore.account.set(updatedAccount.address, updatedAccount);
 			stateDiff = stateStore.account.finalize(batchStub);
 			expect(stateDiff).toStrictEqual({
 				updated: [
@@ -266,12 +266,12 @@ describe('state store / account', () => {
 			});
 		});
 
-		it('should return empty array for updated and keys for newly created account', () => {
+		it('should return empty array for updated and keys for newly created account', async () => {
 			const account1 = createFakeDefaultAccount();
 			const account2 = createFakeDefaultAccount();
 
-			stateStore.account.set(account1.address, account1);
-			stateStore.account.set(account2.address, account2);
+			await stateStore.account.set(account1.address, account1);
+			await stateStore.account.set(account2.address, account2);
 			stateDiff = stateStore.account.finalize(batchStub);
 			expect(stateDiff).toStrictEqual({
 				updated: [],
