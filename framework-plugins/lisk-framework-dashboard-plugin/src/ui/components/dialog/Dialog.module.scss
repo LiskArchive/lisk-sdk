@@ -49,6 +49,10 @@
 
 	max-width: 50%;
 
+	@include mq-down('md') {
+		max-width: 80%;
+	}
+
 	@include mq-down('sm') {
 		width: 100%;
 		max-width: 100%;
