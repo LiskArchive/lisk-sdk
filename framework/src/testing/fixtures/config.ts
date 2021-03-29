@@ -26,7 +26,7 @@ export const defaultConfig = {
 	networkVersion: '1.0',
 	rootPath: '~/.lisk',
 	logger: {
-		fileLogLevel: 'info',
+		fileLogLevel: 'none',
 		consoleLogLevel: 'none',
 		logFileName: 'lisk.log',
 	},

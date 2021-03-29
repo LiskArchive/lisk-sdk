@@ -135,20 +135,8 @@ export class ApplicationEnv {
 export const createDefaultApplicationEnv = (
 	appEnvConfig: Partial<ApplicationEnvConfig>,
 ): ApplicationEnv => {
-	const config = objects.mergeDeep(
-		{},
-		{ ...defaultConfig },
-		{
-			...appEnvConfig.config,
-			logger: {
-				consoleLogLevel: 'fatal',
-				fileLogLevel: 'fatal',
-				logFileName: 'lisk.log',
-			},
-		},
-	) as PartialApplicationConfig;
-	const rootPath = config.rootPath ?? defaultConfig.rootPath;
-	const label = config.label ?? defaultConfig.label;
+	const rootPath = appEnvConfig.config?.rootPath ?? defaultConfig.rootPath;
+	const label = appEnvConfig.config?.label ?? defaultConfig.label;
 
 	// Ensure directory is cleaned for each application env
 	const dataPath = join(rootPath.replace('~', homedir()), label);
@@ -157,7 +145,7 @@ export const createDefaultApplicationEnv = (
 	}
 
 	const defaultModules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
-	const modules = appEnvConfig.modules ?? defaultModules;
+	const modules = [...new Set([...(appEnvConfig.modules ?? []), ...defaultModules])];
 
 	const faucetAccount = {
 		address: defaultFaucetAccount.address,
