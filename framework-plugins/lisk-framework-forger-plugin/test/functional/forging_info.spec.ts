@@ -51,11 +51,22 @@ describe('forger:getForgingInfo action', () => {
 				getForgerInfoByAddress(forgerPluginInstance, forgerAddress.toString('binary')),
 			),
 		);
-		const forgersInfoList = await appEnv.ipcClient.invoke('forger:getForgingInfo');
+		const forgersInfoList = await appEnv.ipcClient.invoke<{ address: string }[]>(
+			'forger:getForgingInfo',
+		);
 
 		// Assert
 		expect(forgersInfoList).toHaveLength(forgersInfo.length);
-		expect(forgersInfoList).toMatchSnapshot();
+		// Returned forgers list should contain all the forger info provided
+		expect(
+			forgersInfoList
+				.map(f =>
+					forgersList.findIndex(([forgerAddress, _]) =>
+						forgerAddress.equals(Buffer.from(f.address, 'hex')),
+					),
+				)
+				.filter(i => i < 0),
+		).toHaveLength(0);
 		expect(
 			(forgersInfoList as any).filter(
 				(forger: { totalProducedBlocks: number }) => forger.totalProducedBlocks > 0,

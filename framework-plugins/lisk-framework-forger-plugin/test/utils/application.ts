@@ -29,24 +29,6 @@ export const waitTill = async (ms: number): Promise<void> =>
 		}, ms),
 	);
 
-export const callNetwork = async (
-	promise: Promise<any>,
-): Promise<{ status: number; response: any }> => {
-	let response;
-	let status;
-
-	try {
-		const result = await promise;
-		response = result.data;
-		status = result.status;
-	} catch (error) {
-		status = error.response.status;
-		response = error.response.data;
-	}
-
-	return { status, response };
-};
-
 export const getForgerInfoByPublicKey = async (
 	forgerPluginInstance: ForgerPlugin,
 	generatorPublicKey: string,
