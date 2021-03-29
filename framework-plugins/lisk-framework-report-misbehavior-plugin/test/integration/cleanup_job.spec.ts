@@ -27,6 +27,7 @@ import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema } from '../../src/db';
 
 import * as config from '../../src/defaults/default_config';
+import { waitTill } from '../utils/application';
 
 const validPluginOptions = {
 	...config.defaultConfig.default,
@@ -133,7 +134,7 @@ describe('Clean up old blocks', () => {
 				blockHeaders: [blockHeader1],
 			}),
 		);
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await waitTill(100);
 		await expect((reportMisbehaviorPlugin as any)._pluginDB.get(dbKey)).rejects.toThrow(
 			`Specified key ${dbKey} does not exist`,
 		);

@@ -12,25 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
-import {
-	createApplicationEnv,
-	getForgerInfoByAddress,
-	getForgerPlugin,
-	closeApplicationEnv,
-} from '../utils/application';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { getForgerInfoByAddress, getForgerPlugin } from '../utils/application';
+import { ForgerPlugin } from '../../src';
 
 describe('forger:getForgingInfo action', () => {
 	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('forging_info_spec');
+		const rootPath = '~/.lisk/forger-plugin';
+		const config = {
+			rootPath,
+			label: 'forging_info_functional',
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ForgerPlugin],
+		});
 		await appEnv.startApplication();
 		await appEnv.waitNBlocks(2);
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	it('should return list of all forgers info', async () => {
@@ -44,11 +51,22 @@ describe('forger:getForgingInfo action', () => {
 				getForgerInfoByAddress(forgerPluginInstance, forgerAddress.toString('binary')),
 			),
 		);
-		const forgersInfoList = await appEnv.ipcClient.invoke('forger:getForgingInfo');
+		const forgersInfoList = await appEnv.ipcClient.invoke<{ address: string }[]>(
+			'forger:getForgingInfo',
+		);
 
 		// Assert
 		expect(forgersInfoList).toHaveLength(forgersInfo.length);
-		expect(forgersInfoList).toMatchSnapshot();
+		// Returned forgers list should contain all the forger info provided
+		expect(
+			forgersInfoList
+				.map(f =>
+					forgersList.findIndex(([forgerAddress, _]) =>
+						forgerAddress.equals(Buffer.from(f.address, 'hex')),
+					),
+				)
+				.filter(i => i < 0),
+		).toHaveLength(0);
 		expect(
 			(forgersInfoList as any).filter(
 				(forger: { totalProducedBlocks: number }) => forger.totalProducedBlocks > 0,

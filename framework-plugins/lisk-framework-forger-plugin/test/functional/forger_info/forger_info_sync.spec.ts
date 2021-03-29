@@ -12,16 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
-import {
-	createApplicationEnv,
-	closeApplicationEnv,
-	getForgerInfoByPublicKey,
-	getForgerPlugin,
-	waitTill,
-} from '../../utils/application';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { getForgerInfoByPublicKey, getForgerPlugin, waitTill } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction } from '../../utils/transactions';
+import { ForgerPlugin } from '../../../src';
 
 describe('Forger Info Sync', () => {
 	let appEnv: testing.ApplicationEnv;
@@ -29,19 +24,29 @@ describe('Forger Info Sync', () => {
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('sync');
+		const rootPath = '~/.lisk/forger-plugin';
+		const config = {
+			rootPath,
+			label: 'forger_info_sync_functional',
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ForgerPlugin],
+		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
 		networkIdentifier = appEnv.networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	it('should sync information from scratch on startup', async () => {
 		// Arrange
-		let forgerPluginInstance = getForgerPlugin(appEnv.application);
 		const account = getRandomAccount();
 		const transaction = createTransferTransaction({
 			amount: '2',
@@ -55,8 +60,9 @@ describe('Forger Info Sync', () => {
 			transaction: transaction.getBytes().toString('hex'),
 		});
 		await appEnv.waitNBlocks(1);
-		await waitTill(2000);
 		const { generatorPublicKey } = appEnv.lastBlock.header;
+		let forgerPluginInstance = getForgerPlugin(appEnv.application);
+		await waitTill(2000);
 		const forgerInfo = await getForgerInfoByPublicKey(
 			forgerPluginInstance,
 			generatorPublicKey.toString('hex'),
@@ -69,7 +75,9 @@ describe('Forger Info Sync', () => {
 		await forgerPluginInstance['_forgerPluginDB'].clear();
 
 		// Close application
-		await closeApplicationEnv(appEnv, { clearDB: false });
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication({ clearDB: false });
 
 		// Start the application again
 		await appEnv.startApplication();

@@ -23,9 +23,10 @@ import {
 	RawBlockHeader,
 	BlockHeader,
 } from '@liskhq/lisk-chain';
-import { RegisteredSchema } from 'lisk-framework';
+import { RegisteredSchema, testing, PartialApplicationConfig } from 'lisk-framework';
+
 import { getContradictingBlockHeader, blockHeadersSchema } from '../../src/db';
-import { createApplicationEnv } from '../utils/application';
+import { ReportMisbehaviorPlugin } from '../../src';
 
 describe('db', () => {
 	const generatorPublicKey = Buffer.from(
@@ -52,7 +53,21 @@ describe('db', () => {
 			`${generatorPublicKey.toString('binary')}:${formatInt(blockHeader1Height)}`,
 			codec.encode(blockHeadersSchema, { blockHeaders: [blockHeader1] }),
 		);
-		const appEnv = createApplicationEnv('db-integration');
+		const rootPath = '~/.lisk/report-misbehavior-plugin';
+		const config = {
+			rootPath,
+			label: 'report-misbehavior-db-tests',
+			plugins: {
+				reportMisbehavior: {
+					encryptedPassphrase: testing.fixtures.defaultFaucetAccount.encryptedPassphrase,
+				},
+			},
+		} as PartialApplicationConfig;
+
+		const appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ReportMisbehaviorPlugin],
+		});
 		registeredSchemas = appEnv.application.getSchema();
 	});
 
