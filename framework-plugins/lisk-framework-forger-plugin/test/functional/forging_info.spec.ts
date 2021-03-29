@@ -13,7 +13,7 @@
  */
 
 import { testing, PartialApplicationConfig } from 'lisk-framework';
-import { getForgerInfoByAddress, getForgerPlugin, waitTill } from '../utils/application';
+import { getForgerInfoByAddress, getForgerPlugin } from '../utils/application';
 import { ForgerPlugin } from '../../src';
 
 describe('forger:getForgingInfo action', () => {
@@ -55,7 +55,6 @@ describe('forger:getForgingInfo action', () => {
 
 		// Assert
 		expect(forgersInfoList).toHaveLength(forgersInfo.length);
-		await waitTill(2000);
 		expect(forgersInfoList).toMatchSnapshot();
 		expect(
 			(forgersInfoList as any).filter(
