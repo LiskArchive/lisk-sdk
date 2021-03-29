@@ -13,13 +13,24 @@
  */
 
 import { testing, PartialApplicationConfig } from 'lisk-framework';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getKeys, getRandomBytes } from '@liskhq/lisk-cryptography';
 import axios from 'axios';
 
 import { callNetwork, getURL } from './utils/application';
-import { getRandomAccount } from './utils/accounts';
 import { createTransferTransaction } from './utils/transactions';
 import { HTTPAPIPlugin } from '../../src/http_api_plugin';
+
+const getRandomAccount = () => {
+	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('hex'));
+	const address = getAddressFromPublicKey(publicKey);
+
+	return {
+		address: address.toString('hex'),
+		publicKey: publicKey.toString('hex'),
+		privateKey: privateKey.toString('hex'),
+		nonce: 0,
+	};
+};
 
 describe('Hello endpoint', () => {
 	// Arrange
