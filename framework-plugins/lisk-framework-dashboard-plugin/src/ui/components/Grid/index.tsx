@@ -33,6 +33,7 @@ interface LayoutProps {
 	rowBorder?: boolean;
 	container?: boolean;
 	fluid?: boolean;
+	xs?: GridSizes;
 	sm?: GridSizes;
 	md?: GridSizes;
 	lg?: GridSizes;
@@ -55,6 +56,7 @@ const Grid: React.FC<LayoutProps> = props => {
 		row,
 		rowBorder,
 		spacing,
+		xs,
 		sm,
 		md,
 		lg,
@@ -74,13 +76,15 @@ const Grid: React.FC<LayoutProps> = props => {
 		row && rowBorder ? styles.gridRowBorder : '',
 
 		// Column styling
+		!row && !container ? styles.gridCol : '',
 		!row && xl ? styles[`gridCol-xl-${xl}`] : '',
 		!row && lg ? styles[`gridCol-lg-${lg}`] : '',
 		!row && md ? styles[`gridCol-md-${md}`] : '',
 		!row && sm ? styles[`gridCol-sm-${sm}`] : '',
+		!row && xs ? styles[`gridCol-xs-${xs}`] : '',
 
 		// Column offset
-		!row && !container ? styles.gridCol : '',
+		!row && xs && offset ? styles[`gridCol-xs-offset-${offset}`] : '',
 		!row && sm && offset ? styles[`gridCol-sm-offset-${offset}`] : '',
 		!row && md && offset ? styles[`gridCol-md-offset-${offset}`] : '',
 		!row && lg && offset ? styles[`gridCol-lg-offset-${offset}`] : '',

@@ -45,25 +45,28 @@ $font-weight-l: 600;
 	line-height: 130%;
 }
 
-$size-sm: 456px;
-$size-md: 769px;
-$size-lg: 1000px;
-$size-xl: 1200px;
+$breakpoint-xs: 0px;
+$breakpoint-sm: 600px;
+$breakpoint-md: 960px;
+$breakpoint-lg: 1280px;
+$breakpoint-xl: 1920px;
 
 // min-width
 $breakpoint-up: (
-	'sm': 'screen and (min-width: #{$size-sm})',
-	'md': 'screen and (min-width: #{$size-md})',
-	'lg': 'screen and (min-width: #{$size-lg})',
-	'xl': 'screen and (min-width: #{$size-xl})',
+	'xs': 'screen and (min-width: #{$breakpoint-xs})',
+	'sm': 'screen and (min-width: #{$breakpoint-sm})',
+	'md': 'screen and (min-width: #{$breakpoint-md})',
+	'lg': 'screen and (min-width: #{$breakpoint-lg})',
+	'xl': 'screen and (min-width: #{$breakpoint-xl})',
 ) !default;
 
 // max-width
 $breakpoint-down: (
-	'sm': 'screen and (max-width: #{$size-sm - 1px})',
-	'md': 'screen and (max-width: #{$size-md - 1px})',
-	'lg': 'screen and (max-width: #{$size-lg - 1px})',
-	'xl': 'screen and (max-width: #{$size-xl - 1px})',
+	'xs': 'screen and (max-width: #{$breakpoint-xs})',
+	'sm': 'screen and (max-width: #{$breakpoint-sm - 1px})',
+	'md': 'screen and (max-width: #{$breakpoint-md - 1px})',
+	'lg': 'screen and (max-width: #{$breakpoint-lg - 1px})',
+	'xl': 'screen and (max-width: #{$breakpoint-xl - 1px})',
 ) !default;
 
 // @mixins

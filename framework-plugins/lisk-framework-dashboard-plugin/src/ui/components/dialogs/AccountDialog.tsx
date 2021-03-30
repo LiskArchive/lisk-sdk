@@ -35,7 +35,7 @@ const AccountDialog: React.FC<AccountDialogProps> = props => {
 			<DialogBody>
 				<Grid container fluid spacing={3}>
 					<Grid row rowBorder>
-						<Grid sm={12}>
+						<Grid xs={12}>
 							<Box mb={2}>
 								<Text type={'h3'}>Binary address</Text>
 							</Box>
@@ -43,13 +43,13 @@ const AccountDialog: React.FC<AccountDialogProps> = props => {
 						</Grid>
 					</Grid>
 					<Grid row rowBorder>
-						<Grid md={6} sm={12}>
+						<Grid md={6} xs={12}>
 							<Box mb={2} mr={1}>
 								<Text type={'h3'}>Base32 address</Text>
 							</Box>
 							<CopiableText text={account.base32Address}>{account.base32Address}</CopiableText>
 						</Grid>
-						<Grid md={6} sm={12}>
+						<Grid md={6} xs={12}>
 							<Box mb={2}>
 								<Text type={'h3'}>Public Key</Text>
 							</Box>
@@ -57,7 +57,7 @@ const AccountDialog: React.FC<AccountDialogProps> = props => {
 						</Grid>
 					</Grid>
 					<Grid row>
-						<Grid sm={12}>
+						<Grid xs={12}>
 							<Box mb={2}>
 								<Text type={'h3'}>Passphrase</Text>
 							</Box>

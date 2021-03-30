@@ -15,7 +15,7 @@
 import * as React from 'react';
 import styles from './Box.module.scss';
 
-interface BoxProp {
+interface BoxProp extends React.HTMLAttributes<HTMLDivElement> {
 	mt?: number;
 	mb?: number;
 	ml?: number;
@@ -27,7 +27,7 @@ interface BoxProp {
 }
 
 const Box: React.FC<BoxProp> = props => {
-	const { mt, mb, ml, mr, pt, pb, pl, pr } = props;
+	const { mt, mb, ml, mr, pt, pb, pl, pr, ...rest } = props;
 
 	if ([mt, mb, ml, mr, pt, pb, pl, pr].filter(Boolean).some(i => (i as number) < 1)) {
 		throw new Error('Box margin, padding values can not be less than 1');
@@ -48,7 +48,16 @@ const Box: React.FC<BoxProp> = props => {
 		pr ? styles[`p-r-${pr}`] : '',
 	].filter(Boolean);
 
-	return <div className={classes.join(' ')}>{props.children}</div>;
+	if (rest.className) {
+		classes.push(rest.className);
+		delete rest.className;
+	}
+
+	return (
+		<div {...rest} className={classes.join(' ')}>
+			{props.children}
+		</div>
+	);
 };
 
 export default Box;

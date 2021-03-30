@@ -1,9 +1,69 @@
 @import '../../styles/constants';
 
 $grid-cols: 12;
-$grid-sizes: 'sm', 'md', 'lg', 'xl', '';
+$grid-sizes: 'xs', 'sm', 'md', 'lg', 'xl';
 $base-spacing: 5px;
 $grid-spacing: 5;
+$flex-justify-values: 'flex-start', 'center', 'flex-end', 'space-between', 'space-around',
+	'space-evenly';
+$flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
+
+@mixin create-col-classes($modifier, $grid-cols) {
+	@include mq-up($modifier) {
+		.gridCol-#{$modifier}-offset-0 {
+			margin-left: 0;
+		}
+
+		@for $i from 1 through $grid-cols {
+			.gridCol-#{$modifier}-#{$i} {
+				flex-basis: (100 / ($grid-cols / $i)) * 1%;
+			}
+			.gridCol-#{$modifier}-offset-#{$i} {
+				margin-left: (100 / ($grid-cols / $i)) * 1%;
+			}
+		}
+	}
+}
+
+.grid {
+	max-width: $breakpoint-md;
+	margin: 0 auto;
+}
+
+.gridFluid {
+	margin: 0;
+	max-width: 100%;
+}
+
+.gridRow {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+}
+
+.gridRowBorder {
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@each $val in $flex-justify-values {
+	.gridRowJustify-#{$val} {
+		justify-content: #{$val};
+	}
+}
+
+@each $val in $flex-align-items {
+	.gridRowAlignItems-#{$val} {
+		align-items: #{$val};
+	}
+}
+
+.gridCol {
+	box-sizing: border-box;
+}
+
+@each $modifier in $grid-sizes {
+	@include create-col-classes($modifier, $grid-cols);
+}
 
 @for $i from 0 through $grid-spacing {
 	.gridSpacing-#{$i} {
@@ -26,89 +86,4 @@ $grid-spacing: 5;
 			}
 		}
 	}
-}
-
-@each $modifier in $grid-sizes {
-	@if ($modifier == '') {
-		$modifier: 'sm';
-	}
-
-	@include mq-down($modifier) {
-		.hidden-#{$modifier}-down {
-			display: none !important;
-		}
-	}
-
-	@include mq-up($modifier) {
-		.hidden-#{$modifier}-up {
-			display: none !important;
-		}
-	}
-}
-
-@mixin create-col-classes($modifier, $grid-cols) {
-	@include mq-up($modifier) {
-		.gridCol-#{$modifier}-offset-0 {
-			margin-left: 0;
-		}
-
-		@for $i from 1 through $grid-cols {
-			.gridCol-#{$modifier}-#{$i} {
-				flex-basis: (100 / ($grid-cols / $i)) * 1%;
-			}
-			.gridCol-#{$modifier}-offset-#{$i} {
-				margin-left: (100 / ($grid-cols / $i)) * 1%;
-			}
-		}
-	}
-}
-
-.grid {
-	max-width: $size-md;
-	margin: 0 auto;
-}
-
-.gridFluid {
-	margin: 0;
-	max-width: 100%;
-}
-
-.gridRow {
-	display: flex;
-	flex-wrap: wrap;
-	width: 100%;
-}
-
-.gridRowBorder {
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.gridCol {
-	box-sizing: border-box;
-}
-
-$flex-justify-values: 'flex-start', 'center', 'flex-end', 'space-between', 'space-around',
-	'space-evenly';
-
-@each $val in $flex-justify-values {
-	.gridRowJustify-#{$val} {
-		justify-content: #{$val};
-	}
-}
-
-$flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
-@each $val in $flex-align-items {
-	.gridRowAlignItems-#{$val} {
-		align-items: #{$val};
-	}
-}
-
-@each $val in $flex-justify-values {
-	.gridRowJustify-#{$val} {
-		justify-content: #{$val};
-	}
-}
-
-@each $modifier in $grid-sizes {
-	@include create-col-classes($modifier, $grid-cols);
 }
