@@ -25,53 +25,43 @@ interface AccountDialogProps extends DialogProps {
 }
 
 const AccountDialog: React.FC<AccountDialogProps> = props => {
-	const { account } = props;
+	const { account, ...rest } = props;
 
 	return (
-		<Dialog {...props}>
+		<Dialog {...rest}>
 			<DialogHeader>
 				<Text type={'h1'}>Account details</Text>
 			</DialogHeader>
 			<DialogBody>
-				<Grid container fluid>
-					<Grid row>
+				<Grid container fluid spacing={3}>
+					<Grid row rowBorder>
 						<Grid sm={12}>
-							<Box mt={3} mb={3}>
-								<Box mb={2}>
-									<Text type={'h3'}>Binary address</Text>
-								</Box>
-								<CopiableText text={account.binaryAddress}>{account.binaryAddress}</CopiableText>
+							<Box mb={2}>
+								<Text type={'h3'}>Binary address</Text>
 							</Box>
+							<CopiableText text={account.binaryAddress}>{account.binaryAddress}</CopiableText>
 						</Grid>
 					</Grid>
-					<hr />
-					<Grid row>
+					<Grid row rowBorder>
 						<Grid md={6} sm={12}>
-							<Box mt={3} mb={3}>
-								<Box mb={2} mr={1}>
-									<Text type={'h3'}>Base32 address</Text>
-								</Box>
-								<CopiableText text={account.base32Address}>{account.base32Address}</CopiableText>
+							<Box mb={2} mr={1}>
+								<Text type={'h3'}>Base32 address</Text>
 							</Box>
+							<CopiableText text={account.base32Address}>{account.base32Address}</CopiableText>
 						</Grid>
 						<Grid md={6} sm={12}>
-							<Box mt={3} mb={3}>
-								<Box mb={2}>
-									<Text type={'h3'}>Public Key</Text>
-								</Box>
-								<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>
+							<Box mb={2}>
+								<Text type={'h3'}>Public Key</Text>
 							</Box>
+							<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>
 						</Grid>
 					</Grid>
-					<hr />
 					<Grid row>
 						<Grid sm={12}>
-							<Box mt={3} mb={3}>
-								<Box mb={2}>
-									<Text type={'h3'}>Passphrase</Text>
-								</Box>
-								<CopiableText text={account.passphrase ?? ''}>{account.passphrase}</CopiableText>
+							<Box mb={2}>
+								<Text type={'h3'}>Passphrase</Text>
 							</Box>
+							<CopiableText text={account.passphrase ?? ''}>{account.passphrase}</CopiableText>
 						</Grid>
 					</Grid>
 				</Grid>

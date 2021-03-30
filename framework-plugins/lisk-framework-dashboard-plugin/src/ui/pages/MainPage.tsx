@@ -23,11 +23,13 @@ import IconButton from '../components/IconButton';
 import { Dialog, DialogHeader, DialogBody } from '../components/dialog';
 import MessageDialog from '../components/dialogs/MessageDialog';
 import AccountDialog from '../components/dialogs/AccountDialog';
+import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
 	const [successDialog, setSuccessDialog] = React.useState(false);
 	const [accountDialog, setAccountDialog] = React.useState(false);
+	const [nodeInfoDialog, setNodeInfoDialog] = React.useState(false);
 
 	return (
 		<section className={styles.root}>
@@ -240,20 +242,32 @@ const MainPage: React.FC = () => {
 					passphrase:
 						'ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget ornare id consectetur adipiscing elit consectetur adipiscing elit',
 				}}
-			>
-				<Text type={'p'}>
-					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-					ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-					dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-					metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-					nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-					eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-					posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-					ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-					mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id arcu
-					purus.
-				</Text>
-			</AccountDialog>
+			></AccountDialog>
+
+			<Button onClick={() => setNodeInfoDialog(!nodeInfoDialog)}>Node Info Dialog</Button>
+			<NodeInfoDialog
+				open={nodeInfoDialog}
+				onClose={() => {
+					setNodeInfoDialog(false);
+				}}
+				nodeInfo={{
+					version: '3.0.0-beta.4.9fa842f',
+					networkVersion: '2.0',
+					networkIdentifier: '01e47ba4e3e57981642150f4b45f64c2160c10bac9434339888210a4fa5df097',
+					lastBlockId: 'e3da90a99aa5116eeb8d603ada9c1c5349744cf94333d5e4cd2237b391138445',
+					syncing: true,
+					unconfirmedTransactions: 5,
+					blockTime: 10,
+					communityIdentifier: 'Lisk',
+					maxPayloadLength: 15360,
+					bftThreshold: 68,
+					minFeePerByte: 1000,
+					fees: [
+						{ moduleId: 5, assetId: 2, baseFee: 1000 },
+						{ moduleId: 4, assetId: 1, baseFee: 1020 },
+					],
+				}}
+			></NodeInfoDialog>
 		</section>
 	);
 };

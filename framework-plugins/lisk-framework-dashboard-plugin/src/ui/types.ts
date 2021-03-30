@@ -18,3 +18,24 @@ export interface Account {
 	publicKey: string;
 	passphrase?: string;
 }
+
+export interface NodeInfo {
+	version: string;
+	networkVersion: string;
+	networkIdentifier: string;
+	lastBlockId: string;
+	syncing: boolean;
+	unconfirmedTransactions: number;
+	blockTime: number;
+	communityIdentifier: string;
+	maxPayloadLength: number;
+	bftThreshold: number;
+	minFeePerByte: number;
+	fees: Fee[];
+}
+
+export interface Fee {
+	moduleId: number;
+	assetId: number;
+	baseFee: number;
+}
