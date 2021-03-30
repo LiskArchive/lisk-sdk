@@ -1,0 +1,88 @@
+@import '../../styles/constants';
+
+$grid-cols: 12;
+
+$grid-sizes-map: (
+	'xl': $size-xl,
+	'lg': $size-lg,
+	'md': $size-md,
+	'sm': $size-sm,
+	'': 0,
+);
+
+@each $modifier, $breakpoint in $grid-sizes-map {
+	@if ($modifier == '') {
+		$modifier: 'xs';
+	}
+
+	@include mq-down($breakpoint) {
+		.hidden#{$modifier}-down {
+			display: none !important;
+		}
+	}
+
+	@include mq-up($breakpoint) {
+		.hidden#{$modifier}-up {
+			display: none !important;
+		}
+	}
+}
+
+@mixin create-col-classes($modifier, $grid-cols, $breakpoint) {
+	@include mq-up($breakpoint) {
+		.gridCol-#{$modifier}-offset-0 {
+			margin-left: 0;
+		}
+
+		@for $i from 1 through $grid-cols {
+			.gridCol-#{$modifier}-#{$i} {
+				flex-basis: (100 / ($grid-cols / $i)) * 1%;
+			}
+			.gridCol-#{$modifier}-offset-#{$i} {
+				margin-left: (100 / ($grid-cols / $i)) * 1%;
+			}
+		}
+	}
+}
+
+.grid {
+	max-width: $size-md;
+	margin: 0 auto;
+}
+
+.gridFluid {
+	margin: 0;
+	max-width: 100%;
+}
+
+.gridRow {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+}
+
+$flex-justify-values: 'flex-start', 'center', 'flex-end', 'space-between', 'space-around',
+	'space-evenly';
+
+@each $val in $flex-justify-values {
+	.gridRowJustify-#{$val} {
+		justify-content: #{$val};
+	}
+}
+
+$flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
+@each $val in $flex-align-items {
+	.gridRowAlignItems-#{$val} {
+		align-items: #{$val};
+	}
+}
+
+@each $val in $flex-justify-values {
+	.gridRowJustify-#{$val} {
+		justify-content: #{$val};
+	}
+}
+
+@each $modifier, $breakpoint in $grid-sizes-map {
+	@include create-col-classes($modifier, $grid-cols, $breakpoint);
+}
