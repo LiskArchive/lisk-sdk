@@ -3,11 +3,12 @@
 }
 
 .clickableRow {
-	float: left;
 	padding: 0.5px;
-	height: min(15px);
+	height: auto;
+	min-height: 20px;
 }
 
 .clickableContainer {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
 }
