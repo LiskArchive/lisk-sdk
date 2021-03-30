@@ -25,6 +25,7 @@ import MessageDialog from '../components/dialogs/MessageDialog';
 import AccountDialog from '../components/dialogs/AccountDialog';
 import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
+import Grid from '../components/Grid';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -35,102 +36,116 @@ const MainPage: React.FC = () => {
 
 	return (
 		<section className={styles.root}>
-			<Logo name={'My Custom Alpha Beta'} />
-			{/* text sample */}
-			<div>
-				<Icon name={'info'} size={'xl'} />
-			</div>
-			<div>
-				<CopiableText text="11111764222293342222L" />
-			</div>
-			<div>
-				<Text color="pink" type="h1">
-					143,160,552
-				</Text>
-				<Text color="white" type="h2">
-					My Accounts
-				</Text>
-				<Text color="white" type="p">
-					bd81020ded87d21bbfedc45ed...5d90
-				</Text>
-				<Button size={'m'}>Button</Button>
-				<IconButton icon={'add'} size={'m'} />
-			</div>
+			<Grid container>
+				<Grid row>
+					<Grid>
+						<Logo name={'My Custom Alpha Beta'} />
+					</Grid>
+				</Grid>
 
-			<Widget>
-				<WidgetHeader>
-					<Text type={'h2'}>Widget title</Text>
-				</WidgetHeader>
-				<WidgetBody size={'m'} scrollbar={true}>
-					<h2>Nazar</h2>
-					<p>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</p>
+				<Grid row>
+					<Grid md={6}>
+						<Icon name={'info'} size={'xl'} />
+						<CopiableText text="11111764222293342222L" />
+						<Text color="pink" type="h1">
+							143,160,552
+						</Text>
+						<Text color="white" type="h2">
+							My Accounts
+						</Text>
+						<Text color="white" type="p">
+							bd81020ded87d21bbfedc45ed...5d90
+						</Text>
+						<Button size={'m'}>Button</Button>
+						<IconButton icon={'add'} size={'m'} />
+					</Grid>
+					<Grid md={6}>
+						<Widget>
+							<WidgetHeader>
+								<Text type={'h2'}>Widget title</Text>
+							</WidgetHeader>
+							<WidgetBody size={'m'} scrollbar={true}>
+								<h2>Nazar</h2>
+								<p>
+									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
+									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
+									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
+									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
+									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
+									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
+									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
+									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
+									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
+									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
+								</p>
 
-					<p>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</p>
+								<p>
+									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
+									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
+									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
+									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
+									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
+									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
+									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
+									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
+									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
+									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
+								</p>
 
-					<p>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</p>
+								<p>
+									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
+									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
+									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
+									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
+									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
+									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
+									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
+									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
+									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
+									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
+								</p>
 
-					<p>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</p>
+								<p>
+									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
+									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
+									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
+									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
+									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
+									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
+									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
+									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
+									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
+									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
+								</p>
 
-					<p>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</p>
-				</WidgetBody>
-			</Widget>
+								<p>
+									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
+									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
+									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
+									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
+									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
+									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
+									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
+									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
+									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
+									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
+								</p>
+							</WidgetBody>
+						</Widget>
+					</Grid>
+				</Grid>
 
-			<Button onClick={() => setDialogOpen(!dialogOpen)}>Open</Button>
+				<Grid row>
+					<Grid md={12}>
+						<Button onClick={() => setDialogOpen(!dialogOpen)}>Open</Button>
+						<Button onClick={() => setSuccessDialog(!successDialog)}>Sucess Dialog</Button>
+						<Button onClick={() => setAccountDialog(!accountDialog)}>Account Dialog</Button>
+						<Button onClick={() => setPeersInfoDialog(!peersInfoDialog)}>Peers Info Dialog</Button>
+						<Button onClick={() => setNodeInfoDialog(!nodeInfoDialog)}>Node Info Dialog</Button>
+					</Grid>
+				</Grid>
+			</Grid>
+
 			<Dialog
 				open={dialogOpen}
 				onClose={() => {
@@ -208,7 +223,6 @@ const MainPage: React.FC = () => {
 				</DialogBody>
 			</Dialog>
 
-			<Button onClick={() => setSuccessDialog(!successDialog)}>Sucess Dialog</Button>
 			<MessageDialog
 				open={successDialog}
 				onClose={() => {
@@ -231,7 +245,6 @@ const MainPage: React.FC = () => {
 				</Text>
 			</MessageDialog>
 
-			<Button onClick={() => setAccountDialog(!accountDialog)}>Account Dialog</Button>
 			<AccountDialog
 				open={accountDialog}
 				onClose={() => {
@@ -246,7 +259,6 @@ const MainPage: React.FC = () => {
 				}}
 			></AccountDialog>
 
-			<Button onClick={() => setPeersInfoDialog(!peersInfoDialog)}>Peers Info Dialog</Button>
 			<PeersInfoDialog
 				open={peersInfoDialog}
 				onClose={() => {
@@ -255,7 +267,6 @@ const MainPage: React.FC = () => {
 				peersInfo={{ connected: 6, disconnected: 10, banned: 4 }}
 			></PeersInfoDialog>
 
-			<Button onClick={() => setNodeInfoDialog(!nodeInfoDialog)}>Node Info Dialog</Button>
 			<NodeInfoDialog
 				open={nodeInfoDialog}
 				onClose={() => {
