@@ -33,7 +33,6 @@
 
 .background {
 	background: rgba(15, 25, 51, 0.85);
-	display: table-cell;
 	text-align: center;
 }
 
@@ -64,7 +63,7 @@
 
 .open {
 	transform: scale(1);
-	display: table;
+	display: block;
 	transition: transform 0.3s;
 
 	.modal {
