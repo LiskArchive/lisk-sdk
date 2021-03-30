@@ -45,20 +45,25 @@ $font-weight-l: 600;
 	line-height: 130%;
 }
 
+$size-sm: 456px;
+$size-md: 769px;
+$size-lg: 1000px;
+$size-xl: 1200px;
+
 // min-width
 $breakpoint-up: (
-	'sm': 'screen and (min-width: 456px)',
-	'md': 'screen and (min-width: 769px)',
-	'lg': 'screen and (min-width: 1000px)',
-	'xl': 'screen and (min-width: 1200px)',
+	'sm': 'screen and (min-width: #{$size-sm})',
+	'md': 'screen and (min-width: #{$size-md})',
+	'lg': 'screen and (min-width: #{$size-lg})',
+	'xl': 'screen and (min-width: #{$size-xl})',
 ) !default;
 
 // max-width
 $breakpoint-down: (
-	'sm': 'screen and (max-width: 455px)',
-	'md': 'screen and (max-width: 768px)',
-	'lg': 'screen and (max-width: 999px)',
-	'xl': 'screen and (max-width: 1199px)',
+	'sm': 'screen and (max-width: #{$size-sm - 1px})',
+	'md': 'screen and (max-width: #{$size-md - 1px})',
+	'lg': 'screen and (max-width: #{$size-lg - 1px})',
+	'xl': 'screen and (max-width: #{$size-xl - 1px})',
 ) !default;
 
 // @mixins
