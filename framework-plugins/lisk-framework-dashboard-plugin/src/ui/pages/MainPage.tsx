@@ -21,9 +21,13 @@ import { Widget, WidgetHeader, WidgetBody } from '../components/widget';
 import Button from '../components/Button';
 import IconButton from '../components/IconButton';
 import { Dialog, DialogHeader, DialogBody } from '../components/dialog';
+import MessageDialog from '../components/dialogs/MessageDialog';
+import AccountDialog from '../components/dialogs/AccountDialog';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
+	const [successDialog, setSuccessDialog] = React.useState(false);
+	const [accountDialog, setAccountDialog] = React.useState(false);
 
 	return (
 		<section className={styles.root}>
@@ -199,6 +203,57 @@ const MainPage: React.FC = () => {
 					</Text>
 				</DialogBody>
 			</Dialog>
+
+			<Button onClick={() => setSuccessDialog(!successDialog)}>Sucess Dialog</Button>
+			<MessageDialog
+				open={successDialog}
+				onClose={() => {
+					setSuccessDialog(false);
+				}}
+				title={'Success'}
+				backBtn={true}
+			>
+				<Text type={'p'}>
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
+					ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
+					dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
+					metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
+					nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
+					eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
+					posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
+					ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
+					mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id arcu
+					purus.
+				</Text>
+			</MessageDialog>
+
+			<Button onClick={() => setAccountDialog(!accountDialog)}>Account Dialog</Button>
+			<AccountDialog
+				open={accountDialog}
+				onClose={() => {
+					setAccountDialog(false);
+				}}
+				account={{
+					binaryAddress: 'bd81020ded87d21bbfedc45ed24a081bb4905d90',
+					base32Address: 'lskfxs5s8cnahtevckky6dmr8jt3c9oqgd5gjbs85',
+					publicKey: '5f0a7f66a2e32dc9c6bd4521b6baad37cd70de1f8a6e51491932052f3d38ede4',
+					passphrase:
+						'ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget ornare id consectetur adipiscing elit consectetur adipiscing elit',
+				}}
+			>
+				<Text type={'p'}>
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
+					ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
+					dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
+					metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
+					nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
+					eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
+					posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
+					ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
+					mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id arcu
+					purus.
+				</Text>
+			</AccountDialog>
 		</section>
 	);
 };
