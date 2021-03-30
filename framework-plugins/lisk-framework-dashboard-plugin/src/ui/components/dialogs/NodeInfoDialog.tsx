@@ -57,9 +57,9 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 			<DialogBody>
 				<Grid container fluid spacing={3}>
 					{labels.map((group, index) => (
-						<Grid row rowBorder={index !== labels.length - 1}>
-							{group.map(field => (
-								<Grid md={6} sm={12}>
+						<Grid row rowBorder={index !== labels.length - 1} key={index}>
+							{group.map((field, index2) => (
+								<Grid md={6} sm={12} key={index2}>
 									<Box mb={2}>
 										<Text type={'h3'}>{field.label}</Text>
 									</Box>
@@ -96,7 +96,7 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 					</Grid>
 
 					{nodeInfo.fees.map((fee, index) => (
-						<Grid row rowBorder={index !== nodeInfo.fees.length - 1}>
+						<Grid row rowBorder={index !== nodeInfo.fees.length - 1} key={index}>
 							<Grid sm={4}>
 								<Text>{fee.moduleId}</Text>
 							</Grid>
