@@ -1,35 +1,53 @@
 @import '../../styles/constants';
 
 $grid-cols: 12;
+$grid-sizes: 'sm', 'md', 'lg', 'xl', '';
+$base-spacing: 5px;
+$grid-spacing: 5;
 
-$grid-sizes-map: (
-	'xl': $size-xl,
-	'lg': $size-lg,
-	'md': $size-md,
-	'sm': $size-sm,
-	'': 0,
-);
+@for $i from 0 through $grid-spacing {
+	.gridSpacing-#{$i} {
+		.gridCol {
+			padding: $i * $base-spacing;
+		}
 
-@each $modifier, $breakpoint in $grid-sizes-map {
+		@each $breakpoint in $grid-sizes {
+			.gridCol-#{$breakpoint}-12 {
+				padding-left: 0;
+			}
+		}
+
+		.gridRow {
+			> :last-child {
+				padding-right: 0;
+			}
+			> :first-child {
+				padding-left: 0;
+			}
+		}
+	}
+}
+
+@each $modifier in $grid-sizes {
 	@if ($modifier == '') {
-		$modifier: 'xs';
+		$modifier: 'sm';
 	}
 
-	@include mq-down($breakpoint) {
-		.hidden#{$modifier}-down {
+	@include mq-down($modifier) {
+		.hidden-#{$modifier}-down {
 			display: none !important;
 		}
 	}
 
-	@include mq-up($breakpoint) {
-		.hidden#{$modifier}-up {
+	@include mq-up($modifier) {
+		.hidden-#{$modifier}-up {
 			display: none !important;
 		}
 	}
 }
 
-@mixin create-col-classes($modifier, $grid-cols, $breakpoint) {
-	@include mq-up($breakpoint) {
+@mixin create-col-classes($modifier, $grid-cols) {
+	@include mq-up($modifier) {
 		.gridCol-#{$modifier}-offset-0 {
 			margin-left: 0;
 		}
@@ -61,6 +79,14 @@ $grid-sizes-map: (
 	width: 100%;
 }
 
+.gridRowBorder {
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gridCol {
+	box-sizing: border-box;
+}
+
 $flex-justify-values: 'flex-start', 'center', 'flex-end', 'space-between', 'space-around',
 	'space-evenly';
 
@@ -83,6 +109,6 @@ $flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
 	}
 }
 
-@each $modifier, $breakpoint in $grid-sizes-map {
-	@include create-col-classes($modifier, $grid-cols, $breakpoint);
+@each $modifier in $grid-sizes {
+	@include create-col-classes($modifier, $grid-cols);
 }
