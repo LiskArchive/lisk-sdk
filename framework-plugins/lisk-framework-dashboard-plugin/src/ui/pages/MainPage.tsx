@@ -23,6 +23,7 @@ import IconButton from '../components/IconButton';
 import { Dialog, DialogHeader, DialogBody } from '../components/dialog';
 import MessageDialog from '../components/dialogs/MessageDialog';
 import AccountDialog from '../components/dialogs/AccountDialog';
+import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 
 const MainPage: React.FC = () => {
@@ -30,6 +31,7 @@ const MainPage: React.FC = () => {
 	const [successDialog, setSuccessDialog] = React.useState(false);
 	const [accountDialog, setAccountDialog] = React.useState(false);
 	const [nodeInfoDialog, setNodeInfoDialog] = React.useState(false);
+	const [peersInfoDialog, setPeersInfoDialog] = React.useState(false);
 
 	return (
 		<section className={styles.root}>
@@ -243,6 +245,15 @@ const MainPage: React.FC = () => {
 						'ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget ornare id consectetur adipiscing elit consectetur adipiscing elit',
 				}}
 			></AccountDialog>
+
+			<Button onClick={() => setPeersInfoDialog(!peersInfoDialog)}>Peers Info Dialog</Button>
+			<PeersInfoDialog
+				open={peersInfoDialog}
+				onClose={() => {
+					setPeersInfoDialog(false);
+				}}
+				peersInfo={{ connected: 6, disconnected: 10, banned: 4 }}
+			></PeersInfoDialog>
 
 			<Button onClick={() => setNodeInfoDialog(!nodeInfoDialog)}>Node Info Dialog</Button>
 			<NodeInfoDialog
