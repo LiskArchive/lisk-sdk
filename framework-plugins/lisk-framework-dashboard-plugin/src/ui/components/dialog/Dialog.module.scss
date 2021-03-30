@@ -64,7 +64,7 @@
 
 .open {
 	transform: scale(1);
-	display: block;
+	display: table;
 	transition: transform 0.3s;
 
 	.modal {
@@ -96,4 +96,5 @@
 .body {
 	padding: 20px;
 	padding-top: 0;
+	text-align: center;
 }

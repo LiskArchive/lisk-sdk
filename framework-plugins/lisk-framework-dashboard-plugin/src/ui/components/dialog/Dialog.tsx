@@ -15,7 +15,7 @@
 import * as React from 'react';
 import styles from './Dialog.module.scss';
 
-interface DialogProps {
+export interface DialogProps {
 	open: boolean;
 	onOpen?: () => void;
 	onClose?: () => void;
