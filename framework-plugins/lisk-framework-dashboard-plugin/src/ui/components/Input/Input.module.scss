@@ -20,17 +20,15 @@
 	border-radius: 3px;
 	font-style: normal;
 	font-weight: normal;
-	font-size: 16px;
+	font-size: 14px;
 	font-family: inherit;
 	line-height: 100%;
 	color: $color-white;
 	opacity: 0.8;
 	resize: none;
+	padding: 16px;
 	min-height: 40px;
 	min-width: 520px;
-	&:hover {
-		box-shadow: 3px 3px 10px 0 rgb(61 113 255 / 36%);
-	}
 }
 .text {
 	@extend .input;
@@ -41,11 +39,5 @@
 .textArea {
 	@extend .input;
 	min-height: 240px;
-	min-width: 520px;
-}
-
-.select {
-	@extend .input;
-	min-height: 40px;
 	min-width: 520px;
 }
