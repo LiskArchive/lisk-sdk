@@ -8,6 +8,7 @@
 .header {
 	margin-bottom: 15px;
 	width: 100%;
+	color: $color-white 
 }
 
 .body {
@@ -54,6 +55,10 @@
 	&.widget-body-l {
 		height: 399px;
 	}
+}
+
+.widget-body {
+	background-color: color-ink-blue; 
 }
 
 .widget-body-m {
