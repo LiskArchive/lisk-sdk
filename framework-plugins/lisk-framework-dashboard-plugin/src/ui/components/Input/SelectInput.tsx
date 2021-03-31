@@ -18,6 +18,8 @@ import styles from './Input.module.scss';
 interface Props {
 	options: { label: string; value: string }[];
 	multi?: boolean;
+	onSelect?: (value: any) => void;
+	selected?: string[];
 }
 
 const customStyles = {
@@ -75,17 +77,30 @@ const customStyles = {
 	},
 	singleValue: {
 		color: '#ffffff',
+		background: '#254898',
+	},
+	multiValue: {
+		padding: '9px 16px 9px 16px',
+		background: '#254898',
+		borderRadius: '18px',
+		height: '28px',
+		alignItems: 'center',
+	},
+	multiValueLabel: {
+		color: '#ffffff',
+		background: '#254898',
 	},
 };
 
 const SelectInput: React.FC<Props> = props => {
 	const { options } = props;
 	const multi = props.multi ?? false;
-	const [value, updateValue] = React.useState(undefined);
-
-	const onInputChange = (newValue: any) => {
-		updateValue(newValue);
+	const [selected, updateSelected] = React.useState(props.selected ?? []);
+	const onSelectHandler = (newValue: any) => {
+		updateSelected(newValue);
 	};
+
+	const onSelect = props.onSelect ?? onSelectHandler;
 
 	return (
 		<span className={styles.select}>
@@ -93,7 +108,8 @@ const SelectInput: React.FC<Props> = props => {
 				closeMenuOnSelect={!multi}
 				isMulti={multi}
 				options={options}
-				value={value}
+				value={selected}
+				onChange={onSelect}
 				styles={{
 					// Overriding lib component styles, provided -- the component's default styles
 					container: provided => ({ ...provided, ...customStyles.container }),
@@ -106,8 +122,10 @@ const SelectInput: React.FC<Props> = props => {
 					input: provided => ({ ...provided, ...customStyles.input }),
 					singleValue: provided => ({ ...provided, ...customStyles.singleValue }),
 					indicatorsContainer: provided => ({ ...provided, ...customStyles.indicatorsContainer }),
+					multiValue: provided => ({ ...provided, ...customStyles.multiValue }),
+					multiValueLabel: provided => ({ ...provided, ...customStyles.singleValue }),
+					indicatorSeparator: _ => ({}),
 				}}
-				onChange={onInputChange}
 			/>
 		</span>
 	);

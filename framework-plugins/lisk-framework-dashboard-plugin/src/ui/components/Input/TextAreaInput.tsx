@@ -36,7 +36,7 @@ const TextAreaInput: React.FC<Props> = props => {
 			value={value}
 			placeholder={placeholder}
 			className={`${styles.textArea} ${styles[`textArea-${size}`]}`}
-			onChange={(e) => onChange(e.target.value)}
+			onChange={e => onChange(e.target.value)}
 		/>
 	);
 };

@@ -34,7 +34,7 @@ const TextInput: React.FC<Props> = props => {
 			value={value}
 			placeholder={placeholder}
 			className={styles.text}
-			onChange={(e) => onChange(e.target.value)}
+			onChange={e => onChange(e.target.value)}
 		/>
 	);
 };
