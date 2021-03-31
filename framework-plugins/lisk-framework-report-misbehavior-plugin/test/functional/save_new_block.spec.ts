@@ -90,7 +90,7 @@ describe('save block header', () => {
 		it('should save block header by height', async () => {
 			// Act
 			publishEvent(appEnv.application, encodedBlock);
-			await waitTill(100);
+			await waitTill(200);
 
 			// Assert
 			expect(codecSpy).toHaveBeenCalledWith(pluginInstance.schemas.block, encodedBlockBuffer);
