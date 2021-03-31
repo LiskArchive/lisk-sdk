@@ -17,22 +17,24 @@ import styles from './Input.module.scss';
 interface Props {
 	placeholder?: string;
 	value?: string;
+	onChange?: (val: string) => void;
 }
 
 const TextInput: React.FC<Props> = props => {
 	const { placeholder } = props;
 	const [value, updateValue] = React.useState(props.value);
 
-	const onChange = (val: string) => {
+	const handleOnChange = (val: string) => {
 		updateValue(val);
 	};
+	const onChange = props.onChange ?? handleOnChange;
 
 	return (
 		<input
 			value={value}
 			placeholder={placeholder}
 			className={styles.text}
-			onChange={e => onChange(e.target.value)}
+			onChange={(e) => onChange(e.target.value)}
 		/>
 	);
 };
