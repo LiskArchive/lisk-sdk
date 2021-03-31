@@ -18,10 +18,12 @@ interface Props {
 	placeholder?: string;
 	value?: string;
 	onChange?: (val: string) => void;
+	size?: 's' | 'm' | 'l';
 }
 
 const TextAreaInput: React.FC<Props> = props => {
 	const { placeholder } = props;
+	const size = props.size ?? 'm';
 	const [value, updateValue] = React.useState(props.value);
 
 	const handleOnChange = (val: string) => {
@@ -33,7 +35,7 @@ const TextAreaInput: React.FC<Props> = props => {
 		<textarea
 			value={value}
 			placeholder={placeholder}
-			className={styles.textArea}
+			className={`${styles.textArea} ${styles[`textArea-${size}`]}`}
 			onChange={(e) => onChange(e.target.value)}
 		/>
 	);
