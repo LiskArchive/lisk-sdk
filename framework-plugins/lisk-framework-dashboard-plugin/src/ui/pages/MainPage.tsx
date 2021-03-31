@@ -26,6 +26,7 @@ import AccountDialog from '../components/dialogs/AccountDialog';
 import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import Grid from '../components/Grid';
+import { SelectInput, TextAreaInput, TextInput } from '../components/Input';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -56,6 +57,33 @@ const MainPage: React.FC = () => {
 						<Text color="white" type="p">
 							bd81020ded87d21bbfedc45ed...5d90
 						</Text>
+
+						<TextInput placeholder={'Some text'} />
+						<br />
+						<TextAreaInput
+							placeholder={JSON.stringify({ key: 'tokenTransfer', value: 'token:transfer' })}
+						/>
+						<br />
+						<Text color="white" type="h2">
+							Single Select
+						</Text>
+						<SelectInput
+							options={[
+								{ label: 'tokenTransfer', value: 'token:transfer' },
+								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
+							]}
+						/>
+						<Text color="white" type="h2">
+							Multi Select
+						</Text>
+						<SelectInput
+							options={[
+								{ label: 'tokenTransfer', value: 'token:transfer' },
+								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
+							]}
+							multi
+						/>
+
 						<Button size={'m'}>Button</Button>
 						<IconButton icon={'add'} size={'m'} />
 					</Grid>
