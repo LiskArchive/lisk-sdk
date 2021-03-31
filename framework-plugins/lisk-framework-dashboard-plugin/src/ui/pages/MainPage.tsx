@@ -30,6 +30,7 @@ import { TextInput, TextAreaInput, SelectInput } from '../components/input';
 import { BlockWidget, TransactionWidget } from '../components/widgets';
 import InfoPanel from '../components/InfoPanel';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
+import MyAccount from '../components/MyAccount';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -37,6 +38,29 @@ const MainPage: React.FC = () => {
 	const [accountDialog, setAccountDialog] = React.useState(false);
 	const [nodeInfoDialog, setNodeInfoDialog] = React.useState(false);
 	const [peersInfoDialog, setPeersInfoDialog] = React.useState(false);
+	const accounts = [
+		{
+			"passphrase": "gospel taxi search output south uncover gaze glue apple garden pill master",
+			"privateKey": "294752900c9bc77600d6d2f5b9f92d0bdece28d9405c3c40506b90c1afe2d607a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
+			"publicKey": "a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
+			"binaryAddress": "a76ede56e69333382c6d4fd721dee0fe328318a2",
+			"address": "lskkhw9jqwbroatu5c94g5rcwwzg2a3bbmvgomnsu"
+		},
+		{
+			"passphrase": "gospel taxi search output south uncover gaze glue apple garden pill master",
+			"privateKey": "294752900c9bc77600d6d2f5b9f92d0bdece28d9405c3c40506b90c1afe2d607a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
+			"publicKey": "a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
+			"binaryAddress": "a76ede56e69333382c6d4fd721dee0fe328318a2",
+			"address": "lskkhw9jqwbroatu5c94g5rcwwzg2a3bbmvgomnsu"
+		},
+		{
+			"passphrase": "gospel taxi search output south uncover gaze glue apple garden pill master",
+			"privateKey": "294752900c9bc77600d6d2f5b9f92d0bdece28d9405c3c40506b90c1afe2d607a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
+			"publicKey": "a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
+			"binaryAddress": "a76ede56e69333382c6d4fd721dee0fe328318a2",
+			"address": "lskkhw9jqwbroatu5c94g5rcwwzg2a3bbmvgomnsu"
+		},
+	];
 
 	return (
 		<section className={styles.root}>
@@ -505,6 +529,7 @@ const MainPage: React.FC = () => {
 					</Grid>
 				</Grid>
 			</Grid>
+			<MyAccount accounts={accounts} />
 		</section>
 	);
 };
