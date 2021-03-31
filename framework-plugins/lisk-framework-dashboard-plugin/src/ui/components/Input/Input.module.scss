@@ -1,0 +1,51 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+@import '../../styles/constants';
+
+.input {
+	background-color: $color-background-darker;
+	border: 1px solid rgba(223, 230, 242, 0.2);
+	box-sizing: border-box;
+	border-radius: 3px;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 16px;
+	font-family: inherit;
+	line-height: 100%;
+	color: $color-white;
+	opacity: 0.8;
+	resize: none;
+	min-height: 40px;
+	min-width: 520px;
+	&:hover {
+		box-shadow: 3px 3px 10px 0 rgb(61 113 255 / 36%);
+	}
+}
+.text {
+	@extend .input;
+	min-height: 40px;
+	min-width: 520px;
+}
+
+.textArea {
+	@extend .input;
+	min-height: 240px;
+	min-width: 520px;
+}
+
+.select {
+	@extend .input;
+	min-height: 40px;
+	min-width: 520px;
+}
