@@ -15,19 +15,13 @@
 import { codec } from '@liskhq/lisk-codec';
 import { formatInt } from '@liskhq/lisk-db';
 import { BlockHeader, RawBlock } from '@liskhq/lisk-chain';
-import { testing, RegisteredSchema } from 'lisk-framework';
+import { testing, RegisteredSchema, PartialApplicationConfig } from 'lisk-framework';
 import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema, getBlockHeaders } from '../../src/db';
-import {
-	closeApplicationEnv,
-	createApplicationEnv,
-	getReportMisbehaviorPlugin,
-	publishEvent,
-	waitTill,
-} from '../utils/application';
+import { getReportMisbehaviorPlugin, publishEvent, waitTill } from '../utils/application';
 
 describe('save block header', () => {
 	let appEnv: testing.ApplicationEnv;
@@ -49,6 +43,7 @@ describe('save block header', () => {
 		});
 	const appLabel = 'report-misbehavior-plugin';
 	const dataPath = join(homedir(), '.lisk', appLabel);
+	const apiPort = 5002;
 
 	const encodeBlockHeader = (schemas: RegisteredSchema, newHeader: BlockHeader) =>
 		codec.encode(schemas.blockHeader, newHeader);
@@ -57,7 +52,22 @@ describe('save block header', () => {
 		if (existsSync(dataPath)) {
 			rmdirSync(dataPath, { recursive: true });
 		}
-		appEnv = createApplicationEnv('reportMisbehavior');
+		const rootPath = '~/.lisk/report-misbehavior-plugin';
+		const config = {
+			rootPath,
+			label: appLabel,
+			plugins: {
+				reportMisbehavior: {
+					port: apiPort,
+					encryptedPassphrase: testing.fixtures.defaultFaucetAccount.encryptedPassphrase,
+				},
+			},
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ReportMisbehaviorPlugin],
+		});
 		await appEnv.startApplication();
 		pluginInstance = getReportMisbehaviorPlugin(appEnv.application);
 		const { header } = codec.decode<RawBlock>(pluginInstance.schemas.block, encodedBlockBuffer);
@@ -72,7 +82,9 @@ describe('save block header', () => {
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('from same generator', () => {
