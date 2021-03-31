@@ -11,25 +11,33 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import axios from 'axios';
-import {
-	callNetwork,
-	createApplicationEnv,
-	closeApplicationEnv,
-	getURL,
-} from './utils/application';
+import { callNetwork, getURL } from './utils/application';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
 
 describe('Delegates endpoint', () => {
 	let appEnv: testing.ApplicationEnv;
+	const label = 'delegates_http_functional';
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('delegates_http_functional');
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
 		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('/api/delegates', () => {
@@ -43,7 +51,7 @@ describe('Delegates endpoint', () => {
 				expect(response.data).toHaveLength(100);
 				expect(response.data[0]).toMatchSnapshot();
 				expect(response.meta).toEqual({
-					count: 104,
+					count: 103,
 					limit: 100,
 					offset: 0,
 				});
@@ -56,9 +64,9 @@ describe('Delegates endpoint', () => {
 					axios.get(getURL('/api/delegates?limit=100&offset=100')),
 				);
 				// Assert
-				expect(response.data).toHaveLength(4);
+				expect(response.data).toHaveLength(3);
 				expect(response.meta).toEqual({
-					count: 104,
+					count: 103,
 					limit: 100,
 					offset: 100,
 				});
@@ -68,15 +76,15 @@ describe('Delegates endpoint', () => {
 			it('should respond with blank array when no delegates are found', async () => {
 				// Act
 				const { response, status } = await callNetwork(
-					axios.get(getURL('/api/delegates?limit=100&offset=104')),
+					axios.get(getURL('/api/delegates?limit=100&offset=103')),
 				);
 				// Assert
 				expect(response.data).toHaveLength(0);
 				expect(response.data).toEqual([]);
 				expect(response.meta).toEqual({
-					count: 104,
+					count: 103,
 					limit: 100,
-					offset: 104,
+					offset: 103,
 				});
 				expect(status).toBe(200);
 			});

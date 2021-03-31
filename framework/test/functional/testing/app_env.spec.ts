@@ -11,14 +11,31 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable max-classes-per-file */
 import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ApplicationEnv } from '../../../src/testing';
-import { TokenModule } from '../../../src';
+import { BaseAsset, BaseModule, TokenModule } from '../../../src';
 
 const appLabel = 'beta-sdk-app';
 const dataPath = join(homedir(), '.lisk', appLabel);
+
+class SampleAsset extends BaseAsset {
+	public name = 'asset';
+	public id = 0;
+	public schema = {
+		$id: 'lisk/sample',
+		type: 'object',
+		properties: {},
+	};
+	public async apply(): Promise<void> {}
+}
+class SampleModule extends BaseModule {
+	public name = 'SampleModule';
+	public id = 999999;
+	public transactionAssets = [new SampleAsset()];
+}
 
 describe('Application Environment', () => {
 	let appEnv: ApplicationEnv;
@@ -78,6 +95,18 @@ describe('Application Environment', () => {
 		it('should start application and forge next block', async () => {
 			appEnv = new ApplicationEnv({
 				modules: [],
+				plugins: [],
+			});
+
+			await appEnv.startApplication();
+			await appEnv.waitNBlocks(1);
+
+			expect(appEnv.lastBlock.header.height).toBeGreaterThan(0);
+		});
+
+		it('should start application with custom module', async () => {
+			appEnv = new ApplicationEnv({
+				modules: [TokenModule, SampleModule],
 				plugins: [],
 			});
 

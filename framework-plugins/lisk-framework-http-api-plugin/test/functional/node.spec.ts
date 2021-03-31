@@ -11,27 +11,34 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import axios from 'axios';
-import {
-	callNetwork,
-	createApplicationEnv,
-	closeApplicationEnv,
-	getURL,
-} from './utils/application';
-import { getRandomAccount } from './utils/accounts';
+import { callNetwork, getURL } from './utils/application';
 import { createTransferTransaction } from './utils/transactions';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
 
 describe('Node', () => {
 	let appEnv: testing.ApplicationEnv;
+	const label = 'node_http_functional';
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('node_http_functional');
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
 		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('api/node/info', () => {
@@ -75,7 +82,7 @@ describe('Node', () => {
 			let transaction2: any;
 
 			beforeAll(async () => {
-				account = getRandomAccount();
+				account = testing.fixtures.createDefaultAccount();
 				transaction1 = createTransferTransaction({
 					amount: '2',
 					recipientAddress: account.address,

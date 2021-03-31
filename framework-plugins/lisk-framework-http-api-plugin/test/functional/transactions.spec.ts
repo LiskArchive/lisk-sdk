@@ -12,31 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { getAddressFromPublicKey, getKeys, getRandomBytes } from '@liskhq/lisk-cryptography';
 import axios from 'axios';
-import {
-	callNetwork,
-	closeApplicationEnv,
-	createApplicationEnv,
-	getURL,
-} from './utils/application';
-import { getRandomAccount } from './utils/accounts';
+
+import { callNetwork, getURL } from './utils/application';
 import { createTransferTransaction } from './utils/transactions';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
+
+const getRandomAccount = () => {
+	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('hex'));
+	const address = getAddressFromPublicKey(publicKey);
+
+	return {
+		address: address.toString('hex'),
+		publicKey: publicKey.toString('hex'),
+		privateKey: privateKey.toString('hex'),
+		nonce: 0,
+	};
+};
 
 describe('Hello endpoint', () => {
 	// Arrange
 	const invalidHexString = '69db1f75ab1f76c69f7dxxxxxxxxxx';
+	const label = 'transactions_http_functional';
 	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('transactions');
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
 		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('GET /api/transactions/:id', () => {

@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing } from 'lisk-framework';
-import { closeApplicationEnv, createApplicationEnv, waitTill } from '../utils/application';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { waitTill } from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
+import { ForgerPlugin } from '../../src';
 
 describe('forger:getVoters action', () => {
 	let appEnv: testing.ApplicationEnv;
@@ -22,14 +23,25 @@ describe('forger:getVoters action', () => {
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		appEnv = createApplicationEnv('forger_functional_voters');
+		const rootPath = '~/.lisk/forger-plugin';
+		const config = {
+			rootPath,
+			label: 'voters_functional',
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ForgerPlugin],
+		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
 		networkIdentifier = appEnv.application['_node'].networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await closeApplicationEnv(appEnv);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('action forger:getVoters', () => {
