@@ -43,6 +43,14 @@ $flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
 
 .gridRowBorder {
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+	@include mq-down('sm') {
+		border-bottom: none;
+
+		> .gridCol {
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		}
+	}
 }
 
 @each $val in $flex-justify-values {

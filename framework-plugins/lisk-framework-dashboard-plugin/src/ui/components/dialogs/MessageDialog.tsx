@@ -13,7 +13,7 @@
  */
 
 import * as React from 'react';
-import { Dialog, DialogBody, DialogHeader, DialogProps, DialogChildProps } from '../dialog';
+import { Dialog, DialogBody, DialogHeader, DialogProps, DialogContext } from '../dialog';
 import Button from '../Button';
 import Text from '../Text';
 
@@ -22,21 +22,25 @@ interface MessageDialogProps extends DialogProps {
 	backBtn?: boolean;
 }
 
-interface MessageDialogBodyProps extends DialogChildProps {
+interface MessageDialogBodyProps {
 	backBtn?: boolean;
 }
 
-const MessageDialogBody: React.FC<MessageDialogBodyProps> = props => (
-	<DialogBody>
-		{props.children}
-		{props.backBtn && (
-			<React.Fragment>
-				<br />
-				<Button onClick={props.closeDialog}>Back to Dashboard</Button>
-			</React.Fragment>
-		)}
-	</DialogBody>
-);
+const MessageDialogBody: React.FC<MessageDialogBodyProps> = props => {
+	const dialogContext = React.useContext(DialogContext);
+
+	return (
+		<DialogBody>
+			{props.children}
+			{props.backBtn && (
+				<React.Fragment>
+					<br />
+					<Button onClick={dialogContext.closeDialog}>Back to Dashboard</Button>
+				</React.Fragment>
+			)}
+		</DialogBody>
+	);
+};
 
 const MessageDialog: React.FC<MessageDialogProps> = props => {
 	const { title, backBtn, ...rest } = props;

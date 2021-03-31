@@ -59,7 +59,7 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 					{labels.map((group, index) => (
 						<Grid row rowBorder={index !== labels.length - 1} key={index}>
 							{group.map((field, index2) => (
-								<Grid md={6} sm={12} key={index2}>
+								<Grid md={6} xs={12} key={index2}>
 									<Box mb={2}>
 										<Text type={'h3'}>{field.label}</Text>
 									</Box>
@@ -84,26 +84,26 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 				</Box>
 				<Grid container fluid spacing={3}>
 					<Grid row rowBorder>
-						<Grid sm={4}>
+						<Grid xs={4}>
 							<Text type={'h3'}>Module ID</Text>
 						</Grid>
-						<Grid sm={4}>
+						<Grid xs={4}>
 							<Text type={'h3'}>Asset ID</Text>
 						</Grid>
-						<Grid sm={4}>
+						<Grid xs={4}>
 							<Text type={'h3'}>Base Fee</Text>
 						</Grid>
 					</Grid>
 
 					{nodeInfo.fees.map((fee, index) => (
 						<Grid row rowBorder={index !== nodeInfo.fees.length - 1} key={index}>
-							<Grid sm={4}>
+							<Grid xs={4}>
 								<Text>{fee.moduleId}</Text>
 							</Grid>
-							<Grid sm={4}>
+							<Grid xs={4}>
 								<Text>{fee.assetId}</Text>
 							</Grid>
-							<Grid sm={4}>
+							<Grid xs={4}>
 								<Text>{fee.baseFee}</Text>
 							</Grid>
 						</Grid>
