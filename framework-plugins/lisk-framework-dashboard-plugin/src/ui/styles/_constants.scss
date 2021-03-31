@@ -45,20 +45,28 @@ $font-weight-l: 600;
 	line-height: 130%;
 }
 
+$breakpoint-xs: 0px;
+$breakpoint-sm: 600px;
+$breakpoint-md: 960px;
+$breakpoint-lg: 1280px;
+$breakpoint-xl: 1920px;
+
 // min-width
 $breakpoint-up: (
-	'sm': 'screen and (min-width: 456px)',
-	'md': 'screen and (min-width: 769px)',
-	'lg': 'screen and (min-width: 1000px)',
-	'xl': 'screen and (min-width: 1200px)',
+	'xs': 'screen and (min-width: #{$breakpoint-xs})',
+	'sm': 'screen and (min-width: #{$breakpoint-sm})',
+	'md': 'screen and (min-width: #{$breakpoint-md})',
+	'lg': 'screen and (min-width: #{$breakpoint-lg})',
+	'xl': 'screen and (min-width: #{$breakpoint-xl})',
 ) !default;
 
 // max-width
 $breakpoint-down: (
-	'sm': 'screen and (max-width: 455px)',
-	'md': 'screen and (max-width: 768px)',
-	'lg': 'screen and (max-width: 999px)',
-	'xl': 'screen and (max-width: 1199px)',
+	'xs': 'screen and (max-width: #{$breakpoint-xs})',
+	'sm': 'screen and (max-width: #{$breakpoint-sm - 1px})',
+	'md': 'screen and (max-width: #{$breakpoint-md - 1px})',
+	'lg': 'screen and (max-width: #{$breakpoint-lg - 1px})',
+	'xl': 'screen and (max-width: #{$breakpoint-xl - 1px})',
 ) !default;
 
 // @mixins

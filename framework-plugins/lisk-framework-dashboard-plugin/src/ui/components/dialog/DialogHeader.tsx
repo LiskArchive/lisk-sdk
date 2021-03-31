@@ -15,19 +15,15 @@
 import * as React from 'react';
 import IconButton from '../IconButton';
 import styles from './Dialog.module.scss';
-import { DialogChildProps } from './Dialog';
+import { DialogContext } from './Dialog';
 
-const DialogHeader: React.FC<DialogChildProps> = props => {
-	const triggerClose = () => {
-		if (props.closeDialog) {
-			props.closeDialog();
-		}
-	};
+const DialogHeader: React.FC = props => {
+	const dialogContext = React.useContext(DialogContext);
 
 	return (
 		<div className={styles.header}>
 			<div className={styles.headerContent}>{props.children}</div>
-			<IconButton icon={'close'} size={'l'} onClick={triggerClose}></IconButton>
+			<IconButton icon={'close'} size={'l'} onClick={dialogContext.closeDialog}></IconButton>
 		</div>
 	);
 };
