@@ -14,18 +14,6 @@
 
 import * as React from 'react';
 import styles from './Dialog.module.scss';
-import { DialogChildProps } from './Dialog';
 
-const DialogBody: React.FC<DialogChildProps> = props => {
-	const childrenWithProps = React.Children.map(props.children, child => {
-		// checking isValidElement is the safe way and avoids a typescript error too
-		if (React.isValidElement(child)) {
-			return React.cloneElement(child, { closeDialog: props.closeDialog });
-		}
-		return child;
-	});
-
-	return <div className={styles.body}>{childrenWithProps}</div>;
-};
-
+const DialogBody: React.FC = props => <div className={styles.body}>{props.children}</div>;
 export default DialogBody;

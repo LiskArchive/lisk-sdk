@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import Dialog, { DialogChildProps, DialogProps } from './Dialog';
+import Dialog, { DialogContext, DialogProps } from './Dialog';
 import DialogHeader from './DialogHeader';
 import DialogBody from './DialogBody';
 
-export { Dialog, DialogHeader, DialogBody };
-export type { DialogProps, DialogChildProps };
+export { Dialog, DialogHeader, DialogBody, DialogContext };
+export type { DialogProps };

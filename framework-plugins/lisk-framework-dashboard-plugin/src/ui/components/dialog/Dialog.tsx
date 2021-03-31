@@ -21,9 +21,8 @@ export interface DialogProps {
 	onClose?: () => void;
 }
 
-export interface DialogChildProps {
-	closeDialog?: () => void;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const DialogContext = React.createContext({ closeDialog: () => {} });
 
 const Dialog: React.FC<DialogProps> = props => {
 	const [open, setOpen] = React.useState(props.open);
@@ -50,18 +49,14 @@ const Dialog: React.FC<DialogProps> = props => {
 		}
 	}, [props.open]);
 
-	const childrenWithProps = React.Children.map(props.children, child => {
-		// checking isValidElement is the safe way and avoids a typescript error too
-		if (React.isValidElement(child)) {
-			return React.cloneElement(child, { closeDialog: triggerClose });
-		}
-		return child;
-	});
-
 	return (
 		<div className={`${styles.root} ${open ? styles.open : styles.close}`}>
 			<div className={styles.background}>
-				<div className={styles.modal}>{childrenWithProps}</div>
+				<div className={styles.modal}>
+					<DialogContext.Provider value={{ closeDialog: triggerClose }}>
+						{props.children}
+					</DialogContext.Provider>
+				</div>
 			</div>
 		</div>
 	);
