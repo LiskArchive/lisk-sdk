@@ -42,7 +42,9 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
 	// Set genesis block timestamp to 1 day in past relative to current date
-	const defaultTimestamp = Math.floor(new Date().setDate(new Date().getDay() - 1) / 1000);
+	const today = new Date();
+	const yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24);
+	const defaultTimestamp = Math.floor(yesterday.getTime() / 1000);
 	const timestamp = params.timestamp ?? defaultTimestamp;
 	const previousBlockID = params.previousBlockID ?? Buffer.alloc(0);
 
