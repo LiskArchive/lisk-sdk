@@ -26,6 +26,7 @@ import AccountDialog from '../components/dialogs/AccountDialog';
 import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import Grid from '../components/Grid';
+import { AccountRow, Table } from '../components/Table';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -290,6 +291,32 @@ const MainPage: React.FC = () => {
 					],
 				}}
 			></NodeInfoDialog>
+
+			<Widget>
+				<WidgetHeader>
+					<Text type={'h2'}>My accounts</Text>
+				</WidgetHeader>
+				<Table
+					header={['Binary Address', 'Public Key']}
+					data={[
+						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
+						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
+					]}
+					row={AccountRow}
+				></Table>
+			</Widget>
 		</section>
 	);
 };
