@@ -82,7 +82,7 @@ describe('Message rate limit', () => {
 		it('should track the message rate correctly when receiving messages', async () => {
 			const TOTAL_SENDS = 100;
 			const firstP2PNode = p2pNodeList[0];
-			const ratePerSecondLowerBound = 70;
+			const ratePerSecondLowerBound = 60;
 			const ratePerSecondUpperBound = 130;
 
 			const targetPeerPort = NETWORK_START_PORT + 3;
@@ -169,7 +169,7 @@ describe('Message rate limit', () => {
 		it('should track the request rate correctly when receiving requests', async () => {
 			const TOTAL_SENDS = 100;
 			const requesterP2PNode = p2pNodeList[1];
-			const ratePerSecondLowerBound = 70;
+			const ratePerSecondLowerBound = 60;
 			const ratePerSecondUpperBound = 130;
 
 			const targetPeerPort = NETWORK_START_PORT;
