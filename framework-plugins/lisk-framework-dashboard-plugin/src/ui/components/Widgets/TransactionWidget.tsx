@@ -14,23 +14,22 @@
 import * as React from 'react';
 import { TableBody, TableHeader } from '../Table';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
-import Box from '../Box';
 import Text from '../Text';
 import Grid from '../Grid';
 import CopiableText from '../CopiableText';
+import styles from './Widgets.module.scss';
 
 interface WidgetProps {
 	scrollbar?: boolean;
-	data: Record<string, string>[];
-	header: string[];
+	transactions: Record<string, string>[];
 	widgetTitle: string;
 }
 
 const TransactionWidget: React.FC<WidgetProps> = props => {
-	if (props.data.length === 0) return null;
+	if (props.transactions.length === 0) return null;
 
 	const scrollbar = props.scrollbar ?? true;
-	const { data, header, widgetTitle } = props;
+	const { transactions, widgetTitle } = props;
 
 	return (
 		<Widget>
@@ -38,36 +37,45 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 				<Text type={'h2'}>{widgetTitle}</Text>
 			</WidgetHeader>
 			<WidgetBody>
-				<TableHeader>
-					{header.map(item => (
-						<Box pr={4} pl={4} pt={4} pb={4} key={item}>
-							<Text type={'th'} key={item}>
-								{item}
-							</Text>
-						</Box>
-					))}
-				</TableHeader>
-				<TableBody size={'m'} scrollbar={scrollbar}>
-					{data.map(item => (
+				<div className={styles['table-container']}>
+					<TableHeader>
 						<Grid rowNoWrap>
-							<Grid>
-								<CopiableText text={item.id} type={'p'}>
-									{item.id}
+							<Grid xs={3}>
+								<Text type={'th'}>Id</Text>
+							</Grid>
+							<Grid xs={4}>
+								<Text type={'th'}>Sender</Text>
+							</Grid>
+							<Grid xs={4}>
+								<Text type={'th'}>Module:Asset</Text>
+							</Grid>
+							<Grid xs={1}>
+								<Text type={'th'}>Fee</Text>
+							</Grid>
+						</Grid>
+					</TableHeader>
+				</div>
+				<TableBody size={'m'} scrollbar={scrollbar}>
+					{transactions.map((transaction, index) => (
+						<Grid rowNoWrap key={index}>
+							<Grid xs={3}>
+								<CopiableText text={transaction.id} type={'p'}>
+									{transaction.id}
 								</CopiableText>
 							</Grid>
-							<Grid>
-								<CopiableText text={item.sender} type={'p'}>
-									{item.sender}
+							<Grid xs={4}>
+								<CopiableText text={transaction.sender} type={'p'}>
+									{transaction.sender}
 								</CopiableText>
 							</Grid>
-							<Grid>
-								<Text type={'p'} key={item.moduleAsset}>
-									{item.moduleAsset}
+							<Grid xs={4}>
+								<Text type={'p'} key={transaction.moduleAsset}>
+									{transaction.moduleAsset}
 								</Text>
 							</Grid>
-							<Grid>
-								<Text type={'p'} key={item.fee}>
-									{item.fee}
+							<Grid xs={1}>
+								<Text type={'p'} key={transaction.fee}>
+									{transaction.fee}
 								</Text>
 							</Grid>
 						</Grid>

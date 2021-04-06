@@ -297,7 +297,7 @@ const MainPage: React.FC = () => {
 					<Grid md={6}>
 						<BlockWidget
 							widgetTitle="Recent Blocks"
-							data={[
+							blocks={[
 								{
 									id: 'bd81020ded87d21bbfedc45ed...5d90',
 									generatedBy: '07875df0d9...5bef',
@@ -364,8 +364,7 @@ const MainPage: React.FC = () => {
 					<Grid md={6}>
 						<TransactionWidget
 							widgetTitle="Recent Transactions"
-							header={['Id', 'Sender', 'Module:Asset', 'Fee']}
-							data={[
+							transactions={[
 								{
 									id: 'b8344e1a63...cc68',
 									sender: '89d665b28b...e5b0',
@@ -432,8 +431,7 @@ const MainPage: React.FC = () => {
 					<Grid md={6}>
 						<TransactionWidget
 							widgetTitle="Unconfirmed Transactions"
-							header={['Id', 'Sender', 'Module:Asset', 'Fee']}
-							data={[
+							transactions={[
 								{
 									id: 'b8344e1a63...cc68',
 									sender: '89d665b28b...e5b0',
