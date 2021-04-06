@@ -12,20 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import Text from '../Text';
+import Grid from '../Grid';
 
-interface HeaderProps {
-	data: string[];
-}
-
-const TableHeader: React.FC<HeaderProps> = props => (
-	<header>
-		{props.data.map(item => (
-			<Text type={'th'} key={item}>
-				{item}
-			</Text>
-		))}
-	</header>
+const TableHeader: React.FC = props => (
+	<Grid rowNoWrap rowBorder>
+		{props.children}
+	</Grid>
 );
 
 export default TableHeader;

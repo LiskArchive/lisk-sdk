@@ -11,8 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import BlockWidget from './BlockWidget';
+import TransactionWidget from './TransactionWidget';
 
-import TableHeader from './TableHeader';
-import TableBody from './TableBody';
-
-export { TableHeader, TableBody };
+export { BlockWidget, TransactionWidget };

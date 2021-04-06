@@ -39,8 +39,3 @@ export interface Fee {
 	assetId: number;
 	baseFee: number;
 }
-
-export interface RowProps {
-	key: number;
-	data: Record<string, string>;
-}

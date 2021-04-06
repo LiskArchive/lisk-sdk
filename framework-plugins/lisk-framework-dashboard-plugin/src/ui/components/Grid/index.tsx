@@ -30,6 +30,7 @@ type GridSpacing = 0 | 1 | 2 | 3 | 4 | 5;
 
 interface LayoutProps {
 	row?: boolean;
+	rowNoWrap?: boolean;
 	rowBorder?: boolean;
 	container?: boolean;
 	fluid?: boolean;
@@ -54,6 +55,7 @@ const Grid: React.FC<LayoutProps> = props => {
 		fluid,
 		justify,
 		row,
+		rowNoWrap,
 		rowBorder,
 		spacing,
 		xs,
@@ -71,6 +73,7 @@ const Grid: React.FC<LayoutProps> = props => {
 		// Row styling
 		row ? styles.gridRow : '',
 		fluid ? styles.gridFluid : '',
+		rowNoWrap ? styles.gridRowNoWrap : '',
 		row && justify ? styles[`gridRowJustify-${justify}`] : '',
 		row && alignItems ? styles[`gridRowAlignItems-${alignItems}`] : '',
 		row && rowBorder ? styles.gridRowBorder : '',

@@ -1,1 +1,51 @@
 @import '../../styles/constants';
+
+.table {
+	background: $color-background-darker;
+	width: 560px;
+}
+
+.body {
+	border-radius: 6px;
+	color: $color-white;
+	margin-top: 20px;
+	box-sizing: border-box;
+	display: block;
+
+	scrollbar-width: 14px;
+	scrollbar-color: #c5cfe4;
+
+	&::-webkit-scrollbar {
+		width: 14px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: #c5cfe4;
+		background-clip: content-box;
+		border-radius: 20px;
+		border: 5px solid transparent;
+	}
+}
+
+.table-body-scrollbar {
+	overflow-y: scroll;
+	box-sizing: border-box;
+	overflow-y: auto;
+	overflow-x: inherit;
+
+	&.table-body-m {
+		height: 277px;
+	}
+
+	&.table-body-l {
+		height: 399px;
+	}
+}
+
+.table-body-m {
+	min-height: 277px;
+}
+
+.table-body-l {
+	min-height: 399px;
+}

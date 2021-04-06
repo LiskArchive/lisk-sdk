@@ -26,7 +26,7 @@ import AccountDialog from '../components/dialogs/AccountDialog';
 import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import Grid from '../components/Grid';
-import { AccountRow, Table } from '../components/Table';
+import { BlockWidget, TransactionWidget } from '../components/Widgets';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -292,31 +292,213 @@ const MainPage: React.FC = () => {
 				}}
 			></NodeInfoDialog>
 
-			<Widget>
-				<WidgetHeader>
-					<Text type={'h2'}>My accounts</Text>
-				</WidgetHeader>
-				<Table
-					header={['Binary Address', 'Public Key']}
-					data={[
-						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'bd81020ded87d21bbfedc45ed', publicKey: '29e89be2e3d83b25ccad9e9c' },
-						{ binaryAddress: 'agb81020ded87d21bbfedc45ed', publicKey: '89e89be2e3d83b25ccad9e9c' },
-					]}
-					row={AccountRow}
-				></Table>
-			</Widget>
+			<Grid container>
+				<Grid row>
+					<Grid md={6}>
+						<BlockWidget
+							widgetTitle="Recent Blocks"
+							data={[
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+							]}
+						></BlockWidget>
+					</Grid>
+					<Grid md={6}>
+						<TransactionWidget
+							widgetTitle="Recent Transactions"
+							header={['Id', 'Sender', 'Module:Asset', 'Fee']}
+							data={[
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+							]}
+						></TransactionWidget>
+					</Grid>
+					<Grid md={6}>
+						<TransactionWidget
+							widgetTitle="Unconfirmed Transactions"
+							header={['Id', 'Sender', 'Module:Asset', 'Fee']}
+							data={[
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+							]}
+						></TransactionWidget>
+					</Grid>
+				</Grid>
+			</Grid>
 		</section>
 	);
 };

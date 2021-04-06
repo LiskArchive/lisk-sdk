@@ -11,24 +11,24 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import * as React from 'react';
-import CopiableText from '../CopiableText';
-import Grid from '../Grid';
-import { RowProps } from '../../types';
+import styles from './Table.module.scss';
 
-const AccountRow: React.FC<RowProps> = props => {
-	const { data, key } = props;
+interface Props {
+	size?: 'm' | 'l';
+	scrollbar?: boolean;
+}
 
-	return (
-		<Grid row rowBorder key={key}>
-			{Object.values(data).map(item => (
-				<Grid md={3} xs={6}>
-					<CopiableText text={item}>{item}</CopiableText>
-				</Grid>
-			))}
-		</Grid>
-	);
+const TableBody: React.FC<Props> = props => {
+	const size = props.size ?? 'm';
+	const scrollbar = props.scrollbar ?? false;
+	const classes = [styles.body, styles[`table-body-${size}`]];
+
+	if (scrollbar) {
+		classes.push(styles['table-body-scrollbar']);
+	}
+
+	return <div className={`${classes.join(' ')}`}>{props.children}</div>;
 };
 
-export default AccountRow;
+export default TableBody;
