@@ -15,7 +15,7 @@ import * as React from 'react';
 import { TableBody, TableHeader } from '../Table';
 import Grid from '../Grid';
 import CopiableText from '../CopiableText';
-import { Widget, WidgetHeader, WidgetBody } from '../widget';
+import { Widget, WidgetHeader, WidgetBody } from '../Widget';
 import Text from '../Text';
 import styles from './Widgets.module.scss';
 

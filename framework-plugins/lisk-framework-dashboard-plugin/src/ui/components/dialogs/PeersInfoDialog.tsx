@@ -13,7 +13,7 @@
  */
 
 import * as React from 'react';
-import { Dialog, DialogBody, DialogHeader, DialogProps } from '../dialog';
+import { Dialog, DialogBody, DialogHeader, DialogProps } from '../Dialog';
 import Text from '../Text';
 import Grid from '../Grid';
 import Box from '../Box';
