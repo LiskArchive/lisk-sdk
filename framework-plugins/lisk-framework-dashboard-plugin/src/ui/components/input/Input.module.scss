@@ -26,8 +26,17 @@
 	color: $color-white;
 	opacity: 0.8;
 	resize: none;
-	padding: 16px;
+	padding: 15px;
+
+	&:hover {
+		border: 1px solid $color-ultramarine-blue;
+	}
+
+	&:focus {
+		border: 1px solid $color-ultramarine-blue;
+	}
 }
+
 .text {
 	@extend .input;
 	min-height: 40px;

@@ -12,95 +12,150 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import Select from 'react-select';
+import Select, { ValueType, ActionMeta, StylesConfig } from 'react-select';
 import styles from './Input.module.scss';
 
+type SelectInputOptionType = { label: string; value: string };
+
 interface Props {
-	options: { label: string; value: string }[];
+	options: SelectInputOptionType[];
 	multi?: boolean;
-	onSelect?: (value: any) => void;
+	onChange?: (value: SelectInputOptionType[]) => void;
 	selected?: string[];
 }
 
-const customStyles = {
-	container: {
+const customSelectStyles: StylesConfig<SelectInputOptionType, boolean> = {
+	container: (currentStyles, _state) => ({
+		...currentStyles,
 		height: '40px',
-		width: '520px',
+		boxSizing: 'border-box',
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		fontSize: '16px',
+	}),
+	valueContainer: (currentStyles, _state) => ({
+		...currentStyles,
+		height: '40px',
+	}),
+	option: (currentStyles, state) => ({
+		...currentStyles,
+		background: state.isSelected || state.isFocused ? '#4070f4' : 'inherit',
+	}),
+	menu: (currentStyles, _state) => ({
+		...currentStyles,
+		color: '#ffffff',
+	}),
+	menuList: (currentStyles, _state) => ({
+		...currentStyles,
+		boxSizing: 'border-box',
+		borderRadius: '3px',
 		background: 'linear-gradient(180deg, #101c3d 0%, #0c152e 100%)',
+
 		border: '1px solid rgba(223, 230, 242, 0.2)',
-		'box-sizing': 'border-box',
-		'border-radius': '3px',
-		'font-style': 'normal',
-		'font-weight': 'normal',
-		'font-size': '16px',
-	},
-	valueContainer: {
-		height: '40px',
-		width: '520px',
-		background: 'linear-gradient(180deg, #101c3d 0%, #0c152e 100%)',
-	},
-	dropdownIndicator: {
-		background: 'linear-gradient(180deg, #101c3d 0%, #0c152e 100%)',
-	},
-	options: {
-		background: 'linear-gradient(180deg, #101c3d 0%, #0c152e 100%)',
-		color: '#ffffff',
-		':hover': { background: '#4070f4' },
-	},
-	menu: {
-		background: 'linear-gradient(180deg, #101c3d 0%, #0c152e 100%)',
-		color: '#ffffff',
+
+		':hover': {
+			border: '1px solid #4070f4',
+		},
+	}),
+	control: (currentStyles, _state) => ({
+		...currentStyles,
+		background: 'inherit',
+		border: '1px solid rgba(223, 230, 242, 0.2)',
+		boxSizing: 'border-box',
+		borderRadius: '3px',
+
+		':hover': {
+			border: '1px solid #4070f4',
+		},
+
+		':focus': {
+			border: '1px solid #4070f4',
+		},
+	}),
+	indicatorsContainer: (currentStyles, _state) => ({
+		...currentStyles,
 		border: 'none',
-		'border-bottom': '1px solid rgba(223, 230, 242, 0.2)',
-		'box-sizing': 'border-box',
-		'border-radius': '3px',
-	},
-	menuList: {
-		background: 'linear-gradient(180deg, #101c3d 0%, #0c152e 100%)',
-		border: 'none',
-		'border-bottom': '1px solid rgba(223, 230, 242, 0.2)',
-		'box-sizing': 'border-box',
-		'border-radius': '3px',
-	},
-	control: {
-		background: 'linear-gradient(180deg, #101c3d 0%, #0c152e 100%)',
-		border: 'none',
-		'border-bottom': '1px solid rgba(223, 230, 242, 0.2)',
-		'box-sizing': 'border-box',
-		'border-radius': '3px',
-	},
-	indicatorsContainer: {
-		border: 'none',
-	},
-	input: {
+	}),
+	indicatorSeparator: (currentStyles, _state) => ({
+		...currentStyles,
+		display: 'none',
+	}),
+	dropdownIndicator: (currentStyles, _state) => ({
+		...currentStyles,
 		color: '#ffffff',
-	},
-	singleValue: {
+		cursor: 'pointer',
+		':hover': {
+			color: '#254898',
+		},
+	}),
+	input: (currentStyles, _state) => ({
+		...currentStyles,
 		color: '#ffffff',
-		background: '#254898',
-	},
-	multiValue: {
-		padding: '9px 16px 9px 16px',
+	}),
+	singleValue: (currentStyles, _state) => ({
+		...currentStyles,
+		color: '#ffffff',
+	}),
+	multiValue: (currentStyles, _state) => ({
+		...currentStyles,
+		padding: '10px 15px 10px 15px',
 		background: '#254898',
 		borderRadius: '18px',
 		height: '28px',
 		alignItems: 'center',
-	},
-	multiValueLabel: {
+		fontSize: '16px',
+	}),
+	multiValueLabel: (currentStyles, _state) => ({
+		...currentStyles,
 		color: '#ffffff',
 		background: '#254898',
-	},
+	}),
+	clearIndicator: (currentStyles, _state) => ({
+		...currentStyles,
+		cursor: 'pointer',
+
+		':hover': {
+			color: '#254898',
+		},
+	}),
+	multiValueRemove: (currentStyles, _state) => ({
+		...currentStyles,
+		color: '#ffffff',
+		cursor: 'pointer',
+
+		':hover': {
+			color: '#101c3d',
+		},
+	}),
 };
 
 const SelectInput: React.FC<Props> = props => {
 	const { options } = props;
 	const multi = props.multi ?? false;
-	const [selected, updateSelected] = React.useState(props.selected ?? []);
-	const onSelectHandler = (newValue: any) => {
-		updateSelected(newValue);
-	};
+	const [value, setValue] = React.useState<SelectInputOptionType[]>(
+		props.selected ? options.filter(o => props.selected?.includes(o.value)) : [],
+	);
 
-	const onSelect = props.onSelect ?? onSelectHandler;
+	const onChangeHandler = (
+		newValue: ValueType<SelectInputOptionType, boolean>,
+		_actionMeta: ActionMeta<SelectInputOptionType>,
+	) => {
+		let updatedValue: SelectInputOptionType[];
+
+		if (newValue && multi) {
+			updatedValue = newValue as SelectInputOptionType[];
+		} else if (newValue && !multi) {
+			updatedValue = [newValue as SelectInputOptionType];
+		} else {
+			updatedValue = [];
+		}
+
+		setValue(updatedValue);
+
+		if (props.onChange) {
+			props.onChange(updatedValue);
+		}
+	};
 
 	return (
 		<span className={styles.select}>
@@ -108,24 +163,9 @@ const SelectInput: React.FC<Props> = props => {
 				closeMenuOnSelect={!multi}
 				isMulti={multi}
 				options={options}
-				value={selected}
-				onChange={onSelect}
-				styles={{
-					// Overriding lib component styles, provided -- the component's default styles
-					container: provided => ({ ...provided, ...customStyles.container }),
-					valueContainer: provided => ({ ...provided, ...customStyles.valueContainer }),
-					option: provided => ({ ...provided, ...customStyles.options }),
-					dropdownIndicator: provided => ({ ...provided, ...customStyles.dropdownIndicator }),
-					menu: provided => ({ ...provided, ...customStyles.menu }),
-					control: provided => ({ ...provided, ...customStyles.control }),
-					menuList: provided => ({ ...provided, ...customStyles.menuList }),
-					input: provided => ({ ...provided, ...customStyles.input }),
-					singleValue: provided => ({ ...provided, ...customStyles.singleValue }),
-					indicatorsContainer: provided => ({ ...provided, ...customStyles.indicatorsContainer }),
-					multiValue: provided => ({ ...provided, ...customStyles.multiValue }),
-					multiValueLabel: provided => ({ ...provided, ...customStyles.singleValue }),
-					indicatorSeparator: _ => ({}),
-				}}
+				value={value}
+				onChange={onChangeHandler}
+				styles={customSelectStyles}
 			/>
 		</span>
 	);
