@@ -509,7 +509,7 @@ export class Node {
 				registeredModules: this.getRegisteredModules(),
 				network: {
 					port: this._options.network.port,
-				}
+				},
 			}),
 			getConnectedPeers: () => this._networkModule.getConnectedPeers(),
 			getDisconnectedPeers: () => this._networkModule.getDisconnectedPeers(),
