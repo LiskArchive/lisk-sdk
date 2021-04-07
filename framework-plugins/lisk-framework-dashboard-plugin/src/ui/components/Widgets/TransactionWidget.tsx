@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import { TableBody, TableHeader } from '../Table';
-import { Widget, WidgetHeader, WidgetBody } from '../Widget';
+import { TableBody, TableHeader, Table } from '../Table';
+import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
-import Grid from '../Grid';
 import CopiableText from '../CopiableText';
-import styles from './Widgets.module.scss';
 
 interface WidgetProps {
 	transactions: Record<string, string>[];
@@ -33,50 +31,36 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 				<Text type={'h2'}>{title}</Text>
 			</WidgetHeader>
 			<WidgetBody>
-				<div className={styles['table-container']}>
+				<Table>
 					<TableHeader>
-						<Grid rowNoWrap>
-							<Grid xs={3}>
-								<Text type={'th'}>Id</Text>
-							</Grid>
-							<Grid xs={4}>
-								<Text type={'th'}>Sender</Text>
-							</Grid>
-							<Grid xs={4}>
-								<Text type={'th'}>Module:Asset</Text>
-							</Grid>
-							<Grid xs={1}>
-								<Text type={'th'}>Fee</Text>
-							</Grid>
-						</Grid>
+						<Text type={'th'}>Id</Text>
+						<Text type={'th'}>Sender</Text>
+						<Text type={'th'}>Module:Asset</Text>
+						<Text type={'th'}>Fee</Text>
 					</TableHeader>
-				</div>
-				<TableBody size={'m'} scrollbar={true}>
-					{transactions.map((transaction, index) => (
-						<Grid rowNoWrap key={index}>
-							<Grid xs={3}>
-								<CopiableText text={transaction.id} type={'p'}>
-									{transaction.id}
-								</CopiableText>
-							</Grid>
-							<Grid xs={4}>
-								<CopiableText text={transaction.sender} type={'p'}>
-									{transaction.sender}
-								</CopiableText>
-							</Grid>
-							<Grid xs={4}>
-								<Text type={'p'} key={transaction.moduleAsset}>
+					<TableBody>
+						{transactions.map(transaction => (
+							<tr>
+								<td>
+									<CopiableText text={transaction.id} type={'td'}>
+										{transaction.id}
+									</CopiableText>
+								</td>
+								<td>
+									<CopiableText text={transaction.sender} type={'td'}>
+										{transaction.sender}
+									</CopiableText>
+								</td>
+								<Text type={'td'} key={transaction.moduleAsset}>
 									{transaction.moduleAsset}
 								</Text>
-							</Grid>
-							<Grid xs={1}>
-								<Text type={'p'} key={transaction.fee}>
+								<Text type={'td'} key={transaction.fee}>
 									{transaction.fee}
 								</Text>
-							</Grid>
-						</Grid>
-					))}
-				</TableBody>
+							</tr>
+						))}
+					</TableBody>
+				</Table>
 			</WidgetBody>
 		</Widget>
 	);

@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import Grid from '../Grid';
 
 const TableHeader: React.FC = props => (
-	<Grid rowNoWrap rowBorder>
-		{props.children}
-	</Grid>
+	<thead>
+		<tr>{props.children}</tr>
+	</thead>
 );
 
 export default TableHeader;

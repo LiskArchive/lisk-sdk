@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
+import styles from './Table.module.scss';
 
-const TableBody: React.FC = props => <tbody>{props.children}</tbody>;
+const Table: React.FC = props => {
+	const classes = [styles.fixed_header];
 
-export default TableBody;
+	return <table className={`${classes.join(' ')}`}>{props.children}</table>;
+};
+
+export default Table;

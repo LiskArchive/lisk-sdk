@@ -17,16 +17,16 @@ import Text from '../components/Text';
 import Icon from '../components/Icon';
 import Logo from '../components/Logo';
 import CopiableText from '../components/CopiableText';
-import { Widget, WidgetHeader, WidgetBody } from '../components/Widget';
+import { Widget, WidgetHeader, WidgetBody } from '../components/widget';
 import Button from '../components/Button';
 import IconButton from '../components/IconButton';
-import { Dialog, DialogHeader, DialogBody } from '../components/Dialog';
-import MessageDialog from '../components/Dialogs/MessageDialog';
-import AccountDialog from '../components/Dialogs/AccountDialog';
-import PeersInfoDialog from '../components/Dialogs/PeersInfoDialog';
-import NodeInfoDialog from '../components/Dialogs/NodeInfoDialog';
+import { Dialog, DialogHeader, DialogBody } from '../components/dialog';
+import MessageDialog from '../components/dialogs/MessageDialog';
+import AccountDialog from '../components/dialogs/AccountDialog';
+import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
+import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import Grid from '../components/Grid';
-import { BlockWidget, TransactionWidget } from '../components/Widgets';
+import { BlockWidget, TransactionWidget } from '../components/widgets';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
