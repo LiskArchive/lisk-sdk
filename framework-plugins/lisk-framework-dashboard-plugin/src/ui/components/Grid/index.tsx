@@ -30,7 +30,6 @@ type GridSpacing = 0 | 1 | 2 | 3 | 4 | 5;
 
 interface LayoutProps {
 	row?: boolean;
-	rowNoWrap?: boolean;
 	rowBorder?: boolean;
 	container?: boolean;
 	fluid?: boolean;
