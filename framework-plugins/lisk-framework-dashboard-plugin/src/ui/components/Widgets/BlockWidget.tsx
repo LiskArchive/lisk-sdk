@@ -20,21 +20,17 @@ import Text from '../Text';
 import styles from './Widgets.module.scss';
 
 interface WidgetProps {
-	scrollbar?: boolean;
 	blocks: Record<string, string>[];
-	widgetTitle: string;
+	title: string;
 }
 
 const BlockWidget: React.FC<WidgetProps> = props => {
-	if (props.blocks.length === 0) return null;
-
-	const scrollbar = props.scrollbar ?? true;
-	const { blocks, widgetTitle } = props;
+	const { blocks, title } = props;
 
 	return (
 		<Widget>
 			<WidgetHeader>
-				<Text type={'h2'}>{widgetTitle}</Text>
+				<Text type={'h2'}>{title}</Text>
 			</WidgetHeader>
 			<WidgetBody>
 				<div className={styles['table-container']}>
@@ -55,7 +51,7 @@ const BlockWidget: React.FC<WidgetProps> = props => {
 						</Grid>
 					</TableHeader>
 				</div>
-				<TableBody size={'m'} scrollbar={scrollbar}>
+				<TableBody size={'m'} scrollbar={true}>
 					{blocks.map((block, index) => (
 						<Grid rowNoWrap key={index}>
 							<Grid xs={5}>

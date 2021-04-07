@@ -20,21 +20,17 @@ import CopiableText from '../CopiableText';
 import styles from './Widgets.module.scss';
 
 interface WidgetProps {
-	scrollbar?: boolean;
 	transactions: Record<string, string>[];
-	widgetTitle: string;
+	title: string;
 }
 
 const TransactionWidget: React.FC<WidgetProps> = props => {
-	if (props.transactions.length === 0) return null;
-
-	const scrollbar = props.scrollbar ?? true;
-	const { transactions, widgetTitle } = props;
+	const { transactions, title } = props;
 
 	return (
 		<Widget>
 			<WidgetHeader>
-				<Text type={'h2'}>{widgetTitle}</Text>
+				<Text type={'h2'}>{title}</Text>
 			</WidgetHeader>
 			<WidgetBody>
 				<div className={styles['table-container']}>
@@ -55,7 +51,7 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 						</Grid>
 					</TableHeader>
 				</div>
-				<TableBody size={'m'} scrollbar={scrollbar}>
+				<TableBody size={'m'} scrollbar={true}>
 					{transactions.map((transaction, index) => (
 						<Grid rowNoWrap key={index}>
 							<Grid xs={3}>

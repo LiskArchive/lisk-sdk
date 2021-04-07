@@ -296,7 +296,7 @@ const MainPage: React.FC = () => {
 				<Grid row>
 					<Grid md={6}>
 						<BlockWidget
-							widgetTitle="Recent Blocks"
+							title="Recent Blocks"
 							blocks={[
 								{
 									id: 'bd81020ded87d21bbfedc45ed...5d90',
@@ -363,7 +363,7 @@ const MainPage: React.FC = () => {
 					</Grid>
 					<Grid md={6}>
 						<TransactionWidget
-							widgetTitle="Recent Transactions"
+							title="Recent Transactions"
 							transactions={[
 								{
 									id: 'b8344e1a63...cc68',
@@ -430,69 +430,8 @@ const MainPage: React.FC = () => {
 					</Grid>
 					<Grid md={6}>
 						<TransactionWidget
-							widgetTitle="Unconfirmed Transactions"
-							transactions={[
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-							]}
+							title="Unconfirmed Transactions"
+							transactions={[]}
 						></TransactionWidget>
 					</Grid>
 				</Grid>
