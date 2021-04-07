@@ -41,18 +41,17 @@ describe('save block header', () => {
 		codec.encode(blockHeadersSchema, {
 			blockHeaders: [...blockHeaders, newHeader],
 		});
-	const appLabel = 'report-misbehavior-plugin';
-	const dataPath = join(homedir(), '.lisk', appLabel);
+	const appLabel = 'save-new-block';
+	const rootPath = join(homedir(), '.lisk', 'report-misbehavior-plugin');
 	const apiPort = 5002;
 
 	const encodeBlockHeader = (schemas: RegisteredSchema, newHeader: BlockHeader) =>
 		codec.encode(schemas.blockHeader, newHeader);
 
 	beforeAll(async () => {
-		if (existsSync(dataPath)) {
-			rmdirSync(dataPath, { recursive: true });
+		if (existsSync(rootPath)) {
+			rmdirSync(rootPath, { recursive: true });
 		}
-		const rootPath = '~/.lisk/report-misbehavior-plugin';
 		const config = {
 			rootPath,
 			label: appLabel,
@@ -91,10 +90,11 @@ describe('save block header', () => {
 		it('should save block header by height', async () => {
 			// Act
 			publishEvent(appEnv.application, encodedBlock);
-			await waitTill(100);
+			await waitTill(300);
 
 			// Assert
 			expect(codecSpy).toHaveBeenCalledWith(pluginInstance.schemas.block, encodedBlockBuffer);
+			expect(pluginDBPutSpy).toHaveBeenCalledTimes(1);
 			expect(pluginDBGetSpy).toHaveBeenCalledWith(dbKey);
 			expect(pluginDBPutSpy).toHaveBeenCalledWith(
 				dbKey,
