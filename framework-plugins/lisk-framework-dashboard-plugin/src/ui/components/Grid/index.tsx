@@ -55,7 +55,6 @@ const Grid: React.FC<LayoutProps> = props => {
 		fluid,
 		justify,
 		row,
-		rowNoWrap,
 		rowBorder,
 		spacing,
 		xs,
@@ -73,7 +72,6 @@ const Grid: React.FC<LayoutProps> = props => {
 		// Row styling
 		row ? styles.gridRow : '',
 		fluid ? styles.gridFluid : '',
-		rowNoWrap ? styles.gridRowNoWrap : '',
 		row && justify ? styles[`gridRowJustify-${justify}`] : '',
 		row && alignItems ? styles[`gridRowAlignItems-${alignItems}`] : '',
 		row && rowBorder ? styles.gridRowBorder : '',

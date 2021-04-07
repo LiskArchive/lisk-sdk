@@ -39,24 +39,20 @@ const BlockWidget: React.FC<WidgetProps> = props => {
 						<Text type={'th'}>Txs</Text>
 					</TableHeader>
 					<TableBody>
-						{blocks.map(block => (
-							<tr>
+						{blocks.map((block, index) => (
+							<tr key={index}>
 								<td>
-									<CopiableText text={block.id} type={'td'}>
-										{block.id}
-									</CopiableText>
+									<CopiableText text={block.id}>{block.id}</CopiableText>
 								</td>
 								<td>
-									<CopiableText text={block.generatedBy} type={'td'}>
-										{block.generatedBy}
-									</CopiableText>
+									<CopiableText text={block.generatedBy}>{block.generatedBy}</CopiableText>
 								</td>
-								<Text type={'td'} key={block.height}>
-									{block.height}
-								</Text>
-								<Text type={'td'} key={block.txs}>
-									{block.txs}
-								</Text>
+								<td>
+									<Text key={block.height}>{block.height}</Text>
+								</td>
+								<td>
+									<Text key={block.txs}>{block.txs}</Text>
+								</td>
 							</tr>
 						))}
 					</TableBody>

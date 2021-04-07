@@ -39,24 +39,20 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 						<Text type={'th'}>Fee</Text>
 					</TableHeader>
 					<TableBody>
-						{transactions.map(transaction => (
-							<tr>
+						{transactions.map((transaction, index) => (
+							<tr key={index}>
 								<td>
-									<CopiableText text={transaction.id} type={'td'}>
-										{transaction.id}
-									</CopiableText>
+									<CopiableText text={transaction.id}>{transaction.id}</CopiableText>
 								</td>
 								<td>
-									<CopiableText text={transaction.sender} type={'td'}>
-										{transaction.sender}
-									</CopiableText>
+									<CopiableText text={transaction.sender}>{transaction.sender}</CopiableText>
 								</td>
-								<Text type={'td'} key={transaction.moduleAsset}>
-									{transaction.moduleAsset}
-								</Text>
-								<Text type={'td'} key={transaction.fee}>
-									{transaction.fee}
-								</Text>
+								<td>
+									<Text key={transaction.moduleAsset}>{transaction.moduleAsset}</Text>
+								</td>
+								<td>
+									<Text key={transaction.fee}>{transaction.fee}</Text>
+								</td>
 							</tr>
 						))}
 					</TableBody>
