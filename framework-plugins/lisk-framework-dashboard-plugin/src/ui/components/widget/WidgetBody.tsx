@@ -15,14 +15,16 @@ import * as React from 'react';
 import styles from './Widget.module.scss';
 
 interface Props {
-	size?: 'm' | 'l';
+	size?: 'm' | 'l' | 's' | 'xs';
 	scrollbar?: boolean;
+	mode?: 'dark' | 'light';
 }
 
 const WidgetBody: React.FC<Props> = props => {
 	const size = props.size ?? 'm';
+	const mode = props.mode ?? 'dark';
 	const scrollbar = props.scrollbar ?? false;
-	const classes = [styles.body, styles[`widget-body-${size}`]];
+	const classes = [styles.body, styles[`widget-body-${size}`], styles[`body-${mode}`]];
 
 	if (scrollbar) {
 		classes.push(styles['widget-body-scrollbar']);
