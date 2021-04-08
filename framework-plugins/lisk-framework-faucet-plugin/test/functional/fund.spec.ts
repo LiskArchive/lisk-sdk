@@ -11,9 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as axios from 'axios';
 import { testing, PartialApplicationConfig } from 'lisk-framework';
 import { FaucetPlugin } from '../../src/plugin';
-import * as axios from 'axios';
 
 describe('fund tokens action', () => {
 	let appEnv: testing.ApplicationEnv;
