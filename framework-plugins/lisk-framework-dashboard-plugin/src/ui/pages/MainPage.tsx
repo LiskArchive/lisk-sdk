@@ -27,6 +27,7 @@ import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import Grid from '../components/Grid';
 import { TextInput, TextAreaInput, SelectInput } from '../components/input';
+import { BlockWidget, TransactionWidget } from '../components/widgets';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -320,6 +321,151 @@ const MainPage: React.FC = () => {
 					],
 				}}
 			></NodeInfoDialog>
+
+			<Grid container>
+				<Grid row>
+					<Grid md={6}>
+						<BlockWidget
+							title="Recent Blocks"
+							blocks={[
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+								{
+									id: 'bd81020ded87d21bbfedc45ed...5d90',
+									generatedBy: '07875df0d9...5bef',
+									height: '12345',
+									txs: '0',
+								},
+							]}
+						></BlockWidget>
+					</Grid>
+					<Grid md={6}>
+						<TransactionWidget
+							title="Recent Transactions"
+							transactions={[
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+								{
+									id: 'b8344e1a63...cc68',
+									sender: '89d665b28b...e5b0',
+									moduleAsset: 'dpos:registerDelegate',
+									fee: '0.1',
+								},
+							]}
+						></TransactionWidget>
+					</Grid>
+					<Grid md={6}>
+						<TransactionWidget
+							title="Unconfirmed Transactions"
+							transactions={[]}
+						></TransactionWidget>
+					</Grid>
+				</Grid>
+			</Grid>
 		</section>
 	);
 };
