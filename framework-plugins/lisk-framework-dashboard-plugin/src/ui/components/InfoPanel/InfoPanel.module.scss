@@ -1,60 +1,59 @@
 @import '../../styles/constants';
 
 .infoHeading {
-    font-family: Poppins;
-    font-style: normal;
-    font-weight: normal;
-    font-size: 14px;
-    line-height: 17px;
-    display: flex;
-    align-items: center;
-    height: 20px;
-    margin-bottom: 10px;
-    
-    /* identical to box height */
-    
-    /* Platinum gray */
-    color: #DFE6F2;
+	font-family: Poppins;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 14px;
+	line-height: 17px;
+	display: flex;
+	align-items: center;
+	height: 20px;
+	margin-bottom: 10px;
+
+	/* identical to box height */
+
+	/* Platinum gray */
+	color: #dfe6f2;
 }
 
 .infoContent {
-    font-family: Poppins;
-    font-style: normal;
-    font-weight: 100;
-    font-size: 26px;
-    line-height: 100%;
+	font-family: Poppins;
+	font-style: normal;
+	font-weight: 100;
+	font-size: 26px;
+	line-height: 100%;
 
-    /* identical to box height, or 26px */
+	/* identical to box height, or 26px */
 
-    /* Yellow Copacabana */
-    color: #F7E36D;
+	/* Yellow Copacabana */
+	color: #f7e36d;
 }
 
 .infoContent-pink {
-    color: $color-candy-pink;
+	color: $color-candy-pink;
 }
 
 .infoContent-green {
-    color: $color-ufo-green;
+	color: $color-ufo-green;
 }
 
 .infoContent-yellow {
-    color: $color-yellow-copacabana;
+	color: $color-yellow-copacabana;
 }
 
 .infoContent-blue {
-    color: $color-ultramarine-blue;
+	color: $color-ultramarine-blue;
 }
 
 .infoContent-white {
-    color: $color-white;
+	color: $color-white;
 }
 
 .infoContent-gray {
-    color: $color-platinum-gray;
+	color: $color-platinum-gray;
 }
 
-.infoContent-red{
-    color: $color-fury-red;
+.infoContent-red {
+	color: $color-fury-red;
 }
-
