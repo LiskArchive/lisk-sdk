@@ -1,11 +1,11 @@
 @import '../../styles/constants';
 
 .infoHeading {
-	font-family: Poppins;
+	font-family: Roboto;
 	font-style: normal;
-	font-weight: normal;
+	font-weight: 300;
 	font-size: 14px;
-	line-height: 17px;
+	line-height: 16.41px;
 	display: flex;
 	align-items: center;
 	height: 20px;
@@ -20,9 +20,9 @@
 .infoContent {
 	font-family: Poppins;
 	font-style: normal;
-	font-weight: 100;
+	font-weight: 300;
 	font-size: 26px;
-	line-height: 100%;
+	line-height: 26px;
 
 	/* identical to box height, or 26px */
 
