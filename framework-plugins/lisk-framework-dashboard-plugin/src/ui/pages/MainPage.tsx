@@ -26,6 +26,7 @@ import AccountDialog from '../components/dialogs/AccountDialog';
 import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import Grid from '../components/Grid';
+import { TextInput, TextAreaInput, SelectInput } from '../components/input';
 import { BlockWidget, TransactionWidget } from '../components/widgets';
 import InfoPanel from '../components/InfoPanel';
 
@@ -78,6 +79,35 @@ const MainPage: React.FC = () => {
 						<Text color="white" type="p">
 							bd81020ded87d21bbfedc45ed...5d90
 						</Text>
+						<TextInput placeholder={'Some text'} onChange={val => console.info(val)} />
+						<br />
+						<TextAreaInput
+							placeholder={JSON.stringify({ key: 'tokenTransfer', value: 'token:transfer' })}
+							size={'l'}
+							onChange={val => console.info(val)}
+						/>
+						<br />
+						<Text color="white" type="h2">
+							Single Select
+						</Text>
+						<SelectInput
+							options={[
+								{ label: 'tokenTransfer', value: 'token:transfer' },
+								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
+							]}
+							onChange={val => console.info(val)}
+						/>
+						<Text color="white" type="h2">
+							Multi Select
+						</Text>
+						<SelectInput
+							options={[
+								{ label: 'tokenTransfer', value: 'token:transfer' },
+								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
+							]}
+							multi
+							onChange={val => console.info(val)}
+						/>
 						<Button size={'m'}>Button</Button>
 						<IconButton icon={'add'} size={'m'} />
 					</Grid>
