@@ -1,6 +1,7 @@
 @import '../../styles/constants';
 
 $cell-padding: 10px;
+$table-height: 250px;
 
 .root {
 	border-collapse: separate;
@@ -8,7 +9,7 @@ $cell-padding: 10px;
 	display: table;
 	border-spacing: 0;
 	overflow: auto;
-	height: 250px;
+	height: $table-height;
 	box-sizing: border-box;
 	display: block;
 
@@ -17,7 +18,7 @@ $cell-padding: 10px;
 	}
 
 	&::-webkit-scrollbar-thumb {
-		background: #c5cfe4;
+		background: $color-white;
 		background-clip: content-box;
 		border-radius: 20px;
 		border: 5px solid transparent;
