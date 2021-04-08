@@ -15,7 +15,7 @@ import * as React from 'react';
 import styles from './Table.module.scss';
 
 const Table: React.FC = props => {
-	const classes = [styles.fixed_header];
+	const classes = [styles.root];
 
 	return <table className={`${classes.join(' ')}`}>{props.children}</table>;
 };

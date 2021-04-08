@@ -1,15 +1,17 @@
 @import '../../styles/constants';
 
-.fixed_header {
-	table-layout: fixed;
-	border-collapse: collapse;
-}
+$cell-padding: 10px;
 
-.fixed_header tbody {
-	display: block;
+.root {
+	border-collapse: separate;
 	width: 100%;
+	display: table;
+	border-spacing: 0;
 	overflow: auto;
-	height: 277px;
+	height: 250px;
+	box-sizing: border-box;
+	display: block;
+
 	&::-webkit-scrollbar {
 		width: 14px;
 	}
@@ -22,15 +24,30 @@
 	}
 }
 
-.fixed_header thead tr {
-	display: block;
-	padding-right: 20px;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.tableHeader {
+	display: table-header-group;
+
+	> tr > th {
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		padding: $cell-padding;
+	}
 }
 
-.fixed_header th,
-.fixed_header td {
-	padding: 10px;
-	text-align: left;
-	width: 200px;
+.tableHeaderSticky {
+	> tr > th {
+		top: 0;
+		left: 0;
+		z-index: 2;
+		position: sticky;
+		background: #0b132a;
+	}
+}
+
+.tableBody {
+	display: table-row-group;
+
+	td {
+		padding: $cell-padding;
+		text-align: left;
+	}
 }

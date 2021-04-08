@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
+import styles from './Table.module.scss';
 
-const TableBody: React.FC = props => <tbody>{props.children}</tbody>;
+const TableBody: React.FC = props => <tbody className={styles.tableBody}>{props.children}</tbody>;
 
 export default TableBody;

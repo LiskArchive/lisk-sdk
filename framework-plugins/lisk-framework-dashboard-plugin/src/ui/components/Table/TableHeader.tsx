@@ -12,11 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
+import styles from './Table.module.scss';
 
-const TableHeader: React.FC = props => (
-	<thead>
-		<tr>{props.children}</tr>
-	</thead>
-);
+interface Props {
+	sticky?: boolean;
+}
+
+const TableHeader: React.FC<Props> = props => {
+	const { sticky } = props;
+	const classes = [styles.tableHeader];
+
+	if (sticky) {
+		classes.push(styles.tableHeaderSticky);
+	}
+
+	return <thead className={classes.join(' ')}>{props.children}</thead>;
+};
 
 export default TableHeader;
