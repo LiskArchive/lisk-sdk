@@ -32,19 +32,21 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 			</WidgetHeader>
 			<WidgetBody>
 				<Table>
-					<TableHeader>
-						<td>
-							<Text>Id</Text>
-						</td>
-						<td>
-							<Text>Sender</Text>
-						</td>
-						<td>
-							<Text>Module:Asset</Text>
-						</td>
-						<td>
-							<Text>Fee</Text>
-						</td>
+					<TableHeader sticky>
+						<tr>
+							<th style={{ width: 'calc(40% - 30px)' }}>
+								<Text>Id</Text>
+							</th>
+							<th style={{ width: 'calc(30% - 30px)' }}>
+								<Text>Sender</Text>
+							</th>
+							<th style={{ width: 'calc(30% - 30px)' }}>
+								<Text>Module:Asset</Text>
+							</th>
+							<th style={{ width: '30px' }}>
+								<Text>Fee</Text>
+							</th>
+						</tr>
 					</TableHeader>
 					<TableBody>
 						{transactions.map((transaction, index) => (
