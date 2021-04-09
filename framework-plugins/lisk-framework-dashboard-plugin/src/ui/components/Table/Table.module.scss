@@ -1,0 +1,54 @@
+@import '../../styles/constants';
+
+$cell-padding: 10px;
+$table-height: 250px;
+
+.root {
+	border-collapse: separate;
+	width: 100%;
+	display: table;
+	border-spacing: 0;
+	overflow: auto;
+	height: $table-height;
+	box-sizing: border-box;
+	display: block;
+
+	&::-webkit-scrollbar {
+		width: 14px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: $color-white;
+		background-clip: content-box;
+		border-radius: 20px;
+		border: 5px solid transparent;
+	}
+}
+
+.tableHeader {
+	display: table-header-group;
+
+	> tr > th {
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		padding: $cell-padding;
+	}
+}
+
+.tableHeaderSticky {
+	> tr > th {
+		top: 0;
+		left: 0;
+		z-index: 2;
+		position: sticky;
+		background: #0b132a;
+	}
+}
+
+.tableBody {
+	display: table-row-group;
+
+	td {
+		padding: $cell-padding;
+		text-align: left;
+	}
+}

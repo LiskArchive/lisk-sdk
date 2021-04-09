@@ -1,0 +1,14 @@
+.clickable {
+	cursor: pointer;
+}
+
+.clickableRow {
+	padding: 0.5px;
+	height: auto;
+	min-height: 20px;
+}
+
+.clickableContainer {
+	display: inline-flex;
+	align-items: center;
+}

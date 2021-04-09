@@ -453,6 +453,12 @@ export class Application {
 				getNodeInfo: {
 					handler: () => this._node.actions.getNodeInfo(),
 				},
+				getRegisteredActions: {
+					handler: () => this._controller.bus.getActions(),
+				},
+				getRegisteredEvents: {
+					handler: () => this._controller.bus.getEvents(),
+				},
 			},
 			{ skipInternalEvents: true },
 		);
