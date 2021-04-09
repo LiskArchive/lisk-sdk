@@ -56,7 +56,7 @@ describe('Node', () => {
 				genesisConfig: appInstance._node._options.genesisConfig,
 				registeredModules: expect.any(Array),
 				network: {
-					port: appInstance._node_._options.network.port,
+					port: appInstance._node._options.network.port,
 				},
 			};
 
