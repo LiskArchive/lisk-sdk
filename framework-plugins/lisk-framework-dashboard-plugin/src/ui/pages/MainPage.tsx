@@ -28,6 +28,7 @@ import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import Grid from '../components/Grid';
 import { TextInput, TextAreaInput, SelectInput } from '../components/input';
 import { BlockWidget, TransactionWidget } from '../components/widgets';
+import InfoPanel from '../components/InfoPanel';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -42,6 +43,25 @@ const MainPage: React.FC = () => {
 				<Grid row>
 					<Grid>
 						<Logo name={'My Custom Alpha Beta'} />
+					</Grid>
+				</Grid>
+
+				<Grid row>
+					<Grid md={3}>
+						<InfoPanel title={'Current height'}>
+							<Text color="green" type="h3">
+								14,612,068
+							</Text>
+						</InfoPanel>
+					</Grid>
+					<Grid md={3}>
+						<InfoPanel
+							title={'Current height'}
+							onClick={() => console.info('iclick')}
+							mode={'light'}
+						>
+							14,612,068
+						</InfoPanel>
 					</Grid>
 				</Grid>
 
