@@ -10,11 +10,7 @@
 	align-items: center;
 	height: 20px;
 	margin-bottom: 10px;
-
-	/* identical to box height */
-
-	/* Platinum gray */
-	color: #dfe6f2;
+	color: $color-platinum-gray;
 }
 
 .infoContent {
@@ -23,11 +19,7 @@
 	font-weight: 300;
 	font-size: 26px;
 	line-height: 26px;
-
-	/* identical to box height, or 26px */
-
-	/* Yellow Copacabana */
-	color: #f7e36d;
+	color: $color-yellow-copacabana;
 }
 
 .infoContent-pink {
