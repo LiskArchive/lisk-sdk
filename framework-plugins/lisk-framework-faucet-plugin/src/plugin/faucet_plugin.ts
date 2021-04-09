@@ -228,7 +228,7 @@ export class FaucetPlugin extends BasePlugin {
 				moduleID: 2,
 				assetID: 0,
 				senderPublicKey: this._state.publicKey as Buffer,
-				fee: BigInt(this._options.fee), // TODO: The static fee should be replaced by fee estimation calculation
+				fee: BigInt(convertLSKToBeddows(this._options.fee)), // TODO: The static fee should be replaced by fee estimation calculation
 				asset: transferTransactionAsset,
 			},
 			this._state.passphrase as string,
