@@ -57,9 +57,7 @@ const MainPage: React.FC = () => {
 					<Grid md={3}>
 						<InfoPanel
 							title={'Current height'}
-							onClick={() => 
-								console.info('iclick')
-							}
+							onClick={() => console.info('iclick')}
 							mode={'light'}
 						>
 							14,612,068
