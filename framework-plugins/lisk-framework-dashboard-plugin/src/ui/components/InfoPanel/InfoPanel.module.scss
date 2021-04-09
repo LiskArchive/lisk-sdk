@@ -1,51 +1,8 @@
 @import '../../styles/constants';
 
 .infoHeading {
-	font-family: Roboto;
-	font-style: normal;
-	font-weight: 300;
-	font-size: 14px;
-	line-height: 16.41px;
 	display: flex;
 	align-items: center;
 	height: 20px;
 	margin-bottom: 10px;
-	color: $color-platinum-gray;
-}
-
-.infoContent {
-	font-family: Poppins;
-	font-style: normal;
-	font-weight: 300;
-	font-size: 26px;
-	line-height: 26px;
-	color: $color-yellow-copacabana;
-}
-
-.infoContent-pink {
-	color: $color-candy-pink;
-}
-
-.infoContent-green {
-	color: $color-ufo-green;
-}
-
-.infoContent-yellow {
-	color: $color-yellow-copacabana;
-}
-
-.infoContent-blue {
-	color: $color-ultramarine-blue;
-}
-
-.infoContent-white {
-	color: $color-white;
-}
-
-.infoContent-gray {
-	color: $color-platinum-gray;
-}
-
-.infoContent-red {
-	color: $color-fury-red;
 }

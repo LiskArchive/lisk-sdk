@@ -48,17 +48,18 @@ const MainPage: React.FC = () => {
 
 				<Grid row>
 					<Grid md={3}>
-						<InfoPanel title={'Current height'} color={'pink'}>
-							14,612,068
+						<InfoPanel title={'Current height'}>
+							<Text color="green" type="h3">
+								14,612,068
+							</Text>
 						</InfoPanel>
 					</Grid>
 					<Grid md={3}>
 						<InfoPanel
 							title={'Current height'}
-							color={'white'}
-							onClick={() => {
-								console.info('iclick');
-							}}
+							onClick={() => 
+								console.info('iclick')
+							}
 							mode={'light'}
 						>
 							14,612,068

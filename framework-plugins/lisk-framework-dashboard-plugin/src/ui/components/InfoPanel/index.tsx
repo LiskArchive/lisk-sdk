@@ -14,36 +14,35 @@
 import * as React from 'react';
 import { Widget, WidgetBody } from '../widget';
 import Icon from '../Icon';
-import { Props as TextProps } from '../Text';
+import Text from '../Text';
 import styles from './InfoPanel.module.scss';
 
 interface Props {
 	onClick?: (event: React.MouseEvent | Event) => void;
-	color?: TextProps['color'];
 	title: string;
 	mode?: 'dark' | 'light';
 }
 
-const InfoPanel: React.FC<Props> = props => {
-	const color = props.color ?? 'white';
+const InfoPanel: React.FC<Props> = props => 
 
-	return (
+	 (
 		<Widget>
-			<WidgetBody size={'xs'} mode={props.mode}>
-				<div className={styles.infoHeading}>
-					{props.title}
-					{props.onClick && (
+            <WidgetBody size={'xs'} mode={props.mode}>
+                <div className={styles.infoHeading}>
+                <Text type="tr" color="gray">
+                    {props.title}
+                </Text>
+                    {props.onClick && (
 						<Icon size={'l'} name={'chevron_right'}>
 							chevron_right
 						</Icon>
 					)}
-				</div>
-				<div className={`${styles.infoContent} ${styles[`infoContent-${color}`]}`}>
+                </div>
+				<div>
 					{props.children}
 				</div>
 			</WidgetBody>
 		</Widget>
 	);
-};
 
 export default InfoPanel;
