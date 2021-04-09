@@ -14,11 +14,12 @@
 import * as React from 'react';
 import { Widget, WidgetBody } from '../widget';
 import Icon from '../Icon';
+import { Props as TextProps } from '../Text';
 import styles from './InfoPanel.module.scss';
 
 interface Props {
 	onClick?: (event: React.MouseEvent | Event) => void;
-	color?: 'green' | 'pink' | 'yellow' | 'blue' | 'white' | 'gray' | 'red';
+	color?: TextProps['color'];
 	title: string;
 	mode?: 'dark' | 'light';
 }
