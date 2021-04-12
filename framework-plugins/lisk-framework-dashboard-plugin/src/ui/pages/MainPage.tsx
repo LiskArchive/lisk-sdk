@@ -30,7 +30,7 @@ import { TextInput, TextAreaInput, SelectInput } from '../components/input';
 import { BlockWidget, TransactionWidget } from '../components/widgets';
 import InfoPanel from '../components/InfoPanel';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
-import MyAccount from '../components/MyAccount';
+import MyAccountWidget from '../components/widgets/MyAccountWidget';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -40,16 +40,16 @@ const MainPage: React.FC = () => {
 	const [peersInfoDialog, setPeersInfoDialog] = React.useState(false);
 	const accounts = [
 		{
-			"publicKey": "a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
-			"binaryAddress": "a76ede56e69333382c6d4fd721dee0fe328318a2",
+			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
+			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
 		},
 		{
-			"privateKey": "294752900c9bc77600d6d2f5b9f92d0bdece28d9405c3c40506b90c1afe2d607a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
-			"publicKey": "a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
+			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
+			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
 		},
 		{
-			"publicKey": "a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4",
-			"binaryAddress": "a76ede56e69333382c6d4fd721dee0fe328318a2",
+			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
+			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
 		},
 	];
 
@@ -87,9 +87,6 @@ const MainPage: React.FC = () => {
 						<CopiableText text="11111764222293342222L" />
 						<Text color="pink" type="h1">
 							143,160,552
-						</Text>
-						<Text color="white" type="h2">
-							My Accounts
 						</Text>
 						<Text color="white" type="p">
 							bd81020ded87d21bbfedc45ed...5d90
@@ -501,7 +498,9 @@ const MainPage: React.FC = () => {
 						></TransactionWidget>
 					</Grid>
 				</Grid>
-
+				<Grid md={6}>
+					<MyAccountWidget accounts={accounts} onSelect={() => setAccountDialog(true)} />
+				</Grid>
 				<Grid row>
 					<Grid md={6} xs={12}>
 						<SendTransactionWidget
@@ -520,7 +519,6 @@ const MainPage: React.FC = () => {
 					</Grid>
 				</Grid>
 			</Grid>
-			<MyAccount accounts={accounts} />
 		</section>
 	);
 };
