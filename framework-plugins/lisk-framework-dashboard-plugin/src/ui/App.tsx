@@ -3,10 +3,23 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import MainPage from './pages/MainPage';
 
-const App: React.FC = () => (
-	<Provider store={store}>
-		<MainPage />
-	</Provider>
-);
+interface DashboardConfig {
+	applicationUrl: string;
+}
+
+declare global {
+	interface Window {
+		DASHBOARD_CONFIG: DashboardConfig;
+	}
+}
+
+const App: React.FC = () => {
+	const { applicationUrl } = window.DASHBOARD_CONFIG;
+
+	return (<Provider store={store}>
+			<MainPage applicationUrl={applicationUrl} />
+			</Provider>
+		);
+	}
 
 export default App;

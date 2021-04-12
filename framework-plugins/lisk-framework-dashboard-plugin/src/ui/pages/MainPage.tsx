@@ -32,7 +32,12 @@ import InfoPanel from '../components/InfoPanel';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
 
-const MainPage: React.FC = () => {
+interface Props {
+	applicationUrl: string;
+}
+
+const MainPage: React.FC<Props> = (props) => {
+	const applicationUrl = props.applicationUrl ?? 'ws://localhost:8080/ws';
 	const [dialogOpen, setDialogOpen] = React.useState(false);
 	const [successDialog, setSuccessDialog] = React.useState(false);
 	const [accountDialog, setAccountDialog] = React.useState(false);
@@ -87,6 +92,9 @@ const MainPage: React.FC = () => {
 						<CopiableText text="11111764222293342222L" />
 						<Text color="pink" type="h1">
 							143,160,552
+						</Text>
+						<Text color="white" type="h3">
+							Application URL ${applicationUrl}
 						</Text>
 						<Text color="white" type="p">
 							bd81020ded87d21bbfedc45ed...5d90
