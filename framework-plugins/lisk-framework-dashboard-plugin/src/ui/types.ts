@@ -39,3 +39,16 @@ export interface Fee {
 	assetId: number;
 	baseFee: number;
 }
+
+export interface RegisteredModule {
+	id: number;
+	name: string;
+	// TODO: To use later
+	// actions: string[];
+	// events: string[];
+	// reducers: string[];
+	transactionAssets: {
+		id: number;
+		name: string;
+	}[];
+}
