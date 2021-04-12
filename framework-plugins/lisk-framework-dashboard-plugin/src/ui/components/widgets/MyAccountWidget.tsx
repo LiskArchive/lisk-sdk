@@ -14,7 +14,6 @@
 
 import * as React from 'react';
 import { Widget, WidgetBody, WidgetHeader } from '../widget';
-// import IconButton from '../IconButton';
 import { TableBody, TableHeader, Table } from '../Table';
 import CopiableText from '../CopiableText';
 import Text from '../Text';
