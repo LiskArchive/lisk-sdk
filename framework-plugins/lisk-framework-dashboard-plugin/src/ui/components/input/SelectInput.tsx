@@ -15,13 +15,13 @@ import * as React from 'react';
 import Select, { ValueType, ActionMeta, StylesConfig } from 'react-select';
 import styles from './Input.module.scss';
 
-type SelectInputOptionType = { label: string; value: string };
+export type SelectInputOptionType = { label: string; value: string };
 
 interface Props {
 	options: SelectInputOptionType[];
 	multi?: boolean;
 	onChange?: (value: SelectInputOptionType[]) => void;
-	selected?: string[];
+	selected?: SelectInputOptionType[];
 }
 
 const customSelectStyles: StylesConfig<SelectInputOptionType, boolean> = {
@@ -132,9 +132,7 @@ const customSelectStyles: StylesConfig<SelectInputOptionType, boolean> = {
 const SelectInput: React.FC<Props> = props => {
 	const { options } = props;
 	const multi = props.multi ?? false;
-	const [value, setValue] = React.useState<SelectInputOptionType[]>(
-		props.selected ? options.filter(o => props.selected?.includes(o.value)) : [],
-	);
+	const [value, setValue] = React.useState<SelectInputOptionType[]>(props.selected ?? []);
 
 	const onChangeHandler = (
 		newValue: ValueType<SelectInputOptionType, boolean>,
