@@ -41,7 +41,7 @@ describe('account:show', () => {
 				return expect(printMethodStub).to.be.calledWith({
 					privateKey: cryptography.getKeys(passphraseInput).privateKey.toString('hex'),
 					publicKey: cryptography.getKeys(passphraseInput).publicKey.toString('hex'),
-					address: cryptography.getBase32AddressFromPublicKey(
+					address: cryptography.getLisk32AddressFromPublicKey(
 						cryptography.getKeys(passphraseInput).publicKey,
 						'lsk',
 					),
@@ -58,7 +58,7 @@ describe('account:show', () => {
 				return expect(printMethodStub).to.be.calledWith({
 					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
 					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
-					address: cryptography.getBase32AddressFromPublicKey(
+					address: cryptography.getLisk32AddressFromPublicKey(
 						cryptography.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),

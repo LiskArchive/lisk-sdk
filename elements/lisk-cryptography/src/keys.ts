@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { BINARY_ADDRESS_LENGTH, DEFAULT_BASE32_ADDRESS_PREFIX } from './constants';
+import { BINARY_ADDRESS_LENGTH, DEFAULT_LISK32_ADDRESS_PREFIX } from './constants';
 // eslint-disable-next-line import/no-cycle
 import { convertUInt5ToBase32, convertUIntArray } from './convert';
 import { hash } from './hash';
@@ -98,7 +98,7 @@ export const createChecksum = (uint5Array: number[]): number[] => {
 export const verifyChecksum = (integerSequence: number[]): boolean =>
 	polymod(integerSequence) === 1;
 
-const addressToBase32 = (address: Buffer): string => {
+const addressToLisk32 = (address: Buffer): string => {
 	const byteSequence = [];
 	for (const b of address) {
 		byteSequence.push(b);
@@ -108,27 +108,37 @@ const addressToBase32 = (address: Buffer): string => {
 	return convertUInt5ToBase32(uint5Address.concat(uint5Checksum));
 };
 
-export const getBase32AddressFromPublicKey = (
+export const getLisk32AddressFromPublicKey = (
 	publicKey: Buffer,
-	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
-): string => `${prefix}${addressToBase32(getAddressFromPublicKey(publicKey))}`;
+	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
+): string => `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
 
-export const getBase32AddressFromPassphrase = (
+/**
+ * @deprecated
+ */
+export const getBase32AddressFromPublicKey = getLisk32AddressFromPublicKey;
+
+export const getLisk32AddressFromPassphrase = (
 	passphrase: string,
-	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
+	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): string => {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-	return getBase32AddressFromPublicKey(publicKey, prefix);
+	return getLisk32AddressFromPublicKey(publicKey, prefix);
 };
 
-const BASE32_ADDRESS_LENGTH = 41;
-const BASE32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+/**
+ * @deprecated
+ */
+export const getBase32AddressFromPassphrase = getLisk32AddressFromPassphrase;
 
-export const validateBase32Address = (
+const LISK32_ADDRESS_LENGTH = 41;
+const LISK32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+
+export const validateLisk32Address = (
 	address: string,
-	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
+	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): boolean => {
-	if (address.length !== BASE32_ADDRESS_LENGTH) {
+	if (address.length !== LISK32_ADDRESS_LENGTH) {
 		throw new Error('Address length does not match requirements. Expected 41 characters.');
 	}
 
@@ -142,13 +152,13 @@ export const validateBase32Address = (
 
 	const addressSubstringArray = address.substring(3).split('');
 
-	if (!addressSubstringArray.every(char => BASE32_CHARSET.includes(char))) {
+	if (!addressSubstringArray.every(char => LISK32_CHARSET.includes(char))) {
 		throw new Error(
 			"Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.",
 		);
 	}
 
-	const integerSequence = addressSubstringArray.map(char => BASE32_CHARSET.indexOf(char));
+	const integerSequence = addressSubstringArray.map(char => LISK32_CHARSET.indexOf(char));
 
 	if (!verifyChecksum(integerSequence)) {
 		throw new Error('Invalid checksum for address.');
@@ -157,11 +167,16 @@ export const validateBase32Address = (
 	return true;
 };
 
-export const getAddressFromBase32Address = (
+/**
+ * @deprecated
+ */
+export const validateBase32Address = validateLisk32Address;
+
+export const getAddressFromLisk32Address = (
 	base32Address: string,
-	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
+	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): Buffer => {
-	validateBase32Address(base32Address, prefix);
+	validateLisk32Address(base32Address, prefix);
 	// Ignore lsk prefix and checksum
 	const base32AddressNoPrefixNoChecksum = base32Address.substring(
 		prefix.length,
@@ -169,13 +184,23 @@ export const getAddressFromBase32Address = (
 	);
 
 	const addressArray = base32AddressNoPrefixNoChecksum.split('');
-	const integerSequence = addressArray.map(char => BASE32_CHARSET.indexOf(char));
+	const integerSequence = addressArray.map(char => LISK32_CHARSET.indexOf(char));
 	const integerSequence8 = convertUIntArray(integerSequence, 5, 8);
 
 	return Buffer.from(integerSequence8);
 };
 
-export const getBase32AddressFromAddress = (
+/**
+ * @deprecated
+ */
+export const getAddressFromBase32Address = getAddressFromLisk32Address;
+
+export const getLisk32AddressFromAddress = (
 	address: Buffer,
-	prefix = DEFAULT_BASE32_ADDRESS_PREFIX,
-): string => `${prefix}${addressToBase32(address)}`;
+	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
+): string => `${prefix}${addressToLisk32(address)}`;
+
+/**
+ * @deprecated
+ */
+export const getBase32AddressFromAddress = getLisk32AddressFromAddress;
