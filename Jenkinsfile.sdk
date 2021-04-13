@@ -1,6 +1,6 @@
 @Library('lisk-jenkins') _
 
-def setup(start_application=false) {
+def setup() {
 	cleanWs()
 	unstash 'build'
 }
