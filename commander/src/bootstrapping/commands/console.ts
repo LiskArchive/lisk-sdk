@@ -18,7 +18,7 @@ import Command, { flags as flagParser } from '@oclif/command';
 import * as liskClient from '@liskhq/lisk-client';
 
 export class ConsoleCommand extends Command {
-	static description = 'Lisk interactive REPL session to run commands';
+	static description = 'Lisk interactive REPL session to run commands.';
 
 	static examples = [
 		'console',

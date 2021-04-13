@@ -55,17 +55,23 @@
 			"blockchain": {
 				"description": "Commands relating to <%= appName %> blockchain data."
 			},
+			"console": {
+				"description": "<%= appName %> interactive REPL session to run commands."
+			},
+			"config": {
+				"description": "Commands relating to <%= appName %> node configuration."
+			},
 			"forger-info": {
 				"description": "Commands relating to <%= appName %> forger-info data."
 			},
 			"forging": {
 				"description": "Commands relating to <%= appName %> forging."
 			},
+			"hash-onion": {
+				"description": "Create hash onions to be used by the forger."
+			},
 			"node": {
 				"description": "Commands relating to <%= appName %> node."
-			},
-			"config": {
-				"description": "Commands relating to <%= appName %> node configuration."
 			},
 			"passphrase": {
 				"description": "Commands relating to <%= appName %> passphrases."
