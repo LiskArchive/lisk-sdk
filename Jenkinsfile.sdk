@@ -1,28 +1,8 @@
 @Library('lisk-jenkins') _
 
-def setup(start_application=false) {
+def setup() {
 	cleanWs()
 	unstash 'build'
-	if(start_application) {
-		nvm(getNodejsVersion()) {
-			dir('framework') {
-				sh '''
-				# teardown_*() should have killed all node processes but we want to be sure
-				# this shouldn't hurt assuming the 'lisk-core' jenkins nodes have 1 executor
-				killall --verbose --wait node || true
-				NODE_ENV=test LISK_CONSOLE_LOG_LEVEL=debug node test/test_app >.app.log 2>&1 &
-				'''
-			}
-		}
-		// timeout(1) {
-		// 	waitUntil {
-		// 		script {
-		// 			def api_available = sh script: 'curl http://localhost:4000/api/node/constants >/dev/null', returnStatus: true
-		// 			return (api_available == 0)
-		// 		}
-		// 	}
-		// }
-	}
 }
 
 def run_jest(test_name) {
@@ -137,7 +117,7 @@ pipeline {
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:ci --ignore lisk-{framework,commander,@liskhq/lisk-framework-*}'
+							sh 'npx lerna run test:ci --ignore lisk-{framework,commander,@liskhq/lisk-framework-*} --ignore @liskhq/lisk-p2p'
 						}
 					}
 					post {
@@ -153,6 +133,15 @@ pipeline {
 						}
 					}
 				}
+				stage('Lisk Elements / @liskhq/lisk-p2p') {
+					agent { node { label 'lisk-sdk-quirky' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							sh 'npx lerna run test:ci --scope @liskhq/lisk-p2p'
+						}
+					}
+				}
 				stage('Lisk Commander') {
 					agent { node { label 'lisk-commander' }}
 					steps {
@@ -162,6 +151,17 @@ pipeline {
 						}
 						sh 'mv commander/.coverage/ coverage_commander/ || echo "Jest coverage not found"'
 						stash name: "coverage_commander", includes: "coverage_commander/*", allowEmpty: true
+					}
+				}
+				stage('Lisk Client End-to-End') {
+					agent { node { label 'lisk-client' }}
+					steps {
+						setup()
+						wrap([$class: 'Xvfb', parallelBuild: true, autoDisplayName: true]) {
+							nvm(getNodejsVersion()) {
+								sh 'npx lerna run test:e2e --scope=@liskhq/lisk-client'
+							}
+						}
 					}
 				}
 				stage('Lisk Framework Unit') {
@@ -177,16 +177,9 @@ pipeline {
 					}
 				}
 				stage('Lisk Framework Integration') {
-					agent { node { label 'lisk-framework' }}
+					agent { node { label 'lisk-sdk-quirky' }}
 					steps {
-						// jest ITs seem to need special treatment
-						nvm(getNodejsVersion()) {
-							sh '''
-							npm install --global yarn
-							yarn
-							yarn build
-							'''
-						}
+						setup()
 						run_jest('integration')
 					}
 					post {
@@ -196,16 +189,9 @@ pipeline {
 					}
 				}
 				stage('Lisk Framework Functional') {
-					agent { node { label 'lisk-framework' }}
+					agent { node { label 'lisk-sdk-quirky' }}
 					steps {
-						// jest ITs seem to need special treatment
-						nvm(getNodejsVersion()) {
-							sh '''
-							npm install --global yarn
-							yarn
-							yarn build
-							'''
-						}
+						setup()
 						run_jest('functional')
 					}
 					post {
@@ -235,35 +221,21 @@ pipeline {
 						}
 					}
 				}
-
 				stage('Lisk Framework Plugins Integration') {
 					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:integration --scope=@liskhq/lisk-framework-*'
+							sh 'npx lerna run test:integration --scope=@liskhq/lisk-framework-* --concurrency 1'
 						}
 					}
 				}
-
 				stage('Lisk Framework Plugins Functional') {
-					agent { node { label 'lisk-framework' }}
+					agent { node { label 'lisk-sdk-quirky' }}
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:functional --scope=@liskhq/lisk-framework-*'
-						}
-					}
-				}
-
-				stage('Lisk Client End-to-End') {
-					agent { node { label 'lisk-client' }}
-					steps {
-						setup()
-						wrap([$class: 'Xvfb', parallelBuild: true, autoDisplayName: true]) {
-							nvm(getNodejsVersion()) {
-								sh 'npx lerna run test:e2e --scope=@liskhq/lisk-client'
-							}
+							sh 'npx lerna run test:functional --scope=@liskhq/lisk-framework-* --concurrency 1'
 						}
 					}
 				}

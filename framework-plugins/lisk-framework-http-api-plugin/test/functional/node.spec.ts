@@ -55,6 +55,9 @@ describe('Node', () => {
 				unconfirmedTransactions: appInstance._node._transactionPool.getAll().length,
 				genesisConfig: appInstance._node._options.genesisConfig,
 				registeredModules: expect.any(Array),
+				network: {
+					port: appInstance._node._options.network.port,
+				},
 			};
 
 			const result = await axios.get(getURL('/api/node/info'));
