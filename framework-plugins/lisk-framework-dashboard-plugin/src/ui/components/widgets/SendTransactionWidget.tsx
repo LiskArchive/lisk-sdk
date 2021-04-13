@@ -57,8 +57,6 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 		let moduleID: number | undefined;
 		let assetID: number | undefined;
 
-		
-
 		for (const m of props.modules) {
 			if (m.name === moduleName) {
 				moduleID = m.id;
