@@ -256,6 +256,7 @@ export const getBlockProcessingEnv = async (
 		genesisBlock.header.id,
 		appConfig.genesisConfig.communityIdentifier,
 	);
+	removeDB(params.options?.databasePath);
 	const db = createDB('blockchain', params.options?.databasePath);
 	const processor = getProcessor(db, appConfig, genesisBlock, networkIdentifier, params);
 	await processor.init(genesisBlock);
