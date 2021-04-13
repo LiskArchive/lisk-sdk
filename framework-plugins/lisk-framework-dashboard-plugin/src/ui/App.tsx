@@ -16,10 +16,11 @@ declare global {
 const App: React.FC = () => {
 	const { applicationUrl } = window.DASHBOARD_CONFIG;
 
-	return (<Provider store={store}>
+	return (
+		<Provider store={store}>
 			<MainPage applicationUrl={applicationUrl} />
-			</Provider>
-		);
-	}
+		</Provider>
+	);
+};
 
 export default App;

@@ -36,7 +36,7 @@ interface Props {
 	applicationUrl: string;
 }
 
-const MainPage: React.FC<Props> = (props) => {
+const MainPage: React.FC<Props> = props => {
 	const applicationUrl = props.applicationUrl ?? 'ws://localhost:8080/ws';
 	const [dialogOpen, setDialogOpen] = React.useState(false);
 	const [successDialog, setSuccessDialog] = React.useState(false);
