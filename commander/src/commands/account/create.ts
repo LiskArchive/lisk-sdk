@@ -16,7 +16,7 @@
 import {
 	getAddressFromPublicKey,
 	getKeys,
-	getBase32AddressFromPublicKey,
+	getLisk32AddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
@@ -35,7 +35,7 @@ const createAccount = (): AccountInfo => {
 	const passphrase = createMnemonicPassphrase();
 	const { privateKey, publicKey } = getKeys(passphrase);
 	const binaryAddress = getAddressFromPublicKey(publicKey);
-	const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
+	const address = getLisk32AddressFromPublicKey(publicKey, 'lsk');
 
 	return {
 		passphrase,
