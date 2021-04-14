@@ -31,6 +31,7 @@ import { BlockWidget, TransactionWidget } from '../components/widgets';
 import InfoPanel from '../components/InfoPanel';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import CallActionWidget from '../components/widgets/CallActionWidget';
+import MyAccountWidget from '../components/widgets/MyAccountWidget';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -38,6 +39,20 @@ const MainPage: React.FC = () => {
 	const [accountDialog, setAccountDialog] = React.useState(false);
 	const [nodeInfoDialog, setNodeInfoDialog] = React.useState(false);
 	const [peersInfoDialog, setPeersInfoDialog] = React.useState(false);
+	const accounts = [
+		{
+			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
+			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
+		},
+		{
+			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
+			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
+		},
+		{
+			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
+			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
+		},
+	];
 
 	return (
 		<section className={styles.root}>
@@ -73,9 +88,6 @@ const MainPage: React.FC = () => {
 						<CopiableText text="11111764222293342222L" />
 						<Text color="pink" type="h1">
 							143,160,552
-						</Text>
-						<Text color="white" type="h2">
-							My Accounts
 						</Text>
 						<Text color="white" type="p">
 							bd81020ded87d21bbfedc45ed...5d90
@@ -487,7 +499,9 @@ const MainPage: React.FC = () => {
 						></TransactionWidget>
 					</Grid>
 				</Grid>
-
+				<Grid md={6}>
+					<MyAccountWidget accounts={accounts} onSelect={() => setAccountDialog(true)} />
+				</Grid>
 				<Grid row>
 					<Grid md={6} xs={12}>
 						<SendTransactionWidget
