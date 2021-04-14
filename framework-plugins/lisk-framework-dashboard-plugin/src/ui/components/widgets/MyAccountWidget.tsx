@@ -25,11 +25,18 @@ interface AccountInfo {
 
 interface MyAccountProps {
 	accounts: ReadonlyArray<AccountInfo>;
-	onSelect?: () => void;
+	onSelect?: (account: AccountInfo) => void;
 }
 
+
 const MyAccountWidget: React.FC<MyAccountProps> = props => {
-	const { accounts, onSelect } = props;
+    const { accounts, onSelect } = props;
+
+    const handleClick = (account: AccountInfo) => {
+        if(onSelect) {
+            onSelect(account)
+        }
+     }
 
 	return (
 		<Widget>
@@ -40,10 +47,10 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 				<Table>
 					<TableHeader sticky>
 						<tr>
-							<th style={{ width: 'calc(60% - 110px)' }}>
+							<th>
 								<Text>Binary addresss</Text>
 							</th>
-							<th style={{ width: 'calc(40% - 110px)' }}>
+							<th>
 								<Text>Public Key</Text>
 							</th>
 						</tr>
@@ -51,13 +58,13 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 					<TableBody>
 						{accounts?.length ? (
 							accounts.map((account: AccountInfo, index) => (
-								<tr key={index}>
-									<td onClick={onSelect}>
+								<tr onClick={ () => handleClick(account)} key={index}>
+									<td >
 										<CopiableText text={account.binaryAddress as string}>
 											{account.binaryAddress}
 										</CopiableText>
 									</td>
-									<td onClick={onSelect}>
+									<td>
 										<CopiableText text={account.publicKey as string}>
 											{account.publicKey}
 										</CopiableText>
