@@ -18,5 +18,5 @@ const base = require('../config/jest.config.base');
 
 module.exports = {
 	...base,
-	testMatch: ['<rootDir>/test/functional/**/**.ts'],
+	testMatch: ['<rootDir>/test/functional/**/*.(spec|test).(js|ts)'],
 };
