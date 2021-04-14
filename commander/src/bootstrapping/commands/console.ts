@@ -13,9 +13,14 @@
  *
  */
 
-import * as repl from 'repl';
+import { REPLServer, start } from 'repl';
 import Command, { flags as flagParser } from '@oclif/command';
 import * as liskClient from '@liskhq/lisk-client';
+
+interface ConsoleFlags {
+	readonly 'api-ipc'?: string;
+	readonly 'api-ws'?: string;
+}
 
 export class ConsoleCommand extends Command {
 	static description = 'Lisk interactive REPL session to run commands.';
@@ -42,25 +47,47 @@ export class ConsoleCommand extends Command {
 
 		this.log('Entering Lisk REPL: type `Ctrl+C` or `.exit` to exit');
 
-		const replServer = repl.start('lisk > ');
-		for (const element in liskClient) {
-			// @ts-ignore
-			replServer.context[element] = liskClient[element];
-		}
+		const options = { prompt: `${this.config.pjson.name} > ` };
+		const replServer = start(options);
+		await this.initREPLContext(replServer, flags);
 
-		if (flags['api-ipc']) {
-			const ipcClient = await liskClient.apiClient.createIPCClient(flags['api-ipc']);
-			replServer.context.client = ipcClient;
-		}
-
-		if (flags['api-ws']) {
-			const wsClient = await liskClient.apiClient.createWSClient(flags['api-ws']);
-			replServer.context.client = wsClient;
-		}
-
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		replServer.on('reset', async () => {
+			this.log('Initializing repl context after reset!');
+			await this.initREPLContext(replServer, flags);
+		});
 		replServer.on('exit', () => {
 			this.log('Received "exit" event from lisk!');
 			process.exit();
 		});
+	}
+
+	async initREPLContext(replServer: REPLServer, flags: ConsoleFlags): Promise<void> {
+		const clientLibraries = liskClient as Record<string, unknown>;
+		Object.keys(clientLibraries).forEach(key => {
+			// Skip client buffer library to avoid nodejs native buffer namespace collision
+			if (key.toLowerCase() !== 'buffer') {
+				Object.defineProperty(replServer.context, key, {
+					enumerable: true,
+					value: clientLibraries[key],
+				});
+			}
+		});
+
+		if (flags['api-ipc']) {
+			const ipcClient = await liskClient.apiClient.createIPCClient(flags['api-ipc']);
+			Object.defineProperty(replServer.context, 'client', {
+				enumerable: true,
+				value: ipcClient,
+			});
+		}
+
+		if (flags['api-ws']) {
+			const wsClient = await liskClient.apiClient.createWSClient(flags['api-ws']);
+			Object.defineProperty(replServer.context, 'client', {
+				enumerable: true,
+				value: wsClient,
+			});
+		}
 	}
 }
