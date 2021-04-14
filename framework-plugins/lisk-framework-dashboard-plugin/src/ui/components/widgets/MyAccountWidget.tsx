@@ -28,15 +28,14 @@ interface MyAccountProps {
 	onSelect?: (account: AccountInfo) => void;
 }
 
-
 const MyAccountWidget: React.FC<MyAccountProps> = props => {
-    const { accounts, onSelect } = props;
+	const { accounts, onSelect } = props;
 
-    const handleClick = (account: AccountInfo) => {
-        if(onSelect) {
-            onSelect(account)
-        }
-     }
+	const handleClick = (account: AccountInfo) => {
+		if (onSelect) {
+			onSelect(account);
+		}
+	};
 
 	return (
 		<Widget>
@@ -58,8 +57,8 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 					<TableBody>
 						{accounts?.length ? (
 							accounts.map((account: AccountInfo, index) => (
-								<tr onClick={ () => handleClick(account)} key={index}>
-									<td >
+								<tr onClick={() => handleClick(account)} key={index}>
+									<td>
 										<CopiableText text={account.binaryAddress as string}>
 											{account.binaryAddress}
 										</CopiableText>
