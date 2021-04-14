@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import BlockWidget from './BlockWidget';
+import MyAccountWidget from './MyAccountWidget';
 import TransactionWidget from './TransactionWidget';
 
-export { BlockWidget, TransactionWidget };
+export { BlockWidget, MyAccountWidget, TransactionWidget };
