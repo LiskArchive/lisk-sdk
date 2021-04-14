@@ -21,10 +21,7 @@ import Button from '../Button';
 
 interface WidgetProps {
 	actions: string[];
-	onSubmit: (data: {
-		action: string;
-		keyValue: string;
-	}) => void;
+	onSubmit: (data: { action: string; keyValue: string }) => void;
 }
 
 const CallActionWidget: React.FC<WidgetProps> = props => {
@@ -33,7 +30,7 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 	const [keyValue, setKeyValue] = React.useState('');
 
 	React.useEffect(() => {
-        const actions = props.actions.map(action => ({ label: action, value: action })).flat();
+		const actions = props.actions.map(action => ({ label: action, value: action })).flat();
 		setListOptions(actions);
 		setSelectedActions(actions.length ? [actions[0]] : []);
 	}, [props.actions]);
@@ -42,8 +39,7 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 		const actionName = selectedActions[0].value;
 
 		console.info({ actionName });
-        props.onSubmit({ action: actionName, keyValue });
-
+		props.onSubmit({ action: actionName, keyValue });
 	};
 
 	return (

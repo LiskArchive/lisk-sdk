@@ -505,14 +505,11 @@ const MainPage: React.FC = () => {
 						/>
 					</Grid>
 				</Grid>
-				
+
 				<Grid row>
 					<Grid md={6} xs={12}>
 						<CallActionWidget
-							actions={[
-								'app:getNodeInfo',
-								'app:getAccount',
-							]}
+							actions={['app:getNodeInfo', 'app:getAccount']}
 							onSubmit={data => console.info(data)}
 						/>
 					</Grid>
