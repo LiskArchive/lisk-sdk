@@ -66,7 +66,6 @@ interface DashboardState {
 }
 
 const MainPage: React.FC = () => {
-	console.info('Main page rendered...');
 	const { showMessageDialog } = useMessageDialog();
 
 	// API Client object
@@ -89,6 +88,7 @@ const MainPage: React.FC = () => {
 		unconfirmedTransactionsRef,
 	] = useRefState<Transaction[]>([]);
 	const [events, setEvents, eventsRef] = useRefState<Event[]>([]);
+	const [actions, setActions] = React.useState<string[]>([]);
 
 	// Dialogs related States
 	const [showAccount, setShowAccount] = React.useState<Account>();
@@ -128,7 +128,6 @@ const MainPage: React.FC = () => {
 
 	const newEventListener = React.useCallback(
 		event => {
-			console.info('new event', event);
 			setEvents([...eventsRef.current, event]);
 		},
 		[dashboard.connected],
@@ -153,6 +152,11 @@ const MainPage: React.FC = () => {
 		for (const event of allEvents) {
 			getClient().subscribe(event, newEventListener);
 		}
+
+		const allActions = ((await getClient().invoke(
+			'app:getRegisteredActions',
+		)) as unknown) as string[];
+		setActions(allActions);
 	};
 
 	const loadNodeInfo = async () => {
@@ -297,25 +301,31 @@ const MainPage: React.FC = () => {
 							transactions={confirmedTransactions}
 						></TransactionWidget>
 					</Grid>
+				</Grid>
+				<Grid row>
 					<Grid md={6}>
 						<TransactionWidget
 							title="Unconfirmed Transactions"
 							transactions={unconfirmedTransactions}
 						></TransactionWidget>
 					</Grid>
-				</Grid>
-				<Grid md={6}>
-					<MyAccountWidget accounts={accounts} onSelect={account => setShowAccount(account)} />
+					<Grid md={6}>
+						<MyAccountWidget accounts={accounts} onSelect={account => setShowAccount(account)} />
+					</Grid>
 				</Grid>
 				<Grid row>
-					<Grid md={6} xs={12}>
+					<Grid md={6}>
 						<SendTransactionWidget
 							modules={nodeInfo.registeredModules}
 							onSubmit={data => console.info(data)}
 						/>
 					</Grid>
-					<Grid md={6} xs={12}>
+					<Grid md={3}>
 						<Text type={'p'}>{JSON.stringify(events)}</Text>
+					</Grid>
+
+					<Grid md={3}>
+						<Text type={'p'}>{JSON.stringify(actions)}</Text>
 					</Grid>
 				</Grid>
 			</Grid>
