@@ -16,9 +16,10 @@ import { TableBody, TableHeader, Table } from '../Table';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
 import CopiableText from '../CopiableText';
+import { Transaction } from '../../types';
 
 interface WidgetProps {
-	transactions: Record<string, string>[];
+	transactions: Transaction[];
 	title: string;
 }
 
@@ -55,7 +56,9 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 									<CopiableText text={transaction.id}>{transaction.id}</CopiableText>
 								</td>
 								<td>
-									<CopiableText text={transaction.sender}>{transaction.sender}</CopiableText>
+									<CopiableText text={transaction.senderPublicKey}>
+										{transaction.senderPublicKey}
+									</CopiableText>
 								</td>
 								<td>
 									<Text key={transaction.moduleAsset}>{transaction.moduleAsset}</Text>
