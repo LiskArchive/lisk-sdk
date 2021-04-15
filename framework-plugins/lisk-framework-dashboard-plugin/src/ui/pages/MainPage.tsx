@@ -88,6 +88,7 @@ const MainPage: React.FC = () => {
 		setUnconfirmedTransactions,
 		unconfirmedTransactionsRef,
 	] = useRefState<Transaction[]>([]);
+	const [events, setEvents, eventsRef] = useRefState<Event[]>([]);
 
 	// Dialogs related States
 	const [showAccount, setShowAccount] = React.useState<Account>();
@@ -103,7 +104,6 @@ const MainPage: React.FC = () => {
 				confirmedTransactionsRef.current,
 				unconfirmedTransactionsRef.current,
 			);
-			console.info(result.blocks);
 			setBlocks(result.blocks);
 			setConfirmedTransactions(result.confirmedTransactions);
 			setUnconfirmedTransactions(result.unconfirmedTransactions);
@@ -126,6 +126,14 @@ const MainPage: React.FC = () => {
 		[dashboard.connected],
 	);
 
+	const newEventListener = React.useCallback(
+		event => {
+			console.info('new event', event);
+			setEvents([...eventsRef.current, event]);
+		},
+		[dashboard.connected],
+	);
+
 	const initClient = async () => {
 		try {
 			setClient(await apiClient.createWSClient('ws://localhost:5000/ws'));
@@ -135,9 +143,16 @@ const MainPage: React.FC = () => {
 		}
 	};
 
-	const subscribeEvents = () => {
+	const subscribeEvents = async () => {
 		getClient().subscribe('app:block:new', newBlockListener);
 		getClient().subscribe('app:transaction:new', newTransactionListener);
+
+		const allEvents = ((await getClient().invoke(
+			'app:getRegisteredEvents',
+		)) as unknown) as string[];
+		for (const event of allEvents) {
+			getClient().subscribe(event, newEventListener);
+		}
 	};
 
 	const loadNodeInfo = async () => {
@@ -161,7 +176,7 @@ const MainPage: React.FC = () => {
 	// Load data
 	React.useEffect(() => {
 		if (dashboard.connected) {
-			subscribeEvents();
+			subscribeEvents().catch(console.error);
 			loadNodeInfo().catch(console.error);
 			loadPeersInfo().catch(console.error);
 		}
@@ -298,6 +313,9 @@ const MainPage: React.FC = () => {
 							modules={nodeInfo.registeredModules}
 							onSubmit={data => console.info(data)}
 						/>
+					</Grid>
+					<Grid md={6} xs={12}>
+						<Text type={'p'}>{JSON.stringify(events)}</Text>
 					</Grid>
 				</Grid>
 			</Grid>

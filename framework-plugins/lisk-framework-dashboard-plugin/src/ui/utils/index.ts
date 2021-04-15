@@ -30,7 +30,6 @@ export const updateStatesOnNewBlock = (
 } => {
 	const newBlock = client.block.toJSON(client.block.decode(newBlockStr));
 	const newBlocks = [...blocks, newBlock].slice(-1 * MAX_BLOCKS) as Block[];
-	console.info({ newBlocks, blocks });
 
 	for (const trs of ((newBlock as unknown) as Block).payload) {
 		confirmedTransactions.push(trs);
