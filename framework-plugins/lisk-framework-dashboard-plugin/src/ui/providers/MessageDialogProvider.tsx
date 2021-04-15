@@ -13,7 +13,7 @@
  */
 
 import * as React from 'react';
-import MessageDialog from '../dialogs/MessageDialog';
+import MessageDialog from '../components/dialogs/MessageDialog';
 
 interface State {
 	open: boolean;
@@ -35,7 +35,7 @@ export const MessageDialogProviderContext = React.createContext<{
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 }>({ state: defaultValue, dispatch: () => {} });
 
-const MessageDialogProvider: React.FC = () => {
+const MessageDialogProvider: React.FC = props => {
 	const [state, updateState] = React.useState(defaultValue);
 
 	return (
@@ -43,6 +43,7 @@ const MessageDialogProvider: React.FC = () => {
 			<MessageDialog open={state.open} title={state.title} backBtn={state.backBtn}>
 				{state.body}
 			</MessageDialog>
+			{props.children}
 		</MessageDialogProviderContext.Provider>
 	);
 };

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import MainPage from './pages/MainPage';
-import MessageDialogProvider from './components/providers/MessageDialogProvider';
+import MessageDialogProvider from './providers/MessageDialogProvider';
 
 const App: React.FC = () => (
 	<MessageDialogProvider>
