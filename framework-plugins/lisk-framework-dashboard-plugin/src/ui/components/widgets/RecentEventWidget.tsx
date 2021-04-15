@@ -100,17 +100,20 @@ const RecentEventWidget: React.FC<Props> = props => {
 	return (
 		<Widget>
 			<WidgetHeader>
-				<Text type={'h2'}>{'Recent events'}</Text>
+				<div className={styles['recent-events-heading']}>
+					<Text type={'h2'}>{'Recent events'}</Text>
+					<Text type={'h3'}>{subscribedCount}</Text>
+				</div>
+				<div className={styles['recent-events-dropdown']}>
+					<SelectInput
+						multi
+						options={listOptions}
+						selected={selectedEvents}
+						onChange={val => handleSelect(val)}
+					/>
+					<Text type={'h3'}>{subscribedCount}</Text>
+				</div>
 			</WidgetHeader>
-			<div className={styles['recent-events-dropdown']}>
-				<SelectInput
-					multi
-					options={listOptions}
-					selected={selectedEvents}
-					onChange={val => handleSelect(val)}
-				/>
-				<Text type={'h3'}>{subscribedCount}</Text>
-			</div>
 			<WidgetBody scrollbar size={'m'}>
 				{recentEvents.map(({ name, data }, index) => (
 					<Box mb={4} key={index}>
