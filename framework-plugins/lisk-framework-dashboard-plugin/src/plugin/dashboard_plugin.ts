@@ -24,7 +24,6 @@ import {
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
-import { writeFileSync } from 'fs';
 import * as defaults from './defaults';
 import { dashboardPluginOptions } from './types';
 
@@ -77,13 +76,9 @@ export class DashboardPlugin extends BasePlugin {
 		const config = {
 			applicationUrl: this._options.applicationUrl,
 		};
-		// Write config file for faucet
-		writeFileSync(
-			join(__dirname, '../../build', 'config.js'),
-			`window.DASHBOARD_CONFIG = ${JSON.stringify(config)}`,
-		);
 		const app = express();
 		app.use(express.static(join(__dirname, '../../build')));
+		app.get('/api/config', (_req, res) => res.json(config));
 		this._server = app.listen(this._options.port, this._options.host);
 	}
 

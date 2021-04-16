@@ -32,12 +32,7 @@ import InfoPanel from '../components/InfoPanel';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
 
-interface Props {
-	applicationUrl: string;
-}
-
-const MainPage: React.FC<Props> = props => {
-	const applicationUrl = props.applicationUrl ?? 'ws://localhost:8080/ws';
+const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
 	const [successDialog, setSuccessDialog] = React.useState(false);
 	const [accountDialog, setAccountDialog] = React.useState(false);
@@ -57,6 +52,21 @@ const MainPage: React.FC<Props> = props => {
 			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
 		},
 	];
+	const [appState, setAppState] = React.useState({
+		applicationUrl: 'ws://localhost:8080',
+	});
+
+	React.useEffect(() => {
+		const apiUrl = `/api/config`;
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
+		fetch(apiUrl)
+			// eslint-disable-next-line @typescript-eslint/promise-function-async
+			.then(res => res.json())
+			.then((config: { applicationUrl: string }) => {
+				// eslint-disable-next-line no-console
+				setAppState({ applicationUrl: config.applicationUrl });
+			});
+	}, [setAppState]);
 
 	return (
 		<section className={styles.root}>
@@ -94,7 +104,7 @@ const MainPage: React.FC<Props> = props => {
 							143,160,552
 						</Text>
 						<Text color="white" type="h3">
-							Application URL ${applicationUrl}
+							Application URL {appState.applicationUrl}
 						</Text>
 						<Text color="white" type="p">
 							bd81020ded87d21bbfedc45ed...5d90
