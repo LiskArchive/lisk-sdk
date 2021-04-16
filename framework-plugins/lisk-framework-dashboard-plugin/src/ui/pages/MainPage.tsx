@@ -56,6 +56,20 @@ const MainPage: React.FC = () => {
 			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
 		},
 	];
+	const [config, setConfig] = React.useState({
+		applicationUrl: 'ws://localhost:8080',
+	});
+
+	React.useEffect(() => {
+		const apiUrl = `/api/config`;
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
+		fetch(apiUrl)
+			// eslint-disable-next-line @typescript-eslint/promise-function-async
+			.then(res => res.json())
+			.then((conf: { applicationUrl: string }) => {
+				setConfig({ applicationUrl: conf.applicationUrl });
+			});
+	});
 
 	return (
 		<section className={styles.root}>
@@ -91,6 +105,9 @@ const MainPage: React.FC = () => {
 						<CopiableText text="11111764222293342222L" />
 						<Text color="pink" type="h1">
 							143,160,552
+						</Text>
+						<Text color="white" type="h3">
+							Application URL {config.applicationUrl}
 						</Text>
 						<Text color="white" type="p">
 							bd81020ded87d21bbfedc45ed...5d90
