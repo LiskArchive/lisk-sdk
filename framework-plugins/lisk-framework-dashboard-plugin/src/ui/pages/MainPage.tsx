@@ -27,10 +27,14 @@ import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import Grid from '../components/Grid';
 import { TextInput, TextAreaInput, SelectInput } from '../components/input';
-import { BlockWidget, TransactionWidget } from '../components/widgets';
+import {
+	BlockWidget,
+	MyAccountWidget,
+	RecentEventWidget,
+	SendTransactionWidget,
+	TransactionWidget,
+} from '../components/widgets';
 import InfoPanel from '../components/InfoPanel';
-import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
-import MyAccountWidget from '../components/widgets/MyAccountWidget';
 
 const MainPage: React.FC = () => {
 	const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -533,6 +537,15 @@ const MainPage: React.FC = () => {
 								},
 							]}
 							onSubmit={data => console.info(data)}
+						/>
+					</Grid>
+				</Grid>
+				<Grid row>
+					<Grid md={12} xs={12}>
+						<RecentEventWidget
+							events={['app:transaction:new', 'app:chain:fork', 'app:block:new']}
+							onSelect={data => console.info(data)}
+							selected={[]}
 						/>
 					</Grid>
 				</Grid>
