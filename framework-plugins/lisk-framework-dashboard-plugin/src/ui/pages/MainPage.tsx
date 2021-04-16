@@ -56,7 +56,7 @@ const MainPage: React.FC = () => {
 			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
 		},
 	];
-	const [appState, setAppState] = React.useState({
+	const [config, setConfig] = React.useState({
 		applicationUrl: 'ws://localhost:8080',
 	});
 
@@ -66,11 +66,10 @@ const MainPage: React.FC = () => {
 		fetch(apiUrl)
 			// eslint-disable-next-line @typescript-eslint/promise-function-async
 			.then(res => res.json())
-			.then((config: { applicationUrl: string }) => {
-				// eslint-disable-next-line no-console
-				setAppState({ applicationUrl: config.applicationUrl });
+			.then((conf: { applicationUrl: string }) => {
+				setConfig({ applicationUrl: conf.applicationUrl });
 			});
-	}, [setAppState]);
+	});
 
 	return (
 		<section className={styles.root}>
@@ -108,7 +107,7 @@ const MainPage: React.FC = () => {
 							143,160,552
 						</Text>
 						<Text color="white" type="h3">
-							Application URL {appState.applicationUrl}
+							Application URL {config.applicationUrl}
 						</Text>
 						<Text color="white" type="p">
 							bd81020ded87d21bbfedc45ed...5d90
