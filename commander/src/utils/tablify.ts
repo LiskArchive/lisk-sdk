@@ -64,7 +64,7 @@ export const tablify = (data: ReadonlyArray<object> | object) => {
 			head: [],
 			border: [],
 		},
-	}) as CliTable3.HorizontalTable;
+	});
 
 	if (Array.isArray(data)) {
 		data.forEach((value, key) => {
