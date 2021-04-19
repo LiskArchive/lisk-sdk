@@ -1,12 +1,11 @@
 import * as React from 'react';
-import { Provider } from 'react-redux';
-import { store } from './store';
 import MainPage from './pages/MainPage';
+import MessageDialogProvider from './providers/MessageDialogProvider';
 
 const App: React.FC = () => (
-	<Provider store={store}>
+	<MessageDialogProvider>
 		<MainPage />
-	</Provider>
+	</MessageDialogProvider>
 );
 
 export default App;

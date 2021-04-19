@@ -19,19 +19,36 @@ export interface Account {
 	passphrase?: string;
 }
 
+export interface GenesisConfig {
+	[key: string]: unknown;
+	readonly bftThreshold: number;
+	readonly communityIdentifier: string;
+	readonly blockTime: number;
+	readonly maxPayloadLength: number;
+	readonly rewards: {
+		readonly milestones: string[];
+		readonly offset: number;
+		readonly distance: number;
+	};
+	readonly minFeePerByte: number;
+	readonly baseFees: {
+		readonly moduleID: number;
+		readonly assetID: number;
+		readonly baseFee: string;
+	}[];
+}
+
 export interface NodeInfo {
-	version: string;
-	networkVersion: string;
-	networkIdentifier: string;
-	lastBlockId: string;
-	syncing: boolean;
-	unconfirmedTransactions: number;
-	blockTime: number;
-	communityIdentifier: string;
-	maxPayloadLength: number;
-	bftThreshold: number;
-	minFeePerByte: number;
-	fees: Fee[];
+	readonly version: string;
+	readonly networkVersion: string;
+	readonly networkIdentifier: string;
+	readonly lastBlockID: string;
+	readonly height: number;
+	readonly finalizedHeight: number;
+	readonly syncing: boolean;
+	readonly unconfirmedTransactions: number;
+	readonly genesisConfig: GenesisConfig;
+	readonly registeredModules: RegisteredModule[];
 }
 
 export interface Fee {
@@ -43,12 +60,34 @@ export interface Fee {
 export interface RegisteredModule {
 	id: number;
 	name: string;
-	// TODO: To use later
-	// actions: string[];
-	// events: string[];
-	// reducers: string[];
+	actions: string[];
+	events: string[];
+	reducers: string[];
 	transactionAssets: {
 		id: number;
 		name: string;
 	}[];
+}
+
+export interface BlockHeader {
+	id: string;
+	generatorPublicKey: string;
+	height: number;
+}
+
+export interface Block {
+	header: BlockHeader;
+	payload: Transaction[];
+}
+
+export interface Transaction {
+	id: string;
+	senderPublicKey: string;
+	moduleAsset: string;
+	fee: number;
+}
+
+export interface Event {
+	name: string;
+	data: Record<string, unknown>;
 }

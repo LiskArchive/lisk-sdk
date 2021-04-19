@@ -17,21 +17,17 @@ import { Widget, WidgetBody, WidgetHeader } from '../widget';
 import { TableBody, TableHeader, Table } from '../Table';
 import CopiableText from '../CopiableText';
 import Text from '../Text';
-
-interface AccountInfo {
-	readonly binaryAddress?: string;
-	readonly publicKey?: string;
-}
+import { Account } from '../../types';
 
 interface MyAccountProps {
-	accounts: ReadonlyArray<AccountInfo>;
-	onSelect?: (account: AccountInfo) => void;
+	accounts: ReadonlyArray<Account>;
+	onSelect?: (account: Account) => void;
 }
 
 const MyAccountWidget: React.FC<MyAccountProps> = props => {
 	const { accounts, onSelect } = props;
 
-	const handleClick = (account: AccountInfo) => {
+	const handleClick = (account: Account) => {
 		if (onSelect) {
 			onSelect(account);
 		}
@@ -56,17 +52,15 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 					</TableHeader>
 					<TableBody>
 						{accounts?.length ? (
-							accounts.map((account: AccountInfo, index) => (
+							accounts.map((account: Account, index) => (
 								<tr onClick={() => handleClick(account)} key={index}>
 									<td>
-										<CopiableText text={account.binaryAddress as string}>
+										<CopiableText text={account.binaryAddress}>
 											{account.binaryAddress}
 										</CopiableText>
 									</td>
 									<td>
-										<CopiableText text={account.publicKey as string}>
-											{account.publicKey}
-										</CopiableText>
+										<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>
 									</td>
 								</tr>
 							))

@@ -11,20 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* eslint-disable no-param-reassign */
-import { createReducer } from '@reduxjs/toolkit';
-import { clearDialogState } from './action';
 
-export interface DashboardState {
-	successMessage?: string;
-	errorMessage?: string;
-}
+import * as React from 'react';
 
-const initialState: DashboardState = {};
+const useRefState = <T = unknown>(a: T): [T, (val: T) => void, React.MutableRefObject<T>] => {
+	const [state, _setState] = React.useState(a);
+	const stateRef = React.useRef(state);
 
-export const dashboardReducer = createReducer(initialState, builder => {
-	builder.addCase(clearDialogState, state => {
-		state.errorMessage = undefined;
-		state.successMessage = undefined;
-	});
-});
+	const setState = (val: T): void => {
+		stateRef.current = val;
+		_setState(val);
+	};
+
+	return [state, setState, stateRef];
+};
+
+export default useRefState;
