@@ -14,16 +14,16 @@
 
 import * as React from 'react';
 
-const useRefState = <T = any>(a: T): [T, (val: T) => void, React.MutableRefObject<T>] => {
+const useRefState = <T = unknown>(a: T): [T, (val: T) => void, React.MutableRefObject<T>] => {
 	const [state, _setState] = React.useState(a);
 	const stateRef = React.useRef(state);
 
-	const seState = (val: T): void => {
+	const setState = (val: T): void => {
 		stateRef.current = val;
 		_setState(val);
 	};
 
-	return [state, seState, stateRef];
+	return [state, setState, stateRef];
 };
 
 export default useRefState;

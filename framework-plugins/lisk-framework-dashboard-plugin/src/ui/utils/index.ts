@@ -17,6 +17,8 @@ import { Block, Transaction } from '../types';
 const MAX_BLOCKS = 103 * 3;
 const MAX_TRANSACTIONS = 150;
 
+const sortByBlockHeight = (a: Block, b: Block) => b.header.height - a.header.height;
+
 export const updateStatesOnNewBlock = (
 	client: apiClient.APIClient,
 	newBlockStr: string,
@@ -29,10 +31,11 @@ export const updateStatesOnNewBlock = (
 	unconfirmedTransactions: Transaction[];
 } => {
 	const newBlock = client.block.toJSON(client.block.decode(newBlockStr));
-	const newBlocks = [...blocks, newBlock].slice(-1 * MAX_BLOCKS) as Block[];
+	const newBlocks = [newBlock, ...blocks].slice(-1 * MAX_BLOCKS) as Block[];
+	newBlocks.sort(sortByBlockHeight);
 
 	for (const trs of ((newBlock as unknown) as Block).payload) {
-		confirmedTransactions.push(trs);
+		confirmedTransactions.unshift(trs);
 	}
 	const confirmedTransactionsIds = confirmedTransactions.map(t => t.id);
 	const newUnconfirmedTransactions = unconfirmedTransactions
@@ -54,5 +57,5 @@ export const updateStatesOnNewTransaction = (
 	unconfirmedTransactions: Transaction[],
 ): Transaction[] => {
 	const transaction = client.transaction.toJSON(client.transaction.decode(newTransactionStr));
-	return [...unconfirmedTransactions, transaction].slice(-1 * MAX_TRANSACTIONS) as Transaction[];
+	return [transaction, ...unconfirmedTransactions].slice(-1 * MAX_TRANSACTIONS) as Transaction[];
 };
