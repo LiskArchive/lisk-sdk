@@ -57,6 +57,12 @@
 			"account": {
 				"description": "Commands relating to Lisk accounts."
 			},
+			"console": {
+				"description": "Lisk interactive REPL session to run commands."
+			},
+			"generate": {
+				"description": "Commands relating to Lisk generator."
+			},
 			"hash-onion": {
 				"description": "Create hash onions to be used by the forger."
 			},
@@ -74,9 +80,6 @@
 			},
 			"passphrase": {
 				"description": "Commands relating to Lisk passphrases."
-			},
-			"generate": {
-				"description": "Commands relating to Lisk generator."
 			}
 		}
 	},
@@ -90,6 +93,7 @@
 	"dependencies": {
 		"@liskhq/lisk-api-client": "^5.0.3",
 		"@liskhq/lisk-chain": "^0.2.1",
+		"@liskhq/lisk-client": "^5.0.4",
 		"@liskhq/lisk-codec": "^0.1.1",
 		"@liskhq/lisk-cryptography": "^3.0.1",
 		"@liskhq/lisk-db": "^0.1.0",

@@ -1,5 +1,6 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,13 +11,6 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
-
-'use strict';
-
-const base = require('../config/jest.config.base');
-
-module.exports = {
-	...base,
-	testMatch: ['<rootDir>/test/functional/**/*.(spec|test).(js|ts)'],
-};
+export { ConsoleCommand } from '../bootstrapping/commands/console';
