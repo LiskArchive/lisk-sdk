@@ -59,3 +59,13 @@ export const updateStatesOnNewTransaction = (
 	const transaction = client.transaction.toJSON(client.transaction.decode(newTransactionStr));
 	return [transaction, ...unconfirmedTransactions].slice(-1 * MAX_TRANSACTIONS) as Transaction[];
 };
+
+export const getApplicationUrl = async () => {
+	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+		return 'ws://localhost:5000/ws';
+	}
+
+	const result = ((await fetch('/api/config')).json() as unknown) as { applicationUrl: string };
+
+	return result.applicationUrl;
+};

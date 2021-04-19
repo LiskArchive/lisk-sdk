@@ -31,7 +31,7 @@ import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
 import { Account, NodeInfo, Block, Transaction } from '../types';
 import useMessageDialog from '../providers/useMessageDialog';
-import { updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
+import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
 
 const nodeInfoDefaultValue: NodeInfo = {
@@ -63,6 +63,7 @@ const connectionErrorMessage = (
 
 interface DashboardState {
 	connected: boolean;
+	applicationUrl?: string;
 }
 
 const MainPage: React.FC = () => {
@@ -75,7 +76,9 @@ const MainPage: React.FC = () => {
 
 	// Data States
 	const [accounts] = React.useState<Account[]>([]);
-	const [dashboard, setDashboard] = React.useState<DashboardState>({ connected: false });
+	const [dashboard, setDashboard] = React.useState<DashboardState>({
+		connected: false,
+	});
 	const [nodeInfo, setNodeInfo] = React.useState<NodeInfo>(nodeInfoDefaultValue);
 	const [peersInfo, setPeerInfo] = React.useState({ connected: 0, disconnected: 0, banned: 0 });
 	const [blocks, setBlocks, blocksRef] = useRefState<Block[]>([]);
@@ -135,7 +138,7 @@ const MainPage: React.FC = () => {
 
 	const initClient = async () => {
 		try {
-			setClient(await apiClient.createWSClient('ws://localhost:5000/ws'));
+			setClient(await apiClient.createWSClient(dashboard.applicationUrl as string));
 			setDashboard({ ...dashboard, connected: true });
 		} catch {
 			showMessageDialog('Error connecting to node', connectionErrorMessage);
@@ -172,10 +175,21 @@ const MainPage: React.FC = () => {
 		});
 	};
 
+	// Get connection string
+	React.useEffect(() => {
+		const initConnectionStr = async () => {
+			setDashboard({ ...dashboard, applicationUrl: await getApplicationUrl() });
+		};
+
+		initConnectionStr().catch(console.error);
+	}, []);
+
 	// Init client
 	React.useEffect(() => {
-		initClient().catch(console.error);
-	}, []);
+		if (dashboard.applicationUrl) {
+			initClient().catch(console.error);
+		}
+	}, [dashboard.applicationUrl]);
 
 	// Load data
 	React.useEffect(() => {
