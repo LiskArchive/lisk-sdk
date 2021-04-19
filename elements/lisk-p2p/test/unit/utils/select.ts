@@ -19,7 +19,7 @@ import {
 	selectPeersForSend,
 } from '../../../src/utils/select';
 import { P2PNodeInfo, P2PPeerInfo } from '../../../src/types';
-import { DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
+import { ConnectionKind, PeerKind, DEFAULT_SEND_PEER_LIMIT } from '../../../src/constants';
 
 describe('peer selector', () => {
 	const nodeInfo: P2PNodeInfo = {
@@ -137,9 +137,8 @@ describe('peer selector', () => {
 	});
 
 	describe('#selectPeersForSend', () => {
-		const peerList = initPeerInfoListWithSuffix('111.112.113', 120);
-
 		it('should return an array containing an even number of inbound and outbound peers', () => {
+			const peerList = initPeerInfoListWithSuffix('111.112.113', 120);
 			const selectedPeers = selectPeersForSend({
 				peers: peerList,
 				nodeInfo,
@@ -163,6 +162,167 @@ describe('peer selector', () => {
 			// Assert
 			expect(peerKindCounts.inbound).toEqual(peerKindCounts.outbound);
 			expect(peerKindCounts.inbound).toBe(DEFAULT_SEND_PEER_LIMIT / 2);
+		});
+
+		it('should return an array containing more inbound peers and if outbound peers are less than half', () => {
+			const inboundPeers = initPeerInfoListWithSuffix(
+				'111.112.113',
+				DEFAULT_SEND_PEER_LIMIT / 2 - 2,
+			).map(
+				p =>
+					({
+						...p,
+						internalState: { ...p.internalState, connectionKind: ConnectionKind.INBOUND },
+					} as P2PPeerInfo),
+			);
+
+			const outboundPeers = initPeerInfoListWithSuffix(
+				'111.112.114',
+				DEFAULT_SEND_PEER_LIMIT / 2 + 2,
+			).map(
+				p =>
+					({
+						...p,
+						internalState: { ...p.internalState, connectionKind: ConnectionKind.OUTBOUND },
+					} as P2PPeerInfo),
+			);
+
+			const selectedPeers = selectPeersForSend({
+				peers: [...inboundPeers, ...outboundPeers],
+				nodeInfo,
+				peerLimit: DEFAULT_SEND_PEER_LIMIT,
+				messagePacket: { event: 'foo', data: {} },
+			});
+			const selectedInboundPeers = selectedPeers.filter(
+				p => p.internalState?.connectionKind === ConnectionKind.INBOUND,
+			);
+			const selectedOutboundPeers = selectedPeers.filter(
+				p => p.internalState?.connectionKind === ConnectionKind.OUTBOUND,
+			);
+
+			// Assert
+			expect(selectedPeers).toHaveLength(DEFAULT_SEND_PEER_LIMIT);
+			expect(selectedInboundPeers).toHaveLength(DEFAULT_SEND_PEER_LIMIT / 2 - 2);
+			expect(selectedOutboundPeers).toHaveLength(DEFAULT_SEND_PEER_LIMIT / 2 + 2);
+		});
+
+		it('should return an array containing more outbound peers and if inbound peers are less than half', () => {
+			const inboundPeers = initPeerInfoListWithSuffix(
+				'111.112.113',
+				DEFAULT_SEND_PEER_LIMIT / 2 + 2,
+			).map(
+				p =>
+					({
+						...p,
+						internalState: { ...p.internalState, connectionKind: ConnectionKind.INBOUND },
+					} as P2PPeerInfo),
+			);
+
+			const outboundPeers = initPeerInfoListWithSuffix(
+				'111.112.114',
+				DEFAULT_SEND_PEER_LIMIT / 2 - 2,
+			).map(
+				p =>
+					({
+						...p,
+						internalState: { ...p.internalState, connectionKind: ConnectionKind.OUTBOUND },
+					} as P2PPeerInfo),
+			);
+
+			const selectedPeers = selectPeersForSend({
+				peers: [...inboundPeers, ...outboundPeers],
+				nodeInfo,
+				peerLimit: DEFAULT_SEND_PEER_LIMIT,
+				messagePacket: { event: 'foo', data: {} },
+			});
+			const selectedInboundPeers = selectedPeers.filter(
+				p => p.internalState?.connectionKind === ConnectionKind.INBOUND,
+			);
+			const selectedOutboundPeers = selectedPeers.filter(
+				p => p.internalState?.connectionKind === ConnectionKind.OUTBOUND,
+			);
+
+			// Assert
+			expect(selectedPeers).toHaveLength(DEFAULT_SEND_PEER_LIMIT);
+			expect(selectedInboundPeers).toHaveLength(DEFAULT_SEND_PEER_LIMIT / 2 + 2);
+			expect(selectedOutboundPeers).toHaveLength(DEFAULT_SEND_PEER_LIMIT / 2 - 2);
+		});
+
+		it('should return an array must containing fixed peers when original list is more than limit', () => {
+			const peerList = initPeerInfoListWithSuffix('111.112.113', 120);
+			const fixedPeers = initPeerInfoListWithSuffix('111.112.114', 5).map(
+				p =>
+					({
+						...p,
+						internalState: { ...p.internalState, peerKind: PeerKind.FIXED_PEER },
+					} as P2PPeerInfo),
+			);
+
+			const selectedPeers = selectPeersForSend({
+				peers: [...peerList, ...fixedPeers],
+				nodeInfo,
+				peerLimit: DEFAULT_SEND_PEER_LIMIT,
+				messagePacket: { event: 'foo', data: {} },
+			});
+
+			const selectedFixedPeers = selectedPeers.filter(
+				p => p.internalState?.peerKind === PeerKind.FIXED_PEER,
+			);
+
+			// Assert
+			expect(selectedPeers.length).toBeGreaterThanOrEqual(DEFAULT_SEND_PEER_LIMIT);
+			expect(selectedFixedPeers).toHaveLength(5);
+		});
+
+		it('should return an array must containing fixed peers when original list is less than limit', () => {
+			const peerList = initPeerInfoListWithSuffix('111.112.113', 4);
+			const fixedPeers = initPeerInfoListWithSuffix('111.112.114', 5).map(
+				p =>
+					({
+						...p,
+						internalState: { ...p.internalState, peerKind: PeerKind.FIXED_PEER },
+					} as P2PPeerInfo),
+			);
+
+			const selectedPeers = selectPeersForSend({
+				peers: [...peerList, ...fixedPeers],
+				nodeInfo,
+				peerLimit: DEFAULT_SEND_PEER_LIMIT,
+				messagePacket: { event: 'foo', data: {} },
+			});
+
+			const selectedFixedPeers = selectedPeers.filter(
+				p => p.internalState?.peerKind === PeerKind.FIXED_PEER,
+			);
+
+			// Assert
+			expect(selectedPeers.length).toBeLessThanOrEqual(9);
+			expect(selectedFixedPeers).toHaveLength(5);
+		});
+
+		it('should return an unique array if fixed peers are also randomly selected as inbound or outbound', () => {
+			const peerList = [...initPeerInfoListWithSuffix('111.112.113', 20)];
+			for (let i = 0; i < 10; i += 1) {
+				peerList[i] = {
+					...peerList[i],
+					internalState: { ...peerList[i].internalState, peerKind: PeerKind.FIXED_PEER },
+				} as any;
+			}
+
+			const selectedPeers = selectPeersForSend({
+				peers: peerList,
+				nodeInfo,
+				peerLimit: DEFAULT_SEND_PEER_LIMIT,
+				messagePacket: { event: 'foo', data: {} },
+			});
+
+			const selectedFixedPeers = selectedPeers.filter(
+				p => p.internalState?.peerKind === PeerKind.FIXED_PEER,
+			);
+
+			// Assert
+			expect(selectedPeers.length).toBeGreaterThanOrEqual(DEFAULT_SEND_PEER_LIMIT);
+			expect(selectedFixedPeers).toHaveLength(10);
 		});
 	});
 
