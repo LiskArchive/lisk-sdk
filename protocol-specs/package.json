@@ -22,7 +22,7 @@
 		"@liskhq/lisk-codec": "0.1.0",
 		"@liskhq/lisk-cryptography": "2.4.2",
 		"@liskhq/lisk-passphrase": "3.0.0",
-		"@liskhq/lisk-validator": "0.3.1",
+		"@liskhq/lisk-validator": "0.5.1",
 		"protobufjs": "6.9.0"
 	},
 	"devDependencies": {

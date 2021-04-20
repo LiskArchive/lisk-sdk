@@ -254,7 +254,15 @@
 							"fieldNumber": 7
 						}
 					},
-					"required": ["type", "nonce", "fee", "senderPublicKey", "asset"]
+					"required": [
+						"moduleID",
+						"assetID",
+						"nonce",
+						"fee",
+						"senderPublicKey",
+						"asset",
+						"signatures"
+					]
 				}
 			},
 			"output": {
