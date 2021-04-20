@@ -56,7 +56,7 @@ describe('validator formats', () => {
 					dataPath: '.target',
 					schemaPath: '#/allOf/1/properties/target/format',
 					params: { format: 'hex' },
-					message: 'should match format "hex"',
+					message: 'must match format "hex"',
 				},
 			];
 
@@ -85,7 +85,7 @@ describe('validator formats', () => {
 					dataPath: '.rootPath',
 					schemaPath: '#/properties/rootPath/format',
 					params: { format: 'path' },
-					message: 'should match format "path"',
+					message: 'must match format "path"',
 				},
 			];
 
@@ -118,7 +118,7 @@ describe('validator formats', () => {
 					dataPath: '.encryptedPassphrase',
 					schemaPath: '#/properties/encryptedPassphrase/format',
 					params: { format: 'encryptedPassphrase' },
-					message: 'should match format "encryptedPassphrase"',
+					message: 'must match format "encryptedPassphrase"',
 				},
 			];
 
@@ -163,7 +163,7 @@ describe('validator formats', () => {
 					dataPath: '.camelCaseRegex',
 					schemaPath: '#/properties/camelCaseRegex/format',
 					params: { format: 'camelCase' },
-					message: 'should match format "camelCase"',
+					message: 'must match format "camelCase"',
 				},
 			];
 
@@ -198,7 +198,7 @@ describe('validator formats', () => {
 					dataPath: '.version',
 					schemaPath: '#/properties/version/format',
 					params: { format: 'version' },
-					message: 'should match format "version"',
+					message: 'must match format "version"',
 				},
 			];
 
