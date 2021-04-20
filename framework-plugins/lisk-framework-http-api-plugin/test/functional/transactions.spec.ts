@@ -174,7 +174,7 @@ describe('Hello endpoint', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message: 'Lisk validator found 1 error[s]:\nshould NOT have fewer than 1 items',
+							message: 'Lisk validator found 1 error[s]:\nmust NOT have fewer than 1 items',
 						},
 					],
 				});

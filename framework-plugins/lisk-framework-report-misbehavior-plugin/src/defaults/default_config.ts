@@ -30,7 +30,7 @@ export const defaultConfig = {
 		dataPath: {
 			type: 'string',
 			format: 'path',
-			example: '~/.lisk/report-misbehavior',
+			examples: ['~/.lisk/report-misbehavior'],
 			description:
 				'The data path for storing misbehavior related information captured from application.',
 		},

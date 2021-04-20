@@ -173,6 +173,7 @@ describe('transaction', () => {
 								address: schema.account.properties.address,
 								keys: schema.account.properties.keys,
 							},
+							required: ['address', 'keys'],
 						},
 					};
 					transaction = new Transaction(channelMock, updatedSchema, nodeInfo);

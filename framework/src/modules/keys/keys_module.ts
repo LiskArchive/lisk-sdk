@@ -162,7 +162,7 @@ export class KeysModule extends BaseModule {
 				errors.push({
 					dataPath: `.accounts[${index}].keys.mandatoryKeys`,
 					keyword: 'uniqueItems',
-					message: 'should NOT have duplicate items',
+					message: 'must NOT have duplicate items',
 					params: { keys: account.keys, address: account.address },
 					schemaPath:
 						'#/properties/accounts/items/properties/keys/properties/mandatoryKeys/uniqueItems',
@@ -183,7 +183,7 @@ export class KeysModule extends BaseModule {
 				errors.push({
 					dataPath: `.accounts[${index}].keys.optionalKeys`,
 					keyword: 'uniqueItems',
-					message: 'should NOT have duplicate items',
+					message: 'must NOT have duplicate items',
 					params: { keys: account.keys, address: account.address },
 					schemaPath:
 						'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
@@ -194,7 +194,7 @@ export class KeysModule extends BaseModule {
 				errors.push({
 					dataPath: `.accounts[${index}].keys.mandatoryKeys, .accounts[${index}].keys.optionalKeys`,
 					keyword: 'uniqueItems',
-					message: 'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+					message: 'must NOT have duplicate items among mandatoryKeys and optionalKeys',
 					params: { keys: account.keys, address: account.address },
 					schemaPath: '#/properties/accounts/items/properties/keys',
 				});

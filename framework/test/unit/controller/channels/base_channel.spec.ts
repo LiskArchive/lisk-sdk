@@ -108,7 +108,7 @@ describe('Base Channel', () => {
 			expect(baseChannel.eventsList).toHaveLength(params.events.length + INTERNAL_EVENTS.length);
 		});
 
-		it('base.eventsList should NOT contain internal events when skipInternalEvents option was set TRUE', () => {
+		it('base.eventsList must NOT contain internal events when skipInternalEvents option was set TRUE', () => {
 			// Arrange & Act
 			baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions, {
 				skipInternalEvents: true,

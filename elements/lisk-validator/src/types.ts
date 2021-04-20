@@ -16,6 +16,7 @@ import { ErrorObject } from 'ajv';
 
 export { DataValidateFunction, DataValidationCxt } from 'ajv/dist/types';
 
-export interface LiskErrorObject extends Omit<ErrorObject, 'instancePath'> {
-	dataPath?: string;
+export interface LiskErrorObject extends Omit<ErrorObject, 'instancePath' | 'schemaPath'> {
+	dataPath?: string; // This property is replaced with "instancePath" in newer version
+	schemaPath?: string; // This property was optional earlier version of ajv
 }

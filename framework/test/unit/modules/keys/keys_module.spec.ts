@@ -1096,7 +1096,7 @@ describe('keys module', () => {
 			const expectedError = {
 				dataPath: '.accounts[0].keys.mandatoryKeys',
 				keyword: 'uniqueItems',
-				message: 'should NOT have duplicate items',
+				message: 'must NOT have duplicate items',
 				params: {},
 				schemaPath:
 					'#/properties/accounts/items/properties/keys/properties/mandatoryKeys/uniqueItems',
@@ -1127,7 +1127,7 @@ describe('keys module', () => {
 			const expectedError = {
 				dataPath: '.accounts[0].keys.optionalKeys',
 				keyword: 'uniqueItems',
-				message: 'should NOT have duplicate items',
+				message: 'must NOT have duplicate items',
 				params: {},
 				schemaPath:
 					'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
@@ -1165,7 +1165,7 @@ describe('keys module', () => {
 			const expectedError = {
 				dataPath: '.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
 				keyword: 'uniqueItems',
-				message: 'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+				message: 'must NOT have duplicate items among mandatoryKeys and optionalKeys',
 				params: {},
 				schemaPath: '#/properties/accounts/items/properties/keys',
 			};
@@ -1347,7 +1347,7 @@ describe('keys module', () => {
 			const expectedError = {
 				dataPath: '.accounts[0].keys.mandatoryKeys, .accounts[0].keys.optionalKeys',
 				keyword: 'uniqueItems',
-				message: 'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+				message: 'must NOT have duplicate items among mandatoryKeys and optionalKeys',
 				schemaPath: '#/properties/accounts/items/properties/keys',
 				params: {},
 			};

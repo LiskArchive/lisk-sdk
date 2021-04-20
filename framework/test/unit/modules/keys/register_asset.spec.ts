@@ -78,7 +78,7 @@ describe('register asset', () => {
 
 			const errors = validator.validate(keysSchema, asset);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude('should be <= 64');
+			expect(errors[0].message).toInclude('must be <= 64');
 		});
 
 		it('should fail validation if asset has numberOfSignatures < 1', () => {
@@ -90,7 +90,7 @@ describe('register asset', () => {
 
 			const errors = validator.validate(keysSchema, asset);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude('should be >= 1');
+			expect(errors[0].message).toInclude('must be >= 1');
 		});
 
 		it('should fail validation if asset has more than 64 mandatory keys', () => {
@@ -102,7 +102,7 @@ describe('register asset', () => {
 
 			const errors = validator.validate(keysSchema, asset);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude('should NOT have more than 64 items');
+			expect(errors[0].message).toInclude('must NOT have more than 64 items');
 		});
 
 		it('should fail validation if asset mandatory keys contains items with length bigger than 32', () => {
@@ -162,7 +162,7 @@ describe('register asset', () => {
 
 			const errors = validator.validate(keysSchema, asset);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude('should NOT have more than 64 items');
+			expect(errors[0].message).toInclude('must NOT have more than 64 items');
 		});
 	});
 

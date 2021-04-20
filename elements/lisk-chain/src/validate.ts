@@ -169,7 +169,7 @@ export const validateGenesisBlockHeader = (block: GenesisBlock, accountSchema: S
 		errors.push({
 			dataPath: '.initDelegates',
 			keyword: 'uniqueItems',
-			message: 'should NOT have duplicate items',
+			message: 'must NOT have duplicate items',
 			params: {},
 			schemaPath: '#/properties/initDelegates/uniqueItems',
 		});
@@ -211,7 +211,7 @@ export const validateGenesisBlockHeader = (block: GenesisBlock, accountSchema: S
 		errors.push({
 			dataPath: '.accounts',
 			keyword: 'uniqueItems',
-			message: 'should NOT have duplicate items',
+			message: 'must NOT have duplicate items',
 			params: {},
 			schemaPath: '#/properties/accounts/uniqueItems',
 		});

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export const postBlockEventSchema = {
-	id: 'monitor/postBlockEvent',
+	$id: 'monitor/postBlockEvent',
 	type: 'object',
 	required: ['block'],
 	properties: {
@@ -24,7 +24,7 @@ export const postBlockEventSchema = {
 };
 
 export const transactionAnnouncementSchema = {
-	id: 'monitor/transactionAnnouncement',
+	$id: 'monitor/transactionAnnouncement',
 	type: 'object',
 	required: ['transactionIds'],
 	properties: {

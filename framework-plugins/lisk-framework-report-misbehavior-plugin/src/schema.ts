@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export const postBlockEventSchema = {
-	id: 'report-misbehavior/postBlockEvent',
+	$id: 'report-misbehavior/postBlockEvent',
 	type: 'object',
 	required: ['block'],
 	properties: {
