@@ -24,16 +24,12 @@ interface WidgetProps {
 	onSubmit: (data: { action: string; keyValue: string }) => void;
 }
 
+
 const CallActionWidget: React.FC<WidgetProps> = props => {
-	const [listOptions, setListOptions] = React.useState<SelectInputOptionType[]>([]);
+    const actions = props.actions.map(action => ({ label: action, value: action })).flat();
+	const [listOptions] = React.useState<SelectInputOptionType[]>(actions);
 	const [selectedActions, setSelectedActions] = React.useState<SelectInputOptionType[]>([]);
 	const [keyValue, setKeyValue] = React.useState('');
-
-	React.useEffect(() => {
-		const actions = props.actions.map(action => ({ label: action, value: action })).flat();
-		setListOptions(actions);
-		setSelectedActions(actions.length ? [actions[0]] : []);
-	}, [props.actions]);
 
 	const handleSubmit = () => {
 		const actionName = selectedActions[0].value;
