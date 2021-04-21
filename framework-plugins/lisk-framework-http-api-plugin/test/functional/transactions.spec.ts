@@ -204,7 +204,7 @@ describe('Hello endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.senderPublicKey\' should match format "hex"',
+								'Lisk validator found 1 error[s]:\nProperty \'.senderPublicKey\' must match format "hex"',
 						},
 					],
 				});
@@ -233,7 +233,7 @@ describe('Hello endpoint', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message: expect.stringContaining("Property '.signatures[0]' should match format"),
+							message: expect.stringContaining("Property '.signatures.0' must match format"),
 						},
 					],
 				});
