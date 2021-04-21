@@ -19,7 +19,7 @@ export const defaultConfig = {
 		dataPath: {
 			type: 'string',
 			format: 'path',
-			example: '~/.lisk/forger',
+			examples: ['~/.lisk/forger'],
 			description:
 				'The data path for storing forging related information captured from application.',
 		},

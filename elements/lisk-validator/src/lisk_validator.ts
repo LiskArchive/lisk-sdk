@@ -60,7 +60,8 @@ class LiskValidator {
 					.size === data.length,
 		});
 
-		// TODO: addMetaSchema is not validating custom formats on meta schema
+		// TODO: addMetaSchema is not validating custom formats
+		// on meta schema so why we have to use `compile`.
 		this._validator.compile(liskMetaSchema);
 
 		this._validator.addMetaSchema(liskMetaSchema);

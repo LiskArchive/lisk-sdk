@@ -34,7 +34,7 @@ const transactionInputSchema = {
 		},
 		nonce: {
 			type: 'string',
-			example: '1',
+			examples: ['1'],
 			description: 'Unique sequence of number per account.\n',
 		},
 		senderPublicKey: {
