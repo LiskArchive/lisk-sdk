@@ -73,8 +73,12 @@ export class DashboardPlugin extends BasePlugin {
 			defaults.config.default,
 			this.options,
 		) as dashboardPluginOptions;
+		const config = {
+			applicationUrl: this._options.applicationUrl,
+		};
 		const app = express();
 		app.use(express.static(join(__dirname, '../../build')));
+		app.get('/api/config', (_req, res) => res.json(config));
 		this._server = app.listen(this._options.port, this._options.host);
 	}
 

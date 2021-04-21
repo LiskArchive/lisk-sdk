@@ -16,9 +16,10 @@ import { TableBody, TableHeader, Table } from '../Table';
 import CopiableText from '../CopiableText';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
+import { Block } from '../../types';
 
 interface WidgetProps {
-	blocks: Record<string, string>[];
+	blocks: Block[];
 	title: string;
 }
 
@@ -52,16 +53,18 @@ const BlockWidget: React.FC<WidgetProps> = props => {
 						{blocks.map((block, index) => (
 							<tr key={index}>
 								<td>
-									<CopiableText text={block.id}>{block.id}</CopiableText>
+									<CopiableText text={block.header.id}>{block.header.id}</CopiableText>
 								</td>
 								<td>
-									<CopiableText text={block.generatedBy}>{block.generatedBy}</CopiableText>
+									<CopiableText text={block.header.generatorPublicKey}>
+										{block.header.generatorPublicKey}
+									</CopiableText>
 								</td>
 								<td>
-									<Text key={block.height}>{block.height}</Text>
+									<Text key={block.header.height}>{block.header.height}</Text>
 								</td>
 								<td>
-									<Text key={block.txs}>{block.txs}</Text>
+									<Text key={block.payload.length}>{block.payload.length}</Text>
 								</td>
 							</tr>
 						))}

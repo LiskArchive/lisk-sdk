@@ -95,13 +95,13 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 						</Grid>
 					</Grid>
 
-					{nodeInfo.fees.map((fee, index) => (
-						<Grid row rowBorder={index !== nodeInfo.fees.length - 1} key={index}>
+					{nodeInfo.genesisConfig.baseFees.map((fee, index) => (
+						<Grid row rowBorder={index !== nodeInfo.genesisConfig.baseFees.length - 1} key={index}>
 							<Grid xs={4}>
-								<Text>{fee.moduleId}</Text>
+								<Text>{fee.moduleID}</Text>
 							</Grid>
 							<Grid xs={4}>
-								<Text>{fee.assetId}</Text>
+								<Text>{fee.assetID}</Text>
 							</Grid>
 							<Grid xs={4}>
 								<Text>{fee.baseFee}</Text>

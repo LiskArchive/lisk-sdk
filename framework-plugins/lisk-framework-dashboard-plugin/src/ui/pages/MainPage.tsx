@@ -12,16 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
+import { apiClient } from '@liskhq/lisk-client';
 import styles from './MainPage.module.scss';
 import Text from '../components/Text';
 import Icon from '../components/Icon';
 import Logo from '../components/Logo';
 import CopiableText from '../components/CopiableText';
-import { Widget, WidgetHeader, WidgetBody } from '../components/widget';
 import Button from '../components/Button';
 import IconButton from '../components/IconButton';
-import { Dialog, DialogHeader, DialogBody } from '../components/dialog';
-import MessageDialog from '../components/dialogs/MessageDialog';
 import AccountDialog from '../components/dialogs/AccountDialog';
 import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
@@ -32,27 +30,176 @@ import InfoPanel from '../components/InfoPanel';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import CallActionWidget from '../components/widgets/CallActionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
+import { Account, NodeInfo, Block, Transaction } from '../types';
+import useMessageDialog from '../providers/useMessageDialog';
+import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
+import useRefState from '../utils/useRefState';
+
+const nodeInfoDefaultValue: NodeInfo = {
+	version: '',
+	networkVersion: '',
+	networkIdentifier: '',
+	syncing: false,
+	unconfirmedTransactions: 0,
+	height: 0,
+	finalizedHeight: 0,
+	lastBlockID: '',
+	registeredModules: [],
+	genesisConfig: {
+		communityIdentifier: '',
+		blockTime: 0,
+		maxPayloadLength: 0,
+		bftThreshold: 0,
+		rewards: { milestones: [], offset: 0, distance: 0 },
+		minFeePerByte: 0,
+		baseFees: [],
+	},
+};
+
+const connectionErrorMessage = (
+	<Text type={'h3'}>
+		There were some error and we were unable to connect to node. Try again by refreshing the page.
+	</Text>
+);
+
+interface DashboardState {
+	connected: boolean;
+	applicationUrl?: string;
+}
 
 const MainPage: React.FC = () => {
-	const [dialogOpen, setDialogOpen] = React.useState(false);
-	const [successDialog, setSuccessDialog] = React.useState(false);
-	const [accountDialog, setAccountDialog] = React.useState(false);
+	const { showMessageDialog } = useMessageDialog();
+
+	// API Client object
+	const [client, setClient] = React.useState<apiClient.APIClient>();
+	// To cover apiClient.APIClient | undefined behavior
+	const getClient = () => client as apiClient.APIClient;
+
+	// Data States
+	const [accounts] = React.useState<Account[]>([]);
+	const [dashboard, setDashboard] = React.useState<DashboardState>({
+		connected: false,
+	});
+	const [nodeInfo, setNodeInfo] = React.useState<NodeInfo>(nodeInfoDefaultValue);
+	const [peersInfo, setPeerInfo] = React.useState({ connected: 0, disconnected: 0, banned: 0 });
+	const [blocks, setBlocks, blocksRef] = useRefState<Block[]>([]);
+	const [confirmedTransactions, setConfirmedTransactions, confirmedTransactionsRef] = useRefState<
+		Transaction[]
+	>([]);
+	const [
+		unconfirmedTransactions,
+		setUnconfirmedTransactions,
+		unconfirmedTransactionsRef,
+	] = useRefState<Transaction[]>([]);
+	const [events, setEvents, eventsRef] = useRefState<Event[]>([]);
+	const [actions, setActions] = React.useState<string[]>([]);
+
+	// Dialogs related States
+	const [showAccount, setShowAccount] = React.useState<Account>();
 	const [nodeInfoDialog, setNodeInfoDialog] = React.useState(false);
 	const [peersInfoDialog, setPeersInfoDialog] = React.useState(false);
-	const accounts = [
-		{
-			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
-			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
+
+	const newBlockListener = React.useCallback(
+		async event => {
+			const result = updateStatesOnNewBlock(
+				getClient(),
+				(event as { block: string }).block,
+				blocksRef.current,
+				confirmedTransactionsRef.current,
+				unconfirmedTransactionsRef.current,
+			);
+			setBlocks(result.blocks);
+			setConfirmedTransactions(result.confirmedTransactions);
+			setUnconfirmedTransactions(result.unconfirmedTransactions);
+
+			await loadNodeInfo();
 		},
-		{
-			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
-			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
+		[dashboard.connected],
+	);
+
+	const newTransactionListener = React.useCallback(
+		event => {
+			setUnconfirmedTransactions(
+				updateStatesOnNewTransaction(
+					getClient(),
+					(event as { transaction: string }).transaction,
+					unconfirmedTransactionsRef.current,
+				),
+			);
 		},
-		{
-			publicKey: 'a6b97e7960647cf8123c7da31a6d9304843eb1c7a869e98fad169692eabd79a4',
-			binaryAddress: 'a76ede56e69333382c6d4fd721dee0fe328318a2',
+		[dashboard.connected],
+	);
+
+	const newEventListener = React.useCallback(
+		event => {
+			setEvents([...eventsRef.current, event]);
 		},
-	];
+		[dashboard.connected],
+	);
+
+	const initClient = async () => {
+		try {
+			setClient(await apiClient.createWSClient(dashboard.applicationUrl as string));
+			setDashboard({ ...dashboard, connected: true });
+		} catch {
+			showMessageDialog('Error connecting to node', connectionErrorMessage);
+		}
+	};
+
+	const subscribeEvents = async () => {
+		getClient().subscribe('app:block:new', newBlockListener);
+		getClient().subscribe('app:transaction:new', newTransactionListener);
+
+		const allEvents = ((await getClient().invoke(
+			'app:getRegisteredEvents',
+		)) as unknown) as string[];
+		for (const event of allEvents) {
+			getClient().subscribe(event, newEventListener);
+		}
+
+		const allActions = ((await getClient().invoke(
+			'app:getRegisteredActions',
+		)) as unknown) as string[];
+		setActions(allActions);
+	};
+
+	const loadNodeInfo = async () => {
+		setNodeInfo(await getClient().node.getNodeInfo());
+	};
+
+	const loadPeersInfo = async () => {
+		const info = await getClient().node.getNetworkStats();
+		setPeerInfo({
+			connected: info.incoming.connects + info.outgoing.connects,
+			disconnected: info.incoming.disconnects + info.outgoing.disconnects,
+			banned: info.banning.totalBannedPeers,
+		});
+	};
+
+	// Get connection string
+	React.useEffect(() => {
+		const initConnectionStr = async () => {
+			setDashboard({ ...dashboard, applicationUrl: await getApplicationUrl() });
+		};
+
+		initConnectionStr().catch(console.error);
+	}, []);
+
+	// Init client
+	React.useEffect(() => {
+		if (dashboard.applicationUrl) {
+			initClient().catch(console.error);
+		}
+	}, [dashboard.applicationUrl]);
+
+	// Load data
+	React.useEffect(() => {
+		if (dashboard.connected) {
+			subscribeEvents().catch(console.error);
+			loadNodeInfo().catch(console.error);
+			loadPeersInfo().catch(console.error);
+		}
+	}, [dashboard.connected]);
 
 	return (
 		<section className={styles.root}>
@@ -124,204 +271,22 @@ const MainPage: React.FC = () => {
 						<Button size={'m'}>Button</Button>
 						<IconButton icon={'add'} size={'m'} />
 					</Grid>
-					<Grid md={6}>
-						<Widget>
-							<WidgetHeader>
-								<Text type={'h2'}>Widget title</Text>
-							</WidgetHeader>
-							<WidgetBody size={'m'} scrollbar={true}>
-								<h2>Nazar</h2>
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
-									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
-									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
-									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
-									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
-									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
-									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
-									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
-									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
-									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
-								</p>
-
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
-									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
-									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
-									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
-									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
-									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
-									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
-									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
-									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
-									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
-								</p>
-
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
-									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
-									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
-									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
-									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
-									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
-									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
-									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
-									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
-									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
-								</p>
-
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
-									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
-									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
-									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
-									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
-									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
-									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
-									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
-									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
-									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
-								</p>
-
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat
-									eget ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus.
-									Phasellus dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis.
-									Donec vel maximus metus. Vivamus mattis mollis nibh, nec bibendum urna tristique
-									at. Vestibulum nec libero nec quam aliquam gravida vel eu lorem. Sed nec auctor
-									lorem. Nunc tincidunt lectus diam, eget semper est tempor a. Curabitur convallis
-									nunc et diam finibus, in gravida neque posuere. Maecenas in dolor et dolor sodales
-									accumsan. Etiam dui augue, laoreet eu augue ut, dapibus cursus augue. Vestibulum
-									vitae vehicula lectus. Maecenas eget tincidunt mauris. Nam dignissim elit a sem
-									pellentesque, nec consequat enim faucibus. Aenean id arcu purus.
-								</p>
-							</WidgetBody>
-						</Widget>
-					</Grid>
 				</Grid>
 
 				<Grid row>
 					<Grid md={12}>
-						<Button onClick={() => setDialogOpen(!dialogOpen)}>Open</Button>
-						<Button onClick={() => setSuccessDialog(!successDialog)}>Sucess Dialog</Button>
-						<Button onClick={() => setAccountDialog(!accountDialog)}>Account Dialog</Button>
 						<Button onClick={() => setPeersInfoDialog(!peersInfoDialog)}>Peers Info Dialog</Button>
 						<Button onClick={() => setNodeInfoDialog(!nodeInfoDialog)}>Node Info Dialog</Button>
 					</Grid>
 				</Grid>
 			</Grid>
 
-			<Dialog
-				open={dialogOpen}
-				onClose={() => {
-					setDialogOpen(false);
-				}}
-			>
-				<DialogHeader>
-					<Text type={'h1'}>Dialog Title</Text>
-				</DialogHeader>
-				<DialogBody>
-					<Text type={'p'}>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</Text>
-
-					<Text type={'p'}>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</Text>
-
-					<Text type={'p'}>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</Text>
-
-					<Text type={'p'}>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</Text>
-
-					<Text type={'p'}>
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-						ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-						dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-						metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-						nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-						eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-						posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-						ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-						mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id
-						arcu purus.
-					</Text>
-				</DialogBody>
-			</Dialog>
-
-			<MessageDialog
-				open={successDialog}
-				onClose={() => {
-					setSuccessDialog(false);
-				}}
-				title={'Success'}
-				backBtn={true}
-			>
-				<Text type={'p'}>
-					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget
-					ornare id, dignissim quis turpis. Integer tincidunt ante nec aliquet finibus. Phasellus
-					dapibus dignissim mattis. Quisque porttitor tempus risus quis mattis. Donec vel maximus
-					metus. Vivamus mattis mollis nibh, nec bibendum urna tristique at. Vestibulum nec libero
-					nec quam aliquam gravida vel eu lorem. Sed nec auctor lorem. Nunc tincidunt lectus diam,
-					eget semper est tempor a. Curabitur convallis nunc et diam finibus, in gravida neque
-					posuere. Maecenas in dolor et dolor sodales accumsan. Etiam dui augue, laoreet eu augue
-					ut, dapibus cursus augue. Vestibulum vitae vehicula lectus. Maecenas eget tincidunt
-					mauris. Nam dignissim elit a sem pellentesque, nec consequat enim faucibus. Aenean id arcu
-					purus.
-				</Text>
-			</MessageDialog>
-
 			<AccountDialog
-				open={accountDialog}
+				open={!!showAccount}
 				onClose={() => {
-					setAccountDialog(false);
+					setShowAccount(undefined);
 				}}
-				account={{
-					binaryAddress: 'bd81020ded87d21bbfedc45ed24a081bb4905d90',
-					base32Address: 'lskfxs5s8cnahtevckky6dmr8jt3c9oqgd5gjbs85',
-					publicKey: '5f0a7f66a2e32dc9c6bd4521b6baad37cd70de1f8a6e51491932052f3d38ede4',
-					passphrase:
-						'ipsum dolor sit amet, consectetur adipiscing elit. Proin neque est, placerat eget ornare id consectetur adipiscing elit consectetur adipiscing elit',
-				}}
+				account={showAccount as Account}
 			></AccountDialog>
 
 			<PeersInfoDialog
@@ -329,7 +294,7 @@ const MainPage: React.FC = () => {
 				onClose={() => {
 					setPeersInfoDialog(false);
 				}}
-				peersInfo={{ connected: 6, disconnected: 10, banned: 4 }}
+				peersInfo={peersInfo}
 			></PeersInfoDialog>
 
 			<NodeInfoDialog
@@ -337,186 +302,45 @@ const MainPage: React.FC = () => {
 				onClose={() => {
 					setNodeInfoDialog(false);
 				}}
-				nodeInfo={{
-					version: '3.0.0-beta.4.9fa842f',
-					networkVersion: '2.0',
-					networkIdentifier: '01e47ba4e3e57981642150f4b45f64c2160c10bac9434339888210a4fa5df097',
-					lastBlockId: 'e3da90a99aa5116eeb8d603ada9c1c5349744cf94333d5e4cd2237b391138445',
-					syncing: true,
-					unconfirmedTransactions: 5,
-					blockTime: 10,
-					communityIdentifier: 'Lisk',
-					maxPayloadLength: 15360,
-					bftThreshold: 68,
-					minFeePerByte: 1000,
-					fees: [
-						{ moduleId: 5, assetId: 2, baseFee: 1000 },
-						{ moduleId: 4, assetId: 1, baseFee: 1020 },
-					],
-				}}
+				nodeInfo={nodeInfo}
 			></NodeInfoDialog>
 
 			<Grid container>
 				<Grid row>
 					<Grid md={6}>
-						<BlockWidget
-							title="Recent Blocks"
-							blocks={[
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-								{
-									id: 'bd81020ded87d21bbfedc45ed...5d90',
-									generatedBy: '07875df0d9...5bef',
-									height: '12345',
-									txs: '0',
-								},
-							]}
-						></BlockWidget>
+						<BlockWidget title="Recent Blocks" blocks={blocks}></BlockWidget>
 					</Grid>
 					<Grid md={6}>
 						<TransactionWidget
 							title="Recent Transactions"
-							transactions={[
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-								{
-									id: 'b8344e1a63...cc68',
-									sender: '89d665b28b...e5b0',
-									moduleAsset: 'dpos:registerDelegate',
-									fee: '0.1',
-								},
-							]}
+							transactions={confirmedTransactions}
 						></TransactionWidget>
 					</Grid>
+				</Grid>
+				<Grid row>
 					<Grid md={6}>
 						<TransactionWidget
 							title="Unconfirmed Transactions"
-							transactions={[]}
+							transactions={unconfirmedTransactions}
 						></TransactionWidget>
 					</Grid>
-				</Grid>
-				<Grid md={6}>
-					<MyAccountWidget accounts={accounts} onSelect={() => setAccountDialog(true)} />
+					<Grid md={6}>
+						<MyAccountWidget accounts={accounts} onSelect={account => setShowAccount(account)} />
+					</Grid>
 				</Grid>
 				<Grid row>
-					<Grid md={6} xs={12}>
+					<Grid md={6}>
 						<SendTransactionWidget
-							modules={[
-								{
-									id: 1,
-									name: 'module1',
-									transactionAssets: [
-										{ id: 1, name: 'transfer' },
-										{ id: 2, name: 'register' },
-									],
-								},
-							]}
+							modules={nodeInfo.registeredModules}
 							onSubmit={data => console.info(data)}
 						/>
+					</Grid>
+					<Grid md={3}>
+						<Text type={'p'}>{JSON.stringify(events)}</Text>
+					</Grid>
+
+					<Grid md={3}>
+						<Text type={'p'}>{JSON.stringify(actions)}</Text>
 					</Grid>
 				</Grid>
 

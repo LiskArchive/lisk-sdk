@@ -33,38 +33,40 @@ const AccountDialog: React.FC<AccountDialogProps> = props => {
 				<Text type={'h1'}>Account details</Text>
 			</DialogHeader>
 			<DialogBody>
-				<Grid container fluid spacing={3}>
-					<Grid row rowBorder>
-						<Grid xs={12}>
-							<Box mb={2}>
-								<Text type={'h3'}>Binary address</Text>
-							</Box>
-							<CopiableText text={account.binaryAddress}>{account.binaryAddress}</CopiableText>
+				{account && (
+					<Grid container fluid spacing={3}>
+						<Grid row rowBorder>
+							<Grid xs={12}>
+								<Box mb={2}>
+									<Text type={'h3'}>Binary address</Text>
+								</Box>
+								<CopiableText text={account.binaryAddress}>{account.binaryAddress}</CopiableText>
+							</Grid>
+						</Grid>
+						<Grid row rowBorder>
+							<Grid md={6} xs={12}>
+								<Box mb={2} mr={1}>
+									<Text type={'h3'}>Base32 address</Text>
+								</Box>
+								<CopiableText text={account.base32Address}>{account.base32Address}</CopiableText>
+							</Grid>
+							<Grid md={6} xs={12}>
+								<Box mb={2}>
+									<Text type={'h3'}>Public Key</Text>
+								</Box>
+								<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>
+							</Grid>
+						</Grid>
+						<Grid row>
+							<Grid xs={12}>
+								<Box mb={2}>
+									<Text type={'h3'}>Passphrase</Text>
+								</Box>
+								<CopiableText text={account.passphrase ?? ''}>{account.passphrase}</CopiableText>
+							</Grid>
 						</Grid>
 					</Grid>
-					<Grid row rowBorder>
-						<Grid md={6} xs={12}>
-							<Box mb={2} mr={1}>
-								<Text type={'h3'}>Base32 address</Text>
-							</Box>
-							<CopiableText text={account.base32Address}>{account.base32Address}</CopiableText>
-						</Grid>
-						<Grid md={6} xs={12}>
-							<Box mb={2}>
-								<Text type={'h3'}>Public Key</Text>
-							</Box>
-							<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>
-						</Grid>
-					</Grid>
-					<Grid row>
-						<Grid xs={12}>
-							<Box mb={2}>
-								<Text type={'h3'}>Passphrase</Text>
-							</Box>
-							<CopiableText text={account.passphrase ?? ''}>{account.passphrase}</CopiableText>
-						</Grid>
-					</Grid>
-				</Grid>
+				)}
 			</DialogBody>
 		</Dialog>
 	);
