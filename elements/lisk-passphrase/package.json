@@ -36,7 +36,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"bip39": "3.0.2"
+		"bip39": "3.0.3"
 	},
 	"devDependencies": {
 		"@types/bip39": "3.0.0",

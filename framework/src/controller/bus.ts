@@ -13,7 +13,7 @@
  */
 
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { EventEmitter2, Listener } from 'eventemitter2';
+import { EventEmitter2, ListenerFn } from 'eventemitter2';
 import * as axon from 'pm2-axon';
 import { ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
@@ -336,7 +336,7 @@ export class Bus {
 		}
 	}
 
-	public subscribe(eventName: string, cb: Listener): void {
+	public subscribe(eventName: string, cb: ListenerFn): void {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(`Event ${eventName} was subscribed but not registered to the bus yet.`);
 		}
@@ -345,7 +345,7 @@ export class Bus {
 		this._emitter.on(eventName, cb);
 	}
 
-	public once(eventName: string, cb: Listener): this {
+	public once(eventName: string, cb: ListenerFn): this {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(`Event ${eventName} was subscribed but not registered to the bus yet.`);
 		}

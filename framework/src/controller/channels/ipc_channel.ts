@@ -17,7 +17,7 @@
 // eslint-disable-next-line
 /// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
 
-import { EventEmitter2, Listener } from 'eventemitter2';
+import { EventEmitter2, ListenerFn } from 'eventemitter2';
 import { Server as RPCServer, Client as RPCClient } from 'pm2-axon-rpc';
 import { PubSocket, PullSocket, PushSocket, SubSocket } from 'pm2-axon';
 import { Action, ActionsDefinition } from '../action';
@@ -124,7 +124,7 @@ export class IPCChannel extends BaseChannel {
 		}
 	}
 
-	public subscribe(eventName: string, cb: Listener): void {
+	public subscribe(eventName: string, cb: ListenerFn): void {
 		const event = new Event(eventName);
 		this._emitter.on(event.key(), (notification: JSONRPC.NotificationRequest) =>
 			// When IPC channel used without bus the data will not contain result
@@ -132,7 +132,7 @@ export class IPCChannel extends BaseChannel {
 		);
 	}
 
-	public once(eventName: string, cb: Listener): void {
+	public once(eventName: string, cb: ListenerFn): void {
 		const event = new Event(eventName);
 		this._emitter.once(event.key(), (notification: JSONRPC.NotificationRequest) => {
 			// When IPC channel used without bus the data will not contain result
