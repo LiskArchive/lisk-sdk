@@ -28,6 +28,7 @@ import { TextInput, TextAreaInput, SelectInput } from '../components/input';
 import { BlockWidget, TransactionWidget } from '../components/widgets';
 import InfoPanel from '../components/InfoPanel';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
+import CallActionWidget from '../components/widgets/CallActionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
 import { Account, NodeInfo, Block, Transaction } from '../types';
 import useMessageDialog from '../providers/useMessageDialog';
@@ -340,6 +341,15 @@ const MainPage: React.FC = () => {
 
 					<Grid md={3}>
 						<Text type={'p'}>{JSON.stringify(actions)}</Text>
+					</Grid>
+				</Grid>
+
+				<Grid row>
+					<Grid md={6} xs={12}>
+						<CallActionWidget
+							actions={['app:getNodeInfo', 'app:getAccount']}
+							onSubmit={data => console.info(data)}
+						/>
 					</Grid>
 				</Grid>
 			</Grid>
