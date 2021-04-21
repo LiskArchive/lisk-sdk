@@ -148,14 +148,12 @@ const SelectInput: React.FC<Props> = props => {
 		newValue: ValueType<SelectInputOptionType, boolean>,
 		_actionMeta: ActionMeta<SelectInputOptionType>,
 	) => {
-		let updatedValue: SelectInputOptionType | SelectInputOptionType[];
+		let updatedValue!: SelectInputOptionType | SelectInputOptionType[];
 
 		if (newValue && multi) {
 			updatedValue = newValue as SelectInputOptionType[];
 		} else if (newValue && !multi) {
-			updatedValue = [newValue as SelectInputOptionType];
-		} else {
-			updatedValue = [];
+			updatedValue = newValue as SelectInputOptionType;
 		}
 
 		setValue(updatedValue);
