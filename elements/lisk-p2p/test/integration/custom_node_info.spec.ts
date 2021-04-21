@@ -31,7 +31,7 @@ describe('Custom nodeInfo', () => {
 			customNodeInfoSchema,
 		});
 
-		p2pNodeList = await createNetwork({ customConfig });
+		p2pNodeList = await createNetwork({ customConfig, networkSize: 4 });
 	});
 
 	afterEach(async () => {
