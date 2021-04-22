@@ -25,16 +25,35 @@ interface BoxProp extends React.HTMLAttributes<HTMLDivElement> {
 	pl?: number;
 	pr?: number;
 	textAlign?: 'left' | 'center' | 'right' | 'justify';
+	hideDown?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+	hideUp?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+	showDown?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+	showUp?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const Box: React.FC<BoxProp> = props => {
-	const { mt, mb, ml, mr, pt, pb, pl, pr, textAlign, ...rest } = props;
+	const {
+		mt,
+		mb,
+		ml,
+		mr,
+		pt,
+		pb,
+		pl,
+		pr,
+		textAlign,
+		showDown,
+		showUp,
+		hideUp,
+		hideDown,
+		...rest
+	} = props;
 
 	if ([mt, mb, ml, mr, pt, pb, pl, pr].filter(Boolean).some(i => (i as number) < 1)) {
 		throw new Error('Box margin, padding values can not be less than 1');
 	}
 
-	if ([mt, mb, ml, mr, pt, pb, pl, pr].filter(Boolean).some(i => (i as number) > 5)) {
+	if ([mt, mb, ml, mr, pt, pb, pl, pr].filter(Boolean).some(i => (i as number) > 6)) {
 		throw new Error('Box margin, padding values can not be greater than 5');
 	}
 
@@ -48,6 +67,10 @@ const Box: React.FC<BoxProp> = props => {
 		pl ? styles[`p-l-${pl}`] : '',
 		pr ? styles[`p-r-${pr}`] : '',
 		textAlign ? styles[`text-align-${textAlign}`] : '',
+		showUp ? styles[`showUp-${showUp}`] : '',
+		hideUp ? styles[`hideUp-${hideUp}`] : '',
+		showDown ? styles[`showDown-${showDown}`] : '',
+		hideDown ? styles[`hideDown-${hideDown}`] : '',
 	].filter(Boolean);
 
 	if (rest.className) {
