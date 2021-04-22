@@ -11,29 +11,26 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as React from 'react';
 import { apiClient } from '@liskhq/lisk-client';
-import styles from './MainPage.module.scss';
-import Text from '../components/Text';
-import Icon from '../components/Icon';
-import Logo from '../components/Logo';
-import CopiableText from '../components/CopiableText';
+import * as React from 'react';
+import Box from '../components/Box';
 import Button from '../components/Button';
-import IconButton from '../components/IconButton';
 import AccountDialog from '../components/dialogs/AccountDialog';
-import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
+import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import Grid from '../components/Grid';
-import { TextInput, TextAreaInput, SelectInput } from '../components/input';
-import { BlockWidget, TransactionWidget } from '../components/widgets';
 import InfoPanel from '../components/InfoPanel';
-import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
+import Logo from '../components/Logo';
+import Text from '../components/Text';
+import { BlockWidget, TransactionWidget } from '../components/widgets';
 import CallActionWidget from '../components/widgets/CallActionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
-import { Account, NodeInfo, Block, Transaction } from '../types';
+import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import useMessageDialog from '../providers/useMessageDialog';
+import { Account, Block, NodeInfo, Transaction } from '../types';
 import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
+import styles from './MainPage.module.scss';
 
 const nodeInfoDefaultValue: NodeInfo = {
 	version: '',
@@ -91,7 +88,7 @@ const MainPage: React.FC = () => {
 		setUnconfirmedTransactions,
 		unconfirmedTransactionsRef,
 	] = useRefState<Transaction[]>([]);
-	const [events, setEvents, eventsRef] = useRefState<Event[]>([]);
+	const [events, setEvents] = React.useState<string[]>([]);
 	const [actions, setActions] = React.useState<string[]>([]);
 
 	// Dialogs related States
@@ -130,13 +127,6 @@ const MainPage: React.FC = () => {
 		[dashboard.connected],
 	);
 
-	const newEventListener = React.useCallback(
-		event => {
-			setEvents([...eventsRef.current, event]);
-		},
-		[dashboard.connected],
-	);
-
 	const initClient = async () => {
 		try {
 			setClient(await apiClient.createWSClient(dashboard.applicationUrl as string));
@@ -150,20 +140,12 @@ const MainPage: React.FC = () => {
 		getClient().subscribe('app:block:new', newBlockListener);
 		getClient().subscribe('app:transaction:new', newTransactionListener);
 
-		const allEvents = ((await getClient().invoke(
-			'app:getRegisteredEvents',
-		)) as unknown) as string[];
-		for (const event of allEvents) {
-			getClient().subscribe(event, newEventListener);
-		}
-
-		const allActions = ((await getClient().invoke(
-			'app:getRegisteredActions',
-		)) as unknown) as string[];
-		setActions(allActions);
+		setEvents(await getClient().invoke<string[]>('app:getRegisteredEvents'));
+		setActions(await getClient().invoke<string[]>('app:getRegisteredActions'));
 	};
 
 	const loadNodeInfo = async () => {
+		console.info(await getClient().node.getNodeInfo());
 		setNodeInfo(await getClient().node.getNodeInfo());
 	};
 
@@ -201,83 +183,150 @@ const MainPage: React.FC = () => {
 		}
 	}, [dashboard.connected]);
 
+	const CurrentHeightPanel = () => (
+		<InfoPanel title={'Current height'}>
+			<Text color="green" type="h1">
+				{nodeInfo.height.toLocaleString()}
+			</Text>
+		</InfoPanel>
+	);
+
+	const FinalizedHeightPanel = () => (
+		<InfoPanel title={'Finalized height'}>
+			<Text color="pink" type="h1">
+				{nodeInfo.finalizedHeight.toLocaleString()}
+			</Text>
+		</InfoPanel>
+	);
+
+	const NextBlockPanel = () => (
+		<InfoPanel title={'Next block'}>
+			<Text color="yellow" type="h1">
+				99s
+			</Text>
+		</InfoPanel>
+	);
+
+	const PeersInfoPanel = () => (
+		<InfoPanel title={'Peers'} onClick={() => setPeersInfoDialog(true)}>
+			<Text color="blue" type="h1">
+				{peersInfo.connected}
+			</Text>
+		</InfoPanel>
+	);
+
+	const NodeInfoPanel = () => (
+		<InfoPanel mode={'light'} title={'Node Info'} onClick={() => setNodeInfoDialog(true)}>
+			<Text color="white" type="p">
+				Version: {nodeInfo.version}
+			</Text>
+		</InfoPanel>
+	);
+
 	return (
 		<section className={styles.root}>
 			<Grid container>
+				<Grid row alignItems={'center'}>
+					<Grid xs={6} md={8}>
+						<Box mt={6}>
+							<Logo name={'My Custom Alpha Beta'} />
+						</Box>
+					</Grid>
+					<Grid xs={6} md={4}>
+						<Box mt={6} textAlign={'right'}>
+							<Button>Generate new account</Button>
+						</Box>
+					</Grid>
+				</Grid>
+			</Grid>
+
+			<Box showUp={'md'} hideDown={'md'}>
+				<Grid container columns={15} colSpacing={2}>
+					<Grid row>
+						<Grid xs={3}>
+							<CurrentHeightPanel />
+						</Grid>
+						<Grid xs={3}>
+							<FinalizedHeightPanel />
+						</Grid>
+						<Grid xs={3}>
+							<NextBlockPanel />
+						</Grid>
+						<Grid xs={3}>
+							<PeersInfoPanel />
+						</Grid>
+						<Grid xs={3}>
+							<NodeInfoPanel />
+						</Grid>
+					</Grid>
+				</Grid>
+			</Box>
+
+			<Box hideUp={'xs'} showDown={'md'}>
+				<Grid container columns={12} colSpacing={2}>
+					<Grid row>
+						<Grid xs={6}>
+							<CurrentHeightPanel />
+						</Grid>
+						<Grid xs={6}>
+							<FinalizedHeightPanel />
+						</Grid>
+					</Grid>
+					<Grid row>
+						<Grid xs={6}>
+							<NextBlockPanel />
+						</Grid>
+						<Grid xs={6}>
+							<PeersInfoPanel />
+						</Grid>
+					</Grid>
+					<Grid row>
+						<Grid xs={12}>
+							<NodeInfoPanel />
+						</Grid>
+					</Grid>
+				</Grid>
+			</Box>
+
+			<Grid container columns={12} colSpacing={4}>
 				<Grid row>
-					<Grid>
-						<Logo name={'My Custom Alpha Beta'} />
+					<Grid md={6} xs={12}>
+						<MyAccountWidget accounts={accounts} onSelect={account => setShowAccount(account)} />
+					</Grid>
+					<Grid md={6} xs={12}>
+						<BlockWidget title="Recent Blocks" blocks={blocks}></BlockWidget>
 					</Grid>
 				</Grid>
 
 				<Grid row>
-					<Grid md={3}>
-						<InfoPanel title={'Current height'}>
-							<Text color="green" type="h3">
-								14,612,068
-							</Text>
-						</InfoPanel>
+					<Grid md={6} xs={12}>
+						<TransactionWidget
+							title="Recent Transactions"
+							transactions={confirmedTransactions}
+						></TransactionWidget>
 					</Grid>
-					<Grid md={3}>
-						<InfoPanel
-							title={'Current height'}
-							onClick={() => console.info('iclick')}
-							mode={'light'}
-						>
-							14,612,068
-						</InfoPanel>
+					<Grid md={6} xs={12}>
+						<TransactionWidget
+							title="Unconfirmed Transactions"
+							transactions={unconfirmedTransactions}
+						></TransactionWidget>
 					</Grid>
 				</Grid>
 
 				<Grid row>
-					<Grid md={6}>
-						<Icon name={'info'} size={'xl'} />
-						<CopiableText text="11111764222293342222L" />
-						<Text color="pink" type="h1">
-							143,160,552
-						</Text>
-						<Text color="white" type="p">
-							bd81020ded87d21bbfedc45ed...5d90
-						</Text>
-						<TextInput placeholder={'Some text'} onChange={val => console.info(val)} />
-						<br />
-						<TextAreaInput
-							placeholder={JSON.stringify({ key: 'tokenTransfer', value: 'token:transfer' })}
-							size={'l'}
-							onChange={val => console.info(val)}
+					<Grid md={6} xs={12}>
+						<SendTransactionWidget
+							modules={nodeInfo.registeredModules}
+							onSubmit={data => console.info(data)}
 						/>
-						<br />
-						<Text color="white" type="h2">
-							Single Select
-						</Text>
-						<SelectInput
-							options={[
-								{ label: 'tokenTransfer', value: 'token:transfer' },
-								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
-							]}
-							onChange={val => console.info(val)}
-						/>
-						<Text color="white" type="h2">
-							Multi Select
-						</Text>
-						<SelectInput
-							options={[
-								{ label: 'tokenTransfer', value: 'token:transfer' },
-								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
-							]}
-							multi
-							onChange={val => console.info(val)}
-						/>
-						<Button size={'m'}>Button</Button>
-						<IconButton icon={'add'} size={'m'} />
+					</Grid>
+					<Grid md={6} xs={12}>
+						<CallActionWidget actions={actions} onSubmit={data => console.info(data)} />
 					</Grid>
 				</Grid>
 
 				<Grid row>
-					<Grid md={12}>
-						<Button onClick={() => setPeersInfoDialog(!peersInfoDialog)}>Peers Info Dialog</Button>
-						<Button onClick={() => setNodeInfoDialog(!nodeInfoDialog)}>Node Info Dialog</Button>
-					</Grid>
+					<Grid xs={12}>{events}</Grid>
 				</Grid>
 			</Grid>
 
@@ -304,55 +353,6 @@ const MainPage: React.FC = () => {
 				}}
 				nodeInfo={nodeInfo}
 			></NodeInfoDialog>
-
-			<Grid container>
-				<Grid row>
-					<Grid md={6}>
-						<BlockWidget title="Recent Blocks" blocks={blocks}></BlockWidget>
-					</Grid>
-					<Grid md={6}>
-						<TransactionWidget
-							title="Recent Transactions"
-							transactions={confirmedTransactions}
-						></TransactionWidget>
-					</Grid>
-				</Grid>
-				<Grid row>
-					<Grid md={6}>
-						<TransactionWidget
-							title="Unconfirmed Transactions"
-							transactions={unconfirmedTransactions}
-						></TransactionWidget>
-					</Grid>
-					<Grid md={6}>
-						<MyAccountWidget accounts={accounts} onSelect={account => setShowAccount(account)} />
-					</Grid>
-				</Grid>
-				<Grid row>
-					<Grid md={6}>
-						<SendTransactionWidget
-							modules={nodeInfo.registeredModules}
-							onSubmit={data => console.info(data)}
-						/>
-					</Grid>
-					<Grid md={3}>
-						<Text type={'p'}>{JSON.stringify(events)}</Text>
-					</Grid>
-
-					<Grid md={3}>
-						<Text type={'p'}>{JSON.stringify(actions)}</Text>
-					</Grid>
-				</Grid>
-
-				<Grid row>
-					<Grid md={6} xs={12}>
-						<CallActionWidget
-							actions={['app:getNodeInfo', 'app:getAccount']}
-							onSubmit={data => console.info(data)}
-						/>
-					</Grid>
-				</Grid>
-			</Grid>
 		</section>
 	);
 };
