@@ -37,7 +37,6 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 
 		const actionName = selectedAction.value;
 
-		console.info({ actionName });
 		props.onSubmit({ action: actionName, keyValue });
 	};
 
