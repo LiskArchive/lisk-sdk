@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { isIPV4 } from '@liskhq/lisk-validator';
 import {
 	ConnectionKind,
 	DEFAULT_PRODUCTIVITY,
@@ -103,6 +103,10 @@ export const sanitizePeerLists = (
 
 	const fixedPeers = lists.fixedPeers
 		.filter(peerInfo => {
+			if (!isIPV4(peerInfo.ipAddress)) {
+				return false;
+			}
+
 			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 				return false;
 			}
@@ -124,6 +128,10 @@ export const sanitizePeerLists = (
 
 	const seedPeers = lists.seedPeers
 		.filter(peerInfo => {
+			if (!isIPV4(peerInfo.ipAddress)) {
+				return false;
+			}
+
 			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 				return false;
 			}
@@ -149,6 +157,10 @@ export const sanitizePeerLists = (
 
 	const whitelisted = lists.whitelisted
 		.filter(peerInfo => {
+			if (!isIPV4(peerInfo.ipAddress)) {
+				return false;
+			}
+
 			if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 				return false;
 			}
@@ -180,6 +192,10 @@ export const sanitizePeerLists = (
 		});
 
 	const previousPeers = lists.previousPeers.filter(peerInfo => {
+		if (!isIPV4(peerInfo.ipAddress)) {
+			return false;
+		}
+		
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
