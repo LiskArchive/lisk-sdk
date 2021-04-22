@@ -208,7 +208,7 @@ describe('delegates', () => {
 		});
 
 		describe('When all delegates successfully forges a block', () => {
-			it('should NOT update "consecutiveMissedBlocks" for anyone', async () => {
+			it('must NOT update "consecutiveMissedBlocks" for anyone', async () => {
 				// Arrange
 				const lastBlock = {
 					generatorPublicKey: accountsPublicKeys.publicKeyMap.get(

@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { FuncKeywordDefinition, JSONSchemaType, AnySchemaObject, AnySchema, SchemaCxt } from 'ajv';
 import * as createDebug from 'debug';
+import { DataValidateFunction, DataValidationCxt } from '../types';
 import { LiskValidationError } from '../errors';
 
 const debug = createDebug('codec:keyword:fieldNumber');
@@ -24,16 +26,8 @@ export const metaSchema = {
 	maximum: 18999,
 };
 
-type ValidateFunction = (
-	data: string,
-	dataPath?: string,
-	parentData?: object,
-	parentDataProperty?: string | number,
-	rootData?: object,
-) => boolean;
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const deepValue = (obj: object, path: string): any => {
+const deepValue = (obj: AnySchema, path: string): any => {
 	const parts = path.split('.');
 	const len = parts.length;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,26 +42,22 @@ const deepValue = (obj: object, path: string): any => {
 	return result;
 };
 
-interface AjvContext {
-	root: {
-		schema: object;
-	};
-	schemaPath: string;
-}
-
 const compile = (
-	value: number,
-	parentSchema: object,
-	it: Partial<AjvContext>,
-): ValidateFunction => {
+	value: JSONSchemaType<number>,
+	parentSchema: AnySchemaObject,
+	it: SchemaCxt,
+): DataValidateFunction => {
 	debug('compile: schema: %i', value);
 	debug('compile: parent schema: %j', parentSchema);
 
 	const {
 		schemaPath,
-		root: { schema: rootSchema },
-	} = it as AjvContext;
-	const parentPath: string[] = schemaPath.split('.');
+		schemaEnv: {
+			root: { schema: rootSchema },
+		},
+	} = it;
+
+	const parentPath: string[] = schemaPath.str.split('.');
 	parentPath.shift();
 	parentPath.pop();
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -87,21 +77,16 @@ const compile = (
 				message: 'Value must be unique across all properties on same level',
 				params: { fieldNumbers },
 				dataPath: '',
-				schemaPath,
+				schemaPath: schemaPath.str,
 			},
 		]);
 	}
 
-	return (
-		_data: string,
-		_dataPath?: string,
-		_parentData?: object,
-		_parentDataProperty?: string | number,
-		_rootData?: object,
-	): boolean => true;
+	return (_data: string, _dataCxt?: DataValidationCxt): boolean => true;
 };
 
-export const fieldNumberKeyword = {
+export const fieldNumberKeyword: FuncKeywordDefinition = {
+	keyword: 'fieldNumber',
 	compile,
 	valid: true,
 	errors: false,

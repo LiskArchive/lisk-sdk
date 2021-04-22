@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,14 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export const postBlockEventSchema = {
-	$id: 'report-misbehavior/postBlockEvent',
-	type: 'object',
-	required: ['block'],
-	properties: {
-		block: {
-			type: 'string',
-			format: 'hex',
-		},
-	},
-};
+
+import { ErrorObject } from 'ajv';
+
+export { DataValidateFunction, DataValidationCxt } from 'ajv/dist/types';
+
+export interface LiskErrorObject extends Omit<ErrorObject, 'instancePath' | 'schemaPath'> {
+	dataPath?: string; // This property is replaced with "instancePath" in newer version
+	schemaPath?: string; // This property was optional earlier version of ajv
+}

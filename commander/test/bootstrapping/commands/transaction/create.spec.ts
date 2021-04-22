@@ -267,7 +267,7 @@ describe('transaction:create command', () => {
 							config,
 						),
 					).rejects.toThrow(
-						"Lisk validator found 1 error[s]:\nMissing property, should have required property 'data'",
+						"Lisk validator found 1 error[s]:\nMissing property, must have required property 'data'",
 					);
 				});
 			});

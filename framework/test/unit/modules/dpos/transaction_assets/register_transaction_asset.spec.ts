@@ -82,7 +82,7 @@ describe('RegisterTransactionAsset', () => {
 
 				const errors = validator.validate(transactionAsset.schema, asset);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude('should NOT be longer than 20 characters');
+				expect(errors[0].message).toInclude('must NOT have more than 20 characters');
 			});
 
 			it('should throw error when username empty string', () => {
@@ -90,7 +90,7 @@ describe('RegisterTransactionAsset', () => {
 
 				const errors = validator.validate(transactionAsset.schema, asset);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude('should NOT be shorter than 1 characters');
+				expect(errors[0].message).toInclude('must NOT have fewer than 1 characters');
 			});
 		});
 

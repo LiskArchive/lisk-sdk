@@ -683,7 +683,7 @@ Object {
         "$id": "lisk/dpos/pom",
         "properties": Object {
           "header1": Object {
-            "$id": "lisk/block-header",
+            "$id": "block-header1",
             "fieldNumber": 1,
             "properties": Object {
               "asset": Object {
@@ -755,7 +755,7 @@ Object {
             "type": "object",
           },
           "header2": Object {
-            "$id": "lisk/block-header",
+            "$id": "block-header2",
             "fieldNumber": 2,
             "properties": Object {
               "asset": Object {

@@ -3,6 +3,7 @@
 exports[`schema/application_config_schema.js application config schema must match to the snapshot. 1`] = `
 Object {
   "applicationConfigSchema": Object {
+    "$id": "#/config",
     "additionalProperties": false,
     "default": Object {
       "forging": Object {
@@ -57,7 +58,6 @@ Object {
       },
       "version": "0.0.0",
     },
-    "id": "#/config",
     "properties": Object {
       "forging": Object {
         "properties": Object {
@@ -126,8 +126,8 @@ Object {
         "type": "object",
       },
       "genesisConfig": Object {
+        "$id": "#/config/genesisConfig",
         "additionalProperties": true,
-        "id": "#/config/genesisConfig",
         "properties": Object {
           "baseFees": Object {
             "description": "Base fee for a transaction to be valid",
@@ -176,9 +176,9 @@ Object {
             "type": "integer",
           },
           "rewards": Object {
+            "$id": "#/config/rewards",
             "additionalProperties": false,
             "description": "Object representing LSK rewards milestone",
-            "id": "#/config/rewards",
             "properties": Object {
               "distance": Object {
                 "description": "Distance between each milestone",
@@ -219,7 +219,7 @@ Object {
         "description": "Restricted length due to unix domain socket path length limitations.",
         "maxLength": 30,
         "minLength": 1,
-        "pattern": "^[a-zA-Z][0-9a-zA-Z\\\\_\\\\-]*$",
+        "pattern": "^[a-zA-Z][0-9a-zA-Z_-]*$",
         "type": "string",
       },
       "logger": Object {
@@ -379,7 +379,9 @@ Object {
       },
       "rootPath": Object {
         "description": "The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.",
-        "example": "~/.lisk",
+        "examples": Array [
+          "~/.lisk",
+        ],
         "format": "path",
         "maxLength": 50,
         "minLength": 1,

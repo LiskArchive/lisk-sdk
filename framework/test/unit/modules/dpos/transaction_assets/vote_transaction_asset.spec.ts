@@ -99,7 +99,7 @@ describe('VoteTransactionAsset', () => {
 
 					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toInclude('should NOT have fewer than 1 items');
+					expect(errors[0].message).toInclude('must NOT have fewer than 1 items');
 				});
 			});
 
@@ -114,7 +114,7 @@ describe('VoteTransactionAsset', () => {
 
 					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toInclude('should NOT have more than 20 items');
+					expect(errors[0].message).toInclude('must NOT have more than 20 items');
 				});
 			});
 

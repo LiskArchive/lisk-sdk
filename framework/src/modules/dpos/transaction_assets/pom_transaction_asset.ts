@@ -87,10 +87,12 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		properties: {
 			header1: {
 				...blockHeaderSchema,
+				$id: 'block-header1',
 				fieldNumber: 1,
 			},
 			header2: {
 				...blockHeaderSchema,
+				$id: 'block-header2',
 				fieldNumber: 2,
 			},
 		},

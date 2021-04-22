@@ -52,7 +52,7 @@ describe('Peers endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.limit\' should match format "uint32"',
+								'Lisk validator found 1 error[s]:\nProperty \'.limit\' must match format "uint32"',
 						},
 					],
 				});
@@ -69,7 +69,7 @@ describe('Peers endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.offset\' should match format "uint32"',
+								'Lisk validator found 1 error[s]:\nProperty \'.offset\' must match format "uint32"',
 						},
 					],
 				});

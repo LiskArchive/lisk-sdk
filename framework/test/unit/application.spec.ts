@@ -218,10 +218,10 @@ describe('Application', () => {
 			} catch (error) {
 				/* eslint-disable jest/no-try-expect */
 				expect(error.errors).toHaveLength(4);
-				expect(error.errors[0].message).toContain('should match format "encryptedPassphrase"');
-				expect(error.errors[1].message).toContain('should be >= 1');
-				expect(error.errors[2].message).toContain('should be >= 1');
-				expect(error.errors[3].message).toContain('should NOT have fewer than 2 items');
+				expect(error.errors[0].message).toContain('must match format "encryptedPassphrase"');
+				expect(error.errors[1].message).toContain('must be >= 1');
+				expect(error.errors[2].message).toContain('must be >= 1');
+				expect(error.errors[3].message).toContain('must NOT have fewer than 2 items');
 				/* eslint-enable jest/no-try-expect */
 			}
 		});

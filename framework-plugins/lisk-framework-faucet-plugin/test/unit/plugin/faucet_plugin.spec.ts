@@ -41,7 +41,7 @@ describe('FaucetPlugin', () => {
 			expect(
 				() => new FaucetPlugin({ captchaSitekey: '123', captchaSecretkey: '123' } as never),
 			).toThrow(
-				"Lisk validator found 1 error[s]:\nMissing property, should have required property 'encryptedPassphrase'",
+				"Lisk validator found 1 error[s]:\nMissing property, must have required property 'encryptedPassphrase'",
 			);
 		});
 
