@@ -232,6 +232,8 @@ const MainPage: React.FC = () => {
 				<Grid row>
 					<Grid md={6}>
 						<Icon name={'info'} size={'xl'} />
+						<CopiableText text="1111176aksjdsajkhjdlasjhdbklasjkdkjasjdnkbsadjahdagidk4222293342222L" />
+						<CopiableText text="1111176aksjdsajkhjdlasjhdbklasjkdkjasjdnkbsbhjejfkdjhbhsvhfjksdgfhsjfijfhuyshdfjdhsvgfisfvyudhsyufghsdfh9dshdfsiuadjahdagidk4222293342222L" />
 						<CopiableText text="11111764222293342222L" />
 						<Text color="pink" type="h1">
 							143,160,552
