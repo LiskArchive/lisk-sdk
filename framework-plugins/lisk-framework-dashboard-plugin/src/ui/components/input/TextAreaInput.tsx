@@ -34,10 +34,12 @@ const TextAreaInput: React.FC<Props> = props => {
 		}
 	};
 
+	const placeholderPrettyJson = placeholder?.replace(/["{[}\]]/g, '');
+
 	return (
 		<textarea
 			value={value}
-			placeholder={placeholder}
+			placeholder={placeholderPrettyJson}
 			className={`${styles.textArea} ${styles[`textArea-${size}`]}`}
 			onChange={handleOnChange}
 		/>
