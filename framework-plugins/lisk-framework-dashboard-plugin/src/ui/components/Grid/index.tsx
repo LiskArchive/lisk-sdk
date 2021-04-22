@@ -25,48 +25,101 @@ type GridJustify =
 	| 'space-around'
 	| 'space-evenly';
 
+type TextAlign = 'center' | 'left' | 'right' | 'justify';
+
 type GridSizes = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 type GridSpacing = 0 | 1 | 2 | 3 | 4 | 5;
 
-interface LayoutProps {
-	row?: boolean;
-	rowBorder?: boolean;
-	container?: boolean;
-	fluid?: boolean;
-	xs?: GridSizes;
-	sm?: GridSizes;
-	md?: GridSizes;
-	lg?: GridSizes;
-	xl?: GridSizes;
-	offset?: GridSizes;
-	spacing?: GridSpacing;
+type OverrideProps<M, N> = { [P in keyof M]: P extends keyof N ? N[P] : M[P] };
 
-	// CSS properties
-	alignItems?: GridItemsAlignment;
-	justify?: GridJustify;
+interface GridBaseProps {
+	// Grid container props
+	container?: undefined;
+	fluid?: undefined;
+	rowSpacing?: undefined;
+	colSpacing?: undefined;
+	spacing?: undefined;
+	columns?: number;
+
+	// Grid row props
+	row?: undefined;
+	rowBorder?: undefined;
+	alignItems?: undefined;
+	justify?: undefined;
+
+	// Grid col props
+	xs?: undefined;
+	sm?: undefined;
+	md?: undefined;
+	lg?: undefined;
+	xl?: undefined;
+	textAlign?: undefined;
 }
 
-const Grid: React.FC<LayoutProps> = props => {
+type GridContainerProps = OverrideProps<
+	GridBaseProps,
+	{
+		// Grid container props
+		container?: true;
+		fluid?: boolean;
+		rowSpacing?: GridSpacing;
+		colSpacing?: GridSpacing;
+		spacing?: GridSpacing;
+		columns?: 12 | 15;
+	}
+>;
+
+type GridRowProps = OverrideProps<
+	GridBaseProps,
+	{
+		// Grid row props
+		row?: true;
+		rowBorder?: boolean;
+		alignItems?: GridItemsAlignment;
+		justify?: GridJustify;
+	}
+>;
+
+type GridColProps = OverrideProps<
+	GridBaseProps,
+	{
+		// Grid col props
+		xs?: GridSizes;
+		sm?: GridSizes;
+		md?: GridSizes;
+		lg?: GridSizes;
+		xl?: GridSizes;
+		textAlign?: TextAlign;
+	}
+>;
+
+type GridProps = GridContainerProps | GridRowProps | GridColProps;
+
+const Grid: React.FC<GridProps> = props => {
 	const {
 		alignItems,
 		children,
 		container,
 		fluid,
 		justify,
+		textAlign,
 		row,
 		rowBorder,
-		spacing,
 		xs,
 		sm,
 		md,
 		lg,
 		xl,
-		offset,
 	} = props;
 
+	const columns = props.columns ?? 12;
+	const rowSpacing = props.rowSpacing ?? props.spacing;
+	const colSpacing = props.colSpacing ?? props.spacing;
+
 	const classes = [
-		container ? styles.grid : '',
-		container && spacing ? styles[`gridSpacing-${spacing}`] : '',
+		container ? styles[`grid-${columns}`] : '',
+		container && rowSpacing ? styles[`gridRowSpacing-${rowSpacing}`] : '',
+		container && colSpacing ? styles[`gridColSpacing-${colSpacing}`] : '',
 
 		// Row styling
 		row ? styles.gridRow : '',
@@ -77,18 +130,12 @@ const Grid: React.FC<LayoutProps> = props => {
 
 		// Column styling
 		!row && !container ? styles.gridCol : '',
+		!row && !container && textAlign ? styles[`gridColTextAlign-${textAlign}`] : '',
 		!row && xl ? styles[`gridCol-xl-${xl}`] : '',
 		!row && lg ? styles[`gridCol-lg-${lg}`] : '',
 		!row && md ? styles[`gridCol-md-${md}`] : '',
 		!row && sm ? styles[`gridCol-sm-${sm}`] : '',
 		!row && xs ? styles[`gridCol-xs-${xs}`] : '',
-
-		// Column offset
-		!row && xs && offset ? styles[`gridCol-xs-offset-${offset}`] : '',
-		!row && sm && offset ? styles[`gridCol-sm-offset-${offset}`] : '',
-		!row && md && offset ? styles[`gridCol-md-offset-${offset}`] : '',
-		!row && lg && offset ? styles[`gridCol-lg-offset-${offset}`] : '',
-		!row && xl && offset ? styles[`gridCol-xl-offset-${offset}`] : '',
 	];
 
 	return <div className={classes.filter(Boolean).join(' ')}>{children}</div>;
