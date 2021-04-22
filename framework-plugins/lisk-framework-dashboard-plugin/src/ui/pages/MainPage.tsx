@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { apiClient } from '@liskhq/lisk-client';
+import { apiClient, cryptography, passphrase } from '@liskhq/lisk-client';
 import * as React from 'react';
 import Box from '../components/Box';
 import Button from '../components/Button';
@@ -73,7 +73,7 @@ const MainPage: React.FC = () => {
 	const getClient = () => client as apiClient.APIClient;
 
 	// Data States
-	const [accounts] = React.useState<Account[]>([]);
+	const [myAccounts, setMyAccounts] = React.useState<Account[]>([]);
 	const [dashboard, setDashboard] = React.useState<DashboardState>({
 		connected: false,
 	});
@@ -158,6 +158,23 @@ const MainPage: React.FC = () => {
 		});
 	};
 
+	const generateNewAccount = () => {
+		const accountPassphrase = (passphrase.Mnemonic.generateMnemonic() as unknown) as string;
+		const { address, publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(
+			accountPassphrase,
+		);
+		const lisk32Address = cryptography.getBase32AddressFromAddress(address);
+		const newAccount: Account = {
+			passphrase: accountPassphrase,
+			publicKey: publicKey.toString('hex'),
+			binaryAddress: address.toString('hex'),
+			base32Address: lisk32Address,
+		};
+
+		setMyAccounts([newAccount, ...myAccounts]);
+		setShowAccount(newAccount);
+	};
+
 	// Get connection string
 	React.useEffect(() => {
 		const initConnectionStr = async () => {
@@ -234,7 +251,13 @@ const MainPage: React.FC = () => {
 					</Grid>
 					<Grid xs={6} md={4}>
 						<Box mt={6} textAlign={'right'}>
-							<Button>Generate new account</Button>
+							<Button
+								onClick={() => {
+									generateNewAccount();
+								}}
+							>
+								Generate new account
+							</Button>
 						</Box>
 					</Grid>
 				</Grid>
@@ -291,7 +314,7 @@ const MainPage: React.FC = () => {
 			<Grid container columns={12} colSpacing={4}>
 				<Grid row>
 					<Grid md={6} xs={12}>
-						<MyAccountWidget accounts={accounts} onSelect={account => setShowAccount(account)} />
+						<MyAccountWidget accounts={myAccounts} onSelect={account => setShowAccount(account)} />
 					</Grid>
 					<Grid md={6} xs={12}>
 						<BlockWidget title="Recent Blocks" blocks={blocks}></BlockWidget>
