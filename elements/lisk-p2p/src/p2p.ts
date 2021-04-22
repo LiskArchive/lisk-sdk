@@ -15,6 +15,7 @@
 import { EventEmitter } from 'events';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { isIPV4 } from '@liskhq/lisk-validator';
 
 import {
 	DEFAULT_BAN_TIME,
@@ -43,6 +44,8 @@ import {
 	DUPLICATE_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
+	INVALID_CONNECTION_URL_CODE,
+	INVALID_CONNECTION_URL_REASON,
 	DEFAULT_PEER_STATUS_MESSAGE_RATE,
 } from './constants';
 import { PeerInboundDuplicateConnectionError } from './errors';
@@ -398,6 +401,17 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleInboundPeerConnect = (incomingPeerConnection: IncomingPeerConnection): void => {
+			if (!isIPV4(incomingPeerConnection.socket.remoteAddress)) {
+				incomingPeerConnection.socket.disconnect(
+					INVALID_CONNECTION_URL_CODE,
+					INVALID_CONNECTION_URL_REASON,
+				);
+
+				this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, INVALID_CONNECTION_URL_REASON);
+	
+				return;
+			}
+
 			try {
 				this._peerPool.addInboundPeer(
 					incomingPeerConnection.peerInfo,
