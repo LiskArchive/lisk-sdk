@@ -32,7 +32,7 @@ interface WidgetProps {
 
 const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	const [listOptions, setListOptions] = React.useState<SelectInputOptionType[]>([]);
-	const [selectedAssets, setSelectedAssets] = React.useState<SelectInputOptionType[]>([]);
+	const [selectedAsset, setSelectedAsset] = React.useState<SelectInputOptionType>();
 	const [passphrase, setPassphrase] = React.useState('');
 	const [asset, setAsset] = React.useState('');
 
@@ -47,11 +47,11 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 			.flat();
 
 		setListOptions(assets);
-		setSelectedAssets(assets.length ? [assets[0]] : []);
+		setSelectedAsset(assets[0]);
 	}, [props.modules]);
 
 	const handleSubmit = () => {
-		const assetSelectedValue = selectedAssets[0].value;
+		const assetSelectedValue = selectedAsset ? selectedAsset.value : '';
 		const moduleName = assetSelectedValue.split(':').shift();
 		const assetName = assetSelectedValue.split(':').slice(1).join(':');
 		let moduleID: number | undefined;
@@ -86,9 +86,10 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 			<WidgetBody>
 				<Box mb={4}>
 					<SelectInput
+						multi={false}
 						options={listOptions}
-						selected={selectedAssets}
-						onChange={val => setSelectedAssets(val)}
+						selected={selectedAsset}
+						onChange={val => setSelectedAsset(val)}
 					></SelectInput>
 				</Box>
 

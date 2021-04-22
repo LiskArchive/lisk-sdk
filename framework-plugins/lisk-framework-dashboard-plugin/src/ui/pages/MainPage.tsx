@@ -257,6 +257,8 @@ const MainPage: React.FC = () => {
 								{ label: 'tokenTransfer', value: 'token:transfer' },
 								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
 							]}
+							multi={false}
+							selected={{ label: 'tokenTransfer', value: 'token:transfer' }}
 							onChange={val => console.info(val)}
 						/>
 						<Text color="white" type="h2">
@@ -268,6 +270,10 @@ const MainPage: React.FC = () => {
 								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
 							]}
 							multi
+							selected={[
+								{ label: 'tokenTransfer', value: 'token:transfer' },
+								{ label: 'dposRegisterDelegate', value: 'dpos:register:delegate' },
+							]}
 							onChange={val => console.info(val)}
 						/>
 						<Button size={'m'}>Button</Button>
