@@ -23,28 +23,14 @@ interface NodeInfoDialogProps extends DialogProps {
 	nodeInfo: NodeInfo;
 }
 
-const labels = [
-	[
-		{ field: 'version', label: 'Version' },
-		{ field: 'networkVersion', label: 'Network version' },
-	],
-	[
-		{ field: 'lastBlockId', label: 'Last block ID' },
-		{ field: 'syncing', label: 'Syncing' },
-	],
-	[
-		{ field: 'unconfirmedTransactions', label: 'Unconfirmed transactions' },
-		{ field: 'blockTime', label: 'Block time' },
-	],
-	[
-		{ field: 'communityIdentifier', label: 'Community identifier' },
-		{ field: 'maxPayloadLength', label: 'Max payload length' },
-	],
-	[
-		{ field: 'bftThreshold', label: 'BFT threshold' },
-		{ field: 'minFeePerByte', label: 'Min fee per byte' },
-	],
-];
+const NodeInfoItem: React.FC<{ label: string; value: string }> = props => (
+	<Grid md={6} xs={12}>
+		<Box mb={2}>
+			<Text type={'h3'}>{props.label}</Text>
+		</Box>
+		<Text>{props.value}</Text>
+	</Grid>
+);
 
 const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 	const { nodeInfo, ...rest } = props;
@@ -56,27 +42,45 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 			</DialogHeader>
 			<DialogBody>
 				<Grid container fluid spacing={3}>
-					{labels.map((group, index) => (
-						<Grid row rowBorder={index !== labels.length - 1} key={index}>
-							{group.map((field, index2) => (
-								<Grid md={6} xs={12} key={index2}>
-									<Box mb={2}>
-										<Text type={'h3'}>{field.label}</Text>
-									</Box>
-									<Text>
-										{
-											// eslint-disable-next-line no-nested-ternary
-											typeof nodeInfo[field.field as keyof NodeInfo] !== 'boolean'
-												? nodeInfo[field.field as keyof NodeInfo]
-												: nodeInfo[field.field as keyof NodeInfo]
-												? 'True'
-												: 'False'
-										}
-									</Text>
-								</Grid>
-							))}
-						</Grid>
-					))}
+					<Grid row>
+						<NodeInfoItem label={'Version'} value={nodeInfo.version} />
+						<NodeInfoItem label={'Network version'} value={nodeInfo.networkVersion} />
+					</Grid>
+
+					<Grid row>
+						<NodeInfoItem label={'Network identifier'} value={nodeInfo.networkIdentifier} />
+						<NodeInfoItem label={'Last block ID'} value={nodeInfo.lastBlockID} />
+					</Grid>
+
+					<Grid row>
+						<NodeInfoItem label={'Syncing'} value={nodeInfo.syncing ? 'True' : 'False'} />
+						<NodeInfoItem
+							label={'Unconfirmed transactions'}
+							value={nodeInfo.unconfirmedTransactions.toLocaleString()}
+						/>
+					</Grid>
+
+					<Grid row>
+						<NodeInfoItem
+							label={'Block time'}
+							value={nodeInfo.genesisConfig.blockTime.toLocaleString()}
+						/>
+						<NodeInfoItem
+							label={'Community identifier'}
+							value={nodeInfo.genesisConfig.communityIdentifier}
+						/>
+					</Grid>
+
+					<Grid row>
+						<NodeInfoItem
+							label={'Max payload length'}
+							value={nodeInfo.genesisConfig.maxPayloadLength.toLocaleString()}
+						/>
+						<NodeInfoItem
+							label={'BFT threshold'}
+							value={nodeInfo.genesisConfig.bftThreshold.toLocaleString()}
+						/>
+					</Grid>
 				</Grid>
 
 				<Box mt={5}>
