@@ -15,24 +15,21 @@
 import { isIPV4 } from '@liskhq/lisk-validator';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
-import {
-	createNetwork,
-	destroyNetwork,
-} from '../utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
-describe('Sanitize peer lists on load', () => {    
-    const initPeerInfoList = (qty: number) => {
-        const peerInfos: any[] = [];
-        for (let i = 1; i <= qty; i += 1) {
-            peerInfos.push({
-                peerId: `200:db8:85a3:8d3:1319:8a2e:370:7348:${5000 + (i % 40000)}`,
-                ipAddress: '200:db8:85a3:8d3:1319:8a2e:370:7348',
-                port: 5000 + (i % 40000),
-            });
-        }
+describe('Sanitize peer lists on load', () => {
+	const initPeerInfoList = (qty: number) => {
+		const peerInfos: any[] = [];
+		for (let i = 1; i <= qty; i += 1) {
+			peerInfos.push({
+				peerId: `200:db8:85a3:8d3:1319:8a2e:370:7348:${5000 + (i % 40000)}`,
+				ipAddress: '200:db8:85a3:8d3:1319:8a2e:370:7348',
+				port: 5000 + (i % 40000),
+			});
+		}
 
-        return peerInfos;
-    };
+		return peerInfos;
+	};
 
 	describe('Address validation', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -40,8 +37,8 @@ describe('Sanitize peer lists on load', () => {
 		beforeAll(async () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
 			const customConfig = () => ({
-                rateCalculationInterval: 100,
-                previousPeers: initPeerInfoList(200),
+				rateCalculationInterval: 100,
+				previousPeers: initPeerInfoList(200),
 			});
 
 			p2pNodeList = await createNetwork({
@@ -69,9 +66,12 @@ describe('Sanitize peer lists on load', () => {
 				// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 				const connectedPeerAddresses = p2p
 					.getConnectedPeers()
-					.map(peerInfo => peerInfo.ipAddress).sort();
+					.map(peerInfo => peerInfo.ipAddress)
+					.sort();
 
-				expect([...allPeerAddresses, ...connectedPeerAddresses].filter(ipAddress => !isIPV4(ipAddress))).toHaveLength(0)
+				expect(
+					[...allPeerAddresses, ...connectedPeerAddresses].filter(ipAddress => !isIPV4(ipAddress)),
+				).toHaveLength(0);
 			}
 		});
 	});

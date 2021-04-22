@@ -408,7 +408,7 @@ export class P2P extends EventEmitter {
 				);
 
 				this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, INVALID_CONNECTION_URL_REASON);
-	
+
 				return;
 			}
 

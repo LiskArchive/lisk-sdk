@@ -195,7 +195,7 @@ export const sanitizePeerLists = (
 		if (!isIPV4(peerInfo.ipAddress)) {
 			return false;
 		}
-		
+
 		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
 			return false;
 		}
