@@ -3,7 +3,7 @@
 $grid-cols: 12;
 $grid-sizes: 'xs', 'sm', 'md', 'lg', 'xl';
 $base-spacing: 5px;
-$grid-spacing: 5;
+$grid-spacing: 6;
 $flex-justify-values: 'flex-start', 'center', 'flex-end', 'space-between', 'space-around',
 	'space-evenly';
 $flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
@@ -30,13 +30,8 @@ $text-align: 'center', 'left', 'right', 'justify';
 		@for $i from 0 through $grid-spacing {
 			&.gridColSpacing-#{$i} {
 				.gridCol {
-					padding: $i * $base-spacing;
-				}
-
-				@each $breakpoint in $grid-sizes {
-					.gridCol-#{$breakpoint}-#{$grid-cols} {
-						padding-left: 0;
-					}
+					padding-left: $i * $base-spacing;
+					padding-right: $i * $base-spacing;
 				}
 
 				.gridRow {
@@ -57,7 +52,8 @@ $text-align: 'center', 'left', 'right', 'justify';
 		@for $i from 0 through $grid-spacing {
 			&.gridRowSpacing-#{$i} {
 				.gridRow {
-					padding: $i * $base-spacing;
+					padding-top: $i * $base-spacing;
+					padding-bottom: $i * $base-spacing;
 				}
 
 				.grid-#{$grid-cols} {
@@ -130,9 +126,11 @@ $text-align: 'center', 'left', 'right', 'justify';
 @each $modifier in $grid-sizes {
 	@include create-col-classes($modifier, 12);
 	@include create-col-spacing-classes($modifier, 12);
+	@include create-row-spacing-classes($modifier, 12);
 }
 
 @each $modifier in $grid-sizes {
 	@include create-col-classes($modifier, 15);
 	@include create-col-spacing-classes($modifier, 15);
+	@include create-row-spacing-classes($modifier, 12);
 }

@@ -40,21 +40,19 @@
 .text {
 	@extend .input;
 	min-height: 40px;
-	min-width: 520px;
+	width: 100%;
 }
 
 .textArea {
 	@extend .input;
+	width: 100%;
 }
 .textArea-s {
-	width: 520px;
 	height: 90;
 }
 .textArea-m {
-	width: 520px;
 	height: 136px;
 }
 .textArea-l {
-	width: 520px;
 	height: 241px;
 }

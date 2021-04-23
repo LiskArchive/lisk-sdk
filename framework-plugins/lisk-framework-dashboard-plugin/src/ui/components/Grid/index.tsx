@@ -28,7 +28,7 @@ type GridJustify =
 type TextAlign = 'center' | 'left' | 'right' | 'justify';
 
 type GridSizes = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
-type GridSpacing = 0 | 1 | 2 | 3 | 4 | 5;
+type GridSpacing = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 type OverrideProps<M, N> = { [P in keyof M]: P extends keyof N ? N[P] : M[P] };
 

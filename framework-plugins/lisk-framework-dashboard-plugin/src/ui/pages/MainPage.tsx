@@ -291,7 +291,7 @@ const MainPage: React.FC = () => {
 
 	const CurrentHeightPanel = () => (
 		<InfoPanel title={'Current height'}>
-			<Text color="green" type="h1">
+			<Text color="green" type="h1" style="light">
 				{nodeInfo.height.toLocaleString()}
 			</Text>
 		</InfoPanel>
@@ -299,7 +299,7 @@ const MainPage: React.FC = () => {
 
 	const FinalizedHeightPanel = () => (
 		<InfoPanel title={'Finalized height'}>
-			<Text color="pink" type="h1">
+			<Text color="pink" type="h1" style="light">
 				{nodeInfo.finalizedHeight.toLocaleString()}
 			</Text>
 		</InfoPanel>
@@ -307,7 +307,7 @@ const MainPage: React.FC = () => {
 
 	const NextBlockPanel = () => (
 		<InfoPanel title={'Next block'}>
-			<Text color="yellow" type="h1">
+			<Text color="yellow" type="h1" style="light">
 				99s
 			</Text>
 		</InfoPanel>
@@ -315,7 +315,7 @@ const MainPage: React.FC = () => {
 
 	const PeersInfoPanel = () => (
 		<InfoPanel title={'Peers'} onClick={() => setPeersInfoDialog(true)}>
-			<Text color="blue" type="h1">
+			<Text color="blue" type="h1" style="light">
 				{peersInfo.connected}
 			</Text>
 		</InfoPanel>
@@ -331,23 +331,19 @@ const MainPage: React.FC = () => {
 
 	return (
 		<section className={styles.root}>
-			<Grid container>
+			<Grid container rowSpacing={6}>
 				<Grid row alignItems={'center'}>
 					<Grid xs={6} md={8}>
-						<Box mt={6}>
-							<Logo name={'My Custom Alpha Beta'} />
-						</Box>
+						<Logo name={'Lisk'} />
 					</Grid>
-					<Grid xs={6} md={4}>
-						<Box mt={6} textAlign={'right'}>
-							<Button
-								onClick={() => {
-									generateNewAccount();
-								}}
-							>
-								Generate new account
-							</Button>
-						</Box>
+					<Grid xs={6} md={4} textAlign={'right'}>
+						<Button
+							onClick={() => {
+								generateNewAccount();
+							}}
+						>
+							Generate new account
+						</Button>
 					</Grid>
 				</Grid>
 			</Grid>
@@ -400,7 +396,7 @@ const MainPage: React.FC = () => {
 				</Grid>
 			</Box>
 
-			<Grid container columns={12} colSpacing={4}>
+			<Grid container columns={12} colSpacing={3} rowSpacing={3}>
 				<Grid row>
 					<Grid md={6} xs={12}>
 						<MyAccountWidget accounts={myAccounts} onSelect={account => setShowAccount(account)} />

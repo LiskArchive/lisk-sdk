@@ -59,6 +59,11 @@
 	font-weight: 700;
 	line-height: 1.2;
 	letter-spacing: 0;
+
+	&.light {
+		font-size: 26px;
+		font-weight: 300;
+	}
 }
 
 .h2 {
