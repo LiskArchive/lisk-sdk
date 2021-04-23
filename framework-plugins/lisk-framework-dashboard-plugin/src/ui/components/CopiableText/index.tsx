@@ -50,7 +50,7 @@ const CopiableText: React.FC<Props> = props => {
 				</Text>
 			</span>
 			<span
-				className={`${styles.clickableRow} ${styles.clickable}`}
+				className={`${styles.clickable}`}
 				hidden={hover}
 				onClick={async () => clipToClipboard(text)}
 			>

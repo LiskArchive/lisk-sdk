@@ -17,12 +17,21 @@ import styles from './Input.module.scss';
 
 export type SelectInputOptionType = { label: string; value: string };
 
-interface Props {
+interface SingleSelectProps {
 	options: SelectInputOptionType[];
-	multi?: boolean;
+	multi: false;
+	onChange?: (value: SelectInputOptionType) => void;
+	selected?: SelectInputOptionType;
+}
+
+interface MultiSelectProps {
+	options: SelectInputOptionType[];
+	multi: true;
 	onChange?: (value: SelectInputOptionType[]) => void;
 	selected?: SelectInputOptionType[];
 }
+
+type Props = SingleSelectProps | MultiSelectProps;
 
 const customSelectStyles: StylesConfig<SelectInputOptionType, boolean> = {
 	container: (currentStyles, _state) => ({
@@ -130,28 +139,27 @@ const customSelectStyles: StylesConfig<SelectInputOptionType, boolean> = {
 };
 
 const SelectInput: React.FC<Props> = props => {
-	const { options } = props;
-	const multi = props.multi ?? false;
-	const [value, setValue] = React.useState<SelectInputOptionType[]>(props.selected ?? []);
+	const { options, multi } = props;
+	const [value, setValue] = React.useState<ValueType<SelectInputOptionType, boolean>>(
+		props.selected ?? [],
+	);
 
 	const onChangeHandler = (
 		newValue: ValueType<SelectInputOptionType, boolean>,
 		_actionMeta: ActionMeta<SelectInputOptionType>,
 	) => {
-		let updatedValue: SelectInputOptionType[];
+		let updatedValue!: SelectInputOptionType | SelectInputOptionType[];
 
 		if (newValue && multi) {
 			updatedValue = newValue as SelectInputOptionType[];
 		} else if (newValue && !multi) {
-			updatedValue = [newValue as SelectInputOptionType];
-		} else {
-			updatedValue = [];
+			updatedValue = newValue as SelectInputOptionType;
 		}
 
 		setValue(updatedValue);
 
 		if (props.onChange) {
-			props.onChange(updatedValue);
+			props.onChange(updatedValue as SelectInputOptionType & SelectInputOptionType[]);
 		}
 	};
 
