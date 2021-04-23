@@ -98,3 +98,8 @@ export interface SendTransactionOptions {
 	asset: Record<string, unknown>;
 	passphrase: string;
 }
+
+export interface CallActionOptions {
+	name: string;
+	params: Record<string, unknown>;
+}

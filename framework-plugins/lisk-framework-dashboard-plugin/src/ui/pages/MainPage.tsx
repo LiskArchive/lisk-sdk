@@ -28,7 +28,15 @@ import CallActionWidget from '../components/widgets/CallActionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import useMessageDialog from '../providers/useMessageDialog';
-import { Account, Block, NodeInfo, Transaction, EventData, SendTransactionOptions } from '../types';
+import {
+	Account,
+	Block,
+	NodeInfo,
+	Transaction,
+	EventData,
+	SendTransactionOptions,
+	CallActionOptions,
+} from '../types';
 import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
 import styles from './MainPage.module.scss';
@@ -260,6 +268,27 @@ const MainPage: React.FC = () => {
 		}
 	};
 
+	const handleCallAction = async (data: CallActionOptions) => {
+		try {
+			const result = await getClient().invoke(data.name, data.params);
+			showMessageDialog(
+				'Success!',
+				<React.Fragment>
+					<Text type={'p'}>{JSON.stringify(result)}</Text>
+				</React.Fragment>,
+			);
+		} catch (err) {
+			showMessageDialog(
+				'Error:',
+				<React.Fragment>
+					<Text type={'p'} color={'red'}>
+						{(err as Error).message}
+					</Text>
+				</React.Fragment>,
+			);
+		}
+	};
+
 	const CurrentHeightPanel = () => (
 		<InfoPanel title={'Current height'}>
 			<Text color="green" type="h1">
@@ -406,7 +435,12 @@ const MainPage: React.FC = () => {
 						/>
 					</Grid>
 					<Grid md={6} xs={12}>
-						<CallActionWidget actions={actions} onSubmit={data => console.info(data)} />
+						<CallActionWidget
+							actions={actions}
+							onSubmit={data => {
+								handleCallAction(data).catch(console.error);
+							}}
+						/>
 					</Grid>
 				</Grid>
 

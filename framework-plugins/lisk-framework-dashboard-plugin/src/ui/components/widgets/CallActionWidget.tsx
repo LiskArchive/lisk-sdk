@@ -18,15 +18,15 @@ import SelectInput, { SelectInputOptionType } from '../input/SelectInput';
 import { TextAreaInput } from '../input';
 import Box from '../Box';
 import Button from '../Button';
+import { CallActionOptions } from '../../types';
 
 interface WidgetProps {
 	actions: string[];
-	onSubmit: (data: { action: string; keyValue: string }) => void;
+	onSubmit: (data: CallActionOptions) => void;
 }
 
 const CallActionWidget: React.FC<WidgetProps> = props => {
 	const actions = props.actions.map(action => ({ label: action, value: action })).flat();
-	const [listOptions] = React.useState<SelectInputOptionType[]>(actions);
 	const [selectedAction, setSelectedAction] = React.useState<SelectInputOptionType>();
 	const [keyValue, setKeyValue] = React.useState('');
 
@@ -37,7 +37,10 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 
 		const actionName = selectedAction.value;
 
-		props.onSubmit({ action: actionName, keyValue });
+		props.onSubmit({
+			name: actionName,
+			params: (JSON.parse(keyValue) as unknown) as Record<string, unknown>,
+		});
 	};
 
 	return (
@@ -49,7 +52,7 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 				<Box mb={4}>
 					<SelectInput
 						multi={false}
-						options={listOptions}
+						options={actions}
 						selected={selectedAction}
 						onChange={val => setSelectedAction(val)}
 					></SelectInput>
