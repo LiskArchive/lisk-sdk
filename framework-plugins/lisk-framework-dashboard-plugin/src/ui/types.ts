@@ -87,7 +87,7 @@ export interface Transaction {
 	fee: number;
 }
 
-export interface Event {
+export interface EventData {
 	name: string;
 	data: Record<string, unknown>;
 }

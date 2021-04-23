@@ -22,12 +22,12 @@ import Grid from '../components/Grid';
 import InfoPanel from '../components/InfoPanel';
 import Logo from '../components/Logo';
 import Text from '../components/Text';
-import { BlockWidget, TransactionWidget } from '../components/widgets';
+import { BlockWidget, RecentEventWidget, TransactionWidget } from '../components/widgets';
 import CallActionWidget from '../components/widgets/CallActionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import useMessageDialog from '../providers/useMessageDialog';
-import { Account, Block, NodeInfo, Transaction } from '../types';
+import { Account, Block, NodeInfo, Transaction, EventData } from '../types';
 import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
 import styles from './MainPage.module.scss';
@@ -89,6 +89,10 @@ const MainPage: React.FC = () => {
 		unconfirmedTransactionsRef,
 	] = useRefState<Transaction[]>([]);
 	const [events, setEvents] = React.useState<string[]>([]);
+	const [eventsData, setEventsData, eventsDataRef] = useRefState<EventData[]>([]);
+	const [eventSubscriptionList, setEventSubscriptionList, eventSubscriptionListRef] = useRefState<
+		string[]
+	>([]);
 	const [actions, setActions] = React.useState<string[]>([]);
 
 	// Dialogs related States
@@ -127,6 +131,16 @@ const MainPage: React.FC = () => {
 		[dashboard.connected],
 	);
 
+	const newEventListener = React.useCallback(
+		(name: string, event?: Record<string, unknown>) => {
+			if (eventSubscriptionListRef.current.includes(name)) {
+				eventsDataRef.current.unshift({ name, data: event ?? {} });
+				setEventsData(eventsDataRef.current);
+			}
+		},
+		[dashboard.connected],
+	);
+
 	const initClient = async () => {
 		try {
 			setClient(await apiClient.createWSClient(dashboard.applicationUrl as string));
@@ -139,13 +153,18 @@ const MainPage: React.FC = () => {
 	const subscribeEvents = async () => {
 		getClient().subscribe('app:block:new', newBlockListener);
 		getClient().subscribe('app:transaction:new', newTransactionListener);
-
-		setEvents(await getClient().invoke<string[]>('app:getRegisteredEvents'));
 		setActions(await getClient().invoke<string[]>('app:getRegisteredActions'));
+
+		const listOfEvents = await getClient().invoke<string[]>('app:getRegisteredEvents');
+		listOfEvents.map(eventName =>
+			getClient().subscribe(eventName, event => {
+				newEventListener(eventName, event);
+			}),
+		);
+		setEvents(listOfEvents);
 	};
 
 	const loadNodeInfo = async () => {
-		console.info(await getClient().node.getNodeInfo());
 		setNodeInfo(await getClient().node.getNodeInfo());
 	};
 
@@ -199,6 +218,11 @@ const MainPage: React.FC = () => {
 			loadPeersInfo().catch(console.error);
 		}
 	}, [dashboard.connected]);
+
+	// Refresh event subscriptions
+	React.useEffect(() => {
+		setEventsData([]);
+	}, [eventSubscriptionList]);
 
 	const CurrentHeightPanel = () => (
 		<InfoPanel title={'Current height'}>
@@ -349,7 +373,14 @@ const MainPage: React.FC = () => {
 				</Grid>
 
 				<Grid row>
-					<Grid xs={12}>{events}</Grid>
+					<Grid xs={12}>
+						<RecentEventWidget
+							events={events}
+							onSelect={selectedEvents => setEventSubscriptionList(selectedEvents)}
+							selected={[]}
+							data={eventsData}
+						/>
+					</Grid>
 				</Grid>
 			</Grid>
 
