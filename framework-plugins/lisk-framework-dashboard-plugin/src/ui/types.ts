@@ -91,3 +91,10 @@ export interface EventData {
 	name: string;
 	data: Record<string, unknown>;
 }
+
+export interface SendTransactionOptions {
+	moduleID: number;
+	assetID: number;
+	asset: Record<string, unknown>;
+	passphrase: string;
+}

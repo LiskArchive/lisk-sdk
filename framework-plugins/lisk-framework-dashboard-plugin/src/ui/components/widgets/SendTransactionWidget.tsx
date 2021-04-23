@@ -14,7 +14,7 @@
 import * as React from 'react';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
-import { RegisteredModule } from '../../types';
+import { RegisteredModule, SendTransactionOptions } from '../../types';
 import SelectInput, { SelectInputOptionType } from '../input/SelectInput';
 import { TextAreaInput } from '../input';
 import Box from '../Box';
@@ -22,12 +22,7 @@ import Button from '../Button';
 
 interface WidgetProps {
 	modules: RegisteredModule[];
-	onSubmit: (data: {
-		moduleID: number;
-		assetID: number;
-		asset: string;
-		passphrase: string;
-	}) => void;
+	onSubmit: (data: SendTransactionOptions) => void;
 }
 
 const SendTransactionWidget: React.FC<WidgetProps> = props => {
@@ -73,8 +68,13 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 			}
 		}
 
-		if (moduleID && assetID) {
-			props.onSubmit({ moduleID, assetID, passphrase, asset });
+		if (moduleID !== undefined && assetID !== undefined) {
+			props.onSubmit({
+				moduleID,
+				assetID,
+				passphrase,
+				asset: JSON.parse(asset) as Record<string, unknown>,
+			});
 		}
 	};
 

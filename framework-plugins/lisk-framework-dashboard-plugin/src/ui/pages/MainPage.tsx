@@ -15,6 +15,7 @@ import { apiClient, cryptography, passphrase } from '@liskhq/lisk-client';
 import * as React from 'react';
 import Box from '../components/Box';
 import Button from '../components/Button';
+import CopiableText from '../components/CopiableText';
 import AccountDialog from '../components/dialogs/AccountDialog';
 import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
@@ -27,7 +28,7 @@ import CallActionWidget from '../components/widgets/CallActionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import useMessageDialog from '../providers/useMessageDialog';
-import { Account, Block, NodeInfo, Transaction, EventData } from '../types';
+import { Account, Block, NodeInfo, Transaction, EventData, SendTransactionOptions } from '../types';
 import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
 import styles from './MainPage.module.scss';
@@ -224,6 +225,41 @@ const MainPage: React.FC = () => {
 		setEventsData([]);
 	}, [eventSubscriptionList]);
 
+	// Send Transaction
+	const handleSendTransaction = async (data: SendTransactionOptions) => {
+		try {
+			const { publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(data.passphrase);
+			const transaction = await getClient().transaction.create(
+				{
+					moduleID: data.moduleID,
+					assetID: data.assetID,
+					asset: data.asset,
+					senderPublicKey: publicKey,
+					fee: BigInt(10000),
+				},
+				data.passphrase,
+			);
+			await getClient().transaction.send(transaction);
+
+			showMessageDialog(
+				'Success!',
+				<React.Fragment>
+					<Text type={'p'}>Transaction with following id received:</Text>
+					<CopiableText text={(transaction as { id: string }).id} />
+				</React.Fragment>,
+			);
+		} catch (err) {
+			showMessageDialog(
+				'Error:',
+				<React.Fragment>
+					<Text type={'p'} color={'red'}>
+						{(err as Error).message}
+					</Text>
+				</React.Fragment>,
+			);
+		}
+	};
+
 	const CurrentHeightPanel = () => (
 		<InfoPanel title={'Current height'}>
 			<Text color="green" type="h1">
@@ -364,7 +400,9 @@ const MainPage: React.FC = () => {
 					<Grid md={6} xs={12}>
 						<SendTransactionWidget
 							modules={nodeInfo.registeredModules}
-							onSubmit={data => console.info(data)}
+							onSubmit={data => {
+								handleSendTransaction(data).catch(console.error);
+							}}
 						/>
 					</Grid>
 					<Grid md={6} xs={12}>
