@@ -46,6 +46,8 @@ import {
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
+	INVALID_CONNECTION_ADDRESS_CODE,
+	INVALID_CONNECTION_ADDRESS_REASON,
 	DEFAULT_PEER_STATUS_MESSAGE_RATE,
 } from './constants';
 import { PeerInboundDuplicateConnectionError } from './errors';
@@ -403,8 +405,8 @@ export class P2P extends EventEmitter {
 		this._handleInboundPeerConnect = (incomingPeerConnection: IncomingPeerConnection): void => {
 			if (!isIPV4(incomingPeerConnection.socket.remoteAddress)) {
 				incomingPeerConnection.socket.disconnect(
-					INVALID_CONNECTION_URL_CODE,
-					INVALID_CONNECTION_URL_REASON,
+					INVALID_CONNECTION_ADDRESS_CODE,
+					INVALID_CONNECTION_ADDRESS_REASON,
 				);
 
 				this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, INVALID_CONNECTION_URL_REASON);
