@@ -244,7 +244,8 @@ const MainPage: React.FC = () => {
 						<TextInput placeholder={'Some text'} onChange={val => console.info(val)} />
 						<br />
 						<TextAreaInput
-							placeholder={JSON.stringify({ key: 'tokenTransfer', value: 'token:transfer' })}
+							value={JSON.stringify({ key: 'tokenTransfer', value: 'token:transfer' }, null, 2)}
+							json={true}
 							size={'l'}
 							onChange={val => console.info(val)}
 						/>
