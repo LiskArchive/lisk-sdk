@@ -12,19 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
+import * as CodeMirror from 'codemirror';
 import styles from './Input.module.scss';
+import 'codemirror/lib/codemirror.css';
+import 'codemirror/theme/night.css';
+import 'codemirror/theme/icecoder.css';
+import 'codemirror/mode/javascript/javascript';
 
 interface Props {
 	placeholder?: string;
 	value?: string;
 	onChange?: (val: string) => void;
 	size?: 's' | 'm' | 'l';
+	json?: boolean;
 }
 
 const TextAreaInput: React.FC<Props> = props => {
 	const { placeholder } = props;
 	const size = props.size ?? 'm';
 	const [value, updateValue] = React.useState(props.value);
+	const [initialized, updateInitialized] = React.useState(false);
 
 	const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		updateValue(event.target.value);
@@ -34,9 +41,24 @@ const TextAreaInput: React.FC<Props> = props => {
 		}
 	};
 
+	const textAreaEl = React.useRef<HTMLTextAreaElement>(null);
+	React.useEffect(() => {
+		if (textAreaEl.current && props.json && !initialized) {
+			CodeMirror.fromTextArea(textAreaEl.current, {
+				mode: { name: 'javascript', json: true, statementIndent: 2 },
+				indentWithTabs: true,
+				lineWrapping: true,
+				matchBrackets: true,
+				theme: 'night',
+			} as any);
+			updateInitialized(true);
+		}
+	}, [initialized]);
+
 	return (
 		<textarea
 			value={value}
+			ref={textAreaEl}
 			placeholder={placeholder}
 			className={`${styles.textArea} ${styles[`textArea-${size}`]}`}
 			onChange={handleOnChange}
