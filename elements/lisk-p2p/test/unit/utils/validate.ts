@@ -185,13 +185,13 @@ describe('utils/validate', () => {
 			expect(validatePeerAddress(peer.ipAddress, peer.port)).toBe(true);
 		});
 
-		it('should return true for correct IPv6', () => {
+		it('should return false for correct IPv6', () => {
 			const peer = {
 				ipAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
 				port: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ipAddress, peer.port)).toBe(true);
+			expect(validatePeerAddress(peer.ipAddress, peer.port)).toBe(false);
 		});
 
 		it('should return false for incorrect ipAddress', () => {
