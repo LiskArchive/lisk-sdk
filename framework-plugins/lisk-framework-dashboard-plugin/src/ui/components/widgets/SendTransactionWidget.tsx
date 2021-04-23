@@ -29,7 +29,7 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	const [listOptions, setListOptions] = React.useState<SelectInputOptionType[]>([]);
 	const [selectedAsset, setSelectedAsset] = React.useState<SelectInputOptionType>();
 	const [passphrase, setPassphrase] = React.useState('');
-	const [asset, setAsset] = React.useState('');
+	const [asset, setAsset] = React.useState('{}');
 
 	React.useEffect(() => {
 		const assets = props.modules
@@ -104,7 +104,7 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 
 				<Box mb={4}>
 					<TextAreaInput
-						placeholder={'JSON Object'}
+						placeholder={'Asset'}
 						size={'m'}
 						value={asset}
 						onChange={val => setAsset(val)}

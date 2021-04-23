@@ -28,7 +28,7 @@ interface WidgetProps {
 const CallActionWidget: React.FC<WidgetProps> = props => {
 	const actions = props.actions.map(action => ({ label: action, value: action })).flat();
 	const [selectedAction, setSelectedAction] = React.useState<SelectInputOptionType>();
-	const [keyValue, setKeyValue] = React.useState('');
+	const [keyValue, setKeyValue] = React.useState('{}');
 
 	const handleSubmit = () => {
 		if (!selectedAction) {
@@ -60,7 +60,7 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 
 				<Box mb={4}>
 					<TextAreaInput
-						placeholder={'Key'}
+						placeholder={'Params'}
 						size={'l'}
 						value={keyValue}
 						onChange={val => setKeyValue(val)}

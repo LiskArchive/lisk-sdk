@@ -40,7 +40,14 @@ const MessageDialogProvider: React.FC = props => {
 
 	return (
 		<MessageDialogProviderContext.Provider value={{ state, dispatch: updateState }}>
-			<MessageDialog open={state.open} title={state.title} backBtn={state.backBtn}>
+			<MessageDialog
+				open={state.open}
+				title={state.title}
+				backBtn={state.backBtn}
+				onClose={() => {
+					updateState({ ...state, open: false });
+				}}
+			>
 				{state.body}
 			</MessageDialog>
 			{props.children}
