@@ -21,6 +21,7 @@ import NodeInfoDialog from '../components/dialogs/NodeInfoDialog';
 import PeersInfoDialog from '../components/dialogs/PeersInfoDialog';
 import Grid from '../components/Grid';
 import InfoPanel from '../components/InfoPanel';
+import { TextAreaInput } from '../components/input';
 import Logo from '../components/Logo';
 import Text from '../components/Text';
 import { BlockWidget, RecentEventWidget, TransactionWidget } from '../components/widgets';
@@ -255,6 +256,7 @@ const MainPage: React.FC = () => {
 					<Text type={'p'}>Transaction with following id received:</Text>
 					<CopiableText text={(transaction as { id: string }).id} />
 				</React.Fragment>,
+				{ backButton: true },
 			);
 		} catch (err) {
 			showMessageDialog(
@@ -271,11 +273,11 @@ const MainPage: React.FC = () => {
 	const handleCallAction = async (data: CallActionOptions) => {
 		try {
 			const result = await getClient().invoke(data.name, data.params);
+			console.info(result);
 			showMessageDialog(
 				'Success!',
-				<React.Fragment>
-					<Text type={'p'}>{JSON.stringify(result)}</Text>
-				</React.Fragment>,
+				<TextAreaInput size={'l'} value={JSON.stringify(result)} json={true}></TextAreaInput>,
+				{ backButton: true },
 			);
 		} catch (err) {
 			showMessageDialog(
