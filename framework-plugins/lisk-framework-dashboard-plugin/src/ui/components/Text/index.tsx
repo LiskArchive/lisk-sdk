@@ -17,6 +17,7 @@ import styles from './Text.module.scss';
 export interface Props {
 	color?: 'green' | 'pink' | 'yellow' | 'blue' | 'white' | 'gray' | 'red';
 	type?: 'h1' | 'h2' | 'h3' | 'th' | 'tr' | 'p';
+	className?: string;
 }
 
 const Text: React.FC<Props> = props => {
@@ -26,7 +27,11 @@ const Text: React.FC<Props> = props => {
 	styleProps.push(type);
 	styleProps.push(`color_${color}`);
 	const Tag = ['h1', 'h2', 'h3', 'p'].includes(type) ? type : 'p';
-	return <Tag className={styleProps.map(prop => styles[prop]).join(' ')}>{props.children}</Tag>;
+	return (
+		<Tag className={`${styleProps.map(prop => styles[prop]).join(' ')} ${props.className ?? ''}`}>
+			{props.children}
+		</Tag>
+	);
 };
 
 export default Text;
