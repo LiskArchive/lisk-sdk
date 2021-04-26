@@ -452,6 +452,12 @@ const MainPage: React.FC = () => {
 						/>
 					</Grid>
 				</Grid>
+
+				<Grid row>
+					<Grid xs={12}>
+						<Text>© 2021 Lisk Foundation</Text>
+					</Grid>
+				</Grid>
 			</Grid>
 
 			<AccountDialog
