@@ -928,6 +928,38 @@ describe('forger', () => {
 				);
 			});
 
+			it('should log message and return if validator is not present for given time', async () => {
+				jest.spyOn(chainModuleStub, 'getValidator').mockResolvedValue(undefined);
+
+				const today = new Date();
+				const future = new Date(today.getTime() + 60 * 60 * 100);
+				const futureTimestamp = future.getTime();
+				const futureSlotTime = Math.floor(futureTimestamp / 1000);
+
+				const dateNowMockFn = jest
+					.spyOn(Date.prototype, 'getTime')
+					.mockReturnValue(futureTimestamp);
+
+				chainModuleStub.slots.getSlotTime.mockReturnValue(futureSlotTime);
+
+				const changedLastBlockSlot = currentSlot - 2;
+				when(getSlotNumberStub)
+					.calledWith(lastBlock.header.timestamp)
+					.mockReturnValue(changedLastBlockSlot);
+
+				chainModuleStub.slots.getSlotTime.mockReturnValue(futureSlotTime);
+
+				const data = await forgeModule.forge();
+
+				expect(data).toBeUndefined();
+				expect(loggerStub.trace).toHaveBeenCalledTimes(1);
+				expect(loggerStub.trace).toHaveBeenCalledWith(
+					{ currentSlot: 5 },
+					'Waiting for delegate slot',
+				);
+				dateNowMockFn.mockRestore();
+			});
+
 			it('should wait for threshold time if last block not received', async () => {
 				jest
 					.spyOn(chainModuleStub, 'getValidator')
