@@ -1,0 +1,45 @@
+@import '../../styles/constants';
+
+.wrapper {
+	display: inline-flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	height: 53px;
+	color: $color-white;
+}
+
+.img {
+	width: auto;
+	height: 50px;
+
+	@include mq-down(md) {
+		height: 30px;
+	}
+}
+
+.branding {
+	padding: 14px 10px 1px 11px;
+	flex-direction: column;
+	display: inline-flex;
+	justify-content: space-between;
+	height: 50px;
+	box-sizing: border-box;
+
+	@include mq-down(md) {
+		height: 30px;
+		padding: 8px 10px 1px 11px;
+	}
+}
+
+.brandingText {
+	text-transform: uppercase;
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: 1.23px;
+	font-family: 'Roboto';
+
+	@include mq-down(md) {
+		font-size: 10px;
+		font-weight: normal;
+	}
+}

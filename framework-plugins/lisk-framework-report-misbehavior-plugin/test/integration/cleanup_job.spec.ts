@@ -136,7 +136,7 @@ describe('Clean up old blocks', () => {
 				blockHeaders: [blockHeader1],
 			}),
 		);
-		await waitTill(100);
+		await waitTill(300);
 		await expect((reportMisbehaviorPlugin as any)._pluginDB.get(dbKey)).rejects.toThrow(
 			`Specified key ${dbKey} does not exist`,
 		);

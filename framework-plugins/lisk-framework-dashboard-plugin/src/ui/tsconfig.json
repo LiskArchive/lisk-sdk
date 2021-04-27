@@ -1,0 +1,15 @@
+{
+	"extends": "../../tsconfig",
+	"compilerOptions": {
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"allowJs": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+		"isolatedModules": true,
+		"noEmit": true,
+		"jsx": "react"
+	},
+	"include": ["./**/*.{ts,tsx}", "react-app-env.d.ts"]
+}

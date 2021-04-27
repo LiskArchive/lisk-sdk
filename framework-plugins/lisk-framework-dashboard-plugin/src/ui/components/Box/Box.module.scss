@@ -1,0 +1,81 @@
+@import '../../styles/constants';
+
+$indent: 6;
+$base: 5px;
+$grid-sizes: 'xs', 'sm', 'md', 'lg', 'xl';
+
+@each $breakpoint in $grid-sizes {
+	.hideDown-#{$breakpoint} {
+		@include mq-down($breakpoint) {
+			display: none;
+		}
+	}
+
+	.hideUp-#{$breakpoint} {
+		@include mq-up($breakpoint) {
+			display: none;
+		}
+	}
+
+	.showDown-#{$breakpoint} {
+		@include mq-down($breakpoint) {
+			display: inherit;
+		}
+	}
+
+	.showUp-#{$breakpoint} {
+		@include mq-up($breakpoint) {
+			display: inherit;
+		}
+	}
+}
+
+@for $i from 1 through $indent {
+	.m-t-#{$i} {
+		margin-top: $base * $i;
+	}
+
+	.m-b-#{$i} {
+		margin-bottom: $base * $i;
+	}
+
+	.m-l-#{$i} {
+		margin-left: $base * $i;
+	}
+
+	.m-r-#{$i} {
+		margin-right: $base * $i;
+	}
+
+	.p-t-#{$i} {
+		padding-top: $base * $i;
+	}
+
+	.p-b-#{$i} {
+		padding-bottom: $base * $i;
+	}
+
+	.p-l-#{$i} {
+		padding-left: $base * $i;
+	}
+
+	.p-r-#{$i} {
+		padding-right: $base * $i;
+	}
+}
+
+.text-align-center {
+	text-align: center;
+}
+
+.text-align-left {
+	text-align: left;
+}
+
+.text-align-right {
+	text-align: right;
+}
+
+.text-align-justify {
+	text-align: justify;
+}
