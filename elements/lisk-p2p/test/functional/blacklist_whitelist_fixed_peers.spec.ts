@@ -26,7 +26,8 @@ const { EVENT_CLOSE_OUTBOUND } = events;
 
 const { INTENTIONAL_DISCONNECT_CODE, SEED_PEER_DISCONNECTION_REASON } = constants;
 
-describe('Blacklisted/fixed/whitelisted peers', () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('Blacklisted/fixed/whitelisted peers', () => {
 	const FIVE_CONNECTIONS = 5;
 	const NETWORK_START_PORT = 5000;
 	const previousPeers = [

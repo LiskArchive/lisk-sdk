@@ -16,7 +16,8 @@ import { DEFAULT_MESSAGE_ENCODING_FORMAT } from '../../../src/constants';
 import { P2P, events } from '../../../src/index';
 import { createNetwork, destroyNetwork, NETWORK_PEER_COUNT } from '../../utils/network_setup';
 
-describe('P2P.request', () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('P2P.request', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeAll(async () => {
