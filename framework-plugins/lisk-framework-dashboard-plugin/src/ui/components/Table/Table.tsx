@@ -17,7 +17,11 @@ import styles from './Table.module.scss';
 const Table: React.FC = props => {
 	const classes = [styles.root];
 
-	return <table className={`${classes.join(' ')}`}>{props.children}</table>;
+	return (
+		<div className={styles.tableContainer}>
+			<table className={`${classes.join(' ')}`}>{props.children}</table>
+		</div>
+	);
 };
 
 export default Table;

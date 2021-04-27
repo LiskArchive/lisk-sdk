@@ -40,22 +40,21 @@ const CopiableText: React.FC<Props> = props => {
 
 	return (
 		<div
-			className={styles.clickableContainer}
+			className={styles.root}
 			onMouseOver={() => (text === COPIED_TEXT ? setHover(true) : setHover(false))}
 			onMouseOut={() => setHover(true)}
 		>
-			<span className={styles.clickableRow}>
-				<Text color={props.color} type={props.type}>
-					{text}
-				</Text>
-			</span>
-			<span
-				className={`${styles.clickable}`}
-				hidden={hover}
-				onClick={async () => clipToClipboard(text)}
-			>
-				<Icon name={'content_copy'} size={props.size}></Icon>
-			</span>
+			<Text color={props.color} type={props.type} className={styles.copyText}>
+				{text.substr(0, text.length - 4)}
+			</Text>
+			<Text color={props.color} type={props.type} className={styles.copyTextIndent}>
+				{text.substr(text.length - 4)}
+			</Text>
+			<div className={`${styles.icon}`} onClick={async () => clipToClipboard(text)}>
+				<span hidden={hover}>
+					<Icon name={'content_copy'} size={props.size}></Icon>
+				</span>
+			</div>
 		</div>
 	);
 };

@@ -18,6 +18,7 @@ export interface Props {
 	color?: 'green' | 'pink' | 'yellow' | 'blue' | 'white' | 'gray' | 'platinum_gray' | 'red';
 	type?: 'h1' | 'h2' | 'h3' | 'p' | 'tr';
 	style?: 'light';
+	className?: string;
 }
 
 const Text: React.FC<Props> = props => {
@@ -32,7 +33,11 @@ const Text: React.FC<Props> = props => {
 	}
 
 	const Tag = ['h1', 'h2', 'h3', 'p'].includes(type) ? type : 'p';
-	return <Tag className={styleProps.map(prop => styles[prop]).join(' ')}>{props.children}</Tag>;
+	return (
+		<Tag className={`${styleProps.map(prop => styles[prop]).join(' ')} ${props.className ?? ''}`}>
+			{props.children}
+		</Tag>
+	);
 };
 
 export default Text;

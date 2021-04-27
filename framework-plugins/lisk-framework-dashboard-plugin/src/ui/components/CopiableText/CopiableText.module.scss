@@ -1,17 +1,24 @@
-.clickable {
-	cursor: pointer;
-	margin-left: 8px;
-	max-width: 5%;
-}
-
-.clickableRow {
-	padding: 0.5px;
+.root {
 	min-height: 20px;
-	max-width: 95%;
+	display: flex;
+	width: 100%;
 }
 
-.clickableContainer {
-	min-width: 100%;
-	display: inline-flex;
-	align-items: center;
+.copyText {
+	overflow-wrap: unset !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.copyTextIndent {
+	overflow-wrap: unset !important;
+	flex-basis: 30px;
+	width: 30px;
+}
+
+.icon {
+	cursor: pointer;
+	min-width: 20px;
+	margin-left: 5px;
+	flex-basis: 20px;
 }
