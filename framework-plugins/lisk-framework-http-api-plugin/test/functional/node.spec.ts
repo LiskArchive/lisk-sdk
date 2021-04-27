@@ -57,6 +57,11 @@ describe('Node', () => {
 				registeredModules: expect.any(Array),
 				network: {
 					port: appInstance._node._options.network.port,
+					hostIp: appInstance._node._options.network.hostIp,
+					seedPeers: appInstance._node._options.network.seedPeers,
+					blacklistedIPs: appInstance._node._options.network.blacklistedIPs,
+					fixedPeers: appInstance._node._options.network.fixedPeers,
+					whitelistedPeers: appInstance._node._options.network.whitelistedPeers,
 				},
 			};
 

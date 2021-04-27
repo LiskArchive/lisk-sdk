@@ -509,6 +509,11 @@ export class Node {
 				registeredModules: this.getRegisteredModules(),
 				network: {
 					port: this._options.network.port,
+					hostIp: this._options.network.hostIp,
+					seedPeers: this._options.network.seedPeers,
+					blacklistedIPs: this._options.network.blacklistedIPs,
+					fixedPeers: this._options.network.fixedPeers,
+					whitelistedPeers: this._options.network.whitelistedPeers,
 				},
 			}),
 			getConnectedPeers: () => this._networkModule.getConnectedPeers(),
