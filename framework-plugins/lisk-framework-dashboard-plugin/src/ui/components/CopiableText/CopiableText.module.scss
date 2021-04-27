@@ -1,22 +1,24 @@
 .root {
-	min-height: 30px;
+	min-height: 20px;
 	display: flex;
 	width: 100%;
 }
 
 .copyText {
-	overflow-wrap: unset;
+	overflow-wrap: unset !important;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 .copyTextIndent {
-	overflow-wrap: normal;
+	overflow-wrap: unset !important;
+	flex-basis: 30px;
+	width: 30px;
 }
 
 .icon {
 	cursor: pointer;
-	width: 30px;
+	min-width: 20px;
 	margin-left: 5px;
-	flex-basis: 30px;
+	flex-basis: 20px;
 }

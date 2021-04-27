@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import { TableBody, TableHeader, Table } from '../Table';
-import CopiableText from '../CopiableText';
-import { Widget, WidgetHeader, WidgetBody } from '../widget';
-import Text from '../Text';
 import { Block } from '../../types';
+import CopiableText from '../CopiableText';
+import { Table, TableBody, TableHeader } from '../Table';
+import Text from '../Text';
+import { Widget, WidgetBody, WidgetHeader } from '../widget';
 
 interface WidgetProps {
 	blocks: Block[];
