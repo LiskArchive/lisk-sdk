@@ -387,7 +387,7 @@ export class Forger {
 		if (!validator) {
 			this._logger.trace(
 				{ currentSlot: this._chainModule.slots.getSlotNumber() },
-				'Waiting for delegate slot',
+				'No validator is set for current time slot',
 			);
 			return;
 		}

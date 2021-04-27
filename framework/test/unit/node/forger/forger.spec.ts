@@ -949,14 +949,8 @@ describe('forger', () => {
 
 				chainModuleStub.slots.getSlotTime.mockReturnValue(futureSlotTime);
 
-				const data = await forgeModule.forge();
-
-				expect(data).toBeUndefined();
-				expect(loggerStub.trace).toHaveBeenCalledTimes(1);
-				expect(loggerStub.trace).toHaveBeenCalledWith(
-					{ currentSlot: 5 },
-					'Waiting for delegate slot',
-				);
+				await expect(forgeModule.forge()).toResolve();
+				expect(dbStub.put).not.toHaveBeenCalled();
 				dateNowMockFn.mockRestore();
 			});
 
