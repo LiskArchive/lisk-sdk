@@ -27,13 +27,15 @@ const InfoPanel: React.FC<Props> = props => (
 	<Widget>
 		<WidgetBody size={'xs'} mode={props.mode}>
 			<div className={styles.infoHeading}>
-				<Text type="tr" color="gray">
+				<Text type="tr" color="platinum_gray">
 					{props.title}
 				</Text>
 				{props.onClick && (
-					<Icon size={'l'} name={'chevron_right'}>
-						chevron_right
-					</Icon>
+					<a href="#" onClick={props.onClick}>
+						<Icon size={'l'} name={'chevron_right'}>
+							chevron_right
+						</Icon>
+					</a>
 				)}
 			</div>
 			<div>{props.children}</div>
