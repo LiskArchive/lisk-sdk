@@ -3,43 +3,95 @@
 $grid-cols: 12;
 $grid-sizes: 'xs', 'sm', 'md', 'lg', 'xl';
 $base-spacing: 5px;
-$grid-spacing: 5;
+$grid-spacing: 6;
 $flex-justify-values: 'flex-start', 'center', 'flex-end', 'space-between', 'space-around',
 	'space-evenly';
 $flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
+$text-align: 'center', 'left', 'right', 'justify';
 
 @mixin create-col-classes($modifier, $grid-cols) {
-	@include mq-up($modifier) {
-		.gridCol-#{$modifier}-offset-0 {
-			margin-left: 0;
-		}
+	.gridCol {
+		box-sizing: border-box;
+	}
 
-		@for $i from 1 through $grid-cols {
-			.gridCol-#{$modifier}-#{$i} {
-				flex-basis: (100 / ($grid-cols / $i)) * 1%;
-				overflow: auto;
-			}
-			.gridCol-#{$modifier}-offset-#{$i} {
-				margin-left: (100 / ($grid-cols / $i)) * 1%;
+	@include mq-up($modifier) {
+		.grid-#{$grid-cols} {
+			@for $i from 1 through $grid-cols {
+				.gridCol-#{$modifier}-#{$i} {
+					flex-basis: (100 / ($grid-cols / $i)) * 1%;
+          overflow: auto;
+				}
 			}
 		}
 	}
 }
 
-.grid {
-	max-width: $breakpoint-md;
+@mixin create-col-spacing-classes($modifier, $grid-cols) {
+	.grid-#{$grid-cols} {
+		@for $i from 0 through $grid-spacing {
+			&.gridColSpacing-#{$i} {
+				.gridCol {
+					padding-left: $i * $base-spacing;
+					padding-right: $i * $base-spacing;
+				}
+
+				.gridRow {
+					> :last-child {
+						padding-right: 0;
+					}
+					> :first-child {
+						padding-left: 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+@mixin create-row-spacing-classes($modifier, $grid-cols) {
+	.grid-#{$grid-cols} {
+		@for $i from 0 through $grid-spacing {
+			&.gridRowSpacing-#{$i} {
+				.gridRow {
+					padding-top: $i * $base-spacing;
+					padding-bottom: $i * $base-spacing;
+				}
+
+				.grid-#{$grid-cols} {
+					> :last-child {
+						padding-bottom: 0;
+					}
+					> :first-child {
+						padding-top: 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+.grid-12,
+.grid-15 {
+	max-width: $breakpoint-lg - 120px;
 	margin: 0 auto;
 }
 
 .gridFluid {
 	margin: 0;
 	max-width: 100%;
+	width: 100%;
 }
 
 .gridRow {
 	display: flex;
 	flex-wrap: wrap;
 	width: 100%;
+	box-sizing: border-box;
+
+	@include mq-down('lg') {
+		padding-left: 30px;
+		padding-right: 30px;
+	}
 }
 
 .gridRowBorder {
@@ -66,33 +118,20 @@ $flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
 	}
 }
 
-.gridCol {
-	box-sizing: border-box;
+@each $val in $text-align {
+	.gridColTextAlign-#{$val} {
+		text-align: #{$val};
+	}
 }
 
 @each $modifier in $grid-sizes {
-	@include create-col-classes($modifier, $grid-cols);
+	@include create-col-classes($modifier, 12);
+	@include create-col-spacing-classes($modifier, 12);
+	@include create-row-spacing-classes($modifier, 12);
 }
 
-@for $i from 0 through $grid-spacing {
-	.gridSpacing-#{$i} {
-		.gridCol {
-			padding: $i * $base-spacing;
-		}
-
-		@each $breakpoint in $grid-sizes {
-			.gridCol-#{$breakpoint}-12 {
-				padding-left: 0;
-			}
-		}
-
-		.gridRow {
-			> :last-child {
-				padding-right: 0;
-			}
-			> :first-child {
-				padding-left: 0;
-			}
-		}
-	}
+@each $modifier in $grid-sizes {
+	@include create-col-classes($modifier, 15);
+	@include create-col-spacing-classes($modifier, 15);
+	@include create-row-spacing-classes($modifier, 12);
 }

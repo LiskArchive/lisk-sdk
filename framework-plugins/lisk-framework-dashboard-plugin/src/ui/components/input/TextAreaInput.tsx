@@ -33,6 +33,10 @@ const TextAreaInput: React.FC<Props> = props => {
 	const [value, updateValue] = React.useState(props.value);
 	const [initialized, updateInitialized] = React.useState(false);
 
+	React.useEffect(() => {
+		updateValue(props.value);
+	}, [props.value]);
+
 	const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		updateValue(event.target.value);
 
@@ -62,7 +66,7 @@ const TextAreaInput: React.FC<Props> = props => {
 			placeholder={placeholder}
 			className={`${styles.textArea} ${styles[`textArea-${size}`]}`}
 			onChange={handleOnChange}
-		/>
+		></textarea>
 	);
 };
 

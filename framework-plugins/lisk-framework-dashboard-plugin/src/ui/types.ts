@@ -87,7 +87,19 @@ export interface Transaction {
 	fee: number;
 }
 
-export interface Event {
+export interface EventData {
 	name: string;
 	data: Record<string, unknown>;
+}
+
+export interface SendTransactionOptions {
+	moduleID: number;
+	assetID: number;
+	asset: Record<string, unknown>;
+	passphrase: string;
+}
+
+export interface CallActionOptions {
+	name: string;
+	params: Record<string, unknown>;
 }
