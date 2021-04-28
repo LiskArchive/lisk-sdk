@@ -385,7 +385,7 @@ export class Forger {
 
 		const validator = await this._chainModule.getValidator(currentTime);
 		if (!validator) {
-			this._logger.trace(
+			this._logger.debug(
 				{ currentSlot: this._chainModule.slots.getSlotNumber() },
 				'No validator is set for current time slot',
 			);
@@ -394,7 +394,7 @@ export class Forger {
 		const validatorKeypair = this._keypairs.get(validator.address);
 
 		if (validatorKeypair === undefined) {
-			this._logger.trace(
+			this._logger.debug(
 				{ currentSlot: this._chainModule.slots.getSlotNumber() },
 				'Waiting for delegate slot',
 			);
