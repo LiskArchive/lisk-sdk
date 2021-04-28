@@ -34,12 +34,10 @@ export class DashboardPlugin extends BasePlugin {
 	private _options!: dashboardPluginOptions;
 	private _server!: Server;
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
 		return 'dashboard';
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get info(): PluginInfo {
 		return {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -51,22 +49,19 @@ export class DashboardPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): SchemaWithDefault {
 		return defaults.config;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events(): EventsDefinition {
 		return [];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await, class-methods-use-this
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(_channel: BaseChannel): Promise<void> {
 		this._options = objects.mergeDeep(
 			{},
@@ -82,9 +77,8 @@ export class DashboardPlugin extends BasePlugin {
 		this._server = app.listen(this._options.port, this._options.host);
 	}
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
 	public async unload(): Promise<void> {
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			this._server.close(err => {
 				if (err) {
 					reject(err);
