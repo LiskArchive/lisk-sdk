@@ -310,8 +310,7 @@ const MainPage: React.FC = () => {
 
 	const NextBlockPanel = () => (
 		<InfoPanel title={'Next block'}>
-			<Ticker color="yellow" type="h1" style="light" seconds="10">
-			</Ticker>
+			<Ticker color="yellow" type="h1" style="light" seconds={10}></Ticker>
 		</InfoPanel>
 	);
 

@@ -15,29 +15,21 @@ import * as React from 'react';
 import Text, { Props as TextProps } from '../Text';
 
 export interface TickerProps extends TextProps {
-    seconds: TimerHandler;
+	seconds: number;
 }
 
 const Ticker: React.FC<TickerProps> = props => {
+	const [seconds, setSeconds] = React.useState(props.seconds);
 
-    const [seconds, setSeconds] = React.useState(10);
-    
-    React.useEffect(() => {
-        if (seconds > 0) {
-          setTimeout(() => setSeconds(seconds - 1), 1000);
-        } else {
-          clearInterval(seconds);
-        }
-      });
+	React.useEffect(() => {
+		if (seconds > 0) {
+			setTimeout(() => setSeconds(seconds - 1), 1000);
+		} else {
+			clearInterval(seconds);
+		}
+	});
 
-    return (
-
-        <Text {...props}>
-            <div>
-                {seconds}
-            </div>
-        </Text>
-    );
+	return <Text {...props}>{seconds}</Text>;
 };
 
 export default Ticker;
