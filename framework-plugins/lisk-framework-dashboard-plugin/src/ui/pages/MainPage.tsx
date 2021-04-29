@@ -24,6 +24,7 @@ import InfoPanel from '../components/InfoPanel';
 import { TextAreaInput } from '../components/input';
 import Logo from '../components/Logo';
 import Text from '../components/Text';
+import Ticker from '../components/Ticker';
 import { BlockWidget, RecentEventWidget, TransactionWidget } from '../components/widgets';
 import CallActionWidget from '../components/widgets/CallActionWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
@@ -309,9 +310,8 @@ const MainPage: React.FC = () => {
 
 	const NextBlockPanel = () => (
 		<InfoPanel title={'Next block'}>
-			<Text color="yellow" type="h1" style="light">
-				99s
-			</Text>
+			<Ticker color="yellow" type="h1" style="light" seconds="10">
+			</Ticker>
 		</InfoPanel>
 	);
 
