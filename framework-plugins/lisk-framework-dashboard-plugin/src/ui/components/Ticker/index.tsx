@@ -20,15 +20,13 @@ export interface TickerProps extends TextProps {
 
 const Ticker: React.FC<TickerProps> = props => {
 	const [seconds, setSeconds] = React.useState(props.seconds);
-
 	React.useEffect(() => {
+		let timeout: NodeJS.Timeout;
 		if (seconds > 0) {
-			setTimeout(() => setSeconds(seconds - 1), 1000);
-		} else {
-			clearInterval(seconds);
+			timeout = setTimeout(() => setSeconds(seconds - 1), 1000);
 		}
-	});
-
+		return () => clearTimeout(timeout);
+	}, [seconds]);
 	return <Text {...props}>{seconds}</Text>;
 };
 

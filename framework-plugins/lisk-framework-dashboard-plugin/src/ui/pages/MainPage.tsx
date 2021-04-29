@@ -123,7 +123,6 @@ const MainPage: React.FC = () => {
 			setBlocks(result.blocks);
 			setConfirmedTransactions(result.confirmedTransactions);
 			setUnconfirmedTransactions(result.unconfirmedTransactions);
-
 			await loadNodeInfo();
 		},
 		[dashboard.connected],
@@ -310,7 +309,12 @@ const MainPage: React.FC = () => {
 
 	const NextBlockPanel = () => (
 		<InfoPanel title={'Next block'}>
-			<Ticker color="yellow" type="h1" style="light" seconds={10}></Ticker>
+			<Ticker
+				color="yellow"
+				type="h1"
+				style="light"
+				seconds={nodeInfo.genesisConfig.blockTime}
+			></Ticker>
 		</InfoPanel>
 	);
 
