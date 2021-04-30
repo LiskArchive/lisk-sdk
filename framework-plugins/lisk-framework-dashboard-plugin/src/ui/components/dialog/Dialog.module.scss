@@ -29,7 +29,7 @@
 	left: 0;
 	transform: scale(1);
 	overflow: auto;
-	z-index: 2;
+	z-index: 10;
 }
 
 .background {
@@ -50,7 +50,7 @@
 
 	margin: 130px auto;
 
-	max-width: 50%;
+	width: 80%;
 
 	@include mq-down('md') {
 		max-width: 80%;

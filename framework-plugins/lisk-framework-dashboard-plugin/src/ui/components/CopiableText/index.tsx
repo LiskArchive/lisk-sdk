@@ -27,7 +27,8 @@ const CopiableText: React.FC<Props> = props => {
 	const [text, setText] = React.useState(props.text);
 	let copiedTimeout: NodeJS.Timeout;
 
-	const clipToClipboard = async (textToCopy: string) => {
+	const clipToClipboard = async (event: React.MouseEvent, textToCopy: string) => {
+		event.stopPropagation();
 		setHover(true);
 		setText(COPIED_TEXT);
 		copiedTimeout = setTimeout(() => {
@@ -50,7 +51,7 @@ const CopiableText: React.FC<Props> = props => {
 			<Text color={props.color} type={props.type} className={styles.copyTextIndent}>
 				{text.substr(text.length - 4)}
 			</Text>
-			<div className={`${styles.icon}`} onClick={async () => clipToClipboard(text)}>
+			<div className={`${styles.icon}`} onClick={async event => clipToClipboard(event, text)}>
 				<span hidden={hover}>
 					<Icon name={'content_copy'} size={props.size}></Icon>
 				</span>
