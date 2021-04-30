@@ -65,7 +65,7 @@ export const getApplicationUrl = async () => {
 		return 'ws://localhost:5000/ws';
 	}
 
-	const result = ((await fetch('/api/config')).json() as unknown) as { applicationUrl: string };
+	const result = (await (await fetch('/api/config')).json() as unknown) as { applicationUrl: string };
 
 	return result.applicationUrl;
 };
