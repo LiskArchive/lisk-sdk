@@ -65,7 +65,9 @@ export const getApplicationUrl = async () => {
 		return 'ws://localhost:5000/ws';
 	}
 
-	const result = (await (await fetch('/api/config')).json() as unknown) as { applicationUrl: string };
-
+	const apiResponse = await fetch('/api/config');
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const result: { applicationUrl: string } = await apiResponse.json();
+	
 	return result.applicationUrl;
 };
