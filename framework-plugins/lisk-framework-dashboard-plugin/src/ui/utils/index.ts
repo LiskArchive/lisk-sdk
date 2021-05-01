@@ -14,6 +14,16 @@
 import { apiClient } from '@liskhq/lisk-client';
 import { Block, Transaction } from '../types';
 
+interface Config {
+	applicationUrl: string;
+	applicationName: string;
+}
+
+const configDevEnvValues: Config = {
+	applicationUrl: 'ws://localhost:5000/ws',
+	applicationName: 'Lisk',
+}
+
 const MAX_BLOCKS = 103 * 3;
 const MAX_TRANSACTIONS = 150;
 
@@ -60,12 +70,14 @@ export const updateStatesOnNewTransaction = (
 	return [transaction, ...unconfirmedTransactions].slice(-1 * MAX_TRANSACTIONS) as Transaction[];
 };
 
-export const getApplicationUrl = async () => {
+export const getConfig = async (prop: keyof Config) => {
 	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-		return 'ws://localhost:5000/ws';
+		return configDevEnvValues[prop];
 	}
 
-	const result = ((await fetch('/api/config')).json() as unknown) as { applicationUrl: string };
-
-	return result.applicationUrl;
+	const apiResponse = await fetch('/api/config');
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const result: Config = await apiResponse.json();
+	
+	return result[prop];
 };

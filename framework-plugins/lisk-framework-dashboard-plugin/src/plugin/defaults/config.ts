@@ -16,6 +16,10 @@ export const config = {
 	$id: '#/plugins/lisk-dashboard/config',
 	type: 'object',
 	properties: {
+		applicationName: {
+			type: 'string',
+			description: 'Application name to be shown near Logo'
+		},
 		applicationUrl: {
 			type: 'string',
 			format: 'uri',
@@ -36,5 +40,6 @@ export const config = {
 		applicationUrl: 'ws://localhost:8080/ws',
 		port: 4005,
 		host: '127.0.0.1',
+		applicationName: 'Lisk',
 	},
 };

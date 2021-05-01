@@ -39,7 +39,7 @@ import {
 	SendTransactionOptions,
 	CallActionOptions,
 } from '../types';
-import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
+import { getConfig, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
 import styles from './MainPage.module.scss';
 
@@ -73,6 +73,7 @@ const connectionErrorMessage = (
 interface DashboardState {
 	connected: boolean;
 	applicationUrl?: string;
+	applicationName?: string;
 }
 
 const MainPage: React.FC = () => {
@@ -187,6 +188,10 @@ const MainPage: React.FC = () => {
 		});
 	};
 
+	const loadApplicationName = async () => {
+		setDashboard({ ...dashboard, applicationName: await getConfig('applicationName')});
+	}
+
 	const generateNewAccount = () => {
 		const accountPassphrase = (passphrase.Mnemonic.generateMnemonic() as unknown) as string;
 		const { address, publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(
@@ -207,7 +212,7 @@ const MainPage: React.FC = () => {
 	// Get connection string
 	React.useEffect(() => {
 		const initConnectionStr = async () => {
-			setDashboard({ ...dashboard, applicationUrl: await getApplicationUrl() });
+			setDashboard({ ...dashboard, applicationUrl: await getConfig('applicationUrl') });
 		};
 
 		initConnectionStr().catch(console.error);
@@ -226,6 +231,7 @@ const MainPage: React.FC = () => {
 			subscribeEvents().catch(console.error);
 			loadNodeInfo().catch(console.error);
 			loadPeersInfo().catch(console.error);
+			loadApplicationName().catch(console.error);
 		}
 	}, [dashboard.connected]);
 
@@ -338,7 +344,7 @@ const MainPage: React.FC = () => {
 			<Grid container rowSpacing={6}>
 				<Grid row alignItems={'center'}>
 					<Grid xs={6} md={8}>
-						<Logo name={'Lisk'} />
+						<Logo name={dashboard.applicationName} />
 					</Grid>
 					<Grid xs={6} md={4} textAlign={'right'}>
 						<Button
