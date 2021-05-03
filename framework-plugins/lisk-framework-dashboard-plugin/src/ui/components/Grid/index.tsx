@@ -117,7 +117,6 @@ const Grid: React.FC<GridProps> = props => {
 	const colSpacing = props.colSpacing ?? props.spacing;
 
 	const classes = [
-		styles.root,
 		container ? styles[`grid-${columns}`] : '',
 		container && rowSpacing ? styles[`gridRowSpacing-${rowSpacing}`] : '',
 		container && colSpacing ? styles[`gridColSpacing-${colSpacing}`] : '',
