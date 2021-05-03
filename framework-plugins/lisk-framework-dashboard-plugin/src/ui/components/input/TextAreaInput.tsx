@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import * as CodeMirror from 'codemirror';
+import Editor from "react-simple-code-editor";
+import formatHighlight from 'json-format-highlight';
 import styles from './Input.module.scss';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/night.css';
-import 'codemirror/theme/icecoder.css';
-import 'codemirror/mode/javascript/javascript';
+
 
 interface Props {
 	placeholder?: string;
@@ -27,42 +25,61 @@ interface Props {
 	json?: boolean;
 }
 
+const jsonHightlight = {
+	keyColor: '#8a8ca2',
+	numberColor: '#f7e36d',
+	stringColor: '#2bd67b',
+	trueColor: '#f7e36d',
+	falseColor: '#f7e36d',
+	nullColor: '#f7e36d'
+}
+
 const TextAreaInput: React.FC<Props> = props => {
 	const { placeholder } = props;
 	const size = props.size ?? 'm';
-	const [value, updateValue] = React.useState(props.value);
-	const [initialized, updateInitialized] = React.useState(false);
-
-	React.useEffect(() => {
-		updateValue(props.value);
-	}, [props.value]);
 
 	const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-		updateValue(event.target.value);
-
 		if (props.onChange) {
 			props.onChange(event.target.value);
 		}
 	};
 
-	const textAreaEl = React.useRef<HTMLTextAreaElement>(null);
-	React.useEffect(() => {
-		if (textAreaEl.current && props.json && !initialized) {
-			CodeMirror.fromTextArea(textAreaEl.current, {
-				mode: { name: 'javascript', json: true, statementIndent: 2 },
-				indentWithTabs: true,
-				lineWrapping: true,
-				matchBrackets: true,
-				theme: 'night',
-			} as any);
-			updateInitialized(true);
+	if (props.json) {
+		let height = '136px';
+		if (size === 's') {
+			height = '90px';
+		} else if (size === 'l') {
+			height = '248px';
 		}
-	}, [initialized]);
+		return (
+			<Editor
+				value={props.value ?? ''}
+				onValueChange={val => {
+					if (props.onChange) {
+						props.onChange(val);
+					}
+				}}
+				// eslint-disable-next-line
+				highlight={code => formatHighlight(code, jsonHightlight)}
+				padding={10}
+				textareaClassName={`${styles.textArea} ${styles[`textArea-${size}`]}`}
+				style={{
+					fontFamily: 'Roboto',
+					color: 'white',
+					fontSize: '14px',
+					lineHeight: '21px',
+					border: '1px solid rgba(223, 230, 242, 0.2)',
+					borderRadius: '3px',
+					height,
+					overflowY: 'auto',
+				}}
+			/>
+		);
+	}
 
 	return (
 		<textarea
-			value={value}
-			ref={textAreaEl}
+			value={props.value}
 			placeholder={placeholder}
 			className={`${styles.textArea} ${styles[`textArea-${size}`]}`}
 			onChange={handleOnChange}
