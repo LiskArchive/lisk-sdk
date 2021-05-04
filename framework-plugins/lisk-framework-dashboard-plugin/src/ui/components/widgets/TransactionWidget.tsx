@@ -25,7 +25,11 @@ interface WidgetProps {
 	title: string;
 }
 
-const getModuleAsset = (nodeInfo: NodeInfo | undefined, moduleID: number, assetID: number): string => {
+const getModuleAsset = (
+	nodeInfo: NodeInfo | undefined,
+	moduleID: number,
+	assetID: number,
+): string => {
 	if (!nodeInfo) {
 		return 'unknown';
 	}
@@ -78,7 +82,9 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 									</CopiableText>
 								</td>
 								<td>
-									<Text>{getModuleAsset(props.nodeInfo, transaction.moduleID, transaction.assetID)}</Text>
+									<Text>
+										{getModuleAsset(props.nodeInfo, transaction.moduleID, transaction.assetID)}
+									</Text>
 								</td>
 								<td>
 									<Text>{transaction.fee}</Text>

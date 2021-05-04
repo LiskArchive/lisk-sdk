@@ -283,19 +283,26 @@ const MainPage: React.FC = () => {
 	// Send Transaction
 	const handleSendTransaction = async (data: SendTransactionOptions) => {
 		try {
-			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(data.passphrase);
-			const assetSchema = getClient().schemas.transactionsAssets.find(a => a.moduleID === data.moduleID && a.assetID === data.assetID);
+			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
+				data.passphrase,
+			);
+			const assetSchema = getClient().schemas.transactionsAssets.find(
+				a => a.moduleID === data.moduleID && a.assetID === data.assetID,
+			);
 			if (!assetSchema) {
 				throw new Error(`ModuleID: ${data.moduleID} AssetID: ${data.assetID} is not registered`);
 			}
-			const assetObject = codec.codec.fromJSON<Record<string, unknown>>(assetSchema.schema, data.asset);
+			const assetObject = codec.codec.fromJSON<Record<string, unknown>>(
+				assetSchema.schema,
+				data.asset,
+			);
 			const sender = await getClient().account.get(address);
 			const fee = getClient().transaction.computeMinFee({
 				moduleID: data.moduleID,
 				assetID: data.assetID,
 				asset: assetObject,
 				senderPublicKey: publicKey,
-				nonce: BigInt((sender.sequence as { nonce: bigint}).nonce),
+				nonce: BigInt((sender.sequence as { nonce: bigint }).nonce),
 			});
 			const transaction = await getClient().transaction.create(
 				{
