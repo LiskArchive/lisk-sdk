@@ -70,14 +70,14 @@ export const updateStatesOnNewTransaction = (
 	return [transaction, ...unconfirmedTransactions].slice(-1 * MAX_TRANSACTIONS) as Transaction[];
 };
 
-export const getConfig = async (prop: keyof Config) => {
+export const getConfig = async () => {
 	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-		return configDevEnvValues[prop];
+		return configDevEnvValues;
 	}
 
 	const apiResponse = await fetch('/api/config');
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const result: Config = await apiResponse.json();
 	
-	return result[prop];
+	return result;
 };

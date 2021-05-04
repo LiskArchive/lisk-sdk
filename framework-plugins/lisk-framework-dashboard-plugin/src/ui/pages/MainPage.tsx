@@ -188,10 +188,6 @@ const MainPage: React.FC = () => {
 		});
 	};
 
-	const loadApplicationName = async () => {
-		setDashboard({ ...dashboard, applicationName: await getConfig('applicationName')});
-	}
-
 	const generateNewAccount = () => {
 		const accountPassphrase = (passphrase.Mnemonic.generateMnemonic() as unknown) as string;
 		const { address, publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(
@@ -209,13 +205,13 @@ const MainPage: React.FC = () => {
 		setShowAccount(newAccount);
 	};
 
-	// Get connection string
+	// Get config as whole
 	React.useEffect(() => {
-		const initConnectionStr = async () => {
-			setDashboard({ ...dashboard, applicationUrl: await getConfig('applicationUrl') });
+		const initConfig = async () => {
+			setDashboard({ ...dashboard, ...await getConfig() });
 		};
 
-		initConnectionStr().catch(console.error);
+		initConfig().catch(console.error);
 	}, []);
 
 	// Init client
@@ -231,7 +227,6 @@ const MainPage: React.FC = () => {
 			subscribeEvents().catch(console.error);
 			loadNodeInfo().catch(console.error);
 			loadPeersInfo().catch(console.error);
-			loadApplicationName().catch(console.error);
 		}
 	}, [dashboard.connected]);
 
