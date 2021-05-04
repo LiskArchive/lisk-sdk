@@ -60,6 +60,7 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 
 				<Box mb={4}>
 					<TextAreaInput
+						json
 						placeholder={'Params'}
 						size={'l'}
 						value={keyValue}
