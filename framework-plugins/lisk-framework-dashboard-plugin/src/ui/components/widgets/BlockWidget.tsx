@@ -51,8 +51,8 @@ const BlockWidget: React.FC<WidgetProps> = props => {
 						</tr>
 					</TableHeader>
 					<TableBody>
-						{blocks.map((block, index) => (
-							<tr key={index}>
+						{blocks.map(block => (
+							<tr key={block.header.height}>
 								<td>
 									<CopiableText text={block.header.id}>{block.header.id}</CopiableText>
 								</td>
