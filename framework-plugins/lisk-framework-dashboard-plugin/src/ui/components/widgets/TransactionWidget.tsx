@@ -17,6 +17,7 @@ import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
 import CopiableText from '../CopiableText';
 import { Transaction } from '../../types';
+import styles from './TransactionWidget.module.scss';
 
 interface WidgetProps {
 	transactions: Transaction[];
@@ -35,16 +36,16 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 				<Table>
 					<TableHeader sticky>
 						<tr>
-							<th style={{ width: 'calc(40% - 30px)' }}>
+							<th className={styles.headerID}>
 								<Text>Id</Text>
 							</th>
-							<th style={{ width: 'calc(30% - 30px)' }}>
+							<th className={styles.headerSender}>
 								<Text>Sender</Text>
 							</th>
-							<th style={{ width: 'calc(30% - 30px)' }}>
+							<th className={styles.headerModule}>
 								<Text>Module:Asset</Text>
 							</th>
-							<th style={{ width: '30px' }}>
+							<th className={styles.headerFee}>
 								<Text>Fee</Text>
 							</th>
 						</tr>

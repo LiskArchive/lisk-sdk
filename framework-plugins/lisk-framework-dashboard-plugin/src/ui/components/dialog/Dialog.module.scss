@@ -29,7 +29,7 @@
 	left: 0;
 	transform: scale(1);
 	overflow: auto;
-	z-index: 2;
+	z-index: 10;
 }
 
 .background {
@@ -42,7 +42,7 @@
 .modal {
 	display: inline-block;
 	position: relative;
-	background: $color-background-darker;
+	background: $color-zodiac-blue;
 	backdrop-filter: blur(75px);
 	border-radius: 8px;
 	padding: 0px;
@@ -50,7 +50,7 @@
 
 	margin: 130px auto;
 
-	max-width: 50%;
+	width: 40%;
 
 	@include mq-down('md') {
 		max-width: 80%;

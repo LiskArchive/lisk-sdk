@@ -273,7 +273,6 @@ const MainPage: React.FC = () => {
 	const handleCallAction = async (data: CallActionOptions) => {
 		try {
 			const result = await getClient().invoke(data.name, data.params);
-			console.info(result);
 			showMessageDialog(
 				'Success!',
 				<TextAreaInput size={'l'} value={JSON.stringify(result)} json={true}></TextAreaInput>,
