@@ -321,7 +321,11 @@ const MainPage: React.FC = () => {
 			const result = await callAndProcessActions(getClient(), data.name, data.params);
 			showMessageDialog(
 				'Success!',
-				<TextAreaInput size={'l'} value={JSON.stringify(result)} json={true}></TextAreaInput>,
+				<TextAreaInput
+					size={'l'}
+					value={JSON.stringify(result, undefined, '  ')}
+					json={true}
+				></TextAreaInput>,
 				{ backButton: true },
 			);
 		} catch (err) {

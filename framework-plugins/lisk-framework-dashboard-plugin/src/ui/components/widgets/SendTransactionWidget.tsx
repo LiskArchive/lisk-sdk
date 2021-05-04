@@ -104,6 +104,7 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 
 				<Box mb={4}>
 					<TextAreaInput
+						json
 						placeholder={'Asset'}
 						size={'m'}
 						value={asset}
