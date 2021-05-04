@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import Editor from "react-simple-code-editor";
+import Editor from 'react-simple-code-editor';
 import formatHighlight from 'json-format-highlight';
 import styles from './Input.module.scss';
-
 
 interface Props {
 	placeholder?: string;
@@ -31,8 +30,8 @@ const jsonHightlight = {
 	stringColor: '#2bd67b',
 	trueColor: '#f7e36d',
 	falseColor: '#f7e36d',
-	nullColor: '#f7e36d'
-}
+	nullColor: '#f7e36d',
+};
 
 const TextAreaInput: React.FC<Props> = props => {
 	const { placeholder } = props;
