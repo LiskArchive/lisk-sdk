@@ -208,7 +208,7 @@ const MainPage: React.FC = () => {
 	// Get config as whole
 	React.useEffect(() => {
 		const initConfig = async () => {
-			setDashboard({ ...dashboard, ...await getConfig() });
+			setDashboard({ ...dashboard, ...(await getConfig()) });
 		};
 
 		initConfig().catch(console.error);

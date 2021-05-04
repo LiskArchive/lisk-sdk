@@ -18,7 +18,7 @@ export const config = {
 	properties: {
 		applicationName: {
 			type: 'string',
-			description: 'Application name to be shown near Logo'
+			description: 'Application name to be shown near Logo',
 		},
 		applicationUrl: {
 			type: 'string',

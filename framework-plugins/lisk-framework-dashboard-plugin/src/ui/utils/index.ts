@@ -22,7 +22,7 @@ interface Config {
 const configDevEnvValues: Config = {
 	applicationUrl: 'ws://localhost:5000/ws',
 	applicationName: 'Lisk',
-}
+};
 
 const MAX_BLOCKS = 103 * 3;
 const MAX_TRANSACTIONS = 150;
@@ -78,6 +78,6 @@ export const getConfig = async () => {
 	const apiResponse = await fetch('/api/config');
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const result: Config = await apiResponse.json();
-	
+
 	return result;
 };
