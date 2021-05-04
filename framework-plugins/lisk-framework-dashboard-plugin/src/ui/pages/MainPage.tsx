@@ -63,6 +63,7 @@ const nodeInfoDefaultValue: NodeInfo = {
 		baseFees: [],
 	},
 };
+const MAX_RECENT_EVENT = 100;
 
 const connectionErrorMessage = (
 	<Text type={'h3'}>
@@ -145,7 +146,8 @@ const MainPage: React.FC = () => {
 		(name: string, event?: Record<string, unknown>) => {
 			if (eventSubscriptionListRef.current.includes(name)) {
 				eventsDataRef.current.unshift({ name, data: event ?? {} });
-				setEventsData(eventsDataRef.current);
+				const recentEventsData = eventsDataRef.current.slice(-1 * MAX_RECENT_EVENT) ;
+				setEventsData(recentEventsData);
 			}
 		},
 		[dashboard.connected],
