@@ -19,7 +19,7 @@ $text-align: 'center', 'left', 'right', 'justify';
 			@for $i from 1 through $grid-cols {
 				.gridCol-#{$modifier}-#{$i} {
 					flex-basis: (100 / ($grid-cols / $i)) * 1%;
-					overflow: auto;
+					overflow: hidden;
 				}
 			}
 		}
