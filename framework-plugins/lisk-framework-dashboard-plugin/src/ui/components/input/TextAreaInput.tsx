@@ -50,6 +50,13 @@ const TextAreaInput: React.FC<Props> = props => {
 		} else if (size === 'l') {
 			height = '248px';
 		}
+		let validJSON = true;
+		try {
+			JSON.parse(props.value ?? '');
+		} catch (error) {
+			validJSON = false;
+		}
+		const border = validJSON ? '1px solid rgba(223, 230, 242, 0.2)' : '1px solid #ff4557';
 		return (
 			<Editor
 				value={props.value ?? ''}
@@ -66,8 +73,8 @@ const TextAreaInput: React.FC<Props> = props => {
 					fontFamily: 'Roboto',
 					color: '#8a8ca2',
 					fontSize: '14px',
-					lineHeight: '21px',
-					border: '1px solid rgba(223, 230, 242, 0.2)',
+					lineHeight: '18px',
+					border,
 					borderRadius: '3px',
 					height,
 					overflowY: 'auto',
