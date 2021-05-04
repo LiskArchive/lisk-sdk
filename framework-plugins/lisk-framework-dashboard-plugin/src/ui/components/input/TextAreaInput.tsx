@@ -25,11 +25,11 @@ interface Props {
 }
 
 const jsonHightlight = {
-	keyColor: '#8a8ca2',
+	keyColor: '#dfe6f2',
 	numberColor: '#f7e36d',
 	stringColor: '#2bd67b',
-	trueColor: '#f7e36d',
-	falseColor: '#f7e36d',
+	trueColor: '#ffd0d1',
+	falseColor: '#ffd0d1',
 	nullColor: '#f7e36d',
 };
 
@@ -64,7 +64,7 @@ const TextAreaInput: React.FC<Props> = props => {
 				textareaClassName={`${styles.textArea} ${styles[`textArea-${size}`]}`}
 				style={{
 					fontFamily: 'Roboto',
-					color: 'white',
+					color: '#8a8ca2',
 					fontSize: '14px',
 					lineHeight: '21px',
 					border: '1px solid rgba(223, 230, 242, 0.2)',
