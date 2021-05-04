@@ -61,9 +61,7 @@ const RecentEventWidget: React.FC<Props> = props => {
 						<Text type={'h3'}>{name}</Text>
 						<br />
 						<Text type={'p'} color="yellow">
-							<pre className={styles['recent-events-data']}>
-								{JSON.stringify(data, null, '\t')}
-							</pre>
+							<pre className={styles['recent-events-data']}>{JSON.stringify(data, null, '\t')}</pre>
 						</Text>
 					</Box>
 				))}

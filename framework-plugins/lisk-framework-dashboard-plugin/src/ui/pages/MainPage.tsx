@@ -146,7 +146,7 @@ const MainPage: React.FC = () => {
 		(name: string, event?: Record<string, unknown>) => {
 			if (eventSubscriptionListRef.current.includes(name)) {
 				eventsDataRef.current.unshift({ name, data: event ?? {} });
-				const recentEventsData = eventsDataRef.current.slice(-1 * MAX_RECENT_EVENT) ;
+				const recentEventsData = eventsDataRef.current.slice(-1 * MAX_RECENT_EVENT);
 				setEventsData(recentEventsData);
 			}
 		},
