@@ -41,18 +41,21 @@ export const updateStatesOnNewBlock = (
 	unconfirmedTransactions: Transaction[];
 } => {
 	const newBlock = client.block.toJSON(client.block.decode(newBlockStr));
-	const newBlocks = [newBlock, ...blocks].slice(-1 * MAX_BLOCKS) as Block[];
+	let newBlocks = blocks;
+	if (!blocks.find(b => b.header.height === newBlock.header.height)) {
+		newBlocks = [newBlock, ...blocks].slice(0, MAX_BLOCKS) as Block[];
+	}
 	newBlocks.sort(sortByBlockHeight);
 
-	for (const trs of ((newBlock as unknown) as Block).payload) {
-		confirmedTransactions.unshift(trs);
+	for (const trs of newBlock.payload) {
+		confirmedTransactions.unshift((trs as unknown) as Transaction);
 	}
 	const confirmedTransactionsIds = confirmedTransactions.map(t => t.id);
 	const newUnconfirmedTransactions = unconfirmedTransactions
 		.filter(t => !confirmedTransactionsIds.includes(t.id))
-		.slice(-1 * MAX_TRANSACTIONS);
+		.slice(0, MAX_TRANSACTIONS);
 
-	const newConfirmedTransactions = confirmedTransactions.slice(-1 * MAX_TRANSACTIONS);
+	const newConfirmedTransactions = confirmedTransactions.slice(0, MAX_TRANSACTIONS);
 
 	return {
 		blocks: newBlocks,

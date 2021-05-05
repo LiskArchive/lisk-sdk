@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { apiClient, cryptography, passphrase } from '@liskhq/lisk-client';
+import { apiClient, cryptography, passphrase, codec } from '@liskhq/lisk-client';
 import * as React from 'react';
 import Box from '../components/Box';
 import Button from '../components/Button';
@@ -286,24 +286,45 @@ const MainPage: React.FC = () => {
 	// Send Transaction
 	const handleSendTransaction = async (data: SendTransactionOptions) => {
 		try {
-			const { publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(data.passphrase);
+			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
+				data.passphrase,
+			);
+			const assetSchema = getClient().schemas.transactionsAssets.find(
+				a => a.moduleID === data.moduleID && a.assetID === data.assetID,
+			);
+			if (!assetSchema) {
+				throw new Error(`ModuleID: ${data.moduleID} AssetID: ${data.assetID} is not registered`);
+			}
+			const assetObject = codec.codec.fromJSON<Record<string, unknown>>(
+				assetSchema.schema,
+				data.asset,
+			);
+			const sender = await getClient().account.get(address);
+			const fee = getClient().transaction.computeMinFee({
+				moduleID: data.moduleID,
+				assetID: data.assetID,
+				asset: assetObject,
+				senderPublicKey: publicKey,
+				nonce: BigInt((sender.sequence as { nonce: bigint }).nonce),
+			});
 			const transaction = await getClient().transaction.create(
 				{
 					moduleID: data.moduleID,
 					assetID: data.assetID,
-					asset: data.asset,
+					asset: assetObject,
 					senderPublicKey: publicKey,
-					fee: BigInt(10000),
+					fee,
 				},
 				data.passphrase,
 			);
-			await getClient().transaction.send(transaction);
+
+			const resp = await getClient().transaction.send(transaction);
 
 			showMessageDialog(
 				'Success!',
 				<React.Fragment>
 					<Text type={'p'}>Transaction with following id received:</Text>
-					<CopiableText text={(transaction as { id: string }).id} />
+					<CopiableText text={resp.transactionId} />
 				</React.Fragment>,
 				{ backButton: true },
 			);
@@ -467,12 +488,14 @@ const MainPage: React.FC = () => {
 					<Grid md={6} xs={12}>
 						<TransactionWidget
 							title="Recent Transactions"
+							nodeInfo={nodeInfo}
 							transactions={confirmedTransactions}
 						></TransactionWidget>
 					</Grid>
 					<Grid md={6} xs={12}>
 						<TransactionWidget
 							title="Unconfirmed Transactions"
+							nodeInfo={nodeInfo}
 							transactions={unconfirmedTransactions}
 						></TransactionWidget>
 					</Grid>

@@ -83,7 +83,8 @@ export interface Block {
 export interface Transaction {
 	id: string;
 	senderPublicKey: string;
-	moduleAsset: string;
+	moduleID: number;
+	assetID: number;
 	fee: number;
 }
 

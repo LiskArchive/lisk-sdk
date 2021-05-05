@@ -35,11 +35,18 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 			return;
 		}
 
+		let params;
+		try {
+			params = JSON.parse(keyValue) as Record<string, unknown>;
+		} catch (error) {
+			return;
+		}
+
 		const actionName = selectedAction.value;
 
 		props.onSubmit({
 			name: actionName,
-			params: (JSON.parse(keyValue) as unknown) as Record<string, unknown>,
+			params,
 		});
 	};
 
