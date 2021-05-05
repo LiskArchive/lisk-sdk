@@ -133,6 +133,7 @@ export class StartCommand extends BaseStartCommand {
 		return app;
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	public getApplicationConfigDir(): string {
 		return join(__dirname, '../../config');
 	}

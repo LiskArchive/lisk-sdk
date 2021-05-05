@@ -9,7 +9,7 @@ module.exports = {
 		'lisk-base/base',
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@typescript-eslint/recommended-requiring-type-checking',
-		'prettier/@typescript-eslint',
+		'prettier',
 		'plugin:import/errors',
 		'plugin:import/warnings',
 		'plugin:import/typescript',
@@ -18,7 +18,7 @@ module.exports = {
 		'max-len': 'off', // Managed by prettier
 		'import/namespace': 'off',
 		'no-underscore-dangle': 'off', // Used for private variables and methods
-		'implicit-arrow-linebreak': 'off', // Prefered
+		'implicit-arrow-linebreak': 'off', // Preferred
 		'no-mixed-spaces-and-tabs': 'off', // Managed by prettier
 		'operator-linebreak': 'off',
 		'import/prefer-default-export': 'off',
