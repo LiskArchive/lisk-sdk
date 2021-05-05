@@ -17,9 +17,12 @@
 
 import * as YeomanGenerator from 'yeoman-generator';
 import * as Storage from 'yeoman-generator/lib/util/storage';
+import * as installActions from 'yeoman-generator/lib/actions/install';
 import { join, dirname } from 'path';
 import * as assert from 'assert';
 import { BaseGeneratorOptions, LiskTemplate } from '../../types';
+
+Object.assign(YeomanGenerator.prototype, installActions);
 
 const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
 
