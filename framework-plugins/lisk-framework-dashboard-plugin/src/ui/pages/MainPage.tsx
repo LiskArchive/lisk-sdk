@@ -39,7 +39,7 @@ import {
 	SendTransactionOptions,
 	CallActionOptions,
 } from '../types';
-import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
+import { getConfig, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
 import styles from './MainPage.module.scss';
 
@@ -63,6 +63,7 @@ const nodeInfoDefaultValue: NodeInfo = {
 		baseFees: [],
 	},
 };
+const MAX_RECENT_EVENT = 100;
 
 const connectionErrorMessage = (
 	<Text type={'h3'}>
@@ -73,6 +74,7 @@ const connectionErrorMessage = (
 interface DashboardState {
 	connected: boolean;
 	applicationUrl?: string;
+	applicationName?: string;
 }
 
 const callAndProcessActions = async (
@@ -191,7 +193,8 @@ const MainPage: React.FC = () => {
 		(name: string, event?: Record<string, unknown>) => {
 			if (eventSubscriptionListRef.current.includes(name)) {
 				eventsDataRef.current.unshift({ name, data: event ?? {} });
-				setEventsData(eventsDataRef.current);
+				const recentEventsData = eventsDataRef.current.slice(-1 * MAX_RECENT_EVENT);
+				setEventsData(recentEventsData);
 			}
 		},
 		[dashboard.connected],
@@ -250,13 +253,13 @@ const MainPage: React.FC = () => {
 		setShowAccount(newAccount);
 	};
 
-	// Get connection string
+	// Get config as whole
 	React.useEffect(() => {
-		const initConnectionStr = async () => {
-			setDashboard({ ...dashboard, applicationUrl: await getApplicationUrl() });
+		const initConfig = async () => {
+			setDashboard({ ...dashboard, ...(await getConfig()) });
 		};
 
-		initConnectionStr().catch(console.error);
+		initConfig().catch(console.error);
 	}, []);
 
 	// Init client
@@ -388,7 +391,7 @@ const MainPage: React.FC = () => {
 			<Grid container rowSpacing={6}>
 				<Grid row alignItems={'center'}>
 					<Grid xs={6} md={8}>
-						<Logo name={'Lisk'} />
+						<Logo name={dashboard.applicationName} />
 					</Grid>
 					<Grid xs={6} md={4} textAlign={'right'}>
 						<Button

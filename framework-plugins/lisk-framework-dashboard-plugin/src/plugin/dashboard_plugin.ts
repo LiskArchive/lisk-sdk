@@ -70,6 +70,7 @@ export class DashboardPlugin extends BasePlugin {
 		) as dashboardPluginOptions;
 		const config = {
 			applicationUrl: this._options.applicationUrl,
+			applicationName: this._options.applicationName,
 		};
 		const app = express();
 		app.use(express.static(join(__dirname, '../../build')));
