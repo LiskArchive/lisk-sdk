@@ -39,7 +39,7 @@ import {
 	SendTransactionOptions,
 	CallActionOptions,
 } from '../types';
-import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
+import { getConfig, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
 import styles from './MainPage.module.scss';
 
@@ -74,6 +74,7 @@ const connectionErrorMessage = (
 interface DashboardState {
 	connected: boolean;
 	applicationUrl?: string;
+	applicationName?: string;
 }
 
 const callAndProcessActions = async (
@@ -252,13 +253,13 @@ const MainPage: React.FC = () => {
 		setShowAccount(newAccount);
 	};
 
-	// Get connection string
+	// Get config as whole
 	React.useEffect(() => {
-		const initConnectionStr = async () => {
-			setDashboard({ ...dashboard, applicationUrl: await getApplicationUrl() });
+		const initConfig = async () => {
+			setDashboard({ ...dashboard, ...(await getConfig()) });
 		};
 
-		initConnectionStr().catch(console.error);
+		initConfig().catch(console.error);
 	}, []);
 
 	// Init client
@@ -390,7 +391,7 @@ const MainPage: React.FC = () => {
 			<Grid container rowSpacing={6}>
 				<Grid row alignItems={'center'}>
 					<Grid xs={6} md={8}>
-						<Logo name={'Lisk'} />
+						<Logo name={dashboard.applicationName} />
 					</Grid>
 					<Grid xs={6} md={4} textAlign={'right'}>
 						<Button
