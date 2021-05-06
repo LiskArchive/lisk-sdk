@@ -20,7 +20,7 @@ interface Config {
 }
 
 const configDevEnvValues: Config = {
-	applicationUrl: 'ws://localhost:5000/ws',
+	applicationUrl: 'ws://localhost:8080/ws',
 	applicationName: 'Lisk',
 };
 
@@ -74,7 +74,7 @@ export const updateStatesOnNewTransaction = (
 };
 
 export const getConfig = async () => {
-	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+	if (process.env.NODE_ENV === 'development') {
 		return configDevEnvValues;
 	}
 
