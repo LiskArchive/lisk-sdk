@@ -35,7 +35,7 @@
 		"build": "npm run build:node && npm run build:web",
 		"build:node": "tsc",
 		"build:web": "node scripts/build.js --jsx react",
-		"start:web": "node scripts/start.js",
+		"start:web": "NODE_ENV=development node scripts/start.js",
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},

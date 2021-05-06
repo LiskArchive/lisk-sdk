@@ -19,33 +19,51 @@ interface FaucetConfig {
 	amount: string;
 	applicationUrl: string;
 	tokenPrefix: string;
-	logoURL: string;
+	logoURL?: string;
 	captchaSitekey: string;
 }
+
+const defaultFaucetConfig: FaucetConfig = {
+	amount: '10000000000',
+	applicationUrl: 'ws://localhost:8080/ws',
+	tokenPrefix: 'lsk',
+	captchaSitekey: 'temp',
+};
+
+export const getConfig = async () => {
+	if (process.env.NODE_ENV === 'development') {
+		return defaultFaucetConfig;
+	}
+
+	const apiResponse = await fetch('/api/config');
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const result: FaucetConfig = await apiResponse.json();
+
+	return result;
+};
 
 declare global {
 	interface Window {
 		grecaptcha: any;
-		FAUCET_CONFIG: FaucetConfig;
 	}
 }
 
 const WarningIcon = () => <span className={`${styles.icon} ${styles.warning}`}>&#xE8B2;</span>;
 
 export const App: React.FC = () => {
-	const {
-		amount,
-		tokenPrefix: prefix,
-		captchaSitekey,
-		applicationUrl,
-		logoURL,
-	} = window.FAUCET_CONFIG;
 	const faucetAddress = 'lskdwsyfmcko6mcd357446yatromr9vzgu7eb8y99';
 	const [input, updateInput] = React.useState('');
 	const [errorMsg, updateErrorMsg] = React.useState('');
 	const [token, updateToken] = React.useState<string | undefined>();
 	const [recaptchaReady, updateRecaptchaReady] = React.useState(false);
+	const [config, setConfig] = React.useState<FaucetConfig>(defaultFaucetConfig);
 	React.useEffect(() => {
+		const initConfig = async () => {
+			const fetchedConfig = await getConfig();
+			setConfig(fetchedConfig);
+		};
+		initConfig().catch(console.error);
+
 		const script = document.createElement('script');
 		script.src = 'https://www.google.com/recaptcha/api.js';
 		script.async = true;
@@ -63,7 +81,7 @@ export const App: React.FC = () => {
 				}
 				// eslint-disable-next-line
 				window.grecaptcha.render('recapcha', {
-					sitekey: captchaSitekey,
+					sitekey: config.captchaSitekey,
 					callback: (newToken: string) => updateToken(newToken),
 				});
 				updateRecaptchaReady(true);
@@ -87,9 +105,9 @@ export const App: React.FC = () => {
 			return;
 		}
 		try {
-			const client = await apiClient.createWSClient(applicationUrl);
+			const client = await apiClient.createWSClient(config.applicationUrl);
 			await client.invoke('faucet:fundTokens', {
-				address: getAddressFromBase32Address(input, prefix).toString('hex'),
+				address: getAddressFromBase32Address(input, config.tokenPrefix).toString('hex'),
 				token,
 			});
 			updateErrorMsg('');
@@ -101,13 +119,13 @@ export const App: React.FC = () => {
 	return (
 		<div className={styles.root}>
 			<header className={styles.header}>
-				<img src={logoURL ?? logo} className={styles.logo} alt="logo" />
+				<img src={config.logoURL ?? logo} className={styles.logo} alt="logo" />
 			</header>
 			<section className={styles.content}>
 				<div className={styles.main}>
 					<h1>All tokens are for testing purposes only</h1>
 					<h2>
-						Please enter your address to receive {amount} {prefix.toLocaleUpperCase()} tokens for
+						Please enter your address to receive {config.amount} {config.tokenPrefix.toLocaleUpperCase()} tokens for
 						free
 					</h2>
 					<div className={styles.inputArea}>
@@ -122,7 +140,7 @@ export const App: React.FC = () => {
 							{errorMsg ? <span className={styles.errorMsg}>{errorMsg}</span> : <span />}
 						</div>
 						<button
-							disabled={!validateAddress(input, prefix) || !recaptchaReady}
+							disabled={!validateAddress(input, config.tokenPrefix) || !recaptchaReady}
 							onClick={onSubmit}
 						>
 							Receive
