@@ -89,6 +89,11 @@ const selectSeedReveals = ({
 
 	for (let i = fromHeight; i >= toHeight; i -= 1) {
 		const header = headersMap[i];
+		// If header does not exist in map, consider the seed reveal is invalid
+		// This happens when height is before genesis block (regenesis) or negative height in early round
+		if (!header) {
+			continue;
+		}
 		const blockRound = rounds.calcRound(header.height);
 
 		const lastForgedBlock = findPreviousHeaderOfDelegate(
@@ -127,28 +132,11 @@ export const generateRandomSeeds = ({
 }): FixedLengthArray<RandomSeed, 2> => {
 	// Middle range of a round to validate
 	const middleThreshold = Math.floor(rounds.blocksPerRound / 2);
-	const lastBlockHeight = headers[0].height;
 	const startOfRound = rounds.calcRoundStartHeight(round);
 	const middleOfRound = rounds.calcRoundMiddleHeight(round);
 	const startOfLastRound = rounds.calcRoundStartHeight(round - 1);
 	const endOfLastRound = rounds.calcRoundEndHeight(round - 1);
 	const startOfSecondLastRound = rounds.calcRoundStartHeight(round - 2);
-
-	if (lastBlockHeight < middleOfRound) {
-		throw new Error(
-			`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height: ${lastBlockHeight.toString()}`,
-		);
-	}
-
-	if (round === 1) {
-		logger.debug('Returning static value because current round is 1');
-		const randomSeed1ForFirstRound = strippedHash(
-			intToBuffer(middleThreshold + 1, NUMBER_BYTE_SIZE),
-		);
-		const randomSeed2ForFirstRound = strippedHash(intToBuffer(0, NUMBER_BYTE_SIZE));
-
-		return [randomSeed1ForFirstRound, randomSeed2ForFirstRound];
-	}
 
 	/**
 	 * We need to build a map for current and last two rounds. To previously forged

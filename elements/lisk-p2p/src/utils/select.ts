@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { ConnectionKind } from '../constants';
+import { ConnectionKind, PeerKind } from '../constants';
 // eslint-disable-next-line import/no-cycle
 import {
 	P2PPeerInfo,
@@ -85,6 +85,10 @@ export const selectPeersForSend = (
 			: false,
 	);
 
+	const fixedPeers = shuffledPeers.filter((peerInfo: P2PPeerInfo) =>
+		peerInfo.internalState ? peerInfo.internalState.peerKind === PeerKind.FIXED_PEER : false,
+	);
+
 	let shortestPeersList;
 	let longestPeersList;
 
@@ -99,8 +103,13 @@ export const selectPeersForSend = (
 	const selectedFirstKindPeers = shortestPeersList.slice(0, halfPeerLimit);
 	const remainingPeerLimit = peerLimit - selectedFirstKindPeers.length;
 	const selectedSecondKindPeers = longestPeersList.slice(0, remainingPeerLimit);
+	const selectedPeers = selectedFirstKindPeers.concat(selectedSecondKindPeers).concat(fixedPeers);
+	const uniquePeerIds = [...new Set(selectedPeers.map(p => p.peerId))];
+	const uniquePeers = uniquePeerIds.map(peerId =>
+		selectedPeers.find(p => p.peerId === peerId),
+	) as ReadonlyArray<P2PPeerInfo>;
 
-	return selectedFirstKindPeers.concat(selectedSecondKindPeers);
+	return uniquePeers;
 };
 
 export const selectPeersForConnection = (

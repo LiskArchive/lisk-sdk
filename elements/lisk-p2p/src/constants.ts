@@ -101,6 +101,9 @@ export const FORBIDDEN_CONNECTION_REASON = 'Peer is not allowed to connect';
 export const EVICTED_PEER_CODE = 4418;
 export const DUPLICATE_CONNECTION = 4404;
 export const DUPLICATE_CONNECTION_REASON = 'Peer has a duplicate connection';
+export const INVALID_CONNECTION_ADDRESS_CODE = 4503;
+export const INVALID_CONNECTION_ADDRESS_REASON =
+	'Peer did not provide a valid address as part of the WebSocket connection';
 
 // Peer info constants
 export const INVALID_PEER_INFO_LIST_REASON = 'PeerInfo list has invalid value';

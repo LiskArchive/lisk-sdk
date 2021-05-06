@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { isIP, isPort, validator } from '@liskhq/lisk-validator';
+import { isIPV4, isPort, validator } from '@liskhq/lisk-validator';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -87,7 +87,7 @@ export const validatePeerCompatibility = (
 };
 
 export const validatePeerAddress = (ipAddress: string, port: number): boolean => {
-	if (!isIP(ipAddress) || !isPort(port.toString())) {
+	if (!isIPV4(ipAddress) || !isPort(port.toString())) {
 		return false;
 	}
 

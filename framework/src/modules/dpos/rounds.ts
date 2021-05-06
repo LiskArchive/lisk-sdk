@@ -28,7 +28,7 @@ export class Rounds {
 	}
 
 	public calcRoundEndHeight(round: number): number {
-		return (round < 1 ? 1 : round) * this.blocksPerRound;
+		return (round < 1 ? 0 : round) * this.blocksPerRound;
 	}
 
 	public calcRoundMiddleHeight(round: number): number {

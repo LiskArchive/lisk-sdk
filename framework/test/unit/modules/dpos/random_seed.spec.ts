@@ -18,8 +18,6 @@ import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_g
 import * as randomSeedsInvalidSeedReveal from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_invalid_seed_reveal.json';
 import * as randomSeedsNotForgedEarlier from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_not_forged_earlier.json';
 
-import * as randomSeedNotPassedMiddle from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_not_passed_middle_of_round.json';
-
 import { generateRandomSeeds } from '../../../../src/modules/dpos/random_seed';
 import { Rounds } from '../../../../src/modules/dpos/rounds';
 
@@ -54,22 +52,6 @@ describe('random_seed', () => {
 	});
 
 	describe('generateRandomSeeds', () => {
-		it('should throw error if called before middle of the round', () => {
-			// Arrange
-			const { config, input } = randomSeedNotPassedMiddle.testCases[0] as any;
-			rounds = new Rounds({
-				blocksPerRound: config.blocksPerRound,
-			});
-			const round = rounds.calcRound(input.blocks[input.blocks.length - 1].height);
-			const headers = generateHeadersFromTest(input.blocks);
-
-			// Act & Assert
-			expect(() => generateRandomSeeds({ round, rounds, headers, logger })).toThrow(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height: ${input.blocks.length}`,
-			);
-		});
-
 		describe.each(testCases.map(testCase => [testCase.description, testCase]))(
 			'%s',
 			(_description, testCase) => {
