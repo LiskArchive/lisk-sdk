@@ -125,8 +125,8 @@ export const App: React.FC = () => {
 				<div className={styles.main}>
 					<h1>All tokens are for testing purposes only</h1>
 					<h2>
-						Please enter your address to receive {config.amount} {config.tokenPrefix.toLocaleUpperCase()} tokens for
-						free
+						Please enter your address to receive {config.amount}{' '}
+						{config.tokenPrefix.toLocaleUpperCase()} tokens for free
 					</h2>
 					<div className={styles.inputArea}>
 						<div className={styles.input}>
