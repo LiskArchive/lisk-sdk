@@ -2528,6 +2528,18 @@
   optionalDependencies:
     sodium-native "2.4.6"
 
+"@liskhq/lisk-cryptography@^3.0.1", "@liskhq/lisk-cryptography@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-cryptography/-/lisk-cryptography-3.0.2.tgz#aaa88fcccde7a54d7bdce667fc269c0f24bd1ad9"
+  integrity sha512-alU52UaYBzHNJFGvaJCXPm/Typ719wZ/iIM+hpIh18S3koh5Q+2luRWMMOSmoyALkzbdY6PNx06/txlI8IGNow==
+  dependencies:
+    buffer-reverse "1.0.1"
+    ed2curve "0.3.0"
+    tweetnacl "1.0.3"
+    varuint-bitcoin "1.1.2"
+  optionalDependencies:
+    sodium-native "3.2.0"
+
 "@liskhq/lisk-passphrase@3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@liskhq/lisk-passphrase/-/lisk-passphrase-3.0.0.tgz#14e5034446d28008a966b90e906bd5ca8ebee28e"
@@ -2537,12 +2549,33 @@
     "@types/node" "12.12.11"
     bip39 "2.5.0"
 
+"@liskhq/lisk-utils@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-utils/-/lisk-utils-0.1.0.tgz#b8f31e0bde5a8d0bf2bee9f6f7e6b9bfe2cd45b0"
+  integrity sha512-PR36Rxk6Nhg8Z6vvEIOpbeTuISaw23It6WhVyxEibH2RN2UPpUwDWR60BcIqZtR1FCK5vEcDMTvBXu1FgawbdA==
+  dependencies:
+    lodash.clonedeep "4.5.0"
+
 "@liskhq/lisk-validator@0.5.1":
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/@liskhq/lisk-validator/-/lisk-validator-0.5.1.tgz#3cb2a83684dfd3c0d729400579e7f015f8e8527d"
   integrity sha512-mIFRetkasdU7QoaoOmRWxHZaUXvKXWjAgA3wwn8wnSANArSVtWyM23xvfDVBLzPFRnMH9LfvSt66U8uYkGdIPg==
   dependencies:
     "@liskhq/lisk-cryptography" "^3.0.1"
+    "@types/node" "12.12.11"
+    "@types/semver" "7.1.0"
+    "@types/validator" "12.0.1"
+    ajv "6.12.0"
+    debug "4.1.1"
+    semver "7.1.3"
+    validator "12.2.0"
+
+"@liskhq/lisk-validator@^0.5.0":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-validator/-/lisk-validator-0.5.2.tgz#64240b6cc51fe1a2e7a1fc29b7f1cad0c43f8c16"
+  integrity sha512-NiIq7vxHBNWcuOyhzImwtGxqstOBKdcFhckkW+ZMlRFZbyEC1eCFbeVd0S7TivBWS3JfHWUeTEbOczavGo669A==
+  dependencies:
+    "@liskhq/lisk-cryptography" "^3.0.2"
     "@types/node" "12.12.11"
     "@types/semver" "7.1.0"
     "@types/validator" "12.0.1"
