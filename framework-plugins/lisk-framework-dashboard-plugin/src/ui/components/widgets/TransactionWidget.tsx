@@ -16,13 +16,33 @@ import { TableBody, TableHeader, Table } from '../Table';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
 import CopiableText from '../CopiableText';
-import { Transaction } from '../../types';
+import { NodeInfo, Transaction } from '../../types';
 import styles from './TransactionWidget.module.scss';
 
 interface WidgetProps {
 	transactions: Transaction[];
+	nodeInfo?: NodeInfo;
 	title: string;
 }
+
+const getModuleAsset = (
+	nodeInfo: NodeInfo | undefined,
+	moduleID: number,
+	assetID: number,
+): string => {
+	if (!nodeInfo) {
+		return 'unknown';
+	}
+	const registeredModule = nodeInfo.registeredModules.find(rm => rm.id === moduleID);
+	if (!registeredModule) {
+		return 'unknown';
+	}
+	const registeredAsset = registeredModule.transactionAssets?.find(ta => ta.id === assetID);
+	if (!registeredAsset) {
+		return `${registeredModule.name}:unknown`;
+	}
+	return `${registeredModule.name}:${registeredAsset.name}`;
+};
 
 const TransactionWidget: React.FC<WidgetProps> = props => {
 	const { transactions, title } = props;
@@ -51,8 +71,8 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 						</tr>
 					</TableHeader>
 					<TableBody>
-						{transactions.map((transaction, index) => (
-							<tr key={index}>
+						{transactions.map(transaction => (
+							<tr key={transaction.id}>
 								<td>
 									<CopiableText text={transaction.id}>{transaction.id}</CopiableText>
 								</td>
@@ -62,10 +82,12 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 									</CopiableText>
 								</td>
 								<td>
-									<Text key={transaction.moduleAsset}>{transaction.moduleAsset}</Text>
+									<Text>
+										{getModuleAsset(props.nodeInfo, transaction.moduleID, transaction.assetID)}
+									</Text>
 								</td>
 								<td>
-									<Text key={transaction.fee}>{transaction.fee}</Text>
+									<Text>{transaction.fee}</Text>
 								</td>
 							</tr>
 						))}
