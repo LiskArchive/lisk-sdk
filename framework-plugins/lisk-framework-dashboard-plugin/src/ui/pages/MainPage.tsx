@@ -39,7 +39,7 @@ import {
 	SendTransactionOptions,
 	CallActionOptions,
 } from '../types';
-import { getApplicationUrl, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
+import { getConfig, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
 import useRefState from '../utils/useRefState';
 import styles from './MainPage.module.scss';
 
@@ -63,6 +63,7 @@ const nodeInfoDefaultValue: NodeInfo = {
 		baseFees: [],
 	},
 };
+const MAX_RECENT_EVENT = 100;
 
 const connectionErrorMessage = (
 	<Text type={'h3'}>
@@ -73,7 +74,54 @@ const connectionErrorMessage = (
 interface DashboardState {
 	connected: boolean;
 	applicationUrl?: string;
+	applicationName?: string;
 }
+
+const callAndProcessActions = async (
+	client: apiClient.APIClient,
+	action: string,
+	params: Record<string, unknown>,
+): Promise<Record<string, unknown>> => {
+	let result = (await client.invoke(action, params)) as unknown;
+
+	switch (action) {
+		case 'app:getAccount':
+			result = client.account.toJSON(client.account.decode(result as string));
+			break;
+
+		case 'app:getAccounts':
+			result = (result as string[]).map(account =>
+				client.account.toJSON(client.account.decode(account)),
+			);
+			break;
+
+		case 'app:getLastBlock':
+		case 'app:getBlockByID':
+		case 'app:getBlockByHeight':
+			result = client.block.toJSON(client.block.decode(result as string));
+			break;
+
+		case 'app:getBlocksByHeightBetween':
+		case 'app:getBlocksByIDs':
+			result = (result as string[]).map(block => client.block.toJSON(client.block.decode(block)));
+			break;
+
+		case 'app:getTransactionByID':
+			result = client.transaction.toJSON(client.transaction.decode(result as string));
+			break;
+
+		case 'app:getTransactionsByIDs':
+			result = (result as string[]).map(transaction =>
+				client.transaction.toJSON(client.transaction.decode(transaction)),
+			);
+			break;
+
+		default:
+			break;
+	}
+
+	return result as Record<string, unknown>;
+};
 
 const MainPage: React.FC = () => {
 	const { showMessageDialog } = useMessageDialog();
@@ -145,7 +193,8 @@ const MainPage: React.FC = () => {
 		(name: string, event?: Record<string, unknown>) => {
 			if (eventSubscriptionListRef.current.includes(name)) {
 				eventsDataRef.current.unshift({ name, data: event ?? {} });
-				setEventsData(eventsDataRef.current);
+				const recentEventsData = eventsDataRef.current.slice(-1 * MAX_RECENT_EVENT);
+				setEventsData(recentEventsData);
 			}
 		},
 		[dashboard.connected],
@@ -204,13 +253,13 @@ const MainPage: React.FC = () => {
 		setShowAccount(newAccount);
 	};
 
-	// Get connection string
+	// Get config as whole
 	React.useEffect(() => {
-		const initConnectionStr = async () => {
-			setDashboard({ ...dashboard, applicationUrl: await getApplicationUrl() });
+		const initConfig = async () => {
+			setDashboard({ ...dashboard, ...(await getConfig()) });
 		};
 
-		initConnectionStr().catch(console.error);
+		initConfig().catch(console.error);
 	}, []);
 
 	// Init client
@@ -272,10 +321,14 @@ const MainPage: React.FC = () => {
 
 	const handleCallAction = async (data: CallActionOptions) => {
 		try {
-			const result = await getClient().invoke(data.name, data.params);
+			const result = await callAndProcessActions(getClient(), data.name, data.params);
 			showMessageDialog(
 				'Success!',
-				<TextAreaInput size={'l'} value={JSON.stringify(result)} json={true}></TextAreaInput>,
+				<TextAreaInput
+					size={'l'}
+					value={JSON.stringify(result, undefined, '  ')}
+					json={true}
+				></TextAreaInput>,
 				{ backButton: true },
 			);
 		} catch (err) {
@@ -338,7 +391,7 @@ const MainPage: React.FC = () => {
 			<Grid container rowSpacing={6}>
 				<Grid row alignItems={'center'}>
 					<Grid xs={6} md={8}>
-						<Logo name={'Lisk'} />
+						<Logo name={dashboard.applicationName} />
 					</Grid>
 					<Grid xs={6} md={4} textAlign={'right'}>
 						<Button
