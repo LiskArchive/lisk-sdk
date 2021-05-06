@@ -4,7 +4,6 @@ import { getApplication } from '../../app/app';
 import { registerModules } from '../../app/modules';
 
 export class GenesisBlockCommand extends BaseGenesisBlockCommand {
-	// eslint-disable-next-line class-methods-use-this
 	public getApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig,

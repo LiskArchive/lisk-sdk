@@ -6,7 +6,7 @@ module.exports = {
 	},
 	plugins: ['@typescript-eslint'],
 	extends: [
-		'lisk-base/base',
+		'lisk-base/ts',
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@typescript-eslint/recommended-requiring-type-checking',
 		'prettier',
