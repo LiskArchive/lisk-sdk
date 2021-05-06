@@ -95,9 +95,9 @@ export default class AssetGenerator extends Generator {
 		const value = (property.getStructure() as { initializer: string }).initializer;
 
 		if (value === '[]' || value === '') {
-			property.set({ initializer: `[${this._assetClass}]` });
+			property.set({ initializer: `[new ${this._assetClass}()]` });
 		} else if (value.endsWith(']')) {
-			property.set({ initializer: `${value.slice(0, -1)}, ${this._assetClass}]` });
+			property.set({ initializer: `${value.slice(0, -1)}, new ${this._assetClass}()]` });
 		} else {
 			this.log('Asset can not be registered. Please register it by yourself.');
 		}
