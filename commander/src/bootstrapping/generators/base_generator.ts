@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
+// eslint-disable-next-line
+/// <reference path="../../../external_types/yeoman-generator/lib/actions/install.d.ts" />
 /*
  * LiskHQ/lisk-commander
  * Copyright © 2021 Lisk Foundation
