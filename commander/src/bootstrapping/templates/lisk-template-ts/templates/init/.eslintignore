@@ -2,6 +2,7 @@ docs/
 examples/
 **/*.d.ts
 jest.config.js
+.eslintrc.js
 coverage
 benchmark
 dist
