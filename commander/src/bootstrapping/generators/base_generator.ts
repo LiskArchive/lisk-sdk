@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
+// eslint-disable-next-line
+/// <reference path="../../../external_types/yeoman-generator/lib/actions/install.d.ts" />
 /*
  * LiskHQ/lisk-commander
  * Copyright © 2021 Lisk Foundation
@@ -17,9 +19,12 @@
 
 import * as YeomanGenerator from 'yeoman-generator';
 import * as Storage from 'yeoman-generator/lib/util/storage';
+import * as installActions from 'yeoman-generator/lib/actions/install';
 import { join, dirname } from 'path';
 import * as assert from 'assert';
 import { BaseGeneratorOptions, LiskTemplate } from '../../types';
+
+Object.assign(YeomanGenerator.prototype, installActions);
 
 const DEFAULT_TEMPLATE_NAME = 'lisk-ts';
 

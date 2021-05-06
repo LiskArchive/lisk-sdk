@@ -122,7 +122,7 @@
 		"tar": "6.0.1",
 		"ts-morph": "9.1.0",
 		"tslib": "1.11.1",
-		"yeoman-environment": "3.2.0",
+		"yeoman-environment": "3.3.0",
 		"yeoman-generator": "5.2.0"
 	},
 	"devDependencies": {
@@ -141,8 +141,8 @@
 		"@types/semver": "7.1.0",
 		"@types/strip-ansi": "5.2.1",
 		"@types/tar": "4.0.3",
-		"@types/yeoman-environment": "2.10.2",
-		"@types/yeoman-generator": "4.11.3",
+		"@types/yeoman-environment": "2.10.3",
+		"@types/yeoman-generator": "4.11.4",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
 		"copyfiles": "2.4.1",
