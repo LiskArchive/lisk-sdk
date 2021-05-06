@@ -1,5 +1,5 @@
 module.exports = {
-	extends: ['../.eslintrc.js', 'lisk-base/jest'],
+	extends: ['../.eslintrc.js', 'lisk-base/ts-jest'],
 	rules: {
 		'arrow-body-style': 'off',
 		'dot-notation': 'off',
