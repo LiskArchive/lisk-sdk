@@ -13,6 +13,7 @@
  *
  */
 export { run } from '@oclif/command';
+export { BaseIPCClientCommand } from './bootstrapping/commands/base_ipc_client';
 export {
 	AccountCreateCommand,
 	AccountGetCommand,
