@@ -82,6 +82,12 @@ export default class InitGenerator extends Generator {
 			'genesis-block:create',
 			'--output',
 			'config/default',
+			'--validators-passphrase-encryption-iterations',
+			'1',
+			'--validators-hash-onion-count',
+			'10000',
+			'--validators-hash-onion-distance',
+			'1000',
 		]);
 		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'config:create',
