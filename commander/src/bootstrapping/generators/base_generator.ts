@@ -34,6 +34,7 @@ export default abstract class BaseGenerator extends YeomanGenerator {
 	protected readonly _liskRC: Storage;
 	protected readonly _commanderVersion: string;
 	protected _liskTemplate!: LiskTemplate;
+	protected _registry?: string;
 
 	public constructor(args: string | string[], opts: BaseGeneratorOptions) {
 		super(args, opts);
@@ -41,6 +42,7 @@ export default abstract class BaseGenerator extends YeomanGenerator {
 		if (opts.projectPath) {
 			this.destinationRoot(opts.projectPath);
 		}
+		this._registry =  opts.registry;
 
 		this._liskRC = this.createStorage('.liskrc.json');
 		this._liskTemplateName = opts.template ?? this._liskRC.getPath('template') ?? 'lisk-ts';

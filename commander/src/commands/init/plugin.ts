@@ -14,6 +14,7 @@
  *
  */
 
+import { flags as flagParser } from '@oclif/command';
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class PluginCommand extends BaseBootstrapCommand {
@@ -35,12 +36,16 @@ export default class PluginCommand extends BaseBootstrapCommand {
 
 	static flags = {
 		...BaseBootstrapCommand.flags,
+		registry: flagParser.string({
+			description: 'URL of a registry to download dependencies from.',
+		}),
 	};
 
 	async run(): Promise<void> {
 		const {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { alias, path },
+			flags: { registry },
 		} = this.parse(PluginCommand);
 
 		// validate folder name to not include camelcase or whitespace
@@ -54,6 +59,7 @@ export default class PluginCommand extends BaseBootstrapCommand {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			alias,
 			projectPath: path ?? process.env.INIT_CWD ?? process.cwd(),
+			registry,
 		});
 	}
 }
