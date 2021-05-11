@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { flags as flagParser } from '@oclif/command';
 import { BaseStartCommand } from 'lisk-commander';
 import {
