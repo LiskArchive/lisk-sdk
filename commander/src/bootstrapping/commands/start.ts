@@ -33,7 +33,7 @@ import {
 
 const LOG_OPTIONS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
 export abstract class StartCommand extends Command {
-	static description = 'Start Blockchain Client.';
+	static description = 'Start Blockchain Node.';
 
 	static examples = [
 		'start',
