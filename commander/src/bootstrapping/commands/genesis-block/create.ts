@@ -87,7 +87,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		}),
 		'validators-hash-onion-count': flagParser.integer({
 			description: 'Number of hashes to produce for each hash-onion',
-			default: 10000,
+			default: 100000,
 		}),
 		'validators-hash-onion-distance': flagParser.integer({
 			description: 'Distance between each hashes for hash-onion',
