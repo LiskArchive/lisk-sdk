@@ -1,6 +1,5 @@
-import { HTTPAPIPlugin, ForgerPlugin, Application } from 'lisk-sdk';
+import { Application } from 'lisk-sdk';
 
-export const registerPlugins = (app: Application): void => {
-	app.registerPlugin(HTTPAPIPlugin);
-	app.registerPlugin(ForgerPlugin);
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+export const registerPlugins = (_app: Application): void => {
 };

@@ -95,7 +95,7 @@ export abstract class StartCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(StartCommand);
+		const { flags } = this.parse(this.constructor as typeof StartCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
