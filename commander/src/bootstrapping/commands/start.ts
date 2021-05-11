@@ -62,17 +62,21 @@ export abstract class StartCommand extends Command {
 		}),
 		'api-ipc': flagParser.boolean({
 			description:
-				'Enable IPC communication. This will load plugins as a child process and communicate over IPC.',
+				'Enable IPC communication. This will load plugins as a child process and communicate over IPC. Environment variable "LISK_API_IPC" can also be used.',
+			env: 'LISK_API_IPC',
 			default: false,
 			exclusive: ['api-ws'],
 		}),
 		'api-ws': flagParser.boolean({
-			description: 'Enable websocket communication for api-client.',
+			description:
+				'Enable websocket communication for api-client. Environment variable "LISK_API_WS" can also be used.',
+			env: 'LISK_API_WS',
 			default: false,
 			exclusive: ['api-ipc'],
 		}),
 		'api-ws-port': flagParser.integer({
-			description: 'Port to be used for api-client websocket. Environment variable "LISK_API_WS_PORT" can also be used.',
+			description:
+				'Port to be used for api-client websocket. Environment variable "LISK_API_WS_PORT" can also be used.',
 			env: 'LISK_API_WS_PORT',
 			dependsOn: ['api-ws'],
 		}),
@@ -106,7 +110,9 @@ export abstract class StartCommand extends Command {
 		const defaultNetworkConfigDir = getConfigDirs(this.getApplicationConfigDir(), true);
 		if (!defaultNetworkConfigDir.includes(flags.network)) {
 			this.error(
-				`Network ${flags.network} is not supported, supported networks: ${defaultNetworkConfigDir.join(',')}.`,
+				`Network ${
+					flags.network
+				} is not supported, supported networks: ${defaultNetworkConfigDir.join(',')}.`,
 			);
 		}
 
