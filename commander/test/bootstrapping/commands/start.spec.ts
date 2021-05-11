@@ -29,7 +29,7 @@ import pJSON = require('../../../package.json');
 // In order to test the command we need to extended the base crete command and provide application implementation
 class StartCommandExtended extends StartCommand {
 	static flags = {
-			...StartCommand.flags,
+		...StartCommand.flags,
 	};
 	public getApplication(): Application {
 		const app = application.getApplication();
