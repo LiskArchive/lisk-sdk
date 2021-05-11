@@ -114,7 +114,7 @@ describe('start', () => {
 	describe('when unknown network is specified', () => {
 		it('should throw an error', async () => {
 			await expect(StartCommandExtended.run(['-n', 'unknown'], config)).rejects.toThrow(
-				'Network must be one of default but received unknown.',
+				'Network unknown is not supported, supported networks: default.',
 			);
 		});
 	});

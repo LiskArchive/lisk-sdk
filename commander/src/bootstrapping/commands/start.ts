@@ -33,7 +33,7 @@ import {
 
 const LOG_OPTIONS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
 export abstract class StartCommand extends Command {
-	static description = 'Start Lisk Core Node.';
+	static description = 'Start Blockchain Node.';
 
 	static examples = [
 		'start',
@@ -62,17 +62,22 @@ export abstract class StartCommand extends Command {
 		}),
 		'api-ipc': flagParser.boolean({
 			description:
-				'Enable IPC communication. This will load plugins as a child process and communicate over IPC.',
+				'Enable IPC communication. This will load plugins as a child process and communicate over IPC. Environment variable "LISK_API_IPC" can also be used.',
+			env: 'LISK_API_IPC',
 			default: false,
 			exclusive: ['api-ws'],
 		}),
 		'api-ws': flagParser.boolean({
-			description: 'Enable websocket communication for api-client.',
+			description:
+				'Enable websocket communication for api-client. Environment variable "LISK_API_WS" can also be used.',
+			env: 'LISK_API_WS',
 			default: false,
 			exclusive: ['api-ipc'],
 		}),
 		'api-ws-port': flagParser.integer({
-			description: 'Port to be used for api-client websocket.',
+			description:
+				'Port to be used for api-client websocket. Environment variable "LISK_API_WS_PORT" can also be used.',
+			env: 'LISK_API_WS_PORT',
 			dependsOn: ['api-ws'],
 		}),
 		'console-log': flagParser.string({
@@ -105,9 +110,9 @@ export abstract class StartCommand extends Command {
 		const defaultNetworkConfigDir = getConfigDirs(this.getApplicationConfigDir(), true);
 		if (!defaultNetworkConfigDir.includes(flags.network)) {
 			this.error(
-				`Network must be one of ${defaultNetworkConfigDir.join(',')} but received ${
+				`Network ${
 					flags.network
-				}.`,
+				} is not supported, supported networks: ${defaultNetworkConfigDir.join(',')}.`,
 			);
 		}
 
