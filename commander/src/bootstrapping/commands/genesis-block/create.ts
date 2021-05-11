@@ -97,7 +97,15 @@ export abstract class BaseGenesisBlockCommand extends Command {
 
 	async run(): Promise<void> {
 		const {
-			flags: { output, accounts, validators, 'token-distribution': tokenDistribution, 'validators-hash-onion-count': validatorsHashOnionCount, 'validators-hash-onion-distance': validatorsHashOnionDistance, 'validators-passphrase-encryption-iterations': validatorsPassphraseEncryptionIterations },
+			flags: {
+				output,
+				accounts,
+				validators,
+				'token-distribution': tokenDistribution,
+				'validators-hash-onion-count': validatorsHashOnionCount,
+				'validators-hash-onion-distance': validatorsHashOnionDistance,
+				'validators-passphrase-encryption-iterations': validatorsPassphraseEncryptionIterations,
+			},
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		} = this.parse(BaseGenesisBlockCommand);
 
@@ -141,7 +149,11 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			const info = {
 				// TODO: use a better password, user sourced using flag
 				encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(
-					cryptography.encryptPassphraseWithPassword(delegate.passphrase, password, validatorsPassphraseEncryptionIterations),
+					cryptography.encryptPassphraseWithPassword(
+						delegate.passphrase,
+						password,
+						validatorsPassphraseEncryptionIterations,
+					),
 				),
 				hashOnion: {
 					count: validatorsHashOnionCount,
