@@ -14,6 +14,7 @@
  *
  */
 
+import { flags as flagParser } from '@oclif/command';
 import BaseBootstrapCommand from '../base_bootstrap_command';
 
 export default class InitCommand extends BaseBootstrapCommand {
@@ -29,6 +30,9 @@ export default class InitCommand extends BaseBootstrapCommand {
 
 	static flags = {
 		...BaseBootstrapCommand.flags,
+		registry: flagParser.string({
+			description: 'URL of a registry to download dependencies from.',
+		}),
 	};
 
 	static args = [
@@ -42,10 +46,12 @@ export default class InitCommand extends BaseBootstrapCommand {
 	async run(): Promise<void> {
 		const {
 			args: { projectPath },
-		} = this.parse(InitCommand) as { args: { projectPath: string } };
+			flags: { registry },
+		} = this.parse(InitCommand) as { args: { projectPath: string }; flags: { registry?: string } };
 
 		return this._runBootstrapCommand('lisk:init', {
 			projectPath: projectPath ?? process.env.INIT_CWD ?? process.cwd(),
+			registry,
 		});
 	}
 }

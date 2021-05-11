@@ -20,6 +20,7 @@ export interface BaseGeneratorOptions extends GeneratorOptions {
 	template: string;
 	version: string;
 	projectPath?: string;
+	registry?: string;
 }
 
 export interface LiskTemplate {
