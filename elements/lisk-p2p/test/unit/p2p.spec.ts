@@ -141,13 +141,15 @@ describe('p2p', () => {
 			};
 
 			const banningStats = {
-				totalBannedPeers: 0,
+				count: 0,
 				bannedPeers: {},
 			};
 
 			expect(p2pNodeWithoutPeers.getNetworkStats().incoming).toEqual(connectStats);
 			expect(p2pNodeWithoutPeers.getNetworkStats().outgoing).toEqual(connectStats);
 			expect(p2pNodeWithoutPeers.getNetworkStats().banning).toEqual(banningStats);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalConnectedPeers).toEqual(0);
+			expect(p2pNodeWithoutPeers.getNetworkStats().totalDisconnectedPeers).toEqual(0);
 			expect(p2pNodeWithoutPeers.getNetworkStats().totalMessagesReceived).toEqual({});
 			expect(p2pNodeWithoutPeers.getNetworkStats().totalRequestsReceived).toEqual({});
 			expect(p2pNodeWithoutPeers.getNetworkStats().totalErrors).toEqual(0);

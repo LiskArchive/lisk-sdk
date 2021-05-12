@@ -53,7 +53,7 @@ describe('api client ws mode', () => {
 			const defaultNetworkStats = {
 				incoming: { count: 0, connects: 0, disconnects: 0 },
 				outgoing: { count: 1, connects: 1, disconnects: 0 },
-				banning: { bannedPeers: {}, totalBannedPeers: 0 },
+				banning: { bannedPeers: {}, count: 0 },
 				totalErrors: 0,
 				totalPeersDiscovered: 0,
 				totalRemovedPeers: 0,
