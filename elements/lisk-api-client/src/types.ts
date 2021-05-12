@@ -126,7 +126,7 @@ export interface NetworkStats {
 		disconnects: number;
 	};
 	readonly banning: {
-		totalBannedPeers: number;
+		count: number;
 		bannedPeers: {
 			[key: string]: {
 				lastBanTime: number;

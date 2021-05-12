@@ -232,7 +232,7 @@ const MainPage: React.FC = () => {
 		setPeerInfo({
 			connected: info.totalConnectedPeers,
 			disconnected: info.totalDisconnectedPeers,
-			banned: info.banning.totalBannedPeers,
+			banned: info.banning.count,
 		});
 	};
 

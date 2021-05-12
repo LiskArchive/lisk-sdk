@@ -290,7 +290,7 @@ export class P2P extends EventEmitter {
 			},
 			banning: {
 				bannedPeers: {},
-				totalBannedPeers: 0,
+				count: 0,
 			},
 			totalConnectedPeers: 0,
 			totalDisconnectedPeers: 0,
@@ -507,7 +507,7 @@ export class P2P extends EventEmitter {
 
 			this._peerBook.addBannedPeer(peerId, banTime);
 
-			this._networkStats.banning.totalBannedPeers += 1;
+			this._networkStats.banning.count += 1;
 
 			if (!this._networkStats.banning.bannedPeers[peerId]) {
 				this._networkStats.banning.bannedPeers[peerId] = {

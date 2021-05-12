@@ -141,7 +141,7 @@ describe('p2p', () => {
 			};
 
 			const banningStats = {
-				totalBannedPeers: 0,
+				count: 0,
 				bannedPeers: {},
 			};
 
