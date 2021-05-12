@@ -17,7 +17,7 @@
 import { join } from 'path';
 import { Project, SyntaxKind } from 'ts-morph';
 import * as Generator from 'yeoman-generator';
-import { camelToSnake, camelToUpperCamel } from '../../../../utils/convert';
+import { camelToSnake, camelToPascal } from '../../../../utils/convert';
 
 interface ModuleGeneratorOptions extends Generator.GeneratorOptions {
 	moduleName: string;
@@ -38,7 +38,7 @@ export default class ModuleGenerator extends Generator {
 		this._moduleName = (this.options as ModuleGeneratorOptions).moduleName;
 		this._moduleFileName = camelToSnake(this._moduleName);
 		this._moduleID = (this.options as ModuleGeneratorOptions).moduleID;
-		this._moduleClass = `${camelToUpperCamel(this._moduleName)}Module`;
+		this._moduleClass = `${camelToPascal(this._moduleName)}Module`;
 	}
 
 	public writing(): void {

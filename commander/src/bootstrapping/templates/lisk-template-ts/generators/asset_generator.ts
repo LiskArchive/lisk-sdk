@@ -17,7 +17,7 @@
 import { join } from 'path';
 import { Project } from 'ts-morph';
 import * as Generator from 'yeoman-generator';
-import { camelToUpperCamel, camelToSnake } from '../../../../utils/convert';
+import { camelToPascal, camelToSnake } from '../../../../utils/convert';
 
 interface AssetGeneratorOptions extends Generator.GeneratorOptions {
 	moduleName: string;
@@ -43,9 +43,9 @@ export default class AssetGenerator extends Generator {
 		this._assetID = opts.assetID;
 		this._moduleFileName = camelToSnake(this._moduleName);
 		this._templatePath = join(__dirname, '..', 'templates', 'asset');
-		this._assetClass = `${camelToUpperCamel(this._assetName)}Asset`;
+		this._assetClass = `${camelToPascal(this._assetName)}Asset`;
 		this._assetFileName = camelToSnake(this._assetName);
-		this._moduleClass = `${camelToUpperCamel(this._moduleName)}Module`;
+		this._moduleClass = `${camelToPascal(this._moduleName)}Module`;
 	}
 
 	public writing(): void {

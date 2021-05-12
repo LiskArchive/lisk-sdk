@@ -16,5 +16,5 @@
 
 export const camelToSnake = (name: string): string => name.replace(/([A-Z])/g, '_$1').toLowerCase();
 
-export const camelToUpperCamel = (name: string): string =>
+export const camelToPascal = (name: string): string =>
 	`${name.charAt(0).toUpperCase() + name.slice(1)}`;
