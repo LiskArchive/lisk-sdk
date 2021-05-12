@@ -15,7 +15,7 @@ import * as React from 'react';
 import Editor from 'react-simple-code-editor';
 import formatHighlight from 'json-format-highlight';
 import styles from './Input.module.scss';
-import { jsonHightlight } from '../../utils/json_color';
+import { jsonHighlight } from '../../utils/json_color';
 
 interface Props {
 	placeholder?: string;
@@ -58,7 +58,7 @@ const TextAreaInput: React.FC<Props> = props => {
 					}
 				}}
 				// eslint-disable-next-line
-				highlight={code => formatHighlight(code, jsonHightlight)}
+				highlight={code => formatHighlight(code, jsonHighlight)}
 				padding={10}
 				textareaClassName={`${styles.textArea} ${styles[`textArea-${size}`]}`}
 				style={{

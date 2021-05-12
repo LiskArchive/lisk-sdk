@@ -1,4 +1,4 @@
-export const jsonHightlight = {
+export const jsonHighlight = {
 	keyColor: '#dfe6f2',
 	numberColor: '#f7e36d',
 	stringColor: '#2bd67b',

@@ -20,7 +20,7 @@ import Text from '../Text';
 import Box from '../Box';
 import { EventData } from '../../types';
 import styles from './Widgets.module.scss';
-import { jsonHightlight } from '../../utils/json_color';
+import { jsonHighlight } from '../../utils/json_color';
 
 interface Props {
 	events: string[];
@@ -42,8 +42,7 @@ const RecentEventWidget: React.FC<Props> = props => {
 
 	const showHighlightJSON = (data: Record<string, unknown>): string =>
 		// eslint-disable-next-line
-		formatHighlight(JSON.stringify(data), jsonHightlight);
-
+		formatHighlight(JSON.stringify(data), jsonHighlight);
 
 	return (
 		<Widget>
@@ -67,7 +66,7 @@ const RecentEventWidget: React.FC<Props> = props => {
 					<Box mb={4} key={index}>
 						<Text type={'h3'}>{name}</Text>
 						<br />
-						<span dangerouslySetInnerHTML={{ __html: showHighlightJSON(data)}} />
+						<span dangerouslySetInnerHTML={{ __html: showHighlightJSON(data) }} />
 					</Box>
 				))}
 			</WidgetBody>
