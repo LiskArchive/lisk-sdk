@@ -39,7 +39,6 @@ export default class PluginCommand extends BaseBootstrapCommand {
 		output: flagParser.string({
 			description: 'Path to create the plugin.',
 			char: 'o',
-			default: process.env.INIT_CWD ?? process.cwd(),
 			dependsOn: ['standalone'],
 		}),
 		registry: flagParser.string({
@@ -65,7 +64,7 @@ export default class PluginCommand extends BaseBootstrapCommand {
 			return this._runBootstrapCommand('lisk:init:plugin', {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				alias,
-				projectPath: output,
+				projectPath: output ?? process.env.INIT_CWD ?? process.cwd(),
 				registry,
 			});
 		}
