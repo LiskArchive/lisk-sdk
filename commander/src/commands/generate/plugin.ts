@@ -39,7 +39,6 @@ export default class PluginCommand extends BaseBootstrapCommand {
 		output: flagParser.string({
 			description: 'Path to create the plugin.',
 			char: 'o',
-			default: process.env.INIT_CWD ?? process.cwd(),
 			dependsOn: ['standalone'],
 		}),
 		registry: flagParser.string({
@@ -59,14 +58,14 @@ export default class PluginCommand extends BaseBootstrapCommand {
 		const regexWhitespace = /\s/g;
 		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
 		const regexAlphabets = /[^A-Za-z]/;
-		if (regexCamelCase.test(alias) || regexWhitespace.test(alias) || regexAlphabets.test(alias)) {
+		if (!regexCamelCase.test(alias) || regexWhitespace.test(alias) || regexAlphabets.test(alias)) {
 			this.error('Invalid plugin alias');
 		}
 		if (standalone) {
 			return this._runBootstrapCommand('lisk:init:plugin', {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				alias,
-				projectPath: output,
+				projectPath: output??process.env.INIT_CWD ?? process.cwd(),
 				registry,
 			});
 		}

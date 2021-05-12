@@ -46,7 +46,7 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 		const regexAlphabets = /[^A-Za-z]/;
 
 		if (
-			regexCamelCase.test(moduleName) ||
+			!regexCamelCase.test(moduleName) ||
 			regexWhitespace.test(moduleName) ||
 			regexAlphabets.test(moduleName)
 		) {
