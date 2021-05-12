@@ -59,7 +59,7 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 	}
 };
 
-type StartFlags = typeof BaseStartCommand.flags & { [key: string]: Record<string, unknown> };
+type StartFlags = typeof BaseStartCommand.flags & flagParser.Input<any>;
 
 export class StartCommand extends BaseStartCommand {
 	static flags: StartFlags = {
@@ -143,7 +143,7 @@ export class StartCommand extends BaseStartCommand {
 		config: PartialApplicationConfig,
 	): Application {
 		/* eslint-disable @typescript-eslint/no-unsafe-call */
-		const { flags } = this.parse(BaseStartCommand);
+		const { flags } = this.parse(StartCommand);
 		// Set Plugins Config
 		setPluginConfig(config as ApplicationConfig, flags);
 		const app = getApplication(genesisBlock, config);
