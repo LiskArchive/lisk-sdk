@@ -230,9 +230,9 @@ const MainPage: React.FC = () => {
 	const loadPeersInfo = async () => {
 		const info = await getClient().node.getNetworkStats();
 		setPeerInfo({
-			connected: info.incoming.connects + info.outgoing.connects,
-			disconnected: info.incoming.disconnects + info.outgoing.disconnects,
-			banned: info.banning.totalBannedPeers,
+			connected: info.totalConnectedPeers,
+			disconnected: info.totalDisconnectedPeers,
+			banned: info.banning.count,
 		});
 	};
 

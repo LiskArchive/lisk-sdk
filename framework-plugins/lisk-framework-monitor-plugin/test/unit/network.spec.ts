@@ -81,7 +81,7 @@ describe('networkStats', () => {
 		},
 		banning: {
 			bannedPeers: {},
-			totalBannedPeers: 0,
+			count: 0,
 		},
 		totalErrors: 0,
 		totalPeersDiscovered: 0,
