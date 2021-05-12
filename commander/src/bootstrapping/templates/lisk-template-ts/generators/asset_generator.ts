@@ -40,14 +40,18 @@ export default class AssetGenerator extends Generator {
 		this._assetID = opts.assetID;
 		this._templatePath = join(__dirname, '..', 'templates', 'asset');
 		this._assetClass = `${this._assetName.charAt(0).toUpperCase() + this._assetName.slice(1)}Asset`;
-		this._moduleClass = this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1);
+		this._moduleClass = `${
+			this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1)
+		}Module`;
 	}
 
 	public writing(): void {
 		// Writing asset file
 		this.fs.copyTpl(
 			`${this._templatePath}/src/app/modules/assets/asset.ts`,
-			this.destinationPath(`src/app/modules/${this._moduleName}/assets/${this._assetName}.ts`),
+			this.destinationPath(
+				`src/app/modules/${this._moduleName}/assets/${this._assetName}_asset.ts`,
+			),
 			{
 				moduleName: this._moduleName,
 				assetName: this._assetName,
@@ -62,7 +66,7 @@ export default class AssetGenerator extends Generator {
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/modules/assets/asset.spec.ts`,
 			this.destinationPath(
-				`test/unit/modules/${this._moduleName}/assets/${this._assetName}.spec.ts`,
+				`test/unit/modules/${this._moduleName}/assets/${this._assetName}_asset.spec.ts`,
 			),
 			{
 				moduleName: this._moduleName,
@@ -82,7 +86,7 @@ export default class AssetGenerator extends Generator {
 		project.addSourceFilesAtPaths('src/app/**/*.ts');
 
 		const moduleFile = project.getSourceFileOrThrow(
-			`src/app/modules/${this._moduleName}/${this._moduleName}.ts`,
+			`src/app/modules/${this._moduleName}/${this._moduleName}_module.ts`,
 		);
 
 		moduleFile.addImportDeclaration({
