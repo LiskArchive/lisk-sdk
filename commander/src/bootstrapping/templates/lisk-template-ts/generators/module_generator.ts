@@ -35,14 +35,16 @@ export default class ModuleGenerator extends Generator {
 		this._templatePath = join(__dirname, '..', 'templates', 'module');
 		this._moduleName = (this.options as ModuleGeneratorOptions).moduleName;
 		this._moduleID = (this.options as ModuleGeneratorOptions).moduleID;
-		this._moduleClass = this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1);
+		this._moduleClass = `${
+			this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1)
+		}Module`;
 	}
 
 	public writing(): void {
 		// Writing module file
 		this.fs.copyTpl(
 			`${this._templatePath}/src/app/modules/module.ts`,
-			this.destinationPath(`src/app/modules/${this._moduleName}/${this._moduleName}.ts`),
+			this.destinationPath(`src/app/modules/${this._moduleName}/${this._moduleName}_module.ts`),
 			{
 				moduleName: this._moduleName,
 				moduleID: this._moduleID,
@@ -55,7 +57,9 @@ export default class ModuleGenerator extends Generator {
 		// Writing test file for the generated module
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/modules/module.spec.ts`,
-			this.destinationPath(`test/unit/modules/${this._moduleName}/${this._moduleName}.spec.ts`),
+			this.destinationPath(
+				`test/unit/modules/${this._moduleName}/${this._moduleName}_module.spec.ts`,
+			),
 			{
 				moduleClass: this._moduleClass,
 				moduleName: this._moduleName,
@@ -75,7 +79,7 @@ export default class ModuleGenerator extends Generator {
 
 		modulesFile.addImportDeclaration({
 			namedImports: [this._moduleClass],
-			moduleSpecifier: `./modules/${this._moduleName}/${this._moduleName}`,
+			moduleSpecifier: `./modules/${this._moduleName}/${this._moduleName}_module`,
 		});
 
 		const registerFunction = modulesFile
