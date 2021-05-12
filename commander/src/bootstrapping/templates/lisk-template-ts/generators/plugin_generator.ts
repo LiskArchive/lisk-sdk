@@ -80,7 +80,9 @@ export default class PluginGenerator extends Generator {
 		// Create plugin
 		this.fs.copyTpl(
 			`${this._templatePath}/src/app/plugins/plugin.ts`,
-			this.destinationPath(`src/app/plugins/${this._pluginFileName}/${this._pluginFileName}_plugin.ts`),
+			this.destinationPath(
+				`src/app/plugins/${this._pluginFileName}/${this._pluginFileName}_plugin.ts`,
+			),
 			{
 				alias: this._alias,
 				className: this._className,
@@ -95,7 +97,9 @@ export default class PluginGenerator extends Generator {
 		// Create unit tests
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/plugins/plugin.spec.ts`,
-			this.destinationPath(`test/unit/plugins/${this._pluginFileName}/${this._pluginFileName}_plugin.spec.ts`),
+			this.destinationPath(
+				`test/unit/plugins/${this._pluginFileName}/${this._pluginFileName}_plugin.spec.ts`,
+			),
 			{
 				alias: this._alias,
 				className: this._className,

@@ -45,7 +45,9 @@ export default class ModuleGenerator extends Generator {
 		// Writing module file
 		this.fs.copyTpl(
 			`${this._templatePath}/src/app/modules/module.ts`,
-			this.destinationPath(`src/app/modules/${this._moduleFileName}/${this._moduleFileName}_module.ts`),
+			this.destinationPath(
+				`src/app/modules/${this._moduleFileName}/${this._moduleFileName}_module.ts`,
+			),
 			{
 				moduleName: this._moduleName,
 				moduleID: this._moduleID,

@@ -65,7 +65,7 @@ export default class PluginCommand extends BaseBootstrapCommand {
 			return this._runBootstrapCommand('lisk:init:plugin', {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				alias,
-				projectPath: output??process.env.INIT_CWD ?? process.cwd(),
+				projectPath: output ?? process.env.INIT_CWD ?? process.cwd(),
 				registry,
 			});
 		}
