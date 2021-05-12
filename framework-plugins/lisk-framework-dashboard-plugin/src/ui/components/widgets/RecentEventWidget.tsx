@@ -13,12 +13,14 @@
  */
 
 import * as React from 'react';
+import formatHighlight from 'json-format-highlight';
 import SelectInput, { SelectInputOptionType } from '../input/SelectInput';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
 import Box from '../Box';
 import { EventData } from '../../types';
 import styles from './Widgets.module.scss';
+import { jsonHightlight } from '../../utils/json_color';
 
 interface Props {
 	events: string[];
@@ -37,6 +39,11 @@ const RecentEventWidget: React.FC<Props> = props => {
 		setSelectedEvents(val);
 		props.onSelect(val.map(e => e.value));
 	};
+
+	const showHighlightJSON = (data: Record<string, unknown>): string =>
+		// eslint-disable-next-line
+		formatHighlight(JSON.stringify(data), jsonHightlight);
+
 
 	return (
 		<Widget>
@@ -60,9 +67,7 @@ const RecentEventWidget: React.FC<Props> = props => {
 					<Box mb={4} key={index}>
 						<Text type={'h3'}>{name}</Text>
 						<br />
-						<Text type={'p'} color="yellow">
-							<pre className={styles['recent-events-data']}>{JSON.stringify(data, null, '\t')}</pre>
-						</Text>
+						<span dangerouslySetInnerHTML={{ __html: showHighlightJSON(data)}} />
 					</Box>
 				))}
 			</WidgetBody>

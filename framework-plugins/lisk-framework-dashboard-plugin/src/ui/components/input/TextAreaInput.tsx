@@ -15,6 +15,7 @@ import * as React from 'react';
 import Editor from 'react-simple-code-editor';
 import formatHighlight from 'json-format-highlight';
 import styles from './Input.module.scss';
+import { jsonHightlight } from '../../utils/json_color';
 
 interface Props {
 	placeholder?: string;
@@ -23,15 +24,6 @@ interface Props {
 	size?: 's' | 'm' | 'l';
 	json?: boolean;
 }
-
-const jsonHightlight = {
-	keyColor: '#dfe6f2',
-	numberColor: '#f7e36d',
-	stringColor: '#2bd67b',
-	trueColor: '#ffd0d1',
-	falseColor: '#ffd0d1',
-	nullColor: '#f7e36d',
-};
 
 const TextAreaInput: React.FC<Props> = props => {
 	const { placeholder } = props;
