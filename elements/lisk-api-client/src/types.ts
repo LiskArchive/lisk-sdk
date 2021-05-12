@@ -134,6 +134,8 @@ export interface NetworkStats {
 			};
 		};
 	};
+	readonly totalConnectedPeers: number;
+	readonly totalDisconnectedPeers: number;
 	readonly totalErrors: number;
 	readonly totalRemovedPeers: number;
 	readonly totalMessagesReceived: {

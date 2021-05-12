@@ -94,6 +94,8 @@ describe('getNetworkStats', () => {
 				bannedPeers: {},
 				totalBannedPeers: 0,
 			},
+			totalConnectedPeers: 0,
+			totalDisconnectedPeers: 0,
 			totalErrors: 0,
 			totalPeersDiscovered: 0,
 			totalRemovedPeers: 0,
@@ -117,16 +119,20 @@ describe('getNetworkStats', () => {
 
 		firstNode.on(EVENT_CLOSE_INBOUND, () => {
 			networkStats.incoming.disconnects += 1;
+			networkStats.totalDisconnectedPeers += 1;
 		});
 		firstNode.on(EVENT_NEW_INBOUND_PEER, () => {
 			networkStats.incoming.connects += 1;
+			networkStats.totalConnectedPeers += 1;
 		});
 
 		firstNode.on(EVENT_CLOSE_OUTBOUND, () => {
 			networkStats.outgoing.disconnects += 1;
+			networkStats.totalDisconnectedPeers += 1;
 		});
 		firstNode.on(EVENT_CONNECT_OUTBOUND, () => {
 			networkStats.outgoing.connects += 1;
+			networkStats.totalConnectedPeers += 1;
 		});
 
 		firstNode.on(EVENT_REMOVE_PEER, () => {
@@ -174,6 +180,8 @@ describe('getNetworkStats', () => {
 		expect(firstNodeStats.banning.bannedPeers).toEqual({});
 
 		// totals
+		expect(firstNodeStats.totalConnectedPeers).toEqual(networkStats.totalConnectedPeers);
+		expect(firstNodeStats.totalDisconnectedPeers).toEqual(networkStats.totalDisconnectedPeers);
 		expect(firstNodeStats.totalMessagesReceived).toEqual(networkStats.totalMessagesReceived);
 		expect(firstNodeStats.totalRequestsReceived).toEqual(networkStats.totalRequestsReceived);
 		expect(firstNodeStats.totalRemovedPeers).toEqual(networkStats.totalRemovedPeers);

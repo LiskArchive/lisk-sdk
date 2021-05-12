@@ -274,6 +274,8 @@ export interface NetworkStats {
 			};
 		};
 	};
+	totalConnectedPeers: number;
+	totalDisconnectedPeers: number;
 	totalErrors: number;
 	totalRemovedPeers: number;
 	totalMessagesReceived: {

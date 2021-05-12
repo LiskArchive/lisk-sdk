@@ -292,6 +292,8 @@ export class P2P extends EventEmitter {
 				bannedPeers: {},
 				totalBannedPeers: 0,
 			},
+			totalConnectedPeers: 0,
+			totalDisconnectedPeers: 0,
 			totalErrors: 0,
 			totalPeersDiscovered: 0,
 			totalRemovedPeers: 0,
@@ -664,6 +666,8 @@ export class P2P extends EventEmitter {
 		const { inboundCount, outboundCount } = this._peerPool.getPeersCountPerKind();
 		this._networkStats.outgoing.count = outboundCount;
 		this._networkStats.incoming.count = inboundCount;
+		this._networkStats.totalDisconnectedPeers = this.getDisconnectedPeers().length;
+		this._networkStats.totalConnectedPeers = this.getConnectedPeers().length;
 
 		return this._networkStats;
 	}
