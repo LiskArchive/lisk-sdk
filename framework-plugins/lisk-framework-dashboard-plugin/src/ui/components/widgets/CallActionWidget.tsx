@@ -29,24 +29,17 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 	const actions = props.actions.map(action => ({ label: action, value: action })).flat();
 	const [selectedAction, setSelectedAction] = React.useState<SelectInputOptionType>();
 	const [keyValue, setKeyValue] = React.useState('{}');
+	const [valueValid, setValidValid] = React.useState(true);
 
 	const handleSubmit = () => {
 		if (!selectedAction) {
 			return;
 		}
-
-		let params;
-		try {
-			params = JSON.parse(keyValue) as Record<string, unknown>;
-		} catch (error) {
-			return;
-		}
-
 		const actionName = selectedAction.value;
 
 		props.onSubmit({
 			name: actionName,
-			params,
+			params: JSON.parse(keyValue) as Record<string, unknown>,
 		});
 	};
 
@@ -71,12 +64,20 @@ const CallActionWidget: React.FC<WidgetProps> = props => {
 						placeholder={'Params'}
 						size={'l'}
 						value={keyValue}
-						onChange={val => setKeyValue(val)}
+						onChange={val => {
+							try {
+								JSON.parse(val ?? '');
+								setValidValid(true);
+							} catch (error) {
+								setValidValid(false);
+							}
+							setKeyValue(val);
+						}}
 					></TextAreaInput>
 				</Box>
 
 				<Box textAlign={'center'}>
-					<Button size={'m'} onClick={handleSubmit}>
+					<Button size={'m'} onClick={handleSubmit} disabled={!valueValid}>
 						Submit
 					</Button>
 				</Box>
