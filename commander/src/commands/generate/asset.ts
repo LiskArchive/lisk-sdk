@@ -52,11 +52,11 @@ export default class AssetCommand extends BaseBootstrapCommand {
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
-		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
+		const regexCamelCase = /[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?/;
 		const regexAlphabets = /[^A-Za-z]/;
 
 		if (
-			regexCamelCase.test(moduleName) ||
+			!regexCamelCase.test(moduleName) ||
 			regexWhitespace.test(moduleName) ||
 			regexAlphabets.test(moduleName)
 		) {

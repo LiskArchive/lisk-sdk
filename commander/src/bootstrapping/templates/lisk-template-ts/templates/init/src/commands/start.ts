@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { flags as flagParser } from '@oclif/command';
 import { BaseStartCommand } from 'lisk-commander';
 import {
@@ -12,6 +13,8 @@ import {
 	MonitorPlugin,
 	ReportMisbehaviorPlugin,
 } from 'lisk-sdk';
+import { DashboardPlugin } from '@liskhq/lisk-framework-dashboard-plugin';
+import { FaucetPlugin } from '@liskhq/lisk-framework-faucet-plugin';
 import { join } from 'path';
 import { getApplication } from '../app/app';
 
@@ -21,7 +24,6 @@ interface Flags {
 
 const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 	if (flags['http-api-plugin-port'] !== undefined) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		config.plugins[HTTPAPIPlugin.alias] = config.plugins[HTTPAPIPlugin.alias] ?? {};
 		config.plugins[HTTPAPIPlugin.alias].port = flags['http-api-plugin-port'];
 	}
@@ -29,14 +31,12 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 		flags['http-api-plugin-whitelist'] !== undefined &&
 		typeof flags['http-api-plugin-whitelist'] === 'string'
 	) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		config.plugins[HTTPAPIPlugin.alias] = config.plugins[HTTPAPIPlugin.alias] ?? {};
 		config.plugins[HTTPAPIPlugin.alias].whiteList = flags['http-api-plugin-whitelist']
 			.split(',')
 			.filter(Boolean);
 	}
 	if (flags['monitor-plugin-port'] !== undefined) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		config.plugins[MonitorPlugin.alias] = config.plugins[MonitorPlugin.alias] ?? {};
 		config.plugins[MonitorPlugin.alias].port = flags['monitor-plugin-port'];
 	}
@@ -44,15 +44,22 @@ const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 		flags['monitor-plugin-whitelist'] !== undefined &&
 		typeof flags['monitor-plugin-whitelist'] === 'string'
 	) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		config.plugins[MonitorPlugin.alias] = config.plugins[MonitorPlugin.alias] ?? {};
 		config.plugins[MonitorPlugin.alias].whiteList = flags['monitor-plugin-whitelist']
 			.split(',')
 			.filter(Boolean);
 	}
+	if (flags['faucet-plugin-port'] !== undefined) {
+		config.plugins[FaucetPlugin.alias] = config.plugins[FaucetPlugin.alias] ?? {};
+		config.plugins[FaucetPlugin.alias].port = flags['faucet-plugin-port'];
+	}
+	if (flags['dashboard-plugin-port'] !== undefined) {
+		config.plugins[DashboardPlugin.alias] = config.plugins[DashboardPlugin.alias] ?? {};
+		config.plugins[DashboardPlugin.alias].port = flags['dashboard-plugin-port'];
+	}
 };
 
-type StartFlags = typeof BaseStartCommand.flags & { [key: string]: Record<string, unknown> };
+type StartFlags = typeof BaseStartCommand.flags & flagParser.Input<any>;
 
 export class StartCommand extends BaseStartCommand {
 	static flags: StartFlags = {
@@ -105,6 +112,30 @@ export class StartCommand extends BaseStartCommand {
 			env: 'LISK_ENABLE_MONITOR_PLUGIN',
 			default: false,
 		}),
+		'enable-faucet-plugin': flagParser.boolean({
+			description:
+				'Enable Faucet Plugin. Environment variable "LISK_ENABLE_FAUCET_PLUGIN" can also be used.',
+			env: 'LISK_ENABLE_FAUCET_PLUGIN',
+			default: false,
+		}),
+		'faucet-plugin-port': flagParser.integer({
+			description:
+				'Port to be used for Faucet Plugin. Environment variable "LISK_FAUCET_PLUGIN_PORT" can also be used.',
+			env: 'LISK_FAUCET_PLUGIN_PORT',
+			dependsOn: ['enable-faucet-plugin'],
+		}),
+		'enable-dashboard-plugin': flagParser.boolean({
+			description:
+				'Enable Dashboard Plugin. Environment variable "LISK_ENABLE_DASHBOARD_PLUGIN" can also be used.',
+			env: 'LISK_ENABLE_DASHBOARD_PLUGIN',
+			default: false,
+		}),
+		'dashboard-plugin-port': flagParser.integer({
+			description:
+				'Port to be used for Dashboard Plugin. Environment variable "LISK_DASHBOARD_PLUGIN_PORT" can also be used.',
+			env: 'LISK_DASHBOARD_PLUGIN_PORT',
+			dependsOn: ['enable-dashboard-plugin'],
+		}),
 	};
 
 	public getApplication(
@@ -112,7 +143,7 @@ export class StartCommand extends BaseStartCommand {
 		config: PartialApplicationConfig,
 	): Application {
 		/* eslint-disable @typescript-eslint/no-unsafe-call */
-		const { flags } = this.parse(BaseStartCommand);
+		const { flags } = this.parse(StartCommand);
 		// Set Plugins Config
 		setPluginConfig(config as ApplicationConfig, flags);
 		const app = getApplication(genesisBlock, config);
@@ -128,6 +159,12 @@ export class StartCommand extends BaseStartCommand {
 		}
 		if (flags['enable-report-misbehavior-plugin']) {
 			app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: true });
+		}
+		if (flags['enable-faucet-plugin']) {
+			app.registerPlugin(FaucetPlugin, { loadAsChildProcess: true });
+		}
+		if (flags['enable-dashboard-plugin']) {
+			app.registerPlugin(DashboardPlugin, { loadAsChildProcess: true });
 		}
 
 		return app;

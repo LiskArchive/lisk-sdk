@@ -16,7 +16,6 @@
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
-		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",

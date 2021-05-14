@@ -17,13 +17,18 @@ import styles from './Button.module.scss';
 interface Props {
 	onClick?: (event: React.MouseEvent | Event) => void;
 	size?: 's' | 'm' | 'l' | 'xl';
+	disabled?: boolean;
 }
 
 const Button: React.FC<Props> = props => {
 	const { onClick } = props;
 	const size = props.size ?? 'm';
 	return (
-		<button className={`${styles.button} ${styles[`button-${size}`]}`} onClick={onClick}>
+		<button
+			className={`${styles.button} ${styles[`button-${size}`]}`}
+			onClick={onClick}
+			disabled={props.disabled}
+		>
 			{props.children}
 		</button>
 	);
