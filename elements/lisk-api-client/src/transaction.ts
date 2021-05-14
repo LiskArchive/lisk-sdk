@@ -246,10 +246,13 @@ export class Transaction {
 
 	public computeMinFee(transaction: Record<string, unknown>): bigint {
 		const assetSchema = getTransactionAssetSchema(transaction, this._schema);
+		const numberOfSignatures = transaction.signatures
+			? (transaction.signatures as string[]).length
+			: 1;
 		const options: Options = {
 			minFeePerByte: this._nodeInfo.genesisConfig.minFeePerByte,
 			baseFees: this._nodeInfo.genesisConfig.baseFees,
-			numberOfSignatures: (transaction.asset as { numberOfSignatures: number }).numberOfSignatures || 1,
+			numberOfSignatures,
 		};
 
 		return computeMinFee(assetSchema, transaction, options);
