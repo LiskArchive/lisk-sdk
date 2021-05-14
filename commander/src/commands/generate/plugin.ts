@@ -56,8 +56,9 @@ export default class PluginCommand extends BaseBootstrapCommand {
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
-		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
-		if (regexCamelCase.test(alias) || regexWhitespace.test(alias)) {
+		const regexCamelCase = /[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?/;
+		const regexAlphabets = /[^A-Za-z]/;
+		if (!regexCamelCase.test(alias) || regexWhitespace.test(alias) || regexAlphabets.test(alias)) {
 			this.error('Invalid plugin alias');
 		}
 		if (standalone) {

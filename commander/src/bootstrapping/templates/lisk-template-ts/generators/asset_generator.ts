@@ -17,6 +17,7 @@
 import { join } from 'path';
 import { Project } from 'ts-morph';
 import * as Generator from 'yeoman-generator';
+import { camelToPascal, camelToSnake } from '../../../../utils/convert';
 
 interface AssetGeneratorOptions extends Generator.GeneratorOptions {
 	moduleName: string;
@@ -27,8 +28,10 @@ interface AssetGeneratorOptions extends Generator.GeneratorOptions {
 export default class AssetGenerator extends Generator {
 	protected _moduleClass: string;
 	protected _moduleName: string;
+	protected _moduleFileName: string;
 	protected _assetName: string;
 	protected _assetID: number;
+	protected _assetFileName: string;
 	protected _templatePath: string;
 	protected _assetClass: string;
 
@@ -38,11 +41,11 @@ export default class AssetGenerator extends Generator {
 		this._moduleName = opts.moduleName;
 		this._assetName = opts.assetName;
 		this._assetID = opts.assetID;
+		this._moduleFileName = camelToSnake(this._moduleName);
 		this._templatePath = join(__dirname, '..', 'templates', 'asset');
-		this._assetClass = `${this._assetName.charAt(0).toUpperCase() + this._assetName.slice(1)}Asset`;
-		this._moduleClass = `${
-			this._moduleName.charAt(0).toUpperCase() + this._moduleName.slice(1)
-		}Module`;
+		this._assetClass = `${camelToPascal(this._assetName)}Asset`;
+		this._assetFileName = camelToSnake(this._assetName);
+		this._moduleClass = `${camelToPascal(this._moduleName)}Module`;
 	}
 
 	public writing(): void {
@@ -50,7 +53,7 @@ export default class AssetGenerator extends Generator {
 		this.fs.copyTpl(
 			`${this._templatePath}/src/app/modules/assets/asset.ts`,
 			this.destinationPath(
-				`src/app/modules/${this._moduleName}/assets/${this._assetName}_asset.ts`,
+				`src/app/modules/${this._moduleFileName}/assets/${this._assetFileName}_asset.ts`,
 			),
 			{
 				moduleName: this._moduleName,
@@ -66,7 +69,7 @@ export default class AssetGenerator extends Generator {
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/modules/assets/asset.spec.ts`,
 			this.destinationPath(
-				`test/unit/modules/${this._moduleName}/assets/${this._assetName}_asset.spec.ts`,
+				`test/unit/modules/${this._moduleFileName}/assets/${this._assetFileName}_asset.spec.ts`,
 			),
 			{
 				moduleName: this._moduleName,
@@ -86,12 +89,12 @@ export default class AssetGenerator extends Generator {
 		project.addSourceFilesAtPaths('src/app/**/*.ts');
 
 		const moduleFile = project.getSourceFileOrThrow(
-			`src/app/modules/${this._moduleName}/${this._moduleName}_module.ts`,
+			`src/app/modules/${this._moduleFileName}/${this._moduleFileName}_module.ts`,
 		);
 
 		moduleFile.addImportDeclaration({
 			namedImports: [this._assetClass],
-			moduleSpecifier: `./assets/${this._assetName}`,
+			moduleSpecifier: `./assets/${this._assetFileName}`,
 		});
 
 		const moduleClass = moduleFile.getClassOrThrow(this._moduleClass);
