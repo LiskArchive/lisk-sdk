@@ -90,8 +90,9 @@
 .editor-code {
 	z-index: 0;
 	box-sizing: border-box;
+	color: $color-platinum-gray;
 }
 
 .editor-error {
-	border: 1px solid #ff4557;
+	border: 1px solid $color-fury-red;
 }
