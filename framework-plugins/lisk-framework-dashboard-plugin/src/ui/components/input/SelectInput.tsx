@@ -53,6 +53,7 @@ const customSelectStyles: StylesConfig<SelectInputOptionType, boolean> = {
 	menu: (currentStyles, _state) => ({
 		...currentStyles,
 		color: '#ffffff',
+		zIndex: 5,
 	}),
 	menuList: (currentStyles, _state) => ({
 		...currentStyles,
