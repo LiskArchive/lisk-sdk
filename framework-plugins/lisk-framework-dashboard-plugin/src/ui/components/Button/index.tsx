@@ -24,7 +24,11 @@ const Button: React.FC<Props> = props => {
 	const { onClick } = props;
 	const size = props.size ?? 'm';
 	return (
-		<button className={`${styles.button} ${styles[`button-${size}`]}`} onClick={onClick} disabled={props.disabled}>
+		<button
+			className={`${styles.button} ${styles[`button-${size}`]}`}
+			onClick={onClick}
+			disabled={props.disabled}
+		>
 			{props.children}
 		</button>
 	);
