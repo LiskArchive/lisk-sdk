@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
-import Editor from 'react-simple-code-editor';
 import formatHighlight from 'json-format-highlight';
 import styles from './Input.module.scss';
 import { jsonHighlight } from '../../utils/json_color';
@@ -35,43 +34,54 @@ const TextAreaInput: React.FC<Props> = props => {
 		}
 	};
 
+	const editorRef = React.useRef(null);
+
 	if (props.json) {
-		let height = '136px';
-		if (size === 's') {
-			height = '90px';
-		} else if (size === 'l') {
-			height = '248px';
-		}
 		let validJSON = true;
 		try {
 			JSON.parse(props.value ?? '');
 		} catch (error) {
 			validJSON = false;
 		}
-		const border = validJSON ? '1px solid rgba(223, 230, 242, 0.2)' : '1px solid #ff4557';
+		const showHighlightJSON = (data?: string): string =>
+			// eslint-disable-next-line
+			formatHighlight(data, jsonHighlight);
+		const syncScroll = (val: any) => {
+			if (!editorRef?.current) {
+				return;
+			}
+			// eslint-disable-next-line
+			const node = editorRef.current as any;
+			// eslint-disable-next-line
+			node.scrollTop = val.currentTarget.scrollTop;
+			// eslint-disable-next-line
+			node.scrollLeft = val.currentTarget.scrollLeft;
+		};
+		// eslint-disable-next-line
 		return (
-			<Editor
-				value={props.value ?? ''}
-				onValueChange={val => {
-					if (props.onChange) {
-						props.onChange(val);
-					}
-				}}
-				// eslint-disable-next-line
-				highlight={code => formatHighlight(code, jsonHighlight)}
-				padding={10}
-				textareaClassName={`${styles.textArea} ${styles[`textArea-${size}`]}`}
-				style={{
-					fontFamily: 'Roboto',
-					color: '#8a8ca2',
-					fontSize: '14px',
-					lineHeight: '18px',
-					border,
-					borderRadius: '3px',
-					height,
-					overflowY: 'auto',
-				}}
-			/>
+			<div
+				className={`${styles.editor} ${styles[`textArea-${size}`]} ${
+					validJSON ? '' : styles['editor-error']
+				}`}
+			>
+				<textarea
+					className={`${styles.textArea} ${styles['editor-textarea']}`}
+					spellCheck={false}
+					defaultValue={props.value}
+					onScroll={val => {
+						syncScroll(val);
+					}}
+					onInput={val => {
+						if (props.onChange) {
+							props.onChange(val.currentTarget.value);
+						}
+						syncScroll(val);
+					}}
+				/>
+				<pre className={styles['editor-code']} ref={editorRef}>
+					<code dangerouslySetInnerHTML={{ __html: showHighlightJSON(props.value) }} />
+				</pre>
+			</div>
 		);
 	}
 
