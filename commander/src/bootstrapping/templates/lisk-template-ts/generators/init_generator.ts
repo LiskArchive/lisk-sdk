@@ -32,7 +32,7 @@ export default class InitGenerator extends Generator {
 	private answers!: InitPrompts;
 
 	async prompting(): Promise<void> {
-		this.answers = (await this.prompt([
+		this.answers = await this.prompt([
 			{
 				type: 'input',
 				name: 'name',
@@ -57,7 +57,7 @@ export default class InitGenerator extends Generator {
 				message: 'License',
 				default: 'ISC',
 			},
-		])) as InitPrompts;
+		]);
 	}
 
 	public createSkeleton(): void {

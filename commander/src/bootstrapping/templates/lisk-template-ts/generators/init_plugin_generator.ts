@@ -43,7 +43,7 @@ export default class InitPluginGenerator extends Generator {
 	}
 
 	async prompting(): Promise<void> {
-		this._answers = (await this.prompt([
+		this._answers = await this.prompt([
 			{
 				type: 'input',
 				name: 'author',
@@ -74,7 +74,7 @@ export default class InitPluginGenerator extends Generator {
 				message: 'License of plugin',
 				default: 'ISC',
 			},
-		])) as InitPluginPrompts;
+		]);
 	}
 
 	public createSkeleton(): void {
