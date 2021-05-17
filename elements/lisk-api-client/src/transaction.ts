@@ -36,6 +36,18 @@ interface MultiSignatureKeys {
 	readonly numberOfSignatures: number;
 }
 
+interface BaseFee {
+	readonly moduleID: number;
+	readonly assetID: number;
+	readonly baseFee: string;
+}
+
+interface Options {
+	readonly minFeePerByte: number;
+	readonly baseFees: BaseFee[];
+	readonly numberOfSignatures: number;
+}
+
 export class Transaction {
 	private readonly _channel: Channel;
 	private readonly _schema: RegisteredSchemas;
@@ -234,7 +246,16 @@ export class Transaction {
 
 	public computeMinFee(transaction: Record<string, unknown>): bigint {
 		const assetSchema = getTransactionAssetSchema(transaction, this._schema);
-		return computeMinFee(assetSchema, transaction);
+		const numberOfSignatures = transaction.signatures
+			? (transaction.signatures as string[]).length
+			: 1;
+		const options: Options = {
+			minFeePerByte: this._nodeInfo.genesisConfig.minFeePerByte,
+			baseFees: this._nodeInfo.genesisConfig.baseFees,
+			numberOfSignatures,
+		};
+
+		return computeMinFee(assetSchema, transaction, options);
 	}
 
 	public toJSON(transaction: Record<string, unknown>): Record<string, unknown> {
