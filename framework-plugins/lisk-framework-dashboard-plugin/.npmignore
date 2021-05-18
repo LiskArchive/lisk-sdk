@@ -8,7 +8,6 @@
 .prettierrc.json
 .prettierignore
 cypress.json
-index.html
 Jenkinsfile*
 *.log
 
