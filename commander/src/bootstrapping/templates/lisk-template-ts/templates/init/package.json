@@ -84,14 +84,6 @@
 			}
 		}
 	},
-	"files": [
-		"/bin",
-		"/npm-shrinkwrap.json",
-		"/oclif.manifest.json",
-		"/dist",
-		"/config",
-		"/docs"
-	],
 	"husky": {
 		"hooks": {
 			"pre-commit": "lint-staged"
