@@ -44,7 +44,7 @@
 		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
 		"postbuild": "copyfiles -u 1 -a 'src/bootstrapping/templates/lisk-template-ts/templates/**/*' dist/",
 		"prepack": "oclif-dev manifest && npm shrinkwrap && npm prune --production && npm shrinkwrap",
-		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm run build"
+		"prepublishOnly": "npm run lint && npm run build"
 	},
 	"oclif": {
 		"commands": "./dist/commands",
