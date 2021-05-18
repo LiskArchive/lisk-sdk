@@ -1,7 +1,0 @@
-.*
-Dockerfile
-docs/
-src/
-test/
-tsconfig.json
-tslint.json
