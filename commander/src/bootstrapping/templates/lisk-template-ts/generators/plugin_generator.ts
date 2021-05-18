@@ -56,7 +56,7 @@ export default class PluginGenerator extends Generator {
 
 		this._answers = this._packageJSON
 			? undefined
-			: await this.prompt([
+			: ((await this.prompt([
 					{
 						type: 'input',
 						name: 'author',
@@ -73,7 +73,7 @@ export default class PluginGenerator extends Generator {
 						name: 'name',
 						message: 'Name of plugin',
 					},
-			  ]);
+			  ])) as PluginPrompts);
 	}
 
 	public writing(): void {
