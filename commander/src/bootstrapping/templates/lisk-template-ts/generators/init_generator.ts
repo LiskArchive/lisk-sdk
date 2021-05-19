@@ -74,6 +74,11 @@ export default class InitGenerator extends Generator {
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
+		// package-template is used because "files" will be in effect while publishing the commander, which ignores the template files in the publish process
+		this.fs.move(
+			this.destinationPath('package-template.json'),
+			this.destinationPath('package.json'),
+		);
 	}
 
 	public end(): void {

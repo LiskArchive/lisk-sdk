@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { flags as flagParser } from '@oclif/command';
 import BaseBootstrapCommand from '../base_bootstrap_command';
 
@@ -50,7 +49,7 @@ export default class InitCommand extends BaseBootstrapCommand {
 		} = this.parse(InitCommand) as { args: { projectPath: string }; flags: { registry?: string } };
 
 		return this._runBootstrapCommand('lisk:init', {
-			projectPath: projectPath ?? process.env.INIT_CWD ?? process.cwd(),
+			projectPath,
 			registry,
 		});
 	}
