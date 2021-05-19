@@ -22,6 +22,7 @@ interface Props {
 	onChange?: (val: string) => void;
 	size?: 's' | 'm' | 'l';
 	json?: boolean;
+	readonly?: boolean;
 }
 
 const TextAreaInput: React.FC<Props> = props => {
@@ -57,27 +58,28 @@ const TextAreaInput: React.FC<Props> = props => {
 			// eslint-disable-next-line
 			node.scrollLeft = val.currentTarget.scrollLeft;
 		};
-		// eslint-disable-next-line
 		return (
 			<div
 				className={`${styles.editor} ${styles[`textArea-${size}`]} ${
 					validJSON ? '' : styles['editor-error']
 				}`}
 			>
-				<textarea
-					className={`${styles.textArea} ${styles['editor-textarea']}`}
-					spellCheck={false}
-					defaultValue={props.value}
-					onScroll={val => {
-						syncScroll(val);
-					}}
-					onInput={val => {
-						if (props.onChange) {
-							props.onChange(val.currentTarget.value);
-						}
-						syncScroll(val);
-					}}
-				/>
+				{!props.readonly && (
+					<textarea
+						className={`${styles.textArea} ${styles['editor-textarea']}`}
+						spellCheck={false}
+						defaultValue={props.value}
+						onScroll={val => {
+							syncScroll(val);
+						}}
+						onInput={val => {
+							if (props.onChange) {
+								props.onChange(val.currentTarget.value);
+							}
+							syncScroll(val);
+						}}
+					/>
+				)}
 				<pre className={styles['editor-code']} ref={editorRef}>
 					<code dangerouslySetInnerHTML={{ __html: showHighlightJSON(props.value) }} />
 				</pre>

@@ -346,9 +346,10 @@ const MainPage: React.FC = () => {
 			showMessageDialog(
 				'Success!',
 				<TextAreaInput
+					json
+					readonly
 					size={'l'}
 					value={JSON.stringify(result, undefined, '  ')}
-					json={true}
 				></TextAreaInput>,
 				{ backButton: true },
 			);
