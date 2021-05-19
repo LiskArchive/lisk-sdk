@@ -29,7 +29,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"lisk-framework": "^0.8.0-alpha.0"
+		"lisk-sdk": "^5.1.0-alpha.1"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",
