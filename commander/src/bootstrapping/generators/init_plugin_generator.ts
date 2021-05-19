@@ -28,7 +28,7 @@ export default class InitPluginGenerator extends BaseGenerator {
 		this._liskInitPluginArgs = {
 			alias: opts.alias,
 		};
-		// Enable slipInstall for env so that the only generator install will run
+		// Enable skipInstall for env so that the only generator install will run
 		this.env.options.skipInstall = true;
 		this._registry = opts.registry;
 	}

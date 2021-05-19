@@ -20,7 +20,7 @@ export default class InitGenerator extends BaseGenerator {
 	public async initializing(): Promise<void> {
 		await this._loadAndValidateTemplate();
 
-		// Enable slipInstall for env so that the only generator install will run
+		// Enable skipInstall for env so that the only generator install will run
 		this.env.options.skipInstall = true;
 		this.log('Initializing git repository');
 		this.spawnCommandSync('git', ['init', '--quiet']);
