@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-faucet-plugin",
-	"version": "0.2.0-alpha.3",
+	"version": "0.2.0-alpha.4",
 	"description": "A plugin for distributing testnet tokens from a newly developed blockchain application.",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -49,7 +49,7 @@
 		"@liskhq/lisk-validator": "^0.6.0-alpha.0",
 		"axios": "0.21.1",
 		"express": "4.17.1",
-		"lisk-framework": "^0.8.0-alpha.1",
+		"lisk-framework": "^0.8.0-alpha.2",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-router-dom": "^5.2.0"
