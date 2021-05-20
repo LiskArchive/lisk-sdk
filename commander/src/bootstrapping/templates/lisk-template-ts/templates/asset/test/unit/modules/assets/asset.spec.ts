@@ -1,4 +1,4 @@
-import { <%= assetClass %> } from '../../../../../src/app/modules/<%= moduleName %>/assets/<%= assetName %>';
+import { <%= assetClass %> } from '../../../../../src/app/modules/<%= moduleName %>/assets/<%= assetFileName %>';
 
 describe('<%= assetClass %>', () => {
   let transactionAsset: <%= assetClass %>;

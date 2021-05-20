@@ -16,7 +16,14 @@
 
 /* eslint-disable class-methods-use-this */
 
-import { BaseModule, AfterBlockApplyContext, TransactionApplyContext, BeforeBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from 'lisk-sdk';
+import { 
+    BaseModule, 
+    AfterBlockApplyContext, 
+    TransactionApplyContext, 
+    BeforeBlockApplyContext, 
+    AfterGenesisBlockApplyContext, 
+    // GenesisConfig 
+} from 'lisk-sdk';
 
 export class <%= moduleClass %> extends BaseModule {
     public actions = {
@@ -46,9 +53,9 @@ export class <%= moduleClass %> extends BaseModule {
     ];
     public id = <%= moduleID %>;
 
-    public constructor(genesisConfig: GenesisConfig) {
-        super(genesisConfig);
-    }
+    // public constructor(genesisConfig: GenesisConfig) {
+    //     super(genesisConfig);
+    // }
 
     // Lifecycle hooks
     public async beforeBlockApply(_input: BeforeBlockApplyContext) {

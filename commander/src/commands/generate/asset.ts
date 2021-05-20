@@ -71,7 +71,7 @@ export default class AssetCommand extends BaseBootstrapCommand {
 			this.error('Invalid asset name');
 		}
 
-		if (Number.isNaN(Number(assetID)) || Number(assetID) < 1) {
+		if (Number.isNaN(Number(assetID)) || Number(assetID) < 0) {
 			this.error('Invalid asset ID, only positive integers are allowed');
 		}
 

@@ -44,7 +44,7 @@ export default class AssetGenerator extends Generator {
 		this._moduleFileName = camelToSnake(this._moduleName);
 		this._templatePath = join(__dirname, '..', 'templates', 'asset');
 		this._assetClass = `${camelToPascal(this._assetName)}Asset`;
-		this._assetFileName = camelToSnake(this._assetName);
+		this._assetFileName = `${camelToSnake(this._assetName)}_asset`;
 		this._moduleClass = `${camelToPascal(this._moduleName)}Module`;
 	}
 
@@ -53,7 +53,7 @@ export default class AssetGenerator extends Generator {
 		this.fs.copyTpl(
 			`${this._templatePath}/src/app/modules/assets/asset.ts`,
 			this.destinationPath(
-				`src/app/modules/${this._moduleFileName}/assets/${this._assetFileName}_asset.ts`,
+				`src/app/modules/${this._moduleFileName}/assets/${this._assetFileName}.ts`,
 			),
 			{
 				moduleName: this._moduleName,
@@ -69,11 +69,12 @@ export default class AssetGenerator extends Generator {
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/modules/assets/asset.spec.ts`,
 			this.destinationPath(
-				`test/unit/modules/${this._moduleFileName}/assets/${this._assetFileName}_asset.spec.ts`,
+				`test/unit/modules/${this._moduleFileName}/assets/${this._assetFileName}.spec.ts`,
 			),
 			{
 				moduleName: this._moduleName,
 				assetName: this._assetName,
+				assetFileName: this._assetFileName,
 				assetClass: this._assetClass,
 				assetID: this._assetID,
 			},
