@@ -64,7 +64,7 @@ export default class AssetCommand extends BaseBootstrapCommand {
 		}
 
 		if (
-			regexCamelCase.test(assetName) ||
+			!regexCamelCase.test(assetName) ||
 			regexWhitespace.test(assetName) ||
 			regexAlphabets.test(assetName)
 		) {
