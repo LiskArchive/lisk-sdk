@@ -79,6 +79,7 @@ export default class InitGenerator extends Generator {
 			this.destinationPath('package-template.json'),
 			this.destinationPath('package.json'),
 		);
+		this.fs.move(this.destinationPath('.gitignore-template'), this.destinationPath('.gitignore'));
 	}
 
 	public end(): void {
