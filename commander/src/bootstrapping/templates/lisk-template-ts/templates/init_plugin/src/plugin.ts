@@ -1,5 +1,5 @@
-import { BasePlugin, PluginInfo } from 'lisk-sdk';
-import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-framework';
+import { BasePlugin } from 'lisk-sdk';
+import type { BaseChannel, EventsDefinition, ActionsDefinition, PluginInfo } from 'lisk-sdk';
 
  /* eslint-disable class-methods-use-this */
  /* eslint-disable  @typescript-eslint/no-empty-function */
