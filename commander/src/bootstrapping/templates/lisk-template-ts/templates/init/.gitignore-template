@@ -1,0 +1,45 @@
+# General
+~
+.DS_Store
+.project
+__MACOSX/
+*.swp
+*.swo
+ssl/
+tmp/
+
+# Build revision file generated while building a release
+REVISION
+npm-shrinkwrap.json
+
+# Dependency directories
+tsconfig.tsbuildinfo
+node_modules/
+
+# Docs
+docs/jsdoc/
+
+# Logs
+logs/*
+logs.log
+npm-debug.log
+tmux-client-*.log
+stacktrace*
+
+# IDE directories
+.vscode/
+.idea/
+Session.vim
+
+# Config files
+sftp-config.json
+.secrets
+
+# Coverage directory used by tools like istanbul
+.coverage/
+
+# Local config file useful for development
+config.local.json
+
+# Build Directory
+dist

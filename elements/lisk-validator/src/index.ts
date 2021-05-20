@@ -13,8 +13,10 @@
  *
  */
 import { validator, liskSchemaIdentifier } from './lisk_validator';
+// To keep backward compatibility
+import { LiskErrorObject as ErrorObject } from './types';
 
 export * from './validation';
 export * from './errors';
 export * from './constants';
-export { validator, liskSchemaIdentifier };
+export { validator, liskSchemaIdentifier, ErrorObject };

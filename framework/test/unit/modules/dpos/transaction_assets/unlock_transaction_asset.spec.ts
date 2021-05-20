@@ -16,17 +16,19 @@ import { Account } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../../../src';
-import { createFakeDefaultAccount } from '../../../../utils/node';
-import { StateStoreMock } from '../../../../utils/node/state_store_mock';
 import { UnlockTransactionAsset } from '../../../../../src/modules/dpos/transaction_assets/unlock_transaction_asset';
 import {
 	DPOSAccountProps,
 	UnlockingAccountAsset,
 	UnlockTransactionAssetContext,
+	DPoSModule,
 } from '../../../../../src/modules/dpos';
 import { liskToBeddows } from '../../../../utils/assets';
+import * as testing from '../../../../../src/testing';
 
-const setupUnlocks = ({
+const { StateStoreMock } = testing.mocks;
+
+const setupUnlocks = async ({
 	unVoteHeight,
 	pomHeight,
 	lastBlockHeight,
@@ -46,7 +48,8 @@ const setupUnlocks = ({
 		amount: liskToBeddows(120),
 		unvoteHeight: unVoteHeight,
 	};
-	const stateStore = new StateStoreMock([] as any, {
+	const stateStore = new StateStoreMock({
+		accounts: [] as any,
 		lastBlockHeaders: [{ height: lastBlockHeight }] as any,
 	});
 
@@ -57,7 +60,7 @@ const setupUnlocks = ({
 		updatedSender.dpos.delegate.username = 'delegate';
 		updatedSender.dpos.delegate.pomHeights = [pomHeight];
 
-		stateStore.account.set(sender.address, updatedSender);
+		await stateStore.account.set(sender.address, updatedSender);
 	} else {
 		const updatedSender = objects.cloneDeep(sender);
 		updatedSender.dpos.unlocking = [unlockObj];
@@ -67,8 +70,8 @@ const setupUnlocks = ({
 		updatedDelegate.dpos.delegate.username = 'delegate';
 		updatedDelegate.dpos.delegate.pomHeights = [pomHeight];
 
-		stateStore.account.set(sender.address, updatedSender);
-		stateStore.account.set(delegate.address, updatedDelegate);
+		await stateStore.account.set(sender.address, updatedSender);
+		await stateStore.account.set(delegate.address, updatedDelegate);
 	}
 
 	return {
@@ -84,37 +87,41 @@ describe('UnlockTransactionAsset', () => {
 	let applyContext: ApplyAssetContext<UnlockTransactionAssetContext>;
 	let validateContext: ValidateAssetContext<UnlockTransactionAssetContext>;
 	let sender: any;
-	let stateStoreMock: StateStoreMock;
-	const delegate1 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate1' } } });
-	const delegate2 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate2' } } });
-	const delegate3 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate3' } } });
+	let stateStoreMock: testing.mocks.StateStoreMock;
+	const delegate1 = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+		dpos: { delegate: { username: 'delegate1' } },
+	});
+	const delegate2 = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+		dpos: { delegate: { username: 'delegate2' } },
+	});
+	const delegate3 = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+		dpos: { delegate: { username: 'delegate3' } },
+	});
 	const unlockAmount1 = liskToBeddows(100);
 	const unlockAmount2 = liskToBeddows(120);
 	const unlockAmount3 = liskToBeddows(80);
 
 	beforeEach(() => {
-		sender = createFakeDefaultAccount({});
-		stateStoreMock = new StateStoreMock(
-			objects.cloneDeep([sender, delegate1, delegate2, delegate3]),
-			{
-				lastBlockHeaders: [{ height: lastBlockHeight }] as any,
-			},
-		);
+		sender = testing.fixtures.createDefaultAccount([DPoSModule], {});
+		stateStoreMock = new StateStoreMock({
+			accounts: objects.cloneDeep([sender, delegate1, delegate2, delegate3]),
+			lastBlockHeaders: [{ height: lastBlockHeight }] as any,
+		});
 		transactionAsset = new UnlockTransactionAsset();
-		applyContext = {
-			transaction: {
-				senderAddress: sender.address,
-			},
-			asset: {
-				unlockObjects: [],
-			},
-			stateStore: stateStoreMock as any,
-			reducerHandler: {
-				invoke: jest.fn(),
-			},
+		const transaction = {
+			senderAddress: sender.address,
 		} as any;
-		validateContext = { asset: { unlockObjects: [] } } as any;
+		const asset = {
+			unlockObjects: [],
+		};
+		applyContext = testing.createApplyAssetContext({
+			transaction,
+			asset,
+			stateStore: stateStoreMock,
+		});
+		validateContext = testing.createValidateAssetContext({ asset, transaction });
 
+		jest.spyOn(applyContext.reducerHandler, 'invoke');
 		jest.spyOn(stateStoreMock.account, 'get');
 		jest.spyOn(stateStoreMock.account, 'set');
 	});
@@ -142,7 +149,7 @@ describe('UnlockTransactionAsset', () => {
 
 					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toInclude('should NOT have fewer than 1 items');
+					expect(errors[0].message).toInclude('must NOT have fewer than 1 items');
 				});
 			});
 
@@ -161,7 +168,7 @@ describe('UnlockTransactionAsset', () => {
 
 					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toInclude('should NOT have more than 20 items');
+					expect(errors[0].message).toInclude('must NOT have more than 20 items');
 				});
 			});
 
@@ -288,7 +295,7 @@ describe('UnlockTransactionAsset', () => {
 				let unlockTrsObj2: UnlockingAccountAsset;
 				let unlockObjNotPassed: UnlockingAccountAsset;
 
-				beforeEach(() => {
+				beforeEach(async () => {
 					unlockTrsObj1 = {
 						delegateAddress: delegate1.address,
 						amount: unlockAmount1,
@@ -313,7 +320,7 @@ describe('UnlockTransactionAsset', () => {
 
 					applyContext.asset = { unlockObjects: objects.cloneDeep([unlockTrsObj1, unlockTrsObj2]) };
 
-					stateStoreMock.account.set(sender.address, sender);
+					await stateStoreMock.account.set(sender.address, sender);
 				});
 
 				it('should not return error', async () => {
@@ -348,7 +355,8 @@ describe('UnlockTransactionAsset', () => {
 
 				describe('when asset.unlockObjects contain valid entries, and voter account has not waited 2000 blocks', () => {
 					it('should throw error', async () => {
-						stateStoreMock = new StateStoreMock(objects.cloneDeep(stateStoreMock.accountData), {
+						stateStoreMock = new StateStoreMock({
+							accounts: objects.cloneDeep(stateStoreMock.accountData),
 							lastBlockHeaders: [{ height: 4000 }] as any,
 						});
 						applyContext = {
@@ -368,7 +376,7 @@ describe('UnlockTransactionAsset', () => {
 				let unlockTrsObj2: UnlockingAccountAsset;
 				let unlockObjNotPassed: UnlockingAccountAsset;
 
-				beforeEach(() => {
+				beforeEach(async () => {
 					unlockTrsObj1 = {
 						delegateAddress: sender.address,
 						amount: unlockAmount1,
@@ -395,7 +403,7 @@ describe('UnlockTransactionAsset', () => {
 
 					// Make sender a delegate as well
 					sender.dpos.delegate.username = 'sender';
-					stateStoreMock.account.set(sender.address, sender);
+					await stateStoreMock.account.set(sender.address, sender);
 				});
 
 				it('should not return error', async () => {
@@ -430,7 +438,8 @@ describe('UnlockTransactionAsset', () => {
 
 				describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited 260,000 blocks', () => {
 					it('should throw error', async () => {
-						stateStoreMock = new StateStoreMock([...stateStoreMock.accountData], {
+						stateStoreMock = new StateStoreMock({
+							accounts: [...stateStoreMock.accountData],
 							lastBlockHeaders: [{ height: lastBlockHeight - 5000 }] as any,
 						});
 						applyContext = {
@@ -452,7 +461,7 @@ describe('UnlockTransactionAsset', () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 780000 + 10;
 
-					applyContext = setupUnlocks({
+					applyContext = await setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: Math.max(pomHeight + 780000, unVoteHeight + 260000),
@@ -488,11 +497,11 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and voter account has waited pomHeight + 260,000 and unvoteHeight + 2,000 blocks', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 260000 + 10;
 
-					applyContext = setupUnlocks({
+					applyContext = await setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: Math.max(pomHeight + 260000, unVoteHeight + 2000),
@@ -528,11 +537,11 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and voter account has waited pomHeight + 260,000 blocks but not waited for unlockHeight + 2,000 blocks', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 260000 + 10;
 
-					applyContext = setupUnlocks({
+					applyContext = await setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: pomHeight + 260000 + 5,
@@ -550,11 +559,11 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and voter account has not waited pomHeight + 260,000 blocks but waited unlockHeight + 2000 blocks', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					const unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 260000 + 10;
 
-					applyContext = setupUnlocks({
+					applyContext = await setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: unVoteHeight + 260000 + 5,
@@ -572,11 +581,11 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 blocks but not waited unvoteHeight + 260,000 blocks', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					const pomHeight = 45968;
 					const unVoteHeight = pomHeight + 780000 + 10;
 
-					applyContext = setupUnlocks({
+					applyContext = await setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: pomHeight + 780000 + 5,
@@ -594,11 +603,11 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited pomHeight + 780,000 blocks but waited unvoteHeight + 260,000 blocks', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					const unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 780000 + 10;
 
-					applyContext = setupUnlocks({
+					applyContext = await setupUnlocks({
 						pomHeight,
 						unVoteHeight,
 						lastBlockHeight: unVoteHeight + 780000 + 5,
@@ -617,14 +626,14 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		describe('when asset.unlockObjects contain exactly same entries', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				const unlocking = [
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
 				];
 
 				sender.dpos.unlocking = unlocking;
-				stateStoreMock.account.set(sender.address, sender);
+				await stateStoreMock.account.set(sender.address, sender);
 
 				applyContext.asset = {
 					unlockObjects: objects.cloneDeep(unlocking),
@@ -662,14 +671,14 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		describe('when asset.unlockObjects contain duplicate entries', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				const unlocking = [
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(78), unvoteHeight: 98 },
 				];
 
 				sender.dpos.unlocking = unlocking;
-				stateStoreMock.account.set(sender.address, sender);
+				await stateStoreMock.account.set(sender.address, sender);
 
 				applyContext.asset = {
 					unlockObjects: objects.cloneDeep(unlocking),
@@ -707,14 +716,14 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		describe('when account contain duplicate unlocking entries but asset.unlockObjects only contains one', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				const unlocking = [
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(78), unvoteHeight: 98 },
 				];
 
 				sender.dpos.unlocking = unlocking;
-				stateStoreMock.account.set(sender.address, sender);
+				await stateStoreMock.account.set(sender.address, sender);
 
 				applyContext.asset = {
 					unlockObjects: [objects.cloneDeep(unlocking[0])],
@@ -748,11 +757,11 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		describe('when account.dpos.unlocking does not have corresponding unlockingObject', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				sender.dpos.unlocking = [
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
 				];
-				stateStoreMock.account.set(sender.address, sender);
+				await stateStoreMock.account.set(sender.address, sender);
 
 				applyContext.asset = {
 					unlockObjects: [
@@ -769,11 +778,11 @@ describe('UnlockTransactionAsset', () => {
 		});
 
 		describe('when account.dpos.unlocking has one entry but it has multiple corresponding unlockObjects', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				sender.dpos.unlocking = [
 					{ delegateAddress: delegate1.address, amount: liskToBeddows(90), unvoteHeight: 56 },
 				];
-				stateStoreMock.account.set(sender.address, sender);
+				await stateStoreMock.account.set(sender.address, sender);
 
 				applyContext.asset = {
 					unlockObjects: [

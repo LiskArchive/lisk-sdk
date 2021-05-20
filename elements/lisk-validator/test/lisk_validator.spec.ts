@@ -53,7 +53,7 @@ describe('validator', () => {
 			expect(errors).toContainEqual({
 				dataPath: '.type',
 				keyword: 'const',
-				message: 'should be equal to constant',
+				message: 'must be equal to constant',
 				schemaPath: '#/properties/type/const',
 				params: { allowedValue: 'object' },
 			});
@@ -61,7 +61,7 @@ describe('validator', () => {
 		it('should return error when "type" is not defined', () => {
 			// Arrange
 			const invalidSchema = { ...validSchema };
-			delete invalidSchema.type;
+			delete (invalidSchema as any).type;
 
 			// Act
 			const errors = validator.validateSchema(invalidSchema);
@@ -70,7 +70,7 @@ describe('validator', () => {
 			expect(errors).toContainEqual({
 				dataPath: '',
 				keyword: 'required',
-				message: "should have required property 'type'",
+				message: "must have required property 'type'",
 				schemaPath: '#/required',
 				params: { missingProperty: 'type' },
 			});
@@ -78,7 +78,7 @@ describe('validator', () => {
 		it('should return error when "$id" is not defined', () => {
 			// Arrange
 			const invalidSchema = { ...validSchema };
-			delete invalidSchema.$id;
+			delete (invalidSchema as any).$id;
 
 			// Act
 			const errors = validator.validateSchema(invalidSchema);
@@ -87,7 +87,7 @@ describe('validator', () => {
 			expect(errors).toContainEqual({
 				dataPath: '',
 				keyword: 'required',
-				message: "should have required property '$id'",
+				message: "must have required property '$id'",
 				schemaPath: '#/required',
 				params: { missingProperty: '$id' },
 			});
@@ -126,7 +126,7 @@ describe('validator', () => {
 			expect(errors).toContainEqual({
 				dataPath: '',
 				keyword: 'required',
-				message: "should have required property 'properties'",
+				message: "must have required property 'properties'",
 				schemaPath: '#/required',
 				params: { missingProperty: 'properties' },
 			});
@@ -148,7 +148,7 @@ describe('validator', () => {
 			expect(errors).toContainEqual({
 				dataPath: '.properties',
 				keyword: 'format',
-				message: 'should match format "camelCase"',
+				message: 'must match format "camelCase"',
 				schemaPath: '#/properties/properties/propertyNames/format',
 				params: { format: 'camelCase' },
 				propertyName: 'my-custom-prop',
@@ -167,7 +167,7 @@ describe('validator', () => {
 			expect(errors).toContainEqual({
 				dataPath: '.properties',
 				keyword: 'minProperties',
-				message: 'should NOT have fewer than 1 properties',
+				message: 'must NOT have fewer than 1 items',
 				schemaPath: '#/properties/properties/minProperties',
 				params: { limit: 1 },
 			});

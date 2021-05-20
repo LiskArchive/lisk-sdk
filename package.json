@@ -58,25 +58,21 @@
 		}
 	},
 	"devDependencies": {
-		"@types/node": "12.12.11",
-		"@typescript-eslint/eslint-plugin": "3.10.1",
-		"@typescript-eslint/parser": "3.10.1",
-		"eslint": "7.8.1",
-		"eslint-config-airbnb-base": "14.2.0",
-		"eslint-config-lisk-base": "1.2.2",
-		"eslint-config-prettier": "6.11.0",
-		"eslint-plugin-chai-expect": "2.1.0",
-		"eslint-plugin-import": "2.22.0",
-		"eslint-plugin-jest": "24.0.0",
-		"eslint-plugin-mocha": "7.0.1",
-		"husky": "4.2.5",
+		"@types/node": "12.20.6",
+		"@typescript-eslint/eslint-plugin": "4.19.0",
+		"@typescript-eslint/parser": "4.19.0",
+		"eslint": "7.22.0",
+		"eslint-config-lisk-base": "2.0.0",
+		"eslint-plugin-import": "2.22.1",
+		"eslint-plugin-jest": "24.3.2",
+		"husky": "6.0.0",
 		"istanbul-lib-coverage": "3.0.0",
 		"istanbul-lib-report": "3.0.0",
 		"istanbul-reports": "3.0.0",
-		"lerna": "3.22.1",
-		"lint-staged": "10.2.11",
-		"prettier": "2.0.5",
-		"typescript": "3.8.3",
-		"yarn": "1.22.4"
+		"lerna": "4.0.0",
+		"lint-staged": "10.5.4",
+		"prettier": "2.2.1",
+		"typescript": "4.2.3",
+		"yarn": "1.22.10"
 	}
 }

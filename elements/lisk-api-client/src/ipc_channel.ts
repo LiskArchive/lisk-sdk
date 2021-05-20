@@ -19,6 +19,7 @@
 /// <reference path="../external_types/pm2-axon-rpc/index.d.ts" />
 import * as path from 'path';
 import * as axon from 'pm2-axon';
+import { homedir } from 'os';
 import { PubSocket, PullSocket, PushSocket, SubSocket, ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
 import { EventEmitter } from 'events';
@@ -34,7 +35,7 @@ import { convertRPCError } from './utils';
 const CONNECTION_TIME_OUT = 2000;
 
 const getSocketsPath = (dataPath: string) => {
-	const socketDir = path.join(path.resolve(dataPath), 'tmp', 'sockets');
+	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())), 'tmp', 'sockets');
 	return {
 		root: `unix://${socketDir}`,
 		pub: `unix://${socketDir}/pub_socket.sock`,
@@ -77,7 +78,7 @@ export class IPCChannel implements Channel {
 			}, CONNECTION_TIME_OUT);
 			this._pubSocket.on('connect', () => {
 				clearTimeout(timeout);
-				resolve();
+				resolve(undefined);
 			});
 			this._pubSocket.on('error', reject);
 			this._pubSocket.connect(this._eventSubSocketPath);
@@ -86,7 +87,7 @@ export class IPCChannel implements Channel {
 			this._pubSocket.removeAllListeners('error');
 		});
 
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(
 					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
@@ -111,7 +112,7 @@ export class IPCChannel implements Channel {
 			}, CONNECTION_TIME_OUT);
 			this._rpcClient.sock.on('connect', () => {
 				clearTimeout(timeout);
-				resolve();
+				resolve(undefined);
 			});
 			this._rpcClient.sock.on('error', reject);
 
@@ -145,7 +146,7 @@ export class IPCChannel implements Channel {
 			method: actionName,
 			params: params ?? {},
 		};
-		return new Promise((resolve, reject) => {
+		return new Promise<T>((resolve, reject) => {
 			this._rpcClient.call(
 				'invoke',
 				action,
@@ -158,7 +159,7 @@ export class IPCChannel implements Channel {
 						reject(convertRPCError(data.error));
 						return;
 					}
-					resolve(data.result);
+					resolve(data.result as T);
 				},
 			);
 		});

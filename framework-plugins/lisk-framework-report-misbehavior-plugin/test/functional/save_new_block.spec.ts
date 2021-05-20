@@ -15,19 +15,16 @@
 import { codec } from '@liskhq/lisk-codec';
 import { formatInt } from '@liskhq/lisk-db';
 import { BlockHeader, RawBlock } from '@liskhq/lisk-chain';
-import { Application, RegisteredSchema } from 'lisk-framework';
+import { testing, RegisteredSchema, PartialApplicationConfig } from 'lisk-framework';
+import { rmdirSync, existsSync } from 'fs';
+import { homedir } from 'os';
+import { join } from 'path';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema, getBlockHeaders } from '../../src/db';
-import {
-	closeApplication,
-	createApplication,
-	getReportMisbehaviorPlugin,
-	publishEvent,
-	waitTill,
-} from '../utils/application';
+import { getReportMisbehaviorPlugin, publishEvent, waitTill } from '../utils/application';
 
 describe('save block header', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 	let codecSpy: jest.SpyInstance;
 	let pluginDBGetSpy: jest.SpyInstance;
 	let pluginDBPutSpy: jest.SpyInstance;
@@ -44,13 +41,34 @@ describe('save block header', () => {
 		codec.encode(blockHeadersSchema, {
 			blockHeaders: [...blockHeaders, newHeader],
 		});
+	const appLabel = 'save-new-block';
+	const rootPath = join(homedir(), '.lisk', 'report-misbehavior-plugin');
+	const apiPort = 5002;
 
 	const encodeBlockHeader = (schemas: RegisteredSchema, newHeader: BlockHeader) =>
 		codec.encode(schemas.blockHeader, newHeader);
 
 	beforeAll(async () => {
-		app = await createApplication('reportMisbehavior');
-		pluginInstance = getReportMisbehaviorPlugin(app);
+		if (existsSync(rootPath)) {
+			rmdirSync(rootPath, { recursive: true });
+		}
+		const config = {
+			rootPath,
+			label: appLabel,
+			plugins: {
+				reportMisbehavior: {
+					port: apiPort,
+					encryptedPassphrase: testing.fixtures.defaultFaucetAccount.encryptedPassphrase,
+				},
+			},
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ReportMisbehaviorPlugin],
+		});
+		await appEnv.startApplication();
+		pluginInstance = getReportMisbehaviorPlugin(appEnv.application);
 		const { header } = codec.decode<RawBlock>(pluginInstance.schemas.block, encodedBlockBuffer);
 		blockHeader = codec.decode(pluginInstance.schemas.blockHeader, header);
 		dbKey = `${blockHeader.generatorPublicKey.toString('binary')}:${formatInt(blockHeader.height)}`;
@@ -63,17 +81,20 @@ describe('save block header', () => {
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('from same generator', () => {
 		it('should save block header by height', async () => {
 			// Act
-			publishEvent(app, encodedBlock);
-			await waitTill(100);
+			publishEvent(appEnv.application, encodedBlock);
+			await waitTill(300);
 
 			// Assert
 			expect(codecSpy).toHaveBeenCalledWith(pluginInstance.schemas.block, encodedBlockBuffer);
+			expect(pluginDBPutSpy).toHaveBeenCalledTimes(1);
 			expect(pluginDBGetSpy).toHaveBeenCalledWith(dbKey);
 			expect(pluginDBPutSpy).toHaveBeenCalledWith(
 				dbKey,
@@ -93,7 +114,7 @@ describe('save block header', () => {
 				payload: [],
 			});
 			// Act
-			publishEvent(app, newEncodedBlock.toString('hex'));
+			publishEvent(appEnv.application, newEncodedBlock.toString('hex'));
 			await waitTill(200);
 
 			// Assert
@@ -119,7 +140,7 @@ describe('save block header', () => {
 			const { blockHeaders } = await getBlockHeaders(pluginInstance['_pluginDB'], dbKey);
 
 			// Act
-			publishEvent(app, blockBuff.toString('hex'));
+			publishEvent(appEnv.application, blockBuff.toString('hex'));
 			await waitTill(200);
 
 			// Assert
@@ -150,7 +171,7 @@ describe('save block header', () => {
 				payload: [],
 			});
 			// Act
-			publishEvent(app, newEncodedBlock.toString('hex'));
+			publishEvent(appEnv.application, newEncodedBlock.toString('hex'));
 			await waitTill(200);
 
 			// Assert

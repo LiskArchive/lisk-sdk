@@ -344,6 +344,7 @@ describe('Controller Class', () => {
 					.mockReturnValue('plugin2');
 
 				controller = new Controller(updatedParams);
+				controller.config.rpc = { enable: true, mode: 'ipc', port: 8080 };
 				await controller.load();
 
 				// To avoid waiting for events
@@ -518,6 +519,7 @@ describe('Controller Class', () => {
 				jest.spyOn(Promise, 'race').mockResolvedValue(true);
 
 				controller = new Controller(updatedParams);
+				controller.config.rpc = { enable: true, mode: 'ipc', port: 8080 };
 
 				await controller.load();
 				await controller.loadPlugins(plugins, pluginOptions);

@@ -16,33 +16,44 @@ import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
 import { RegisterTransactionAsset } from '../../../../../src/modules/dpos/transaction_assets/register_transaction_asset';
 import { ApplyAssetContext } from '../../../../../src/types';
-import { createAccount, createFakeDefaultAccount } from '../../../../utils/node';
-import { StateStoreMock } from '../../../../utils/node/state_store_mock';
-import { RegisterTransactionAssetContext } from '../../../../../src/modules/dpos';
+import {
+	RegisterTransactionAssetContext,
+	DPoSModule,
+	DPOSAccountProps,
+} from '../../../../../src/modules/dpos';
 import { CHAIN_STATE_DELEGATE_USERNAMES } from '../../../../../src/modules/dpos/constants';
+import * as testing from '../../../../../src/testing';
+
+const { StateStoreMock } = testing.mocks;
 
 describe('RegisterTransactionAsset', () => {
 	const lastBlockHeight = 200;
 	let transactionAsset: RegisterTransactionAsset;
 	let context: ApplyAssetContext<RegisterTransactionAssetContext>;
 	let sender: any;
-	let stateStoreMock: StateStoreMock;
+	let stateStoreMock: testing.mocks.StateStoreMock;
 
 	beforeEach(() => {
-		sender = createFakeDefaultAccount(createAccount());
-		stateStoreMock = new StateStoreMock([sender], {
+		sender = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {});
+		stateStoreMock = new StateStoreMock({
+			accounts: [sender],
 			lastBlockHeaders: [{ height: lastBlockHeight }] as any,
 		});
 		transactionAsset = new RegisterTransactionAsset();
-		context = {
-			transaction: {
-				senderAddress: sender.address,
-			},
-			asset: {
-				username: 'delegate',
-			},
-			stateStore: stateStoreMock,
+
+		const asset = {
+			username: 'delegate',
+		};
+
+		const transaction = {
+			senderAddress: sender.address,
 		} as any;
+
+		context = testing.createApplyAssetContext({
+			transaction,
+			asset,
+			stateStore: stateStoreMock,
+		});
 
 		jest.spyOn(stateStoreMock.account, 'get');
 		jest.spyOn(stateStoreMock.account, 'set');
@@ -71,7 +82,7 @@ describe('RegisterTransactionAsset', () => {
 
 				const errors = validator.validate(transactionAsset.schema, asset);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude('should NOT be longer than 20 characters');
+				expect(errors[0].message).toInclude('must NOT have more than 20 characters');
 			});
 
 			it('should throw error when username empty string', () => {
@@ -79,7 +90,7 @@ describe('RegisterTransactionAsset', () => {
 
 				const errors = validator.validate(transactionAsset.schema, asset);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude('should NOT be shorter than 1 characters');
+				expect(errors[0].message).toInclude('must NOT have fewer than 1 characters');
 			});
 		});
 
@@ -176,6 +187,7 @@ describe('RegisterTransactionAsset', () => {
 					delegate: {
 						...sender.dpos.delegate,
 						username: context.asset.username,
+						lastForgedHeight: lastBlockHeight + 1,
 					},
 				},
 			});
@@ -183,9 +195,11 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should not throw errors', async () => {
 			// Act
-			stateStoreMock.account.set(
+			await stateStoreMock.account.set(
 				sender.address,
-				createFakeDefaultAccount({ address: sender.address }),
+				testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+					address: sender.address,
+				}),
 			);
 
 			// Act & Assert
@@ -218,11 +232,13 @@ describe('RegisterTransactionAsset', () => {
 				required: ['registeredDelegates'],
 			};
 
-			const secondAccount = createFakeDefaultAccount({ asset: { delegate: 'myuser' } });
-			stateStoreMock.account.set(secondAccount.address, secondAccount);
+			const secondAccount = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {
+				dpos: { delegate: { username: 'myuser' } },
+			});
+			await stateStoreMock.account.set(secondAccount.address, secondAccount);
 			context.asset = { username: 'myuser' };
 
-			stateStoreMock.chain.set(
+			await stateStoreMock.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
 				codec.encode(delegatesUserNamesSchema, {
 					registeredDelegates: [
@@ -240,10 +256,10 @@ describe('RegisterTransactionAsset', () => {
 		});
 
 		it('should throw error when account is already delegate', async () => {
-			const defaultVal = createFakeDefaultAccount({});
-			stateStoreMock.account.set(
+			const defaultVal = testing.fixtures.createDefaultAccount<DPOSAccountProps>([DPoSModule], {});
+			await stateStoreMock.account.set(
 				sender.address,
-				createFakeDefaultAccount({
+				testing.fixtures.createDefaultAccount([DPoSModule], {
 					address: sender.address,
 					dpos: {
 						delegate: {
@@ -261,16 +277,16 @@ describe('RegisterTransactionAsset', () => {
 
 		it('should set lastForgedHeight to the lastBlock height + 1', async () => {
 			// Arrange
-			stateStoreMock.account.set(
+			await stateStoreMock.account.set(
 				sender.address,
-				createFakeDefaultAccount({ address: sender.address }),
+				testing.fixtures.createDefaultAccount([DPoSModule], { address: sender.address }),
 			);
 
 			// Act
 			await transactionAsset.apply(context);
 
 			// Assert
-			const updatedSender = (await stateStoreMock.account.get(sender.address)) as any;
+			const updatedSender = await stateStoreMock.account.get(sender.address);
 			expect(updatedSender.dpos.delegate.lastForgedHeight).toEqual(lastBlockHeight + 1);
 		});
 	});

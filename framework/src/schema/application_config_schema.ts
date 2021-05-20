@@ -13,13 +13,13 @@
  *
  */
 export const applicationConfigSchema = {
-	id: '#/config',
+	$id: '#/config',
 	type: 'object',
 	required: ['version', 'networkVersion', 'rpc', 'genesisConfig', 'forging', 'network', 'plugins'],
 	properties: {
 		label: {
 			type: 'string',
-			pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$',
+			pattern: '^[a-zA-Z][0-9a-zA-Z_-]*$',
 			minLength: 1,
 			maxLength: 30,
 			description: 'Restricted length due to unix domain socket path length limitations.',
@@ -37,7 +37,7 @@ export const applicationConfigSchema = {
 			format: 'path',
 			minLength: 1,
 			maxLength: 50,
-			example: '~/.lisk',
+			examples: ['~/.lisk'],
 			description:
 				'The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.',
 		},
@@ -59,7 +59,7 @@ export const applicationConfigSchema = {
 			},
 		},
 		genesisConfig: {
-			id: '#/config/genesisConfig',
+			$id: '#/config/genesisConfig',
 			type: 'object',
 			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards'],
 			properties: {
@@ -113,7 +113,7 @@ export const applicationConfigSchema = {
 					description: 'Maximum number of transactions allowed per block',
 				},
 				rewards: {
-					id: '#/config/rewards',
+					$id: '#/config/rewards',
 					type: 'object',
 					required: ['milestones', 'offset', 'distance'],
 					description: 'Object representing LSK rewards milestone',
@@ -351,12 +351,16 @@ export const applicationConfigSchema = {
 					minimum: 1024,
 					maximum: 65535,
 				},
+				host: {
+					type: 'string',
+					format: 'ip',
+				},
 			},
 		},
 	},
 	additionalProperties: false,
 	default: {
-		label: 'alpha-sdk-app',
+		label: 'beta-sdk-app',
 		version: '0.0.0',
 		networkVersion: '1.1',
 		rootPath: '~/.lisk',
@@ -369,6 +373,7 @@ export const applicationConfigSchema = {
 			enable: false,
 			mode: 'ipc',
 			port: 8080,
+			host: '127.0.0.1',
 		},
 		genesisConfig: {
 			blockTime: 10,

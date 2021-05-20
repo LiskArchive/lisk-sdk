@@ -11,15 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import axios from 'axios';
-import {
-	createApplication,
-	closeApplication,
-	waitNBlocks,
-	getURL,
-	callNetwork,
-} from './utils/application';
+import { getURL, callNetwork } from './utils/application';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
 
 describe('api/forging', () => {
 	const sampleForgerInfo = {
@@ -31,11 +26,22 @@ describe('api/forging', () => {
 	};
 	const sampleForgerPassword = 'elephant tree paris dragon chair galaxy';
 
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
+	const label = 'forging_http_functional';
 
 	beforeAll(async () => {
-		app = await createApplication('forging');
-		await waitNBlocks(app, 2);
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
+		await appEnv.startApplication();
+		await appEnv.waitNBlocks(2);
 		const { data } = await axios.get(getURL('/api/forging/info'));
 		const forgedDelegateInfo = data.data.filter(
 			(forger: { maxHeightPreviouslyForged: number }) => forger.maxHeightPreviouslyForged >= 0,
@@ -46,7 +52,9 @@ describe('api/forging', () => {
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('/api/forging', () => {

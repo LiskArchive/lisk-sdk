@@ -13,7 +13,6 @@
  *
  */
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createMockChannel = () => {
 	const channel = {
 		publish: jest.fn(),
@@ -24,7 +23,6 @@ export const createMockChannel = () => {
 	return channel;
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createMockBus = () => ({
 	registerChannel: jest.fn().mockResolvedValue(undefined),
 	setup: jest.fn().mockResolvedValue(undefined),

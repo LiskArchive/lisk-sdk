@@ -41,7 +41,6 @@ export class SequenceModule extends BaseModule {
 		},
 	};
 
-	// eslint-disable-next-line class-methods-use-this
 	public async beforeTransactionApply({
 		transaction,
 		stateStore,
@@ -59,7 +58,6 @@ export class SequenceModule extends BaseModule {
 		}
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async afterTransactionApply({
 		transaction,
 		stateStore,

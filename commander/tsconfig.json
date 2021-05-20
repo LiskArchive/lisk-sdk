@@ -2,10 +2,10 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"composite": true,
-		"esModuleInterop": true,
 		"importHelpers": true,
 		"rootDir": "src",
 		"outDir": "dist"
 	},
-	"include": ["src/**/*"]
+	"include": ["src/**/*"],
+	"exclude": ["src/bootstrapping/templates/lisk-template-ts/templates/**/*"]
 }

@@ -53,7 +53,7 @@ describe('api client ws mode', () => {
 			const defaultNetworkStats = {
 				incoming: { count: 0, connects: 0, disconnects: 0 },
 				outgoing: { count: 1, connects: 1, disconnects: 0 },
-				banning: { bannedPeers: {}, totalBannedPeers: 0 },
+				banning: { bannedPeers: {}, count: 0 },
 				totalErrors: 0,
 				totalPeersDiscovered: 0,
 				totalRemovedPeers: 0,
@@ -69,7 +69,7 @@ describe('api client ws mode', () => {
 		it('should invoke getNodeInfo action', async () => {
 			// Act
 			const nodeInfo = await client.invoke('app:getNodeInfo');
-			// console.log(await client.invoke('app:getNodeInfo'))
+
 			// Assert
 			expect(nodeInfo.version).toEqual(app.config.version);
 			expect(nodeInfo.networkVersion).toEqual(app.config.networkVersion);
@@ -87,7 +87,7 @@ describe('api client ws mode', () => {
 		it('should throw an error when action fails due to missing argument', async () => {
 			// Assert
 			await expect(client.invoke('app:getAccount')).rejects.toThrow(
-				'The first argument must be of type string or an instance of Buffer',
+				'The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined',
 			);
 		});
 

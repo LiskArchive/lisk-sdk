@@ -89,7 +89,7 @@ export class BFT extends EventEmitter {
 		await this.finalityManager.addBlockHeader(block, stateStore);
 		const { finalizedHeight } = this.finalityManager;
 
-		stateStore.consensus.set(
+		await stateStore.consensus.set(
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 			codec.encode(BFTFinalizedHeightCodecSchema, { finalizedHeight }),
 		);
@@ -156,7 +156,6 @@ export class BFT extends EventEmitter {
 		return ForkStatus.DISCARD;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async isBFTProtocolCompliant(
 		blockHeader: BlockHeader,
 		stateStore: StateStore,

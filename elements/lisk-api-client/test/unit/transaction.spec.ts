@@ -61,12 +61,14 @@ describe('transaction', () => {
 		};
 
 		when(channelMock.invoke)
-			.calledWith('app:getAccount')
+			.calledWith('app:getAccount', expect.anything())
 			.mockResolvedValue(accountHex as never)
-			.calledWith('app:getTransactionByID')
+			.calledWith('app:getTransactionByID', expect.anything())
 			.mockResolvedValue(txHex as never)
 			.calledWith('app:getTransactionsFromPool')
-			.mockResolvedValue([txHex] as never);
+			.mockResolvedValue([txHex] as never)
+			.calledWith('app:postTransaction', expect.anything())
+			.mockResolvedValue(txHex as never);
 
 		transaction = new Transaction(channelMock, schema, nodeInfo);
 	});
@@ -79,11 +81,23 @@ describe('transaction', () => {
 		});
 
 		describe('get', () => {
-			it('should invoke app:getTransactionByID', async () => {
-				await transaction.get(txId);
-				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-				expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
-					id: txId.toString('hex'),
+			describe('transaction by id as buffer', () => {
+				it('should invoke app:getTransactionByID', async () => {
+					await transaction.get(txId);
+					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+					expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
+						id: txId.toString('hex'),
+					});
+				});
+			});
+
+			describe('transaction by id as hex', () => {
+				it('should invoke app:getTransactionByID', async () => {
+					await transaction.get(txId.toString('hex'));
+					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+					expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
+						id: txId.toString('hex'),
+					});
 				});
 			});
 		});
@@ -159,6 +173,7 @@ describe('transaction', () => {
 								address: schema.account.properties.address,
 								keys: schema.account.properties.keys,
 							},
+							required: ['address', 'keys'],
 						},
 					};
 					transaction = new Transaction(channelMock, updatedSchema, nodeInfo);
@@ -212,7 +227,7 @@ describe('transaction', () => {
 					};
 					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
 					when(channelMock.invoke)
-						.calledWith('app:getAccount')
+						.calledWith('app:getAccount', expect.anything())
 						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
 					const returnedTx = await transaction.create(validTransaction, passphrase1);
 					expect(returnedTx.signatures).toHaveLength(2);
@@ -258,7 +273,7 @@ describe('transaction', () => {
 					};
 					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
 					when(channelMock.invoke)
-						.calledWith('app:getAccount')
+						.calledWith('app:getAccount', expect.anything())
 						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
 					const returnedTx = await transaction.sign(validTransaction, passphrases);
 					expect(returnedTx.signatures).toHaveLength(2);
@@ -284,19 +299,29 @@ describe('transaction', () => {
 
 		describe('send', () => {
 			it('should invoke app:postTransaction', async () => {
-				await transaction.send(tx);
+				const trxId = await transaction.send(tx);
 
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				expect(channelMock.invoke).toHaveBeenCalledWith('app:postTransaction', {
 					transaction: txHex,
 				});
+				expect(trxId).toEqual(txHex);
 			});
 		});
 
 		describe('decode', () => {
-			it('should return decoded transaction', () => {
-				const decodedTx = transaction.decode(encodedTx);
-				expect(decodedTx).toMatchSnapshot();
+			describe('transaction from input as buffer', () => {
+				it('should return decoded transaction', () => {
+					const decodedTx = transaction.decode(encodedTx);
+					expect(decodedTx).toMatchSnapshot();
+				});
+			});
+
+			describe('transaction from input as hex', () => {
+				it('should return decoded transaction', () => {
+					const decodedTx = transaction.decode(encodedTx.toString('hex'));
+					expect(decodedTx).toMatchSnapshot();
+				});
 			});
 		});
 

@@ -12,15 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { AnySchemaObject, FuncKeywordDefinition, SchemaCxt } from 'ajv';
 import * as createDebug from 'debug';
-import { LiskValidationError, ErrorObject } from '../errors';
+import { LiskValidationError } from '../errors';
+import { DataValidateFunction, DataValidationCxt } from '../types';
 import {
 	isBoolean,
 	isBytes,
-	isUInt32,
 	isSInt32,
-	isString,
 	isSInt64,
+	isString,
+	isUInt32,
 	isUInt64,
 } from '../validation';
 
@@ -32,40 +34,15 @@ export const metaSchema = {
 	enum: ['bytes', 'uint32', 'sint32', 'uint64', 'sint64', 'string', 'boolean'],
 };
 
-type ValidateFunction = (
-	data: string,
-	dataPath?: string,
-	parentData?: object,
-	parentDataProperty?: string | number,
-	rootData?: object,
-) => boolean;
-
-interface AjvContext {
-	root: {
-		schema: object;
-	};
-	schemaPath: string;
-}
-
 interface KVPair {
 	[key: string]: unknown;
-}
-interface ValidateFunctionContext {
-	errors?: ErrorObject[];
-	(
-		data: Buffer | bigint | string | number,
-		dataPath?: string,
-		parentData?: object,
-		parentDataProperty?: string | number,
-		rootData?: object,
-	): boolean;
 }
 
 const compile = (
 	value: string,
-	parentSchema: object,
-	it: Partial<AjvContext>,
-): ValidateFunction => {
+	parentSchema: AnySchemaObject,
+	it: SchemaCxt,
+): DataValidateFunction => {
 	debug('compile: value: %s', value);
 	debug('compile: parent schema: %j', parentSchema);
 	const typePropertyPresent = Object.keys(parentSchema).includes('type');
@@ -77,17 +54,14 @@ const compile = (
 				message: 'Either "dataType" or "type" can be presented in schema',
 				params: { dataType: value },
 				dataPath: '',
-				schemaPath: it.schemaPath ?? '',
+				schemaPath: it.schemaPath.str ?? '',
 			},
 		]);
 	}
 
-	const validate: ValidateFunctionContext = (
+	const validate: DataValidateFunction = (
 		data: Buffer | bigint | string | number,
-		_dataPath?: string,
-		_parentData?: object,
-		_parentDataProperty?: string | number,
-		_rootData?: object,
+		_dataCxt?: DataValidationCxt,
 	): boolean => {
 		if (value === 'boolean') {
 			return isBoolean(data);
@@ -147,7 +121,8 @@ const compile = (
 	return validate;
 };
 
-export const dataTypeKeyword = {
+export const dataTypeKeyword: FuncKeywordDefinition = {
+	keyword: 'dataType',
 	compile,
 	errors: 'full',
 	modifying: false,

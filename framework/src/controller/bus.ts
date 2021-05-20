@@ -13,7 +13,7 @@
  */
 
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { EventEmitter2, Listener } from 'eventemitter2';
+import { EventEmitter2, ListenerFn } from 'eventemitter2';
 import * as axon from 'pm2-axon';
 import { ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
@@ -32,6 +32,7 @@ interface BusConfiguration {
 		readonly enable: boolean;
 		readonly mode: string;
 		readonly port: number;
+		readonly host?: string;
 	};
 }
 
@@ -83,7 +84,7 @@ export class Bus {
 		[key: string]: ChannelInfo;
 	};
 	private readonly rpcClients: { [key: string]: ReqSocket };
-	private readonly _ipcServer: IPCServer;
+	private readonly _ipcServer!: IPCServer;
 	private readonly _emitter: EventEmitter2;
 
 	private readonly _wsServer!: WSServer;
@@ -104,23 +105,27 @@ export class Bus {
 		this.channels = {};
 		this.rpcClients = {};
 
-		this._ipcServer = new IPCServer({
-			socketsDir: this.config.socketsPath.root,
-			name: 'bus',
-		});
+		if (this.config.rpc.enable) {
+			this._ipcServer = new IPCServer({
+				socketsDir: this.config.socketsPath.root,
+				name: 'bus',
+			});
+		}
 
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
 			this._wsServer = new WSServer({
 				path: '/ws',
 				port: config.rpc.port,
+				host: config.rpc.host,
 				logger: this.logger,
 			});
 		}
 	}
 
 	public async setup(): Promise<boolean> {
-		await this._setupIPCServer();
-
+		if (this.config.rpc.enable) {
+			await this._setupIPCServer();
+		}
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
 			await this._setupWSServer();
 		}
@@ -308,13 +313,15 @@ export class Bus {
 		this._emitter.emit(eventName, notification);
 
 		// Communicate through unix socket
-		try {
-			this._ipcServer.pubSocket.send(notification);
-		} catch (error) {
-			this.logger.debug(
-				{ err: error as Error },
-				`Failed to publish event: ${eventName} to ipc server.`,
-			);
+		if (this.config.rpc.enable) {
+			try {
+				this._ipcServer.pubSocket.send(notification);
+			} catch (error) {
+				this.logger.debug(
+					{ err: error as Error },
+					`Failed to publish event: ${eventName} to ipc server.`,
+				);
+			}
 		}
 
 		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
@@ -329,7 +336,7 @@ export class Bus {
 		}
 	}
 
-	public subscribe(eventName: string, cb: Listener): void {
+	public subscribe(eventName: string, cb: ListenerFn): void {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(`Event ${eventName} was subscribed but not registered to the bus yet.`);
 		}
@@ -338,7 +345,7 @@ export class Bus {
 		this._emitter.on(eventName, cb);
 	}
 
-	public once(eventName: string, cb: Listener): this {
+	public once(eventName: string, cb: ListenerFn): this {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(`Event ${eventName} was subscribed but not registered to the bus yet.`);
 		}

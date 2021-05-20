@@ -69,7 +69,6 @@ describe('Bus', () => {
 			// Assert
 			expect(bus['actions']).toEqual({});
 			expect(bus['events']).toEqual({});
-			expect(bus['_ipcServer']).toBeInstanceOf(IPCServer);
 			expect(bus['_wsServer']).toBeInstanceOf(WSServer);
 		});
 	});
@@ -84,9 +83,11 @@ describe('Bus', () => {
 			return expect(bus.setup()).resolves.toBe(true);
 		});
 
-		it('should setup ipc server', async () => {
+		it('should setup ipc server if rpc is enabled', async () => {
 			// Arrange
 			const updatedConfig = { ...config };
+			updatedConfig.rpc.enable = true;
+			updatedConfig.rpc.mode = 'ipc';
 			bus = new Bus(loggerMock, updatedConfig);
 
 			// Act
@@ -100,6 +101,8 @@ describe('Bus', () => {
 			// Arrange
 			const updatedConfig = { ...config };
 			updatedConfig.rpc.enable = true;
+			updatedConfig.rpc.mode = 'ws';
+
 			bus = new Bus(loggerMock, updatedConfig);
 
 			// Act
@@ -107,6 +110,19 @@ describe('Bus', () => {
 
 			// Assert
 			return expect(WSServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should not setup ipc server if rpc is not enabled', async () => {
+			// Arrange
+			const updatedConfig = { ...config };
+			updatedConfig.rpc.enable = false;
+			bus = new Bus(loggerMock, updatedConfig);
+
+			// Act
+			await bus.setup();
+
+			// Assert
+			return expect(IPCServer.prototype.start).not.toHaveBeenCalled();
 		});
 
 		it('should not setup ws server if rpc is not enabled', async () => {

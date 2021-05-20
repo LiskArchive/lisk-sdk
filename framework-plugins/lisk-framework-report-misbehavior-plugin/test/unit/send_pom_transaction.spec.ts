@@ -13,11 +13,19 @@
  */
 
 import { when } from 'jest-when';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { testing } from 'lisk-framework';
+
 import { ReportMisbehaviorPlugin } from '../../src';
-import { defaultAccount } from '../fixtures/devnet';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = {
+	...config.defaultConfig.default,
+	encryptedPassphrase:
+		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
+	dataPath: '/my/app',
+};
 
 describe('Send PoM transaction', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
@@ -65,9 +73,12 @@ describe('Send PoM transaction', () => {
 	const header2 = codec.decode(blockHeaderSchema, blockHeader2);
 
 	beforeEach(() => {
-		reportMisbehaviorPlugin = new (ReportMisbehaviorPlugin as any)();
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		(reportMisbehaviorPlugin as any)._options = { fee: '100000000' };
+		reportMisbehaviorPlugin['_logger'] = {
+			error: jest.fn(),
+		} as any;
 		reportMisbehaviorPlugin.schemas = {
 			block: blockSchema,
 			blockHeader: blockHeaderSchema,
@@ -85,10 +96,12 @@ describe('Send PoM transaction', () => {
 						properties: {
 							header1: {
 								...blockHeaderSchema,
+								$id: 'block-header1',
 								fieldNumber: 1,
 							},
 							header2: {
 								...blockHeaderSchema,
+								$id: 'block-header2',
 								fieldNumber: 2,
 							},
 						},
@@ -98,11 +111,11 @@ describe('Send PoM transaction', () => {
 			account: accountSchema,
 		} as any;
 		(reportMisbehaviorPlugin as any)._state = {
-			passphrase: defaultAccount.passphrase,
-			publicKey: getAddressAndPublicKeyFromPassphrase(defaultAccount.passphrase).publicKey,
+			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
+			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,
 		};
 		when(channelMock.invoke)
-			.calledWith('app:getAccount')
+			.calledWith('app:getAccount', expect.anything())
 			.mockResolvedValue('1a020801' as never);
 		when(channelMock.invoke)
 			.calledWith('app:getNodeInfo')

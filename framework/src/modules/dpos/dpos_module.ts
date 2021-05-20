@@ -16,7 +16,6 @@ import { Account } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import * as createDebug from 'debug';
 import { getMinWaitingHeight, getMinPunishedHeight } from './utils';
 import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
 import { BaseModule } from '../base_module';
@@ -47,8 +46,6 @@ const dposModuleParamsDefault = {
 	standbyDelegates: 2,
 	delegateListRoundOffset: 2,
 };
-
-const debug = createDebug('dpos');
 
 export class DPoSModule extends BaseModule {
 	public name = 'dpos';
@@ -166,8 +163,7 @@ export class DPoSModule extends BaseModule {
 			const finalizedBlockRound = this.rounds.calcRound(finalizedHeight);
 			const disposableDelegateListUntilRound =
 				finalizedBlockRound - this._delegateListRoundOffset - this._delegateActiveRoundLimit;
-
-			debug('Deleting voteWeights until round: ', disposableDelegateListUntilRound);
+			this._logger.debug(disposableDelegateListUntilRound, 'Deleting voteWeights until round');
 			await deleteVoteWeightsUntilRound(disposableDelegateListUntilRound, context.stateStore);
 		}
 
@@ -215,13 +211,13 @@ export class DPoSModule extends BaseModule {
 
 		const roundAfterGenesis = this.rounds.calcRound(context.genesisBlock.header.height) + 1;
 		for (
-			// tslint:disable-next-line no-let
 			let i = roundAfterGenesis;
 			i <= roundAfterGenesis + this._delegateListRoundOffset;
 			i += 1
 		) {
 			// Height is 1, but to create round 1-3, round offset should start from 0 - 2
 			await createVoteWeightsSnapshot({
+				logger: this._logger,
 				stateStore: context.stateStore,
 				height: context.genesisBlock.header.height,
 				round: i,
@@ -239,7 +235,7 @@ export class DPoSModule extends BaseModule {
 		} = context;
 
 		const round = this.rounds.calcRound(blockHeader.height);
-		debug('Updating delegates productivity for round', round);
+		this._logger.debug(round, 'Updating delegates productivity for round');
 		await updateDelegateProductivity({
 			height: blockHeader.height,
 			blockTime: this._blockTime,
@@ -253,11 +249,12 @@ export class DPoSModule extends BaseModule {
 	private async _createVoteWeightSnapshot(context: AfterBlockApplyContext): Promise<void> {
 		const round = this.rounds.calcRound(context.block.header.height);
 		// Calculate Vote Weights List
-		debug('Creating delegate list for round', round + this._delegateListRoundOffset);
+		this._logger.debug(round + this._delegateListRoundOffset, 'Creating delegate list for round');
 
 		const snapshotHeight = context.block.header.height + 1;
 		const snapshotRound = this.rounds.calcRound(snapshotHeight) + this._delegateListRoundOffset;
 		await createVoteWeightsSnapshot({
+			logger: this._logger,
 			stateStore: context.stateStore,
 			height: snapshotHeight,
 			round: snapshotRound,
@@ -270,13 +267,14 @@ export class DPoSModule extends BaseModule {
 		const round = this.rounds.calcRound(context.block.header.height);
 		const nextRound = round + 1;
 
-		debug('Updating delegate list for', nextRound);
+		this._logger.debug(nextRound, 'Updating delegate list for');
 		// Calculate Delegate List
-		const [randomSeed1, randomSeed2] = generateRandomSeeds(
+		const [randomSeed1, randomSeed2] = generateRandomSeeds({
 			round,
-			this.rounds,
-			context.stateStore.chain.lastBlockHeaders,
-		);
+			rounds: this.rounds,
+			headers: context.stateStore.chain.lastBlockHeaders,
+			logger: this._logger,
+		});
 		await updateDelegateList({
 			round: nextRound,
 			randomSeeds: [randomSeed1, randomSeed2],

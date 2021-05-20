@@ -19,7 +19,6 @@ import {
 	IteratorReturnValue,
 	SchemaPair,
 	SchemaProps,
-	SchemaScalarItem,
 } from './types';
 
 type mapperFunction = (value: BaseTypes) => BaseTypes;
@@ -126,7 +125,8 @@ export const recursiveTypeCast = (
 					(arrayObject as IteratableGenericObject)[Symbol.iterator] = iterator;
 					recursiveTypeCast(mode, arrayObject, schema, dataPath);
 
-					delete (arrayObject as IteratableGenericObject)[Symbol.iterator];
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+					delete arrayObject[Symbol.iterator];
 				}
 			} else {
 				for (let i = 0; i < value.length; i += 1) {
@@ -135,9 +135,7 @@ export const recursiveTypeCast = (
 					}
 
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-					(object[key] as any)[i] = mappers[mode][(schemaProp.items as SchemaScalarItem).dataType](
-						value[i],
-					);
+					(object[key] as any)[i] = mappers[mode][schemaProp.items.dataType](value[i]);
 				}
 			}
 			dataPath.pop();

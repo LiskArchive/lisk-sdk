@@ -12,16 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as assert from 'assert';
 import { RawBlock } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
+import * as assert from 'assert';
+import { join } from 'path';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { objects } from '@liskhq/lisk-utils';
 import { APP_EVENT_READY } from '../constants';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
 import { EventsDefinition } from '../controller/event';
 import { ImplementationMissingError } from '../errors';
-import { RegisteredSchema, TransactionJSON } from '../types';
+import { createLogger, Logger } from '../logger';
+import { systemDirs } from '../system_dirs';
+import {
+	PluginOptionsWithAppConfig,
+	RegisteredSchema,
+	SchemaWithDefault,
+	TransactionJSON,
+} from '../types';
 
 interface DefaultAccountJSON {
 	[name: string]: { [key: string]: unknown } | undefined;
@@ -72,13 +82,12 @@ export interface PluginInfo {
 	readonly exportPath?: string;
 }
 
-export interface InstantiablePlugin<T, U = object> {
+type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithAppConfig;
+
+export interface InstantiablePlugin<T extends BasePlugin = BasePlugin> {
 	alias: string;
 	info: PluginInfo;
-	defaults: object;
-	load: () => Promise<void>;
-	unload: () => Promise<void>;
-	new (...args: U[]): T;
+	new (args: ExtractPluginOptions<T>): T;
 }
 
 const decodeTransactionToJSON = (
@@ -186,17 +195,33 @@ export interface PluginCodec {
 	encodeTransaction: (transaction: TransactionJSON) => string;
 }
 
-export abstract class BasePlugin {
-	public readonly options: object;
+export abstract class BasePlugin<
+	T extends PluginOptionsWithAppConfig = PluginOptionsWithAppConfig
+> {
+	public readonly options: T;
 	public schemas!: RegisteredSchema;
 
 	public codec: PluginCodec;
+	protected _logger!: Logger;
 
-	protected constructor(options: object) {
-		this.options = options;
+	public constructor(options: T) {
+		if (this.defaults) {
+			this.options = objects.mergeDeep(
+				{},
+				(this.defaults as SchemaWithDefault).default ?? {},
+				options,
+			) as T;
+
+			const errors = validator.validate(this.defaults, this.options);
+			if (errors.length) {
+				throw new LiskValidationError([...errors]);
+			}
+		} else {
+			this.options = objects.cloneDeep(options);
+		}
 
 		this.codec = {
-			decodeAccount: <T = DefaultAccountJSON>(data: Buffer | string): AccountJSON<T> => {
+			decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
 				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
 
 				return decodeAccountToJSON(accountBuffer, this.schemas.account);
@@ -231,6 +256,17 @@ export abstract class BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(channel: BaseChannel): Promise<void> {
+		const dirs = systemDirs(this.options.appConfig.label, this.options.appConfig.rootPath);
+		this._logger = createLogger({
+			consoleLogLevel: this.options.appConfig.logger.consoleLogLevel,
+			fileLogLevel: this.options.appConfig.logger.fileLogLevel,
+			logFilePath: join(
+				dirs.logs,
+				`plugin-${((this.constructor as unknown) as typeof BasePlugin).alias}.log`,
+			),
+			module: `plugin:${((this.constructor as unknown) as typeof BasePlugin).alias}`,
+		});
+
 		channel.once(APP_EVENT_READY, async () => {
 			this.schemas = await channel.invoke('app:getSchema');
 		});
@@ -245,21 +281,21 @@ export abstract class BasePlugin {
 		throw new ImplementationMissingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	public get defaults(): object {
-		return {};
+	// TODO: To make non-breaking change we have to keep "object" here
+	public get defaults(): SchemaWithDefault | object | undefined {
+		return undefined;
 	}
 	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
 
-	public abstract async load(channel: BaseChannel): Promise<void>;
-	public abstract async unload(): Promise<void>;
+	public abstract load(channel: BaseChannel): Promise<void>;
+	public abstract unload(): Promise<void>;
 }
 
 // TODO: Once the issue fixed we can use require.resolve to rewrite the logic
 //  https://github.com/facebook/jest/issues/9543
 export const getPluginExportPath = (
-	pluginKlass: typeof BasePlugin,
+	pluginKlass: InstantiablePlugin,
 	strict = true,
 ): string | undefined => {
 	let nodeModule: Record<string, unknown> | undefined;
@@ -298,18 +334,27 @@ export const getPluginExportPath = (
 	return nodeModulePath;
 };
 
-export const validatePluginSpec = (PluginKlass: InstantiablePlugin<BasePlugin>): void => {
-	const pluginObject = new PluginKlass();
+export const validatePluginSpec = (
+	PluginKlass: InstantiablePlugin,
+	options: Record<string, unknown> = {},
+): void => {
+	const pluginObject = new PluginKlass(options as PluginOptionsWithAppConfig);
 
 	assert(PluginKlass.alias, 'Plugin alias is required.');
 	assert(PluginKlass.info.name, 'Plugin name is required.');
 	assert(PluginKlass.info.author, 'Plugin author is required.');
 	assert(PluginKlass.info.version, 'Plugin version is required.');
-	assert(pluginObject.defaults, 'Plugin default options are required.');
 	assert(pluginObject.events, 'Plugin events are required.');
 	assert(pluginObject.actions, 'Plugin actions are required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	assert(pluginObject.load, 'Plugin load action is required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	assert(pluginObject.unload, 'Plugin unload actions is required.');
+
+	if (pluginObject.defaults) {
+		const errors = validator.validateSchema(pluginObject.defaults);
+		if (errors.length) {
+			throw new LiskValidationError([...errors]);
+		}
+	}
 };

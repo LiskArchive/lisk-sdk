@@ -12,32 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Application } from 'lisk-framework';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
-
+import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { getAddressFromPublicKey, getKeys, getRandomBytes } from '@liskhq/lisk-cryptography';
 import axios from 'axios';
-import {
-	callNetwork,
-	closeApplication,
-	createApplication,
-	getURL,
-	waitNBlocks,
-} from './utils/application';
-import { getRandomAccount } from './utils/accounts';
+
+import { callNetwork, getURL } from './utils/application';
 import { createTransferTransaction } from './utils/transactions';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
+
+const getRandomAccount = () => {
+	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('hex'));
+	const address = getAddressFromPublicKey(publicKey);
+
+	return {
+		address: address.toString('hex'),
+		publicKey: publicKey.toString('hex'),
+		privateKey: privateKey.toString('hex'),
+		nonce: 0,
+	};
+};
 
 describe('Hello endpoint', () => {
 	// Arrange
 	const invalidHexString = '69db1f75ab1f76c69f7dxxxxxxxxxx';
-	let app: Application;
+	const label = 'transactions_http_functional';
+	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 
 	beforeAll(async () => {
-		app = await createApplication('transactions');
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('GET /api/transactions/:id', () => {
@@ -49,6 +68,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				accountNonce += 1;
 
@@ -58,7 +78,7 @@ describe('Hello endpoint', () => {
 				);
 				expect(status).toEqual(200);
 				expect(response).toEqual({ data: { transactionId: id }, meta: {} });
-				await waitNBlocks(app, 1);
+				await appEnv.waitNBlocks(1);
 
 				// Act
 				const { response: getResponse, status: getStatus } = await callNetwork(
@@ -113,6 +133,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				accountNonce += 1;
 
@@ -138,6 +159,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id, ...input } = transaction;
 				input.signatures = [];
@@ -152,7 +174,7 @@ describe('Hello endpoint', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message: 'Lisk validator found 1 error[s]:\nshould NOT have fewer than 1 items',
+							message: 'Lisk validator found 1 error[s]:\nmust NOT have fewer than 1 items',
 						},
 					],
 				});
@@ -166,6 +188,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id, ...input } = transaction;
 				input.senderPublicKey = invalidHexString;
@@ -181,7 +204,7 @@ describe('Hello endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.senderPublicKey\' should match format "hex"',
+								'Lisk validator found 1 error[s]:\nProperty \'.senderPublicKey\' must match format "hex"',
 						},
 					],
 				});
@@ -195,6 +218,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id, ...input } = transaction;
 				input.signatures = [invalidHexString];
@@ -209,7 +233,7 @@ describe('Hello endpoint', () => {
 				expect(response).toEqual({
 					errors: [
 						{
-							message: expect.stringContaining("Property '.signatures[0]' should match format"),
+							message: expect.stringContaining("Property '.signatures.0' must match format"),
 						},
 					],
 				});
@@ -225,6 +249,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				accountNonce += 1;
 
@@ -258,6 +283,7 @@ describe('Hello endpoint', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: accountNonce,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id, ...input } = transaction;
 				const newSignature = getRandomBytes(64);

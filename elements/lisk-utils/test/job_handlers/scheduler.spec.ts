@@ -47,7 +47,7 @@ describe('Scheduler', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			job.start();
 			jest.advanceTimersByTime(interval + 1);
-			return new Promise(resolve => {
+			return new Promise<void>(resolve => {
 				// need to use nextTick because jest.advanceTimersByTime calls the callbacks in setTimeout but does not resolve the wrapping promises.
 				process.nextTick(() => {
 					jest.advanceTimersByTime(interval + 1);

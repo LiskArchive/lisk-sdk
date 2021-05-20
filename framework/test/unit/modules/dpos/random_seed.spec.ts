@@ -38,6 +38,7 @@ const generateHeadersFromTest = (blocks: any): BlockHeader[] =>
 describe('random_seed', () => {
 	let rounds: Rounds;
 	let randomSeeds: Buffer[];
+	let logger: any;
 
 	const testCases = [
 		...randomSeedFirstRound.testCases,
@@ -45,6 +46,10 @@ describe('random_seed', () => {
 		...randomSeedsInvalidSeedReveal.testCases,
 		...randomSeedsNotForgedEarlier.testCases,
 	];
+
+	beforeEach(() => {
+		logger = { debug: jest.fn() };
+	});
 
 	describe('generateRandomSeeds', () => {
 		describe.each(testCases.map(testCase => [testCase.description, testCase]))(
@@ -61,7 +66,7 @@ describe('random_seed', () => {
 					const headers = generateHeadersFromTest(input.blocks);
 
 					// Act
-					randomSeeds = generateRandomSeeds(round, rounds, headers);
+					randomSeeds = generateRandomSeeds({ round, rounds, headers, logger });
 
 					// Assert
 					expect(randomSeeds[0].toString('hex')).toEqual(output.randomSeed1);

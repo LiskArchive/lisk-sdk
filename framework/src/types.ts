@@ -75,8 +75,22 @@ export interface PluginOptions extends Record<string, unknown> {
 	readonly alias?: string;
 }
 
-export interface PluginsOptions {
-	[key: string]: PluginOptions;
+export interface AppConfigForPlugin {
+	readonly rootPath: string;
+	readonly version: string;
+	readonly networkVersion: string;
+	readonly genesisConfig: GenesisConfig;
+	readonly label: string;
+	readonly logger: {
+		readonly consoleLogLevel: string;
+		readonly fileLogLevel: string;
+	};
+}
+
+export interface PluginOptionsWithAppConfig extends PluginOptions {
+	// TODO: Remove data path from here and use from appConfig
+	readonly dataPath: string;
+	appConfig: AppConfigForPlugin;
 }
 
 export interface DelegateConfig {
@@ -164,7 +178,9 @@ export interface ApplicationConfig {
 		consoleLogLevel: string;
 	};
 	genesisConfig: GenesisConfig;
-	plugins: PluginsOptions;
+	plugins: {
+		[key: string]: PluginOptions;
+	};
 	transactionPool: TransactionPoolConfig;
 	rpc: RPCConfig;
 }
@@ -293,6 +309,10 @@ export interface RegisteredSchema {
 		assetName: string;
 		schema: Schema;
 	}[];
+}
+
+export interface SchemaWithDefault extends Schema {
+	readonly default?: Record<string, unknown>;
 }
 
 export interface ForgingStatus {

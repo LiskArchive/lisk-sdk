@@ -11,29 +11,26 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { codec } from '@liskhq/lisk-codec';
-import { Block, Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { Block, Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
-import { TokenModule } from '../../../../src/modules/token';
+import { TokenModule, TransferAsset } from '../../../../src/modules/token';
 import {
 	CHAIN_STATE_BURNT_FEE,
 	GENESIS_BLOCK_MAX_BALANCE,
 } from '../../../../src/modules/token/constants';
 import { createAccount, createFakeDefaultAccount, StateStoreMock } from '../../../utils/node';
-import * as fixtures from './transfer_transaction_validate.json';
 import { GenesisConfig } from '../../../../src';
+import { createTransaction } from '../../../../src/testing';
 
 describe('token module', () => {
 	let tokenModule: TokenModule;
 	let validTransaction: any;
-	let decodedTransaction: any;
 	let senderAccount: any;
 	let recipientAccount: any;
 	let stateStore: any;
 	let genesisBlock: any;
 	let reducerHandler: any;
-	const defaultTestCase = fixtures.testCases[0];
 	const minRemainingBalance = '10';
 	const genesisConfig: GenesisConfig = {
 		baseFees: [
@@ -58,17 +55,30 @@ describe('token module', () => {
 
 	beforeEach(() => {
 		tokenModule = new TokenModule(genesisConfig);
-		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
-		decodedTransaction = codec.decode<Transaction>(transactionSchema, buffer);
-		validTransaction = new Transaction(decodedTransaction);
+		validTransaction = createTransaction({
+			moduleID: 2,
+			assetClass: TransferAsset,
+			asset: {
+				amount: BigInt('100000000'),
+				recipientAddress: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
+				data: 'moon',
+			},
+			nonce: BigInt(0),
+			fee: BigInt('10000000'),
+			passphrase: 'wear protect skill sentence lift enter wild sting lottery power floor neglect',
+			networkIdentifier: Buffer.from(
+				'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				'hex',
+			),
+		});
 		senderAccount = createFakeDefaultAccount({
-			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
+			address: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
 			token: {
 				balance: BigInt('1000000000000000'),
 			},
 		});
 		recipientAccount = createFakeDefaultAccount({
-			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
+			address: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
 			token: {
 				balance: BigInt('1000000000000000'),
 			},
@@ -147,7 +157,7 @@ describe('token module', () => {
 				...senderAccount,
 				token: {
 					...senderAccount.token,
-					balance: senderAccount.token.balance += BigInt('1000'),
+					balance: (senderAccount.token.balance += BigInt('1000')),
 				},
 			};
 			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);
@@ -189,7 +199,7 @@ describe('token module', () => {
 				...senderAccount,
 				token: {
 					...senderAccount.token,
-					balance: senderAccount.token.balance -= BigInt('1000'),
+					balance: (senderAccount.token.balance -= BigInt('1000')),
 				},
 			};
 			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);

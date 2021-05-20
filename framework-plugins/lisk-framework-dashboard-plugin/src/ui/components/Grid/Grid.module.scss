@@ -1,0 +1,137 @@
+@import '../../styles/constants';
+
+$grid-cols: 12;
+$grid-sizes: 'xs', 'sm', 'md', 'lg', 'xl';
+$base-spacing: 5px;
+$grid-spacing: 6;
+$flex-justify-values: 'flex-start', 'center', 'flex-end', 'space-between', 'space-around',
+	'space-evenly';
+$flex-align-items: 'flex-start', 'center', 'flex-end', 'stretch', 'baseline';
+$text-align: 'center', 'left', 'right', 'justify';
+
+@mixin create-col-classes($modifier, $grid-cols) {
+	.gridCol {
+		box-sizing: border-box;
+	}
+
+	@include mq-up($modifier) {
+		.grid-#{$grid-cols} {
+			@for $i from 1 through $grid-cols {
+				.gridCol-#{$modifier}-#{$i} {
+					flex-basis: (100 / ($grid-cols / $i)) * 1%;
+					overflow: hidden;
+				}
+			}
+		}
+	}
+}
+
+@mixin create-col-spacing-classes($modifier, $grid-cols) {
+	.grid-#{$grid-cols} {
+		@for $i from 0 through $grid-spacing {
+			&.gridColSpacing-#{$i} {
+				.gridCol {
+					padding-left: $i * $base-spacing;
+					padding-right: $i * $base-spacing;
+				}
+
+				.gridRow {
+					> :last-child {
+						padding-right: 0;
+					}
+					> :first-child {
+						padding-left: 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+@mixin create-row-spacing-classes($modifier, $grid-cols) {
+	.grid-#{$grid-cols} {
+		@for $i from 0 through $grid-spacing {
+			&.gridRowSpacing-#{$i} {
+				.gridRow {
+					padding-top: $i * $base-spacing;
+					padding-bottom: $i * $base-spacing;
+				}
+
+				.grid-#{$grid-cols} {
+					> :last-child {
+						padding-bottom: 0;
+					}
+					> :first-child {
+						padding-top: 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+.grid-12,
+.grid-15 {
+	max-width: $breakpoint-lg - 120px;
+	margin: 0 auto;
+}
+
+.gridFluid {
+	margin: 0;
+	max-width: 100%;
+	width: 100%;
+}
+
+.gridRow {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+	box-sizing: border-box;
+
+	@include mq-down('lg') {
+		padding-left: 30px;
+		padding-right: 30px;
+	}
+}
+
+.gridRowBorder {
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+	@include mq-down('sm') {
+		border-bottom: none;
+
+		> .gridCol {
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		}
+	}
+}
+
+@each $val in $flex-justify-values {
+	.gridRowJustify-#{$val} {
+		justify-content: #{$val};
+	}
+}
+
+@each $val in $flex-align-items {
+	.gridRowAlignItems-#{$val} {
+		align-items: #{$val};
+	}
+}
+
+@each $val in $text-align {
+	.gridColTextAlign-#{$val} {
+		text-align: #{$val};
+	}
+}
+
+@each $modifier in $grid-sizes {
+	@include create-col-classes($modifier, 12);
+	@include create-col-spacing-classes($modifier, 12);
+	@include create-row-spacing-classes($modifier, 12);
+}
+
+@each $modifier in $grid-sizes {
+	@include create-col-classes($modifier, 15);
+	@include create-col-spacing-classes($modifier, 15);
+	@include create-row-spacing-classes($modifier, 12);
+}

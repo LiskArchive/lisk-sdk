@@ -14,6 +14,14 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { ReportMisbehaviorPlugin } from '../../src';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = {
+	...config.defaultConfig.default,
+	encryptedPassphrase:
+		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
+	dataPath: '/my/app',
+};
 
 describe('subscribe to event', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
@@ -23,8 +31,11 @@ describe('subscribe to event', () => {
 		const channelMock = {
 			subscribe: subscribeMock,
 		};
-		reportMisbehaviorPlugin = new (ReportMisbehaviorPlugin as any)();
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
+		reportMisbehaviorPlugin['_logger'] = {
+			error: jest.fn(),
+		} as any;
 	});
 
 	it('should register listener to network:event', () => {

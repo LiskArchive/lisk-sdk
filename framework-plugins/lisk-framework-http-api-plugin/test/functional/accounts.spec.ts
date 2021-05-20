@@ -11,46 +11,34 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import axios from 'axios';
-import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
+
+import { callNetwork, getURL } from './utils/application';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
 
 describe('Account endpoint', () => {
-	let app: Application;
-	const accountFixture = {
-		address: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5',
-		token: { balance: '0' },
-		sequence: { nonce: '0' },
-		keys: {
-			numberOfSignatures: 0,
-			mandatoryKeys: [],
-			optionalKeys: [],
-		},
-		dpos: {
-			delegate: {
-				username: 'genesis_5',
-				pomHeights: [],
-				consecutiveMissedBlocks: 0,
-				lastForgedHeight: 0,
-				isBanned: false,
-				totalVotesReceived: '1000000000000',
-			},
-			sentVotes: [
-				{
-					delegateAddress: '9d0149b0962d44bfc08a9f64d5afceb6281d7fb5',
-					amount: '1000000000000',
-				},
-			],
-			unlocking: [],
-		},
-	};
+	let appEnv: testing.ApplicationEnv;
+	const label = 'account_http_functional';
 
 	beforeAll(async () => {
-		app = await createApplication('account_http_functional');
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('/api/accounts', () => {
@@ -58,7 +46,7 @@ describe('Account endpoint', () => {
 			const result = await axios.get(
 				getURL('/api/accounts/9d0149b0962d44bfc08a9f64d5afceb6281d7fb5'),
 			);
-			expect(result.data).toEqual({ data: accountFixture, meta: {} });
+			expect(result.data).toMatchSnapshot();
 			expect(result.status).toBe(200);
 		});
 

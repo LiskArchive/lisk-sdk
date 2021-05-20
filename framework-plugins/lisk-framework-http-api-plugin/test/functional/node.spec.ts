@@ -11,26 +11,39 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import axios from 'axios';
-import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
-import { getRandomAccount } from './utils/accounts';
+import { callNetwork, getURL } from './utils/application';
 import { createTransferTransaction } from './utils/transactions';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
 
 describe('Node', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
+	const label = 'node_http_functional';
 
 	beforeAll(async () => {
-		app = await createApplication('node_http_functional');
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('api/node/info', () => {
 		it('should respond node info', async () => {
-			const appInstance = app as any;
+			const appInstance = appEnv.application as any;
 			const nodeStatusAndConstantFixture = {
 				version: appInstance._node._options.version,
 				networkVersion: appInstance._node._options.networkVersion,
@@ -42,6 +55,14 @@ describe('Node', () => {
 				unconfirmedTransactions: appInstance._node._transactionPool.getAll().length,
 				genesisConfig: appInstance._node._options.genesisConfig,
 				registeredModules: expect.any(Array),
+				network: {
+					port: appInstance._node._options.network.port,
+					hostIp: appInstance._node._options.network.hostIp,
+					seedPeers: appInstance._node._options.network.seedPeers,
+					blacklistedIPs: appInstance._node._options.network.blacklistedIPs,
+					fixedPeers: appInstance._node._options.network.fixedPeers,
+					whitelistedPeers: appInstance._node._options.network.whitelistedPeers,
+				},
 			};
 
 			const result = await axios.get(getURL('/api/node/info'));
@@ -69,12 +90,13 @@ describe('Node', () => {
 			let transaction2: any;
 
 			beforeAll(async () => {
-				account = getRandomAccount();
+				account = testing.fixtures.createDefaultAccount();
 				transaction1 = createTransferTransaction({
 					amount: '2',
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: 100,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id: txID1, ...input1 } = transaction1;
 				await axios.post(getURL('/api/transactions'), input1);
@@ -84,6 +106,7 @@ describe('Node', () => {
 					recipientAddress: account.address,
 					fee: '0.3',
 					nonce: 200,
+					networkIdentifier: appEnv.networkIdentifier,
 				});
 				const { id: txID2, ...input2 } = transaction2;
 				await axios.post(getURL('/api/transactions'), input2);

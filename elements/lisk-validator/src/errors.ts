@@ -12,27 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { LiskErrorObject } from './types';
+
 // Ajv.ErrorObject makes `schemaPath` and `dataPath` required
 // While these are not if we want to infer default values from validation
-
-export interface ErrorObject {
-	keyword: string;
-	dataPath?: string;
-	schemaPath?: string;
-	params: ErrorParams;
-	// Added to validation errors of propertyNames keyword schema
-	propertyName?: string;
-	// Excluded if messages set to false.
-	message?: string;
-	// These are added with the `verbose` option.
-	schema?: never;
-	parentSchema?: object;
-	data?: never;
-}
-
-interface ErrorParams {
-	[key: string]: unknown;
-}
 
 const errorParamToString = (param: string | Buffer | BigInt | undefined | unknown): string => {
 	let paramAsString = '';
@@ -48,11 +31,25 @@ const errorParamToString = (param: string | Buffer | BigInt | undefined | unknow
 	return paramAsString;
 };
 
-type KeywordFormatterFunction = (error: ErrorObject) => string;
+type KeywordFormatterFunction = (error: LiskErrorObject) => string;
 
 interface KeywordDataFormatters {
 	[key: string]: KeywordFormatterFunction | undefined;
 }
+
+export const convertErrorsToLegacyFormat = (errors: LiskErrorObject[]): LiskErrorObject[] =>
+	errors.map(e => {
+		// In newer version of Ajv dataPath is renamed to instancePath
+		// to keep the backward compatibility we have to override here
+		const err = e as LiskErrorObject & { instancePath?: string };
+
+		err.dataPath = err.dataPath ?? instancePathToLegacyDataPath(err.instancePath ?? '');
+		delete err.instancePath;
+
+		return err;
+	});
+
+const instancePathToLegacyDataPath = (path: string) => path.split('/').join('.');
 
 const errorFormatterMap: KeywordDataFormatters = {
 	type: error =>
@@ -73,16 +70,16 @@ const errorFormatterMap: KeywordDataFormatters = {
 const defaultErrorFormatter: KeywordFormatterFunction = error =>
 	error.message ?? 'Unspecified validator error';
 
-const errorFormatter = (error: ErrorObject): string =>
+const errorFormatter = (error: LiskErrorObject): string =>
 	(errorFormatterMap[error.keyword] ?? defaultErrorFormatter)(error);
 
 export class LiskValidationError extends Error {
-	public readonly errors: ErrorObject[];
+	public readonly errors: LiskErrorObject[];
 
-	public constructor(errors: ErrorObject[]) {
+	public constructor(errors: LiskErrorObject[]) {
 		super();
+		this.errors = convertErrorsToLegacyFormat(errors);
 
-		this.errors = errors;
 		this.message = `Lisk validator found ${
 			this.errors.length
 		} error[s]:\n${this._compileErrors().join('\n')}`;

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	blockTime: 10,
 	delegateListRoundOffset: 2,

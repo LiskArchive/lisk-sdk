@@ -11,13 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore } from '@liskhq/lisk-db';
 import { Block } from '@liskhq/lisk-chain';
-import { validator } from '@liskhq/lisk-validator';
+
 import { nodeUtils } from '../../../utils';
-import { createDB, removeDB } from '../../../utils/kv_store';
 import { genesis, DefaultAccountProps } from '../../../fixtures';
-import { Node } from '../../../../src/node';
 import {
 	createTransferTransaction,
 	createDelegateRegisterTransaction,
@@ -25,29 +22,24 @@ import {
 	createMultisignatureTransferTransaction,
 	createDelegateVoteTransaction,
 } from '../../../utils/node/transaction';
+import * as testing from '../../../../src/testing';
 
 describe('Transaction order', () => {
-	const dbName = 'transaction_order';
-	let node: Node;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
+	let processEnv: testing.BlockProcessingEnv;
+	let networkIdentifier: Buffer;
+	const databasePath = '/tmp/lisk/transaction_order/test';
 
 	beforeAll(async () => {
-		({ blockchainDB, forgerDB } = createDB(dbName));
-		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
-		// Since node start the forging so we have to stop the job
-		// Our test make use of manual forging of blocks
-		node['_forgingJob'].stop();
-		// FIXME: Remove with #5572
-		validator['_validator']._opts.addUsedSchema = false;
+		processEnv = await testing.getBlockProcessingEnv({
+			options: {
+				databasePath,
+			},
+		});
+		networkIdentifier = processEnv.getNetworkId();
 	});
 
 	afterAll(async () => {
-		await forgerDB.clear();
-		await node.cleanup();
-		await blockchainDB.close();
-		await forgerDB.close();
-		removeDB(dbName);
+		await processEnv.cleanup({ databasePath });
 	});
 
 	describe('given transactions in specific order', () => {
@@ -55,15 +47,15 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await processEnv
+					.getDataAccess()
+					.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('10000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
 				const returningTx = createTransferTransaction({
@@ -71,15 +63,15 @@ describe('Transaction order', () => {
 					fee: BigInt('200000'),
 					recipientAddress: genesis.address,
 					amount: BigInt('9900000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: accountWithoutBalance.passphrase,
 				});
-				newBlock = await nodeUtils.createBlock(node, [fundingTx, returningTx]);
-				await node['_processor'].process(newBlock);
+				newBlock = await processEnv.createBlock([fundingTx, returningTx]);
+				await processEnv.process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
+				const createdBlock = await processEnv.getDataAccess().getBlockByID(newBlock.header.id);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
@@ -88,23 +80,23 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await processEnv
+					.getDataAccess()
+					.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
 					fee: BigInt('200000'),
 					recipientAddress: newAccount.address,
 					amount: BigInt('10000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
 				const registerDelegateTx = createDelegateRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
-					username: 'newdelegate',
-					networkIdentifier: node['_networkIdentifier'],
+					username: 'new_delegate',
+					networkIdentifier,
 					passphrase: newAccount.passphrase,
 				});
 				const selfVoteTx = createDelegateVoteTransaction({
@@ -116,15 +108,15 @@ describe('Transaction order', () => {
 							amount: BigInt('1000000000'),
 						},
 					],
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: newAccount.passphrase,
 				});
-				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerDelegateTx, selfVoteTx]);
-				await node['_processor'].process(newBlock);
+				newBlock = await processEnv.createBlock([fundingTx, registerDelegateTx, selfVoteTx]);
+				await processEnv.process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
+				const createdBlock = await processEnv.getDataAccess().getBlockByID(newBlock.header.id);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
@@ -133,9 +125,9 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await processEnv
+					.getDataAccess()
+					.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
 				const fundingTx = createTransferTransaction({
@@ -143,7 +135,7 @@ describe('Transaction order', () => {
 					fee: BigInt('200000'),
 					recipientAddress: newAccount.address,
 					amount: BigInt('10000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
 				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
@@ -154,7 +146,7 @@ describe('Transaction order', () => {
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
 					numberOfSignatures: 2,
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					senderPassphrase: newAccount.passphrase,
 					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
 				});
@@ -167,15 +159,15 @@ describe('Transaction order', () => {
 					recipientAddress: newAccount.address,
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrases: [newAccount.passphrase, multiSignatureMembers[0].passphrase],
 				});
-				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerMultisigTx, transferTx]);
-				await node['_processor'].process(newBlock);
+				newBlock = await processEnv.createBlock([fundingTx, registerMultisigTx, transferTx]);
+				await processEnv.process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node['_chain'].dataAccess.getBlockByID(newBlock.header.id);
+				const createdBlock = await processEnv.getDataAccess().getBlockByID(newBlock.header.id);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
@@ -184,9 +176,9 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await processEnv
+					.getDataAccess()
+					.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
 				const fundingTx = createTransferTransaction({
@@ -194,7 +186,7 @@ describe('Transaction order', () => {
 					fee: BigInt('200000'),
 					recipientAddress: newAccount.address,
 					amount: BigInt('10000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
 				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
@@ -205,7 +197,7 @@ describe('Transaction order', () => {
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
 					numberOfSignatures: 2,
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					senderPassphrase: newAccount.passphrase,
 					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
 				});
@@ -214,14 +206,14 @@ describe('Transaction order', () => {
 					fee: BigInt('300000'),
 					amount: BigInt('8000000000'),
 					recipientAddress: newAccount.address,
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: newAccount.passphrase,
 				});
-				newBlock = await nodeUtils.createBlock(node, [fundingTx, registerMultisigTx, transferTx]);
+				newBlock = await processEnv.createBlock([fundingTx, registerMultisigTx, transferTx]);
 			});
 
 			it('should not accept the block', async () => {
-				await expect(node['_processor'].process(newBlock)).rejects.toThrow(
+				await expect(processEnv.process(newBlock)).rejects.toThrow(
 					'Transaction signatures does not match required number of signature',
 				);
 			});
@@ -231,16 +223,16 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
+				const genesisAccount = await processEnv
+					.getDataAccess()
+					.getAccountByAddress<DefaultAccountProps>(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
 					nonce: genesisAccount.sequence.nonce,
 					fee: BigInt('200000'),
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('10000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
 				const spendingTx = createTransferTransaction({
@@ -248,7 +240,7 @@ describe('Transaction order', () => {
 					fee: BigInt('200000'),
 					recipientAddress: genesis.address,
 					amount: BigInt('14000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: accountWithoutBalance.passphrase,
 				});
 				const refundingTx = createTransferTransaction({
@@ -256,14 +248,14 @@ describe('Transaction order', () => {
 					fee: BigInt('200000'),
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('5000000000'),
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
-				newBlock = await nodeUtils.createBlock(node, [fundingTx, spendingTx, refundingTx]);
+				newBlock = await processEnv.createBlock([fundingTx, spendingTx, refundingTx]);
 			});
 
 			it('should not accept the block', async () => {
-				await expect(node['_processor'].process(newBlock)).rejects.toThrow(
+				await expect(processEnv.process(newBlock)).rejects.toThrow(
 					'does not meet the minimum remaining balance requirement',
 				);
 			});

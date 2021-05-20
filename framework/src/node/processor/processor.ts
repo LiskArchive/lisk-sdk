@@ -95,7 +95,7 @@ export class Processor {
 		const stateStore = await this._chain.newStateStore();
 		if (!genesisExist) {
 			this._chain.validateGenesisBlockHeader(genesisBlock);
-			this._chain.applyGenesisBlock(genesisBlock, stateStore);
+			await this._chain.applyGenesisBlock(genesisBlock, stateStore);
 			for (const customModule of this._modules) {
 				if (customModule.afterGenesisBlockApply) {
 					await customModule.afterGenesisBlockApply({
@@ -454,7 +454,6 @@ export class Processor {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private _createScopedStateStore(stateStore: StateStore, moduleName: string): ModuleStateStore {
 		return {
 			account: {
@@ -475,7 +474,7 @@ export class Processor {
 				set: async (key: Buffer, value: Account): Promise<void> => {
 					const account = await stateStore.account.getOrDefault(key);
 					account[moduleName] = value[moduleName];
-					stateStore.account.set(key, account);
+					await stateStore.account.set(key, account);
 				},
 				del: async (key: Buffer): Promise<void> => stateStore.account.del(key),
 			},
@@ -486,7 +485,7 @@ export class Processor {
 				networkIdentifier: stateStore.chain.networkIdentifier,
 				// eslint-disable-next-line @typescript-eslint/require-await
 				set: async (key: string, value: Buffer): Promise<void> => {
-					stateStore.chain.set(key, value);
+					await stateStore.chain.set(key, value);
 				},
 			},
 		};

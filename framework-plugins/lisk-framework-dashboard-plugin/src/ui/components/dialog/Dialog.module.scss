@@ -1,0 +1,108 @@
+@import '../../styles/constants';
+
+@keyframes blowUpModal {
+	0% {
+		transform: scale(0);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+@keyframes blowUpModalTwo {
+	0% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(0);
+		opacity: 0;
+	}
+}
+
+.root {
+	display: none;
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	top: 0;
+	left: 0;
+	transform: scale(1);
+	overflow: auto;
+	z-index: 10;
+}
+
+.background {
+	background: rgba(15, 25, 51, 0.85);
+	text-align: center;
+	width: 100%;
+	min-height: 100%;
+}
+
+.modal {
+	display: inline-block;
+	position: relative;
+	background: $color-zodiac-blue;
+	backdrop-filter: blur(75px);
+	border-radius: 8px;
+	padding: 0px;
+	box-sizing: border-box;
+
+	margin: 130px auto;
+
+	width: 40%;
+
+	@include mq-down('md') {
+		max-width: 80%;
+		margin: 50px auto;
+	}
+
+	@include mq-down('sm') {
+		width: 100%;
+		max-width: 100%;
+		margin: 0;
+		height: 100%;
+	}
+}
+
+.open {
+	transform: scale(1);
+	display: block;
+	transition: transform 0.3s;
+
+	.modal {
+		animation: blowUpModal 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+	}
+}
+
+.close {
+	transform: scale(0);
+	transition: transform 0.3s;
+
+	.modal {
+		animation: blowUpModalTwo 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+	}
+}
+
+.header {
+	padding: 20px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.headerContent {
+	flex-grow: 1;
+	margin-right: 20px;
+}
+
+.body {
+	padding: 20px;
+	padding-top: 0;
+	text-align: center;
+
+	@include mq-down('sm') {
+		height: 90%;
+		overflow: auto;
+	}
+}

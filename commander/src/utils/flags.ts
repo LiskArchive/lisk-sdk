@@ -14,6 +14,9 @@
  *
  */
 
+import { flags as flagParser } from '@oclif/command';
+import { DEFAULT_NETWORK } from '../constants';
+
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 	Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
 	Examples:
@@ -21,18 +24,35 @@ const messageDescription = `Specifies a source for providing a message to the co
 	- --message="hello world"
 `;
 
-const passphraseDescription = `Specifies a source for your secret passphrase. Lisk Commander will prompt you for input if this option is not set.
+const passphraseDescription = `Specifies a source for your secret passphrase. Command will prompt you for input if this option is not set.
 	Examples:
 	- --passphrase='my secret passphrase' (should only be used where security is not important)
 `;
 
-const passwordDescription = `Specifies a source for your secret password. Lisk Commander will prompt you for input if this option is not set.
+const passwordDescription = `Specifies a source for your secret password. Command will prompt you for input if this option is not set.
 	Examples:
 	- --password=pass:password123 (should only be used where security is not important)
 `;
 const networkIdentifierDescription =
 	'Network identifier defined for the network or main | test for the Lisk Network.';
+
 const communityIdentifierDescription = 'Unique community identifier for network.';
+
+const dataPathDescription =
+	'Directory path to specify where node data is stored. Environment variable "LISK_DATA_PATH" can also be used.';
+
+const offlineDescription = 'Specify whether to connect to a local node or not.';
+
+const networkDescription =
+	'Default network config to use. Environment variable "LISK_NETWORK" can also be used.';
+
+const configDescription =
+	'File path to a custom config. Environment variable "LISK_CONFIG_FILE" can also be used.';
+
+const prettyDescription = 'Prints JSON in pretty format rather than condensed.';
+
+const outputDescription = 'The output directory. Default will set to current working directory.';
+
 export type AlphabetLowercase =
 	| 'a'
 	| 'b'
@@ -87,4 +107,61 @@ export const flags: FlagMap = {
 	communityIdentifier: {
 		description: communityIdentifierDescription,
 	},
+	dataPath: {
+		char: 'd',
+		description: dataPathDescription,
+	},
+	offline: {
+		description: offlineDescription,
+	},
+	network: {
+		char: 'n',
+		description: networkDescription,
+	},
+	config: {
+		char: 'c',
+		description: configDescription,
+	},
+	pretty: {
+		description: prettyDescription,
+	},
+	output: {
+		char: 'o',
+		description: outputDescription,
+	},
+	json: {
+		char: 'j',
+		description: 'Print the transaction in JSON format.',
+	},
+	senderPublicKey: {
+		char: 's',
+		description:
+			'Sign the transaction with provided sender public key, when passphrase is not provided',
+	},
+};
+
+export const flagsWithParser = {
+	dataPath: flagParser.string({
+		...flags.dataPath,
+		env: 'LISK_DATA_PATH',
+	}),
+	network: flagParser.string({
+		...flags.network,
+		env: 'LISK_NETWORK',
+		default: DEFAULT_NETWORK,
+	}),
+	config: flagParser.string({
+		...flags.config,
+		env: 'LISK_CONFIG_FILE',
+	}),
+	pretty: flagParser.boolean(flags.pretty),
+	passphrase: flagParser.string(flags.passphrase),
+	output: flagParser.string(flags.output),
+	password: flagParser.string(flags.password),
+	offline: flagParser.boolean({
+		...flags.offline,
+	}),
+	json: flagParser.boolean(flags.json),
+	senderPublicKey: flagParser.string(flags.senderPublicKey),
+	networkIdentifier: flagParser.string(flags.networkIdentifier),
 };

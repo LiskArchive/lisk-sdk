@@ -51,7 +51,7 @@ export class APIClient {
 		return this._channel.invoke(actionName, params);
 	}
 
-	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
+	public subscribe(eventName: string, cb: EventCallback): void {
 		this._channel.subscribe(eventName, cb);
 	}
 

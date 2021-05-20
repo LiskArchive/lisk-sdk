@@ -46,6 +46,7 @@ build/Release
 # Dependency directories
 node_modules
 jspm_packages
+.husky
 
 # Optional npm cache directory
 .npm
@@ -59,7 +60,9 @@ tmp
 
 # Distribution directory
 .vscode
+build/
 dist/
+build/
 dist-node/
 dist-browser/
 browsertest.build/

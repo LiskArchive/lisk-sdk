@@ -11,11 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore } from '@liskhq/lisk-db';
-import { validator } from '@liskhq/lisk-validator';
+import { Chain } from '@liskhq/lisk-chain';
+
 import { nodeUtils } from '../../../utils';
-import { createDB, removeDB } from '../../../utils/kv_store';
-import { Node } from '../../../../src/node';
 import { genesis, DefaultAccountProps } from '../../../fixtures';
 import { createTransferTransaction } from '../../../utils/node/transaction';
 import {
@@ -23,126 +21,116 @@ import {
 	deleteBlocksAfterHeight,
 	clearBlocksTempTable,
 } from '../../../../src/node/synchronizer/utils';
+import * as testing from '../../../../src/testing';
+import { Processor } from '../../../../src/node/processor';
 
 jest.setTimeout(30000);
 
 describe('Temp block', () => {
-	const dbName = 'temp_block';
-	let node: Node;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
+	let processEnv: testing.BlockProcessingEnv;
+	let chain: Chain;
+	let processor: Processor;
+	let networkIdentifier: Buffer;
+	const databasePath = '/tmp/lisk/temp_block/test';
 
 	beforeAll(async () => {
-		({ blockchainDB, forgerDB } = createDB(dbName));
-		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
-		// Since node start the forging so we have to stop the job
-		// Our test make use of manual forging of blocks
-		node['_forgingJob'].stop();
-		// FIXME: Remove with #5572
-		validator['_validator']._opts.addUsedSchema = false;
+		processEnv = await testing.getBlockProcessingEnv({
+			options: {
+				databasePath,
+			},
+		});
+		networkIdentifier = processEnv.getNetworkId();
+		chain = processEnv.getChain();
+		processor = processEnv.getProcessor();
 	});
 
 	afterAll(async () => {
-		await forgerDB.clear();
-		await node.cleanup();
-		await blockchainDB.close();
-		await forgerDB.close();
-		removeDB(dbName);
+		await processEnv.cleanup({ databasePath });
 	});
 
 	describe('given a blockchain with more than 3 rounds', () => {
 		describe('when deleting 100 blocks and saving to the temp blocks chain', () => {
 			it('should successfully store to temp block and restore from temp block', async () => {
-				const targetHeight =
-					node['_chain'].lastBlock.header.height + node['_chain'].numberOfValidators * 3;
-				while (node['_chain'].lastBlock.header.height < targetHeight) {
-					const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-						DefaultAccountProps
-					>(genesis.address);
+				const targetHeight = processEnv.getLastBlock().header.height + chain.numberOfValidators * 3;
+				while (chain.lastBlock.header.height < targetHeight) {
+					const genesisAccount = await chain.dataAccess.getAccountByAddress<DefaultAccountProps>(
+						genesis.address,
+					);
 					const accountWithoutBalance = nodeUtils.createAccount();
-					const nextBlock = await nodeUtils.createBlock(node, [
-						createTransferTransaction({
-							nonce: genesisAccount.sequence.nonce,
-							recipientAddress: accountWithoutBalance.address,
-							amount: BigInt('10000000000'),
-							networkIdentifier: node['_networkIdentifier'],
-							passphrase: genesis.passphrase,
-						}),
-					]);
-					await node['_processor'].processValidated(nextBlock);
+					const tx = createTransferTransaction({
+						nonce: genesisAccount.sequence.nonce,
+						recipientAddress: accountWithoutBalance.address,
+						amount: BigInt('10000000000'),
+						networkIdentifier,
+						passphrase: genesis.passphrase,
+					});
+					const nextBlock = await processEnv.createBlock([tx]);
+					await processor.processValidated(nextBlock);
 				}
 				const deleteUptoHeight = 1;
 				await deleteBlocksAfterHeight(
-					node['_processor'],
-					node['_chain'],
-					node['_logger'],
+					processor,
+					chain,
+					testing.mocks.loggerMock,
 					deleteUptoHeight,
 					true,
 				);
-				expect(node['_chain'].lastBlock.header.height).toEqual(deleteUptoHeight);
-				const result = await restoreBlocks(node['_chain'], node['_processor']);
+				expect(chain.lastBlock.header.height).toEqual(deleteUptoHeight);
+				const result = await restoreBlocks(chain, processor);
 				expect(result).toBeTrue();
-				expect(node['_chain'].lastBlock.header.height).toEqual(targetHeight);
-				await clearBlocksTempTable(node['_chain']);
+				expect(chain.lastBlock.header.height).toEqual(targetHeight);
+				await clearBlocksTempTable(chain);
 			});
 
 			it('should successfully store to temp block and build new chain on top', async () => {
-				const targetHeight =
-					node['_chain'].lastBlock.header.height + node['_chain'].numberOfValidators * 3;
-				while (node['_chain'].lastBlock.header.height < targetHeight) {
-					const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-						DefaultAccountProps
-					>(genesis.address);
+				const targetHeight = chain.lastBlock.header.height + chain.numberOfValidators * 3;
+				while (chain.lastBlock.header.height < targetHeight) {
+					const genesisAccount = await chain.dataAccess.getAccountByAddress<DefaultAccountProps>(
+						genesis.address,
+					);
 					const accountWithoutBalance = nodeUtils.createAccount();
-					const nextBlock = await nodeUtils.createBlock(node, [
-						createTransferTransaction({
-							nonce: genesisAccount.sequence.nonce,
-							recipientAddress: accountWithoutBalance.address,
-							amount: BigInt('10000000000'),
-							networkIdentifier: node['_networkIdentifier'],
-							passphrase: genesis.passphrase,
-						}),
-					]);
-					await node['_processor'].processValidated(nextBlock);
+					const tx = createTransferTransaction({
+						nonce: genesisAccount.sequence.nonce,
+						recipientAddress: accountWithoutBalance.address,
+						amount: BigInt('10000000000'),
+						networkIdentifier,
+						passphrase: genesis.passphrase,
+					});
+					const nextBlock = await processEnv.createBlock([tx]);
+					await processor.processValidated(nextBlock);
 				}
-				const deleteUptoHeight = node['_bft'].finalizedHeight;
+				const deleteUptoHeight = processor['_bft'].finalizedHeight;
 				await deleteBlocksAfterHeight(
-					node['_processor'],
-					node['_chain'],
-					node['_logger'],
+					processor,
+					chain,
+					testing.mocks.loggerMock,
 					deleteUptoHeight,
 					true,
 				);
-				expect(node['_chain'].lastBlock.header.height).toEqual(deleteUptoHeight);
+				expect(chain.lastBlock.header.height).toEqual(deleteUptoHeight);
 
 				// Act
-				while (node['_chain'].lastBlock.header.height < targetHeight) {
-					const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-						DefaultAccountProps
-					>(genesis.address);
+				while (chain.lastBlock.header.height < targetHeight) {
+					const genesisAccount = await chain.dataAccess.getAccountByAddress<DefaultAccountProps>(
+						genesis.address,
+					);
 					const accountWithoutBalance = nodeUtils.createAccount();
-					const nextBlock = await nodeUtils.createBlock(node, [
-						createTransferTransaction({
-							nonce: genesisAccount.sequence.nonce,
-							recipientAddress: accountWithoutBalance.address,
-							amount: BigInt('10000000000'),
-							networkIdentifier: node['_networkIdentifier'],
-							passphrase: genesis.passphrase,
-						}),
-					]);
-					await node['_processor'].processValidated(nextBlock);
+					const tx = createTransferTransaction({
+						nonce: genesisAccount.sequence.nonce,
+						recipientAddress: accountWithoutBalance.address,
+						amount: BigInt('10000000000'),
+						networkIdentifier,
+						passphrase: genesis.passphrase,
+					});
+					const nextBlock = await processEnv.createBlock([tx]);
+					await processor.processValidated(nextBlock);
 				}
-				expect(node['_chain'].lastBlock.header.height).toEqual(targetHeight);
+				expect(chain.lastBlock.header.height).toEqual(targetHeight);
 				// Restore last temp block
-				await deleteBlocksAfterHeight(
-					node['_processor'],
-					node['_chain'],
-					node['_logger'],
-					deleteUptoHeight,
-				);
-				const result = await restoreBlocks(node['_chain'], node['_processor']);
+				await deleteBlocksAfterHeight(processor, chain, testing.mocks.loggerMock, deleteUptoHeight);
+				const result = await restoreBlocks(chain, processor);
 				expect(result).toBeTrue();
-				expect(node['_chain'].lastBlock.header.height).toEqual(targetHeight);
+				expect(chain.lastBlock.header.height).toEqual(targetHeight);
 			});
 		});
 	});

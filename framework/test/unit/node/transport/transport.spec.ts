@@ -443,7 +443,7 @@ describe('Transport', () => {
 				// Assert
 				await expect(
 					transport.handleRPCGetTransactions(transactionIds, defaultPeerId),
-				).rejects.toThrow('should NOT have more than 100 items');
+				).rejects.toThrow('must NOT have more than 100 items');
 			});
 
 			it('should apply penalty', async () => {

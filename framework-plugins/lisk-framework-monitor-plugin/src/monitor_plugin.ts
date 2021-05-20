@@ -64,17 +64,14 @@ export class MonitorPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): Record<string, unknown> {
 		return config.defaultConfig;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events(): EventsDefinition {
 		return [];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {
 			getTransactionStats: async () =>
@@ -105,12 +102,12 @@ export class MonitorPlugin extends BasePlugin {
 			this._registerControllers();
 			this._registerAfterMiddlewares(options);
 			this._subscribeToEvents();
-			this._server = this._app.listen(options.port, '0.0.0.0');
+			this._server = this._app.listen(options.port, options.host);
 		});
 	}
 
 	public async unload(): Promise<void> {
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			this._server.close(err => {
 				if (err) {
 					reject(err);

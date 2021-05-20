@@ -17,26 +17,26 @@ import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
 import { RegisterAsset } from '../../../../src/modules/keys/register_asset';
-import { createFakeDefaultAccount, StateStoreMock } from '../../../utils/node';
 import * as fixtures from './fixtures.json';
 import { keysSchema } from '../../../../src/modules/keys/schemas';
+import * as testing from '../../../../src/testing';
+import { KeysModule, TokenModule } from '../../../../src';
 
 describe('register asset', () => {
 	let decodedMultiSignature: any;
 	let validTestTransaction: any;
 	let multisignatureSender: any;
-	let targetMultisigAccount: any;
 	let convertedAccount: any;
 	let stateStore: any;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountSetStub: jest.SpyInstance;
 	let registerAsset: RegisterAsset;
-	let reducerHandler: any;
 
-	const defualtTestCase = fixtures.testCases[0];
+	const defaultTestCase = fixtures.testCases[0];
+
 	beforeEach(() => {
 		registerAsset = new RegisterAsset();
-		const buffer = Buffer.from(defualtTestCase.output.transaction, 'hex');
+		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		const id = hash(buffer);
 		const decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
 		const decodedAsset = codec.decode<any>(registerAsset.schema, decodedBaseTransaction.asset);
@@ -47,36 +47,25 @@ describe('register asset', () => {
 		};
 		validTestTransaction = new Transaction(decodedMultiSignature);
 
-		multisignatureSender = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
+		multisignatureSender = testing.fixtures.createDefaultAccount([KeysModule, TokenModule], {
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
+			token: { balance: BigInt('94378900000') },
 		});
 
-		targetMultisigAccount = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
-			balance: BigInt('94378900000'),
-		});
-		convertedAccount = createFakeDefaultAccount({
-			address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
-			balance: BigInt('94378900000'),
+		convertedAccount = testing.fixtures.createDefaultAccount([KeysModule, TokenModule], {
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
+			token: { balance: BigInt('94378900000') },
 			keys: {
 				...validTestTransaction.asset,
 			},
 		});
 
-		stateStore = new StateStoreMock();
-		storeAccountGetStub = jest.spyOn(stateStore.account, 'getOrDefault').mockResolvedValue(
-			createFakeDefaultAccount({
-				address: Buffer.from(defualtTestCase.input.account.address, 'hex'),
-			}) as never,
-		);
+		stateStore = new testing.mocks.StateStoreMock({
+			accounts: [multisignatureSender],
+		});
 
-		storeAccountGetStub = jest
-			.spyOn(stateStore.account, 'get')
-			.mockResolvedValue(targetMultisigAccount);
-
+		storeAccountGetStub = jest.spyOn(stateStore.account, 'get');
 		storeAccountSetStub = jest.spyOn(stateStore.account, 'set');
-
-		reducerHandler = {};
 	});
 
 	describe('validateSchema', () => {
@@ -89,7 +78,7 @@ describe('register asset', () => {
 
 			const errors = validator.validate(keysSchema, asset);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude('should be <= 64');
+			expect(errors[0].message).toInclude('must be <= 64');
 		});
 
 		it('should fail validation if asset has numberOfSignatures < 1', () => {
@@ -101,7 +90,7 @@ describe('register asset', () => {
 
 			const errors = validator.validate(keysSchema, asset);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude('should be >= 1');
+			expect(errors[0].message).toInclude('must be >= 1');
 		});
 
 		it('should fail validation if asset has more than 64 mandatory keys', () => {
@@ -113,7 +102,7 @@ describe('register asset', () => {
 
 			const errors = validator.validate(keysSchema, asset);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude('should NOT have more than 64 items');
+			expect(errors[0].message).toInclude('must NOT have more than 64 items');
 		});
 
 		it('should fail validation if asset mandatory keys contains items with length bigger than 32', () => {
@@ -173,18 +162,18 @@ describe('register asset', () => {
 
 			const errors = validator.validate(keysSchema, asset);
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toInclude('should NOT have more than 64 items');
+			expect(errors[0].message).toInclude('must NOT have more than 64 items');
 		});
 	});
 
 	describe('validate', () => {
 		it('should not throw errors for valid asset', () => {
-			expect(() =>
-				registerAsset.validate({
-					asset: validTestTransaction.asset,
-					transaction: validTestTransaction,
-				}),
-			).not.toThrow();
+			const context = testing.createValidateAssetContext({
+				asset: validTestTransaction.asset,
+				transaction: validTestTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).not.toThrow();
 		});
 
 		it('should throw error when there are duplicated mandatory keys', () => {
@@ -199,12 +188,14 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow('MandatoryKeys contains duplicate public keys.');
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
+				'MandatoryKeys contains duplicate public keys.',
+			);
 		});
 
 		it('should throw error when there are duplicated optional keys', () => {
@@ -219,12 +210,14 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow('OptionalKeys contains duplicate public keys.');
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
+				'OptionalKeys contains duplicate public keys.',
+			);
 		});
 
 		it('should throw error when numberOfSignatures is bigger than the count of all keys', () => {
@@ -236,12 +229,14 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow('The numberOfSignatures is bigger than the count of Mandatory and Optional keys.');
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
+				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
+			);
 		});
 
 		it('should throw error when numberOfSignatures is smaller than mandatory key count', () => {
@@ -253,12 +248,12 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow(
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
 				'The numberOfSignatures needs to be equal or bigger than the number of Mandatory keys.',
 			);
 		});
@@ -279,12 +274,12 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow(
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
 				'Invalid combination of Mandatory and Optional keys. Repeated keys across Mandatory and Optional were found.',
 			);
 		});
@@ -302,12 +297,14 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow('Mandatory keys should be sorted lexicographically.');
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
+				'Mandatory keys should be sorted lexicographically.',
+			);
 		});
 
 		it('should throw error when optional keys set is not sorted', () => {
@@ -323,12 +320,14 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow('Optional keys should be sorted lexicographically.');
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
+				'Optional keys should be sorted lexicographically.',
+			);
 		});
 
 		it('should throw error when the number of optional and mandatory keys is more than 64', () => {
@@ -341,12 +340,14 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow('The count of Mandatory and Optional keys should be between 1 and 64.');
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
+				'The count of Mandatory and Optional keys should be between 1 and 64.',
+			);
 		});
 
 		it('should throw error when the number of optional and mandatory keys is less than 1', () => {
@@ -360,12 +361,14 @@ describe('register asset', () => {
 				},
 			};
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow('The count of Mandatory and Optional keys should be between 1 and 64.');
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
+				'The count of Mandatory and Optional keys should be between 1 and 64.',
+			);
 		});
 
 		it('should return error when number of mandatory, optional and sender keys do not match the number of signatures', () => {
@@ -378,40 +381,36 @@ describe('register asset', () => {
 			};
 			invalidTransaction.signatures.pop();
 
-			expect(() =>
-				registerAsset.validate({
-					asset: invalidTransaction.asset,
-					transaction: invalidTransaction,
-				}),
-			).toThrow(
+			const context = testing.createValidateAssetContext({
+				asset: invalidTransaction.asset,
+				transaction: invalidTransaction,
+			});
+
+			expect(() => registerAsset.validate(context)).toThrow(
 				'The number of mandatory, optional and sender keys should match the number of signatures',
 			);
 		});
 	});
 
 	describe('apply', () => {
-		beforeEach(() => {
-			storeAccountGetStub.mockReturnValue(targetMultisigAccount);
-		});
-
 		it('should not throw when registering for first time', () => {
-			expect(async () =>
-				registerAsset.apply({
-					stateStore,
-					asset: validTestTransaction.asset,
-					reducerHandler,
-					transaction: validTestTransaction,
-				}),
-			).not.toThrow();
+			const context = testing.createApplyAssetContext({
+				stateStore,
+				asset: validTestTransaction.asset,
+				transaction: validTestTransaction,
+			});
+
+			expect(async () => registerAsset.apply(context)).not.toThrow();
 		});
 
 		it('should call state store get() with senderAddress and set() with address and updated account', async () => {
-			await registerAsset.apply({
+			const context = testing.createApplyAssetContext({
 				stateStore,
 				asset: validTestTransaction.asset,
-				reducerHandler,
 				transaction: validTestTransaction,
 			});
+
+			await registerAsset.apply(context);
 
 			expect(storeAccountGetStub).toHaveBeenCalledWith(validTestTransaction.senderAddress);
 
@@ -422,16 +421,17 @@ describe('register asset', () => {
 		});
 
 		it('should throw error when account is already multisignature', async () => {
+			const context = testing.createApplyAssetContext({
+				stateStore,
+				asset: validTestTransaction.asset,
+				transaction: validTestTransaction,
+			});
+
 			storeAccountGetStub.mockReturnValue(convertedAccount);
 
-			return expect(
-				registerAsset.apply({
-					stateStore,
-					asset: validTestTransaction.asset,
-					reducerHandler,
-					transaction: validTestTransaction,
-				}),
-			).rejects.toStrictEqual(new Error('Register multisignature only allowed once per account.'));
+			return expect(registerAsset.apply(context)).rejects.toStrictEqual(
+				new Error('Register multisignature only allowed once per account.'),
+			);
 		});
 	});
 });

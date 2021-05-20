@@ -11,17 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
+
 import { TransferAsset } from '../../../../src/modules/token';
 import { MAX_TRANSACTION_AMOUNT } from '../../../../src/modules/token/constants';
 import { createFakeDefaultAccount, StateStoreMock } from '../../../utils/node';
-import * as fixtures from './transfer_transaction_validate.json';
+import { createTransaction } from '../../../../src/testing';
 
 describe('Transfer asset', () => {
+	let asset: any;
 	let validTransaction: any;
-	let decodedTransferTransaction: any;
-	let decodedAsset: any;
 	let sender: any;
 	let recipient: any;
 	let stateStore: any;
@@ -29,27 +27,35 @@ describe('Transfer asset', () => {
 	let storeAccountSetStub: jest.SpyInstance;
 	let transferAsset: TransferAsset;
 	let reducerHandler: any;
-	const defaultTestCase = fixtures.testCases[0];
 	const minRemainingBalance = '1';
 
 	beforeEach(() => {
-		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
-		const decodedTransaction = codec.decode<Transaction>(transactionSchema, buffer);
-		transferAsset = new TransferAsset(BigInt(minRemainingBalance));
-		decodedAsset = codec.decode<TransferAsset>(transferAsset.schema, decodedTransaction.asset);
-		decodedTransferTransaction = {
-			...decodedTransaction,
-			asset: decodedAsset,
+		asset = {
+			amount: BigInt('100000000'),
+			recipientAddress: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
+			data: 'moon',
 		};
-		validTransaction = new Transaction(decodedTransferTransaction);
+		validTransaction = createTransaction({
+			moduleID: 2,
+			assetClass: TransferAsset,
+			asset,
+			nonce: BigInt(0),
+			fee: BigInt('10000000'),
+			passphrase: 'wear protect skill sentence lift enter wild sting lottery power floor neglect',
+			networkIdentifier: Buffer.from(
+				'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				'hex',
+			),
+		});
+		transferAsset = new TransferAsset(BigInt(minRemainingBalance));
 		sender = createFakeDefaultAccount({
-			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
+			address: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
 			token: {
 				balance: BigInt('1000000000000000'),
 			},
 		});
 		recipient = createFakeDefaultAccount({
-			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
+			address: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
 			token: {
 				balance: BigInt('1000000000000000'),
 			},
@@ -67,7 +73,7 @@ describe('Transfer asset', () => {
 		it('should return not throw error with a valid transfer asset', () => {
 			expect(async () =>
 				transferAsset.apply({
-					asset: validTransaction.asset,
+					asset,
 					stateStore,
 					reducerHandler,
 					transaction: validTransaction,
@@ -77,7 +83,7 @@ describe('Transfer asset', () => {
 
 		it('should call state store with a valid transfer asset', async () => {
 			await transferAsset.apply({
-				asset: validTransaction.asset,
+				asset,
 				stateStore,
 				reducerHandler,
 				transaction: validTransaction,
@@ -89,9 +95,7 @@ describe('Transfer asset', () => {
 					address: sender.address,
 				}),
 			);
-			expect(stateStore.account.getOrDefault).toHaveBeenCalledWith(
-				validTransaction.asset.recipientAddress,
-			);
+			expect(stateStore.account.getOrDefault).toHaveBeenCalledWith(asset.recipientAddress);
 			expect(stateStore.account.set).toHaveBeenCalledWith(
 				recipient.address,
 				expect.objectContaining({
@@ -110,14 +114,14 @@ describe('Transfer asset', () => {
 			});
 			return expect(async () =>
 				transferAsset.apply({
-					asset: validTransaction.asset,
+					asset,
 					stateStore,
 					reducerHandler,
 					transaction: validTransaction,
 				}),
 			).rejects.toStrictEqual(
 				new Error(
-					`Invalid transfer amount: ${decodedAsset.amount.toString()}. Maximum allowed balance for recipient is: ${MAX_TRANSACTION_AMOUNT}`,
+					`Invalid transfer amount: ${asset.amount.toString()}. Maximum allowed balance for recipient is: ${MAX_TRANSACTION_AMOUNT}`,
 				),
 			);
 		});

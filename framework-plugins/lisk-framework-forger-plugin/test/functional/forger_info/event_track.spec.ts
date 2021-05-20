@@ -12,43 +12,55 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Application } from 'lisk-framework';
-
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import {
-	closeApplication,
-	createApplication,
 	getForgerInfoByAddress,
 	getForgerInfoByPublicKey,
 	getForgerPlugin,
-	waitNBlocks,
 	waitTill,
 } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
+import { ForgerPlugin } from '../../../src';
 
 describe('Forger Info', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
 	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		app = await createApplication('event_track');
+		const rootPath = '~/.lisk/forger-plugin';
+		const config = {
+			rootPath,
+			label: 'event_track_functional',
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ForgerPlugin],
+		});
+		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = app['_node'].networkIdentifier;
+		networkIdentifier = appEnv.networkIdentifier;
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('New Block', () => {
 		it('should save forger info after new block', async () => {
 			// Arrange
-			const forgerPluginInstance = getForgerPlugin(app);
+			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 
 			// Act
-			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
-			const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
+			const { generatorPublicKey } = appEnv.lastBlock.header;
+			const forgerInfo = await getForgerInfoByPublicKey(
+				forgerPluginInstance,
+				generatorPublicKey.toString('hex'),
+			);
 
 			// Assert
 			expect(forgerInfo).toMatchSnapshot();
@@ -56,7 +68,7 @@ describe('Forger Info', () => {
 
 		it('should save forger info with received fees if payload included in new block', async () => {
 			// Arrange
-			const forgerPluginInstance = getForgerPlugin(app);
+			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 			const account = getRandomAccount();
 			const transaction = createTransferTransaction({
 				amount: '2',
@@ -67,15 +79,18 @@ describe('Forger Info', () => {
 			});
 			accountNonce += 1;
 
-			await app['_channel'].invoke('app:postTransaction', {
+			await appEnv.ipcClient.invoke('app:postTransaction', {
 				transaction: transaction.getBytes().toString('hex'),
 			});
-			await waitNBlocks(app, 1);
+			await appEnv.waitNBlocks(1);
 
 			const {
 				header: { generatorPublicKey },
-			} = app['_node']['_chain'].lastBlock;
-			const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
+			} = appEnv.lastBlock;
+			const forgerInfo = await getForgerInfoByPublicKey(
+				forgerPluginInstance,
+				generatorPublicKey.toString('hex'),
+			);
 
 			// Assert
 			expect(forgerInfo).toMatchSnapshot();
@@ -84,7 +99,7 @@ describe('Forger Info', () => {
 		describe('Vote transactions', () => {
 			it('should save forger info with votes received in new block', async () => {
 				// Arrange
-				const forgerPluginInstance = getForgerPlugin(app);
+				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '10',
@@ -95,10 +110,10 @@ describe('Forger Info', () => {
 				});
 				accountNonce += 1;
 
-				await app['_channel'].invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('app:postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await waitNBlocks(app, 1);
+				await appEnv.waitNBlocks(1);
 				await waitTill(200);
 
 				const forgerInfo = await getForgerInfoByAddress(
@@ -112,7 +127,7 @@ describe('Forger Info', () => {
 
 			it('should update forger info with multiple votes received for same delegate in new block', async () => {
 				// Arrange
-				const forgerPluginInstance = getForgerPlugin(app);
+				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '10',
@@ -131,13 +146,13 @@ describe('Forger Info', () => {
 				});
 				accountNonce += 1;
 
-				await app['_channel'].invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('app:postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await app['_channel'].invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('app:postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
-				await waitNBlocks(app, 1);
+				await appEnv.waitNBlocks(1);
 				await waitTill(200);
 
 				const forgerInfo = await getForgerInfoByAddress(
@@ -151,7 +166,7 @@ describe('Forger Info', () => {
 
 			it('should update forger info with upvote and downvote for same delegate in new block', async () => {
 				// Arrange
-				const forgerPluginInstance = getForgerPlugin(app);
+				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
 				const transaction1 = createVoteTransaction({
 					amount: '-50',
@@ -170,13 +185,13 @@ describe('Forger Info', () => {
 				});
 				accountNonce += 1;
 
-				await app['_channel'].invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('app:postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await app['_channel'].invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('app:postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
-				await waitNBlocks(app, 1);
+				await appEnv.waitNBlocks(1);
 				await waitTill(200);
 
 				const forgerInfo = await getForgerInfoByAddress(
@@ -190,7 +205,7 @@ describe('Forger Info', () => {
 
 			it('should update forger info with voters info and remove when amount becomes zero', async () => {
 				// Arrange
-				const forgerPluginInstance = getForgerPlugin(app);
+				const forgerPluginInstance = getForgerPlugin(appEnv.application);
 				const [forgingDelegateAddress1] = forgerPluginInstance['_forgersList'].entries()[0];
 				const [forgingDelegateAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
 				const transaction1 = createVoteTransaction({
@@ -210,13 +225,13 @@ describe('Forger Info', () => {
 				});
 				accountNonce += 1;
 
-				await app['_channel'].invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('app:postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await app['_channel'].invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('app:postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
-				await waitNBlocks(app, 1);
+				await appEnv.waitNBlocks(1);
 				await waitTill(200);
 
 				const forgerInfo1 = await getForgerInfoByAddress(
@@ -239,13 +254,16 @@ describe('Forger Info', () => {
 	describe('Delete Block', () => {
 		it('should update forger info after delete block', async () => {
 			// Arrange
-			const { generatorPublicKey } = app['_node']['_chain'].lastBlock.header;
-			const forgerPluginInstance = getForgerPlugin(app);
-			await app['_node']['_processor'].deleteLastBlock();
+			const { generatorPublicKey } = appEnv.lastBlock.header;
+			const forgerPluginInstance = getForgerPlugin(appEnv.application);
+			await appEnv.application['_node']['_processor'].deleteLastBlock();
 
 			// Act
 			await waitTill(50);
-			const forgerInfo = await getForgerInfoByPublicKey(forgerPluginInstance, generatorPublicKey);
+			const forgerInfo = await getForgerInfoByPublicKey(
+				forgerPluginInstance,
+				generatorPublicKey.toString('hex'),
+			);
 
 			// Asserts
 			expect(forgerInfo).toMatchSnapshot();

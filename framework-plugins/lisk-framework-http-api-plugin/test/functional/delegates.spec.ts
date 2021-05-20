@@ -11,42 +11,33 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import axios from 'axios';
-import { callNetwork, createApplication, closeApplication, getURL } from './utils/application';
+import { callNetwork, getURL } from './utils/application';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
 
 describe('Delegates endpoint', () => {
-	let app: Application;
-	const firstDelegateAccount = {
-		address: '03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
-		token: { balance: '0' },
-		sequence: { nonce: '0' },
-		keys: { numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] },
-		dpos: {
-			delegate: {
-				username: 'genesis_34',
-				pomHeights: [],
-				consecutiveMissedBlocks: 0,
-				lastForgedHeight: 0,
-				isBanned: false,
-				totalVotesReceived: '1000000000000',
-			},
-			sentVotes: [
-				{
-					delegateAddress: '03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f',
-					amount: '1000000000000',
-				},
-			],
-			unlocking: [],
-		},
-	};
+	let appEnv: testing.ApplicationEnv;
+	const label = 'delegates_http_functional';
 
 	beforeAll(async () => {
-		app = await createApplication('delegates_http_functional');
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('/api/delegates', () => {
@@ -58,7 +49,7 @@ describe('Delegates endpoint', () => {
 				);
 				// Assert
 				expect(response.data).toHaveLength(100);
-				expect(response.data[0]).toEqual(firstDelegateAccount);
+				expect(response.data[0]).toMatchSnapshot();
 				expect(response.meta).toEqual({
 					count: 103,
 					limit: 100,
@@ -111,7 +102,7 @@ describe('Delegates endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.limit\' should match format "uint32"',
+								'Lisk validator found 1 error[s]:\nProperty \'.limit\' must match format "uint32"',
 						},
 					],
 				});
@@ -128,7 +119,7 @@ describe('Delegates endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.offset\' should match format "uint32"',
+								'Lisk validator found 1 error[s]:\nProperty \'.offset\' must match format "uint32"',
 						},
 					],
 				});

@@ -1,0 +1,81 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FaucetPlugin constructor should load default config 1`] = `
+Object {
+  "amount": "100",
+  "applicationUrl": "ws://localhost:8080/ws",
+  "captchaSecretkey": "123",
+  "captchaSitekey": "123",
+  "encryptedPassphrase": "salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1",
+  "fee": "0.1",
+  "host": "127.0.0.1",
+  "port": 4004,
+  "tokenPrefix": "lsk",
+}
+`;
+
+exports[`FaucetPlugin defaults should return valid config schema with default options 1`] = `
+Object {
+  "$id": "#/plugins/lisk-faucet/config",
+  "default": Object {
+    "amount": "100",
+    "applicationUrl": "ws://localhost:8080/ws",
+    "fee": "0.1",
+    "host": "127.0.0.1",
+    "port": 4004,
+    "tokenPrefix": "lsk",
+  },
+  "properties": Object {
+    "amount": Object {
+      "description": "Number of tokens to fund an account per request",
+      "type": "string",
+    },
+    "applicationUrl": Object {
+      "description": "URL to connect",
+      "format": "uri",
+      "type": "string",
+    },
+    "captchaSecretkey": Object {
+      "description": "The re-captcha secret key",
+      "type": "string",
+    },
+    "captchaSitekey": Object {
+      "description": "The re-captcha site key",
+      "type": "string",
+    },
+    "encryptedPassphrase": Object {
+      "description": "Encrypted passphrase of the genesis account",
+      "format": "encryptedPassphrase",
+      "type": "string",
+    },
+    "fee": Object {
+      "description": "The transaction fee used to faucet an account",
+      "type": "string",
+    },
+    "host": Object {
+      "format": "ip",
+      "type": "string",
+    },
+    "logoURL": Object {
+      "description": "The URL of the logo used on the UI",
+      "format": "uri",
+      "type": "string",
+    },
+    "port": Object {
+      "maximum": 65535,
+      "minimum": 1,
+      "type": "integer",
+    },
+    "tokenPrefix": Object {
+      "description": "The token prefix associated with your application",
+      "type": "string",
+    },
+  },
+  "required": Array [
+    "encryptedPassphrase",
+    "captchaSecretkey",
+    "captchaSitekey",
+  ],
+  "type": "object",
+}
+`;

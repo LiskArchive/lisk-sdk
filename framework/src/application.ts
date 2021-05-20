@@ -34,8 +34,8 @@ import {
 } from './constants';
 
 import {
-	getPluginExportPath,
 	BasePlugin,
+	getPluginExportPath,
 	InstantiablePlugin,
 	validatePluginSpec,
 } from './plugins/base_plugin';
@@ -56,6 +56,8 @@ import {
 	RegisteredModule,
 	UpdateForgingStatusInput,
 	PartialApplicationConfig,
+	PluginOptionsWithAppConfig,
+	AppConfigForPlugin,
 } from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
@@ -119,7 +121,7 @@ export class Application {
 
 	private readonly _node: Node;
 	private _controller!: Controller;
-	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
+	private _plugins: { [key: string]: InstantiablePlugin };
 	private _channel!: InMemoryChannel;
 
 	private readonly _genesisBlock: Record<string, unknown>;
@@ -159,26 +161,28 @@ export class Application {
 		return this._node.networkIdentifier;
 	}
 
+	public static getDefaultModules(): typeof BaseModule[] {
+		return [TokenModule, SequenceModule, KeysModule, DPoSModule];
+	}
+
 	public static defaultApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
-		application._registerModule(TokenModule);
-		application._registerModule(SequenceModule);
-		application._registerModule(KeysModule);
-		application._registerModule(DPoSModule);
+		for (const Module of Application.getDefaultModules()) {
+			application._registerModule(Module);
+		}
 
 		return application;
 	}
 
-	public registerPlugin(
-		pluginKlass: typeof BasePlugin,
+	public registerPlugin<T extends BasePlugin>(
+		pluginKlass: InstantiablePlugin<T>,
 		options: PluginOptions = { loadAsChildProcess: false },
 	): void {
 		assert(pluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		validatePluginSpec(pluginKlass as InstantiablePlugin<BasePlugin>);
 
 		const pluginAlias = options?.alias ?? pluginKlass.alias;
 
@@ -196,11 +200,13 @@ export class Application {
 		}
 
 		this.config.plugins[pluginAlias] = Object.assign(
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this.config.plugins[pluginAlias] ?? {},
 			options,
 		);
-		this._plugins[pluginAlias] = pluginKlass as InstantiablePlugin<BasePlugin>;
+
+		validatePluginSpec(pluginKlass, this.config.plugins[pluginAlias]);
+
+		this._plugins[pluginAlias] = pluginKlass;
 	}
 
 	public overridePluginOptions(alias: string, options?: PluginOptions): void {
@@ -219,14 +225,15 @@ export class Application {
 		return this._node.getSchema();
 	}
 
+	public getDefaultAccount(): Record<string, unknown> {
+		return this._node.getDefaultAccount();
+	}
+
 	public getRegisteredModules(): RegisteredModule[] {
 		return this._node.getRegisteredModules();
 	}
 
 	public async run(): Promise<void> {
-		// Freeze every plugin and configuration so it would not interrupt the app execution
-		this._compileAndValidateConfigurations();
-
 		Object.freeze(this._genesisBlock);
 		Object.freeze(this.config);
 
@@ -271,7 +278,7 @@ export class Application {
 				logger: this.logger,
 			});
 
-			await this._controller.loadPlugins(this._plugins, this.config.plugins);
+			await this._loadPlugins();
 			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
 			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
@@ -315,24 +322,44 @@ export class Application {
 		assert(Module, 'Module implementation is required');
 		const InstantiableModule = Module as InstantiableBaseModule;
 		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
-		if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
+
+		if (Application.getDefaultModules().includes(Module)) {
+			this._node.registerModule(moduleInstance);
+		} else if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);
+		} else {
+			this._node.registerModule(moduleInstance);
 		}
-		this._node.registerModule(moduleInstance);
 	}
 
-	private _compileAndValidateConfigurations(): void {
-		const appConfigToShareWithPlugin = {
+	private async _loadPlugins(): Promise<void> {
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		const pluginOptions: { [key: string]: PluginOptionsWithAppConfig } = {};
+
+		const appConfigForPlugin: AppConfigForPlugin = {
 			version: this.config.version,
 			networkVersion: this.config.networkVersion,
 			genesisConfig: this.config.genesisConfig,
+			logger: {
+				consoleLogLevel: this.config.logger.consoleLogLevel,
+				fileLogLevel: this.config.logger.fileLogLevel,
+			},
+			rootPath: this.config.rootPath,
+			label: this.config.label,
 		};
 
 		Object.keys(this._plugins).forEach(alias => {
-			this.overridePluginOptions(alias, appConfigToShareWithPlugin);
+			pluginOptions[alias] = {
+				...this.config.plugins[alias],
+				// TODO: Remove data path from here and use from appConfig later on
+				dataPath: dirs.dataPath,
+				appConfig: appConfigForPlugin,
+			};
 		});
+
+		await this._controller.loadPlugins(this._plugins, pluginOptions);
 	}
 
 	private _initLogger(): Logger {
@@ -431,6 +458,12 @@ export class Application {
 				getNodeInfo: {
 					handler: () => this._node.actions.getNodeInfo(),
 				},
+				getRegisteredActions: {
+					handler: () => this._controller.bus.getActions(),
+				},
+				getRegisteredEvents: {
+					handler: () => this._controller.bus.getEvents(),
+				},
 			},
 			{ skipInternalEvents: true },
 		);
@@ -450,7 +483,6 @@ export class Application {
 		});
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private async _setupDirectories(): Promise<void> {
 		const dirs = systemDirs(this.config.label, this.config.rootPath);
 		await Promise.all(Array.from(Object.values(dirs)).map(async dirPath => fs.ensureDir(dirPath)));

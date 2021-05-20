@@ -12,33 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Application, systemDirs } from 'lisk-framework';
-import { createIPCClient } from '@liskhq/lisk-api-client';
-import {
-	createApplication,
-	closeApplication,
-	getForgerInfoByAddress,
-	waitNBlocks,
-	getForgerPlugin,
-} from '../utils/application';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { getForgerInfoByAddress, getForgerPlugin } from '../utils/application';
+import { ForgerPlugin } from '../../src';
 
 describe('forger:getForgingInfo action', () => {
-	let app: Application;
-	let liskClient: any;
+	let appEnv: testing.ApplicationEnv;
 
 	beforeAll(async () => {
-		app = await createApplication('forging_info_spec');
-		await waitNBlocks(app, 1);
-		liskClient = await createIPCClient(systemDirs(app.config.label, app.config.rootPath).dataPath);
+		const rootPath = '~/.lisk/forger-plugin';
+		const config = {
+			rootPath,
+			label: 'forging_info_functional',
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [ForgerPlugin],
+		});
+		await appEnv.startApplication();
+		await appEnv.waitNBlocks(2);
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	it('should return list of all forgers info', async () => {
 		// Arrange
-		const forgerPluginInstance = getForgerPlugin(app);
+		const forgerPluginInstance = getForgerPlugin(appEnv.application);
 		const forgersList = forgerPluginInstance['_forgersList'].entries() as ReadonlyArray<
 			[Buffer, boolean]
 		>;
@@ -47,13 +51,24 @@ describe('forger:getForgingInfo action', () => {
 				getForgerInfoByAddress(forgerPluginInstance, forgerAddress.toString('binary')),
 			),
 		);
-		const forgersInfoList = await liskClient.invoke('forger:getForgingInfo');
+		const forgersInfoList = await appEnv.ipcClient.invoke<{ address: string }[]>(
+			'forger:getForgingInfo',
+		);
 
 		// Assert
 		expect(forgersInfoList).toHaveLength(forgersInfo.length);
-		expect(forgersInfoList).toMatchSnapshot();
+		// Returned forgers list should contain all the forger info provided
 		expect(
-			forgersInfoList.filter(
+			forgersInfoList
+				.map(f =>
+					forgersList.findIndex(([forgerAddress, _]) =>
+						forgerAddress.equals(Buffer.from(f.address, 'hex')),
+					),
+				)
+				.filter(i => i < 0),
+		).toHaveLength(0);
+		expect(
+			(forgersInfoList as any).filter(
 				(forger: { totalProducedBlocks: number }) => forger.totalProducedBlocks > 0,
 			).length,
 		).toBeGreaterThan(1);

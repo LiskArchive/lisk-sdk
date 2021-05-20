@@ -23,5 +23,5 @@ export abstract class BaseAsset<T = unknown> {
 
 	public validate?(context: ValidateAssetContext<T>): void;
 
-	public abstract async apply(context: ApplyAssetContext<T>): Promise<void>;
+	public abstract apply(context: ApplyAssetContext<T>): Promise<void>;
 }

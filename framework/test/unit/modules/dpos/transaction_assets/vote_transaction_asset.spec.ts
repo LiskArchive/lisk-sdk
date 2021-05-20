@@ -15,11 +15,16 @@
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../../../src/types';
-import { createFakeDefaultAccount } from '../../../../utils/node';
-import { StateStoreMock } from '../../../../utils/node/state_store_mock';
 import { VoteTransactionAsset } from '../../../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
-import { DPOSAccountProps, VoteTransactionAssetContext } from '../../../../../src/modules/dpos';
+import {
+	DPOSAccountProps,
+	DPoSModule,
+	VoteTransactionAssetContext,
+} from '../../../../../src/modules/dpos';
 import { liskToBeddows } from '../../../../utils/assets';
+import * as testing from '../../../../../src/testing';
+
+const { StateStoreMock } = testing.mocks;
 
 describe('VoteTransactionAsset', () => {
 	const lastBlockHeight = 200;
@@ -27,34 +32,45 @@ describe('VoteTransactionAsset', () => {
 	let applyContext: ApplyAssetContext<VoteTransactionAssetContext>;
 	let validateContext: ValidateAssetContext<VoteTransactionAssetContext>;
 	let sender: any;
-	let stateStoreMock: StateStoreMock;
-	const delegate1 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate1' } } });
-	const delegate2 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate2' } } });
-	const delegate3 = createFakeDefaultAccount({ dpos: { delegate: { username: 'delegate3' } } });
+	let stateStoreMock: testing.mocks.StateStoreMock;
+	const delegate1 = testing.fixtures.createDefaultAccount([DPoSModule], {
+		dpos: { delegate: { username: 'delegate1' } },
+	});
+	const delegate2 = testing.fixtures.createDefaultAccount([DPoSModule], {
+		dpos: { delegate: { username: 'delegate2' } },
+	});
+	const delegate3 = testing.fixtures.createDefaultAccount([DPoSModule], {
+		dpos: { delegate: { username: 'delegate3' } },
+	});
 
 	beforeEach(() => {
-		sender = createFakeDefaultAccount({});
-		stateStoreMock = new StateStoreMock(
-			objects.cloneDeep([sender, delegate1, delegate2, delegate3]),
-			{
-				lastBlockHeaders: [{ height: lastBlockHeight }] as any,
-			},
-		);
+		sender = testing.fixtures.createDefaultAccount([DPoSModule]);
+		stateStoreMock = new StateStoreMock({
+			accounts: objects.cloneDeep([sender, delegate1, delegate2, delegate3]),
+			lastBlockHeaders: [{ height: lastBlockHeight }] as any,
+		});
 		transactionAsset = new VoteTransactionAsset();
-		applyContext = {
-			transaction: {
-				senderAddress: sender.address,
-			},
-			asset: {
-				votes: [],
-			},
-			stateStore: stateStoreMock as any,
-			reducerHandler: {
-				invoke: jest.fn(),
-			},
-		} as any;
-		validateContext = { asset: { votes: [] } } as any;
 
+		const transaction = {
+			senderAddress: sender.address,
+		} as any;
+
+		const asset = {
+			votes: [],
+		};
+
+		applyContext = testing.createApplyAssetContext({
+			transaction,
+			asset,
+			stateStore: stateStoreMock,
+		});
+
+		validateContext = testing.createValidateAssetContext<VoteTransactionAssetContext>({
+			asset,
+			transaction,
+		});
+
+		jest.spyOn(applyContext.reducerHandler, 'invoke');
 		jest.spyOn(stateStoreMock.account, 'get');
 		jest.spyOn(stateStoreMock.account, 'set');
 	});
@@ -83,7 +99,7 @@ describe('VoteTransactionAsset', () => {
 
 					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toInclude('should NOT have fewer than 1 items');
+					expect(errors[0].message).toInclude('must NOT have fewer than 1 items');
 				});
 			});
 
@@ -98,7 +114,7 @@ describe('VoteTransactionAsset', () => {
 
 					const errors = validator.validate(transactionAsset.schema, validateContext.asset);
 					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toInclude('should NOT have more than 20 items');
+					expect(errors[0].message).toInclude('must NOT have more than 20 items');
 				});
 			});
 
@@ -591,7 +607,7 @@ describe('VoteTransactionAsset', () => {
 
 			describe('when asset.votes contain delegate address which account does not exists', () => {
 				it('should throw error', async () => {
-					const nonExistingAccount = createFakeDefaultAccount({
+					const nonExistingAccount = testing.fixtures.createDefaultAccount([DPoSModule], {
 						dpos: { delegate: { username: '' } },
 					});
 					applyContext.asset = {
@@ -607,10 +623,10 @@ describe('VoteTransactionAsset', () => {
 
 			describe('when asset.votes contain delegate address which is not registered delegate', () => {
 				it('should throw error', async () => {
-					const nonRegisteredDelegate = createFakeDefaultAccount({
+					const nonRegisteredDelegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 						dpos: { delegate: { username: '' } },
 					});
-					stateStoreMock.account.set(nonRegisteredDelegate.address, nonRegisteredDelegate);
+					await stateStoreMock.account.set(nonRegisteredDelegate.address, nonRegisteredDelegate);
 					applyContext.asset = {
 						votes: [
 							...applyContext.asset.votes,
@@ -631,10 +647,10 @@ describe('VoteTransactionAsset', () => {
 					const votes = [];
 
 					for (let i = 0; i < 12; i += 1) {
-						const delegate = createFakeDefaultAccount({
+						const delegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 							dpos: { delegate: { username: `newdelegate${i}` } },
 						});
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 						votes.push({
 							delegateAddress: delegate.address,
 							amount: liskToBeddows(10),
@@ -656,18 +672,18 @@ describe('VoteTransactionAsset', () => {
 					const updatedSender = objects.cloneDeep(sender);
 					// Suppose account already voted for 8 delegates
 					for (let i = 0; i < 8; i += 1) {
-						const delegate = createFakeDefaultAccount({
+						const delegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 							dpos: { delegate: { username: `existingdelegate${i}` } },
 						});
 
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 
 						updatedSender.dpos.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: liskToBeddows(20),
 						});
 					}
-					stateStoreMock.account.set(sender.address, updatedSender);
+					await stateStoreMock.account.set(sender.address, updatedSender);
 
 					// We have 2 negative votes
 					const votes = [
@@ -683,10 +699,10 @@ describe('VoteTransactionAsset', () => {
 
 					// We have 3 positive votes
 					for (let i = 0; i < 3; i += 1) {
-						const delegate = createFakeDefaultAccount({
+						const delegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 							dpos: { delegate: { username: `newdelegate${i}` } },
 						});
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 						votes.push({
 							delegateAddress: delegate.address,
 							amount: liskToBeddows(10),
@@ -711,11 +727,11 @@ describe('VoteTransactionAsset', () => {
 					const updatedSender = objects.cloneDeep(sender);
 					// Suppose account already 19 unlocking
 					for (let i = 0; i < 19; i += 1) {
-						const delegate = createFakeDefaultAccount({
+						const delegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 							dpos: { delegate: { username: `existingdelegate${i}` } },
 						});
 
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 
 						updatedSender.dpos.unlocking.push({
 							delegateAddress: delegate.address,
@@ -725,18 +741,18 @@ describe('VoteTransactionAsset', () => {
 					}
 					// Suppose account have 5 positive votes
 					for (let i = 0; i < 5; i += 1) {
-						const delegate = createFakeDefaultAccount({
+						const delegate = testing.fixtures.createDefaultAccount([DPoSModule], {
 							dpos: { delegate: { username: `existingdelegate${i}` } },
 						});
 
-						stateStoreMock.account.set(delegate.address, delegate);
+						await stateStoreMock.account.set(delegate.address, delegate);
 
 						updatedSender.dpos.sentVotes.push({
 							delegateAddress: delegate.address,
 							amount: liskToBeddows(20),
 						});
 					}
-					stateStoreMock.account.set(sender.address, updatedSender);
+					await stateStoreMock.account.set(sender.address, updatedSender);
 
 					// We have 2 negative votes
 					const votes = [
@@ -770,7 +786,7 @@ describe('VoteTransactionAsset', () => {
 						delegateAddress: delegate1.address,
 						amount: liskToBeddows(70),
 					});
-					stateStoreMock.account.set(sender.address, updatedSender);
+					await stateStoreMock.account.set(sender.address, updatedSender);
 
 					applyContext.asset = {
 						// Negative vote for more than what was earlier voted
@@ -792,11 +808,11 @@ describe('VoteTransactionAsset', () => {
 		describe('when asset.votes contains self-vote', () => {
 			const senderVoteAmount = liskToBeddows(80);
 
-			beforeEach(() => {
+			beforeEach(async () => {
 				// Make sender a delegate
 				const updatedSender = objects.cloneDeep(sender);
 				updatedSender.dpos.delegate.username = 'sender_delegate';
-				stateStoreMock.account.set(sender.address, updatedSender);
+				await stateStoreMock.account.set(sender.address, updatedSender);
 
 				applyContext.asset = {
 					votes: [{ delegateAddress: sender.address, amount: senderVoteAmount }],
@@ -822,7 +838,7 @@ describe('VoteTransactionAsset', () => {
 			const senderUpVoteAmount = liskToBeddows(80);
 			const senderDownVoteAmount = liskToBeddows(30);
 
-			beforeEach(() => {
+			beforeEach(async () => {
 				// Make sender a delegate and make it sure it have a self vote already
 				const updatedSender = objects.cloneDeep(sender);
 				updatedSender.dpos.delegate.username = 'sender_delegate';
@@ -830,7 +846,7 @@ describe('VoteTransactionAsset', () => {
 				updatedSender.dpos.sentVotes = [
 					{ delegateAddress: updatedSender.address, amount: senderUpVoteAmount },
 				];
-				stateStoreMock.account.set(sender.address, updatedSender);
+				await stateStoreMock.account.set(sender.address, updatedSender);
 
 				applyContext.asset = {
 					votes: [{ delegateAddress: sender.address, amount: BigInt(-1) * senderDownVoteAmount }],

@@ -11,26 +11,35 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import axios from 'axios';
-import {
-	callNetwork,
-	createApplication,
-	closeApplication,
-	getURL,
-	waitNBlocks,
-} from './utils/application';
+
+import { callNetwork, getURL } from './utils/application';
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
 
 describe('Blocks endpoints', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
+	const label = 'blocks_http_functional';
 
 	beforeAll(async () => {
-		app = await createApplication('blocks_http_functional');
-		await waitNBlocks(app, 1);
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
+		await appEnv.startApplication();
+		await appEnv.waitNBlocks(1);
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('api/blocks/', () => {
@@ -114,7 +123,7 @@ describe('Blocks endpoints', () => {
 
 	describe('api/blocks/:blockID', () => {
 		it('should respond with block when block found for specified id', async () => {
-			await waitNBlocks(app, 1);
+			await appEnv.waitNBlocks(1);
 			const {
 				data: {
 					data: [
@@ -125,7 +134,7 @@ describe('Blocks endpoints', () => {
 				},
 			} = await axios.get(getURL('/api/blocks/?height=1'));
 
-			await waitNBlocks(app, 1);
+			await appEnv.waitNBlocks(1);
 			const result = await axios.get(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				getURL(`/api/blocks/${encodeURIComponent(id)}`),

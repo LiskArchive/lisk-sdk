@@ -82,8 +82,8 @@ export abstract class BaseChannel {
 
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
-	abstract async invoke<T>(actionName: string, params?: object): Promise<T>;
+	abstract invoke<T>(actionName: string, params?: object): Promise<T>;
 
-	abstract async registerToBus(arg: unknown): Promise<void>;
+	abstract registerToBus(arg: unknown): Promise<void>;
 	abstract once(eventName: string, cb: EventCallback): void;
 }

@@ -30,7 +30,6 @@ import {
 	PluginInfo,
 } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
-import * as createDebug from 'debug';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -44,7 +43,6 @@ import { postBlockEventSchema } from './schema';
 
 // eslint-disable-next-line
 const packageJSON = require('../package.json');
-const debug = createDebug('plugin:report-misbehavior');
 
 const actionParamsSchema = {
 	$id: 'lisk/report_misbehavior/auth',
@@ -85,17 +83,14 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): Record<string, unknown> {
 		return config.defaultConfig;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events(): EventsDefinition {
 		return [];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {
 			authorize: (params?: Record<string, unknown>): { result: string } => {
@@ -145,13 +140,15 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		this._channel = channel;
 		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._clearBlockHeadersInterval = this._options.clearBlockHeadersInterval || 60000;
+
+		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		this._pluginDB = await getDBInstance(this._options.dataPath);
 		// Listen to new block and delete block events
 		this._subscribeToChannel();
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._clearBlockHeadersIntervalId = setInterval(() => {
 			clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight).catch(error =>
-				debug(error),
+				this._logger.error(error),
 			);
 		}, this._clearBlockHeadersInterval);
 	}
@@ -169,7 +166,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			if (event === 'postBlock') {
 				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
 				if (errors.length > 0) {
-					debug('Invalid block data', errors);
+					this._logger.error(errors, 'Invalid block data');
 					return;
 				}
 				const blockData = data as { block: string };
@@ -204,10 +201,10 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 							transaction: encodedTransaction,
 						});
 
-						debug('Sent Report misbehavior transaction', result.transactionId);
+						this._logger.debug('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
-					debug(error);
+					this._logger.error(error);
 				}
 			}
 		});

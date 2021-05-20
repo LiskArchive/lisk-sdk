@@ -24,15 +24,10 @@ import { INTERNAL_EVENTS } from '../../../../src/constants';
 import { Action } from '../../../../src/controller/action';
 
 class MyChannel extends BaseChannel {
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-empty-function
 	public once(_eventName: string, _cb: EventCallback): void {}
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-empty-function
 	public subscribe(_eventName: string, _cb: EventCallback): void {}
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-empty-function
 	public publish(_eventName: string, _data: object): void {}
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-empty-function
 	public async registerToBus(_arg: any): Promise<void> {}
-	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/require-await
 	public async invoke<T>(_actionName: string, _params?: object): Promise<T> {
 		return {} as T;
 	}
@@ -113,7 +108,7 @@ describe('Base Channel', () => {
 			expect(baseChannel.eventsList).toHaveLength(params.events.length + INTERNAL_EVENTS.length);
 		});
 
-		it('base.eventsList should NOT contain internal events when skipInternalEvents option was set TRUE', () => {
+		it('base.eventsList must NOT contain internal events when skipInternalEvents option was set TRUE', () => {
 			// Arrange & Act
 			baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions, {
 				skipInternalEvents: true,

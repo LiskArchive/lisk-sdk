@@ -154,6 +154,11 @@ export class Node {
 		};
 	}
 
+	public getDefaultAccount(): Record<string, unknown> {
+		const { default: defaultAccount } = getAccountSchemaWithDefault(this._registeredAccountSchemas);
+		return defaultAccount;
+	}
+
 	public getRegisteredModules(): RegisteredModule[] {
 		return this._registeredModules.reduce<RegisteredModule[]>((prev, current) => {
 			const assets = current.transactionAssets.map(asset => ({ id: asset.id, name: asset.name }));
@@ -264,6 +269,7 @@ export class Node {
 						this._chain.dataAccess.getAccountByAddress<T>(address),
 					getLastBlockHeader: async () => this._chain.dataAccess.getLastBlockHeader(),
 				},
+				logger: this._logger,
 			});
 		}
 		// Initialize callable P2P endpoints
@@ -501,6 +507,14 @@ export class Node {
 					...this._options.genesisConfig,
 				},
 				registeredModules: this.getRegisteredModules(),
+				network: {
+					port: this._options.network.port,
+					hostIp: this._options.network.hostIp,
+					seedPeers: this._options.network.seedPeers,
+					blacklistedIPs: this._options.network.blacklistedIPs,
+					fixedPeers: this._options.network.fixedPeers,
+					whitelistedPeers: this._options.network.whitelistedPeers,
+				},
 			}),
 			getConnectedPeers: () => this._networkModule.getConnectedPeers(),
 			getDisconnectedPeers: () => this._networkModule.getDisconnectedPeers(),

@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BlockHeader, Account, testing } from '@liskhq/lisk-chain';
+import { BlockHeader, Account } from '@liskhq/lisk-chain';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { getAddressAndPublicKeyFromPassphrase, hexToBuffer } from '@liskhq/lisk-cryptography';
 import * as delegateShufflingScenario from '../../../fixtures/dpos_delegate_shuffling/uniformly_shuffled_delegate_list.json';
@@ -35,9 +35,10 @@ import * as forgerSelectionLessTHan103Scenario from '../../../fixtures/dpos_forg
 import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_more_than_2_standby.json';
 import { voteWeightsSchema } from '../../../../src/modules/dpos/schema';
 import { CHAIN_STATE_DELEGATE_VOTE_WEIGHTS } from '../../../../src/modules/dpos/constants';
+import * as testing from '../../../../src/testing';
 
 describe('delegates', () => {
-	const { StateStoreMock } = testing;
+	const { StateStoreMock } = testing.mocks;
 
 	describe('shuffleDelegateList', () => {
 		const { previousRoundSeed1 } = delegateShufflingScenario.testCases.input;
@@ -207,7 +208,7 @@ describe('delegates', () => {
 		});
 
 		describe('When all delegates successfully forges a block', () => {
-			it('should NOT update "consecutiveMissedBlocks" for anyone', async () => {
+			it('must NOT update "consecutiveMissedBlocks" for anyone', async () => {
 				// Arrange
 				const lastBlock = {
 					generatorPublicKey: accountsPublicKeys.publicKeyMap.get(
@@ -394,7 +395,7 @@ describe('delegates', () => {
 			const defaultRound = 5;
 
 			for (const scenario of scenarios) {
-				// eslint-disable-next-line no-loop-func
+				// eslint-disable-next-line jest/valid-title,no-loop-func
 				describe(scenario.title, () => {
 					it('should result in the expected forgers list', async () => {
 						// Forger selection relies on vote weight to be sorted
@@ -514,6 +515,7 @@ describe('delegates', () => {
 			});
 
 			it('should have activeDelegates + standbyDelegates delegates in the forgers list', () => {
+				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 				expect(forgersList).toHaveLength(params.activeDelegates + params.standbyDelegates);
 			});
 

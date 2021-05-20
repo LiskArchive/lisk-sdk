@@ -101,17 +101,14 @@ export class ForgerPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): object {
 		return config.defaultConfig;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events(): EventsDefinition {
 		return ['block:created', 'block:missed'];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions(): ActionsDefinition {
 		return {
 			getVoters: async () =>
@@ -126,6 +123,7 @@ export class ForgerPlugin extends BasePlugin {
 		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
+		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		// eslint-disable-next-line new-cap
 		this._forgerPluginDB = await getDBInstance(options.dataPath);
 

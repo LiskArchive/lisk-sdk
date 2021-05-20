@@ -904,7 +904,7 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
 					.mockRejectedValue(new NotFoundError('not found') as never);
-				when(getSlotNumberStub).calledWith(undefined).mockReturnValue(currentSlot);
+				when(getSlotNumberStub).calledWith().mockReturnValue(currentSlot);
 				when(getSlotNumberStub)
 					.calledWith(lastBlock.header.timestamp)
 					.mockReturnValue(lastBlockSlot);
@@ -915,7 +915,7 @@ describe('forger', () => {
 			});
 
 			it('should log message and return if current block slot is same as last block slot', async () => {
-				when(getSlotNumberStub).calledWith(undefined).mockReturnValue(currentSlot);
+				when(getSlotNumberStub).calledWith().mockReturnValue(currentSlot);
 				when(getSlotNumberStub).calledWith(lastBlock.header.timestamp).mockReturnValue(currentSlot);
 
 				const data = await forgeModule.forge();

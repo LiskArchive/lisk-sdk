@@ -13,28 +13,35 @@
  *
  */
 
-import * as Ajv from 'ajv';
-import { ValidateFunction } from 'ajv';
+import Ajv, { AnySchema, ValidateFunction } from 'ajv';
+import addDefaultFormats from 'ajv-formats';
 import * as formats from './formats';
-import { ErrorObject, LiskValidationError } from './errors';
+import { convertErrorsToLegacyFormat, LiskValidationError } from './errors';
 import { fieldNumberKeyword } from './keywords/field_number';
 import { dataTypeKeyword } from './keywords/data_type';
 import { liskMetaSchema } from './lisk_meta_schema';
+import { LiskErrorObject } from './types';
 
 export const liskSchemaIdentifier: string = liskMetaSchema.$id;
 
 class LiskValidator {
-	private readonly _validator: Ajv.Ajv;
+	private readonly _validator: Ajv;
 
 	public constructor() {
 		this._validator = new Ajv({
+			strict: true,
+			strictSchema: true,
 			allErrors: true,
-			schemaId: 'auto',
 			useDefaults: false,
 			// FIXME: Combination with lisk-codec schema, making true would throw error because
 			// Trace: Error: schema with key or id "/block/header"
 			addUsedSchema: false,
+
+			// To avoid warnings for not defining `type` for each property
+			strictTypes: false,
 		});
+
+		addDefaultFormats(this._validator);
 
 		for (const formatName of Object.keys(formats)) {
 			this._validator.addFormat(
@@ -44,7 +51,8 @@ class LiskValidator {
 			);
 		}
 
-		this._validator.addKeyword('uniqueSignedPublicKeys', {
+		this._validator.addKeyword({
+			keyword: 'uniqueSignedPublicKeys',
 			type: 'array',
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			compile: () => (data: ReadonlyArray<string>) =>
@@ -52,22 +60,26 @@ class LiskValidator {
 					.size === data.length,
 		});
 
+		// TODO: addMetaSchema is not validating custom formats
+		// on meta schema so why we have to use `compile`.
+		this._validator.compile(liskMetaSchema);
+
 		this._validator.addMetaSchema(liskMetaSchema);
-		this._validator.addKeyword('fieldNumber', fieldNumberKeyword);
-		this._validator.addKeyword('dataType', dataTypeKeyword);
+		this._validator.addKeyword(fieldNumberKeyword);
+		this._validator.addKeyword(dataTypeKeyword);
 	}
 
-	public validate(schema: object, data: object): ErrorObject[] {
+	public validate(schema: object, data: object): LiskErrorObject[] {
 		if (!this._validator.validate(schema, data)) {
-			return (this._validator.errors as unknown) as ErrorObject[];
+			return convertErrorsToLegacyFormat(this._validator.errors as LiskErrorObject[]);
 		}
 
 		return [];
 	}
 
-	public validateSchema(schema: object | boolean): ReadonlyArray<ErrorObject> {
+	public validateSchema(schema: AnySchema | boolean): ReadonlyArray<LiskErrorObject> {
 		if (!this._validator.validateSchema(schema)) {
-			return (this._validator.errors as unknown) as ReadonlyArray<ErrorObject>;
+			return convertErrorsToLegacyFormat(this._validator.errors as LiskErrorObject[]);
 		}
 
 		return [];
@@ -93,7 +105,7 @@ class LiskValidator {
 		}
 	}
 
-	public removeSchema(schemaKeyRef?: object | string | RegExp | boolean): Ajv.Ajv {
+	public removeSchema(schemaKeyRef?: object | string | RegExp | boolean): Ajv {
 		return this._validator.removeSchema(schemaKeyRef);
 	}
 }

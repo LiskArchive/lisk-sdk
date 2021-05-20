@@ -20,6 +20,7 @@ import * as os from 'os';
 import { join } from 'path';
 import { BaseAsset, BaseChannel, BaseModule, BasePlugin } from '../../src';
 import { Application } from '../../src/application';
+import { Controller } from '../../src/controller';
 import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
@@ -48,20 +49,16 @@ class TestPlugin extends BasePlugin {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get events() {
 		return [];
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public get actions() {
 		return {};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async load(_channel: BaseChannel): Promise<void> {}
 
-	// eslint-disable-next-line class-methods-use-this
 	public async unload(): Promise<void> {}
 }
 
@@ -221,10 +218,10 @@ describe('Application', () => {
 			} catch (error) {
 				/* eslint-disable jest/no-try-expect */
 				expect(error.errors).toHaveLength(4);
-				expect(error.errors[0].message).toContain('should match format "encryptedPassphrase"');
-				expect(error.errors[1].message).toContain('should be >= 1');
-				expect(error.errors[2].message).toContain('should be >= 1');
-				expect(error.errors[3].message).toContain('should NOT have fewer than 2 items');
+				expect(error.errors[0].message).toContain('must match format "encryptedPassphrase"');
+				expect(error.errors[1].message).toContain('must be >= 1');
+				expect(error.errors[2].message).toContain('must be >= 1');
+				expect(error.errors[3].message).toContain('must NOT have fewer than 2 items');
 				/* eslint-enable jest/no-try-expect */
 			}
 		});
@@ -317,7 +314,6 @@ describe('Application', () => {
 					type: 'object',
 					properties: {},
 				};
-				// eslint-disable-next-line class-methods-use-this
 				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
@@ -345,7 +341,6 @@ describe('Application', () => {
 					type: 'object',
 					properties: {},
 				};
-				// eslint-disable-next-line class-methods-use-this
 				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
@@ -373,7 +368,6 @@ describe('Application', () => {
 					type: 'object',
 					properties: {},
 				};
-				// eslint-disable-next-line class-methods-use-this
 				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
@@ -397,7 +391,6 @@ describe('Application', () => {
 				public name = 'asset';
 				public id = 0;
 				public schema = undefined as any;
-				// eslint-disable-next-line class-methods-use-this
 				public async apply(): Promise<void> {}
 			}
 			class SampleModule extends BaseModule {
@@ -505,7 +498,9 @@ describe('Application', () => {
 
 			// Assert
 			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledTimes(1);
-			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin);
+			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin, {
+				loadAsChildProcess: false,
+			});
 		});
 
 		it('should throw error when plugin is required to load as child process and not exported', () => {
@@ -589,6 +584,52 @@ describe('Application', () => {
 		it('should create getTransactionsByIDs action', () => {
 			// Assert
 			expect(actionsList).toContain('getTransactionsByIDs');
+		});
+	});
+
+	describe('#_loadPlugins', () => {
+		let app: Application;
+		let dirs: ReturnType<typeof systemDirs>;
+
+		beforeEach(async () => {
+			app = Application.defaultApplication(genesisBlockJSON, config);
+			app.registerPlugin(TestPlugin);
+			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+			jest.spyOn(Controller.prototype, 'loadPlugins').mockResolvedValue(jest.fn() as never);
+
+			await app.run();
+
+			dirs = systemDirs(app.config.label, app.config.rootPath);
+		});
+
+		it('should compile config and load plugins', () => {
+			// Arrange
+			const plugins = {
+				[TestPlugin.alias]: TestPlugin,
+			};
+			const pluginsOptions = {
+				[TestPlugin.alias]: {
+					loadAsChildProcess: false,
+					dataPath: dirs.dataPath,
+					appConfig: {
+						rootPath: app.config.rootPath,
+						label: app.config.label,
+						version: app.config.version,
+						networkVersion: app.config.networkVersion,
+						genesisConfig: app.config.genesisConfig,
+						logger: {
+							consoleLogLevel: app.config.logger.consoleLogLevel,
+							fileLogLevel: app.config.logger.fileLogLevel,
+						},
+					},
+				},
+			};
+
+			// Assert
+			expect(app['_controller'].loadPlugins).toHaveBeenCalledTimes(1);
+			expect(app['_controller'].loadPlugins).toHaveBeenCalledWith(plugins, pluginsOptions);
 		});
 	});
 

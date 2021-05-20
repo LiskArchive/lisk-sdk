@@ -113,7 +113,7 @@ export const accountSchema = {
 			type: 'object',
 		},
 	},
-	required: ['address', 'token', 'sequence', 'keys', 'dpos'],
+	required: ['address', 'keys', 'sequence', 'token'],
 	type: 'object',
 };
 
@@ -143,7 +143,7 @@ export const schema = {
 				fieldNumber: 4,
 			},
 		},
-		required: ['address', 'token', 'sequence', 'keys', 'dpos'],
+		required: ['address', 'token', 'sequence', 'keys'],
 	},
 	block: {
 		$id: '/block',
@@ -213,7 +213,7 @@ export const schema = {
 								fieldNumber: 4,
 							},
 						},
-						required: ['address', 'token', 'sequence', 'keys', 'dpos'],
+						required: ['address', 'token', 'sequence', 'keys'],
 					},
 				},
 				initDelegates: {

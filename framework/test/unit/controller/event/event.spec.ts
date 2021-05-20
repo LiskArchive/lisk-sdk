@@ -88,7 +88,7 @@ describe('Event Class', () => {
 				const config = JSON.stringify(jsonData);
 
 				// Act
-				// eslint-disable-next-line no-shadow
+				// eslint-disable-next-line @typescript-eslint/no-shadow
 				const event = Event.fromJSONRPCNotification(config);
 
 				// Assert
@@ -107,7 +107,7 @@ describe('Event Class', () => {
 				};
 
 				// Act
-				// eslint-disable-next-line no-shadow
+				// eslint-disable-next-line @typescript-eslint/no-shadow
 				const event = Event.fromJSONRPCNotification(config);
 
 				// Assert

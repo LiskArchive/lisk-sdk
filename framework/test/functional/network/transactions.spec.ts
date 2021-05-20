@@ -70,9 +70,9 @@ describe('Public transaction related P2P endpoints', () => {
 	describe('postTransactionsAnnouncement', () => {
 		it('should request announced transaction', async () => {
 			// Arrange & Act
-			const genesisAccount = await app['_node']['_chain'].dataAccess.getAccountByAddress<
-				DefaultAccountProps
-			>(genesis.address);
+			const genesisAccount = await app['_node'][
+				'_chain'
+			].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
 			const accountWithoutBalance = nodeUtils.createAccount();
 			const tx = createTransferTransaction({
 				nonce: genesisAccount.sequence.nonce,

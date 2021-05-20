@@ -11,20 +11,35 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-framework';
 import axios from 'axios';
 import { when } from 'jest-when';
-import { createApplication, closeApplication, getURL, callNetwork } from './utils/application';
+
+import { HTTPAPIPlugin } from '../../src/http_api_plugin';
+import { getURL, callNetwork } from './utils/application';
 
 describe('Peers endpoint', () => {
-	let app: Application;
+	let appEnv: testing.ApplicationEnv;
+	const label = 'peers_http_functional';
 
 	beforeAll(async () => {
-		app = await createApplication('peers');
+		const rootPath = '~/.lisk/http-plugin';
+		const config = {
+			rootPath,
+			label,
+		} as PartialApplicationConfig;
+
+		appEnv = testing.createDefaultApplicationEnv({
+			config,
+			plugins: [HTTPAPIPlugin],
+		});
+		await appEnv.startApplication();
 	});
 
 	afterAll(async () => {
-		await closeApplication(app);
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+		await appEnv.stopApplication();
 	});
 
 	describe('/api/peers', () => {
@@ -37,7 +52,7 @@ describe('Peers endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.limit\' should match format "uint32"',
+								'Lisk validator found 1 error[s]:\nProperty \'.limit\' must match format "uint32"',
 						},
 					],
 				});
@@ -54,7 +69,7 @@ describe('Peers endpoint', () => {
 					errors: [
 						{
 							message:
-								'Lisk validator found 1 error[s]:\nProperty \'.offset\' should match format "uint32"',
+								'Lisk validator found 1 error[s]:\nProperty \'.offset\' must match format "uint32"',
 						},
 					],
 				});
@@ -64,9 +79,14 @@ describe('Peers endpoint', () => {
 		describe('500 - Some internal operation fails to process', () => {
 			it('should throw 500 error when channel.invoke fails', async () => {
 				// Arrange
-				app['_channel'].invoke = jest.fn();
+				appEnv.application['_controller']['_inMemoryPlugins']['httpApi'][
+					'plugin'
+				]._channel.invoke = jest.fn();
 				// Mock channel invoke only when app:getConnectedPeers is called
-				when(app['_channel'].invoke)
+				when(
+					appEnv.application['_controller']['_inMemoryPlugins']['httpApi']['plugin']._channel
+						.invoke,
+				)
 					.calledWith('app:getConnectedPeers')
 					.mockRejectedValue(new Error('test') as never);
 				const { response, status } = await callNetwork(axios.get(getURL('/api/peers')));

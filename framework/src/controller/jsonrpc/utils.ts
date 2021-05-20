@@ -25,7 +25,7 @@ import {
 export const VERSION = '2.0';
 
 const requestSchema = {
-	id: 'jsonRPCRequestSchema',
+	$id: 'jsonRPCRequestSchema',
 	type: 'object',
 	required: ['jsonrpc', 'method', 'id'],
 	properties: {
@@ -47,7 +47,7 @@ const requestSchema = {
 };
 
 const notificationSchema = {
-	id: 'jsonRPCRequestSchema',
+	$id: 'jsonRPCRequestSchema',
 	type: 'object',
 	required: ['jsonrpc', 'method'],
 	properties: {

@@ -1,0 +1,40 @@
+# Files
+LICENSE
+.gitkeep
+mocha.opts
+.DS_Store
+REVISION
+
+# rc files
+.*rc
+## ignore files
+.*ignore
+
+# Ignore extensions
+*.png
+*.sql
+*.sh
+*.html
+*.info
+*.xml
+*.log
+*.proto
+*.csv
+*.cmd
+*.tsbuildinfo
+
+## jest snapshot
+*.snap
+
+# project specific paths
+coverage/
+dist-node/
+dist-browser/
+dist/
+tmp/
+browsertest.build/
+.coverage
+.coverage-unit
+build
+public
+*.svg

@@ -57,7 +57,7 @@ describe('LiskValidationError formatter', () => {
 		};
 
 		const expectedError =
-			"Lisk validator found 1 error[s]:\nProperty '.myProp' should NOT be shorter than 2 characters";
+			"Lisk validator found 1 error[s]:\nProperty '.myProp' must NOT have fewer than 2 characters";
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
@@ -71,7 +71,7 @@ describe('LiskValidationError formatter', () => {
 		};
 
 		const expectedError =
-			"Lisk validator found 1 error[s]:\nProperty '.myProp' should NOT be longer than 5 characters";
+			"Lisk validator found 1 error[s]:\nProperty '.myProp' must NOT have more than 5 characters";
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
@@ -85,7 +85,7 @@ describe('LiskValidationError formatter', () => {
 		};
 
 		const expectedError =
-			'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should match format "hex"';
+			'Lisk validator found 1 error[s]:\nProperty \'.myProp\' must match format "hex"';
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
@@ -96,7 +96,7 @@ describe('LiskValidationError formatter', () => {
 		const obj = {};
 
 		const expectedError =
-			"Lisk validator found 1 error[s]:\nMissing property, should have required property 'myProp'";
+			"Lisk validator found 1 error[s]:\nMissing property, must have required property 'myProp'";
 		expect(() => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);

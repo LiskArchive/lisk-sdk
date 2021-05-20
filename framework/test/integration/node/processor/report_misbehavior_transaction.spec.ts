@@ -11,104 +11,90 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore } from '@liskhq/lisk-db';
 import { Block } from '@liskhq/lisk-chain';
-import { validator } from '@liskhq/lisk-validator';
-import { signData } from '@liskhq/lisk-cryptography';
+import { signData, getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
+
 import { nodeUtils } from '../../../utils';
-import { createDB, removeDB } from '../../../utils/kv_store';
-import { genesis, DefaultAccountProps } from '../../../fixtures';
-import { Node } from '../../../../src/node';
+import { DefaultAccountProps } from '../../../fixtures';
 import {
 	createTransferTransaction,
 	createReportMisbehaviorTransaction,
 } from '../../../utils/node/transaction';
-import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
+import * as testing from '../../../../src/testing';
 
 describe('Transaction order', () => {
-	const dbName = 'report_delegate_transaction';
-	let node: Node;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
+	let processEnv: testing.BlockProcessingEnv;
+	let networkIdentifier: Buffer;
+	let blockGenerator: string;
+	let newBlock: Block;
+	let senderAccount: { address: Buffer; passphrase: string };
+	const databasePath = '/tmp/lisk/report_misbehavior/test';
 
 	beforeAll(async () => {
-		({ blockchainDB, forgerDB } = createDB(dbName));
-		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
-		// Since node start the forging so we have to stop the job
-		// Our test make use of manual forging of blocks
-		node['_forgingJob'].stop();
-		// FIXME: Remove with #5572
-		validator['_validator']._opts.addUsedSchema = false;
+		processEnv = await testing.getBlockProcessingEnv({
+			options: {
+				databasePath,
+			},
+		});
+		networkIdentifier = processEnv.getNetworkId();
+		blockGenerator = await processEnv.getNextValidatorPassphrase(processEnv.getLastBlock().header);
+		// Fund sender account
+		const genesisAccount = await processEnv
+			.getDataAccess()
+			.getAccountByAddress<DefaultAccountProps>(testing.fixtures.defaultFaucetAccount.address);
+		senderAccount = nodeUtils.createAccount();
+		const transaction = createTransferTransaction({
+			nonce: genesisAccount.sequence.nonce,
+			recipientAddress: senderAccount.address,
+			amount: BigInt('10000000000'),
+			networkIdentifier,
+			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
+			fee: BigInt(142000), // minFee not to give fee for generator
+		});
+		newBlock = await processEnv.createBlock([transaction]);
+
+		await processEnv.process(newBlock);
 	});
 
 	afterAll(async () => {
-		await forgerDB.clear();
-		await node.cleanup();
-		await blockchainDB.close();
-		await forgerDB.close();
-		removeDB(dbName);
+		await processEnv.cleanup({ databasePath });
 	});
 
-	describe('given delegate does not have balance', () => {
-		describe('when report misbehavior transaction is submitted against the delegate', () => {
-			let newBlock: Block;
-			let senderAccount: { address: Buffer; passphrase: string };
-
-			beforeAll(async () => {
-				const genesisAccount = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(genesis.address);
-				senderAccount = nodeUtils.createAccount();
-				const fundingTx = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
-					recipientAddress: senderAccount.address,
-					amount: BigInt('10000000000'),
-					networkIdentifier: node['_networkIdentifier'],
-					passphrase: genesis.passphrase,
-					fee: BigInt(142000), // minfee not to give fee for generator
-				});
-				newBlock = await nodeUtils.createBlock(node, [fundingTx]);
-				await node['_processor'].process(newBlock);
+	describe('when report misbehavior transaction is submitted against the delegate', () => {
+		it('should accept the block with transaction', async () => {
+			// get last block
+			const { header } = processEnv.getLastBlock();
+			// create report misbehavior against last block
+			const conflictingBlockHeader = {
+				...header,
+				height: 100,
+			};
+			const conflictingBytes = processEnv
+				.getDataAccess()
+				.encodeBlockHeader(conflictingBlockHeader, true);
+			const signature = signData(
+				Buffer.concat([networkIdentifier, conflictingBytes]),
+				blockGenerator,
+			);
+			const tx = createReportMisbehaviorTransaction({
+				nonce: BigInt(0),
+				passphrase: senderAccount.passphrase,
+				header1: header,
+				header2: {
+					...conflictingBlockHeader,
+					signature,
+				},
+				networkIdentifier,
 			});
+			// create a block and process them
+			const nextBlock = await processEnv.createBlock([tx]);
 
-			it('should accept the block with transaction', async () => {
-				// get last block
-				const { lastBlock } = node['_chain'];
-				const lastBlockGenerator = genesisDelegates.delegates.find(delegate =>
-					Buffer.from(delegate.publicKey, 'hex').equals(lastBlock.header.generatorPublicKey),
-				);
-				// create report misbehavior against last block
-				const conflictingBlockHeader = {
-					...lastBlock.header,
-					height: 100,
-				};
-				const conflictingBytes = node['_chain'].dataAccess.encodeBlockHeader(
-					conflictingBlockHeader,
-					true,
-				);
-				const signature = signData(
-					Buffer.concat([node.networkIdentifier, conflictingBytes]),
-					lastBlockGenerator?.passphrase as string,
-				);
-				const tx = createReportMisbehaviorTransaction({
-					nonce: BigInt(0),
-					passphrase: senderAccount.passphrase,
-					header1: lastBlock.header,
-					header2: {
-						...conflictingBlockHeader,
-						signature,
-					},
-					networkIdentifier: node.networkIdentifier,
-				});
-				// create a block and process them
-				const nextBlock = await nodeUtils.createBlock(node, [tx]);
-				await node['_processor'].process(nextBlock);
-				const updatedDelegate = await node['_chain'].dataAccess.getAccountByAddress<
-					DefaultAccountProps
-				>(Buffer.from(lastBlockGenerator?.address as string, 'hex'));
-				expect(updatedDelegate.dpos.delegate.pomHeights).toHaveLength(1);
-				expect(updatedDelegate.token.balance).toEqual(BigInt(0));
-			});
+			await processEnv.process(nextBlock);
+			const updatedDelegate = await processEnv
+				.getDataAccess()
+				.getAccountByAddress<DefaultAccountProps>(getAddressFromPassphrase(blockGenerator));
+			expect(updatedDelegate.dpos.delegate.pomHeights).toHaveLength(1);
+			expect(updatedDelegate.token.balance).toEqual(BigInt(0));
 		});
 	});
 });

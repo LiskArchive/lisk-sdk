@@ -1,0 +1,32 @@
+@import '../../styles/constants';
+
+.button {
+	display: inline-flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 14px 30px;
+	color: $color-white;
+	height: 48px;
+	background: $color-ultramarine-blue;
+	border-radius: 3px;
+	font-weight: 500;
+	font-size: $font-size-s;
+	border-radius: 3px;
+	border: none;
+	cursor: pointer;
+	@include mq-down(md) {
+		margin-top: 15px;
+		width: 100%;
+	}
+	&:hover {
+		box-shadow: 3px 3px 10px 0 rgb(61 113 255 / 36%);
+	}
+	&:focus {
+		outline: none;
+	}
+	&:disabled {
+		box-shadow: none;
+		opacity: 0.58;
+	}
+}

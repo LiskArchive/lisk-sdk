@@ -422,7 +422,8 @@ describe('validator keywords', () => {
 				new LiskValidationError([
 					{
 						keyword: '',
-						message: 'keyword schema is invalid: data should be number',
+						message:
+							'keyword "fieldNumber" value is invalid at path "#/properties/myProp": data must be number',
 						params: {},
 						schemaPath: '',
 						dataPath: '',
@@ -450,7 +451,8 @@ describe('validator keywords', () => {
 				new LiskValidationError([
 					{
 						keyword: '',
-						message: 'keyword schema is invalid: data should be >= 1',
+						message:
+							'keyword "fieldNumber" value is invalid at path "#/properties/myProp": data must be >= 1',
 						params: {},
 						schemaPath: '',
 						dataPath: '',
@@ -469,7 +471,8 @@ describe('validator keywords', () => {
 				new LiskValidationError([
 					{
 						keyword: '',
-						message: 'keyword schema is invalid: data should be <= 18999',
+						message:
+							'keyword "fieldNumber" value is invalid at path "#/properties/myProp": data must be <= 18999',
 						params: {},
 						schemaPath: '',
 						dataPath: '',

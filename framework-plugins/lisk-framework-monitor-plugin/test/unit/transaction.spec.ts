@@ -13,27 +13,20 @@
  */
 
 import { randomBytes } from 'crypto';
+import { testing } from 'lisk-framework';
 import { MonitorPlugin } from '../../src/monitor_plugin';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('_handlePostTransactionAnnounce', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	const channelMock = {
-		registerToBus: jest.fn(),
-		once: jest.fn(),
-		publish: jest.fn(),
-		subscribe: jest.fn(),
-		isValidEventName: jest.fn(),
-		isValidActionName: jest.fn(),
-		invoke: jest.fn(),
-		eventsList: [],
-		actionsList: [],
-		actions: {},
-		moduleAlias: '',
-		options: {},
-	} as any;
+	const {
+		mocks: { channelMock },
+	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new (MonitorPlugin as any)();
+		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
 		await monitorPluginInstance.load(channelMock);
 	});
 
@@ -61,23 +54,12 @@ describe('_handlePostTransactionAnnounce', () => {
 
 describe('_cleanUpTransactionStats', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	const channelMock = {
-		registerToBus: jest.fn(),
-		once: jest.fn(),
-		publish: jest.fn(),
-		subscribe: jest.fn(),
-		isValidEventName: jest.fn(),
-		isValidActionName: jest.fn(),
-		invoke: jest.fn(),
-		eventsList: [],
-		actionsList: [],
-		actions: {},
-		moduleAlias: '',
-		options: {},
-	} as any;
+	const {
+		mocks: { channelMock },
+	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new (MonitorPlugin as any)();
+		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
 		await monitorPluginInstance.load(channelMock);
 	});
 

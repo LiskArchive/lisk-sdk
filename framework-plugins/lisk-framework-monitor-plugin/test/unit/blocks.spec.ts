@@ -13,30 +13,24 @@
  */
 import { blockHeaderSchema, blockSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { testing } from 'lisk-framework';
 import { when } from 'jest-when';
 import { MonitorPlugin } from '../../src';
+import * as config from '../../src/defaults/default_config';
+
+const validPluginOptions = config.defaultConfig.default;
 
 describe('_handlePostBlock', () => {
 	let monitorPlugin: MonitorPlugin;
 	let blockHeaderString: string;
 	let encodedBlock: string;
-	const channelMock = {
-		registerToBus: jest.fn(),
-		once: jest.fn(),
-		publish: jest.fn(),
-		subscribe: jest.fn(),
-		isValidEventName: jest.fn(),
-		isValidActionName: jest.fn(),
-		invoke: jest.fn(),
-		eventsList: [],
-		actionsList: [],
-		actions: {},
-		moduleAlias: '',
-		options: {},
-	} as any;
+	let channelInvokeMock;
+	const {
+		mocks: { channelMock },
+	} = testing;
 
 	beforeEach(async () => {
-		monitorPlugin = new (MonitorPlugin as any)();
+		monitorPlugin = new MonitorPlugin(validPluginOptions as never);
 		await monitorPlugin.load(channelMock);
 		monitorPlugin.schemas = { block: blockSchema, blockHeader: blockHeaderSchema } as any;
 		blockHeaderString =
@@ -44,7 +38,10 @@ describe('_handlePostBlock', () => {
 		encodedBlock = codec
 			.encode(blockSchema, { header: Buffer.from(blockHeaderString, 'hex'), payload: [] })
 			.toString('hex');
-		when(channelMock.invoke)
+
+		channelInvokeMock = jest.fn();
+		channelMock.invoke = channelInvokeMock;
+		when(channelInvokeMock)
 			.calledWith('app:getConnectedPeers')
 			.mockResolvedValue([] as never);
 	});

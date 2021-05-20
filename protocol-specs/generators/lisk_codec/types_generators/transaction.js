@@ -35,7 +35,7 @@ const baseTransactionSchema = {
 		asset: { dataType: 'bytes', fieldNumber: 6 },
 		signatures: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 7 },
 	},
-	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset', 'signatures'],
 };
 
 const voteAssetSchema = {

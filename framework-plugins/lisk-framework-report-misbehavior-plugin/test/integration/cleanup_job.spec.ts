@@ -14,7 +14,6 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import {
 	blockHeaderAssetSchema,
 	blockHeaderSchema,
@@ -22,9 +21,19 @@ import {
 	transactionSchema,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { testing } from 'lisk-framework';
+
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema } from '../../src/db';
-import { defaultAccount } from '../fixtures/devnet';
+
+import * as config from '../../src/defaults/default_config';
+import { waitTill } from '../utils/application';
+
+const validPluginOptions = {
+	...config.defaultConfig.default,
+	encryptedPassphrase:
+		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
+};
 
 describe('Clean up old blocks', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
@@ -65,7 +74,7 @@ describe('Clean up old blocks', () => {
 	const dbKey = 'the_db_key';
 
 	beforeEach(async () => {
-		reportMisbehaviorPlugin = new (ReportMisbehaviorPlugin as any)();
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
 		await fs.remove(dataPath);
@@ -94,10 +103,12 @@ describe('Clean up old blocks', () => {
 						properties: {
 							header1: {
 								...blockHeaderSchema,
+								$id: 'block-header1',
 								fieldNumber: 1,
 							},
 							header2: {
 								...blockHeaderSchema,
+								$id: 'block-header2',
 								fieldNumber: 2,
 							},
 						},
@@ -107,8 +118,8 @@ describe('Clean up old blocks', () => {
 			account: accountSchema,
 		} as any;
 		(reportMisbehaviorPlugin as any)._state = {
-			passphrase: defaultAccount.passphrase,
-			publicKey: getAddressAndPublicKeyFromPassphrase(defaultAccount.passphrase).publicKey,
+			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
+			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,
 			currentHeight: 1000000000,
 		};
 	});
@@ -117,7 +128,7 @@ describe('Clean up old blocks', () => {
 		await reportMisbehaviorPlugin.unload();
 	});
 
-	it('should clear old blockheaders', async () => {
+	it('should clear old block headers', async () => {
 		await reportMisbehaviorPlugin.load(channelMock);
 		await (reportMisbehaviorPlugin as any)._pluginDB.put(
 			dbKey,
@@ -125,7 +136,7 @@ describe('Clean up old blocks', () => {
 				blockHeaders: [blockHeader1],
 			}),
 		);
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await waitTill(300);
 		await expect((reportMisbehaviorPlugin as any)._pluginDB.get(dbKey)).rejects.toThrow(
 			`Specified key ${dbKey} does not exist`,
 		);

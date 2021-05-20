@@ -1,0 +1,98 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+@import '../../styles/constants';
+
+.input {
+	background-color: $color-background-darker;
+	border: 1px solid rgba(223, 230, 242, 0.2);
+	box-sizing: border-box;
+	border-radius: 3px;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 16px;
+	font-family: inherit;
+	line-height: 100%;
+	color: $color-white;
+	opacity: 0.8;
+	resize: none;
+	padding: 15px;
+
+	&:hover {
+		border: 1px solid $color-ultramarine-blue;
+	}
+
+	&:focus {
+		border: 1px solid $color-ultramarine-blue;
+	}
+}
+
+.text {
+	@extend .input;
+	min-height: 40px;
+	width: 100%;
+}
+
+.textArea {
+	@extend .input;
+	width: 100%;
+}
+.textArea-s {
+	height: 90px;
+}
+.textArea-m {
+	height: 136px;
+}
+.textArea-l {
+	height: 249px;
+}
+
+.editor {
+	position: relative;
+	border: 1px solid rgba(223, 230, 242, 0.2);
+}
+
+.editor-textarea,
+.editor-code {
+	padding: 10px;
+	border: 0;
+	position: absolute;
+	width: 100%;
+	top: 0;
+	height: 100%;
+	overflow: auto;
+	line-height: 20px;
+	line-break: anywhere;
+}
+
+.editor-textarea {
+	z-index: 1;
+	color: transparent;
+	background: transparent;
+	caret-color: white;
+	resize: none;
+	&:hover,
+	&:focus {
+		border: none;
+	}
+}
+
+.editor-code {
+	z-index: 0;
+	box-sizing: border-box;
+	color: $color-platinum-gray;
+}
+
+.editor-error {
+	border: 1px solid $color-fury-red;
+}

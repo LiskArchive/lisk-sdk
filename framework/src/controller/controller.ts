@@ -15,10 +15,10 @@
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
-import { getPluginExportPath, BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import { Logger } from '../logger';
+import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { PluginOptions, PluginsOptions, SocketPaths } from '../types';
+import { PluginOptions, PluginOptionsWithAppConfig, SocketPaths } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
@@ -57,7 +57,7 @@ interface ControllerConfig {
 }
 
 interface PluginsObject {
-	readonly [key: string]: InstantiablePlugin<BasePlugin>;
+	readonly [key: string]: InstantiablePlugin;
 }
 
 export class Controller {
@@ -100,16 +100,19 @@ export class Controller {
 		await this._setupBus();
 	}
 
-	public async loadPlugins(plugins: PluginsObject, pluginOptions: PluginsOptions): Promise<void> {
+	public async loadPlugins(
+		plugins: PluginsObject,
+		pluginOptions: { [key: string]: PluginOptionsWithAppConfig },
+	): Promise<void> {
 		if (!this.bus) {
 			throw new Error('Controller bus is not initialized. Plugins can not be loaded.');
 		}
 
 		for (const alias of Object.keys(plugins)) {
 			const klass = plugins[alias];
-			const options = { dataPath: this.config.dataPath, ...pluginOptions[alias] };
+			const options = pluginOptions[alias];
 
-			if (options.loadAsChildProcess) {
+			if (options.loadAsChildProcess && this.config.rpc.enable) {
 				await this._loadChildProcessPlugin(alias, klass, options);
 			} else {
 				await this._loadInMemoryPlugin(alias, klass, options);
@@ -123,7 +126,7 @@ export class Controller {
 				? plugins
 				: [...Object.keys(this._inMemoryPlugins), ...Object.keys(this._childProcesses)];
 
-		const errors = [];
+		let hasError = false;
 
 		for (const alias of pluginsToUnload) {
 			try {
@@ -139,11 +142,11 @@ export class Controller {
 				}
 			} catch (error) {
 				this.logger.error(error);
-				errors.push(error);
+				hasError = true;
 			}
 		}
 
-		if (errors.length) {
+		if (hasError) {
 			throw new Error('Unload Plugins failed');
 		}
 	}
@@ -184,8 +187,8 @@ export class Controller {
 
 	private async _loadInMemoryPlugin(
 		alias: string,
-		Klass: InstantiablePlugin<BasePlugin>,
-		options: PluginOptions,
+		Klass: InstantiablePlugin,
+		options: PluginOptionsWithAppConfig,
 	): Promise<void> {
 		const pluginAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
@@ -213,7 +216,7 @@ export class Controller {
 
 	private async _loadChildProcessPlugin(
 		alias: string,
-		Klass: InstantiablePlugin<BasePlugin>,
+		Klass: InstantiablePlugin,
 		options: PluginOptions,
 	): Promise<void> {
 		const pluginAlias = alias || Klass.alias;
@@ -262,7 +265,7 @@ export class Controller {
 		});
 
 		await Promise.race([
-			new Promise(resolve => {
+			new Promise<void>(resolve => {
 				this.channel.once(`${pluginAlias}:loading:finished`, () => {
 					this.logger.info({ name, version, alias: pluginAlias }, 'Loaded child-process plugin');
 					resolve();
@@ -300,7 +303,7 @@ export class Controller {
 		});
 
 		await Promise.race([
-			new Promise(resolve => {
+			new Promise<void>(resolve => {
 				this.channel.once(`${alias}:unloading:finished`, () => {
 					this.logger.info(`Child process plugin "${alias}" unloaded`);
 					delete this._childProcesses[alias];

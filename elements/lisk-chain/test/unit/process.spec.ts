@@ -654,7 +654,7 @@ describe('chain/process block', () => {
 				expect((error as LiskValidationError).errors).toHaveLength(1);
 				expect((error as LiskValidationError).errors[0]).toEqual(
 					expect.objectContaining({
-						message: 'should be equal to constant',
+						message: 'must be equal to constant',
 						params: { allowedValue: 0 },
 					}),
 				);
@@ -827,7 +827,7 @@ describe('chain/process block', () => {
 						expect.objectContaining({
 							dataPath: '.initDelegates',
 							keyword: 'uniqueItems',
-							message: 'should NOT have duplicate items',
+							message: 'must NOT have duplicate items',
 							params: {},
 							schemaPath: '#/properties/initDelegates/uniqueItems',
 						}),
@@ -857,7 +857,7 @@ describe('chain/process block', () => {
 						expect.objectContaining({
 							dataPath: '.initDelegates',
 							keyword: 'minItems',
-							message: 'should NOT have fewer than 1 items',
+							message: 'must NOT have fewer than 1 items',
 							params: {
 								limit: 1,
 							},
@@ -1064,7 +1064,7 @@ describe('chain/process block', () => {
 						expect.objectContaining({
 							dataPath: '.accounts',
 							keyword: 'uniqueItems',
-							message: 'should NOT have duplicate items',
+							message: 'must NOT have duplicate items',
 							params: {},
 							schemaPath: '#/properties/accounts/uniqueItems',
 						}),
@@ -1081,16 +1081,16 @@ describe('chain/process block', () => {
 			stateStore = createStateStore(db);
 		});
 
-		it('should store init delegates to the validators', () => {
+		it('should store init delegates to the validators', async () => {
 			jest.spyOn(stateStore.account, 'set');
-			chainInstance.applyGenesisBlock(genesisBlock, stateStore);
+			await chainInstance.applyGenesisBlock(genesisBlock, stateStore);
 			expect(stateStore.account.set).toHaveBeenCalledTimes(
 				genesisBlock.header.asset.accounts.length,
 			);
 		});
 
 		it('should store all the accounts in the genesis block', async () => {
-			chainInstance.applyGenesisBlock(genesisBlock, stateStore);
+			await chainInstance.applyGenesisBlock(genesisBlock, stateStore);
 			const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);
 			const { validators } = codec.decode<{ validators: Validator[] }>(
 				validatorsSchema,

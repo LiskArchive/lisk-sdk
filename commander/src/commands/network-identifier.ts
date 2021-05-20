@@ -20,9 +20,8 @@ import BaseCommand from '../base';
 import { flags as commonFlags } from '../utils/flags';
 
 export default class NetworkIdentifierCommand extends BaseCommand {
-	static description = `
-  Creates Network identifier for the given genesis block id and community identifier.
-	`;
+	static description =
+		'Creates Network identifier for the given genesis block id and community identifier.';
 
 	static examples = [
 		'network-identifier da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -44,7 +43,6 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 		}),
 	};
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const {
 			flags: { 'community-identifier': communityIdentifier },
