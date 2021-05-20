@@ -20,6 +20,8 @@ export default class InitGenerator extends BaseGenerator {
 	public async initializing(): Promise<void> {
 		await this._loadAndValidateTemplate();
 
+		// Enable skipInstall for env so that the only generator install will run
+		this.env.options.skipInstall = true;
 		this.log('Initializing git repository');
 		this.spawnCommandSync('git', ['init', '--quiet']);
 	}
@@ -39,6 +41,11 @@ export default class InitGenerator extends BaseGenerator {
 
 	public install(): void {
 		this.log('\n');
-		this.installDependencies({ npm: true, bower: false, yarn: false, skipMessage: false });
+		this.installDependencies({
+			npm: this._registry ? { registry: this._registry } : true,
+			bower: false,
+			yarn: false,
+			skipMessage: false,
+		});
 	}
 }

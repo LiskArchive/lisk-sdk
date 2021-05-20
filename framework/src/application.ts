@@ -33,7 +33,12 @@ import {
 	APP_EVENT_NETWORK_READY,
 } from './constants';
 
-import { getPluginExportPath, InstantiablePlugin, validatePluginSpec } from './plugins/base_plugin';
+import {
+	BasePlugin,
+	getPluginExportPath,
+	InstantiablePlugin,
+	validatePluginSpec,
+} from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -172,8 +177,8 @@ export class Application {
 		return application;
 	}
 
-	public registerPlugin(
-		pluginKlass: InstantiablePlugin,
+	public registerPlugin<T extends BasePlugin>(
+		pluginKlass: InstantiablePlugin<T>,
 		options: PluginOptions = { loadAsChildProcess: false },
 	): void {
 		assert(pluginKlass, 'Plugin implementation is required');

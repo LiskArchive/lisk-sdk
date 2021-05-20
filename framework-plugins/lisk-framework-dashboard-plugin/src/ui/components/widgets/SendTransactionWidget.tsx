@@ -26,24 +26,18 @@ interface WidgetProps {
 }
 
 const SendTransactionWidget: React.FC<WidgetProps> = props => {
-	const [listOptions, setListOptions] = React.useState<SelectInputOptionType[]>([]);
-	const [selectedAsset, setSelectedAsset] = React.useState<SelectInputOptionType>();
 	const [passphrase, setPassphrase] = React.useState('');
 	const [asset, setAsset] = React.useState('{}');
-
-	React.useEffect(() => {
-		const assets = props.modules
-			.map(m =>
-				m.transactionAssets.map(t => ({
-					label: `${m.name}:${t.name}`,
-					value: `${m.name}:${t.name}`,
-				})),
-			)
-			.flat();
-
-		setListOptions(assets);
-		setSelectedAsset(assets[0]);
-	}, [props.modules]);
+	const [validAsset, setValidAsset] = React.useState(true);
+	const assets = props.modules
+		.map(m =>
+			m.transactionAssets.map(t => ({
+				label: `${m.name}:${t.name}`,
+				value: `${m.name}:${t.name}`,
+			})),
+		)
+		.flat();
+	const [selectedAsset, setSelectedAsset] = React.useState<SelectInputOptionType>(assets[0]);
 
 	const handleSubmit = () => {
 		const assetSelectedValue = selectedAsset ? selectedAsset.value : '';
@@ -87,7 +81,7 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 				<Box mb={4}>
 					<SelectInput
 						multi={false}
-						options={listOptions}
+						options={assets}
 						selected={selectedAsset}
 						onChange={val => setSelectedAsset(val)}
 					></SelectInput>
@@ -108,12 +102,20 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 						placeholder={'Asset'}
 						size={'m'}
 						value={asset}
-						onChange={val => setAsset(val)}
+						onChange={val => {
+							try {
+								JSON.parse(val ?? '');
+								setValidAsset(true);
+							} catch (error) {
+								setValidAsset(false);
+							}
+							setAsset(val);
+						}}
 					></TextAreaInput>
 				</Box>
 
 				<Box textAlign={'center'}>
-					<Button size={'m'} onClick={handleSubmit}>
+					<Button size={'m'} onClick={handleSubmit} disabled={!validAsset}>
 						Submit
 					</Button>
 				</Box>

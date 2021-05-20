@@ -28,6 +28,9 @@ import pJSON = require('../../../package.json');
 
 // In order to test the command we need to extended the base crete command and provide application implementation
 class StartCommandExtended extends StartCommand {
+	static flags = {
+		...StartCommand.flags,
+	};
 	public getApplication(): Application {
 		const app = application.getApplication();
 		jest.spyOn(app, 'run').mockResolvedValue();
@@ -111,7 +114,7 @@ describe('start', () => {
 	describe('when unknown network is specified', () => {
 		it('should throw an error', async () => {
 			await expect(StartCommandExtended.run(['-n', 'unknown'], config)).rejects.toThrow(
-				'Network must be one of default but received unknown.',
+				'Network unknown is not supported, supported networks: default.',
 			);
 		});
 	});

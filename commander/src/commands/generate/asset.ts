@@ -52,11 +52,11 @@ export default class AssetCommand extends BaseBootstrapCommand {
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
-		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
+		const regexCamelCase = /[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?/;
 		const regexAlphabets = /[^A-Za-z]/;
 
 		if (
-			regexCamelCase.test(moduleName) ||
+			!regexCamelCase.test(moduleName) ||
 			regexWhitespace.test(moduleName) ||
 			regexAlphabets.test(moduleName)
 		) {
@@ -64,14 +64,14 @@ export default class AssetCommand extends BaseBootstrapCommand {
 		}
 
 		if (
-			regexCamelCase.test(assetName) ||
+			!regexCamelCase.test(assetName) ||
 			regexWhitespace.test(assetName) ||
 			regexAlphabets.test(assetName)
 		) {
 			this.error('Invalid asset name');
 		}
 
-		if (Number.isNaN(Number(assetID)) || Number(assetID) < 1) {
+		if (Number.isNaN(Number(assetID)) || Number(assetID) < 0) {
 			this.error('Invalid asset ID, only positive integers are allowed');
 		}
 

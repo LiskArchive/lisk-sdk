@@ -82,13 +82,12 @@ export interface PluginInfo {
 	readonly exportPath?: string;
 }
 
-export interface InstantiablePlugin<
-	T extends BasePlugin = BasePlugin,
-	U extends PluginOptionsWithAppConfig = PluginOptionsWithAppConfig
-> {
+type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithAppConfig;
+
+export interface InstantiablePlugin<T extends BasePlugin = BasePlugin> {
 	alias: string;
 	info: PluginInfo;
-	new (args: U): T;
+	new (args: ExtractPluginOptions<T>): T;
 }
 
 const decodeTransactionToJSON = (

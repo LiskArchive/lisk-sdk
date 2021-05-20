@@ -21,8 +21,6 @@ docs/jsdoc/
 
 # Logs
 logs/*
-src/logs/
-src/logs.log
 logs.log
 npm-debug.log
 tmux-client-*.log
@@ -34,7 +32,6 @@ stacktrace*
 Session.vim
 
 # Coverage directory used by tools like istanbul
-.coverage-unit/
 .coverage/
 
 # Local config file useful for development

@@ -21,12 +21,16 @@ export default class InitPluginGenerator extends BaseGenerator {
 	protected _liskInitPluginArgs: {
 		alias: string;
 	};
+	protected _registry?: string;
 
 	public constructor(args: string | string[], opts: { alias: string } & BaseGeneratorOptions) {
 		super(args, opts);
 		this._liskInitPluginArgs = {
 			alias: opts.alias,
 		};
+		// Enable skipInstall for env so that the only generator install will run
+		this.env.options.skipInstall = true;
+		this._registry = opts.registry;
 	}
 
 	public async initializing(): Promise<void> {
@@ -59,6 +63,11 @@ export default class InitPluginGenerator extends BaseGenerator {
 	}
 
 	public end(): void {
-		this.installDependencies({ npm: true, bower: false, yarn: false, skipMessage: false });
+		this.installDependencies({
+			npm: this._registry ? { registry: this._registry } : true,
+			bower: false,
+			yarn: false,
+			skipMessage: false,
+		});
 	}
 }

@@ -17,6 +17,7 @@
 import { join } from 'path';
 import { Project, SyntaxKind } from 'ts-morph';
 import * as Generator from 'yeoman-generator';
+import { camelToSnake } from '../../../../utils/convert';
 
 interface PluginPrompts {
 	author: string;
@@ -33,12 +34,14 @@ export default class PluginGenerator extends Generator {
 	protected _templatePath: string;
 	protected _packageJSON: Record<string, unknown> | undefined;
 	protected _className: string;
+	protected _pluginFileName: string;
 	protected _alias: string;
 
 	public constructor(args: string | string[], opts: PluginGeneratorOptions) {
 		super(args, opts);
 		this._templatePath = join(__dirname, '..', 'templates', 'plugin');
 		this._alias = (this.options as PluginGeneratorOptions).alias;
+		this._pluginFileName = camelToSnake(this._alias);
 		this._className = `${this._alias.charAt(0).toUpperCase() + this._alias.slice(1)}Plugin`;
 	}
 
@@ -77,7 +80,9 @@ export default class PluginGenerator extends Generator {
 		// Create plugin
 		this.fs.copyTpl(
 			`${this._templatePath}/src/app/plugins/plugin.ts`,
-			this.destinationPath(`src/app/plugins/${this._alias}/${this._alias}.ts`),
+			this.destinationPath(
+				`src/app/plugins/${this._pluginFileName}/${this._pluginFileName}_plugin.ts`,
+			),
 			{
 				alias: this._alias,
 				className: this._className,
@@ -92,7 +97,9 @@ export default class PluginGenerator extends Generator {
 		// Create unit tests
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/plugins/plugin.spec.ts`,
-			this.destinationPath(`test/unit/plugins/${this._alias}/${this._alias}.spec.ts`),
+			this.destinationPath(
+				`test/unit/plugins/${this._pluginFileName}/${this._pluginFileName}_plugin.spec.ts`,
+			),
 			{
 				alias: this._alias,
 				className: this._className,
@@ -112,7 +119,7 @@ export default class PluginGenerator extends Generator {
 
 		pluginsFile.addImportDeclaration({
 			namedImports: [`${this._className}`],
-			moduleSpecifier: `./plugins/${this._alias}/${this._alias}`,
+			moduleSpecifier: `./plugins/${this._pluginFileName}/${this._pluginFileName}_plugin`,
 		});
 
 		const registerFunction = pluginsFile

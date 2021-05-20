@@ -81,11 +81,31 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			description: 'Amount of tokens distributed to each account',
 			default: 10000000,
 		}),
+		'validators-passphrase-encryption-iterations': flagParser.integer({
+			description: 'Number of iterations to use for passphrase encryption',
+			default: 1000000,
+		}),
+		'validators-hash-onion-count': flagParser.integer({
+			description: 'Number of hashes to produce for each hash-onion',
+			default: 100000,
+		}),
+		'validators-hash-onion-distance': flagParser.integer({
+			description: 'Distance between each hashes for hash-onion',
+			default: 1000,
+		}),
 	};
 
 	async run(): Promise<void> {
 		const {
-			flags: { output, accounts, validators, 'token-distribution': tokenDistribution },
+			flags: {
+				output,
+				accounts,
+				validators,
+				'token-distribution': tokenDistribution,
+				'validators-hash-onion-count': validatorsHashOnionCount,
+				'validators-hash-onion-distance': validatorsHashOnionDistance,
+				'validators-passphrase-encryption-iterations': validatorsPassphraseEncryptionIterations,
+			},
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		} = this.parse(BaseGenesisBlockCommand);
 
@@ -122,8 +142,6 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			total: validators - 1,
 		});
 		const onionSeed = cryptography.generateHashOnionSeed();
-		const onionCount = 10000;
-		const onionDistance = 1000;
 		const password = createMnemonicPassphrase();
 		const passwordList = { defaultPassword: password };
 
@@ -131,13 +149,17 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			const info = {
 				// TODO: use a better password, user sourced using flag
 				encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(
-					cryptography.encryptPassphraseWithPassword(delegate.passphrase, password),
+					cryptography.encryptPassphraseWithPassword(
+						delegate.passphrase,
+						password,
+						validatorsPassphraseEncryptionIterations,
+					),
 				),
 				hashOnion: {
-					count: onionCount,
-					distance: onionDistance,
+					count: validatorsHashOnionCount,
+					distance: validatorsHashOnionDistance,
 					hashes: cryptography
-						.hashOnion(onionSeed, onionCount, onionDistance)
+						.hashOnion(onionSeed, validatorsHashOnionCount, validatorsHashOnionDistance)
 						.map(buf => buf.toString('hex')),
 				},
 				address: delegate.address,

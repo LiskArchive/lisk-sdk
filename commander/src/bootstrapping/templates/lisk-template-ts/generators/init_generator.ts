@@ -74,6 +74,12 @@ export default class InitGenerator extends Generator {
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
 		);
+		// package-template is used because "files" will be in effect while publishing the commander, which ignores the template files in the publish process
+		this.fs.move(
+			this.destinationPath('package-template.json'),
+			this.destinationPath('package.json'),
+		);
+		this.fs.move(this.destinationPath('.gitignore-template'), this.destinationPath('.gitignore'));
 	}
 
 	public end(): void {
@@ -82,6 +88,12 @@ export default class InitGenerator extends Generator {
 			'genesis-block:create',
 			'--output',
 			'config/default',
+			'--validators-passphrase-encryption-iterations',
+			'1',
+			'--validators-hash-onion-count',
+			'10000',
+			'--validators-hash-onion-distance',
+			'1000',
 		]);
 		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'config:create',

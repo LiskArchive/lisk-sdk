@@ -16,7 +16,6 @@
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
-		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
@@ -30,7 +29,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"lisk-framework": "^0.7.5"
+		"lisk-sdk": "^5.1.0-alpha.1"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",
