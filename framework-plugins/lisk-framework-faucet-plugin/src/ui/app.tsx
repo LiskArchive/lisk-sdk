@@ -161,7 +161,7 @@ export const App: React.FC = () => {
 					}}
 				>
 					<p>
-						Successfully sent a funding transaction to:
+						Successfully submitted to transfer funds to:
 						<br />
 						{input}.
 					</p>
