@@ -19,6 +19,7 @@ import {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 	getAddressAndPublicKeyFromPassphrase,
+	getLisk32AddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import axios from 'axios';
@@ -186,15 +187,20 @@ export class FaucetPlugin extends BasePlugin {
 			this.options,
 		) as FaucetPluginOptions;
 
-		const config = {
-			applicationUrl: this._options.applicationUrl,
-			amount: this._options.amount,
-			tokenPrefix: this._options.tokenPrefix,
-			captchaSitekey: this._options.captchaSitekey,
-			logoURL: this._options.logoURL,
-		};
 		const app = express();
-		app.get('/api/config', (_req, res) => res.json(config));
+		app.get('/api/config', (_req, res) => {
+			const config = {
+				applicationUrl: this._options.applicationUrl,
+				amount: this._options.amount,
+				tokenPrefix: this._options.tokenPrefix,
+				captchaSitekey: this._options.captchaSitekey,
+				logoURL: this._options.logoURL,
+				faucetAddress: this._state.publicKey
+					? getLisk32AddressFromPublicKey(this._state.publicKey)
+					: undefined,
+			};
+			res.json(config);
+		});
 		app.use(express.static(join(__dirname, '../../build')));
 		this._server = app.listen(this._options.port, this._options.host);
 	}
