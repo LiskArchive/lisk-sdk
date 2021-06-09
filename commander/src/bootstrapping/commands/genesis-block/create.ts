@@ -79,7 +79,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		'token-distribution': flagParser.integer({
 			char: 't',
 			description: 'Amount of tokens distributed to each account',
-			default: 10000000,
+			default: 100000000000,
 		}),
 		'validators-passphrase-encryption-iterations': flagParser.integer({
 			description: 'Number of iterations to use for passphrase encryption',

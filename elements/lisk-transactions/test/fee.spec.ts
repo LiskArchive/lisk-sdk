@@ -14,7 +14,7 @@
  */
 
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { computeMinFee } from '../src';
+import { computeMinFee, getBytes } from '../src';
 
 describe('fee', () => {
 	const validAssetSchema = {
@@ -100,6 +100,31 @@ describe('fee', () => {
 			// Assert
 			expect(minFee).not.toBeUndefined();
 			expect(minFee).toMatchSnapshot();
+		});
+
+		it('should calculate minimum fee for transaction from multisignature account which has lower number of signatures than registered public keys', () => {
+			// Arrange
+			const options = {
+				minFeePerByte: 1000,
+				baseFees: [],
+				numberOfSignatures: 2,
+				numberOfEmptySignatures: 3,
+			};
+			const transaction = {
+				...validTransaction,
+				signatures: [
+					Buffer.alloc(64),
+					Buffer.alloc(0),
+					Buffer.alloc(0),
+					Buffer.alloc(0),
+					Buffer.alloc(64),
+				],
+			};
+			const minFee = computeMinFee(validAssetSchema, transaction, options);
+			const txBytes = getBytes(validAssetSchema, { ...transaction, fee: minFee });
+
+			// Assert
+			expect(minFee.toString()).toEqual(BigInt(txBytes.length * 1000).toString());
 		});
 
 		it('should calculate minimum fee for delegate registration transaction', () => {

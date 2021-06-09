@@ -1,3 +1,4 @@
+/* eslint-disable arrow-body-style */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as React from 'react';
@@ -20,14 +21,14 @@ interface FaucetConfig {
 	applicationUrl: string;
 	tokenPrefix: string;
 	logoURL?: string;
-	captchaSitekey: string;
+	captchaSitekey?: string;
+	faucetAddress?: string;
 }
 
 const defaultFaucetConfig: FaucetConfig = {
 	amount: '10000000000',
 	applicationUrl: 'ws://localhost:8080/ws',
 	tokenPrefix: 'lsk',
-	captchaSitekey: 'temp',
 };
 
 export const getConfig = async () => {
@@ -44,26 +45,55 @@ export const getConfig = async () => {
 
 declare global {
 	interface Window {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		grecaptcha: any;
 	}
 }
 
 const WarningIcon = () => <span className={`${styles.icon} ${styles.warning}`}>&#xE8B2;</span>;
 
+interface DialogProps {
+	open?: boolean;
+	onClose?: () => void;
+}
+
+const SuccessDialog: React.FC<DialogProps> = props => {
+	return (
+		<div className={`${styles.dialogRoot} ${props.open ? styles.dialogOpen : styles.dialogClose}`}>
+			<div className={styles.dialogBackground}>
+				<div className={styles.dialogModal}>
+					<div className={styles.dialogHeader}>
+						<div className={styles.dialogHeaderContent}>Success</div>
+						<div className={styles.iconButton} onClick={props.onClose}>
+							<span className={styles.icon}>close</span>;
+						</div>
+					</div>
+					<div className={styles.dialogBody}>{props.children}</div>
+				</div>
+			</div>
+		</div>
+	);
+};
+
 export const App: React.FC = () => {
-	const faucetAddress = 'lskdwsyfmcko6mcd357446yatromr9vzgu7eb8y99';
 	const [input, updateInput] = React.useState('');
 	const [errorMsg, updateErrorMsg] = React.useState('');
+	const [showSuccessDialog, updateShowSuccessDialog] = React.useState(false);
 	const [token, updateToken] = React.useState<string | undefined>();
 	const [recaptchaReady, updateRecaptchaReady] = React.useState(false);
 	const [config, setConfig] = React.useState<FaucetConfig>(defaultFaucetConfig);
 	React.useEffect(() => {
 		const initConfig = async () => {
 			const fetchedConfig = await getConfig();
-			setConfig(fetchedConfig);
+			setConfig({ ...fetchedConfig });
 		};
 		initConfig().catch(console.error);
-
+	}, []);
+	React.useEffect(() => {
+		if (config.captchaSitekey === undefined) {
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
+			return () => {};
+		}
 		const script = document.createElement('script');
 		script.src = 'https://www.google.com/recaptcha/api.js';
 		script.async = true;
@@ -90,7 +120,7 @@ export const App: React.FC = () => {
 		return () => {
 			document.body.removeChild(script);
 		};
-	}, []);
+	}, [config]);
 
 	const onChange = (val: string) => {
 		updateInput(val);
@@ -111,6 +141,7 @@ export const App: React.FC = () => {
 				token,
 			});
 			updateErrorMsg('');
+			updateShowSuccessDialog(true);
 		} catch (error) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			updateErrorMsg(error?.message ?? 'Fail to connect to server');
@@ -122,6 +153,19 @@ export const App: React.FC = () => {
 				<img src={config.logoURL ?? logo} className={styles.logo} alt="logo" />
 			</header>
 			<section className={styles.content}>
+				<SuccessDialog
+					open={showSuccessDialog}
+					onClose={() => {
+						updateInput('');
+						updateShowSuccessDialog(false);
+					}}
+				>
+					<p>
+						Successfully submitted to transfer funds to:
+						<br />
+						{input}.
+					</p>
+				</SuccessDialog>
 				<div className={styles.main}>
 					<h1>All tokens are for testing purposes only</h1>
 					<h2>
@@ -132,7 +176,7 @@ export const App: React.FC = () => {
 						<div className={styles.input}>
 							<input
 								className={`${errorMsg !== '' ? styles.error : ''}`}
-								placeholder={faucetAddress}
+								placeholder={config.faucetAddress}
 								value={input}
 								onChange={e => onChange(e.target.value)}
 							/>
@@ -150,7 +194,7 @@ export const App: React.FC = () => {
 					<div className={styles.address}>
 						<p>
 							<span className={styles.addressLabel}>Faucet address:</span>
-							<span className={styles.addressValue}>{faucetAddress}</span>
+							<span className={styles.addressValue}>{config.faucetAddress}</span>
 						</p>
 					</div>
 				</div>
