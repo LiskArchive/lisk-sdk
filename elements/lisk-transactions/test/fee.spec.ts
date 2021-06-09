@@ -104,8 +104,13 @@ describe('fee', () => {
 
 		it('should calculate minimum fee for transaction from multisignature account which has lower number of signatures than registered public keys', () => {
 			// Arrange
-			const options = { minFeePerByte: 1000, baseFees: [], numberOfSignatures: 2, numberOfEmptySignatures: 3 };
-			const transaction =  {
+			const options = {
+				minFeePerByte: 1000,
+				baseFees: [],
+				numberOfSignatures: 2,
+				numberOfEmptySignatures: 3,
+			};
+			const transaction = {
 				...validTransaction,
 				signatures: [
 					Buffer.alloc(64),
@@ -113,7 +118,7 @@ describe('fee', () => {
 					Buffer.alloc(0),
 					Buffer.alloc(0),
 					Buffer.alloc(64),
-				]
+				],
 			};
 			const minFee = computeMinFee(validAssetSchema, transaction, options);
 			const txBytes = getBytes(validAssetSchema, { ...transaction, fee: minFee });
