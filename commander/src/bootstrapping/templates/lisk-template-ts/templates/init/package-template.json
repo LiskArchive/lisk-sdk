@@ -105,7 +105,7 @@
 		"@oclif/plugin-help": "3.2.2",
 		"fs-extra": "9.0.1",
 		"inquirer": "7.3.2",
-		"lisk-commander": "^5.1.1",
+		"lisk-commander": "^5.1.2",
 		"lisk-sdk": "^5.1.1",
 		"tar": "6.0.2",
 		"tslib": "1.13.0",
