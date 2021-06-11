@@ -22,9 +22,10 @@ interface BaseFee {
 }
 
 interface Options {
-	readonly minFeePerByte: number;
-	readonly baseFees: BaseFee[];
-	readonly numberOfSignatures: number;
+	readonly minFeePerByte?: number;
+	readonly baseFees?: BaseFee[];
+	readonly numberOfSignatures?: number;
+	readonly numberOfEmptySignatures?: number;
 }
 
 const DEFAULT_MIN_FEE_PER_BYTE = 1000;
@@ -37,14 +38,18 @@ const computeTransactionMinFee = (
 	trx: Record<string, unknown>,
 	options?: Options,
 ): bigint => {
+	const mockSignatures = new Array(
+		options?.numberOfSignatures ?? DEFAULT_NUMBER_OF_SIGNATURES,
+	).fill(Buffer.alloc(DEFAULT_SIGNATURE_BYTE_SIZE));
+	if (options?.numberOfEmptySignatures) {
+		mockSignatures.push(...new Array(options.numberOfEmptySignatures).fill(Buffer.alloc(0)));
+	}
 	const size = getBytes(assetSchema, {
 		...trx,
-		signatures: new Array(options?.numberOfSignatures ?? DEFAULT_NUMBER_OF_SIGNATURES).fill(
-			Buffer.alloc(DEFAULT_SIGNATURE_BYTE_SIZE),
-		),
+		signatures: mockSignatures,
 	}).length;
 	const baseFee =
-		options?.baseFees.find(bf => bf.moduleID === trx.moduleID && bf.assetID === trx.assetID)
+		options?.baseFees?.find(bf => bf.moduleID === trx.moduleID && bf.assetID === trx.assetID)
 			?.baseFee ?? DEFAULT_BASE_FEE;
 	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE)) + BigInt(baseFee);
 };

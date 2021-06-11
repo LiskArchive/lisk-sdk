@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
 $color-white: #ffffff;
 $color-blue-gray: #8a8ca2;
 $color-fury-red: #ff4557;
@@ -224,4 +226,140 @@ $breakpoint-down: (
 	position: absolute;
 	top: 10px;
 	right: 10px;
+}
+
+.dialogRoot {
+	display: none;
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	top: 0;
+	left: 0;
+	transform: scale(1);
+	overflow: auto;
+	z-index: 10;
+}
+
+.dialogBackground {
+	background: rgba(15, 25, 51, 0.85);
+	text-align: center;
+	width: 100%;
+	min-height: 100%;
+}
+
+.dialogModal {
+	display: inline-block;
+	position: relative;
+	background: #0c152e;
+	backdrop-filter: blur(75px);
+	border-radius: 8px;
+	padding: 0px;
+	box-sizing: border-box;
+
+	margin: 130px auto;
+
+	width: 40%;
+
+	@include mq-down('md') {
+		max-width: 80%;
+		margin: 50px auto;
+	}
+
+	@include mq-down('sm') {
+		width: 100%;
+		max-width: 100%;
+		margin: 0;
+		height: 100%;
+	}
+}
+
+.dialogOpen {
+	transform: scale(1);
+	display: block;
+	transition: transform 0.3s;
+
+	.dialogModal {
+		animation: blowUpModal 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+	}
+}
+
+.dialogClose {
+	transform: scale(0);
+	transition: transform 0.3s;
+
+	.dialogModal {
+		animation: blowUpModalTwo 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+	}
+}
+
+.dialogHeader {
+	padding: 20px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.dialogHeaderContent {
+	flex-grow: 1;
+	margin-right: 20px;
+	font-family: 'Poppins';
+	font-size: 28px;
+	font-weight: 700;
+	line-height: 1.2;
+	letter-spacing: 0;
+	color: $color-white;
+	text-align: left;
+}
+
+.dialogBody {
+	padding: 16px;
+	margin: 0px 22px 22px;
+	font-family: Roboto;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 16px;
+	line-height: 22px;
+	letter-spacing: 0.2px;
+	text-align: left;
+	color: $color-white;
+
+	@include mq-down('sm') {
+		height: 90%;
+		overflow: auto;
+	}
+}
+
+.dialogAdddress {
+	color: #4070f4;
+}
+
+.iconButton {
+	display: inline-block;
+	cursor: pointer;
+}
+
+.icon {
+	font-family: 'Material Icons';
+	font-weight: normal;
+	font-style: normal;
+	font-size: $font-size-m;
+	display: inline-block;
+	line-height: 1;
+	text-transform: none;
+	letter-spacing: normal;
+	word-wrap: normal;
+	white-space: nowrap;
+	direction: ltr;
+	color: $color-white;
+
+	/* Support for all WebKit browsers. */
+	-webkit-font-smoothing: antialiased;
+	/* Support for Safari and Chrome. */
+	text-rendering: optimizeLegibility;
+
+	/* Support for Firefox. */
+	-moz-osx-font-smoothing: grayscale;
+
+	/* Support for IE. */
+	font-feature-settings: 'liga';
 }
