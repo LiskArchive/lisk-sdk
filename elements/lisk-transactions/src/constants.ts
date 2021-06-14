@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +10,8 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-export { computeMinFee } from './fee';
-export { convertBeddowsToLSK, convertLSKToBeddows } from './format';
-export { getBytes, getSigningBytes, signTransaction, signMultiSignatureTransaction } from './sign';
-export { validateTransaction } from './validate';
-export * from './constants';
+import { createMessageTag } from '@liskhq/lisk-cryptography';
+
+export const TAG_TRANSACTION = createMessageTag('TX');

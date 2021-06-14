@@ -28,7 +28,7 @@ export {
 	stateDiffSchema,
 	getRegisteredBlockAssetSchema,
 } from './schema';
-export { CONSENSUS_STATE_VALIDATORS_KEY, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from './constants';
+export { CONSENSUS_STATE_VALIDATORS_KEY, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY, TAG_BLOCK_HEADER, TAG_TRANSACTION } from './constants';
 export type {
 	Account,
 	AccountDefaultProps,
