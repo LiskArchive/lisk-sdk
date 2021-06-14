@@ -22,6 +22,7 @@ export * from './keys';
 export * from './legacy_address';
 export * from './sign';
 export * from './hash_onion';
+export * from './message_tag';
 export { getRandomBytes } from './nacl';
 
 export { constants };
