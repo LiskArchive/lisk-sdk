@@ -25,6 +25,7 @@ import {
 	verifyData,
 	digestMessage,
 } from '../src/sign';
+import { createMessageTag } from '../src/message_tag';
 // Require is used for stubbing
 // eslint-disable-next-line
 const keys = require('../src/keys');
@@ -32,6 +33,11 @@ const keys = require('../src/keys');
 const changeLength = (buffer: Buffer): Buffer => Buffer.concat([Buffer.from('00', 'hex'), buffer]);
 
 describe('sign', () => {
+	const tag = createMessageTag('TST');
+	const networkIdentifier = Buffer.from(
+		'30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb455',
+		'hex',
+	);
 	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPrivateKey =
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
@@ -52,7 +58,7 @@ ${defaultSignature}
 
 	const defaultData = Buffer.from('This is some data');
 	const defaultDataSignature =
-		'b8704e11c4d9fad9960c7b6a69dcf48c1bede5b74ed8974cd005d9a407deef618dd800fe69ceed1fd52bb1e0881e71aec137c35b90eda9afe93716a5652ee009';
+		'446f811d6d6b9d216310a3ad3b458b17704e9559db123ff465a83d5b3080da04a030513d5071bcd30d57ec59c351ce68784563d7528c7be642b0ed215ce91008';
 
 	let defaultSignedMessage: SignedMessageWithOnePassphrase;
 
@@ -175,7 +181,7 @@ ${defaultSignature}
 		let signature: Buffer;
 
 		beforeEach(async () => {
-			signature = signData(defaultData, defaultPassphrase);
+			signature = signData(tag, networkIdentifier, defaultData, defaultPassphrase);
 			return Promise.resolve();
 		});
 
@@ -188,7 +194,7 @@ ${defaultSignature}
 		let signature: Buffer;
 
 		beforeEach(async () => {
-			signature = signDataWithPassphrase(defaultData, defaultPassphrase);
+			signature = signDataWithPassphrase(tag, networkIdentifier, defaultData, defaultPassphrase);
 			return Promise.resolve();
 		});
 
@@ -201,7 +207,12 @@ ${defaultSignature}
 		let signature: Buffer;
 
 		beforeEach(async () => {
-			signature = signDataWithPrivateKey(defaultData, Buffer.from(defaultPrivateKey, 'hex'));
+			signature = signDataWithPrivateKey(
+				tag,
+				networkIdentifier,
+				defaultData,
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			return Promise.resolve();
 		});
 
@@ -213,6 +224,8 @@ ${defaultSignature}
 	describe('#verifyData', () => {
 		it('should return false for an invalid signature', () => {
 			const verification = verifyData(
+				tag,
+				networkIdentifier,
 				defaultData,
 				makeInvalid(Buffer.from(defaultDataSignature, 'hex')),
 				Buffer.from(defaultPublicKey, 'hex'),
@@ -222,6 +235,8 @@ ${defaultSignature}
 
 		it('should return true for a valid signature', () => {
 			const verification = verifyData(
+				tag,
+				networkIdentifier,
 				defaultData,
 				Buffer.from(defaultDataSignature, 'hex'),
 				Buffer.from(defaultPublicKey, 'hex'),
