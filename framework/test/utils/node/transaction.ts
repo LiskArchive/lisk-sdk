@@ -1,4 +1,3 @@
-import { TAG_TRANSACTION } from './../../../../elements/lisk-chain/src/constants';
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -14,7 +13,7 @@ import { TAG_TRANSACTION } from './../../../../elements/lisk-chain/src/constants
  *
  */
 
-import { Transaction, BlockHeader } from '@liskhq/lisk-chain';
+import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';

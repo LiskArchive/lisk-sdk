@@ -1,4 +1,3 @@
-import { TAG_TRANSACTION } from './../../../../../elements/lisk-chain/src/constants';
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -13,7 +12,7 @@ import { TAG_TRANSACTION } from './../../../../../elements/lisk-chain/src/consta
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { Transaction } from '@liskhq/lisk-chain';
+import { Transaction, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getRandomBytes,

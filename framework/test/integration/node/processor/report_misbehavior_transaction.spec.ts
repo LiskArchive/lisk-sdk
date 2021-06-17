@@ -1,4 +1,3 @@
-import { TAG_TRANSACTION } from './../../../../../elements/lisk-chain/src/constants';
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -12,7 +11,7 @@ import { TAG_TRANSACTION } from './../../../../../elements/lisk-chain/src/consta
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Block } from '@liskhq/lisk-chain';
+import { Block, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { signData, getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
 
 import { nodeUtils } from '../../../utils';

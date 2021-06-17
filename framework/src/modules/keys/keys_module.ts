@@ -1,4 +1,3 @@
-import { TAG_TRANSACTION } from './../../../../elements/lisk-chain/src/constants';
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -13,6 +12,7 @@ import { TAG_TRANSACTION } from './../../../../elements/lisk-chain/src/constants
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
