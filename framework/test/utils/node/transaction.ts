@@ -1,3 +1,4 @@
+import { TAG_TRANSACTION } from './../../../../elements/lisk-chain/src/constants';
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -48,7 +49,7 @@ export const createTransferTransaction = (input: {
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
 };
@@ -75,7 +76,7 @@ export const createDelegateRegisterTransaction = (input: {
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
 };
@@ -102,7 +103,7 @@ export const createDelegateVoteTransaction = (input: {
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
 };
@@ -221,7 +222,7 @@ export const createReportMisbehaviorTransaction = (input: {
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
 };

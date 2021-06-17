@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
-import { Block, Chain, Transaction } from '@liskhq/lisk-chain';
+import { Block, Chain, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { KVStore } from '@liskhq/lisk-db';
 import {
@@ -577,7 +577,9 @@ describe('Synchronizer', () => {
 				signatures: [],
 			});
 			const signature = signDataWithPassphrase(
-				Buffer.concat([defaultNetworkIdentifier, transaction.getBytes()]),
+				TAG_TRANSACTION,
+				defaultNetworkIdentifier,
+				transaction.getBytes(),
 				genesis.passphrase,
 			);
 			(transaction.signatures as Buffer[]).push(signature);

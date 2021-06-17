@@ -1,3 +1,4 @@
+import { TAG_TRANSACTION } from './../../../../../elements/lisk-chain/src/constants';
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -73,7 +74,9 @@ describe('Transaction order', () => {
 				.getDataAccess()
 				.encodeBlockHeader(conflictingBlockHeader, true);
 			const signature = signData(
-				Buffer.concat([networkIdentifier, conflictingBytes]),
+				TAG_TRANSACTION,
+				networkIdentifier,
+				conflictingBytes,
 				blockGenerator,
 			);
 			const tx = createReportMisbehaviorTransaction({

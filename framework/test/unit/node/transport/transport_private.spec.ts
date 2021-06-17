@@ -1,3 +1,4 @@
+import { TAG_TRANSACTION } from './../../../../../elements/lisk-chain/src/constants';
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -70,7 +71,9 @@ describe('transport', () => {
 		});
 		(transaction.signatures as Buffer[]).push(
 			signDataWithPassphrase(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				TAG_TRANSACTION,
+				Buffer.from(networkIdentifier, 'hex'),
+				transaction.getBytes(),
 				genesis.passphrase,
 			),
 		);
@@ -86,7 +89,9 @@ describe('transport', () => {
 		});
 		(transactionOne.signatures as Buffer[]).push(
 			signDataWithPassphrase(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				TAG_TRANSACTION,
+				Buffer.from(networkIdentifier, 'hex'),
+				transaction.getBytes(),
 				genesis.passphrase,
 			),
 		);
@@ -101,7 +106,9 @@ describe('transport', () => {
 		});
 		(transactionOne.signatures as Buffer[]).push(
 			signDataWithPassphrase(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				TAG_TRANSACTION,
+				Buffer.from(networkIdentifier, 'hex'),
+				transaction.getBytes(),
 				genesis.passphrase,
 			),
 		);

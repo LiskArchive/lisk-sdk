@@ -21,7 +21,13 @@ import {
 	getAddressFromPublicKey,
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { Account, GenesisBlock, Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import {
+	Account,
+	GenesisBlock,
+	Transaction,
+	transactionSchema,
+	TAG_TRANSACTION,
+} from '@liskhq/lisk-chain';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { KeysModule } from '../../../../src/modules/keys/keys_module';
 import * as fixtures from './fixtures.json';
@@ -194,7 +200,9 @@ describe('keys module', () => {
 
 				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
-						"Failed to validate signature 'de6caeeffe15062fe6fe0aff5759d71533bcd1af67759fbb98cd25bfd9bcd427e62625a778d9c9e665646847c37002bb83429f906733c144ca9f36fb5a5c3e05' for transaction with id 'd2e33dd7435b26988adcb8188fa493400374f4cc5f2672868e45d88cc1377118'",
+						`Failed to validate signature '${invalidTransaction.signatures[1].toString(
+							'hex',
+						)}' for transaction with id '${invalidTransactionInstance.id.toString('hex')}'`,
 					),
 				);
 			});
@@ -216,7 +224,9 @@ describe('keys module', () => {
 
 				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
-						"Failed to validate signature '1c106815d159bac122fa09910d10911c96b9535d3391fe2573ac2175aaaa6279f5c23664b9cf66cc86229ec44414adf4abc315a5017dd473a1effcdc6a8d6c0f' for transaction with id '40604f3690f4b9b4ed66cb3e0a2e713650d29e24b7fc3ecff9b431ab8778ffe0'",
+						`Failed to validate signature '${invalidTransactionInstance.signatures[3].toString(
+							'hex',
+						)}' for transaction with id '${invalidTransactionInstance.id.toString('hex')}'`,
 					),
 				);
 			});
@@ -241,7 +251,9 @@ describe('keys module', () => {
 
 				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
-						"Failed to validate signature 'a99b7e99b7a0427f9da21ad9b157e65484a45fec7757b9f8f990979b28b1a7013acf17a20c87d416281ed96a5df662e6cebb7f64a639c4b27aa5710a0483210b' for transaction with id 'e9fb4bb213b6cea562978cd422a5597f10287907f2d7d007024e092339eda319'",
+						`Failed to validate signature '${invalidTransaction.signatures[1].toString(
+							'hex',
+						)}' for transaction with id '${invalidTransactionInstance.id.toString('hex')}'`,
 					),
 				);
 			});
@@ -266,7 +278,9 @@ describe('keys module', () => {
 
 				return expect(keysModule.beforeTransactionApply(context)).rejects.toStrictEqual(
 					new Error(
-						"Failed to validate signature 'db938aaf2719a80017844f1968e35ce927124dcf7c04a0b0d9268aa7c9ad1ce50e61905c1bb8a902b982e25343c232fae5f06cd828b7d11ca53f18820ead8c08' for transaction with id '71b1dbf26b7c0e91bcb1fe9570cc0875aa616de4a3b927fc544045bdf37889bc'",
+						`Failed to validate signature '${invalidTransaction.signatures[3].toString(
+							'hex',
+						)}' for transaction with id '${invalidTransactionInstance.id.toString('hex')}'`,
 					),
 				);
 			});
@@ -285,7 +299,9 @@ describe('keys module', () => {
 				});
 
 				const signature = signDataWithPassphrase(
-					Buffer.concat([networkIdentifier, transaction.getBytes()]),
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getBytes(),
 					passphrase,
 				);
 
@@ -336,7 +352,9 @@ describe('keys module', () => {
 				});
 
 				const signature = signDataWithPassphrase(
-					Buffer.concat([getRandomBytes(20), transaction.getBytes()]),
+					TAG_TRANSACTION,
+					getRandomBytes(20),
+					transaction.getBytes(),
 					passphrase,
 				);
 
@@ -432,21 +450,27 @@ describe('keys module', () => {
 			it('should not throw for valid transaction', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -471,7 +495,9 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -490,21 +516,27 @@ describe('keys module', () => {
 			it('should not throw for valid transaction when first optional is present', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -523,14 +555,18 @@ describe('keys module', () => {
 			it('should not throw for valid transaction when second optional is present', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
@@ -539,7 +575,9 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -556,21 +594,27 @@ describe('keys module', () => {
 			it('should throw for transaction where non optional absent signature is not empty buffer', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -593,28 +637,36 @@ describe('keys module', () => {
 			it('should throw error if number of provided signatures is bigger than numberOfSignatures in account asset', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -637,14 +689,18 @@ describe('keys module', () => {
 			it('should throw error if number of provided signatures is smaller than numberOfSignatures in account asset', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
@@ -669,7 +725,9 @@ describe('keys module', () => {
 			it('should throw for transaction with valid numberOfSignatures but missing mandatory key signature', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
@@ -678,14 +736,18 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -702,21 +764,27 @@ describe('keys module', () => {
 			it('should throw error if any of the mandatory signatures is not valid', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -735,14 +803,18 @@ describe('keys module', () => {
 			it('should throw error if any of the optional signatures is not valid', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
@@ -751,7 +823,9 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalB.passphrase,
 					),
 				);
@@ -777,21 +851,27 @@ describe('keys module', () => {
 			it('should throw error if mandatory signatures are not in order', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalA.passphrase,
 					),
 				);
@@ -816,14 +896,18 @@ describe('keys module', () => {
 			it('should throw error if optional signatures are not in order', async () => {
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryA.passphrase,
 					),
 				);
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).mandatoryB.passphrase,
 					),
 				);
@@ -832,7 +916,9 @@ describe('keys module', () => {
 
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
 						(members as any).optionalA.passphrase,
 					),
 				);

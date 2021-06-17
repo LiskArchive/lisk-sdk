@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, DataAccess } from '@liskhq/lisk-chain';
+import { Chain, DataAccess, TAG_BLOCK_HEADER } from '@liskhq/lisk-chain';
 
 import {
 	getRandomBytes,
@@ -92,7 +92,9 @@ describe('given a block with protocol violation', () => {
 			(nextBlock.header as any).reward = BigInt(500000000);
 			(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 			const signature = signDataWithPrivateKey(
-				Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+				TAG_BLOCK_HEADER,
+				networkIdentifier,
+				dataAccess.encodeBlockHeader(nextBlock.header, true),
 				getPrivateKey(address),
 			);
 			(nextBlock.header as any).signature = signature;
@@ -113,7 +115,9 @@ describe('given a block with protocol violation', () => {
 			(nextBlock.header as any).reward = BigInt(0);
 			(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 			const signature = signDataWithPrivateKey(
-				Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+				TAG_BLOCK_HEADER,
+				networkIdentifier,
+				dataAccess.encodeBlockHeader(nextBlock.header, true),
 				getPrivateKey(address),
 			);
 			(nextBlock.header as any).signature = signature;
@@ -133,7 +137,9 @@ describe('given a block with protocol violation', () => {
 			(nextBlock.header as any).reward = BigInt(500000000);
 			(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 			const signature = signDataWithPrivateKey(
-				Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+				TAG_BLOCK_HEADER,
+				networkIdentifier,
+				dataAccess.encodeBlockHeader(nextBlock.header, true),
 				getPrivateKey(target),
 			);
 			(nextBlock.header as any).signature = signature;
@@ -157,7 +163,9 @@ describe('given a block with protocol violation', () => {
 			(nextBlock.header as any).reward = BigInt(500000000);
 			(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
 			const signature = signDataWithPrivateKey(
-				Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+				TAG_BLOCK_HEADER,
+				networkIdentifier,
+				dataAccess.encodeBlockHeader(nextBlock.header, true),
 				getPrivateKey(target),
 			);
 			(nextBlock.header as any).signature = signature;
@@ -179,7 +187,9 @@ describe('given a block with protocol violation', () => {
 			(nextBlock.header as any).reward = BigInt(125000000);
 			(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
 			const signature = signDataWithPrivateKey(
-				Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+				TAG_BLOCK_HEADER,
+				networkIdentifier,
+				dataAccess.encodeBlockHeader(nextBlock.header, true),
 				getPrivateKey(target),
 			);
 			(nextBlock.header as any).signature = signature;
@@ -205,7 +215,9 @@ describe('given a block with protocol violation', () => {
 			(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
 			(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 			const signature = signDataWithPrivateKey(
-				Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+				TAG_BLOCK_HEADER,
+				networkIdentifier,
+				dataAccess.encodeBlockHeader(nextBlock.header, true),
 				getPrivateKey(target),
 			);
 			(nextBlock.header as any).signature = signature;
@@ -227,7 +239,9 @@ describe('given a block with protocol violation', () => {
 			(nextBlock.header as any).asset.maxHeightPreviouslyForged = nextBlock.header.height;
 			(nextBlock.header as any).asset.seedReveal = getRandomBytes(16);
 			const signature = signDataWithPrivateKey(
-				Buffer.concat([networkIdentifier, dataAccess.encodeBlockHeader(nextBlock.header, true)]),
+				TAG_BLOCK_HEADER,
+				networkIdentifier,
+				dataAccess.encodeBlockHeader(nextBlock.header, true),
 				privateKey,
 			);
 			(nextBlock.header as any).signature = signature;
