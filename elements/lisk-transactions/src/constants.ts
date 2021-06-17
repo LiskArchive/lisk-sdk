@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,19 +10,8 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import * as constants from './constants';
 
-export * from './buffer';
-export * from './convert';
-export * from './encrypt';
-export * from './hash';
-export * from './keys';
-export * from './legacy_address';
-export * from './sign';
-export * from './hash_onion';
-export * from './message_tag';
-export { getRandomBytes } from './nacl';
+import { createMessageTag } from '@liskhq/lisk-cryptography';
 
-export { constants };
+export const TAG_TRANSACTION = createMessageTag('TX');

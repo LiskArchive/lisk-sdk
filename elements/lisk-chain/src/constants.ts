@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { createMessageTag, hash } from '@liskhq/lisk-cryptography';
 
 export const CHAIN_STATE_BURNT_FEE = 'burntFee';
 export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'finalizedHeight';
@@ -33,3 +33,6 @@ export const GENESIS_BLOCK_GENERATOR_PUBLIC_KEY = EMPTY_BUFFER;
 export const GENESIS_BLOCK_REWARD = BigInt(0);
 export const GENESIS_BLOCK_SIGNATURE = EMPTY_BUFFER;
 export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;
+
+export const TAG_BLOCK_HEADER = createMessageTag('BH');
+export const TAG_TRANSACTION = createMessageTag('TX');
