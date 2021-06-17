@@ -20,7 +20,7 @@ const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
 
 const codec = new Codec();
-
+const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
 const networkIdentifier = Buffer.from(
 	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 	'hex',
@@ -291,7 +291,10 @@ const generateValidUpvoteTransaction = () => {
 	};
 	const signBytes = getSignBytes(unsignedTransaction);
 	const signature = Buffer.from(
-		signData(Buffer.concat([networkIdentifier, signBytes]), senderAccount.passphrase),
+		signData(
+			Buffer.concat([TAG_TRANSACTION, networkIdentifier, signBytes]),
+			senderAccount.passphrase,
+		),
 		'hex',
 	);
 	const encodedTx = encode({ ...unsignedTransaction, signatures: [signature] });
@@ -371,7 +374,10 @@ const generateValidDownvoteTransaction = () => {
 
 	const signBytes = getSignBytes(unsignedTransaction);
 	const signature = Buffer.from(
-		signData(Buffer.concat([networkIdentifier, signBytes]), senderAccount.passphrase),
+		signData(
+			Buffer.concat([TAG_TRANSACTION, networkIdentifier, signBytes]),
+			senderAccount.passphrase,
+		),
 		'hex',
 	);
 	const encodedTx = encode({ ...unsignedTransaction, signatures: [signature] });
@@ -491,7 +497,10 @@ const generateValidUpvoteAndDownvoteVoteTransaction = () => {
 
 	const signBytes = getSignBytes(unsignedTransaction);
 	const signature = Buffer.from(
-		signData(Buffer.concat([networkIdentifier, signBytes]), senderAccount.passphrase),
+		signData(
+			Buffer.concat([TAG_TRANSACTION, networkIdentifier, signBytes]),
+			senderAccount.passphrase,
+		),
 		'hex',
 	);
 	const encodedTx = encode({ ...unsignedTransaction, signatures: [signature] });

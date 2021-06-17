@@ -20,7 +20,7 @@ const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
 
 const codec = new Codec();
-
+const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
 const accounts = [
 	{
 		passphrase: 'wear protect skill sentence lift enter wild sting lottery power floor neglect',
@@ -122,7 +122,7 @@ const generateValidTransferTransaction = () => {
 	const signingBytes = codec.encode(baseTransactionSchema, signingTx);
 
 	const signature = Buffer.from(
-		signData(Buffer.concat([networkIdentifier, signingBytes]), accounts[0].passphrase),
+		signData(TAG_TRANSACTION, networkIdentifier, signingBytes, accounts[0].passphrase),
 		'hex',
 	);
 
@@ -171,7 +171,10 @@ const generateValidDelegateTransaction = () => {
 	const signingBytes = codec.encode(baseTransactionSchema, signingTx);
 
 	const signature = Buffer.from(
-		signData(Buffer.concat([networkIdentifier, signingBytes]), accounts[0].passphrase),
+		signData(
+			Buffer.concat([TAG_TRANSACTION, networkIdentifier, signingBytes]),
+			accounts[0].passphrase,
+		),
 		'hex',
 	);
 

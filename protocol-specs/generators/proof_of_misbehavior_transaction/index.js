@@ -26,7 +26,8 @@ const { baseTransactionSchema } = require('../../utils/schema');
 const BaseGenerator = require('../base_generator');
 
 const codec = new Codec();
-
+const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
+const TAG_BLOCK_HEADER = Buffer.from('LSK_BH_', 'utf8');
 const networkIdentifier = Buffer.from(
 	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 	'hex',
@@ -95,7 +96,10 @@ const sign = (header, privateKey) => {
 		asset: assetBytes,
 	});
 	return Buffer.from(
-		signDataWithPrivateKey(Buffer.concat([networkIdentifier, blockBytes]), privateKey),
+		signDataWithPrivateKey(
+			Buffer.concat([TAG_BLOCK_HEADER, networkIdentifier, blockBytes]),
+			privateKey,
+		),
 		'hex',
 	);
 };
@@ -141,7 +145,7 @@ const encode = tx => {
 
 const createSignatureObject = (txBuffer, account) => ({
 	signature: Buffer.from(
-		signData(Buffer.concat([networkIdentifier, txBuffer]), account.passphrase),
+		signData(Buffer.concat([TAG_TRANSACTION, networkIdentifier, txBuffer]), account.passphrase),
 		'hex',
 	),
 });
