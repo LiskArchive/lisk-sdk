@@ -16,6 +16,7 @@ import { getRandomBytes, signData } from '@liskhq/lisk-cryptography';
 import { genesisAccount } from './account';
 import { defaultNetworkIdentifier } from './block';
 import { Transaction } from '../../src/transaction';
+import { TAG_TRANSACTION } from '../../src';
 
 export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 	const tx = new Transaction({
@@ -28,7 +29,9 @@ export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 		signatures: [],
 	});
 	const signature = signData(
-		Buffer.concat([defaultNetworkIdentifier, tx.getSigningBytes()]),
+		TAG_TRANSACTION,
+		defaultNetworkIdentifier,
+		tx.getSigningBytes(),
 		genesisAccount.passphrase,
 	);
 	(tx.signatures as Buffer[]).push(signature);
