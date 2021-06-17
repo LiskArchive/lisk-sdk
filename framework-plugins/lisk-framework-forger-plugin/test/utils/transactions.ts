@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { DPoSVoteAsset, TokenTransferAsset, Transaction, testing } from 'lisk-framework';
-import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
+import { convertLSKToBeddows, TAG_TRANSACTION } from '@liskhq/lisk-transactions';
 import { codec } from '@liskhq/lisk-codec';
 import { signData } from '@liskhq/lisk-cryptography';
 
@@ -45,7 +45,7 @@ export const createTransferTransaction = ({
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([networkIdentifier, tx.getSigningBytes()]), genesisAccount.passphrase),
+		signData(TAG_TRANSACTION, networkIdentifier, tx.getSigningBytes(), genesisAccount.passphrase),
 	);
 	return tx;
 };
@@ -83,7 +83,7 @@ export const createVoteTransaction = ({
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([networkIdentifier, tx.getSigningBytes()]), genesisAccount.passphrase),
+		signData(TAG_TRANSACTION, networkIdentifier, tx.getSigningBytes(), genesisAccount.passphrase),
 	);
 	return tx;
 };
