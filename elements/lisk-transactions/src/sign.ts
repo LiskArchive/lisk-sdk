@@ -17,6 +17,7 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData, hash } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
+import { TAG_TRANSACTION } from './constants';
 
 interface MultiSignatureKeys {
 	readonly mandatoryKeys: Array<Buffer>;
@@ -88,12 +89,12 @@ export const signTransaction = (
 		throw new Error('Transaction senderPublicKey does not match public key from passphrase');
 	}
 
-	const transactionWithNetworkIdentifierBytes = Buffer.concat([
+	const signature = signData(
+		TAG_TRANSACTION,
 		networkIdentifier,
 		getSigningBytes(assetSchema, transactionObject),
-	]);
-
-	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
+		passphrase,
+	);
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
 	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
@@ -148,11 +149,12 @@ export const signMultiSignatureTransaction = (
 	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-	const transactionWithNetworkIdentifierBytes = Buffer.concat([
+	const signature = signData(
+		TAG_TRANSACTION,
 		networkIdentifier,
 		getSigningBytes(assetSchema, transactionObject),
-	]);
-	const signature = signData(transactionWithNetworkIdentifierBytes, passphrase);
+		passphrase,
+	);
 
 	if (
 		includeSenderSignature &&

@@ -31,5 +31,13 @@ export const createMessageTag = (domain: string, version?: number | string): str
 	return `LSK_${version ? `${domain}:${version}` : domain}_`;
 };
 
-export const tagMessage = (tag: string, networkIdentifier: Buffer, message: Buffer): Buffer =>
-	Buffer.concat([Buffer.from(tag, 'utf8'), networkIdentifier, message]);
+export const tagMessage = (
+	tag: string,
+	networkIdentifier: Buffer,
+	message: string | Buffer,
+): Buffer =>
+	Buffer.concat([
+		Buffer.from(tag, 'utf8'),
+		networkIdentifier,
+		typeof message === 'string' ? Buffer.from(message, 'utf8') : message,
+	]);

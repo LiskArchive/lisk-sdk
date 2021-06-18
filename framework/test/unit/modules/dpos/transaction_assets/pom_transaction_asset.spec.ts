@@ -283,6 +283,8 @@ describe('PomTransactionAsset', () => {
 		it('should throw error when header2 is not properly signed', async () => {
 			when(dposUtils.validateSignature as any)
 				.calledWith(
+					'LSK_BH_',
+					expect.any(Buffer),
 					applyContext.asset.header1.generatorPublicKey,
 					applyContext.asset.header1.signature,
 					expect.any(Buffer),
@@ -290,6 +292,8 @@ describe('PomTransactionAsset', () => {
 				.mockReturnValue(true);
 			when(dposUtils.validateSignature as any)
 				.calledWith(
+					'LSK_BH_',
+					expect.any(Buffer),
 					applyContext.asset.header2.generatorPublicKey,
 					applyContext.asset.header2.signature,
 					expect.any(Buffer),

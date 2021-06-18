@@ -22,12 +22,14 @@ export const isMultisignatureAccount = (account: Account<AccountKeys>): boolean 
 	);
 
 export const validateSignature = (
+	tag: string,
+	networkIdentifier: Buffer,
 	publicKey: Buffer,
 	signature: Buffer,
 	transactionBytes: Buffer,
 	id: Buffer,
 ): void => {
-	const valid = verifyData(transactionBytes, signature, publicKey);
+	const valid = verifyData(tag, networkIdentifier, transactionBytes, signature, publicKey);
 
 	if (!valid) {
 		throw new Error(
@@ -39,6 +41,8 @@ export const validateSignature = (
 };
 
 export const validateKeysSignatures = (
+	tag: string,
+	networkIdentifier: Buffer,
 	keys: ReadonlyArray<Buffer>,
 	signatures: ReadonlyArray<Buffer>,
 	transactionBytes: Buffer,
@@ -49,11 +53,13 @@ export const validateKeysSignatures = (
 			throw new Error('Invalid signature. Empty buffer is not a valid signature.');
 		}
 
-		validateSignature(keys[i], signatures[i], transactionBytes, id);
+		validateSignature(tag, networkIdentifier, keys[i], signatures[i], transactionBytes, id);
 	}
 };
 
 export const verifyMultiSignatureTransaction = (
+	tag: string,
+	networkIdentifier: Buffer,
 	id: Buffer,
 	sender: Account<AccountKeys>,
 	signatures: ReadonlyArray<Buffer>,
@@ -77,14 +83,14 @@ export const verifyMultiSignatureTransaction = (
 		);
 	}
 
-	validateKeysSignatures(mandatoryKeys, signatures, transactionBytes, id);
+	validateKeysSignatures(tag, networkIdentifier, mandatoryKeys, signatures, transactionBytes, id);
 
 	// Iterate through non empty optional keys for signature validity
 	for (let k = 0; k < numOptionalKeys; k += 1) {
 		// Get corresponding optional key signature starting from offset(end of mandatory keys)
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
-			validateSignature(optionalKeys[k], signature, transactionBytes, id);
+			validateSignature(tag, networkIdentifier, optionalKeys[k], signature, transactionBytes, id);
 		}
 	}
 };

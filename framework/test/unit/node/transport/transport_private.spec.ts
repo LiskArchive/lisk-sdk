@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { Transaction } from '@liskhq/lisk-chain';
+import { Transaction, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getRandomBytes,
@@ -70,7 +70,9 @@ describe('transport', () => {
 		});
 		(transaction.signatures as Buffer[]).push(
 			signDataWithPassphrase(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				TAG_TRANSACTION,
+				Buffer.from(networkIdentifier, 'hex'),
+				transaction.getBytes(),
 				genesis.passphrase,
 			),
 		);
@@ -86,7 +88,9 @@ describe('transport', () => {
 		});
 		(transactionOne.signatures as Buffer[]).push(
 			signDataWithPassphrase(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				TAG_TRANSACTION,
+				Buffer.from(networkIdentifier, 'hex'),
+				transaction.getBytes(),
 				genesis.passphrase,
 			),
 		);
@@ -101,7 +105,9 @@ describe('transport', () => {
 		});
 		(transactionOne.signatures as Buffer[]).push(
 			signDataWithPassphrase(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), transaction.getBytes()]),
+				TAG_TRANSACTION,
+				Buffer.from(networkIdentifier, 'hex'),
+				transaction.getBytes(),
 				genesis.passphrase,
 			),
 		);

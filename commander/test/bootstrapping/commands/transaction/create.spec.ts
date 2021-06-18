@@ -290,7 +290,7 @@ describe('transaction:create command', () => {
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a40816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a400ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
 					});
 				});
 			});
@@ -337,7 +337,7 @@ describe('transaction:create command', () => {
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction:
-							'0805100118012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a32350a190a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510c8010a180a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510633a40cf630a8bd820a4176bde1c9af65c316d020c3db012729d46d1fa5784e0f9b7eaa730dcc7ad603620c302f0855116398e8c9ba7a2a6ed54061e67fbf1f7c5100c',
+							'0805100118012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a32350a190a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510c8010a180a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510633a40ccdc25f7e9a069c1063ab40b1afcaaf4e0c2dfaa5204d1732ad8d61d81c617812307fbf312e8ae537b093b5709e862fa7f4b3a832225098cd344c1e6b0b1a306',
 					});
 				});
 			});
@@ -360,7 +360,7 @@ describe('transaction:create command', () => {
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction:
-							'0805100118012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a321a0a180a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510633a4009da2349735f2bd71d2e013f261c1ff4a75091daed56521de4b55156a5c8802446574328c76a3168c5f912cdf59275f070c1a1904fec6e8ef3a021019a96820b',
+							'0805100118012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a321a0a180a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510633a40bfbbf7c2a300481a7a25bfa19478407793d94e4680c91965b88950b6342ca95f25a13cd7c6a897c041e9f59c7613ca0e29b2a25c4c6e7f9aff97f9b969444a07',
 					});
 				});
 			});
@@ -394,7 +394,7 @@ describe('transaction:create command', () => {
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a40816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a400ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
 					});
 				});
 			});
@@ -426,7 +426,7 @@ describe('transaction:create command', () => {
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a40816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a400ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
 					});
 				});
 			});
@@ -490,7 +490,7 @@ describe('transaction:create command', () => {
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(2);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a40816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a400ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
@@ -498,7 +498,7 @@ describe('transaction:create command', () => {
 							assetID: 0,
 							nonce: '1',
 							fee: '100000000',
-							id: '89a2a41b0984d715f03ff65dcfe7651e9d2f33e32bcd7c7d7cc34cbfb97a3b2b',
+							id: '6da84697b2e9e275cf286a854d7525563b5132b07b99e4e75a3e66cd119f84fa',
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 							asset: {
 								amount: '100',
@@ -506,7 +506,7 @@ describe('transaction:create command', () => {
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 							},
 							signatures: [
-								'816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+								'0ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
 							],
 						},
 					});

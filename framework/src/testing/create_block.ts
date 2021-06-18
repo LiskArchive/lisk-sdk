@@ -21,6 +21,7 @@ import {
 	blockHeaderSchema,
 	blockHeaderAssetSchema,
 	Transaction,
+	TAG_BLOCK_HEADER,
 } from '@liskhq/lisk-chain';
 import {
 	getPrivateAndPublicKeyFromPassphrase,
@@ -110,7 +111,9 @@ export const createBlock = <T = BlockHeaderAsset>({
 
 	const headerBytesWithoutSignature = encodeBlockHeader(blockHeader as BlockHeader, true);
 	const signature = signDataWithPrivateKey(
-		Buffer.concat([networkIdentifier, headerBytesWithoutSignature]),
+		TAG_BLOCK_HEADER,
+		networkIdentifier,
+		headerBytesWithoutSignature,
 		privateKey,
 	);
 	const headerBytes = encodeBlockHeader({

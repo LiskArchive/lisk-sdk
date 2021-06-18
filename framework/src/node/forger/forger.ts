@@ -23,7 +23,7 @@ import {
 	signDataWithPrivateKey,
 	hash,
 } from '@liskhq/lisk-cryptography';
-import { Chain, Block, Transaction, BlockHeader } from '@liskhq/lisk-chain';
+import { Chain, Block, Transaction, BlockHeader, TAG_BLOCK_HEADER } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures } from '@liskhq/lisk-utils';
@@ -662,7 +662,9 @@ export class Forger {
 			true,
 		);
 		const signature = signDataWithPrivateKey(
-			Buffer.concat([this._chainModule.constants.networkIdentifier, headerBytesWithoutSignature]),
+			TAG_BLOCK_HEADER,
+			this._chainModule.constants.networkIdentifier,
+			headerBytesWithoutSignature,
 			keypair.privateKey,
 		);
 		const headerBytes = this._chainModule.dataAccess.encodeBlockHeader({

@@ -32,7 +32,7 @@ import {
 	getGenesisBlockHeaderAssetSchema,
 } from '../../src/schema';
 import { defaultAccountSchema, defaultAccountModules } from './account';
-import { readGenesisBlockJSON } from '../../src';
+import { readGenesisBlockJSON, TAG_BLOCK_HEADER } from '../../src';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
@@ -166,7 +166,9 @@ export const createValidDefaultBlock = (
 	});
 
 	const signature = signDataWithPrivateKey(
-		Buffer.concat([networkIdentifier, encodedHeaderWithoutSignature]),
+		TAG_BLOCK_HEADER,
+		networkIdentifier,
+		encodedHeaderWithoutSignature,
 		keypair.privateKey,
 	);
 	const header = { ...blockHeader, asset: encodedAsset, signature };

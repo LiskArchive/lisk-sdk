@@ -27,6 +27,7 @@ import {
 	Chain,
 	Transaction,
 	readGenesisBlockJSON,
+	TAG_BLOCK_HEADER,
 } from '@liskhq/lisk-chain';
 import * as genesisBlockJSON from './config/devnet/genesis_block.json';
 import { defaultAccountSchema } from './accounts';
@@ -124,7 +125,9 @@ export const createValidDefaultBlock = (
 	const encodedHeaderWithoutSignature = chain.dataAccess.encodeBlockHeader(blockHeader, true);
 
 	const signature = signDataWithPrivateKey(
-		Buffer.concat([networkIdentifier, encodedHeaderWithoutSignature]),
+		TAG_BLOCK_HEADER,
+		networkIdentifier,
+		encodedHeaderWithoutSignature,
 		keypair.privateKey,
 	);
 	const header = { ...blockHeader, signature };

@@ -49,7 +49,7 @@ describe('Message Tag', () => {
 	});
 
 	describe('tagMessage', () => {
-		it('should concatenate the tag, network identifier and message', () => {
+		it('should concatenate the tag, network identifier and message when message is buffer', () => {
 			const tag = createMessageTag('TX');
 			const tagBuffer = Buffer.from(tag, 'utf8');
 			const networkId = Buffer.from('abc', 'utf8');
@@ -57,6 +57,16 @@ describe('Message Tag', () => {
 			const result = Buffer.concat([tagBuffer, networkId, message]);
 
 			expect(tagMessage(tag, networkId, message)).toEqual(result);
+		});
+
+		it('should concatenate the tag, network identifier and message when message is string', () => {
+			const tag = createMessageTag('TX');
+			const tagBuffer = Buffer.from(tag, 'utf8');
+			const networkId = Buffer.from('abc', 'utf8');
+			const message = Buffer.from('message', 'utf8');
+			const result = Buffer.concat([tagBuffer, networkId, message]);
+
+			expect(tagMessage(tag, networkId, 'message')).toEqual(result);
 		});
 	});
 });

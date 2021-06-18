@@ -13,7 +13,7 @@
  *
  */
 
-import { Transaction, BlockHeader } from '@liskhq/lisk-chain';
+import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
@@ -48,7 +48,7 @@ export const createTransferTransaction = (input: {
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
 };
@@ -75,7 +75,7 @@ export const createDelegateRegisterTransaction = (input: {
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
 };
@@ -102,7 +102,7 @@ export const createDelegateVoteTransaction = (input: {
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
 };
@@ -221,7 +221,7 @@ export const createReportMisbehaviorTransaction = (input: {
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([input.networkIdentifier, tx.getSigningBytes()]), input.passphrase),
+		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
 };

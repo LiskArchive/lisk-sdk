@@ -13,7 +13,14 @@
  */
 
 import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
-import { Account, Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
+import {
+	Account,
+	Block,
+	Chain,
+	DataAccess,
+	TAG_BLOCK_HEADER,
+	Transaction,
+} from '@liskhq/lisk-chain';
 import {
 	signDataWithPrivateKey,
 	getPrivateAndPublicKeyFromPassphrase,
@@ -344,10 +351,9 @@ describe('Process block', () => {
 				chain['_blockRewardArgs'].rewardOffset = 1;
 				(invalidBlock.header as any).reward = BigInt(1000);
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						networkIdentifier,
-						dataAccess.encodeBlockHeader(invalidBlock.header, true),
-					]),
+					TAG_BLOCK_HEADER,
+					networkIdentifier,
+					dataAccess.encodeBlockHeader(invalidBlock.header, true),
 					getPrivateKey(validator.address),
 				);
 				(invalidBlock.header as any).signature = signature;
@@ -382,10 +388,9 @@ describe('Process block', () => {
 				(tieBreakBlock.header as any).asset = lastBlock.header.asset;
 				(tieBreakBlock.header as any).reward = BigInt(500000000);
 				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						networkIdentifier,
-						dataAccess.encodeBlockHeader(tieBreakBlock.header, true),
-					]),
+					TAG_BLOCK_HEADER,
+					networkIdentifier,
+					dataAccess.encodeBlockHeader(tieBreakBlock.header, true),
 					getPrivateKey(validator.address),
 				);
 				(tieBreakBlock.header as any).signature = signature;

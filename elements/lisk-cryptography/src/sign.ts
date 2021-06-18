@@ -16,6 +16,7 @@ import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { SIGNED_MESSAGE_PREFIX } from './constants';
 import { hash } from './hash';
 import { getPrivateAndPublicKeyFromPassphrase } from './keys';
+import { tagMessage } from './message_tag';
 import {
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
@@ -114,16 +115,30 @@ export const signAndPrintMessage = (message: string, passphrase: string): string
 	return printSignedMessage(signedMessage);
 };
 
-export const signDataWithPrivateKey = (data: Buffer, privateKey: Buffer): Buffer =>
-	signDetached(data, privateKey);
+export const signDataWithPrivateKey = (
+	tag: string,
+	networkIdentifier: Buffer,
+	data: Buffer,
+	privateKey: Buffer,
+): Buffer => signDetached(tagMessage(tag, networkIdentifier, data), privateKey);
 
-export const signDataWithPassphrase = (data: Buffer, passphrase: string): Buffer => {
+export const signDataWithPassphrase = (
+	tag: string,
+	networkIdentifier: Buffer,
+	data: Buffer,
+	passphrase: string,
+): Buffer => {
 	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
-	return signDataWithPrivateKey(data, privateKey);
+	return signDataWithPrivateKey(tag, networkIdentifier, data, privateKey);
 };
 
 export const signData = signDataWithPassphrase;
 
-export const verifyData = (data: Buffer, signature: Buffer, publicKey: Buffer): boolean =>
-	verifyDetached(data, signature, publicKey);
+export const verifyData = (
+	tag: string,
+	networkIdentifier: Buffer,
+	data: Buffer,
+	signature: Buffer,
+	publicKey: Buffer,
+): boolean => verifyDetached(tagMessage(tag, networkIdentifier, data), signature, publicKey);

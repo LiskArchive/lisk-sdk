@@ -14,7 +14,7 @@
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { BlockHeader, RawBlock, Transaction } from '@liskhq/lisk-chain';
+import { BlockHeader, RawBlock, Transaction, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
@@ -261,7 +261,9 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 
 		(tx.signatures as Buffer[]).push(
 			signData(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), tx.getSigningBytes()]),
+				TAG_TRANSACTION,
+				Buffer.from(networkIdentifier, 'hex'),
+				tx.getSigningBytes(),
 				passphrase,
 			),
 		);

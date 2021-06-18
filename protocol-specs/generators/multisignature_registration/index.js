@@ -21,6 +21,7 @@ const { baseTransactionSchema } = require('../../utils/schema');
 
 const codec = new Codec();
 
+const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
 const networkIdentifier = Buffer.from(
 	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 	'hex',
@@ -141,7 +142,7 @@ const sortKeysAscending = publicKeys =>
 
 const createSignatureObject = (txBuffer, account) => ({
 	signature: Buffer.from(
-		signData(Buffer.concat([networkIdentifier, txBuffer]), account.passphrase),
+		signData(Buffer.concat([TAG_TRANSACTION, networkIdentifier, txBuffer]), account.passphrase),
 		'hex',
 	),
 });

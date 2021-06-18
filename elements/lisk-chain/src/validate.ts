@@ -29,6 +29,7 @@ import {
 	GENESIS_BLOCK_SIGNATURE,
 	GENESIS_BLOCK_TRANSACTION_ROOT,
 	EMPTY_BUFFER,
+	TAG_BLOCK_HEADER,
 } from './constants';
 
 export const validateSignature = (
@@ -37,9 +38,13 @@ export const validateSignature = (
 	signature: Buffer,
 	networkIdentifier: Buffer,
 ): void => {
-	const blockWithNetworkIdentifierBytes = Buffer.concat([networkIdentifier, dataWithoutSignature]);
-
-	const verified = verifyData(blockWithNetworkIdentifierBytes, signature, publicKey);
+	const verified = verifyData(
+		TAG_BLOCK_HEADER,
+		networkIdentifier,
+		dataWithoutSignature,
+		signature,
+		publicKey,
+	);
 
 	if (!verified) {
 		throw new Error('Invalid block signature');

@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Block } from '@liskhq/lisk-chain';
+import { Block, TAG_BLOCK_HEADER } from '@liskhq/lisk-chain';
 import { signData, getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
 
 import { nodeUtils } from '../../../utils';
@@ -73,7 +73,9 @@ describe('Transaction order', () => {
 				.getDataAccess()
 				.encodeBlockHeader(conflictingBlockHeader, true);
 			const signature = signData(
-				Buffer.concat([networkIdentifier, conflictingBytes]),
+				TAG_BLOCK_HEADER,
+				networkIdentifier,
+				conflictingBytes,
 				blockGenerator,
 			);
 			const tx = createReportMisbehaviorTransaction({
