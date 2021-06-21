@@ -26,10 +26,7 @@ import {
 // eslint-disable-next-line camelcase
 import { blst, BLST_ERROR, P1_Affine, P2_Affine } from '@chainsafe/blst/dist/bindings';
 
-const EMPTY_BUFFER = Buffer.alloc(0);
 const DST_POP = 'BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_';
-
-const isBufferEmpty = (b: Buffer) => b.toString('hex').replace(/0/g, '').trim().length === 0;
 
 export const blsKeyValidate = (pk: Buffer): boolean => {
 	try {
@@ -59,10 +56,6 @@ export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.6
 export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
-	if (isBufferEmpty(sk)) {
-		return EMPTY_BUFFER;
-	}
-
 	const signature = Buffer.from(SecretKey.fromBytes(sk).sign(message).toBytes());
 
 	return signature;

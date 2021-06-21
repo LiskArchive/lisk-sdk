@@ -95,18 +95,22 @@ describe('bls_lib', () => {
 	});
 
 	describe('blsSign', () => {
-		describe.each(getAllFiles(['eth2_bls_specs/sign']))('%s', ({ path }) => {
-			it('should generate valid signature', () => {
-				const {
-					input: { privkey, message },
-					output,
-				} = loadEth2Spec<EthSignSpec>(path);
+		// Zero private key can't happen in our implementation
+		describe.each(getAllFiles(['eth2_bls_specs/sign'], /sign_case_zero_privkey/))(
+			'%s',
+			({ path }) => {
+				it('should generate valid signature', () => {
+					const {
+						input: { privkey, message },
+						output,
+					} = loadEth2Spec<EthSignSpec>(path);
 
-				const signature = blsSign(hexToBuffer(privkey), hexToBuffer(message));
+					const signature = blsSign(hexToBuffer(privkey), hexToBuffer(message));
 
-				expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
-			});
-		});
+					expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
+				});
+			},
+		);
 	});
 
 	describe('blsVerify', () => {
