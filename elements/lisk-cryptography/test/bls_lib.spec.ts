@@ -13,10 +13,6 @@
  *
  */
 
-import * as glob from 'glob';
-import { join } from 'path';
-import * as fs from 'fs';
-import * as yml from 'js-yaml';
 import {
 	blsAggregate,
 	blsAggregateVerify,
@@ -27,27 +23,7 @@ import {
 	blsPopProve,
 	blsPopVerify,
 } from '../src/bls_lib';
-
-const EMPTY_BUFFER = Buffer.alloc(0);
-
-const getAllFiles = (
-	dirs: string[],
-	ignore?: RegExp,
-): { path: string; toString: () => string }[] => {
-	return dirs
-		.map((dir: string) => {
-			return glob
-				.sync(join(__dirname, dir, '**/*.{yaml,yml}'))
-				.filter(path => (ignore ? !ignore.test(path) : true))
-				.map(path => ({ path, toString: () => `${dir}${path.split(dir)[1]}` }));
-		})
-		.flat();
-};
-
-const loadEth2Spec = <T = Record<string, unknown>>(filePath: string) =>
-	(yml.load(fs.readFileSync(filePath, 'utf8')) as unknown) as T;
-const hexToBuffer = (str: string | null): Buffer =>
-	str ? Buffer.from(str.substr(2), 'hex') : EMPTY_BUFFER;
+import { getAllFiles, hexToBuffer, loadSpecFile } from './utils';
 
 interface EthSignSpec {
 	input: {
@@ -85,7 +61,7 @@ describe('bls_lib', () => {
 	describe('blsSkToPk', () => {
 		describe.each(getAllFiles(['bls_specs/sk_to_pk']))('%s', ({ path }) => {
 			it('should convert to valid pk', () => {
-				const { input, output } = loadEth2Spec<{ input: string; output: string }>(path);
+				const { input, output } = loadSpecFile<{ input: string; output: string }>(path);
 
 				expect(blsSkToPk(hexToBuffer(input)).toString('hex')).toEqual(
 					hexToBuffer(output).toString('hex'),
@@ -103,8 +79,7 @@ describe('bls_lib', () => {
 					const {
 						input: { privkey, message },
 						output,
-					} = loadEth2Spec<EthSignSpec>(path);
-
+					} = loadSpecFile<EthSignSpec>(path);
 					const signature = blsSign(hexToBuffer(privkey), hexToBuffer(message));
 
 					expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
@@ -119,7 +94,7 @@ describe('bls_lib', () => {
 				const {
 					input: { pubkey, message, signature },
 					output,
-				} = loadEth2Spec<EthVerifySpec>(path);
+				} = loadSpecFile<EthVerifySpec>(path);
 
 				const verify = blsVerify(hexToBuffer(pubkey), hexToBuffer(message), hexToBuffer(signature));
 
@@ -133,7 +108,7 @@ describe('bls_lib', () => {
 			'%s',
 			({ path }) => {
 				it('should aggregate signatures', () => {
-					const { input, output } = loadEth2Spec<EthAggrSpec>(path);
+					const { input, output } = loadSpecFile<EthAggrSpec>(path);
 
 					const signature = blsAggregate(input.map(hexToBuffer));
 
@@ -155,7 +130,7 @@ describe('bls_lib', () => {
 				const {
 					input: { pubkeys, messages, signature },
 					output,
-				} = loadEth2Spec<EthAggrVerifySpec>(path);
+				} = loadSpecFile<EthAggrVerifySpec>(path);
 
 				const verify = blsAggregateVerify(
 					pubkeys.map(hexToBuffer),
@@ -183,7 +158,7 @@ describe('bls_lib', () => {
 				const {
 					input: { pubkeys, message, signature },
 					output,
-				} = loadEth2Spec<EthFastAggrVerifySpec>(path);
+				} = loadSpecFile<EthFastAggrVerifySpec>(path);
 
 				const verify = blsFastAggregateVerify(
 					pubkeys.map(hexToBuffer),
@@ -199,7 +174,7 @@ describe('bls_lib', () => {
 	describe('blsPopProve', () => {
 		describe.each(getAllFiles(['bls_specs/pop_prove']))('%s', ({ path }) => {
 			it('should create valid proof of possession', () => {
-				const { input, output } = loadEth2Spec<{ input: string; output: string }>(path);
+				const { input, output } = loadSpecFile<{ input: string; output: string }>(path);
 
 				expect(blsPopProve(hexToBuffer(input)).toString('hex')).toEqual(
 					hexToBuffer(output).toString('hex'),
@@ -214,7 +189,7 @@ describe('bls_lib', () => {
 				const {
 					input: { pk, proof },
 					output,
-				} = loadEth2Spec<{ input: { pk: string; proof: string }; output: boolean }>(path);
+				} = loadSpecFile<{ input: { pk: string; proof: string }; output: boolean }>(path);
 
 				expect(blsPopVerify(hexToBuffer(pk), hexToBuffer(proof))).toEqual(output);
 			});
