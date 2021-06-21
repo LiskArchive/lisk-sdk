@@ -14,16 +14,20 @@
  */
 
 import {
-	SecretKey,
+	aggregateSignatures,
+	aggregateVerify,
+	CoordType,
+	fastAggregateVerify,
 	PublicKey,
+	SecretKey,
 	Signature,
 	verify,
-	aggregateVerify,
-	fastAggregateVerify,
-	aggregateSignatures,
 } from '@chainsafe/blst';
+// eslint-disable-next-line camelcase
+import { blst, BLST_ERROR, P1_Affine, P2_Affine } from '@chainsafe/blst/dist/bindings';
 
 const EMPTY_BUFFER = Buffer.alloc(0);
+const DST_POP = 'BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_';
 
 const isBufferEmpty = (b: Buffer) => b.toString('hex').replace(/0/g, '').trim().length === 0;
 
@@ -45,11 +49,11 @@ export const blsSkToPk = (sk: Buffer): Buffer =>
 	Buffer.from(SecretKey.fromBytes(sk).toPublicKey().toBytes());
 
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.8
-export const blsAggregate = (signatures: Buffer[]): Buffer => {
+export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 	try {
 		return Buffer.from(aggregateSignatures(signatures.map(s => Signature.fromBytes(s))).toBytes());
 	} catch {
-		return EMPTY_BUFFER;
+		return false;
 	}
 };
 
@@ -82,6 +86,8 @@ export const blsAggregateVerify = (
 	messages: ReadonlyArray<Buffer>,
 	signature: Buffer,
 ): boolean => {
+	if (publicKeys.length === 0) return false;
+
 	try {
 		return aggregateVerify(
 			messages.map(m => m),
@@ -99,6 +105,8 @@ export const blsFastAggregateVerify = (
 	messages: Buffer,
 	signature: Buffer,
 ): boolean => {
+	if (publicKeys.length === 0) return false;
+
 	try {
 		return fastAggregateVerify(
 			messages,
@@ -110,7 +118,14 @@ export const blsFastAggregateVerify = (
 	}
 };
 //  https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-3.3.2
-export const blsPopProve = (sk: Buffer): Buffer => blsSign(sk, blsSkToPk(sk));
+export const blsPopProve = (sk: Buffer): Buffer => {
+	const message = blsSkToPk(sk);
+	const sig = new blst.P2();
+
+	return Buffer.from(
+		new Signature(sig.hash_to(message, DST_POP).sign_with(SecretKey.fromBytes(sk).value)).toBytes(),
+	);
+};
 
 //  https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-3.3.2
 export const blsPopVerify = (pk: Buffer, proof: Buffer): boolean => {
@@ -118,5 +133,14 @@ export const blsPopVerify = (pk: Buffer, proof: Buffer): boolean => {
 		return false;
 	}
 
-	return blsVerify(pk, pk, proof);
+	try {
+		// eslint-disable-next-line camelcase
+		const signature = Signature.fromBytes(proof, CoordType.affine).value as P2_Affine;
+		// eslint-disable-next-line camelcase
+		const publicKey = PublicKey.fromBytes(pk, CoordType.affine).value as P1_Affine;
+
+		return signature.core_verify(publicKey, true, pk, DST_POP) === BLST_ERROR.BLST_SUCCESS;
+	} catch {
+		return false;
+	}
 };
