@@ -95,7 +95,7 @@ describe('bls_lib', () => {
 	});
 
 	describe('blsSign', () => {
-		// Zero private key can't happen in our implementation
+		// Signing with the zero private key is not a use case according to the BLS specifications
 		describe.each(getAllFiles(['eth2_bls_specs/sign'], /sign_case_zero_privkey/))(
 			'%s',
 			({ path }) => {
