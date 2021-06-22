@@ -84,3 +84,29 @@ export const verifyAggSig = (
 
 	return blsFastAggregateVerify(keys, taggedMessage, signature);
 };
+
+export const verifyWeightedAggSig = (
+	publicKeysList: Buffer[],
+	aggregationBits: Buffer,
+	signature: Buffer,
+	tag: string,
+	networkIdentifier: Buffer,
+	message: Buffer,
+	weights: number[],
+	threshold: number,
+): boolean => {
+	const taggedMessage = tagMessage(tag, networkIdentifier, message);
+	const keys: Buffer[] = [];
+	let weightSum = 0;
+
+	for (const [index, key] of publicKeysList.entries()) {
+		if (readBit(aggregationBits, index)) {
+			keys.push(key);
+			weightSum += weights[index];
+		}
+	}
+
+	if (weightSum < threshold) return false;
+
+	return blsFastAggregateVerify(keys, taggedMessage, signature);
+};
