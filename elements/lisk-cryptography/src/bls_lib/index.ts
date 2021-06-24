@@ -15,8 +15,51 @@
 
 import { BlsLib } from './types';
 
+const blsNotSupportedError = new Error(
+	'BLS is not supported on your platform. To enable, please check if optional dependencies are meet.',
+);
+
 // eslint-disable-next-line import/no-mutable-exports
-let lib: BlsLib;
+export let lib: BlsLib = {
+	blsKeyValidate: (_pk: Buffer) => {
+		throw blsNotSupportedError;
+	},
+	blsKeyGen: (_ikm: Buffer) => {
+		throw blsNotSupportedError;
+	},
+	blsSkToPk: (_sk: Buffer) => {
+		throw blsNotSupportedError;
+	},
+	blsAggregate: (_signatures: Buffer[]) => {
+		throw blsNotSupportedError;
+	},
+	blsSign: (_sk: Buffer, _message: Buffer) => {
+		throw blsNotSupportedError;
+	},
+	blsVerify: (_pk: Buffer, _message: Buffer, _signature: Buffer) => {
+		throw blsNotSupportedError;
+	},
+	blsAggregateVerify: (
+		_publicKeys: ReadonlyArray<Buffer>,
+		_messages: ReadonlyArray<Buffer>,
+		_signature: Buffer,
+	) => {
+		throw blsNotSupportedError;
+	},
+	blsFastAggregateVerify: (
+		_publicKeys: ReadonlyArray<Buffer>,
+		_messages: Buffer,
+		_signature: Buffer,
+	) => {
+		throw blsNotSupportedError;
+	},
+	blsPopProve: (_sk: Buffer) => {
+		throw blsNotSupportedError;
+	},
+	blsPopVerify: (_pk: Buffer, _proof: Buffer) => {
+		throw blsNotSupportedError;
+	},
+};
 // eslint-disable-next-line import/no-mutable-exports
 export let BLS_SUPPORTED = true;
 
@@ -25,17 +68,9 @@ try {
 
 	// eslint-disable-next-line global-require, import/no-extraneous-dependencies
 	require.resolve('@chainsafe/blst');
-
-	console.info('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
-	console.info('BLS exists');
-	console.info('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
-
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, global-require
 	lib = require('./lib');
 } catch (err) {
-	console.info('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
-	console.info('BLS does not exists');
-	console.info('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
 	BLS_SUPPORTED = false;
 }
 
@@ -50,6 +85,4 @@ export const {
 	blsSkToPk,
 	blsPopProve,
 	blsPopVerify,
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-expect-error
 } = lib;
