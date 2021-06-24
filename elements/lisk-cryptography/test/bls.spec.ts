@@ -14,7 +14,7 @@
  *
  */
 
-import { createAggSig, signBLS, verifyAggSig, verifyBLS } from '../src/bls';
+import { createAggSig, signBLS, verifyAggSig, verifyWeightedAggSig, verifyBLS } from '../src/bls';
 import { getAllFiles, hexToBuffer, loadSpecFile } from './utils';
 
 describe('bls_lib', () => {
@@ -116,6 +116,44 @@ describe('bls_lib', () => {
 					tag,
 					hexToBuffer(netId),
 					hexToBuffer(message),
+				);
+
+				expect(result).toEqual(output);
+			});
+		});
+	});
+
+	describe('verifyWeightedAggSig', () => {
+		describe.each(getAllFiles(['bls_specs/verify_weighted_agg_sig']))('%s', ({ path }) => {
+			it('should verify weighted aggregated signatures', () => {
+				const {
+					input: { key_list, aggregation_bits, signature, tag, netId, message, weights, threshold },
+					output,
+				} = loadSpecFile<{
+					input: {
+						key_list: string[];
+						aggregation_bits: string;
+						signature: string;
+						tag: string;
+						netId: string;
+						message: string;
+						weights: number[];
+						threshold: number;
+					};
+					output: boolean;
+				}>(path);
+
+				const keysList = key_list.map(hexToBuffer);
+
+				const result = verifyWeightedAggSig(
+					keysList,
+					hexToBuffer(aggregation_bits),
+					hexToBuffer(signature),
+					tag,
+					hexToBuffer(netId),
+					hexToBuffer(message),
+					weights,
+					threshold,
 				);
 
 				expect(result).toEqual(output);
