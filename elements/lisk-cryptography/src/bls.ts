@@ -21,11 +21,12 @@ import {
 	blsKeyGen,
 	blsFastAggregateVerify,
 	blsSkToPk,
+	BLS_SUPPORTED,
 } from './bls_lib';
 import { tagMessage } from './message_tag';
 import { readBit, writeBit } from './utils';
 
-export { BLS_SUPPORTED } from './bls_lib';
+export { BLS_SUPPORTED };
 export const generatePrivateKey = blsKeyGen;
 export const getPublicKeyFromPrivateKey = blsSkToPk;
 export const validateKey = blsKeyValidate;
