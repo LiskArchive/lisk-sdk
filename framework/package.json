@@ -40,6 +40,7 @@
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand"
 	},
 	"dependencies": {
+		"@chainsafe/blst": "0.2.0",
 		"@liskhq/lisk-api-client": "^5.1.1",
 		"@liskhq/lisk-bft": "^0.3.0",
 		"@liskhq/lisk-chain": "^0.3.0",
