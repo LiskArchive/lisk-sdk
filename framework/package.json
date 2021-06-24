@@ -60,7 +60,7 @@
 		"pm2-axon": "4.0.1",
 		"pm2-axon-rpc": "0.7.1",
 		"ps-list": "7.0.0",
-		"sodium-native": "3.2.0",
+		"sodium-native": "3.2.1",
 		"ws": "7.4.6"
 	},
 	"devDependencies": {
