@@ -21,20 +21,15 @@ export const readBit = (buf: Buffer, bit: number): boolean => {
 	return (buf[byteIndex] >> bitIndex) % 2 === 1;
 };
 
-export const writeBit = (buf: Buffer, bit: number, val: boolean): Buffer => {
-	const copy = Buffer.alloc(buf.byteLength);
-	buf.copy(copy);
-
+export const writeBit = (buf: Buffer, bit: number, val: boolean): void => {
 	const byteIndex = Math.floor(bit / 8);
 	const bitIndex = bit % 8;
 
 	if (val) {
-		// eslint-disable-next-line no-bitwise
-		copy[byteIndex] |= 1 << bitIndex;
+		// eslint-disable-next-line no-bitwise, no-param-reassign
+		buf[byteIndex] |= 1 << bitIndex;
 	} else {
-		// eslint-disable-next-line no-bitwise
-		copy[byteIndex] &= ~(1 << bitIndex);
+		// eslint-disable-next-line no-bitwise, no-param-reassign
+		buf[byteIndex] &= ~(1 << bitIndex);
 	}
-
-	return copy;
 };

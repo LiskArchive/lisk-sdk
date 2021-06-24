@@ -50,13 +50,13 @@ export const createAggSig = (
 	publicKeysList: Buffer[],
 	pubKeySignaturePairs: { publicKey: Buffer; signature: Buffer }[],
 ): { aggregationBits: Buffer; signature: Buffer } => {
-	let aggregationBits = Buffer.alloc(Math.ceil(publicKeysList.length / 8));
+	const aggregationBits = Buffer.alloc(Math.ceil(publicKeysList.length / 8));
 	const signatures: Buffer[] = [];
 
 	for (const pair of pubKeySignaturePairs) {
 		signatures.push(pair.signature);
 		const index = publicKeysList.findIndex(key => key.equals(pair.publicKey));
-		aggregationBits = writeBit(aggregationBits, index, true);
+		writeBit(aggregationBits, index, true);
 	}
 	const signature = blsAggregate(signatures);
 
@@ -108,7 +108,9 @@ export const verifyWeightedAggSig = (
 		}
 	}
 
-	if (weightSum < threshold) return false;
+	if (weightSum < threshold) {
+		return false;
+	}
 
 	return blsFastAggregateVerify(keys, taggedMessage, signature);
 };
