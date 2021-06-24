@@ -39,11 +39,11 @@
 		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.3.0",
 		"tweetnacl": "1.0.3",
-		"varuint-bitcoin": "1.1.2",
-		"@chainsafe/blst": "0.2.0"
+		"varuint-bitcoin": "1.1.2"
 	},
 	"optionalDependencies": {
-		"sodium-native": "3.2.1"
+		"sodium-native": "3.2.1",
+		"@chainsafe/blst": "0.2.0"
 	},
 	"devDependencies": {
 		"@types/ed2curve": "0.2.2",

@@ -22,8 +22,8 @@ import {
 	blsVerify,
 	blsPopProve,
 	blsPopVerify,
-} from '../src/bls_lib';
-import { getAllFiles, hexToBuffer, loadSpecFile } from './utils';
+} from '../../src/bls_lib';
+import { getAllFiles, hexToBuffer, loadSpecFile } from '../utils';
 
 interface EthSignSpec {
 	input: {
