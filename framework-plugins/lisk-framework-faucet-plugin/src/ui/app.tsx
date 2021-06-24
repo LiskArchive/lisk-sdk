@@ -2,11 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as React from 'react';
-import { apiClient } from '@liskhq/lisk-client';
-import { validateBase32Address, getAddressFromBase32Address } from '@liskhq/lisk-cryptography';
+import { apiClient, cryptography } from '@liskhq/lisk-client';
 import logo from './logo.svg';
 import illustration from './illustration.svg';
 import styles from './app.module.scss';
+
+const { validateBase32Address, getAddressFromBase32Address } = cryptography;
 
 const validateAddress = (address: string, prefix: string): boolean => {
 	try {
