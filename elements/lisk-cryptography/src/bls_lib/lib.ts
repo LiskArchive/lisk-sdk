@@ -22,8 +22,10 @@ import {
 	SecretKey,
 	Signature,
 	verify,
+	// eslint-disable-next-line import/no-extraneous-dependencies
 } from '@chainsafe/blst';
-// eslint-disable-next-line camelcase
+
+// eslint-disable-next-line camelcase, import/no-extraneous-dependencies
 import { blst, BLST_ERROR, P1_Affine, P2_Affine } from '@chainsafe/blst/dist/bindings';
 
 const DST_POP = 'BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_';
