@@ -72,7 +72,7 @@ describe('bls_lib', () => {
 
 	describe('blsSign', () => {
 		// Signing with the zero private key is not a use case according to the BLS specifications
-		describe.each(getAllFiles(['eth2_bls_specs/sign'], /sign_case_zero_privkey/))(
+		describe.each(getAllFiles(['eth2_bls_specs/sign', 'bls_specs/sign'], /sign_case_zero_privkey/))(
 			'%s',
 			({ path }) => {
 				it('should generate valid signature', () => {
