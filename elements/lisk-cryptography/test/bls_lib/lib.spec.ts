@@ -23,7 +23,7 @@ import {
 	blsPopProve,
 	blsPopVerify,
 } from '../../src/bls_lib';
-import { getAllFiles, hexToBuffer, loadSpecFile } from '../utils';
+import { getAllFiles, hexToBuffer, loadSpecFile } from '../helpers';
 
 interface EthSignSpec {
 	input: {
