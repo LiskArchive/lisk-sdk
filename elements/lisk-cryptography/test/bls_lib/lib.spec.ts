@@ -150,7 +150,7 @@ describe('bls_lib', () => {
 		// so we why our implementation returns "true" and eth2 specs mentioned it as "false"
 		describe.each(
 			getAllFiles(
-				['eth2_bls_specs/fast_aggregate_verify'],
+				['eth2_bls_specs/fast_aggregate_verify', 'bls_specs/fast_aggregate_verify'],
 				/fast_aggregate_verify_infinity_pubkey/,
 			),
 		)('%s', ({ path }) => {
