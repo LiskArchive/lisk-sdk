@@ -40,6 +40,7 @@
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand"
 	},
 	"dependencies": {
+		"@chainsafe/blst": "0.2.0",
 		"@liskhq/lisk-api-client": "^5.1.1",
 		"@liskhq/lisk-bft": "^0.3.0",
 		"@liskhq/lisk-chain": "^0.3.0",
@@ -60,7 +61,7 @@
 		"pm2-axon": "4.0.1",
 		"pm2-axon-rpc": "0.7.1",
 		"ps-list": "7.0.0",
-		"sodium-native": "3.2.0",
+		"sodium-native": "3.2.1",
 		"ws": "7.4.6"
 	},
 	"devDependencies": {
