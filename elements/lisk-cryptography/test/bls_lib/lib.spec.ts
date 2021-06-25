@@ -89,7 +89,7 @@ describe('bls_lib', () => {
 	});
 
 	describe('blsVerify', () => {
-		describe.each(getAllFiles(['eth2_bls_specs/verify']))('%s', ({ path }) => {
+		describe.each(getAllFiles(['eth2_bls_specs/verify', 'bls_specs/verify']))('%s', ({ path }) => {
 			it('should verify signatures', () => {
 				const {
 					input: { pubkey, message, signature },
