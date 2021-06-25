@@ -70,6 +70,12 @@ export default class PluginCommand extends BaseBootstrapCommand {
 			});
 		}
 
+		if (!this._isLiskAppDir(process.cwd())) {
+			this.error(
+				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
+			);
+		}
+
 		return this._runBootstrapCommand('lisk:generate:plugin', {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			alias,
