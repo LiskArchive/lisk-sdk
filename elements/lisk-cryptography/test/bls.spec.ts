@@ -15,7 +15,7 @@
  */
 
 import { createAggSig, signBLS, verifyAggSig, verifyWeightedAggSig, verifyBLS } from '../src/bls';
-import { getAllFiles, hexToBuffer, loadSpecFile } from './utils';
+import { getAllFiles, hexToBuffer, loadSpecFile } from './helpers';
 
 describe('bls_lib', () => {
 	describe('signBLS', () => {

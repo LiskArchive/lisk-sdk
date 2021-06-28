@@ -23,7 +23,7 @@ import {
 	blsPopProve,
 	blsPopVerify,
 } from '../../src/bls_lib';
-import { getAllFiles, hexToBuffer, loadSpecFile } from '../utils';
+import { getAllFiles, hexToBuffer, loadSpecFile } from '../helpers';
 
 interface EthSignSpec {
 	input: {
@@ -72,7 +72,7 @@ describe('bls_lib', () => {
 
 	describe('blsSign', () => {
 		// Signing with the zero private key is not a use case according to the BLS specifications
-		describe.each(getAllFiles(['eth2_bls_specs/sign'], /sign_case_zero_privkey/))(
+		describe.each(getAllFiles(['eth2_bls_specs/sign', 'bls_specs/sign'], /sign_case_zero_privkey/))(
 			'%s',
 			({ path }) => {
 				it('should generate valid signature', () => {
@@ -89,7 +89,7 @@ describe('bls_lib', () => {
 	});
 
 	describe('blsVerify', () => {
-		describe.each(getAllFiles(['eth2_bls_specs/verify']))('%s', ({ path }) => {
+		describe.each(getAllFiles(['eth2_bls_specs/verify', 'bls_specs/verify']))('%s', ({ path }) => {
 			it('should verify signatures', () => {
 				const {
 					input: { pubkey, message, signature },
@@ -150,7 +150,7 @@ describe('bls_lib', () => {
 		// so we why our implementation returns "true" and eth2 specs mentioned it as "false"
 		describe.each(
 			getAllFiles(
-				['eth2_bls_specs/fast_aggregate_verify'],
+				['eth2_bls_specs/fast_aggregate_verify', 'bls_specs/fast_aggregate_verify'],
 				/fast_aggregate_verify_infinity_pubkey/,
 			),
 		)('%s', ({ path }) => {
