@@ -59,6 +59,12 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 			);
 		}
 
+		if (!this._isLiskAppDir(process.cwd())) {
+			this.error(
+				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
+			);
+		}
+
 		this.log(
 			`Creating module skeleton with module name "${moduleName as string}" and module ID "${
 				moduleID as string

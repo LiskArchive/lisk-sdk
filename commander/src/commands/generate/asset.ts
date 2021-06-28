@@ -75,6 +75,12 @@ export default class AssetCommand extends BaseBootstrapCommand {
 			this.error('Invalid asset ID, only positive integers are allowed');
 		}
 
+		if (!this._isLiskAppDir(process.cwd())) {
+			this.error(
+				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
+			);
+		}
+
 		this.log(
 			`Creating asset skeleton with asset name "${assetName}" and asset ID "${assetID}" for module "${moduleName}"`,
 		);

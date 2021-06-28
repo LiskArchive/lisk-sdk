@@ -14,6 +14,8 @@
  *
  */
 import { Command, flags as flagParser } from '@oclif/command';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { env } from './bootstrapping/env';
 
 interface BootstrapFlags {
@@ -50,6 +52,10 @@ export default abstract class BaseBootstrapCommand extends Command {
 				throw err;
 			}
 		});
+	}
+
+	protected _isLiskAppDir(path: string): boolean {
+		return existsSync(join(path, '.liskrc.json'));
 	}
 
 	protected async _runBootstrapCommand(

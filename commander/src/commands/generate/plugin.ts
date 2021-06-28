@@ -19,8 +19,8 @@ import BaseBootstrapCommand from '../../base_bootstrap_command';
 export default class PluginCommand extends BaseBootstrapCommand {
 	static description = 'Creates custom plugin.';
 	static examples = [
-		'generate:plugin my-plugin',
-		'generate:plugin my-plugin --standalone --output ./myplugin',
+		'generate:plugin myPlugin',
+		'generate:plugin myPlugin --standalone --output ./my_plugin',
 	];
 
 	static args = [
@@ -68,6 +68,12 @@ export default class PluginCommand extends BaseBootstrapCommand {
 				projectPath: output ?? process.env.INIT_CWD ?? process.cwd(),
 				registry,
 			});
+		}
+
+		if (!this._isLiskAppDir(process.cwd())) {
+			this.error(
+				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
+			);
 		}
 
 		return this._runBootstrapCommand('lisk:generate:plugin', {
