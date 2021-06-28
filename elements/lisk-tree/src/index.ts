@@ -12,8 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './merkle_tree';
-export * from './types';
-export * from './utils';
-export * from './verify_proof';
-export * from './constants';
+export { MerkleTree } from './merkle_tree/merkle_tree';
+export { verifyProof } from './merkle_tree/verify_proof';
