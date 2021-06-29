@@ -11,9 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
-import { EMPTY_HASH, MerkleTree } from '../src/index';
-import { verifyProof } from '../src/verify_proof';
+import * as fixture from '../fixtures/transaction_merkle_root/transaction_merkle_root.json';
+import { MerkleTree } from '../../src/merkle_tree/merkle_tree';
+import { EMPTY_HASH } from '../../src/merkle_tree/constants';
+import { verifyProof } from '../../src/merkle_tree/verify_proof';
 
 describe('MerkleTree', () => {
 	describe('constructor', () => {
