@@ -57,19 +57,19 @@ describe('dataAccess.blocks', () => {
 			maxBlockHeaderCache: 5,
 		});
 		// Prepare sample data
-		const block300 = createValidDefaultBlock({
+		const block300 = await createValidDefaultBlock({
 			header: { height: 300 },
 			payload: [getTransaction()],
 		});
 
-		const block301 = createValidDefaultBlock({ header: { height: 301 } });
+		const block301 = await createValidDefaultBlock({ header: { height: 301 } });
 
-		const block302 = createValidDefaultBlock({
+		const block302 = await createValidDefaultBlock({
 			header: { height: 302 },
 			payload: [getTransaction({ nonce: BigInt(1) }), getTransaction({ nonce: BigInt(2) })],
 		});
 
-		const block303 = createValidDefaultBlock({ header: { height: 303 } });
+		const block303 = await createValidDefaultBlock({ header: { height: 303 } });
 
 		blocks = [block300, block301, block302, block303];
 		const batch = db.batch();
@@ -322,12 +322,15 @@ describe('dataAccess.blocks', () => {
 	});
 
 	describe('saveBlock', () => {
-		const block = createValidDefaultBlock({
-			header: { height: 304 },
-			payload: [getTransaction({ nonce: BigInt(10) }), getTransaction({ nonce: BigInt(20) })],
-		});
+		let block: Block;
 		// eslint-disable-next-line @typescript-eslint/no-empty-function
 		const stateStore = { finalize: () => {} };
+		beforeAll(async () => {
+			block = await createValidDefaultBlock({
+				header: { height: 304 },
+				payload: [getTransaction({ nonce: BigInt(10) }), getTransaction({ nonce: BigInt(20) })],
+			});
+		});
 
 		it('should create block with all index required', async () => {
 			await dataAccess.saveBlock(block, stateStore as any, 0);

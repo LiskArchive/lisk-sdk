@@ -25,8 +25,9 @@ for (let i = 0; i < size; i += 1) {
 }
 
 suite
-	.add('constructor', () => {
-		new MerkleTree(testSamples);
+	.add('constructor', async () => {
+		const tree = new MerkleTree();
+		await tree.init(testSamples);
 	})
 	.on('cycle', function (event) {
 		console.log(String(event.target));

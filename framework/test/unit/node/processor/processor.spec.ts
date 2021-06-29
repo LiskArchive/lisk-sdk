@@ -523,7 +523,7 @@ describe('processor', () => {
 			processor.register(customModule1);
 		});
 
-		it('should throw error if version is not 2', () => {
+		it('should throw error if version is not 2', async () => {
 			const blockV3 = {
 				...blockV2,
 				header: {
@@ -531,22 +531,22 @@ describe('processor', () => {
 					version: 3,
 				},
 			};
-			expect(() => processor.validate(blockV3)).toThrow('Block version must be 2');
+			await expect(processor.validate(blockV3)).rejects.toThrow('Block version must be 2');
 		});
 
-		it('should validate basic properties of block header', () => {
-			processor.validate(blockV2);
+		it('should validate basic properties of block header', async () => {
+			await processor.validate(blockV2);
 			expect(chainModuleStub.validateBlockHeader).toHaveBeenCalledTimes(1);
 		});
 
-		it('should validate payload', () => {
-			processor.validate(blockV2);
+		it('should validate payload', async () => {
+			await processor.validate(blockV2);
 			expect(chainModuleStub.validateTransaction).toHaveBeenCalledTimes(1);
 		});
 
-		it('should validate payload asset', () => {
+		it('should validate payload asset', async () => {
 			jest.spyOn(validator, 'validate');
-			processor.validate(blockV2);
+			await processor.validate(blockV2);
 			expect(validator.validate).toHaveBeenCalledTimes(1);
 			expect(validator.validate).toHaveBeenCalledWith(
 				customModule0.transactionAssets[0].schema,
@@ -554,7 +554,7 @@ describe('processor', () => {
 			);
 		});
 
-		it('should fail when module id does not exist', () => {
+		it('should fail when module id does not exist', async () => {
 			const block = ({
 				header: {
 					id: Buffer.from('fakelock2'),
@@ -573,10 +573,10 @@ describe('processor', () => {
 					}),
 				],
 			} as unknown) as Block;
-			expect(() => processor.validate(block)).toThrow('Module id 20 does not exist');
+			await expect(processor.validate(block)).rejects.toThrow('Module id 20 does not exist');
 		});
 
-		it('should fail when asset id does not exist', () => {
+		it('should fail when asset id does not exist', async () => {
 			const block = ({
 				header: {
 					id: Buffer.from('fakelock2'),
@@ -595,7 +595,9 @@ describe('processor', () => {
 					}),
 				],
 			} as unknown) as Block;
-			expect(() => processor.validate(block)).toThrow('Asset id 5 does not exist in module id 3.');
+			await expect(processor.validate(block)).rejects.toThrow(
+				'Asset id 5 does not exist in module id 3.',
+			);
 		});
 	});
 

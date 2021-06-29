@@ -86,13 +86,14 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeader>): BlockHeade
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-export const createValidDefaultBlock = (
+export const createValidDefaultBlock = async (
 	block?: { header?: Partial<BlockHeader>; payload?: Transaction[] },
 	networkIdentifier: Buffer = defaultNetworkIdentifier,
-): Block => {
+): Promise<Block> => {
 	const keypair = getKeyPair();
 	const payload = block?.payload ?? [];
-	const txTree = new MerkleTree(payload.map(tx => tx.id));
+	const txTree = new MerkleTree();
+	await txTree.init(payload.map(tx => tx.id));
 
 	const asset = {
 		maxHeightPreviouslyForged: 0,
