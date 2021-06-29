@@ -13,14 +13,16 @@
  */
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BRANCH_PREFIX } from './constants';
+import { NotFoundError } from './error';
+import { InMemoryDB } from './inmemory_db';
 import { NodeSide, Proof, VerifyResult } from './types';
 import { generateHash, getBinaryString, getPairLocation } from './utils';
 
-export const verifyProof = (options: {
+export const verifyProof = async (options: {
 	queryData: ReadonlyArray<Buffer>;
 	proof: Proof;
 	rootHash: Buffer;
-}): VerifyResult => {
+}): Promise<VerifyResult> => {
 	const { path, indexes, dataLength } = options.proof;
 	const treeHeight = Math.ceil(Math.log2(dataLength)) + 1;
 	const results = new dataStructures.BufferMap();
@@ -31,10 +33,10 @@ export const verifyProof = (options: {
 	}
 
 	// Create a map for efficient lookup
-	const locationToPathMap: { [key: string]: Buffer } = {};
+	const locationToPathMap = new InMemoryDB();
 	for (const p of path) {
 		if (p.layerIndex !== undefined && p.nodeIndex !== undefined) {
-			locationToPathMap[`${getBinaryString(p.nodeIndex, treeHeight - p.layerIndex)}`] = p.hash;
+			await locationToPathMap.set(getBinaryString(p.nodeIndex, treeHeight - p.layerIndex), p.hash);
 		}
 	}
 
@@ -65,11 +67,17 @@ export const verifyProof = (options: {
 				nodeIndex: pairNodeIndex,
 				side: pairSide,
 			} = getPairLocation({ layerIndex, nodeIndex, dataLength });
-			const nextPath =
-				locationToPathMap[`${getBinaryString(pairNodeIndex, treeHeight - pairLayerIndex)}`];
-			if (nextPath === undefined) {
-				break;
+			let nextPath: Buffer;
+			try {
+				nextPath =
+				await locationToPathMap.get(getBinaryString(pairNodeIndex, treeHeight - pairLayerIndex));
+			} catch (error) {
+				if (error instanceof NotFoundError) {
+					break;
+				}
+				throw error;
 			}
+
 			const leftHashBuffer = pairSide === NodeSide.LEFT ? nextPath : currentHash;
 			const rightHashBuffer = pairSide === NodeSide.RIGHT ? nextPath : currentHash;
 			currentHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);

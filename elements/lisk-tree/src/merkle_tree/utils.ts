@@ -43,18 +43,20 @@ export const getLayerStructure = (dataLength: number): number[] => {
 	return structure;
 };
 
-export const getBinaryString = (num: number, length: number): string => {
+export const getBinaryString = (num: number, length: number): Buffer => {
 	if (length === 0) {
-		return '';
+		return Buffer.alloc(0);
 	}
 	let binaryString = num.toString(2);
-	while (binaryString.length < length) binaryString = `0${binaryString}`;
+	while (binaryString.length < length) {
+		binaryString = `0${binaryString}`;
+	}
 
-	return binaryString;
+	return Buffer.from(binaryString, 'utf8');
 };
 
 export const getBinary = (num: number, length: number): number[] => {
-	const binaryString = getBinaryString(num, length);
+	const binaryString = getBinaryString(num, length).toString('utf8');
 
 	return binaryString.split('').map(d => parseInt(d, 10));
 };

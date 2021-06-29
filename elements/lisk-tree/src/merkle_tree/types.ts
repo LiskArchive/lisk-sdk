@@ -57,3 +57,9 @@ export interface NodeLocation {
 }
 
 export type VerifyResult = ReadonlyArray<{ hash: Buffer; verified: boolean }>;
+
+
+export interface Database {
+	get(key: Buffer): Promise<Buffer>;
+	set(key: Buffer, value: Buffer): Promise<void>;
+}
