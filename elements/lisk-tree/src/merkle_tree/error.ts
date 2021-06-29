@@ -12,6 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-export class NotFoundError extends Error {
-}
+export class NotFoundError extends Error {}

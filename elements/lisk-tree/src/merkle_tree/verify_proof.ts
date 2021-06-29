@@ -23,18 +23,18 @@ export const verifyProof = async (options: {
 	proof: Proof;
 	rootHash: Buffer;
 }): Promise<VerifyResult> => {
-	const { path, indexes, dataLength } = options.proof;
-	const treeHeight = Math.ceil(Math.log2(dataLength)) + 1;
+	const { siblingHashes, indexes, size } = options.proof;
+	const treeHeight = Math.ceil(Math.log2(size)) + 1;
 	const results = new dataStructures.BufferMap();
 
 	// If tree has one empty node
-	if (dataLength === 0 || options.queryData.length === 0) {
+	if (size === 0 || options.queryData.length === 0) {
 		return [{ hash: options.rootHash, verified: true }];
 	}
 
 	// Create a map for efficient lookup
 	const locationToPathMap = new InMemoryDB();
-	for (const p of path) {
+	for (const p of siblingHashes) {
 		if (p.layerIndex !== undefined && p.nodeIndex !== undefined) {
 			await locationToPathMap.set(getBinaryString(p.nodeIndex, treeHeight - p.layerIndex), p.hash);
 		}
@@ -50,9 +50,9 @@ export const verifyProof = async (options: {
 			continue;
 		}
 
-		// If tree has only one non-empty node, directly compare it to the path
-		if (dataLength === 1) {
-			if (path.some(p => p.hash.equals(queryHash))) {
+		// If tree has only one non-empty node, directly compare it to the siblingHashes
+		if (size === 1) {
+			if (siblingHashes.some(p => p.hash.equals(queryHash))) {
 				results.set(queryHash, true);
 			} else {
 				results.set(queryHash, false);
@@ -66,11 +66,12 @@ export const verifyProof = async (options: {
 				layerIndex: pairLayerIndex,
 				nodeIndex: pairNodeIndex,
 				side: pairSide,
-			} = getPairLocation({ layerIndex, nodeIndex, dataLength });
+			} = getPairLocation({ layerIndex, nodeIndex, size });
 			let nextPath: Buffer;
 			try {
-				nextPath =
-				await locationToPathMap.get(getBinaryString(pairNodeIndex, treeHeight - pairLayerIndex));
+				nextPath = await locationToPathMap.get(
+					getBinaryString(pairNodeIndex, treeHeight - pairLayerIndex),
+				);
 			} catch (error) {
 				if (error instanceof NotFoundError) {
 					break;
@@ -84,7 +85,7 @@ export const verifyProof = async (options: {
 			layerIndex = pairLayerIndex > layerIndex ? pairLayerIndex + 1 : layerIndex + 1;
 			// If tree is balanced, divide pair index by 2, else divide by power of two of layer difference
 			nodeIndex =
-				dataLength === 2 ** (treeHeight - 1)
+				size === 2 ** (treeHeight - 1)
 					? Math.floor(pairNodeIndex / 2)
 					: Math.floor(pairNodeIndex / 2 ** (layerIndex - pairLayerIndex));
 		}

@@ -169,12 +169,12 @@ export class MerkleTree {
 	public async generateProof(queryData: ReadonlyArray<Buffer>): Promise<Proof> {
 		if (this._size === 0) {
 			return {
-				path: [],
+				siblingHashes: [],
 				indexes: [],
-				dataLength: 0,
+				size: 0,
 			};
 		}
-		const path = [];
+		const siblingHashes = [];
 		const addedPath = new dataStructures.BufferSet();
 		const indexes = [];
 		let queryNode: NodeInfo | undefined;
@@ -184,7 +184,7 @@ export class MerkleTree {
 			try {
 				queryNode = await this.getNode(queryData[i]);
 			} catch (err) {
-				path.push({
+				siblingHashes.push({
 					hash: queryData[i],
 					layerIndex: undefined,
 					nodeIndex: undefined,
@@ -200,7 +200,7 @@ export class MerkleTree {
 			if (this._size === 1 && this._root.equals(queryNode.hash)) {
 				if (!addedPath.has(queryNode.hash)) {
 					addedPath.add(queryNode.hash);
-					path.push({
+					siblingHashes.push({
 						hash: queryNode.hash,
 						layerIndex: 0,
 						nodeIndex: 0,
@@ -227,15 +227,15 @@ export class MerkleTree {
 				} = getPairLocation({
 					layerIndex: currentNode.layerIndex,
 					nodeIndex: currentNode.nodeIndex,
-					dataLength: this._size,
+					size: this._size,
 				});
 
-				const pairNodeHash = await this._locationToHashMap.get(
-					getBinaryString(pairNodeIndex, this._getHeight() - pairLayerIndex)
-				) as Buffer;
+				const pairNodeHash = (await this._locationToHashMap.get(
+					getBinaryString(pairNodeIndex, this._getHeight() - pairLayerIndex),
+				)) as Buffer;
 				if (!addedPath.has(pairNodeHash)) {
 					addedPath.add(pairNodeHash);
-					path.push({
+					siblingHashes.push({
 						hash: pairNodeHash,
 						layerIndex: pairLayerIndex,
 						nodeIndex: pairNodeIndex,
@@ -249,9 +249,9 @@ export class MerkleTree {
 		}
 
 		return {
-			path,
+			siblingHashes,
 			indexes,
-			dataLength: this._size,
+			size: this._size,
 		};
 	}
 
@@ -310,7 +310,10 @@ export class MerkleTree {
 		);
 		const branchHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);
 		await this._hashToValueMap.set(branchHash, branchValue);
-		await this._locationToHashMap.set(getBinaryString(nodeIndex, this._getHeight() - layerIndex), branchHash);
+		await this._locationToHashMap.set(
+			getBinaryString(nodeIndex, this._getHeight() - layerIndex),
+			branchHash,
+		);
 		return {
 			hash: branchHash,
 			value: branchValue,

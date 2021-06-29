@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError } from "./error";
-
+import { NotFoundError } from './error';
 
 export class InMemoryDB {
 	private _data: Record<string, Buffer> = {};

@@ -40,7 +40,7 @@ describe('MerkleTree', () => {
 
 							const chunk = 2 ** 2;
 							for (let i = 0; i < inputs.length; i += chunk) {
-								const tree = new MerkleTree()
+								const tree = new MerkleTree();
 								await tree.init(inputs.slice(i, i + chunk));
 								subTreeRoots.push(tree.root);
 							}
@@ -103,8 +103,14 @@ describe('MerkleTree', () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
 					const merkleTree = new MerkleTree();
 					await merkleTree.init(inputs);
-					const nodes = merkleTree.size !== 0 ? await Promise.all(Object.keys((merkleTree['_db'] as InMemoryDB)['_data']).filter(key => Buffer.from(key, 'binary')[0] === 0)
-						.map(async key => merkleTree.getNode(Buffer.from(key, 'binary').slice(1)))): [];
+					const nodes =
+						merkleTree.size !== 0
+							? await Promise.all(
+									Object.keys((merkleTree['_db'] as InMemoryDB)['_data'])
+										.filter(key => Buffer.from(key, 'binary')[0] === 0)
+										.map(async key => merkleTree.getNode(Buffer.from(key, 'binary').slice(1))),
+							  )
+							: [];
 					const queryData = nodes
 						.sort(() => 0.5 - Math.random())
 						.slice(0, Math.floor(Math.random() * nodes.length + 1))
@@ -122,9 +128,15 @@ describe('MerkleTree', () => {
 				it('should generate and verify invalid proof', async () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
 					const merkleTree = new MerkleTree();
-					await merkleTree.init(inputs)
-					const nodes = merkleTree.size !== 0 ? await Promise.all(Object.keys((merkleTree['_db'] as InMemoryDB)['_data']).filter(key => Buffer.from(key, 'binary')[0] === 0)
-						.map(async key => merkleTree.getNode(Buffer.from(key, 'binary').slice(1)))): [];
+					await merkleTree.init(inputs);
+					const nodes =
+						merkleTree.size !== 0
+							? await Promise.all(
+									Object.keys((merkleTree['_db'] as InMemoryDB)['_data'])
+										.filter(key => Buffer.from(key, 'binary')[0] === 0)
+										.map(async key => merkleTree.getNode(Buffer.from(key, 'binary').slice(1))),
+							  )
+							: [];
 					const randomizedQueryCount = Math.floor(Math.random() * nodes.length + 1);
 					const invalidNodeIndex =
 						inputs.length > 0 ? Math.floor(Math.random() * randomizedQueryCount + 1) : 0;
