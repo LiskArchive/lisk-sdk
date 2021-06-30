@@ -23,14 +23,13 @@ import {
 	EMPTY_HASH,
 	LEAF_PREFIX,
 	BRANCH_PREFIX,
+	PREFIX_HASH_TO_VALUE,
+	PREFIX_LOC_TO_HASH,
 } from './constants';
 import { InMemoryDB } from './inmemory_db';
 import { PrefixStore } from './prefix_store';
 import { NodeData, NodeInfo, NodeType, NodeSide, Proof, Database } from './types';
 import { generateHash, getBinaryString, isLeaf, getPairLocation } from './utils';
-
-const hashToValuePrefix = Buffer.from([0]);
-const locationToHashPrefix = Buffer.from([1]);
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -43,8 +42,8 @@ export class MerkleTree {
 
 	public constructor(options?: { preHashedLeaf?: boolean; db?: Database }) {
 		this._db = options?.db ?? new InMemoryDB();
-		this._hashToValueMap = new PrefixStore(this._db, hashToValuePrefix);
-		this._locationToHashMap = new PrefixStore(this._db, locationToHashPrefix);
+		this._hashToValueMap = new PrefixStore(this._db, PREFIX_HASH_TO_VALUE);
+		this._locationToHashMap = new PrefixStore(this._db, PREFIX_LOC_TO_HASH);
 		this._preHashedLeaf = options?.preHashedLeaf ?? false;
 
 		this._root = EMPTY_HASH;
