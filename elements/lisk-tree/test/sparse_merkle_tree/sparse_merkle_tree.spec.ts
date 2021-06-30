@@ -15,15 +15,15 @@
 import { SparseMerkleTree } from '../../src/sparse_merkle_tree/sparse_merkle_tree';
 
 describe('SparseMerkleTree', () => {
-    describe('dummy', () => {
-        it('is a dummy test', () => {
-            expect(SparseMerkleTree).toBeDefined();
-        });
-    });
-    describe('constructor', () => {});
-    describe('update', () => {});
-    describe('remove', () => {});
-    describe('generateSingleProof', () => {});
-    describe('generateMultiProof', () => {});
-    describe('verifyMultiProof', () => {});
-})
+	describe('dummy', () => {
+		it('is a dummy test', () => {
+			expect(SparseMerkleTree).toBeDefined();
+		});
+	});
+	describe('constructor', () => {});
+	describe('update', () => {});
+	describe('remove', () => {});
+	describe('generateSingleProof', () => {});
+	describe('generateMultiProof', () => {});
+	describe('verifyMultiProof', () => {});
+});

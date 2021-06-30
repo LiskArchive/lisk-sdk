@@ -39,11 +39,14 @@ class Empty {
 }
 */
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class SparseMerkleTree {
-	public constructor() {}
+	/*
+    public constructor() { }
     public update() {}
     public remove() {}
     public generateSingleProof() {}
     public generateMultiProof() {}
     public verifyMultiProof() {}
+    */
 }
