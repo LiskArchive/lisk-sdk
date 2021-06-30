@@ -12,15 +12,165 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { InclusionProofQueryResult } from './types';
+import { objects } from '@liskhq/lisk-utils';
+import { EMPTY_HASH, KEY_LENGTH_BYTES } from './constants';
+import { InclusionProofQuery, InclusionProofQueryWithHash } from './types';
 
-export const sortByBitmapAndKey = (
-	queries: InclusionProofQueryResult[],
-): InclusionProofQueryResult[] =>
+// Sort queries by the longest binaryBitmap, breaking ties by smaller key.
+// https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-construction
+export const sortByBitmapAndKey = <T extends InclusionProofQuery>(queries: T[]): T[] =>
 	queries.sort((q1, q2) => {
-		if (q1.bitmap.byteLength === q2.bitmap.byteLength) {
+		const q1BinaryBitmap = bufferToBinaryString(q1.bitmap);
+		const q2BinaryBitmap = bufferToBinaryString(q2.bitmap);
+
+		if (q1BinaryBitmap.length === q2BinaryBitmap.length) {
 			return q1.key.byteLength - q2.key.byteLength;
 		}
 
-		return q2.bitmap.byteLength - q1.bitmap.byteLength;
+		return q2BinaryBitmap.length - q1BinaryBitmap.length;
 	});
+
+// Remove queries that have merged together, keep only those with a different key prefix
+// https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
+export const filterQueries = <T extends InclusionProofQuery>(queries: T[]): T[] => {
+	const uniqueKeys: string[] = [];
+
+	return queries.filter(q => {
+		const binaryBitmap = bufferToBinaryString(q.bitmap);
+		const h = binaryBitmap.length;
+		const binaryKey = binaryExpansion(q.key);
+		const keyPrefix = binaryKey.substring(0, h);
+
+		if (!uniqueKeys.includes(keyPrefix)) {
+			uniqueKeys.push(keyPrefix);
+			return true;
+		}
+
+		return false;
+	});
+};
+
+// Checks whether two queries correspond to nodes that are
+// children of the same branch node, with q1 and q2 the left and right
+// child respectively
+// https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
+export const areSiblingQueries = (q1: InclusionProofQuery, q2: InclusionProofQuery): boolean => {
+	const q1BinaryBitmap = bufferToBinaryString(q1.bitmap);
+	const q2BinaryBitmap = bufferToBinaryString(q1.bitmap);
+
+	if (q1BinaryBitmap.length !== q2BinaryBitmap.length) {
+		return false;
+	}
+
+	const h = q1BinaryBitmap.length;
+	const binaryKey1 = binaryExpansion(q1.key);
+	const binaryKey2 = binaryExpansion(q2.key);
+	const keyPrefix1 = binaryKey1.substring(0, h - 1);
+	const keyPrefix2 = binaryKey2.substring(0, h - 1);
+
+	if (keyPrefix1 !== keyPrefix2) {
+		return false;
+	}
+
+	const d1 = binaryKey1[h];
+	const d2 = binaryKey2[h];
+
+	return d1 === '0' && d2 === '1';
+};
+
+// https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
+export const calculateRoot = (sibHashes: Buffer[], queries: InclusionProofQuery[]): Buffer => {
+	let siblingHashes = objects.cloneDeep(sibHashes);
+	const data: InclusionProofQueryWithHash[] = [];
+
+	for (const q of queries) {
+		data.push({
+			...q,
+			binaryBitmap: bufferToBinaryString(q.bitmap),
+			hash: q.value.byteLength === 0 ? EMPTY_HASH : leafNode(q.key, q.value).hash,
+		});
+	}
+
+	let sortedQueries = filterQueries<InclusionProofQueryWithHash>(
+		sortByBitmapAndKey<InclusionProofQueryWithHash>(data),
+	);
+
+	while (sortedQueries.length > 0) {
+		const q = sortedQueries[0];
+
+		// if the binaryBitmap is empty string, we reached the top of the tree
+		if (q.binaryBitmap === '') {
+			return q.hash;
+		}
+
+		const b = q.binaryBitmap[0];
+		// h equals the height of the node; e.g., the root has h=0
+		const h = q.binaryBitmap.length;
+		const binaryKey = binaryExpansion(q.key);
+
+		// we distinguish three cases for the sibling hash:
+		// 1. sibling is next element of sortedQueries
+		let siblingHash!: Buffer;
+
+		if (sortedQueries.length > 1 && areSiblingQueries(q, sortedQueries[1])) {
+			siblingHash = sortedQueries[1].hash;
+			sortedQueries = sortedQueries.splice(1, 1);
+		}
+		// 2. sibling is default empty node
+		else if (b === '0') {
+			siblingHash = EMPTY_HASH;
+		}
+		// 3. sibling hash comes from siblingHashes
+		else if (b === '1') {
+			// eslint-disable-next-line prefer-destructuring
+			siblingHash = siblingHashes[0];
+			siblingHashes = siblingHashes.splice(0, 1);
+		}
+
+		const d = binaryKey[h - 1];
+		if (d === '0') {
+			q.hash = branchHash(q.hash, siblingHash);
+		} else if (d === '1') {
+			q.hash = branchHash(siblingHash, q.hash);
+		}
+
+		q.binaryBitmap = q.binaryBitmap.substring(1);
+		sortedQueries = sortByBitmapAndKey(sortedQueries);
+		sortedQueries = filterQueries(sortedQueries);
+	}
+
+	throw new Error('Can not calculate root hash');
+};
+
+export const binaryExpansion = (k: Buffer, length = 8 * KEY_LENGTH_BYTES) =>
+	bufferToBinaryString(k).padStart(length, '0');
+
+export const bufferToBinaryString = (buf: Buffer) => {
+	let result = '';
+
+	for (let i = 0; i < buf.byteLength; i += 1) {
+		const byteBin = buf.readUInt8(i).toString(2);
+		result += i === 0 ? byteBin : byteBin.padStart(8, '0');
+	}
+
+	return result;
+};
+
+export const binaryStringToBuffer = (str: string) => {
+	const byteSize = Math.ceil(str.length / 8);
+	const buf = Buffer.alloc(byteSize);
+
+	for (let i = 1; i <= byteSize; i += 1) {
+		buf.writeUInt8(
+			parseInt(str.substring(str.length - i * 8, str.length - i * 8 + 8), 2),
+			byteSize - i,
+		);
+	}
+	return buf;
+};
+
+// TODO: Replace with actual method
+const leafNode = (_key: Buffer, _value: Buffer): { hash: Buffer } => ({ hash: EMPTY_HASH });
+
+// TODO: Replace with actual method
+const branchHash = (_hash: Buffer, _siblingHash: Buffer): Buffer => EMPTY_HASH;

@@ -12,18 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface InclusionProof {
-	readonly siblingHashes: Buffer[];
-	readonly queries: InclusionProofQuery[];
-}
+import { hash } from '@liskhq/lisk-cryptography';
 
-export interface InclusionProofQuery {
-	readonly key: Buffer;
-	readonly value: Buffer;
-	readonly bitmap: Buffer;
-}
-
-export interface InclusionProofQueryWithHash extends InclusionProofQuery {
-	hash: Buffer;
-	binaryBitmap: string;
-}
+export const KEY_LENGTH_BYTES = 4;
+export const EMPTY_HASH = hash(Buffer.alloc(0));
