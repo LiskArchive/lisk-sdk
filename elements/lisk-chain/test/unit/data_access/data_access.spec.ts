@@ -37,7 +37,7 @@ describe('data_access', () => {
 	let db: any;
 	let block: Block;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		db = new KVStore('temp');
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
 		(formatInt as jest.Mock).mockImplementation(num => num);
@@ -53,7 +53,7 @@ describe('data_access', () => {
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
-		block = createValidDefaultBlock({ header: { height: 1 } });
+		block = await createValidDefaultBlock({ header: { height: 1 } });
 		dataAccess.decodeBlockHeader = jest.fn().mockResolvedValue(block.header);
 	});
 
@@ -246,11 +246,11 @@ describe('data_access', () => {
 			// Arrange
 			dataAccess.addBlockHeader(block.header);
 			const additionalBlocks = [
-				createValidDefaultBlock({ header: { height: 2 } }).header,
-				createValidDefaultBlock({ header: { height: 3 } }).header,
-				createValidDefaultBlock({ header: { height: 4 } }).header,
-				createValidDefaultBlock({ header: { height: 5 } }).header,
-				createValidDefaultBlock({ header: { height: 6 } }).header,
+				(await createValidDefaultBlock({ header: { height: 2 } })).header,
+				(await createValidDefaultBlock({ header: { height: 3 } })).header,
+				(await createValidDefaultBlock({ header: { height: 4 } })).header,
+				(await createValidDefaultBlock({ header: { height: 5 } })).header,
+				(await createValidDefaultBlock({ header: { height: 6 } })).header,
 			];
 			for (const header of additionalBlocks) {
 				dataAccess.addBlockHeader(header);

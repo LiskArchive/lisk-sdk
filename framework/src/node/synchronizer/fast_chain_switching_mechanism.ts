@@ -59,7 +59,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		try {
 			const highestCommonBlock = await this._requestLastCommonBlock(peerId);
 			const blocks = await this._queryBlocks(receivedBlock, highestCommonBlock, peerId);
-			this._validateBlocks(blocks, peerId);
+			await this._validateBlocks(blocks, peerId);
 			await this._switchChain(highestCommonBlock as BlockHeader, blocks, peerId);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndAbortError) {
@@ -197,7 +197,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return blocks;
 	}
 
-	private _validateBlocks(blocks: ReadonlyArray<Block>, peerId: string): void {
+	private async _validateBlocks(blocks: ReadonlyArray<Block>, peerId: string): Promise<void> {
 		this._logger.debug(
 			{
 				blocks: blocks.map(block => ({
@@ -216,7 +216,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 					},
 					'Validating block',
 				);
-				this.processor.validate(block);
+				await this.processor.validate(block);
 			}
 		} catch (err) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');

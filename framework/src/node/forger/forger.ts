@@ -616,7 +616,9 @@ export class Forger {
 			transactionIds.push(transaction.id);
 		}
 
-		const transactionRoot = new MerkleTree(transactionIds).root;
+		const txTree = new MerkleTree();
+		await txTree.init(transactionIds);
+		const transactionRoot = txTree.root;
 
 		const header = {
 			version: BLOCK_VERSION,

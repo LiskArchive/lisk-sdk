@@ -111,7 +111,7 @@ export class Synchronizer {
 			);
 			// Moving to a Different Chain
 			// 1. Step: Validate new tip of chain
-			this.processorModule.validate(receivedBlock);
+			await this.processorModule.validate(receivedBlock);
 
 			// Choose the right mechanism to sync
 			const validMechanism = await this._determineSyncMechanism(receivedBlock, peerId);

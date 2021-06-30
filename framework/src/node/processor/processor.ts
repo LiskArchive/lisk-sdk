@@ -198,7 +198,7 @@ export class Processor {
 					block: encodedBlock.toString('hex'),
 				});
 
-				this._validate(block);
+				await this._validate(block);
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
 				try {
@@ -223,14 +223,14 @@ export class Processor {
 				{ id: block.header.id, height: block.header.height },
 				'Processing valid block',
 			);
-			this._validate(block);
+			await this._validate(block);
 			await this._processValidated(block);
 		});
 	}
 
-	public validate(block: Block): void {
+	public async validate(block: Block): Promise<void> {
 		this._logger.debug({ id: block.header.id, height: block.header.height }, 'Validating block');
-		this._validate(block);
+		await this._validate(block);
 	}
 
 	// processValidated processes a block assuming that statically it's valid
@@ -416,14 +416,14 @@ export class Processor {
 		return block;
 	}
 
-	private _validate(block: Block): void {
+	private async _validate(block: Block): Promise<void> {
 		// If the schema or bytes does not match with version 2, it fails even before this
 		// This is for fail safe, and genesis block does not use this function
 		if (block.header.version !== BLOCK_VERSION) {
 			throw new ApplyPenaltyError(`Block version must be ${BLOCK_VERSION}`);
 		}
 		try {
-			this._chain.validateBlockHeader(block);
+			await this._chain.validateBlockHeader(block);
 			if (block.payload.length) {
 				for (const transaction of block.payload) {
 					this.validateTransaction(transaction);

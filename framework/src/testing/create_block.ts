@@ -82,16 +82,17 @@ export const createFakeBlockHeader = <T = unknown>(
 	} as unknown) as BlockHeader<T>;
 };
 
-export const createBlock = <T = BlockHeaderAsset>({
+export const createBlock = async <T = BlockHeaderAsset>({
 	passphrase,
 	networkIdentifier,
 	timestamp,
 	previousBlockID,
 	payload,
 	header,
-}: CreateBlock<T>): Block<T> => {
+}: CreateBlock<T>): Promise<Block<T>> => {
 	const { publicKey, privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const txTree = new MerkleTree(payload?.map(tx => tx.id));
+	const txTree = new MerkleTree();
+	await txTree.init(payload?.map(tx => tx.id) ?? []);
 
 	const asset = {
 		maxHeightPreviouslyForged: 0,

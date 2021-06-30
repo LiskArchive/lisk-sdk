@@ -26,35 +26,37 @@ export const generateHash = (prefix: Buffer, leftHash: Buffer, rightHash: Buffer
 		),
 	);
 
-export const getMaxIdxAtLayer = (layer: number, dataLength: number): number => {
-	let [max, r] = [dataLength, 0];
+export const getMaxIdxAtLayer = (layer: number, size: number): number => {
+	let [max, r] = [size, 0];
 	for (let i = 0; i < layer; i += 1) {
 		[max, r] = [[Math.floor, Math.ceil][r % 2](max / 2), r + (max % 2)];
 	}
 	return max;
 };
 
-export const getLayerStructure = (dataLength: number): number[] => {
+export const getLayerStructure = (size: number): number[] => {
 	const structure = [];
-	for (let i = 0; i <= Math.ceil(Math.log2(dataLength)); i += 1) {
-		structure.push(getMaxIdxAtLayer(i, dataLength));
+	for (let i = 0; i <= Math.ceil(Math.log2(size)); i += 1) {
+		structure.push(getMaxIdxAtLayer(i, size));
 	}
 
 	return structure;
 };
 
-export const getBinaryString = (num: number, length: number): string => {
+export const getBinaryString = (num: number, length: number): Buffer => {
 	if (length === 0) {
-		return '';
+		return Buffer.alloc(0);
 	}
 	let binaryString = num.toString(2);
-	while (binaryString.length < length) binaryString = `0${binaryString}`;
+	while (binaryString.length < length) {
+		binaryString = `0${binaryString}`;
+	}
 
-	return binaryString;
+	return Buffer.from(binaryString, 'utf8');
 };
 
 export const getBinary = (num: number, length: number): number[] => {
-	const binaryString = getBinaryString(num, length);
+	const binaryString = getBinaryString(num, length).toString('utf8');
 
 	return binaryString.split('').map(d => parseInt(d, 10));
 };
@@ -62,11 +64,11 @@ export const getBinary = (num: number, length: number): number[] => {
 export const getPairLocation = (nodeInfo: {
 	layerIndex: number;
 	nodeIndex: number;
-	dataLength: number;
+	size: number;
 }): NodeLocation => {
-	const { layerIndex, nodeIndex, dataLength } = nodeInfo;
-	const treeHeight = Math.ceil(Math.log2(dataLength)) + 1;
-	const layerStructure = getLayerStructure(dataLength);
+	const { layerIndex, nodeIndex, size } = nodeInfo;
+	const treeHeight = Math.ceil(Math.log2(size)) + 1;
+	const layerStructure = getLayerStructure(size);
 	const numberOfNodesInLayer = layerStructure[layerIndex];
 	const binary = getBinary(nodeIndex, treeHeight - layerIndex);
 	const side = [NodeSide.LEFT, NodeSide.RIGHT][binary[binary.length - 1]];

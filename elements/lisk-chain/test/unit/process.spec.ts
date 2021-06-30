@@ -68,7 +68,7 @@ describe('chain/process block', () => {
 	let db: any;
 	let block: Block;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		db = new KVStore('temp');
 		chainInstance = new Chain({
 			db,
@@ -79,7 +79,7 @@ describe('chain/process block', () => {
 		});
 		(chainInstance as any)._lastBlock = genesisBlock;
 
-		block = createValidDefaultBlock();
+		block = await createValidDefaultBlock();
 	});
 
 	describe('#validateTransaction', () => {
@@ -213,105 +213,111 @@ describe('chain/process block', () => {
 
 	describe('#validateBlockHeader', () => {
 		describe('when signature is invalid', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
-				block = createValidDefaultBlock();
+				block = await createValidDefaultBlock();
 				(block.header as any).signature = getRandomBytes(64);
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow('Invalid block signature');
+				await expect(chainInstance.validateBlockHeader(block)).rejects.toThrow(
+					'Invalid block signature',
+				);
 			});
 		});
 
 		describe('when generatorPublicKey is empty', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
-				block = createValidDefaultBlock({ header: { generatorPublicKey: Buffer.alloc(0) } });
+				block = await createValidDefaultBlock({ header: { generatorPublicKey: Buffer.alloc(0) } });
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+				await expect(chainInstance.validateBlockHeader(block)).rejects.toThrow(
 					'"pk" must be crypto_sign_PUBLICKEYBYTES bytes long',
 				);
 			});
 		});
 
 		describe('when signature is empty', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
-				block = createValidDefaultBlock();
+				block = await createValidDefaultBlock();
 				(block.header as any).signature = Buffer.alloc(0);
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+				await expect(chainInstance.validateBlockHeader(block)).rejects.toThrow(
 					'"sig" must be at least crypto_sign_BYTES bytes long',
 				);
 			});
 		});
 
 		describe('when previousBlockID is empty', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
-				block = createValidDefaultBlock({ header: { previousBlockID: Buffer.alloc(0) } });
+				block = await createValidDefaultBlock({ header: { previousBlockID: Buffer.alloc(0) } });
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+				await expect(chainInstance.validateBlockHeader(block)).rejects.toThrow(
 					'Previous block id must not be empty',
 				);
 			});
 		});
 
 		describe('when reward is invalid', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
-				block = createValidDefaultBlock({
+				block = await createValidDefaultBlock({
 					header: { reward: BigInt(1000000000) },
 				});
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow('Invalid block reward');
+				await expect(chainInstance.validateBlockHeader(block)).rejects.toThrow(
+					'Invalid block reward',
+				);
 			});
 		});
 
 		describe('when a transaction included is invalid', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
 				const invalidTx = getTransaction();
 				(invalidTx.senderPublicKey as any) = '100';
 				invalidTx['_id'] = Buffer.from('123');
-				block = createValidDefaultBlock({ payload: [invalidTx] });
+				block = await createValidDefaultBlock({ payload: [invalidTx] });
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow();
+				await expect(chainInstance.validateBlockHeader(block)).rejects.toThrow();
 			});
 		});
 
 		describe('when payload length exceeds maximum allowed', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
 				(chainInstance as any).constants.maxPayloadLength = 100;
 				const txs = new Array(200).fill(0).map(() => getTransaction());
-				block = createValidDefaultBlock({ payload: txs });
+				block = await createValidDefaultBlock({ payload: txs });
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+				await expect(chainInstance.validateBlockHeader(block)).rejects.toThrow(
 					'Payload length is too long',
 				);
 			});
 		});
 
 		describe('when transaction root is incorrect', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() => getTransaction());
-				block = createValidDefaultBlock({
+				block = await createValidDefaultBlock({
 					payload: txs,
 					header: { transactionRoot: Buffer.from('1234567890') },
 				});
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).toThrow('Invalid transaction root');
+				await expect(chainInstance.validateBlockHeader(block)).rejects.toThrow(
+					'Invalid transaction root',
+				);
 			});
 		});
 
 		describe('when all the value is valid', () => {
-			it('should not throw error', () => {
+			it('should not throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() => getTransaction());
-				block = createValidDefaultBlock({ payload: txs });
+				block = await createValidDefaultBlock({ payload: txs });
 				// Act & assert
-				expect(() => chainInstance.validateBlockHeader(block)).not.toThrow();
+				await expect(chainInstance.validateBlockHeader(block)).resolves.toBeUndefined();
 			});
 		});
 	});
@@ -339,7 +345,7 @@ describe('chain/process block', () => {
 		describe('when previous block id is invalid', () => {
 			it('should not throw error', async () => {
 				// Arrange
-				block = createValidDefaultBlock({
+				block = await createValidDefaultBlock({
 					header: { previousBlockID: getRandomBytes(32) },
 				});
 				// Act & assert
@@ -353,7 +359,7 @@ describe('chain/process block', () => {
 			it('should throw when block timestamp is in the future', async () => {
 				// Arrange
 				const futureTimestamp = chainInstance.slots.getSlotTime(chainInstance.slots.getNextSlot());
-				block = createValidDefaultBlock({
+				block = await createValidDefaultBlock({
 					header: {
 						timestamp: futureTimestamp,
 						previousBlockID: genesisBlock.header.id,
@@ -368,7 +374,7 @@ describe('chain/process block', () => {
 
 			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
 				// Arrange
-				block = createValidDefaultBlock({
+				block = await createValidDefaultBlock({
 					header: { timestamp: 0, previousBlockID: genesisBlock.header.id },
 				});
 				expect.assertions(1);
@@ -385,7 +391,7 @@ describe('chain/process block', () => {
 					receivedAt: new Date(),
 				};
 				// Arrange
-				block = createValidDefaultBlock({
+				block = await createValidDefaultBlock({
 					header: {
 						previousBlockID: chainInstance.lastBlock.header.id,
 						height: chainInstance.lastBlock.header.height + 1,
@@ -402,7 +408,7 @@ describe('chain/process block', () => {
 		describe('when block is generated by an address which does not belong to validators', () => {
 			it('should throw an error', async () => {
 				// Arrange
-				block = createValidDefaultBlock();
+				block = await createValidDefaultBlock();
 				const validatorBuffer = codec.encode(validatorsSchema, {
 					validators: [{ address: getRandomBytes(20) }],
 				});
@@ -420,7 +426,7 @@ describe('chain/process block', () => {
 		describe('when block is generated by an address which is in validators but not correct slot', () => {
 			it('should throw an error', async () => {
 				// Arrange
-				block = createValidDefaultBlock();
+				block = await createValidDefaultBlock();
 				const validatorBuffer = codec.encode(validatorsSchema, {
 					validators: [
 						{ address: getAddressFromPublicKey(block.header.generatorPublicKey) },
@@ -441,7 +447,7 @@ describe('chain/process block', () => {
 		describe('when seedReveal is invalid but reward is current reward', () => {
 			it('should throw an error', async () => {
 				// Arrange
-				const lastBlock = createValidDefaultBlock({
+				const lastBlock = await createValidDefaultBlock({
 					header: {
 						height: 1,
 						asset: {
@@ -452,7 +458,7 @@ describe('chain/process block', () => {
 					},
 				});
 				chainInstance['_lastBlock'] = lastBlock;
-				block = createValidDefaultBlock({
+				block = await createValidDefaultBlock({
 					header: {
 						reward: BigInt(500000000),
 						previousBlockID: lastBlock.header.id,
@@ -498,7 +504,7 @@ describe('chain/process block', () => {
 		describe('when all values are valid', () => {
 			it('should not throw error', async () => {
 				// Arrange
-				block = createValidDefaultBlock();
+				block = await createValidDefaultBlock();
 				const validatorBuffer = codec.encode(validatorsSchema, {
 					validators: [{ address: getAddressFromPublicKey(block.header.generatorPublicKey) }],
 				});

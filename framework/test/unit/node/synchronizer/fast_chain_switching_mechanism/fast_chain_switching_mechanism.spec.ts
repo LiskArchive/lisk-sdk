@@ -258,16 +258,16 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 
 		beforeEach(async () => {
-			finalizedBlock = createValidDefaultBlock({
+			finalizedBlock = await createValidDefaultBlock({
 				header: { height: finalizedHeight },
 			});
 
-			aBlock = createValidDefaultBlock();
+			aBlock = await createValidDefaultBlock();
 			// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 			// memory. The following mock fakes this to be true
 			// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 			// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
-			lastBlock = createValidDefaultBlock({
+			lastBlock = await createValidDefaultBlock({
 				header: { height: finalizedHeight + 1 },
 			});
 
@@ -437,7 +437,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 				// Act
 				// the difference in height between the common block and the received block is > delegatesPerRound*2
-				const receivedBlock = createValidDefaultBlock({
+				const receivedBlock = await createValidDefaultBlock({
 					header: {
 						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
 					},
@@ -465,7 +465,7 @@ describe('fast_chain_switching_mechanism', () => {
 					height: lastBlock.header.height + 1,
 				});
 				// Difference in height between the common block and the last block is > delegatesPerRound*2
-				lastBlock = createValidDefaultBlock({
+				lastBlock = await createValidDefaultBlock({
 					header: {
 						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
 					},
@@ -524,7 +524,7 @@ describe('fast_chain_switching_mechanism', () => {
 					} as never);
 
 				// Act
-				const receivedBlock = createValidDefaultBlock({
+				const receivedBlock = await createValidDefaultBlock({
 					header: {
 						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
 					},
@@ -623,13 +623,13 @@ describe('fast_chain_switching_mechanism', () => {
 				});
 
 				const requestedBlocks = [
-					createValidDefaultBlock({
+					await createValidDefaultBlock({
 						header: {
 							height: highestCommonBlock.height + 1,
 							previousBlockID: highestCommonBlock.id,
 						},
 					}),
-					...new Array(34).fill(0).map(() => createValidDefaultBlock()),
+					...(await Promise.all(new Array(34).fill(0).map(async () => createValidDefaultBlock()))),
 					aBlock,
 				];
 
@@ -702,13 +702,13 @@ describe('fast_chain_switching_mechanism', () => {
 				});
 
 				const requestedBlocks = [
-					createValidDefaultBlock({
+					await createValidDefaultBlock({
 						header: {
 							height: highestCommonBlock.height + 1,
 							previousBlockID: highestCommonBlock.id,
 						},
 					}),
-					...new Array(34).fill(0).map(() => createValidDefaultBlock()),
+					...(await Promise.all(new Array(34).fill(0).map(async () => createValidDefaultBlock()))),
 					aBlock,
 				];
 
@@ -767,13 +767,13 @@ describe('fast_chain_switching_mechanism', () => {
 					height: finalizedBlock.header.height,
 				});
 				const requestedBlocks = [
-					createValidDefaultBlock({
+					await createValidDefaultBlock({
 						header: {
 							height: highestCommonBlock.height + 1,
 							previousBlockID: highestCommonBlock.id,
 						},
 					}),
-					...new Array(34).fill(0).map(() => createValidDefaultBlock()),
+					...(await Promise.all(new Array(34).fill(0).map(async () => createValidDefaultBlock()))),
 					aBlock,
 				];
 
@@ -878,13 +878,13 @@ describe('fast_chain_switching_mechanism', () => {
 					height: finalizedBlock.header.height,
 				});
 				const requestedBlocks = [
-					createValidDefaultBlock({
+					await createValidDefaultBlock({
 						header: {
 							height: highestCommonBlock.height + 1,
 							previousBlockID: highestCommonBlock.id,
 						},
 					}),
-					...new Array(34).fill(0).map(() => createValidDefaultBlock()),
+					...(await Promise.all(new Array(34).fill(0).map(async () => createValidDefaultBlock()))),
 					aBlock,
 				];
 
@@ -912,8 +912,8 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith(highestCommonBlock.id)
 					.mockResolvedValue(highestCommonBlock as never);
 
-				processorModule.deleteLastBlock.mockImplementation(() => {
-					chainModule._lastBlock = createValidDefaultBlock({
+				processorModule.deleteLastBlock.mockImplementation(async () => {
+					chainModule._lastBlock = await createValidDefaultBlock({
 						header: { height: chainModule._lastBlock.header.height - 1 },
 					});
 				});

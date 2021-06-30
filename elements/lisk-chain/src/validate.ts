@@ -59,17 +59,17 @@ export const validateReward = (block: Block, maxReward: bigint): void => {
 	}
 };
 
-const getTransactionRoot = (ids: Buffer[]): Buffer => {
-	const tree = new MerkleTree(ids);
-
+const getTransactionRoot = async (ids: Buffer[]): Promise<Buffer> => {
+	const tree = new MerkleTree();
+	await tree.init(ids);
 	return tree.root;
 };
 
-export const validateBlockProperties = (
+export const validateBlockProperties = async (
 	block: Block,
 	encodedPayload: Buffer,
 	maxPayloadLength: number,
-): void => {
+): Promise<void> => {
 	if (block.header.previousBlockID.length === 0) {
 		throw new Error('Previous block id must not be empty');
 	}
@@ -82,7 +82,7 @@ export const validateBlockProperties = (
 		transactionIds.push(transaction.id);
 	}
 
-	const transactionRoot = getTransactionRoot(transactionIds);
+	const transactionRoot = await getTransactionRoot(transactionIds);
 	if (!transactionRoot.equals(block.header.transactionRoot)) {
 		throw new Error('Invalid transaction root');
 	}

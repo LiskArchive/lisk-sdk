@@ -95,11 +95,11 @@ describe('chain', () => {
 
 	describe('init', () => {
 		let lastBlock: Block;
-		beforeEach(() => {
+		beforeEach(async () => {
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([{ value: genesisBlock.header.id }]),
 			);
-			lastBlock = createValidDefaultBlock({ header: { height: 103 } });
+			lastBlock = await createValidDefaultBlock({ header: { height: 103 } });
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([{ value: lastBlock.header.id }]),
 			);
@@ -133,18 +133,21 @@ describe('chain', () => {
 	});
 
 	describe('newStateStore', () => {
-		beforeEach(() => {
+		beforeEach(async () => {
 			// eslint-disable-next-line dot-notation
-			chainInstance['_lastBlock'] = createValidDefaultBlock({
+			chainInstance['_lastBlock'] = await createValidDefaultBlock({
 				header: { height: 532 },
 			});
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween')
-				.mockResolvedValue([createValidDefaultBlock().header, genesisBlock.header] as never);
+				.mockResolvedValue([
+					(await createValidDefaultBlock()).header,
+					genesisBlock.header,
+				] as never);
 		});
 
 		it('should populate the chain state with genesis block', async () => {
-			chainInstance['_lastBlock'] = createValidDefaultBlock({
+			chainInstance['_lastBlock'] = await createValidDefaultBlock({
 				header: { height: 1 },
 			});
 			chainInstance['_numberOfValidators'] = 103;
@@ -187,8 +190,8 @@ describe('chain', () => {
 
 		const fakeAccounts = [createFakeDefaultAccount(), createFakeDefaultAccount()];
 
-		beforeEach(() => {
-			savingBlock = createValidDefaultBlock({ header: { height: 300 } });
+		beforeEach(async () => {
+			savingBlock = await createValidDefaultBlock({ header: { height: 300 } });
 			batchMock = {
 				put: jest.fn(),
 				del: jest.fn(),
@@ -239,7 +242,7 @@ describe('chain', () => {
 		it('should emit block and accounts', async () => {
 			// Arrange
 			jest.spyOn((chainInstance as any).events, 'emit');
-			const block = createValidDefaultBlock();
+			const block = await createValidDefaultBlock();
 
 			// Act
 			await chainInstance.saveBlock(block, stateStoreStub, 0);
@@ -283,7 +286,7 @@ describe('chain', () => {
 		it('should throw an error when previous block does not exist in the database', async () => {
 			// Arrange
 			(db.get as jest.Mock).mockRejectedValue(new NotFoundError('Data not found') as never);
-			const block = createValidDefaultBlock();
+			const block = await createValidDefaultBlock();
 			// Act & Assert
 			await expect(chainInstance.removeBlock(block, stateStoreStub)).rejects.toThrow(
 				'PreviousBlock is null',
@@ -294,7 +297,7 @@ describe('chain', () => {
 			// Arrange
 			jest.spyOn(chainInstance.dataAccess, 'getBlockByID').mockResolvedValue(genesisBlock as never);
 
-			const block = createValidDefaultBlock();
+			const block = await createValidDefaultBlock();
 			when(db.get)
 				.calledWith(`diff:${formatInt(block.header.height)}`)
 				.mockResolvedValue(emptyEncodedDiff as never);
@@ -311,7 +314,7 @@ describe('chain', () => {
 		it('should not create entry in temp block table when saveToTemp flag is false', async () => {
 			// Arrange
 			jest.spyOn(chainInstance.dataAccess, 'getBlockByID').mockResolvedValue(genesisBlock as never);
-			const block = createValidDefaultBlock();
+			const block = await createValidDefaultBlock();
 			when(db.get)
 				.calledWith(`diff:${formatInt(block.header.height)}`)
 				.mockResolvedValue(emptyEncodedDiff as never);
@@ -328,7 +331,7 @@ describe('chain', () => {
 			// Arrange
 			jest.spyOn(chainInstance.dataAccess, 'getBlockByID').mockResolvedValue(genesisBlock as never);
 			const tx = getTransaction();
-			const block = createValidDefaultBlock({ payload: [tx] });
+			const block = await createValidDefaultBlock({ payload: [tx] });
 			when(db.get)
 				.calledWith(`diff:${formatInt(block.header.height)}`)
 				.mockResolvedValue(emptyEncodedDiff as never);
@@ -346,7 +349,7 @@ describe('chain', () => {
 		it('should emit block and accounts', async () => {
 			// Arrange
 			jest.spyOn((chainInstance as any).events, 'emit');
-			const block = createValidDefaultBlock();
+			const block = await createValidDefaultBlock();
 
 			// Act
 			await chainInstance.saveBlock(block, stateStoreStub, 0);
@@ -446,9 +449,9 @@ describe('chain', () => {
 		it('should not affect validator if block is within bootstrap period', async () => {
 			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
 			stateStore = createStateStore(db, [
-				createValidDefaultBlock({ header: { height: 307 } }).header,
+				(await createValidDefaultBlock({ header: { height: 307 } })).header,
 			]);
-			const currentBlock = createValidDefaultBlock({ header: { height: 308 } });
+			const currentBlock = await createValidDefaultBlock({ header: { height: 308 } });
 			jest.spyOn(stateStore.consensus, 'get');
 			jest.spyOn(stateStore.consensus, 'set');
 
@@ -461,9 +464,9 @@ describe('chain', () => {
 		it('should affect validator if block is at the last height of bootstrap period', async () => {
 			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
 			stateStore = createStateStore(db, [
-				createValidDefaultBlock({ header: { height: 308 } }).header,
+				(await createValidDefaultBlock({ header: { height: 308 } })).header,
 			]);
-			const currentBlock = createValidDefaultBlock({ header: { height: 309 } });
+			const currentBlock = await createValidDefaultBlock({ header: { height: 309 } });
 			jest.spyOn(stateStore.consensus, 'get');
 			jest.spyOn(stateStore.consensus, 'set');
 
@@ -488,9 +491,9 @@ describe('chain', () => {
 
 		it('should set address and isConsensusParticipant as the input', async () => {
 			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
-			const currentBlock = createValidDefaultBlock({ header: { height: 513 } });
+			const currentBlock = await createValidDefaultBlock({ header: { height: 513 } });
 			stateStore = createStateStore(db, [
-				createValidDefaultBlock({ header: { height: 512 } }).header,
+				(await createValidDefaultBlock({ header: { height: 512 } })).header,
 			]);
 			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
 
@@ -513,9 +516,9 @@ describe('chain', () => {
 			const validators = [
 				{ address: addresses[0], isConsensusParticipant: true, minActiveHeight: 104 },
 			];
-			const currentBlock = createValidDefaultBlock({ header: { height: 513 } });
+			const currentBlock = await createValidDefaultBlock({ header: { height: 513 } });
 			stateStore = createStateStore(db, [
-				createValidDefaultBlock({ header: { height: 512 } }).header,
+				(await createValidDefaultBlock({ header: { height: 512 } })).header,
 			]);
 
 			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
@@ -531,9 +534,9 @@ describe('chain', () => {
 				{ address: addresses[0], isConsensusParticipant: true },
 			];
 			stateStore = createStateStore(db, [
-				createValidDefaultBlock({ header: { height: 514 } }).header,
+				(await createValidDefaultBlock({ header: { height: 514 } })).header,
 			]);
-			const currentBlock = createValidDefaultBlock({ header: { height: 515 } });
+			const currentBlock = await createValidDefaultBlock({ header: { height: 515 } });
 			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
 
 			const updatedValidatorsBuffer = await stateStore.consensus.get(
@@ -560,9 +563,9 @@ describe('chain', () => {
 		it('should set minActiveHeight should not be changed if the address exists in the previous set', async () => {
 			const validators = [{ address: addresses[0], isConsensusParticipant: true }];
 			stateStore = createStateStore(db, [
-				createValidDefaultBlock({ header: { height: 512 } }).header,
+				(await createValidDefaultBlock({ header: { height: 512 } })).header,
 			]);
-			const currentBlock = createValidDefaultBlock({ header: { height: 513 } });
+			const currentBlock = await createValidDefaultBlock({ header: { height: 513 } });
 			await chainInstance.setValidators(validators, stateStore, currentBlock.header);
 
 			const updatedValidatorsBuffer = await stateStore.consensus.get(
