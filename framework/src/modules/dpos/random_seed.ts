@@ -56,7 +56,7 @@ const bitwiseXOR = (bufferArray: Buffer[]): Buffer => {
 	return result;
 };
 
-const findPreviousHeaderOfDelegate = (
+export const findPreviousHeaderOfDelegate = (
 	header: BlockHeader,
 	searchTillHeight: number,
 	headersMap: HeadersMap,
@@ -65,6 +65,10 @@ const findPreviousHeaderOfDelegate = (
 	const searchTill = Math.max(searchTillHeight, 1);
 
 	for (let i = height - 1; i >= searchTill; i -= 1) {
+		const foundHeader = headersMap[i];
+		if (!foundHeader) {
+			return undefined;
+		}
 		if (headersMap[i].generatorPublicKey.equals(generatorPublicKey)) {
 			return headersMap[i];
 		}
