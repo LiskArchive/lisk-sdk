@@ -17,11 +17,9 @@ import { EMPTY_HASH } from './constants';
 export class SparseMerkleTree {
 	private readonly _rootHash: Buffer;
 	private readonly _keyLength: number;
-	public constructor(rootHash?: Buffer, keyLength = 1) {
+	public constructor(rootHash?: Buffer, keyLength = 36) {
 		this._keyLength = keyLength;
-		if (rootHash) {
-			this._rootHash = rootHash;
-		} else this._rootHash = EMPTY_HASH;
+		this._rootHash = rootHash ?? EMPTY_HASH;
 	}
 	public get rootHash(): Buffer {
 		return this._rootHash;
