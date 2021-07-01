@@ -170,7 +170,10 @@ export const binaryStringToBuffer = (str: string) => {
 };
 
 // TODO: Replace with actual method
-const leafNode = (_key: Buffer, _value: Buffer): { hash: Buffer } => ({ hash: EMPTY_HASH });
+const leafNode = (key: Buffer, value: Buffer): { hash: Buffer } => ({
+	hash: Buffer.concat([key, value]),
+});
 
 // TODO: Replace with actual method
-const branchHash = (_hash: Buffer, _siblingHash: Buffer): Buffer => EMPTY_HASH;
+const branchHash = (hash: Buffer, siblingHash: Buffer): Buffer =>
+	Buffer.concat([hash, siblingHash]);
