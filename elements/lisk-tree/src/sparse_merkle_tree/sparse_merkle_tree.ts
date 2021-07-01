@@ -12,37 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-/*
-class Leaf {
-    constructor() {}
+import { EMPTY_HASH } from './constants';
 
-    get hash() {}
-    get key() {}
-    get value() {}
-    update() {}
-}
-
-class Branch {
-    constructor() {}
-
-    get hash() {}
-    get left() {}
-    get right() {}
-    update() {}
-
-}
-
-class Empty {
-    constructor() {}
-    
-    get hash() {}
-}
-*/
-
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class SparseMerkleTree {
+	private readonly _rootHash: Buffer;
+	private readonly _keyLength: number;
+	public constructor(rootHash?: Buffer, keyLength = 1) {
+		this._keyLength = keyLength;
+		if (rootHash) {
+			this._rootHash = rootHash;
+		} else this._rootHash = EMPTY_HASH;
+	}
+	public get rootHash(): Buffer {
+		return this._rootHash;
+	}
+	public get keyLength(): number {
+		return this._keyLength;
+	}
 	/*
-    public constructor() { }
     public update() {}
     public remove() {}
     public generateSingleProof() {}
