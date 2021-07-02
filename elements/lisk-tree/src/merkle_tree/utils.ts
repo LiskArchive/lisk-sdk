@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable no-bitwise */
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { LEAF_PREFIX } from './constants';
@@ -59,6 +60,27 @@ export const getBinary = (num: number, length: number): number[] => {
 	const binaryString = getBinaryString(num, length).toString('utf8');
 
 	return binaryString.split('').map(d => parseInt(d, 10));
+};
+
+export const getSiblingInfo = (
+	nodeIndex: number,
+	layerIndex: number,
+	size: number,
+): NodeLocation | undefined => {
+	const structure = getLayerStructure(size);
+	let siblingNodeIndex = ((nodeIndex >>> 1) << 1) + ((nodeIndex + 1) % 2);
+	let siblingLayerIndex = layerIndex;
+	while (siblingNodeIndex >= structure[siblingLayerIndex] && siblingLayerIndex > 0) {
+		siblingNodeIndex <<= 1;
+		siblingLayerIndex -= 1;
+	}
+	if (siblingLayerIndex === 0 && siblingNodeIndex >= size) {
+		return undefined;
+	}
+	return {
+		nodeIndex: siblingNodeIndex,
+		layerIndex: siblingLayerIndex,
+	};
 };
 
 export const getPairLocation = (nodeInfo: {
