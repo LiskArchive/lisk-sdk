@@ -15,22 +15,24 @@ import * as fixture from '../fixtures/transaction_merkle_root/transaction_merkle
 import { MerkleTree } from '../../src/merkle_tree/merkle_tree';
 import { EMPTY_HASH } from '../../src/merkle_tree/constants';
 import { verifyProof } from '../../src/merkle_tree/verify_proof';
+import { InMemoryDB } from '../../src/merkle_tree/inmemory_db';
 
 describe('MerkleTree', () => {
 	describe('constructor', () => {
 		for (const test of fixture.testCases) {
 			// eslint-disable-next-line jest/valid-title
 			describe(test.description, () => {
-				it('should result in correct merkle root', () => {
+				it('should result in correct merkle root', async () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
-					const merkleTree = new MerkleTree(inputs);
+					const merkleTree = new MerkleTree();
+					await merkleTree.init(inputs);
 
 					expect(merkleTree.root).toEqual(Buffer.from(test.output.transactionMerkleRoot, 'hex'));
 				});
 
 				describe('should allow pre-hashed leafs', () => {
 					if (test.input.transactionIds.length > 2 ** 2) {
-						it('should result in same merkle root if divided into sub tree of power of 2', () => {
+						it('should result in same merkle root if divided into sub tree of power of 2', async () => {
 							const inputs = test.input.transactionIds.map(hexString =>
 								Buffer.from(hexString, 'hex'),
 							);
@@ -38,15 +40,20 @@ describe('MerkleTree', () => {
 
 							const chunk = 2 ** 2;
 							for (let i = 0; i < inputs.length; i += chunk) {
-								subTreeRoots.push(new MerkleTree(inputs.slice(i, i + chunk)).root);
+								const tree = new MerkleTree();
+								await tree.init(inputs.slice(i, i + chunk));
+								subTreeRoots.push(tree.root);
 							}
 
-							expect(new MerkleTree(subTreeRoots, { preHashedLeaf: true }).root).toEqual(
+							const expectedTree = new MerkleTree({ preHashedLeaf: true });
+							await expectedTree.init(subTreeRoots);
+
+							expect(expectedTree.root).toEqual(
 								Buffer.from(test.output.transactionMerkleRoot, 'hex'),
 							);
 						});
 
-						it('should not result in same merkle root if divided into sub tree which is not power of 2', () => {
+						it('should not result in same merkle root if divided into sub tree which is not power of 2', async () => {
 							const inputs = test.input.transactionIds.map(hexString =>
 								Buffer.from(hexString, 'hex'),
 							);
@@ -54,10 +61,15 @@ describe('MerkleTree', () => {
 
 							const chunk = 3;
 							for (let i = 0; i < inputs.length; i += chunk) {
-								subTreeRoots.push(new MerkleTree(inputs.slice(i, i + chunk)).root);
+								const tree = new MerkleTree();
+								await tree.init(inputs.slice(i, i + chunk));
+								subTreeRoots.push(tree.root);
 							}
 
-							expect(new MerkleTree(subTreeRoots, { preHashedLeaf: true }).root).not.toEqual(
+							const expectedTree = new MerkleTree({ preHashedLeaf: true });
+							await expectedTree.init(subTreeRoots);
+
+							expect(expectedTree.root).not.toEqual(
 								Buffer.from(test.output.transactionMerkleRoot, 'hex'),
 							);
 						});
@@ -71,11 +83,12 @@ describe('MerkleTree', () => {
 		for (const test of fixture.testCases.slice(1)) {
 			// eslint-disable-next-line jest/valid-title
 			describe(test.description, () => {
-				it('should append and have correct root', () => {
+				it('should append and have correct root', async () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
 					const toAppend = inputs.pop();
-					const merkleTree = new MerkleTree(inputs);
-					merkleTree.append(toAppend as Buffer);
+					const merkleTree = new MerkleTree();
+					await merkleTree.init(inputs);
+					await merkleTree.append(toAppend as Buffer);
 					expect(merkleTree.root).toEqual(Buffer.from(test.output.transactionMerkleRoot, 'hex'));
 				});
 			});
@@ -86,16 +99,24 @@ describe('MerkleTree', () => {
 		for (const test of fixture.testCases) {
 			// eslint-disable-next-line jest/valid-title
 			describe(test.description, () => {
-				it('should generate and verify correct proof', () => {
+				it('should generate and verify correct proof', async () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
-					const merkleTree = new MerkleTree(inputs);
-					const nodes = merkleTree.getData();
+					const merkleTree = new MerkleTree();
+					await merkleTree.init(inputs);
+					const nodes =
+						merkleTree.size !== 0
+							? await Promise.all(
+									Object.keys((merkleTree['_db'] as InMemoryDB)['_data'])
+										.filter(key => Buffer.from(key, 'binary')[0] === 0)
+										.map(async key => merkleTree.getNode(Buffer.from(key, 'binary').slice(1))),
+							  )
+							: [];
 					const queryData = nodes
 						.sort(() => 0.5 - Math.random())
 						.slice(0, Math.floor(Math.random() * nodes.length + 1))
 						.map((node: any) => node.hash);
-					const proof = merkleTree.generateProof(queryData);
-					const results = verifyProof({
+					const proof = await merkleTree.generateProof(queryData);
+					const results = await verifyProof({
 						queryData,
 						proof,
 						rootHash: merkleTree.root,
@@ -104,10 +125,18 @@ describe('MerkleTree', () => {
 					expect(results.every(result => result.verified)).toBeTrue();
 				});
 
-				it('should generate and verify invalid proof', () => {
+				it('should generate and verify invalid proof', async () => {
 					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
-					const merkleTree = new MerkleTree(inputs);
-					const nodes = merkleTree.getData();
+					const merkleTree = new MerkleTree();
+					await merkleTree.init(inputs);
+					const nodes =
+						merkleTree.size !== 0
+							? await Promise.all(
+									Object.keys((merkleTree['_db'] as InMemoryDB)['_data'])
+										.filter(key => Buffer.from(key, 'binary')[0] === 0)
+										.map(async key => merkleTree.getNode(Buffer.from(key, 'binary').slice(1))),
+							  )
+							: [];
 					const randomizedQueryCount = Math.floor(Math.random() * nodes.length + 1);
 					const invalidNodeIndex =
 						inputs.length > 0 ? Math.floor(Math.random() * randomizedQueryCount + 1) : 0;
@@ -119,8 +148,8 @@ describe('MerkleTree', () => {
 									.map((node: any) => node.hash)
 							: [];
 					queryData.splice(invalidNodeIndex, 1, EMPTY_HASH);
-					const proof = merkleTree.generateProof(queryData);
-					const results = verifyProof({
+					const proof = await merkleTree.generateProof(queryData);
+					const results = await verifyProof({
 						queryData,
 						proof,
 						rootHash: merkleTree.root,

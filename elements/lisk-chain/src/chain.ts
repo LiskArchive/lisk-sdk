@@ -319,7 +319,7 @@ export class Chain {
 		});
 	}
 
-	public validateBlockHeader(block: Block): void {
+	public async validateBlockHeader(block: Block): Promise<void> {
 		const headerWithoutAsset = {
 			...block.header,
 			asset: Buffer.alloc(0),
@@ -352,7 +352,7 @@ export class Chain {
 		const encodedPayload = Buffer.concat(
 			block.payload.map(tx => this.dataAccess.encodeTransaction(tx)),
 		);
-		validateBlockProperties(block, encodedPayload, this.constants.maxPayloadLength);
+		await validateBlockProperties(block, encodedPayload, this.constants.maxPayloadLength);
 	}
 
 	public async verifyBlockHeader(block: Block, stateStore: StateStore): Promise<void> {

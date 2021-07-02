@@ -19,3 +19,5 @@ export const BRANCH_PREFIX = Buffer.from('01', 'hex');
 export const LAYER_INDEX_SIZE = 1;
 export const NODE_INDEX_SIZE = 8;
 export const NODE_HASH_SIZE = 32;
+export const PREFIX_HASH_TO_VALUE = Buffer.from([0]);
+export const PREFIX_LOC_TO_HASH = Buffer.from([1]);

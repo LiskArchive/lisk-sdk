@@ -12,8 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface Database {
-	get(key: Buffer): Promise<Buffer>;
-	set(key: Buffer, value: Buffer): Promise<void>;
-	del(key: Buffer): Promise<void>;
-}
+export class NotFoundError extends Error {}

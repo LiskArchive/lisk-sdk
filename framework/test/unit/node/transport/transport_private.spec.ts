@@ -395,10 +395,10 @@ describe('transport', () => {
 		});
 
 		describe('Transport', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				blocksList = [];
 				for (let j = 0; j < 10; j += 1) {
-					const auxBlock = createValidDefaultBlock();
+					const auxBlock = await createValidDefaultBlock();
 					blocksList.push(auxBlock);
 				}
 			});

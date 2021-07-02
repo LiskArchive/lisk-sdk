@@ -159,14 +159,14 @@ describe('block_synchronization_mechanism', () => {
 	});
 
 	beforeEach(async () => {
-		finalizedBlock = createValidDefaultBlock({
+		finalizedBlock = await createValidDefaultBlock({
 			header: {
 				height: finalizedHeight,
 				asset: { maxHeightPrevoted: 0, maxHeightPreviouslyForged: 0, seedReveal: Buffer.alloc(0) },
 			},
 		});
 
-		aBlock = createValidDefaultBlock({
+		aBlock = await createValidDefaultBlock({
 			header: {
 				height: 10,
 				asset: { maxHeightPrevoted: 0, maxHeightPreviouslyForged: 0, seedReveal: Buffer.alloc(0) },
@@ -187,7 +187,7 @@ describe('block_synchronization_mechanism', () => {
 			.mockResolvedValue([{ publicKey: 'aPublicKey' }] as never);
 		// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 		// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
-		const lastBlock = createValidDefaultBlock({
+		const lastBlock = await createValidDefaultBlock({
 			header: { height: finalizedHeight + 1 },
 		});
 
@@ -232,11 +232,13 @@ describe('block_synchronization_mechanism', () => {
 
 		highestCommonBlock = finalizedBlock.header;
 		requestedBlocks = [
-			...new Array(10).fill(0).map((_, index) =>
-				createValidDefaultBlock({
-					header: { height: highestCommonBlock.height + 1 + index },
-				}),
-			),
+			...(await Promise.all(
+				new Array(10).fill(0).map(async (_, index) =>
+					createValidDefaultBlock({
+						header: { height: highestCommonBlock.height + 1 + index },
+					}),
+				),
+			)),
 			aBlock,
 		];
 
@@ -507,7 +509,7 @@ describe('block_synchronization_mechanism', () => {
 			});
 
 			it('should apply penalty and restart the mechanisms if the last block of the peer does not have preference over current tip', async () => {
-				const receivedBlock = createValidDefaultBlock({
+				const receivedBlock = await createValidDefaultBlock({
 					header: {
 						height: 0,
 						asset: {
@@ -519,11 +521,13 @@ describe('block_synchronization_mechanism', () => {
 				});
 
 				requestedBlocks = [
-					...new Array(10).fill(0).map((_, index) =>
-						createValidDefaultBlock({
-							header: { height: highestCommonBlock.height + 1 + index },
-						}),
-					),
+					...(await Promise.all(
+						new Array(10).fill(0).map(async (_, index) =>
+							createValidDefaultBlock({
+								header: { height: highestCommonBlock.height + 1 + index },
+							}),
+						),
+					)),
 					receivedBlock,
 				];
 
@@ -602,7 +606,7 @@ describe('block_synchronization_mechanism', () => {
 			describe('request the highest common block', () => {
 				it('should give up requesting the last common block after 3 tries, and then ban the peer and restart the mechanism', async () => {
 					// Set last block to a high height
-					const lastBlock = createValidDefaultBlock({
+					const lastBlock = await createValidDefaultBlock({
 						header: {
 							height: genesisBlock.header.height + 2000,
 						},
@@ -615,7 +619,7 @@ describe('block_synchronization_mechanism', () => {
 						Math.ceil(lastBlock.header.height / chainModule.numberOfValidators),
 					);
 
-					const receivedBlock = createValidDefaultBlock({
+					const receivedBlock = await createValidDefaultBlock({
 						header: {
 							height: lastBlock.header.height + 304,
 							reward: chainModule.calculateDefaultReward(lastBlock.header.height + 304),
@@ -715,11 +719,13 @@ describe('block_synchronization_mechanism', () => {
 						height: bftModule.finalizedHeight - 1,
 					}) as any; // height: 0
 					requestedBlocks = [
-						...new Array(10).fill(0).map((_, index) =>
-							createValidDefaultBlock({
-								header: { height: highestCommonBlock.height + 1 + index },
-							}),
-						),
+						...(await Promise.all(
+							new Array(10).fill(0).map(async (_, index) =>
+								createValidDefaultBlock({
+									header: { height: highestCommonBlock.height + 1 + index },
+								}),
+							),
+						)),
 						aBlock,
 					];
 
@@ -806,19 +812,23 @@ describe('block_synchronization_mechanism', () => {
 			it('should request blocks and apply them', async () => {
 				requestedBlocks = [
 					// From height 2 (highestCommonBlock.height + 1) to 9 (aBlock.height - 1)
-					...new Array(8).fill(0).map((_, index) =>
-						createValidDefaultBlock({
-							header: { height: highestCommonBlock.height + 1 + index },
-						}),
-					),
-					aBlock,
-					...new Array(10) // Extra blocks. They will be truncated
-						.fill(0)
-						.map((_, index) =>
+					...(await Promise.all(
+						new Array(8).fill(0).map(async (_, index) =>
 							createValidDefaultBlock({
-								header: { height: aBlock.header.height + 1 + index },
+								header: { height: highestCommonBlock.height + 1 + index },
 							}),
 						),
+					)),
+					aBlock,
+					...(await Promise.all(
+						new Array(10) // Extra blocks. They will be truncated
+							.fill(0)
+							.map(async (_, index) =>
+								createValidDefaultBlock({
+									header: { height: aBlock.header.height + 1 + index },
+								}),
+							),
+					)),
 				];
 
 				for (const expectedPeer of peersList.expectedSelection) {
@@ -911,7 +921,7 @@ describe('block_synchronization_mechanism', () => {
 
 			describe('when applying a block fails', () => {
 				it('should restore blocks from temp table, ban peer and restart mechanism if new tip of the chain has no preference over previous tip', async () => {
-					const previousTip = createValidDefaultBlock({
+					const previousTip = await createValidDefaultBlock({
 						header: {
 							height: genesisBlock.header.height + 140, // So it has preference over new tip (height <)
 							asset: {
@@ -923,34 +933,40 @@ describe('block_synchronization_mechanism', () => {
 					});
 
 					requestedBlocks = [
-						...new Array(10).fill(0).map((_, index) =>
-							createValidDefaultBlock({
-								header: { height: highestCommonBlock.height + 1 + index },
-							}),
-						),
+						...(await Promise.all(
+							new Array(10).fill(0).map(async (_, index) =>
+								createValidDefaultBlock({
+									header: { height: highestCommonBlock.height + 1 + index },
+								}),
+							),
+						)),
 						aBlock,
-						...new Array(10).fill(0).map((_, index) =>
-							createValidDefaultBlock({
-								header: { height: aBlock.header.height + 1 + index },
-							}),
-						),
+						...(await Promise.all(
+							new Array(10).fill(0).map(async (_, index) =>
+								createValidDefaultBlock({
+									header: { height: aBlock.header.height + 1 + index },
+								}),
+							),
+						)),
 					];
 
 					const tempTableBlocks = [
 						previousTip,
-						...new Array(previousTip.header.height - highestCommonBlock.height - 1)
-							.fill(0)
-							.map((_, index) =>
-								createValidDefaultBlock({
-									header: {
-										height: previousTip.header.height - index - 1,
-									},
-								}),
-							),
+						...(await Promise.all(
+							new Array(previousTip.header.height - highestCommonBlock.height - 1)
+								.fill(0)
+								.map(async (_, index) =>
+									createValidDefaultBlock({
+										header: {
+											height: previousTip.header.height - index - 1,
+										},
+									}),
+								),
+						)),
 						{
-							...createValidDefaultBlock({
+							...(await createValidDefaultBlock({
 								header: { height: highestCommonBlock.height + 1 },
-							}),
+							})),
 						},
 					];
 
@@ -977,32 +993,32 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith({
 							saveTempBlock: false,
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 9 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 9 } });
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 8 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 8 } });
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 7 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 7 } });
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 6 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 6 } });
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 5 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 5 } });
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 4 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 4 } });
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 3 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 3 } });
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 2 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 2 } });
 						})
-						.mockImplementationOnce(() => {
-							chainModule._lastBlock = createValidDefaultBlock({ header: { height: 1 } });
+						.mockImplementationOnce(async () => {
+							chainModule._lastBlock = await createValidDefaultBlock({ header: { height: 1 } });
 						});
 
 					const processingError = new Error('Error processing blocks');
@@ -1055,7 +1071,7 @@ describe('block_synchronization_mechanism', () => {
 				});
 
 				it('should clean up the temporary table and restart the mechanism if the new tip has preference over the last tip', async () => {
-					const previousTip = createValidDefaultBlock({
+					const previousTip = await createValidDefaultBlock({
 						header: {
 							height: aBlock.header.height - 1, // So it doesn't have preference over new tip (height >)
 							asset: {
@@ -1067,17 +1083,21 @@ describe('block_synchronization_mechanism', () => {
 					});
 
 					requestedBlocks = [
-						...new Array(10).fill(0).map((_, index) =>
-							createValidDefaultBlock({
-								header: { height: highestCommonBlock.height + 1 + index },
-							}),
-						),
+						...(await Promise.all(
+							new Array(10).fill(0).map(async (_, index) =>
+								createValidDefaultBlock({
+									header: { height: highestCommonBlock.height + 1 + index },
+								}),
+							),
+						)),
 						aBlock,
-						...new Array(10).fill(0).map((_, index) =>
-							createValidDefaultBlock({
-								header: { height: aBlock.header.height + 1 + index },
-							}),
-						),
+						...(await Promise.all(
+							new Array(10).fill(0).map(async (_, index) =>
+								createValidDefaultBlock({
+									header: { height: aBlock.header.height + 1 + index },
+								}),
+							),
+						)),
 					];
 
 					for (const expectedPeer of peersList.expectedSelection) {

@@ -38,8 +38,8 @@ describe('Create Block', () => {
 			.genesisBlock;
 	});
 
-	it('should return a valid default block', () => {
-		const block = createBlock({
+	it('should return a valid default block', async () => {
+		const block = await createBlock({
 			passphrase: genesis.passphrase,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 			timestamp: genesisBlock.header.timestamp,
@@ -71,7 +71,7 @@ describe('Create Block', () => {
 		expect(block).toEqual(expect.objectContaining(expectedBlock));
 	});
 
-	it('should return a valid block for given block header', () => {
+	it('should return a valid block for given block header', async () => {
 		const expectedAsset = {
 			maxHeightPreviouslyForged: 10,
 			maxHeightPrevoted: 10,
@@ -94,7 +94,7 @@ describe('Create Block', () => {
 			payload: [],
 		};
 
-		const block = createBlock({
+		const block = await createBlock({
 			passphrase: genesis.passphrase,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 			timestamp: genesisBlock.header.timestamp,
@@ -112,8 +112,8 @@ describe('Create Block', () => {
 		expect(block).toEqual(expect.objectContaining(expectedBlock));
 	});
 
-	it('should return a valid previous block id and timestamp from genesis block', () => {
-		const block = createBlock({
+	it('should return a valid previous block id and timestamp from genesis block', async () => {
+		const block = await createBlock({
 			passphrase: genesis.passphrase,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 			timestamp: genesisBlock.header.timestamp + 10,

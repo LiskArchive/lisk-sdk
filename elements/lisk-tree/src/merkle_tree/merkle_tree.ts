@@ -23,42 +23,57 @@ import {
 	EMPTY_HASH,
 	LEAF_PREFIX,
 	BRANCH_PREFIX,
+	PREFIX_HASH_TO_VALUE,
+	PREFIX_LOC_TO_HASH,
 } from './constants';
-import { NodeData, NodeInfo, NodeType, NodeSide, Proof } from './types';
+import { InMemoryDB } from './inmemory_db';
+import { PrefixStore } from './prefix_store';
+import { NodeData, NodeInfo, NodeType, NodeSide, Proof, Database } from './types';
 import { generateHash, getBinaryString, isLeaf, getPairLocation } from './utils';
 
 export class MerkleTree {
 	private _root: Buffer;
-	private _width = 0;
+	private _size = 0;
 	private readonly _preHashedLeaf: boolean;
+	private readonly _db: Database;
 
-	// Object holds data in format { [hash]: value }
-	private _hashToValueMap: { [key: string]: Buffer | undefined } = {};
-	private _locationToHashMap: { [key: string]: Buffer | undefined } = {};
+	private readonly _hashToValueMap: PrefixStore;
+	private readonly _locationToHashMap: PrefixStore;
 
-	public constructor(initValues: Buffer[] = [], options?: { preHashedLeaf: boolean }) {
+	public constructor(options?: { preHashedLeaf?: boolean; db?: Database }) {
+		this._db = options?.db ?? new InMemoryDB();
+		this._hashToValueMap = new PrefixStore(this._db, PREFIX_HASH_TO_VALUE);
+		this._locationToHashMap = new PrefixStore(this._db, PREFIX_LOC_TO_HASH);
+		this._preHashedLeaf = options?.preHashedLeaf ?? false;
+
+		this._root = EMPTY_HASH;
+	}
+
+	public async init(initValues: Buffer[]): Promise<void> {
 		if (initValues.length <= 1) {
 			const rootNode = initValues.length
-				? this._generateLeaf(initValues[0], 0)
+				? await this._generateLeaf(initValues[0], 0)
 				: { hash: EMPTY_HASH, value: Buffer.alloc(0) };
 			this._root = rootNode.hash;
-			this._hashToValueMap[this._root.toString('binary')] = rootNode.value;
-			this._locationToHashMap[`${getBinaryString(0, this._getHeight())}`] = this._root;
-			this._width = initValues.length ? 1 : 0;
-			this._preHashedLeaf = options?.preHashedLeaf ?? false;
+			await this._hashToValueMap.set(this._root, rootNode.value);
+			await this._locationToHashMap.set(getBinaryString(0, this._getHeight()), this._root);
+			this._size = initValues.length ? 1 : 0;
 			return;
 		}
 
-		this._preHashedLeaf = options?.preHashedLeaf ?? false;
-		this._root = this._build(initValues);
+		this._root = await this._build(initValues);
 	}
 
 	public get root(): Buffer {
 		return this._root;
 	}
 
-	public getNode(nodeHash: Buffer): NodeInfo {
-		const value = this._hashToValueMap[nodeHash.toString('binary')];
+	public get size(): number {
+		return this._size;
+	}
+
+	public async getNode(nodeHash: Buffer): Promise<NodeInfo> {
+		const value = await this._hashToValueMap.get(nodeHash);
 
 		if (!value) {
 			throw new Error(`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`);
@@ -87,27 +102,27 @@ export class MerkleTree {
 		};
 	}
 
-	public append(value: Buffer): Buffer {
-		if (this._width === 0) {
-			const leaf = this._generateLeaf(value, 0);
+	public async append(value: Buffer): Promise<Buffer> {
+		if (this._size === 0) {
+			const leaf = await this._generateLeaf(value, 0);
 			this._root = leaf.hash;
-			this._width += 1;
+			this._size += 1;
 			return this._root;
 		}
 
 		// Create the appendPath
 		const appendPath: NodeInfo[] = [];
-		let currentNode = this.getNode(this._root);
+		let currentNode = await this.getNode(this._root);
 
 		// If tree is fully balanced
-		if (this._width === 2 ** (this._getHeight() - 1)) {
+		if (this._size === 2 ** (this._getHeight() - 1)) {
 			appendPath.push(currentNode);
 		} else {
 			// We start from the root layer and traverse each layer down the tree on the right side
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, no-constant-condition
 			while (true) {
 				const currentLayer = currentNode.layerIndex;
-				let currentLayerSize = this._width >> currentLayer;
+				let currentLayerSize = this._size >> currentLayer;
 				// if layer has odd nodes and current node is odd (hence index is even)
 				if (currentLayerSize % 2 === 1 && currentNode.nodeIndex % 2 === 0) {
 					appendPath.push(currentNode);
@@ -117,19 +132,19 @@ export class MerkleTree {
 					break;
 				}
 				// if layer below is odd numbered, push left child
-				currentLayerSize = this._width >> (currentLayer - 1);
+				currentLayerSize = this._size >> (currentLayer - 1);
 				if (currentLayerSize % 2 === 1) {
-					const leftNode = this.getNode(currentNode.leftHash);
+					const leftNode = await this.getNode(currentNode.leftHash);
 					appendPath.push(leftNode);
 				}
 
 				// go to right child
-				currentNode = this.getNode(currentNode.rightHash);
+				currentNode = await this.getNode(currentNode.rightHash);
 			}
 		}
 
-		const appendData = this._generateLeaf(value, this._width);
-		const appendNode = this.getNode(appendData.hash);
+		const appendData = await this._generateLeaf(value, this._size);
+		const appendNode = await this.getNode(appendData.hash);
 		appendPath.push(appendNode);
 		// Loop through appendPath from the base layer
 		// Generate new branch nodes and push to appendPath
@@ -137,27 +152,28 @@ export class MerkleTree {
 		while (appendPath.length > 1) {
 			const rightNodeInfo = appendPath.pop();
 			const leftNodeInfo = appendPath.pop();
-			const newBranchNode = this._generateBranch(
+			const newBranchNode = await this._generateBranch(
 				(leftNodeInfo as NodeInfo).hash,
 				(rightNodeInfo as NodeInfo).hash,
 				(leftNodeInfo as NodeInfo).layerIndex + 1,
 				(leftNodeInfo as NodeInfo).nodeIndex + 1,
 			);
-			appendPath.push(this.getNode(newBranchNode.hash));
+			const nextNode = await this.getNode(newBranchNode.hash);
+			appendPath.push(nextNode);
 		}
 		this._root = appendPath[0].hash;
 		return this.root;
 	}
 
-	public generateProof(queryData: ReadonlyArray<Buffer>): Proof {
-		if (this._width === 0) {
+	public async generateProof(queryData: ReadonlyArray<Buffer>): Promise<Proof> {
+		if (this._size === 0) {
 			return {
-				path: [],
+				siblingHashes: [],
 				indexes: [],
-				dataLength: 0,
+				size: 0,
 			};
 		}
-		const path = [];
+		const siblingHashes = [];
 		const addedPath = new dataStructures.BufferSet();
 		const indexes = [];
 		let queryNode: NodeInfo | undefined;
@@ -165,9 +181,9 @@ export class MerkleTree {
 		for (let i = 0; i < queryData.length; i += 1) {
 			// Flag missing nodes
 			try {
-				queryNode = this.getNode(queryData[i]);
+				queryNode = await this.getNode(queryData[i]);
 			} catch (err) {
-				path.push({
+				siblingHashes.push({
 					hash: queryData[i],
 					layerIndex: undefined,
 					nodeIndex: undefined,
@@ -180,10 +196,10 @@ export class MerkleTree {
 			}
 
 			// If tree has one non-empty leaf
-			if (this._width === 1 && this._root.equals(queryNode.hash)) {
+			if (this._size === 1 && this._root.equals(queryNode.hash)) {
 				if (!addedPath.has(queryNode.hash)) {
 					addedPath.add(queryNode.hash);
-					path.push({
+					siblingHashes.push({
 						hash: queryNode.hash,
 						layerIndex: 0,
 						nodeIndex: 0,
@@ -210,15 +226,15 @@ export class MerkleTree {
 				} = getPairLocation({
 					layerIndex: currentNode.layerIndex,
 					nodeIndex: currentNode.nodeIndex,
-					dataLength: this._width,
+					size: this._size,
 				});
 
-				const pairNodeHash = this._locationToHashMap[
-					`${getBinaryString(pairNodeIndex, this._getHeight() - pairLayerIndex)}`
-				] as Buffer;
+				const pairNodeHash = (await this._locationToHashMap.get(
+					getBinaryString(pairNodeIndex, this._getHeight() - pairLayerIndex),
+				)) as Buffer;
 				if (!addedPath.has(pairNodeHash)) {
 					addedPath.add(pairNodeHash);
-					path.push({
+					siblingHashes.push({
 						hash: pairNodeHash,
 						layerIndex: pairLayerIndex,
 						nodeIndex: pairNodeIndex,
@@ -227,41 +243,29 @@ export class MerkleTree {
 				const leftHashBuffer = pairSide === NodeSide.LEFT ? pairNodeHash : currentNode.hash;
 				const rightHashBuffer = pairSide === NodeSide.RIGHT ? pairNodeHash : currentNode.hash;
 				const parentNodeHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);
-				currentNode = this.getNode(parentNodeHash);
+				currentNode = await this.getNode(parentNodeHash);
 			}
 		}
 
 		return {
-			path,
+			siblingHashes,
 			indexes,
-			dataLength: this._width,
+			size: this._size,
 		};
 	}
 
-	public clear(): void {
-		this._width = 0;
-		this._root = EMPTY_HASH;
-		this._hashToValueMap = { [this._root.toString('2')]: Buffer.alloc(0) };
-	}
-
-	public toString(): string {
-		if (this._width === 0) {
+	public async toString(): Promise<string> {
+		if (this._size === 0) {
 			return this.root.toString('hex');
 		}
 		return this._printNode(this.root);
 	}
 
-	public getData(): NodeInfo[] {
-		return this._width === 0
-			? []
-			: Object.keys(this._hashToValueMap).map(key => this.getNode(Buffer.from(key, 'binary')));
-	}
-
 	private _getHeight(): number {
-		return Math.ceil(Math.log2(this._width)) + 1;
+		return Math.ceil(Math.log2(this._size)) + 1;
 	}
 
-	private _generateLeaf(value: Buffer, nodeIndex: number): NodeData {
+	private async _generateLeaf(value: Buffer, nodeIndex: number): Promise<NodeData> {
 		const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
 		nodeIndexBuffer.writeInt32BE(nodeIndex, 0);
 		// As per protocol nodeIndex is not included in hash
@@ -275,8 +279,8 @@ export class MerkleTree {
 			[LEAF_PREFIX, nodeIndexBuffer, value],
 			LEAF_PREFIX.length + nodeIndexBuffer.length + value.length,
 		);
-		this._hashToValueMap[leafHash.toString('binary')] = leafValueWithNodeIndex;
-		this._locationToHashMap[`${getBinaryString(nodeIndex, this._getHeight())}`] = leafHash;
+		await this._hashToValueMap.set(leafHash, leafValueWithNodeIndex);
+		await this._locationToHashMap.set(getBinaryString(nodeIndex, this._getHeight()), leafHash);
 
 		return {
 			value: leafValueWithNodeIndex,
@@ -284,12 +288,12 @@ export class MerkleTree {
 		};
 	}
 
-	private _generateBranch(
+	private async _generateBranch(
 		leftHashBuffer: Buffer,
 		rightHashBuffer: Buffer,
 		layerIndex: number,
 		nodeIndex: number,
-	): NodeData {
+	): Promise<NodeData> {
 		const layerIndexBuffer = Buffer.alloc(LAYER_INDEX_SIZE);
 		const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
 		layerIndexBuffer.writeInt8(layerIndex, 0);
@@ -304,22 +308,23 @@ export class MerkleTree {
 				rightHashBuffer.length,
 		);
 		const branchHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);
-		this._hashToValueMap[branchHash.toString('binary')] = branchValue;
-		this._locationToHashMap[
-			`${getBinaryString(nodeIndex, this._getHeight() - layerIndex)}`
-		] = branchHash;
+		await this._hashToValueMap.set(branchHash, branchValue);
+		await this._locationToHashMap.set(
+			getBinaryString(nodeIndex, this._getHeight() - layerIndex),
+			branchHash,
+		);
 		return {
 			hash: branchHash,
 			value: branchValue,
 		};
 	}
 
-	private _build(initValues: Buffer[]): Buffer {
+	private async _build(initValues: Buffer[]): Promise<Buffer> {
 		// Generate hash and buffer of leaves and store in memory
 		const leafHashes = [];
-		this._width = initValues.length;
+		this._size = initValues.length;
 		for (let i = 0; i < initValues.length; i += 1) {
-			const leaf = this._generateLeaf(initValues[i], i);
+			const leaf = await this._generateLeaf(initValues[i], i);
 			leafHashes.push(leaf.hash);
 		}
 
@@ -357,7 +362,7 @@ export class MerkleTree {
 			for (let i = 0; i < pairsOfHashes.length; i += 1) {
 				const leftHash = pairsOfHashes[i][0];
 				const rightHash = pairsOfHashes[i][1];
-				const node = this._generateBranch(leftHash, rightHash, currentLayerIndex + 1, i);
+				const node = await this._generateBranch(leftHash, rightHash, currentLayerIndex + 1, i);
 
 				parentLayerHashes.push(node.hash);
 			}
@@ -370,18 +375,19 @@ export class MerkleTree {
 		return currentLayerHashes[0];
 	}
 
-	private _printNode(hashValue: Buffer, level = 1): string {
-		const nodeValue = this._hashToValueMap[hashValue.toString('binary')];
+	private async _printNode(hashValue: Buffer, level = 1): Promise<string> {
+		const nodeValue = await this._hashToValueMap.get(hashValue);
 		if (nodeValue && isLeaf(nodeValue)) {
 			return hashValue.toString('hex');
 		}
 
-		const node = this.getNode(hashValue);
-
+		const node = await this.getNode(hashValue);
+		const left = await this._printNode(node.leftHash, level + 1);
+		const right = await this._printNode(node.rightHash, level + 1);
 		return [
 			hashValue.toString('hex'),
-			`├${' ─ '.repeat(level)} ${this._printNode(node.leftHash, level + 1)}`,
-			`├${' ─ '.repeat(level)} ${this._printNode(node.rightHash, level + 1)}`,
+			`├${' ─ '.repeat(level)} ${left}`,
+			`├${' ─ '.repeat(level)} ${right}`,
 		].join('\n');
 	}
 }

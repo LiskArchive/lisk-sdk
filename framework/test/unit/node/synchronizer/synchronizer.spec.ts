@@ -156,9 +156,9 @@ describe('Synchronizer', () => {
 	});
 
 	describe('init()', () => {
-		beforeEach(() => {
+		beforeEach(async () => {
 			// Arrange
-			const lastBlock = createValidDefaultBlock({
+			const lastBlock = await createValidDefaultBlock({
 				header: { height: genesisBlock.header.height + 1 },
 			});
 			when(chainModule.dataAccess.getBlockHeaderByID)
@@ -183,18 +183,19 @@ describe('Synchronizer', () => {
 
 			it('should restore blocks from blocks temporary table into blocks table if tip of temp table chain has preference over current tip (FORK_STATUS_DIFFERENT_CHAIN)', async () => {
 				// Arrange
-				const blocksTempTableEntries = new Array(10)
-					.fill(0)
-					.map((_, index) => ({
-						...createValidDefaultBlock({
-							header: {
-								height: index,
-								version: 2,
-							},
-						}),
-					}))
-					.slice(genesisBlock.header.height + 2);
-				const initialLastBlock = createValidDefaultBlock({
+				const blocksTempTableEntries = (
+					await Promise.all(
+						new Array(10).fill(0).map(async (_, index) =>
+							createValidDefaultBlock({
+								header: {
+									height: index,
+									version: 2,
+								},
+							}),
+						),
+					)
+				).slice(genesisBlock.header.height + 2);
+				const initialLastBlock = await createValidDefaultBlock({
 					header: {
 						height: genesisBlock.header.height + 3,
 						previousBlockID: genesisBlock.header.id,
@@ -255,7 +256,7 @@ describe('Synchronizer', () => {
 
 			it('should restore blocks from blocks temporary table into blocks table if tip of temp table chain has preference over current tip (FORK_STATUS_VALID_BLOCK)', async () => {
 				// Arrange
-				const initialLastBlock = createValidDefaultBlock({
+				const initialLastBlock = await createValidDefaultBlock({
 					header: {
 						height: genesisBlock.header.height + 1,
 						previousBlockID: genesisBlock.header.id,
@@ -302,7 +303,7 @@ describe('Synchronizer', () => {
 
 			it('should clear the blocks temp table if the tip of the temp table does not have priority over current tip (Any other Fork Choice code', async () => {
 				// Arrange
-				const initialLastBlock = createValidDefaultBlock({
+				const initialLastBlock = await createValidDefaultBlock({
 					header: {
 						height: genesisBlock.header.height + 1,
 						previousBlockID: genesisBlock.header.id,
@@ -340,18 +341,19 @@ describe('Synchronizer', () => {
 
 		it('should catch any errors and error log it', async () => {
 			// Arrange
-			const blocksTempTableEntries = new Array(10)
-				.fill(0)
-				.map((_, index) => ({
-					...createValidDefaultBlock({
-						header: {
-							height: index,
-							version: 2,
-						},
-					}),
-				}))
-				.slice(genesisBlock.header.height + 2);
-			const initialLastBlock = createValidDefaultBlock({
+			const blocksTempTableEntries = (
+				await Promise.all(
+					new Array(10).fill(0).map(async (_, index) =>
+						createValidDefaultBlock({
+							header: {
+								height: index,
+								version: 2,
+							},
+						}),
+					),
+				)
+			).slice(genesisBlock.header.height + 2);
+			const initialLastBlock = await createValidDefaultBlock({
 				header: {
 					height: genesisBlock.header.height + 1,
 					previousBlockID: genesisBlock.header.id,
@@ -464,8 +466,8 @@ describe('Synchronizer', () => {
 		const aPeerId = '127.0.0.1:5000';
 		let aReceivedBlock: Block;
 
-		beforeEach(() => {
-			aReceivedBlock = createValidDefaultBlock(); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
+		beforeEach(async () => {
+			aReceivedBlock = await createValidDefaultBlock(); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
 		});
 
 		it('should reject with error if there is already an active mechanism', () => {

@@ -13,12 +13,16 @@
  */
 
 import { BlockHeader } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import * as randomSeedFirstRound from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_first_round.json';
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 import * as randomSeedsInvalidSeedReveal from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_invalid_seed_reveal.json';
 import * as randomSeedsNotForgedEarlier from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_not_forged_earlier.json';
 
-import { generateRandomSeeds } from '../../../../src/modules/dpos/random_seed';
+import {
+	generateRandomSeeds,
+	findPreviousHeaderOfDelegate,
+} from '../../../../src/modules/dpos/random_seed';
 import { Rounds } from '../../../../src/modules/dpos/rounds';
 
 const generateHeadersFromTest = (blocks: any): BlockHeader[] =>
@@ -74,5 +78,50 @@ describe('random_seed', () => {
 				});
 			},
 		);
+	});
+
+	describe('findPreviousHeaderOfDelegate', () => {
+		describe('when previously generated block exist in header map', () => {
+			it('should return the header', () => {
+				const generatorPublicKey = Buffer.from('some-generator', 'utf8');
+				const expectedHeader = { generatorPublicKey, height: 320 } as BlockHeader;
+				const result = findPreviousHeaderOfDelegate(
+					{ height: 321, generatorPublicKey } as any,
+					320,
+					{ [expectedHeader.height]: expectedHeader },
+				);
+				expect(result).toBe(expectedHeader);
+			});
+		});
+		describe('when previously generated block does not exist in header map', () => {
+			it('should return undefined', () => {
+				const generatorPublicKey = Buffer.from('some-generator', 'utf8');
+				const result = findPreviousHeaderOfDelegate(
+					{ height: 321, generatorPublicKey } as any,
+					319,
+					{
+						320: { generatorPublicKey: getRandomBytes(32), height: 320 } as BlockHeader,
+						319: { generatorPublicKey: getRandomBytes(32), height: 319 } as BlockHeader,
+					},
+				);
+				expect(result).toBeUndefined();
+			});
+		});
+
+		describe('when the header map does not include all the height until searchTill', () => {
+			it('should return undefined', () => {
+				const generatorPublicKey = Buffer.from('some-generator', 'utf8');
+				const result = findPreviousHeaderOfDelegate(
+					{ height: 321, generatorPublicKey } as any,
+					300,
+					{
+						320: { generatorPublicKey: getRandomBytes(32), height: 320 } as BlockHeader,
+						319: { generatorPublicKey: getRandomBytes(32), height: 319 } as BlockHeader,
+						318: { generatorPublicKey: getRandomBytes(32), height: 319 } as BlockHeader,
+					},
+				);
+				expect(result).toBeUndefined();
+			});
+		});
 	});
 });
