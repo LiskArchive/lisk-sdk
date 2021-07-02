@@ -14,7 +14,7 @@
 /* eslint-disable no-bitwise */
 
 import { hash } from '@liskhq/lisk-cryptography';
-import { LEAF_PREFIX } from './constants';
+import { BRANCH_PREFIX, LEAF_PREFIX } from './constants';
 import { NodeLocation, NodeSide } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
@@ -142,3 +142,31 @@ export const getPairLocation = (nodeInfo: {
 
 	return pairLocation as NodeLocation;
 };
+
+export const calculateLightMerkleRoot = (size: number, appendPath: Buffer[], value: Buffer) => {
+	const binaryLength = size.toString(2);
+
+	// Add prefix to value 
+	const leafValueWithPrefix = Buffer.concat(
+		[LEAF_PREFIX, value],
+		LEAF_PREFIX.length + value.length,
+	);
+
+	// Set current hash to hash of value
+	let currentHash = hash(leafValueWithPrefix);
+
+	// Count the 1's in binaryLength
+	let count = 0;
+
+	for (let i = 0; i < binaryLength.length; i += 1) {
+		// Loop the binaryLength from the right
+		// The right-most digits correspond to lower layers in the tree
+		if(binaryLength[binaryLength.length - i - 1] === '1') {
+			const siblingHash = appendPath[count];
+			currentHash = generateHash(BRANCH_PREFIX, siblingHash, currentHash);
+			count += 1;
+		}
+	}
+
+	return { root: currentHash, appendPath, size: size + 1 };
+}
