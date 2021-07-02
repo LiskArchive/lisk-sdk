@@ -141,9 +141,7 @@ describe('utils', () => {
 	});
 
 	describe('calculateRoot', () => {
-		// Enable this test once we have right implementation of "leafNode" and "branchHash"
-		// eslint-disable-next-line jest/no-disabled-tests
-		it.skip('should calculate correct root hash', () => {
+		it('should calculate correct root hash', () => {
 			const siblingHashes = [
 				'508e7ce32a2dfb6c39123ad6daaea8dde3bbcb096dd255bea05bea9b717898c3',
 				'99b0161609748a131c16d46c72ff79ffbfa85e9e2694c52ee665635c4d48ecae',
@@ -155,7 +153,7 @@ describe('utils', () => {
 				createQueryObject({ key: '76', value: '4c94485e', bitmap: '1f' }),
 				createQueryObject({ key: '5a', value: 'bbeebd87', bitmap: '07' }),
 			];
-			const rootHash = '21ecda9db382eff32c9ec899fc7090cf58858e8c22a2af82510cd4d9c9a42c2f';
+			const rootHash = 'fe737e0f3efe19d62e6e0ba4997140db64bf615a5a8935270543bf18c0ce1815';
 
 			expect(calculateRoot(siblingHashes, queries, 1).toString('hex')).toEqual(rootHash);
 		});

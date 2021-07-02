@@ -12,15 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { SparseMerkleTree } from '../../src/sparse_merkle_tree/sparse_merkle_tree';
 
-export const EMPTY_VALUE = Buffer.alloc(0);
-export const EMPTY_HASH = hash(EMPTY_VALUE);
-
-export const LEAF_HASH_PREFIX = Buffer.from('00', 'hex');
-export const BRANCH_HASH_PREFIX = Buffer.from('01', 'hex');
-
-export const enum NodeSide {
-	LEFT = 0,
-	RIGHT = 1,
-}
+describe('SparseMerkleTree', () => {
+	describe('dummy', () => {
+		it('is a dummy test', () => {
+			expect(SparseMerkleTree).toBeDefined();
+		});
+	});
+	describe('constructor', () => {});
+	describe('update', () => {});
+	describe('remove', () => {});
+	describe('generateSingleProof', () => {});
+	describe('generateMultiProof', () => {});
+	describe('verifyMultiProof', () => {});
+});

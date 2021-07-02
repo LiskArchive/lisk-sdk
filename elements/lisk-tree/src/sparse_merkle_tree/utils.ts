@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { hash } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
-import { EMPTY_HASH } from './constants';
+import { BRANCH_HASH_PREFIX, EMPTY_HASH, LEAF_HASH_PREFIX } from './constants';
 import { InclusionProofQuery, InclusionProofQueryWithHash } from './types';
 
 // Sort queries by the longest binaryBitmap, breaking ties by smaller key.
@@ -101,7 +102,7 @@ export const calculateRoot = (
 		data.push({
 			...q,
 			binaryBitmap: bufferToBinaryString(q.bitmap),
-			hash: q.value.byteLength === 0 ? EMPTY_HASH : leafNode(q.key, q.value).hash,
+			hash: q.value.byteLength === 0 ? EMPTY_HASH : leafHash(q.key, q.value),
 		});
 	}
 
@@ -184,11 +185,8 @@ export const binaryStringToBuffer = (str: string) => {
 	return buf;
 };
 
-// TODO: Replace with actual method
-const leafNode = (key: Buffer, value: Buffer): { hash: Buffer } => ({
-	hash: Buffer.concat([key, value]),
-});
+export const leafHash = (key: Buffer, value: Buffer): Buffer =>
+	hash(Buffer.concat([LEAF_HASH_PREFIX, key, value]));
 
-// TODO: Replace with actual method
-const branchHash = (hash: Buffer, siblingHash: Buffer): Buffer =>
-	Buffer.concat([hash, siblingHash]);
+export const branchHash = (leftHash: Buffer, rightHash: Buffer): Buffer =>
+	hash(Buffer.concat([BRANCH_HASH_PREFIX, leftHash, rightHash]));

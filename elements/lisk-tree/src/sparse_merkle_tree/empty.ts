@@ -12,15 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { EMPTY_HASH } from './constants';
 
-export const EMPTY_VALUE = Buffer.alloc(0);
-export const EMPTY_HASH = hash(EMPTY_VALUE);
+export class Empty {
+	private readonly _hash = EMPTY_HASH;
 
-export const LEAF_HASH_PREFIX = Buffer.from('00', 'hex');
-export const BRANCH_HASH_PREFIX = Buffer.from('01', 'hex');
-
-export const enum NodeSide {
-	LEFT = 0,
-	RIGHT = 1,
+	public get hash() {
+		return this._hash;
+	}
 }
