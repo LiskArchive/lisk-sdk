@@ -12,15 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
-
-export const EMPTY_VALUE = Buffer.alloc(0);
-export const EMPTY_HASH = hash(EMPTY_VALUE);
-
-export const LEAF_HASH_PREFIX = Buffer.from('00', 'hex');
-export const BRANCH_HASH_PREFIX = Buffer.from('01', 'hex');
-
-export const enum NodeSide {
-	LEFT = 0,
-	RIGHT = 1,
+export interface Database {
+	get(key: Buffer): Promise<Buffer>;
+	set(key: Buffer, value: Buffer): Promise<void>;
+	del(key: Buffer): Promise<void>;
 }

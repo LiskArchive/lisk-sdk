@@ -13,8 +13,9 @@
  */
 
 import { hash } from '@liskhq/lisk-cryptography';
+import { LEAF_HASH_PREFIX, BRANCH_HASH_PREFIX } from './constants';
 
 export const leafHash = (key: Buffer, value: Buffer): Buffer =>
-	hash(Buffer.concat([Buffer.from('00', 'hex'), key, value]));
+	hash(Buffer.concat([LEAF_HASH_PREFIX, key, value]));
 export const branchHash = (leftHash: Buffer, rightHash: Buffer): Buffer =>
-	hash(Buffer.concat([Buffer.from('01', 'hex'), leftHash, rightHash]));
+	hash(Buffer.concat([BRANCH_HASH_PREFIX, leftHash, rightHash]));

@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Leaf } from './leaf_node';
+import { Leaf } from './leaf';
 import { branchHash } from './utils';
+import { NodeSide } from './constants';
 
 export class Branch {
 	private _left: Leaf;
@@ -34,8 +35,8 @@ export class Branch {
 	public get right() {
 		return this._right;
 	}
-	public update(newChild: Leaf, side: boolean) {
-		if (!side) {
+	public update(newChild: Leaf, nodeSide: NodeSide) {
+		if (nodeSide === NodeSide.LEFT) {
 			this._left = newChild;
 		} else {
 			this._right = newChild;

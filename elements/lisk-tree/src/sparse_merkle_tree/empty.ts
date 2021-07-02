@@ -15,10 +15,7 @@
 import { EMPTY_HASH } from './constants';
 
 export class Empty {
-	private readonly _hash: Buffer;
-	public constructor() {
-		this._hash = EMPTY_HASH;
-	}
+	private readonly _hash = EMPTY_HASH;
 
 	public get hash() {
 		return this._hash;
