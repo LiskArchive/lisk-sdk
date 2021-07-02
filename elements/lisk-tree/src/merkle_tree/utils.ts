@@ -153,20 +153,35 @@ export const calculateLightMerkleRoot = (size: number, appendPath: Buffer[], val
 	);
 
 	// Set current hash to hash of value
-	let currentHash = hash(leafValueWithPrefix);
-
+	const newLeafHash = hash(leafValueWithPrefix);
+	let currentHash = newLeafHash;
 	// Count the 1's in binaryLength
 	let count = 0;
 
 	for (let i = 0; i < binaryLength.length; i += 1) {
 		// Loop the binaryLength from the right
 		// The right-most digits correspond to lower layers in the tree
-		if(binaryLength[binaryLength.length - i - 1] === '1') {
+		if (binaryLength[binaryLength.length - i - 1] === '1') {
 			const siblingHash = appendPath[count];
 			currentHash = generateHash(BRANCH_PREFIX, siblingHash, currentHash);
 			count += 1;
 		}
 	}
 
-	return { root: currentHash, appendPath, size: size + 1 };
+	// Update the append path
+	let newAppendPath = appendPath;
+
+	for (let i = 0; i < binaryLength.length; i += 1) {
+		if (binaryLength[binaryLength.length - i - 1] === '0') {
+			break
+		}
+		const splicedPath = newAppendPath.splice(i);
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let l = 0; l < newAppendPath.length; l += 1) {
+			generateHash(BRANCH_PREFIX, newAppendPath[l], newLeafHash);
+		}
+		newAppendPath = [newLeafHash].concat(splicedPath);	
+	}
+
+	return { root: currentHash, appendPath: newAppendPath, size: size + 1 };
 }
