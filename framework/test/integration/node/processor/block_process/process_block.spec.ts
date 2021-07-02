@@ -161,9 +161,9 @@ describe('Process block', () => {
 		describe('when processing the block', () => {
 			let newBlock: Block;
 
-			beforeAll(() => {
+			beforeAll(async () => {
 				const timestamp = getNextTimeslot(chain);
-				newBlock = testing.createBlock({
+				newBlock = await testing.createBlock({
 					passphrase: account.passphrase,
 					networkIdentifier,
 					timestamp,
@@ -210,9 +210,9 @@ describe('Process block', () => {
 		describe('when processing the block', () => {
 			let newBlock: Block;
 
-			beforeAll(() => {
+			beforeAll(async () => {
 				const timestamp = getNextTimeslot(chain);
-				newBlock = testing.createBlock({
+				newBlock = await testing.createBlock({
 					passphrase: genesis.passphrase,
 					networkIdentifier,
 					timestamp,
@@ -333,7 +333,7 @@ describe('Process block', () => {
 				const validator = await chain.getValidator(timestamp);
 				const passphrase = getPassphraseFromDefaultConfig(validator.address);
 
-				invalidBlock = testing.createBlock({
+				invalidBlock = await testing.createBlock({
 					passphrase,
 					networkIdentifier,
 					timestamp,
@@ -368,7 +368,7 @@ describe('Process block', () => {
 				const validator = await chain.getValidator(timestamp);
 				const passphrase = getPassphraseFromDefaultConfig(validator.address);
 
-				const tieBreakBlock = testing.createBlock({
+				const tieBreakBlock = await testing.createBlock({
 					passphrase,
 					networkIdentifier,
 					timestamp,

@@ -38,7 +38,7 @@ export interface TreeStructure {
 	[key: number]: NodeInfo[];
 }
 export interface Proof {
-	readonly path: ReadonlyArray<{
+	readonly siblingHashes: ReadonlyArray<{
 		hash: Buffer;
 		layerIndex: number | undefined;
 		nodeIndex: number | undefined;
@@ -47,7 +47,7 @@ export interface Proof {
 		layerIndex: number | undefined;
 		nodeIndex: number | undefined;
 	}>;
-	readonly dataLength: number;
+	readonly size: number;
 }
 
 export interface NodeLocation {
@@ -57,3 +57,8 @@ export interface NodeLocation {
 }
 
 export type VerifyResult = ReadonlyArray<{ hash: Buffer; verified: boolean }>;
+
+export interface Database {
+	get(key: Buffer): Promise<Buffer>;
+	set(key: Buffer, value: Buffer): Promise<void>;
+}

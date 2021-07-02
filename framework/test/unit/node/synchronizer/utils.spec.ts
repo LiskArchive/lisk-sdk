@@ -23,9 +23,9 @@ describe('#synchronizer/utils', () => {
 	let processorMock: any;
 	let loggerMock: any;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		chainMock = {
-			lastBlock: createValidDefaultBlock({ header: { height: 1 } }),
+			lastBlock: await createValidDefaultBlock({ header: { height: 1 } }),
 			dataAccess: {
 				getTempBlocks: jest.fn(),
 				clearTempBlocks: jest.fn(),
@@ -51,7 +51,7 @@ describe('#synchronizer/utils', () => {
 	describe('restoreBlocks()', () => {
 		it('should return true on success', async () => {
 			// Arrange
-			const blocks = [createValidDefaultBlock(), createValidDefaultBlock()];
+			const blocks = [await createValidDefaultBlock(), await createValidDefaultBlock()];
 			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
@@ -63,7 +63,7 @@ describe('#synchronizer/utils', () => {
 
 		it('should pass block to processValidated with right flags', async () => {
 			// Arrange
-			const blocks = [createValidDefaultBlock(), createValidDefaultBlock()];
+			const blocks = [await createValidDefaultBlock(), await createValidDefaultBlock()];
 			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
@@ -96,9 +96,9 @@ describe('#synchronizer/utils', () => {
 
 	describe('restoreBlocksUponStartup()', () => {
 		let tempBlocks: Block[];
-		beforeEach(() => {
+		beforeEach(async () => {
 			tempBlocks = [
-				createValidDefaultBlock({
+				await createValidDefaultBlock({
 					header: {
 						height: 11,
 						asset: {
@@ -108,7 +108,7 @@ describe('#synchronizer/utils', () => {
 						},
 					},
 				}),
-				createValidDefaultBlock({
+				await createValidDefaultBlock({
 					header: {
 						height: 10,
 						asset: {

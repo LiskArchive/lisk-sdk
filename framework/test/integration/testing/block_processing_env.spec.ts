@@ -64,7 +64,7 @@ describe('getBlockProcessingEnv', () => {
 		// Arrange
 		const lastBlockHeader = blockProcessEnv.getLastBlock().header;
 		const passphrase = await blockProcessEnv.getNextValidatorPassphrase(lastBlockHeader);
-		const block = createBlock({
+		const block = await createBlock({
 			passphrase,
 			networkIdentifier: blockProcessEnv.getNetworkId(),
 			timestamp: lastBlockHeader.timestamp + blockTime,

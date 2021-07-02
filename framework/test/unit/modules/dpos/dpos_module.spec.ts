@@ -188,23 +188,25 @@ describe('DPoSModule', () => {
 		const bootstrapRound = 5;
 		let context: AfterBlockApplyContext;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			(randomSeed.generateRandomSeeds as Mock).mockReturnValue([]);
 
 			const stateStore = new StateStoreMock({
 				lastBlockHeaders: [
-					testing.createBlock({
-						header: { height: 10 },
-						passphrase: getRandomBytes(20).toString('hex'),
-						networkIdentifier: getRandomBytes(20),
-						previousBlockID: getRandomBytes(20),
-						timestamp: 0,
-					}).header,
+					(
+						await testing.createBlock({
+							header: { height: 10 },
+							passphrase: getRandomBytes(20).toString('hex'),
+							networkIdentifier: getRandomBytes(20),
+							previousBlockID: getRandomBytes(20),
+							timestamp: 0,
+						})
+					).header,
 				],
 			});
 
 			context = testing.createAfterBlockApplyContext({
-				block: testing.createBlock({
+				block: await testing.createBlock({
 					passphrase: getRandomBytes(20).toString('hex'),
 					networkIdentifier: getRandomBytes(20),
 					previousBlockID: getRandomBytes(20),
@@ -256,7 +258,7 @@ describe('DPoSModule', () => {
 			beforeEach(async () => {
 				blockRound = bootstrapRound + 1;
 
-				context.block = testing.createBlock({
+				context.block = await testing.createBlock({
 					header: { height: blockRound * 103 },
 					passphrase: getRandomBytes(20).toString('hex'),
 					networkIdentifier: getRandomBytes(20),
@@ -287,7 +289,7 @@ describe('DPoSModule', () => {
 
 		describe('when its not the last block of round', () => {
 			beforeEach(async () => {
-				context.block = testing.createBlock({
+				context.block = await testing.createBlock({
 					header: { height: (bootstrapRound + 1) * 103 + 3 },
 					passphrase: getRandomBytes(20).toString('hex'),
 					networkIdentifier: getRandomBytes(20),

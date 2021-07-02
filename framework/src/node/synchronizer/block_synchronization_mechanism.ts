@@ -171,7 +171,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 					if (this._stop) {
 						return;
 					}
-					this.processorModule.validate(block);
+					await this.processorModule.validate(block);
 					await this.processorModule.processValidated(block);
 				}
 			} catch (err) {
@@ -433,7 +433,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Received tip of the chain from peer',
 		);
 
-		const { valid: validBlock } = this._blockDetachedStatus(networkLastBlock);
+		const { valid: validBlock } = await this._blockDetachedStatus(networkLastBlock);
 
 		const forkStatus = this.bft.forkChoice(networkLastBlock.header, this._chain.lastBlock.header);
 
@@ -456,9 +456,11 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * of the Pipeline but not in other cases
 	 * that's why we wrap it here.
 	 */
-	private _blockDetachedStatus(networkLastBlock: Block): { valid: boolean; err: Error | null } {
+	private async _blockDetachedStatus(
+		networkLastBlock: Block,
+	): Promise<{ valid: boolean; err: Error | null }> {
 		try {
-			this.processorModule.validate(networkLastBlock);
+			await this.processorModule.validate(networkLastBlock);
 			return { valid: true, err: null };
 		} catch (err) {
 			return { valid: false, err: err as Error };
