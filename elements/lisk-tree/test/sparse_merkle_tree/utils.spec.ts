@@ -79,22 +79,6 @@ describe('utils', () => {
 
 			expect(sortByBitmapAndKey([res1, res2])).toEqual([res2, res1]);
 		});
-
-		it('should not effect sorting if same byte length of key and bitmap are same', () => {
-			const res1: InclusionProofQuery = {
-				key: getRandomBytes(2),
-				value: getRandomBytes(20),
-				bitmap: getRandomBytes(2),
-			};
-
-			const res2: InclusionProofQuery = {
-				key: getRandomBytes(2),
-				value: getRandomBytes(20),
-				bitmap: getRandomBytes(2),
-			};
-
-			expect(sortByBitmapAndKey([res1, res2])).toEqual([res1, res2]);
-		});
 	});
 
 	describe('areSiblingQueries', () => {
