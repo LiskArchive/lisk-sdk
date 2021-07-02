@@ -14,5 +14,4 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 
-export const KEY_LENGTH_BYTES = 4;
 export const EMPTY_HASH = hash(Buffer.alloc(0));

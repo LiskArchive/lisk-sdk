@@ -13,7 +13,7 @@
  */
 
 import { objects } from '@liskhq/lisk-utils';
-import { EMPTY_HASH, KEY_LENGTH_BYTES } from './constants';
+import { EMPTY_HASH } from './constants';
 import { InclusionProofQuery, InclusionProofQueryWithHash } from './types';
 
 // Sort queries by the longest binaryBitmap, breaking ties by smaller key.
@@ -32,13 +32,16 @@ export const sortByBitmapAndKey = <T extends InclusionProofQuery>(queries: T[]):
 
 // Remove queries that have merged together, keep only those with a different key prefix
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
-export const filterQueries = <T extends InclusionProofQuery>(queries: T[]): T[] => {
+export const filterQueries = <T extends InclusionProofQuery>(
+	queries: T[],
+	keyLength: number,
+): T[] => {
 	const uniqueKeys: string[] = [];
 
 	return queries.filter(q => {
 		const binaryBitmap = bufferToBinaryString(q.bitmap);
 		const h = binaryBitmap.length;
-		const binaryKey = binaryExpansion(q.key);
+		const binaryKey = binaryExpansion(q.key, keyLength);
 		const keyPrefix = binaryKey.substring(0, h);
 
 		if (!uniqueKeys.includes(keyPrefix)) {
@@ -57,7 +60,7 @@ export const filterQueries = <T extends InclusionProofQuery>(queries: T[]): T[] 
 export const areSiblingQueries = (
 	q1: InclusionProofQuery,
 	q2: InclusionProofQuery,
-	keyLength?: number,
+	keyLength: number,
 ): boolean => {
 	const q1BinaryBitmap = bufferToBinaryString(q1.bitmap);
 	const q2BinaryBitmap = bufferToBinaryString(q2.bitmap);
@@ -84,8 +87,13 @@ export const areSiblingQueries = (
 	return (d1 === '0' && d2 === '1') || (d1 === '1' && d2 === '0');
 };
 
+// Calculate root for the given sibling hashes
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
-export const calculateRoot = (sibHashes: Buffer[], queries: InclusionProofQuery[]): Buffer => {
+export const calculateRoot = (
+	sibHashes: Buffer[],
+	queries: InclusionProofQuery[],
+	keyLength: number,
+): Buffer => {
 	let siblingHashes = objects.cloneDeep(sibHashes);
 	const data: InclusionProofQueryWithHash[] = [];
 
@@ -99,6 +107,7 @@ export const calculateRoot = (sibHashes: Buffer[], queries: InclusionProofQuery[
 
 	let sortedQueries = filterQueries<InclusionProofQueryWithHash>(
 		sortByBitmapAndKey<InclusionProofQueryWithHash>(data),
+		keyLength,
 	);
 
 	while (sortedQueries.length > 0) {
@@ -112,13 +121,13 @@ export const calculateRoot = (sibHashes: Buffer[], queries: InclusionProofQuery[
 		const b = q.binaryBitmap[0];
 		// h equals the height of the node; e.g., the root has h=0
 		const h = q.binaryBitmap.length;
-		const binaryKey = binaryExpansion(q.key);
+		const binaryKey = binaryExpansion(q.key, keyLength);
 
 		// we distinguish three cases for the sibling hash:
 		// 1. sibling is next element of sortedQueries
 		let siblingHash!: Buffer;
 
-		if (sortedQueries.length > 1 && areSiblingQueries(q, sortedQueries[1])) {
+		if (sortedQueries.length > 1 && areSiblingQueries(q, sortedQueries[1], keyLength)) {
 			siblingHash = sortedQueries[1].hash;
 			sortedQueries = sortedQueries.splice(1, 1);
 		}
@@ -142,14 +151,14 @@ export const calculateRoot = (sibHashes: Buffer[], queries: InclusionProofQuery[
 
 		q.binaryBitmap = q.binaryBitmap.substring(1);
 		sortedQueries = sortByBitmapAndKey(sortedQueries);
-		sortedQueries = filterQueries(sortedQueries);
+		sortedQueries = filterQueries(sortedQueries, keyLength);
 	}
 
 	throw new Error('Can not calculate root hash');
 };
 
-export const binaryExpansion = (k: Buffer, _keyLength = KEY_LENGTH_BYTES) =>
-	bufferToBinaryString(k).padStart(3, '0');
+export const binaryExpansion = (k: Buffer, keyLengthInBytes: number) =>
+	bufferToBinaryString(k).padStart(8 * keyLengthInBytes, '0');
 
 export const bufferToBinaryString = (buf: Buffer) => {
 	let result = '';
