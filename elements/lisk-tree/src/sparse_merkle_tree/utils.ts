@@ -54,17 +54,23 @@ export const filterQueries = <T extends InclusionProofQuery>(queries: T[]): T[] 
 // children of the same branch node, with q1 and q2 the left and right
 // child respectively
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
-export const areSiblingQueries = (q1: InclusionProofQuery, q2: InclusionProofQuery): boolean => {
+export const areSiblingQueries = (
+	q1: InclusionProofQuery,
+	q2: InclusionProofQuery,
+	keyLength?: number,
+): boolean => {
 	const q1BinaryBitmap = bufferToBinaryString(q1.bitmap);
-	const q2BinaryBitmap = bufferToBinaryString(q1.bitmap);
+	const q2BinaryBitmap = bufferToBinaryString(q2.bitmap);
 
 	if (q1BinaryBitmap.length !== q2BinaryBitmap.length) {
 		return false;
 	}
 
 	const h = q1BinaryBitmap.length;
-	const binaryKey1 = binaryExpansion(q1.key);
-	const binaryKey2 = binaryExpansion(q2.key);
+	const binaryKey1 = binaryExpansion(q1.key, keyLength);
+	const binaryKey2 = binaryExpansion(q2.key, keyLength);
+
+	// end of string is exclusive
 	const keyPrefix1 = binaryKey1.substring(0, h - 1);
 	const keyPrefix2 = binaryKey2.substring(0, h - 1);
 
@@ -75,7 +81,7 @@ export const areSiblingQueries = (q1: InclusionProofQuery, q2: InclusionProofQue
 	const d1 = binaryKey1[h];
 	const d2 = binaryKey2[h];
 
-	return d1 === '0' && d2 === '1';
+	return (d1 === '0' && d2 === '1') || (d1 === '1' && d2 === '0');
 };
 
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
@@ -142,8 +148,8 @@ export const calculateRoot = (sibHashes: Buffer[], queries: InclusionProofQuery[
 	throw new Error('Can not calculate root hash');
 };
 
-export const binaryExpansion = (k: Buffer, length = 8 * KEY_LENGTH_BYTES) =>
-	bufferToBinaryString(k).padStart(length, '0');
+export const binaryExpansion = (k: Buffer, _keyLength = KEY_LENGTH_BYTES) =>
+	bufferToBinaryString(k).padStart(3, '0');
 
 export const bufferToBinaryString = (buf: Buffer) => {
 	let result = '';

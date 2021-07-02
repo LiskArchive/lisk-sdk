@@ -17,6 +17,7 @@ import {
 	sortByBitmapAndKey,
 	binaryStringToBuffer,
 	bufferToBinaryString,
+	areSiblingQueries,
 } from '../../src/sparse_merkle_tree/utils';
 import { InclusionProofQuery } from '../../src/sparse_merkle_tree/types';
 
@@ -28,6 +29,20 @@ const binarySampleData = [
 	{ str: '10101001101100', buf: '2A6C' },
 	{ str: '1111110010101001101100', buf: '3F2A6C' },
 ];
+
+const createQueryObject = ({
+	key,
+	value,
+	bitmap,
+}: {
+	key: string;
+	value: string;
+	bitmap: string;
+}): InclusionProofQuery => ({
+	key: Buffer.from(key, 'hex'),
+	value: Buffer.from(value, 'hex'),
+	bitmap: Buffer.from(bitmap, 'hex'),
+});
 
 describe('utils', () => {
 	describe('sortByBitmapAndKey', () => {
@@ -77,6 +92,52 @@ describe('utils', () => {
 			};
 
 			expect(sortByBitmapAndKey([res1, res2])).toEqual([res1, res2]);
+		});
+	});
+
+	describe.only('areSiblingQueries', () => {
+		it('should return true for valid sibling queries', () => {
+			// These values are generate from specs for keys "11101101" and "11100001"
+			expect(
+				areSiblingQueries(
+					createQueryObject({ key: 'ed', value: 'f3df1f9c', bitmap: '17' }),
+					createQueryObject({ key: 'e1', value: 'f031efa5', bitmap: '17' }),
+					1,
+				),
+			).toBeTrue();
+		});
+
+		it('should return true for valid sibling queries even if swapped', () => {
+			// These values are generate from specs for keys "11101101" and "11100001"
+			expect(
+				areSiblingQueries(
+					createQueryObject({ key: 'e1', value: 'f031efa5', bitmap: '17' }),
+					createQueryObject({ key: 'ed', value: 'f3df1f9c', bitmap: '17' }),
+					1,
+				),
+			).toBeTrue();
+		});
+
+		it('should return false for invalid sibling queries', () => {
+			// These values are generate from specs for keys "00110011" and "01101100"
+			expect(
+				areSiblingQueries(
+					createQueryObject({ key: '33', value: '4e074085', bitmap: '17' }),
+					createQueryObject({ key: '6c', value: 'acac86c0', bitmap: '1f' }),
+					1,
+				),
+			).toBeFalse();
+		});
+
+		it('should return false for invalid sibling queries even if swapped', () => {
+			// These values are generate from specs for keys "00110011" and "01101100"
+			expect(
+				areSiblingQueries(
+					createQueryObject({ key: '6c', value: 'acac86c0', bitmap: '1f' }),
+					createQueryObject({ key: '33', value: '4e074085', bitmap: '17' }),
+					1,
+				),
+			).toBeFalse();
 		});
 	});
 
