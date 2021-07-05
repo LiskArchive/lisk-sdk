@@ -102,7 +102,7 @@ export class MerkleTree {
 		};
 	}
 
-	public async getAppendPath(): Promise<Buffer[]> {
+	public async getAppendPathHashes(): Promise<Buffer[]> {
 		const appendPathNodes = await this._getAppendPathNodes();
 		return appendPathNodes.map(p => p.hash);
 	}
@@ -128,6 +128,7 @@ export class MerkleTree {
 			currentNode = await this.getNode(newBranchNode.hash);
 		}
 		this._root = currentNode.hash;
+		this._size += 1;
 		return this.root;
 	}
 
@@ -229,7 +230,7 @@ export class MerkleTree {
 			return [];
 		}
 		if (idx === 0) {
-			return this.getAppendPath();
+			return this.getAppendPathHashes();
 		}
 		const height = this._getHeight();
 		const size = this._size;
