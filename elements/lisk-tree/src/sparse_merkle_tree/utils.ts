@@ -15,9 +15,56 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { BRANCH_HASH_PREFIX, EMPTY_HASH, LEAF_HASH_PREFIX } from './constants';
-import { Query } from './types';
+import { Query, Proof } from './types';
 
 type CalculateRootQueryObjects = Omit<Query, 'bitmap'> & { hash: Buffer; binaryBitmap: string };
+
+export const getOverlappingStr = (str1: string, str2: string) => {
+	const output = [''];
+
+	for (let i = 0; i < str1.length; i += 1) {
+		if (str1[i] !== str2[i]) {
+			return output.join('');
+		}
+
+		output.push(str1[i]);
+	}
+
+	return output.join('');
+};
+
+export const verify = (
+	queryKeys: Buffer[],
+	proof: Proof,
+	merkleRoot: Buffer,
+	keyLength: number,
+): boolean => {
+	if (queryKeys.length !== proof.queries.length) {
+		return false;
+	}
+
+	for (const [index, q] of proof.queries.entries()) {
+		const k = queryKeys[index];
+
+		// q is an inclusion proof for k or a default empty node
+		if (k.equals(q.key)) {
+			continue;
+		}
+
+		// q is an inclusion proof for another leaf node
+		const binaryResponseBitmap = bufferToBinaryString(q.bitmap);
+		const binaryResponseKey = binaryExpansion(q.key, keyLength);
+		const binaryQueryKey = binaryExpansion(k, keyLength);
+		const sharedPrefix = getOverlappingStr(binaryResponseKey, binaryQueryKey);
+
+		if (binaryResponseBitmap.length > sharedPrefix.length) {
+			// q does not give an non-inclusion proof for k
+			return false;
+		}
+	}
+
+	return calculateRoot(proof.siblingHashes, proof.queries, keyLength).equals(merkleRoot);
+};
 
 // Sort queries by the longest binaryBitmap, breaking ties by smaller key.
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-construction
