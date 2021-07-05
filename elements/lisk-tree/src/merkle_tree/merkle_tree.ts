@@ -29,7 +29,13 @@ import {
 import { InMemoryDB } from './inmemory_db';
 import { PrefixStore } from './prefix_store';
 import { NodeData, NodeInfo, NodeType, NodeSide, Proof, Database } from './types';
-import { generateHash, getBinaryString, isLeaf, getPairLocation } from './utils';
+import {
+	generateHash,
+	getBinaryString,
+	isLeaf,
+	getPairLocation,
+	getRightSiblingInfo,
+} from './utils';
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -102,6 +108,11 @@ export class MerkleTree {
 		};
 	}
 
+	public async getAppendPathHashes(): Promise<Buffer[]> {
+		const appendPathNodes = await this._getAppendPathNodes();
+		return appendPathNodes.map(p => p.hash);
+	}
+
 	public async append(value: Buffer): Promise<Buffer> {
 		if (this._size === 0) {
 			const leaf = await this._generateLeaf(value, 0);
@@ -109,59 +120,21 @@ export class MerkleTree {
 			this._size += 1;
 			return this._root;
 		}
-
-		// Create the appendPath
-		const appendPath: NodeInfo[] = [];
-		let currentNode = await this.getNode(this._root);
-
-		// If tree is fully balanced
-		if (this._size === 2 ** (this._getHeight() - 1)) {
-			appendPath.push(currentNode);
-		} else {
-			// We start from the root layer and traverse each layer down the tree on the right side
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, no-constant-condition
-			while (true) {
-				const currentLayer = currentNode.layerIndex;
-				let currentLayerSize = this._size >> currentLayer;
-				// if layer has odd nodes and current node is odd (hence index is even)
-				if (currentLayerSize % 2 === 1 && currentNode.nodeIndex % 2 === 0) {
-					appendPath.push(currentNode);
-				}
-				// if node is leaf, break
-				if (currentNode.type === NodeType.LEAF) {
-					break;
-				}
-				// if layer below is odd numbered, push left child
-				currentLayerSize = this._size >> (currentLayer - 1);
-				if (currentLayerSize % 2 === 1) {
-					const leftNode = await this.getNode(currentNode.leftHash);
-					appendPath.push(leftNode);
-				}
-
-				// go to right child
-				currentNode = await this.getNode(currentNode.rightHash);
-			}
-		}
-
+		const appendPath = await this._getAppendPathNodes();
 		const appendData = await this._generateLeaf(value, this._size);
-		const appendNode = await this.getNode(appendData.hash);
-		appendPath.push(appendNode);
-		// Loop through appendPath from the base layer
-		// Generate new branch nodes and push to appendPath
-		// Last element remaining is new root
-		while (appendPath.length > 1) {
-			const rightNodeInfo = appendPath.pop();
-			const leftNodeInfo = appendPath.pop();
+		let currentNode = await this.getNode(appendData.hash);
+		for (let i = 0; i < appendPath.length; i += 1) {
+			const leftNodeInfo = appendPath[i];
 			const newBranchNode = await this._generateBranch(
-				(leftNodeInfo as NodeInfo).hash,
-				(rightNodeInfo as NodeInfo).hash,
-				(leftNodeInfo as NodeInfo).layerIndex + 1,
-				(leftNodeInfo as NodeInfo).nodeIndex + 1,
+				leftNodeInfo.hash,
+				currentNode.hash,
+				leftNodeInfo.layerIndex + 1,
+				leftNodeInfo.nodeIndex + 1,
 			);
-			const nextNode = await this.getNode(newBranchNode.hash);
-			appendPath.push(nextNode);
+			currentNode = await this.getNode(newBranchNode.hash);
 		}
-		this._root = appendPath[0].hash;
+		this._root = currentNode.hash;
+		this._size += 1;
 		return this.root;
 	}
 
@@ -252,6 +225,46 @@ export class MerkleTree {
 			indexes,
 			size: this._size,
 		};
+	}
+
+	// idx is the first element of right tree
+	public async generateRightWitness(idx: number): Promise<Buffer[]> {
+		if (idx < 0 || idx > this._size) {
+			throw new Error('index out of range');
+		}
+		if (this._size === idx) {
+			return [];
+		}
+		if (idx === 0) {
+			return this.getAppendPathHashes();
+		}
+		const height = this._getHeight();
+		const size = this._size;
+		const rightWitness: Buffer[] = [];
+		let incrementalIdx = idx;
+		for (let layerIndex = 0; layerIndex < height; layerIndex += 1) {
+			const digit = (incrementalIdx >>> layerIndex) & 1;
+			if (digit === 0) {
+				continue;
+			}
+			const leftTreeLastIdx = idx - 1;
+			const nodeIndex = leftTreeLastIdx >> layerIndex;
+			const siblingInfo = getRightSiblingInfo(nodeIndex, layerIndex, size);
+			if (!siblingInfo) {
+				break;
+			}
+			const nodeHash = await this._locationToHashMap.get(
+				getBinaryString(siblingInfo.nodeIndex, height - siblingInfo.layerIndex),
+			);
+			if (!nodeHash) {
+				throw new Error(
+					`Invalid tree state. Node at ${siblingInfo.nodeIndex} in layer ${siblingInfo.layerIndex} does not exist for size ${this.size}`,
+				);
+			}
+			rightWitness.push(nodeHash);
+			incrementalIdx += 1 << layerIndex;
+		}
+		return rightWitness;
 	}
 
 	public async toString(): Promise<string> {
@@ -373,6 +386,46 @@ export class MerkleTree {
 		}
 
 		return currentLayerHashes[0];
+	}
+
+	private async _getAppendPathNodes(): Promise<NodeInfo[]> {
+		if (this._size === 0) {
+			return [];
+		}
+		// Create the appendPath
+		const appendPath: NodeInfo[] = [];
+		let currentNode = await this.getNode(this._root);
+
+		// If tree is fully balanced
+		if (this._size === 2 ** (this._getHeight() - 1)) {
+			appendPath.push(currentNode);
+		} else {
+			// We start from the root layer and traverse each layer down the tree on the right side
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, no-constant-condition
+			while (true) {
+				const currentLayer = currentNode.layerIndex;
+				let currentLayerSize = this._size >> currentLayer;
+				// if layer has odd nodes and current node is odd (hence index is even)
+				if (currentLayerSize % 2 === 1 && currentNode.nodeIndex % 2 === 0) {
+					appendPath.push(currentNode);
+				}
+				// if node is leaf, break
+				if (currentNode.type === NodeType.LEAF) {
+					break;
+				}
+				// if layer below is odd numbered, push left child
+				currentLayerSize = this._size >> (currentLayer - 1);
+				if (currentLayerSize % 2 === 1) {
+					const leftNode = await this.getNode(currentNode.leftHash);
+					appendPath.push(leftNode);
+				}
+
+				// go to right child
+				currentNode = await this.getNode(currentNode.rightHash);
+			}
+		}
+		// Append path should be from bottom
+		return appendPath.reverse();
 	}
 
 	private async _printNode(hashValue: Buffer, level = 1): Promise<string> {
