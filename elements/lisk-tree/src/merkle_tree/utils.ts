@@ -146,6 +146,8 @@ export const getPairLocation = (nodeInfo: {
 export const calculateLightMerkleRoot = (size: number, appendPath: Buffer[], value: Buffer) => {
 	const binaryLength = size.toString(2);
 
+	// Calculate the new root
+
 	// Add prefix to value 
 	const leafValueWithPrefix = Buffer.concat(
 		[LEAF_PREFIX, value],
@@ -155,6 +157,7 @@ export const calculateLightMerkleRoot = (size: number, appendPath: Buffer[], val
 	// Set current hash to hash of value
 	const newLeafHash = hash(leafValueWithPrefix);
 	let currentHash = newLeafHash;
+	
 	// Count the 1's in binaryLength
 	let count = 0;
 
@@ -169,19 +172,21 @@ export const calculateLightMerkleRoot = (size: number, appendPath: Buffer[], val
 	}
 
 	// Update the append path
-	let newAppendPath = appendPath;
+	let subTreeIndex;
 
-	for (let i = 0; i < binaryLength.length; i += 1) {
-		if (binaryLength[binaryLength.length - i - 1] === '0') {
+	for (subTreeIndex = 0; subTreeIndex < binaryLength.length; subTreeIndex += 1) {
+		if (binaryLength[binaryLength.length - subTreeIndex - 1] === '0') {
 			break
 		}
-		const splicedPath = newAppendPath.splice(i);
-		// eslint-disable-next-line @typescript-eslint/prefer-for-of
-		for (let l = 0; l < newAppendPath.length; l += 1) {
-			generateHash(BRANCH_PREFIX, newAppendPath[l], newLeafHash);
-		}
-		newAppendPath = [newLeafHash].concat(splicedPath);	
 	}
 
+	let newAppendPath = appendPath;
+	const splicedPath = newAppendPath.splice(subTreeIndex);
+	// eslint-disable-next-line @typescript-eslint/prefer-for-of
+	for (let l = 0; l < newAppendPath.length; l += 1) {
+		generateHash(BRANCH_PREFIX, newAppendPath[l], newLeafHash);
+	}
+	newAppendPath = [newLeafHash].concat(splicedPath);	
+	
 	return { root: currentHash, appendPath: newAppendPath, size: size + 1 };
 }
