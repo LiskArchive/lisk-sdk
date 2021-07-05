@@ -15,7 +15,7 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { BRANCH_PREFIX, LEAF_PREFIX } from './constants';
-import { NodeLocation, NodeSide } from './types';
+import { NodeLocation, NodeSide, MerkleInfo } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
 
@@ -143,7 +143,11 @@ export const getPairLocation = (nodeInfo: {
 	return pairLocation as NodeLocation;
 };
 
-export const calculateLightMerkleRoot = (size: number, appendPath: Buffer[], value: Buffer) => {
+export const calculateMerkleRoot = ({
+	value,
+	appendPath,
+	size,
+}: MerkleInfo) => {
 	const binaryLength = size.toString(2);
 
 	// Calculate the new root
