@@ -34,9 +34,9 @@ const { transactions } = require('lisk-elements');
 
 ## Packages
 
-| Package                                                   |                              Version                               | Description                                                                                              |
-| --------------------------------------------------------- | :----------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------- |
-| [lisk-elements](./)                                       |         ![npm](https://img.shields.io/npm/v/lisk-elements)         | Package contains everything                                                                              |
+| Package                                                                                      |                              Version                               | Description                                                                                              |
+| -------------------------------------------------------------------------------------------- | :----------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------- |
+| [lisk-elements](https://www.npmjs.com/package/@liskhq/lisk-elements)                         |         ![npm](https://img.shields.io/npm/v/lisk-elements)         | Package contains everything                                                                              |
 | [@liskhq/lisk-api-client](https://www.npmjs.com/package/@liskhq/lisk-api-client)             |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-api-client)    | An API client for the Lisk network                                                                       |
 | [@liskhq/lisk-bft](https://www.npmjs.com/package/@liskhq/lisk-bft)                           |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-bft)        | Byzantine fault tolerance implementation according to the Lisk protocol                                  |
 | [@liskhq/lisk-chain](https://www.npmjs.com/package/@liskhq/lisk-chain)                       |      ![npm](https://img.shields.io/npm/v/@liskhq/lisk-chain)       | Implements blocks and state management that are used for block processing according to the Lisk protocol |

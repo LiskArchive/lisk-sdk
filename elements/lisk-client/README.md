@@ -48,16 +48,16 @@ Or minified:
 
 ## Packages
 
-| Package                                           |                            Version                             | Description                                                               |
-| ------------------------------------------------- | :------------------------------------------------------------: | ------------------------------------------------------------------------- |
-| [@liskhq/lisk-api-client](https://www.npmjs.com/package/@liskhq/lisk-api-client)     |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-api-client)  | An API client for the Lisk network                                             |
-| [@liskhq/lisk-codec](https://www.npmjs.com/package/@liskhq/lisk-codec)               |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-codec)     | Decoder and encoder using Lisk JSON schema according to the Lisk protocol    |
-| [@liskhq/lisk-cryptography](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software       |
+| Package                                                                              |                            Version                             | Description                                                               |
+| ------------------------------------------------------------------------------------ | :------------------------------------------------------------: | ------------------------------------------------------------------------- |
+| [@liskhq/lisk-api-client](https://www.npmjs.com/package/@liskhq/lisk-api-client)     |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-api-client)  | An API client for the Lisk network                                        |
+| [@liskhq/lisk-codec](https://www.npmjs.com/package/@liskhq/lisk-codec)               |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-codec)     | Decoder and encoder using Lisk JSON schema according to the Lisk protocol |
+| [@liskhq/lisk-cryptography](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software        |
 | [@liskhq/lisk-passphrase](https://www.npmjs.com/package/@liskhq/lisk-passphrase)     |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software            |
-| [@liskhq/lisk-transactions](https://www.npmjs.com/package/@liskhq/lisk-transactions) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol           |
-| [@liskhq/lisk-tree](https://www.npmjs.com/package/@liskhq/lisk-tree)                 |     ![npm](https://img.shields.io/npm/v/@liskhq/lisk-tree)     | Merkle tree implementations for use with Lisk-related software               |
-| [@liskhq/lisk-utils](https://www.npmjs.com/package/@liskhq/lisk-utils)               |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-utils)     | Generic utility functions for use with Lisk-related software                     |
-| [@liskhq/lisk-validator](https://www.npmjs.com/package/@liskhq/lisk-validator)       |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-validator)   | Validation library according to the Lisk protocol                    |
+| [@liskhq/lisk-transactions](https://www.npmjs.com/package/@liskhq/lisk-transactions) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol         |
+| [@liskhq/lisk-tree](https://www.npmjs.com/package/@liskhq/lisk-tree)                 |     ![npm](https://img.shields.io/npm/v/@liskhq/lisk-tree)     | Merkle tree implementations for use with Lisk-related software            |
+| [@liskhq/lisk-utils](https://www.npmjs.com/package/@liskhq/lisk-utils)               |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-utils)     | Generic utility functions for use with Lisk-related software              |
+| [@liskhq/lisk-validator](https://www.npmjs.com/package/@liskhq/lisk-validator)       |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-validator)   | Validation library according to the Lisk protocol                         |
 
 ## License
 
