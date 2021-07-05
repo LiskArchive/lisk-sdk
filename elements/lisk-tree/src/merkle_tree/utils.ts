@@ -62,7 +62,7 @@ export const getBinary = (num: number, length: number): number[] => {
 	return binaryString.split('').map(d => parseInt(d, 10));
 };
 
-export const getSiblingInfo = (
+export const getRightSiblingInfo = (
 	nodeIndex: number,
 	layerIndex: number,
 	size: number,

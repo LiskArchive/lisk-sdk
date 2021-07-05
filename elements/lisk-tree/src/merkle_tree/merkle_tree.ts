@@ -29,7 +29,13 @@ import {
 import { InMemoryDB } from './inmemory_db';
 import { PrefixStore } from './prefix_store';
 import { NodeData, NodeInfo, NodeType, NodeSide, Proof, Database } from './types';
-import { generateHash, getBinaryString, isLeaf, getPairLocation, getSiblingInfo } from './utils';
+import {
+	generateHash,
+	getBinaryString,
+	isLeaf,
+	getPairLocation,
+	getRightSiblingInfo,
+} from './utils';
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -243,7 +249,7 @@ export class MerkleTree {
 			}
 			const leftTreeLastIdx = idx - 1;
 			const nodeIndex = leftTreeLastIdx >> layerIndex;
-			const siblingInfo = getSiblingInfo(nodeIndex, layerIndex, size);
+			const siblingInfo = getRightSiblingInfo(nodeIndex, layerIndex, size);
 			if (!siblingInfo) {
 				break;
 			}
