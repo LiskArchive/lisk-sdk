@@ -15,11 +15,13 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { BRANCH_HASH_PREFIX, EMPTY_HASH, LEAF_HASH_PREFIX } from './constants';
-import { ProofQuery, ProofQueryWithHash } from './types';
+import { Query } from './types';
+
+type CalculateRootQueryObjects = Omit<Query, 'bitmap'> & { hash: Buffer; binaryBitmap: string };
 
 // Sort queries by the longest binaryBitmap, breaking ties by smaller key.
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-construction
-export const sortByBitmapAndKey = <T extends Pick<ProofQuery, 'binaryBitmap' | 'key'>>(
+export const sortByBitmapAndKey = <T extends { key: Buffer; binaryBitmap: string }>(
 	queries: T[],
 ): T[] =>
 	queries.sort((q1, q2) => {
@@ -36,7 +38,7 @@ export const sortByBitmapAndKey = <T extends Pick<ProofQuery, 'binaryBitmap' | '
 
 // Remove queries that have merged together, keep only those with a different key prefix
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
-export const filterQueries = <T extends Pick<ProofQuery, 'binaryBitmap' | 'key'>>(
+export const filterQueries = <T extends { key: Buffer; binaryBitmap: string }>(
 	queries: T[],
 	keyLength: number,
 ): T[] => {
@@ -61,8 +63,8 @@ export const filterQueries = <T extends Pick<ProofQuery, 'binaryBitmap' | 'key'>
 // child respectively
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
 export const areSiblingQueries = (
-	q1: Pick<ProofQuery, 'binaryBitmap' | 'key'>,
-	q2: Pick<ProofQuery, 'binaryBitmap' | 'key'>,
+	q1: { key: Buffer; binaryBitmap: string },
+	q2: { key: Buffer; binaryBitmap: string },
 	keyLength: number,
 ): boolean => {
 	if (q1.binaryBitmap.length !== q2.binaryBitmap.length) {
@@ -89,24 +91,21 @@ export const areSiblingQueries = (
 
 // Calculate root for the given sibling hashes
 // https://github.com/LiskHQ/lips-staging/blob/master/proposals/lip-0039.md#proof-verification
-export const calculateRoot = (
-	sibHashes: Buffer[],
-	queries: ProofQuery[],
-	keyLength: number,
-): Buffer => {
+export const calculateRoot = (sibHashes: Buffer[], queries: Query[], keyLength: number): Buffer => {
 	const siblingHashes = objects.cloneDeep(sibHashes);
-	const data: ProofQueryWithHash[] = [];
+	const data: CalculateRootQueryObjects[] = [];
 
 	for (const q of queries) {
 		data.push({
-			...q,
-			binaryBitmap: q.binaryBitmap ?? bufferToBinaryString(q.bitmap),
+			key: q.key,
+			value: q.value,
+			binaryBitmap: bufferToBinaryString(q.bitmap),
 			hash: q.value.byteLength === 0 ? EMPTY_HASH : leafHash(q.key, q.value),
 		});
 	}
 
-	let sortedQueries = filterQueries<ProofQueryWithHash>(
-		sortByBitmapAndKey<ProofQueryWithHash>(data),
+	let sortedQueries = filterQueries<CalculateRootQueryObjects>(
+		sortByBitmapAndKey<CalculateRootQueryObjects>(data),
 		keyLength,
 	);
 

@@ -14,19 +14,13 @@
 
 export interface Proof {
 	readonly siblingHashes: Buffer[];
-	readonly queries: ProofQuery[];
+	readonly queries: Query[];
 }
 
-export interface ProofQuery {
+export interface Query {
 	readonly key: Buffer;
 	readonly value: Buffer;
-	// During calculations bitmap values can change so these are not readonly
-	bitmap: Buffer;
-	binaryBitmap: string;
-}
-
-export interface ProofQueryWithHash extends ProofQuery {
-	hash: Buffer;
+	readonly bitmap: Buffer;
 }
 
 export interface Database {

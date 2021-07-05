@@ -21,7 +21,6 @@ import {
 	filterQueries,
 	calculateRoot,
 } from '../../src/sparse_merkle_tree/utils';
-import { ProofQuery } from '../../src/sparse_merkle_tree/types';
 
 const binarySampleData = [
 	{ str: '101', buf: '05' },
@@ -40,7 +39,7 @@ const createQueryObject = ({
 	key: string;
 	value: string;
 	bitmap: string;
-}): ProofQuery => ({
+}) => ({
 	key: Buffer.from(key, 'hex'),
 	value: Buffer.from(value, 'hex'),
 	bitmap: Buffer.from(bitmap, 'hex'),
