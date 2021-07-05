@@ -62,3 +62,9 @@ export interface Database {
 	get(key: Buffer): Promise<Buffer>;
 	set(key: Buffer, value: Buffer): Promise<void>;
 }
+
+export interface MerkleInfo {
+	readonly value: Buffer;
+	readonly appendPath: Buffer[];
+	readonly size: number;
+}
