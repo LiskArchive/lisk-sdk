@@ -12,20 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface InclusionProof {
+export interface Proof {
 	readonly siblingHashes: Buffer[];
-	readonly queries: InclusionProofQuery[];
+	readonly queries: ProofQuery[];
 }
 
-export interface InclusionProofQuery {
+export interface ProofQuery {
 	readonly key: Buffer;
 	readonly value: Buffer;
-	readonly bitmap: Buffer;
+	// During calculations bitmap values can change so these are not readonly
+	bitmap: Buffer;
+	binaryBitmap: string;
 }
 
-export interface InclusionProofQueryWithHash extends InclusionProofQuery {
+export interface ProofQueryWithHash extends ProofQuery {
 	hash: Buffer;
-	binaryBitmap: string;
 }
 
 export interface Database {
