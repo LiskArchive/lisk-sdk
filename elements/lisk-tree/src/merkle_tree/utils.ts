@@ -184,13 +184,13 @@ export const calculateMerkleRoot = ({
 		}
 	}
 
-	let newAppendPath = appendPath;
-	const splicedPath = newAppendPath.splice(subTreeIndex);
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
-	for (let l = 0; l < newAppendPath.length; l += 1) {
-		generateHash(BRANCH_PREFIX, newAppendPath[l], newLeafHash);
+	let currentAppendPath = appendPath.slice(0);
+	let branchHash = newLeafHash;
+	const splicedPath = currentAppendPath.splice(subTreeIndex);
+	for (const sibling of currentAppendPath) {
+		branchHash = generateHash(BRANCH_PREFIX, sibling, branchHash);
 	}
-	newAppendPath = [newLeafHash].concat(splicedPath);	
+	currentAppendPath = [branchHash].concat(splicedPath);	
 	
-	return { root: currentHash, appendPath: newAppendPath, size: size + 1 };
+	return { root: currentHash, appendPath: currentAppendPath, size: size + 1 };
 }
