@@ -143,16 +143,12 @@ export const getPairLocation = (nodeInfo: {
 	return pairLocation as NodeLocation;
 };
 
-export const calculateMerkleRoot = ({
-	value,
-	appendPath,
-	size,
-}: MerkleRootInfo) => {
+export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo) => {
 	const binaryLength = size.toString(2);
 
 	// Calculate the new root
 
-	// Add prefix to value 
+	// Add prefix to value
 	const leafValueWithPrefix = Buffer.concat(
 		[LEAF_PREFIX, value],
 		LEAF_PREFIX.length + value.length,
@@ -161,7 +157,7 @@ export const calculateMerkleRoot = ({
 	// Set current hash to hash of value
 	const newLeafHash = hash(leafValueWithPrefix);
 	let currentHash = newLeafHash;
-	
+
 	// Count the 1's in binaryLength
 	let count = 0;
 
@@ -180,7 +176,7 @@ export const calculateMerkleRoot = ({
 
 	for (subTreeIndex = 0; subTreeIndex < binaryLength.length; subTreeIndex += 1) {
 		if (binaryLength[binaryLength.length - subTreeIndex - 1] === '0') {
-			break
+			break;
 		}
 	}
 
@@ -190,7 +186,7 @@ export const calculateMerkleRoot = ({
 	for (const sibling of currentAppendPath) {
 		branchHash = generateHash(BRANCH_PREFIX, sibling, branchHash);
 	}
-	currentAppendPath = [branchHash].concat(splicedPath);	
-	
+	currentAppendPath = [branchHash].concat(splicedPath);
+
 	return { root: currentHash, appendPath: currentAppendPath, size: size + 1 };
-}
+};
