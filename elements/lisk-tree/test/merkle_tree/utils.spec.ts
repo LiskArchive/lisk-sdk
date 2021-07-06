@@ -24,7 +24,6 @@ describe('utils', () => {
                 // Skip the case of empty tree since there is no value to pop
                 for (const test of fixture.testCases.slice(1)) {
                     describe(test.description, () => {
-                        describe(test.description, () => {
                             const fullTree = new MerkleTree();
                             const partialTree = new MerkleTree();
                             const transactionIds = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
@@ -36,7 +35,7 @@ describe('utils', () => {
                                 await partialTree.init(transactionIds);
                             });
             
-                            it('should return correct merkle root appendPath', async () => {
+                            it('should return correct merkle root, appendPath and size', async () => {
                                 const previousAppendPath = await partialTree.getAppendPathHashes();
                                 const previousSize = partialTree.size;
                                 const { root, appendPath, size } = calculateMerkleRoot({ value: valueToAppend, appendPath: previousAppendPath, size: previousSize }); 
@@ -45,7 +44,6 @@ describe('utils', () => {
                                 expect(root).toEqual(fullTree.root);
                                 expect(appendPath).toEqual(expectedAppendPath);
                                 expect(size).toEqual(fullTree.size);
-                            });
                         });
                     });
                 }
