@@ -39,10 +39,9 @@ describe('utils', () => {
                                 const previousAppendPath = await partialTree.getAppendPathHashes();
                                 const previousSize = partialTree.size;
                                 const { root, appendPath, size } = calculateMerkleRoot({ value: valueToAppend, appendPath: previousAppendPath, size: previousSize }); 
-                                const expectedAppendPath = await fullTree.getAppendPathHashes();
 
                                 expect(root).toEqual(fullTree.root);
-                                expect(appendPath).toEqual(expectedAppendPath);
+                                expect(appendPath).toEqual(await fullTree.getAppendPathHashes());
                                 expect(size).toEqual(fullTree.size);
                         });
                     });
