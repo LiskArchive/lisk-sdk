@@ -14,7 +14,7 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
-import { BRANCH_HASH_PREFIX, EMPTY_HASH, LEAF_HASH_PREFIX } from './constants';
+import { BRANCH_HASH_PREFIX, EMPTY_HASH, LEAF_HASH_PREFIX, NODE_HASH_SIZE } from './constants';
 import { Query } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_HASH_PREFIX[0];
@@ -195,14 +195,11 @@ export const getLeafData = (data: Buffer, keyLength: number): { key: Buffer; val
 		value,
 	};
 };
-export const getBranchData = (
-	data: Buffer,
-	keyLength: number,
-): { leftHash: Buffer; rightHash: Buffer } => {
+export const getBranchData = (data: Buffer): { leftHash: Buffer; rightHash: Buffer } => {
 	// Get left hash
-	const leftHash = data.slice(-2 * keyLength, -1 * keyLength);
+	const leftHash = data.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE);
 	// Get right hash
-	const rightHash = data.slice(-1 * keyLength);
+	const rightHash = data.slice(-1 * NODE_HASH_SIZE);
 
 	return {
 		leftHash,

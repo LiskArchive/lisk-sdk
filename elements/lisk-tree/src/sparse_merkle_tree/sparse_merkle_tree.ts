@@ -56,7 +56,7 @@ export class SparseMerkleTree {
 			return new Leaf(key, value);
 		}
 
-		const { leftHash, rightHash } = getBranchData(data, this.keyLength);
+		const { leftHash, rightHash } = getBranchData(data);
 
 		return new Branch(leftHash, rightHash);
 	}
