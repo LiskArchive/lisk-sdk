@@ -16,7 +16,7 @@ import { EMPTY_HASH, NodeType } from './constants';
 
 export class Empty {
 	private readonly _hash = EMPTY_HASH;
-	private _type = NodeType.EMPTY;
+	private readonly _type = NodeType.EMPTY;
 
 	public get hash() {
 		return this._hash;
