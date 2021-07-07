@@ -144,9 +144,7 @@ export const getPairLocation = (nodeInfo: {
 };
 
 export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo) => {
-	const binaryLength = size.toString(2);
-
-	// Calculate the new root
+	// 1. Calculate the new root
 
 	// Add prefix to value
 	const leafValueWithPrefix = Buffer.concat(
@@ -161,32 +159,37 @@ export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo)
 	// Count the 1's in binaryLength
 	let count = 0;
 
+	const binaryLength = size.toString(2);
+
 	for (let i = 0; i < binaryLength.length; i += 1) {
 		// Loop the binaryLength from the right
 		// The right-most digits correspond to lower layers in the tree
-		if (binaryLength[binaryLength.length - i - 1] === '1') {
+		if ((size >> i ) & 1) {
 			const siblingHash = appendPath[count];
 			currentHash = generateHash(BRANCH_PREFIX, siblingHash, currentHash);
 			count += 1;
 		}
 	}
 
-	// Update the append path
-	let subTreeIndex;
+	const newRoot = currentHash;
 
-	for (subTreeIndex = 0; subTreeIndex < binaryLength.length; subTreeIndex += 1) {
-		if (binaryLength[binaryLength.length - subTreeIndex - 1] === '0') {
+	// 2. Update the append path
+	let subTreeIndex;
+	const treeHeight = Math.ceil(Math.log2(size)) + 1;
+
+	for (subTreeIndex = 0; subTreeIndex < treeHeight; subTreeIndex += 1) {
+		if (!((size >> subTreeIndex ) & 1)) {
 			break;
 		}
 	}
 
-	let currentAppendPath = appendPath.slice(0);
-	let branchHash = newLeafHash;
-	const splicedPath = currentAppendPath.splice(subTreeIndex);
-	for (const sibling of currentAppendPath) {
-		branchHash = generateHash(BRANCH_PREFIX, sibling, branchHash);
+	let newAppendPath = appendPath.slice(0);
+	currentHash = newLeafHash;
+	const splicedPath = newAppendPath.splice(subTreeIndex);
+	for (const sibling of newAppendPath) {
+		currentHash = generateHash(BRANCH_PREFIX, sibling, currentHash);
 	}
-	currentAppendPath = [branchHash].concat(splicedPath);
+	newAppendPath = [currentHash].concat(splicedPath);
 
-	return { root: currentHash, appendPath: currentAppendPath, size: size + 1 };
+	return { root: newRoot, appendPath: newAppendPath, size: size + 1 };
 };
