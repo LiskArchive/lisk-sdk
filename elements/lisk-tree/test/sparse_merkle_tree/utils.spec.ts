@@ -25,6 +25,8 @@ import {
 	leafDataBuffer,
 	isLeaf,
 	branchDataBuffer,
+	getLeafData,
+	getBranchData,
 } from '../../src/sparse_merkle_tree/utils';
 
 const binarySampleData = [
@@ -433,5 +435,39 @@ describe('utils', () => {
 			expect(isLeaf(leafData)).toEqual(true));
 		it('Should return false when a branch node data is passed', () =>
 			expect(isLeaf(branchData)).toEqual(false));
+	});
+
+	describe('getLeafData', () => {
+		const sampleKey = Buffer.from('46', 'hex');
+		const sampleValue = Buffer.from(
+			'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+		const leafData = leafDataBuffer(sampleKey, sampleValue);
+
+		it('Should return key value from leaf data buffer', () =>
+			expect(getLeafData(leafData, 1)).toEqual({
+				key: sampleKey,
+				value: sampleValue,
+			}));
+	});
+
+	describe('getBranchData', () => {
+		const leftHash = Buffer.from(
+			'2031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+		const rightHash = Buffer.from(
+			'1031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+
+		const branchData = branchDataBuffer(leftHash, rightHash);
+
+		it('Should return key value from leaf data buffer', () =>
+			expect(getBranchData(branchData)).toEqual({
+				leftHash,
+				rightHash,
+			}));
 	});
 });
