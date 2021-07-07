@@ -12,35 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Leaf } from './leaf';
-import { branchHash } from './utils';
-import { NodeSide } from './constants';
+import { hash } from '@liskhq/lisk-cryptography';
+import { branchDataBuffer } from './utils';
+import { NodeSide, NodeType } from './constants';
 
 export class Branch {
-	private _left: Leaf;
-	private _right: Leaf;
+	private _leftHash: Buffer;
+	private _rightHash: Buffer;
 	private _hash: Buffer;
-	public constructor(left: Leaf, right: Leaf) {
-		this._left = left;
-		this._right = right;
-		this._hash = branchHash(this._left.hash, this._right.hash);
+	private _data: Buffer;
+	private _type = NodeType.BRANCH;
+
+	public constructor(leftHash: Buffer, rightHash: Buffer) {
+		this._leftHash = leftHash;
+		this._rightHash = rightHash;
+		this._data = branchDataBuffer(this._leftHash, this._rightHash);
+		this._hash = hash(this._data);
 	}
 
 	public get hash() {
 		return this._hash;
 	}
-	public get left() {
-		return this._left;
+	public get type() {
+		return this._type;
 	}
-	public get right() {
-		return this._right;
+	public get data() {
+		return this._data;
 	}
-	public update(newChild: Leaf, nodeSide: NodeSide) {
+	public get leftHash() {
+		return this._leftHash;
+	}
+	public get rightHash() {
+		return this._rightHash;
+	}
+
+	public update(newChild: Buffer, nodeSide: NodeSide) {
 		if (nodeSide === NodeSide.LEFT) {
-			this._left = newChild;
+			this._leftHash = newChild;
 		} else {
-			this._right = newChild;
+			this._rightHash = newChild;
 		}
-		this._hash = branchHash(this.left.hash, this._right.hash);
+		this._data = branchDataBuffer(this.leftHash, this.rightHash);
+		this._hash = hash(this._data);
 	}
 }
