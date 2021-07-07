@@ -118,30 +118,30 @@ export class SparseMerkleTree {
 			}
 		}
 		// Finally update all branch nodes in ancestorNodes
-    	// Starting from the last
-		 while (h > 0) {
-			 const d = +binaryKey[h];
-			 const p = ancestorNodes[h - 1];
-			 if (d === 0 && p instanceof Branch) {
-				 // Let siblingNode be the right child node of p
+		// Starting from the last
+		while (h > 0) {
+			const d = +binaryKey[h];
+			const p = ancestorNodes[h - 1];
+			if (d === 0 && p instanceof Branch) {
+				// Let siblingNode be the right child node of p
 				const siblingNodeHash = p.rightHash;
 				// Update p.data to bottomNode.hash|siblingNode.hash
 				p.update(bottomNode.hash, NodeSide.LEFT);
-            	// Update p.hash to branchHash(p.data)
+				// Update p.hash to branchHash(p.data)
 				p.update(siblingNodeHash, NodeSide.RIGHT);
-			 } else if (d === 1 && p instanceof Branch) {
-				 // Let siblingNode be the left child node of p
+			} else if (d === 1 && p instanceof Branch) {
+				// Let siblingNode be the left child node of p
 				const siblingNodeHash = p.rightHash;
 				// Update p.data to siblingNode.hash|bottomNode.hash
 				p.update(bottomNode.hash, NodeSide.RIGHT);
-            	// Update p.hash to branchHash(p.data)
+				// Update p.hash to branchHash(p.data)
 				p.update(siblingNodeHash, NodeSide.LEFT);
-			 }
-			 bottomNode = p;
-			 h += 1;
-		 }
-		 // The final value of bottomNode is the root node of the tree
-		 return bottomNode
+			}
+			bottomNode = p;
+			h += 1;
+		}
+		// The final value of bottomNode is the root node of the tree
+		return bottomNode;
 	}
 
 	/*

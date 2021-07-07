@@ -241,8 +241,11 @@ export const getLeafData = (data: Buffer, keyLength: number): { key: Buffer; val
 		key,
 		value,
 	};
-}
-export const getBranchData = (data: Buffer, keyLength: number): { leftHash: Buffer; rightHash: Buffer } => {
+};
+export const getBranchData = (
+	data: Buffer,
+	keyLength: number,
+): { leftHash: Buffer; rightHash: Buffer } => {
 	// Get left hash
 	const leftHash = data.slice(-2 * keyLength, -1 * keyLength);
 	// Get right hash
@@ -252,7 +255,7 @@ export const getBranchData = (data: Buffer, keyLength: number): { leftHash: Buff
 		leftHash,
 		rightHash,
 	};
-}
+};
 
 export const leafDataBuffer = (key: Buffer, value: Buffer): Buffer =>
 	Buffer.concat([LEAF_HASH_PREFIX, key, value]);
