@@ -164,7 +164,7 @@ export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo)
 	for (let i = 0; i < binaryLength.length; i += 1) {
 		// Loop the binaryLength from the right
 		// The right-most digits correspond to lower layers in the tree
-		if ((size >> i ) & 1) {
+		if ((size >> i) & 1) {
 			const siblingHash = appendPath[count];
 			currentHash = generateHash(BRANCH_PREFIX, siblingHash, currentHash);
 			count += 1;
@@ -178,7 +178,7 @@ export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo)
 	const treeHeight = Math.ceil(Math.log2(size)) + 1;
 
 	for (subTreeIndex = 0; subTreeIndex < treeHeight; subTreeIndex += 1) {
-		if (!((size >> subTreeIndex ) & 1)) {
+		if (!((size >> subTreeIndex) & 1)) {
 			break;
 		}
 	}
