@@ -14,8 +14,10 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
-import { BRANCH_HASH_PREFIX, EMPTY_HASH, LEAF_HASH_PREFIX } from './constants';
+import { EMPTY_HASH, LEAF_HASH_PREFIX } from './constants';
 import { Query } from './types';
+
+export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_HASH_PREFIX[0];
 
 type CalculateRootQueryObjects = Omit<Query, 'bitmap'> & { hash: Buffer; binaryBitmap: string };
 
@@ -100,7 +102,7 @@ export const calculateRoot = (sibHashes: Buffer[], queries: Query[], keyLength: 
 			key: q.key,
 			value: q.value,
 			binaryBitmap: bufferToBinaryString(q.bitmap),
-			hash: q.value.byteLength === 0 ? EMPTY_HASH : leafHash(q.key, q.value),
+			hash: q.value.byteLength === 0 ? EMPTY_HASH : hash(leafDataBuffer(q.key, q.value)),
 		});
 	}
 
@@ -143,9 +145,9 @@ export const calculateRoot = (sibHashes: Buffer[], queries: Query[], keyLength: 
 
 		const d = binaryKey[h - 1];
 		if (d === '0') {
-			q.hash = branchHash(q.hash, siblingHash);
+			q.hash = hash(branchDataBuffer(q.hash, siblingHash));
 		} else if (d === '1') {
-			q.hash = branchHash(siblingHash, q.hash);
+			q.hash = hash(branchDataBuffer(siblingHash, q.hash));
 		}
 
 		q.binaryBitmap = q.binaryBitmap.substring(1);
@@ -182,8 +184,31 @@ export const binaryStringToBuffer = (str: string) => {
 	return buf;
 };
 
-export const leafHash = (key: Buffer, value: Buffer): Buffer =>
-	hash(Buffer.concat([LEAF_HASH_PREFIX, key, value]));
+export const getLeafData = (data: Buffer, keyLength: number): { key: Buffer; value: Buffer } => {
+	// Get the key of keyLength size
+	const key = data.slice(1, keyLength + 1);
+	// Get data
+	const value = data.slice(keyLength + 1, data.length);
 
-export const branchHash = (leftHash: Buffer, rightHash: Buffer): Buffer =>
-	hash(Buffer.concat([BRANCH_HASH_PREFIX, leftHash, rightHash]));
+	return {
+		key,
+		value,
+	};
+}
+export const getBranchData = (data: Buffer, keyLength: number): { leftHash: Buffer; rightHash: Buffer } => {
+	// Get left hash
+	const leftHash = data.slice(-2 * keyLength, -1 * keyLength);
+	// Get right hash
+	const rightHash = data.slice(-1 * keyLength);
+
+	return {
+		leftHash,
+		rightHash,
+	};
+}
+
+export const leafDataBuffer = (key: Buffer, value: Buffer): Buffer =>
+	Buffer.concat([LEAF_HASH_PREFIX, key, value]);
+
+export const branchDataBuffer = (leftHash: Buffer, rightHash: Buffer): Buffer =>
+	Buffer.concat([LEAF_HASH_PREFIX, leftHash, rightHash]);
