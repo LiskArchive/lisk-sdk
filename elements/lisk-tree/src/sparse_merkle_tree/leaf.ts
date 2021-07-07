@@ -21,7 +21,7 @@ export class Leaf {
 	private _value: Buffer;
 	private _hash: Buffer;
 	private _data: Buffer;
-	private _type = NodeType.LEAF;
+	private readonly _type = NodeType.LEAF;
 
 	public constructor(key: Buffer, value: Buffer) {
 		this._key = key;

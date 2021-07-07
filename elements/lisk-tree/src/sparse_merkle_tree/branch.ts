@@ -21,7 +21,7 @@ export class Branch {
 	private _rightHash: Buffer;
 	private _hash: Buffer;
 	private _data: Buffer;
-	private _type = NodeType.BRANCH;
+	private readonly _type = NodeType.BRANCH;
 
 	public constructor(leftHash: Buffer, rightHash: Buffer) {
 		this._leftHash = leftHash;
