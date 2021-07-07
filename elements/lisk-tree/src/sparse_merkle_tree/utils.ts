@@ -14,7 +14,7 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
-import { EMPTY_HASH, LEAF_HASH_PREFIX } from './constants';
+import { BRANCH_HASH_PREFIX, EMPTY_HASH, LEAF_HASH_PREFIX } from './constants';
 import { Query } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_HASH_PREFIX[0];
@@ -214,4 +214,4 @@ export const leafDataBuffer = (key: Buffer, value: Buffer): Buffer =>
 	Buffer.concat([LEAF_HASH_PREFIX, key, value]);
 
 export const branchDataBuffer = (leftHash: Buffer, rightHash: Buffer): Buffer =>
-	Buffer.concat([LEAF_HASH_PREFIX, leftHash, rightHash]);
+	Buffer.concat([BRANCH_HASH_PREFIX, leftHash, rightHash]);

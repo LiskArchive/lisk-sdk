@@ -20,6 +20,9 @@ import {
 	areSiblingQueries,
 	filterQueries,
 	calculateRoot,
+	leafDataBuffer,
+	isLeaf,
+	branchDataBuffer,
 } from '../../src/sparse_merkle_tree/utils';
 
 const binarySampleData = [
@@ -282,5 +285,20 @@ describe('utils', () => {
 		it.each(binarySampleData)('should convert buffer "%o" to correct binary string', data => {
 			expect(bufferToBinaryString(Buffer.from(data.buf, 'hex'))).toEqual(data.str);
 		});
+	});
+
+	describe('isLeaf', () => {
+		const sampleKey = Buffer.from('46', 'hex');
+		const sampleValue = Buffer.from(
+			'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+		const leafData = leafDataBuffer(sampleKey, sampleValue);
+		const branchData = branchDataBuffer(sampleKey, sampleValue);
+
+		it('Should return true when a leaf node data is passed', () =>
+			expect(isLeaf(leafData)).toEqual(true));
+		it('Should return false when a branch node data is passed', () =>
+			expect(isLeaf(branchData)).toEqual(false));
 	});
 });
