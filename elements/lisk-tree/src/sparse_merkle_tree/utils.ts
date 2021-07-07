@@ -261,4 +261,4 @@ export const leafDataBuffer = (key: Buffer, value: Buffer): Buffer =>
 	Buffer.concat([LEAF_HASH_PREFIX, key, value]);
 
 export const branchDataBuffer = (leftHash: Buffer, rightHash: Buffer): Buffer =>
-	Buffer.concat([LEAF_HASH_PREFIX, leftHash, rightHash]);
+	Buffer.concat([BRANCH_HASH_PREFIX, leftHash, rightHash]);

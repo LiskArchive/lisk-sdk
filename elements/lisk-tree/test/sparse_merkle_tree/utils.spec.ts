@@ -22,6 +22,9 @@ import {
 	calculateRoot,
 	getOverlappingStr,
 	verify,
+	leafDataBuffer,
+	isLeaf,
+	branchDataBuffer,
 } from '../../src/sparse_merkle_tree/utils';
 
 const binarySampleData = [
@@ -415,5 +418,20 @@ describe('utils', () => {
 
 			expect(verify(queryKeys, proof, merkleRoot, 1)).toBeTrue();
 		});
+	});
+
+	describe('isLeaf', () => {
+		const sampleKey = Buffer.from('46', 'hex');
+		const sampleValue = Buffer.from(
+			'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+		const leafData = leafDataBuffer(sampleKey, sampleValue);
+		const branchData = branchDataBuffer(sampleKey, sampleValue);
+
+		it('Should return true when a leaf node data is passed', () =>
+			expect(isLeaf(leafData)).toEqual(true));
+		it('Should return false when a branch node data is passed', () =>
+			expect(isLeaf(branchData)).toEqual(false));
 	});
 });
