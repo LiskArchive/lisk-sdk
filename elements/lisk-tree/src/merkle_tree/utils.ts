@@ -183,13 +183,13 @@ export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo)
 		}
 	}
 
-	let newAppendPath = appendPath.slice(0);
+	const currentAppendPath = appendPath.slice(0);
 	currentHash = newLeafHash;
-	const splicedPath = newAppendPath.splice(subTreeIndex);
-	for (const sibling of newAppendPath) {
+	const splicedPath = currentAppendPath.splice(subTreeIndex);
+	for (const sibling of currentAppendPath) {
 		currentHash = generateHash(BRANCH_PREFIX, sibling, currentHash);
 	}
-	newAppendPath = [currentHash].concat(splicedPath);
+	const newAppendPath = [currentHash].concat(splicedPath);
 
 	return { root: newRoot, appendPath: newAppendPath, size: size + 1 };
 };
