@@ -60,13 +60,13 @@ export class SparseMerkleTree {
 
 		return new Branch(leftHash, rightHash);
 	}
-
+	// As specified in from https://github.com/LiskHQ/lips/blob/master/proposals/lip-0039.md
 	public async update(key: Buffer, value: Buffer) {
 		if (!value) {
 			throw new Error('Value cannot be empty');
 		}
 
-		if (key.length !== this.keyLength) {
+		if (key.byteLength !== this.keyLength) {
 			throw new Error(`Key is not equal to defined key length of ${this.keyLength}`);
 		}
 
@@ -77,14 +77,14 @@ export class SparseMerkleTree {
 		const binaryKey = binaryExpansion(key, this.keyLength);
 		let h = 0;
 
-		while (!isLeaf(currentNode.hash)) {
+		while (!isLeaf((currentNode as Leaf | Branch).data)) {
 			// Append currentNode to ancestorNodes
 			ancestorNodes.push(currentNode);
 			const d = binaryKey[h];
-			if (+d === 0) {
-				currentNode = await this.getNode(currentNode.hash);
-			} else if (+d === 1) {
-				currentNode = await this.getNode(currentNode.hash);
+			if (d === '0') {
+				currentNode = await this.getNode((currentNode as Branch).leftHash);
+			} else if (d === '1') {
+				currentNode = await this.getNode((currentNode as Branch).rightHash);
 			}
 			h += 1;
 			// The currentNode is an empty default node or a leaf node
@@ -111,25 +111,25 @@ export class SparseMerkleTree {
 				t = currentNodeBinaryKey[h];
 			}
 			// Create last branch node, parent of node and newLeaf
-			if (+d === 0) {
+			if (d === '0') {
 				bottomNode = new Branch(newLeaf.hash, currentNode.hash);
-			} else if (+d === 1) {
+			} else if (d === '1') {
 				bottomNode = new Branch(currentNode.hash, newLeaf.hash);
 			}
 		}
 		// Finally update all branch nodes in ancestorNodes
 		// Starting from the last
 		while (h > 0) {
-			const d = +binaryKey[h];
+			const d = binaryKey[h - 1];
 			const p = ancestorNodes[h - 1];
-			if (d === 0 && p instanceof Branch) {
+			if (d === '0' && p instanceof Branch) {
 				// Let siblingNode be the right child node of p
 				const siblingNodeHash = p.rightHash;
 				// Update p.data to bottomNode.hash|siblingNode.hash
 				p.update(bottomNode.hash, NodeSide.LEFT);
 				// Update p.hash to branchHash(p.data)
 				p.update(siblingNodeHash, NodeSide.RIGHT);
-			} else if (d === 1 && p instanceof Branch) {
+			} else if (d === '1' && p instanceof Branch) {
 				// Let siblingNode be the left child node of p
 				const siblingNodeHash = p.rightHash;
 				// Update p.data to siblingNode.hash|bottomNode.hash
@@ -138,7 +138,7 @@ export class SparseMerkleTree {
 				p.update(siblingNodeHash, NodeSide.LEFT);
 			}
 			bottomNode = p;
-			h += 1;
+			h -= 1;
 		}
 		// The final value of bottomNode is the root node of the tree
 		return bottomNode;
