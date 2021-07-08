@@ -13,7 +13,6 @@
  */
 
 import { hash } from '@liskhq/lisk-cryptography';
-import { NodeType } from '../merkle_tree/types';
 import { leafDataBuffer } from './utils';
 
 export class Leaf {
@@ -21,7 +20,6 @@ export class Leaf {
 	private _value: Buffer;
 	private _hash: Buffer;
 	private _data: Buffer;
-	private readonly _type = NodeType.LEAF;
 
 	public constructor(key: Buffer, value: Buffer) {
 		this._key = key;
@@ -32,9 +30,6 @@ export class Leaf {
 
 	public get hash() {
 		return this._hash;
-	}
-	public get type() {
-		return this._type;
 	}
 	public get key() {
 		return this._key;
