@@ -12,16 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EMPTY_HASH, NodeType } from './constants';
+import { EMPTY_HASH } from './constants';
 
 export class Empty {
 	private readonly _hash = EMPTY_HASH;
-	private readonly _type = NodeType.EMPTY;
 
 	public get hash() {
 		return this._hash;
-	}
-	public get type() {
-		return this._type;
 	}
 }
