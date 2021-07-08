@@ -19,7 +19,7 @@ import { MerkleTree } from '../../src/merkle_tree/merkle_tree';
 import { calculateMerkleRoot } from '../../src/merkle_tree/utils';
 
 describe('utils', () => {
-	describe('calculateLightMerkleRoot', () => {
+	describe('calculateMerkleRoot', () => {
 		describe('should generate correct merkle root info', () => {
 			// Skip the case of empty tree since there is no value to pop
 			for (const test of fixture.testCases.slice(1)) {
