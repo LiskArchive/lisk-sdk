@@ -71,6 +71,7 @@ export class SparseMerkleTree {
 		}
 
 		const newLeaf = new Leaf(key, value);
+		await this._hashToValueMap.set(newLeaf.hash, newLeaf.data); // Set leafNode in memory
 		const ancestorNodes: TreeNode[] = [];
 		let bottomNode: TreeNode = new Empty();
 		let currentNode = await this.getNode(this.rootHash);
@@ -89,10 +90,11 @@ export class SparseMerkleTree {
 			h += 1;
 			// The currentNode is an empty default node or a leaf node
 		}
-		// The currentNode is an empty node
-		if (currentNode.hash.equals(EMPTY_HASH)) {
-			bottomNode = newLeaf;
-		} else if (currentNode instanceof Leaf && key.equals(currentNode.key)) {
+		// The currentNode is an empty node, newLeaf will replace the default empty node or currentNode will be updated to newLeaf
+		if (
+			currentNode.hash.equals(EMPTY_HASH) ||
+			(currentNode instanceof Leaf && key.equals(currentNode.key))
+		) {
 			bottomNode = newLeaf;
 		} else {
 			// We need to create new branches in the tree to fulfill the
@@ -129,6 +131,8 @@ export class SparseMerkleTree {
 				p.update(bottomNode.hash, NodeSide.LEFT);
 				// Update p.hash to branchHash(p.data)
 				p.update(siblingNodeHash, NodeSide.RIGHT);
+				// set ancestor node in memory
+				await this._hashToValueMap.set(p.hash, p.data);
 			} else if (d === '1' && p instanceof Branch) {
 				// Let siblingNode be the left child node of p
 				const siblingNodeHash = p.rightHash;
@@ -136,6 +140,8 @@ export class SparseMerkleTree {
 				p.update(bottomNode.hash, NodeSide.RIGHT);
 				// Update p.hash to branchHash(p.data)
 				p.update(siblingNodeHash, NodeSide.LEFT);
+				// set ancestor node in memory
+				await this._hashToValueMap.set(p.hash, p.data);
 			}
 			bottomNode = p;
 			h -= 1;
