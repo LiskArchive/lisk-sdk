@@ -14,14 +14,13 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { branchDataBuffer } from './utils';
-import { NodeSide, NodeType } from './constants';
+import { NodeSide } from './constants';
 
 export class Branch {
 	private _leftHash: Buffer;
 	private _rightHash: Buffer;
 	private _hash: Buffer;
 	private _data: Buffer;
-	private readonly _type = NodeType.BRANCH;
 
 	public constructor(leftHash: Buffer, rightHash: Buffer) {
 		this._leftHash = leftHash;
@@ -32,9 +31,6 @@ export class Branch {
 
 	public get hash() {
 		return this._hash;
-	}
-	public get type() {
-		return this._type;
 	}
 	public get data() {
 		return this._data;
