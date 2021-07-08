@@ -188,13 +188,11 @@ export class SparseMerkleTree {
 		}
 		// currentNode has a branch sibling, delete currentNode
 		if (currentNodeSibling instanceof Branch) {
-			// TODO: this should be del?
-			await this._hashToValueMap.set(currentNode.hash, EMPTY_HASH);
+			await this._db.del(currentNode.hash);
 			bottomNode = new Empty();
 		} else if (currentNodeSibling instanceof Leaf) {
 			// currentNode has a leaf sibling, move sibling up the tree
-			// TODO: this should be del?
-			await this._hashToValueMap.set(currentNode.hash, EMPTY_HASH);
+			await this._db.del(currentNode.hash);
 			bottomNode = currentNodeSibling;
 			h -= 1;
 			while (h > 0) {
