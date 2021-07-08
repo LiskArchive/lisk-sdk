@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EMPTY_HASH, NodeSide, PREFIX_HASH_TO_VALUE } from './constants';
+import { EMPTY_HASH, NodeSide } from './constants';
 import { Leaf } from './leaf';
 import { Database } from './types';
 import { binaryExpansion, getBranchData, getLeafData, isLeaf } from './utils';
-import { PrefixStore } from './prefix_store';
 import { Branch } from './branch';
 import { Empty } from './empty';
 
@@ -25,12 +24,10 @@ export class SparseMerkleTree {
 	private readonly _db: Database;
 	private readonly _rootHash: Buffer;
 	private readonly _keyLength: number;
-	private readonly _hashToValueMap: PrefixStore;
 	public constructor(db: Database, rootHash?: Buffer, keyLength = 36) {
 		this._db = db;
 		this._keyLength = keyLength;
 		this._rootHash = rootHash ?? EMPTY_HASH;
-		this._hashToValueMap = new PrefixStore(this._db, PREFIX_HASH_TO_VALUE);
 	}
 	public get rootHash(): Buffer {
 		return this._rootHash;
@@ -45,7 +42,7 @@ export class SparseMerkleTree {
 	}
 
 	public async getNode(nodeHash: Buffer): Promise<TreeNode> {
-		const data = await this._hashToValueMap.get(nodeHash);
+		const data = await this._db.get(nodeHash);
 
 		if (!data) {
 			throw new Error(`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`);
@@ -71,7 +68,7 @@ export class SparseMerkleTree {
 		}
 
 		const newLeaf = new Leaf(key, value);
-		await this._hashToValueMap.set(newLeaf.hash, newLeaf.data); // Set leafNode in memory
+		await this._db.set(newLeaf.hash, newLeaf.data); // Set leafNode in memory
 		const ancestorNodes: TreeNode[] = [];
 		let bottomNode: TreeNode = new Empty();
 		let currentNode = await this.getNode(this.rootHash);
@@ -132,7 +129,7 @@ export class SparseMerkleTree {
 				// Update p.hash to branchHash(p.data)
 				p.update(siblingNodeHash, NodeSide.RIGHT);
 				// set ancestor node in memory
-				await this._hashToValueMap.set(p.hash, p.data);
+				await this._db.set(p.hash, p.data);
 			} else if (d === '1' && p instanceof Branch) {
 				// Let siblingNode be the left child node of p
 				const siblingNodeHash = p.rightHash;
@@ -141,7 +138,7 @@ export class SparseMerkleTree {
 				// Update p.hash to branchHash(p.data)
 				p.update(siblingNodeHash, NodeSide.LEFT);
 				// set ancestor node in memory
-				await this._hashToValueMap.set(p.hash, p.data);
+				await this._db.set(p.hash, p.data);
 			}
 			bottomNode = p;
 			h -= 1;
