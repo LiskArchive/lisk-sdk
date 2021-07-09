@@ -203,6 +203,22 @@ export const validatorsSchema = {
 	},
 };
 
+export const genesisInfoSchema = {
+	$id: '/state/genesisInfo',
+	type: 'object',
+	properties: {
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		initRounds: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+	required: ['height', 'initRounds'],
+};
+
 export const getGenesisBlockHeaderAssetSchema = (accountSchema: Schema): Schema =>
 	objects.mergeDeep({}, baseGenesisBlockHeaderAssetSchema, {
 		properties: {

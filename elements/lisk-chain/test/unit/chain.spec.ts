@@ -30,9 +30,9 @@ import {
 import { Block, Validator } from '../../src/types';
 import { createFakeDefaultAccount, defaultAccountModules } from '../utils/account';
 import { getTransaction } from '../utils/transaction';
-import { stateDiffSchema, validatorsSchema } from '../../src/schema';
+import { genesisInfoSchema, stateDiffSchema, validatorsSchema } from '../../src/schema';
 import { createStateStore } from '../utils/state_store';
-import { CONSENSUS_STATE_VALIDATORS_KEY } from '../../src/constants';
+import { CONSENSUS_STATE_GENESIS_INFO, CONSENSUS_STATE_VALIDATORS_KEY } from '../../src/constants';
 
 jest.mock('events');
 jest.mock('@liskhq/lisk-db');
@@ -119,12 +119,12 @@ describe('chain', () => {
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([{ value: Buffer.from('randomID') }]),
 			);
-			await expect(chainInstance.init()).rejects.toThrow('Failed to load last block');
+			await expect(chainInstance.init(genesisBlock)).rejects.toThrow('Failed to load last block');
 		});
 
 		it('should return the the stored last block', async () => {
 			// Act
-			await chainInstance.init();
+			await chainInstance.init(genesisBlock);
 
 			// Assert
 			expect(chainInstance.lastBlock.header.id).toEqual(lastBlock.header.id);
@@ -437,10 +437,16 @@ describe('chain', () => {
 					isConsensusParticipant: true,
 				})),
 			});
+			const genesisInfoBufer = codec.encode(genesisInfoSchema, {
+				height: 0,
+				initRounds: 3,
+			});
 			chainInstance['_numberOfValidators'] = 103;
 			when(db.get)
 				.calledWith(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`)
-				.mockResolvedValue(validatorBuffer as never);
+				.mockResolvedValue(validatorBuffer as never)
+				.calledWith(`consensus:${CONSENSUS_STATE_GENESIS_INFO}`)
+				.mockResolvedValue(genesisInfoBufer as never);
 		});
 
 		it('should not affect validator if block is within bootstrap period', async () => {

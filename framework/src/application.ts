@@ -124,7 +124,7 @@ export class Application {
 	private _plugins: { [key: string]: InstantiablePlugin };
 	private _channel!: InMemoryChannel;
 
-	private readonly _genesisBlock: Record<string, unknown>;
+	private _genesisBlock!: Record<string, unknown> | undefined;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
@@ -152,7 +152,6 @@ export class Application {
 		// Initialize node
 		const { plugins, ...rootConfigs } = this.config;
 		this._node = new Node({
-			genesisBlockJSON: this._genesisBlock,
 			options: rootConfigs,
 		});
 	}
@@ -234,7 +233,6 @@ export class Application {
 	}
 
 	public async run(): Promise<void> {
-		Object.freeze(this._genesisBlock);
 		Object.freeze(this.config);
 
 		registerProcessHooks(this);
@@ -261,6 +259,8 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects
 			this._channel = this._initChannel();
@@ -269,7 +269,13 @@ export class Application {
 
 			await this._controller.load();
 
+			if (!this._genesisBlock) {
+				throw new Error('Genesis block must be provided to start a node');
+			}
+
 			await this._node.init({
+				dataPath: dirs.data,
+				genesisBlockJSON: this._genesisBlock,
 				bus: this._controller.bus,
 				channel: this._channel,
 				forgerDB: this._forgerDB,
@@ -283,6 +289,9 @@ export class Application {
 			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
 			this._channel.publish(APP_EVENT_READY);
+			// TODO: Update genesis block to be provided in this function
+			// For now, the memory should be free up
+			delete this._genesisBlock;
 		});
 	}
 

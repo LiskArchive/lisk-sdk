@@ -58,6 +58,21 @@ export const getHighestCommonBlockRequestSchema = {
 	},
 };
 
+export const getHighestCommonBlockResponseSchema = {
+	$id: 'lisk/getHighestCommonBlockResponse',
+	title: 'Get Highest Common Block Response',
+	type: 'object',
+	required: ['id'],
+	properties: {
+		id: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: 32,
+			maxLength: 32,
+		},
+	},
+};
+
 export const transactionIdsSchema = {
 	$id: 'lisk/transactionIds',
 	title: 'Broadcast Transactions',

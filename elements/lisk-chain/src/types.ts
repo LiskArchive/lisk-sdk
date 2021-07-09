@@ -107,3 +107,9 @@ export interface Validator {
 	minActiveHeight: number;
 	isConsensusParticipant: boolean;
 }
+
+export interface GenesisInfo {
+	height: number;
+	timestamp: number;
+	initRounds: number;
+}

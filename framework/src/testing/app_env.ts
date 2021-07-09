@@ -45,8 +45,10 @@ export class ApplicationEnv {
 	private _application!: Application;
 	private _dataPath!: string;
 	private _ipcClient!: APIClient;
+	private _genesisBlock: Record<string, unknown>;
 
 	public constructor(appConfig: ApplicationEnvConfig) {
+		this._genesisBlock = appConfig.genesisBlockJSON as Record<string, unknown>;
 		this._initApplication(appConfig);
 	}
 
@@ -72,6 +74,8 @@ export class ApplicationEnv {
 	}
 
 	public async startApplication(): Promise<void> {
+		// eslint-disable-next-line dot-notation
+		this._application['_genesisBlock'] = this._genesisBlock;
 		await Promise.race([
 			this._application.run(),
 			new Promise(resolve => setTimeout(resolve, 3000)),

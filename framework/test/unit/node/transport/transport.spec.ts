@@ -25,6 +25,7 @@ import {
 	getHighestCommonBlockRequestSchema,
 	transactionsSchema,
 	getBlocksFromIdRequestSchema,
+	getHighestCommonBlockResponseSchema,
 } from '../../../../src/node/transport/schemas';
 
 describe('Transport', () => {
@@ -72,7 +73,7 @@ describe('Transport', () => {
 			dataAccess: {
 				getTransactionByID: jest.fn(),
 				getTransactionsByIDs: jest.fn(),
-				getHighestCommonBlockHeader: jest.fn(),
+				getHighestCommonBlockID: jest.fn(),
 				getBlockHeaderByID: jest.fn().mockReturnValue({ height: 123 }),
 				getBlocksByHeightBetween: jest.fn().mockReturnValue([{ height: 123 }]),
 				decodeTransaction: jest.fn(),
@@ -316,7 +317,7 @@ describe('Transport', () => {
 
 		describe('when commonBlock has not been found', () => {
 			beforeEach(() => {
-				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(undefined);
+				chainStub.dataAccess.getHighestCommonBlockID.mockResolvedValue(undefined);
 			});
 
 			it('should return null', async () => {
@@ -328,31 +329,30 @@ describe('Transport', () => {
 				const result = await transport.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId);
 
 				// Assert
-				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(ids);
-				expect(result).toBeUndefined();
+				expect(chainStub.dataAccess.getHighestCommonBlockID).toHaveBeenCalledWith(ids);
+				expect(result).toEqual(
+					codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+				);
 			});
 		});
 
 		describe('when commonBlock has been found', () => {
-			const validBlock = {
-				ids: [Buffer.from('15196562876801949910').toString('hex')],
-			};
+			const ids = [Buffer.from('15196562876801949910')];
 
 			beforeEach(() => {
-				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(validBlock);
+				chainStub.dataAccess.getHighestCommonBlockID.mockResolvedValue(ids[0]);
 			});
 
 			it('should return the result', async () => {
 				// Arrange
-				const ids = [Buffer.from('15196562876801949910')];
 				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 
 				// Act
 				const result = await transport.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId);
 
 				// Assert
-				expect(chainStub.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(ids);
-				expect(result).toBe(encodedBlock);
+				expect(chainStub.dataAccess.getHighestCommonBlockID).toHaveBeenCalledWith(ids);
+				expect(result).toEqual(codec.encode(getHighestCommonBlockResponseSchema, { id: ids[0] }));
 			});
 		});
 	});

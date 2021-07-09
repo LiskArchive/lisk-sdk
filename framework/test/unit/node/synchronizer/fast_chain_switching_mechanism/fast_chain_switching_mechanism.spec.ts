@@ -27,11 +27,13 @@ import {
 	genesisBlock as getGenesisBlock,
 	createValidDefaultBlock,
 	createFakeBlockHeader,
-	encodeValidBlockHeader,
 	defaultAccountSchema,
 } from '../../../../fixtures';
 import { TokenModule } from '../../../../../src/modules';
-import { getHighestCommonBlockRequestSchema } from '../../../../../src/node/transport/schemas';
+import {
+	getHighestCommonBlockRequestSchema,
+	getHighestCommonBlockResponseSchema,
+} from '../../../../../src/node/transport/schemas';
 
 const { InMemoryChannel: ChannelMock } = jest.createMockFromModule(
 	'../../../../../src/controller/channels/in_memory_channel',
@@ -89,6 +91,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
+			setConsensusState: jest.fn(),
 			getTempBlocks: jest.fn(),
 			clearTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
@@ -314,7 +317,7 @@ describe('fast_chain_switching_mechanism', () => {
 			jest.spyOn(fastChainSwitchingMechanism, '_switchChain' as never);
 			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks' as never);
 
-			await chainModule.init();
+			await chainModule.init(genesisBlock);
 		});
 
 		describe('when fail to request the common block', () => {
@@ -338,7 +341,9 @@ describe('fast_chain_switching_mechanism', () => {
 						peerId: aPeerId,
 						data: blockIds,
 					})
-					.mockResolvedValue({ data: undefined } as never);
+					.mockResolvedValue({
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+					} as never);
 
 				// Act
 				try {
@@ -383,8 +388,11 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 					} as never);
+				when(chainModule.dataAccess.getBlockHeaderByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock as never);
 
 				// Act
 				try {
@@ -432,8 +440,11 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: chainModule.dataAccess.encodeBlockHeader(highestCommonBlock),
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 					} as never);
+				when(chainModule.dataAccess.getBlockHeaderByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock as never);
 
 				// Act
 				// the difference in height between the common block and the received block is > delegatesPerRound*2
@@ -520,8 +531,12 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 					} as never);
+
+				when(chainModule.dataAccess.getBlockHeaderByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock as never);
 
 				// Act
 				const receivedBlock = createValidDefaultBlock({
@@ -579,7 +594,7 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 					} as never)
 					.calledWith({
 						procedure: 'getBlocksFromId',
@@ -587,6 +602,9 @@ describe('fast_chain_switching_mechanism', () => {
 						data: expect.anything(),
 					})
 					.mockRejectedValue(new Error('Invalid connection') as never);
+				when(chainModule.dataAccess.getBlockHeaderByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock as never);
 
 				// Act
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
@@ -650,8 +668,11 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 					} as never);
+				when(chainModule.dataAccess.getBlockHeaderByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock as never);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
@@ -726,8 +747,11 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 					} as never);
+				when(chainModule.dataAccess.getBlockHeaderByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock as never);
 				processorModule.validate.mockImplementation(() => {
 					throw new Error('validation error');
 				});
@@ -791,8 +815,11 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 					} as never);
+				when(chainModule.dataAccess.getBlockHeaderByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock as never);
 
 				when(processorModule.deleteLastBlock)
 					.calledWith({
@@ -902,8 +929,11 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 					} as never);
+				when(chainModule.dataAccess.getBlockHeaderByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock as never);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])

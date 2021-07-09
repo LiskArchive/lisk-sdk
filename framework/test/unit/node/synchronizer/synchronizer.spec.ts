@@ -90,6 +90,7 @@ describe('Synchronizer', () => {
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
+			setConsensusState: jest.fn(),
 			getTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
 			getBlockByID: jest.fn(),
@@ -230,7 +231,7 @@ describe('Synchronizer', () => {
 						};
 					});
 
-				await chainModule.init();
+				await chainModule.init(genesisBlock);
 
 				// Act
 				await synchronizer.init();
@@ -277,7 +278,7 @@ describe('Synchronizer', () => {
 					.calledWith()
 					.mockResolvedValue(initialLastBlock as never);
 
-				await chainModule.init();
+				await chainModule.init(genesisBlock);
 
 				// Act
 				await synchronizer.init();
@@ -316,7 +317,7 @@ describe('Synchronizer', () => {
 					.calledWith()
 					.mockResolvedValue(initialLastBlock as never);
 
-				await chainModule.init();
+				await chainModule.init(genesisBlock);
 
 				// Act
 				await synchronizer.init();
@@ -367,7 +368,7 @@ describe('Synchronizer', () => {
 			const error = new Error('error while deleting last block');
 			(processorModule.processValidated as jest.Mock).mockRejectedValue(error);
 
-			await chainModule.init();
+			await chainModule.init(genesisBlock);
 
 			// Act
 			await synchronizer.init();

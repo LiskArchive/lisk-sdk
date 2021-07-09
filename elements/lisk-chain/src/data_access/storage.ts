@@ -292,6 +292,12 @@ export class Storage {
 		}
 	}
 
+	// Warning: This function should never be used. This exist only for migration purpose.
+	// Specifically, only to set genesis state between 5.1.2 => 5.1.3
+	public async setConsensusState(key: string, val: Buffer): Promise<void> {
+		await this._db.put(`${DB_KEY_CONSENSUS_STATE}:${key}`, val);
+	}
+
 	/*
 		Accounts
 	*/

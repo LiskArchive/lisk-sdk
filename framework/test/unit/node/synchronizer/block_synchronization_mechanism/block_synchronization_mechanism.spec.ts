@@ -30,7 +30,6 @@ import {
 	genesisBlock as getGenesisBlock,
 	createValidDefaultBlock,
 	encodeValidBlock,
-	encodeValidBlockHeader,
 	createFakeBlockHeader,
 	defaultAccountSchema,
 } from '../../../../fixtures';
@@ -42,6 +41,7 @@ import {
 	getHighestCommonBlockRequestSchema,
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
+	getHighestCommonBlockResponseSchema,
 } from '../../../../../src/node/transport/schemas';
 
 const { InMemoryChannel: ChannelMock } = jest.createMockFromModule(
@@ -106,6 +106,7 @@ describe('block_synchronization_mechanism', () => {
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
+			setConsensusState: jest.fn(),
 			getTempBlocks: jest.fn(),
 			clearTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
@@ -216,7 +217,7 @@ describe('block_synchronization_mechanism', () => {
 			.calledWith()
 			.mockReturnValue(peersList.connectedPeers as never);
 
-		await chainModule.init();
+		await chainModule.init(genesisBlock);
 		chainModule['_numberOfValidators'] = 103;
 
 		// Used in getHighestCommonBlock network action payload
@@ -240,6 +241,7 @@ describe('block_synchronization_mechanism', () => {
 			aBlock,
 		];
 
+		const encodedBlocks = requestedBlocks.map(block => encodeValidBlock(block));
 		for (const expectedPeer of peersList.expectedSelection) {
 			const { peerId } = expectedPeer;
 			const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
@@ -252,8 +254,12 @@ describe('block_synchronization_mechanism', () => {
 					data: blockIds,
 				})
 				.mockResolvedValue({
-					data: encodeValidBlockHeader(highestCommonBlock),
+					data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 				} as never);
+
+			when(chainModule.dataAccess.getBlockHeaderByID)
+				.calledWith(highestCommonBlock.id)
+				.mockResolvedValue(highestCommonBlock as never);
 
 			when(networkMock.requestFromPeer)
 				.calledWith({
@@ -263,7 +269,6 @@ describe('block_synchronization_mechanism', () => {
 				.mockResolvedValue({
 					data: encodeValidBlock(aBlock),
 				} as never);
-			const encodedBlocks = requestedBlocks.map(block => encodeValidBlock(block));
 			when(networkMock.requestFromPeer)
 				.calledWith({
 					procedure: 'getBlocksFromId',
@@ -633,7 +638,9 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 								data: blockIds,
 							})
-							.mockResolvedValue({ data: undefined } as never);
+							.mockResolvedValue({
+								data: codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+							} as never);
 
 						when(networkMock.requestFromPeer)
 							.calledWith({
@@ -676,7 +683,7 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith(expect.any(Number), expect.any(Number))
 						.mockResolvedValue([lastBlock] as never);
 
-					await chainModule.init();
+					await chainModule.init(genesisBlock);
 					chainModule['_numberOfValidators'] = 103;
 
 					try {
@@ -735,8 +742,13 @@ describe('block_synchronization_mechanism', () => {
 								data: blockIds,
 							})
 							.mockResolvedValue({
-								data: encodeValidBlockHeader(highestCommonBlock),
+								data: codec.encode(getHighestCommonBlockResponseSchema, {
+									id: highestCommonBlock.id,
+								}),
 							} as never);
+						when(chainModule.dataAccess.getBlockHeaderByID)
+							.calledWith(highestCommonBlock.id)
+							.mockResolvedValue(highestCommonBlock as never);
 
 						when(networkMock.requestFromPeer)
 							.calledWith({
