@@ -14,8 +14,8 @@
 /* eslint-disable no-bitwise */
 
 import { hash } from '@liskhq/lisk-cryptography';
-import { LEAF_PREFIX } from './constants';
-import { NodeLocation, NodeSide } from './types';
+import { BRANCH_PREFIX, LEAF_PREFIX } from './constants';
+import { NodeLocation, NodeSide, MerkleRootInfo } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
 
@@ -141,4 +141,55 @@ export const getPairLocation = (nodeInfo: {
 	}
 
 	return pairLocation as NodeLocation;
+};
+
+export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo) => {
+	// 1. Calculate the new root
+
+	// Add prefix to value
+	const leafValueWithPrefix = Buffer.concat(
+		[LEAF_PREFIX, value],
+		LEAF_PREFIX.length + value.length,
+	);
+
+	// Set current hash to hash of value
+	const newLeafHash = hash(leafValueWithPrefix);
+	let currentHash = newLeafHash;
+
+	// Count the 1's in binaryLength
+	let count = 0;
+
+	const binaryLength = size.toString(2);
+
+	for (let i = 0; i < binaryLength.length; i += 1) {
+		// Loop the binaryLength from the right
+		// The right-most digits correspond to lower layers in the tree
+		if ((size >> i) & 1) {
+			const siblingHash = appendPath[count];
+			currentHash = generateHash(BRANCH_PREFIX, siblingHash, currentHash);
+			count += 1;
+		}
+	}
+
+	const newRoot = currentHash;
+
+	// 2. Update the append path
+	let subTreeIndex;
+	const treeHeight = Math.ceil(Math.log2(size)) + 1;
+
+	for (subTreeIndex = 0; subTreeIndex < treeHeight; subTreeIndex += 1) {
+		if (!((size >> subTreeIndex) & 1)) {
+			break;
+		}
+	}
+
+	const currentAppendPath = appendPath.slice(0);
+	currentHash = newLeafHash;
+	const splicedPath = currentAppendPath.splice(subTreeIndex);
+	for (const sibling of currentAppendPath) {
+		currentHash = generateHash(BRANCH_PREFIX, sibling, currentHash);
+	}
+	const newAppendPath = [currentHash].concat(splicedPath);
+
+	return { root: newRoot, appendPath: newAppendPath, size: size + 1 };
 };
