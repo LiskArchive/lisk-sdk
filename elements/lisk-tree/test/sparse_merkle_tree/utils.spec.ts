@@ -356,7 +356,7 @@ describe('utils', () => {
 			expect(verify(queryKeys, proof, merkleRoot, 1)).toBeFalse();
 		});
 
-		it('should return true if queries does not match but proof does provide inclusion proof of that query key', () => {
+		it('should return true if queries do not match but response query object provides a matching/valid merkle root', () => {
 			const queryKeys = ['01011010', '10101000'].map(binaryStringToBuffer);
 			const proof = {
 				siblingHashes: [
