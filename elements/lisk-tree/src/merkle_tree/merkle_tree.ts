@@ -26,7 +26,7 @@ import {
 	PREFIX_HASH_TO_VALUE,
 	PREFIX_LOC_TO_HASH,
 } from './constants';
-import { InMemoryDB } from './inmemory_db';
+import { InMemoryDB } from '../inmemory_db';
 import { PrefixStore } from './prefix_store';
 import { NodeData, NodeInfo, NodeType, NodeSide, Proof, Database } from './types';
 import {

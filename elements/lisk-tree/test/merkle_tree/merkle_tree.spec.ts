@@ -15,7 +15,7 @@ import * as fixture from '../fixtures/transaction_merkle_root/transaction_merkle
 import { MerkleTree } from '../../src/merkle_tree/merkle_tree';
 import { EMPTY_HASH } from '../../src/merkle_tree/constants';
 import { verifyProof } from '../../src/merkle_tree/verify_proof';
-import { InMemoryDB } from '../../src/merkle_tree/inmemory_db';
+import { InMemoryDB } from '../../src/inmemory_db';
 
 describe('MerkleTree', () => {
 	describe('constructor', () => {
