@@ -20,6 +20,8 @@ import {
 	areSiblingQueries,
 	filterQueries,
 	calculateRoot,
+	getOverlappingStr,
+	verify,
 } from '../../src/sparse_merkle_tree/utils';
 
 const binarySampleData = [
@@ -281,6 +283,137 @@ describe('utils', () => {
 	describe('bufferToBinaryString', () => {
 		it.each(binarySampleData)('should convert buffer "%o" to correct binary string', data => {
 			expect(bufferToBinaryString(Buffer.from(data.buf, 'hex'))).toEqual(data.str);
+		});
+	});
+
+	describe('getOverlappingStr', () => {
+		it('returns valid overlapping strings', () => {
+			expect(getOverlappingStr('12356', '123456')).toEqual('123');
+			expect(getOverlappingStr('1010110', '1010010')).toEqual('1010');
+		});
+
+		it('returns empty string if no overlapping strings found', () => {
+			expect(getOverlappingStr('12356', '2356')).toEqual('');
+			expect(getOverlappingStr('0110011', '110011')).toEqual('');
+		});
+	});
+
+	describe('verify', () => {
+		it('should return false if number of query keys are not same as proof', () => {
+			const queryKeys = ['01111110', '01101101', '00011011'].map(binaryStringToBuffer);
+			const proof = {
+				siblingHashes: [
+					'e6fa536eaac055d524e29fb4682893e3111bf3a027f7cd5ba312aec56460eb1b',
+					'63a154f88e6f5898bada58cbcb0dfcfa84e18cd5d50783e6703d904bef8be36b',
+					'da7f3bd33f419f025fc34ada50e26bc0094a7f0018f91fa7e51b66c88c6a7e78',
+					'ed9b2d408363d6edec46b055de68e67b37091f5b7dece4415200082ba01bc73e',
+				].map(h => Buffer.from(h, 'hex')),
+				queries: [
+					createQueryObject({
+						key: 'e1',
+						value: 'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+						bitmap: '17',
+					}),
+				],
+			};
+			const merkleRoot = Buffer.from(
+				'21ecda9db382eff32c9ec899fc7090cf58858e8c22a2af82510cd4d9c9a42c2f',
+				'hex',
+			);
+
+			expect(verify(queryKeys, proof, merkleRoot, 1)).toBeFalse();
+		});
+
+		it('should return false if queries does not match and proof does not provide inclusion proof of one of query key', () => {
+			const queryKeys = ['00110011', '01100000'].map(binaryStringToBuffer);
+			const proof = {
+				siblingHashes: [
+					'8c221b658e18c43d92b10f8080163db3126af55c093f0cd0d982343388fb7d94',
+					'e6fa536eaac055d524e29fb4682893e3111bf3a027f7cd5ba312aec56460eb1b',
+					'3c51615213470ea985d3d8622117b3495bd0642d89e0f5816516958229169279',
+					'63a154f88e6f5898bada58cbcb0dfcfa84e18cd5d50783e6703d904bef8be36b',
+					'5577aaf6e0896ee04e13a5f06004ba763d20a668a815b7b39f8cfd6748373406',
+					'da7f3bd33f419f025fc34ada50e26bc0094a7f0018f91fa7e51b66c88c6a7e78',
+				].map(h => Buffer.from(h, 'hex')),
+				queries: [
+					createQueryObject({
+						key: '33', // 00110011
+						value: '4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce',
+						bitmap: '17',
+					}),
+					createQueryObject({
+						key: 'e1', // 11100001
+						value: 'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+						bitmap: '17',
+					}),
+				],
+			};
+			const merkleRoot = Buffer.from(
+				'21ecda9db382eff32c9ec899fc7090cf58858e8c22a2af82510cd4d9c9a42c2f',
+				'hex',
+			);
+
+			expect(verify(queryKeys, proof, merkleRoot, 1)).toBeFalse();
+		});
+
+		it('should return true if queries do not match but response query object provides a matching/valid merkle root', () => {
+			const queryKeys = ['01011010', '10101000'].map(binaryStringToBuffer);
+			const proof = {
+				siblingHashes: [
+					'e041e1c0e364cc015af04118c1cd5a6554a7b357727ed937aac49436f0fbbf9c',
+					'6400721efe3b54db24f248b0d8c93c0aa21eee1eebca058a143da44abeeea0e3',
+					'99b0161609748a131c16d46c72ff79ffbfa85e9e2694c52ee665635c4d48ecae',
+					'3c32b1317e5021885cda1625d28d8f90c44a1338f60ef476f5a7992d35c765e2',
+				].map(h => Buffer.from(h, 'hex')),
+				queries: [
+					createQueryObject({
+						key: '5a', // 01011010
+						value: 'bbeebd879e1dff6918546dc0c179fdde505f2a21591c9a9c96e36b054ec5af83',
+						bitmap: '07',
+					}),
+					createQueryObject({
+						key: 'a9', // 10101001
+						value: '9e8e8c37a53bac77a653d590b783b2508e8ed2fed040a278bf4f4703bbd5d82d',
+						bitmap: '07',
+					}),
+				],
+			};
+			const merkleRoot = Buffer.from(
+				'21ecda9db382eff32c9ec899fc7090cf58858e8c22a2af82510cd4d9c9a42c2f',
+				'hex',
+			);
+
+			expect(verify(queryKeys, proof, merkleRoot, 1)).toBeTrue();
+		});
+
+		it('should return true for matching queries and root', () => {
+			const queryKeys = ['01011010', '10101001'].map(binaryStringToBuffer);
+			const proof = {
+				siblingHashes: [
+					'e041e1c0e364cc015af04118c1cd5a6554a7b357727ed937aac49436f0fbbf9c',
+					'6400721efe3b54db24f248b0d8c93c0aa21eee1eebca058a143da44abeeea0e3',
+					'99b0161609748a131c16d46c72ff79ffbfa85e9e2694c52ee665635c4d48ecae',
+					'3c32b1317e5021885cda1625d28d8f90c44a1338f60ef476f5a7992d35c765e2',
+				].map(h => Buffer.from(h, 'hex')),
+				queries: [
+					createQueryObject({
+						key: '5a', // 01011010
+						value: 'bbeebd879e1dff6918546dc0c179fdde505f2a21591c9a9c96e36b054ec5af83',
+						bitmap: '07',
+					}),
+					createQueryObject({
+						key: 'a9', // 10101001
+						value: '9e8e8c37a53bac77a653d590b783b2508e8ed2fed040a278bf4f4703bbd5d82d',
+						bitmap: '07',
+					}),
+				],
+			};
+			const merkleRoot = Buffer.from(
+				'21ecda9db382eff32c9ec899fc7090cf58858e8c22a2af82510cd4d9c9a42c2f',
+				'hex',
+			);
+
+			expect(verify(queryKeys, proof, merkleRoot, 1)).toBeTrue();
 		});
 	});
 });
