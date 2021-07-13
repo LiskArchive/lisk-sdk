@@ -24,6 +24,7 @@ import {
 	transactionIdsSchema,
 	postBlockEventSchema,
 	getHighestCommonBlockRequestSchema,
+	getHighestCommonBlockResponseSchema,
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
 	transactionsSchema,
@@ -196,10 +197,7 @@ export class Transport {
 		return codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks });
 	}
 
-	public async handleRPCGetHighestCommonBlock(
-		data: unknown,
-		peerId: string,
-	): Promise<Buffer | undefined> {
+	public async handleRPCGetHighestCommonBlockID(data: unknown, peerId: string): Promise<Buffer> {
 		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY);
 		const blockIds = codec.decode<RPCHighestCommonBlockData>(
 			getHighestCommonBlockRequestSchema,
@@ -224,13 +222,11 @@ export class Transport {
 			throw error;
 		}
 
-		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(
-			blockIds.ids,
-		);
+		const commonBlockID = await this._chainModule.dataAccess.getHighestCommonBlockID(blockIds.ids);
 
-		return commonBlockHeader
-			? this._chainModule.dataAccess.encodeBlockHeader(commonBlockHeader)
-			: undefined;
+		return codec.encode(getHighestCommonBlockResponseSchema, {
+			id: commonBlockID ?? Buffer.alloc(0),
+		});
 	}
 
 	public async handleEventPostBlock(data: Buffer | undefined, peerId: string): Promise<void> {

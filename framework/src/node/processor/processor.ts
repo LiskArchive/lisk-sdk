@@ -108,7 +108,7 @@ export class Processor {
 			// TODO: saveBlock should accept both genesis and normal block
 			await this._chain.saveBlock((genesisBlock as unknown) as Block, stateStore, 0);
 		}
-		await this._chain.init();
+		await this._chain.init(genesisBlock);
 		await this._bft.init(stateStore);
 		this._logger.info('Blockchain ready');
 	}
