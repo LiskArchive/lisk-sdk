@@ -22,11 +22,11 @@ import {
 	calculateRoot,
 	getOverlappingStr,
 	verify,
-	leafDataBuffer,
+	leafDigest,
 	isLeaf,
-	branchDataBuffer,
-	getLeafData,
-	getBranchData,
+	branchDigest,
+	parseBranch,
+	parseLeaf,
 } from '../../src/sparse_merkle_tree/utils';
 
 const binarySampleData = [
@@ -428,8 +428,8 @@ describe('utils', () => {
 			'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
 			'hex',
 		);
-		const leafData = leafDataBuffer(sampleKey, sampleValue);
-		const branchData = branchDataBuffer(sampleKey, sampleValue);
+		const leafData = leafDigest(sampleKey, sampleValue);
+		const branchData = branchDigest(sampleKey, sampleValue);
 
 		it('Should return true when a leaf node data is passed', () =>
 			expect(isLeaf(leafData)).toEqual(true));
@@ -443,10 +443,10 @@ describe('utils', () => {
 			'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
 			'hex',
 		);
-		const leafData = leafDataBuffer(sampleKey, sampleValue);
+		const leafData = leafDigest(sampleKey, sampleValue);
 
 		it('Should return key value from leaf data buffer', () =>
-			expect(getLeafData(leafData, 1)).toEqual({
+			expect(parseLeaf(leafData, 1)).toEqual({
 				key: sampleKey,
 				value: sampleValue,
 			}));
@@ -462,10 +462,10 @@ describe('utils', () => {
 			'hex',
 		);
 
-		const branchData = branchDataBuffer(leftHash, rightHash);
+		const branchData = branchDigest(leftHash, rightHash);
 
 		it('Should return key value from leaf data buffer', () =>
-			expect(getBranchData(branchData)).toEqual({
+			expect(parseBranch(branchData)).toEqual({
 				leftHash,
 				rightHash,
 			}));

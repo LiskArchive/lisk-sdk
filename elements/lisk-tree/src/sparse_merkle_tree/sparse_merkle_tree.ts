@@ -15,7 +15,7 @@
 import { EMPTY_HASH, NodeSide } from './constants';
 import { Leaf } from './leaf';
 import { Database } from './types';
-import { binaryExpansion, bufferToBinaryString, getBranchData, getLeafData, isLeaf } from './utils';
+import { binaryExpansion, bufferToBinaryString, parseBranch, parseLeaf, isLeaf } from './utils';
 import { Branch } from './branch';
 import { Empty } from './empty';
 import { InMemoryDB } from '../inmemory_db';
@@ -26,9 +26,9 @@ export class SparseMerkleTree {
 	private readonly _keyLength: number;
 	private _rootNode: TreeNode;
 
-	public constructor(options: { db?: Database, rootHash?: Buffer, keyLength?: number }) {
+	public constructor(options: { db?: Database; rootHash?: Buffer; keyLength?: number }) {
 		this._db = options?.db ?? new InMemoryDB();
-		this._keyLength = options?.keyLength || 32;
+		this._keyLength = options?.keyLength ?? 32;
 		this._rootNode = new Empty();
 	}
 	public get rootHash(): Buffer {
@@ -53,14 +53,16 @@ export class SparseMerkleTree {
 		const data = await this._db.get(nodeHash);
 
 		if (!data) {
-			throw new Error(`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`);
+			throw new Error(
+				`Node with input hash: ${nodeHash.toString('hex')} does not exist in the tree`,
+			);
 		}
 		if (isLeaf(data)) {
-			const { key, value } = getLeafData(data, this.keyLength);
+			const { key, value } = parseLeaf(data, this.keyLength);
 			return new Leaf(key, value);
 		}
 
-		const { leftHash, rightHash } = getBranchData(data);
+		const { leftHash, rightHash } = parseBranch(data);
 
 		return new Branch(leftHash, rightHash);
 	}
@@ -81,8 +83,8 @@ export class SparseMerkleTree {
 		if (currentNode instanceof Empty) {
 			this._rootNode = newLeaf;
 			await this._db.set(newLeaf.hash, newLeaf.data);
-            return this.rootNode;
-        }
+			return this.rootNode;
+		}
 		const ancestorNodes: TreeNode[] = [];
 		let h = 0;
 		while (currentNode instanceof Branch) {
@@ -103,7 +105,7 @@ export class SparseMerkleTree {
 			// delete the empty node and update the tree, the new leaf will substitute the empty node
 			await this._db.del(currentNode.hash);
 			bottomNode = newLeaf;
-		} else if(currentNode.key === key) {
+		} else if (currentNode.key === key) {
 			bottomNode = newLeaf;
 		} else {
 			// We need to create new branches in the tree to fulfill the
@@ -113,40 +115,40 @@ export class SparseMerkleTree {
 			while (binaryKey.charAt(h) === currentNodeBinaryKey.charAt(h)) {
 				// Create branch node with empty value
 				const newBranch = new Branch(EMPTY_HASH, EMPTY_HASH);
-				await this._db.set(newBranch.hash, newBranch.data);
+				await this._db.set(newBranch.hash, newBranch.digest);
 				// Append defaultBranch to ancestorNodes
 				ancestorNodes.push(newBranch);
 				h += 1;
 			}
 			// Create last branch node, parent of node and newLeaf
-			let d = binaryKey.charAt(h);//(key & 1<<(this.KEY_LENGTH-h)) >> (this.KEY_LENGTH-h)
+			const d = binaryKey.charAt(h);
 			if (d === '0') {
 				bottomNode = new Branch(newLeaf.hash, currentNode.hash);
-				await this._db.set(bottomNode.hash, bottomNode.data);
+				await this._db.set(bottomNode.hash, bottomNode.digest);
 			} else if (d === '1') {
 				bottomNode = new Branch(currentNode.hash, newLeaf.hash);
-				await this._db.set(bottomNode.hash, bottomNode.data);
+				await this._db.set(bottomNode.hash, bottomNode.digest);
 			}
 		}
 		await this._db.set(newLeaf.hash, newLeaf.data);
 		// Finally update all branch nodes in ancestorNodes
 		// Starting from the last
 		while (h > 0) {
-			let p = ancestorNodes[h - 1];
-            let d = binaryKey.charAt(h - 1);
+			const p = ancestorNodes[h - 1];
+			const d = binaryKey.charAt(h - 1);
 			if (d === '0') {
 				(p as Branch).update(bottomNode.hash, NodeSide.LEFT);
 			} else if (d === '1') {
 				(p as Branch).update(bottomNode.hash, NodeSide.RIGHT);
 			}
-			await this._db.set(p.hash, (p as Branch).data);
-            bottomNode = p;
-            h--;
+			await this._db.set(p.hash, (p as Branch).digest);
+			bottomNode = p;
+			h -= 1;
 		}
 		this._rootNode = bottomNode;
-		await this._db.set(this.rootNode.hash, (this.rootNode as Branch).data);
+		await this._db.set(this.rootNode.hash, (this.rootNode as Branch).digest);
 
-        return this._rootNode;
+		return this._rootNode;
 	}
 
 	/*
