@@ -118,15 +118,12 @@ export class ApplicationEnv {
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
 		const { genesisBlockJSON } = createGenesisBlock({ modules: appConfig.modules });
-		this._genesisBlock = genesisBlockJSON;
+		this._genesisBlock = appConfig.genesisBlockJSON ?? genesisBlockJSON;
 		// In order for application to start forging, update force to true
 		const config = objects.mergeDeep({}, defaultConfig, appConfig.config ?? {});
 		const { label } = config;
 
-		const application = new Application(
-			appConfig.genesisBlockJSON ?? genesisBlockJSON,
-			config as PartialApplicationConfig,
-		);
+		const application = new Application(this._genesisBlock, config as PartialApplicationConfig);
 		appConfig.modules.map(module => application.registerModule(module));
 		appConfig.plugins?.map(plugin => application.registerPlugin(plugin));
 		this._dataPath = join(application.config.rootPath, label);
