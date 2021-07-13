@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { InMemoryDB } from '../../src/inmemory_db';
 import { SparseMerkleTree } from '../../src/sparse_merkle_tree/sparse_merkle_tree';
+import { Database } from '../../src/sparse_merkle_tree/types';
+import * as fixtures from '../fixtures/sparse_merkle_tree/update_tree.json';
 
 describe('SparseMerkleTree', () => {
 	describe('dummy', () => {
@@ -21,7 +24,24 @@ describe('SparseMerkleTree', () => {
 		});
 	});
 	describe('constructor', () => {});
-	describe('update', () => {});
+	describe('update', () => {
+		const db = new InMemoryDB();
+		const smt = new SparseMerkleTree({db: (db as Database)});
+
+		it('update', async () =>{
+			const inputKeys = fixtures.testCases[0].input.keys;
+			const inputValues = fixtures.testCases[0].input.values;
+			const outputMerkleRoot = fixtures.testCases[0].output.merkleRoot;
+
+			for (let i = 0; i < inputKeys.length; i += 1) {
+				console.log(inputKeys[i], inputValues[i])
+				await smt.update(Buffer.from(inputKeys[i], 'hex'), Buffer.from(inputValues[i], 'hex'));
+			}
+
+			expect(smt.rootHash.toString('hex')).toEqual(outputMerkleRoot);
+		});
+
+	});
 	describe('remove', () => {});
 	describe('generateSingleProof', () => {});
 	describe('generateMultiProof', () => {});

@@ -15,22 +15,27 @@
 import { EMPTY_HASH, NodeSide } from './constants';
 import { Leaf } from './leaf';
 import { Database } from './types';
-import { binaryExpansion, getBranchData, getLeafData, isLeaf } from './utils';
+import { binaryExpansion, bufferToBinaryString, getBranchData, getLeafData, isLeaf } from './utils';
 import { Branch } from './branch';
 import { Empty } from './empty';
+import { InMemoryDB } from '../inmemory_db';
 
 type TreeNode = Branch | Leaf | Empty;
 export class SparseMerkleTree {
 	private readonly _db: Database;
-	private readonly _rootHash: Buffer;
 	private readonly _keyLength: number;
-	public constructor(db: Database, rootHash?: Buffer, keyLength = 36) {
-		this._db = db;
-		this._keyLength = keyLength;
-		this._rootHash = rootHash ?? EMPTY_HASH;
+	private _rootNode: TreeNode;
+
+	public constructor(options: { db?: Database, rootHash?: Buffer, keyLength?: number }) {
+		this._db = options?.db ?? new InMemoryDB();
+		this._keyLength = options?.keyLength || 32;
+		this._rootNode = new Empty();
 	}
 	public get rootHash(): Buffer {
-		return this._rootHash;
+		return this._rootNode.hash;
+	}
+	public get rootNode(): TreeNode {
+		return this._rootNode;
 	}
 	// temporary, to be removed
 	public get keyLength(): number {
@@ -42,12 +47,14 @@ export class SparseMerkleTree {
 	}
 
 	public async getNode(nodeHash: Buffer): Promise<TreeNode> {
+		if (nodeHash.equals(EMPTY_HASH)) {
+			return new Empty();
+		}
 		const data = await this._db.get(nodeHash);
 
 		if (!data) {
 			throw new Error(`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`);
 		}
-
 		if (isLeaf(data)) {
 			const { key, value } = getLeafData(data, this.keyLength);
 			return new Leaf(key, value);
@@ -59,7 +66,7 @@ export class SparseMerkleTree {
 	}
 	// As specified in from https://github.com/LiskHQ/lips/blob/master/proposals/lip-0039.md
 	public async update(key: Buffer, value: Buffer) {
-		if (!value) {
+		if (value.length === 0) {
 			throw new Error('Value cannot be empty');
 		}
 
@@ -67,84 +74,79 @@ export class SparseMerkleTree {
 			throw new Error(`Key is not equal to defined key length of ${this.keyLength}`);
 		}
 
+		let currentNode = this.rootNode;
 		const newLeaf = new Leaf(key, value);
-		await this._db.set(newLeaf.hash, newLeaf.data); // Set leafNode in memory
-		const ancestorNodes: TreeNode[] = [];
-		let bottomNode: TreeNode = new Empty();
-		let currentNode = await this.getNode(this.rootHash);
 		const binaryKey = binaryExpansion(key, this.keyLength);
+		// if the currentNode is EMPTY node then assign it to leafNode and return
+		if (currentNode instanceof Empty) {
+			this._rootNode = newLeaf;
+			await this._db.set(newLeaf.hash, newLeaf.data);
+            return this.rootNode;
+        }
+		const ancestorNodes: TreeNode[] = [];
 		let h = 0;
-
-		while (!isLeaf((currentNode as Leaf | Branch).data)) {
+		while (currentNode instanceof Branch) {
+			const d = binaryKey.charAt(h);
 			// Append currentNode to ancestorNodes
 			ancestorNodes.push(currentNode);
-			const d = binaryKey[h];
 			if (d === '0') {
-				currentNode = await this.getNode((currentNode as Branch).leftHash);
+				currentNode = await this.getNode(currentNode.leftHash);
 			} else if (d === '1') {
-				currentNode = await this.getNode((currentNode as Branch).rightHash);
+				currentNode = await this.getNode(currentNode.rightHash);
 			}
 			h += 1;
-			// The currentNode is an empty default node or a leaf node
 		}
+
 		// The currentNode is an empty node, newLeaf will replace the default empty node or currentNode will be updated to newLeaf
-		if (
-			currentNode.hash.equals(EMPTY_HASH) ||
-			(currentNode instanceof Leaf && key.equals(currentNode.key))
-		) {
+		let bottomNode: TreeNode = new Empty();
+		if (currentNode instanceof Empty) {
+			// delete the empty node and update the tree, the new leaf will substitute the empty node
+			await this._db.del(currentNode.hash);
+			bottomNode = newLeaf;
+		} else if(currentNode.key === key) {
 			bottomNode = newLeaf;
 		} else {
 			// We need to create new branches in the tree to fulfill the
 			// Condition of one leaf per empty subtree
 			// Note: h is set to the last value from the previous loop
-			let d = binaryKey[h];
-			const currentNodeBinaryKey = binaryExpansion((currentNode as Leaf).key, this.keyLength);
-			let t = currentNodeBinaryKey[h];
-			while (d === t) {
+			const currentNodeBinaryKey = bufferToBinaryString(currentNode.key);
+			while (binaryKey.charAt(h) === currentNodeBinaryKey.charAt(h)) {
 				// Create branch node with empty value
-				const defaultBranch = new Branch(EMPTY_HASH, EMPTY_HASH);
+				const newBranch = new Branch(EMPTY_HASH, EMPTY_HASH);
+				await this._db.set(newBranch.hash, newBranch.data);
 				// Append defaultBranch to ancestorNodes
-				ancestorNodes.push(defaultBranch);
+				ancestorNodes.push(newBranch);
 				h += 1;
-				d = binaryKey[h];
-				t = currentNodeBinaryKey[h];
 			}
 			// Create last branch node, parent of node and newLeaf
+			let d = binaryKey.charAt(h);//(key & 1<<(this.KEY_LENGTH-h)) >> (this.KEY_LENGTH-h)
 			if (d === '0') {
 				bottomNode = new Branch(newLeaf.hash, currentNode.hash);
+				await this._db.set(bottomNode.hash, bottomNode.data);
 			} else if (d === '1') {
 				bottomNode = new Branch(currentNode.hash, newLeaf.hash);
+				await this._db.set(bottomNode.hash, bottomNode.data);
 			}
 		}
+		await this._db.set(newLeaf.hash, newLeaf.data);
 		// Finally update all branch nodes in ancestorNodes
 		// Starting from the last
 		while (h > 0) {
-			const d = binaryKey[h - 1];
-			const p = ancestorNodes[h - 1];
-			if (d === '0' && p instanceof Branch) {
-				// Let siblingNode be the right child node of p
-				const siblingNodeHash = p.rightHash;
-				// Update p.data to bottomNode.hash|siblingNode.hash
-				p.update(bottomNode.hash, NodeSide.LEFT);
-				// Update p.hash to branchHash(p.data)
-				p.update(siblingNodeHash, NodeSide.RIGHT);
-				// set ancestor node in memory
-				await this._db.set(p.hash, p.data);
-			} else if (d === '1' && p instanceof Branch) {
-				// Let siblingNode be the left child node of p
-				const siblingNodeHash = p.rightHash;
-				// Update p.data to siblingNode.hash|bottomNode.hash
-				p.update(bottomNode.hash, NodeSide.RIGHT);
-				// Update p.hash to branchHash(p.data)
-				p.update(siblingNodeHash, NodeSide.LEFT);
-				// set ancestor node in memory
-				await this._db.set(p.hash, p.data);
+			let p = ancestorNodes[h - 1];
+            let d = binaryKey.charAt(h - 1);
+			if (d === '0') {
+				(p as Branch).update(bottomNode.hash, NodeSide.LEFT);
+			} else if (d === '1') {
+				(p as Branch).update(bottomNode.hash, NodeSide.RIGHT);
 			}
-			bottomNode = p;
-			h -= 1;
+			await this._db.set(p.hash, (p as Branch).data);
+            bottomNode = p;
+            h--;
 		}
-		// The final value of bottomNode is the root node of the tree
-		return bottomNode;
+		this._rootNode = bottomNode;
+		await this._db.set(this.rootNode.hash, (this.rootNode as Branch).data);
+
+        return this._rootNode;
 	}
 
 	/*
