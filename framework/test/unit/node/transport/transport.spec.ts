@@ -75,6 +75,7 @@ describe('Transport', () => {
 				getTransactionsByIDs: jest.fn(),
 				getHighestCommonBlockID: jest.fn(),
 				getBlockHeaderByID: jest.fn().mockReturnValue({ height: 123 }),
+				getRawBlockHeaderByID: jest.fn().mockReturnValue({ height: 123 }),
 				getBlocksByHeightBetween: jest.fn().mockReturnValue([{ height: 123 }]),
 				decodeTransaction: jest.fn(),
 				encodeBlockHeader: jest.fn().mockReturnValue(encodedBlock),
