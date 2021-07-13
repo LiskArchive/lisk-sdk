@@ -13,7 +13,6 @@
  */
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../transaction';
 import { BlockHeader, Block, RawBlock, Account, BlockHeaderAsset } from '../types';
 
@@ -114,7 +113,7 @@ export class DataAccess {
 			return true;
 		}
 		try {
-			// if header does not exist, it will through not found error
+			// if header does not exist, it will throw not found error
 			await this._storage.getBlockHeaderByID(id);
 			return true;
 		} catch (error) {
@@ -472,11 +471,10 @@ export class DataAccess {
 			return cachedBlock;
 		}
 		const blockHeaderBuffer = await this._storage.getBlockHeaderByID(id);
-		const blockID = hash(blockHeaderBuffer);
 
 		return {
 			...codec.decode(blockHeaderSchema, blockHeaderBuffer),
-			id: blockID,
+			id,
 		};
 	}
 }

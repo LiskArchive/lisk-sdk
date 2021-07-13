@@ -286,7 +286,7 @@ export class Node {
 			this._transport.handleRPCGetBlocksFromId(data, peerId),
 		);
 		this._networkModule.registerEndpoint('getHighestCommonBlock', async ({ data, peerId }) =>
-			this._transport.handleRPCGetHighestCommonBlock(data, peerId),
+			this._transport.handleRPCGetHighestCommonBlockID(data, peerId),
 		);
 
 		// Network needs to be initialized first to call events

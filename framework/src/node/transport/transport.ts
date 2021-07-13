@@ -197,7 +197,7 @@ export class Transport {
 		return codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks });
 	}
 
-	public async handleRPCGetHighestCommonBlock(data: unknown, peerId: string): Promise<Buffer> {
+	public async handleRPCGetHighestCommonBlockID(data: unknown, peerId: string): Promise<Buffer> {
 		this._addRateLimit('getHighestCommonBlock', peerId, DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY);
 		const blockIds = codec.decode<RPCHighestCommonBlockData>(
 			getHighestCommonBlockRequestSchema,

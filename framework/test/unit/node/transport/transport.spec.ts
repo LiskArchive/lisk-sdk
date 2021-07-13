@@ -312,7 +312,7 @@ describe('Transport', () => {
 		});
 	});
 
-	describe('handleRPCGetHighestCommonBlock', () => {
+	describe('handleRPCGetHighestCommonBlockID', () => {
 		const defaultPeerId = 'peer-id';
 
 		describe('when commonBlock has not been found', () => {
@@ -326,7 +326,7 @@ describe('Transport', () => {
 				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 
 				// Act
-				const result = await transport.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId);
+				const result = await transport.handleRPCGetHighestCommonBlockID(blockIds, defaultPeerId);
 
 				// Assert
 				expect(chainStub.dataAccess.getHighestCommonBlockID).toHaveBeenCalledWith(ids);
@@ -348,7 +348,7 @@ describe('Transport', () => {
 				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 
 				// Act
-				const result = await transport.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId);
+				const result = await transport.handleRPCGetHighestCommonBlockID(blockIds, defaultPeerId);
 
 				// Assert
 				expect(chainStub.dataAccess.getHighestCommonBlockID).toHaveBeenCalledWith(ids);
@@ -809,7 +809,7 @@ describe('Transport', () => {
 			it('should apply penalty when called ', async () => {
 				// Arrange
 				[...new Array(DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY + 1)].map(async () =>
-					transport.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId),
+					transport.handleRPCGetHighestCommonBlockID(blockIds, defaultPeerId),
 				);
 				jest.advanceTimersByTime(defaultRateLimit);
 

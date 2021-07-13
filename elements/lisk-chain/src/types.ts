@@ -110,6 +110,5 @@ export interface Validator {
 
 export interface GenesisInfo {
 	height: number;
-	timestamp: number;
 	initRounds: number;
 }
