@@ -180,7 +180,7 @@ export class Transport {
 		const { blockId } = decodedData as RPCBlocksByIdData;
 
 		// Get height of block with supplied ID
-		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(blockId);
+		const lastBlock = await this._chainModule.dataAccess.getRawBlockHeaderByID(blockId);
 
 		const lastBlockHeight = lastBlock.height;
 

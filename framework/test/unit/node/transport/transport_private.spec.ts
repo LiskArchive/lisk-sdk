@@ -151,6 +151,7 @@ describe('transport', () => {
 				lastBlock: jest.fn().mockReturnValue({ height: 1, version: 1, timestamp: 1 }) as any,
 				dataAccess: {
 					getBlockHeaderByID: jest.fn().mockReturnValue({ height: 2, version: 1, timestamp: 1 }),
+					getRawBlockHeaderByID: jest.fn().mockReturnValue({ height: 2, version: 1, timestamp: 1 }),
 					getBlocksByHeightBetween: jest.fn().mockReturnValue([
 						{ height: 3, version: 1, timestamp: 1 },
 						{ height: 37, version: 1, timestamp: 1 },
@@ -515,7 +516,7 @@ describe('transport', () => {
 
 							await transportModule.handleRPCGetBlocksFromId(blockIds);
 							expect(
-								transportModule['_chainModule'].dataAccess.getBlockHeaderByID,
+								transportModule['_chainModule'].dataAccess.getRawBlockHeaderByID,
 							).toHaveBeenCalledWith(Buffer.from('6258354802676165798'));
 							return expect(
 								transportModule['_chainModule'].dataAccess.getBlocksByHeightBetween,
@@ -532,7 +533,7 @@ describe('transport', () => {
 							const errorMessage = 'Failed to load blocks...';
 							const loadBlockFailed = new Error(errorMessage);
 
-							transportModule['_chainModule'].dataAccess.getBlockHeaderByID.mockResolvedValue(
+							transportModule['_chainModule'].dataAccess.getRawBlockHeaderByID.mockResolvedValue(
 								Promise.reject(loadBlockFailed),
 							);
 
