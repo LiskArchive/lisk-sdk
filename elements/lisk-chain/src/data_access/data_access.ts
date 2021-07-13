@@ -107,6 +107,10 @@ export class DataAccess {
 		return this._blockHeaderAdapter.decode(blockHeaderBuffer);
 	}
 
+	public async getRawBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
+		return this._getRawBlockHeaderByID(id);
+	}
+
 	public async blockHeaderExists(id: Buffer): Promise<boolean> {
 		const cachedBlock = this._blocksCache.getByID(id);
 		if (cachedBlock) {
