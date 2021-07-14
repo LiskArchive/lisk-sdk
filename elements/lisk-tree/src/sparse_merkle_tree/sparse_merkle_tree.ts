@@ -149,12 +149,12 @@ export class SparseMerkleTree {
 		return rootNode;
 	}
 
-	public async remove(key: Buffer): Promise<TreeNode | undefined> {
+	public async remove(key: Buffer): Promise<TreeNode> {
 		if (key.length !== this.keyLength) {
 			throw new Error(`Key is not equal to defined key length of ${this.keyLength}`);
 		}
 
-		let currentNode = await this.getNode(this.rootHash);
+		let currentNode = await this.getNode(this.rootNode.hash);
 		if (currentNode.hash.equals(EMPTY_HASH)) {
 			return currentNode;
 		}
@@ -165,34 +165,32 @@ export class SparseMerkleTree {
 		let currentNodeSibling: TreeNode = new Empty();
 
 		// append branch nodes to ancestor nodes
-		while (!isLeaf(currentNode.hash)) {
+		while (currentNode instanceof Branch) {
 			ancestorNodes.push(currentNode);
 			const d = binaryKey[h];
-			const node = (await this.getNode(currentNode.hash)) as Branch;
 			if (d === '0') {
-				currentNodeSibling = await this.getNode(node.rightHash);
-				currentNode = await this.getNode(node.leftHash);
+				currentNodeSibling = await this.getNode(currentNode.rightHash);
+				currentNode = await this.getNode(currentNode.leftHash);
 			} else if (d === '1') {
-				currentNodeSibling = await this.getNode(node.leftHash);
-				currentNode = await this.getNode(node.rightHash);
+				currentNodeSibling = await this.getNode(currentNode.leftHash);
+				currentNode = await this.getNode(currentNode.rightHash);
 			}
 			h += 1;
 		}
 
 		// currentNode is empty, nothing to do here
-		if (currentNode.hash.equals(EMPTY_HASH)) {
-			return undefined;
+		if (currentNode instanceof Empty) {
+			return this.rootNode;
 		}
 		// key not in the tree, nothing to do here
-		if (currentNode instanceof Leaf && !key.equals(currentNode.key)) {
-			return undefined;
+		if (!currentNode.key.equals(key)) {
+			return this.rootNode;
 		}
 		let bottomNode: TreeNode = new Empty();
 
 		// currentNode has a branch sibling, delete currentNode
 		if (currentNodeSibling instanceof Branch) {
 			await this._db.del(currentNode.hash);
-			bottomNode = new Empty();
 		} else if (currentNodeSibling instanceof Leaf) {
 			// currentNode has a leaf sibling, move sibling up the tree
 			await this._db.del(currentNode.hash);
@@ -208,6 +206,7 @@ export class SparseMerkleTree {
 				) {
 					break;
 				}
+				await this._db.del(p.hash);
 				h -= 1;
 			}
 		}
@@ -216,23 +215,21 @@ export class SparseMerkleTree {
 		// note that h now is set to the correct height from which
 		// nodes have to be updated
 		while (h > 0) {
-			const d = binaryKey[h - 1];
 			const p = ancestorNodes[h - 1];
-
-			if (d === '0' && p instanceof Branch) {
-				const siblingNodeHash = p.rightHash;
-				p.update(bottomNode.hash, NodeSide.LEFT);
-				p.update(siblingNodeHash, NodeSide.RIGHT);
-			} else if (d === '1' && p instanceof Branch) {
-				const siblingNodeHash = p.rightHash;
-				p.update(bottomNode.hash, NodeSide.RIGHT);
-				p.update(siblingNodeHash, NodeSide.LEFT);
+			const d = binaryKey.charAt(h - 1);
+			if (d === '0') {
+				(p as Branch).update(bottomNode.hash, NodeSide.LEFT);
+			} else if (d === '1') {
+				(p as Branch).update(bottomNode.hash, NodeSide.RIGHT);
 			}
+			await this._db.set(p.hash, (p as Branch).digest);
 			bottomNode = p;
 			h -= 1;
 		}
-		// the final value of bottomNode is the root node of the tree
-		return bottomNode;
+		this._rootNode = bottomNode;
+		await this._db.set(this.rootNode.hash, (this.rootNode as Branch).digest);
+
+		return this._rootNode;
 	}
 
 	/*

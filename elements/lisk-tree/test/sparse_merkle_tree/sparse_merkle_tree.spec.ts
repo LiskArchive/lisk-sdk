@@ -16,6 +16,7 @@ import { InMemoryDB } from '../../src/inmemory_db';
 import { SparseMerkleTree } from '../../src/sparse_merkle_tree/sparse_merkle_tree';
 import { Database } from '../../src/sparse_merkle_tree/types';
 import * as SMTFixtures from '../fixtures/sparse_merkle_tree/smt_fixtures.json';
+import * as fixtures from '../fixtures/sparse_merkle_tree/update_tree.json';
 import * as removeTreeFixtures from '../fixtures/sparse_merkle_tree/remove_tree.json';
 
 describe('SparseMerkleTree', () => {
@@ -63,21 +64,6 @@ describe('SparseMerkleTree', () => {
 				expect(smt.rootHash.toString('hex')).toEqual(outputMerkleRoot);
 			});
 		}
-
-		for (const test of SMTFixtures.testCases) {
-			// eslint-disable-next-line no-loop-func
-			it(test.description, async () => {
-				const inputKeys = test.input.keys;
-				const inputValues = test.input.values;
-				const outputMerkleRoot = test.output.merkleRoot;
-
-				for (let i = 0; i < inputKeys.length; i += 1) {
-					await smt.update(Buffer.from(inputKeys[i], 'hex'), Buffer.from(inputValues[i], 'hex'));
-				}
-
-				expect(smt.rootHash.toString('hex')).toEqual(outputMerkleRoot);
-			});
-		}
 	});
 	describe('remove', () => {
 		let db: Database;
@@ -85,7 +71,7 @@ describe('SparseMerkleTree', () => {
 
 		beforeEach(() => {
 			db = new InMemoryDB();
-			smt = new SparseMerkleTree({ db });
+			smt = new SparseMerkleTree({ db, keyLength: 32 });
 		});
 
 		for (const test of removeTreeFixtures.testCases) {
@@ -101,7 +87,7 @@ describe('SparseMerkleTree', () => {
 					await smt.remove(Buffer.from(key, 'hex'));
 				}
 
-				expect(smt.rootHash.toString('hex')).toEqual(test.output.merkleRoot);
+				expect(smt.rootNode.hash.toString('hex')).toEqual(test.output.merkleRoot);
 			});
 		}
 	});
