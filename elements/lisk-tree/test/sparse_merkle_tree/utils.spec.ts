@@ -437,7 +437,7 @@ describe('utils', () => {
 			expect(isLeaf(branchData)).toEqual(false));
 	});
 
-	describe('getLeafData', () => {
+	describe('parseLeaf', () => {
 		const sampleKey = Buffer.from('46', 'hex');
 		const sampleValue = Buffer.from(
 			'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
@@ -450,9 +450,19 @@ describe('utils', () => {
 				key: sampleKey,
 				value: sampleValue,
 			}));
+
+		it('should get key value of 38 bytes from leaf data buffer', () => {
+			const key38Bytes = getRandomBytes(38);
+			const leafDataWith38ByteKey = leafDigest(key38Bytes, sampleValue);
+
+			expect(parseLeaf(leafDataWith38ByteKey, key38Bytes.byteLength)).toEqual({
+				key: key38Bytes,
+				value: sampleValue,
+			});
+		});
 	});
 
-	describe('getBranchData', () => {
+	describe('parseBranch', () => {
 		const leftHash = Buffer.from(
 			'2031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
 			'hex',

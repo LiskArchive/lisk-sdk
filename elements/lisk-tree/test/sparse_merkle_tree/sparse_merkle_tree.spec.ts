@@ -31,7 +31,7 @@ describe('SparseMerkleTree', () => {
 
 		beforeEach(() => {
 			db = new InMemoryDB();
-			smt = new SparseMerkleTree({ db });
+			smt = new SparseMerkleTree({ db, keyLength: 32 });
 		});
 
 		for (const test of fixtures.testCases) {

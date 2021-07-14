@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EMPTY_HASH, NodeSide } from './constants';
+import { DEFAULT_KEY_LENGTH, EMPTY_HASH, NodeSide } from './constants';
 import { Leaf } from './leaf';
 import { Database } from './types';
-import { bufferToBinaryString, parseBranch, parseLeaf, isLeaf } from './utils';
+import { parseBranch, parseLeaf, isLeaf, binaryExpansion } from './utils';
 import { Branch } from './branch';
 import { Empty } from './empty';
 import { InMemoryDB } from '../inmemory_db';
@@ -28,7 +28,7 @@ export class SparseMerkleTree {
 
 	public constructor(options: { db?: Database; rootHash?: Buffer; keyLength?: number }) {
 		this._db = options?.db ?? new InMemoryDB();
-		this._keyLength = options?.keyLength ?? 32;
+		this._keyLength = options?.keyLength ?? DEFAULT_KEY_LENGTH;
 		this._rootNode = new Empty();
 	}
 	public get rootHash(): Buffer {
@@ -80,7 +80,7 @@ export class SparseMerkleTree {
 		let currentNode = this.rootNode;
 		const newLeaf = new Leaf(key, value);
 		await this._db.set(newLeaf.hash, newLeaf.data);
-		const binaryKey = bufferToBinaryString(key);
+		const binaryKey = binaryExpansion(key, this._keyLength);
 		// if the currentNode is EMPTY node then assign it to leafNode and return
 		if (currentNode instanceof Empty) {
 			this._rootNode = newLeaf;
@@ -111,7 +111,7 @@ export class SparseMerkleTree {
 			// We need to create new branches in the tree to fulfill the
 			// Condition of one leaf per empty subtree
 			// Note: h is set to the last value from the previous loop
-			const currentNodeBinaryKey = bufferToBinaryString(currentNode.key);
+			const currentNodeBinaryKey = binaryExpansion(currentNode.key, this._keyLength);
 			while (binaryKey.charAt(h) === currentNodeBinaryKey.charAt(h)) {
 				// Create branch node with empty value
 				const newBranch = new Branch(EMPTY_HASH, EMPTY_HASH);
