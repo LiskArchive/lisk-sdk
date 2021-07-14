@@ -63,6 +63,21 @@ describe('SparseMerkleTree', () => {
 				expect(smt.rootHash.toString('hex')).toEqual(outputMerkleRoot);
 			});
 		}
+
+		for (const test of SMTFixtures.testCases) {
+			// eslint-disable-next-line no-loop-func
+			it(test.description, async () => {
+				const inputKeys = test.input.keys;
+				const inputValues = test.input.values;
+				const outputMerkleRoot = test.output.merkleRoot;
+
+				for (let i = 0; i < inputKeys.length; i += 1) {
+					await smt.update(Buffer.from(inputKeys[i], 'hex'), Buffer.from(inputValues[i], 'hex'));
+				}
+
+				expect(smt.rootHash.toString('hex')).toEqual(outputMerkleRoot);
+			});
+		}
 	});
 	describe('remove', () => {});
 	describe('generateSingleProof', () => {});

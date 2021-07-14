@@ -212,7 +212,7 @@ export const bufferToBinaryString = (buf: Buffer) => {
 
 	for (let i = 0; i < buf.byteLength; i += 1) {
 		const byteBin = buf.readUInt8(i).toString(2);
-		result += i === 0 ? byteBin : byteBin.padStart(8, '0');
+		result += byteBin.padStart(8, '0');
 	}
 
 	return result;
