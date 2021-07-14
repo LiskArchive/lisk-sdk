@@ -15,7 +15,7 @@
 import { EMPTY_HASH, NodeSide } from './constants';
 import { Leaf } from './leaf';
 import { Database } from './types';
-import { binaryExpansion, bufferToBinaryString, parseBranch, parseLeaf, isLeaf } from './utils';
+import { bufferToBinaryString, parseBranch, parseLeaf, isLeaf } from './utils';
 import { Branch } from './branch';
 import { Empty } from './empty';
 import { InMemoryDB } from '../inmemory_db';
@@ -59,6 +59,7 @@ export class SparseMerkleTree {
 		}
 		if (isLeaf(data)) {
 			const { key, value } = parseLeaf(data, this.keyLength);
+
 			return new Leaf(key, value);
 		}
 
@@ -78,15 +79,15 @@ export class SparseMerkleTree {
 
 		let currentNode = this.rootNode;
 		const newLeaf = new Leaf(key, value);
-		const binaryKey = binaryExpansion(key, this.keyLength);
+		await this._db.set(newLeaf.hash, newLeaf.data);
+		const binaryKey = bufferToBinaryString(key);
 		// if the currentNode is EMPTY node then assign it to leafNode and return
 		if (currentNode instanceof Empty) {
 			this._rootNode = newLeaf;
-			await this._db.set(newLeaf.hash, newLeaf.data);
 			return this.rootNode;
 		}
-		const ancestorNodes: TreeNode[] = [];
 		let h = 0;
+		const ancestorNodes: TreeNode[] = [];
 		while (currentNode instanceof Branch) {
 			const d = binaryKey.charAt(h);
 			// Append currentNode to ancestorNodes
@@ -103,7 +104,6 @@ export class SparseMerkleTree {
 		let bottomNode: TreeNode = new Empty();
 		if (currentNode instanceof Empty) {
 			// delete the empty node and update the tree, the new leaf will substitute the empty node
-			await this._db.del(currentNode.hash);
 			bottomNode = newLeaf;
 		} else if (currentNode.key === key) {
 			bottomNode = newLeaf;
@@ -115,7 +115,6 @@ export class SparseMerkleTree {
 			while (binaryKey.charAt(h) === currentNodeBinaryKey.charAt(h)) {
 				// Create branch node with empty value
 				const newBranch = new Branch(EMPTY_HASH, EMPTY_HASH);
-				await this._db.set(newBranch.hash, newBranch.digest);
 				// Append defaultBranch to ancestorNodes
 				ancestorNodes.push(newBranch);
 				h += 1;
@@ -130,7 +129,6 @@ export class SparseMerkleTree {
 				await this._db.set(bottomNode.hash, bottomNode.digest);
 			}
 		}
-		await this._db.set(newLeaf.hash, newLeaf.data);
 		// Finally update all branch nodes in ancestorNodes
 		// Starting from the last
 		while (h > 0) {
