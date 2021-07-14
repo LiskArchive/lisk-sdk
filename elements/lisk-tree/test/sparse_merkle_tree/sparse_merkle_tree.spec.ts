@@ -45,7 +45,7 @@ describe('SparseMerkleTree', () => {
 					await smt.update(Buffer.from(inputKeys[i], 'hex'), Buffer.from(inputValues[i], 'hex'));
 				}
 
-				expect(smt.rootHash.toString('hex')).toEqual(outputMerkleRoot);
+				expect(smt.rootNode.hash.toString('hex')).toEqual(outputMerkleRoot);
 			});
 		}
 
@@ -60,7 +60,7 @@ describe('SparseMerkleTree', () => {
 					await smt.update(Buffer.from(inputKeys[i], 'hex'), Buffer.from(inputValues[i], 'hex'));
 				}
 
-				expect(smt.rootHash.toString('hex')).toEqual(outputMerkleRoot);
+				expect(smt.rootNode.hash.toString('hex')).toEqual(outputMerkleRoot);
 			});
 		}
 	});

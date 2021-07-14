@@ -26,13 +26,10 @@ export class SparseMerkleTree {
 	private readonly _keyLength: number;
 	private _rootNode: TreeNode;
 
-	public constructor(options: { db?: Database; rootHash?: Buffer; keyLength?: number }) {
+	public constructor(options: { db?: Database; keyLength?: number }) {
 		this._db = options?.db ?? new InMemoryDB();
 		this._keyLength = options?.keyLength ?? DEFAULT_KEY_LENGTH;
 		this._rootNode = new Empty();
-	}
-	public get rootHash(): Buffer {
-		return this._rootNode.hash;
 	}
 	public get rootNode(): TreeNode {
 		return this._rootNode;
