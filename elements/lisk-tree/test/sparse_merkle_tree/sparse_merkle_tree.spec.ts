@@ -87,7 +87,7 @@ describe('SparseMerkleTree', () => {
 					await smt.remove(Buffer.from(key, 'hex'));
 				}
 
-				expect(smt.rootNode.hash.toString('hex')).toEqual(test.output.merkleRoot);
+				expect(smt.rootHash.toString('hex')).toEqual(test.output.merkleRoot);
 			});
 		}
 	});
