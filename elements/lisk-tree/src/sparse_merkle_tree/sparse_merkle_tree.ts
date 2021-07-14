@@ -18,21 +18,21 @@ import { Database } from './types';
 import { parseBranch, parseLeaf, isLeaf, binaryExpansion } from './utils';
 import { Branch } from './branch';
 import { Empty } from './empty';
-import { InMemoryDB } from '../inmemory_db';
 
 type TreeNode = Branch | Leaf | Empty;
 export class SparseMerkleTree {
 	private readonly _db: Database;
 	private readonly _keyLength: number;
-	private _rootNode: TreeNode;
+	private _rootHash: Buffer;
 
-	public constructor(options: { db?: Database; keyLength?: number }) {
-		this._db = options?.db ?? new InMemoryDB();
+	public constructor(options: { db: Database; rootHash?: Buffer; keyLength?: number }) {
+		this._db = options.db;
 		this._keyLength = options?.keyLength ?? DEFAULT_KEY_LENGTH;
-		this._rootNode = new Empty();
+		// Make sure to always set rootHash explicitly whenever updating the tree
+		this._rootHash = options?.rootHash ?? EMPTY_HASH;
 	}
-	public get rootNode(): TreeNode {
-		return this._rootNode;
+	public get rootHash(): Buffer {
+		return this._rootHash;
 	}
 	// temporary, to be removed
 	public get keyLength(): number {
@@ -73,15 +73,17 @@ export class SparseMerkleTree {
 		if (key.byteLength !== this.keyLength) {
 			throw new Error(`Key is not equal to defined key length of ${this.keyLength}`);
 		}
-
-		let currentNode = this.rootNode;
+		let rootNode = await this.getNode(this._rootHash);
+		let currentNode = rootNode;
 		const newLeaf = new Leaf(key, value);
 		await this._db.set(newLeaf.hash, newLeaf.data);
 		const binaryKey = binaryExpansion(key, this._keyLength);
 		// if the currentNode is EMPTY node then assign it to leafNode and return
 		if (currentNode instanceof Empty) {
-			this._rootNode = newLeaf;
-			return this.rootNode;
+			rootNode = newLeaf;
+			this._rootHash = rootNode.hash;
+
+			return rootNode;
 		}
 		let h = 0;
 		const ancestorNodes: TreeNode[] = [];
@@ -140,10 +142,11 @@ export class SparseMerkleTree {
 			bottomNode = p;
 			h -= 1;
 		}
-		this._rootNode = bottomNode;
-		await this._db.set(this.rootNode.hash, (this.rootNode as Branch).digest);
+		rootNode = bottomNode;
+		this._rootHash = rootNode.hash;
+		await this._db.set(rootNode.hash, (rootNode as Branch).digest);
 
-		return this._rootNode;
+		return rootNode;
 	}
 
 	/*
