@@ -24,8 +24,8 @@ export class ConsensusStateStore {
 	private readonly _name = 'ConsensusState';
 	private _data: dataStructures.BufferMap<Buffer>;
 	private _originalData: dataStructures.BufferMap<Buffer>;
-	private _updatedKeys: Set<Buffer>;
-	private _originalUpdatedKeys: Set<Buffer>;
+	private _updatedKeys: dataStructures.BufferSet;
+	private _originalUpdatedKeys: dataStructures.BufferSet;
 	private readonly _dataAccess: DataAccess;
 	private readonly _initialValue: dataStructures.BufferMap<Buffer>;
 
@@ -34,18 +34,18 @@ export class ConsensusStateStore {
 		this._data = new dataStructures.BufferMap<Buffer>();
 		this._originalData = new dataStructures.BufferMap<Buffer>();
 		this._initialValue = new dataStructures.BufferMap<Buffer>();
-		this._updatedKeys = new Set();
-		this._originalUpdatedKeys = new Set();
+		this._updatedKeys = new dataStructures.BufferSet();
+		this._originalUpdatedKeys = new dataStructures.BufferSet();
 	}
 
 	public createSnapshot(): void {
 		this._originalData = this._data.clone();
-		this._originalUpdatedKeys = new Set(this._updatedKeys);
+		this._originalUpdatedKeys = this._updatedKeys.clone();
 	}
 
 	public restoreSnapshot(): void {
 		this._data = this._originalData.clone();
-		this._updatedKeys = new Set(this._originalUpdatedKeys);
+		this._updatedKeys = this._originalUpdatedKeys.clone();
 	}
 
 	public async get(key: Buffer): Promise<Buffer | undefined> {

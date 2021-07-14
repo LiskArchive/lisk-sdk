@@ -29,8 +29,8 @@ export class ChainStateStore {
 	private readonly _name = 'ChainState';
 	private _data: dataStructures.BufferMap<Buffer>;
 	private _originalData: dataStructures.BufferMap<Buffer>;
-	private _updatedKeys: Set<Buffer>;
-	private _originalUpdatedKeys: Set<Buffer>;
+	private _updatedKeys: dataStructures.BufferSet;
+	private _originalUpdatedKeys: dataStructures.BufferSet;
 	private readonly _dataAccess: DataAccess;
 	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	private readonly _networkIdentifier: Buffer;
@@ -45,8 +45,8 @@ export class ChainStateStore {
 		this._data = new dataStructures.BufferMap<Buffer>();
 		this._originalData = new dataStructures.BufferMap<Buffer>();
 		this._initialValue = new dataStructures.BufferMap<Buffer>();
-		this._updatedKeys = new Set();
-		this._originalUpdatedKeys = new Set();
+		this._updatedKeys = new dataStructures.BufferSet();
+		this._originalUpdatedKeys = new dataStructures.BufferSet();
 	}
 
 	public get networkIdentifier(): Buffer {
@@ -63,12 +63,12 @@ export class ChainStateStore {
 
 	public createSnapshot(): void {
 		this._originalData = this._data.clone();
-		this._originalUpdatedKeys = new Set(this._updatedKeys);
+		this._originalUpdatedKeys = this._updatedKeys.clone();
 	}
 
 	public restoreSnapshot(): void {
 		this._data = this._originalData.clone();
-		this._updatedKeys = new Set(this._originalUpdatedKeys);
+		this._updatedKeys = this._originalUpdatedKeys.clone();
 	}
 
 	public async get(key: Buffer): Promise<Buffer | undefined> {
