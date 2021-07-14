@@ -149,18 +149,14 @@ export class SparseMerkleTree {
 		return rootNode;
 	}
 
-	public async remove(key: Buffer): Promise<TreeNode> {
+	public async remove(key: Buffer): Promise<Buffer> {
 		if (key.length !== this.keyLength) {
 			throw new Error(`Key is not equal to defined key length of ${this.keyLength}`);
 		}
 
-		let currentNode = await this.getNode(this.rootNode.hash);
-		if (currentNode.hash.equals(EMPTY_HASH)) {
-			return currentNode;
-		}
-
 		const ancestorNodes: TreeNode[] = [];
 		const binaryKey = binaryExpansion(key, this.keyLength);
+		let currentNode = await this.getNode(this._rootHash);
 		let h = 0;
 		let currentNodeSibling: TreeNode = new Empty();
 
@@ -180,11 +176,11 @@ export class SparseMerkleTree {
 
 		// currentNode is empty, nothing to do here
 		if (currentNode instanceof Empty) {
-			return this.rootNode;
+			return this._rootHash;
 		}
 		// key not in the tree, nothing to do here
 		if (!currentNode.key.equals(key)) {
-			return this.rootNode;
+			return this._rootHash;
 		}
 		let bottomNode: TreeNode = new Empty();
 
@@ -226,10 +222,10 @@ export class SparseMerkleTree {
 			bottomNode = p;
 			h -= 1;
 		}
-		this._rootNode = bottomNode;
-		await this._db.set(this.rootNode.hash, (this.rootNode as Branch).digest);
+		this._rootHash = bottomNode.hash;
+		await this._db.set(this._rootHash, (bottomNode as Branch).digest);
 
-		return this._rootNode;
+		return this._rootHash;
 	}
 
 	/*
