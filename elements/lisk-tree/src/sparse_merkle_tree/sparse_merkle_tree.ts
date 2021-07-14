@@ -149,10 +149,95 @@ export class SparseMerkleTree {
 		return rootNode;
 	}
 
+	public async remove(key: Buffer): Promise<TreeNode | undefined> {
+		if (key.length !== this.keyLength) {
+			throw new Error(`Key is not equal to defined key length of ${this.keyLength}`);
+		}
+
+		let currentNode = await this.getNode(this.rootHash);
+		if (currentNode.hash.equals(EMPTY_HASH)) {
+			return currentNode;
+		}
+
+		const ancestorNodes: TreeNode[] = [];
+		const binaryKey = binaryExpansion(key, this.keyLength);
+		let h = 0;
+		let currentNodeSibling: TreeNode = new Empty();
+
+		// append branch nodes to ancestor nodes
+		while (!isLeaf(currentNode.hash)) {
+			ancestorNodes.push(currentNode);
+			const d = binaryKey[h];
+			const node = (await this.getNode(currentNode.hash)) as Branch;
+			if (d === '0') {
+				currentNodeSibling = await this.getNode(node.rightHash);
+				currentNode = await this.getNode(node.leftHash);
+			} else if (d === '1') {
+				currentNodeSibling = await this.getNode(node.leftHash);
+				currentNode = await this.getNode(node.rightHash);
+			}
+			h += 1;
+		}
+
+		// currentNode is empty, nothing to do here
+		if (currentNode.hash.equals(EMPTY_HASH)) {
+			return undefined;
+		}
+		// key not in the tree, nothing to do here
+		if (currentNode instanceof Leaf && !key.equals(currentNode.key)) {
+			return undefined;
+		}
+		let bottomNode: TreeNode = new Empty();
+
+		// currentNode has a branch sibling, delete currentNode
+		if (currentNodeSibling instanceof Branch) {
+			await this._db.del(currentNode.hash);
+			bottomNode = new Empty();
+		} else if (currentNodeSibling instanceof Leaf) {
+			// currentNode has a leaf sibling, move sibling up the tree
+			await this._db.del(currentNode.hash);
+			bottomNode = currentNodeSibling;
+			h -= 1;
+			while (h > 0) {
+				const p = ancestorNodes[h - 1];
+
+				if (
+					p instanceof Branch &&
+					!(p.leftHash instanceof Empty) &&
+					!(p.rightHash instanceof Empty)
+				) {
+					break;
+				}
+				h -= 1;
+			}
+		}
+
+		// finally update all branch nodes in ancestorNodes.
+		// note that h now is set to the correct height from which
+		// nodes have to be updated
+		while (h > 0) {
+			const d = binaryKey[h - 1];
+			const p = ancestorNodes[h - 1];
+
+			if (d === '0' && p instanceof Branch) {
+				const siblingNodeHash = p.rightHash;
+				p.update(bottomNode.hash, NodeSide.LEFT);
+				p.update(siblingNodeHash, NodeSide.RIGHT);
+			} else if (d === '1' && p instanceof Branch) {
+				const siblingNodeHash = p.rightHash;
+				p.update(bottomNode.hash, NodeSide.RIGHT);
+				p.update(siblingNodeHash, NodeSide.LEFT);
+			}
+			bottomNode = p;
+			h -= 1;
+		}
+		// the final value of bottomNode is the root node of the tree
+		return bottomNode;
+	}
+
 	/*
-    public remove() {}
-    public generateSingleProof() {}
-    public generateMultiProof() {}
-    public verifyMultiProof() {}
-    */
+		public generateSingleProof() {}
+		public generateMultiProof() {}
+		public verifyMultiProof() {}
+		*/
 }
