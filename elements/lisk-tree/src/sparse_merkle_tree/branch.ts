@@ -13,27 +13,27 @@
  */
 
 import { hash } from '@liskhq/lisk-cryptography';
-import { branchDigest } from './utils';
+import { branchData } from './utils';
 import { NodeSide } from './constants';
 
 export class Branch {
 	private _leftHash: Buffer;
 	private _rightHash: Buffer;
 	private _hash: Buffer;
-	private _digest: Buffer;
+	private _data: Buffer;
 
 	public constructor(leftHash: Buffer, rightHash: Buffer) {
 		this._leftHash = leftHash;
 		this._rightHash = rightHash;
-		this._digest = branchDigest(this._leftHash, this._rightHash);
-		this._hash = hash(this._digest);
+		this._data = branchData(this._leftHash, this._rightHash);
+		this._hash = hash(this._data);
 	}
 
 	public get hash() {
 		return this._hash;
 	}
-	public get digest() {
-		return this._digest;
+	public get data() {
+		return this._data;
 	}
 	public get leftHash() {
 		return this._leftHash;
@@ -48,7 +48,7 @@ export class Branch {
 		} else {
 			this._rightHash = newChild;
 		}
-		this._digest = branchDigest(this.leftHash, this.rightHash);
-		this._hash = hash(this.digest);
+		this._data = branchData(this.leftHash, this.rightHash);
+		this._hash = hash(this.data);
 	}
 }

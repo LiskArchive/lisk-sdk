@@ -15,7 +15,7 @@
 import { DEFAULT_KEY_LENGTH, EMPTY_HASH, NodeSide } from './constants';
 import { Leaf } from './leaf';
 import { Database } from './types';
-import { parseBranch, parseLeaf, isLeaf, binaryExpansion } from './utils';
+import { parseBranchData, parseLeafData, isLeaf, binaryExpansion } from './utils';
 import { Branch } from './branch';
 import { Empty } from './empty';
 
@@ -55,12 +55,12 @@ export class SparseMerkleTree {
 			);
 		}
 		if (isLeaf(data)) {
-			const { key, value } = parseLeaf(data, this.keyLength);
+			const { key, value } = parseLeafData(data, this.keyLength);
 
 			return new Leaf(key, value);
 		}
 
-		const { leftHash, rightHash } = parseBranch(data);
+		const { leftHash, rightHash } = parseBranchData(data);
 
 		return new Branch(leftHash, rightHash);
 	}
@@ -122,10 +122,10 @@ export class SparseMerkleTree {
 			const d = binaryKey.charAt(h);
 			if (d === '0') {
 				bottomNode = new Branch(newLeaf.hash, currentNode.hash);
-				await this._db.set(bottomNode.hash, bottomNode.digest);
+				await this._db.set(bottomNode.hash, bottomNode.data);
 			} else if (d === '1') {
 				bottomNode = new Branch(currentNode.hash, newLeaf.hash);
-				await this._db.set(bottomNode.hash, bottomNode.digest);
+				await this._db.set(bottomNode.hash, bottomNode.data);
 			}
 		}
 		// Finally update all branch nodes in ancestorNodes
@@ -138,13 +138,13 @@ export class SparseMerkleTree {
 			} else if (d === '1') {
 				(p as Branch).update(bottomNode.hash, NodeSide.RIGHT);
 			}
-			await this._db.set(p.hash, (p as Branch).digest);
+			await this._db.set(p.hash, (p as Branch).data);
 			bottomNode = p;
 			h -= 1;
 		}
 		rootNode = bottomNode;
 		this._rootHash = rootNode.hash;
-		await this._db.set(rootNode.hash, (rootNode as Branch).digest);
+		await this._db.set(rootNode.hash, (rootNode as Branch).data);
 
 		return rootNode;
 	}

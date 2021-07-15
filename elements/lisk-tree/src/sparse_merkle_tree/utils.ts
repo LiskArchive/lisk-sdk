@@ -149,7 +149,7 @@ export const calculateRoot = (sibHashes: Buffer[], queries: Query[], keyLength: 
 			key: q.key,
 			value: q.value,
 			binaryBitmap: bufferToBinaryString(q.bitmap),
-			hash: q.value.byteLength === 0 ? EMPTY_HASH : hash(leafDigest(q.key, q.value)),
+			hash: q.value.byteLength === 0 ? EMPTY_HASH : hash(leafData(q.key, q.value)),
 		});
 	}
 
@@ -192,9 +192,9 @@ export const calculateRoot = (sibHashes: Buffer[], queries: Query[], keyLength: 
 
 		const d = binaryKey[h - 1];
 		if (d === '0') {
-			q.hash = hash(branchDigest(q.hash, siblingHash));
+			q.hash = hash(branchData(q.hash, siblingHash));
 		} else if (d === '1') {
-			q.hash = hash(branchDigest(siblingHash, q.hash));
+			q.hash = hash(branchData(siblingHash, q.hash));
 		}
 
 		q.binaryBitmap = q.binaryBitmap.substring(1);
@@ -231,7 +231,7 @@ export const binaryStringToBuffer = (str: string) => {
 	return buf;
 };
 
-export const parseLeaf = (data: Buffer, keyLength: number): { key: Buffer; value: Buffer } => {
+export const parseLeafData = (data: Buffer, keyLength: number): { key: Buffer; value: Buffer } => {
 	// Get the key of keyLength size
 	const key = data.slice(1, keyLength + 1);
 	// Get data
@@ -242,7 +242,7 @@ export const parseLeaf = (data: Buffer, keyLength: number): { key: Buffer; value
 		value,
 	};
 };
-export const parseBranch = (data: Buffer): { leftHash: Buffer; rightHash: Buffer } => {
+export const parseBranchData = (data: Buffer): { leftHash: Buffer; rightHash: Buffer } => {
 	// Get left hash
 	const leftHash = data.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE);
 	// Get right hash
@@ -254,8 +254,8 @@ export const parseBranch = (data: Buffer): { leftHash: Buffer; rightHash: Buffer
 	};
 };
 
-export const leafDigest = (key: Buffer, value: Buffer): Buffer =>
+export const leafData = (key: Buffer, value: Buffer): Buffer =>
 	Buffer.concat([LEAF_HASH_PREFIX, key, value]);
 
-export const branchDigest = (leftHash: Buffer, rightHash: Buffer): Buffer =>
+export const branchData = (leftHash: Buffer, rightHash: Buffer): Buffer =>
 	Buffer.concat([BRANCH_HASH_PREFIX, leftHash, rightHash]);

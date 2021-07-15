@@ -13,7 +13,7 @@
  */
 
 import { hash } from '@liskhq/lisk-cryptography';
-import { leafDigest } from './utils';
+import { leafData } from './utils';
 
 export class Leaf {
 	private readonly _key: Buffer;
@@ -24,7 +24,7 @@ export class Leaf {
 	public constructor(key: Buffer, value: Buffer) {
 		this._key = key;
 		this._value = value;
-		this._data = leafDigest(this._key, this._value);
+		this._data = leafData(this._key, this._value);
 		this._hash = hash(this._data);
 	}
 
@@ -43,7 +43,7 @@ export class Leaf {
 
 	public update(newValue: Buffer) {
 		this._value = newValue;
-		this._data = leafDigest(this._key, this._value);
+		this._data = leafData(this._key, this._value);
 		this._hash = hash(this._data);
 	}
 }
