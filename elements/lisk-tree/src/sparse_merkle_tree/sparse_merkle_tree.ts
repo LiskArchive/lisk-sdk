@@ -27,9 +27,9 @@ export class SparseMerkleTree {
 
 	public constructor(options: { db: Database; rootHash?: Buffer; keyLength?: number }) {
 		this._db = options.db;
-		this._keyLength = options?.keyLength ?? DEFAULT_KEY_LENGTH;
+		this._keyLength = options.keyLength ?? DEFAULT_KEY_LENGTH;
 		// Make sure to always set rootHash explicitly whenever updating the tree
-		this._rootHash = options?.rootHash ?? EMPTY_HASH;
+		this._rootHash = options.rootHash ?? EMPTY_HASH;
 	}
 	public get rootHash(): Buffer {
 		return this._rootHash;
