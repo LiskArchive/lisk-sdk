@@ -18,14 +18,11 @@ import { Database } from '../../src/sparse_merkle_tree/types';
 import * as SMTFixtures from '../fixtures/sparse_merkle_tree/smt_fixtures.json';
 import * as fixtures from '../fixtures/sparse_merkle_tree/update_tree.json';
 import * as removeTreeFixtures from '../fixtures/sparse_merkle_tree/remove_tree.json';
+import * as removeExtraTreeFixtures from '../fixtures/sparse_merkle_tree/remove_extra_tree.json';
 
 describe('SparseMerkleTree', () => {
-	describe('dummy', () => {
-		it('is a dummy test', () => {
-			expect(SparseMerkleTree).toBeDefined();
-		});
-	});
 	describe('constructor', () => {});
+
 	describe('update', () => {
 		let db: Database;
 		let smt: SparseMerkleTree;
@@ -65,6 +62,7 @@ describe('SparseMerkleTree', () => {
 			});
 		}
 	});
+
 	describe('remove', () => {
 		let db: Database;
 		let smt: SparseMerkleTree;
@@ -90,8 +88,28 @@ describe('SparseMerkleTree', () => {
 				expect(smt.rootHash.toString('hex')).toEqual(test.output.merkleRoot);
 			});
 		}
+
+		for (const test of removeExtraTreeFixtures.testCases) {
+			// eslint-disable-next-line no-loop-func
+			it(test.description, async () => {
+				const { keys, values, deleteKeys } = test.input;
+
+				for (let i = 0; i < keys.length; i += 1) {
+					await smt.update(Buffer.from(keys[i], 'hex'), Buffer.from(values[i], 'hex'));
+				}
+
+				for (const key of deleteKeys) {
+					await smt.remove(Buffer.from(key, 'hex'));
+				}
+
+				expect(smt.rootHash.toString('hex')).toEqual(test.output.merkleRoot);
+			});
+		}
 	});
+
 	describe('generateSingleProof', () => {});
+
 	describe('generateMultiProof', () => {});
+
 	describe('verifyMultiProof', () => {});
 });

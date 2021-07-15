@@ -149,7 +149,7 @@ export class SparseMerkleTree {
 		return rootNode;
 	}
 
-	public async remove(key: Buffer): Promise<Buffer> {
+	public async remove(key: Buffer): Promise<TreeNode> {
 		if (key.length !== this.keyLength) {
 			throw new Error(`Key is not equal to defined key length of ${this.keyLength}`);
 		}
@@ -160,7 +160,9 @@ export class SparseMerkleTree {
 		let h = 0;
 		let currentNodeSibling: TreeNode = new Empty();
 
-		// append branch nodes to ancestor nodes
+		// Collect all ancestor nodes through traversing the binary expansion by height
+		// End of the loop ancestorNodes has all the branch nodes
+		// currentNode will be the leaf/node we are looking to remove
 		while (currentNode instanceof Branch) {
 			ancestorNodes.push(currentNode);
 			const d = binaryKey[h];
@@ -174,13 +176,13 @@ export class SparseMerkleTree {
 			h += 1;
 		}
 
-		// currentNode is empty, nothing to do here
+		// When currentNode is empty, nothing to remove
 		if (currentNode instanceof Empty) {
-			return this._rootHash;
+			return currentNode;
 		}
-		// key not in the tree, nothing to do here
+		// When the input key does not match node key, nothing to remove
 		if (!currentNode.key.equals(key)) {
-			return this._rootHash;
+			return currentNode;
 		}
 		let bottomNode: TreeNode = new Empty();
 
@@ -188,20 +190,28 @@ export class SparseMerkleTree {
 		if (currentNodeSibling instanceof Branch) {
 			await this._db.del(currentNode.hash);
 		} else if (currentNodeSibling instanceof Leaf) {
-			// currentNode has a leaf sibling, move sibling up the tree
+			// currentNode has a leaf sibling,
+			// remove the leaf and move sibling up the tree
 			await this._db.del(currentNode.hash);
 			bottomNode = currentNodeSibling;
-			h -= 1;
-			while (h > 0) {
-				const p = ancestorNodes[h - 1];
 
+			h -= 1;
+			// In order to move sibling up the tree
+			// an exact emptyHash check is required
+			// not using EMPTY_HASH here to make sure we use correct hash from Empty class
+			const emptyHash = new Empty().hash;
+			while (h > 0) {
+				const p = ancestorNodes[h - 1] as Branch;
+
+				// if one of the children is empty then break the condition
 				if (
 					p instanceof Branch &&
-					!(p.leftHash instanceof Empty) &&
-					!(p.rightHash instanceof Empty)
+					!p.leftHash.equals(emptyHash) &&
+					!p.rightHash.equals(emptyHash)
 				) {
 					break;
 				}
+
 				await this._db.del(p.hash);
 				h -= 1;
 			}
@@ -213,6 +223,7 @@ export class SparseMerkleTree {
 		while (h > 0) {
 			const p = ancestorNodes[h - 1];
 			const d = binaryKey.charAt(h - 1);
+
 			if (d === '0') {
 				(p as Branch).update(bottomNode.hash, NodeSide.LEFT);
 			} else if (d === '1') {
@@ -223,9 +234,9 @@ export class SparseMerkleTree {
 			h -= 1;
 		}
 		this._rootHash = bottomNode.hash;
-		await this._db.set(this._rootHash, (bottomNode as Branch).digest);
+		await this._db.set(bottomNode.hash, (bottomNode as Branch).digest);
 
-		return this._rootHash;
+		return bottomNode;
 	}
 
 	/*
