@@ -65,7 +65,7 @@ export class SparseMerkleTree {
 		return new Branch(leftHash, rightHash);
 	}
 	// As specified in from https://github.com/LiskHQ/lips/blob/master/proposals/lip-0039.md
-	public async update(key: Buffer, value: Buffer) {
+	public async update(key: Buffer, value: Buffer): Promise<TreeNode> {
 		if (value.length === 0) {
 			throw new Error('Value cannot be empty');
 		}
