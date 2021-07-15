@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError } from './error';
+import { NotFoundError } from '../error';
 import { Database } from './types';
 
 export class PrefixStore {

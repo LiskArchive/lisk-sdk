@@ -32,4 +32,9 @@ export class InMemoryDB {
 		const keyStr = key.toString('binary');
 		this._data[keyStr] = value;
 	}
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async del(key: Buffer): Promise<void> {
+		const keyStr = key.toString('binary');
+		delete this._data[keyStr];
+	}
 }

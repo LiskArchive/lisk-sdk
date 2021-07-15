@@ -13,8 +13,8 @@
  */
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BRANCH_PREFIX } from './constants';
-import { NotFoundError } from './error';
-import { InMemoryDB } from './inmemory_db';
+import { NotFoundError } from '../error';
+import { InMemoryDB } from '../inmemory_db';
 import { NodeSide, Proof, VerifyResult } from './types';
 import { generateHash, getBinaryString, getPairLocation } from './utils';
 
