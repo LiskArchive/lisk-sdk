@@ -229,12 +229,12 @@ export class SparseMerkleTree {
 			} else if (d === '1') {
 				(p as Branch).update(bottomNode.hash, NodeSide.RIGHT);
 			}
-			await this._db.set(p.hash, (p as Branch).digest);
+			await this._db.set(p.hash, (p as Branch).data);
 			bottomNode = p;
 			h -= 1;
 		}
 		this._rootHash = bottomNode.hash;
-		await this._db.set(bottomNode.hash, (bottomNode as Branch).digest);
+		await this._db.set(bottomNode.hash, (bottomNode as Branch).data);
 
 		return bottomNode;
 	}
