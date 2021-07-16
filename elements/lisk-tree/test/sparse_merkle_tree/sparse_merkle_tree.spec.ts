@@ -159,7 +159,7 @@ describe('SparseMerkleTree', () => {
 			it(test.description, async () => {
 				const inputKeys = test.input.keys;
 				const inputValues = test.input.values;
-				const deleteKeys = test.input.deleteKeys;
+				const removeKeys = test.input.deleteKeys;
 				const queryKeys = test.input.queryKeys.map(keyHex => Buffer.from(keyHex, 'hex'));
 				const outputMerkleRoot = test.output.merkleRoot;
 				const outputProof = test.output.proof;
@@ -168,8 +168,8 @@ describe('SparseMerkleTree', () => {
 					await smt.update(Buffer.from(inputKeys[i], 'hex'), Buffer.from(inputValues[i], 'hex'));
 				}
 
-				for (let i = 0; i < deleteKeys.length; i += 1) {
-					await smt.remove(Buffer.from(deleteKeys[i], 'hex'));
+				for (const key of removeKeys) {
+					await smt.remove(Buffer.from(key, 'hex'));
 				}
 
 				const proof = await smt.generateMultiProof(queryKeys);
