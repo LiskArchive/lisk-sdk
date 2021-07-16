@@ -19,6 +19,9 @@ import { verify } from '../../src/sparse_merkle_tree/utils';
 import * as fixtures from '../fixtures/sparse_merkle_tree/update_tree.json';
 import * as SMTFixtures from '../fixtures/sparse_merkle_tree/smt_fixtures.json';
 import * as ProofFixtures from '../fixtures/sparse_merkle_tree/smt_proof_fixtures.json';
+import * as removeTreeFixtures from '../fixtures/sparse_merkle_tree/remove_tree.json';
+import * as removeExtraTreeFixtures from '../fixtures/sparse_merkle_tree/remove_extra_tree.json';
+import * as JumboFixtures from '../fixtures/sparse_merkle_tree/smt_jumbo_fixtures.json';
 
 describe('SparseMerkleTree', () => {
 	describe('constructor', () => {});
@@ -63,6 +66,50 @@ describe('SparseMerkleTree', () => {
 		}
 	});
 
+	describe('remove', () => {
+		let db: Database;
+		let smt: SparseMerkleTree;
+
+		beforeEach(() => {
+			db = new InMemoryDB();
+			smt = new SparseMerkleTree({ db, keyLength: 32 });
+		});
+
+		for (const test of removeTreeFixtures.testCases) {
+			// eslint-disable-next-line no-loop-func
+			it(test.description, async () => {
+				const { keys, values, deleteKeys } = test.input;
+
+				for (let i = 0; i < keys.length; i += 1) {
+					await smt.update(Buffer.from(keys[i], 'hex'), Buffer.from(values[i], 'hex'));
+				}
+
+				for (const key of deleteKeys) {
+					await smt.remove(Buffer.from(key, 'hex'));
+				}
+
+				expect(smt.rootHash.toString('hex')).toEqual(test.output.merkleRoot);
+			});
+		}
+
+		for (const test of removeExtraTreeFixtures.testCases) {
+			// eslint-disable-next-line no-loop-func
+			it(test.description, async () => {
+				const { keys, values, deleteKeys } = test.input;
+
+				for (let i = 0; i < keys.length; i += 1) {
+					await smt.update(Buffer.from(keys[i], 'hex'), Buffer.from(values[i], 'hex'));
+				}
+
+				for (const key of deleteKeys) {
+					await smt.remove(Buffer.from(key, 'hex'));
+				}
+
+				expect(smt.rootHash.toString('hex')).toEqual(test.output.merkleRoot);
+			});
+		}
+	});
+
 	describe('generateMultiProof', () => {
 		let db: Database;
 		let smt: SparseMerkleTree;
@@ -83,6 +130,46 @@ describe('SparseMerkleTree', () => {
 
 				for (let i = 0; i < inputKeys.length; i += 1) {
 					await smt.update(Buffer.from(inputKeys[i], 'hex'), Buffer.from(inputValues[i], 'hex'));
+				}
+
+				const proof = await smt.generateMultiProof(queryKeys);
+
+				const siblingHashesString = [];
+				for (const siblingHash of proof.siblingHashes) {
+					siblingHashesString.push(siblingHash.toString('hex'));
+				}
+
+				const queriesString = [];
+				for (const query of proof.queries) {
+					queriesString.push({
+						key: query.key.toString('hex'),
+						value: query.value.toString('hex'),
+						bitmap: query.bitmap.toString('hex'),
+					});
+				}
+
+				expect(siblingHashesString).toEqual(outputProof.siblingHashes);
+				expect(queriesString).toEqual(outputProof.queries);
+				expect(verify(queryKeys, proof, Buffer.from(outputMerkleRoot, 'hex'), 32)).toBeTrue();
+			});
+		}
+
+		for (const test of JumboFixtures.testCases) {
+			// eslint-disable-next-line no-loop-func
+			it(test.description, async () => {
+				const inputKeys = test.input.keys;
+				const inputValues = test.input.values;
+				const deleteKeys = test.input.deleteKeys;
+				const queryKeys = test.input.queryKeys.map(keyHex => Buffer.from(keyHex, 'hex'));
+				const outputMerkleRoot = test.output.merkleRoot;
+				const outputProof = test.output.proof;
+
+				for (let i = 0; i < inputKeys.length; i += 1) {
+					await smt.update(Buffer.from(inputKeys[i], 'hex'), Buffer.from(inputValues[i], 'hex'));
+				}
+
+				for (let i = 0; i < deleteKeys.length; i += 1) {
+					await smt.remove(Buffer.from(deleteKeys[i], 'hex'));
 				}
 
 				const proof = await smt.generateMultiProof(queryKeys);
