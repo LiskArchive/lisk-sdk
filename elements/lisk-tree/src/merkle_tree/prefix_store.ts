@@ -39,4 +39,8 @@ export class PrefixStore {
 	public async set(key: Buffer, value: Buffer): Promise<void> {
 		await this._db.set(Buffer.concat([this._prefix, key]), value);
 	}
+
+	public async del(key: Buffer): Promise<void> {
+		await this._db.del(Buffer.concat([this._prefix, key]));
+	}
 }
