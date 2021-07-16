@@ -23,7 +23,7 @@ import {
 	TransactionExecuteContext,
 	VerifyStatus,
 	BlockVerifyContext,
-	VerifycationResult,
+	VerificationResult,
 	CommandVerifyContext,
 	CommandExecuteContext,
 } from './types';
@@ -31,14 +31,14 @@ import {
 export interface StateMachineCommand {
 	id: number;
 	schema: Schema;
-	verify?: <T = unknown>(ctx: CommandVerifyContext<T>) => Promise<VerifycationResult>;
+	verify?: <T = unknown>(ctx: CommandVerifyContext<T>) => Promise<VerificationResult>;
 	execute: <T = unknown>(ctx: CommandExecuteContext<T>) => Promise<void>;
 }
 
 export interface StateMachineModule {
 	id: number;
 	commands: StateMachineCommand[];
-	verifyTransaction?: (ctx: TransactionVerifyContext) => Promise<VerifycationResult>;
+	verifyTransaction?: (ctx: TransactionVerifyContext) => Promise<VerificationResult>;
 	afterGenesisBlockExecute?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
 	verifyBlock?: (ctx: BlockVerifyContext) => Promise<void>;
 	beforeBlockExecute?: (ctx: BlockExecuteContext) => Promise<void>;
@@ -75,7 +75,7 @@ export class StateMachine {
 		}
 	}
 
-	public async verifyTransaction(ctx: TransactionContext): Promise<VerifycationResult> {
+	public async verifyTransaction(ctx: TransactionContext): Promise<VerificationResult> {
 		const transactionContext = ctx.createTransactionVerifyContext();
 		try {
 			for (const mod of this._systemModules) {
@@ -159,7 +159,7 @@ export class StateMachine {
 	}
 
 	public async verifyBlock(ctx: BlockContext): Promise<void> {
-		const blockVerifyContext = ctx.createBlockVerifyExecuteContext();
+		const blockVerifyContext = ctx.getBlockVerifyExecuteContext();
 		for (const mod of this._systemModules) {
 			if (mod.verifyBlock) {
 				await mod.verifyBlock(blockVerifyContext);
@@ -173,7 +173,7 @@ export class StateMachine {
 	}
 
 	public async beforeExecuteBlock(ctx: BlockContext): Promise<void> {
-		const blockExecuteContext = ctx.createBlockExecuteContext();
+		const blockExecuteContext = ctx.getBlockExecuteContext();
 		for (const mod of this._systemModules) {
 			if (mod.beforeBlockExecute) {
 				await mod.beforeBlockExecute(blockExecuteContext);
@@ -187,7 +187,7 @@ export class StateMachine {
 	}
 
 	public async afterExecuteBlock(ctx: BlockContext): Promise<void> {
-		const blockExecuteContext = ctx.createBlockAfterExecuteContext();
+		const blockExecuteContext = ctx.getBlockAfterExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.afterBlockExecute) {
 				await mod.afterBlockExecute(blockExecuteContext);
@@ -203,7 +203,7 @@ export class StateMachine {
 	public async executeBlock(ctx: BlockContext): Promise<void> {
 		await this.beforeExecuteBlock(ctx);
 		for (const tx of ctx.transactions) {
-			const txContext = ctx.createTransactionContext(tx);
+			const txContext = ctx.getTransactionContext(tx);
 			const verifyResult = await this.verifyTransaction(txContext);
 			if (verifyResult.status !== VerifyStatus.OK) {
 				if (verifyResult.error) {

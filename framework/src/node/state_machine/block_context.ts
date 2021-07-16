@@ -53,12 +53,12 @@ export class BlockContext {
 
 	public get transactions(): ReadonlyArray<Transaction> {
 		if (!this._transactions) {
-			throw new Error('Transaction is not set');
+			throw new Error('Transactions are not set');
 		}
 		return this._transactions;
 	}
 
-	public createBlockVerifyExecuteContext(): BlockVerifyContext {
+	public getBlockVerifyExecuteContext(): BlockVerifyContext {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
@@ -71,7 +71,7 @@ export class BlockContext {
 		};
 	}
 
-	public createBlockExecuteContext(): BlockExecuteContext {
+	public getBlockExecuteContext(): BlockExecuteContext {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
@@ -84,7 +84,7 @@ export class BlockContext {
 		};
 	}
 
-	public createBlockAfterExecuteContext(): BlockAfterExecuteContext {
+	public getBlockAfterExecuteContext(): BlockAfterExecuteContext {
 		if (!this._transactions) {
 			throw new Error('Cannot create block after execute context without transactions');
 		}
@@ -101,7 +101,7 @@ export class BlockContext {
 		};
 	}
 
-	public createTransactionContext(tx: Transaction): TransactionContext {
+	public getTransactionContext(tx: Transaction): TransactionContext {
 		return new TransactionContext({
 			networkIdentifier: this._networkIdentifier,
 			logger: this._logger,

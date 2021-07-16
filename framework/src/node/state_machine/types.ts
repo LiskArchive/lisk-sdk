@@ -71,7 +71,7 @@ export interface BlockHeader {
 	getAsset: (moduleID: number) => Buffer;
 }
 
-export interface VerifycationResult {
+export interface VerificationResult {
 	status: VerifyStatus;
 	error?: Error;
 }
