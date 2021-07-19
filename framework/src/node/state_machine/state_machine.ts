@@ -94,17 +94,8 @@ export class StateMachine {
 					}
 				}
 			}
-			const targetModule = this._findModule(ctx.transaction.moduleID);
-			if (!targetModule) {
-				throw new Error(`Module with ID ${ctx.transaction.moduleID} is not registered.`);
-			}
 			// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
-			const command = targetModule.commands.find(c => c.id === ctx.transaction.assetID);
-			if (!command) {
-				throw new Error(
-					`Module with ID ${ctx.transaction.moduleID} does not have command with ID ${ctx.transaction.assetID} registered.`,
-				);
-			}
+			const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.assetID);
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
 			if (command.verify) {
 				const result = await command.verify(commandContext);
@@ -130,17 +121,8 @@ export class StateMachine {
 				await mod.beforeTransactionExecute(transactionContext);
 			}
 		}
-		const targetModule = this._findModule(ctx.transaction.moduleID);
-		if (!targetModule) {
-			throw new Error(`Module with ID ${ctx.transaction.moduleID} is not registered.`);
-		}
 		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
-		const command = targetModule.commands.find(c => c.id === ctx.transaction.assetID);
-		if (!command) {
-			throw new Error(
-				`Module with ID ${ctx.transaction.moduleID} does not have command with ID ${ctx.transaction.assetID} registered.`,
-			);
-		}
+		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.assetID);
 		// Execute command
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
 		await command.execute(commandContext);
@@ -226,6 +208,21 @@ export class StateMachine {
 			return existingSystemModule;
 		}
 		return undefined;
+	}
+
+	private _getCommand(moduleID: number, commandID: number): StateMachineCommand {
+		const targetModule = this._findModule(moduleID);
+		if (!targetModule) {
+			throw new Error(`Module with ID ${moduleID} is not registered.`);
+		}
+		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
+		const command = targetModule.commands.find(c => c.id === commandID);
+		if (!command) {
+			throw new Error(
+				`Module with ID ${moduleID} does not have command with ID ${commandID} registered.`,
+			);
+		}
+		return command;
 	}
 
 	private _validateExistingModuleID(id: number): void {
