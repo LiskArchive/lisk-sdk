@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { DataAccess } from './data_access';
 import { BlockHeader, Block, GenesisBlock, Validator } from './types';
-import { StateStore } from './state_store';
+import { StateStore } from './state_store_v1';
 import { Slots } from './slots';
 import { validatorsSchema } from './schema';
 import { DB_KEY_CONSENSUS_STATE_VALIDATORS } from './db_keys';
