@@ -31,7 +31,7 @@ interface AdditionalInformation {
 }
 
 const saveDiff = (
-	height: number | bigint,
+	height: number,
 	stateDiffs: Array<Readonly<StateDiff>>,
 	batch: BatchChain,
 ): void => {
@@ -80,7 +80,7 @@ export class StateStore {
 		this.chain.restoreSnapshot();
 	}
 
-	public finalize(height: number | bigint, batch: BatchChain): void {
+	public finalize(height: number, batch: BatchChain): void {
 		const accountStateDiff = this.account.finalize(batch);
 		const chainStateDiff = this.chain.finalize(batch);
 		const consensusStateDiff = this.consensus.finalize(batch);
