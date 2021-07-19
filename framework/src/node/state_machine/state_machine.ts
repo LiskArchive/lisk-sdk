@@ -209,7 +209,7 @@ export class StateMachine {
 				if (verifyResult.error) {
 					throw verifyResult.error;
 				}
-				throw new Error(`Invalid transaction. ID ${tx.id.toString('hex')}`);
+				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
 			}
 			await this.executeTransaction(txContext);
 		}
@@ -231,11 +231,11 @@ export class StateMachine {
 	private _validateExistingModuleID(id: number): void {
 		const existingModule = this._modules.find(m => m.id === id);
 		if (existingModule) {
-			throw new Error(`Module ID ${id} is already registered.`);
+			throw new Error(`Module with ID ${id} is registered.`);
 		}
 		const existingSystemModule = this._systemModules.find(m => m.id === id);
 		if (existingSystemModule) {
-			throw new Error(`Module ID ${id} is already registered as a sytem module.`);
+			throw new Error(`Module with ID ${id} is registered as a system module.`);
 		}
 	}
 }
