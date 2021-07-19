@@ -45,10 +45,10 @@ export type {
 } from './types';
 export { Slots } from './slots';
 export {
-	readGenesisBlockJSON,
+	readGenesisBlockJON,
 	getValidators,
 	getAccountSchemaWithDefault,
-	concatDBKeys as concatKeys,
+	concatDBKeys,
 } from './utils';
 export * as testing from './testing';
 
