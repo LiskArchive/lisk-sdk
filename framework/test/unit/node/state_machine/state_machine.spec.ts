@@ -104,7 +104,7 @@ describe('state_machine', () => {
 	});
 
 	describe('executeTransaction', () => {
-		it('should call all registered execute hooks', async () => {
+		it('should call all registered transaction execute hooks', async () => {
 			const ctx = new TransactionContext({
 				eventQueue,
 				logger,
@@ -153,7 +153,7 @@ describe('state_machine', () => {
 	});
 
 	describe('beforeExecuteBlock', () => {
-		it('should call all registered executeGenesisBlock', async () => {
+		it('should call all registered beforeExecuteBlock', async () => {
 			const ctx = new BlockContext({
 				eventQueue,
 				logger,
@@ -177,7 +177,7 @@ describe('state_machine', () => {
 	});
 
 	describe('afterExecuteBlock', () => {
-		it('should call all registered executeGenesisBlock', async () => {
+		it('should call all registered afterBlockExecute', async () => {
 			const ctx = new BlockContext({
 				eventQueue,
 				logger,
@@ -201,7 +201,7 @@ describe('state_machine', () => {
 	});
 
 	describe('executeBlock', () => {
-		it('should call all registered executeGenesisBlock', async () => {
+		it('should call all registered before/after executeBlock', async () => {
 			const ctx = new BlockContext({
 				eventQueue,
 				logger,
