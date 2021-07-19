@@ -14,10 +14,6 @@
 
 import { createMessageTag, hash } from '@liskhq/lisk-cryptography';
 
-export const CHAIN_STATE_BURNT_FEE = Buffer.from('burntFee', 'utf8');
-export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = Buffer.from('finalizedHeight', 'utf8');
-export const CONSENSUS_STATE_VALIDATORS_KEY = Buffer.from('validators', 'utf8');
-
 export const DEFAULT_MIN_BLOCK_HEADER_CACHE = 309;
 export const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;
 
@@ -36,3 +32,4 @@ export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;
 
 export const TAG_BLOCK_HEADER = createMessageTag('BH');
 export const TAG_TRANSACTION = createMessageTag('TX');
+export const DB_KEY_PREFIX_BYTE_LENGTH = 1;
