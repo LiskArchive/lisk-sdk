@@ -1,4 +1,3 @@
-import { DB_KEY_CHAIN_STATE } from './../../../src/db_keys';
 /*
  * Copyright © 2019 Lisk Foundation
  *
@@ -21,6 +20,7 @@ import { BlockHeader, StateDiff } from '../../../src/types';
 import { defaultAccount, defaultAccountSchema } from '../../utils/account';
 import { defaultNetworkIdentifier, registeredBlockHeaders } from '../../utils/block';
 import { concatDBKeys } from '../../../src/utils';
+import { DB_KEY_CHAIN_STATE } from '../../../src/db_keys';
 
 jest.mock('@liskhq/lisk-db');
 
