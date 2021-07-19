@@ -98,7 +98,7 @@ export class StateMachine {
 			if (!targetModule) {
 				throw new Error(`Module with ID ${ctx.transaction.moduleID} is not registered.`);
 			}
-			// FIXME: Update assetID to commandID
+			// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
 			const command = targetModule.commands.find(c => c.id === ctx.transaction.assetID);
 			if (!command) {
 				throw new Error(
@@ -134,7 +134,7 @@ export class StateMachine {
 		if (!targetModule) {
 			throw new Error(`Module with ID ${ctx.transaction.moduleID} is not registered.`);
 		}
-		// FIXME: Update assetID to commandID
+		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
 		const command = targetModule.commands.find(c => c.id === ctx.transaction.assetID);
 		if (!command) {
 			throw new Error(
