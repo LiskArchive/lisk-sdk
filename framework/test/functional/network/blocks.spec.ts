@@ -22,6 +22,7 @@ import {
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
 	getHighestCommonBlockRequestSchema,
+	getHighestCommonBlockResponseSchema,
 	postBlockEventSchema,
 } from '../../../src/node/transport/schemas';
 
@@ -63,7 +64,8 @@ describe('Public block related P2P endpoints', () => {
 
 	describe('getBlocksFromId', () => {
 		it('should return decodable block', async () => {
-			const blockId = encodeBlockId(app['_node']['_chain'].genesisBlock.header.id);
+			const genesisBlockHeader = await app['_node']['_chain'].dataAccess.getBlockHeaderByHeight(0);
+			const blockId = encodeBlockId(genesisBlockHeader.id);
 			const { data } = (await p2p.requestFromPeer(
 				{
 					procedure: 'getBlocksFromId',
@@ -98,7 +100,7 @@ describe('Public block related P2P endpoints', () => {
 
 	describe('getHighestCommonBlock', () => {
 		it('should return decodable block', async () => {
-			const ids = [app['_node']['_chain'].genesisBlock.header.id, getRandomBytes(32)];
+			const ids = [app['_node']['_chain'].lastBlock.header.id, getRandomBytes(32)];
 			const blockIds = encodeBlockIds(ids);
 			const { data } = await p2p.requestFromPeer(
 				{
@@ -107,10 +109,12 @@ describe('Public block related P2P endpoints', () => {
 				},
 				getPeerID(app),
 			);
-			const decodedBlock = app['_node']['_chain'].dataAccess.decodeBlockHeader(data as Buffer);
+			const { id } = codec.decode<{ id: Buffer }>(
+				getHighestCommonBlockResponseSchema,
+				data as Buffer,
+			);
 
-			expect(decodedBlock.version).toEqual(0);
-			expect(decodedBlock.height).toEqual(0);
+			expect(id).toEqual(ids[0]);
 		});
 
 		it('should return undefined', async () => {
@@ -123,7 +127,9 @@ describe('Public block related P2P endpoints', () => {
 				},
 				getPeerID(app),
 			);
-			expect(data).toBeUndefined();
+			expect(data).toEqual(
+				codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+			);
 		});
 	});
 

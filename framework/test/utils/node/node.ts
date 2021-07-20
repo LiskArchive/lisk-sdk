@@ -24,6 +24,7 @@ import { Logger, createLogger } from '../../../src/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { ApplicationConfig } from '../../../src/types';
 import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../../../src/modules';
+import { defaultPath } from '../kv_store';
 
 const { plugins, ...rootConfigs } = config;
 
@@ -33,7 +34,6 @@ export const createNode = ({ options = {} }: { options?: Partial<NodeOptions> })
 	}) as ApplicationConfig;
 	const node = new Node({
 		options: mergedConfig,
-		genesisBlockJSON,
 	});
 	node.registerModule(new TokenModule(mergedConfig.genesisConfig));
 	node.registerModule(new SequenceModule(mergedConfig.genesisConfig));
@@ -67,6 +67,8 @@ export const createAndLoadNode = async (
 		put: jest.fn(),
 	} as unknown) as KVStore;
 	await chainModule.init({
+		genesisBlockJSON,
+		dataPath: defaultPath,
 		bus: createMockBus() as any,
 		channel: channel ?? (createMockChannel() as any),
 		logger,
