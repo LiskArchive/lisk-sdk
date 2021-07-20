@@ -32,4 +32,3 @@ export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;
 
 export const TAG_BLOCK_HEADER = createMessageTag('BH');
 export const TAG_TRANSACTION = createMessageTag('TX');
-export const DB_KEY_PREFIX_BYTE_LENGTH = 1;
