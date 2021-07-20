@@ -45,7 +45,7 @@ export type {
 } from './types';
 export { Slots } from './slots';
 export {
-	readGenesisBlockJON,
+	readGenesisBlockJSON,
 	getValidators,
 	getAccountSchemaWithDefault,
 	concatDBKeys,
