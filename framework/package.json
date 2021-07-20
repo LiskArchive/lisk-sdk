@@ -1,6 +1,6 @@
 {
 	"name": "lisk-framework",
-	"version": "0.8.2-alpha.1",
+	"version": "0.8.2",
 	"description": "Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -40,13 +40,13 @@
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.1.2-alpha.1",
-		"@liskhq/lisk-bft": "^0.3.1-alpha.1",
-		"@liskhq/lisk-chain": "^0.3.1-alpha.1",
+		"@liskhq/lisk-api-client": "^5.1.2",
+		"@liskhq/lisk-bft": "^0.3.1",
+		"@liskhq/lisk-chain": "^0.3.1",
 		"@liskhq/lisk-codec": "^0.2.0",
 		"@liskhq/lisk-cryptography": "^3.1.0",
 		"@liskhq/lisk-db": "^0.2.0",
-		"@liskhq/lisk-genesis": "^0.2.1-alpha.1",
+		"@liskhq/lisk-genesis": "^0.2.1",
 		"@liskhq/lisk-p2p": "^0.7.0",
 		"@liskhq/lisk-transaction-pool": "^0.5.0",
 		"@liskhq/lisk-transactions": "^5.1.1",
