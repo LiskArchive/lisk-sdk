@@ -260,7 +260,7 @@ export class SparseMerkleTree {
 		return bottomNode;
 	}
 
-	public async generateSingleProof (queryKey: Buffer): Promise<SingleProof> {
+	public async generateSingleProof(queryKey: Buffer): Promise<SingleProof> {
 		const rootNode = await this.getNode(this._rootHash);
 		let currentNode = rootNode;
 		if (currentNode instanceof Empty) {
@@ -325,10 +325,7 @@ export class SparseMerkleTree {
 				value: currentNode.value,
 			};
 		}
-		if (
-			currentNode instanceof Leaf &&
-			currentNode.key.equals(queryKey)
-		) {
+		if (currentNode instanceof Leaf && currentNode.key.equals(queryKey)) {
 			// inclusion proof
 			ancestorHashes.push(currentNode.hash); // in case the leaf is sibling to another node
 			return {
@@ -346,9 +343,9 @@ export class SparseMerkleTree {
 			siblingHashes: [],
 			ancestorHashes: [],
 		};
-	};
+	}
 
-	public async generateMultiProof (queryKeys: Buffer[]): Promise<Proof> {
+	public async generateMultiProof(queryKeys: Buffer[]): Promise<Proof> {
 		const partialQueries: SingleProof[] = [];
 		for (const queryKey of queryKeys) {
 			const query = await this.generateSingleProof(queryKey);
@@ -428,5 +425,5 @@ export class SparseMerkleTree {
 		}
 
 		return { siblingHashes, queries };
-	};
+	}
 }
