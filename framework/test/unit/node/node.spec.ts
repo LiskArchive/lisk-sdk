@@ -29,6 +29,7 @@ import { createMockBus } from '../../utils/channel';
 import { createGenesisBlock } from '../../../src/testing/create_genesis_block';
 
 jest.mock('@liskhq/lisk-db');
+jest.mock('fs-extra');
 
 describe('Node', () => {
 	let node: Node;
@@ -89,7 +90,6 @@ describe('Node', () => {
 
 		node = new Node({
 			options: nodeOptions,
-			genesisBlockJSON,
 		});
 
 		codec.clearCache();
@@ -116,7 +116,6 @@ describe('Node', () => {
 				() =>
 					new Node({
 						options: invalidChainOptions as any,
-						genesisBlockJSON,
 					}),
 			).toThrow('forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=4');
 		});
@@ -137,7 +136,6 @@ describe('Node', () => {
 				() =>
 					new Node({
 						options: invalidChainOptions as any,
-						genesisBlockJSON,
 					}),
 			).toThrow('forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=5');
 		});
@@ -154,6 +152,8 @@ describe('Node', () => {
 
 			// Act
 			await node.init({
+				genesisBlockJSON,
+				dataPath: `/tmp/.lisk/${Date.now()}`,
 				bus: createMockBus() as any,
 				channel: stubs.channel,
 				blockchainDB,
@@ -259,6 +259,8 @@ describe('Node', () => {
 		beforeEach(async () => {
 			// Arrange
 			await node.init({
+				genesisBlockJSON,
+				dataPath: `/tmp/.lisk/${Date.now()}`,
 				bus: createMockBus() as any,
 				channel: stubs.channel,
 				blockchainDB,
@@ -290,6 +292,8 @@ describe('Node', () => {
 	describe('#_forgingTask', () => {
 		beforeEach(async () => {
 			await node.init({
+				genesisBlockJSON,
+				dataPath: `/tmp/.lisk/${Date.now()}`,
 				bus: createMockBus() as any,
 				channel: stubs.channel,
 				blockchainDB,
@@ -336,6 +340,8 @@ describe('Node', () => {
 	describe('#_startForging', () => {
 		beforeEach(async () => {
 			await node.init({
+				genesisBlockJSON,
+				dataPath: `/tmp/.lisk/${Date.now()}`,
 				bus: createMockBus() as any,
 				channel: stubs.channel,
 				blockchainDB,
