@@ -260,14 +260,14 @@ export class SparseMerkleTree {
 		return bottomNode;
 	}
 
-	public generateSingleProof = async (queryKey: Buffer): Promise<SingleProof> => {
+	public async generateSingleProof (queryKey: Buffer): Promise<SingleProof> {
 		const rootNode = await this.getNode(this._rootHash);
 		let currentNode = rootNode;
 		if (currentNode instanceof Empty) {
 			return {
 				key: queryKey,
 				value: EMPTY_VALUE,
-				binaryBitmap: bufferToBinaryString(EMPTY_HASH),
+				binaryBitmap: bufferToBinaryString(EMPTY_VALUE),
 				siblingHashes: [],
 				ancestorHashes: [],
 			};
@@ -327,7 +327,7 @@ export class SparseMerkleTree {
 		}
 		if (
 			currentNode instanceof Leaf &&
-			currentNode.key.toString('hex') === queryKey.toString('hex')
+			currentNode.key.equals(queryKey)
 		) {
 			// inclusion proof
 			ancestorHashes.push(currentNode.hash); // in case the leaf is sibling to another node
@@ -342,13 +342,13 @@ export class SparseMerkleTree {
 		return {
 			key: queryKey,
 			value: EMPTY_VALUE,
-			binaryBitmap: bufferToBinaryString(EMPTY_HASH),
+			binaryBitmap: bufferToBinaryString(EMPTY_VALUE),
 			siblingHashes: [],
 			ancestorHashes: [],
 		};
 	};
 
-	public generateMultiProof = async (queryKeys: Buffer[]): Promise<Proof> => {
+	public async generateMultiProof (queryKeys: Buffer[]): Promise<Proof> {
 		const partialQueries: SingleProof[] = [];
 		for (const queryKey of queryKeys) {
 			const query = await this.generateSingleProof(queryKey);
@@ -383,9 +383,11 @@ export class SparseMerkleTree {
 				let isPresentInAncestorHashes = false;
 				for (const i of siblingHashes) {
 					if (i.equals(nodeHash)) isPresentInSiblingHashes = true;
+					break;
 				}
 				for (const i of ancestorHashes) {
 					if (i.equals(nodeHash)) isPresentInAncestorHashes = true;
+					break;
 				}
 				if (!isPresentInSiblingHashes && !isPresentInAncestorHashes) {
 					// TODO : optimize this
