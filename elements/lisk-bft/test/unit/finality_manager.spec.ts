@@ -106,17 +106,17 @@ describe('finality_manager', () => {
 					validators: [],
 					ledger: [
 						{
-							height: 10,
+							height: 610,
 							prevotes: 67,
 							precommits: 0,
 						},
 						{
-							height: 11,
+							height: 611,
 							prevotes: 67,
 							precommits: 0,
 						},
 						{
-							height: 12,
+							height: 612,
 							prevotes: 66,
 							precommits: 0,
 						},
