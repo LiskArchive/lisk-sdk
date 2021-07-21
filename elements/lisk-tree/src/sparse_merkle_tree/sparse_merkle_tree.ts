@@ -379,12 +379,16 @@ export class SparseMerkleTree {
 				let isPresentInSiblingHashes = false;
 				let isPresentInAncestorHashes = false;
 				for (const i of siblingHashes) {
-					if (i.equals(nodeHash)) isPresentInSiblingHashes = true;
-					break;
+					if (i.equals(nodeHash)) {
+						isPresentInSiblingHashes = true;
+						break;
+					}
 				}
 				for (const i of ancestorHashes) {
-					if (i.equals(nodeHash)) isPresentInAncestorHashes = true;
-					break;
+					if (i.equals(nodeHash)) {
+						isPresentInAncestorHashes = true;
+						break;
+					}
 				}
 				if (!isPresentInSiblingHashes && !isPresentInAncestorHashes) {
 					// TODO : optimize this
@@ -414,9 +418,9 @@ export class SparseMerkleTree {
 				);
 				if (insertIndex === sortedQueries.length) sortedQueries.push(sp);
 				else {
-					const keyPrefix = bufferToBinaryString(sp.key).substring(0, sp.height);
+					const keyPrefix = binaryExpansion(sp.key, this.keyLength).substring(0, sp.height);
 					const query = sortedQueries[insertIndex];
-					if (!bufferToBinaryString(query.key).endsWith(keyPrefix, query.height))
+					if (!binaryExpansion(query.key, this.keyLength).endsWith(keyPrefix, query.height))
 						sortedQueries.splice(insertIndex, 0, sp);
 				}
 			} else {
