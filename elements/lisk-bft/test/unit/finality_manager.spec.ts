@@ -74,6 +74,7 @@ describe('finality_manager', () => {
 			finalityManager = new FinalityManager({
 				chain: chainStub,
 				finalizedHeight,
+				genesisHeight: 0,
 				threshold,
 			});
 		});
@@ -94,20 +95,39 @@ describe('finality_manager', () => {
 						new FinalityManager({
 							chain: chainStub,
 							finalizedHeight,
+							genesisHeight: 0,
 							threshold,
 						}),
 				).toThrow('Invalid number of validators for BFT property');
 			});
 
-			it('should initialize maxHeightPrevoted to the finalizedHeight', async () => {
-				const nonZeroFinalizedHeight = 10000000;
-				finalityManager = new FinalityManager({
-					chain: chainStub,
-					finalizedHeight: nonZeroFinalizedHeight,
-					threshold,
-				});
-				await expect(finalityManager.getMaxHeightPrevoted()).resolves.toEqual(
-					nonZeroFinalizedHeight,
+			it('should initialize maxHeightPrevoted to the the last maxHeightPrevoted', async () => {
+				const validatorLedger = {
+					validators: [],
+					ledger: [
+						{
+							height: 10,
+							prevotes: 67,
+							precommits: 0,
+						},
+						{
+							height: 11,
+							prevotes: 67,
+							precommits: 0,
+						},
+						{
+							height: 12,
+							prevotes: 66,
+							precommits: 0,
+						},
+					],
+				};
+				jest
+					.spyOn(chainStub.dataAccess, 'getConsensusState')
+					.mockResolvedValue(codec.encode(BFTVotingLedgerSchema, validatorLedger));
+				const lastMaxHeightPrevoted = 30;
+				await expect(finalityManager.getMaxHeightPrevoted(lastMaxHeightPrevoted)).resolves.toEqual(
+					lastMaxHeightPrevoted,
 				);
 			});
 		});
@@ -124,7 +144,7 @@ describe('finality_manager', () => {
 				}) as unknown) as StateStore;
 
 				const header = createFakeBlockHeader({
-					asset: { maxHeightPrevoted: 10 },
+					asset: { maxHeightPrevoted: 12 },
 				});
 
 				expect.assertions(1);
