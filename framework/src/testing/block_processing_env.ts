@@ -199,7 +199,9 @@ const createProcessableBlock = async (
 	const validator = await processor['_chain'].getValidator(nextTimestamp);
 	const passphrase = getPassphraseFromDefaultConfig(validator.address);
 	const seedReveal = await getHashOnion(processor, previousBlockHeader, passphrase);
-	const maxHeightPrevoted = await processor['_bft'].getMaxHeightPrevoted();
+	const maxHeightPrevoted = await processor['_bft'].getMaxHeightPrevoted(
+		previousBlockHeader.asset.maxHeightPrevoted,
+	);
 	const reward = processor['_chain'].calculateDefaultReward(previousBlockHeader.height + 1);
 	const maxHeightPreviouslyForged = await getMaxHeightPreviouslyForged(
 		processor,
