@@ -596,7 +596,9 @@ export class Forger {
 		const previousBlockID = previousBlock.header.id;
 		const forgerInfo = previouslyForgedMap.get(delegateAddress);
 		const maxHeightPreviouslyForged = forgerInfo?.height ?? 0;
-		const maxHeightPrevoted = await this._bftModule.getMaxHeightPrevoted();
+		const maxHeightPrevoted = await this._bftModule.getMaxHeightPrevoted(
+			previousBlock.header.asset?.maxHeightPrevoted,
+		);
 		const stateStore = await this._chainModule.newStateStore();
 		const reward = this._chainModule.calculateDefaultReward(height);
 		let size = 0;

@@ -109,6 +109,7 @@ export class Chain {
 	};
 
 	private _lastBlock: Block;
+	private readonly _genesisHeight: number;
 	private readonly _networkIdentifier: Buffer;
 	private readonly _blockRewardArgs: BlockRewardOptions;
 	private readonly _accountSchema: Schema;
@@ -170,6 +171,7 @@ export class Chain {
 			genesisBlockTimestamp: genesisBlock.header.timestamp,
 			interval: blockTime,
 		});
+		this._genesisHeight = genesisBlock.header.height;
 		this._blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
@@ -185,6 +187,10 @@ export class Chain {
 			minFeePerByte,
 			baseFees,
 		};
+	}
+
+	public get genesisHeight(): number {
+		return this._genesisHeight;
 	}
 
 	public get lastBlock(): Block {
