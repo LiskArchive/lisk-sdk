@@ -74,17 +74,17 @@ export class StateStore {
 		if (deleted) {
 			throw new NotFoundError(prefixedKey);
 		}
-		let persitedValue;
+		let persistedValue;
 		try {
-			persitedValue = await this._db.get(prefixedKey);
+			persistedValue = await this._db.get(prefixedKey);
 		} catch (error) {
 			if (error instanceof DBNotFoundError) {
 				throw new NotFoundError(prefixedKey);
 			}
 			throw error;
 		}
-		this._cache.cache(prefixedKey, persitedValue);
-		return copyBuffer(persitedValue);
+		this._cache.cache(prefixedKey, persistedValue);
+		return copyBuffer(persistedValue);
 	}
 
 	public async getWithSchema<T>(key: Buffer, schema: Schema): Promise<T> {

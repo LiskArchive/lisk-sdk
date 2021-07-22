@@ -60,7 +60,7 @@ export class CacheDB {
 		};
 	}
 
-	// cache key,value which already existed in persited data
+	// cache key,value which already existed in persisted data
 	public cache(key: Buffer, value: Buffer): void {
 		const strKey = key.toString('binary');
 		const copiedValue = copyBuffer(value);
