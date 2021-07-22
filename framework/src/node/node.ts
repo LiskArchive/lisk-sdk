@@ -503,6 +503,7 @@ export class Node {
 				networkIdentifier: this._networkIdentifier.toString('hex'),
 				lastBlockID: this._chain.lastBlock.header.id.toString('hex'),
 				height: this._chain.lastBlock.header.height,
+				genesisHeight: this._chain.genesisHeight,
 				finalizedHeight: this._bft.finalityManager.finalizedHeight,
 				syncing: this._synchronizer.isActive,
 				unconfirmedTransactions: this._transactionPool.getAll().length,
