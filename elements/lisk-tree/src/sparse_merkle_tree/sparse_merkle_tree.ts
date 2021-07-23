@@ -311,10 +311,7 @@ export class SparseMerkleTree {
 			};
 		}
 
-		if (
-			currentNode instanceof Leaf &&
-			currentNode.key.toString('hex') !== queryKey.toString('hex')
-		) {
+		if (!currentNode.key.equals(queryKey)) {
 			// exclusion proof
 			ancestorHashes.push(currentNode.hash); // in case the leaf is sibling to another node
 			return {
@@ -325,23 +322,15 @@ export class SparseMerkleTree {
 				value: currentNode.value,
 			};
 		}
-		if (currentNode instanceof Leaf && currentNode.key.equals(queryKey)) {
-			// inclusion proof
-			ancestorHashes.push(currentNode.hash); // in case the leaf is sibling to another node
-			return {
-				siblingHashes,
-				ancestorHashes,
-				binaryBitmap,
-				key: currentNode.key,
-				value: currentNode.value,
-			};
-		}
+
+		// inclusion proof
+		ancestorHashes.push(currentNode.hash); // in case the leaf is sibling to another node
 		return {
-			key: queryKey,
-			value: EMPTY_VALUE,
-			binaryBitmap: bufferToBinaryString(EMPTY_VALUE),
-			siblingHashes: [],
-			ancestorHashes: [],
+			siblingHashes,
+			ancestorHashes,
+			binaryBitmap,
+			key: currentNode.key,
+			value: currentNode.value,
 		};
 	}
 
