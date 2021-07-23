@@ -23,7 +23,7 @@ import {
 	TransactionExecuteContext,
 	VerifyStatus,
 	BlockVerifyContext,
-	VerifycationResult,
+	VerificationResult,
 	CommandVerifyContext,
 	CommandExecuteContext,
 } from './types';
@@ -31,14 +31,14 @@ import {
 export interface StateMachineCommand {
 	id: number;
 	schema: Schema;
-	verify?: <T = unknown>(ctx: CommandVerifyContext<T>) => Promise<VerifycationResult>;
+	verify?: <T = unknown>(ctx: CommandVerifyContext<T>) => Promise<VerificationResult>;
 	execute: <T = unknown>(ctx: CommandExecuteContext<T>) => Promise<void>;
 }
 
 export interface StateMachineModule {
 	id: number;
 	commands: StateMachineCommand[];
-	verifyTransaction?: (ctx: TransactionVerifyContext) => Promise<VerifycationResult>;
+	verifyTransaction?: (ctx: TransactionVerifyContext) => Promise<VerificationResult>;
 	afterGenesisBlockExecute?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
 	verifyBlock?: (ctx: BlockVerifyContext) => Promise<void>;
 	beforeBlockExecute?: (ctx: BlockExecuteContext) => Promise<void>;
@@ -75,7 +75,7 @@ export class StateMachine {
 		}
 	}
 
-	public async verifyTransaction(ctx: TransactionContext): Promise<VerifycationResult> {
+	public async verifyTransaction(ctx: TransactionContext): Promise<VerificationResult> {
 		const transactionContext = ctx.createTransactionVerifyContext();
 		try {
 			for (const mod of this._systemModules) {
@@ -94,17 +94,8 @@ export class StateMachine {
 					}
 				}
 			}
-			const targetModule = this._findModule(ctx.transaction.moduleID);
-			if (!targetModule) {
-				throw new Error(`Module with ID ${ctx.transaction.moduleID} is not registered.`);
-			}
-			// FIXME: Update assetID to commandID
-			const command = targetModule.commands.find(c => c.id === ctx.transaction.assetID);
-			if (!command) {
-				throw new Error(
-					`Module with ID ${ctx.transaction.moduleID} does not have command with ID ${ctx.transaction.assetID} registered.`,
-				);
-			}
+			// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
+			const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.assetID);
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
 			if (command.verify) {
 				const result = await command.verify(commandContext);
@@ -130,17 +121,8 @@ export class StateMachine {
 				await mod.beforeTransactionExecute(transactionContext);
 			}
 		}
-		const targetModule = this._findModule(ctx.transaction.moduleID);
-		if (!targetModule) {
-			throw new Error(`Module with ID ${ctx.transaction.moduleID} is not registered.`);
-		}
-		// FIXME: Update assetID to commandID
-		const command = targetModule.commands.find(c => c.id === ctx.transaction.assetID);
-		if (!command) {
-			throw new Error(
-				`Module with ID ${ctx.transaction.moduleID} does not have command with ID ${ctx.transaction.assetID} registered.`,
-			);
-		}
+		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
+		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.assetID);
 		// Execute command
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
 		await command.execute(commandContext);
@@ -159,7 +141,7 @@ export class StateMachine {
 	}
 
 	public async verifyBlock(ctx: BlockContext): Promise<void> {
-		const blockVerifyContext = ctx.createBlockVerifyExecuteContext();
+		const blockVerifyContext = ctx.getBlockVerifyExecuteContext();
 		for (const mod of this._systemModules) {
 			if (mod.verifyBlock) {
 				await mod.verifyBlock(blockVerifyContext);
@@ -173,7 +155,7 @@ export class StateMachine {
 	}
 
 	public async beforeExecuteBlock(ctx: BlockContext): Promise<void> {
-		const blockExecuteContext = ctx.createBlockExecuteContext();
+		const blockExecuteContext = ctx.getBlockExecuteContext();
 		for (const mod of this._systemModules) {
 			if (mod.beforeBlockExecute) {
 				await mod.beforeBlockExecute(blockExecuteContext);
@@ -187,7 +169,7 @@ export class StateMachine {
 	}
 
 	public async afterExecuteBlock(ctx: BlockContext): Promise<void> {
-		const blockExecuteContext = ctx.createBlockAfterExecuteContext();
+		const blockExecuteContext = ctx.getBlockAfterExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.afterBlockExecute) {
 				await mod.afterBlockExecute(blockExecuteContext);
@@ -203,13 +185,13 @@ export class StateMachine {
 	public async executeBlock(ctx: BlockContext): Promise<void> {
 		await this.beforeExecuteBlock(ctx);
 		for (const tx of ctx.transactions) {
-			const txContext = ctx.createTransactionContext(tx);
+			const txContext = ctx.getTransactionContext(tx);
 			const verifyResult = await this.verifyTransaction(txContext);
 			if (verifyResult.status !== VerifyStatus.OK) {
 				if (verifyResult.error) {
 					throw verifyResult.error;
 				}
-				throw new Error(`Invalid transaction. ID ${tx.id.toString('hex')}`);
+				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
 			}
 			await this.executeTransaction(txContext);
 		}
@@ -228,14 +210,29 @@ export class StateMachine {
 		return undefined;
 	}
 
+	private _getCommand(moduleID: number, commandID: number): StateMachineCommand {
+		const targetModule = this._findModule(moduleID);
+		if (!targetModule) {
+			throw new Error(`Module with ID ${moduleID} is not registered.`);
+		}
+		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
+		const command = targetModule.commands.find(c => c.id === commandID);
+		if (!command) {
+			throw new Error(
+				`Module with ID ${moduleID} does not have command with ID ${commandID} registered.`,
+			);
+		}
+		return command;
+	}
+
 	private _validateExistingModuleID(id: number): void {
 		const existingModule = this._modules.find(m => m.id === id);
 		if (existingModule) {
-			throw new Error(`Module ID ${id} is already registered.`);
+			throw new Error(`Module with ID ${id} is registered.`);
 		}
 		const existingSystemModule = this._systemModules.find(m => m.id === id);
 		if (existingSystemModule) {
-			throw new Error(`Module ID ${id} is already registered as a sytem module.`);
+			throw new Error(`Module with ID ${id} is registered as a system module.`);
 		}
 	}
 }

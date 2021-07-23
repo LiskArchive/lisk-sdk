@@ -15,16 +15,16 @@
 import { codec } from '@liskhq/lisk-codec';
 import { Validator } from '../types';
 import { validatorsSchema } from '../schema';
-import { CONSENSUS_STATE_VALIDATORS_KEY } from '../constants';
+import { DB_KEY_CONSENSUS_STATE_VALIDATORS } from '../db_keys';
 
 interface MinimalStateStore {
 	consensus: {
-		get: (key: string) => Promise<Buffer | undefined>;
+		get: (key: Buffer) => Promise<Buffer | undefined>;
 	};
 }
 
 export const getValidators = async (stateStore: MinimalStateStore): Promise<Validator[]> => {
-	const validatorsBuffer = await stateStore.consensus.get(CONSENSUS_STATE_VALIDATORS_KEY);
+	const validatorsBuffer = await stateStore.consensus.get(DB_KEY_CONSENSUS_STATE_VALIDATORS);
 	if (!validatorsBuffer) {
 		throw new Error('Validator set must exist');
 	}

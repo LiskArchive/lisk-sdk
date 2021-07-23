@@ -12,46 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { dataStructures } from '@liskhq/lisk-utils';
 import { BatchChain } from '@liskhq/lisk-db';
 import { StateDiff } from '../types';
-import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
 import { DataAccess } from '../data_access';
-import { CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '../constants';
-
-interface KeyValuePair {
-	[key: string]: Buffer | undefined;
-}
+import { concatDBKeys } from '../utils';
+import { DB_KEY_CONSENSUS_STATE, DB_KEY_CONSENSUS_STATE_FINALIZED_HEIGHT } from '../db_keys';
 
 export class ConsensusStateStore {
 	private readonly _name = 'ConsensusState';
-	private _data: KeyValuePair;
-	private _originalData: KeyValuePair;
-	private _updatedKeys: Set<string>;
-	private _originalUpdatedKeys: Set<string>;
+	private _data: dataStructures.BufferMap<Buffer>;
+	private _originalData: dataStructures.BufferMap<Buffer>;
+	private _updatedKeys: dataStructures.BufferSet;
+	private _originalUpdatedKeys: dataStructures.BufferSet;
 	private readonly _dataAccess: DataAccess;
-	private _initialValue: KeyValuePair;
+	private readonly _initialValue: dataStructures.BufferMap<Buffer>;
 
 	public constructor(dataAccess: DataAccess) {
 		this._dataAccess = dataAccess;
-		this._data = {};
-		this._originalData = {};
-		this._initialValue = {};
-		this._updatedKeys = new Set();
-		this._originalUpdatedKeys = new Set();
+		this._data = new dataStructures.BufferMap<Buffer>();
+		this._originalData = new dataStructures.BufferMap<Buffer>();
+		this._initialValue = new dataStructures.BufferMap<Buffer>();
+		this._updatedKeys = new dataStructures.BufferSet();
+		this._originalUpdatedKeys = new dataStructures.BufferSet();
 	}
 
 	public createSnapshot(): void {
-		this._originalData = { ...this._data };
-		this._originalUpdatedKeys = new Set(this._updatedKeys);
+		this._originalData = this._data.clone();
+		this._originalUpdatedKeys = this._updatedKeys.clone();
 	}
 
 	public restoreSnapshot(): void {
-		this._data = { ...this._originalData };
-		this._updatedKeys = new Set(this._originalUpdatedKeys);
+		this._data = this._originalData.clone();
+		this._updatedKeys = this._originalUpdatedKeys.clone();
 	}
 
-	public async get(key: string): Promise<Buffer | undefined> {
-		const value = this._data[key];
+	public async get(key: Buffer): Promise<Buffer | undefined> {
+		const value = this._data.get(key);
 
 		if (value) {
 			return value;
@@ -63,12 +60,12 @@ export class ConsensusStateStore {
 			return dbValue;
 		}
 		// Finalized height should not be stored as part of this diff because it cannot be undo
-		if (key !== CONSENSUS_STATE_FINALIZED_HEIGHT_KEY) {
-			this._initialValue[key] = dbValue;
+		if (key !== DB_KEY_CONSENSUS_STATE_FINALIZED_HEIGHT) {
+			this._initialValue.set(key, dbValue);
 		}
-		this._data[key] = dbValue;
+		this._data.set(key, dbValue);
 
-		return this._data[key];
+		return this._data.get(key);
 	}
 
 	public getOrDefault(): void {
@@ -80,8 +77,8 @@ export class ConsensusStateStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async set(key: string, value: Buffer): Promise<void> {
-		this._data[key] = value;
+	public async set(key: Buffer, value: Buffer): Promise<void> {
+		this._data.set(key, value);
 		this._updatedKeys.add(key);
 	}
 
@@ -93,17 +90,17 @@ export class ConsensusStateStore {
 		}
 
 		for (const key of Array.from(this._updatedKeys)) {
-			const dbKey = `${DB_KEY_CONSENSUS_STATE}:${key}`;
-			const updatedValue = this._data[key] as Buffer;
+			const dbKey = concatDBKeys(DB_KEY_CONSENSUS_STATE, key);
+			const updatedValue = this._data.get(key) as Buffer;
 			batch.put(dbKey, updatedValue);
 
 			// finalized height should never be saved to diff, since it will not changed
-			if (key === CONSENSUS_STATE_FINALIZED_HEIGHT_KEY) {
+			if (key.equals(DB_KEY_CONSENSUS_STATE_FINALIZED_HEIGHT)) {
 				continue;
 			}
 
 			// Save diff of changed state
-			const initialValue = this._initialValue[key];
+			const initialValue = this._initialValue.get(key);
 			if (initialValue !== undefined && !initialValue.equals(updatedValue)) {
 				stateDiff.updated.push({
 					key: dbKey,
