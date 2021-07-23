@@ -15,7 +15,7 @@
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { Endpoint } from '../../../../src/node/consensus/endpoints';
+import { NetworkEndpoint } from '../../../../src/node/consensus/network_endpoint';
 import {
 	getBlocksFromIdRequestSchema,
 	getHighestCommonBlockRequestSchema,
@@ -32,7 +32,7 @@ describe('p2p endpoint', () => {
 	const defaultPeerId = 'peer-id';
 	const defaultRateLimit = 10000;
 
-	let endpoint: Endpoint;
+	let endpoint: NetworkEndpoint;
 	let chain: Chain;
 	let network: Network;
 	let lastBlock: Block;
@@ -54,7 +54,7 @@ describe('p2p endpoint', () => {
 		network = ({
 			applyPenaltyOnPeer: jest.fn(),
 		} as unknown) as Network;
-		endpoint = new Endpoint({
+		endpoint = new NetworkEndpoint({
 			chain,
 			logger: loggerMock,
 			network,
@@ -70,6 +70,7 @@ describe('p2p endpoint', () => {
 			[...new Array(DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY + 1)].map(() =>
 				endpoint.handleRPCGetLastBlock(defaultPeerId),
 			);
+			// Act
 			jest.advanceTimersByTime(defaultRateLimit);
 
 			// Assert
@@ -93,6 +94,7 @@ describe('p2p endpoint', () => {
 			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
 				blockId: getRandomBytes(32),
 			});
+			// Act
 			[...new Array(DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY + 1)].map(async () =>
 				endpoint.handleRPCGetBlocksFromId(blockIds, defaultPeerId),
 			);
@@ -107,9 +109,11 @@ describe('p2p endpoint', () => {
 
 		it('should apply penalty on the peer if request data is invalid', async () => {
 			const invalidBytes = Buffer.from([244, 21, 21]);
+			// Act
 			await expect(
 				endpoint.handleRPCGetBlocksFromId(invalidBytes, defaultPeerId),
 			).rejects.toThrow();
+			// Assert
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
 				peerId: defaultPeerId,
 				penalty: 100,
@@ -117,10 +121,14 @@ describe('p2p endpoint', () => {
 		});
 
 		it('should apply penalty on the peer if request format is invalid', async () => {
+			// Arrange
 			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
 				blockId: getRandomBytes(1),
 			});
+			// Act
 			await expect(endpoint.handleRPCGetBlocksFromId(blockIds, defaultPeerId)).rejects.toThrow();
+
+			// Assert
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
 				peerId: defaultPeerId,
 				penalty: 100,
@@ -128,11 +136,14 @@ describe('p2p endpoint', () => {
 		});
 
 		it('should return blocks from next height', async () => {
+			// Arrange
 			const id = getRandomBytes(32);
 			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
 				blockId: id,
 			});
+			// Act
 			await endpoint.handleRPCGetBlocksFromId(blockIds, defaultPeerId);
+			// Assert
 			expect(chain.dataAccess.getBlockHeaderByID).toHaveBeenCalledWith(id);
 			expect(chain.dataAccess.getBlocksByHeightBetween).toHaveBeenCalledWith(3, 105);
 		});
@@ -186,7 +197,7 @@ describe('p2p endpoint', () => {
 				(chain.dataAccess.getHighestCommonBlockHeader as jest.Mock).mockResolvedValue(validBlock);
 			});
 
-			it('should return the result', async () => {
+			it('should return the highest common block header', async () => {
 				// Arrange
 				const ids = [id];
 				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });

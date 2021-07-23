@@ -45,7 +45,7 @@ const DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY = 10;
 const DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY = 10;
 const DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY = 100;
 
-export class Endpoint {
+export class NetworkEndpoint {
 	private readonly _logger: Logger;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
@@ -78,8 +78,9 @@ export class Endpoint {
 				{
 					err: error as Error,
 					req: data,
+					peerID: peerId,
 				},
-				'getblocksfromid request validation failed',
+				`${NETWORK_RPC_GET_BLOCKS_FROM_ID} response failed on decoding`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -95,8 +96,9 @@ export class Endpoint {
 				{
 					err: error,
 					req: data,
+					peerID: peerId,
 				},
-				'getblocksfromid request validation failed',
+				`${NETWORK_RPC_GET_BLOCKS_FROM_ID} response failed on validation`,
 			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
@@ -174,6 +176,7 @@ export class Endpoint {
 			? this._rateTracker[procedure][peerId] + 1
 			: 1;
 		if (this._rateTracker[procedure][peerId] > limit) {
+			this._logger.debug({ peerId, penalty: 10 }, 'Adding penalty on peer for exceeding rate limit.');
 			this._network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 10,

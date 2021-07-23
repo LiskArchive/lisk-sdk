@@ -31,7 +31,7 @@ import { EventQueue } from '../state_machine/event_queue';
 import { BlockExecutor } from './synchronizer/type';
 import { GenesisBlockContext } from '../state_machine/genesis_block_context';
 import { Network } from '../network';
-import { Endpoint } from './endpoints';
+import { NetworkEndpoint } from './network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
 import { BlockHeader, StateStore } from '../state_machine/types';
 import {
@@ -42,11 +42,14 @@ import {
 	NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 	NETWORK_RPC_GET_LAST_BLOCK,
 } from './constants';
+import { GenesisConfig } from '../../types';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
 	chain: Chain;
 	network: Network;
+	genesisHeight: number;
+	genesisConfig: GenesisConfig;
 }
 
 interface InitArgs {
@@ -81,14 +84,15 @@ export class Consensus {
 	private readonly _network: Network;
 	private readonly _mutex: jobHandlers.Mutex;
 
-	// init paramters
+	// init parameters
 	private _logger!: Logger;
 	// private _db!: KVStore;
-	private _endpoint!: Endpoint;
+	private _endpoint!: NetworkEndpoint;
 	private _synchronizer!: Synchronizer;
 
 	// TODO: migrate to module
 	private readonly _bft: BFT;
+	private readonly _genesisHeight: number;
 
 	private _stop = false;
 
@@ -98,17 +102,18 @@ export class Consensus {
 		this._chain = args.chain;
 		this._network = args.network;
 		this._mutex = new jobHandlers.Mutex();
+		this._genesisHeight = args.genesisHeight;
 		this._bft = new BFT({
 			chain: this._chain,
-			genesisHeight: 0,
-			threshold: 23,
+			genesisHeight: args.genesisHeight,
+			threshold: args.genesisConfig.bftThreshold,
 		});
 	}
 
 	public async init(args: InitArgs): Promise<void> {
 		this._logger = args.logger;
 		// this._db = args.db;
-		this._endpoint = new Endpoint({
+		this._endpoint = new NetworkEndpoint({
 			chain: this._chain,
 			logger: this._logger,
 			network: this._network,
@@ -151,7 +156,7 @@ export class Consensus {
 				id: args.genesisBlock.header.id,
 				transactionRoot: args.genesisBlock.header.transactionRoot,
 			},
-			'Initializing consensus component',
+			'Initializing consensus component.',
 		);
 		const genesisExist = await this._chain.genesisBlockExist(
 			(args.genesisBlock as unknown) as GenesisBlock,
@@ -173,7 +178,7 @@ export class Consensus {
 			});
 			await this._stateMachine.executeGenesisBlock(ctx);
 			// TODO: saveBlock should accept both genesis and normal block
-			await this._chain.saveBlock((args.genesisBlock as unknown) as Block, stateStore, 0);
+			await this._chain.saveBlock((args.genesisBlock as unknown) as Block, stateStore, this._genesisHeight);
 		}
 		await this._chain.init();
 		await this._bft.init(stateStore);
@@ -269,7 +274,7 @@ export class Consensus {
 		}
 	}
 
-	// excecute inter block passed from generator
+	// execute inter block passed from generator
 	public async execute(block: Block): Promise<void> {
 		await this._mutex.runExclusive(async () => {
 			await this._executeValidated(block);

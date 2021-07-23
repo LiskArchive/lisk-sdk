@@ -88,7 +88,7 @@ export abstract class BaseSynchronizer {
 		}; // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
 		if (!data || !data.length) {
-			throw new Error('Peer did not respond with block');
+			throw new Error(`Peer ${peerId} did not respond with block`);
 		}
 		const encodedData = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
 		return encodedData.blocks.map(block => this._chain.dataAccess.decode(block));

@@ -17,7 +17,7 @@ import { Block, Chain } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import { Consensus } from '../../../../src/node/consensus/consensus';
-import { Endpoint } from '../../../../src/node/consensus/endpoints';
+import { NetworkEndpoint } from '../../../../src/node/consensus/network_endpoint';
 import { Synchronizer } from '../../../../src/node/consensus/synchronizer';
 import {
 	ApplyPenaltyAndRestartError,
@@ -69,6 +69,8 @@ describe('consensus', () => {
 			chain,
 			network,
 			stateMachine,
+			genesisConfig: {} as any,
+			genesisHeight: 0,
 		});
 		jest.spyOn(consensus['_bft'], 'init').mockResolvedValue();
 	});
@@ -91,7 +93,7 @@ describe('consensus', () => {
 				db: {} as KVStore,
 				genesisBlock: genesis,
 			});
-			expect(consensus['_endpoint']).toBeInstanceOf(Endpoint);
+			expect(consensus['_endpoint']).toBeInstanceOf(NetworkEndpoint);
 		});
 
 		it('should register endpoints', async () => {
@@ -480,7 +482,7 @@ describe('consensus', () => {
 			);
 		});
 
-		it('should veryfy block using state machine', () => {
+		it('should verify block using state machine', () => {
 			expect(stateMachine.verifyBlock).toHaveBeenCalledTimes(1);
 		});
 
