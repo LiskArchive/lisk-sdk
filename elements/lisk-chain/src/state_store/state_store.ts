@@ -92,6 +92,18 @@ export class StateStore {
 		return codec.decode<T>(schema, value);
 	}
 
+	public async has(key: Buffer): Promise<boolean> {
+		try {
+			await this.get(key);
+			return true;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return false;
+		}
+	}
+
 	public async set(key: Buffer, value: Buffer): Promise<void> {
 		const prefixedKey = this._getKey(key);
 		// 1. it does exist in cache just needs update => update
@@ -211,7 +223,7 @@ export class StateStore {
 		this._snapshot = this._cache.copy();
 	}
 
-	public revertSnapshot(): void {
+	public restoreSnapshot(): void {
 		if (!this._snapshot) {
 			throw new Error('Snapshot must be taken first before reverting');
 		}

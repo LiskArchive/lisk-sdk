@@ -84,7 +84,7 @@ interface BlockHeaderAttrs {
 	readonly height: number;
 	readonly generatorAddress: Buffer;
 	readonly previousBlockID: Buffer;
-	readonly timestamp?: number;
+	readonly timestamp: number;
 	readonly stateRoot?: Buffer;
 	readonly transactionRoot?: Buffer;
 	readonly assets: ReadonlyArray<BlockHeaderAsset>;
@@ -110,7 +110,7 @@ export class BlockHeader {
 	public readonly height: number;
 	public readonly generatorAddress: Buffer;
 	public readonly previousBlockID: Buffer;
-	private _timestamp?: number;
+	public readonly timestamp: number;
 	private _stateRoot?: Buffer;
 	private _transactionRoot?: Buffer;
 	private readonly _assets: BlockHeaderAsset[];
@@ -133,7 +133,7 @@ export class BlockHeader {
 		this.height = height;
 		this.generatorAddress = generatorAddress;
 		this.previousBlockID = previousBlockID;
-		this._timestamp = timestamp;
+		this.timestamp = timestamp;
 		this._stateRoot = stateRoot;
 		this._transactionRoot = transactionRoot;
 		this._assets = objects.cloneDeep<BlockHeaderAsset[]>([...assets]);
@@ -144,15 +144,6 @@ export class BlockHeader {
 
 	public static fromBytes(value: Buffer): BlockHeader {
 		return new BlockHeader(codec.decode<BlockHeaderAttrs>(blockHeaderSchema, value));
-	}
-
-	public get timestamp() {
-		return this._timestamp;
-	}
-
-	public set timestamp(val) {
-		this._timestamp = val;
-		this._resetComputedValues();
 	}
 
 	public get stateRoot() {
@@ -202,15 +193,13 @@ export class BlockHeader {
 		return blockHeaderBytes;
 	}
 
-	public sign(networkIdentifier: Buffer, privateKey: Buffer) {
+	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {
 		this._signature = signDataWithPrivateKey(
 			TAG_BLOCK_HEADER,
 			networkIdentifier,
 			this.getSigningBytes(),
 			privateKey,
 		);
-
-		return this._signature;
 	}
 
 	public getAsset(moduleID: number): Buffer | undefined {

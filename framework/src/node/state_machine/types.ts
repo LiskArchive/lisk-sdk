@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Transaction } from '@liskhq/lisk-chain';
+import { IterateOptions } from '@liskhq/lisk-chain/dist-node/state_store';
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from '../../logger';
 import { EventQueue } from './event_queue';
@@ -26,24 +27,14 @@ export interface ImmutableSubStore {
 	get(key: Buffer): Promise<Buffer>;
 	getWithSchema<T>(key: Buffer, schema: Schema): Promise<T>;
 	has(key: Buffer): Promise<boolean>;
-	iterate(input: {
-		start: Buffer;
-		end: Buffer;
-		limit?: number;
-		reverse?: boolean;
-	}): Promise<Buffer[]>;
-	iterateWithSchema<T>(input: {
-		start: Buffer;
-		end: Buffer;
-		limit?: number;
-		reverse?: boolean;
-	}): Promise<T[]>;
+	iterate(input: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]>;
+	iterateWithSchema<T>(input: IterateOptions, schema: Schema): Promise<{ key: Buffer; value: T }[]>;
 }
 
 export interface SubStore extends ImmutableSubStore {
-	del(key: Buffer): boolean;
-	set(key: Buffer, value: Buffer): void;
-	setWithSchema<T>(key: Buffer, value: T, schema: Schema): void;
+	del(key: Buffer): Promise<void>;
+	set(key: Buffer, value: Buffer): Promise<void>;
+	setWithSchema(key: Buffer, value: Record<string, unknown>, schema: Schema): Promise<void>;
 }
 
 export interface ImmutableAPIContext {
@@ -68,7 +59,7 @@ export interface BlockHeader {
 	timestamp: number;
 	previousBlockID: Buffer;
 	generatorAddress: Buffer;
-	getAsset: (moduleID: number) => Buffer;
+	getAsset: (moduleID: number) => Buffer | undefined;
 }
 
 export interface VerificationResult {

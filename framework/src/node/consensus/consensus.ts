@@ -150,6 +150,11 @@ export class Consensus {
 		this._network.registerEndpoint(NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK, async ({ data, peerId }) =>
 			this._endpoint.handleRPCGetHighestCommonBlock(data, peerId),
 		);
+		this._network.registerHandler(NETWORK_EVENT_POST_BLOCK, ({ data, peerId }) => {
+			this.onBlockReceive(data, peerId).catch(err => {
+				this._logger.error({ err: err as Error, peerId }, 'Fail to handle received block');
+			});
+		});
 
 		this._logger.debug(
 			{
@@ -389,6 +394,13 @@ export class Consensus {
 			);
 			await this._validate(block);
 			await this._executeValidated(block);
+
+			this._network.applyNodeInfo({
+				height: block.header.height,
+				lastBlockID: block.header.id,
+				maxHeightPrevoted: block.header.asset.maxHeightPrevoted,
+				blockVersion: block.header.version,
+			});
 		});
 	}
 

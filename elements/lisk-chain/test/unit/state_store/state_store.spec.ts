@@ -305,12 +305,12 @@ describe('state store', () => {
 			await expect(subStore.get(existingKey)).rejects.toThrow(NotFoundError);
 		});
 
-		it('should revert to snapshot value when the restore is called', async () => {
+		it('should restore to snapshot value when the restore is called', async () => {
 			const subStore = stateStore.getStore(moduleID, storePrefix);
 			subStore.createSnapshot();
 			await subStore.set(Buffer.from([0]), getRandomBytes(64));
 			await subStore.del(existingKey);
-			subStore.revertSnapshot();
+			subStore.restoreSnapshot();
 
 			await expect(subStore.get(Buffer.from([0]))).rejects.toThrow(NotFoundError);
 			await expect(subStore.get(existingKey)).resolves.toEqual(existingValue);
