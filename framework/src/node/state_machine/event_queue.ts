@@ -12,11 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+interface Event {
+	key: string;
+	value: Buffer;
+};
+
 export class EventQueue {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public add(_key: string, _value: Buffer): void {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public createSnapshot(): void {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public restoreSnapshot(): void {}
+	private _events: Event[];
+	private _originalEvents: Event[];
+
+	public constructor() {
+		this._events = [];
+		this._originalEvents = [];
+	}
+
+	public add(key: string, value: Buffer): void {
+		this._events.push({ key, value });
+	}
+
+	public createSnapshot(): void {
+		this._originalEvents = this._events.map(eventData => ({ ...eventData }));
+	}
+
+	public restoreSnapshot(): void {
+		this._events = this._originalEvents;
+		this._originalEvents = [];
+	}
+
+	public getEvents(): Event[] {
+		return this._events;
+	}
 }
