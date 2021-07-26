@@ -15,73 +15,73 @@
 import { EventQueue } from '../../../../src/node/state_machine/event_queue';
 
 describe('EventQueue', () => {
-  const events = [
-    { key: 'moduleA:beforeX', value: Buffer.from('Module A Before X started', 'utf-8') },
-    { key: 'moduleB:beforeX', value: Buffer.from('Module B Before X started', 'utf-8') },
-    { key: 'moduleB:afterX', value: Buffer.from('Module B Before X end', 'utf-8') },
-    { key: 'moduleA:afterX', value: Buffer.from('Module A Before X end', 'utf-8') },
-  ];
-  let eventQueue: EventQueue;
+	const events = [
+		{ key: 'moduleA:beforeX', value: Buffer.from('Module A Before X started', 'utf-8') },
+		{ key: 'moduleB:beforeX', value: Buffer.from('Module B Before X started', 'utf-8') },
+		{ key: 'moduleB:afterX', value: Buffer.from('Module B Before X end', 'utf-8') },
+		{ key: 'moduleA:afterX', value: Buffer.from('Module A Before X end', 'utf-8') },
+	];
+	let eventQueue: EventQueue;
 
-  beforeEach(() => {
-    eventQueue = new EventQueue();
-  });
+	beforeEach(() => {
+		eventQueue = new EventQueue();
+	});
 
-  it('should expose interface for add, createSnapshot, restoreSnapshot, and getEvents', () => {
-    expect(eventQueue.add).toBeFunction();
-    expect(eventQueue.createSnapshot).toBeFunction();
-    expect(eventQueue.restoreSnapshot).toBeFunction();
-    return expect(eventQueue.getEvents).toBeFunction();
-  });
+	it('should expose interface for add, createSnapshot, restoreSnapshot, and getEvents', () => {
+		expect(eventQueue.add).toBeFunction();
+		expect(eventQueue.createSnapshot).toBeFunction();
+		expect(eventQueue.restoreSnapshot).toBeFunction();
+		return expect(eventQueue.getEvents).toBeFunction();
+	});
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  it('should be able to add events to queue', async () => {
-    events.map(e => eventQueue.add(e.key, e.value));
-    const addedEvents = eventQueue.getEvents();
+	// eslint-disable-next-line @typescript-eslint/require-await
+	it('should be able to add events to queue', async () => {
+		events.map(e => eventQueue.add(e.key, e.value));
+		const addedEvents = eventQueue.getEvents();
 
-    addedEvents.forEach((e, i) => {
-      expect(e.key).toEqual(events[i].key);
-      expect(e.value.equals(events[i].value)).toBeTrue();
-    });
-    return expect(addedEvents.length === events.length);
-  });
+		addedEvents.forEach((e, i) => {
+			expect(e.key).toEqual(events[i].key);
+			expect(e.value.equals(events[i].value)).toBeTrue();
+		});
+		return expect(addedEvents.length === events.length);
+	});
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  it('should be able to createSnapshot for events', async () => {
-    events.map(e => eventQueue.add(e.key, e.value));
-    const originalEvents = eventQueue['_originalEvents'];
-    eventQueue.createSnapshot();
+	// eslint-disable-next-line @typescript-eslint/require-await
+	it('should be able to createSnapshot for events', async () => {
+		events.map(e => eventQueue.add(e.key, e.value));
+		const originalEvents = eventQueue['_originalEvents'];
+		eventQueue.createSnapshot();
 
-    originalEvents.forEach((e, i) => {
-      expect(e.key).toEqual(events[i].key);
-      expect(e.value.equals(events[i].value)).toBeTrue();
-    });
-    return expect(originalEvents.length === events.length);
-  });
+		originalEvents.forEach((e, i) => {
+			expect(e.key).toEqual(events[i].key);
+			expect(e.value.equals(events[i].value)).toBeTrue();
+		});
+		return expect(originalEvents.length === events.length);
+	});
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  it('should be able to restoreSnapshot for events', async () => {
-    events.map(e => eventQueue.add(e.key, e.value));
-    const addedEvents = eventQueue.getEvents();
-    eventQueue.restoreSnapshot();
+	// eslint-disable-next-line @typescript-eslint/require-await
+	it('should be able to restoreSnapshot for events', async () => {
+		events.map(e => eventQueue.add(e.key, e.value));
+		const addedEvents = eventQueue.getEvents();
+		eventQueue.restoreSnapshot();
 
-    expect(eventQueue['_originalEvents']).toBeEmpty();
-    addedEvents.forEach((e, i) => {
-      expect(e.key).toEqual(events[i].key);
-      expect(e.value.equals(events[i].value)).toBeTrue();
-    });
-    return expect(addedEvents.length === events.length);
-  });
+		expect(eventQueue['_originalEvents']).toBeEmpty();
+		addedEvents.forEach((e, i) => {
+			expect(e.key).toEqual(events[i].key);
+			expect(e.value.equals(events[i].value)).toBeTrue();
+		});
+		return expect(addedEvents.length === events.length);
+	});
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  it('should be able to getEvents added', async () => {
-    events.map(e => eventQueue.add(e.key, e.value));
-    const addedEvents = eventQueue.getEvents();
+	// eslint-disable-next-line @typescript-eslint/require-await
+	it('should be able to getEvents added', async () => {
+		events.map(e => eventQueue.add(e.key, e.value));
+		const addedEvents = eventQueue.getEvents();
 
-    addedEvents.forEach((e, i) => {
-      expect(e.key).toEqual(events[i].key);
-      expect(e.value.equals(events[i].value)).toBeTrue();
-    });
-    return expect(addedEvents.length === events.length);
-  });
+		addedEvents.forEach((e, i) => {
+			expect(e.key).toEqual(events[i].key);
+			expect(e.value.equals(events[i].value)).toBeTrue();
+		});
+		return expect(addedEvents.length === events.length);
+	});
 });

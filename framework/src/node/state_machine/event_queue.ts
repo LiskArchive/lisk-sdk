@@ -15,7 +15,7 @@
 interface Event {
 	key: string;
 	value: Buffer;
-};
+}
 
 export class EventQueue {
 	private _events: Event[];
