@@ -178,7 +178,11 @@ export class Consensus {
 			});
 			await this._stateMachine.executeGenesisBlock(ctx);
 			// TODO: saveBlock should accept both genesis and normal block
-			await this._chain.saveBlock((args.genesisBlock as unknown) as Block, stateStore, this._genesisHeight);
+			await this._chain.saveBlock(
+				(args.genesisBlock as unknown) as Block,
+				stateStore,
+				this._genesisHeight,
+			);
 		}
 		await this._chain.init();
 		await this._bft.init(stateStore);

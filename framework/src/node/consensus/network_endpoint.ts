@@ -176,7 +176,10 @@ export class NetworkEndpoint {
 			? this._rateTracker[procedure][peerId] + 1
 			: 1;
 		if (this._rateTracker[procedure][peerId] > limit) {
-			this._logger.debug({ peerId, penalty: 10 }, 'Adding penalty on peer for exceeding rate limit.');
+			this._logger.debug(
+				{ peerId, penalty: 10 },
+				'Adding penalty on peer for exceeding rate limit.',
+			);
 			this._network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 10,
