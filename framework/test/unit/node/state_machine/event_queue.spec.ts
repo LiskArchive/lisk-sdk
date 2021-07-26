@@ -34,8 +34,7 @@ describe('EventQueue', () => {
 		return expect(eventQueue.getEvents).toBeFunction();
 	});
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	it('should be able to add events to queue', async () => {
+	it('should be able to add events to queue', () => {
 		events.map(e => eventQueue.add(e.key, e.value));
 		const addedEvents = eventQueue.getEvents();
 
@@ -43,24 +42,22 @@ describe('EventQueue', () => {
 			expect(e.key).toEqual(events[i].key);
 			expect(e.value.equals(events[i].value)).toBeTrue();
 		});
-		return expect(addedEvents.length === events.length);
+		return expect(addedEvents).toHaveLength(events.length);
 	});
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	it('should be able to createSnapshot for events', async () => {
+	it('should be able to createSnapshot for events', () => {
 		events.map(e => eventQueue.add(e.key, e.value));
-		const originalEvents = eventQueue['_originalEvents'];
 		eventQueue.createSnapshot();
+		const originalEvents = eventQueue['_originalEvents'];
 
 		originalEvents.forEach((e, i) => {
 			expect(e.key).toEqual(events[i].key);
 			expect(e.value.equals(events[i].value)).toBeTrue();
 		});
-		return expect(originalEvents.length === events.length);
+		return expect(originalEvents).toHaveLength(events.length);
 	});
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	it('should be able to restoreSnapshot for events', async () => {
+	it('should be able to restoreSnapshot for events', () => {
 		events.map(e => eventQueue.add(e.key, e.value));
 		const addedEvents = eventQueue.getEvents();
 		eventQueue.restoreSnapshot();
@@ -70,11 +67,10 @@ describe('EventQueue', () => {
 			expect(e.key).toEqual(events[i].key);
 			expect(e.value.equals(events[i].value)).toBeTrue();
 		});
-		return expect(addedEvents.length === events.length);
+		return expect(addedEvents).toHaveLength(events.length);
 	});
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	it('should be able to getEvents added', async () => {
+	it('should be able to getEvents added', () => {
 		events.map(e => eventQueue.add(e.key, e.value));
 		const addedEvents = eventQueue.getEvents();
 
@@ -82,6 +78,6 @@ describe('EventQueue', () => {
 			expect(e.key).toEqual(events[i].key);
 			expect(e.value.equals(events[i].value)).toBeTrue();
 		});
-		return expect(addedEvents.length === events.length);
+		return expect(addedEvents).toHaveLength(events.length);
 	});
 });
