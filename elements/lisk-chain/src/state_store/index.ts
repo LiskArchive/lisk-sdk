@@ -13,4 +13,4 @@
  */
 
 export { NotFoundError } from './errors';
-export { StateStore, IterationOptions } from './state_store';
+export { StateStore, IterateOptions } from './state_store';

@@ -23,7 +23,7 @@ import { copyBuffer } from './utils';
 // TODO: Update when other db keys are defined
 export const DB_PREFIX_STATE_STORE = Buffer.from([5]);
 
-export interface IterationOptions {
+export interface IterateOptions {
 	start: Buffer;
 	end: Buffer;
 	limit?: number;
@@ -127,7 +127,7 @@ export class StateStore {
 		this._cache.del(prefixedKey);
 	}
 
-	public async iterate(options: IterationOptions): Promise<KeyValue[]> {
+	public async iterate(options: IterateOptions): Promise<KeyValue[]> {
 		const start = this._getKey(options.start);
 		const end = this._getKey(options.end);
 		const stream = this._db.createReadStream({
@@ -197,7 +197,7 @@ export class StateStore {
 	}
 
 	public async iterateWithSchema<T>(
-		options: IterationOptions,
+		options: IterateOptions,
 		schema: Schema,
 	): Promise<DecodedKeyValue<T>[]> {
 		const result = await this.iterate(options);
