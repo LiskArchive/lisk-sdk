@@ -17,6 +17,11 @@ import { BlockHeader } from './block_header';
 import { blockSchema } from './schema';
 import { Transaction } from './transaction';
 
+interface BlockAttrs {
+	header: Buffer;
+	payload: Buffer[];
+}
+
 export class Block {
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(public readonly header: BlockHeader, public readonly payload: Transaction[]) {
@@ -24,10 +29,7 @@ export class Block {
 	}
 
 	public static fromBytes(value: Buffer): Block {
-		const { header, payload } = codec.decode<{ header: Buffer; payload: Buffer[] }>(
-			blockSchema,
-			value,
-		);
+		const { header, payload } = codec.decode<BlockAttrs>(blockSchema, value);
 
 		return new Block(
 			BlockHeader.fromBytes(header),
