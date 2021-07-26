@@ -25,6 +25,8 @@ import {
 	EVENT_NEW_BLOCK,
 	EVENT_VALIDATORS_CHANGED,
 	CONSENSUS_STATE_VALIDATORS_KEY,
+	GENESIS_BLOCK_VERSION,
+	CONSENSUS_STATE_GENESIS_INFO,
 } from './constants';
 import { DataAccess } from './data_access';
 import { Slots } from './slots';
@@ -36,6 +38,7 @@ import {
 	GenesisBlock,
 	AccountSchema,
 	Validator,
+	GenesisInfo,
 } from './types';
 import { getAccountSchemaWithDefault } from './utils/account';
 import {
@@ -58,6 +61,7 @@ import {
 	stateDiffSchema,
 	getRegisteredBlockAssetSchema,
 	validatorsSchema,
+	genesisInfoSchema,
 } from './schema';
 import { Transaction } from './transaction';
 
@@ -105,9 +109,9 @@ export class Chain {
 	};
 
 	private _lastBlock: Block;
+	private readonly _genesisHeight: number;
 	private readonly _networkIdentifier: Buffer;
 	private readonly _blockRewardArgs: BlockRewardOptions;
-	private readonly _genesisBlock: GenesisBlock;
 	private readonly _accountSchema: Schema;
 	private readonly _blockAssetSchema: {
 		readonly [key: number]: Schema;
@@ -163,11 +167,11 @@ export class Chain {
 
 		this._lastBlock = (genesisBlock as unknown) as Block;
 		this._networkIdentifier = networkIdentifier;
-		this._genesisBlock = genesisBlock;
 		this.slots = new Slots({
 			genesisBlockTimestamp: genesisBlock.header.timestamp,
 			interval: blockTime,
 		});
+		this._genesisHeight = genesisBlock.header.height;
 		this._blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
@@ -185,16 +189,16 @@ export class Chain {
 		};
 	}
 
+	public get genesisHeight(): number {
+		return this._genesisHeight;
+	}
+
 	public get lastBlock(): Block {
 		return this._lastBlock;
 	}
 
 	public get numberOfValidators(): number {
 		return this._numberOfValidators;
-	}
-
-	public get genesisBlock(): GenesisBlock {
-		return this._genesisBlock;
 	}
 
 	public get accountSchema(): Schema {
@@ -205,7 +209,7 @@ export class Chain {
 		return this._blockAssetSchema;
 	}
 
-	public async init(): Promise<void> {
+	public async init(genesisBlock: GenesisBlock): Promise<void> {
 		let storageLastBlock: Block;
 		try {
 			storageLastBlock = await this.dataAccess.getLastBlock();
@@ -213,8 +217,21 @@ export class Chain {
 			throw new Error('Failed to load last block');
 		}
 
-		if (storageLastBlock.header.height !== this.genesisBlock.header.height) {
+		if (storageLastBlock.header.height !== genesisBlock.header.height) {
 			await this._cacheBlockHeaders(storageLastBlock);
+		}
+		// TODO: remove on next version.
+		// If there is no genesis block info stored, saves on consensus state
+		// However, this should be done in apply genesis block hook below for fresh node
+		const genesisInfo = await this._getGenesisInfo();
+		if (!genesisInfo) {
+			await this.dataAccess.setConsensusState(
+				CONSENSUS_STATE_GENESIS_INFO,
+				codec.encode(genesisInfoSchema, {
+					height: genesisBlock.header.height,
+					initRounds: genesisBlock.header.asset.initRounds,
+				}),
+			);
 		}
 
 		const validators = await this.getValidators();
@@ -238,8 +255,9 @@ export class Chain {
 	}
 
 	public async newStateStore(skipLastHeights = 0): Promise<StateStore> {
+		const genesisInfo = await this._getGenesisInfo();
 		const fromHeight = Math.max(
-			0,
+			genesisInfo?.height ?? 0,
 			this._lastBlock.header.height - this.numberOfValidators * 3 - skipLastHeights,
 		);
 		const toHeight = Math.max(this._lastBlock.header.height - skipLastHeights, 1);
@@ -262,14 +280,7 @@ export class Chain {
 	}
 
 	public async genesisBlockExist(genesisBlock: GenesisBlock): Promise<boolean> {
-		let matchingGenesisBlock: BlockHeader | undefined;
-		try {
-			matchingGenesisBlock = await this.dataAccess.getBlockHeaderByID(genesisBlock.header.id);
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-		}
+		const matchingGenesisBlock = await this.dataAccess.blockHeaderExists(genesisBlock.header.id);
 		let lastBlockHeader: BlockHeader | undefined;
 		try {
 			lastBlockHeader = await this.dataAccess.getLastBlockHeader();
@@ -308,6 +319,13 @@ export class Chain {
 		await stateStore.consensus.set(
 			CONSENSUS_STATE_VALIDATORS_KEY,
 			codec.encode(validatorsSchema, { validators: initialValidators }),
+		);
+		await stateStore.consensus.set(
+			CONSENSUS_STATE_GENESIS_INFO,
+			codec.encode(genesisInfoSchema, {
+				height: block.header.height,
+				initRounds: block.header.asset.initRounds,
+			}),
 		);
 		this._numberOfValidators = block.header.asset.initDelegates.length;
 	}
@@ -385,7 +403,7 @@ export class Chain {
 		stateStore: StateStore,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		if (block.header.version === this.genesisBlock.header.version) {
+		if (block.header.version === GENESIS_BLOCK_VERSION) {
 			throw new Error('Cannot delete genesis block');
 		}
 		let secondLastBlock: Block;
@@ -431,11 +449,10 @@ export class Chain {
 		stateStore: StateStore,
 		blockHeader: BlockHeader,
 	): Promise<void> {
-		if (this._getLastBootstrapHeight() > blockHeader.height) {
+		const lastBootstrapHeight = await this._getLastBootstrapHeight();
+		if (lastBootstrapHeight > blockHeader.height) {
 			debug(
-				`Skipping updating validator since current height ${
-					blockHeader.height
-				} is lower than last bootstrap height ${this._getLastBootstrapHeight()}`,
+				`Skipping updating validator since current height ${blockHeader.height} is lower than last bootstrap height ${lastBootstrapHeight}`,
 			);
 			return;
 		}
@@ -481,10 +498,19 @@ export class Chain {
 		}
 	}
 
-	private _getLastBootstrapHeight(): number {
-		return (
-			this._numberOfValidators * this._genesisBlock.header.asset.initRounds +
-			this._genesisBlock.header.height
-		);
+	private async _getLastBootstrapHeight(): Promise<number> {
+		const genesisInfo = await this._getGenesisInfo();
+		if (!genesisInfo) {
+			throw new Error('genesis info not stored');
+		}
+		return this._numberOfValidators * genesisInfo.initRounds + genesisInfo.height;
+	}
+
+	private async _getGenesisInfo(): Promise<GenesisInfo | undefined> {
+		const genesisInfoBytes = await this.dataAccess.getConsensusState(CONSENSUS_STATE_GENESIS_INFO);
+		if (!genesisInfoBytes) {
+			return undefined;
+		}
+		return codec.decode<GenesisInfo>(genesisInfoSchema, genesisInfoBytes);
 	}
 }

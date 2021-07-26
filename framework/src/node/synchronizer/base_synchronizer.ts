@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { EventEmitter } from 'events';
 import { Logger } from '../../logger';
@@ -23,6 +24,7 @@ import {
 	getBlocksFromIdRequestSchema,
 	getHighestCommonBlockRequestSchema,
 	getBlocksFromIdResponseSchema,
+	getHighestCommonBlockResponseSchema,
 } from '../transport/schemas';
 
 export const EVENT_SYNCHRONIZER_SYNC_REQUIRED = 'EVENT_SYNCHRONIZER_SYNC_REQUIRED';
@@ -96,13 +98,15 @@ export abstract class BaseSynchronizer {
 			peerId,
 			data: blockIds,
 		})) as {
-			data: Buffer | undefined;
+			data: Buffer;
 		};
 
-		if (!data || !data.length) {
-			throw new ApplyPenaltyAndAbortError(peerId, 'Peer did not return a common block');
+		const decodedResp = codec.decode<{ id: Buffer }>(getHighestCommonBlockResponseSchema, data);
+		const errors = validator.validate(getHighestCommonBlockResponseSchema, decodedResp);
+		if (errors.length) {
+			throw new ApplyPenaltyAndAbortError(peerId, 'Invalid common block response format');
 		}
-		return this._chain.dataAccess.decodeBlockHeader(data);
+		return this._chain.dataAccess.getBlockHeaderByID(decodedResp.id);
 	}
 
 	protected async _getBlocksFromNetwork(peerId: string, fromID: Buffer): Promise<Block[]> {

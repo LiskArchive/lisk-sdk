@@ -11,7 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import {
 	Chain,
 	events as chainEvents,
@@ -27,12 +28,14 @@ import {
 	getAccountSchemaWithDefault,
 	getRegisteredBlockAssetSchema,
 	AccountDefaultProps,
+	RawBlockHeader,
 } from '@liskhq/lisk-chain';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { getNetworkIdentifier, hash } from '@liskhq/lisk-cryptography';
 import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { jobHandlers } from '@liskhq/lisk-utils';
+import { codec } from '@liskhq/lisk-codec';
 import {
 	APP_EVENT_BLOCK_DELETE,
 	APP_EVENT_BLOCK_NEW,
@@ -77,11 +80,12 @@ const MINIMUM_MODULE_ID = 2;
 export type NodeOptions = Omit<ApplicationConfig, 'plugins'>;
 
 interface NodeConstructor {
-	readonly genesisBlockJSON: Record<string, unknown>;
 	readonly options: NodeOptions;
 }
 
 interface NodeInitInput {
+	readonly dataPath: string;
+	readonly genesisBlockJSON: Record<string, unknown>;
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
 	readonly forgerDB: KVStore;
@@ -94,10 +98,11 @@ interface ForgingStatusResponse extends Omit<ForgingStatus, 'address'> {
 	readonly address: string;
 }
 
+const compiledGenesisBlockFileName = 'genesis_block_compiled';
+
 export class Node {
 	private readonly _options: NodeOptions;
 	private readonly _registeredModules: BaseModule[] = [];
-	private readonly _genesisBlockJSON: Record<string, unknown>;
 	private _bus!: Bus;
 	private _channel!: InMemoryChannel;
 	private _logger!: Logger;
@@ -105,7 +110,6 @@ export class Node {
 	private _forgerDB!: KVStore;
 	private _blockchainDB!: KVStore;
 	private _networkIdentifier!: Buffer;
-	private _genesisBlock!: GenesisBlock;
 	private _registeredAccountSchemas: { [moduleName: string]: AccountSchema } = {};
 	private _networkModule!: Network;
 	private _chain!: Chain;
@@ -117,9 +121,8 @@ export class Node {
 	private _forger!: Forger;
 	private _forgingJob!: jobHandlers.Scheduler<void>;
 
-	public constructor({ options, genesisBlockJSON }: NodeConstructor) {
+	public constructor({ options }: NodeConstructor) {
 		this._options = options;
-		this._genesisBlockJSON = genesisBlockJSON;
 		if (this._options.forging.waitThreshold >= this._options.genesisConfig.blockTime) {
 			throw Error(
 				`forging.waitThreshold=${this._options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this._options.genesisConfig.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
@@ -222,6 +225,8 @@ export class Node {
 	}
 
 	public async init({
+		genesisBlockJSON,
+		dataPath: configPath,
 		bus,
 		channel,
 		blockchainDB,
@@ -236,17 +241,15 @@ export class Node {
 		this._nodeDB = nodeDB;
 		this._bus = bus;
 
-		this._genesisBlock = readGenesisBlockJSON(
-			this._genesisBlockJSON,
-			this._registeredAccountSchemas,
-		);
+		// read from compiled genesis block if exist
+		const genesisBlock = this._readGenesisBlock(genesisBlockJSON, configPath);
 
 		this._networkIdentifier = getNetworkIdentifier(
-			this._genesisBlock.header.id,
+			genesisBlock.header.id,
 			this._options.genesisConfig.communityIdentifier,
 		);
 
-		this._initModules();
+		this._initModules(genesisBlock);
 
 		for (const customModule of this._registeredModules) {
 			this._processor.register(customModule);
@@ -283,7 +286,7 @@ export class Node {
 			this._transport.handleRPCGetBlocksFromId(data, peerId),
 		);
 		this._networkModule.registerEndpoint('getHighestCommonBlock', async ({ data, peerId }) =>
-			this._transport.handleRPCGetHighestCommonBlock(data, peerId),
+			this._transport.handleRPCGetHighestCommonBlockID(data, peerId),
 		);
 
 		// Network needs to be initialized first to call events
@@ -292,7 +295,7 @@ export class Node {
 		// Start subscribing to events, so that genesis block will also be included in event
 		this._subscribeToEvents();
 		// After binding, it should immediately load blockchain
-		await this._processor.init(this._genesisBlock);
+		await this._processor.init(genesisBlock);
 		// Check if blocks are left in temp_blocks table
 		await this._synchronizer.init();
 
@@ -500,6 +503,7 @@ export class Node {
 				networkIdentifier: this._networkIdentifier.toString('hex'),
 				lastBlockID: this._chain.lastBlock.header.id.toString('hex'),
 				height: this._chain.lastBlock.header.height,
+				genesisHeight: this._chain.genesisHeight,
 				finalizedHeight: this._bft.finalityManager.finalizedHeight,
 				syncing: this._synchronizer.isActive,
 				unconfirmedTransactions: this._transactionPool.getAll().length,
@@ -536,7 +540,7 @@ export class Node {
 		await this._networkModule.cleanup();
 	}
 
-	private _initModules(): void {
+	private _initModules(genesisBlock: GenesisBlock): void {
 		this._networkModule = new Network({
 			networkVersion: this._options.networkVersion,
 			options: this._options.network,
@@ -547,7 +551,7 @@ export class Node {
 
 		this._chain = new Chain({
 			db: this._blockchainDB,
-			genesisBlock: this._genesisBlock,
+			genesisBlock,
 			networkIdentifier: this._networkIdentifier,
 			maxPayloadLength: this._options.genesisConfig.maxPayloadLength,
 			rewardDistance: this._options.genesisConfig.rewards.distance,
@@ -562,7 +566,7 @@ export class Node {
 		this._bft = new BFT({
 			chain: this._chain,
 			threshold: this._options.genesisConfig.bftThreshold,
-			genesisHeight: this._genesisBlock.header.height,
+			genesisHeight: genesisBlock.header.height,
 		});
 
 		this._processor = new Processor({
@@ -823,5 +827,46 @@ export class Node {
 
 	private _unsubscribeToEvents(): void {
 		this._bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
+	}
+
+	private _readGenesisBlock(
+		genesisBlockJSON: Record<string, unknown>,
+		configPath: string,
+	): GenesisBlock {
+		const compiledGenesisPath = path.join(configPath, compiledGenesisBlockFileName);
+		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(
+			this._registeredAccountSchemas,
+		);
+		const genesisAssetSchema = getRegisteredBlockAssetSchema(schema)[0];
+		// check local file for compiled
+		const compiled = fs.existsSync(compiledGenesisPath);
+		if (compiled) {
+			const genesisBlockBytes = fs.readFileSync(compiledGenesisPath);
+			// cannot use chain yet, so manually decode genesis block
+			const blockHeader = codec.decode<RawBlockHeader>(blockHeaderSchema, genesisBlockBytes);
+			const asset = codec.decode<GenesisBlock['header']['asset']>(
+				genesisAssetSchema,
+				blockHeader.asset,
+			);
+			const id = hash(genesisBlockBytes);
+			return {
+				header: {
+					...blockHeader,
+					asset,
+					id,
+				},
+				payload: [],
+			};
+		}
+		// decode from JSON file and store the encoded genesis block
+		const genesisBlock = readGenesisBlockJSON(genesisBlockJSON, this._registeredAccountSchemas);
+		const assetBytes = codec.encode(genesisAssetSchema, genesisBlock.header.asset);
+		const headerBytes = codec.encode(blockHeaderSchema, {
+			...genesisBlock.header,
+			asset: assetBytes,
+		});
+		fs.writeFileSync(compiledGenesisPath, headerBytes);
+		// encode genesis block and
+		return genesisBlock;
 	}
 }

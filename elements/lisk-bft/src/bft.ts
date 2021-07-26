@@ -200,8 +200,8 @@ export class BFT extends EventEmitter {
 		return true;
 	}
 
-	public async getMaxHeightPrevoted(): Promise<number> {
-		return this.finalityManager.getMaxHeightPrevoted();
+	public async getMaxHeightPrevoted(lastMaxHeightPrevoted: number): Promise<number> {
+		return this.finalityManager.getMaxHeightPrevoted(lastMaxHeightPrevoted);
 	}
 
 	public get finalizedHeight(): number {
@@ -227,6 +227,7 @@ export class BFT extends EventEmitter {
 		const finalityManager = new FinalityManager({
 			chain: this._chain,
 			finalizedHeight,
+			genesisHeight: this.constants.genesisHeight,
 			threshold: this.constants.threshold,
 		});
 

@@ -60,6 +60,7 @@ interface ForgerPayloadInfo {
 }
 
 interface NodeInfo {
+	genesisHeight: number;
 	genesisConfig: GenesisConfig;
 }
 
@@ -187,20 +188,22 @@ export class ForgerPlugin extends BasePlugin {
 			header: { height: lastBlockHeight },
 		} = this.codec.decodeBlock(await this._channel.invoke<string>('app:getLastBlock'));
 		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
+		const { genesisHeight } = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
+		const forgerPluginSyncedHeight = syncUptoHeight === 0 ? genesisHeight : syncUptoHeight;
 
-		if (syncUptoHeight === lastBlockHeight) {
+		if (forgerPluginSyncedHeight === lastBlockHeight) {
 			// No need to sync
 			return;
 		}
 
 		let needleHeight: number;
 
-		if (syncUptoHeight > lastBlockHeight) {
+		if (forgerPluginSyncedHeight > lastBlockHeight) {
 			// Clear all forging information we have and sync again
 			await this._forgerPluginDB.clear();
-			needleHeight = 1;
+			needleHeight = genesisHeight + 1;
 		} else {
-			needleHeight = syncUptoHeight + 1;
+			needleHeight = forgerPluginSyncedHeight + 1;
 		}
 
 		// Sync in batch of 1000 blocks
