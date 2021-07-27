@@ -12,5 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { NotFoundError } from './errors';
-export { StateStore, IterateOptions } from './state_store';
+import { Block } from '@liskhq/lisk-chain';
+
+export interface BlockExecutor {
+	validate: (block: Block) => Promise<void>;
+	executeValidated: (
+		block: Block,
+		options?: {
+			skipBroadcast?: boolean;
+			removeFromTempTable?: boolean;
+		},
+	) => Promise<Block>;
+	deleteLastBlock: (options?: { saveTempBlock?: boolean }) => Promise<void>;
+}

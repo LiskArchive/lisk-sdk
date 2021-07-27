@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { NotFoundError } from './errors';
-export { StateStore, IterateOptions } from './state_store';
+export { Consensus } from './consensus';
+export { EVENT_BLOCK_BROADCAST, EVENT_FORK_DETECTED, NETWORK_EVENT_POST_BLOCK } from './constants';
