@@ -723,10 +723,12 @@ export class PeerPool extends EventEmitter {
 		peer.removeListener(EVENT_CONNECT_ABORT_OUTBOUND, this._handleOutboundPeerConnectAbort);
 		peer.removeListener(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
 		peer.removeListener(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
+		peer.removeListener(EVENT_OUTBOUND_SOCKET_ERROR, this._handlePeerOutboundSocketError);
+		peer.removeListener(EVENT_INBOUND_SOCKET_ERROR, this._handlePeerInboundSocketError);
 		peer.removeListener(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
+		peer.removeListener(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
 		peer.removeListener(EVENT_FAILED_TO_FETCH_PEER_INFO, this._handleFailedToFetchPeerInfo);
 		peer.removeListener(EVENT_FAILED_TO_FETCH_PEERS, this._handleFailedToFetchPeers);
-		peer.removeListener(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
 		peer.removeListener(
 			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 			this._handleFailedToCollectPeerDetails,
