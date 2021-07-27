@@ -15,6 +15,7 @@
 import { EventQueue } from '../../../../src/node/state_machine/event_queue';
 
 describe('EventQueue', () => {
+	// Arrange
 	const events = [
 		{ key: 'moduleA:beforeX', value: Buffer.from('Module A Before X started', 'utf-8') },
 		{ key: 'moduleB:beforeX', value: Buffer.from('Module B Before X started', 'utf-8') },
@@ -28,6 +29,7 @@ describe('EventQueue', () => {
 	});
 
 	it('should expose interface for add, createSnapshot, restoreSnapshot, and getEvents', () => {
+		// Asset
 		expect(eventQueue.add).toBeFunction();
 		expect(eventQueue.createSnapshot).toBeFunction();
 		expect(eventQueue.restoreSnapshot).toBeFunction();
@@ -35,9 +37,11 @@ describe('EventQueue', () => {
 	});
 
 	it('should be able to add events to queue', () => {
+		// Act
 		events.map(e => eventQueue.add(e.key, e.value));
 		const addedEvents = eventQueue.getEvents();
 
+		// Asset
 		addedEvents.forEach((e, i) => {
 			expect(e.key).toEqual(events[i].key);
 			expect(e.value.equals(events[i].value)).toBeTrue();
@@ -46,10 +50,12 @@ describe('EventQueue', () => {
 	});
 
 	it('should be able to createSnapshot for events', () => {
+		// Act
 		events.map(e => eventQueue.add(e.key, e.value));
 		eventQueue.createSnapshot();
 		const originalEvents = eventQueue['_originalEvents'];
 
+		// Asset
 		originalEvents.forEach((e, i) => {
 			expect(e.key).toEqual(events[i].key);
 			expect(e.value.equals(events[i].value)).toBeTrue();
@@ -58,10 +64,12 @@ describe('EventQueue', () => {
 	});
 
 	it('should be able to restoreSnapshot for events', () => {
+		// Act
 		events.map(e => eventQueue.add(e.key, e.value));
 		const addedEvents = eventQueue.getEvents();
 		eventQueue.restoreSnapshot();
 
+		// Asset
 		expect(eventQueue['_originalEvents']).toBeEmpty();
 		addedEvents.forEach((e, i) => {
 			expect(e.key).toEqual(events[i].key);
@@ -71,9 +79,11 @@ describe('EventQueue', () => {
 	});
 
 	it('should be able to getEvents added', () => {
+		// Act
 		events.map(e => eventQueue.add(e.key, e.value));
 		const addedEvents = eventQueue.getEvents();
 
+		// Asset
 		addedEvents.forEach((e, i) => {
 			expect(e.key).toEqual(events[i].key);
 			expect(e.value.equals(events[i].value)).toBeTrue();
