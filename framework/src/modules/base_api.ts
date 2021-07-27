@@ -11,11 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* eslint-disable class-methods-use-this */
 
 export abstract class BaseAPI {
-    protected moduleID: number;
-    constructor(moduleID: number) {
-        this.moduleID = moduleID;
-    }
-  }
+	protected moduleID: number;
+	public constructor(moduleID: number) {
+		this.moduleID = moduleID;
+	}
+}
