@@ -416,10 +416,8 @@ export class MerkleTree {
 				);
 
 				if (binaryIndex in updateDataOfCalculatedPathLeafs) {
-					// Updated node is a leaf node
 					await this._hashToValueMap.set(updatedNode.hash, updateDataOfCalculatedPathLeafs[binaryIndex]);
 				} else {
-					// Updated node is a branch node
 					await this._hashToValueMap.set(updatedNode.hash, updatedNode.value);
 				}
 				
