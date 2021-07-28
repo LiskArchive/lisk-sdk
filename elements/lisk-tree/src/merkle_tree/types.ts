@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export type NonNullableStruct<T> = { [P in keyof T]: NonNullable<T[P]>; };
+export type NonNullableStruct<T> = { [P in keyof T]: NonNullable<T[P]> };
 
 export const enum NodeType {
 	BRANCH = 'branch',

@@ -14,7 +14,13 @@
 /* eslint-disable no-bitwise */
 
 import { hash } from '@liskhq/lisk-cryptography';
-import { BRANCH_PREFIX, LAYER_INDEX_SIZE, LEAF_PREFIX, NODE_HASH_SIZE, NODE_INDEX_SIZE } from './constants';
+import {
+	BRANCH_PREFIX,
+	LAYER_INDEX_SIZE,
+	LEAF_PREFIX,
+	NODE_HASH_SIZE,
+	NODE_INDEX_SIZE,
+} from './constants';
 import { NodeLocation, NodeSide, NodeType, MerkleRootInfo } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
@@ -207,7 +213,7 @@ export const getParentLocation = (nodeLocation: NodeLocation, pairNodeLocation: 
 		layerIndex: parentLayerIndex,
 		nodeIndex: parentNodeIndex,
 	};
-}
+};
 
 export const generateNode = (nodeHash: Buffer, val: Buffer) => {
 	const value = val;
@@ -237,7 +243,7 @@ export const generateNode = (nodeHash: Buffer, val: Buffer) => {
 		rightHash,
 		leftHash,
 	};
-}
+};
 
 export const buildLeaf = (value: Buffer, nodeIndex: number, preHashedLeaf?: boolean) => {
 	const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
@@ -258,7 +264,7 @@ export const buildLeaf = (value: Buffer, nodeIndex: number, preHashedLeaf?: bool
 		leafValueWithNodeIndex,
 		leafHash,
 	};
-}
+};
 
 export const buildBranch = (
 	leftHashBuffer: Buffer,
@@ -280,38 +286,51 @@ export const buildBranch = (
 			rightHashBuffer.length,
 	);
 	const branchHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);
-	
+
 	return {
 		branchHash,
 		branchValue,
 	};
-}
+};
 
-export const createNewBranchNode = (location: NodeLocation, pairHash: Buffer, currentHash: Buffer, pairSide: NodeSide) => {
+export const createNewBranchNode = (
+	location: NodeLocation,
+	pairHash: Buffer,
+	currentHash: Buffer,
+	pairSide: NodeSide,
+) => {
 	const leftHashBuffer = pairSide === NodeSide.LEFT ? pairHash : currentHash;
 	const rightHashBuffer = pairSide === NodeSide.RIGHT ? pairHash : currentHash;
-	const newNodeData = buildBranch(leftHashBuffer, rightHashBuffer, location.layerIndex, location.nodeIndex);
+	const newNodeData = buildBranch(
+		leftHashBuffer,
+		rightHashBuffer,
+		location.layerIndex,
+		location.nodeIndex,
+	);
 	const newNode = generateNode(newNodeData.branchHash, newNodeData.branchValue);
 
 	return newNode;
-}
+};
 
 export const createNewLeafNode = (value: Buffer, nodeIndex: number, preHashed: boolean) => {
 	const newNodeData = buildLeaf(value, nodeIndex, preHashed);
-	const newNode = generateNode(newNodeData.leafHash, newNodeData.leafValueWithNodeIndex)
+	const newNode = generateNode(newNodeData.leafHash, newNodeData.leafValueWithNodeIndex);
 
 	return newNode;
-}
+};
 
 export const getLocationFromIndex = (index: number, size: number) => {
 	const treeHeight = Math.ceil(Math.log2(size)) + 1;
-	
+
 	const serializedIndexBinaryString = index.toString(2);
-	const indexBinaryString = serializedIndexBinaryString.substring(1, serializedIndexBinaryString.length);
+	const indexBinaryString = serializedIndexBinaryString.substring(
+		1,
+		serializedIndexBinaryString.length,
+	);
 	const location = {
 		nodeIndex: parseInt(indexBinaryString, 2),
 		layerIndex: treeHeight - indexBinaryString.length,
 	};
 
 	return location;
-}
+};
