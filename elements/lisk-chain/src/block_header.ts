@@ -57,9 +57,20 @@ export const signingBlockHeaderSchema = {
 export const blockHeaderSchema = {
 	...signingBlockHeaderSchema,
 	$id: '/block/header/2',
+	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,
 		signature: { dataType: 'bytes', fieldNumber: 9 },
+	},
+};
+
+export const blockHeaderSchemaWithId = {
+	...blockHeaderSchema,
+	$id: '/block/header/2',
+	required: [...blockHeaderSchema.required, 'id'],
+	properties: {
+		...blockHeaderSchema.properties,
+		id: { dataType: 'bytes', fieldNumber: 10 },
 	},
 };
 
@@ -132,26 +143,29 @@ export class BlockHeader {
 	}
 
 	public static fromBytes(value: Buffer): BlockHeader {
-		return new BlockHeader(codec.decode<BlockHeaderAttrs>(signingBlockHeaderSchema, value));
+		return new BlockHeader(codec.decode<BlockHeaderAttrs>(blockHeaderSchema, value));
 	}
 
 	public getBytes(): Buffer {
-		return codec.encode(blockHeaderSchema, this._getAllProps());
+		return codec.encode(blockHeaderSchema, this._getBlockHeaderProps());
 	}
 
 	public toJSON(): BlockHeaderJSON {
-		return codec.toJSON(blockHeaderSchema, this._getAllProps());
+		return codec.toJSON(blockHeaderSchemaWithId, this._getAllProps());
+	}
+
+	public toObject(): BlockHeaderAttrs {
+		return this._getAllProps();
 	}
 
 	public validate(): void {
-		// Validate block header
-		const errors = validator.validate(blockHeaderSchema, this._getAllProps());
+		const errors = validator.validate(blockHeaderSchema, this._getBlockHeaderProps());
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
 
 		if (this.previousBlockID.length === 0) {
-			throw new Error('Previous block id must not be empty');
+			throw new Error('Previous block id must not be empty.');
 		}
 	}
 
@@ -161,21 +175,13 @@ export class BlockHeader {
 		return blockHeaderBytes;
 	}
 
-	public sign(key: Buffer, networkIdentifier: Buffer) {
+	public sign(networkIdentifier: Buffer, privateKey: Buffer) {
 		this._signature = signDataWithPrivateKey(
 			TAG_BLOCK_HEADER,
 			networkIdentifier,
 			this.getSigningBytes(),
-			key,
+			privateKey,
 		);
-
-		const blockHeaderBytes = codec.encode(blockHeaderSchema, {
-			...this._getSigningProps(),
-			signature: this._signature,
-			id: Buffer.alloc(0),
-		});
-
-		this._id = hash(blockHeaderBytes);
 
 		return this._signature;
 	}
@@ -198,17 +204,24 @@ export class BlockHeader {
 
 	public get signature(): Buffer {
 		if (!this._signature) {
-			// TODO: Calculate block id
-			this._signature = Buffer.alloc(0);
+			throw new Error('Block header is not signed.');
 		}
 
 		return this._signature;
 	}
 
 	public get id(): Buffer {
+		if (!this._id && !this._signature) {
+			throw new Error('Can not generate the id for unsigned block header.');
+		}
+
 		if (!this._id) {
-			// TODO: Calculate block id
-			this._id = Buffer.alloc(0);
+			const blockHeaderBytes = codec.encode(blockHeaderSchema, {
+				...this._getSigningProps(),
+				signature: this._signature,
+			});
+
+			this._id = hash(blockHeaderBytes);
 		}
 
 		return this._id;
@@ -227,7 +240,17 @@ export class BlockHeader {
 		};
 	}
 
+	private _getBlockHeaderProps() {
+		return {
+			...this._getSigningProps(),
+			signature: this.signature,
+		};
+	}
+
 	private _getAllProps() {
-		return { ...this._getSigningProps(), id: this.id, signature: this.signature };
+		return {
+			...this._getBlockHeaderProps(),
+			id: this.id,
+		};
 	}
 }
