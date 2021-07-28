@@ -24,7 +24,7 @@ import {
 import * as testing from '../../../../src/testing';
 import { Processor } from '../../../../src/node/processor';
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 describe('Temp block', () => {
 	let processEnv: testing.BlockProcessingEnv;
