@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -57,7 +57,7 @@ const blockHeaderProps = [
 
 describe('block_header', () => {
 	describe('signingBlockHeaderSchema', () => {
-		it('should be valid schema without signature or id', () => {
+		it('should be valid schema without signature and id', () => {
 			expect(signingBlockHeaderSchema).toMatchSnapshot();
 			expect(Object.keys(signingBlockHeaderSchema.properties)).toIncludeAllMembers([
 				...blockHeaderProps,
