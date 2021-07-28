@@ -81,12 +81,12 @@ interface BlockHeaderAsset {
 
 interface BlockHeaderAttrs {
 	readonly version: number;
-	readonly timestamp: number;
 	readonly height: number;
 	readonly generatorAddress: Buffer;
 	readonly previousBlockID: Buffer;
-	readonly stateRoot: Buffer;
-	readonly transactionRoot: Buffer;
+	readonly timestamp?: number;
+	readonly stateRoot?: Buffer;
+	readonly transactionRoot?: Buffer;
 	readonly assets: ReadonlyArray<BlockHeaderAsset>;
 	signature?: Buffer;
 	id?: Buffer;
@@ -107,12 +107,12 @@ export interface BlockHeaderJSON {
 
 export class BlockHeader {
 	public readonly version: number;
-	public readonly timestamp: number;
 	public readonly height: number;
 	public readonly generatorAddress: Buffer;
 	public readonly previousBlockID: Buffer;
-	public readonly stateRoot: Buffer;
-	public readonly transactionRoot: Buffer;
+	private _timestamp?: number;
+	private _stateRoot?: Buffer;
+	private _transactionRoot?: Buffer;
 	private readonly _assets: BlockHeaderAsset[];
 	private _signature?: Buffer;
 	private _id?: Buffer;
@@ -130,12 +130,12 @@ export class BlockHeader {
 		assets,
 	}: BlockHeaderAttrs) {
 		this.version = version;
-		this.timestamp = timestamp;
 		this.height = height;
 		this.generatorAddress = generatorAddress;
 		this.previousBlockID = previousBlockID;
-		this.stateRoot = stateRoot;
-		this.transactionRoot = transactionRoot;
+		this._timestamp = timestamp;
+		this._stateRoot = stateRoot;
+		this._transactionRoot = transactionRoot;
 		this._assets = objects.cloneDeep<BlockHeaderAsset[]>([...assets]);
 
 		this._signature = signature;
@@ -144,6 +144,33 @@ export class BlockHeader {
 
 	public static fromBytes(value: Buffer): BlockHeader {
 		return new BlockHeader(codec.decode<BlockHeaderAttrs>(blockHeaderSchema, value));
+	}
+
+	public get timestamp() {
+		return this._timestamp;
+	}
+
+	public set timestamp(val) {
+		this._timestamp = val;
+		this._resetComputedValues();
+	}
+
+	public get stateRoot() {
+		return this._stateRoot;
+	}
+
+	public set stateRoot(val) {
+		this._stateRoot = val;
+		this._resetComputedValues();
+	}
+
+	public get transactionRoot() {
+		return this._transactionRoot;
+	}
+
+	public set transactionRoot(val) {
+		this._transactionRoot = val;
+		this._resetComputedValues();
 	}
 
 	public getBytes(): Buffer {
@@ -196,10 +223,8 @@ export class BlockHeader {
 			throw new Error(`Module asset for "${moduleID}" is already set.`);
 		}
 
-		this._id = undefined;
-		this._signature = undefined;
-
 		this._assets.push({ moduleID, data: value });
+		this._resetComputedValues();
 	}
 
 	public get signature(): Buffer {
@@ -227,11 +252,16 @@ export class BlockHeader {
 		return this._id;
 	}
 
+	private _resetComputedValues() {
+		this._id = undefined;
+		this._signature = undefined;
+	}
+
 	private _getSigningProps() {
 		return {
 			version: this.version,
 			timestamp: this.timestamp,
-			height: this.timestamp,
+			height: this.height,
 			previousBlockID: this.previousBlockID,
 			stateRoot: this.stateRoot,
 			transactionRoot: this.transactionRoot,
