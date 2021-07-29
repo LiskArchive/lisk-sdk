@@ -2172,6 +2172,13 @@ Object {
     "force": true,
     "waitThreshold": 2,
   },
+  "generator": Object {
+    "modules": Object {},
+  },
+  "genesis": Object {
+    "communityIdentifier": "sdk",
+    "modules": Object {},
+  },
   "genesisConfig": Object {
     "activeDelegates": 101,
     "baseFees": Array [
