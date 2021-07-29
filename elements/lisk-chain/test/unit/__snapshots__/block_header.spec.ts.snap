@@ -1,0 +1,220 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`block_header blockHeaderSchema should be valid schema with signature but without id 1`] = `
+Object {
+  "$id": "/block/header/2",
+  "properties": Object {
+    "assets": Object {
+      "fieldNumber": 8,
+      "items": Object {
+        "properties": Object {
+          "data": Object {
+            "dataType": "bytes",
+            "fieldNumber": 2,
+          },
+          "moduleID": Object {
+            "dataType": "uint32",
+            "fieldNumber": 1,
+          },
+        },
+        "required": Array [
+          "moduleID",
+          "data",
+        ],
+        "type": "object",
+      },
+      "type": "array",
+    },
+    "generatorAddress": Object {
+      "dataType": "bytes",
+      "fieldNumber": 7,
+    },
+    "height": Object {
+      "dataType": "uint32",
+      "fieldNumber": 3,
+    },
+    "previousBlockID": Object {
+      "dataType": "bytes",
+      "fieldNumber": 4,
+    },
+    "signature": Object {
+      "dataType": "bytes",
+      "fieldNumber": 9,
+    },
+    "stateRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 5,
+    },
+    "timestamp": Object {
+      "dataType": "uint32",
+      "fieldNumber": 2,
+    },
+    "transactionRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 6,
+    },
+    "version": Object {
+      "dataType": "uint32",
+      "fieldNumber": 1,
+    },
+  },
+  "required": Array [
+    "version",
+    "timestamp",
+    "height",
+    "previousBlockID",
+    "stateRoot",
+    "transactionRoot",
+    "generatorAddress",
+    "assets",
+    "signature",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`block_header blockHeaderSchemaWithId should be valid schema with signature and id 1`] = `
+Object {
+  "$id": "/block/header/2",
+  "properties": Object {
+    "assets": Object {
+      "fieldNumber": 8,
+      "items": Object {
+        "properties": Object {
+          "data": Object {
+            "dataType": "bytes",
+            "fieldNumber": 2,
+          },
+          "moduleID": Object {
+            "dataType": "uint32",
+            "fieldNumber": 1,
+          },
+        },
+        "required": Array [
+          "moduleID",
+          "data",
+        ],
+        "type": "object",
+      },
+      "type": "array",
+    },
+    "generatorAddress": Object {
+      "dataType": "bytes",
+      "fieldNumber": 7,
+    },
+    "height": Object {
+      "dataType": "uint32",
+      "fieldNumber": 3,
+    },
+    "id": Object {
+      "dataType": "bytes",
+      "fieldNumber": 10,
+    },
+    "previousBlockID": Object {
+      "dataType": "bytes",
+      "fieldNumber": 4,
+    },
+    "signature": Object {
+      "dataType": "bytes",
+      "fieldNumber": 9,
+    },
+    "stateRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 5,
+    },
+    "timestamp": Object {
+      "dataType": "uint32",
+      "fieldNumber": 2,
+    },
+    "transactionRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 6,
+    },
+    "version": Object {
+      "dataType": "uint32",
+      "fieldNumber": 1,
+    },
+  },
+  "required": Array [
+    "version",
+    "timestamp",
+    "height",
+    "previousBlockID",
+    "stateRoot",
+    "transactionRoot",
+    "generatorAddress",
+    "assets",
+    "signature",
+    "id",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`block_header signingBlockHeaderSchema should be valid schema without signature and id 1`] = `
+Object {
+  "$id": "/block/header/signing/2",
+  "properties": Object {
+    "assets": Object {
+      "fieldNumber": 8,
+      "items": Object {
+        "properties": Object {
+          "data": Object {
+            "dataType": "bytes",
+            "fieldNumber": 2,
+          },
+          "moduleID": Object {
+            "dataType": "uint32",
+            "fieldNumber": 1,
+          },
+        },
+        "required": Array [
+          "moduleID",
+          "data",
+        ],
+        "type": "object",
+      },
+      "type": "array",
+    },
+    "generatorAddress": Object {
+      "dataType": "bytes",
+      "fieldNumber": 7,
+    },
+    "height": Object {
+      "dataType": "uint32",
+      "fieldNumber": 3,
+    },
+    "previousBlockID": Object {
+      "dataType": "bytes",
+      "fieldNumber": 4,
+    },
+    "stateRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 5,
+    },
+    "timestamp": Object {
+      "dataType": "uint32",
+      "fieldNumber": 2,
+    },
+    "transactionRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 6,
+    },
+    "version": Object {
+      "dataType": "uint32",
+      "fieldNumber": 1,
+    },
+  },
+  "required": Array [
+    "version",
+    "timestamp",
+    "height",
+    "previousBlockID",
+    "stateRoot",
+    "transactionRoot",
+    "generatorAddress",
+    "assets",
+  ],
+  "type": "object",
+}
+`;
