@@ -12,10 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+const moduleConfigSchema = {
+	type: 'object',
+	propertyNames: {
+		pattern: '^[a-zA-Z][a-zA-Z0-9_]*$',
+	},
+	additionalProperties: { type: 'object' },
+};
+
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
-	required: ['version', 'networkVersion', 'rpc', 'genesisConfig', 'forging', 'network', 'plugins'],
+	required: [
+		'version',
+		'networkVersion',
+		'rpc',
+		'genesisConfig',
+		'forging',
+		'network',
+		'plugins',
+		'genesis',
+	],
 	properties: {
 		label: {
 			type: 'string',
@@ -357,6 +375,34 @@ export const applicationConfigSchema = {
 				},
 			},
 		},
+		genesis: {
+			type: 'object',
+			required: ['communityIdentifier', 'modules'],
+			properties: {
+				communityIdentifier: {
+					type: 'string',
+					description:
+						'The unique name of the relevant community as a string encoded in UTF-8 format',
+				},
+				modules: {
+					...moduleConfigSchema,
+				},
+			},
+			additionalProperties: false,
+		},
+		generator: {
+			type: 'object',
+			required: ['modules'],
+			properties: {
+				password: {
+					type: 'string',
+					description: 'The password to decrypt passphrases',
+				},
+				modules: {
+					...moduleConfigSchema,
+				},
+			},
+		},
 	},
 	additionalProperties: false,
 	default: {
@@ -412,5 +458,12 @@ export const applicationConfigSchema = {
 			minReplacementFeeDifference: '10',
 		},
 		plugins: {},
+		genesis: {
+			communityIdentifier: 'sdk',
+			modules: {},
+		},
+		generator: {
+			modules: {},
+		},
 	},
 };
