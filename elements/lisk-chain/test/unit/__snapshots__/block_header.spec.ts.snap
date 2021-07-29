@@ -151,7 +151,7 @@ Object {
 }
 `;
 
-exports[`block_header signingBlockHeaderSchema should be valid schema without signature or id 1`] = `
+exports[`block_header signingBlockHeaderSchema should be valid schema without signature and id 1`] = `
 Object {
   "$id": "/block/header/signing/2",
   "properties": Object {
