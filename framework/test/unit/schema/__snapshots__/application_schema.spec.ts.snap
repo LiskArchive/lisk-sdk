@@ -11,11 +11,30 @@ Object {
       "waitThreshold": 2,
     },
     "generator": Object {
+      "delegates": Array [],
+      "force": false,
       "modules": Object {},
+      "waitThreshold": 2,
     },
     "genesis": Object {
+      "baseFees": Array [],
+      "bftThreshold": 68,
+      "blockTime": 10,
       "communityIdentifier": "sdk",
+      "maxPayloadLength": 15360,
+      "minFeePerByte": 1000,
       "modules": Object {},
+      "rewards": Object {
+        "distance": 3000000,
+        "milestones": Array [
+          "500000000",
+          "400000000",
+          "300000000",
+          "200000000",
+          "100000000",
+        ],
+        "offset": 2160,
+      },
     },
     "genesisConfig": Object {
       "baseFees": Array [],
@@ -133,6 +152,55 @@ Object {
     },
     "generator": Object {
       "properties": Object {
+        "delegates": Object {
+          "items": Object {
+            "properties": Object {
+              "address": Object {
+                "format": "hex",
+                "type": "string",
+              },
+              "encryptedPassphrase": Object {
+                "format": "encryptedPassphrase",
+                "type": "string",
+              },
+              "hashOnion": Object {
+                "properties": Object {
+                  "count": Object {
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                  "distance": Object {
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                  "hashes": Object {
+                    "items": Object {
+                      "format": "hex",
+                      "type": "string",
+                    },
+                    "minItems": 2,
+                    "type": "array",
+                  },
+                },
+                "required": Array [
+                  "count",
+                  "distance",
+                  "hashes",
+                ],
+                "type": "object",
+              },
+            },
+            "required": Array [
+              "encryptedPassphrase",
+              "address",
+              "hashOnion",
+            ],
+          },
+          "type": "array",
+        },
+        "force": Object {
+          "type": "boolean",
+        },
         "modules": Object {
           "additionalProperties": Object {
             "type": "object",
@@ -146,8 +214,15 @@ Object {
           "description": "The password to decrypt passphrases",
           "type": "string",
         },
+        "waitThreshold": Object {
+          "description": "Number of seconds to wait for previous block before forging",
+          "type": "integer",
+        },
       },
       "required": Array [
+        "force",
+        "waitThreshold",
+        "delegates",
         "modules",
       ],
       "type": "object",
@@ -155,9 +230,51 @@ Object {
     "genesis": Object {
       "additionalProperties": false,
       "properties": Object {
+        "baseFees": Object {
+          "description": "Base fee for a transaction to be valid",
+          "items": Object {
+            "properties": Object {
+              "assetID": Object {
+                "minimum": 0,
+                "type": "integer",
+              },
+              "baseFee": Object {
+                "format": "uint64",
+                "type": "string",
+              },
+              "moduleID": Object {
+                "minimum": 2,
+                "type": "number",
+              },
+            },
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "bftThreshold": Object {
+          "description": "Number of validators required to set block finality",
+          "minimum": 1,
+          "type": "integer",
+        },
+        "blockTime": Object {
+          "description": "Slot time interval in seconds",
+          "minimum": 2,
+          "type": "number",
+        },
         "communityIdentifier": Object {
           "description": "The unique name of the relevant community as a string encoded in UTF-8 format",
           "type": "string",
+        },
+        "maxPayloadLength": Object {
+          "description": "Maximum number of transactions allowed per block",
+          "maximum": 30720,
+          "minimum": 10240,
+          "type": "integer",
+        },
+        "minFeePerByte": Object {
+          "description": "Minimum fee per bytes required for a transaction to be valid",
+          "minimum": 0,
+          "type": "integer",
         },
         "modules": Object {
           "additionalProperties": Object {
@@ -168,9 +285,41 @@ Object {
           },
           "type": "object",
         },
+        "rewards": Object {
+          "description": "Object representing LSK rewards milestone",
+          "properties": Object {
+            "distance": Object {
+              "description": "Distance between each milestone",
+              "minimum": 1,
+              "type": "integer",
+            },
+            "milestones": Object {
+              "description": "Initial 5, and decreasing until 1",
+              "items": Object {
+                "format": "uint64",
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "offset": Object {
+              "description": "Start rewards at block (n)",
+              "minimum": 1,
+              "type": "integer",
+            },
+          },
+          "required": Array [
+            "milestones",
+            "offset",
+            "distance",
+          ],
+          "type": "object",
+        },
       },
       "required": Array [
+        "blockTime",
         "communityIdentifier",
+        "maxPayloadLength",
+        "rewards",
         "modules",
       ],
       "type": "object",
