@@ -286,6 +286,7 @@ Object {
           "type": "object",
         },
         "rewards": Object {
+          "additionalProperties": false,
           "description": "Object representing LSK rewards milestone",
           "properties": Object {
             "distance": Object {
@@ -375,7 +376,6 @@ Object {
           "type": "integer",
         },
         "rewards": Object {
-          "$id": "#/config/rewards",
           "additionalProperties": false,
           "description": "Object representing LSK rewards milestone",
           "properties": Object {

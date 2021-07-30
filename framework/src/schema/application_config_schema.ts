@@ -21,6 +21,72 @@ const moduleConfigSchema = {
 	additionalProperties: { type: 'object' },
 };
 
+const rewardsConfigSchema = {
+	type: 'object',
+	required: ['milestones', 'offset', 'distance'],
+	description: 'Object representing LSK rewards milestone',
+	properties: {
+		milestones: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'uint64',
+			},
+			description: 'Initial 5, and decreasing until 1',
+		},
+		offset: {
+			type: 'integer',
+			minimum: 1,
+			description: 'Start rewards at block (n)',
+		},
+		distance: {
+			type: 'integer',
+			minimum: 1,
+			description: 'Distance between each milestone',
+		},
+	},
+	additionalProperties: false,
+};
+
+const delegatesConfigSchema = {
+	type: 'array',
+	items: {
+		required: ['encryptedPassphrase', 'address', 'hashOnion'],
+		properties: {
+			encryptedPassphrase: {
+				type: 'string',
+				format: 'encryptedPassphrase',
+			},
+			address: {
+				type: 'string',
+				format: 'hex',
+			},
+			hashOnion: {
+				type: 'object',
+				required: ['count', 'distance', 'hashes'],
+				properties: {
+					count: {
+						minimum: 1,
+						type: 'integer',
+					},
+					distance: {
+						minimum: 1,
+						type: 'integer',
+					},
+					hashes: {
+						type: 'array',
+						minItems: 2,
+						items: {
+							type: 'string',
+							format: 'hex',
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
@@ -131,31 +197,7 @@ export const applicationConfigSchema = {
 					description: 'Maximum number of transactions allowed per block',
 				},
 				rewards: {
-					$id: '#/config/rewards',
-					type: 'object',
-					required: ['milestones', 'offset', 'distance'],
-					description: 'Object representing LSK rewards milestone',
-					properties: {
-						milestones: {
-							type: 'array',
-							items: {
-								type: 'string',
-								format: 'uint64',
-							},
-							description: 'Initial 5, and decreasing until 1',
-						},
-						offset: {
-							type: 'integer',
-							minimum: 1,
-							description: 'Start rewards at block (n)',
-						},
-						distance: {
-							type: 'integer',
-							minimum: 1,
-							description: 'Distance between each milestone',
-						},
-					},
-					additionalProperties: false,
+					...rewardsConfigSchema,
 				},
 			},
 			additionalProperties: true,
@@ -175,42 +217,7 @@ export const applicationConfigSchema = {
 					type: 'string',
 				},
 				delegates: {
-					type: 'array',
-					items: {
-						required: ['encryptedPassphrase', 'address', 'hashOnion'],
-						properties: {
-							encryptedPassphrase: {
-								type: 'string',
-								format: 'encryptedPassphrase',
-							},
-							address: {
-								type: 'string',
-								format: 'hex',
-							},
-							hashOnion: {
-								type: 'object',
-								required: ['count', 'distance', 'hashes'],
-								properties: {
-									count: {
-										minimum: 1,
-										type: 'integer',
-									},
-									distance: {
-										minimum: 1,
-										type: 'integer',
-									},
-									hashes: {
-										type: 'array',
-										minItems: 2,
-										items: {
-											type: 'string',
-											format: 'hex',
-										},
-									},
-								},
-							},
-						},
-					},
+					...delegatesConfigSchema,
 				},
 			},
 		},
@@ -429,29 +436,7 @@ export const applicationConfigSchema = {
 					description: 'Maximum number of transactions allowed per block',
 				},
 				rewards: {
-					type: 'object',
-					required: ['milestones', 'offset', 'distance'],
-					description: 'Object representing LSK rewards milestone',
-					properties: {
-						milestones: {
-							type: 'array',
-							items: {
-								type: 'string',
-								format: 'uint64',
-							},
-							description: 'Initial 5, and decreasing until 1',
-						},
-						offset: {
-							type: 'integer',
-							minimum: 1,
-							description: 'Start rewards at block (n)',
-						},
-						distance: {
-							type: 'integer',
-							minimum: 1,
-							description: 'Distance between each milestone',
-						},
-					},
+					...rewardsConfigSchema,
 				},
 				modules: {
 					...moduleConfigSchema,
@@ -474,44 +459,7 @@ export const applicationConfigSchema = {
 					description: 'Number of seconds to wait for previous block before forging',
 					type: 'integer',
 				},
-				delegates: {
-					type: 'array',
-					items: {
-						required: ['encryptedPassphrase', 'address', 'hashOnion'],
-						properties: {
-							encryptedPassphrase: {
-								type: 'string',
-								format: 'encryptedPassphrase',
-							},
-							address: {
-								type: 'string',
-								format: 'hex',
-							},
-							hashOnion: {
-								type: 'object',
-								required: ['count', 'distance', 'hashes'],
-								properties: {
-									count: {
-										minimum: 1,
-										type: 'integer',
-									},
-									distance: {
-										minimum: 1,
-										type: 'integer',
-									},
-									hashes: {
-										type: 'array',
-										minItems: 2,
-										items: {
-											type: 'string',
-											format: 'hex',
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				delegates: { ...delegatesConfigSchema },
 				modules: {
 					...moduleConfigSchema,
 				},

@@ -34,14 +34,37 @@ describe('schema/application_config_schema.js', () => {
 		const config = objects.cloneDeep(applicationConfigSchema.default);
 		config.genesis.modules = { myModule: 10 };
 
-		const errors2 = validator.validate(applicationConfigSchema, config);
+		const errors = validator.validate(applicationConfigSchema, config);
 
-		expect(errors2).toHaveLength(1);
-		expect(errors2[0]).toEqual(
+		expect(errors).toHaveLength(1);
+		expect(errors[0]).toEqual(
 			expect.objectContaining({
 				dataPath: '.genesis.modules.myModule',
 				keyword: 'type',
 				message: 'must be object',
+			}),
+		);
+	});
+
+	it('should not validate if module properties are not valid format', () => {
+		const config = objects.cloneDeep(applicationConfigSchema.default);
+		config.genesis.modules = { 'my-custom-module': { myProp: 1 } };
+
+		const errors = validator.validate(applicationConfigSchema, config);
+
+		expect(errors).toHaveLength(2);
+		expect(errors[0]).toEqual(
+			expect.objectContaining({
+				dataPath: '.genesis.modules',
+				keyword: 'pattern',
+				message: 'must match pattern "^[a-zA-Z][a-zA-Z0-9_]*$"',
+			}),
+		);
+		expect(errors[1]).toEqual(
+			expect.objectContaining({
+				dataPath: '.genesis.modules',
+				keyword: 'propertyNames',
+				message: 'property name must be valid',
 			}),
 		);
 	});
