@@ -21,7 +21,14 @@ import {
 	NODE_HASH_SIZE,
 	NODE_INDEX_SIZE,
 } from './constants';
-import { NodeLocation, NodeSide, NodeType, MerkleRootInfo } from './types';
+import {
+	NodeLocation,
+	NodeSide,
+	NodeType,
+	MerkleRootInfo,
+	NodeIndex,
+	NonNullableStruct,
+} from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
 
@@ -333,4 +340,36 @@ export const getLocationFromIndex = (index: number, size: number) => {
 	};
 
 	return location;
+};
+
+export const getSortedLocationsAndQueryData = (
+	locations: NodeIndex[],
+	queryData: Buffer[] | ReadonlyArray<Buffer>,
+) => {
+	const sortedData = [];
+	for (let i = 0; i < locations.length; i += 1) {
+		sortedData.push({
+			location: locations[i],
+			queryData: queryData[i],
+		});
+	}
+
+	(sortedData as {
+		location: NonNullableStruct<NodeIndex>;
+		queryData: Buffer;
+	}[]).sort((a, b) => {
+		if (a.location.layerIndex !== b.location.layerIndex) {
+			return a.location.layerIndex - b.location.layerIndex;
+		}
+		return a.location.nodeIndex - b.location.nodeIndex;
+	});
+
+	const sortedQueryData: Buffer[] = [];
+	const sortedLocations: NodeIndex[] = [];
+	for (let i = 0; i < sortedData.length; i += 1) {
+		sortedQueryData[i] = sortedData[i].queryData;
+		sortedLocations[i] = sortedData[i].location;
+	}
+
+	return { sortedLocations, sortedQueryData };
 };

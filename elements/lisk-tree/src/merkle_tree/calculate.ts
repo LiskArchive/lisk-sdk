@@ -11,6 +11,7 @@ import {
 	getLocationFromIndex,
 	getPairLocation,
 	getParentLocation,
+	getSortedLocationsAndQueryData,
 } from './utils';
 
 export const calculatePathNodes = (
@@ -38,7 +39,9 @@ export const calculatePathNodes = (
 		locations.push(location);
 	}
 
-	for (const [i, location] of Object.entries(locations)) {
+	const { sortedLocations, sortedQueryData } = getSortedLocationsAndQueryData(locations, queryData);
+
+	for (const [i, location] of Object.entries(sortedLocations)) {
 		const currentQueryDataIndex = Number(i);
 		const { nodeIndex: currentNodeIndex, layerIndex: currentLayerIndex } = location;
 
@@ -47,7 +50,7 @@ export const calculatePathNodes = (
 			continue;
 		}
 
-		const value = queryData[currentQueryDataIndex];
+		const value = sortedQueryData[currentQueryDataIndex];
 
 		const binaryIndex = getBinaryString(
 			currentNodeIndex,
@@ -68,8 +71,8 @@ export const calculatePathNodes = (
 		tree[binaryIndex] = newNode;
 	}
 
-	while ((locations[0].layerIndex as number) < getHeight(size) - 1) {
-		const location = locations[0] as NonNullableStruct<NodeIndex>;
+	while ((sortedLocations[0].layerIndex as number) < getHeight(size) - 1) {
+		const location = sortedLocations[0] as NonNullableStruct<NodeIndex>;
 		const { nodeIndex: currentNodeIndex, layerIndex: currentLayerIndex } = location;
 		const binaryIndex = getBinaryString(
 			currentNodeIndex,
@@ -110,10 +113,10 @@ export const calculatePathNodes = (
 
 			if (!tree[parentBinaryIndex]) {
 				tree[parentBinaryIndex] = newParentNode;
-				locations.push(parentLocation);
+				sortedLocations.push(parentLocation);
 			}
 
-			locations.shift();
+			sortedLocations.shift();
 			continue;
 		}
 
@@ -134,10 +137,10 @@ export const calculatePathNodes = (
 		);
 		if (!tree[parentBinaryIndex]) {
 			tree[parentBinaryIndex] = newParentNode;
-			locations.push(parentLocation);
+			sortedLocations.push(parentLocation);
 		}
 
-		locations.shift();
+		sortedLocations.shift();
 	}
 
 	return tree;
