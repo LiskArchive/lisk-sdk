@@ -12,10 +12,94 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+const moduleConfigSchema = {
+	type: 'object',
+	propertyNames: {
+		pattern: '^[a-zA-Z][a-zA-Z0-9_]*$',
+	},
+	additionalProperties: { type: 'object' },
+};
+
+const rewardsConfigSchema = {
+	type: 'object',
+	required: ['milestones', 'offset', 'distance'],
+	description: 'Object representing LSK rewards milestone',
+	properties: {
+		milestones: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'uint64',
+			},
+			description: 'Initial 5, and decreasing until 1',
+		},
+		offset: {
+			type: 'integer',
+			minimum: 1,
+			description: 'Start rewards at block (n)',
+		},
+		distance: {
+			type: 'integer',
+			minimum: 1,
+			description: 'Distance between each milestone',
+		},
+	},
+	additionalProperties: false,
+};
+
+const delegatesConfigSchema = {
+	type: 'array',
+	items: {
+		required: ['encryptedPassphrase', 'address', 'hashOnion'],
+		properties: {
+			encryptedPassphrase: {
+				type: 'string',
+				format: 'encryptedPassphrase',
+			},
+			address: {
+				type: 'string',
+				format: 'hex',
+			},
+			hashOnion: {
+				type: 'object',
+				required: ['count', 'distance', 'hashes'],
+				properties: {
+					count: {
+						minimum: 1,
+						type: 'integer',
+					},
+					distance: {
+						minimum: 1,
+						type: 'integer',
+					},
+					hashes: {
+						type: 'array',
+						minItems: 2,
+						items: {
+							type: 'string',
+							format: 'hex',
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
-	required: ['version', 'networkVersion', 'rpc', 'genesisConfig', 'forging', 'network', 'plugins'],
+	required: [
+		'version',
+		'networkVersion',
+		'rpc',
+		'genesisConfig',
+		'forging',
+		'network',
+		'plugins',
+		'genesis',
+	],
 	properties: {
 		label: {
 			type: 'string',
@@ -113,31 +197,7 @@ export const applicationConfigSchema = {
 					description: 'Maximum number of transactions allowed per block',
 				},
 				rewards: {
-					$id: '#/config/rewards',
-					type: 'object',
-					required: ['milestones', 'offset', 'distance'],
-					description: 'Object representing LSK rewards milestone',
-					properties: {
-						milestones: {
-							type: 'array',
-							items: {
-								type: 'string',
-								format: 'uint64',
-							},
-							description: 'Initial 5, and decreasing until 1',
-						},
-						offset: {
-							type: 'integer',
-							minimum: 1,
-							description: 'Start rewards at block (n)',
-						},
-						distance: {
-							type: 'integer',
-							minimum: 1,
-							description: 'Distance between each milestone',
-						},
-					},
-					additionalProperties: false,
+					...rewardsConfigSchema,
 				},
 			},
 			additionalProperties: true,
@@ -157,42 +217,7 @@ export const applicationConfigSchema = {
 					type: 'string',
 				},
 				delegates: {
-					type: 'array',
-					items: {
-						required: ['encryptedPassphrase', 'address', 'hashOnion'],
-						properties: {
-							encryptedPassphrase: {
-								type: 'string',
-								format: 'encryptedPassphrase',
-							},
-							address: {
-								type: 'string',
-								format: 'hex',
-							},
-							hashOnion: {
-								type: 'object',
-								required: ['count', 'distance', 'hashes'],
-								properties: {
-									count: {
-										minimum: 1,
-										type: 'integer',
-									},
-									distance: {
-										minimum: 1,
-										type: 'integer',
-									},
-									hashes: {
-										type: 'array',
-										minItems: 2,
-										items: {
-											type: 'string',
-											format: 'hex',
-										},
-									},
-								},
-							},
-						},
-					},
+					...delegatesConfigSchema,
 				},
 			},
 		},
@@ -357,6 +382,89 @@ export const applicationConfigSchema = {
 				},
 			},
 		},
+		genesis: {
+			type: 'object',
+			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards', 'modules'],
+			properties: {
+				blockTime: {
+					type: 'number',
+					minimum: 2,
+					description: 'Slot time interval in seconds',
+				},
+				communityIdentifier: {
+					type: 'string',
+					description:
+						'The unique name of the relevant community as a string encoded in UTF-8 format',
+				},
+				bftThreshold: {
+					type: 'integer',
+					minimum: 1,
+					description: 'Number of validators required to set block finality',
+				},
+				minFeePerByte: {
+					type: 'integer',
+					minimum: 0,
+					description: 'Minimum fee per bytes required for a transaction to be valid',
+				},
+				baseFees: {
+					type: 'array',
+					description: 'Base fee for a transaction to be valid',
+					items: {
+						type: 'object',
+						properties: {
+							moduleID: {
+								type: 'number',
+								minimum: 2,
+							},
+							assetID: {
+								type: 'integer',
+								minimum: 0,
+							},
+							baseFee: {
+								type: 'string',
+								format: 'uint64',
+							},
+						},
+					},
+				},
+				maxPayloadLength: {
+					type: 'integer',
+					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+					minimum: 10 * 1024, // Kilo Bytes
+					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+					maximum: 30 * 1024, // Kilo Bytes
+					description: 'Maximum number of transactions allowed per block',
+				},
+				rewards: {
+					...rewardsConfigSchema,
+				},
+				modules: {
+					...moduleConfigSchema,
+				},
+			},
+			additionalProperties: false,
+		},
+		generator: {
+			type: 'object',
+			required: ['force', 'waitThreshold', 'delegates', 'modules'],
+			properties: {
+				password: {
+					type: 'string',
+					description: 'The password to decrypt passphrases',
+				},
+				force: {
+					type: 'boolean',
+				},
+				waitThreshold: {
+					description: 'Number of seconds to wait for previous block before forging',
+					type: 'integer',
+				},
+				delegates: { ...delegatesConfigSchema },
+				modules: {
+					...moduleConfigSchema,
+				},
+			},
+		},
 	},
 	additionalProperties: false,
 	default: {
@@ -412,5 +520,32 @@ export const applicationConfigSchema = {
 			minReplacementFeeDifference: '10',
 		},
 		plugins: {},
+		genesis: {
+			blockTime: 10,
+			communityIdentifier: 'sdk',
+			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+			maxPayloadLength: 15 * 1024, // Kilo Bytes
+			bftThreshold: 68,
+			minFeePerByte: 1000,
+			baseFees: [],
+			rewards: {
+				milestones: [
+					'500000000', // Initial Reward
+					'400000000', // Milestone 1
+					'300000000', // Milestone 2
+					'200000000', // Milestone 3
+					'100000000', // Milestone 4
+				],
+				offset: 2160, // Start rewards at 39th block of 22nd round
+				distance: 3000000, // Distance between each milestone
+			},
+			modules: {},
+		},
+		generator: {
+			force: false,
+			waitThreshold: 2,
+			delegates: [],
+			modules: {},
+		},
 	},
 };

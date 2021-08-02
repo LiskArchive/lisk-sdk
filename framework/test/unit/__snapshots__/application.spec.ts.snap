@@ -2172,6 +2172,32 @@ Object {
     "force": true,
     "waitThreshold": 2,
   },
+  "generator": Object {
+    "delegates": Array [],
+    "force": false,
+    "modules": Object {},
+    "waitThreshold": 2,
+  },
+  "genesis": Object {
+    "baseFees": Array [],
+    "bftThreshold": 68,
+    "blockTime": 10,
+    "communityIdentifier": "sdk",
+    "maxPayloadLength": 15360,
+    "minFeePerByte": 1000,
+    "modules": Object {},
+    "rewards": Object {
+      "distance": 3000000,
+      "milestones": Array [
+        "500000000",
+        "400000000",
+        "300000000",
+        "200000000",
+        "100000000",
+      ],
+      "offset": 2160,
+    },
+  },
   "genesisConfig": Object {
     "activeDelegates": 101,
     "baseFees": Array [
