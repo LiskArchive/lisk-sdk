@@ -30,7 +30,7 @@ import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { APP_EVENT_NETWORK_READY } from '../../constants';
 import { Logger } from '../../logger';
-import { GeneratorConfig, GenesisConfig } from '../../types';
+import { GenerationConfig, GenesisConfig } from '../../types';
 import { Network } from '../network';
 import {
 	APIContext,
@@ -45,7 +45,7 @@ import {
 	DEFAULT_RELEASE_LIMIT,
 	DEFAULT_RELEASE_INTERVAL,
 	FORGE_INTERVAL,
-	LOAD_TRANSACION_RETRIES,
+	LOAD_TRANSACTION_RETRIES,
 	NETWORK_RPC_GET_TRANSACTIONS,
 	NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
 } from './constants';
@@ -59,7 +59,7 @@ import { Consensus, GeneratorModule } from './types';
 
 interface GeneratorArgs {
 	genesisConfig: GenesisConfig;
-	generatorConfig: GeneratorConfig;
+	generationConfig: GenerationConfig;
 	chain: Chain;
 	consensus: Consensus;
 	stateMachine: StateMachine;
@@ -82,7 +82,7 @@ const BLOCK_VERSION = 2;
 export class Generator {
 	private readonly _modules: GeneratorModule[] = [];
 	private readonly _pool: TransactionPool;
-	private readonly _config: GeneratorConfig;
+	private readonly _config: GenerationConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _stateMachine: StateMachine;
@@ -99,7 +99,7 @@ export class Generator {
 	private _blockchainDB!: KVStore;
 
 	public constructor(args: GeneratorArgs) {
-		this._config = args.generatorConfig;
+		this._config = args.generationConfig;
 		this._keypairs = new dataStructures.BufferMap();
 		this._pool = new TransactionPool({
 			minFeePerByte: args.genesisConfig.minFeePerByte,
@@ -201,6 +201,7 @@ export class Generator {
 		this._pool.events.on(events.EVENT_TRANSACTION_REMOVED, event => {
 			this._logger.debug(event, 'Transaction was removed from the pool.');
 		});
+		this._broadcaster.start();
 		await this._pool.start();
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		this._generationJob.start();
@@ -218,6 +219,7 @@ export class Generator {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async stop(): Promise<void> {
 		this._pool.events.removeAllListeners(events.EVENT_TRANSACTION_REMOVED);
+		this._broadcaster.stop();
 		this._pool.stop();
 		this._generationJob.stop();
 	}
@@ -241,15 +243,15 @@ export class Generator {
 	}
 
 	public async _loadTransactionsFromNetwork(): Promise<void> {
-		for (let retry = 0; retry < LOAD_TRANSACION_RETRIES; retry += 1) {
+		for (let retry = 0; retry < LOAD_TRANSACTION_RETRIES; retry += 1) {
 			try {
 				await this._getUnconfirmedTransactionsFromNetwork();
 				return;
 			} catch (err) {
-				if (err && retry === LOAD_TRANSACION_RETRIES - 1) {
+				if (err && retry === LOAD_TRANSACTION_RETRIES - 1) {
 					this._logger.error(
 						{ err: err as Error },
-						`Failed to get transactions from network after ${LOAD_TRANSACION_RETRIES} retries`,
+						`Failed to get transactions from network after ${LOAD_TRANSACTION_RETRIES} retries`,
 					);
 				}
 			}

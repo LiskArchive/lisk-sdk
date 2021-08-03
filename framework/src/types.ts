@@ -165,7 +165,7 @@ export interface Generator {
 	readonly encryptedPassphrase: string;
 }
 
-export interface GeneratorConfig {
+export interface GenerationConfig {
 	waitThreshold: number;
 	generators: Generator[];
 	force?: boolean;
@@ -178,7 +178,7 @@ export interface ApplicationConfig {
 	version: string;
 	networkVersion: string;
 	rootPath: string;
-	generator: GeneratorConfig;
+	generator: GenerationConfig;
 	forging: {
 		waitThreshold: number;
 		delegates: DelegateConfig[];

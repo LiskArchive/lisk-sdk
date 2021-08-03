@@ -16,7 +16,7 @@ export const DEFAULT_RELEASE_LIMIT = 100;
 export const DEFAULT_RELEASE_INTERVAL = 5000;
 export const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
 export const FORGE_INTERVAL = 1000;
-export const LOAD_TRANSACION_RETRIES = 5;
+export const LOAD_TRANSACTION_RETRIES = 5;
 
 export const NETWORK_RPC_GET_TRANSACTIONS = 'getTransactions';
 export const NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT = 'postTransactionsAnnouncement';

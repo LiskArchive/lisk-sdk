@@ -57,6 +57,7 @@ describe('broadcaster', () => {
 		broadcaster.init({
 			logger,
 		});
+		broadcaster.start();
 	});
 
 	describe('when a transaction is given', () => {

@@ -41,6 +41,7 @@ export class Broadcaster {
 	private _transactionIdQueue: Buffer[];
 
 	private _logger!: Logger;
+	private _loopID?: NodeJS.Timer;
 
 	public constructor({ transactionPool, releaseLimit, interval, network }: BroadcasterConstructor) {
 		this._transactionPool = transactionPool;
@@ -54,7 +55,10 @@ export class Broadcaster {
 
 	public init(args: BroadcasterInitArgs): void {
 		this._logger = args.logger;
-		setInterval(() => {
+	}
+
+	public start(): void {
+		this._loopID = setInterval(() => {
 			try {
 				this._broadcast();
 			} catch (err) {
@@ -62,6 +66,12 @@ export class Broadcaster {
 				this._logger.error({ err }, 'Failed to broadcast information');
 			}
 		}, this._config.interval);
+	}
+
+	public stop(): void {
+		if (this._loopID) {
+			clearInterval(this._loopID);
+		}
 	}
 
 	public enqueueTransactionId(transactionId: Buffer): boolean {

@@ -132,7 +132,7 @@ describe('generator', () => {
 			consensus,
 			network,
 			stateMachine,
-			generatorConfig: {
+			generationConfig: {
 				generators: genesisDelegates.delegates,
 				defaultPassword: genesisDelegates.delegates[0].password,
 				modules: {},
