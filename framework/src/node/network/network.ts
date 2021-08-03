@@ -18,7 +18,7 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
 
-import { APP_EVENT_NETWORK_READY } from '../../constants';
+import { APP_EVENT_NETWORK_EVENT, APP_EVENT_NETWORK_READY } from '../../constants';
 import { InMemoryChannel } from '../../controller/channels';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
@@ -360,6 +360,11 @@ export class Network {
 				readonly event: string;
 				readonly data: Buffer | undefined;
 			}) => {
+				// TODO: remove later condition once registation is done
+				if (['postBlock', 'postTransactionsAnnouncement', 'postNodeInfo'].includes(packet.event)) {
+					this.events.emit(APP_EVENT_NETWORK_EVENT, packet);
+					return;
+				}
 				if (!Object.keys(this._eventHandlers).includes(packet.event)) {
 					const error = new Error(`Sent event "${packet.event}" is not permitted.`);
 					this._logger.error(

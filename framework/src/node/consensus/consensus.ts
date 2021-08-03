@@ -38,6 +38,7 @@ import {
 	EVENT_BLOCK_BROADCAST,
 	EVENT_FORK_DETECTED,
 	NETWORK_EVENT_POST_BLOCK,
+	NETWORK_EVENT_POST_NODE_INFO,
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
 	NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 	NETWORK_RPC_GET_LAST_BLOCK,
@@ -154,6 +155,9 @@ export class Consensus {
 			this.onBlockReceive(data, peerId).catch(err => {
 				this._logger.error({ err: err as Error, peerId }, 'Fail to handle received block');
 			});
+		});
+		this._network.registerHandler(NETWORK_EVENT_POST_NODE_INFO, ({ data, peerId }) => {
+			this._logger.debug({ peerId, data }, 'Received new node info');
 		});
 
 		this._logger.debug(

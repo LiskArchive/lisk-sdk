@@ -16,6 +16,7 @@ export const EVENT_FORK_DETECTED = 'EVENT_FORK_DETECTED';
 export const EVENT_BLOCK_BROADCAST = 'EVENT_BLOCK_BROADCAST';
 
 export const NETWORK_EVENT_POST_BLOCK = 'postBlock';
+export const NETWORK_EVENT_POST_NODE_INFO = 'postNodeInfo';
 export const NETWORK_RPC_GET_LAST_BLOCK = 'getLastBlock';
 export const NETWORK_RPC_GET_BLOCKS_FROM_ID = 'getBlocksFromId';
 export const NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK = 'getHighestCommonBlock';
