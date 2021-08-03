@@ -57,8 +57,10 @@ describe('consensus', () => {
 		} as unknown) as Chain;
 		network = ({
 			registerEndpoint: jest.fn(),
+			registerHandler: jest.fn(),
 			applyPenaltyOnPeer: jest.fn(),
 			send: jest.fn(),
+			applyNodeInfo: jest.fn(),
 		} as unknown) as Network;
 		stateMachine = ({
 			executeGenesisBlock: jest.fn(),

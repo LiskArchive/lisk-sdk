@@ -160,11 +160,25 @@ interface RPCConfig {
 	port: number;
 }
 
+export interface Generator {
+	readonly address: string;
+	readonly encryptedPassphrase: string;
+}
+
+export interface GenerationConfig {
+	waitThreshold: number;
+	generators: Generator[];
+	force?: boolean;
+	defaultPassword?: string;
+	modules: Record<string, unknown>;
+}
+
 export interface ApplicationConfig {
 	label: string;
 	version: string;
 	networkVersion: string;
 	rootPath: string;
+	generator: GenerationConfig;
 	forging: {
 		waitThreshold: number;
 		delegates: DelegateConfig[];

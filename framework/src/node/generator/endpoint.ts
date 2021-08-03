@@ -1,0 +1,229 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+import { Chain } from '@liskhq/lisk-chain';
+import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
+import {
+	decryptPassphraseWithPassword,
+	getAddressFromPublicKey,
+	getPrivateAndPublicKeyFromPassphrase,
+	parseEncryptedPassphrase,
+} from '@liskhq/lisk-cryptography';
+import { KVStore } from '@liskhq/lisk-db';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { dataStructures } from '@liskhq/lisk-utils';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { Logger } from '../../logger';
+import { Generator } from '../../types';
+import {
+	APIContext,
+	EventQueue,
+	StateMachine,
+	TransactionContext,
+	VerifyStatus,
+} from '../state_machine';
+import { Broadcaster } from './broadcaster';
+import { InvalidTransactionError } from './errors';
+import { GeneratorStore } from './generator_store';
+import {
+	PostTransactionRequest,
+	postTransactionRequestSchema,
+	PostTransactionResponse,
+	UpdateForgingStatusRequest,
+	updateForgingStatusRequestSchema,
+	UpdateForgingStatusResponse,
+} from './schemas';
+import { Consensus, Keypair } from './types';
+
+interface EndpointArgs {
+	keypair: dataStructures.BufferMap<Keypair>;
+	generators: Generator[];
+	consensus: Consensus;
+	chain: Chain;
+	stateMachine: StateMachine;
+	pool: TransactionPool;
+	broadcaster: Broadcaster;
+}
+
+interface EndpointInit {
+	logger: Logger;
+	generatorDB: KVStore;
+	blockchainDB: KVStore;
+}
+
+interface EndpointContext {
+	params: Record<string, unknown>;
+	logger: Logger;
+}
+
+export class Endpoint {
+	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
+	private readonly _generators: Generator[];
+	private readonly _consensus: Consensus;
+	private readonly _stateMachine: StateMachine;
+	private readonly _pool: TransactionPool;
+	private readonly _broadcaster: Broadcaster;
+	private readonly _chain: Chain;
+
+	private _logger!: Logger;
+	private _generatorDB!: KVStore;
+	private _blockchainDB!: KVStore;
+
+	public constructor(args: EndpointArgs) {
+		this._keypairs = args.keypair;
+		this._generators = args.generators;
+		this._consensus = args.consensus;
+		this._chain = args.chain;
+		this._stateMachine = args.stateMachine;
+		this._pool = args.pool;
+		this._broadcaster = args.broadcaster;
+	}
+
+	public init(args: EndpointInit) {
+		this._logger = args.logger;
+		this._generatorDB = args.generatorDB;
+		this._blockchainDB = args.blockchainDB;
+	}
+
+	public async postTransaction(ctx: EndpointContext): Promise<PostTransactionResponse> {
+		const reqErrors = validator.validate(postTransactionRequestSchema, ctx.params);
+		if (reqErrors?.length) {
+			throw new LiskValidationError(reqErrors);
+		}
+		const req = (ctx.params as unknown) as PostTransactionRequest;
+		const transaction = this._chain.dataAccess.decodeTransaction(
+			Buffer.from(req.transaction, 'hex'),
+		);
+		const txContext = new TransactionContext({
+			eventQueue: new EventQueue(),
+			logger: this._logger,
+			networkIdentifier: this._chain.constants.networkIdentifier,
+			stateStore: new StateStore(this._blockchainDB),
+			transaction,
+		});
+		const result = await this._stateMachine.verifyTransaction(txContext);
+		if (result.status === VerifyStatus.FAIL) {
+			throw new InvalidTransactionError(
+				result.error?.message ?? 'Transaction verification failed.',
+				transaction.id,
+			);
+		}
+		if (this._pool.contains(transaction.id)) {
+			return {
+				transactionId: transaction.id.toString('hex'),
+			};
+		}
+
+		// Broadcast transaction to network if not present in pool
+		this._broadcaster.enqueueTransactionId(transaction.id);
+
+		const { error } = await this._pool.add(transaction);
+		if (error) {
+			this._logger.error({ err: error }, 'Failed to add transaction to pool.');
+			throw new InvalidTransactionError(
+				error.message ?? 'Transaction verification failed.',
+				transaction.id,
+			);
+		}
+
+		this._logger.info(
+			{
+				id: transaction.id,
+				nonce: transaction.nonce.toString(),
+				senderPublicKey: transaction.senderPublicKey,
+			},
+			'Added transaction to pool',
+		);
+		return {
+			transactionId: transaction.id.toString('hex'),
+		};
+	}
+
+	public async updateForgingStatus(ctx: EndpointContext): Promise<UpdateForgingStatusResponse> {
+		const reqErrors = validator.validate(updateForgingStatusRequestSchema, ctx.params);
+		if (reqErrors?.length) {
+			throw new LiskValidationError(reqErrors);
+		}
+		const req = (ctx.params as unknown) as UpdateForgingStatusRequest;
+		const address = Buffer.from(req.address, 'hex');
+		const encryptedGenerator = this._generators.find(item => item.address === req.address);
+
+		let passphrase: string;
+
+		if (!encryptedGenerator) {
+			throw new Error(`Generator with address: ${req.address} not found.`);
+		}
+
+		try {
+			passphrase = decryptPassphraseWithPassword(
+				parseEncryptedPassphrase(encryptedGenerator.encryptedPassphrase),
+				req.password,
+			);
+		} catch (e) {
+			throw new Error('Invalid password and public key combination.');
+		}
+
+		const keypair: Keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+
+		if (!getAddressFromPublicKey(keypair.publicKey).equals(Buffer.from(req.address, 'hex'))) {
+			throw new Error(
+				`Invalid keypair: ${getAddressFromPublicKey(keypair.publicKey).toString(
+					'hex',
+				)}  and address: ${req.address} combination`,
+			);
+		}
+
+		if (!req.enable) {
+			// Disable delegate by removing keypairs corresponding to address
+			this._keypairs.delete(Buffer.from(req.address, 'hex'));
+			ctx.logger.info(`Forging disabled on account: ${req.address}`);
+			return {
+				address: req.address,
+				enabled: false,
+			};
+		}
+		const apiClient = new APIContext({
+			stateStore: new StateStore(this._blockchainDB),
+			eventQueue: new EventQueue(),
+		});
+
+		const synced = await this._consensus.isSynced(
+			req.height,
+			req.maxHeightPrevoted,
+			req.maxHeightPreviouslyForged,
+		);
+		if (!synced) {
+			throw new Error('Failed to enable forging as the node is not synced to the network.');
+		}
+
+		const generatorStore = new GeneratorStore(this._generatorDB);
+		await this._consensus.verifyGeneratorInfo(apiClient, generatorStore, {
+			...req,
+			address,
+		});
+
+		const batch = this._generatorDB.batch();
+		generatorStore.finalize(batch);
+		await batch.write();
+
+		// Enable delegate to forge by adding keypairs corresponding to address
+		this._keypairs.set(address, keypair);
+		ctx.logger.info(`Block generation enabled on address: ${req.address}`);
+
+		return {
+			address: req.address,
+			enabled: true,
+		};
+	}
+}

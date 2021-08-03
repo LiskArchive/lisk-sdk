@@ -40,7 +40,7 @@ export class BlockContext {
 	private readonly _logger: Logger;
 	private readonly _eventQueue: EventQueue;
 	private readonly _header: BlockHeader;
-	private readonly _transactions?: ReadonlyArray<Transaction>;
+	private _transactions?: ReadonlyArray<Transaction>;
 
 	public constructor(params: ContextParams) {
 		this._logger = params.logger;
@@ -56,6 +56,10 @@ export class BlockContext {
 			throw new Error('Transactions are not set');
 		}
 		return this._transactions;
+	}
+
+	public setTransactions(transactions: Transaction[]): void {
+		this._transactions = transactions;
 	}
 
 	public getBlockVerifyExecuteContext(): BlockVerifyContext {

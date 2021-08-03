@@ -18,13 +18,7 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
 
-import {
-	APP_EVENT_NETWORK_READY,
-	APP_EVENT_NETWORK_EVENT,
-	EVENT_POST_BLOCK,
-	EVENT_POST_NODE_INFO,
-	EVENT_POST_TRANSACTION_ANNOUNCEMENT,
-} from '../../constants';
+import { APP_EVENT_NETWORK_EVENT, APP_EVENT_NETWORK_READY } from '../../constants';
 import { InMemoryChannel } from '../../controller/channels';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
@@ -55,12 +49,6 @@ const {
 const DB_KEY_NETWORK_NODE_SECRET = Buffer.from('network:nodeSecret', 'utf8');
 const DB_KEY_NETWORK_TRIED_PEERS_LIST = Buffer.from('network:triedPeersList', 'utf8');
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
-
-const REMOTE_EVENTS_WHITE_LIST = [
-	EVENT_POST_BLOCK,
-	EVENT_POST_NODE_INFO,
-	EVENT_POST_TRANSACTION_ANNOUNCEMENT,
-];
 
 interface NodeInfoOptions {
 	[key: string]: unknown;
@@ -101,6 +89,12 @@ interface P2PRPCEndpoints {
 	[key: string]: P2PRPCEndpointHandler;
 }
 
+type P2PEventHandler = (input: { data: Buffer | undefined; peerId: string }) => void;
+
+interface P2PEventHandlers {
+	[key: string]: P2PEventHandler;
+}
+
 export class Network {
 	public readonly events: EventEmitter;
 	private readonly _options: NetworkConfig;
@@ -112,6 +106,7 @@ export class Network {
 	private _secret: number | undefined;
 	private _p2p!: liskP2P.P2P;
 	private _endpoints: P2PRPCEndpoints;
+	private _eventHandlers: P2PEventHandlers;
 
 	public constructor({ options, channel, logger, nodeDB, networkVersion }: NetworkConstructor) {
 		this._options = options;
@@ -120,6 +115,7 @@ export class Network {
 		this._nodeDB = nodeDB;
 		this._networkVersion = networkVersion;
 		this._endpoints = {};
+		this._eventHandlers = {};
 		this._secret = undefined;
 		this.events = new EventEmitter();
 	}
@@ -364,7 +360,12 @@ export class Network {
 				readonly event: string;
 				readonly data: Buffer | undefined;
 			}) => {
-				if (!REMOTE_EVENTS_WHITE_LIST.includes(packet.event)) {
+				// TODO: remove later condition once registation is done
+				if (['postBlock', 'postTransactionsAnnouncement', 'postNodeInfo'].includes(packet.event)) {
+					this.events.emit(APP_EVENT_NETWORK_EVENT, packet);
+					return;
+				}
+				if (!Object.keys(this._eventHandlers).includes(packet.event)) {
 					const error = new Error(`Sent event "${packet.event}" is not permitted.`);
 					this._logger.error(
 						{ err: error, event: packet.event },
@@ -382,7 +383,15 @@ export class Network {
 					},
 					'EVENT_MESSAGE_RECEIVED: Received inbound message',
 				);
-				this.events.emit(APP_EVENT_NETWORK_EVENT, packet);
+				try {
+					this._eventHandlers[packet.event](packet);
+				} catch (error) {
+					this._logger.error(
+						{ err: error as Error, event: packet.event },
+						'Peer request not fulfilled event: Fail to handle event',
+					);
+					this._p2p.applyPenalty({ peerId: packet.peerId, penalty: 100 });
+				}
 			},
 		);
 
@@ -422,6 +431,13 @@ export class Network {
 			throw new Error(`Endpoint ${endpoint} has already been registered.`);
 		}
 		this._endpoints[endpoint] = handler;
+	}
+
+	public registerHandler(event: string, handler: P2PEventHandler): void {
+		if (this._eventHandlers[event]) {
+			throw new Error(`Event handler for ${event} has already been registered.`);
+		}
+		this._eventHandlers[event] = handler;
 	}
 
 	public async request(

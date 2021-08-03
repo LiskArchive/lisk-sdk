@@ -1,0 +1,334 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { dataStructures } from '@liskhq/lisk-utils';
+import { LiskValidationError } from '@liskhq/lisk-validator';
+import { Logger } from '../../../../src/logger';
+import { Broadcaster } from '../../../../src/node/generator/broadcaster';
+import { Endpoint } from '../../../../src/node/generator/endpoint';
+import { InvalidTransactionError } from '../../../../src/node/generator/errors';
+import { Consensus, Keypair } from '../../../../src/node/generator/types';
+import { StateMachine, VerifyStatus } from '../../../../src/node/state_machine';
+import { fakeLogger } from '../../../utils/node';
+
+describe('generator endpoint', () => {
+	const logger: Logger = fakeLogger;
+	const txBytes =
+		'0805100118012080ade2042a20f7e7627120dab14b80b6e4f361ba89db251ee838708c3a74c6c2cc08ad793f58321d0a1b0a1432fc1c23b73db1c6205327b1cab44318e61678ea1080dac4093a40a0be9e52d9e0a53406c55a74ab0d7d106eb276a47dd88d3dc2284ed62024b2448e0bd5af1623ae7d793606a58c27d742e8855ba339f757d56972c4c6efad750c';
+	const tx = new Transaction({
+		asset: Buffer.alloc(20),
+		assetID: 0,
+		fee: BigInt(100000),
+		moduleID: 2,
+		nonce: BigInt(0),
+		senderPublicKey: Buffer.alloc(32),
+		signatures: [Buffer.alloc(64)],
+	});
+	const config = {
+		address: 'd04699e57c4a3846c988f3c15306796f8eae5c1c',
+		encryptedPassphrase:
+			'iterations=10&cipherText=6541c04d7a46eacd666c07fbf030fef32c5db324466e3422e59818317ac5d15cfffb80c5f1e2589eaa6da4f8d611a94cba92eee86722fc0a4015a37cff43a5a699601121fbfec11ea022&iv=141edfe6da3a9917a42004be&salt=f523bba8316c45246c6ffa848b806188&tag=4ffb5c753d4a1dc96364c4a54865521a&version=1',
+	};
+	const invalidConfig = {
+		...config,
+		address: 'aaaaaaaaaa4a3846c988f3c15306796f8eae5c1c',
+	};
+	const defaultPassword = 'elephant tree paris dragon chair galaxy';
+
+	let endpoint: Endpoint;
+	let broadcaster: Broadcaster;
+	let chain: Chain;
+	let consensus: Consensus;
+	let pool: TransactionPool;
+	let stateMachine: StateMachine;
+
+	beforeEach(() => {
+		broadcaster = {
+			enqueueTransactionId: jest.fn(),
+		} as never;
+		chain = {
+			dataAccess: {
+				decodeTransaction: jest.fn().mockReturnValue(tx),
+			},
+			constants: {
+				networkIdentifier: Buffer.from('networkIdentifier'),
+			},
+		} as never;
+		consensus = {
+			isSynced: jest.fn().mockResolvedValue(true),
+			verifyGeneratorInfo: jest.fn(),
+		} as never;
+		pool = {
+			contains: jest.fn().mockReturnValue(false),
+			add: jest.fn().mockResolvedValue({}),
+		} as never;
+		stateMachine = {
+			verifyTransaction: jest.fn().mockResolvedValue({
+				status: VerifyStatus.OK,
+			}),
+		} as never;
+		endpoint = new Endpoint({
+			broadcaster,
+			chain,
+			consensus,
+			pool,
+			stateMachine,
+			keypair: new dataStructures.BufferMap<Keypair>(),
+			generators: [config, invalidConfig],
+		});
+		endpoint.init({
+			blockchainDB: new InMemoryKVStore() as never,
+			generatorDB: new InMemoryKVStore() as never,
+			logger,
+		});
+	});
+
+	describe('postTransaction', () => {
+		describe('when request data is invalid', () => {
+			it('should reject with validation error', async () => {
+				await expect(
+					endpoint.postTransaction({
+						logger,
+						params: {
+							invalid: 'schema',
+						},
+					}),
+				).rejects.toThrow(LiskValidationError);
+			});
+
+			it('should reject with error when transaction bytes is invalid', async () => {
+				(chain.dataAccess.decodeTransaction as jest.Mock).mockImplementation(() => {
+					throw new Error('invalid data');
+				});
+				await expect(
+					endpoint.postTransaction({
+						logger,
+						params: {
+							transaction: 'xxxx',
+						},
+					}),
+				).rejects.toThrow();
+			});
+		});
+
+		describe('when verify transaction fails', () => {
+			it('should throw when transaction is invalid', async () => {
+				(stateMachine.verifyTransaction as jest.Mock).mockResolvedValue({
+					status: VerifyStatus.FAIL,
+				});
+				await expect(
+					endpoint.postTransaction({
+						logger,
+						params: {
+							transaction: txBytes,
+						},
+					}),
+				).rejects.toThrow(InvalidTransactionError);
+			});
+		});
+
+		describe('when transaction pool already contains the transaction', () => {
+			it('should return the transaction id', async () => {
+				(pool.contains as jest.Mock).mockReturnValue(true);
+				await expect(
+					endpoint.postTransaction({
+						logger,
+						params: {
+							transaction: txBytes,
+						},
+					}),
+				).resolves.toEqual({
+					transactionId: tx.id.toString('hex'),
+				});
+			});
+		});
+
+		describe('when failed to add to the transaction', () => {
+			it('should throw when transaction is invalid', async () => {
+				(pool.add as jest.Mock).mockResolvedValue({
+					error: new Error('invalid tx'),
+				});
+				await expect(
+					endpoint.postTransaction({
+						logger,
+						params: {
+							transaction: txBytes,
+						},
+					}),
+				).rejects.toThrow(InvalidTransactionError);
+			});
+		});
+
+		describe('when successfully to add to the transaction pool', () => {
+			it('should return the transaction id', async () => {
+				await expect(
+					endpoint.postTransaction({
+						logger,
+						params: {
+							transaction: txBytes,
+						},
+					}),
+				).resolves.toEqual({
+					transactionId: tx.id.toString('hex'),
+				});
+				expect(broadcaster.enqueueTransactionId).toHaveBeenCalledWith(tx.id);
+			});
+		});
+	});
+
+	describe('updateForgingStatus', () => {
+		const bftProps = {
+			height: 200,
+			maxHeightPrevoted: 200,
+			maxHeightPreviouslyForged: 10,
+		};
+
+		it('should reject with error when request schema is invalid', async () => {
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					params: {
+						enable: true,
+						password: defaultPassword,
+						overwrite: true,
+						...bftProps,
+					},
+				}),
+			).rejects.toThrow(LiskValidationError);
+		});
+
+		it('should reject with error when address is not in config', async () => {
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					params: {
+						address: getRandomBytes(20).toString('hex'),
+						enable: true,
+						password: defaultPassword,
+						overwrite: true,
+						...bftProps,
+					},
+				}),
+			).rejects.toThrow('Generator with address:');
+		});
+
+		it('should return error with invalid password', async () => {
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					params: {
+						address: config.address,
+						enable: true,
+						password: 'wrong password',
+						overwrite: true,
+						...bftProps,
+					},
+				}),
+			).rejects.toThrow('Invalid password and public key combination');
+		});
+
+		it('should return error with invalid publicKey', async () => {
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					params: {
+						address: invalidConfig.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: true,
+						...bftProps,
+					},
+				}),
+			).rejects.toThrow('Invalid keypair');
+		});
+
+		it('should return error if the node is not synced', async () => {
+			(consensus.isSynced as jest.Mock).mockResolvedValue(false);
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					params: {
+						address: config.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: true,
+						...bftProps,
+					},
+				}),
+			).rejects.toThrow('Failed to enable forging as the node is not synced to the network.');
+		});
+
+		it('should delete the keypair if disabling', async () => {
+			endpoint['_keypairs'].set(Buffer.from(config.address, 'hex'), {
+				publicKey: Buffer.alloc(0),
+				privateKey: Buffer.alloc(0),
+			});
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					params: {
+						address: config.address,
+						enable: false,
+						password: defaultPassword,
+						overwrite: true,
+						...bftProps,
+					},
+				}),
+			).resolves.toEqual({
+				address: config.address,
+				enabled: false,
+			});
+			expect(endpoint['_keypairs'].has(Buffer.from(config.address, 'hex'))).toBeFalse();
+		});
+
+		it('should fail to enable to enable if verify generator fails', async () => {
+			(consensus.verifyGeneratorInfo as jest.Mock).mockRejectedValue(new Error('invalid'));
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					params: {
+						address: config.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: true,
+						...bftProps,
+					},
+				}),
+			).rejects.toThrow();
+		});
+
+		it('should update the keypair and return enabled', async () => {
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					params: {
+						address: config.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: true,
+						...bftProps,
+					},
+				}),
+			).resolves.toEqual({
+				address: config.address,
+				enabled: true,
+			});
+			expect(endpoint['_keypairs'].has(Buffer.from(config.address, 'hex'))).toBeTrue();
+		});
+	});
+});

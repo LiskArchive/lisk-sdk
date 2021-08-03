@@ -1,0 +1,483 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { Block } from '@liskhq/lisk-chain/dist-node/block';
+import { BlockHeader } from '@liskhq/lisk-chain/dist-node/block_header';
+import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
+import { codec } from '@liskhq/lisk-codec';
+import {
+	decryptPassphraseWithPassword,
+	getAddressFromPublicKey,
+	getPrivateAndPublicKeyFromPassphrase,
+	parseEncryptedPassphrase,
+} from '@liskhq/lisk-cryptography';
+import { KVStore } from '@liskhq/lisk-db';
+import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
+import { MerkleTree } from '@liskhq/lisk-tree';
+import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { APP_EVENT_NETWORK_READY } from '../../constants';
+import { Logger } from '../../logger';
+import { GenerationConfig, GenesisConfig } from '../../types';
+import { Network } from '../network';
+import {
+	APIContext,
+	EventQueue,
+	StateMachine,
+	TransactionContext,
+	VerifyStatus,
+	BlockContext,
+} from '../state_machine';
+import { Broadcaster } from './broadcaster';
+import {
+	DEFAULT_RELEASE_LIMIT,
+	DEFAULT_RELEASE_INTERVAL,
+	FORGE_INTERVAL,
+	LOAD_TRANSACTION_RETRIES,
+	NETWORK_RPC_GET_TRANSACTIONS,
+	NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
+} from './constants';
+import { GenerationContext } from './context';
+import { Endpoint } from './endpoint';
+import { GeneratorStore } from './generator_store';
+import { NetworkEndpoint } from './network_endpoint';
+import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
+import { HighFeeGenerationStrategy } from './strategies';
+import { Consensus, GeneratorModule } from './types';
+
+interface GeneratorArgs {
+	genesisConfig: GenesisConfig;
+	generationConfig: GenerationConfig;
+	chain: Chain;
+	consensus: Consensus;
+	stateMachine: StateMachine;
+	network: Network;
+}
+
+interface GeneratorInitArgs {
+	generatorDB: KVStore;
+	blockchainDB: KVStore;
+	logger: Logger;
+}
+
+interface Keypair {
+	publicKey: Buffer;
+	privateKey: Buffer;
+}
+
+const BLOCK_VERSION = 2;
+
+export class Generator {
+	private readonly _modules: GeneratorModule[] = [];
+	private readonly _pool: TransactionPool;
+	private readonly _config: GenerationConfig;
+	private readonly _chain: Chain;
+	private readonly _consensus: Consensus;
+	private readonly _stateMachine: StateMachine;
+	private readonly _network: Network;
+	private readonly _endpoint: Endpoint;
+	private readonly _networkEndpoint: NetworkEndpoint;
+	private readonly _generationJob: jobHandlers.Scheduler<void>;
+	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
+	private readonly _broadcaster: Broadcaster;
+	private readonly _forgingStrategy: HighFeeGenerationStrategy;
+
+	private _logger!: Logger;
+	private _generatorDB!: KVStore;
+	private _blockchainDB!: KVStore;
+
+	public constructor(args: GeneratorArgs) {
+		this._config = args.generationConfig;
+		this._keypairs = new dataStructures.BufferMap();
+		this._pool = new TransactionPool({
+			minFeePerByte: args.genesisConfig.minFeePerByte,
+			baseFees: args.genesisConfig.baseFees.map(fees => ({
+				...fees,
+				baseFee: BigInt(fees.baseFee),
+			})),
+			applyTransactions: async (transactions: Transaction[]) =>
+				this._verifyTransaction(transactions),
+		});
+		this._chain = args.chain;
+		this._consensus = args.consensus;
+		this._stateMachine = args.stateMachine;
+		this._network = args.network;
+		this._broadcaster = new Broadcaster({
+			network: this._network,
+			transactionPool: this._pool,
+			interval: DEFAULT_RELEASE_INTERVAL,
+			limit: DEFAULT_RELEASE_LIMIT,
+		});
+
+		this._endpoint = new Endpoint({
+			generators: this._config.generators,
+			keypair: this._keypairs,
+			chain: this._chain,
+			consensus: this._consensus,
+			broadcaster: this._broadcaster,
+			pool: this._pool,
+			stateMachine: this._stateMachine,
+		});
+		this._networkEndpoint = new NetworkEndpoint({
+			broadcaster: this._broadcaster,
+			chain: this._chain,
+			network: this._network,
+			pool: this._pool,
+			stateMachine: this._stateMachine,
+		});
+		this._forgingStrategy = new HighFeeGenerationStrategy({
+			chain: this._chain,
+			maxPayloadLength: this._chain.constants.maxPayloadLength,
+			stateMachine: this._stateMachine,
+			pool: this._pool,
+		});
+		this._generationJob = new jobHandlers.Scheduler(
+			async () => this._generateLoop(),
+			FORGE_INTERVAL,
+		);
+	}
+
+	public async init(args: GeneratorInitArgs): Promise<void> {
+		this._logger = args.logger;
+		this._generatorDB = args.generatorDB;
+		this._blockchainDB = args.blockchainDB;
+
+		this._broadcaster.init({
+			logger: this._logger,
+		});
+		this._endpoint.init({
+			blockchainDB: this._blockchainDB,
+			generatorDB: this._generatorDB,
+			logger: this._logger,
+		});
+		this._networkEndpoint.init({
+			blockchainDB: this._blockchainDB,
+			logger: this._logger,
+		});
+		await this._loadGenerators();
+		this._network.registerHandler(
+			NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
+			({ data, peerId }) => {
+				this._networkEndpoint
+					.handleEventPostTransactionsAnnouncement(data, peerId)
+					.catch(err =>
+						this._logger.error(
+							{ err: err as Error, peerId },
+							'Fail to handle transaction announcement',
+						),
+					);
+			},
+		);
+		this._network.registerEndpoint(NETWORK_RPC_GET_TRANSACTIONS, async ({ data, peerId }) =>
+			this._networkEndpoint.handleRPCGetTransactions(data, peerId),
+		);
+	}
+
+	public get endpoint(): Endpoint {
+		return this._endpoint;
+	}
+
+	public registerModule(mod: GeneratorModule): void {
+		const existingModule = this._modules.find(m => m.id === mod.id);
+		if (existingModule) {
+			throw new Error(`Module ${mod.id} is already registered.`);
+		}
+		this._modules.push(mod);
+	}
+
+	public async start(): Promise<void> {
+		this._pool.events.on(events.EVENT_TRANSACTION_REMOVED, event => {
+			this._logger.debug(event, 'Transaction was removed from the pool.');
+		});
+		this._broadcaster.start();
+		await this._pool.start();
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
+		this._generationJob.start();
+
+		this._network.events.on(APP_EVENT_NETWORK_READY, () => {
+			this._loadTransactionsFromNetwork().catch(err =>
+				this._logger.error(
+					{ err: err as Error },
+					'Failed to load unconfirmed transactions from the network',
+				),
+			);
+		});
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async stop(): Promise<void> {
+		this._pool.events.removeAllListeners(events.EVENT_TRANSACTION_REMOVED);
+		this._broadcaster.stop();
+		this._pool.stop();
+		this._generationJob.stop();
+	}
+
+	public onNewBlock(block: Block): void {
+		if (block.payload.length) {
+			for (const transaction of block.payload) {
+				this._pool.remove(transaction);
+			}
+		}
+	}
+
+	public onDeleteBlock(block: Block): void {
+		if (block.payload.length) {
+			for (const transaction of block.payload) {
+				this._pool.add(transaction).catch(err => {
+					this._logger.error({ err: err as Error }, 'Failed to add transaction back to the pool');
+				});
+			}
+		}
+	}
+
+	public async _loadTransactionsFromNetwork(): Promise<void> {
+		for (let retry = 0; retry < LOAD_TRANSACTION_RETRIES; retry += 1) {
+			try {
+				await this._getUnconfirmedTransactionsFromNetwork();
+				return;
+			} catch (err) {
+				if (err && retry === LOAD_TRANSACTION_RETRIES - 1) {
+					this._logger.error(
+						{ err: err as Error },
+						`Failed to get transactions from network after ${LOAD_TRANSACTION_RETRIES} retries`,
+					);
+				}
+			}
+		}
+	}
+
+	private async _verifyTransaction(transactions: Transaction[]): Promise<void> {
+		const stateStore = new StateStore(this._blockchainDB);
+		const eventQueue = new EventQueue();
+		for (const transaction of transactions) {
+			const txContext = new TransactionContext({
+				eventQueue,
+				logger: this._logger,
+				networkIdentifier: this._chain.constants.networkIdentifier,
+				stateStore,
+				transaction,
+			});
+			const result = await this._stateMachine.verifyTransaction(txContext);
+			if (result.status === VerifyStatus.FAIL) {
+				throw new Error('Invalid transaction');
+			}
+		}
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	private async _loadGenerators(): Promise<void> {
+		const encryptedList = this._config.generators;
+
+		if (
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			!encryptedList?.length ||
+			!this._config.force ||
+			!this._config.defaultPassword
+		) {
+			return;
+		}
+		this._logger.info(
+			`Loading ${encryptedList.length} delegates using encrypted passphrases from config`,
+		);
+
+		for (const encryptedItem of encryptedList) {
+			let passphrase;
+			try {
+				passphrase = decryptPassphraseWithPassword(
+					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
+					this._config.defaultPassword,
+				);
+			} catch (error) {
+				const decryptionError = `Invalid encryptedPassphrase for address: ${
+					encryptedItem.address
+				}. ${(error as Error).message}`;
+				this._logger.error(decryptionError);
+				throw new Error(decryptionError);
+			}
+
+			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const delegateAddress = getAddressFromPublicKey(keypair.publicKey);
+
+			if (!delegateAddress.equals(Buffer.from(encryptedItem.address, 'hex'))) {
+				throw new Error(
+					`Invalid encryptedPassphrase for address: ${encryptedItem.address}. Address do not match`,
+				);
+			}
+
+			const validatorAddress = getAddressFromPublicKey(keypair.publicKey);
+
+			this._keypairs.set(validatorAddress, keypair);
+			this._logger.info(`Forging enabled on account: ${validatorAddress.toString('hex')}`);
+		}
+	}
+
+	/**
+	 * Loads transactions from the network:
+	 * - Validates each transaction from the network and applies a penalty if invalid.
+	 * - Calls processUnconfirmedTransaction for each transaction.
+	 */
+	private async _getUnconfirmedTransactionsFromNetwork(): Promise<void> {
+		this._logger.info('Loading transactions from the network');
+
+		const { data } = ((await this._network.request({
+			procedure: NETWORK_RPC_GET_TRANSACTIONS,
+		})) as unknown) as {
+			data: Buffer;
+		};
+		const encodedData = codec.decode<GetTransactionResponse>(getTransactionsResponseSchema, data);
+
+		const validatorErrors = validator.validate(getTransactionsResponseSchema, encodedData);
+		if (validatorErrors.length) {
+			throw new LiskValidationError(validatorErrors);
+		}
+
+		const transactions = encodedData.transactions.map(transaction =>
+			this._chain.dataAccess.decodeTransaction(transaction),
+		);
+
+		for (const transaction of transactions) {
+			const { error } = await this._pool.add(transaction);
+
+			if (error) {
+				this._logger.error({ err: error }, 'Failed to add transaction to pool.');
+				throw error;
+			}
+		}
+	}
+
+	private async _generateLoop(): Promise<void> {
+		const apiContext = new APIContext({
+			stateStore: new StateStore(this._blockchainDB),
+			eventQueue: new EventQueue(),
+		});
+
+		const MS_IN_A_SEC = 1000;
+		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
+		const currentSlot = this._consensus.getSlotNumber(apiContext, currentTime);
+
+		const currentSlotTime = this._consensus.getSlotTime(apiContext, currentSlot);
+
+		const { waitThreshold } = this._config;
+		const lastBlockSlot = this._consensus.getSlotNumber(
+			apiContext,
+			this._chain.lastBlock.header.timestamp,
+		);
+
+		if (currentSlot === lastBlockSlot) {
+			this._logger.trace({ slot: currentSlot }, 'Block already forged for the current slot');
+			return;
+		}
+
+		const generator = await this._consensus.getGenerator(apiContext, currentTime);
+		const validatorKeypair = this._keypairs.get(generator);
+
+		if (validatorKeypair === undefined) {
+			this._logger.debug({ currentSlot }, 'Waiting for delegate slot');
+			return;
+		}
+
+		// If last block slot is way back than one block
+		// and still time left as per threshold specified
+		if (lastBlockSlot < currentSlot - 1 && currentTime <= currentSlotTime + waitThreshold) {
+			this._logger.info('Skipping forging to wait for last block');
+			this._logger.debug(
+				{
+					currentSlot,
+					lastBlockSlot,
+					waitThreshold,
+				},
+				'Slot information',
+			);
+			return;
+		}
+		const generatedBlock = await this._generateBlock(generator, validatorKeypair, currentTime);
+		this._logger.info(
+			{
+				id: generatedBlock.header.id,
+				height: generatedBlock.header.height,
+				generatorAddress: generator.toString('hex'),
+			},
+			'Generated new block',
+		);
+
+		await this._consensus.execute(generatedBlock as never);
+	}
+
+	private async _generateBlock(
+		generatorAddress: Buffer,
+		keypair: Keypair,
+		timestamp: number,
+	): Promise<Block> {
+		const stateStore = new StateStore(this._blockchainDB);
+
+		const blockHeader = new BlockHeader({
+			generatorAddress,
+			height: this._chain.lastBlock.header.height + 1,
+			previousBlockID: this._chain.lastBlock.header.id,
+			version: BLOCK_VERSION,
+			timestamp,
+			assets: [],
+		});
+
+		const generatorStore = new GeneratorStore(this._generatorDB);
+		const genContext = new GenerationContext({
+			generatorStore,
+			header: blockHeader,
+			logger: this._logger,
+			networkIdentifier: this._chain.constants.networkIdentifier,
+			stateStore,
+		});
+
+		for (const mod of this._modules) {
+			if (!mod.initBlock) {
+				continue;
+			}
+			await mod.initBlock(genContext.getBlockGenerateContext());
+		}
+		const eventQueue = new EventQueue();
+		const blockCtx = new BlockContext({
+			eventQueue,
+			header: blockHeader,
+			logger: this._logger,
+			networkIdentifier: this._chain.constants.networkIdentifier,
+			stateStore,
+		});
+		await this._stateMachine.beforeExecuteBlock(blockCtx);
+
+		const transactions = await this._forgingStrategy.getTransactionsForBlock(blockHeader);
+
+		blockCtx.setTransactions(transactions);
+
+		for (const mod of this._modules) {
+			if (!mod.sealBlock) {
+				continue;
+			}
+			await mod.sealBlock(genContext.getBlockGenerateContext());
+		}
+
+		await this._stateMachine.afterExecuteBlock(blockCtx);
+
+		// calculate transaction root
+		const txTree = new MerkleTree();
+		await txTree.init(transactions.map(tx => tx.id));
+		const transactionRoot = txTree.root;
+		blockHeader.transactionRoot = transactionRoot;
+		blockHeader.sign(this._chain.constants.networkIdentifier, keypair.privateKey);
+
+		const generatedBlock = new Block(blockHeader, transactions);
+
+		return generatedBlock;
+	}
+}

@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const EVENT_FORK_DETECTED = 'EVENT_FORK_DETECTED';
-export const EVENT_BLOCK_BROADCAST = 'EVENT_BLOCK_BROADCAST';
+export const DEFAULT_RELEASE_LIMIT = 100;
+export const DEFAULT_RELEASE_INTERVAL = 5000;
+export const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
+export const FORGE_INTERVAL = 1000;
+export const LOAD_TRANSACTION_RETRIES = 5;
 
-export const NETWORK_EVENT_POST_BLOCK = 'postBlock';
-export const NETWORK_EVENT_POST_NODE_INFO = 'postNodeInfo';
-export const NETWORK_RPC_GET_LAST_BLOCK = 'getLastBlock';
-export const NETWORK_RPC_GET_BLOCKS_FROM_ID = 'getBlocksFromId';
-export const NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK = 'getHighestCommonBlock';
+export const NETWORK_RPC_GET_TRANSACTIONS = 'getTransactions';
+export const NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT = 'postTransactionsAnnouncement';

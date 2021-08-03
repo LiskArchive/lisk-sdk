@@ -31,8 +31,8 @@ interface ContextParams {
 	stateStore: StateStore;
 	logger: Logger;
 	eventQueue: EventQueue;
-	header: BlockHeader;
 	transaction: Transaction;
+	header?: BlockHeader;
 }
 
 export class TransactionContext {
@@ -41,7 +41,7 @@ export class TransactionContext {
 	private readonly _logger: Logger;
 	private readonly _eventQueue: EventQueue;
 	private readonly _transaction: Transaction;
-	private readonly _header: BlockHeader;
+	private readonly _header?: BlockHeader;
 
 	public constructor(params: ContextParams) {
 		this._stateStore = params.stateStore;
@@ -65,6 +65,9 @@ export class TransactionContext {
 	}
 
 	public createTransactionExecuteContext(): TransactionExecuteContext {
+		if (!this._header) {
+			throw new Error('Transaction Execution requires block header in the context');
+		}
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
