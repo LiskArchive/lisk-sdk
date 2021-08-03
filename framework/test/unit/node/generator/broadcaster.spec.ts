@@ -49,7 +49,7 @@ describe('broadcaster', () => {
 		} as never;
 		broadcaster = new Broadcaster({
 			interval: defaultBroadcastInterval,
-			releaseLimit: defaultReleaseLimit,
+			limit: defaultReleaseLimit,
 			network,
 			transactionPool: pool,
 		});

@@ -21,7 +21,7 @@ import { Network } from '../network';
 import { postTransactionsAnnouncementSchema } from './schemas';
 
 interface BroadcasterConfig {
-	readonly releaseLimit: number;
+	readonly limit: number;
 	readonly interval: number;
 }
 
@@ -43,11 +43,11 @@ export class Broadcaster {
 	private _logger!: Logger;
 	private _loopID?: NodeJS.Timer;
 
-	public constructor({ transactionPool, releaseLimit, interval, network }: BroadcasterConstructor) {
+	public constructor({ transactionPool, limit, interval, network }: BroadcasterConstructor) {
 		this._transactionPool = transactionPool;
 		this._network = network;
 		this._config = {
-			releaseLimit,
+			limit,
 			interval,
 		};
 		this._transactionIdQueue = [];
@@ -88,7 +88,7 @@ export class Broadcaster {
 			this._transactionPool.contains(id),
 		);
 		if (this._transactionIdQueue.length > 0) {
-			const transactionIds = this._transactionIdQueue.slice(0, this._config.releaseLimit);
+			const transactionIds = this._transactionIdQueue.slice(0, this._config.limit);
 			const data = codec.encode(postTransactionsAnnouncementSchema, { transactionIds });
 			this._network.broadcast({
 				event: EVENT_POST_TRANSACTION_ANNOUNCEMENT,

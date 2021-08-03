@@ -118,7 +118,7 @@ export class Generator {
 			network: this._network,
 			transactionPool: this._pool,
 			interval: DEFAULT_RELEASE_INTERVAL,
-			releaseLimit: DEFAULT_RELEASE_LIMIT,
+			limit: DEFAULT_RELEASE_LIMIT,
 		});
 
 		this._endpoint = new Endpoint({
