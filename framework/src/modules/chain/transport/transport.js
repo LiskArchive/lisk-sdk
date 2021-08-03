@@ -155,15 +155,15 @@ class Transport {
 		}
 
 		if (block.totalAmount) {
-			block.totalAmount = block.totalAmount.toNumber();
+			block.totalAmount = block.totalAmount.toString();
 		}
 
 		if (block.totalFee) {
-			block.totalFee = block.totalFee.toNumber();
+			block.totalFee = block.totalFee.toString();
 		}
 
 		if (block.reward) {
-			block.reward = block.reward.toNumber();
+			block.reward = block.reward.toString();
 		}
 
 		if (block.transactions) {
