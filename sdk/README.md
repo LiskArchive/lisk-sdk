@@ -20,13 +20,13 @@ We strictly discourage anyone from using the beta release of the Lisk SDK for an
 
 The only application built using the Lisk SDK currently feasible for production usage is [Lisk Core](https://github.com/liskhq/lisk-core), the client of the Lisk network itself.
 
-Please be advised, although we have stabilized the architecture of SDK, we cannot guarantee blockchain created with the beta release of the Lisk SDK will remain compatible with our planned release candidates.
+Please be advised, although we have stabilized the architecture of SDK, we cannot guarantee a blockchain application created with the beta release of the Lisk SDK will remain compatible with our planned release candidates.
 
 We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the beta phase.
 
 ## What is the Lisk SDK?
 
-The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://research.lisk.com/). The architecture of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use-cases. The codebase is written entirely in JavaScript, which means for a majority of developers, no significant change of tools or mindset is required to get started. The Lisk SDK makes every effort to allow developers to focus simply and purely on writing the code that matters to their own blockchain application, and nothing more.
+The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://lisk.com/documentation/lisk-sdk/protocol). The architecture of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use-cases. The codebase is written entirely in JavaScript, which means for a majority of developers, no significant change of tools or mindset is required to get started. The Lisk SDK makes every effort to allow developers to focus simply and purely on writing the code that matters to their own blockchain application, and nothing more.
 
 ## Usage
 
