@@ -28,7 +28,7 @@ type ApplyFunction = (transactions: ReadonlyArray<Transaction>) => Promise<void>
 
 interface BaseFee {
 	readonly moduleID: number;
-	readonly assetID: number;
+	readonly commandID: number;
 	readonly baseFee: bigint;
 }
 export interface TransactionPoolConfig {
@@ -310,7 +310,7 @@ export class TransactionPool {
 
 	private _calculateMinFee(trx: Transaction): bigint {
 		const foundBaseFee = this._baseFees.find(
-			f => f.moduleID === trx.moduleID && f.assetID === trx.assetID,
+			f => f.moduleID === trx.moduleID && f.commandID === trx.commandID,
 		);
 
 		return (
