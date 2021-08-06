@@ -16,8 +16,6 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { DataAccess } from '../../../src/data_access';
-import { defaultAccountSchema } from '../../utils/account';
-import { registeredBlockHeaders } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
 import { concatDBKeys } from '../../../src/utils';
 import { DB_KEY_TRANSACTIONS_ID } from '../../../src/db_keys';
@@ -33,8 +31,6 @@ describe('dataAccess.transactions', () => {
 		db = new KVStore(path.join(parentPath, '/test-transactions.db'));
 		dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema,
-			registeredBlockHeaders,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});

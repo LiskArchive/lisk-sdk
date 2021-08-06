@@ -13,30 +13,19 @@
  */
 import { Readable } from 'stream';
 import { when } from 'jest-when';
-import { KVStore, formatInt, NotFoundError, getFirstPrefix, getLastPrefix } from '@liskhq/lisk-db';
+import { formatInt, NotFoundError, getFirstPrefix, getLastPrefix, KVStore } from '@liskhq/lisk-db';
 import { DataAccess } from '../../../src/data_access';
-import {
-	createFakeBlockHeader,
-	createValidDefaultBlock,
-	encodeDefaultBlockHeader,
-	encodedDefaultBlock,
-} from '../../utils/block';
-import { Block } from '../../../src/types';
+import { createFakeBlockHeader, createValidDefaultBlock } from '../../utils/block';
 import { Transaction } from '../../../src/transaction';
-import {
-	createFakeDefaultAccount,
-	encodeDefaultAccount,
-	defaultAccountSchema,
-} from '../../utils/account';
-import { getGenesisBlockHeaderAssetSchema, blockHeaderAssetSchema } from '../../../src/schema';
 import { concatDBKeys } from '../../../src/utils';
 import {
 	DB_KEY_BLOCKS_HEIGHT,
 	DB_KEY_BLOCKS_ID,
 	DB_KEY_TRANSACTIONS_ID,
-	DB_KEY_ACCOUNTS_ADDRESS,
 	DB_KEY_TEMPBLOCKS_HEIGHT,
 } from '../../../src/db_keys';
+import { Block } from '../../../src/block';
+import { BlockHeader } from '../../../src';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -57,16 +46,10 @@ describe('data_access', () => {
 		(getLastPrefix as jest.Mock).mockImplementation(str => str);
 		dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema,
-			registeredBlockHeaders: {
-				0: getGenesisBlockHeaderAssetSchema(defaultAccountSchema),
-				2: blockHeaderAssetSchema,
-			},
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
 		block = await createValidDefaultBlock({ header: { height: 1 } });
-		dataAccess.decodeBlockHeader = jest.fn().mockResolvedValue(block.header);
 	});
 
 	afterEach(() => {
@@ -102,7 +85,7 @@ describe('data_access', () => {
 
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
-			(db.get as jest.Mock).mockResolvedValue(encodeDefaultBlockHeader(block.header));
+			(db.get as jest.Mock).mockResolvedValue(block.header.getBytes());
 			// Act
 			await dataAccess.getBlockHeadersByIDs([block.header.id]);
 
@@ -136,7 +119,7 @@ describe('data_access', () => {
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height)))
 				.mockResolvedValue(block.header.id as never)
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))
-				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
+				.mockResolvedValue(block.header.getBytes() as never);
 			// Act
 			await dataAccess.getBlockHeaderByHeight(1);
 
@@ -152,7 +135,7 @@ describe('data_access', () => {
 	describe('#getBlockHeadersByHeightBetween', () => {
 		it('should not call db if cache exists', async () => {
 			// Arrange
-			dataAccess.addBlockHeader({ ...block.header, height: 0 });
+			dataAccess.addBlockHeader(new BlockHeader({ ...block.header['_getAllProps'](), height: 0 }));
 			dataAccess.addBlockHeader(block.header);
 
 			// Act
@@ -172,7 +155,7 @@ describe('data_access', () => {
 					},
 				]),
 			);
-			(db.get as jest.Mock).mockResolvedValue(encodeDefaultBlockHeader(block.header));
+			(db.get as jest.Mock).mockResolvedValue(block.header.getBytes());
 
 			// Act
 			await dataAccess.getBlockHeadersByHeightBetween(0, 1);
@@ -201,7 +184,7 @@ describe('data_access', () => {
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height)))
 				.mockResolvedValue(block.header.id as never)
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))
-				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
+				.mockResolvedValue(block.header.getBytes() as never);
 			// Act
 			await dataAccess.getBlockHeadersWithHeights([1]);
 
@@ -228,7 +211,7 @@ describe('data_access', () => {
 
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
-			(db.get as jest.Mock).mockResolvedValue(encodeDefaultBlockHeader(block.header));
+			(db.get as jest.Mock).mockResolvedValue(block.header.getBytes());
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([
 					{
@@ -282,7 +265,7 @@ describe('data_access', () => {
 
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
-			(db.get as jest.Mock).mockResolvedValue(encodeDefaultBlockHeader(block.header));
+			(db.get as jest.Mock).mockResolvedValue(block.header.getBytes());
 			// Act
 			await dataAccess.getHighestCommonBlockHeader([block.header.id, Buffer.from('random-id')]);
 
@@ -329,7 +312,7 @@ describe('data_access', () => {
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, formatInt(1)))
-				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
+				.mockResolvedValue(block.header.getBytes() as never);
 			// Act
 			await dataAccess.getBlocksByIDs([formatInt(1)]);
 
@@ -351,7 +334,7 @@ describe('data_access', () => {
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))
-				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
+				.mockResolvedValue(block.header.getBytes() as never);
 			// Act
 			await dataAccess.getBlocksByHeightBetween(1, 2);
 
@@ -374,7 +357,7 @@ describe('data_access', () => {
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))
-				.mockResolvedValue(encodeDefaultBlockHeader(block.header) as never);
+				.mockResolvedValue(block.header.getBytes() as never);
 			// Act
 			await dataAccess.getLastBlock();
 
@@ -400,7 +383,7 @@ describe('data_access', () => {
 			(db.createReadStream as jest.Mock).mockImplementation(() =>
 				Readable.from([
 					{
-						value: encodedDefaultBlock(block),
+						value: block.getBytes(),
 					},
 				]),
 			);
@@ -418,7 +401,7 @@ describe('data_access', () => {
 			(db.createReadStream as jest.Mock).mockImplementation(() =>
 				Readable.from([
 					{
-						value: encodedDefaultBlock(block),
+						value: block.getBytes(),
 					},
 				]),
 			);
@@ -456,76 +439,11 @@ describe('data_access', () => {
 		});
 	});
 
-	describe('#getAccountByAddress', () => {
-		it('should get account by address and decode them', async () => {
-			// Arrange
-			const account = createFakeDefaultAccount({
-				address: Buffer.from('cc96c0a5db38b968f563e7af6fb435585c889111', 'hex'),
-				token: {
-					balance: BigInt('100'),
-				},
-				sequence: {
-					nonce: BigInt('0'),
-				},
-			});
-			when(db.get)
-				.calledWith(concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, account.address))
-				.mockResolvedValue(encodeDefaultAccount(account) as never);
-			// Act
-			const result = await dataAccess.getAccountByAddress<{ token: { balance: bigint } }>(
-				account.address,
-			);
-
-			// Assert
-			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, account.address));
-			expect(typeof result.token.balance).toEqual('bigint');
-		});
-	});
-
-	describe('#getAccountsByAddress', () => {
-		it('should get accounts by each address and decode them', async () => {
-			// Arrange
-			const accounts = [
-				createFakeDefaultAccount({
-					address: Buffer.from('cc96c0a5db38b968f563e7af6fb435585c889111', 'hex'),
-					token: {
-						balance: BigInt('100'),
-					},
-					sequence: {
-						nonce: BigInt('0'),
-					},
-				}),
-				createFakeDefaultAccount({
-					address: Buffer.from('584dd8a902822a9469fb2911fcc14ed5fd98220d', 'hex'),
-					token: {
-						balance: BigInt('300'),
-					},
-					sequence: {
-						nonce: BigInt('0'),
-					},
-				}),
-			];
-			when(db.get)
-				.calledWith(concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, accounts[0].address))
-				.mockResolvedValue(encodeDefaultAccount(accounts[0]) as never)
-				.calledWith(concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, accounts[1].address))
-				.mockResolvedValue(encodeDefaultAccount(accounts[1]) as never);
-			// Act
-			const result = await dataAccess.getAccountsByAddress<{ token: { balance: bigint } }>(
-				accounts.map(acc => acc.address),
-			);
-
-			// Assert
-			expect(db.get).toHaveBeenCalledTimes(2);
-			expect(typeof result[0].token.balance).toEqual('bigint');
-		});
-	});
-
 	describe('#getTransactionsByIDs', () => {
 		it('should get transaction by id', async () => {
 			const tx = new Transaction({
 				moduleID: 2,
-				assetID: 0,
+				commandID: 0,
 				fee: BigInt('10000000'),
 				nonce: BigInt('0'),
 				senderPublicKey: Buffer.from(
@@ -538,7 +456,7 @@ describe('data_access', () => {
 						'hex',
 					),
 				],
-				asset: Buffer.alloc(0),
+				params: Buffer.alloc(0),
 			});
 			// Arrange
 			when(db.get)
@@ -565,78 +483,6 @@ describe('data_access', () => {
 		});
 	});
 
-	describe('encode', () => {
-		it('should convert all the field to be a buffer', () => {
-			const buffer = dataAccess.encode(block);
-			expect(buffer).toBeInstanceOf(Buffer);
-		});
-	});
-
-	describe('decode', () => {
-		const originalBlock = {
-			header: createFakeBlockHeader({
-				transactionRoot: Buffer.from(
-					'564352bc451aca0e2aeca2aebf7a3d7af18dbac73eaa31623971bfc63d20339c',
-					'hex',
-				),
-				version: 2,
-				height: 2,
-				reward: BigInt(0),
-				timestamp: 1000,
-				previousBlockID: Buffer.from(
-					'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a468888003',
-					'hex',
-				),
-				generatorPublicKey: Buffer.from(
-					'1c51f8d57dd74b9cede1fa957f46559cd9596655c46ae9a306364dc5b39581d1',
-					'hex',
-				),
-				signature: Buffer.from(
-					'acbe0321dfc4323dd0e6f41269d7dd875ae2bbc6adeb9a4b179cca00328c31e641599b5b0d16d9620886133ed977909d228ab777903f9c0d3842b9ea8630b909',
-					'hex',
-				),
-				asset: {
-					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
-					maxHeightPreviouslyForged: 1,
-					maxHeightPrevoted: 0,
-				},
-			}),
-			payload: [
-				new Transaction({
-					id: Buffer.from('1065693148641117014'),
-					type: 'token/transfer',
-					fee: BigInt('10000000'),
-					nonce: BigInt('0'),
-					senderPublicKey: Buffer.from(
-						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
-						'hex',
-					),
-					signatures: [
-						Buffer.from(
-							'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
-							'hex',
-						),
-					],
-					asset: Buffer.alloc(0),
-				} as any),
-			],
-		};
-
-		it('should be encode and decode back to the same block', () => {
-			const encodedBlock = encodedDefaultBlock(originalBlock);
-			const decodedBlock = dataAccess.decode(encodedBlock);
-			expect(decodedBlock.header.id).toBeInstanceOf(Buffer);
-			expect(decodedBlock.header.height).toEqual(originalBlock.header.height);
-			expect(decodedBlock.header.signature).toEqual(originalBlock.header.signature);
-			expect(decodedBlock.payload).toHaveLength(originalBlock.payload.length);
-		});
-
-		it('should convert transaction to be a class', () => {
-			const decodedBlock = dataAccess.decode(encodedDefaultBlock(originalBlock));
-			expect(decodedBlock.payload[0]).toBeInstanceOf(Transaction);
-		});
-	});
-
 	describe('removeBlockHeader', () => {
 		it('should fetch older blocks from database when minCachedItems is below configured value', async () => {
 			// Arrange
@@ -644,10 +490,7 @@ describe('data_access', () => {
 
 			const blocks = [];
 			for (let i = 0; i < 5; i += 1) {
-				block = {
-					header: createFakeBlockHeader({ height: i + 10 }),
-					payload: [],
-				};
+				block = new Block(createFakeBlockHeader({ height: i + 10 }), []);
 				blocks.push(block);
 				dataAccess.addBlockHeader(block.header);
 			}

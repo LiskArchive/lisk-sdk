@@ -33,7 +33,22 @@ export class Block {
 
 		return new Block(
 			BlockHeader.fromBytes(header),
-			payload.map(v => Transaction.decode(v)),
+			payload.map(v => Transaction.fromBytes(v)),
+		);
+	}
+
+	public static fromJSON(value: Record<string, unknown>): Block {
+		const { header, payload } = value;
+		if (typeof header !== 'object') {
+			throw new Error('Invalid block format. header must be an object.');
+		}
+		if (!Array.isArray(payload)) {
+			throw new Error('Invalid block format. payload must be an array.');
+		}
+
+		return new Block(
+			BlockHeader.fromJSON(value.header as Record<string, unknown>),
+			payload.map(v => Transaction.fromBytes(v)),
 		);
 	}
 
@@ -42,5 +57,12 @@ export class Block {
 			header: this.header.getBytes(),
 			payload: this.payload.map(p => p.getBytes()),
 		});
+	}
+
+	public validate(): void {
+		this.header.validate();
+		for (const tx of this.payload) {
+			tx.validate();
+		}
 	}
 }

@@ -17,19 +17,12 @@ import * as fs from 'fs-extra';
 import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { Storage } from '../../../src/data_access/storage';
-import {
-	createValidDefaultBlock,
-	encodeDefaultBlockHeader,
-	encodedDefaultBlock,
-	registeredBlockHeaders,
-} from '../../utils/block';
+import { createValidDefaultBlock } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
-import { Block, Transaction } from '../../../src';
+import { Block, StateStore, Transaction } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
 import { stateDiffSchema } from '../../../src/schema';
-import { defaultAccountSchema, createFakeDefaultAccount } from '../../utils/account';
 import {
-	DB_KEY_ACCOUNTS_ADDRESS,
 	DB_KEY_BLOCKS_ID,
 	DB_KEY_BLOCKS_HEIGHT,
 	DB_KEY_TRANSACTIONS_ID,
@@ -60,8 +53,6 @@ describe('dataAccess.blocks', () => {
 	beforeEach(async () => {
 		dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema,
-			registeredBlockHeaders,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
@@ -84,7 +75,7 @@ describe('dataAccess.blocks', () => {
 		const batch = db.batch();
 		for (const block of blocks) {
 			const { payload, header } = block;
-			batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, header.id), encodeDefaultBlockHeader(header));
+			batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, header.id), header.getBytes());
 			batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(header.height)), header.id);
 			if (payload.length) {
 				batch.put(
@@ -98,15 +89,15 @@ describe('dataAccess.blocks', () => {
 			}
 			batch.put(
 				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height)),
-				encodedDefaultBlock(blocks[2]),
+				blocks[2].getBytes(),
 			);
 			batch.put(
 				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[3].header.height)),
-				encodedDefaultBlock(blocks[3]),
+				blocks[3].getBytes(),
 			);
 			batch.put(
 				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[3].header.height + 1)),
-				encodedDefaultBlock(blocks[3]),
+				blocks[3].getBytes(),
 			);
 			batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(block.header.height)), emptyEncodedDiff);
 		}
@@ -132,15 +123,18 @@ describe('dataAccess.blocks', () => {
 
 		it('should return block header by ID', async () => {
 			const header = await dataAccess.getBlockHeaderByID(blocks[0].header.id);
-			expect(header).toStrictEqual(blocks[0].header);
+			expect(header.toObject()).toStrictEqual(blocks[0].header.toObject());
 		});
 	});
 
 	describe('getBlockHeadersByIDs', () => {
 		it('should not throw "not found" error if non existent ID is specified', async () => {
-			await expect(
-				dataAccess.getBlockHeadersByIDs([Buffer.from('random-id'), blocks[1].header.id]),
-			).resolves.toEqual([blocks[1].header]);
+			const res = await dataAccess.getBlockHeadersByIDs([
+				Buffer.from('random-id'),
+				blocks[1].header.id,
+			]);
+
+			expect(res.map(h => h.toObject())).toEqual([blocks[1].header.toObject()]);
 		});
 
 		it('should return existent blocks headers if non existent ID is specified', async () => {
@@ -150,7 +144,10 @@ describe('dataAccess.blocks', () => {
 				blocks[1].header.id,
 			]);
 
-			expect(res).toEqual([blocks[0].header, blocks[1].header]);
+			expect(res.map(b => b.toObject())).toEqual([
+				blocks[0].header.toObject(),
+				blocks[1].header.toObject(),
+			]);
 		});
 
 		it('should return block headers by ID', async () => {
@@ -160,16 +157,16 @@ describe('dataAccess.blocks', () => {
 			]);
 			const { header } = blocks[1];
 
-			expect(headers[0]).toEqual(header);
+			expect(headers[0].toObject()).toEqual(header.toObject());
 			expect(headers).toHaveLength(2);
 		});
 	});
 
 	describe('getBlocksByIDs', () => {
 		it('should not throw "not found" error if non existent ID is specified', async () => {
-			await expect(
-				dataAccess.getBlocksByIDs([Buffer.from('random-id'), blocks[1].header.id]),
-			).resolves.toEqual([blocks[1]]);
+			const res = await dataAccess.getBlocksByIDs([Buffer.from('random-id'), blocks[1].header.id]);
+			expect(res).toHaveLength(1);
+			expect(res[0].header.toObject()).toEqual(blocks[1].header.toObject());
 		});
 
 		it('should return existent blocks if non existent ID is specified', async () => {
@@ -179,10 +176,10 @@ describe('dataAccess.blocks', () => {
 				blocks[1].header.id,
 			]);
 
-			expect(blocksFound[0].header).toEqual(blocks[0].header);
+			expect(blocksFound[0].header.toObject()).toEqual(blocks[0].header.toObject());
 			expect(blocksFound[0].payload[0]).toBeInstanceOf(Transaction);
 			expect(blocksFound[0].payload[0].id).toEqual(blocks[0].payload[0].id);
-			expect(blocksFound[1].header).toEqual(blocks[1].header);
+			expect(blocksFound[1].header.toObject()).toEqual(blocks[1].header.toObject());
 			expect(blocksFound).toHaveLength(2);
 		});
 
@@ -193,8 +190,8 @@ describe('dataAccess.blocks', () => {
 			]);
 
 			expect(blocksFound).toHaveLength(2);
-			expect(blocksFound[0].header).toEqual(blocks[1].header);
-			expect(blocksFound[1].header).toEqual(blocks[0].header);
+			expect(blocksFound[0].header.toObject()).toEqual(blocks[1].header.toObject());
+			expect(blocksFound[1].header.toObject()).toEqual(blocks[0].header.toObject());
 			expect(blocksFound[1].payload[0]).toBeInstanceOf(Transaction);
 			expect(blocksFound[1].payload[0].id).toEqual(blocks[0].payload[0].id);
 		});
@@ -209,15 +206,14 @@ describe('dataAccess.blocks', () => {
 			const { header } = blocks[2];
 
 			expect(headers).toHaveLength(3);
-			expect(headers[0]).toEqual(header);
+			expect(headers[0].toObject()).toEqual(header.toObject());
 		});
 	});
 
 	describe('getBlockHeadersWithHeights', () => {
 		it('should not throw "not found" error if one of heights does not exist', async () => {
-			await expect(
-				dataAccess.getBlockHeadersWithHeights([blocks[1].header.height, 500]),
-			).resolves.toEqual([blocks[1].header]);
+			const res = await dataAccess.getBlockHeadersWithHeights([blocks[1].header.height, 500]);
+			expect(res.map(h => h.toObject())).toEqual([blocks[1].header.toObject()]);
 		});
 
 		it('should return existent blocks if non existent height is specified', async () => {
@@ -227,7 +223,10 @@ describe('dataAccess.blocks', () => {
 				500,
 			]);
 
-			expect(headers).toEqual([blocks[1].header, blocks[3].header]);
+			expect(headers.map(h => h.toObject())).toEqual([
+				blocks[1].header.toObject(),
+				blocks[3].header.toObject(),
+			]);
 			expect(headers).toHaveLength(2);
 		});
 
@@ -237,8 +236,8 @@ describe('dataAccess.blocks', () => {
 				blocks[3].header.height,
 			]);
 
-			expect(headers[0]).toEqual(blocks[1].header);
-			expect(headers[1]).toEqual(blocks[3].header);
+			expect(headers[0].toObject()).toEqual(blocks[1].header.toObject());
+			expect(headers[1].toObject()).toEqual(blocks[3].header.toObject());
 			expect(headers).toHaveLength(2);
 		});
 	});
@@ -246,7 +245,7 @@ describe('dataAccess.blocks', () => {
 	describe('getLastBlockHeader', () => {
 		it('should return block header with highest height', async () => {
 			const lastBlockHeader = await dataAccess.getLastBlockHeader();
-			expect(lastBlockHeader).toEqual(blocks[3].header);
+			expect(lastBlockHeader.toObject()).toEqual(blocks[3].header.toObject());
 		});
 	});
 
@@ -257,7 +256,7 @@ describe('dataAccess.blocks', () => {
 				Buffer.from('random-id'),
 				blocks[1].header.id,
 			]);
-			expect(header).toEqual(blocks[3].header);
+			expect(header?.toObject()).toEqual(blocks[3].header.toObject());
 		});
 	});
 
@@ -274,7 +273,7 @@ describe('dataAccess.blocks', () => {
 
 		it('should return full block by ID', async () => {
 			const block = await dataAccess.getBlockByID(blocks[0].header.id);
-			expect(block.header).toStrictEqual(blocks[0].header);
+			expect(block.header.toObject()).toStrictEqual(blocks[0].header.toObject());
 			expect(block.payload[0]).toBeInstanceOf(Transaction);
 			expect(block.payload[0].id).toStrictEqual(blocks[0].payload[0].id);
 		});
@@ -293,7 +292,7 @@ describe('dataAccess.blocks', () => {
 
 		it('should return full block by height', async () => {
 			const block = await dataAccess.getBlockByHeight(blocks[2].header.height);
-			expect(block.header).toStrictEqual(blocks[2].header);
+			expect(block.header.toObject()).toStrictEqual(blocks[2].header.toObject());
 			expect(block.payload[0]).toBeInstanceOf(Transaction);
 			expect(block.payload[0].id).toStrictEqual(blocks[2].payload[0].id);
 		});
@@ -302,7 +301,8 @@ describe('dataAccess.blocks', () => {
 	describe('getLastBlock', () => {
 		it('should return highest height full block', async () => {
 			const block = await dataAccess.getLastBlock();
-			expect(block).toStrictEqual(blocks[3]);
+			expect(block.header.toObject()).toStrictEqual(blocks[3].header.toObject());
+			expect(block.payload).toStrictEqual(blocks[3].payload);
 		});
 	});
 
@@ -332,9 +332,10 @@ describe('dataAccess.blocks', () => {
 
 	describe('saveBlock', () => {
 		let block: Block;
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		const stateStore = { finalize: () => {} };
+		let stateStore: StateStore;
+
 		beforeAll(async () => {
+			stateStore = new StateStore(db);
 			block = await createValidDefaultBlock({
 				header: { height: 304 },
 				payload: [getTransaction({ nonce: BigInt(10) }), getTransaction({ nonce: BigInt(20) })],
@@ -342,7 +343,7 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should create block with all index required', async () => {
-			await dataAccess.saveBlock(block, stateStore as any, 0);
+			await dataAccess.saveBlock(block, stateStore, 0);
 
 			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
@@ -361,7 +362,7 @@ describe('dataAccess.blocks', () => {
 				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
 			).resolves.toBeTrue();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
-			expect(createdBlock.header).toStrictEqual(block.header);
+			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
 			expect(createdBlock.payload[0]).toBeInstanceOf(Transaction);
 			expect(createdBlock.payload[0].id).toStrictEqual(block.payload[0].id);
 			expect(createdBlock.payload[1]).toBeInstanceOf(Transaction);
@@ -369,7 +370,7 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should create block with all index required and remove the same height block from temp', async () => {
-			await dataAccess.saveBlock(block, stateStore as any, 0, true);
+			await dataAccess.saveBlock(block, stateStore, 0, true);
 
 			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
@@ -388,7 +389,7 @@ describe('dataAccess.blocks', () => {
 				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
 			).resolves.toBeFalse();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
-			expect(createdBlock.header).toStrictEqual(block.header);
+			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
 			expect(createdBlock.payload[0]).toBeInstanceOf(Transaction);
 			expect(createdBlock.payload[0].id).toStrictEqual(block.payload[0].id);
 			expect(createdBlock.payload[1]).toBeInstanceOf(Transaction);
@@ -434,48 +435,6 @@ describe('dataAccess.blocks', () => {
 			).resolves.toBeFalse();
 		});
 
-		it('should return all updated accounts', async () => {
-			// Deleting temp blocks to test the saving
-			await dataAccess.clearTempBlocks();
-			const deletedAccount = createFakeDefaultAccount({
-				token: {
-					balance: BigInt(200),
-				},
-			});
-			const updatedAccount = createFakeDefaultAccount({
-				token: {
-					balance: BigInt(100000000),
-				},
-			});
-			await db.put(
-				concatDBKeys(DB_KEY_DIFF_STATE, formatInt(blocks[2].header.height)),
-				codec.encode(stateDiffSchema, {
-					created: [],
-					updated: [
-						{
-							key: concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, updatedAccount.address),
-							value: dataAccess.encodeAccount(updatedAccount),
-						},
-					],
-					deleted: [
-						{
-							key: concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, deletedAccount.address),
-							value: dataAccess.encodeAccount(deletedAccount),
-						},
-					],
-				}),
-			);
-			const diffAccounts = await dataAccess.deleteBlock(blocks[2], stateStore as any);
-
-			expect(diffAccounts).toHaveLength(2);
-			expect(
-				(diffAccounts.find(a => a.address.equals(deletedAccount.address)) as any).token.balance,
-			).toEqual(BigInt(200));
-			expect(
-				(diffAccounts.find(a => a.address.equals(deletedAccount.address)) as any).token.balance,
-			).toEqual(BigInt(200));
-		});
-
 		it('should throw an error when there is no diff', async () => {
 			// Deleting temp blocks to test the saving
 			const key = concatDBKeys(DB_KEY_DIFF_STATE, formatInt(blocks[2].header.height));
@@ -513,7 +472,7 @@ describe('dataAccess.blocks', () => {
 
 			const tempBlocks = await dataAccess.getTempBlocks();
 			expect(tempBlocks).toHaveLength(1);
-			expect(tempBlocks[0].header).toStrictEqual(blocks[2].header);
+			expect(tempBlocks[0].header.toObject()).toStrictEqual(blocks[2].header.toObject());
 			expect(tempBlocks[0].payload[0]).toBeInstanceOf(Transaction);
 			expect(tempBlocks[0].payload[0].id).toStrictEqual(blocks[2].payload[0].id);
 		});
