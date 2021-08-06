@@ -42,14 +42,14 @@
 		"clean": "lerna run clean",
 		"clean:node_modules": "lerna clean --yes",
 		"format": "lerna run format",
-		"lint": "lerna run lint",
+		"lint": "lerna run lint --ignore=@liskhq/lisk-bft --ignore=@liskhq/lisk-genesis --ignore=lisk-elements --ignore=@liskhq/lisk-framework* --ignore=lisk-commander",
 		"lint:fix": "lerna run lint:fix",
 		"test": "lerna run test",
 		"test:elements": "lerna run test --ignore=lisk-commander --ignore=lisk-framework --ignore=lisk-sdk --ignore=@liskhq/lisk-framework*",
 		"test:framework": "lerna run test --scope=lisk-framework",
 		"test:framework-plugins": "lerna run test --scope=@liskhq/lisk-framework-*",
 		"test:commander": "lerna run test --scope=lisk-commander",
-		"build": "lerna run build",
+		"build": "lerna run build --ignore=@liskhq/lisk-bft --ignore=@liskhq/lisk-genesis --ignore=lisk-elements --ignore=@liskhq/lisk-framework* --ignore=lisk-commander",
 		"init": "./scripts/init.sh"
 	},
 	"husky": {

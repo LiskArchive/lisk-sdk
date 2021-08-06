@@ -3,5 +3,11 @@
 	"compilerOptions": {
 		"outDir": "dist-node"
 	},
-	"include": ["src/**/*"]
+	"include": ["src/**/*"],
+	"exclude": [
+		"src/modules/dpos/*",
+		"src/modules/token/*",
+		"src/modules/sequence/*",
+		"src/modules/keys/*"
+	]
 }
