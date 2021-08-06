@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Node getEndpoints should not change the exposed endpoints unintentionally 1`] = `
+Array [
+  "app_getBlockByID",
+  "app_getBlocksByIDs",
+  "app_getBlockByHeight",
+  "app_getBlocksByHeightBetween",
+  "app_getTransactionByID",
+  "app_getTransactionsByIDs",
+  "app_getLastBlock",
+  "app_getSchema",
+  "app_getRegisteredModules",
+  "app_getNodeInfo",
+  "app_postTransaction",
+  "app_getForgingStatus",
+  "app_getTransactionsFromPool",
+  "app_updateForgingStatus",
+  "sample_do",
+]
+`;

@@ -19,6 +19,7 @@ import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { when } from 'jest-when';
 import { Logger } from '../../../../src/logger';
 import { Broadcaster } from '../../../../src/node/generator/broadcaster';
+import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/node/generator/constants';
 import { NetworkEndpoint } from '../../../../src/node/generator/network_endpoint';
 import {
 	getTransactionsResponseSchema,
@@ -31,8 +32,8 @@ import { fakeLogger } from '../../../utils/node';
 describe('generator network endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const tx = new Transaction({
-		asset: Buffer.alloc(20),
-		assetID: 0,
+		params: Buffer.alloc(20),
+		commandID: 0,
 		fee: BigInt(100000),
 		moduleID: 2,
 		nonce: BigInt(0),
@@ -40,8 +41,8 @@ describe('generator network endpoint', () => {
 		signatures: [Buffer.alloc(64)],
 	});
 	const tx2 = new Transaction({
-		asset: Buffer.alloc(20),
-		assetID: 1,
+		params: Buffer.alloc(20),
+		commandID: 1,
 		fee: BigInt(200000),
 		moduleID: 2,
 		nonce: BigInt(0),
@@ -158,19 +159,20 @@ describe('generator network endpoint', () => {
 		describe('when none of the transactions ids are known', () => {
 			beforeEach(() => {
 				// Arrange
-				const transactionIds = codec.encode(postTransactionsAnnouncementSchema, {
-					transactionIds: [tx.id, tx2.id],
+				const transactions = codec.encode(getTransactionsResponseSchema, {
+					transactions: [tx.getBytes(), tx2.getBytes()],
 				});
 
 				(pool.contains as jest.Mock).mockReturnValue(false);
 				(chain.dataAccess.getTransactionsByIDs as jest.Mock).mockResolvedValue([]);
-				(chain.dataAccess.decodeTransaction as jest.Mock)
-					.mockReturnValueOnce(tx)
-					.mockReturnValueOnce(tx2);
 				when(network.requestFromPeer as jest.Mock)
-					.calledWith(expect.anything())
+					.calledWith({
+						procedure: NETWORK_RPC_GET_TRANSACTIONS,
+						data: expect.anything(),
+						peerId: defaultPeerId,
+					})
 					.mockResolvedValue({
-						data: transactionIds,
+						data: transactions,
 						peerId: defaultPeerId,
 					} as never);
 			});
@@ -194,7 +196,6 @@ describe('generator network endpoint', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(chain.dataAccess.decodeTransaction).toHaveBeenCalledTimes(2);
 				expect(stateMachine.verifyTransaction).toHaveBeenCalledTimes(2);
 				expect(pool.contains).toHaveBeenCalledTimes(4);
 				expect(pool.add).toHaveBeenCalledTimes(2);
@@ -251,7 +252,6 @@ describe('generator network endpoint', () => {
 						peerId: defaultPeerId,
 					} as never);
 				(chain.dataAccess.getTransactionsByIDs as jest.Mock).mockResolvedValue([]);
-				(chain.dataAccess.decodeTransaction as jest.Mock).mockReturnValue(tx2);
 			});
 
 			it('should request all the transactions', async () => {
@@ -282,7 +282,6 @@ describe('generator network endpoint', () => {
 				);
 
 				// Assert
-				expect(chain.dataAccess.decodeTransaction).toHaveBeenCalledTimes(1);
 				expect(stateMachine.verifyTransaction).toHaveBeenCalledTimes(1);
 				expect(pool.contains).toHaveBeenCalledTimes(3);
 				expect(pool.add).toHaveBeenCalledTimes(1);

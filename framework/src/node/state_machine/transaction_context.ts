@@ -90,7 +90,7 @@ export class TransactionContext {
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,
-			params: codec.decode(paramsSchema, this._transaction.asset),
+			params: codec.decode(paramsSchema, this._transaction.params),
 		};
 	}
 
@@ -103,7 +103,7 @@ export class TransactionContext {
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,
-			params: codec.decode(paramsSchema, this._transaction.asset),
+			params: codec.decode(paramsSchema, this._transaction.params),
 		};
 	}
 

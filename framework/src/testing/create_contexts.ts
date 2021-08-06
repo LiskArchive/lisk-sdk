@@ -13,84 +13,112 @@
  *
  */
 
-import { Block, GenesisBlock, Transaction } from '@liskhq/lisk-chain';
+import { BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
+import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { Logger } from '../logger';
 import {
-	AfterBlockApplyContext,
-	AfterGenesisBlockApplyContext,
-	ApplyAssetContext,
-	BeforeBlockApplyContext,
-	Consensus,
-	ReducerHandler,
-	StateStore,
-	TransactionApplyContext,
-	ValidateAssetContext,
-} from '../types';
-import { ModuleClass } from './types';
-import { consensusMock, reducerHandlerMock, StateStoreMock } from './mocks';
-import { createGenesisBlock } from './create_genesis_block';
+	APIContext,
+	BlockContext,
+	EventQueue,
+	GenesisBlockContext,
+	TransactionContext,
+} from '../node/state_machine';
+import { loggerMock } from './mocks';
 
-export const createAfterGenesisBlockApplyContext = <T = unknown>(params: {
-	modules?: ModuleClass[];
-	genesisBlock?: GenesisBlock<T>;
-	reducerHandler?: ReducerHandler;
+export const createGenesisBlockContext = (params: {
+	header?: BlockHeader;
 	stateStore?: StateStore;
-}): AfterGenesisBlockApplyContext<T> => {
-	const modules = params.modules ?? [];
-	const genesisBlock = params.genesisBlock ?? createGenesisBlock<T>({ modules }).genesisBlock;
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { genesisBlock, stateStore, reducerHandler };
+	eventQueue?: EventQueue;
+	logger?: Logger;
+}): GenesisBlockContext => {
+	const logger = params.logger ?? loggerMock;
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const header =
+		params.header ??
+		new BlockHeader({
+			height: 0,
+			assets: [],
+			generatorAddress: getRandomBytes(20),
+			previousBlockID: Buffer.alloc(0),
+			timestamp: Math.floor(Date.now() / 1000),
+			version: 0,
+			transactionRoot: hash(Buffer.alloc(0)),
+			stateRoot: hash(Buffer.alloc(0)),
+		});
+	const ctx = new GenesisBlockContext({
+		eventQueue,
+		stateStore,
+		header,
+		logger,
+	});
+	return ctx;
 };
 
-export const createBeforeBlockApplyContext = (params: {
-	block: Block;
-	reducerHandler?: ReducerHandler;
+export const createBlockContext = (params: {
 	stateStore?: StateStore;
-}): BeforeBlockApplyContext => {
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { block: params.block, stateStore, reducerHandler };
+	eventQueue?: EventQueue;
+	logger?: Logger;
+	header: BlockHeader;
+	transactions?: Transaction[];
+}): BlockContext => {
+	const logger = params.logger ?? loggerMock;
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const ctx = new BlockContext({
+		stateStore,
+		logger,
+		eventQueue,
+		transactions: params.transactions ?? [],
+		header: params.header,
+		networkIdentifier: getRandomBytes(32),
+	});
+	return ctx;
 };
 
-export const createAfterBlockApplyContext = (params: {
-	block: Block;
-	reducerHandler?: ReducerHandler;
+export const createTransactionContext = (params: {
 	stateStore?: StateStore;
-	consensus?: Consensus;
-}): AfterBlockApplyContext => {
-	const consensus = params.consensus ?? consensusMock;
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { block: params.block, stateStore, reducerHandler, consensus };
-};
-
-export const createTransactionApplyContext = (params: {
+	eventQueue?: EventQueue;
+	logger?: Logger;
+	header?: BlockHeader;
 	transaction: Transaction;
-	reducerHandler?: ReducerHandler;
-	stateStore?: StateStore;
-}): TransactionApplyContext => {
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { transaction: params.transaction, stateStore, reducerHandler };
+}): TransactionContext => {
+	const logger = params.logger ?? loggerMock;
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const header =
+		params.header ??
+		new BlockHeader({
+			height: 0,
+			assets: [],
+			generatorAddress: getRandomBytes(20),
+			previousBlockID: Buffer.alloc(0),
+			timestamp: Math.floor(Date.now() / 1000),
+			version: 0,
+			transactionRoot: hash(Buffer.alloc(0)),
+			stateRoot: hash(Buffer.alloc(0)),
+		});
+	const ctx = new TransactionContext({
+		stateStore,
+		logger,
+		eventQueue,
+		header,
+		networkIdentifier: getRandomBytes(32),
+		transaction: params.transaction,
+	});
+	return ctx;
 };
 
-export const createApplyAssetContext = <T>(params: {
-	transaction: Transaction;
-	asset: T;
-	reducerHandler?: ReducerHandler;
+export const createAPIContext = (params: {
 	stateStore?: StateStore;
-}): ApplyAssetContext<T> => {
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { transaction: params.transaction, stateStore, reducerHandler, asset: params.asset };
+	eventQueue?: EventQueue;
+}): APIContext => {
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const ctx = new APIContext({
+		stateStore,
+		eventQueue,
+	});
+	return ctx;
 };
-
-export const createValidateAssetContext = <T>(params: {
-	transaction: Transaction;
-	asset: T;
-}): ValidateAssetContext<T> => ({ transaction: params.transaction, asset: params.asset });

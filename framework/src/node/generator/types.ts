@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Account, Block } from '@liskhq/lisk-chain';
+import { Block } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
 import { APIContext, ImmutableSubStore } from '../state_machine';
 
@@ -33,7 +33,9 @@ export interface Consensus {
 		maxHeightPrevoted: number,
 		maxHeightPreviouslyForged: number,
 	) => Promise<boolean>;
-	// TODO: Move this to LiskBFT module
+}
+
+export interface LiskBFTAPI {
 	verifyGeneratorInfo: (
 		apiContext: APIContext,
 		generatorStore: GeneratorStore,
@@ -45,8 +47,9 @@ export interface Consensus {
 			override?: boolean;
 		},
 	) => Promise<void>;
-	// TODO: Move this to validator module
-	getValidatorAccount: (apiContext: APIContext, timestamp: number) => Promise<Account>;
+}
+
+export interface ValidatorAPI {
 	getGenerator: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
 	getSlotNumber: (apiContext: APIContext, timestamp: number) => number;
 	getSlotTime: (apiContext: APIContext, slot: number) => number;

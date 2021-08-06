@@ -12,10 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ForkStatus } from '@liskhq/lisk-bft';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { ApplyPenaltyError } from '../../../../src/errors';
+import {
+	EVENT_BLOCK_BROADCAST,
+	EVENT_BLOCK_NEW,
+	LiskBFTAPI,
+	ValidatorAPI,
+} from '../../../../src/node/consensus';
 import { Consensus } from '../../../../src/node/consensus/consensus';
 import { NetworkEndpoint } from '../../../../src/node/consensus/network_endpoint';
 import { Synchronizer } from '../../../../src/node/consensus/synchronizer';
@@ -27,7 +33,9 @@ import {
 import { Network } from '../../../../src/node/network';
 import { StateMachine } from '../../../../src/node/state_machine/state_machine';
 import { loggerMock } from '../../../../src/testing/mocks';
-import { createValidDefaultBlock, encodeValidBlock, genesisBlock } from '../../../fixtures';
+import { createValidDefaultBlock, genesisBlock } from '../../../fixtures';
+import * as forkchoice from '../../../../src/node/consensus/fork_choice/fork_choice_rule';
+import { postBlockEventSchema } from '../../../../src/node/consensus/schema';
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
@@ -36,12 +44,14 @@ describe('consensus', () => {
 	let chain: Chain;
 	let network: Network;
 	let stateMachine: StateMachine;
+	let liskBFTAPI: LiskBFTAPI;
+	let validatorAPI: ValidatorAPI;
 
 	beforeEach(async () => {
 		const lastBlock = await createValidDefaultBlock({ header: { height: 1 } });
 		chain = ({
 			genesisBlockExist: jest.fn().mockResolvedValue(true),
-			validateGenesisBlockHeader: jest.fn(),
+			validateGenesisBlock: jest.fn(),
 			newStateStore: jest.fn().mockResolvedValue({}),
 			applyGenesisBlock: jest.fn(),
 			saveBlock: jest.fn(),
@@ -49,9 +59,9 @@ describe('consensus', () => {
 			dataAccess: {
 				decode: jest.fn(),
 			},
+			loadLastBlocks: jest.fn(),
 			lastBlock,
-			validateBlockHeader: jest.fn(),
-			verifyBlockHeader: jest.fn(),
+			verifyBlock: jest.fn(),
 			validateTransaction: jest.fn(),
 			removeBlock: jest.fn(),
 		} as unknown) as Chain;
@@ -67,14 +77,16 @@ describe('consensus', () => {
 			verifyBlock: jest.fn(),
 			executeBlock: jest.fn(),
 		} as unknown) as StateMachine;
+		liskBFTAPI = {} as never;
+		validatorAPI = {} as never;
 		consensus = new Consensus({
 			chain,
 			network,
 			stateMachine,
+			liskBFTAPI,
+			validatorAPI,
 			genesisConfig: {} as any,
-			genesisHeight: 0,
 		});
-		jest.spyOn(consensus['_bft'], 'init').mockResolvedValue();
 	});
 
 	describe('init', () => {
@@ -116,12 +128,10 @@ describe('consensus', () => {
 				genesisBlock: genesis,
 			});
 
-			expect(chain.validateGenesisBlockHeader).toHaveBeenCalledTimes(1);
-			expect(chain.applyGenesisBlock).toHaveBeenCalledTimes(1);
+			expect(chain.validateGenesisBlock).toHaveBeenCalledTimes(1);
 			expect(chain.saveBlock).toHaveBeenCalledTimes(1);
 			expect(stateMachine.executeGenesisBlock).toHaveBeenCalledTimes(1);
-			expect(chain.init).toHaveBeenCalledTimes(1);
-			expect(consensus['_bft'].init).toHaveBeenCalledTimes(1);
+			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
 		});
 
 		it('should not execute genesis block if it exists in chain', async () => {
@@ -133,8 +143,7 @@ describe('consensus', () => {
 			});
 			expect(chain.saveBlock).not.toHaveBeenCalled();
 			expect(stateMachine.executeGenesisBlock).not.toHaveBeenCalled();
-			expect(chain.init).toHaveBeenCalledTimes(1);
-			expect(consensus['_bft'].init).toHaveBeenCalledTimes(1);
+			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -168,7 +177,7 @@ describe('consensus', () => {
 
 		it('should apply penalty on the peer when execute fail with penalty error', async () => {
 			const validBlock = await createValidDefaultBlock();
-			const encodedValidBlock = encodeValidBlock(validBlock);
+			const encodedValidBlock = validBlock.getBytes();
 
 			jest.spyOn(consensus, '_execute' as any).mockRejectedValue(new ApplyPenaltyError());
 
@@ -178,7 +187,9 @@ describe('consensus', () => {
 
 		it('should not apply penalty on the peer when execute fail with other error', async () => {
 			const validBlock = await createValidDefaultBlock();
-			const encodedValidBlock = encodeValidBlock(validBlock);
+			const encodedValidBlock = codec.encode(postBlockEventSchema, {
+				block: validBlock.getBytes(),
+			});
 
 			jest.spyOn(consensus, '_execute' as any).mockRejectedValue(new Error());
 
@@ -188,7 +199,9 @@ describe('consensus', () => {
 
 		it('should execute block', async () => {
 			const validBlock = await createValidDefaultBlock();
-			const encodedValidBlock = encodeValidBlock(validBlock);
+			const encodedValidBlock = codec.encode(postBlockEventSchema, {
+				block: validBlock.getBytes(),
+			});
 			jest.spyOn(consensus, '_execute' as any).mockResolvedValue(undefined);
 
 			await expect(consensus.onBlockReceive(encodedValidBlock, peerID)).resolves.toBeUndefined();
@@ -198,15 +211,17 @@ describe('consensus', () => {
 
 		describe('when block is executed', () => {
 			let block: Block;
+			let input: Buffer;
+
 			beforeEach(async () => {
 				block = await createValidDefaultBlock({ header: { height: 2 } });
-				jest.spyOn(chain.dataAccess, 'decode').mockReturnValue(block);
+				input = codec.encode(postBlockEventSchema, { block: block.getBytes() });
 			});
 
 			describe('when the fork step returns unknown fork status', () => {
 				it('should throw an error', async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue('unknown' as any);
-					await expect(consensus.onBlockReceive(encodeValidBlock(block), peerID)).rejects.toThrow(
+					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue('unknown' as any);
+					await expect(consensus.onBlockReceive(input, peerID)).rejects.toThrow(
 						'Unknown fork status',
 					);
 				});
@@ -214,10 +229,12 @@ describe('consensus', () => {
 
 			describe('when the fork step returns ForkStatus.IDENTICAL_BLOCK', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.IDENTICAL_BLOCK);
+					jest
+						.spyOn(forkchoice, 'forkChoice')
+						.mockReturnValue(forkchoice.ForkStatus.IDENTICAL_BLOCK);
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any);
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should not validate block', () => {
@@ -231,11 +248,13 @@ describe('consensus', () => {
 
 			describe('when the fork step returns ForkStatus.DOUBLE_FORGING', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.DOUBLE_FORGING);
+					jest
+						.spyOn(forkchoice, 'forkChoice')
+						.mockReturnValue(forkchoice.ForkStatus.DOUBLE_FORGING);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any);
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should not validate block', () => {
@@ -253,18 +272,16 @@ describe('consensus', () => {
 
 			describe('when the fork step returns ForkStatus.TIE_BREAK and success to execute', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.TIE_BREAK);
+					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.TIE_BREAK);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
-					Object.defineProperty(consensus['_bft'], 'finalizedHeight', {
-						get: jest.fn(() => 0),
-					});
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should publish fork event', () => {
-					expect(consensus.events.emit).toHaveBeenCalledTimes(1);
+					expect(consensus.events.emit).toHaveBeenCalledTimes(2);
 				});
 
 				it('should validate block', () => {
@@ -282,21 +299,19 @@ describe('consensus', () => {
 
 			describe('when the fork step returns ForkStatus.TIE_BREAK and fail to execute', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.TIE_BREAK);
+					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.TIE_BREAK);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest
 						.spyOn(consensus, '_executeValidated' as any)
 						.mockRejectedValueOnce(new Error('invalid block'));
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValueOnce(undefined);
-					Object.defineProperty(consensus['_bft'], 'finalizedHeight', {
-						get: jest.fn(() => 0),
-					});
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should publish fork event', () => {
-					expect(consensus.events.emit).toHaveBeenCalledTimes(1);
+					expect(consensus.events.emit).toHaveBeenCalledTimes(2);
 				});
 
 				it('should validate block', () => {
@@ -317,12 +332,14 @@ describe('consensus', () => {
 
 			describe('when the fork step returns ForkStatus.DIFFERENT_CHAIN', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
+					jest
+						.spyOn(forkchoice, 'forkChoice')
+						.mockReturnValue(forkchoice.ForkStatus.DIFFERENT_CHAIN);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any);
 					jest.spyOn(consensus['_synchronizer'], 'run').mockResolvedValue(undefined);
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should not validate block', () => {
@@ -344,7 +361,9 @@ describe('consensus', () => {
 
 			describe('when fork step returns ForkStatus.DIFFERENT_CHAIN and synchronizer fail once with ApplyPenaltyAndRestartError', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
+					jest
+						.spyOn(forkchoice, 'forkChoice')
+						.mockReturnValue(forkchoice.ForkStatus.DIFFERENT_CHAIN);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any);
@@ -352,7 +371,7 @@ describe('consensus', () => {
 						.spyOn(consensus['_synchronizer'], 'run')
 						.mockRejectedValueOnce(new ApplyPenaltyAndRestartError('fail', 'reason'));
 					jest.spyOn(consensus['_synchronizer'], 'run').mockResolvedValueOnce();
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should call sync again after applying penalty', () => {
@@ -363,7 +382,9 @@ describe('consensus', () => {
 
 			describe('when fork step returns ForkStatus.DIFFERENT_CHAIN and synchronizer fail once with RestartError', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
+					jest
+						.spyOn(forkchoice, 'forkChoice')
+						.mockReturnValue(forkchoice.ForkStatus.DIFFERENT_CHAIN);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any);
@@ -371,7 +392,7 @@ describe('consensus', () => {
 						.spyOn(consensus['_synchronizer'], 'run')
 						.mockRejectedValueOnce(new RestartError('fail'));
 					jest.spyOn(consensus['_synchronizer'], 'run').mockResolvedValueOnce();
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should call sync again after applying penalty', () => {
@@ -382,7 +403,9 @@ describe('consensus', () => {
 
 			describe('when fork step returns ForkStatus.DIFFERENT_CHAIN and synchronizer fail once with AbortError', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
+					jest
+						.spyOn(forkchoice, 'forkChoice')
+						.mockReturnValue(forkchoice.ForkStatus.DIFFERENT_CHAIN);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any);
@@ -390,7 +413,7 @@ describe('consensus', () => {
 						.spyOn(consensus['_synchronizer'], 'run')
 						.mockRejectedValueOnce(new AbortError('fail'));
 					jest.spyOn(consensus['_synchronizer'], 'run').mockResolvedValueOnce();
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should call sync again after applying penalty', () => {
@@ -401,7 +424,9 @@ describe('consensus', () => {
 
 			describe('when fork step returns ForkStatus.DIFFERENT_CHAIN and synchronizer fail once with Error', () => {
 				beforeEach(() => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
+					jest
+						.spyOn(forkchoice, 'forkChoice')
+						.mockReturnValue(forkchoice.ForkStatus.DIFFERENT_CHAIN);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any);
@@ -410,7 +435,7 @@ describe('consensus', () => {
 				});
 
 				it('should call sync again after applying penalty', async () => {
-					await expect(consensus.onBlockReceive(encodeValidBlock(block), peerID)).rejects.toThrow();
+					await expect(consensus.onBlockReceive(input, peerID)).rejects.toThrow();
 					expect(consensus['_synchronizer'].run).toHaveBeenCalledTimes(1);
 					expect(network.applyPenaltyOnPeer).not.toHaveBeenCalled();
 				});
@@ -418,11 +443,11 @@ describe('consensus', () => {
 
 			describe('when the fork step returns ForkStatus.DISCARD', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.DISCARD);
+					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.DISCARD);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should not validate block', () => {
@@ -440,11 +465,11 @@ describe('consensus', () => {
 
 			describe('when the fork step returns ForkStatus.VALID_BLOCK', () => {
 				beforeEach(async () => {
-					jest.spyOn(consensus['_bft'], 'forkChoice').mockReturnValue(ForkStatus.VALID_BLOCK);
+					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.VALID_BLOCK);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_validate' as any);
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
-					await consensus.onBlockReceive(encodeValidBlock(block), peerID);
+					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should not validate block', () => {
@@ -461,14 +486,13 @@ describe('consensus', () => {
 
 	describe('execute', () => {
 		let block: Block;
+
 		beforeEach(async () => {
 			block = await createValidDefaultBlock({ header: { height: 2 } });
-			jest.spyOn(chain, 'verifyBlockHeader').mockResolvedValue();
+			jest.spyOn(chain, 'verifyBlock').mockResolvedValue();
 			jest.spyOn(chain, 'saveBlock').mockResolvedValue();
-			jest.spyOn(consensus['_bft'], 'verifyBlockHeader').mockResolvedValue();
-			Object.defineProperty(consensus['_bft'], 'finalizedHeight', {
-				get: jest.fn(() => 0),
-			});
+			jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
+
 			jest.spyOn(stateMachine, 'verifyBlock').mockResolvedValue();
 			jest.spyOn(stateMachine, 'executeBlock').mockResolvedValue();
 			jest.spyOn(consensus.events, 'emit');
@@ -477,11 +501,7 @@ describe('consensus', () => {
 		});
 
 		it('should verify block header', () => {
-			expect(chain.verifyBlockHeader).toHaveBeenCalledWith(block, expect.anything());
-			expect(consensus['_bft'].verifyBlockHeader).toHaveBeenCalledWith(
-				block.header,
-				expect.anything(),
-			);
+			expect(chain.verifyBlock).toHaveBeenCalledWith(block);
 		});
 
 		it('should verify block using state machine', () => {
@@ -490,7 +510,9 @@ describe('consensus', () => {
 
 		it('should call broadcast to the network', () => {
 			expect(network.send).toHaveBeenCalledTimes(1);
-			expect(consensus.events.emit).toHaveReturnedTimes(1);
+			expect(consensus.events.emit).toHaveReturnedTimes(2);
+			expect(consensus.events.emit).toHaveBeenCalledWith(EVENT_BLOCK_BROADCAST, expect.anything());
+			expect(consensus.events.emit).toHaveBeenCalledWith(EVENT_BLOCK_NEW, expect.anything());
 		});
 
 		it('should execute block using state machine', () => {

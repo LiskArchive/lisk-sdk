@@ -24,6 +24,7 @@ import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
 import { NetworkConfig } from '../../types';
 import { customNodeInfoSchema } from './schema';
+import { Endpoint } from './endpoint';
 
 const {
 	P2P,
@@ -61,8 +62,6 @@ interface NodeInfoOptions {
 interface NetworkConstructor {
 	readonly options: NetworkConfig;
 	readonly channel: InMemoryChannel;
-	readonly logger: Logger;
-	readonly nodeDB: KVStore;
 	readonly networkVersion: string;
 }
 
@@ -95,33 +94,43 @@ interface P2PEventHandlers {
 	[key: string]: P2PEventHandler;
 }
 
+interface NetworkInitArgs {
+	networkIdentifier: Buffer;
+	logger: Logger;
+	nodeDB: KVStore;
+}
+
 export class Network {
 	public readonly events: EventEmitter;
 	private readonly _options: NetworkConfig;
 	private readonly _channel: InMemoryChannel;
-	private readonly _logger: Logger;
-	private readonly _nodeDB: KVStore;
 	private readonly _networkVersion: string;
+	private readonly _endpoint: Endpoint;
+
+	private _logger!: Logger;
+	private _nodeDB!: KVStore;
 	private _networkID!: string;
 	private _secret: number | undefined;
 	private _p2p!: liskP2P.P2P;
 	private _endpoints: P2PRPCEndpoints;
 	private _eventHandlers: P2PEventHandlers;
+	private _saveIntervalID?: NodeJS.Timer;
 
-	public constructor({ options, channel, logger, nodeDB, networkVersion }: NetworkConstructor) {
+	public constructor({ options, channel, networkVersion }: NetworkConstructor) {
 		this._options = options;
 		this._channel = channel;
-		this._logger = logger;
-		this._nodeDB = nodeDB;
 		this._networkVersion = networkVersion;
 		this._endpoints = {};
 		this._eventHandlers = {};
 		this._secret = undefined;
+		this._endpoint = new Endpoint();
 		this.events = new EventEmitter();
 	}
 
-	public async bootstrap(networkIdentifier: Buffer): Promise<void> {
-		this._networkID = networkIdentifier.toString('hex');
+	public async init(args: NetworkInitArgs): Promise<void> {
+		this._logger = args.logger;
+		this._nodeDB = args.nodeDB;
+		this._networkID = args.networkIdentifier.toString('hex');
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running
@@ -209,6 +218,7 @@ export class Network {
 		};
 
 		this._p2p = new P2P(p2pConfig);
+		this._endpoint.init({ p2p: this._p2p });
 
 		// ---- START: Bind event handlers ----
 		this._p2p.on(EVENT_NETWORK_READY, () => {
@@ -394,13 +404,14 @@ export class Network {
 				}
 			},
 		);
-
 		this._p2p.on(EVENT_BAN_PEER, (peerId: string) => {
 			this._logger.error({ peerId }, 'EVENT_MESSAGE_RECEIVED: Peer has been banned temporarily');
 		});
+	}
 
+	public async start(): Promise<void> {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		setInterval(async () => {
+		this._saveIntervalID = setInterval(async () => {
 			const triedPeers = this._p2p.getTriedPeers();
 			if (triedPeers.length) {
 				await this._nodeDB.put(
@@ -424,6 +435,19 @@ export class Network {
 			);
 			throw error;
 		}
+	}
+
+	public async stop(): Promise<void> {
+		this._logger.info('Network cleanup started');
+		if (this._saveIntervalID) {
+			clearInterval(this._saveIntervalID);
+		}
+		await this._p2p.stop();
+		this._logger.info('Network cleanup completed');
+	}
+
+	public get endpoint(): Endpoint {
+		return this._endpoint;
 	}
 
 	public registerEndpoint(endpoint: string, handler: P2PRPCEndpointHandler): void {
@@ -537,11 +561,5 @@ export class Network {
 		} catch (error) {
 			this._logger.error({ err: error as Error }, 'Applying NodeInfo failed because of error');
 		}
-	}
-
-	public async cleanup(): Promise<void> {
-		this._logger.info('Network cleanup started');
-		await this._p2p.stop();
-		this._logger.info('Network cleanup completed');
 	}
 }

@@ -12,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Consensus, Delegate } from '../../types';
+import { BaseEndpoint } from '../../../../modules/base_endpoint';
 
-export const consensusMock: Consensus = {
-	getDelegates: async () => Promise.resolve([]),
-	updateDelegates: async (_delegates: Delegate[]) => Promise.resolve(),
-	getFinalizedHeight: () => 0,
-};
+export class ValidatorEndpoint extends BaseEndpoint {}

@@ -14,7 +14,11 @@
 
 import { isIPv4 } from 'net';
 import { lookup, LookupOptions } from 'dns';
-import { SeedPeerInfo } from '../../types';
+
+interface SeedPeerInfo {
+	readonly ip: string;
+	readonly port: number;
+}
 
 const lookupPromise = async (hostname: string, options: LookupOptions): Promise<unknown> =>
 	new Promise((resolve, reject) => {

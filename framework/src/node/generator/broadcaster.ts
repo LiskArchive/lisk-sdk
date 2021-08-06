@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { EVENT_POST_TRANSACTION_ANNOUNCEMENT } from '../../constants';
+import { NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT } from './constants';
 
 import { Logger } from '../../logger';
 import { Network } from '../network';
@@ -91,7 +91,7 @@ export class Broadcaster {
 			const transactionIds = this._transactionIdQueue.slice(0, this._config.limit);
 			const data = codec.encode(postTransactionsAnnouncementSchema, { transactionIds });
 			this._network.broadcast({
-				event: EVENT_POST_TRANSACTION_ANNOUNCEMENT,
+				event: NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
 				data,
 			});
 

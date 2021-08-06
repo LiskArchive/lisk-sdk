@@ -10,12 +10,8 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-import { ReducerHandler } from '../../types';
+import { ApplicationConfig } from '../types';
 
-export const reducerHandlerMock: ReducerHandler = {
-	invoke: async <T = unknown>(_name: string, _params?: Record<string, unknown>) =>
-		Promise.resolve(({} as unknown) as T),
-};
+export type NodeOptions = Omit<ApplicationConfig, 'plugins'>;

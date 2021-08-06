@@ -16,6 +16,7 @@ import { Block } from '@liskhq/lisk-chain';
 
 export interface BlockExecutor {
 	validate: (block: Block) => Promise<void>;
+	getFinalizedHeight: () => number;
 	executeValidated: (
 		block: Block,
 		options?: {
@@ -24,4 +25,6 @@ export interface BlockExecutor {
 		},
 	) => Promise<Block>;
 	deleteLastBlock: (options?: { saveTempBlock?: boolean }) => Promise<void>;
+	getValidators(): Promise<{ address: Buffer; bftWeight: bigint }[]>;
+	getSlotNumber(timestamp: number): number;
 }

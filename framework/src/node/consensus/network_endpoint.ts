@@ -61,7 +61,7 @@ export class NetworkEndpoint {
 
 	public handleRPCGetLastBlock(peerId: string): Buffer {
 		this._addRateLimit(NETWORK_RPC_GET_LAST_BLOCK, peerId, DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY);
-		return this._chain.dataAccess.encode(this._chain.lastBlock);
+		return this._chain.lastBlock.getBytes();
 	}
 
 	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<Buffer> {
@@ -122,7 +122,7 @@ export class NetworkEndpoint {
 			lastBlockHeight + 1,
 			fetchUntilHeight,
 		);
-		const encodedBlocks = blocks.map(block => this._chain.dataAccess.encode(block));
+		const encodedBlocks = blocks.map(block => block.getBytes());
 
 		return codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks });
 	}
@@ -163,9 +163,7 @@ export class NetworkEndpoint {
 			blockIds.ids,
 		);
 
-		return commonBlockHeader
-			? this._chain.dataAccess.encodeBlockHeader(commonBlockHeader)
-			: undefined;
+		return commonBlockHeader ? commonBlockHeader.getBytes() : undefined;
 	}
 
 	private _addRateLimit(procedure: string, peerId: string, limit: number): void {

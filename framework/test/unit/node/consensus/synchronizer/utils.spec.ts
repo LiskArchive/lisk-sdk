@@ -12,8 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ForkStatus } from '@liskhq/lisk-bft';
 import { Block } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import {
+	liskBFTAssetSchema,
+	liskBFTModuleID,
+} from '../../../../../src/node/consensus/modules/liskbft/module';
 import {
 	restoreBlocks,
 	restoreBlocksUponStartup,
@@ -22,24 +26,35 @@ import { createValidDefaultBlock } from '../../../../fixtures';
 
 describe('#synchronizer/utils', () => {
 	let chainMock: any;
-	let bftMock: any;
 	let blockExecutor: any;
 	let loggerMock: any;
+	let lastBlock: Block;
 
 	beforeEach(async () => {
+		lastBlock = await createValidDefaultBlock({
+			header: {
+				height: 1,
+				assets: [
+					{
+						moduleID: liskBFTModuleID,
+						data: codec.encode(liskBFTAssetSchema, {
+							maxHeightPrevoted: 0,
+							maxHeightPreviouslyForged: 0,
+						}),
+					},
+				],
+			},
+		});
 		chainMock = {
-			lastBlock: await createValidDefaultBlock({ header: { height: 1 } }),
+			lastBlock,
 			dataAccess: {
 				getTempBlocks: jest.fn(),
 				clearTempBlocks: jest.fn(),
 			},
 		};
 
-		bftMock = {
-			forkChoice: jest.fn(),
-		};
-
 		loggerMock = {
+			trace: jest.fn(),
 			info: jest.fn(),
 			debug: jest.fn(),
 			error: jest.fn(),
@@ -104,21 +119,30 @@ describe('#synchronizer/utils', () => {
 				await createValidDefaultBlock({
 					header: {
 						height: 11,
-						asset: {
-							maxHeightPrevoted: 5,
-							seedReveal: Buffer.alloc(0),
-							maxHeightPreviouslyForged: 0,
-						},
+						previousBlockID: Buffer.from('height-10'),
+						assets: [
+							{
+								moduleID: liskBFTModuleID,
+								data: codec.encode(liskBFTAssetSchema, {
+									maxHeightPrevoted: 7,
+									maxHeightPreviouslyForged: 0,
+								}),
+							},
+						],
 					},
 				}),
 				await createValidDefaultBlock({
 					header: {
 						height: 10,
-						asset: {
-							maxHeightPrevoted: 6,
-							seedReveal: Buffer.alloc(0),
-							maxHeightPreviouslyForged: 0,
-						},
+						assets: [
+							{
+								moduleID: liskBFTModuleID,
+								data: codec.encode(liskBFTAssetSchema, {
+									maxHeightPrevoted: 6,
+									maxHeightPreviouslyForged: 0,
+								}),
+							},
+						],
 					},
 				}),
 			];
@@ -127,10 +151,23 @@ describe('#synchronizer/utils', () => {
 
 		it('should restore blocks if fork status = ForkStatus.DIFFERENT_CHAIN', async () => {
 			// Arrange
-			bftMock.forkChoice.mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
+			chainMock.lastBlock = await createValidDefaultBlock({
+				header: {
+					height: 1,
+					assets: [
+						{
+							moduleID: liskBFTModuleID,
+							data: codec.encode(liskBFTAssetSchema, {
+								maxHeightPrevoted: 0,
+								maxHeightPreviouslyForged: 0,
+							}),
+						},
+					],
+				},
+			});
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, bftMock, blockExecutor);
+			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -138,10 +175,42 @@ describe('#synchronizer/utils', () => {
 
 		it('should restore blocks if fork status = ForkStatus.VALID_BLOCK', async () => {
 			// Arrange
-			bftMock.forkChoice.mockReturnValue(ForkStatus.VALID_BLOCK);
+			blockExecutor.deleteLastBlock.mockImplementation(async () => {
+				chainMock.lastBlock = await createValidDefaultBlock({
+					header: {
+						previousBlockID: Buffer.from('height-9'),
+						height: 9,
+						assets: [
+							{
+								moduleID: liskBFTModuleID,
+								data: codec.encode(liskBFTAssetSchema, {
+									maxHeightPrevoted: 0,
+									maxHeightPreviouslyForged: 0,
+								}),
+							},
+						],
+					},
+				});
+			});
+			chainMock.lastBlock = await createValidDefaultBlock({
+				header: {
+					previousBlockID: Buffer.from('height-9'),
+					height: 10,
+					assets: [
+						{
+							moduleID: liskBFTModuleID,
+							data: codec.encode(liskBFTAssetSchema, {
+								maxHeightPrevoted: 0,
+								maxHeightPreviouslyForged: 0,
+							}),
+						},
+					],
+				},
+			});
+			chainMock.lastBlock.header._id = Buffer.from('height-10');
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, bftMock, blockExecutor);
+			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -149,35 +218,28 @@ describe('#synchronizer/utils', () => {
 
 		it('should truncate temp_blocks table if fork status != ForkStatus.DIFFERENT_CHAIN || != ForkStatus.VALID_BLOCK', async () => {
 			// Arrange
-			bftMock.forkChoice.mockReturnValue(ForkStatus.DISCARD);
 			blockExecutor.deleteLastBlock.mockResolvedValue({ height: 0 });
 
-			chainMock.lastBlock = {
+			chainMock.lastBlock = await createValidDefaultBlock({
 				header: {
-					id: Buffer.from('999999'),
 					height: 1,
+					assets: [
+						{
+							moduleID: liskBFTModuleID,
+							data: codec.encode(liskBFTAssetSchema, {
+								maxHeightPrevoted: 0,
+								maxHeightPreviouslyForged: 0,
+							}),
+						},
+					],
 				},
-			};
+			});
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, bftMock, blockExecutor);
+			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
-		});
-
-		it('should call forkStatus with lowest block object', async () => {
-			// Arrange
-			bftMock.forkChoice.mockReturnValue(ForkStatus.DIFFERENT_CHAIN);
-
-			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, bftMock, blockExecutor);
-
-			// Assert
-			expect(bftMock.forkChoice).toHaveBeenCalledWith(
-				tempBlocks[1].header,
-				chainMock.lastBlock.header,
-			);
 		});
 	});
 });

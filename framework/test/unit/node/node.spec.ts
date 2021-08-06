@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -11,350 +12,337 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { BFT } from '@liskhq/lisk-bft';
-import { codec } from '@liskhq/lisk-codec';
-import { KVStore } from '@liskhq/lisk-db';
-import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { when } from 'jest-when';
-import { InMemoryChannel } from '../../../src/controller/channels';
-import { BaseModule, DPoSModule, TokenModule } from '../../../src/modules';
-import { Forger, HighFeeForgingStrategy } from '../../../src/node/forger';
-import { Network } from '../../../src/node/network';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { Node } from '../../../src/node/node';
-import { Processor } from '../../../src/node/processor';
-import { Synchronizer } from '../../../src/node/synchronizer/synchronizer';
-import { cacheConfig, nodeOptions } from '../../fixtures/node';
-import { createMockBus } from '../../utils/channel';
+import { nodeOptions } from '../../fixtures/node';
 import { createGenesisBlock } from '../../../src/testing/create_genesis_block';
+import { InMemoryChannel } from '../../../src/controller';
+import { fakeLogger } from '../../utils/node';
+import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
+import { ModuleInitArgs } from '../../../src/modules/base_module';
+import { EVENT_BLOCK_DELETE, EVENT_BLOCK_NEW } from '../../../src/node/consensus';
 
 jest.mock('@liskhq/lisk-db');
+
+class SampleNodeModule extends BaseModule {
+	public endpoint: BaseEndpoint = {
+		do: () => {},
+	} as never;
+	public api: BaseAPI = {} as never;
+	public id = 1000;
+	public name = 'sample';
+
+	public async init(_args: ModuleInitArgs): Promise<void> {}
+}
 
 describe('Node', () => {
 	let node: Node;
 	let subscribedEvents: any;
-	const stubs: any = {};
+	let channel: InMemoryChannel;
 	let blockchainDB: KVStore;
 	let forgerDB: KVStore;
 	let nodeDB: KVStore;
-	let tokenModule: BaseModule;
-	let dposModule: BaseModule;
+	let sampleNodeModule: SampleNodeModule;
 
-	const { genesisBlock, genesisBlockJSON } = createGenesisBlock({
-		modules: [TokenModule, DPoSModule],
-	});
-	const lastBlock = genesisBlock;
+	const { genesisBlock } = createGenesisBlock({});
 
 	beforeEach(() => {
 		// Arrange
 		subscribedEvents = {};
 
-		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(undefined);
-		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(undefined);
-
-		blockchainDB = new KVStore('blockchain.db');
-		forgerDB = new KVStore('forger.db');
-		nodeDB = new KVStore('node.db');
-		tokenModule = new TokenModule(nodeOptions.genesisConfig);
-		dposModule = new DPoSModule(nodeOptions.genesisConfig);
+		blockchainDB = new InMemoryKVStore() as never;
+		forgerDB = new InMemoryKVStore() as never;
+		nodeDB = new InMemoryKVStore() as never;
 
 		/* Arranging Stubs start */
-		stubs.logger = {
-			trace: jest.fn(),
-			error: jest.fn(),
-			debug: jest.fn(),
-			fatal: jest.fn(),
-			info: jest.fn(),
-			cleanup: jest.fn(),
-		};
 
-		stubs.forgerDB = {
-			get: jest.fn(),
-			put: jest.fn(),
-			close: jest.fn(),
-		};
-
-		stubs.channel = {
+		channel = {
 			invoke: jest.fn(),
 			subscribe: jest.fn((event, cb) => {
 				subscribedEvents[event] = cb;
 			}),
 			once: jest.fn(),
 			registerToBus: jest.fn(),
-		};
-
-		when(stubs.channel.invoke)
-			.calledWith('app:getComponentConfig', 'cache')
-			.mockResolvedValue(cacheConfig as never);
+		} as never;
 
 		node = new Node({
 			options: nodeOptions,
-			genesisBlockJSON,
 		});
-
-		codec.clearCache();
-		node.registerModule(tokenModule);
-
-		// Because the genesis block contains a delegate, so we must register dpos module to process it
-		node.registerModule(dposModule);
+		sampleNodeModule = new SampleNodeModule();
+		node.registerModule(sampleNodeModule);
 	});
 
 	describe('constructor', () => {
-		it('should throw error when waitThreshold is greater than blockTime', () => {
-			const invalidChainOptions = {
-				...nodeOptions,
-				forging: {
-					waitThreshold: 5,
-				},
-				genesisConfig: {
-					...nodeOptions.genesisConfig,
-					blockTime: 4,
-				},
-			};
-
-			expect(
-				() =>
-					new Node({
-						options: invalidChainOptions as any,
-						genesisBlockJSON,
-					}),
-			).toThrow('forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=4');
+		it('should successfully create all instance', () => {
+			expect(node['_network']).toBeDefined();
+			expect(node['_chain']).toBeDefined();
+			expect(node['_stateMachine']).toBeDefined();
+			expect(node['_validatorModule']).toBeDefined();
+			expect(node['_liskBFTModule']).toBeDefined();
+			expect(node['_consensus']).toBeDefined();
+			expect(node['_generator']).toBeDefined();
+			expect(node['_endpoint']).toBeDefined();
 		});
 
-		it('should throw error when waitThreshold is same as blockTime', () => {
-			const invalidChainOptions = {
-				...nodeOptions,
-				forging: {
-					waitThreshold: 5,
-				},
-				genesisConfig: {
-					...nodeOptions.genesisConfig,
-					blockTime: 5,
-				},
-			};
-
-			expect(
-				() =>
-					new Node({
-						options: invalidChainOptions as any,
-						genesisBlockJSON,
-					}),
-			).toThrow('forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=5');
+		it('should register system modules to state machine and generator', () => {
+			expect(node['_registeredModules']).toHaveLength(3);
+			expect(node['_stateMachine']['_systemModules']).toHaveLength(2);
+			expect(node['_stateMachine']['_modules']).toHaveLength(1);
+			expect(node['_generator']['_modules']).toHaveLength(3);
 		});
 	});
 
 	describe('init', () => {
 		beforeEach(async () => {
-			jest.spyOn(Network.prototype, 'applyNodeInfo');
-			jest.spyOn(TransactionPool.prototype, 'start');
-			jest.spyOn(node as any, '_startForging');
-			jest.spyOn(Processor.prototype, 'register');
-			jest.spyOn(InMemoryChannel.prototype, 'registerToBus');
-			jest.spyOn(tokenModule, 'init');
-
 			// Act
+			jest.spyOn(node['_chain'], 'genesisBlockExist').mockResolvedValue(true);
+			jest.spyOn(node['_chain'], 'loadLastBlocks').mockResolvedValue();
+			jest.spyOn(node['_network'], 'init');
+			jest.spyOn(node['_generator'], 'init');
+			jest.spyOn(node['_consensus'], 'init');
+			jest.spyOn(node['_consensus'].events, 'on');
+			jest.spyOn(sampleNodeModule, 'init');
 			await node.init({
-				bus: createMockBus() as any,
-				channel: stubs.channel,
+				channel,
 				blockchainDB,
 				forgerDB,
 				nodeDB,
-				logger: stubs.logger,
+				logger: fakeLogger,
+				genesisBlock,
 			});
 		});
 
-		it('should initialize scope object with valid structure', () => {
-			expect(node).toHaveProperty('_options');
-			expect(node).toHaveProperty('_channel');
-			expect(node).toHaveProperty('_networkIdentifier');
+		it('should initialize network', () => {
+			expect(node['_network'].init).toHaveBeenCalledTimes(1);
 		});
 
-		describe('_initModules', () => {
-			it('should initialize bft module', () => {
-				expect(node['_bft']).toBeInstanceOf(BFT);
-			});
-
-			it('should initialize forger module', () => {
-				expect(node['_forger']).toBeInstanceOf(Forger);
-			});
-
-			it('should initialize forger module with high fee strategy', () => {
-				expect(node['_forger']['_forgingStrategy']).toBeInstanceOf(HighFeeForgingStrategy);
-			});
+		it('should initialize consensus', () => {
+			expect(node['_consensus'].init).toHaveBeenCalledTimes(1);
 		});
 
-		describe('on-chain modules', () => {
-			it('should register custom module with processor', () => {
-				expect(node['_processor'].register).toHaveBeenCalledTimes(2);
-				expect(node['_processor'].register).toHaveBeenCalledWith(tokenModule);
-				expect(node['_processor'].register).toHaveBeenCalledWith(dposModule);
-			});
-
-			it('should register in-memory channel to bus', () => {
-				// one time for each module
-				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledTimes(2);
-				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledWith(node['_bus']);
-			});
-
-			it('should init custom module', () => {
-				expect(tokenModule.init).toHaveBeenCalledTimes(1);
-				expect(tokenModule.init).toHaveBeenCalledWith(
-					expect.objectContaining({
-						channel: { publish: expect.any(Function) },
-						dataAccess: {
-							getChainState: expect.any(Function),
-							getAccountByAddress: expect.any(Function),
-							getLastBlockHeader: expect.any(Function),
-						},
-						logger: stubs.logger,
-					}),
-				);
-			});
+		it('should initialize generator', () => {
+			expect(node['_generator'].init).toHaveBeenCalledTimes(1);
 		});
 
-		it('should invoke Processor.init', () => {
-			expect(node['_processor'].init).toHaveBeenCalledTimes(1);
+		it('should initialize all register modules', () => {
+			expect(sampleNodeModule.init).toHaveBeenCalledTimes(1);
 		});
 
-		it('should call "applyNodeInfo" with correct params', () => {
-			// Assert
-			return expect(node['_networkModule'].applyNodeInfo).toHaveBeenCalledWith({
-				height: lastBlock.header.height,
-				blockVersion: lastBlock.header.version,
-				maxHeightPrevoted: 0,
-				lastBlockID: lastBlock.header.id,
-			});
-		});
-
-		it('should start transaction pool', () => {
-			return expect(node['_transactionPool'].start).toHaveBeenCalled();
-		});
-
-		it('should start forging', () => {
-			return expect(node['_startForging']).toHaveBeenCalled();
-		});
-	});
-
-	describe('getSchema', () => {
-		it('should return all schema with currently registered modules', () => {
-			const schema = node.getSchema();
-			expect(Object.keys(schema.account.properties)).toInclude('token');
-			expect(Object.keys(schema.blockHeadersAssets).length).toBeGreaterThanOrEqual(2);
-			expect(schema.block).not.toBeUndefined();
-			expect(schema.blockHeader).not.toBeUndefined();
-			expect(schema.transaction).not.toBeUndefined();
+		it('should register consensus event handler', () => {
+			expect(node['_consensus'].events.on).toHaveBeenCalledWith(EVENT_BLOCK_NEW, expect.anything());
+			expect(node['_consensus'].events.on).toHaveBeenCalledWith(
+				EVENT_BLOCK_DELETE,
+				expect.anything(),
+			);
 		});
 	});
 
 	describe('getRegisteredModules', () => {
-		it('should return currently registered modules information', () => {
-			const registeredModules = node.getRegisteredModules();
-			expect(registeredModules).toHaveLength(2);
-			expect(registeredModules[0].name).toEqual('token');
-			expect(registeredModules[1].name).toEqual('dpos');
+		// eslint-disable-next-line jest/expect-expect
+		it('should return currently registered modules information', () => {});
+	});
+
+	describe('getEndpoints', () => {
+		let endpoints: Record<string, unknown>;
+		beforeEach(() => {
+			endpoints = node.getEndpoints();
+		});
+
+		it('should not change the exposed endpoints unintentionally', () => {
+			expect(Object.keys(endpoints)).toMatchSnapshot();
+		});
+
+		it('should return generator endpoint', () => {
+			expect(endpoints).toHaveProperty('app_postTransaction');
+		});
+
+		it('should return all node endpoints', () => {
+			expect(endpoints).toHaveProperty('app_getBlockByID');
+		});
+
+		it('should return all module endpoints', () => {
+			expect(endpoints).toHaveProperty('sample_do');
 		});
 	});
 
-	describe('cleanup', () => {
-		beforeEach(async () => {
-			// Arrange
-			await node.init({
-				bus: createMockBus() as any,
-				channel: stubs.channel,
-				blockchainDB,
-				forgerDB,
-				nodeDB,
-				logger: stubs.logger,
-			});
-			jest.spyOn(node['_transactionPool'], 'stop');
-			jest.spyOn(node['_processor'], 'stop');
-			jest.spyOn(node['_synchronizer'], 'stop');
-			jest.spyOn(node['_networkModule'], 'cleanup');
-		});
-
-		it('should be an async function', () => {
-			// Assert
-			return expect(node.cleanup.constructor.name).toEqual('AsyncFunction');
-		});
-
-		it('should call stop for running tasks', async () => {
-			await node.cleanup();
-			// Assert
-			expect(node['_transactionPool'].stop).toHaveBeenCalled();
-			expect(node['_synchronizer'].stop).toHaveBeenCalled();
-			expect(node['_processor'].stop).toHaveBeenCalled();
-			expect(node['_networkModule'].cleanup).toHaveBeenCalled();
+	describe('getSchema', () => {
+		it('should return schema for defaults and all registered modules', () => {
+			const schema = node.getSchema();
+			expect(schema.block).not.toBeEmpty();
+			expect(schema.blockHeader).not.toBeEmpty();
+			expect(schema.transaction).not.toBeEmpty();
+			expect(schema.commands).toBeEmpty();
 		});
 	});
 
-	describe('#_forgingTask', () => {
-		beforeEach(async () => {
-			await node.init({
-				bus: createMockBus() as any,
-				channel: stubs.channel,
-				blockchainDB,
-				forgerDB,
-				nodeDB,
-				logger: stubs.logger,
-			});
-			jest.spyOn(node['_forger'], 'delegatesEnabled').mockReturnValue(true);
-			jest.spyOn(node['_forger'], 'forge');
-			jest.spyOn(node['_synchronizer'], 'isActive', 'get').mockReturnValue(false);
+	describe('registerModule', () => {
+		let sampleModule: SampleNodeModule;
+
+		beforeEach(() => {
+			sampleModule = new SampleNodeModule();
+			sampleModule.id = 1024;
+			sampleModule.name = 'sample2';
 		});
 
-		it('should halt if no delegates are enabled', async () => {
+		it('should throw an error if id is less than 2 when registering a module', () => {
 			// Arrange
-			(node['_forger'].delegatesEnabled as jest.Mock).mockReturnValue(false);
-
 			// Act
-			await node['_forgingTask']();
-
+			sampleModule.id = 1;
 			// Assert
-			expect(stubs.logger.trace).toHaveBeenNthCalledWith(1, 'No delegates are enabled');
-			expect(node['_forger'].forge).not.toHaveBeenCalled();
+			expect(() => node.registerModule(sampleModule)).toThrow(
+				'Custom module must have id greater than 2',
+			);
 		});
 
-		it('should halt if the client is not ready to forge (is syncing)', async () => {
-			// Arrange
-			jest.spyOn(node['_synchronizer'], 'isActive', 'get').mockReturnValue(true);
-
+		it('should throw an error if module id is missing', () => {
 			// Act
-			await node['_forgingTask']();
-
+			sampleModule.id = undefined as never;
 			// Assert
-			expect(stubs.logger.debug).toHaveBeenNthCalledWith(1, 'Client not ready to forge');
-			expect(node['_forger'].forge).not.toHaveBeenCalled();
+			expect(() => node.registerModule(sampleModule)).toThrow(
+				"Custom module 'SampleNodeModule' is missing either one or both of the required properties: 'id', 'name'.",
+			);
 		});
 
-		it('should execute forger.forge otherwise', async () => {
-			await node['_forgingTask']();
+		it('should throw an error if module name is missing', () => {
+			// Act
+			sampleModule.name = '';
+			// Assert
+			expect(() => node.registerModule(sampleModule)).toThrow(
+				"Custom module 'SampleNodeModule' is missing either one or both of the required properties: 'id', 'name'.",
+			);
+		});
 
-			expect(node['_forger'].forge).toHaveBeenCalled();
+		it('should throw an error if asset does not extend BaseCommand', () => {
+			// Act
+			class SampleCommand {
+				public name = 'asset';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				public async execute(): Promise<void> {}
+			}
+			sampleModule.name = 'SampleModule';
+			sampleModule.id = 999999;
+			sampleModule.commands.push(new SampleCommand());
+			// Assert
+			expect(() => node.registerModule(sampleModule)).toThrow(
+				'Custom module contains command which does not extend `BaseCommand` class.',
+			);
+		});
+
+		it('should throw an error if asset id is invalid', () => {
+			// Act
+			class SampleCommand extends BaseCommand {
+				public name = 'asset';
+				public id = null as any;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				public async execute(): Promise<void> {}
+			}
+			sampleModule.name = 'SampleModule';
+			sampleModule.id = 999999;
+			sampleModule.commands.push(new SampleCommand());
+			// Assert
+			expect(() => node.registerModule(sampleModule)).toThrow(
+				'Custom module contains command with invalid `id` property.',
+			);
+		});
+
+		it('should throw an error if asset name is invalid', () => {
+			// Act
+			class SampleCommand extends BaseCommand {
+				public name = '';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				public async execute(): Promise<void> {}
+			}
+			sampleModule.name = 'SampleModule';
+			sampleModule.id = 999999;
+			sampleModule.commands.push(new SampleCommand());
+			// Assert
+			expect(() => node.registerModule(sampleModule)).toThrow(
+				'Custom module contains command with invalid `name` property.',
+			);
+		});
+
+		it('should throw an error if asset schema is invalid', () => {
+			// Act
+			class SampleCommand extends BaseCommand {
+				public name = 'asset';
+				public id = 0;
+				public schema = undefined as any;
+				public async execute(): Promise<void> {}
+			}
+			sampleModule.name = 'SampleModule';
+			sampleModule.id = 999999;
+			sampleModule.commands.push(new SampleCommand());
+			// Assert
+			expect(() => node.registerModule(sampleModule)).toThrow(
+				'Custom module contains command with invalid `schema` property.',
+			);
+		});
+
+		it('should throw an error if asset apply is invalid', () => {
+			// Act
+			class SampleCommand extends BaseCommand {
+				public name = 'asset';
+				public id = 0;
+				public schema = {
+					$id: 'lisk/sample',
+					type: 'object',
+					properties: {},
+				};
+				public execute = {} as any;
+			}
+			sampleModule.name = 'SampleModule';
+			sampleModule.id = 999999;
+			sampleModule.commands.push(new SampleCommand());
+			// Assert
+			expect(() => node.registerModule(sampleModule)).toThrow(
+				'Custom module contains command with invalid `execute` property.',
+			);
+		});
+
+		it('should add custom module to collection.', () => {
+			// Act
+			node.registerModule(sampleModule);
+
+			// Assert
+			expect(node['_registeredModules']).toHaveLength(4);
 		});
 	});
 
-	describe('#_startForging', () => {
+	describe('start', () => {
 		beforeEach(async () => {
+			// Arrange
+			jest.spyOn(node['_chain'], 'genesisBlockExist').mockResolvedValue(true);
+			jest.spyOn(node['_chain'], 'loadLastBlocks').mockResolvedValue();
+			jest.spyOn(node['_network'], 'start');
+			jest.spyOn(node['_generator'], 'start');
 			await node.init({
-				bus: createMockBus() as any,
-				channel: stubs.channel,
+				channel,
 				blockchainDB,
 				forgerDB,
 				nodeDB,
-				logger: stubs.logger,
+				logger: fakeLogger,
+				genesisBlock,
 			});
-			jest.spyOn(node['_forger'], 'loadDelegates');
 		});
 
-		it('should load the delegates', async () => {
-			await node['_startForging']();
-			expect(node['_forger'].loadDelegates).toHaveBeenCalled();
-		});
-
-		it('should register a task in Jobs Queue named "nextForge" with a designated interval', async () => {
-			await node['_startForging']();
-
-			expect(node['_forgingJob']).not.toBeUndefined();
+		it('should call start for network and generator', async () => {
+			await node.start();
+			expect(node['_network'].start).toHaveBeenCalledTimes(1);
+			expect(node['_generator'].start).toHaveBeenCalledTimes(1);
 		});
 	});
 });

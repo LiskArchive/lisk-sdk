@@ -13,6 +13,7 @@
  */
 
 export abstract class BaseEndpoint {
+	[key: string]: unknown;
 	protected moduleID: number;
 	public constructor(moduleID: number) {
 		this.moduleID = moduleID;

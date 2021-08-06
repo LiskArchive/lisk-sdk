@@ -19,6 +19,7 @@ import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { Logger } from '../../../../src/logger';
+import { LiskBFTAPI } from '../../../../src/node/consensus';
 import { Broadcaster } from '../../../../src/node/generator/broadcaster';
 import { Endpoint } from '../../../../src/node/generator/endpoint';
 import { InvalidTransactionError } from '../../../../src/node/generator/errors';
@@ -28,11 +29,9 @@ import { fakeLogger } from '../../../utils/node';
 
 describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
-	const txBytes =
-		'0805100118012080ade2042a20f7e7627120dab14b80b6e4f361ba89db251ee838708c3a74c6c2cc08ad793f58321d0a1b0a1432fc1c23b73db1c6205327b1cab44318e61678ea1080dac4093a40a0be9e52d9e0a53406c55a74ab0d7d106eb276a47dd88d3dc2284ed62024b2448e0bd5af1623ae7d793606a58c27d742e8855ba339f757d56972c4c6efad750c';
 	const tx = new Transaction({
-		asset: Buffer.alloc(20),
-		assetID: 0,
+		params: Buffer.alloc(20),
+		commandID: 0,
 		fee: BigInt(100000),
 		moduleID: 2,
 		nonce: BigInt(0),
@@ -56,6 +55,7 @@ describe('generator endpoint', () => {
 	let consensus: Consensus;
 	let pool: TransactionPool;
 	let stateMachine: StateMachine;
+	let liskBFTAPI: LiskBFTAPI;
 
 	beforeEach(() => {
 		broadcaster = {
@@ -71,6 +71,8 @@ describe('generator endpoint', () => {
 		} as never;
 		consensus = {
 			isSynced: jest.fn().mockResolvedValue(true),
+		} as never;
+		liskBFTAPI = {
 			verifyGeneratorInfo: jest.fn(),
 		} as never;
 		pool = {
@@ -86,6 +88,7 @@ describe('generator endpoint', () => {
 			broadcaster,
 			chain,
 			consensus,
+			liskBFTAPI,
 			pool,
 			stateMachine,
 			keypair: new dataStructures.BufferMap<Keypair>(),
@@ -103,6 +106,7 @@ describe('generator endpoint', () => {
 			it('should reject with validation error', async () => {
 				await expect(
 					endpoint.postTransaction({
+						getStore: jest.fn(),
 						logger,
 						params: {
 							invalid: 'schema',
@@ -112,11 +116,9 @@ describe('generator endpoint', () => {
 			});
 
 			it('should reject with error when transaction bytes is invalid', async () => {
-				(chain.dataAccess.decodeTransaction as jest.Mock).mockImplementation(() => {
-					throw new Error('invalid data');
-				});
 				await expect(
 					endpoint.postTransaction({
+						getStore: jest.fn(),
 						logger,
 						params: {
 							transaction: 'xxxx',
@@ -133,9 +135,10 @@ describe('generator endpoint', () => {
 				});
 				await expect(
 					endpoint.postTransaction({
+						getStore: jest.fn(),
 						logger,
 						params: {
-							transaction: txBytes,
+							transaction: tx.getBytes().toString('hex'),
 						},
 					}),
 				).rejects.toThrow(InvalidTransactionError);
@@ -147,9 +150,10 @@ describe('generator endpoint', () => {
 				(pool.contains as jest.Mock).mockReturnValue(true);
 				await expect(
 					endpoint.postTransaction({
+						getStore: jest.fn(),
 						logger,
 						params: {
-							transaction: txBytes,
+							transaction: tx.getBytes().toString('hex'),
 						},
 					}),
 				).resolves.toEqual({
@@ -165,9 +169,10 @@ describe('generator endpoint', () => {
 				});
 				await expect(
 					endpoint.postTransaction({
+						getStore: jest.fn(),
 						logger,
 						params: {
-							transaction: txBytes,
+							transaction: tx.getBytes().toString('hex'),
 						},
 					}),
 				).rejects.toThrow(InvalidTransactionError);
@@ -179,8 +184,9 @@ describe('generator endpoint', () => {
 				await expect(
 					endpoint.postTransaction({
 						logger,
+						getStore: jest.fn(),
 						params: {
-							transaction: txBytes,
+							transaction: tx.getBytes().toString('hex'),
 						},
 					}),
 				).resolves.toEqual({
@@ -202,6 +208,7 @@ describe('generator endpoint', () => {
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,
+					getStore: jest.fn(),
 					params: {
 						enable: true,
 						password: defaultPassword,
@@ -216,6 +223,7 @@ describe('generator endpoint', () => {
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,
+					getStore: jest.fn(),
 					params: {
 						address: getRandomBytes(20).toString('hex'),
 						enable: true,
@@ -231,6 +239,7 @@ describe('generator endpoint', () => {
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,
+					getStore: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -246,6 +255,7 @@ describe('generator endpoint', () => {
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,
+					getStore: jest.fn(),
 					params: {
 						address: invalidConfig.address,
 						enable: true,
@@ -262,6 +272,7 @@ describe('generator endpoint', () => {
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,
+					getStore: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -281,6 +292,7 @@ describe('generator endpoint', () => {
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,
+					getStore: jest.fn(),
 					params: {
 						address: config.address,
 						enable: false,
@@ -297,10 +309,11 @@ describe('generator endpoint', () => {
 		});
 
 		it('should fail to enable to enable if verify generator fails', async () => {
-			(consensus.verifyGeneratorInfo as jest.Mock).mockRejectedValue(new Error('invalid'));
+			(liskBFTAPI.verifyGeneratorInfo as jest.Mock).mockRejectedValue(new Error('invalid'));
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,
+					getStore: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -316,6 +329,7 @@ describe('generator endpoint', () => {
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,
+					getStore: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,

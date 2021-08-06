@@ -18,4 +18,18 @@ export { BlockContext } from './block_context';
 export { GenesisBlockContext } from './genesis_block_context';
 export { APIContext } from './api_context';
 export { EventQueue } from './event_queue';
-export { BlockHeader, StateStore, VerifyStatus, ImmutableSubStore } from './types';
+export {
+	BlockHeader,
+	StateStore,
+	VerifyStatus,
+	ImmutableSubStore,
+	BlockExecuteContext,
+	BlockAfterExecuteContext,
+	BlockVerifyContext,
+	GenesisBlockExecuteContext,
+	TransactionExecuteContext,
+	TransactionVerifyContext,
+	VerificationResult,
+	CommandVerifyContext,
+	CommandExecuteContext,
+} from './types';

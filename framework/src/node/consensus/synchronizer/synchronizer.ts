@@ -13,7 +13,6 @@
  */
 
 import * as assert from 'assert';
-import { BFT } from '@liskhq/lisk-bft';
 import { Chain, Block } from '@liskhq/lisk-chain';
 import { jobHandlers } from '@liskhq/lisk-utils';
 import { BaseSynchronizer } from './base_synchronizer';
@@ -24,7 +23,6 @@ import * as utils from './utils';
 interface SynchronizerInput {
 	readonly logger: Logger;
 	readonly chainModule: Chain;
-	readonly bftModule: BFT;
 	readonly blockExecutor: BlockExecutor;
 	readonly mechanisms: BaseSynchronizer[];
 }
@@ -32,23 +30,15 @@ interface SynchronizerInput {
 export class Synchronizer {
 	protected logger: Logger;
 	private readonly chainModule: Chain;
-	private readonly bftModule: BFT;
 	private readonly _mutex: jobHandlers.Mutex;
 	private readonly blockExecutor: BlockExecutor;
 	private readonly mechanisms: BaseSynchronizer[];
 
-	public constructor({
-		logger,
-		chainModule,
-		bftModule,
-		blockExecutor,
-		mechanisms = [],
-	}: SynchronizerInput) {
+	public constructor({ logger, chainModule, blockExecutor, mechanisms = [] }: SynchronizerInput) {
 		assert(Array.isArray(mechanisms), 'mechanisms should be an array of mechanisms');
 		this.mechanisms = mechanisms;
 		this.logger = logger;
 		this.chainModule = chainModule;
-		this.bftModule = bftModule;
 		this.blockExecutor = blockExecutor;
 
 		this._checkMechanismsInterfaces();
@@ -59,12 +49,7 @@ export class Synchronizer {
 		const isEmpty = await this.chainModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
-				await utils.restoreBlocksUponStartup(
-					this.logger,
-					this.chainModule,
-					this.bftModule,
-					this.blockExecutor,
-				);
+				await utils.restoreBlocksUponStartup(this.logger, this.chainModule, this.blockExecutor);
 			} catch (err) {
 				this.logger.error(
 					{ err: err as Error },

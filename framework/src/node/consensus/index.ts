@@ -13,4 +13,14 @@
  */
 
 export { Consensus } from './consensus';
-export { EVENT_BLOCK_BROADCAST, EVENT_FORK_DETECTED, NETWORK_EVENT_POST_BLOCK } from './constants';
+export {
+	EVENT_BLOCK_BROADCAST,
+	EVENT_FORK_DETECTED,
+	NETWORK_EVENT_POST_BLOCK,
+	EVENT_BLOCK_DELETE,
+	EVENT_BLOCK_NEW,
+} from './constants';
+export { ValidatorModule } from './modules/validator/module';
+export type { ValidatorAPI } from './modules/validator/api';
+export { LiskBFTModule } from './modules/liskbft/module';
+export type { LiskBFTAPI } from './modules/liskbft/api';

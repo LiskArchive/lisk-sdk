@@ -20,7 +20,7 @@ import {
 	getBlocksFromIdRequestSchema,
 	getHighestCommonBlockRequestSchema,
 	getBlocksFromIdResponseSchema,
-} from '../../transport/schemas';
+} from '../schema';
 import { Network } from '../../network';
 import {
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
@@ -55,7 +55,7 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndRestartError(peerId, 'Peer did not provide its last block');
 		}
-		return this._chain.dataAccess.decode(data);
+		return Block.fromBytes(data);
 	}
 
 	protected async _getHighestCommonBlockFromNetwork(
@@ -74,7 +74,7 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Peer did not return a common block');
 		}
-		return this._chain.dataAccess.decodeBlockHeader(data);
+		return BlockHeader.fromBytes(data);
 	}
 
 	protected async _getBlocksFromNetwork(peerId: string, fromID: Buffer): Promise<Block[]> {
@@ -91,7 +91,7 @@ export abstract class BaseSynchronizer {
 			throw new Error(`Peer ${peerId} did not respond with block`);
 		}
 		const encodedData = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
-		return encodedData.blocks.map(block => this._chain.dataAccess.decode(block));
+		return encodedData.blocks.map(block => Block.fromBytes(block));
 	}
 
 	public abstract run(receivedBlock: Block, peerId: string): Promise<void>;

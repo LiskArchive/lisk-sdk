@@ -36,7 +36,7 @@ import {
 	PostTransactionsAnnouncement,
 	postTransactionsAnnouncementSchema,
 } from './schemas';
-import { InvalidTransactionError } from '../transport/errors';
+import { InvalidTransactionError } from './errors';
 import { TransactionContext, EventQueue, StateMachine, VerifyStatus } from '../state_machine';
 import { Broadcaster } from './broadcaster';
 
@@ -212,7 +212,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 			try {
 				for (const transactionBytes of transactionsData.transactions) {
-					const transaction = this._chain.dataAccess.decodeTransaction(transactionBytes);
+					const transaction = Transaction.fromBytes(transactionBytes);
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
@@ -232,7 +232,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		const txContext = new TransactionContext({
 			eventQueue: new EventQueue(),
 			logger: this._logger,
-			networkIdentifier: this._chain.constants.networkIdentifier,
+			networkIdentifier: this._chain.networkIdentifier,
 			stateStore: new StateStore(this._blockchainDB),
 			transaction,
 		});

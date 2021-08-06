@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,54 +13,43 @@
  */
 /* eslint-disable class-methods-use-this */
 
+import { GenesisConfig } from '../types';
 import {
-	GenesisConfig,
-	AccountSchema,
-	TransactionApplyContext,
-	AfterBlockApplyContext,
-	BeforeBlockApplyContext,
-	AfterGenesisBlockApplyContext,
-	Reducers,
-	Actions,
-	BaseModuleDataAccess,
-} from '../types';
-import { BaseAsset } from './base_asset';
-import { Logger } from '../logger/logger';
+	BlockAfterExecuteContext,
+	BlockExecuteContext,
+	GenesisBlockExecuteContext,
+	TransactionExecuteContext,
+	TransactionVerifyContext,
+	BlockVerifyContext,
+	VerificationResult,
+} from '../node/state_machine';
+import { BlockGenerateContext } from '../node/generator';
+import { BaseCommand } from './base_command';
+import { BaseEndpoint } from './base_endpoint';
+import { BaseAPI } from './base_api';
 
-export interface BaseModuleChannel {
-	publish(name: string, data?: Record<string, unknown>): void;
+export interface ModuleInitArgs {
+	genesisConfig: Omit<GenesisConfig, 'modules'>;
+	moduleConfig: Record<string, unknown>;
+	generatorConfig: Record<string, unknown>;
 }
 
 export abstract class BaseModule {
-	public readonly config: GenesisConfig;
-	public transactionAssets: BaseAsset[] = [];
-	public reducers: Reducers = {};
-	public actions: Actions = {};
+	public commands: BaseCommand[] = [];
 	public events: string[] = [];
-	public accountSchema?: AccountSchema;
-	protected _logger!: Logger;
-	protected _channel!: BaseModuleChannel;
-	protected _dataAccess!: BaseModuleDataAccess;
 	public abstract name: string;
 	public abstract id: number;
+	public abstract endpoint: BaseEndpoint;
+	public abstract api: BaseAPI;
 
-	public constructor(genesisConfig: GenesisConfig) {
-		this.config = genesisConfig;
-	}
-
-	public init(input: {
-		channel: BaseModuleChannel;
-		dataAccess: BaseModuleDataAccess;
-		logger: Logger;
-	}): void {
-		this._channel = input.channel;
-		this._dataAccess = input.dataAccess;
-		this._logger = input.logger;
-	}
-
-	public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
-	public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;
-	public async afterGenesisBlockApply?(context: AfterGenesisBlockApplyContext): Promise<void>;
-	public async beforeBlockApply?(context: BeforeBlockApplyContext): Promise<void>;
-	public async afterBlockApply?(context: AfterBlockApplyContext): Promise<void>;
+	public async init?(args: ModuleInitArgs): Promise<void>;
+	public async initBlock?(context: BlockGenerateContext): Promise<void>;
+	public async sealBlock?(context: BlockGenerateContext): Promise<void>;
+	public async verifyBlock?(context: BlockVerifyContext): Promise<void>;
+	public async verifyTransaction?(context: TransactionVerifyContext): Promise<VerificationResult>;
+	public async beforeTransactionExecute?(context: TransactionExecuteContext): Promise<void>;
+	public async afterTransactionExecute?(context: TransactionExecuteContext): Promise<void>;
+	public async afterGenesisBlockExecute?(context: GenesisBlockExecuteContext): Promise<void>;
+	public async beforeBlockExecute?(context: BlockExecuteContext): Promise<void>;
+	public async afterBlockExecute?(context: BlockAfterExecuteContext): Promise<void>;
 }

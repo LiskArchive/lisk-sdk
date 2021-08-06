@@ -40,11 +40,11 @@ export const createTransferTransaction = (input: {
 
 	const tx = new Transaction({
 		moduleID: 2,
-		assetID: 0,
+		commandID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('200000'),
-		asset: encodedAsset,
+		params: encodedAsset,
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
@@ -67,11 +67,11 @@ export const createDelegateRegisterTransaction = (input: {
 
 	const tx = new Transaction({
 		moduleID: 5,
-		assetID: 0,
+		commandID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('2500000000'),
-		asset: encodedAsset,
+		params: encodedAsset,
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
@@ -94,11 +94,11 @@ export const createDelegateVoteTransaction = (input: {
 
 	const tx = new Transaction({
 		moduleID: 5,
-		assetID: 1,
+		commandID: 1,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('100000000'),
-		asset: encodedAsset,
+		params: encodedAsset,
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(
@@ -123,7 +123,7 @@ export const createMultiSignRegisterTransaction = (input: {
 		numberOfSignatures: input.numberOfSignatures,
 	});
 	const { schema } = new MultisignatureRegisterAsset();
-	const asset = {
+	const params = {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
@@ -138,22 +138,22 @@ export const createMultiSignRegisterTransaction = (input: {
 				prev,
 				input.networkIdentifier,
 				current,
-				asset,
+				params,
 				true,
 			);
 		},
 		{
 			moduleID: 4,
-			assetID: 0,
+			commandID: 0,
 			nonce: input.nonce,
 			senderPublicKey: publicKey,
 			fee: input.fee ?? BigInt('1100000000'),
-			asset,
+			params,
 			signatures: [],
 		},
 	);
 
-	const tx = new Transaction({ ...transaction, asset: encodedAsset } as any);
+	const tx = new Transaction({ ...transaction, params: encodedAsset } as any);
 	return tx;
 };
 
@@ -169,12 +169,12 @@ export const createMultisignatureTransferTransaction = (input: {
 	passphrases: string[];
 }): Transaction => {
 	const { schema } = new TransferAsset(BigInt(5000000));
-	const asset = {
+	const params = {
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),
 		data: '',
 	};
-	const encodedAsset = codec.encode(schema, asset);
+	const encodedAsset = codec.encode(schema, params);
 	const transaction = input.passphrases.reduce<Record<string, unknown>>(
 		(prev, current) => {
 			return signMultiSignatureTransaction(schema, prev, input.networkIdentifier, current, {
@@ -184,16 +184,16 @@ export const createMultisignatureTransferTransaction = (input: {
 		},
 		{
 			moduleID: 2,
-			assetID: 0,
+			commandID: 0,
 			nonce: input.nonce,
 			senderPublicKey: input.senderPublicKey,
 			fee: input.fee ?? BigInt('1100000000'),
-			asset,
+			params,
 			signatures: [],
 		},
 	);
 
-	const tx = new Transaction({ ...transaction, asset: encodedAsset } as any);
+	const tx = new Transaction({ ...transaction, params: encodedAsset } as any);
 	return tx;
 };
 
@@ -213,11 +213,11 @@ export const createReportMisbehaviorTransaction = (input: {
 
 	const tx = new Transaction({
 		moduleID: 5,
-		assetID: 3,
+		commandID: 3,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('50000000'),
-		asset: encodedAsset,
+		params: encodedAsset,
 		signatures: [],
 	});
 	(tx.signatures as Buffer[]).push(

@@ -11,9 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { BFT } from '@liskhq/lisk-bft';
 import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
 import { BaseSynchronizer } from './base_synchronizer';
 import { clearBlocksTempTable, restoreBlocks, deleteBlocksAfterHeight } from './utils';
@@ -24,26 +21,17 @@ import { Network } from '../../network';
 
 interface FastChainSwitchingMechanismInput {
 	readonly logger: Logger;
-	readonly bft: BFT;
 	readonly chain: Chain;
 	readonly blockExecutor: BlockExecutor;
 	readonly network: Network;
 }
 
 export class FastChainSwitchingMechanism extends BaseSynchronizer {
-	private readonly bft: BFT;
 	private readonly blockExecutor: BlockExecutor;
 
-	public constructor({
-		logger,
-		chain,
-		bft,
-		blockExecutor,
-		network,
-	}: FastChainSwitchingMechanismInput) {
+	public constructor({ logger, chain, blockExecutor, network }: FastChainSwitchingMechanismInput) {
 		super(logger, chain, network);
 		this._chain = chain;
-		this.bft = bft;
 		this.blockExecutor = blockExecutor;
 	}
 
@@ -61,19 +49,16 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 		const { lastBlock } = this._chain;
 
+		const validators = await this.blockExecutor.getValidators();
 		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const twoRounds = this._chain.numberOfValidators * 2;
+		const twoRounds = validators.length * 2;
 		if (Math.abs(receivedBlock.header.height - lastBlock.header.height) > twoRounds) {
 			return false;
 		}
-
-		const generatorAddress = getAddressFromPublicKey(receivedBlock.header.generatorPublicKey);
-
-		const validators = await this._chain.getValidators();
-
 		return (
-			validators.find(v => v.address.equals(generatorAddress) && v.isConsensusParticipant) !==
-			undefined
+			validators.find(
+				v => v.address.equals(receivedBlock.header.generatorAddress) && v.bftWeight > BigInt(0),
+			) !== undefined
 		);
 	}
 
@@ -121,22 +106,22 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			throw new ApplyPenaltyAndAbortError(peerId, "Peer didn't return a common block");
 		}
 
-		if (highestCommonBlock.height < this.bft.finalizedHeight) {
+		if (highestCommonBlock.height < this.blockExecutor.getFinalizedHeight()) {
 			throw new ApplyPenaltyAndAbortError(
 				peerId,
-				`Common block height ${highestCommonBlock.height} is lower than the finalized height of the chain ${this.bft.finalizedHeight}`,
+				`Common block height ${
+					highestCommonBlock.height
+				} is lower than the finalized height of the chain ${this.blockExecutor.getFinalizedHeight()}`,
 			);
 		}
+		const validators = await this.blockExecutor.getValidators();
 
 		if (
-			this._chain.lastBlock.header.height - highestCommonBlock.height >
-				this._chain.numberOfValidators * 2 ||
-			receivedBlock.header.height - highestCommonBlock.height > this._chain.numberOfValidators * 2
+			this._chain.lastBlock.header.height - highestCommonBlock.height > validators.length * 2 ||
+			receivedBlock.header.height - highestCommonBlock.height > validators.length * 2
 		) {
 			throw new AbortError(
-				`Height difference between both chains is higher than ${
-					this._chain.numberOfValidators * 2
-				}`,
+				`Height difference between both chains is higher than ${validators.length * 2}`,
 			);
 		}
 
@@ -284,10 +269,8 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 	}
 
-	private _computeLastTwoRoundsHeights(): number[] {
-		return new Array(
-			Math.min(this._chain.numberOfValidators * 2, this._chain.lastBlock.header.height),
-		)
+	private _computeLastTwoRoundsHeights(numberOfValidators: number): number[] {
+		return new Array(Math.min(numberOfValidators * 2, this._chain.lastBlock.header.height))
 			.fill(0)
 			.map((_, index) => this._chain.lastBlock.header.height - index);
 	}
@@ -302,7 +285,8 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 
-		const heightList = this._computeLastTwoRoundsHeights();
+		const validators = await this.blockExecutor.getValidators();
+		const heightList = this._computeLastTwoRoundsHeights(validators.length);
 
 		while (numberOfRequests < requestLimit) {
 			const blockIds = (await this._chain.dataAccess.getBlockHeadersWithHeights(heightList)).map(

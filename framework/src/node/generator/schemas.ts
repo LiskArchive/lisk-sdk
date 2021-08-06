@@ -45,6 +45,11 @@ export interface UpdateForgingStatusResponse {
 	enabled: boolean;
 }
 
+export type GetForgingStatusResponse = {
+	address: string;
+	enabled: boolean;
+}[];
+
 export const updateForgingStatusRequestSchema = {
 	$id: 'lisk/updateForgingStatusRequest',
 	title: 'Update forging status',

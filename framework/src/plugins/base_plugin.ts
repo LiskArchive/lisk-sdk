@@ -11,10 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { RawBlock } from '@liskhq/lisk-chain';
-import { codec, Schema } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
 import * as assert from 'assert';
 import { join } from 'path';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
@@ -26,54 +22,7 @@ import { EventsDefinition } from '../controller/event';
 import { ImplementationMissingError } from '../errors';
 import { createLogger, Logger } from '../logger';
 import { systemDirs } from '../system_dirs';
-import {
-	PluginOptionsWithAppConfig,
-	RegisteredSchema,
-	SchemaWithDefault,
-	TransactionJSON,
-} from '../types';
-
-interface DefaultAccountJSON {
-	[name: string]: { [key: string]: unknown } | undefined;
-}
-
-type AccountJSON<T = DefaultAccountJSON> = T & { address: string };
-
-interface BaseTransactionJSON {
-	readonly moduleID: number;
-	readonly assetID: number;
-	readonly nonce: string;
-	readonly fee: string;
-	readonly senderPublicKey: string;
-	readonly signatures: Array<Readonly<string>>;
-	readonly asset: string;
-}
-
-interface BlockJSON {
-	readonly header: BlockHeaderJSON;
-	readonly payload: ReadonlyArray<TransactionJSON>;
-}
-
-interface BaseBlockHeaderJSON {
-	readonly id: string;
-	readonly version: number;
-	readonly timestamp: number;
-	readonly height: number;
-	readonly previousBlockID: string;
-	readonly transactionRoot: string;
-	readonly generatorPublicKey: string;
-	readonly reward: string;
-	readonly signature: string;
-	readonly asset: string;
-}
-
-export type BlockHeaderJSON = Omit<BaseBlockHeaderJSON, 'asset'> & { asset: BlockAssetJSON };
-
-interface BlockAssetJSON {
-	readonly seedReveal: string;
-	readonly maxHeightPreviouslyForged: number;
-	readonly maxHeightPrevoted: number;
-}
+import { PluginOptionsWithAppConfig, RegisteredSchema, SchemaWithDefault } from '../types';
 
 export interface PluginInfo {
 	readonly author: string;
@@ -90,118 +39,12 @@ export interface InstantiablePlugin<T extends BasePlugin = BasePlugin> {
 	new (args: ExtractPluginOptions<T>): T;
 }
 
-const decodeTransactionToJSON = (
-	transactionBuffer: Buffer,
-	baseSchema: Schema,
-	assetsSchemas: RegisteredSchema['transactionsAssets'],
-): TransactionJSON => {
-	const baseTransaction = codec.decodeJSON<BaseTransactionJSON>(baseSchema, transactionBuffer);
-
-	const transactionTypeAsset = assetsSchemas.find(
-		s => s.assetID === baseTransaction.assetID && s.moduleID === baseTransaction.moduleID,
-	);
-
-	if (!transactionTypeAsset) {
-		throw new Error('Transaction type not found.');
-	}
-
-	const transactionAsset = codec.decodeJSON<object>(
-		transactionTypeAsset.schema,
-		Buffer.from(baseTransaction.asset, 'hex'),
-	);
-
-	return {
-		...baseTransaction,
-		id: hash(transactionBuffer).toString('hex'),
-		asset: transactionAsset,
-	};
-};
-
-const encodeTransactionFromJSON = (
-	transaction: TransactionJSON,
-	baseSchema: Schema,
-	assetsSchemas: RegisteredSchema['transactionsAssets'],
-): string => {
-	const transactionTypeAsset = assetsSchemas.find(
-		s => s.assetID === transaction.assetID && s.moduleID === transaction.moduleID,
-	);
-
-	if (!transactionTypeAsset) {
-		throw new Error('Transaction type not found.');
-	}
-
-	const transactionAssetBuffer = codec.encode(
-		transactionTypeAsset.schema,
-		codec.fromJSON(transactionTypeAsset.schema, transaction.asset),
-	);
-
-	const transactionBuffer = codec.encode(
-		baseSchema,
-		codec.fromJSON(baseSchema, {
-			...transaction,
-			asset: transactionAssetBuffer,
-		}),
-	);
-
-	return transactionBuffer.toString('hex');
-};
-
-const decodeAccountToJSON = <T = DefaultAccountJSON>(
-	encodedAccount: Buffer,
-	accountSchema: Schema,
-): AccountJSON<T> => {
-	const decodedAccount = codec.decodeJSON<AccountJSON<T>>(accountSchema, encodedAccount);
-
-	return {
-		...decodedAccount,
-	};
-};
-
-const decodeRawBlock = (blockSchema: Schema, encodedBlock: Buffer): RawBlock =>
-	codec.decode<RawBlock>(blockSchema, encodedBlock);
-
-const decodeBlockToJSON = (registeredSchema: RegisteredSchema, encodedBlock: Buffer): BlockJSON => {
-	const { header, payload } = codec.decode<RawBlock>(registeredSchema.block, encodedBlock);
-
-	const baseHeaderJSON = codec.decodeJSON<BaseBlockHeaderJSON>(
-		registeredSchema.blockHeader,
-		header,
-	);
-	const blockAssetJSON = codec.decodeJSON<BlockAssetJSON>(
-		registeredSchema.blockHeadersAssets[baseHeaderJSON.version],
-		Buffer.from(baseHeaderJSON.asset, 'hex'),
-	);
-	const payloadJSON = payload.map(transactionBuffer =>
-		decodeTransactionToJSON(
-			transactionBuffer,
-			registeredSchema.transaction,
-			registeredSchema.transactionsAssets,
-		),
-	);
-
-	const blockId = hash(header);
-
-	return {
-		header: { ...baseHeaderJSON, asset: { ...blockAssetJSON }, id: blockId.toString('hex') },
-		payload: payloadJSON,
-	};
-};
-
-export interface PluginCodec {
-	decodeAccount: <T = DefaultAccountJSON>(data: Buffer | string) => AccountJSON<T>;
-	decodeBlock: (data: Buffer | string) => BlockJSON;
-	decodeRawBlock: (data: Buffer | string) => RawBlock;
-	decodeTransaction: (data: Buffer | string) => TransactionJSON;
-	encodeTransaction: (transaction: TransactionJSON) => string;
-}
-
 export abstract class BasePlugin<
 	T extends PluginOptionsWithAppConfig = PluginOptionsWithAppConfig
 > {
 	public readonly options: T;
 	public schemas!: RegisteredSchema;
 
-	public codec: PluginCodec;
 	protected _logger!: Logger;
 
 	public constructor(options: T) {
@@ -219,39 +62,6 @@ export abstract class BasePlugin<
 		} else {
 			this.options = objects.cloneDeep(options);
 		}
-
-		this.codec = {
-			decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
-				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-
-				return decodeAccountToJSON(accountBuffer, this.schemas.account);
-			},
-			decodeBlock: (data: Buffer | string): BlockJSON => {
-				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-
-				return decodeBlockToJSON(this.schemas, blockBuffer);
-			},
-			decodeRawBlock: (data: Buffer | string): RawBlock => {
-				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-
-				return decodeRawBlock(this.schemas.block, blockBuffer);
-			},
-			decodeTransaction: (data: Buffer | string): TransactionJSON => {
-				const transactionBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-
-				return decodeTransactionToJSON(
-					transactionBuffer,
-					this.schemas.transaction,
-					this.schemas.transactionsAssets,
-				);
-			},
-			encodeTransaction: (transaction: TransactionJSON): string =>
-				encodeTransactionFromJSON(
-					transaction,
-					this.schemas.transaction,
-					this.schemas.transactionsAssets,
-				),
-		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

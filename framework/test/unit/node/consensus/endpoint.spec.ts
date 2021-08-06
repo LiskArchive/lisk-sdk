@@ -22,11 +22,7 @@ import {
 } from '../../../../src/node/consensus/schema';
 import { Network } from '../../../../src/node/network';
 import { loggerMock } from '../../../../src/testing/mocks';
-import {
-	createValidDefaultBlock,
-	encodeValidBlock,
-	encodeValidBlockHeader,
-} from '../../../fixtures';
+import { createValidDefaultBlock } from '../../../fixtures';
 
 describe('p2p endpoint', () => {
 	const defaultPeerId = 'peer-id';
@@ -43,11 +39,11 @@ describe('p2p endpoint', () => {
 		chain = ({
 			dataAccess: {
 				decode: jest.fn(),
-				encode: jest.fn().mockReturnValue(encodeValidBlock(lastBlock)),
+				encode: jest.fn().mockReturnValue(lastBlock.getBytes()),
 				getBlockHeaderByID: jest.fn().mockResolvedValue({ height: 2 }),
 				getBlocksByHeightBetween: jest.fn().mockResolvedValue([lastBlock, nextBlock]),
 				getHighestCommonBlockHeader: jest.fn(),
-				encodeBlockHeader: jest.fn().mockReturnValue(encodeValidBlockHeader(lastBlock.header)),
+				encodeBlockHeader: jest.fn().mockReturnValue(lastBlock.header.getBytes()),
 			},
 			lastBlock,
 		} as unknown) as Chain;
@@ -82,7 +78,7 @@ describe('p2p endpoint', () => {
 
 		it('should return last block as bytes', () => {
 			const res = endpoint.handleRPCGetLastBlock(defaultPeerId);
-			expect(res).toEqual(encodeValidBlock(lastBlock));
+			expect(res).toEqual(lastBlock.getBytes());
 		});
 	});
 
@@ -188,18 +184,18 @@ describe('p2p endpoint', () => {
 		});
 
 		describe('when commonBlock has been found', () => {
-			const id = getRandomBytes(32);
-			const validBlock = {
-				ids: [id.toString('hex')],
-			};
+			let validBlock: Block;
 
-			beforeEach(() => {
-				(chain.dataAccess.getHighestCommonBlockHeader as jest.Mock).mockResolvedValue(validBlock);
+			beforeEach(async () => {
+				validBlock = await createValidDefaultBlock();
+				(chain.dataAccess.getHighestCommonBlockHeader as jest.Mock).mockResolvedValue(
+					validBlock.header,
+				);
 			});
 
 			it('should return the highest common block header', async () => {
 				// Arrange
-				const ids = [id];
+				const ids = [validBlock.header.id];
 				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 
 				// Act
@@ -207,7 +203,7 @@ describe('p2p endpoint', () => {
 
 				// Assert
 				expect(chain.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(ids);
-				expect(result).toEqual(encodeValidBlockHeader(lastBlock.header));
+				expect(result).toEqual(validBlock.header.getBytes());
 			});
 		});
 	});

@@ -2172,7 +2172,7 @@ Object {
     "force": true,
     "waitThreshold": 2,
   },
-  "generator": Object {
+  "generation": Object {
     "delegates": Array [],
     "force": false,
     "modules": Object {},

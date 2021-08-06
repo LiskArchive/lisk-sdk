@@ -20,22 +20,15 @@ import { Block } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import { homedir } from 'os';
 import { existsSync, rmdirSync } from 'fs-extra';
-
-import { ModuleClass } from './types';
-import {
-	defaultConfig,
-	defaultAccounts,
-	defaultFaucetAccount,
-	createDefaultAccount,
-} from './fixtures';
+import { defaultConfig } from './fixtures';
 import { createGenesisBlock } from './create_genesis_block';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
 import { InstantiablePlugin } from '../plugins/base_plugin';
-import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
+import { BaseModule } from '../modules';
 
 interface ApplicationEnvConfig {
-	modules: ModuleClass[];
+	modules: BaseModule[];
 	plugins?: InstantiablePlugin[];
 	config?: PartialApplicationConfig;
 	genesisBlockJSON?: Record<string, unknown>;
@@ -114,7 +107,7 @@ export class ApplicationEnv {
 		// As we can call this function with different configuration
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
-		const { genesisBlockJSON } = createGenesisBlock({ modules: appConfig.modules });
+		const { genesisBlockJSON } = createGenesisBlock({});
 		// In order for application to start forging, update force to true
 		const config = objects.mergeDeep({}, defaultConfig, appConfig.config ?? {});
 		const { label } = config;
@@ -144,34 +137,16 @@ export const createDefaultApplicationEnv = (
 		rmdirSync(dataPath, { recursive: true });
 	}
 
-	const defaultModules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
-	const modules = [...new Set([...(appEnvConfig.modules ?? []), ...defaultModules])];
+	const modules: BaseModule[] = [];
 
-	const faucetAccount = {
-		address: defaultFaucetAccount.address,
-		token: { balance: BigInt(defaultFaucetAccount.balance) },
-		sequence: { nonce: BigInt('0') },
-	};
-	const defaultDelegateAccounts = defaultAccounts().map((a, i) =>
-		createDefaultAccount(modules, {
-			address: a.address,
-			dpos: {
-				delegate: {
-					username: `delegate_${i}`,
-				},
-			},
-		}),
-	);
-	const accounts = [faucetAccount, ...defaultDelegateAccounts];
-	const { genesisBlockJSON } = createGenesisBlock({
-		modules,
-		accounts,
-	});
+	for (const mod of appEnvConfig.modules ?? []) {
+		modules.push(mod);
+	}
 
 	const appEnv = new ApplicationEnv({
 		...appEnvConfig,
 		modules,
-		genesisBlockJSON,
+		genesisBlockJSON: {},
 	});
 
 	return appEnv;
