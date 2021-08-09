@@ -32,11 +32,11 @@ describe('init_steps/lookup_peers_ips', () => {
 		});
 
 		it('should throw error when failed to resolve hostname', async () => {
-			await lookupPeersIPs([{ ip: 'https://lisk.io/', port: 4000 }], true);
+			await lookupPeersIPs([{ ip: 'https://lisk.com/', port: 4000 }], true);
 
 			expect(spyConsoleError).toHaveBeenCalledTimes(1);
 			return expect(spyConsoleError).toHaveBeenCalledWith(
-				'Failed to resolve peer domain name https://lisk.io/ to an IP address',
+				'Failed to resolve peer domain name https://lisk.com/ to an IP address',
 			);
 		});
 
