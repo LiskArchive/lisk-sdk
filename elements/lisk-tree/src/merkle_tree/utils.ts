@@ -373,3 +373,5 @@ export const getSortedLocationsAndQueryData = (
 
 	return { sortedLocations, sortedQueryData };
 };
+
+export const getNeighborIndex = (index: number) => index ^ 1;

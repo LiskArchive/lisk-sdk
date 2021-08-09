@@ -36,9 +36,6 @@ import {
 	NodeSide,
 	Proof,
 	Database,
-	NodeLocation,
-	NodeIndex,
-	NonNullableStruct,
 } from './types';
 import {
 	generateHash,
@@ -46,10 +43,11 @@ import {
 	isLeaf,
 	getPairLocation,
 	getRightSiblingInfo,
-	getParentLocation,
 	buildLeaf,
 	buildBranch,
 	getLocationFromIndex,
+	getLayerStructure,
+	getNeighborIndex,
 } from './utils';
 
 export class MerkleTree {
@@ -287,103 +285,67 @@ export class MerkleTree {
 			return [];
 		}
 
-		const treeHeight = Math.ceil(Math.log2(this._size)) + 1;
-
-		const sortedIndexes: NodeIndex[] = [];
-		for (const index of idxs) {
-			const serializedIndexBinaryString = index.toString(2);
-			const indexBinaryString = serializedIndexBinaryString.substring(
-				1,
-				serializedIndexBinaryString.length,
-			);
-			const location = {
-				nodeIndex: parseInt(indexBinaryString, 2),
-				layerIndex: treeHeight - indexBinaryString.length,
-			};
-
-			sortedIndexes.push(location);
+		const siblingHashes: Buffer[] = [];
+		const sortedIdxs: number[] = [...idxs];
+		const indexes: Map<number, number> = new Map<number, number>();
+	
+		sortedIdxs.sort((a, b) => {
+			const locationA = getLocationFromIndex(a, this._size);
+			const locationB = getLocationFromIndex(b, this._size);
+			if (locationA.layerIndex !== locationB.layerIndex) return locationA.layerIndex - locationB.layerIndex;
+			return locationA.nodeIndex - locationB.nodeIndex;
+		})
+	
+		for (const idx of sortedIdxs) {
+			indexes.set(idx, idx);
 		}
-		// Remove empty indexes
-		for (let i = 0; i < sortedIndexes.length; i += 1) {
-			const index = sortedIndexes[i];
-			if (index.layerIndex === undefined || index.nodeIndex === undefined) {
-				sortedIndexes[i] = sortedIndexes[sortedIndexes.length - 1];
-				sortedIndexes.pop();
-			}
-		}
-		// Indexes must be ordered from bottom-left to top-right
-		(sortedIndexes as NonNullableStruct<NodeIndex>[]).sort((a, b) => {
-			if (a.layerIndex !== b.layerIndex) return a.layerIndex - b.layerIndex;
-			return a.nodeIndex - b.nodeIndex;
-		});
+	
+		while(indexes.size > 0) {
+			const currentIndex = [...indexes][0][0];
+			const { layerIndex: currentLayerIndex } = getLocationFromIndex(currentIndex, this._size);
+			
+			// Might be an unpaired node's index that moved upwards in the tree 
+			const neighborIndex = getNeighborIndex(currentIndex);
+			const { nodeIndex: neighborNodeIndex } = getLocationFromIndex(neighborIndex, this._size);
+			const parentIndex = currentIndex >> 1;
+	
+			const layerStructure = getLayerStructure(this._size);
+			const nodeCountAtCurrentLayer = layerStructure[currentLayerIndex];
 
-		const indexes: Record<string, NodeLocation> = {};
-		for (const index of sortedIndexes as NonNullableStruct<NodeIndex>[]) {
-			const binaryIndex = getBinaryString(
-				index.nodeIndex,
-				this._getHeight() - index.layerIndex,
-			).toString();
-			indexes[binaryIndex] = index;
-		}
-
-		const siblingHashes = [];
-		let currentNode: NodeInfo | undefined;
-		let currentNodeHash: Buffer;
-
-		while (Object.keys(indexes)[0] !== undefined) {
-			const currentLocation = indexes[Object.keys(indexes)[0]];
-			const { nodeIndex: currentNodeIndex, layerIndex: currentLayerIndex } = currentLocation;
-			const binaryIndex = getBinaryString(
-				currentNodeIndex,
-				this._getHeight() - currentLayerIndex,
-			).toString();
-
-			try {
-				currentNodeHash = (await this._locationToHashMap.get(
-					getBinaryString(currentNodeIndex, this._getHeight() - currentLayerIndex),
-				)) as Buffer;
-				currentNode = await this.getNode(currentNodeHash);
-			} catch (err) {
-				delete indexes[binaryIndex];
-				continue;
-			}
-
-			const { layerIndex: pairLayerIndex, nodeIndex: pairNodeIndex } = getPairLocation({
-				layerIndex: currentNode.layerIndex,
-				nodeIndex: currentNode.nodeIndex,
-				size: this._size,
-			});
-			const pairNodeLocation: NodeLocation = {
-				layerIndex: pairLayerIndex,
-				nodeIndex: pairNodeIndex,
-			};
-
-			const pairBinaryIndex = getBinaryString(
-				pairNodeIndex,
-				this._getHeight() - pairLayerIndex,
-			).toString();
-
-			const pairNodeHash = (await this._locationToHashMap.get(
-				getBinaryString(pairNodeIndex, this._getHeight() - pairLayerIndex),
-			)) as Buffer;
-
-			if (indexes[pairBinaryIndex]) {
-				delete indexes[pairBinaryIndex];
+			let didNodeDelegate = false;
+			let addressedNodeHash: Buffer = Buffer.alloc(0);
+			// Unpaired nodes delegated upward iteration by iteration reside
+			// in an overflowed index until they become a neigbor to a node
+			if (neighborNodeIndex ===  nodeCountAtCurrentLayer) {
+				let layerCounter = currentLayerIndex;
+				while(layerCounter) {
+					layerCounter -= 1;
+					if (layerStructure[layerCounter] % 2 !== 0) {
+						didNodeDelegate = true;
+						addressedNodeHash = (await this._locationToHashMap.get(
+							getBinaryString(layerStructure[layerCounter] - 1, this._getHeight() - layerCounter),
+						)) as Buffer;
+						break;
+					}
+				}
 			} else {
-				siblingHashes.push(pairNodeHash);
+				addressedNodeHash = (await this._locationToHashMap.get(
+					getBinaryString(neighborNodeIndex, this._getHeight() - currentLayerIndex),
+				)) as Buffer;
+			}
+	
+			if (neighborNodeIndex !== nodeCountAtCurrentLayer || didNodeDelegate) {
+				if (indexes.has(neighborIndex)) {
+					indexes.delete(neighborIndex);
+				} else {
+					siblingHashes.push(addressedNodeHash);
+				}
 			}
 
-			delete indexes[binaryIndex];
-
-			const parentIndex: NodeLocation = getParentLocation(currentLocation, pairNodeLocation);
-			const { layerIndex: parentLayerIndex, nodeIndex: parentNodeIndex } = parentIndex;
-			const parentBinaryIndex = getBinaryString(
-				parentNodeIndex,
-				this._getHeight() - parentLayerIndex,
-			).toString();
-
-			if (parentBinaryIndex !== '0') {
-				indexes[parentBinaryIndex] = parentIndex;
+			indexes.delete(currentIndex);
+	
+			if(parentIndex !== 2) {
+				indexes.set(parentIndex, parentIndex);
 			}
 		}
 
