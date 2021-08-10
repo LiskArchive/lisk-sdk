@@ -2220,10 +2220,14 @@ Object {
   "plugins": Object {},
   "rootPath": "~/.lisk",
   "rpc": Object {
-    "enable": false,
-    "host": "127.0.0.1",
-    "mode": "ipc",
-    "port": 8080,
+    "modes": Array [
+      "ipc",
+    ],
+    "ws": Object {
+      "host": "127.0.0.1",
+      "path": "/ws",
+      "port": 8080,
+    },
   },
   "transactionPool": Object {
     "maxTransactions": 4096,

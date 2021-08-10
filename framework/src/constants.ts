@@ -39,3 +39,7 @@ export const APP_EVENT_BLOCK_DELETE = 'app:block:delete';
 export const EVENT_POST_BLOCK = 'postBlock';
 export const EVENT_POST_TRANSACTION_ANNOUNCEMENT = 'postTransactionsAnnouncement';
 export const EVENT_POST_NODE_INFO = 'postNodeInfo';
+export const RPC_MODES = {
+	IPC: 'ipc',
+	WS: 'ws',
+};

@@ -74,13 +74,16 @@ describe('Controller Class', () => {
 		once: jest.fn(),
 		publish: jest.fn(),
 	};
+	const rpcConfig = {
+		modes: ['ipc'],
+		ws: { port: 8080, path: '/ws', host: '127.0.0.1' },
+		ipc: {
+			path: '/my/ipc/path',
+		},
+	};
 	const config = {
 		rootPath: '/user/.lisk',
-		rpc: {
-			enable: false,
-			mode: 'ipc',
-			port: 8080,
-		},
+		rpc: rpcConfig,
 	};
 	const childProcessMock = {
 		send: jest.fn(),
@@ -99,17 +102,7 @@ describe('Controller Class', () => {
 	const configController = {
 		dataPath: '/user/.lisk/#LABEL',
 		dirs: systemDirs,
-		socketsPath: {
-			root: `unix://${systemDirs.sockets}`,
-			pub: `unix://${systemDirs.sockets}/lisk_pub.sock`,
-			sub: `unix://${systemDirs.sockets}/lisk_sub.sock`,
-			rpc: `unix://${systemDirs.sockets}/lisk_rpc.sock`,
-		},
-		rpc: {
-			enable: false,
-			mode: 'ipc',
-			port: 8080,
-		},
+		rpc: rpcConfig,
 	};
 
 	const params = {
@@ -156,7 +149,7 @@ describe('Controller Class', () => {
 		describe('_setupBus', () => {
 			it('should set created `Bus` instance to `controller.bus` property.', () => {
 				// Assert
-				expect(Bus).toHaveBeenCalledWith(loggerMock, configController);
+				expect(Bus).toHaveBeenCalledWith(loggerMock, { rpc: rpcConfig });
 				expect(controller.bus).toBeInstanceOf(Bus);
 			});
 
@@ -344,7 +337,7 @@ describe('Controller Class', () => {
 					.mockReturnValue('plugin2');
 
 				controller = new Controller(updatedParams);
-				controller.config.rpc = { enable: true, mode: 'ipc', port: 8080 };
+				controller.config.rpc = { modes: ['ipc'] } as never;
 				await controller.load();
 
 				// To avoid waiting for events
@@ -519,7 +512,9 @@ describe('Controller Class', () => {
 				jest.spyOn(Promise, 'race').mockResolvedValue(true);
 
 				controller = new Controller(updatedParams);
-				controller.config.rpc = { enable: true, mode: 'ipc', port: 8080 };
+				controller.config.rpc = {
+					modes: ['ipc'],
+				} as never;
 
 				await controller.load();
 				await controller.loadPlugins(plugins, pluginOptions);
