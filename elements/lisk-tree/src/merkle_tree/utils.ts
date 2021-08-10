@@ -252,6 +252,11 @@ export const generateNode = (nodeHash: Buffer, val: Buffer) => {
 	};
 };
 
+export const isLeft = (index: number): boolean => (index & 1) === 0;
+export const isSameLayer = (index1: number, index2: number) =>
+	index1.toString(2).length === index2.toString(2).length;
+export const areSiblings = (index1: number, index2: number) => (index1 ^ index2) === 1;
+
 export const buildLeaf = (value: Buffer, nodeIndex: number, preHashedLeaf?: boolean) => {
 	const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
 	nodeIndexBuffer.writeInt32BE(nodeIndex, 0);
@@ -271,6 +276,32 @@ export const buildLeaf = (value: Buffer, nodeIndex: number, preHashedLeaf?: bool
 		leafValueWithNodeIndex,
 		leafHash,
 	};
+};
+
+export const getLocation = (nodeIndex: number, height: number): NodeLocation => {
+	const serializedIndexBinaryString = nodeIndex.toString(2);
+	const indexBinaryString = serializedIndexBinaryString.substring(
+		1,
+		serializedIndexBinaryString.length,
+	);
+	const location = {
+		nodeIndex: parseInt(indexBinaryString, 2),
+		layerIndex: height - indexBinaryString.length,
+	};
+
+	return location;
+};
+
+export const toIndex = (nodeIndex: number, layerIndex: number, height: number): number => {
+	const length = height - layerIndex;
+	if (length <= 0) {
+		throw new Error(`Invalid height ${height} or layer inder ${layerIndex}`);
+	}
+	let binaryString = nodeIndex.toString(2);
+	while (binaryString.length < length) {
+		binaryString = `0${binaryString}`;
+	}
+	return parseInt(`1${binaryString}`, 2);
 };
 
 export const buildBranch = (
