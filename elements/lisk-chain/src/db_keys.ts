@@ -22,7 +22,7 @@ export const DB_KEY_TEMPBLOCKS_HEIGHT = Buffer.from([7]);
 export const DB_KEY_STATE_STORE = Buffer.from([10]);
 
 // 26-50 for consensus state
-export const DB_KEY_CONSENSUS_STATE_FINALIZED_HEIGHT = Buffer.from([27]);
+export const DB_KEY_FINALIZED_HEIGHT = Buffer.from([27]);
 
 // 51-75 for diff state
 export const DB_KEY_DIFF_STATE = Buffer.from([51]);

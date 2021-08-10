@@ -57,6 +57,7 @@ export class Chain {
 	};
 
 	private _lastBlock?: Block;
+	private _finalizedHeight?: number;
 	private _networkIdentifier!: Buffer;
 
 	public constructor({
@@ -85,6 +86,13 @@ export class Chain {
 		return this._lastBlock;
 	}
 
+	public get finalizedHeight(): number {
+		if (!this._finalizedHeight) {
+			throw new Error('Chain has not been initialized');
+		}
+		return this._finalizedHeight;
+	}
+
 	public get networkIdentifier(): Buffer {
 		return this._networkIdentifier;
 	}
@@ -110,6 +118,7 @@ export class Chain {
 			await this._cacheBlockHeaders(storageLastBlock);
 		}
 		this._lastBlock = storageLastBlock;
+		this._finalizedHeight = await this.dataAccess.getFinalizedHeight();
 	}
 
 	public resetBlockHeaderCache(): void {
@@ -183,6 +192,7 @@ export class Chain {
 		}
 		await this.dataAccess.saveBlock(block, stateStore, finalizedHeight, removeFromTempTable);
 		this.dataAccess.addBlockHeader(block.header);
+		this._finalizedHeight = finalizedHeight;
 		this._lastBlock = block;
 	}
 

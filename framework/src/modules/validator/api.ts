@@ -13,19 +13,19 @@
  */
 
 import { BaseAPI } from '../base_api';
-import { APIContext } from '../../node/state_machine';
+import { ImmutableAPIContext } from '../../node/state_machine';
 
 export class ValidatorAPI extends BaseAPI {
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getGenerator(_apiContext: APIContext, _timestamp: number): Promise<Buffer> {
+	public async getGenerator(_apiContext: ImmutableAPIContext, _timestamp: number): Promise<Buffer> {
 		return Buffer.alloc(0);
 	}
 
-	public getSlotNumber(_apiContext: APIContext, _timestamp: number): number {
+	public getSlotNumber(_apiContext: ImmutableAPIContext, _timestamp: number): number {
 		return 0;
 	}
 
-	public getSlotTime(_apiContext: APIContext, _slot: number): number {
+	public getSlotTime(_apiContext: ImmutableAPIContext, _slot: number): number {
 		return 0;
 	}
 }

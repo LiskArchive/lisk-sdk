@@ -194,7 +194,7 @@ export class Consensus {
 	}
 
 	public finalizedHeight(): number {
-		return 0;
+		return this._chain.finalizedHeight;
 	}
 
 	public async onBlockReceive(data: unknown, peerId: string): Promise<void> {
@@ -428,6 +428,7 @@ export class Consensus {
 	): Promise<Block> {
 		const stateStore = new StateStore(this._db);
 		const eventQueue = new EventQueue();
+		const apiContext = new APIContext({ stateStore, eventQueue });
 		const ctx = new BlockContext({
 			stateStore: (stateStore as unknown) as StateStore,
 			eventQueue,
@@ -446,7 +447,14 @@ export class Consensus {
 		}
 		await this._stateMachine.executeBlock(ctx);
 
-		await this._chain.saveBlock(block, stateStore, this.finalizedHeight(), {
+		const bftVotes = await this._liskBFTAPI.getBFTVotes(apiContext);
+
+		let { finalizedHeight } = this._chain;
+		if (bftVotes.maxHeightPrecommited > finalizedHeight) {
+			finalizedHeight = bftVotes.maxHeightPrecommited;
+		}
+
+		await this._chain.saveBlock(block, stateStore, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
 
@@ -468,7 +476,7 @@ export class Consensus {
 	}
 
 	private async _deleteBlock(block: Block, saveTempBlock = false): Promise<void> {
-		if (block.header.height <= this.finalizedHeight()) {
+		if (block.header.height <= this._chain.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
 

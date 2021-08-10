@@ -24,6 +24,7 @@ import {
 	DB_KEY_TRANSACTIONS_ID,
 	DB_KEY_TEMPBLOCKS_HEIGHT,
 	DB_KEY_DIFF_STATE,
+	DB_KEY_FINALIZED_HEIGHT,
 } from '../db_keys';
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
@@ -288,6 +289,11 @@ export class Storage {
 		return this._db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, transactionId));
 	}
 
+	public async getFinalizedHeight(): Promise<number> {
+		const finalizedHeightBytes = await this._db.get(DB_KEY_FINALIZED_HEIGHT);
+		return finalizedHeightBytes.readUInt32BE(0);
+	}
+
 	/*
 		Save Block
 	*/
@@ -318,6 +324,9 @@ export class Storage {
 		const diff = stateStore.finalize(batch);
 		const encodedDiff = codec.encode(stateDiffSchema, diff);
 		batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)), encodedDiff);
+		const finalizedHeightBytes = Buffer.alloc(4);
+		finalizedHeightBytes.writeUInt32BE(finalizedHeight, 0);
+		batch.put(DB_KEY_FINALIZED_HEIGHT, finalizedHeightBytes);
 
 		await batch.write();
 		await this._cleanUntil(finalizedHeight);

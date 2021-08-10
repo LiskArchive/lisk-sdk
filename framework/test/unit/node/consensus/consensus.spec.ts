@@ -56,9 +56,7 @@ describe('consensus', () => {
 			applyGenesisBlock: jest.fn(),
 			saveBlock: jest.fn(),
 			init: jest.fn(),
-			dataAccess: {
-				decode: jest.fn(),
-			},
+			finalizedHeight: 0,
 			loadLastBlocks: jest.fn(),
 			lastBlock,
 			verifyBlock: jest.fn(),
@@ -77,7 +75,9 @@ describe('consensus', () => {
 			verifyBlock: jest.fn(),
 			executeBlock: jest.fn(),
 		} as unknown) as StateMachine;
-		liskBFTAPI = {} as never;
+		liskBFTAPI = {
+			getBFTVotes: jest.fn().mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommited: 0 }),
+		} as never;
 		validatorAPI = {} as never;
 		consensus = new Consensus({
 			chain,

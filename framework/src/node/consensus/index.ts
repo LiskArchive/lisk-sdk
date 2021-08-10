@@ -20,4 +20,4 @@ export {
 	EVENT_BLOCK_DELETE,
 	EVENT_BLOCK_NEW,
 } from './constants';
-export { BFTHeader, LiskBFTAPI, ValidatorAPI } from './types';
+export { BFTHeader, LiskBFTAPI, ValidatorAPI, BFTVotes } from './types';

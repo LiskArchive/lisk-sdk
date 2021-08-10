@@ -27,6 +27,7 @@ import {
 	DB_KEY_BLOCKS_HEIGHT,
 	DB_KEY_BLOCKS_ID,
 	DB_KEY_DIFF_STATE,
+	DB_KEY_FINALIZED_HEIGHT,
 	DB_KEY_TEMPBLOCKS_HEIGHT,
 } from '../../src/db_keys';
 import { Block } from '../../src/block';
@@ -111,6 +112,9 @@ describe('chain', () => {
 				concatDBKeys(DB_KEY_BLOCKS_ID, lastBlock.header.id),
 				lastBlock.header.getBytes(),
 			);
+			const finalizedHeight = Buffer.alloc(4);
+			finalizedHeight.writeUInt32BE(genesisBlock.header.height, 0)
+			await db.put(DB_KEY_FINALIZED_HEIGHT, finalizedHeight);
 		});
 
 		it('should throw an error when Block.get throws error', async () => {

@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BlockHeader } from '@liskhq/lisk-chain';
 import { GeneratorStore } from '../generator';
-import { APIContext, BlockHeader } from '../state_machine';
+import { APIContext, ImmutableAPIContext } from '../state_machine';
 
 export interface BFTHeader {
 	id: Buffer;
@@ -31,10 +32,15 @@ export interface Validator {
 	bftWeight: bigint;
 }
 
+export interface BFTVotes {
+	maxHeightPrevoted: number;
+	maxHeightPrecommited: number;
+}
+
 export interface ValidatorAPI {
-	getGenerator: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
-	getSlotNumber: (apiContext: APIContext, timestamp: number) => number;
-	getSlotTime: (apiContext: APIContext, slot: number) => number;
+	getGenerator: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<Buffer>;
+	getSlotNumber: (apiContext: ImmutableAPIContext, timestamp: number) => number;
+	getSlotTime: (apiContext: ImmutableAPIContext, slot: number) => number;
 }
 
 export interface LiskBFTAPI {
@@ -49,6 +55,7 @@ export interface LiskBFTAPI {
 			override?: boolean;
 		},
 	) => Promise<void>;
-	getValidators: (_apiContext: APIContext) => Promise<Validator[]>;
-	getBFTHeader(header: BlockHeader): BFTHeader;
+	getValidators: (_apiContext: ImmutableAPIContext) => Promise<Validator[]>;
+	getBFTHeader: (header: BlockHeader) => BFTHeader;
+	getBFTVotes: (apiClient: ImmutableAPIContext) => Promise<BFTVotes>;
 }

@@ -257,6 +257,10 @@ export class DataAccess {
 	}
 	/** End: Transactions */
 
+	public async getFinalizedHeight(): Promise<number> {
+		return this._storage.getFinalizedHeight();
+	}
+
 	/*
 		Save Block
 	*/

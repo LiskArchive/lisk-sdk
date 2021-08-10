@@ -61,6 +61,7 @@ describe('Synchronizer', () => {
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
+			getFinalizedHeight: jest.fn(),
 			getTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
 			getBlockByID: jest.fn(),

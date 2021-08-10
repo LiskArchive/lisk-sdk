@@ -23,6 +23,7 @@ export {
 	StateStore,
 	VerifyStatus,
 	ImmutableSubStore,
+	ImmutableAPIContext,
 	BlockExecuteContext,
 	BlockAfterExecuteContext,
 	BlockVerifyContext,

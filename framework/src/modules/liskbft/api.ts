@@ -16,8 +16,8 @@ import { codec } from '@liskhq/lisk-codec';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { BaseAPI } from '../base_api';
 import { GeneratorStore } from '../../node/generator';
-import { APIContext } from '../../node/state_machine';
-import { BFTHeader } from '../../node/consensus';
+import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
+import { BFTHeader, BFTVotes } from '../../node/consensus';
 import { liskBFTAssetSchema, liskBFTModuleID } from './constants';
 
 interface Validator {
@@ -45,7 +45,7 @@ export class LiskBFTAPI extends BaseAPI {
 	): Promise<void> {}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getValidators(_apiContext: APIContext): Promise<Validator[]> {
+	public async getValidators(_apiContext: ImmutableAPIContext): Promise<Validator[]> {
 		return [];
 	}
 
@@ -61,6 +61,14 @@ export class LiskBFTAPI extends BaseAPI {
 			timestamp: header.timestamp,
 			previousBlockID: header.previousBlockID,
 			...decodedAsset,
+		};
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getBFTVotes(_apiClient: ImmutableAPIContext): Promise<BFTVotes> {
+		return {
+			maxHeightPrecommited: 0,
+			maxHeightPrevoted: 0,
 		};
 	}
 }
