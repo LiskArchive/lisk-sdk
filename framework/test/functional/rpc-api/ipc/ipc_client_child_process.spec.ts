@@ -28,7 +28,7 @@ describe.skip('plugin in child process', () => {
 		app = await createApplicationWithHelloPlugin({
 			label,
 			pluginChildProcess: true,
-			rpcConfig: { enable: false, mode: 'ipc', port: 8080 },
+			rpcConfig: { modes: ['ipc'] },
 		});
 		client = await createIPCClient(`${app.config.rootPath}/${label}/`);
 		client.subscribe('hello:greet', (message: any) => {

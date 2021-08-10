@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { homedir } from 'os';
+import { resolve as pathResolve } from 'path';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 
@@ -21,11 +23,14 @@ describe('InMemoryChannel', () => {
 		debug: jest.fn(),
 	};
 
+	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_channel/sockets`);
+
 	const config: any = {
 		rpc: {
-			enable: false,
-			mode: 'ipc',
-			port: 8080,
+			modes: ['ipc'],
+			ipc: {
+				path: socketsDir,
+			},
 		},
 	};
 

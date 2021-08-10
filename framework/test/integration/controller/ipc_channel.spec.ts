@@ -31,9 +31,10 @@ describe('IPCChannel', () => {
 			root: socketsDir,
 		},
 		rpc: {
-			enable: true,
-			mode: 'ipc',
-			port: 8080,
+			modes: ['ipc'],
+			ipc: {
+				path: socketsDir,
+			},
 		},
 	};
 
