@@ -2210,8 +2210,6 @@
 	},
 	"plugins": {},
 	"rpc": {
-		"enable": false,
-		"mode": "ipc",
-		"port": 8080
+		"modes": ["ipc"]
 	}
 }
