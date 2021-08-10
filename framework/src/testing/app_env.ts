@@ -33,6 +33,7 @@ import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
 import { InstantiablePlugin } from '../plugins/base_plugin';
 import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
+import { RPC_MODES } from '../constants';
 
 interface ApplicationEnvConfig {
 	modules: ModuleClass[];
@@ -80,7 +81,7 @@ export class ApplicationEnv {
 			new Promise(resolve => setTimeout(resolve, 3000)),
 		]);
 		// Only start client when ipc is enabled
-		if (this._application.config.rpc.enable && this._application.config.rpc.mode === 'ipc') {
+		if (this._application.config.rpc.modes.includes(RPC_MODES.IPC)) {
 			this._ipcClient = await createIPCClient(this._dataPath);
 		}
 	}
@@ -94,7 +95,7 @@ export class ApplicationEnv {
 			// eslint-disable-next-line dot-notation
 			await this._application['_nodeDB'].clear();
 		}
-		if (this._application.config.rpc.enable && this._application.config.rpc.mode === 'ipc') {
+		if (this._application.config.rpc.modes.includes(RPC_MODES.IPC)) {
 			await this._ipcClient.disconnect();
 		}
 		await this._application.shutdown();
