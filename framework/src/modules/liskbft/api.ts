@@ -12,13 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseAPI } from '../../../../modules/base_api';
-import { GeneratorStore } from '../../../generator';
-import { APIContext } from '../../../state_machine';
+import { codec } from '@liskhq/lisk-codec';
+import { BlockHeader } from '@liskhq/lisk-chain';
+import { BaseAPI } from '../base_api';
+import { GeneratorStore } from '../../node/generator';
+import { APIContext } from '../../node/state_machine';
+import { BFTHeader } from '../../node/consensus';
+import { liskBFTAssetSchema, liskBFTModuleID } from './constants';
 
 interface Validator {
 	address: Buffer;
 	bftWeight: bigint;
+}
+
+export interface BlockHeaderAsset {
+	maxHeightPrevoted: number;
+	maxHeightPreviouslyForged: number;
 }
 
 export class LiskBFTAPI extends BaseAPI {
@@ -38,5 +47,20 @@ export class LiskBFTAPI extends BaseAPI {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getValidators(_apiContext: APIContext): Promise<Validator[]> {
 		return [];
+	}
+
+	public getBFTHeader(header: BlockHeader): BFTHeader {
+		const asset = header.getAsset(liskBFTModuleID);
+		const decodedAsset = asset
+			? codec.decode<BlockHeaderAsset>(liskBFTAssetSchema, asset)
+			: { maxHeightPrevoted: 0, maxHeightPreviouslyForged: 0 };
+		return {
+			generatorAddress: header.generatorAddress,
+			height: header.height,
+			id: header?.id,
+			timestamp: header.timestamp,
+			previousBlockID: header.previousBlockID,
+			...decodedAsset,
+		};
 	}
 }

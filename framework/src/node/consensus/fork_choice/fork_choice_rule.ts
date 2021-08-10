@@ -13,8 +13,7 @@
  */
 
 import { BlockHeader, Slots } from '@liskhq/lisk-chain';
-import { getBFTHeader } from '../modules/liskbft';
-import { BFTHeader } from '../type';
+import { BFTHeader, LiskBFTAPI } from '../types';
 
 export enum ForkStatus {
 	IDENTICAL_BLOCK = 1,
@@ -97,13 +96,14 @@ export const forkChoice = (
 	blockHeader: BlockHeader,
 	lastBlockHeader: BlockHeader,
 	slots: Slots,
+	liskBFTAPI: LiskBFTAPI,
 ): ForkStatus => {
 	// Current time since Lisk Epoch
 	const receivedBFTHeader = {
-		...getBFTHeader(blockHeader),
+		...liskBFTAPI.getBFTHeader(blockHeader),
 		receivedAt: slots.timeSinceGenesis(),
 	};
-	const lastBFTHeader = getBFTHeader(lastBlockHeader);
+	const lastBFTHeader = liskBFTAPI.getBFTHeader(lastBlockHeader);
 
 	/* Cases are numbered following LIP-0014 Fork choice rule.
 	 See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule

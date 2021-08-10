@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseAPI } from '../../../../modules/base_api';
-import { APIContext } from '../../../state_machine';
+import { BaseAPI } from '../base_api';
+import { APIContext } from '../../node/state_machine';
 
 export class ValidatorAPI extends BaseAPI {
 	// eslint-disable-next-line @typescript-eslint/require-await

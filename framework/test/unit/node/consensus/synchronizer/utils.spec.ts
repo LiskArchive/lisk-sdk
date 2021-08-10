@@ -14,10 +14,8 @@
 
 import { Block } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	liskBFTAssetSchema,
-	liskBFTModuleID,
-} from '../../../../../src/node/consensus/modules/liskbft/module';
+import { LiskBFTAPI } from '../../../../../src/modules/liskbft/api';
+import { liskBFTAssetSchema, liskBFTModuleID } from '../../../../../src/modules/liskbft/constants';
 import {
 	restoreBlocks,
 	restoreBlocksUponStartup,
@@ -167,7 +165,12 @@ describe('#synchronizer/utils', () => {
 			});
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
+			await restoreBlocksUponStartup(
+				loggerMock,
+				chainMock,
+				blockExecutor,
+				new LiskBFTAPI(liskBFTModuleID),
+			);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -210,7 +213,12 @@ describe('#synchronizer/utils', () => {
 			chainMock.lastBlock.header._id = Buffer.from('height-10');
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
+			await restoreBlocksUponStartup(
+				loggerMock,
+				chainMock,
+				blockExecutor,
+				new LiskBFTAPI(liskBFTModuleID),
+			);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -236,7 +244,12 @@ describe('#synchronizer/utils', () => {
 			});
 
 			// Act
-			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
+			await restoreBlocksUponStartup(
+				loggerMock,
+				chainMock,
+				blockExecutor,
+				new LiskBFTAPI(liskBFTModuleID),
+			);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();

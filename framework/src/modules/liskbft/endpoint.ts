@@ -12,12 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { Consensus } from './consensus';
-export {
-	EVENT_BLOCK_BROADCAST,
-	EVENT_FORK_DETECTED,
-	NETWORK_EVENT_POST_BLOCK,
-	EVENT_BLOCK_DELETE,
-	EVENT_BLOCK_NEW,
-} from './constants';
-export { BFTHeader, LiskBFTAPI, ValidatorAPI } from './types';
+import { BaseEndpoint } from '../base_endpoint';
+
+export class LiskBFTEndpoint extends BaseEndpoint {}

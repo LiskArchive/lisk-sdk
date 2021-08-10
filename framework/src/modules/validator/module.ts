@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from '../../../../modules';
+import { BaseModule } from '..';
 import { ValidatorAPI } from './api';
 import { ValidatorEndpoint } from './endpoint';
 

@@ -15,7 +15,7 @@ import { Chain } from '@liskhq/lisk-chain';
 import { BlockExecutor } from './type';
 import { Logger } from '../../../logger';
 import { isDifferentChain, isValidBlock } from '../fork_choice/fork_choice_rule';
-import { getBFTHeader } from '../modules/liskbft';
+import { LiskBFTAPI } from '../types';
 
 export const restoreBlocks = async (
 	chainModule: Chain,
@@ -77,14 +77,15 @@ export const restoreBlocksUponStartup = async (
 	logger: Logger,
 	chainModule: Chain,
 	blockExecutor: BlockExecutor,
+	liskBFTAPI: LiskBFTAPI,
 ): Promise<void> => {
 	// Get all blocks and find lowest height (next one to be applied), as it should return in height desc
 	const tempBlocks = await chainModule.dataAccess.getTempBlocks();
 	const blockLowestHeight = tempBlocks[tempBlocks.length - 1];
 	const blockHighestHeight = tempBlocks[0];
 
-	const lastBFTHeader = getBFTHeader(chainModule.lastBlock.header);
-	const highestBFTHeader = getBFTHeader(blockHighestHeight.header);
+	const lastBFTHeader = liskBFTAPI.getBFTHeader(chainModule.lastBlock.header);
+	const highestBFTHeader = liskBFTAPI.getBFTHeader(blockHighestHeight.header);
 
 	const blockHasPriority =
 		isDifferentChain(lastBFTHeader, highestBFTHeader) ||

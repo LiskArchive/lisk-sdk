@@ -38,7 +38,8 @@ import {
 import {
 	liskBFTAssetSchema,
 	liskBFTModuleID,
-} from '../../../../../../src/node/consensus/modules/liskbft/module';
+} from '../../../../../../src/modules/liskbft/constants';
+import { LiskBFTAPI } from '../../../../../../src/modules/liskbft/api';
 
 describe('block_synchronization_mechanism', () => {
 	const genesisBlock = getGenesisBlock();
@@ -129,6 +130,7 @@ describe('block_synchronization_mechanism', () => {
 			logger: loggerMock,
 			chain: chainModule,
 			blockExecutor,
+			liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 			network: networkMock,
 		});
 	});

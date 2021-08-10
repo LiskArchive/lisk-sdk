@@ -19,10 +19,12 @@ import { BaseSynchronizer } from './base_synchronizer';
 import { Logger } from '../../../logger';
 import { BlockExecutor } from './type';
 import * as utils from './utils';
+import { LiskBFTAPI } from '../types';
 
 interface SynchronizerInput {
 	readonly logger: Logger;
 	readonly chainModule: Chain;
+	readonly liskBFTAPI: LiskBFTAPI;
 	readonly blockExecutor: BlockExecutor;
 	readonly mechanisms: BaseSynchronizer[];
 }
@@ -30,16 +32,24 @@ interface SynchronizerInput {
 export class Synchronizer {
 	protected logger: Logger;
 	private readonly chainModule: Chain;
+	private readonly _liskBFTAPI: LiskBFTAPI;
 	private readonly _mutex: jobHandlers.Mutex;
 	private readonly blockExecutor: BlockExecutor;
 	private readonly mechanisms: BaseSynchronizer[];
 
-	public constructor({ logger, chainModule, blockExecutor, mechanisms = [] }: SynchronizerInput) {
+	public constructor({
+		logger,
+		chainModule,
+		blockExecutor,
+		liskBFTAPI,
+		mechanisms = [],
+	}: SynchronizerInput) {
 		assert(Array.isArray(mechanisms), 'mechanisms should be an array of mechanisms');
 		this.mechanisms = mechanisms;
 		this.logger = logger;
 		this.chainModule = chainModule;
 		this.blockExecutor = blockExecutor;
+		this._liskBFTAPI = liskBFTAPI;
 
 		this._checkMechanismsInterfaces();
 		this._mutex = new jobHandlers.Mutex();
@@ -49,7 +59,12 @@ export class Synchronizer {
 		const isEmpty = await this.chainModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
-				await utils.restoreBlocksUponStartup(this.logger, this.chainModule, this.blockExecutor);
+				await utils.restoreBlocksUponStartup(
+					this.logger,
+					this.chainModule,
+					this.blockExecutor,
+					this._liskBFTAPI,
+				);
 			} catch (err) {
 				this.logger.error(
 					{ err: err as Error },

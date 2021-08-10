@@ -12,6 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint } from '../../../../modules/base_endpoint';
+import { Schema } from '@liskhq/lisk-codec';
 
-export class ValidatorEndpoint extends BaseEndpoint {}
+export const liskBFTModuleID = 9;
+export const liskBFTAssetSchema = {
+	$id: '/blockHeader/asset/v2',
+	type: 'object',
+	properties: {
+		maxHeightPreviouslyForged: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		maxHeightPrevoted: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted'],
+} as Schema;

@@ -12,6 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint } from '../../../../modules/base_endpoint';
-
-export class LiskBFTEndpoint extends BaseEndpoint {}
+export { ValidatorModule } from './module';
+export type { ValidatorAPI } from './api';

@@ -45,8 +45,7 @@ import {
 	NETWORK_RPC_GET_LAST_BLOCK,
 } from './constants';
 import { GenesisConfig } from '../../types';
-import { ValidatorAPI } from './modules/validator/api';
-import { LiskBFTAPI } from './modules/liskbft/api';
+import { ValidatorAPI, LiskBFTAPI } from './types';
 import { APIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 
@@ -128,6 +127,7 @@ export class Consensus {
 			logger: this._logger,
 			network: this._network,
 			blockExecutor,
+			liskBFTAPI: this._liskBFTAPI,
 		});
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
 			chain: this._chain,
@@ -139,6 +139,7 @@ export class Consensus {
 			chainModule: this._chain,
 			logger: this._logger,
 			blockExecutor,
+			liskBFTAPI: this._liskBFTAPI,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
@@ -316,6 +317,7 @@ export class Consensus {
 					genesisBlockTimestamp: this._genesisBlockTimestamp ?? 0,
 					interval: this._gernesisConfig.blockTime,
 				}),
+				this._liskBFTAPI,
 			);
 
 			if (!forkStatusList.includes(forkStatus)) {

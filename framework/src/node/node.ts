@@ -23,18 +23,12 @@ import { Network } from './network';
 import { BaseModule } from '../modules/base_module';
 import { BaseCommand } from '../modules/base_command';
 import { StateMachine } from './state_machine';
-import {
-	Consensus,
-	ValidatorAPI,
-	ValidatorModule,
-	LiskBFTAPI,
-	LiskBFTModule,
-	EVENT_BLOCK_DELETE,
-	EVENT_BLOCK_NEW,
-} from './consensus';
+import { Consensus, EVENT_BLOCK_DELETE, EVENT_BLOCK_NEW } from './consensus';
 import { Generator } from './generator';
 import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema, isReservedEndpointFunction } from './utils/modules';
+import { ValidatorAPI, ValidatorModule } from '../modules/validator';
+import { LiskBFTAPI, LiskBFTModule } from '../modules/liskbft';
 
 const MINIMUM_MODULE_ID = 2;
 

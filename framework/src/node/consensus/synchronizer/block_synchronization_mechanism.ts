@@ -32,7 +32,7 @@ import { BlockExecutor } from './type';
 import { Logger } from '../../../logger';
 import { Network } from '../../network';
 import { isDifferentChain } from '../fork_choice/fork_choice_rule';
-import { getBFTHeader } from '../modules/liskbft';
+import { LiskBFTAPI } from '../types';
 
 interface Peer {
 	readonly peerId: string;
@@ -49,6 +49,7 @@ interface BlockSynchronizationMechanismInput {
 	readonly chain: Chain;
 	readonly blockExecutor: BlockExecutor;
 	readonly network: Network;
+	readonly liskBFTAPI: LiskBFTAPI;
 }
 
 const groupByPeer = (peers: Peer[]): dataStructures.BufferMap<Peer[]> => {
@@ -66,16 +67,19 @@ const groupByPeer = (peers: Peer[]): dataStructures.BufferMap<Peer[]> => {
 
 export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	private readonly blockExecutor: BlockExecutor;
+	private readonly _liskBFTAPI: LiskBFTAPI;
 
 	public constructor({
 		logger,
 		chain,
-		blockExecutor: processorModule,
+		liskBFTAPI,
+		blockExecutor,
 		network: networkModule,
 	}: BlockSynchronizationMechanismInput) {
 		super(logger, chain, networkModule);
 		this._chain = chain;
-		this.blockExecutor = processorModule;
+		this._liskBFTAPI = liskBFTAPI;
+		this.blockExecutor = blockExecutor;
 	}
 
 	// eslint-disable-next-line consistent-return
@@ -189,8 +193,8 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		// Check if the new tip has priority over the last tip we had before applying
 		const newTipHasPreference = isDifferentChain(
-			getBFTHeader(tipBeforeApplying.header),
-			getBFTHeader(this._chain.lastBlock.header),
+			this._liskBFTAPI.getBFTHeader(tipBeforeApplying.header),
+			this._liskBFTAPI.getBFTHeader(this._chain.lastBlock.header),
 		);
 
 		if (!newTipHasPreference) {
@@ -410,8 +414,8 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const inDifferentChain =
 			isDifferentChain(
-				getBFTHeader(this._chain.lastBlock.header),
-				getBFTHeader(networkLastBlock.header),
+				this._liskBFTAPI.getBFTHeader(this._chain.lastBlock.header),
+				this._liskBFTAPI.getBFTHeader(networkLastBlock.header),
 			) || networkLastBlock.header.id.equals(this._chain.lastBlock.header.id);
 		if (!validBlock || !inDifferentChain) {
 			throw new ApplyPenaltyAndRestartError(
@@ -508,7 +512,10 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			maxHeightPrevoted: selectedPeers[randomPeerIndex].options.maxHeightPrevoted,
 		};
 
-		const tipHasPreference = isDifferentChain(getBFTHeader(this._chain.lastBlock.header), peersTip);
+		const tipHasPreference = isDifferentChain(
+			this._liskBFTAPI.getBFTHeader(this._chain.lastBlock.header),
+			peersTip,
+		);
 
 		if (!tipHasPreference) {
 			throw new AbortError('Peer tip does not have preference over current tip.');
