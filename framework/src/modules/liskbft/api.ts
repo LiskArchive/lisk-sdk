@@ -57,7 +57,7 @@ export class LiskBFTAPI extends BaseAPI {
 		return {
 			generatorAddress: header.generatorAddress,
 			height: header.height,
-			id: header?.id,
+			id: header.id,
 			timestamp: header.timestamp,
 			previousBlockID: header.previousBlockID,
 			...decodedAsset,

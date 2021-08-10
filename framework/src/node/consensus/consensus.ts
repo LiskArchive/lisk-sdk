@@ -91,7 +91,7 @@ export class Consensus {
 	private readonly _mutex: jobHandlers.Mutex;
 	private readonly _validatorAPI: ValidatorAPI;
 	private readonly _liskBFTAPI: LiskBFTAPI;
-	private readonly _gernesisConfig: GenesisConfig;
+	private readonly _genesisConfig: GenesisConfig;
 
 	// init parameters
 	private _logger!: Logger;
@@ -110,7 +110,7 @@ export class Consensus {
 		this._mutex = new jobHandlers.Mutex();
 		this._validatorAPI = args.validatorAPI;
 		this._liskBFTAPI = args.liskBFTAPI;
-		this._gernesisConfig = args.genesisConfig;
+		this._genesisConfig = args.genesisConfig;
 	}
 
 	public async init(args: InitArgs): Promise<void> {
@@ -291,13 +291,16 @@ export class Consensus {
 		await this._mutex.acquire();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async isSynced(
-		_height: number,
-		_maxHeightPrevoted: number,
-		_maxHeightPreviouslyForged: number,
-	): Promise<boolean> {
-		return true;
+	public isSynced(height: number, maxHeightPrevoted: number): boolean {
+		const lastBlockHeader = this._chain.lastBlock.header;
+		if (lastBlockHeader.version === 0) {
+			return height <= lastBlockHeader.height && maxHeightPrevoted <= lastBlockHeader.height;
+		}
+		const lastBFTHeader = this._liskBFTAPI.getBFTHeader(lastBlockHeader);
+		return (
+			maxHeightPrevoted < lastBFTHeader.maxHeightPrevoted ||
+			(maxHeightPrevoted === lastBFTHeader.maxHeightPrevoted && height < lastBlockHeader.height)
+		);
 	}
 
 	private async _execute(block: Block, peerID: string): Promise<void> {
@@ -315,7 +318,7 @@ export class Consensus {
 				lastBlock.header,
 				new Slots({
 					genesisBlockTimestamp: this._genesisBlockTimestamp ?? 0,
-					interval: this._gernesisConfig.blockTime,
+					interval: this._genesisConfig.blockTime,
 				}),
 				this._liskBFTAPI,
 			);
@@ -379,7 +382,7 @@ export class Consensus {
 					block,
 				});
 
-				await this._validate(block);
+				await this._verify(block);
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
 				try {
@@ -404,7 +407,7 @@ export class Consensus {
 				{ id: block.header.id, height: block.header.height },
 				'Processing valid block',
 			);
-			await this._validate(block);
+			await this._verify(block);
 			await this._executeValidated(block);
 
 			this._network.applyNodeInfo({
@@ -430,11 +433,9 @@ export class Consensus {
 			eventQueue,
 			networkIdentifier: Buffer.alloc(0),
 			logger: this._logger,
-			// eslint-disable-next-line
-			header: block.header as any,
+			header: block.header,
 			transactions: block.payload,
 		});
-		await this._chain.verifyBlock(block);
 		await this._stateMachine.verifyBlock(ctx);
 
 		if (!options.skipBroadcast) {
@@ -453,7 +454,7 @@ export class Consensus {
 		return block;
 	}
 
-	private async _validate(block: Block): Promise<void> {
+	private async _verify(block: Block): Promise<void> {
 		// If the schema or bytes does not match with version 2, it fails even before this
 		// This is for fail safe, and genesis block does not use this function
 		if (block.header.version !== BLOCK_VERSION) {
@@ -527,7 +528,7 @@ export class Consensus {
 			deleteLastBlock: async (options: DeleteOptions = {}) => this._deleteLastBlock(options),
 			executeValidated: async (block: Block, options?: ExecuteOptions) =>
 				this._executeValidated(block, options),
-			validate: async (block: Block) => this._validate(block),
+			verify: async (block: Block) => this._verify(block),
 			getValidators: async () => this._liskBFTAPI.getValidators(apiContext),
 			getSlotNumber: timestamp => this._validatorAPI.getSlotNumber(apiContext, timestamp),
 			getFinalizedHeight: () => this.finalizedHeight(),

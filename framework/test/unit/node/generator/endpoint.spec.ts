@@ -268,7 +268,7 @@ describe('generator endpoint', () => {
 		});
 
 		it('should return error if the node is not synced', async () => {
-			(consensus.isSynced as jest.Mock).mockResolvedValue(false);
+			(consensus.isSynced as jest.Mock).mockReturnValue(false);
 			await expect(
 				endpoint.updateForgingStatus({
 					logger,

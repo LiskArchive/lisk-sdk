@@ -292,7 +292,7 @@ describe('chain', () => {
 			const txs = new Array(200).fill(0).map(() => getTransaction());
 			block = await createValidDefaultBlock({ payload: txs });
 			// Act & assert
-			await expect(chainInstance.verifyBlock(block)).rejects.toThrow('Payload length is too long');
+			await expect(chainInstance.verifyBlock(block)).rejects.toThrow('Payload length is longer than configured length: 100.');
 		});
 	});
 

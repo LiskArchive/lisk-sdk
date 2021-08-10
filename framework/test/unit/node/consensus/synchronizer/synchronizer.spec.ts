@@ -77,7 +77,7 @@ describe('Synchronizer', () => {
 		chainModule.dataAccess = dataAccessMock;
 
 		blockExecutor = {
-			validate: jest.fn(),
+			verify: jest.fn(),
 			executeValidated: jest.fn(),
 			deleteLastBlock: jest.fn(),
 			getFinalizedHeight: jest.fn(),
@@ -443,15 +443,15 @@ describe('Synchronizer', () => {
 		});
 
 		it('should validate the block before sync', async () => {
-			jest.spyOn(blockExecutor, 'validate');
+			jest.spyOn(blockExecutor, 'verify');
 
 			await synchronizer.run(aReceivedBlock, aPeerId);
 
-			expect(blockExecutor.validate).toHaveBeenCalledWith(aReceivedBlock);
+			expect(blockExecutor.verify).toHaveBeenCalledWith(aReceivedBlock);
 		});
 
 		it('should reject with error if block validation failed', async () => {
-			(blockExecutor.validate as jest.Mock).mockRejectedValueOnce(
+			(blockExecutor.verify as jest.Mock).mockRejectedValueOnce(
 				new Error('Invalid block signature'),
 			);
 			aReceivedBlock.header['_signature'] = Buffer.from(

@@ -99,6 +99,7 @@ export const applicationConfigSchema = {
 		'network',
 		'plugins',
 		'genesis',
+		'generation',
 	],
 	properties: {
 		label: {

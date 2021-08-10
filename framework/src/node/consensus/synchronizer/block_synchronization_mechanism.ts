@@ -151,7 +151,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 					if (this._stop) {
 						return;
 					}
-					await this.blockExecutor.validate(block);
+					await this.blockExecutor.verify(block);
 					await this.blockExecutor.executeValidated(block);
 				}
 			} catch (err) {
@@ -437,7 +437,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		networkLastBlock: Block,
 	): Promise<{ valid: boolean; err: Error | null }> {
 		try {
-			await this.blockExecutor.validate(networkLastBlock);
+			await this.blockExecutor.verify(networkLastBlock);
 			return { valid: true, err: null };
 		} catch (err) {
 			return { valid: false, err: err as Error };

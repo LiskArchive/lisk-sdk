@@ -15,7 +15,7 @@
 import { Block } from '@liskhq/lisk-chain';
 
 export interface BlockExecutor {
-	validate: (block: Block) => Promise<void>;
+	verify: (block: Block) => Promise<void>;
 	getFinalizedHeight: () => number;
 	executeValidated: (
 		block: Block,

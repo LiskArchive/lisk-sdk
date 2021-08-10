@@ -28,11 +28,7 @@ export interface GeneratorStore {
 
 export interface Consensus {
 	execute: (block: Block) => Promise<void>;
-	isSynced: (
-		height: number,
-		maxHeightPrevoted: number,
-		maxHeightPreviouslyForged: number,
-	) => Promise<boolean>;
+	isSynced: (height: number, maxHeightPrevoted: number) => boolean;
 }
 
 export interface LiskBFTAPI {

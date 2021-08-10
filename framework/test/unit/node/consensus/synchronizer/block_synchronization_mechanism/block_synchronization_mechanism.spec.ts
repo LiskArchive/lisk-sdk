@@ -48,7 +48,7 @@ describe('block_synchronization_mechanism', () => {
 
 	let chainModule: any;
 	let blockExecutor: {
-		validate: jest.Mock;
+		verify: jest.Mock;
 		executeValidated: jest.Mock;
 		deleteLastBlock: jest.Mock;
 		getFinalizedHeight: jest.Mock;
@@ -111,7 +111,7 @@ describe('block_synchronization_mechanism', () => {
 		chainModule.dataAccess = dataAccessMock;
 
 		blockExecutor = {
-			validate: jest.fn(),
+			verify: jest.fn(),
 			executeValidated: jest.fn().mockImplementation(block => {
 				chainModule._lastBlock = block;
 			}),
@@ -760,15 +760,15 @@ describe('block_synchronization_mechanism', () => {
 				);
 
 				// Lastblock is also validated
-				expect(blockExecutor.validate).toHaveBeenCalledTimes(blocksToApply.length + 1);
+				expect(blockExecutor.verify).toHaveBeenCalledTimes(blocksToApply.length + 1);
 				expect(blockExecutor.executeValidated).toHaveBeenCalledTimes(blocksToApply.length);
 				for (const requestedBlock of blocksToApply) {
-					expect(blockExecutor.validate).toHaveBeenCalledWith(requestedBlock);
+					expect(blockExecutor.verify).toHaveBeenCalledWith(requestedBlock);
 					expect(blockExecutor.executeValidated).toHaveBeenCalledWith(requestedBlock);
 				}
 
 				for (const requestedBlock of blocksToNotApply) {
-					expect(blockExecutor.validate).not.toHaveBeenCalledWith(requestedBlock);
+					expect(blockExecutor.verify).not.toHaveBeenCalledWith(requestedBlock);
 					expect(blockExecutor.executeValidated).not.toHaveBeenCalledWith(requestedBlock);
 				}
 			});
@@ -798,7 +798,7 @@ describe('block_synchronization_mechanism', () => {
 				expect(networkMock.getConnectedPeers).toHaveBeenCalledTimes(1);
 
 				// Only called for last block validation
-				expect(blockExecutor.validate).toHaveBeenCalledTimes(1);
+				expect(blockExecutor.verify).toHaveBeenCalledTimes(1);
 				expect(blockExecutor.executeValidated).not.toHaveBeenCalled();
 			});
 

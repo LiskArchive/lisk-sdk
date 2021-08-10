@@ -649,6 +649,7 @@ Object {
     "network",
     "plugins",
     "genesis",
+    "generation",
   ],
   "type": "object",
 }

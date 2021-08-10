@@ -80,7 +80,7 @@ export class Chain {
 
 	public get lastBlock(): Block {
 		if (!this._lastBlock) {
-			throw new Error('Chain has not been inititialized');
+			throw new Error('Chain has not been initialized');
 		}
 		return this._lastBlock;
 	}
@@ -154,13 +154,15 @@ export class Chain {
 			transactionIDs.push(tx.id);
 			payloadSize += tx.getBytes().length;
 		}
+		if (payloadSize > this.constants.maxPayloadLength) {
+			throw new Error(
+				`Payload length is longer than configured length: ${this.constants.maxPayloadLength}.`,
+			);
+		}
 		const tree = new MerkleTree();
 		await tree.init(transactionIDs);
 		if (!tree.root.equals(block.header.transactionRoot as Buffer)) {
 			throw new Error('Invalid transaction root.');
-		}
-		if (payloadSize > this.constants.maxPayloadLength) {
-			throw new Error('Payload length is too long.');
 		}
 	}
 

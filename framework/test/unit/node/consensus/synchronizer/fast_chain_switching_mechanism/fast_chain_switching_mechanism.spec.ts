@@ -81,7 +81,7 @@ describe('fast_chain_switching_mechanism', () => {
 		chainModule.dataAccess = dataAccessMock;
 
 		blockExecutor = {
-			validate: jest.fn(),
+			verify: jest.fn(),
 			executeValidated: jest.fn(),
 			deleteLastBlock: jest.fn(),
 			getFinalizedHeight: jest.fn().mockReturnValue(1),
@@ -592,7 +592,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 
 				for (const block of requestedBlocks) {
-					expect(blockExecutor.validate).toHaveBeenCalledWith(block);
+					expect(blockExecutor.verify).toHaveBeenCalledWith(block);
 					expect(loggerMock.trace).toHaveBeenCalledWith(
 						{ blockId: block.header.id, height: block.header.height },
 						'Validating block',
@@ -647,7 +647,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue({
 						data: highestCommonBlock.getBytes(),
 					} as never);
-				blockExecutor.validate.mockImplementation(() => {
+				blockExecutor.verify.mockImplementation(() => {
 					throw new Error('validation error');
 				});
 

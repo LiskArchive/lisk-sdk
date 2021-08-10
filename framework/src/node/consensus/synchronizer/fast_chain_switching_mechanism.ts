@@ -171,7 +171,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 					},
 					'Validating block',
 				);
-				await this.blockExecutor.validate(block);
+				await this.blockExecutor.verify(block);
 			}
 		} catch (err) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');

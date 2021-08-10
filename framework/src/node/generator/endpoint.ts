@@ -217,11 +217,7 @@ export class Endpoint {
 			eventQueue: new EventQueue(),
 		});
 
-		const synced = await this._consensus.isSynced(
-			req.height,
-			req.maxHeightPrevoted,
-			req.maxHeightPreviouslyForged,
-		);
+		const synced = this._consensus.isSynced(req.height, req.maxHeightPrevoted);
 		if (!synced) {
 			throw new Error('Failed to enable forging as the node is not synced to the network.');
 		}

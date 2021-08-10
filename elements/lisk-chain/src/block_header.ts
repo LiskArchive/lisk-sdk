@@ -137,7 +137,7 @@ export class BlockHeader {
 
 	public validateSignature(publicKey: Buffer, networkIdentifier: Buffer): void {
 		const signingBytes = this.getSigningBytes();
-		const verified = verifyData(
+		const valid = verifyData(
 			TAG_BLOCK_HEADER,
 			networkIdentifier,
 			signingBytes,
@@ -145,7 +145,7 @@ export class BlockHeader {
 			publicKey,
 		);
 
-		if (!verified) {
+		if (!valid) {
 			throw new Error('Invalid block signature.');
 		}
 	}
