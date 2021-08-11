@@ -338,22 +338,31 @@ export const applicationConfigSchema = {
 		},
 		rpc: {
 			type: 'object',
+			required: ['modes'],
 			properties: {
-				enable: {
-					type: 'boolean',
+				modes: {
+					type: 'array',
+					items: { type: 'string', enum: ['ipc', 'ws'] },
+					uniqueItems: true,
 				},
-				mode: {
-					type: 'string',
-					enum: ['ipc', 'ws'],
+				ipc: {
+					type: 'object',
+					required: ['path'],
+					properties: {
+						path: { type: 'string' },
+					},
 				},
-				port: {
-					type: 'number',
-					minimum: 1024,
-					maximum: 65535,
-				},
-				host: {
-					type: 'string',
-					format: 'ip',
+				ws: {
+					type: 'object',
+					required: ['host', 'port', 'path'],
+					properties: {
+						path: { type: 'string' },
+						port: { type: 'number', minimum: 1024, maximum: 65535 },
+						host: {
+							type: 'string',
+							format: 'ip',
+						},
+					},
 				},
 			},
 		},
@@ -370,10 +379,12 @@ export const applicationConfigSchema = {
 			logFileName: 'lisk.log',
 		},
 		rpc: {
-			enable: false,
-			mode: 'ipc',
-			port: 8080,
-			host: '127.0.0.1',
+			modes: ['ipc'],
+			ws: {
+				port: 8080,
+				host: '127.0.0.1',
+				path: '/ws',
+			},
 		},
 		genesisConfig: {
 			blockTime: 10,

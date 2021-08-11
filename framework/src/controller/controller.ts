@@ -18,7 +18,7 @@ import * as path from 'path';
 import { Logger } from '../logger';
 import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { PluginOptions, PluginOptionsWithAppConfig, SocketPaths } from '../types';
+import { PluginOptions, PluginOptionsWithAppConfig, RPCConfig } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
@@ -28,11 +28,7 @@ export interface ControllerOptions {
 	readonly appLabel: string;
 	readonly config: {
 		readonly rootPath: string;
-		readonly rpc: {
-			readonly enable: boolean;
-			readonly mode: string;
-			readonly port: number;
-		};
+		readonly rpc: RPCConfig;
 	};
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
@@ -40,7 +36,6 @@ export interface ControllerOptions {
 
 interface ControllerConfig {
 	readonly dataPath: string;
-	readonly socketsPath: SocketPaths;
 	readonly dirs: {
 		readonly dataPath: string;
 		readonly data: string;
@@ -49,11 +44,7 @@ interface ControllerConfig {
 		readonly sockets: string;
 		readonly pids: string;
 	};
-	rpc: {
-		readonly enable: boolean;
-		readonly mode: string;
-		readonly port: number;
-	};
+	rpc: RPCConfig;
 }
 
 interface PluginsObject {
@@ -82,12 +73,6 @@ export class Controller {
 			dirs: {
 				...dirs,
 			},
-			socketsPath: {
-				root: `unix://${dirs.sockets}`,
-				pub: `unix://${dirs.sockets}/lisk_pub.sock`,
-				sub: `unix://${dirs.sockets}/lisk_sub.sock`,
-				rpc: `unix://${dirs.sockets}/lisk_rpc.sock`,
-			},
 			rpc: options.config.rpc,
 		};
 
@@ -112,7 +97,7 @@ export class Controller {
 			const klass = plugins[alias];
 			const options = pluginOptions[alias];
 
-			if (options.loadAsChildProcess && this.config.rpc.enable) {
+			if (options.loadAsChildProcess) {
 				await this._loadChildProcessPlugin(alias, klass, options);
 			} else {
 				await this._loadInMemoryPlugin(alias, klass, options);
@@ -174,7 +159,7 @@ export class Controller {
 	}
 
 	private async _setupBus(): Promise<void> {
-		this.bus = new Bus(this.logger, this.config);
+		this.bus = new Bus(this.logger, { rpc: this.config.rpc });
 
 		await this.bus.setup();
 

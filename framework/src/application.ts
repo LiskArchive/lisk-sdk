@@ -32,6 +32,19 @@ import {
 	APP_EVENT_CHAIN_VALIDATORS_CHANGE,
 	APP_EVENT_NETWORK_READY,
 } from './constants';
+import {
+	RPCConfig,
+	ApplicationConfig,
+	GenesisConfig,
+	EventPostTransactionData,
+	PluginOptions,
+	RegisteredSchema,
+	RegisteredModule,
+	UpdateForgingStatusInput,
+	PartialApplicationConfig,
+	PluginOptionsWithAppConfig,
+	AppConfigForPlugin,
+} from './types';
 
 import {
 	BasePlugin,
@@ -47,18 +60,6 @@ import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
 
-import {
-	ApplicationConfig,
-	GenesisConfig,
-	EventPostTransactionData,
-	PluginOptions,
-	RegisteredSchema,
-	RegisteredModule,
-	UpdateForgingStatusInput,
-	PartialApplicationConfig,
-	PluginOptionsWithAppConfig,
-	AppConfigForPlugin,
-} from './types';
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
@@ -485,7 +486,10 @@ export class Application {
 			appLabel: this.config.label,
 			config: {
 				rootPath: this.config.rootPath,
-				rpc: this.config.rpc,
+				rpc: objects.mergeDeep(
+					{ ipc: { path: systemDirs(this.config.label, this.config.rootPath).sockets } },
+					this.config.rpc,
+				) as RPCConfig,
 			},
 			logger: this.logger,
 			channel: this._channel,

@@ -23,6 +23,7 @@ import {
 	BlockHeader,
 } from '@liskhq/lisk-chain';
 import { Schema } from '@liskhq/lisk-codec';
+import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
 	readonly pub: string;
@@ -154,10 +155,16 @@ type RecursivePartial<T> = {
 	[P in keyof T]?: RecursivePartial<T[P]>;
 };
 
-interface RPCConfig {
-	enable: boolean;
-	mode: 'ipc' | 'ws';
-	port: number;
+export interface RPCConfig {
+	modes: (typeof RPC_MODES.IPC | typeof RPC_MODES.WS)[];
+	ws: {
+		port: number;
+		path: string;
+		host: string;
+	};
+	ipc: {
+		path: string;
+	};
 }
 
 export interface ApplicationConfig {

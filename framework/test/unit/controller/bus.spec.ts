@@ -29,13 +29,16 @@ jest.mock('ws');
 
 describe('Bus', () => {
 	const config: any = {
-		socketsPath: {
-			root: '',
-		},
 		rpc: {
-			enable: true,
-			mode: 'ws',
-			port: 8080,
+			modes: ['ipc'],
+			ipc: {
+				path: '/my/ipc/socket/path',
+			},
+			ws: {
+				path: '/ws',
+				host: '127.0.0.01',
+				port: 8080,
+			},
 		},
 	};
 
@@ -69,7 +72,7 @@ describe('Bus', () => {
 			// Assert
 			expect(bus['actions']).toEqual({});
 			expect(bus['events']).toEqual({});
-			expect(bus['_wsServer']).toBeInstanceOf(WSServer);
+			expect(bus['_wsServer']).toBeUndefined();
 		});
 	});
 
@@ -86,8 +89,7 @@ describe('Bus', () => {
 		it('should setup ipc server if rpc is enabled', async () => {
 			// Arrange
 			const updatedConfig = { ...config };
-			updatedConfig.rpc.enable = true;
-			updatedConfig.rpc.mode = 'ipc';
+			updatedConfig.rpc.modes = ['ipc'];
 			bus = new Bus(loggerMock, updatedConfig);
 
 			// Act
@@ -100,8 +102,7 @@ describe('Bus', () => {
 		it('should setup ws server if rpc is enabled', async () => {
 			// Arrange
 			const updatedConfig = { ...config };
-			updatedConfig.rpc.enable = true;
-			updatedConfig.rpc.mode = 'ws';
+			updatedConfig.rpc.modes = ['ws'];
 
 			bus = new Bus(loggerMock, updatedConfig);
 
@@ -115,7 +116,7 @@ describe('Bus', () => {
 		it('should not setup ipc server if rpc is not enabled', async () => {
 			// Arrange
 			const updatedConfig = { ...config };
-			updatedConfig.rpc.enable = false;
+			updatedConfig.rpc.modes = [];
 			bus = new Bus(loggerMock, updatedConfig);
 
 			// Act

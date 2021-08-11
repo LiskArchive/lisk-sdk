@@ -50,7 +50,7 @@ describe('WebSocket server', () => {
 	});
 
 	beforeEach(() => {
-		wsClient = new WebSocket(`ws://localhost:${app.config.rpc.port}/ws`);
+		wsClient = new WebSocket(`ws://localhost:${app.config.rpc.ws.port}/ws`);
 	});
 
 	afterEach(() => {

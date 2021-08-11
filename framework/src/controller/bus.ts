@@ -17,8 +17,9 @@ import { EventEmitter2, ListenerFn } from 'eventemitter2';
 import * as axon from 'pm2-axon';
 import { ReqSocket } from 'pm2-axon';
 import { Client as RPCClient } from 'pm2-axon-rpc';
+import { RPC_MODES } from '../constants';
 import { Logger } from '../logger';
-import { ActionInfoForBus, SocketPaths } from '../types';
+import { ActionInfoForBus, RPCConfig } from '../types';
 import { Action } from './action';
 import { BaseChannel } from './channels/base_channel';
 import { Event, EventsDefinition } from './event';
@@ -27,13 +28,7 @@ import * as JSONRPC from './jsonrpc';
 import { WSServer } from './ws/ws_server';
 
 interface BusConfiguration {
-	socketsPath: SocketPaths;
-	rpc: {
-		readonly enable: boolean;
-		readonly mode: string;
-		readonly port: number;
-		readonly host?: string;
-	};
+	rpc: RPCConfig;
 }
 
 interface RegisterChannelOptions {
@@ -105,28 +100,28 @@ export class Bus {
 		this.channels = {};
 		this.rpcClients = {};
 
-		if (this.config.rpc.enable) {
+		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
 			this._ipcServer = new IPCServer({
-				socketsDir: this.config.socketsPath.root,
+				socketsDir: this.config.rpc.ipc.path,
 				name: 'bus',
 			});
 		}
 
-		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
+		if (this.config.rpc.modes.includes(RPC_MODES.WS)) {
 			this._wsServer = new WSServer({
-				path: '/ws',
-				port: config.rpc.port,
-				host: config.rpc.host,
+				path: this.config.rpc.ws.path,
+				port: this.config.rpc.ws.port,
+				host: this.config.rpc.ws.host,
 				logger: this.logger,
 			});
 		}
 	}
 
 	public async setup(): Promise<boolean> {
-		if (this.config.rpc.enable) {
+		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
 			await this._setupIPCServer();
 		}
-		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
+		if (this.config.rpc.modes.includes(RPC_MODES.WS)) {
 			await this._setupWSServer();
 		}
 
@@ -313,7 +308,7 @@ export class Bus {
 		this._emitter.emit(eventName, notification);
 
 		// Communicate through unix socket
-		if (this.config.rpc.enable) {
+		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
 			try {
 				this._ipcServer.pubSocket.send(notification);
 			} catch (error) {
@@ -324,7 +319,7 @@ export class Bus {
 			}
 		}
 
-		if (this.config.rpc.enable && this.config.rpc.mode === 'ws') {
+		if (this.config.rpc.modes.includes(RPC_MODES.WS)) {
 			try {
 				this._wsServer.broadcast(JSON.stringify(notification));
 			} catch (error) {
