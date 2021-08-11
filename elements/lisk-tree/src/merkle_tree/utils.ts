@@ -19,16 +19,12 @@ import {
 	BRANCH_PREFIX,
 	LAYER_INDEX_SIZE,
 	LEAF_PREFIX,
-	NODE_HASH_SIZE,
 	NODE_INDEX_SIZE,
 } from './constants';
 import {
 	NodeLocation,
 	NodeSide,
-	NodeType,
 	MerkleRootInfo,
-	NodeIndex,
-	NonNullableStruct,
 } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
@@ -60,11 +56,11 @@ export const getLayerStructure = (size: number): number[] => {
 
 export const getHeight = (size: number) => Math.ceil(Math.log2(size)) + 1;
 
-export const getBinaryString = (num: number, length: number): Buffer => {
+export const getBinaryString = (nodeIndex: number, length: number): Buffer => {
 	if (length === 0) {
 		return Buffer.alloc(0);
 	}
-	let binaryString = num.toString(2);
+	let binaryString = nodeIndex.toString(2);
 	while (binaryString.length < length) {
 		binaryString = `0${binaryString}`;
 	}
@@ -210,49 +206,6 @@ export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo)
 	return { root: newRoot, appendPath: newAppendPath, size: size + 1 };
 };
 
-export const getParentLocation = (nodeLocation: NodeLocation, pairNodeLocation: NodeLocation) => {
-	const parentLayerIndex = Math.max(nodeLocation.layerIndex, pairNodeLocation.layerIndex) + 1;
-	const parentNodeIndex = Math.min(
-		Math.floor(nodeLocation.nodeIndex / 2),
-		Math.floor(pairNodeLocation.nodeIndex / 2),
-	);
-
-	return {
-		layerIndex: parentLayerIndex,
-		nodeIndex: parentNodeIndex,
-	};
-};
-
-export const generateNode = (nodeHash: Buffer, val: Buffer) => {
-	const value = val;
-
-	if (!value) {
-		throw new Error(`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`);
-	}
-
-	const type = isLeaf(value) ? NodeType.LEAF : NodeType.BRANCH;
-	const layerIndex = type === NodeType.LEAF ? 0 : value.readInt8(BRANCH_PREFIX.length);
-	const nodeIndex =
-		type === NodeType.BRANCH
-			? value.readInt32BE(BRANCH_PREFIX.length + LAYER_INDEX_SIZE)
-			: value.readInt32BE(LEAF_PREFIX.length);
-	const rightHash = type === NodeType.BRANCH ? value.slice(-1 * NODE_HASH_SIZE) : Buffer.alloc(0);
-	const leftHash =
-		type === NodeType.BRANCH
-			? value.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE)
-			: Buffer.alloc(0);
-
-	return {
-		type,
-		hash: nodeHash,
-		value,
-		layerIndex,
-		nodeIndex,
-		rightHash,
-		leftHash,
-	};
-};
-
 export const isLeft = (index: number): boolean => (index & 1) === 0;
 export const isSameLayer = (index1: number, index2: number) =>
 	index1.toString(2).length === index2.toString(2).length;
@@ -344,82 +297,6 @@ export const buildBranch = (
 		branchValue,
 	};
 };
-
-export const createNewBranchNode = (
-	location: NodeLocation,
-	pairHash: Buffer,
-	currentHash: Buffer,
-	pairSide: NodeSide,
-) => {
-	const leftHashBuffer = pairSide === NodeSide.LEFT ? pairHash : currentHash;
-	const rightHashBuffer = pairSide === NodeSide.RIGHT ? pairHash : currentHash;
-	const newNodeData = buildBranch(
-		leftHashBuffer,
-		rightHashBuffer,
-		location.layerIndex,
-		location.nodeIndex,
-	);
-	const newNode = generateNode(newNodeData.branchHash, newNodeData.branchValue);
-
-	return newNode;
-};
-
-export const createNewLeafNode = (value: Buffer, nodeIndex: number, preHashed: boolean) => {
-	const newNodeData = buildLeaf(value, nodeIndex, preHashed);
-	const newNode = generateNode(newNodeData.leafHash, newNodeData.leafValueWithNodeIndex);
-
-	return newNode;
-};
-
-export const getLocationFromIndex = (index: number, size: number) => {
-	const treeHeight = Math.ceil(Math.log2(size)) + 1;
-
-	const serializedIndexBinaryString = index.toString(2);
-	const indexBinaryString = serializedIndexBinaryString.substring(
-		1,
-		serializedIndexBinaryString.length,
-	);
-	const location = {
-		nodeIndex: parseInt(indexBinaryString, 2),
-		layerIndex: treeHeight - indexBinaryString.length,
-	};
-
-	return location;
-};
-
-export const getSortedLocationsAndQueryData = (
-	locations: NodeIndex[],
-	queryData: Buffer[] | ReadonlyArray<Buffer>,
-) => {
-	const sortedData = [];
-	for (let i = 0; i < locations.length; i += 1) {
-		sortedData.push({
-			location: locations[i],
-			queryData: queryData[i],
-		});
-	}
-
-	(sortedData as {
-		location: NonNullableStruct<NodeIndex>;
-		queryData: Buffer;
-	}[]).sort((a, b) => {
-		if (a.location.layerIndex !== b.location.layerIndex) {
-			return a.location.layerIndex - b.location.layerIndex;
-		}
-		return a.location.nodeIndex - b.location.nodeIndex;
-	});
-
-	const sortedQueryData: Buffer[] = [];
-	const sortedLocations: NodeIndex[] = [];
-	for (let i = 0; i < sortedData.length; i += 1) {
-		sortedQueryData[i] = sortedData[i].queryData;
-		sortedLocations[i] = sortedData[i].location;
-	}
-
-	return { sortedLocations, sortedQueryData };
-};
-
-export const getNeighborIndex = (index: number) => index ^ 1;
 
 export const ROOT_INDEX = 2;
 
