@@ -44,6 +44,8 @@ import {
 	isSameLayer,
 	areSiblings,
 	getLocation,
+	treeSortFn,
+	insertNewIndex,
 } from './utils';
 
 export class MerkleTree {
@@ -347,12 +349,7 @@ export class MerkleTree {
 
 	private async _getSiblingHashes(idxs: number[]): Promise<Buffer[]> {
 		let sortedIdxs: number[] = [...idxs];
-		sortedIdxs.sort((a, b) => {
-			if (a.toString(2).length === b.toString(2).length) {
-				return a - b;
-			}
-			return b - a;
-		});
+		sortedIdxs.sort(treeSortFn);
 		const siblingHashes: Buffer[] = [];
 		const size = this._size;
 		const height = this._getHeight();
@@ -368,13 +365,7 @@ export class MerkleTree {
 			) {
 				sortedIdxs = sortedIdxs.slice(2);
 				const parentIndex = currentIndex >> 1;
-				sortedIdxs.push(parentIndex);
-				sortedIdxs.sort((a, b) => {
-					if (a.toString(2).length === b.toString(2).length) {
-						return a - b;
-					}
-					return b - a;
-				});
+				insertNewIndex(sortedIdxs, parentIndex);
 				continue;
 			}
 			const currentNodeLoc = getLocation(currentIndex, this._getHeight());
@@ -392,13 +383,7 @@ export class MerkleTree {
 				if (inOriginal > -1) {
 					sortedIdxs = sortedIdxs.filter(i => i !== currentIndex);
 					const parentIndex = currentIndex >> 1;
-					sortedIdxs.push(parentIndex);
-					sortedIdxs.sort((a, b) => {
-						if (a.toString(2).length === b.toString(2).length) {
-							return a - b;
-						}
-						return b - a;
-					});
+					insertNewIndex(sortedIdxs, parentIndex);
 					continue;
 				}
 
@@ -413,13 +398,7 @@ export class MerkleTree {
 			}
 			sortedIdxs = sortedIdxs.filter(i => i !== currentIndex);
 			const parentIndex = currentIndex >> 1;
-			sortedIdxs.push(parentIndex);
-			sortedIdxs.sort((a, b) => {
-				if (a.toString(2).length === b.toString(2).length) {
-					return a - b;
-				}
-				return b - a;
-			});
+			insertNewIndex(sortedIdxs, parentIndex);
 		}
 		return siblingHashes;
 	}

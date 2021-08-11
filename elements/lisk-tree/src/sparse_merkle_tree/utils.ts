@@ -28,23 +28,6 @@ type QueryWithHeightAndBinaryKey = {
 	height: number;
 };
 
-export const binarySearch = (
-	array: QueryWithHeightAndBinaryKey[],
-	callback: (n: QueryWithHeightAndBinaryKey) => boolean,
-) => {
-	let lo = -1;
-	let hi = array.length;
-	while (1 + lo < hi) {
-		const mi = lo + ((hi - lo) >> 1); // eslint-disable-line no-bitwise
-		if (callback(array[mi])) {
-			hi = mi;
-		} else {
-			lo = mi;
-		}
-	}
-	return hi;
-};
-
 export const treeSort = (a: QueryWithHeightAndBinaryKey, b: QueryWithHeightAndBinaryKey) => {
 	if (b.height === a.height) {
 		if (parseInt(a.binaryKey, 2) < parseInt(b.binaryKey, 2)) return -1;

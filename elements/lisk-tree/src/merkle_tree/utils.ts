@@ -14,6 +14,7 @@
 /* eslint-disable no-bitwise */
 
 import { hash } from '@liskhq/lisk-cryptography';
+import { binarySearch } from '../utils';
 import {
 	BRANCH_PREFIX,
 	LAYER_INDEX_SIZE,
@@ -256,6 +257,19 @@ export const isLeft = (index: number): boolean => (index & 1) === 0;
 export const isSameLayer = (index1: number, index2: number) =>
 	index1.toString(2).length === index2.toString(2).length;
 export const areSiblings = (index1: number, index2: number) => (index1 ^ index2) === 1;
+export const treeSortFn = (a: number, b: number) => {
+	if (a.toString(2).length === b.toString(2).length) {
+		return a - b;
+	}
+	return b - a;
+}
+
+export const insertNewIndex = (arr: number[], val: number) => {
+	const insertIndex = binarySearch(arr, n => treeSortFn(val, n) < 0);
+	if (arr[insertIndex] !== val) {
+		arr.splice(insertIndex, 0, val);
+	}
+};
 
 export const buildLeaf = (value: Buffer, nodeIndex: number, preHashedLeaf?: boolean) => {
 	const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
