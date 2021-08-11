@@ -17,9 +17,7 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { binarySearch } from '../utils';
 import {
 	BRANCH_PREFIX,
-	LAYER_INDEX_SIZE,
 	LEAF_PREFIX,
-	NODE_INDEX_SIZE,
 } from './constants';
 import {
 	NodeLocation,
@@ -224,27 +222,6 @@ export const insertNewIndex = (arr: number[], val: number) => {
 	}
 };
 
-export const buildLeaf = (value: Buffer, nodeIndex: number, preHashedLeaf?: boolean) => {
-	const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
-	nodeIndexBuffer.writeInt32BE(nodeIndex, 0);
-	// As per protocol nodeIndex is not included in hash
-	const leafValueWithoutNodeIndex = Buffer.concat(
-		[LEAF_PREFIX, value],
-		LEAF_PREFIX.length + value.length,
-	);
-	const leafHash = preHashedLeaf ? value : hash(leafValueWithoutNodeIndex);
-	// We include nodeIndex into the value to allow for nodeIndex retrieval for leaf nodes
-	const leafValueWithNodeIndex = Buffer.concat(
-		[LEAF_PREFIX, nodeIndexBuffer, value],
-		LEAF_PREFIX.length + nodeIndexBuffer.length + value.length,
-	);
-
-	return {
-		leafValueWithNodeIndex,
-		leafHash,
-	};
-};
-
 export const getLocation = (index: number, height: number): NodeLocation => {
 	const serializedIndexBinaryString = index.toString(2);
 	const indexBinaryString = serializedIndexBinaryString.substring(
@@ -269,33 +246,6 @@ export const toIndex = (nodeIndex: number, layerIndex: number, height: number): 
 		binaryString = `0${binaryString}`;
 	}
 	return parseInt(`1${binaryString}`, 2);
-};
-
-export const buildBranch = (
-	leftHashBuffer: Buffer,
-	rightHashBuffer: Buffer,
-	layerIndex: number,
-	nodeIndex: number,
-) => {
-	const layerIndexBuffer = Buffer.alloc(LAYER_INDEX_SIZE);
-	const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
-	layerIndexBuffer.writeInt8(layerIndex, 0);
-	nodeIndexBuffer.writeInt32BE(nodeIndex, 0);
-
-	const branchValue = Buffer.concat(
-		[BRANCH_PREFIX, layerIndexBuffer, nodeIndexBuffer, leftHashBuffer, rightHashBuffer],
-		BRANCH_PREFIX.length +
-			layerIndexBuffer.length +
-			nodeIndexBuffer.length +
-			leftHashBuffer.length +
-			rightHashBuffer.length,
-	);
-	const branchHash = generateHash(BRANCH_PREFIX, leftHashBuffer, rightHashBuffer);
-
-	return {
-		branchHash,
-		branchValue,
-	};
 };
 
 export const ROOT_INDEX = 2;
