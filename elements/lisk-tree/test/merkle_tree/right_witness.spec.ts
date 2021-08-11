@@ -31,7 +31,7 @@ describe('Merkle tree - right witness', () => {
 						const witness = await fullTree.generateRightWitness(i);
 						const partialMerkleTree = new MerkleTree();
 						await partialMerkleTree.init(inputs.slice(0, i));
-						const appendPath = await partialMerkleTree.getAppendPathHashes();
+						const appendPath = await partialMerkleTree['_getAppendPathHashes']();
 						expect(verifyRightWitness(i, appendPath, witness, fullTree.root)).toBeTrue();
 					}
 				});
