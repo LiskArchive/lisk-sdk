@@ -17,8 +17,8 @@ import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import {
-	EVENT_BLOCK_BROADCAST,
-	EVENT_BLOCK_NEW,
+	CONSENSUS_EVENT_BLOCK_BROADCAST,
+	CONSENSUS_EVENT_BLOCK_NEW,
 	LiskBFTAPI,
 	ValidatorAPI,
 } from '../../../../src/node/consensus';
@@ -506,8 +506,14 @@ describe('consensus', () => {
 		it('should call broadcast to the network', () => {
 			expect(network.send).toHaveBeenCalledTimes(1);
 			expect(consensus.events.emit).toHaveReturnedTimes(2);
-			expect(consensus.events.emit).toHaveBeenCalledWith(EVENT_BLOCK_BROADCAST, expect.anything());
-			expect(consensus.events.emit).toHaveBeenCalledWith(EVENT_BLOCK_NEW, expect.anything());
+			expect(consensus.events.emit).toHaveBeenCalledWith(
+				CONSENSUS_EVENT_BLOCK_BROADCAST,
+				expect.anything(),
+			);
+			expect(consensus.events.emit).toHaveBeenCalledWith(
+				CONSENSUS_EVENT_BLOCK_NEW,
+				expect.anything(),
+			);
 		});
 
 		it('should execute block using state machine', () => {

@@ -20,7 +20,10 @@ import { InMemoryChannel } from '../../../src/controller';
 import { fakeLogger } from '../../utils/node';
 import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
 import { ModuleInitArgs } from '../../../src/modules/base_module';
-import { EVENT_BLOCK_DELETE, EVENT_BLOCK_NEW } from '../../../src/node/consensus';
+import {
+	CONSENSUS_EVENT_BLOCK_DELETE,
+	CONSENSUS_EVENT_BLOCK_NEW,
+} from '../../../src/node/consensus';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -129,9 +132,12 @@ describe('Node', () => {
 		});
 
 		it('should register consensus event handler', () => {
-			expect(node['_consensus'].events.on).toHaveBeenCalledWith(EVENT_BLOCK_NEW, expect.anything());
 			expect(node['_consensus'].events.on).toHaveBeenCalledWith(
-				EVENT_BLOCK_DELETE,
+				CONSENSUS_EVENT_BLOCK_NEW,
+				expect.anything(),
+			);
+			expect(node['_consensus'].events.on).toHaveBeenCalledWith(
+				CONSENSUS_EVENT_BLOCK_DELETE,
 				expect.anything(),
 			);
 		});

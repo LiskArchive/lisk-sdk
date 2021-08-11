@@ -23,7 +23,7 @@ import { Network } from './network';
 import { BaseModule } from '../modules/base_module';
 import { BaseCommand } from '../modules/base_command';
 import { StateMachine } from './state_machine';
-import { Consensus, EVENT_BLOCK_DELETE, EVENT_BLOCK_NEW } from './consensus';
+import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } from './consensus';
 import { Generator } from './generator';
 import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema, isReservedEndpointFunction } from './utils/modules';
@@ -244,10 +244,10 @@ export class Node {
 			}
 		}
 
-		this._consensus.events.on(EVENT_BLOCK_NEW, (block: Block) => {
+		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, (block: Block) => {
 			this._generator.onNewBlock(block);
 		});
-		this._consensus.events.on(EVENT_BLOCK_DELETE, (block: Block) => {
+		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, (block: Block) => {
 			this._generator.onDeleteBlock(block);
 		});
 

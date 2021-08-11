@@ -113,7 +113,7 @@ describe('chain', () => {
 				lastBlock.header.getBytes(),
 			);
 			const finalizedHeight = Buffer.alloc(4);
-			finalizedHeight.writeUInt32BE(genesisBlock.header.height, 0)
+			finalizedHeight.writeUInt32BE(genesisBlock.header.height, 0);
 			await db.put(DB_KEY_FINALIZED_HEIGHT, finalizedHeight);
 		});
 
@@ -296,7 +296,9 @@ describe('chain', () => {
 			const txs = new Array(200).fill(0).map(() => getTransaction());
 			block = await createValidDefaultBlock({ payload: txs });
 			// Act & assert
-			await expect(chainInstance.verifyBlock(block)).rejects.toThrow('Payload length is longer than configured length: 100.');
+			await expect(chainInstance.verifyBlock(block)).rejects.toThrow(
+				'Payload length is longer than configured length: 100.',
+			);
 		});
 	});
 

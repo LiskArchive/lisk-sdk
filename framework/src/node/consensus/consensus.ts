@@ -34,10 +34,10 @@ import { NetworkEndpoint } from './network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
 import { BlockHeader } from '../state_machine/types';
 import {
-	EVENT_BLOCK_BROADCAST,
-	EVENT_BLOCK_DELETE,
-	EVENT_BLOCK_NEW,
-	EVENT_FORK_DETECTED,
+	CONSENSUS_EVENT_BLOCK_BROADCAST,
+	CONSENSUS_EVENT_BLOCK_DELETE,
+	CONSENSUS_EVENT_BLOCK_NEW,
+	CONSENSUS_EVENT_FORK_DETECTED,
 	NETWORK_EVENT_POST_BLOCK,
 	NETWORK_EVENT_POST_NODE_INFO,
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
@@ -334,7 +334,7 @@ export class Consensus {
 					{ id: block.header.id, height: block.header.height },
 					'Discarding block',
 				);
-				this.events.emit(EVENT_FORK_DETECTED, {
+				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
 				return;
@@ -354,7 +354,7 @@ export class Consensus {
 					},
 					'Discarding block due to double forging',
 				);
-				this.events.emit(EVENT_FORK_DETECTED, {
+				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
 				return;
@@ -365,7 +365,7 @@ export class Consensus {
 					{ id: block.header.id, height: block.header.height },
 					'Detected different chain to sync',
 				);
-				this.events.emit(EVENT_FORK_DETECTED, {
+				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
 				// Sync requires decoded block
@@ -378,7 +378,7 @@ export class Consensus {
 					{ id: lastBlock.header.id, height: lastBlock.header.height },
 					'Received tie breaking block',
 				);
-				this.events.emit(EVENT_FORK_DETECTED, {
+				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
 
@@ -441,7 +441,7 @@ export class Consensus {
 
 		if (!options.skipBroadcast) {
 			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block });
-			this.events.emit(EVENT_BLOCK_BROADCAST, {
+			this.events.emit(CONSENSUS_EVENT_BLOCK_BROADCAST, {
 				block,
 			});
 		}
@@ -458,7 +458,7 @@ export class Consensus {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
 
-		this.events.emit(EVENT_BLOCK_NEW, block);
+		this.events.emit(CONSENSUS_EVENT_BLOCK_NEW, block);
 		return block;
 	}
 
@@ -483,7 +483,7 @@ export class Consensus {
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = new StateStore(this._db);
 		await this._chain.removeBlock(block, stateStore, { saveTempBlock });
-		this.events.emit(EVENT_BLOCK_DELETE, block);
+		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
 	}
 
 	private async _deleteLastBlock({ saveTempBlock = false }: DeleteOptions = {}): Promise<void> {
