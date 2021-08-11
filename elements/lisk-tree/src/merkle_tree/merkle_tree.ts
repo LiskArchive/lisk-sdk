@@ -16,7 +16,6 @@
 
 import { dataStructures } from '@liskhq/lisk-utils';
 import { hash } from '../../../lisk-cryptography/dist-node';
-import { calculatePathNodes } from './calculate';
 import {
 	LAYER_INDEX_SIZE,
 	NODE_HASH_SIZE,
@@ -31,6 +30,7 @@ import { InMemoryDB } from '../inmemory_db';
 import { PrefixStore } from './prefix_store';
 import { NodeData, NodeInfo, NodeType, NodeSide, Proof, Database } from './types';
 import {
+	calculatePathNodes,
 	generateHash,
 	getBinaryString,
 	isLeaf,
@@ -38,7 +38,6 @@ import {
 	getRightSiblingInfo,
 	buildLeaf,
 	buildBranch,
-	getLocationFromIndex,
 	toIndex,
 	isLeft,
 	isSameLayer,
@@ -46,6 +45,7 @@ import {
 	getLocation,
 	treeSortFn,
 	insertNewIndex,
+	ROOT_INDEX,
 } from './utils';
 
 export class MerkleTree {
@@ -283,7 +283,6 @@ export class MerkleTree {
 		updateData: ReadonlyArray<Buffer>,
 	): Promise<Buffer> {
 		const updateHashes = [];
-
 		for (const data of updateData) {
 			const leafValueWithoutNodeIndex = Buffer.concat(
 				[LEAF_PREFIX, data],
@@ -292,52 +291,28 @@ export class MerkleTree {
 			const leafHash = hash(leafValueWithoutNodeIndex);
 			updateHashes.push(leafHash);
 		}
+		const siblingHashes = await this._getSiblingHashes(idxs);
 
-		const pairHashes = await this._getSiblingHashes(idxs);
-		const calculatedTree = calculatePathNodes(updateHashes, this._size, idxs, pairHashes);
+		const calculatedTree = calculatePathNodes(updateHashes, this._size, idxs, siblingHashes);
+		const height = this._getHeight();
 
-		const updateDataOfCalculatedPathLeafs: Record<string, Buffer> = {};
-		for (let i = 0; i < idxs.length; i += 1) {
-			const index = idxs[i];
-			const { layerIndex, nodeIndex } = getLocationFromIndex(index, this._size);
-			const binaryIndex = getBinaryString(nodeIndex, this._getHeight() - layerIndex).toString();
-			const leafValueWithNodeIndex = Buffer.concat(
-				[LEAF_PREFIX, Buffer.alloc(NODE_INDEX_SIZE), updateData[i]],
-				LEAF_PREFIX.length + Buffer.alloc(NODE_INDEX_SIZE).length + updateData[i].length,
-			);
-			updateDataOfCalculatedPathLeafs[binaryIndex] = leafValueWithNodeIndex;
-		}
-
-		for (const updatedNode of Object.values(calculatedTree)) {
-			const binaryIndex = getBinaryString(
-				updatedNode.nodeIndex,
-				this._getHeight() - updatedNode.layerIndex,
-			).toString();
-			const existingNodeHash = await this._locationToHashMap.get(
-				getBinaryString(updatedNode.nodeIndex, this._getHeight() - updatedNode.layerIndex),
-			);
-
-			await this._locationToHashMap.set(
-				getBinaryString(updatedNode.nodeIndex, this._getHeight() - updatedNode.layerIndex),
-				updatedNode.hash,
-			);
-
-			if (binaryIndex in updateDataOfCalculatedPathLeafs) {
-				await this._hashToValueMap.set(
-					updatedNode.hash,
-					updateDataOfCalculatedPathLeafs[binaryIndex],
-				);
-			} else {
-				await this._hashToValueMap.set(updatedNode.hash, updatedNode.value);
+		for (const [index, hashedValue] of calculatedTree.entries()) {
+			const loc = getLocation(index, height);
+			if (!loc) {
+				throw new Error(`Invalid state. Index ${index} must exist.`);
 			}
-
-			await this._hashToValueMap.del(existingNodeHash as Buffer);
+			const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
+			nodeIndexBuffer.writeInt32BE(loc.nodeIndex, 0);
+			const prefix = loc.layerIndex === 0 ? LEAF_PREFIX : BRANCH_PREFIX;
+			const value = Buffer.concat(
+				[prefix, nodeIndexBuffer, hashedValue],
+				prefix.length + nodeIndexBuffer.length + hashedValue.length,
+			);
+			await this._hashToValueMap.set(hashedValue, value);
+			await this._locationToHashMap.set(getBinaryString(loc.nodeIndex, height), hashedValue);
 		}
 
-		const calculatedRoot = calculatedTree['0'].hash;
-		this._root = calculatedRoot;
-
-		return calculatedRoot;
+		return calculatedTree.get(ROOT_INDEX) as Buffer;
 	}
 
 	public async toString(): Promise<string> {
@@ -368,7 +343,7 @@ export class MerkleTree {
 				insertNewIndex(sortedIdxs, parentIndex);
 				continue;
 			}
-			const currentNodeLoc = getLocation(currentIndex, this._getHeight());
+			const currentNodeLoc = getLocation(currentIndex, height);
 			if (currentNodeLoc.layerIndex === height) {
 				return siblingHashes;
 			}

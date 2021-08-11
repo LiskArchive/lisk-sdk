@@ -292,8 +292,8 @@ export const buildLeaf = (value: Buffer, nodeIndex: number, preHashedLeaf?: bool
 	};
 };
 
-export const getLocation = (nodeIndex: number, height: number): NodeLocation => {
-	const serializedIndexBinaryString = nodeIndex.toString(2);
+export const getLocation = (index: number, height: number): NodeLocation => {
+	const serializedIndexBinaryString = index.toString(2);
 	const indexBinaryString = serializedIndexBinaryString.substring(
 		1,
 		serializedIndexBinaryString.length,
@@ -420,3 +420,59 @@ export const getSortedLocationsAndQueryData = (
 };
 
 export const getNeighborIndex = (index: number) => index ^ 1;
+
+export const ROOT_INDEX = 2;
+
+export const calculatePathNodes = (queryHashes: Buffer[], size: number, idxs: number[], siblingHashes: Buffer[]): Map<number, Buffer> => {
+	const tree = new Map<number, Buffer>();
+	if (queryHashes.length === 0 || idxs.length === 0) {
+		throw new Error('Invalid input. QueryHashes and Indexes must have at least one element.');
+	}
+	if (queryHashes.length !== idxs.length) {
+		throw new Error('Invalid input. QueryHashes and Indexes must match.');
+	}
+	let sortedIdxs = [];
+	for (let i = 0; i < idxs.length; i += 1) {
+		const idx = idxs[i];
+		if (idx === 0) {
+			continue;
+		}
+		const query = queryHashes[i];
+		sortedIdxs.push(idx);
+		tree.set(idx, query);
+	}
+	sortedIdxs.sort(treeSortFn);
+	const height = getHeight(size);
+	const parentCache = new Map<number, Buffer>();
+	while (sortedIdxs.length > 0) {
+		const idx = sortedIdxs[0];
+		if (idx === ROOT_INDEX) {
+			return tree;
+		}
+		const currentHash = tree.get(idx) ?? parentCache.get(idx);
+		const parentIdx = idx >> 1;
+		if (!currentHash) {
+			throw new Error(`Invalid state. Hash for index ${idx} should exist.`);
+		}
+		if (tree.has(parentIdx)) {
+			sortedIdxs = sortedIdxs.slice(1);
+			continue;
+		}
+		const currentLoc = getLocation(idx, height);
+		const siblingLoc = getRightSiblingInfo(currentLoc.nodeIndex, currentLoc.layerIndex, size);
+		if (siblingLoc) {
+			const siblingIdx = toIndex(siblingLoc.nodeIndex, siblingLoc.layerIndex, height);
+			const siblingHash = tree.get(siblingIdx) ?? siblingHashes.splice(0, 1)[0];
+			if (isLeft(idx)) {
+				tree.set(parentIdx, generateHash(BRANCH_PREFIX, currentHash, siblingHash));
+			} else {
+				tree.set(parentIdx, generateHash(BRANCH_PREFIX, siblingHash, currentHash))
+			}
+		} else {
+			parentCache.set(parentIdx, currentHash);
+		}
+		sortedIdxs = sortedIdxs.slice(1);
+		insertNewIndex(sortedIdxs, parentIdx);
+	}
+	return tree;
+};
