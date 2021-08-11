@@ -15,15 +15,8 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { binarySearch } from '../utils';
-import {
-	BRANCH_PREFIX,
-	LEAF_PREFIX,
-} from './constants';
-import {
-	NodeLocation,
-	NodeSide,
-	MerkleRootInfo,
-} from './types';
+import { BRANCH_PREFIX, LEAF_PREFIX } from './constants';
+import { NodeLocation, NodeSide, MerkleRootInfo } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
 
@@ -213,7 +206,7 @@ export const treeSortFn = (a: number, b: number) => {
 		return a - b;
 	}
 	return b - a;
-}
+};
 
 export const insertNewIndex = (arr: number[], val: number) => {
 	const insertIndex = binarySearch(arr, n => treeSortFn(val, n) < 0);
@@ -250,7 +243,12 @@ export const toIndex = (nodeIndex: number, layerIndex: number, height: number): 
 
 export const ROOT_INDEX = 2;
 
-export const calculatePathNodes = (queryHashes: Buffer[], size: number, idxs: number[], siblingHashes: Buffer[]): Map<number, Buffer> => {
+export const calculatePathNodes = (
+	queryHashes: Buffer[],
+	size: number,
+	idxs: number[],
+	siblingHashes: Buffer[],
+): Map<number, Buffer> => {
 	const tree = new Map<number, Buffer>();
 	if (queryHashes.length === 0 || idxs.length === 0) {
 		throw new Error('Invalid input. QueryHashes and Indexes must have at least one element.');
@@ -293,7 +291,7 @@ export const calculatePathNodes = (queryHashes: Buffer[], size: number, idxs: nu
 			if (isLeft(idx)) {
 				tree.set(parentIdx, generateHash(BRANCH_PREFIX, currentHash, siblingHash));
 			} else {
-				tree.set(parentIdx, generateHash(BRANCH_PREFIX, siblingHash, currentHash))
+				tree.set(parentIdx, generateHash(BRANCH_PREFIX, siblingHash, currentHash));
 			}
 		} else {
 			parentCache.set(parentIdx, currentHash);

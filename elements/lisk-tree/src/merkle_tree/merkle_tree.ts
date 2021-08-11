@@ -276,10 +276,7 @@ export class MerkleTree {
 		return rightWitness;
 	}
 
-	public async update(
-		idxs: number[],
-		updateData: ReadonlyArray<Buffer>,
-	): Promise<Buffer> {
+	public async update(idxs: number[], updateData: ReadonlyArray<Buffer>): Promise<Buffer> {
 		const updateHashes = [];
 		for (const data of updateData) {
 			const leafValueWithoutNodeIndex = Buffer.concat(
@@ -296,9 +293,6 @@ export class MerkleTree {
 
 		for (const [index, hashedValue] of calculatedTree.entries()) {
 			const loc = getLocation(index, height);
-			if (!loc) {
-				throw new Error(`Invalid state. Index ${index} must exist.`);
-			}
 			const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
 			nodeIndexBuffer.writeInt32BE(loc.nodeIndex, 0);
 			const prefix = loc.layerIndex === 0 ? LEAF_PREFIX : BRANCH_PREFIX;

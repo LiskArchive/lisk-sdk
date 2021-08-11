@@ -1,8 +1,20 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 import { hash } from '../../../lisk-cryptography/dist-node';
 import { LEAF_PREFIX } from './constants';
-import {
-	calculatePathNodes,
-} from './utils';
+import { calculatePathNodes } from './utils';
 
 export const calculateRootFromUpdateData = (
 	updateData: Buffer[],
@@ -29,12 +41,7 @@ export const calculateRootFromUpdateData = (
 		updateHashes.push(leafHash);
 	}
 
-	const calculatedTree = calculatePathNodes(
-		updateHashes,
-		size,
-		indexes,
-		siblingHashes,
-	);
+	const calculatedTree = calculatePathNodes(updateHashes, size, indexes, siblingHashes);
 	const calculatedRoot = calculatedTree.get(2); // 2 is the index for root "10"
 	return calculatedRoot as Buffer;
 };

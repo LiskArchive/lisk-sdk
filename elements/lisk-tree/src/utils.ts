@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const binarySearch = <T = unknown>(
-	array: T[],
-	callback: (n: T) => boolean,
-) => {
+export const binarySearch = <T = unknown>(array: T[], callback: (n: T) => boolean) => {
 	let lo = -1;
 	let hi = array.length;
 	while (1 + lo < hi) {

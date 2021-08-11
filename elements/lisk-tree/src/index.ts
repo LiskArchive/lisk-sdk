@@ -12,6 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { MerkleTree } from './merkle_tree/merkle_tree';
-export { verifyProof } from './merkle_tree/verify_proof';
-export { calculateRootFromUpdateData } from './merkle_tree/calculate';
+import { verifyProof } from './merkle_tree/verify_proof';
+import { calculateRootFromUpdateData } from './merkle_tree/calculate';
+import { MerkleTree } from './merkle_tree/merkle_tree';
+import { calculateMerkleRoot } from './merkle_tree/utils';
+
+export const regularMerkleTree = {
+	verifyProof,
+	calculateRootFromUpdateData,
+	calculateMerkleRoot,
+	MerkleTree,
+};
+
+export { MerkleTree };
