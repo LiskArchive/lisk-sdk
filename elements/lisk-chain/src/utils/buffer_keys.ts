@@ -11,7 +11,4 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-const dbKeyGlue = Buffer.from(':', 'utf8');
-export const concatDBKeys = (...keys: Buffer[]) =>
-	keys.reduce((a, b, index) => (index ? Buffer.concat([a, dbKeyGlue, b]) : b), Buffer.alloc(0));
+export const concatDBKeys = (...keys: Buffer[]) => Buffer.concat(keys);

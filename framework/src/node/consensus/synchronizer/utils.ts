@@ -11,10 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Chain } from '@liskhq/lisk-chain';
 import { BlockExecutor } from './type';
 import { Logger } from '../../../logger';
+import { isDifferentChain, isValidBlock } from '../fork_choice/fork_choice_rule';
+import { LiskBFTAPI } from '../types';
 
 export const restoreBlocks = async (
 	chainModule: Chain,
@@ -75,30 +76,33 @@ export const deleteBlocksAfterHeight = async (
 export const restoreBlocksUponStartup = async (
 	logger: Logger,
 	chainModule: Chain,
-	bftModule: BFT,
-	processorModule: BlockExecutor,
+	blockExecutor: BlockExecutor,
+	liskBFTAPI: LiskBFTAPI,
 ): Promise<void> => {
 	// Get all blocks and find lowest height (next one to be applied), as it should return in height desc
 	const tempBlocks = await chainModule.dataAccess.getTempBlocks();
 	const blockLowestHeight = tempBlocks[tempBlocks.length - 1];
 	const blockHighestHeight = tempBlocks[0];
 
-	const forkStatus = bftModule.forkChoice(blockHighestHeight.header, chainModule.lastBlock.header);
+	const lastBFTHeader = liskBFTAPI.getBFTHeader(chainModule.lastBlock.header);
+	const highestBFTHeader = liskBFTAPI.getBFTHeader(blockHighestHeight.header);
+
 	const blockHasPriority =
-		forkStatus === ForkStatus.DIFFERENT_CHAIN || forkStatus === ForkStatus.VALID_BLOCK;
+		isDifferentChain(lastBFTHeader, highestBFTHeader) ||
+		isValidBlock(lastBFTHeader, highestBFTHeader);
 
 	// Block in the temp table has preference over current tip of the chain
 	if (blockHasPriority) {
 		logger.info('Restoring blocks from temporary table');
 		await deleteBlocksAfterHeight(
-			processorModule,
+			blockExecutor,
 			chainModule,
 			logger,
 			blockLowestHeight.header.height - 1,
 			false,
 		);
 		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_blocks table
-		await restoreBlocks(chainModule, processorModule);
+		await restoreBlocks(chainModule, blockExecutor);
 		logger.info('Chain successfully restored');
 	} else {
 		// Not different chain - Delete remaining blocks from temp_blocks table

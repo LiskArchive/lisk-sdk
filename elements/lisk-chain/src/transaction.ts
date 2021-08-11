@@ -16,27 +16,38 @@ import { codec } from '@liskhq/lisk-codec';
 import { hash, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 
-export interface TransactionInput {
+export interface TransactionAttrs {
 	readonly moduleID: number;
-	readonly assetID: number;
+	readonly commandID: number;
 	readonly senderPublicKey: Buffer;
 	readonly nonce: bigint;
 	readonly fee: bigint;
-	readonly asset: Buffer;
+	readonly params: Buffer;
 	readonly signatures: ReadonlyArray<Buffer>;
+	readonly id?: Buffer;
+}
+
+export interface TransactionJSON {
+	readonly moduleID: number;
+	readonly commandID: number;
+	readonly senderPublicKey: string;
+	readonly nonce: string;
+	readonly fee: string;
+	readonly params: string;
+	readonly signatures: ReadonlyArray<string>;
 }
 
 export const transactionSchema = {
 	$id: 'lisk/transaction',
 	type: 'object',
-	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	required: ['moduleID', 'commandID', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {
 		moduleID: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 			minimum: 2,
 		},
-		assetID: {
+		commandID: {
 			dataType: 'uint32',
 			fieldNumber: 2,
 		},
@@ -54,7 +65,7 @@ export const transactionSchema = {
 			minLength: 32,
 			maxLength: 32,
 		},
-		asset: {
+		params: {
 			dataType: 'bytes',
 			fieldNumber: 6,
 		},
@@ -71,18 +82,19 @@ export const transactionSchema = {
 export const calculateMinFee = (
 	tx: Transaction,
 	minFeePerByte: number,
-	baseFees: { moduleID: number; assetID: number; baseFee: string }[],
+	baseFees: { moduleID: number; commandID: number; baseFee: string }[],
 ): bigint => {
 	const size = tx.getBytes().length;
 	const baseFee =
-		baseFees.find(bf => bf.moduleID === tx.moduleID && bf.assetID === tx.assetID)?.baseFee ?? '0';
+		baseFees.find(bf => bf.moduleID === tx.moduleID && bf.commandID === tx.commandID)?.baseFee ??
+		'0';
 	return BigInt(minFeePerByte * size) + BigInt(baseFee);
 };
 
 export class Transaction {
 	public readonly moduleID: number;
-	public readonly assetID: number;
-	public readonly asset: Buffer;
+	public readonly commandID: number;
+	public readonly params: Buffer;
 	public readonly nonce: bigint;
 	public readonly fee: bigint;
 	public readonly senderPublicKey: Buffer;
@@ -90,18 +102,23 @@ export class Transaction {
 	private _id?: Buffer;
 	private _senderAddress?: Buffer;
 
-	public constructor(transaction: TransactionInput) {
+	public constructor(transaction: TransactionAttrs) {
 		this.moduleID = transaction.moduleID;
-		this.assetID = transaction.assetID;
-		this.asset = transaction.asset;
+		this.commandID = transaction.commandID;
+		this.params = transaction.params;
 		this.nonce = transaction.nonce;
 		this.fee = transaction.fee;
 		this.senderPublicKey = transaction.senderPublicKey;
 		this.signatures = transaction.signatures;
 	}
 
-	public static decode(bytes: Buffer): Transaction {
-		const tx = codec.decode<TransactionInput>(transactionSchema, bytes);
+	public static fromBytes(bytes: Buffer): Transaction {
+		const tx = codec.decode<TransactionAttrs>(transactionSchema, bytes);
+		return new Transaction(tx);
+	}
+
+	public static fromJSON(value: Record<string, unknown>): Transaction {
+		const tx = codec.fromJSON<TransactionAttrs>(transactionSchema, value);
 		return new Transaction(tx);
 	}
 
@@ -134,10 +151,7 @@ export class Transaction {
 		return transactionBytes;
 	}
 
-	public validate(input: {
-		minFeePerByte: number;
-		baseFees: { moduleID: number; assetID: number; baseFee: string }[];
-	}): void {
+	public validate(): void {
 		const schemaErrors = validator.validate(transactionSchema, this);
 		if (schemaErrors.length > 0) {
 			throw new LiskValidationError(schemaErrors);
@@ -150,11 +164,26 @@ export class Transaction {
 				throw new Error('Signature must be empty or 64 bytes');
 			}
 		}
-		const minFee = calculateMinFee(this, input.minFeePerByte, input.baseFees);
-		if (this.fee < minFee) {
-			throw new Error(
-				`Insufficient transaction fee. Minimum required fee is: ${minFee.toString()}`,
-			);
-		}
+	}
+
+	public toJSON(): TransactionJSON {
+		return codec.toJSON(transactionSchema, this._getProps());
+	}
+
+	public toObject(): TransactionAttrs {
+		return this._getProps();
+	}
+
+	private _getProps() {
+		return {
+			moduleID: this.moduleID,
+			commandID: this.commandID,
+			params: this.params,
+			nonce: this.nonce,
+			fee: this.fee,
+			senderPublicKey: this.senderPublicKey,
+			signatures: this.signatures,
+			id: this._id,
+		};
 	}
 }

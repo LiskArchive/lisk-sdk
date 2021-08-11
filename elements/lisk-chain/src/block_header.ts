@@ -13,73 +13,18 @@
  */
 
 import { objects } from '@liskhq/lisk-utils';
-import { signDataWithPrivateKey, hash } from '@liskhq/lisk-cryptography';
+import { signDataWithPrivateKey, hash, verifyData } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { TAG_BLOCK_HEADER } from './constants';
+import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
 
-export const signingBlockHeaderSchema = {
-	$id: '/block/header/signing/2',
-	type: 'object',
-	properties: {
-		version: { dataType: 'uint32', fieldNumber: 1 },
-		timestamp: { dataType: 'uint32', fieldNumber: 2 },
-		height: { dataType: 'uint32', fieldNumber: 3 },
-		previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
-		stateRoot: { dataType: 'bytes', fieldNumber: 5 },
-		transactionRoot: { dataType: 'bytes', fieldNumber: 6 },
-		generatorAddress: { dataType: 'bytes', fieldNumber: 7 },
-		assets: {
-			type: 'array',
-			fieldNumber: 8,
-			items: {
-				type: 'object',
-				required: ['moduleID', 'data'],
-				properties: {
-					moduleID: { dataType: 'uint32', fieldNumber: 1 },
-					data: { dataType: 'bytes', fieldNumber: 2 },
-				},
-			},
-		},
-	},
-	required: [
-		'version',
-		'timestamp',
-		'height',
-		'previousBlockID',
-		'stateRoot',
-		'transactionRoot',
-		'generatorAddress',
-		'assets',
-	],
-};
-
-export const blockHeaderSchema = {
-	...signingBlockHeaderSchema,
-	$id: '/block/header/2',
-	required: [...signingBlockHeaderSchema.required, 'signature'],
-	properties: {
-		...signingBlockHeaderSchema.properties,
-		signature: { dataType: 'bytes', fieldNumber: 9 },
-	},
-};
-
-export const blockHeaderSchemaWithId = {
-	...blockHeaderSchema,
-	$id: '/block/header/2',
-	required: [...blockHeaderSchema.required, 'id'],
-	properties: {
-		...blockHeaderSchema.properties,
-		id: { dataType: 'bytes', fieldNumber: 10 },
-	},
-};
-
-interface BlockHeaderAsset {
+export interface BlockHeaderAsset {
 	moduleID: number;
 	data: Buffer;
 }
 
-interface BlockHeaderAttrs {
+export interface BlockHeaderAttrs {
 	readonly version: number;
 	readonly height: number;
 	readonly generatorAddress: Buffer;
@@ -146,6 +91,10 @@ export class BlockHeader {
 		return new BlockHeader(codec.decode<BlockHeaderAttrs>(blockHeaderSchema, value));
 	}
 
+	public static fromJSON(value: Record<string, unknown>): BlockHeader {
+		return new BlockHeader(codec.fromJSON<BlockHeaderAttrs>(blockHeaderSchema, value));
+	}
+
 	public get stateRoot() {
 		return this._stateRoot;
 	}
@@ -181,9 +130,23 @@ export class BlockHeader {
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-
 		if (this.previousBlockID.length === 0) {
 			throw new Error('Previous block id must not be empty.');
+		}
+	}
+
+	public validateSignature(publicKey: Buffer, networkIdentifier: Buffer): void {
+		const signingBytes = this.getSigningBytes();
+		const valid = verifyData(
+			TAG_BLOCK_HEADER,
+			networkIdentifier,
+			signingBytes,
+			this.signature,
+			publicKey,
+		);
+
+		if (!valid) {
+			throw new Error('Invalid block signature.');
 		}
 	}
 

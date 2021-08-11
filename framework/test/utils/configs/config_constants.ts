@@ -33,12 +33,13 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	baseFees: [
 		{
 			moduleID: 5,
-			assetID: 0,
+			commandID: 0,
 			baseFee: '1000000000',
 		},
 	],
 	activeDelegates: 101,
 	standbyDelegates: 2,
 	maxPayloadLength: 15 * 1024,
+	modules: {},
 	...overriddenConfigProperties,
 });

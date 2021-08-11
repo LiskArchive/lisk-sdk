@@ -14,6 +14,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { DB_KEY_STATE_STORE } from '../../../src';
 import { NotFoundError, StateStore } from '../../../src/state_store';
 import { DatabaseWriter } from '../../../src/state_store/types';
 
@@ -318,17 +319,28 @@ describe('state store', () => {
 	});
 
 	describe('finalize', () => {
+		const getRandomData = () => ({ key: getRandomBytes(20), value: getRandomBytes(50) });
+		const getKey = (mID: number, prefix: number) => {
+			const moduleIDBuffer = Buffer.alloc(4);
+			moduleIDBuffer.writeInt32BE(mID, 0);
+			const storePrefixBuffer = Buffer.alloc(2);
+			storePrefixBuffer.writeUInt16BE(prefix, 0);
+			return Buffer.concat([moduleIDBuffer, storePrefixBuffer]);
+		};
+
 		let batch: DatabaseWriter;
+		let data: { key: Buffer; value: Buffer }[];
 
 		beforeEach(async () => {
+			data = [getRandomData(), getRandomData(), getRandomData()];
 			const subStore = stateStore.getStore(moduleID, storePrefix);
 			await subStore.set(existingKey, getRandomBytes(40));
 			await subStore.del(existingKey2);
 			const anotherStore = stateStore.getStore(moduleID, 1);
-			await anotherStore.set(Buffer.from([0]), getRandomBytes(40));
-			await anotherStore.set(Buffer.from([1]), getRandomBytes(40));
-			await anotherStore.set(Buffer.from([2]), getRandomBytes(40));
-			await anotherStore.del(Buffer.from([2]));
+			for (const sample of data) {
+				await anotherStore.set(sample.key, sample.value);
+			}
+			await anotherStore.del(data[2].key);
 			batch = {
 				put: jest.fn(),
 				del: jest.fn(),
@@ -347,6 +359,44 @@ describe('state store', () => {
 			expect(diff.created).toHaveLength(2);
 			expect(diff.updated).toHaveLength(1);
 			expect(diff.deleted).toHaveLength(1);
+		});
+
+		it('should save only account state changes diff', () => {
+			// Act
+			const diff = stateStore.finalize(batch);
+
+			// Assert
+			expect(diff).toEqual({
+				updated: [
+					{
+						key: Buffer.concat([DB_KEY_STATE_STORE, getKey(2, 0), existingKey]),
+						value: existingValue,
+					},
+				],
+				created: [
+					Buffer.concat([DB_KEY_STATE_STORE, getKey(2, 1), data[0].key]),
+					Buffer.concat([DB_KEY_STATE_STORE, getKey(2, 1), data[1].key]),
+				],
+				deleted: [
+					{
+						key: Buffer.concat([DB_KEY_STATE_STORE, getKey(2, 0), existingKey2]),
+						value: existingValue2,
+					},
+				],
+			});
+		});
+
+		it('should save empty diff if state was not changed', () => {
+			const newState = new StateStore(db);
+			// Act
+			const diff = newState.finalize(batch);
+
+			// Assert
+			expect(diff).toStrictEqual({
+				updated: [],
+				created: [],
+				deleted: [],
+			});
 		});
 	});
 });

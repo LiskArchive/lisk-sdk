@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as assert from 'assert';
-import { BlockHeader } from '../../types';
+import { BlockHeader } from '../../block_header';
 import { Base } from './base';
 
 export class BlockCache extends Base<BlockHeader> {

@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { GenesisBlockHeader, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { Logger } from '../../../../src/logger';
 import { BlockContext } from '../../../../src/node/state_machine/block_context';
 import { EventQueue } from '../../../../src/node/state_machine/event_queue';
@@ -22,7 +22,7 @@ import { StateStore, BlockHeader, VerifyStatus } from '../../../../src/node/stat
 import { CustomModule0, CustomModule1, CustomModule2 } from './custom_modules';
 
 describe('state_machine', () => {
-	const genesisHeader = {} as GenesisBlockHeader;
+	const genesisHeader = {} as BlockHeader;
 	const header = {} as BlockHeader;
 	const logger = {} as Logger;
 	const stateStore = {} as StateStore;
@@ -30,8 +30,8 @@ describe('state_machine', () => {
 	const networkIdentifier = Buffer.from('network identifier', 'utf8');
 	const transaction = {
 		moduleID: 3,
-		assetID: 0,
-		asset: {},
+		commandID: 0,
+		params: {},
 	} as Transaction;
 
 	let stateMachine: StateMachine;
@@ -50,7 +50,7 @@ describe('state_machine', () => {
 		it('should call all registered executeGenesisBlock', async () => {
 			const ctx = new GenesisBlockContext({
 				eventQueue,
-				header: (genesisHeader as unknown) as BlockHeader,
+				header: genesisHeader,
 				logger,
 				stateStore,
 			});

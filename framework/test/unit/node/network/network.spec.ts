@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { P2P } from '@liskhq/lisk-p2p';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Network } from '../../../../src/node/network';
-import { Logger } from '../../../../src/logger';
 import { InMemoryChannel } from '../../../../src/controller';
-import { defaultNetworkIdentifier } from '../../../fixtures';
+import { fakeLogger } from '../../../utils/node';
 
 jest.mock('@liskhq/lisk-p2p');
 jest.mock('@liskhq/lisk-db');
@@ -25,24 +25,20 @@ jest.mock('@liskhq/lisk-db');
 describe('network', () => {
 	let network: Network;
 	jest.useFakeTimers();
-	beforeEach(() => {
-		const db = new KVStore('~/.lisk/stubbed');
+	beforeEach(async () => {
+		const db = new InMemoryKVStore();
 		network = new Network({
-			nodeDB: db,
 			networkVersion: '2.0',
-			logger: ({
-				info: jest.fn(),
-				error: jest.fn(),
-				warn: jest.fn(),
-				level: jest.fn(),
-				debug: jest.fn(),
-				trace: jest.fn(),
-			} as unknown) as Logger,
 			channel: ({} as unknown) as InMemoryChannel,
 			options: {
 				port: 3000,
 				seedPeers: [],
 			},
+		});
+		await network.init({
+			logger: fakeLogger,
+			networkIdentifier: getRandomBytes(32),
+			nodeDB: db as never,
 		});
 	});
 
@@ -164,9 +160,6 @@ describe('network', () => {
 		});
 
 		describe('previousPeers', () => {
-			const getDBStub = jest.fn();
-			const putDBStub = jest.fn();
-
 			const previousPeers = [
 				{
 					ipAddress: '127.0.0.10',
@@ -181,24 +174,8 @@ describe('network', () => {
 			const previousPeersBuffer = Buffer.from(JSON.stringify(previousPeers), 'utf8');
 
 			beforeEach(() => {
-				const db = new KVStore('~/.lisk/stubbed');
-
-				db.get = getDBStub;
-				db.put = putDBStub;
-
-				getDBStub.mockResolvedValue(previousPeersBuffer);
-
 				network = new Network({
-					nodeDB: db,
 					networkVersion: '2.0',
-					logger: ({
-						info: jest.fn(),
-						error: jest.fn(),
-						warn: jest.fn(),
-						level: jest.fn(),
-						debug: jest.fn(),
-						trace: jest.fn(),
-					} as unknown) as Logger,
 					channel: ({} as unknown) as InMemoryChannel,
 					options: {
 						port: 3000,
@@ -209,8 +186,17 @@ describe('network', () => {
 
 			describe('Loading and saving previous peers on start up', () => {
 				it('should load all the previous peers into p2p and save after 10 mins', async () => {
+					const db = new InMemoryKVStore();
+					jest.spyOn(db, 'get').mockResolvedValue(previousPeersBuffer);
+					jest.spyOn(db, 'put');
+
 					const parseSpy = jest.spyOn(JSON, 'parse');
-					await network.bootstrap(defaultNetworkIdentifier);
+					await network.init({
+						logger: fakeLogger,
+						networkIdentifier: getRandomBytes(32),
+						nodeDB: db as never,
+					});
+					await network.start();
 					expect(parseSpy).toHaveBeenCalledWith(previousPeersBuffer.toString('utf8'));
 
 					network['_p2p'] = {
@@ -218,7 +204,7 @@ describe('network', () => {
 					} as any;
 
 					jest.advanceTimersByTime(600000);
-					expect(putDBStub).toHaveBeenCalledTimes(1);
+					expect(db.put).toHaveBeenCalledTimes(1);
 				});
 			});
 		});

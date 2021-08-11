@@ -13,36 +13,29 @@
  */
 
 import { when } from 'jest-when';
-import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain } from '@liskhq/lisk-chain';
-import { BFT } from '@liskhq/lisk-bft';
 import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
-
+import { InMemoryKVStore } from '@liskhq/lisk-db';
 import {
 	FastChainSwitchingMechanism,
 	Errors,
 } from '../../../../../../src/node/consensus/synchronizer';
-import { constants } from '../../../../../utils';
 import {
-	defaultNetworkIdentifier,
 	genesisBlock as getGenesisBlock,
 	createValidDefaultBlock,
 	createFakeBlockHeader,
-	encodeValidBlockHeader,
-	defaultAccountSchema,
 } from '../../../../../fixtures';
-import { getHighestCommonBlockRequestSchema } from '../../../../../../src/node/transport/schemas';
-
-jest.mock('@liskhq/lisk-db');
+import { getHighestCommonBlockRequestSchema } from '../../../../../../src/node/consensus/schema';
 
 describe('fast_chain_switching_mechanism', () => {
 	const genesisBlock = getGenesisBlock();
 	const finalizedHeight = genesisBlock.header.height + 1;
+	const numberOfValidators = 103;
+
 	let finalizedBlock: Block;
 	let lastBlock: Block;
 
-	let bftModule: any;
 	let chainModule: any;
 	let blockExecutor: any;
 	let fastChainSwitchingMechanism: FastChainSwitchingMechanism;
@@ -63,22 +56,14 @@ describe('fast_chain_switching_mechanism', () => {
 			requestFromPeer: jest.fn(),
 		};
 
-		const blockchainDB = new KVStore('blockchain.db');
-
 		chainModule = new Chain({
-			networkIdentifier: defaultNetworkIdentifier,
-			db: blockchainDB,
-			genesisBlock,
-			accountSchemas: defaultAccountSchema,
-			maxPayloadLength: constants.maxPayloadLength,
-			rewardDistance: constants.rewards.distance,
-			rewardOffset: constants.rewards.offset,
-			rewardMilestones: constants.rewards.milestones,
-			blockTime: constants.blockTime,
-			minFeePerByte: constants.minFeePerByte,
-			baseFees: constants.baseFees,
+			maxPayloadLength: 15000,
 		});
-		chainModule['_numberOfValidators'] = 103;
+		chainModule.init({
+			db: new InMemoryKVStore(),
+			networkIdentifier: Buffer.from('network-id'),
+		});
+		chainModule._lastBlock = { header: { height: 310 } };
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
@@ -92,33 +77,26 @@ describe('fast_chain_switching_mechanism', () => {
 			getBlockHeadersByHeightBetween: jest.fn(),
 			addBlockHeader: jest.fn(),
 			getLastBlockHeader: jest.fn(),
-			decode: chainModule.dataAccess.decode.bind(chainModule.dataAccess),
-			decodeBlockHeader: chainModule.dataAccess.decodeBlockHeader.bind(chainModule.dataAccess),
-			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(chainModule.dataAccess),
-			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(chainModule.dataAccess),
 		};
 		chainModule.dataAccess = dataAccessMock;
 
-		bftModule = new BFT({
-			chain: chainModule,
-			threshold: constants.bftThreshold,
-			genesisHeight: genesisBlock.header.height,
-		});
-
-		Object.defineProperty(bftModule, 'finalizedHeight', {
-			get: jest.fn(() => finalizedHeight),
-		});
-
 		blockExecutor = {
-			validate: jest.fn(),
+			verify: jest.fn(),
 			executeValidated: jest.fn(),
 			deleteLastBlock: jest.fn(),
+			getFinalizedHeight: jest.fn().mockReturnValue(1),
+			getSlotNumber: jest.fn(),
+			getValidators: jest.fn().mockResolvedValue(
+				new Array(numberOfValidators).fill(0).map(() => ({
+					address: getRandomBytes(20),
+					bftWeight: BigInt(1),
+				})),
+			),
 		};
 
 		fastChainSwitchingMechanism = new FastChainSwitchingMechanism({
 			logger: loggerMock,
 			chain: chainModule,
-			bft: bftModule,
 			blockExecutor,
 			network: networkMock,
 		});
@@ -134,22 +112,25 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 
 		beforeEach(() => {
-			jest.spyOn(chainModule, 'getValidators');
 			chainModule._lastBlock = { header: { height: 310 } };
 		});
 
 		describe('when receivedBlock is within the two rounds of the last block', () => {
 			it('should return true when the receivedBlock is from consensus participant', async () => {
-				chainModule.getValidators.mockResolvedValue([
+				blockExecutor.getValidators.mockResolvedValue([
 					{
 						address: getAddressFromPublicKey(defaultGenerator.publicKey),
-						isConsensusParticipant: true,
+						bftWeight: BigInt(1),
 					},
+					...new Array(102).fill(0).map(() => ({
+						address: getRandomBytes(20),
+						bftWeight: BigInt(1),
+					})),
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
-							generatorPublicKey: defaultGenerator.publicKey,
+							generatorAddress: getAddressFromPublicKey(defaultGenerator.publicKey),
 							height: 515,
 						},
 					} as Block,
@@ -159,16 +140,16 @@ describe('fast_chain_switching_mechanism', () => {
 			});
 
 			it('should return true when the receivedBlock is not from consensus participant', async () => {
-				chainModule.getValidators.mockResolvedValue([
+				blockExecutor.getValidators.mockResolvedValue([
 					{
 						address: getAddressFromPublicKey(defaultGenerator.publicKey),
-						isConsensusParticipant: false,
+						voteWeight: BigInt(0),
 					},
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
-							generatorPublicKey: defaultGenerator.publicKey,
+							generatorAddress: getAddressFromPublicKey(defaultGenerator.publicKey),
 							height: 515,
 						},
 					} as Block,
@@ -178,13 +159,13 @@ describe('fast_chain_switching_mechanism', () => {
 			});
 
 			it('should return true when the receivedBlock is not current validator', async () => {
-				chainModule.getValidators.mockResolvedValue([
+				blockExecutor.getValidators.mockResolvedValue([
 					{ address: getRandomBytes(20), isConsensusParticipant: false },
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
-							generatorPublicKey: defaultGenerator.publicKey,
+							generatorAddress: getAddressFromPublicKey(defaultGenerator.publicKey),
 							height: 515,
 						},
 					} as Block,
@@ -196,16 +177,16 @@ describe('fast_chain_switching_mechanism', () => {
 
 		describe('when receivedBlock is not within two rounds of the last block', () => {
 			it('should return false even when the block is from consensus participant', async () => {
-				chainModule.getValidators.mockResolvedValue([
+				blockExecutor.getValidators.mockResolvedValue([
 					{
 						address: getAddressFromPublicKey(defaultGenerator.publicKey),
-						isConsensusParticipant: true,
+						bftWeight: BigInt(1),
 					},
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
-							generatorPublicKey: defaultGenerator.publicKey,
+							generatorAddress: getAddressFromPublicKey(defaultGenerator.publicKey),
 							height: 619,
 						},
 					} as Block,
@@ -234,11 +215,15 @@ describe('fast_chain_switching_mechanism', () => {
 				header: { height: finalizedHeight + 1 },
 			});
 
-			jest.spyOn(chainModule, 'getValidators').mockResolvedValue([
+			jest.spyOn(blockExecutor, 'getValidators').mockResolvedValue([
 				{
-					address: getAddressFromPublicKey(aBlock.header.generatorPublicKey),
-					isConsensusParticipant: true,
+					address: aBlock.header.generatorAddress,
+					bftWeight: BigInt(1),
 				},
+				...new Array(numberOfValidators - 1).fill(0).map(() => ({
+					address: getRandomBytes(20),
+					bftWeight: BigInt(1),
+				})),
 			]);
 
 			chainModule._lastBlock = lastBlock;
@@ -276,8 +261,6 @@ describe('fast_chain_switching_mechanism', () => {
 			jest.spyOn(fastChainSwitchingMechanism, '_queryBlocks' as never);
 			jest.spyOn(fastChainSwitchingMechanism, '_switchChain' as never);
 			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks' as never);
-
-			await chainModule.init();
 		});
 
 		describe('when fail to request the common block', () => {
@@ -329,7 +312,7 @@ describe('fast_chain_switching_mechanism', () => {
 				});
 				// height of the common block is smaller than the finalized height:
 				const highestCommonBlock = createFakeBlockHeader({
-					height: bftModule.finalizedHeight - 1,
+					height: 0,
 				});
 
 				when(networkMock.requestFromPeer)
@@ -339,7 +322,7 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: highestCommonBlock.getBytes(),
 					} as never);
 
 				// Act
@@ -381,21 +364,19 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: chainModule.dataAccess.encodeBlockHeader(highestCommonBlock),
+						data: highestCommonBlock.getBytes(),
 					} as never);
 
 				// Act
 				// the difference in height between the common block and the received block is > delegatesPerRound*2
 				const receivedBlock = await createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
+						height: highestCommonBlock.height + numberOfValidators * 2 + 1,
 					},
 				});
 				await expect(fastChainSwitchingMechanism.run(receivedBlock, aPeerId)).rejects.toThrow(
 					new Errors.AbortError(
-						`Height difference between both chains is higher than ${
-							chainModule.numberOfValidators * 2
-						}`,
+						`Height difference between both chains is higher than ${numberOfValidators * 2}`,
 					),
 				);
 
@@ -415,7 +396,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Difference in height between the common block and the last block is > delegatesPerRound*2
 				lastBlock = await createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
+						height: highestCommonBlock.height + numberOfValidators * 2 + 1,
 					},
 				});
 				when(chainModule.dataAccess.getBlockHeaderByHeight)
@@ -448,7 +429,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue([lastBlock] as never);
 
 				const heightList = new Array(
-					Math.min(chainModule.numberOfValidators * 2, chainModule.lastBlock.header.height),
+					Math.min(numberOfValidators * 2, chainModule.lastBlock.header.height),
 				)
 					.fill(0)
 					.map((_, index) => chainModule.lastBlock.header.height - index);
@@ -468,20 +449,18 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: highestCommonBlock.getBytes(),
 					} as never);
 
 				// Act
 				const receivedBlock = await createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
+						height: highestCommonBlock.height + numberOfValidators * 2 + 1,
 					},
 				});
 				await expect(fastChainSwitchingMechanism.run(receivedBlock, aPeerId)).rejects.toThrow(
 					new Errors.AbortError(
-						`Height difference between both chains is higher than ${
-							chainModule.numberOfValidators * 2
-						}`,
+						`Height difference between both chains is higher than ${numberOfValidators * 2}`,
 					),
 				);
 
@@ -526,7 +505,7 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: highestCommonBlock.getBytes(),
 					} as never)
 					.calledWith({
 						procedure: 'getBlocksFromId',
@@ -590,7 +569,7 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: highestCommonBlock.getBytes(),
 					} as never);
 				when(blockExecutor.deleteLastBlock)
 					.calledWith({
@@ -613,7 +592,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 
 				for (const block of requestedBlocks) {
-					expect(blockExecutor.validate).toHaveBeenCalledWith(block);
+					expect(blockExecutor.verify).toHaveBeenCalledWith(block);
 					expect(loggerMock.trace).toHaveBeenCalledWith(
 						{ blockId: block.header.id, height: block.header.height },
 						'Validating block',
@@ -666,9 +645,9 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: highestCommonBlock.getBytes(),
 					} as never);
-				blockExecutor.validate.mockImplementation(() => {
+				blockExecutor.verify.mockImplementation(() => {
 					throw new Error('validation error');
 				});
 
@@ -727,7 +706,7 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: highestCommonBlock.getBytes(),
 					} as never);
 
 				when(blockExecutor.deleteLastBlock)
@@ -838,7 +817,7 @@ describe('fast_chain_switching_mechanism', () => {
 						data: blockIds,
 					})
 					.mockResolvedValue({
-						data: encodeValidBlockHeader(highestCommonBlock),
+						data: highestCommonBlock.getBytes(),
 					} as never);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)

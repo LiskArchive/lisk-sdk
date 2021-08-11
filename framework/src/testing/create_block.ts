@@ -16,121 +16,69 @@
 import {
 	Block,
 	BlockHeader,
-	BlockHeaderAsset,
-	signingBlockHeaderSchema,
-	blockHeaderSchema,
-	blockHeaderAssetSchema,
 	Transaction,
-	TAG_BLOCK_HEADER,
+	BlockHeaderAsset,
+	BlockHeaderAttrs,
 } from '@liskhq/lisk-chain';
 import {
+	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
 	getRandomBytes,
 	hash,
-	signDataWithPrivateKey,
 } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
-import { objects } from '@liskhq/lisk-utils';
 import { MerkleTree } from '@liskhq/lisk-tree';
 
-interface CreateBlock<T = BlockHeaderAsset> {
+interface CreateBlock {
 	passphrase: string;
 	networkIdentifier: Buffer;
 	timestamp: number;
 	previousBlockID: Buffer;
 	payload?: Transaction[];
-	header?: Partial<BlockHeader<T>>;
+	header?: Partial<BlockHeader>;
+	assets?: BlockHeaderAsset[];
 }
 
-export const encodeBlockHeader = (header: BlockHeader, skipSignature = false): Buffer => {
-	const encodedAsset = codec.encode(blockHeaderAssetSchema, header.asset);
-	const rawHeader = { ...header, asset: encodedAsset };
-	const schema = skipSignature ? signingBlockHeaderSchema : blockHeaderSchema;
+export const createBlockHeaderWithDefaults = (header?: Partial<BlockHeaderAttrs>): BlockHeader =>
+	new BlockHeader({
+		version: header?.version ?? 2,
+		timestamp: header?.timestamp ?? 0,
+		height: header?.height ?? 1,
+		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
+		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
+		stateRoot: header?.stateRoot ?? hash(getRandomBytes(4)),
+		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
+		assets: header?.assets ?? [],
+	});
 
-	return codec.encode(schema, rawHeader);
-};
-
-export const createBlockHeaderWithDefaults = <T = unknown>(
-	header?: Partial<BlockHeader<T>>,
-): Partial<BlockHeader<T>> => ({
-	version: header?.version ?? 2,
-	timestamp: header?.timestamp ?? 0,
-	height: header?.height ?? 1,
-	previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
-	transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
-	generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
-	reward: header?.reward ?? BigInt(0),
-	asset: (header?.asset ?? {
-		maxHeightPreviouslyForged: 0,
-		maxHeightPrevoted: 0,
-		seedReveal: getRandomBytes(16),
-	}) as T,
-});
-
-export const createFakeBlockHeader = <T = unknown>(
-	header?: Partial<BlockHeader<T>>,
-): BlockHeader<T> => {
+export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): BlockHeader => {
 	const headerWithDefault = createBlockHeaderWithDefaults(header);
-	const headerWithSignature = objects.mergeDeep({}, headerWithDefault, {
-		signature: getRandomBytes(64),
-	}) as BlockHeader;
-	const id = hash(encodeBlockHeader(headerWithSignature));
-
-	return ({
-		...headerWithSignature,
-		id,
-	} as unknown) as BlockHeader<T>;
+	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(getRandomBytes(10).toString('hex'));
+	headerWithDefault.sign(getRandomBytes(32), privateKey);
+	return headerWithDefault;
 };
 
-export const createBlock = async <T = BlockHeaderAsset>({
+export const createBlock = async ({
 	passphrase,
 	networkIdentifier,
 	timestamp,
 	previousBlockID,
 	payload,
 	header,
-}: CreateBlock<T>): Promise<Block<T>> => {
+}: CreateBlock): Promise<Block> => {
 	const { publicKey, privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const txTree = new MerkleTree();
 	await txTree.init(payload?.map(tx => tx.id) ?? []);
-
-	const asset = {
-		maxHeightPreviouslyForged: 0,
-		maxHeightPrevoted: 0,
-		seedReveal: getRandomBytes(16),
-		...header?.asset,
-	};
 
 	const blockHeader = createBlockHeaderWithDefaults({
 		previousBlockID,
 		timestamp,
 		transactionRoot: header?.transactionRoot ?? txTree.root,
-		generatorPublicKey: publicKey,
+		stateRoot: header?.stateRoot,
+		generatorAddress: getAddressFromPublicKey(publicKey),
 		...header,
-		asset,
 	});
 
-	const headerBytesWithoutSignature = encodeBlockHeader(blockHeader as BlockHeader, true);
-	const signature = signDataWithPrivateKey(
-		TAG_BLOCK_HEADER,
-		networkIdentifier,
-		headerBytesWithoutSignature,
-		privateKey,
-	);
-	const headerBytes = encodeBlockHeader({
-		...(blockHeader as BlockHeader),
-		signature,
-	});
-	const id = hash(headerBytes);
+	blockHeader.sign(networkIdentifier, privateKey);
 
-	const block = {
-		header: {
-			...blockHeader,
-			signature,
-			id,
-		},
-		payload,
-	};
-
-	return (block as unknown) as Block<T>;
+	return new Block(blockHeader, payload ?? []);
 };

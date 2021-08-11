@@ -12,3 +12,17 @@ test/test_app/
 __mocks__
 .eslintrc.js
 test/**/setup.js
+
+# Temporally disable integration and functional
+test/integration
+test/functional
+# Temporally disable linting for modules
+src/modules/dpos
+test/unit/modules/dpos
+src/modules/keys
+test/unit/modules/keys
+src/modules/sequence
+test/unit/modules/sequence
+src/modules/token
+test/unit/modules/token
+

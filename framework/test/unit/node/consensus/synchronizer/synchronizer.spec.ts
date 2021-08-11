@@ -14,25 +14,24 @@
 
 import { when } from 'jest-when';
 import { Block, Chain } from '@liskhq/lisk-chain';
-import { BFT } from '@liskhq/lisk-bft';
-import { KVStore } from '@liskhq/lisk-db';
 
+import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { Synchronizer } from '../../../../../src/node/consensus/synchronizer/synchronizer';
-import { constants } from '../../../../utils';
 import {
 	createValidDefaultBlock,
-	defaultNetworkIdentifier,
 	genesisBlock as getGenesisBlock,
 } from '../../../../fixtures/blocks';
 import * as synchronizerUtils from '../../../../../src/node/consensus/synchronizer/utils';
-import { defaultAccountSchema } from '../../../../fixtures';
 import { BlockExecutor } from '../../../../../src/node/consensus/synchronizer/type';
+import { applicationConfigSchema } from '../../../../../src/schema';
+import { liskBFTAssetSchema, liskBFTModuleID } from '../../../../../src/modules/liskbft/constants';
+import { LiskBFTAPI } from '../../../../../src/modules/liskbft/api';
 
 jest.mock('@liskhq/lisk-db');
 
 describe('Synchronizer', () => {
 	const genesisBlock = getGenesisBlock();
-	let bftModule: any;
 	let chainModule: any;
 	let blockExecutor: BlockExecutor;
 	let synchronizer: Synchronizer;
@@ -52,24 +51,17 @@ describe('Synchronizer', () => {
 			trace: jest.fn(),
 		};
 
-		const blockchainDB = new KVStore('blockchain.db');
-
 		chainModule = new Chain({
-			networkIdentifier: defaultNetworkIdentifier,
-			db: blockchainDB,
-			genesisBlock,
-			accountSchemas: defaultAccountSchema,
-			maxPayloadLength: constants.maxPayloadLength,
-			rewardDistance: constants.rewards.distance,
-			rewardOffset: constants.rewards.offset,
-			rewardMilestones: constants.rewards.milestones,
-			blockTime: constants.blockTime,
-			minFeePerByte: constants.minFeePerByte,
-			baseFees: constants.baseFees,
+			maxPayloadLength: applicationConfigSchema.default.genesisConfig.maxPayloadLength,
+		});
+		chainModule.init({
+			db: new InMemoryKVStore(),
+			networkIdentifier: Buffer.from('network-id'),
 		});
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
+			getFinalizedHeight: jest.fn(),
 			getTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
 			getBlockByID: jest.fn(),
@@ -82,25 +74,16 @@ describe('Synchronizer', () => {
 			getAccountsByPublicKey: jest.fn(),
 			getBlockHeaderByHeight: jest.fn(),
 			getBlockHeaderByID: jest.fn(),
-			decode: chainModule.dataAccess.decode.bind(chainModule.dataAccess),
-			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(chainModule.dataAccess),
-			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(chainModule.dataAccess),
-			getBlockHeaderAssetSchema: chainModule.dataAccess.getBlockHeaderAssetSchema.bind(
-				chainModule.dataAccess,
-			),
 		};
 		chainModule.dataAccess = dataAccessMock;
 
-		bftModule = new BFT({
-			chain: chainModule,
-			threshold: constants.bftThreshold,
-			genesisHeight: genesisBlock.header.height,
-		});
-
 		blockExecutor = {
-			validate: jest.fn(),
+			verify: jest.fn(),
 			executeValidated: jest.fn(),
 			deleteLastBlock: jest.fn(),
+			getFinalizedHeight: jest.fn(),
+			getSlotNumber: jest.fn(),
+			getValidators: jest.fn(),
 		};
 
 		syncMechanism1 = {
@@ -116,7 +99,7 @@ describe('Synchronizer', () => {
 			logger: loggerMock,
 			blockExecutor,
 			chainModule,
-			bftModule,
+			liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 			mechanisms: [syncMechanism1, syncMechanism2],
 		};
 
@@ -141,6 +124,7 @@ describe('Synchronizer', () => {
 			when(chainModule.dataAccess.getAccountsByPublicKey)
 				.calledWith()
 				.mockResolvedValue([{ publicKey: 'aPublicKey' }] as never);
+			await chainModule.loadLastBlocks(genesisBlock);
 		});
 
 		describe('given that the blocks temporary table is not empty', () => {
@@ -199,7 +183,7 @@ describe('Synchronizer', () => {
 						};
 					});
 
-				await chainModule.init();
+				await chainModule.loadLastBlocks(genesisBlock);
 
 				// Act
 				await synchronizer.init();
@@ -226,17 +210,35 @@ describe('Synchronizer', () => {
 					header: {
 						height: genesisBlock.header.height + 1,
 						previousBlockID: genesisBlock.header.id,
-						version: 1,
+						version: 9,
+						assets: [
+							{
+								moduleID: liskBFTModuleID,
+								data: codec.encode(liskBFTAssetSchema, {
+									maxHeightPrevoted: 0,
+									maxHeightPreviouslyForged: 0,
+								}),
+							},
+						],
 					},
 				});
 				const blocksTempTableEntries = [
-					{
+					await createValidDefaultBlock({
 						header: {
 							height: genesisBlock.header.height + 2,
 							version: 2,
 							previousBlockID: initialLastBlock.header.id,
+							assets: [
+								{
+									moduleID: liskBFTModuleID,
+									data: codec.encode(liskBFTAssetSchema, {
+										maxHeightPrevoted: 3,
+										maxHeightPreviouslyForged: 0,
+									}),
+								},
+							],
 						},
-					},
+					}),
 				];
 				chainModule.dataAccess.getTempBlocks.mockResolvedValue(blocksTempTableEntries);
 				// To load storage tip block into lastBlock in memory variable
@@ -244,7 +246,7 @@ describe('Synchronizer', () => {
 					.calledWith()
 					.mockResolvedValue(initialLastBlock as never);
 
-				await chainModule.init();
+				await chainModule.loadLastBlocks(genesisBlock);
 
 				// Act
 				await synchronizer.init();
@@ -281,7 +283,7 @@ describe('Synchronizer', () => {
 					.calledWith()
 					.mockResolvedValue(initialLastBlock as never);
 
-				await chainModule.init();
+				await chainModule.loadLastBlocks(genesisBlock);
 
 				// Act
 				await synchronizer.init();
@@ -333,7 +335,7 @@ describe('Synchronizer', () => {
 			const error = new Error('error while deleting last block');
 			(blockExecutor.executeValidated as jest.Mock).mockRejectedValue(error);
 
-			await chainModule.init();
+			await chainModule.loadLastBlocks(genesisBlock);
 
 			// Act
 			await synchronizer.init();
@@ -361,7 +363,7 @@ describe('Synchronizer', () => {
 				logger: loggerMock,
 				blockExecutor,
 				chainModule,
-				bftModule,
+				liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 				mechanisms: [aSyncingMechanism, anotherSyncingMechanism] as any,
 			});
 
@@ -380,7 +382,7 @@ describe('Synchronizer', () => {
 						logger: loggerMock,
 						blockExecutor,
 						chainModule,
-						bftModule,
+						liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 						mechanisms: [aSyncingMechanism] as any,
 					}),
 			).toThrow('Mechanism Object should implement "isValidFor" method');
@@ -397,7 +399,7 @@ describe('Synchronizer', () => {
 						logger: loggerMock,
 						blockExecutor,
 						chainModule,
-						bftModule,
+						liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 						mechanisms: [aSyncingMechanism] as any,
 					}),
 			).toThrow('Mechanism Object should implement "run" method');
@@ -442,37 +444,33 @@ describe('Synchronizer', () => {
 		});
 
 		it('should validate the block before sync', async () => {
-			jest.spyOn(blockExecutor, 'validate');
+			jest.spyOn(blockExecutor, 'verify');
 
 			await synchronizer.run(aReceivedBlock, aPeerId);
 
-			expect(blockExecutor.validate).toHaveBeenCalledWith(aReceivedBlock);
+			expect(blockExecutor.verify).toHaveBeenCalledWith(aReceivedBlock);
 		});
 
 		it('should reject with error if block validation failed', async () => {
-			(blockExecutor.validate as jest.Mock).mockRejectedValueOnce(
+			(blockExecutor.verify as jest.Mock).mockRejectedValueOnce(
 				new Error('Invalid block signature'),
 			);
-			await expect(
-				synchronizer.run(
-					{
-						...aReceivedBlock,
-						header: {
-							...aReceivedBlock.header,
-							signature: Buffer.from(
-								'84d95f9a9c02b1b216bc89610961ca886a454c252e0782f8c4c437f5dff7f720fd63461774fbec4622c85c1c15c3f1d55baf7a4ad41e4e0e50589c5c1e4c7301',
-								'hex',
-							),
-						},
-					},
-					aPeerId,
-				),
-			).rejects.toThrow('Invalid block signature');
+			aReceivedBlock.header['_signature'] = Buffer.from(
+				'84d95f9a9c02b1b216bc89610961ca886a454c252e0782f8c4c437f5dff7f720fd63461774fbec4622c85c1c15c3f1d55baf7a4ad41e4e0e50589c5c1e4c7301',
+				'hex',
+			);
+			await expect(synchronizer.run(aReceivedBlock, aPeerId)).rejects.toThrow(
+				'Invalid block signature',
+			);
 
 			expect(synchronizer.isActive).toBeFalsy();
 		});
 
 		it('should determine the sync mechanism for received block and run it', async () => {
+			const lastBlock = await createValidDefaultBlock({
+				header: { height: genesisBlock.header.height + 1 },
+			});
+			chainModule['_lastBlock'] = lastBlock;
 			syncMechanism1.isValidFor.mockResolvedValue(true);
 			syncMechanism2.isValidFor.mockResolvedValue(false);
 

@@ -13,33 +13,31 @@
  *
  */
 
-import { AccountDefaultProps, GenesisBlock } from '@liskhq/lisk-chain';
-import { createGenesisBlock as createGenesis, getGenesisBlockJSON } from '@liskhq/lisk-genesis';
-
-import { ModuleClass, PartialAccount } from './types';
-import { getAccountSchemaFromModules } from './utils';
+import {
+	Block,
+	BlockHeader,
+	BlockHeaderAsset,
+	BlockHeaderJSON,
+	TransactionJSON,
+} from '@liskhq/lisk-chain';
+import { hash } from '@liskhq/lisk-cryptography';
 import { GenesisConfig } from '../types';
-import { defaultAccounts } from './fixtures/accounts';
 
-interface CreateGenesisBlock<T> {
-	modules: ModuleClass[];
-	accounts?: PartialAccount<T>[];
+interface CreateGenesisBlock {
 	genesisConfig?: GenesisConfig;
 	initDelegates?: ReadonlyArray<Buffer>;
 	height?: number;
-	initRounds?: number;
 	timestamp?: number;
 	previousBlockID?: Buffer;
+	assets?: BlockHeaderAsset[];
 }
 
-export const createGenesisBlock = <T = AccountDefaultProps>(
-	params: CreateGenesisBlock<T>,
-): { genesisBlock: GenesisBlock<T>; genesisBlockJSON: Record<string, unknown> } => {
-	const accounts = params.accounts ?? defaultAccounts();
-	const initDelegates: ReadonlyArray<Buffer> =
-		params.initDelegates ?? defaultAccounts().map(delegate => delegate.address);
-	const accountAssetSchemas = getAccountSchemaFromModules(params.modules, params.genesisConfig);
-	const initRounds = params.initRounds ?? 3;
+export const createGenesisBlock = (
+	params: CreateGenesisBlock,
+): {
+	genesisBlock: Block;
+	genesisBlockJSON: { header: BlockHeaderJSON; payload: TransactionJSON[] };
+} => {
 	const height = params.height ?? 0;
 	// Set genesis block timestamp to 1 day in past relative to current date
 	const today = new Date();
@@ -48,23 +46,25 @@ export const createGenesisBlock = <T = AccountDefaultProps>(
 	const timestamp = params.timestamp ?? defaultTimestamp;
 	const previousBlockID = params.previousBlockID ?? Buffer.alloc(0);
 
-	const genesisBlock = createGenesis<T>({
-		accounts,
-		initDelegates,
-		accountAssetSchemas,
-		initRounds,
+	const header = new BlockHeader({
+		previousBlockID,
+		generatorAddress: Buffer.alloc(0),
 		height,
 		timestamp,
-		previousBlockID,
+		version: 0,
+		transactionRoot: hash(Buffer.alloc(0)),
+		stateRoot: hash(Buffer.alloc(0)),
+		signature: Buffer.alloc(0),
+		assets: params.assets ?? [],
 	});
 
-	const genesisBlockJSON = getGenesisBlockJSON({
-		genesisBlock: genesisBlock as never,
-		accountAssetSchemas,
-	});
+	const genesisBlock = new Block(header, []);
 
 	return {
 		genesisBlock,
-		genesisBlockJSON,
+		genesisBlockJSON: {
+			header: header.toJSON(),
+			payload: [],
+		},
 	};
 };

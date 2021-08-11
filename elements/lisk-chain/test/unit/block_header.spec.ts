@@ -11,13 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { BlockHeader } from '../../src/block_header';
 import {
-	BlockHeader,
 	blockHeaderSchema,
 	blockHeaderSchemaWithId,
 	signingBlockHeaderSchema,
-} from '../../src/block_header';
+} from '../../src/schema';
 
 const getBlockAttrs = () => ({
 	version: 1,

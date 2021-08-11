@@ -17,15 +17,11 @@ import { createMessageTag, hash } from '@liskhq/lisk-cryptography';
 export const DEFAULT_MIN_BLOCK_HEADER_CACHE = 309;
 export const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;
 
-export const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
-export const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
-export const EVENT_VALIDATORS_CHANGED = 'EVENT_VALIDATORS_CHANGED';
-
 export const EMPTY_BUFFER = Buffer.alloc(0);
 export const EMPTY_HASH = hash(EMPTY_BUFFER);
 
 export const GENESIS_BLOCK_VERSION = 0;
-export const GENESIS_BLOCK_GENERATOR_PUBLIC_KEY = EMPTY_BUFFER;
+export const GENESIS_BLOCK_GENERATOR_ADDRESS = EMPTY_BUFFER;
 export const GENESIS_BLOCK_REWARD = BigInt(0);
 export const GENESIS_BLOCK_SIGNATURE = EMPTY_BUFFER;
 export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;

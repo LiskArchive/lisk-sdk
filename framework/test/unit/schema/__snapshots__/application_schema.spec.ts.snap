@@ -10,7 +10,7 @@ Object {
       "force": false,
       "waitThreshold": 2,
     },
-    "generator": Object {
+    "generation": Object {
       "delegates": Array [],
       "force": false,
       "modules": Object {},
@@ -150,7 +150,7 @@ Object {
       ],
       "type": "object",
     },
-    "generator": Object {
+    "generation": Object {
       "properties": Object {
         "delegates": Object {
           "items": Object {
@@ -649,6 +649,7 @@ Object {
     "network",
     "plugins",
     "genesis",
+    "generation",
   ],
   "type": "object",
 }

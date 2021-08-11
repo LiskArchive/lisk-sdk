@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
 import { promisify } from 'util';
+import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
@@ -49,17 +50,14 @@ import { DuplicateAppInstanceError } from './errors';
 
 import {
 	ApplicationConfig,
-	GenesisConfig,
-	EventPostTransactionData,
 	PluginOptions,
 	RegisteredSchema,
 	RegisteredModule,
-	UpdateForgingStatusInput,
 	PartialApplicationConfig,
 	PluginOptionsWithAppConfig,
 	AppConfigForPlugin,
 } from './types';
-import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
+import { BaseModule } from './modules/base_module';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -113,8 +111,6 @@ const registerProcessHooks = (app: Application): void => {
 	});
 };
 
-type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
-
 export class Application {
 	public config: ApplicationConfig;
 	public logger!: Logger;
@@ -152,7 +148,6 @@ export class Application {
 		// Initialize node
 		const { plugins, ...rootConfigs } = this.config;
 		this._node = new Node({
-			genesisBlockJSON: this._genesisBlock,
 			options: rootConfigs,
 		});
 	}
@@ -161,8 +156,8 @@ export class Application {
 		return this._node.networkIdentifier;
 	}
 
-	public static getDefaultModules(): typeof BaseModule[] {
-		return [TokenModule, SequenceModule, KeysModule, DPoSModule];
+	public static getDefaultModules(): BaseModule[] {
+		return [];
 	}
 
 	public static defaultApplication(
@@ -170,8 +165,8 @@ export class Application {
 		config: PartialApplicationConfig = {},
 	): Application {
 		const application = new Application(genesisBlock, config);
-		for (const Module of Application.getDefaultModules()) {
-			application._registerModule(Module);
+		for (const mod of Application.getDefaultModules()) {
+			application._registerModule(mod);
 		}
 
 		return application;
@@ -217,16 +212,12 @@ export class Application {
 		};
 	}
 
-	public registerModule(Module: typeof BaseModule): void {
+	public registerModule(Module: BaseModule): void {
 		this._registerModule(Module, true);
 	}
 
 	public getSchema(): RegisteredSchema {
 		return this._node.getSchema();
-	}
-
-	public getDefaultAccount(): Record<string, unknown> {
-		return this._node.getDefaultAccount();
 	}
 
 	public getRegisteredModules(): RegisteredModule[] {
@@ -269,8 +260,10 @@ export class Application {
 
 			await this._controller.load();
 
+			const genesisBlock = Block.fromJSON(this._genesisBlock);
+
 			await this._node.init({
-				bus: this._controller.bus,
+				genesisBlock,
 				channel: this._channel,
 				forgerDB: this._forgerDB,
 				blockchainDB: this._blockchainDB,
@@ -279,6 +272,7 @@ export class Application {
 			});
 
 			await this._loadPlugins();
+			await this._node.start();
 			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
 			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
@@ -293,7 +287,7 @@ export class Application {
 
 		try {
 			this._channel.publish(APP_EVENT_SHUTDOWN);
-			await this._node.cleanup();
+			await this._node.stop();
 			await this._controller.cleanup(errorCode, message);
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
@@ -318,19 +312,16 @@ export class Application {
 	// Private
 	// --------------------------------------
 
-	private _registerModule(Module: typeof BaseModule, validateModuleID = false): void {
-		assert(Module, 'Module implementation is required');
-		const InstantiableModule = Module as InstantiableBaseModule;
-		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
-
-		if (Application.getDefaultModules().includes(Module)) {
-			this._node.registerModule(moduleInstance);
-		} else if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
+	private _registerModule(mod: BaseModule, validateModuleID = false): void {
+		assert(mod, 'Module implementation is required');
+		if (Application.getDefaultModules().includes(mod)) {
+			this._node.registerModule(mod);
+		} else if (validateModuleID && mod.id < MINIMUM_EXTERNAL_MODULE_ID) {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);
 		} else {
-			this._node.registerModule(moduleInstance);
+			this._node.registerModule(mod);
 		}
 	}
 
@@ -388,76 +379,7 @@ export class Application {
 				APP_EVENT_BLOCK_DELETE.replace('app:', ''),
 			],
 			{
-				getConnectedPeers: {
-					handler: () => this._node.actions.getConnectedPeers(),
-				},
-				getDisconnectedPeers: {
-					handler: () => this._node.actions.getDisconnectedPeers(),
-				},
-				getNetworkStats: {
-					handler: () => this._node.actions.getNetworkStats(),
-				},
-				getForgers: {
-					handler: async () => this._node.actions.getValidators(),
-				},
-				updateForgingStatus: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.updateForgingStatus((params as unknown) as UpdateForgingStatusInput),
-				},
-				getForgingStatus: {
-					handler: async () => this._node.actions.getForgingStatus(),
-				},
-				getTransactionsFromPool: {
-					handler: () => this._node.actions.getTransactionsFromPool(),
-				},
-				postTransaction: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.postTransaction((params as unknown) as EventPostTransactionData),
-				},
-				getLastBlock: {
-					handler: () => this._node.actions.getLastBlock(),
-				},
-				getAccount: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getAccount(params as { address: string }),
-				},
-				getAccounts: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getAccounts(params as { address: readonly string[] }),
-				},
-				getBlockByID: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlockByID(params as { id: string }),
-				},
-				getBlocksByIDs: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlocksByIDs(params as { ids: readonly string[] }),
-				},
-				getBlockByHeight: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlockByHeight(params as { height: number }),
-				},
-				getBlocksByHeightBetween: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlocksByHeightBetween(params as { from: number; to: number }),
-				},
-				getTransactionByID: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getTransactionByID(params as { id: string }),
-				},
-				getTransactionsByIDs: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getTransactionsByIDs(params as { ids: readonly string[] }),
-				},
-				getSchema: {
-					handler: () => this._node.actions.getSchema(),
-				},
-				getRegisteredModules: {
-					handler: () => this._node.actions.getRegisteredModules(),
-				},
-				getNodeInfo: {
-					handler: () => this._node.actions.getNodeInfo(),
-				},
+				// TODO: Add endpoints after plugin improvements
 				getRegisteredActions: {
 					handler: () => this._controller.bus.getActions(),
 				},

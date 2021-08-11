@@ -11,14 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Transaction } from './transaction';
-
-export interface Context {
-	readonly blockVersion: number;
-	readonly blockHeight: number;
-	readonly blockTimestamp: number;
-}
-export type Contexter = (() => Context) | Context;
 
 export interface BlockRewardOptions {
 	readonly distance: number;
@@ -26,51 +18,9 @@ export interface BlockRewardOptions {
 	readonly milestones: ReadonlyArray<bigint>;
 }
 
-export interface BaseBlockHeader {
-	readonly id: Buffer;
-	readonly version: number;
-	readonly timestamp: number;
-	readonly height: number;
-	readonly previousBlockID: Buffer;
-	readonly transactionRoot: Buffer;
-	readonly generatorPublicKey: Buffer;
-	readonly reward: bigint;
-	readonly signature: Buffer;
-}
-
-export type RawBlockHeader = BaseBlockHeader & { asset: Buffer };
-
 export interface RawBlock {
 	header: Buffer;
 	payload: ReadonlyArray<Buffer>;
-}
-
-export interface GenesisBlockHeaderAsset<T = AccountDefaultProps> {
-	readonly accounts: ReadonlyArray<Account<T>>;
-	readonly initDelegates: ReadonlyArray<Buffer>;
-	readonly initRounds: number;
-}
-
-export interface BlockHeaderAsset {
-	readonly seedReveal: Buffer;
-	readonly maxHeightPreviouslyForged: number;
-	readonly maxHeightPrevoted: number;
-}
-
-export type BlockHeader<T = BlockHeaderAsset> = BaseBlockHeader & { asset: T };
-
-export type GenesisBlockHeader<T = AccountDefaultProps> = BaseBlockHeader & {
-	asset: GenesisBlockHeaderAsset<T>;
-};
-
-export interface Block<T = BlockHeaderAsset> {
-	header: BlockHeader<T>;
-	payload: ReadonlyArray<Transaction>;
-}
-
-export interface GenesisBlock<T = AccountDefaultProps> {
-	header: GenesisBlockHeader<T>;
-	payload: ReadonlyArray<Transaction>;
 }
 
 export interface DiffHistory {
@@ -87,23 +37,4 @@ export interface StateDiff {
 export interface UpdatedDiff {
 	readonly key: Buffer;
 	readonly value: Buffer;
-}
-
-export interface AccountSchema {
-	type: string;
-	fieldNumber: number;
-	properties: Record<string, unknown>;
-	default: Record<string, unknown>;
-}
-
-export type AccountDefaultProps = {
-	[name: string]: { [key: string]: unknown } | undefined | Buffer;
-};
-
-export type Account<T = AccountDefaultProps> = T & { address: Buffer };
-
-export interface Validator {
-	address: Buffer;
-	minActiveHeight: number;
-	isConsensusParticipant: boolean;
 }

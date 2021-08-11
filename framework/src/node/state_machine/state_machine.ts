@@ -26,6 +26,7 @@ import {
 	VerificationResult,
 	CommandVerifyContext,
 	CommandExecuteContext,
+	BlockAfterExecuteContext,
 } from './types';
 
 export interface StateMachineCommand {
@@ -42,7 +43,7 @@ export interface StateMachineModule {
 	afterGenesisBlockExecute?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
 	verifyBlock?: (ctx: BlockVerifyContext) => Promise<void>;
 	beforeBlockExecute?: (ctx: BlockExecuteContext) => Promise<void>;
-	afterBlockExecute?: (ctx: BlockExecuteContext) => Promise<void>;
+	afterBlockExecute?: (ctx: BlockAfterExecuteContext) => Promise<void>;
 	beforeTransactionExecute?: (ctx: TransactionExecuteContext) => Promise<void>;
 	afterTransactionExecute?: (ctx: TransactionExecuteContext) => Promise<void>;
 }
@@ -94,8 +95,7 @@ export class StateMachine {
 					}
 				}
 			}
-			// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
-			const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.assetID);
+			const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
 			if (command.verify) {
 				const result = await command.verify(commandContext);
@@ -121,8 +121,7 @@ export class StateMachine {
 				await mod.beforeTransactionExecute(transactionContext);
 			}
 		}
-		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
-		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.assetID);
+		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
 		// Execute command
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
 		await command.execute(commandContext);

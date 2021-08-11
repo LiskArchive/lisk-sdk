@@ -26,8 +26,8 @@ describe('broadcaster', () => {
 	const defaultBroadcastInterval = 5000;
 	const defaultReleaseLimit = 25;
 	const tx = new Transaction({
-		asset: Buffer.alloc(20),
-		assetID: 0,
+		params: Buffer.alloc(20),
+		commandID: 0,
 		fee: BigInt(100000),
 		moduleID: 2,
 		nonce: BigInt(0),

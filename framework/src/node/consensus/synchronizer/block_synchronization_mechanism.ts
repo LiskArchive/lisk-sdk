@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BaseSynchronizer } from './base_synchronizer';
@@ -32,6 +31,8 @@ import {
 import { BlockExecutor } from './type';
 import { Logger } from '../../../logger';
 import { Network } from '../../network';
+import { isDifferentChain } from '../fork_choice/fork_choice_rule';
+import { LiskBFTAPI } from '../types';
 
 interface Peer {
 	readonly peerId: string;
@@ -45,10 +46,10 @@ interface Peer {
 
 interface BlockSynchronizationMechanismInput {
 	readonly logger: Logger;
-	readonly bft: BFT;
 	readonly chain: Chain;
 	readonly blockExecutor: BlockExecutor;
 	readonly network: Network;
+	readonly liskBFTAPI: LiskBFTAPI;
 }
 
 const groupByPeer = (peers: Peer[]): dataStructures.BufferMap<Peer[]> => {
@@ -65,20 +66,20 @@ const groupByPeer = (peers: Peer[]): dataStructures.BufferMap<Peer[]> => {
 };
 
 export class BlockSynchronizationMechanism extends BaseSynchronizer {
-	private readonly bft: BFT;
 	private readonly blockExecutor: BlockExecutor;
+	private readonly _liskBFTAPI: LiskBFTAPI;
 
 	public constructor({
 		logger,
-		bft,
 		chain,
-		blockExecutor: processorModule,
+		liskBFTAPI,
+		blockExecutor,
 		network: networkModule,
 	}: BlockSynchronizationMechanismInput) {
 		super(logger, chain, networkModule);
-		this.bft = bft;
 		this._chain = chain;
-		this.blockExecutor = processorModule;
+		this._liskBFTAPI = liskBFTAPI;
+		this.blockExecutor = blockExecutor;
 	}
 
 	// eslint-disable-next-line consistent-return
@@ -96,11 +97,12 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	public async isValidFor(): Promise<boolean> {
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
 		const finalizedBlock = await this._chain.dataAccess.getBlockHeaderByHeight(
-			this.bft.finalizedHeight,
+			this.blockExecutor.getFinalizedHeight(),
 		);
-		const finalizedBlockSlot = this._chain.slots.getSlotNumber(finalizedBlock.timestamp);
-		const currentBlockSlot = this._chain.slots.getSlotNumber();
-		const threeRounds = this._chain.numberOfValidators * 3;
+		const validators = await this.blockExecutor.getValidators();
+		const finalizedBlockSlot = this.blockExecutor.getSlotNumber(finalizedBlock.timestamp);
+		const currentBlockSlot = this.blockExecutor.getSlotNumber(Math.floor(Date.now() / 1000));
+		const threeRounds = validators.length * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
 	}
@@ -149,7 +151,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 					if (this._stop) {
 						return;
 					}
-					await this.blockExecutor.validate(block);
+					await this.blockExecutor.verify(block);
 					await this.blockExecutor.executeValidated(block);
 				}
 			} catch (err) {
@@ -190,12 +192,10 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		// Check if the new tip has priority over the last tip we had before applying
-		const forkStatus = this.bft.forkChoice(
-			this._chain.lastBlock.header, // New tip of the chain
-			tipBeforeApplying.header, // Previous tip of the chain
+		const newTipHasPreference = isDifferentChain(
+			this._liskBFTAPI.getBFTHeader(tipBeforeApplying.header),
+			this._liskBFTAPI.getBFTHeader(this._chain.lastBlock.header),
 		);
-
-		const newTipHasPreference = forkStatus === ForkStatus.DIFFERENT_CHAIN;
 
 		if (!newTipHasPreference) {
 			this._logger.debug(
@@ -308,7 +308,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Found common block',
 		);
 
-		if (lastCommonBlock.height < this.bft.finalizedHeight) {
+		if (lastCommonBlock.height < this.blockExecutor.getFinalizedHeight()) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
 				'The last common block height is less than the finalized height of the current chain',
@@ -350,19 +350,18 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = Math.ceil(
-			this._chain.lastBlock.header.height / this._chain.numberOfValidators,
-		); // Holds the current round number
-		let currentHeight = currentRound * this._chain.numberOfValidators;
+		const validators = await this.blockExecutor.getValidators();
+		let currentRound = Math.ceil(this._chain.lastBlock.header.height / validators.length); // Holds the current round number
+		let currentHeight = currentRound * validators.length;
 
 		while (
 			!highestCommonBlock &&
 			numberOfRequests < requestLimit &&
-			currentHeight >= this.bft.finalizedHeight
+			currentHeight >= this.blockExecutor.getFinalizedHeight()
 		) {
 			const heightList = computeBlockHeightsList(
-				this.bft.finalizedHeight,
-				this._chain.numberOfValidators,
+				this.blockExecutor.getFinalizedHeight(),
+				validators.length,
 				blocksPerRequestLimit,
 				currentRound,
 			);
@@ -386,7 +385,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			highestCommonBlock = data; // If no common block, data is undefined.
 
 			currentRound -= blocksPerRequestLimit;
-			currentHeight = currentRound * this._chain.numberOfValidators;
+			currentHeight = currentRound * validators.length;
 		}
 
 		return highestCommonBlock;
@@ -413,11 +412,11 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const { valid: validBlock } = await this._blockDetachedStatus(networkLastBlock);
 
-		const forkStatus = this.bft.forkChoice(networkLastBlock.header, this._chain.lastBlock.header);
-
 		const inDifferentChain =
-			forkStatus === ForkStatus.DIFFERENT_CHAIN ||
-			networkLastBlock.header.id.equals(this._chain.lastBlock.header.id);
+			isDifferentChain(
+				this._liskBFTAPI.getBFTHeader(this._chain.lastBlock.header),
+				this._liskBFTAPI.getBFTHeader(networkLastBlock.header),
+			) || networkLastBlock.header.id.equals(this._chain.lastBlock.header.id);
 		if (!validBlock || !inDifferentChain) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
@@ -438,7 +437,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		networkLastBlock: Block,
 	): Promise<{ valid: boolean; err: Error | null }> {
 		try {
-			await this.blockExecutor.validate(networkLastBlock);
+			await this.blockExecutor.verify(networkLastBlock);
 			return { valid: true, err: null };
 		} catch (err) {
 			return { valid: false, err: err as Error };
@@ -508,23 +507,18 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		// Pick random peer from list
 		const randomPeerIndex = Math.floor(Math.random() * selectedPeers.length);
 		const peersTip = {
-			id: Buffer.alloc(0),
 			height: selectedPeers[randomPeerIndex].options.height,
 			version: selectedPeers[randomPeerIndex].options.blockVersion,
-			previousBlockID: Buffer.alloc(0),
-			asset: {
-				maxHeightPrevoted: selectedPeers[randomPeerIndex].options.maxHeightPrevoted,
-			},
+			maxHeightPrevoted: selectedPeers[randomPeerIndex].options.maxHeightPrevoted,
 		};
 
-		const forkStatus = this.bft.forkChoice(peersTip as BlockHeader, this._chain.lastBlock.header);
-
-		const tipHasPreference = forkStatus === ForkStatus.DIFFERENT_CHAIN;
+		const tipHasPreference = isDifferentChain(
+			this._liskBFTAPI.getBFTHeader(this._chain.lastBlock.header),
+			peersTip,
+		);
 
 		if (!tipHasPreference) {
-			throw new AbortError(
-				`Peer tip does not have preference over current tip. Fork status: ${forkStatus}`,
-			);
+			throw new AbortError('Peer tip does not have preference over current tip.');
 		}
 
 		const bestPeer = selectedPeers[Math.floor(Math.random() * selectedPeers.length)];

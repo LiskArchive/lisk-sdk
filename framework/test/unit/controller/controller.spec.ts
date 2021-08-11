@@ -15,7 +15,7 @@
 import * as childProcess from 'child_process';
 import * as os from 'os';
 import { when } from 'jest-when';
-import { BasePlugin } from '../../../src';
+import { BasePlugin } from '../../../src/plugins/base_plugin';
 
 jest.mock('../../../src/controller/bus');
 jest.mock('../../../src/controller/channels/in_memory_channel');

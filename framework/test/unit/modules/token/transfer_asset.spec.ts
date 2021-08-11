@@ -37,7 +37,7 @@ describe('Transfer asset', () => {
 		};
 		validTransaction = createTransaction({
 			moduleID: 2,
-			assetClass: TransferAsset,
+			CommandClass: TransferAsset,
 			asset,
 			nonce: BigInt(0),
 			fee: BigInt('10000000'),

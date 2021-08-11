@@ -13,16 +13,16 @@
  *
  */
 
-import { Transaction, TransactionInput } from '@liskhq/lisk-chain';
+import { Transaction, TransactionAttrs } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { signTransaction, validateTransaction } from '@liskhq/lisk-transactions';
-import { AssetClass } from './types';
+import { CommandClass } from './types';
 
 interface CreateTransactionInput {
 	moduleID: number;
-	assetClass: AssetClass;
-	asset: Record<string, unknown>;
+	commandClass: CommandClass;
+	params: Record<string, unknown>;
 	nonce?: bigint;
 	fee?: bigint;
 	passphrase?: string;
@@ -31,8 +31,8 @@ interface CreateTransactionInput {
 
 export const createTransaction = ({
 	moduleID,
-	assetClass,
-	asset,
+	commandClass,
+	params,
 	nonce,
 	fee,
 	passphrase,
@@ -40,27 +40,27 @@ export const createTransaction = ({
 }: CreateTransactionInput): Transaction => {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase ?? '');
 	// eslint-disable-next-line new-cap
-	const assetInstance = new assetClass();
-	const assetID = assetInstance.id;
-	const assetBytes = codec.encode(assetInstance.schema, asset);
+	const commandInstance = new commandClass();
+	const commandID = commandInstance.id;
+	const paramsBytes = codec.encode(commandInstance.schema, params);
 
 	const transaction = {
 		moduleID,
-		assetID,
+		commandID,
 		nonce: nonce ?? BigInt(0),
 		fee: fee ?? BigInt(0),
 		senderPublicKey: publicKey,
-		asset,
+		params,
 		signatures: [],
 	};
 
-	const validationErrors = validateTransaction(assetInstance.schema, transaction);
+	const validationErrors = validateTransaction(commandInstance.schema, transaction);
 	if (validationErrors) {
 		throw validationErrors;
 	}
 
 	if (!passphrase) {
-		return new Transaction({ ...transaction, asset: assetBytes });
+		return new Transaction({ ...transaction, params: paramsBytes });
 	}
 
 	if (!networkIdentifier) {
@@ -68,12 +68,12 @@ export const createTransaction = ({
 	}
 
 	const signedTransaction = signTransaction(
-		assetInstance.schema,
+		commandInstance.schema,
 		transaction,
 		networkIdentifier,
 		passphrase,
 	);
 
 	// signTransaction returns type Record<string, unknown> so it must be cast to TransactionInput
-	return new Transaction({ ...signedTransaction, asset: assetBytes } as TransactionInput);
+	return new Transaction({ ...signedTransaction, params: paramsBytes } as TransactionAttrs);
 };

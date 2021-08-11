@@ -15,79 +15,58 @@
 import {
 	getRandomBytes,
 	hash,
-	signDataWithPrivateKey,
 	getPrivateAndPublicKeyFromPassphrase,
+	getAddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
-import {
-	GenesisBlock,
-	Block,
-	BlockHeader,
-	Chain,
-	Transaction,
-	readGenesisBlockJSON,
-	TAG_BLOCK_HEADER,
-} from '@liskhq/lisk-chain';
-import * as genesisBlockJSON from './config/devnet/genesis_block.json';
-import { defaultAccountSchema } from './accounts';
+import { Block, BlockHeader, BlockHeaderAttrs, Transaction } from '@liskhq/lisk-chain';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
 	'hex',
 );
 
-export const genesisBlock = (): GenesisBlock =>
-	readGenesisBlockJSON(genesisBlockJSON, defaultAccountSchema);
+export const genesisBlock = (): Block => {
+	const header = new BlockHeader({
+		generatorAddress: Buffer.alloc(0),
+		assets: [],
+		height: 0,
+		version: 0,
+		previousBlockID: Buffer.alloc(0),
+		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
+		stateRoot: hash(Buffer.alloc(0)),
+		transactionRoot: hash(Buffer.alloc(0)),
+		signature: Buffer.alloc(0),
+	});
+
+	return new Block(header, []);
+};
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
 	return getPrivateAndPublicKeyFromPassphrase(passphrase);
 };
 
-export const encodeValidBlockHeader = (header: BlockHeader): Buffer => {
-	const chain = new Chain({
-		accountSchemas: defaultAccountSchema,
-		genesisBlock: {
-			header: {
-				timestamp: 0,
-			},
-		},
-	} as any);
-	return chain.dataAccess.encodeBlockHeader(header);
-};
-
-export const createFakeBlockHeader = (header?: Partial<BlockHeader>): BlockHeader => {
-	const blockHeader = {
-		id: hash(getRandomBytes(8)),
+export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): BlockHeader =>
+	new BlockHeader({
 		version: 2,
 		timestamp: header?.timestamp ?? 0,
 		height: header?.height ?? 0,
 		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
 		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
-		generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
-		reward: header?.reward ?? BigInt(500000000),
-		asset: header?.asset ?? {
-			maxHeightPreviouslyForged: 0,
-			maxHeightPrevoted: 0,
-			seedReveal: getRandomBytes(16),
-		},
+		stateRoot: header?.stateRoot ?? hash(getRandomBytes(4)),
+		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
+		assets: [],
 		signature: header?.signature ?? getRandomBytes(64),
-	};
-	const id = hash(encodeValidBlockHeader(blockHeader));
-
-	return {
-		...blockHeader,
-		id,
-	};
-};
+	});
 
 /**
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
 export const createValidDefaultBlock = async (
-	block?: { header?: Partial<BlockHeader>; payload?: Transaction[] },
+	block?: { header?: Partial<BlockHeaderAttrs>; payload?: Transaction[] },
 	networkIdentifier: Buffer = defaultNetworkIdentifier,
 ): Promise<Block> => {
 	const keypair = getKeyPair();
@@ -95,64 +74,22 @@ export const createValidDefaultBlock = async (
 	const txTree = new MerkleTree();
 	await txTree.init(payload.map(tx => tx.id));
 
-	const asset = {
-		maxHeightPreviouslyForged: 0,
-		maxHeightPrevoted: 0,
-		seedReveal: getRandomBytes(16),
-		...block?.header?.asset,
-	};
-
-	const blockHeader = createFakeBlockHeader({
+	const blockHeader = new BlockHeader({
 		version: 2,
 		height: 1,
 		previousBlockID: genesisBlock().header.id,
-		reward: BigInt(0),
 		timestamp: 1000,
 		transactionRoot: txTree.root,
-		generatorPublicKey: keypair.publicKey,
+		stateRoot: getRandomBytes(32),
+		generatorAddress: getAddressFromPublicKey(keypair.publicKey),
+		assets: [],
 		...block?.header,
-		asset,
 	});
 
-	const chain = new Chain({
-		accountSchemas: defaultAccountSchema,
-		genesisBlock: {
-			header: {
-				timestamp: 0,
-			},
-		},
-	} as any);
+	blockHeader.sign(networkIdentifier, keypair.privateKey);
 
-	const encodedHeaderWithoutSignature = chain.dataAccess.encodeBlockHeader(blockHeader, true);
-
-	const signature = signDataWithPrivateKey(
-		TAG_BLOCK_HEADER,
-		networkIdentifier,
-		encodedHeaderWithoutSignature,
-		keypair.privateKey,
-	);
-	const header = { ...blockHeader, signature };
-	const encodedHeader = chain.dataAccess.encodeBlockHeader(header);
-	const id = hash(encodedHeader);
-
-	return {
-		header: {
-			...header,
-			asset,
-			id,
-		},
-		payload,
-	};
-};
-
-export const encodeValidBlock = (block: Block | GenesisBlock): Buffer => {
-	const chain = new Chain({
-		accountSchemas: defaultAccountSchema,
-		genesisBlock: {
-			header: {
-				timestamp: 0,
-			},
-		},
-	} as any);
-	return chain.dataAccess.encode(block);
+	// Assigning the id ahead
+	// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+	blockHeader.id;
+	return new Block(blockHeader, payload);
 };

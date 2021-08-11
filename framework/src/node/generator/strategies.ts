@@ -88,12 +88,13 @@ export class HighFeeGenerationStrategy {
 			const txContext = new TransactionContext({
 				eventQueue,
 				logger: this._logger,
-				networkIdentifier: this._chain.constants.networkIdentifier,
+				networkIdentifier: this._chain.networkIdentifier,
 				stateStore,
 				transaction: lowestNonceHighestFeeTrx,
 				header,
 			});
 			stateStore.createSnapshot();
+			eventQueue.createSnapshot();
 			try {
 				const result = await this._stateMachine.verifyTransaction(txContext);
 				if (result.status !== VerifyStatus.OK) {
@@ -104,6 +105,7 @@ export class HighFeeGenerationStrategy {
 				// If transaction can't be processed then discard all transactions
 				// from that account as other transactions will be higher nonce
 				stateStore.restoreSnapshot();
+				eventQueue.restoreSnapshot();
 				transactionsBySender.delete(senderId);
 				continue;
 			}

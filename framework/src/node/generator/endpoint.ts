@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain } from '@liskhq/lisk-chain';
+import { Chain, Transaction } from '@liskhq/lisk-chain';
 import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
 import {
 	decryptPassphraseWithPassword,
@@ -25,7 +25,7 @@ import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
-import { Generator } from '../../types';
+import { Generator, ModuleEndpointContext } from '../../types';
 import {
 	APIContext,
 	EventQueue,
@@ -37,6 +37,7 @@ import { Broadcaster } from './broadcaster';
 import { InvalidTransactionError } from './errors';
 import { GeneratorStore } from './generator_store';
 import {
+	GetForgingStatusResponse,
 	PostTransactionRequest,
 	postTransactionRequestSchema,
 	PostTransactionResponse,
@@ -44,12 +45,13 @@ import {
 	updateForgingStatusRequestSchema,
 	UpdateForgingStatusResponse,
 } from './schemas';
-import { Consensus, Keypair } from './types';
+import { Consensus, Keypair, LiskBFTAPI } from './types';
 
 interface EndpointArgs {
 	keypair: dataStructures.BufferMap<Keypair>;
 	generators: Generator[];
 	consensus: Consensus;
+	liskBFTAPI: LiskBFTAPI;
 	chain: Chain;
 	stateMachine: StateMachine;
 	pool: TransactionPool;
@@ -62,15 +64,12 @@ interface EndpointInit {
 	blockchainDB: KVStore;
 }
 
-interface EndpointContext {
-	params: Record<string, unknown>;
-	logger: Logger;
-}
-
 export class Endpoint {
+	[key: string]: unknown;
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _generators: Generator[];
 	private readonly _consensus: Consensus;
+	private readonly _liskBFTAPI: LiskBFTAPI;
 	private readonly _stateMachine: StateMachine;
 	private readonly _pool: TransactionPool;
 	private readonly _broadcaster: Broadcaster;
@@ -84,6 +83,7 @@ export class Endpoint {
 		this._keypairs = args.keypair;
 		this._generators = args.generators;
 		this._consensus = args.consensus;
+		this._liskBFTAPI = args.liskBFTAPI;
 		this._chain = args.chain;
 		this._stateMachine = args.stateMachine;
 		this._pool = args.pool;
@@ -96,19 +96,17 @@ export class Endpoint {
 		this._blockchainDB = args.blockchainDB;
 	}
 
-	public async postTransaction(ctx: EndpointContext): Promise<PostTransactionResponse> {
+	public async postTransaction(ctx: ModuleEndpointContext): Promise<PostTransactionResponse> {
 		const reqErrors = validator.validate(postTransactionRequestSchema, ctx.params);
 		if (reqErrors?.length) {
 			throw new LiskValidationError(reqErrors);
 		}
 		const req = (ctx.params as unknown) as PostTransactionRequest;
-		const transaction = this._chain.dataAccess.decodeTransaction(
-			Buffer.from(req.transaction, 'hex'),
-		);
+		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
 		const txContext = new TransactionContext({
 			eventQueue: new EventQueue(),
 			logger: this._logger,
-			networkIdentifier: this._chain.constants.networkIdentifier,
+			networkIdentifier: this._chain.networkIdentifier,
 			stateStore: new StateStore(this._blockchainDB),
 			transaction,
 		});
@@ -150,7 +148,28 @@ export class Endpoint {
 		};
 	}
 
-	public async updateForgingStatus(ctx: EndpointContext): Promise<UpdateForgingStatusResponse> {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getForgingStatus(
+		_context: ModuleEndpointContext,
+	): Promise<GetForgingStatusResponse> {
+		const status: GetForgingStatusResponse = [];
+		for (const gen of this._generators) {
+			status.push({
+				address: gen.address,
+				enabled: this._keypairs.has(Buffer.from(gen.address, 'hex')),
+			});
+		}
+		return status;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getTransactionsFromPool(_context: ModuleEndpointContext): Promise<string[]> {
+		return this._pool.getAll().map(tx => tx.getBytes().toString('hex'));
+	}
+
+	public async updateForgingStatus(
+		ctx: ModuleEndpointContext,
+	): Promise<UpdateForgingStatusResponse> {
 		const reqErrors = validator.validate(updateForgingStatusRequestSchema, ctx.params);
 		if (reqErrors?.length) {
 			throw new LiskValidationError(reqErrors);
@@ -198,17 +217,13 @@ export class Endpoint {
 			eventQueue: new EventQueue(),
 		});
 
-		const synced = await this._consensus.isSynced(
-			req.height,
-			req.maxHeightPrevoted,
-			req.maxHeightPreviouslyForged,
-		);
+		const synced = this._consensus.isSynced(req.height, req.maxHeightPrevoted);
 		if (!synced) {
 			throw new Error('Failed to enable forging as the node is not synced to the network.');
 		}
 
 		const generatorStore = new GeneratorStore(this._generatorDB);
-		await this._consensus.verifyGeneratorInfo(apiClient, generatorStore, {
+		await this._liskBFTAPI.verifyGeneratorInfo(apiClient, generatorStore, {
 			...req,
 			address,
 		});

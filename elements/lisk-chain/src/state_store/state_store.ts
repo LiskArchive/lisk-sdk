@@ -14,14 +14,12 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { DB_KEY_STATE_STORE } from '../db_keys';
 import { StateDiff } from '../types';
 import { CacheDB } from './cache_db';
 import { NotFoundError } from './errors';
 import { DatabaseReader, DatabaseWriter } from './types';
 import { copyBuffer } from './utils';
-
-// TODO: Update when other db keys are defined
-export const DB_PREFIX_STATE_STORE = Buffer.from([5]);
 
 export interface IterateOptions {
 	start: Buffer;
@@ -48,7 +46,7 @@ export class StateStore {
 
 	public constructor(db: DatabaseReader, prefix?: Buffer, cache?: CacheDB) {
 		this._db = db;
-		this._prefix = prefix ?? DB_PREFIX_STATE_STORE;
+		this._prefix = prefix ?? DB_KEY_STATE_STORE;
 		this._cache = cache ?? new CacheDB();
 	}
 
@@ -59,7 +57,7 @@ export class StateStore {
 		storePrefixBuffer.writeUInt16BE(storePrefix, 0);
 		const subStore = new StateStore(
 			this._db,
-			Buffer.concat([DB_PREFIX_STATE_STORE, moduleIDBuffer, storePrefixBuffer]),
+			Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer]),
 			this._cache,
 		);
 		return subStore;

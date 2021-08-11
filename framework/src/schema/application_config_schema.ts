@@ -99,6 +99,7 @@ export const applicationConfigSchema = {
 		'network',
 		'plugins',
 		'genesis',
+		'generation',
 	],
 	properties: {
 		label: {
@@ -444,7 +445,7 @@ export const applicationConfigSchema = {
 			},
 			additionalProperties: false,
 		},
-		generator: {
+		generation: {
 			type: 'object',
 			required: ['force', 'waitThreshold', 'delegates', 'modules'],
 			properties: {
@@ -541,7 +542,7 @@ export const applicationConfigSchema = {
 			},
 			modules: {},
 		},
-		generator: {
+		generation: {
 			force: false,
 			waitThreshold: 2,
 			delegates: [],

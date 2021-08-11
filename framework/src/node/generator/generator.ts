@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { Chain, Transaction, BlockHeader } from '@liskhq/lisk-chain';
 import { Block } from '@liskhq/lisk-chain/dist-node/block';
-import { BlockHeader } from '@liskhq/lisk-chain/dist-node/block_header';
 import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -55,13 +54,15 @@ import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
 import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
-import { Consensus, GeneratorModule } from './types';
+import { Consensus, GeneratorModule, LiskBFTAPI, ValidatorAPI } from './types';
 
 interface GeneratorArgs {
 	genesisConfig: GenesisConfig;
 	generationConfig: GenerationConfig;
 	chain: Chain;
 	consensus: Consensus;
+	liskBFTAPI: LiskBFTAPI;
+	validatorAPI: ValidatorAPI;
 	stateMachine: StateMachine;
 	network: Network;
 }
@@ -85,6 +86,8 @@ export class Generator {
 	private readonly _config: GenerationConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
+	private readonly _liskBFTAPI: LiskBFTAPI;
+	private readonly _validatorAPI: ValidatorAPI;
 	private readonly _stateMachine: StateMachine;
 	private readonly _network: Network;
 	private readonly _endpoint: Endpoint;
@@ -110,7 +113,14 @@ export class Generator {
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});
+		if (this._config.waitThreshold >= args.genesisConfig.blockTime) {
+			throw Error(
+				`generation.waitThreshold=${this._config.waitThreshold} is greater or equal to genesisConfig.blockTime=${args.genesisConfig.blockTime}. It impacts the block generation and propagation. Please use a smaller value for generation.waitThreshold`,
+			);
+		}
 		this._chain = args.chain;
+		this._validatorAPI = args.validatorAPI;
+		this._liskBFTAPI = args.liskBFTAPI;
 		this._consensus = args.consensus;
 		this._stateMachine = args.stateMachine;
 		this._network = args.network;
@@ -126,6 +136,7 @@ export class Generator {
 			keypair: this._keypairs,
 			chain: this._chain,
 			consensus: this._consensus,
+			liskBFTAPI: this._liskBFTAPI,
 			broadcaster: this._broadcaster,
 			pool: this._pool,
 			stateMachine: this._stateMachine,
@@ -232,6 +243,10 @@ export class Generator {
 		}
 	}
 
+	public getPooledTransactions(): Transaction[] {
+		return this._pool.getAll() as Transaction[];
+	}
+
 	public onDeleteBlock(block: Block): void {
 		if (block.payload.length) {
 			for (const transaction of block.payload) {
@@ -265,7 +280,7 @@ export class Generator {
 			const txContext = new TransactionContext({
 				eventQueue,
 				logger: this._logger,
-				networkIdentifier: this._chain.constants.networkIdentifier,
+				networkIdentifier: this._chain.networkIdentifier,
 				stateStore,
 				transaction,
 			});
@@ -344,7 +359,7 @@ export class Generator {
 		}
 
 		const transactions = encodedData.transactions.map(transaction =>
-			this._chain.dataAccess.decodeTransaction(transaction),
+			Transaction.fromBytes(transaction),
 		);
 
 		for (const transaction of transactions) {
@@ -365,12 +380,12 @@ export class Generator {
 
 		const MS_IN_A_SEC = 1000;
 		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
-		const currentSlot = this._consensus.getSlotNumber(apiContext, currentTime);
+		const currentSlot = this._validatorAPI.getSlotNumber(apiContext, currentTime);
 
-		const currentSlotTime = this._consensus.getSlotTime(apiContext, currentSlot);
+		const currentSlotTime = this._validatorAPI.getSlotTime(apiContext, currentSlot);
 
 		const { waitThreshold } = this._config;
-		const lastBlockSlot = this._consensus.getSlotNumber(
+		const lastBlockSlot = this._validatorAPI.getSlotNumber(
 			apiContext,
 			this._chain.lastBlock.header.timestamp,
 		);
@@ -380,7 +395,7 @@ export class Generator {
 			return;
 		}
 
-		const generator = await this._consensus.getGenerator(apiContext, currentTime);
+		const generator = await this._validatorAPI.getGenerator(apiContext, currentTime);
 		const validatorKeypair = this._keypairs.get(generator);
 
 		if (validatorKeypair === undefined) {
@@ -436,7 +451,7 @@ export class Generator {
 			generatorStore,
 			header: blockHeader,
 			logger: this._logger,
-			networkIdentifier: this._chain.constants.networkIdentifier,
+			networkIdentifier: this._chain.networkIdentifier,
 			stateStore,
 		});
 
@@ -451,7 +466,7 @@ export class Generator {
 			eventQueue,
 			header: blockHeader,
 			logger: this._logger,
-			networkIdentifier: this._chain.constants.networkIdentifier,
+			networkIdentifier: this._chain.networkIdentifier,
 			stateStore,
 		});
 		await this._stateMachine.beforeExecuteBlock(blockCtx);
@@ -474,7 +489,7 @@ export class Generator {
 		await txTree.init(transactions.map(tx => tx.id));
 		const transactionRoot = txTree.root;
 		blockHeader.transactionRoot = transactionRoot;
-		blockHeader.sign(this._chain.constants.networkIdentifier, keypair.privateKey);
+		blockHeader.sign(this._chain.networkIdentifier, keypair.privateKey);
 
 		const generatedBlock = new Block(blockHeader, transactions);
 

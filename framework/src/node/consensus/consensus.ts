@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import { Block, Chain, GenesisBlock } from '@liskhq/lisk-chain';
+import { Block, Chain, Slots, StateStore } from '@liskhq/lisk-chain';
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { KVStore } from '@liskhq/lisk-db';
-import { BFT, ForkStatus } from '@liskhq/lisk-bft';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../logger';
 import { StateMachine } from '../state_machine/state_machine';
@@ -33,10 +32,12 @@ import { GenesisBlockContext } from '../state_machine/genesis_block_context';
 import { Network } from '../network';
 import { NetworkEndpoint } from './network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
-import { BlockHeader, StateStore } from '../state_machine/types';
+import { BlockHeader } from '../state_machine/types';
 import {
-	EVENT_BLOCK_BROADCAST,
-	EVENT_FORK_DETECTED,
+	CONSENSUS_EVENT_BLOCK_BROADCAST,
+	CONSENSUS_EVENT_BLOCK_DELETE,
+	CONSENSUS_EVENT_BLOCK_NEW,
+	CONSENSUS_EVENT_FORK_DETECTED,
 	NETWORK_EVENT_POST_BLOCK,
 	NETWORK_EVENT_POST_NODE_INFO,
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
@@ -44,13 +45,17 @@ import {
 	NETWORK_RPC_GET_LAST_BLOCK,
 } from './constants';
 import { GenesisConfig } from '../../types';
+import { ValidatorAPI, LiskBFTAPI } from './types';
+import { APIContext } from '../state_machine';
+import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
 	chain: Chain;
 	network: Network;
-	genesisHeight: number;
 	genesisConfig: GenesisConfig;
+	liskBFTAPI: LiskBFTAPI;
+	validatorAPI: ValidatorAPI;
 }
 
 interface InitArgs {
@@ -84,16 +89,16 @@ export class Consensus {
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _mutex: jobHandlers.Mutex;
+	private readonly _validatorAPI: ValidatorAPI;
+	private readonly _liskBFTAPI: LiskBFTAPI;
+	private readonly _genesisConfig: GenesisConfig;
 
 	// init parameters
 	private _logger!: Logger;
-	// private _db!: KVStore;
+	private _db!: KVStore;
 	private _endpoint!: NetworkEndpoint;
 	private _synchronizer!: Synchronizer;
-
-	// TODO: migrate to module
-	private readonly _bft: BFT;
-	private readonly _genesisHeight: number;
+	private _genesisBlockTimestamp?: number;
 
 	private _stop = false;
 
@@ -103,17 +108,14 @@ export class Consensus {
 		this._chain = args.chain;
 		this._network = args.network;
 		this._mutex = new jobHandlers.Mutex();
-		this._genesisHeight = args.genesisHeight;
-		this._bft = new BFT({
-			chain: this._chain,
-			genesisHeight: args.genesisHeight,
-			threshold: args.genesisConfig.bftThreshold,
-		});
+		this._validatorAPI = args.validatorAPI;
+		this._liskBFTAPI = args.liskBFTAPI;
+		this._genesisConfig = args.genesisConfig;
 	}
 
 	public async init(args: InitArgs): Promise<void> {
 		this._logger = args.logger;
-		// this._db = args.db;
+		this._db = args.db;
 		this._endpoint = new NetworkEndpoint({
 			chain: this._chain,
 			logger: this._logger,
@@ -121,14 +123,13 @@ export class Consensus {
 		});
 		const blockExecutor = this._createBlockExecutor();
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
-			bft: this._bft,
 			chain: this._chain,
 			logger: this._logger,
 			network: this._network,
 			blockExecutor,
+			liskBFTAPI: this._liskBFTAPI,
 		});
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
-			bft: this._bft,
 			chain: this._chain,
 			logger: this._logger,
 			network: this._network,
@@ -136,9 +137,9 @@ export class Consensus {
 		});
 		this._synchronizer = new Synchronizer({
 			chainModule: this._chain,
-			bftModule: this._bft,
 			logger: this._logger,
 			blockExecutor,
+			liskBFTAPI: this._liskBFTAPI,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
@@ -167,17 +168,11 @@ export class Consensus {
 			},
 			'Initializing consensus component.',
 		);
-		const genesisExist = await this._chain.genesisBlockExist(
-			(args.genesisBlock as unknown) as GenesisBlock,
-		);
+		const genesisExist = await this._chain.genesisBlockExist(args.genesisBlock);
 		// do init check for block state. We need to load the blockchain
-		const stateStore = await this._chain.newStateStore();
+		const stateStore = new StateStore(this._db);
 		if (!genesisExist) {
-			this._chain.validateGenesisBlockHeader((args.genesisBlock as unknown) as GenesisBlock);
-			await this._chain.applyGenesisBlock(
-				(args.genesisBlock as unknown) as GenesisBlock,
-				stateStore,
-			);
+			this._chain.validateGenesisBlock(args.genesisBlock);
 			const eventQueue = new EventQueue();
 			const ctx = new GenesisBlockContext({
 				eventQueue,
@@ -187,14 +182,10 @@ export class Consensus {
 			});
 			await this._stateMachine.executeGenesisBlock(ctx);
 			// TODO: saveBlock should accept both genesis and normal block
-			await this._chain.saveBlock(
-				(args.genesisBlock as unknown) as Block,
-				stateStore,
-				this._genesisHeight,
-			);
+			await this._chain.saveBlock(args.genesisBlock, stateStore, args.genesisBlock.header.height);
 		}
-		await this._chain.init();
-		await this._bft.init(stateStore);
+		await this._chain.loadLastBlocks(args.genesisBlock);
+		this._genesisBlockTimestamp = args.genesisBlock.header.timestamp;
 		this._logger.info('Consensus component ready.');
 	}
 
@@ -203,7 +194,7 @@ export class Consensus {
 	}
 
 	public finalizedHeight(): number {
-		return this._bft.finalizedHeight;
+		return this._chain.finalizedHeight;
 	}
 
 	public async onBlockReceive(data: unknown, peerId: string): Promise<void> {
@@ -251,7 +242,7 @@ export class Consensus {
 
 		let block: Block;
 		try {
-			block = this._chain.dataAccess.decode(blockBytes);
+			block = Block.fromBytes(blockBytes);
 		} catch (error) {
 			this._logger.warn(
 				{
@@ -300,6 +291,18 @@ export class Consensus {
 		await this._mutex.acquire();
 	}
 
+	public isSynced(height: number, maxHeightPrevoted: number): boolean {
+		const lastBlockHeader = this._chain.lastBlock.header;
+		if (lastBlockHeader.version === 0) {
+			return height <= lastBlockHeader.height && maxHeightPrevoted <= lastBlockHeader.height;
+		}
+		const lastBFTHeader = this._liskBFTAPI.getBFTHeader(lastBlockHeader);
+		return (
+			maxHeightPrevoted < lastBFTHeader.maxHeightPrevoted ||
+			(maxHeightPrevoted === lastBFTHeader.maxHeightPrevoted && height < lastBlockHeader.height)
+		);
+	}
+
 	private async _execute(block: Block, peerID: string): Promise<void> {
 		if (this._stop) {
 			return;
@@ -310,7 +313,15 @@ export class Consensus {
 				'Starting to process block',
 			);
 			const { lastBlock } = this._chain;
-			const forkStatus = this._bft.forkChoice(block.header, lastBlock.header);
+			const forkStatus = forkChoice(
+				block.header,
+				lastBlock.header,
+				new Slots({
+					genesisBlockTimestamp: this._genesisBlockTimestamp ?? 0,
+					interval: this._genesisConfig.blockTime,
+				}),
+				this._liskBFTAPI,
+			);
 
 			if (!forkStatusList.includes(forkStatus)) {
 				this._logger.debug({ status: forkStatus, blockId: block.header.id }, 'Unknown fork status');
@@ -323,7 +334,7 @@ export class Consensus {
 					{ id: block.header.id, height: block.header.height },
 					'Discarding block',
 				);
-				this.events.emit(EVENT_FORK_DETECTED, {
+				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
 				return;
@@ -339,11 +350,11 @@ export class Consensus {
 				this._logger.warn(
 					{
 						id: block.header.id,
-						generatorPublicKey: block.header.generatorPublicKey,
+						generatorAddress: block.header.generatorAddress.toString('hex'),
 					},
 					'Discarding block due to double forging',
 				);
-				this.events.emit(EVENT_FORK_DETECTED, {
+				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
 				return;
@@ -354,7 +365,7 @@ export class Consensus {
 					{ id: block.header.id, height: block.header.height },
 					'Detected different chain to sync',
 				);
-				this.events.emit(EVENT_FORK_DETECTED, {
+				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
 				// Sync requires decoded block
@@ -367,11 +378,11 @@ export class Consensus {
 					{ id: lastBlock.header.id, height: lastBlock.header.height },
 					'Received tie breaking block',
 				);
-				this.events.emit(EVENT_FORK_DETECTED, {
+				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
 
-				await this._validate(block);
+				await this._verify(block);
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
 				try {
@@ -396,13 +407,13 @@ export class Consensus {
 				{ id: block.header.id, height: block.header.height },
 				'Processing valid block',
 			);
-			await this._validate(block);
+			await this._verify(block);
 			await this._executeValidated(block);
 
 			this._network.applyNodeInfo({
 				height: block.header.height,
 				lastBlockID: block.header.id,
-				maxHeightPrevoted: block.header.asset.maxHeightPrevoted,
+				maxHeightPrevoted: 0, // TODO: get maxHeightPrevoted from block assets
 				blockVersion: block.header.version,
 			});
 		});
@@ -415,62 +426,64 @@ export class Consensus {
 			removeFromTempTable?: boolean;
 		} = {},
 	): Promise<Block> {
-		const stateStore = await this._chain.newStateStore();
+		const stateStore = new StateStore(this._db);
 		const eventQueue = new EventQueue();
+		const apiContext = new APIContext({ stateStore, eventQueue });
 		const ctx = new BlockContext({
 			stateStore: (stateStore as unknown) as StateStore,
 			eventQueue,
 			networkIdentifier: Buffer.alloc(0),
 			logger: this._logger,
-			// eslint-disable-next-line
-			header: block.header as any,
+			header: block.header,
 			transactions: block.payload,
 		});
-		await this._chain.verifyBlockHeader(block, stateStore);
-		await this._bft.verifyBlockHeader(block.header, stateStore);
 		await this._stateMachine.verifyBlock(ctx);
 
 		if (!options.skipBroadcast) {
 			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block });
-			this.events.emit(EVENT_BLOCK_BROADCAST, {
+			this.events.emit(CONSENSUS_EVENT_BLOCK_BROADCAST, {
 				block,
 			});
 		}
 		await this._stateMachine.executeBlock(ctx);
 
-		await this._chain.saveBlock(block, stateStore, this._bft.finalizedHeight, {
+		const bftVotes = await this._liskBFTAPI.getBFTVotes(apiContext);
+
+		let { finalizedHeight } = this._chain;
+		if (bftVotes.maxHeightPrecommited > finalizedHeight) {
+			finalizedHeight = bftVotes.maxHeightPrecommited;
+		}
+
+		await this._chain.saveBlock(block, stateStore, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
 
+		this.events.emit(CONSENSUS_EVENT_BLOCK_NEW, block);
 		return block;
 	}
 
-	private async _validate(block: Block): Promise<void> {
+	private async _verify(block: Block): Promise<void> {
 		// If the schema or bytes does not match with version 2, it fails even before this
 		// This is for fail safe, and genesis block does not use this function
 		if (block.header.version !== BLOCK_VERSION) {
 			throw new ApplyPenaltyError(`Block version must be ${BLOCK_VERSION}`);
 		}
 		try {
-			await this._chain.validateBlockHeader(block);
-			if (block.payload.length) {
-				for (const transaction of block.payload) {
-					this._chain.validateTransaction(transaction);
-				}
-			}
+			await this._chain.verifyBlock(block);
 		} catch (error) {
 			throw new ApplyPenaltyError((error as Error).message ?? 'Invalid block to be processed');
 		}
 	}
 
 	private async _deleteBlock(block: Block, saveTempBlock = false): Promise<void> {
-		if (block.header.height <= this._bft.finalizedHeight) {
+		if (block.header.height <= this._chain.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
-		const stateStore = await this._chain.newStateStore(1);
+		const stateStore = new StateStore(this._db);
 		await this._chain.removeBlock(block, stateStore, { saveTempBlock });
+		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
 	}
 
 	private async _deleteLastBlock({ saveTempBlock = false }: DeleteOptions = {}): Promise<void> {
@@ -515,11 +528,18 @@ export class Consensus {
 	}
 
 	private _createBlockExecutor(): BlockExecutor {
+		const apiContext = new APIContext({
+			stateStore: new StateStore(this._db),
+			eventQueue: new EventQueue(),
+		});
 		return {
 			deleteLastBlock: async (options: DeleteOptions = {}) => this._deleteLastBlock(options),
 			executeValidated: async (block: Block, options?: ExecuteOptions) =>
 				this._executeValidated(block, options),
-			validate: async (block: Block) => this._validate(block),
+			verify: async (block: Block) => this._verify(block),
+			getValidators: async () => this._liskBFTAPI.getValidators(apiContext),
+			getSlotNumber: timestamp => this._validatorAPI.getSlotNumber(apiContext, timestamp),
+			getFinalizedHeight: () => this.finalizedHeight(),
 		};
 	}
 }

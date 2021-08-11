@@ -13,9 +13,9 @@
  */
 import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
+import { hash } from '@liskhq/lisk-cryptography';
 import { RawBlock, StateDiff } from '../types';
-import { StateStore } from '../state_store_v1';
+import { StateStore } from '../state_store';
 
 import {
 	DB_KEY_BLOCKS_ID,
@@ -23,10 +23,8 @@ import {
 	DB_KEY_TRANSACTIONS_BLOCK_ID,
 	DB_KEY_TRANSACTIONS_ID,
 	DB_KEY_TEMPBLOCKS_HEIGHT,
-	DB_KEY_ACCOUNTS_ADDRESS,
-	DB_KEY_CHAIN_STATE,
-	DB_KEY_CONSENSUS_STATE,
 	DB_KEY_DIFF_STATE,
+	DB_KEY_FINALIZED_HEIGHT,
 } from '../db_keys';
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
@@ -260,69 +258,6 @@ export class Storage {
 	}
 
 	/*
-		ChainState
-	*/
-	public async getChainState(key: Buffer): Promise<Buffer | undefined> {
-		try {
-			const value = await this._db.get(concatDBKeys(DB_KEY_CHAIN_STATE, key));
-
-			return value;
-		} catch (error) {
-			if (error instanceof NotFoundError) {
-				return undefined;
-			}
-			throw error;
-		}
-	}
-
-	/*
-		ConsensusState
-	*/
-	public async getConsensusState(key: Buffer): Promise<Buffer | undefined> {
-		try {
-			const value = await this._db.get(concatDBKeys(DB_KEY_CONSENSUS_STATE, key));
-
-			return value;
-		} catch (error) {
-			if (error instanceof NotFoundError) {
-				return undefined;
-			}
-			throw error;
-		}
-	}
-
-	/*
-		Accounts
-	*/
-	public async getAccountByAddress(address: Buffer): Promise<Buffer> {
-		const account = await this._db.get(concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, address));
-		return account;
-	}
-
-	public async getAccountsByPublicKey(arrayOfPublicKeys: ReadonlyArray<Buffer>): Promise<Buffer[]> {
-		const addresses = arrayOfPublicKeys.map(getAddressFromPublicKey);
-
-		return this.getAccountsByAddress(addresses);
-	}
-
-	public async getAccountsByAddress(arrayOfAddresses: ReadonlyArray<Buffer>): Promise<Buffer[]> {
-		const accounts = [];
-		for (const address of arrayOfAddresses) {
-			try {
-				const account = await this.getAccountByAddress(address);
-				accounts.push(account);
-			} catch (dbError) {
-				if (dbError instanceof NotFoundError) {
-					continue;
-				}
-				throw dbError;
-			}
-		}
-
-		return accounts;
-	}
-
-	/*
 		Transactions
 	*/
 	public async getTransactionByID(id: Buffer): Promise<Buffer> {
@@ -354,6 +289,11 @@ export class Storage {
 		return this._db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, transactionId));
 	}
 
+	public async getFinalizedHeight(): Promise<number> {
+		const finalizedHeightBytes = await this._db.get(DB_KEY_FINALIZED_HEIGHT);
+		return finalizedHeightBytes.readUInt32BE(0);
+	}
+
 	/*
 		Save Block
 	*/
@@ -381,7 +321,13 @@ export class Storage {
 		if (removeFromTemp) {
 			batch.del(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf));
 		}
-		stateStore.finalize(height, batch);
+		const diff = stateStore.finalize(batch);
+		const encodedDiff = codec.encode(stateDiffSchema, diff);
+		batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)), encodedDiff);
+		const finalizedHeightBytes = Buffer.alloc(4);
+		finalizedHeightBytes.writeUInt32BE(finalizedHeight, 0);
+		batch.put(DB_KEY_FINALIZED_HEIGHT, finalizedHeightBytes);
+
 		await batch.write();
 		await this._cleanUntil(finalizedHeight);
 	}
@@ -429,7 +375,8 @@ export class Storage {
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
 		}
-		stateStore.finalize(height, batch);
+		// ignore diff created while deleting
+		stateStore.finalize(batch);
 
 		// Delete stored diff at particular height
 		batch.del(diffKey);

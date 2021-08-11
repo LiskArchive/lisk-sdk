@@ -13,18 +13,18 @@
  */
 
 import * as assert from 'assert';
-import { BFT } from '@liskhq/lisk-bft';
 import { Chain, Block } from '@liskhq/lisk-chain';
 import { jobHandlers } from '@liskhq/lisk-utils';
 import { BaseSynchronizer } from './base_synchronizer';
 import { Logger } from '../../../logger';
 import { BlockExecutor } from './type';
 import * as utils from './utils';
+import { LiskBFTAPI } from '../types';
 
 interface SynchronizerInput {
 	readonly logger: Logger;
 	readonly chainModule: Chain;
-	readonly bftModule: BFT;
+	readonly liskBFTAPI: LiskBFTAPI;
 	readonly blockExecutor: BlockExecutor;
 	readonly mechanisms: BaseSynchronizer[];
 }
@@ -32,7 +32,7 @@ interface SynchronizerInput {
 export class Synchronizer {
 	protected logger: Logger;
 	private readonly chainModule: Chain;
-	private readonly bftModule: BFT;
+	private readonly _liskBFTAPI: LiskBFTAPI;
 	private readonly _mutex: jobHandlers.Mutex;
 	private readonly blockExecutor: BlockExecutor;
 	private readonly mechanisms: BaseSynchronizer[];
@@ -40,16 +40,16 @@ export class Synchronizer {
 	public constructor({
 		logger,
 		chainModule,
-		bftModule,
 		blockExecutor,
+		liskBFTAPI,
 		mechanisms = [],
 	}: SynchronizerInput) {
 		assert(Array.isArray(mechanisms), 'mechanisms should be an array of mechanisms');
 		this.mechanisms = mechanisms;
 		this.logger = logger;
 		this.chainModule = chainModule;
-		this.bftModule = bftModule;
 		this.blockExecutor = blockExecutor;
+		this._liskBFTAPI = liskBFTAPI;
 
 		this._checkMechanismsInterfaces();
 		this._mutex = new jobHandlers.Mutex();
@@ -62,8 +62,8 @@ export class Synchronizer {
 				await utils.restoreBlocksUponStartup(
 					this.logger,
 					this.chainModule,
-					this.bftModule,
 					this.blockExecutor,
+					this._liskBFTAPI,
 				);
 			} catch (err) {
 				this.logger.error(
@@ -90,7 +90,7 @@ export class Synchronizer {
 			);
 			// Moving to a Different Chain
 			// 1. Step: Validate new tip of chain
-			await this.blockExecutor.validate(receivedBlock);
+			await this.blockExecutor.verify(receivedBlock);
 
 			// Choose the right mechanism to sync
 			const validMechanism = await this._determineSyncMechanism(receivedBlock, peerId);
