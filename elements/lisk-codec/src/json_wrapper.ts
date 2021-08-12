@@ -12,7 +12,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { objects } from '@liskhq/lisk-utils';
 import {
 	BaseTypes,
 	IteratableGenericObject,
@@ -56,7 +55,7 @@ const mappers: mappersInterface = {
 /* eslint-enable @typescript-eslint/explicit-function-return-type */
 
 const findObjectByPath = (message: SchemaProps, pathArr: string[]): SchemaProps | undefined => {
-	let result: SchemaProps = objects.cloneDeep(message);
+	let result: SchemaProps = message;
 	for (let i = 0; i < pathArr.length; i += 1) {
 		if (!result.properties && !result.items) {
 			return undefined;
