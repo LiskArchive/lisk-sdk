@@ -12,7 +12,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { objects } from '@liskhq/lisk-utils';
 import {
 	BaseTypes,
 	IteratableGenericObject,
@@ -56,7 +56,7 @@ const mappers: mappersInterface = {
 /* eslint-enable @typescript-eslint/explicit-function-return-type */
 
 const findObjectByPath = (message: SchemaProps, pathArr: string[]): SchemaProps | undefined => {
-	let result: SchemaProps = message;
+	let result: SchemaProps = objects.cloneDeep(message);
 	for (let i = 0; i < pathArr.length; i += 1) {
 		if (!result.properties && !result.items) {
 			return undefined;
@@ -131,7 +131,9 @@ export const recursiveTypeCast = (
 			} else {
 				for (let i = 0; i < value.length; i += 1) {
 					if (schemaProp === undefined || schemaProp.items === undefined) {
-						throw new Error(`Invalid schema property found. Path: ${dataPath.join(',')}`);
+						delete object[key];
+						dataPath.pop();
+						continue;
 					}
 
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
@@ -144,7 +146,9 @@ export const recursiveTypeCast = (
 			const schemaProp = findObjectByPath(schema, dataPath);
 
 			if (schemaProp === undefined) {
-				throw new Error(`Invalid schema property found. Path: ${dataPath.join(',')}`);
+				delete object[key];
+				dataPath.pop();
+				continue;
 			}
 
 			object[key] = mappers[mode][(schemaProp.dataType as unknown) as string](value);
