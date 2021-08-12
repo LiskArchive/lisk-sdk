@@ -224,11 +224,15 @@ export const calculatePathNodes = (
 		if (siblingLoc) {
 			const siblingIdx = toIndex(siblingLoc.nodeIndex, siblingLoc.layerIndex, height);
 			const siblingHash = tree.get(siblingIdx) ?? copiedSiblingHashes.splice(0, 1)[0];
-			if (isLeft(idx)) {
-				tree.set(parentIdx, generateHash(BRANCH_PREFIX, currentHash, siblingHash));
-			} else {
-				tree.set(parentIdx, generateHash(BRANCH_PREFIX, siblingHash, currentHash));
+			const parentHash = isLeft(idx)
+				? generateHash(BRANCH_PREFIX, currentHash, siblingHash)
+				: generateHash(BRANCH_PREFIX, siblingHash, currentHash);
+			// if parent hash is included in the queryHashes, check if it matches with calculated one
+			const existingParentHash = tree.get(parentIdx);
+			if (existingParentHash !== undefined && !parentHash.equals(existingParentHash)) {
+				throw new Error('Invalid query hashes. Calculated parent hash does not match.');
 			}
+			tree.set(parentIdx, parentHash);
 		} else {
 			parentCache.set(parentIdx, currentHash);
 		}
