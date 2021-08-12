@@ -14,7 +14,7 @@
 
 import { hash } from '../../../lisk-cryptography/dist-node';
 import { LEAF_PREFIX } from './constants';
-import { calculatePathNodes } from './utils';
+import { calculatePathNodes, ROOT_INDEX } from './utils';
 
 export const calculateRootFromUpdateData = (
 	updateData: Buffer[],
@@ -42,6 +42,6 @@ export const calculateRootFromUpdateData = (
 	}
 
 	const calculatedTree = calculatePathNodes(updateHashes, size, indexes, siblingHashes);
-	const calculatedRoot = calculatedTree.get(2); // 2 is the index for root "10"
+	const calculatedRoot = calculatedTree.get(ROOT_INDEX);
 	return calculatedRoot as Buffer;
 };

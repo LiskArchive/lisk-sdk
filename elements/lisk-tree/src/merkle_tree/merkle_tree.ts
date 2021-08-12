@@ -278,6 +278,12 @@ export class MerkleTree {
 
 	public async update(idxs: number[], updateData: ReadonlyArray<Buffer>): Promise<Buffer> {
 		const updateHashes = [];
+		const height = this._getHeight();
+		for (const idx of idxs) {
+			if (idx.toString(2).length !== height + 1) {
+				throw new Error('Updating data must be the leaf.');
+			}
+		}
 		for (const data of updateData) {
 			const leafValueWithoutNodeIndex = Buffer.concat(
 				[LEAF_PREFIX, data],
@@ -289,7 +295,6 @@ export class MerkleTree {
 		const siblingHashes = await this._getSiblingHashes(idxs);
 
 		const calculatedTree = calculatePathNodes(updateHashes, this._size, idxs, siblingHashes);
-		const height = this._getHeight();
 
 		for (const [index, hashedValue] of calculatedTree.entries()) {
 			const loc = getLocation(index, height);
