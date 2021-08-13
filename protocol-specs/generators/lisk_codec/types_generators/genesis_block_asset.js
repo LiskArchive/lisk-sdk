@@ -236,7 +236,7 @@ const generateValidGenesisBlockAssetEncodings = () => {
 		{
 			description: 'Encoding of valid block asset',
 			input: input.validGenesisBlockAsset1,
-			output: { value: validBlockAssetEncoded.toString('hex') },
+			output: { value: validBlockAssetEncoded },
 		},
 	];
 };

@@ -59,12 +59,12 @@ const generateValidBooleanEncodings = () => {
 		{
 			description: 'Encoding of boolean with value true',
 			input: input.booleanTrue,
-			output: { value: booleanTrueEncoded.toString('hex') },
+			output: { value: booleanTrueEncoded },
 		},
 		{
 			description: 'Encoding of boolean with value false',
 			input: input.booleanFalse,
-			output: { value: booleanFalseEncoded.toString('hex') },
+			output: { value: booleanFalseEncoded },
 		},
 	];
 };

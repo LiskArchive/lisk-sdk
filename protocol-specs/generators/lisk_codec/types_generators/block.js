@@ -63,12 +63,12 @@ const generateValidBlockEncodings = () => {
 		{
 			description: 'Encoding of valid block with payload',
 			input: input.validBlock1,
-			output: { value: validBlock1Encoded.toString('hex') },
+			output: { value: validBlock1Encoded },
 		},
 		{
 			description: 'Encoding of valid block block without payload',
 			input: input.validBlock2,
-			output: { value: validBlock2Encoded.toString('hex') },
+			output: { value: validBlock2Encoded },
 		},
 	];
 };

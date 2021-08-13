@@ -57,12 +57,12 @@ const generateValidBlockAssetEncodings = () => {
 		{
 			description: 'Encoding of valid block asset',
 			input: input.validBlockAsset1,
-			output: { value: validBlockAsset1Encoded.toString('hex') },
+			output: { value: validBlockAsset1Encoded },
 		},
 		{
 			description: 'Encoding of valid block asset with zero previously forged',
 			input: input.validBlockAsset2,
-			output: { value: validBlockAsset2Encoded.toString('hex') },
+			output: { value: validBlockAsset2Encoded },
 		},
 	];
 };

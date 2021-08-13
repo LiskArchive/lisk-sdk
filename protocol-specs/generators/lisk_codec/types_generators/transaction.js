@@ -152,22 +152,22 @@ const generateValidTransactionEncodings = () => {
 		{
 			description: 'Encoding of valid base transaction',
 			input: input.validBaseTransaction,
-			output: { value: validBaseTransactionEncoded.toString('hex') },
+			output: { value: validBaseTransactionEncoded },
 		},
 		{
 			description: 'Encoding of valid vote asset',
 			input: input.validVoteAsset,
-			output: { value: validVoteTransactionEncoded.toString('hex') },
+			output: { value: validVoteTransactionEncoded },
 		},
 		{
 			description: 'Encoding of valid multisignature asset',
 			input: input.validMultiSigAsset,
-			output: { value: validMultisigTransactionEncoded.toString('hex') },
+			output: { value: validMultisigTransactionEncoded },
 		},
 		{
 			description: 'Encoding of valid multisignature asset with empty array',
 			input: input.validMultiSigAssetWithEmpty,
-			output: { value: validMultisigTransactionWithEmptyEncoded.toString('hex') },
+			output: { value: validMultisigTransactionWithEmptyEncoded },
 		},
 	];
 };

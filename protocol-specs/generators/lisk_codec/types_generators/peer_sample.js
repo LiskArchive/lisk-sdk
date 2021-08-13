@@ -118,12 +118,12 @@ const generateValidPeerInfoEncodings = () => {
 		{
 			description: 'Encoding of peer info sample',
 			input: input.object,
-			output: { value: objectEncoded.toString('hex') },
+			output: { value: objectEncoded },
 		},
 		{
 			description: 'Encoding of peer info sample with optional property',
 			input: input.objectOptionalProp,
-			output: { value: objectOptionalPropEncoded.toString('hex') },
+			output: { value: objectOptionalPropEncoded },
 		},
 	];
 };

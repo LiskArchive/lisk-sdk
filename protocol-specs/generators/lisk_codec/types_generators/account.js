@@ -197,12 +197,12 @@ const generateValidAccountEncodings = () => {
 		{
 			description: 'Encoding of valid account 1',
 			input: input.validAccount1,
-			output: { value: validAccount1Encoded.toString('hex') },
+			output: { value: validAccount1Encoded },
 		},
 		{
 			description: 'Encoding of valid default account',
 			input: input.validAccount2,
-			output: { value: validAccount2Encoded.toString('hex') },
+			output: { value: validAccount2Encoded },
 		},
 	];
 };

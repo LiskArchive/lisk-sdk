@@ -142,27 +142,27 @@ const generateValidArrayEncodings = () => {
 		{
 			description: 'Encoding of integers array',
 			input: input.ArrayOfIntegers,
-			output: { value: arrayOfIntegersEncoded.toString('hex') },
+			output: { value: arrayOfIntegersEncoded },
 		},
 		{
 			description: 'Encoding of booleans array',
 			input: input.arrayBools,
-			output: { value: arrayBoolsEncoded.toString('hex') },
+			output: { value: arrayBoolsEncoded },
 		},
 		{
 			description: 'Encoding of strings array',
 			input: input.arrayStrings,
-			output: { value: arrayStringsEncoded.toString('hex') },
+			output: { value: arrayStringsEncoded },
 		},
 		{
 			description: 'Encoding of objects array',
 			input: input.arrayObjects,
-			output: { value: arrayOfObjectsEncoded.toString('hex') },
+			output: { value: arrayOfObjectsEncoded },
 		},
 		{
 			description: 'Encoding of empty array',
 			input: input.emptyArray,
-			output: { value: emptyArrayEncoded.toString('hex') },
+			output: { value: emptyArrayEncoded },
 		},
 	];
 };

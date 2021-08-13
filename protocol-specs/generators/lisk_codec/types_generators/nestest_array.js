@@ -143,12 +143,12 @@ const generateValidPeerInfoEncodings = () => {
 		{
 			description: 'Encoding of nested array object sample',
 			input: input.diff,
-			output: { value: objectEncoded.toString('hex') },
+			output: { value: objectEncoded },
 		},
 		{
 			description: 'Encoding of nested array string sample',
 			input: input.diffString,
-			output: { value: objectStringEncoded.toString('hex') },
+			output: { value: objectStringEncoded },
 		},
 	];
 };

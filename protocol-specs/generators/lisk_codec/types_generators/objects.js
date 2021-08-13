@@ -119,12 +119,12 @@ const generateValidObjectEncodings = () => {
 		{
 			description: 'Encoding of object',
 			input: input.object,
-			output: { value: objectEncoded.toString('hex') },
+			output: { value: objectEncoded },
 		},
 		{
 			description: 'Encoding of object with optional property',
 			input: input.objectOptionalProp,
-			output: { value: objectOptionalPropEncoded.toString('hex') },
+			output: { value: objectOptionalPropEncoded },
 		},
 	];
 };

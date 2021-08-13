@@ -92,22 +92,22 @@ const generateValidNumberEncodings = () => {
 		{
 			description: 'Encoding 32 bit unsigned number',
 			input: input.message32,
-			output: { value: numberEncoded32.toString('hex') },
+			output: { value: numberEncoded32 },
 		},
 		{
 			description: 'Encoding 32 bit signed number',
 			input: input.messageSigned32,
-			output: { value: signedNumberEncoded32.toString('hex') },
+			output: { value: signedNumberEncoded32 },
 		},
 		{
 			description: 'Encoding 64 bit unsigned number',
 			input: input.message64,
-			output: { value: numberEncoded64.toString('hex') },
+			output: { value: numberEncoded64 },
 		},
 		{
 			description: 'Encoding 64 bit signed number',
 			input: input.messageSigned64,
-			output: { value: signedNumberEncoded64.toString('hex') },
+			output: { value: signedNumberEncoded64 },
 		},
 	];
 };

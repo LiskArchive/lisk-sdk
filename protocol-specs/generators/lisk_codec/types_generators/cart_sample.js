@@ -122,7 +122,7 @@ const generateCartEncodings = () => {
 				object,
 				schema,
 			},
-			output: { value: objectEncoded.toString('hex') },
+			output: { value: objectEncoded },
 		},
 	];
 };

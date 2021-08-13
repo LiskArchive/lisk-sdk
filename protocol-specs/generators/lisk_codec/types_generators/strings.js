@@ -42,34 +42,34 @@ const generateValidStringEncodings = () => [
 	{
 		description: 'Encoding of string',
 		input: { object: normal, schema },
-		output: stringEncoded.toString('hex'),
+		output: stringEncoded,
 	},
 	{
 		description: 'Encoding of empty string',
 		input: { object: emptyString, schema },
-		output: emptyStringEncoded.toString('hex'),
+		output: emptyStringEncoded,
 	},
 	{
 		description: 'Encoding of some utf symbols string',
 		input: { object: symbols, schema },
-		output: symbolsStringEncoded.toString('hex'),
+		output: symbolsStringEncoded,
 	},
 ];
 
 const generateValidStringDecodings = () => [
 	{
 		description: 'Decoding of string',
-		input: { object: stringEncoded.toString('hex'), schema },
+		input: { object: stringEncoded, schema },
 		output: normal,
 	},
 	{
 		description: 'Encoding of empty string',
-		input: { object: emptyStringEncoded.toString('hex'), schema },
+		input: { object: emptyStringEncoded, schema },
 		output: emptyString,
 	},
 	{
 		description: 'Encoding of some utf symbols string',
-		input: { object: symbolsStringEncoded.toString('hex'), schema },
+		input: { object: symbolsStringEncoded, schema },
 		output: symbols,
 	},
 ];

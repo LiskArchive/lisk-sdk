@@ -60,12 +60,12 @@ const generateValidBytesEncodings = () => {
 		{
 			description: 'Encoding of chunk of bytes',
 			input: input.bytes,
-			output: { value: bytesEncoded.toString('hex') },
+			output: { value: bytesEncoded },
 		},
 		{
 			description: 'Encoding of empty bytes',
 			input: input.emptyBytes,
-			output: { value: emptyBytesEncoded.toString('hex') },
+			output: { value: emptyBytesEncoded },
 		},
 	];
 };

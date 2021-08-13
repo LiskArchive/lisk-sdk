@@ -178,9 +178,9 @@ const accounts = {
 
 const getHexAccount = account => ({
 	...account,
-	address: account.address.toString('hex'),
-	publicKey: account.publicKey.toString('hex'),
-	balance: account.balance.toString(),
+	address: account.address,
+	publicKey: account.publicKey,
+	balance: account.balance,
 });
 
 const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(accounts.forger.passphrase);
@@ -268,10 +268,10 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('hex'),
+			networkIdentifier: networkIdentifier,
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };
@@ -358,10 +358,10 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('hex'),
+			networkIdentifier: networkIdentifier,
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };
@@ -448,10 +448,10 @@ const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('hex'),
+			networkIdentifier: networkIdentifier,
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };

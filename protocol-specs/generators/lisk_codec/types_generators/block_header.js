@@ -114,12 +114,12 @@ const generateValidBlockHeaderEncodings = () => {
 		{
 			description: 'Encoding of valid block header 1',
 			input: input.validBlockHeader1,
-			output: { value: validBlockHeader1Encoded.toString('hex') },
+			output: { value: validBlockHeader1Encoded },
 		},
 		{
 			description: 'Encoding of valid block header 2',
 			input: input.validBlockHeader2,
-			output: { value: validBlockHeader2Encoded.toString('hex') },
+			output: { value: validBlockHeader2Encoded },
 		},
 	];
 };
