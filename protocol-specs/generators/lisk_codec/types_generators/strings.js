@@ -38,40 +38,40 @@ const stringEncoded = String.encode(normal).finish();
 const emptyStringEncoded = String.encode(emptyString).finish();
 const symbolsStringEncoded = String.encode(symbols).finish();
 
-const generateValidStringEncodings = () => [
-	{
-		description: 'Encoding of string',
-		input: { object: normal, schema },
-		output: stringEncoded,
-	},
-	{
-		description: 'Encoding of empty string',
-		input: { object: emptyString, schema },
-		output: emptyStringEncoded,
-	},
-	{
-		description: 'Encoding of some utf symbols string',
-		input: { object: symbols, schema },
-		output: symbolsStringEncoded,
-	},
-];
+module.exports = {
+	validStringsEncodingTestCases: [
+		{
+			description: 'Encoding of string',
+			input: { object: normal, schema },
+			output: stringEncoded,
+		},
+		{
+			description: 'Encoding of empty string',
+			input: { object: emptyString, schema },
+			output: emptyStringEncoded,
+		},
+		{
+			description: 'Encoding of some utf symbols string',
+			input: { object: symbols, schema },
+			output: symbolsStringEncoded,
+		},
+	],
 
-const generateValidStringDecodings = () => [
-	{
-		description: 'Decoding of string',
-		input: { object: stringEncoded, schema },
-		output: normal,
-	},
-	{
-		description: 'Encoding of empty string',
-		input: { object: emptyStringEncoded, schema },
-		output: emptyString,
-	},
-	{
-		description: 'Encoding of some utf symbols string',
-		input: { object: symbolsStringEncoded, schema },
-		output: symbols,
-	},
-];
-
-module.exports = { generateValidStringEncodings, generateValidStringDecodings };
+	validStringsDecodingTestCases: [
+		{
+			description: 'Decoding of string',
+			input: { value: stringEncoded, schema },
+			output: { object: normal },
+		},
+		{
+			description: 'Encoding of empty string',
+			input: { value: emptyStringEncoded, schema },
+			output: { object: emptyString },
+		},
+		{
+			description: 'Encoding of some utf symbols string',
+			input: { value: symbolsStringEncoded, schema },
+			output: { object: symbols },
+		},
+	],
+};

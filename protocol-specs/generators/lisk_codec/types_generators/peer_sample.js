@@ -19,113 +19,84 @@ const prepareProtobuffersObjects = () =>
 
 const { PeerInfo } = prepareProtobuffersObjects();
 
-const generateValidPeerInfoEncodings = () => {
-	const input = {
-		object: {
-			object: {
-				ipAddress: '1.1.1.1',
-				wsPort: 1111,
-				networkIdentifier: 'f8fe7ecc3e29f58f39d8a538f9a35b80b4b6ab9674f0300e25e33ff41274ae32',
-				networkVersion: '2.0',
-				nonce: 'iNIgD0Mb3s/RMaXbs',
-				os: 'darwin',
-				height: 123,
-			},
-			schema: {
-				$id: 'peerInfo',
-				type: 'object',
-				properties: {
-					ipAddress: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-					wsPort: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-					networkIdentifier: {
-						dataType: 'string',
-						fieldNumber: 3,
-					},
-					networkVersion: {
-						dataType: 'string',
-						fieldNumber: 4,
-					},
-					nonce: {
-						dataType: 'string',
-						fieldNumber: 5,
-					},
-					os: {
-						dataType: 'string',
-						fieldNumber: 6,
-					},
-					height: {
-						dataType: 'uint32',
-						fieldNumber: 7,
-					},
-				},
-				required: ['ipAddress', 'wsPort'],
-			},
+const peerInfo = {
+	ipAddress: '1.1.1.1',
+	wsPort: 1111,
+	networkIdentifier: 'f8fe7ecc3e29f58f39d8a538f9a35b80b4b6ab9674f0300e25e33ff41274ae32',
+	networkVersion: '2.0',
+	nonce: 'iNIgD0Mb3s/RMaXbs',
+	os: 'darwin',
+	height: 123,
+};
+const peerInfoSchema = {
+	$id: 'peerInfo',
+	type: 'object',
+	properties: {
+		ipAddress: {
+			dataType: 'string',
+			fieldNumber: 1,
 		},
-		objectOptionalProp: {
-			object: {
-				ipAddress: '1.1.1.1',
-				wsPort: 1111,
-				os: 'darwin',
-			},
-			schema: {
-				$id: 'peerInfo',
-				type: 'object',
-				properties: {
-					ipAddress: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-					wsPort: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-					networkIdentifier: {
-						dataType: 'string',
-						fieldNumber: 3,
-					},
-					networkVersion: {
-						dataType: 'string',
-						fieldNumber: 4,
-					},
-					nonce: {
-						dataType: 'string',
-						fieldNumber: 5,
-					},
-					os: {
-						dataType: 'string',
-						fieldNumber: 6,
-					},
-					height: {
-						dataType: 'uint32',
-						fieldNumber: 7,
-					},
-				},
-				required: ['ipAddress', 'wsPort'],
-			},
+		wsPort: {
+			dataType: 'uint32',
+			fieldNumber: 2,
 		},
-	};
+		networkIdentifier: {
+			dataType: 'string',
+			fieldNumber: 3,
+		},
+		networkVersion: {
+			dataType: 'string',
+			fieldNumber: 4,
+		},
+		nonce: {
+			dataType: 'string',
+			fieldNumber: 5,
+		},
+		os: {
+			dataType: 'string',
+			fieldNumber: 6,
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 7,
+		},
+	},
+	required: ['ipAddress', 'wsPort'],
+};
 
-	const objectEncoded = PeerInfo.encode(input.object.object).finish();
-	const objectOptionalPropEncoded = PeerInfo.encode(input.objectOptionalProp.object).finish();
+const peerInfoWithOptionalProps = {
+	ipAddress: '1.1.1.1',
+	wsPort: 1111,
+	os: 'darwin',
+};
 
-	return [
+const objectEncoded = PeerInfo.encode(peerInfo).finish();
+const objectOptionalPropEncoded = PeerInfo.encode(peerInfoWithOptionalProps).finish();
+
+module.exports = {
+	validPeerInfoEncodingsTestCases: [
 		{
 			description: 'Encoding of peer info sample',
-			input: input.object,
+			input: { object: peerInfo, schema: peerInfoSchema },
 			output: { value: objectEncoded },
 		},
 		{
 			description: 'Encoding of peer info sample with optional property',
-			input: input.objectOptionalProp,
+			input: { object: peerInfoWithOptionalProps, schema: peerInfoSchema },
 			output: { value: objectOptionalPropEncoded },
 		},
-	];
-};
+	],
 
-module.exports = generateValidPeerInfoEncodings;
+	validPeerInfoDecodingsTestCases: [
+		{
+			description: 'Decoding of peer info sample',
+			input: { value: objectEncoded, schema: peerInfoSchema },
+			output: { object: peerInfo },
+		},
+		{
+			description: 'Decoding of peer info sample with optional property',
+			input: { value: objectOptionalPropEncoded, schema: peerInfoSchema },
+			output: { object: peerInfoWithOptionalProps },
+		},
+	],
+};

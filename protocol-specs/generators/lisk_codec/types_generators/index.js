@@ -11,36 +11,36 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-const generateValidBooleanEncodings = require('./booleans');
-const generateValidNumberEncodings = require('./numbers');
-const generateValidBytesEncodings = require('./bytes');
-const generateValidObjectEncodings = require('./objects');
-const generateValidArrayEncodings = require('./arrays');
-const generateValidBlock = require('./block');
-const generateValidGenesisBlock = require('./genesis_block_asset');
-const generateValidBlockHeader = require('./block_header');
-const generateValidBlockAsset = require('./block_asset');
-const generateValidAccount = require('./account');
-const generateValidTransaction = require('./transaction');
-const generateCartEncodings = require('./cart_sample');
-const generatePeerInfoEncodings = require('./peer_sample');
-const generateNestedArrayEncodings = require('./nestest_array');
-const string = require('./strings');
+const booleans = require('./booleans');
+const numbers = require('./numbers');
+const bytes = require('./bytes');
+const objects = require('./objects');
+const block = require('./block');
+const genesisBlockAsset = require('./genesis_block_asset');
+const blockHeader = require('./block_header');
+const transaction = require('./transaction');
+const cartSample = require('./cart_sample');
+const peerSample = require('./peer_sample');
+const nestedArray = require('./nested_array');
+const strings = require('./strings');
+const account = require('./account');
+const arrays = require('./arrays');
+const blockAsset = require('./block_asset');
 
 module.exports = {
-	...string,
-	generateValidBooleanEncodings,
-	generateValidNumberEncodings,
-	generateValidBytesEncodings,
-	generateValidObjectEncodings,
-	generateValidArrayEncodings,
-	generateValidBlock,
-	generateValidGenesisBlock,
-	generateValidBlockHeader,
-	generateValidBlockAsset,
-	generateValidAccount,
-	generateValidTransaction,
-	generateCartEncodings,
-	generatePeerInfoEncodings,
-	generateNestedArrayEncodings,
+	...strings,
+	...account,
+	...arrays,
+	...blockAsset,
+	...blockHeader,
+	...block,
+	...booleans,
+	...bytes,
+	...cartSample,
+	...nestedArray,
+	...genesisBlockAsset,
+	...numbers,
+	...objects,
+	...peerSample,
+	...transaction,
 };
