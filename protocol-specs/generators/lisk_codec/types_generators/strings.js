@@ -19,76 +19,59 @@ const prepareProtobuffersStrings = () =>
 
 const { String } = prepareProtobuffersStrings();
 
-const generateValidStringEncodings = () => {
-	const input = {
-		string: {
-			object: {
-				data: 'Checkout Lisk SDK!',
-			},
-			schema: {
-				$id: 'object7',
-				type: 'object',
-				properties: {
-					data: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-				},
-			},
+const schema = {
+	$id: 'string-schema',
+	type: 'object',
+	properties: {
+		data: {
+			dataType: 'string',
+			fieldNumber: 1,
 		},
-		emptyString: {
-			object: {
-				data: '',
-			},
-			schema: {
-				$id: 'object8',
-				type: 'object',
-				properties: {
-					data: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		symbols: {
-			object: {
-				data: '€.ƒ.‰.Œ.£.©.®.µ.Æ.ü.ý.ø.Ç.¥.ß',
-			},
-			schema: {
-				$id: 'object8',
-				type: 'object',
-				properties: {
-					data: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
-
-	const stringEncoded = String.encode(input.string.object).finish();
-	const emptyStringEncoded = String.encode(input.emptyString.object).finish();
-	const symbolsStringEncoded = String.encode(input.symbols.object).finish();
-
-	return [
-		{
-			description: 'Encoding of string',
-			input: input.string,
-			output: { value: stringEncoded.toString('hex') },
-		},
-		{
-			description: 'Encoding of empty string',
-			input: input.emptyString,
-			output: { value: emptyStringEncoded.toString('hex') },
-		},
-		{
-			description: 'Encoding of some utf symbols string',
-			input: input.symbols,
-			output: { value: symbolsStringEncoded.toString('hex') },
-		},
-	];
+	},
 };
 
-module.exports = generateValidStringEncodings;
+const normal = { data: 'Checkout Lisk SDK!' };
+const emptyString = { data: '' };
+const symbols = { data: '€.ƒ.‰.Œ.£.©.®.µ.Æ.ü.ý.ø.Ç.¥.ß' };
+
+const stringEncoded = String.encode(normal).finish();
+const emptyStringEncoded = String.encode(emptyString).finish();
+const symbolsStringEncoded = String.encode(symbols).finish();
+
+const generateValidStringEncodings = () => [
+	{
+		description: 'Encoding of string',
+		input: { object: normal, schema },
+		output: stringEncoded.toString('hex'),
+	},
+	{
+		description: 'Encoding of empty string',
+		input: { object: emptyString, schema },
+		output: emptyStringEncoded.toString('hex'),
+	},
+	{
+		description: 'Encoding of some utf symbols string',
+		input: { object: symbols, schema },
+		output: symbolsStringEncoded.toString('hex'),
+	},
+];
+
+const generateValidStringDecodings = () => [
+	{
+		description: 'Decoding of string',
+		input: { object: stringEncoded.toString('hex'), schema },
+		output: normal,
+	},
+	{
+		description: 'Encoding of empty string',
+		input: { object: emptyStringEncoded.toString('hex'), schema },
+		output: emptyString,
+	},
+	{
+		description: 'Encoding of some utf symbols string',
+		input: { object: symbolsStringEncoded.toString('hex'), schema },
+		output: symbols,
+	},
+];
+
+module.exports = { generateValidStringEncodings, generateValidStringDecodings };

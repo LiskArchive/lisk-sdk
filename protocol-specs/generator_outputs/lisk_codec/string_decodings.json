@@ -1,18 +1,16 @@
 {
-	"title": "Encondings for string types supported by lisk-codec",
-	"summary": "Examples of encoding strings with lisk-codec",
+	"title": "Decoding for string types supported by lisk-codec",
+	"summary": "Examples of decoding strings with lisk-codec",
 	"config": {
 		"network": "devnet"
 	},
 	"runner": "lisk_codec",
-	"handler": "string_encodings",
+	"handler": "string_decodings",
 	"testCases": [
 		{
-			"description": "Encoding of string",
+			"description": "Decoding of string",
 			"input": {
-				"object": {
-					"data": "Checkout Lisk SDK!"
-				},
+				"object": "0a12436865636b6f7574204c69736b2053444b21",
 				"schema": {
 					"$id": "string-schema",
 					"type": "object",
@@ -24,14 +22,14 @@
 					}
 				}
 			},
-			"output": "0a12436865636b6f7574204c69736b2053444b21"
+			"output": {
+				"data": "Checkout Lisk SDK!"
+			}
 		},
 		{
 			"description": "Encoding of empty string",
 			"input": {
-				"object": {
-					"data": ""
-				},
+				"object": "0a00",
 				"schema": {
 					"$id": "string-schema",
 					"type": "object",
@@ -43,14 +41,14 @@
 					}
 				}
 			},
-			"output": "0a00"
+			"output": {
+				"data": ""
+			}
 		},
 		{
 			"description": "Encoding of some utf symbols string",
 			"input": {
-				"object": {
-					"data": "€.ƒ.‰.Œ.£.©.®.µ.Æ.ü.ý.ø.Ç.¥.ß"
-				},
+				"object": "0a2ee282ac2ec6922ee280b02ec5922ec2a32ec2a92ec2ae2ec2b52ec3862ec3bc2ec3bd2ec3b82ec3872ec2a52ec39f",
 				"schema": {
 					"$id": "string-schema",
 					"type": "object",
@@ -62,7 +60,9 @@
 					}
 				}
 			},
-			"output": "0a2ee282ac2ec6922ee280b02ec5922ec2a32ec2a92ec2ae2ec2b52ec3862ec3bc2ec3bd2ec3b82ec3872ec2a52ec39f"
+			"output": {
+				"data": "€.ƒ.‰.Œ.£.©.®.µ.Æ.ü.ý.ø.Ç.¥.ß"
+			}
 		}
 	]
 }

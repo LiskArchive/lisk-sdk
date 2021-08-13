@@ -50,6 +50,17 @@ const stringEncodingsSuite = () => ({
 	testCases: [...typesGenerators.generateValidStringEncodings()],
 });
 
+const stringDecodingsSuite = () => ({
+	title: 'Decoding for string types supported by lisk-codec',
+	summary: 'Examples of decoding strings with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'string_decodings',
+	testCases: [...typesGenerators.generateValidStringDecodings()],
+});
+
 const bytesEncodingsSuite = () => ({
 	title: 'Encondings for bytes types supported by lisk-codec',
 	summary: 'Examples of encoding bytes with lisk-codec',
@@ -186,6 +197,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	numberEncodingsSuite,
 	booleanEncodingsSuite,
 	stringEncodingsSuite,
+	stringDecodingsSuite,
 	bytesEncodingsSuite,
 	objectEncodingsSuite,
 	arrayEncodingsSuite,

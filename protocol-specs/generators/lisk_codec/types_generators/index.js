@@ -13,7 +13,6 @@
  */
 const generateValidBooleanEncodings = require('./booleans');
 const generateValidNumberEncodings = require('./numbers');
-const generateValidStringEncodings = require('./strings');
 const generateValidBytesEncodings = require('./bytes');
 const generateValidObjectEncodings = require('./objects');
 const generateValidArrayEncodings = require('./arrays');
@@ -26,11 +25,12 @@ const generateValidTransaction = require('./transaction');
 const generateCartEncodings = require('./cart_sample');
 const generatePeerInfoEncodings = require('./peer_sample');
 const generateNestedArrayEncodings = require('./nestest_array');
+const string = require('./strings');
 
 module.exports = {
+	...string,
 	generateValidBooleanEncodings,
 	generateValidNumberEncodings,
-	generateValidStringEncodings,
 	generateValidBytesEncodings,
 	generateValidObjectEncodings,
 	generateValidArrayEncodings,
