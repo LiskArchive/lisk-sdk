@@ -16,6 +16,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { jsonStringify } = require('../utils');
 
 const runGenerator = (generatorName, suiteCreators) => {
 	// eslint-disable-next-line no-restricted-syntax
@@ -30,7 +31,7 @@ const runGenerator = (generatorName, suiteCreators) => {
 
 		const fullPath = `${dirPath}/${suiteResult.handler}.json`;
 
-		fs.writeFileSync(fullPath, `${JSON.stringify(suiteResult, null, '\t')}\n`);
+		fs.writeFileSync(fullPath, `${jsonStringify(suiteResult, '\t')}\n`);
 	}
 };
 
