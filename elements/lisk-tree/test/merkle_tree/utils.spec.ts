@@ -38,7 +38,7 @@ describe('utils', () => {
 					});
 
 					it('should return correct merkle root, appendPath and size', async () => {
-						const previousAppendPath = await partialTree.getAppendPathHashes();
+						const previousAppendPath = await partialTree['_getAppendPathHashes']();
 						const previousSize = partialTree.size;
 						const { root, appendPath, size } = calculateMerkleRoot({
 							value: valueToAppend,
@@ -47,7 +47,7 @@ describe('utils', () => {
 						});
 
 						expect(root).toEqual(fullTree.root);
-						expect(appendPath).toEqual(await fullTree.getAppendPathHashes());
+						expect(appendPath).toEqual(await fullTree['_getAppendPathHashes']());
 						expect(size).toEqual(fullTree.size);
 					});
 				});

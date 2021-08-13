@@ -34,30 +34,17 @@ export const enum NodeSide {
 	LEFT = 0,
 	RIGHT,
 }
-export interface TreeStructure {
-	[key: number]: NodeInfo[];
-}
 
 export interface Proof {
-	readonly siblingHashes: ReadonlyArray<{
-		hash: Buffer;
-		layerIndex: number | undefined;
-		nodeIndex: number | undefined;
-	}>;
-	readonly indexes: ReadonlyArray<{
-		layerIndex: number | undefined;
-		nodeIndex: number | undefined;
-	}>;
+	readonly siblingHashes: ReadonlyArray<Buffer>;
+	readonly idxs: ReadonlyArray<number>;
 	readonly size: number;
 }
 
 export interface NodeLocation {
 	readonly layerIndex: number;
 	readonly nodeIndex: number;
-	readonly side?: NodeSide;
 }
-
-export type VerifyResult = ReadonlyArray<{ hash: Buffer; verified: boolean }>;
 
 export interface Database {
 	get(key: Buffer): Promise<Buffer>;
