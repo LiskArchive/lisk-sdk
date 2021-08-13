@@ -26,6 +26,10 @@ export const calculateRootFromUpdateData = (
 ): Buffer => {
 	const { indexes, size, siblingHashes } = proof;
 
+	if (size === 0 || indexes.length === 0) {
+		throw new Error('Invalid proof.');
+	}
+
 	if (updateData.length !== indexes.length) {
 		throw new Error("Amount of update data doesn't match amount of indexes");
 	}

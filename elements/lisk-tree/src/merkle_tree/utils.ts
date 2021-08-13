@@ -221,9 +221,13 @@ export const getLocation = (index: number, height: number): NodeLocation => {
 		1,
 		serializedIndexBinaryString.length,
 	);
+	const layerIndex = height - indexBinaryString.length;
+	if (layerIndex < 0) {
+		throw new Error(`Invalid index ${index} with height ${height}`);
+	}
 	const location = {
 		nodeIndex: parseInt(indexBinaryString, 2),
-		layerIndex: height - indexBinaryString.length,
+		layerIndex,
 	};
 
 	return location;
