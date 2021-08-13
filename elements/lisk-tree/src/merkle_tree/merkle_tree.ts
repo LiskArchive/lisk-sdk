@@ -14,27 +14,36 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
-import { hash } from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
+import { hash } from '../../../lisk-cryptography/dist-node';
 import {
 	LAYER_INDEX_SIZE,
-	NODE_INDEX_SIZE,
 	NODE_HASH_SIZE,
 	EMPTY_HASH,
 	LEAF_PREFIX,
 	BRANCH_PREFIX,
 	PREFIX_HASH_TO_VALUE,
 	PREFIX_LOC_TO_HASH,
+	NODE_INDEX_SIZE,
 } from './constants';
 import { InMemoryDB } from '../inmemory_db';
 import { PrefixStore } from './prefix_store';
 import { NodeData, NodeInfo, NodeType, NodeSide, Proof, Database } from './types';
 import {
+	calculatePathNodes,
 	generateHash,
 	getBinaryString,
 	isLeaf,
 	getPairLocation,
 	getRightSiblingInfo,
+	toIndex,
+	isLeft,
+	isSameLayer,
+	areSiblings,
+	getLocation,
+	treeSortFn,
+	insertNewIndex,
+	ROOT_INDEX,
 } from './utils';
 
 export class MerkleTree {
@@ -267,11 +276,103 @@ export class MerkleTree {
 		return rightWitness;
 	}
 
+	public async update(idxs: number[], updateData: ReadonlyArray<Buffer>): Promise<Buffer> {
+		const updateHashes = [];
+		const height = this._getHeight();
+		for (const idx of idxs) {
+			if (idx.toString(2).length !== height + 1) {
+				throw new Error('Updating data must be the leaf.');
+			}
+		}
+		for (const data of updateData) {
+			const leafValueWithoutNodeIndex = Buffer.concat(
+				[LEAF_PREFIX, data],
+				LEAF_PREFIX.length + data.length,
+			);
+			const leafHash = hash(leafValueWithoutNodeIndex);
+			updateHashes.push(leafHash);
+		}
+		const siblingHashes = await this._getSiblingHashes(idxs);
+
+		const calculatedTree = calculatePathNodes(updateHashes, this._size, idxs, siblingHashes);
+
+		for (const [index, hashedValue] of calculatedTree.entries()) {
+			const loc = getLocation(index, height);
+			const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
+			nodeIndexBuffer.writeInt32BE(loc.nodeIndex, 0);
+			const prefix = loc.layerIndex === 0 ? LEAF_PREFIX : BRANCH_PREFIX;
+			const value = Buffer.concat(
+				[prefix, nodeIndexBuffer, hashedValue],
+				prefix.length + nodeIndexBuffer.length + hashedValue.length,
+			);
+			await this._hashToValueMap.set(hashedValue, value);
+			await this._locationToHashMap.set(getBinaryString(loc.nodeIndex, height), hashedValue);
+		}
+
+		return calculatedTree.get(ROOT_INDEX) as Buffer;
+	}
+
 	public async toString(): Promise<string> {
 		if (this._size === 0) {
 			return this.root.toString('hex');
 		}
 		return this._printNode(this.root);
+	}
+
+	private async _getSiblingHashes(idxs: number[]): Promise<Buffer[]> {
+		let sortedIdxs: number[] = [...idxs];
+		sortedIdxs.sort(treeSortFn);
+		const siblingHashes: Buffer[] = [];
+		const size = this._size;
+		const height = this._getHeight();
+		while (sortedIdxs.length > 0) {
+			const currentIndex = sortedIdxs[0];
+			// check for next index in case I can use it if: node is left AND there are other indices AND next index is at distance 1 AND it is on the same layer
+			// in that case remove it from the indices
+			if (
+				isLeft(currentIndex) &&
+				sortedIdxs.length > 1 &&
+				isSameLayer(currentIndex, sortedIdxs[1]) &&
+				areSiblings(currentIndex, sortedIdxs[1])
+			) {
+				sortedIdxs = sortedIdxs.slice(2);
+				const parentIndex = currentIndex >> 1;
+				insertNewIndex(sortedIdxs, parentIndex);
+				continue;
+			}
+			const currentNodeLoc = getLocation(currentIndex, height);
+			if (currentNodeLoc.layerIndex === height) {
+				return siblingHashes;
+			}
+			const siblingNode = getRightSiblingInfo(
+				currentNodeLoc.nodeIndex,
+				currentNodeLoc.layerIndex,
+				size,
+			);
+			if (siblingNode) {
+				const siblingIndex = toIndex(siblingNode.nodeIndex, siblingNode.layerIndex, height);
+				const inOriginal = idxs.findIndex(i => i === siblingIndex);
+				if (inOriginal > -1) {
+					sortedIdxs = sortedIdxs.filter(i => i !== currentIndex);
+					const parentIndex = currentIndex >> 1;
+					insertNewIndex(sortedIdxs, parentIndex);
+					continue;
+				}
+
+				const location = getBinaryString(siblingNode.nodeIndex, height - siblingNode.layerIndex);
+				const siblingHash = await this._locationToHashMap.get(location);
+				if (!siblingHash) {
+					throw new Error(
+						`Invalid tree state for ${siblingNode.nodeIndex} ${siblingNode.layerIndex}`,
+					);
+				}
+				siblingHashes.push(siblingHash);
+			}
+			sortedIdxs = sortedIdxs.filter(i => i !== currentIndex);
+			const parentIndex = currentIndex >> 1;
+			insertNewIndex(sortedIdxs, parentIndex);
+		}
+		return siblingHashes;
 	}
 
 	private _getHeight(): number {

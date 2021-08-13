@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,16 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { verifyProof } from './merkle_tree/verify_proof';
-import { calculateRootFromUpdateData } from './merkle_tree/calculate';
-import { MerkleTree } from './merkle_tree/merkle_tree';
-import { calculateMerkleRoot } from './merkle_tree/utils';
-
-export const regularMerkleTree = {
-	verifyProof,
-	calculateRootFromUpdateData,
-	calculateMerkleRoot,
-	MerkleTree,
+export const binarySearch = <T = unknown>(array: T[], callback: (n: T) => boolean) => {
+	let lo = -1;
+	let hi = array.length;
+	while (1 + lo < hi) {
+		const mi = lo + ((hi - lo) >> 1); // eslint-disable-line no-bitwise
+		if (callback(array[mi])) {
+			hi = mi;
+		} else {
+			lo = mi;
+		}
+	}
+	return hi;
 };
-
-export { MerkleTree };

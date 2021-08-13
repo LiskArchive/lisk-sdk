@@ -23,9 +23,9 @@ import {
 	sortByBitmapAndKey,
 	binaryStringToBuffer,
 	bufferToBinaryString,
-	binarySearch,
 	treeSort,
 } from './utils';
+import { binarySearch } from '../utils';
 import { Branch } from './branch';
 import { Empty } from './empty';
 
