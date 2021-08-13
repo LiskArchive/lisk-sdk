@@ -100,11 +100,26 @@ export interface NodeInfo {
 	readonly networkIdentifier: string;
 	readonly lastBlockID: string;
 	readonly height: number;
+	readonly genesisHeight: number;
 	readonly finalizedHeight: number;
 	readonly syncing: boolean;
 	readonly unconfirmedTransactions: number;
 	readonly genesisConfig: GenesisConfig;
 	readonly registeredModules: RegisteredModule[];
+	readonly network: {
+		readonly port: number;
+		readonly hostIp?: string;
+		readonly seedPeers: {
+			readonly ip: string;
+			readonly port: number;
+		}[];
+		readonly blacklistedIPs?: string[];
+		readonly fixedPeers?: string[];
+		readonly whitelistedPeers?: {
+			readonly ip: string;
+			readonly port: number;
+		}[];
+	};
 }
 
 export interface MultiSignatureKeys {
