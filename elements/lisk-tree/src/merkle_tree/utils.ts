@@ -14,6 +14,7 @@
 /* eslint-disable no-bitwise */
 
 import { hash } from '@liskhq/lisk-cryptography';
+import { binarySearch } from '../utils';
 import { BRANCH_PREFIX, LEAF_PREFIX } from './constants';
 import { NodeLocation, NodeSide, MerkleRootInfo } from './types';
 
@@ -44,11 +45,13 @@ export const getLayerStructure = (size: number): number[] => {
 	return structure;
 };
 
-export const getBinaryString = (num: number, length: number): Buffer => {
+export const getHeight = (size: number) => Math.ceil(Math.log2(size)) + 1;
+
+export const getBinaryString = (nodeIndex: number, length: number): Buffer => {
 	if (length === 0) {
 		return Buffer.alloc(0);
 	}
-	let binaryString = num.toString(2);
+	let binaryString = nodeIndex.toString(2);
 	while (binaryString.length < length) {
 		binaryString = `0${binaryString}`;
 	}
@@ -62,6 +65,7 @@ export const getBinary = (num: number, length: number): number[] => {
 	return binaryString.split('').map(d => parseInt(d, 10));
 };
 
+// getRightSiblingInfo returns sibling in the same layer or lower. It will not find the sibling in left top.
 export const getRightSiblingInfo = (
 	nodeIndex: number,
 	layerIndex: number,
@@ -74,7 +78,7 @@ export const getRightSiblingInfo = (
 		siblingNodeIndex <<= 1;
 		siblingLayerIndex -= 1;
 	}
-	if (siblingLayerIndex === 0 && siblingNodeIndex >= size) {
+	if (siblingNodeIndex >= size) {
 		return undefined;
 	}
 	return {
@@ -192,4 +196,113 @@ export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo)
 	const newAppendPath = [currentHash].concat(splicedPath);
 
 	return { root: newRoot, appendPath: newAppendPath, size: size + 1 };
+};
+
+export const isLeft = (index: number): boolean => (index & 1) === 0;
+export const isSameLayer = (index1: number, index2: number) =>
+	index1.toString(2).length === index2.toString(2).length;
+export const areSiblings = (index1: number, index2: number) => (index1 ^ index2) === 1;
+export const treeSortFn = (a: number, b: number) => {
+	if (a.toString(2).length === b.toString(2).length) {
+		return a - b;
+	}
+	return b - a;
+};
+
+export const insertNewIndex = (arr: number[], val: number) => {
+	const insertIndex = binarySearch(arr, n => treeSortFn(val, n) < 0);
+	if (arr[insertIndex] !== val) {
+		arr.splice(insertIndex, 0, val);
+	}
+};
+
+export const getLocation = (index: number, height: number): NodeLocation => {
+	const serializedIndexBinaryString = index.toString(2);
+	const indexBinaryString = serializedIndexBinaryString.substring(
+		1,
+		serializedIndexBinaryString.length,
+	);
+	const layerIndex = height - indexBinaryString.length;
+	if (layerIndex < 0) {
+		throw new Error(`Invalid index ${index} with height ${height}`);
+	}
+	const location = {
+		nodeIndex: parseInt(indexBinaryString, 2),
+		layerIndex,
+	};
+
+	return location;
+};
+
+export const toIndex = (nodeIndex: number, layerIndex: number, height: number): number => {
+	const length = height - layerIndex;
+	if (length <= 0) {
+		throw new Error(`Invalid height ${height} or layer inder ${layerIndex}`);
+	}
+	let binaryString = nodeIndex.toString(2);
+	while (binaryString.length < length) {
+		binaryString = `0${binaryString}`;
+	}
+	return parseInt(`1${binaryString}`, 2);
+};
+
+export const ROOT_INDEX = 2;
+
+export const calculatePathNodes = (
+	queryHashes: Buffer[],
+	size: number,
+	idxs: number[],
+	siblingHashes: Buffer[],
+): Map<number, Buffer> => {
+	const tree = new Map<number, Buffer>();
+	if (queryHashes.length === 0 || idxs.length === 0) {
+		throw new Error('Invalid input. QueryHashes and Indexes must have at least one element.');
+	}
+	if (queryHashes.length !== idxs.length) {
+		throw new Error('Invalid input. QueryHashes and Indexes must match.');
+	}
+	let sortedIdxs = [];
+	for (let i = 0; i < idxs.length; i += 1) {
+		const idx = idxs[i];
+		if (idx === 0) {
+			continue;
+		}
+		const query = queryHashes[i];
+		sortedIdxs.push(idx);
+		tree.set(idx, query);
+	}
+	sortedIdxs.sort(treeSortFn);
+	const height = getHeight(size);
+	const parentCache = new Map<number, Buffer>();
+	while (sortedIdxs.length > 0) {
+		const idx = sortedIdxs[0];
+		if (idx === ROOT_INDEX) {
+			return tree;
+		}
+		const currentHash = tree.get(idx) ?? parentCache.get(idx);
+		const parentIdx = idx >> 1;
+		if (!currentHash) {
+			throw new Error(`Invalid state. Hash for index ${idx} should exist.`);
+		}
+		if (tree.has(parentIdx)) {
+			sortedIdxs = sortedIdxs.slice(1);
+			continue;
+		}
+		const currentLoc = getLocation(idx, height);
+		const siblingLoc = getRightSiblingInfo(currentLoc.nodeIndex, currentLoc.layerIndex, size);
+		if (siblingLoc) {
+			const siblingIdx = toIndex(siblingLoc.nodeIndex, siblingLoc.layerIndex, height);
+			const siblingHash = tree.get(siblingIdx) ?? siblingHashes.splice(0, 1)[0];
+			if (isLeft(idx)) {
+				tree.set(parentIdx, generateHash(BRANCH_PREFIX, currentHash, siblingHash));
+			} else {
+				tree.set(parentIdx, generateHash(BRANCH_PREFIX, siblingHash, currentHash));
+			}
+		} else {
+			parentCache.set(parentIdx, currentHash);
+		}
+		sortedIdxs = sortedIdxs.slice(1);
+		insertNewIndex(sortedIdxs, parentIdx);
+	}
+	return tree;
 };

@@ -37,6 +37,7 @@ export const enum NodeSide {
 export interface TreeStructure {
 	[key: number]: NodeInfo[];
 }
+
 export interface Proof {
 	readonly siblingHashes: ReadonlyArray<{
 		hash: Buffer;
