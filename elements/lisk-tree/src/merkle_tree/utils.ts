@@ -144,8 +144,8 @@ export const treeSortFn = (a: number, b: number) => {
 };
 
 export const insertNewIndex = (arr: number[], val: number) => {
-	const insertIndex = binarySearch(arr, n => treeSortFn(val, n) < 0);
-	if (arr[insertIndex - 1] !== val) {
+	const insertIndex = binarySearch(arr, n => treeSortFn(val, n) <= 0);
+	if (arr[insertIndex] !== val) {
 		arr.splice(insertIndex, 0, val);
 	}
 };
