@@ -85,4 +85,57 @@ describe('toJSON', () => {
 		const res = codec.fromJSON(schema, jsonLikeObject);
 		expect(res).toEqual(jsObject);
 	});
+
+	it('should ignore extra properties', () => {
+		const schema = {
+			$id: '/schema',
+			type: 'object',
+			required: ['rootProp', 'objectValue', 'arrayValue'],
+			properties: {
+				rootProp: {
+					dataType: 'uint64',
+					fieldNumber: 1,
+				},
+				objectValue: {
+					type: 'object',
+					fieldNumber: 2,
+					properties: {
+						objectProp: {
+							dataType: 'uint64',
+							fieldNumber: 1,
+						},
+					},
+				},
+				arrayValue: {
+					type: 'array',
+					fieldNumber: 3,
+					items: {
+						type: 'object',
+						properties: {
+							arrayProp: {
+								dataType: 'uint64',
+								fieldNumber: 1,
+							},
+						},
+					},
+				},
+			},
+		};
+
+		const result = codec.fromJSON(schema, {
+			rootProp: '123',
+			extra3: true,
+			objectValue: { objectProp: '456', extra1: 'my-value', extra2: 'my-value' },
+			arrayValue: [
+				{ arrayProp: '999', extra4: true },
+				{ arrayProp: '879', extra5: 987 },
+			],
+		});
+
+		expect(result).toEqual({
+			rootProp: BigInt(123),
+			objectValue: { objectProp: BigInt(456) },
+			arrayValue: [{ arrayProp: BigInt(999) }, { arrayProp: BigInt(879) }],
+		});
+	});
 });
