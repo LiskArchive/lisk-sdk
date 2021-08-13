@@ -5,16 +5,44 @@
 		"network": "devnet"
 	},
 	"runner": "lisk_codec",
-	"handler": "block_asset_encodings",
+	"handler": "block_asset_decodings",
 	"testCases": [
 		{
-			"description": "Encoding of valid block asset",
+			"description": "Decoding of valid block asset",
 			"input": {
+				"value": "08990810b9ff361a10d59386e0ae435e292fbe0ebcdb954b75",
+				"schema": {
+					"$id": "blockAssetSchema",
+					"type": "object",
+					"properties": {
+						"maxHeightPreviouslyForged": {
+							"dataType": "uint32",
+							"fieldNumber": 1
+						},
+						"maxHeightPrevoted": {
+							"dataType": "uint32",
+							"fieldNumber": 2
+						},
+						"seedReveal": {
+							"dataType": "bytes",
+							"fieldNumber": 3
+						}
+					},
+					"required": ["maxHeightPreviouslyForged", "maxHeightPrevoted", "seedReveal"]
+				}
+			},
+			"output": {
 				"object": {
 					"maxHeightPreviouslyForged": 1049,
 					"maxHeightPrevoted": 901049,
 					"seedReveal": "d59386e0ae435e292fbe0ebcdb954b75"
-				},
+				}
+			}
+		},
+		{
+			"description": "Decoding of valid block asset with zero previously forged",
+			"input": {
+				"value": "08001099081a10eaaf9d4c65cb501c811ef812847a5551",
 				"schema": {
 					"$id": "blockAssetSchema",
 					"type": "object",
@@ -35,37 +63,13 @@
 					"required": ["maxHeightPreviouslyForged", "maxHeightPrevoted", "seedReveal"]
 				}
 			},
-			"output": "08990810b9ff361a10d59386e0ae435e292fbe0ebcdb954b75"
-		},
-		{
-			"description": "Encoding of valid block asset with zero previously forged",
-			"input": {
+			"output": {
 				"object": {
 					"maxHeightPreviouslyForged": 0,
 					"maxHeightPrevoted": 1049,
 					"seedReveal": "eaaf9d4c65cb501c811ef812847a5551"
-				},
-				"schema": {
-					"$id": "blockAssetSchema",
-					"type": "object",
-					"properties": {
-						"maxHeightPreviouslyForged": {
-							"dataType": "uint32",
-							"fieldNumber": 1
-						},
-						"maxHeightPrevoted": {
-							"dataType": "uint32",
-							"fieldNumber": 2
-						},
-						"seedReveal": {
-							"dataType": "bytes",
-							"fieldNumber": 3
-						}
-					},
-					"required": ["maxHeightPreviouslyForged", "maxHeightPrevoted", "seedReveal"]
 				}
-			},
-			"output": "08001099081a10eaaf9d4c65cb501c811ef812847a5551"
+			}
 		}
 	]
 }

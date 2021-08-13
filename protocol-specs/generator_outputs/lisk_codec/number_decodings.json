@@ -5,14 +5,12 @@
 		"network": "devnet"
 	},
 	"runner": "lisk_codec",
-	"handler": "number_encodings",
+	"handler": "number_decodings",
 	"testCases": [
 		{
-			"description": "Encoding 32 bit unsigned number",
+			"description": "Decoding 32 bit unsigned number",
 			"input": {
-				"object": {
-					"number": 10
-				},
+				"value": "080a",
 				"schema": {
 					"$id": "number-schema-uint32",
 					"type": "object",
@@ -25,15 +23,15 @@
 				}
 			},
 			"output": {
-				"value": "080a"
+				"object": {
+					"number": 10
+				}
 			}
 		},
 		{
-			"description": "Encoding 32 bit signed number",
+			"description": "Decoding 32 bit signed number",
 			"input": {
-				"object": {
-					"number": -10
-				},
+				"value": "0813",
 				"schema": {
 					"$id": "number-schema-sint32",
 					"type": "object",
@@ -46,15 +44,15 @@
 				}
 			},
 			"output": {
-				"value": "0813"
+				"object": {
+					"number": -10
+				}
 			}
 		},
 		{
-			"description": "Encoding 64 bit unsigned number",
+			"description": "Decoding 64 bit unsigned number",
 			"input": {
-				"object": {
-					"number": 372036854775807
-				},
+				"value": "08ffffc9a4d9cb54",
 				"schema": {
 					"$id": "number-schema-uint64",
 					"type": "object",
@@ -67,15 +65,15 @@
 				}
 			},
 			"output": {
-				"value": "08ffffc9a4d9cb54"
+				"object": {
+					"number": 372036854775807
+				}
 			}
 		},
 		{
-			"description": "Encoding 64 bit signed number",
+			"description": "Decoding 64 bit signed number",
 			"input": {
-				"object": {
-					"number": -9007199254740991
-				},
+				"value": "08fdffffffffffff1f",
 				"schema": {
 					"$id": "number-schema-sint64",
 					"type": "object",
@@ -88,7 +86,9 @@
 				}
 			},
 			"output": {
-				"value": "08fdffffffffffff1f"
+				"object": {
+					"number": -9007199254740991
+				}
 			}
 		}
 	]

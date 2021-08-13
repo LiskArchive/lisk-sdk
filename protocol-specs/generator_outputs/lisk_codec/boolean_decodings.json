@@ -5,14 +5,12 @@
 		"network": "devnet"
 	},
 	"runner": "lisk_codec",
-	"handler": "boolean_encodings",
+	"handler": "boolean_decodings",
 	"testCases": [
 		{
-			"description": "Encoding of boolean with value true",
+			"description": "Decoding of boolean with value true",
 			"input": {
-				"object": {
-					"state": true
-				},
+				"value": "0801",
 				"schema": {
 					"$id": "object5",
 					"type": "object",
@@ -25,15 +23,15 @@
 				}
 			},
 			"output": {
-				"value": "0801"
+				"object": {
+					"state": true
+				}
 			}
 		},
 		{
-			"description": "Encoding of boolean with value false",
+			"description": "Decoding of boolean with value false",
 			"input": {
-				"object": {
-					"state": false
-				},
+				"value": "0800",
 				"schema": {
 					"$id": "object5",
 					"type": "object",
@@ -46,7 +44,9 @@
 				}
 			},
 			"output": {
-				"value": "0800"
+				"object": {
+					"state": false
+				}
 			}
 		}
 	]

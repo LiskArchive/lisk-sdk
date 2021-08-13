@@ -5,24 +5,12 @@
 		"network": "devnet"
 	},
 	"runner": "lisk_codec",
-	"handler": "objects_encodings",
+	"handler": "objects_decodings",
 	"testCases": [
 		{
-			"description": "Encoding of object",
+			"description": "Decoding of object",
 			"input": {
-				"object": {
-					"address": "e11a11364738225813f86ea85214400e5db08d6e",
-					"balance": 10000000,
-					"isDelegate": true,
-					"name": "delegate",
-					"asset": {
-						"data": "Check out the Lisk SDK now in binary!",
-						"fooBar": {
-							"foo": 9,
-							"bar": 9
-						}
-					}
-				},
+				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220864656c65676174652a2d0a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921120408091009",
 				"objectSchema": {
 					"$id": "object11",
 					"type": "object",
@@ -71,16 +59,25 @@
 				}
 			},
 			"output": {
-				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220864656c65676174652a2d0a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921120408091009"
+				"object": {
+					"address": "e11a11364738225813f86ea85214400e5db08d6e",
+					"balance": 10000000,
+					"isDelegate": true,
+					"name": "delegate",
+					"asset": {
+						"data": "Check out the Lisk SDK now in binary!",
+						"fooBar": {
+							"foo": 9,
+							"bar": 9
+						}
+					}
+				}
 			}
 		},
 		{
-			"description": "Encoding of object with optional property",
+			"description": "Decoding of object with optional property",
 			"input": {
-				"object": {
-					"isActive": true,
-					"value": 1
-				},
+				"value": "08011801",
 				"schema": {
 					"$id": "object12",
 					"type": "object",
@@ -101,7 +98,10 @@
 				}
 			},
 			"output": {
-				"value": "08011801"
+				"object": {
+					"isActive": true,
+					"value": 1
+				}
 			}
 		}
 	]
