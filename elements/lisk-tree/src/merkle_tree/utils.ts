@@ -77,7 +77,7 @@ export const getRightSiblingInfo = (
 		siblingNodeIndex <<= 1;
 		siblingLayerIndex -= 1;
 	}
-	if (siblingLayerIndex === 0 && siblingNodeIndex >= size) {
+	if (siblingNodeIndex >= size) {
 		return undefined;
 	}
 	return {
