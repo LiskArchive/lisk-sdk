@@ -11,31 +11,7 @@
 			"description": "Encoding of chunk of bytes",
 			"input": {
 				"object": {
-					"address": {
-						"type": "Buffer",
-						"data": [
-							225,
-							26,
-							17,
-							54,
-							71,
-							56,
-							34,
-							88,
-							19,
-							248,
-							110,
-							168,
-							82,
-							20,
-							64,
-							14,
-							93,
-							176,
-							141,
-							110
-						]
-					}
+					"address": "e11a11364738225813f86ea85214400e5db08d6e"
 				},
 				"schema": {
 					"$id": "object9",
@@ -56,10 +32,7 @@
 			"description": "Encoding of empty bytes",
 			"input": {
 				"object": {
-					"address": {
-						"type": "Buffer",
-						"data": []
-					}
+					"address": ""
 				},
 				"schema": {
 					"$id": "object10",
