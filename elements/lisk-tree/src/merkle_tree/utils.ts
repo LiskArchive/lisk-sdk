@@ -65,6 +65,7 @@ export const getBinary = (num: number, length: number): number[] => {
 	return binaryString.split('').map(d => parseInt(d, 10));
 };
 
+// getRightSiblingInfo returns sibling in the same layer or lower. It will not find the sibling in left top.
 export const getRightSiblingInfo = (
 	nodeIndex: number,
 	layerIndex: number,
