@@ -96,6 +96,7 @@ describe('FinalityManager', () => {
 
 					finalityManager = new FinalityManager({
 						chain: chainStub,
+						genesisHeight: 0,
 						finalizedHeight: scenario.config.finalizedHeight,
 						threshold: Math.floor((scenario.config.activeDelegates * 2) / 3) + 1,
 					});
@@ -168,7 +169,7 @@ describe('FinalityManager', () => {
 							CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 						);
 						const { ledger } = finalityManager['_decodeVotingLedger'](updatedBftLedgers);
-						const preVoted = finalityManager['_calculateMaxHeightPrevoted'](ledger);
+						const preVoted = finalityManager['_calculateMaxHeightPrevoted'](ledger, 0);
 						expect(preVoted).toEqual(testCase.output.preVotedConfirmedHeight);
 					});
 				}

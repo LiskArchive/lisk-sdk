@@ -30,4 +30,4 @@ lisk generate:plugin httpAPI
 
 ## Learn More
 
-You can learn more in the [documentation](https://lisk.io/documentation/lisk-sdk/index.html).
+You can learn more in the [documentation](https://lisk.com/documentation/lisk-sdk/).

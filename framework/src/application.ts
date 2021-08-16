@@ -120,7 +120,7 @@ export class Application {
 	private _plugins: { [key: string]: InstantiablePlugin };
 	private _channel!: InMemoryChannel;
 
-	private readonly _genesisBlock: Record<string, unknown>;
+	private _genesisBlock!: Record<string, unknown> | undefined;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
@@ -225,7 +225,6 @@ export class Application {
 	}
 
 	public async run(): Promise<void> {
-		Object.freeze(this._genesisBlock);
 		Object.freeze(this.config);
 
 		registerProcessHooks(this);
@@ -252,6 +251,8 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects
 			this._channel = this._initChannel();
@@ -277,6 +278,9 @@ export class Application {
 			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
 
 			this._channel.publish(APP_EVENT_READY);
+			// TODO: Update genesis block to be provided in this function
+			// For now, the memory should be free up
+			delete this._genesisBlock;
 		});
 	}
 

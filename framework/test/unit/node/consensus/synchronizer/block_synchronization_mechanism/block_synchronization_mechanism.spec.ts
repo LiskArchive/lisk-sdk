@@ -95,6 +95,7 @@ describe('block_synchronization_mechanism', () => {
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
+			setConsensusState: jest.fn(),
 			getTempBlocks: jest.fn(),
 			clearTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
@@ -223,6 +224,7 @@ describe('block_synchronization_mechanism', () => {
 			aBlock,
 		];
 
+		const encodedBlocks = requestedBlocks.map(block => encodeValidBlock(block));
 		for (const expectedPeer of peersList.expectedSelection) {
 			const { peerId } = expectedPeer;
 			const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
@@ -237,6 +239,10 @@ describe('block_synchronization_mechanism', () => {
 				.mockResolvedValue({
 					data: highestCommonBlock.getBytes(),
 				} as never);
+
+			when(chainModule.dataAccess.getBlockHeaderByID)
+				.calledWith(highestCommonBlock.id)
+				.mockResolvedValue(highestCommonBlock as never);
 
 			when(networkMock.requestFromPeer)
 				.calledWith({
@@ -546,7 +552,9 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 								data: blockIds,
 							})
-							.mockResolvedValue({ data: undefined } as never);
+							.mockResolvedValue({
+								data: codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+							} as never);
 
 						when(networkMock.requestFromPeer)
 							.calledWith({
@@ -641,6 +649,9 @@ describe('block_synchronization_mechanism', () => {
 							.mockResolvedValue({
 								data: highestCommonBlock.getBytes(),
 							} as never);
+						when(chainModule.dataAccess.getBlockHeaderByID)
+							.calledWith(highestCommonBlock.id)
+							.mockResolvedValue(highestCommonBlock as never);
 
 						when(networkMock.requestFromPeer)
 							.calledWith({

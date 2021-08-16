@@ -37,6 +37,8 @@ interface NodeConstructor {
 }
 
 interface NodeInitInput {
+	readonly dataPath: string;
+	readonly genesisBlockJSON: Record<string, unknown>;
 	readonly logger: Logger;
 	readonly genesisBlock: Block;
 	readonly channel: InMemoryChannel;
@@ -44,6 +46,8 @@ interface NodeInitInput {
 	readonly blockchainDB: KVStore;
 	readonly nodeDB: KVStore;
 }
+
+const compiledGenesisBlockFileName = 'genesis_block_compiled';
 
 export class Node {
 	private readonly _options: NodeOptions;
@@ -277,5 +281,46 @@ export class Node {
 		await this._generator.stop();
 		await this._consensus.stop();
 		this._logger.info('Node cleanup completed');
+	}
+
+	private _readGenesisBlock(
+		genesisBlockJSON: Record<string, unknown>,
+		configPath: string,
+	): GenesisBlock {
+		const compiledGenesisPath = path.join(configPath, compiledGenesisBlockFileName);
+		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(
+			this._registeredAccountSchemas,
+		);
+		const genesisAssetSchema = getRegisteredBlockAssetSchema(schema)[0];
+		// check local file for compiled
+		const compiled = fs.existsSync(compiledGenesisPath);
+		if (compiled) {
+			const genesisBlockBytes = fs.readFileSync(compiledGenesisPath);
+			// cannot use chain yet, so manually decode genesis block
+			const blockHeader = codec.decode<RawBlockHeader>(blockHeaderSchema, genesisBlockBytes);
+			const asset = codec.decode<GenesisBlock['header']['asset']>(
+				genesisAssetSchema,
+				blockHeader.asset,
+			);
+			const id = hash(genesisBlockBytes);
+			return {
+				header: {
+					...blockHeader,
+					asset,
+					id,
+				},
+				payload: [],
+			};
+		}
+		// decode from JSON file and store the encoded genesis block
+		const genesisBlock = readGenesisBlockJSON(genesisBlockJSON, this._registeredAccountSchemas);
+		const assetBytes = codec.encode(genesisAssetSchema, genesisBlock.header.asset);
+		const headerBytes = codec.encode(blockHeaderSchema, {
+			...genesisBlock.header,
+			asset: assetBytes,
+		});
+		fs.writeFileSync(compiledGenesisPath, headerBytes);
+		// encode genesis block and
+		return genesisBlock;
 	}
 }

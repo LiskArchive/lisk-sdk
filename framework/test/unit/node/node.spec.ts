@@ -26,6 +26,7 @@ import {
 } from '../../../src/node/consensus';
 
 jest.mock('@liskhq/lisk-db');
+jest.mock('fs-extra');
 
 class SampleNodeModule extends BaseModule {
 	public endpoint: BaseEndpoint = {

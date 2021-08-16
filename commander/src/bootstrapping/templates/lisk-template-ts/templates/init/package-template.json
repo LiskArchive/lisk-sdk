@@ -98,15 +98,15 @@
 		}
 	},
 	"dependencies": {
-		"@liskhq/lisk-framework-dashboard-plugin": "^0.1.1",
-		"@liskhq/lisk-framework-faucet-plugin": "^0.1.1",
+		"@liskhq/lisk-framework-dashboard-plugin": "^0.1.4",
+		"@liskhq/lisk-framework-faucet-plugin": "^0.1.4",
 		"@oclif/command": "1.8.0",
 		"@oclif/plugin-autocomplete": "0.3.0",
 		"@oclif/plugin-help": "3.2.2",
 		"fs-extra": "9.0.1",
 		"inquirer": "7.3.2",
-		"lisk-commander": "^5.1.2",
-		"lisk-sdk": "^5.1.1",
+		"lisk-commander": "^5.1.5",
+		"lisk-sdk": "^5.1.4",
 		"tar": "6.0.2",
 		"tslib": "1.13.0",
 		"axios": "0.21.1"

@@ -79,6 +79,10 @@ export class Chain {
 		};
 	}
 
+	public get genesisHeight(): number {
+		return this._genesisHeight;
+	}
+
 	public get lastBlock(): Block {
 		if (!this._lastBlock) {
 			throw new Error('Chain has not been initialized');

@@ -86,6 +86,24 @@ export class DataAccess {
 		return BlockHeader.fromBytes(blockHeaderBuffer);
 	}
 
+	public async getRawBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
+		return this._getRawBlockHeaderByID(id);
+	}
+
+	public async blockHeaderExists(id: Buffer): Promise<boolean> {
+		const cachedBlock = this._blocksCache.getByID(id);
+		if (cachedBlock) {
+			return true;
+		}
+		try {
+			// if header does not exist, it will throw not found error
+			await this._storage.getBlockHeaderByID(id);
+			return true;
+		} catch (error) {
+			return false;
+		}
+	}
+
 	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
 	): Promise<BlockHeader[]> {
@@ -152,22 +170,23 @@ export class DataAccess {
 		return BlockHeader.fromBytes(block);
 	}
 
-	public async getHighestCommonBlockHeader(
+	public async getHighestCommonBlockID(
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
-	): Promise<BlockHeader | undefined> {
+	): Promise<Buffer | undefined> {
 		const headers = this._blocksCache.getByIDs(arrayOfBlockIds);
 		headers.sort((a, b) => b.height - a.height);
 		const cachedBlockHeader = headers[0];
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (cachedBlockHeader) {
-			return cachedBlockHeader;
+			return cachedBlockHeader.id;
 		}
 
 		const storageBlockHeaders = [];
 		for (const id of arrayOfBlockIds) {
 			try {
-				const blockHeader = await this.getBlockHeaderByID(id);
+				// it should not decode the asset since it might include the genesis block
+				const blockHeader = await this._getRawBlockHeaderByID(id);
 				storageBlockHeaders.push(blockHeader);
 			} catch (error) {
 				if (!(error instanceof NotFoundError)) {
@@ -177,7 +196,7 @@ export class DataAccess {
 		}
 		storageBlockHeaders.sort((a, b) => b.height - a.height);
 
-		return storageBlockHeaders[0];
+		return storageBlockHeaders[0]?.id;
 	}
 
 	/** End: BlockHeaders */
@@ -304,5 +323,19 @@ export class DataAccess {
 		const header = BlockHeader.fromBytes(block.header);
 		const transactions = block.payload.map(txBytes => Transaction.fromBytes(txBytes));
 		return new Block(header, transactions);
+	}
+
+	private async _getRawBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
+		const cachedBlock = this._blocksCache.getByID(id);
+
+		if (cachedBlock) {
+			return cachedBlock;
+		}
+		const blockHeaderBuffer = await this._storage.getBlockHeaderByID(id);
+
+		return {
+			...codec.decode(blockHeaderSchema, blockHeaderBuffer),
+			id,
+		};
 	}
 }

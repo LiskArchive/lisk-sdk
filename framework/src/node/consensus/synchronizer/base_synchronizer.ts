@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../logger';
 import { ApplyPenaltyAndRestartError, ApplyPenaltyAndAbortError } from './errors';
@@ -68,11 +69,13 @@ export abstract class BaseSynchronizer {
 			peerId,
 			data: blockIds,
 		})) as {
-			data: Buffer | undefined;
+			data: Buffer;
 		};
 
-		if (!data || !data.length) {
-			throw new ApplyPenaltyAndAbortError(peerId, 'Peer did not return a common block');
+		const decodedResp = codec.decode<{ id: Buffer }>(getHighestCommonBlockResponseSchema, data);
+		const errors = validator.validate(getHighestCommonBlockResponseSchema, decodedResp);
+		if (errors.length) {
+			throw new ApplyPenaltyAndAbortError(peerId, 'Invalid common block response format');
 		}
 		return BlockHeader.fromBytes(data);
 	}
