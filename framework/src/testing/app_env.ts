@@ -111,6 +111,7 @@ export class ApplicationEnv {
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
 		const { genesisBlockJSON } = createGenesisBlock({});
+		this._genesisBlock = genesisBlockJSON;
 		// In order for application to start forging, update force to true
 		const config = objects.mergeDeep({}, defaultConfig, appConfig.config ?? {});
 		const { label } = config;

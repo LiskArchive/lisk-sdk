@@ -21,6 +21,8 @@ import {
 	getBlocksFromIdRequestSchema,
 	getHighestCommonBlockRequestSchema,
 	getBlocksFromIdResponseSchema,
+	getHighestCommonBlockResponseSchema,
+	RPCHighestCommonBlockResponse,
 } from '../schema';
 import { Network } from '../../network';
 import {
@@ -72,12 +74,15 @@ export abstract class BaseSynchronizer {
 			data: Buffer;
 		};
 
-		const decodedResp = codec.decode<{ id: Buffer }>(getHighestCommonBlockResponseSchema, data);
+		const decodedResp = codec.decode<RPCHighestCommonBlockResponse>(
+			getHighestCommonBlockResponseSchema,
+			data,
+		);
 		const errors = validator.validate(getHighestCommonBlockResponseSchema, decodedResp);
 		if (errors.length) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Invalid common block response format');
 		}
-		return BlockHeader.fromBytes(data);
+		return this._chain.dataAccess.getBlockHeaderByID(decodedResp.id);
 	}
 
 	protected async _getBlocksFromNetwork(peerId: string, fromID: Buffer): Promise<Block[]> {

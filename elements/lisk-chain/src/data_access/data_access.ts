@@ -86,10 +86,6 @@ export class DataAccess {
 		return BlockHeader.fromBytes(blockHeaderBuffer);
 	}
 
-	public async getRawBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
-		return this._getRawBlockHeaderByID(id);
-	}
-
 	public async blockHeaderExists(id: Buffer): Promise<boolean> {
 		const cachedBlock = this._blocksCache.getByID(id);
 		if (cachedBlock) {
@@ -186,7 +182,7 @@ export class DataAccess {
 		for (const id of arrayOfBlockIds) {
 			try {
 				// it should not decode the asset since it might include the genesis block
-				const blockHeader = await this._getRawBlockHeaderByID(id);
+				const blockHeader = await this.getBlockHeaderByID(id);
 				storageBlockHeaders.push(blockHeader);
 			} catch (error) {
 				if (!(error instanceof NotFoundError)) {
@@ -323,19 +319,5 @@ export class DataAccess {
 		const header = BlockHeader.fromBytes(block.header);
 		const transactions = block.payload.map(txBytes => Transaction.fromBytes(txBytes));
 		return new Block(header, transactions);
-	}
-
-	private async _getRawBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
-		const cachedBlock = this._blocksCache.getByID(id);
-
-		if (cachedBlock) {
-			return cachedBlock;
-		}
-		const blockHeaderBuffer = await this._storage.getBlockHeaderByID(id);
-
-		return {
-			...codec.decode(blockHeaderSchema, blockHeaderBuffer),
-			id,
-		};
 	}
 }

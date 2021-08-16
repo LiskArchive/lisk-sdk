@@ -251,8 +251,6 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
-		const dirs = systemDirs(this.config.label, this.config.rootPath);
-
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects
 			this._channel = this._initChannel();
@@ -260,6 +258,10 @@ export class Application {
 			this._controller = this._initController();
 
 			await this._controller.load();
+
+			if (!this._genesisBlock) {
+				throw new Error('Genesis block must exist.');
+			}
 
 			const genesisBlock = Block.fromJSON(this._genesisBlock);
 

@@ -31,10 +31,6 @@ export const getBlocksFromIdRequestSchema = {
 	},
 };
 
-export interface RPCHighestCommonBlockData {
-	readonly ids: Buffer[];
-}
-
 export const getBlocksFromIdResponseSchema = {
 	$id: 'lisk/getBlocksFromIdResponse',
 	title: 'Get Blocks From Id Response',
@@ -70,6 +66,10 @@ export const getHighestCommonBlockRequestSchema = {
 	},
 };
 
+export interface RPCHighestCommonBlockRequest {
+	readonly ids: Buffer[];
+}
+
 export const getHighestCommonBlockResponseSchema = {
 	$id: 'lisk/getHighestCommonBlockResponse',
 	title: 'Get Highest Common Block Response',
@@ -84,6 +84,10 @@ export const getHighestCommonBlockResponseSchema = {
 		},
 	},
 };
+
+export interface RPCHighestCommonBlockResponse {
+	readonly id: Buffer;
+}
 
 export interface EventPostBlockData {
 	readonly block: Buffer;

@@ -32,6 +32,7 @@ import {
 import { peersList } from './peers';
 import {
 	getHighestCommonBlockRequestSchema,
+	getHighestCommonBlockResponseSchema,
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
 } from '../../../../../../src/node/consensus/schema';
@@ -224,7 +225,6 @@ describe('block_synchronization_mechanism', () => {
 			aBlock,
 		];
 
-		const encodedBlocks = requestedBlocks.map(block => encodeValidBlock(block));
 		for (const expectedPeer of peersList.expectedSelection) {
 			const { peerId } = expectedPeer;
 			const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
@@ -237,7 +237,7 @@ describe('block_synchronization_mechanism', () => {
 					data: blockIds,
 				})
 				.mockResolvedValue({
-					data: highestCommonBlock.getBytes(),
+					data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 				} as never);
 
 			when(chainModule.dataAccess.getBlockHeaderByID)
@@ -647,7 +647,9 @@ describe('block_synchronization_mechanism', () => {
 								data: blockIds,
 							})
 							.mockResolvedValue({
-								data: highestCommonBlock.getBytes(),
+								data: codec.encode(getHighestCommonBlockResponseSchema, {
+									id: highestCommonBlock.id,
+								}),
 							} as never);
 						when(chainModule.dataAccess.getBlockHeaderByID)
 							.calledWith(highestCommonBlock.id)

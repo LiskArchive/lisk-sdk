@@ -19,6 +19,7 @@ import { NetworkEndpoint } from '../../../../src/node/consensus/network_endpoint
 import {
 	getBlocksFromIdRequestSchema,
 	getHighestCommonBlockRequestSchema,
+	getHighestCommonBlockResponseSchema,
 } from '../../../../src/node/consensus/schema';
 import { Network } from '../../../../src/node/network';
 import { loggerMock } from '../../../../src/testing/mocks';
@@ -42,7 +43,7 @@ describe('p2p endpoint', () => {
 				encode: jest.fn().mockReturnValue(lastBlock.getBytes()),
 				getBlockHeaderByID: jest.fn().mockResolvedValue({ height: 2 }),
 				getBlocksByHeightBetween: jest.fn().mockResolvedValue([lastBlock, nextBlock]),
-				getHighestCommonBlockHeader: jest.fn(),
+				getHighestCommonBlockID: jest.fn(),
 				encodeBlockHeader: jest.fn().mockReturnValue(lastBlock.header.getBytes()),
 			},
 			lastBlock,
@@ -166,7 +167,7 @@ describe('p2p endpoint', () => {
 
 		describe('when commonBlock has not been found', () => {
 			beforeEach(() => {
-				(chain.dataAccess.getHighestCommonBlockHeader as jest.Mock).mockResolvedValue(undefined);
+				(chain.dataAccess.getHighestCommonBlockID as jest.Mock).mockResolvedValue(undefined);
 			});
 
 			it('should return null', async () => {
@@ -178,8 +179,10 @@ describe('p2p endpoint', () => {
 				const result = await endpoint.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId);
 
 				// Assert
-				expect(chain.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(ids);
-				expect(result).toBeUndefined();
+				expect(chain.dataAccess.getHighestCommonBlockID).toHaveBeenCalledWith(ids);
+				expect(result).toEqual(
+					codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+				);
 			});
 		});
 
@@ -188,8 +191,8 @@ describe('p2p endpoint', () => {
 
 			beforeEach(async () => {
 				validBlock = await createValidDefaultBlock();
-				(chain.dataAccess.getHighestCommonBlockHeader as jest.Mock).mockResolvedValue(
-					validBlock.header,
+				(chain.dataAccess.getHighestCommonBlockID as jest.Mock).mockResolvedValue(
+					validBlock.header.id,
 				);
 			});
 
@@ -202,8 +205,10 @@ describe('p2p endpoint', () => {
 				const result = await endpoint.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId);
 
 				// Assert
-				expect(chain.dataAccess.getHighestCommonBlockHeader).toHaveBeenCalledWith(ids);
-				expect(result).toEqual(validBlock.header.getBytes());
+				expect(chain.dataAccess.getHighestCommonBlockID).toHaveBeenCalledWith(ids);
+				expect(result).toEqual(
+					codec.encode(getHighestCommonBlockResponseSchema, { id: validBlock.header.id }),
+				);
 			});
 		});
 	});

@@ -27,8 +27,9 @@ import {
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
 	getHighestCommonBlockRequestSchema,
+	getHighestCommonBlockResponseSchema,
 	RPCBlocksByIdData,
-	RPCHighestCommonBlockData,
+	RPCHighestCommonBlockRequest,
 } from './schema';
 
 interface EndpointArgs {
@@ -136,7 +137,7 @@ export class NetworkEndpoint {
 			peerId,
 			DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY,
 		);
-		const blockIds = codec.decode<RPCHighestCommonBlockData>(
+		const blockIds = codec.decode<RPCHighestCommonBlockRequest>(
 			getHighestCommonBlockRequestSchema,
 			data as never,
 		);
@@ -159,11 +160,11 @@ export class NetworkEndpoint {
 			throw error;
 		}
 
-		const commonBlockHeader = await this._chain.dataAccess.getHighestCommonBlockHeader(
-			blockIds.ids,
-		);
+		const commonBlockHeaderID = await this._chain.dataAccess.getHighestCommonBlockID(blockIds.ids);
 
-		return commonBlockHeader ? commonBlockHeader.getBytes() : undefined;
+		return codec.encode(getHighestCommonBlockResponseSchema, {
+			id: commonBlockHeaderID ?? Buffer.alloc(0),
+		});
 	}
 
 	private _addRateLimit(procedure: string, peerId: string, limit: number): void {

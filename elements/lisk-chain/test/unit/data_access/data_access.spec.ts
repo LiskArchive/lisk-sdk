@@ -275,38 +275,33 @@ describe('data_access', () => {
 
 		it('should get the block with highest height from provided ids parameter', async () => {
 			// Arrange
-			const ids = [Buffer.from('1'), Buffer.from('2')];
-			jest
-				.spyOn<any, any>(dataAccess, '_getRawBlockHeaderByID')
-				.mockImplementation(async (id: any) => {
-					if (id.equals(ids[0])) {
-						return Promise.resolve({
-							...encodeDefaultBlockHeader(block.header),
-							id: ids[0],
-						}) as Promise<any>;
-					}
-					throw new NotFoundError('data not found');
-				});
+			const headers = [createFakeBlockHeader(), createFakeBlockHeader()];
+			jest.spyOn<any, any>(dataAccess, 'getBlockHeaderByID').mockImplementation(async (id: any) => {
+				if (id.equals(headers[0].id)) {
+					return Promise.resolve(headers[0]);
+				}
+				throw new NotFoundError('data not found');
+			});
 
 			// Act
-			const result = await dataAccess.getHighestCommonBlockID(ids);
+			const result = await dataAccess.getHighestCommonBlockID(headers.map(h => h.id));
 
 			// Assert
-			expect(dataAccess['_getRawBlockHeaderByID']).toHaveBeenCalledWith(ids[0]);
-			expect(dataAccess['_getRawBlockHeaderByID']).toHaveBeenCalledWith(ids[1]);
-			expect(result).toEqual(ids[0]);
+			expect(dataAccess['getBlockHeaderByID']).toHaveBeenCalledWith(headers[0].id);
+			expect(dataAccess['getBlockHeaderByID']).toHaveBeenCalledWith(headers[1].id);
+			expect(result).toEqual(headers[0].id);
 		});
 
 		it('should not throw error if unable to get blocks from the storage', async () => {
 			// Arrange
 			const ids = [Buffer.from('1'), Buffer.from('2')];
 			jest
-				.spyOn<any, any>(dataAccess, '_getRawBlockHeaderByID')
+				.spyOn<any, any>(dataAccess, 'getBlockHeaderByID')
 				.mockRejectedValue(new NotFoundError('data not found'));
 			// Act && Assert
 			const result = await dataAccess.getHighestCommonBlockID(ids);
-			expect(dataAccess['_getRawBlockHeaderByID']).toHaveBeenCalledWith(ids[0]);
-			expect(dataAccess['_getRawBlockHeaderByID']).toHaveBeenCalledWith(ids[1]);
+			expect(dataAccess['getBlockHeaderByID']).toHaveBeenCalledWith(ids[0]);
+			expect(dataAccess['getBlockHeaderByID']).toHaveBeenCalledWith(ids[1]);
 			expect(result).toBeUndefined();
 		});
 	});
