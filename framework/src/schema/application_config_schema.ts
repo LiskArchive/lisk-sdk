@@ -370,8 +370,8 @@ export const applicationConfigSchema = {
 					properties: {
 						host: { type: 'string' },
 						port: { type: 'number', minimum: 1024, maximum: 65535 },
-					}
-				}
+					},
+				},
 			},
 		},
 	},
