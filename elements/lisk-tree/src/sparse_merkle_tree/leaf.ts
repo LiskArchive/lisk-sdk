@@ -12,16 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { leafHash } from './utils';
+import { hash } from '@liskhq/lisk-cryptography';
+import { leafData } from './utils';
 
 export class Leaf {
 	private readonly _key: Buffer;
 	private _value: Buffer;
 	private _hash: Buffer;
+	private _data: Buffer;
+
 	public constructor(key: Buffer, value: Buffer) {
 		this._key = key;
 		this._value = value;
-		this._hash = leafHash(this._key, this._value);
+		this._data = leafData(this._key, this._value);
+		this._hash = hash(this._data);
 	}
 
 	public get hash() {
@@ -33,8 +37,13 @@ export class Leaf {
 	public get value() {
 		return this._value;
 	}
+	public get data() {
+		return this._data;
+	}
+
 	public update(newValue: Buffer) {
 		this._value = newValue;
-		this._hash = leafHash(this._key, this._value);
+		this._data = leafData(this._key, this._value);
+		this._hash = hash(this._data);
 	}
 }

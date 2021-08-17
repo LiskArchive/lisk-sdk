@@ -32,6 +32,7 @@ import {
 import { peersList } from './peers';
 import {
 	getHighestCommonBlockRequestSchema,
+	getHighestCommonBlockResponseSchema,
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
 } from '../../../../../../src/node/consensus/schema';
@@ -95,6 +96,7 @@ describe('block_synchronization_mechanism', () => {
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
+			setConsensusState: jest.fn(),
 			getTempBlocks: jest.fn(),
 			clearTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
@@ -235,8 +237,12 @@ describe('block_synchronization_mechanism', () => {
 					data: blockIds,
 				})
 				.mockResolvedValue({
-					data: highestCommonBlock.getBytes(),
+					data: codec.encode(getHighestCommonBlockResponseSchema, { id: highestCommonBlock.id }),
 				} as never);
+
+			when(chainModule.dataAccess.getBlockHeaderByID)
+				.calledWith(highestCommonBlock.id)
+				.mockResolvedValue(highestCommonBlock as never);
 
 			when(networkMock.requestFromPeer)
 				.calledWith({
@@ -546,7 +552,9 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 								data: blockIds,
 							})
-							.mockResolvedValue({ data: undefined } as never);
+							.mockResolvedValue({
+								data: codec.encode(getHighestCommonBlockResponseSchema, { id: Buffer.alloc(0) }),
+							} as never);
 
 						when(networkMock.requestFromPeer)
 							.calledWith({
@@ -639,8 +647,13 @@ describe('block_synchronization_mechanism', () => {
 								data: blockIds,
 							})
 							.mockResolvedValue({
-								data: highestCommonBlock.getBytes(),
+								data: codec.encode(getHighestCommonBlockResponseSchema, {
+									id: highestCommonBlock.id,
+								}),
 							} as never);
+						when(chainModule.dataAccess.getBlockHeaderByID)
+							.calledWith(highestCommonBlock.id)
+							.mockResolvedValue(highestCommonBlock as never);
 
 						when(networkMock.requestFromPeer)
 							.calledWith({

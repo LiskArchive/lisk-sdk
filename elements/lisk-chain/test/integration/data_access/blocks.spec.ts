@@ -250,13 +250,13 @@ describe('dataAccess.blocks', () => {
 	});
 
 	describe('getLastCommonBlockHeader', () => {
-		it('should return highest block header which exist in the list and non-existent should not throw', async () => {
-			const header = await dataAccess.getHighestCommonBlockHeader([
+		it('should return highest block header id which exist in the list and non-existent should not throw', async () => {
+			const commonBlockID = await dataAccess.getHighestCommonBlockID([
 				blocks[3].header.id,
 				Buffer.from('random-id'),
 				blocks[1].header.id,
 			]);
-			expect(header?.toObject()).toEqual(blocks[3].header.toObject());
+			expect(commonBlockID).toEqual(blocks[3].header.id);
 		});
 	});
 

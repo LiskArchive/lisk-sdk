@@ -122,13 +122,16 @@ export class FinalityManager extends EventEmitter {
 
 	public finalizedHeight: number;
 	private readonly _chain: Chain;
+	private readonly _genesisHeight: number;
 
 	public constructor({
 		chain,
+		genesisHeight,
 		finalizedHeight,
 		threshold,
 	}: {
 		readonly chain: Chain;
+		readonly genesisHeight: number;
 		readonly finalizedHeight: number;
 		readonly threshold: number;
 	}) {
@@ -136,6 +139,7 @@ export class FinalityManager extends EventEmitter {
 		assert(threshold > 0, 'Must provide a positive threshold');
 
 		this._chain = chain;
+		this._genesisHeight = genesisHeight;
 
 		// Threshold to consider a block pre-voted
 		this.preVoteThreshold = threshold;
@@ -339,7 +343,12 @@ export class FinalityManager extends EventEmitter {
 
 		const bftBlockHeaders = stateStore.chain.lastBlockHeaders;
 		const { ledger } = await this._getVotingLedger(stateStore);
-		const chainMaxHeightPrevoted = this._calculateMaxHeightPrevoted(ledger);
+		// lastBlockHeaders are sorted by height desc
+		const lastMaxHeightPrevoted =
+			bftBlockHeaders.length > 0 && bftBlockHeaders[0].asset.maxHeightPrevoted
+				? bftBlockHeaders[0].asset.maxHeightPrevoted
+				: this._genesisHeight;
+		const chainMaxHeightPrevoted = this._calculateMaxHeightPrevoted(ledger, lastMaxHeightPrevoted);
 		// We need minimum processingThreshold to decide
 		// If maxHeightPrevoted is correct
 		if (
@@ -367,22 +376,22 @@ export class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	public async getMaxHeightPrevoted(): Promise<number> {
+	public async getMaxHeightPrevoted(lastMaxHeightPrevoted?: number): Promise<number> {
 		const bftState = await this._chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_VALIDATOR_LEDGER_KEY,
 		);
 		const { ledger } = this._decodeVotingLedger(bftState);
-		return this._calculateMaxHeightPrevoted(ledger);
+		return this._calculateMaxHeightPrevoted(ledger, lastMaxHeightPrevoted ?? this._genesisHeight);
 	}
 
-	private _calculateMaxHeightPrevoted(ledger: LedgerMap): number {
+	private _calculateMaxHeightPrevoted(ledger: LedgerMap, lastMaxHeightPrevoted: number): number {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
 		const maxHeightPreVoted = Object.keys(ledger)
 			.reverse()
 			.find(key => ledger[key].prevotes >= this.preVoteThreshold);
 
-		return maxHeightPreVoted ? parseInt(maxHeightPreVoted, 10) : this.finalizedHeight;
+		return maxHeightPreVoted ? parseInt(maxHeightPreVoted, 10) : lastMaxHeightPrevoted;
 	}
 
 	/**

@@ -59,6 +59,7 @@ export class Chain {
 	private _lastBlock?: Block;
 	private _finalizedHeight?: number;
 	private _networkIdentifier!: Buffer;
+	private _genesisHeight!: number;
 
 	public constructor({
 		// Constants
@@ -77,6 +78,10 @@ export class Chain {
 			maxBlockHeaderCache,
 			minBlockHeaderCache,
 		};
+	}
+
+	public get genesisHeight(): number {
+		return this._genesisHeight;
 	}
 
 	public get lastBlock(): Block {
@@ -118,6 +123,7 @@ export class Chain {
 			await this._cacheBlockHeaders(storageLastBlock);
 		}
 		this._lastBlock = storageLastBlock;
+		this._genesisHeight = genesisBlock.header.height;
 		this._finalizedHeight = await this.dataAccess.getFinalizedHeight();
 	}
 

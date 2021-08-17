@@ -38,6 +38,7 @@ export class ApplicationEnv {
 	private _application!: Application;
 	private _dataPath!: string;
 	private _ipcClient!: APIClient;
+	private _genesisBlock!: Record<string, unknown>;
 
 	public constructor(appConfig: ApplicationEnvConfig) {
 		this._initApplication(appConfig);
@@ -65,6 +66,8 @@ export class ApplicationEnv {
 	}
 
 	public async startApplication(): Promise<void> {
+		// eslint-disable-next-line dot-notation
+		this._application['_genesisBlock'] = this._genesisBlock;
 		await Promise.race([
 			this._application.run(),
 			new Promise(resolve => setTimeout(resolve, 3000)),
@@ -108,14 +111,12 @@ export class ApplicationEnv {
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
 		const { genesisBlockJSON } = createGenesisBlock({});
+		this._genesisBlock = genesisBlockJSON;
 		// In order for application to start forging, update force to true
 		const config = objects.mergeDeep({}, defaultConfig, appConfig.config ?? {});
 		const { label } = config;
 
-		const application = new Application(
-			appConfig.genesisBlockJSON ?? genesisBlockJSON,
-			config as PartialApplicationConfig,
-		);
+		const application = new Application(this._genesisBlock, config as PartialApplicationConfig);
 		appConfig.modules.map(module => application.registerModule(module));
 		appConfig.plugins?.map(plugin => application.registerPlugin(plugin));
 		this._dataPath = join(application.config.rootPath, label);

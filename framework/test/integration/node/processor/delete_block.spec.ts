@@ -173,7 +173,7 @@ describe('Delete block', () => {
 		describe('when the deleteLastBlock is called', () => {
 			it('should rollback validators to the previous state', async () => {
 				// Arrange
-				const lastBootstrapHeight = processEnv.getChain()['_getLastBootstrapHeight']();
+				const lastBootstrapHeight = await processEnv.getChain()['_getLastBootstrapHeight']();
 				while (processEnv.getLastBlock().header.height !== lastBootstrapHeight - 1) {
 					const newBlock = await processEnv.createBlock([]);
 					await processEnv.process(newBlock);

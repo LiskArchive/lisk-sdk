@@ -13,9 +13,6 @@
  */
 import * as fixture from '../fixtures/transaction_merkle_root/transaction_merkle_root.json';
 import { MerkleTree } from '../../src/merkle_tree/merkle_tree';
-import { EMPTY_HASH } from '../../src/merkle_tree/constants';
-import { verifyProof } from '../../src/merkle_tree/verify_proof';
-import { InMemoryDB } from '../../src/merkle_tree/inmemory_db';
 
 describe('MerkleTree', () => {
 	describe('constructor', () => {
@@ -90,80 +87,6 @@ describe('MerkleTree', () => {
 					await merkleTree.init(inputs);
 					await merkleTree.append(toAppend as Buffer);
 					expect(merkleTree.root).toEqual(Buffer.from(test.output.transactionMerkleRoot, 'hex'));
-				});
-			});
-		}
-	});
-
-	describe('generateProof and verifyProof', () => {
-		for (const test of fixture.testCases) {
-			// eslint-disable-next-line jest/valid-title
-			describe(test.description, () => {
-				it('should generate and verify correct proof', async () => {
-					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
-					const merkleTree = new MerkleTree();
-					await merkleTree.init(inputs);
-					const nodes =
-						merkleTree.size !== 0
-							? await Promise.all(
-									Object.keys((merkleTree['_db'] as InMemoryDB)['_data'])
-										.filter(key => Buffer.from(key, 'binary')[0] === 0)
-										.map(async key => merkleTree.getNode(Buffer.from(key, 'binary').slice(1))),
-							  )
-							: [];
-					const queryData = nodes
-						.sort(() => 0.5 - Math.random())
-						.slice(0, Math.floor(Math.random() * nodes.length + 1))
-						.map((node: any) => node.hash);
-					const proof = await merkleTree.generateProof(queryData);
-					const results = await verifyProof({
-						queryData,
-						proof,
-						rootHash: merkleTree.root,
-					});
-
-					expect(results.every(result => result.verified)).toBeTrue();
-				});
-
-				it('should generate and verify invalid proof', async () => {
-					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
-					const merkleTree = new MerkleTree();
-					await merkleTree.init(inputs);
-					const nodes =
-						merkleTree.size !== 0
-							? await Promise.all(
-									Object.keys((merkleTree['_db'] as InMemoryDB)['_data'])
-										.filter(key => Buffer.from(key, 'binary')[0] === 0)
-										.map(async key => merkleTree.getNode(Buffer.from(key, 'binary').slice(1))),
-							  )
-							: [];
-					const randomizedQueryCount = Math.floor(Math.random() * nodes.length + 1);
-					const invalidNodeIndex =
-						inputs.length > 0 ? Math.floor(Math.random() * randomizedQueryCount + 1) : 0;
-					const queryData =
-						inputs.length > 0
-							? nodes
-									.sort(() => 0.5 - Math.random())
-									.slice(0, randomizedQueryCount)
-									.map((node: any) => node.hash)
-							: [];
-					queryData.splice(invalidNodeIndex, 1, EMPTY_HASH);
-					const proof = await merkleTree.generateProof(queryData);
-					const results = await verifyProof({
-						queryData,
-						proof,
-						rootHash: merkleTree.root,
-					});
-
-					// If 0 tree, proof is always valid
-					if (inputs.length === 0) {
-						return expect(results.every(result => result.verified)).toBeTrue();
-					}
-
-					expect(
-						results.filter((_, i) => i !== invalidNodeIndex).every(result => result.verified),
-					).toBeTrue();
-					return expect(results[invalidNodeIndex].verified).toBeFalse();
 				});
 			});
 		}

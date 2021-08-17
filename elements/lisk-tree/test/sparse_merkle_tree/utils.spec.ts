@@ -22,6 +22,12 @@ import {
 	calculateRoot,
 	getOverlappingStr,
 	verify,
+	leafData,
+	isLeaf,
+	branchData,
+	parseBranchData,
+	parseLeafData,
+	binaryExpansion,
 } from '../../src/sparse_merkle_tree/utils';
 
 const binarySampleData = [
@@ -415,5 +421,114 @@ describe('utils', () => {
 
 			expect(verify(queryKeys, proof, merkleRoot, 1)).toBeTrue();
 		});
+	});
+
+	describe('binaryExpansion', () => {
+		const sampleData = [
+			{
+				str: '00010010',
+				buf: Buffer.from('12', 'hex'),
+				keyLength: 1,
+			},
+			{
+				str: '00111100',
+				buf: Buffer.from('3c', 'hex'),
+				keyLength: 1,
+			},
+			{
+				str:
+					'1110011101111011100110101001101011101001111000110000101100001101101111011011011011110101000100001010001001100100111011111001110111100111100000010101000000011101011110110110101110010010101011101000100111101011000001011001110001011010101101110100001111011011',
+				buf: Buffer.from('e77b9a9ae9e30b0dbdb6f510a264ef9de781501d7b6b92ae89eb059c5ab743db', 'hex'),
+				keyLength: 32,
+			},
+			{
+				str:
+					'0000100001001111111011010000100010111001011110001010111101001101011111010001100101101010011101000100011010101000011010110101100000000000100111100110001101101011011000010001110110110001011000100001000110110110010110101001101010101101111111110010100111000101',
+				buf: Buffer.from('084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5', 'hex'),
+				keyLength: 32,
+			},
+			{
+				str:
+					'1101101100010011101111100000000100111100101000011011000011100111000100110010100000001111100110111100011000110000000101111111001010100011010001010010001110010001111010011000101100000001100010010011010111100000000010110110010110111010010101011001101100100101001001111101100010010010010100001110000111000000',
+				buf: Buffer.from(
+					'db13be013ca1b0e713280f9bc63017f2a3452391e98b018935e00b65ba559b2527d89250e1c0',
+					'hex',
+				),
+				keyLength: 38,
+			},
+			{
+				str:
+					'0110010101001101100110110101111000110011111000101000000101101001111101110001000001101000100111010100001000000010110000111101111111010000011010000001000011110000101110000111101101110010010010001100111110000000001010011011101101110101011100111101110100110110110001010001111001010111101110111011100110110100',
+				buf: Buffer.from(
+					'654d9b5e33e28169f710689d4202c3dfd06810f0b87b7248cf8029bb7573dd36c51e57bbb9b4',
+					'hex',
+				),
+				keyLength: 38,
+			},
+		];
+
+		for (const data of sampleData) {
+			it(`should return correct binary string for ${data.keyLength} byte size`, () =>
+				expect(data.str).toEqual(binaryExpansion(data.buf, data.keyLength)));
+		}
+	});
+
+	describe('isLeaf', () => {
+		const sampleKey = Buffer.from('46', 'hex');
+		const sampleValue = Buffer.from(
+			'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+		const leafDataBuffer = leafData(sampleKey, sampleValue);
+		const branchDataBuffer = branchData(sampleKey, sampleValue);
+
+		it('Should return true when a leaf node data is passed', () =>
+			expect(isLeaf(leafDataBuffer)).toEqual(true));
+		it('Should return false when a branch node data is passed', () =>
+			expect(isLeaf(branchDataBuffer)).toEqual(false));
+	});
+
+	describe('parseLeaf', () => {
+		const sampleKey = Buffer.from('46', 'hex');
+		const sampleValue = Buffer.from(
+			'f031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+		const leafDataBuffer = leafData(sampleKey, sampleValue);
+
+		it('Should return key value from leaf data buffer', () =>
+			expect(parseLeafData(leafDataBuffer, 1)).toEqual({
+				key: sampleKey,
+				value: sampleValue,
+			}));
+
+		it('should get key value of 38 bytes from leaf data buffer', () => {
+			const key38Bytes = getRandomBytes(38);
+			const leafDataWith38ByteKey = leafData(key38Bytes, sampleValue);
+
+			expect(parseLeafData(leafDataWith38ByteKey, key38Bytes.byteLength)).toEqual({
+				key: key38Bytes,
+				value: sampleValue,
+			});
+		});
+	});
+
+	describe('parseBranch', () => {
+		const leftHash = Buffer.from(
+			'2031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+		const rightHash = Buffer.from(
+			'1031efa58744e97a34555ca98621d4e8a52ceb5f20b891d5c44ccae0daaaa644',
+			'hex',
+		);
+
+		const branchDataBuffer = branchData(leftHash, rightHash);
+
+		it('Should return key value from leaf data buffer', () =>
+			expect(parseBranchData(branchDataBuffer)).toEqual({
+				leftHash,
+				rightHash,
+			}));
 	});
 });

@@ -145,9 +145,6 @@ export class Peer extends EventEmitter {
 		super();
 		this._peerConfig = peerConfig;
 		this._rpcSchemas = peerConfig.rpcSchemas;
-		codec.addSchema(this._rpcSchemas.peerInfo);
-		codec.addSchema(this._rpcSchemas.nodeInfo);
-		codec.addSchema(this._rpcSchemas.peerRequestResponse);
 
 		this._peerInfo = this._initializeInternalState(peerInfo) as ConnectedPeerInfo;
 		this._rateInterval = this._peerConfig.rateCalculationInterval;

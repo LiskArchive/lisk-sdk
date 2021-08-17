@@ -71,6 +71,7 @@ describe('FinalityManager', () => {
 
 				const finalityManager = new FinalityManager({
 					chain: chainStub,
+					genesisHeight: 0,
 					finalizedHeight: invalidBlockHeaderSpec.config.finalizedHeight,
 					threshold: invalidBlockHeaderSpec.config.activeDelegates,
 				});

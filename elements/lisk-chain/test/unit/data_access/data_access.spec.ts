@@ -229,13 +229,13 @@ describe('data_access', () => {
 		});
 	});
 
-	describe('#getHighestCommonBlockHeader', () => {
+	describe('#getHighestCommonBlockID', () => {
 		it('should not call db if cache exists', async () => {
 			// Arrange
 			dataAccess.addBlockHeader(block.header);
 
 			// Act
-			await dataAccess.getHighestCommonBlockHeader([block.header.id]);
+			await dataAccess.getHighestCommonBlockID([block.header.id]);
 
 			// Assert
 			expect(db.get).not.toHaveBeenCalled();
@@ -256,18 +256,18 @@ describe('data_access', () => {
 			}
 
 			// Act
-			const commonBlockHeader = await dataAccess.getHighestCommonBlockHeader(
+			const commonBlockHeaderID = await dataAccess.getHighestCommonBlockID(
 				additionalBlocks.slice(1, 4).map(h => h.id),
 			);
 
-			expect(commonBlockHeader?.height).toEqual(5);
+			expect(commonBlockHeaderID).toEqual(additionalBlocks[3].id);
 		});
 
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
 			(db.get as jest.Mock).mockResolvedValue(block.header.getBytes());
 			// Act
-			await dataAccess.getHighestCommonBlockHeader([block.header.id, Buffer.from('random-id')]);
+			await dataAccess.getHighestCommonBlockID([block.header.id, Buffer.from('random-id')]);
 
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
@@ -275,33 +275,33 @@ describe('data_access', () => {
 
 		it('should get the block with highest height from provided ids parameter', async () => {
 			// Arrange
-			const ids = [Buffer.from('1'), Buffer.from('2')];
-			jest.spyOn(dataAccess, 'getBlockHeaderByID').mockImplementation(async (id: Buffer) => {
-				if (id.equals(ids[0])) {
-					return Promise.resolve(block) as Promise<any>;
+			const headers = [createFakeBlockHeader(), createFakeBlockHeader()];
+			jest.spyOn<any, any>(dataAccess, 'getBlockHeaderByID').mockImplementation(async (id: any) => {
+				if (id.equals(headers[0].id)) {
+					return Promise.resolve(headers[0]);
 				}
 				throw new NotFoundError('data not found');
 			});
 
 			// Act
-			const result = await dataAccess.getHighestCommonBlockHeader(ids);
+			const result = await dataAccess.getHighestCommonBlockID(headers.map(h => h.id));
 
 			// Assert
-			expect(dataAccess.getBlockHeaderByID).toHaveBeenCalledWith(ids[0]);
-			expect(dataAccess.getBlockHeaderByID).toHaveBeenCalledWith(ids[1]);
-			expect(result).toEqual(block);
+			expect(dataAccess['getBlockHeaderByID']).toHaveBeenCalledWith(headers[0].id);
+			expect(dataAccess['getBlockHeaderByID']).toHaveBeenCalledWith(headers[1].id);
+			expect(result).toEqual(headers[0].id);
 		});
 
 		it('should not throw error if unable to get blocks from the storage', async () => {
 			// Arrange
 			const ids = [Buffer.from('1'), Buffer.from('2')];
 			jest
-				.spyOn(dataAccess, 'getBlockHeaderByID')
+				.spyOn<any, any>(dataAccess, 'getBlockHeaderByID')
 				.mockRejectedValue(new NotFoundError('data not found'));
 			// Act && Assert
-			const result = await dataAccess.getHighestCommonBlockHeader(ids);
-			expect(dataAccess.getBlockHeaderByID).toHaveBeenCalledWith(ids[0]);
-			expect(dataAccess.getBlockHeaderByID).toHaveBeenCalledWith(ids[1]);
+			const result = await dataAccess.getHighestCommonBlockID(ids);
+			expect(dataAccess['getBlockHeaderByID']).toHaveBeenCalledWith(ids[0]);
+			expect(dataAccess['getBlockHeaderByID']).toHaveBeenCalledWith(ids[1]);
 			expect(result).toBeUndefined();
 		});
 	});

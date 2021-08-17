@@ -86,6 +86,20 @@ export class DataAccess {
 		return BlockHeader.fromBytes(blockHeaderBuffer);
 	}
 
+	public async blockHeaderExists(id: Buffer): Promise<boolean> {
+		const cachedBlock = this._blocksCache.getByID(id);
+		if (cachedBlock) {
+			return true;
+		}
+		try {
+			// if header does not exist, it will throw not found error
+			await this._storage.getBlockHeaderByID(id);
+			return true;
+		} catch (error) {
+			return false;
+		}
+	}
+
 	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
 	): Promise<BlockHeader[]> {
@@ -152,21 +166,22 @@ export class DataAccess {
 		return BlockHeader.fromBytes(block);
 	}
 
-	public async getHighestCommonBlockHeader(
+	public async getHighestCommonBlockID(
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
-	): Promise<BlockHeader | undefined> {
+	): Promise<Buffer | undefined> {
 		const headers = this._blocksCache.getByIDs(arrayOfBlockIds);
 		headers.sort((a, b) => b.height - a.height);
 		const cachedBlockHeader = headers[0];
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (cachedBlockHeader) {
-			return cachedBlockHeader;
+			return cachedBlockHeader.id;
 		}
 
 		const storageBlockHeaders = [];
 		for (const id of arrayOfBlockIds) {
 			try {
+				// it should not decode the asset since it might include the genesis block
 				const blockHeader = await this.getBlockHeaderByID(id);
 				storageBlockHeaders.push(blockHeader);
 			} catch (error) {
@@ -177,7 +192,7 @@ export class DataAccess {
 		}
 		storageBlockHeaders.sort((a, b) => b.height - a.height);
 
-		return storageBlockHeaders[0];
+		return storageBlockHeaders[0]?.id;
 	}
 
 	/** End: BlockHeaders */
