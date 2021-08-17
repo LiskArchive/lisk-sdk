@@ -15,32 +15,47 @@
 
 import { transactionSchema } from '@liskhq/lisk-chain';
 import { when } from 'jest-when';
-import { BaseChannel, BasePlugin } from '../../../src';
+import { BaseChannel, BasePlugin, GenesisConfig } from '../../../src';
 import * as loggerModule from '../../../src/logger';
 import { TransferAsset } from '../../../src/modules/token/transfer_asset';
-import { getPluginExportPath, PluginInfo } from '../../../src/plugins/base_plugin';
+import { getPluginExportPath } from '../../../src/plugins/base_plugin';
 
 const appConfigForPlugin = {
 	rootPath: '/my/path',
 	label: 'my-app',
-	logger: { consoleLogLevel: 'debug', fileLogLevel: '123' },
+	logger: { consoleLogLevel: 'debug', fileLogLevel: '123', logFileName: 'plugin1.log' },
+	rpc: {
+		enable: false,
+		mode: 'ipc' as const,
+		port: 8080,
+		host: '127.0.0.1',
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	plugins: {},
 };
 
 class MyPlugin extends BasePlugin {
-	public constructor(options: object = { appConfig: appConfigForPlugin }) {
-		super(options as never);
+	public get nodeModulePath(): string {
+		throw new Error('Method not implemented.');
 	}
 
-	public static get alias() {
+	public get name() {
 		return 'my_plugin';
-	}
-
-	public static get info(): PluginInfo {
-		return {
-			author: 'John Do',
-			version: '1.0',
-			name: 'my_plugin',
-		};
 	}
 
 	public get events() {
@@ -95,34 +110,37 @@ describe('base_plugin', () => {
 			when(channelMock.invoke).calledWith('app:getSchema').mockResolvedValue(schemas);
 		});
 
-		describe('constructor', () => {
-			it('should assign "codec" namespace', () => {
+		describe('init', () => {
+			it('should assign "codec" namespace', async () => {
+				// Act
+				await plugin.init({ options: { dataPath: '', appConfig: { ...appConfigForPlugin, version: '', networkVersion: '', genesisConfig: {} as unknown as GenesisConfig }}, channel: (channelMock as unknown) as BaseChannel, config: {}});
+				
+				// Assert
 				expect(plugin.codec).toEqual(
 					expect.objectContaining({
 						decodeTransaction: expect.any(Function),
 					}),
 				);
 			});
-		});
-
-		describe('init', () => {
+			
 			it('should create logger instance', async () => {
 				// Act
-				await plugin.init((channelMock as unknown) as BaseChannel);
+				await plugin.init({ options: { dataPath: '', appConfig: { ...appConfigForPlugin, version: '', networkVersion: '', genesisConfig: {} as unknown as GenesisConfig }}, channel: (channelMock as unknown) as BaseChannel, config: {}});
 
 				// Assert
 				expect(loggerModule.createLogger).toHaveBeenCalledTimes(1);
 				expect(loggerModule.createLogger).toHaveBeenCalledWith({
-					...appConfigForPlugin.logger,
-					logFilePath: `${appConfigForPlugin.rootPath}/${appConfigForPlugin.label}/logs/plugin-${MyPlugin.alias}.log`,
-					module: `plugin:${MyPlugin.alias}`,
+					consoleLogLevel: appConfigForPlugin.logger.consoleLogLevel,
+					fileLogLevel: appConfigForPlugin.logger.fileLogLevel,
+					logFilePath: `${appConfigForPlugin.rootPath}/${appConfigForPlugin.label}/logs/plugin-${MyPlugin.name}.log`,
+					module: `plugin:${MyPlugin.name}`,
 				});
 				expect(plugin['_logger']).toBe(loggerMock);
 			});
 
 			it('should fetch schemas and assign to instance', async () => {
 				// Act
-				await plugin.init((channelMock as unknown) as BaseChannel);
+				await plugin.init({ options: { dataPath: '', appConfig: { ...appConfigForPlugin, version: '', networkVersion: '', genesisConfig: {} as unknown as GenesisConfig }}, channel: (channelMock as unknown) as BaseChannel, config: {}});
 
 				// Assert
 				expect(channelMock.once).toHaveBeenCalledTimes(1);
@@ -145,7 +163,7 @@ describe('base_plugin', () => {
 
 		it('should return info.name if its a valid npm package', () => {
 			jest.mock(
-				MyPlugin.info.name,
+				MyPlugin.name,
 				() => {
 					return {
 						MyPlugin,
@@ -154,13 +172,13 @@ describe('base_plugin', () => {
 				{ virtual: true },
 			);
 
-			expect(getPluginExportPath(MyPlugin)).toEqual(MyPlugin.info.name);
+			expect(getPluginExportPath(MyPlugin)).toEqual(MyPlugin.name);
 		});
 
 		it('should return undefined if exported class is not the same from npm package', () => {
 			class MyPlugin2 extends MyPlugin {}
 			jest.mock(
-				MyPlugin.info.name,
+				MyPlugin.name,
 				() => {
 					return {
 						MyPlugin: MyPlugin2,
@@ -172,14 +190,13 @@ describe('base_plugin', () => {
 			expect(getPluginExportPath(MyPlugin)).toBeUndefined();
 		});
 
-		it('should return info.exportPath if info.name is not a package but export path is valid', () => {
+		it('should return nodeModulePath if name is not a package but export path is valid', () => {
 			class MyPlugin2 extends MyPlugin {
-				public static get info(): PluginInfo {
-					return {
-						...MyPlugin.info,
-						name: 'my-unknown-package',
-						exportPath: 'plugin-with-valid-export',
-					};
+				public get name(): string {
+					return 'my-unknown-package';
+				}
+				public get nodeModulePath(): string {
+					return 'plugin-with-valid-export';
 				}
 			}
 
@@ -198,12 +215,11 @@ describe('base_plugin', () => {
 
 		it('should return undefined if exported class is not the same from export path', () => {
 			class MyPlugin2 extends MyPlugin {
-				public static get info(): PluginInfo {
-					return {
-						...MyPlugin.info,
-						name: 'my-unknown-package',
-						exportPath: 'custom-export-path-2',
-					};
+				public get name(): string {
+					return 'my-unknown-package';
+				}
+				public get nodeModulePath(): string {
+					return 'custom-export-path-2';
 				}
 			}
 

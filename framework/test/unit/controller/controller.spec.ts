@@ -48,12 +48,7 @@ const createMockPlugin = ({
 		this.actions = {};
 	}
 
-	Plugin.info = {
-		name: alias ?? 'dummy',
-		version: 'dummy',
-		author: 'dummy',
-	};
-	Plugin.alias = alias ?? 'dummy';
+	Plugin.name = alias ?? 'dummy';
 
 	return (Plugin as unknown) as typeof BasePlugin;
 };
@@ -217,14 +212,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith(
-					{ name: Plugin1.info.name, version: Plugin1.info.version, alias: Plugin1.alias },
-					'Loading in-memory plugin',
-				);
-				expect(loggerMock.info).toHaveBeenCalledWith(
-					{ name: Plugin2.info.name, version: Plugin2.info.version, alias: Plugin2.alias },
-					'Loading in-memory plugin',
-				);
+				expect(loggerMock.info).toHaveBeenCalledWith( Plugin1.name,'Loading in-memory plugin',);
+				expect(loggerMock.info).toHaveBeenCalledWith( Plugin2.name,'Loading in-memory plugin',);
 			});
 
 			it('should create instance of in-memory channel', async () => {
@@ -273,7 +262,6 @@ describe('Controller Class', () => {
 
 				// Assert
 				expect(initMock).toHaveBeenCalledTimes(2);
-				expect(initMock).toHaveBeenCalledWith(expect.any(InMemoryChannel));
 			});
 
 			it('should call `plugin.load` method', async () => {
@@ -349,14 +337,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith(
-					{ name: Plugin1.info.name, version: Plugin1.info.version, alias: Plugin1.alias },
-					'Loading child-process plugin',
-				);
-				expect(loggerMock.info).toHaveBeenCalledWith(
-					{ name: Plugin2.info.name, version: Plugin2.info.version, alias: Plugin2.alias },
-					'Loading child-process plugin',
-				);
+				expect(loggerMock.info).toHaveBeenCalledWith( Plugin1.info.name,'Loading child-process plugin',);
+				expect(loggerMock.info).toHaveBeenCalledWith( Plugin2.name,'Loading child-process plugin',);
 			});
 
 			it('should load child process with childProcess.fork', async () => {

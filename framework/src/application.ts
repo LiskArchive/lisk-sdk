@@ -42,8 +42,15 @@ import {
 	RegisteredModule,
 	UpdateForgingStatusInput,
 	PartialApplicationConfig,
-	PluginOptionsWithAppConfig,
-	AppConfigForPlugin,
+	ApplicationConfig,
+	GenesisConfig,
+	EventPostTransactionData,
+	PluginOptions,
+	RegisteredSchema,
+	RegisteredModule,
+	UpdateForgingStatusInput,
+	PartialApplicationConfig,
+	PluginOptionsWithApplicationConfig,
 } from './types';
 
 import {
@@ -59,7 +66,6 @@ import { Node } from './node';
 import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
-
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
@@ -184,7 +190,7 @@ export class Application {
 		assert(pluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
 
-		const pluginAlias = options?.alias ?? pluginKlass.alias;
+		const pluginAlias = options?.alias ?? pluginKlass.name;
 
 		assert(
 			!Object.keys(this._plugins).includes(pluginAlias),
@@ -346,23 +352,29 @@ export class Application {
 
 	private async _loadPlugins(): Promise<void> {
 		const dirs = systemDirs(this.config.label, this.config.rootPath);
-		const pluginOptions: { [key: string]: PluginOptionsWithAppConfig } = {};
+		const pluginOptions: { [key: string]: PluginOptionsWithApplicationConfig } = {};
 
-		const appConfigForPlugin: AppConfigForPlugin = {
+		const appConfigForPlugin: ApplicationConfig = {
 			version: this.config.version,
 			networkVersion: this.config.networkVersion,
 			genesisConfig: this.config.genesisConfig,
 			logger: {
+				logFileName: this.config.logger.logFileName,
 				consoleLogLevel: this.config.logger.consoleLogLevel,
 				fileLogLevel: this.config.logger.fileLogLevel,
 			},
 			rootPath: this.config.rootPath,
 			label: this.config.label,
+			forging: this.config.forging,
+			network: this.config.network,
+			plugins: this.config.plugins,
+			transactionPool: this.config.transactionPool,
+			rpc: this.config.rpc,
 		};
 
-		Object.keys(this._plugins).forEach(alias => {
-			pluginOptions[alias] = {
-				...this.config.plugins[alias],
+		Object.keys(this._plugins).forEach(name => {
+			pluginOptions[name] = {
+				...this.config.plugins[name],
 				// TODO: Remove data path from here and use from appConfig later on
 				dataPath: dirs.dataPath,
 				appConfig: appConfigForPlugin,

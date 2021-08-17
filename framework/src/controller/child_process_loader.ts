@@ -15,7 +15,7 @@
 // Parameters passed by `child_process.fork(_, parameters)`
 
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
-import { PluginOptionsWithAppConfig, SocketPaths } from '../types';
+import { PluginOptionsWithApplicationConfig, SocketPaths } from '../types';
 import { IPCChannel } from './channels';
 
 const modulePath: string = process.argv[2];
@@ -30,9 +30,9 @@ const _loadPlugin = async (
 		[key: string]: unknown;
 		socketsPath: SocketPaths;
 	},
-	pluginOptions: PluginOptionsWithAppConfig,
+	pluginOptions: PluginOptionsWithApplicationConfig,
 ): Promise<void> => {
-	const pluginAlias = Klass.alias;
+	const pluginAlias = Klass.name;
 	plugin = new Klass(pluginOptions);
 
 	channel = new IPCChannel(pluginAlias, plugin.events, plugin.actions, {
@@ -44,14 +44,16 @@ const _loadPlugin = async (
 	channel.publish(`${pluginAlias}:registeredToBus`);
 	channel.publish(`${pluginAlias}:loading:started`);
 
-	await plugin.init(channel);
+	const context = { options: pluginOptions, channel, config};
+
+	await plugin.init(context);
 	await plugin.load(channel);
 
 	channel.publish(`${pluginAlias}:loading:finished`);
 };
 
 const _unloadPlugin = async (code = 0) => {
-	const pluginAlias = Klass.alias;
+	const pluginAlias = Klass.name;
 
 	channel.publish(`${pluginAlias}:unloading:started`);
 	try {
@@ -75,7 +77,7 @@ process.on(
 	}: {
 		action: string;
 		config: Record<string, unknown>;
-		options: PluginOptionsWithAppConfig;
+		options: PluginOptionsWithApplicationConfig;
 	}) => {
 		const internalWorker = async (): Promise<void> => {
 			if (action === 'load') {

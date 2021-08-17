@@ -36,6 +36,10 @@ jest.mock('@liskhq/lisk-p2p');
 jest.mock('../../src/logger');
 
 class TestPlugin extends BasePlugin {
+	public get nodeModulePath(): string {
+		throw new Error('Method not implemented.');
+	}
+	public name!: string;
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias() {
 		return 'test-plugin';
@@ -461,6 +465,9 @@ describe('Application', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			class MyPlugin extends TestPlugin {
+				public get nodeModulePath(): string {
+					throw new Error('Method not implemented.');
+				}
 				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 				public static get alias() {
 					return '';
@@ -475,6 +482,9 @@ describe('Application', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			class MyPlugin extends TestPlugin {
+				public get nodeModulePath(): string {
+					throw new Error('Method not implemented.');
+				}
 				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 				public static get alias() {
 					return 'my-plugin';

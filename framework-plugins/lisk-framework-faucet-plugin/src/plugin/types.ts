@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { PluginOptionsWithAppConfig } from 'lisk-framework';
+import { PluginOptionsWithApplicationConfig } from 'lisk-framework';
 
-export interface FaucetPluginOptions extends PluginOptionsWithAppConfig {
+export interface FaucetPluginOptions extends PluginOptionsWithApplicationConfig {
 	port: number;
 	host: string;
 	encryptedPassphrase: string;

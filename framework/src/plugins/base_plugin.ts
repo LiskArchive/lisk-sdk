@@ -23,11 +23,11 @@ import { APP_EVENT_READY } from '../constants';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
 import { EventsDefinition } from '../controller/event';
-import { ImplementationMissingError } from '../errors';
 import { createLogger, Logger } from '../logger';
 import { systemDirs } from '../system_dirs';
 import {
-	PluginOptionsWithAppConfig,
+	ApplicationConfig,
+	PluginOptionsWithApplicationConfig,
 	RegisteredSchema,
 	SchemaWithDefault,
 	TransactionJSON,
@@ -75,18 +75,11 @@ interface BlockAssetJSON {
 	readonly maxHeightPrevoted: number;
 }
 
-export interface PluginInfo {
-	readonly author: string;
-	readonly version: string;
-	readonly name: string;
-	readonly exportPath?: string;
-}
-
-type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithAppConfig;
+type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithApplicationConfig;
 
 export interface InstantiablePlugin<T extends BasePlugin = BasePlugin> {
-	alias: string;
-	info: PluginInfo;
+	name: string
+	nodeModulePath?: string;
 	new (args: ExtractPluginOptions<T>): T;
 }
 
@@ -195,96 +188,97 @@ export interface PluginCodec {
 	encodeTransaction: (transaction: TransactionJSON) => string;
 }
 
+interface PluginInitContext {
+	config: Record<string, unknown>; //plugin config
+	channel: BaseChannel;
+	options: {
+	  readonly dataPath: string;
+	  appConfig: ApplicationConfig;
+	},
+  }
+
 export abstract class BasePlugin<
-	T extends PluginOptionsWithAppConfig = PluginOptionsWithAppConfig
+	T extends PluginOptionsWithApplicationConfig = PluginOptionsWithApplicationConfig
 > {
-	public readonly options: T;
+	public options!: T;
 	public schemas!: RegisteredSchema;
 
-	public codec: PluginCodec;
+	public codec!: PluginCodec;
 	protected _logger!: Logger;
-
-	public constructor(options: T) {
-		if (this.defaults) {
-			this.options = objects.mergeDeep(
-				{},
-				(this.defaults as SchemaWithDefault).default ?? {},
-				options,
-			) as T;
-
-			const errors = validator.validate(this.defaults, this.options);
-			if (errors.length) {
-				throw new LiskValidationError([...errors]);
-			}
-		} else {
-			this.options = objects.cloneDeep(options);
-		}
-
-		this.codec = {
-			decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
-				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-
-				return decodeAccountToJSON(accountBuffer, this.schemas.account);
-			},
-			decodeBlock: (data: Buffer | string): BlockJSON => {
-				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-
-				return decodeBlockToJSON(this.schemas, blockBuffer);
-			},
-			decodeRawBlock: (data: Buffer | string): RawBlock => {
-				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-
-				return decodeRawBlock(this.schemas.block, blockBuffer);
-			},
-			decodeTransaction: (data: Buffer | string): TransactionJSON => {
-				const transactionBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-
-				return decodeTransactionToJSON(
-					transactionBuffer,
-					this.schemas.transaction,
-					this.schemas.transactionsAssets,
-				);
-			},
-			encodeTransaction: (transaction: TransactionJSON): string =>
-				encodeTransactionFromJSON(
-					transaction,
-					this.schemas.transaction,
-					this.schemas.transactionsAssets,
-				),
-		};
-	}
+	public abstract get name(): string;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(channel: BaseChannel): Promise<void> {
+	public async init(context: PluginInitContext): Promise<void> {
+
+			if (this.configSchema) {
+				this.options = objects.mergeDeep(
+					{},
+					(this.configSchema as SchemaWithDefault).default ?? {},
+					context.options,
+				) as T;
+	
+				const errors = validator.validate(this.configSchema, this.options);
+				if (errors.length) {
+					throw new LiskValidationError([...errors]);
+				}
+			} else {
+				this.options = objects.cloneDeep(context.options) as unknown as T;
+			}
+	
+			this.codec = {
+				decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
+					const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
+	
+					return decodeAccountToJSON(accountBuffer, this.schemas.account);
+				},
+				decodeBlock: (data: Buffer | string): BlockJSON => {
+					const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
+	
+					return decodeBlockToJSON(this.schemas, blockBuffer);
+				},
+				decodeRawBlock: (data: Buffer | string): RawBlock => {
+					const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
+	
+					return decodeRawBlock(this.schemas.block, blockBuffer);
+				},
+				decodeTransaction: (data: Buffer | string): TransactionJSON => {
+					const transactionBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
+	
+					return decodeTransactionToJSON(
+						transactionBuffer,
+						this.schemas.transaction,
+						this.schemas.transactionsAssets,
+					);
+				},
+				encodeTransaction: (transaction: TransactionJSON): string =>
+					encodeTransactionFromJSON(
+						transaction,
+						this.schemas.transaction,
+						this.schemas.transactionsAssets,
+					),
+			};
+
 		const dirs = systemDirs(this.options.appConfig.label, this.options.appConfig.rootPath);
 		this._logger = createLogger({
 			consoleLogLevel: this.options.appConfig.logger.consoleLogLevel,
 			fileLogLevel: this.options.appConfig.logger.fileLogLevel,
 			logFilePath: join(
 				dirs.logs,
-				`plugin-${((this.constructor as unknown) as typeof BasePlugin).alias}.log`,
+				`plugin-${((this.constructor as unknown) as typeof BasePlugin).name}.log`,
 			),
-			module: `plugin:${((this.constructor as unknown) as typeof BasePlugin).alias}`,
+			module: `plugin:${((this.constructor as unknown) as typeof BasePlugin).name}`,
 		});
 
-		channel.once(APP_EVENT_READY, async () => {
-			this.schemas = await channel.invoke('app:getSchema');
+		context.channel.once(APP_EVENT_READY, async () => {
+			this.schemas = await context.channel.invoke('app:getSchema');
 		});
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public static get alias(): string {
-		throw new ImplementationMissingError();
-	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public static get info(): PluginInfo {
-		throw new ImplementationMissingError();
 	}
 
 	// TODO: To make non-breaking change we have to keep "object" here
-	public get defaults(): SchemaWithDefault | object | undefined {
+	public get configSchema(): SchemaWithDefault | object | undefined {
 		return undefined;
 	}
+	public abstract get nodeModulePath(): string;
 	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
 
@@ -304,20 +298,20 @@ export const getPluginExportPath = (
 	try {
 		// Check if plugin name is an npm package
 		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-		nodeModule = require(pluginKlass.info.name);
-		nodeModulePath = pluginKlass.info.name;
+		nodeModule = require(pluginKlass.name);
+		nodeModulePath = pluginKlass.name;
 	} catch (error) {
-		/* Plugin info.name is not an npm package */
+		/* Plugin pluginKlass.name is not an npm package */
 	}
 
-	if (!nodeModule && pluginKlass.info.exportPath) {
+	if (!nodeModule && pluginKlass.nodeModulePath) {
 		try {
-			// Check if plugin name is an npm package
+			// Check if plugin nodeModulePath is an npm package
 			// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-			nodeModule = require(pluginKlass.info.exportPath);
-			nodeModulePath = pluginKlass.info.exportPath;
+			nodeModule = require(pluginKlass.nodeModulePath);
+			nodeModulePath = pluginKlass.nodeModulePath;
 		} catch (error) {
-			/* Plugin info.exportPath is not an npm package */
+			/* Plugin nodeModulePath is not an npm package */
 		}
 	}
 
@@ -338,12 +332,9 @@ export const validatePluginSpec = (
 	PluginKlass: InstantiablePlugin,
 	options: Record<string, unknown> = {},
 ): void => {
-	const pluginObject = new PluginKlass(options as PluginOptionsWithAppConfig);
+	const pluginObject = new PluginKlass(options as PluginOptionsWithApplicationConfig);
 
-	assert(PluginKlass.alias, 'Plugin alias is required.');
-	assert(PluginKlass.info.name, 'Plugin name is required.');
-	assert(PluginKlass.info.author, 'Plugin author is required.');
-	assert(PluginKlass.info.version, 'Plugin version is required.');
+	assert(PluginKlass.name, 'Plugin name is required.');
 	assert(pluginObject.events, 'Plugin events are required.');
 	assert(pluginObject.actions, 'Plugin actions are required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -351,8 +342,8 @@ export const validatePluginSpec = (
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	assert(pluginObject.unload, 'Plugin unload actions is required.');
 
-	if (pluginObject.defaults) {
-		const errors = validator.validateSchema(pluginObject.defaults);
+	if (pluginObject.configSchema) {
+		const errors = validator.validateSchema(pluginObject.configSchema);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
 		}

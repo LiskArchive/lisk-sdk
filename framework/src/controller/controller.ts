@@ -18,7 +18,7 @@ import * as path from 'path';
 import { Logger } from '../logger';
 import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { PluginOptions, PluginOptionsWithAppConfig, RPCConfig } from '../types';
+import { PluginOptions, PluginOptionsWithApplicationConfig, RPCConfig } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
@@ -87,20 +87,20 @@ export class Controller {
 
 	public async loadPlugins(
 		plugins: PluginsObject,
-		pluginOptions: { [key: string]: PluginOptionsWithAppConfig },
+		pluginOptions: { [key: string]: PluginOptionsWithApplicationConfig },
 	): Promise<void> {
 		if (!this.bus) {
 			throw new Error('Controller bus is not initialized. Plugins can not be loaded.');
 		}
 
-		for (const alias of Object.keys(plugins)) {
-			const klass = plugins[alias];
-			const options = pluginOptions[alias];
+		for (const name of Object.keys(plugins)) {
+			const klass = plugins[name];
+			const options = pluginOptions[name];
 
-			if (options.loadAsChildProcess) {
-				await this._loadChildProcessPlugin(alias, klass, options);
+			if (options.loadAsChildProcess && this.config.rpc.enable) {
+				await this._loadChildProcessPlugin(name, klass, options);
 			} else {
-				await this._loadInMemoryPlugin(alias, klass, options);
+				await this._loadInMemoryPlugin(name, klass, options);
 			}
 		}
 	}
@@ -113,17 +113,17 @@ export class Controller {
 
 		let hasError = false;
 
-		for (const alias of pluginsToUnload) {
+		for (const name of pluginsToUnload) {
 			try {
 				// Unload in-memory plugins
-				if (this._inMemoryPlugins[alias]) {
-					await this._unloadInMemoryPlugin(alias);
+				if (this._inMemoryPlugins[name]) {
+					await this._unloadInMemoryPlugin(name);
 
 					// Unload child process plugins
-				} else if (this._childProcesses[alias]) {
-					await this._unloadChildProcessPlugin(alias);
+				} else if (this._childProcesses[name]) {
+					await this._unloadChildProcessPlugin(name);
 				} else {
-					throw new Error(`Unknown plugin "${alias}" was asked to unload.`);
+					throw new Error(`Unknown plugin "${name}" was asked to unload.`);
 				}
 			} catch (error) {
 				this.logger.error(error);
@@ -171,16 +171,15 @@ export class Controller {
 	}
 
 	private async _loadInMemoryPlugin(
-		alias: string,
+		name: string,
 		Klass: InstantiablePlugin,
-		options: PluginOptionsWithAppConfig,
+		options: PluginOptionsWithApplicationConfig,
 	): Promise<void> {
-		const pluginAlias = alias || Klass.alias;
-		const { name, version } = Klass.info;
+		const pluginAlias = name || Klass.name;
 
 		const plugin: BasePlugin = new Klass(options);
 
-		this.logger.info({ name, version, alias: pluginAlias }, 'Loading in-memory plugin');
+		this.logger.info(name, 'Loading in-memory plugin');
 
 		const channel = new InMemoryChannel(pluginAlias, plugin.events, plugin.actions);
 
@@ -189,25 +188,26 @@ export class Controller {
 		channel.publish(`${pluginAlias}:registeredToBus`);
 		channel.publish(`${pluginAlias}:loading:started`);
 
-		await plugin.init(channel);
+		const context = { options, channel, config: {}};
+
+		await plugin.init(context);
 		await plugin.load(channel);
 
 		channel.publish(`${pluginAlias}:loading:finished`);
 
 		this._inMemoryPlugins[pluginAlias] = { plugin, channel };
 
-		this.logger.info({ name, version, alias: pluginAlias }, 'Loaded in-memory plugin');
+		this.logger.info(name, 'Loaded in-memory plugin');
 	}
 
 	private async _loadChildProcessPlugin(
-		alias: string,
+		name: string,
 		Klass: InstantiablePlugin,
 		options: PluginOptions,
 	): Promise<void> {
-		const pluginAlias = alias || Klass.alias;
-		const { name, version } = Klass.info;
+		const pluginAlias = name || Klass.name;
 
-		this.logger.info({ name, version, alias: pluginAlias }, 'Loading child-process plugin');
+		this.logger.info(name, 'Loading child-process plugin');
 
 		const program = path.resolve(__dirname, 'child_process_loader');
 
@@ -239,7 +239,7 @@ export class Controller {
 			// If child process exited with error
 			if (code !== null && code !== undefined && code !== 0) {
 				this.logger.error(
-					{ name, version, pluginAlias, code, signal: signal ?? '' },
+					{ name, code, signal: signal ?? '' },
 					'Child process plugin exited',
 				);
 			}
@@ -252,7 +252,7 @@ export class Controller {
 		await Promise.race([
 			new Promise<void>(resolve => {
 				this.channel.once(`${pluginAlias}:loading:finished`, () => {
-					this.logger.info({ name, version, alias: pluginAlias }, 'Loaded child-process plugin');
+					this.logger.info({ name }, 'Loaded child-process plugin');
 					resolve();
 				});
 			}),
@@ -264,49 +264,49 @@ export class Controller {
 		]);
 	}
 
-	private async _unloadInMemoryPlugin(alias: string): Promise<void> {
-		this._inMemoryPlugins[alias].channel.publish(`${alias}:unloading:started`);
+	private async _unloadInMemoryPlugin(name: string): Promise<void> {
+		this._inMemoryPlugins[name].channel.publish(`${name}:unloading:started`);
 		try {
-			await this._inMemoryPlugins[alias].plugin.unload();
-			this._inMemoryPlugins[alias].channel.publish(`${alias}:unloading:finished`);
+			await this._inMemoryPlugins[name].plugin.unload();
+			this._inMemoryPlugins[name].channel.publish(`${name}:unloading:finished`);
 		} catch (error) {
-			this._inMemoryPlugins[alias].channel.publish(`${alias}:unloading:error`, error);
+			this._inMemoryPlugins[name].channel.publish(`${name}:unloading:error`, error);
 		} finally {
-			delete this._inMemoryPlugins[alias];
+			delete this._inMemoryPlugins[name];
 		}
 	}
 
-	private async _unloadChildProcessPlugin(alias: string): Promise<void> {
-		if (!this._childProcesses[alias].connected) {
-			this._childProcesses[alias].kill('SIGTERM');
-			delete this._childProcesses[alias];
+	private async _unloadChildProcessPlugin(name: string): Promise<void> {
+		if (!this._childProcesses[name].connected) {
+			this._childProcesses[name].kill('SIGTERM');
+			delete this._childProcesses[name];
 			throw new Error('Child process is not connected any more.');
 		}
 
-		this._childProcesses[alias].send({
+		this._childProcesses[name].send({
 			action: 'unload',
 		});
 
 		await Promise.race([
 			new Promise<void>(resolve => {
-				this.channel.once(`${alias}:unloading:finished`, () => {
-					this.logger.info(`Child process plugin "${alias}" unloaded`);
-					delete this._childProcesses[alias];
+				this.channel.once(`${name}:unloading:finished`, () => {
+					this.logger.info(`Child process plugin "${name}" unloaded`);
+					delete this._childProcesses[name];
 					resolve();
 				});
 			}),
 			new Promise((_, reject) => {
-				this.channel.once(`${alias}:unloading:error`, data => {
-					this.logger.info(`Child process plugin "${alias}" unloaded with error`);
+				this.channel.once(`${name}:unloading:error`, data => {
+					this.logger.info(`Child process plugin "${name}" unloaded with error`);
 					this.logger.error(data ?? {}, 'Unloading plugin error.');
-					delete this._childProcesses[alias];
+					delete this._childProcesses[name];
 					reject(data);
 				});
 			}),
 			new Promise((_, reject) => {
 				setTimeout(() => {
-					this._childProcesses[alias].kill('SIGTERM');
-					delete this._childProcesses[alias];
+					this._childProcesses[name].kill('SIGTERM');
+					delete this._childProcesses[name];
 					reject(new Error('Child process plugin unload timeout'));
 				}, 2000);
 			}),

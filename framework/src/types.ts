@@ -94,6 +94,12 @@ export interface PluginOptionsWithAppConfig extends PluginOptions {
 	appConfig: AppConfigForPlugin;
 }
 
+export interface PluginOptionsWithApplicationConfig extends PluginOptions {
+	// TODO: Remove data path from here and use from appConfig
+	readonly dataPath: string;
+	appConfig: ApplicationConfig;
+}
+
 export interface DelegateConfig {
 	readonly address: string;
 	readonly encryptedPassphrase: string;
