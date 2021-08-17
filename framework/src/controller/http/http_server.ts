@@ -58,12 +58,10 @@ export class HTTPServer {
 		});
 
 		this.server.listen(this.port, this.host, () => {
-			this.logger.info(`HTTP Server is listening at port ${this.port}`);
+			this.logger.info(`RPC HTTP Server is listening at port ${this.port}`);
 		});
 
-		this.server.on('error', error => {
-			this.logger.error(error);
-		});
+		this.server.on('error', this.logger.error);
 
 		return this.server;
 	}

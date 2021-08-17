@@ -157,15 +157,15 @@ type RecursivePartial<T> = {
 
 export interface RPCConfig {
 	modes: (typeof RPC_MODES.IPC | typeof RPC_MODES.WS)[];
-	ws: {
+	ws?: {
 		port: number;
 		path: string;
 		host: string;
 	};
-	ipc: {
+	ipc?: {
 		path: string;
 	};
-	http: {
+	http?: {
 		port: number;
 		host: string;
 	};
