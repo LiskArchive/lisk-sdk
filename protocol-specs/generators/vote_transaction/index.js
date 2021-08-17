@@ -307,7 +307,7 @@ const generateValidUpvoteTransaction = () => {
 				address: senderAccount.address,
 				publicKey: senderAccount.publicKey,
 			},
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 			delegates: delegateAccounts.map(d => ({
 				...d,
 				address: d.address,
@@ -390,7 +390,7 @@ const generateValidDownvoteTransaction = () => {
 				address: senderAccount.address,
 				publicKey: senderAccount.publicKey,
 			},
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 			delegates: delegateAccounts.map(d => ({
 				...d,
 				address: d.address,
@@ -513,7 +513,7 @@ const generateValidUpvoteAndDownvoteVoteTransaction = () => {
 				address: senderAccount.address,
 				publicKey: senderAccount.publicKey,
 			},
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 			delegates: delegateAccounts.map(d => ({
 				...d,
 				address: d.address,

@@ -142,7 +142,7 @@ const generateValidTransferTransaction = () => {
 				privateKey: accounts[0].privateKey,
 				address: accounts[0].address,
 			},
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 		},
 		output: {
 			transaction: encodedTx,
@@ -194,7 +194,7 @@ const generateValidDelegateTransaction = () => {
 				privateKey: accounts[0].privateKey,
 				address: accounts[0].address,
 			},
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 		},
 		output: {
 			transaction: encodedTx,

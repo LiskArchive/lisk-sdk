@@ -268,7 +268,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 		},
 		output: {
 			transaction: encodedTx,
@@ -358,7 +358,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 		},
 		output: {
 			transaction: encodedTx,
@@ -448,7 +448,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 		},
 		output: {
 			transaction: encodedTx,

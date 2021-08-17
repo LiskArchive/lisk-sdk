@@ -196,7 +196,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 		description: 'Both mandatory and optional member group',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
 				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
@@ -264,7 +264,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		description: 'Sender is a member of the group',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 			members: {
 				targetAccount: outputHexAccount(accounts.targetAccount),
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
@@ -324,7 +324,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		description: 'Only optional members',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 			members: {
 				optionalOne: outputHexAccount(accounts.optionalOne),
 				optionalTwo: outputHexAccount(accounts.optionalTwo),
@@ -381,7 +381,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		description: 'Only mandatory members',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
 				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
@@ -452,7 +452,7 @@ const generateFormerSecondSignatureTransactioon = () => {
 		description: 'Second signature case',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier: networkIdentifier,
+			networkIdentifier,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.targetAccount),
 				mandatoryTwo: outputHexAccount(secondSignature),
