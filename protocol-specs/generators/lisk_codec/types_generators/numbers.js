@@ -35,9 +35,9 @@ const number32 = { number: 10 };
 const signedNumber32Schema = getNumberSchema('sint32');
 const signedNumber32 = { number: -10 };
 const number64Schema = getNumberSchema('uint64');
-const number64 = { number: 372036854775807 };
+const number64 = { number: '372036854775807' };
 const signedNumber64Schema = getNumberSchema('sint64');
-const signedNumber64 = { number: -9007199254740991 };
+const signedNumber64 = { number: '-9007199254740991' };
 
 const numberEncoded32 = Number32.encode(number32).finish();
 const signedNumberEncoded32 = SignedNumber32.encode(signedNumber32).finish();
@@ -58,12 +58,12 @@ module.exports = {
 		},
 		{
 			description: 'Encoding 64 bit unsigned number',
-			input: { object: number64, schema: number64Schema },
+			input: { object: { number: BigInt(number64.number) }, schema: number64Schema },
 			output: { value: numberEncoded64 },
 		},
 		{
 			description: 'Encoding 64 bit signed number',
-			input: { object: signedNumber64, schema: signedNumber64Schema },
+			input: { object: { number: BigInt(signedNumber64.number) }, schema: signedNumber64Schema },
 			output: { value: signedNumberEncoded64 },
 		},
 	],
@@ -82,12 +82,12 @@ module.exports = {
 		{
 			description: 'Decoding 64 bit unsigned number',
 			input: { value: numberEncoded64, schema: number64Schema },
-			output: { object: number64 },
+			output: { object: { number: BigInt(number64.number) } },
 		},
 		{
 			description: 'Decoding 64 bit signed number',
 			input: { value: signedNumberEncoded64, schema: signedNumber64Schema },
-			output: { object: signedNumber64 },
+			output: { object: { number: BigInt(signedNumber64.number) } },
 		},
 	],
 };

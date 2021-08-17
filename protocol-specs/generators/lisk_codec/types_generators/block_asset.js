@@ -50,12 +50,12 @@ module.exports = {
 		{
 			description: 'Encoding of valid block asset',
 			input: { object: validBlockAsset1, schema: blockAssetSchema },
-			output: validBlockAsset1Encoded,
+			output: { value: validBlockAsset1Encoded },
 		},
 		{
 			description: 'Encoding of valid block asset with zero previously forged',
 			input: { object: validBlockAsset2, schema: blockAssetSchema },
-			output: validBlockAsset2Encoded,
+			output: { value: validBlockAsset2Encoded },
 		},
 	],
 

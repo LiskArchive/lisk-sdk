@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for genesis block types supported by lisk-codec",
+	"title": "Encoding for genesis block types supported by lisk-codec",
 	"summary": "Examples of encoding block with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -8,7 +8,7 @@
 	"handler": "genesis_block_encodings",
 	"testCases": [
 		{
-			"description": "Encoding of valid block asset",
+			"description": "Encoding of valid genesis block asset",
 			"input": {
 				"object": {
 					"initDelegates": [

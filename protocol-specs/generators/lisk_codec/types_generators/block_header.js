@@ -61,7 +61,7 @@ const validBlockHeader1 = {
 		'68a751863fe73b8ede8d832be628ff680d617fa15c74d00142f9025d5f37dd50',
 		'hex',
 	),
-	reward: 400000000,
+	reward: '400000000',
 	asset: Buffer.from('d59386e0ae435e292fbe0ebcdb954b75ed5fb3922091277cb19f798fc5d50718', 'hex'),
 	signature: Buffer.from(
 		'8331b5123cac056e2ec8361c56e642db0ca0e13abe33696d23d4d00ad6de844919296e87abe8e172f67fd882b4c0b1c1804b7d9075ecf975cf2631d8d7efef0c',
@@ -85,7 +85,7 @@ const validBlockHeader2 = {
 		'acc56344dea609e80cf5d4165e46917104fe701927847fc2a5d40e37574b2b38',
 		'hex',
 	),
-	reward: 400000000,
+	reward: '400000000',
 	asset: Buffer.from('eaaf9d4c65cb501c811ef812847a55513181474d734ead1b95b7e1e5b574d223', 'hex'),
 	signature: Buffer.from(
 		'1e65032943af975c3cdef94b1fce639645bddb29265321e0277a0f48143ef7f6f6daa1046234a09cc593969ff04d8d082edd15a4a9b90a7b8865fcd9dac44300',
@@ -101,12 +101,12 @@ module.exports = {
 		{
 			description: 'Encoding of valid block header 1',
 			input: { object: validBlockHeader1, schema: blockHeaderSchema },
-			output: validBlockHeader1Encoded,
+			output: { value: validBlockHeader1Encoded },
 		},
 		{
 			description: 'Encoding of valid block header 2',
 			input: { object: validBlockHeader2, schema: blockHeaderSchema },
-			output: validBlockHeader2Encoded,
+			output: { value: validBlockHeader2Encoded },
 		},
 	],
 

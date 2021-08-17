@@ -72,8 +72,8 @@ const multisigAssetSchema = {
 const validBaseTransaction = {
 	moduleID: 20,
 	assetID: 1,
-	nonce: 1570179673932370,
-	fee: 3156364651,
+	nonce: '1570179673932370',
+	fee: '3156364651',
 	senderPublicKey: Buffer.from(
 		'8f057d088a585d938c20d63e430a068d4cea384e588aa0b758c68fca21644dbc',
 		'hex',
@@ -95,11 +95,11 @@ const validVoteAsset = {
 	votes: [
 		{
 			delegateAddress: Buffer.from('cd32c73e9851c7137980063b8af64aa5a31651f8', 'hex'),
-			amount: -12000000000,
+			amount: '-12000000000',
 		},
 		{
 			delegateAddress: Buffer.from('9d86ad24a3f030e5522b6598115bb4d70c1692c9', 'hex'),
-			amount: 456000000000,
+			amount: '456000000000',
 		},
 	],
 };

@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for block asset types supported by lisk-codec",
+	"title": "Encoding for block asset types supported by lisk-codec",
 	"summary": "Examples of encoding block asset with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -35,7 +35,9 @@
 					"required": ["maxHeightPreviouslyForged", "maxHeightPrevoted", "seedReveal"]
 				}
 			},
-			"output": "08990810b9ff361a10d59386e0ae435e292fbe0ebcdb954b75"
+			"output": {
+				"value": "08990810b9ff361a10d59386e0ae435e292fbe0ebcdb954b75"
+			}
 		},
 		{
 			"description": "Encoding of valid block asset with zero previously forged",
@@ -65,7 +67,9 @@
 					"required": ["maxHeightPreviouslyForged", "maxHeightPrevoted", "seedReveal"]
 				}
 			},
-			"output": "08001099081a10eaaf9d4c65cb501c811ef812847a5551"
+			"output": {
+				"value": "08001099081a10eaaf9d4c65cb501c811ef812847a5551"
+			}
 		}
 	]
 }

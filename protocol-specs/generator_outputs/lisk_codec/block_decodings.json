@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for block types supported by lisk-codec",
+	"title": "Decoding for block types supported by lisk-codec",
 	"summary": "Examples of encoding block with lisk-codec",
 	"config": {
 		"network": "devnet"

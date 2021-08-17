@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for objects types supported by lisk-codec",
+	"title": "Encoding for objects types supported by lisk-codec",
 	"summary": "Examples of encoding objects with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -12,7 +12,7 @@
 			"input": {
 				"object": {
 					"address": "e11a11364738225813f86ea85214400e5db08d6e",
-					"balance": 10000000,
+					"balance": "10000000",
 					"isDelegate": true,
 					"name": "delegate",
 					"asset": {
@@ -23,7 +23,7 @@
 						}
 					}
 				},
-				"objectSchema": {
+				"schema": {
 					"$id": "object11",
 					"type": "object",
 					"properties": {
@@ -79,7 +79,7 @@
 			"input": {
 				"object": {
 					"isActive": true,
-					"value": 1
+					"value": "1"
 				},
 				"schema": {
 					"$id": "object12",

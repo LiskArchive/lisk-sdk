@@ -43,17 +43,17 @@ module.exports = {
 		{
 			description: 'Encoding of string',
 			input: { object: normal, schema },
-			output: stringEncoded,
+			output: { value: stringEncoded },
 		},
 		{
 			description: 'Encoding of empty string',
 			input: { object: emptyString, schema },
-			output: emptyStringEncoded,
+			output: { value: emptyStringEncoded },
 		},
 		{
 			description: 'Encoding of some utf symbols string',
 			input: { object: symbols, schema },
-			output: symbolsStringEncoded,
+			output: { value: symbolsStringEncoded },
 		},
 	],
 

@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for bytes types supported by lisk-codec",
+	"title": "Encoding for bytes types supported by lisk-codec",
 	"summary": "Examples of encoding bytes with lisk-codec",
 	"config": {
 		"network": "devnet"

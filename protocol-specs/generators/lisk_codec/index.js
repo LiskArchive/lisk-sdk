@@ -40,8 +40,8 @@ const {
 	validAccountDecodingTestCases,
 	validTransactionEncodingsTestCases,
 	validTransactionDecodingsTestCases,
-	cartEncodingsTestCases,
-	cartDecodingsTestCases,
+	cartSampleEncodingsTestCases,
+	cartSampleDecodingsTestCases,
 	validPeerInfoEncodingsTestCases,
 	validPeerInfoDecodingsTestCases,
 	validNestedArrayEncodingsTestCases,
@@ -51,6 +51,7 @@ const {
 const generateTestSuite = (data, handler, encodingTestCases, decodingTestCases) => [
 	() => ({
 		...data,
+		title: `Encoding ${data.title}`,
 		config: {
 			network: 'devnet',
 		},
@@ -60,6 +61,7 @@ const generateTestSuite = (data, handler, encodingTestCases, decodingTestCases) 
 	}),
 	() => ({
 		...data,
+		title: `Decoding ${data.title}`,
 		config: {
 			network: 'devnet',
 		},
@@ -72,7 +74,7 @@ const generateTestSuite = (data, handler, encodingTestCases, decodingTestCases) 
 module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	...generateTestSuite(
 		{
-			title: 'Encondings for number types supported by lisk-codec',
+			title: 'for number types supported by lisk-codec',
 			summary: 'Examples of encoding numbers with lisk-codec',
 		},
 		'number',
@@ -81,7 +83,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for boolean types supported by lisk-codec',
+			title: 'for boolean types supported by lisk-codec',
 			summary: 'Examples of encoding booleans with lisk-codec',
 		},
 		'boolean',
@@ -90,7 +92,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for string types supported by lisk-codec',
+			title: 'for string types supported by lisk-codec',
 			summary: 'Examples of encoding strings with lisk-codec',
 		},
 		'string',
@@ -99,7 +101,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for bytes types supported by lisk-codec',
+			title: 'for bytes types supported by lisk-codec',
 			summary: 'Examples of encoding bytes with lisk-codec',
 		},
 		'bytes',
@@ -108,7 +110,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for objects types supported by lisk-codec',
+			title: 'for objects types supported by lisk-codec',
 			summary: 'Examples of encoding objects with lisk-codec',
 		},
 		'objects',
@@ -117,7 +119,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for arrays types supported by lisk-codec',
+			title: 'for arrays types supported by lisk-codec',
 			summary: 'Examples of encoding arrays with lisk-codec',
 		},
 		'arrays',
@@ -126,7 +128,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for block types supported by lisk-codec',
+			title: 'for block types supported by lisk-codec',
 			summary: 'Examples of encoding block with lisk-codec',
 		},
 		'block',
@@ -135,7 +137,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for genesis block types supported by lisk-codec',
+			title: 'for genesis block types supported by lisk-codec',
 			summary: 'Examples of encoding block with lisk-codec',
 		},
 		'genesis_block',
@@ -144,7 +146,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for block header types supported by lisk-codec',
+			title: 'for block header types supported by lisk-codec',
 			summary: 'Examples of encoding block header with lisk-codec',
 		},
 		'block_header',
@@ -153,7 +155,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for block asset types supported by lisk-codec',
+			title: 'for block asset types supported by lisk-codec',
 			summary: 'Examples of encoding block asset with lisk-codec',
 		},
 		'block_asset',
@@ -162,7 +164,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for account types supported by lisk-codec',
+			title: 'for account types supported by lisk-codec',
 			summary: 'Examples of encoding account with lisk-codec',
 		},
 		'account',
@@ -171,7 +173,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for transaction types supported by lisk-codec',
+			title: 'for transaction types supported by lisk-codec',
 			summary: 'Examples of encoding transaction with lisk-codec',
 		},
 		'transaction',
@@ -180,16 +182,16 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for a complex object',
+			title: 'for a complex object',
 			summary: 'Example of encoding a complex object that might exist in custom apps',
 		},
 		'cart_sample',
-		cartEncodingsTestCases,
-		cartDecodingsTestCases,
+		cartSampleEncodingsTestCases,
+		cartSampleDecodingsTestCases,
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for a peer info object',
+			title: 'for a peer info object',
 			summary: 'Example of encoding a peer info object for p2p',
 		},
 		'peer_info_sample',
@@ -198,7 +200,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	),
 	...generateTestSuite(
 		{
-			title: 'Encondings for a nested array',
+			title: 'for a nested array',
 			summary: 'Example of encoding a nested array',
 		},
 		'nested_array',

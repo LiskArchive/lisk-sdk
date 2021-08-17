@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for a complex object",
+	"title": "Encoding for a complex object",
 	"summary": "Example of encoding a complex object that might exist in custom apps",
 	"config": {
 		"network": "devnet"
@@ -11,30 +11,30 @@
 			"description": "Encoding of object with multiple arrays",
 			"input": {
 				"object": {
-					"orderId": "1234",
-					"createdAt": "1590564352",
-					"customerId": "100",
+					"orderId": 1234,
+					"createdAt": 1590564352,
+					"customerId": 100,
 					"lineItems": [
 						{
-							"productId": "5008798",
-							"price": "599",
-							"quantity": "1",
+							"productId": 5008798,
+							"price": 599,
+							"quantity": 1,
 							"taxLines": [
 								{
-									"price": "599",
-									"rate": "6",
+									"price": 599,
+									"rate": 6,
 									"title": "State Tax"
 								}
 							]
 						},
 						{
-							"productId": "9008798",
-							"price": "1599",
-							"quantity": "1",
+							"productId": 9008798,
+							"price": 1599,
+							"quantity": 1,
 							"taxLines": [
 								{
-									"price": "1599",
-									"rate": "7",
+									"price": 1599,
+									"rate": 7,
 									"title": "State Tax"
 								}
 							]

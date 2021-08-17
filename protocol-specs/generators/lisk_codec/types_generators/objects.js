@@ -21,7 +21,7 @@ const { Objects, ObjectWithOptionalProp } = prepareProtobuffersObjects();
 
 const object = {
 	address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
-	balance: 10000000,
+	balance: '10000000',
 	isDelegate: true,
 	name: 'delegate',
 	asset: {
@@ -81,7 +81,7 @@ const objectSchema = {
 
 const objectWithOptionalProps = {
 	isActive: true,
-	value: 1,
+	value: '1',
 };
 
 const objectWithOptionalPropsSchema = {
@@ -110,7 +110,7 @@ module.exports = {
 	validObjectEncodingsTestCases: [
 		{
 			description: 'Encoding of object',
-			input: { object, objectSchema },
+			input: { object, schema: objectSchema },
 			output: { value: objectEncoded },
 		},
 		{
@@ -122,13 +122,18 @@ module.exports = {
 	validObjectDecodingsTestCases: [
 		{
 			description: 'Decoding of object',
-			input: { value: objectEncoded, objectSchema },
+			input: { value: objectEncoded, schema: objectSchema },
 			output: { object },
 		},
 		{
 			description: 'Decoding of object with optional property',
 			input: { value: objectOptionalPropEncoded, schema: objectWithOptionalPropsSchema },
-			output: { object: objectWithOptionalProps },
+			output: {
+				object: {
+					...objectWithOptionalProps,
+					data: Buffer.alloc(0),
+				},
+			},
 		},
 	],
 };

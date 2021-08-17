@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for block types supported by lisk-codec",
+	"title": "Encoding for block types supported by lisk-codec",
 	"summary": "Examples of encoding block with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -36,7 +36,9 @@
 					"required": ["header", "payload"]
 				}
 			},
-			"output": "0a20ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad1220a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3122068a751863fe73b8ede8d832be628ff680d617fa15c74d00142f9025d5f37dd50"
+			"output": {
+				"value": "0a20ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad1220a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3122068a751863fe73b8ede8d832be628ff680d617fa15c74d00142f9025d5f37dd50"
+			}
 		},
 		{
 			"description": "Encoding of valid block block without payload",
@@ -64,7 +66,9 @@
 					"required": ["header", "payload"]
 				}
 			},
-			"output": "0a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+			"output": {
+				"value": "0a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+			}
 		}
 	]
 }

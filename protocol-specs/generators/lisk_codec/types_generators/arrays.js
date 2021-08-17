@@ -21,7 +21,7 @@ const { ArrayOfIntegers, ArrayBools, ArrayString, ArrayObjects } = prepareProtob
 
 const getArraySchemaFor = type => ({
 	type: 'object',
-	$id: `array-schema-${type}`,
+	$id: `array-schema-${typeof type === 'string' ? type : typeof type}`,
 	properties: {
 		list: {
 			type: 'array',
@@ -43,7 +43,7 @@ const emptyArray = {
 	list: [],
 };
 const arrayOfIntegersEncoded = ArrayOfIntegers.encode(arrayOfIntegers).finish();
-const emptyArrayEncoded = ArrayBools.encode(arrayOfIntegers).finish();
+const emptyArrayEncoded = ArrayOfIntegers.encode(emptyArray).finish();
 
 const booleanSchema = getArraySchemaFor('boolean');
 const arrayOfBooleans = { list: [true, true, false, true, false, false] };
@@ -70,11 +70,11 @@ const arrayOfObjects = {
 	list: [
 		{
 			address: 'e11a11364738225813f86ea85214400e5db08d6e',
-			amount: 100000,
+			amount: '100000',
 		},
 		{
 			address: 'aa2a11364738225813f86ea85214400e5db08fff',
-			amount: 300000,
+			amount: '300000',
 		},
 	],
 };
@@ -85,27 +85,27 @@ module.exports = {
 		{
 			description: 'Encoding of integers array',
 			input: { object: arrayOfIntegers, schema: integerSchema },
-			output: arrayOfIntegersEncoded,
+			output: { value: arrayOfIntegersEncoded },
 		},
 		{
 			description: 'Encoding of booleans array',
 			input: { object: arrayOfBooleans, schema: booleanSchema },
-			output: arrayBoolsEncoded,
+			output: { value: arrayBoolsEncoded },
 		},
 		{
 			description: 'arrayStrings of strings array',
 			input: { object: arrayOfStrings, schema: stringSchema },
-			output: arrayStringsEncoded,
+			output: { value: arrayStringsEncoded },
 		},
 		{
 			description: 'Encoding of objects array',
 			input: { object: arrayOfObjects, schema: objectSchema },
-			output: arrayOfObjectsEncoded,
+			output: { value: arrayOfObjectsEncoded },
 		},
 		{
 			description: 'Encoding of empty array',
 			input: { object: emptyArray, schema: integerSchema },
-			output: emptyArrayEncoded,
+			output: { value: emptyArrayEncoded },
 		},
 	],
 	validArrayDecodingsTestCases: [

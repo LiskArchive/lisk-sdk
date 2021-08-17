@@ -20,7 +20,7 @@ const genesisBlockAsset = require('./genesis_block_asset');
 const blockHeader = require('./block_header');
 const transaction = require('./transaction');
 const cartSample = require('./cart_sample');
-const peerSample = require('./peer_sample');
+const peerInfo = require('./peer_info');
 const nestedArray = require('./nested_array');
 const strings = require('./strings');
 const account = require('./account');
@@ -41,6 +41,6 @@ module.exports = {
 	...genesisBlockAsset,
 	...numbers,
 	...objects,
-	...peerSample,
+	...peerInfo,
 	...transaction,
 };

@@ -50,12 +50,12 @@ module.exports = {
 		{
 			description: 'Encoding of valid block with payload',
 			input: { object: validBlock1, schema: blockSchema },
-			output: validBlock1Encoded,
+			output: { value: validBlock1Encoded },
 		},
 		{
 			description: 'Encoding of valid block block without payload',
 			input: { object: validBlock2, schema: blockSchema },
-			output: validBlock2Encoded,
+			output: { value: validBlock2Encoded },
 		},
 	],
 

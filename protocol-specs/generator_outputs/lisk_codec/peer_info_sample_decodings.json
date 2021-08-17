@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for a peer info object",
+	"title": "Decoding for a peer info object",
 	"summary": "Example of encoding a peer info object for p2p",
 	"config": {
 		"network": "devnet"
@@ -103,7 +103,11 @@
 				"object": {
 					"ipAddress": "1.1.1.1",
 					"wsPort": 1111,
-					"os": "darwin"
+					"os": "darwin",
+					"networkIdentifier": "",
+					"networkVersion": "",
+					"nonce": "",
+					"height": 0
 				}
 			}
 		}

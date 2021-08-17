@@ -227,7 +227,7 @@ const validBlockAssetEncoded = GenesisBlockAsset.encode(validGenesisBlockAsset1)
 module.exports = {
 	validGenesisBlockAssetEncodingsTestCases: [
 		{
-			description: 'Encoding of valid block asset',
+			description: 'Encoding of valid genesis block asset',
 			input: { object: validGenesisBlockAsset1, schema: genesisBlockAssetSchema },
 			output: { value: validBlockAssetEncoded },
 		},
@@ -235,7 +235,7 @@ module.exports = {
 
 	validGenesisBlockAssetDecodingsTestCases: [
 		{
-			description: 'Encoding of valid block asset',
+			description: 'Decoding of valid genesis block asset',
 			input: { value: validBlockAssetEncoded, schema: genesisBlockAssetSchema },
 			output: { object: validGenesisBlockAsset1 },
 		},

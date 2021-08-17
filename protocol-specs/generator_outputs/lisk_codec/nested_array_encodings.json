@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for a nested array",
+	"title": "Encoding for a nested array",
 	"summary": "Example of encoding a nested array",
 	"config": {
 		"network": "devnet"

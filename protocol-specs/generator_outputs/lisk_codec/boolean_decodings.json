@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for boolean types supported by lisk-codec",
+	"title": "Decoding for boolean types supported by lisk-codec",
 	"summary": "Examples of encoding booleans with lisk-codec",
 	"config": {
 		"network": "devnet"

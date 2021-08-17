@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for transaction types supported by lisk-codec",
+	"title": "Encoding for transaction types supported by lisk-codec",
 	"summary": "Examples of encoding transaction with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -13,8 +13,8 @@
 				"object": {
 					"moduleID": 20,
 					"assetID": 1,
-					"nonce": 1570179673932370,
-					"fee": 3156364651,
+					"nonce": "1570179673932370",
+					"fee": "3156364651",
 					"senderPublicKey": "8f057d088a585d938c20d63e430a068d4cea384e588aa0b758c68fca21644dbc",
 					"asset": "f214d75bbc4b2ea89e433f3a45af803725416ec3",
 					"signatures": [
@@ -80,11 +80,11 @@
 					"votes": [
 						{
 							"delegateAddress": "cd32c73e9851c7137980063b8af64aa5a31651f8",
-							"amount": -12000000000
+							"amount": "-12000000000"
 						},
 						{
 							"delegateAddress": "9d86ad24a3f030e5522b6598115bb4d70c1692c9",
-							"amount": 456000000000
+							"amount": "456000000000"
 						}
 					]
 				},

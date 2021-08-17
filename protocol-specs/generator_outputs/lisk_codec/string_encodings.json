@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for string types supported by lisk-codec",
+	"title": "Encoding for string types supported by lisk-codec",
 	"summary": "Examples of encoding strings with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -24,7 +24,9 @@
 					}
 				}
 			},
-			"output": "0a12436865636b6f7574204c69736b2053444b21"
+			"output": {
+				"value": "0a12436865636b6f7574204c69736b2053444b21"
+			}
 		},
 		{
 			"description": "Encoding of empty string",
@@ -43,7 +45,9 @@
 					}
 				}
 			},
-			"output": "0a00"
+			"output": {
+				"value": "0a00"
+			}
 		},
 		{
 			"description": "Encoding of some utf symbols string",
@@ -62,7 +66,9 @@
 					}
 				}
 			},
-			"output": "0a2ee282ac2ec6922ee280b02ec5922ec2a32ec2a92ec2ae2ec2b52ec3862ec3bc2ec3bd2ec3b82ec3872ec2a52ec39f"
+			"output": {
+				"value": "0a2ee282ac2ec6922ee280b02ec5922ec2a32ec2a92ec2ae2ec2b52ec3862ec3bc2ec3bd2ec3b82ec3872ec2a52ec39f"
+			}
 		}
 	]
 }

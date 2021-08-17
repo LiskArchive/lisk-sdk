@@ -20,30 +20,30 @@ const prepareProtobuffersObjects = () =>
 const { Cart } = prepareProtobuffersObjects();
 
 const object = {
-	orderId: '1234',
-	createdAt: '1590564352',
-	customerId: '100',
+	orderId: 1234,
+	createdAt: 1590564352,
+	customerId: 100,
 	lineItems: [
 		{
-			productId: '5008798',
-			price: '599',
-			quantity: '1',
+			productId: 5008798,
+			price: 599,
+			quantity: 1,
 			taxLines: [
 				{
-					price: '599',
-					rate: '6',
+					price: 599,
+					rate: 6,
 					title: 'State Tax',
 				},
 			],
 		},
 		{
-			productId: '9008798',
-			price: '1599',
-			quantity: '1',
+			productId: 9008798,
+			price: 1599,
+			quantity: 1,
 			taxLines: [
 				{
-					price: '1599',
-					rate: '7',
+					price: 1599,
+					rate: 7,
 					title: 'State Tax',
 				},
 			],
@@ -115,7 +115,7 @@ const schema = {
 const objectEncoded = Cart.encode(object).finish();
 
 module.exports = {
-	cartEncodingsTestCases: [
+	cartSampleEncodingsTestCases: [
 		{
 			description: 'Encoding of object with multiple arrays',
 			input: {
@@ -125,7 +125,7 @@ module.exports = {
 			output: { value: objectEncoded },
 		},
 	],
-	cartDecodingsTestCases: [
+	cartSampleDecodingsTestCases: [
 		{
 			description: 'Decoding of object with multiple arrays',
 			input: {

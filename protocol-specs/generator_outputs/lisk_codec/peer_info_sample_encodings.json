@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for a peer info object",
+	"title": "Encoding for a peer info object",
 	"summary": "Example of encoding a peer info object for p2p",
 	"config": {
 		"network": "devnet"
