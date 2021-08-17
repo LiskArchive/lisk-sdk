@@ -338,7 +338,6 @@ export const applicationConfigSchema = {
 		},
 		rpc: {
 			type: 'object',
-			required: ['modes'],
 			properties: {
 				modes: {
 					type: 'array',

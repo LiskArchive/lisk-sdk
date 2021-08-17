@@ -460,9 +460,6 @@ Object {
             "type": "object",
           },
         },
-        "required": Array [
-          "modes",
-        ],
         "type": "object",
       },
       "transactionPool": Object {

@@ -102,14 +102,14 @@ export class Bus {
 		this.channels = {};
 		this.rpcClients = {};
 
-		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
+		if (this.config.rpc.modes.includes(RPC_MODES.IPC) && this.config.rpc.ipc) {
 			this._ipcServer = new IPCServer({
 				socketsDir: this.config.rpc.ipc.path,
 				name: 'bus',
 			});
 		}
 
-		if (this.config.rpc.modes.includes(RPC_MODES.WS)) {
+		if (this.config.rpc.modes.includes(RPC_MODES.WS) && this.config.rpc.ws) {
 			this._wsServer = new WSServer({
 				path: this.config.rpc.ws.path,
 				port: this.config.rpc.ws.port,
@@ -118,7 +118,7 @@ export class Bus {
 			});
 		}
 
-		if (this.config.rpc.modes.includes(RPC_MODES.HTTP)) {
+		if (this.config.rpc.modes.includes(RPC_MODES.HTTP) && this.config.rpc.http) {
 			this._httpServer = new HTTPServer({
 				host: this.config.rpc.http.host,
 				port: this.config.rpc.http.port,
