@@ -42,4 +42,5 @@ export const EVENT_POST_NODE_INFO = 'postNodeInfo';
 export const RPC_MODES = {
 	IPC: 'ipc',
 	WS: 'ws',
+	HTTP: 'http',
 };

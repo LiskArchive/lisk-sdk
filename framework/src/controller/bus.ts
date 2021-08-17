@@ -26,6 +26,7 @@ import { Event, EventsDefinition } from './event';
 import { IPCServer } from './ipc/ipc_server';
 import * as JSONRPC from './jsonrpc';
 import { WSServer } from './ws/ws_server';
+import { HTTPServer } from './http/http_server';
 
 interface BusConfiguration {
 	rpc: RPCConfig;
@@ -83,6 +84,7 @@ export class Bus {
 	private readonly _emitter: EventEmitter2;
 
 	private readonly _wsServer!: WSServer;
+	private readonly _httpServer!: HTTPServer;
 
 	public constructor(logger: Logger, config: BusConfiguration) {
 		this.logger = logger;
@@ -115,6 +117,14 @@ export class Bus {
 				logger: this.logger,
 			});
 		}
+
+		if (this.config.rpc.modes.includes(RPC_MODES.HTTP)) {
+			this._httpServer = new HTTPServer({
+				host: this.config.rpc.http.host,
+				port: this.config.rpc.http.port,
+				logger: this.logger,
+			});
+		}
 	}
 
 	public async setup(): Promise<boolean> {
@@ -123,6 +133,9 @@ export class Bus {
 		}
 		if (this.config.rpc.modes.includes(RPC_MODES.WS)) {
 			await this._setupWSServer();
+		}
+		if (this.config.rpc.modes.includes(RPC_MODES.HTTP)) {
+			await this._setupHTTPServer();
 		}
 
 		return true;
@@ -370,6 +383,10 @@ export class Bus {
 		if (this._wsServer) {
 			this._wsServer.stop();
 		}
+
+		if (this._httpServer) {
+			this._httpServer.stop();
+		}
 	}
 
 	private async _setupIPCServer(): Promise<void> {
@@ -411,6 +428,19 @@ export class Bus {
 				})
 				.catch((error: JSONRPC.JSONRPCError) => {
 					socket.send(JSON.stringify(error.response));
+				});
+		});
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	private async _setupHTTPServer(): Promise<void> {
+		this._httpServer.start((_req, res, message) => {
+			this.invoke(message)
+				.then(data => {
+					res.end(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));
+				})
+				.catch((error: JSONRPC.JSONRPCError) => {
+					res.end(JSON.stringify(error.response));
 				});
 		});
 	}

@@ -342,7 +342,7 @@ export const applicationConfigSchema = {
 			properties: {
 				modes: {
 					type: 'array',
-					items: { type: 'string', enum: ['ipc', 'ws'] },
+					items: { type: 'string', enum: ['ipc', 'ws', 'http'] },
 					uniqueItems: true,
 				},
 				ipc: {
@@ -364,6 +364,14 @@ export const applicationConfigSchema = {
 						},
 					},
 				},
+				http: {
+					type: 'object',
+					required: ['host', 'port'],
+					properties: {
+						host: { type: 'string' },
+						port: { type: 'number', minimum: 1024, maximum: 65535 },
+					}
+				}
 			},
 		},
 	},
@@ -384,6 +392,10 @@ export const applicationConfigSchema = {
 				port: 8080,
 				host: '127.0.0.1',
 				path: '/ws',
+			},
+			http: {
+				port: 8000,
+				host: '127.0.0.1',
 			},
 		},
 		genesisConfig: {

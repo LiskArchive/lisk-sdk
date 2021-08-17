@@ -165,6 +165,10 @@ export interface RPCConfig {
 	ipc: {
 		path: string;
 	};
+	http: {
+		port: number;
+		host: string;
+	};
 }
 
 export interface ApplicationConfig {

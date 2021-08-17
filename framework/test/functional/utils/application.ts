@@ -43,9 +43,12 @@ export const createApplication = async (
 			logFileName: 'functional-test.log',
 		},
 		rpc: {
-			modes: ['ws'],
+			modes: ['ws', 'http'],
 			ws: {
 				port: 8080,
+			},
+			http: {
+				port: 8000,
 			},
 		},
 	} as PartialApplicationConfig;
