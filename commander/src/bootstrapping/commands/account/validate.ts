@@ -39,8 +39,8 @@ export class ValidateCommand extends Command {
 
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			cryptography.validateBase32Address(address, this.config.pjson.lisk.addressPrefix);
-			const binaryAddress = cryptography.getAddressFromBase32Address(address).toString('hex');
+			cryptography.validateLisk32Address(address, this.config.pjson.lisk.addressPrefix);
+			const binaryAddress = cryptography.getAddressFromLisk32Address(address).toString('hex');
 
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			this.log(

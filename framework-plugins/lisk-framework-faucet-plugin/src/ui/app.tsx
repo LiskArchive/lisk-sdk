@@ -7,11 +7,11 @@ import logo from './logo.svg';
 import illustration from './illustration.svg';
 import styles from './app.module.scss';
 
-const { validateBase32Address, getAddressFromBase32Address } = cryptography;
+const { validateLisk32Address, getAddressFromLisk32Address } = cryptography;
 
 const validateAddress = (address: string, prefix: string): boolean => {
 	try {
-		return validateBase32Address(address, prefix);
+		return validateLisk32Address(address, prefix);
 	} catch (error) {
 		return false;
 	}
@@ -138,7 +138,7 @@ export const App: React.FC = () => {
 		try {
 			const client = await apiClient.createWSClient(config.applicationUrl);
 			await client.invoke('faucet:fundTokens', {
-				address: getAddressFromBase32Address(input, config.tokenPrefix).toString('hex'),
+				address: getAddressFromLisk32Address(input, config.tokenPrefix).toString('hex'),
 				token,
 			});
 			updateErrorMsg('');

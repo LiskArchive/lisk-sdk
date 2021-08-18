@@ -241,7 +241,7 @@ const MainPage: React.FC = () => {
 		const { address, publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(
 			accountPassphrase,
 		);
-		const lisk32Address = cryptography.getBase32AddressFromAddress(address);
+		const lisk32Address = cryptography.getLisk32AddressFromAddress(address);
 		const newAccount: Account = {
 			passphrase: accountPassphrase,
 			publicKey: publicKey.toString('hex'),
