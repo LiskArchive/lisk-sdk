@@ -54,6 +54,7 @@
 		"@liskhq/lisk-tree": "^0.2.0",
 		"@liskhq/lisk-utils": "^0.2.0",
 		"@liskhq/lisk-validator": "^0.6.0",
+		"@types/uuid": "8.3.1",
 		"bunyan": "1.8.15",
 		"debug": "4.3.1",
 		"eventemitter2": "6.4.4",
@@ -62,6 +63,7 @@
 		"pm2-axon-rpc": "0.7.1",
 		"ps-list": "7.0.0",
 		"sodium-native": "3.2.1",
+		"uuid": "8.3.2",
 		"ws": "7.4.6",
 		"zeromq": "6.0.0-beta.6"
 	},
