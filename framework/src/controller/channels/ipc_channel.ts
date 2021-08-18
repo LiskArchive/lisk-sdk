@@ -20,7 +20,7 @@ import { BaseChannel, BaseChannelOptions } from './base_channel';
 import { IPCClient } from '../ipc/ipc_client';
 import { ActionInfoForBus, ChannelType } from '../../types';
 import * as JSONRPC from '../jsonrpc';
-import { IPC_RPC_EVENT, REGISTER_CHANNEL_EVENT } from '../constants';
+import { IPC_RPC_EVENT, IPC_REGISTER_CHANNEL_EVENT } from '../constants';
 
 interface ChildProcessOptions extends BaseChannelOptions {
 	socketsPath: string;
@@ -101,7 +101,7 @@ export class IPCChannel extends BaseChannel {
 				type: ChannelType.ChildProcess,
 			}
 		};
-		this._ipcClient.pubSocket.send([REGISTER_CHANNEL_EVENT, JSON.stringify(registerObj)])
+		this._ipcClient.pubSocket.send([IPC_REGISTER_CHANNEL_EVENT, JSON.stringify(registerObj)])
 	}
 
 	public subscribe(eventName: string, cb: ListenerFn): void {

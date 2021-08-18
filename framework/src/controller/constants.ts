@@ -13,5 +13,5 @@
  */
 
 export const IPC_RPC_EVENT = 'invoke';
-export const REGISTER_CHANNEL_EVENT = 'registerChannel';
+export const IPC_REGISTER_CHANNEL_EVENT = 'registerChannel';
 export const IPC_CONNECTION_TIME_OUT = 2000;
