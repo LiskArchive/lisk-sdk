@@ -44,6 +44,10 @@ Object {
       "plugins": Object {},
       "rootPath": "~/.lisk",
       "rpc": Object {
+        "http": Object {
+          "host": "127.0.0.1",
+          "port": 8000,
+        },
         "modes": Array [
           "ipc",
         ],
@@ -393,6 +397,23 @@ Object {
       },
       "rpc": Object {
         "properties": Object {
+          "http": Object {
+            "properties": Object {
+              "host": Object {
+                "type": "string",
+              },
+              "port": Object {
+                "maximum": 65535,
+                "minimum": 1024,
+                "type": "number",
+              },
+            },
+            "required": Array [
+              "host",
+              "port",
+            ],
+            "type": "object",
+          },
           "ipc": Object {
             "properties": Object {
               "path": Object {
@@ -409,6 +430,7 @@ Object {
               "enum": Array [
                 "ipc",
                 "ws",
+                "http",
               ],
               "type": "string",
             },
@@ -438,9 +460,6 @@ Object {
             "type": "object",
           },
         },
-        "required": Array [
-          "modes",
-        ],
         "type": "object",
       },
       "transactionPool": Object {

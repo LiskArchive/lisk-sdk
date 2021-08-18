@@ -2220,6 +2220,10 @@ Object {
   "plugins": Object {},
   "rootPath": "~/.lisk",
   "rpc": Object {
+    "http": Object {
+      "host": "127.0.0.1",
+      "port": 8000,
+    },
     "modes": Array [
       "ipc",
     ],
