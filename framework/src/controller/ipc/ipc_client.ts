@@ -14,8 +14,7 @@
 
 import { Publisher, Subscriber } from 'zeromq';
 import { IPCSocket } from './ipc_socket';
-
-const CONNECTION_TIME_OUT = 2000;
+import { IPC_CONNECTION_TIME_OUT } from '../constants';
 
 export class IPCClient extends IPCSocket {
 
@@ -28,8 +27,8 @@ export class IPCClient extends IPCSocket {
 
 	public async start(): Promise<void> {
 		try {
-			this.pubSocket.connectTimeout = CONNECTION_TIME_OUT;
-			this.subSocket.connectTimeout = CONNECTION_TIME_OUT;
+			this.pubSocket.connectTimeout = IPC_CONNECTION_TIME_OUT;
+			this.subSocket.connectTimeout = IPC_CONNECTION_TIME_OUT;
 			// Connect to sub socket of the server to publish
 			this.pubSocket.connect(this._eventSubSocketPath);
 			// Connect to pub socket of the server to receive subscribed events
