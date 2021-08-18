@@ -27,8 +27,8 @@ import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
 	readonly ipc: {
-		readonly path: string
-	}
+		readonly path: string;
+	};
 }
 
 export enum ChannelType {

@@ -233,17 +233,21 @@ export class Bus {
 			}
 		}
 
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			this._rpcRequestIds.add(action.id as string);
-			this._ipcServer.pubSocket.send([IPC_RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
-			.then(_ => {
-				// Listen to this event once for serving the request
-				this._emitter.once(action.id as string, (response: JSONRPC.ResponseObjectWithResult<T>) => {
-					this._rpcRequestIds.delete(action.id as string);
-					return resolve(response);
+			this._ipcServer.pubSocket
+				.send([IPC_RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
+				.then(_ => {
+					// Listen to this event once for serving the request
+					this._emitter.once(
+						action.id as string,
+						(response: JSONRPC.ResponseObjectWithResult<T>) => {
+							this._rpcRequestIds.delete(action.id as string);
+							return resolve(response);
+						},
+					);
 				});
-			})
-		})
+		});
 	}
 
 	public publish(rawRequest: string | JSONRPC.NotificationRequest): void {
@@ -298,8 +302,7 @@ export class Bus {
 
 		// Communicate through unix socket
 		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
-			this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)])
-			.catch(error => {
+			this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)]).catch(error => {
 				this.logger.debug(
 					{ err: error as Error },
 					`Failed to publish event: ${eventName} to ipc server.`,
@@ -370,7 +373,9 @@ export class Bus {
 		const listenToRPCOnSubSocket = async () => {
 			for await (const [event, eventData] of this._ipcServer.subSocket) {
 				if (event.toString() === IPC_REGISTER_CHANNEL_EVENT) {
-					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(eventData.toString());
+					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
+						eventData.toString(),
+					);
 					this.registerChannel(moduleAlias, eventsList, actionsInfo, options);
 					continue;
 				}
@@ -379,7 +384,7 @@ export class Bus {
 					this.invoke(request).then(result => {
 						// Send the request result
 						this._ipcServer.pubSocket.send([request.id as string, JSON.stringify(result)]);
-					})
+					});
 					continue;
 				}
 				if (this._rpcRequestIds.has(event.toString())) {
@@ -389,7 +394,7 @@ export class Bus {
 				}
 				this.publish(eventData.toString());
 			}
-		}
+		};
 		listenToRPCOnSubSocket();
 	}
 

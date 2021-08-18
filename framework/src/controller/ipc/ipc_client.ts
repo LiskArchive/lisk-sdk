@@ -17,8 +17,7 @@ import { IPCSocket } from './ipc_socket';
 import { IPC_CONNECTION_TIME_OUT } from '../constants';
 
 export class IPCClient extends IPCSocket {
-
-	public constructor(options: { socketsDir: string; name: string; }) {
+	public constructor(options: { socketsDir: string; name: string }) {
 		super(options);
 
 		this.pubSocket = new Publisher();

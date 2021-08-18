@@ -62,9 +62,11 @@ export class IPCChannel extends BaseChannel {
 				if (event.toString() === IPC_RPC_EVENT) {
 					const request = Action.fromJSONRPCRequest(JSON.parse(eventData.toString()));
 					if (request.module === this.moduleAlias) {
-						this.invoke(request.key(), request.params)
-						.then(result => {
-							this._pubSocket.send([request.id as string, JSON.stringify(request.buildJSONRPCResponse({result}))]);
+						this.invoke(request.key(), request.params).then(result => {
+							this._pubSocket.send([
+								request.id as string,
+								JSON.stringify(request.buildJSONRPCResponse({ result })),
+							]);
 						});
 					}
 					continue;
@@ -77,7 +79,7 @@ export class IPCChannel extends BaseChannel {
 				const eventDataJSON = Event.fromJSONRPCNotification(JSON.parse(eventData.toString()));
 				this._emitter.emit(eventDataJSON.key(), eventDataJSON.toJSONRPCNotification());
 			}
-		}
+		};
 		listenToMessages();
 	}
 
@@ -99,9 +101,9 @@ export class IPCChannel extends BaseChannel {
 			actionsInfo: actionsInfo,
 			options: {
 				type: ChannelType.ChildProcess,
-			}
+			},
 		};
-		this._ipcClient.pubSocket.send([IPC_REGISTER_CHANNEL_EVENT, JSON.stringify(registerObj)])
+		this._ipcClient.pubSocket.send([IPC_REGISTER_CHANNEL_EVENT, JSON.stringify(registerObj)]);
 	}
 
 	public subscribe(eventName: string, cb: ListenerFn): void {
@@ -146,18 +148,17 @@ export class IPCChannel extends BaseChannel {
 		}
 
 		// When the handler is in other channels
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			// Subscribe to the action Id
 			this._rpcRequestIds.add(action.id as string);
 			this._subSocket.subscribe(action.id as string);
-			this._pubSocket.send(['invoke', JSON.stringify(action.toJSONRPCRequest())])
-			.then(_ => {
+			this._pubSocket.send(['invoke', JSON.stringify(action.toJSONRPCRequest())]).then(_ => {
 				this._emitter.once(action.id as string, (response: JSONRPC.ResponseObjectWithResult<T>) => {
 					// Unsubscribe action Id after its resolved
 					this._subSocket.unsubscribe(action.id as string);
 					this._rpcRequestIds.delete(action.id as string);
 					return resolve(response.result);
-				})
+				});
 			});
 		});
 	}
