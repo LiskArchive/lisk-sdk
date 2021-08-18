@@ -24,7 +24,7 @@ export class InMemoryChannel extends BaseChannel {
 	public async registerToBus(bus: Bus): Promise<void> {
 		this.bus = bus;
 
-		await this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {
+		this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {
 			type: 'inMemory',
 			channel: this,
 		});
