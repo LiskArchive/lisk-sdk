@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { v4 as uuidV4 } from 'uuid';
 import { strict as assert } from 'assert';
 import { actionWithModuleNameReg } from '../constants';
 import {
@@ -58,6 +59,10 @@ export class Action {
 			typeof data === 'string' ? (JSON.parse(data) as RequestObject) : data;
 
 		return new Action(id, method, params);
+	}
+
+	public static getActionIDForRPC() {
+		return `rpc:${uuidV4()}`;
 	}
 
 	public toJSONRPCRequest(): RequestObject {
