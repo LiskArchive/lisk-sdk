@@ -12,19 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Publisher, Subscriber } from 'zeromq';
+import { Dealer, Publisher, Subscriber } from 'zeromq';
 import { IPCSocket } from './ipc_socket';
 import { IPC_CONNECTION_TIME_OUT } from '../constants';
 
+interface SocketPaths {
+	readonly pub: string;
+	readonly sub: string;
+	readonly rpcServer: string;
+	readonly rpcClient: string;
+}
 export class IPCClient extends IPCSocket {
-	public constructor(options: { socketsDir: string; name: string }) {
+	private _rpcClient: Dealer;
+	protected readonly _clientRPCSocketPath: string;
+	private readonly _socketPaths: SocketPaths
+
+	public constructor(options: { socketsDir: string; name: string; rpcServerSocketPath: string  }) {
 		super(options);
 
 		this.pubSocket = new Publisher();
 		this.subSocket = new Subscriber();
+		this._clientRPCSocketPath = options.rpcServerSocketPath;
+		this._socketPaths = {
+			pub: this._eventSubSocketPath,
+			sub: this._eventPubSocketPath,
+			rpcServer: this._rpcSeverSocketPath,
+			rpcClient: this._clientRPCSocketPath,
+		}
+		this._rpcClient = new Dealer();
+	}
+
+	public get rpcClient(): Dealer {
+		return this._rpcClient;
+	}
+
+	public get socketPaths(): SocketPaths {
+		return this._socketPaths;
 	}
 
 	public async start(): Promise<void> {
+		await super.start();
+
 		try {
 			this.pubSocket.connectTimeout = IPC_CONNECTION_TIME_OUT;
 			this.subSocket.connectTimeout = IPC_CONNECTION_TIME_OUT;
@@ -35,9 +63,11 @@ export class IPCClient extends IPCSocket {
 			/* Wait briefly before publishing to avoid slow joiner syndrome,
 			   where the subscriber loses messages as it connects to the server’s socket */
 			await new Promise(resolve => setTimeout(resolve, 25));
+			this.rpcClient.connect(this._clientRPCSocketPath);
 		} catch (error) {
 			this.pubSocket.close();
 			this.subSocket.close();
+			this.rpcClient.close();
 			throw error;
 		}
 	}

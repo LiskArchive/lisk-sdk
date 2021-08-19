@@ -12,19 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Publisher, Subscriber } from 'zeromq';
+import { Publisher, Subscriber, Router } from 'zeromq';
 import { join } from 'path';
 
 export abstract class IPCSocket {
 	public pubSocket!: Publisher;
 	public subSocket!: Subscriber;
 
+	private readonly _rpcServer: Router;
 	protected readonly _eventPubSocketPath: string;
 	protected readonly _eventSubSocketPath: string;
+	protected readonly _rpcSeverSocketPath: string;
 
 	protected constructor(options: { socketsDir: string; name: string }) {
 		this._eventPubSocketPath = `ipc://${join(options.socketsDir, 'internal.pub.ipc')}`;
 		this._eventSubSocketPath = `ipc://${join(options.socketsDir, 'internal.sub.ipc')}`;
+		this._rpcSeverSocketPath = `ipc://${join(
+			options.socketsDir,
+			`${options.name}.internal.rpc.ipc`,
+		)}`;
+
+		this._rpcServer = new Router();
+	}
+
+	public get rpcServer(): Router {
+		return this._rpcServer;
+	}
+
+	public async start(): Promise<void> {
+		await this.rpcServer.bind(this._rpcSeverSocketPath);
 	}
 
 	public stop(): void {

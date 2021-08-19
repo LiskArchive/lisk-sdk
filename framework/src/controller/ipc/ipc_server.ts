@@ -24,6 +24,7 @@ export class IPCServer extends IPCSocket {
 	}
 
 	public async start(): Promise<void> {
+		await super.start();
 		try {
 			await this.pubSocket.bind(this._eventPubSocketPath);
 			await this.subSocket.bind(this._eventSubSocketPath);
