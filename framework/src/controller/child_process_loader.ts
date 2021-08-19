@@ -44,7 +44,7 @@ const _loadPlugin = async (
 	channel.publish(`${pluginAlias}:registeredToBus`);
 	channel.publish(`${pluginAlias}:loading:started`);
 
-	const context = { options: pluginOptions, channel, config};
+	const context = { options: pluginOptions, channel, config };
 
 	await plugin.init(context);
 	await plugin.load(channel);

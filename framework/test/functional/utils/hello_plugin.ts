@@ -11,12 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	ActionsDefinition,
-	BaseChannel,
-	BasePlugin,
-	EventsDefinition,
-} from '../../../src';
+import { ActionsDefinition, BaseChannel, BasePlugin, EventsDefinition } from '../../../src';
 
 export class HelloPlugin extends BasePlugin {
 	public get nodeModulePath(): string {

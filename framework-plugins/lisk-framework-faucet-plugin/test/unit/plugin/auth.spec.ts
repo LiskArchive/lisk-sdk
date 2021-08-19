@@ -68,7 +68,11 @@ describe('auth action', () => {
 
 	beforeEach(async () => {
 		faucetPlugin = new FaucetPlugin();
-		await faucetPlugin.init({ config: validPluginOptions, channel: (channelMock as unknown) as BaseChannel, options: { dataPath: '', appConfig: appConfigForPlugin } });
+		await faucetPlugin.init({
+			config: validPluginOptions,
+			channel: (channelMock as unknown) as BaseChannel,
+			options: { dataPath: '', appConfig: appConfigForPlugin },
+		});
 		(faucetPlugin as any)._options = {
 			encryptedPassphrase:
 				'iterations=1000000&cipherText=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',

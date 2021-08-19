@@ -588,10 +588,10 @@ describe('Application', () => {
 		it('should compile config and load plugins', () => {
 			// Arrange
 			const plugins = {
-				['test-plugin']: TestPlugin,
+				'test-plugin': TestPlugin,
 			};
 			const pluginsOptions = {
-				['test-plugin']: {
+				'test-plugin': {
 					loadAsChildProcess: false,
 					dataPath: dirs.dataPath,
 					appConfig: {

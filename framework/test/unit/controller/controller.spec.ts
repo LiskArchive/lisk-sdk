@@ -208,8 +208,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith( 'plugin1','Loading in-memory plugin',);
-				expect(loggerMock.info).toHaveBeenCalledWith( 'plugin2','Loading in-memory plugin',);
+				expect(loggerMock.info).toHaveBeenCalledWith('plugin1', 'Loading in-memory plugin');
+				expect(loggerMock.info).toHaveBeenCalledWith('plugin2', 'Loading in-memory plugin');
 			});
 
 			it('should create instance of in-memory channel', async () => {
@@ -333,8 +333,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith( 'plugin1','Loading child-process plugin',);
-				expect(loggerMock.info).toHaveBeenCalledWith( 'plugin2','Loading child-process plugin',);
+				expect(loggerMock.info).toHaveBeenCalledWith('plugin1', 'Loading child-process plugin');
+				expect(loggerMock.info).toHaveBeenCalledWith('plugin2', 'Loading child-process plugin');
 			});
 
 			it('should load child process with childProcess.fork', async () => {

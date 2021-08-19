@@ -42,14 +42,6 @@ import {
 	RegisteredModule,
 	UpdateForgingStatusInput,
 	PartialApplicationConfig,
-	ApplicationConfig,
-	GenesisConfig,
-	EventPostTransactionData,
-	PluginOptions,
-	RegisteredSchema,
-	RegisteredModule,
-	UpdateForgingStatusInput,
-	PartialApplicationConfig,
 	PluginOptionsWithApplicationConfig,
 } from './types';
 
@@ -189,8 +181,8 @@ export class Application {
 	): void {
 		assert(pluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		const pluginObject = new pluginKlass();
-		const pluginAlias = options?.alias ?? pluginObject.name;
+		const PluginObject = new pluginKlass();
+		const pluginAlias = options?.alias ?? PluginObject.name;
 
 		assert(
 			!Object.keys(this._plugins).includes(pluginAlias),
@@ -210,7 +202,7 @@ export class Application {
 			options,
 		);
 
-		validatePluginSpec(pluginObject);
+		validatePluginSpec(PluginObject);
 
 		this._plugins[pluginAlias] = pluginKlass;
 	}

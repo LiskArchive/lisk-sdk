@@ -113,8 +113,20 @@ describe('base_plugin', () => {
 		describe('init', () => {
 			it('should assign "codec" namespace', async () => {
 				// Act
-				await plugin.init({ options: { dataPath: '', appConfig: { ...appConfigForPlugin, version: '', networkVersion: '', genesisConfig: {} as unknown as GenesisConfig }}, channel: (channelMock as unknown) as BaseChannel, config: {}});
-				
+				await plugin.init({
+					options: {
+						dataPath: '',
+						appConfig: {
+							...appConfigForPlugin,
+							version: '',
+							networkVersion: '',
+							genesisConfig: ({} as unknown) as GenesisConfig,
+						},
+					},
+					channel: (channelMock as unknown) as BaseChannel,
+					config: {},
+				});
+
 				// Assert
 				expect(plugin.codec).toEqual(
 					expect.objectContaining({
@@ -122,10 +134,22 @@ describe('base_plugin', () => {
 					}),
 				);
 			});
-			
+
 			it('should create logger instance', async () => {
 				// Act
-				await plugin.init({ options: { dataPath: '', appConfig: { ...appConfigForPlugin, version: '', networkVersion: '', genesisConfig: {} as unknown as GenesisConfig }}, channel: (channelMock as unknown) as BaseChannel, config: {}});
+				await plugin.init({
+					options: {
+						dataPath: '',
+						appConfig: {
+							...appConfigForPlugin,
+							version: '',
+							networkVersion: '',
+							genesisConfig: ({} as unknown) as GenesisConfig,
+						},
+					},
+					channel: (channelMock as unknown) as BaseChannel,
+					config: {},
+				});
 
 				// Assert
 				expect(loggerModule.createLogger).toHaveBeenCalledTimes(1);
@@ -140,7 +164,19 @@ describe('base_plugin', () => {
 
 			it('should fetch schemas and assign to instance', async () => {
 				// Act
-				await plugin.init({ options: { dataPath: '', appConfig: { ...appConfigForPlugin, version: '', networkVersion: '', genesisConfig: {} as unknown as GenesisConfig }}, channel: (channelMock as unknown) as BaseChannel, config: {}});
+				await plugin.init({
+					options: {
+						dataPath: '',
+						appConfig: {
+							...appConfigForPlugin,
+							version: '',
+							networkVersion: '',
+							genesisConfig: ({} as unknown) as GenesisConfig,
+						},
+					},
+					channel: (channelMock as unknown) as BaseChannel,
+					config: {},
+				});
 
 				// Assert
 				expect(channelMock.once).toHaveBeenCalledTimes(1);
@@ -163,7 +199,7 @@ describe('base_plugin', () => {
 
 		it('should return name if its a valid npm package', () => {
 			jest.mock(
-				"my_plugin",
+				'my_plugin',
 				() => {
 					return {
 						MyPlugin,
@@ -171,15 +207,14 @@ describe('base_plugin', () => {
 				},
 				{ virtual: true },
 			);
-			
 
 			expect(getPluginExportPath(MyPlugin)).toEqual('my_plugin');
 		});
 
 		it('should return undefined if exported class is not the same from npm package', () => {
-			class MyPlugin2 extends MyPlugin { }
+			class MyPlugin2 extends MyPlugin {}
 			jest.mock(
-				"my_plugin",
+				'my_plugin',
 				() => {
 					return {
 						MyPlugin: MyPlugin2,

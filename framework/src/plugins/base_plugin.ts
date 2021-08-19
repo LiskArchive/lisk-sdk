@@ -77,9 +77,7 @@ interface BlockAssetJSON {
 
 // type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithApplicationConfig;
 
-export interface InstantiablePlugin<T extends BasePlugin = BasePlugin> {
-	new (): T;
-}
+export type InstantiablePlugin<T extends BasePlugin = BasePlugin> = new () => T;
 
 const decodeTransactionToJSON = (
 	transactionBuffer: Buffer,
@@ -187,13 +185,13 @@ export interface PluginCodec {
 }
 
 interface PluginInitContext {
-	config: Record<string, unknown>; //plugin config
+	config: Record<string, unknown>;
 	channel: BaseChannel;
 	options: {
-	  readonly dataPath: string;
-	  appConfig: Omit<ApplicationConfig, 'plugins'>;
-	},
-  }
+		readonly dataPath: string;
+		appConfig: Omit<ApplicationConfig, 'plugins'>;
+	};
+}
 
 export abstract class BasePlugin<
 	T extends PluginOptionsWithApplicationConfig = PluginOptionsWithApplicationConfig
@@ -206,56 +204,55 @@ export abstract class BasePlugin<
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(context: PluginInitContext): Promise<void> {
+		if (this.configSchema) {
+			this.options = objects.mergeDeep(
+				{},
+				(this.configSchema as SchemaWithDefault).default ?? {},
+				context.options,
+				context.config,
+			) as T;
 
-			if (this.configSchema) {
-				this.options = objects.mergeDeep(
-					{},
-					(this.configSchema as SchemaWithDefault).default ?? {},
-					context.options,
-					context.config,
-				) as T;
-	
-				const errors = validator.validate(this.configSchema, this.options);
-				
-				if (errors.length) {
-					throw new LiskValidationError([...errors]);
-				}
-			} else {
-				this.options = objects.mergeDeep({}, context.options, context.config) as T;
+			const errors = validator.validate(this.configSchema, this.options);
+
+			if (errors.length) {
+				throw new LiskValidationError([...errors]);
 			}
-	
-			this.codec = {
-				decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
-					const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-	
-					return decodeAccountToJSON(accountBuffer, this.schemas.account);
-				},
-				decodeBlock: (data: Buffer | string): BlockJSON => {
-					const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-	
-					return decodeBlockToJSON(this.schemas, blockBuffer);
-				},
-				decodeRawBlock: (data: Buffer | string): RawBlock => {
-					const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-	
-					return decodeRawBlock(this.schemas.block, blockBuffer);
-				},
-				decodeTransaction: (data: Buffer | string): TransactionJSON => {
-					const transactionBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
-	
-					return decodeTransactionToJSON(
-						transactionBuffer,
-						this.schemas.transaction,
-						this.schemas.transactionsAssets,
-					);
-				},
-				encodeTransaction: (transaction: TransactionJSON): string =>
-					encodeTransactionFromJSON(
-						transaction,
-						this.schemas.transaction,
-						this.schemas.transactionsAssets,
-					),
-			};
+		} else {
+			this.options = objects.mergeDeep({}, context.options, context.config) as T;
+		}
+
+		this.codec = {
+			decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
+				const accountBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
+
+				return decodeAccountToJSON(accountBuffer, this.schemas.account);
+			},
+			decodeBlock: (data: Buffer | string): BlockJSON => {
+				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
+
+				return decodeBlockToJSON(this.schemas, blockBuffer);
+			},
+			decodeRawBlock: (data: Buffer | string): RawBlock => {
+				const blockBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
+
+				return decodeRawBlock(this.schemas.block, blockBuffer);
+			},
+			decodeTransaction: (data: Buffer | string): TransactionJSON => {
+				const transactionBuffer: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, 'hex');
+
+				return decodeTransactionToJSON(
+					transactionBuffer,
+					this.schemas.transaction,
+					this.schemas.transactionsAssets,
+				);
+			},
+			encodeTransaction: (transaction: TransactionJSON): string =>
+				encodeTransactionFromJSON(
+					transaction,
+					this.schemas.transaction,
+					this.schemas.transactionsAssets,
+				),
+		};
 
 		const dirs = systemDirs(this.options.appConfig.label, this.options.appConfig.rootPath);
 		this._logger = createLogger({
@@ -295,23 +292,23 @@ export const getPluginExportPath = (
 	let nodeModule: Record<string, unknown> | undefined;
 	let nodeModulePath: string | undefined;
 
-	const pluginInstance = new pluginKlass();
+	const PluginInstance = new pluginKlass();
 
 	try {
 		// Check if plugin name is an npm package
 		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-		nodeModule = require(pluginInstance.name);
-		nodeModulePath = pluginInstance.name;
+		nodeModule = require(PluginInstance.name);
+		nodeModulePath = PluginInstance.name;
 	} catch (error) {
 		/* Plugin pluginKlass.name is not an npm package */
 	}
 
-	if (!nodeModule && pluginInstance.nodeModulePath) {
+	if (!nodeModule && PluginInstance.nodeModulePath) {
 		try {
 			// Check if plugin nodeModulePath is an npm package
 			// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-			nodeModule = require(pluginInstance.nodeModulePath);
-			nodeModulePath = pluginInstance.nodeModulePath;
+			nodeModule = require(PluginInstance.nodeModulePath);
+			nodeModulePath = PluginInstance.nodeModulePath;
 		} catch (error) {
 			/* Plugin nodeModulePath is not an npm package */
 		}
@@ -330,10 +327,7 @@ export const getPluginExportPath = (
 	return nodeModulePath;
 };
 
-export const validatePluginSpec = (
-	PluginObject: BasePlugin,
-): void => {
-
+export const validatePluginSpec = (PluginObject: BasePlugin): void => {
 	assert(PluginObject.name, 'Plugin name is required.');
 	assert(PluginObject.events, 'Plugin events are required.');
 	assert(PluginObject.actions, 'Plugin actions are required.');

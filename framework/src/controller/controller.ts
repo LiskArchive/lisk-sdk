@@ -97,7 +97,7 @@ export class Controller {
 			const klass = plugins[name];
 			const options = pluginOptions[name];
 
-			if (options.loadAsChildProcess ) {
+			if (options.loadAsChildProcess) {
 				await this._loadChildProcessPlugin(name, klass, options);
 			} else {
 				await this._loadInMemoryPlugin(name, klass, options);
@@ -191,7 +191,7 @@ export class Controller {
 		const { plugins, ...appConfigForPlugin } = options.appConfig;
 		const config = plugins[name];
 		const pluginOptions = { ...options, ...appConfigForPlugin };
-		const context = { options: pluginOptions, channel, config};
+		const context = { options: pluginOptions, channel, config };
 
 		await plugin.init(context);
 		await plugin.load(channel);
@@ -241,10 +241,7 @@ export class Controller {
 		child.on('exit', (code, signal) => {
 			// If child process exited with error
 			if (code !== null && code !== undefined && code !== 0) {
-				this.logger.error(
-					{ name, code, signal: signal ?? '' },
-					'Child process plugin exited',
-				);
+				this.logger.error({ name, code, signal: signal ?? '' }, 'Child process plugin exited');
 			}
 		});
 
