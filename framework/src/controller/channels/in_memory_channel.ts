@@ -55,7 +55,7 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
-		const action = new Action(Action.getActionIDForRPC(), actionName, params);
+		const action = new Action(this._getNextRequestId(), actionName, params);
 
 		if (action.module === this.moduleAlias) {
 			if (this.actions[action.name] === undefined) {
